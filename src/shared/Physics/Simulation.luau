@@ -1,0 +1,457 @@
+--!strict
+-- Simulation: the pool physics. Pure Luau, fixed timestep, deterministic.
+--
+-- Each fixed step is processed event by event: find the earliest time of impact among all
+-- moving balls, advance everyone exactly to it, resolve that one contact, repeat until the
+-- step is used up. Because impact times are exact, nothing can tunnel however fast it goes.
+--
+-- Between impacts a ball either SLIDES (contact point moving over the cloth, kinetic
+-- friction acts on both velocity and spin until they agree) or ROLLS (rolling resistance
+-- only, spin locked to velocity). Both are integrated in closed form, so no energy is
+-- invented by the integrator.
+--
+-- Units: inches, seconds, radians. Mass is 1 for every ball (only ratios matter).
+
+local Config = require(script.Parent.Parent.Config)
+local Ball = require(script.Parent.Ball)
+local Collision = require(script.Parent.Collision)
+local Cue = require(script.Parent.Cue)
+local TableGeometry = require(script.Parent.Table)
+
+type Ball = Ball.Ball
+type Geometry = TableGeometry.Geometry
+type Shot = Cue.Shot
+
+local Simulation = {}
+
+export type State = {
+	geometry: Geometry,
+	balls: { Ball },
+	time: number,
+}
+
+export type Event = {
+	t: number,
+	type: "cueStrike" | "railHit" | "ballHit" | "pocket",
+	ball: number, -- ball id
+	other: number?, -- other ball id for ballHit, pocket id for pocket
+	speed: number, -- impact speed along the contact normal (in/s)
+}
+
+export type Frame = {
+	t: number,
+	positions: { number }, -- x1, y1, x2, y2 ... in state.balls order; pocketed balls keep last position
+}
+
+export type ShotResult = {
+	frames: { Frame },
+	events: { Event },
+	finalBalls: { Ball },
+	firstContact: number?, -- id of the first ball the cue ball touched
+	duration: number,
+	steps: number,
+	capped: boolean, -- true if MaxShotSeconds stopped the shot early
+}
+
+---------------------------------------------------------------------------------------------
+-- State
+---------------------------------------------------------------------------------------------
+
+function Simulation.newState(geometry: Geometry, balls: { Ball }): State
+	return { geometry = geometry, balls = balls, time = 0 }
+end
+
+function Simulation.cloneState(state: State): State
+	return { geometry = state.geometry, balls = Ball.cloneList(state.balls), time = state.time }
+end
+
+function Simulation.isAtRest(state: State): boolean
+	for _, b in state.balls do
+		if Ball.isMoving(b) then
+			return false
+		end
+	end
+	return true
+end
+
+function Simulation.energy(state: State): number
+	local R = Config.Balls.RadiusInches
+	local total = 0
+	for _, b in state.balls do
+		total += Ball.kineticEnergy(b, R)
+	end
+	return total
+end
+
+function Simulation.findBall(state: State, id: number): Ball?
+	for _, b in state.balls do
+		if b.id == id then
+			return b
+		end
+	end
+	return nil
+end
+
+---------------------------------------------------------------------------------------------
+-- Free motion between impacts (closed form)
+---------------------------------------------------------------------------------------------
+
+local function integrateBall(b: Ball, h: number)
+	if b.pocketed then
+		return
+	end
+	local P = Config.Physics
+	local R = Config.Balls.RadiusInches
+	local g = P.Gravity
+
+	local remaining = h
+
+	-- Contact point velocity relative to the cloth. Zero means the ball is rolling.
+	local ux = b.vx - R * b.wy
+	local uy = b.vy + R * b.wx
+	local u = math.sqrt(ux * ux + uy * uy)
+
+	if u > P.SlideEpsilon then
+		-- Sliding. u shrinks linearly at 3.5 * mu * g along a fixed direction, so the
+		-- motion over the slide interval is exact constant-acceleration kinematics.
+		local uhx, uhy = ux / u, uy / u
+		local slideTime = u / (3.5 * P.SlidingFriction * g)
+		local dt = math.min(slideTime, remaining)
+		local a = -P.SlidingFriction * g
+		local alpha = 2.5 * P.SlidingFriction * g / R
+
+		b.x += b.vx * dt + 0.5 * a * uhx * dt * dt
+		b.y += b.vy * dt + 0.5 * a * uhy * dt * dt
+		b.vx += a * uhx * dt
+		b.vy += a * uhy * dt
+		b.wx += -alpha * uhy * dt
+		b.wy += alpha * uhx * dt
+		remaining -= dt
+
+		if slideTime <= h then
+			-- Reached pure rolling inside this interval: lock spin to velocity exactly.
+			b.wx = -b.vy / R
+			b.wy = b.vx / R
+		end
+	end
+
+	if remaining > 0 then
+		-- Rolling. Rolling resistance slows the ball along its direction of travel.
+		local v = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+		if v > 0 then
+			local decel = P.RollingFriction * g
+			local stopTime = v / decel
+			local dt = math.min(stopTime, remaining)
+			local dhx, dhy = b.vx / v, b.vy / v
+			b.x += b.vx * dt - 0.5 * decel * dhx * dt * dt
+			b.y += b.vy * dt - 0.5 * decel * dhy * dt * dt
+			if stopTime <= remaining then
+				b.vx, b.vy = 0, 0
+			else
+				b.vx -= decel * dhx * dt
+				b.vy -= decel * dhy * dt
+			end
+		end
+		b.wx = -b.vy / R
+		b.wy = b.vx / R
+	end
+
+	-- Side spin decays on its own (friction torque about the vertical axis).
+	if b.wz ~= 0 then
+		local dw = 2.5 * P.SpinFriction * g / R * h
+		if math.abs(b.wz) <= dw then
+			b.wz = 0
+		else
+			b.wz -= dw * math.sign(b.wz)
+		end
+	end
+
+	-- Snap to rest so shots end cleanly instead of creeping forever.
+	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+	if speed < P.RestSpeed and math.abs(b.wz) < P.RestSpin then
+		local uAfter = math.sqrt((b.vx - R * b.wy) ^ 2 + (b.vy + R * b.wx) ^ 2)
+		if uAfter < P.SlideEpsilon then
+			Ball.stop(b)
+		end
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- Contact resolution
+---------------------------------------------------------------------------------------------
+
+-- Cushion hit, as a rigid-body impulse at the cushion nose.
+--
+-- The nose touches the ball ABOVE its centre (regulation height is about 63% of the ball
+-- diameter). Because the contact is off-centre, the normal impulse also twists the ball:
+-- a rolling ball's top spin is largely cancelled on the cushion, which is what makes a
+-- rolling ball rebound at roughly 60-70% of its speed instead of dying or flying back.
+-- Along the cushion, friction acts against the contact point's sliding velocity (which is
+-- where side spin comes in), never reverses it, and is capped by the friction cone.
+-- Both impulses can only remove energy, so the energy test stays honest.
+local function resolveRail(b: Ball, nx: number, ny: number): number
+	local P = Config.Physics
+	local R = Config.Balls.RadiusInches
+	local I = 0.4 * R * R -- solid sphere, unit mass
+
+	-- Contact frame: n points into the ball, t = z-hat cross n runs along the cushion.
+	local tx, ty = -ny, nx
+	local h = math.clamp(P.CushionNoseHeightInches - R, 0, R * 0.95) -- nose height above the centre
+	local a = math.sqrt(R * R - h * h) -- horizontal reach to the contact point
+
+	local vn = b.vx * nx + b.vy * ny -- negative: moving into the cushion
+	local vt = b.vx * tx + b.vy * ty
+	local wn = b.wx * nx + b.wy * ny
+	local wt = b.wx * tx + b.wy * ty
+	local wz = b.wz
+
+	-- Normal impulse from Newton restitution at the contact point.
+	local contactVn = vn + wt * h
+	local speedIn = -vn
+	if contactVn < 0 then
+		local kn = 1 + h * h / I
+		local jn = -(1 + P.RailRestitution) * contactVn / kn
+		vn += jn
+		wt += jn * h / I
+
+		-- Friction impulse along the cushion against the contact point's sliding velocity.
+		local contactVt = vt - wz * a - wn * h
+		local kt = 1 + (h * h + a * a) / I
+		local jt = -contactVt / kt
+		local jtMax = P.RailFriction * jn
+		if jt > jtMax then
+			jt = jtMax
+		elseif jt < -jtMax then
+			jt = -jtMax
+		end
+		vt += jt
+		wn += -h * jt / I
+		wz += -a * jt / I
+	end
+
+	b.vx = vn * nx + vt * tx
+	b.vy = vn * ny + vt * ty
+	b.wx = wn * nx + wt * tx
+	b.wy = wn * ny + wt * ty
+	b.wz = wz
+	return speedIn
+end
+
+-- Ball-ball hit: equal masses, impulse along the line of centres with restitution.
+-- Spin is left untouched (no throw), which is what makes stop shots and draw work.
+local function resolveBalls(a: Ball, b: Ball): number
+	local e = Config.Physics.BallRestitution
+	local nx, ny = b.x - a.x, b.y - a.y
+	local len = math.sqrt(nx * nx + ny * ny)
+	if len < 1e-12 then
+		return 0
+	end
+	nx, ny = nx / len, ny / len
+	local relVn = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny
+	if relVn <= 0 then
+		return 0
+	end
+	local j = (1 + e) * relVn / 2
+	a.vx -= j * nx
+	a.vy -= j * ny
+	b.vx += j * nx
+	b.vy += j * ny
+	return relVn
+end
+
+---------------------------------------------------------------------------------------------
+-- Stepping
+---------------------------------------------------------------------------------------------
+
+type Hit = {
+	kind: "rail" | "point" | "ball",
+	t: number,
+	a: Ball,
+	b: Ball?,
+	nx: number,
+	ny: number,
+	seg: TableGeometry.Segment?,
+}
+
+local function findEarliestHit(state: State, maxT: number): Hit?
+	local R = Config.Balls.RadiusInches
+	local geometry = state.geometry
+	local balls = state.balls
+	local best: Hit? = nil
+	local bestT = maxT
+
+	for i, a in balls do
+		if a.pocketed then
+			continue
+		end
+		local moving = a.vx ~= 0 or a.vy ~= 0
+		if moving then
+			for _, seg in geometry.segments do
+				local t = Collision.segmentTOI(a.x, a.y, a.vx, a.vy, R, seg, bestT)
+				if t and t < bestT then
+					bestT = t
+					best = { kind = "rail", t = t, a = a, nx = seg.nx, ny = seg.ny, seg = seg }
+				end
+			end
+			for _, pt in geometry.points do
+				local t, nx, ny =
+					Collision.pointTOI(a.x, a.y, a.vx, a.vy, R, pt.x, pt.y, pt.radius, bestT)
+				if t and t < bestT then
+					bestT = t
+					best = { kind = "point", t = t, a = a, nx = nx, ny = ny }
+				end
+			end
+		end
+		for j = i + 1, #balls do
+			local b = balls[j]
+			if b.pocketed then
+				continue
+			end
+			if not moving and b.vx == 0 and b.vy == 0 then
+				continue
+			end
+			local t = Collision.circleTOI(a.x, a.y, a.vx, a.vy, b.x, b.y, b.vx, b.vy, R, bestT)
+			if t and t < bestT then
+				bestT = t
+				best = { kind = "ball", t = t, a = a, b = b, nx = 0, ny = 0 }
+			end
+		end
+	end
+	return best
+end
+
+local function pushOut(hit: Hit)
+	local R = Config.Balls.RadiusInches
+	local slop = Config.Physics.ContactSlop
+	local a = hit.a
+	if hit.kind == "rail" and hit.seg then
+		local seg = hit.seg
+		local d = (a.x - seg.ax) * seg.nx + (a.y - seg.ay) * seg.ny
+		if d < R + slop then
+			a.x += (R + slop - d) * seg.nx
+			a.y += (R + slop - d) * seg.ny
+		end
+	elseif hit.kind == "ball" and hit.b then
+		local b = hit.b
+		local dx, dy = b.x - a.x, b.y - a.y
+		local dist = math.sqrt(dx * dx + dy * dy)
+		local want = 2 * R + slop
+		if dist > 1e-12 and dist < want then
+			local push = (want - dist) / 2
+			local nx, ny = dx / dist, dy / dist
+			a.x -= nx * push
+			a.y -= ny * push
+			b.x += nx * push
+			b.y += ny * push
+		end
+	end
+end
+
+--- Advance the simulation by one fixed step, appending any contact events.
+function Simulation.step(state: State, dt: number, events: { Event }?)
+	local P = Config.Physics
+	local remaining = dt
+	local iterations = 0
+
+	while remaining > 1e-9 and iterations < P.MaxEventsPerStep do
+		iterations += 1
+		local hit = findEarliestHit(state, remaining)
+		local advance = if hit then hit.t else remaining
+
+		for _, b in state.balls do
+			integrateBall(b, advance)
+		end
+		state.time += advance
+		remaining -= advance
+
+		if hit then
+			pushOut(hit)
+			local speed: number
+			local eventType: "railHit" | "ballHit"
+			local other: number? = nil
+			if hit.kind == "ball" and hit.b then
+				speed = resolveBalls(hit.a, hit.b)
+				eventType = "ballHit"
+				other = hit.b.id
+			else
+				speed = resolveRail(hit.a, hit.nx, hit.ny)
+				eventType = "railHit"
+			end
+			if events and speed > 0 then
+				table.insert(events, {
+					t = state.time,
+					type = eventType,
+					ball = hit.a.id,
+					other = other,
+					speed = speed,
+				})
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- Whole shot
+---------------------------------------------------------------------------------------------
+
+local function captureFrame(state: State): Frame
+	local positions = table.create(#state.balls * 2)
+	for i, b in state.balls do
+		positions[2 * i - 1] = b.x
+		positions[2 * i] = b.y
+	end
+	return { t = state.time, positions = positions }
+end
+
+--- Run a complete shot from the given state. The input state is not modified.
+function Simulation.run(state: State, shot: Shot): ShotResult
+	local P = Config.Physics
+	local sim = Simulation.cloneState(state)
+	sim.time = 0
+	local events: { Event } = {}
+	local frames: { Frame } = {}
+
+	local cueBall = Simulation.findBall(sim, 0)
+	if cueBall == nil or cueBall.pocketed then
+		error("Simulation.run: no cue ball on the table")
+	end
+	local speed = Cue.strike(cueBall, shot)
+	table.insert(events, { t = 0, type = "cueStrike", ball = 0, speed = speed })
+	table.insert(frames, captureFrame(sim))
+
+	local steps = 0
+	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
+	local capped = false
+	while not Simulation.isAtRest(sim) do
+		if steps >= maxSteps then
+			capped = true
+			for _, b in sim.balls do
+				Ball.stop(b)
+			end
+			break
+		end
+		Simulation.step(sim, P.FixedStep, events)
+		table.insert(frames, captureFrame(sim))
+		steps += 1
+	end
+
+	local firstContact: number? = nil
+	for _, ev in events do
+		if ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
+			firstContact = if ev.ball == 0 then ev.other else ev.ball
+			break
+		end
+	end
+
+	return {
+		frames = frames,
+		events = events,
+		finalBalls = Ball.cloneList(sim.balls),
+		firstContact = firstContact,
+		duration = sim.time,
+		steps = steps,
+		capped = capped,
+	}
+end
+
+return Simulation

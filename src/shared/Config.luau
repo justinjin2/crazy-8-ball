@@ -80,20 +80,26 @@ Config.Physics = {
 	SlidingFriction = 0.2,
 	-- Rolling resistance once the ball ROLLS without slipping. Typical 0.005 to 0.015.
 	-- Higher = balls stop sooner. (tune)
-	RollingFriction = 0.010,
+	RollingFriction = 0.012,
 	-- Decay of side spin (spin about the vertical axis) while rolling. (tune)
 	SpinFriction = 0.044,
 	-- Ball-ball coefficient of restitution. Phenolic balls: 0.92 to 0.96. (tune)
 	BallRestitution = 0.93,
-	-- Ball-cushion coefficient of restitution. Real cushions: 0.6 to 0.85. (tune)
-	RailRestitution = 0.75,
-	-- Fraction of tangential speed lost on a cushion hit. (tune)
-	RailFriction = 0.15,
-	-- How strongly side spin bends a cushion rebound. 0 disables. (tune)
-	RailSpinEffect = 0.25,
-	-- Below this speed (in/s) and spin (rad/s) a ball is snapped to rest.
-	RestSpeed = 0.4,
+	-- Ball-cushion coefficient of restitution at the contact point. Real cushions: 0.7 to 0.9.
+	-- (tune)
+	RailRestitution = 0.8,
+	-- Height of the cushion nose above the cloth. Regulation is 62.5% of the ball diameter
+	-- (1.41 in). Higher kills more top spin on the rebound; at ball-centre height (1.125) the
+	-- cushion has no effect on spin. (tune)
+	CushionNoseHeightInches = 1.41,
+	-- Cushion friction coefficient. Caps how much the cushion can grab the ball along its
+	-- length, which is what lets side spin bend the rebound. (tune)
+	RailFriction = 0.2,
+	-- Below this speed (in/s) and side spin (rad/s) a ball is snapped to rest.
+	RestSpeed = 1.0,
 	RestSpin = 0.6,
+	-- Contact-point speed (in/s) under which a ball counts as rolling, not sliding.
+	SlideEpsilon = 1e-4,
 	-- Safety caps so a bad shot can never hang the game.
 	MaxShotSeconds = 40,
 	MaxEventsPerStep = 200,
@@ -120,6 +126,27 @@ Config.Cue = {
 	CueLengthInches = 58,
 	CueButtDiameterInches = 1.2,
 	CueTipDiameterInches = 0.5,
+}
+
+---------------------------------------------------------------------------------------------
+-- World placement (studs). Physics x -> world X, physics y -> world -Z, up -> world Y.
+---------------------------------------------------------------------------------------------
+Config.World = {
+	-- Floor-level centre of the table in Workspace.
+	TableOrigin = { X = 0, Y = 0, Z = 20 },
+}
+
+---------------------------------------------------------------------------------------------
+-- Look (colours are RGB 0-255, materials are Enum.Material names)
+---------------------------------------------------------------------------------------------
+Config.Look = {
+	FeltColor = { 20, 105, 60 },
+	FeltMaterial = "Fabric",
+	RailColor = { 62, 38, 24 },
+	RailMaterial = "Wood",
+	FrameColor = { 45, 28, 18 },
+	FrameMaterial = "WoodPlanks",
+	BallMaterial = "SmoothPlastic",
 }
 
 ---------------------------------------------------------------------------------------------

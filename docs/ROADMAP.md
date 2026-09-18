@@ -23,7 +23,7 @@ Version 1 = Phases 0 to 4. Everything after is only worth building if v1 is fun.
 
 The most important phase. No rules, no opponents, no menus. Just: does hitting a ball feel good?
 
-- [ ] **1.1 One ball rolls.** Grey-box table. Custom physics module moves one cue ball: it rolls, slows with friction, bounces off rails, stops.
+- [x] **1.1 One ball rolls.** Grey-box table. Custom physics module moves one cue ball: it rolls, slows with friction, bounces off rails, stops.
   Done means: a ball fired by a test command bounces around believably and comes to rest.
 - [ ] **1.2 Balls collide and sink.** Ball-to-ball collisions, six pockets, full 15-ball rack, break shot.
   Done means: a hard break scatters the rack convincingly and balls drop into pockets.

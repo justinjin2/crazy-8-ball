@@ -6,6 +6,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+
+if workspace:FindFirstChild("PoolTable") then
+	workspace.PoolTable:Destroy()
+end
+TableBuilder.build(workspace)
 
 print(
 	("[8ball] server ready. Table %dx%d in, %.2f studs/in"):format(
