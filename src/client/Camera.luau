@@ -1,6 +1,7 @@
 --!strict
--- Camera: milestone 1 only needs a fixed, high, angled view over the whole table so the
--- shot can be watched. Milestone 4 adds the orbiting aim view and the cinematic shot view.
+-- Camera: for milestones 1-3 this is a fixed top-down view over the whole table so shots can
+-- be watched. Milestone 4 adds the behind-the-cue-ball view, the toggle, and the cinematic
+-- shot camera.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -15,19 +16,19 @@ local locked = false
 
 --- Park the camera above the head rail looking at the table centre.
 function Camera.applyTableView()
-	local C = Config.Camera
+	local C = Config.Camera.TopDown
 	local cam = Workspace.CurrentCamera
 	cam.CameraType = Enum.CameraType.Scriptable
-	cam.FieldOfView = C.AimFieldOfView
+	cam.FieldOfView = C.FieldOfView
 
 	local center = TableBuilder.toWorld(0, 0, 0)
-	local pitch = math.rad(C.AimPitchDegrees)
+	local pitch = math.rad(C.PitchDegrees)
 	local azimuth = math.rad(C.FixedAzimuthDegrees)
-	local flat = math.cos(pitch) * C.AimDistanceStuds
+	local flat = math.cos(pitch) * C.DistanceStuds
 	-- Azimuth 0 stands behind the head rail (physics -x).
 	local offset = Vector3.new(
 		-math.cos(azimuth) * flat,
-		math.sin(pitch) * C.AimDistanceStuds,
+		math.sin(pitch) * C.DistanceStuds,
 		math.sin(azimuth) * flat
 	)
 	cam.CFrame = CFrame.lookAt(center + offset, center)

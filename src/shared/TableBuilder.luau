@@ -4,6 +4,7 @@
 -- This module touches Instances, so it lives outside Physics and is not run in tests.
 
 local Config = require(script.Parent.Config)
+local TableGeometry = require(script.Parent.Physics.Table)
 
 local TableBuilder = {}
 
@@ -93,43 +94,88 @@ function TableBuilder.build(parent: Instance): Model
 		model
 	)
 
-	-- Rails. Inner faces sit exactly on the physics cushion lines (x = +-L/2, y = +-W/2).
+	-- Rails: one block per physics cushion segment, so the visible cushion faces are exactly
+	-- the lines the balls bounce off, and the gaps between them are exactly the pocket mouths.
+	local geometry = TableGeometry.build({ pocketsOpen = true })
 	local railY = (surfaceY - bed + (railH + bed) / 2) * s
-	local railSizeLong = Vector3.new((length + 2 * railW) * s, (railH + bed) * s, railW * s)
-	local railSizeShort = Vector3.new(railW * s, (railH + bed) * s, width * s)
-	-- Physics +y is world -Z.
-	makePart(
-		"RailTop",
-		railSizeLong,
-		origin + Vector3.new(0, railY, -(width / 2 + railW / 2) * s),
-		L.RailColor,
-		L.RailMaterial,
-		model
-	)
-	makePart(
-		"RailBottom",
-		railSizeLong,
-		origin + Vector3.new(0, railY, (width / 2 + railW / 2) * s),
-		L.RailColor,
-		L.RailMaterial,
-		model
-	)
-	makePart(
-		"RailFoot",
-		railSizeShort,
-		origin + Vector3.new((length / 2 + railW / 2) * s, railY, 0),
-		L.RailColor,
-		L.RailMaterial,
-		model
-	)
-	makePart(
-		"RailHead",
-		railSizeShort,
-		origin + Vector3.new(-(length / 2 + railW / 2) * s, railY, 0),
-		L.RailColor,
-		L.RailMaterial,
-		model
-	)
+	for _, seg in geometry.segments do
+		local dx, dy = seg.bx - seg.ax, seg.by - seg.ay
+		local segLen = math.sqrt(dx * dx + dy * dy)
+		-- Midpoint pushed outward (away from the inward normal) by half the rail width.
+		local mx = (seg.ax + seg.bx) / 2 - seg.nx * railW / 2
+		local my = (seg.ay + seg.by) / 2 - seg.ny * railW / 2
+		local alongX = math.abs(dx) > math.abs(dy)
+		-- Rails along the length reach out to the outer corner of the table; short rails stay
+		-- within the width. Both get their outer end extended past the mouth cut so the frame
+		-- reads as one piece around each pocket.
+		local size = if alongX
+			then Vector3.new(segLen * s, (railH + bed) * s, railW * s)
+			else Vector3.new(railW * s, (railH + bed) * s, segLen * s)
+		makePart(
+			"Rail_" .. seg.name,
+			size,
+			origin + Vector3.new(mx * s, railY, -my * s),
+			L.RailColor,
+			L.RailMaterial,
+			model
+		)
+	end
+
+	-- Pocket liners: dark cylinders from the apron up to just above the cloth. The sinking
+	-- animation drops the ball through them.
+	local linerH = bed + 0.3
+	for _, pocket in geometry.pockets do
+		local liner = Instance.new("Part")
+		liner.Name = "Pocket" .. pocket.id
+		liner.Shape = Enum.PartType.Cylinder
+		liner.Anchored = true
+		liner.CanCollide = false
+		liner.CastShadow = false
+		liner.Material = Enum.Material.SmoothPlastic
+		liner.Color = Color3.fromRGB(L.PocketColor[1], L.PocketColor[2], L.PocketColor[3])
+		-- Cylinders point along their X axis; stand it up.
+		liner.Size = Vector3.new(linerH * s, pocket.radius * 2 * s, pocket.radius * 2 * s)
+		liner.CFrame = CFrame.new(
+			origin + Vector3.new(pocket.x * s, (surfaceY - bed + linerH / 2) * s, -pocket.y * s)
+		) * CFrame.Angles(0, 0, math.rad(90))
+		liner.Parent = model
+	end
+
+	-- Corner blocks: fill the frame behind each corner pocket so the apron corner is not bare.
+	for _, sx in { -1, 1 } do
+		for _, sy in { -1, 1 } do
+			local c = (T.CornerMouthInches + 2 * T.JawRadiusInches) / math.sqrt(2)
+			local blockSize = Vector3.new((c + railW) * s, (railH + bed) * s, railW * s)
+			-- Along the long rail, from the mouth cut to the outer corner.
+			makePart(
+				"CornerLong",
+				blockSize,
+				origin
+					+ Vector3.new(
+						sx * (length / 2 + railW - (c + railW) / 2) * s,
+						railY,
+						-sy * (width / 2 + railW / 2) * s
+					),
+				L.RailColor,
+				L.RailMaterial,
+				model
+			)
+			local blockSize2 = Vector3.new(railW * s, (railH + bed) * s, c * s)
+			makePart(
+				"CornerShort",
+				blockSize2,
+				origin
+					+ Vector3.new(
+						sx * (length / 2 + railW / 2) * s,
+						railY,
+						-sy * (width / 2 - c / 2) * s
+					),
+				L.RailColor,
+				L.RailMaterial,
+				model
+			)
+		end
+	end
 
 	-- Legs.
 	local legH = surfaceY - bed - apronH

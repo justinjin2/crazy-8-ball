@@ -26,19 +26,42 @@ Config.Table = {
 	RailHeightInches = 1.4,
 	-- Slate/frame thickness below the cloth, visual only.
 	BedThicknessInches = 2,
-	-- Pockets. A ball is pocketed when its centre enters the capture circle. Regulation
-	-- corner mouths are 4.5 to 5 inches wide, side mouths 5 to 5.5 inches. (tune)
+	-- Pockets. Rails stop short of each pocket, leaving a mouth. A ball is pocketed when its
+	-- centre enters the pocket's capture circle or crosses the cushion line into the pocket.
+	-- Mouth widths are the gap between the two jaws. Regulation: corner 4.5-5 in, side 5-5.5.
+	CornerMouthInches = 4.7,
+	SideMouthInches = 5.2,
+	-- Jaws: small fixed circles at the rail ends either side of every mouth. A ball that
+	-- clips one rattles instead of passing a sharp corner. (tune)
+	JawRadiusInches = 0.3,
+	-- Capture circle radius and how far its centre sits beyond the cushion line. (tune)
 	CornerPocketRadiusInches = 2.3,
-	SidePocketRadiusInches = 2.6,
-	-- How far each pocket centre sits past the cushion nose line, into the rail. (tune)
 	CornerPocketInsetInches = 1.4,
+	SidePocketRadiusInches = 2.6,
 	SidePocketInsetInches = 2.2,
-	-- Jaw points: small fixed circles at the two sides of every pocket mouth so balls can
-	-- rattle in the jaws instead of clipping a sharp corner. (tune)
-	JawRadiusInches = 0.6,
 	-- Head string: cue ball must start behind this on the break (1/4 of the length from the
 	-- head rail).
 	HeadStringFraction = 0.25,
+	-- Foot spot: where the apex ball of the rack sits (1/4 of the length from the foot rail).
+	FootSpotFraction = 0.25,
+}
+
+---------------------------------------------------------------------------------------------
+-- Rack
+---------------------------------------------------------------------------------------------
+Config.Rack = {
+	-- Tiny gap between racked balls. Real racks are never perfectly tight; a zero gap also
+	-- makes the break resolve as one giant simultaneous contact. (tune)
+	GapInches = 0.005,
+	-- Standard layout by row from the apex: 8 in the middle, opposite groups in the back
+	-- corners. Rows are listed from the apex (nearest the cue ball) backwards.
+	Layout = {
+		{ 1 },
+		{ 9, 2 },
+		{ 10, 8, 3 },
+		{ 11, 4, 12, 5 },
+		{ 13, 6, 14, 15, 7 },
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -61,9 +84,14 @@ Config.Balls = {
 	},
 	-- Glossy look (tune in the look pass).
 	Reflectance = 0.12,
-	-- Decal asset ids for numbers/stripes, filled in once the generated images are uploaded.
-	-- Empty string means "no decal, flat colour fallback".
-	DecalIds = {} :: { [number]: string },
+	-- Decal asset ids, filled in once the generated images (tools/gen_ball_decals.py) are
+	-- uploaded. Empty means "no decal": solids stay flat colour, stripes show as colour too.
+	Decals = {
+		-- [ballNumber] = "rbxassetid://..." white disc with the number, transparent elsewhere
+		Numbers = {} :: { [number]: string },
+		-- one white band on transparent, tinted per ball with Decal.Color3
+		StripeBand = "",
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -147,26 +175,42 @@ Config.Look = {
 	FrameColor = { 45, 28, 18 },
 	FrameMaterial = "WoodPlanks",
 	BallMaterial = "SmoothPlastic",
+	PocketColor = { 12, 10, 10 },
 }
 
 ---------------------------------------------------------------------------------------------
 -- Camera (studs, degrees)
 ---------------------------------------------------------------------------------------------
 Config.Camera = {
-	-- "orbit": the aim camera turns with the aim so the shooter is always at the bottom.
-	-- "fixed": the aim camera stays put over the table, GamePigeon style. (decide in M4)
-	AimMode = "orbit",
-	-- Aim view: high and angled. Pitch is degrees below horizontal (90 = straight down).
-	AimPitchDegrees = 62,
-	AimDistanceStuds = 12.5,
-	AimFieldOfView = 55,
-	-- Fixed mode looks along the table's long axis from the head end.
-	FixedAzimuthDegrees = 0,
+	-- Aim views the player can toggle between (milestone 4):
+	--   "topdown": GamePigeon style, high over the table so the whole board is visible,
+	--              tilted just enough to read as 3D.
+	--   "behind":  low 3D view behind the cue ball looking down the shot, cue stick in view,
+	--              the avatar mostly transparent.
+	-- The shot camera (after the strike) is the same cinematic follow view in both cases.
+	DefaultAimView = "topdown",
+	TopDown = {
+		PitchDegrees = 72, -- degrees below horizontal (90 = straight down)
+		DistanceStuds = 12.5,
+		FieldOfView = 55,
+		-- true: the view turns with the aim so the shooter is always at the bottom.
+		-- false: fixed over the table, only the aim line turns.
+		OrbitWithAim = false,
+		FixedAzimuthDegrees = 0,
+	},
+	Behind = {
+		PitchDegrees = 16,
+		DistanceStuds = 2.6, -- behind the cue ball along the aim line
+		HeightStuds = 0.9, -- above the cloth
+		FieldOfView = 60,
+	},
 	-- Shot view: lower, closer, follows the action.
-	ShotPitchDegrees = 32,
-	ShotDistanceStuds = 7,
-	ShotFieldOfView = 60,
-	-- Seconds for the camera to ease between modes / follow its target. (tune)
+	Shot = {
+		PitchDegrees = 32,
+		DistanceStuds = 7,
+		FieldOfView = 60,
+	},
+	-- Seconds for the camera to ease between views / follow its target. (tune)
 	ModeBlendSeconds = 0.6,
 	FollowSmoothing = 0.12,
 	-- How long after the last ball stops before the camera returns to the aim view.
@@ -177,8 +221,10 @@ Config.Camera = {
 -- Avatar (the shooter's R15 character at the table)
 ---------------------------------------------------------------------------------------------
 Config.Avatar = {
-	-- Transparency of the whole character while aiming (1 = invisible). GDD: "mostly".
-	AimTransparency = 0.75,
+	-- Transparency of the character while aiming (1 = invisible). The reference wants ~90%.
+	AimTransparency = 0.9,
+	-- true: only the cue arm and hands stay visible while aiming; the rest is hidden.
+	ArmOnlyWhileAiming = true,
 	-- Seconds to fade in/out and to blend into/out of the aiming pose.
 	FadeSeconds = 0.25,
 	PoseBlendSeconds = 0.3,
@@ -244,6 +290,8 @@ Config.Audio = {
 -- Effects and UI
 ---------------------------------------------------------------------------------------------
 Config.Effects = {
+	-- Seconds for a pocketed ball to drop out of sight.
+	SinkDropSeconds = 0.35,
 	SinkBurstParticles = 18,
 	EightBallBurstParticles = 48,
 	PopupSeconds = 1.1,
@@ -262,6 +310,10 @@ Config.Debug = {
 	TestKeysEnabled = true,
 	-- Print physics events to the console.
 	LogEvents = false,
+	-- Print a timing line when a shot finishes playing back.
+	LogPlayback = true,
+	-- Largest slice of shot time played per rendered frame. Keeps a hitch from skipping play.
+	MaxPlaybackStepSeconds = 0.1,
 }
 
 return Config

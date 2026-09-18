@@ -10,7 +10,7 @@ The project folder `/Users/justinjin/Desktop/8ball/` holds only `GDD.md` and `RO
 | --- | --- |
 | Table geometry | Generated at runtime by a `TableBuilder` module from `Config` dimensions. MCP is used for the room, lighting, post-processing, inspecting, playtesting and screenshots. |
 | Tool install | Homebrew: `rojo stylua selene lune aftman`, then `luau-lsp` through Aftman. I run the commands, you approve each. |
-| Aim camera | Both "orbits with aim" and "fixed over table" are built, switched by `Config.Camera.AimMode`. We delete the loser after a playtest. |
+| Aim camera | Two aim views the player toggles between (decided 2026-09-18 from the reference screenshot): **top-down**, GamePigeon style, whole table visible, tilted enough to read as 3D; and **behind**, a low 3D view behind the cue ball looking down the shot with the cue stick in view and the avatar about 90% transparent (or arm only). Top-down can be fixed or orbit with the aim (`Config.Camera.TopDown.OrbitWithAim`). Shot camera is the same cinematic follow view for both. |
 | Ball look | Number and stripe images generated locally with Python (Pillow is installed), uploaded to your Roblox account as decals through Studio, wrapped onto Ball parts. I ask before uploading. Flat colours are the fallback until moderation clears. |
 | Scale (assumption) | `Config.Table.StudsPerInch = 0.1`. A 9-foot table is 100 x 50 inch playing surface = 10 x 5 studs, ball diameter 2.25 inch = 0.225 studs, table height 30 inch = 3 studs. That matches R15 avatars (about 5 studs tall) at roughly real proportions. One number to change if it looks off. |
 | Docs location (assumption) | `GDD.md` and `ROADMAP.md` move into `docs/`, as your prompt refers to them there. |
@@ -111,14 +111,15 @@ Build: `Input` (drag on the table area rotates aim, angular speed proportional t
 Done means: in Studio's device emulator (phone) and with the mouse, you can play shot after shot, and the guideline's first contact matches what actually happens.
 
 ### M4. Camera and avatar (ROADMAP 1.4)
-Build: `Camera` (scriptable; aim mode high and angled with `Config.Camera.AimMode = "orbit"` or `"fixed"`, pitch and distance in Config; shot mode a smooth cinematic follow of the cue ball or the fastest ball, lower and closer, with easing back to aim mode when balls stop); `Avatar` (moves your R15 character to the aim line behind the cue ball, procedural aiming pose by setting Motor6D `Transform` each frame: bent at the waist, back arm drawn, bridge hand forward; a cue Part welded to the hand; whole character and accessories faded to `Config.Avatar.AimTransparency` while aiming, restored after the strike; a short procedural cue push on the strike).
-Done means: aiming is never blocked by the avatar, the pose reads as "lining up a shot" from the aim camera, and watching the shot feels like a replay.
+Build: `Camera` (scriptable) with two aim views and a toggle button/key: **top-down** (high, `Config.Camera.TopDown`, whole table on screen, fixed or orbiting with the aim) and **behind** (low, `Config.Camera.Behind`, sits behind the cue ball looking along the aim line, cue stick visible, like the reference screenshot). Aim drags work identically in both. After the strike: a smooth cinematic follow of the cue ball or the fastest ball, easing back to the chosen aim view when balls stop. `Avatar`: moves your R15 character to the aim line behind the cue ball, procedural aiming pose by setting Motor6D `Transform` each frame (bent at the waist, back arm drawn, bridge hand forward), a cue Part welded to the hand, the character faded to `Config.Avatar.AimTransparency` (90%) while aiming, or arm-only when `ArmOnlyWhileAiming` is on, restored after the strike, with a short procedural cue push on the strike.
+Done means: both views are usable for a full shot on phone and PC, the toggle is one tap, aiming is never blocked by the avatar, the behind view shows the cue and the ball like the reference, and watching the shot feels like a replay.
 
 ### M5. Spin (ROADMAP 1.5)
 Build: spin selector UI (tap the cue-ball icon, a larger cue ball face appears, tap or drag the strike point, offset clamped to the miscue limit), offset fed into `Cue.luau`, small red dot on the icon showing current spin, resets each shot. Physics spin already exists from M1/M2; this milestone tunes `SlidingFriction`, spin transfer and the cue formula until the feel is right.
 Done means: top spin visibly follows through, back spin visibly draws back, side spin visibly changes the rail rebound, and test 6 passes with the tuned numbers.
 
 ### M6. Look pass: room and lighting (GDD section 11)
+Target: the reference screenshot (2026-09-18): teal cloth, glossy balls with visible reflections, warm bar lighting, dark surroundings.
 Build through MCP in the place file: a small dim room (walls, floor, ceiling) around the table, a warm SpotLight rig over the table, two or three neon strip accents, Lighting set to Future technology with low ambient, ColorCorrection and Bloom for glow, felt via a Roblox Fabric material tinted green or blue, wooden rails, glossy balls. `TableBuilder` gains material and colour Config entries.
 Done means: a screenshot from the aim camera matches the GDD mood (warm pool of light, dark surroundings, glowing accents) and the balls read clearly on a phone-sized viewport.
 
@@ -149,6 +150,6 @@ Done means: a full legal game can be played start to finish as both players, eve
 
 ## Small open questions (answer any time, defaults in brackets)
 
-1. Felt colour [classic green; blue is the other common choice].
+1. Felt colour [teal/blue like the reference screenshot; green is the classic choice].
 2. Should the guideline show the full cue ball path after the first contact, or only the short deflection stub like GamePigeon [short stub].
 3. Ball-in-hand after a foul on the break: anywhere, or behind the head string [anywhere, as the GDD says].

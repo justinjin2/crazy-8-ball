@@ -27,19 +27,49 @@ local function nextRandom(): number
 	return seed / 2147483648
 end
 
+local function describe(result)
+	local rails, hits, pockets = 0, 0, 0
+	for _, ev in result.events do
+		if ev.type == "railHit" then
+			rails += 1
+		elseif ev.type == "ballHit" then
+			hits += 1
+		elseif ev.type == "pocket" then
+			pockets += 1
+		end
+	end
+	return ("%d ball hits, %d rail hits, %d pocketed, %.2fs"):format(
+		hits,
+		rails,
+		pockets,
+		result.duration
+	)
+end
+
 local function fireTestShot()
 	local angle = nextRandom() * 2 * math.pi
 	local power = 0.3 + nextRandom() * 0.7
 	local result = match:fire({ angle = angle, power = power })
 	if result then
 		print(
-			("[8ball] test shot: angle %.2f rad, power %.2f, %d rail hits, %.2fs"):format(
+			("[8ball] test shot: angle %.2f rad, power %.2f: %s"):format(
 				angle,
 				power,
-				#result.events - 1,
-				result.duration
+				describe(result)
 			)
 		)
+	end
+end
+
+local function breakShot()
+	if match:isBusy() then
+		return
+	end
+	match:rerack()
+	-- Aim at the apex ball with a hair of offset so the break is not perfectly symmetric.
+	local result = match:fire({ angle = 0.004, power = 1 })
+	if result then
+		print("[8ball] break: " .. describe(result))
 	end
 end
 
@@ -50,6 +80,8 @@ if Config.Debug.TestKeysEnabled then
 		end
 		if input.KeyCode == Enum.KeyCode.F then
 			fireTestShot()
+		elseif input.KeyCode == Enum.KeyCode.B then
+			breakShot()
 		end
 	end)
 end
@@ -59,7 +91,12 @@ RunService.RenderStepped:Connect(function(dt)
 	local status = if playing
 		then ("cue ball %.0f in/s"):format(match:cueBallSpeedNow())
 		else "at rest"
-	UI.setDebugText(("Press F to fire a test shot\n%s"):format(status))
+	UI.setDebugText(
+		("F: random shot   B: rack and break\n%s, %d balls left"):format(
+			status,
+			match:ballsRemaining()
+		)
+	)
 end)
 
-print(("[8ball] client ready. Camera aim mode: %s"):format(Config.Camera.AimMode))
+print(("[8ball] client ready. Default aim view: %s"):format(Config.Camera.DefaultAimView))

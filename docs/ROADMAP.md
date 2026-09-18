@@ -25,7 +25,7 @@ The most important phase. No rules, no opponents, no menus. Just: does hitting a
 
 - [x] **1.1 One ball rolls.** Grey-box table. Custom physics module moves one cue ball: it rolls, slows with friction, bounces off rails, stops.
   Done means: a ball fired by a test command bounces around believably and comes to rest.
-- [ ] **1.2 Balls collide and sink.** Ball-to-ball collisions, six pockets, full 15-ball rack, break shot.
+- [x] **1.2 Balls collide and sink.** Ball-to-ball collisions, six pockets, full 15-ball rack, break shot.
   Done means: a hard break scatters the rack convincingly and balls drop into pockets.
 - [ ] **1.3 Aim and shoot.** Drag to aim, guideline showing cue ball path and first contact, pull-back power bar. Works on PC and mobile.
   Done means: you can play shot after shot with touch and with mouse.

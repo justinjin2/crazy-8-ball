@@ -259,6 +259,31 @@ local function resolveBalls(a: Ball, b: Ball): number
 	return relVn
 end
 
+-- Pocket capture: a ball whose centre reaches a pocket leaves the table for good.
+local function capturePockets(state: State, events: { Event }?)
+	for _, b in state.balls do
+		if b.pocketed or (b.vx == 0 and b.vy == 0) then
+			continue
+		end
+		local pocket = TableGeometry.pocketAt(state.geometry, b.x, b.y)
+		if pocket then
+			local speed = Ball.speed(b)
+			b.pocketed = true
+			Ball.stop(b)
+			b.x, b.y = pocket.x, pocket.y
+			if events then
+				table.insert(events, {
+					t = state.time,
+					type = "pocket",
+					ball = b.id,
+					other = pocket.id,
+					speed = speed,
+				})
+			end
+		end
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -- Stepping
 ---------------------------------------------------------------------------------------------
@@ -363,8 +388,9 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 		end
 		state.time += advance
 		remaining -= advance
+		capturePockets(state, events)
 
-		if hit then
+		if hit and not hit.a.pocketed and not (hit.b and hit.b.pocketed) then
 			pushOut(hit)
 			local speed: number
 			local eventType: "railHit" | "ballHit"
