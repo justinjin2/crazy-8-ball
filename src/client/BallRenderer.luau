@@ -6,7 +6,6 @@
 -- Without decal ids (Config.Balls.Decals) stripes fall back to their plain colour.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -106,12 +105,13 @@ function BallRenderer.ensure(self: BallRenderer, id: number): Part
 end
 
 --- Place ball `id` at physics coordinates (inches), rolling it by the distance moved.
-function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: number)
+--- zIn is the height relative to the cloth (negative while dropping into a pocket).
+function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: number, zIn: number?)
 	if self.sunk[id] then
 		return
 	end
 	local part = self:ensure(id)
-	local pos = TableBuilder.toWorld(xIn, yIn, Config.Balls.RadiusInches)
+	local pos = TableBuilder.toWorld(xIn, yIn, Config.Balls.RadiusInches + (zIn or 0))
 	local last = self.lastPositions[id]
 	local rot = self.rotations[id]
 	if last then
@@ -130,21 +130,11 @@ function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: nu
 	part.CFrame = CFrame.new(pos) * rot
 end
 
---- Animate a ball dropping into a pocket, then hide it.
-function BallRenderer.sink(self: BallRenderer, id: number, pocketXIn: number, pocketYIn: number)
+--- Hide a ball that has finished dropping into a pocket.
+function BallRenderer.sink(self: BallRenderer, id: number)
 	local part = self:ensure(id)
 	self.sunk[id] = true
-	local target = TableBuilder.toWorld(pocketXIn, pocketYIn, -Config.Balls.RadiusInches * 3)
-	local tween = TweenService:Create(
-		part,
-		TweenInfo.new(
-			Config.Effects.SinkDropSeconds,
-			Enum.EasingStyle.Quad,
-			Enum.EasingDirection.In
-		),
-		{ CFrame = CFrame.new(target) * self.rotations[id], Transparency = 1 }
-	)
-	tween:Play()
+	part.Transparency = 1
 end
 
 --- Bring a ball back onto the table (cue ball after a scratch, or a new rack).

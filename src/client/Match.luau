@@ -113,12 +113,6 @@ function Match.fire(self: Match, shot: Shot): ShotResult?
 end
 
 local function dispatch(self: Match, ev: Event)
-	if ev.type == "pocket" then
-		local pocket = self.state.geometry.pockets[ev.other or 0]
-		if pocket then
-			self.renderer:sink(ev.ball, pocket.x, pocket.y)
-		end
-	end
 	for _, listener in self.eventListeners do
 		listener(ev)
 	end
@@ -148,8 +142,13 @@ function Match.update(self: Match, dt: number): boolean
 	playback.frameIndex = index
 	local frameTime = frames[index].t
 	local positions = frames[index].positions
+	local dropDepth = Config.Table.PocketDropDepthInches
 	for i, b in self.state.balls do
-		self.renderer:place(b.id, positions[2 * i - 1], positions[2 * i])
+		local z = positions[3 * i]
+		self.renderer:place(b.id, positions[3 * i - 2], positions[3 * i - 1], z)
+		if z <= -dropDepth + 1e-6 then
+			self.renderer:sink(b.id)
+		end
 	end
 	while playback.nextEvent <= #events and events[playback.nextEvent].t <= frameTime do
 		dispatch(self, events[playback.nextEvent])
@@ -184,7 +183,7 @@ function Match.cueBallSpeedNow(self: Match): number
 		return 0
 	end
 	local a, b = frames[i - 1].positions, frames[i].positions
-	local dx, dy = b[1] - a[1], b[2] - a[2]
+	local dx, dy = b[1] - a[1], b[2] - a[2] -- cue ball is index 1: x, y are entries 1 and 2
 	return math.sqrt(dx * dx + dy * dy) / Config.Physics.FixedStep
 end
 

@@ -40,7 +40,7 @@ export type Event = {
 
 export type Frame = {
 	t: number,
-	positions: { number }, -- x1, y1, x2, y2 ... in state.balls order; pocketed balls keep last position
+	positions: { number }, -- x1, y1, z1, x2, y2, z2 ... in state.balls order (z < 0 while dropping into a pocket)
 }
 
 export type ShotResult = {
@@ -96,8 +96,54 @@ end
 -- Free motion between impacts (closed form)
 ---------------------------------------------------------------------------------------------
 
-local function integrateBall(b: Ball, h: number)
+-- A captured ball keeps its momentum, falls under gravity, gets funnelled towards the pocket
+-- centre and slowed by the liner, and stops a set depth down. Purely for a believable drop;
+-- rules already count it as pocketed.
+local function integrateFalling(b: Ball, h: number, pocket: TableGeometry.Pocket?)
+	local P = Config.Physics
+	local T = Config.Table
+	b.vz -= P.Gravity * h
+	b.z += b.vz * h
+	if pocket then
+		local dx, dy = b.x - pocket.x, b.y - pocket.y
+		local dist = math.sqrt(dx * dx + dy * dy)
+		if dist > 1e-6 then
+			local nx, ny = dx / dist, dy / dist
+			b.vx -= nx * T.PocketFunnelAccel * h
+			b.vy -= ny * T.PocketFunnelAccel * h
+		end
+	end
+	local decay = math.max(0, 1 - T.PocketDragPerSecond * h)
+	b.vx *= decay
+	b.vy *= decay
+	b.x += b.vx * h
+	b.y += b.vy * h
+	if pocket then
+		local dx, dy = b.x - pocket.x, b.y - pocket.y
+		local dist = math.sqrt(dx * dx + dy * dy)
+		if dist > pocket.radius and dist > 1e-6 then
+			local nx, ny = dx / dist, dy / dist
+			b.x = pocket.x + nx * pocket.radius
+			b.y = pocket.y + ny * pocket.radius
+			local vn = b.vx * nx + b.vy * ny
+			if vn > 0 then
+				b.vx -= (1 + T.PocketWallRestitution) * vn * nx
+				b.vy -= (1 + T.PocketWallRestitution) * vn * ny
+			end
+		end
+	end
+	if b.z <= -T.PocketDropDepthInches then
+		b.z = -T.PocketDropDepthInches
+		Ball.stop(b)
+		b.falling = false
+	end
+end
+
+local function integrateBall(b: Ball, h: number, geometry: Geometry)
 	if b.pocketed then
+		if b.falling then
+			integrateFalling(b, h, if b.pocket then geometry.pockets[b.pocket] else nil)
+		end
 		return
 	end
 	local P = Config.Physics
@@ -268,9 +314,11 @@ local function capturePockets(state: State, events: { Event }?)
 		local pocket = TableGeometry.pocketAt(state.geometry, b.x, b.y)
 		if pocket then
 			local speed = Ball.speed(b)
+			-- Keep the velocity: the ball rolls over the edge and drops from where it is.
 			b.pocketed = true
-			Ball.stop(b)
-			b.x, b.y = pocket.x, pocket.y
+			b.falling = true
+			b.pocket = pocket.id
+			b.wx, b.wy, b.wz = 0, 0, 0
 			if events then
 				table.insert(events, {
 					t = state.time,
@@ -384,7 +432,7 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 		local advance = if hit then hit.t else remaining
 
 		for _, b in state.balls do
-			integrateBall(b, advance)
+			integrateBall(b, advance, state.geometry)
 		end
 		state.time += advance
 		remaining -= advance
@@ -421,10 +469,11 @@ end
 ---------------------------------------------------------------------------------------------
 
 local function captureFrame(state: State): Frame
-	local positions = table.create(#state.balls * 2)
+	local positions = table.create(#state.balls * 3)
 	for i, b in state.balls do
-		positions[2 * i - 1] = b.x
-		positions[2 * i] = b.y
+		positions[3 * i - 2] = b.x
+		positions[3 * i - 1] = b.y
+		positions[3 * i] = b.z
 	end
 	return { t = state.time, positions = positions }
 end
@@ -453,6 +502,7 @@ function Simulation.run(state: State, shot: Shot): ShotResult
 			capped = true
 			for _, b in sim.balls do
 				Ball.stop(b)
+				b.falling = false
 			end
 			break
 		end

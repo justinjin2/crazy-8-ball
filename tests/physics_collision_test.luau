@@ -14,7 +14,7 @@ local function setup()
 end
 
 local function minSeparation(positions: { number }, pocketedFlags: { boolean }): number
-	local n = #positions / 2
+	local n = #positions / 3
 	local best = math.huge
 	for i = 1, n do
 		if pocketedFlags[i] then
@@ -24,8 +24,8 @@ local function minSeparation(positions: { number }, pocketedFlags: { boolean }):
 			if pocketedFlags[j] then
 				continue
 			end
-			local dx = positions[2 * i - 1] - positions[2 * j - 1]
-			local dy = positions[2 * i] - positions[2 * j]
+			local dx = positions[3 * i - 2] - positions[3 * j - 2]
+			local dy = positions[3 * i - 1] - positions[3 * j - 1]
 			local d = math.sqrt(dx * dx + dy * dy)
 			if d < best then
 				best = d
@@ -66,7 +66,7 @@ return {
 		H.expect(#balls == 16, "expected 16 balls")
 		local positions, flags = {}, {}
 		for i, b in balls do
-			positions[2 * i - 1], positions[2 * i] = b.x, b.y
+			positions[3 * i - 2], positions[3 * i - 1], positions[3 * i] = b.x, b.y, 0
 			flags[i] = false
 		end
 		H.expect(
@@ -98,7 +98,7 @@ return {
 				)
 				for i = 1, #state.balls do
 					if not flagsByFrame[f][i] then
-						local x, y = frame.positions[2 * i - 1], frame.positions[2 * i]
+						local x, y = frame.positions[3 * i - 2], frame.positions[3 * i - 1]
 						H.expect(
 							TableGeometry.containsCenter(geometry, x, y, 1e-3),
 							("ball %d left the table at (%.2f, %.2f) frame %d"):format(
@@ -205,6 +205,31 @@ return {
 		H.expect(pocketEvent ~= nil, "cue ball never dropped into the top-right corner pocket")
 		H.expect(pocketEvent and pocketEvent.other == 3, "wrong pocket id")
 		H.expect(result.finalBalls[1].pocketed, "final state should mark the ball pocketed")
+		H.expect(not result.finalBalls[1].falling, "the drop should finish before the shot ends")
+		-- The drop is physical: between consecutive frames the ball never jumps, and its
+		-- height goes down smoothly from 0 to the drop depth.
+		local Config = H.require("Config")
+		local biggestJump, sawDrop, lastZ = 0, false, 0
+		for f = 2, #result.frames do
+			local a, b = result.frames[f - 1].positions, result.frames[f].positions
+			local jump = math.sqrt((b[1] - a[1]) ^ 2 + (b[2] - a[2]) ^ 2)
+			if jump > biggestJump then
+				biggestJump = jump
+			end
+			H.expect(b[3] <= lastZ + 1e-9, "ball rose while dropping")
+			lastZ = b[3]
+			if b[3] < -1 then
+				sawDrop = true
+			end
+		end
+		H.expect(
+			sawDrop and lastZ <= -Config.Table.PocketDropDepthInches + 1e-6,
+			"ball never dropped to the bottom"
+		)
+		H.expect(
+			biggestJump < 1.5,
+			("ball jumped %.2f in between frames (teleport)"):format(biggestJump)
+		)
 	end,
 
 	["a ball rolling along the rail passes the side pocket and drops in the corner"] = function()
@@ -240,7 +265,7 @@ return {
 			state.balls = result.finalBalls
 			local positions, flags = {}, {}
 			for i, b in state.balls do
-				positions[2 * i - 1], positions[2 * i] = b.x, b.y
+				positions[3 * i - 2], positions[3 * i - 1], positions[3 * i] = b.x, b.y, b.z
 				flags[i] = b.pocketed
 			end
 			H.expect(

@@ -39,6 +39,12 @@ Config.Table = {
 	CornerPocketInsetInches = 1.4,
 	SidePocketRadiusInches = 2.6,
 	SidePocketInsetInches = 2.2,
+	-- The drop: once a ball's centre is over the hole it falls under gravity while the funnel
+	-- shape pulls it towards the middle and the liner slows it. It stops this far down. (tune)
+	PocketDropDepthInches = 5,
+	PocketFunnelAccel = 900, -- in/s^2 towards the pocket centre while dropping
+	PocketDragPerSecond = 5, -- fraction of horizontal speed lost per second in the liner
+	PocketWallRestitution = 0.25, -- bounce off the liner wall
 	-- Head string: cue ball must start behind this on the break (1/4 of the length from the
 	-- head rail).
 	HeadStringFraction = 0.25,
@@ -87,10 +93,26 @@ Config.Balls = {
 	-- Decal asset ids, filled in once the generated images (tools/gen_ball_decals.py) are
 	-- uploaded. Empty means "no decal": solids stay flat colour, stripes show as colour too.
 	Decals = {
-		-- [ballNumber] = "rbxassetid://..." white disc with the number, transparent elsewhere
-		Numbers = {} :: { [number]: string },
+		-- [ballNumber] = white disc with the number, transparent elsewhere (uploaded 2026-09-18)
+		Numbers = {
+			[1] = "rbxassetid://122007386899145",
+			[2] = "rbxassetid://113307385292300",
+			[3] = "rbxassetid://78814354093891",
+			[4] = "rbxassetid://108148105263771",
+			[5] = "rbxassetid://79854355350181",
+			[6] = "rbxassetid://71914329661380",
+			[7] = "rbxassetid://86541103118320",
+			[8] = "rbxassetid://118343664836744",
+			[9] = "rbxassetid://77964766565740",
+			[10] = "rbxassetid://139144048965936",
+			[11] = "rbxassetid://80906907224369",
+			[12] = "rbxassetid://128812375373796",
+			[13] = "rbxassetid://111068179963368",
+			[14] = "rbxassetid://137544599948534",
+			[15] = "rbxassetid://83279339054393",
+		} :: { [number]: string },
 		-- one white band on transparent, tinted per ball with Decal.Color3
-		StripeBand = "",
+		StripeBand = "rbxassetid://134967770793162",
 	},
 }
 

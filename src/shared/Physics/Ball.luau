@@ -13,12 +13,16 @@ export type Ball = {
 	id: number,
 	x: number,
 	y: number,
+	z: number, -- height of the centre above its resting height on the cloth (0 on the table, negative while dropping into a pocket)
 	vx: number,
 	vy: number,
+	vz: number,
 	wx: number,
 	wy: number,
 	wz: number,
-	pocketed: boolean,
+	pocketed: boolean, -- captured by a pocket (rules use this)
+	falling: boolean, -- still dropping into the pocket (animation still running)
+	pocket: number?, -- pocket id once captured
 }
 
 function Ball.new(id: number, x: number, y: number): Ball
@@ -26,12 +30,16 @@ function Ball.new(id: number, x: number, y: number): Ball
 		id = id,
 		x = x,
 		y = y,
+		z = 0,
 		vx = 0,
 		vy = 0,
+		vz = 0,
 		wx = 0,
 		wy = 0,
 		wz = 0,
 		pocketed = false,
+		falling = false,
+		pocket = nil,
 	}
 end
 
@@ -40,12 +48,16 @@ function Ball.clone(b: Ball): Ball
 		id = b.id,
 		x = b.x,
 		y = b.y,
+		z = b.z,
 		vx = b.vx,
 		vy = b.vy,
+		vz = b.vz,
 		wx = b.wx,
 		wy = b.wy,
 		wz = b.wz,
 		pocketed = b.pocketed,
+		falling = b.falling,
+		pocket = b.pocket,
 	}
 end
 
@@ -61,16 +73,16 @@ function Ball.speed(b: Ball): number
 	return math.sqrt(b.vx * b.vx + b.vy * b.vy)
 end
 
---- True when the ball is moving or spinning at all.
+--- True when the ball is moving or spinning at all (a ball dropping into a pocket counts).
 function Ball.isMoving(b: Ball): boolean
 	if b.pocketed then
-		return false
+		return b.falling
 	end
 	return b.vx ~= 0 or b.vy ~= 0 or b.wx ~= 0 or b.wy ~= 0 or b.wz ~= 0
 end
 
 function Ball.stop(b: Ball)
-	b.vx, b.vy, b.wx, b.wy, b.wz = 0, 0, 0, 0, 0
+	b.vx, b.vy, b.vz, b.wx, b.wy, b.wz = 0, 0, 0, 0, 0, 0
 end
 
 --- Kinetic energy for a unit mass: translational plus rotational (solid sphere, I = 2/5 R^2).
