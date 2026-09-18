@@ -1,0 +1,7 @@
+# Selene lint config. "roblox" pulls the Roblox API globals; Selene generates roblox.yml
+# next to this file on first run (it is git-ignored).
+std = "roblox"
+
+[lints]
+# Shadowing is a common, readable pattern in small physics helpers.
+shadowing = "allow"

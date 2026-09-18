@@ -1,0 +1,4 @@
+# luau-lsp is not on Homebrew, so Aftman (brew install aftman) fetches this pinned release.
+# Run `aftman install` from the repo root. The binary is shimmed at ~/.aftman/bin/luau-lsp.
+[tools]
+luau-lsp = "JohnnyMorganz/luau-lsp@1.69.0"
