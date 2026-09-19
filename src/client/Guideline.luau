@@ -1,6 +1,7 @@
 --!strict
 -- Guideline: the aim trace on the table, in the style of the classic phone pool games.
---   * a thin line from the cue ball to the first contact, drawn as a dashed strip whose
+--   * a corridor one ball wide from the cue ball to the first contact: two thin solid edge
+--     lines a ball radius either side of the aim, with a faint dashed centre line whose
 --     dashes scroll towards the target so the direction is obvious
 --   * a white ring outline where the cue ball will be at first contact (the "ghost" ball)
 --   * thin solid lines for where the object ball goes and where the cue ball deflects
@@ -24,6 +25,8 @@ export type Guideline = typeof(setmetatable(
 		folder: Folder,
 		ring: Part,
 		path: Strip,
+		leftEdge: Strip,
+		rightEdge: Strip,
 		objectStub: Strip,
 		cueStub: Strip,
 		scroll: number,
@@ -94,6 +97,8 @@ function Guideline.new(parent: Instance): Guideline
 		folder = folder,
 		ring = ring,
 		path = makeStrip("Path", folder, true),
+		leftEdge = makeStrip("LeftEdge", folder, false),
+		rightEdge = makeStrip("RightEdge", folder, false),
 		objectStub = makeStrip("ObjectStub", folder, false),
 		cueStub = makeStrip("CueStub", folder, false),
 		scroll = 0,
@@ -116,7 +121,8 @@ local function placeStrip(
 	y1: number,
 	x2: number,
 	y2: number,
-	transparency: number
+	transparency: number,
+	width: number?
 )
 	local G = Config.Guideline
 	local h = G.HeightAboveClothInches
@@ -127,7 +133,7 @@ local function placeStrip(
 		hideStrip(strip)
 		return
 	end
-	strip.part.Size = Vector3.new(G.LineWidthStuds, 0.01, len)
+	strip.part.Size = Vector3.new(width or G.LineWidthStuds, 0.01, len)
 	strip.part.CFrame = CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(0, math.pi, 0)
 	if strip.texture then
 		strip.part.Transparency = 1
@@ -147,21 +153,43 @@ function Guideline.show(self: Guideline, trace: Trace)
 	local ringR = R * G.RingScale
 	local stub = G.StubLengthInches
 
-	-- Path from the cue ball's front edge to the ring's near edge.
+	-- Corridor from the cue ball to the ghost ball: edges a ball radius either side of the
+	-- aim line, running from under the cue ball to the sides of the ring; the dashed centre
+	-- line runs from the cue ball's front edge to the ring's near edge.
 	local dx, dy = trace.ghostX - trace.startX, trace.ghostY - trace.startY
 	local len = math.sqrt(dx * dx + dy * dy)
 	if len > R + ringR then
 		local ux, uy = dx / len, dy / len
-		placeStrip(
-			self.path,
-			trace.startX + ux * R,
-			trace.startY + uy * R,
-			trace.ghostX - ux * ringR,
-			trace.ghostY - uy * ringR,
-			G.LineTransparency
-		)
+		local px, py = -uy, ux -- perpendicular to the aim
+		local function placeEdge(strip: Strip, sgn: number)
+			placeStrip(
+				strip,
+				trace.startX + px * R * sgn,
+				trace.startY + py * R * sgn,
+				trace.ghostX + px * R * sgn,
+				trace.ghostY + py * R * sgn,
+				G.EdgeTransparency,
+				G.EdgeWidthStuds
+			)
+		end
+		placeEdge(self.leftEdge, 1)
+		placeEdge(self.rightEdge, -1)
+		if G.ShowCentreLine then
+			placeStrip(
+				self.path,
+				trace.startX + ux * R,
+				trace.startY + uy * R,
+				trace.ghostX - ux * ringR,
+				trace.ghostY - uy * ringR,
+				G.CentreLineTransparency
+			)
+		else
+			hideStrip(self.path)
+		end
 	else
 		hideStrip(self.path)
+		hideStrip(self.leftEdge)
+		hideStrip(self.rightEdge)
 	end
 
 	self.ring.CFrame =
@@ -213,6 +241,8 @@ end
 
 function Guideline.hide(self: Guideline)
 	hideStrip(self.path)
+	hideStrip(self.leftEdge)
+	hideStrip(self.rightEdge)
 	hideStrip(self.objectStub)
 	hideStrip(self.cueStub)
 	self.ring.Transparency = 1

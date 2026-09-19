@@ -1,9 +1,10 @@
 --!strict
--- BallRenderer: keeps one Part per ball and moves it to wherever the simulation says.
+-- BallRenderer: keeps one part per ball and moves it to wherever the simulation says.
 -- Rolling rotation is derived from movement for looks only; it never feeds back into physics.
--- Solids are coloured spheres. Stripes are white spheres with a tinted band decal on the
--- four side faces. Every numbered ball gets a number decal on its front and back faces.
--- Without decal ids (Config.Balls.Decals) stripes fall back to their plain colour.
+-- Preferred look: a real sphere MeshPart (template copied to ReplicatedStorage.Assets by the
+-- server) with one baked texture per ball (Config.Balls.Textures). Fallback when the template
+-- or a texture is missing: a Ball Part, solids coloured, stripes white with a tinted band
+-- decal on the four side faces, number decals front and back.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -20,7 +21,7 @@ BallRenderer.__index = BallRenderer
 export type BallRenderer = typeof(setmetatable(
 	{} :: {
 		folder: Folder,
-		parts: { [number]: Part },
+		parts: { [number]: BasePart },
 		rotations: { [number]: CFrame },
 		lastPositions: { [number]: Vector3 },
 		sunk: { [number]: boolean },
@@ -62,12 +63,42 @@ function BallRenderer.new(parent: Instance): BallRenderer
 	return self
 end
 
-function BallRenderer.ensure(self: BallRenderer, id: number): Part
+-- The imported sphere mesh, if the place has it and the server published it.
+local function meshTemplate(): MeshPart?
+	local assets = ReplicatedStorage:FindFirstChild("Assets")
+	local template = assets and assets:FindFirstChild(Config.Balls.MeshTemplate)
+	if template and template:IsA("MeshPart") then
+		return template
+	end
+	return nil
+end
+
+function BallRenderer.ensure(self: BallRenderer, id: number): BasePart
 	local existing = self.parts[id]
 	if existing then
 		return existing
 	end
 	local diameter = TableBuilder.studs(Config.Balls.RadiusInches * 2)
+	local textureId = Config.Balls.Textures[id] or ""
+	local template = meshTemplate()
+	if template and textureId ~= "" then
+		local mesh = template:Clone()
+		mesh.Name = if id == 0 then "CueBall" else ("Ball" .. id)
+		mesh.Size = Vector3.new(diameter, diameter, diameter)
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CastShadow = true
+		mesh.Material = (Enum.Material :: any)[Config.Look.BallMaterial]
+		mesh.Reflectance = Config.Balls.Reflectance
+		mesh.Color = Color3.new(1, 1, 1)
+		mesh.TextureID = textureId
+		mesh.Transparency = 0
+		mesh.Parent = self.folder
+		self.parts[id] = mesh
+		self.rotations[id] = CFrame.identity
+		return mesh
+	end
 	local part = Instance.new("Part")
 	part.Name = if id == 0 then "CueBall" else ("Ball" .. id)
 	part.Shape = Enum.PartType.Ball

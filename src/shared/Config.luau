@@ -132,6 +132,30 @@ Config.Balls = {
 	},
 	-- Glossy look (tune in the look pass).
 	Reflectance = 0.12,
+	-- Real sphere mesh (assets/balls/ball_sphere.obj from tools/gen_ball_mesh.py), imported
+	-- once into the place as ServerStorage.<MeshTemplate>; the server copies it into
+	-- ReplicatedStorage.Assets at start-up. Missing = the old Part-and-decal balls.
+	MeshTemplate = "BallMesh",
+	-- One baked texture per ball (assets/balls/tex_<n>.png from tools/gen_ball_textures.py),
+	-- uploaded 2026-09-19 and listed here by ball number. Empty = that ball falls back to decals.
+	Textures = {
+		[0] = "rbxassetid://86825559129906",
+		[1] = "rbxassetid://133794362813004",
+		[2] = "rbxassetid://115640228515562",
+		[3] = "rbxassetid://71634972299335",
+		[4] = "rbxassetid://102547838391993",
+		[5] = "rbxassetid://132260486678576",
+		[6] = "rbxassetid://136578775839073",
+		[7] = "rbxassetid://85399541656812",
+		[8] = "rbxassetid://139487783589064",
+		[9] = "rbxassetid://92953629012840",
+		[10] = "rbxassetid://125354706638427",
+		[11] = "rbxassetid://80865252504873",
+		[12] = "rbxassetid://139601741020258",
+		[13] = "rbxassetid://127747571775456",
+		[14] = "rbxassetid://83778966609567",
+		[15] = "rbxassetid://136241349086894",
+	},
 	-- Decal asset ids, filled in once the generated images (tools/gen_ball_decals.py) are
 	-- uploaded. Empty means "no decal": solids stay flat colour, stripes show as colour too.
 	Decals = {
@@ -314,6 +338,17 @@ Config.TableModel = {
 -- Look (colours are RGB 0-255, materials are Enum.Material names)
 ---------------------------------------------------------------------------------------------
 Config.Look = {
+	-- One shadow-casting spotlight over the table centre so balls get contact shadows.
+	-- Needs Lighting.Technology = ShadowMap or Future in the place (set in Edit mode; it is
+	-- a place property, not a script). (tune in the look pass)
+	TableLight = {
+		Enabled = true,
+		HeightInches = 70, -- above the cloth
+		Angle = 120, -- cone angle in degrees
+		Brightness = 1.6,
+		RangeStuds = 30,
+		Color = { 255, 244, 225 }, -- warm white
+	},
 	-- Tournament blue cloth. With detail maps the part colour tints the map, so this is
 	-- lighter than the final look. (tune)
 	FeltColor = { 110, 165, 215 },
@@ -513,7 +548,13 @@ Config.Guideline = {
 	-- how much shorter the cue ball's line is.
 	StubLengthInches = 14,
 	CueStubScale = 0.6,
-	-- The path is a thin flat strip with dashes that scroll towards the target.
+	-- The path is a corridor one ball wide: two thin solid edge lines a ball radius either
+	-- side of the aim line, so what the cue ball clears or clips is obvious even from the
+	-- low close-up view. A faint dashed centre line scrolls towards the target.
+	EdgeWidthStuds = 0.05,
+	EdgeTransparency = 0.25,
+	ShowCentreLine = true,
+	CentreLineTransparency = 0.5,
 	LineWidthStuds = 0.07,
 	DashTileStuds = 0.34,
 	DashSpeed = 2.0, -- tiles per second
@@ -523,7 +564,7 @@ Config.Guideline = {
 	-- Images (assets/ui/guide_dash.png, guide_ring.png). Empty = plain shapes.
 	DashTextureId = "rbxassetid://83727874065758",
 	RingTextureId = "rbxassetid://137854164925995",
-	HeightAboveClothInches = 0.12,
+	HeightAboveClothInches = 0.15,
 	Color = { 255, 255, 255 },
 	LineTransparency = 0.15,
 	StubTransparency = 0.3,
