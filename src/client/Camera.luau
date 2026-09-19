@@ -1,7 +1,10 @@
 --!strict
--- Camera: the single aim view. Elevated and behind the shooter, looking down the aim line
--- so the table lays out ahead; it turns with the aim and eases to new positions. While a
--- shot plays it holds its position and lets its gaze drift toward the cue ball.
+-- Camera: the single aim view. The camera orbits a focus point inside the table, on the
+-- side opposite the aim, so it always looks across the table along the aim. Every frame it
+-- solves for the closest distance (and shallowest pitch) that keeps the whole table on
+-- screen for the current viewport, so the table is always fully visible at the tightest
+-- framing the screen allows. Zooming in closes on the cue ball. While a shot plays it holds
+-- its position and lets its gaze drift toward the cue ball.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -82,13 +85,13 @@ function Camera.isLocked(): boolean
 	return locked
 end
 
---- Zoom by a factor (> 1 = closer). Clamped in update() against the whole-table scale.
+--- Zoom by a factor (> 1 = closer). 1 = the whole table fitted, ZoomMin = close on the ball.
 function Camera.zoomBy(factor: number)
 	local V = Config.Camera.View
 	zoom = math.clamp(zoom / factor, V.ZoomMin, V.ZoomMax)
 end
 
---- Back to the default framing (used when leaving the table).
+--- Back to the whole-table framing (used when leaving the table).
 function Camera.resetZoom()
 	zoom = 1
 end
@@ -134,33 +137,106 @@ local function fitsView(cf: CFrame, vp: Vector2): boolean
 	return true
 end
 
---- Camera pose for the view built around `cueWorld` looking along `dir`, scaled back
---- by `k` (1 = the configured distances).
-local function poseAt(cueWorld: Vector3, dir: Vector3, k: number, focus: Vector3?): CFrame
-	local V = Config.Camera.View
-	local right = dir:Cross(Vector3.yAxis)
-	local pos = cueWorld
-		- dir * (TableBuilder.studs(V.BehindInches) * k)
-		+ right * TableBuilder.studs(V.SideInches)
-		+ Vector3.new(0, TableBuilder.studs(V.HeightInches) * k, 0)
-	local look = cueWorld + dir * (TableBuilder.studs(V.LookAheadInches) * k)
-	if focus then
-		look = look:Lerp(focus, Config.Camera.Shot.FocusWeight)
-	end
-	return CFrame.lookAt(pos, look)
+-- Half-angle tangents of the view for a viewport: horizontal, vertical.
+local function tangents(vp: Vector2): (number, number)
+	local tanV = math.tan(math.rad(Config.Camera.View.FieldOfView) / 2)
+	return tanV * math.max(vp.X, 1) / math.max(vp.Y, 1), tanV
 end
 
---- Smallest scale at which the whole table is on screen (1 if it already fits).
-local function wholeTableScale(cueWorld: Vector3, dir: Vector3): number
-	local V = Config.Camera.View
-	local vp = Workspace.CurrentCamera.ViewportSize
-	if fitsView(poseAt(cueWorld, dir, 1, nil), vp) then
-		return 1
+-- Normalised screen position (-1..1 on both axes) of a world point, or nil if it is behind
+-- the camera.
+local function project(cf: CFrame, point: Vector3, tanH: number, tanV: number): Vector2?
+	local p = cf:PointToObjectSpace(point)
+	local depth = -p.Z
+	if depth <= 0.1 then
+		return nil
 	end
-	local lo, hi = 1, V.ZoomMaxScale
+	return Vector2.new(p.X / (depth * tanH), p.Y / (depth * tanV))
+end
+
+-- Fraction of the screen the table's outline covers (shoelace area of the projected corners).
+local function fillScore(cf: CFrame, vp: Vector2): number
+	local tanH, tanV = tangents(vp)
+	local pts = {}
+	for _, corner in corners() do
+		local q = project(cf, corner, tanH, tanV)
+		if q == nil then
+			return 0
+		end
+		table.insert(pts, q)
+	end
+	local area = 0
+	for i, a in pts do
+		local b = pts[i % #pts + 1]
+		area += a.X * b.Y - b.X * a.Y
+	end
+	return math.abs(area) / 2 / 4 -- the whole screen is 2 x 2 in normalised units
+end
+
+local function tableCentre(): Vector3
+	return TableBuilder.toWorld(0, 0, 0)
+end
+
+--- Camera pose looking along the aim `dir` tilted down by `pitch` radians, `distance` studs
+--- from the framing target. The camera then slides (never tilts, so the pitch is exactly
+--- what the player sees) until the screen centre sits on a blend of the table's outline
+--- centre and the cue ball: `ballWeight` 0 = table centred, 1 = cue ball centred.
+local function poseFor(
+	cueWorld: Vector3,
+	dir: Vector3,
+	pitch: number,
+	distance: number,
+	ballWeight: number,
+	vp: Vector2
+): CFrame
+	local lookDir = (dir * math.cos(pitch) - Vector3.new(0, math.sin(pitch), 0)).Unit
+	local target = tableCentre():Lerp(cueWorld, ballWeight)
+	local cf = CFrame.lookAt(target - lookDir * distance, target)
+	local tanH, tanV = tangents(vp)
+	for _ = 1, 3 do
+		local minX, maxX, minY, maxY = math.huge, -math.huge, math.huge, -math.huge
+		for _, corner in corners() do
+			local q = project(cf, corner, tanH, tanV)
+			if q == nil then
+				return cf
+			end
+			minX, maxX = math.min(minX, q.X), math.max(maxX, q.X)
+			minY, maxY = math.min(minY, q.Y), math.max(maxY, q.Y)
+		end
+		local ball = project(cf, cueWorld, tanH, tanV)
+		if ball == nil then
+			return cf
+		end
+		-- The screen point that should be at the centre, and how deep it is.
+		local want = Vector2.new((minX + maxX) / 2, (minY + maxY) / 2):Lerp(ball, ballWeight)
+		local depth = -cf:PointToObjectSpace(target).Z
+		local shift =
+			cf:VectorToWorldSpace(Vector3.new(want.X * tanH * depth, want.Y * tanV * depth, 0))
+		cf = cf + shift
+	end
+	return cf
+end
+
+-- Smallest distance at which the whole table is on screen from this pitch.
+local function fitDistance(
+	cueWorld: Vector3,
+	dir: Vector3,
+	pitch: number,
+	ballWeight: number,
+	vp: Vector2
+): number
+	local V = Config.Camera.View
+	local lo = TableBuilder.studs(V.DistanceMinInches)
+	local hi = TableBuilder.studs(V.DistanceMaxInches)
+	if not fitsView(poseFor(cueWorld, dir, pitch, hi, ballWeight, vp), vp) then
+		return hi
+	end
+	if fitsView(poseFor(cueWorld, dir, pitch, lo, ballWeight, vp), vp) then
+		return lo
+	end
 	for _ = 1, 14 do
 		local mid = (lo + hi) / 2
-		if fitsView(poseAt(cueWorld, dir, mid, nil), vp) then
+		if fitsView(poseFor(cueWorld, dir, pitch, mid, ballWeight, vp), vp) then
 			hi = mid
 		else
 			lo = mid
@@ -169,13 +245,65 @@ local function wholeTableScale(cueWorld: Vector3, dir: Vector3): number
 	return hi
 end
 
---- Target pose for the view: the configured framing at the current zoom, never further
---- out than the scale at which the whole table is on screen.
-local function viewFor(cueWorld: Vector3, dir: Vector3, focus: Vector3?): CFrame
+-- Pitch and distance that show the table largest: the preferred pitch unless a steeper one
+-- fills clearly more of the screen (a tall screen with the table crosswise).
+local function solveFraming(
+	cueWorld: Vector3,
+	dir: Vector3,
+	ballWeight: number,
+	vp: Vector2
+): (number, number)
 	local V = Config.Camera.View
-	local maxScale = math.min(wholeTableScale(cueWorld, dir), V.ZoomMax)
-	local k = math.clamp(zoom, V.ZoomMin, math.max(maxScale, V.ZoomMin))
-	return poseAt(cueWorld, dir, k, focus)
+	local bestPitch, bestDistance, bestFill = 0, 0, -1
+	local samples = math.max(V.PitchSamples, 1)
+	for i = 0, samples - 1 do
+		local t = if samples > 1 then i / (samples - 1) else 0
+		local pitch = math.rad(V.PitchPreferred + (V.PitchMax - V.PitchPreferred) * t)
+		local distance = fitDistance(cueWorld, dir, pitch, ballWeight, vp)
+		local fill = fillScore(poseFor(cueWorld, dir, pitch, distance, ballWeight, vp), vp)
+		if fill > bestFill + V.PitchBias then
+			bestPitch, bestDistance, bestFill = pitch, distance, fill
+		end
+	end
+	return bestPitch, bestDistance
+end
+
+--- Target pose: the fitted whole-table framing at zoom 1; closing in on the cue ball as the
+--- zoom drops toward ZoomMin. `focusOverride` (a moving cue ball) pulls the gaze.
+local function viewFor(
+	cueWorld: Vector3,
+	dir: Vector3,
+	focusOverride: Vector3?,
+	viewport: Vector2?
+): CFrame
+	local V = Config.Camera.View
+	local vp = viewport or Workspace.CurrentCamera.ViewportSize
+	local zoomT = 1 - math.clamp((zoom - V.ZoomMin) / math.max(V.ZoomMax - V.ZoomMin, 1e-3), 0, 1)
+	local pitch, distance = solveFraming(cueWorld, dir, V.FocusBallWeight, vp)
+	local closePitch = math.min(math.rad(V.PitchMin), pitch)
+	pitch = pitch + (closePitch - pitch) * zoomT
+	local ballWeight = V.FocusBallWeight + (1 - V.FocusBallWeight) * zoomT
+	local cf = poseFor(cueWorld, dir, pitch, distance * zoom, ballWeight, vp)
+	if focusOverride then
+		local depth = -cf:PointToObjectSpace(tableCentre()).Z
+		local lookPoint = cf.Position + cf.LookVector * depth
+		cf = CFrame.lookAt(
+			cf.Position,
+			lookPoint:Lerp(focusOverride, Config.Camera.Shot.FocusWeight)
+		)
+	end
+	return cf
+end
+
+--- The fitted aim pose for a cue ball position and aim angle at the current zoom, for an
+--- optional viewport size (defaults to the real one). Used by the framing checks.
+function Camera.viewAt(cueWorld: Vector3, angle: number, viewport: Vector2?): CFrame
+	return viewFor(cueWorld, Camera.aimDirection(angle), nil, viewport)
+end
+
+--- Where the camera is right now (used to fade the avatar when it gets close).
+function Camera.position(): Vector3
+	return Workspace.CurrentCamera.CFrame.Position
 end
 
 --- Move the camera. `playing` freezes the anchor for the duration of the shot; `focus` is

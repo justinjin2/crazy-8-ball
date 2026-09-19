@@ -359,27 +359,36 @@ Config.Look = {
 -- Camera (studs, degrees)
 ---------------------------------------------------------------------------------------------
 Config.Camera = {
-	-- The one aim view: elevated, behind the shooter, looking down the aim line so the
-	-- table lays out ahead. It turns with the aim. Distances are in table inches so the
-	-- framing survives a change of world scale. Mobile first: the table should fill the
-	-- screen, so the default is close and steep; the player can zoom. (all tune)
+	-- The one aim view. The camera orbits a focus point inside the table, on the side opposite
+	-- the aim, so it always looks across the table in the aim direction. Every frame it solves
+	-- for the closest distance (and the shallowest pitch) that keeps all four table corners on
+	-- screen for the current viewport, so the whole table is always visible at the tightest
+	-- framing the screen allows, and the view stays 3D. (all tune)
 	View = {
-		BehindInches = 30, -- behind the cue ball along the aim line
-		HeightInches = 46, -- above the cloth
-		SideInches = 0, -- sideways offset from the aim line (0 = centred on the cue)
-		LookAheadInches = 25, -- the point ahead of the cue ball the camera looks at (further = flatter view)
 		FieldOfView = 60,
-		-- Seconds the camera takes to settle on a new aim (smaller = snappier).
-		Smoothing = 0.12,
-		-- Zoom: a multiplier on the distances above. 1 = the default framing. Pinch on touch
-		-- or scroll on PC moves it between ZoomMin (close) and ZoomMax (far). ZoomMax is a
-		-- hard cap; the whole-table fit can pull the limit in below it but never past it.
-		ZoomMin = 0.7,
-		ZoomMax = 1.8,
-		ZoomMaxScale = 4, -- search range for the whole-table fit (internal)
-		ZoomStep = 1.12, -- per scroll notch
-		-- Margin used when working out the whole-table scale (fraction of the screen).
-		FitMargin = 0.04,
+		-- What sits at the centre of the screen: 0 = the table's outline, 1 = the cue ball,
+		-- in between = the table shifted toward the ball (a bigger shift costs table size,
+		-- since the fit has to back off to keep the far side on screen).
+		FocusBallWeight = 0.15,
+		-- Pitch above the cloth, degrees. The solver starts at Preferred and steepens toward
+		-- Max only when a shallower angle cannot show the table as large on screen (a portrait
+		-- phone with the table crosswise). Min is the floor for the zoomed-in close view.
+		PitchPreferred = 40,
+		PitchMax = 60,
+		PitchMin = 35,
+		PitchSamples = 6, -- pitches tried between Preferred and Max (internal)
+		PitchBias = 0.06, -- fill advantage (fraction of screen) a steeper pitch must beat to win
+		-- Fraction of the screen kept clear around the table.
+		FitMargin = 0.05,
+		-- Camera distance search range for the whole-table fit, in table inches (internal).
+		DistanceMinInches = 40,
+		DistanceMaxInches = 400,
+		-- Seconds the camera takes to settle after an aim change (smaller = snappier).
+		Smoothing = 0.18,
+		-- Zoom: 1 = whole table fitted. Below 1 the camera closes in on the cue ball (the focus
+		-- blends from the table focus to the ball). Pinch on touch or scroll on PC.
+		ZoomMin = 0.45,
+		ZoomMax = 1.0,
 	},
 	-- While a shot plays the camera stays put but its gaze drifts towards the cue ball.
 	Shot = {
@@ -410,6 +419,12 @@ Config.Avatar = {
 	-- Hats, hoods, wings and other accessories are hidden while aiming so they cannot cover
 	-- the table; the body itself stays as a faded silhouette.
 	HideAccessoriesWhileAiming = true,
+	-- When the camera ends up close to the character (the ball at the near rail, aiming
+	-- away), the character fades out completely so it never covers the cue ball. Fully
+	-- invisible within FadeNearStuds of the camera, the normal AimTransparency from
+	-- FadeFarStuds out, blended in between.
+	FadeNearStuds = 3,
+	FadeFarStuds = 8,
 	-- Where the character stands (studs, avatar scale): this far behind the cue ball along
 	-- the aim line, and shifted sideways so the cue runs past the chin (positive = the
 	-- shooter's right).

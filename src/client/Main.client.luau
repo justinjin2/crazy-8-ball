@@ -192,7 +192,8 @@ RunService.RenderStepped:Connect(function(dt)
 	avatar:update(
 		cueBallWorld(),
 		dir,
-		if playing then Config.Avatar.ShotTransparency else Config.Avatar.AimTransparency
+		if playing then Config.Avatar.ShotTransparency else Config.Avatar.AimTransparency,
+		Camera.position()
 	)
 	if wasPlaying and not playing then
 		match:ensureCueBall()

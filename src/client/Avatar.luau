@@ -104,21 +104,38 @@ function Avatar.take(self: Avatar)
 	end
 end
 
---- Place and pose the character. Call every frame.
-function Avatar.update(self: Avatar, cueWorld: Vector3, dir: Vector3, transparency: number)
+--- Place and pose the character. Call every frame. The character fades out completely as
+--- the camera gets close to it (so it never covers the cue ball), back to `transparency`
+--- from FadeFarStuds out.
+function Avatar.update(
+	self: Avatar,
+	cueWorld: Vector3,
+	dir: Vector3,
+	transparency: number,
+	cameraPos: Vector3?
+)
 	local character = self.character
 	if not character or not self.parked then
 		return
 	end
 	local rootCFrame, stretch = AvatarPose.standing(character, cueWorld, dir)
 	AvatarPose.apply(character, rootCFrame, stretch)
-	if transparency ~= self.transparency then
-		self.transparency = transparency
-		AvatarPose.setTransparency(
-			character,
-			transparency,
-			Config.Avatar.HideAccessoriesWhileAiming
+	local target = transparency
+	if cameraPos then
+		local A = Config.Avatar
+		local d = (rootCFrame.Position - cameraPos).Magnitude
+		local k = math.clamp(
+			(d - A.FadeNearStuds) / math.max(A.FadeFarStuds - A.FadeNearStuds, 1e-3),
+			0,
+			1
 		)
+		target = 1 - (1 - transparency) * k
+	end
+	-- Quantise so the (descendant walk) transparency update does not run every frame.
+	target = math.floor(target * 50 + 0.5) / 50
+	if target ~= self.transparency then
+		self.transparency = target
+		AvatarPose.setTransparency(character, target, Config.Avatar.HideAccessoriesWhileAiming)
 	end
 end
 
