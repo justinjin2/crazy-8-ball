@@ -1,0 +1,16 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "Code executed successfully: LOUNGE_STAGE_SCHEDULED 2\n",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structured_content": {
+    "result": "Code executed successfully: LOUNGE_STAGE_SCHEDULED 2\n"
+  },
+  "is_error": false,
+  "result_type": "complete"
+}

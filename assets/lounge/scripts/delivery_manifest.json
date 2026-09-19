@@ -1,0 +1,126 @@
+{
+  "Lounge.blend": {
+    "bytes": 11281157,
+    "sha256": "3a1cb1bd949a807dc61d02da4a49701a9f97119cfe69508edecc39a6b9c0c87b"
+  },
+  "LoungeBuilder.py": {
+    "bytes": 114065,
+    "sha256": "569f42715443f083c31d2dd66176368b202ba8a2d99f889f0bec1bfd3fe369b9"
+  },
+  "PROGRESS.md": {
+    "bytes": 295,
+    "sha256": "f0a088ba0fa3d50f8dcd1edf68dd62a7a9639403fa02869dad625996990fe35c"
+  },
+  "DECISIONS.md": {
+    "bytes": 4354,
+    "sha256": "47fc9b0a1fef9768285a12d0bbaeefa57d7c9ca417acc12663a4556c3c2d4c0b"
+  },
+  "Readme.md": {
+    "bytes": 24719,
+    "sha256": "deabe8d58248b27a36ba15df7e76329829f061a4bc33c16d1d46fad71b2ac4ce"
+  },
+  "Markers.json": {
+    "bytes": 14027,
+    "sha256": "82acfb6ef5046bee70e9a44e016a1fcb30beb0b09024c422b7f63b129acecd1e"
+  },
+  "Validation.md": {
+    "bytes": 14066,
+    "sha256": "0d91f8e3796c7a3387a25ce944092cbea1284f8fce8e66498cadeca62a9a739f"
+  },
+  "Validation.json": {
+    "bytes": 824003,
+    "sha256": "1bb8a7f0aa528323d1ac7beda5ded934ed32ddd7815a1b1f1928f94b76cd252c"
+  },
+  "renders/hero.png": {
+    "bytes": 2678845,
+    "sha256": "a7d2e9bb625437395e5c41aff6333ffe024270f04e9df7172f96b1e6cca2b324"
+  },
+  "renders/layout_top.png": {
+    "bytes": 2329718,
+    "sha256": "cf77f4c4d40dbbc2e23a607dac7a9a372049910729d4fd3058478a9aad64b3f2"
+  },
+  "exports/Lounge_Architecture.fbx": {
+    "bytes": 553356,
+    "sha256": "96016faf4f70541ecffdf85f3f35e6fd090e135d8fb70625f04bd3b8a022cf8a"
+  },
+  "exports/Lounge_Furniture.fbx": {
+    "bytes": 436540,
+    "sha256": "56126843a9326e1275df70b42e28b885cd02509bcaa3c9999396ac9637f23efa"
+  },
+  "exports/Lounge_Props.fbx": {
+    "bytes": 1424156,
+    "sha256": "127d9ee5e77cfe1c935861e0199ed040b108c3b71ef2761b7c7868a15b916842"
+  },
+  "exports/Lounge_Signs.fbx": {
+    "bytes": 216172,
+    "sha256": "6bbe1c740b295e5ff556343610b64476b1d12dc4cee4763eb34983ff36368d16"
+  },
+  "exports/Lounge_Emissive.fbx": {
+    "bytes": 313052,
+    "sha256": "937548188b4e3b254eaabbc13378e760ab4829e88012a9aa53401dab2836bd51"
+  },
+  "exports/Lounge_Collision.fbx": {
+    "bytes": 33116,
+    "sha256": "45eace17429f6653abd61d45caee56a91974e5f1d46684236354fd70779ab315"
+  },
+  "textures/Architecture_A_Color.png": {
+    "bytes": 935177,
+    "sha256": "9d765bc7dd2c8e6ac9866bbb66848e0602dcdd1bff7dfee41b14338e0f82eb50"
+  },
+  "textures/Architecture_A_Roughness.png": {
+    "bytes": 24881,
+    "sha256": "d9745c43e80eb7ec4f6881bc42fecb0da94eb00a6243c19b52814131f66a3ee1"
+  },
+  "textures/Floor_A_Color.png": {
+    "bytes": 629350,
+    "sha256": "0536b6b45514fa3f63d8d3f49aa36277c9810a8bf6d6d3aa637f9e975cbdd354"
+  },
+  "textures/Floor_A_Roughness.png": {
+    "bytes": 19722,
+    "sha256": "c8a82845b49d1da62bed4933d0774c45ab68fe0dd22482e177d1d9ad112149c0"
+  },
+  "textures/Furniture_A_Color.png": {
+    "bytes": 714118,
+    "sha256": "1185d9f497681ba5c68eb316cb784c75753d5510edcf586fa96ecdc1cffc37dc"
+  },
+  "textures/Furniture_A_Roughness.png": {
+    "bytes": 57447,
+    "sha256": "5a062fa874eb3574626a9e9669729fad83e5c15e031108fc3a9ad0343bcf9c1e"
+  },
+  "textures/GameProps_A_Color.png": {
+    "bytes": 914202,
+    "sha256": "50f42b5d76f4dabc36cd099a490fd00557bb3cf7b2b893cf9f03cd9507b916e5"
+  },
+  "textures/GameProps_A_Roughness.png": {
+    "bytes": 215541,
+    "sha256": "e0f1906435d940115337ac72793c17aaf1550243c63960134f664398eadf7fa5"
+  },
+  "textures/Props_A_Color.png": {
+    "bytes": 621740,
+    "sha256": "f477aec162b391f12111db50aed93d9769d09f8e0b8e8181e6955b03e1157cbd"
+  },
+  "textures/Props_A_Metalness.png": {
+    "bytes": 15311,
+    "sha256": "c3d5a7bd5237a18d18b5a2d59cfafc565f8061020c09485739e21858fb65bb81"
+  },
+  "textures/Props_A_Roughness.png": {
+    "bytes": 192836,
+    "sha256": "67a58553e75192b98106a6e8170eafdd32f76c61a33509c055343e6d6ed8eef3"
+  },
+  "textures/Signs_Color.png": {
+    "bytes": 804006,
+    "sha256": "1b35c789c7ef2d8afccd606598937054fa6df9519a1690e0e3cc64fda318c25f"
+  },
+  "textures/Signs_Roughness.png": {
+    "bytes": 68023,
+    "sha256": "44dad16271d9a80713dbfccc35916d566e6885e24ffc6e089c1983510b12cf06"
+  },
+  "textures/Timber_A_Color.png": {
+    "bytes": 654441,
+    "sha256": "7ade11ec2e28113e8865f251be23035668e0bd2bcc2f1f177cfe7ed50fc39624"
+  },
+  "textures/Timber_A_Roughness.png": {
+    "bytes": 34147,
+    "sha256": "6100930afe5fcdebfc1d1730865440d23e25da5d2416db647722415eb861e409"
+  }
+}

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py", line 301, in work
+    try:run_stage(stage)
+        ~~~~~~~~~^^^^^^^
+  File "/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py", line 1691, in run_stage
+    elif stage==6:final_delivery()
+                  ~~~~~~~~~~~~~~^^
+  File "/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py", line 1626, in final_delivery
+    raise RuntimeError('Mesh / UV / clearance validation failed; see Validation.json')
+RuntimeError: Mesh / UV / clearance validation failed; see Validation.json

@@ -1,6 +1,7 @@
 # 8ball (working title): 3D 8-ball pool on Roblox
 
-Read `docs/GDD.md`, `docs/ROADMAP.md` and `docs/MVP_PLAN.md` before doing anything.
+Read `docs/HANDOFF.md` first (current state, what the user asked for next, Studio quirks), then
+`docs/GDD.md`, `docs/ROADMAP.md` and `docs/MVP_PLAN.md` before doing anything.
 
 ## Non-negotiable rules
 
@@ -23,8 +24,10 @@ Read `docs/GDD.md`, `docs/ROADMAP.md` and `docs/MVP_PLAN.md` before doing anythi
 One milestone at a time from `docs/MVP_PLAN.md`. After each: `tools/lint.sh`, `tools/test.sh`,
 start a playtest through MCP, check the console for errors, screenshot, fix. Then stop and tell
 the user plainly what was built, what was verified and what to try by hand. Commit only after
-the user approves, then tick the box in `docs/ROADMAP.md`. Not in this MVP: multiplayer, bots,
-abilities, coins, shop, lounge, menus, data saving. Ask before adding any of them.
+it is verified (the user does not want to be asked for the word "approve"), then tick the box in
+`docs/ROADMAP.md`. On 2026-09-19 the user brought the lounge and twelve playable tables into
+scope (see `docs/HANDOFF.md`), which means server-owned tables. Still not in scope unless the
+user asks: bots, abilities, coins, shop, data saving, menus beyond joining a table.
 
 The user is a beginner. Explain installs, clicks and decisions in simple steps.
 

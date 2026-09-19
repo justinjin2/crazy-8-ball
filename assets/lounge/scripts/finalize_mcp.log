@@ -1,0 +1,38 @@
+──────────────────────────────────────────────────────────────
+  blender-mcp is now mcp-for-blender.
+
+  This package is a compatibility wrapper. Everything still
+  works and there is nothing you need to change today.
+
+  When convenient, update your MCP client config to:
+      uvx mcp-for-blender
+
+  https://github.com/ahujasid/mcp-for-blender
+──────────────────────────────────────────────────────────────
+
+2026-09-19 15:28:26,422 - BlenderMCPServer - INFO - BlenderMCP server starting up
+2026-09-19 15:28:26,422 - BlenderMCPServer - INFO - Blender addon on disk is current (protocol 7).
+2026-09-19 15:28:26,422 - blender-mcp-telemetry - WARNING - Telemetry disabled via environment variable
+2026-09-19 15:28:26,424 - BlenderMCPServer - INFO - Connected to Blender at localhost:9877
+2026-09-19 15:28:26,424 - BlenderMCPServer - INFO - Created new persistent connection to Blender
+2026-09-19 15:28:26,424 - BlenderMCPServer - INFO - Sending command: get_addon_info with params: None
+2026-09-19 15:28:26,424 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:28:26,468 - BlenderMCPServer - INFO - Received complete response (398 bytes)
+2026-09-19 15:28:26,468 - BlenderMCPServer - INFO - Received 398 bytes of data
+2026-09-19 15:28:26,468 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:28:26,468 - BlenderMCPServer - INFO - Blender addon up to date (protocol 7, addon [1, 7], Blender 5.2.2 LTS)
+2026-09-19 15:28:26,468 - BlenderMCPServer - INFO - Successfully connected to Blender on startup
+2026-09-19 15:28:26,472 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-09-19 15:28:26,473 - BlenderMCPServer - INFO - Sending command: execute_code with params: {'code': "import bpy,json\np='/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py'\nns={'__name__':'lounge_builder','__file__':p};exec(compile(open(p).read(),p,'exec'),ns)\n# Stamp ownership for resumable individual stages on the delivered checkpoint.\nfor o in bpy.context.scene.objects:\n    g=o.get('export_group')\n    if g=='Architecture':\n        stage=2 if o.name.startswith(('Beam_','Ceiling_','Window_Frames_','Skirting_','Floor_Seams_')) else 1\n        if o.name=='Wall_Clock_Panel':stage=4\n    elif g=='Furniture':stage=2 if o.name.startswith('Playing_Rug_') else 3\n    elif g=='Props':stage=2 if o.name.startswith('Cue_Rack_') else 4 if o.get('optional_gameplay_display') else 3\n    elif g=='Signs':stage=3\n    elif g=='Emissive':stage=3 if o.name.startswith('Emissive_Pendant_') else 2\n    elif g=='Collision':stage=5\n    elif o.get('render_only'):stage=4\n    elif o.type=='LIGHT':stage=3 if o.name.startswith('Light_Pendant_') else 1\n    else:continue\n    o['build_stage']=stage\nmain=max(bpy.context.screen.areas,key=lambda a:a.width*a.height)\nif main.type=='CONSOLE':main.type='VIEW_3D'\nif main.type=='VIEW_3D':\n    main.spaces.active.region_3d.view_perspective='CAMERA'\n    main.spaces.active.shading.type='MATERIAL'\n    main.spaces.active.overlay.show_extras=False\nns['embed_builder']()\nns['write_readme'](json.loads((ns['OUTPUT_DIR']/'Validation.json').read_text()))\nbpy.ops.wm.save_as_mainfile(filepath=str(ns['OUTPUT_DIR']/'Lounge.blend'))\nns['progress'](6,'All final validation checks passed; final blend saved after validation','complete')\nprint('FINAL_DELIVERY_PASS',len([o for o in bpy.context.scene.objects if o.get('export_group') in ns['GROUPS']]),'meshes',bpy.context.scene.cycles.samples,'Cycles samples',bpy.data.filepath)\n"}
+2026-09-19 15:28:26,473 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:28:27,058 - BlenderMCPServer - INFO - Received complete response (207 bytes)
+2026-09-19 15:28:27,058 - BlenderMCPServer - INFO - Received 207 bytes of data
+2026-09-19 15:28:27,058 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:28:27,058 - BlenderMCPServer - INFO - Sending command: get_telemetry_consent with params: None
+2026-09-19 15:28:27,058 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:28:27,070 - BlenderMCPServer - INFO - Received complete response (50 bytes)
+2026-09-19 15:28:27,070 - BlenderMCPServer - INFO - Received 50 bytes of data
+2026-09-19 15:28:27,071 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:28:27,074 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-09-19 15:28:27,100 - BlenderMCPServer - INFO - Disconnecting from Blender on shutdown
+2026-09-19 15:28:27,100 - BlenderMCPServer - INFO - BlenderMCP server shut down

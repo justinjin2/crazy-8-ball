@@ -14,3 +14,6 @@ roblox.toml
 
 # Type definitions downloaded for luau-lsp (see tools/lint.sh)
 tools/globalTypes*.d.luau
+
+# Blender autosave backups
+*.blend1

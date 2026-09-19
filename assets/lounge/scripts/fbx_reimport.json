@@ -1,0 +1,387 @@
+{
+  "passed": true,
+  "tolerance_studs": 1e-06,
+  "maximum_error_studs": 0.0,
+  "tested_package": "Lounge_Emissive.fbx",
+  "objects": [
+    {
+      "object": "Emissive_Downlight_0_20_16.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_-20_-48.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Stair_1_1",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_1_-40_45.3",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_-20_32.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_01",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Pendant_05",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_0_20_-16.6",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_-40_16.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_20_99.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_0_45.3",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_08",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_2_40_86.4",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_12",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_1_20_59.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_0_99.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_-20_75.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_-40_-48.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_40_99.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_0_16.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_-40_32.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_04",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Pendant_07",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Pendant_10",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_1_20_32.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_-40_86.4",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_0_32.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_40_75.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_40_16.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_11",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_1_20_45.3",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_40_59.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Stair_0_2",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_0_0_-48.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_-40_75.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Stair_0_0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Pendant_09",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_1_0_59.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_-20_59.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_40_-48.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_40_32.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_0_86.4",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_03",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_0_-40_-16.6",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_0_75.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Stair_0_1",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_1_40_45.3",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_20_86.4",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_-20_-16.6",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_-20_16.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_40_-16.6",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Stair_1_2",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_2_-20_99.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Pendant_02",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_0_0_-16.6",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_-20_45.3",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_1_-40_59.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Stair_1_0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Pendant_06",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 56,
+      "imported_vertices": 56
+    },
+    {
+      "object": "Emissive_Downlight_2_-20_86.4",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_-40_99.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_2_20_75.8",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    },
+    {
+      "object": "Emissive_Downlight_0_20_-48.0",
+      "world_coordinate_error": 0.0,
+      "original_vertices": 32,
+      "imported_vertices": 32
+    }
+  ],
+  "method": "Clean collection import; bidirectional nearest world-vertex coordinates for every emissive mesh."
+}

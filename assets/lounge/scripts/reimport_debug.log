@@ -1,0 +1,16 @@
+{
+  "meta": null,
+  "content": [
+    {
+      "type": "text",
+      "text": "Code executed successfully: [('Lounge_Architecture', 84), ('Lounge_Furniture', 14), ('Lounge_Props', 47), ('Lounge_Signs', 18), ('Lounge_Emissive', 63), ('Lounge_Collision', 7), ('Lounge_Tables', 12), ('Lounge_Rig', 24), ('Lounge_Reimport_Validation', 1)]\n[('Emissive_Stair_1_1', ['Lounge_Emissive']), ('Emissive_Stair_1_2', ['Lounge_Emissive']), ('Emissive_Pendant_01', ['Lounge_Emissive']), ('Emissive_Pendant_02', ['Lounge_Emissive']), ('Emissive_Pendant_03', ['Lounge_Emissive']), ('Emissive_Pendant_04', ['Lounge_Emissive']), ('Emissive_Pendant_05', ['Lounge_Emissive']), ('Emissive_Pendant_06', ['Lounge_Emissive']), ('Emissive_Pendant_07', ['Lounge_Emissive']), ('Emissive_Pendant_08', ['Lounge_Emissive']), ('Emissive_Pendant_09', ['Lounge_Emissive']), ('Emissive_Pendant_10', ['Lounge_Emissive']), ('Emissive_Pendant_11', ['Lounge_Emissive']), ('Emissive_Pendant_12', ['Lounge_Emissive']), ('Emissive_Downlight_0_-40_-16.001', ['Lounge_Reimport_Validation'])]\n",
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "structured_content": {
+    "result": "Code executed successfully: [('Lounge_Architecture', 84), ('Lounge_Furniture', 14), ('Lounge_Props', 47), ('Lounge_Signs', 18), ('Lounge_Emissive', 63), ('Lounge_Collision', 7), ('Lounge_Tables', 12), ('Lounge_Rig', 24), ('Lounge_Reimport_Validation', 1)]\n[('Emissive_Stair_1_1', ['Lounge_Emissive']), ('Emissive_Stair_1_2', ['Lounge_Emissive']), ('Emissive_Pendant_01', ['Lounge_Emissive']), ('Emissive_Pendant_02', ['Lounge_Emissive']), ('Emissive_Pendant_03', ['Lounge_Emissive']), ('Emissive_Pendant_04', ['Lounge_Emissive']), ('Emissive_Pendant_05', ['Lounge_Emissive']), ('Emissive_Pendant_06', ['Lounge_Emissive']), ('Emissive_Pendant_07', ['Lounge_Emissive']), ('Emissive_Pendant_08', ['Lounge_Emissive']), ('Emissive_Pendant_09', ['Lounge_Emissive']), ('Emissive_Pendant_10', ['Lounge_Emissive']), ('Emissive_Pendant_11', ['Lounge_Emissive']), ('Emissive_Pendant_12', ['Lounge_Emissive']), ('Emissive_Downlight_0_-40_-16.001', ['Lounge_Reimport_Validation'])]\n"
+  },
+  "is_error": false,
+  "result_type": "complete"
+}

@@ -1,0 +1,38 @@
+──────────────────────────────────────────────────────────────
+  blender-mcp is now mcp-for-blender.
+
+  This package is a compatibility wrapper. Everything still
+  works and there is nothing you need to change today.
+
+  When convenient, update your MCP client config to:
+      uvx mcp-for-blender
+
+  https://github.com/ahujasid/mcp-for-blender
+──────────────────────────────────────────────────────────────
+
+2026-09-19 14:55:49,292 - BlenderMCPServer - INFO - BlenderMCP server starting up
+2026-09-19 14:55:49,293 - BlenderMCPServer - INFO - Blender addon on disk is current (protocol 7).
+2026-09-19 14:55:49,293 - blender-mcp-telemetry - WARNING - Telemetry disabled via environment variable
+2026-09-19 14:55:49,295 - BlenderMCPServer - INFO - Connected to Blender at localhost:9877
+2026-09-19 14:55:49,295 - BlenderMCPServer - INFO - Created new persistent connection to Blender
+2026-09-19 14:55:49,295 - BlenderMCPServer - INFO - Sending command: get_addon_info with params: None
+2026-09-19 14:55:49,295 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 14:55:49,327 - BlenderMCPServer - INFO - Received complete response (398 bytes)
+2026-09-19 14:55:49,327 - BlenderMCPServer - INFO - Received 398 bytes of data
+2026-09-19 14:55:49,327 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 14:55:49,327 - BlenderMCPServer - INFO - Blender addon up to date (protocol 7, addon [1, 7], Blender 5.2.2 LTS)
+2026-09-19 14:55:49,327 - BlenderMCPServer - INFO - Successfully connected to Blender on startup
+2026-09-19 14:55:49,330 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-09-19 14:55:49,331 - BlenderMCPServer - INFO - Sending command: execute_code with params: {'code': "import bpy,json\nprint('BLENDER',bpy.app.version_string)\nprint('CURRENT',bpy.data.filepath)\nprint('SCENES',[(s.name,len(s.objects)) for s in bpy.data.scenes])\nlib='/Users/justinjin/Desktop/8ball/assets/table/PoolTable_9ft.blend'\nwith bpy.data.libraries.load(lib,link=False) as (src,dst):\n    print('SOURCE_OBJECTS',src.objects)\n    print('SOURCE_COLLECTIONS',src.collections)\n    dst.objects=[n for n in src.objects if n in ('Bed','Cushions','Rails','Pockets','Apron','Legs','Sights')]\ncol=bpy.data.collections.get('Table_Source') or bpy.data.collections.new('Table_Source')\nfor o in dst.objects:\n    col.objects.link(o)\n    print('TABLE',o.name,tuple(o.dimensions),tuple(o.location),len(o.data.polygons),[m.name for m in o.data.materials])\nprint('IMAGES',[(i.name,tuple(i.size),bool(i.packed_file),i.filepath) for i in bpy.data.images if i.source=='FILE'][:40])\n"}
+2026-09-19 14:55:49,331 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 14:55:49,594 - BlenderMCPServer - INFO - Received complete response (5253 bytes)
+2026-09-19 14:55:49,594 - BlenderMCPServer - INFO - Received 5253 bytes of data
+2026-09-19 14:55:49,594 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 14:55:49,598 - BlenderMCPServer - INFO - Sending command: get_telemetry_consent with params: None
+2026-09-19 14:55:49,598 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 14:55:49,601 - BlenderMCPServer - INFO - Received complete response (50 bytes)
+2026-09-19 14:55:49,601 - BlenderMCPServer - INFO - Received 50 bytes of data
+2026-09-19 14:55:49,601 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 14:55:49,606 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-09-19 14:55:49,860 - BlenderMCPServer - INFO - Disconnecting from Blender on shutdown
+2026-09-19 14:55:49,861 - BlenderMCPServer - INFO - BlenderMCP server shut down

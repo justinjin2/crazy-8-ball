@@ -1,0 +1,38 @@
+──────────────────────────────────────────────────────────────
+  blender-mcp is now mcp-for-blender.
+
+  This package is a compatibility wrapper. Everything still
+  works and there is nothing you need to change today.
+
+  When convenient, update your MCP client config to:
+      uvx mcp-for-blender
+
+  https://github.com/ahujasid/mcp-for-blender
+──────────────────────────────────────────────────────────────
+
+2026-09-19 15:20:00,723 - BlenderMCPServer - INFO - BlenderMCP server starting up
+2026-09-19 15:20:00,724 - BlenderMCPServer - INFO - Blender addon on disk is current (protocol 7).
+2026-09-19 15:20:00,724 - blender-mcp-telemetry - WARNING - Telemetry disabled via environment variable
+2026-09-19 15:20:00,726 - BlenderMCPServer - INFO - Connected to Blender at localhost:9877
+2026-09-19 15:20:00,726 - BlenderMCPServer - INFO - Created new persistent connection to Blender
+2026-09-19 15:20:00,726 - BlenderMCPServer - INFO - Sending command: get_addon_info with params: None
+2026-09-19 15:20:00,726 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:20:00,737 - BlenderMCPServer - INFO - Received complete response (398 bytes)
+2026-09-19 15:20:00,737 - BlenderMCPServer - INFO - Received 398 bytes of data
+2026-09-19 15:20:00,737 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:20:00,737 - BlenderMCPServer - INFO - Blender addon up to date (protocol 7, addon [1, 7], Blender 5.2.2 LTS)
+2026-09-19 15:20:00,737 - BlenderMCPServer - INFO - Successfully connected to Blender on startup
+2026-09-19 15:20:00,740 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-09-19 15:20:00,741 - BlenderMCPServer - INFO - Sending command: execute_code with params: {'code': "import bpy\np='/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py'\nns={'__name__':'lounge_builder','__file__':p}\nexec(compile(open(p).read(),p,'exec'),ns)\ndef repair():\n    try:\n        ns['bake_atlases'](['Furniture_A','Signs'])\n        ns['export_packages']()\n        ns['checkpoint'](5,render=False)\n    except Exception:\n        import traceback\n        err=traceback.format_exc();open('/Users/justinjin/Desktop/8ball/assets/lounge/scripts/uv_repair_error.log','w').write(err)\n        ns['progress'](5,'saved baked geometry checkpoint','repair_uv.py',err)\n    return None\nbpy.app.timers.register(repair,first_interval=3)\nprint('UV_REPAIR_SCHEDULED')\n"}
+2026-09-19 15:20:00,741 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:20:00,826 - BlenderMCPServer - INFO - Received complete response (86 bytes)
+2026-09-19 15:20:00,826 - BlenderMCPServer - INFO - Received 86 bytes of data
+2026-09-19 15:20:00,826 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:20:00,826 - BlenderMCPServer - INFO - Sending command: get_telemetry_consent with params: None
+2026-09-19 15:20:00,826 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:20:00,842 - BlenderMCPServer - INFO - Received complete response (50 bytes)
+2026-09-19 15:20:00,842 - BlenderMCPServer - INFO - Received 50 bytes of data
+2026-09-19 15:20:00,842 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:20:00,844 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-09-19 15:20:00,875 - BlenderMCPServer - INFO - Disconnecting from Blender on shutdown
+2026-09-19 15:20:00,875 - BlenderMCPServer - INFO - BlenderMCP server shut down

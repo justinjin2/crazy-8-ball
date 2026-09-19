@@ -1,0 +1,693 @@
+{
+  "schema_version": 1,
+  "units": "studs",
+  "coordinate_system": "Roblox Y-up; Blender (x,y,z) maps to (x,z,-y)",
+  "position_format": [
+    "X",
+    "Y",
+    "Z"
+  ],
+  "rotation_format": "degrees around Roblox +Y; yaw 0 faces Roblox -Z",
+  "rgb_format": "0..255 sRGB arrays; use Color3.fromRGB",
+  "assembly_origin": [
+    0,
+    0,
+    0
+  ],
+  "tables": [
+    {
+      "name": "Table_01",
+      "table_number": 1,
+      "row": 1,
+      "column": 1,
+      "position": [
+        -30.0,
+        0.0,
+        -0.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_02",
+      "table_number": 2,
+      "row": 1,
+      "column": 2,
+      "position": [
+        -10.0,
+        0.0,
+        -0.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_03",
+      "table_number": 3,
+      "row": 1,
+      "column": 3,
+      "position": [
+        10.0,
+        0.0,
+        -0.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_04",
+      "table_number": 4,
+      "row": 1,
+      "column": 4,
+      "position": [
+        30.0,
+        0.0,
+        -0.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_05",
+      "table_number": 5,
+      "row": 2,
+      "column": 1,
+      "position": [
+        -30.0,
+        2.4000001,
+        -43.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_06",
+      "table_number": 6,
+      "row": 2,
+      "column": 2,
+      "position": [
+        -10.0,
+        2.4000001,
+        -43.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_07",
+      "table_number": 7,
+      "row": 2,
+      "column": 3,
+      "position": [
+        10.0,
+        2.4000001,
+        -43.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_08",
+      "table_number": 8,
+      "row": 2,
+      "column": 4,
+      "position": [
+        30.0,
+        2.4000001,
+        -43.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_09",
+      "table_number": 9,
+      "row": 3,
+      "column": 1,
+      "position": [
+        -30.0,
+        4.80000019,
+        -86.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_10",
+      "table_number": 10,
+      "row": 3,
+      "column": 2,
+      "position": [
+        -10.0,
+        4.80000019,
+        -86.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_11",
+      "table_number": 11,
+      "row": 3,
+      "column": 3,
+      "position": [
+        10.0,
+        4.80000019,
+        -86.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    },
+    {
+      "name": "Table_12",
+      "table_number": 12,
+      "row": 3,
+      "column": 4,
+      "position": [
+        30.0,
+        4.80000019,
+        -86.0
+      ],
+      "rotation_y_degrees": 90.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "source_asset": "../table/PoolTable_9ft.blend",
+      "native_source_footprint_studs": [
+        17.76,
+        9.76
+      ],
+      "placed_plan_footprint_studs": [
+        9.76,
+        17.76
+      ],
+      "cloth_height_above_floor": 2.9
+    }
+  ],
+  "pendants": [
+    {
+      "name": "Light_Pendant_01",
+      "table": "Table_01",
+      "position": [
+        -30.0,
+        7.42000008,
+        -0.0
+      ],
+      "fixture_bottom_y": 7.5,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_02",
+      "table": "Table_02",
+      "position": [
+        -10.0,
+        7.42000008,
+        -0.0
+      ],
+      "fixture_bottom_y": 7.5,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_03",
+      "table": "Table_03",
+      "position": [
+        10.0,
+        7.42000008,
+        -0.0
+      ],
+      "fixture_bottom_y": 7.5,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_04",
+      "table": "Table_04",
+      "position": [
+        30.0,
+        7.42000008,
+        -0.0
+      ],
+      "fixture_bottom_y": 7.5,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_05",
+      "table": "Table_05",
+      "position": [
+        -30.0,
+        9.81999969,
+        -43.0
+      ],
+      "fixture_bottom_y": 9.9000001,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_06",
+      "table": "Table_06",
+      "position": [
+        -10.0,
+        9.81999969,
+        -43.0
+      ],
+      "fixture_bottom_y": 9.9000001,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_07",
+      "table": "Table_07",
+      "position": [
+        10.0,
+        9.81999969,
+        -43.0
+      ],
+      "fixture_bottom_y": 9.9000001,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_08",
+      "table": "Table_08",
+      "position": [
+        30.0,
+        9.81999969,
+        -43.0
+      ],
+      "fixture_bottom_y": 9.9000001,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_09",
+      "table": "Table_09",
+      "position": [
+        -30.0,
+        12.22000027,
+        -86.0
+      ],
+      "fixture_bottom_y": 12.30000019,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_10",
+      "table": "Table_10",
+      "position": [
+        -10.0,
+        12.22000027,
+        -86.0
+      ],
+      "fixture_bottom_y": 12.30000019,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_11",
+      "table": "Table_11",
+      "position": [
+        10.0,
+        12.22000027,
+        -86.0
+      ],
+      "fixture_bottom_y": 12.30000019,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    },
+    {
+      "name": "Light_Pendant_12",
+      "table": "Table_12",
+      "position": [
+        30.0,
+        12.22000027,
+        -86.0
+      ],
+      "fixture_bottom_y": 12.30000019,
+      "color_temperature_K": 3000,
+      "suggested_roblox_light": {
+        "ClassName": "SurfaceLight",
+        "Face": "Bottom",
+        "Brightness": 1.8,
+        "Range": 24,
+        "Angle": 120,
+        "Shadows": false,
+        "Color": [
+          255,
+          177,
+          110
+        ]
+      }
+    }
+  ],
+  "spawn": {
+    "name": "Spawn_Lounge",
+    "position": [
+      0.0,
+      0.1,
+      20.0
+    ],
+    "rotation_y_degrees": 0.0,
+    "facing_direction": [
+      0,
+      0,
+      -1
+    ],
+    "purpose": "Floor marker in the seating area. Set SpawnLocation or character height above this floor marker as appropriate."
+  },
+  "suggested_roblox_lighting": {
+    "ClockTime": 17.4,
+    "Brightness": 2.0,
+    "Ambient": [
+      150,
+      146,
+      133
+    ],
+    "OutdoorAmbient": [
+      170,
+      154,
+      130
+    ],
+    "ColorShift_Top": [
+      18,
+      10,
+      3
+    ],
+    "EnvironmentDiffuseScale": 0.65,
+    "EnvironmentSpecularScale": 0.5,
+    "Bloom": {
+      "Enabled": true,
+      "Intensity": 0.12,
+      "Size": 20,
+      "Threshold": 1.2
+    },
+    "ColorCorrection": {
+      "Enabled": true,
+      "Brightness": 0.02,
+      "Contrast": 0.04,
+      "Saturation": 0.04,
+      "TintColor": [
+        255,
+        244,
+        224
+      ]
+    }
+  },
+  "notes": [
+    "Tables are linked scene placeholders and are excluded from every lounge FBX.",
+    "Pendant positions are light emission positions from the actual Blender scene; fixture_bottom_y records the separate 7.5-stud mounting rule.",
+    "SurfaceLight values are a starting point for Studio; place each light on a downward-facing invisible mount or the matching Emissive_Pendant mesh.",
+    "Neon is a flat material assignment and does not replace the corresponding Roblox light.",
+    "Suggested Roblox lighting was not uploaded to or evaluated inside Studio."
+  ]
+}

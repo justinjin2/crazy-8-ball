@@ -1,0 +1,38 @@
+──────────────────────────────────────────────────────────────
+  blender-mcp is now mcp-for-blender.
+
+  This package is a compatibility wrapper. Everything still
+  works and there is nothing you need to change today.
+
+  When convenient, update your MCP client config to:
+      uvx mcp-for-blender
+
+  https://github.com/ahujasid/mcp-for-blender
+──────────────────────────────────────────────────────────────
+
+2026-09-19 15:13:32,832 - BlenderMCPServer - INFO - BlenderMCP server starting up
+2026-09-19 15:13:32,833 - BlenderMCPServer - INFO - Blender addon on disk is current (protocol 7).
+2026-09-19 15:13:32,833 - blender-mcp-telemetry - WARNING - Telemetry disabled via environment variable
+2026-09-19 15:13:32,834 - BlenderMCPServer - INFO - Connected to Blender at localhost:9877
+2026-09-19 15:13:32,834 - BlenderMCPServer - INFO - Created new persistent connection to Blender
+2026-09-19 15:13:32,834 - BlenderMCPServer - INFO - Sending command: get_addon_info with params: None
+2026-09-19 15:13:32,834 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:13:32,858 - BlenderMCPServer - INFO - Received complete response (398 bytes)
+2026-09-19 15:13:32,858 - BlenderMCPServer - INFO - Received 398 bytes of data
+2026-09-19 15:13:32,858 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:13:32,858 - BlenderMCPServer - INFO - Blender addon up to date (protocol 7, addon [1, 7], Blender 5.2.2 LTS)
+2026-09-19 15:13:32,858 - BlenderMCPServer - INFO - Successfully connected to Blender on startup
+2026-09-19 15:13:32,861 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2026-09-19 15:13:32,861 - BlenderMCPServer - INFO - Sending command: execute_code with params: {'code': "import bpy,json;print([(c.name,len(c.objects)) for c in bpy.context.scene.collection.children]);print([(o.name,[c.name for c in o.users_collection]) for o in bpy.context.scene.objects if o.name.startswith('Emissive_')][-15:])"}
+2026-09-19 15:13:32,861 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:13:32,916 - BlenderMCPServer - INFO - Received complete response (1008 bytes)
+2026-09-19 15:13:32,916 - BlenderMCPServer - INFO - Received 1008 bytes of data
+2026-09-19 15:13:32,916 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:13:32,916 - BlenderMCPServer - INFO - Sending command: get_telemetry_consent with params: None
+2026-09-19 15:13:32,916 - BlenderMCPServer - INFO - Command sent, waiting for response...
+2026-09-19 15:13:32,965 - BlenderMCPServer - INFO - Received complete response (50 bytes)
+2026-09-19 15:13:32,965 - BlenderMCPServer - INFO - Received 50 bytes of data
+2026-09-19 15:13:32,965 - BlenderMCPServer - INFO - Response parsed, status: success
+2026-09-19 15:13:32,967 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-09-19 15:13:32,989 - BlenderMCPServer - INFO - Disconnecting from Blender on shutdown
+2026-09-19 15:13:32,989 - BlenderMCPServer - INFO - BlenderMCP server shut down

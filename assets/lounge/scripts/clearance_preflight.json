@@ -1,0 +1,1930 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "exactly_twelve_table_instances",
+      "passed": true,
+      "detail": {
+        "found": 12,
+        "collection_instance_count": 12,
+        "missing": []
+      }
+    },
+    {
+      "name": "three_ascending_rows_of_four",
+      "passed": true
+    },
+    {
+      "name": "tagged_clearance_obstacles_exist",
+      "passed": true,
+      "detail": 80
+    },
+    {
+      "name": "all_table_clearances",
+      "passed": true,
+      "detail": {
+        "required": 10.0,
+        "failure_count": 0
+      }
+    }
+  ],
+  "tables": [
+    {
+      "table": "Table_01",
+      "center_blender": [
+        -30.0,
+        0.0,
+        0.0
+      ],
+      "center_roblox": [
+        -30.0,
+        0.0,
+        -0.0
+      ],
+      "plan_bounds": [
+        -34.880001068115234,
+        -25.119998931884766,
+        -8.880000114440918,
+        8.880000114440918
+      ],
+      "minimum_clearance": 10.119998931884766,
+      "nearest_obstacle": "Furniture_SnackCounter",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.119998931884766,
+          "obstacle": "Furniture_SnackCounter"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_02"
+        },
+        "front": {
+          "distance": 48.11999988555908,
+          "obstacle": "FrontPier"
+        },
+        "back": {
+          "distance": 10.119999885559082,
+          "obstacle": "Stair_1_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_02",
+      "center_blender": [
+        -10.0,
+        0.0,
+        0.0
+      ],
+      "center_roblox": [
+        -10.0,
+        0.0,
+        -0.0
+      ],
+      "plan_bounds": [
+        -14.880000114440918,
+        -5.119999408721924,
+        -8.880000114440918,
+        8.880000114440918
+      ],
+      "minimum_clearance": 10.119999885559082,
+      "nearest_obstacle": "Stair_1_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_01"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_03"
+        },
+        "front": {
+          "distance": 11.410199165344238,
+          "obstacle": "Props_Plant_Lounge_Rear"
+        },
+        "back": {
+          "distance": 10.119999885559082,
+          "obstacle": "Stair_1_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_03",
+      "center_blender": [
+        10.0,
+        0.0,
+        0.0
+      ],
+      "center_roblox": [
+        10.0,
+        0.0,
+        -0.0
+      ],
+      "plan_bounds": [
+        5.119999408721924,
+        14.880000114440918,
+        -8.880000114440918,
+        8.880000114440918
+      ],
+      "minimum_clearance": 10.119999885559082,
+      "nearest_obstacle": "Stair_1_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_02"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_04"
+        },
+        "front": {
+          "distance": 12.419999122619629,
+          "obstacle": "Furniture_Loveseat_Cream"
+        },
+        "back": {
+          "distance": 10.119999885559082,
+          "obstacle": "Stair_1_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_04",
+      "center_blender": [
+        30.0,
+        0.0,
+        0.0
+      ],
+      "center_roblox": [
+        30.0,
+        0.0,
+        -0.0
+      ],
+      "plan_bounds": [
+        25.119998931884766,
+        34.880001068115234,
+        -8.880000114440918,
+        8.880000114440918
+      ],
+      "minimum_clearance": 10.119999885559082,
+      "nearest_obstacle": "Stair_1_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_03"
+        },
+        "right": {
+          "distance": 13.895000457763672,
+          "obstacle": "Window_Frames_0"
+        },
+        "front": {
+          "distance": 48.11999988555908,
+          "obstacle": "FrontPier.001"
+        },
+        "back": {
+          "distance": 10.119999885559082,
+          "obstacle": "Stair_1_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_05",
+      "center_blender": [
+        -30.0,
+        43.0,
+        2.4000000953674316
+      ],
+      "center_roblox": [
+        -30.0,
+        2.4000000953674316,
+        -43.0
+      ],
+      "plan_bounds": [
+        -34.880001068115234,
+        -25.119998931884766,
+        34.119998931884766,
+        51.880001068115234
+      ],
+      "minimum_clearance": 10.119998931884766,
+      "nearest_obstacle": "Stair_2_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 13.278793334960938,
+          "obstacle": "Cue_Rack_1"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_06"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_1_3"
+        },
+        "back": {
+          "distance": 10.119998931884766,
+          "obstacle": "Stair_2_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_06",
+      "center_blender": [
+        -10.0,
+        43.0,
+        2.4000000953674316
+      ],
+      "center_roblox": [
+        -10.0,
+        2.4000000953674316,
+        -43.0
+      ],
+      "plan_bounds": [
+        -14.880000114440918,
+        -5.119999408721924,
+        34.119998931884766,
+        51.880001068115234
+      ],
+      "minimum_clearance": 10.119998931884766,
+      "nearest_obstacle": "Stair_2_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_05"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_07"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_1_3"
+        },
+        "back": {
+          "distance": 10.119998931884766,
+          "obstacle": "Stair_2_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_07",
+      "center_blender": [
+        10.0,
+        43.0,
+        2.4000000953674316
+      ],
+      "center_roblox": [
+        10.0,
+        2.4000000953674316,
+        -43.0
+      ],
+      "plan_bounds": [
+        5.119999408721924,
+        14.880000114440918,
+        34.119998931884766,
+        51.880001068115234
+      ],
+      "minimum_clearance": 10.119998931884766,
+      "nearest_obstacle": "Stair_2_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_06"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_08"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_1_3"
+        },
+        "back": {
+          "distance": 10.119998931884766,
+          "obstacle": "Stair_2_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_08",
+      "center_blender": [
+        30.0,
+        43.0,
+        2.4000000953674316
+      ],
+      "center_roblox": [
+        30.0,
+        2.4000000953674316,
+        -43.0
+      ],
+      "plan_bounds": [
+        25.119998931884766,
+        34.880001068115234,
+        34.119998931884766,
+        51.880001068115234
+      ],
+      "minimum_clearance": 10.119998931884766,
+      "nearest_obstacle": "Stair_2_1",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_07"
+        },
+        "right": {
+          "distance": 13.895000457763672,
+          "obstacle": "Window_Frames_1"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_1_3"
+        },
+        "back": {
+          "distance": 10.119998931884766,
+          "obstacle": "Stair_2_1"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_09",
+      "center_blender": [
+        -30.0,
+        86.0,
+        4.800000190734863
+      ],
+      "center_roblox": [
+        -30.0,
+        4.800000190734863,
+        -86.0
+      ],
+      "plan_bounds": [
+        -34.880001068115234,
+        -25.119998931884766,
+        77.12000274658203,
+        94.87999725341797
+      ],
+      "minimum_clearance": 10.239998817443848,
+      "nearest_obstacle": "Table_10",
+      "directional_clearances": {
+        "left": {
+          "distance": 13.278793334960938,
+          "obstacle": "Cue_Rack_2"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_10"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_2_3"
+        },
+        "back": {
+          "distance": 11.120002746582031,
+          "obstacle": "Wall_Back"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_10",
+      "center_blender": [
+        -10.0,
+        86.0,
+        4.800000190734863
+      ],
+      "center_roblox": [
+        -10.0,
+        4.800000190734863,
+        -86.0
+      ],
+      "plan_bounds": [
+        -14.880000114440918,
+        -5.119999408721924,
+        77.12000274658203,
+        94.87999725341797
+      ],
+      "minimum_clearance": 10.239998817443848,
+      "nearest_obstacle": "Table_09",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_09"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_11"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_2_3"
+        },
+        "back": {
+          "distance": 11.120002746582031,
+          "obstacle": "Wall_Back"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_11",
+      "center_blender": [
+        10.0,
+        86.0,
+        4.800000190734863
+      ],
+      "center_roblox": [
+        10.0,
+        4.800000190734863,
+        -86.0
+      ],
+      "plan_bounds": [
+        5.119999408721924,
+        14.880000114440918,
+        77.12000274658203,
+        94.87999725341797
+      ],
+      "minimum_clearance": 10.239998817443848,
+      "nearest_obstacle": "Table_10",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_10"
+        },
+        "right": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_12"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_2_3"
+        },
+        "back": {
+          "distance": 11.120002746582031,
+          "obstacle": "Wall_Back"
+        }
+      },
+      "passed": true
+    },
+    {
+      "table": "Table_12",
+      "center_blender": [
+        30.0,
+        86.0,
+        4.800000190734863
+      ],
+      "center_roblox": [
+        30.0,
+        4.800000190734863,
+        -86.0
+      ],
+      "plan_bounds": [
+        25.119998931884766,
+        34.880001068115234,
+        77.12000274658203,
+        94.87999725341797
+      ],
+      "minimum_clearance": 10.239998817443848,
+      "nearest_obstacle": "Table_11",
+      "directional_clearances": {
+        "left": {
+          "distance": 10.239998817443848,
+          "obstacle": "Table_11"
+        },
+        "right": {
+          "distance": 13.895000457763672,
+          "obstacle": "Window_Frames_2"
+        },
+        "front": {
+          "distance": 10.319999694824219,
+          "obstacle": "Stair_2_3"
+        },
+        "back": {
+          "distance": 11.120002746582031,
+          "obstacle": "Wall_Back"
+        }
+      },
+      "passed": true
+    }
+  ],
+  "table_pair_distances": [
+    {
+      "tables": [
+        "Table_01",
+        "Table_02"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_03"
+      ],
+      "distance": 30.23999834060669,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_04"
+      ],
+      "distance": 50.23999786376953,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_05"
+      ],
+      "distance": 25.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_06"
+      ],
+      "distance": 27.238118805927442,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_07"
+      ],
+      "distance": 39.389275697129314,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_08"
+      ],
+      "distance": 56.223793234325036,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_09"
+      ],
+      "distance": 68.24000263214111,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_10"
+      ],
+      "distance": 69.00402549863216,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_11"
+      ],
+      "distance": 74.64017322377087,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_01",
+        "Table_12"
+      ],
+      "distance": 84.73933764543001,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_03"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_04"
+      ],
+      "distance": 30.23999834060669,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_05"
+      ],
+      "distance": 27.238118805927442,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_06"
+      ],
+      "distance": 25.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_07"
+      ],
+      "distance": 27.238118805927442,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_08"
+      ],
+      "distance": 39.389275697129314,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_09"
+      ],
+      "distance": 69.00402549863216,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_10"
+      ],
+      "distance": 68.24000263214111,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_11"
+      ],
+      "distance": 69.00402549863216,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_02",
+        "Table_12"
+      ],
+      "distance": 74.64017322377087,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_04"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_05"
+      ],
+      "distance": 39.389275697129314,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_06"
+      ],
+      "distance": 27.238118805927442,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_07"
+      ],
+      "distance": 25.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_08"
+      ],
+      "distance": 27.238118805927442,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_09"
+      ],
+      "distance": 74.64017322377087,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_10"
+      ],
+      "distance": 69.00402549863216,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_11"
+      ],
+      "distance": 68.24000263214111,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_03",
+        "Table_12"
+      ],
+      "distance": 69.00402549863216,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_05"
+      ],
+      "distance": 56.223793234325036,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_06"
+      ],
+      "distance": 39.389275697129314,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_07"
+      ],
+      "distance": 27.238118805927442,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_08"
+      ],
+      "distance": 25.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_09"
+      ],
+      "distance": 84.73933764543001,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_10"
+      ],
+      "distance": 74.64017322377087,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_11"
+      ],
+      "distance": 69.00402549863216,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_04",
+        "Table_12"
+      ],
+      "distance": 68.24000263214111,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_06"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_07"
+      ],
+      "distance": 30.23999834060669,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_08"
+      ],
+      "distance": 50.23999786376953,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_09"
+      ],
+      "distance": 25.240001678466797,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_10"
+      ],
+      "distance": 27.238121457072957,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_11"
+      ],
+      "distance": 39.38927753042574,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_05",
+        "Table_12"
+      ],
+      "distance": 56.22379451869621,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_06",
+        "Table_07"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_06",
+        "Table_08"
+      ],
+      "distance": 30.23999834060669,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_06",
+        "Table_09"
+      ],
+      "distance": 27.238121457072957,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_06",
+        "Table_10"
+      ],
+      "distance": 25.240001678466797,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_06",
+        "Table_11"
+      ],
+      "distance": 27.238121457072957,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_06",
+        "Table_12"
+      ],
+      "distance": 39.38927753042574,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_07",
+        "Table_08"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_07",
+        "Table_09"
+      ],
+      "distance": 39.38927753042574,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_07",
+        "Table_10"
+      ],
+      "distance": 27.238121457072957,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_07",
+        "Table_11"
+      ],
+      "distance": 25.240001678466797,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_07",
+        "Table_12"
+      ],
+      "distance": 27.238121457072957,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_08",
+        "Table_09"
+      ],
+      "distance": 56.22379451869621,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_08",
+        "Table_10"
+      ],
+      "distance": 39.38927753042574,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_08",
+        "Table_11"
+      ],
+      "distance": 27.238121457072957,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_08",
+        "Table_12"
+      ],
+      "distance": 25.240001678466797,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_09",
+        "Table_10"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_09",
+        "Table_11"
+      ],
+      "distance": 30.23999834060669,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_09",
+        "Table_12"
+      ],
+      "distance": 50.23999786376953,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_10",
+        "Table_11"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_10",
+        "Table_12"
+      ],
+      "distance": 30.23999834060669,
+      "passed": true
+    },
+    {
+      "tables": [
+        "Table_11",
+        "Table_12"
+      ],
+      "distance": 10.239998817443848,
+      "passed": true
+    }
+  ],
+  "obstacle_count": 80,
+  "obstacle_bounds": [
+    {
+      "object": "Cue_Rack_0",
+      "bounds": [
+        -48.70000076293945,
+        -48.15879440307617,
+        2.0,
+        8.0,
+        0.10000000149011612,
+        7.449999809265137
+      ]
+    },
+    {
+      "object": "Cue_Rack_1",
+      "bounds": [
+        -48.70000076293945,
+        -48.15879440307617,
+        42.0,
+        48.0,
+        2.5,
+        9.850000381469727
+      ]
+    },
+    {
+      "object": "Cue_Rack_2",
+      "bounds": [
+        -48.70000076293945,
+        -48.15879440307617,
+        84.0,
+        90.0,
+        4.900000095367432,
+        12.25
+      ]
+    },
+    {
+      "object": "Door_Lintel",
+      "bounds": [
+        -2.5,
+        2.5,
+        -57.70000076293945,
+        -57.0,
+        8.0,
+        18.0
+      ]
+    },
+    {
+      "object": "FrontPier",
+      "bounds": [
+        -49.0,
+        -2.5,
+        -57.70000076293945,
+        -57.0,
+        0.0,
+        18.0
+      ]
+    },
+    {
+      "object": "FrontPier.001",
+      "bounds": [
+        2.5,
+        49.0,
+        -57.70000076293945,
+        -57.0,
+        0.0,
+        18.0
+      ]
+    },
+    {
+      "object": "Furniture_Armchair_Teal_Right",
+      "bounds": [
+        15.791815757751465,
+        20.424030303955078,
+        -31.482681274414062,
+        -26.933164596557617,
+        0.0,
+        3.4000000953674316
+      ]
+    },
+    {
+      "object": "Furniture_CoffeeTable_Oak",
+      "bounds": [
+        -3.0,
+        3.0,
+        -29.5,
+        -23.5,
+        0.0,
+        1.5
+      ]
+    },
+    {
+      "object": "Furniture_Loveseat_Cream",
+      "bounds": [
+        6.050000190734863,
+        13.550000190734863,
+        -24.700000762939453,
+        -21.299999237060547,
+        0.0,
+        3.4000000953674316
+      ]
+    },
+    {
+      "object": "Furniture_Ottoman_Butter",
+      "bounds": [
+        5.480000019073486,
+        8.920000076293945,
+        -32.119998931884766,
+        -28.68000030517578,
+        0.0,
+        1.715000033378601
+      ]
+    },
+    {
+      "object": "Furniture_SideTable_Oak",
+      "bounds": [
+        13.600000381469727,
+        15.5,
+        -27.649999618530273,
+        -25.75,
+        0.0,
+        1.8799999952316284
+      ]
+    },
+    {
+      "object": "Furniture_SnackCounter",
+      "bounds": [
+        -48.5,
+        -45.0,
+        1.9250001907348633,
+        14.074999809265137,
+        0.0,
+        3.200000047683716
+      ]
+    },
+    {
+      "object": "Furniture_SnackFridge",
+      "bounds": [
+        -48.54999923706055,
+        -45.349998474121094,
+        14.59999942779541,
+        18.0,
+        0.0,
+        5.400000095367432
+      ]
+    },
+    {
+      "object": "Furniture_SnackWallCabinet",
+      "bounds": [
+        -48.630001068115234,
+        -47.3650016784668,
+        2.6499996185302734,
+        13.350000381469727,
+        5.349999904632568,
+        7.050000190734863
+      ]
+    },
+    {
+      "object": "Furniture_Sofa_Teal_Foreground",
+      "bounds": [
+        -12.399999618530273,
+        -1.5999999046325684,
+        -32.70000076293945,
+        -29.299999237060547,
+        0.0,
+        3.4000000953674316
+      ]
+    },
+    {
+      "object": "Furniture_Sofa_Teal_Left",
+      "bounds": [
+        -18.700000762939453,
+        -15.299999237060547,
+        -31.0,
+        -21.0,
+        0.0,
+        3.4000000953674316
+      ]
+    },
+    {
+      "object": "Glass_Windows",
+      "bounds": [
+        49.34000015258789,
+        49.41999816894531,
+        -57.0,
+        106.0,
+        2.0,
+        18.200000762939453
+      ]
+    },
+    {
+      "object": "Pillar_-1_-34",
+      "bounds": [
+        -49.0,
+        -47.70000076293945,
+        -34.54999923706055,
+        -33.45000076293945,
+        0.0,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_-1_105.4",
+      "bounds": [
+        -49.0,
+        -47.70000076293945,
+        104.8499984741211,
+        105.94999694824219,
+        4.800000190734863,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_-1_18.6",
+      "bounds": [
+        -49.0,
+        -47.70000076293945,
+        18.049999237060547,
+        19.149999618530273,
+        0.0,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_-1_61.6",
+      "bounds": [
+        -49.0,
+        -47.70000076293945,
+        61.04999923706055,
+        62.150001525878906,
+        2.4000000953674316,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_1_-34",
+      "bounds": [
+        47.70000076293945,
+        49.0,
+        -34.54999923706055,
+        -33.45000076293945,
+        0.0,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_1_105.4",
+      "bounds": [
+        47.70000076293945,
+        49.0,
+        104.8499984741211,
+        105.94999694824219,
+        4.800000190734863,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_1_18.6",
+      "bounds": [
+        47.70000076293945,
+        49.0,
+        18.049999237060547,
+        19.149999618530273,
+        0.0,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Pillar_1_61.6",
+      "bounds": [
+        47.70000076293945,
+        49.0,
+        61.04999923706055,
+        62.150001525878906,
+        2.4000000953674316,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Props_Art_Back_Eight",
+      "bounds": [
+        -21.450000762939453,
+        -16.549999237060547,
+        105.42900085449219,
+        105.85000610351562,
+        9.800000190734863,
+        15.800000190734863
+      ]
+    },
+    {
+      "object": "Props_Art_Back_Rack",
+      "bounds": [
+        16.549999237060547,
+        21.450000762939453,
+        105.48100280761719,
+        105.85000610351562,
+        9.800000190734863,
+        15.800000190734863
+      ]
+    },
+    {
+      "object": "Props_Art_Left_Eight",
+      "bounds": [
+        -48.81999969482422,
+        -48.39900207519531,
+        7.550000190734863,
+        12.449999809265137,
+        5.0,
+        11.0
+      ]
+    },
+    {
+      "object": "Props_Art_Left_Rack",
+      "bounds": [
+        -48.81999969482422,
+        -48.45100021362305,
+        51.54999923706055,
+        56.45000076293945,
+        7.399999618530273,
+        13.399999618530273
+      ]
+    },
+    {
+      "object": "Props_Clock_Main",
+      "bounds": [
+        48.410003662109375,
+        48.75,
+        13.319999694824219,
+        16.68000030517578,
+        9.319999694824219,
+        12.679999351501465
+      ]
+    },
+    {
+      "object": "Props_CoffeeTable_StillLife",
+      "bounds": [
+        -1.6799999475479126,
+        1.524999976158142,
+        -27.479999542236328,
+        -25.75,
+        1.5,
+        1.8899999856948853
+      ]
+    },
+    {
+      "object": "Props_Plant_CoffeeTable",
+      "bounds": [
+        -1.0001875162124634,
+        -0.2030789852142334,
+        -26.268091201782227,
+        -25.575519561767578,
+        1.5,
+        2.555999994277954
+      ]
+    },
+    {
+      "object": "Props_Plant_Left_01",
+      "bounds": [
+        -48.40058517456055,
+        -45.90962219238281,
+        -15.150282859802246,
+        -12.98599910736084,
+        0.0,
+        3.299999952316284
+      ]
+    },
+    {
+      "object": "Props_Plant_Left_02",
+      "bounds": [
+        -48.40058517456055,
+        -45.90962219238281,
+        18.84971809387207,
+        21.013999938964844,
+        0.0,
+        3.299999952316284
+      ]
+    },
+    {
+      "object": "Props_Plant_Left_03",
+      "bounds": [
+        -48.40058517456055,
+        -45.90962219238281,
+        54.84971618652344,
+        57.013999938964844,
+        2.4000000953674316,
+        5.699999809265137
+      ]
+    },
+    {
+      "object": "Props_Plant_Left_04",
+      "bounds": [
+        -48.40058517456055,
+        -45.90962219238281,
+        97.84971618652344,
+        100.01399993896484,
+        4.800000190734863,
+        8.100000381469727
+      ]
+    },
+    {
+      "object": "Props_Plant_Lounge_Left",
+      "bounds": [
+        -24.500703811645508,
+        -21.511545181274414,
+        -31.180339813232422,
+        -28.58319854736328,
+        0.0,
+        3.9600000381469727
+      ]
+    },
+    {
+      "object": "Props_Plant_Lounge_Rear",
+      "bounds": [
+        -13.875410079956055,
+        -12.131734848022461,
+        -21.805198669433594,
+        -20.290199279785156,
+        0.0,
+        2.309999942779541
+      ]
+    },
+    {
+      "object": "Props_Plant_Lounge_Right",
+      "bounds": [
+        21.499296188354492,
+        24.488454818725586,
+        -29.880338668823242,
+        -27.283199310302734,
+        0.0,
+        3.9600000381469727
+      ]
+    },
+    {
+      "object": "Props_Plant_Right_01",
+      "bounds": [
+        45.8994140625,
+        48.390377044677734,
+        -15.150282859802246,
+        -12.98599910736084,
+        0.0,
+        3.299999952316284
+      ]
+    },
+    {
+      "object": "Props_Plant_Right_02",
+      "bounds": [
+        45.8994140625,
+        48.390377044677734,
+        18.84971809387207,
+        21.013999938964844,
+        0.0,
+        3.299999952316284
+      ]
+    },
+    {
+      "object": "Props_Plant_Right_03",
+      "bounds": [
+        45.8994140625,
+        48.390377044677734,
+        54.84971618652344,
+        57.013999938964844,
+        2.4000000953674316,
+        5.699999809265137
+      ]
+    },
+    {
+      "object": "Props_Plant_Right_04",
+      "bounds": [
+        45.8994140625,
+        48.390377044677734,
+        97.84971618652344,
+        100.01399993896484,
+        4.800000190734863,
+        8.100000381469727
+      ]
+    },
+    {
+      "object": "Props_Plant_SideTable",
+      "bounds": [
+        14.174823760986328,
+        14.922113418579102,
+        -27.04508399963379,
+        -26.39579963684082,
+        1.8799999952316284,
+        2.869999885559082
+      ]
+    },
+    {
+      "object": "Props_SnackCounter_Service",
+      "bounds": [
+        -47.400001525878906,
+        -46.0,
+        4.029999732971191,
+        11.5,
+        3.2100000381469727,
+        4.710000038146973
+      ]
+    },
+    {
+      "object": "Rail_Solid_0_-1",
+      "bounds": [
+        -49.0,
+        -40.0,
+        23.375,
+        23.725000381469727,
+        2.4000000953674316,
+        5.599999904632568
+      ]
+    },
+    {
+      "object": "Rail_Solid_0_1",
+      "bounds": [
+        40.0,
+        49.0,
+        23.375,
+        23.725000381469727,
+        2.4000000953674316,
+        5.599999904632568
+      ]
+    },
+    {
+      "object": "Rail_Solid_1_-1",
+      "bounds": [
+        -49.0,
+        -40.0,
+        66.375,
+        66.7249984741211,
+        4.800000190734863,
+        8.0
+      ]
+    },
+    {
+      "object": "Rail_Solid_1_1",
+      "bounds": [
+        40.0,
+        49.0,
+        66.375,
+        66.7249984741211,
+        4.800000190734863,
+        8.0
+      ]
+    },
+    {
+      "object": "Sign_Logo_Blank",
+      "bounds": [
+        -5.0,
+        5.0,
+        105.58999633789062,
+        105.80999755859375,
+        6.5,
+        9.5
+      ]
+    },
+    {
+      "object": "Sign_RefreshAndPlay_Panel",
+      "bounds": [
+        -48.58000183105469,
+        -48.400001525878906,
+        2.1999998092651367,
+        13.800000190734863,
+        7.670000076293945,
+        10.369999885559082
+      ]
+    },
+    {
+      "object": "Skirting_-1_0",
+      "bounds": [
+        -49.0,
+        -48.79999923706055,
+        -57.0,
+        19.0,
+        0.0,
+        0.699999988079071
+      ]
+    },
+    {
+      "object": "Skirting_-1_1",
+      "bounds": [
+        -49.0,
+        -48.79999923706055,
+        23.799999237060547,
+        62.0,
+        2.4000000953674316,
+        3.0999999046325684
+      ]
+    },
+    {
+      "object": "Skirting_-1_2",
+      "bounds": [
+        -49.0,
+        -48.79999923706055,
+        66.80000305175781,
+        106.0,
+        4.800000190734863,
+        5.5
+      ]
+    },
+    {
+      "object": "Skirting_1_0",
+      "bounds": [
+        48.79999923706055,
+        49.0,
+        -57.0,
+        19.0,
+        0.0,
+        0.699999988079071
+      ]
+    },
+    {
+      "object": "Skirting_1_1",
+      "bounds": [
+        48.79999923706055,
+        49.0,
+        23.799999237060547,
+        62.0,
+        2.4000000953674316,
+        3.0999999046325684
+      ]
+    },
+    {
+      "object": "Skirting_1_2",
+      "bounds": [
+        48.79999923706055,
+        49.0,
+        66.80000305175781,
+        106.0,
+        4.800000190734863,
+        5.5
+      ]
+    },
+    {
+      "object": "Stair_1_1",
+      "bounds": [
+        -40.0,
+        40.0,
+        19.0,
+        20.600000381469727,
+        0.0,
+        0.800000011920929
+      ]
+    },
+    {
+      "object": "Stair_1_2",
+      "bounds": [
+        -40.0,
+        40.0,
+        20.600000381469727,
+        22.200000762939453,
+        0.0,
+        1.600000023841858
+      ]
+    },
+    {
+      "object": "Stair_1_3",
+      "bounds": [
+        -40.0,
+        40.0,
+        22.200000762939453,
+        23.799999237060547,
+        0.0,
+        2.4000000953674316
+      ]
+    },
+    {
+      "object": "Stair_2_1",
+      "bounds": [
+        -40.0,
+        40.0,
+        62.0,
+        63.599998474121094,
+        2.4000000953674316,
+        3.200000047683716
+      ]
+    },
+    {
+      "object": "Stair_2_2",
+      "bounds": [
+        -40.0,
+        40.0,
+        63.599998474121094,
+        65.19999694824219,
+        2.4000000953674316,
+        4.0
+      ]
+    },
+    {
+      "object": "Stair_2_3",
+      "bounds": [
+        -40.0,
+        40.0,
+        65.19999694824219,
+        66.80000305175781,
+        2.4000000953674316,
+        4.800000190734863
+      ]
+    },
+    {
+      "object": "TierEdge_0_-1",
+      "bounds": [
+        -49.0,
+        -40.0,
+        19.0,
+        23.799999237060547,
+        0.0,
+        2.4000000953674316
+      ]
+    },
+    {
+      "object": "TierEdge_0_1",
+      "bounds": [
+        40.0,
+        49.0,
+        19.0,
+        23.799999237060547,
+        0.0,
+        2.4000000953674316
+      ]
+    },
+    {
+      "object": "TierEdge_1_-1",
+      "bounds": [
+        -49.0,
+        -40.0,
+        62.0,
+        66.80000305175781,
+        2.4000000953674316,
+        4.800000190734863
+      ]
+    },
+    {
+      "object": "TierEdge_1_1",
+      "bounds": [
+        40.0,
+        49.0,
+        62.0,
+        66.80000305175781,
+        2.4000000953674316,
+        4.800000190734863
+      ]
+    },
+    {
+      "object": "Wall_Back",
+      "bounds": [
+        -49.70000076293945,
+        49.70000076293945,
+        106.0,
+        106.69999694824219,
+        0.0,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Wall_Clock_Panel",
+      "bounds": [
+        48.849998474121094,
+        49.16999816894531,
+        12.800000190734863,
+        17.200000762939453,
+        8.5,
+        13.5
+      ]
+    },
+    {
+      "object": "Wall_Left",
+      "bounds": [
+        -49.70000076293945,
+        -49.0,
+        -57.0,
+        106.0,
+        0.0,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Wall_Left_Middle_Upper",
+      "bounds": [
+        -49.70000076293945,
+        -49.0,
+        23.799999237060547,
+        66.80000305175781,
+        18.799999237060547,
+        20.399999618530273
+      ]
+    },
+    {
+      "object": "Window_Frames_0",
+      "bounds": [
+        48.775001525878906,
+        49.224998474121094,
+        -57.0,
+        19.0,
+        1.8899999856948853,
+        15.109999656677246
+      ]
+    },
+    {
+      "object": "Window_Frames_1",
+      "bounds": [
+        48.775001525878906,
+        49.224998474121094,
+        23.799999237060547,
+        62.0,
+        4.289999961853027,
+        17.510000228881836
+      ]
+    },
+    {
+      "object": "Window_Frames_2",
+      "bounds": [
+        48.775001525878906,
+        49.224998474121094,
+        66.80000305175781,
+        106.0,
+        6.690000057220459,
+        18.309999465942383
+      ]
+    },
+    {
+      "object": "Window_Header_0",
+      "bounds": [
+        49.0,
+        49.70000076293945,
+        -57.0,
+        19.0,
+        15.0,
+        18.0
+      ]
+    },
+    {
+      "object": "Window_Header_1",
+      "bounds": [
+        49.0,
+        49.70000076293945,
+        23.799999237060547,
+        62.0,
+        17.399999618530273,
+        20.399999618530273
+      ]
+    },
+    {
+      "object": "Window_Header_2",
+      "bounds": [
+        49.0,
+        49.70000076293945,
+        66.80000305175781,
+        106.0,
+        18.200000762939453,
+        18.799999237060547
+      ]
+    },
+    {
+      "object": "Window_SillWall_0",
+      "bounds": [
+        49.0,
+        49.70000076293945,
+        -57.0,
+        19.0,
+        0.0,
+        2.0
+      ]
+    },
+    {
+      "object": "Window_SillWall_1",
+      "bounds": [
+        49.0,
+        49.70000076293945,
+        23.799999237060547,
+        62.0,
+        2.4000000953674316,
+        4.400000095367432
+      ]
+    },
+    {
+      "object": "Window_SillWall_2",
+      "bounds": [
+        49.0,
+        49.70000076293945,
+        66.80000305175781,
+        106.0,
+        4.800000190734863,
+        6.800000190734863
+      ]
+    }
+  ],
+  "failures": [],
+  "minimum_required": 10.0,
+  "scope": "Native XY plan separation to every table and mesh tagged clearance_obstacle. Supporting floors, flat rugs, overhead ceiling/pendants and in-footprint table number signage are intentionally excluded by builder tags. Stair and terrace edges are included regardless of elevation.",
+  "method": "World-space authoritative table footprints and actual obstruction AABBs; Euclidean footprint distance plus four facing-side clearances. Only 1e-8 arithmetic slack, not a design clearance allowance."
+}
