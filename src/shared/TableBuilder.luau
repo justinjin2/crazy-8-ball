@@ -117,8 +117,103 @@ function TableBuilder.createClothMaterial(): MaterialVariant
 	return variant
 end
 
---- Build the table model under `parent`. Returns the model.
+--- The imported table model template, if the place has one.
+function TableBuilder.findModelTemplate(): Model?
+	local ServerStorage = game:GetService("ServerStorage")
+	local found = ServerStorage:FindFirstChild(Config.TableModel.Name)
+	if found and found:IsA("Model") then
+		return found
+	end
+	return nil
+end
+
+--- Add the hold-E prompt to a table model.
+local function addJoinPrompt(model: Model, origin: Vector3, s: number)
+	local T = Config.Table
+	local promptAnchor = Instance.new("Part")
+	promptAnchor.Name = "JoinPrompt"
+	promptAnchor.Anchored = true
+	promptAnchor.CanCollide = false
+	promptAnchor.CanQuery = false
+	promptAnchor.Transparency = 1
+	promptAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
+	promptAnchor.Position = origin
+		+ Vector3.new(0, (T.SurfaceHeightInches + T.RailHeightInches) * s, 0)
+	promptAnchor.Parent = model
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "Play"
+	prompt.ActionText = Config.Join.PromptActionText
+	prompt.ObjectText = Config.Join.PromptObjectText
+	prompt.HoldDuration = Config.Join.HoldSeconds
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.MaxActivationDistance = Config.Join.PromptDistanceStuds
+	prompt.RequiresLineOfSight = false
+	prompt.Style = Enum.ProximityPromptStyle.Default
+	prompt.Parent = promptAnchor
+end
+
+--- Place a clone of the imported model at the table origin, set collisions, add the prompt.
+function TableBuilder.buildFromModel(template: Model, parent: Instance): Model
+	local o = Config.World.TableOrigin
+	local model = template:Clone()
+	model.Name = "PoolTable"
+	model.Parent = parent
+	-- The importer keeps the pivot at the scene origin, which the Blender package puts at
+	-- the table centre on the floor, so moving the pivot moves the whole table correctly.
+	for name, spec in Config.TableModel.Meshes do
+		local mesh = model:FindFirstChild(name)
+		if mesh and mesh:IsA("BasePart") then
+			mesh.Anchored = true
+			mesh.CanCollide = spec.CanCollide
+			mesh.CanQuery = spec.CanCollide
+		else
+			warn("[8ball] table model is missing mesh '" .. name .. "'")
+		end
+	end
+	model:PivotTo(CFrame.new(o.X, o.Y, o.Z))
+	addJoinPrompt(model, Vector3.new(o.X, o.Y, o.Z), Config.Table.StudsPerInch)
+	return model
+end
+
+--- Edit-mode helper: put SurfaceAppearances with the Config texture ids on the template and
+--- bake the collision shapes (both are plugin-only writes, so they live in the saved place).
+function TableBuilder.applyModelTextures(template: Model): number
+	local applied = 0
+	for name, spec in Config.TableModel.Meshes do
+		local mesh = template:FindFirstChild(name)
+		if mesh and mesh:IsA("MeshPart") and spec.Collision then
+			mesh.CollisionFidelity = (Enum.CollisionFidelity :: any)[spec.Collision]
+		end
+	end
+	for name, maps in Config.TableModel.Textures do
+		local mesh = template:FindFirstChild(name)
+		if mesh and mesh:IsA("MeshPart") then
+			local sa = mesh:FindFirstChildOfClass("SurfaceAppearance")
+				or Instance.new("SurfaceAppearance")
+			sa.ColorMap = maps.Color
+			sa.NormalMap = maps.Normal
+			sa.RoughnessMap = maps.Roughness
+			sa.MetalnessMap = maps.Metalness
+			sa.AlphaMode = Enum.AlphaMode.Overlay
+			sa.Parent = mesh
+			applied += 1
+		end
+	end
+	return applied
+end
+
+--- Build the visible table under `parent`: the imported model when the place has one,
+--- otherwise the parts-and-solid-modelling build. Returns the model.
 function TableBuilder.build(parent: Instance): Model
+	local template = TableBuilder.findModelTemplate()
+	if template then
+		return TableBuilder.buildFromModel(template, parent)
+	end
+	return TableBuilder.buildFromParts(parent)
+end
+
+--- Build the table from Parts and solid modelling (the pre-model fallback).
+function TableBuilder.buildFromParts(parent: Instance): Model
 	local T = Config.Table
 	local L = Config.Look
 	local s = T.StudsPerInch

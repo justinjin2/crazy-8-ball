@@ -1,0 +1,65 @@
+{
+  "preset": "9ft",
+  "presets_inches": {
+    "9ft": [
+      100.0,
+      50.0
+    ],
+    "8ft": [
+      88.0,
+      44.0
+    ],
+    "7ft": [
+      78.0,
+      39.0
+    ]
+  },
+  "parameters": {
+    "apron_bottom_chamfer_height": 0.55,
+    "apron_bottom_flare": 0.18,
+    "apron_height": 7.0,
+    "apron_inset": 0.28,
+    "apron_wall_thickness": 1.15,
+    "ball_diameter": 2.6,
+    "bed_lower_edge_inset": 0.65,
+    "bed_thickness": 2.0,
+    "bed_top_edge_inset": 0.08,
+    "casting_height": 0.16,
+    "casting_segments": 32,
+    "casting_width": 0.72,
+    "cloth_height": 2.9,
+    "cloth_hole_roll": 0.085,
+    "corner_facing_angle": 38.0,
+    "corner_hole_diagonal_offset": 2.47,
+    "corner_hole_radius": 2.45,
+    "corner_mouth": 5.2,
+    "cushion_edge_bevel": 0.025,
+    "cushion_nose_height": 1.625,
+    "cushion_width": 1.8,
+    "facing_length": 1.6,
+    "hole_segments": 64,
+    "leg_bottom_width": 4.2,
+    "leg_corner_inset": 7.0,
+    "leg_top_overlap": 0.45,
+    "leg_top_width": 6.1,
+    "pocket_depth": 6.5,
+    "pocket_lining_thickness": 0.1,
+    "rail_base_below_cloth": 0.5,
+    "rail_height": 2.08,
+    "rail_width": 5.5,
+    "side_facing_angle": 13.0,
+    "side_hole_offset": 2.73,
+    "side_hole_radius": 2.58,
+    "side_mouth": 5.72,
+    "sight_inset": 0.025,
+    "sight_long_diagonal": 0.52,
+    "sight_offset_from_nose": 3.55,
+    "sight_recess_border": 0.035,
+    "sight_short_diagonal": 0.26,
+    "spot_fraction_from_end": 0.25,
+    "studs_per_inch": 0.16,
+    "texture_resolution": 1024,
+    "uv_pack_margin": 0.014,
+    "wood_edge_bevel": 0.09
+  }
+}

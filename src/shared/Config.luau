@@ -16,7 +16,7 @@ Config.Table = {
 	-- Table size. Real tables: 7 ft bar table (78x39 in), 8 ft home (88x44), 9 ft tournament
 	-- (100x50). Smaller tables make the balls read bigger from the top-down view, which is
 	-- what phone pool games do. Ball size is set separately below. (decide in playtests)
-	SizeFeet = 7,
+	SizeFeet = 9,
 	Sizes = {
 		[7] = { Length = 78, Width = 39 },
 		[8] = { Length = 88, Width = 44 },
@@ -241,6 +241,76 @@ Config.World = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- Table model (imported from Blender, see assets/table/Readme.md)
+---------------------------------------------------------------------------------------------
+Config.TableModel = {
+	-- If a Model with this name exists in ServerStorage, it is used as the visible table
+	-- instead of the parts-and-solid-modelling build. It must be authored in studs with its
+	-- origin at the table centre on the floor (the Blender package does this), and its
+	-- physics numbers must match Config.Table: the 9 ft preset does.
+	Name = "PoolTableModel",
+	-- Mesh names inside the model and how each behaves for the walking character.
+	Meshes = {
+		Bed = { CanCollide = false },
+		Cushions = { CanCollide = false },
+		Rails = { CanCollide = true, Collision = "Hull" },
+		Pockets = { CanCollide = false },
+		Apron = { CanCollide = true, Collision = "Box" },
+		Legs = { CanCollide = true, Collision = "Box" },
+		Sights = { CanCollide = false },
+	} :: { [string]: { CanCollide: boolean, Collision: string? } },
+	-- PBR maps per mesh (uploaded 2026-09-19 from assets/table/textures). Applied in Edit
+	-- mode by TableBuilder.applyModelTextures(); scripts cannot write SurfaceAppearance maps
+	-- at runtime, so the textured model must be saved in the place.
+	Textures = {
+		Bed = {
+			Color = "rbxassetid://102609553781623",
+			Normal = "rbxassetid://99826595778879",
+			Roughness = "rbxassetid://79061809007876",
+			Metalness = "rbxassetid://117796518523512",
+		},
+		Cushions = {
+			Color = "rbxassetid://83703463882218",
+			Normal = "rbxassetid://123457432035826",
+			Roughness = "rbxassetid://119649434177392",
+			Metalness = "rbxassetid://117796518523512",
+		},
+		Rails = {
+			Color = "rbxassetid://119510198309668",
+			Normal = "rbxassetid://123261438390044",
+			Roughness = "rbxassetid://104978786475849",
+			Metalness = "rbxassetid://117796518523512",
+		},
+		Pockets = {
+			Color = "rbxassetid://94430625696465",
+			Normal = "rbxassetid://88074073045389",
+			Roughness = "rbxassetid://102085622441837",
+			Metalness = "rbxassetid://117796518523512",
+		},
+		Apron = {
+			Color = "rbxassetid://96632718126173",
+			Normal = "rbxassetid://98672244173539",
+			Roughness = "rbxassetid://131454951510818",
+			Metalness = "rbxassetid://117796518523512",
+		},
+		Legs = {
+			Color = "rbxassetid://95182369270183",
+			Normal = "rbxassetid://134542152833241",
+			Roughness = "rbxassetid://76006405458350",
+			Metalness = "rbxassetid://117796518523512",
+		},
+		Sights = {
+			Color = "rbxassetid://88180350419004",
+			Normal = "rbxassetid://74066395438874",
+			Roughness = "rbxassetid://74333689947684",
+			Metalness = "rbxassetid://117796518523512",
+		},
+	} :: {
+		[string]: { Color: string, Normal: string, Roughness: string, Metalness: string },
+	},
+}
+
+---------------------------------------------------------------------------------------------
 -- Look (colours are RGB 0-255, materials are Enum.Material names)
 ---------------------------------------------------------------------------------------------
 Config.Look = {
@@ -326,7 +396,7 @@ Config.Join = {
 	PromptObjectText = "8-Ball table",
 	HoldSeconds = 0.6,
 	-- How close (studs from the table centre) the prompt appears.
-	PromptDistanceStuds = 11,
+	PromptDistanceStuds = 14,
 }
 
 ---------------------------------------------------------------------------------------------
