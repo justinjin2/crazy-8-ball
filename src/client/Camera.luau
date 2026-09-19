@@ -20,6 +20,8 @@ local connections: { RBXScriptConnection } = {}
 local zoom = 1
 local anchor: Vector3? = nil -- cue ball position the view is built around (frozen during a shot)
 local anchorDir: Vector3? = nil
+local returnTimer = 0 -- seconds of slower easing left after a shot ends
+local wasPlaying = false
 
 --- World-space aim direction for a physics angle.
 function Camera.aimDirection(angle: number): Vector3
@@ -76,6 +78,8 @@ function Camera.unlock()
 	connections = {}
 	anchor = nil
 	anchorDir = nil
+	returnTimer = 0
+	wasPlaying = false
 	local cam = Workspace.CurrentCamera
 	cam.CameraType = Enum.CameraType.Custom
 	cam.FieldOfView = 70
@@ -274,16 +278,18 @@ local function viewFor(
 	cueWorld: Vector3,
 	dir: Vector3,
 	focusOverride: Vector3?,
-	viewport: Vector2?
+	viewport: Vector2?,
+	zoomOverride: number?
 ): CFrame
 	local V = Config.Camera.View
 	local vp = viewport or Workspace.CurrentCamera.ViewportSize
-	local zoomT = 1 - math.clamp((zoom - V.ZoomMin) / math.max(V.ZoomMax - V.ZoomMin, 1e-3), 0, 1)
+	local z = zoomOverride or zoom
+	local zoomT = 1 - math.clamp((z - V.ZoomMin) / math.max(V.ZoomMax - V.ZoomMin, 1e-3), 0, 1)
 	local pitch, distance = solveFraming(cueWorld, dir, V.FocusBallWeight, vp)
 	local closePitch = math.min(math.rad(V.PitchMin), pitch)
 	pitch = pitch + (closePitch - pitch) * zoomT
 	local ballWeight = V.FocusBallWeight + (1 - V.FocusBallWeight) * zoomT
-	local cf = poseFor(cueWorld, dir, pitch, distance * zoom, ballWeight, vp)
+	local cf = poseFor(cueWorld, dir, pitch, distance * z, ballWeight, vp)
 	if focusOverride then
 		local depth = -cf:PointToObjectSpace(tableCentre()).Z
 		local lookPoint = cf.Position + cf.LookVector * depth
@@ -306,8 +312,10 @@ function Camera.position(): Vector3
 	return Workspace.CurrentCamera.CFrame.Position
 end
 
---- Move the camera. `playing` freezes the anchor for the duration of the shot; `focus` is
---- the cue ball's current position while it moves.
+--- Move the camera. `playing` freezes the anchor for the duration of the shot and, if the
+--- player was zoomed in, pulls out to the whole-table view so every ball's path is visible;
+--- the player's zoom comes back once the balls stop. `focus` is the cue ball's current
+--- position while it moves (only used when Shot.FocusWeight > 0).
 function Camera.update(
 	dt: number,
 	cueWorld: Vector3,
@@ -316,13 +324,24 @@ function Camera.update(
 	focus: Vector3?
 )
 	local cam = Workspace.CurrentCamera
+	local S = Config.Camera.Shot
 	local dir = Camera.aimDirection(angle)
 	if not playing or anchor == nil then
 		anchor = cueWorld
 		anchorDir = dir
 	end
-	local target = viewFor(anchor :: Vector3, anchorDir :: Vector3, if playing then focus else nil)
-	local smoothing = if playing then Config.Camera.Shot.Smoothing else Config.Camera.View.Smoothing
+	if wasPlaying and not playing then
+		returnTimer = S.ReturnSeconds
+	end
+	wasPlaying = playing
+	returnTimer = math.max(returnTimer - dt, 0)
+	local zoomOverride = if playing and S.ZoomOut then Config.Camera.View.ZoomMax else nil
+	local gaze = if playing and S.FocusWeight > 0 then focus else nil
+	local target = viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
+	local smoothing = if playing
+		then S.Smoothing
+		elseif returnTimer > 0 then S.ReturnSmoothing
+		else Config.Camera.View.Smoothing
 	local alpha = 1 - math.exp(-dt / math.max(smoothing, 1e-3))
 	cam.CFrame = cam.CFrame:Lerp(target, alpha)
 end

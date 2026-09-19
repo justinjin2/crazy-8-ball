@@ -373,9 +373,9 @@ Config.Camera = {
 		-- Pitch above the cloth, degrees. The solver starts at Preferred and steepens toward
 		-- Max only when a shallower angle cannot show the table as large on screen (a portrait
 		-- phone with the table crosswise). Min is the floor for the zoomed-in close view.
-		PitchPreferred = 40,
-		PitchMax = 60,
-		PitchMin = 35,
+		PitchPreferred = 50,
+		PitchMax = 65,
+		PitchMin = 40,
 		PitchSamples = 6, -- pitches tried between Preferred and Max (internal)
 		PitchBias = 0.06, -- fill advantage (fraction of screen) a steeper pitch must beat to win
 		-- Fraction of the screen kept clear around the table.
@@ -390,10 +390,15 @@ Config.Camera = {
 		ZoomMin = 0.45,
 		ZoomMax = 1.0,
 	},
-	-- While a shot plays the camera stays put but its gaze drifts towards the cue ball.
+	-- While a shot plays the camera zooms out to the whole-table view (if the player was
+	-- zoomed in) so every ball's path is visible, holds there, then eases back to the
+	-- player's zoom when the balls stop.
 	Shot = {
-		FocusWeight = 0.6, -- 0 = keep looking down the original aim line, 1 = track the cue ball
-		Smoothing = 0.35,
+		ZoomOut = true, -- false = stay at the player's zoom during the shot
+		FocusWeight = 0, -- gaze pull toward the moving cue ball: 0 = none, 1 = track it
+		Smoothing = 0.35, -- seconds to ease out at the strike
+		ReturnSmoothing = 0.5, -- seconds to ease back in after the balls stop
+		ReturnSeconds = 1.5, -- how long the slower easing applies after the shot ends
 	},
 }
 

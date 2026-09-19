@@ -29,7 +29,7 @@ The most important phase. No rules, no opponents, no menus. Just: does hitting a
   Done means: a hard break scatters the rack convincingly and balls drop into pockets.
 - [x] **1.3 Aim and shoot.** Drag to aim, guideline showing cue ball path and first contact, pull-back power bar. Works on PC and mobile.
   Done means: you can play shot after shot with touch and with mouse.
-- [x] **1.4 Camera and avatar.** One 3D orbit camera that sits opposite the aim and looks across the table along the aim line, framing the whole table automatically for any ball position, aim and screen shape (never top-down); scroll or pinch zooms in on the cue ball. Avatar in aiming pose with cue, mostly transparent while aiming and invisible when close to the camera. Camera holds and follows the action after the strike.
+- [x] **1.4 Camera and avatar.** One 3D orbit camera that sits opposite the aim and looks across the table along the aim line, framing the whole table automatically for any ball position, aim and screen shape (never top-down); scroll or pinch zooms in on the cue ball. Avatar in aiming pose with cue, mostly transparent while aiming and invisible when close to the camera. After the strike the camera pulls out to the whole table so every ball's path is visible, then returns to the player's zoom.
   Done means: aiming never feels blocked on phone or PC, zoom is one gesture, and watching the shot feels like a replay.
 - [ ] **1.5 Spin.** Spin selector that changes how the cue ball behaves after contact.
   Done means: top spin follows through, back spin draws back, visibly.
