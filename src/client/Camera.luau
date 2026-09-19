@@ -182,9 +182,11 @@ local function tableCentre(): Vector3
 end
 
 --- Camera pose looking along the aim `dir` tilted down by `pitch` radians, `distance` studs
---- from the framing target. The camera then slides (never tilts, so the pitch is exactly
---- what the player sees) until the screen centre sits on a blend of the table's outline
---- centre and the cue ball: `ballWeight` 0 = table centred, 1 = cue ball centred.
+--- from the table centre. The camera then slides (never tilts, so the pitch is exactly what
+--- the player sees) until the table's outline is centred on screen, and finally shifts by
+--- `ballWeight` of the way from the point it looks at to the cue ball: 0 = table centred,
+--- 1 = cue ball centred. Both steps are translations, so the result is always finite. Also
+--- returns the point on the table the camera looks through before the ball shift.
 local function poseFor(
 	cueWorld: Vector3,
 	dir: Vector3,
@@ -192,33 +194,34 @@ local function poseFor(
 	distance: number,
 	ballWeight: number,
 	vp: Vector2
-): CFrame
+): (CFrame, Vector3)
 	local lookDir = (dir * math.cos(pitch) - Vector3.new(0, math.sin(pitch), 0)).Unit
-	local target = tableCentre():Lerp(cueWorld, ballWeight)
-	local cf = CFrame.lookAt(target - lookDir * distance, target)
+	local centre = tableCentre()
+	local cf = CFrame.lookAt(centre - lookDir * distance, centre)
 	local tanH, tanV = tangents(vp)
+	local depth = distance -- the table centre stays this deep along the view; slides are sideways
 	for _ = 1, 3 do
 		local minX, maxX, minY, maxY = math.huge, -math.huge, math.huge, -math.huge
 		for _, corner in corners() do
 			local q = project(cf, corner, tanH, tanV)
 			if q == nil then
-				return cf
+				break
 			end
 			minX, maxX = math.min(minX, q.X), math.max(maxX, q.X)
 			minY, maxY = math.min(minY, q.Y), math.max(maxY, q.Y)
 		end
-		local ball = project(cf, cueWorld, tanH, tanV)
-		if ball == nil then
-			return cf
+		if minX == math.huge then
+			break -- a corner is beside or behind the camera: leave the pose as it is
 		end
-		-- The screen point that should be at the centre, and how deep it is.
-		local want = Vector2.new((minX + maxX) / 2, (minY + maxY) / 2):Lerp(ball, ballWeight)
-		local depth = -cf:PointToObjectSpace(target).Z
-		local shift =
-			cf:VectorToWorldSpace(Vector3.new(want.X * tanH * depth, want.Y * tanV * depth, 0))
-		cf = cf + shift
+		-- Screen point that should be at the centre, kept within a few screens so a close
+		-- camera cannot fling itself away.
+		local wx = math.clamp((minX + maxX) / 2, -3, 3)
+		local wy = math.clamp((minY + maxY) / 2, -3, 3)
+		cf = cf + cf:VectorToWorldSpace(Vector3.new(wx * tanH * depth, wy * tanV * depth, 0))
 	end
-	return cf
+	-- The point on the table's plane the camera looks through, then the shift toward the ball.
+	local lookPoint = cf.Position + cf.LookVector * depth
+	return cf + (cueWorld - lookPoint) * ballWeight, lookPoint
 end
 
 -- Smallest distance at which the whole table is on screen from this pitch.
@@ -232,15 +235,15 @@ local function fitDistance(
 	local V = Config.Camera.View
 	local lo = TableBuilder.studs(V.DistanceMinInches)
 	local hi = TableBuilder.studs(V.DistanceMaxInches)
-	if not fitsView(poseFor(cueWorld, dir, pitch, hi, ballWeight, vp), vp) then
+	if not fitsView((poseFor(cueWorld, dir, pitch, hi, ballWeight, vp)), vp) then
 		return hi
 	end
-	if fitsView(poseFor(cueWorld, dir, pitch, lo, ballWeight, vp), vp) then
+	if fitsView((poseFor(cueWorld, dir, pitch, lo, ballWeight, vp)), vp) then
 		return lo
 	end
 	for _ = 1, 14 do
 		local mid = (lo + hi) / 2
-		if fitsView(poseFor(cueWorld, dir, pitch, mid, ballWeight, vp), vp) then
+		if fitsView((poseFor(cueWorld, dir, pitch, mid, ballWeight, vp)), vp) then
 			hi = mid
 		else
 			lo = mid
@@ -264,7 +267,7 @@ local function solveFraming(
 		local t = if samples > 1 then i / (samples - 1) else 0
 		local pitch = math.rad(V.PitchPreferred + (V.PitchMax - V.PitchPreferred) * t)
 		local distance = fitDistance(cueWorld, dir, pitch, ballWeight, vp)
-		local fill = fillScore(poseFor(cueWorld, dir, pitch, distance, ballWeight, vp), vp)
+		local fill = fillScore((poseFor(cueWorld, dir, pitch, distance, ballWeight, vp)), vp)
 		if fill > bestFill + V.PitchBias then
 			bestPitch, bestDistance, bestFill = pitch, distance, fill
 		end
@@ -286,17 +289,19 @@ local function viewFor(
 	local z = zoomOverride or zoom
 	local zoomT = 1 - math.clamp((z - V.ZoomMin) / math.max(V.ZoomMax - V.ZoomMin, 1e-3), 0, 1)
 	local pitch, distance = solveFraming(cueWorld, dir, V.FocusBallWeight, vp)
+	-- The whole-table framing is solved once at the fitted distance; zooming then keeps its
+	-- look point and moves the camera in toward the cue ball along a steadily lower pitch,
+	-- so the zoom is continuous at every level.
+	local _, lookPoint = poseFor(cueWorld, dir, pitch, distance, V.FocusBallWeight, vp)
 	local closePitch = math.min(math.rad(V.PitchMin), pitch)
 	pitch = pitch + (closePitch - pitch) * zoomT
 	local ballWeight = V.FocusBallWeight + (1 - V.FocusBallWeight) * zoomT
-	local cf = poseFor(cueWorld, dir, pitch, distance * z, ballWeight, vp)
+	local aimPoint = lookPoint:Lerp(cueWorld, ballWeight)
+	local lookDir = (dir * math.cos(pitch) - Vector3.new(0, math.sin(pitch), 0)).Unit
+	local cf = CFrame.lookAt(aimPoint - lookDir * (distance * z), aimPoint)
 	if focusOverride then
-		local depth = -cf:PointToObjectSpace(tableCentre()).Z
-		local lookPoint = cf.Position + cf.LookVector * depth
-		cf = CFrame.lookAt(
-			cf.Position,
-			lookPoint:Lerp(focusOverride, Config.Camera.Shot.FocusWeight)
-		)
+		cf =
+			CFrame.lookAt(cf.Position, aimPoint:Lerp(focusOverride, Config.Camera.Shot.FocusWeight))
 	end
 	return cf
 end
@@ -343,7 +348,9 @@ function Camera.update(
 		elseif returnTimer > 0 then S.ReturnSmoothing
 		else Config.Camera.View.Smoothing
 	local alpha = 1 - math.exp(-dt / math.max(smoothing, 1e-3))
-	cam.CFrame = cam.CFrame:Lerp(target, alpha)
+	if target.Position.X == target.Position.X then -- never chase a NaN pose
+		cam.CFrame = cam.CFrame:Lerp(target, alpha)
+	end
 end
 
 --- Snap straight to the view (used once at start so there is no swoop from the spawn).
