@@ -85,7 +85,12 @@ end
 --- Zoom by a factor (> 1 = closer). Clamped in update() against the whole-table scale.
 function Camera.zoomBy(factor: number)
 	local V = Config.Camera.View
-	zoom = math.clamp(zoom / factor, V.ZoomMin, V.ZoomMaxScale)
+	zoom = math.clamp(zoom / factor, V.ZoomMin, V.ZoomMax)
+end
+
+--- Back to the default framing (used when leaving the table).
+function Camera.resetZoom()
+	zoom = 1
 end
 
 function Camera.getZoom(): number
@@ -168,7 +173,7 @@ end
 --- out than the scale at which the whole table is on screen.
 local function viewFor(cueWorld: Vector3, dir: Vector3, focus: Vector3?): CFrame
 	local V = Config.Camera.View
-	local maxScale = wholeTableScale(cueWorld, dir)
+	local maxScale = math.min(wholeTableScale(cueWorld, dir), V.ZoomMax)
 	local k = math.clamp(zoom, V.ZoomMin, math.max(maxScale, V.ZoomMin))
 	return poseAt(cueWorld, dir, k, focus)
 end

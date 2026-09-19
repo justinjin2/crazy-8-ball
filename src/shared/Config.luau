@@ -365,17 +365,18 @@ Config.Camera = {
 	-- screen, so the default is close and steep; the player can zoom. (all tune)
 	View = {
 		BehindInches = 30, -- behind the cue ball along the aim line
-		HeightInches = 50, -- above the cloth
+		HeightInches = 46, -- above the cloth
 		SideInches = 0, -- sideways offset from the aim line (0 = centred on the cue)
-		LookAheadInches = 22, -- the point ahead of the cue ball the camera looks at
+		LookAheadInches = 25, -- the point ahead of the cue ball the camera looks at (further = flatter view)
 		FieldOfView = 60,
 		-- Seconds the camera takes to settle on a new aim (smaller = snappier).
 		Smoothing = 0.12,
 		-- Zoom: a multiplier on the distances above. 1 = the default framing. Pinch on touch
-		-- or scroll on PC moves it between ZoomMin (close) and the scale at which the whole
-		-- table fits on screen (never further than ZoomMaxScale).
+		-- or scroll on PC moves it between ZoomMin (close) and ZoomMax (far). ZoomMax is a
+		-- hard cap; the whole-table fit can pull the limit in below it but never past it.
 		ZoomMin = 0.7,
-		ZoomMaxScale = 4,
+		ZoomMax = 1.8,
+		ZoomMaxScale = 4, -- search range for the whole-table fit (internal)
 		ZoomStep = 1.12, -- per scroll notch
 		-- Margin used when working out the whole-table scale (fraction of the screen).
 		FitMargin = 0.04,

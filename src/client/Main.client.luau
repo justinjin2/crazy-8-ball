@@ -125,6 +125,7 @@ local function leaveTable()
 	UI.setPlayControlsVisible(false)
 	guideline:hide()
 	CueStickBuilder.setVisible(cueStick, false)
+	Camera.resetZoom()
 	Camera.unlock()
 	avatar:release()
 	joinPrompt.Enabled = true
