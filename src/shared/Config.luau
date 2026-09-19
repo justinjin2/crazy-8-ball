@@ -372,10 +372,19 @@ Config.Camera = {
 		FocusBallWeight = 0.15,
 		-- Pitch above the cloth, degrees. The solver starts at Preferred and steepens toward
 		-- Max only when a shallower angle cannot show the table as large on screen (a portrait
-		-- phone with the table crosswise). Min is the floor for the zoomed-in close view.
+		-- phone with the table crosswise).
 		PitchPreferred = 50,
 		PitchMax = 65,
-		PitchMin = 40,
+		-- The close view (fully zoomed in): low behind the cue ball looking down the aim line,
+		-- this far from the ball and at this pitch, so the guideline runs into the distance.
+		PitchClose = 30,
+		CloseDistanceInches = 14,
+		-- In the close view the camera looks this far ahead of the cue ball along the aim
+		-- line (the ball sits low on screen and the guideline runs up into the distance).
+		CloseLookAheadInches = 10,
+		-- How far into the zoom (0 = fitted, 1 = fully close) the cue ball becomes the point
+		-- the camera is centred on.
+		CloseBallWeightAt = 0.5,
 		PitchSamples = 6, -- pitches tried between Preferred and Max (internal)
 		PitchBias = 0.06, -- fill advantage (fraction of screen) a steeper pitch must beat to win
 		-- Fraction of the screen kept clear around the table.
@@ -385,9 +394,10 @@ Config.Camera = {
 		DistanceMaxInches = 400,
 		-- Seconds the camera takes to settle after an aim change (smaller = snappier).
 		Smoothing = 0.18,
-		-- Zoom: 1 = whole table fitted. Below 1 the camera closes in on the cue ball (the focus
-		-- blends from the table focus to the ball). Pinch on touch or scroll on PC.
-		ZoomMin = 0.45,
+		-- Zoom: 1 = whole table fitted, ZoomMin = the close view. In between the camera moves
+		-- in geometrically (equal scroll notches feel equal) while the pitch lowers and the
+		-- centre shifts to the cue ball. Pinch on touch or scroll on PC.
+		ZoomMin = 0.25,
 		ZoomMax = 1.0,
 	},
 	-- While a shot plays the camera zooms out to the whole-table view (if the player was

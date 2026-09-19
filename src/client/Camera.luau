@@ -275,8 +275,8 @@ local function solveFraming(
 	return bestPitch, bestDistance
 end
 
---- Target pose: the fitted whole-table framing at zoom 1; closing in on the cue ball as the
---- zoom drops toward ZoomMin. `focusOverride` (a moving cue ball) pulls the gaze.
+--- Target pose: the fitted whole-table framing at zoom 1, down to the low close view
+--- behind the cue ball at ZoomMin. `focusOverride` (a moving cue ball) pulls the gaze.
 local function viewFor(
 	cueWorld: Vector3,
 	dir: Vector3,
@@ -290,15 +290,20 @@ local function viewFor(
 	local zoomT = 1 - math.clamp((z - V.ZoomMin) / math.max(V.ZoomMax - V.ZoomMin, 1e-3), 0, 1)
 	local pitch, distance = solveFraming(cueWorld, dir, V.FocusBallWeight, vp)
 	-- The whole-table framing is solved once at the fitted distance; zooming then keeps its
-	-- look point and moves the camera in toward the cue ball along a steadily lower pitch,
-	-- so the zoom is continuous at every level.
+	-- look point, shifts the centre to the cue ball and moves the camera in geometrically
+	-- toward the close view along a steadily lower pitch, so the zoom is continuous.
 	local _, lookPoint = poseFor(cueWorld, dir, pitch, distance, V.FocusBallWeight, vp)
-	local closePitch = math.min(math.rad(V.PitchMin), pitch)
+	local closePitch = math.min(math.rad(V.PitchClose), pitch)
 	pitch = pitch + (closePitch - pitch) * zoomT
-	local ballWeight = V.FocusBallWeight + (1 - V.FocusBallWeight) * zoomT
+	local ballT = math.clamp(zoomT / math.max(V.CloseBallWeightAt, 1e-3), 0, 1)
+	local ballWeight = V.FocusBallWeight + (1 - V.FocusBallWeight) * ballT
 	local aimPoint = lookPoint:Lerp(cueWorld, ballWeight)
+	local closeDistance = math.min(TableBuilder.studs(V.CloseDistanceInches), distance)
+	local zoomedDistance = distance * (closeDistance / distance) ^ zoomT
 	local lookDir = (dir * math.cos(pitch) - Vector3.new(0, math.sin(pitch), 0)).Unit
-	local cf = CFrame.lookAt(aimPoint - lookDir * (distance * z), aimPoint)
+	local camPos = aimPoint - lookDir * zoomedDistance
+	aimPoint += dir * (TableBuilder.studs(V.CloseLookAheadInches) * zoomT)
+	local cf = CFrame.lookAt(camPos, aimPoint)
 	if focusOverride then
 		cf =
 			CFrame.lookAt(cf.Position, aimPoint:Lerp(focusOverride, Config.Camera.Shot.FocusWeight))
