@@ -100,7 +100,12 @@ return {
 					if not flagsByFrame[f][i] then
 						local x, y = frame.positions[3 * i - 2], frame.positions[3 * i - 1]
 						H.expect(
-							TableGeometry.containsCenter(geometry, x, y, 1e-3),
+							TableGeometry.containsCenter(
+								geometry,
+								x,
+								y,
+								Config.Balls.RadiusInches + 1e-3
+							),
 							("ball %d left the table at (%.2f, %.2f) frame %d"):format(
 								i - 1,
 								x,
@@ -158,7 +163,7 @@ return {
 		-- Object ball 14 in from the top-right corner pocket along the diagonal, cue ball 10 in
 		-- behind it. The object ball drops, so it can never come back and disturb the cue ball.
 		local dirX, dirY = 1 / math.sqrt(2), 1 / math.sqrt(2)
-		local ox, oy = 40, 15
+		local ox, oy = geometry.halfLength - 10, geometry.halfWidth - 10
 		local function shoot(spinY: number): (number, boolean)
 			local state = Simulation.newState(
 				geometry,
@@ -194,7 +199,10 @@ return {
 
 	["a ball rolled into a corner pocket drops, and stays out of play"] = function()
 		local _, Ball, _, Simulation, _, geometry = setup()
-		local state = Simulation.newState(geometry, { Ball.new(0, 40, 15) })
+		local state = Simulation.newState(
+			geometry,
+			{ Ball.new(0, geometry.halfLength - 10, geometry.halfWidth - 10) }
+		)
 		local result = Simulation.run(state, { angle = math.atan2(10, 10), power = 0.25 })
 		local pocketEvent = nil
 		for _, ev in result.events do

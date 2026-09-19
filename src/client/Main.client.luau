@@ -8,23 +8,61 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Aim = require(Shared:WaitForChild("Physics"):WaitForChild("Aim"))
+local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
+local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local Avatar = require(script.Parent:WaitForChild("Avatar"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
+local Guideline = require(script.Parent:WaitForChild("Guideline"))
+local Input = require(script.Parent:WaitForChild("Input"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local UI = require(script.Parent:WaitForChild("UI"))
 
 -- The server builds the table; wait for it so the balls have somewhere to sit.
-Workspace:WaitForChild("PoolTable")
+local poolTable = Workspace:WaitForChild("PoolTable")
+local joinPrompt = poolTable:WaitForChild("JoinPrompt"):WaitForChild("Play") :: ProximityPrompt
 
 local renderer = BallRenderer.new(Workspace)
 local match = Match.new(renderer)
-Camera.lockTableView()
+local guideline = Guideline.new(Workspace)
+local cueStick = CueStickBuilder.build(Workspace)
+local input = Input.new()
+local avatar = Avatar.new()
 
-local seed = 1
-local function nextRandom(): number
-	-- Small deterministic generator so test shots are repeatable between sessions.
-	seed = (seed * 1103515245 + 12345) % 2147483648
-	return seed / 2147483648
+-- "roaming": walking around normally. "playing": at the table, aiming.
+local mode: "roaming" | "playing" = "roaming"
+
+local function cueBallWorld(): Vector3
+	local cue = match:findCueBall()
+	if cue then
+		return TableBuilder.toWorld(cue.x, cue.y, Config.Balls.RadiusInches)
+	end
+	return TableBuilder.toWorld(0, 0, Config.Balls.RadiusInches)
+end
+
+local currentPull = 0
+
+local function refreshCueStick()
+	local cue = match:findCueBall()
+	if mode ~= "playing" or match:isBusy() or cue == nil or cue.pocketed then
+		CueStickBuilder.setVisible(cueStick, false)
+		return
+	end
+	CueStickBuilder.setVisible(cueStick, true)
+	local ballPos = TableBuilder.toWorld(cue.x, cue.y, Config.Balls.RadiusInches)
+	local gap = TableBuilder.studs(Config.Cue.CueRestGapInches)
+		+ currentPull * Config.Cue.CuePullBackStuds
+	CueStickBuilder.place(cueStick, ballPos, Camera.aimDirection(input.angle), gap)
+end
+
+local function refreshGuideline()
+	if mode ~= "playing" or match:isBusy() then
+		guideline:hide()
+	else
+		guideline:show(Aim.trace(match.state, input.angle))
+	end
+	refreshCueStick()
 end
 
 local function describe(result)
@@ -46,57 +84,126 @@ local function describe(result)
 	)
 end
 
-local function fireTestShot()
-	local angle = nextRandom() * 2 * math.pi
-	local power = 0.3 + nextRandom() * 0.7
-	local result = match:fire({ angle = angle, power = power })
+local function shoot(power: number)
+	if match:isBusy() then
+		return
+	end
+	local result = match:fire({ angle = input.angle, power = power })
 	if result then
 		print(
-			("[8ball] test shot: angle %.2f rad, power %.2f: %s"):format(
-				angle,
+			("[8ball] shot: angle %.1f deg, power %.2f: %s"):format(
+				math.deg(input.angle),
 				power,
 				describe(result)
 			)
 		)
+		input:setEnabled(false)
+		refreshGuideline()
 	end
 end
 
-local function breakShot()
-	if match:isBusy() then
+local function joinTable()
+	if mode == "playing" then
 		return
 	end
-	match:rerack()
-	-- Aim at the apex ball with a hair of offset so the break is not perfectly symmetric.
-	local result = match:fire({ angle = 0.004, power = 1 })
-	if result then
-		print("[8ball] break: " .. describe(result))
-	end
+	mode = "playing"
+	joinPrompt.Enabled = false
+	avatar:take()
+	Camera.lock()
+	Camera.snap(cueBallWorld(), input.angle)
+	input:setEnabled(true)
+	UI.setPlayControlsVisible(true)
+	refreshGuideline()
 end
 
+local function leaveTable()
+	if mode ~= "playing" then
+		return
+	end
+	mode = "roaming"
+	input:setEnabled(false)
+	UI.setPlayControlsVisible(false)
+	guideline:hide()
+	CueStickBuilder.setVisible(cueStick, false)
+	Camera.unlock()
+	avatar:release()
+	joinPrompt.Enabled = true
+end
+
+joinPrompt.Triggered:Connect(joinTable)
+UI.createLeaveButton(leaveTable)
+
+input:onAim(refreshGuideline)
+input:onShoot(shoot)
+input:onZoom(function(factor)
+	Camera.zoomBy(factor)
+end)
+input:onPower(function(pull)
+	UI.setPower(pull)
+	currentPull = pull or 0
+	refreshCueStick()
+end)
+UI.createPowerBar(function(pull)
+	input:setPower(pull)
+end, function()
+	input:releasePower()
+end)
+UI.createNudgeButtons(function(direction)
+	input:rotate(direction * Config.Input.NudgeDegrees)
+end)
+
 if Config.Debug.TestKeysEnabled then
-	UserInputService.InputBegan:Connect(function(input, gameProcessed)
-		if gameProcessed then
+	UserInputService.InputBegan:Connect(function(keyInput, gameProcessed)
+		if gameProcessed or match:isBusy() then
 			return
 		end
-		if input.KeyCode == Enum.KeyCode.F then
-			fireTestShot()
-		elseif input.KeyCode == Enum.KeyCode.B then
-			breakShot()
+		if keyInput.KeyCode == Enum.KeyCode.B then
+			match:rerack()
+			input:setAngle(0)
+			refreshGuideline()
 		end
 	end)
 end
 
+local wasPlaying = false
+
+-- Start out walking: no controls, no camera lock, until the table prompt is held.
+input:setEnabled(false)
+UI.setPlayControlsVisible(false)
+CueStickBuilder.setVisible(cueStick, false)
+
 RunService.RenderStepped:Connect(function(dt)
+	guideline:update(dt)
 	local playing = match:update(dt)
+	if mode ~= "playing" then
+		-- Walking around: leave the camera and the character to Roblox.
+		wasPlaying = playing
+		return
+	end
+	-- Roblox's camera scripts can leave the mouse locked to the window; at the table the
+	-- cursor must stay free for dragging and for leaving the window.
+	if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
+		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+	end
+	local dir = Camera.aimDirection(input.angle)
+	local cueNow = if playing then match:cueBallWorldNow() else cueBallWorld()
+	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)
+	avatar:update(
+		cueBallWorld(),
+		dir,
+		if playing then Config.Avatar.ShotTransparency else Config.Avatar.AimTransparency
+	)
+	if wasPlaying and not playing then
+		match:ensureCueBall()
+		input:setEnabled(true)
+		refreshGuideline()
+	end
+	wasPlaying = playing
 	local status = if playing
 		then ("cue ball %.0f in/s"):format(match:cueBallSpeedNow())
-		else "at rest"
-	UI.setDebugText(
-		("F: random shot   B: rack and break\n%s, %d balls left"):format(
-			status,
-			match:ballsRemaining()
+		else ("aim %.1f deg  |  drag to aim, pull the bar to shoot"):format(
+			math.deg(input.angle)
 		)
-	)
+	UI.setStatus(("%s\n%d balls left   (B = new rack)"):format(status, match:ballsRemaining()))
 end)
-
-print(("[8ball] client ready. Default aim view: %s"):format(Config.Camera.DefaultAimView))
+print("[8ball] client ready")

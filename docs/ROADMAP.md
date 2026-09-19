@@ -27,10 +27,10 @@ The most important phase. No rules, no opponents, no menus. Just: does hitting a
   Done means: a ball fired by a test command bounces around believably and comes to rest.
 - [x] **1.2 Balls collide and sink.** Ball-to-ball collisions, six pockets, full 15-ball rack, break shot.
   Done means: a hard break scatters the rack convincingly and balls drop into pockets.
-- [ ] **1.3 Aim and shoot.** Drag to aim, guideline showing cue ball path and first contact, pull-back power bar. Works on PC and mobile.
+- [x] **1.3 Aim and shoot.** Drag to aim, guideline showing cue ball path and first contact, pull-back power bar. Works on PC and mobile.
   Done means: you can play shot after shot with touch and with mouse.
-- [ ] **1.4 Camera and avatar.** Angled aim camera. Avatar in aiming pose with cue, mostly transparent while aiming. Cinematic follow camera after the strike.
-  Done means: aiming never feels blocked, and watching the shot feels like a replay.
+- [x] **1.4 Camera and avatar.** One 3D aim camera behind the shooter that turns with the aim, scroll or pinch to zoom between close and whole-table. Avatar in aiming pose with cue, mostly transparent while aiming. Camera follows the action after the strike.
+  Done means: aiming never feels blocked on phone or PC, zoom is one gesture, and watching the shot feels like a replay.
 - [ ] **1.5 Spin.** Spin selector that changes how the cue ball behaves after contact.
   Done means: top spin follows through, back spin draws back, visibly.
 - [ ] **1.6 Sound and juice, pass one.** Cue strike, clack scaled by speed, rail thud, pocket drop, aim ticks, sink burst effect, "Nice shot" popup.
@@ -55,14 +55,14 @@ The most important phase. No rules, no opponents, no menus. Just: does hitting a
 
 ## Phase 3: The twist
 
-- [ ] **3.1 Ability framework.** Loadout picker before the match, ability buttons during your turn, one use each, server-validated.
-  Done means: a placeholder ability can be equipped, used once, and is then greyed out.
+- [ ] **3.1 Ability framework.** Equip one ability before the match, one ability button during your turn, cooldown scaled to the ability's power, server-validated.
+  Done means: a placeholder ability can be equipped, used, and is then greyed out until its cooldown ends.
 - [ ] **3.2 Time Stop.** Freezes the shot clock with an original dramatic effect and sound.
 - [ ] **3.3 Super Bounce.** Rainbow cue ball, almost no speed loss off rails for one shot.
 - [ ] **3.4 Magnet Pocket.** Chosen pocket gently pulls your balls for one shot. Tune until it rescues near misses without feeling like cheating.
   Done means (3.2 to 3.4): each ability creates at least one "did you see that" moment in a test match, and the bot's matches still feel fair.
 
-**FRIEND TEST 3.** Do abilities make matches more fun, or just more random? Tune uses and strength.
+**FRIEND TEST 3.** Do abilities make matches more fun, or just more random? Tune cooldowns and strength.
 
 ## Phase 4: Make it beautiful, then soft launch
 
@@ -79,8 +79,10 @@ The most important phase. No rules, no opponents, no menus. Just: does hitting a
 
 ## Phase 5: Reasons to come back
 
+- [ ] Ability gacha: roll for new abilities with earned coins, rarities and odds designed on paper first (check Roblox paid-random-item policy before any Robux link)
+- [ ] Ability catalogue: grow the pool well past the first three, each with a cooldown matched to its power
 - [ ] Cue collection: cosmetic cues with rarities, bought with coins
-- [ ] Loot boxes with earned coins (check Roblox paid-random-item policy before any Robux link)
+- [ ] Loot boxes with earned coins (same policy check as the gacha)
 - [ ] Bonus box for winning
 - [ ] Daily login streak: day 2 rare box, day 7 guaranteed legendary, reminder on post-match screen
 - [ ] Playtime reward: stay long enough, earn a cue

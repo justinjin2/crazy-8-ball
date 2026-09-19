@@ -23,8 +23,11 @@ function Collision.segmentTOI(
 		return nil -- moving away from, or parallel to, the face
 	end
 	local d = (px - seg.ax) * seg.nx + (py - seg.ay) * seg.ny
-	if d < -r * 0.5 then
-		return nil -- centre is on the far side of this face: not our contact
+	if d < 0 then
+		-- Centre is behind this face. Impact times are exact and push-out keeps balls in
+		-- front of every face they touch, so this can only be a face whose back side the
+		-- ball is legitimately passing (e.g. a jaw facing seen from the rail side).
+		return nil
 	end
 	local t = if d <= r then 0 else (d - r) / -vn
 	if t > maxT then

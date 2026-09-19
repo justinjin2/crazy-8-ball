@@ -75,42 +75,96 @@ local function buildOpen(geometry: Geometry)
 	local T = Config.Table
 	local hl, hw = geometry.halfLength, geometry.halfWidth
 	local jr = T.JawRadiusInches
-	-- Jaw circles sit just outside the cushion line so a ball rolling along a rail brushes
-	-- past them instead of being kicked by them.
-	local jawOut = jr + 0.05
-	-- Corner mouths cut the rails back by c along each rail; the gap between the two jaw
-	-- circles across the diagonal equals CornerMouthInches.
-	local c = (T.CornerMouthInches + 2 * jr) / math.sqrt(2)
-	-- Side mouths: half the gap between jaw circles plus the jaw radius.
-	local sm = T.SideMouthInches / 2 + jr
+	local f = T.FacingLengthInches
+	-- Corner mouths cut the rails back by c along each rail so the gap between the two
+	-- cushion noses across the diagonal equals CornerMouthInches.
+	local c = T.CornerMouthInches / math.sqrt(2)
+	-- Side mouths: half the gap between the cushion noses.
+	local sm = T.SideMouthInches / 2
 
-	geometry.segments = {
-		segment(-hl + c, hw, -sm, hw, 0, -1, "topLeft"),
-		segment(sm, hw, hl - c, hw, 0, -1, "topRight"),
-		segment(-hl + c, -hw, -sm, -hw, 0, 1, "bottomLeft"),
-		segment(sm, -hw, hl - c, -hw, 0, 1, "bottomRight"),
-		segment(hl, -hw + c, hl, hw - c, -1, 0, "foot"),
-		segment(-hl, -hw + c, -hl, hw - c, 1, 0, "head"),
-	}
+	local cornerA = math.rad(T.CornerFacingDegrees)
+	local sideA = math.rad(T.SideFacingDegrees)
 
-	geometry.points = {
-		-- top rail ends
-		point(-hl + c, hw + jawOut, jr, "jaw"),
-		point(-sm, hw + jawOut, jr, "jaw"),
-		point(sm, hw + jawOut, jr, "jaw"),
-		point(hl - c, hw + jawOut, jr, "jaw"),
-		-- bottom rail ends
-		point(-hl + c, -hw - jawOut, jr, "jaw"),
-		point(-sm, -hw - jawOut, jr, "jaw"),
-		point(sm, -hw - jawOut, jr, "jaw"),
-		point(hl - c, -hw - jawOut, jr, "jaw"),
-		-- foot rail ends
-		point(hl + jawOut, -hw + c, jr, "jaw"),
-		point(hl + jawOut, hw - c, jr, "jaw"),
-		-- head rail ends
-		point(-hl - jawOut, -hw + c, jr, "jaw"),
-		point(-hl - jawOut, hw - c, jr, "jaw"),
-	}
+	-- A rail piece plus its two angled facings. `sx, sy` mirror the geometry into each
+	-- quadrant. Each facing runs from the cushion nose outward, away from the table, and
+	-- its normal faces the pocket throat so a ball can hit it and rattle.
+	local function addFacing(
+		ax: number,
+		ay: number,
+		dx: number,
+		dy: number,
+		nx: number,
+		ny: number,
+		name: string
+	)
+		local bx, by = ax + dx * f, ay + dy * f
+		table.insert(geometry.segments, segment(ax, ay, bx, by, nx, ny, name))
+		table.insert(geometry.points, point(ax, ay, 0, name .. "Nose"))
+		table.insert(geometry.points, point(bx, by, jr, name .. "Jaw"))
+	end
+
+	for _, sy in { 1, -1 } do
+		-- Long rails (top for sy = 1, bottom for sy = -1), split at the side pocket.
+		local rn = -sy -- inward normal y
+		local yName = if sy > 0 then "top" else "bottom"
+		table.insert(
+			geometry.segments,
+			segment(-hl + c, sy * hw, -sm, sy * hw, 0, rn, yName .. "Left")
+		)
+		table.insert(
+			geometry.segments,
+			segment(sm, sy * hw, hl - c, sy * hw, 0, rn, yName .. "Right")
+		)
+		-- Side pocket facings: nearly straight out, tilted away from the mouth centre.
+		addFacing(
+			-sm,
+			sy * hw,
+			-math.sin(sideA),
+			sy * math.cos(sideA),
+			math.cos(sideA),
+			sy * math.sin(sideA),
+			yName .. "SideL"
+		)
+		addFacing(
+			sm,
+			sy * hw,
+			math.sin(sideA),
+			sy * math.cos(sideA),
+			-math.cos(sideA),
+			sy * math.sin(sideA),
+			yName .. "SideR"
+		)
+		for _, sx in { 1, -1 } do
+			-- Corner facing off the long rail: goes outward (away from the table) and towards
+			-- the corner at CornerFacingDegrees off the rail line.
+			addFacing(
+				sx * (hl - c),
+				sy * hw,
+				sx * math.cos(cornerA),
+				sy * math.sin(cornerA),
+				sx * math.sin(cornerA),
+				-sy * math.cos(cornerA),
+				yName .. "Corner" .. (if sx > 0 then "R" else "L")
+			)
+		end
+	end
+	for _, sx in { 1, -1 } do
+		-- Short rails (foot for sx = 1, head for sx = -1).
+		local rn = -sx
+		local xName = if sx > 0 then "foot" else "head"
+		table.insert(geometry.segments, segment(sx * hl, -hw + c, sx * hl, hw - c, rn, 0, xName))
+		for _, sy in { 1, -1 } do
+			addFacing(
+				sx * hl,
+				sy * (hw - c),
+				sx * math.sin(cornerA),
+				sy * math.cos(cornerA),
+				-sx * math.cos(cornerA),
+				sy * math.sin(cornerA),
+				xName .. "Corner" .. (if sy > 0 then "T" else "B")
+			)
+		end
+	end
 
 	local ci = T.CornerPocketInsetInches / math.sqrt(2)
 	local cr = T.CornerPocketRadiusInches
@@ -174,8 +228,9 @@ function TableGeometry.pocketAt(geometry: Geometry, x: number, y: number): Pocke
 			nearest = p
 		end
 	end
-	-- Past the cushion line means it went through a mouth: give it to the nearest pocket.
-	if not TableGeometry.containsCenter(geometry, x, y, 0) then
+	-- Well past the cushion line means it is over the shelf of a mouth: nearest pocket.
+	local shelf = Config.Table.PocketShelfBallRadii * Config.Balls.RadiusInches
+	if not TableGeometry.containsCenter(geometry, x, y, shelf) then
 		return nearest
 	end
 	return nil

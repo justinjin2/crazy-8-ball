@@ -5,7 +5,7 @@ Status: v1 scope locked. Anything not in "Version 1 scope" is parked, not delete
 
 ## 1. The pitch
 
-A 3D 8-ball pool game on Roblox where your own avatar plays the shot. It feels as crisp and satisfying as GamePigeon 8-ball, but you bring a loadout of abilities (stop time, magnet a pocket, super-bounce the cue ball) that create moments worth clipping. Win or lose, you earn. Long term: collect rare cues, climb ranks, own the leaderboard.
+A 3D 8-ball pool game on Roblox where your own avatar plays the shot. It feels as crisp and satisfying as GamePigeon 8-ball, but you bring one equipped ability (stop time, magnet a pocket, super-bounce the cue ball, and many more) that creates moments worth clipping. Abilities come from a gacha system, so there is always a new one to chase. Win or lose, you earn. Long term: collect rare cues and abilities, climb ranks, own the leaderboard.
 
 ## 2. Design pillars
 
@@ -46,9 +46,9 @@ Standard 8-ball, kept simple like GamePigeon:
 
 **Spin:** tap a cue ball icon and choose where to strike it.
 
-**Camera while aiming:** high and angled, close to top-down but tilted enough that the table clearly reads as 3D. Your avatar is visible at the table in an aiming pose with the cue, faded to mostly transparent so it never blocks the balls.
+**Camera while aiming:** one 3D view, elevated and behind the shooter, looking down the aim line so the table lays out ahead. It turns with the aim. Scroll (PC) or pinch (mobile) zooms between a close view behind the cue ball and a high view where the whole table fits on screen. There is no view toggle and no separate top-down mode (decided 2026-09-19). Your avatar is visible at the table in an aiming pose with the cue, faded to mostly transparent so it never blocks the balls.
 
-**Camera after the strike:** switches to a cinematic 3D view that follows the action. Avatar returns to fully visible.
+**Camera after the strike:** holds its position and lets its gaze follow the action. Avatar returns to fully visible.
 
 **Platforms:** mobile and PC from the start. Most Roblox players are on phones, so every control must work with one thumb. (Assumption, not yet confirmed by the designer.)
 
@@ -66,18 +66,23 @@ This is pillar 1 and 2 in practice. It is not polish to do "later", it is part o
 
 ## 8. Abilities (the twist)
 
-- Players pick a **loadout of 3 abilities before the match**.
-- In v1, **each ability has 1 use per match**. Tune after playtesting.
+Updated 2026-09-19. More detail to come from the designer; this is the current shape.
+
+- There are **many abilities**, and the pool keeps growing. Players collect them through a **gacha system** (roll for a random ability; rarity and odds to be designed, see the Phase 5 note on Roblox's paid-random-item policy).
+- Each player **equips exactly one ability** for a match. No loadout of three.
 - An ability is activated during your own turn, before you shoot.
+- Instead of a fixed number of uses, each ability has a **cooldown scaled to its power**: weak abilities come back quickly, strong ones rarely. The unit of the cooldown (turns, shots or seconds) is an open question; turns is the working assumption.
 - **Ranked (later):** self-help abilities only. **Casual (later):** sabotage abilities also allowed.
 
-**Version 1 abilities (all self-help):**
+**First three abilities to build (examples of the format, all self-help):**
 
 | Ability | What it does | Notes |
 | --- | --- | --- |
 | Time Stop | Freezes the shot clock for this turn, with a dramatic screen effect and sound | Original sound design. Do not use the JoJo audio, it is copyrighted and gets games taken down |
 | Super Bounce | Cue ball turns rainbow and loses almost no speed off rails for this shot | Must be built into the physics simulation |
 | Magnet Pocket | Choose one pocket. For this shot it gently pulls your balls toward it | Pull must be subtle, a nudge that rescues near misses, not a vacuum |
+
+These three prove the framework (equip, activate, cooldown, server validation). The gacha and the wider ability catalogue come after v1 proves the core is fun.
 
 **Parked ability ideas:** extended bounce guideline, sabotage set (shrink opponent's guideline, fog the table, shaky aim), and anything else. New ideas go here, not into the current sprint.
 
@@ -123,14 +128,14 @@ Code rules: one module per system (Physics, Rules, Match, Abilities, Audio, UI),
 - 1v1 against a friend in the same server, or against a bot
 - Full 8-ball rules
 - GamePigeon-quality aim, power, spin
-- Angled aim camera with transparent avatar, cinematic shot camera
+- One 3D aim camera with scroll and pinch zoom, transparent avatar, shot camera that follows the action
 - Full juice layer: sounds, popups, streaks, trickshot bonuses, victory screen, finisher
-- Loadout of 3 abilities: Time Stop, Super Bounce, Magnet Pocket
+- One equipped ability with a power-scaled cooldown; the first three built are Time Stop, Super Bounce, Magnet Pocket
 - Shot timer and emotes
 - Coins earned per ball, win or lose (displayed and saved, nothing to spend on yet)
 
 **Out, parked for later phases (see ROADMAP.md):**
-2v2, ranks, leaderboards, cross-server matchmaking, cue shop, loot boxes, daily streaks, trading, limited-quantity cues, decorated tables, sabotage abilities, wagering lobbies, disguised bots, other game modes.
+2v2, ranks, leaderboards, cross-server matchmaking, cue shop, ability gacha and the wider ability catalogue, loot boxes, daily streaks, trading, limited-quantity cues, decorated tables, sabotage abilities, wagering lobbies, disguised bots, other game modes.
 
 **The test for v1:** friends play it and ask for one more game without being prompted. If not, fix the shot feel before adding anything.
 
@@ -138,7 +143,7 @@ Code rules: one module per system (Physics, Rules, Match, Abilities, Audio, UI),
 
 So future decisions start informed:
 
-- **Loot boxes:** fine with earned coins. The moment coins or boxes can be bought with Robux, Roblox's rules on paid random items apply (such as disclosing odds, and regional restrictions). Check the current policy before building.
+- **Ability gacha and loot boxes:** fine with earned coins. The moment coins, rolls or boxes can be bought with Robux, Roblox's rules on paid random items apply (such as disclosing odds, and regional restrictions). Check the current policy before building.
 - **"Come back tomorrow" on leaving:** Roblox does not let games interrupt the leave menu. Show the streak reminder on the post-match screen instead.
 - **Bots that pass as humans:** common in mobile games and good for losing streaks and empty queues. Risk: if players discover it, it can hurt the "respected pool game" goal. Decide later whether bots are labeled in ranked.
 - **Economy, trading, limited cues:** powerful retention drivers and very hard to undo once live. Design carefully on paper after v1 proves the core is fun.
@@ -154,7 +159,8 @@ Starting candidates: **Chalk**, **Rack'd**, **Side Pocket**, **Cue Club**, **Bre
 ## 16. Open questions
 
 - Exact shot timer length
-- Ability uses per match (1 each to start)
+- Cooldown unit for abilities (turns, shots or seconds) and the power-to-cooldown scale
+- Gacha rarities, odds and what a roll costs
 - Coin amounts per ball, streak, and trickshot
 - Bot difficulty levels
 - Confirm mobile-first assumption

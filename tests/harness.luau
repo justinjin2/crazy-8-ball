@@ -117,55 +117,29 @@ end
 ---------------------------------------------------------------------------------------------
 -- Module loading with a Roblox-free environment
 ---------------------------------------------------------------------------------------------
--- Only plain Luau globals. Deliberately no game/workspace/Instance/Vector3/CFrame/task/os.
-local BASE_ENV = {
-	assert = assert,
-	error = error,
-	ipairs = ipairs,
-	pairs = pairs,
-	next = next,
-	select = select,
-	type = type,
-	typeof = typeof,
-	tostring = tostring,
-	tonumber = tonumber,
-	unpack = unpack,
-	setmetatable = setmetatable,
-	getmetatable = getmetatable,
-	rawget = rawget,
-	rawset = rawset,
-	rawequal = rawequal,
-	rawlen = rawlen,
-	pcall = pcall,
-	xpcall = xpcall,
-	print = print,
-	warn = warn,
-	math = math,
-	table = table,
-	string = string,
-	utf8 = utf8,
-	bit32 = bit32,
-}
-
 local root: Node? = nil
 local cache: { [Node]: any } = {}
 local loading: { [Node]: boolean } = {}
 
-local function moduleEnv(node: Node, requireFn: (any) -> any)
-	local env = table.clone(BASE_ENV)
-	env.script = node
-	env.require = requireFn
-	env._G = env
-	return env
-end
+-- Roblox globals that must never be visible to shared modules. Lune has none of these, and
+-- the smoke test checks they stay absent.
+local FORBIDDEN_GLOBALS = { "game", "workspace", "Instance", "Vector3", "CFrame", "task", "Enum" }
 
 local function loadSource(source: string, node: Node, requireFn: (any) -> any): any
-	local fn = luau.load(source, {
-		debugName = node._file or node.Name,
-		environment = moduleEnv(node, requireFn),
-		injectGlobals = false,
-	})
-	return fn()
+	-- The module keeps its `--!strict` line first; `script` and `require` arrive as chunk
+	-- arguments so the chunk compiles with full optimisation (a custom environment would
+	-- turn optimisation off and make the physics tests several times slower).
+	local firstLineEnd = source:find("\n") or #source
+	local firstLine = source:sub(1, firstLineEnd)
+	local rest = source:sub(firstLineEnd + 1)
+	local wrapped
+	if firstLine:match("^%-%-!") then
+		wrapped = firstLine .. "local script, require = ...\n" .. rest
+	else
+		wrapped = "local script, require = ...\n" .. source
+	end
+	local fn = luau.load(wrapped, { debugName = node._file or node.Name })
+	return fn(node, requireFn)
 end
 
 local function requireNode(target: any): any
@@ -221,10 +195,15 @@ function Harness.reset()
 	root = nil
 end
 
---- Run a snippet of Luau in the same restricted environment shared modules get.
+--- Run a snippet of Luau the way shared modules run (with `script` and `require`).
 function Harness.evalInModuleEnv(source: string): any
 	local fake = newNode("Snippet", "ModuleScript", Harness.shared(), nil)
 	return loadSource(source, fake, requireNode)
+end
+
+--- Names of Roblox-only globals that shared code must never touch.
+function Harness.forbiddenGlobals(): { string }
+	return FORBIDDEN_GLOBALS
 end
 
 --- Assertion helpers -----------------------------------------------------------------------

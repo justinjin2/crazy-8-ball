@@ -117,7 +117,7 @@ return {
 	["sliding turns into rolling before the ball stops"] = function()
 		local Config, Ball, _, Simulation, geometry = setup()
 		local R = Config.Balls.RadiusInches
-		local state = cueOnly(Ball, Simulation, geometry, -40, 0)
+		local state = cueOnly(Ball, Simulation, geometry, -geometry.halfLength + 10, 0)
 		local b = state.balls[1]
 		b.vx = 120 -- struck dead centre: no spin at all, so it must slide first
 		local u0 = math.abs(b.vx - R * b.wy)

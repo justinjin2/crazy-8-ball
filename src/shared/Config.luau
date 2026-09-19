@@ -13,38 +13,78 @@ local Config = {}
 -- Table geometry (regulation 9-foot table)
 ---------------------------------------------------------------------------------------------
 Config.Table = {
-	-- Playing surface, cushion nose to cushion nose.
-	LengthInches = 100,
-	WidthInches = 50,
-	-- 1 stud = 10 inches (25.4 cm). Roblox's own convention is roughly 28 cm per stud, so an
-	-- R15 avatar (about 5 studs tall) looks right standing at a 3-stud-high table.
-	StudsPerInch = 0.1,
-	-- Height of the cloth above the floor.
-	SurfaceHeightInches = 30,
-	-- Cushion rails, visual only: how wide the wooden rail is and how high the cushion rises.
+	-- Table size. Real tables: 7 ft bar table (78x39 in), 8 ft home (88x44), 9 ft tournament
+	-- (100x50). Smaller tables make the balls read bigger from the top-down view, which is
+	-- what phone pool games do. Ball size is set separately below. (decide in playtests)
+	SizeFeet = 7,
+	Sizes = {
+		[7] = { Length = 78, Width = 39 },
+		[8] = { Length = 88, Width = 44 },
+		[9] = { Length = 100, Width = 50 },
+	},
+	-- Filled in from SizeFeet at the bottom of this file.
+	LengthInches = 0,
+	WidthInches = 0,
+	-- World scale. Roblox avatars are stocky, so a table at true 28 cm/stud proportions looks
+	-- like a toy next to one; phone pool games and Roblox pool games alike draw the table
+	-- large. 0.16 studs per inch makes the 7 ft table 12.5 studs long. (tune)
+	StudsPerInch = 0.16,
+	-- Height of the cloth above the floor, in STUDS, so the table always sits at an R15
+	-- avatar's hip and the shooter can lean over it whatever the scale.
+	SurfaceHeightStuds = 2.9,
+	-- Filled in at the bottom of this file from the two values above.
+	SurfaceHeightInches = 0,
+	-- Wooden rail width (visual only).
 	RailWidthInches = 5.5,
-	RailHeightInches = 1.4,
+	-- Rail top height above the cloth as a fraction of the ball diameter (visual). The rubber
+	-- cushion nose that the balls hit sits lower, see Physics.CushionNoseBallFraction.
+	RailHeightBallFraction = 0.8,
+	-- Visible cloth-covered cushion strip: how far it reaches out from the cushion line into
+	-- the wooden rail, and its height (a fraction of the ball diameter). Same height as the
+	-- rail so cushion and wood sit flush; it also tucks under the wood a little so there is
+	-- no seam.
+	CushionWidthInches = 1.8,
+	CushionHeightBallFraction = 0.8,
+	CushionOverlapInches = 0.4,
 	-- Slate/frame thickness below the cloth, visual only.
 	BedThicknessInches = 2,
-	-- Pockets. Rails stop short of each pocket, leaving a mouth. A ball is pocketed when its
-	-- centre enters the pocket's capture circle or crosses the cushion line into the pocket.
-	-- Mouth widths are the gap between the two jaws. Regulation: corner 4.5-5 in, side 5-5.5.
-	CornerMouthInches = 4.7,
-	SideMouthInches = 5.2,
-	-- Jaws: small fixed circles at the rail ends either side of every mouth. A ball that
-	-- clips one rattles instead of passing a sharp corner. (tune)
+	-- Pockets, in ball diameters so they stay playable whatever ball size is chosen.
+	-- Mouth = gap between the cushion noses. Tight tournament tables: corner 1.95-2.05
+	-- diameters, side 2.15-2.25. (tune)
+	CornerMouthBallFraction = 2.0,
+	SideMouthBallFraction = 2.2,
+	-- Jaw facings: the short angled cushion faces either side of each mouth. Length in
+	-- inches; the angle is measured off the rail line for corners (regulation 142 degree
+	-- shelf = 38 off the rail) and off the perpendicular for sides (103 degree = 13 off).
+	-- Balls that enter at a bad angle hit these and rattle out. (tune)
+	FacingLengthInches = 1.6,
+	CornerFacingDegrees = 38,
+	SideFacingDegrees = 13,
+	-- Rounded jaw tips at the far end of each facing.
 	JawRadiusInches = 0.3,
-	-- Capture circle radius and how far its centre sits beyond the cushion line. (tune)
-	CornerPocketRadiusInches = 2.3,
-	CornerPocketInsetInches = 1.4,
-	SidePocketRadiusInches = 2.6,
-	SidePocketInsetInches = 2.2,
+	-- A ball drops once its centre is this far past the cushion line (as a fraction of the
+	-- ball radius, 1 = the ball is fully over the shelf) or inside the pocket's capture
+	-- circle (radius and inset in ball diameters). (tune)
+	PocketShelfBallRadii = 0.9,
+	CornerPocketRadiusBallFraction = 0.75,
+	CornerPocketInsetBallFraction = 0.95,
+	SidePocketRadiusBallFraction = 0.8,
+	SidePocketInsetBallFraction = 1.05,
 	-- The drop: once a ball's centre is over the hole it falls under gravity while the funnel
 	-- shape pulls it towards the middle and the liner slows it. It stops this far down. (tune)
 	PocketDropDepthInches = 5,
 	PocketFunnelAccel = 900, -- in/s^2 towards the pocket centre while dropping
 	PocketDragPerSecond = 5, -- fraction of horizontal speed lost per second in the liner
 	PocketWallRestitution = 0.25, -- bounce off the liner wall
+	-- Filled in at the bottom of this file from the fractions above.
+	RailHeightInches = 0,
+	CushionHeightInches = 0,
+	CornerMouthInches = 0,
+	SideMouthInches = 0,
+	CornerPocketRadiusInches = 0,
+	CornerPocketInsetInches = 0,
+	SidePocketRadiusInches = 0,
+	SidePocketInsetInches = 0,
 	-- Head string: cue ball must start behind this on the break (1/4 of the length from the
 	-- head rail).
 	HeadStringFraction = 0.25,
@@ -74,7 +114,9 @@ Config.Rack = {
 -- Balls
 ---------------------------------------------------------------------------------------------
 Config.Balls = {
-	RadiusInches = 1.125, -- regulation 2.25 inch diameter
+	-- Regulation balls are 2.25 in across (radius 1.125). Slightly oversized balls read better
+	-- on a phone from the top-down view; the physics scales with whatever is set here. (tune)
+	RadiusInches = 1.3,
 	MassOunces = 6, -- all balls equal; only ratios matter in collisions
 	-- Colours by number. 1-7 solids, 8 black, 9-15 stripes use the colour of (n - 8).
 	Colors = {
@@ -138,10 +180,12 @@ Config.Physics = {
 	-- Ball-cushion coefficient of restitution at the contact point. Real cushions: 0.7 to 0.9.
 	-- (tune)
 	RailRestitution = 0.8,
-	-- Height of the cushion nose above the cloth. Regulation is 62.5% of the ball diameter
-	-- (1.41 in). Higher kills more top spin on the rebound; at ball-centre height (1.125) the
-	-- cushion has no effect on spin. (tune)
-	CushionNoseHeightInches = 1.41,
+	-- Height of the cushion nose above the cloth, as a fraction of the ball diameter.
+	-- Regulation is 0.625. Higher kills more top spin on the rebound; at 0.5 (ball-centre
+	-- height) the cushion has no effect on spin. (tune)
+	CushionNoseBallFraction = 0.625,
+	-- Filled in at the bottom of this file.
+	CushionNoseHeightInches = 0,
 	-- Cushion friction coefficient. Caps how much the cushion can grab the ball along its
 	-- length, which is what lets side spin bend the rebound. (tune)
 	RailFriction = 0.2,
@@ -153,6 +197,10 @@ Config.Physics = {
 	-- Safety caps so a bad shot can never hang the game.
 	MaxShotSeconds = 40,
 	MaxEventsPerStep = 200,
+	-- A ball that hits surfaces this many times within one step, each less than
+	-- InstantHitSeconds after the last, is wedged and gets stopped.
+	MaxInstantHits = 24,
+	InstantHitSeconds = 1e-5,
 	-- Tiny separation kept between touching balls to avoid re-colliding forever.
 	ContactSlop = 1e-5,
 }
@@ -172,10 +220,16 @@ Config.Cue = {
 	-- Angular velocity from an off-centre hit: w = SpinFactor * v * offset / R.
 	-- 2.5 is the rigid-sphere value; lower it if spin feels too strong. (tune)
 	SpinFactor = 2.5,
-	-- Visual cue stick dimensions.
-	CueLengthInches = 58,
-	CueButtDiameterInches = 1.2,
-	CueTipDiameterInches = 0.5,
+	-- Visual cue stick (placeholder built from parts), in STUDS so it matches the avatar:
+	-- a real cue is about 85% of a person's height.
+	CueLengthStuds = 4.4,
+	CueButtDiameterStuds = 0.13,
+	CueTipDiameterStuds = 0.06,
+	-- Resting gap between the tip and the cue ball while aiming (table inches), how far the
+	-- stick draws back at full power on the bar (studs), and how much the butt is raised.
+	CueRestGapInches = 2.5,
+	CuePullBackStuds = 1.3,
+	CueElevationDegrees = 4,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -190,72 +244,141 @@ Config.World = {
 -- Look (colours are RGB 0-255, materials are Enum.Material names)
 ---------------------------------------------------------------------------------------------
 Config.Look = {
-	FeltColor = { 20, 105, 60 },
+	-- Tournament blue cloth. With detail maps the part colour tints the map, so this is
+	-- lighter than the final look. (tune)
+	FeltColor = { 110, 165, 215 },
 	FeltMaterial = "Fabric",
-	RailColor = { 62, 38, 24 },
+	-- Cloth detail: a MaterialVariant built at start-up from these PBR maps (generated with
+	-- Studio's material generator on 2026-09-18, four candidates: PoolClothBlue, 1, 2, 3).
+	-- Empty name = plain built-in Fabric. StudsPerTile sets how fine the weave repeats.
+	FeltMaterialVariant = "PoolClothBlue",
+	FeltMaps = {
+		Color = "rbxassetid://104592584333753",
+		Normal = "rbxassetid://126631440467468",
+		Roughness = "rbxassetid://118902681046263",
+		Metalness = "rbxassetid://107819495080440",
+	},
+	FeltStudsPerTile = 0.45,
+	CushionColor = { 80, 130, 180 },
+	RailColor = { 96, 42, 30 },
 	RailMaterial = "Wood",
-	FrameColor = { 45, 28, 18 },
+	FrameColor = { 58, 28, 20 },
 	FrameMaterial = "WoodPlanks",
 	BallMaterial = "SmoothPlastic",
-	PocketColor = { 12, 10, 10 },
+	-- Pocket hole: colour and material of the leather casting and the shaft inside, and how
+	-- deep the visible shaft goes below the cloth.
+	PocketColor = { 12, 11, 11 },
+	PocketMaterial = "Leather",
+	-- The shaft floor sits this far below the cloth (deep enough to be in shadow).
+	PocketShaftDepthInches = 9,
+	ShaftColor = { 4, 4, 5 },
+	ShaftMaterial = "Fabric",
+	-- The hole is cut this much wider than the physics capture circle (inches).
+	PocketLinerExtraInches = 0.5,
+	-- Leather U casting on the rail: how far it reaches out from the hole edge and how tall
+	-- it stands above the rail; and the thickness of the leather lining the hole wall.
+	PocketRingWidthInches = 1.1,
+	PocketRingHeightInches = 0.35,
+	PocketWallThicknessInches = 0.3,
+	CueShaftColor = { 222, 190, 140 },
+	CueButtColor = { 70, 40, 25 },
+	CueTipColor = { 70, 110, 190 },
 }
 
 ---------------------------------------------------------------------------------------------
 -- Camera (studs, degrees)
 ---------------------------------------------------------------------------------------------
 Config.Camera = {
-	-- Aim views the player can toggle between (milestone 4):
-	--   "topdown": GamePigeon style, high over the table so the whole board is visible,
-	--              tilted just enough to read as 3D.
-	--   "behind":  low 3D view behind the cue ball looking down the shot, cue stick in view,
-	--              the avatar mostly transparent.
-	-- The shot camera (after the strike) is the same cinematic follow view in both cases.
-	DefaultAimView = "topdown",
-	TopDown = {
-		PitchDegrees = 72, -- degrees below horizontal (90 = straight down)
-		DistanceStuds = 12.5,
-		FieldOfView = 55,
-		-- true: the view turns with the aim so the shooter is always at the bottom.
-		-- false: fixed over the table, only the aim line turns.
-		OrbitWithAim = false,
-		FixedAzimuthDegrees = 0,
-	},
-	Behind = {
-		PitchDegrees = 16,
-		DistanceStuds = 2.6, -- behind the cue ball along the aim line
-		HeightStuds = 0.9, -- above the cloth
+	-- The one aim view: elevated, behind the shooter, looking down the aim line so the
+	-- table lays out ahead. It turns with the aim. Distances are in table inches so the
+	-- framing survives a change of world scale. Mobile first: the table should fill the
+	-- screen, so the default is close and steep; the player can zoom. (all tune)
+	View = {
+		BehindInches = 30, -- behind the cue ball along the aim line
+		HeightInches = 50, -- above the cloth
+		SideInches = 0, -- sideways offset from the aim line (0 = centred on the cue)
+		LookAheadInches = 22, -- the point ahead of the cue ball the camera looks at
 		FieldOfView = 60,
+		-- Seconds the camera takes to settle on a new aim (smaller = snappier).
+		Smoothing = 0.12,
+		-- Zoom: a multiplier on the distances above. 1 = the default framing. Pinch on touch
+		-- or scroll on PC moves it between ZoomMin (close) and the scale at which the whole
+		-- table fits on screen (never further than ZoomMaxScale).
+		ZoomMin = 0.7,
+		ZoomMaxScale = 4,
+		ZoomStep = 1.12, -- per scroll notch
+		-- Margin used when working out the whole-table scale (fraction of the screen).
+		FitMargin = 0.04,
 	},
-	-- Shot view: lower, closer, follows the action.
+	-- While a shot plays the camera stays put but its gaze drifts towards the cue ball.
 	Shot = {
-		PitchDegrees = 32,
-		DistanceStuds = 7,
-		FieldOfView = 60,
+		FocusWeight = 0.6, -- 0 = keep looking down the original aim line, 1 = track the cue ball
+		Smoothing = 0.35,
 	},
-	-- Seconds for the camera to ease between views / follow its target. (tune)
-	ModeBlendSeconds = 0.6,
-	FollowSmoothing = 0.12,
-	-- How long after the last ball stops before the camera returns to the aim view.
-	ReturnDelaySeconds = 0.8,
+}
+
+---------------------------------------------------------------------------------------------
+-- Joining the table
+---------------------------------------------------------------------------------------------
+Config.Join = {
+	-- Hold E (or the on-screen button on phones) near the table to start playing.
+	PromptActionText = "Play pool",
+	PromptObjectText = "8-Ball table",
+	HoldSeconds = 0.6,
+	-- How close (studs from the table centre) the prompt appears.
+	PromptDistanceStuds = 11,
 }
 
 ---------------------------------------------------------------------------------------------
 -- Avatar (the shooter's R15 character at the table)
 ---------------------------------------------------------------------------------------------
 Config.Avatar = {
-	-- Transparency of the character while aiming (1 = invisible). The reference wants ~90%.
+	-- Transparency while aiming and while a shot plays (1 = invisible).
 	AimTransparency = 0.9,
-	-- true: only the cue arm and hands stay visible while aiming; the rest is hidden.
-	ArmOnlyWhileAiming = true,
-	-- Seconds to fade in/out and to blend into/out of the aiming pose.
-	FadeSeconds = 0.25,
-	PoseBlendSeconds = 0.3,
-	-- Where the character stands, measured back from the cue ball along the aim line.
-	StandBackInches = 30,
-	-- How far the cue tip rests from the cue ball while aiming, and the strike push-in.
-	TipGapInches = 3,
-	StrikeTravelInches = 6,
-	StrikeSeconds = 0.12,
+	ShotTransparency = 0.6,
+	-- Hats, hoods, wings and other accessories are hidden while aiming so they cannot cover
+	-- the table; the body itself stays as a faded silhouette.
+	HideAccessoriesWhileAiming = true,
+	-- Where the character stands (studs, avatar scale): this far behind the cue ball along
+	-- the aim line, and shifted sideways so the cue runs past the chin (positive = the
+	-- shooter's right).
+	StandBackStuds = 3.6,
+	SideOffsetStuds = 0.35,
+	-- When that spot would be on the table, the character stands at the rail instead and
+	-- stretches over it. The stretch pose blends in over this many studs of "overhang".
+	StretchBlendStuds = 1.2,
+	-- Procedural aiming pose. Joint rotations in degrees applied on top of the rest pose:
+	-- {pitch, yaw, roll} as CFrame.Angles(X, Y, Z). Negative pitch = bend/tilt forward.
+	Pose = {
+		Waist = { -68, 0, 0 },
+		Neck = { 62, 0, 0 },
+		LeftShoulder = { -75, 0, 30 }, -- bridge arm reaches forward along the cue
+		LeftElbow = { -15, 0, 0 },
+		LeftWrist = { -20, 0, 0 },
+		RightShoulder = { 30, 0, -28 }, -- grip arm hangs back along the butt
+		RightElbow = { -85, 0, 0 },
+		RightWrist = { 0, 0, 0 },
+		LeftHip = { 12, 18, 0 },
+		RightHip = { -12, -18, 0 },
+		LeftKnee = { -10, 0, 0 },
+		RightKnee = { -10, 0, 0 },
+	},
+	-- Stretching over the rail: torso nearly flat, bridge arm fully extended, back leg
+	-- lifted for balance, like a player reaching for a long shot.
+	StretchPose = {
+		Waist = { -88, 0, 0 },
+		Neck = { 78, 0, 0 },
+		LeftShoulder = { -100, 0, 18 },
+		LeftElbow = { 0, 0, 0 },
+		LeftWrist = { -10, 0, 0 },
+		RightShoulder = { 10, 0, -18 },
+		RightElbow = { -60, 0, 0 },
+		RightWrist = { 0, 0, 0 },
+		LeftHip = { 40, 8, 0 },
+		RightHip = { -6, -10, 0 },
+		LeftKnee = { -25, 0, 0 },
+		RightKnee = { -4, 0, 0 },
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -263,29 +386,46 @@ Config.Avatar = {
 ---------------------------------------------------------------------------------------------
 Config.Input = {
 	-- Aim rotation per pixel of horizontal drag. (tune)
-	AimDegreesPerPixel = 0.22,
+	AimDegreesPerPixel = 0.18,
 	-- Drags slower than this many px/s rotate at a reduced rate for fine aiming.
-	FineDragSpeedPx = 60,
+	FineDragSpeedPx = 80,
 	FineAimScale = 0.35,
-	-- Aim nudge buttons step size.
-	NudgeDegrees = 0.15,
-	-- Power bar: pixels of pull for full power, and release deadzone. (tune)
-	PowerBarPullPx = 260,
+	-- Aim nudge buttons: step per tap, and repeat rate while held.
+	NudgeDegrees = 0.2,
+	NudgeRepeatDelay = 0.35,
+	NudgeRepeatInterval = 0.06,
+	-- Power bar: pulling this fraction of the bar's height gives full power, and the smallest
+	-- power that still shoots (anything less on release cancels).
+	PowerPullBarFraction = 0.9,
 	MinPowerToShoot = 0.04,
-	-- An aim tick sound plays every this many degrees of rotation.
+	-- An aim tick fires every this many degrees of rotation.
 	TickEveryDegrees = 2,
+	-- Zoom factor per mouse-wheel notch.
+	ZoomStep = 1.12,
 }
 
 ---------------------------------------------------------------------------------------------
 -- Guideline
 ---------------------------------------------------------------------------------------------
 Config.Guideline = {
-	-- Length of the short stubs drawn after first contact (object ball and cue ball).
+	-- Length of the short lines drawn after first contact (object ball and cue ball), and
+	-- how much shorter the cue ball's line is.
 	StubLengthInches = 14,
-	Thickness = 0.03, -- studs
+	CueStubScale = 0.6,
+	-- The path is a thin flat strip with dashes that scroll towards the target.
+	LineWidthStuds = 0.07,
+	DashTileStuds = 0.34,
+	DashSpeed = 2.0, -- tiles per second
+	DashFlip = true,
+	-- The contact ("ghost") ball is a white ring outline, slightly larger than the ball.
+	RingScale = 1.08,
+	-- Images (assets/ui/guide_dash.png, guide_ring.png). Empty = plain shapes.
+	DashTextureId = "rbxassetid://83727874065758",
+	RingTextureId = "rbxassetid://137854164925995",
+	HeightAboveClothInches = 0.12,
 	Color = { 255, 255, 255 },
-	Transparency = 0.25,
-	GhostBallTransparency = 0.6,
+	LineTransparency = 0.15,
+	StubTransparency = 0.3,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -320,15 +460,25 @@ Config.Effects = {
 }
 
 Config.UI = {
-	PowerBarWidthPx = 44,
-	PowerBarHeightPx = 300,
+	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
+	PowerBarWidthPx = 52,
+	PowerBarHeightFraction = 0.62,
+	PowerBarMinHeightPx = 140,
+	PowerBarMaxHeightPx = 300,
+	PowerBarRightMarginPx = 18,
+	-- Fine-aim nudge buttons at the bottom (pixels).
+	NudgeButtonPx = 56,
+	-- Colours (RGB 0-255).
+	Accent = { 255, 205, 60 },
+	Panel = { 20, 20, 24 },
+	PanelTransparency = 0.35,
 }
 
 ---------------------------------------------------------------------------------------------
 -- Debug
 ---------------------------------------------------------------------------------------------
 Config.Debug = {
-	-- Test keys in play mode (F = fire cue ball, B = break). Turned off once aiming exists.
+	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
 	-- Print physics events to the console.
 	LogEvents = false,
@@ -337,5 +487,26 @@ Config.Debug = {
 	-- Largest slice of shot time played per rendered frame. Keeps a hitch from skipping play.
 	MaxPlaybackStepSeconds = 0.1,
 }
+
+---------------------------------------------------------------------------------------------
+-- Derived values (do not edit; change the fractions above)
+---------------------------------------------------------------------------------------------
+do
+	local T = Config.Table
+	local size = T.Sizes[T.SizeFeet]
+	T.LengthInches = size.Length
+	T.WidthInches = size.Width
+	T.SurfaceHeightInches = T.SurfaceHeightStuds / T.StudsPerInch
+	local D = Config.Balls.RadiusInches * 2
+	T.RailHeightInches = T.RailHeightBallFraction * D
+	T.CushionHeightInches = T.CushionHeightBallFraction * D
+	T.CornerMouthInches = T.CornerMouthBallFraction * D
+	T.SideMouthInches = T.SideMouthBallFraction * D
+	T.CornerPocketRadiusInches = T.CornerPocketRadiusBallFraction * D
+	T.CornerPocketInsetInches = T.CornerPocketInsetBallFraction * D
+	T.SidePocketRadiusInches = T.SidePocketRadiusBallFraction * D
+	T.SidePocketInsetInches = T.SidePocketInsetBallFraction * D
+	Config.Physics.CushionNoseHeightInches = Config.Physics.CushionNoseBallFraction * D
+end
 
 return Config

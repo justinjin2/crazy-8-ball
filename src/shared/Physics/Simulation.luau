@@ -251,10 +251,10 @@ local function resolveRail(b: Ball, nx: number, ny: number): number
 	local wt = b.wx * tx + b.wy * ty
 	local wz = b.wz
 
-	-- Normal impulse from Newton restitution at the contact point.
-	local contactVn = vn + wt * h
 	local speedIn = -vn
+	local contactVn = vn + wt * h
 	if contactVn < 0 then
+		-- Normal impulse from Newton restitution at the contact point.
 		local kn = 1 + h * h / I
 		local jn = -(1 + P.RailRestitution) * contactVn / kn
 		vn += jn
@@ -273,6 +273,12 @@ local function resolveRail(b: Ball, nx: number, ny: number): number
 		vt += jt
 		wn += -h * jt / I
 		wz += -a * jt / I
+	elseif vn < 0 then
+		-- Heavy back spin can make the nose-height contact point move away while the
+		-- centre still heads into the cushion. The ball then meets the cushion lower down:
+		-- bounce the centre with restitution and leave the spin alone. This only removes
+		-- energy, and it guarantees the ball never keeps moving into the cushion.
+		vn = -P.RailRestitution * vn
 	end
 
 	b.vx = vn * nx + vt * tx
@@ -358,7 +364,12 @@ local function findEarliestHit(state: State, maxT: number): Hit?
 			continue
 		end
 		local moving = a.vx ~= 0 or a.vy ~= 0
-		if moving then
+		-- Broad phase: a ball that cannot reach the cushion line this step skips every rail
+		-- and jaw test (facings and jaws all lie on or beyond the cushion line).
+		local reach = math.sqrt(a.vx * a.vx + a.vy * a.vy) * maxT + R
+		local nearRail = math.abs(a.x) + reach >= geometry.halfLength
+			or math.abs(a.y) + reach >= geometry.halfWidth
+		if moving and nearRail then
 			for _, seg in geometry.segments do
 				local t = Collision.segmentTOI(a.x, a.y, a.vx, a.vy, R, seg, bestT)
 				if t and t < bestT then
@@ -425,6 +436,9 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 	local P = Config.Physics
 	local remaining = dt
 	local iterations = 0
+	-- Zero-time hits per ball this step. A ball wedged between two surfaces would bounce
+	-- between them forever at t = 0; after a few dozen such hits it is stopped instead.
+	local instantHits: { [Ball]: number } = {}
 
 	while remaining > 1e-9 and iterations < P.MaxEventsPerStep do
 		iterations += 1
@@ -459,6 +473,24 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 					other = other,
 					speed = speed,
 				})
+			end
+			if hit.t <= P.InstantHitSeconds then
+				local n = (instantHits[hit.a] or 0) + 1
+				instantHits[hit.a] = n
+				if n >= P.MaxInstantHits then
+					Ball.stop(hit.a) -- wedged: it is not going anywhere
+					if hit.b then
+						Ball.stop(hit.b)
+					end
+				end
+			end
+			if iterations >= P.MaxEventsPerStep then
+				-- Budget exhausted: whatever is still colliding is stuck. Stop it rather than
+				-- burning the whole shot on it.
+				Ball.stop(hit.a)
+				if hit.b then
+					Ball.stop(hit.b)
+				end
 			end
 		end
 	end

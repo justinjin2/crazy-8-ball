@@ -14,6 +14,7 @@ local Cue = require(Physics:WaitForChild("Cue"))
 local Rack = require(Physics:WaitForChild("Rack"))
 local Simulation = require(Physics:WaitForChild("Simulation"))
 local TableGeometry = require(Physics:WaitForChild("Table"))
+local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 
 type Shot = Cue.Shot
@@ -83,11 +84,19 @@ function Match.rerack(self: Match)
 	self:renderState()
 end
 
+--- The cue ball's current state (nil if somehow missing).
+function Match.findCueBall(self: Match)
+	return Simulation.findBall(self.state, 0)
+end
+
 --- Put the cue ball on the head spot if it is off the table (test helper until rules exist).
 function Match.ensureCueBall(self: Match)
 	local cue = Simulation.findBall(self.state, 0)
 	if cue and cue.pocketed then
 		cue.pocketed = false
+		cue.falling = false
+		cue.pocket = nil
+		cue.z = 0
 		Ball.stop(cue)
 		cue.x, cue.y = TableGeometry.headSpot(self.state.geometry)
 		self.renderer:restore(0, cue.x, cue.y)
@@ -185,6 +194,20 @@ function Match.cueBallSpeedNow(self: Match): number
 	local a, b = frames[i - 1].positions, frames[i].positions
 	local dx, dy = b[1] - a[1], b[2] - a[2] -- cue ball is index 1: x, y are entries 1 and 2
 	return math.sqrt(dx * dx + dy * dy) / Config.Physics.FixedStep
+end
+
+--- World position of the cue ball at the current playback frame (or its resting spot).
+function Match.cueBallWorldNow(self: Match): Vector3
+	local playback = self.playback
+	local x, y, z
+	if playback then
+		local p = playback.result.frames[playback.frameIndex].positions
+		x, y, z = p[1], p[2], p[3]
+	else
+		local cue = Simulation.findBall(self.state, 0)
+		x, y, z = if cue then cue.x else 0, if cue then cue.y else 0, 0
+	end
+	return TableBuilder.toWorld(x, y, Config.Balls.RadiusInches + z)
 end
 
 --- Number of balls still on the table (excluding the cue ball).
