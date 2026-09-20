@@ -11,9 +11,23 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 
 local Camera = {}
+
+-- There is one camera per client and the player is only ever at one table, so the table
+-- being played lives here as module state rather than being threaded through the eight
+-- private framing functions below (six of which would only pass it on).
+local placement: Placement.Placement = assert(
+	Placement.forTable(Config.Lounge.ActiveTableId),
+	"Config.Lounge.ActiveTableId names no table"
+)
+
+-- Outer corners of the table (rails included) at cloth height, in world space. Cached
+-- because the framing solver asks for them many times a frame; setTable clears it, which
+-- is what stops a stale cache once the table being framed changes.
+local tableCorners: { Vector3 }? = nil
 
 local locked = false
 local connections: { RBXScriptConnection } = {}
@@ -23,10 +37,21 @@ local anchorDir: Vector3? = nil
 local returnTimer = 0 -- seconds of slower easing left after a shot ends
 local wasPlaying = false
 
---- World-space aim direction for a physics angle.
+--- World-space aim direction for a physics angle on the current table. The angle is in
+--- table space, so the table's yaw turns it: at yaw 0 this is (cos, 0, -sin) as before.
 function Camera.aimDirection(angle: number): Vector3
-	-- Physics x -> world X, physics y -> world -Z.
-	return Vector3.new(math.cos(angle), 0, -math.sin(angle))
+	return TableBuilder.aimDirection(placement, angle)
+end
+
+--- The table the camera frames. Call on joining a table, before lock/snap.
+function Camera.setTable(p: Placement.Placement)
+	placement = p
+	tableCorners = nil
+end
+
+--- The placement the camera is currently framing.
+function Camera.placement(): Placement.Placement
+	return placement
 end
 
 local function takeOver()
@@ -104,8 +129,6 @@ function Camera.getZoom(): number
 	return zoom
 end
 
--- Outer corners of the table (rails included) at cloth height, in world space.
-local tableCorners = nil :: { Vector3 }?
 local function corners(): { Vector3 }
 	if tableCorners then
 		return tableCorners
@@ -114,10 +137,10 @@ local function corners(): { Vector3 }
 	local hx = T.LengthInches / 2 + T.RailWidthInches
 	local hy = T.WidthInches / 2 + T.RailWidthInches
 	local list = {
-		TableBuilder.toWorld(-hx, -hy, T.RailHeightInches),
-		TableBuilder.toWorld(hx, -hy, T.RailHeightInches),
-		TableBuilder.toWorld(hx, hy, T.RailHeightInches),
-		TableBuilder.toWorld(-hx, hy, T.RailHeightInches),
+		TableBuilder.toWorld(placement, -hx, -hy, T.RailHeightInches),
+		TableBuilder.toWorld(placement, hx, -hy, T.RailHeightInches),
+		TableBuilder.toWorld(placement, hx, hy, T.RailHeightInches),
+		TableBuilder.toWorld(placement, -hx, hy, T.RailHeightInches),
 	}
 	tableCorners = list
 	return list
@@ -178,7 +201,7 @@ local function fillScore(cf: CFrame, vp: Vector2): number
 end
 
 local function tableCentre(): Vector3
-	return TableBuilder.toWorld(0, 0, 0)
+	return TableBuilder.toWorld(placement, 0, 0, 0)
 end
 
 --- Camera pose looking along the aim `dir` tilted down by `pitch` radians, `distance` studs

@@ -10,6 +10,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Aim = require(Shared:WaitForChild("Physics"):WaitForChild("Aim"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Avatar = require(script.Parent:WaitForChild("Avatar"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
@@ -19,16 +20,29 @@ local Input = require(script.Parent:WaitForChild("Input"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local UI = require(script.Parent:WaitForChild("UI"))
 
+-- The table the local player can join. Roadmap 1.5e turns this into "whichever table's pad
+-- you stepped on"; until then it is the one table the server builds.
+local activeId = Config.Lounge.ActiveTableId
+local placement = assert(Placement.forTable(activeId), "Config.Lounge.ActiveTableId names no table")
+
 -- The server builds the table; wait for it so the balls have somewhere to sit.
-local poolTable = Workspace:WaitForChild("PoolTable")
+local tables = Workspace:WaitForChild(TableBuilder.FolderName)
+local poolTable = tables:WaitForChild(TableBuilder.modelName(activeId))
 local joinPrompt = poolTable:WaitForChild("JoinPrompt"):WaitForChild("Play") :: ProximityPrompt
 
-local renderer = BallRenderer.new(Workspace)
-local match = Match.new(renderer)
-local guideline = Guideline.new(Workspace)
-local cueStick = CueStickBuilder.build(Workspace)
+-- Client-built visuals never hang off a server-built model: a model that streams out takes
+-- its children with it and they do not come back.
+local visuals = Instance.new("Folder")
+visuals.Name = "ClientVisuals"
+visuals.Parent = Workspace
+
+local renderer = BallRenderer.new(visuals, placement, activeId)
+local match = Match.new(renderer, placement)
+local guideline = Guideline.new(visuals, placement)
+local cueStick = CueStickBuilder.build(visuals)
 local input = Input.new()
 local avatar = Avatar.new()
+Camera.setTable(placement)
 
 -- "roaming": walking around normally. "playing": at the table, aiming.
 local mode: "roaming" | "playing" = "roaming"
@@ -36,9 +50,9 @@ local mode: "roaming" | "playing" = "roaming"
 local function cueBallWorld(): Vector3
 	local cue = match:findCueBall()
 	if cue then
-		return TableBuilder.toWorld(cue.x, cue.y, Config.Balls.RadiusInches)
+		return TableBuilder.toWorld(placement, cue.x, cue.y, Config.Balls.RadiusInches)
 	end
-	return TableBuilder.toWorld(0, 0, Config.Balls.RadiusInches)
+	return TableBuilder.toWorld(placement, 0, 0, Config.Balls.RadiusInches)
 end
 
 local currentPull = 0
@@ -50,7 +64,7 @@ local function refreshCueStick()
 		return
 	end
 	CueStickBuilder.setVisible(cueStick, true)
-	local ballPos = TableBuilder.toWorld(cue.x, cue.y, Config.Balls.RadiusInches)
+	local ballPos = TableBuilder.toWorld(placement, cue.x, cue.y, Config.Balls.RadiusInches)
 	local gap = TableBuilder.studs(Config.Cue.CueRestGapInches)
 		+ currentPull * Config.Cue.CuePullBackStuds
 	CueStickBuilder.place(cueStick, ballPos, Camera.aimDirection(input.angle), gap)
@@ -190,6 +204,7 @@ RunService.RenderStepped:Connect(function(dt)
 	local cueNow = if playing then match:cueBallWorldNow() else cueBallWorld()
 	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)
 	avatar:update(
+		placement,
 		cueBallWorld(),
 		dir,
 		if playing then Config.Avatar.ShotTransparency else Config.Avatar.AimTransparency,

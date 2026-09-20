@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local Physics = Shared:WaitForChild("Physics")
 local Ball = require(Physics:WaitForChild("Ball"))
 local Cue = require(Physics:WaitForChild("Cue"))
@@ -28,6 +29,7 @@ Match.__index = Match
 export type Match = typeof(setmetatable(
 	{} :: {
 		state: State,
+		placement: Placement.Placement,
 		renderer: BallRenderer.BallRenderer,
 		playback: {
 			result: ShotResult,
@@ -43,10 +45,11 @@ export type Match = typeof(setmetatable(
 	Match
 ))
 
-function Match.new(renderer: BallRenderer.BallRenderer): Match
+function Match.new(renderer: BallRenderer.BallRenderer, p: Placement.Placement): Match
 	local geometry = TableGeometry.build({ pocketsOpen = true })
 	local self = setmetatable({
 		state = Simulation.newState(geometry, Rack.newGame(geometry)),
+		placement = p,
 		renderer = renderer,
 		playback = nil,
 		lastResult = nil,
@@ -207,7 +210,7 @@ function Match.cueBallWorldNow(self: Match): Vector3
 		local cue = Simulation.findBall(self.state, 0)
 		x, y, z = if cue then cue.x else 0, if cue then cue.y else 0, 0
 	end
-	return TableBuilder.toWorld(x, y, Config.Balls.RadiusInches + z)
+	return TableBuilder.toWorld(self.placement, x, y, Config.Balls.RadiusInches + z)
 end
 
 --- Number of balls still on the table (excluding the cue ball).

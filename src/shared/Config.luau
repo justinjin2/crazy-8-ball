@@ -257,11 +257,34 @@ Config.Cue = {
 }
 
 ---------------------------------------------------------------------------------------------
--- World placement (studs). Physics x -> world X, physics y -> world -Z, up -> world Y.
+-- The lounge: where the twelve tables stand (studs). Physics x -> world X, physics y ->
+-- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
-Config.World = {
-	-- Floor-level centre of the table in Workspace.
-	TableOrigin = { X = 0, Y = 0, Z = 20 },
+Config.Lounge = {
+	-- Transcribed from assets/lounge/Markers.json (schema_version 1). Y is the FLOOR height
+	-- of the tier the table stands on, not the cloth: Placement.toWorld adds
+	-- Table.SurfaceHeightStuds (2.9) on top, which is exactly the package's
+	-- cloth_height_above_floor. Yaw is degrees about world +Y.
+	--
+	-- Do not hand-edit: tests/lounge_layout_test.luau checks every number against
+	-- Markers.json, so a typo here fails tools/test.sh.
+	-- Tables 1-4 are the front row, 5-8 the middle tier, 9-12 the rear tier.
+	Tables = {
+		{ id = 1, X = -30, Y = 0, Z = 0, YawDegrees = 90 },
+		{ id = 2, X = -10, Y = 0, Z = 0, YawDegrees = 90 },
+		{ id = 3, X = 10, Y = 0, Z = 0, YawDegrees = 90 },
+		{ id = 4, X = 30, Y = 0, Z = 0, YawDegrees = 90 },
+		{ id = 5, X = -30, Y = 2.4, Z = -43, YawDegrees = 90 },
+		{ id = 6, X = -10, Y = 2.4, Z = -43, YawDegrees = 90 },
+		{ id = 7, X = 10, Y = 2.4, Z = -43, YawDegrees = 90 },
+		{ id = 8, X = 30, Y = 2.4, Z = -43, YawDegrees = 90 },
+		{ id = 9, X = -30, Y = 4.8, Z = -86, YawDegrees = 90 },
+		{ id = 10, X = -10, Y = 4.8, Z = -86, YawDegrees = 90 },
+		{ id = 11, X = 10, Y = 4.8, Z = -86, YawDegrees = 90 },
+		{ id = 12, X = 30, Y = 4.8, Z = -86, YawDegrees = 90 },
+	},
+	-- Until Roadmap 1.5d builds all twelve, this is the one table that exists.
+	ActiveTableId = 1,
 }
 
 ---------------------------------------------------------------------------------------------

@@ -6,14 +6,24 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 
 local ServerStorage = game:GetService("ServerStorage")
 
-if workspace:FindFirstChild("PoolTable") then
-	workspace.PoolTable:Destroy()
+-- Every table lives under one folder, named by id. Roadmap 1.5d builds all twelve; for now
+-- only Config.Lounge.ActiveTableId is built, in its real lounge position and yaw.
+local existing = workspace:FindFirstChild(TableBuilder.FolderName)
+if existing then
+	existing:Destroy()
 end
-TableBuilder.build(workspace)
+local tables = Instance.new("Folder")
+tables.Name = TableBuilder.FolderName
+tables.Parent = workspace
+
+local activeId = Config.Lounge.ActiveTableId
+local placement = assert(Placement.forTable(activeId), "Config.Lounge.ActiveTableId names no table")
+TableBuilder.build(tables, placement, activeId)
 
 -- Publish the imported ball mesh to clients (MeshId is plugin-only, so it lives in the place).
 local assets = ReplicatedStorage:FindFirstChild("Assets") or Instance.new("Folder")
@@ -45,7 +55,7 @@ if L.Enabled then
 	holder.CastShadow = false
 	holder.Transparency = 1
 	holder.Size = Vector3.new(0.5, 0.5, 0.5)
-	holder.CFrame = CFrame.new(TableBuilder.toWorld(0, 0, L.HeightInches))
+	holder.CFrame = CFrame.new(TableBuilder.toWorld(placement, 0, 0, L.HeightInches))
 	local light = Instance.new("SpotLight")
 	light.Face = Enum.NormalId.Bottom
 	light.Angle = L.Angle
@@ -54,7 +64,7 @@ if L.Enabled then
 	light.Color = Color3.fromRGB(L.Color[1], L.Color[2], L.Color[3])
 	light.Shadows = true
 	light.Parent = holder
-	holder.Parent = workspace:FindFirstChild("PoolTable") or workspace
+	holder.Parent = tables:FindFirstChild(TableBuilder.modelName(activeId)) or workspace
 end
 
 print(

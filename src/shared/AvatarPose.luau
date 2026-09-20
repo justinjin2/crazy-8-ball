@@ -8,12 +8,18 @@
 -- Shared so the Studio preview can pose a test rig with exactly the game's code.
 
 local Config = require(script.Parent.Config)
+local Placement = require(script.Parent.Placement)
 
 local AvatarPose = {}
 
 type Joint = { name: string, part0: BasePart, part1: BasePart, off0: CFrame, off1: CFrame }
 
-local jointCache: { [Model]: { joints: { Joint }, count: number } } = {}
+-- Weak keys: a character that has left must not be kept alive by this cache. With 30 players
+-- respawning all session a strong table would hold every character ever posed.
+local jointCache: { [Model]: { joints: { Joint }, count: number } } = setmetatable(
+	{},
+	{ __mode = "k" }
+) :: any
 
 local function angles(deg: { number }): CFrame
 	return CFrame.Angles(math.rad(deg[1]), math.rad(deg[2]), math.rad(deg[3]))
@@ -52,18 +58,26 @@ local function jointsOf(character: Model): { Joint }
 	return joints
 end
 
--- Half extents of the table including rails, in studs.
+-- Half extents of the table including rails, in INCHES along the table's own axes: the
+-- first along the length (physics x), the second across the width (physics y).
 local function tableHalfExtents(): (number, number)
 	local T = Config.Table
-	local s = T.StudsPerInch
-	return (T.LengthInches / 2 + T.RailWidthInches) * s, (T.WidthInches / 2 + T.RailWidthInches) * s
+	return T.LengthInches / 2 + T.RailWidthInches, T.WidthInches / 2 + T.RailWidthInches
 end
 
---- Where the character stands for a shot from the cue ball (world) along `dir`, and how
---- much it has to stretch over the table (0 = normal stance, 1 = full stretch).
+--- Where the character stands for a shot from the cue ball (world) along `dir` at table `p`,
+--- and how much it has to stretch over the table (0 = normal stance, 1 = full stretch).
 --- If the natural spot behind the ball is over the table, the character stands at the
 --- rail on the far side instead and reaches in.
-function AvatarPose.standing(character: Model, cueWorld: Vector3, dir: Vector3): (CFrame, number)
+---
+--- The rim test is done in the TABLE's own axes, not world X/Z: the lounge stands every
+--- table at yaw 90, where a world-axis-aligned box would put the shooter inside the table.
+function AvatarPose.standing(
+	character: Model,
+	p: Placement.Placement,
+	cueWorld: Vector3,
+	dir: Vector3
+): (CFrame, number)
 	local A = Config.Avatar
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local root = character:FindFirstChild("HumanoidRootPart")
@@ -71,45 +85,53 @@ function AvatarPose.standing(character: Model, cueWorld: Vector3, dir: Vector3):
 	local rootHalf = if root and root:IsA("BasePart") then root.Size.Y / 2 else 1
 	local flat = Vector3.new(dir.X, 0, dir.Z).Unit
 	local right = flat:Cross(Vector3.yAxis)
-	local o = Config.World.TableOrigin
-	local origin = Vector3.new(o.X, o.Y, o.Z)
 
 	local natural = cueWorld - flat * A.StandBackStuds
-	-- Push the stand point back along the aim line until it clears the table rim.
-	local hx, hz = tableHalfExtents()
+	-- Push the stand point back along the aim line until it clears the table rim, all in
+	-- table space and inches. `back` is a distance along a line, so converting it to studs
+	-- at the end is the only scaling needed.
+	local hx, hy = tableHalfExtents()
+	local relX, relY = Placement.toTable(p, natural.X, natural.Z)
+	local flatX, flatY = Placement.dirToTable(p, flat.X, flat.Z)
 	local stand = natural
 	local overhang = 0
-	local rel = natural - origin
-	if math.abs(rel.X) < hx and math.abs(rel.Z) < hz then
-		-- Distance to walk back until |X| or |Z| reaches the rim (whichever comes first
+	if math.abs(relX) < hx and math.abs(relY) < hy then
+		-- Distance to walk back until |x| or |y| reaches the rim (whichever comes first
 		-- along -flat).
-		local tx = if math.abs(flat.X) > 1e-6
-			then (hx - math.abs(rel.X)) / math.abs(flat.X)
+		local tx = if math.abs(flatX) > 1e-6
+			then (hx - math.abs(relX)) / math.abs(flatX)
 			else math.huge
-		local tz = if math.abs(flat.Z) > 1e-6
-			then (hz - math.abs(rel.Z)) / math.abs(flat.Z)
+		local ty = if math.abs(flatY) > 1e-6
+			then (hy - math.abs(relY)) / math.abs(flatY)
 			else math.huge
-		-- Only the components that move outward count: walking back along -flat moves X by
-		-- -flat.X, so it approaches the rim on the side rel.X and -flat.X agree on.
+		-- Only the components that move outward count: walking back along -flat moves x by
+		-- -flatX, so it approaches the rim on the side relX and -flatX agree on.
 		local back = math.min(
-			if rel.X * -flat.X > 0 then tx else math.huge,
-			if rel.Z * -flat.Z > 0 then tz else math.huge
+			if relX * -flatX > 0 then tx else math.huge,
+			if relY * -flatY > 0 then ty else math.huge
 		)
 		if back == math.huge then
 			back = 0
 		end
+		back *= Config.Table.StudsPerInch
 		stand = natural - flat * back
 		overhang = back
 	end
 	stand = stand + right * A.SideOffsetStuds
-	local pos = Vector3.new(stand.X, o.Y + hip + rootHalf, stand.Z)
+	-- The floor the table stands on, which is the tier height in the lounge.
+	local pos = Vector3.new(stand.X, p.y + hip + rootHalf, stand.Z)
 	local stretch = math.clamp(overhang / math.max(A.StretchBlendStuds, 1e-3), 0, 1)
 	return CFrame.lookAt(pos, pos + flat), stretch
 end
 
 --- Root CFrame only (kept for callers that do not need the stretch amount).
-function AvatarPose.rootCFrame(character: Model, cueWorld: Vector3, dir: Vector3): CFrame
-	local cf = AvatarPose.standing(character, cueWorld, dir)
+function AvatarPose.rootCFrame(
+	character: Model,
+	p: Placement.Placement,
+	cueWorld: Vector3,
+	dir: Vector3
+): CFrame
+	local cf = AvatarPose.standing(character, p, cueWorld, dir)
 	return cf
 end
 

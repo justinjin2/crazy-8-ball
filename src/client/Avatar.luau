@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local AvatarPose = require(Shared:WaitForChild("AvatarPose"))
+local Placement = require(Shared:WaitForChild("Placement"))
 
 local Avatar = {}
 Avatar.__index = Avatar
@@ -109,6 +110,7 @@ end
 --- from FadeFarStuds out.
 function Avatar.update(
 	self: Avatar,
+	p: Placement.Placement,
 	cueWorld: Vector3,
 	dir: Vector3,
 	transparency: number,
@@ -118,7 +120,7 @@ function Avatar.update(
 	if not character or not self.parked then
 		return
 	end
-	local rootCFrame, stretch = AvatarPose.standing(character, cueWorld, dir)
+	local rootCFrame, stretch = AvatarPose.standing(character, p, cueWorld, dir)
 	AvatarPose.apply(character, rootCFrame, stretch)
 	local target = transparency
 	if cameraPos then

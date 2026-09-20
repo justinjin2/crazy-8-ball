@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Aim = require(Shared:WaitForChild("Physics"):WaitForChild("Aim"))
 
@@ -23,6 +24,7 @@ type Strip = { part: Part, texture: Texture? }
 export type Guideline = typeof(setmetatable(
 	{} :: {
 		folder: Folder,
+		placement: Placement.Placement,
 		ring: Part,
 		path: Strip,
 		leftEdge: Strip,
@@ -73,7 +75,7 @@ local function makeStrip(name: string, parent: Instance, dashed: boolean): Strip
 	return { part = part, texture = texture }
 end
 
-function Guideline.new(parent: Instance): Guideline
+function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 	local G = Config.Guideline
 	local folder = Instance.new("Folder")
 	folder.Name = "Guideline"
@@ -95,6 +97,7 @@ function Guideline.new(parent: Instance): Guideline
 
 	local self = setmetatable({
 		folder = folder,
+		placement = p,
 		ring = ring,
 		path = makeStrip("Path", folder, true),
 		leftEdge = makeStrip("LeftEdge", folder, false),
@@ -113,10 +116,11 @@ local function hideStrip(strip: Strip)
 	end
 end
 
--- Lay a strip flat from (x1, y1) to (x2, y2) in inches. Local +Z runs start -> target so
--- the dash texture's V axis follows the line.
+-- Lay a strip flat from (x1, y1) to (x2, y2) in inches on table `p`. Local +Z runs
+-- start -> target so the dash texture's V axis follows the line.
 local function placeStrip(
 	strip: Strip,
+	p: Placement.Placement,
 	x1: number,
 	y1: number,
 	x2: number,
@@ -126,8 +130,8 @@ local function placeStrip(
 )
 	local G = Config.Guideline
 	local h = G.HeightAboveClothInches
-	local a = TableBuilder.toWorld(x1, y1, h)
-	local b = TableBuilder.toWorld(x2, y2, h)
+	local a = TableBuilder.toWorld(p, x1, y1, h)
+	local b = TableBuilder.toWorld(p, x2, y2, h)
 	local len = (b - a).Magnitude
 	if len < 1e-4 then
 		hideStrip(strip)
@@ -164,6 +168,7 @@ function Guideline.show(self: Guideline, trace: Trace)
 		local function placeEdge(strip: Strip, sgn: number)
 			placeStrip(
 				strip,
+				self.placement,
 				trace.startX + px * R * sgn,
 				trace.startY + py * R * sgn,
 				trace.ghostX + px * R * sgn,
@@ -177,6 +182,7 @@ function Guideline.show(self: Guideline, trace: Trace)
 		if G.ShowCentreLine then
 			placeStrip(
 				self.path,
+				self.placement,
 				trace.startX + ux * R,
 				trace.startY + uy * R,
 				trace.ghostX - ux * ringR,
@@ -192,8 +198,9 @@ function Guideline.show(self: Guideline, trace: Trace)
 		hideStrip(self.rightEdge)
 	end
 
-	self.ring.CFrame =
-		CFrame.new(TableBuilder.toWorld(trace.ghostX, trace.ghostY, G.HeightAboveClothInches))
+	self.ring.CFrame = CFrame.new(
+		TableBuilder.toWorld(self.placement, trace.ghostX, trace.ghostY, G.HeightAboveClothInches)
+	)
 	local outline = self.ring:FindFirstChild("Outline")
 	if outline and outline:IsA("Decal") then
 		outline.Transparency = G.LineTransparency
@@ -208,6 +215,7 @@ function Guideline.show(self: Guideline, trace: Trace)
 			trace.ghostY + trace.objectDirY * (ringR + 2 * R)
 		placeStrip(
 			self.objectStub,
+			self.placement,
 			ox,
 			oy,
 			ox + trace.objectDirX * stub,
@@ -221,6 +229,7 @@ function Guideline.show(self: Guideline, trace: Trace)
 	local cx, cy = trace.ghostX + trace.cueDirX * ringR, trace.ghostY + trace.cueDirY * ringR
 	placeStrip(
 		self.cueStub,
+		self.placement,
 		cx,
 		cy,
 		cx + trace.cueDirX * stub * G.CueStubScale,

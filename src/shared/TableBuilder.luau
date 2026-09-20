@@ -8,9 +8,20 @@
 -- the cloth bed inside, and six dark pocket liners cut through the frame at the mouths.
 
 local Config = require(script.Parent.Config)
+local Placement = require(script.Parent.Placement)
 local TableGeometry = require(script.Parent.Physics.Table)
 
 local TableBuilder = {}
+
+export type Placement = Placement.Placement
+
+--- Folder in Workspace that holds every server-built table model.
+TableBuilder.FolderName = "Tables"
+
+--- Instance name for table `id`: Table_01 ... Table_12.
+function TableBuilder.modelName(id: number): string
+	return ("Table_%02d"):format(id)
+end
 
 local function color(rgb: { number }): Color3
 	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
@@ -20,22 +31,26 @@ local function material(name: string): Enum.Material
 	return (Enum.Material :: any)[name]
 end
 
---- World-space position for a physics point (inches) at a height above the cloth (inches).
-function TableBuilder.toWorld(xIn: number, yIn: number, heightIn: number): Vector3
-	local s = Config.Table.StudsPerInch
-	local o = Config.World.TableOrigin
-	return Vector3.new(
-		o.X + xIn * s,
-		o.Y + (Config.Table.SurfaceHeightInches + heightIn) * s,
-		o.Z - yIn * s
-	)
+--- World-space position for a physics point (inches) on table `p` at a height above the
+--- cloth (inches). The maths lives in Placement (pure, tested); this only makes a Vector3.
+function TableBuilder.toWorld(p: Placement, xIn: number, yIn: number, heightIn: number): Vector3
+	return Vector3.new(Placement.toWorld(p, xIn, yIn, heightIn))
 end
 
---- Physics coordinates (inches) for a world position.
-function TableBuilder.toTable(world: Vector3): (number, number)
-	local s = Config.Table.StudsPerInch
-	local o = Config.World.TableOrigin
-	return (world.X - o.X) / s, -(world.Z - o.Z) / s
+--- Physics coordinates (inches) on table `p` for a world position.
+function TableBuilder.toTable(p: Placement, world: Vector3): (number, number)
+	return Placement.toTable(p, world.X, world.Z)
+end
+
+--- World-space aim direction on table `p` for a physics aim angle.
+function TableBuilder.aimDirection(p: Placement, angle: number): Vector3
+	return Vector3.new(Placement.aimVector(p, angle))
+end
+
+--- The CFrame that turns table-space offsets into world ones (no translation): used for
+--- rotating parts and angular velocity onto the table.
+function TableBuilder.yawCFrame(p: Placement): CFrame
+	return CFrame.Angles(0, p.yaw, 0)
 end
 
 --- Studs for an inch length.
@@ -127,7 +142,8 @@ function TableBuilder.findModelTemplate(): Model?
 	return nil
 end
 
---- Add the hold-E prompt to a table model.
+--- Add the hold-E prompt to a table model. Roadmap 1.5e replaces this with a floor pad;
+--- until then it is how you join, so it stays.
 local function addJoinPrompt(model: Model, origin: Vector3, s: number)
 	local T = Config.Table
 	local promptAnchor = Instance.new("Part")
@@ -152,11 +168,15 @@ local function addJoinPrompt(model: Model, origin: Vector3, s: number)
 	prompt.Parent = promptAnchor
 end
 
---- Place a clone of the imported model at the table origin, set collisions, add the prompt.
-function TableBuilder.buildFromModel(template: Model, parent: Instance): Model
-	local o = Config.World.TableOrigin
+--- Place a clone of the imported model at table `p`, set collisions, add the prompt.
+function TableBuilder.buildFromModel(
+	template: Model,
+	parent: Instance,
+	p: Placement,
+	id: number
+): Model
 	local model = template:Clone()
-	model.Name = "PoolTable"
+	model.Name = TableBuilder.modelName(id)
 	model.Parent = parent
 	-- The importer keeps the pivot at the scene origin, which the Blender package puts at
 	-- the table centre on the floor, so moving the pivot moves the whole table correctly.
@@ -170,8 +190,10 @@ function TableBuilder.buildFromModel(template: Model, parent: Instance): Model
 			warn("[8ball] table model is missing mesh '" .. name .. "'")
 		end
 	end
-	model:PivotTo(CFrame.new(o.X, o.Y, o.Z))
-	addJoinPrompt(model, Vector3.new(o.X, o.Y, o.Z), Config.Table.StudsPerInch)
+	-- The Blender package authors the table with its long axis along X; the lounge stands
+	-- every table turned by its yaw, so the pivot carries the rotation too.
+	model:PivotTo(CFrame.new(p.x, p.y, p.z) * TableBuilder.yawCFrame(p))
+	addJoinPrompt(model, Vector3.new(p.x, p.y, p.z), Config.Table.StudsPerInch)
 	return model
 end
 
@@ -202,26 +224,27 @@ function TableBuilder.applyModelTextures(template: Model): number
 	return applied
 end
 
---- Build the visible table under `parent`: the imported model when the place has one,
---- otherwise the parts-and-solid-modelling build. Returns the model.
-function TableBuilder.build(parent: Instance): Model
+--- Build the visible table for `id` at placement `p` under `parent`: the imported model when
+--- the place has one, otherwise the parts-and-solid-modelling build. Returns the model.
+function TableBuilder.build(parent: Instance, p: Placement, id: number): Model
 	local template = TableBuilder.findModelTemplate()
 	if template then
-		return TableBuilder.buildFromModel(template, parent)
+		return TableBuilder.buildFromModel(template, parent, p, id)
 	end
-	return TableBuilder.buildFromParts(parent)
+	return TableBuilder.buildFromParts(parent, p, id)
 end
 
---- Build the table from Parts and solid modelling (the pre-model fallback).
-function TableBuilder.buildFromParts(parent: Instance): Model
+--- Build the table from Parts and solid modelling (the pre-model fallback). Everything is
+--- laid out around a zero origin with no yaw and the finished model is pivoted into place,
+--- so the hundreds of offsets below stay readable.
+function TableBuilder.buildFromParts(parent: Instance, p: Placement, id: number): Model
 	local T = Config.Table
 	local L = Config.Look
 	local s = T.StudsPerInch
-	local o = Config.World.TableOrigin
-	local origin = Vector3.new(o.X, o.Y, o.Z)
+	local origin = Vector3.zero
 
 	local model = Instance.new("Model")
-	model.Name = "PoolTable"
+	model.Name = TableBuilder.modelName(id)
 	model.Parent = parent -- solid modelling below needs the parts to be in the world already
 	local clothVariant = TableBuilder.ensureClothMaterial()
 
@@ -553,6 +576,8 @@ function TableBuilder.buildFromParts(parent: Instance): Model
 		end
 	end
 
+	-- Everything above was built around zero; put the finished table where it belongs.
+	model:PivotTo(CFrame.new(p.x, p.y, p.z) * TableBuilder.yawCFrame(p))
 	return model
 end
 

@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 
 local UP = Vector3.new(0, 1, 0)
@@ -21,6 +22,7 @@ BallRenderer.__index = BallRenderer
 export type BallRenderer = typeof(setmetatable(
 	{} :: {
 		folder: Folder,
+		placement: Placement.Placement,
 		parts: { [number]: BasePart },
 		rotations: { [number]: CFrame },
 		lastPositions: { [number]: Vector3 },
@@ -49,12 +51,15 @@ local function addDecal(part: Part, face: Enum.NormalId, texture: string, color:
 	decal.Parent = part
 end
 
-function BallRenderer.new(parent: Instance): BallRenderer
+function BallRenderer.new(parent: Instance, p: Placement.Placement, id: number): BallRenderer
 	local folder = Instance.new("Folder")
-	folder.Name = "Balls"
+	-- One folder per table, named by table id: twelve folders all called "Balls" would be
+	-- unreadable in the explorer once the lounge is built.
+	folder.Name = ("Balls_%02d"):format(id)
 	folder.Parent = parent
 	local self = setmetatable({
 		folder = folder,
+		placement = p,
 		parts = {},
 		rotations = {},
 		lastPositions = {},
@@ -142,7 +147,8 @@ function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: nu
 		return
 	end
 	local part = self:ensure(id)
-	local pos = TableBuilder.toWorld(xIn, yIn, Config.Balls.RadiusInches + (zIn or 0))
+	local pos =
+		TableBuilder.toWorld(self.placement, xIn, yIn, Config.Balls.RadiusInches + (zIn or 0))
 	local last = self.lastPositions[id]
 	local rot = self.rotations[id]
 	if last then

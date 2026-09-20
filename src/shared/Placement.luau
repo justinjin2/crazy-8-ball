@@ -1,0 +1,110 @@
+--!strict
+-- Placement: where one table stands in the world, and the conversion between that table's
+-- own physics coordinates and Roblox world space. Pure Luau: plain numbers in, plain numbers
+-- out, no Roblox types, so it runs in Lune and on the server and is covered by tests.
+--
+-- Axes. Physics x runs along the table length (head rail negative, foot rail positive), y
+-- across the width, z up out of the cloth; the units are inches. World units are studs.
+-- A table at yaw 0 maps physics x -> world +X, y -> world -Z, z -> world +Y. Yaw turns the
+-- table about world +Y exactly the way Roblox does (CFrame.Angles(0, yaw, 0)), so at yaw 90
+-- the length runs along world -Z and the width along world -X.
+--
+-- Why this is its own pure module rather than a few lines inside TableBuilder: a pool table
+-- is symmetric end to end, so yaw +90 and yaw -90 produce tables that LOOK identical but
+-- mirror the playfield. A sign error there would silently mirror the guideline with nothing
+-- on screen to give it away. Pure numbers mean tests/placement_test.luau can prove it.
+
+local Config = require(script.Parent.Config)
+
+local Placement = {}
+
+export type Placement = {
+	-- World studs of the table centre at FLOOR level. toWorld adds the cloth height on top,
+	-- so this is the tier the table stands on, not the playing surface.
+	x: number,
+	y: number,
+	z: number,
+	yaw: number, -- radians about world +Y
+	cos: number,
+	sin: number,
+}
+
+function Placement.new(x: number, y: number, z: number, yawDegrees: number): Placement
+	local yaw = math.rad(yawDegrees)
+	return {
+		x = x,
+		y = y,
+		z = z,
+		yaw = yaw,
+		cos = math.cos(yaw),
+		sin = math.sin(yaw),
+	}
+end
+
+--- The placement for table `id` in Config.Lounge.Tables (1-12), or nil if there is no such
+--- table. Results are built once and reused.
+local cache: { [number]: Placement } = {}
+function Placement.forTable(id: number): Placement?
+	local cached = cache[id]
+	if cached then
+		return cached
+	end
+	for _, row in Config.Lounge.Tables do
+		if row.id == id then
+			local made = Placement.new(row.X, row.Y, row.Z, row.YawDegrees)
+			cache[id] = made
+			return made
+		end
+	end
+	return nil
+end
+
+--- World position (studs) for a physics point (inches) at `heightIn` above the cloth.
+--- Returns three numbers so this module never has to name a Roblox type; callers that want
+--- a Vector3 wrap it (see TableBuilder.toWorld).
+function Placement.toWorld(
+	p: Placement,
+	xIn: number,
+	yIn: number,
+	heightIn: number
+): (number, number, number)
+	local s = Config.Table.StudsPerInch
+	return p.x + s * (xIn * p.cos - yIn * p.sin),
+		p.y + (Config.Table.SurfaceHeightInches + heightIn) * s,
+		p.z - s * (xIn * p.sin + yIn * p.cos)
+end
+
+--- Physics coordinates (inches) for a world position (studs). The height is ignored: this
+--- is the inverse of toWorld's x and z only.
+function Placement.toTable(p: Placement, worldX: number, worldZ: number): (number, number)
+	local s = Config.Table.StudsPerInch
+	local dx = (worldX - p.x) / s
+	local dz = (worldZ - p.z) / s
+	return dx * p.cos - dz * p.sin, -dx * p.sin - dz * p.cos
+end
+
+--- Turn a direction in table space into a world direction. Origin and scale play no part,
+--- so a unit vector in stays a unit vector out.
+function Placement.dirToWorld(p: Placement, xIn: number, yIn: number): (number, number)
+	return xIn * p.cos - yIn * p.sin, -(xIn * p.sin + yIn * p.cos)
+end
+
+--- Turn a world direction into a table-space direction (the inverse of dirToWorld).
+function Placement.dirToTable(p: Placement, worldX: number, worldZ: number): (number, number)
+	return worldX * p.cos - worldZ * p.sin, -(worldX * p.sin + worldZ * p.cos)
+end
+
+--- The world-space aim direction for a physics aim angle, as (x, y, z) with y always 0.
+--- Equivalent to dirToWorld(p, cos(angle), sin(angle)), written out because it collapses to
+--- a single rotation by angle + yaw.
+function Placement.aimVector(p: Placement, angle: number): (number, number, number)
+	local a = angle + p.yaw
+	return math.cos(a), 0, -math.sin(a)
+end
+
+--- The physics aim angle for a world direction: the inverse of aimVector.
+function Placement.aimAngle(p: Placement, worldX: number, worldZ: number): number
+	return (math.atan2(-worldZ, worldX) - p.yaw) % (2 * math.pi)
+end
+
+return Placement
