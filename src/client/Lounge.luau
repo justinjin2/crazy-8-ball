@@ -216,6 +216,17 @@ function Lounge.matchFor(self: Lounge, id: number): Match.Match?
 	return self.matches[id]
 end
 
+--- The rendered cue ball for table `id`, if that table is currently being drawn. The trail
+--- hangs off this part directly, so it follows the ball without any per-frame work here.
+function Lounge.cueBallPartFor(self: Lounge, id: number): BasePart?
+	local renderer = self.boundTo[id]
+	if renderer == nil then
+		return nil
+	end
+	local part = renderer.folder:FindFirstChild("CueBall")
+	return if part and part:IsA("BasePart") then part else nil
+end
+
 --- Who is sitting at table `id`.
 function Lounge.seatsAt(self: Lounge, id: number): { Seat }
 	return self.seats[id] or {}

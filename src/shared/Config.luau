@@ -821,12 +821,25 @@ Config.Guideline = {
 -- Audio (asset ids are placeholders until the user picks sounds, see docs/SOUNDS.md)
 ---------------------------------------------------------------------------------------------
 Config.Audio = {
+	-- All from Roblox's free Pro Sound Effects library, except the tick. These are FIELD
+	-- RECORDINGS of one to five seconds containing several hits and rolls, not one-shots,
+	-- so each is trimmed to its attack by Trim below. Nobody has listened to them yet:
+	-- swap an id here if one sounds wrong, nothing else has to change.
 	Ids = {
-		CueStrike = "",
-		BallClack = "",
-		RailThud = "",
-		PocketDrop = "",
-		AimTick = "",
+		CueStrike = "rbxassetid://9113441111", -- Billiards Ball Hits Rolls With Cue Stick 4
+		BallClack = "rbxassetid://9113441818", -- Billiards Break Rack Up Ball Hits 7
+		RailThud = "rbxassetid://9113440635", -- Billiards Ball Bounces Off Of Bumpers 1
+		PocketDrop = "rbxassetid://9113442163", -- Billiards Shoot Balls Into Pockets 2
+		AimTick = "rbxassetid://6976440355", -- a short UI click
+	},
+	-- Where in each clip the useful part is, and how much of it to play. Start skips any
+	-- lead-in; Seconds stops the sound before the recording wanders into the next hit.
+	Trim = {
+		CueStrike = { Start = 0.0, Seconds = 0.30 },
+		BallClack = { Start = 0.0, Seconds = 0.22 },
+		RailThud = { Start = 0.0, Seconds = 0.30 },
+		PocketDrop = { Start = 0.0, Seconds = 0.90 },
+		AimTick = { Start = 0.0, Seconds = 0.12 },
 	},
 	-- Impact speed (in/s) that maps to full volume, and the volume/pitch ranges.
 	FullVolumeSpeed = 200,
@@ -835,17 +848,66 @@ Config.Audio = {
 	Strike = { MinVolume = 0.3, MaxVolume = 1.0, MinPitch = 0.95, MaxPitch = 1.1 },
 	Pocket = { Volume = 0.9 },
 	Tick = { Volume = 0.35 },
+	-- A single break makes well over a hundred ball contacts (121 in one measured shot).
+	-- Playing every one is mush and a frame cost, so the quiet ones are dropped and the
+	-- rest are rate limited.
+	MinImpactSpeed = 12,
+	MinSecondsBetweenClacks = 0.035,
+	MaxSoundsPerFrame = 3,
+	-- Sounds are emitted from where the contact happened, so a break sounds like it is
+	-- spread across the table rather than coming from one point.
+	RollOffMinStuds = 8,
+	RollOffMaxStuds = 90,
 }
 
----------------------------------------------------------------------------------------------
--- Effects and UI
----------------------------------------------------------------------------------------------
 Config.Effects = {
 	-- Seconds for a pocketed ball to drop out of sight.
 	SinkDropSeconds = 0.35,
-	SinkBurstParticles = 18,
-	EightBallBurstParticles = 48,
 	PopupSeconds = 1.1,
+
+	-- VFX are CUE DATA, not constants. Every cue names a style here, so equipping a rarer
+	-- cue changes the cue ball's trail and the burst when a ball drops - which per GDD
+	-- section 12 is the main reason to want one. Roadmap 5.2 adds a row per rare cue; it
+	-- must never need code. Until the catalog exists everyone uses DefaultStyle.
+	DefaultStyle = "Default",
+	Styles = {
+		Default = {
+			-- The trail every common cue gets: a thin white translucent wisp, like wind
+			-- coming off the ball. Deliberately understated - it is on screen for every
+			-- shot of every game.
+			Trail = {
+				Enabled = true,
+				Color = { 255, 255, 255 },
+				-- Transparency at the ball end and at the tail end; it fades out behind.
+				NearTransparency = 0.55,
+				FarTransparency = 1,
+				Lifetime = 0.34, -- seconds of tail
+				WidthStuds = 0.34,
+				-- How far the ball must travel before any ribbon is laid down. This, not a
+				-- speed threshold, is what stops a ball creeping to a stop leaving a
+				-- smear: a Roblox Trail draws nothing at all while its attachments are
+				-- still, so it needs no help from us to go quiet.
+				MinLengthStuds = 0.12,
+				-- Texture is optional: with none, Roblox draws a plain tapered ribbon,
+				-- which is already close to "wind". A sprite can be added later.
+				Texture = "",
+			},
+			-- The burst when a ball drops. Coloured from the ball itself so the 8 reads
+			-- black and a stripe reads its own colour.
+			Pocket = {
+				Enabled = true,
+				Particles = 18,
+				EightBallParticles = 48,
+				SpeedStuds = 9,
+				Lifetime = 0.45,
+				SizeStuds = 0.5,
+				-- A brief light in the pocket so the drop registers even off-screen edge.
+				FlashBrightness = 4,
+				FlashRangeStuds = 10,
+				FlashSeconds = 0.25,
+			},
+		},
+	},
 }
 
 Config.UI = {

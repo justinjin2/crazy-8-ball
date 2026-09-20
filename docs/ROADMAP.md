@@ -43,11 +43,15 @@ because the server move is needed anyway and the map is already built.
   reduced to about 550 triangles. Gamepad: aim with the stick, zoom, shoot.
   Done means: two players in one server play at two different tables while a third walks
   between them and sees both games, on phone, PC and gamepad.
+*Order note (2026-09-21): 1.7 is being built before 1.6 at the designer's request.*
+
 - [ ] **1.6 Spin.** Spin selector (tap the cue-ball icon, pick the strike point) feeding the
   physics. Done means: top spin follows through, back spin draws back, side spin changes the
   rail rebound, visibly.
 - [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
-  ticks, power-bar stretch, sink burst, "Nice shot" popup. Done means: you catch yourself
+  ticks, power-bar stretch, sink burst, "Nice shot" popup. Plus the cue ball's trail. Trails
+  and pocket bursts are CUE DATA (GDD section 12): the default cue's minimalist white wisp
+  is built now, and rarer cues bring their own pair in 5.2. Done means: you catch yourself
   shooting balls around for fun with no goal.
 
 **FRIEND TEST 1.** Hand it to a friend with no explanation. Do they keep shooting? Compare side

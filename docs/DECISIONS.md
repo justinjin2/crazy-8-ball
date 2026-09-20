@@ -108,3 +108,10 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   does not like the model. The lounge code, the pads, the renderer pool and the server
   authority all stay; only the geometry and the table count change. The imported model was
   moved to ServerStorage rather than deleted.
+- 2026-09-21: Sound and juice (Roadmap 1.7) is pulled ahead of spin (1.6) at the designer's
+  request.
+- 2026-09-21: A cue owns its cue-ball TRAIL and its pocket burst, not just its mesh. Default
+  and common cues share one minimalist white translucent wisp; rarer cues bring their own
+  pair, which is the main reason to want them. Effects are a named style in catalog data, so
+  adding a cue stays a data row plus assets and never code. Built data-driven from the start
+  so Roadmap 5.2 only has to add rows.

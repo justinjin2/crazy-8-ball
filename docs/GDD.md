@@ -234,6 +234,12 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Permanent loot boxes** bought with money: one for cues, one for tables. Goal at release:
   30 cues. Rarities for everything: **common, uncommon, rare, epic, legendary, ultra**
   (name of the top tier to be picked). Rarer cues and tables have special pocket VFX.
+- **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
+  when a ball is pocketed, so the cue you equip changes how the table looks while you play,
+  not just what the stick looks like. The default cue and every common one use the same
+  minimalist trail: a thin white translucent wisp, like wind off the ball. Rarer cues
+  replace it with their own trail and their own pocket effect, and that pairing is the main
+  reason to want one. Effects are catalog data (a named style), never code per cue.
 - **Limited seasonal boxes** that leave and may or may not return. Season 0 has one for cues
   and one for tables.
 - **Shop** with high-priced, quantity-limited items that sell out and become limited forever.
@@ -247,7 +253,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   effect). Every cue and table is a unique object with its own ID and a serial number for
   limited items. Abilities are owned flags. **Cues and tables can be traded, including VIP and
   starter-offer ones. Abilities are account-bound. Money is never traded.**
-- **Cue and table models:** every cue is its own small mesh; **every table is its own full 3D
+- **Cue and table models:** every cue is its own small mesh plus a named effect style; **every table is its own full 3D
   model** with a strict performance budget per table (see ARCHITECTURE.md). Hundreds of both
   are expected, added as data rows plus assets.
 - **Shop, inventory, save data and the first-time flow exist before the game is public.**

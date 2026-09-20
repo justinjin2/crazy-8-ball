@@ -14,10 +14,13 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Aim = require(Shared:WaitForChild("Physics"):WaitForChild("Aim"))
+local Simulation = require(Shared:WaitForChild("Physics"):WaitForChild("Simulation"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local Audio = require(script.Parent:WaitForChild("Audio"))
 local Avatar = require(script.Parent:WaitForChild("Avatar"))
+local Effects = require(script.Parent:WaitForChild("Effects"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local Guideline = require(script.Parent:WaitForChild("Guideline"))
 local Input = require(script.Parent:WaitForChild("Input"))
@@ -35,6 +38,8 @@ visuals.Name = "ClientVisuals"
 visuals.Parent = Workspace
 
 local lounge = Lounge.new(visuals)
+local audio = Audio.new(visuals)
+local effects = Effects.new(visuals)
 local cueStick = CueStickBuilder.build(visuals)
 local input = Input.new()
 local avatar = Avatar.new()
@@ -135,6 +140,9 @@ end
 -- The shot is simulated as it plays, so what it did is only known once it stops.
 local shotAngle, shotPower = 0, 0
 
+-- Tables whose events are already wired to audio and effects.
+local wiredForEffects: { [number]: boolean } = {}
+
 local function shoot(power: number)
 	local m, id = match, seatId
 	if m == nil or id == nil or m:isBusy() then
@@ -161,6 +169,7 @@ local function setSeat(id: number?)
 	end
 
 	if id == nil then
+		effects:detachTrail()
 		match = nil
 		placement = nil
 		input:setEnabled(false)
@@ -179,7 +188,33 @@ local function setSeat(id: number?)
 	if match == nil or p == nil then
 		return
 	end
+	-- Sound and the pocket burst follow the table being played. Wired once per TABLE, not
+	-- once per seat: Match.onEvent has no way to unsubscribe, so subscribing again every
+	-- time you sat down would stack listeners and play every clack twice over.
+	local m = match
+	if m and not wiredForEffects[id] then
+		wiredForEffects[id] = true
+		audio:attach(m)
+		m:onEvent(function(ev)
+			if ev.type ~= "pocket" then
+				return
+			end
+			local b = Simulation.findBall(m.state, ev.ball)
+			if b then
+				effects:pocketBurst(
+					TableBuilder.toWorld(p, b.x, b.y, Config.Balls.RadiusInches),
+					ev.ball
+				)
+			end
+		end)
+	end
 	guideline = Guideline.new(visuals, p)
+	-- The trail hangs off the cue ball part itself, so it follows the ball with no
+	-- per-frame positioning of its own.
+	local cueBallPart = lounge:cueBallPartFor(id)
+	if cueBallPart then
+		effects:attachTrail(cueBallPart)
+	end
 	Camera.setTable(p)
 	avatar:take()
 	Camera.lock()
@@ -212,6 +247,12 @@ UI.createLeaveButton(leaveTable)
 input:onLeave(leaveTable)
 
 input:onAim(refreshGuideline)
+-- A soft tick every step of rotation (GDD section 5).
+input:onTick(function()
+	if placement then
+		audio:tick(cueBallWorld())
+	end
+end)
 input:onShoot(shoot)
 input:onZoom(function(factor)
 	Camera.zoomBy(factor)
@@ -272,6 +313,7 @@ RunService.RenderStepped:Connect(function(dt)
 	if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
+	effects:updateTrail(m:findCueBall())
 	local dir = Camera.aimDirection(input.angle)
 	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
 	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)
