@@ -18,6 +18,7 @@ local Debris = game:GetService("Debris")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Ball = require(Shared:WaitForChild("Physics"):WaitForChild("Ball"))
 local Simulation = require(Shared:WaitForChild("Physics"):WaitForChild("Simulation"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 
@@ -32,6 +33,10 @@ export type Audio = typeof(setmetatable(
 		lastClack: number,
 		playedThisFrame: number,
 		frameStamp: number,
+		-- Which clip each event played last, so the next pick is never the same one.
+		lastPick: { [string]: number },
+		roll: Sound?,
+		rollPart: BasePart?,
 	},
 	Audio
 ))
@@ -45,6 +50,9 @@ function Audio.new(parent: Instance): Audio
 		lastClack = 0,
 		playedThisFrame = 0,
 		frameStamp = 0,
+		lastPick = {},
+		roll = nil,
+		rollPart = nil,
 	}, Audio)
 end
 
@@ -57,14 +65,37 @@ local function lerp(a: number, b: number, t: number): number
 	return a + (b - a) * t
 end
 
+-- Pick a clip for this event, never the same one twice running. Randomness here is purely
+-- cosmetic and client-side, so math.random is fine; the ban on it lives in Physics, where
+-- determinism matters.
+function Audio.pick(self: Audio, name: string): string?
+	local list = Config.Audio.Ids[name]
+	if list == nil or #list == 0 then
+		return nil
+	end
+	if #list == 1 then
+		return list[1]
+	end
+	local last = self.lastPick[name]
+	local i = math.random(1, #list)
+	if i == last then
+		i = i % #list + 1
+	end
+	self.lastPick[name] = i
+	return list[i]
+end
+
 --- Play one clip at a world position. Sounds are emitted from where the contact happened,
 --- so a break spreads across the table instead of arriving from a single point.
 function Audio.playAt(self: Audio, name: string, at: Vector3, volume: number, pitch: number)
 	local A = Config.Audio
-	local id = A.Ids[name]
+	local id = self:pick(name)
 	if id == nil or id == "" then
 		return -- no asset wired up for this one yet
 	end
+	-- A little wobble on top of the speed-driven pitch, so two identical impacts still
+	-- differ from each other.
+	pitch *= 1 + (math.random() * 2 - 1) * A.PitchJitter
 	local trim = A.Trim[name]
 
 	local emitter = Instance.new("Part")
@@ -183,6 +214,80 @@ end
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
 function Audio.tick(self: Audio, at: Vector3)
 	self:playAt("AimTick", at, Config.Audio.Tick.Volume, 1)
+end
+
+-- Build the looping roll sound and the invisible part that carries it. Split out so the
+-- caller gets a plain Sound back rather than a Sound? it has to keep checking.
+function Audio.buildRoll(self: Audio): Sound
+	local part = Instance.new("Part")
+	part.Name = "RollLoop"
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Transparency = 1
+	part.Size = Vector3.new(0.2, 0.2, 0.2)
+	part.Parent = self.folder
+
+	local sound = Instance.new("Sound")
+	sound.Name = "Roll"
+	sound.SoundId = Config.Audio.Roll.Id
+	sound.Looped = true
+	sound.Volume = 0
+	sound.RollOffMinDistance = Config.Audio.RollOffMinStuds
+	sound.RollOffMaxDistance = Config.Audio.RollOffMaxStuds
+	sound.Parent = part
+	sound:Play()
+
+	self.roll = sound
+	self.rollPart = part
+	return sound
+end
+
+--- The rolling loop: one continuous sound for the whole table whose volume and pitch follow
+--- how fast the balls are actually moving. Called every frame with the table being played.
+---
+--- One loop, not one per ball. Sixteen rolling loops would phase against each other and
+--- cost sixteen voices for something the ear hears as a single texture anyway, so this
+--- tracks the FASTEST ball and lets that stand for the table - and emits from that ball,
+--- so the sound travels with whatever is actually moving rather than sitting on the cue
+--- ball while an object ball rolls off to the far rail.
+function Audio.updateRoll(self: Audio, match: any)
+	local R = Config.Audio.Roll
+	if R.Id == "" then
+		return -- no rolling recording yet; see assets/audio/README.md
+	end
+
+	local sound = self.roll or self:buildRoll()
+
+	-- Fastest ball still on the table stands for the whole table.
+	local fastest = 0
+	local leader = nil
+	for _, b in match.state.balls do
+		if not b.pocketed then
+			local speed = Ball.speed(b)
+			if speed > fastest then
+				fastest, leader = speed, b
+			end
+		end
+	end
+
+	local part = self.rollPart
+	if part and leader then
+		part.Position =
+			TableBuilder.toWorld(match.placement, leader.x, leader.y, Config.Balls.RadiusInches)
+	end
+
+	local target = 0
+	if fastest > R.MinSpeed then
+		local k = math.clamp(fastest / math.max(R.FullVolumeSpeed, 1e-3), 0, 1)
+		target = R.MaxVolume * k
+		sound.PlaybackSpeed = R.MinPitch + (R.MaxPitch - R.MinPitch) * k
+	end
+	-- Ease rather than jump, or every collision would click the volume.
+	local alpha = 1 - math.exp(-(1 / 60) / math.max(R.FadeSeconds, 1e-3))
+	sound.Volume += (target - sound.Volume) * alpha
 end
 
 return Audio

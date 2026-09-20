@@ -821,19 +821,29 @@ Config.Guideline = {
 -- Audio (asset ids are placeholders until the user picks sounds, see docs/SOUNDS.md)
 ---------------------------------------------------------------------------------------------
 Config.Audio = {
-	-- All from Roblox's free Pro Sound Effects library, except the tick. These are FIELD
-	-- RECORDINGS of one to five seconds containing several hits and rolls, not one-shots,
-	-- so each is trimmed to its attack by Trim below. Nobody has listened to them yet:
-	-- swap an id here if one sounds wrong, nothing else has to change.
+	-- Each event names a LIST of clips and one is picked per play, never the same one twice
+	-- running. This matters more than any amount of pitch variation: the ear spots exact
+	-- repetition instantly, and a break makes over a hundred contacts, so a single clack
+	-- sample turns into a machine gun however cleverly it is pitched.
+	--
+	-- Everything below is from Roblox's free Pro Sound Effects library. They are FIELD
+	-- RECORDINGS of up to 4.35 seconds containing several hits and rolls, not one-shots, so
+	-- Trim clips each to its attack. Replace any of them with your own recordings: drop
+	-- WAVs in assets/audio/raw/, they get spliced into one-shots, you upload them, and the
+	-- ids go here.
 	Ids = {
-		CueStrike = "rbxassetid://9113441111", -- Billiards Ball Hits Rolls With Cue Stick 4
-		BallClack = "rbxassetid://9113441818", -- Billiards Break Rack Up Ball Hits 7
-		RailThud = "rbxassetid://9113440635", -- Billiards Ball Bounces Off Of Bumpers 1
-		PocketDrop = "rbxassetid://9113442163", -- Billiards Shoot Balls Into Pockets 2
-		AimTick = "rbxassetid://6976440355", -- a short UI click
+		CueStrike = { "rbxassetid://9113441111" },
+		BallClack = { "rbxassetid://9113441818" },
+		-- Three genuinely different cushion takes, which is what stops rail hits droning.
+		RailThud = {
+			"rbxassetid://9113440635",
+			"rbxassetid://9113440622",
+			"rbxassetid://9113440925",
+		},
+		PocketDrop = { "rbxassetid://9113442163" },
+		AimTick = { "rbxassetid://6976440355" },
 	},
-	-- Where in each clip the useful part is, and how much of it to play. Start skips any
-	-- lead-in; Seconds stops the sound before the recording wanders into the next hit.
+	-- Where in each clip the useful part is, and how much of it to play.
 	Trim = {
 		CueStrike = { Start = 0.0, Seconds = 0.30 },
 		BallClack = { Start = 0.0, Seconds = 0.22 },
@@ -848,6 +858,10 @@ Config.Audio = {
 	Strike = { MinVolume = 0.3, MaxVolume = 1.0, MinPitch = 0.95, MaxPitch = 1.1 },
 	Pocket = { Volume = 0.9 },
 	Tick = { Volume = 0.35 },
+	-- A touch of pitch wobble on every play, on top of the speed-driven pitch, so two
+	-- identical impacts still differ. Keep it small: past about 15% a pitched sample stops
+	-- sounding like the same object being struck and starts sounding like a synthesiser.
+	PitchJitter = 0.04,
 	-- A single break makes well over a hundred ball contacts (121 in one measured shot).
 	-- Playing every one is mush and a frame cost, so the quiet ones are dropped and the
 	-- rest are rate limited.
@@ -858,6 +872,24 @@ Config.Audio = {
 	-- spread across the table rather than coming from one point.
 	RollOffMinStuds = 8,
 	RollOffMaxStuds = 90,
+
+	-- The roll is NOT a one-shot. It is one continuous loop for the whole table whose
+	-- volume and pitch follow how fast the balls are actually moving, and which fades out
+	-- when the table goes still. One loop rather than one per ball: sixteen rolling loops
+	-- would phase against each other and cost sixteen voices for a sound the ear hears as
+	-- a single texture.
+	--
+	-- Roblox's library has no rolling loop, so this stays silent until a recording is
+	-- dropped in. It wants a few seconds of steady roll on cloth that loops cleanly.
+	Roll = {
+		Id = "",
+		MaxVolume = 0.3,
+		FullVolumeSpeed = 120, -- ball speed (in/s) at which the roll is loudest
+		MinSpeed = 4, -- below this it is silent
+		MinPitch = 0.7,
+		MaxPitch = 1.2,
+		FadeSeconds = 0.15,
+	},
 }
 
 Config.Effects = {
