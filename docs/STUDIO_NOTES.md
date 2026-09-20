@@ -43,6 +43,34 @@ Read when something misbehaves. Everything here was learned the hard way.
 - EditableMesh (`AssetService:CreateEditableMeshAsync`) reads triangle counts of the user's own
   meshes in Edit mode.
 
+## Testing by hand (the two checks an agent cannot do)
+
+Every milestone has to be checked on phone, PC and gamepad, and 1.5 adds a two-player check.
+Neither of these can be driven from an agent session, so they are written out here.
+
+**Two players in one server.** Studio's Test tab, the "Clients and Servers" group: set
+**Players** to 2, then click **Start**. Studio opens one server window and two client
+windows. In client A walk onto a pad and take a shot; in client B watch that table. Then put
+B on a different table's pad and have both shoot. What to look for:
+
+- both clients see the SAME balls end up in the same places (the server is the authority)
+- the watching client sees the shooter's cue turn while they aim
+- a pad turns green for both clients when either one steps on it
+- walking a client across a pad on the way somewhere else does NOT seat them
+- the console has no `replay drifted from the server` warning: that line means a client's
+  replay of a shot did not match the server's run of it, and is the thing to report
+
+Stop with the **Cleanup** button in the same group, not by closing the windows.
+
+**Gamepad.** Plug in any controller before pressing Play; Roblox picks up Xbox and
+PlayStation pads without setup. `UserInputService.GamepadEnabled` should read true. Walk to a
+pad, then check: left stick turns the aim (and keeps turning while held, rather than only
+while it moves), D-pad left/right nudges it a hair, right stick zooms, holding and releasing
+the right trigger shoots with the power it was pulled to, ButtonA does the same on a pad with
+digital triggers, and B leaves the table. The bindings are in `Config.Input.Gamepad`.
+
+Studio's device emulator has a gamepad mode as a fallback, but a real pad is the honest test.
+
 ## Lune tests
 
 - `tests/harness.luau` builds a fake `script.Parent` tree from `src/shared` and compiles each
