@@ -4,7 +4,7 @@ This is a numeric design recommendation, not a certification of the finished Ble
 
 ## Inputs and conventions
 
-Read the complete lounge `AGENTS.md` and the authoritative `../table/Readme.md`. The table source has native X length 17.76 and Y width 9.76 studs. Use a +90° native Z rotation per collection instance to present the short end toward the hero camera: the plan footprint is then 9.76 across X × 17.76 along Y. This maintains the reference's four-column rhythm while allowing generous cue space. Do not scale or rebuild the table source.
+Read the complete lounge `BUILD_CONTRACT.md` and the authoritative `../table/Readme.md`. The table source has native X length 17.76 and Y width 9.76 studs. Use a +90° native Z rotation per collection instance to present the short end toward the hero camera: the plan footprint is then 9.76 across X × 17.76 along Y. This maintains the reference's four-column rhythm while allowing generous cue space. Do not scale or rebuild the table source.
 
 Coordinates below are Blender Z-up. Export mapping is `(x, y, z) → (x, z, −y)`, so native Z rotation +90° becomes Roblox Y rotation +90°. Camera faces native +Y / Roblox −Z.
 

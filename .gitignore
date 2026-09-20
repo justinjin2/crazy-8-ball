@@ -17,3 +17,13 @@ tools/globalTypes*.d.luau
 
 # Blender autosave backups
 *.blend1
+
+# Build residue from asset pipelines (never commit)
+assets/**/scripts/*.log
+assets/**/bake_cache/
+assets/**/*_preflight.json
+assets/**/blender_sample.txt
+assets/**/mcp_tools.json
+assets/**/renders/checkpoint_*.png
+assets/**/checkpoints/
+__pycache__/

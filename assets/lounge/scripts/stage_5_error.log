@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py", line 301, in work
-    try:run_stage(stage)
-        ~~~~~~~~~^^^^^^^
-  File "/Users/justinjin/Desktop/8ball/assets/lounge/LoungeBuilder.py", line 1325, in run_stage
-    if not probe['passed']:raise RuntimeError('Strict FBX roundtrip failed: '+str(probe['maximum_error_studs']))
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError: Strict FBX roundtrip failed: 7.62939453125e-06

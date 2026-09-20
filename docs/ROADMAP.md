@@ -2,125 +2,154 @@
 
 How to use this file:
 
-- Work on **one milestone at a time**, top to bottom. Do not skip ahead.
-- Every milestone ends in something you can **play or see**.
-- "Done means" is the test. If it doesn't pass, the milestone isn't done.
-- New ideas go in the **Parking lot** at the bottom, not into the current milestone.
-- After each milestone: playtest, commit to Git, tick the box, start a fresh AI session.
+- **The current milestone is the first unticked box.** Work on one at a time, top to bottom.
+- Every milestone ends in something you can play or see. "Done means" is the test.
+- **Standing rule for every milestone:** works on phone, PC and gamepad and is checked on all
+  three; lint and tests pass; playtested in Studio; console clean; screenshot taken; STATUS.md
+  updated; commit and push; save the place file when Edit-mode assets changed.
+- New ideas go in the GDD's parked list (section 18), not into the current milestone.
+- Decisions that change a milestone go in DECISIONS.md with the date.
 
-Version 1 = Phases 0 to 4. Everything after is only worth building if v1 is fun.
+Rewritten 2026-09-20. Order follows the designer's priority: the shot, then feel, then
+abilities, then the lounge look, then collectibles, then ranks, then economy, then public
+release, then trading. The lounge with twelve server-owned tables was pulled forward (1.5)
+because the server move is needed anyway and the map is already built.
 
 ---
 
 ## Phase 0: Setup
 
-- [x] **0.1 Project folder.** Folder created, Git initialized, Rojo project syncing into Studio, StyLua, Selene, and luau-lsp installed.
-  Done means: a test script edited on disk shows up in Studio, and the lint command runs.
-- [x] **0.2 AI connected.** Studio MCP server enabled and connected to Claude Code. CLAUDE.md written with project rules.
-  Done means: the AI can start a playtest, read the console, and take a screenshot.
+- [x] **0.1 Project folder.** Git, Rojo syncing into Studio, StyLua, Selene, luau-lsp.
+- [x] **0.2 AI connected.** Studio MCP connected, rules file written.
 
-## Phase 1: The shot (solo, grey boxes, no art)
+## Phase 1: The shot
 
-The most important phase. No rules, no opponents, no menus. Just: does hitting a ball feel good?
+- [x] **1.1 One ball rolls.** Custom physics: rolling, friction, rail bounces, rest.
+- [x] **1.2 Balls collide and sink.** Ball-ball collisions, six pockets with jaws, rack, break,
+  physical pocket drop.
+- [x] **1.3 Aim and shoot.** Drag to aim, corridor guideline with contact ring, pull-back power
+  bar, mouse and touch.
+- [x] **1.4 Camera and avatar.** One orbit camera opposite the aim with automatic whole-table
+  framing and continuous zoom to a down-the-cue view; posed, faded avatar; pull-out during a
+  shot. Imported Blender table model, sphere-mesh balls with baked textures.
+- [ ] **1.5 Lounge and twelve server-owned tables.** Import the lounge package
+  (`assets/lounge/`, tables placed from `Markers.json`). Each table is owned by the server:
+  the client sends shot inputs, the server validates and runs the simulation, every client
+  replays the same shot, so everyone in the server sees every table's balls. Join by stepping
+  on the table's floor pad (sound, VFX, green indicator); first joiner is host; second joiner
+  is the opponent; host and settings slots exist from day one. Opponent and spectators see the
+  shooter's cue turn (aim angle and ball-in-hand position replicated at a low rate). Invisible
+  seats on the sofas and chairs. StreamingEnabled on, no per-table shadow lights, ball mesh
+  reduced to about 550 triangles. Gamepad: aim with the stick, zoom, shoot.
+  Done means: two players in one server play at two different tables while a third walks
+  between them and sees both games, on phone, PC and gamepad.
+- [ ] **1.6 Spin.** Spin selector (tap the cue-ball icon, pick the strike point) feeding the
+  physics. Done means: top spin follows through, back spin draws back, side spin changes the
+  rail rebound, visibly.
+- [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
+  ticks, power-bar stretch, sink burst, "Nice shot" popup. Done means: you catch yourself
+  shooting balls around for fun with no goal.
 
-- [x] **1.1 One ball rolls.** Grey-box table. Custom physics module moves one cue ball: it rolls, slows with friction, bounces off rails, stops.
-  Done means: a ball fired by a test command bounces around believably and comes to rest.
-- [x] **1.2 Balls collide and sink.** Ball-to-ball collisions, six pockets, full 15-ball rack, break shot.
-  Done means: a hard break scatters the rack convincingly and balls drop into pockets.
-- [x] **1.3 Aim and shoot.** Drag to aim, guideline showing cue ball path and first contact, pull-back power bar. Works on PC and mobile.
-  Done means: you can play shot after shot with touch and with mouse.
-- [x] **1.4 Camera and avatar.** One 3D orbit camera that sits opposite the aim and looks across the table along the aim line, framing the whole table automatically for any ball position, aim and screen shape (never top-down); scroll or pinch zooms in on the cue ball. Avatar in aiming pose with cue, mostly transparent while aiming and invisible when close to the camera. After the strike the camera pulls out to the whole table so every ball's path is visible, then returns to the player's zoom.
-  Done means: aiming never feels blocked on phone or PC, zoom is one gesture, and watching the shot feels like a replay.
-- [ ] **1.5 Spin.** Spin selector that changes how the cue ball behaves after contact.
-  Done means: top spin follows through, back spin draws back, visibly.
-- [ ] **1.6 Sound and juice, pass one.** Cue strike, clack scaled by speed, rail thud, pocket drop, aim ticks, sink burst effect, "Nice shot" popup.
-  Done means: you catch yourself shooting balls around for fun with no goal.
-
-**FRIEND TEST 1.** Hand it to a friend with no explanation. Do they keep shooting? Compare side by side with GamePigeon. Fix the feel before moving on.
+**FRIEND TEST 1.** Hand it to a friend with no explanation. Do they keep shooting? Compare side
+by side with GamePigeon. Fix the feel before moving on.
 
 ## Phase 2: A real match
 
-- [ ] **2.1 Rules, hot-seat.** Full 8-ball rules with turns, solids and stripes, fouls, ball in hand, win and lose. One player controls both sides.
-  Done means: a full legal game can be played start to finish, and every foul is handled.
-- [ ] **2.2 Two players, one server.** Sit at a table to join. Server validates shots and owns the result, all clients play the same simulation.
-  Done means: you and a friend finish a match, and both screens always agree on where the balls are.
-- [ ] **2.3 Pace and presence.** Shot timer, emotes during the opponent's turn, spectators can watch.
-  Done means: there is never a moment where a player has nothing to do or see.
-- [ ] **2.4 Bot opponent.** Bot that picks reasonable shots, with easy and medium difficulty and human-like aiming delay.
-  Done means: a solo player can sit down and get a fair, beatable match.
-- [ ] **2.5 Juice, pass two.** Turn streaks (x2 on fire, x3 blue fire), trickshot detection (bank, combo, multi-ball) with popups, coins per ball win or lose, victory screen, elimination finisher on the loser.
-  Done means: a lucky bank shot makes you react out loud.
+- [ ] **2.1 Rules on the server.** Full 8-ball rules per GDD section 7 (open table after the
+  break, 8 on the break re-spotted, fouls, ball in hand anywhere, timeouts, leave = forfeit,
+  forfeit button), plus Solo mode. Done means: a full legal 1v1 and a Solo game play start to
+  finish and every foul is handled.
+- [ ] **2.2 Difficulty levels.** Classic, Difficult, Challenger as a host setting for the whole
+  table, no lock yet. Done means: all three guidelines behave as described and both players see
+  the same one.
+- [ ] **2.3 Pace and presence.** Shot timer, emotes during the opponent's turn, spectators,
+  ball X marks and highlights, pocketed-balls HUD. Done means: there is never a moment where a
+  player has nothing to do or see.
+- [ ] **2.4 PC opponent and the host popup.** Bot that picks reasonable shots with a skill knob
+  and human-like delay; the host popup (Solo, Wait for a player, Play against PC, difficulty,
+  abilities on/off) with the 15-second auto-start; versus screen. Done means: a solo player
+  steps on a pad and gets a fair, beatable match without anyone else in the server.
+- [ ] **2.5 Teams.** 2v2 and 3v3: rotating turns, shared groups, per-shooter clock, whole-team
+  forfeit, PC fill for any seat. Done means: four friends finish a 2v2.
+- [ ] **2.6 Juice, pass two.** Turn streaks (x2 on fire, x3 blue fire), trickshot detection
+  (bank, combo, multi-ball) with popups, money per ball win or lose, victory screen, loser
+  shown as lost, Rematch and Play again. Done means: a lucky bank shot makes you react out loud.
 
 **FRIEND TEST 2.** Two friends play each other. Do they rematch without being asked?
 
-## Phase 3: The twist
+## Phase 3: Abilities
 
-- [ ] **3.1 Ability framework.** Equip one ability before the match, one ability button during your turn, cooldown scaled to the ability's power, server-validated.
-  Done means: a placeholder ability can be equipped, used, and is then greyed out until its cooldown ends.
-- [ ] **3.2 Time Stop.** Freezes the shot clock with an original dramatic effect and sound.
-- [ ] **3.3 Super Bounce.** Rainbow cue ball, almost no speed loss off rails for one shot.
-- [ ] **3.4 Magnet Pocket.** Chosen pocket gently pulls your balls for one shot. Tune until it rescues near misses without feeling like cheating.
-  Done means (3.2 to 3.4): each ability creates at least one "did you see that" moment in a test match, and the bot's matches still feel fair.
+- [ ] **3.1 Ability framework.** Equip one ability; each ability declares target and firing
+  window; cooldown in the user's own turns; server-validated; developer flag that unlocks every
+  built ability for tests. Done means: a placeholder ability can be equipped, used, and is
+  greyed out until its cooldown ends.
+- [ ] **3.2 Magnet Pocket** (the starter ability everyone gets).
+- [ ] **3.3 Time Stop.**
+- [ ] **3.4 Super Bounce.**
+  Done means (3.2 to 3.4): each creates at least one "did you see that" moment in a test match
+  and PC matches still feel fair.
 
-**FRIEND TEST 3.** Do abilities make matches more fun, or just more random? Tune cooldowns and strength.
+**FRIEND TEST 3.** Do abilities make matches more fun, or just more random? Tune.
 
-## Phase 4: Make it beautiful, then soft launch
+## Phase 4: Look, feel and platforms
 
-- [ ] **4.1 Lounge art pass.** Moody lounge: dim room, warm table lights, neon accents, glossy balls, real felt. Several tables.
-- [ ] **4.2 UI art pass.** Clean, consistent HUD, popups, victory screen. Thumb-friendly on mobile.
-- [ ] **4.3 Save data.** Coins and basic stats persist between sessions.
-- [ ] **4.4 Performance and bug pass.** Test on a low-end phone. Fix anything that stutters.
-- [ ] **4.5 Name, icon, thumbnails.** Pick the name. Make the game page.
-- [ ] **4.6 Soft launch.** Public release, shared with friends and small communities. Watch what players do and where they quit.
+- [ ] **4.1 Lounge art and lighting pass.** Lighting recipe from the package, snack counter
+  with drink and snack tools and animations, signs, pro-lobby door placeholder.
+- [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
+  thumb-friendly and gamepad-navigable; one strings module.
+- [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
+- [ ] **4.4 Performance pass.** Low-end phone with twelve busy tables: streaming, LOD, shadow
+  and light budget, no stutter.
 
-**VERSION 1 COMPLETE.** Stop and review: what do players love, what do they ignore? That decides the order of everything below.
+## Phase 5: Collectibles
 
----
+- [ ] **5.1 Item catalog and inventory.** Unified catalog (cues, tables, abilities), unique IDs
+  with serials, inventory UI, equip.
+- [ ] **5.2 Cues.** Cue model pipeline (one mesh per cue), 30 cues at release, rarities, pocket
+  VFX for rare ones.
+- [ ] **5.3 Tables.** Table model pipeline with a strict per-table budget, the host's table is
+  used in the match, VFX for rare ones.
+  Done means (5.1 to 5.3): equip a cue and a table, walk to a pad, and play on them.
 
-## Phase 5: Reasons to come back
+## Phase 6: Ranks
 
-- [ ] Ability gacha: roll for new abilities with earned coins, rarities and odds designed on paper first (check Roblox paid-random-item policy before any Robux link)
-- [ ] Ability catalogue: grow the pool well past the first three, each with a cooldown matched to its power
-- [ ] Cue collection: cosmetic cues with rarities, bought with coins
-- [ ] Loot boxes with earned coins (same policy check as the gacha)
-- [ ] Bonus box for winning
-- [ ] Daily login streak: day 2 rare box, day 7 guaranteed legendary, reminder on post-match screen
-- [ ] Playtime reward: stay long enough, earn a cue
-- [ ] Collectible finishers and sink effects
+- [ ] **6.1 Rating and tiers.** One rating, tiers Bronze to Reyes with divisions, Unranked to
+  Bronze after one game, peak rank, rewards per division, difficulty multipliers, PC ceiling.
+- [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
+  anyway.
+- [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
+  and Challenger only.
+- [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation
+  board, country flags, win streak above the head, match history.
+- [ ] **6.5 Anti-boost.** Opponents-played-today tracking with shrinking rating and money.
 
-## Phase 6: Competitive
+## Phase 7: Economy
 
-- [ ] Rank tiers and rating (Valorant / League style)
-- [ ] Ranked rules: self-help abilities only
-- [ ] Cross-server matchmaking by rank
-- [ ] Global and friends leaderboards
-- [ ] Bot fill for empty queues and losing streaks (decide on labeling)
+- [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
+  region direct-purchase catalog.
+- [ ] **7.2 Loot boxes.** Permanent cue box and table box; Season 0 limited boxes.
+- [ ] **7.3 Shop.** One menu; quantity-limited Founder's and Beta cue and table.
+- [ ] **7.4 Ability gacha.** Robux spins in packs, one free daily spin, keep everything, spin
+  credit for duplicates.
+- [ ] **7.5 VIP pass and starter offer.**
+- [ ] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
+  loss and the post-match screen.
 
-## Phase 7: Social and chaos
+## Phase 8: First-time flow and public release
 
-- [ ] 2v2
-- [ ] Sabotage abilities, casual only
-- [ ] More abilities from the parking lot
-- [ ] Party up with friends, private tables
-- [ ] Replay or clip feature for trickshots
+- [ ] **8.1 First-time playthrough.** Hidden popup, disguised PC that walks in and blunders,
+  ghost break guide, first-win cue box, Unranked to Bronze.
+- [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
+- [ ] **8.3 Name, icon, thumbnails, game page.** Final name check.
+- [ ] **8.4 Public release.** Watch where players quit. Everything above must exist.
 
-## Phase 8: Deep economy
+**RELEASE.** Review what players love and ignore. That decides the order below.
 
-Design on paper first. These are very hard to undo once live.
+## Phase 9: After release
 
-- [ ] Limited-quantity cues with serial numbers
-- [ ] Trading
-- [ ] Decorated personal tables
-- [ ] Wagering in advanced lobbies only
-- [ ] New game modes and table types
-
----
-
-## Parking lot
-
-Ideas land here so they are safe and out of the way.
-
-- Extended bounce-path guideline ability
-- Sabotage ideas: shrink opponent guideline, fog, shaky aim
-- Creator outreach once trickshot clips look good
-- (add new ideas below)
+- [ ] Trading (cues and tables, never money).
+- [ ] Seasons and themed limited sets.
+- [ ] Cross-server matchmaking; a worldwide 1v1 and 2v2 server.
+- [ ] Private friend-locked tables, party up.
+- [ ] Replay and clip feature; creator outreach.
+- [ ] More abilities, new modes, new table types.
