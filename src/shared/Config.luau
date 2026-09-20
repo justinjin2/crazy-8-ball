@@ -564,6 +564,25 @@ Config.Input = {
 	TickEveryDegrees = 2,
 	-- Zoom factor per mouse-wheel notch.
 	ZoomStep = 1.12,
+	-- Gamepad. Sticks are POLLED every frame, never driven by events: InputChanged only
+	-- fires while a stick moves, so a stick held hard over reports nothing at all and an
+	-- event-driven aim would stall the moment you stopped wiggling it.
+	Gamepad = {
+		-- Sticks rest slightly off centre; treat anything under this as centred.
+		AimDeadZone = 0.15,
+		ZoomDeadZone = 0.2,
+		-- Aim rate at full deflection. The curve makes small pushes much finer, which is
+		-- what the drag path gets from FineDragSpeedPx. 2 = a squared response.
+		AimDegreesPerSecond = 80,
+		AimCurve = 2,
+		-- Zoom is applied as exp(stick * rate * dt), so it is smooth and frame-rate
+		-- independent: a full push takes about e^1 = 2.7x per second.
+		ZoomRatePerSecond = 1.0,
+		-- The right trigger is analog, so its position IS the power (ButtonR2 reports
+		-- 0..1 in Position.Z). ButtonA is the fallback for pads with digital triggers:
+		-- power ramps up while it is held, at this much per second.
+		PowerRampPerSecond = 1.1,
+	},
 }
 
 ---------------------------------------------------------------------------------------------

@@ -143,6 +143,7 @@ end
 
 joinPrompt.Triggered:Connect(joinTable)
 UI.createLeaveButton(leaveTable)
+input:onLeave(leaveTable)
 
 input:onAim(refreshGuideline)
 input:onShoot(shoot)
@@ -185,6 +186,8 @@ CueStickBuilder.setVisible(cueStick, false)
 
 RunService.RenderStepped:Connect(function(dt)
 	guideline:update(dt)
+	-- Sticks and the D-pad repeat have to be sampled, not waited for.
+	input:update(dt)
 	local playing = match:update(dt)
 	if mode ~= "playing" then
 		-- Walking around: leave the camera and the character to Roblox.
