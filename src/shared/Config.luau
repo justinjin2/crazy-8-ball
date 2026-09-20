@@ -132,6 +132,9 @@ Config.Balls = {
 	},
 	-- Glossy look (tune in the look pass).
 	Reflectance = 0.12,
+	-- The rendered ball rotation is built by multiplying CFrames every frame, which drifts
+	-- off orthonormal and shears the ball. Rebuild it from squared-up axes this often.
+	RotationRenormaliseSteps = 512,
 	-- Real sphere mesh (assets/balls/ball_sphere.obj from tools/gen_ball_mesh.py), imported
 	-- once into the place as ServerStorage.<MeshTemplate>; the server copies it into
 	-- ReplicatedStorage.Assets at start-up. Missing = the old Part-and-decal balls.
@@ -649,7 +652,8 @@ Config.Debug = {
 	LogEvents = false,
 	-- Print a timing line when a shot finishes playing back.
 	LogPlayback = true,
-	-- Largest slice of shot time played per rendered frame. Keeps a hitch from skipping play.
+	-- Largest slice of shot time simulated per rendered frame. A hitch must not fast-forward
+	-- the shot, and it caps how much simulation one frame can ever be asked to do.
 	MaxPlaybackStepSeconds = 0.1,
 }
 

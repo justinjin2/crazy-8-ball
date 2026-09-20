@@ -79,9 +79,9 @@ local function refreshGuideline()
 	refreshCueStick()
 end
 
-local function describe(result)
+local function describe(summary): string
 	local rails, hits, pockets = 0, 0, 0
-	for _, ev in result.events do
+	for _, ev in summary.events do
 		if ev.type == "railHit" then
 			rails += 1
 		elseif ev.type == "ballHit" then
@@ -94,23 +94,19 @@ local function describe(result)
 		hits,
 		rails,
 		pockets,
-		result.duration
+		summary.duration
 	)
 end
+
+-- The shot is simulated as it plays, so what it did is only known once it stops.
+local shotAngle, shotPower = 0, 0
 
 local function shoot(power: number)
 	if match:isBusy() then
 		return
 	end
-	local result = match:fire({ angle = input.angle, power = power })
-	if result then
-		print(
-			("[8ball] shot: angle %.1f deg, power %.2f: %s"):format(
-				math.deg(input.angle),
-				power,
-				describe(result)
-			)
-		)
+	if match:fire({ angle = input.angle, power = power }) then
+		shotAngle, shotPower = input.angle, power
 		input:setEnabled(false)
 		refreshGuideline()
 	end
@@ -211,6 +207,16 @@ RunService.RenderStepped:Connect(function(dt)
 		Camera.position()
 	)
 	if wasPlaying and not playing then
+		local summary = match.lastShot
+		if summary then
+			print(
+				("[8ball] shot: angle %.1f deg, power %.2f: %s"):format(
+					math.deg(shotAngle),
+					shotPower,
+					describe(summary)
+				)
+			)
+		end
 		match:ensureCueBall()
 		input:setEnabled(true)
 		refreshGuideline()

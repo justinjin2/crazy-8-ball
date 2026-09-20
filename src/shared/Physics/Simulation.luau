@@ -43,8 +43,10 @@ export type Frame = {
 	positions: { number }, -- x1, y1, z1, x2, y2, z2 ... in state.balls order (z < 0 while dropping into a pocket)
 }
 
-export type ShotResult = {
-	frames: { Frame },
+-- What a shot did. The server and the rules only ever need this much; `frames` is the
+-- optional recording on top (see ShotResult), and it is expensive: 16 balls at 240 Hz for a
+-- ten second shot is well over a megabyte, so nothing asks for it unless it replays it.
+export type ShotOutcome = {
 	events: { Event },
 	finalBalls: { Ball },
 	firstContact: number?, -- id of the first ball the cue ball touched
@@ -52,6 +54,8 @@ export type ShotResult = {
 	steps: number,
 	capped: boolean, -- true if MaxShotSeconds stopped the shot early
 }
+
+export type ShotResult = ShotOutcome & { frames: { Frame } }
 
 ---------------------------------------------------------------------------------------------
 -- State
@@ -510,21 +514,37 @@ local function captureFrame(state: State): Frame
 	return { t = state.time, positions = positions }
 end
 
---- Run a complete shot from the given state. The input state is not modified.
-function Simulation.run(state: State, shot: Shot): ShotResult
+--- Strike the cue ball of a state that is about to be stepped, returning the opening event.
+--- Split out of run so a client can start a shot and step it forward itself instead of
+--- simulating the whole thing up front (see src/client/Match.luau).
+function Simulation.strike(state: State, shot: Shot): Event
+	local cueBall = Simulation.findBall(state, 0)
+	if cueBall == nil or cueBall.pocketed then
+		error("Simulation.strike: no cue ball on the table")
+	end
+	state.time = 0
+	local speed = Cue.strike(cueBall, shot)
+	return { t = 0, type = "cueStrike", ball = 0, speed = speed }
+end
+
+--- The id of the first ball the cue ball touched, if any.
+function Simulation.firstContact(events: { Event }): number?
+	for _, ev in events do
+		if ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
+			return if ev.ball == 0 then ev.other else ev.ball
+		end
+	end
+	return nil
+end
+
+-- Shared body of run and runHeadless. `frames`, when given, is filled as the shot goes.
+local function simulate(state: State, shot: Shot, frames: { Frame }?): ShotOutcome
 	local P = Config.Physics
 	local sim = Simulation.cloneState(state)
-	sim.time = 0
-	local events: { Event } = {}
-	local frames: { Frame } = {}
-
-	local cueBall = Simulation.findBall(sim, 0)
-	if cueBall == nil or cueBall.pocketed then
-		error("Simulation.run: no cue ball on the table")
+	local events: { Event } = { Simulation.strike(sim, shot) }
+	if frames then
+		table.insert(frames, captureFrame(sim))
 	end
-	local speed = Cue.strike(cueBall, shot)
-	table.insert(events, { t = 0, type = "cueStrike", ball = 0, speed = speed })
-	table.insert(frames, captureFrame(sim))
 
 	local steps = 0
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
@@ -539,27 +559,42 @@ function Simulation.run(state: State, shot: Shot): ShotResult
 			break
 		end
 		Simulation.step(sim, P.FixedStep, events)
-		table.insert(frames, captureFrame(sim))
+		if frames then
+			table.insert(frames, captureFrame(sim))
+		end
 		steps += 1
 	end
 
-	local firstContact: number? = nil
-	for _, ev in events do
-		if ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
-			firstContact = if ev.ball == 0 then ev.other else ev.ball
-			break
-		end
-	end
-
 	return {
-		frames = frames,
 		events = events,
 		finalBalls = Ball.cloneList(sim.balls),
-		firstContact = firstContact,
+		firstContact = Simulation.firstContact(events),
 		duration = sim.time,
 		steps = steps,
 		capped = capped,
 	}
+end
+
+--- Run a complete shot and record every frame of it. The input state is not modified.
+--- Recording costs real memory, so prefer runHeadless unless the frames are wanted.
+function Simulation.run(state: State, shot: Shot): ShotResult
+	local frames: { Frame } = {}
+	local outcome = simulate(state, shot, frames)
+	return {
+		frames = frames,
+		events = outcome.events,
+		finalBalls = outcome.finalBalls,
+		firstContact = outcome.firstContact,
+		duration = outcome.duration,
+		steps = outcome.steps,
+		capped = outcome.capped,
+	}
+end
+
+--- Run a complete shot without recording frames: what the server needs to validate a shot
+--- and tell everyone what happened.
+function Simulation.runHeadless(state: State, shot: Shot): ShotOutcome
+	return simulate(state, shot, nil)
 end
 
 return Simulation

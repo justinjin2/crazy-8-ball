@@ -1,6 +1,13 @@
 --!strict
 -- BallRenderer: keeps one part per ball and moves it to wherever the simulation says.
--- Rolling rotation is derived from movement for looks only; it never feeds back into physics.
+--
+-- Rotation comes from the simulation's own angular velocity, never from how far the ball
+-- moved. That distinction is the whole point: the physics models a SLIDING phase (spin and
+-- velocity disagree, which is why a firmly struck cue ball skids before it rolls) and a
+-- separate ROLLING phase. Deriving rotation from displacement draws every ball as if it
+-- were rolling perfectly from the instant it left the cue, hides side spin completely, and
+-- spins balls wildly as they drop into a pocket (the fall is displacement too).
+--
 -- Preferred look: a real sphere MeshPart (template copied to ReplicatedStorage.Assets by the
 -- server) with one baked texture per ball (Config.Balls.Textures). Fallback when the template
 -- or a texture is missing: a Ball Part, solids coloured, stripes white with a tinted band
@@ -12,8 +19,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local Ball = require(Shared:WaitForChild("Physics"):WaitForChild("Ball"))
 
-local UP = Vector3.new(0, 1, 0)
 local WHITE = Color3.fromRGB(245, 242, 232)
 
 local BallRenderer = {}
@@ -23,9 +30,10 @@ export type BallRenderer = typeof(setmetatable(
 	{} :: {
 		folder: Folder,
 		placement: Placement.Placement,
+		yaw: CFrame,
 		parts: { [number]: BasePart },
 		rotations: { [number]: CFrame },
-		lastPositions: { [number]: Vector3 },
+		spinSteps: { [number]: number },
 		sunk: { [number]: boolean },
 	},
 	BallRenderer
@@ -60,9 +68,10 @@ function BallRenderer.new(parent: Instance, p: Placement.Placement, id: number):
 	local self = setmetatable({
 		folder = folder,
 		placement = p,
+		yaw = TableBuilder.yawCFrame(p),
 		parts = {},
 		rotations = {},
-		lastPositions = {},
+		spinSteps = {},
 		sunk = {},
 	}, BallRenderer)
 	return self
@@ -140,8 +149,8 @@ function BallRenderer.ensure(self: BallRenderer, id: number): BasePart
 	return part
 end
 
---- Place ball `id` at physics coordinates (inches), rolling it by the distance moved.
---- zIn is the height relative to the cloth (negative while dropping into a pocket).
+--- Place ball `id` at physics coordinates (inches) without turning it. zIn is the height
+--- relative to the cloth (negative while dropping into a pocket).
 function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: number, zIn: number?)
 	if self.sunk[id] then
 		return
@@ -149,21 +158,44 @@ function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: nu
 	local part = self:ensure(id)
 	local pos =
 		TableBuilder.toWorld(self.placement, xIn, yIn, Config.Balls.RadiusInches + (zIn or 0))
-	local last = self.lastPositions[id]
-	local rot = self.rotations[id]
-	if last then
-		local delta = pos - last
-		local dist = delta.Magnitude
-		if dist > 1e-6 then
-			local axis = UP:Cross(delta.Unit)
-			if axis.Magnitude > 1e-6 then
-				local angle = dist / TableBuilder.studs(Config.Balls.RadiusInches)
-				rot = CFrame.fromAxisAngle(axis.Unit, angle) * rot
-				self.rotations[id] = rot
-			end
-		end
+	part.CFrame = CFrame.new(pos) * self.rotations[id]
+end
+
+-- Thousands of CFrame multiplications drift off orthonormal, which shears the ball. Every
+-- so often, rebuild the rotation from two re-squared axes.
+local function renormalise(rot: CFrame): CFrame
+	local right = rot.RightVector.Unit
+	local up = rot.UpVector
+	up = (up - right * up:Dot(right)).Unit
+	return CFrame.fromMatrix(Vector3.zero, right, up)
+end
+
+--- Move and turn ball `b` for a frame of `dt` seconds. The turn comes from the ball's
+--- angular velocity, so a skidding ball barely rotates and a ball with side spin turns on
+--- the spot, exactly as the simulation says.
+function BallRenderer.step(self: BallRenderer, b: Ball.Ball, dt: number)
+	if self.sunk[b.id] then
+		return
 	end
-	self.lastPositions[id] = pos
+	local part = self:ensure(b.id)
+	local pos = TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RadiusInches + b.z)
+	local rot = self.rotations[b.id]
+	-- Physics (x, y, z) maps to world (X, -Z, Y). That map is a proper rotation, so angular
+	-- velocity (a pseudovector) transforms exactly like a vector; then the table's own yaw
+	-- turns it the rest of the way into world space. Miss the yaw and every ball on a
+	-- turned table rolls sideways.
+	local w = self.yaw:VectorToWorldSpace(Vector3.new(b.wx, b.wz, -b.wy))
+	local rate = w.Magnitude
+	if rate > 1e-6 and dt > 0 then
+		rot = CFrame.fromAxisAngle(w / rate, rate * dt) * rot
+		local n = (self.spinSteps[b.id] or 0) + 1
+		if n >= Config.Balls.RotationRenormaliseSteps then
+			n = 0
+			rot = renormalise(rot)
+		end
+		self.spinSteps[b.id] = n
+		self.rotations[b.id] = rot
+	end
 	part.CFrame = CFrame.new(pos) * rot
 end
 
@@ -174,11 +206,13 @@ function BallRenderer.sink(self: BallRenderer, id: number)
 	part.Transparency = 1
 end
 
---- Bring a ball back onto the table (cue ball after a scratch, or a new rack).
+--- Bring a ball back onto the table (cue ball after a scratch, or a new rack). The ball
+--- comes back upright: a fresh rack should not inherit the last game's tumbling.
 function BallRenderer.restore(self: BallRenderer, id: number, xIn: number, yIn: number)
 	local part = self:ensure(id)
 	self.sunk[id] = nil
-	self.lastPositions[id] = nil
+	self.rotations[id] = CFrame.identity
+	self.spinSteps[id] = 0
 	part.Transparency = 0
 	self:place(id, xIn, yIn)
 end
