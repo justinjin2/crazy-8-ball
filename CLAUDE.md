@@ -42,8 +42,15 @@ Studio through MCP on phone, PC and gamepad emulation, read the console, screens
 tell the user plainly what was built, what was verified and what to try by hand. Commit as soon
 as a step is verified (the user does not want to be asked for approval), push, tick the box in
 `docs/ROADMAP.md`, rewrite `docs/STATUS.md`, and add a dated line to `docs/DECISIONS.md` for
-any design decision made along the way. Ask the user to save and publish the place when
-Edit-mode assets changed. Stopping an active Studio play session to verify is allowed.
+any design decision made along the way. Stopping an active Studio play session to verify is
+allowed.
+
+**The place file.** Scripts are Rojo's job and are never saved by hand. Only Edit-mode
+content (imported meshes, textures, MaterialVariants, lighting, anything built in Studio)
+lives in the place. Team Create already saves that to the cloud continuously, so do NOT ask
+the user to save after every change. Ask once **per milestone**: save to `place/8ball.rbxl`
+so git has the place, and publish so it is live. If a change would be expensive to redo (a
+fresh import, a long Edit-mode build), say so once at the time and then let it go.
 
 The user is a beginner: explain installs, clicks and decisions in simple steps. New ideas go
 into the GDD's parked list, not into the current milestone.
