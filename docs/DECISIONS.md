@@ -69,3 +69,22 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-20: Clients step a live simulation from the render loop instead of calling
   `Simulation.run` up front, which blocked a whole frame per break and built a frames table
   of several megabytes. `run` keeps its frames for the tests; the server gets `runHeadless`.
+- 2026-09-20: Join by stepping on a floor pad, polled on the server at 5 Hz with a three
+  poll dwell. Touched misses a player who stands still; the dwell stops someone crossing a
+  pad on the way somewhere else being dragged into a seat.
+- 2026-09-20: Pads sit 14 studs out from the table centre, clear of where the shooter
+  stands. At 11 studs the shooter was standing on the pad and could never leave.
+- 2026-09-20: Clients replay a shot from the server's POST-STRIKE cue ball state, not from
+  {angle, power}. Cue.strike goes through libm sin/cos/pow, which are not correctly rounded,
+  so re-striking on each client risks a one ulp difference and therefore a different break.
+- 2026-09-20: Every shot carries a checksum of the server's final positions and clients warn
+  when their replay lands elsewhere. Determinism is measured, not assumed.
+- 2026-09-20: Only the nearest few tables draw their balls (a renderer pool). Twelve racked
+  tables is 192 ball meshes for something that is a few pixels across the room.
+- 2026-09-20: Aim is replicated as one batched unreliable message per tick for all tables,
+  not one per table per player.
+- 2026-09-20: Gamepad power is on the right trigger, not zoom. A trigger's travel is a power
+  bar; mapping an analog axis to zoom wastes it. Departs from the GDD's "or triggers" aside.
+- 2026-09-20: Remote players' bodies are not posed for watchers; only their cue is
+  replicated. AvatarPose anchors individual limbs, which does not replicate reliably from
+  the owning client. Body posing for watchers is deferred to Roadmap 2.3.

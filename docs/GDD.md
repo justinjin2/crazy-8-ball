@@ -113,8 +113,9 @@ Every feature is checked against these. If it serves none, it waits.
   matchmaking are not planned for release (section 18).
 - Servers hold about 30 players *(tune)* and all 12 tables can host any mode. PC never plays PC.
 
-**Open**
-- Whether spectators should be able to sit on the lounge chairs and still watch a table camera.
+- **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
+  player is seated and the camera is left alone. Watching a table through its own camera is
+  a separate feature and waits for spectating proper (Roadmap 2.3).
 
 ## 7. Rules
 
@@ -334,7 +335,6 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 ## 19. Open questions (collected)
 
 - Age-rating and DevEx rate verification (section 2).
-- Spectator seating (section 6).
 - Full ability list (section 9).
 - Pro lobby look (section 10).
 - Rating formula (section 11).

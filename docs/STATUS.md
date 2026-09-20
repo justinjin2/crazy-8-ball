@@ -3,78 +3,85 @@
 One page. Rewritten at the end of every working session by whichever tool did the work.
 Read this first, then the roadmap item it names.
 
-**Last updated:** 2026-09-20 (Roadmap 1.5 in progress: stages a and b done).
+**Last updated:** 2026-09-20 (Roadmap 1.5 code complete; two acceptance checks outstanding).
 
 ## Where the build is
 
-Done and verified in Studio: Phase 0, Roadmap 1.1 to 1.4, and stages a and b of 1.5.
-Concretely: custom physics with 38 passing Lune tests; corridor guideline; orbit camera with
-continuous zoom; posed faded avatar; imported Blender 9 ft table
-(`ServerStorage.PoolTableModel`, 7 MeshParts, 28 PBR maps); sphere-mesh balls
-(`ServerStorage.BallMesh`) with 16 baked textures; join by holding E on a ProximityPrompt (to
-be replaced by a floor pad in 1.5e); ONE table, now standing at Table_01's real lounge spot
-(-30, 0, 0) at yaw 90; shots run on the client only (no networking yet).
+Phase 0 and Roadmap 1.1 to 1.4 are done and verified. **Roadmap 1.5 is built end to end but
+its box is NOT ticked**, because two of its own acceptance criteria have never been run: see
+"Before 1.5 can be ticked" below.
+
+Concretely, the game now is: a lounge of twelve tables in three tiers; you join one by
+standing on its floor pad, which turns green so the room can see it is taken; the client
+sends only shot inputs and the server validates, simulates and broadcasts them, and every
+client replays the same shot from the same numbers; the nearest few tables draw their balls
+and you can watch other people's cues turn at them; the sofas are sittable. 42 Lune tests.
 
 ## Current milestone
 
-**Roadmap 1.5: Lounge and twelve server-owned tables.** Being built in stages; the plan
-splits it so it can be stopped after any one of them.
+**Roadmap 1.5: Lounge and twelve server-owned tables.** All seven stages committed.
 
-- [x] **1.5a Placement.** `src/shared/Placement.luau` (pure, Lune-tested) replaces the single
-  `Config.World.TableOrigin`: any table can stand anywhere at any yaw. `Config.Lounge.Tables`
-  holds the twelve rows, checked against `assets/lounge/Markers.json` by a test. Tables live
-  in `Workspace.Tables/Table_NN`; client visuals in `Workspace.ClientVisuals`.
-- [x] **1.5b Rolling and the frame freeze.** Balls turn from their real angular velocity, not
-  from distance travelled. `Match` steps a live simulation from the render loop instead of
-  calling `Simulation.run` up front. Ball mesh regenerated at 528 triangles.
+- [x] **1.5a Placement.** `src/shared/Placement.luau` (pure, Lune-tested) replaced the single
+  global table origin: a table can stand anywhere at any yaw. Fixed three yaw bugs the
+  obvious search missed (`Camera.aimDirection`, `AvatarPose`'s world-axis rim test and its
+  single floor height).
+- [x] **1.5b Rolling and the frame freeze.** Balls turn from the simulation's real angular
+  velocity, so a struck ball visibly skids before it rolls. `Match` steps a live simulation
+  from the render loop instead of calling `Simulation.run` inside one frame. Ball mesh
+  regenerated at 528 triangles.
 - [x] **1.5c Gamepad.** Left stick aims, D-pad nudges, right stick zooms, right trigger is
-  the power bar (ButtonA for digital-trigger pads), ButtonB leaves. Bound through
-  ContextActionService only while at the table. **The buttons have never been physically
-  pressed** (see the debts below).
-- [x] **1.5d Lounge and twelve tables.** Six FBX packages imported and corrected (Studio
-  rotates them 180 degrees on import); `src/shared/LoungeBuilder.luau` does materials,
-  collision, lights, lighting and spawn from Config and is re-runnable for the next build of
-  the package. Bootstrap builds all twelve tables. Per-table shadow light deleted.
-- [ ] **1.5e Floor pads, join and leave, pooled per-table renderers.**
-- [ ] **1.5f Server authority:** `Net`, `TableService`, `ShotService`.
-- [ ] **1.5g Aim replication, seats, pad VFX.**
+  the power bar, ButtonB leaves. Bound through ContextActionService only while at a table.
+- [x] **1.5d Lounge and twelve tables.** Six FBX packages imported and corrected;
+  `src/shared/LoungeBuilder.luau` does materials, collision, lights, lighting, spawn and
+  seats from Config and is re-runnable. Per-table shadow light deleted.
+- [x] **1.5e Floor pads.** Server-owned seats, 5 Hz polling with a dwell, and a renderer
+  pool so only the nearest tables draw balls.
+- [x] **1.5f Server authority.** `Net`, `TableService`, `ShotService`. Clients replay from
+  the server's post-strike seed and settle on its final positions; every shot carries a
+  checksum.
+- [x] **1.5g Aim replication and seats.** Batched unreliable aim stream, watched cues on the
+  renderer pool, invisible sofa seats (free look), pad flash.
+
+## Before 1.5 can be ticked
+
+Both need a human; neither can be driven from an agent session.
+
+1. **Gamepad has never been tested with a real controller.** Every number behind it is
+   verified (aim rate, dead zone, curve, zoom rate, power ramp, the bind/unbind), but no pad
+   was ever connected, so the mapping from each physical button to each action is unproven.
+   The standing rule is that every milestone is checked on phone, PC and gamepad.
+2. **Two players in one server have never been run.** Studio's **Start Server + 2 Players**
+   is the test: two clients at two different tables while a third walks between them and
+   sees both games. The server authority and the aim stream are verified single-client and
+   with an injected second player, but not with two real clients.
 
 ## Open bugs and debts
 
-- **The gamepad has never been tested with a real controller.** The aim rate, dead zone,
-  aim curve, zoom rate, power ramp and the ContextActionService bind/unbind are all verified
-  numerically in Studio, but no pad was connected, so the mapping from each physical button
-  to each action is unproven. This breaks the standing rule that every milestone is checked
-  on phone, PC and gamepad; 1.5 is not finishable until someone presses the buttons.
-- This place has no `PlayerModule` in `PlayerScripts`, so the usual
-  `GetControls():Disable()` does nothing. The ContextActionService sink covers it, but if
-  walking ever fights aiming again, that is why.
-- The "apparent issues" with the mesh balls were the ROLLING ROTATION; fixed in 1.5b.
-- `assets/balls/ball_sphere.obj` is regenerated at 528 triangles but the place still holds
-  the old 2,208-triangle `ServerStorage.BallMesh`. Needs a re-import by hand.
-- Triangle budget with everything resident is 410,438 (lounge 78,422, twelve tables 230,640,
-  192 balls 101,376). Real frame rates are still unmeasured: Studio throttles an unfocused
-  viewport to 15 FPS, which swamps any reading. Needs a focused window or a phone.
-- The lounge is a PLACEHOLDER the designer will replace; do not polish its art. Re-run
-  `LoungeBuilder.setUp(workspace)` in Edit mode after importing a new build of it.
-- `Cue.strike` uses `math.cos`/`math.sin`/`pow`, which are platform libm and not correctly
-  rounded, so a client replaying a shot could diverge from the server. 1.5f sends the
-  server's post-strike cue-ball state as the replay seed instead, plus a hash check.
+- The lounge is a PLACEHOLDER the designer will replace. Do not polish its art. After
+  importing a new build, run `LoungeBuilder.setUp(workspace)` in Edit mode.
+- `assets/balls/ball_sphere.obj` is 528 triangles but the place may still hold the old
+  2,208-triangle `ServerStorage.BallMesh`. Needs a re-import by hand.
+- Triangle budget with everything resident: lounge 78,422, twelve tables 230,640, balls
+  33,792 now that only four tables draw (was 101,376). Real frame rates are still unmeasured
+  because Studio throttles an unfocused viewport to 15 FPS.
+- Cross-platform determinism is instrumented but unproven: same-machine replays match the
+  server exactly (0.0000 in), which does not exercise a different libm. The first phone
+  playtest will either be silent or print a drift warning.
+- Remote players' bodies are not posed for watchers, only their cue. `AvatarPose` anchors
+  individual limbs, which does not replicate reliably from the owning client. Deferred to
+  2.3.
+- Studio caches Edit-mode `require` results for the whole session. Editing a shared module
+  and re-running it in Edit mode silently runs the old copy; restart Studio first.
 - `src/shared/Rules/` is an empty folder; rules are Roadmap 2.1.
-- Lighting.Technology of the place is unknown (not readable through the tools); check by hand
-  if shadows look wrong.
+- `Lighting.Technology` is not readable or writable through the tools; set it to Future by
+  hand if shadows look wrong.
 
 ## Things only the user can do
 
-- **Test the gamepad** (1.5c): plug in any controller, Play, hold E at the table, then check
-  the left stick aims, the D-pad nudges, the right stick zooms, holding and releasing the
-  right trigger shoots with the power it was pulled to, and B leaves the table.
-- **Re-import `assets/balls/ball_sphere.obj`** (3D Importer, Scale Unit: Stud, scale 1) and
-  replace `ServerStorage.BallMesh` with it: 528 triangles instead of 2,208.
-- **Save and publish the place now.** 1.5d changed a lot in Edit mode: the six imported
-  lounge packages, their materials and collision, twelve pendant lights, the Lighting
-  recipe, the spawn, and the Baseplate removed. None of that is in Rojo; it only exists in
-  the place file until it is saved to `place/8ball.rbxl` and published.
-- If shadows look wrong, set `Lighting.Technology` to **Future** by hand; it is not readable
-  or writable through the tools.
+- **Test the gamepad** and **run Start Server + 2 Players** (see above). These are what is
+  standing between 1.5 and a tick.
+- **Save and publish the place.** The imported lounge, its materials and collision, the
+  twelve pendant lights, the Lighting recipe and the spawn live only in the place file.
+- **Re-import `assets/balls/ball_sphere.obj`** (3D Importer, Scale Unit: Stud, scale 1) over
+  `ServerStorage.BallMesh`.
 - Click Connect in the Rojo plugin after every Studio or Rojo restart.
