@@ -59,10 +59,9 @@ Both need a human; neither can be driven from an agent session.
 
 - The lounge is a PLACEHOLDER the designer will replace. Do not polish its art. After
   importing a new build, run `LoungeBuilder.setUp(workspace)` in Edit mode.
-- `assets/balls/ball_sphere.obj` is 528 triangles but the place may still hold the old
-  2,208-triangle `ServerStorage.BallMesh`. Needs a re-import by hand.
 - Triangle budget with everything resident: lounge 78,422, twelve tables 230,640, balls
-  33,792 now that only four tables draw (was 101,376). Real frame rates are still unmeasured
+  8,448 (four drawn tables on the 528-triangle mesh; it was 101,376 with twelve tables on
+  the old 2,208-triangle one). Real frame rates are still unmeasured
   because Studio throttles an unfocused viewport to 15 FPS.
 - Cross-platform determinism is instrumented but unproven: same-machine replays match the
   server exactly (0.0000 in), which does not exercise a different libm. The first phone
@@ -81,7 +80,8 @@ Both need a human; neither can be driven from an agent session.
 - **Test the gamepad** and **run Start Server + 2 Players** (see above). These are what is
   standing between 1.5 and a tick.
 - **Save and publish the place.** The imported lounge, its materials and collision, the
-  twelve pendant lights, the Lighting recipe and the spawn live only in the place file.
-- **Re-import `assets/balls/ball_sphere.obj`** (3D Importer, Scale Unit: Stud, scale 1) over
-  `ServerStorage.BallMesh`.
+  twelve pendant lights, the Lighting recipe, the spawn and the 528-triangle
+  `ServerStorage.BallMesh` live only in the place file. Ctrl+S is enough once the place has
+  been saved once; "Save to File As" is only for the first time or to refresh the
+  `place/8ball.rbxl` copy that Git tracks.
 - Click Connect in the Rojo plugin after every Studio or Rojo restart.
