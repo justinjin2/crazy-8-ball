@@ -125,7 +125,9 @@ by side with GamePigeon. Fix the feel before moving on.
   and Challenger only.
 - [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation
   board, country flags, win streak above the head, match history.
-- [ ] **6.5 Anti-boost.** Opponents-played-today tracking with shrinking rating and money.
+- [ ] **6.5 Real-match check.** Server-tracked match time, the one-minute mark, forfeit
+  accounting (forfeiter always loses rating; repeat forfeits against the same opponent give
+  the winner nothing), forfeit confirmation warning.
 
 ## Phase 7: Economy
 

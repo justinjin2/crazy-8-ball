@@ -129,8 +129,9 @@ Every feature is checked against these. If it serves none, it waits.
   calling pockets.
 - **Shot clock** about 20 seconds *(tune)*. Zero = foul with ball in hand. Two timeouts in a
   row = automatic forfeit *(tune)*.
-- **Forfeit** button, costs rating. Leaving or disconnecting mid-match is an immediate forfeit:
-  the opponent gets the win and reward, the table frees, no PC takes over.
+- **Forfeit** button, costs rating, behind a confirmation that warns "you will lose rating".
+  Leaving or disconnecting mid-match is an immediate forfeit: the opponent gets the win and
+  reward (subject to the real-match rules in section 13), the table frees, no PC takes over.
 - **Three difficulty levels, chosen by the host for the whole table** (both players see the
   same guideline):
   - **Classic** (default, recommended): full guideline as in section 5.
@@ -267,12 +268,27 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 **Decided**
 - The server owns every match, validates every shot and ability, and never trusts the client.
-- **Anti-boost:** the server tracks "opponents played today" per player with counts *(tune,
-  placeholders 3 and 5)*. Past the first threshold rating gains shrink; past the second, zero
-  rating and the match is not a win for streaks or leaderboards. Money shrinks but never
-  reaches zero, so friends can keep rematching. No friend exemption. PC is exempt.
+- **Real matches count, rematches are unlimited.** Anyone, friends included, can play the
+  same opponent as many times as they like. A match pays rating and money (scaled by the
+  rating difference as in section 11) as long as it was a real match: it lasted longer than
+  **one minute** *(tune)* of match time and ended by play, not by a forfeit. The server
+  tracks match time from the break to the final ball, and only the server decides whether a
+  match was real.
+- **What is not a real match:** the forfeit button, leaving or disconnecting, and sinking the
+  8 to end the game while the match is still under the one-minute mark (that is treated as a
+  deliberate forfeit; after the mark an early 8 is just a lost real match). The forfeiter
+  loses rating every time.
+- **Forfeits against a repeat opponent give the winner nothing.** A forfeit counts for the
+  winner (rating, win, money) only the first time against that opponent; every later forfeit
+  by the same opponent adds nothing to rank, wins or money. Boosting therefore needs real
+  matches, which is fine. No friend exemption. PC is exempt.
 - Wins against PC are a separate stat and never count on the "most wins" board.
 - No wagering of any kind (against Roblox rules).
+
+**Open**
+- How long "same opponent" is remembered for the repeat-forfeit rule (this server session,
+  today, or forever).
+- The one-minute mark *(tune)*: check it against how long a real break-to-8 game takes.
 
 ## 14. First-time playthrough and onboarding
 

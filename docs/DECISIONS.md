@@ -115,3 +115,8 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   pair, which is the main reason to want them. Effects are a named style in catalog data, so
   adding a cue stays a data row plus assets and never code. Built data-driven from the start
   so Roadmap 5.2 only has to add rows.
+- 2026-09-21: Anti-boost counters are deleted. Rematches against the same person are unlimited
+  and fully rated; the only test is whether the match was real (over one minute of server-
+  tracked match time and not a forfeit). Forfeits still cost the forfeiter rating, and repeat
+  forfeits against the same opponent give the winner nothing. The old counters punished
+  friends playing honestly; a time check punishes only the throw.
