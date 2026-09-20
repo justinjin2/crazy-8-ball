@@ -59,3 +59,13 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-20: Codex also writes game code; both tools follow the same rules file (AGENTS.md is
   a symlink to CLAUDE.md) and update STATUS.md. Private GitHub remote; place file committed at
   each milestone; binaries stay in plain git with hygiene rules.
+- 2026-09-20: Spectators sitting on lounge chairs get free look only; table cameras wait for
+  Roadmap 2.3. Closes the open question in GDD section 6.
+- 2026-09-20: Table position and yaw live in a pure `Placement` module, not in TableBuilder.
+  A pool table is symmetric end to end, so a yaw sign error builds a table that looks right
+  and plays mirrored; only a Lune test can catch that.
+- 2026-09-20: Balls are turned by the simulation's own angular velocity, never by distance
+  travelled. The old way hid the skid, hid side spin, and spun balls wildly down pockets.
+- 2026-09-20: Clients step a live simulation from the render loop instead of calling
+  `Simulation.run` up front, which blocked a whole frame per break and built a frames table
+  of several megabytes. `run` keeps its frames for the tests; the server gets `runHeadless`.
