@@ -31,7 +31,10 @@ splits it so it can be stopped after any one of them.
   the power bar (ButtonA for digital-trigger pads), ButtonB leaves. Bound through
   ContextActionService only while at the table. **The buttons have never been physically
   pressed** (see the debts below).
-- [ ] **1.5d Import the lounge, build twelve tables, phone perf checkpoint.**
+- [x] **1.5d Lounge and twelve tables.** Six FBX packages imported and corrected (Studio
+  rotates them 180 degrees on import); `src/shared/LoungeBuilder.luau` does materials,
+  collision, lights, lighting and spawn from Config and is re-runnable for the next build of
+  the package. Bootstrap builds all twelve tables. Per-table shadow light deleted.
 - [ ] **1.5e Floor pads, join and leave, pooled per-table renderers.**
 - [ ] **1.5f Server authority:** `Net`, `TableService`, `ShotService`.
 - [ ] **1.5g Aim replication, seats, pad VFX.**
@@ -49,9 +52,11 @@ splits it so it can be stopped after any one of them.
 - The "apparent issues" with the mesh balls were the ROLLING ROTATION; fixed in 1.5b.
 - `assets/balls/ball_sphere.obj` is regenerated at 528 triangles but the place still holds
   the old 2,208-triangle `ServerStorage.BallMesh`. Needs a re-import by hand.
-- One shadow-casting SpotLight per table (`Config.Look.TableLight`) will not scale to twelve
-  tables; it is deleted in 1.5d in favour of sun shadows plus the package's twelve
-  non-shadow pendant SurfaceLights.
+- Triangle budget with everything resident is 410,438 (lounge 78,422, twelve tables 230,640,
+  192 balls 101,376). Real frame rates are still unmeasured: Studio throttles an unfocused
+  viewport to 15 FPS, which swamps any reading. Needs a focused window or a phone.
+- The lounge is a PLACEHOLDER the designer will replace; do not polish its art. Re-run
+  `LoungeBuilder.setUp(workspace)` in Edit mode after importing a new build of it.
 - `Cue.strike` uses `math.cos`/`math.sin`/`pow`, which are platform libm and not correctly
   rounded, so a client replaying a shot could diverge from the server. 1.5f sends the
   server's post-strike cue-ball state as the replay seed instead, plus a hash check.
@@ -66,8 +71,10 @@ splits it so it can be stopped after any one of them.
   right trigger shoots with the power it was pulled to, and B leaves the table.
 - **Re-import `assets/balls/ball_sphere.obj`** (3D Importer, Scale Unit: Stud, scale 1) and
   replace `ServerStorage.BallMesh` with it: 528 triangles instead of 2,208.
-- **Import the six lounge FBX files** for 1.5d (see `assets/lounge/Readme.md` and the stage's
-  click steps).
-- Save the place to `place/8ball.rbxl` (File, Save to File As) and publish, after any Edit-mode
-  change. The place holds the table model, ball mesh and cloth material.
+- **Save and publish the place now.** 1.5d changed a lot in Edit mode: the six imported
+  lounge packages, their materials and collision, twelve pendant lights, the Lighting
+  recipe, the spawn, and the Baseplate removed. None of that is in Rojo; it only exists in
+  the place file until it is saved to `place/8ball.rbxl` and published.
+- If shadows look wrong, set `Lighting.Technology` to **Future** by hand; it is not readable
+  or writable through the tools.
 - Click Connect in the Rojo plugin after every Studio or Rojo restart.
