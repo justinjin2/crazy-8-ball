@@ -75,6 +75,9 @@ Both need a human; neither can be driven from an agent session.
   8,448 (four drawn tables on the 528-triangle mesh; it was 101,376 with twelve tables on
   the old 2,208-triangle one). Real frame rates are still unmeasured
   because Studio throttles an unfocused viewport to 15 FPS.
+- The ball mesh in the place is `rbxassetid://95659700767034`, wound outward (verified on
+  the upload: 528 of 528 faces point out). `Config.Balls.DoubleSided` is false and should
+  stay false; it only ever existed to hide the old inside-out upload.
 - Cross-platform determinism is instrumented but unproven: same-machine replays match the
   server exactly (0.0000 in), which does not exercise a different libm. The first phone
   playtest will either be silent or print a drift warning.
