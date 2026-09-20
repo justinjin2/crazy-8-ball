@@ -3,7 +3,19 @@
 One page. Rewritten at the end of every working session by whichever tool did the work.
 Read this first, then the roadmap item it names.
 
-**Last updated:** 2026-09-20 (Roadmap 1.5 code complete; two acceptance checks outstanding).
+**Last updated:** 2026-09-21 (lounge set aside; testing on a baseplate with one table).
+
+## The lounge is switched off
+
+The designer does not like the placeholder lounge, so `Config.Lounge.Enabled = false` and
+`Config.Lounge.TableCount = 1`: the game runs on a plain Roblox baseplate with one table,
+which is the setup the shot is being tuned on. The imported lounge model was MOVED to
+`ServerStorage.Lounge` rather than deleted, because it is six FBX imports of hand work; say
+the word and it goes for good.
+
+Nothing else changed. Tables are still server-owned, shots are still validated, simulated
+and broadcast by the server, clients still replay from the server's seed, and the floor pad
+still seats you. Set `Enabled = true` and `TableCount = 12` to get the lounge back.
 
 ## Where the build is
 
@@ -11,11 +23,11 @@ Phase 0 and Roadmap 1.1 to 1.4 are done and verified. **Roadmap 1.5 is built end
 its box is NOT ticked**, because two of its own acceptance criteria have never been run: see
 "Before 1.5 can be ticked" below.
 
-Concretely, the game now is: a lounge of twelve tables in three tiers; you join one by
-standing on its floor pad, which turns green so the room can see it is taken; the client
-sends only shot inputs and the server validates, simulates and broadcasts them, and every
-client replays the same shot from the same numbers; the nearest few tables draw their balls
-and you can watch other people's cues turn at them; the sofas are sittable. 42 Lune tests.
+Concretely, the game now is: a baseplate with one pool table; you join it by standing on its
+floor pad, which turns green; the client sends only shot inputs and the server validates,
+simulates and broadcasts them, and every client replays the same shot from the same numbers.
+The twelve-table lounge, the renderer pool, the watched cues and the sofa seats are all
+built and switched off behind one Config flag. 42 Lune tests.
 
 ## Current milestone
 

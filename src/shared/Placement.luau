@@ -41,6 +41,13 @@ function Placement.new(x: number, y: number, z: number, yawDegrees: number): Pla
 	}
 end
 
+--- How many tables this build actually stands up: twelve in the lounge, one on a testing
+--- baseplate. Everything that iterates tables goes through this so the server, the pads and
+--- the client cannot disagree about how many there are.
+function Placement.tableCount(): number
+	return math.clamp(Config.Lounge.TableCount, 1, #Config.Lounge.Tables)
+end
+
 --- The placement for table `id` in Config.Lounge.Tables (1-12), or nil if there is no such
 --- table. Results are built once and reused.
 local cache: { [number]: Placement } = {}

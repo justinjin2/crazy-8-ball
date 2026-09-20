@@ -96,8 +96,11 @@ function Lounge.new(parent: Instance): Lounge
 		aims = {},
 	}, Lounge)
 
+	-- Only the tables the server actually builds: a Match for a table with no model would
+	-- draw sixteen balls floating where that table would have been.
+	local wanted = Placement.tableCount()
 	for _, row in Config.Lounge.Tables do
-		local p = Placement.forTable(row.id)
+		local p = if row.id <= wanted then Placement.forTable(row.id) else nil
 		if p then
 			self.matches[row.id] = Match.new(p)
 			self.seats[row.id] = {}
@@ -107,7 +110,7 @@ function Lounge.new(parent: Instance): Lounge
 	-- The pool is built up front so no shot ever waits on sixteen parts being created.
 	local first = Config.Lounge.Tables[1]
 	local firstPlacement = Placement.forTable(first.id)
-	for i = 1, Config.Lounge.RenderedTables do
+	for i = 1, math.min(Config.Lounge.RenderedTables, Placement.tableCount()) do
 		table.insert(self.pool, BallRenderer.new(folder, firstPlacement :: any, i))
 		local cue = CueStickBuilder.build(parent)
 		cue.Name = ("WatchedCue_%d"):format(i)

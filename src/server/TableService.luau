@@ -329,8 +329,9 @@ function TableService.start(parent: Instance)
 	-- One geometry for all twelve: it is read-only and identical, so there is no reason to
 	-- build the same cushion and pocket list a dozen times.
 	local geometry = TableGeometry.build({ pocketsOpen = true })
+	local wanted = Placement.tableCount()
 	for _, row in Config.Lounge.Tables do
-		local placement = Placement.forTable(row.id)
+		local placement = if row.id <= wanted then Placement.forTable(row.id) else nil
 		if placement then
 			tables[row.id] = {
 				id = row.id,

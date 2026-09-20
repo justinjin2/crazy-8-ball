@@ -1,7 +1,9 @@
 --!strict
--- Server bootstrap. Builds the twelve lounge tables and publishes the assets the client
--- cannot reach on its own. Roadmap 1.5f makes it the shot authority as well (validating
--- inputs, running Simulation, broadcasting results).
+-- Server bootstrap. Builds the tables, wires up the pads and the shot authority, and
+-- publishes the assets the client cannot reach on its own.
+--
+-- Config.Lounge.Enabled decides whether this is a lounge or a bare baseplate with a table
+-- on it for testing the shot. Everything below the lounge block is the same either way.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -18,14 +20,13 @@ local TableService = require(script.Parent:WaitForChild("TableService"))
 -- Remotes first: TableService and every client look them up by name.
 Net.build()
 
--- The lounge itself lives in the place: its meshes, textures and materials are all things
--- a game script may not create. LoungeBuilder.setUp assembles it in Edit mode; this only
--- says so if that was never done.
-if not LoungeBuilder.isImported(workspace) then
+-- The lounge lives in the place: its meshes, textures and materials are all things a game
+-- script may not create. With it switched off none of that is expected to be there.
+if Config.Lounge.Enabled and not LoungeBuilder.isImported(workspace) then
 	warn(
-		"[8ball] no imported lounge in Workspace. Import the six FBX packages from "
-			.. "assets/lounge/exports, run LoungeBuilder.setUp(workspace) in Edit mode, and "
-			.. "save the place. The tables below are still built."
+		"[8ball] Config.Lounge.Enabled is true but no lounge is imported. Import the six "
+			.. "FBX packages from assets/lounge/exports, run LoungeBuilder.setUp(workspace) "
+			.. "in Edit mode, and save the place. The tables below are still built."
 	)
 end
 
@@ -38,21 +39,25 @@ local tables = Instance.new("Folder")
 tables.Name = TableBuilder.FolderName
 tables.Parent = workspace
 
+-- Only the first TableCount of them: twelve for the lounge, one for a testing baseplate.
 local built = 0
+local wanted = Placement.tableCount()
 for _, row in Config.Lounge.Tables do
-	local placement = Placement.forTable(row.id)
-	if placement then
-		TableBuilder.build(tables, placement, row.id)
-		built += 1
+	if row.id <= wanted then
+		local placement = Placement.forTable(row.id)
+		if placement then
+			TableBuilder.build(tables, placement, row.id)
+			built += 1
+		end
 	end
 end
 
 -- Seats on the sofas and chairs. Unlike the lounge meshes these are plain Seat parts, which
 -- a script may create, so they are built fresh from Config every run rather than living in
--- the place file and drifting out of step with it.
+-- the place file and drifting out of step with it. No lounge, no sofas.
 local lounge = workspace:FindFirstChild(LoungeBuilder.ModelName)
 local seated = 0
-if lounge and lounge:IsA("Model") then
+if Config.Lounge.Enabled and lounge and lounge:IsA("Model") then
 	seated = LoungeBuilder.buildSeats(lounge)
 end
 
@@ -86,7 +91,8 @@ end
 -- Config.Lounge.Pendant and LoungeBuilder.buildPendants.
 
 print(
-	("[8ball] server ready. %d tables with pads, %d lounge seats, %dx%d in, %.2f studs/in"):format(
+	("[8ball] server ready. %s, %d tables with pads, %d seats, %dx%d in, %.2f studs/in"):format(
+		if Config.Lounge.Enabled then "lounge" else "baseplate",
 		built,
 		seated,
 		Config.Table.LengthInches,

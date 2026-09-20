@@ -308,7 +308,20 @@ Config.Lounge = {
 		{ id = 11, X = 10, Y = 4.8, Z = -86, YawDegrees = 90 },
 		{ id = 12, X = 30, Y = 4.8, Z = -86, YawDegrees = 90 },
 	},
-	-- Until Roadmap 1.5d builds all twelve, this is the one table that exists.
+	-- The imported lounge is a placeholder the designer has set aside, so the game currently
+	-- runs on a plain baseplate. FALSE means: do not expect lounge geometry in the place,
+	-- do not build the pendant lights or the sofa seats, and leave Lighting alone.
+	--
+	-- Nothing else changes. The tables are still server-owned, shots are still validated and
+	-- broadcast by the server, and the pads still work; there are just fewer tables and no
+	-- room around them. Turn this back on when there is a lounge worth standing in.
+	Enabled = false,
+
+	-- How many tables to build, taken from the front of Tables below. Twelve is the lounge;
+	-- one is what the shot is actually tested on.
+	TableCount = 1,
+
+	-- Which table the client treats as "the" table before it has a seat.
 	ActiveTableId = 1,
 
 	-- How many tables draw their balls at once. Twelve racked tables is 192 ball meshes for

@@ -103,3 +103,8 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   a cushion with the shot going into it is nearly a table length from anywhere a person could
   stand, and no stance reads as a person from a camera on the far side; fading beats
   contorting.
+- 2026-09-21: The placeholder lounge is switched off (`Config.Lounge.Enabled = false`,
+  `TableCount = 1`) and testing happens on a plain baseplate with one table. The designer
+  does not like the model. The lounge code, the pads, the renderer pool and the server
+  authority all stay; only the geometry and the table count change. The imported model was
+  moved to ServerStorage rather than deleted.
