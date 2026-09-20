@@ -561,15 +561,30 @@ function Simulation.firstContact(events: { Event }): number?
 	return nil
 end
 
--- Shared body of run and runHeadless. `frames`, when given, is filled as the shot goes.
-local function simulate(state: State, shot: Shot, frames: { Frame }?): ShotOutcome
-	local P = Config.Physics
-	local sim = Simulation.cloneState(state)
-	local events: { Event } = { Simulation.strike(sim, shot) }
-	if frames then
-		table.insert(frames, captureFrame(sim))
+--- Put the cue ball back on the head spot if it is off the table.
+---
+--- Until the rules land (Roadmap 2.1) a scratch has no other consequence, and something has
+--- to do this or the table is finished: a state whose cue ball is pocketed cannot be struck
+--- again, so every later shot on that table fails.
+function Simulation.respotCueBall(state: State): boolean
+	local cue = Simulation.findBall(state, 0)
+	if cue == nil or not cue.pocketed then
+		return false
 	end
+	cue.pocketed = false
+	cue.falling = false
+	cue.pocket = nil
+	cue.z = 0
+	Ball.stop(cue)
+	cue.x, cue.y = TableGeometry.headSpot(state.geometry)
+	return true
+end
 
+-- Step an already-struck state to rest, IN PLACE. Split out of simulate so a caller that
+-- has struck the ball itself (the server, which quantises the strike before integrating
+-- it) can run exactly the same loop rather than striking a second time.
+local function settleInto(sim: State, events: { Event }, frames: { Frame }?): ShotOutcome
+	local P = Config.Physics
 	local steps = 0
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
 	local capped = false
@@ -597,6 +612,22 @@ local function simulate(state: State, shot: Shot, frames: { Frame }?): ShotOutco
 		steps = steps,
 		capped = capped,
 	}
+end
+
+--- Run an already-struck state to rest. The state is stepped in place, so the caller owns
+--- it; `events` should already hold the opening cueStrike event.
+function Simulation.settle(state: State, events: { Event }?): ShotOutcome
+	return settleInto(state, events or {}, nil)
+end
+
+-- Strike a copy and run it. `frames`, when given, is filled as the shot goes.
+local function simulate(state: State, shot: Shot, frames: { Frame }?): ShotOutcome
+	local sim = Simulation.cloneState(state)
+	local events: { Event } = { Simulation.strike(sim, shot) }
+	if frames then
+		table.insert(frames, captureFrame(sim))
+	end
+	return settleInto(sim, events, frames)
 end
 
 --- Run a complete shot and record every frame of it. The input state is not modified.

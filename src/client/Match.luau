@@ -144,17 +144,13 @@ function Match.findCueBall(self: Match)
 	return Simulation.findBall(self.state, 0)
 end
 
---- Put the cue ball on the head spot if it is off the table (test helper until rules exist).
+--- Put the cue ball on the head spot if it is off the table. The server does exactly the
+--- same thing to its own copy after every shot (ShotService), through the same helper, so
+--- the two cannot drift apart.
 function Match.ensureCueBall(self: Match)
-	local cue = Simulation.findBall(self.state, 0)
-	if cue and cue.pocketed then
-		cue.pocketed = false
-		cue.falling = false
-		cue.pocket = nil
-		cue.z = 0
-		Ball.stop(cue)
-		cue.x, cue.y = TableGeometry.headSpot(self.state.geometry)
-		if self.renderer then
+	if Simulation.respotCueBall(self.state) then
+		local cue = Simulation.findBall(self.state, 0)
+		if cue and self.renderer then
 			self.renderer:restore(0, cue.x, cue.y)
 		end
 	end
@@ -204,6 +200,10 @@ function Match.reconcile(self: Match)
 	if final == nil then
 		return
 	end
+	-- Fingerprint the REPLAY before the server's answer is written over it. Hashing after
+	-- the loop below hashes the numbers just copied out of `final`, which always matches
+	-- and made this check structurally incapable of failing.
+	local mine = Simulation.checksum(self.state.balls)
 	local drift = 0
 	for i, b in self.state.balls do
 		local x, y, z = final[4 * i - 3], final[4 * i - 2], final[4 * i - 1]
@@ -218,17 +218,18 @@ function Match.reconcile(self: Match)
 	end
 	-- The state the guideline and the next shot are built from must be the server's, not
 	-- this client's replay of it, or the aim would quietly lie.
-	if Config.Debug.LogChecksumMismatch then
-		local mine = Simulation.checksum(self.state.balls)
-		if self.pendingChecksum and mine ~= self.pendingChecksum then
-			warn(
-				("[8ball] replay drifted from the server by %.3f in (checksum %d vs %d)"):format(
-					drift,
-					mine,
-					self.pendingChecksum
-				)
+	if
+		Config.Debug.LogChecksumMismatch
+		and self.pendingChecksum
+		and mine ~= self.pendingChecksum
+	then
+		warn(
+			("[8ball] replay drifted from the server by %.3f in (replay %d, server %d)"):format(
+				drift,
+				mine,
+				self.pendingChecksum
 			)
-		end
+		)
 	end
 	self.pendingChecksum = nil
 	self:renderState()

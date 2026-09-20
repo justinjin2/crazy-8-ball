@@ -135,6 +135,18 @@ Config.Balls = {
 	-- The rendered ball rotation is built by multiplying CFrames every frame, which drifts
 	-- off orthonormal and shears the ball. Rebuild it from squared-up axes this often.
 	RotationRenormaliseSteps = 512,
+	-- Draw both sides of the ball's faces.
+	--
+	-- This is here because tools/gen_ball_mesh.py used to wind its triangles INWARD, so
+	-- Roblox culled the near surface and drew the inside of the far hemisphere instead.
+	-- The far surface moves the opposite way to the near one, so every ball looked like it
+	-- was spinning backwards however correctly the maths turned it. The generator is fixed,
+	-- but any mesh already uploaded from the old one is still inside out, and turning
+	-- culling off makes those render correctly too (the near surface wins on depth, and
+	-- lighting uses the stored vertex normals, which always pointed outward).
+	--
+	-- Can go back to false once a mesh generated after that fix is the one in the place.
+	DoubleSided = true,
 	-- Real sphere mesh (assets/balls/ball_sphere.obj from tools/gen_ball_mesh.py), imported
 	-- once into the place as ServerStorage.<MeshTemplate>; the server copies it into
 	-- ReplicatedStorage.Assets at start-up. Missing = the old Part-and-decal balls.

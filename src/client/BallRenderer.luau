@@ -120,6 +120,9 @@ function BallRenderer.ensure(self: BallRenderer, id: number): BasePart
 		mesh.CastShadow = true
 		mesh.Material = (Enum.Material :: any)[Config.Look.BallMaterial]
 		mesh.Reflectance = Config.Balls.Reflectance
+		-- See Config.Balls.DoubleSided: this is what makes an inside-out mesh still show
+		-- its near surface, and therefore still appear to roll the way it is travelling.
+		mesh.DoubleSided = Config.Balls.DoubleSided
 		mesh.Color = Color3.new(1, 1, 1)
 		mesh.TextureID = textureId
 		mesh.Transparency = 0
