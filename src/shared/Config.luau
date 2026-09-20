@@ -312,6 +312,11 @@ Config.Lounge = {
 	-- Anything whose name contains one of these is flat on the floor and must not be walked
 	-- into (a rug with a collision box is a step).
 	NoCollideFragments = { "Rug" },
+	-- Parts the package ships that the game provides for real, so they are deleted rather
+	-- than left to clash. Table_DisplayProps_NN is a tray of fake balls and a rack sitting
+	-- on each table's cloth, put there so the Blender render looked furnished; the real
+	-- tables carry sixteen simulated balls and the fakes sat on top of them.
+	RemovePartFragments = { "Table_DisplayProps" },
 
 	-- One pendant over each table. Markers.json puts every pendant directly above its own
 	-- table at the same height above that tier's floor, so one number covers all twelve.

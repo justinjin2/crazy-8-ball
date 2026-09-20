@@ -105,6 +105,24 @@ local function noCollide(part: BasePart): boolean
 	return false
 end
 
+--- Delete the pieces the package ships that the game itself provides, so the two cannot
+--- clash. See Config.Lounge.RemovePartFragments.
+function LoungeBuilder.removeClutter(lounge: Model): number
+	local removed = 0
+	for _, part in lounge:GetDescendants() do
+		if part:IsA("BasePart") then
+			for _, fragment in Config.Lounge.RemovePartFragments do
+				if part.Name:find(fragment, 1, true) then
+					part:Destroy()
+					removed += 1
+					break
+				end
+			end
+		end
+	end
+	return removed
+end
+
 --- Materials, collision, shadows and render fidelity, package by package.
 function LoungeBuilder.applyPackages(lounge: Model): number
 	local touched = 0
@@ -251,12 +269,14 @@ end
 --- Everything above, in order. Run from Studio's command bar in EDIT mode, then save.
 function LoungeBuilder.setUp(parent: Instance): string
 	local lounge, moved = LoungeBuilder.correctImport(parent)
+	local removed = LoungeBuilder.removeClutter(lounge)
 	local parts = LoungeBuilder.applyPackages(lounge)
 	local lights = LoungeBuilder.buildPendants(lounge)
 	LoungeBuilder.applyLighting()
 	LoungeBuilder.placeSpawn(parent)
-	return ("[8ball] lounge ready: %d packages repositioned, %d parts set up, %d pendants"):format(
+	return ("[8ball] lounge ready: %d packages repositioned, %d clutter parts removed, %d parts set up, %d pendants"):format(
 		moved,
+		removed,
 		parts,
 		lights
 	)
