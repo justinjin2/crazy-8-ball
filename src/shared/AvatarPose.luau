@@ -77,7 +77,7 @@ function AvatarPose.standing(
 	p: Placement.Placement,
 	cueWorld: Vector3,
 	dir: Vector3
-): (CFrame, number)
+): (CFrame, number, number)
 	local A = Config.Avatar
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local root = character:FindFirstChild("HumanoidRootPart")
@@ -96,21 +96,21 @@ function AvatarPose.standing(
 	local stand = natural
 	local overhang = 0
 	if math.abs(relX) < hx and math.abs(relY) < hy then
-		-- Distance to walk back until |x| or |y| reaches the rim (whichever comes first
-		-- along -flat).
-		local tx = if math.abs(flatX) > 1e-6
-			then (hx - math.abs(relX)) / math.abs(flatX)
-			else math.huge
-		local ty = if math.abs(flatY) > 1e-6
-			then (hy - math.abs(relY)) / math.abs(flatY)
-			else math.huge
-		-- Only the components that move outward count: walking back along -flat moves x by
-		-- -flatX, so it approaches the rim on the side relX and -flatX agree on.
-		local back = math.min(
-			if relX * -flatX > 0 then tx else math.huge,
-			if relY * -flatY > 0 then ty else math.huge
-		)
-		if back == math.huge then
+		-- Where walking back along -flat leaves the table. A ray starting inside a box
+		-- always exits somewhere, and this has to find that exit rather than only the
+		-- nearest rim: with the cue ball near a cushion and the shot going INTO it,
+		-- walking back goes DEEPER and leaves by the far rail. The old version only
+		-- tested the near rim, found nothing, and left the shooter stood on the cloth -
+		-- which is the "player is on top of the table" everyone could see.
+		local bx, by = -flatX, -flatY -- the direction we walk while backing off
+		local function exitAt(rel: number, comp: number, half: number): number
+			if math.abs(comp) < 1e-6 then
+				return math.huge -- never crosses this pair of rails
+			end
+			return ((if comp > 0 then half else -half) - rel) / comp
+		end
+		local back = math.min(exitAt(relX, bx, hx), exitAt(relY, by, hy))
+		if back == math.huge or back < 0 then
 			back = 0
 		end
 		back *= Config.Table.StudsPerInch
@@ -121,7 +121,9 @@ function AvatarPose.standing(
 	-- The floor the table stands on, which is the tier height in the lounge.
 	local pos = Vector3.new(stand.X, p.y + hip + rootHalf, stand.Z)
 	local stretch = math.clamp(overhang / math.max(A.StretchBlendStuds, 1e-3), 0, 1)
-	return CFrame.lookAt(pos, pos + flat), stretch
+	-- The raw reach in studs comes back too: how far past a normal stance the shooter is
+	-- having to get to the ball is what decides whether they are worth drawing at all.
+	return CFrame.lookAt(pos, pos + flat), stretch, overhang
 end
 
 --- Root CFrame only (kept for callers that do not need the stretch amount).

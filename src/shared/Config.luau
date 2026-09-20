@@ -661,9 +661,12 @@ Config.Aim = {
 -- Avatar (the shooter's R15 character at the table)
 ---------------------------------------------------------------------------------------------
 Config.Avatar = {
-	-- Transparency while aiming and while a shot plays (1 = invisible).
+	-- Transparency while aiming (1 = invisible).
 	AimTransparency = 0.9,
-	ShotTransparency = 0.6,
+	-- The shooter is hidden outright while the balls are moving, and comes back when they
+	-- stop. Watching a faded body slide around the cloth chasing the cue ball was worse
+	-- than not seeing them at all, and the shot is the thing worth looking at.
+	HideWhileShooting = true,
 	-- Hats, hoods, wings and other accessories are hidden while aiming so they cannot cover
 	-- the table; the body itself stays as a faded silhouette.
 	HideAccessoriesWhileAiming = true,
@@ -679,8 +682,19 @@ Config.Avatar = {
 	StandBackStuds = 3.6,
 	SideOffsetStuds = 0.35,
 	-- When that spot would be on the table, the character stands at the rail instead and
-	-- stretches over it. The stretch pose blends in over this many studs of "overhang".
-	StretchBlendStuds = 1.2,
+	-- reaches over it. The stretch pose blends in over this many studs of reach past a
+	-- normal stance. It used to be 1.2, but a plain shot from the middle of the table is
+	-- already 5.3 studs of reach, so EVERY shot came out at full stretch - which is why the
+	-- shooter always looked like they were lying across the cloth.
+	StretchBlendStuds = 6,
+	-- Past a certain reach there is no stance that reads as a person: the cue ball against
+	-- the far cushion with the shot going INTO it is nearly the length of the table away
+	-- from anywhere you could stand. Rather than contort further, the body fades out.
+	-- In STUDS of reach past a normal stance, so it is comparable with StretchBlendStuds:
+	-- a shot from the middle of the table is about 5.3 and stays fully visible, while the
+	-- worst reach on a 9 ft table is about 13 and is gone.
+	ReachFadeStartStuds = 8,
+	ReachFadeEndStuds = 12,
 	-- Procedural aiming pose. Joint rotations in degrees applied on top of the rest pose:
 	-- {pitch, yaw, roll} as CFrame.Angles(X, Y, Z). Negative pitch = bend/tilt forward.
 	Pose = {

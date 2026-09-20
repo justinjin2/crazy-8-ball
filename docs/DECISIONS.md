@@ -96,3 +96,10 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-20: Pendant fixtures lifted 4.5 studs. The package hangs them 4.6 studs above the
   cloth and the aim camera sits at 10.8, so they hung between the player and the table. The
   drop is shortened rather than the fixture moved, so the cord still meets the ceiling.
+- 2026-09-20: The shooter is hidden outright while the balls are moving and comes back when
+  they stop, rather than staying faintly visible. They used to be posed against the LIVE cue
+  ball, so the body slid around the cloth chasing it for the length of the shot.
+- 2026-09-20: Past about 8 studs of reach the shooter fades out entirely. A cue ball against
+  a cushion with the shot going into it is nearly a table length from anywhere a person could
+  stand, and no stance reads as a person from a camera on the far side; fading beats
+  contorting.

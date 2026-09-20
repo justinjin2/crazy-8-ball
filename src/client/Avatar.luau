@@ -105,9 +105,21 @@ function Avatar.take(self: Avatar)
 	end
 end
 
+--- Hide the shooter outright, without letting go of the character. Used while the balls
+--- are moving: the shot is what is worth looking at, and a body sliding around the cloth
+--- following the cue ball is not.
+function Avatar.conceal(self: Avatar)
+	local character = self.character
+	if not character or not self.parked or self.transparency == 1 then
+		return
+	end
+	self.transparency = 1
+	AvatarPose.setTransparency(character, 1, true)
+end
+
 --- Place and pose the character. Call every frame. The character fades out completely as
 --- the camera gets close to it (so it never covers the cue ball), back to `transparency`
---- from FadeFarStuds out.
+--- from FadeFarStuds out, and also as the stance stretches further over the table.
 function Avatar.update(
 	self: Avatar,
 	p: Placement.Placement,
@@ -120,18 +132,28 @@ function Avatar.update(
 	if not character or not self.parked then
 		return
 	end
-	local rootCFrame, stretch = AvatarPose.standing(character, p, cueWorld, dir)
+	local rootCFrame, stretch, reach = AvatarPose.standing(character, p, cueWorld, dir)
 	AvatarPose.apply(character, rootCFrame, stretch)
 	local target = transparency
+	-- Fade out with the reach, in studs past a normal stance. See Config.Avatar.
+	local A = Config.Avatar
+	if reach > A.ReachFadeStartStuds then
+		local k = math.clamp(
+			(reach - A.ReachFadeStartStuds)
+				/ math.max(A.ReachFadeEndStuds - A.ReachFadeStartStuds, 1e-3),
+			0,
+			1
+		)
+		target = target + (1 - target) * k
+	end
 	if cameraPos then
-		local A = Config.Avatar
 		local d = (rootCFrame.Position - cameraPos).Magnitude
 		local k = math.clamp(
 			(d - A.FadeNearStuds) / math.max(A.FadeFarStuds - A.FadeNearStuds, 1e-3),
 			0,
 			1
 		)
-		target = 1 - (1 - transparency) * k
+		target = 1 - (1 - target) * k
 	end
 	-- Quantise so the (descendant walk) transparency update does not run every frame.
 	target = math.floor(target * 50 + 0.5) / 50

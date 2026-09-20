@@ -264,13 +264,14 @@ RunService.RenderStepped:Connect(function(dt)
 	local dir = Camera.aimDirection(input.angle)
 	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
 	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)
-	avatar:update(
-		p,
-		cueBallWorld(),
-		dir,
-		if playing then Config.Avatar.ShotTransparency else Config.Avatar.AimTransparency,
-		Camera.position()
-	)
+	if playing and Config.Avatar.HideWhileShooting then
+		-- The shooter steps out of the way while the balls run. Posing them against the
+		-- LIVE cue ball, which is what used to happen here, walked the body around the
+		-- cloth chasing it for the length of the shot.
+		avatar:conceal()
+	else
+		avatar:update(p, cueBallWorld(), dir, Config.Avatar.AimTransparency, Camera.position())
+	end
 	if wasPlaying and not playing then
 		local summary = m.lastShot
 		if summary then
