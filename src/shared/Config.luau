@@ -130,8 +130,11 @@ Config.Balls = {
 		[7] = { 120, 30, 30 }, -- maroon
 		[8] = { 20, 20, 22 }, -- black
 	},
-	-- Glossy look (tune in the look pass).
-	Reflectance = 0.12,
+	-- Roblox's Reflectance mirrors the SKYBOX, so on an outdoor baseplate it mixes pale blue
+	-- sky into every pixel and desaturates the colour. Phenolic resin is glossy, not a
+	-- mirror: the highlight should come from SmoothPlastic's specular, not from this. Was
+	-- 0.12, which was visibly washing the reds towards pink. (tune in the look pass)
+	Reflectance = 0.04,
 	-- The rendered ball rotation is built by multiplying CFrames every frame, which drifts
 	-- off orthonormal and shears the ball. Rebuild it from squared-up axes this often.
 	RotationRenormaliseSteps = 512,
