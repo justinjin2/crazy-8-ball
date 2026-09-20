@@ -288,6 +288,63 @@ Config.Lounge = {
 	},
 	-- Until Roadmap 1.5d builds all twelve, this is the one table that exists.
 	ActiveTableId = 1,
+
+	-- Where the player spawns (Markers.json "Spawn_Lounge", the seating area).
+	Spawn = { X = 0, Y = 0.1, Z = 20 },
+
+	-- The six FBX packages and how each behaves once imported, from step 5 of
+	-- assets/lounge/Readme.md. Two deliberate departures from that note, both so the room
+	-- is playable rather than only pretty: the window glass collides (the package would
+	-- have it pass-through, and there is no proxy behind it, so players would walk out of
+	-- the building) and the furniture collides (there is no proxy for the sofas either).
+	Packages = {
+		Lounge_Architecture = { CanCollide = true, Collision = "Box", CastShadow = true },
+		Lounge_Collision = { CanCollide = true, Collision = "Box", CastShadow = false, Hide = true },
+		Lounge_Emissive = { CanCollide = false, CastShadow = false, Material = "Neon" },
+		Lounge_Furniture = { CanCollide = true, Collision = "Box", CastShadow = true },
+		Lounge_Props = { CanCollide = false, CastShadow = false },
+		Lounge_Signs = { CanCollide = false, CastShadow = false },
+	},
+	-- Per-part exceptions, by exact name or by a name fragment.
+	PartRules = {
+		Glass_Windows = { Material = "Glass", Transparency = 0.65, Color = { 214, 232, 240 } },
+	},
+	-- Anything whose name contains one of these is flat on the floor and must not be walked
+	-- into (a rug with a collision box is a step).
+	NoCollideFragments = { "Rug" },
+
+	-- One pendant over each table. Markers.json puts every pendant directly above its own
+	-- table at the same height above that tier's floor, so one number covers all twelve.
+	-- Shadows are OFF on purpose: twelve shadow-casting lights is the most expensive thing
+	-- this scene could contain, and the sun does the shadow work instead. This replaces the
+	-- old per-table SpotLight that did not scale past one table.
+	Pendant = {
+		HeightAboveFloor = 7.42,
+		Brightness = 1.8,
+		RangeStuds = 24,
+		AngleDegrees = 120,
+		Color = { 255, 177, 110 }, -- 3000 K, warm
+		Shadows = false,
+	},
+
+	-- Lighting recipe supplied with the package. Its own notes call these a starting point
+	-- that was never evaluated inside Studio, so treat every number as (tune).
+	Lighting = {
+		ClockTime = 17.4,
+		Brightness = 2,
+		Ambient = { 150, 146, 133 },
+		OutdoorAmbient = { 170, 154, 130 },
+		ColorShiftTop = { 18, 10, 3 },
+		EnvironmentDiffuseScale = 0.65,
+		EnvironmentSpecularScale = 0.5,
+		Bloom = { Intensity = 0.12, Size = 20, Threshold = 1.2 },
+		ColorCorrection = {
+			Brightness = 0.02,
+			Contrast = 0.04,
+			Saturation = 0.04,
+			TintColor = { 255, 244, 224 },
+		},
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -481,8 +538,13 @@ Config.Join = {
 	PromptActionText = "Play pool",
 	PromptObjectText = "8-Ball table",
 	HoldSeconds = 0.6,
-	-- How close (studs from the table centre) the prompt appears.
-	PromptDistanceStuds = 14,
+	-- How close (studs from the table centre) the prompt appears. Must stay under half the
+	-- 20 stud gap between table columns, or standing between two tables makes both prompts
+	-- live and which one you join is a coin toss. Roblox also measures this from the camera
+	-- rather than the character, so the player is effectively a few studs further away than
+	-- they look: 14 read as "in range" at 13 studs and still refused to fire.
+	-- Roadmap 1.5e replaces the whole prompt with a floor pad.
+	PromptDistanceStuds = 9,
 }
 
 ---------------------------------------------------------------------------------------------

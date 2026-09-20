@@ -65,6 +65,56 @@ return {
 		end
 	end,
 
+	["every pendant sits over its own table at the height Markers records"] = function()
+		local Config = H.require("Config")
+		local raw = serde.decode("json", fs.readFile(MARKERS)) :: any
+		local byTable: { [number]: any } = {}
+		for _, row in Config.Lounge.Tables do
+			byTable[row.id] = row
+		end
+		H.expect(#raw.pendants == 12, "twelve pendants")
+		for _, p in raw.pendants do
+			local id = tonumber((p.table :: string):match("%d+"))
+			local row = byTable[id :: number]
+			H.expect(row ~= nil, ("pendant %s names no table"):format(p.name))
+			-- Config stores one height above the tier floor rather than twelve positions,
+			-- so this is what proves the shortcut is legitimate.
+			H.near(row.X, p.position[1], 1e-4, p.name .. " X")
+			H.near(row.Z, p.position[3], 1e-4, p.name .. " Z")
+			H.near(
+				row.Y + Config.Lounge.Pendant.HeightAboveFloor,
+				p.position[2],
+				1e-4,
+				p.name .. " height above its tier"
+			)
+		end
+	end,
+
+	["the pendant light settings are the ones the package suggests"] = function()
+		local Config = H.require("Config")
+		local raw = serde.decode("json", fs.readFile(MARKERS)) :: any
+		local want = raw.pendants[1].suggested_roblox_light
+		local got = Config.Lounge.Pendant
+		H.near(got.Brightness, want.Brightness, 1e-6, "brightness")
+		H.near(got.RangeStuds, want.Range, 1e-6, "range")
+		H.near(got.AngleDegrees, want.Angle, 1e-6, "angle")
+		for i = 1, 3 do
+			H.near(got.Color[i], want.Color[i], 1e-6, "colour channel " .. i)
+		end
+		-- Not a preference: twelve shadow-casting lights is the most expensive thing this
+		-- scene could hold, and STATUS.md carried it as a debt from the single-table build.
+		H.expect(got.Shadows == false, "pendants must never cast shadows")
+		H.expect(want.Shadows == false, "the package agrees")
+	end,
+
+	["the spawn is where the package put it"] = function()
+		local Config = H.require("Config")
+		local raw = serde.decode("json", fs.readFile(MARKERS)) :: any
+		H.near(Config.Lounge.Spawn.X, raw.spawn.position[1], 1e-4, "spawn X")
+		H.near(Config.Lounge.Spawn.Y, raw.spawn.position[2], 1e-4, "spawn Y")
+		H.near(Config.Lounge.Spawn.Z, raw.spawn.position[3], 1e-4, "spawn Z")
+	end,
+
 	["the lounge stands on three tiers of four"] = function()
 		local Config = H.require("Config")
 		local perTier: { [number]: number } = {}
