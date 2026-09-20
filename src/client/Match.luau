@@ -13,8 +13,14 @@
 -- Stepping live also means the renderer sees real Ball values, including the angular
 -- velocity, which is what lets a skidding ball look like it is skidding.
 --
--- Roadmap 1.5f makes the server the authority: the inputs come off the wire and the final
--- positions are reconciled against the server's, but the stepping below does not change.
+-- The server is the authority. A shot does not start here: the inputs go up, the server
+-- decides what happened, and what comes back is a SEED (the cue ball's velocity and spin
+-- just after the strike) plus the final positions. Every client, including the one that
+-- took the shot, replays from that same seed, so nobody sees a different break.
+--
+-- The seed matters rather than {angle, power} because Cue.strike goes through math.cos,
+-- math.sin and a fractional power, none of which are correctly rounded across platforms.
+-- See the note at the top of src/server/ShotService.luau.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -59,9 +65,15 @@ export type Match = typeof(setmetatable(
 			events: { Event },
 			nextEvent: number,
 			capped: boolean,
+			startedAt: number,
 		}?,
 		lastShot: Summary?,
 		eventListeners: { (Event) -> () },
+		-- The sequence number of the shot being replayed, and where the server says the
+		-- balls finish, so the table can settle onto the truth when the motion stops.
+		seq: number,
+		pendingFinal: { number }?,
+		pendingChecksum: number?,
 	},
 	Match
 ))
@@ -75,6 +87,9 @@ function Match.new(p: Placement.Placement, renderer: BallRenderer.BallRenderer?)
 		shot = nil,
 		lastShot = nil,
 		eventListeners = {},
+		seq = 0,
+		pendingFinal = nil,
+		pendingChecksum = nil,
 	}, Match)
 	self:renderState()
 	return self
@@ -145,15 +160,78 @@ function Match.ensureCueBall(self: Match)
 	end
 end
 
---- Strike the cue ball and start stepping the shot. Returns false if one is already running.
-function Match.fire(self: Match, shot: Shot): boolean
-	if self.shot then
-		return false
-	end
+--- Replay the shot the server has just run. `seed` is the cue ball's state immediately
+--- after the strike; `startedAt` is the server clock reading when it began, so a client
+--- that joined late or hitched can work out how far in it already is rather than starting
+--- the whole shot from the beginning.
+function Match.replay(
+	self: Match,
+	seq: number,
+	seed: { vx: number, vy: number, wx: number, wy: number, wz: number },
+	startedAt: number,
+	final: { number },
+	checksum: number
+)
 	self:ensureCueBall()
-	local strike = Simulation.strike(self.state, shot)
-	self.shot = { elapsed = 0, steps = 0, events = { strike }, nextEvent = 1, capped = false }
-	return true
+	local cue = Simulation.findBall(self.state, 0)
+	if cue == nil then
+		return
+	end
+	-- Start from the server's numbers exactly. Nothing here recomputes the strike.
+	cue.vx, cue.vy = seed.vx, seed.vy
+	cue.wx, cue.wy, cue.wz = seed.wx, seed.wy, seed.wz
+	self.state.time = 0
+	self.seq = seq
+	self.pendingFinal = final
+	self.pendingChecksum = checksum
+	-- If this arrived late, catch up to where the shot already is instead of replaying it
+	-- from the start and finishing several seconds after everyone else.
+	local behind = math.max(workspace:GetServerTimeNow() - startedAt, 0)
+	self.shot = {
+		elapsed = behind,
+		steps = 0,
+		events = { { t = 0, type = "cueStrike", ball = 0, speed = Ball.speed(cue) } },
+		nextEvent = 1,
+		capped = false,
+		startedAt = startedAt,
+	}
+end
+
+--- Settle onto the server's final positions. Called when the replay stops moving.
+function Match.reconcile(self: Match)
+	local final = self.pendingFinal
+	self.pendingFinal = nil
+	if final == nil then
+		return
+	end
+	local drift = 0
+	for i, b in self.state.balls do
+		local x, y, z = final[4 * i - 3], final[4 * i - 2], final[4 * i - 1]
+		if x == nil then
+			break
+		end
+		local dx, dy = b.x - x, b.y - y
+		drift = math.max(drift, math.sqrt(dx * dx + dy * dy))
+		b.x, b.y, b.z = x, y, z
+		b.pocketed = final[4 * i] == 1
+		Ball.stop(b)
+	end
+	-- The state the guideline and the next shot are built from must be the server's, not
+	-- this client's replay of it, or the aim would quietly lie.
+	if Config.Debug.LogChecksumMismatch then
+		local mine = Simulation.checksum(self.state.balls)
+		if self.pendingChecksum and mine ~= self.pendingChecksum then
+			warn(
+				("[8ball] replay drifted from the server by %.3f in (checksum %d vs %d)"):format(
+					drift,
+					mine,
+					self.pendingChecksum
+				)
+			)
+		end
+	end
+	self.pendingChecksum = nil
+	self:renderState()
 end
 
 local function dispatch(self: Match, ev: Event)
@@ -225,6 +303,7 @@ function Match.update(self: Match, dt: number): boolean
 
 	if shot.capped or Simulation.isAtRest(self.state) then
 		finish(self, shot)
+		self:reconcile()
 		return false
 	end
 	return true

@@ -773,6 +773,12 @@ Config.Debug = {
 	LogEvents = false,
 	-- Print a timing line when a shot finishes playing back.
 	LogPlayback = true,
+	-- Print a line when the server turns a shot down. Noisy but useful while the net layer
+	-- is new; a rejection is usually a race, not a cheat.
+	LogRejectedShots = true,
+	-- Warn when a client's replay of a shot does not land where the server said it would.
+	-- This is the measurement that turns "float determinism is scary" into a number.
+	LogChecksumMismatch = true,
 	-- Largest slice of shot time simulated per rendered frame. A hitch must not fast-forward
 	-- the shot, and it caps how much simulation one frame can ever be asked to do.
 	MaxPlaybackStepSeconds = 0.1,

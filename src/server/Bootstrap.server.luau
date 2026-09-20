@@ -12,6 +12,7 @@ local LoungeBuilder = require(Shared:WaitForChild("LoungeBuilder"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
 -- Remotes first: TableService and every client look them up by name.
@@ -46,8 +47,10 @@ for _, row in Config.Lounge.Tables do
 	end
 end
 
--- The floor pads, and the server-side seat state behind them.
+-- The floor pads and the seat state behind them, then the shot authority: the client sends
+-- inputs, this decides what actually happened.
 TableService.start(workspace)
+ShotService.start()
 
 -- Publish the imported ball mesh to clients (MeshId is plugin-only, so it lives in the place).
 local assets = ReplicatedStorage:FindFirstChild("Assets") or Instance.new("Folder")

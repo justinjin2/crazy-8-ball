@@ -5,9 +5,9 @@
 -- The server creates them and the client waits for them; nothing here is in the Rojo tree,
 -- because a RemoteEvent is state, not source.
 --
--- Roadmap 1.5f adds ShotFired / ShotResult, and 1.5g the aim stream. The seat traffic below
--- is deliberately tiny: a table's seats change when somebody walks onto a pad or presses
--- Leave, which is a handful of messages a minute, not a stream.
+-- Roadmap 1.5g adds the aim stream, which will be the first unreliable remote here: losing
+-- one of ten aim updates a second does not matter. Everything below is reliable and rare -
+-- seats change when somebody steps on a pad, and a shot is one message per shot.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -24,6 +24,12 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: please seat me at this table / take me off it.
 	RequestSeat = "RemoteEvent",
 	RequestLeave = "RemoteEvent",
+	-- client -> server: I want to take this shot. Inputs only; the server decides what
+	-- actually happens (ARCHITECTURE.md section 1, never trust the client).
+	ShotFired = "RemoteEvent",
+	-- server -> all: a shot has started on a table. Carries the post-strike cue ball state
+	-- to replay from, the server's final positions to settle on, and a checksum.
+	ShotResult = "RemoteEvent",
 }
 
 local function container(): Instance

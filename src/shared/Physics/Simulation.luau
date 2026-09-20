@@ -514,6 +514,30 @@ local function captureFrame(state: State): Frame
 	return { t = state.time, positions = positions }
 end
 
+--- A deterministic fingerprint of where every ball ended up, used to prove that a client's
+--- replay of a shot matched the server's run of it. Positions are quantised to a thousandth
+--- of an inch first, so the last bit or two of floating point noise does not trip it, and
+--- the mix is plain integer arithmetic (FNV-1a) so it is identical on every machine.
+---
+--- Balls are hashed in list order, which Rack.newGame sorts by id, so the order is
+--- canonical rather than whatever the table happened to iterate.
+function Simulation.checksum(balls: { Ball }): number
+	local h = 2166136261
+	local function mix(value: number)
+		-- Quantise, then fold into an unsigned 32-bit range before mixing.
+		local q = math.floor(value * 1000 + 0.5) % 4294967296
+		h = bit32.bxor(h, q)
+		h = (h * 16777619) % 4294967296
+	end
+	for _, b in balls do
+		mix(b.x)
+		mix(b.y)
+		mix(b.z)
+		mix(if b.pocketed then 1 else 0)
+	end
+	return h
+end
+
 --- Strike the cue ball of a state that is about to be stepped, returning the opening event.
 --- Split out of run so a client can start a shot and step it forward itself instead of
 --- simulating the whole thing up front (see src/client/Match.luau).

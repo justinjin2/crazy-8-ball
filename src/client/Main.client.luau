@@ -109,15 +109,16 @@ end
 local shotAngle, shotPower = 0, 0
 
 local function shoot(power: number)
-	local m = match
-	if m == nil or m:isBusy() then
+	local m, id = match, seatId
+	if m == nil or id == nil or m:isBusy() then
 		return
 	end
-	if m:fire({ angle = input.angle, power = power }) then
-		shotAngle, shotPower = input.angle, power
-		input:setEnabled(false)
-		refreshGuideline()
-	end
+	-- Inputs go to the server; the shot begins when it broadcasts the result back. Nothing
+	-- is simulated here first, so the shooter sees exactly what everybody else sees.
+	lounge:fire(id, input.angle, power)
+	shotAngle, shotPower = input.angle, power
+	input:setEnabled(false)
+	refreshGuideline()
 end
 
 --- The server has seated us somewhere (or taken us off a table).
@@ -197,6 +198,8 @@ if Config.Debug.TestKeysEnabled then
 			return
 		end
 		if keyInput.KeyCode == Enum.KeyCode.B then
+			-- The rack belongs to the server now, so this only clears the local view until
+			-- the next shot result arrives. Rules (2.1) replace the test key entirely.
 			m:rerack()
 			input:setAngle(0)
 			refreshGuideline()

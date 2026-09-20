@@ -24,6 +24,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
+local Physics = Shared:WaitForChild("Physics")
+local Rack = require(Physics:WaitForChild("Rack"))
+local Simulation = require(Physics:WaitForChild("Simulation"))
+local TableGeometry = require(Physics:WaitForChild("Table"))
 
 local TableService = {}
 
@@ -35,6 +39,13 @@ type TableState = {
 	id: number,
 	placement: Placement.Placement,
 	pad: BasePart,
+	-- The authoritative balls. Clients keep their own copy and replay shots onto it, but
+	-- this one is the truth and they settle onto it when a shot ends.
+	state: Simulation.State,
+	-- Bumped per shot, so a client that missed one can tell and snap instead of replaying.
+	shotSeq: number,
+	-- Server time the current shot started, or nil when the table is still.
+	shotStartedAt: number?,
 	seats: { Seat },
 	-- userId -> how many polls in a row they have been standing on this pad
 	dwell: { [number]: number },
@@ -214,6 +225,44 @@ function TableService.tableOf(player: Player): number?
 	return seatOf[player.UserId]
 end
 
+--- The authoritative simulation for table `id`, for ShotService.
+function TableService.stateOf(id: number): Simulation.State?
+	local t = tables[id]
+	return if t then t.state else nil
+end
+
+--- True while a shot is still running on table `id`, so a second one cannot be started.
+function TableService.isBusy(id: number): boolean
+	local t = tables[id]
+	if t == nil or t.shotStartedAt == nil then
+		return false
+	end
+	return (workspace:GetServerTimeNow() - t.shotStartedAt) < Config.Physics.MaxShotSeconds
+end
+
+--- Record that a shot has begun, returning its sequence number and start time.
+function TableService.beginShot(id: number, duration: number): (number, number)
+	local t = tables[id]
+	t.shotSeq += 1
+	local now = workspace:GetServerTimeNow()
+	t.shotStartedAt = now
+	-- The table is free again once the balls would have stopped.
+	task.delay(duration + 0.25, function()
+		if t.shotStartedAt == now then
+			t.shotStartedAt = nil
+		end
+	end)
+	return t.shotSeq, now
+end
+
+--- Put a fresh rack on table `id` (the B test key until the rules land in 2.1).
+function TableService.rerack(id: number)
+	local t = tables[id]
+	if t and not TableService.isBusy(id) then
+		t.state.balls = Rack.newGame(t.state.geometry)
+	end
+end
+
 local function rootOf(player: Player): BasePart?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -270,6 +319,9 @@ function TableService.start(parent: Instance)
 	(folder :: Folder).Name = TableService.PadFolderName;
 	(folder :: Folder).Parent = parent
 
+	-- One geometry for all twelve: it is read-only and identical, so there is no reason to
+	-- build the same cushion and pocket list a dozen times.
+	local geometry = TableGeometry.build({ pocketsOpen = true })
 	for _, row in Config.Lounge.Tables do
 		local placement = Placement.forTable(row.id)
 		if placement then
@@ -277,6 +329,9 @@ function TableService.start(parent: Instance)
 				id = row.id,
 				placement = placement,
 				pad = buildPad(placement, row.id, folder :: Folder),
+				state = Simulation.newState(geometry, Rack.newGame(geometry)),
+				shotSeq = 0,
+				shotStartedAt = nil,
 				seats = {},
 				dwell = {},
 				leftAt = {},

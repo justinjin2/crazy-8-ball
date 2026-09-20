@@ -82,8 +82,25 @@ function Lounge.onSeatChanged(self: Lounge, listener: (number?) -> ())
 	table.insert(self.seatListeners, listener)
 end
 
+--- Ask the server to take a shot at table `id`. Nothing happens locally: the shot starts
+--- when the server broadcasts it back, so every client (including this one) plays the same
+--- motion from the same numbers at the same moment.
+function Lounge.fire(_self: Lounge, id: number, angle: number, power: number)
+	Net.get("ShotFired"):FireServer({ tableId = id, angle = angle, power = power })
+end
+
 function Lounge.listen(self: Lounge)
 	local me = Players.LocalPlayer.UserId
+
+	Net.get("ShotResult").OnClientEvent:Connect(function(msg)
+		if typeof(msg) ~= "table" or typeof(msg.tableId) ~= "number" then
+			return
+		end
+		local match: Match.Match? = self.matches[msg.tableId]
+		if match then
+			match:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum)
+		end
+	end)
 	Net.get("TableState").OnClientEvent:Connect(function(snapshot)
 		if typeof(snapshot) ~= "table" or typeof(snapshot.id) ~= "number" then
 			return

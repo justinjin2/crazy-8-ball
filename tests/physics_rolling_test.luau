@@ -130,6 +130,37 @@ return {
 		H.near(top, -back, 1e-9, "equal offsets give equal and opposite spin")
 	end,
 
+	["the checksum matches for the same shot and differs for a different one"] = function()
+		local _, Ball, _, Simulation, geometry = setup()
+		local Rack = H.require("Physics.Rack")
+		local state = Simulation.newState(geometry, Rack.newGame(geometry))
+		local a = Simulation.runHeadless(state, { angle = 0.03, power = 0.9 })
+		local b = Simulation.runHeadless(state, { angle = 0.03, power = 0.9 })
+		local c = Simulation.runHeadless(state, { angle = 0.031, power = 0.9 })
+		-- This is what the server and every client compare after a shot: same inputs, same
+		-- fingerprint, or somebody has diverged.
+		H.expect(
+			Simulation.checksum(a.finalBalls) == Simulation.checksum(b.finalBalls),
+			"the same shot must fingerprint the same"
+		)
+		H.expect(
+			Simulation.checksum(a.finalBalls) ~= Simulation.checksum(c.finalBalls),
+			"a different shot must fingerprint differently"
+		)
+		-- A hair of noise below the quantisation must not change it; a real move must.
+		local nudged = Ball.cloneList(a.finalBalls)
+		nudged[1].x += 1e-6
+		H.expect(
+			Simulation.checksum(nudged) == Simulation.checksum(a.finalBalls),
+			"float noise must not trip the check"
+		)
+		nudged[1].x += 0.5
+		H.expect(
+			Simulation.checksum(nudged) ~= Simulation.checksum(a.finalBalls),
+			"a ball half an inch out must trip it"
+		)
+	end,
+
 	["runHeadless gives the same outcome as run, without the frames"] = function()
 		local Config, _, _, Simulation, geometry = setup()
 		local Rack = H.require("Physics.Rack")
