@@ -142,33 +142,8 @@ function TableBuilder.findModelTemplate(): Model?
 	return nil
 end
 
---- Add the hold-E prompt to a table model. Roadmap 1.5e replaces this with a floor pad;
---- until then it is how you join, so it stays.
-local function addJoinPrompt(model: Model, origin: Vector3, s: number)
-	local T = Config.Table
-	local promptAnchor = Instance.new("Part")
-	promptAnchor.Name = "JoinPrompt"
-	promptAnchor.Anchored = true
-	promptAnchor.CanCollide = false
-	promptAnchor.CanQuery = false
-	promptAnchor.Transparency = 1
-	promptAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
-	promptAnchor.Position = origin
-		+ Vector3.new(0, (T.SurfaceHeightInches + T.RailHeightInches) * s, 0)
-	promptAnchor.Parent = model
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "Play"
-	prompt.ActionText = Config.Join.PromptActionText
-	prompt.ObjectText = Config.Join.PromptObjectText
-	prompt.HoldDuration = Config.Join.HoldSeconds
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.MaxActivationDistance = Config.Join.PromptDistanceStuds
-	prompt.RequiresLineOfSight = false
-	prompt.Style = Enum.ProximityPromptStyle.Default
-	prompt.Parent = promptAnchor
-end
-
---- Place a clone of the imported model at table `p`, set collisions, add the prompt.
+--- Place a clone of the imported model at table `p` and set its collisions. Joining is the
+--- floor pad's job now (src/server/TableService.luau), so no prompt is attached.
 function TableBuilder.buildFromModel(
 	template: Model,
 	parent: Instance,
@@ -193,7 +168,6 @@ function TableBuilder.buildFromModel(
 	-- The Blender package authors the table with its long axis along X; the lounge stands
 	-- every table turned by its yaw, so the pivot carries the rotation too.
 	model:PivotTo(CFrame.new(p.x, p.y, p.z) * TableBuilder.yawCFrame(p))
-	addJoinPrompt(model, Vector3.new(p.x, p.y, p.z), Config.Table.StudsPerInch)
 	return model
 end
 
@@ -537,27 +511,6 @@ function TableBuilder.buildFromParts(parent: Instance, p: Placement, id: number)
 		shaft.Material = material(L.ShaftMaterial)
 		shaft.Color = color(L.ShaftColor)
 	end
-
-	-- Join prompt: hold E (or tap the button on phones) near the table to start playing.
-	local promptAnchor = Instance.new("Part")
-	promptAnchor.Name = "JoinPrompt"
-	promptAnchor.Anchored = true
-	promptAnchor.CanCollide = false
-	promptAnchor.CanQuery = false
-	promptAnchor.Transparency = 1
-	promptAnchor.Size = Vector3.new(0.2, 0.2, 0.2)
-	promptAnchor.Position = origin + Vector3.new(0, (surfaceY + railH) * s, 0)
-	promptAnchor.Parent = model
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "Play"
-	prompt.ActionText = Config.Join.PromptActionText
-	prompt.ObjectText = Config.Join.PromptObjectText
-	prompt.HoldDuration = Config.Join.HoldSeconds
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.MaxActivationDistance = Config.Join.PromptDistanceStuds
-	prompt.RequiresLineOfSight = false
-	prompt.Style = Enum.ProximityPromptStyle.Default
-	prompt.Parent = promptAnchor
 
 	-- Legs.
 	local legH = frameBottom

@@ -248,6 +248,12 @@ function Guideline.update(self: Guideline, dt: number)
 	end
 end
 
+--- Tear the guideline down. The local player only has one at a time, so moving to another
+--- table destroys this one rather than leaving a second set of strips behind.
+function Guideline.destroy(self: Guideline)
+	self.folder:Destroy()
+end
+
 function Guideline.hide(self: Guideline)
 	hideStrip(self.path)
 	hideStrip(self.leftEdge)

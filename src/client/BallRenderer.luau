@@ -77,6 +77,21 @@ function BallRenderer.new(parent: Instance, p: Placement.Placement, id: number):
 	return self
 end
 
+--- Point this renderer at a different table. The parts are kept and moved rather than
+--- rebuilt: walking past a row of tables would otherwise destroy and recreate sixteen
+--- MeshParts each time, which is exactly the hitch this pooling exists to avoid.
+function BallRenderer.rebind(self: BallRenderer, p: Placement.Placement, id: number)
+	self.placement = p
+	self.yaw = TableBuilder.yawCFrame(p)
+	self.folder.Name = ("Balls_%02d"):format(id)
+	-- A ball must not carry the last table's tumble or its pocketed state across.
+	for ballId in self.rotations do
+		self.rotations[ballId] = CFrame.identity
+		self.spinSteps[ballId] = 0
+	end
+	self.sunk = {}
+end
+
 -- The imported sphere mesh, if the place has it and the server published it.
 local function meshTemplate(): MeshPart?
 	local assets = ReplicatedStorage:FindFirstChild("Assets")

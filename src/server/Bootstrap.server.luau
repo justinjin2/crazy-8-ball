@@ -9,8 +9,13 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local LoungeBuilder = require(Shared:WaitForChild("LoungeBuilder"))
+local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local TableService = require(script.Parent:WaitForChild("TableService"))
+
+-- Remotes first: TableService and every client look them up by name.
+Net.build()
 
 -- The lounge itself lives in the place: its meshes, textures and materials are all things
 -- a game script may not create. LoungeBuilder.setUp assembles it in Edit mode; this only
@@ -41,6 +46,9 @@ for _, row in Config.Lounge.Tables do
 	end
 end
 
+-- The floor pads, and the server-side seat state behind them.
+TableService.start(workspace)
+
 -- Publish the imported ball mesh to clients (MeshId is plugin-only, so it lives in the place).
 local assets = ReplicatedStorage:FindFirstChild("Assets") or Instance.new("Folder")
 assets.Name = "Assets"
@@ -66,7 +74,7 @@ end
 -- Config.Lounge.Pendant and LoungeBuilder.buildPendants.
 
 print(
-	("[8ball] server ready. %d tables, %dx%d in each, %.2f studs/in"):format(
+	("[8ball] server ready. %d tables with pads, %dx%d in each, %.2f studs/in"):format(
 		built,
 		Config.Table.LengthInches,
 		Config.Table.WidthInches,

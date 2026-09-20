@@ -1,5 +1,10 @@
 --!strict
 -- Client entry point. Wires the systems together; each system is its own module.
+--
+-- You join a table by stepping on its floor pad: the server decides who is sitting where
+-- (src/server/TableService.luau) and tells every client, so a table looks taken from across
+-- the room. This script reacts to "the server says I am now at table N" and switches the
+-- camera, guideline, cue and controls over to that table.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -13,22 +18,15 @@ local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Avatar = require(script.Parent:WaitForChild("Avatar"))
-local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
 local Guideline = require(script.Parent:WaitForChild("Guideline"))
 local Input = require(script.Parent:WaitForChild("Input"))
+local Lounge = require(script.Parent:WaitForChild("Lounge"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local UI = require(script.Parent:WaitForChild("UI"))
 
--- The table the local player can join. Roadmap 1.5e turns this into "whichever table's pad
--- you stepped on"; until then it is the one table the server builds.
-local activeId = Config.Lounge.ActiveTableId
-local placement = assert(Placement.forTable(activeId), "Config.Lounge.ActiveTableId names no table")
-
--- The server builds the table; wait for it so the balls have somewhere to sit.
-local tables = Workspace:WaitForChild(TableBuilder.FolderName)
-local poolTable = tables:WaitForChild(TableBuilder.modelName(activeId))
-local joinPrompt = poolTable:WaitForChild("JoinPrompt"):WaitForChild("Play") :: ProximityPrompt
+-- Wait for the server to have built the tables before drawing balls on them.
+Workspace:WaitForChild(TableBuilder.FolderName)
 
 -- Client-built visuals never hang off a server-built model: a model that streams out takes
 -- its children with it and they do not come back.
@@ -36,45 +34,54 @@ local visuals = Instance.new("Folder")
 visuals.Name = "ClientVisuals"
 visuals.Parent = Workspace
 
-local renderer = BallRenderer.new(visuals, placement, activeId)
-local match = Match.new(renderer, placement)
-local guideline = Guideline.new(visuals, placement)
+local lounge = Lounge.new(visuals)
 local cueStick = CueStickBuilder.build(visuals)
 local input = Input.new()
 local avatar = Avatar.new()
-Camera.setTable(placement)
 
--- "roaming": walking around normally. "playing": at the table, aiming.
-local mode: "roaming" | "playing" = "roaming"
+-- The table this client is sitting at, and its pieces. nil while walking around.
+local seatId: number? = nil
+local match: Match.Match? = nil
+local placement: Placement.Placement? = nil
+local guideline: Guideline.Guideline? = nil
 
 local function cueBallWorld(): Vector3
-	local cue = match:findCueBall()
-	if cue then
-		return TableBuilder.toWorld(placement, cue.x, cue.y, Config.Balls.RadiusInches)
+	local p = placement
+	local m = match
+	if p == nil then
+		return Vector3.zero
 	end
-	return TableBuilder.toWorld(placement, 0, 0, Config.Balls.RadiusInches)
+	local cue = m and m:findCueBall()
+	if cue then
+		return TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RadiusInches)
+	end
+	return TableBuilder.toWorld(p, 0, 0, Config.Balls.RadiusInches)
 end
 
 local currentPull = 0
 
 local function refreshCueStick()
-	local cue = match:findCueBall()
-	if mode ~= "playing" or match:isBusy() or cue == nil or cue.pocketed then
+	local m, p = match, placement
+	local cue = m and m:findCueBall()
+	if m == nil or p == nil or m:isBusy() or cue == nil or cue.pocketed then
 		CueStickBuilder.setVisible(cueStick, false)
 		return
 	end
 	CueStickBuilder.setVisible(cueStick, true)
-	local ballPos = TableBuilder.toWorld(placement, cue.x, cue.y, Config.Balls.RadiusInches)
+	local ballPos = TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RadiusInches)
 	local gap = TableBuilder.studs(Config.Cue.CueRestGapInches)
 		+ currentPull * Config.Cue.CuePullBackStuds
 	CueStickBuilder.place(cueStick, ballPos, Camera.aimDirection(input.angle), gap)
 end
 
 local function refreshGuideline()
-	if mode ~= "playing" or match:isBusy() then
-		guideline:hide()
-	else
-		guideline:show(Aim.trace(match.state, input.angle))
+	local m, g = match, guideline
+	if g then
+		if m == nil or m:isBusy() then
+			g:hide()
+		else
+			g:show(Aim.trace(m.state, input.angle))
+		end
 	end
 	refreshCueStick()
 end
@@ -102,22 +109,49 @@ end
 local shotAngle, shotPower = 0, 0
 
 local function shoot(power: number)
-	if match:isBusy() then
+	local m = match
+	if m == nil or m:isBusy() then
 		return
 	end
-	if match:fire({ angle = input.angle, power = power }) then
+	if m:fire({ angle = input.angle, power = power }) then
 		shotAngle, shotPower = input.angle, power
 		input:setEnabled(false)
 		refreshGuideline()
 	end
 end
 
-local function joinTable()
-	if mode == "playing" then
+--- The server has seated us somewhere (or taken us off a table).
+local function setSeat(id: number?)
+	if id == seatId then
 		return
 	end
-	mode = "playing"
-	joinPrompt.Enabled = false
+	seatId = id
+
+	if guideline then
+		guideline:destroy()
+		guideline = nil
+	end
+
+	if id == nil then
+		match = nil
+		placement = nil
+		input:setEnabled(false)
+		UI.setPlayControlsVisible(false)
+		CueStickBuilder.setVisible(cueStick, false)
+		Camera.resetZoom()
+		Camera.unlock()
+		avatar:release()
+		return
+	end
+
+	match = lounge:matchFor(id)
+	placement = Placement.forTable(id)
+	local p = placement
+	if match == nil or p == nil then
+		return
+	end
+	guideline = Guideline.new(visuals, p)
+	Camera.setTable(p)
 	avatar:take()
 	Camera.lock()
 	Camera.snap(cueBallWorld(), input.angle)
@@ -126,22 +160,14 @@ local function joinTable()
 	refreshGuideline()
 end
 
+lounge:onSeatChanged(setSeat)
+
 local function leaveTable()
-	if mode ~= "playing" then
-		return
+	if seatId ~= nil then
+		lounge:requestLeave()
 	end
-	mode = "roaming"
-	input:setEnabled(false)
-	UI.setPlayControlsVisible(false)
-	guideline:hide()
-	CueStickBuilder.setVisible(cueStick, false)
-	Camera.resetZoom()
-	Camera.unlock()
-	avatar:release()
-	joinPrompt.Enabled = true
 end
 
-joinPrompt.Triggered:Connect(joinTable)
 UI.createLeaveButton(leaveTable)
 input:onLeave(leaveTable)
 
@@ -166,11 +192,12 @@ end)
 
 if Config.Debug.TestKeysEnabled then
 	UserInputService.InputBegan:Connect(function(keyInput, gameProcessed)
-		if gameProcessed or match:isBusy() then
+		local m = match
+		if gameProcessed or m == nil or m:isBusy() then
 			return
 		end
 		if keyInput.KeyCode == Enum.KeyCode.B then
-			match:rerack()
+			m:rerack()
 			input:setAngle(0)
 			refreshGuideline()
 		end
@@ -179,18 +206,21 @@ end
 
 local wasPlaying = false
 
--- Start out walking: no controls, no camera lock, until the table prompt is held.
 input:setEnabled(false)
 UI.setPlayControlsVisible(false)
 CueStickBuilder.setVisible(cueStick, false)
 
 RunService.RenderStepped:Connect(function(dt)
-	guideline:update(dt)
+	if guideline then
+		guideline:update(dt)
+	end
 	-- Sticks and the D-pad repeat have to be sampled, not waited for.
 	input:update(dt)
-	local playing = match:update(dt)
-	if mode ~= "playing" then
-		-- Walking around: leave the camera and the character to Roblox.
+	-- Every table steps, whether or not it is being drawn.
+	local playing = lounge:update(dt)
+
+	local m, p = match, placement
+	if m == nil or p == nil then
 		wasPlaying = playing
 		return
 	end
@@ -200,17 +230,17 @@ RunService.RenderStepped:Connect(function(dt)
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
 	local dir = Camera.aimDirection(input.angle)
-	local cueNow = if playing then match:cueBallWorldNow() else cueBallWorld()
+	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
 	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)
 	avatar:update(
-		placement,
+		p,
 		cueBallWorld(),
 		dir,
 		if playing then Config.Avatar.ShotTransparency else Config.Avatar.AimTransparency,
 		Camera.position()
 	)
 	if wasPlaying and not playing then
-		local summary = match.lastShot
+		local summary = m.lastShot
 		if summary then
 			print(
 				("[8ball] shot: angle %.1f deg, power %.2f: %s"):format(
@@ -220,16 +250,23 @@ RunService.RenderStepped:Connect(function(dt)
 				)
 			)
 		end
-		match:ensureCueBall()
+		m:ensureCueBall()
 		input:setEnabled(true)
 		refreshGuideline()
 	end
 	wasPlaying = playing
 	local status = if playing
-		then ("cue ball %.0f in/s"):format(match:cueBallSpeedNow())
+		then ("cue ball %.0f in/s"):format(m:cueBallSpeedNow())
 		else ("aim %.1f deg  |  drag to aim, pull the bar to shoot"):format(
 			math.deg(input.angle)
 		)
-	UI.setStatus(("%s\n%d balls left   (B = new rack)"):format(status, match:ballsRemaining()))
+	UI.setStatus(
+		("table %d  |  %s\n%d balls left   (%d tables drawn, B = new rack)"):format(
+			seatId or 0,
+			status,
+			m:ballsRemaining(),
+			lounge:renderedCount()
+		)
+	)
 end)
 print("[8ball] client ready")

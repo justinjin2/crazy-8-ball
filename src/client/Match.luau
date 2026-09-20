@@ -49,7 +49,9 @@ export type Match = typeof(setmetatable(
 	{} :: {
 		state: State,
 		placement: Placement.Placement,
-		renderer: BallRenderer.BallRenderer,
+		-- nil while this table is too far away to be worth drawing. The simulation still
+		-- runs; only the parts are gone. See src/client/Lounge.luau.
+		renderer: BallRenderer.BallRenderer?,
 		-- nil when the table is still; otherwise the shot in progress.
 		shot: {
 			elapsed: number, -- shot seconds the render clock has asked for so far
@@ -64,7 +66,7 @@ export type Match = typeof(setmetatable(
 	Match
 ))
 
-function Match.new(renderer: BallRenderer.BallRenderer, p: Placement.Placement): Match
+function Match.new(p: Placement.Placement, renderer: BallRenderer.BallRenderer?): Match
 	local geometry = TableGeometry.build({ pocketsOpen = true })
 	local self = setmetatable({
 		state = Simulation.newState(geometry, Rack.newGame(geometry)),
@@ -78,17 +80,33 @@ function Match.new(renderer: BallRenderer.BallRenderer, p: Placement.Placement):
 	return self
 end
 
+--- Give this table a renderer and draw its current state. Used when the player walks close
+--- enough for the table to be worth drawing.
+function Match.attach(self: Match, renderer: BallRenderer.BallRenderer)
+	self.renderer = renderer
+	self:renderState()
+end
+
+--- Drop the renderer. The simulation carries on; only the parts go away.
+function Match.detach(self: Match)
+	self.renderer = nil
+end
+
 --- Listen for simulation events as they happen (audio, effects, rules).
 function Match.onEvent(self: Match, listener: (Event) -> ())
 	table.insert(self.eventListeners, listener)
 end
 
 function Match.renderState(self: Match)
+	local renderer = self.renderer
+	if renderer == nil then
+		return
+	end
 	for _, b in self.state.balls do
 		if b.pocketed then
-			self.renderer:setVisible(b.id, false)
+			renderer:setVisible(b.id, false)
 		else
-			self.renderer:restore(b.id, b.x, b.y)
+			renderer:restore(b.id, b.x, b.y)
 		end
 	end
 end
@@ -121,7 +139,9 @@ function Match.ensureCueBall(self: Match)
 		cue.z = 0
 		Ball.stop(cue)
 		cue.x, cue.y = TableGeometry.headSpot(self.state.geometry)
-		self.renderer:restore(0, cue.x, cue.y)
+		if self.renderer then
+			self.renderer:restore(0, cue.x, cue.y)
+		end
 	end
 end
 
@@ -186,11 +206,14 @@ function Match.update(self: Match, dt: number): boolean
 		shot.steps += 1
 	end
 
-	local dropDepth = Config.Table.PocketDropDepthInches
-	for _, b in self.state.balls do
-		self.renderer:step(b, dt)
-		if b.z <= -dropDepth + 1e-6 then
-			self.renderer:sink(b.id)
+	local renderer = self.renderer
+	if renderer then
+		local dropDepth = Config.Table.PocketDropDepthInches
+		for _, b in self.state.balls do
+			renderer:step(b, dt)
+			if b.z <= -dropDepth + 1e-6 then
+				renderer:sink(b.id)
+			end
 		end
 	end
 

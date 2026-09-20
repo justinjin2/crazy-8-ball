@@ -289,6 +289,15 @@ Config.Lounge = {
 	-- Until Roadmap 1.5d builds all twelve, this is the one table that exists.
 	ActiveTableId = 1,
 
+	-- How many tables draw their balls at once. Twelve racked tables is 192 ball meshes for
+	-- a scene that already carries a quarter of a million triangles of table, and the ones
+	-- across the room are a few pixels each. The nearest few are bound to a small pool of
+	-- renderers instead; every table still simulates, it just may not be drawn.
+	RenderedTables = 4,
+	-- How often the pool is re-pointed at the nearest tables. Every frame is wasteful and
+	-- the player cannot cross twenty studs in half a second.
+	RebindEverySeconds = 0.5,
+
 	-- Where the player spawns (Markers.json "Spawn_Lounge", the seating area).
 	Spawn = { X = 0, Y = 0.1, Z = 20 },
 
@@ -536,20 +545,46 @@ Config.Camera = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Joining the table
+-- The floor pad you step on to join a table (GDD section 6)
 ---------------------------------------------------------------------------------------------
-Config.Join = {
-	-- Hold E (or the on-screen button on phones) near the table to start playing.
-	PromptActionText = "Play pool",
-	PromptObjectText = "8-Ball table",
-	HoldSeconds = 0.6,
-	-- How close (studs from the table centre) the prompt appears. Must stay under half the
-	-- 20 stud gap between table columns, or standing between two tables makes both prompts
-	-- live and which one you join is a coin toss. Roblox also measures this from the camera
-	-- rather than the character, so the player is effectively a few studs further away than
-	-- they look: 14 read as "in range" at 13 studs and still refused to fire.
-	-- Roadmap 1.5e replaces the whole prompt with a floor pad.
-	PromptDistanceStuds = 9,
+Config.Pad = {
+	-- Where the pad sits: this far from the table centre, towards the head rail, on the
+	-- floor of that table's tier. It has to clear the place the SHOOTER stands, not just
+	-- the rail: the table half-length with rails is 8.88 studs and AvatarPose parks the
+	-- shooter at the rim, so a pad reaching in to 8.88 would sit under their feet and seat
+	-- them again the instant they left.
+	DistanceStuds = 14,
+	SizeStuds = { 6, 0.08, 6 },
+	-- How close the character has to be to count as standing on it. 14 - 3 = 11 studs, well
+	-- clear of the shooter at the rim.
+	RadiusStuds = 3,
+	-- Occupancy is polled on the server rather than using .Touched, which misses a player
+	-- who walks on and stands still. Two polls in a row are needed before it counts, so
+	-- somebody crossing a pad on the way to another table is not dragged into a seat.
+	PollsPerSecond = 5,
+	-- Three polls is 0.6s. A player walking straight across a 6 stud pad at the default 16
+	-- studs per second is only on it for about 0.37s, so they pass through without being
+	-- seated, which is exactly what this milestone's "a third player walks between the
+	-- tables" test does.
+	DwellPolls = 3,
+	-- After leaving a table, that table's pad ignores you for this long. Without it you can
+	-- never leave: the shooter is parked at the rail, which is barely two studs from the
+	-- pad, so the next poll sees you standing on it and sits you straight back down.
+	RejoinCooldownSeconds = 2,
+	-- Colours (RGB 0-255). Green means somebody is on this table, which is what GDD section
+	-- 6 asks for: you can see a table is being used from across the room.
+	FreeColor = { 70, 74, 84 },
+	OccupiedColor = { 80, 220, 110 },
+	FullColor = { 235, 170, 60 },
+	FreeTransparency = 0.45,
+	ActiveTransparency = 0.15,
+	-- The ring of light around an occupied pad.
+	GlowStuds = 0.6,
+	-- Sound played to everyone nearby when a player steps on. Empty = silent (no asset yet).
+	StepSoundId = "",
+	StepSoundVolume = 0.5,
+	-- Seats a table offers before it is full. 1v1 for now; teams are Roadmap 2.5.
+	MaxSeats = 2,
 }
 
 ---------------------------------------------------------------------------------------------
