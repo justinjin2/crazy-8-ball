@@ -27,7 +27,10 @@ splits it so it can be stopped after any one of them.
 - [x] **1.5b Rolling and the frame freeze.** Balls turn from their real angular velocity, not
   from distance travelled. `Match` steps a live simulation from the render loop instead of
   calling `Simulation.run` up front. Ball mesh regenerated at 528 triangles.
-- [ ] **1.5c Gamepad** in `src/client/Input.luau`.
+- [x] **1.5c Gamepad.** Left stick aims, D-pad nudges, right stick zooms, right trigger is
+  the power bar (ButtonA for digital-trigger pads), ButtonB leaves. Bound through
+  ContextActionService only while at the table. **The buttons have never been physically
+  pressed** (see the debts below).
 - [ ] **1.5d Import the lounge, build twelve tables, phone perf checkpoint.**
 - [ ] **1.5e Floor pads, join and leave, pooled per-table renderers.**
 - [ ] **1.5f Server authority:** `Net`, `TableService`, `ShotService`.
@@ -35,6 +38,14 @@ splits it so it can be stopped after any one of them.
 
 ## Open bugs and debts
 
+- **The gamepad has never been tested with a real controller.** The aim rate, dead zone,
+  aim curve, zoom rate, power ramp and the ContextActionService bind/unbind are all verified
+  numerically in Studio, but no pad was connected, so the mapping from each physical button
+  to each action is unproven. This breaks the standing rule that every milestone is checked
+  on phone, PC and gamepad; 1.5 is not finishable until someone presses the buttons.
+- This place has no `PlayerModule` in `PlayerScripts`, so the usual
+  `GetControls():Disable()` does nothing. The ContextActionService sink covers it, but if
+  walking ever fights aiming again, that is why.
 - The "apparent issues" with the mesh balls were the ROLLING ROTATION; fixed in 1.5b.
 - `assets/balls/ball_sphere.obj` is regenerated at 528 triangles but the place still holds
   the old 2,208-triangle `ServerStorage.BallMesh`. Needs a re-import by hand.
@@ -50,6 +61,9 @@ splits it so it can be stopped after any one of them.
 
 ## Things only the user can do
 
+- **Test the gamepad** (1.5c): plug in any controller, Play, hold E at the table, then check
+  the left stick aims, the D-pad nudges, the right stick zooms, holding and releasing the
+  right trigger shoots with the power it was pulled to, and B leaves the table.
 - **Re-import `assets/balls/ball_sphere.obj`** (3D Importer, Scale Unit: Stud, scale 1) and
   replace `ServerStorage.BallMesh` with it: 528 triangles instead of 2,208.
 - **Import the six lounge FBX files** for 1.5d (see `assets/lounge/Readme.md` and the stage's
