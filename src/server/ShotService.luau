@@ -87,18 +87,26 @@ local function validate(player: Player, payload: any): (number?, string?)
 	return id, nil
 end
 
+-- Tell the shooter their shot is not happening. They disabled their own controls when they
+-- fired, expecting a ShotResult to turn them back on, so silence leaves them stuck.
+local function reject(player: Player, reason: string)
+	if Config.Debug.LogRejectedShots then
+		warn(("[8ball] rejected shot from %s: %s"):format(player.Name, reason))
+	end
+	Net.get("ShotRejected"):FireClient(player, reason)
+end
+
 local function onShotFired(player: Player, payload: any)
 	local id, reason = validate(player, payload)
 	if id == nil then
 		-- Not necessarily cheating: a shot can arrive just after someone else's started.
-		if Config.Debug.LogRejectedShots then
-			warn(("[8ball] rejected shot from %s: %s"):format(player.Name, reason or "?"))
-		end
+		reject(player, reason or "?")
 		return
 	end
 
 	local state = TableService.stateOf(id)
 	if state == nil then
+		reject(player, "that table has no state")
 		return
 	end
 
@@ -113,6 +121,7 @@ local function onShotFired(player: Player, payload: any)
 	local strikeEvent = Simulation.strike(sim, shot)
 	local cue = Simulation.findBall(sim, 0)
 	if cue == nil then
+		reject(player, "no cue ball to strike")
 		return
 	end
 
@@ -154,6 +163,8 @@ function ShotService.start()
 		local ok: boolean, err: any = pcall(onShotFired, player, payload)
 		if not ok then
 			warn(("[8ball] shot from %s blew up: %s"):format(player.Name, tostring(err)))
+			-- Even a crash has to answer, or that player's controls stay dead.
+			pcall(reject, player, "the server could not run that shot")
 		end
 	end)
 end

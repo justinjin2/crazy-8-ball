@@ -191,6 +191,17 @@ end
 
 lounge:onSeatChanged(setSeat)
 
+-- A shot the server refuses has to give the controls back. shoot() turns input off the
+-- moment it fires and only the end of a shot turns it back on, so without this the player
+-- is left unable to aim, shoot or (on a gamepad) even leave.
+lounge:onShotRejected(function(reason)
+	if seatId ~= nil then
+		warn(("[8ball] the server turned that shot down: %s"):format(reason))
+		input:setEnabled(true)
+		refreshGuideline()
+	end
+end)
+
 local function leaveTable()
 	if seatId ~= nil then
 		lounge:requestLeave()

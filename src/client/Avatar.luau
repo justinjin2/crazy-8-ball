@@ -19,6 +19,11 @@ export type Avatar = typeof(setmetatable(
 		character: Model?,
 		transparency: number,
 		parked: boolean,
+		-- Whether the player is MEANT to be at a table, as opposed to whether this
+		-- particular body currently is. A respawn hands over a fresh character; without
+		-- this the new one is never parked, so the player walks around the room while
+		-- their camera stays locked to the table they are still seated at.
+		wanted: boolean,
 	},
 	Avatar
 ))
@@ -51,13 +56,18 @@ function Avatar.new(): Avatar
 		character = nil :: Model?,
 		transparency = -1,
 		parked = false,
+		wanted = false,
 	}, Avatar)
 	local player = Players.LocalPlayer
 	local function onCharacter(character: Model)
 		self.character = character
 		self.parked = false
 		self.transparency = -1
-		-- The character walks freely until the player joins the table (Avatar.take).
+		-- A respawn hands us a fresh body. If the player is still at a table, park it
+		-- straight away; otherwise it walks freely until they join one.
+		if self.wanted then
+			Avatar.take(self)
+		end
 	end
 	if player.Character then
 		onCharacter(player.Character)
@@ -68,6 +78,7 @@ end
 
 --- Give the character back to the player: unparked, visible, animations on.
 function Avatar.release(self: Avatar)
+	self.wanted = false
 	local character = self.character
 	if not character then
 		return
@@ -97,6 +108,7 @@ end
 
 --- Park the character for aiming (idempotent).
 function Avatar.take(self: Avatar)
+	self.wanted = true
 	local character = self.character
 	if character and not self.parked then
 		park(character)

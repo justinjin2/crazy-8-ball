@@ -24,6 +24,10 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: I want to take this shot. Inputs only; the server decides what
 	-- actually happens (ARCHITECTURE.md section 1, never trust the client).
 	ShotFired = "RemoteEvent",
+	-- server -> one client: your shot was turned down, and why. Without this the client
+	-- that optimistically disabled its own input when it fired never hears anything back
+	-- and sits there with dead controls.
+	ShotRejected = "RemoteEvent",
 	-- server -> all: a shot has started on a table. Carries the post-strike cue ball state
 	-- to replay from, the server's final positions to settle on, and a checksum.
 	ShotResult = "RemoteEvent",

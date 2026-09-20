@@ -39,6 +39,7 @@ export type Lounge = typeof(setmetatable(
 		seats: { [number]: { Seat } },
 		sinceRebind: number,
 		seatListeners: { (number?) -> () },
+		rejectListeners: { (string) -> () },
 		mySeat: number?,
 		-- One spare cue stick per pooled renderer, for watching other people line up.
 		cues: { Model },
@@ -90,6 +91,7 @@ function Lounge.new(parent: Instance): Lounge
 		seats = {},
 		sinceRebind = math.huge, -- bind on the first frame
 		seatListeners = {},
+		rejectListeners = {},
 		mySeat = nil,
 		cues = {},
 		cueOf = {},
@@ -127,6 +129,12 @@ function Lounge.onSeatChanged(self: Lounge, listener: (number?) -> ())
 	table.insert(self.seatListeners, listener)
 end
 
+--- Called when the server turns a shot down. The client disables its own controls when it
+--- fires and waits for a ShotResult, so this is what stops them staying dead.
+function Lounge.onShotRejected(self: Lounge, listener: (string) -> ())
+	table.insert(self.rejectListeners, listener)
+end
+
 --- Tell the server where we are aiming, so the people watching see the cue turn.
 function Lounge.reportAim(_self: Lounge, id: number, angle: number)
 	Net.get("AimUpdate"):FireServer(id, angle)
@@ -141,6 +149,12 @@ end
 
 function Lounge.listen(self: Lounge)
 	local me = Players.LocalPlayer.UserId
+
+	Net.get("ShotRejected").OnClientEvent:Connect(function(reason)
+		for _, l in self.rejectListeners do
+			l(if typeof(reason) == "string" then reason else "?")
+		end
+	end)
 
 	Net.get("AimBroadcast").OnClientEvent:Connect(function(batch)
 		if typeof(batch) ~= "table" then

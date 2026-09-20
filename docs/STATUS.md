@@ -67,6 +67,33 @@ Both need a human; neither can be driven from an agent session.
    sees both games. The server authority and the aim stream are verified single-client and
    with an injected second player, but not with two real clients.
 
+## Review findings (2026-09-20 adversarial pass, 39 confirmed)
+
+Fixed so far, all the ones that reproduce with a single player:
+- A scratch used to brick the table for the life of the server: the server stored a pocketed
+  cue ball, and a state with no cue ball cannot be struck, so every later shot threw inside
+  `Simulation.strike` and silently broadcast nothing. `Simulation.respotCueBall` is now
+  called by both the server and the client, through the same helper.
+- The server struck the ball TWICE: once to make the quantised seed for the wire, once
+  unrounded inside `runHeadless`. It therefore ran a shot no client could reproduce.
+  Measured over 123 breaks before the fix: 56 diverged, worst 51 inches, 4 ended with a
+  different set of balls pocketed. `Simulation.settle` now runs the same numbers that go out.
+- The drift warning could never fire: `reconcile` hashed the balls AFTER copying the
+  server's answer over them, so it was hashing its own input.
+- A refused shot left the client's controls dead. `ShotFired` now always gets an answer.
+- Respawning while seated left the camera at the table while the body walked away.
+
+Still open, all needing more than one table or more than one client:
+- A cue stick is left standing at a table after the player who was aiming leaves.
+- A client connecting after a shot sees a fresh rack on every played table.
+- A `ShotResult` arriving mid-replay restarts from mid-flight positions.
+- Two players at one table: neither sees the other's cue, and a watcher sees one cue
+  swinging between both aims.
+- Two players on one pad leave its glow stuck at flash brightness.
+- `RequestSeat` is unvalidated: no proximity, dwell, cooldown or rate limit.
+- The late-join catch-up seeds `elapsed` with the full lateness, unclamped.
+- Leaving can seat you straight back in a narrow case near the head rail.
+
 ## Open bugs and debts
 
 - The lounge is a PLACEHOLDER the designer will replace. Do not polish its art. After
