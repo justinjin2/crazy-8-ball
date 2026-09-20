@@ -202,7 +202,9 @@ function LoungeBuilder.buildPendants(lounge: Model): number
 		mount.Transparency = 1
 		mount.Size = Vector3.new(1, 0.2, 1)
 		-- Directly over its own table, a fixed height above that tier's floor.
-		mount.Position = Vector3.new(row.X, row.Y + P.HeightAboveFloor, row.Z)
+		-- Lifted with the fixture it belongs to, or the light would hang below its own shade.
+		mount.Position =
+			Vector3.new(row.X, row.Y + P.HeightAboveFloor + Config.Lounge.PendantLiftStuds, row.Z)
 		mount.Parent = folder
 
 		local light = Instance.new("SurfaceLight")
@@ -216,6 +218,47 @@ function LoungeBuilder.buildPendants(lounge: Model): number
 		made += 1
 	end
 	return made
+end
+
+--- Lift the pendant fixtures clear of the aim camera.
+---
+--- The Blender package hangs them 7.5 studs above the floor, which is 4.6 above the cloth,
+--- and the camera that frames a table sits at about 10.8. The fixture therefore hung
+--- squarely between the player and the table they were trying to aim on. The drop is
+--- shortened rather than the whole fixture moved: the glowing panel and the light rise by
+--- the lift, while the housing keeps its top against the ceiling and loses that much
+--- length, which is what shortening a real pendant's cord looks like.
+---
+--- Safe to run twice: a fixture already lifted is left alone.
+function LoungeBuilder.liftPendants(lounge: Model): number
+	local lift = Config.Lounge.PendantLiftStuds
+	if lift <= 0 then
+		return 0
+	end
+	local moved = 0
+	for _, row in Config.Lounge.Tables do
+		local panel = lounge:FindFirstChild(("Emissive_Pendant_%02d"):format(row.id), true)
+		local housing = lounge:FindFirstChild(("Pendant_%02d_Housing"):format(row.id), true)
+		-- Where the panel should end up, measured from this tier's floor.
+		local wanted = row.Y + Config.Lounge.Pendant.HeightAboveFloor + lift
+		if panel and panel:IsA("BasePart") then
+			if math.abs(panel.Position.Y - wanted) > 1e-3 then
+				panel.Position = Vector3.new(panel.Position.X, wanted, panel.Position.Z)
+				moved += 1
+			end
+		end
+		if housing and housing:IsA("BasePart") then
+			local top = housing.Position.Y + housing.Size.Y / 2
+			local bottom = wanted
+			local height = math.max(top - bottom, 0.4)
+			if math.abs(housing.Size.Y - height) > 1e-3 then
+				housing.Size = Vector3.new(housing.Size.X, height, housing.Size.Z)
+				housing.Position =
+					Vector3.new(housing.Position.X, top - height / 2, housing.Position.Z)
+			end
+		end
+	end
+	return moved
 end
 
 --- Invisible seats on the sofas and chairs. Sitting is free look: the player is seated and
@@ -328,6 +371,7 @@ function LoungeBuilder.setUp(parent: Instance): string
 	local lounge, moved = LoungeBuilder.correctImport(parent)
 	local removed = LoungeBuilder.removeClutter(lounge)
 	local parts = LoungeBuilder.applyPackages(lounge)
+	LoungeBuilder.liftPendants(lounge)
 	local lights = LoungeBuilder.buildPendants(lounge)
 	local seats = LoungeBuilder.buildSeats(lounge)
 	LoungeBuilder.applyLighting()

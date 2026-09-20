@@ -88,3 +88,11 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-20: Remote players' bodies are not posed for watchers; only their cue is
   replicated. AvatarPose anchors individual limbs, which does not replicate reliably from
   the owning client. Body posing for watchers is deferred to Roadmap 2.3.
+- 2026-09-20: Cue PowerCurve 1.6 -> 2.6 and SlidingFriction 0.20 -> 0.25, because balls read
+  as sliding on ice. MaxSpeed is a 30 mph break, so at 1.6 a half-pulled bar gave 184 in/s,
+  which slides 128 inches before it rolls on a 100 inch table: nothing ever rolled. At 2.6
+  the middle of the bar lands on real pool shot speeds and a normal shot rolls within 25
+  inches. Hard shots and the break still skid, which is true to pool.
+- 2026-09-20: Pendant fixtures lifted 4.5 studs. The package hangs them 4.6 studs above the
+  cloth and the aim camera sits at 10.8, so they hung between the player and the table. The
+  drop is shortened rather than the fixture moved, so the cord still meets the ceiling.

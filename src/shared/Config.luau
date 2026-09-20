@@ -195,8 +195,10 @@ Config.Physics = {
 	-- Gravity, used to turn friction coefficients into decelerations.
 	Gravity = 386.09, -- 9.81 m/s^2 in inches per second squared
 	-- Cloth friction while the ball SLIDES (contact point moving relative to the cloth).
-	-- Typical pool cloth: 0.15 to 0.25. Higher = spin takes effect sooner. (tune)
-	SlidingFriction = 0.2,
+	-- Typical pool cloth: 0.15 to 0.25. Higher = spin takes effect sooner, and the skid
+	-- after the strike resolves into a roll sooner. At the top of the real range because a
+	-- ball that is still sliding when it reaches the far rail reads as ice. (tune)
+	SlidingFriction = 0.25,
 	-- Rolling resistance once the ball ROLLS without slipping. Typical 0.005 to 0.015.
 	-- Higher = balls stop sooner. (tune)
 	RollingFriction = 0.012,
@@ -240,8 +242,16 @@ Config.Cue = {
 	MaxSpeed = 528,
 	-- Speed at the smallest power that still counts as a shot. (tune)
 	MinSpeed = 15,
-	-- power (0..1) -> speed uses power^PowerCurve, so the low end is finer. (tune)
-	PowerCurve = 1.6,
+	-- power (0..1) -> speed uses power^PowerCurve, so the low end is finer.
+	--
+	-- This is a feel number, not a physics one, and it was the cause of every ball looking
+	-- like it was on ice. MaxSpeed is a 30 mph BREAK; at the old 1.6 a half-pulled bar gave
+	-- 184 in/s, which is a very firm real shot, and a ball struck that hard slides 128
+	-- inches before it rolls - longer than the 100 inch table. So nothing ever rolled.
+	-- At 2.6 the usable middle of the bar lands on real pool shot speeds: half power is
+	-- 100 in/s and rolls after 25 inches, while the top of the bar is still a full break.
+	-- (tune)
+	PowerCurve = 2.6,
 	-- Spin offsets are given in ball radii (-1..1). Hits beyond this miscue in real life.
 	MaxSpinOffset = 0.5,
 	-- Angular velocity from an off-centre hit: w = SpinFactor * v * offset / R.
@@ -344,6 +354,12 @@ Config.Lounge = {
 	-- on each table's cloth, put there so the Blender render looked furnished; the real
 	-- tables carry sixteen simulated balls and the fakes sat on top of them.
 	RemovePartFragments = { "Table_DisplayProps" },
+
+	-- How far the pendant fixtures are lifted above where the Blender package hung them.
+	-- The package drops them to 7.5 studs above the floor, which is 4.6 above the cloth,
+	-- and the aim camera sits at about 10.8 - so the fixture hung squarely between the
+	-- player and the table. Lifting shortens the drop; the cord still meets the ceiling.
+	PendantLiftStuds = 4.5,
 
 	-- One pendant over each table. Markers.json puts every pendant directly above its own
 	-- table at the same height above that tier's floor, so one number covers all twelve.

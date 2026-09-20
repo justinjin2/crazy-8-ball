@@ -270,6 +270,7 @@ function Match.update(self: Match, dt: number): boolean
 	-- shot, and one frame must never be asked to do unbounded work.
 	shot.elapsed += math.min(dt, Config.Debug.MaxPlaybackStepSeconds)
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
+	local timeBefore = self.state.time
 
 	while self.state.time < shot.elapsed and not Simulation.isAtRest(self.state) do
 		if shot.steps >= maxSteps then
@@ -286,9 +287,14 @@ function Match.update(self: Match, dt: number): boolean
 
 	local renderer = self.renderer
 	if renderer then
+		-- How much SHOT time passed, which is not the render dt: a long frame is capped at
+		-- MaxPlaybackStepSeconds, and the loop above overshoots by up to one fixed step.
+		-- Turning the balls by the render dt instead would over-rotate them on any hitch,
+		-- so the roll would drift out of step with the travel.
+		local simulated = self.state.time - timeBefore
 		local dropDepth = Config.Table.PocketDropDepthInches
 		for _, b in self.state.balls do
-			renderer:step(b, dt)
+			renderer:step(b, simulated)
 			if b.z <= -dropDepth + 1e-6 then
 				renderer:sink(b.id)
 			end
