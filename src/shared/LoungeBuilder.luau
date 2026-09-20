@@ -218,6 +218,63 @@ function LoungeBuilder.buildPendants(lounge: Model): number
 	return made
 end
 
+--- Invisible seats on the sofas and chairs. Sitting is free look: the player is seated and
+--- nothing else happens, which is the call recorded in DECISIONS.md. A seat is spread along
+--- the furniture's longer horizontal axis so a three-seat sofa really has three places.
+function LoungeBuilder.buildSeats(lounge: Model): number
+	local existing = lounge:FindFirstChild("Seats")
+	if existing then
+		existing:Destroy()
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "Seats"
+	folder.Parent = lounge
+
+	local F = Config.Lounge.SeatingFocus
+	local focus = Vector3.new(F.X, F.Y, F.Z)
+	local size = Config.Lounge.SeatSizeStuds
+	local made = 0
+	for _, row in Config.Lounge.Seating do
+		local part = lounge:FindFirstChild(row.Part, true)
+		if part == nil or not part:IsA("BasePart") then
+			warn(("[8ball] no lounge furniture called %s to seat"):format(row.Part))
+			continue
+		end
+		local alongX = part.Size.X >= part.Size.Z
+		local span = if alongX then part.Size.X else part.Size.Z
+		local top = part.Position.Y
+			- part.Size.Y / 2
+			+ part.Size.Y * Config.Lounge.SeatHeightFraction
+		for i = 1, row.Seats do
+			-- Evenly spaced along the furniture, inset so nobody sits on the arm.
+			local t = if row.Seats == 1 then 0 else ((i - 1) / (row.Seats - 1) - 0.5) * 0.7
+			local offset = if alongX
+				then Vector3.new(span * t, 0, 0)
+				else Vector3.new(0, 0, span * t)
+			local at = Vector3.new(part.Position.X, top, part.Position.Z) + offset
+
+			local seat = Instance.new("Seat")
+			seat.Name = ("Seat_%s_%d"):format(row.Part:gsub("Furniture_", ""), i)
+			seat.Anchored = true
+			seat.CanCollide = true
+			seat.CanQuery = false
+			seat.CastShadow = false
+			seat.Transparency = 1
+			seat.Size = Vector3.new(size[1], size[2], size[3])
+			-- Face the middle of the seating area, flat: a seat tilted at the floor would
+			-- point the sitter's head at it.
+			local toFocus = Vector3.new(focus.X - at.X, 0, focus.Z - at.Z)
+			if toFocus.Magnitude < 1e-3 then
+				toFocus = Vector3.new(0, 0, -1)
+			end
+			seat.CFrame = CFrame.lookAt(at, at + toFocus.Unit)
+			seat.Parent = folder
+			made += 1
+		end
+	end
+	return made
+end
+
 --- The package's lighting recipe. Lighting.Technology is not scriptable, so if the shadows
 --- look wrong it has to be set to Future by hand in the Lighting properties.
 function LoungeBuilder.applyLighting()
@@ -272,13 +329,15 @@ function LoungeBuilder.setUp(parent: Instance): string
 	local removed = LoungeBuilder.removeClutter(lounge)
 	local parts = LoungeBuilder.applyPackages(lounge)
 	local lights = LoungeBuilder.buildPendants(lounge)
+	local seats = LoungeBuilder.buildSeats(lounge)
 	LoungeBuilder.applyLighting()
 	LoungeBuilder.placeSpawn(parent)
-	return ("[8ball] lounge ready: %d packages repositioned, %d clutter parts removed, %d parts set up, %d pendants"):format(
+	return ("[8ball] lounge ready: %d repositioned, %d clutter removed, %d parts set up, %d pendants, %d seats"):format(
 		moved,
 		removed,
 		parts,
-		lights
+		lights,
+		seats
 	)
 end
 

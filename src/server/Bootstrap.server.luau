@@ -47,6 +47,15 @@ for _, row in Config.Lounge.Tables do
 	end
 end
 
+-- Seats on the sofas and chairs. Unlike the lounge meshes these are plain Seat parts, which
+-- a script may create, so they are built fresh from Config every run rather than living in
+-- the place file and drifting out of step with it.
+local lounge = workspace:FindFirstChild(LoungeBuilder.ModelName)
+local seated = 0
+if lounge and lounge:IsA("Model") then
+	seated = LoungeBuilder.buildSeats(lounge)
+end
+
 -- The floor pads and the seat state behind them, then the shot authority: the client sends
 -- inputs, this decides what actually happened.
 TableService.start(workspace)
@@ -77,8 +86,9 @@ end
 -- Config.Lounge.Pendant and LoungeBuilder.buildPendants.
 
 print(
-	("[8ball] server ready. %d tables with pads, %dx%d in each, %.2f studs/in"):format(
+	("[8ball] server ready. %d tables with pads, %d lounge seats, %dx%d in, %.2f studs/in"):format(
 		built,
+		seated,
 		Config.Table.LengthInches,
 		Config.Table.WidthInches,
 		Config.Table.StudsPerInch

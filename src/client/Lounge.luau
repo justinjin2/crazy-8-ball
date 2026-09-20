@@ -17,8 +17,10 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
+local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 local Match = require(script.Parent:WaitForChild("Match"))
 
@@ -38,9 +40,42 @@ export type Lounge = typeof(setmetatable(
 		sinceRebind: number,
 		seatListeners: { (number?) -> () },
 		mySeat: number?,
+		-- One spare cue stick per pooled renderer, for watching other people line up.
+		cues: { Model },
+		cueOf: { [number]: Model },
+		-- tableId -> { angle, shown, by }: the aim coming off the wire, and the eased angle
+		-- actually drawn, so a ten-a-second stream does not make the cue step.
+		aims: { [number]: { angle: number, shown: number, by: number } },
 	},
 	Lounge
 ))
+
+-- GDD section 6 wants stepping on a pad to be felt, not just seen. The sound waits on an
+-- asset id; the flash needs none, so the pad's own glow is pulsed instead.
+local function flashPad(id: number)
+	local pads = Workspace:FindFirstChild("Pads")
+	local pad = pads and pads:FindFirstChild(("Pad_%02d"):format(id))
+	local glow = pad and pad:FindFirstChildOfClass("SurfaceLight")
+	if glow == nil then
+		return
+	end
+	local S = Config.Pad
+	local settled = glow.Brightness
+	glow.Brightness = S.FlashBrightness
+	game:GetService("TweenService")
+		:Create(glow, TweenInfo.new(S.FlashSeconds), { Brightness = settled })
+		:Play()
+	if S.StepSoundId ~= "" and pad and pad:IsA("BasePart") then
+		local sound = Instance.new("Sound")
+		sound.SoundId = S.StepSoundId
+		sound.Volume = S.StepSoundVolume
+		sound.Parent = pad
+		sound:Play()
+		sound.Ended:Once(function()
+			sound:Destroy()
+		end)
+	end
+end
 
 function Lounge.new(parent: Instance): Lounge
 	local folder = Instance.new("Folder")
@@ -56,6 +91,9 @@ function Lounge.new(parent: Instance): Lounge
 		sinceRebind = math.huge, -- bind on the first frame
 		seatListeners = {},
 		mySeat = nil,
+		cues = {},
+		cueOf = {},
+		aims = {},
 	}, Lounge)
 
 	for _, row in Config.Lounge.Tables do
@@ -71,6 +109,10 @@ function Lounge.new(parent: Instance): Lounge
 	local firstPlacement = Placement.forTable(first.id)
 	for i = 1, Config.Lounge.RenderedTables do
 		table.insert(self.pool, BallRenderer.new(folder, firstPlacement :: any, i))
+		local cue = CueStickBuilder.build(parent)
+		cue.Name = ("WatchedCue_%d"):format(i)
+		CueStickBuilder.setVisible(cue, false)
+		table.insert(self.cues, cue)
 	end
 
 	self:listen()
@@ -82,6 +124,11 @@ function Lounge.onSeatChanged(self: Lounge, listener: (number?) -> ())
 	table.insert(self.seatListeners, listener)
 end
 
+--- Tell the server where we are aiming, so the people watching see the cue turn.
+function Lounge.reportAim(_self: Lounge, id: number, angle: number)
+	Net.get("AimUpdate"):FireServer(id, angle)
+end
+
 --- Ask the server to take a shot at table `id`. Nothing happens locally: the shot starts
 --- when the server broadcasts it back, so every client (including this one) plays the same
 --- motion from the same numbers at the same moment.
@@ -91,6 +138,25 @@ end
 
 function Lounge.listen(self: Lounge)
 	local me = Players.LocalPlayer.UserId
+
+	Net.get("AimBroadcast").OnClientEvent:Connect(function(batch)
+		if typeof(batch) ~= "table" then
+			return
+		end
+		for i = 1, #batch, 3 do
+			local id, by, angle = batch[i], batch[i + 1], batch[i + 2]
+			if typeof(id) == "number" and typeof(angle) == "number" then
+				local existing = self.aims[id]
+				if existing then
+					existing.angle = angle
+					existing.by = by
+				else
+					-- First sighting: draw it where it is rather than easing from zero.
+					self.aims[id] = { angle = angle, shown = angle, by = by }
+				end
+			end
+		end
+	end)
 
 	Net.get("ShotResult").OnClientEvent:Connect(function(msg)
 		if typeof(msg) ~= "table" or typeof(msg.tableId) ~= "number" then
@@ -105,7 +171,11 @@ function Lounge.listen(self: Lounge)
 		if typeof(snapshot) ~= "table" or typeof(snapshot.id) ~= "number" then
 			return
 		end
+		local before = #(self.seats[snapshot.id] or {})
 		self.seats[snapshot.id] = snapshot.seats or {}
+		if #self.seats[snapshot.id] > before then
+			flashPad(snapshot.id)
+		end
 		-- Work out where the local player is now sitting, if anywhere.
 		local found: number? = nil
 		for id, seats in self.seats do
@@ -170,6 +240,11 @@ local function rebind(self: Lounge, from: Vector3)
 		if not wanted[id] then
 			self.matches[id]:detach()
 			self.boundTo[id] = nil
+			local held: Model? = self.cueOf[id]
+			if held then
+				CueStickBuilder.setVisible(held, false)
+				self.cueOf[id] = nil
+			end
 		end
 	end
 
@@ -185,6 +260,18 @@ local function rebind(self: Lounge, from: Vector3)
 		end
 	end
 
+	-- Watched cues follow the same pool: a table nobody is drawing needs no cue either.
+	local cueUsed: { [Model]: boolean } = {}
+	for _, cue in self.cueOf do
+		cueUsed[cue] = true
+	end
+	local freeCues = {}
+	for _, cue in self.cues do
+		if not cueUsed[cue] then
+			table.insert(freeCues, cue)
+		end
+	end
+
 	for id in wanted do
 		if self.boundTo[id] == nil then
 			local renderer = table.remove(free)
@@ -194,6 +281,44 @@ local function rebind(self: Lounge, from: Vector3)
 				match:attach(renderer)
 				self.boundTo[id] = renderer
 			end
+		end
+		local held: Model? = self.cueOf[id]
+		if held == nil then
+			local cue = table.remove(freeCues)
+			if cue then
+				self.cueOf[id] = cue
+			end
+		end
+	end
+end
+
+-- Draw the cue of whoever is lining up at each table we can see. Never our own: the local
+-- player's cue is driven directly by their input, with no round trip.
+local function updateWatchedCues(self: Lounge, dt: number)
+	local A = Config.Aim
+	local alpha = 1 - math.exp(-dt / math.max(A.SmoothingSeconds, 1e-3))
+	for id, cue in self.cueOf do
+		local aim = self.aims[id]
+		local match = self.matches[id]
+		local cueBall = match and match:findCueBall()
+		local mine = id == self.mySeat
+		-- A shot in flight has no cue against the ball, and neither has an empty table.
+		if aim == nil or mine or cueBall == nil or cueBall.pocketed or match:isBusy() then
+			CueStickBuilder.setVisible(cue, false)
+		else
+			-- Ease towards the last angle heard: the stream is ten a second, so drawing it
+			-- raw would visibly step.
+			local delta = (aim.angle - aim.shown + math.pi) % (2 * math.pi) - math.pi
+			aim.shown += delta * alpha
+			CueStickBuilder.setVisible(cue, true)
+			local p = match.placement
+			local ballPos = TableBuilder.toWorld(p, cueBall.x, cueBall.y, Config.Balls.RadiusInches)
+			CueStickBuilder.place(
+				cue,
+				ballPos,
+				TableBuilder.aimDirection(p, aim.shown),
+				TableBuilder.studs(Config.Cue.CueRestGapInches)
+			)
 		end
 	end
 end
@@ -215,6 +340,7 @@ function Lounge.update(self: Lounge, dt: number): boolean
 			playingHere = busy
 		end
 	end
+	updateWatchedCues(self, dt)
 	return playingHere
 end
 

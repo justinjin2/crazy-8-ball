@@ -44,6 +44,9 @@ type TableState = {
 	state: Simulation.State,
 	-- Bumped per shot, so a client that missed one can tell and snap instead of replaying.
 	shotSeq: number,
+	-- Where the shooter at this table is currently aiming, relayed to everyone watching.
+	aim: number?,
+	aimBy: number?,
 	-- Server time the current shot started, or nil when the table is still.
 	shotStartedAt: number?,
 	seats: { Seat },
@@ -210,6 +213,10 @@ function TableService.unseat(player: Player): boolean
 			t.seats[1].host = true
 		end
 	end
+	if t.aimBy == player.UserId then
+		t.aim = nil
+		t.aimBy = nil
+	end
 	-- Leaving has to stick. The shooter stands at the rail, well inside the pad's radius, so
 	-- without this the next poll would seat them again immediately.
 	t.leftAt[player.UserId] = os.clock()
@@ -331,6 +338,8 @@ function TableService.start(parent: Instance)
 				pad = buildPad(placement, row.id, folder :: Folder),
 				state = Simulation.newState(geometry, Rack.newGame(geometry)),
 				shotSeq = 0,
+				aim = nil,
+				aimBy = nil,
 				shotStartedAt = nil,
 				seats = {},
 				dwell = {},
@@ -338,6 +347,46 @@ function TableService.start(parent: Instance)
 			}
 		end
 	end
+
+	-- The aim stream. Each shooter's angle is stored, and one batched message a tick carries
+	-- every table's aim to everyone: twelve separate broadcasts to thirty players would be
+	-- 3,600 messages a second where this is 10.
+	Net.get("AimUpdate").OnServerEvent:Connect(function(player, id, angle)
+		if typeof(id) ~= "number" or typeof(angle) ~= "number" or angle ~= angle then
+			return
+		end
+		-- Only the people actually sitting at a table may move its cue.
+		if seatOf[player.UserId] ~= id then
+			return
+		end
+		local t = tables[id]
+		if t then
+			t.aim = angle % (2 * math.pi)
+			t.aimBy = player.UserId
+		end
+	end)
+
+	local aimInterval = 1 / Config.Aim.BroadcastsPerSecond
+	local sinceAim = 0
+	RunService.Heartbeat:Connect(function(dt)
+		sinceAim += dt
+		if sinceAim < aimInterval then
+			return
+		end
+		sinceAim = 0
+		-- Flattened: id, userId, angle per table, so the payload stays small.
+		local batch: { number } = {}
+		for _, t in tables do
+			if t.aim and t.aimBy then
+				table.insert(batch, t.id)
+				table.insert(batch, t.aimBy)
+				table.insert(batch, t.aim)
+			end
+		end
+		if #batch > 0 then
+			Net.get("AimBroadcast"):FireAllClients(batch)
+		end
+	end)
 
 	Net.get("RequestSeat").OnServerEvent:Connect(function(player, id)
 		if typeof(id) == "number" then

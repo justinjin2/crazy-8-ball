@@ -60,6 +60,33 @@ end
 
 local currentPull = 0
 
+-- The aim goes to the server a few times a second so opponents and spectators see the cue
+-- turn. Never the guideline and never the power (ARCHITECTURE.md section 4): watching
+-- someone line up is the point, seeing their aiming aid is not.
+local sinceAimSent = 0
+local lastAimSent: number? = nil
+
+local function sendAim(dt: number)
+	local id = seatId
+	if id == nil then
+		return
+	end
+	sinceAimSent += dt
+	if sinceAimSent < 1 / Config.Aim.SendsPerSecond then
+		return
+	end
+	local angle = input.angle
+	if lastAimSent then
+		local delta = math.abs((angle - lastAimSent + math.pi) % (2 * math.pi) - math.pi)
+		if delta < Config.Aim.MinChangeRadians then
+			return -- resting on the stick should cost nothing
+		end
+	end
+	sinceAimSent = 0
+	lastAimSent = angle
+	lounge:reportAim(id, angle)
+end
+
 local function refreshCueStick()
 	local m, p = match, placement
 	local cue = m and m:findCueBall()
@@ -145,6 +172,7 @@ local function setSeat(id: number?)
 		return
 	end
 
+	lastAimSent = nil
 	match = lounge:matchFor(id)
 	placement = Placement.forTable(id)
 	local p = placement
@@ -219,6 +247,7 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	-- Sticks and the D-pad repeat have to be sampled, not waited for.
 	input:update(dt)
+	sendAim(dt)
 	-- Every table steps, whether or not it is being drawn.
 	local playing = lounge:update(dt)
 

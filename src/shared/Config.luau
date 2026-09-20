@@ -321,6 +321,24 @@ Config.Lounge = {
 	-- Anything whose name contains one of these is flat on the floor and must not be walked
 	-- into (a rug with a collision box is a step).
 	NoCollideFragments = { "Rug" },
+	-- Invisible seats on the lounge furniture. GDD section 10 wants the chairs and sofas
+	-- sittable; sitting is free look only, so a spectator keeps the normal walk-around
+	-- camera (decided 2026-09-20, closing the open question in GDD section 6). Table
+	-- cameras for spectators are Roadmap 2.3.
+	Seating = {
+		{ Part = "Furniture_Sofa_Teal_Foreground", Seats = 3 },
+		{ Part = "Furniture_Sofa_Teal_Left", Seats = 3 },
+		{ Part = "Furniture_Loveseat_Cream", Seats = 2 },
+		{ Part = "Furniture_Armchair_Teal_Right", Seats = 1 },
+		{ Part = "Furniture_Ottoman_Butter", Seats = 1 },
+	},
+	-- Where a seated player faces: the middle of the lounge rug, so everyone on the sofas
+	-- looks inwards at the seating area rather than at a wall.
+	SeatingFocus = { X = 0, Y = 0, Z = 26.8 },
+	-- How far up the furniture the seat sits, as a fraction of its height, and the seat
+	-- pad's size in studs.
+	SeatHeightFraction = 0.55,
+	SeatSizeStuds = { 2.2, 0.4, 2.2 },
 	-- Parts the package ships that the game provides for real, so they are deleted rather
 	-- than left to clash. Table_DisplayProps_NN is a tray of fake balls and a rack sitting
 	-- on each table's cloth, put there so the Blender render looked furnished; the real
@@ -585,6 +603,30 @@ Config.Pad = {
 	StepSoundVolume = 0.5,
 	-- Seats a table offers before it is full. 1v1 for now; teams are Roadmap 2.5.
 	MaxSeats = 2,
+	-- The pad flashes when somebody steps on it (GDD section 6 asks for a sound and a VFX).
+	-- The sound waits on an asset; the flash is a brightness pulse, which needs none.
+	FlashBrightness = 6,
+	FlashSeconds = 0.45,
+}
+
+---------------------------------------------------------------------------------------------
+-- Live aim: opponents and spectators watch the shooter's cue turn
+---------------------------------------------------------------------------------------------
+Config.Aim = {
+	-- How often a shooter tells the server where they are aiming, and how often the server
+	-- passes every table's aim on. Ten a second is plenty for a cue that turns slowly, and
+	-- the stream is unreliable, so a dropped one costs a frame of lag and nothing else.
+	SendsPerSecond = 10,
+	BroadcastsPerSecond = 10,
+	-- Do not send at all unless the aim actually moved this far (radians). A player resting
+	-- their thumb should cost nothing.
+	MinChangeRadians = 0.004,
+	-- How fast a watched cue eases to each new angle. The stream is ten a second; without
+	-- easing the remote cue would visibly step.
+	SmoothingSeconds = 0.08,
+	-- ARCHITECTURE.md section 4: the aim angle and the ball in hand travel, never the
+	-- guideline and never the power. Watching someone line up is the point; seeing their
+	-- aiming aid is not.
 }
 
 ---------------------------------------------------------------------------------------------

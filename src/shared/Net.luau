@@ -5,9 +5,8 @@
 -- The server creates them and the client waits for them; nothing here is in the Rojo tree,
 -- because a RemoteEvent is state, not source.
 --
--- Roadmap 1.5g adds the aim stream, which will be the first unreliable remote here: losing
--- one of ten aim updates a second does not matter. Everything below is reliable and rare -
--- seats change when somebody steps on a pad, and a shot is one message per shot.
+-- Most of these are reliable and rare: seats change when somebody steps on a pad, and a
+-- shot is one message. The aim pair is the exception and is deliberately unreliable.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -16,8 +15,6 @@ local Net = {}
 
 local FOLDER = "Net"
 
--- name -> class. Everything here is reliable; the aim stream in 1.5g is the one thing that
--- will be unreliable, because losing one of ten aim updates a second does not matter.
 local REMOTES: { [string]: string } = {
 	-- server -> all: a table's seats changed (someone joined, left, or the host moved on).
 	TableState = "RemoteEvent",
@@ -30,6 +27,11 @@ local REMOTES: { [string]: string } = {
 	-- server -> all: a shot has started on a table. Carries the post-strike cue ball state
 	-- to replay from, the server's final positions to settle on, and a checksum.
 	ShotResult = "RemoteEvent",
+	-- The aim stream, and the only unreliable pair here: this is ten low-value updates a
+	-- second, and losing one just means a remote cue turns a frame later. Never worth a
+	-- retransmit, and never worth blocking the reliable queue behind.
+	AimUpdate = "UnreliableRemoteEvent", -- client -> server: where I am aiming
+	AimBroadcast = "UnreliableRemoteEvent", -- server -> all: every table's aim, batched
 }
 
 local function container(): Instance
@@ -59,7 +61,7 @@ function Net.build()
 end
 
 --- Get a remote by name, waiting for it on the client.
-function Net.get(name: string): RemoteEvent
+function Net.get(name: string): any
 	assert(REMOTES[name], ("Net: no remote called %q"):format(name))
 	local folder = container()
 	local remote = folder:FindFirstChild(name) or folder:WaitForChild(name, 30)
