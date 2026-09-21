@@ -818,77 +818,183 @@ Config.Guideline = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Audio (asset ids are placeholders until the user picks sounds, see docs/SOUNDS.md)
+-- Audio
 ---------------------------------------------------------------------------------------------
+-- These are our own recordings, uploaded to the group that owns the game, so they are used
+-- by id with nothing to insert into the place. The one exception is the aim tick, which is
+-- a UI click rather than a pool sound and has no recording yet.
+--
+-- Two separate mechanisms do the work here and they are not interchangeable.
+--
+--   VARIATION comes from several clips per event, never the same one twice running. This
+--   matters more than any amount of pitch shifting: the ear spots exact repetition
+--   instantly, and a single break makes over a hundred ball contacts, so one clack sample
+--   is a machine gun however cleverly it is pitched.
+--
+--   DYNAMICS come from impact speed driving volume and pitch, on a LOGARITHMIC curve. See
+--   SoundMix.loudness for the measurement that showed linear was wrong.
+--
+-- GAIN is a measured correction, not a taste setting. Every clip was played through an
+-- AudioAnalyzer in Studio and its level recorded; the gain brings them to a common loudness
+-- so that WHICH clip got picked does not change how loud the hit is. Skipping this lets the
+-- random choice fight the speed curve, and the spread is not small: the rail recording is
+-- the quietest thing here (peak 0.18) and the pocket drops are near full scale (0.91),
+-- which is 14 dB apart. Re-measure with tools/measure_audio.luau if clips are replaced.
 Config.Audio = {
-	-- Each event names a LIST of clips and one is picked per play, never the same one twice
-	-- running. This matters more than any amount of pitch variation: the ear spots exact
-	-- repetition instantly, and a break makes over a hundred contacts, so a single clack
-	-- sample turns into a machine gun however cleverly it is pitched.
-	--
-	-- Everything below is from Roblox's free Pro Sound Effects library. They are FIELD
-	-- RECORDINGS of up to 4.35 seconds containing several hits and rolls, not one-shots, so
-	-- Trim clips each to its attack. Replace any of them with your own recordings: drop
-	-- WAVs in assets/audio/raw/, they get spliced into one-shots, you upload them, and the
-	-- ids go here.
-	Ids = {
-		CueStrike = { "rbxassetid://9113441111" },
-		BallClack = { "rbxassetid://9113441818" },
-		-- Three genuinely different cushion takes, which is what stops rail hits droning.
-		RailThud = {
-			"rbxassetid://9113440635",
-			"rbxassetid://9113440622",
-			"rbxassetid://9113440925",
+	Clips = {
+		CueStrike = {
+			{ Id = "rbxassetid://125535762394405", Gain = 1.5 }, -- cue_strike_1, peak 0.334
+			{ Id = "rbxassetid://73604297014560", Gain = 1.23 }, -- cue_strike_2, peak 0.406
 		},
-		PocketDrop = { "rbxassetid://9113442163" },
-		AimTick = { "rbxassetid://6976440355" },
+		-- Six ball-on-ball takes, including two with a slight rattle to them. All one pool,
+		-- picked at random: the softer and harder takes differ in timbre, and impact speed
+		-- is what decides how loud any of them plays.
+		BallClack = {
+			{ Id = "rbxassetid://94692321009640", Gain = 1.97 }, -- ball_clack_soft, peak 0.254
+			{ Id = "rbxassetid://71776844222034", Gain = 1.03 }, -- ball_clack_1, peak 0.484
+			{ Id = "rbxassetid://129164941963034", Gain = 1.6 }, -- ball_clack_2, peak 0.312
+			{ Id = "rbxassetid://127287227972129", Gain = 0.96 }, -- clack_3, peak 0.523
+			{ Id = "rbxassetid://104388069204336", Gain = 1.18 }, -- rattle_1, peak 0.425
+			{ Id = "rbxassetid://84658060587712", Gain = 1.87 }, -- rattle_2, peak 0.267
+		},
+		-- Only one cushion recording exists, so rails lean entirely on speed-driven volume
+		-- and pitch plus PitchJitter for variety. Rails are the most frequent contact after
+		-- ball hits, so a second and third take here would buy more than anywhere else.
+		RailThud = {
+			{ Id = "rbxassetid://92350381831637", Gain = 2.74 }, -- edge_table_hard, peak 0.182
+		},
+		PocketDrop = {
+			{ Id = "rbxassetid://139585329610041", Gain = 0.55 }, -- pocket_drop_1, peak 0.907
+			{ Id = "rbxassetid://96380432160952", Gain = 0.59 }, -- pocket_drop_2, peak 0.841
+		},
+		-- A UI click, not a pool sound: still from Roblox's free library because there is no
+		-- recording of one. Replace it the same way as the rest. Its gain stays at 1 where
+		-- the others are measured, because Tick.Volume below was tuned by ear against this
+		-- exact clip at gain 1 and levelling it would undo that.
+		AimTick = {
+			{ Id = "rbxassetid://6976440355", Gain = 1 }, -- 0.022s, peak 0.230
+		},
 	},
-	-- Where in each clip the useful part is, and how much of it to play.
-	Trim = {
-		CueStrike = { Start = 0.0, Seconds = 0.30 },
-		BallClack = { Start = 0.0, Seconds = 0.22 },
-		RailThud = { Start = 0.0, Seconds = 0.30 },
-		PocketDrop = { Start = 0.0, Seconds = 0.90 },
-		AimTick = { Start = 0.0, Seconds = 0.12 },
-	},
-	-- Impact speed (in/s) that maps to full volume, and the volume/pitch ranges.
-	FullVolumeSpeed = 200,
-	Clack = { MinVolume = 0.15, MaxVolume = 1.0, MinPitch = 0.92, MaxPitch = 1.12 },
-	Rail = { MinVolume = 0.1, MaxVolume = 0.7, MinPitch = 0.9, MaxPitch = 1.05 },
-	Strike = { MinVolume = 0.3, MaxVolume = 1.0, MinPitch = 0.95, MaxPitch = 1.1 },
-	Pocket = { Volume = 0.9 },
-	Tick = { Volume = 0.35 },
+
+	-- The speed range the volume curve spans, in in/s, shared by every impact sound.
+	--
+	-- Measured over 48 shots at eight power settings: the median ball-on-ball contact is
+	-- 3.6 in/s, the 90th percentile is 66.8, and a break tops 520. Quiet is where almost
+	-- everything lives, which is why the curve is logarithmic and why these two numbers are
+	-- a RATIO rather than a maximum. (tune)
+	QuietSpeed = 10, -- maps to zero volume
+	LoudSpeed = 400, -- maps to full volume
+
+	-- Volume and pitch range per event. Pitch runs DOWNWARD with force: a harder contact
+	-- gets the lower pitch, which is what makes it read as heavier. (tune)
+	Clack = { MinVolume = 0.18, MaxVolume = 1.0, MinPitch = 0.9, MaxPitch = 1.14 },
+	Rail = { MinVolume = 0.12, MaxVolume = 0.8, MinPitch = 0.88, MaxPitch = 1.08 },
+	Strike = { MinVolume = 0.35, MaxVolume = 1.0, MinPitch = 0.95, MaxPitch = 1.1 },
+	-- A ball dropping is the payoff, so it stays loud whatever speed it went in at.
+	Pocket = { MinVolume = 0.7, MaxVolume = 1.0, MinPitch = 0.96, MaxPitch = 1.06 },
+	Tick = { MinVolume = 0.35, MaxVolume = 0.35, MinPitch = 1, MaxPitch = 1 },
+
 	-- A touch of pitch wobble on every play, on top of the speed-driven pitch, so two
 	-- identical impacts still differ. Keep it small: past about 15% a pitched sample stops
 	-- sounding like the same object being struck and starts sounding like a synthesiser.
 	PitchJitter = 0.04,
+
 	-- A single break makes well over a hundred ball contacts (121 in one measured shot).
 	-- Playing every one is mush and a frame cost, so the quiet ones are dropped and the
-	-- rest are rate limited.
+	-- rest are rate limited. Pocket drops deliberately bypass all of this.
 	MinImpactSpeed = 12,
 	MinSecondsBetweenClacks = 0.035,
+	-- Rails need their own gap. The per-frame budget is shared, but a break sends a burst of
+	-- cushion contacts and only one cushion recording exists, so without this they drone.
+	MinSecondsBetweenRails = 0.05,
 	MaxSoundsPerFrame = 3,
+
 	-- Sounds are emitted from where the contact happened, so a break sounds like it is
 	-- spread across the table rather than coming from one point.
-	RollOffMinStuds = 8,
-	RollOffMaxStuds = 90,
-
-	-- The roll is NOT a one-shot. It is one continuous loop for the whole table whose
-	-- volume and pitch follow how fast the balls are actually moving, and which fades out
-	-- when the table goes still. One loop rather than one per ball: sixteen rolling loops
-	-- would phase against each other and cost sixteen voices for a sound the ear hears as
-	-- a single texture.
 	--
-	-- Roblox's library has no rolling loop, so this stays silent until a recording is
-	-- dropped in. It wants a few seconds of steady roll on cloth that loops cleanly.
+	-- RollOffMinStuds is full volume out to that distance, and it has to sit ABOVE the
+	-- camera's own working range or the mix changes with the zoom. The playfield is only
+	-- about 16 x 8 studs (100 x 50 inches at 0.16 studs/inch) and the close view sits 2.2
+	-- studs from the cue ball, so the old value of 8 put the camera inside the min distance
+	-- when zoomed in and outside it when fitted - a loudness swing of about 3x from the
+	-- zoom alone, which reads as "the volume is broken". Lounge tables are 20+ studs apart,
+	-- so a neighbouring game still attenuates properly. Measured in Studio: over a whole
+	-- shot the camera sits 16.2 to 17.5 studs from the table and drops to 2.2 studs in the
+	-- close aiming view, so 18 keeps the entire zoom range inside the plateau. (tune)
+	RollOffMinStuds = 18,
+	RollOffMaxStuds = 90,
+	-- Roblox's default distance model (Inverse) attenuates as min/distance and never
+	-- actually reaches zero, which makes RollOffMaxStuds a number that does nothing.
+	-- InverseTapered keeps the realistic near-field curve and gives genuine silence at the
+	-- far end. Held as a string because Config is loaded by the Lune tests, which have no
+	-- Enum; Audio.luau maps it.
+	RollOffMode = "InverseTapered",
+	-- Roblox applies a Doppler shift from listener and emitter movement (SoundService.
+	-- DopplerScale, default 1). The camera sweeps out to the whole-table view at the exact
+	-- moment a break fires, and the roll emitter jumps between balls whenever the leader
+	-- changes, so Doppler would warble every clip against the pitch this module is
+	-- deliberately setting - and it would be very hard to recognise as Doppler. Off, so all
+	-- pitch stays explicit.
+	DopplerScale = 0,
+	-- Roblox allows up to 10; this is a safety net so a gain and a volume cannot multiply
+	-- into something that clips the mix. It has to clear the roll's first tier, which
+	-- reaches 3.44 (a 15x gain on a very quiet recording) at the top of its speed band.
+	MaxVolume = 6,
+	-- Emitters are pooled and reused rather than created and destroyed per contact. This
+	-- caps how many can sound at once: past it, a new impact is dropped rather than
+	-- stealing a voice, EXCEPT a pocket drop, which always gets one. (tune)
+	MaxVoices = 24,
+
+	-- The roll is NOT a one-shot. It is one continuous sound for the whole table whose
+	-- volume and pitch follow the fastest ball still moving, emitted from that ball so it
+	-- travels with whatever is actually rolling. One sound rather than sixteen: sixteen
+	-- loops would phase against each other and cost sixteen voices for something the ear
+	-- hears as a single texture.
+	--
+	-- It is built from TWO alternating Sounds that crossfade into each other, because the
+	-- recordings are not known to loop seamlessly and a seam in a loop clicks every couple
+	-- of seconds - which, during the long quiet stretch of a shot, is the only thing you
+	-- would hear. Crossfading means the raw join is never reached.
 	Roll = {
-		Id = "",
-		MaxVolume = 0.3,
-		FullVolumeSpeed = 120, -- ball speed (in/s) at which the roll is loudest
-		MinSpeed = 4, -- below this it is silent
-		MinPitch = 0.7,
-		MaxPitch = 1.2,
-		FadeSeconds = 0.15,
+		-- Slower rolls use the first tier, faster ones the second, per the recordings.
+		-- Clip 1 measured 15x quieter than 2 and 3, so its gain is large; its noise floor
+		-- sits 10.4 dB below its own average (2 and 3 are at 12.6 and 16.7), which is what
+		-- says the material survives the boost rather than turning to hiss.
+		Tiers = {
+			{
+				{ Id = "rbxassetid://133913351163474", Gain = 15.0 }, -- rolling_1, RMS 0.0036
+			},
+			{
+				{ Id = "rbxassetid://132150152826928", Gain = 1.0 }, -- rolling_2, RMS 0.0548
+				{ Id = "rbxassetid://101439770172296", Gain = 0.95 }, -- rolling_3, RMS 0.0581
+			},
+		},
+		-- Ball speed (in/s) where the tier changes, and how far past it the speed must go
+		-- before it does. Without the margin a ball hovering on the boundary retriggers the
+		-- clip every frame. Measured: the table spends about a third of its moving time
+		-- above 30 in/s. (tune)
+		TierSpeeds = { 30 },
+		TierMargin = 6,
+
+		MinSpeed = 4, -- below this the table is silent
+		LoudSpeed = 300, -- full volume; see QuietSpeed/LoudSpeed above for why it is a ratio
+		MaxVolume = 0.45,
+		MinPitch = 0.82,
+		MaxPitch = 1.25,
+		-- The first tier holds a single recording, so without this it would crossfade into
+		-- the same 2.45 seconds of itself for as long as the table rolls slowly - which is
+		-- about two thirds of a shot. Starting each pass at a random offset makes the
+		-- repeat land on different material every time. Seeking makes the engine re-buffer,
+		-- but that happens while the incoming clip is still silent at the start of its
+		-- crossfade, so it cannot be heard. (tune)
+		StartOffsetMaxSeconds = 1.2,
+		-- Seconds for volume and pitch to follow a change. Without smoothing every collision
+		-- steps the volume and it clicks. (tune)
+		VolumeTau = 0.12,
+		PitchTau = 0.09,
+		-- How long the two clips overlap. Capped in code to a fraction of the clip so a
+		-- short recording cannot start fading before it has begun. (tune)
+		CrossfadeSeconds = 0.35,
 	},
 }
 

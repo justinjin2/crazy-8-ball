@@ -314,7 +314,7 @@ RunService.RenderStepped:Connect(function(dt)
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
 	effects:updateTrail(m:findCueBall())
-	audio:updateRoll(m)
+	audio:updateRoll(m, dt)
 	local dir = Camera.aimDirection(input.angle)
 	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
 	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)

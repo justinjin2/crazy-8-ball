@@ -87,3 +87,34 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
   Importer with Scale Unit: Stud, scale 1. Table instances are placed by script from the
   markers, not imported twelve times.
 - `docs/prompts/` holds the briefs used for Blender agent jobs; reuse them as templates.
+
+## Audio
+
+**Measuring how loud a clip actually is.** Roblox gives no way to read an asset's level from
+a `Sound`, but the newer audio graph does: wire `AudioPlayer -> AudioAnalyzer -> AudioFader
+(Volume 0) -> AudioDeviceOutput` and read `PeakLevel` and `RmsLevel` while it plays. The
+fader keeps it silent; the analyzer sits before it so it still sees full level. The graph
+only runs if it reaches an `AudioDeviceOutput`, so the sink is not optional.
+`tools/measure_audio.luau` does this for every clip in Config; paste it into the command bar
+in Edit mode. It is reproducible to four decimal places between runs.
+
+**`SoundService.DopplerScale` cannot actually be set to zero.** Writing 0 reads back as
+0.001. That is a thousandth of normal and inaudible, so it is fine, but do not treat the
+read-back as a failed write.
+
+**The enum is `Enum.RollOffMode`, not `Enum.SoundRollOffMode`.** Selene catches the wrong one;
+luau-lsp does not.
+
+**Config cannot name `Enum`.** `src/shared/Config.luau` is loaded by the Lune tests, whose
+harness forbids Roblox globals, so anything enum-shaped is stored as a string and mapped on
+the Roblox side (see `Config.Audio.RollOffMode` and how `Audio.luau` reads it).
+
+**`Sound:Play()` does not rewind.** It restores whatever `TimePosition` a script last wrote,
+so a pooled Sound plays from the middle forever once anything seeks it. `Sound:Stop()` is
+what resets it to 0. Relatedly, `Ended` never fires for a looped Sound or when `Stop()` is
+called, so a continuous loop must be driven by polling `TimePosition`, never by `Ended`.
+
+**Mobile can go fully silent after the player switches apps and comes back.** This is a known
+Roblox client bug with no in-experience fix. If a phone playtest comes back with no sound,
+check whether the app was backgrounded before assuming the audio code broke; verify from a
+cold launch.

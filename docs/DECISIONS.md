@@ -120,3 +120,47 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   tracked match time and not a forfeit). Forfeits still cost the forfeiter rating, and repeat
   forfeits against the same opponent give the winner nothing. The old counters punished
   friends playing honestly; a time check punishes only the throw.
+- 2026-09-20: The game's sounds are the designer's own recordings, uploaded to the group that
+  owns the place so they resolve by id with nothing inserted into Studio by hand. Fourteen
+  clips: six ball-on-ball takes (including two with a slight rattle), one cushion, two cue
+  strikes, two pocket drops and three rolling takes. Only the aim tick is still a Roblox
+  library sound, because it is a UI click rather than a pool sound and none was recorded.
+- 2026-09-20: Clip choice is RANDOM and never repeats the previous clip; impact SPEED drives
+  volume and pitch. These are separate mechanisms on purpose. Variation is what stops a break
+  sounding like a machine gun, and no amount of pitch shifting substitutes for it, because
+  the ear spots exact repetition instantly. The designer asked for the rattle takes to be
+  used randomly rather than reserved for a special event, so all six clacks sit in one pool.
+- 2026-09-20: Every clip carries a MEASURED gain that levels it against the others, taken with
+  `tools/measure_audio.luau` (AudioPlayer -> AudioAnalyzer in Studio). Without it the random
+  choice, not the impact speed, decides how loud a hit is: the recordings span 14 dB, from
+  the cushion take at peak 0.18 to the pocket drops at 0.91. `ball_rolling_1` measured 15x
+  quieter than 2 and 3, so it carries a gain of 15; its noise floor sits 10.4 dB below its
+  own average, which is the measurement that says the material survives the boost.
+- 2026-09-20: The volume curve is LOGARITHMIC, not linear. Measured over 48 shots, the median
+  ball-on-ball contact is 3.6 in/s and the 90th percentile is 66.8 while a break tops 520, so
+  the old linear divide-by-200 put 49% of audible contacts in the bottom fifth of the range
+  and the table sounded timid at every power. The log curve puts 8 of 10 volume deciles in
+  real use instead of 5.
+- 2026-09-20: The rolling sound is ONE continuous sound for the whole table, following the
+  fastest ball still moving and emitted from that ball, rather than one loop per ball.
+  Sixteen loops would phase against each other and cost sixteen voices for something the ear
+  hears as a single texture. It is built from two alternating Sounds that CROSSFADE at equal
+  power rather than one looped Sound, because the recordings are not known to loop seamlessly
+  and Roblox re-encodes uploads anyway; a seam clicks every couple of seconds and during the
+  quiet stretch of a shot that click would be the only thing audible. Each pass also starts
+  at a random offset, because the slow tier holds a single recording and the table spends
+  about two thirds of a shot in it.
+- 2026-09-20: `SoundService.DopplerScale` is set to 0 (the engine clamps it to 0.001). The
+  camera sweeps out to the whole-table view at the moment a break fires and the roll emitter
+  moves between balls, so Doppler would warble every clip against the pitch the audio module
+  is deliberately setting, and it would be very hard to recognise as Doppler.
+- 2026-09-20: `Config.Audio.RollOffMinStuds` went from 8 to 18 and the distance model is set
+  explicitly to InverseTapered. The playfield is only about 16 x 8 studs and the camera was
+  measured at 16.2 to 17.5 studs during a shot and 2.2 studs in the close aiming view, so a
+  min distance of 8 sat inside the camera's own range and the mix changed with the zoom.
+  Roblox's default Inverse model also never reaches zero, which made RollOffMaxStuds a number
+  that did nothing.
+- 2026-09-20: Impact emitters are pooled Attachments on one anchored part rather than a fresh
+  Part per contact. A Part-parented Sound is affected by `SoundService.VolumetricAudio`, a
+  place-level setting anyone could flip in Studio, while an Attachment is a point source
+  whatever that is set to.
