@@ -372,16 +372,21 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   the old value was a tenth of a tick - so careful aiming, the one place per-degree feedback
   is worth having, was silent. Slow aiming now clicks on every single step: measured at 3
   deg/s, all 23 ticks asked for in a second played.
-- 2026-09-21: `MinSecondsBetweenTicks` is sized off the recording's ENVELOPE rather than its
-  file length, and dropped from 0.1 to 0.033. turn_tick_1 runs 0.107s, but 50% of its energy
-  is spent by 15.5 ms and 90% by 48 ms, and everything past about 65 ms is more than 34 dB
-  down and inaudible. At a 33 ms gap a new tick lands on a tail already 13 dB below the
-  attack, so it ratchets instead of smearing. The file length gave 10 ticks a second, far too
-  sparse to feel like it tracks the aim; the envelope gives 25 to 30. Measured: 26 a second
-  played at 40 deg/s and above, peaking at 4 voices.
-- 2026-09-21: The tick's volume came DOWN about 4 dB (0.055 to 0.035) in the same pass, and
-  not because anyone disliked it. At one tick per 0.1 degrees it is a near-continuous ratchet
-  three clips deep while the aim moves, and a sound that is always there is heard as much
-  louder than the same sound heard now and then. The old figure was derived for a click every
-  two degrees; carrying it over unchanged would have made the tick the loudest thing in the
-  game while aiming.
+- 2026-09-21: `MinSecondsBetweenTicks` stays at 0.1, and it is a CEILING rather than a rhythm:
+  under it every 0.1 degree clicks, over it the extra steps are swallowed. Both halves of the
+  behaviour fall out of that one number. At 0.1 degrees a tick, a 10-a-second ceiling is one
+  degree per second - so adjusting slower than that, which is what nudging by tenths is, every
+  single step sounds, and sweeping faster it stops trying to keep up. Measured: at 0.5 deg/s
+  all 9 steps played and at 1 deg/s all 17; by 3 deg/s it is one click per 0.38 degrees, at
+  40 one per 4.2, at 400 one per 44. So the faster the aim moves the more ground a click
+  covers, which is the point.
+  It was briefly 0.033 on the theory that the envelope (90% of the energy spent by 48 ms)
+  allowed 30 a second. It does allow it, but 30 a second is a continuous ratchet three clips
+  deep, and only the slow half of the range is worth tracking step for step. Tracking how
+  audible the clip is answered the wrong question; the question is how busy the sound should
+  be.
+- 2026-09-21: The tick's volume stays at its carried-over 0.055. It was cut about 4 dB while
+  the gap was 0.033, because clips piling three deep are heard as far louder than an
+  occasional click. At a 0.1 gap consecutive ticks no longer overlap at all - the clip is more
+  than 34 dB down past 65 ms - so that correction had nothing left to correct for. Measured at
+  2 voices at every aim speed, against 4 to 8 before.

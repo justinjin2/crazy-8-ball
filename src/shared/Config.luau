@@ -1096,17 +1096,16 @@ Config.Audio = {
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
 	-- contact and below even the QUIETEST audible clack, which is the bar it has to clear.
 	--
-	-- 0.055 was that level carried over exactly: the library click it replaced played at
-	-- volume 0.12 against a peak of 0.230 at gain 1, so 0.028 reached the mixer, and the new
-	-- clip's gain brings its 0.729 peak to 0.5, so 0.055 put 0.028 back.
+	-- 0.055 is that level carried over exactly, not a fresh guess: the library click it
+	-- replaced played at volume 0.12 against a peak of 0.230 at gain 1, so 0.028 reached the
+	-- mixer, and the new clip's gain brings its 0.729 peak to 0.5, so 0.055 puts 0.028 back.
 	--
-	-- 0.035 is that figure pulled down about 4 dB, because the tick stopped being an
-	-- occasional click. At one every 0.1 degree it runs as a near-CONTINUOUS ratchet the
-	-- whole time the aim moves, three clips deep, and a sound that is always there is heard
-	-- as far louder than the same sound heard now and then - the old level was set for a
-	-- click every two degrees. This is the number to move by ear, in either direction, and
-	-- the most likely thing to want changing in this whole section. (tune)
-	Tick = { MinVolume = 0.035, MaxVolume = 0.035, MinPitch = 1, MaxPitch = 1 },
+	-- It was cut to 0.035 while MinSecondsBetweenTicks was 0.033, because at 30 ticks a
+	-- second the clips piled three deep and a continuous sound is heard as far louder than
+	-- an occasional one. At the 0.1 gap they no longer overlap at all, so that cut had
+	-- nothing left to correct for and the measured level stands. This is still the number to
+	-- move by ear if the tick sits too far forward or disappears. (tune)
+	Tick = { MinVolume = 0.055, MaxVolume = 0.055, MinPitch = 1, MaxPitch = 1 },
 
 	-- A touch of pitch wobble on every play, on top of the speed-driven pitch, so two
 	-- identical impacts still differ. Keep it small: past about 15% a pitched sample stops
@@ -1165,17 +1164,24 @@ Config.Audio = {
 	-- actually gets. The old library click was short enough that it could never overlap
 	-- itself and this never had to exist.
 	--
-	-- 33 ms is measured off the recording's ENVELOPE, not its file length. turn_tick_1 runs
-	-- 0.107s, but 50% of its energy is spent by 15.5 ms and 90% by 48 ms; everything past
-	-- about 65 ms is more than 34 dB down and inaudible. So at a 33 ms gap a new tick lands
-	-- on a tail that is already 13 dB below the attack, which ratchets rather than smears.
-	-- Sizing this off the file length instead gave 10 a second, which is far too sparse to
-	-- feel like it is tracking the aim.
+	-- This is the number that decides the FEEL, and it is a ceiling on how fast the tick may
+	-- repeat, not a rhythm: under the ceiling every 0.1 degree clicks, over it the extra
+	-- steps are swallowed. So the two halves fall out of one number.
 	--
-	-- About three clips overlap at this rate, so roughly three voices go to ticking while a
-	-- player sweeps the aim. Nothing else is making sound at that moment, so that is free.
-	-- A shorter recording could take this lower; a longer one would have to raise it. (tune)
-	MinSecondsBetweenTicks = 0.033,
+	--   0.1 sets the ceiling at 10 a second, which at 0.1 degrees a tick is 1 degree per
+	--   second. Adjust slower than that - which is what nudging by tenths IS - and every
+	--   single step clicks. Sweep the aim faster and it stops trying to keep up and settles
+	--   into a calm 10 a second however fast you go.
+	--
+	-- It was 0.033 for a moment, and that was wrong: 30 a second is a continuous ratchet
+	-- three clips deep, which is far too busy for a sound that plays the whole time a player
+	-- is aiming. Only the slow half of the range is worth tracking step for step.
+	--
+	-- 0.1 also happens to be just past the point where the recording stops being audible -
+	-- turn_tick_1 runs 0.107s but spends 90% of its energy by 48 ms and is more than 34 dB
+	-- down past 65 ms - so consecutive ticks no longer overlap at all. That is why Tick's
+	-- volume below is back at its carried-over value rather than cut for a pile-up. (tune)
+	MinSecondsBetweenTicks = 0.1,
 
 	-- Sounds are emitted from where the contact happened, so a break sounds like it is
 	-- spread across the table rather than coming from one point.

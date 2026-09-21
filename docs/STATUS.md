@@ -151,12 +151,12 @@ a line either neighbour may play.
 **The turn tick replaces the Roblox library click**, which was the last library sound in the
 game, and now fires every **0.1 degrees** rather than every 2. A nudge tap is 0.2 degrees, so
 under the old value careful aiming - the one place per-degree feedback is worth having - was
-silent. How dense it actually gets is set by `MinSecondsBetweenTicks`, sized off the
-recording's ENVELOPE rather than its file length: the clip runs 0.107s but 90% of its energy
-is spent by 48 ms, so a 33 ms gap ratchets instead of smearing. Measured: at 3 deg/s every
-one of the 23 ticks asked for in a second played; from 10 deg/s up it settles at 25 to 26 a
-second, peaking at 4 voices. Its volume came down about 4 dB in the same pass, because a
-near-continuous ratchet is heard as far louder than an occasional click.
+silent. `MinSecondsBetweenTicks` is a CEILING on the repeat rate, and both halves of the feel
+fall out of it: at 10 a second and 0.1 degrees a step, anything slower than one degree a
+second clicks on every single step, and anything faster stops trying to keep up. Measured -
+at 0.5 deg/s all 9 steps played, at 1 deg/s all 17; by 3 deg/s it is one click per 0.38
+degrees, at 40 one per 4.2, at 400 one per 44. Two voices at every speed, so ticks never
+overlap and the level is the measured one.
 
 **A bright sting layers on top of every pocket drop**, at 12.0 dB under the drop at the drop's
 loudest, pitched dead straight. Withheld for the cue ball - a scratch is not a reward.

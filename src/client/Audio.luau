@@ -408,10 +408,11 @@ end
 
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
 ---
---- Rate limited like the clacks and the rails. One is asked for every tenth of a degree, so
---- any real movement asks for far more than can be played and this is what decides how dense
---- the ratchet actually gets. See Config.Audio.MinSecondsBetweenTicks, which is measured off
---- how long the recording stays audible rather than how long its file is.
+--- Rate limited like the clacks and the rails, and that ceiling is what gives the tick its
+--- two halves. One is asked for every tenth of a degree; below about a degree a second that
+--- is under the ceiling and every single step clicks, which is the case that matters when a
+--- player is easing the aim onto a line. Sweep faster and the extra steps are swallowed and
+--- it settles to a calm rate rather than trying to keep up.
 function Audio.tick(self: Audio, at: Vector3)
 	local now = os.clock()
 	if now - self.lastTick < Config.Audio.MinSecondsBetweenTicks then
