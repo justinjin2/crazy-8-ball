@@ -1013,7 +1013,11 @@ Config.Audio = {
 	},
 	-- A ball dropping is the payoff, so it stays loud whatever speed it went in at.
 	Pocket = { MinVolume = 0.7, MaxVolume = 1.0, MinPitch = 0.96, MaxPitch = 1.06 },
-	Tick = { MinVolume = 0.35, MaxVolume = 0.35, MinPitch = 1, MaxPitch = 1 },
+	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
+	-- game by far and has to sit under everything. At 0.12 it lands about 21 dB below a
+	-- typical ball-on-ball contact and below even the QUIETEST audible clack, which is the
+	-- bar it has to clear. (tune)
+	Tick = { MinVolume = 0.12, MaxVolume = 0.12, MinPitch = 1, MaxPitch = 1 },
 
 	-- A touch of pitch wobble on every play, on top of the speed-driven pitch, so two
 	-- identical impacts still differ. Keep it small: past about 15% a pitched sample stops
@@ -1146,6 +1150,20 @@ Config.Audio = {
 		-- sustained sound dead clicks. Both are too fast to read as fades. (tune)
 		AttackSeconds = 0.02,
 		ReleaseSeconds = 0.05,
+
+		-- The recording ENDS with the band being released, and this sound must only ever be
+		-- something being stretched. Measured through an analyser, that release is a single
+		-- unmistakable transient at 2.539s: RMS 0.130 and peak 0.810, against nothing above
+		-- RMS 0.029 or peak 0.13 anywhere earlier in the clip. Playback is held to the
+		-- stretch before it, so the snap is never reached.
+		--
+		-- Playing past EndSeconds is impossible rather than merely unlikely: the Sound is
+		-- given a playback region, so the engine itself will not go there.
+		EndSeconds = 2.45,
+		-- ...and a drag that outlasts the clip loops back into the middle of the stretch
+		-- rather than stopping dead or starting over at the quiet opening. Only a drag with
+		-- more than 2.45 seconds of CONTINUOUS motion ever reaches this.
+		LoopStartSeconds = 1.0,
 	},
 
 	-- The roll is NOT a one-shot. It is one continuous sound for the whole table whose
@@ -1275,11 +1293,14 @@ Config.UI = {
 	-- needs room for the bar AND the cue hanging under it - about 1.97 bar heights all told -
 	-- so the height fraction is set to leave that much below the top margin on any screen.
 	PowerBarWidthPx = 52,
-	PowerBarHeightFraction = 0.42,
+	PowerBarHeightFraction = 0.4,
 	PowerBarMinHeightPx = 140,
 	PowerBarMaxHeightPx = 300,
 	PowerBarRightMarginPx = 18,
-	PowerBarTopFraction = 0.07, -- of screen height, to the TOP of the bar
+	-- To the TOP of the bar. The Leave button sits at the top right and runs to 52 px down,
+	-- and the PULL label sits 28 px above the bar, so anything under about 0.13 puts the
+	-- label behind that button. (tune)
+	PowerBarTopFraction = 0.145,
 
 	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
 	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull

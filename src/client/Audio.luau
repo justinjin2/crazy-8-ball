@@ -414,9 +414,17 @@ local function buildPull(self: Audio): Pull
 	local sound = Instance.new("Sound")
 	sound.Name = "PullTension"
 	sound.SoundId = P.Id
-	sound.Looped = false
 	sound.Volume = 0
 	sound.PlayOnRemove = false
+	-- Hold playback to the stretch and keep it off the release at the end of the recording.
+	-- Set ONCE here, never toggled: turning PlaybackRegionsEnabled on and off at runtime is
+	-- a known way to stutter other streams. Looped, so a drag longer than the region carries
+	-- on stretching rather than stopping dead - only continuous motion past EndSeconds ever
+	-- gets there.
+	sound.PlaybackRegionsEnabled = true
+	sound.PlaybackRegion = NumberRange.new(0, P.EndSeconds)
+	sound.LoopRegion = NumberRange.new(P.LoopStartSeconds, P.EndSeconds)
+	sound.Looped = true
 	sound.Parent = self.folder
 
 	local pull: Pull = {
@@ -501,7 +509,9 @@ function Audio.updatePull(self: Audio, dt: number)
 	end
 
 	if state.sounding and not sound.IsPlaying then
-		if sound.TimePosition > 0 and sound.TimePosition < sound.TimeLength then
+		-- Looped, so it never runs out on its own: anything past the start is a pause to be
+		-- resumed, and only a rewound sound is played from the top.
+		if sound.TimePosition > 0 then
 			sound:Resume()
 		else
 			sound:Stop()

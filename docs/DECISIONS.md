@@ -279,3 +279,18 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   the clock that notices. A drag that pauses and carries on RESUMES the recording rather than
   restarting it, so an ordinary stop-start drag keeps rubbing instead of re-triggering the
   clip's opening over and over.
+- 2026-09-21: The aim tick dropped to 0.12 and is now quieter than EVERY ball-on-ball
+  contact, measured: 2.1 dB under the quietest audible clack and 21.5 dB under a typical one.
+  It fires on every step of rotation, so it is the most repeated sound in the game by a wide
+  margin and being merely quiet on paper was not enough.
+- 2026-09-21: The rubber-band recording ENDS with the band being released, and this sound
+  must only ever be something under tension, so playback is held to the stretch before it.
+  The release is a single unmistakable transient at 2.539s - RMS 0.130 and peak 0.810 against
+  nothing above RMS 0.029 or peak 0.13 anywhere earlier - so the Sound is given a playback
+  region of 0 to 2.45s and the engine itself will not go there. It also loops back to 1.0s
+  rather than stopping, so a drag with more than 2.45 seconds of continuous motion keeps
+  stretching instead of falling silent. Verified: playback ranged 0.011 to 2.347 and stayed
+  0.192s clear of the snap.
+- 2026-09-21: The power bar dropped to a top fraction of 0.145. At 0.07 its PULL label sat
+  behind the Leave button, which occupies the top right corner down to 52 px. The label now
+  clears it by 12 px and the whole cue still fits at full pull with 43 px to spare.

@@ -94,10 +94,12 @@ The power control now has a cue in it. The vertical bar and its fill are unchang
 top-down cue nearly fills the bar at rest and slides a whole bar height as you pull, leaving
 the bar entirely at full power the way GamePigeon does. The cue is drawn from
 `Config.Cue.Styles` through the new pure `src/shared/CueArt.luau`, so a collectible cue is a
-data row and the same row will drive the 3D stick and an inventory thumbnail later. The bar sits high on the screen so the whole cue stays visible at full pull. Drawing
+data row and the same row will drive the 3D stick and an inventory thumbnail later. The bar sits high on the screen, clear of the Leave button, so the whole cue stays visible at
+full pull. Drawing
 back plays the rubber-tension recording only while the cue is actually still moving: holding
 it at power is silent, and resuming a paused drag carries on from where the recording left
-off rather than restarting it. **72 Lune tests.**
+off rather than restarting it. Playback is held clear of the release at the end of that
+recording, so it only ever sounds like something being stretched. **72 Lune tests.**
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
