@@ -34,7 +34,13 @@ local connections: { RBXScriptConnection } = {}
 -- Position along the scroll axis: 0 is closest on the ball, 1 is straight down, and the
 -- resting view sits where the low range ends. Counted in notches rather than in a distance,
 -- because the two halves of the range deserve very different numbers of them.
-local zoomU = 0 -- set to the resting view by Camera.resetZoom below, once notches() exists
+--
+-- This is REMEMBERED: it survives shots and re-seating, so a player who picks a framing
+-- keeps it instead of being put back to the resting view every time the balls stop.
+local zoomU = (function(): number
+	local V = Config.Camera.View
+	return V.ZoomNotchesLow / math.max(V.ZoomNotchesLow + V.ZoomNotchesTop, 1)
+end)()
 local anchor: Vector3? = nil -- cue ball position the view is built around (frozen during a shot)
 local anchorDir: Vector3? = nil
 local returnTimer = 0 -- seconds of slower easing left after a shot ends
@@ -445,9 +451,8 @@ function Camera.update(
 end
 
 --- Snap straight to the view (used once at start so there is no swoop from the spawn).
+--- Deliberately does NOT reset the zoom: sitting back down keeps the framing you last used.
 function Camera.snap(cueWorld: Vector3, angle: number)
-	-- Sitting down starts at the resting view, not wherever the axis happened to be left.
-	Camera.resetZoom()
 	anchor = cueWorld
 	anchorDir = Camera.aimDirection(angle)
 	Workspace.CurrentCamera.CFrame = viewFor(anchor :: Vector3, anchorDir :: Vector3, nil)

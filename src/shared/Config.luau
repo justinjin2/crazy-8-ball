@@ -643,10 +643,12 @@ Config.Camera = {
 	-- the balls stop.
 	Shot = {
 		ZoomOut = true, -- false = stay at the player's zoom during the shot
-		-- Every shot ends back at ZoomDefault, whatever the player was using before it. The
-		-- alternative is restoring their own zoom, which respects a deliberate choice but
-		-- means the resting angle is only ever seen by someone who never touches the zoom.
-		ReturnToDefault = true,
+		-- false: the camera tips over for the shot and then comes back to WHATEVER ZOOM THE
+		-- PLAYER CHOSE, which is remembered for as long as they stay at the table. Setting
+		-- this true instead ends every shot at the resting view; that is more predictable,
+		-- but it also means anyone who likes the close view has to re-zoom after every
+		-- single shot, which is what made it worth changing.
+		ReturnToDefault = false,
 		FocusWeight = 0, -- gaze pull toward the moving cue ball: 0 = none, 1 = track it
 		Smoothing = 0.35, -- seconds to ease out at the strike
 		ReturnSmoothing = 0.5, -- seconds to ease back in after the balls stop
