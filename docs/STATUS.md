@@ -158,11 +158,18 @@ at 0.5 deg/s all 9 steps played, at 1 deg/s all 17; by 3 deg/s it is one click p
 degrees, at 40 one per 4.2, at 400 one per 44. Two voices at every speed, so ticks never
 overlap and the level is the measured one.
 
-**A bright sting layers on top of every pocket drop**, at 12.0 dB under the drop at the drop's
+**A bright sting layers on top of every pocket drop**, at 15.8 dB under the drop at the drop's
 loudest, pitched dead straight. Withheld for the cue ball - a scratch is not a reward.
 
 All three gains are measurements: peaks 0.940, 0.729 and 0.786, each levelled to 0.5 like
 every other clip. **85 Lune tests.**
+
+**Studio's screen capture through MCP returns a pure black frame**, always. Proven not to be
+the environment: Studio was frontmost, visible and rendering, the display awake, and an
+OS-level `screencapture` of the same screen at the same moment came back correctly exposed.
+Nothing in the Studio logs. The build is on channel `zbuck2release-739`, which is not the
+production channel, and that is the first thing to suspect. Until it is fixed, a visual check
+needs a human at the keyboard.
 
 **Nobody has HEARD any of this yet.** It is verified mechanically - the right clip ids reach
 the right voices at the right volumes - but the three judgements that need ears are: whether

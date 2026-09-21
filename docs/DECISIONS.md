@@ -367,6 +367,8 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   Pitched dead straight, with PitchJitter 0, because a UI sting that wanders in pitch stops
   sounding deliberate - the opposite of the impact sounds, where wobble is the disguise. It is
   withheld when the pocketed ball is the cue ball: a scratch is not a reward.
+  Lowered to 15.8 dB under the drop the same day, at the designer's ear: 12 dB still sat too
+  far forward for something whose whole job is to be felt rather than noticed.
 - 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The
   smallest deliberate movement a player can make is a nudge tap at 0.2 degrees, which under
   the old value was a tenth of a tick - so careful aiming, the one place per-degree feedback

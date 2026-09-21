@@ -1088,10 +1088,11 @@ Config.Audio = {
 	-- The bright sting over the top of the drop. Flat, like the drop: it is a reward for
 	-- pocketing a ball, and a ball that trickles in earned it just as much as one that was
 	-- smashed in. Pitched dead straight, because a UI sting that wanders in pitch stops
-	-- sounding deliberate. The volume is set so it lands about 12 dB UNDER the drop at the
-	-- drop's loudest - present, clearly heard, never the thing you notice first. This is the
-	-- number to move if it sits too far forward or disappears. (tune)
-	Bonus = { MinVolume = 0.25, MaxVolume = 0.25, MinPitch = 1, MaxPitch = 1, PitchJitter = 0 },
+	-- sounding deliberate. The volume is set so it lands about 16 dB UNDER the drop at the
+	-- drop's loudest - there, felt more than heard, never the thing you notice first. It was
+	-- 0.25 (12 dB under) for a day and sat too far forward at the designer's ear. This is the
+	-- number to move if it disappears or creeps back out in front. (tune)
+	Bonus = { MinVolume = 0.16, MaxVolume = 0.16, MinPitch = 1, MaxPitch = 1, PitchJitter = 0 },
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
 	-- contact and below even the QUIETEST audible clack, which is the bar it has to clear.
