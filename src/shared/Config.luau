@@ -846,16 +846,51 @@ Config.Audio = {
 			{ Id = "rbxassetid://125535762394405", Gain = 1.5 }, -- cue_strike_1, peak 0.334
 			{ Id = "rbxassetid://73604297014560", Gain = 1.23 }, -- cue_strike_2, peak 0.406
 		},
-		-- Six ball-on-ball takes, including two with a slight rattle to them. All one pool,
-		-- picked at random: the softer and harder takes differ in timbre, and impact speed
-		-- is what decides how loud any of them plays.
+		-- Six ball-on-ball takes, including two with a slight rattle to them.
+		--
+		-- The SOFT take is banded to gentle contacts, because that is what it is a recording
+		-- of: below 6 in/s it is the only thing eligible, so a ball rolling into another one
+		-- clicks rather than thudding. From 6 to 25 all six are in the running and the
+		-- choice is random, which blends the soft take into the rest instead of switching at
+		-- a line. Above 25 the five firmer takes share it, as before.
 		BallClack = {
-			{ Id = "rbxassetid://94692321009640", Gain = 1.97 }, -- ball_clack_soft, peak 0.254
-			{ Id = "rbxassetid://71776844222034", Gain = 1.03 }, -- ball_clack_1, peak 0.484
-			{ Id = "rbxassetid://129164941963034", Gain = 1.6 }, -- ball_clack_2, peak 0.312
-			{ Id = "rbxassetid://127287227972129", Gain = 0.96 }, -- clack_3, peak 0.523
-			{ Id = "rbxassetid://104388069204336", Gain = 1.18 }, -- rattle_1, peak 0.425
-			{ Id = "rbxassetid://84658060587712", Gain = 1.87 }, -- rattle_2, peak 0.267
+			-- ball_clack_soft, peak 0.254
+			{ Id = "rbxassetid://94692321009640", Gain = 1.97, FromSpeed = 0, UpToSpeed = 25 },
+			-- ball_clack_1, peak 0.484
+			{
+				Id = "rbxassetid://71776844222034",
+				Gain = 1.03,
+				FromSpeed = 6,
+				UpToSpeed = math.huge,
+			},
+			-- ball_clack_2, peak 0.312
+			{
+				Id = "rbxassetid://129164941963034",
+				Gain = 1.6,
+				FromSpeed = 6,
+				UpToSpeed = math.huge,
+			},
+			-- clack_3, peak 0.523
+			{
+				Id = "rbxassetid://127287227972129",
+				Gain = 0.96,
+				FromSpeed = 6,
+				UpToSpeed = math.huge,
+			},
+			-- rattle_1, peak 0.425
+			{
+				Id = "rbxassetid://104388069204336",
+				Gain = 1.18,
+				FromSpeed = 6,
+				UpToSpeed = math.huge,
+			},
+			-- rattle_2, peak 0.267
+			{
+				Id = "rbxassetid://84658060587712",
+				Gain = 1.87,
+				FromSpeed = 6,
+				UpToSpeed = math.huge,
+			},
 		},
 		-- Cushions are picked by SPEED, not at random: a gentle kiss off the rail and a
 		-- hard thud into it are different sounds, not the same sound at two volumes. The
@@ -899,7 +934,18 @@ Config.Audio = {
 
 	-- Volume and pitch range per event. Pitch runs DOWNWARD with force: a harder contact
 	-- gets the lower pitch, which is what makes it read as heavier. (tune)
-	Clack = { MinVolume = 0.18, MaxVolume = 1.0, MinPitch = 0.9, MaxPitch = 1.14 },
+	-- Ball-on-ball contact has its OWN quiet end, an order of magnitude below the shared one.
+	-- Measured over 48 shots, 66% of all ball contacts happen below 12 in/s and the median is
+	-- 3.6, so on the shared 10 in/s floor every one of those either never played or played at
+	-- the same flat minimum - which is why gentle touches made no sound. Starting the curve
+	-- at 1 in/s gives the bottom two thirds of the range somewhere to go. (tune)
+	Clack = {
+		MinVolume = 0.07,
+		MaxVolume = 1.0,
+		MinPitch = 0.9,
+		MaxPitch = 1.14,
+		QuietSpeed = 1,
+	},
 	-- Rails sit WELL below ball-on-ball contact. They were about 2.4 dB under a clack at the
 	-- same speed, which is far too close given they are the most frequent contact after ball
 	-- hits (37 in a nine-shot test) - a cushion is a duller, quieter thing than two phenolic
@@ -930,12 +976,30 @@ Config.Audio = {
 	-- A single break makes well over a hundred ball contacts (121 in one measured shot).
 	-- Playing every one is mush and a frame cost, so the quiet ones are dropped and the
 	-- rest are rate limited. Pocket drops deliberately bypass all of this.
-	MinImpactSpeed = 12,
+	-- The quietest contact worth playing, per kind. These are separate because the two are
+	-- nothing alike: a gentle ball-on-ball kiss is a real sound a player expects to hear,
+	-- while a cushion brushed at walking pace is not, and rails are already the most frequent
+	-- contact in the game.
+	--
+	-- The clack floor was 12, which silenced 66% of all ball contacts. It is now 1. Anything
+	-- under about 0.05 in/s is two balls already touching being re-detected rather than a new
+	-- contact, and must stay silent or a settled rack buzzes. Replaying the rate limiter
+	-- against real event times, dropping the floor to 1 adds 81 audible clacks per 48 shots
+	-- and masks no more loud contacts than before (189 against 188): during a break the loud
+	-- hits are crowded out by OTHER loud hits, never by quiet ones. (tune)
+	MinClackSpeed = 1,
+	MinRailSpeed = 12,
 	-- These two gaps ARE the rate limiter. There used to be a per-frame budget as well, but
 	-- with a wall-clock gap per contact type at most one clack and one rail can start in any
 	-- one frame, so a budget of three could never bind - it was dead config that read like a
 	-- safety net. Being wall-clock, these bind at any frame rate.
-	MinSecondsBetweenClacks = 0.035,
+	-- Loosened from 0.035 alongside the floor change. Replaying the limiter against real
+	-- event times, most of the missing clacking was the FLOOR, not this: dropping the floor
+	-- took a shot from 2.5 audible clacks to 4.5, while tightening this from 0.035 all the
+	-- way to 0.010 only reaches 5.6 and takes the busiest single second from 13 clacks to 19,
+	-- which is where a break turns to mush. 0.022 is 4.9 per shot at 15 in the busiest
+	-- second. (tune)
+	MinSecondsBetweenClacks = 0.022,
 	-- Rails need their own, and a wider one: a break sends a burst of cushion contacts, and
 	-- the soft cushion take rings for almost a second, so without this they pile up and
 	-- drone. Widened from 0.05 when that take came in.
@@ -969,9 +1033,11 @@ Config.Audio = {
 	-- pitch stays explicit.
 	DopplerScale = 0,
 	-- Roblox allows up to 10; this is a safety net so a gain and a volume cannot multiply
-	-- into something that clips the mix. It has to clear the roll's first tier, which
-	-- reaches 3.44 (a 15x gain on a very quiet recording) at the top of its speed band.
-	MaxVolume = 6,
+	-- into something that clips the mix. The loudest thing here is a clack at 1.97 (its
+	-- MaxVolume of 1.0 against the 1.97 gain on the quietest take); the roll's first tier,
+	-- which used to be the binding case, now reaches 0.76. config_test fails if any band and
+	-- gain ever multiply past this, which would silently flatten the top of that sound.
+	MaxVolume = 3,
 	-- Emitters are pooled and reused rather than created and destroyed per contact. This
 	-- caps how many can sound at once: past it, a new impact is dropped rather than
 	-- stealing a voice, EXCEPT a pocket drop, which always gets one. (tune)
@@ -1016,7 +1082,16 @@ Config.Audio = {
 
 		MinSpeed = 4, -- below this the table is silent
 		LoudSpeed = 300, -- full volume; see QuietSpeed/LoudSpeed above for why it is a ratio
-		MaxVolume = 0.45,
+		-- The rolling clips are levelled on RMS and the impact clips on PEAK, which is right
+		-- for each on its own - RMS is what you hear in continuous material, peak is what you
+		-- hear in a transient - but the two families were never checked AGAINST each other,
+		-- and at 0.45 the roll came out 4.2 dB above a ball-on-ball clack in RMS terms.
+		-- Continuously, while a clack lasts 0.08s. So it sat on top of the whole mix.
+		--
+		-- At 0.10 it sits about 9 dB UNDER a clack, which is where a background bed belongs.
+		-- This is the one number to move if the roll wants to be more or less present.
+		-- (tune)
+		MaxVolume = 0.1,
 		MinPitch = 0.82,
 		MaxPitch = 1.25,
 		-- The first tier holds a single recording, so without this it would crossfade into

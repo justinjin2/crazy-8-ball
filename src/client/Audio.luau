@@ -7,9 +7,10 @@
 -- kiss sounds like one.
 --
 -- Three things keep a break from turning to mush. A single break makes well over a hundred
--- ball contacts (121 in one measured shot), so anything under Config.Audio.MinImpactSpeed is
--- dropped; the rest are rate limited per frame and by a short gap between clacks; and each
--- event picks from several recordings so the survivors do not all sound identical.
+-- ball contacts (121 in one measured shot), so anything under Config.Audio.MinClackSpeed or
+-- MinRailSpeed is dropped; the rest are held apart by a minimum gap per contact type; and
+-- each event picks from several recordings, banded by speed, so the survivors neither sound
+-- identical nor play a hard thud for a gentle touch.
 --
 -- All of the arithmetic lives in SoundMix, which is pure and Lune-tested. What is left here
 -- is the Roblox side: instances, pooling and the crossfade bookkeeping.
@@ -336,7 +337,7 @@ function Audio.attach(self: Audio, match: any)
 			-- away behind a wall of clacks, so it skips the gaps and forces a voice.
 			self:playAt("PocketDrop", at, A.Pocket, ev.speed, true)
 		elseif ev.type == "ballHit" then
-			if ev.speed < A.MinImpactSpeed then
+			if ev.speed < A.MinClackSpeed then
 				return
 			end
 			if now - self.lastClack < A.MinSecondsBetweenClacks then
@@ -345,7 +346,7 @@ function Audio.attach(self: Audio, match: any)
 			self.lastClack = now
 			self:playAt("BallClack", at, A.Clack, ev.speed)
 		elseif ev.type == "railHit" then
-			if ev.speed < A.MinImpactSpeed then
+			if ev.speed < A.MinRailSpeed then
 				return
 			end
 			if now - self.lastRail < A.MinSecondsBetweenRails then

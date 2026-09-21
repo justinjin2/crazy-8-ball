@@ -179,3 +179,31 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   cushion recording is also the hottest asset in the set (peak 0.955 against the old rail's
   0.182), so its measured gain of 0.52 takes another 14.4 dB off it relative to playing it
   raw. The gap between rails and clacks lives in `Config.Audio.Rail.MaxVolume`.
+- 2026-09-20: The rolling loop was 13.1 dB too loud and is now at `Roll.MaxVolume = 0.10`.
+  The cause was a mixing error, not taste: the rolling clips are levelled on RMS and the
+  impact clips on PEAK - each correct on its own, since RMS is what you hear in continuous
+  material and peak is what you hear in a transient - but the two families were never checked
+  against each other. At the old 0.45 the roll sat 4.2 dB ABOVE a ball-on-ball clack in RMS
+  terms, continuously, while a clack lasts 0.08 seconds, so it sat on top of the whole mix.
+  It now sits about 9 dB under a clack, which is where a background bed belongs.
+- 2026-09-20: The floor for ball-on-ball sound dropped from 12 in/s to 1, split out of the
+  shared `MinImpactSpeed` into `MinClackSpeed` and `MinRailSpeed` so cushions keep their own.
+  Measured over 48 shots, 66% of all ball contacts happen below 12 in/s and the median is
+  3.6, so the old floor silenced two thirds of the game's contacts and gentle touches made no
+  sound at all. Replaying the rate limiter against real event times, the floor was the whole
+  problem: it takes a shot from 2.5 audible clacks to 4.5, while tightening the gap between
+  clacks from 0.035 all the way to 0.010 only reaches 5.6 and takes the busiest single second
+  from 13 clacks to 19, which is where a break turns to mush. The gap moved 0.035 -> 0.022
+  and stopped there. Contacts under about 0.05 in/s stay silent: those are two balls already
+  touching being re-detected, and a settled rack must not buzz.
+- 2026-09-20: `Config.Audio.Clack` carries its own `QuietSpeed` of 1 in/s against the shared
+  10. With the shared floor every contact below 10 in/s flattened onto the same minimum
+  volume, so even once they were audible they would all have sounded identical. Starting the
+  clack curve at 1 gives the bottom two thirds of the range somewhere to go, and because the
+  curve is a ratio the change tapers to nothing at the top: +6.3 dB at 12 in/s, +2.4 dB at
+  40, +0.0 dB at break speed. Breaks are untouched; only the gentle end moved.
+- 2026-09-20: The soft ball-on-ball take is banded to gentle contacts (up to 25 in/s, alone
+  below 6), the five firmer takes from 6 up. It is a recording of a gentle contact, so
+  playing it for a break - or playing a firm take for a ball rolling into another one - is
+  simply the wrong sound. This supersedes the earlier "all six at random": the designer asked
+  for soft touches to play the soft clack.

@@ -68,6 +68,16 @@ than switching at an audible line), and rails were turned down 10.1 dB - they sa
 below a clack at the same speed and now sit 12.6 dB below it, which is where the most
 frequent contact in the game belongs. **62 Lune tests.**
 
+Two mix corrections after that. The rolling loop was 13.1 dB too loud, from a real mixing
+error: rolling clips are levelled on RMS and impact clips on peak, each right on its own, but
+the two families were never checked against each other, and the roll was sitting 4.2 dB ABOVE
+a clack continuously. And the floor for ball-on-ball sound dropped from 12 in/s to 1, because
+66% of all ball contacts happen below 12 and the median is 3.6 - the old floor silenced two
+thirds of the game's contacts, so gentle touches made no sound. Clacks also got their own
+quiet end (1 in/s against the shared 10) so soft contacts differ from each other instead of
+flattening onto one minimum, and the soft take is now banded to gentle contacts. **63 Lune
+tests.**
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 

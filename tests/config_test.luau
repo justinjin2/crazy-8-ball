@@ -73,6 +73,56 @@ return {
 		end
 	end,
 
+	["a gentle touch plays the soft take, and is not silenced"] = function()
+		local Config = H.require("Config")
+		local SoundMix = H.require("SoundMix")
+		local A = Config.Audio
+
+		-- Measured over 48 shots: the median ball-on-ball contact is 3.6 in/s and 66% of them
+		-- are under 12. A floor above that silences most of the game's contacts, which is
+		-- exactly the bug this guards.
+		H.expect(A.MinClackSpeed <= 4, "the clack floor must sit below the median contact")
+		-- ...but not so low that two balls already touching, re-detected, start buzzing.
+		H.expect(A.MinClackSpeed > 0.05, "resting contacts must stay silent")
+
+		-- The soft take is clips[1]. At a gentle speed it must be the ONLY one eligible, or a
+		-- ball rolling into another one thuds instead of clicking.
+		for _, speed in { 0.5, 1, 2, 3, 5 } do
+			for step = 0, 40 do
+				local i = SoundMix.pickBanded(A.Clips.BallClack, speed, nil, step / 41)
+				H.expect(
+					i == 1,
+					("%.1f in/s should pick the soft take, picked %d"):format(speed, i)
+				)
+			end
+		end
+		-- And at a firm speed it must NOT be chosen: it is a recording of a gentle contact.
+		for step = 0, 40 do
+			local i = SoundMix.pickBanded(A.Clips.BallClack, 120, nil, step / 41)
+			H.expect(i ~= 1, "a firm contact must not pick the soft take")
+		end
+		-- In between, every take is reachable, which is what blends one into the other.
+		local seen = {}
+		for step = 0, 300 do
+			seen[SoundMix.pickBanded(A.Clips.BallClack, 12, nil, step / 301)] = true
+		end
+		local n = 0
+		for _ in seen do
+			n += 1
+		end
+		H.expect(
+			n == #A.Clips.BallClack,
+			("the overlap should reach all takes, reached %d"):format(n)
+		)
+
+		-- A gentle contact must actually be audible, not sitting at zero.
+		local volume = SoundMix.mix(A.Clack, A.MinClackSpeed, A.QuietSpeed, A.LoudSpeed)
+		H.expect(
+			volume > 0.02,
+			("the quietest clack plays at %.3f, which is inaudible"):format(volume)
+		)
+	end,
+
 	["shared modules cannot see Roblox globals"] = function()
 		local clean = H.evalInModuleEnv([[
 			return game == nil and workspace == nil and Vector3 == nil and CFrame == nil

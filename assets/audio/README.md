@@ -5,7 +5,7 @@ are referenced by id from `Config.Audio` and there is nothing to insert into Stu
 
 | Event | Clips | Notes |
 |---|---|---|
-| `BallClack` | 6 | `ball_clack_soft`, `ball_clack_1/2`, `clack_3`, `ball_clack_rattle_1/2` |
+| `BallClack` | 6 | `ball_clack_soft` is banded to gentle contacts; the other five from 6 in/s |
 | `RailThud` | 2 | soft take up to 70 in/s, `ball_hitting_edge_table_hard` from 40 |
 | `CueStrike` | 2 | `cue_strike_1/2` |
 | `PocketDrop` | 2 | `pocket_drop_1/2` |
@@ -41,6 +41,11 @@ into it are different sounds, not the same sound at two volumes. The two takes' 
 between 40 and 70 in/s and the choice is random in there, which blends one into the other
 instead of switching at a line a player would learn to hear. Measured over eight shots, the
 soft take carries about two thirds of all rail hits.
+
+**Gentle contacts are audible.** Two thirds of all ball-on-ball contacts in this game happen
+below 12 in/s (the median is 3.6), so the sound floor sits at 1 in/s and the clack curve has
+its own quiet end an order of magnitude below the shared one. Contacts under about 0.05 in/s
+stay silent - those are two balls already touching being re-detected, not a new contact.
 
 **Rails sit well below ball-on-ball contact** — 12.6 dB below a clack at the same speed. They
 used to be 2.4 dB below, which was far too close for the most frequent contact in the game.
