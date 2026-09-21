@@ -409,6 +409,13 @@ RunService.RenderStepped:Connect(function(dt)
 	effects:updateTrail(m:findCueBall())
 	audio:updateRoll(m, dt)
 	local dir = Camera.aimDirection(input.angle)
+	-- The shot has just begun. The camera is told how hard the cue ball left so it can decide
+	-- whether this shot is worth leaving the close view for at all. Taken from the SIMULATION
+	-- rather than from the power this client sent, so it is right for an opponent's shot at
+	-- this table too.
+	if playing and not wasPlaying then
+		Camera.beginShot(m:cueBallSpeedNow())
+	end
 	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
 	local moving = if playing then movingBallWorlds(m, p) else nil
 	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow, moving)

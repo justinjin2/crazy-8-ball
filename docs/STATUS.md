@@ -226,11 +226,19 @@ geometrically. At the 9 ft table that is 5.3 studs from the cue ball at a 35 deg
 (fitted is 10.1 studs at 50 degrees; closest is 2.2 at 18). The camera resets to it at the end
 of every shot rather than keeping whatever the player pinched to.
 
-And it no longer leaves at the strike. It holds the framing the shot was taken from while the
-cue ball travels, and two things can end that hold, whichever comes first: `Shot.HoldSeconds`
-(0.5), or **a ball about to leave the screen** (`Shot.OffScreenMargin`, 0.06 - a ball counts
-as gone once its centre is within 6% of the edge). Holding a framing that no longer contains
-the shot was the worst case of the fixed timer. Then it pulls out over `Shot.PullOutSeconds`
+And it no longer leaves at the strike, or always leaves at all. Three rules decide it:
+
+- **Is it worth leaving for?** `Shot.MinTravelTableLengths` (0.5). If the cue ball could not
+  run half a table length on an empty table, the camera never moves - a tap has nothing to
+  show at the far end. The test is `Cue.rollOutDistance`, a new pure closed form verified
+  against the integrator to within 0.05 in, and it BOUNDS every ball in the shot, so it can
+  never hold still on a shot where something really travels.
+- **When to go.** `Shot.HoldSeconds` (0.5) after the strike...
+- **...or sooner.** `Shot.OffScreenMargin` (0.06) - a ball counts as gone once its centre is
+  within 6% of the screen edge, and that overrides both of the above, because wherever the
+  shot has gone the camera has to follow.
+
+Then it pulls out over `Shot.PullOutSeconds`
 (0.7) against a 0.22s easing, smoothstepped so the move has no corners. That pair was 1.2 and
 0.35, which took 1.6s to get 95% of the way out and read as slow; it now does it in 0.93s, and
 the eased shape survives the cut (7%, 22%, 40%, 58%, 74%, 89%, 96%).
@@ -247,6 +255,10 @@ after the strike. At the real 0.06 the straight shots that could be driven from 
 session never tripped it and the fallback governed - expected, since the close view looks DOWN
 the aim line and balls mostly stay inside the cone. **It has not been seen firing on a real
 bank shot**, which needs a human aiming wide.
+
+The small-shot cutoff was verified directly: a 0.13-power tap moved the camera 0.00 studs
+across a 2.51s shot, and a full-power shot straight after pulled out 7.07 studs on a 0.65s
+hold and a 0.95s move.
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.

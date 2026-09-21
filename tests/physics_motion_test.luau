@@ -32,6 +32,86 @@ local function stepUntilRest(Config, Simulation, state, onStep: ((number) -> ())
 end
 
 return {
+	["a predicted roll-out matches what the simulation actually does"] = function()
+		local Config, Ball, _, Simulation, geometry = setup()
+		local Cue = H.require("Physics.Cue")
+		-- Start at the head rail aimed down the length, and keep to speeds whose whole run
+		-- fits before the foot rail - a ball that reaches the cushion rebounds, and then the
+		-- two numbers are measuring different things.
+		local startX = -45
+		local runway = geometry.halfLength - startX
+		for _, speed in { 10, 20, 29, 35 } do
+			local predicted = Cue.rollOutDistance(speed)
+			H.expect(
+				predicted < runway,
+				("%.0f in/s would run %.1f in into a %.1f in runway"):format(
+					speed,
+					predicted,
+					runway
+				)
+			)
+			local b = Ball.new(0, startX, 0)
+			b.vx = speed
+			local state = Simulation.newState(geometry, { b })
+			stepUntilRest(Config, Simulation, state)
+			local actual = b.x - startX
+			-- The simulation snaps to rest at RestSpeed rather than coasting to zero, which
+			-- costs a fixed last fraction of an inch however fast the ball started.
+			local snap = Config.Physics.RestSpeed ^ 2
+				/ (2 * Config.Physics.RollingFriction * Config.Physics.Gravity)
+			H.near(
+				predicted - snap,
+				actual,
+				0.05,
+				("%.0f in/s: predicted %.3f in (less %.3f of rest snap), ran %.3f in"):format(
+					speed,
+					predicted,
+					snap,
+					actual
+				)
+			)
+		end
+	end,
+
+	["roll-out grows with speed and is zero at rest"] = function()
+		local _, _, _, _, _ = setup()
+		local Cue = H.require("Physics.Cue")
+		H.expect(Cue.rollOutDistance(0) == 0, "a ball at rest travels nowhere")
+		H.expect(Cue.rollOutDistance(-5) == 0, "a negative speed must not go backwards")
+		local last = -1
+		for _, v in { 1, 5, 15, 30, 60, 120, 300, 528 } do
+			local d = Cue.rollOutDistance(v)
+			H.expect(d > last, ("roll-out did not grow at %d in/s"):format(v))
+			last = d
+		end
+	end,
+
+	["the camera's small-shot cutoff lands where the power bar says"] = function()
+		local Config = H.require("Config")
+		local Cue = H.require("Physics.Cue")
+		local limit = Config.Camera.Shot.MinTravelTableLengths * Config.Table.LengthInches
+		-- A gentle tap must not reach it, and a firm shot must clear it comfortably. These
+		-- are the two cases the cutoff exists to tell apart.
+		H.expect(
+			Cue.rollOutDistance(Cue.speedForPower(0.15)) < limit,
+			"a 15% tap should not be worth pulling the camera out for"
+		)
+		H.expect(
+			Cue.rollOutDistance(Cue.speedForPower(0.35)) > limit,
+			"a 35% shot should always pull the camera out"
+		)
+		-- And the changeover must be a single crossing, not a number that wobbles over it.
+		local crossings, was = 0, false
+		for step = 0, 200 do
+			local over = Cue.rollOutDistance(Cue.speedForPower(step / 200)) >= limit
+			if over ~= was then
+				crossings += 1
+				was = over
+			end
+		end
+		H.expect(crossings == 1, ("the cutoff is crossed %d times, not once"):format(crossings))
+	end,
+
 	["a struck ball slows down, stops, and stays on the table"] = function()
 		local Config, Ball, TableGeometry, Simulation, geometry = setup()
 		local R = Config.Balls.RadiusInches

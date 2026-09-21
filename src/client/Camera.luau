@@ -11,6 +11,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Cue = require(Shared:WaitForChild("Physics"):WaitForChild("Cue"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 
@@ -52,6 +53,9 @@ local shotTime = 0
 -- screen: starting the move from the moment it was triggered is what keeps it continuous.
 -- Deriving it from HoldSeconds instead would jump the target part-way through the curve.
 local pullOutStart: number? = nil
+-- Whether this shot is big enough to be worth leaving the close view for at all. Decided once
+-- at the strike from the cue ball's speed; a ball reaching the screen edge overrides it.
+local pullOutWanted = true
 
 --- World-space aim direction for a physics angle on the current table. The angle is in
 --- table space, so the table's yaw turns it: at yaw 0 this is (cos, 0, -sin) as before.
@@ -478,7 +482,10 @@ function Camera.update(
 					end
 				end
 			end
-			if gone or shotTime >= S.HoldSeconds then
+			-- A ball heading off screen always wins: wherever the shot has gone, the camera
+			-- has to follow it. The timer only ever applies to a shot big enough to be worth
+			-- leaving for in the first place.
+			if gone or (pullOutWanted and shotTime >= S.HoldSeconds) then
 				pullOutStart = shotTime
 			end
 		end
@@ -500,6 +507,15 @@ function Camera.update(
 		smoothed = base
 		cam.CFrame = base + shakeOffset(dt)
 	end
+end
+
+--- A shot has just started. `cueSpeed` is how fast the cue ball left, which decides whether
+--- the camera bothers leaving the close view at all: a tap that cannot cross half the table
+--- has nothing to show at the far end. See Config.Camera.Shot.MinTravelTableLengths.
+function Camera.beginShot(cueSpeed: number)
+	local S = Config.Camera.Shot
+	local reach = Cue.rollOutDistance(cueSpeed)
+	pullOutWanted = reach >= S.MinTravelTableLengths * Config.Table.LengthInches
 end
 
 --- Snap straight to the view (used once at start so there is no swoop from the spawn).

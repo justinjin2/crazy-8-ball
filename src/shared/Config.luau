@@ -694,6 +694,22 @@ Config.Camera = {
 		-- after - by the time the centre is at the edge, half the ball is already outside.
 		-- Raise it to leave earlier, drop it to 0 to wait for the ball to actually go. (tune)
 		OffScreenMargin = 0.06,
+		-- A shot too small to be worth leaving for at all. If the cue ball could not run this
+		-- far even with a clear table (Cue.rollOutDistance, in table lengths), the camera
+		-- stays exactly where the shot was taken from: a tap that moves the ball a few inches
+		-- has nothing to show at the far end, and pulling out for it throws away the close
+		-- view for no reason.
+		--
+		-- Measured against it, this is a sharp line rather than a fussy one, because power
+		-- drives speed as power^2.6: 0.20 power runs 0.30 lengths, 0.25 runs 0.48, and 0.30
+		-- already runs 0.81. So half a table length lands at about a quarter of the bar.
+		--
+		-- It is a BOUND on every ball, not just the cue ball - nothing leaves a collision
+		-- faster than the ball that struck it - so this can hold the camera still on a shot
+		-- where little happens, and never on one where something travels. OffScreenMargin
+		-- above still overrides it: anything that does reach the edge pulls the camera out
+		-- however gently it was hit. (tune)
+		MinTravelTableLengths = 0.5,
 		-- How long the pull-out to the whole table then takes, eased in and out of the move
 		-- (smoothstep) so it has no corners at either end. Smoothing below is applied on top,
 		-- so the move actually lands somewhat after this: at 1.2 and 0.35 it took 1.6s to get

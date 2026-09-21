@@ -458,3 +458,23 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   fallback governed, at 0.67 to 0.73s - which is the expected result, since the close view
   looks DOWN the aim line and balls mostly stay inside the cone. The rule earns its keep on
   the shots that throw a ball wide near the shooter's end, not on ordinary ones.
+- 2026-09-21: The camera does not leave the close view at all for a shot too small to be worth
+  it. `Shot.MinTravelTableLengths` (0.5): if the cue ball could not run half a table length
+  even on an empty table, the camera stays exactly where the shot was taken from. A tap that
+  moves the ball a few inches has nothing to show at the far end.
+  The test is `Cue.rollOutDistance(speed)`, new and pure: the closed-form slide-then-roll
+  distance, the same arithmetic Simulation integrates. Verified against the integrator to
+  within 0.05 in once the RestSpeed snap is accounted for. It is a BOUND on every ball in the
+  shot, because nothing leaves a collision faster than the ball that struck it arrived, so it
+  can hold the camera still on a shot where little happens and never on one where something
+  travels far.
+  The power curve makes this a sharp line rather than a fussy one: 0.20 power runs 0.30
+  lengths, 0.25 runs 0.48, 0.30 runs 0.81. Half a table length lands at about a quarter of the
+  bar. Binary, not proportional, at the designer's call - the camera does one of two known
+  things rather than a different framing on every shot.
+  The speed comes from the SIMULATION at the first frame of the shot, not from the power this
+  client sent, so it is right for an opponent's shot at the same table.
+  `OffScreenMargin` still overrides it: a gently hit ball that reaches the screen edge pulls
+  the camera out anyway, because wherever the shot has gone the camera has to follow.
+  Verified in Studio: a 0.13-power tap moved the camera 0.00 studs across a 2.51s shot, and a
+  full-power shot straight after pulled out 7.07 studs on a 0.65s hold and a 0.95s move.
