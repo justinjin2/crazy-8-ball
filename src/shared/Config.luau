@@ -1131,9 +1131,21 @@ Config.Audio = {
 		-- left the first part of every pull all but inaudible - which is the part you hear
 		-- most, because that is when your finger is moving. (tune)
 		Volume = 1.2,
-		-- A very short fade on stopping. Not for effect: cutting a sustained sound dead
-		-- clicks, and this is too fast to hear as a fade. (tune)
-		ReleaseSeconds = 0.06,
+		-- The sound belongs to the MOTION of drawing back, not to the tension of holding
+		-- there: it plays while the cue is actually being pulled further and goes quiet the
+		-- moment it stops moving, the way real friction does.
+		--
+		-- StillSeconds is how long without any further pull counts as stopped. It has to
+		-- clear the gaps between input events during a normal drag, or an ordinary finger
+		-- would chop the sound up; 0.1s is several frames' worth of slack.
+		StillSeconds = 0.1,
+		-- The smallest increase in pull that counts as still dragging. A finger resting on
+		-- the control jitters by well under a pixel's worth of this. (tune)
+		MinIncrease = 0.003,
+		-- Fades in and out, not because a fade should be heard but because cutting a
+		-- sustained sound dead clicks. Both are too fast to read as fades. (tune)
+		AttackSeconds = 0.02,
+		ReleaseSeconds = 0.05,
 	},
 
 	-- The roll is NOT a one-shot. It is one continuous sound for the whole table whose
@@ -1257,11 +1269,17 @@ Config.UI = {
 	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
 	-- fill charging up behind it.
+	--
+	-- It sits HIGH rather than centred, because the cue drops a whole bar height below it at
+	-- full pull and a centred bar pushes that off the bottom of the screen. The control
+	-- needs room for the bar AND the cue hanging under it - about 1.97 bar heights all told -
+	-- so the height fraction is set to leave that much below the top margin on any screen.
 	PowerBarWidthPx = 52,
-	PowerBarHeightFraction = 0.62,
+	PowerBarHeightFraction = 0.42,
 	PowerBarMinHeightPx = 140,
 	PowerBarMaxHeightPx = 300,
 	PowerBarRightMarginPx = 18,
+	PowerBarTopFraction = 0.07, -- of screen height, to the TOP of the bar
 
 	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
 	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull

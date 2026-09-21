@@ -266,3 +266,16 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   most, because that is when your finger is actually moving. The loop-back-past-the-quiet-head
   machinery went with it; a pull held past 2.776s simply ends, which is what "the normal
   sound" means.
+- 2026-09-21: The power bar is anchored HIGH on the screen rather than centred, and its
+  height fraction dropped 0.62 -> 0.42. The control needs room for the bar and for the cue
+  hanging a whole bar height beneath it - about 1.97 bar heights all told - and a centred bar
+  pushed the bottom of the cue off the screen. Measured before: 66 px of the cue fell off the
+  bottom edge at full pull. After: the whole cue is on screen with 123 px to spare.
+- 2026-09-21: The tension sound follows the MOTION of drawing back, not the tension of being
+  held there. It plays only while the pull is still growing and goes quiet once it stops, the
+  way friction actually does; pressing the control makes no sound and neither does holding at
+  full power. This needs a per-frame check rather than an event, because a finger that stops
+  moving sends no further input and nothing would otherwise tell the sound to stop - it is
+  the clock that notices. A drag that pauses and carries on RESUMES the recording rather than
+  restarting it, so an ordinary stop-start drag keeps rubbing instead of re-triggering the
+  clip's opening over and over.

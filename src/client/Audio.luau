@@ -57,7 +57,10 @@ type RollVoice = {
 -- your hand, not to a place on the table.
 type Pull = {
 	sound: Sound,
-	active: boolean,
+	held: boolean, -- a drag is in progress at all
+	sounding: boolean, -- ...and it is still moving, which is what makes the noise
+	lastPull: number,
+	lastIncrease: number,
 	volume: number,
 }
 
@@ -416,53 +419,96 @@ local function buildPull(self: Audio): Pull
 	sound.PlayOnRemove = false
 	sound.Parent = self.folder
 
-	local pull: Pull = { sound = sound, active = false, volume = 0 }
+	local pull: Pull = {
+		sound = sound,
+		held = false,
+		sounding = false,
+		lastPull = 0,
+		lastIncrease = 0,
+		volume = 0,
+	}
 	self.pull = pull
 	return pull
 end
 
---- Drawing the cue back, or nil once it is let go.
+--- How far back the cue is being drawn, or nil once it is let go.
 ---
---- The recording is played straight through at one volume and stopped when the pull ends.
---- It used to be scaled by how far back the cue was, and that was wrong: this is quiet
---- friction that only builds late, so scaling the start down as well made the beginning of
---- every pull - the part you hear most, because that is when your finger is moving - all but
---- silent.
+--- The sound belongs to the MOTION of drawing back, not to the tension of holding there, so
+--- it plays only while the pull is actually still growing. Pressing the control makes no
+--- sound, and neither does holding it at full power; both are silence, the way rubbing
+--- something and then stopping is.
 ---
 --- Driven from the pull VALUE rather than from the control, so a gamepad trigger sounds
 --- exactly like a finger.
 function Audio.setPull(self: Audio, pull: number?)
 	local state = self.pull or buildPull(self)
-	local wanted = pull ~= nil
-	if wanted == state.active then
-		return -- already in the right state; a drag reports continuously
+	local P = Config.Audio.Pull
+
+	if pull == nil then
+		state.held = false
+		state.sounding = false
+		return
 	end
-	state.active = wanted
-	if wanted then
-		local sound = state.sound
-		sound:Stop() -- Stop is what rewinds a Sound; Play resumes from wherever it was left
-		state.volume = Config.Audio.Pull.Volume
-		sound.Volume = math.clamp(state.volume * Config.Audio.Pull.Gain, 0, Config.Audio.MaxVolume)
-		sound:Play()
+
+	if not state.held then
+		-- A fresh grab. The press itself is not a pull, so this starts silent.
+		state.held = true
+		state.lastPull = pull
+		return
 	end
+	if pull > state.lastPull + P.MinIncrease then
+		state.sounding = true
+		state.lastIncrease = os.clock()
+	end
+	state.lastPull = pull
 end
 
---- Fade out a released pull. Call every frame. Nothing to do while one is being held: the
---- clip simply plays.
+--- Keep the tension in step with the drag. Call every frame.
+---
+--- The per-frame part matters: a finger that stops moving sends no further input, so nothing
+--- would ever tell the sound to stop. It is the CLOCK that notices, not an event.
 function Audio.updatePull(self: Audio, dt: number)
 	local state = self.pull
-	if state == nil or state.active or state.volume <= 0 then
+	if state == nil then
 		return
 	end
 	local P = Config.Audio.Pull
-	state.volume = SoundMix.ease(state.volume, 0, dt, P.ReleaseSeconds)
-	if state.volume < 1e-3 then
+	local sound = state.sound
+
+	if state.sounding and os.clock() - state.lastIncrease > P.StillSeconds then
+		state.sounding = false
+	end
+
+	local wanted = if state.sounding then P.Volume else 0
+	local tau = if state.sounding then P.AttackSeconds else P.ReleaseSeconds
+	state.volume = SoundMix.ease(state.volume, wanted, dt, tau)
+
+	if not state.sounding and state.volume < 1e-3 then
 		state.volume = 0
-		state.sound:Stop()
-		state.sound.Volume = 0
+		sound.Volume = 0
+		if sound.IsPlaying then
+			-- Paused rather than stopped while the cue is still held: a drag that pauses and
+			-- carries on should carry on RUBBING, not start the recording over each time.
+			if state.held then
+				sound:Pause()
+			else
+				sound:Stop()
+			end
+		elseif not state.held and sound.TimePosition > 0 then
+			sound:Stop() -- Stop is what rewinds, ready for the next pull
+		end
 		return
 	end
-	state.sound.Volume = math.clamp(state.volume * P.Gain, 0, Config.Audio.MaxVolume)
+
+	if state.sounding and not sound.IsPlaying then
+		if sound.TimePosition > 0 and sound.TimePosition < sound.TimeLength then
+			sound:Resume()
+		else
+			sound:Stop()
+			sound:Play()
+		end
+	end
+	sound.Volume = math.clamp(state.volume * P.Gain, 0, Config.Audio.MaxVolume)
 end
 
 ---------------------------------------------------------------------------------------------

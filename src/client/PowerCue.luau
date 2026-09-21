@@ -97,8 +97,10 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	local bar = Instance.new("TextButton")
 	bar.Name = "PowerBar"
 	bar.Text = ""
-	bar.AnchorPoint = Vector2.new(1, 0.5)
-	bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, 0.5, 0)
+	-- Anchored by its TOP, high on the screen: at full pull the cue hangs a whole bar height
+	-- below, and a centred bar pushes that straight off the bottom edge.
+	bar.AnchorPoint = Vector2.new(1, 0)
+	bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, U.PowerBarTopFraction, 0)
 	-- Height follows the screen so the whole bar, and the whole pull, fits a phone.
 	bar.Size = UDim2.new(0, U.PowerBarWidthPx, U.PowerBarHeightFraction, 0)
 	bar.BackgroundColor3 = rgb(U.Panel)
