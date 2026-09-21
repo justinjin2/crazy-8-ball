@@ -132,12 +132,18 @@ longest shot 9.41s, none capped, **no ball left sitting over an opening**. Tip t
 3 in/s down to 0.000s at 60 and above. Console clean, no pocket-cut warnings. **84 Lune
 tests**, 12 of them new in `tests/physics_pocket_test.luau`.
 
-**Not yet looked at by a human:** the art. Studio's screen capture returns an all-black frame
-through MCP, so nobody has SEEN the new hole. Two things to check by eye at a pocket: the
-corner hole now takes a bigger bite out of the cloth (which is the point), and the side pocket
-hole is cut 0.52 in past the OUTER face of the rail, so there may be a small notch in the
-outside of the long rails. If that reads badly, widen `Table.RailWidthInches` to 6.1 rather
-than shrinking the opening.
+**Now seen.** The corner reads as a real pocket: a round opening centred on the table corner
+with the jaw tips sitting on its rim. The predicted side-pocket notch is there - the hole is
+cut 0.52 in past the outer face of the rail - but the leather ring wraps it and it reads as an
+ordinary table detail, not damage. `Table.RailWidthInches` 6.1 would swallow it if it ever
+looks wrong.
+
+**One cosmetic regression the bigger hole exposed.** `TableBuilder`'s leather lining is an
+annulus minus `innerHalfBox`, so it only covers the half of the throat AWAY from the table.
+That was invisible while the opening sat mostly outside the cushion line; now that it is
+centred on the corner, a quarter of it is inside the cloth and the bed's cut face shows there
+as raw bright blue instead of leather. Fix is in `innerHalfBox` / the PocketWall build, not in
+the physics.
 
 ## Three new recordings
 
@@ -164,12 +170,16 @@ loudest, pitched dead straight. Withheld for the cue ball - a scratch is not a r
 All three gains are measurements: peaks 0.940, 0.729 and 0.786, each levelled to 0.5 like
 every other clip. **85 Lune tests.**
 
-**Studio's screen capture through MCP returns a pure black frame**, always. Proven not to be
-the environment: Studio was frontmost, visible and rendering, the display awake, and an
-OS-level `screencapture` of the same screen at the same moment came back correctly exposed.
-Nothing in the Studio logs. The build is on channel `zbuck2release-739`, which is not the
-production channel, and that is the first thing to suspect. Until it is fixed, a visual check
-needs a human at the keyboard.
+**Studio's screen capture through MCP works in EDIT mode and returns a pure black frame in
+PLAY mode.** Restarting Studio fixed Edit; Play is still black, with the default camera as
+well as a scripted one, so it is not a camera problem. To look at anything an agent needs a
+temporary table built in Edit mode - `TableBuilder.build(folder, Placement.forTable(1), 1)`
+into a throwaway folder, screenshot, then DESTROY the folder, because Team Create saves the
+place continuously and nothing built this way belongs in it.
+
+Before the restart, Edit was black too. That was proven not to be the environment: Studio was
+frontmost, visible and rendering, the display awake, and an OS-level `screencapture` of the
+same screen at the same moment came back correctly exposed.
 
 **Nobody has HEARD any of this yet.** It is verified mechanically - the right clip ids reach
 the right voices at the right volumes - but the three judgements that need ears are: whether
