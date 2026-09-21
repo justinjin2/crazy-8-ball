@@ -218,3 +218,18 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   narrowed from 0.88..1.08 to 0.90..1.07 so the two together stay inside the 15% beyond which
   a pitched sample stops sounding like the same object being struck. Measured: 34 cushion
   hits across 13.6 dB of volume and 16 distinct pitches.
+- 2026-09-20: A hard break now STACKS its contacts instead of queueing them. Contacts at or
+  above `Config.Audio.StackSpeed` (110 in/s) skip the minimum gap between clacks and are
+  allowed to sound together, up to ten inside a tenth of a second. 110 is a measured
+  discriminator rather than a guess: on a full-power break nine contacts clear it and every
+  one falls inside the same 90 ms window, starting 0.091s in as the cue ball reaches the
+  rack, while at half power nothing reaches it at all. A contact can never be faster than the
+  ball that struck it, so the cue-ball speed is a hard ceiling - stacking is impossible below
+  52% power, which keeps it entirely out of ordinary play. Nine sounds of equal level sum to
+  about +9.5 dB, and that, not the volume curve, is where a break's weight comes from: the
+  clack curve itself only moved 1.0 -> 1.1, because nine voices pushed much harder would sum
+  into the master mixer's ceiling and clipping is uglier than being a shade quiet.
+- 2026-09-20: Cushions dropped another 8 dB at the designer's call and now sit 22 to 30 dB
+  below a ball-on-ball contact at the same speed - present but barely noticeable, which is
+  where the game's most frequent contact belongs. `Config.Audio.Rail.MaxVolume` is the number
+  to raise if they become inaudible rather than subtle.

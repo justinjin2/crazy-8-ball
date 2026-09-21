@@ -47,10 +47,16 @@ below 12 in/s (the median is 3.6), so the sound floor sits at 1 in/s and the cla
 its own quiet end an order of magnitude below the shared one. Contacts under about 0.05 in/s
 stay silent - those are two balls already touching being re-detected, not a new contact.
 
-**Rails sit well below ball-on-ball contact** — 12.6 dB below a clack at the same speed. They
-used to be 2.4 dB below, which was far too close for the most frequent contact in the game.
-`Config.Audio.Rail.MaxVolume` is the single number to change if they want to be quieter or
-louder still.
+**A hard break stacks.** Contacts at or above 110 in/s skip the minimum gap between clacks
+and sound together, up to ten inside a tenth of a second, which is what makes a launch land
+as a single crack. Measured: nine clacks at once on a full-power break, about 10 dB on the
+old peak. It cannot trigger below 52% power, because a contact is never faster than the ball
+that struck it — so it stays out of ordinary play.
+
+**Rails sit right at the back** — 22 to 30 dB below a clack at the same speed. They used to be
+2.4 dB below, which was far too close for the most frequent contact in the game.
+`Config.Audio.Rail.MaxVolume` is the single number to change if they become inaudible rather
+than subtle.
 
 ## What would help most if you record more
 

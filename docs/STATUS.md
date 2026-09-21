@@ -82,6 +82,14 @@ The harder cushion recording was then dropped entirely - it did not sound like a
 a cushion - so one soft take now covers every rail contact, leaning on its own extra pitch
 wobble for the variation the second take used to provide.
 
+A break now stacks. Contacts at or above 110 in/s skip the gap between clacks and sound
+together, which is what makes a hard launch land as one crack rather than a queue of clicks -
+measured at nine clacks at once, about 10 dB on the old peak. The threshold is a measured
+discriminator, not a guess: a contact cannot be faster than the ball that struck it, so
+stacking is impossible below 52% power and stays out of ordinary play entirely. Cushions went
+another 8 dB down in the same pass and now sit 22 to 30 dB below a ball contact. **64 Lune
+tests.**
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 

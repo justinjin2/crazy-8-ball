@@ -76,6 +76,9 @@ export type Audio = typeof(setmetatable(
 		pool: { Voice },
 		lastClack: number,
 		lastRail: number,
+		-- A tumbling window counting how many hard contacts have been allowed to stack.
+		stackStart: number,
+		stacked: number,
 		-- Which clip each event played last, so the next pick is never the same one.
 		lastPick: { [string]: number },
 		roll: Roll?,
@@ -188,6 +191,8 @@ function Audio.new(parent: Instance): Audio
 		pool = {},
 		lastClack = 0,
 		lastRail = 0,
+		stackStart = 0,
+		stacked = 0,
 		lastPick = {},
 		roll = nil,
 	}, Audio)
@@ -243,6 +248,23 @@ local function acquire(self: Audio, force: boolean): Voice?
 		return oldest
 	end
 	return nil
+end
+
+--- Whether a hard contact may sound ON TOP of the ones around it rather than waiting for the
+--- gap. A break lands most of its hardest contacts inside a tenth of a second, and letting
+--- them overlap is what makes it one crack instead of a queue of clicks - but it needs a
+--- ceiling, or a pile-up would spend every voice at once.
+local function canStack(self: Audio, now: number): boolean
+	local A = Config.Audio
+	if now - self.stackStart > A.StackWindowSeconds then
+		self.stackStart = now
+		self.stacked = 0
+	end
+	if self.stacked >= A.MaxStackedClacks then
+		return false
+	end
+	self.stacked += 1
+	return true
 end
 
 -- Impact speed to the volume and pitch this event should play at. See SoundMix.mix.
@@ -342,7 +364,9 @@ function Audio.attach(self: Audio, match: any)
 			if ev.speed < A.MinClackSpeed then
 				return
 			end
-			if now - self.lastClack < A.MinSecondsBetweenClacks then
+			-- Hard contacts may stack; everything else waits its turn.
+			local stacking = ev.speed >= A.StackSpeed and canStack(self, now)
+			if not stacking and now - self.lastClack < A.MinSecondsBetweenClacks then
 				return
 			end
 			self.lastClack = now

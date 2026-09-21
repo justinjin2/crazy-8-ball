@@ -123,6 +123,53 @@ return {
 		)
 	end,
 
+	["a break can stack, and ordinary play cannot"] = function()
+		local Config = H.require("Config")
+		local A = Config.Audio
+		local C = Config.Cue
+
+		-- Stacking is what turns a break into one crack. It must be out of reach in normal
+		-- play, and a contact can never be faster than the ball that struck it - so the cue
+		-- ball's speed at a given power is a hard ceiling on whether it can trigger at all.
+		local function cueSpeed(power: number): number
+			return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * power ^ C.PowerCurve
+		end
+		H.expect(cueSpeed(0.5) < A.StackSpeed, "half power must not be able to stack")
+		H.expect(cueSpeed(1.0) > A.StackSpeed, "full power must be able to stack")
+		-- Measured on a full-power break: nine contacts clear the threshold inside one 90ms
+		-- window. The ceiling has to allow those, and the window has to be wide enough to
+		-- hold them.
+		H.expect(A.MaxStackedClacks >= 9, "the stack ceiling must fit a real break")
+		H.expect(A.StackWindowSeconds >= 0.09, "the window must span a real break's contacts")
+
+		-- Nine voices summing must not run into the per-sound clamp.
+		local SoundMix = H.require("SoundMix")
+		local loudest = SoundMix.mix(A.Clack, C.MaxSpeed, A.QuietSpeed, A.LoudSpeed)
+		local gain = 0
+		for _, clip in A.Clips.BallClack do
+			gain = math.max(gain, clip.Gain)
+		end
+		H.expect(
+			loudest * gain <= A.MaxVolume,
+			("a break clack reaches %.2f against a clamp of %.2f"):format(
+				loudest * gain,
+				A.MaxVolume
+			)
+		)
+		-- And the stack must fit in the voice pool alongside everything else sounding.
+		H.expect(A.MaxVoices > A.MaxStackedClacks * 2, "the pool must hold a stack and more")
+
+		-- Cushions sit right at the back: they are the most frequent contact in the game.
+		local railV = SoundMix.mix(A.Rail, 300, A.QuietSpeed, A.LoudSpeed)
+		local clackV = SoundMix.mix(A.Clack, 300, A.QuietSpeed, A.LoudSpeed)
+		H.expect(
+			railV < clackV * 0.2,
+			("a rail is only %.1f dB under a clack; it should be far back"):format(
+				20 * math.log10(railV / clackV)
+			)
+		)
+	end,
+
 	["shared modules cannot see Roblox globals"] = function()
 		local clean = H.evalInModuleEnv([[
 			return game == nil and workspace == nil and Vector3 == nil and CFrame == nil

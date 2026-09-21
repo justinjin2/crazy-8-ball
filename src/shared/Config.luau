@@ -936,7 +936,12 @@ Config.Audio = {
 	-- at 1 in/s gives the bottom two thirds of the range somewhere to go. (tune)
 	Clack = {
 		MinVolume = 0.07,
-		MaxVolume = 1.0,
+		-- Raised from 1.0, but only a little: on a hard break NINE of these sound at once,
+		-- and the stack is where a break's weight comes from (+9.5 dB) rather than the
+		-- curve. Pushing the curve much past this risks nine voices summing into the master
+		-- mixer's ceiling, and clipping is far uglier than being a shade quiet. Raise it if
+		-- a break still wants more. (tune)
+		MaxVolume = 1.1,
 		MinPitch = 0.9,
 		MaxPitch = 1.14,
 		QuietSpeed = 1,
@@ -947,8 +952,13 @@ Config.Audio = {
 	-- balls meeting, and a loud one every second is fatiguing. These are 10.1 dB down on the
 	-- old values; lower MaxVolume further if rails still sit forward in the mix. (tune)
 	Rail = {
-		MinVolume = 0.035,
-		MaxVolume = 0.25,
+		-- Barely there on purpose. Rails are the most frequent contact in the game after ball
+		-- hits, and at the designer's call they should sit right at the back of the mix: a
+		-- further 8 dB down on the already-reduced numbers, which puts a cushion about 25 dB
+		-- under a ball-on-ball contact at the same speed. This is the one number to raise if
+		-- they become inaudible rather than subtle. (tune)
+		MinVolume = 0.014,
+		MaxVolume = 0.1,
 		-- Narrowed very slightly from 0.88..1.08 when the wobble below was added, so the two
 		-- together stay inside the 15% the comment asks for rather than reaching 17%.
 		MinPitch = 0.9,
@@ -967,7 +977,7 @@ Config.Audio = {
 	-- barely 2.4 dB. Across the cue's own range the bar is audible end to end.
 	Strike = {
 		MinVolume = 0.35,
-		MaxVolume = 1.0,
+		MaxVolume = 1.3,
 		MinPitch = 0.95,
 		MaxPitch = 1.1,
 		QuietSpeed = Config.Cue.MinSpeed,
@@ -1009,6 +1019,21 @@ Config.Audio = {
 	-- which is where a break turns to mush. 0.022 is 4.9 per shot at 15 in the busiest
 	-- second. (tune)
 	MinSecondsBetweenClacks = 0.022,
+	-- A break should hit like one crack, not a tidy queue of clicks. Contacts at or above
+	-- StackSpeed skip the gap above and are allowed to sound TOGETHER, which is what stacks
+	-- them into a single transient.
+	--
+	-- 110 in/s is a clean discriminator rather than a guess. Measured on a full-power break,
+	-- nine contacts land at or above it and every one of them falls inside the same 90 ms
+	-- window, starting 0.091s in as the cue ball reaches the rack. At half power NOTHING
+	-- reaches it. So this fires on a hard launch and stays completely out of the way of
+	-- ordinary play, which is exactly the ask.
+	--
+	-- Nine sounds of equal level sum to about +9.5 dB over one of them. That, and not the
+	-- volume curve, is where most of a break's new weight comes from. (tune)
+	StackSpeed = 110,
+	MaxStackedClacks = 10,
+	StackWindowSeconds = 0.1,
 	-- Rails need their own, and a wider one: a break sends a burst of cushion contacts, and
 	-- the soft cushion take rings for almost a second, so without this they pile up and
 	-- drone. Widened from 0.05 when that take came in.
@@ -1050,7 +1075,7 @@ Config.Audio = {
 	-- Emitters are pooled and reused rather than created and destroyed per contact. This
 	-- caps how many can sound at once: past it, a new impact is dropped rather than
 	-- stealing a voice, EXCEPT a pocket drop, which always gets one. (tune)
-	MaxVoices = 24,
+	MaxVoices = 32,
 	-- The longest recording in the set (pocket_drop_1 is 4.144s). A voice is freed by the
 	-- clip's own Ended event; this is only the fallback for when that never arrives. It has
 	-- to be at least as long as the longest clip, because Sound.TimeLength reads 0 until the
