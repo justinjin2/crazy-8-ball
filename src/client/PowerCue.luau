@@ -40,15 +40,14 @@ local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
 end
 
--- The cue is shorter than the bar by exactly the distance it travels, so a full pull lands
--- its butt at the bottom of the bar and never outside it.
+-- The cue nearly fills the bar at rest and slides a whole bar height at full pull, so it
+-- leaves the bar entirely rather than stopping at its bottom edge.
 local function cueLengthScale(): number
-	return 1 / (1 + Config.UI.PowerCueTravelFraction)
+	return Config.UI.PowerCueLengthScale
 end
 
 local function travelScale(): number
-	local t = Config.UI.PowerCueTravelFraction
-	return t / (1 + t)
+	return Config.UI.PowerCueTravelScale
 end
 
 --- Build the cue out of slices. Called once; pulling only moves the container.
@@ -146,7 +145,10 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	text.TextSize = 14
 	text.Text = "PULL"
 	text.Size = UDim2.new(1, 0, 0, 24)
-	text.Position = UDim2.new(0, 0, 1, 4)
+	-- ABOVE the bar. At full pull the cue hangs well below it, and a label underneath would
+	-- be sitting behind the cue exactly when it has the most to say.
+	text.AnchorPoint = Vector2.new(0, 1)
+	text.Position = UDim2.fromOffset(0, -4)
 	text.Parent = bar
 
 	return setmetatable({

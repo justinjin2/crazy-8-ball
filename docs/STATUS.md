@@ -91,11 +91,12 @@ another 8 dB down in the same pass and now sit 22 to 30 dB below a ball contact.
 tests.**
 
 The power control now has a cue in it. The vertical bar and its fill are unchanged, and a
-top-down cue lies inside the bar and slides down as you pull. The cue is drawn from
+top-down cue nearly fills the bar at rest and slides a whole bar height as you pull, leaving
+the bar entirely at full power the way GamePigeon does. The cue is drawn from
 `Config.Cue.Styles` through the new pure `src/shared/CueArt.luau`, so a collectible cue is a
 data row and the same row will drive the 3D stick and an inventory thumbnail later. Drawing
-back also plays a rubber-tension sound whose volume and pitch follow the pull and which loops
-past its own quiet head if held. **72 Lune tests.**
+back plays the rubber-tension recording straight through at one volume and stops it when the
+pull ends. **72 Lune tests.**
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.

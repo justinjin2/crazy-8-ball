@@ -253,3 +253,16 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   rather than to zero - restarting at the quiet head would drop the tension out from under a
   player who is still holding the cue back. It is driven from the pull value rather than from
   the control, so a gamepad trigger makes exactly the same sound as a finger.
+- 2026-09-21: The power cue nearly fills the bar at rest and slides a WHOLE bar height at
+  full pull, so it leaves the bar completely and hangs below it, per GamePigeon reference
+  shots the designer supplied. The bar deliberately does not clip its children, or the cue
+  would be cut off at the bottom edge instead of travelling past it, and the percentage label
+  moved above the bar because at full pull the cue covers everything beneath it.
+- 2026-09-21: The tension sound is played straight through at ONE volume and stopped when the
+  pull ends. It first scaled volume and pitch with how far back the cue was, and that was
+  wrong for this recording: measured, it is quiet friction that only builds late (RMS 0.006
+  across its first stretch against 0.025 near its end), so scaling the start down as well
+  left the beginning of every pull all but inaudible - and the beginning is the part you hear
+  most, because that is when your finger is actually moving. The loop-back-past-the-quiet-head
+  machinery went with it; a pull held past 2.776s simply ends, which is what "the normal
+  sound" means.

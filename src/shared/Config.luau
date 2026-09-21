@@ -1125,17 +1125,15 @@ Config.Audio = {
 	Pull = {
 		Id = "rbxassetid://131218253392089", -- measured peak 0.810, length 2.776s
 		Gain = 0.62,
-		MinVolume = 0.1,
-		MaxVolume = 0.6,
-		MinPitch = 0.86,
-		MaxPitch = 1.18,
-		-- Faster than the roll: this has to feel attached to a finger.
-		VolumeTau = 0.05,
-		PitchTau = 0.06,
-		LoopStartSeconds = 1.3,
-		-- Seconds to fade out when the cue is released or the shot fires, so it stops like
-		-- something being let go rather than being cut off. (tune)
-		ReleaseSeconds = 0.12,
+		-- One volume, played straight through. This used to scale with how far back the cue
+		-- was, and it was wrong: the recording is quiet friction that only builds late (RMS
+		-- 0.006 at its start against 0.025 near its end), so scaling the start DOWN as well
+		-- left the first part of every pull all but inaudible - which is the part you hear
+		-- most, because that is when your finger is moving. (tune)
+		Volume = 1.2,
+		-- A very short fade on stopping. Not for effect: cutting a sustained sound dead
+		-- clicks, and this is too fast to hear as a fade. (tune)
+		ReleaseSeconds = 0.06,
 	},
 
 	-- The roll is NOT a one-shot. It is one continuous sound for the whole table whose
@@ -1269,10 +1267,12 @@ Config.UI = {
 	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull
 	-- back, and Roadmap 5.2 changes nothing here.
 	PowerCueWidthPx = 15, -- at the butt, the widest point
-	-- How far the cue slides at full pull, as a share of its own length. At 0.5 the cue is
-	-- two thirds of the bar and travels the remaining third, so a full pull lands its butt
-	-- exactly at the bottom of the bar and never outside it.
-	PowerCueTravelFraction = 0.5,
+	-- The cue nearly fills the bar at rest, and at full pull it slides a whole bar height -
+	-- so it leaves the bar completely and hangs below it, which is what GamePigeon does and
+	-- what makes a big pull look like a big pull. The bar deliberately does NOT clip its
+	-- children, or the cue would be cut off at the bottom edge instead of travelling past it.
+	PowerCueLengthScale = 0.97, -- of the bar's height
+	PowerCueTravelScale = 1.0, -- of the bar's height, at full pull
 	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
 	-- from thin bands; enough of them and the steps disappear. (tune)
 	PowerCueSlices = 44,
