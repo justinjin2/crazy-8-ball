@@ -681,10 +681,14 @@ Config.Camera = {
 		-- view away at exactly the wrong instant and read as a lurch.
 		HoldSeconds = 1.0,
 		-- How long the pull-out to the whole table then takes, eased in and out of the move
-		-- (smoothstep) so it has no corners at either end. The easing below is applied on top
-		-- of this, so the move lands a little after this. (tune)
-		PullOutSeconds = 1.2,
-		Smoothing = 0.35, -- seconds of easing while a shot is playing
+		-- (smoothstep) so it has no corners at either end. Smoothing below is applied on top,
+		-- so the move actually lands somewhat after this: at 1.2 and 0.35 it took 1.6s to get
+		-- 95% of the way out, which read as slow. Both came down together, because cutting
+		-- only one of them leaves the other setting the pace. (tune)
+		PullOutSeconds = 0.7,
+		-- Seconds of easing while a shot is playing. The anchor is frozen for the whole shot,
+		-- so during one this eases nothing but the pull-out above.
+		Smoothing = 0.22,
 		ReturnSmoothing = 0.6, -- seconds to ease back to the aim framing after the balls stop
 		ReturnSeconds = 1.5, -- how long the slower easing applies after the shot ends
 	},

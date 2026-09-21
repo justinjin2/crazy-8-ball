@@ -426,8 +426,12 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   one shot does not quietly become the setting for the match.
 - 2026-09-21: The camera no longer leaves at the strike. It holds the framing the shot was
   taken from for `Shot.HoldSeconds` (1.0) while the cue ball travels, then pulls out to the
-  whole table over `Shot.PullOutSeconds` (1.2), smoothstepped so the move has no corners at
-  either end, with the existing exponential easing on top. Leaving immediately threw the view
+  whole table over `Shot.PullOutSeconds`, smoothstepped so the move has no corners at either
+  end, with the existing exponential easing on top. It was 1.2s against a 0.35s easing, which
+  took 1.6s to get 95% of the way out and read as slow; 0.7 against 0.22 does it in 0.93s.
+  Both numbers came down together, because cutting only one leaves the other setting the pace.
+  The eased shape survives the cut - measured at 7%, 22%, 40%, 58%, 74%, 89%, 96% - so it
+  still starts and lands softly with the speed in the middle. Leaving immediately threw the view
   away at the exact moment worth watching from where it was aimed, and read as a lurch.
   Measured in Studio against the table centre, which is fixed - measuring against the cue ball
   is meaningless mid-shot, because the ball moves while the camera's anchor is frozen: strike
