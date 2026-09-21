@@ -69,9 +69,15 @@ function Simulation.cloneState(state: State): State
 	return { geometry = state.geometry, balls = Ball.cloneList(state.balls), time = state.time }
 end
 
+--- True when nothing is left to do. A ball sitting still over an opening is NOT at rest: it
+--- has nothing under it, so it still has to tip in. Without this a shot could end with a ball
+--- balanced over the hole, which is the thing that made hangers permanent.
 function Simulation.isAtRest(state: State): boolean
 	for _, b in state.balls do
 		if Ball.isMoving(b) then
+			return false
+		end
+		if not b.pocketed and TableGeometry.pocketAt(state.geometry, b.x, b.y) ~= nil then
 			return false
 		end
 	end
@@ -125,10 +131,14 @@ local function integrateFalling(b: Ball, h: number, pocket: TableGeometry.Pocket
 	if pocket then
 		local dx, dy = b.x - pocket.x, b.y - pocket.y
 		local dist = math.sqrt(dx * dx + dy * dy)
-		if dist > pocket.radius and dist > 1e-6 then
+		-- The ball's SURFACE rides the liner, not its centre, so the wall is a ball radius
+		-- inside the opening. Clamping the centre to the rim instead let half the ball hang
+		-- through the leather on the way down.
+		local wall = math.max(pocket.radius - Config.Balls.RadiusInches, 0)
+		if dist > wall and dist > 1e-6 then
 			local nx, ny = dx / dist, dy / dist
-			b.x = pocket.x + nx * pocket.radius
-			b.y = pocket.y + ny * pocket.radius
+			b.x = pocket.x + nx * wall
+			b.y = pocket.y + ny * wall
 			local vn = b.vx * nx + b.vy * ny
 			if vn > 0 then
 				b.vx -= (1 + T.PocketWallRestitution) * vn * nx
@@ -140,13 +150,81 @@ local function integrateFalling(b: Ball, h: number, pocket: TableGeometry.Pocket
 		b.z = -T.PocketDropDepthInches
 		Ball.stop(b)
 		b.falling = false
+		b.tip = nil
 	end
 end
 
-local function integrateBall(b: Ball, h: number, geometry: Geometry)
+-- The tip. Once a ball's centre is inside the opening rim there is nothing under it, so it
+-- topples about the rim point it crossed: a solid sphere pivoting on an edge, which is the
+-- textbook problem. With I about the pivot = 7/5 m R^2, gravity gives
+--
+--     alpha = (5 g / 7 R) * sin(theta),  theta measured off vertical above the pivot
+--
+-- and the ball leaves the lip the moment the edge stops pushing on it, N = 0, which is
+-- R * omega^2 >= g * cos(theta). A ball that just trickles over hangs and takes about a
+-- third of a second to go; a ball arriving at 50 in/s or more separates on the first test,
+-- so fast pocketing is untouched. Returns the event once the ball is away.
+local function integrateTip(b: Ball, h: number, pocket: TableGeometry.Pocket?, time: number): Event?
+	local tip = b.tip
+	if tip == nil then
+		return nil
+	end
+	local R = Config.Balls.RadiusInches
+	local g = Config.Physics.Gravity
+
+	-- Whatever sideways speed the ball arrived with stays in vx, vy and carries the pivot
+	-- along the rim, so a ball cutting across the mouth does not lose its drift.
+	tip.px += b.vx * h
+	tip.py += b.vy * h
+	tip.omega += 5 * g / (7 * R) * math.sin(tip.theta) * h
+	tip.theta += tip.omega * h
+
+	local sin, cos = math.sin(tip.theta), math.cos(tip.theta)
+	b.x = tip.px + R * sin * tip.nx
+	b.y = tip.py + R * sin * tip.ny
+	b.z = R * (cos - 1)
+	-- Rolling over the lip: the ball turns about the horizontal axis across its direction of
+	-- travel at the pivot rate, so it visibly rolls in rather than sliding.
+	b.wx = -tip.ny * tip.omega
+	b.wy = tip.nx * tip.omega
+
+	if R * tip.omega * tip.omega < g * cos and tip.theta < math.pi / 2 then
+		return nil
+	end
+	-- Away. Hand the pivot's velocity to the free-fall integrator and let the liner have it.
+	local edge = R * tip.omega
+	b.vx += tip.nx * edge * cos
+	b.vy += tip.ny * edge * cos
+	b.vz = -edge * sin
+	b.tip = nil
+	if pocket then
+		b.pocket = pocket.id
+	end
+	return {
+		t = time,
+		type = "pocket",
+		ball = b.id,
+		other = if pocket then pocket.id else nil,
+		speed = math.sqrt(b.vx * b.vx + b.vy * b.vy + b.vz * b.vz),
+	}
+end
+
+local function integrateBall(
+	b: Ball,
+	h: number,
+	geometry: Geometry,
+	events: { Event }?,
+	time: number
+)
 	if b.pocketed then
-		if b.falling then
-			integrateFalling(b, h, if b.pocket then geometry.pockets[b.pocket] else nil)
+		local pocket = if b.pocket then geometry.pockets[b.pocket] else nil
+		if b.tip then
+			local ev = integrateTip(b, h, pocket, time)
+			if ev and events then
+				table.insert(events, ev)
+			end
+		elseif b.falling then
+			integrateFalling(b, h, pocket)
 		end
 		return
 	end
@@ -315,29 +393,69 @@ local function resolveBalls(a: Ball, b: Ball): number
 	return relVn
 end
 
--- Pocket capture: a ball whose centre reaches a pocket leaves the table for good.
+-- A ball whose centre has crossed an opening rim leaves the table for good. It does not drop
+-- from here: it starts toppling over the lip (see integrateTip), and the pocket event is
+-- fired when it comes off the lip, which is the moment it is really gone and the only moment
+-- that carries an honest speed for the sound.
+--
+-- Balls that have STOPPED are checked too. They used to be skipped, so a ball that ran out of
+-- steam while hanging over the hole sat there for the rest of the game.
 local function capturePockets(state: State, events: { Event }?)
+	local R = Config.Balls.RadiusInches
+	local g = Config.Physics.Gravity
+	local minTheta = math.rad(Config.Table.PocketTipMinDegrees)
 	for _, b in state.balls do
-		if b.pocketed or (b.vx == 0 and b.vy == 0) then
+		if b.pocketed then
 			continue
 		end
 		local pocket = TableGeometry.pocketAt(state.geometry, b.x, b.y)
-		if pocket then
-			local speed = Ball.speed(b)
-			-- Keep the velocity: the ball rolls over the edge and drops from where it is.
-			b.pocketed = true
-			b.falling = true
-			b.pocket = pocket.id
-			b.wx, b.wy, b.wz = 0, 0, 0
-			if events then
-				table.insert(events, {
-					t = state.time,
-					type = "pocket",
-					ball = b.id,
-					other = pocket.id,
-					speed = speed,
-				})
+		if pocket == nil then
+			continue
+		end
+		b.pocketed = true
+		b.falling = true
+		b.pocket = pocket.id
+		b.wz = 0 -- side spin has nothing to bite on once the ball is off the cloth
+
+		-- The rim point the ball crossed, and the direction from it into the pocket.
+		local dx, dy = b.x - pocket.x, b.y - pocket.y
+		local dist = math.sqrt(dx * dx + dy * dy)
+		local overhang = (pocket.radius - dist) / R
+		if dist > 1e-6 and overhang < 1 then
+			local ux, uy = dx / dist, dy / dist
+			local nx, ny = -ux, -uy -- from the rim towards the pocket centre
+			local theta = math.max(math.asin(overhang), minTheta)
+			-- The inward part of the velocity drives the pivot; the sideways part stays in
+			-- vx, vy and carries the pivot along with it.
+			local vIn = math.max(b.vx * nx + b.vy * ny, 0)
+			local omega = vIn / (R * math.cos(theta))
+			-- Only worth pivoting while the lip is still pushing back. A ball arriving fast,
+			-- or one already most of the way over, is off the lip the instant it gets there,
+			-- so it skips straight to the drop with its velocity untouched - which is exactly
+			-- what pocketing used to do, so nothing about a firmly struck ball changes.
+			if R * omega * omega < g * math.cos(theta) then
+				b.vx -= vIn * nx
+				b.vy -= vIn * ny
+				b.tip = {
+					px = pocket.x + ux * pocket.radius,
+					py = pocket.y + uy * pocket.radius,
+					nx = nx,
+					ny = ny,
+					theta = theta,
+					omega = omega,
+				}
+				continue
 			end
+		end
+		b.wx, b.wy = 0, 0
+		if events then
+			table.insert(events, {
+				t = state.time,
+				type = "pocket",
+				ball = b.id,
+				other = pocket.id,
+				speed = Ball.speed(b),
+			})
 		end
 	end
 end
@@ -450,7 +568,7 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 		local advance = if hit then hit.t else remaining
 
 		for _, b in state.balls do
-			integrateBall(b, advance, state.geometry)
+			integrateBall(b, advance, state.geometry, events, state.time + advance)
 		end
 		state.time += advance
 		remaining -= advance
@@ -574,6 +692,7 @@ function Simulation.respotCueBall(state: State): boolean
 	cue.pocketed = false
 	cue.falling = false
 	cue.pocket = nil
+	cue.tip = nil
 	cue.z = 0
 	Ball.stop(cue)
 	cue.x, cue.y = TableGeometry.headSpot(state.geometry)
@@ -594,6 +713,7 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 			for _, b in sim.balls do
 				Ball.stop(b)
 				b.falling = false
+				b.tip = nil
 			end
 			break
 		end

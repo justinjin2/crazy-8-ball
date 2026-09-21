@@ -319,7 +319,10 @@ function TableBuilder.buildFromParts(parent: Instance, p: Placement, id: number)
 	local shaftTop = surfaceY + railH + 1
 	local shaftBottom = surfaceY - L.PocketShaftDepthInches
 	for _, pocket in geometry.pockets do
-		local r = pocket.radius + L.PocketLinerExtraInches
+		-- Cut one leather thickness wider than the physics opening, so the lining's INNER
+		-- face lands exactly on the rim the ball falls through. Art and physics then share
+		-- one number and cannot drift apart.
+		local r = pocket.radius + L.PocketWallThicknessInches
 		holeR[pocket.id] = r
 		local cutter = Instance.new("Part")
 		cutter.Name = "Cutter" .. pocket.id

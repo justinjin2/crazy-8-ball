@@ -6,9 +6,14 @@
 --
 -- Rails are line segments with an inward-facing normal. They stop short of every pocket,
 -- leaving a mouth. Points are small fixed circles (the jaws at each rail end, or sharp
--- corners on a closed table). Pockets are capture circles sitting just beyond the cushion
--- line; a ball is also pocketed the moment its centre crosses the cushion line, since the
--- only way past that line is through a mouth.
+-- corners on a closed table).
+--
+-- A pocket is the OPENING itself: the circular hole cut through the slate, built from the
+-- mouth it belongs to (see Config.Table.PocketOpeningMouthFraction) and drawn by
+-- TableBuilder at the same radius. A ball falls when its centre crosses that rim, which is
+-- the real condition - a ball sitting on a flat bed touches it directly below its centre,
+-- so the moment the centre is over the hole there is nothing holding it up. Balls entering
+-- off-centre still meet a shelf near the jaws, which is what lets a ball rattle or hang.
 
 local Config = require(script.Parent.Parent.Config)
 
@@ -166,17 +171,19 @@ local function buildOpen(geometry: Geometry)
 		end
 	end
 
-	local ci = T.CornerPocketInsetInches / math.sqrt(2)
+	-- Openings. A corner opening's centre is the table corner itself: its mouth midpoint sits
+	-- half a mouth in along the diagonal, and the centre sits half a mouth back out from
+	-- there. A side opening's centre sits half a mouth straight out from the cushion line.
 	local cr = T.CornerPocketRadiusInches
 	local si = T.SidePocketInsetInches
 	local sr = T.SidePocketRadiusInches
 	geometry.pockets = {
-		{ id = 1, x = -hl - ci, y = hw + ci, radius = cr, name = "topLeft" },
+		{ id = 1, x = -hl, y = hw, radius = cr, name = "topLeft" },
 		{ id = 2, x = 0, y = hw + si, radius = sr, name = "topSide" },
-		{ id = 3, x = hl + ci, y = hw + ci, radius = cr, name = "topRight" },
-		{ id = 4, x = hl + ci, y = -hw - ci, radius = cr, name = "bottomRight" },
+		{ id = 3, x = hl, y = hw, radius = cr, name = "topRight" },
+		{ id = 4, x = hl, y = -hw, radius = cr, name = "bottomRight" },
 		{ id = 5, x = 0, y = -hw - si, radius = sr, name = "bottomSide" },
-		{ id = 6, x = -hl - ci, y = -hw - ci, radius = cr, name = "bottomLeft" },
+		{ id = 6, x = -hl, y = -hw, radius = cr, name = "bottomLeft" },
 	}
 end
 
@@ -210,9 +217,21 @@ function TableGeometry.containsCenter(
 	return math.abs(x) <= geometry.halfLength + s and math.abs(y) <= geometry.halfWidth + s
 end
 
---- The pocket that captures a ball centred at (x, y), or nil.
+--- The pocket a ball centred at (x, y) has dropped into, or nil. The centre being inside the
+--- opening rim IS the condition: the ball has nothing under it any more.
 function TableGeometry.pocketAt(geometry: Geometry, x: number, y: number): Pocket?
 	if not geometry.pocketsOpen then
+		return nil
+	end
+	-- Every opening lies within its own radius of a cushion line, so a ball out in the middle
+	-- of the cloth cannot be over one. Worth the early out: this is asked of every ball on
+	-- every step, and of every resting ball whenever the shot is tested for rest.
+	local T = Config.Table
+	local biggest = math.max(T.CornerPocketRadiusInches, T.SidePocketRadiusInches)
+	if
+		math.abs(x) < geometry.halfLength - biggest
+		and math.abs(y) < geometry.halfWidth - biggest
+	then
 		return nil
 	end
 	local nearest: Pocket? = nil
@@ -228,7 +247,9 @@ function TableGeometry.pocketAt(geometry: Geometry, x: number, y: number): Pocke
 			nearest = p
 		end
 	end
-	-- Well past the cushion line means it is over the shelf of a mouth: nearest pocket.
+	-- Safety net, not a way to pocket: nothing should get this far past the cushion line
+	-- without having crossed an opening rim, but if it does, the nearest pocket takes it
+	-- rather than letting a ball wander off the table.
 	local shelf = Config.Table.PocketShelfBallRadii * Config.Balls.RadiusInches
 	if not TableGeometry.containsCenter(geometry, x, y, shelf) then
 		return nearest

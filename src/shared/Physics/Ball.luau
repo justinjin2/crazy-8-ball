@@ -9,6 +9,19 @@
 
 local Ball = {}
 
+-- A ball part-way over a pocket lip, pivoting about the rim point it crossed. `px, py` is
+-- that rim point (it drifts with whatever sideways speed the ball arrived with), `nx, ny` is
+-- the fixed unit direction from it towards the pocket centre, `theta` is the angle of the
+-- ball's centre off vertical above the pivot and `omega` its rate.
+export type Tip = {
+	px: number,
+	py: number,
+	nx: number,
+	ny: number,
+	theta: number,
+	omega: number,
+}
+
 export type Ball = {
 	id: number,
 	x: number,
@@ -23,6 +36,7 @@ export type Ball = {
 	pocketed: boolean, -- captured by a pocket (rules use this)
 	falling: boolean, -- still dropping into the pocket (animation still running)
 	pocket: number?, -- pocket id once captured
+	tip: Tip?, -- set while the ball is still toppling over the lip, before it drops free
 }
 
 function Ball.new(id: number, x: number, y: number): Ball
@@ -40,6 +54,7 @@ function Ball.new(id: number, x: number, y: number): Ball
 		pocketed = false,
 		falling = false,
 		pocket = nil,
+		tip = nil,
 	}
 end
 
@@ -58,6 +73,7 @@ function Ball.clone(b: Ball): Ball
 		pocketed = b.pocketed,
 		falling = b.falling,
 		pocket = b.pocket,
+		tip = if b.tip then table.clone(b.tip) else nil,
 	}
 end
 

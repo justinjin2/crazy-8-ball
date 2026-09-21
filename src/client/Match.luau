@@ -214,6 +214,8 @@ function Match.reconcile(self: Match)
 		drift = math.max(drift, math.sqrt(dx * dx + dy * dy))
 		b.x, b.y, b.z = x, y, z
 		b.pocketed = final[4 * i] == 1
+		b.falling = false
+		b.tip = nil
 		Ball.stop(b)
 	end
 	-- The state the guideline and the next shot are built from must be the server's, not
@@ -279,6 +281,7 @@ function Match.update(self: Match, dt: number): boolean
 			for _, b in self.state.balls do
 				Ball.stop(b)
 				b.falling = false
+				b.tip = nil
 			end
 			break
 		end

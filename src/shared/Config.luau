@@ -62,14 +62,25 @@ Config.Table = {
 	SideFacingDegrees = 13,
 	-- Rounded jaw tips at the far end of each facing.
 	JawRadiusInches = 0.3,
-	-- A ball drops once its centre is this far past the cushion line (as a fraction of the
-	-- ball radius, 1 = the ball is fully over the shelf) or inside the pocket's capture
-	-- circle (radius and inset in ball diameters). (tune)
+	-- The pocket OPENING: the hole in the slate the ball actually falls through, and the one
+	-- circle both the physics and the art are built from, so they can never disagree.
+	--
+	-- It is derived, not tuned: the radius is half the mouth width and the circle is placed
+	-- so its rim is tangent to the line joining the two cushion noses. At 1.0 a ball entering
+	-- the middle of the mouth is over the hole the moment its centre passes the noses, which
+	-- is how a real pocket behaves; below 1.0 the opening sits further back and every pocket
+	-- keeps a shelf a ball can hang on. Off-centre balls keep a shelf either way, which is
+	-- what lets a ball rattle in the jaws. (tune)
+	PocketOpeningMouthFraction = 1.0,
+	-- Safety net only: a ball whose centre gets this far past the cushion line (in ball
+	-- radii) without having crossed an opening rim is taken by the nearest pocket, so a ball
+	-- can never escape the table. Ordinary pocketing happens on the rim, above.
 	PocketShelfBallRadii = 0.9,
-	CornerPocketRadiusBallFraction = 0.75,
-	CornerPocketInsetBallFraction = 0.95,
-	SidePocketRadiusBallFraction = 0.8,
-	SidePocketInsetBallFraction = 1.05,
+	-- The tip. A ball whose centre crosses the rim is no longer supported and pivots over the
+	-- lip under gravity. A ball that crosses by a hair would balance there forever, so the
+	-- tip starts from at least this angle off vertical; it is the number that caps how long a
+	-- hang can last (1.5 degrees = about a third of a second). (tune)
+	PocketTipMinDegrees = 1.5,
 	-- The drop: once a ball's centre is over the hole it falls under gravity while the funnel
 	-- shape pulls it towards the middle and the liner slows it. It stops this far down. (tune)
 	PocketDropDepthInches = 5,
@@ -81,8 +92,11 @@ Config.Table = {
 	CushionHeightInches = 0,
 	CornerMouthInches = 0,
 	SideMouthInches = 0,
+	-- Opening radius, and how far a side opening's centre sits beyond the cushion line. A
+	-- corner opening's centre needs no number: it always lands exactly on the table corner
+	-- (the mouth midpoint is half a mouth in from the corner along the diagonal, and the
+	-- centre sits half a mouth back out from it).
 	CornerPocketRadiusInches = 0,
-	CornerPocketInsetInches = 0,
 	SidePocketRadiusInches = 0,
 	SidePocketInsetInches = 0,
 	-- Head string: cue ball must start behind this on the break (1/4 of the length from the
@@ -565,10 +579,10 @@ Config.Look = {
 	PocketShaftDepthInches = 9,
 	ShaftColor = { 4, 4, 5 },
 	ShaftMaterial = "Fabric",
-	-- The hole is cut this much wider than the physics capture circle (inches).
-	PocketLinerExtraInches = 0.5,
 	-- Leather U casting on the rail: how far it reaches out from the hole edge and how tall
-	-- it stands above the rail; and the thickness of the leather lining the hole wall.
+	-- it stands above the rail; and the thickness of the leather lining the hole wall. The
+	-- lining thickness also sets how much wider than the physics opening the hole is cut,
+	-- so the lining's inner face sits exactly on the rim the ball drops through.
 	PocketRingWidthInches = 1.1,
 	PocketRingHeightInches = 0.35,
 	PocketWallThicknessInches = 0.3,
@@ -1381,10 +1395,12 @@ do
 	T.CushionHeightInches = T.CushionHeightBallFraction * D
 	T.CornerMouthInches = T.CornerMouthBallFraction * D
 	T.SideMouthInches = T.SideMouthBallFraction * D
-	T.CornerPocketRadiusInches = T.CornerPocketRadiusBallFraction * D
-	T.CornerPocketInsetInches = T.CornerPocketInsetBallFraction * D
-	T.SidePocketRadiusInches = T.SidePocketRadiusBallFraction * D
-	T.SidePocketInsetInches = T.SidePocketInsetBallFraction * D
+	-- The opening is half the mouth wide; the centre sits half a mouth straight out from the
+	-- mouth midpoint, so at fraction 1 the rim is tangent to the line joining the two noses
+	-- and a lower fraction pulls the rim back, leaving a shelf of (mouth / 2) * (1 - f).
+	T.CornerPocketRadiusInches = T.CornerMouthInches / 2 * T.PocketOpeningMouthFraction
+	T.SidePocketRadiusInches = T.SideMouthInches / 2 * T.PocketOpeningMouthFraction
+	T.SidePocketInsetInches = T.SideMouthInches / 2
 	Config.Physics.CushionNoseHeightInches = Config.Physics.CushionNoseBallFraction * D
 end
 
