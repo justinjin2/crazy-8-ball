@@ -91,12 +91,14 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
 ## Audio
 
 **Measuring how loud a clip actually is.** Roblox gives no way to read an asset's level from
-a `Sound`, but the newer audio graph does: wire `AudioPlayer -> AudioAnalyzer -> AudioFader
-(Volume 0) -> AudioDeviceOutput` and read `PeakLevel` and `RmsLevel` while it plays. The
-fader keeps it silent; the analyzer sits before it so it still sees full level. The graph
-only runs if it reaches an `AudioDeviceOutput`, so the sink is not optional.
-`tools/measure_audio.luau` does this for every clip in Config; paste it into the command bar
-in Edit mode. It is reproducible to four decimal places between runs.
+a `Sound`, but the newer audio graph does: wire `AudioPlayer -> AudioAnalyzer` and read
+`PeakLevel` and `RmsLevel` while it plays. Nothing else is needed and nothing else is
+possible - an `AudioAnalyzer` is a TERMINAL tap with no output pins, which is exactly why
+this is silent: no path to the speakers can be built past it. Wiring one onward to a fader
+or a device output logs "Invalid Wire Connection: AudioAnalyzer has no output pins" and the
+extra wires are ignored. `tools/measure_audio.luau` does this for every clip in Config;
+paste it into the command bar in Edit mode. It is reproducible to four decimal places
+between runs.
 
 **`SoundService.DopplerScale` cannot actually be set to zero.** Writing 0 reads back as
 0.001. That is a thousandth of normal and inaudible, so it is fine, but do not treat the
@@ -118,3 +120,18 @@ called, so a continuous loop must be driven by polling `TimePosition`, never by 
 Roblox client bug with no in-experience fix. If a phone playtest comes back with no sound,
 check whether the app was backgrounded before assuming the audio code broke; verify from a
 cold launch.
+
+**`execute_luau` gets its OWN copy of every ModuleScript.** A `require` from the MCP command
+path does not share state with the running game: `require(PlayerScripts.Client.Camera)` there
+returns a fresh instance whose upvalues are at their defaults. This costs hours if it is not
+known, because the module answers questions about itself perfectly plausibly - a Camera that
+reports `isLocked() == false` and a zoom of the default while the real camera, driven by the
+game's own copy, is locked and somewhere else entirely. Calling a setter on it changes
+nothing on screen. Drive the game through real INPUT (`user_mouse_input`) and measure the
+live `Workspace.CurrentCamera`, never the module's own view of itself.
+
+**MCP round trips take several seconds.** A trace armed by one `execute_luau` call and
+triggered by the next can easily expire before the input lands: a 6-second window missed a
+scroll entirely and read as "nothing happened". Arm windows of 20 seconds or more for
+anything that needs a separate call to trigger it, or wait for the result inside the same
+script.
