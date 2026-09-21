@@ -31,7 +31,7 @@ local tableCorners: { Vector3 }? = nil
 
 local locked = false
 local connections: { RBXScriptConnection } = {}
-local zoom = 1
+local zoom = Config.Camera.View.ZoomDefault
 -- The pose the smoothing chases, kept apart from what the camera actually shows. The shake
 -- is added on top of this, never folded into it: lerping from an already-shaken pose would
 -- smear the shake into the smoothing and let it drift.
@@ -44,6 +44,9 @@ local anchor: Vector3? = nil -- cue ball position the view is built around (froz
 local anchorDir: Vector3? = nil
 local returnTimer = 0 -- seconds of slower easing left after a shot ends
 local wasPlaying = false
+-- Seconds since the balls started moving, which is what the camera's hold and pull-out are
+-- timed off. Reset the moment a shot is not playing, so every shot gets the full hold.
+local shotTime = 0
 
 --- World-space aim direction for a physics angle on the current table. The angle is in
 --- table space, so the table's yaw turns it: at yaw 0 this is (cos, 0, -sin) as before.
@@ -174,9 +177,10 @@ function Camera.zoomBy(factor: number)
 	zoom = math.clamp(zoom / factor, V.ZoomMin, V.ZoomMax)
 end
 
---- Back to the whole-table framing (used when leaving the table).
+--- Back to the framing every turn starts from. Used when leaving a table and at the end of
+--- each shot, so a pinch made for one shot does not quietly become the setting for the match.
 function Camera.resetZoom()
-	zoom = 1
+	zoom = Config.Camera.View.ZoomDefault
 end
 
 function Camera.getZoom(): number
@@ -399,10 +403,12 @@ function Camera.position(): Vector3
 	return Workspace.CurrentCamera.CFrame.Position
 end
 
---- Move the camera. `playing` freezes the anchor for the duration of the shot and, if the
---- player was zoomed in, pulls out to the whole-table view so every ball's path is visible;
---- the player's zoom comes back once the balls stop. `focus` is the cue ball's current
---- position while it moves (only used when Shot.FocusWeight > 0).
+--- Move the camera. `playing` freezes the anchor for the duration of the shot, holds the
+--- framing the shot was taken from for Shot.HoldSeconds, then pulls out to the whole-table
+--- view so every ball's path is visible. When the balls stop it eases back to
+--- View.ZoomDefault - the framing every turn starts from, not whatever the player had
+--- pinched to. `focus` is the cue ball's current position while it moves (only used when
+--- Shot.FocusWeight > 0).
 function Camera.update(
 	dt: number,
 	cueWorld: Vector3,
@@ -419,10 +425,23 @@ function Camera.update(
 	end
 	if wasPlaying and not playing then
 		returnTimer = S.ReturnSeconds
+		-- Every turn starts from the same framing, whatever the player pinched to for the
+		-- shot they just took.
+		Camera.resetZoom()
 	end
 	wasPlaying = playing
+	shotTime = if playing then shotTime + dt else 0
 	returnTimer = math.max(returnTimer - dt, 0)
-	local zoomOverride = if playing and S.ZoomOut then Config.Camera.View.ZoomMax else nil
+
+	-- The pull-out to the whole table. It does NOT begin at the strike: the camera holds the
+	-- framing the shot was taken from while the cue ball travels, and only then leaves. The
+	-- move is smoothstepped so it has no corners at either end, on top of the easing below.
+	local zoomOverride: number? = nil
+	if playing and S.ZoomOut then
+		local t = math.clamp((shotTime - S.HoldSeconds) / math.max(S.PullOutSeconds, 1e-3), 0, 1)
+		local eased = t * t * (3 - 2 * t)
+		zoomOverride = zoom + (Config.Camera.View.ZoomMax - zoom) * eased
+	end
 	local gaze = if playing and S.FocusWeight > 0 then focus else nil
 	local target = viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
 	local smoothing = if playing

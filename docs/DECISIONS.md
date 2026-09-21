@@ -417,3 +417,19 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   work while a shot is running and whether or not `TestKeysEnabled` is on. Visibility is two
   flags - at a table, and asked for - so leaving a table does not forget that it was wanted.
   Keyboard only, deliberately: it is a tool, not a feature that needs a phone path.
+- 2026-09-21: Every turn starts from the same framing. `Camera.View.ZoomDefault` is 0.625, the
+  exact midpoint of the zoom range, which is also the halfway point in SCROLL NOTCHES because
+  the distance is interpolated geometrically - so it is the middle however it is measured. At
+  the 9 ft table that is 5.3 studs from the cue ball at a 35 degree pitch, against 10.1 studs
+  at 50 degrees fitted and 2.2 studs at 18 degrees closest. The camera resets to it at the end
+  of every shot rather than returning to whatever the player pinched to, so a zoom made for
+  one shot does not quietly become the setting for the match.
+- 2026-09-21: The camera no longer leaves at the strike. It holds the framing the shot was
+  taken from for `Shot.HoldSeconds` (1.0) while the cue ball travels, then pulls out to the
+  whole table over `Shot.PullOutSeconds` (1.2), smoothstepped so the move has no corners at
+  either end, with the existing exponential easing on top. Leaving immediately threw the view
+  away at the exact moment worth watching from where it was aimed, and read as a lurch.
+  Measured in Studio against the table centre, which is fixed - measuring against the cue ball
+  is meaningless mid-shot, because the ball moves while the camera's anchor is frozen: strike
+  at 6.57s, camera first moves at 7.77s (a 1.20s hold), 95% of the way out by 9.30s (a 1.6s
+  move), and settled back at zoom 0.625 once the balls stopped.

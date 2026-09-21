@@ -635,6 +635,16 @@ Config.Camera = {
 		-- centre shifts to the cue ball. Pinch on touch or scroll on PC.
 		ZoomMin = 0.25,
 		ZoomMax = 1.0,
+		-- Where the camera sits whenever it is handed back to the player: on joining a table
+		-- and after every shot. The exact midpoint of the zoom range, which is also the
+		-- halfway point in SCROLL NOTCHES, because the distance is interpolated geometrically
+		-- (see zoomedDistance in Camera.viewFor) - so this is the middle of the range however
+		-- you measure it. At the 9 ft table that is 5.3 studs from the cue ball at a 35 degree
+		-- pitch, against 10.1 studs at 50 degrees fitted and 2.2 studs at 18 degrees closest.
+		--
+		-- A shot always ends here rather than at whatever the player had pinched to, so every
+		-- turn starts from the same framing. (tune)
+		ZoomDefault = 0.625,
 	},
 	-- A ball dropping nudges the camera a hair TOWARD the pocket it went into. This is a
 	-- reward, not an effect: it should register somewhere below conscious notice and never
@@ -665,8 +675,17 @@ Config.Camera = {
 	Shot = {
 		ZoomOut = true, -- false = stay at the player's zoom during the shot
 		FocusWeight = 0, -- gaze pull toward the moving cue ball: 0 = none, 1 = track it
-		Smoothing = 0.35, -- seconds to ease out at the strike
-		ReturnSmoothing = 0.5, -- seconds to ease back in after the balls stop
+		-- The camera does NOT leave at the strike. It holds the framing you shot from while
+		-- the cue ball goes in, and only then pulls out to the whole table. The contact is
+		-- the moment worth watching from where you aimed it; leaving immediately threw the
+		-- view away at exactly the wrong instant and read as a lurch.
+		HoldSeconds = 1.0,
+		-- How long the pull-out to the whole table then takes, eased in and out of the move
+		-- (smoothstep) so it has no corners at either end. The easing below is applied on top
+		-- of this, so the move lands a little after this. (tune)
+		PullOutSeconds = 1.2,
+		Smoothing = 0.35, -- seconds of easing while a shot is playing
+		ReturnSmoothing = 0.6, -- seconds to ease back to the aim framing after the balls stop
 		ReturnSeconds = 1.5, -- how long the slower easing applies after the shot ends
 	},
 }

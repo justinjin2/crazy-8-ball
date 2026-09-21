@@ -218,6 +218,23 @@ nudge and `Config.Input.NudgeDegrees` stays because that path uses it. If fine a
 button again, keyboard arrow keys are the cheap fix for PC; the phone would need something
 new.
 
+## The camera holds, then pulls out, then comes back to one framing
+
+Every turn now starts from `Camera.View.ZoomDefault` (0.625), the exact midpoint of the zoom
+range and also the halfway point in scroll notches, since the distance is interpolated
+geometrically. At the 9 ft table that is 5.3 studs from the cue ball at a 35 degree pitch
+(fitted is 10.1 studs at 50 degrees; closest is 2.2 at 18). The camera resets to it at the end
+of every shot rather than keeping whatever the player pinched to.
+
+And it no longer leaves at the strike. It holds the framing the shot was taken from for
+`Shot.HoldSeconds` (1.0) while the cue ball travels, then pulls out over `Shot.PullOutSeconds`
+(1.2), smoothstepped so the move has no corners, with the exponential easing on top.
+
+Measured in Studio against the TABLE CENTRE, which is fixed - measuring against the cue ball
+is meaningless mid-shot, because the ball moves while the camera's anchor is frozen: strike at
+6.57s, camera first moves at 7.77s (a 1.20s hold), 95% of the way out by 9.30s (a 1.6s move),
+settled back at zoom 0.625 when the balls stopped.
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 
