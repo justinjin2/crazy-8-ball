@@ -679,7 +679,11 @@ Config.Camera = {
 		-- the cue ball goes in, and only then pulls out to the whole table. The contact is
 		-- the moment worth watching from where you aimed it; leaving immediately threw the
 		-- view away at exactly the wrong instant and read as a lurch.
-		HoldSeconds = 1.0,
+		--
+		-- Half a second is long enough to see the cue ball leave and reach the first object
+		-- ball on most shots, and short enough not to feel like a pause. It was 1.0, which
+		-- was a wait. (tune)
+		HoldSeconds = 0.5,
 		-- How long the pull-out to the whole table then takes, eased in and out of the move
 		-- (smoothstep) so it has no corners at either end. Smoothing below is applied on top,
 		-- so the move actually lands somewhat after this: at 1.2 and 0.35 it took 1.6s to get

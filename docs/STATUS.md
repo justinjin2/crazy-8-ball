@@ -227,15 +227,16 @@ geometrically. At the 9 ft table that is 5.3 studs from the cue ball at a 35 deg
 of every shot rather than keeping whatever the player pinched to.
 
 And it no longer leaves at the strike. It holds the framing the shot was taken from for
-`Shot.HoldSeconds` (1.0) while the cue ball travels, then pulls out over `Shot.PullOutSeconds`
+`Shot.HoldSeconds` (0.5) while the cue ball travels, then pulls out over `Shot.PullOutSeconds`
 (0.7) against a 0.22s easing, smoothstepped so the move has no corners. That pair was 1.2 and
 0.35, which took 1.6s to get 95% of the way out and read as slow; it now does it in 0.93s, and
 the eased shape survives the cut (7%, 22%, 40%, 58%, 74%, 89%, 96%).
 
 Measured in Studio against the TABLE CENTRE, which is fixed - measuring against the cue ball
 is meaningless mid-shot, because the ball moves while the camera's anchor is frozen: strike at
-6.58s, camera first moves at 7.67s (a 1.08s hold), 95% of the way out by 8.60s (a 0.93s move),
-settled back at zoom 0.625 when the balls stopped.
+6.22s, camera first moves at 6.78s (a 0.57s hold), 95% of the way out 0.93s later, settled
+back at zoom 0.625 when the balls stopped. Strike to whole table is about 1.5s, against 2.7s
+when the hold was 1.0 and the move 1.6.
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.

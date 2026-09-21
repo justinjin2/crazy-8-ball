@@ -425,7 +425,9 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   of every shot rather than returning to whatever the player pinched to, so a zoom made for
   one shot does not quietly become the setting for the match.
 - 2026-09-21: The camera no longer leaves at the strike. It holds the framing the shot was
-  taken from for `Shot.HoldSeconds` (1.0) while the cue ball travels, then pulls out to the
+  taken from for `Shot.HoldSeconds` (0.5, down from 1.0, which was a wait) while the cue ball
+  travels - long enough to see it leave and reach the first object ball on most shots, short
+  enough not to feel like a pause - then pulls out to the
   whole table over `Shot.PullOutSeconds`, smoothstepped so the move has no corners at either
   end, with the existing exponential easing on top. It was 1.2s against a 0.35s easing, which
   took 1.6s to get 95% of the way out and read as slow; 0.7 against 0.22 does it in 0.93s.
