@@ -54,6 +54,14 @@ Verified in Studio over 13 shots: all 11 wired clips played, 0 back-to-back repe
 plays, 0 silent frames mid-roll, exactly one cue strike per shot, peak 6 concurrent voices
 against a cap of 24, console clean.
 
+An adversarial review across four dimensions raised 15 findings; 5 survived verification and
+all 5 are fixed. The two that mattered: leaving a table mid-shot abandoned the rolling voices
+still playing at the table you had walked away from, and the same helper left the eased
+volume behind so sitting down at a SETTLED table audibly started a rolling clip on a table
+where nothing was moving. Also removed `MaxSoundsPerFrame`, which could never bind now that
+each contact type has its own wall-clock gap — it was dead config that read like a safety
+net. **60 Lune tests.**
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 
