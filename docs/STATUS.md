@@ -3,7 +3,7 @@
 One page. Rewritten at the end of every working session by whichever tool did the work.
 Read this first, then the roadmap item it names.
 
-**Last updated:** 2026-09-21 (pockets take the ball when they look like they should).
+**Last updated:** 2026-09-21 (pockets take the ball properly; three new recordings in).
 
 ## The lounge is switched off
 
@@ -138,6 +138,35 @@ corner hole now takes a bigger bite out of the cloth (which is the point), and t
 hole is cut 0.52 in past the OUTER face of the rail, so there may be a small notch in the
 outside of the long rails. If that reads badly, widen `Table.RailWidthInches` to 6.1 rather
 than shrinking the opening.
+
+## Three new recordings
+
+**Cue strikes are banded by power.** cue_strike_2 over the bottom quarter of the bar,
+cue_strike_1 over the middle half, cue_strike_3 (new) over the top quarter. The bands are
+written as power fractions and converted to cue ball speeds in Config's derived block,
+because speed goes as power^2.6: 25% of the bar is only 29 in/s out of 528. Verified at
+runtime - 0.24 power picks the soft take, 0.26 the middle, 0.76 the hard one, and exactly on
+a line either neighbour may play.
+
+**The turn tick replaces the Roblox library click**, which was the last library sound in the
+game. It needed a rate limiter the old one never did: ticks fire every 2 degrees and a gamepad
+stick turns at 80 degrees a second, so 40 a second, and the new clip is 0.107s against the old
+0.022s. `MinSecondsBetweenTicks` stops two overlapping. Verified: 60 ticks requested back to
+back over a second played 10. Its level was carried over by arithmetic, not re-picked by ear,
+so it still sits 2.0 dB under the quietest audible clack.
+
+**A bright sting layers on top of every pocket drop**, at 12.0 dB under the drop at the drop's
+loudest, pitched dead straight. Withheld for the cue ball - a scratch is not a reward.
+
+All three gains are measurements: peaks 0.940, 0.729 and 0.786, each levelled to 0.5 like
+every other clip. **85 Lune tests.**
+
+**Nobody has HEARD any of this yet.** It is verified mechanically - the right clip ids reach
+the right voices at the right volumes - but the three judgements that need ears are: whether
+cue_strike_3 sits right at the top of the bar, whether the tick is at a comfortable level
+(the designer called this v1 and may swap it), and whether the bonus sting is too forward or
+too buried over the drop. `Audio.Bonus.MaxVolume` and `Audio.Tick` are the two numbers to
+move.
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.

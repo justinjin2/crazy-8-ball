@@ -339,3 +339,31 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   rest. Without it a shot could end with a ball balanced over the hole and nothing would ever
   look at it again, which together with `capturePockets` skipping stopped balls is what made
   hangers permanent.
+- 2026-09-21: Cue strikes are banded by POWER, not picked at random: cue_strike_2 over the
+  bottom quarter of the bar, cue_strike_1 over the middle half, cue_strike_3 over the top
+  quarter. Held as power fractions and converted to cue ball speeds in Config's derived block,
+  because speed goes as power^2.6 and the two are nothing like proportional - 25% of the bar
+  is 29 in/s out of 528, so writing the bands as speeds would hide where the lines actually
+  fall. Band edges are inclusive at both ends, so exactly on a line either neighbour may play.
+  cue_strike_3 is levelled to the same peak as the others but is four times the length of
+  cue_strike_2, so it still reads as a much bigger sound - which is what makes the top of the
+  bar feel different rather than just louder.
+- 2026-09-21: The aim tick needed a rate limiter once it stopped being a 22 ms library click.
+  A tick fires every 2 degrees of rotation and a gamepad stick held hard over turns at 80
+  degrees a second, so 40 ticks a second; at 0.107s per clip that is four or more sounding
+  at once, continuously, and four voices spent on a UI click. `MinSecondsBetweenTicks` is set
+  just under the clip's own length so two can never overlap. Slow, careful aiming never
+  reaches the limit, which is exactly where per-degree feedback is worth having; a fast sweep
+  becomes a steady click instead of a smear. Verified: 60 ticks requested back to back over
+  one second played 10.
+- 2026-09-21: The new tick's LEVEL was carried across rather than re-picked by ear. The
+  library click played at volume 0.12 against peak 0.230 at gain 1, so 0.028 reached the
+  mixer; the new clip peaks at 0.729 and its gain brings that to 0.5, so volume 0.055 puts
+  exactly 0.028 back. That keeps it 2.0 dB under the quietest audible clack and 25.9 dB under
+  a loud one, which is the bar the tick has to clear as the most repeated sound in the game.
+- 2026-09-21: A bright UI sting now layers on top of every pocket drop, forced a voice the
+  same way the drop is. Sized at 12.0 dB under the drop at the drop's loudest: the drop is the
+  event and this is the garnish, and the drop is already the loudest thing in the game.
+  Pitched dead straight, with PitchJitter 0, because a UI sting that wanders in pitch stops
+  sounding deliberate - the opposite of the impact sounds, where wobble is the disguise. It is
+  withheld when the pocketed ball is the cue ball: a scratch is not a reward.
