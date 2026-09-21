@@ -63,9 +63,15 @@ tools/splice_audio.py --list    # say what it found, write nothing
 tools/splice_audio.py           # write the one-shots
 ```
 
-A file named `roll_loop.*` is treated as a loop rather than a series of hits: it is trimmed
-to its steadiest stretch and crossfaded end to start. WAV works with nothing installed; other
-formats need `ffmpeg` (`brew install ffmpeg`).
+**Name a raw file after the event it belongs to**, using the same names as the uploads:
+`ball_clack`, `ball_clack_rattle`, `ball_hitting_edge`, `cue_strike`, `pocket_drop`,
+`ball_rolling`, `tick`. Anything after the prefix is free (`ball_clack_hard_take2.wav`), and
+the output is numbered from whatever is already there, so running it twice adds rather than
+overwrites.
+
+A `ball_rolling` file is treated as continuous material rather than a series of hits: it is
+trimmed to its steadiest stretch instead of being cut up. WAV works with nothing installed;
+other formats need `ffmpeg` (`brew install ffmpeg`).
 
 ## Uploading
 

@@ -13,6 +13,17 @@
 
 local SoundMix = {}
 
+-- The volume and pitch band one kind of contact plays across, plus an optional speed range
+-- of its own when the shared one does not suit it.
+export type Range = {
+	MinVolume: number,
+	MaxVolume: number,
+	MinPitch: number,
+	MaxPitch: number,
+	QuietSpeed: number?,
+	LoudSpeed: number?,
+}
+
 --- Impact speed (or ball speed) to a 0..1 level, on a LOGARITHMIC curve.
 ---
 --- Linear was the obvious first choice and it was wrong. Measured over 48 shots, the median
@@ -36,6 +47,21 @@ end
 
 function SoundMix.lerp(a: number, b: number, t: number): number
 	return a + (b - a) * t
+end
+
+--- Volume and pitch for one contact at `speed`, from its band.
+---
+--- Pitch runs DOWNWARD with force on purpose: the harder contact gets the LOWER pitch, which
+--- is what makes it read as heavier. It looks like a bug every time somebody reads it, so it
+--- lives here with a test pinning the direction rather than inline at the call site.
+---
+--- `lo` and `hi` are the shared speed range; a band may override either. The cue strike does,
+--- because the cue ball leaves at up to 528 in/s and the shared range tops out at 400, which
+--- left the top of the power bar sounding identical at every setting.
+function SoundMix.mix(range: Range, speed: number, lo: number, hi: number): (number, number)
+	local k = SoundMix.loudness(speed, range.QuietSpeed or lo, range.LoudSpeed or hi)
+	return SoundMix.lerp(range.MinVolume, range.MaxVolume, k),
+		SoundMix.lerp(range.MaxPitch, range.MinPitch, k)
 end
 
 --- Pick a clip, never the same one twice running.

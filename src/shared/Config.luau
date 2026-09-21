@@ -889,7 +889,18 @@ Config.Audio = {
 	-- gets the lower pitch, which is what makes it read as heavier. (tune)
 	Clack = { MinVolume = 0.18, MaxVolume = 1.0, MinPitch = 0.9, MaxPitch = 1.14 },
 	Rail = { MinVolume = 0.12, MaxVolume = 0.8, MinPitch = 0.88, MaxPitch = 1.08 },
-	Strike = { MinVolume = 0.35, MaxVolume = 1.0, MinPitch = 0.95, MaxPitch = 1.1 },
+	-- The strike gets its own speed range, tied to the cue itself. On the shared range
+	-- (10..400) everything from about 93% power upwards produced an identical sound, because
+	-- the cue ball leaves at up to 528 in/s, and the whole top half of the power bar spanned
+	-- barely 2.4 dB. Across the cue's own range the bar is audible end to end.
+	Strike = {
+		MinVolume = 0.35,
+		MaxVolume = 1.0,
+		MinPitch = 0.95,
+		MaxPitch = 1.1,
+		QuietSpeed = Config.Cue.MinSpeed,
+		LoudSpeed = Config.Cue.MaxSpeed,
+	},
 	-- A ball dropping is the payoff, so it stays loud whatever speed it went in at.
 	Pocket = { MinVolume = 0.7, MaxVolume = 1.0, MinPitch = 0.96, MaxPitch = 1.06 },
 	Tick = { MinVolume = 0.35, MaxVolume = 0.35, MinPitch = 1, MaxPitch = 1 },
@@ -903,11 +914,14 @@ Config.Audio = {
 	-- Playing every one is mush and a frame cost, so the quiet ones are dropped and the
 	-- rest are rate limited. Pocket drops deliberately bypass all of this.
 	MinImpactSpeed = 12,
+	-- These two gaps ARE the rate limiter. There used to be a per-frame budget as well, but
+	-- with a wall-clock gap per contact type at most one clack and one rail can start in any
+	-- one frame, so a budget of three could never bind - it was dead config that read like a
+	-- safety net. Being wall-clock, these bind at any frame rate.
 	MinSecondsBetweenClacks = 0.035,
-	-- Rails need their own gap. The per-frame budget is shared, but a break sends a burst of
-	-- cushion contacts and only one cushion recording exists, so without this they drone.
+	-- Rails need their own, and a wider one: a break sends a burst of cushion contacts and
+	-- there is only one cushion recording, so without this they drone.
 	MinSecondsBetweenRails = 0.05,
-	MaxSoundsPerFrame = 3,
 
 	-- Sounds are emitted from where the contact happened, so a break sounds like it is
 	-- spread across the table rather than coming from one point.
@@ -944,6 +958,12 @@ Config.Audio = {
 	-- caps how many can sound at once: past it, a new impact is dropped rather than
 	-- stealing a voice, EXCEPT a pocket drop, which always gets one. (tune)
 	MaxVoices = 24,
+	-- The longest recording in the set (pocket_drop_1 is 4.144s). A voice is freed by the
+	-- clip's own Ended event; this is only the fallback for when that never arrives. It has
+	-- to be at least as long as the longest clip, because Sound.TimeLength reads 0 until the
+	-- asset is cached - measuring the fallback off that would free a voice mid-drop and let
+	-- the next contact cut it off.
+	LongestClipSeconds = 4.2,
 
 	-- The roll is NOT a one-shot. It is one continuous sound for the whole table whose
 	-- volume and pitch follow the fastest ball still moving, emitted from that ball so it
@@ -992,9 +1012,14 @@ Config.Audio = {
 		-- steps the volume and it clicks. (tune)
 		VolumeTau = 0.12,
 		PitchTau = 0.09,
-		-- How long the two clips overlap. Capped in code to a fraction of the clip so a
-		-- short recording cannot start fading before it has begun. (tune)
+		-- How long the two clips overlap. (tune)
 		CrossfadeSeconds = 0.35,
+		-- ...but never more than this share of the clip, so a short recording cannot start
+		-- handing over before it has properly begun. (tune)
+		CrossfadeMaxClipFraction = 0.4,
+		-- A random start offset must leave at least this many crossfades' worth of clip
+		-- behind it, or the new voice would be due to hand over again almost at once. (tune)
+		StartOffsetHeadroomCrossfades = 3,
 	},
 }
 

@@ -16,7 +16,6 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ContentProvider = game:GetService("ContentProvider")
-local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -75,8 +74,6 @@ export type Audio = typeof(setmetatable(
 		pool: { Voice },
 		lastClack: number,
 		lastRail: number,
-		playedThisFrame: number,
-		frameStamp: number,
 		-- Which clip each event played last, so the next pick is never the same one.
 		lastPick: { [string]: number },
 		roll: Roll?,
@@ -189,19 +186,9 @@ function Audio.new(parent: Instance): Audio
 		pool = {},
 		lastClack = 0,
 		lastRail = 0,
-		playedThisFrame = 0,
-		frameStamp = 0,
 		lastPick = {},
 		roll = nil,
 	}, Audio)
-
-	-- The per-frame budget has to be reset by the FRAME, not by reading the clock inside the
-	-- event handler. Events dispatched in one frame read microsecond-different clocks, so a
-	-- clock comparison resets the count on nearly every event and the budget never binds -
-	-- which is what used to happen here, leaving rail hits with no limiter at all.
-	RunService.RenderStepped:Connect(function()
-		self.playedThisFrame = 0
-	end)
 
 	return self
 end
@@ -305,27 +292,20 @@ function Audio.playAt(
 	sound.Ended:Once(release)
 	sound.Stopped:Once(release)
 	-- Ended does not always arrive (a clip that fails to load never plays at all), so nothing
-	-- may hold a voice for longer than the clip it is playing.
-	task.delay(math.max(sound.TimeLength, 1) / math.max(sound.PlaybackSpeed, 0.05) + 0.5, release)
+	-- may hold a voice for longer than the clip it is playing. TimeLength reads 0 until the
+	-- asset is cached, so fall back to the LONGEST clip in the set rather than to something
+	-- shorter than the one now playing - which would free this voice mid-drop and let the
+	-- next contact cut it off.
+	local length = if sound.TimeLength > 0
+		then sound.TimeLength
+		else Config.Audio.LongestClipSeconds
+	task.delay(length / math.max(sound.PlaybackSpeed, 0.05) + 0.5, release)
 end
 
--- Per-frame budget, so a break cannot fire fifty sounds in one step. The count is cleared
--- once per frame by the RenderStepped connection in Audio.new.
-local function canPlay(self: Audio): boolean
-	if self.playedThisFrame >= Config.Audio.MaxSoundsPerFrame then
-		return false
-	end
-	self.playedThisFrame += 1
-	return true
-end
-
--- Impact speed to the volume and pitch this event should play at. Pitch runs downward with
--- force, which is what makes a hard contact read as heavier than a soft one.
+-- Impact speed to the volume and pitch this event should play at. See SoundMix.mix.
 local function mix(range: any, speed: number): (number, number)
 	local A = Config.Audio
-	local k = SoundMix.loudness(speed, A.QuietSpeed, A.LoudSpeed)
-	return SoundMix.lerp(range.MinVolume, range.MaxVolume, k),
-		SoundMix.lerp(range.MaxPitch, range.MinPitch, k)
+	return SoundMix.mix(range, speed, A.QuietSpeed, A.LoudSpeed)
 end
 
 --- Listen to a table. Every contact the simulation reports becomes a sound.
@@ -356,7 +336,7 @@ function Audio.attach(self: Audio, match: any)
 			if ev.speed < A.MinImpactSpeed then
 				return
 			end
-			if now - self.lastClack < A.MinSecondsBetweenClacks or not canPlay(self) then
+			if now - self.lastClack < A.MinSecondsBetweenClacks then
 				return
 			end
 			self.lastClack = now
@@ -365,7 +345,7 @@ function Audio.attach(self: Audio, match: any)
 			if ev.speed < A.MinImpactSpeed then
 				return
 			end
-			if now - self.lastRail < A.MinSecondsBetweenRails or not canPlay(self) then
+			if now - self.lastRail < A.MinSecondsBetweenRails then
 				return
 			end
 			self.lastRail = now
@@ -427,11 +407,15 @@ local function startRollVoice(roll: Roll, index: number, tier: number)
 	-- not hand the same stretch of it to itself over and over. Leave room for three
 	-- crossfades' worth of clip after the offset, or the new voice would be due to hand
 	-- over again almost immediately.
+	--
+	-- This is always written, never left alone: Sound:Play() restores whatever position a
+	-- script last set, so a pooled voice with no room for an offset would otherwise inherit
+	-- the previous pass's one and start part way in forever.
 	local R = Config.Audio.Roll
-	local headroom = sound.TimeLength - R.CrossfadeSeconds * 3
-	if headroom > 0 then
-		sound.TimePosition = math.random() * math.min(R.StartOffsetMaxSeconds, headroom)
-	end
+	local headroom = sound.TimeLength - R.CrossfadeSeconds * R.StartOffsetHeadroomCrossfades
+	sound.TimePosition = if headroom > 0
+		then math.random() * math.min(R.StartOffsetMaxSeconds, headroom)
+		else 0
 	sound:Play()
 end
 
@@ -443,6 +427,21 @@ local function silenceRoll(roll: Roll)
 	end
 	roll.voices[roll.front].level = 1
 	roll.incoming = nil
+	-- Reset the eased volume too. Leaving it behind means the next table starts above the
+	-- silence threshold, skips the "a still table costs nothing" branch, and audibly starts
+	-- a rolling clip on a table where nothing is moving.
+	roll.volume = 0
+	roll.tier = nil
+end
+
+--- Stop the roll outright. The per-frame update is the only thing that winds it down, and
+--- the moment a player leaves a table nothing calls that again - so without this the two
+--- voices are abandoned still playing, at the table just walked away from.
+function Audio.stopRoll(self: Audio)
+	local roll = self.roll
+	if roll then
+		silenceRoll(roll)
+	end
 end
 
 --- The rolling loop: one continuous sound for the whole table whose volume and pitch follow
@@ -504,13 +503,19 @@ function Audio.updateRoll(self: Audio, match: any, dt: number)
 		-- Never fade for longer than a sensible share of the clip, or a short recording
 		-- would start handing over before it had properly begun.
 		local playable = sound.TimeLength / math.max(sound.PlaybackSpeed, 1e-3)
-		local fade = math.max(math.min(R.CrossfadeSeconds, playable * 0.4), 1e-3)
+		local fade =
+			math.max(math.min(R.CrossfadeSeconds, playable * R.CrossfadeMaxClipFraction), 1e-3)
 		if remaining <= fade then
 			local other = 3 - roll.front
 			startRollVoice(roll, other, tier)
 			roll.incoming = other
 			roll.fadeStart = now
-			roll.fadeLength = fade
+			-- Fade over the audio that is ACTUALLY left, not the nominal length. The frame
+			-- that crosses the threshold can overshoot it badly after a hitch - a 0.3s frame
+			-- takes the remainder from 0.36 to 0.06 - and scheduling the full 0.35s anyway
+			-- would run the outgoing clip dry a sixth of the way through the curve, leaving
+			-- the incoming at a quarter amplitude and a hole where the crossfade should be.
+			roll.fadeLength = math.max(math.min(remaining, fade), 1e-3)
 		end
 	end
 

@@ -170,6 +170,9 @@ local function setSeat(id: number?)
 
 	if id == nil then
 		effects:detachTrail()
+		-- Nothing steps the roll once we are off a table, so it has to be told to stop or it
+		-- plays on at the table just left.
+		audio:stopRoll()
 		match = nil
 		placement = nil
 		input:setEnabled(false)

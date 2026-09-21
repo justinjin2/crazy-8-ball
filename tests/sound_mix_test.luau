@@ -22,10 +22,22 @@ return {
 		-- The geometric midpoint sits at the halfway mark, which is the whole point of a
 		-- log curve: each doubling of speed is a fixed step of volume.
 		H.near(M.loudness(math.sqrt(10 * 400), 10, 400), 0.5, 1e-12, "geometric middle")
-		for speed = 0, 600, 7 do
+		-- Strictly INSIDE the range, so a curve that was constant, reversed or clamped flat
+		-- would fail this rather than sail through a >= 0 and <= 1 check.
+		for speed = 11, 399, 7 do
 			local k = M.loudness(speed, 10, 400)
-			H.expect(k >= 0 and k <= 1, ("out of range at %d in/s"):format(speed))
+			H.expect(
+				k > 0 and k < 1,
+				("%d in/s should be inside the range, got %.4f"):format(speed, k)
+			)
 		end
+		-- An inverted range is a caller error; it must saturate rather than produce a curve
+		-- that runs backwards. The floor is still checked first, so only a speed ABOVE lo
+		-- reaches that branch at all.
+		H.near(M.loudness(500, 400, 10), 1, 1e-12, "inverted range saturates above the floor")
+		H.near(M.loudness(50, 400, 10), 0, 1e-12, "and is still silent below it")
+		H.near(M.loudness(200, 200, 200), 0, 1e-12, "a zero-width range is silent at its floor")
+		H.near(M.loudness(201, 200, 200), 1, 1e-12, "and saturates one step above it")
 	end,
 
 	["loudness is monotonic, so a harder hit is never quieter"] = function()
@@ -59,6 +71,54 @@ return {
 			count(logDeciles) > count(linearDeciles),
 			("log used %d deciles, linear used %d"):format(count(logDeciles), count(linearDeciles))
 		)
+	end,
+
+	["lerp hits both ends and extrapolates past them"] = function()
+		local M = setup()
+		H.near(M.lerp(2, 4, 0), 2, 1e-12, "at zero")
+		H.near(M.lerp(2, 4, 1), 4, 1e-12, "at one")
+		H.near(M.lerp(2, 4, 0.5), 3, 1e-12, "halfway")
+		-- It must NOT clamp. loudness is clamped upstream, but a future caller may not be,
+		-- and a silently clamping lerp would hide that.
+		H.near(M.lerp(2, 4, 2), 6, 1e-12, "extrapolates above")
+		H.near(M.lerp(2, 4, -1), 0, 1e-12, "extrapolates below")
+	end,
+
+	["mix runs volume up with force and pitch DOWN with it"] = function()
+		local M = setup()
+		local band = { MinVolume = 0.2, MaxVolume = 1.0, MinPitch = 0.9, MaxPitch = 1.14 }
+		local softVolume, softPitch = M.mix(band, 12, 10, 400)
+		local hardVolume, hardPitch = M.mix(band, 500, 10, 400)
+		-- The inversion is deliberate: the harder contact gets the LOWER pitch, which is what
+		-- makes it read as heavier. It looks like a bug on sight, so it is pinned here.
+		H.expect(hardVolume > softVolume, "a harder contact must be louder")
+		H.expect(hardPitch < softPitch, "a harder contact must be LOWER pitched, not higher")
+		H.near(hardVolume, band.MaxVolume, 1e-12, "the top of the range is reached")
+		H.near(hardPitch, band.MinPitch, 1e-12, "and so is the bottom of the pitch range")
+		local restVolume, restPitch = M.mix(band, 0, 10, 400)
+		H.near(restVolume, band.MinVolume, 1e-12, "a standstill sits at the floor")
+		H.near(restPitch, band.MaxPitch, 1e-12, "and at the top pitch")
+	end,
+
+	["a band may override the shared speed range"] = function()
+		local M = setup()
+		-- The cue strike does this: the cue ball leaves at up to 528 in/s, so on the shared
+		-- 10..400 range everything from about 93% power upwards sounded identical.
+		local band = { MinVolume = 0.35, MaxVolume = 1.0, MinPitch = 0.95, MaxPitch = 1.1 }
+		local wide = {
+			MinVolume = 0.35,
+			MaxVolume = 1.0,
+			MinPitch = 0.95,
+			MaxPitch = 1.1,
+			QuietSpeed = 15,
+			LoudSpeed = 528,
+		}
+		local sharedAt450 = M.mix(band, 450, 10, 400)
+		local sharedAt528 = M.mix(band, 528, 10, 400)
+		H.near(sharedAt450, sharedAt528, 1e-12, "the shared range is flat above 400")
+		local wideAt450 = M.mix(wide, 450, 10, 400)
+		local wideAt528 = M.mix(wide, 528, 10, 400)
+		H.expect(wideAt528 > wideAt450, "its own range keeps climbing to the top of the bar")
 	end,
 
 	["pick never repeats the last clip"] = function()
@@ -127,8 +187,11 @@ return {
 		local c, d = M.crossfade(1)
 		H.near(c, 0, 1e-12, "ends silent")
 		H.near(d, 1, 1e-12, "ends on the incoming clip")
-		-- A LINEAR fade would dip to 0.707 power at the midpoint. This must not.
+		-- A LINEAR fade would dip to 0.707 power at the midpoint. This must not - and pin the
+		-- gains themselves, not just their power sum, which a pair like (1, 0) would satisfy.
 		local e, f = M.crossfade(0.5)
+		H.near(e, math.sqrt(0.5), 1e-12, "outgoing at the midpoint")
+		H.near(f, math.sqrt(0.5), 1e-12, "incoming at the midpoint")
 		H.near(e * e + f * f, 1, 1e-12, "no dip in the middle")
 	end,
 

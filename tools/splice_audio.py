@@ -190,10 +190,33 @@ def make_loop(samples: np.ndarray, rate: int):
     return clip
 
 
+# The prefix of a raw file names the event it belongs to. Longest first, so that
+# ball_clack_rattle_* is not swallowed by ball_clack_*. These match the names already in
+# use for the uploaded set, so re-recording a replacement can reuse its existing name.
+KNOWN_PREFIXES = (
+    "ball_clack_rattle",
+    "ball_hitting_edge",
+    "ball_rolling",
+    "ball_clack",
+    "cue_strike",
+    "pocket_drop",
+    "roll_loop",
+    "clack",
+    "rail",
+    "strike",
+    "pocket",
+    "tick",
+    "roll",
+)
+
+# Which prefixes are continuous material rather than a series of hits.
+ROLL_PREFIXES = ("ball_rolling", "roll_loop", "roll")
+
+
 def base_name(path: Path):
-    """clack_hard_take3.wav -> clack. The prefix is what names the event."""
+    """ball_clack_rattle_take3.wav -> ball_clack_rattle."""
     stem = path.stem.lower()
-    for known in ("roll_loop", "clack", "rail", "strike", "pocket", "tick"):
+    for known in KNOWN_PREFIXES:
         if stem.startswith(known):
             return known
     return stem.split("_")[0]
@@ -204,10 +227,14 @@ def process(path: Path, listing: bool):
     name = base_name(path)
     seconds = len(samples) / rate
 
-    if name == "roll_loop":
+    if name in ROLL_PREFIXES:
+        # Rolling material is one continuous sound, not a series of hits, so it is trimmed
+        # to its steadiest stretch rather than cut up. The end-to-start crossfade is now
+        # belt and braces: the game crossfades two copies at runtime, so it never reaches a
+        # seam anyway (Roblox re-encodes uploads, so no uploaded file is seamless for sure).
         clip = make_loop(samples, rate)
-        target = OUT / "roll_loop.wav"
-        print(f"{path.name}: {seconds:.2f}s roll -> {len(clip)/rate:.2f}s seamless loop")
+        target = OUT / f"{name}.wav"
+        print(f"{path.name}: {seconds:.2f}s roll -> {len(clip)/rate:.2f}s steady stretch")
         if not listing:
             write_wav(target, clip, rate)
             print(f"  wrote {target.relative_to(ROOT)}")
