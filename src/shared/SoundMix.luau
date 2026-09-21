@@ -13,6 +13,13 @@
 
 local SoundMix = {}
 
+-- A clip may declare the speed band it suits. Both ends are optional: no FromSpeed means
+-- "however gently", no UpToSpeed means "however hard".
+export type Band = {
+	FromSpeed: number?,
+	UpToSpeed: number?,
+}
+
 -- The volume and pitch band one kind of contact plays across, plus an optional speed range
 -- of its own when the shared one does not suit it.
 export type Range = {
@@ -86,6 +93,64 @@ function SoundMix.pick(count: number, last: number?, roll: number): number
 		i += 1
 	end
 	return i
+end
+
+local function inBand(band: Band, speed: number): boolean
+	return (band.FromSpeed == nil or speed >= band.FromSpeed)
+		and (band.UpToSpeed == nil or speed <= band.UpToSpeed)
+end
+
+--- Pick a clip that suits this impact speed, never the same one twice running.
+---
+--- A soft cushion contact and a hard one are genuinely different sounds, not the same sound
+--- at two volumes, so picking purely at random would play a hard thud for a gentle kiss. The
+--- bands are allowed to OVERLAP, and where they do the choice is random between them - which
+--- blends one recording into the other across a stretch of speeds instead of switching at an
+--- audible line that a player would learn to hear.
+---
+--- If a speed falls in no band at all the whole list is eligible, so a gap left by a typo in
+--- Config makes the event a bit random rather than silent.
+function SoundMix.pickBanded(bands: { Band }, speed: number, last: number?, roll: number): number
+	local n = #bands
+	if n <= 1 then
+		return 1
+	end
+
+	local count = 0
+	for _, band in bands do
+		if inBand(band, speed) then
+			count += 1
+		end
+	end
+	local useAll = count == 0
+	if useAll then
+		count = n
+	end
+
+	-- Drop the previous clip from the running, but only while something else is eligible.
+	local skip: number? = nil
+	if
+		last ~= nil
+		and last >= 1
+		and last <= n
+		and count > 1
+		and (useAll or inBand(bands[last], speed))
+	then
+		skip = last
+		count -= 1
+	end
+
+	local target = math.floor(math.clamp(roll, 0, 0.9999999) * count) + 1
+	local seen = 0
+	for i, band in bands do
+		if (useAll or inBand(band, speed)) and i ~= skip then
+			seen += 1
+			if seen == target then
+				return i
+			end
+		end
+	end
+	return if skip == 1 then math.min(2, n) else 1
 end
 
 --- Equal-power crossfade gains at `t` in 0..1: (outgoing, incoming).

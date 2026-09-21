@@ -164,3 +164,18 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   Part per contact. A Part-parented Sound is affected by `SoundService.VolumetricAudio`, a
   place-level setting anyone could flip in Studio, while an Attachment is a point source
   whatever that is set to.
+- 2026-09-20: Cushion clips are chosen by IMPACT SPEED, not at random. A soft bounce off the
+  rail and a hard thud into it are different sounds, not one sound at two volumes, so a
+  second cushion recording was added with a speed band: the soft take up to 70 in/s, the hard
+  one from 40. The bands OVERLAP deliberately and the choice is random inside the overlap,
+  which blends one recording into the other instead of switching at a line a player would
+  learn to hear. A speed that falls in no band makes the whole list eligible, so a typo in
+  Config leaves the event a bit random rather than silent. `SoundMix.pickBanded` is the
+  mechanism and any clip list can use it.
+- 2026-09-20: Rails were turned down 10.1 dB and now sit 12.6 dB below a ball-on-ball clack at
+  the same impact speed, where they used to sit 2.4 dB below it. A cushion is a duller,
+  quieter thing than two phenolic balls meeting, and rails are the most frequent contact in
+  the game after ball hits, so at the old level they dominated every shot. The new soft
+  cushion recording is also the hottest asset in the set (peak 0.955 against the old rail's
+  0.182), so its measured gain of 0.52 takes another 14.4 dB off it relative to playing it
+  raw. The gap between rails and clacks lives in `Config.Audio.Rail.MaxVolume`.

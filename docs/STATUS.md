@@ -62,12 +62,18 @@ where nothing was moving. Also removed `MaxSoundsPerFrame`, which could never bi
 each contact type has its own wall-clock gap — it was dead config that read like a safety
 net. **60 Lune tests.**
 
+A second cushion recording came in afterwards. Cushions are now chosen by impact speed (soft
+take up to 70 in/s, hard from 40, overlapping between 40 and 70 so the choice blends rather
+than switching at an audible line), and rails were turned down 10.1 dB - they sat 2.4 dB
+below a clack at the same speed and now sit 12.6 dB below it, which is where the most
+frequent contact in the game belongs. **62 Lune tests.**
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 
-**What would help most if the designer records more:** more cushion takes (there is one, and
-rails are the second most frequent contact — 37 in a nine-shot test), and a second slow-roll
-take (that tier has one clip and the table spends two thirds of a shot in it).
+**What would help most if the designer records more:** a second slow-roll take (that tier has
+one clip and the table spends two thirds of a shot in it), and a third cushion take to give
+the soft band some variety of its own.
 
 ## Current milestone
 

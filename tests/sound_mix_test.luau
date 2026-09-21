@@ -173,6 +173,69 @@ return {
 		end
 	end,
 
+	["a banded pick respects the speed band, and blends where bands overlap"] = function()
+		local M = setup()
+		-- The real cushion setup: a soft take up to 70 in/s, a hard one from 40, so they
+		-- overlap between 40 and 70.
+		local rails = {
+			{ FromSpeed = 0, UpToSpeed = 70 },
+			{ FromSpeed = 40, UpToSpeed = math.huge },
+		}
+		-- Well below the overlap: only the soft take, whatever the roll.
+		for step = 0, 50 do
+			H.expect(M.pickBanded(rails, 20, nil, step / 51) == 1, "a gentle kiss must be soft")
+		end
+		-- Well above it: only the hard one.
+		for step = 0, 50 do
+			H.expect(M.pickBanded(rails, 150, nil, step / 51) == 2, "a hard thud must be hard")
+		end
+		-- Inside the overlap both are reachable, which is what blends one into the other
+		-- instead of switching at a line a player would learn to hear.
+		local seen = { false, false }
+		for step = 0, 200 do
+			seen[M.pickBanded(rails, 55, nil, step / 201)] = true
+		end
+		H.expect(seen[1] and seen[2], "the overlap must be able to choose either take")
+	end,
+
+	["a banded pick never repeats, and never goes silent on a gap"] = function()
+		local M = setup()
+		local rails = {
+			{ FromSpeed = 0, UpToSpeed = 70 },
+			{ FromSpeed = 40, UpToSpeed = math.huge },
+		}
+		-- In the overlap, with a previous clip, it must choose the other one.
+		for step = 0, 100 do
+			H.expect(M.pickBanded(rails, 55, 1, step / 101) == 2, "should have moved off clip 1")
+			H.expect(M.pickBanded(rails, 55, 2, step / 101) == 1, "should have moved off clip 2")
+		end
+		-- OUTSIDE the overlap only one clip is eligible, so repeating it is correct: playing
+		-- the wrong-sounding take would be worse than repeating the right one.
+		H.expect(M.pickBanded(rails, 20, 1, 0.5) == 1, "one eligible clip may repeat")
+		H.expect(M.pickBanded(rails, 150, 2, 0.5) == 2, "one eligible clip may repeat")
+
+		-- A gap in the bands (a typo in Config) must make the event a bit random, never mute.
+		local gapped = {
+			{ FromSpeed = 0, UpToSpeed = 10 },
+			{ FromSpeed = 200, UpToSpeed = math.huge },
+		}
+		local hit = { false, false }
+		for step = 0, 100 do
+			local i = M.pickBanded(gapped, 60, nil, step / 101)
+			H.expect(i == 1 or i == 2, "a speed in no band must still pick something")
+			hit[i] = true
+		end
+		H.expect(hit[1] and hit[2], "the fallback should use the whole list")
+
+		-- Unbanded lists behave exactly like the plain picker.
+		local plain = { {}, {}, {} }
+		for step = 0, 100 do
+			local i = M.pickBanded(plain, 37, 2, step / 101)
+			H.expect(i ~= 2, "an unbanded list must still not repeat")
+		end
+		H.expect(M.pickBanded({ {} }, 5, 1, 0.9) == 1, "a single clip is always clip 1")
+	end,
+
 	["crossfade holds constant power the whole way across"] = function()
 		local M = setup()
 		for step = 0, 100 do

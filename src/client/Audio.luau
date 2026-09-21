@@ -27,8 +27,9 @@ local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 
 type Event = Simulation.Event
 
--- One recording plus the measured correction that levels it against the others.
-type Clip = { Id: string, Gain: number }
+-- One recording, the measured correction that levels it against the others, and optionally
+-- the band of impact speeds it suits (see SoundMix.pickBanded).
+type Clip = { Id: string, Gain: number, FromSpeed: number?, UpToSpeed: number? }
 
 -- One reusable emitter. Impacts happen all over the table so each needs its own position,
 -- but the instances themselves are recycled.
@@ -142,12 +143,12 @@ local function preload(folder: Instance)
 		s.Parent = holder
 		table.insert(queue, s)
 	end
-	for _, clips in Config.Audio.Clips :: { [string]: { Clip } } do
+	for _, clips in Config.Audio.Clips :: any do
 		for _, clip in clips do
 			add(clip.Id)
 		end
 	end
-	for _, tier in Config.Audio.Roll.Tiers :: { { Clip } } do
+	for _, tier in Config.Audio.Roll.Tiers :: any do
 		for _, clip in tier do
 			add(clip.Id)
 		end
@@ -201,12 +202,12 @@ end
 ---
 --- Randomness here is purely cosmetic and client-side, so math.random is fine; the ban on it
 --- lives in Physics and Rules, where determinism matters.
-local function pickClip(self: Audio, name: string): Clip?
-	local clips = Config.Audio.Clips[name] :: { Clip }?
+local function pickClip(self: Audio, name: string, speed: number): Clip?
+	local clips = (Config.Audio.Clips :: any)[name] :: { Clip }?
 	if clips == nil or #clips == 0 then
 		return nil
 	end
-	local i = SoundMix.pick(#clips, self.lastPick[name], math.random())
+	local i = SoundMix.pickBanded(clips :: any, speed, self.lastPick[name], math.random())
 	self.lastPick[name] = i
 	return clips[i]
 end
@@ -243,20 +244,29 @@ local function acquire(self: Audio, force: boolean): Voice?
 	return nil
 end
 
+-- Impact speed to the volume and pitch this event should play at. See SoundMix.mix.
+local function mix(range: any, speed: number): (number, number)
+	local A = Config.Audio
+	return SoundMix.mix(range, speed, A.QuietSpeed, A.LoudSpeed)
+end
+
 --- Play one clip at a world position. Sounds are emitted from where the contact happened, so
 --- a break spreads across the table instead of arriving from a single point.
 function Audio.playAt(
 	self: Audio,
 	name: string,
 	at: Vector3,
-	volume: number,
-	pitch: number,
+	range: any,
+	speed: number,
 	force: boolean?
 )
-	local clip = pickClip(self, name)
+	-- The speed decides which recording, not just how loud it plays: some clips declare the
+	-- band of impact speeds they suit (see Config.Audio.Clips.RailThud).
+	local clip = pickClip(self, name, speed)
 	if clip == nil or clip.Id == "" then
 		return -- no recording wired up for this one yet
 	end
+	local volume, pitch = mix(range, speed)
 	local voice = acquire(self, force == true)
 	if voice == nil then
 		return -- every voice is busy; dropping this one beats cutting another one off
@@ -302,12 +312,6 @@ function Audio.playAt(
 	task.delay(length / math.max(sound.PlaybackSpeed, 0.05) + 0.5, release)
 end
 
--- Impact speed to the volume and pitch this event should play at. See SoundMix.mix.
-local function mix(range: any, speed: number): (number, number)
-	local A = Config.Audio
-	return SoundMix.mix(range, speed, A.QuietSpeed, A.LoudSpeed)
-end
-
 --- Listen to a table. Every contact the simulation reports becomes a sound.
 function Audio.attach(self: Audio, match: any)
 	match:onEvent(function(ev: Event)
@@ -326,12 +330,11 @@ function Audio.attach(self: Audio, match: any)
 			else TableBuilder.toWorld(match.placement, 0, 0, 0)
 
 		if ev.type == "cueStrike" then
-			self:playAt("CueStrike", at, mix(A.Strike, ev.speed))
+			self:playAt("CueStrike", at, A.Strike, ev.speed)
 		elseif ev.type == "pocket" then
 			-- Always audible: a ball dropping is the payoff and must never be rate limited
-			-- away behind a wall of clacks, so it skips the budget and forces a voice.
-			local volume, pitch = mix(A.Pocket, ev.speed)
-			self:playAt("PocketDrop", at, volume, pitch, true)
+			-- away behind a wall of clacks, so it skips the gaps and forces a voice.
+			self:playAt("PocketDrop", at, A.Pocket, ev.speed, true)
 		elseif ev.type == "ballHit" then
 			if ev.speed < A.MinImpactSpeed then
 				return
@@ -340,7 +343,7 @@ function Audio.attach(self: Audio, match: any)
 				return
 			end
 			self.lastClack = now
-			self:playAt("BallClack", at, mix(A.Clack, ev.speed))
+			self:playAt("BallClack", at, A.Clack, ev.speed)
 		elseif ev.type == "railHit" then
 			if ev.speed < A.MinImpactSpeed then
 				return
@@ -349,14 +352,14 @@ function Audio.attach(self: Audio, match: any)
 				return
 			end
 			self.lastRail = now
-			self:playAt("RailThud", at, mix(A.Rail, ev.speed))
+			self:playAt("RailThud", at, A.Rail, ev.speed)
 		end
 	end)
 end
 
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
 function Audio.tick(self: Audio, at: Vector3)
-	self:playAt("AimTick", at, mix(Config.Audio.Tick, 0))
+	self:playAt("AimTick", at, Config.Audio.Tick, 0)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -386,7 +389,7 @@ end
 
 -- Start one side of the crossfade on a freshly picked clip from the current tier.
 local function startRollVoice(roll: Roll, index: number, tier: number)
-	local clips = Config.Audio.Roll.Tiers[tier] :: { Clip }?
+	local clips = (Config.Audio.Roll.Tiers :: any)[tier] :: { Clip }?
 	if clips == nil or #clips == 0 then
 		return
 	end

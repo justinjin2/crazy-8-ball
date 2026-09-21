@@ -857,11 +857,23 @@ Config.Audio = {
 			{ Id = "rbxassetid://104388069204336", Gain = 1.18 }, -- rattle_1, peak 0.425
 			{ Id = "rbxassetid://84658060587712", Gain = 1.87 }, -- rattle_2, peak 0.267
 		},
-		-- Only one cushion recording exists, so rails lean entirely on speed-driven volume
-		-- and pitch plus PitchJitter for variety. Rails are the most frequent contact after
-		-- ball hits, so a second and third take here would buy more than anywhere else.
+		-- Cushions are picked by SPEED, not at random: a gentle kiss off the rail and a
+		-- hard thud into it are different sounds, not the same sound at two volumes. The
+		-- bands OVERLAP between 40 and 70 in/s and the choice is random in there, which
+		-- blends one into the other rather than switching at a line a player would learn to
+		-- hear. Measured rail speeds: median 29.4 in/s, p90 126, so the soft take carries
+		-- most of them.
+		-- Both ends of each band are stated, so the overlap is readable at a glance.
 		RailThud = {
-			{ Id = "rbxassetid://92350381831637", Gain = 2.74 }, -- edge_table_hard, peak 0.182
+			-- soft, peak 0.955 - by far the hottest recording in the set, hence the low gain
+			{ Id = "rbxassetid://95956239942472", Gain = 0.52, FromSpeed = 0, UpToSpeed = 70 },
+			-- edge_table_hard, peak 0.182
+			{
+				Id = "rbxassetid://92350381831637",
+				Gain = 2.74,
+				FromSpeed = 40,
+				UpToSpeed = math.huge,
+			},
 		},
 		PocketDrop = {
 			{ Id = "rbxassetid://139585329610041", Gain = 0.55 }, -- pocket_drop_1, peak 0.907
@@ -888,7 +900,12 @@ Config.Audio = {
 	-- Volume and pitch range per event. Pitch runs DOWNWARD with force: a harder contact
 	-- gets the lower pitch, which is what makes it read as heavier. (tune)
 	Clack = { MinVolume = 0.18, MaxVolume = 1.0, MinPitch = 0.9, MaxPitch = 1.14 },
-	Rail = { MinVolume = 0.12, MaxVolume = 0.8, MinPitch = 0.88, MaxPitch = 1.08 },
+	-- Rails sit WELL below ball-on-ball contact. They were about 2.4 dB under a clack at the
+	-- same speed, which is far too close given they are the most frequent contact after ball
+	-- hits (37 in a nine-shot test) - a cushion is a duller, quieter thing than two phenolic
+	-- balls meeting, and a loud one every second is fatiguing. These are 10.1 dB down on the
+	-- old values; lower MaxVolume further if rails still sit forward in the mix. (tune)
+	Rail = { MinVolume = 0.035, MaxVolume = 0.25, MinPitch = 0.88, MaxPitch = 1.08 },
 	-- The strike gets its own speed range, tied to the cue itself. On the shared range
 	-- (10..400) everything from about 93% power upwards produced an identical sound, because
 	-- the cue ball leaves at up to 528 in/s, and the whole top half of the power bar spanned
@@ -919,9 +936,10 @@ Config.Audio = {
 	-- one frame, so a budget of three could never bind - it was dead config that read like a
 	-- safety net. Being wall-clock, these bind at any frame rate.
 	MinSecondsBetweenClacks = 0.035,
-	-- Rails need their own, and a wider one: a break sends a burst of cushion contacts and
-	-- there is only one cushion recording, so without this they drone.
-	MinSecondsBetweenRails = 0.05,
+	-- Rails need their own, and a wider one: a break sends a burst of cushion contacts, and
+	-- the soft cushion take rings for almost a second, so without this they pile up and
+	-- drone. Widened from 0.05 when that take came in.
+	MinSecondsBetweenRails = 0.07,
 
 	-- Sounds are emitted from where the contact happened, so a break sounds like it is
 	-- spread across the table rather than coming from one point.
