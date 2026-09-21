@@ -684,6 +684,16 @@ Config.Camera = {
 		-- ball on most shots, and short enough not to feel like a pause. It was 1.0, which
 		-- was a wait. (tune)
 		HoldSeconds = 0.5,
+		-- ...but the hold is a fallback, not a rule. A ball leaving the screen ends it at
+		-- once: a bank across the table can put a ball out of view well inside half a second,
+		-- and holding then means staring at empty cloth while the shot happens somewhere
+		-- off screen. This is what actually decides the timing on the shots that need it.
+		--
+		-- A ball counts as gone once its CENTRE reaches this fraction in from the screen
+		-- edge, so the camera starts moving a moment before it truly disappears rather than
+		-- after - by the time the centre is at the edge, half the ball is already outside.
+		-- Raise it to leave earlier, drop it to 0 to wait for the ball to actually go. (tune)
+		OffScreenMargin = 0.06,
 		-- How long the pull-out to the whole table then takes, eased in and out of the move
 		-- (smoothstep) so it has no corners at either end. Smoothing below is applied on top,
 		-- so the move actually lands somewhat after this: at 1.2 and 0.35 it took 1.6s to get

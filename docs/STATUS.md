@@ -226,8 +226,11 @@ geometrically. At the 9 ft table that is 5.3 studs from the cue ball at a 35 deg
 (fitted is 10.1 studs at 50 degrees; closest is 2.2 at 18). The camera resets to it at the end
 of every shot rather than keeping whatever the player pinched to.
 
-And it no longer leaves at the strike. It holds the framing the shot was taken from for
-`Shot.HoldSeconds` (0.5) while the cue ball travels, then pulls out over `Shot.PullOutSeconds`
+And it no longer leaves at the strike. It holds the framing the shot was taken from while the
+cue ball travels, and two things can end that hold, whichever comes first: `Shot.HoldSeconds`
+(0.5), or **a ball about to leave the screen** (`Shot.OffScreenMargin`, 0.06 - a ball counts
+as gone once its centre is within 6% of the edge). Holding a framing that no longer contains
+the shot was the worst case of the fixed timer. Then it pulls out over `Shot.PullOutSeconds`
 (0.7) against a 0.22s easing, smoothstepped so the move has no corners. That pair was 1.2 and
 0.35, which took 1.6s to get 95% of the way out and read as slow; it now does it in 0.93s, and
 the eased shape survives the cut (7%, 22%, 40%, 58%, 74%, 89%, 96%).
@@ -237,6 +240,13 @@ is meaningless mid-shot, because the ball moves while the camera's anchor is fro
 6.22s, camera first moves at 6.78s (a 0.57s hold), 95% of the way out 0.93s later, settled
 back at zoom 0.625 when the balls stopped. Strike to whole table is about 1.5s, against 2.7s
 when the hold was 1.0 and the move 1.6.
+
+The off-screen rule was verified by forcing the margin to 0.92 at runtime, so any off-centre
+ball trips it: the hold fell to 0.33s against the 0.50s fallback, camera first moving 0.13s
+after the strike. At the real 0.06 the straight shots that could be driven from an agent
+session never tripped it and the fallback governed - expected, since the close view looks DOWN
+the aim line and balls mostly stay inside the cone. **It has not been seen firing on a real
+bank shot**, which needs a human aiming wide.
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.

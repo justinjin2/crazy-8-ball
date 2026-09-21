@@ -439,3 +439,22 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   is meaningless mid-shot, because the ball moves while the camera's anchor is frozen: strike
   at 6.57s, camera first moves at 7.77s (a 1.20s hold), 95% of the way out by 9.30s (a 1.6s
   move), and settled back at zoom 0.625 once the balls stopped.
+- 2026-09-21: A ball about to leave the screen ends the camera's hold at once, whichever
+  comes first between that and `Shot.HoldSeconds`. Holding a framing that no longer contains
+  the shot is the worst case the fixed timer had: a ball banking across the table can be out
+  of view well inside half a second, and waiting then means staring at empty cloth while the
+  shot happens somewhere off screen. `Shot.OffScreenMargin` (0.06) makes a ball count as gone
+  once its CENTRE is within 6% of the screen edge, so the move starts a moment before it truly
+  disappears - by the time the centre is at the edge, half the ball is already outside.
+  The moment the pull-out starts is RECORDED (`pullOutStart`) rather than derived from
+  HoldSeconds, because an early end would otherwise jump the eased curve part-way through
+  instead of starting it.
+  Pocketed balls are excluded: they are dropping down a hole at the edge of the view, so
+  counting them would end the hold on every shot that sinks something, which is the one time
+  the close framing is worth keeping.
+  Verified in Studio by forcing the margin to 0.92 at runtime so any off-centre ball trips it:
+  the hold fell to 0.33s against the 0.50s fallback, with the camera first moving 0.13s after
+  the strike. At the real 0.06 the straight shots that could be driven never tripped it and the
+  fallback governed, at 0.67 to 0.73s - which is the expected result, since the close view
+  looks DOWN the aim line and balls mostly stay inside the cone. The rule earns its keep on
+  the shots that throw a ball wide near the shooter's end, not on ordinary ones.

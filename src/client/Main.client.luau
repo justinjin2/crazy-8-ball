@@ -172,6 +172,26 @@ local shotAngle, shotPower = 0, 0
 -- Tables whose events are already wired to audio and effects.
 local wiredForEffects: { [number]: boolean } = {}
 
+-- World positions of every ball that is moving right now, for the camera: it ends its hold
+-- and pulls out the moment one of them is about to leave the screen. Reused between frames
+-- rather than rebuilt, so watching for that costs nothing per frame.
+--
+-- Pocketed balls are left out deliberately. They are dropping down a hole at the very edge of
+-- the view, so counting them would end the hold on every shot that sinks anything - which is
+-- the one time the close framing is worth keeping.
+local movingBuffer: { Vector3 } = {}
+
+local function movingBallWorlds(m: Match.Match, p: Placement.Placement): { Vector3 }
+	table.clear(movingBuffer)
+	for _, b in m.state.balls do
+		if not b.pocketed and (b.vx ~= 0 or b.vy ~= 0) then
+			local at = TableBuilder.toWorld(p, b.x, b.y, Config.Balls.RadiusInches + b.z)
+			table.insert(movingBuffer, at)
+		end
+	end
+	return movingBuffer
+end
+
 local function shoot(power: number)
 	local m, id = match, seatId
 	if m == nil or id == nil or m:isBusy() then
@@ -390,7 +410,8 @@ RunService.RenderStepped:Connect(function(dt)
 	audio:updateRoll(m, dt)
 	local dir = Camera.aimDirection(input.angle)
 	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
-	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow)
+	local moving = if playing then movingBallWorlds(m, p) else nil
+	Camera.update(dt, cueBallWorld(), input.angle, playing, cueNow, moving)
 	if playing and Config.Avatar.HideWhileShooting then
 		-- The shooter steps out of the way while the balls run. Posing them against the
 		-- LIVE cue ball, which is what used to happen here, walked the body around the

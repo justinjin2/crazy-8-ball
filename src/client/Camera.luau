@@ -47,6 +47,11 @@ local wasPlaying = false
 -- Seconds since the balls started moving, which is what the camera's hold and pull-out are
 -- timed off. Reset the moment a shot is not playing, so every shot gets the full hold.
 local shotTime = 0
+-- When the pull-out began, in shotTime seconds, or nil while the camera is still holding.
+-- Recorded rather than recomputed because the hold can END EARLY when a ball leaves the
+-- screen: starting the move from the moment it was triggered is what keeps it continuous.
+-- Deriving it from HoldSeconds instead would jump the target part-way through the curve.
+local pullOutStart: number? = nil
 
 --- World-space aim direction for a physics angle on the current table. The angle is in
 --- table space, so the table's yaw turns it: at yaw 0 this is (cos, 0, -sin) as before.
@@ -239,6 +244,18 @@ local function project(cf: CFrame, point: Vector3, tanH: number, tanV: number): 
 	return Vector2.new(p.X / (depth * tanH), p.Y / (depth * tanV))
 end
 
+-- True when a world point has left the view, with a margin so the answer comes a moment
+-- before it truly goes. A point behind the camera counts as gone.
+local function offScreen(cf: CFrame, point: Vector3, vp: Vector2): boolean
+	local tanH, tanV = tangents(vp)
+	local q = project(cf, point, tanH, tanV)
+	if q == nil then
+		return true
+	end
+	local edge = 1 - Config.Camera.Shot.OffScreenMargin
+	return math.abs(q.X) > edge or math.abs(q.Y) > edge
+end
+
 -- Fraction of the screen the table's outline covers (shoelace area of the projected corners).
 local function fillScore(cf: CFrame, vp: Vector2): number
 	local tanH, tanV = tangents(vp)
@@ -408,13 +425,15 @@ end
 --- view so every ball's path is visible. When the balls stop it eases back to
 --- View.ZoomDefault - the framing every turn starts from, not whatever the player had
 --- pinched to. `focus` is the cue ball's current position while it moves (only used when
---- Shot.FocusWeight > 0).
+--- Shot.FocusWeight > 0). `moving` is every ball currently in motion, in world space: the
+--- hold ends the moment one of them is about to leave the screen.
 function Camera.update(
 	dt: number,
 	cueWorld: Vector3,
 	angle: number,
 	playing: boolean,
-	focus: Vector3?
+	focus: Vector3?,
+	moving: { Vector3 }?
 )
 	local cam = Workspace.CurrentCamera
 	local S = Config.Camera.Shot
@@ -430,17 +449,44 @@ function Camera.update(
 		Camera.resetZoom()
 	end
 	wasPlaying = playing
-	shotTime = if playing then shotTime + dt else 0
+	if playing then
+		shotTime += dt
+	else
+		shotTime = 0
+		pullOutStart = nil
+	end
 	returnTimer = math.max(returnTimer - dt, 0)
 
 	-- The pull-out to the whole table. It does NOT begin at the strike: the camera holds the
-	-- framing the shot was taken from while the cue ball travels, and only then leaves. The
-	-- move is smoothstepped so it has no corners at either end, on top of the easing below.
+	-- framing the shot was taken from while the cue ball travels, and only then leaves.
+	--
+	-- Two things can end that hold, and whichever comes first wins. Normally it is
+	-- HoldSeconds. But a ball on its way off the screen ends it at once, because there is no
+	-- point holding a framing that no longer contains the shot - a bank across the table can
+	-- put the object ball out of view well inside the hold.
 	local zoomOverride: number? = nil
 	if playing and S.ZoomOut then
-		local t = math.clamp((shotTime - S.HoldSeconds) / math.max(S.PullOutSeconds, 1e-3), 0, 1)
-		local eased = t * t * (3 - 2 * t)
-		zoomOverride = zoom + (Config.Camera.View.ZoomMax - zoom) * eased
+		if pullOutStart == nil then
+			local gone = false
+			if moving then
+				local pose = smoothed or cam.CFrame
+				local vp = cam.ViewportSize
+				for _, ball in moving do
+					if offScreen(pose, ball, vp) then
+						gone = true
+						break
+					end
+				end
+			end
+			if gone or shotTime >= S.HoldSeconds then
+				pullOutStart = shotTime
+			end
+		end
+		if pullOutStart then
+			local t = math.clamp((shotTime - pullOutStart) / math.max(S.PullOutSeconds, 1e-3), 0, 1)
+			local eased = t * t * (3 - 2 * t)
+			zoomOverride = zoom + (Config.Camera.View.ZoomMax - zoom) * eased
+		end
 	end
 	local gaze = if playing and S.FocusWeight > 0 then focus else nil
 	local target = viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
