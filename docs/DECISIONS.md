@@ -405,3 +405,15 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   each of them testing its own conditions. They are one idea - this is your shot to take - and
   three copies of that test would eventually disagree. It is also where the Rules hook in at
   Roadmap 2.1: "is a shot running" becomes "is it my turn" in one place.
+- 2026-09-21: The on-screen nudge arrows at the bottom of the screen are gone, at the
+  designer's call. They were the only non-drag way to aim on phone and on PC, so this leaves
+  CLAUDE.md's "every drag has a button alternative" unmet for aiming on those two: the gamepad
+  keeps its D-pad nudge, and `Config.Input.NudgeDegrees` and the repeat timings stay because
+  that path still uses them. If fine aiming turns out to need a button again, the cheapest
+  restoration is keyboard arrow keys on PC; the phone would need something new.
+- 2026-09-21: The status line is a developer readout, not part of the game, so it is off by
+  default and `Config.Debug.StatusKey` (F3) brings it in and out. Its listener is separate
+  from the test keys: it is a readout rather than something that changes the game, so it must
+  work while a shot is running and whether or not `TestKeysEnabled` is on. Visibility is two
+  flags - at a table, and asked for - so leaving a table does not forget that it was wanted.
+  Keyboard only, deliberately: it is a tool, not a feature that needs a phone path.

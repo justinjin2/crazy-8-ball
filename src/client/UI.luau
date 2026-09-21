@@ -1,6 +1,6 @@
 --!strict
--- UI: the in-match screen elements. Fine-aim nudge buttons, the leave button and a small
--- status line. Built to work with one thumb on a phone.
+-- UI: the in-match screen elements. The leave button and a developer status line. Built to
+-- work with one thumb on a phone.
 --
 -- The power control is NOT here: it is a cue you drag, and it lives in PowerCue.luau. This
 -- module owns the shared ScreenGui that it and everything else parents into.
@@ -17,6 +17,13 @@ local gui: ScreenGui? = nil
 local statusLabel: TextLabel? = nil
 local playControls: { GuiObject } = {}
 local leaveButton: TextButton? = nil
+
+-- The status line is a developer readout, not part of the game, so it is off unless somebody
+-- asks for it. Two things have to agree before it shows: the player is at a table, and the
+-- toggle is on. Kept as two flags rather than one because leaving a table must not forget
+-- that the readout was wanted.
+local playVisible = false
+local statusWanted = Config.Debug.ShowStatus
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -59,7 +66,14 @@ function UI.addPlayControl(object: GuiObject)
 	table.insert(playControls, object)
 end
 
---- Status line in the top-left corner.
+local function refreshStatus()
+	if statusLabel then
+		statusLabel.Visible = playVisible and statusWanted
+	end
+end
+
+--- Developer status line in the top-left corner. Hidden unless it has been asked for; see
+--- UI.toggleStatus and Config.Debug.StatusKey.
 function UI.setStatus(text: string)
 	if not statusLabel then
 		local label = Instance.new("TextLabel")
@@ -81,9 +95,18 @@ function UI.setStatus(text: string)
 		local corner = Instance.new("UICorner")
 		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = label
+		label.Visible = false
 		statusLabel = label
+		refreshStatus()
 	end
 	(statusLabel :: TextLabel).Text = text
+end
+
+--- Show or hide the developer status line. Returns whether it is now showing.
+function UI.toggleStatus(): boolean
+	statusWanted = not statusWanted
+	refreshStatus()
+	return statusWanted
 end
 
 --- Show or hide everything that only makes sense while playing at the table.
@@ -91,9 +114,8 @@ function UI.setPlayControlsVisible(visible: boolean)
 	for _, item in playControls do
 		item.Visible = visible
 	end
-	if statusLabel then
-		statusLabel.Visible = visible
-	end
+	playVisible = visible
+	refreshStatus()
 	if leaveButton then
 		leaveButton.Visible = visible
 	end
@@ -113,48 +135,6 @@ function UI.createLeaveButton(onLeave: () -> ())
 	button.Parent = ensureGui()
 	button.Activated:Connect(onLeave)
 	leaveButton = button
-end
-
---- Power bar on the right edge. onPull(0..1) while pulling, onRelease() when let go.
---- Two nudge buttons at the bottom centre. onNudge(-1 or 1) per tap, repeating while held.
-function UI.createNudgeButtons(onNudge: (number) -> ())
-	local size = Config.UI.NudgeButtonPx
-	for _, dir in { -1, 1 } do
-		local button = Instance.new("TextButton")
-		button.Name = if dir < 0 then "NudgeLeft" else "NudgeRight"
-		button.Text = if dir < 0 then "<" else ">"
-		button.AnchorPoint = Vector2.new(0.5, 1)
-		button.Position = UDim2.new(0.5, dir * (size * 0.75), 1, -18)
-		button.Size = UDim2.fromOffset(size, size)
-		styleButton(button)
-		button.Parent = ensureGui()
-		table.insert(playControls, button)
-
-		local holding = false
-		button.InputBegan:Connect(function(input: InputObject)
-			if
-				input.UserInputType ~= Enum.UserInputType.MouseButton1
-				and input.UserInputType ~= Enum.UserInputType.Touch
-			then
-				return
-			end
-			holding = true
-			-- Screen-left button turns the aim clockwise (negative), matching a drag to the left.
-			onNudge(-dir)
-			task.spawn(function()
-				task.wait(Config.Input.NudgeRepeatDelay)
-				while holding do
-					onNudge(-dir)
-					task.wait(Config.Input.NudgeRepeatInterval)
-				end
-			end)
-		end)
-		local function stop()
-			holding = false
-		end
-		button.InputEnded:Connect(stop)
-		button.MouseLeave:Connect(stop)
-	end
 end
 
 return UI

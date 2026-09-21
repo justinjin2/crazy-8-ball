@@ -1428,8 +1428,6 @@ Config.UI = {
 	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
 	-- from thin bands; enough of them and the steps disappear. (tune)
 	PowerCueSlices = 44,
-	-- Fine-aim nudge buttons at the bottom (pixels).
-	NudgeButtonPx = 56,
 	-- Colours (RGB 0-255).
 	Accent = { 255, 205, 60 },
 	Panel = { 20, 20, 24 },
@@ -1442,6 +1440,12 @@ Config.UI = {
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
+	-- The developer status line in the top-left corner. It is a readout of aim, speed and
+	-- table counts, not part of the game, so it starts hidden and this key brings it in and
+	-- out. Held as a string because Config is loaded by the Lune tests, which have no Enum;
+	-- Main maps it. Keyboard only: it is a tool, not a feature that needs a phone path.
+	ShowStatus = false,
+	StatusKey = "F3",
 	-- Print physics events to the console.
 	LogEvents = false,
 	-- Print a timing line when a shot finishes playing back.

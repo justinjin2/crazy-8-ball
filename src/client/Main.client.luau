@@ -321,9 +321,25 @@ powerCue:onDrag(function(pull)
 end, function()
 	input:releasePower()
 end)
-UI.createNudgeButtons(function(direction)
-	input:rotate(direction * Config.Input.NudgeDegrees)
-end)
+-- The developer status line is off until it is asked for. Its own listener, not part of the
+-- test keys below, because it is a readout rather than something that changes the game: it
+-- must work while a shot is running and whether or not TestKeysEnabled is on.
+do
+	local key = (Enum.KeyCode :: any)[Config.Debug.StatusKey]
+	if key then
+		UserInputService.InputBegan:Connect(function(keyInput, gameProcessed)
+			if not gameProcessed and keyInput.KeyCode == key then
+				UI.toggleStatus()
+			end
+		end)
+	else
+		warn(
+			("[8ball] Config.Debug.StatusKey is not a KeyCode: %s"):format(
+				tostring(Config.Debug.StatusKey)
+			)
+		)
+	end
+end
 
 if Config.Debug.TestKeysEnabled then
 	UserInputService.InputBegan:Connect(function(keyInput, gameProcessed)

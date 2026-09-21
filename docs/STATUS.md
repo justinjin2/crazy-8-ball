@@ -205,6 +205,19 @@ ends.
 `canAim()` is where turns hook in at Roadmap 2.1 - "is a shot running" becomes "is it my
 turn", in one place.
 
+## The HUD is down to the power bar and Leave
+
+The on-screen nudge arrows are gone at the designer's call, and the status line is off by
+default with **F3** to bring it in and out (`Config.Debug.StatusKey`). At a table the screen
+now holds the power bar and the Leave button, nothing else. Verified in Studio: no nudge
+buttons anywhere in the GUI tree, status hidden on join, F3 toggles it on and off.
+
+**This leaves a gap against CLAUDE.md's "every drag has a button alternative".** The nudge
+buttons were the only non-drag way to aim on phone and on PC. The gamepad keeps its D-pad
+nudge and `Config.Input.NudgeDegrees` stays because that path uses it. If fine aiming needs a
+button again, keyboard arrow keys are the cheap fix for PC; the phone would need something
+new.
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 
