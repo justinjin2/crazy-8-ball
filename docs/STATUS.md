@@ -3,7 +3,7 @@
 One page. Rewritten at the end of every working session by whichever tool did the work.
 Read this first, then the roadmap item it names.
 
-**Last updated:** 2026-09-21 (lounge set aside; testing on a baseplate with one table).
+**Last updated:** 2026-09-20 (the designer's own sound effects are in and wired).
 
 ## The lounge is switched off
 
@@ -28,6 +28,38 @@ floor pad, which turns green; the client sends only shot inputs and the server v
 simulates and broadcasts them, and every client replays the same shot from the same numbers.
 The twelve-table lounge, the renderer pool, the watched cues and the sofa seats are all
 built and switched off behind one Config flag. 42 Lune tests.
+
+## Sound is in (Roadmap 1.7, most of the way)
+
+Fourteen of the designer's own recordings are uploaded to the group that owns the place, so
+they resolve by id and nothing is inserted into Studio by hand. Six ball-on-ball takes in one
+random pool, one cushion, two cue strikes, two pocket drops, three rolling takes. Only the
+aim tick is still a library sound, because it is a UI click rather than a pool sound.
+
+Clip choice is random and never repeats the previous clip; impact speed drives volume and
+pitch on a logarithmic curve. Three numbers behind that are measurements, not guesses, and
+each changed the design: the clips span 14 dB so every one carries a measured gain
+(`tools/measure_audio.luau`); the median ball contact is only 3.6 in/s so a linear curve put
+half of them in the bottom fifth of the range; and the camera sits 16-17.5 studs from the
+table, so the old 8-stud rolloff minimum made the mix change with the zoom.
+
+The rolling sound is one continuous sound for the table, following the fastest ball and
+emitted from it, built from two Sounds that crossfade at equal power rather than one looped
+Sound. The recordings are not known to loop seamlessly and Roblox re-encodes uploads anyway.
+
+The arithmetic is in a new pure `src/shared/SoundMix.luau` with 11 Lune tests. **56 Lune
+tests** in total now.
+
+Verified in Studio over 13 shots: all 11 wired clips played, 0 back-to-back repeats in 41
+plays, 0 silent frames mid-roll, exactly one cue strike per shot, peak 6 concurrent voices
+against a cap of 24, console clean.
+
+**Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
+unticked.
+
+**What would help most if the designer records more:** more cushion takes (there is one, and
+rails are the second most frequent contact — 37 in a nine-shot test), and a second slow-roll
+take (that tier has one clip and the table spends two thirds of a shot in it).
 
 ## Current milestone
 
@@ -111,6 +143,11 @@ Still open, all needing more than one table or more than one client:
 - Remote players' bodies are not posed for watchers, only their cue. `AvatarPose` anchors
   individual limbs, which does not replicate reliably from the owning client. Deferred to
   2.3.
+- `ball_rolling_1` measured 15x quieter than the other two rolling takes and carries a gain
+  of 15 to match them. Its noise floor sits 10.4 dB below its own average, which is what says
+  it survives the boost, but it is the clip to re-record if the roll ever hisses.
+- `SoundService.DopplerScale` is set to 0 and reads back as 0.001; the engine clamps it. That
+  is inaudible, not a failed write.
 - Studio caches Edit-mode `require` results for the whole session. Editing a shared module
   and re-running it in Edit mode silently runs the old copy; restart Studio first.
 - `src/shared/Rules/` is an empty folder; rules are Roadmap 2.1.
