@@ -274,8 +274,10 @@ function Audio.playAt(
 	end
 
 	-- A little wobble on top of the speed-driven pitch, so two identical impacts still
-	-- differ from each other.
-	local jitter = 1 + (math.random() * 2 - 1) * Config.Audio.PitchJitter
+	-- differ from each other. A band may ask for more of it when it has fewer recordings to
+	-- choose between, which is the only disguise left to it.
+	local wobble = range.PitchJitter or Config.Audio.PitchJitter
+	local jitter = 1 + (math.random() * 2 - 1) * wobble
 
 	voice.busy = true
 	voice.startedAt = os.clock()

@@ -892,23 +892,18 @@ Config.Audio = {
 				UpToSpeed = math.huge,
 			},
 		},
-		-- Cushions are picked by SPEED, not at random: a gentle kiss off the rail and a
-		-- hard thud into it are different sounds, not the same sound at two volumes. The
-		-- bands OVERLAP between 40 and 70 in/s and the choice is random in there, which
-		-- blends one into the other rather than switching at a line a player would learn to
-		-- hear. Measured rail speeds: median 29.4 in/s, p90 126, so the soft take carries
-		-- most of them.
-		-- Both ends of each band are stated, so the overlap is readable at a glance.
+		-- One take for every cushion contact, soft through hard. The older, harder recording
+		-- was dropped outright at the designer's call: it did not sound like a ball meeting
+		-- a cushion. A clean sample carried across the range by volume and pitch beats an
+		-- unconvincing one used at its "correct" speed.
+		--
+		-- The cost is variation: rails are the most frequent contact in the game after ball
+		-- hits, and one take means one sample repeating. Speed-driven volume and pitch do
+		-- most of the disguising, and Rail below carries extra pitch wobble of its own to
+		-- help. A second cushion recording would fix it properly.
 		RailThud = {
 			-- soft, peak 0.955 - by far the hottest recording in the set, hence the low gain
-			{ Id = "rbxassetid://95956239942472", Gain = 0.52, FromSpeed = 0, UpToSpeed = 70 },
-			-- edge_table_hard, peak 0.182
-			{
-				Id = "rbxassetid://92350381831637",
-				Gain = 2.74,
-				FromSpeed = 40,
-				UpToSpeed = math.huge,
-			},
+			{ Id = "rbxassetid://95956239942472", Gain = 0.52 },
 		},
 		PocketDrop = {
 			{ Id = "rbxassetid://139585329610041", Gain = 0.55 }, -- pocket_drop_1, peak 0.907
@@ -951,7 +946,21 @@ Config.Audio = {
 	-- hits (37 in a nine-shot test) - a cushion is a duller, quieter thing than two phenolic
 	-- balls meeting, and a loud one every second is fatiguing. These are 10.1 dB down on the
 	-- old values; lower MaxVolume further if rails still sit forward in the mix. (tune)
-	Rail = { MinVolume = 0.035, MaxVolume = 0.25, MinPitch = 0.88, MaxPitch = 1.08 },
+	Rail = {
+		MinVolume = 0.035,
+		MaxVolume = 0.25,
+		-- Narrowed very slightly from 0.88..1.08 when the wobble below was added, so the two
+		-- together stay inside the 15% the comment asks for rather than reaching 17%.
+		MinPitch = 0.9,
+		MaxPitch = 1.07,
+		-- More wobble than everything else, because there is only ONE cushion recording and
+		-- rails are the most frequent contact after ball hits. Pitch variation is a weaker
+		-- disguise than having another take, but it is what there is. Keep the total spread
+		-- (this plus the MinPitch..MaxPitch range) inside about 15% either way, or the
+		-- sample stops sounding like a ball hitting a cushion and starts sounding like a
+		-- synthesiser. Together these reach 0.855 .. 1.124, or -14.5% to +12.4%. (tune)
+		PitchJitter = 0.05,
+	},
 	-- The strike gets its own speed range, tied to the cue itself. On the shared range
 	-- (10..400) everything from about 93% power upwards produced an identical sound, because
 	-- the cue ball leaves at up to 528 in/s, and the whole top half of the power bar spanned

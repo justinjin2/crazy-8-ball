@@ -29,6 +29,8 @@ export type Range = {
 	MaxPitch: number,
 	QuietSpeed: number?,
 	LoudSpeed: number?,
+	-- Bands with few recordings to choose between lean harder on pitch wobble.
+	PitchJitter: number?,
 }
 
 --- Impact speed (or ball speed) to a 0..1 level, on a LOGARITHMIC curve.

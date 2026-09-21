@@ -78,12 +78,16 @@ quiet end (1 in/s against the shared 10) so soft contacts differ from each other
 flattening onto one minimum, and the soft take is now banded to gentle contacts. **63 Lune
 tests.**
 
+The harder cushion recording was then dropped entirely - it did not sound like a ball meeting
+a cushion - so one soft take now covers every rail contact, leaning on its own extra pitch
+wobble for the variation the second take used to provide.
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 
 **What would help most if the designer records more:** a second slow-roll take (that tier has
-one clip and the table spends two thirds of a shot in it), and a third cushion take to give
-the soft band some variety of its own.
+one clip and the table spends two thirds of a shot in it), and a second cushion take (there
+is one, and rails are the most frequent contact in the game after ball hits).
 
 ## Current milestone
 

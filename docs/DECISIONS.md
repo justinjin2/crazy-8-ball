@@ -207,3 +207,14 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   playing it for a break - or playing a firm take for a ball rolling into another one - is
   simply the wrong sound. This supersedes the earlier "all six at random": the designer asked
   for soft touches to play the soft clack.
+- 2026-09-20: The harder cushion recording (`ball_hitting_edge_table_hard`) is dropped and the
+  softer take now covers EVERY rail contact, gentle through hard, at the designer's call: the
+  old one did not sound like a ball meeting a cushion. A clean sample carried across the range
+  by volume and pitch beats an unconvincing one used at its "correct" speed, so this
+  supersedes the speed banding added for cushions earlier the same day.
+  The cost is variation, since rails are the most frequent contact in the game after ball
+  hits and there is now one take for all of them. `Config.Audio.Rail` therefore carries its
+  own `PitchJitter` of 0.05 against the global 0.04, and its speed-driven pitch range was
+  narrowed from 0.88..1.08 to 0.90..1.07 so the two together stay inside the 15% beyond which
+  a pitched sample stops sounding like the same object being struck. Measured: 34 cushion
+  hits across 13.6 dB of volume and 16 distinct pitches.

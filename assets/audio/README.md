@@ -6,7 +6,7 @@ are referenced by id from `Config.Audio` and there is nothing to insert into Stu
 | Event | Clips | Notes |
 |---|---|---|
 | `BallClack` | 6 | `ball_clack_soft` is banded to gentle contacts; the other five from 6 in/s |
-| `RailThud` | 2 | soft take up to 70 in/s, `ball_hitting_edge_table_hard` from 40 |
+| `RailThud` | 1 | one soft take covers every cushion hit — see below |
 | `CueStrike` | 2 | `cue_strike_1/2` |
 | `PocketDrop` | 2 | `pocket_drop_1/2` |
 | `Roll` tier 1 | 1 | `ball_rolling_1`, for slow rolling |
@@ -36,11 +36,11 @@ and pitch follow the fastest ball still moving, emitted from that ball. It is bu
 alternating clips that crossfade, because a seam in a loop clicks every couple of seconds and
 during the long quiet stretch of a shot that click would be the only thing you hear.
 
-**Cushions are picked by speed, not at random.** A gentle kiss off the rail and a hard thud
-into it are different sounds, not the same sound at two volumes. The two takes' bands overlap
-between 40 and 70 in/s and the choice is random in there, which blends one into the other
-instead of switching at a line a player would learn to hear. Measured over eight shots, the
-soft take carries about two thirds of all rail hits.
+**One cushion take covers the whole range.** The older, harder recording was dropped because
+it did not sound like a ball meeting a cushion; a clean sample carried across the range by
+volume and pitch beats an unconvincing one used at its "correct" speed. The cost is
+variation, so the rail band carries extra pitch wobble of its own — measured over six shots,
+34 cushion hits came out across 13.6 dB of volume and 16 distinct pitches.
 
 **Gentle contacts are audible.** Two thirds of all ball-on-ball contacts in this game happen
 below 12 in/s (the median is 3.6), so the sound floor sits at 1 in/s and the clack curve has
@@ -57,8 +57,9 @@ louder still.
 1. **A second slow-roll take.** The first roll tier has one clip, and the table spends about
    two thirds of a shot in it, so it crossfades into itself. Each pass starts at a random
    offset to disguise that, but a second recording would fix it properly.
-2. **A third cushion take.** Two is enough to cover soft and hard; a third would give the
-   soft band some variety of its own, since it carries most of the rail hits.
+2. **A second cushion take.** There is one, and rails are the most frequent contact in the
+   game after ball hits, so it repeats more than anything else. Pitch and volume disguise it,
+   but another take of the same character would fix it properly.
 3. **An aim tick** of your own, to retire the last library sound.
 
 `ball_rolling_1` measured 15x quieter than 2 and 3, which is why its gain is large. Its noise
