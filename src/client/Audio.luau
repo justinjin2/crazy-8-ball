@@ -53,6 +53,16 @@ type RollVoice = {
 	level: number, -- 0..1 crossfade position, before the table volume is applied
 }
 
+-- The tension under a cue being drawn back. Not positional: it belongs to the control in
+-- your hand, not to a place on the table.
+type Pull = {
+	sound: Sound,
+	target: number?, -- nil once the cue is let go
+	volume: number,
+	pitch: number,
+	regionsSet: boolean,
+}
+
 type Roll = {
 	attachment: Attachment,
 	voices: { RollVoice },
@@ -82,6 +92,7 @@ export type Audio = typeof(setmetatable(
 		-- Which clip each event played last, so the next pick is never the same one.
 		lastPick: { [string]: number },
 		roll: Roll?,
+		pull: Pull?,
 	},
 	Audio
 ))
@@ -157,6 +168,7 @@ local function preload(folder: Instance)
 			add(clip.Id)
 		end
 	end
+	add(Config.Audio.Pull.Id)
 
 	-- A moderated, deleted or wrong id is otherwise completely silent, and looks exactly
 	-- like a logic bug.
@@ -195,6 +207,7 @@ function Audio.new(parent: Instance): Audio
 		stacked = 0,
 		lastPick = {},
 		roll = nil,
+		pull = nil,
 	}, Audio)
 
 	return self
@@ -387,6 +400,93 @@ end
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
 function Audio.tick(self: Audio, at: Vector3)
 	self:playAt("AimTick", at, Config.Audio.Tick, 0)
+end
+
+---------------------------------------------------------------------------------------------
+-- Drawing the cue back
+---------------------------------------------------------------------------------------------
+
+local function buildPull(self: Audio): Pull
+	local P = Config.Audio.Pull
+	-- Parented to the FOLDER, not to an attachment: a Sound with no BasePart or Attachment
+	-- above it plays flat and unpositioned, which is what a control in your hand should do.
+	local sound = Instance.new("Sound")
+	sound.Name = "PullTension"
+	sound.SoundId = P.Id
+	sound.Looped = true
+	sound.Volume = 0
+	sound.PlayOnRemove = false
+	sound.Parent = self.folder
+
+	local pull: Pull = {
+		sound = sound,
+		target = nil,
+		volume = 0,
+		pitch = P.MinPitch,
+		regionsSet = false,
+	}
+	self.pull = pull
+	return pull
+end
+
+--- How far back the cue is being drawn, 0..1, or nil once it is let go.
+---
+--- Called from wherever the pull comes from - a finger on the control or a gamepad trigger -
+--- so both make the same sound. Only the target is set here; updatePull does the easing, so
+--- the sound cannot jump when input events arrive in bursts.
+function Audio.setPull(self: Audio, pull: number?)
+	local state = self.pull or buildPull(self)
+	state.target = pull
+end
+
+--- Ease the tension toward whatever setPull last asked for. Call every frame.
+function Audio.updatePull(self: Audio, dt: number)
+	local state = self.pull
+	if state == nil then
+		return
+	end
+	local P = Config.Audio.Pull
+	local sound = state.sound
+
+	local target = state.target
+	local wanted = if target then SoundMix.lerp(P.MinVolume, P.MaxVolume, target) else 0
+	local tau = if target then P.VolumeTau else P.ReleaseSeconds
+	state.volume = SoundMix.ease(state.volume, wanted, dt, tau)
+	if target then
+		state.pitch = SoundMix.ease(
+			state.pitch,
+			SoundMix.lerp(P.MinPitch, P.MaxPitch, target),
+			dt,
+			P.PitchTau
+		)
+	end
+
+	if target == nil and state.volume < 1e-3 then
+		if sound.IsPlaying then
+			sound:Stop()
+			sound.Volume = 0
+		end
+		return
+	end
+
+	if not sound.IsPlaying then
+		-- The head of this recording is its quiet part, so a drag that outlasts the clip
+		-- loops back past it rather than dropping the tension out from under the player.
+		-- TimeLength reads 0 until the asset is cached, so the region is set on the first
+		-- play that knows it, and only once: toggling PlaybackRegionsEnabled at runtime is
+		-- a known way to stutter other streams.
+		if not state.regionsSet and sound.TimeLength > 0 then
+			local loopStart = math.clamp(P.LoopStartSeconds, 0, sound.TimeLength * 0.9)
+			sound.PlaybackRegionsEnabled = true
+			sound.PlaybackRegion = NumberRange.new(0, sound.TimeLength)
+			sound.LoopRegion = NumberRange.new(loopStart, sound.TimeLength)
+			state.regionsSet = true
+		end
+		sound.TimePosition = 0
+		sound:Play()
+	end
+	sound.Volume = math.clamp(state.volume * P.Gain, 0, Config.Audio.MaxVolume)
+	sound.PlaybackSpeed = math.max(state.pitch, 0.05)
 end
 
 ---------------------------------------------------------------------------------------------

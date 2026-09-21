@@ -282,6 +282,34 @@ Config.Cue = {
 	CueRestGapInches = 2.5,
 	CuePullBackStuds = 1.3,
 	CueElevationDegrees = 4,
+
+	-- What a cue LOOKS like, as data. Segments run tip to butt, each a share of the length
+	-- and a colour; the cue tapers linearly from TipWidth to ButtWidth. See CueArt.luau.
+	--
+	-- This is catalog data, not constants: a collectible cue is a row here plus a matching
+	-- row in Config.Effects.Styles, which is what gives it its trail and pocket burst. The
+	-- two are keyed by the same name on purpose, so one name picks a cue's whole identity.
+	-- Roadmap 5.1 moves both into the real item catalog; until then everyone is on Classic.
+	DefaultStyle = "Classic",
+	Styles = {
+		Classic = {
+			-- The lengths add to 1 here for readability, but they are normalised anyway, so
+			-- a hand-written row that adds to 0.98 still draws a whole cue.
+			Segments = {
+				{ Length = 0.015, Color = { 34, 44, 74 } }, -- leather tip
+				{ Length = 0.02, Color = { 242, 238, 226 } }, -- ferrule
+				{ Length = 0.48, Color = { 214, 176, 124 } }, -- maple shaft
+				{ Length = 0.025, Color = { 176, 180, 188 } }, -- joint collar
+				{ Length = 0.22, Color = { 86, 46, 34 } }, -- rosewood forearm
+				{ Length = 0.015, Color = { 176, 180, 188 } }, -- ring
+				{ Length = 0.17, Color = { 32, 32, 36 } }, -- linen wrap
+				{ Length = 0.055, Color = { 20, 20, 22 } }, -- butt cap
+			},
+			-- Widths as a share of the widest point, so a style does not care about pixels.
+			TipWidth = 0.42,
+			ButtWidth = 1,
+		},
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1083,6 +1111,33 @@ Config.Audio = {
 	-- the next contact cut it off.
 	LongestClipSeconds = 4.2,
 
+	-- Drawing the cue back stretches something. This is a recording of rubber under tension
+	-- and it SWELLS over its 2.776 seconds (+7 dB from its first quarter to its last), so it
+	-- is played straight from the start of a drag and its own build does the work, with
+	-- volume and pitch following how far back the cue is on top of that.
+	--
+	-- Pitch rises with the pull here, the opposite of an impact: tightening something raises
+	-- its pitch, while a harder knock reads as heavier and lower.
+	--
+	-- If the drag is held past the end of the clip it loops back to LoopStartSeconds rather
+	-- than to zero, because the head of the recording is the quiet part and restarting there
+	-- would drop the tension out from under a player who is still holding the cue back.
+	Pull = {
+		Id = "rbxassetid://131218253392089", -- measured peak 0.810, length 2.776s
+		Gain = 0.62,
+		MinVolume = 0.1,
+		MaxVolume = 0.6,
+		MinPitch = 0.86,
+		MaxPitch = 1.18,
+		-- Faster than the roll: this has to feel attached to a finger.
+		VolumeTau = 0.05,
+		PitchTau = 0.06,
+		LoopStartSeconds = 1.3,
+		-- Seconds to fade out when the cue is released or the shot fires, so it stops like
+		-- something being let go rather than being cut off. (tune)
+		ReleaseSeconds = 0.12,
+	},
+
 	-- The roll is NOT a one-shot. It is one continuous sound for the whole table whose
 	-- volume and pitch follow the fastest ball still moving, emitted from that ball so it
 	-- travels with whatever is actually rolling. One sound rather than sixteen: sixteen
@@ -1202,11 +1257,25 @@ Config.Effects = {
 
 Config.UI = {
 	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
+	-- The power bar: a vertical panel on the right that you press and drag down, with the
+	-- fill charging up behind it.
 	PowerBarWidthPx = 52,
 	PowerBarHeightFraction = 0.62,
 	PowerBarMinHeightPx = 140,
 	PowerBarMaxHeightPx = 300,
 	PowerBarRightMarginPx = 18,
+
+	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
+	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull
+	-- back, and Roadmap 5.2 changes nothing here.
+	PowerCueWidthPx = 15, -- at the butt, the widest point
+	-- How far the cue slides at full pull, as a share of its own length. At 0.5 the cue is
+	-- two thirds of the bar and travels the remaining third, so a full pull lands its butt
+	-- exactly at the bottom of the bar and never outside it.
+	PowerCueTravelFraction = 0.5,
+	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
+	-- from thin bands; enough of them and the steps disappear. (tune)
+	PowerCueSlices = 44,
 	-- Fine-aim nudge buttons at the bottom (pixels).
 	NudgeButtonPx = 56,
 	-- Colours (RGB 0-255).

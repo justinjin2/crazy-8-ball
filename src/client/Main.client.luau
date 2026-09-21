@@ -26,6 +26,7 @@ local Guideline = require(script.Parent:WaitForChild("Guideline"))
 local Input = require(script.Parent:WaitForChild("Input"))
 local Lounge = require(script.Parent:WaitForChild("Lounge"))
 local Match = require(script.Parent:WaitForChild("Match"))
+local PowerCue = require(script.Parent:WaitForChild("PowerCue"))
 local UI = require(script.Parent:WaitForChild("UI"))
 
 -- Wait for the server to have built the tables before drawing balls on them.
@@ -43,6 +44,10 @@ local effects = Effects.new(visuals)
 local cueStick = CueStickBuilder.build(visuals)
 local input = Input.new()
 local avatar = Avatar.new()
+-- The power control is a cue you drag. It registers with UI so it hides and shows with the
+-- rest of the HUD rather than needing its own visibility call at every seat change.
+local powerCue = PowerCue.new(UI.screen())
+UI.addPlayControl(powerCue.root)
 
 -- The table this client is sitting at, and its pieces. nil while walking around.
 local seatId: number? = nil
@@ -260,12 +265,15 @@ input:onShoot(shoot)
 input:onZoom(function(factor)
 	Camera.zoomBy(factor)
 end)
+-- Every source of a pull comes through here - a finger on the cue, or a gamepad trigger -
+-- so all of them move the same cue and make the same sound.
 input:onPower(function(pull)
-	UI.setPower(pull)
+	powerCue:setPull(pull)
+	audio:setPull(pull)
 	currentPull = pull or 0
 	refreshCueStick()
 end)
-UI.createPowerBar(function(pull)
+powerCue:onDrag(function(pull)
 	input:setPower(pull)
 end, function()
 	input:releasePower()
@@ -302,6 +310,9 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	-- Sticks and the D-pad repeat have to be sampled, not waited for.
 	input:update(dt)
+	-- Before the early return below: a released cue still has to fade out even once the
+	-- player has left the table.
+	audio:updatePull(dt)
 	sendAim(dt)
 	-- Every table steps, whether or not it is being drawn.
 	local playing = lounge:update(dt)

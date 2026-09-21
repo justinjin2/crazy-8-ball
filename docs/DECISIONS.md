@@ -233,3 +233,23 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   below a ball-on-ball contact at the same speed - present but barely noticeable, which is
   where the game's most frequent contact belongs. `Config.Audio.Rail.MaxVolume` is the number
   to raise if they become inaudible rather than subtle.
+- 2026-09-20: The power control keeps its vertical bar and fill, and gains a top-down CUE
+  lying inside it that slides down as you pull. A cue-only control with no bar was built and
+  tried first at the designer's request and rejected on sight of it running, so the bar came
+  back with the cue inside rather than instead of it.
+- 2026-09-20: A cue's LOOK is data, like its effects already were. `Config.Cue.Styles` lists
+  segments from tip to butt - leather tip, ferrule, shaft, joint collar, forearm, ring, wrap,
+  butt cap - each a share of the length and a colour, plus how far the cue tapers. The style
+  name is the same key `Config.Effects.Styles` uses, so one name picks a cue's whole identity:
+  its look, its trail and its pocket burst. A collectible cue stays a data row (Roadmap 5.2)
+  and the same row can drive the 2D cue in the control, the 3D stick on the table and an
+  inventory thumbnail. `src/shared/CueArt.luau` turns a style into slices and is Lune-tested,
+  because a Frame cannot be a trapezoid: the taper is built from thin stacked bands, and
+  getting a band boundary or a taper direction wrong looks like bad art rather than a bug.
+- 2026-09-20: Drawing the cue back plays a rubber-tension recording whose volume and pitch
+  follow how far back it is. Pitch RISES with the pull here, the opposite of an impact:
+  tightening something raises its pitch, while a harder knock reads as heavier and lower. The
+  recording swells over its 2.776 seconds, so a drag held past the end loops back to 1.3s
+  rather than to zero - restarting at the quiet head would drop the tension out from under a
+  player who is still holding the cue back. It is driven from the pull value rather than from
+  the control, so a gamepad trigger makes exactly the same sound as a finger.
