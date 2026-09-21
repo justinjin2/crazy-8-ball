@@ -408,10 +408,10 @@ end
 
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
 ---
---- Rate limited like the clacks and the rails. A tick fires every two degrees, and a gamepad
---- stick held hard over turns at eighty a second, so without a gap the recording would be
---- sounding four deep over itself the whole time a player swept the aim around. Slow, careful
---- aiming never reaches the limit, which is where the per-degree feedback is worth having.
+--- Rate limited like the clacks and the rails. One is asked for every tenth of a degree, so
+--- any real movement asks for far more than can be played and this is what decides how dense
+--- the ratchet actually gets. See Config.Audio.MinSecondsBetweenTicks, which is measured off
+--- how long the recording stays audible rather than how long its file is.
 function Audio.tick(self: Audio, at: Vector3)
 	local now = os.clock()
 	if now - self.lastTick < Config.Audio.MinSecondsBetweenTicks then

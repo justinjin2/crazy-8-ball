@@ -827,8 +827,13 @@ Config.Input = {
 	-- power that still shoots (anything less on release cancels).
 	PowerPullBarFraction = 0.9,
 	MinPowerToShoot = 0.04,
-	-- An aim tick fires every this many degrees of rotation.
-	TickEveryDegrees = 2,
+	-- An aim tick fires every this many degrees of rotation. Fine enough that the smallest
+	-- deliberate movement a player can make still clicks: a nudge tap is NudgeDegrees (0.2),
+	-- which used to be a tenth of a tick and made careful aiming silent. What actually
+	-- reaches the ear is held back by Audio.MinSecondsBetweenTicks, and by the frame rate -
+	-- the accumulator below fires at most once per call, so a fast sweep cannot ask for more
+	-- ticks than there are frames. (tune)
+	TickEveryDegrees = 0.1,
 	-- Zoom factor per mouse-wheel notch.
 	ZoomStep = 1.12,
 	-- Gamepad. Sticks are POLLED every frame, never driven by events: InputChanged only
@@ -1091,12 +1096,17 @@ Config.Audio = {
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
 	-- contact and below even the QUIETEST audible clack, which is the bar it has to clear.
 	--
-	-- 0.055 is that same level carried over to the designer's recording, not a fresh guess.
-	-- The library click it replaced played at volume 0.12 against a peak of 0.230 and a gain
-	-- of 1, so 0.028 ever reached the mixer. The new clip peaks at 0.729 and its gain brings
-	-- that to 0.5, so 0.055 puts exactly 0.028 back. Move this if it wants to be quieter or
-	-- louder; it is no longer load-bearing arithmetic. (tune)
-	Tick = { MinVolume = 0.055, MaxVolume = 0.055, MinPitch = 1, MaxPitch = 1 },
+	-- 0.055 was that level carried over exactly: the library click it replaced played at
+	-- volume 0.12 against a peak of 0.230 at gain 1, so 0.028 reached the mixer, and the new
+	-- clip's gain brings its 0.729 peak to 0.5, so 0.055 put 0.028 back.
+	--
+	-- 0.035 is that figure pulled down about 4 dB, because the tick stopped being an
+	-- occasional click. At one every 0.1 degree it runs as a near-CONTINUOUS ratchet the
+	-- whole time the aim moves, three clips deep, and a sound that is always there is heard
+	-- as far louder than the same sound heard now and then - the old level was set for a
+	-- click every two degrees. This is the number to move by ear, in either direction, and
+	-- the most likely thing to want changing in this whole section. (tune)
+	Tick = { MinVolume = 0.035, MaxVolume = 0.035, MinPitch = 1, MaxPitch = 1 },
 
 	-- A touch of pitch wobble on every play, on top of the speed-driven pitch, so two
 	-- identical impacts still differ. Keep it small: past about 15% a pitched sample stops
@@ -1150,18 +1160,22 @@ Config.Audio = {
 	-- drone. Widened from 0.05 when that take came in.
 	MinSecondsBetweenRails = 0.07,
 	-- And the tick needs one too, now that it is a real recording rather than a 22 ms click.
+	-- A tick is asked for every Input.TickEveryDegrees (0.1) of rotation, so any real
+	-- movement asks for far more than can be played; this is what decides how dense it
+	-- actually gets. The old library click was short enough that it could never overlap
+	-- itself and this never had to exist.
 	--
-	-- A tick fires every Input.TickEveryDegrees (2) of rotation. A gamepad stick held hard
-	-- over turns at Input.Gamepad.AimDegreesPerSecond (80), which is 40 ticks a second, and a
-	-- fast drag is quicker still. At 0.107s per clip that is four or more ticks sounding at
-	-- once, continuously - a drone, not a tick, and four voices spent on it. The old clip was
-	-- short enough that it could never overlap itself, so this never had to exist.
+	-- 33 ms is measured off the recording's ENVELOPE, not its file length. turn_tick_1 runs
+	-- 0.107s, but 50% of its energy is spent by 15.5 ms and 90% by 48 ms; everything past
+	-- about 65 ms is more than 34 dB down and inaudible. So at a 33 ms gap a new tick lands
+	-- on a tail that is already 13 dB below the attack, which ratchets rather than smears.
+	-- Sizing this off the file length instead gave 10 a second, which is far too sparse to
+	-- feel like it is tracking the aim.
 	--
-	-- Set just under the clip's own length so two ticks cannot sound together. Slow, careful
-	-- aiming is untouched (it is nowhere near this rate, and that is where per-degree
-	-- feedback actually matters); a fast sweep becomes a steady click instead of a smear.
-	-- Bring it down if a shorter tick recording replaces this one. (tune)
-	MinSecondsBetweenTicks = 0.1,
+	-- About three clips overlap at this rate, so roughly three voices go to ticking while a
+	-- player sweeps the aim. Nothing else is making sound at that moment, so that is free.
+	-- A shorter recording could take this lower; a longer one would have to raise it. (tune)
+	MinSecondsBetweenTicks = 0.033,
 
 	-- Sounds are emitted from where the contact happened, so a break sounds like it is
 	-- spread across the table rather than coming from one point.

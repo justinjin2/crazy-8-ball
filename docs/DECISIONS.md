@@ -367,3 +367,21 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   Pitched dead straight, with PitchJitter 0, because a UI sting that wanders in pitch stops
   sounding deliberate - the opposite of the impact sounds, where wobble is the disguise. It is
   withheld when the pocketed ball is the cue ball: a scratch is not a reward.
+- 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The
+  smallest deliberate movement a player can make is a nudge tap at 0.2 degrees, which under
+  the old value was a tenth of a tick - so careful aiming, the one place per-degree feedback
+  is worth having, was silent. Slow aiming now clicks on every single step: measured at 3
+  deg/s, all 23 ticks asked for in a second played.
+- 2026-09-21: `MinSecondsBetweenTicks` is sized off the recording's ENVELOPE rather than its
+  file length, and dropped from 0.1 to 0.033. turn_tick_1 runs 0.107s, but 50% of its energy
+  is spent by 15.5 ms and 90% by 48 ms, and everything past about 65 ms is more than 34 dB
+  down and inaudible. At a 33 ms gap a new tick lands on a tail already 13 dB below the
+  attack, so it ratchets instead of smearing. The file length gave 10 ticks a second, far too
+  sparse to feel like it tracks the aim; the envelope gives 25 to 30. Measured: 26 a second
+  played at 40 deg/s and above, peaking at 4 voices.
+- 2026-09-21: The tick's volume came DOWN about 4 dB (0.055 to 0.035) in the same pass, and
+  not because anyone disliked it. At one tick per 0.1 degrees it is a near-continuous ratchet
+  three clips deep while the aim moves, and a sound that is always there is heard as much
+  louder than the same sound heard now and then. The old figure was derived for a click every
+  two degrees; carrying it over unchanged would have made the tick the loudest thing in the
+  game while aiming.

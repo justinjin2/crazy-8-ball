@@ -149,11 +149,14 @@ runtime - 0.24 power picks the soft take, 0.26 the middle, 0.76 the hard one, an
 a line either neighbour may play.
 
 **The turn tick replaces the Roblox library click**, which was the last library sound in the
-game. It needed a rate limiter the old one never did: ticks fire every 2 degrees and a gamepad
-stick turns at 80 degrees a second, so 40 a second, and the new clip is 0.107s against the old
-0.022s. `MinSecondsBetweenTicks` stops two overlapping. Verified: 60 ticks requested back to
-back over a second played 10. Its level was carried over by arithmetic, not re-picked by ear,
-so it still sits 2.0 dB under the quietest audible clack.
+game, and now fires every **0.1 degrees** rather than every 2. A nudge tap is 0.2 degrees, so
+under the old value careful aiming - the one place per-degree feedback is worth having - was
+silent. How dense it actually gets is set by `MinSecondsBetweenTicks`, sized off the
+recording's ENVELOPE rather than its file length: the clip runs 0.107s but 90% of its energy
+is spent by 48 ms, so a 33 ms gap ratchets instead of smearing. Measured: at 3 deg/s every
+one of the 23 ticks asked for in a second played; from 10 deg/s up it settles at 25 to 26 a
+second, peaking at 4 voices. Its volume came down about 4 dB in the same pass, because a
+near-continuous ratchet is heard as far louder than an occasional click.
 
 **A bright sting layers on top of every pocket drop**, at 12.0 dB under the drop at the drop's
 loudest, pitched dead straight. Withheld for the cue ball - a scratch is not a reward.
@@ -163,10 +166,10 @@ every other clip. **85 Lune tests.**
 
 **Nobody has HEARD any of this yet.** It is verified mechanically - the right clip ids reach
 the right voices at the right volumes - but the three judgements that need ears are: whether
-cue_strike_3 sits right at the top of the bar, whether the tick is at a comfortable level
-(the designer called this v1 and may swap it), and whether the bonus sting is too forward or
-too buried over the drop. `Audio.Bonus.MaxVolume` and `Audio.Tick` are the two numbers to
-move.
+cue_strike_3 sits right at the top of the bar, whether the tick is at a comfortable level and
+density (the designer called this v1 and may swap it), and whether the bonus sting is too
+forward or too buried over the drop. `Audio.Tick` (level), `Audio.MinSecondsBetweenTicks`
+(density) and `Audio.Bonus.MaxVolume` are the numbers to move.
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
