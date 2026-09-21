@@ -1057,10 +1057,17 @@ Config.Audio = {
 		-- The tick while the aim turns. A UI click, not a pool sound. Replace it the same way
 		-- as the rest; this is v1 of the designer's own recording, in to be listened to.
 		--
-		-- It is 0.107s long where the library click it replaced was 0.022s, which is what
-		-- MinSecondsBetweenTicks below exists for.
+		-- v2, on trial. Its gain is measured so it reaches the mixer at the same level v1 did
+		-- (0.055 volume x gain x peak = 0.028 either way), so what is being judged is the
+		-- sound and not a volume change.
+		--
+		-- It is 0.059s where v1 was 0.107s, so ticks no longer come close to overlapping at
+		-- the 0.1s gap below - that gap is now purely a choice about how busy the ratchet
+		-- should be, not a limit the recording imposes.
+		--
+		-- To go back: rbxassetid://103816034774626 at gain 0.69 (v1, peak 0.729, 0.107s).
 		AimTick = {
-			{ Id = "rbxassetid://103816034774626", Gain = 0.69 }, -- turn_tick_1, peak 0.729
+			{ Id = "rbxassetid://118414949820773", Gain = 0.99 }, -- turn_tick_2, peak 0.505
 		},
 	},
 
