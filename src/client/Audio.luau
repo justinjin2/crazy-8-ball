@@ -87,6 +87,7 @@ export type Audio = typeof(setmetatable(
 		pool: { Voice },
 		lastClack: number,
 		lastRail: number,
+		lastTick: number,
 		-- A tumbling window counting how many hard contacts have been allowed to stack.
 		stackStart: number,
 		stacked: number,
@@ -204,6 +205,7 @@ function Audio.new(parent: Instance): Audio
 		pool = {},
 		lastClack = 0,
 		lastRail = 0,
+		lastTick = 0,
 		stackStart = 0,
 		stacked = 0,
 		lastPick = {},
@@ -374,6 +376,12 @@ function Audio.attach(self: Audio, match: any)
 			-- Always audible: a ball dropping is the payoff and must never be rate limited
 			-- away behind a wall of clacks, so it skips the gaps and forces a voice.
 			self:playAt("PocketDrop", at, A.Pocket, ev.speed, true)
+			-- A bright sting over the top, for the reward rather than the physics. Not for
+			-- the cue ball: a scratch is the opposite of a reward, and the drop alone says
+			-- what happened.
+			if ev.ball ~= 0 then
+				self:playAt("PocketBonus", at, A.Bonus, ev.speed, true)
+			end
 		elseif ev.type == "ballHit" then
 			if ev.speed < A.MinClackSpeed then
 				return
@@ -399,7 +407,17 @@ function Audio.attach(self: Audio, match: any)
 end
 
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
+---
+--- Rate limited like the clacks and the rails. A tick fires every two degrees, and a gamepad
+--- stick held hard over turns at eighty a second, so without a gap the recording would be
+--- sounding four deep over itself the whole time a player swept the aim around. Slow, careful
+--- aiming never reaches the limit, which is where the per-degree feedback is worth having.
 function Audio.tick(self: Audio, at: Vector3)
+	local now = os.clock()
+	if now - self.lastTick < Config.Audio.MinSecondsBetweenTicks then
+		return
+	end
+	self.lastTick = now
 	self:playAt("AimTick", at, Config.Audio.Tick, 0)
 end
 

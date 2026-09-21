@@ -907,9 +907,22 @@ Config.Guideline = {
 -- which is 14 dB apart. Re-measure with tools/measure_audio.luau if clips are replaced.
 Config.Audio = {
 	Clips = {
+		-- Three takes, chosen by how HARD you hit rather than at random, because a tap and a
+		-- break are different sounds and not the same sound at two volumes. The bands are
+		-- given as power fractions in StrikeSoftUpToPower / StrikeHardFromPower below and
+		-- turned into the cue ball speeds pickBanded compares against at the bottom of this
+		-- file. Listed softest first. The edges are inclusive at both ends, so exactly on a
+		-- line either neighbour may play, which takes the hard edge off the changeover.
 		CueStrike = {
-			{ Id = "rbxassetid://125535762394405", Gain = 1.5 }, -- cue_strike_1, peak 0.334
-			{ Id = "rbxassetid://73604297014560", Gain = 1.23 }, -- cue_strike_2, peak 0.406
+			-- cue_strike_2, peak 0.406. The softest take, up to StrikeSoftUpToPower.
+			{ Id = "rbxassetid://73604297014560", Gain = 1.23 },
+			-- cue_strike_1, peak 0.334. The middle of the bar.
+			{ Id = "rbxassetid://125535762394405", Gain = 1.5 },
+			-- cue_strike_3, peak 0.940, 0.627s. The hard take, from StrikeHardFromPower up.
+			-- Gain levels its PEAK with the other two, but it is four times as long as
+			-- cue_strike_2 and carries far more body, so it still lands as a much bigger
+			-- sound - which is the point of it.
+			{ Id = "rbxassetid://99994473089274", Gain = 0.53 },
 		},
 		-- Six ball-on-ball takes, including two with a slight rattle to them.
 		--
@@ -974,12 +987,22 @@ Config.Audio = {
 			{ Id = "rbxassetid://139585329610041", Gain = 0.55 }, -- pocket_drop_1, peak 0.907
 			{ Id = "rbxassetid://96380432160952", Gain = 0.59 }, -- pocket_drop_2, peak 0.841
 		},
-		-- A UI click, not a pool sound: still from Roblox's free library because there is no
-		-- recording of one. Replace it the same way as the rest. Its gain stays at 1 where
-		-- the others are measured, because Tick.Volume below was tuned by ear against this
-		-- exact clip at gain 1 and levelling it would undo that.
+		-- A bright UI sting layered ON TOP of the drop, for the reward rather than the
+		-- physics. It is the one sound here that is not a recording of something happening on
+		-- the table, so it has to stay well under the drop: the drop is the event, this is
+		-- the garnish. See Config.Audio.Bonus for how far under, and Audio.attach for the one
+		-- case it is withheld - a scratch is not a reward.
+		PocketBonus = {
+			-- ball_pocketed_bonus_sfx, peak 0.786, 3.496s
+			{ Id = "rbxassetid://139288823087630", Gain = 0.64 },
+		},
+		-- The tick while the aim turns. A UI click, not a pool sound. Replace it the same way
+		-- as the rest; this is v1 of the designer's own recording, in to be listened to.
+		--
+		-- It is 0.107s long where the library click it replaced was 0.022s, which is what
+		-- MinSecondsBetweenTicks below exists for.
 		AimTick = {
-			{ Id = "rbxassetid://6976440355", Gain = 1 }, -- 0.022s, peak 0.230
+			{ Id = "rbxassetid://103816034774626", Gain = 0.69 }, -- turn_tick_1, peak 0.729
 		},
 	},
 
@@ -1048,13 +1071,32 @@ Config.Audio = {
 		QuietSpeed = Config.Cue.MinSpeed,
 		LoudSpeed = Config.Cue.MaxSpeed,
 	},
+	-- Where the three strike takes hand over, as fractions of the POWER BAR, because that is
+	-- what the player is looking at when they decide how hard to hit. They are converted to
+	-- cue ball speeds at the bottom of this file: power and speed are nothing like
+	-- proportional (speed goes as power^2.6), so 25% of the bar is only 29 in/s out of 528
+	-- and writing these as speeds would hide where the lines actually fall. (tune)
+	StrikeSoftUpToPower = 0.25,
+	StrikeHardFromPower = 0.75,
 	-- A ball dropping is the payoff, so it stays loud whatever speed it went in at.
 	Pocket = { MinVolume = 0.7, MaxVolume = 1.0, MinPitch = 0.96, MaxPitch = 1.06 },
+	-- The bright sting over the top of the drop. Flat, like the drop: it is a reward for
+	-- pocketing a ball, and a ball that trickles in earned it just as much as one that was
+	-- smashed in. Pitched dead straight, because a UI sting that wanders in pitch stops
+	-- sounding deliberate. The volume is set so it lands about 12 dB UNDER the drop at the
+	-- drop's loudest - present, clearly heard, never the thing you notice first. This is the
+	-- number to move if it sits too far forward or disappears. (tune)
+	Bonus = { MinVolume = 0.25, MaxVolume = 0.25, MinPitch = 1, MaxPitch = 1, PitchJitter = 0 },
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
-	-- game by far and has to sit under everything. At 0.12 it lands about 21 dB below a
-	-- typical ball-on-ball contact and below even the QUIETEST audible clack, which is the
-	-- bar it has to clear. (tune)
-	Tick = { MinVolume = 0.12, MaxVolume = 0.12, MinPitch = 1, MaxPitch = 1 },
+	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
+	-- contact and below even the QUIETEST audible clack, which is the bar it has to clear.
+	--
+	-- 0.055 is that same level carried over to the designer's recording, not a fresh guess.
+	-- The library click it replaced played at volume 0.12 against a peak of 0.230 and a gain
+	-- of 1, so 0.028 ever reached the mixer. The new clip peaks at 0.729 and its gain brings
+	-- that to 0.5, so 0.055 puts exactly 0.028 back. Move this if it wants to be quieter or
+	-- louder; it is no longer load-bearing arithmetic. (tune)
+	Tick = { MinVolume = 0.055, MaxVolume = 0.055, MinPitch = 1, MaxPitch = 1 },
 
 	-- A touch of pitch wobble on every play, on top of the speed-driven pitch, so two
 	-- identical impacts still differ. Keep it small: past about 15% a pitched sample stops
@@ -1107,6 +1149,19 @@ Config.Audio = {
 	-- the soft cushion take rings for almost a second, so without this they pile up and
 	-- drone. Widened from 0.05 when that take came in.
 	MinSecondsBetweenRails = 0.07,
+	-- And the tick needs one too, now that it is a real recording rather than a 22 ms click.
+	--
+	-- A tick fires every Input.TickEveryDegrees (2) of rotation. A gamepad stick held hard
+	-- over turns at Input.Gamepad.AimDegreesPerSecond (80), which is 40 ticks a second, and a
+	-- fast drag is quicker still. At 0.107s per clip that is four or more ticks sounding at
+	-- once, continuously - a drone, not a tick, and four voices spent on it. The old clip was
+	-- short enough that it could never overlap itself, so this never had to exist.
+	--
+	-- Set just under the clip's own length so two ticks cannot sound together. Slow, careful
+	-- aiming is untouched (it is nowhere near this rate, and that is where per-degree
+	-- feedback actually matters); a fast sweep becomes a steady click instead of a smear.
+	-- Bring it down if a shorter tick recording replaces this one. (tune)
+	MinSecondsBetweenTicks = 0.1,
 
 	-- Sounds are emitted from where the contact happened, so a break sounds like it is
 	-- spread across the table rather than coming from one point.
@@ -1402,6 +1457,21 @@ do
 	T.SidePocketRadiusInches = T.SideMouthInches / 2 * T.PocketOpeningMouthFraction
 	T.SidePocketInsetInches = T.SideMouthInches / 2
 	Config.Physics.CushionNoseHeightInches = Config.Physics.CushionNoseBallFraction * D
+
+	-- Strike bands: power fractions -> the cue ball speeds SoundMix.pickBanded compares
+	-- against. Same curve as Cue.speedForPower, which cannot be required from here (Cue
+	-- requires Config), so it is spelled out from the numbers Config already owns.
+	local C = Config.Cue
+	local function speedForPower(p: number): number
+		return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * p ^ C.PowerCurve
+	end
+	local A = Config.Audio
+	local soft = speedForPower(A.StrikeSoftUpToPower)
+	local hard = speedForPower(A.StrikeHardFromPower)
+	A.Clips.CueStrike[1].UpToSpeed = soft
+	A.Clips.CueStrike[2].FromSpeed = soft
+	A.Clips.CueStrike[2].UpToSpeed = hard
+	A.Clips.CueStrike[3].FromSpeed = hard
 end
 
 return Config

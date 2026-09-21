@@ -56,6 +56,7 @@ return {
 				BallClack = "Clack",
 				RailThud = "Rail",
 				PocketDrop = "Pocket",
+				PocketBonus = "Bonus",
 				AimTick = "Tick",
 			} :: any)[name]]
 			local gain = 0
@@ -69,6 +70,74 @@ return {
 					band.MaxVolume * gain,
 					A.MaxVolume
 				)
+			)
+		end
+	end,
+
+	["the three strike takes land where the power bar says they do"] = function()
+		local Config = H.require("Config")
+		local SoundMix = H.require("SoundMix")
+		local Cue = H.require("Physics.Cue")
+		local A = Config.Audio
+		local clips = A.Clips.CueStrike
+		H.expect(#clips == 3, ("expected three strike takes, found %d"):format(#clips))
+
+		-- The bands are written as power fractions; what pickBanded sees is speed. These have
+		-- to agree, or the lines move without anyone touching them.
+		H.near(
+			clips[1].UpToSpeed,
+			Cue.speedForPower(A.StrikeSoftUpToPower),
+			1e-9,
+			"the soft band does not end where the power fraction says"
+		)
+		H.near(
+			clips[3].FromSpeed,
+			Cue.speedForPower(A.StrikeHardFromPower),
+			1e-9,
+			"the hard band does not start where the power fraction says"
+		)
+
+		-- Inside each band, only that take may play, whatever the roll.
+		local function only(power: number, want: number)
+			local speed = Cue.speedForPower(power)
+			for step = 0, 40 do
+				local i = SoundMix.pickBanded(clips, speed, nil, step / 41)
+				H.expect(
+					i == want,
+					("power %.2f (%.1f in/s) picked take %d, wanted %d"):format(
+						power,
+						speed,
+						i,
+						want
+					)
+				)
+			end
+		end
+		for _, p in { 0, 0.05, 0.15, 0.24 } do
+			only(p, 1)
+		end
+		for _, p in { 0.26, 0.4, 0.6, 0.74 } do
+			only(p, 2)
+		end
+		for _, p in { 0.76, 0.9, 1.0 } do
+			only(p, 3)
+		end
+
+		-- Nothing may fall through a gap: at every power the band the speed lands in must be
+		-- a real one, never the "no band matched, use everything" fallback.
+		for step = 0, 200 do
+			local speed = Cue.speedForPower(step / 200)
+			local eligible = 0
+			for _, c in clips do
+				local from = c.FromSpeed or -math.huge
+				local upTo = c.UpToSpeed or math.huge
+				if speed >= from and speed <= upTo then
+					eligible += 1
+				end
+			end
+			H.expect(
+				eligible >= 1,
+				("power %.3f (%.1f in/s) matches no strike band"):format(step / 200, speed)
 			)
 		end
 	end,
