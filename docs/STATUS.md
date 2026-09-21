@@ -3,7 +3,7 @@
 One page. Rewritten at the end of every working session by whichever tool did the work.
 Read this first, then the roadmap item it names.
 
-**Last updated:** 2026-09-20 (the designer's own sound effects are in and wired).
+**Last updated:** 2026-09-21 (pockets take the ball when they look like they should).
 
 ## The lounge is switched off
 
@@ -103,6 +103,41 @@ recording, so it only ever sounds like something being stretched. **72 Lune test
 
 Pocketing a ball now nudges the camera a hair toward the pocket that took it - measured at
 0.056 studs on a gentle drop, settled back to exactly zero a quarter of a second later.
+
+## Pockets now take the ball when they look like they should
+
+A ball that reached the jaws and ran out of steam used to sit there for the rest of the game,
+visibly overhanging the hole. Three causes, all measured: the physics capture circle was
+0.5 in TIGHTER than the hole that gets drawn, so a centre could be half an inch inside the
+visible rim and still not fall; the opening sat so far back that a ball had to travel 3.12 in
+past the mouth before anything took it, and a ball hugging the rail into a corner could never
+reach the corner hole at all; and `capturePockets` skipped balls that had stopped, so a hanger
+was never reconsidered.
+
+The opening is now derived from the mouth: radius = half the mouth, placed so the rim is
+tangent to the line joining the two cushion noses. A corner lands exactly on the table corner
+at radius 2.600, and the jaw tips fall at 2.609 from that centre, so the rim and the jaws
+coincide. TableBuilder cuts the hole one leather thickness wider than that same number, so
+art and physics read one value and `Look.PocketLinerExtraInches` is gone.
+
+A ball whose centre crosses the rim now TIPS IN: it pivots about the rim point, a solid sphere
+on an edge, and leaves the lip when the edge stops pushing back. One rule covers everything -
+a trickler hangs and takes about a third of a second to topple, anything at 50 in/s or more
+separates immediately and behaves exactly as before. The pocket event fires when the ball
+comes off the lip, so a hanger's drop reports ~17 in/s instead of ~0 and is audible.
+
+Verified on the live server: 203 shots at a corner gave 174 pocketed, 29 rattled back onto
+the cloth, **0 stranded**; 203 at a side gave 101, 102, 0. 40 full breaks pocketed 23 balls,
+longest shot 9.41s, none capped, **no ball left sitting over an opening**. Tip times 0.163s at
+3 in/s down to 0.000s at 60 and above. Console clean, no pocket-cut warnings. **84 Lune
+tests**, 12 of them new in `tests/physics_pocket_test.luau`.
+
+**Not yet looked at by a human:** the art. Studio's screen capture returns an all-black frame
+through MCP, so nobody has SEEN the new hole. Two things to check by eye at a pocket: the
+corner hole now takes a bigger bite out of the cloth (which is the point), and the side pocket
+hole is cut 0.52 in past the OUTER face of the rail, so there may be a small notch in the
+outside of the long rails. If that reads badly, widen `Table.RailWidthInches` to 6.1 rather
+than shrinking the opening.
 
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.

@@ -304,3 +304,38 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   The shake is added on top of a pose the smoothing chases separately, never folded into it.
   Lerping from an already-shaken camera would smear the shake into the smoothing and let it
   drift; keeping them apart is what lets it settle to exactly zero.
+- 2026-09-21: A pocket's opening is DERIVED from the mouth it belongs to, not tuned
+  separately: radius = half the mouth width, placed so the rim is tangent to the line joining
+  the two cushion noses (`Config.Table.PocketOpeningMouthFraction`, 1.0). A corner opening
+  therefore lands exactly on the table corner at radius 2.600, and the corner jaw tips fall
+  at 2.609 from that centre - the rim and the jaws coincide, which is what a real pocket looks
+  like. The old numbers were four free fractions that had drifted into nonsense: the physics
+  captured at 1.950 while the art drew 2.450, so a ball's centre could be half an inch inside
+  the visible hole and still not fall, a ball had to travel 3.12 in past the mouth before
+  anything took it, and a ball hugging the rail into a corner could never reach the hole at
+  all - its centre line missed the circle by 0.6 in, so it only vanished via an axis-aligned
+  fallback 4.25 in further on. Balls entering off-centre still meet a shelf, which is what
+  keeps rattling and hanging in the jaws possible; they just stop being permanent. Measured
+  after: 203 shots at a corner gave 174 pocketed, 29 rattled back onto the cloth and 0 left
+  stranded past the cushion line; 203 at a side gave 101, 102 and 0.
+- 2026-09-21: TableBuilder cuts the pocket hole one leather thickness wider than that same
+  radius, so the lining's INNER face lands exactly on the physics rim. Art and physics now
+  read one number and cannot drift apart, and `Look.PocketLinerExtraInches` is gone. The
+  falling ball's SURFACE rides the liner rather than its centre, which had let half the ball
+  hang through the leather on the way down.
+- 2026-09-21: A ball whose centre crosses the rim TIPS IN rather than being teleported into a
+  fall. It pivots about the rim point it crossed - a solid sphere on an edge, so with I about
+  the pivot = 7/5 m R^2, alpha = (5g/7R) sin(theta) - and leaves the lip the moment the edge
+  stops pushing back, R*omega^2 >= g cos(theta). That single rule covers the whole range with
+  no threshold to pick: a ball that trickles over hangs and takes about a third of a second to
+  topple, while anything arriving at 50 in/s or more fails the test on its first evaluation
+  and drops exactly as it always did. Measured in the live server: 0.163s at 3 in/s, 0.100s at
+  8, 0.025s at 20, 0.000s at 60 and 150.
+- 2026-09-21: The pocket event fires when the ball comes OFF the lip, not when it crosses the
+  rim. Fired at the crossing a hanger would report ~0 in/s and its drop would be inaudible;
+  off the lip it carries the ~17 in/s gravity has given it, which is an honest number for the
+  sound mix. A fast ball separates on the first test, so its event is unchanged.
+- 2026-09-21: `Simulation.isAtRest` now says a ball sitting still over an opening is NOT at
+  rest. Without it a shot could end with a ball balanced over the hole and nothing would ever
+  look at it again, which together with `capturePockets` skipping stopped balls is what made
+  hangers permanent.
