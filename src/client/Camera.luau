@@ -32,6 +32,14 @@ local tableCorners: { Vector3 }? = nil
 local locked = false
 local connections: { RBXScriptConnection } = {}
 local zoom = 1
+-- The pose the smoothing chases, kept apart from what the camera actually shows. The shake
+-- is added on top of this, never folded into it: lerping from an already-shaken pose would
+-- smear the shake into the smoothing and let it drift.
+local smoothed: CFrame? = nil
+-- A pocket nudge in flight: which way, how hard, and how far through it is.
+local shakeDir = Vector3.zero
+local shakeScale = 0
+local shakeTime = 0
 local anchor: Vector3? = nil -- cue ball position the view is built around (frozen during a shot)
 local anchorDir: Vector3? = nil
 local returnTimer = 0 -- seconds of slower easing left after a shot ends
@@ -103,6 +111,8 @@ function Camera.unlock()
 	connections = {}
 	anchor = nil
 	anchorDir = nil
+	smoothed = nil
+	shakeScale = 0
 	returnTimer = 0
 	wasPlaying = false
 	local cam = Workspace.CurrentCamera
@@ -112,6 +122,50 @@ end
 
 function Camera.isLocked(): boolean
 	return locked
+end
+
+--- Nudge the camera toward a point: a ball has just dropped there.
+---
+--- `speed` is how hard it went in, which decides how much of the (already tiny) nudge is
+--- used. Horizontal only - a camera that bobs vertically is far more nauseating than one
+--- that slides - and it simply restarts if a second ball drops mid-nudge, so a two-ball
+--- pocket is one nudge rather than two fighting each other.
+function Camera.kick(towards: Vector3, speed: number)
+	local K = Config.Camera.Shake
+	if not K.Enabled or not locked then
+		return
+	end
+	local flat = Vector3.new(
+		towards.X - Workspace.CurrentCamera.CFrame.Position.X,
+		0,
+		towards.Z - Workspace.CurrentCamera.CFrame.Position.Z
+	)
+	if flat.Magnitude < 1e-3 then
+		return
+	end
+	local k = math.clamp((speed - K.QuietSpeed) / math.max(K.LoudSpeed - K.QuietSpeed, 1e-3), 0, 1)
+	shakeDir = flat.Unit
+	shakeScale = K.MinScale + (1 - K.MinScale) * k
+	shakeTime = 0
+end
+
+-- Where the shake has got to. Decays to nothing and stays there.
+local function shakeOffset(dt: number): Vector3
+	local K = Config.Camera.Shake
+	if shakeScale <= 0 then
+		return Vector3.zero
+	end
+	shakeTime += dt
+	local phase = shakeTime / math.max(K.Seconds, 1e-3)
+	if phase >= 1 then
+		shakeScale = 0
+		return Vector3.zero
+	end
+	-- Starts at full offset and swings back while fading out, so the jolt is at the moment
+	-- the ball drops rather than a quarter of a second later.
+	local decay = (1 - phase) * (1 - phase)
+	local swing = math.cos(phase * K.Oscillations * 2 * math.pi)
+	return shakeDir * (K.AmplitudeStuds * shakeScale * decay * swing)
 end
 
 --- Zoom by a factor (> 1 = closer). 1 = the whole table fitted, ZoomMin = close on the ball.
@@ -377,7 +431,9 @@ function Camera.update(
 		else Config.Camera.View.Smoothing
 	local alpha = 1 - math.exp(-dt / math.max(smoothing, 1e-3))
 	if target.Position.X == target.Position.X then -- never chase a NaN pose
-		cam.CFrame = cam.CFrame:Lerp(target, alpha)
+		local base = (smoothed or cam.CFrame):Lerp(target, alpha)
+		smoothed = base
+		cam.CFrame = base + shakeOffset(dt)
 	end
 end
 
@@ -385,7 +441,10 @@ end
 function Camera.snap(cueWorld: Vector3, angle: number)
 	anchor = cueWorld
 	anchorDir = Camera.aimDirection(angle)
-	Workspace.CurrentCamera.CFrame = viewFor(anchor :: Vector3, anchorDir :: Vector3, nil)
+	local pose = viewFor(anchor :: Vector3, anchorDir :: Vector3, nil)
+	smoothed = pose
+	shakeScale = 0
+	Workspace.CurrentCamera.CFrame = pose
 end
 
 return Camera

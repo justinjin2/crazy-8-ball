@@ -214,6 +214,19 @@ local function setSeat(id: number?)
 					ev.ball
 				)
 			end
+			-- A nudge toward the pocket that took it. Only for the table this player is
+			-- actually watching: these listeners are wired per TABLE and never removed, so
+			-- without the check a ball dropping on a table left ten minutes ago would still
+			-- shake the camera here.
+			if id ~= seatId then
+				return
+			end
+			for _, pocket in m.state.geometry.pockets do
+				if pocket.id == ev.other then
+					Camera.kick(TableBuilder.toWorld(p, pocket.x, pocket.y, 0), ev.speed)
+					break
+				end
+			end
 		end)
 	end
 	guideline = Guideline.new(visuals, p)

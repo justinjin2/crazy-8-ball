@@ -101,6 +101,9 @@ it at power is silent, and resuming a paused drag carries on from where the reco
 off rather than restarting it. Playback is held clear of the release at the end of that
 recording, so it only ever sounds like something being stretched. **72 Lune tests.**
 
+Pocketing a ball now nudges the camera a hair toward the pocket that took it - measured at
+0.056 studs on a gentle drop, settled back to exactly zero a quarter of a second later.
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 

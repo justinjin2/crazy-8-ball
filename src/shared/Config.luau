@@ -622,6 +622,29 @@ Config.Camera = {
 		ZoomMin = 0.25,
 		ZoomMax = 1.0,
 	},
+	-- A ball dropping nudges the camera a hair TOWARD the pocket it went into. This is a
+	-- reward, not an effect: it should register somewhere below conscious notice and never
+	-- be the reason someone puts the game down with a headache.
+	--
+	-- Everything here is sized against that. The amplitude is a sixth of a stud, against a
+	-- camera that sits 12 to 15 studs out - about half a percent of the view. It runs for a
+	-- quarter of a second, and it swings barely more than once in that time, because it is
+	-- FAST repeated motion that makes people feel sick rather than large motion. It is also
+	-- horizontal only: a camera that bobs vertically is far more nauseating than one that
+	-- slides.
+	Shake = {
+		Enabled = true,
+		AmplitudeStuds = 0.16,
+		Seconds = 0.26,
+		-- Swings back and forth this many times while decaying. Keep it near 1: this is a
+		-- nudge that settles, not a rumble. (tune)
+		Oscillations = 1.25,
+		-- A ball trickling in gets less of it than one hammered in, but even the gentlest
+		-- drop still registers - a pocket that gave nothing back would feel broken.
+		QuietSpeed = 20,
+		LoudSpeed = 220,
+		MinScale = 0.45,
+	},
 	-- While a shot plays the camera zooms out to the whole-table view (if the player was
 	-- zoomed in) so every ball's path is visible, holds there, then eases back to the
 	-- player's zoom when the balls stop.

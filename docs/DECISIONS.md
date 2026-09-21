@@ -294,3 +294,13 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-21: The power bar dropped to a top fraction of 0.145. At 0.07 its PULL label sat
   behind the Leave button, which occupies the top right corner down to 52 px. The label now
   clears it by 12 px and the whole cue still fits at full pull with 43 px to spare.
+- 2026-09-21: A ball dropping nudges the camera a hair TOWARD the pocket it went into. It is
+  sized as a reward rather than an effect: a sixth of a stud at full strength against a camera
+  12 to 15 studs out, about half a percent of the view, over a quarter of a second, swinging
+  barely more than once. Horizontal only, because a camera that bobs vertically is far more
+  nauseating than one that slides, and it is FAST repeated motion rather than large motion
+  that makes people feel sick. A gentler drop gets less of it, but every drop gets some: a
+  pocket that gave nothing back would feel broken.
+  The shake is added on top of a pose the smoothing chases separately, never folded into it.
+  Lerping from an already-shaken camera would smear the shake into the smoothing and let it
+  drift; keeping them apart is what lets it settle to exactly zero.
