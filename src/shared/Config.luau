@@ -595,7 +595,10 @@ Config.Camera = {
 		-- Pitch above the cloth, degrees. The solver starts at Preferred and steepens toward
 		-- Max only when a shallower angle cannot show the table as large on screen (a portrait
 		-- phone with the table crosswise).
-		PitchPreferred = 50,
+		-- Raised from 50 so the top of the useful zoom range - where the camera now rests -
+		-- is the angle the designer picked from a screenshot, rather than needing a part
+		-- tipped-over blend to get there.
+		PitchPreferred = 56,
 		PitchMax = 65,
 		-- The close view (fully zoomed in): low behind the cue ball looking down the aim line,
 		-- this far from the ball and at this pitch, so the guideline runs into the distance.
@@ -616,17 +619,34 @@ Config.Camera = {
 		DistanceMaxInches = 400,
 		-- Seconds the camera takes to settle after an aim change (smaller = snappier).
 		Smoothing = 0.18,
-		-- Zoom: 1 = whole table fitted, ZoomMin = the close view. In between the camera moves
-		-- in geometrically (equal scroll notches feel equal) while the pitch lowers and the
-		-- centre shifts to the cue ball. Pinch on touch or scroll on PC.
-		ZoomMin = 0.25,
-		ZoomMax = 1.0,
+		-- Zoom is counted in SCROLL NOTCHES, not in a distance, because the two halves of
+		-- the range are worth very different amounts of attention.
+		--
+		-- The low half runs from the close view behind the cue ball up to the angled resting
+		-- view, and every framing in it is useful, so it gets most of the notches. The top
+		-- of that range IS the resting view: where the camera sits and what it returns to
+		-- after every shot.
+		--
+		-- Past it the camera tips over to straight down, like Miniclip. That is one notch,
+		-- because the half-tipped perspectives in between are not framings anyone wants to
+		-- play from - they are just the journey. As it tips, the orbit FADES OUT: at the top
+		-- the table is fixed and centred and only the cue swings, since a whole table
+		-- rotating underneath an overhead camera is unreadable.
+		--
+		--   0 notches ............ ZoomNotchesLow ..... + ZoomNotchesTop
+		--   close on the ball      angled, RESTING       straight down
+		ZoomNotchesLow = 10,
+		ZoomNotchesTop = 1,
 	},
-	-- While a shot plays the camera zooms out to the whole-table view (if the player was
-	-- zoomed in) so every ball's path is visible, holds there, then eases back to the
-	-- player's zoom when the balls stop.
+	-- While a shot plays the camera tips all the way over to the overhead view so every
+	-- ball's path is visible at once, holds there, then eases back down to ZoomDefault when
+	-- the balls stop.
 	Shot = {
 		ZoomOut = true, -- false = stay at the player's zoom during the shot
+		-- Every shot ends back at ZoomDefault, whatever the player was using before it. The
+		-- alternative is restoring their own zoom, which respects a deliberate choice but
+		-- means the resting angle is only ever seen by someone who never touches the zoom.
+		ReturnToDefault = true,
 		FocusWeight = 0, -- gaze pull toward the moving cue ball: 0 = none, 1 = track it
 		Smoothing = 0.35, -- seconds to ease out at the strike
 		ReturnSmoothing = 0.5, -- seconds to ease back in after the balls stop
@@ -792,8 +812,10 @@ Config.Input = {
 	MinPowerToShoot = 0.04,
 	-- An aim tick fires every this many degrees of rotation.
 	TickEveryDegrees = 2,
-	-- Zoom factor per mouse-wheel notch.
-	ZoomStep = 1.12,
+	-- One mouse-wheel notch. The camera counts zoom in notches now (see ZoomNotchesLow and
+	-- ZoomNotchesTop), so this is only the reference a CONTINUOUS zoom - a pinch, or a
+	-- gamepad stick - is measured against: a factor of this much moves exactly one notch.
+	ZoomStep = 1.3,
 	-- Gamepad. Sticks are POLLED every frame, never driven by events: InputChanged only
 	-- fires while a stick moves, so a stick held hard over reports nothing at all and an
 	-- event-driven aim would stall the moment you stopped wiggling it.

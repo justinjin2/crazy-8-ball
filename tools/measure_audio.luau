@@ -12,9 +12,13 @@
 -- Studio command bar in EDIT mode (View -> Command Bar), or run it through the Studio MCP
 -- with execute_luau. It builds its probe under Workspace, measures, and removes it.
 --
--- HOW IT WORKS. It wires each clip through AudioPlayer -> AudioAnalyzer -> AudioFader(0) ->
--- AudioDeviceOutput. The fader is silent so nothing is heard, but the graph still runs and
--- the analyzer sits before it, so it reads the full level.
+-- HOW IT WORKS. It wires each clip AudioPlayer -> AudioAnalyzer and stops there. An
+-- AudioAnalyzer is a TERMINAL tap with no output pins of its own, which is the whole reason
+-- this is silent: nothing downstream of it can exist, so no path to the speakers is ever
+-- made. (An earlier version of this file wired the analyzer on to a muted fader and a device
+-- output and claimed the fader was what kept it quiet. Roblox logged "Invalid Wire
+-- Connection: AudioAnalyzer has no output pins" and ignored those two wires; the readings
+-- were right, the explanation was not.)
 --
 -- READING THE OUTPUT. Use PEAK for one-shots (impacts, where the transient is what you
 -- hear) and meanRMS for continuous material (the rolling clips). Gain = target / measured.
@@ -42,8 +46,6 @@ end
 local probe = Instance.new("Folder")
 probe.Name = "__AudioLevelProbe"
 probe.Parent = workspace
-local output = Instance.new("AudioDeviceOutput")
-output.Parent = probe
 
 local rigs = {}
 for _, row in clips do
@@ -52,14 +54,9 @@ for _, row in clips do
 	player.Parent = probe
 	local analyzer = Instance.new("AudioAnalyzer")
 	analyzer.Parent = probe
-	local fader = Instance.new("AudioFader")
-	fader.Volume = 0
-	fader.Parent = probe
-	for _, pair in { { player, analyzer }, { analyzer, fader }, { fader, output } } do
-		local wire = Instance.new("Wire")
-		wire.SourceInstance, wire.TargetInstance = pair[1], pair[2]
-		wire.Parent = probe
-	end
+	local wire = Instance.new("Wire")
+	wire.SourceInstance, wire.TargetInstance = player, analyzer
+	wire.Parent = probe
 	table.insert(rigs, { name = row[1], player = player, analyzer = analyzer, peak = 0, samples = {} })
 end
 

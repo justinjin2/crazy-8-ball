@@ -31,7 +31,10 @@ local tableCorners: { Vector3 }? = nil
 
 local locked = false
 local connections: { RBXScriptConnection } = {}
-local zoom = 1
+-- Position along the scroll axis: 0 is closest on the ball, 1 is straight down, and the
+-- resting view sits where the low range ends. Counted in notches rather than in a distance,
+-- because the two halves of the range deserve very different numbers of them.
+local zoomU = 0 -- set to the resting view by Camera.resetZoom below, once notches() exists
 local anchor: Vector3? = nil -- cue ball position the view is built around (frozen during a shot)
 local anchorDir: Vector3? = nil
 local returnTimer = 0 -- seconds of slower easing left after a shot ends
@@ -114,19 +117,31 @@ function Camera.isLocked(): boolean
 	return locked
 end
 
---- Zoom by a factor (> 1 = closer). 1 = the whole table fitted, ZoomMin = close on the ball.
-function Camera.zoomBy(factor: number)
+-- Total notches across the whole range, and where the resting view sits along it.
+local function notches(): (number, number)
 	local V = Config.Camera.View
-	zoom = math.clamp(zoom / factor, V.ZoomMin, V.ZoomMax)
+	local total = math.max(V.ZoomNotchesLow + V.ZoomNotchesTop, 1)
+	return total, V.ZoomNotchesLow / total
 end
 
---- Back to the whole-table framing (used when leaving the table).
+--- Zoom by a factor (> 1 = closer). A factor of Config.Input.ZoomStep is exactly one notch,
+--- which is what lets a continuous pinch or gamepad stick share the axis with a mouse wheel.
+function Camera.zoomBy(factor: number)
+	local total = notches()
+	local step = math.max(Config.Input.ZoomStep, 1.0001)
+	zoomU = math.clamp(zoomU - math.log(factor) / math.log(step) / total, 0, 1)
+end
+
+--- Back to the resting view: the top of the useful range, just before it tips overhead.
+--- Used when leaving the table and after every shot.
 function Camera.resetZoom()
-	zoom = 1
+	local _, rest = notches()
+	zoomU = rest
 end
 
+--- Where the camera is along the scroll axis: 0 closest, 1 straight down.
 function Camera.getZoom(): number
-	return zoom
+	return zoomU
 end
 
 local function corners(): { Vector3 }
@@ -202,6 +217,35 @@ end
 
 local function tableCentre(): Vector3
 	return TableBuilder.toWorld(placement, 0, 0, 0)
+end
+
+--- Straight down over the table, table centred and FIXED: the long axis lies across the
+--- screen and nothing here depends on the aim, so at the top of the zoom the table stops
+--- turning underneath the camera and only the cue swings. That is what makes an overhead
+--- pool view readable.
+---
+--- The height is solved rather than guessed: the table's own corners are measured along the
+--- camera's two screen axes and the distance taken from whichever of them fills first, so
+--- the framing holds on any aspect ratio.
+local function topDownPose(vp: Vector2): CFrame
+	local V = Config.Camera.View
+	local centre = tableCentre()
+	-- Screen up is the table's WIDTH direction, which puts its length across the screen.
+	local up = (TableBuilder.toWorld(placement, 0, 1, 0) - centre).Unit
+	local down = Vector3.new(0, -1, 0)
+	-- An arbitrary height first, only to read off the camera's right and up axes.
+	local axes = CFrame.lookAt(centre - down, centre, up)
+	local tanH, tanV = tangents(vp)
+	local maxRight, maxUp = 0, 0
+	for _, corner in corners() do
+		local d = corner - centre
+		maxRight = math.max(maxRight, math.abs(d:Dot(axes.RightVector)))
+		maxUp = math.max(maxUp, math.abs(d:Dot(axes.UpVector)))
+	end
+	local margin = 1 + V.FitMargin * 2
+	local distance = math.max(maxRight / math.max(tanH, 1e-3), maxUp / math.max(tanV, 1e-3))
+		* margin
+	return CFrame.lookAt(centre + Vector3.new(0, distance, 0), centre, up)
 end
 
 --- Camera pose looking along the aim `dir` tilted down by `pitch` radians, `distance` studs
@@ -298,8 +342,9 @@ local function solveFraming(
 	return bestPitch, bestDistance
 end
 
---- Target pose: the fitted whole-table framing at zoom 1, down to the low close view
---- behind the cue ball at ZoomMin. `focusOverride` (a moving cue ball) pulls the gaze.
+--- Target pose across the whole scroll axis: the low close view behind the cue ball at 0,
+--- the angled resting framing where the low notches run out, and straight down at 1.
+--- `focusOverride` (a moving cue ball) pulls the gaze.
 local function viewFor(
 	cueWorld: Vector3,
 	dir: Vector3,
@@ -309,8 +354,14 @@ local function viewFor(
 ): CFrame
 	local V = Config.Camera.View
 	local vp = viewport or Workspace.CurrentCamera.ViewportSize
-	local z = zoomOverride or zoom
-	local zoomT = 1 - math.clamp((z - V.ZoomMin) / math.max(V.ZoomMax - V.ZoomMin, 1e-3), 0, 1)
+	local u = zoomOverride or zoomU
+	local _, rest = notches()
+	-- Below the resting point the notches spread across the useful framings; above it they
+	-- spend themselves tipping the camera over.
+	local topT = math.clamp((u - rest) / math.max(1 - rest, 1e-3), 0, 1)
+	-- zoomT is 1 at the closest view and 0 at the resting one. Linear in notches here means
+	-- geometric in DISTANCE below, which is what makes each notch feel like the same step.
+	local zoomT = 1 - math.clamp(u / math.max(rest, 1e-3), 0, 1)
 	local pitch, distance = solveFraming(cueWorld, dir, V.FocusBallWeight, vp)
 	-- The whole-table framing is solved once at the fitted distance; zooming then keeps its
 	-- look point, shifts the centre to the cue ball and moves the camera in geometrically
@@ -330,6 +381,12 @@ local function viewFor(
 	if focusOverride then
 		cf =
 			CFrame.lookAt(cf.Position, aimPoint:Lerp(focusOverride, Config.Camera.Shot.FocusWeight))
+	end
+	if topT > 0 then
+		-- CFrame:Lerp slerps the rotation, so the camera swings up and over in one motion
+		-- rather than tilting and turning separately - and because the overhead pose does
+		-- not depend on the aim, the orbit fades out on its own as this reaches 1.
+		cf = cf:Lerp(topDownPose(vp), topT)
 	end
 	return cf
 end
@@ -365,10 +422,16 @@ function Camera.update(
 	end
 	if wasPlaying and not playing then
 		returnTimer = S.ReturnSeconds
+		-- Come back down to the resting view rather than to whatever the player had set, so
+		-- every shot ends at the same angle.
+		if S.ReturnToDefault then
+			Camera.resetZoom()
+		end
 	end
 	wasPlaying = playing
 	returnTimer = math.max(returnTimer - dt, 0)
-	local zoomOverride = if playing and S.ZoomOut then Config.Camera.View.ZoomMax else nil
+	-- A shot tips the camera all the way over, whatever the player was using.
+	local zoomOverride = if playing and S.ZoomOut then 1 else nil
 	local gaze = if playing and S.FocusWeight > 0 then focus else nil
 	local target = viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
 	local smoothing = if playing
@@ -383,6 +446,8 @@ end
 
 --- Snap straight to the view (used once at start so there is no swoop from the spawn).
 function Camera.snap(cueWorld: Vector3, angle: number)
+	-- Sitting down starts at the resting view, not wherever the axis happened to be left.
+	Camera.resetZoom()
 	anchor = cueWorld
 	anchorDir = Camera.aimDirection(angle)
 	Workspace.CurrentCamera.CFrame = viewFor(anchor :: Vector3, anchorDir :: Vector3, nil)
