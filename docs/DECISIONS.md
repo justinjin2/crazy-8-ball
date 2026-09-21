@@ -392,3 +392,16 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   occasional click. At a 0.1 gap consecutive ticks no longer overlap at all - the clip is more
   than 34 dB down past 65 ms - so that correction had nothing left to correct for. Measured at
   2 voices at every aim speed, against 4 to 8 before.
+- 2026-09-21: The cue, the ghost ball and the guideline are gone the instant the cue is
+  released, and come back when the table is the player's again. They used to sit on screen
+  through the whole server round trip, still pointing at a shot already taken, because the
+  only thing hiding them was `match:isBusy()` - and the shot does not begin on the client.
+  Inputs go to the server and the balls only move when it broadcasts the result back, so
+  `isBusy()` stays false for the entire trip. A client-side `awaitingShot` now carries the
+  state from the release to the server's answer, cleared at the end of the shot, on a
+  rejected shot, and on leaving the table. Measured at 60 Hz: the cue and the guideline
+  disappear on the SAME sample as the power bar returning to zero, 0.0 ms after release.
+- 2026-09-21: One `canAim()` decides whether any of the aiming visuals are drawn, rather than
+  each of them testing its own conditions. They are one idea - this is your shot to take - and
+  three copies of that test would eventually disagree. It is also where the Rules hook in at
+  Roadmap 2.1: "is a shot running" becomes "is it my turn" in one place.

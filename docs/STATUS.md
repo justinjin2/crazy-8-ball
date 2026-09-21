@@ -188,6 +188,23 @@ density (the designer called this v1 and may swap it), and whether the bonus sti
 forward or too buried over the drop. `Audio.Tick` (level), `Audio.MinSecondsBetweenTicks`
 (density) and `Audio.Bonus.MaxVolume` are the numbers to move.
 
+## Aiming visuals end at the release
+
+The cue, the ghost ball and the guideline used to stay on screen through the whole server
+round trip after a shot was sent, still pointing at a shot already taken. The only thing
+hiding them was `match:isBusy()`, and the shot does not begin on the client: inputs go to the
+server and the balls move when it broadcasts back, so `isBusy()` is false for the entire trip.
+
+A client-side `awaitingShot` now carries that state from the release to the server's answer,
+and one `canAim()` decides whether any of the aiming visuals are drawn. Cleared at the end of
+the shot, on a rejected shot, and on leaving the table. Measured at 60 Hz through a real
+drag-and-release on the power bar: the cue and the guideline go in the SAME sample as the bar
+returning to zero, 0.0 ms after release, stay gone for the whole shot, and come back when it
+ends.
+
+`canAim()` is where turns hook in at Roadmap 2.1 - "is a shot running" becomes "is it my
+turn", in one place.
+
 **Still to do in 1.7:** the power-bar stretch sound and the "Nice shot" popup. The box stays
 unticked.
 

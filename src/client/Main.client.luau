@@ -55,6 +55,15 @@ local match: Match.Match? = nil
 local placement: Placement.Placement? = nil
 local guideline: Guideline.Guideline? = nil
 
+-- A shot has been sent and we are waiting to be told it happened.
+--
+-- The shot does not begin here: inputs go to the server and the balls only move when it
+-- broadcasts the result back, so match:isBusy() stays FALSE for the whole round trip. Aiming
+-- is over the instant the cue is released, though, so this carries that from the release to
+-- the moment the server's answer arrives. Without it the cue and the guideline sit on screen
+-- through the round trip, still pointing at a shot that has already been taken.
+local awaitingShot = false
+
 local function cueBallWorld(): Vector3
 	local p = placement
 	local m = match
@@ -97,10 +106,25 @@ local function sendAim(dt: number)
 	lounge:reportAim(id, angle)
 end
 
+--- Whether the player may aim right now. Everything that belongs to AIMING - the cue, the
+--- ghost ball and the guideline - is drawn only while this is true, so there is one place
+--- that decides it and they can never disagree with each other.
+---
+--- When turns arrive (Roadmap 2.1) the "is it mine to take" part of this becomes a question
+--- for the Rules rather than just "is a shot running".
+local function canAim(): boolean
+	local m, p = match, placement
+	if m == nil or p == nil or awaitingShot or m:isBusy() then
+		return false
+	end
+	local cue = m:findCueBall()
+	return cue ~= nil and not cue.pocketed
+end
+
 local function refreshCueStick()
 	local m, p = match, placement
 	local cue = m and m:findCueBall()
-	if m == nil or p == nil or m:isBusy() or cue == nil or cue.pocketed then
+	if m == nil or p == nil or cue == nil or not canAim() then
 		CueStickBuilder.setVisible(cueStick, false)
 		return
 	end
@@ -114,7 +138,7 @@ end
 local function refreshGuideline()
 	local m, g = match, guideline
 	if g then
-		if m == nil or m:isBusy() then
+		if m == nil or not canAim() then
 			g:hide()
 		else
 			g:show(Aim.trace(m.state, input.angle))
@@ -158,6 +182,8 @@ local function shoot(power: number)
 	lounge:fire(id, input.angle, power)
 	shotAngle, shotPower = input.angle, power
 	input:setEnabled(false)
+	-- Aiming is over the moment the cue is let go, not when the server gets back to us.
+	awaitingShot = true
 	refreshGuideline()
 end
 
@@ -167,6 +193,9 @@ local function setSeat(id: number?)
 		return
 	end
 	seatId = id
+	-- Leaving or being moved cancels any shot we were waiting on; the next table must not
+	-- inherit it and open with no cue.
+	awaitingShot = false
 
 	if guideline then
 		guideline:destroy()
@@ -254,6 +283,7 @@ lounge:onShotRejected(function(reason)
 	if seatId ~= nil then
 		warn(("[8ball] the server turned that shot down: %s"):format(reason))
 		input:setEnabled(true)
+		awaitingShot = false
 		refreshGuideline()
 	end
 end)
@@ -366,6 +396,8 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		m:ensureCueBall()
 		input:setEnabled(true)
+		-- The table is ours again, so the cue, the ghost ball and the guideline come back.
+		awaitingShot = false
 		refreshGuideline()
 	end
 	wasPlaying = playing
