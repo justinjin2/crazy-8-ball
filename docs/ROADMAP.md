@@ -45,14 +45,15 @@ because the server move is needed anyway and the map is already built.
   between them and sees both games, on phone, PC and gamepad.
 *Order note (2026-09-21): 1.7 is being built before 1.6 at the designer's request.*
 *Order note (2026-09-22): the designer requested `prompts/PHYSICS_REALISM_PROMPT.md`.
-Work proceeds A-F, reporting after each; the remaining 1.5 checks stay open.*
+Work proceeds A-F; the designer then requested continuing through D-F in one run.
+The remaining 1.5 checks stay open.*
 
 - [ ] **1.6 Spin.** Spin selector (tap the cue-ball icon, pick the strike point) feeding the
   physics. Done means: top spin follows through, back spin draws back, side spin changes the
   rail rebound, visibly.
-  Physics realism A-C are implemented: tuning, spin decay, throw, spin transfer, cushions and
-  corner shelf; 109 tests and desktop Studio checks pass. Phone/controller acceptance remains
-  open. Keep the current imported table; its pocket mesh update is deferred. D-F are not built;
+  Physics realism A-D are implemented: tuning, contacts, corner shelf and cue impact/squirt;
+  118 tests and desktop Studio checks pass. Phone/controller acceptance remains
+  open. Keep the current imported table; its pocket mesh update is deferred. E-F are not built;
   this box stays unticked until E and the platform acceptance checks are complete.
 - [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
   ticks, power-bar stretch, sink burst, "Nice shot" popup. Plus the cue ball's trail. Trails

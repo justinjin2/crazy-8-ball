@@ -135,13 +135,14 @@ return {
 		end
 	end,
 
-	["top spin and back spin turn the ball opposite ways off the cue"] = function()
+	["a level cue gives equal opposite spin for top and back offsets"] = function()
 		local _, Ball, _, Simulation, geometry = setup()
 		local Cue = H.require("Physics.Cue")
 		local function struck(topSpin: number): number
 			local state = cueOnly(Ball, Simulation, geometry, -geometry.halfLength + 10, 0)
 			local b = state.balls[1]
-			Cue.strike(b, { angle = 0, power = 0.5, spin = { x = 0, y = topSpin } })
+			-- Equal/opposite symmetry is a level-cue result. Default elevation adds draw.
+			Cue.strike(b, { angle = 0, power = 0.5, spin = { x = 0, y = topSpin }, elevation = 0 })
 			return b.wy
 		end
 		local top, back, dead = struck(0.4), struck(-0.4), struck(0)

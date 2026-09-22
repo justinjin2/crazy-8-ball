@@ -1,11 +1,11 @@
 --!strict
--- Aim: a dry trace of the cue ball along the aim line, for the guideline. Pure: it uses the
--- same collision tests as the simulation, so the first contact it predicts is exactly the
--- first contact the real shot will make.
+-- Aim: a dry trace along the cue ball's initial launch direction, including squirt. The
+-- collision geometry is shared with the simulation; later swerve and throw are not traced.
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)
 local Collision = require(script.Parent.Collision)
+local Cue = require(script.Parent.Cue)
 local Simulation = require(script.Parent.Simulation)
 
 type Ball = Ball.Ball
@@ -33,10 +33,13 @@ export type Trace = {
 
 local FAR = 1e6
 
-function Aim.trace(state: State, angle: number): Trace
+function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 	local R = Config.Balls.RadiusInches
 	local cue = Simulation.findBall(state, 0)
-	local dx, dy = math.cos(angle), math.sin(angle)
+	local shot = if type(shotOrAngle) == "number"
+		then { angle = shotOrAngle, power = 0 }
+		else shotOrAngle
+	local dx, dy = Cue.launchDirection(shot)
 	local trace: Trace = {
 		contact = "none",
 		startX = 0,

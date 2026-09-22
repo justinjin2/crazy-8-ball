@@ -192,17 +192,14 @@ return {
 		end)
 	end,
 
-	["a gentle centre-struck bank runs long and a firm bank runs short after cloth recovery"] = function()
+	["a gentle level-centre bank runs long and a firm bank runs short after cloth recovery"] = function()
 		local Config, Ball, _, Simulation, _, geometry = setup()
-		local Cue = H.require("Physics.Cue")
 		local R, dt = Config.Balls.RadiusInches, Config.Physics.FixedStep
 		local function bank(launchSpeed: number): (number, number)
 			local b = Ball.new(0, geometry.halfLength - R - 8, 15)
 			local state = Simulation.newState(geometry, { b })
-			local C = Config.Cue
-			local power = ((launchSpeed - C.MinSpeed) / (C.MaxSpeed - C.MinSpeed))
-				^ (1 / C.PowerCurve)
-			Cue.strike(b, { angle = -math.pi / 4, power = power })
+			-- Preserve C's measured level-centre launch independently of D's elevated cue.
+			b.vx, b.vy = launchSpeed / math.sqrt(2), -launchSpeed / math.sqrt(2)
 			local touched = false
 			local arrivalSlip = 0
 			for _ = 1, math.ceil(Config.Physics.MaxShotSeconds / dt) do
@@ -646,7 +643,8 @@ return {
 		local _, Ball, _, Simulation, _, geometry = setup()
 		-- Object ball 14 in from the top-right corner pocket along the diagonal, cue ball 6 in
 		-- behind it. A close hit preserves enough backspin after cloth loss and ball-to-ball
-		-- spin transfer to test a strong draw. The pocketed object cannot disturb the cue later.
+		-- spin transfer to test a strong draw. Use a firm stroke because the impact model
+		-- spends forward speed on off-centre spin. The pocketed object cannot disturb the cue.
 		local dirX, dirY = 1 / math.sqrt(2), 1 / math.sqrt(2)
 		local ox, oy = geometry.halfLength - 10, geometry.halfWidth - 10
 		local function shoot(spinY: number): (number, boolean)
@@ -656,7 +654,7 @@ return {
 			)
 			local result = Simulation.run(
 				state,
-				{ angle = math.atan2(dirY, dirX), power = 0.25, spin = { x = 0, y = spinY } }
+				{ angle = math.atan2(dirY, dirX), power = 0.4, spin = { x = 0, y = spinY } }
 			)
 			H.expect(result.firstContact == 1, "cue ball should hit the 1 ball first")
 			local cue = result.finalBalls[1]

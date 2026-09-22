@@ -416,7 +416,14 @@ RunService.RenderStepped:Connect(function(dt)
 	-- rather than from the power this client sent, so it is right for an opponent's shot at
 	-- this table too.
 	if playing and not wasPlaying then
-		Camera.beginShot(m:cueBallSpeedNow())
+		local cue = m:findCueBall()
+		local speed = m:cueBallSpeedNow()
+		if cue and speed > 0 then
+			local dx, dy = cue.vx / speed, cue.vy / speed
+			Camera.beginShot(speed, cue.wx * dx + cue.wy * dy, -cue.wx * dy + cue.wy * dx)
+		else
+			Camera.beginShot(0)
+		end
 	end
 	local cueNow = if playing then m:cueBallWorldNow() else cueBallWorld()
 	local moving = if playing then movingBallWorlds(m, p) else nil

@@ -1,5 +1,6 @@
 --!strict
--- Guideline trace tests: the predicted first contact must match the simulation.
+-- Guideline trace tests: initial launch ray and shared collision geometry. Swerve later
+-- bends the physical path, so distant grazing-contact identity is not promised.
 
 local H = require("./harness")
 
@@ -70,5 +71,53 @@ return {
 				)
 			end
 		end
+	end,
+
+	["side-spin tracing shares the exact launch ray and preserves geometric object direction"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local Cue = H.require("Physics.Cue")
+		for _, side in { -0.5, 0.5 } do
+			local shot = { angle = 0, power = 0.8, spin = { x = side, y = 0 } }
+			local dx, dy = Cue.launchDirection(shot)
+			local state = Simulation.newState(
+				geometry,
+				{ Ball.new(0, -20, 0), Ball.new(1, -20 + 8 * dx, 8 * dy) }
+			)
+			local trace = Aim.trace(state, shot)
+			local distance = 8 - 2 * Config.Balls.RadiusInches
+			H.expect(trace.contact == "ball" and trace.objectId == 1, "short direct launch-ray hit")
+			H.near(trace.ghostX, -20 + distance * dx, 1e-8, "squirted ghost x")
+			H.near(trace.ghostY, distance * dy, 1e-8, "squirted ghost y")
+			H.near(trace.objectDirX, dx, 1e-8, "geometric object line x")
+			H.near(trace.objectDirY, dy, 1e-8, "geometric object line y")
+			local result = Simulation.run(state, shot)
+			H.expect(
+				result.firstContact == trace.objectId,
+				"nearby first-contact identity survives slight swerve"
+			)
+		end
+	end,
+
+	["a level pure-side shot follows its squirted ray up to first contact"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local Cue = H.require("Physics.Cue")
+		local shot = { angle = 0.15, power = 0.6, spin = { x = 0.5, y = 0 }, elevation = 0 }
+		local dx, dy = Cue.launchDirection(shot)
+		local state = Simulation.newState(
+			geometry,
+			{ Ball.new(0, -20, 0), Ball.new(1, -20 + 20 * dx, 20 * dy) }
+		)
+		local trace = Aim.trace(state, shot)
+		local result = Simulation.run(state, shot)
+		H.expect(
+			result.firstContact == trace.objectId,
+			"level pure-side shot has no swerve before contact"
+		)
+		H.near(
+			(trace.ghostY - trace.startY) / (trace.ghostX - trace.startX),
+			dy / dx,
+			1e-10,
+			"ray slope"
+		)
 	end,
 }

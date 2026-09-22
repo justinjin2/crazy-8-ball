@@ -33,7 +33,9 @@ Event-driven fixed step (1/240 s) with exact time of impact for ball-ball, ball-
 ball-point contacts (no tunnelling at any power). Sliding-to-rolling friction in closed form,
 rolling resistance, radius-independent side-spin decay. Ball-ball contacts use a tabulated
 speed-dependent friction impulse for throw and spin transfer, retaining full contact torque
-while translation stays on the cloth. Pure side spin does not delay shot completion. Cushions
+while translation stays on the cloth. Cue impact uses stick/ball mass, tip restitution and
+fixed default 4-degree elevation, with squirt and tilted spin feeding cloth swerve. The
+straight Classic guideline predicts launch direction, not the later curved path. Pure side spin does not delay shot completion. Cushions
 use Han's tilted contact normal through the centre, full tangential friction, and tabulated
 normal-speed restitution. Translation remains planar; only tangential impulses create torque.
 Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner

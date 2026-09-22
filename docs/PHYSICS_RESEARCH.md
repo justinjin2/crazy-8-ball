@@ -164,8 +164,10 @@ tune against Dr. Dave's "half speed at steep angle").
 - Rolling ball at 100 in/s, 45 deg into a rail: rebound angle shorter than 45, speed
   0.6-0.8 v; stun ball perpendicular at 300 in/s keeps 0.5-0.6 v (0.70285 v at 100 in/s);
   running english lengthens, reverse shortens.
-- Squirt: a = 0.5, m_r = 25: alpha = 2.3 deg; a = 0: 0.
-- Stick: centre hit V = 100 in/s, M = 19 oz, e = 0.73: v = 127-135 in/s; a = 0.5 gives ~0.75x.
+- Squirt: a = 0.5, endmass ratio = 25: alpha = 2.223977 deg; a = 0: 0.
+- Stick: centre hit V = 100 in/s, M = 19 oz, e = 0.73: horizontal v = 129.735566 at
+  4 degrees (131.48 level); side a = 0.5 gives 79.541985, about 0.61311x centre speed.
+  These measured values correct the original approximate 0.75x claim for the stated formula.
 
 ## 7. Order of work
 

@@ -129,7 +129,7 @@ Config.Balls = {
 	-- Regulation balls are 2.25 in across (radius 1.125). Slightly oversized balls read better
 	-- on a phone from the top-down view; the physics scales with whatever is set here. (tune)
 	RadiusInches = 1.3,
-	MassOunces = 6, -- all balls equal; only ratios matter in collisions
+	MassOunces = 6, -- WPA 5.5-6 oz; equal balls, also used in the cue/ball mass ratio
 	-- Colours by number. 1-7 solids, 8 black, 9-15 stripes use the colour of (n - 8).
 	Colors = {
 		[0] = { 245, 240, 225 }, -- cue ball, warm white
@@ -290,10 +290,19 @@ Config.Physics = {
 -- Cue strike: turns (power, spin offset) into the cue ball's initial velocity and spin
 ---------------------------------------------------------------------------------------------
 Config.Cue = {
-	-- Cue ball speed at full power. 30 mph = 528 in/s, a very strong break. (tune)
+	-- Centre-hit horizontal target at full power. Designer chose one bar reaching 30 mph
+	-- (528 in/s); TP A.30's impact gain derives the stick speed below. No separate break.
 	MaxSpeed = 528,
 	-- Speed at the smallest power that still counts as a shot. (tune)
 	MinSpeed = 15,
+	-- TP A.30 / pooltool: 19 oz cue (typical 18-21), tip restitution 0.73 (0.70-0.85).
+	-- Every collectible cue uses these same physical parameters; styles only change art.
+	StickMassOunces = 19,
+	TipRestitution = 0.73,
+	-- TP A.31 ball/effective-tip-endmass ratio; typical 15-40, default 25 from prompt D.
+	EndmassRatio = 25,
+	MinStickSpeed = 0, -- in/s; derived below to preserve MinSpeed at a centre hit
+	MaxStickSpeed = 0, -- in/s; derived below to preserve MaxSpeed at a centre hit
 	-- power (0..1) -> speed uses power^PowerCurve, so the low end is finer.
 	--
 	-- This is a feel number, not a physics one, and it was the cause of every ball looking
@@ -306,9 +315,6 @@ Config.Cue = {
 	PowerCurve = 2.6,
 	-- Spin offsets are given in ball radii (-1..1). Hits beyond this miscue in real life.
 	MaxSpinOffset = 0.5,
-	-- Angular velocity from an off-centre hit: w = SpinFactor * v * offset / R.
-	-- 2.5 is the rigid-sphere value; lower it if spin feels too strong. (tune)
-	SpinFactor = 2.5,
 	-- Visual cue stick (placeholder built from parts), in STUDS so it matches the avatar:
 	-- a real cue is about 85% of a person's height.
 	CueLengthStuds = 4.4,
@@ -318,7 +324,10 @@ Config.Cue = {
 	-- stick draws back at full power on the bar (studs), and how much the butt is raised.
 	CueRestGapInches = 2.5,
 	CuePullBackStuds = 1.3,
+	-- Designer fixed cue elevation at 4 degrees; internal level-cue benchmarks may use 0.
+	-- No elevation control or elevated jump/massé shots in this physics pass.
 	CueElevationDegrees = 4,
+	MaxElevationDegrees = 4,
 
 	-- What a cue LOOKS like, as data. Segments run tip to butt, each a share of the length
 	-- and a colour; the cue tapers linearly from TipWidth to ButtWidth. See CueArt.luau.
@@ -1611,6 +1620,13 @@ do
 	-- against. Same curve as Cue.speedForPower, which cannot be required from here (Cue
 	-- requires Config), so it is spelled out from the numbers Config already owns.
 	local C = Config.Cue
+	local ratio = Config.Balls.MassOunces / C.StickMassOunces
+	local elevation = math.rad(C.CueElevationDegrees)
+	local k = 1 + ratio + 2.5 * math.sin(elevation) ^ 2
+	local eta = ((1 - ratio * C.TipRestitution) ^ 2 + ratio * (1 + C.TipRestitution) ^ 2)
+		/ (1 + ratio) ^ 2
+	local gain = (1 + math.sqrt(1 - (1 - eta) / ratio * k)) / k * math.cos(elevation)
+	C.MinStickSpeed, C.MaxStickSpeed = C.MinSpeed / gain, C.MaxSpeed / gain
 	local function speedForPower(p: number): number
 		return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * p ^ C.PowerCurve
 	end

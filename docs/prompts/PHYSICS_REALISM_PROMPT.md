@@ -4,7 +4,8 @@ Build the realistic physics and spin system for Crazy 8 Ball. Read `CLAUDE.md`,
 `docs/STATUS.md` and `docs/PHYSICS_RESEARCH.md` first (the research doc has the parameter
 table in section 3, the gap list in section 4, the equations in section 5 and the tests in
 section 6). Plan in plan mode before editing. Work one milestone at a time, in the order
-below, and stop after each to report.
+below. Designer update: continue through D-F in one run, reporting progress and committing
+verified steps along the way.
 
 Rules that must hold: physics stays pure Luau in `src/shared/Physics` (no Roblox types, no
 `math.random`, no `os.clock`, no hash-order iteration, no `exp()` in the replay path);
@@ -90,9 +91,9 @@ Files: `src/shared/Physics/Cue.luau`, `src/shared/Config.luau`, `src/shared/Phys
 - Shot becomes `{angle, power, spin = {x, y}, elevation?}` with spin in ball radii clamped to
   the 0.5 R disc; elevation defaults to `Config.Cue.CueElevationDegrees` (4).
 - Power maps to STICK speed V, not ball speed. Config: `StickMassOunces = 19`,
-  `BallMassOunces = 6`, `TipRestitution = 0.73`, `MaxStickSpeed` so that a centre hit gives
-  about 12 mph (211 in/s) at full bar, `BreakStickSpeed` so a break gives 30 mph.
-  ASK THE DESIGNER whether the break is a separate stroke/button or the top of the bar.
+  existing `Balls.MassOunces = 6`, `TipRestitution = 0.73`, `MaxStickSpeed` so that a centre
+  hit gives 30 mph (528 in/s) at full bar. Designer chose one bar, with finer low-power
+  control and no separate break button. All collectible cues remain physically identical.
 - Strike (TP A.30 / pooltool): K = 1 + m/M + 2.5(a^2 + (b cos th)^2 + (c sin th)^2 - 2bc cos th sin th),
   c = sqrt(1 - a^2 - b^2); eta = ((1 - m_r e)^2 + m_r(1+e)^2)/(1+m_r)^2 with m_r = m/M;
   v = V (1 + sqrt(1 - ((1-eta)/m_r) K)) / K; w = (v/(0.4 R^2)) * R * (-c sin th + b cos th, a sin th, -a cos th)
@@ -101,12 +102,17 @@ Files: `src/shared/Physics/Cue.luau`, `src/shared/Config.luau`, `src/shared/Phys
   alpha = atan2(2.5 a sqrt(1-a^2), 1 + m_r + 2.5(1-a^2)) away from the tip side, with
   `Config.Cue.EndmassRatio = 25` (per-cue stat later: 15 break, 40 low-deflection).
   `Aim.trace` must cast along `Cue.launchDirection`, so guideline and shot agree.
-  ASK THE DESIGNER whether the Classic guideline shows the corrected line or the stick line.
+  Designer chose the predicted launch line for Classic. Elevation stays fixed at 4 degrees
+  for player inputs; no elevation control is required.
 - Swerve needs no new integrator code: the tilted spin axis feeds the existing sliding phase.
-- `Cue.rollOutDistance(speed, wx, wy)` takes the initial spin (max follow runs 2.25x further).
-Tests: centre hit V = 100 gives v = 127-135; a = 0.5 gives about 0.75x the centre speed;
-squirt 2.3 deg at a = 0.5 with m_r = 25 and 0 at a = 0; trace still matches the simulation's
-first contact with side spin; rollOutDistance with max follow at 20 in/s is about 50 in.
+- `Cue.rollOutDistance(speed, wx, wy)` takes launch-local initial spin. Straight follow
+  is exact; curved/reversing sliding paths use a conservative travel bound.
+Tests: centre hit V = 100 gives horizontal v = 129.735566 at 4 degrees (131.48 level);
+a = 0.5 gives 79.541985 in/s with the stated inelastic equation, about 0.61311x centre
+speed rather than the original 0.75 estimate. Squirt is 2.223977 deg at a = 0.5 with
+EndmassRatio = 25, and 0 at a = 0. Trace follows that launch ray; later swerve can change
+a distant contact. Test near contacts with side spin. At the current rolling friction 0.010,
+a level maximum-follow ball at 20 in/s runs 59.84911 in, rather than the original 50 estimate.
 Done means: side spin visibly deflects the cue ball and slow english curves back.
 
 ## Milestone E: spin on the wire, the selector, and the ability hook
@@ -129,9 +135,9 @@ Files: `src/client/Input.luau`, `src/client/UI.luau`, `src/client/Lounge.luau`,
 Done means: top spin follows through, back spin draws back, side spin bends the rail rebound,
 visibly, on phone, PC and gamepad, and two clients replay the same result.
 
-## Milestone F (after the designer answers): regulation scale and the harness
+## Milestone F: regulation scale and the harness
 
-- If chosen: `Balls.RadiusInches = 1.125` with a render scale factor so balls still read well;
+- Designer chose `Balls.RadiusInches = 1.125` with a render scale factor so balls still read well;
   every R-dependent number is expressed physically (nose height, shelf, mouths in diameters).
 - Seeded deterministic rack jitter (`Rack.GapInches` plus a tiny per-ball offset from a seed
   in the replicated rack) to remove the straight-break order bias.

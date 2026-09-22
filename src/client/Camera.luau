@@ -512,9 +512,10 @@ end
 --- A shot has just started. `cueSpeed` is how fast the cue ball left, which decides whether
 --- the camera bothers leaving the close view at all: a tap that cannot cross half the table
 --- has nothing to show at the far end. See Config.Camera.Shot.MinTravelTableLengths.
-function Camera.beginShot(cueSpeed: number)
+--- wx/wy are angular velocity in the frame whose +x follows the current ball velocity.
+function Camera.beginShot(cueSpeed: number, wx: number?, wy: number?)
 	local S = Config.Camera.Shot
-	local reach = Cue.rollOutDistance(cueSpeed)
+	local reach = Cue.rollOutDistance(cueSpeed, wx, wy)
 	pullOutWanted = reach >= S.MinTravelTableLengths * Config.Table.LengthInches
 end
 

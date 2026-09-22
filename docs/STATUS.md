@@ -1,9 +1,33 @@
 # Status
 
-**Last updated:** 2026-09-22. Physics realism C implemented; A-C are verified code steps.
-Report after C, per `prompts/PHYSICS_REALISM_PROMPT.md`. D-F are not started.
+**Last updated:** 2026-09-22. Physics realism D implemented; A-D are verified code steps.
+Designer requested continuing through D-F in one run; E and F are next.
 
-## Current work: physics realism C
+## Current work: physics realism D
+
+Cue impact now uses stick speed, 19 oz / 6 oz mass ratio and tip restitution 0.73. One bar
+still gives 15-528 in/s for centre hits; derived maximum stick speed is 406.981692 in/s.
+Default elevation is 4 degrees, with no player elevation control. All cue styles share physics.
+Maximum side offset loses forward speed and squirts 2.223977 degrees away from the tip.
+Tilted spin naturally swerves through the existing cloth integrator. Classic's trace accepts
+shot inputs and follows the launch ray; distant swerve is not included in this straight aid.
+Camera rollout now uses the ball's actual spin in its launch frame.
+
+**Verified:** 118 tests and lint/type checks pass. Nine new tests cover cue energy, known
+impact/squirt values, mirror/rotation symmetry, large finite spin clamps, swerve, rollout,
+and side-spin aim contacts. At stick speed 100 in/s: centre gives 129.735566 in/s at 4 degrees
+(131.48 level); maximum side gives 79.541985. These correct the prompt's 0.75 ratio estimate.
+Default maximum follow at 20 in/s runs 54.909259 in (59.849110 with a level cue).
+The prior strong follow/draw regression now uses 0.4 power to retain its original three-inch
+assertions despite off-centre impact speed loss: follow exceeds centre by 18.8771 in and draw
+trails it by 5.81437 in. C's level-centre bank benchmark retains its exact launch conditions.
+
+Rojo sync and a fresh Studio desktop break passed: 8.03 s, 27 ball contacts, 22 rails, no
+pockets, clean console and no drift warning; native screenshot captured. Scripted slow
+english changed direction from 2.223977 to 0.234541 degrees after 0.25 s. The selector/wire
+are E, so this spin check does not claim a player-controlled spin shot yet.
+
+## Previous verified step C
 
 Cushions now use Han 2005's tilted contact normal through the ball centre and full tangential
 friction, including english and draw/follow. Restitution interpolates from 0.9 at 20 in/s to
@@ -112,6 +136,7 @@ Roadmap 1.6 stays unticked until E and its platform acceptance checks are comple
 
 Try gentle shots and a hard break on phone and a real controller; verify motion finishes
 and aiming returns. Run Start Server + 2 Players for the still-open 1.5 acceptance.
-After reporting C, D is the cue-impact model; preserve the explicit stop after each milestone.
+Continue into E (spin controls/wire/ability hook), then F (regulation size/rack/harness),
+as the designer requested.
 No place assets were edited in A-C. The standing milestone handoff asks the user
 to save `place/8ball.rbxl` and publish; scripts themselves are edited only through Rojo.

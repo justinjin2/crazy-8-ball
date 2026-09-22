@@ -586,3 +586,23 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   generated geometry. Its visible pockets do not automatically follow the new shelf. The
   designer chose to keep the current table for now. Retain the new physics shelf and defer
   the imported pocket mesh update; no asset or appearance switch.
+- 2026-09-22: Designer requested D-F in one run. D uses the inelastic impact equation from
+  [TP A.30](https://drdavepoolinfo.com/technical_proofs/new/TP_A-30.pdf), squirt from
+  [TP A.31](https://drdavepoolinfo.com/technical_proofs/new/TP_A-31.pdf), and elevated lever
+  arms from [pooltool](https://raw.githubusercontent.com/ekiefl/pooltool/main/pooltool/physics/resolve/stick_ball/instantaneous_point/__init__.py).
+  Cue mass 19 oz, existing ball mass 6 oz, tip COR 0.73, endmass ratio 25, default/max
+  elevation 4 degrees. Internal level-cue tests may use 0; player controls remain fixed at 4.
+  Remove artificial SpinFactor; the solid-sphere torque coefficient is physical. Every cue
+  style uses the same parameters. Derive stick limits from centre targets 15/528 in/s
+  (maximum stick speed 406.981692 in/s), preserving one 30 mph bar and PowerCurve 2.6.
+- 2026-09-22: D corrects approximate prompt benchmarks rather than altering the equations:
+  V=100 centre gives 129.735566 in/s at 4 degrees; maximum side gives 79.541985 (0.613109x).
+  Squirt is 2.223977 degrees. At 20 in/s maximum follow runs 54.909259 in at 4 degrees or
+  59.849110 level on friction 0.010. The straight aim aid includes launch squirt; later
+  swerve can change a distant contact. Camera rollout uses initial spin, exact for straight
+  non-reversing travel and a conservative bound for curved/reversing sliding paths.
+- 2026-09-22: Keep strong draw/follow assertions after realistic offset speed loss by using
+  a firm 0.4 stroke instead of 0.25. Existing three-inch thresholds remain; measured
+  separations are 18.8771 in for follow and 5.81437 in for draw. Level-cue symmetry and C's
+  bank measurements explicitly retain level launch conditions instead of assuming a
+  4-degree centre hit imparts zero angular velocity.
