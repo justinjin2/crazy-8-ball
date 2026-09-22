@@ -364,9 +364,14 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-21: A bright UI sting now layers on top of every pocket drop, forced a voice the
   same way the drop is. Sized at 12.0 dB under the drop at the drop's loudest: the drop is the
   event and this is the garnish, and the drop is already the loudest thing in the game.
-  Pitched dead straight, with PitchJitter 0, because a UI sting that wanders in pitch stops
-  sounding deliberate - the opposite of the impact sounds, where wobble is the disguise. It is
-  withheld when the pocketed ball is the cue ball: a scratch is not a reward.
+  It is withheld when the pocketed ball is the cue ball: a scratch is not a reward.
+  Pitched dead straight at first, on the theory that a UI sting which wanders stops sounding
+  deliberate. Changed the same day at the designer's call: every pocket sounding identical is
+  worse than a little drift, so it now carries PitchJitter 0.03. That is deliberately smaller
+  than the 0.04 every impact gets, because this is the one clip here likely to be TONAL rather
+  than a noise burst and the ear follows pitch far more closely on a tone - 0.03 is about half
+  a semitone either way, which reads as variation rather than as out of tune. Measured over 24
+  plays: -0.52 to +0.46 semitones, no two alike, volume dead flat.
   Lowered to 15.8 dB under the drop the same day, at the designer's ear: 12 dB still sat too
   far forward for something whose whole job is to be felt rather than noticed.
 - 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The

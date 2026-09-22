@@ -1145,14 +1145,26 @@ Config.Audio = {
 	StrikeHardFromPower = 0.75,
 	-- A ball dropping is the payoff, so it stays loud whatever speed it went in at.
 	Pocket = { MinVolume = 0.7, MaxVolume = 1.0, MinPitch = 0.96, MaxPitch = 1.06 },
-	-- The bright sting over the top of the drop. Flat, like the drop: it is a reward for
-	-- pocketing a ball, and a ball that trickles in earned it just as much as one that was
-	-- smashed in. Pitched dead straight, because a UI sting that wanders in pitch stops
-	-- sounding deliberate. The volume is set so it lands about 16 dB UNDER the drop at the
-	-- drop's loudest - there, felt more than heard, never the thing you notice first. It was
-	-- 0.25 (12 dB under) for a day and sat too far forward at the designer's ear. This is the
+	-- The bright sting over the top of the drop. Flat in VOLUME, like the drop: it is a reward
+	-- for pocketing a ball, and a ball that trickles in earned it just as much as one that was
+	-- smashed in. The volume is set so it lands about 16 dB UNDER the drop at the drop's
+	-- loudest - there, felt more than heard, never the thing you notice first. It was 0.25
+	-- (12 dB under) for a day and sat too far forward at the designer's ear. This is the
 	-- number to move if it disappears or creeps back out in front. (tune)
-	Bonus = { MinVolume = 0.16, MaxVolume = 0.16, MinPitch = 1, MaxPitch = 1, PitchJitter = 0 },
+	--
+	-- PitchJitter is what stops it being the same sound every time. It is the one clip here
+	-- that is likely to be tonal rather than a noise burst, and the ear follows pitch on a
+	-- tone far more closely than on a knock, so this is deliberately smaller than the 0.04
+	-- every impact gets: 0.03 is about half a semitone either way, which reads as variation
+	-- rather than as something out of tune. Raise it for more character, but past roughly
+	-- 0.06 a tonal sting starts sounding wrong rather than varied. (tune)
+	Bonus = {
+		MinVolume = 0.16,
+		MaxVolume = 0.16,
+		MinPitch = 1,
+		MaxPitch = 1,
+		PitchJitter = 0.03,
+	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
 	-- contact and below even the QUIETEST audible clack, which is the bar it has to clear.
