@@ -59,11 +59,10 @@ local function ball(parent: GuiObject, name: string, size: number): TextButton
 	return item
 end
 
-local function dot(parent: GuiObject): Frame
+local function dot(parent: GuiObject, diameter: number): Frame
 	local item = Instance.new("Frame")
 	item.Name = "StrikePoint"
 	item.AnchorPoint = Vector2.new(0.5, 0.5)
-	local diameter = Config.UI.Spin.DotSizePx
 	item.Size = UDim2.fromOffset(diameter, diameter)
 	item.BackgroundColor3 = rgb(Config.UI.Spin.DotColor)
 	item.BorderSizePixel = 0
@@ -117,7 +116,7 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	-- The decoration must not steal the toggle's pointer or gamepad selection.
 	icon.Active = false
 	icon.Selectable = false
-	local iconDot = dot(icon)
+	local iconDot = dot(icon, C.IconDotSizePx)
 
 	local panel = Instance.new("Frame")
 	panel.Name = "SpinPanel"
@@ -135,7 +134,7 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	target.AnchorPoint = Vector2.new(0.5, 0)
 	target.Position = UDim2.new(0.5, 0, 0, y)
 	target.Selectable = false
-	local strikeDot = dot(target)
+	local strikeDot = dot(target, C.DotSizePx)
 	y += C.BallSizePx + C.GapPx
 
 	local actionWidth = (panelWidth - C.MarginPx * 2 - C.GapPx) / 2
@@ -180,7 +179,9 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 		local dotRadius = C.DotSizePx / 2
 		local position = UDim2.new(0.5 + nx / 2, -nx * dotRadius, 0.5 - ny / 2, ny * dotRadius)
 		strikeDot.Position = position
-		iconDot.Position = position
+		local iconDotRadius = C.IconDotSizePx / 2
+		iconDot.Position =
+			UDim2.new(0.5 + nx / 2, -nx * iconDotRadius, 0.5 - ny / 2, ny * iconDotRadius)
 	end
 	input:onSpin(refresh)
 	refresh(input.spinX, input.spinY)
