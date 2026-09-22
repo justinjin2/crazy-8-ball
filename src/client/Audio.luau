@@ -401,7 +401,7 @@ function Audio.attach(self: Audio, match: any)
 				-- are chosen so two landing together make a chord rather than a clash.
 				local B = A.Bonus
 				local rungs = B.StreakSemitoneSteps
-				local semitones = rungs[math.min(self.streak + 1, #rungs)]
+				local semitones = B.BaseSemitones + rungs[math.min(self.streak + 1, #rungs)]
 				local pitch = 2 ^ (semitones / 12)
 				self:playAt("PocketBonus", at, B, ev.speed, true, pitch)
 				self.streak += 1

@@ -1178,12 +1178,19 @@ Config.Audio = {
 	--
 	-- It stops at the octave on purpose: a short bright sting pitched much past that stops
 	-- sounding like itself and starts sounding like a chirp.
+	--
+	-- BaseSemitones transposes the whole ladder. The recording is not one note: it starts on a
+	-- D and rises to a G inside itself, so played untouched a run began on D. -2 drops it a
+	-- whole tone so the first ball of a run is a C and the ladder above reads as C D E F G A B
+	-- C from its own root rather than from a D. It also buys headroom - the top rung now lands
+	-- 10 semitones above the recording instead of 12. (tune)
 	Bonus = {
 		MinVolume = 0.16,
 		MaxVolume = 0.16,
 		MinPitch = 1,
 		MaxPitch = 1,
 		PitchJitter = 0,
+		BaseSemitones = -2,
 		StreakSemitoneSteps = { 0, 2, 4, 5, 7, 9, 11, 12 },
 	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the

@@ -386,8 +386,14 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   deep enough to reach them AND two balls overlapping on exactly that pair is the one case
   that can still grind; rare enough to be worth the scale. The major pentatonic
   { 0, 2, 4, 7, 9, 12 } is the same walk with those two steps removed if it ever is not.
-  Measured through the real event path: C, D, E, F, G, A, B, C with the whole tones and
-  semitones falling exactly where a major scale puts them, held at the octave beyond that.
+  `BaseSemitones` (-2) transposes the whole ladder, because the recording is not one note: it
+  starts on a D and rises a fourth to a G inside itself, so played untouched a run began on D.
+  Dropping it a whole tone puts the first ball of a run on C, which is where the scale wants
+  to start, and buys headroom as well - the top rung now lands 10 semitones above the
+  recording rather than 12.
+  Measured through the real event path: a run starts on C and walks C D E F G A B C, with the
+  whole tones and semitones falling exactly where a major scale puts them, the recording
+  playing untouched at its native D on the second ball, and the octave held beyond that.
   Lowered to 15.8 dB under the drop the same day, at the designer's ear: 12 dB still sat too
   far forward for something whose whole job is to be felt rather than noticed.
 - 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The
