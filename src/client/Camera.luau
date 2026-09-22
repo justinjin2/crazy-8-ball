@@ -32,7 +32,13 @@ local tableCorners: { Vector3 }? = nil
 
 local locked = false
 local connections: { RBXScriptConnection } = {}
-local zoom = Config.Camera.View.ZoomDefault
+local topDown = false
+local hudTop = 0
+local transitionFrom: CFrame? = nil
+local transitionTime = 0
+local savedCamera: any = nil
+
+local zoom = Config.Multiplayer.InitialZoom
 -- The pose the smoothing chases, kept apart from what the camera actually shows. The shake
 -- is added on top of this, never folded into it: lerping from an already-shaken pose would
 -- smear the shake into the smoothing and let it drift.
@@ -87,6 +93,10 @@ function Camera.lock()
 		return
 	end
 	locked = true
+	local cam = Workspace.CurrentCamera
+	savedCamera = { kind = cam.CameraType, fov = cam.FieldOfView, subject = cam.CameraSubject }
+	transitionFrom = cam.CFrame
+	transitionTime = 0
 	takeOver()
 	local function watch(cam: Camera)
 		table.insert(
@@ -128,8 +138,16 @@ function Camera.unlock()
 	returnTimer = 0
 	wasPlaying = false
 	local cam = Workspace.CurrentCamera
-	cam.CameraType = Enum.CameraType.Custom
-	cam.FieldOfView = 70
+	cam.CameraType = if savedCamera then savedCamera.kind else Enum.CameraType.Custom
+	if savedCamera then
+		cam.FieldOfView = savedCamera.fov
+		if savedCamera.subject and savedCamera.subject.Parent then
+			cam.CameraSubject = savedCamera.subject
+		end
+	end
+	savedCamera = nil
+	transitionFrom = nil
+	topDown = false
 end
 
 function Camera.isLocked(): boolean
@@ -189,7 +207,7 @@ end
 --- Back to the framing every turn starts from. Used when leaving a table and at the end of
 --- each shot, so a pinch made for one shot does not quietly become the setting for the match.
 function Camera.resetZoom()
-	zoom = Config.Camera.View.ZoomDefault
+	zoom = Config.Multiplayer.InitialZoom
 end
 
 function Camera.getZoom(): number
@@ -413,6 +431,75 @@ local function viewFor(
 	return cf
 end
 
+function Camera.setMode(overhead: boolean, headerPixels: number)
+	local vp = Workspace.CurrentCamera.ViewportSize
+	local reserved =
+		math.clamp(headerPixels / math.max(vp.Y, 1), 0, Config.Multiplayer.CameraMaxHudFraction)
+	if topDown ~= overhead then
+		transitionFrom = Workspace.CurrentCamera.CFrame
+		transitionTime = 0
+		smoothed = nil
+	end
+	topDown, hudTop = overhead, reserved
+end
+
+local function overheadView(): CFrame
+	local vp = Workspace.CurrentCamera.ViewportSize
+	local tanV = math.tan(math.rad(Config.Camera.View.FieldOfView) / 2)
+	local tanH = tanV * math.max(vp.X, 1) / math.max(vp.Y, 1)
+	local M = Config.Multiplayer
+	local halfX = TableBuilder.studs(Config.Table.LengthInches / 2 + Config.Table.RailWidthInches)
+	local halfY = TableBuilder.studs(Config.Table.WidthInches / 2 + Config.Table.RailWidthInches)
+	local distance = math.max(
+		halfX / (tanH * (1 - 2 * M.CameraSideFraction)),
+		halfY / (tanV * math.max(0.2, 1 - hudTop - M.CameraBottomFraction))
+	)
+	local up = TableBuilder.aimDirection(placement, math.pi / 2)
+	local target = tableCentre() + up * distance * tanV * (hudTop - M.CameraBottomFraction)
+	return CFrame.lookAt(target + Vector3.new(0, distance, 0), target, up)
+end
+
+local function reserveHud(cf: CFrame, wide: boolean): CFrame
+	if hudTop <= 0 then
+		return cf
+	end
+	local vp = Workspace.CurrentCamera.ViewportSize
+	local M = Config.Multiplayer
+	local tanV = math.tan(math.rad(Config.Camera.View.FieldOfView) / 2)
+	local tanH = tanV * vp.X / math.max(vp.Y, 1)
+	local originalDistance = (cf.Position - tableCentre()).Magnitude
+	local distance = originalDistance
+	local result = cf
+	for _ = 1, M.CameraFitIterations do
+		result = cf
+			- cf.LookVector * (distance - originalDistance)
+			+ cf.UpVector * distance * tanV * math.max(0, hudTop - M.CameraBottomFraction)
+		if not wide then
+			return result
+		end
+		local fits = true
+		for _, point in corners() do
+			local p = result:PointToObjectSpace(point)
+			local depth = -p.Z
+			local y = if depth > 0 then p.Y / (depth * tanV) else math.huge
+			if
+				depth <= 0
+				or math.abs(p.X) > depth * tanH * (1 - 2 * M.CameraSideFraction)
+				or y > 1 - 2 * hudTop
+				or y < -1 + 2 * M.CameraBottomFraction
+			then
+				fits = false
+				break
+			end
+		end
+		if fits then
+			return result
+		end
+		distance *= M.CameraFitGrowth
+	end
+	return result
+end
+
 --- The fitted aim pose for a cue ball position and aim angle at the current zoom, for an
 --- optional viewport size (defaults to the real one). Used by the framing checks.
 function Camera.viewAt(cueWorld: Vector3, angle: number, viewport: Vector2?): CFrame
@@ -496,7 +583,12 @@ function Camera.update(
 		end
 	end
 	local gaze = if playing and S.FocusWeight > 0 then focus else nil
-	local target = viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
+	local target = if topDown
+		then overheadView()
+		else reserveHud(
+			viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride),
+			(zoomOverride or zoom) >= Config.Camera.View.ZoomMax - 0.001
+		)
 	local smoothing = if playing
 		then S.Smoothing
 		elseif returnTimer > 0 then S.ReturnSmoothing
@@ -504,6 +596,14 @@ function Camera.update(
 	local alpha = 1 - math.exp(-dt / math.max(smoothing, 1e-3))
 	if target.Position.X == target.Position.X then -- never chase a NaN pose
 		local base = (smoothed or cam.CFrame):Lerp(target, alpha)
+		if transitionFrom then
+			transitionTime += dt
+			local t = math.clamp(transitionTime / Config.Multiplayer.CameraTransitionSeconds, 0, 1)
+			base = transitionFrom:Lerp(target, t * t * (3 - 2 * t))
+			if t >= 1 then
+				transitionFrom = nil
+			end
+		end
 		smoothed = base
 		cam.CFrame = base + shakeOffset(dt)
 	end

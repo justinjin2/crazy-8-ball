@@ -31,6 +31,7 @@ export type Guideline = typeof(setmetatable(
 		rightEdge: Strip,
 		objectStub: Strip,
 		cueStub: Strip,
+		crosses: { Strip },
 		scroll: number,
 	},
 	Guideline
@@ -104,6 +105,7 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 		rightEdge = makeStrip("RightEdge", folder, false),
 		objectStub = makeStrip("ObjectStub", folder, false),
 		cueStub = makeStrip("CueStub", folder, false),
+		crosses = { makeStrip("InvalidA", folder, false), makeStrip("InvalidB", folder, false) },
 		scroll = 0,
 	}, Guideline)
 	return self
@@ -147,7 +149,7 @@ local function placeStrip(
 	end
 end
 
-function Guideline.show(self: Guideline, trace: Trace)
+function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 	if trace.contact == "none" then
 		self:hide()
 		return
@@ -208,6 +210,30 @@ function Guideline.show(self: Guideline, trace: Trace)
 		self.ring.Transparency = G.LineTransparency
 	end
 
+	for index, cross in self.crosses do
+		if invalid then
+			local sign = if index == 1 then 1 else -1
+			local color = Config.Multiplayer.Style.Red
+			cross.part.Color = Color3.fromRGB(color[1], color[2], color[3])
+			placeStrip(
+				cross,
+				self.placement,
+				trace.ghostX - ringR,
+				trace.ghostY - ringR * sign,
+				trace.ghostX + ringR,
+				trace.ghostY + ringR * sign,
+				G.LineTransparency,
+				G.EdgeWidthStuds
+			)
+		else
+			hideStrip(cross)
+		end
+	end
+	if invalid then
+		hideStrip(self.objectStub)
+		hideStrip(self.cueStub)
+		return
+	end
 	-- Object ball direction: from the object ball's far edge outward.
 	if trace.contact == "ball" then
 		local ox, oy =
@@ -255,6 +281,9 @@ function Guideline.destroy(self: Guideline)
 end
 
 function Guideline.hide(self: Guideline)
+	for _, cross in self.crosses do
+		hideStrip(cross)
+	end
 	hideStrip(self.path)
 	hideStrip(self.leftEdge)
 	hideStrip(self.rightEdge)

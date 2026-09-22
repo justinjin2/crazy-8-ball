@@ -75,6 +75,7 @@ export type Match = typeof(setmetatable(
 		-- The sequence number of the shot being replayed, and where the server says the
 		-- balls finish, so the table can settle onto the truth when the motion stops.
 		seq: number,
+		epoch: number,
 		pendingFinal: { number }?,
 		pendingChecksum: number?,
 	},
@@ -99,6 +100,7 @@ function Match.new(
 		lastShot = nil,
 		eventListeners = {},
 		seq = 0,
+		epoch = 0,
 		pendingFinal = nil,
 		pendingChecksum = nil,
 	}, Match)
@@ -187,6 +189,58 @@ function Match.ensureCueBall(self: Match)
 	end
 end
 
+-- Install a complete authoritative state, including on a late join or new rack.
+function Match.applyBalls(self: Match, packed: { number })
+	if #packed ~= #self.state.balls * 4 then
+		return
+	end
+	for _, b in self.state.balls do
+		local i = b.id * 4
+		b.x, b.y, b.z, b.pocketed = packed[i + 1], packed[i + 2], packed[i + 3], packed[i + 4] == 1
+		b.falling, b.tip, b.pocket = false, nil, nil
+		Ball.stop(b)
+	end
+	self.state.time, self.state.overrides = 0, nil
+	self:renderState()
+end
+
+function Match.receive(self: Match, msg: any)
+	if msg.epoch < self.epoch or (msg.epoch == self.epoch and msg.seq <= self.seq) then
+		return
+	end
+	if msg.epoch ~= self.epoch then
+		self.epoch, self.seq = msg.epoch, 0
+	end
+	self.shot = nil
+	self:applyBalls(msg.start)
+	self:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
+end
+
+function Match.snapshot(self: Match, snapshot: any)
+	if snapshot.epoch < self.epoch then
+		return
+	end
+	if snapshot.epoch ~= self.epoch then
+		self.epoch, self.seq = snapshot.epoch, 0
+		self.shot = nil
+		self.pendingFinal = nil
+		self.pendingChecksum = nil
+		self.pendingRack = nil
+	end
+	self.rackSeed, self.rackConfirmed = snapshot.rackSeed, true
+	if snapshot.shot then
+		self:receive(snapshot.shot)
+	elseif snapshot.shotSeq >= self.seq then
+		-- The server's next phase always wins over a slow client's replay; no player's
+		-- clock depends on a spectator completing an animation.
+		self.shot = nil
+		self.pendingFinal = nil
+		self.pendingChecksum = nil
+		self.seq = snapshot.shotSeq
+		self:applyBalls(snapshot.balls)
+	end
+end
+
 --- Replay the shot the server has just run. `seed` is the cue ball's state immediately
 --- after the strike; `startedAt` is the server clock reading when it began, so a client
 --- that joined late or hitched can work out how far in it already is rather than starting
@@ -200,7 +254,9 @@ function Match.replay(
 	checksum: number,
 	overrides: Simulation.Overrides?
 )
-	self:ensureCueBall()
+	if seq <= self.seq then
+		return
+	end
 	local cue = Simulation.findBall(self.state, 0)
 	if cue == nil then
 		return
@@ -215,7 +271,8 @@ function Match.replay(
 	self.pendingChecksum = checksum
 	-- If this arrived late, catch up to where the shot already is instead of replaying it
 	-- from the start and finishing several seconds after everyone else.
-	local behind = math.max(workspace:GetServerTimeNow() - startedAt, 0)
+	local behind =
+		math.clamp(workspace:GetServerTimeNow() - startedAt, 0, Config.Physics.MaxShotSeconds)
 	self.shot = {
 		elapsed = behind,
 		steps = 0,
@@ -314,8 +371,14 @@ function Match.update(self: Match, dt: number): boolean
 	shot.elapsed += math.min(dt, Config.Debug.MaxPlaybackStepSeconds)
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
 	local timeBefore = self.state.time
+	local frameSteps = 0
 
-	while self.state.time < shot.elapsed and not Simulation.isAtRest(self.state) do
+	while
+		self.state.time < shot.elapsed
+		and not Simulation.isAtRest(self.state)
+		and frameSteps < Config.Multiplayer.MaxReplayStepsPerFrame
+	do
+		frameSteps += 1
 		if shot.steps >= maxSteps then
 			shot.capped = true
 			for _, b in self.state.balls do

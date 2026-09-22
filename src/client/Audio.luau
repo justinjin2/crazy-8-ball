@@ -361,7 +361,7 @@ function Audio.playAt(
 end
 
 --- Listen to a table. Every contact the simulation reports becomes a sound.
-function Audio.attach(self: Audio, match: any)
+function Audio.attach(self: Audio, match: any, privateBonus: boolean?)
 	match:onEvent(function(ev: Event)
 		local A = Config.Audio
 		local now = os.clock()
@@ -403,7 +403,9 @@ function Audio.attach(self: Audio, match: any)
 				local rungs = B.StreakSemitoneSteps
 				local semitones = B.BaseSemitones + rungs[math.min(self.streak + 1, #rungs)]
 				local pitch = 2 ^ (semitones / 12)
-				self:playAt("PocketBonus", at, B, ev.speed, true, pitch)
+				if not privateBonus then
+					self:playAt("PocketBonus", at, B, ev.speed, true, pitch)
+				end
 				self.streak += 1
 				self.pocketedThisShot = true
 			end

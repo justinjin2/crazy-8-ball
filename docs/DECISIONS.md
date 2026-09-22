@@ -657,3 +657,18 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-22: Designer preferred the earlier large selector marker, reduced only slightly:
   use 36 px (down from 39.6 px), with the left toggle retaining 17.6 px. Studio visual check,
   lint and all 132 tests pass.
+
+## 2026-09-22 — Shared multiplayer update
+
+Designer approved MULTIPLAYER_SPEC.md and said begin. Three dedicated baseplate tables
+share one configurable authority. Individual team slots, longest-waiting host, rotation
+after every shot, first queued teammate breaking, open table after break, chronological
+legal group assignment and explicit break/8-ball outcomes are agreed. Normal aim remains
+orbit; setup uses top-down. Team surrender is unanimous (10 s, 30 s cooldown); disconnects
+continue shorthanded and empty teams lose. Resets keep the seat. Timers are server deadlines,
+including 2 s intro, 10 s setup phases and 15 s shooting. No rewards or persisted wins.
+
+Implementation detail: if the last teammate disconnects during an accepted shot, finish
+its replay/settling first, then award the empty-team forfeit. Runtime QA uses Studio-only
+server fixtures and never creates playable bots. Multiplayer starts at whole-table zoom
+for HUD/pocket clearance; manual orbit/down-cue zoom is preserved.

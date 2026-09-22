@@ -27,7 +27,7 @@ local Match = require(script.Parent:WaitForChild("Match"))
 local Lounge = {}
 Lounge.__index = Lounge
 
-export type Seat = { userId: number, host: boolean }
+export type Seat = { userId: number, host: boolean, connected: boolean, team: number, slot: number }
 
 export type Lounge = typeof(setmetatable(
 	{} :: {
@@ -41,6 +41,8 @@ export type Lounge = typeof(setmetatable(
 		seatListeners: { (number?) -> () },
 		rejectListeners: { (string) -> () },
 		mySeat: number?,
+		snapshots: { [number]: any },
+		snapshotListeners: { (any) -> () },
 		-- One spare cue stick per pooled renderer, for watching other people line up.
 		cues: { Model },
 		cueOf: { [number]: Model },
@@ -93,6 +95,8 @@ function Lounge.new(parent: Instance): Lounge
 		seatListeners = {},
 		rejectListeners = {},
 		mySeat = nil,
+		snapshots = {},
+		snapshotListeners = {},
 		cues = {},
 		cueOf = {},
 		aims = {},
@@ -121,6 +125,9 @@ function Lounge.new(parent: Instance): Lounge
 	end
 
 	self:listen()
+	task.defer(function()
+		Net.get("SnapshotRequest"):FireServer()
+	end)
 	return self
 end
 
@@ -136,22 +143,48 @@ function Lounge.onShotRejected(self: Lounge, listener: (string) -> ())
 end
 
 --- Tell the server where we are aiming, so the people watching see the cue turn.
-function Lounge.reportAim(_self: Lounge, id: number, angle: number)
-	Net.get("AimUpdate"):FireServer(id, angle)
+function Lounge.reportAim(self: Lounge, id: number, angle: number)
+	local snapshot = self.snapshots[id]
+	if snapshot then
+		Net.get("AimUpdate"):FireServer(id, angle, snapshot.epoch, snapshot.turnId)
+	end
+end
+function Lounge.onSnapshot(self: Lounge, listener: (any) -> ())
+	table.insert(self.snapshotListeners, listener)
+end
+function Lounge.action(self: Lounge, kind: string, data: any?)
+	local snapshot = self.mySeat and self.snapshots[self.mySeat]
+	if not snapshot then
+		return
+	end
+	local payload: any = if data then table.clone(data) else {}
+	payload.kind, payload.tableId, payload.epoch, payload.turnId =
+		kind, snapshot.id, snapshot.epoch, snapshot.turnId
+	Net.get("MatchAction"):FireServer(payload)
 end
 
 --- Ask the server to take a shot at table `id`. Nothing happens locally: the shot starts
 --- when the server broadcasts it back, so every client (including this one) plays the same
 --- motion from the same numbers at the same moment.
 function Lounge.fire(
-	_self: Lounge,
+	self: Lounge,
 	id: number,
 	angle: number,
 	power: number,
 	spin: { x: number, y: number },
-	elevation: number
+	elevation: number,
+	cueX: number?,
+	cueY: number?
 )
+	local snapshot = self.snapshots[id]
+	if not snapshot then
+		return
+	end
 	Net.get("ShotFired"):FireServer({
+		epoch = snapshot.epoch,
+		turnId = snapshot.turnId,
+		cueX = cueX,
+		cueY = cueY,
 		tableId = id,
 		angle = angle,
 		power = power,
@@ -173,7 +206,9 @@ function Lounge.listen(self: Lounge)
 		if typeof(batch) ~= "table" then
 			return
 		end
+		local seen: { [number]: boolean } = {}
 		for i = 1, #batch, 3 do
+			seen[batch[i]] = true
 			local id, by, angle = batch[i], batch[i + 1], batch[i + 2]
 			if typeof(id) == "number" and typeof(angle) == "number" then
 				local existing = self.aims[id]
@@ -186,6 +221,11 @@ function Lounge.listen(self: Lounge)
 				end
 			end
 		end
+		for id in self.aims do
+			if not seen[id] then
+				self.aims[id] = nil
+			end
+		end
 	end)
 
 	Net.get("ShotResult").OnClientEvent:Connect(function(msg)
@@ -194,20 +234,27 @@ function Lounge.listen(self: Lounge)
 		end
 		local match: Match.Match? = self.matches[msg.tableId]
 		if match then
-			match:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
+			match:receive(msg)
 		end
 	end)
 	Net.get("TableState").OnClientEvent:Connect(function(snapshot)
 		if typeof(snapshot) ~= "table" or typeof(snapshot.id) ~= "number" then
 			return
 		end
-		local match = self.matches[snapshot.id]
+		local previous = self.snapshots[snapshot.id]
 		if
-			match
-			and typeof(snapshot.rackSeed) == "number"
-			and typeof(snapshot.rackPositions) == "table"
+			previous
+			and (
+				snapshot.epoch < previous.epoch
+				or (snapshot.epoch == previous.epoch and snapshot.revision < previous.revision)
+			)
 		then
-			match:applyRack(snapshot.rackSeed, snapshot.rackPositions)
+			return
+		end
+		self.snapshots[snapshot.id] = snapshot
+		local match = self.matches[snapshot.id]
+		if match then
+			match:snapshot(snapshot)
 		end
 		local before = #(self.seats[snapshot.id] or {})
 		self.seats[snapshot.id] = snapshot.seats or {}
@@ -218,7 +265,7 @@ function Lounge.listen(self: Lounge)
 		local found: number? = nil
 		for id, seats in self.seats do
 			for _, seat in seats do
-				if seat.userId == me then
+				if seat.userId == me and seat.connected then
 					found = id
 				end
 			end
@@ -228,6 +275,9 @@ function Lounge.listen(self: Lounge)
 			for _, l in self.seatListeners do
 				l(found)
 			end
+		end
+		for _, listener in self.snapshotListeners do
+			listener(snapshot)
 		end
 	end)
 end
@@ -354,9 +404,23 @@ local function updateWatchedCues(self: Lounge, dt: number)
 		local aim = self.aims[id]
 		local match = self.matches[id]
 		local cueBall = match and match:findCueBall()
-		local mine = id == self.mySeat
+		local snapshot = self.snapshots[id]
+		local mine = aim and aim.by == Players.LocalPlayer.UserId
 		-- A shot in flight has no cue against the ball, and neither has an empty table.
-		if aim == nil or mine or cueBall == nil or cueBall.pocketed or match:isBusy() then
+		if
+			aim == nil
+			or mine
+			or cueBall == nil
+			or cueBall.pocketed
+			or match:isBusy()
+			or not snapshot
+			or snapshot.shooter ~= aim.by
+			or (
+				snapshot.phase ~= "Aiming"
+				and snapshot.phase ~= "Intro"
+				and snapshot.phase ~= "Placement"
+			)
+		then
 			CueStickBuilder.setVisible(cue, false)
 		else
 			-- Ease towards the last angle heard: the stream is ten a second, so drawing it

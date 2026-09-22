@@ -1,462 +1,674 @@
 --!strict
--- TableService: the server's view of the twelve tables. It owns who is sitting where, and
--- it owns the floor pads that put them there.
---
--- Joining is "step on the pad" (GDD section 6), not a prompt. Occupancy is POLLED rather
--- than driven by BasePart.Touched, for two reasons: Touched does not fire for a player who
--- walks on and then stands still, and it fires repeatedly for one that jitters. A distance
--- check a few times a second is both cheaper and steadier for twelve pads.
---
--- A player has to be on the pad for two polls running before it counts. Without that, the
--- acceptance test for this milestone breaks it immediately: someone walking across the room
--- clips the corner of three pads on the way and gets dragged into a seat at each.
---
--- Roadmap 1.5f gives this the shot authority as well (validating a shot, running the
--- simulation, broadcasting the result). Right now it only tracks seats, which is why there
--- is no turn order here: the designer's call is that anyone at a table may shoot until the
--- rules land in 2.1.
-
+-- Roblox adapter: identity/proximity, queue pads, replication and characters.
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
+local RunService = game:GetService("RunService")
+local PhysicsService = game:GetService("PhysicsService")
+local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Config = require(Shared:WaitForChild("Config"))
-local Net = require(Shared:WaitForChild("Net"))
-local Placement = require(Shared:WaitForChild("Placement"))
-local Physics = Shared:WaitForChild("Physics")
-local Ball = require(Physics:WaitForChild("Ball"))
-local Rack = require(Physics:WaitForChild("Rack"))
-local Simulation = require(Physics:WaitForChild("Simulation"))
-local TableGeometry = require(Physics:WaitForChild("Table"))
+local Config = require(Shared.Config)
+local Strings = require(Shared.Strings)
+local Net = require(Shared.Net)
+local Placement = require(Shared.Placement)
+local ShotInput = require(Shared.ShotInput)
+local Engine = require(Shared.Rules.MatchEngine)
+local M = Config.Multiplayer
+local Q = M.QueueVisual
+local Service = {}
+Service.PadFolderName = "Pads"
+local tables: { [number]: any } = {}
+local seatOf: { [number]: number } = {}
+local buckets: { [string]: any } = {}
+local characterSaved: { [number]: any } = {}
+local rng = Random.new()
+local started = false
 
-local TableService = {}
-
-TableService.PadFolderName = "Pads"
-
-export type Seat = { userId: number, host: boolean }
-
-type TableState = {
-	id: number,
-	placement: Placement.Placement,
-	pad: BasePart,
-	-- The authoritative balls. Clients keep their own copy and replay shots onto it, but
-	-- this one is the truth and they settle onto it when a shot ends.
-	state: Simulation.State,
-	rackSeed: number,
-	rackPositions: { number }, -- initial x/y pairs in canonical ball-id order
-	-- Bumped per shot, so a client that missed one can tell and snap instead of replaying.
-	shotSeq: number,
-	-- Where the shooter at this table is currently aiming, relayed to everyone watching.
-	aim: number?,
-	aimBy: number?,
-	-- Server time the current shot started, or nil when the table is still.
-	shotStartedAt: number?,
-	seats: { Seat },
-	-- userId -> how many polls in a row they have been standing on this pad
-	dwell: { [number]: number },
-	-- userId -> the time they left this table, so the pad can ignore them for a moment
-	leftAt: { [number]: number },
-}
-
-local tables: { [number]: TableState } = {}
-local seatOf: { [number]: number } = {} -- userId -> table id
-
-local function color(rgb: { number }): Color3
-	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+local function rgb(c: { number }): Color3
+	return Color3.fromRGB(c[1], c[2], c[3])
 end
-
---- Where table `id`'s pad stands: out past the head rail, on that tier's floor.
-function TableService.padPosition(p: Placement.Placement): Vector3
-	local dx, dz = Placement.dirToWorld(p, -1, 0) -- towards the head rail in table space
-	local d = Config.Pad.DistanceStuds
-	return Vector3.new(p.x + dx * d, p.y + Config.Pad.SizeStuds[2] / 2, p.z + dz * d)
+local function now(): number
+	return workspace:GetServerTimeNow()
 end
-
-local function buildPad(p: Placement.Placement, id: number, parent: Instance): BasePart
-	local S = Config.Pad
-	local pad = Instance.new("Part")
-	pad.Name = ("Pad_%02d"):format(id)
-	pad.Anchored = true
-	pad.CanCollide = false -- you walk onto it, never into it
-	pad.CanQuery = false
-	pad.CanTouch = false
-	pad.CastShadow = false
-	pad.Size = Vector3.new(S.SizeStuds[1], S.SizeStuds[2], S.SizeStuds[3])
-	pad.Material = Enum.Material.SmoothPlastic
-	pad.Color = color(S.FreeColor)
-	pad.Transparency = S.FreeTransparency
-	pad.TopSurface = Enum.SurfaceType.Smooth
-	pad.BottomSurface = Enum.SurfaceType.Smooth
-	pad.CFrame = CFrame.new(TableService.padPosition(p)) * CFrame.Angles(0, p.yaw, 0)
-	pad.Parent = parent
-
-	-- A soft light under the pad so "this table is taken" reads from across the room.
-	local glow = Instance.new("SurfaceLight")
-	glow.Name = "Glow"
-	glow.Face = Enum.NormalId.Top
-	glow.Angle = 120
-	glow.Range = 10
-	glow.Brightness = 0
-	glow.Shadows = false
-	glow.Color = color(S.OccupiedColor)
-	glow.Parent = pad
-
-	local label = Instance.new("SurfaceGui")
-	label.Name = "Number"
-	label.Face = Enum.NormalId.Top
-	label.CanvasSize = Vector2.new(200, 200)
-	label.Parent = pad
-	local text = Instance.new("TextLabel")
-	text.Size = UDim2.fromScale(1, 1)
-	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.GothamBold
-	text.TextScaled = true
-	text.TextTransparency = 0.35
-	text.TextColor3 = Color3.fromRGB(255, 255, 255)
-	text.Text = tostring(id)
-	text.Parent = label
-	return pad
-end
-
-local function refreshPad(t: TableState)
-	local S = Config.Pad
-	local n = #t.seats
-	local glow = t.pad:FindFirstChild("Glow") :: SurfaceLight?
-	if n == 0 then
-		t.pad.Color = color(S.FreeColor)
-		t.pad.Transparency = S.FreeTransparency
-		if glow then
-			glow.Brightness = 0
-		end
-	else
-		local full = n >= S.MaxSeats
-		t.pad.Color = color(if full then S.FullColor else S.OccupiedColor)
-		t.pad.Transparency = S.ActiveTransparency
-		if glow then
-			glow.Brightness = 1.4
-			glow.Color = t.pad.Color
-		end
-	end
-end
-
---- What the clients are told about one table.
-local function snapshot(t: TableState)
-	local seats = {}
-	for i, seat in t.seats do
-		seats[i] = { userId = seat.userId, host = seat.host }
-	end
-	return { id = t.id, seats = seats, rackSeed = t.rackSeed, rackPositions = t.rackPositions }
-end
-
-local function rackPositions(balls: { Ball.Ball }): { number }
-	local positions = table.create(#balls * 2)
-	for i, ball in balls do
-		positions[2 * i - 1], positions[2 * i] = ball.x, ball.y
-	end
-	return positions
-end
-
-local function broadcast(t: TableState)
-	refreshPad(t)
-	Net.get("TableState"):FireAllClients(snapshot(t))
-end
-
---- Every table's seats, for a client that has just joined the server.
-function TableService.snapshotAll(): { any }
-	local all = {}
-	for _, t in tables do
-		table.insert(all, snapshot(t))
-	end
-	return all
-end
-
---- Seat `player` at table `id`. Returns true if they ended up seated there.
-function TableService.seat(player: Player, id: number): boolean
-	local t = tables[id]
-	if t == nil then
-		return false
-	end
-	local current = seatOf[player.UserId]
-	if current == id then
-		return true
-	end
-	if #t.seats >= Config.Pad.MaxSeats then
-		return false
-	end
-	if current then
-		TableService.unseat(player)
-	end
-	-- The first player on a free table is the host (GDD section 6). The host popup and the
-	-- settings it carries are Roadmap 2.4; the slot exists from now so they have somewhere
-	-- to land.
-	table.insert(t.seats, { userId = player.UserId, host = #t.seats == 0 })
-	seatOf[player.UserId] = id
-	broadcast(t)
-	return true
-end
-
---- Take `player` off whatever table they are on.
-function TableService.unseat(player: Player): boolean
-	local id = seatOf[player.UserId]
-	if id == nil then
-		return false
-	end
-	local t = tables[id]
-	seatOf[player.UserId] = nil
-	if t == nil then
-		return false
-	end
-	for i, seat in t.seats do
-		if seat.userId == player.UserId then
-			table.remove(t.seats, i)
-			break
-		end
-	end
-	-- If the host left, the next player along becomes host rather than the table stalling
-	-- with nobody able to set it up.
-	if #t.seats > 0 then
-		local stillHosted = false
-		for _, seat in t.seats do
-			stillHosted = stillHosted or seat.host
-		end
-		if not stillHosted then
-			t.seats[1].host = true
-		end
-	end
-	if t.aimBy == player.UserId then
-		t.aim = nil
-		t.aimBy = nil
-	end
-	-- Leaving has to stick. The shooter stands at the rail, well inside the pad's radius, so
-	-- without this the next poll would seat them again immediately.
-	t.leftAt[player.UserId] = os.clock()
-	for _, other in tables do
-		other.dwell[player.UserId] = nil
-	end
-	broadcast(t)
-	return true
-end
-
---- Which table `player` is sitting at, if any.
-function TableService.tableOf(player: Player): number?
-	return seatOf[player.UserId]
-end
-
---- The authoritative simulation for table `id`, for ShotService.
-function TableService.stateOf(id: number): Simulation.State?
-	local t = tables[id]
-	return if t then t.state else nil
-end
-
---- True while a shot is still running on table `id`, so a second one cannot be started.
-function TableService.isBusy(id: number): boolean
-	local t = tables[id]
-	if t == nil or t.shotStartedAt == nil then
-		return false
-	end
-	return (workspace:GetServerTimeNow() - t.shotStartedAt) < Config.Physics.MaxShotSeconds
-end
-
---- Record that a shot has begun, returning its sequence number and start time.
-function TableService.beginShot(id: number, duration: number): (number, number)
-	local t = tables[id]
-	t.shotSeq += 1
-	local now = workspace:GetServerTimeNow()
-	t.shotStartedAt = now
-	-- The table is free again once the balls would have stopped.
-	task.delay(duration + 0.25, function()
-		if t.shotStartedAt == now then
-			t.shotStartedAt = nil
-		end
-	end)
-	return t.shotSeq, now
-end
-
---- Put a fresh rack on table `id` (the B test key until the rules land in 2.1).
-function TableService.rerack(id: number)
-	local t = tables[id]
-	if t and not TableService.isBusy(id) then
-		t.rackSeed = Rack.normalizeSeed(t.rackSeed + 1)
-		t.state.balls = Rack.newGame(t.state.geometry, t.rackSeed)
-		t.rackPositions = rackPositions(t.state.balls)
-		t.state.overrides = nil
-		broadcast(t)
-	end
-end
-
-local function rootOf(player: Player): BasePart?
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
+local function rootOf(p: Player): BasePart?
+	local root = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
 	return if root and root:IsA("BasePart") then root else nil
 end
 
--- One poll: anybody standing on a free-enough pad long enough gets seated.
-local function poll()
-	local S = Config.Pad
-	local radiusSq = S.RadiusStuds * S.RadiusStuds
-	-- Sorted by UserId so that two players landing on the same pad in the same poll are
-	-- seated in a fixed order, rather than whichever GetPlayers happened to list first.
+function Service.get(id: number): any
+	return tables[id]
+end
+function Service.advance(t: any, timestamp: number)
+	-- Every remote and heartbeat supplies the same server-owned coin source. A late
+	-- request must not choose the engine's deterministic test fallback for a live coin.
+	Engine.advance(t.engine, timestamp, rng:NextInteger(1, 2))
+end
+function Service.tableOf(p: Player): number?
+	return seatOf[p.UserId]
+end
+function Service.stateOf(id: number): any
+	local t = tables[id]
+	return if t then t.engine.state else nil
+end
+function Service.isBusy(id: number): boolean
+	local t = tables[id]
+	return t ~= nil and t.engine.phase == "Resolving"
+end
+function Service.allow(p: Player, channel: string?): boolean
+	local key = tostring(p.UserId) .. (channel or "action")
+	local bank = buckets[key]
+	local time = now()
+	if not bank then
+		bank = { at = time, tokens = M.RequestBurst }
+		buckets[key] = bank
+	end
+	bank.tokens = math.min(M.RequestBurst, bank.tokens + (time - bank.at) * M.RequestPerSecond)
+	bank.at = time
+	if bank.tokens < 1 then
+		return false
+	end
+	bank.tokens -= 1
+	return true
+end
+
+local function label(
+	parent: Instance,
+	text: string,
+	size: UDim2,
+	position: UDim2,
+	fontSize: number
+): TextLabel
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.TextColor3 = rgb(M.Style.Text)
+	l.Font = Enum.Font.GothamBold
+	l.TextSize = fontSize
+	l.Size = size
+	l.Position = position
+	l.Text = text
+	l.Parent = parent
+	return l
+end
+
+local function queuePoint(p: Placement.Placement, team: number, slot: number): Vector3
+	local along = -M.PadDistanceStuds - (slot - 1) * (M.PadSizeStuds + M.PadGapStuds)
+	local across = (if team == 1 then -1 else 1) * (M.PadSizeStuds + M.PadTeamGapStuds) / 2
+	local dx, dz = Placement.dirToWorld(p, along, across)
+	return Vector3.new(p.x + dx, p.y + Q.FloorOffset, p.z + dz)
+end
+
+local function buildPads(t: any, folder: Instance)
+	t.pads = {}
+	for team = 1, 2 do
+		for slot = 1, t.engine.teamSize do
+			local part = Instance.new("Part")
+			part.Name = ("Pad_%02d_%d_%d"):format(t.engine.id, team, slot)
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanTouch = false
+			part.CanQuery = false
+			part.CastShadow = false
+			part.Size = Vector3.new(M.PadSizeStuds, Q.PadHeight, M.PadSizeStuds)
+			part.CFrame = CFrame.new(queuePoint(t.placement, team, slot))
+				* CFrame.Angles(0, t.placement.yaw, 0)
+			part.Color = rgb(M.Style.White)
+			part.Transparency = Q.EmptyTransparency
+			part.Material = Enum.Material.SmoothPlastic
+			part:SetAttribute("TableId", t.engine.id)
+			part:SetAttribute("Team", team)
+			part:SetAttribute("Slot", slot)
+			part:SetAttribute("Occupied", false)
+			part.Parent = folder
+			local gui = Instance.new("SurfaceGui")
+			gui.Name = "SlotLabel"
+			gui.Face = Enum.NormalId.Top
+			gui.CanvasSize = Vector2.new(Q.CanvasPixels, Q.CanvasPixels)
+			gui.Parent = part
+			local frame = Instance.new("Frame")
+			frame.Size = UDim2.fromScale(1 - 2 * Q.Inset, 1 - 2 * Q.Inset)
+			frame.Position = UDim2.fromScale(Q.Inset, Q.Inset)
+			frame.Rotation = Q.LabelRotation
+			frame.BackgroundColor3 = rgb(M.Style.Panel)
+			frame.BackgroundTransparency = Q.FrameTransparency
+			frame.Parent = gui
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(Q.CornerScale, 0)
+			corner.Parent = frame
+			local border = Instance.new("UIStroke")
+			border.Name = "Edge"
+			border.Color = rgb(M.Style.White)
+			border.Thickness = Q.EdgePixels
+			border.Transparency = Q.EdgeTransparency
+			border.Parent = frame
+			local gradient = Instance.new("UIGradient")
+			gradient.Rotation = Q.GradientRotation
+			gradient.Transparency = NumberSequence.new(Q.GradientMin, Q.GradientMax)
+			gradient.Parent = frame
+			label(
+				frame,
+				Strings.Match.TeamSlot:format(if team == 1 then "A" else "B", slot),
+				UDim2.fromScale(Q.TeamLabel[1], Q.TeamLabel[2]),
+				UDim2.fromScale(Q.TeamLabel[3], Q.TeamLabel[4]),
+				Q.TeamLabel[5]
+			)
+			local name = label(
+				frame,
+				Strings.Match.EmptySlot,
+				UDim2.fromScale(Q.NameLabel[1], Q.NameLabel[2]),
+				UDim2.fromScale(Q.NameLabel[3], Q.NameLabel[4]),
+				Q.NameLabel[5]
+			)
+			name.Name = "Occupant"
+			name.TextTruncate = Enum.TextTruncate.AtEnd
+			local light = Instance.new("SurfaceLight")
+			light.Face, light.Brightness, light.Range =
+				Enum.NormalId.Top, Q.LightBrightness, Q.LightRange
+			light.Color, light.Shadows, light.Parent = rgb(M.Style.White), false, part
+			local pulse = TweenService:Create(
+				border,
+				TweenInfo.new(
+					Q.PulseSeconds,
+					Enum.EasingStyle.Sine,
+					Enum.EasingDirection.InOut,
+					-1,
+					true
+				),
+				{ Transparency = Q.PulseTransparency }
+			)
+			pulse:Play()
+			table.insert(t.pads, {
+				part = part,
+				team = team,
+				slot = slot,
+				label = name,
+				edge = border,
+				light = light,
+				occupied = false,
+				tweens = {},
+			})
+		end
+	end
+	local anchor = Instance.new("Part")
+	anchor.Name = ("QueuePanel_%02d"):format(t.engine.id)
+	anchor.Anchored = true
+	anchor.CanCollide = false
+	anchor.CanTouch = false
+	anchor.CanQuery = false
+	anchor.Transparency = 1
+	anchor.Size = Vector3.one
+	anchor.Position = (queuePoint(t.placement, 1, 1) + queuePoint(t.placement, 2, 1)) / 2
+		+ Vector3.new(0, Q.PanelOffset, 0)
+	anchor.Parent = folder
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "HostPanel"
+	gui.Size = UDim2.fromOffset(Q.PanelWidth, Q.PanelHeight)
+	gui.MaxDistance = Q.PanelMaxDistance
+	gui.Parent = anchor
+	local panel = Instance.new("Frame")
+	panel.Size = UDim2.fromScale(1, 1)
+	panel.BackgroundColor3 = rgb(M.Style.Panel)
+	panel.BackgroundTransparency = Q.PanelTransparency
+	panel.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, M.Style.CornerPx)
+	corner.Parent = panel
+	local edge = Instance.new("UIStroke")
+	edge.Color = rgb(M.Style.Border)
+	edge.Parent = panel
+	t.title = label(
+		panel,
+		Strings.Match.Mode:format(t.engine.teamSize, t.engine.teamSize),
+		UDim2.fromScale(Q.ModeLabel[1], Q.ModeLabel[2]),
+		UDim2.fromScale(Q.ModeLabel[3], Q.ModeLabel[4]),
+		Q.ModeLabel[5]
+	)
+	t.hostLabel = label(
+		panel,
+		"",
+		UDim2.fromScale(Q.HostLabel[1], Q.HostLabel[2]),
+		UDim2.fromScale(Q.HostLabel[3], Q.HostLabel[4]),
+		Q.HostLabel[5]
+	)
+	t.hostLabel.TextTruncate = Enum.TextTruncate.AtEnd
+	t.statusLabel = label(
+		panel,
+		"",
+		UDim2.fromScale(Q.StatusLabel[1], Q.StatusLabel[2]),
+		UDim2.fromScale(Q.StatusLabel[3], Q.StatusLabel[4]),
+		Q.StatusLabel[5]
+	)
+end
+
+local function refresh(t: any)
+	local e = t.engine
+	for _, pad in t.pads do
+		local occupant = nil
+		for _, s in e.seats do
+			if s.connected and s.team == pad.team and s.slot == pad.slot then
+				occupant = s
+			end
+		end
+		local occupied = occupant ~= nil
+		if pad.occupied ~= occupied then
+			pad.occupied = occupied
+			for _, tween in pad.tweens do
+				tween:Cancel()
+			end
+			local tint = rgb(if occupied then M.Style.Green else M.Style.White)
+			local timing =
+				TweenInfo.new(M.Style.FadeSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			pad.tweens = {
+				TweenService:Create(pad.part, timing, {
+					Color = tint,
+					Transparency = if occupied then Q.OccupiedTransparency else Q.EmptyTransparency,
+				}),
+				TweenService:Create(pad.edge, timing, { Color = tint }),
+				TweenService:Create(pad.light, timing, { Color = tint }),
+			}
+			for _, tween in pad.tweens do
+				tween:Play()
+			end
+		end
+		pad.part:SetAttribute("Occupied", occupied)
+		pad.label.Text = if occupant then occupant.displayName else Strings.Match.EmptySlot
+	end
+	local host = if e.hostId then Engine.seat(e, e.hostId) else nil
+	t.hostLabel.Text = if host
+		then Strings.Match.Host:format(host.displayName)
+		else Strings.Match.JoinHint
+	local state = if e.phase == "Waiting"
+		then Strings.Match.Waiting
+		elseif e.phase == "Countdown" then Strings.Match.Starting:format(
+			math.max(0, math.ceil(e.deadline - now()))
+		)
+		else Strings.Match.InProgress
+	t.statusLabel.Text = Strings.Match.QueueStatus:format(Engine.count(e), e.teamSize * 2, state)
+end
+
+function Service.broadcast(t: any, player: Player?)
+	local data = Engine.snapshot(t.engine)
+	if player then
+		Net.get("TableState"):FireClient(player, data)
+	else
+		Net.get("TableState"):FireAllClients(data)
+		t.sentRevision = t.engine.revision
+	end
+	refresh(t)
+end
+
+function Service.flush(t: any)
+	for _, f in t.engine.feedback do
+		for _, s in t.engine.seats do
+			if s.connected and s.team == f.team then
+				local p = Players:GetPlayerByUserId(s.userId)
+				if p then
+					Net.get("MatchFeedback"):FireClient(p, {
+						tableId = t.engine.id,
+						epoch = t.engine.epoch,
+						id = f.id,
+						at = f.at,
+						ball = f.ball,
+					})
+				end
+			end
+		end
+	end
+	table.clear(t.engine.feedback)
+end
+
+local function restore(p: Player)
+	local saved = characterSaved[p.UserId]
+	if not saved then
+		return
+	end
+	if saved.added then
+		saved.added:Disconnect()
+	end
+	for _, row in saved.parts do
+		if row.part.Parent then
+			row.part.CollisionGroup = row.group
+		end
+	end
+	if saved.hum.Parent then
+		saved.hum.WalkSpeed = saved.walk
+		saved.hum.AutoRotate = saved.rotate
+		saved.hum.JumpPower = saved.jump
+		saved.hum.JumpHeight = saved.jumpHeight
+	end
+	if saved.root.Parent then
+		saved.root.Anchored = saved.anchored
+	end
+	characterSaved[p.UserId] = nil
+end
+
+local function constrain(p: Player, t: any)
+	local e = t.engine
+	if e.phase == "Waiting" or e.phase == "Countdown" or e.phase == "Result" then
+		restore(p)
+		return
+	end
+	local root = rootOf(p)
+	local character = p.Character
+	local hum = character and character:FindFirstChildOfClass("Humanoid")
+	if not root or not hum or not character or hum.Health <= 0 then
+		return
+	end
+	local saved = characterSaved[p.UserId]
+	if not saved or saved.root ~= root then
+		restore(p)
+		saved = {
+			root = root,
+			hum = hum,
+			walk = hum.WalkSpeed,
+			rotate = hum.AutoRotate,
+			jump = hum.JumpPower,
+			jumpHeight = hum.JumpHeight,
+			anchored = root.Anchored,
+			parts = {},
+		}
+		local function excludePlayerCollision(part: Instance)
+			if part:IsA("BasePart") then
+				table.insert(saved.parts, { part = part, group = part.CollisionGroup })
+				part.CollisionGroup = "PoolParticipants"
+			end
+		end
+		for _, part in character:GetDescendants() do
+			excludePlayerCollision(part)
+		end
+		saved.added = character.DescendantAdded:Connect(excludePlayerCollision)
+		characterSaved[p.UserId] = saved
+	end
+	local locked = e.shooter == p.UserId and e.phase ~= "Foul"
+	if locked then
+		hum.WalkSpeed = 0
+		hum.AutoRotate = false
+		hum.JumpPower = 0
+		hum.JumpHeight = 0
+		root.Anchored = true
+	else
+		hum.WalkSpeed = saved.walk
+		hum.AutoRotate = saved.rotate
+		hum.JumpPower = saved.jump
+		hum.JumpHeight = saved.jumpHeight
+		root.Anchored = saved.anchored
+		local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
+		local scale = Config.Table.StudsPerInch
+		local cx =
+			math.clamp(x, -M.BoundaryHalfLengthStuds / scale, M.BoundaryHalfLengthStuds / scale)
+		local cy =
+			math.clamp(y, -M.BoundaryHalfWidthStuds / scale, M.BoundaryHalfWidthStuds / scale)
+		if cx ~= x or cy ~= y or root.Position.Y < t.placement.y - Q.FallTolerance then
+			local wx, _, wz = Placement.toWorld(t.placement, cx, cy, 0)
+			root.CFrame = CFrame.new(wx, t.placement.y + Q.RespawnHeight, wz) * root.CFrame.Rotation
+			root.AssemblyLinearVelocity = Vector3.zero
+		end
+	end
+end
+
+local function releaseMissing(t: any)
+	for id, tableId in seatOf do
+		if tableId == t.engine.id and not Engine.seat(t.engine, id) then
+			seatOf[id] = nil
+			t.blocked[id] = true
+			local p = Players:GetPlayerByUserId(id)
+			if p then
+				restore(p)
+			end
+		end
+	end
+end
+
+local function onPad(root: BasePart, pad: any): boolean
+	local v = pad.part.CFrame:PointToObjectSpace(root.Position)
+	return math.abs(v.X) <= M.PadSizeStuds / 2
+		and math.abs(v.Z) <= M.PadSizeStuds / 2
+		and math.abs(v.Y) < Q.VerticalTolerance
+end
+
+local function poll(t: any, time: number)
+	local e = t.engine
 	local players = Players:GetPlayers()
 	table.sort(players, function(a, b)
 		return a.UserId < b.UserId
 	end)
-
-	for _, t in tables do
-		for _, player in players do
-			local root = rootOf(player)
-			local on = false
-			if root then
-				local d = root.Position - t.pad.Position
-				-- Flat distance: standing on a pad one tier up does not count.
-				on = (d.X * d.X + d.Z * d.Z) <= radiusSq and math.abs(d.Y) < 8
+	for _, p in players do
+		local root = rootOf(p)
+		local pad = nil
+		local inQueueArea = false
+		if root then
+			for _, candidate in t.pads do
+				local localPoint = candidate.part.CFrame:PointToObjectSpace(root.Position)
+				if
+					math.abs(localPoint.X) <= M.PadSizeStuds / 2 + Q.AreaMargin
+					and math.abs(localPoint.Z) <= M.PadSizeStuds / 2 + Q.AreaMargin
+					and math.abs(localPoint.Y) < Q.VerticalTolerance
+				then
+					inQueueArea = true
+				end
+				if onPad(root, candidate) then
+					pad = candidate
+				end
 			end
-			local cooling = false
-			local left = t.leftAt[player.UserId]
-			if left and (os.clock() - left) < S.RejoinCooldownSeconds then
-				cooling = true
-			elseif left then
-				t.leftAt[player.UserId] = nil
-			end
-			if on and not cooling then
-				local n = (t.dwell[player.UserId] or 0) + 1
-				t.dwell[player.UserId] = n
-				if n >= S.DwellPolls and seatOf[player.UserId] == nil then
-					TableService.seat(player, t.id)
+		end
+		if not inQueueArea then
+			t.blocked[p.UserId] = nil
+		end
+		local s = Engine.seat(e, p.UserId)
+		if s then
+			if e.phase == "Waiting" or e.phase == "Countdown" then
+				if inQueueArea then
+					t.outside[p.UserId] = nil
+				else
+					t.outside[p.UserId] = t.outside[p.UserId] or time
+					if time - t.outside[p.UserId] >= M.QueueExitGraceSeconds then
+						Engine.remove(e, p.UserId, time)
+					end
 				end
 			else
-				t.dwell[player.UserId] = nil
+				constrain(p, t)
 			end
+		elseif pad and not seatOf[p.UserId] and not t.blocked[p.UserId] then
+			local dwell = t.dwell[p.UserId]
+			if not dwell or dwell.pad ~= pad then
+				t.dwell[p.UserId] = { pad = pad, at = time }
+			elseif time - dwell.at >= M.PadDwellSeconds then
+				if Engine.join(e, p.UserId, p.Name, p.DisplayName, pad.team, pad.slot, time) then
+					seatOf[p.UserId] = e.id
+				end
+			end
+		else
+			t.dwell[p.UserId] = nil
 		end
 	end
+	releaseMissing(t)
 end
 
---- Build the pads and start watching them. Called once from Bootstrap.
-function TableService.start(parent: Instance)
-	local folder = parent:FindFirstChild(TableService.PadFolderName)
-	if folder then
-		folder:Destroy()
+function Service.start(parent: Instance)
+	if started then
+		return
 	end
-	folder = Instance.new("Folder");
-	(folder :: Folder).Name = TableService.PadFolderName;
-	(folder :: Folder).Parent = parent
-
-	-- One geometry for all twelve: it is read-only and identical, so there is no reason to
-	-- build the same cushion and pocket list a dozen times.
-	local geometry = TableGeometry.build({ pocketsOpen = true })
-	local wanted = Placement.tableCount()
-	for _, row in Config.Lounge.Tables do
-		local placement = if row.id <= wanted then Placement.forTable(row.id) else nil
-		if placement then
-			local seed = Rack.normalizeSeed(Config.Rack.DefaultSeed + row.id)
-			local balls = Rack.newGame(geometry, seed)
-			tables[row.id] = {
-				id = row.id,
-				placement = placement,
-				pad = buildPad(placement, row.id, folder :: Folder),
-				state = Simulation.newState(geometry, balls),
-				rackSeed = seed,
-				rackPositions = rackPositions(balls),
-				shotSeq = 0,
-				aim = nil,
-				aimBy = nil,
-				shotStartedAt = nil,
-				seats = {},
-				dwell = {},
-				leftAt = {},
-			}
-		end
+	started = true
+	-- Participants cannot push one another, while normal floor collision remains intact.
+	pcall(function()
+		PhysicsService:RegisterCollisionGroup("PoolParticipants")
+	end)
+	PhysicsService:CollisionGroupSetCollidable("PoolParticipants", "PoolParticipants", false)
+	local old = parent:FindFirstChild(Service.PadFolderName)
+	if old then
+		old:Destroy()
 	end
-
-	-- The aim stream. Each shooter's angle is stored, and one batched message a tick carries
-	-- every table's aim to everyone: twelve separate broadcasts to thirty players would be
-	-- 3,600 messages a second where this is 10.
-	Net.get("AimUpdate").OnServerEvent:Connect(function(player, id, angle)
-		if typeof(id) ~= "number" or typeof(angle) ~= "number" or angle ~= angle then
+	local folder = Instance.new("Folder")
+	folder.Name = Service.PadFolderName
+	folder.Parent = parent
+	for _, mode in M.Modes do
+		local p = Placement.forTable(mode.id)
+		assert(p, "Missing table placement")
+		local t: any = {
+			engine = Engine.new(mode.id, mode.teamSize),
+			placement = p,
+			dwell = {},
+			outside = {},
+			blocked = {},
+			sentRevision = 0,
+		}
+		tables[mode.id] = t
+		buildPads(t, folder)
+		Service.broadcast(t)
+	end
+	Net.get("SnapshotRequest").OnServerEvent:Connect(function(p)
+		if not Service.allow(p, "snapshot") then
 			return
 		end
-		-- Only the people actually sitting at a table may move its cue.
-		if seatOf[player.UserId] ~= id then
+		for _, mode in M.Modes do
+			Service.broadcast(tables[mode.id], p)
+		end
+	end)
+	-- Join requests cannot bypass server-observed pad occupancy.
+	Net.get("MatchAction").OnServerEvent:Connect(function(p, payload)
+		if type(payload) ~= "table" or not Service.allow(p) then
+			return
+		end
+		local id = seatOf[p.UserId]
+		if not id or payload.tableId ~= id then
 			return
 		end
 		local t = tables[id]
-		if t then
-			t.aim = angle % (2 * math.pi)
-			t.aimBy = player.UserId
+		Service.advance(t, now())
+		local accepted = Engine.action(t.engine, p.UserId, payload, now())
+		releaseMissing(t)
+		Service.broadcast(t)
+		if not accepted then
+			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 		end
 	end)
-
-	local aimInterval = 1 / Config.Aim.BroadcastsPerSecond
-	local sinceAim = 0
-	RunService.Heartbeat:Connect(function(dt)
-		sinceAim += dt
-		if sinceAim < aimInterval then
+	Net.get("AimUpdate").OnServerEvent:Connect(function(p, id, angle, epoch, turnId)
+		if
+			id ~= seatOf[p.UserId]
+			or not ShotInput.isFinite(angle)
+			or not Service.allow(p, "aim")
+		then
 			return
 		end
-		sinceAim = 0
-		-- Flattened: id, userId, angle per table, so the payload stays small.
-		local batch: { number } = {}
-		for _, t in tables do
-			if t.aim and t.aimBy then
-				table.insert(batch, t.id)
-				table.insert(batch, t.aimBy)
-				table.insert(batch, t.aim)
+		local t = tables[id]
+		if not t then
+			return
+		end
+		local e = t.engine
+		if
+			e.shooter ~= p.UserId
+			or e.epoch ~= epoch
+			or e.turnId ~= turnId
+			or (e.phase ~= "Aiming" and e.phase ~= "Intro" and e.phase ~= "Placement")
+		then
+			return
+		end
+		t.aim = { angle = angle % (2 * math.pi), by = p.UserId, turnId = turnId, epoch = epoch }
+	end)
+	local function added(p: Player)
+		local endedCharacter: Model? = nil
+		local function characterEnded(character: Model)
+			if endedCharacter == character then
+				return
+			end
+			endedCharacter = character
+			local id = seatOf[p.UserId]
+			if id then
+				Engine.death(tables[id].engine, p.UserId, now())
+				Service.broadcast(tables[id])
 			end
 		end
-		if #batch > 0 then
-			Net.get("AimBroadcast"):FireAllClients(batch)
+		local function characterAdded(character: Model)
+			restore(p)
+			local hum = character:WaitForChild("Humanoid") :: Humanoid
+			hum.Died:Connect(function()
+				characterEnded(character)
+			end)
+			local id = seatOf[p.UserId]
+			if id then
+				local t = tables[id]
+				local root = character:WaitForChild("HumanoidRootPart") :: BasePart
+				local dx, dz = Placement.dirToWorld(
+					t.placement,
+					0,
+					M.BoundaryHalfWidthStuds - Q.RespawnBoundaryInset
+				)
+				root.CFrame = CFrame.new(
+					t.placement.x + dx,
+					t.placement.y + Q.RespawnHeight,
+					t.placement.z + dz
+				)
+			end
 		end
-	end)
-
-	Net.get("RequestSeat").OnServerEvent:Connect(function(player, id)
-		if typeof(id) == "number" then
-			TableService.seat(player, id)
+		p.CharacterAdded:Connect(characterAdded)
+		if p.Character then
+			task.spawn(characterAdded, p.Character)
 		end
-	end)
-	Net.get("RequestLeave").OnServerEvent:Connect(function(player)
-		TableService.unseat(player)
-	end)
-	Net.get("RequestRerack").OnServerEvent:Connect(function(player, id)
-		-- Developer B-key path only. A local-only reset would desync the seeded rack.
-		if
-			RunService:IsStudio()
-			and Config.Debug.TestKeysEnabled
-			and typeof(id) == "number"
-			and id == id
-			and id % 1 == 0
-			and TableService.tableOf(player) == id
-		then
-			TableService.rerack(id)
-		end
-	end)
-
-	Players.PlayerAdded:Connect(function(player)
-		-- Tell the newcomer where everyone already is.
-		for _, t in tables do
-			Net.get("TableState"):FireClient(player, snapshot(t))
-		end
-	end)
-	Players.PlayerRemoving:Connect(function(player)
-		TableService.unseat(player)
-		for _, t in tables do
-			t.leftAt[player.UserId] = nil
-			t.dwell[player.UserId] = nil
-		end
-	end)
-
-	local interval = 1 / Config.Pad.PollsPerSecond
-	local since = 0
-	RunService.Heartbeat:Connect(function(dt)
-		since += dt
-		if since >= interval then
-			since = 0
-			poll()
-		end
-	end)
-
-	for _, t in tables do
-		refreshPad(t)
+		p.CharacterRemoving:Connect(function(character)
+			characterEnded(character)
+			restore(p)
+		end)
 	end
+	Players.PlayerAdded:Connect(added)
+	for _, p in Players:GetPlayers() do
+		added(p)
+	end
+	Players.PlayerRemoving:Connect(function(p)
+		local id = seatOf[p.UserId]
+		if id then
+			Engine.remove(tables[id].engine, p.UserId, now())
+			Service.broadcast(tables[id])
+		end
+		seatOf[p.UserId] = nil
+		restore(p)
+		for _, suffix in { "action", "snapshot", "aim" } do
+			buckets[tostring(p.UserId) .. suffix] = nil
+		end
+		for _, t in tables do
+			t.dwell[p.UserId] = nil
+			t.outside[p.UserId] = nil
+			t.blocked[p.UserId] = nil
+		end
+	end)
+	require(script.Parent.StudioMatchQA).start(tables, seatOf, Service.broadcast)
+	local elapsed, snapshots = 0, 0
+	RunService.Heartbeat:Connect(function(dt)
+		elapsed += dt
+		snapshots += dt
+		if elapsed < 1 / Config.Pad.PollsPerSecond then
+			return
+		end
+		elapsed = 0
+		local batch = {}
+		for _, mode in M.Modes do
+			local t = tables[mode.id]
+			local e = t.engine
+			local time = now()
+			poll(t, time)
+			Service.advance(t, time)
+			releaseMissing(t)
+			Service.flush(t)
+			if e.revision ~= t.sentRevision or snapshots >= M.SnapshotIntervalSeconds then
+				Service.broadcast(t)
+			else
+				refresh(t)
+			end
+			if
+				t.aim
+				and t.aim.epoch == e.epoch
+				and t.aim.turnId == e.turnId
+				and t.aim.by == e.shooter
+				and e.phase ~= "Resolving"
+				and e.phase ~= "Result"
+			then
+				table.insert(batch, e.id)
+				table.insert(batch, t.aim.by)
+				table.insert(batch, t.aim.angle)
+			end
+		end
+		Net.get("AimBroadcast"):FireAllClients(batch)
+		if snapshots >= M.SnapshotIntervalSeconds then
+			snapshots = 0
+		end
+	end)
 end
 
-return TableService
+return Service

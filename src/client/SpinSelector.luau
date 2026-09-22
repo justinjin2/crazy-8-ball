@@ -150,6 +150,11 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	local actionsY = y
 	local fullHeight = y + C.ButtonSizePx + C.MarginPx
 	local function layout()
+		local small = root.AbsoluteSize.X < Config.Multiplayer.Style.MobileBreakpoint
+			or root.AbsoluteSize.Y < Config.Multiplayer.Style.ShortHeight
+		local size = if small then Config.Multiplayer.Style.PlacementHandleSize else C.ToggleSizePx
+		toggle.Size = UDim2.fromOffset(size, size)
+		icon.Size = UDim2.fromOffset(size, size)
 		-- Shrink only the ball on short landscape phones; button targets remain 44 px.
 		local ballSize = math.clamp(
 			root.AbsoluteSize.Y - (fullHeight - C.BallSizePx) - C.MarginPx * 2,

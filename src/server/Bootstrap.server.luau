@@ -30,6 +30,15 @@ if Config.Lounge.Enabled and not LoungeBuilder.isImported(workspace) then
 	)
 end
 
+-- Arrive facing all three mode queues; the baseplate and stored lounge are retained.
+if not Config.Lounge.Enabled then
+	local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
+	if spawn then
+		local p = Config.Multiplayer.Spawn
+		spawn.CFrame = CFrame.new(p.X, p.Y, p.Z) * CFrame.Angles(0, math.rad(p.YawDegrees), 0)
+	end
+end
+
 -- Every table lives under one folder, named by id, so twelve of them can be told apart.
 local existing = workspace:FindFirstChild(TableBuilder.FolderName)
 if existing then

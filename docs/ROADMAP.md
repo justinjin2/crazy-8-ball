@@ -65,6 +65,18 @@ The remaining 1.5 checks stay open.*
 **FRIEND TEST 1.** Hand it to a friend with no explanation. Do they keep shooting? Compare side
 by side with GamePigeon. Fix the feel before moving on.
 
+## Authorized multiplayer update (2026-09-22)
+
+The current user request overrides the ordinary milestone order and conflicting match
+rules. See MULTIPLAYER_SPEC.md. No solo, bots, abilities, difficulty, rewards or progression
+are part of this update; the older broader phase boxes below are not completed by it.
+
+- [x] Inspect project/assets/tools and agree gameplay/design decisions.
+- [x] Shared authority, independent queues, rules and turn flow for all three team sizes.
+- [x] Integrate multiplayer HUD, camera, setup controls, audio and match lifecycle.
+- [ ] Finish integrated QA/polish and real multiplayer/device acceptance. Automated and
+  single-client Studio fixture evidence is tracked separately in MULTIPLAYER_PROGRESS.md.
+
 ## Phase 2: A real match
 
 - [ ] **2.1 Rules on the server.** Full 8-ball rules per GDD section 7 (open table after the

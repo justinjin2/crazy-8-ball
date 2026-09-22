@@ -1,5 +1,11 @@
 # Crazy 8 Ball: Game Design Document
 
+> **2026-09-22 multiplayer update:** [MULTIPLAYER_SPEC.md](../MULTIPLAYER_SPEC.md)
+> is the agreed design for this update. It supersedes older turn rotation, break,
+> assignment, 8-ball, timer, departure/surrender and reward details. Results are match-only;
+> bots, solo, abilities, difficulty and progression remain future work.
+
+
 Working name: **Crazy 8 Ball** (final name check is a release task). Rewritten 2026-09-20 from the
 designer's full idea dump plus the earlier GDD. Every section has **Decided** (build to this) and
 **Open** (not yet decided; do not guess, ask). Numbers marked *(tune)* live in `src/shared/Config.luau`

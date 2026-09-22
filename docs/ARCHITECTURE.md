@@ -125,3 +125,28 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
   before every commit.
 - Asset generators live in `tools/` and write into `assets/`; package delivery notes live next
   to each package (`assets/*/Readme.md`) and are read only when importing that package.
+
+## Multiplayer match boundary (2026-09-22)
+
+`Rules/MatchEngine` owns one plain-data state per table, with explicit phase, epoch,
+revision, turn id, seats, groups, deadline, replay and vote. It receives time and coin
+outcomes as arguments, so the same lifecycle runs under Lune. `ShotJudge` consumes ordered
+simulation events; `CuePlacement` validates and deterministically finds legal fallbacks.
+Physics remains unchanged and instance-free.
+
+`TableService` is the Roblox adapter for server-observed pads, global membership, rate
+limits, character constraints and snapshots. `ShotService` validates ownership/version
+through the engine, simulates once and broadcasts the replay. Accepted shots stop the
+shooting clock; resolution waits for motion/falls and the pocket buffer. Epoch/sequence
+checks reject stale actions and duplicate replay packets. Group assignment and 8-ball
+eligibility are decided from pre-shot state and server events.
+
+`Lounge` keeps one client Match per table. Snapshots include full ball state for late
+listeners, placement and table reuse. `Main` derives private controls from the replicated
+phase. `MatchHUD` and `MatchTargets` share Config styles and Strings copy; existing Camera,
+Input, Avatar, Audio, Effects and renderer modules retain their separate responsibilities.
+
+`StudioMatchQA` creates a server-only BindableFunction in ServerStorage exclusively when
+RunService:IsStudio(). It drives deterministic fixture identities, phases and snapshots
+for inspection; it is not a bot or public remote. Synthetic fixtures are always reported
+separately from real multi-client playtests.

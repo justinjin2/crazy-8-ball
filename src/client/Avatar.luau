@@ -24,20 +24,13 @@ export type Avatar = typeof(setmetatable(
 		-- this the new one is never parked, so the player walks around the room while
 		-- their camera stays locked to the table they are still seated at.
 		wanted: boolean,
+		saved: any,
 	},
 	Avatar
 ))
 
 local function park(character: Model)
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if root and root:IsA("BasePart") then
-		root.Anchored = true
-	end
-	for _, d in character:GetDescendants() do
-		if d:IsA("BasePart") then
-			d.CanCollide = false
-		end
-	end
+	-- The server owns anchoring, collisions and humanoid movement during matches.
 	local animate = character:FindFirstChild("Animate")
 	if animate and animate:IsA("LocalScript") then
 		animate.Disabled = true
@@ -57,6 +50,7 @@ function Avatar.new(): Avatar
 		transparency = -1,
 		parked = false,
 		wanted = false,
+		saved = nil,
 	}, Avatar)
 	local player = Players.LocalPlayer
 	local function onCharacter(character: Model)
@@ -85,25 +79,26 @@ function Avatar.release(self: Avatar)
 	end
 	self.parked = false
 	self.transparency = -1
-	AvatarPose.setTransparency(character, 0, false)
-	for _, d in character:GetDescendants() do
-		if d:IsA("BasePart") then
-			d.Anchored = false
+	local saved = self.saved
+	if saved then
+		for _, row in saved.parts do
+			if row.part.Parent then
+				row.part.LocalTransparencyModifier = row.transparency
+				if row.part.Name ~= "HumanoidRootPart" then
+					row.part.Anchored = row.anchored
+				end
+			end
+		end
+		for _, row in saved.decals do
+			if row.part.Parent then
+				row.part.Transparency = row.transparency
+			end
+		end
+		if saved.animate and saved.animate.Parent then
+			saved.animate.Disabled = saved.disabled
 		end
 	end
-	local animate = character:FindFirstChild("Animate")
-	if animate and animate:IsA("LocalScript") then
-		animate.Disabled = false
-	end
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if humanoid and root and root:IsA("BasePart") then
-		-- Stand up straight where the character is, facing the table.
-		local pos = root.Position
-		root.CFrame = CFrame.new(pos.X, pos.Y, pos.Z)
-			* CFrame.Angles(0, math.atan2(-root.CFrame.LookVector.X, -root.CFrame.LookVector.Z), 0)
-		humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-	end
+	self.saved = nil
 end
 
 --- Park the character for aiming (idempotent).
@@ -111,6 +106,24 @@ function Avatar.take(self: Avatar)
 	self.wanted = true
 	local character = self.character
 	if character and not self.parked then
+		local saved: any = { parts = {}, decals = {}, animate = nil, disabled = false }
+		for _, part in character:GetDescendants() do
+			if part:IsA("BasePart") then
+				table.insert(saved.parts, {
+					part = part,
+					transparency = part.LocalTransparencyModifier,
+					anchored = part.Anchored,
+				})
+			elseif part:IsA("Decal") then
+				table.insert(saved.decals, { part = part, transparency = part.Transparency })
+			end
+		end
+		local animate = character:FindFirstChild("Animate")
+		if animate and animate:IsA("LocalScript") then
+			saved.animate = animate
+			saved.disabled = animate.Disabled
+		end
+		self.saved = saved
 		park(character)
 		self.parked = true
 		self.transparency = -1
@@ -145,7 +158,7 @@ function Avatar.update(
 		return
 	end
 	local rootCFrame, stretch, reach = AvatarPose.standing(character, p, cueWorld, dir)
-	AvatarPose.apply(character, rootCFrame, stretch)
+	AvatarPose.apply(character, rootCFrame, stretch, false)
 	local target = transparency
 	-- Fade out with the reach, in studs past a normal stance. See Config.Avatar.
 	local A = Config.Avatar

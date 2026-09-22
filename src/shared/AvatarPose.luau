@@ -149,7 +149,12 @@ end
 --- Place the whole character: root at `rootCFrame`, every limb in the aiming pose blended
 --- towards the stretch pose by `stretch` (0..1). Call every frame while aiming. Anchors the
 --- parts it moves.
-function AvatarPose.apply(character: Model, rootCFrame: CFrame, stretch: number?)
+function AvatarPose.apply(
+	character: Model,
+	rootCFrame: CFrame,
+	stretch: number?,
+	anchorRoot: boolean?
+)
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then
 		return
@@ -157,7 +162,9 @@ function AvatarPose.apply(character: Model, rootCFrame: CFrame, stretch: number?
 	local pose = Config.Avatar.Pose :: { [string]: { number } }
 	local stretchPose = Config.Avatar.StretchPose :: { [string]: { number } }
 	local blend = stretch or 0
-	root.Anchored = true
+	if anchorRoot ~= false then
+		root.Anchored = true
+	end
 	root.CFrame = rootCFrame
 
 	local joints = jointsOf(character)

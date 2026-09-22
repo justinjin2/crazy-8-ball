@@ -16,6 +16,9 @@ local Net = {}
 local FOLDER = "Net"
 
 local REMOTES: { [string]: string } = {
+	MatchAction = "RemoteEvent", -- phase/version validated gameplay requests
+	SnapshotRequest = "RemoteEvent", -- listeners ready; send complete authoritative state
+	MatchFeedback = "RemoteEvent", -- private team bonus audio with unique event ids
 	-- server -> all: a table's seats changed (someone joined, left, or the host moved on).
 	TableState = "RemoteEvent",
 	-- client -> server: please seat me at this table / take me off it.
