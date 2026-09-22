@@ -1152,18 +1152,24 @@ Config.Audio = {
 	-- (12 dB under) for a day and sat too far forward at the designer's ear. This is the
 	-- number to move if it disappears or creeps back out in front. (tune)
 	--
-	-- PitchJitter is what stops it being the same sound every time. It is the one clip here
-	-- that is likely to be tonal rather than a noise burst, and the ear follows pitch on a
-	-- tone far more closely than on a knock, so this is deliberately smaller than the 0.04
-	-- every impact gets: 0.03 is about half a semitone either way, which reads as variation
-	-- rather than as something out of tune. Raise it for more character, but past roughly
-	-- 0.06 a tonal sting starts sounding wrong rather than varied. (tune)
+	-- The pitch is NOT random. It climbs with a RUN of pocketed balls and drops straight back
+	-- the moment a shot pockets nothing, so where it sits means something: the first ball of a
+	-- run is the plain sound, and a high one tells you you are several deep. Random drift was
+	-- tried first and was the wrong idea - it made every pocket differ without any of them
+	-- meaning anything, and a tonal sting that wanders just sounds out of tune.
+	--
+	-- A whole semitone per ball, because it has to read as a step UP rather than as the same
+	-- sound again: under about half a semitone is a wobble, not a ladder. Capped so a big
+	-- break cannot run it up into a chirp - six steps is a tritone above the plain sound,
+	-- which is as far as this clip carries. (tune)
 	Bonus = {
 		MinVolume = 0.16,
 		MaxVolume = 0.16,
 		MinPitch = 1,
 		MaxPitch = 1,
-		PitchJitter = 0.03,
+		PitchJitter = 0,
+		StreakSemitones = 1,
+		StreakMaxSteps = 6,
 	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball

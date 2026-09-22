@@ -365,13 +365,19 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   same way the drop is. Sized at 12.0 dB under the drop at the drop's loudest: the drop is the
   event and this is the garnish, and the drop is already the loudest thing in the game.
   It is withheld when the pocketed ball is the cue ball: a scratch is not a reward.
-  Pitched dead straight at first, on the theory that a UI sting which wanders stops sounding
-  deliberate. Changed the same day at the designer's call: every pocket sounding identical is
-  worse than a little drift, so it now carries PitchJitter 0.03. That is deliberately smaller
-  than the 0.04 every impact gets, because this is the one clip here likely to be TONAL rather
-  than a noise burst and the ear follows pitch far more closely on a tone - 0.03 is about half
-  a semitone either way, which reads as variation rather than as out of tune. Measured over 24
-  plays: -0.52 to +0.46 semitones, no two alike, volume dead flat.
+  Its pitch CLIMBS WITH A RUN rather than wandering. Random jitter was tried first and was the
+  wrong idea twice over: it made every pocket differ without any of them meaning anything, and
+  a tonal sting that wanders just sounds out of tune. Now the first ball of a run is the plain
+  sound and each consecutive ball is a semitone higher, capped at six (a tritone), so the
+  pitch is information - it tells you how deep the run is. This is the GDD's streak idea
+  arriving in audio before the Rules that will own it.
+  A run ends when a shot pockets nothing, which is read at the NEXT cue strike rather than at
+  the end of the shot: a strike is the one event guaranteed to arrive, and it arrives before
+  anything the new shot can add. A scratch ends it immediately, on the spot.
+  A whole semitone per ball because it has to read as a step UP rather than the same sound
+  again; under about half a semitone is a wobble, not a ladder. Measured through the real
+  event path: +0, +1, +2 within one shot, carrying to +3 on the next, 0 after a shot that
+  potted nothing, 0 immediately on a scratch, and held at +6 for a run of ten.
   Lowered to 15.8 dB under the drop the same day, at the designer's ear: 12 dB still sat too
   far forward for something whose whole job is to be felt rather than noticed.
 - 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The

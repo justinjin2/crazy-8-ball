@@ -227,6 +227,8 @@ local function setSeat(id: number?)
 		-- Nothing steps the roll once we are off a table, so it has to be told to stop or it
 		-- plays on at the table just left.
 		audio:stopRoll()
+		-- A run of pocketed balls belongs to the table it was made on.
+		audio:resetStreak()
 		match = nil
 		placement = nil
 		input:setEnabled(false)

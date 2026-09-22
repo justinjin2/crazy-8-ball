@@ -93,6 +93,10 @@ export type Audio = typeof(setmetatable(
 		stacked: number,
 		-- Which clip each event played last, so the next pick is never the same one.
 		lastPick: { [string]: number },
+		-- Balls pocketed in the current unbroken run, which is what raises the bonus sting.
+		-- `pocketedThisShot` is how a run is known to have ended: the next strike reads it.
+		streak: number,
+		pocketedThisShot: boolean,
 		roll: Roll?,
 		pull: Pull?,
 	},
@@ -209,6 +213,8 @@ function Audio.new(parent: Instance): Audio
 		stackStart = 0,
 		stacked = 0,
 		lastPick = {},
+		streak = 0,
+		pocketedThisShot = false,
 		roll = nil,
 		pull = nil,
 	}, Audio)
@@ -297,7 +303,8 @@ function Audio.playAt(
 	at: Vector3,
 	range: any,
 	speed: number,
-	force: boolean?
+	force: boolean?,
+	pitchScale: number?
 )
 	-- The speed decides which recording, not just how loud it plays: some clips declare the
 	-- band of impact speeds they suit (see Config.Audio.Clips.RailThud).
@@ -315,7 +322,7 @@ function Audio.playAt(
 	-- differ from each other. A band may ask for more of it when it has fewer recordings to
 	-- choose between, which is the only disguise left to it.
 	local wobble = range.PitchJitter or Config.Audio.PitchJitter
-	local jitter = 1 + (math.random() * 2 - 1) * wobble
+	local jitter = (1 + (math.random() * 2 - 1) * wobble) * (pitchScale or 1)
 
 	voice.busy = true
 	voice.startedAt = os.clock()
@@ -371,16 +378,32 @@ function Audio.attach(self: Audio, match: any)
 			else TableBuilder.toWorld(match.placement, 0, 0, 0)
 
 		if ev.type == "cueStrike" then
+			-- A shot that pocketed nothing ends the run. Read here rather than at the end of
+			-- the shot because a strike is the one event that is guaranteed to arrive, and it
+			-- arrives before anything this shot can add to the run.
+			if not self.pocketedThisShot then
+				self.streak = 0
+			end
+			self.pocketedThisShot = false
 			self:playAt("CueStrike", at, A.Strike, ev.speed)
 		elseif ev.type == "pocket" then
 			-- Always audible: a ball dropping is the payoff and must never be rate limited
 			-- away behind a wall of clacks, so it skips the gaps and forces a voice.
 			self:playAt("PocketDrop", at, A.Pocket, ev.speed, true)
-			-- A bright sting over the top, for the reward rather than the physics. Not for
-			-- the cue ball: a scratch is the opposite of a reward, and the drop alone says
-			-- what happened.
-			if ev.ball ~= 0 then
-				self:playAt("PocketBonus", at, A.Bonus, ev.speed, true)
+			if ev.ball == 0 then
+				-- A scratch is the opposite of a reward: no sting, and the run is over.
+				self.streak = 0
+				self.pocketedThisShot = false
+			else
+				-- A bright sting over the top, for the reward rather than the physics, a
+				-- semitone higher for each ball already in the run. The first is the plain
+				-- sound, so the pitch only ever says "this is the Nth in a row".
+				local B = A.Bonus
+				local step = math.min(self.streak, B.StreakMaxSteps)
+				local pitch = 2 ^ (step * B.StreakSemitones / 12)
+				self:playAt("PocketBonus", at, B, ev.speed, true, pitch)
+				self.streak += 1
+				self.pocketedThisShot = true
 			end
 		elseif ev.type == "ballHit" then
 			if ev.speed < A.MinClackSpeed then
@@ -404,6 +427,13 @@ function Audio.attach(self: Audio, match: any)
 			self:playAt("RailThud", at, A.Rail, ev.speed)
 		end
 	end)
+end
+
+--- Forget any run of pocketed balls. Called when the player leaves a table, so a streak is
+--- not carried to the next one.
+function Audio.resetStreak(self: Audio)
+	self.streak = 0
+	self.pocketedThisShot = false
 end
 
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).
