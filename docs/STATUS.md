@@ -13,7 +13,10 @@ one run. Code is verified; physical-device and real two-client acceptance remain
   Off-centre impact trades forward speed for spin. Elevation stays fixed at 4 degrees for
   players; all cue styles have identical physics. Tilted spin feeds the existing cloth
   integrator to produce swerve. Camera rollout includes the ball's current angular velocity.
-- **E:** mouse/touch spin selector with drag, four arrow buttons, Center and Done. Gamepad:
+- **E:** mouse/touch spin selector with full-disc dragging, Center and Done. The 80 px ball
+  toggle sits at the left middle; the selector has 10% dimming, no panel/title/hint/arrows,
+  and outside clicks close it while retaining spin. The whole disc maps to the existing
+  0.5R physics limit, with the dot kept inside its edge. Gamepad:
   hold L1 + right stick, Y to center, release L1 to keep the choice. Spin resets after a shot
   or rack/seat change, moves the 3D cue tip and updates the launch guideline. Modal input
   blocks aim, zoom and shooting, including old cancelled pulls. HUD copy lives in Strings.
@@ -72,6 +75,11 @@ Rojo was confirmed before fresh Studio runs. Actual desktop checks:
   closes with L1 release and emits no zoom. A cancelled pull fires zero shots; the next
   deliberate pull fires once. HUD layouts fit 320x568 and 568x262; action targets stay 44 px.
   Native screenshots captured the selector and gameplay.
+- Selector simplification: desktop dragging reaches the edge and stays open when dragged
+  beyond it; Center resets, Done closes, and outside clicks (including transparent padding
+  and over the power bar) close without firing. Fixed a duplicate top-bar inset subtraction
+  that shifted pointer placement upward. Updated 320x568 and 568x262 layout checks pass;
+  console and lint are clean, and all 132 Lune tests still pass.
 
 **Phone/controller hands-on acceptance remains deferred at the designer's request to move
 on.** Scripted input/layout checks do not replace those or a real two-client session. Roadmap

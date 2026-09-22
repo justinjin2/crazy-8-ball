@@ -1,10 +1,9 @@
 --!strict
--- A cue-ball strike target with pointer dragging, button steps and a gamepad modifier.
+-- A full-disc spin control with pointer dragging and a gamepad modifier.
 -- Input owns the chosen spin and modal lock; this module only draws and edits that value.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
-local GuiService = game:GetService("GuiService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -32,19 +31,6 @@ local function corner(object: GuiObject, radius: UDim)
 	local item = Instance.new("UICorner")
 	item.CornerRadius = radius
 	item.Parent = object
-end
-
-local function label(parent: GuiObject, name: string, text: string, size: number): TextLabel
-	local item = Instance.new("TextLabel")
-	item.Name = name
-	item.Text = text
-	item.TextSize = size
-	item.TextColor3 = Color3.new(1, 1, 1)
-	item.Font = Enum.Font.GothamMedium
-	item.BackgroundTransparency = 1
-	item.ZIndex = parent.ZIndex + 1
-	item.Parent = parent
-	return item
 end
 
 local function button(parent: GuiObject, name: string, text: string): TextButton
@@ -111,11 +97,12 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	blocker.Visible = false
 
 	local toggle = button(root, "SpinToggle", "")
-	toggle.AnchorPoint = Vector2.new(0, 1)
-	toggle.Position = UDim2.new(0, C.ToggleMarginPx, 1, -C.ToggleMarginPx)
+	toggle.AnchorPoint = Vector2.new(0, 0.5)
+	toggle.Position = UDim2.new(0, C.ToggleMarginPx, 0.5, 0)
+	toggle.BackgroundTransparency = 1
 	toggle.Size = UDim2.fromOffset(C.ToggleSizePx, C.ToggleSizePx)
 	toggle.ZIndex = blocker.ZIndex + 1
-	local iconSize = C.ToggleSizePx - C.MarginPx * 2
+	local iconSize = C.ToggleSizePx
 	local icon = Instance.new("Frame")
 	icon.Name = "CueBall"
 	icon.Size = UDim2.fromOffset(iconSize, iconSize)
@@ -124,91 +111,37 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	icon.ZIndex = toggle.ZIndex + 1
 	icon.Parent = toggle
 	corner(icon, UDim.new(0.5, 0))
-	icon.AnchorPoint = Vector2.new(0.5, 0)
-	icon.Position = UDim2.new(0.5, 0, 0, C.GapPx / 2)
+	icon.AnchorPoint = Vector2.new(0.5, 0.5)
+	icon.Position = UDim2.fromScale(0.5, 0.5)
 	-- The decoration must not steal the toggle's pointer or gamepad selection.
 	icon.Active = false
 	icon.Selectable = false
 	local iconDot = dot(icon)
-	local toggleText = label(toggle, "Label", S.Title, C.HintTextSizePx)
-	toggleText.AnchorPoint = Vector2.new(0, 1)
-	toggleText.Position = UDim2.fromScale(0, 1)
-	toggleText.Size = UDim2.new(1, 0, 0, C.HintHeightPx)
 
 	local panel = Instance.new("Frame")
 	panel.Name = "SpinPanel"
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Position = UDim2.fromScale(0.5, 0.5)
-	panel.BackgroundColor3 = rgb(Config.UI.Panel)
+	panel.BackgroundTransparency = 1
 	panel.BorderSizePixel = 0
-	panel.Active = true
+	panel.Active = false -- empty space lets the backdrop receive outside clicks
 	panel.ZIndex = toggle.ZIndex + 1
 	panel.Visible = false
 	panel.Parent = root
-	corner(panel, UDim.new(0, C.CornerRadiusPx))
 	local panelWidth = C.PanelWidthPx
 	local y = C.MarginPx
-	local title = label(panel, "Title", S.Title, C.TextSizePx)
-	title.Position = UDim2.fromOffset(C.MarginPx, y)
-	title.Size = UDim2.fromOffset(panelWidth - C.MarginPx * 2, C.TitleHeightPx)
-	y += C.TitleHeightPx
-	local hint = label(panel, "Hint", S.PointerHint, C.HintTextSizePx)
-	hint.Position = UDim2.fromOffset(C.MarginPx, y)
-	hint.Size = UDim2.fromOffset(panelWidth - C.MarginPx * 2, C.HintHeightPx)
-	y += C.HintHeightPx + C.GapPx
 	local target = ball(panel, "StrikeTarget", C.BallSizePx)
 	target.AnchorPoint = Vector2.new(0.5, 0)
 	target.Position = UDim2.new(0.5, 0, 0, y)
 	target.Selectable = false
-	local ring = Instance.new("Frame")
-	ring.Name = "StrikeLimit"
-	ring.AnchorPoint = Vector2.new(0.5, 0.5)
-	ring.Position = UDim2.fromScale(0.5, 0.5)
-	ring.Size = UDim2.fromScale(Config.Cue.MaxSpinOffset, Config.Cue.MaxSpinOffset)
-	ring.BackgroundTransparency = 1
-	ring.ZIndex = target.ZIndex + 1
-	ring.Parent = target
-	corner(ring, UDim.new(0.5, 0))
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = rgb(C.LimitColor)
-	stroke.Thickness = C.RingWidthPx
-	stroke.Parent = ring
 	local strikeDot = dot(target)
 	y += C.BallSizePx + C.GapPx
 
-	local nudgeButtons = {
-		{ name = "Up", text = S.Up, x = 0, y = 1 },
-		{ name = "Down", text = S.Down, x = 0, y = -1 },
-		{ name = "Left", text = S.Left, x = -1, y = 0 },
-		{ name = "Right", text = S.Right, x = 1, y = 0 },
-	}
-	local rowWidth = #nudgeButtons * C.ButtonSizePx + (#nudgeButtons - 1) * C.GapPx
-	local arrows: { TextButton } = {}
-	local arrowsY = y
-	for index, spec in nudgeButtons do
-		local nudge = button(panel, spec.name, spec.text)
-		table.insert(arrows, nudge)
-		nudge.Position = UDim2.fromOffset(
-			(panelWidth - rowWidth) / 2 + (index - 1) * (C.ButtonSizePx + C.GapPx),
-			y
-		)
-		nudge.Size = UDim2.fromOffset(C.ButtonSizePx, C.ButtonSizePx)
-		nudge.BackgroundColor3 = rgb(C.LimitColor)
-		nudge.Activated:Connect(function()
-			if input.spinEditing then
-				input:setSpin(
-					input.spinX + spec.x * Config.Input.SpinStep,
-					input.spinY + spec.y * Config.Input.SpinStep
-				)
-			end
-		end)
-	end
-	y += C.ButtonSizePx + C.GapPx
 	local actionWidth = (panelWidth - C.MarginPx * 2 - C.GapPx) / 2
 	local reset = button(panel, "Center", S.Center)
 	reset.Position = UDim2.fromOffset(C.MarginPx, y)
 	reset.Size = UDim2.fromOffset(actionWidth, C.ButtonSizePx)
-	reset.BackgroundColor3 = rgb(C.LimitColor)
+	reset.BackgroundColor3 = rgb(C.CenterColor)
 	local done = button(panel, "Done", S.Done)
 	done.Position = UDim2.fromOffset(C.MarginPx + actionWidth + C.GapPx, y)
 	done.Size = UDim2.fromOffset(actionWidth, C.ButtonSizePx)
@@ -225,9 +158,6 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 		)
 		local delta = ballSize - C.BallSizePx
 		target.Size = UDim2.fromOffset(ballSize, ballSize)
-		for _, arrow in arrows do
-			arrow.Position = UDim2.new(arrow.Position.X, UDim.new(0, arrowsY + delta))
-		end
 		reset.Position = UDim2.new(reset.Position.X, UDim.new(0, actionsY + delta))
 		done.Position = UDim2.new(done.Position.X, UDim.new(0, actionsY + delta))
 		panel.Size = UDim2.fromOffset(panelWidth, fullHeight + delta)
@@ -243,8 +173,11 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	}, SpinSelector)
 	local active: InputObject? = nil
 	local function refresh(x: number, sy: number)
-		-- Offsets are fractions of radius; screen Y points down, topspin points up.
-		local position = UDim2.fromScale(0.5 + x / 2, 0.5 - sy / 2)
+		-- The full white disc represents the legal spin range, not literal cue-tip position.
+		-- Keep the entire dot inside either ball, including when layout shrinks the target.
+		local nx, ny = x / Config.Cue.MaxSpinOffset, sy / Config.Cue.MaxSpinOffset
+		local dotRadius = C.DotSizePx / 2
+		local position = UDim2.new(0.5 + nx / 2, -nx * dotRadius, 0.5 - ny / 2, ny * dotRadius)
 		strikeDot.Position = position
 		iconDot.Position = position
 	end
@@ -254,7 +187,6 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 		blocker.Visible = editing
 		panel.Visible = editing
 		active = nil
-		hint.Text = if input.spinModifier then S.GamepadHint else S.PointerHint
 	end)
 	toggle.Activated:Connect(function()
 		if self.enabled then
@@ -266,16 +198,21 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 			input:resetSpin()
 		end
 	end)
-	done.Activated:Connect(function()
+	local function close()
 		input:setSpinEditing(false)
-	end)
+	end
+	done.Activated:Connect(close)
+	-- Close on release so this click cannot start a table drag or a power pull.
+	blocker.Activated:Connect(close)
 
 	local function choose(position: Vector3)
-		local inset = if screen.IgnoreGuiInset then Vector2.zero else GuiService:GetGuiInset()
-		local localPoint = Vector2.new(position.X, position.Y) - inset - target.AbsolutePosition
+		-- InputObject.Position already uses the same inset-adjusted space as AbsolutePosition.
+		local localPoint = Vector2.new(position.X, position.Y) - target.AbsolutePosition
 		local radius = target.AbsoluteSize.X / 2
-		if radius > 0 then
-			input:setSpin((localPoint.X - radius) / radius, (radius - localPoint.Y) / radius)
+		local travel = radius - C.DotSizePx / 2
+		if travel > 0 then
+			local scale = Config.Cue.MaxSpinOffset / travel
+			input:setSpin((localPoint.X - radius) * scale, (radius - localPoint.Y) * scale)
 		end
 	end
 	target.InputBegan:Connect(function(object: InputObject)

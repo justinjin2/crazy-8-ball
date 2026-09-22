@@ -64,6 +64,10 @@ Every feature is checked against these. If it serves none, it waits.
   right down and release to shoot, click the cue-ball icon to set spin.
 - Mobile: swipe left or right to aim, pinch to zoom, pull the power bar with a thumb, tap the
   cue-ball icon for spin.
+- Spin UI: a larger cue-ball button sits at the left middle. Drag anywhere across the white
+  selector to choose spin; its full disc represents the available physics range. Keep only
+  Center and Done, with light background dimming and no title, hint, box or arrow buttons.
+  Clicking outside closes it and retains the selection. Gamepad stick controls remain.
 - Gamepad: left stick aims, up and down on the right stick (or triggers) zooms, a hold-and-
   release button shoots with power, the spin selector is a stick target. Exact bindings are a
   milestone task, not a design question.

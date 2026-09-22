@@ -643,3 +643,8 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   stops or duration caps. Preserve all collision safety assertions and >=20 contacts per
   stroke. Require >=10 moved each and ensemble mean >=13, instead of choosing a lucky seed
   or changing physics to satisfy a universal count that realistic rack variation invalidates.
+- 2026-09-22: Designer requested a simpler spin selector: 80 px left-middle ball toggle,
+  10% backdrop dimming, no title/hint/box/ring/arrows, and only Center/Done. Outside clicks
+  close on release and retain spin. The whole white disc maps to the existing 0.5R legal
+  strike range; physics stays unchanged. This explicitly supersedes the drag-button
+  alternative for spin. Fixed duplicate top-bar inset subtraction in pointer mapping.
