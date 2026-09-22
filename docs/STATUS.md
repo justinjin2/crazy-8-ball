@@ -1,49 +1,61 @@
 # Status
 
-**Last updated:** 2026-09-22. Physics realism B implemented; A and B are committed steps.
-Report after B, per `prompts/PHYSICS_REALISM_PROMPT.md`. C-F are not started.
+**Last updated:** 2026-09-22. Physics realism C implemented; A-C are verified code steps.
+Report after C, per `prompts/PHYSICS_REALISM_PROMPT.md`. D-F are not started.
 
-## Current work: physics realism B
+## Current work: physics realism C
 
-Ball contacts now apply speed-dependent friction, object-ball throw and spin transfer.
-The six-point Config table is interpolated linearly with clamped endpoints; no exponential
-runs in replay. Normal restitution stays 0.95 and contact sound speed stays the incoming
-normal speed. Tangential impulse is capped to prevent slip reversing. Both balls receive
-the angular impulse; translation stays on the cloth.
+Cushions now use Han 2005's tilted contact normal through the ball centre and full tangential
+friction, including english and draw/follow. Restitution interpolates from 0.9 at 20 in/s to
+0.6 at 300 in/s of normal approach speed; the constant fallback is 0.85 and friction is 0.2.
+Only tangential impulses create torque. Vertical translation is discarded. Extreme future
+material overrides also have an energy-preserving outward constraint.
 
-**Two prompt corrections were necessary:** removing vertical contact slip would make its
-backspin-transfer test impossible; retain that slip/torque and discard only vertical
-translation, as pooltool's 2D resolver does. The supplied table gives mu = 0.072 at 20 in/s
-slip, so its half-ball stun benchmark exits at **25.88181 degrees**, not 26.57. The latter
-is valid with fixed mu = 0.06 and is tested separately (**26.56637 degrees**). The prompt,
-research summary and dated decision log now state this explicitly.
+Corner openings move back to leave a supported shelf: **1.733333 in with today's 2.6 in
+balls**, becoming **1.5 in with regulation balls in F**. Corner facings now reach the shifted
+opening rim so balls cannot escape through a gap behind the jaw. Side geometry is unchanged.
 
-**Verified:** all **98 Lune tests pass**; `tools/lint.sh` passes StyLua, Selene and luau-lsp.
-Six new tests cover restitution, the two throw benchmarks, friction interpolation/endpoints,
-gearing english, backspin transfer and 20,000 deterministic contact pairs. That sweep checks
-energy, planar momentum, restitution, torque signs and slip non-reversal. Three full breaks
-also assert no ball is stopped by wedge/event-budget/shot-duration guards. Existing pocket,
-trace, determinism and server-seed replay tests remain green.
+**Verified:** 109 Lune tests, StyLua, Selene and luau-lsp. New coverage checks measured
+rebounds, running/reverse english, interpolation/fallback, mirror/rotation symmetry, heavy
+draw and 4,000 deterministic cushion contacts without energy gain or inward rebounds.
+Pocket coverage includes 84 corner entries across angles, speeds up to 528 in/s and english,
+plus a ball that can stop on the supported shelf. Existing break guards, throw, determinism,
+trace and server replay checks pass.
 
-The existing strong draw/follow test now starts the cue 6 in behind the object instead of
-10, retaining enough backspin after cloth loss and ball-to-ball spin transfer. Its original
-three-inch minimum separation assertions remain: follow exceeds stun by **4.484608 in**;
-draw trails stun by **3.716758 in**. This is a setup correction, not relaxed acceptance.
+Rojo sync was confirmed before fresh Studio Play. Runtime measurements match Lune:
+- Rolling 100 in/s at 45 degrees: **43.863807 degrees**, **76.397643 in/s** outgoing.
+- Perpendicular stun: **50.418857%** speed retained at 300 in/s, **70.285286%** at 100 in/s.
+  The prompt's half-speed test needed its impact speed specified; the model was not retuned.
+- Actual desktop power-bar break: **6.10 s**, 26 ball hits, 25 rails, one pocketed.
+  Console clean, no replay drift warning, native screenshot shows the settled table.
 
-Rojo sync was confirmed in Edit mode before a fresh Play session. Studio measurements:
-- Full stun hit at 100 in/s: object **97.5**, cue **2.5 in/s**.
-- Half-ball stun at 40 in/s: **25.88181 degrees**; gearing outside english: **30.00000**.
-- Rolling full hit at 100 in/s gives object backspin **-3.375 rad/s** immediately after
-  contact, below the tested 5/14 transfer cap.
-- Three full breaks: **7.396-7.533 s**, no guard stops or duration caps.
-- Actual desktop power-bar break: **7.40 s**, 32 ball hits, 22 rails, two pocketed.
-  Console clean, no replay drift warning; native screenshot captured the settled table.
+Bank length also depends on spin reaching the cushion and the cloth after rebound. From one
+fixed centre-strike setup, gentle 40 in/s reaches the rail rolling and its settled rebound
+runs long (**57.216 degrees** from normal); hard 160 in/s is still sliding on arrival and
+settles short (**40.877 degrees**). Immediate contact angles alone do not have this ordering;
+it is not a universal claim for every launch spin or speed.
+
+**Visual choice pending:** the live table is `ServerStorage.PoolTableModel`, an imported mesh.
+It does not rebuild its holes from Config. The physics and generated table share the new
+shelf; the imported mesh still has different pocket geometry. Asked whether to temporarily
+use the matching generated table or retain the imported appearance and defer its mesh update.
+No table art or place assets have been changed while that choice is pending.
 
 **Phone/controller acceptance remains deferred at the designer's request to move on.**
-Controller detection in A did not constitute a successful controller shot. Native screenshots
-worked again in B; no new phone/controller attempt was made. Spin effects are verified through
-scripted inputs until the selector and wire arrive in E. Classic's object-ball line remains
-geometric as requested, so it does not compensate for throw.
+Controller detection in A was not a successful controller shot. No new device attempt was
+made in B/C. Spin inputs remain scripted until the selector and wire arrive in E.
+
+## Previous verified contact step B
+
+Ball contacts use the six-point friction table, capped tangential impulse, throw and spin
+transfer. Normal restitution is 0.95. Full contact torque is retained while translation stays
+planar. Dropping vertical slip would prevent rolling-to-backspin transfer, so the research
+and prompt were corrected. The table's half-ball stun benchmark is **25.88181 degrees**;
+fixed friction 0.06 gives **26.56637**, and gearing english gives **30.00000**.
+B passed 98 tests including 20,000 deterministic contact pairs and guarded full breaks.
+The existing strong draw/follow setup starts 6 in behind the object to preserve enough spin;
+its original three-inch separation assertions remain. Classic's object-ball line stays
+geometric and does not compensate for throw.
 
 ## Physics A and later decisions
 
@@ -53,7 +65,7 @@ tolerance 1e-7 s. Side spin decays at 10.9 rad/s^2 independent of radius. Spin i
 longer holds a shot open; keep it while other balls move and clear it when the shot ends.
 Horizontal spin and pocket motion still count. A's known answers remain tested: 30 in/s
 stun reaches rolling at 21.428571 in/s after 0.111003 s; +/-60 rad/s spin reaches zero at
-step 1322 (5.508333 s) at both radii. No place assets changed in A or B.
+step 1322 (5.508333 s) at both radii. No place assets changed in A-C.
 
 **Decided for D-F:** one bar reaching 30 mph, Classic predicts cue-ball launch direction
 including squirt, regulation physics balls with visual scaling, fixed 4-degree elevation,
@@ -77,9 +89,9 @@ Roadmap 1.6 stays unticked until E and its platform acceptance checks are comple
 - Aim visuals hide immediately on release. Camera holds 0.5 s, pulls out over 0.7 s with
   0.22 s easing, and returns to zoom 0.625. Small-shot cutoff uses half-table rollout;
   0.06 screen-edge margin overrides the hold. Real wide-bank edge override remains untested.
-- Pocket opening and lip tipping share geometry with art. Previous pocket sweeps found no
-  stranded overhangs; pocket regressions still pass. Corner leather lining leaves exposed
-  blue bed cut-face: cosmetic TableBuilder fix, not a physics change.
+- Generated table opening and lip tipping share geometry with physics; imported art does
+  not. Pocket regressions pass. Generated corner leather lining leaves exposed blue bed
+  cut-face: a remaining cosmetic TableBuilder issue.
 
 ## Known debts to preserve
 
@@ -101,6 +113,6 @@ Roadmap 1.6 stays unticked until E and its platform acceptance checks are comple
 
 Try gentle shots and a hard break on phone and a real controller; verify motion finishes
 and aiming returns. Run Start Server + 2 Players for the still-open 1.5 acceptance.
-After reporting B, C is the cushion rewrite and corner shelf; preserve the explicit stop after each
-milestone. No place assets were edited in A or B. The standing milestone handoff asks the user
+After reporting C, D is the cue-impact model; preserve the explicit stop after each milestone.
+No place assets were edited in A-C. The standing milestone handoff asks the user
 to save `place/8ball.rbxl` and publish; scripts themselves are edited only through Rojo.

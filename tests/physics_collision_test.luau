@@ -13,20 +13,43 @@ local function setup()
 	return Config, Ball, TableGeometry, Simulation, Rack, geometry
 end
 
--- Remove cloth impulses only while measuring a single ball contact. Restore every shared
+-- Remove cloth impulses only while measuring a single contact. Restore every shared
 -- setting even when a benchmark fails, so later suites still exercise the real table.
 local function withoutCloth(Config, callback: () -> ())
 	local P = Config.Physics
 	local sliding, rolling, spin = P.SlidingFriction, P.RollingFriction, P.SideSpinDecel
 	local rest, epsilon, friction = P.RestSpeed, P.SlideEpsilon, P.BallFrictionTable
+	local railFriction, railRestitution, railTable =
+		P.RailFriction, P.RailRestitution, P.RailRestitutionBySpeed
 	P.SlidingFriction, P.RollingFriction, P.SideSpinDecel = 0, 0, 0
 	P.RestSpeed, P.SlideEpsilon = 0, 0
 	local ok, err = pcall(callback)
 	P.SlidingFriction, P.RollingFriction, P.SideSpinDecel = sliding, rolling, spin
 	P.RestSpeed, P.SlideEpsilon, P.BallFrictionTable = rest, epsilon, friction
+	P.RailFriction, P.RailRestitution, P.RailRestitutionBySpeed =
+		railFriction, railRestitution, railTable
 	if not ok then
 		error(err)
 	end
+end
+
+-- Touch the middle of one closed rail, away from jaws and other balls. Input/output can
+-- then be compared in its local inward-normal/tangent frame on every table edge.
+local function railContact(Ball, Simulation, geometry, radius: number, railIndex: number)
+	local rail = geometry.segments[railIndex]
+	local b = Ball.new(
+		0,
+		(rail.ax + rail.bx) / 2 + (radius - 1e-8) * rail.nx,
+		(rail.ay + rail.by) / 2 + (radius - 1e-8) * rail.ny
+	)
+	return Simulation.newState(geometry, { b }), b, rail.nx, rail.ny
+end
+
+local function bounce(Simulation, state): number
+	local events = {}
+	Simulation.step(state, 1e-7, events)
+	H.expect(#events == 1 and events[1].type == "railHit", "expected one isolated rail contact")
+	return events[1].speed
 end
 
 local function contactPair(Ball, Simulation, geometry, radius: number, angle: number)
@@ -106,6 +129,253 @@ local function pocketedByFrame(result, ballCount: number): { { boolean } }
 end
 
 return {
+	["a 100 in/s rolling bank at 45 degrees exits short with measured speed loss"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			local state, b = railContact(Ball, Simulation, geometry, R, 3)
+			b.vx, b.vy = 100 / math.sqrt(2), -100 / math.sqrt(2)
+			b.wx, b.wy = -b.vy / R, b.vx / R
+			H.near(
+				bounce(Simulation, state),
+				100 / math.sqrt(2),
+				1e-9,
+				"incoming normal event speed"
+			)
+			local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+			local angle = math.deg(math.atan2(math.abs(b.vy), -b.vx))
+			H.near(angle, 43.863807, 1e-6, "rolling rebound angle from rail normal")
+			H.near(speed / 100, 0.763976, 1e-6, "rolling rebound speed fraction")
+			H.expect(angle < 45 and speed > 60 and speed < 80, "rolling bank benchmark")
+		end)
+	end,
+
+	["a perpendicular 300 in/s stun bank retains half its speed"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			-- The 50-60% research benchmark describes a hard bank: the configured e=0.6
+			-- endpoint is at 300 in/s. A softer 100 in/s bank correctly retains more.
+			for _, sample in { { 300, 0.5041885714285714 }, { 100, 0.7028528571428572 } } do
+				local state, b =
+					railContact(Ball, Simulation, geometry, Config.Balls.RadiusInches, 3)
+				b.vx = sample[1]
+				H.near(bounce(Simulation, state), sample[1], 1e-9, "incoming normal event speed")
+				H.near(-b.vx / sample[1], sample[2], 1e-8, "stun rebound speed fraction")
+				H.near(b.vy, 0, 1e-9, "perpendicular rebound stays perpendicular")
+				H.expect(b.vz == 0, "cushion impulse preserves planar translation")
+			end
+		end)
+	end,
+
+	["running english lengthens and speeds a bank while reverse english shortens it"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			local function bank(english: number): (number, number)
+				local state, b = railContact(Ball, Simulation, geometry, R, 3)
+				b.vx, b.vy = 100 / math.sqrt(2), -100 / math.sqrt(2)
+				b.wx, b.wy, b.wz = -b.vy / R, b.vx / R, english / R
+				bounce(Simulation, state)
+				return math.deg(math.atan2(math.abs(b.vy), -b.vx)),
+					math.sqrt(b.vx * b.vx + b.vy * b.vy)
+			end
+			local naturalAngle, naturalSpeed = bank(0)
+			local runningAngle, runningSpeed = bank(80)
+			local reverseAngle, reverseSpeed = bank(-80)
+			H.expect(runningAngle > naturalAngle, "running english must lengthen the rebound")
+			H.expect(runningSpeed > naturalSpeed, "running english must speed the rebound")
+			H.expect(reverseAngle < naturalAngle, "reverse english must shorten the rebound")
+			H.expect(reverseSpeed < naturalSpeed, "reverse english must slow the rebound")
+		end)
+	end,
+
+	["a gentle centre-struck bank runs long and a firm bank runs short after cloth recovery"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		local Cue = H.require("Physics.Cue")
+		local R, dt = Config.Balls.RadiusInches, Config.Physics.FixedStep
+		local function bank(launchSpeed: number): (number, number)
+			local b = Ball.new(0, geometry.halfLength - R - 8, 15)
+			local state = Simulation.newState(geometry, { b })
+			local C = Config.Cue
+			local power = ((launchSpeed - C.MinSpeed) / (C.MaxSpeed - C.MinSpeed))
+				^ (1 / C.PowerCurve)
+			Cue.strike(b, { angle = -math.pi / 4, power = power })
+			local touched = false
+			local arrivalSlip = 0
+			for _ = 1, math.ceil(Config.Physics.MaxShotSeconds / dt) do
+				local slipBefore = math.sqrt((b.vx - R * b.wy) ^ 2 + (b.vy + R * b.wx) ^ 2)
+				local speedBefore = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+				local events = {}
+				Simulation.step(state, dt, events)
+				if #events > 0 then
+					H.expect(not touched, "bank must recover rolling before another contact")
+					H.expect(
+						#events == 1 and events[1].type == "railHit",
+						"expected one foot rail hit"
+					)
+					H.expect(b.vx < 0, "bank must rebound away from the foot rail")
+					touched = true
+					arrivalSlip = slipBefore / speedBefore
+				end
+				local slip = math.sqrt((b.vx - R * b.wy) ^ 2 + (b.vy + R * b.wx) ^ 2)
+				if touched and slip < Config.Physics.SlideEpsilon then
+					H.expect(
+						b.vx < 0 and b.vy < 0,
+						"settled bank keeps travelling across the table"
+					)
+					return arrivalSlip, math.deg(math.atan2(-b.vy, -b.vx))
+				end
+				H.expect(
+					not Simulation.isAtRest(state),
+					"bank stopped before its rebound was measured"
+				)
+			end
+			error("bank never returned to rolling")
+		end
+		-- Both shots use the same 45-degree aim and start eight inches from the foot
+		-- cushion. The gentle shot arrives rolling; the firm one is still skidding.
+		-- Measure after post-impact sliding: immediate reflection alone does not show
+		-- this long/short distinction, and it is not universal across incoming spins.
+		local gentleSlip, gentleAngle = bank(40)
+		local firmSlip, firmAngle = bank(160)
+		H.near(gentleSlip, 0, 1e-9, "gentle approach is rolling")
+		H.expect(firmSlip > 0.8, "firm approach retains substantial cloth slip")
+		H.near(gentleAngle, 57.216, 0.01, "gentle bank settles long of 45 degrees")
+		H.near(firmAngle, 40.877, 0.01, "firm bank settles short of 45 degrees")
+	end,
+
+	["rail restitution interpolates normal speed and supports a constant fallback"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			Config.Physics.RailFriction = 0
+			local R = Config.Balls.RadiusInches
+			local s = (Config.Physics.CushionNoseHeightInches - R) / R
+			local function check(speed: number, restitution: number)
+				local state, b = railContact(Ball, Simulation, geometry, R, 3)
+				-- Tangential travel and arbitrary spin must not change the lookup speed.
+				b.vx, b.vy, b.wx, b.wy, b.wz = speed, 50, 10, -20, 30
+				H.near(bounce(Simulation, state), speed, 1e-9, "event uses centre normal speed")
+				-- The tilted normal passes through the centre. Its discarded vertical
+				-- component leaves this horizontal fraction and cannot torque the ball.
+				H.near(
+					-b.vx / speed,
+					(1 + restitution) * (1 - s * s) - 1,
+					1e-9,
+					"normal restitution projection"
+				)
+				H.near(b.vy, 50, 1e-9, "frictionless tangent preserved")
+				H.near(b.wx, 10, 1e-9, "normal impulse cannot torque x")
+				H.near(b.wy, -20, 1e-9, "normal impulse cannot torque y")
+				H.near(b.wz, 30, 1e-9, "normal impulse cannot torque z")
+			end
+			for _, sample in { { 10, 0.9 }, { 20, 0.9 }, { 160, 0.75 }, { 300, 0.6 }, { 500, 0.6 } } do
+				check(sample[1], sample[2])
+			end
+			Config.Physics.RailRestitutionBySpeed = {}
+			check(100, Config.Physics.RailRestitution)
+		end)
+	end,
+
+	["a low restitution high friction cushion sends extreme draw away without adding energy"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			Config.Physics.RailRestitutionBySpeed = {}
+			Config.Physics.RailRestitution, Config.Physics.RailFriction = 0, 1
+			local R = Config.Balls.RadiusInches
+			local state, b = railContact(Ball, Simulation, geometry, R, 3)
+			b.vx, b.wy = 100, -1000 / R
+			local beforeEnergy = Simulation.energy(state)
+			H.near(bounce(Simulation, state), 100, 1e-9, "incoming normal event speed")
+			-- This unusual material/spin combination projects inward before the planar
+			-- constraint. Reflecting that component must preserve its magnitude, not trap
+			-- the ball at the rail or spend energy to produce a stronger rebound.
+			local s = (Config.Physics.CushionNoseHeightInches - R) / R
+			H.near(
+				-b.vx,
+				100 * (s * s + s * math.sqrt(1 - s * s)),
+				1e-9,
+				"outward constrained speed"
+			)
+			H.expect(Simulation.energy(state) < beforeEnergy, "cushion guard must not add energy")
+		end)
+	end,
+
+	["rail impulses rotate and mirror with the contact frame"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			local reference = nil
+			for railIndex = 1, 4 do
+				for _, mirror in { 1, -1 } do
+					local state, b, nx, ny = railContact(Ball, Simulation, geometry, R, railIndex)
+					local tx, ty = -ny, nx
+					local vn, vt, wn, wt = -120, mirror * 80, mirror * 20 / R, 70 / R
+					b.vx, b.vy = vn * nx + vt * tx, vn * ny + vt * ty
+					b.wx, b.wy, b.wz = wn * nx + wt * tx, wn * ny + wt * ty, mirror * 200 / R
+					H.near(bounce(Simulation, state), 120, 1e-9, "rotation preserves contact speed")
+					local localOutput = {
+						b.vx * nx + b.vy * ny,
+						mirror * (b.vx * tx + b.vy * ty),
+						mirror * (b.wx * nx + b.wy * ny),
+						b.wx * tx + b.wy * ty,
+						mirror * b.wz,
+					}
+					if reference == nil then
+						reference = localOutput
+					else
+						for i, component in localOutput do
+							H.near(component, reference[i], 1e-9, "cushion frame symmetry")
+						end
+					end
+				end
+			end
+		end)
+	end,
+
+	["4000 deterministic rail contacts dissipate energy and leave the rail even with heavy draw"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = false })
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			local seed = 482731
+			local function random(): number
+				seed = (seed * 48271) % 2147483647
+				return seed / 2147483647
+			end
+			for index = 1, 4000 do
+				local state, b, nx, ny = railContact(Ball, Simulation, geometry, R, 1 + index % 4)
+				local tx, ty = -ny, nx
+				local scale = if index % 3 == 0 then 0.01 elseif index % 3 == 1 then 100 else 528
+				local normal, tangent = scale * (0.01 + random()), scale * (2 * random() - 1)
+				local wn = 4 * scale * (2 * random() - 1) / R
+				-- Every fifth sample has extreme backspin relative to the approach.
+				local wt = if index % 5 == 0
+					then 20 * normal / R
+					else 4 * scale * (2 * random() - 1) / R
+				b.vx, b.vy = -normal * nx + tangent * tx, -normal * ny + tangent * ty
+				b.wx, b.wy, b.wz =
+					wn * nx + wt * tx, wn * ny + wt * ty, 4 * scale * (2 * random() - 1) / R
+				local energyBefore = Simulation.energy(state)
+				H.near(bounce(Simulation, state), normal, 1e-8, "incoming normal contact speed")
+				H.expect(
+					b.vx * nx + b.vy * ny >= 0,
+					("rail contact %d still heads into the rail"):format(index)
+				)
+				H.expect(
+					Simulation.energy(state) <= energyBefore + 1e-9 * math.max(energyBefore, 1),
+					("energy rose on rail contact %d"):format(index)
+				)
+				H.expect(b.vz == 0, "cushion contact must not launch a ball")
+			end
+		end)
+	end,
+
 	["a 100 in/s full hit preserves the measured 0.95 restitution"] = function()
 		local Config, Ball, _, Simulation, _, geometry = setup()
 		withoutCloth(Config, function()

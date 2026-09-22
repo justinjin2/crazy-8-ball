@@ -65,17 +65,20 @@ Files: `src/shared/Physics/Simulation.luau` (resolveRail), `src/shared/Config.lu
 `tests/physics_pocket_test.luau`.
 Port pooltool's `han_2005` resolver (read
 https://raw.githubusercontent.com/ekiefl/pooltool/main/pooltool/physics/resolve/ball_cushion/han_2005/__init__.py
-and its blog derivation): contact angle `sin(theta) = 2h/D - 1`; the normal impulse acts along
+and its blog derivation; the implementation is now in sibling `model.py`): contact angle
+`sin(theta) = 2h/D - 1`; the normal impulse acts along
 the tilted TRUE normal through the ball centre with restitution e_c; Coulomb friction with
 f_c on the full tangential slip vector at the contact point with a stick/slip test; angular
-impulses from both; discard the vertical translational result. Guarantee the ball leaves
+impulses from the full contact (the true normal's torque cancels); discard the vertical
+translational result. Guarantee the ball leaves
 moving away from the rail in every branch. Config: `RailRestitution = 0.85`,
 `RailFriction = 0.2`, then `RailRestitutionBySpeed` (piecewise linear, e.g. 0.9 at 20 in/s
 to 0.6 at 300 in/s, tuned so a near-perpendicular ball loses about half its speed). Move the
 corner opening back by `CornerShelfInches = 1.5` (scaled by ball diameter) and re-run the
 pocket tests. resolveRail takes e and mu as arguments (needed by Milestone E).
 Tests: rolling ball 100 in/s at 45 deg rebounds at a shorter angle than 45 and keeps 0.6-0.8
-of its speed; stun ball perpendicular keeps 0.5-0.6; running english lengthens and speeds
+of its speed; stun ball perpendicular at 300 in/s keeps 0.5-0.6 (at 100 in/s this curve
+gives 0.70285); running english lengthens and speeds
 the rebound, reverse shortens and slows it; heavy backspin into the rail never keeps a
 component into the rail; energy never increases. Done means: a bank at speed goes short, a
 soft bank runs long, visibly.

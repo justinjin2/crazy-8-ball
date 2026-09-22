@@ -142,9 +142,12 @@ uses fixed mu = 0.06, as in TP A.14's initial example, rather than the speed-dep
 (15.7 deg at 0.635 D). Work in the frame (n horizontal into table, t along rail, z up).
 Contact velocity at the raised point; normal impulse along the TRUE normal (through the ball
 centre, tilted by theta) with restitution e_c; Coulomb friction cone on the full tangential
-slip vector with f_c and a stick/slip test; angular impulses from both. Discard the vertical
-translational result (ball stays on the cloth). Expect a rolling ball at 45 deg to rebound
-shorter than mirror and at about 70% speed; a stun ball perpendicular to keep about 50-60%.
+slip vector with f_c and a stick/slip test. The true normal passes through the centre and
+creates no net torque; the two tangential components create torque. Use pooltool's current
+`han_2005/model.py`, which corrects the older blog's stick/slip threshold. Discard the vertical
+translational result (ball stays on the cloth). At 100 in/s, a rolling ball at 45 deg from
+the normal rebounds at 43.863807 deg and 76.3976% speed. A perpendicular stun ball at
+300 in/s keeps 50.4189%; at 100 in/s it keeps 70.2853%. These depend on impact speed/spin.
 Then make e_c fall with normal speed (e.g. linear from 0.9 at 20 in/s to 0.6 at 300 in/s;
 tune against Dr. Dave's "half speed at steep angle").
 
@@ -158,8 +161,9 @@ tune against Dr. Dave's "half speed at steep angle").
 - Half-ball stun hit at 40 in/s, mu 0.06: object leaves at 26.57 deg (3.43 deg throw);
   gearing outside english (wz = V sin30 / R) gives exactly 30.00 deg.
 - Rolling full hit transfers backspin 5/14 max; energy never increases over 20k random hits.
-- Rolling ball, 45 deg into a rail: rebound angle shorter than 45, speed 0.6-0.8 v; stun
-  ball perpendicular keeps 0.5-0.6 v; running english lengthens, reverse shortens.
+- Rolling ball at 100 in/s, 45 deg into a rail: rebound angle shorter than 45, speed
+  0.6-0.8 v; stun ball perpendicular at 300 in/s keeps 0.5-0.6 v (0.70285 v at 100 in/s);
+  running english lengthens, reverse shortens.
 - Squirt: a = 0.5, m_r = 25: alpha = 2.3 deg; a = 0: 0.
 - Stick: centre hit V = 100 in/s, M = 19 oz, e = 0.73: v = 127-135 in/s; a = 0.5 gives ~0.75x.
 

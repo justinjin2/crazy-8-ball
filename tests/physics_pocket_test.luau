@@ -21,12 +21,14 @@ local function runOne(
 	x: number,
 	y: number,
 	vx: number,
-	vy: number
+	vy: number,
+	wz: number?
 )
 	local b = Ball.new(1, x, y)
 	b.vx, b.vy = vx, vy
 	local R = Config.Balls.RadiusInches
 	b.wx, b.wy = -vy / R, vx / R -- rolling, like a ball that got there under its own steam
+	b.wz = wz or 0
 	local state = Simulation.newState(geometry, { b })
 	local events = {}
 	local dt = Config.Physics.FixedStep
@@ -75,7 +77,7 @@ return {
 	-- Geometry: the opening is built from the mouth
 	---------------------------------------------------------------------------------------
 
-	["every opening's rim is tangent to the line between its two cushion noses"] = function()
+	["corner rims leave a flat shelf and side rims stay tangent to the mouth"] = function()
 		local Config, _, _, _, geometry = setup()
 		H.near(
 			Config.Table.PocketOpeningMouthFraction,
@@ -90,9 +92,10 @@ return {
 			local ex, ey = b.x - a.x, b.y - a.y
 			local len = math.sqrt(ex * ex + ey * ey)
 			local dist = math.abs((p.x - a.x) * ey - (p.y - a.y) * ex) / len
+			local shelf = if name == "topLeft" then Config.Table.CornerShelfInches else 0
 			H.near(
 				dist,
-				p.radius,
+				p.radius + shelf,
 				1e-9,
 				("%s: centre sits %.4f from the mouth line, rim is %.4f"):format(
 					name,
@@ -103,38 +106,45 @@ return {
 		end
 	end,
 
-	["a corner opening is centred exactly on the table corner"] = function()
+	["all corner openings move one shelf depth along their mouth bisector"] = function()
 		local Config, _, _, _, geometry = setup()
-		local p = pocketByName(geometry, "topLeft")
-		H.near(p.x, -geometry.halfLength, 1e-9, "corner opening x")
-		H.near(p.y, geometry.halfWidth, 1e-9, "corner opening y")
-		H.near(p.radius, Config.Table.CornerMouthInches / 2, 1e-9, "corner opening radius")
+		local offset = Config.Table.CornerShelfInches / math.sqrt(2)
+		for _, name in { "topLeft", "topRight", "bottomRight", "bottomLeft" } do
+			local p = pocketByName(geometry, name)
+			H.near(math.abs(p.x), geometry.halfLength + offset, 1e-9, "corner opening x")
+			H.near(math.abs(p.y), geometry.halfWidth + offset, 1e-9, "corner opening y")
+			H.near(p.radius, Config.Table.CornerMouthInches / 2, 1e-9, "corner opening radius")
+		end
 	end,
 
-	["the corner jaw tips sit on the rim, not out in the middle of the cloth"] = function()
+	["corner facings reach the shifted rim without a gap behind the jaws"] = function()
 		local _, _, _, _, geometry = setup()
 		local p = pocketByName(geometry, "topLeft")
 		local found = 0
 		for _, pt in geometry.points do
-			if pt.name:match("Jaw$") and pt.x < 0 and pt.y > 0 then
+			if pt.name:match("Corner.*Jaw$") and pt.x < 0 and pt.y > 0 then
 				local dx, dy = pt.x - p.x, pt.y - p.y
 				local dist = math.sqrt(dx * dx + dy * dy)
-				if dist < p.radius + 0.5 then
-					found += 1
-					H.near(
-						dist,
-						p.radius,
-						0.02,
-						("jaw %s sits %.4f from the opening centre, rim %.4f"):format(
-							pt.name,
-							dist,
-							p.radius
-						)
-					)
-				end
+				found += 1
+				H.near(dist, p.radius, 1e-9, "corner jaw must end at the opening rim")
 			end
 		end
 		H.expect(found == 2, ("expected both corner jaws on the rim, found %d"):format(found))
+	end,
+
+	["the escape safety net leaves room for the shifted corner openings"] = function()
+		local Config, _, TableGeometry, _, geometry = setup()
+		local oldLimit = Config.Table.PocketShelfBallRadii * Config.Balls.RadiusInches
+		local offset = Config.Table.CornerShelfInches / math.sqrt(2)
+		H.expect(
+			TableGeometry.pocketAt(geometry, geometry.halfLength + oldLimit + offset / 2, 0) == nil,
+			"the escape guard fired before the shifted corner allowance"
+		)
+		H.expect(
+			TableGeometry.pocketAt(geometry, geometry.halfLength + oldLimit + offset + 0.01, 0)
+				~= nil,
+			"the escape safety net no longer catches balls outside the extended table"
+		)
 	end,
 
 	["the rim never eats into a playing cushion"] = function()
@@ -167,6 +177,25 @@ return {
 	---------------------------------------------------------------------------------------
 	-- The tip
 	---------------------------------------------------------------------------------------
+
+	["a soft ball can cross the corner mouth and stop on the flat shelf"] = function()
+		local Config, Ball, _, Simulation, geometry = setup()
+		local p = pocketByName(geometry, "topLeft")
+		local shelf = Config.Table.CornerShelfInches
+		local d = (p.radius + shelf * 0.75) / math.sqrt(2)
+		-- Start a quarter of the way across the shelf; rolling resistance should stop it
+		-- another half-shelf later, before the actual hole. A stopped shelf ball is supported.
+		local decel = Config.Physics.RollingFriction * Config.Physics.Gravity
+		local v = math.sqrt(2 * decel * shelf * 0.5) / math.sqrt(2)
+		local b, events = runOne(Config, Ball, Simulation, geometry, p.x + d, p.y - d, -v, v)
+		local dist = math.sqrt((b.x - p.x) ^ 2 + (b.y - p.y) ^ 2)
+		H.expect(not b.pocketed, "a supported ball was pulled across the flat shelf")
+		H.expect(
+			dist > p.radius and dist < p.radius + shelf * 0.5,
+			"the ball did not cross the shelf"
+		)
+		H.expect(#pocketEvents(events, 1) == 0, "a flat shelf hanger fired a pocket event")
+	end,
 
 	["a ball left at rest just inside the rim tips in on its own"] = function()
 		local Config, Ball, _, Simulation, geometry = setup()
@@ -228,8 +257,8 @@ return {
 	["a ball rolling along the rail into a corner goes in"] = function()
 		local Config, Ball, _, Simulation, geometry = setup()
 		local R = Config.Balls.RadiusInches
-		-- Touching the top cushion, heading for the top-left corner. This used to be
-		-- impossible: the ball's centre line missed the old opening circle entirely.
+		-- Touching the top cushion, heading for the top-left corner. The extended facings
+		-- must still admit it even though the opening moved back behind a flat shelf.
 		local b, events = runOne(
 			Config,
 			Ball,
@@ -274,6 +303,61 @@ return {
 			worst <= p.radius + 1e-6,
 			("the ball poked %.3f in through the leather on the way down"):format(worst - p.radius)
 		)
+	end,
+
+	["corner entry sweep never leaks past a jaw or strands a ball over the hole"] = function()
+		local Config, Ball, TableGeometry, Simulation, geometry = setup()
+		-- Observe every capture, including captures inside an event substep. A safety-net
+		-- capture would hide a missing piece of jaw geometry, so require the real hole.
+		local pocketAt = TableGeometry.pocketAt
+		TableGeometry.pocketAt = function(g, x: number, y: number)
+			local p = pocketAt(g, x, y)
+			if p then
+				local distSquared = (x - p.x) ^ 2 + (y - p.y) ^ 2
+				H.expect(
+					distSquared <= p.radius ^ 2 + 1e-8,
+					"a corner shot escaped into the safety net"
+				)
+			end
+			return p
+		end
+		local ok, err = pcall(function()
+			local maxSteps = math.floor(Config.Physics.MaxShotSeconds / Config.Physics.FixedStep)
+			local pocketed, returned = 0, 0
+			for _, degrees in { 123, 127, 131, 135, 139, 143, 147 } do
+				for _, speed in { 10, 40, 150, 528 } do
+					for _, spin in { -80, 0, 80 } do
+						local angle = math.rad(degrees)
+						local b, _, _, steps = runOne(
+							Config,
+							Ball,
+							Simulation,
+							geometry,
+							-geometry.halfLength + 10,
+							geometry.halfWidth - 10,
+							speed * math.cos(angle),
+							speed * math.sin(angle),
+							spin
+						)
+						H.expect(steps < maxSteps, "a corner shot never settled")
+						if b.pocketed then
+							pocketed += 1
+						else
+							returned += 1
+							H.expect(
+								pocketAt(geometry, b.x, b.y) == nil,
+								"a stopped ball still hangs over the hole"
+							)
+						end
+					end
+				end
+			end
+			H.expect(pocketed > 0 and returned > 0, "the sweep must cover both entries and misses")
+		end)
+		TableGeometry.pocketAt = pocketAt
+		if not ok then
+			error(err)
+		end
 	end,
 
 	---------------------------------------------------------------------------------------

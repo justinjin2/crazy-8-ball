@@ -306,61 +306,70 @@ end
 -- Contact resolution
 ---------------------------------------------------------------------------------------------
 
--- Cushion hit, as a rigid-body impulse at the cushion nose.
---
--- The nose touches the ball ABOVE its centre (regulation height is about 63% of the ball
--- diameter). Because the contact is off-centre, the normal impulse also twists the ball:
--- a rolling ball's top spin is largely cancelled on the cushion, which is what makes a
--- rolling ball rebound at roughly 60-70% of its speed instead of dying or flying back.
--- Along the cushion, friction acts against the contact point's sliding velocity (which is
--- where side spin comes in), never reverses it, and is capped by the friction cone.
--- Both impulses can only remove energy, so the energy test stays honest.
-local function resolveRail(b: Ball, nx: number, ny: number): number
-	local P = Config.Physics
+-- Contact restitution depends on the incoming speed perpendicular to the cushion.
+local function railRestitution(speed: number): number
+	local points = Config.Physics.RailRestitutionBySpeed
+	if #points == 0 then
+		return Config.Physics.RailRestitution
+	end
+	if speed <= points[1].Speed then
+		return points[1].Restitution
+	end
+	for i = 2, #points do
+		local upper = points[i]
+		if speed <= upper.Speed then
+			local lower = points[i - 1]
+			local fraction = (speed - lower.Speed) / (upper.Speed - lower.Speed)
+			return lower.Restitution + fraction * (upper.Restitution - lower.Restitution)
+		end
+	end
+	return points[#points].Restitution
+end
+
+-- Han 2005, as corrected in pooltool's han_2005/model.py. Work in an inward-facing
+-- cushion frame (n, t = z cross n, z); the true normal is (cos(theta), 0, -sin(theta)).
+-- Its line of action passes through the centre, so only tangential impulses create torque.
+local function resolveRail(b: Ball, nx: number, ny: number, e: number, mu: number): number
 	local R = Config.Balls.RadiusInches
-	local I = 0.4 * R * R -- solid sphere, unit mass
-
-	-- Contact frame: n points into the ball, t = z-hat cross n runs along the cushion.
+	local sinTheta = Config.Physics.CushionNoseHeightInches / R - 1
+	local cosTheta = math.sqrt(1 - sinTheta * sinTheta)
 	local tx, ty = -ny, nx
-	local h = math.clamp(P.CushionNoseHeightInches - R, 0, R * 0.95) -- nose height above the centre
-	local a = math.sqrt(R * R - h * h) -- horizontal reach to the contact point
-
-	local vn = b.vx * nx + b.vy * ny -- negative: moving into the cushion
+	local vn = b.vx * nx + b.vy * ny
+	if vn >= 0 then
+		return 0
+	end
 	local vt = b.vx * tx + b.vy * ty
 	local wn = b.wx * nx + b.wy * ny
 	local wt = b.wx * tx + b.wy * ty
 	local wz = b.wz
-
 	local speedIn = -vn
-	local contactVn = vn + wt * h
-	if contactVn < 0 then
-		-- Normal impulse from Newton restitution at the contact point.
-		local kn = 1 + h * h / I
-		local jn = -(1 + P.RailRestitution) * contactVn / kn
-		vn += jn
-		wt += jn * h / I
 
-		-- Friction impulse along the cushion against the contact point's sliding velocity.
-		local contactVt = vt - wz * a - wn * h
-		local kt = 1 + (h * h + a * a) / I
-		local jt = -contactVt / kt
-		local jtMax = P.RailFriction * jn
-		if jt > jtMax then
-			jt = jtMax
-		elseif jt < -jtMax then
-			jt = -jtMax
-		end
-		vt += jt
-		wn += -h * jt / I
-		wz += -a * jt / I
-	elseif vn < 0 then
-		-- Heavy back spin can make the nose-height contact point move away while the
-		-- centre still heads into the cushion. The ball then meets the cushion lower down:
-		-- bounce the centre with restitution and leave the spin alone. This only removes
-		-- energy, and it guarantees the ball never keeps moving into the cushion.
-		vn = -P.RailRestitution * vn
+	-- Surface slip on both true contact tangents: along the rail and up its tilted face.
+	local slipAlong = vt - R * (cosTheta * wz + sinTheta * wn)
+	local slipTilt = sinTheta * vn + R * wt
+	local slipSpeed = math.sqrt(slipAlong * slipAlong + slipTilt * slipTilt)
+	local normalImpulse = (1 + e) * cosTheta * speedIn
+	local along, tilt = 0, 0
+	if slipSpeed > 0 then
+		-- Unit mass, solid sphere: inverse tangential contact mass = 1 + 5/2.
+		-- Reaching slipSpeed / 3.5 sticks; otherwise the full Coulomb cone limits sliding.
+		local impulse = math.min(slipSpeed / 3.5, mu * normalImpulse)
+		along = -impulse * slipAlong / slipSpeed
+		tilt = -impulse * slipTilt / slipSpeed
 	end
 
+	-- Apply the full contact impulse/torque, then discard vertical translation. The
+	-- normal impulse has no torque: its two apparent angular contributions cancel.
+	vn += normalImpulse * cosTheta + tilt * sinTheta
+	vt += along
+	wn -= 2.5 * sinTheta * along / R
+	wt += 2.5 * tilt / R
+	wz -= 2.5 * cosTheta * along / R
+
+	-- The configured restitution/friction cone always sends the centre outward. For a
+	-- more extreme future override, enforce the planar rail constraint without adding
+	-- energy: reflecting a residual inward component preserves its squared magnitude.
+	vn = math.abs(vn)
 	b.vx = vn * nx + vt * tx
 	b.vy = vn * ny + vt * ty
 	b.wx = wn * nx + wt * tx
@@ -627,7 +636,9 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 				eventType = "ballHit"
 				other = hit.b.id
 			else
-				speed = resolveRail(hit.a, hit.nx, hit.ny)
+				local normalSpeed = -(hit.a.vx * hit.nx + hit.a.vy * hit.ny)
+				speed =
+					resolveRail(hit.a, hit.nx, hit.ny, railRestitution(normalSpeed), P.RailFriction)
 				eventType = "railHit"
 			end
 			if events and speed > 0 then

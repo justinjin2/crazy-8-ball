@@ -33,11 +33,15 @@ Event-driven fixed step (1/240 s) with exact time of impact for ball-ball, ball-
 ball-point contacts (no tunnelling at any power). Sliding-to-rolling friction in closed form,
 rolling resistance, radius-independent side-spin decay. Ball-ball contacts use a tabulated
 speed-dependent friction impulse for throw and spin transfer, retaining full contact torque
-while translation stays on the cloth. Pure side spin does not delay shot completion. Cushion impulse at nose height with a friction cone. Six
-pockets as capture circles with jaw facings and a physical drop (z, vz, funnel). Wedge guards
+while translation stays on the cloth. Pure side spin does not delay shot completion. Cushions
+use Han's tilted contact normal through the centre, full tangential friction, and tabulated
+normal-speed restitution. Translation remains planar; only tangential impulses create torque.
+Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner
+openings have a flat shelf scaled to ball diameter, and facings extend to their rim. Wedge guards
 against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
 Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves the table, the
 break scatters the rack, rail bounce mirrors, spin signs, determinism, trace matches simulation.
+Generated table parts share this geometry; the imported table mesh needs separate art updates.
 
 ## 4. Networking: server-owned tables
 

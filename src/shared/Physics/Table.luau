@@ -14,6 +14,7 @@
 -- the real condition - a ball sitting on a flat bed touches it directly below its centre,
 -- so the moment the centre is over the hole there is nothing holding it up. Balls entering
 -- off-centre still meet a shelf near the jaws, which is what lets a ball rattle or hang.
+-- Corners also have a flat shelf behind the mouth, before the opening's near rim.
 
 local Config = require(script.Parent.Parent.Config)
 
@@ -89,6 +90,13 @@ local function buildOpen(geometry: Geometry)
 
 	local cornerA = math.rad(T.CornerFacingDegrees)
 	local sideA = math.rad(T.SideFacingDegrees)
+	local cornerOffset = T.CornerShelfInches / math.sqrt(2)
+	local cr = T.CornerPocketRadiusInches
+	-- Continue each corner facing to the shifted hole's near rim. Leaving the old fixed
+	-- facing length would open a gap behind its jaw when the shelf moves the hole back.
+	local cx, cy = -c - cornerOffset, -cornerOffset
+	local along = cx * math.cos(cornerA) + cy * math.sin(cornerA)
+	local cornerFacing = -along - math.sqrt(along * along - (cx * cx + cy * cy - cr * cr))
 
 	-- A rail piece plus its two angled facings. `sx, sy` mirror the geometry into each
 	-- quadrant. Each facing runs from the cushion nose outward, away from the table, and
@@ -100,9 +108,11 @@ local function buildOpen(geometry: Geometry)
 		dy: number,
 		nx: number,
 		ny: number,
-		name: string
+		name: string,
+		length: number?
 	)
-		local bx, by = ax + dx * f, ay + dy * f
+		local lengthInches = length or f
+		local bx, by = ax + dx * lengthInches, ay + dy * lengthInches
 		table.insert(geometry.segments, segment(ax, ay, bx, by, nx, ny, name))
 		table.insert(geometry.points, point(ax, ay, 0, name .. "Nose"))
 		table.insert(geometry.points, point(bx, by, jr, name .. "Jaw"))
@@ -149,7 +159,8 @@ local function buildOpen(geometry: Geometry)
 				sy * math.sin(cornerA),
 				sx * math.sin(cornerA),
 				-sy * math.cos(cornerA),
-				yName .. "Corner" .. (if sx > 0 then "R" else "L")
+				yName .. "Corner" .. (if sx > 0 then "R" else "L"),
+				cornerFacing
 			)
 		end
 	end
@@ -166,24 +177,24 @@ local function buildOpen(geometry: Geometry)
 				sy * math.cos(cornerA),
 				-sx * math.cos(cornerA),
 				sy * math.sin(cornerA),
-				xName .. "Corner" .. (if sy > 0 then "T" else "B")
+				xName .. "Corner" .. (if sy > 0 then "T" else "B"),
+				cornerFacing
 			)
 		end
 	end
 
-	-- Openings. A corner opening's centre is the table corner itself: its mouth midpoint sits
-	-- half a mouth in along the diagonal, and the centre sits half a mouth back out from
-	-- there. A side opening's centre sits half a mouth straight out from the cushion line.
-	local cr = T.CornerPocketRadiusInches
+	-- Move corner openings outward along each mouth's bisector by the flat shelf depth.
+	-- Side openings still sit half a mouth straight out from the cushion line.
+	local cornerX, cornerY = hl + cornerOffset, hw + cornerOffset
 	local si = T.SidePocketInsetInches
 	local sr = T.SidePocketRadiusInches
 	geometry.pockets = {
-		{ id = 1, x = -hl, y = hw, radius = cr, name = "topLeft" },
+		{ id = 1, x = -cornerX, y = cornerY, radius = cr, name = "topLeft" },
 		{ id = 2, x = 0, y = hw + si, radius = sr, name = "topSide" },
-		{ id = 3, x = hl, y = hw, radius = cr, name = "topRight" },
-		{ id = 4, x = hl, y = -hw, radius = cr, name = "bottomRight" },
+		{ id = 3, x = cornerX, y = cornerY, radius = cr, name = "topRight" },
+		{ id = 4, x = cornerX, y = -cornerY, radius = cr, name = "bottomRight" },
 		{ id = 5, x = 0, y = -hw - si, radius = sr, name = "bottomSide" },
-		{ id = 6, x = -hl, y = -hw, radius = cr, name = "bottomLeft" },
+		{ id = 6, x = -cornerX, y = -cornerY, radius = cr, name = "bottomLeft" },
 	}
 end
 
@@ -250,7 +261,8 @@ function TableGeometry.pocketAt(geometry: Geometry, x: number, y: number): Pocke
 	-- Safety net, not a way to pocket: nothing should get this far past the cushion line
 	-- without having crossed an opening rim, but if it does, the nearest pocket takes it
 	-- rather than letting a ball wander off the table.
-	local shelf = Config.Table.PocketShelfBallRadii * Config.Balls.RadiusInches
+	local shelf = T.PocketShelfBallRadii * Config.Balls.RadiusInches
+		+ T.CornerShelfInches / math.sqrt(2)
 	if not TableGeometry.containsCenter(geometry, x, y, shelf) then
 		return nearest
 	end

@@ -550,3 +550,39 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   is 4.484608 in for follow and 3.716758 in for draw. No production tuning changed for this.
 - 2026-09-22: Designer requested moving on from A's remaining device checks. Keep phone and
   controller acceptance open while implementing B; no roadmap acceptance box is claimed done.
+
+- 2026-09-22: Physics C ports the corrected
+  [pooltool Han implementation](https://raw.githubusercontent.com/ekiefl/pooltool/main/pooltool/physics/resolve/ball_cushion/han_2005/model.py),
+  checked against its [derivation](https://ekiefl.github.io/2020/04/24/pooltool-theory/#3-han-2005).
+  The tilted normal passes through the centre and has zero net torque; both contact tangents
+  participate in the stick/slip test. Use slip/3.5 capped by mu times normal impulse, retain
+  full angular changes and discard vertical translation. Keep incoming normal event speed.
+  Restitution/friction are resolver arguments so later abilities can supply material overrides.
+- 2026-09-22: C's requested restitution table is 0.9 at 20 in/s normal approach to 0.6 at
+  300 in/s, linearly interpolated and clamped. RailRestitution 0.85 is the empty-table
+  fallback; RailFriction remains 0.2. These are prompt calibration values within the research
+  range, not a measured curve for our imported table. With the 0.635D nose, rolling
+  100 in/s at 45 degrees exits at 43.863807 degrees and 76.397643 in/s. Specify 300 in/s
+  for the prompt's perpendicular stun half-speed test: it retains 50.418857%, versus
+  70.285286% at 100 in/s. The prompt/research now name the speed and correct the torque claim.
+  [Dr. Dave's cushion-efficiency discussion](https://drdavepoolinfo.com/faq/table/cushion-efficiency/)
+  explains why rebound efficiency varies with angle, speed and spin.
+- 2026-09-22: Under the default table/cone all centres exit outward. For an extreme future
+  low-restitution/high-friction override that projects inward, reflect only the residual
+  inward component. This enforces the planar rail constraint without increasing its energy;
+  an e=0, mu=1 heavy-draw regression exercises this guard. 4,000 seeded contacts check
+  energy, planar motion and outward exit, with separate rotation/mirror tests.
+- 2026-09-22: CornerShelfBallFraction = 1.5/2.25 implements C's 1.5 in regulation target,
+  scaled with ball diameter (research WPA range 1-2.25 in). Current shelf is 1.733333 in.
+  Shift corner circles diagonally and derive corner-facing length to their near rim instead
+  of leaving the old 1.6 in facing and a gap behind it. Side facings retain 1.6 in. Move the
+  escape safety bound beyond the shifted extent; genuine rim crossings still drive drops.
+- 2026-09-22: Verify the full bank path, not a universal immediate-angle rule: from the same
+  position 8 in before the foot rail at 45 degrees, centre strikes of 40 and 160 in/s reach
+  the rail rolling and sliding respectively. After post-cushion cloth slip ends, their angles
+  from the normal are 57.216 and 40.877 degrees (gentle long, hard short). The immediate
+  impact angles have the opposite ordering, so preserve the measured scope in acceptance.
+- 2026-09-22: C inspection found the live imported PoolTableModel bypasses TableBuilder's
+  generated geometry. Its visible pockets do not automatically follow the new shelf. A
+  designer question remains pending: temporarily use the matching generated table, or keep
+  the imported appearance and defer its mesh update. No asset or appearance switch yet.

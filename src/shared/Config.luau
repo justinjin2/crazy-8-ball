@@ -53,28 +53,28 @@ Config.Table = {
 	-- diameters, side 2.15-2.25. (tune)
 	CornerMouthBallFraction = 2.0,
 	SideMouthBallFraction = 2.2,
-	-- Jaw facings: the short angled cushion faces either side of each mouth. Length in
+	-- Jaw facings: the short angled cushion faces either side of each mouth. Side length in
 	-- inches; the angle is measured off the rail line for corners (regulation 142 degree
 	-- shelf = 38 off the rail) and off the perpendicular for sides (103 degree = 13 off).
-	-- Balls that enter at a bad angle hit these and rattle out. (tune)
+	-- Corner length is derived to reach the shifted opening rim. Balls that enter at a bad
+	-- angle hit these and rattle out. (tune)
 	FacingLengthInches = 1.6,
 	CornerFacingDegrees = 38,
 	SideFacingDegrees = 13,
 	-- Rounded jaw tips at the far end of each facing.
 	JawRadiusInches = 0.3,
 	-- The pocket OPENING: the hole in the slate the ball actually falls through, and the one
-	-- circle both the physics and the art are built from, so they can never disagree.
-	--
-	-- It is derived, not tuned: the radius is half the mouth width and the circle is placed
-	-- so its rim is tangent to the line joining the two cushion noses. At 1.0 a ball entering
-	-- the middle of the mouth is over the hole the moment its centre passes the noses, which
-	-- is how a real pocket behaves; below 1.0 the opening sits further back and every pocket
-	-- keeps a shelf a ball can hang on. Off-centre balls keep a shelf either way, which is
-	-- what lets a ball rattle in the jaws. (tune)
+	-- circle used by physics and the generated table. Imported meshes need separate updates.
+	-- At fraction 1.0 its radius is half the mouth width: side rims touch the mouth line,
+	-- while corner rims sit CornerShelfInches behind it. Reducing this fraction adds shelf
+	-- depth; off-centre entries also meet cloth near the jaws and can rattle or hang. (tune)
 	PocketOpeningMouthFraction = 1.0,
-	-- Safety net only: a ball whose centre gets this far past the cushion line (in ball
-	-- radii) without having crossed an opening rim is taken by the nearest pocket, so a ball
-	-- can never escape the table. Ordinary pocketing happens on the rim, above.
+	-- Corner shelf measured along the mouth bisector: WPA range 1-2.25 in at regulation
+	-- diameter 2.25 in, target 1.5 in (PHYSICS_REALISM_PROMPT C). Scale with ball diameter.
+	CornerShelfBallFraction = 1.5 / 2.25,
+	CornerShelfInches = 0, -- derived below from CornerShelfBallFraction
+	-- Safety net only: extra ball radii beyond the shifted corner extent. An escaped centre
+	-- is taken by the nearest pocket; ordinary pocketing happens on the opening rim above.
 	PocketShelfBallRadii = 0.9,
 	-- The tip. A ball whose centre crosses the rim is no longer supported and pivots over the
 	-- lip under gravity. A ball that crosses by a hair would balance there forever, so the
@@ -92,10 +92,8 @@ Config.Table = {
 	CushionHeightInches = 0,
 	CornerMouthInches = 0,
 	SideMouthInches = 0,
-	-- Opening radius, and how far a side opening's centre sits beyond the cushion line. A
-	-- corner opening's centre needs no number: it always lands exactly on the table corner
-	-- (the mouth midpoint is half a mouth in from the corner along the diagonal, and the
-	-- centre sits half a mouth back out from it).
+	-- Opening radius and side opening inset. Corner centres move CornerShelfInches
+	-- diagonally outward from the table corner, leaving supported cloth beyond the mouth.
 	CornerPocketRadiusInches = 0,
 	SidePocketRadiusInches = 0,
 	SidePocketInsetInches = 0,
@@ -251,17 +249,23 @@ Config.Physics = {
 	-- Contact slip below this speed is treated as zero (in/s). Prompt B's 1e-9 numerical
 	-- tolerance, kept far below SlideEpsilon; valid range 0 < value <= 1e-9.
 	BallSlipEpsilon = 1e-9,
-	-- Ball-cushion coefficient of restitution at the contact point. Real cushions: 0.7 to 0.9.
-	-- (tune)
-	RailRestitution = 0.8,
+	-- Han/pooltool contact restitution, used when the speed table is empty; range 0-1.
+	RailRestitution = 0.85,
+	-- PHYSICS_REALISM_PROMPT C calibration: normal approach speed in in/s -> true-normal
+	-- restitution. Published practical range 0.6-0.9; linear interpolation, endpoints held.
+	-- The 300 in/s perpendicular stun benchmark retains about half its horizontal speed.
+	RailRestitutionBySpeed = {
+		{ Speed = 20, Restitution = 0.9 },
+		{ Speed = 300, Restitution = 0.6 },
+	},
 	-- Height of the cushion nose above the cloth, as a fraction of the ball diameter.
 	-- WPA specification: 0.635 +/- 0.01 (PHYSICS_RESEARCH section 3). Higher kills more
 	-- top spin on the rebound; at 0.5 (ball-centre height) the cushion has no effect on spin.
 	CushionNoseBallFraction = 0.635,
 	-- Filled in at the bottom of this file.
 	CushionNoseHeightInches = 0,
-	-- Cushion friction coefficient. Caps how much the cushion can grab the ball along its
-	-- length, which is what lets side spin bend the rebound. (tune)
+	-- Full tangential cushion friction coefficient. Han/pooltool default 0.2; Mathavan
+	-- fitted 0.14 (research range 0.14-0.2). Side spin changes the rebound through this cone.
 	RailFriction = 0.2,
 	-- Translation snaps to rest below this speed (in/s), once sliding has ended.
 	-- PHYSICS_REALISM_PROMPT milestone A: 0.25, reduced from 1.0 to preserve slow creep;
@@ -1600,6 +1604,7 @@ do
 	T.CornerPocketRadiusInches = T.CornerMouthInches / 2 * T.PocketOpeningMouthFraction
 	T.SidePocketRadiusInches = T.SideMouthInches / 2 * T.PocketOpeningMouthFraction
 	T.SidePocketInsetInches = T.SideMouthInches / 2
+	T.CornerShelfInches = T.CornerShelfBallFraction * D
 	Config.Physics.CushionNoseHeightInches = Config.Physics.CushionNoseBallFraction * D
 
 	-- Strike bands: power fractions -> the cue ball speeds SoundMix.pickBanded compares
