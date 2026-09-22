@@ -1163,23 +1163,28 @@ Config.Audio = {
 	-- moment of each other, and then two rungs are sounding together as a chord whether that
 	-- was intended or not.
 	--
-	-- A flat semitone per ball was tried and is exactly what not to do - neighbouring rungs
-	-- are then a MINOR SECOND apart, the harshest interval there is, so a double pot ground
-	-- against itself. These are the notes of a major triad, so every pair of rungs, adjacent
-	-- or not, is a third, a fourth, a fifth, a sixth or an octave, and any two landing
-	-- together make a chord instead of a clash.
+	-- A MAJOR SCALE: C D E F G A B C. A run walks up it a note at a time, which is what makes
+	-- it read as climbing rather than as a series of unrelated pings. A flat semitone per ball
+	-- was tried first and was wrong twice over - it is not a scale, and neighbouring rungs a
+	-- minor second apart grind when two balls drop together. A major triad was tried after
+	-- that and was wrong the other way: every pair of its rungs is consonant, but thirds are
+	-- LEAPS, so it sounded like an arpeggio being outlined rather than a scale being walked.
+	--
+	-- The cost of a real scale is that two of its seven steps are semitones, E-F and B-C. A
+	-- run deep enough to reach them AND two balls dropping close enough to overlap on exactly
+	-- that pair is the one case that can still grind. Rare enough to be worth the scale.
+	-- { 0, 2, 4, 7, 9, 12 } is the major pentatonic, the same walk with those two steps
+	-- removed, if it ever turns out not to be. (tune)
 	--
 	-- It stops at the octave on purpose: a short bright sting pitched much past that stops
-	-- sounding like itself and starts sounding like a chirp. A longer ladder that keeps the
-	-- same property is the major pentatonic, { 0, 2, 4, 7, 9, 12 } - more rungs, but its
-	-- neighbours are major seconds, which are tenser than these thirds. (tune)
+	-- sounding like itself and starts sounding like a chirp.
 	Bonus = {
 		MinVolume = 0.16,
 		MaxVolume = 0.16,
 		MinPitch = 1,
 		MaxPitch = 1,
 		PitchJitter = 0,
-		StreakSemitoneSteps = { 0, 4, 7, 12 },
+		StreakSemitoneSteps = { 0, 2, 4, 5, 7, 9, 11, 12 },
 	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball

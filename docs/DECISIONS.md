@@ -374,18 +374,20 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   A run ends when a shot pockets nothing, which is read at the NEXT cue strike rather than at
   the end of the shot: a strike is the one event guaranteed to arrive, and it arrives before
   anything the new shot can add. A scratch ends it immediately, on the spot.
-  The rungs are the notes of a MAJOR TRIAD - 0, 4, 7, 12 semitones - not a flat semitone step,
-  and that is the whole point of holding them as a list. Balls frequently drop within a moment
-  of each other, and then two rungs are sounding together as a chord whether anyone intended
-  it or not. A chromatic ladder puts neighbouring rungs a MINOR SECOND apart, the harshest
-  interval there is, so a double pot ground against itself - which is exactly what the
-  designer heard. On a triad every pair of rungs, adjacent or not, is a third, a fourth, a
-  fifth, a sixth or an octave.
-  Measured across a six-ball run: the intervals that can sound together are 3, 4, 5, 7, 8 and
-  12 semitones, with no minor second, major second or tritone anywhere. It stops at the octave
-  because a short bright sting pitched much past that stops sounding like itself. The major
-  pentatonic { 0, 2, 4, 7, 9, 12 } is the longer ladder that keeps most of the property, at
-  the cost of major seconds between neighbours.
+  The rungs are a MAJOR SCALE - 0, 2, 4, 5, 7, 9, 11, 12 semitones, C D E F G A B C - which is
+  why they are held as a list rather than as a step size. It took three goes to get there and
+  the two wrong ones are worth keeping:
+  A flat semitone per ball was wrong twice over. It is not a scale, and neighbouring rungs a
+  minor second apart GRIND when two balls drop close enough to overlap, which they often do.
+  A major triad fixed the grinding - every pair of its rungs is a third, fourth, fifth, sixth
+  or octave - but was wrong the other way: thirds are LEAPS, so it outlined an arpeggio rather
+  than walking a scale, and the designer heard that immediately.
+  The cost of a real scale is that two of its seven steps are semitones, E-F and B-C. A run
+  deep enough to reach them AND two balls overlapping on exactly that pair is the one case
+  that can still grind; rare enough to be worth the scale. The major pentatonic
+  { 0, 2, 4, 7, 9, 12 } is the same walk with those two steps removed if it ever is not.
+  Measured through the real event path: C, D, E, F, G, A, B, C with the whole tones and
+  semitones falling exactly where a major scale puts them, held at the octave beyond that.
   Lowered to 15.8 dB under the drop the same day, at the designer's ear: 12 dB still sat too
   far forward for something whose whole job is to be felt rather than noticed.
 - 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The
