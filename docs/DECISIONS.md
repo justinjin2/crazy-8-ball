@@ -505,3 +505,24 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   the camera out anyway, because wherever the shot has gone the camera has to follow.
   Verified in Studio: a 0.13-power tap moved the camera 0.00 studs across a 2.51s shot, and a
   full-power shot straight after pulled out 7.07 studs on a 0.65s hold and a 0.95s move.
+
+- 2026-09-22: Physics realism A follows the supplied research: SlidingFriction 0.25 -> 0.20
+  (Dr. Dave properties, range 0.15-0.4); RollingFriction 0.012 -> 0.010 (TP B.2,
+  range 0.005-0.015); optional ClothPresets slow/medium/fast = 0.015/0.012/0.008.
+  The default 0.010 remains independent of the preset table.
+- 2026-09-22: Replace radius-dependent SpinFriction 0.044 with SideSpinDecel 10.9 rad/s^2
+  (TP B.2 / pooltool via PHYSICS_RESEARCH, range 5-15). At either tested radius, +/-60 rad/s
+  takes 1322 steps at 240 Hz to reach zero. Side spin alone no longer keeps a shot open;
+  keep it during other balls' motion and clear it at whole-shot completion. Remove the unused
+  RestSpin 0.6 cutoff. Horizontal spin and pocket tipping/falling still count as motion.
+- 2026-09-22: BallRestitution 0.93 -> 0.95 (Dr. Dave / pooltool, range 0.92-0.98);
+  CushionNoseBallFraction 0.625 -> 0.635 (WPA 0.635 +/- 0.01). The cushion resolver itself
+  remains unchanged until physics C.
+- 2026-09-22: RestSpeed 1.0 -> 0.25 in/s preserves the last slow creep independently of
+  english; InstantHitSeconds 1e-5 -> 1e-7 s avoids treating rack-gap contacts at break speed
+  as zero-time wedges. Both are numerical choices required by PHYSICS_REALISM_PROMPT A.
+- 2026-09-22: Designer's answers for later physics milestones: one power bar reaching
+  30 mph, no separate break control; Classic guideline shows the predicted launch direction
+  including squirt; regulation 2.25 in physics balls with visual scaling for readability;
+  fixed 4-degree elevation for now; physically identical collectible cues. These override
+  conflicting alternatives in the research/prompt. D-F will implement them; A does not.

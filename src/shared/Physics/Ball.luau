@@ -89,12 +89,13 @@ function Ball.speed(b: Ball): number
 	return math.sqrt(b.vx * b.vx + b.vy * b.vy)
 end
 
---- True when the ball is moving or spinning at all (a ball dropping into a pocket counts).
+--- True while motion can affect the shot (including a pocket drop). Horizontal spin can
+--- restart translation through cloth friction; side spin alone does not keep a shot open.
 function Ball.isMoving(b: Ball): boolean
 	if b.pocketed then
 		return b.falling
 	end
-	return b.vx ~= 0 or b.vy ~= 0 or b.wx ~= 0 or b.wy ~= 0 or b.wz ~= 0
+	return b.vx ~= 0 or b.vy ~= 0 or b.wx ~= 0 or b.wy ~= 0
 end
 
 function Ball.stop(b: Ball)

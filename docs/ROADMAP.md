@@ -44,10 +44,15 @@ because the server move is needed anyway and the map is already built.
   Done means: two players in one server play at two different tables while a third walks
   between them and sees both games, on phone, PC and gamepad.
 *Order note (2026-09-21): 1.7 is being built before 1.6 at the designer's request.*
+*Order note (2026-09-22): the designer requested `prompts/PHYSICS_REALISM_PROMPT.md`.
+Work proceeds A-F, reporting after each; the remaining 1.5 checks stay open.*
 
 - [ ] **1.6 Spin.** Spin selector (tap the cue-ball icon, pick the strike point) feeding the
   physics. Done means: top spin follows through, back spin draws back, side spin changes the
   rail rebound, visibly.
+  Physics realism A is implemented: constants, spin decay and shot-end behavior; 92 tests
+  and desktop Studio checks pass. Phone/controller playtests remain open. B-F are not built;
+  this box stays unticked until E and the platform acceptance checks are complete.
 - [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
   ticks, power-bar stretch, sink burst, "Nice shot" popup. Plus the cue ball's trail. Trails
   and pocket bursts are CUE DATA (GDD section 12): the default cue's minimalist white wisp

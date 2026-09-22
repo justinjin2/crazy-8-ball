@@ -69,7 +69,9 @@ function Simulation.cloneState(state: State): State
 	return { geometry = state.geometry, balls = Ball.cloneList(state.balls), time = state.time }
 end
 
---- True when nothing is left to do. A ball sitting still over an opening is NOT at rest: it
+--- True when no shot motion remains; residual side spin alone does not count. This query
+--- never clears spin: it can still affect a collision while another ball is moving.
+--- A ball sitting still over an opening is NOT at rest: it
 --- has nothing under it, so it still has to tip in. Without this a shot could end with a ball
 --- balanced over the hole, which is the thing that made hangers permanent.
 function Simulation.isAtRest(state: State): boolean
@@ -286,20 +288,16 @@ local function integrateBall(
 
 	-- Side spin decays on its own (friction torque about the vertical axis).
 	if b.wz ~= 0 then
-		local dw = 2.5 * P.SpinFriction * g / R * h
-		if math.abs(b.wz) <= dw then
-			b.wz = 0
-		else
-			b.wz -= dw * math.sign(b.wz)
-		end
+		b.wz -= math.sign(b.wz) * math.min(math.abs(b.wz), P.SideSpinDecel * h)
 	end
 
-	-- Snap to rest so shots end cleanly instead of creeping forever.
+	-- Stop translation independently of side spin. Preserve english until the WHOLE shot
+	-- ends, since another moving ball may still collide with this one.
 	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
-	if speed < P.RestSpeed and math.abs(b.wz) < P.RestSpin then
+	if speed < P.RestSpeed then
 		local uAfter = math.sqrt((b.vx - R * b.wy) ^ 2 + (b.vy + R * b.wx) ^ 2)
 		if uAfter < P.SlideEpsilon then
-			Ball.stop(b)
+			b.vx, b.vy, b.wx, b.wy = 0, 0, 0, 0
 		end
 	end
 end
@@ -722,6 +720,12 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 			table.insert(frames, captureFrame(sim))
 		end
 		steps += 1
+	end
+
+	-- All translation, sliding and pocket animation has finished. Do not carry residual
+	-- english into the next shot. Client replays do the same in Match.reconcile.
+	for _, b in sim.balls do
+		b.wz = 0
 	end
 
 	return {

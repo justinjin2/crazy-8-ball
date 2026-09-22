@@ -32,6 +32,139 @@ local function stepUntilRest(Config, Simulation, state, onStep: ((number) -> ())
 end
 
 return {
+	["a 30 in/s stun ball reaches rolling at the measured cloth transition"] = function()
+		local Config, Ball, _, Simulation, geometry = setup()
+		local state = cueOnly(Ball, Simulation, geometry, 0, 0)
+		local b = state.balls[1]
+		b.vx = 30
+		local dt = Config.Physics.FixedStep
+		local slideTime = 30 / (3.5 * 0.20 * 386.09)
+		local lastSlidingStep = math.floor(slideTime / dt)
+		for _ = 1, lastSlidingStep do
+			Simulation.step(state, dt, nil)
+		end
+		H.expect(b.vx - Config.Balls.RadiusInches * b.wy > 0.01, "still sliding before 0.111003 s")
+		Simulation.step(state, dt, nil)
+		local rollingTime = (lastSlidingStep + 1) * dt - slideTime
+		local rollingDecel = 0.010 * 386.09
+		local transitionSpeed = 30 * 5 / 7
+		H.near(
+			b.vx + rollingDecel * rollingTime,
+			transitionSpeed,
+			1e-9,
+			"rolling begins at 5/7 speed"
+		)
+		H.near(b.vx - Config.Balls.RadiusInches * b.wy, 0, 1e-9, "no slip after the transition")
+		local expectedDistance = 30 * slideTime
+			- 0.5 * 0.20 * 386.09 * slideTime ^ 2
+			+ transitionSpeed * rollingTime
+			- 0.5 * rollingDecel * rollingTime ^ 2
+		H.near(b.x, expectedDistance, 1e-9, "the transition preserves both phases' travel")
+	end,
+
+	["slow rolling stops translation while side spin survives an active shot"] = function()
+		local Config, Ball, _, Simulation, geometry = setup()
+		local slow, other = Ball.new(0, 0, 0), Ball.new(1, -20, 10)
+		slow.vx, slow.wy, slow.wz = 0.25, 0.25 / Config.Balls.RadiusInches, 60
+		other.vx, other.wy = 10, 10 / Config.Balls.RadiusInches
+		local state = Simulation.newState(geometry, { slow, other })
+		for step = 1, 2 do
+			Simulation.step(state, Config.Physics.FixedStep, nil)
+			H.expect(
+				slow.vx == 0 and slow.wy == 0,
+				"low-speed rolling must snap to rest despite english"
+			)
+			H.near(
+				slow.wz,
+				60 - 10.9 * step * Config.Physics.FixedStep,
+				1e-9,
+				"physical english is retained"
+			)
+			H.expect(not Ball.isMoving(slow), "the stopped ball does not extend the shot")
+			H.expect(not Simulation.isAtRest(state), "the other rolling ball keeps the shot active")
+		end
+	end,
+
+	["horizontal spin and pocket tipping still keep the simulation active"] = function()
+		local Config, Ball, TableGeometry, Simulation, geometry = setup()
+		for _, spin in { { x = 40, y = 0 }, { x = 0, y = 40 } } do
+			local state = cueOnly(Ball, Simulation, geometry, 0, 0)
+			local b = state.balls[1]
+			b.wx, b.wy, b.wz = spin.x, spin.y, 60
+			H.expect(
+				Ball.isMoving(b) and not Simulation.isAtRest(state),
+				"horizontal spin can restart translation"
+			)
+			Simulation.step(state, Config.Physics.FixedStep, nil)
+			H.expect(Ball.speed(b) > 0, "cloth friction converts horizontal spin into travel")
+		end
+		local open = TableGeometry.build({ pocketsOpen = true })
+		for _, pocket in open.pockets do
+			if pocket.name == "topSide" then
+				local state =
+					cueOnly(Ball, Simulation, open, pocket.x, pocket.y - pocket.radius + 0.05)
+				local b = state.balls[1]
+				b.wz = 60
+				H.expect(
+					not Simulation.isAtRest(state),
+					"a centre above an opening must still fall"
+				)
+				Simulation.step(state, Config.Physics.FixedStep, nil)
+				H.expect(b.tip ~= nil, "a stationary overhang begins tipping")
+				H.expect(
+					Ball.isMoving(b) and not Simulation.isAtRest(state),
+					"tipping keeps the shot active"
+				)
+				return
+			end
+		end
+		error("test requires the top side pocket")
+	end,
+
+	["maximum english finishes uncapped and clears spin through every shot API"] = function()
+		local Config, Ball, _, Simulation, geometry = setup()
+		for _, power in { 0.2, 1 } do
+			for _, sign in { -1, 1 } do
+				local state = cueOnly(Ball, Simulation, geometry, -25, 3)
+				local shot = { angle = 0.3, power = power, spin = { x = sign * 0.5, y = 0 } }
+				local full = Simulation.run(state, shot)
+				local lean = Simulation.runHeadless(state, shot)
+				local struck = Simulation.cloneState(state)
+				local events = { Simulation.strike(struck, shot) }
+				local settled = Simulation.settle(struck, events)
+				for _, result in { full, lean, settled } do
+					H.expect(
+						not result.capped and result.duration < Config.Physics.MaxShotSeconds,
+						"english must not hang a shot"
+					)
+					local b = result.finalBalls[1]
+					H.expect(
+						not Ball.isMoving(b) and b.wz == 0,
+						"completed shots return no residual spin"
+					)
+					H.expect(result.steps == full.steps, "all shot APIs agree on when play ends")
+					H.expect(
+						Simulation.checksum(result.finalBalls)
+							== Simulation.checksum(full.finalBalls),
+						"all shot APIs agree on final positions"
+					)
+				end
+				H.expect(struck.balls[1].wz == 0, "settle also clears spin from the state it owns")
+			end
+		end
+		local state = cueOnly(Ball, Simulation, geometry, 0, 0)
+		state.balls[1].wz = 60
+		local result = Simulation.settle(state)
+		H.expect(
+			result.steps == 0 and result.duration == 0,
+			"a spin-only state settles immediately"
+		)
+		H.expect(
+			state.balls[1].wz == 0 and result.finalBalls[1].wz == 0,
+			"even an already-resting shot clears english"
+		)
+	end,
+
 	["a predicted roll-out matches what the simulation actually does"] = function()
 		local Config, Ball, _, Simulation, geometry = setup()
 		local Cue = H.require("Physics.Cue")

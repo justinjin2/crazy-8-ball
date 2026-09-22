@@ -224,32 +224,35 @@ Config.Physics = {
 	-- Gravity, used to turn friction coefficients into decelerations.
 	Gravity = 386.09, -- 9.81 m/s^2 in inches per second squared
 	-- Cloth friction while the ball SLIDES (contact point moving relative to the cloth).
-	-- Typical pool cloth: 0.15 to 0.25. Higher = spin takes effect sooner, and the skid
-	-- after the strike resolves into a roll sooner. At the top of the real range because a
-	-- ball that is still sliding when it reaches the far rail reads as ice. (tune)
-	SlidingFriction = 0.25,
-	-- Rolling resistance once the ball ROLLS without slipping. Typical 0.005 to 0.015.
-	-- Higher = balls stop sooner. (tune)
-	RollingFriction = 0.012,
-	-- Decay of side spin (spin about the vertical axis) while rolling. (tune)
-	SpinFriction = 0.044,
-	-- Ball-ball coefficient of restitution. Phenolic balls: 0.92 to 0.96. (tune)
-	BallRestitution = 0.93,
+	-- Dr. Dave properties / PHYSICS_RESEARCH section 3: range 0.15-0.4, typical 0.20.
+	-- Higher = spin takes effect sooner and the skid resolves into a roll sooner.
+	SlidingFriction = 0.20,
+	-- Rolling resistance once the ball ROLLS without slipping. Dr. Dave TP B.2:
+	-- range 0.005-0.015, typical 0.010. Higher = balls stop sooner.
+	RollingFriction = 0.010,
+	-- Optional cloth coefficients, same TP B.2 range; the default above is independent.
+	ClothPresets = { slow = 0.015, medium = 0.012, fast = 0.008 },
+	-- Vertical-axis spin deceleration in rad/s^2, independent of radius. TP B.2 /
+	-- pooltool via PHYSICS_RESEARCH section 3: typical range 5-15, target 10.9.
+	SideSpinDecel = 10.9,
+	-- Ball-ball restitution. Dr. Dave / pooltool: phenolic range 0.92-0.98, target 0.95.
+	BallRestitution = 0.95,
 	-- Ball-cushion coefficient of restitution at the contact point. Real cushions: 0.7 to 0.9.
 	-- (tune)
 	RailRestitution = 0.8,
 	-- Height of the cushion nose above the cloth, as a fraction of the ball diameter.
-	-- Regulation is 0.625. Higher kills more top spin on the rebound; at 0.5 (ball-centre
-	-- height) the cushion has no effect on spin. (tune)
-	CushionNoseBallFraction = 0.625,
+	-- WPA specification: 0.635 +/- 0.01 (PHYSICS_RESEARCH section 3). Higher kills more
+	-- top spin on the rebound; at 0.5 (ball-centre height) the cushion has no effect on spin.
+	CushionNoseBallFraction = 0.635,
 	-- Filled in at the bottom of this file.
 	CushionNoseHeightInches = 0,
 	-- Cushion friction coefficient. Caps how much the cushion can grab the ball along its
 	-- length, which is what lets side spin bend the rebound. (tune)
 	RailFriction = 0.2,
-	-- Below this speed (in/s) and side spin (rad/s) a ball is snapped to rest.
-	RestSpeed = 1.0,
-	RestSpin = 0.6,
+	-- Translation snaps to rest below this speed (in/s), once sliding has ended.
+	-- PHYSICS_REALISM_PROMPT milestone A: 0.25, reduced from 1.0 to preserve slow creep;
+	-- numerical cutoff, tune within 0-1. Side spin never holds a shot open by itself.
+	RestSpeed = 0.25,
 	-- Contact-point speed (in/s) under which a ball counts as rolling, not sliding.
 	SlideEpsilon = 1e-4,
 	-- Safety caps so a bad shot can never hang the game.
@@ -258,7 +261,9 @@ Config.Physics = {
 	-- A ball that hits surfaces this many times within one step, each less than
 	-- InstantHitSeconds after the last, is wedged and gets stopped.
 	MaxInstantHits = 24,
-	InstantHitSeconds = 1e-5,
+	-- PHYSICS_REALISM_PROMPT milestone A: 1e-7 s, below the rack-gap closing time at
+	-- break speed. Numerical tolerance (0 < value <= 1e-7), not a material property.
+	InstantHitSeconds = 1e-7,
 	-- Tiny separation kept between touching balls to avoid re-colliding forever.
 	ContactSlop = 1e-5,
 }

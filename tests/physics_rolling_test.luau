@@ -91,27 +91,48 @@ return {
 		H.expect(checked > 50, ("expected a long rolling phase, saw %d steps"):format(checked))
 	end,
 
-	["a ball with only side spin turns on the spot and winds down"] = function()
+	["side spin winds down in 1322 steps at either radius without keeping the shot busy"] = function()
 		local Config, Ball, _, Simulation, geometry = setup()
 		local dt = Config.Physics.FixedStep
-		local state = cueOnly(Ball, Simulation, geometry, 0, 0)
-		local b = state.balls[1]
-		b.wz = 60 -- english, no velocity at all
-		local x0, y0 = b.x, b.y
-
-		H.expect(Ball.isMoving(b), "a spinning ball counts as moving")
-		local steps = 0
-		local lastWz = math.abs(b.wz)
-		while not Simulation.isAtRest(state) and steps < 4000 do
-			Simulation.step(state, dt, nil)
-			steps += 1
-			local now = math.abs(b.wz)
-			H.expect(now <= lastWz + 1e-9, "side spin never speeds up on its own")
-			lastWz = now
+		local oldRadius = Config.Balls.RadiusInches
+		-- Always restore shared Config, including when an assertion fails.
+		local ok, err = pcall(function()
+			for _, radius in { 1.125, 1.3 } do
+				Config.Balls.RadiusInches = radius
+				for _, sign in { -1, 1 } do
+					local state = cueOnly(Ball, Simulation, geometry, 0, 0)
+					local b = state.balls[1]
+					b.wz = sign * 60
+					H.expect(not Ball.isMoving(b), "side spin alone does not keep a shot busy")
+					H.expect(
+						Simulation.isAtRest(state),
+						"pure side spin is at rest for shot timing"
+					)
+					H.expect(b.wz == sign * 60, "checking rest must not erase physical spin")
+					-- Keep integrating explicitly: other balls may still be moving even when
+					-- this one only spins. 60/10.9 = 5.5046 s, rounded up at 240 Hz.
+					for step = 1, 1322 do
+						Simulation.step(state, dt, nil)
+						local expected = sign * math.max(60 - 10.9 * step * dt, 0)
+						H.near(
+							b.wz,
+							expected,
+							1e-9,
+							"side spin follows constant angular deceleration"
+						)
+						if step < 1322 then
+							H.expect(b.wz * sign > 0, "spin must not snap to zero before step 1322")
+						end
+					end
+					H.expect(b.wz == 0, "side spin reaches exactly zero on step 1322")
+					H.expect(b.x == 0 and b.y == 0, "side spin alone never moves the centre")
+				end
+			end
+		end)
+		Config.Balls.RadiusInches = oldRadius
+		if not ok then
+			error(err)
 		end
-		H.near(b.x, x0, 1e-9, "side spin alone does not move the ball in x")
-		H.near(b.y, y0, 1e-9, "side spin alone does not move the ball in y")
-		H.near(b.wz, 0, 1e-9, "side spin decays to nothing")
 	end,
 
 	["top spin and back spin turn the ball opposite ways off the cue"] = function()
