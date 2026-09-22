@@ -63,7 +63,8 @@ local function dot(parent: GuiObject): Frame
 	local item = Instance.new("Frame")
 	item.Name = "StrikePoint"
 	item.AnchorPoint = Vector2.new(0.5, 0.5)
-	item.Size = UDim2.fromOffset(Config.UI.Spin.DotSizePx, Config.UI.Spin.DotSizePx)
+	local diameter = Config.UI.Spin.DotDiameterFraction
+	item.Size = UDim2.fromScale(diameter, diameter)
 	item.BackgroundColor3 = rgb(Config.UI.Spin.DotColor)
 	item.BorderSizePixel = 0
 	item.ZIndex = parent.ZIndex + 2
@@ -176,8 +177,8 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 		-- The full white disc represents the legal spin range, not literal cue-tip position.
 		-- Keep the entire dot inside either ball, including when layout shrinks the target.
 		local nx, ny = x / Config.Cue.MaxSpinOffset, sy / Config.Cue.MaxSpinOffset
-		local dotRadius = C.DotSizePx / 2
-		local position = UDim2.new(0.5 + nx / 2, -nx * dotRadius, 0.5 - ny / 2, ny * dotRadius)
+		local travel = (1 - C.DotDiameterFraction) / 2
+		local position = UDim2.fromScale(0.5 + nx * travel, 0.5 - ny * travel)
 		strikeDot.Position = position
 		iconDot.Position = position
 	end
@@ -209,7 +210,7 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 		-- InputObject.Position already uses the same inset-adjusted space as AbsolutePosition.
 		local localPoint = Vector2.new(position.X, position.Y) - target.AbsolutePosition
 		local radius = target.AbsoluteSize.X / 2
-		local travel = radius - C.DotSizePx / 2
+		local travel = radius * (1 - C.DotDiameterFraction)
 		if travel > 0 then
 			local scale = Config.Cue.MaxSpinOffset / travel
 			input:setSpin((localPoint.X - radius) * scale, (radius - localPoint.Y) * scale)

@@ -648,3 +648,6 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   close on release and retain spin. The whole white disc maps to the existing 0.5R legal
   strike range; physics stays unchanged. This explicitly supersedes the drag-button
   alternative for spin. Fixed duplicate top-bar inset subtraction in pointer mapping.
+- 2026-09-22: Designer requested a larger red spin marker. Use 22% of the white ball's
+  diameter (39.6 px at 180 px, formerly 12 px), also proportional on the toggle and small
+  layouts. Preserve the full existing spin range and keep the entire marker inside the ball.

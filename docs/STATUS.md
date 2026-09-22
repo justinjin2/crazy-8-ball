@@ -16,7 +16,8 @@ one run. Code is verified; physical-device and real two-client acceptance remain
 - **E:** mouse/touch spin selector with full-disc dragging, Center and Done. The 80 px ball
   toggle sits at the left middle; the selector has 10% dimming, no panel/title/hint/arrows,
   and outside clicks close it while retaining spin. The whole disc maps to the existing
-  0.5R physics limit, with the dot kept inside its edge. Gamepad:
+  0.5R physics limit, with the dot kept inside its edge. The broad red marker is 22% of the
+  white ball's diameter (39.6 px on the full selector), including on the toggle. Gamepad:
   hold L1 + right stick, Y to center, release L1 to keep the choice. Spin resets after a shot
   or rack/seat change, moves the 3D cue tip and updates the launch guideline. Modal input
   blocks aim, zoom and shooting, including old cancelled pulls. HUD copy lives in Strings.
@@ -80,6 +81,8 @@ Rojo was confirmed before fresh Studio runs. Actual desktop checks:
   and over the power bar) close without firing. Fixed a duplicate top-bar inset subtraction
   that shifted pointer placement upward. Updated 320x568 and 568x262 layout checks pass;
   console and lint are clean, and all 132 Lune tests still pass.
+- Larger strike marker: desktop edge dragging and 320x568/568x262 layouts retain full spin
+  without clipping. Native screenshot and clean console confirmed; lint and 132 tests pass.
 
 **Phone/controller hands-on acceptance remains deferred at the designer's request to move
 on.** Scripted input/layout checks do not replace those or a real two-client session. Roadmap
