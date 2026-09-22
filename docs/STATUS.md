@@ -16,8 +16,8 @@ one run. Code is verified; physical-device and real two-client acceptance remain
 - **E:** mouse/touch spin selector with full-disc dragging, Center and Done. The 80 px ball
   toggle sits at the left middle; the selector has 10% dimming, no panel/title/hint/arrows,
   and outside clicks close it while retaining spin. The whole disc maps to the existing
-  0.5R physics limit, with the dot kept inside its edge. The broad red marker is 22% of the
-  white ball's diameter (39.6 px on the full selector), including on the toggle. Gamepad:
+  0.5R physics limit, with the dot kept inside its edge. Both red markers use the left
+  toggle's 17.6 px diameter, as requested after the proportional selector dot was too large. Gamepad:
   hold L1 + right stick, Y to center, release L1 to keep the choice. Spin resets after a shot
   or rack/seat change, moves the 3D cue tip and updates the launch guideline. Modal input
   blocks aim, zoom and shooting, including old cancelled pulls. HUD copy lives in Strings.

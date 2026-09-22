@@ -67,7 +67,7 @@ Every feature is checked against these. If it serves none, it waits.
 - Spin UI: a larger cue-ball button sits at the left middle. Drag anywhere across the white
   selector to choose spin; its full disc represents the available physics range. Keep only
   Center and Done, with light background dimming and no title, hint, box or arrow buttons.
-  Use a broad red strike marker, proportional to the white ball. Clicking outside closes it
+  Use the same red marker size on the selector and left toggle. Clicking outside closes it
   and retains the selection. Gamepad stick controls remain.
 - Gamepad: left stick aims, up and down on the right stick (or triggers) zooms, a hold-and-
   release button shoots with power, the spin selector is a stick target. Exact bindings are a

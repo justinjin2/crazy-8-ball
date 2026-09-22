@@ -651,3 +651,6 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-22: Designer requested a larger red spin marker. Use 22% of the white ball's
   diameter (39.6 px at 180 px, formerly 12 px), also proportional on the toggle and small
   layouts. Preserve the full existing spin range and keep the entire marker inside the ball.
+- 2026-09-22: Designer reduced the large selector's red dot to match the left toggle exactly.
+  Both now use DotSizePx 17.6, replacing proportional sizing; the full spin range is retained.
+  Studio confirms equal rendered sizes, with lint and all 132 tests passing.
