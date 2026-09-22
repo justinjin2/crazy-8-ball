@@ -583,6 +583,6 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   from the normal are 57.216 and 40.877 degrees (gentle long, hard short). The immediate
   impact angles have the opposite ordering, so preserve the measured scope in acceptance.
 - 2026-09-22: C inspection found the live imported PoolTableModel bypasses TableBuilder's
-  generated geometry. Its visible pockets do not automatically follow the new shelf. A
-  designer question remains pending: temporarily use the matching generated table, or keep
-  the imported appearance and defer its mesh update. No asset or appearance switch yet.
+  generated geometry. Its visible pockets do not automatically follow the new shelf. The
+  designer chose to keep the current table for now. Retain the new physics shelf and defer
+  the imported pocket mesh update; no asset or appearance switch.

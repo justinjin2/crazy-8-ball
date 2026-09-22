@@ -35,11 +35,10 @@ runs long (**57.216 degrees** from normal); hard 160 in/s is still sliding on ar
 settles short (**40.877 degrees**). Immediate contact angles alone do not have this ordering;
 it is not a universal claim for every launch spin or speed.
 
-**Visual choice pending:** the live table is `ServerStorage.PoolTableModel`, an imported mesh.
-It does not rebuild its holes from Config. The physics and generated table share the new
-shelf; the imported mesh still has different pocket geometry. Asked whether to temporarily
-use the matching generated table or retain the imported appearance and defer its mesh update.
-No table art or place assets have been changed while that choice is pending.
+**Visual choice decided:** keep the current imported `ServerStorage.PoolTableModel` for now,
+as requested by the designer. Its visible holes do not rebuild from Config, so the pocket
+geometry mismatch remains a deferred mesh update. The new physics shelf stays in place.
+No table art or place assets have changed.
 
 **Phone/controller acceptance remains deferred at the designer's request to move on.**
 Controller detection in A was not a successful controller shot. No new device attempt was

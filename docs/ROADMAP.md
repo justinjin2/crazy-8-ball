@@ -51,8 +51,8 @@ Work proceeds A-F, reporting after each; the remaining 1.5 checks stay open.*
   physics. Done means: top spin follows through, back spin draws back, side spin changes the
   rail rebound, visibly.
   Physics realism A-C are implemented: tuning, spin decay, throw, spin transfer, cushions and
-  corner shelf; 109 tests and desktop Studio checks pass. Phone/controller acceptance and
-  the imported-table pocket art choice remain open; D-F are not built;
+  corner shelf; 109 tests and desktop Studio checks pass. Phone/controller acceptance remains
+  open. Keep the current imported table; its pocket mesh update is deferred. D-F are not built;
   this box stays unticked until E and the platform acceptance checks are complete.
 - [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
   ticks, power-bar stretch, sink burst, "Nice shot" popup. Plus the cue ball's trail. Trails
