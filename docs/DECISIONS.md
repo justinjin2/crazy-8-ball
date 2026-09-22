@@ -374,10 +374,18 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   A run ends when a shot pockets nothing, which is read at the NEXT cue strike rather than at
   the end of the shot: a strike is the one event guaranteed to arrive, and it arrives before
   anything the new shot can add. A scratch ends it immediately, on the spot.
-  A whole semitone per ball because it has to read as a step UP rather than the same sound
-  again; under about half a semitone is a wobble, not a ladder. Measured through the real
-  event path: +0, +1, +2 within one shot, carrying to +3 on the next, 0 after a shot that
-  potted nothing, 0 immediately on a scratch, and held at +6 for a run of ten.
+  The rungs are the notes of a MAJOR TRIAD - 0, 4, 7, 12 semitones - not a flat semitone step,
+  and that is the whole point of holding them as a list. Balls frequently drop within a moment
+  of each other, and then two rungs are sounding together as a chord whether anyone intended
+  it or not. A chromatic ladder puts neighbouring rungs a MINOR SECOND apart, the harshest
+  interval there is, so a double pot ground against itself - which is exactly what the
+  designer heard. On a triad every pair of rungs, adjacent or not, is a third, a fourth, a
+  fifth, a sixth or an octave.
+  Measured across a six-ball run: the intervals that can sound together are 3, 4, 5, 7, 8 and
+  12 semitones, with no minor second, major second or tritone anywhere. It stops at the octave
+  because a short bright sting pitched much past that stops sounding like itself. The major
+  pentatonic { 0, 2, 4, 7, 9, 12 } is the longer ladder that keeps most of the property, at
+  the cost of major seconds between neighbours.
   Lowered to 15.8 dB under the drop the same day, at the designer's ear: 12 dB still sat too
   far forward for something whose whole job is to be felt rather than noticed.
 - 2026-09-21: The aim tick fires every 0.1 degrees, not every 2, at the designer's call. The

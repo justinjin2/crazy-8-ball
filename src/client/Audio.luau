@@ -395,12 +395,14 @@ function Audio.attach(self: Audio, match: any)
 				self.streak = 0
 				self.pocketedThisShot = false
 			else
-				-- A bright sting over the top, for the reward rather than the physics, a
-				-- semitone higher for each ball already in the run. The first is the plain
-				-- sound, so the pitch only ever says "this is the Nth in a row".
+				-- A bright sting over the top, for the reward rather than the physics, one
+				-- rung up the ladder for each ball already in the run. The first is the plain
+				-- sound, so the pitch only ever says "this is the Nth in a row", and the rungs
+				-- are chosen so two landing together make a chord rather than a clash.
 				local B = A.Bonus
-				local step = math.min(self.streak, B.StreakMaxSteps)
-				local pitch = 2 ^ (step * B.StreakSemitones / 12)
+				local rungs = B.StreakSemitoneSteps
+				local semitones = rungs[math.min(self.streak + 1, #rungs)]
+				local pitch = 2 ^ (semitones / 12)
 				self:playAt("PocketBonus", at, B, ev.speed, true, pitch)
 				self.streak += 1
 				self.pocketedThisShot = true

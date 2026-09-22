@@ -1158,18 +1158,28 @@ Config.Audio = {
 	-- tried first and was the wrong idea - it made every pocket differ without any of them
 	-- meaning anything, and a tonal sting that wanders just sounds out of tune.
 	--
-	-- A whole semitone per ball, because it has to read as a step UP rather than as the same
-	-- sound again: under about half a semitone is a wobble, not a ladder. Capped so a big
-	-- break cannot run it up into a chirp - six steps is a tritone above the plain sound,
-	-- which is as far as this clip carries. (tune)
+	-- The rungs of that ladder, in semitones above the plain sound, one per ball. It is a LIST
+	-- rather than a step size because which notes they are matters: balls often drop within a
+	-- moment of each other, and then two rungs are sounding together as a chord whether that
+	-- was intended or not.
+	--
+	-- A flat semitone per ball was tried and is exactly what not to do - neighbouring rungs
+	-- are then a MINOR SECOND apart, the harshest interval there is, so a double pot ground
+	-- against itself. These are the notes of a major triad, so every pair of rungs, adjacent
+	-- or not, is a third, a fourth, a fifth, a sixth or an octave, and any two landing
+	-- together make a chord instead of a clash.
+	--
+	-- It stops at the octave on purpose: a short bright sting pitched much past that stops
+	-- sounding like itself and starts sounding like a chirp. A longer ladder that keeps the
+	-- same property is the major pentatonic, { 0, 2, 4, 7, 9, 12 } - more rungs, but its
+	-- neighbours are major seconds, which are tenser than these thirds. (tune)
 	Bonus = {
 		MinVolume = 0.16,
 		MaxVolume = 0.16,
 		MinPitch = 1,
 		MaxPitch = 1,
 		PitchJitter = 0,
-		StreakSemitones = 1,
-		StreakMaxSteps = 6,
+		StreakSemitoneSteps = { 0, 4, 7, 12 },
 	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
