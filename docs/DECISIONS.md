@@ -606,3 +606,19 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   separations are 18.8771 in for follow and 5.81437 in for draw. Level-cue symmetry and C's
   bank measurements explicitly retain level launch conditions instead of assuming a
   4-degree centre hit imparts zero angular velocity.
+- 2026-09-22: E spin UI uses 0.05 ball-radius arrow increments, 0.15 gamepad spin dead zone,
+  and 0.55 radii/s adjustment with L1 + right stick. Y centers; L1 release keeps the choice.
+  Selector buttons are 44 px, toggle 56 px, panel 280 px wide, ball target up to 120 px;
+  the target shrinks on short viewports while buttons retain their touch size. Modal edits
+  cancel pending pulls and block aiming/zoom/shooting until closed. Reset spin after shots.
+- 2026-09-22: E keeps elevation fixed at 4 degrees on the server, rejects NaN/infinity and
+  malformed inputs, and clamps finite spin to the 0.5-radius disc. Move existing six-decimal
+  seed precision into Config.Physics.SeedPlaces and use ShotInput.quantiseSeed in the actual
+  server and tests. Classic object-ball line and tangent cue stub remain geometric; a
+  post-contact follow/draw curve is deferred as allowed by the prompt.
+- 2026-09-22: Add the per-shot material replay hook with a development SuperBounce row
+  (rail restitution 1, friction 0; valid coefficient range 0-1). This is unbalanced test data,
+  not an available player ability. The live server authorizes none until ownership/cooldowns
+  exist. Reject client overrides; copy validated materials into simulation/replay and clear
+  them on completion and the next strike. Three requested spin vectors and the material
+  replay match exactly in same-machine regression tests; physical two-client proof remains.

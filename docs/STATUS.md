@@ -1,9 +1,35 @@
 # Status
 
-**Last updated:** 2026-09-22. Physics realism D implemented; A-D are verified code steps.
-Designer requested continuing through D-F in one run; E and F are next.
+**Last updated:** 2026-09-22. Physics realism E implemented; A-E are verified code steps.
+Designer requested continuing through D-F in one run; F is next.
 
-## Current work: physics realism D
+## Current work: physics realism E
+
+The cue-ball selector supports mouse/touch drag, four 44 px arrow buttons, Center and Done.
+Hold L1 and move the right stick for gamepad spin; Y centers it, release L1 retains it. The
+selector blocks aiming, zoom and shots while open, including a cancelled old power drag.
+Spin resets after a shot and seat change, moves the 3D cue tip and updates the Classic launch
+line. Object-ball direction remains geometric and the cue stub remains tangent; a simulated
+post-contact curve is deferred. All selector copy plus Leave/Pull live in shared Strings.
+
+Shots now carry spin and elevation. The server rejects malformed/non-finite values, enforces
+fixed 4 degrees, and clamps finite spin to the 0.5-radius disc. The actual server uses the
+same tested validation and seed-quantization helper as Lune. Material overrides are copied
+per shot, replayed, and cleared afterward. The SuperBounce development material is a hook
+only: every live player ability request is rejected until server ownership/cooldowns exist.
+
+**Verified:** 123 tests and lint/type checks pass. Three specified spin vectors replay with
+exact same-machine checksums; authorized material replay and next-shot reset also match.
+In fresh Studio, actual selector drag and power-bar shot produced seed wz=89.957759 rad/s,
+reset the dot to centre, and completed in 5.52 s (36 ball contacts, 4 rails, one pocket), with
+no drift warning. Native screenshot captured the open selector and shifted cue/guideline.
+Scripted gamepad handling clamps diagonal spin to (+0.353553,+0.353553), centers via Y,
+closes via L1 release with zero zoom events, cancels an old pull without firing, and allows
+the next deliberate shot. Layout checks fit 320x568 and 568x262 HUD rectangles; Done remains
+44 px high (short-layout panel 280x238). These are scripted/layout checks, not physical phone
+or controller acceptance. Real devices and Start Server + 2 Players remain open.
+
+## Previous verified step D
 
 Cue impact now uses stick speed, 19 oz / 6 oz mass ratio and tip restitution 0.73. One bar
 still gives 15-528 in/s for centre hits; derived maximum stick speed is 406.981692 in/s.
@@ -136,7 +162,6 @@ Roadmap 1.6 stays unticked until E and its platform acceptance checks are comple
 
 Try gentle shots and a hard break on phone and a real controller; verify motion finishes
 and aiming returns. Run Start Server + 2 Players for the still-open 1.5 acceptance.
-Continue into E (spin controls/wire/ability hook), then F (regulation size/rack/harness),
-as the designer requested.
+Continue into F (regulation size/rack/harness), as the designer requested.
 No place assets were edited in A-C. The standing milestone handoff asks the user
 to save `place/8ball.rbxl` and publish; scripts themselves are edited only through Rojo.

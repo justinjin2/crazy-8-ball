@@ -267,6 +267,12 @@ Config.Physics = {
 	-- Full tangential cushion friction coefficient. Han/pooltool default 0.2; Mathavan
 	-- fitted 0.14 (research range 0.14-0.2). Side spin changes the rebound through this cone.
 	RailFriction = 0.2,
+	-- E's replay hook only: future server-authorized ability material, coefficients 0-1.
+	-- No player can request it until the server has an ownership/cooldown authorization path.
+	ShotMaterials = {
+		SuperBounce = { RailRestitution = 1, RailFriction = 0 },
+	} :: { [string]: { RailRestitution: number?, RailFriction: number? } },
+	SeedPlaces = 1e6, -- six decimal places; preserve the existing authoritative replay seed
 	-- Translation snaps to rest below this speed (in/s), once sliding has ended.
 	-- PHYSICS_REALISM_PROMPT milestone A: 0.25, reduced from 1.0 to preserve slow creep;
 	-- numerical cutoff, tune within 0-1. Side spin never holds a shot open by itself.
@@ -912,6 +918,7 @@ Config.Input = {
 	-- power that still shoots (anything less on release cancels).
 	PowerPullBarFraction = 0.9,
 	MinPowerToShoot = 0.04,
+	SpinStep = 0.05, -- ball radii per selector arrow tap; ten taps reach the 0.5 miscue limit
 	-- An aim tick fires every this many degrees of rotation. Fine enough that the smallest
 	-- deliberate movement a player can make still clicks: a nudge tap is NudgeDegrees (0.2),
 	-- which used to be a tenth of a tick and made careful aiming silent. What actually
@@ -928,6 +935,8 @@ Config.Input = {
 		-- Sticks rest slightly off centre; treat anything under this as centred.
 		AimDeadZone = 0.15,
 		ZoomDeadZone = 0.2,
+		SpinDeadZone = 0.15, -- same stick-drift tolerance as aiming (0-1)
+		SpinPerSecond = 0.55, -- ball radii per second while L1 + right stick adjusts the tip
 		-- Aim rate at full deflection. The curve makes small pushes much finer, which is
 		-- what the drag path gets from FineDragSpeedPx. 2 = a squared response.
 		AimDegreesPerSecond = 80,
@@ -1529,6 +1538,27 @@ Config.Effects = {
 }
 
 Config.UI = {
+	-- Spin selector sizing: 44 px button alternatives remain usable on phone and gamepad.
+	Spin = {
+		ToggleSizePx = 56,
+		MarginPx = 12,
+		ToggleMarginPx = 18,
+		BallSizePx = 120,
+		ButtonSizePx = 44,
+		GapPx = 8,
+		PanelWidthPx = 280,
+		TextSizePx = 16,
+		HintTextSizePx = 12,
+		TitleHeightPx = 24,
+		HintHeightPx = 18,
+		DotSizePx = 10,
+		RingWidthPx = 1,
+		CornerRadiusPx = 12,
+		OverlayTransparency = 0.45,
+		BallColor = { 244, 244, 236 },
+		DotColor = { 220, 75, 70 },
+		LimitColor = { 150, 154, 165 },
+	},
 	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
 	-- fill charging up behind it.

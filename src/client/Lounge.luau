@@ -143,8 +143,21 @@ end
 --- Ask the server to take a shot at table `id`. Nothing happens locally: the shot starts
 --- when the server broadcasts it back, so every client (including this one) plays the same
 --- motion from the same numbers at the same moment.
-function Lounge.fire(_self: Lounge, id: number, angle: number, power: number)
-	Net.get("ShotFired"):FireServer({ tableId = id, angle = angle, power = power })
+function Lounge.fire(
+	_self: Lounge,
+	id: number,
+	angle: number,
+	power: number,
+	spin: { x: number, y: number },
+	elevation: number
+)
+	Net.get("ShotFired"):FireServer({
+		tableId = id,
+		angle = angle,
+		power = power,
+		spin = spin,
+		elevation = elevation,
+	})
 end
 
 function Lounge.listen(self: Lounge)
@@ -181,7 +194,7 @@ function Lounge.listen(self: Lounge)
 		end
 		local match: Match.Match? = self.matches[msg.tableId]
 		if match then
-			match:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum)
+			match:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
 		end
 	end)
 	Net.get("TableState").OnClientEvent:Connect(function(snapshot)

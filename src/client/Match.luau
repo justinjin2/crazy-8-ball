@@ -166,7 +166,8 @@ function Match.replay(
 	seed: { vx: number, vy: number, wx: number, wy: number, wz: number },
 	startedAt: number,
 	final: { number },
-	checksum: number
+	checksum: number,
+	overrides: Simulation.Overrides?
 )
 	self:ensureCueBall()
 	local cue = Simulation.findBall(self.state, 0)
@@ -177,6 +178,7 @@ function Match.replay(
 	cue.vx, cue.vy = seed.vx, seed.vy
 	cue.wx, cue.wy, cue.wz = seed.wx, seed.wy, seed.wz
 	self.state.time = 0
+	self.state.overrides = if overrides then table.clone(overrides) else nil
 	self.seq = seq
 	self.pendingFinal = final
 	self.pendingChecksum = checksum
@@ -195,6 +197,7 @@ end
 
 --- Settle onto the server's final positions. Called when the replay stops moving.
 function Match.reconcile(self: Match)
+	self.state.overrides = nil
 	local final = self.pendingFinal
 	self.pendingFinal = nil
 	if final == nil then

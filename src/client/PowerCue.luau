@@ -19,6 +19,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 local CueArt = require(Shared:WaitForChild("CueArt"))
 
 local PowerCue = {}
@@ -145,7 +146,7 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	text.TextColor3 = Color3.new(1, 1, 1)
 	text.Font = Enum.Font.GothamBold
 	text.TextSize = 14
-	text.Text = "PULL"
+	text.Text = Strings.Pull
 	text.Size = UDim2.new(1, 0, 0, 24)
 	-- ABOVE the bar. At full pull the cue hangs well below it, and a label underneath would
 	-- be sitting behind the cue exactly when it has the most to say.
@@ -170,7 +171,9 @@ function PowerCue.setPull(self: PowerCue, pull: number?)
 	self.pull = value
 	self.cue.Position = UDim2.fromScale(0.5, value * travelScale())
 	self.fill.Size = UDim2.fromScale(1, value)
-	self.text.Text = if pull then ("%d%%"):format(math.floor(value * 100 + 0.5)) else "PULL"
+	self.text.Text = if pull
+		then Strings.PowerPercent:format(math.floor(value * 100 + 0.5))
+		else Strings.Pull
 end
 
 --- Rebuild for a different cue. Roadmap 5.2 calls this when a player equips one.

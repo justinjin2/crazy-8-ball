@@ -14,6 +14,7 @@ export type Shot = {
 	power: number, -- 0..1
 	spin: { x: number, y: number }?, -- strike offset in ball radii: x = side (right +), y = top (+) / back (-)
 	elevation: number?, -- degrees above the cloth; internal/test override, bounded by Config
+	ability: string?, -- server-authorized catalog id; Simulation resolves per-shot material
 }
 
 --- Horizontal centre-hit ball speed at the configured elevation, retained for UI/audio.

@@ -1,6 +1,6 @@
 --!strict
--- Input: turns touches, mouse drags, buttons and a gamepad into two things: an aim angle
--- and a shot. Nothing here knows about physics or cameras.
+-- Input: turns touches, mouse drags, buttons and a gamepad into aim, spin and a shot.
+-- Cue supplies the same strike-point clamp used by the simulation.
 --
 --   drag on the table (anywhere not on a button)  -> rotate the aim, slow drags are finer
 --   nudge buttons                                  -> tiny fixed steps
@@ -10,6 +10,7 @@
 --   left stick X        -> aim, finer near centre
 --   D-pad left/right    -> the nudge buttons, so every drag still has a button alternative
 --   right stick Y       -> zoom
+--   hold L1 + right stick -> spin; Y centres it; release L1 keeps the choice
 --   right trigger       -> power: the trigger is analog, so its position IS the bar.
 --                          Release shoots, or cancels below MinPowerToShoot.
 --   ButtonA             -> same shot for pads whose triggers are only on/off: hold to ramp
@@ -25,6 +26,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Cue = require(Shared:WaitForChild("Physics"):WaitForChild("Cue"))
 
 local Input = {}
 Input.__index = Input
@@ -32,6 +34,11 @@ Input.__index = Input
 export type Input = typeof(setmetatable(
 	{} :: {
 		angle: number,
+		spinX: number,
+		spinY: number,
+		spinEditing: boolean,
+		spinListeners: { (number, number) -> () },
+		spinEditingListeners: { (boolean) -> () },
 		enabled: boolean,
 		aimListeners: { (number) -> () },
 		tickListeners: { () -> () },
@@ -44,10 +51,14 @@ export type Input = typeof(setmetatable(
 		dragLastTime: number,
 		degreesSinceTick: number,
 		power: number?,
+		powerSuppressed: boolean,
 		pinchScale: number?,
 		-- Gamepad state, all polled in Input.update.
 		stickAim: number,
 		stickZoom: number,
+		stickSpinX: number,
+		stickSpinY: number,
+		spinModifier: boolean,
 		triggerHeld: boolean,
 		buttonPower: number?,
 		nudgeDir: number,
@@ -61,6 +72,11 @@ export type Input = typeof(setmetatable(
 function Input.new(): Input
 	local self = setmetatable({
 		angle = 0,
+		spinX = 0,
+		spinY = 0,
+		spinEditing = false,
+		spinListeners = {},
+		spinEditingListeners = {},
 		enabled = true,
 		aimListeners = {},
 		tickListeners = {},
@@ -73,9 +89,13 @@ function Input.new(): Input
 		dragLastTime = 0,
 		degreesSinceTick = 0,
 		power = nil,
+		powerSuppressed = false,
 		pinchScale = nil,
 		stickAim = 0,
 		stickZoom = 0,
+		stickSpinX = 0,
+		stickSpinY = 0,
+		spinModifier = false,
 		triggerHeld = false,
 		buttonPower = nil,
 		nudgeDir = 0,
@@ -115,6 +135,65 @@ function Input.onLeave(self: Input, listener: () -> ())
 	table.insert(self.leaveListeners, listener)
 end
 
+function Input.getSpin(self: Input): { x: number, y: number }
+	return { x = self.spinX, y = self.spinY }
+end
+
+function Input.setSpin(self: Input, x: number, y: number)
+	local sx, sy = Cue.clampSpin(x, y)
+	if sx == self.spinX and sy == self.spinY then
+		return
+	end
+	self.spinX, self.spinY = sx, sy
+	for _, listener in self.spinListeners do
+		listener(sx, sy)
+	end
+end
+
+function Input.resetSpin(self: Input)
+	self:setSpin(0, 0)
+end
+
+function Input.onSpin(self: Input, listener: (number, number) -> ())
+	table.insert(self.spinListeners, listener)
+end
+
+function Input.onSpinEditing(self: Input, listener: (boolean) -> ())
+	table.insert(self.spinEditingListeners, listener)
+end
+
+function Input.setSpinEditing(self: Input, editing: boolean)
+	editing = editing and self.enabled
+	if self.spinEditing == editing then
+		return
+	end
+	self.spinEditing = editing
+	if editing and self.power ~= nil and not self.triggerHeld and self.buttonPower == nil then
+		-- PowerCue owns its active pointer. Ignore that old drag through modal close until
+		-- its release arrives, so closing the selector cannot revive the cancelled pull.
+		self.powerSuppressed = true
+	end
+	-- Entering or leaving a modal never releases a queued shot or resumes an old drag.
+	self.dragInput = nil
+	self.pinchScale = nil
+	self.stickAim = 0
+	self.stickZoom = 0
+	self.stickSpinX = 0
+	self.stickSpinY = 0
+	self.nudgeDir = 0
+	self.triggerHeld = false
+	self.buttonPower = nil
+	if self.power ~= nil then
+		self.power = nil
+		for _, listener in self.powerListeners do
+			listener(nil)
+		end
+	end
+	for _, listener in self.spinEditingListeners do
+		listener(editing)
+	end
+end
+
 function Input.setEnabled(self: Input, enabled: boolean)
 	self.enabled = enabled
 	if enabled then
@@ -123,6 +202,8 @@ function Input.setEnabled(self: Input, enabled: boolean)
 		self:unbindGamepad()
 	end
 	if not enabled then
+		self:setSpinEditing(false)
+		self.spinModifier = false
 		self.dragInput = nil
 		-- Drop any gamepad state too, or a stick still held while the shot plays keeps
 		-- turning the aim, and a trigger released afterwards fires a second shot.
@@ -142,7 +223,7 @@ end
 
 --- Rotate the aim by a number of degrees (positive = counter-clockwise seen from above).
 function Input.rotate(self: Input, degrees: number)
-	if not self.enabled or degrees == 0 then
+	if not self.enabled or self.spinEditing or degrees == 0 then
 		return
 	end
 	self.angle = (self.angle + math.rad(degrees)) % (2 * math.pi)
@@ -172,7 +253,7 @@ end
 
 function Input.connectDrag(self: Input)
 	UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
-		if gameProcessed or not self.enabled or self.power ~= nil then
+		if gameProcessed or not self.enabled or self.spinEditing or self.power ~= nil then
 			return
 		end
 		if isPointer(input) and self.dragInput == nil then
@@ -221,6 +302,7 @@ function Input.connectDrag(self: Input)
 		if
 			gameProcessed
 			or not self.enabled
+			or self.spinEditing
 			or input.UserInputType ~= Enum.UserInputType.MouseWheel
 		then
 			return
@@ -233,7 +315,7 @@ function Input.connectDrag(self: Input)
 	end)
 	UserInputService.TouchPinch:Connect(
 		function(_touches, scale: number, _velocity, state, gameProcessed: boolean)
-			if gameProcessed or not self.enabled then
+			if gameProcessed or not self.enabled or self.spinEditing then
 				return
 			end
 			if state == Enum.UserInputState.Change then
@@ -279,6 +361,8 @@ local GAMEPAD_KEYS = {
 	Enum.KeyCode.ButtonR2,
 	Enum.KeyCode.ButtonA,
 	Enum.KeyCode.ButtonB,
+	Enum.KeyCode.ButtonL1,
+	Enum.KeyCode.ButtonY,
 	Enum.KeyCode.DPadLeft,
 	Enum.KeyCode.DPadRight,
 }
@@ -290,23 +374,52 @@ function Input.handleGamepad(
 ): Enum.ContextActionResult
 	local sink = Enum.ContextActionResult.Sink
 	local code = obj.KeyCode
-	local ended = state == Enum.UserInputState.End
+	local ended = state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel
+	if not self.enabled then
+		return Enum.ContextActionResult.Pass
+	end
+
+	if code == Enum.KeyCode.ButtonL1 then
+		if ended then
+			self.spinModifier = false
+			self:setSpinEditing(false)
+		elseif state == Enum.UserInputState.Begin then
+			self.spinModifier = true
+			self:setSpinEditing(true)
+		end
+		return sink
+	elseif code == Enum.KeyCode.Thumbstick2 then
+		self.stickSpinX = if ended then 0 else obj.Position.X
+		self.stickSpinY = if ended then 0 else obj.Position.Y
+		self.stickZoom = if ended or self.spinEditing then 0 else obj.Position.Y
+		return sink
+	elseif self.spinEditing then
+		if state == Enum.UserInputState.Begin then
+			if code == Enum.KeyCode.ButtonY then
+				self:resetSpin()
+			elseif code == Enum.KeyCode.ButtonB then
+				self.spinModifier = false
+				self:setSpinEditing(false)
+			end
+		end
+		return sink
+	end
 
 	if code == Enum.KeyCode.Thumbstick1 then
 		-- Stored, not acted on: Input.update reads it every frame. See the note at the top.
 		self.stickAim = if ended then 0 else obj.Position.X
-		return sink
-	elseif code == Enum.KeyCode.Thumbstick2 then
-		self.stickZoom = if ended then 0 else obj.Position.Y
 		return sink
 	elseif code == Enum.KeyCode.ButtonR2 then
 		-- An analog trigger IS a power bar: its travel is the pull, releasing it shoots.
 		if ended then
 			if self.triggerHeld then
 				self.triggerHeld = false
+				if state == Enum.UserInputState.Cancel then
+					self.power = nil
+				end
 				self:releasePower()
 			end
-		else
+		elseif state == Enum.UserInputState.Begin or self.triggerHeld then
 			self.triggerHeld = true
 			self:setPower(math.clamp(obj.Position.Z, 0, 1))
 		end
@@ -316,6 +429,9 @@ function Input.handleGamepad(
 		if ended then
 			if self.buttonPower ~= nil then
 				self.buttonPower = nil
+				if state == Enum.UserInputState.Cancel then
+					self.power = nil
+				end
 				self:releasePower()
 			end
 		elseif state == Enum.UserInputState.Begin and self.buttonPower == nil then
@@ -377,6 +493,21 @@ function Input.update(self: Input, dt: number)
 	end
 	local C = Config.Input
 	local G = C.Gamepad
+	if self.spinEditing then
+		if self.spinModifier then
+			local x = deadZone(self.stickSpinX, G.SpinDeadZone)
+			local y = deadZone(self.stickSpinY, G.SpinDeadZone)
+			local length = math.sqrt(x * x + y * y)
+			if length > 1 then
+				x, y = x / length, y / length
+			end
+			self:setSpin(
+				self.spinX + x * G.SpinPerSecond * dt,
+				self.spinY + y * G.SpinPerSecond * dt
+			)
+		end
+		return
+	end
 
 	local aim = deadZone(self.stickAim, G.AimDeadZone)
 	if aim ~= 0 then
@@ -413,7 +544,7 @@ end
 
 --- Called by the power bar UI while the player pulls. pull is 0..1.
 function Input.setPower(self: Input, pull: number)
-	if not self.enabled then
+	if not self.enabled or self.spinEditing or self.powerSuppressed then
 		return
 	end
 	self.dragInput = nil
@@ -426,11 +557,13 @@ end
 --- Called by the power bar UI on release. Shoots if the pull is enough, otherwise cancels.
 function Input.releasePower(self: Input)
 	local power = self.power
+	local suppressed = self.powerSuppressed
 	self.power = nil
+	self.powerSuppressed = false
 	for _, l in self.powerListeners do
 		l(nil)
 	end
-	if not self.enabled or power == nil then
+	if not self.enabled or self.spinEditing or suppressed or power == nil then
 		return
 	end
 	if power >= Config.Input.MinPowerToShoot then

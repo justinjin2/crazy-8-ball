@@ -24,20 +24,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
+local ShotInput = require(Shared:WaitForChild("ShotInput"))
 local Physics = Shared:WaitForChild("Physics")
 local Ball = require(Physics:WaitForChild("Ball"))
+local Cue = require(Physics:WaitForChild("Cue"))
 local Simulation = require(Physics:WaitForChild("Simulation"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
 local ShotService = {}
-
--- Quantising the seed before it goes on the wire means every client receives exactly the
--- same doubles, rather than whatever the serialiser happened to round to.
-local SEED_PLACES = 1e6
-
-local function quantise(v: number): number
-	return math.floor(v * SEED_PLACES + 0.5) / SEED_PLACES
-end
 
 --- The final balls, flattened for the wire: x, y, z, pocketed per ball in list order.
 local function packBalls(balls: { Ball.Ball }): { number }
@@ -52,39 +46,34 @@ local function packBalls(balls: { Ball.Ball }): { number }
 end
 
 --- Check a shot is one this player is allowed to take right now, and that its numbers are
---- numbers. Returns the table id, or nil with a reason.
-local function validate(player: Player, payload: any): (number?, string?)
+--- numbers. Returns the table id and validated shot, or nil with a reason.
+local function validate(player: Player, payload: any): (number?, Cue.Shot?, string?)
 	if typeof(payload) ~= "table" then
-		return nil, "payload is not a table"
+		return nil, nil, "payload is not a table"
 	end
 	local id = payload.tableId
-	if typeof(id) ~= "number" or id ~= id or id % 1 ~= 0 then
-		return nil, "table id is not a whole number"
+	if not ShotInput.isFinite(id) or id % 1 ~= 0 then
+		return nil, nil, "table id is not a finite whole number"
 	end
 	if TableService.tableOf(player) ~= id then
-		return nil, "player is not seated at that table"
+		return nil, nil, "player is not seated at that table"
 	end
 	if TableService.isBusy(id) then
-		return nil, "a shot is already running on that table"
+		return nil, nil, "a shot is already running on that table"
 	end
-	local angle, power = payload.angle, payload.power
-	if typeof(angle) ~= "number" or angle ~= angle then
-		return nil, "angle is not a number"
-	end
-	if typeof(power) ~= "number" or power ~= power then
-		return nil, "power is not a number"
-	end
-	if power < Config.Input.MinPowerToShoot or power > 1 then
-		return nil, "power out of range"
+	-- No ownership/cooldown service exists yet, so no ability is authorized in live play.
+	local shot, reason = ShotInput.validate(payload, nil)
+	if shot == nil then
+		return nil, nil, reason
 	end
 	-- Belt and braces for the scratch case: strike() throws without a cue ball, and a throw
 	-- here would be swallowed by the pcall and answer the player with nothing at all.
 	local state = TableService.stateOf(id)
 	local cue = state and Simulation.findBall(state, 0)
 	if cue == nil or cue.pocketed then
-		return nil, "no cue ball on that table"
+		return nil, nil, "no cue ball on that table"
 	end
-	return id, nil
+	return id, shot, nil
 end
 
 -- Tell the shooter their shot is not happening. They disabled their own controls when they
@@ -97,8 +86,8 @@ local function reject(player: Player, reason: string)
 end
 
 local function onShotFired(player: Player, payload: any)
-	local id, reason = validate(player, payload)
-	if id == nil then
+	local id, shot, reason = validate(player, payload)
+	if id == nil or shot == nil then
 		-- Not necessarily cheating: a shot can arrive just after someone else's started.
 		reject(player, reason or "?")
 		return
@@ -109,12 +98,6 @@ local function onShotFired(player: Player, payload: any)
 		reject(player, "that table has no state")
 		return
 	end
-
-	-- Clamp rather than trust. A client that asks for 3.0 power gets 1.0, not an error.
-	local shot = {
-		angle = payload.angle % (2 * math.pi),
-		power = math.clamp(payload.power, 0, 1),
-	}
 
 	-- Strike once, here. The resulting cue ball state is the replay seed.
 	local sim = Simulation.cloneState(state)
@@ -130,9 +113,7 @@ local function onShotFired(player: Player, payload: any)
 	-- values would make the server's answer one no client can reproduce: measured over 123
 	-- breaks, 56 diverged, the worst by 51 inches, and 4 ended with a different set of
 	-- balls pocketed.
-	cue.vx, cue.vy = quantise(cue.vx), quantise(cue.vy)
-	cue.wx, cue.wy, cue.wz = quantise(cue.wx), quantise(cue.wy), quantise(cue.wz)
-	local seed = { vx = cue.vx, vy = cue.vy, wx = cue.wx, wy = cue.wy, wz = cue.wz }
+	local seed = ShotInput.quantiseSeed(cue)
 
 	-- Run that exact state to rest. No frames: the server never draws anything.
 	local outcome = Simulation.settle(sim, { strikeEvent })
@@ -151,6 +132,7 @@ local function onShotFired(player: Player, payload: any)
 		startedAt = startedAt,
 		shooter = player.UserId,
 		seed = seed,
+		overrides = outcome.overrides,
 		duration = outcome.duration,
 		final = packBalls(outcome.finalBalls),
 		checksum = Simulation.checksum(outcome.finalBalls),

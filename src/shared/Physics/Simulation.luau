@@ -24,10 +24,16 @@ type Shot = Cue.Shot
 
 local Simulation = {}
 
+export type Overrides = {
+	RailRestitution: number?,
+	RailFriction: number?,
+}
+
 export type State = {
 	geometry: Geometry,
 	balls: { Ball },
 	time: number,
+	overrides: Overrides?, -- copied server-authorized material for this shot only
 }
 
 export type Event = {
@@ -53,6 +59,7 @@ export type ShotOutcome = {
 	duration: number,
 	steps: number,
 	capped: boolean, -- true if MaxShotSeconds stopped the shot early
+	overrides: Overrides?, -- retained for replay after the state's copy is cleared
 }
 
 export type ShotResult = ShotOutcome & { frames: { Frame } }
@@ -66,7 +73,12 @@ function Simulation.newState(geometry: Geometry, balls: { Ball }): State
 end
 
 function Simulation.cloneState(state: State): State
-	return { geometry = state.geometry, balls = Ball.cloneList(state.balls), time = state.time }
+	return {
+		geometry = state.geometry,
+		balls = Ball.cloneList(state.balls),
+		time = state.time,
+		overrides = if state.overrides then table.clone(state.overrides) else nil,
+	}
 end
 
 --- True when no shot motion remains; residual side spin alone does not count. This query
@@ -637,8 +649,14 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 				other = hit.b.id
 			else
 				local normalSpeed = -(hit.a.vx * hit.nx + hit.a.vy * hit.ny)
-				speed =
-					resolveRail(hit.a, hit.nx, hit.ny, railRestitution(normalSpeed), P.RailFriction)
+				local material = state.overrides
+				local e = if material and material.RailRestitution ~= nil
+					then material.RailRestitution
+					else railRestitution(normalSpeed)
+				local mu = if material and material.RailFriction ~= nil
+					then material.RailFriction
+					else P.RailFriction
+				speed = resolveRail(hit.a, hit.nx, hit.ny, e, mu)
 				eventType = "railHit"
 			end
 			if events and speed > 0 then
@@ -719,6 +737,8 @@ function Simulation.strike(state: State, shot: Shot): Event
 		error("Simulation.strike: no cue ball on the table")
 	end
 	state.time = 0
+	local material = if shot.ability then Config.Physics.ShotMaterials[shot.ability] else nil
+	state.overrides = if material then table.clone(material) else nil
 	local speed = Cue.strike(cueBall, shot)
 	return { t = 0, type = "cueStrike", ball = 0, speed = speed }
 end
@@ -758,6 +778,7 @@ end
 -- it) can run exactly the same loop rather than striking a second time.
 local function settleInto(sim: State, events: { Event }, frames: { Frame }?): ShotOutcome
 	local P = Config.Physics
+	local overrides = if sim.overrides then table.clone(sim.overrides) else nil
 	local steps = 0
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
 	local capped = false
@@ -783,6 +804,7 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 	for _, b in sim.balls do
 		b.wz = 0
 	end
+	sim.overrides = nil
 
 	return {
 		events = events,
@@ -791,6 +813,7 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 		duration = sim.time,
 		steps = steps,
 		capped = capped,
+		overrides = overrides,
 	}
 end
 
@@ -823,6 +846,7 @@ function Simulation.run(state: State, shot: Shot): ShotResult
 		duration = outcome.duration,
 		steps = outcome.steps,
 		capped = outcome.capped,
+		overrides = outcome.overrides,
 	}
 end
 

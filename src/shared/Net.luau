@@ -23,6 +23,8 @@ local REMOTES: { [string]: string } = {
 	RequestLeave = "RemoteEvent",
 	-- client -> server: I want to take this shot. Inputs only; the server decides what
 	-- actually happens (ARCHITECTURE.md section 1, never trust the client).
+	-- {tableId, angle, power, spin={x,y}, elevation}; optional ability id requires server
+	-- authorization. Client-supplied material coefficients are rejected.
 	ShotFired = "RemoteEvent",
 	-- server -> one client: your shot was turned down, and why. Without this the client
 	-- that optimistically disabled its own input when it fired never hears anything back
@@ -30,6 +32,7 @@ local REMOTES: { [string]: string } = {
 	ShotRejected = "RemoteEvent",
 	-- server -> all: a shot has started on a table. Carries the post-strike cue ball state
 	-- to replay from, the server's final positions to settle on, and a checksum.
+	-- Optional overrides are copied from the server's material catalog for this shot only.
 	ShotResult = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: this is ten low-value updates a
 	-- second, and losing one just means a remote cue turns a frame later. Never worth a

@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 
 local UI = {}
 
@@ -125,7 +126,7 @@ end
 function UI.createLeaveButton(onLeave: () -> ())
 	local button = Instance.new("TextButton")
 	button.Name = "Leave"
-	button.Text = "Leave table"
+	button.Text = Strings.LeaveTable
 	button.AnchorPoint = Vector2.new(1, 0)
 	button.Position = UDim2.new(1, -18, 0, 12)
 	button.Size = UDim2.fromOffset(120, 40)

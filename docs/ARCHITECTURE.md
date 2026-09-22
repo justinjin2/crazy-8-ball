@@ -10,7 +10,8 @@ after. Design intent is in GDD.md; this file says how it is built.
   inches and seconds. It runs in Lune (`tools/test.sh`) and on the server unchanged. The 3D
   ball models only follow what the simulation says.
 - **A shot is inputs.** `Simulation.run(state, shot) -> ShotResult`. Rendering, audio, effects,
-  rules and abilities consume the result. `shot = {angle, power, spin = {x, y}, ability?}`.
+  rules and abilities consume the result. `shot = {angle, power, spin = {x, y}, elevation?, ability?}`.
+  Server inputs use fixed 4-degree elevation; ability ids require server authorization.
 - **Determinism.** No `os.clock`, no `math.random`, no hash-order iteration inside Physics or
   Rules. Same inputs give the same result on every device.
 - **Never trust the client.** The server owns match state, validates every shot and ability,
@@ -43,6 +44,8 @@ openings have a flat shelf scaled to ball diameter, and facings extend to their 
 against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
 Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves the table, the
 break scatters the rack, rail bounce mirrors, spin signs, determinism, trace matches simulation.
+Per-shot cushion overrides are copied from a named material, sent with the replay seed,
+and cleared on completion. Live ability requests remain disabled pending server authorization.
 Generated table parts share this geometry; the imported table mesh needs separate art updates.
 
 ## 4. Networking: server-owned tables
@@ -71,7 +74,8 @@ tables of PCs stay cheap.
 Shared (`src/shared`): `Config`, `Physics/` (Vec, Ball, Table, Collision, Cue, Rack, Aim,
 Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written), `Abilities/`
 (catalog and pure effect hooks into the simulation, to be written), `TableBuilder`,
-`CueStickBuilder`, `AvatarPose`, `Strings` (all player-facing text, to be written), `Catalog`
+`CueStickBuilder`, `AvatarPose`, `ShotInput` (validation/seed quantization), `Strings` (HUD
+copy), `Catalog`
 (item data rows, to be written).
 
 Server (`src/server`): `Bootstrap` (builds the lounge tables, publishes assets), `TableService`
@@ -79,7 +83,7 @@ Server (`src/server`): `Bootstrap` (builds the lounge tables, publishes assets),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`.
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
-(mouse, touch, gamepad), `Guideline`, `Camera`, `Avatar`, `UI`, `Audio`, `Effects`, `Lounge`
+(mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar`, `UI`, `Audio`, `Effects`, `Lounge`
 (pads, seats, snack counter, doors).
 
 ## 6. Data model

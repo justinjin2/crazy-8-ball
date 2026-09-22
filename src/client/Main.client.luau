@@ -27,6 +27,7 @@ local Input = require(script.Parent:WaitForChild("Input"))
 local Lounge = require(script.Parent:WaitForChild("Lounge"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local PowerCue = require(script.Parent:WaitForChild("PowerCue"))
+local SpinSelector = require(script.Parent:WaitForChild("SpinSelector"))
 local UI = require(script.Parent:WaitForChild("UI"))
 
 -- Wait for the server to have built the tables before drawing balls on them.
@@ -48,6 +49,8 @@ local avatar = Avatar.new()
 -- rest of the HUD rather than needing its own visibility call at every seat change.
 local powerCue = PowerCue.new(UI.screen())
 UI.addPlayControl(powerCue.root)
+local spinSelector = SpinSelector.new(UI.screen(), input)
+UI.addPlayControl(spinSelector.root)
 
 -- The table this client is sitting at, and its pieces. nil while walking around.
 local seatId: number? = nil
@@ -132,16 +135,22 @@ local function refreshCueStick()
 	local ballPos = TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RadiusInches)
 	local gap = TableBuilder.studs(Config.Cue.CueRestGapInches)
 		+ currentPull * Config.Cue.CuePullBackStuds
-	CueStickBuilder.place(cueStick, ballPos, Camera.aimDirection(input.angle), gap)
+	CueStickBuilder.place(cueStick, ballPos, Camera.aimDirection(input.angle), gap, input:getSpin())
 end
 
 local function refreshGuideline()
+	spinSelector:setEnabled(canAim())
 	local m, g = match, guideline
 	if g then
 		if m == nil or not canAim() then
 			g:hide()
 		else
-			g:show(Aim.trace(m.state, input.angle))
+			g:show(Aim.trace(m.state, {
+				angle = input.angle,
+				power = math.max(currentPull, Config.Input.MinPowerToShoot),
+				spin = input:getSpin(),
+				elevation = Config.Cue.CueElevationDegrees,
+			}))
 		end
 	end
 	refreshCueStick()
@@ -199,11 +208,12 @@ local function shoot(power: number)
 	end
 	-- Inputs go to the server; the shot begins when it broadcasts the result back. Nothing
 	-- is simulated here first, so the shooter sees exactly what everybody else sees.
-	lounge:fire(id, input.angle, power)
+	lounge:fire(id, input.angle, power, input:getSpin(), Config.Cue.CueElevationDegrees)
 	shotAngle, shotPower = input.angle, power
 	input:setEnabled(false)
 	-- Aiming is over the moment the cue is let go, not when the server gets back to us.
 	awaitingShot = true
+	input:resetSpin()
 	refreshGuideline()
 end
 
@@ -213,6 +223,7 @@ local function setSeat(id: number?)
 		return
 	end
 	seatId = id
+	input:resetSpin()
 	-- Leaving or being moved cancels any shot we were waiting on; the next table must not
 	-- inherit it and open with no cue.
 	awaitingShot = false
@@ -320,6 +331,7 @@ UI.createLeaveButton(leaveTable)
 input:onLeave(leaveTable)
 
 input:onAim(refreshGuideline)
+input:onSpin(refreshGuideline)
 -- A soft tick every step of rotation (GDD section 5).
 input:onTick(function()
 	if placement then

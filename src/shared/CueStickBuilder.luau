@@ -70,13 +70,25 @@ end
 
 --- Point the stick at a cue ball. `ballPos` is the ball centre (world), `dir` the aim
 --- direction (world, flat), `gapStuds` the distance from the ball surface to the tip.
-function CueStickBuilder.place(model: Model, ballPos: Vector3, dir: Vector3, gapStuds: number)
+function CueStickBuilder.place(
+	model: Model,
+	ballPos: Vector3,
+	dir: Vector3,
+	gapStuds: number,
+	spin: { x: number, y: number }?
+)
 	local flat = Vector3.new(dir.X, 0, dir.Z)
 	if flat.Magnitude < 1e-6 then
 		return
 	end
 	flat = flat.Unit
-	local tip = ballPos - flat * (Config.Table.StudsPerInch * Config.Balls.RadiusInches + gapStuds)
+	local radius = Config.Table.StudsPerInch * Config.Balls.RadiusInches
+	local sx, sy = if spin then spin.x else 0, if spin then spin.y else 0
+	local depth = math.sqrt(math.max(0, 1 - sx * sx - sy * sy)) * radius
+	local tip = ballPos
+		- flat * (depth + gapStuds)
+		+ flat:Cross(Vector3.yAxis) * (sx * radius)
+		+ Vector3.yAxis * (sy * radius)
 	-- lookAt points local -Z at the target ahead of the tip, so the stick (built along local
 	-- +Z) trails behind the ball. A negative X rotation raises the butt.
 	local cf = CFrame.lookAt(tip, tip + flat)
