@@ -71,3 +71,11 @@ for real multiplayer and device acceptance. Do not describe these pending checks
 Do not edit Script.Source in Studio. Verify correct place after reconnection. Check whether
 an interrupted operation completed before repeating it. Source files are the durable save;
 notes do not replace source. Stop/start Play to refresh Rojo's runtime copy.
+
+## Follow-up: compact top HUD (2026-09-22)
+User reported oversized panels in real multiplayer screenshots. Team panels now fit
+portraits plus ball rows, 56 px high on desktop (formerly 150), at y=4 beside Roblox
+menu where there is room. Narrow screens reflow ball rows without shrinking the whole UI.
+Screenshots inspected for all three modes; component bounds checked at 402/750/1000 px;
+all phase labels fit. Lint clean, 195 tests pass (7.09 s), Rojo confirmed in correct place.
+Play stopped to clear fixtures. Relaunch existing test clients to load the new source.

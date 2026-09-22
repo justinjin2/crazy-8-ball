@@ -677,3 +677,9 @@ Final responsive pass: fine controls replace placement instructions while expand
 include Lock/Close buttons. Camera framing reserves their actual height. Active-match host
 reassignment preserves the original heads-team ownership. The Studio-only finishing-rack
 fixtures verify all modes, but full human racks and physical-device acceptance remain open.
+
+2026-09-22: Designer found the multiplayer top panels much too large. Replace the
+150 px full-width header with 56 px content-sized strips: portraits beside stable ball
+rows, compact central status/clock/Leave. Place at y=4 beside Roblox menu when width
+permits, otherwise immediately below its safe inset. Preserve ball diameter and all
+teammates; wrap ball rows on narrow screens. This supersedes the original large header.

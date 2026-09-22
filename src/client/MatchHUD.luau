@@ -481,62 +481,56 @@ function MatchHUD.layout(self: any)
 	self.width = width
 	local margin, gap = S.HeaderMargin, S.HeaderGap
 	local short = self.root.AbsoluteSize.Y < S.ShortHeight
-	local small = width < S.MobileBreakpoint and not short
-	local narrow = width < S.NarrowBreakpoint
-	local headerHeight = (if short then S.ShortHeaderHeight else S.HeaderHeight)
-		+ (if narrow then S.BallSize else 0)
-	local centerWidth = S.ModalWidth * 0.38
-	local teamWidth = (
-		width
-		- margin * 2
-		- gap * (if small then 1 else 2)
-		- (if small then 0 else centerWidth)
-	) / 2
-	local top = S.HeaderTop
-	self.headerBottom = top + headerHeight + (if small then S.ButtonHeight + gap * 2 else 0)
+	local count = if self.snapshot then self.snapshot.teamSize else 3
+	local portraitSize = S.PortraitSize
+	local portraitsWidth = portraitSize * count + S.PortraitGap * (count - 1)
+	local ballsWidth = S.BallSize * 8 + S.BallGap * 7
+	local centerWidth = S.HeaderCenterWidth
+	local availableWidth = width - margin * 2
+	local columns = if (portraitsWidth + ballsWidth + gap * 3) * 2 + centerWidth + gap * 2
+			<= availableWidth
+		then 8
+		else 4
+	local ballSize = if columns == 8 then S.BallSize else S.ShortBallSize
+	ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
+	local desiredTeamWidth = portraitsWidth + ballsWidth + gap * 3
+	local desiredWidth = desiredTeamWidth * 2 + centerWidth + gap * 2
+	local inline = desiredWidth <= availableWidth
+	local teamWidth = if inline then desiredTeamWidth else (availableWidth - gap) / 2
+	local ballRows = 8 / columns
+	local headerHeight = if inline
+		then math.max(S.HeaderHeight, ballSize * ballRows + S.BallGap * (ballRows - 1) + gap)
+		else portraitSize + S.NameSize + gap * 2 + ballSize * ballRows + S.BallGap * (ballRows - 1)
+	local besideMenu = inline and desiredWidth <= width - S.HeaderMenuLeft - S.HeaderMenuRight
+	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
+	local startX = if besideMenu
+		then S.HeaderMenuLeft + (width - S.HeaderMenuLeft - S.HeaderMenuRight - desiredWidth) / 2
+		else (width - (if inline then desiredWidth else availableWidth)) / 2
+	self.headerBottom = top + headerHeight + (if inline then 0 else S.HeaderHeight + gap)
 	for i, team in self.teams do
-		local x = if i == 1 then margin else width - margin - teamWidth
+		local x = startX
+			+ (if i == 1 then 0 else teamWidth + gap + (if inline then centerWidth + gap else 0))
 		team.root.Position = UDim2.fromOffset(x, top)
 		team.root.Size = UDim2.fromOffset(teamWidth, headerHeight)
-		team.title.Position = UDim2.fromOffset(gap, gap / 2)
-		team.title.Size = UDim2.new(0.55, -gap, 0, S.StatusSize)
-		team.group.Position = UDim2.new(0.55, 0, 0, gap / 2)
-		team.group.Size = UDim2.new(0.45, -gap, 0, S.StatusSize)
-		local count = if self.snapshot then self.snapshot.teamSize else 3
-		local portraitSize = math.min(
-			if short then S.ShortPortraitSize else S.PortraitSize,
-			(teamWidth - gap * 2 - S.PortraitGap * (count - 1)) / count,
-			S.HeaderHeight - S.BallSize - S.StatusSize - S.NameSize - gap * 3.5
-		)
-		local portraitsWidth = portraitSize * count + S.PortraitGap * (count - 1)
-		local start = if i == 1 then gap else teamWidth - portraitsWidth - gap
+		-- Ownership is shown by the numbered balls; avoid redundant rows of headings.
+		team.title.Visible = false
+		team.group.Visible = false
+		local portraitLeft = if i == 1 then gap else teamWidth - portraitsWidth - gap
 		for n, portrait in team.portraits do
-			portrait.root.Position = UDim2.fromOffset(
-				start + (n - 1) * (portraitSize + S.PortraitGap),
-				S.StatusSize + gap
-			)
+			portrait.root.Position =
+				UDim2.fromOffset(portraitLeft + (n - 1) * (portraitSize + S.PortraitGap), gap / 2)
 			portrait.root.Size = UDim2.fromOffset(portraitSize, portraitSize + S.NameSize + gap / 2)
 			portrait.imageFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.name.Position = UDim2.fromOffset(-gap / 2, portraitSize + gap / 4)
 			portrait.name.Size = UDim2.fromOffset(portraitSize + gap, S.NameSize + gap / 2)
 			portrait.root.Visible = n <= count and portrait.occupied
 		end
-		local columns = if narrow or short then 4 else 8
-		local ballSize = math.min(
-			if short then S.ShortBallSize else S.BallSize,
-			(teamWidth - gap * 2 - S.BallGap * (columns - 1)) / columns
-		)
-		local ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
-		local ballLeft = if short
-			then (if i == 1 then teamWidth - ballsWidth - gap else gap)
+		local ballLeft = if inline
+			then (if i == 1 then portraitsWidth + gap * 2 else gap)
 			else (teamWidth - ballsWidth) / 2
-		local ballTop = headerHeight
-			- gap
-			- ballSize * (if narrow then 2 else 1)
-			- (if narrow then S.BallGap else 0)
-		if short then
-			ballTop = S.StatusSize + gap
-		end
+		local ballTop = if inline
+			then (headerHeight - ballSize * ballRows - S.BallGap * (ballRows - 1)) / 2
+			else portraitSize + S.NameSize + gap
 		for n, ball in team.balls do
 			local column, row = (n - 1) % columns, math.floor((n - 1) / columns)
 			ball.root.Position = UDim2.fromOffset(
@@ -547,45 +541,31 @@ function MatchHUD.layout(self: any)
 			ball.number.TextSize = math.max(S.NameSize, ballSize * 0.39)
 			ball.cross.TextSize = ballSize
 		end
-		team.open.Position = UDim2.fromOffset(if short then ballLeft else gap, ballTop)
-		team.open.Size = UDim2.fromOffset(
-			if short then ballsWidth else teamWidth - gap * 2,
-			headerHeight - gap - ballTop
-		)
+		team.open.Position = UDim2.fromOffset(ballLeft, ballTop)
+		team.open.Size =
+			UDim2.fromOffset(ballsWidth, ballSize * ballRows + S.BallGap * (ballRows - 1))
 	end
-	if small then
-		self.center.Position = UDim2.fromOffset(margin, top + headerHeight + gap)
-		self.center.Size = UDim2.fromOffset(width - margin * 2, S.ButtonHeight + gap)
-		self.status.Position = UDim2.fromOffset(gap, gap / 2)
-		self.status.Size = UDim2.new(1, -S.ButtonHeight * 3 - gap * 2, 0, S.StatusSize + gap / 2)
-		self.detail.Position = UDim2.fromOffset(gap, S.StatusSize + gap)
-		self.detail.Size = UDim2.new(1, -S.ButtonHeight * 3 - gap * 2, 0, S.NameSize + gap / 2)
-		self.clock.Position = UDim2.new(1, -S.ButtonHeight * 3, 0, 0)
-		self.clock.Size = UDim2.fromOffset(S.ButtonHeight * 1.2, S.ButtonHeight + gap)
-		self.leave.Position = UDim2.new(1, -S.ButtonHeight * 1.7, 0, gap / 2)
-		self.leave.Size = UDim2.fromOffset(S.ButtonHeight * 1.5, S.ButtonHeight)
-	else
-		self.center.Position = UDim2.fromOffset((width - centerWidth) / 2, top)
-		self.center.Size = UDim2.fromOffset(centerWidth, headerHeight)
-		self.status.Position = UDim2.fromOffset(gap / 2, gap / 2)
-		self.status.Size = UDim2.new(1, -gap, 0, S.StatusSize + gap / 2)
-		self.clock.Position = UDim2.fromOffset(gap, S.StatusSize + gap)
-		self.clock.Size = UDim2.new(1, -gap * 2, 0, S.TimerSize + gap / 2)
-		self.detail.Position = UDim2.fromOffset(gap / 2, S.StatusSize + S.TimerSize + gap * 1.5)
-		self.detail.Size = UDim2.new(1, -gap, 0, S.NameSize + gap / 4)
-		self.leave.Position = UDim2.new(0, gap, 1, -S.ButtonHeight - gap / 2)
-		self.leave.Size = UDim2.new(1, -gap * 2, 0, S.ButtonHeight)
-	end
-	self.detail.Visible = not short
-	if short then
-		self.clock.Position = UDim2.fromOffset(gap, S.StatusSize + gap / 2)
-		self.clock.Size = UDim2.new(0.4, -gap, 0, S.ButtonHeight)
-		self.leave.Position = UDim2.new(0.4, gap / 2, 1, -S.ButtonHeight - gap)
-		self.leave.Size = UDim2.new(0.6, -gap * 1.5, 0, S.ButtonHeight)
-		self.status.TextSize = S.NameSize
-	else
-		self.status.TextSize = S.StatusSize
-	end
+	self.center.Position = UDim2.fromOffset(
+		if inline then startX + teamWidth + gap else (width - centerWidth) / 2,
+		top + (if inline then 0 else headerHeight + gap)
+	)
+	self.center.Size = UDim2.fromOffset(centerWidth, S.HeaderHeight)
+	local leaveWidth = S.ButtonHeight * 1.4
+	local contentWidth = centerWidth - leaveWidth - gap * 2
+	self.status.Position = UDim2.fromOffset(gap / 2, gap / 2)
+	self.status.Size = UDim2.fromOffset(contentWidth, S.NameSize + gap / 2)
+	self.status.TextSize = S.NameSize
+	self.clock.Position = UDim2.fromOffset(gap / 2, S.NameSize + gap / 2)
+	self.clock.Size = UDim2.fromOffset(contentWidth, S.HeaderTimerSize)
+	self.clock.TextSize = S.HeaderTimerSize
+	self.detail.Position = UDim2.fromOffset(gap / 2, S.NameSize + gap / 2 + S.HeaderTimerSize)
+	self.detail.Size = UDim2.fromOffset(contentWidth, S.NameSize)
+	self.detail.TextSize = S.NameSize
+	self.detail.Visible = true
+	self.leave.Position = UDim2.new(1, -leaveWidth - gap / 2, 0.5, -S.ButtonHeight / 2)
+	self.leave.Size = UDim2.fromOffset(leaveWidth, S.ButtonHeight)
+	self.leave.TextSize = S.NameSize
+	self.leave.TextWrapped = true
 	local setupWidth = math.min(S.ModalWidth, width - margin * 2)
 	self.setup.Position = UDim2.new(0.5, 0, 1, -margin)
 	self.setup.Size = UDim2.fromOffset(setupWidth, S.ButtonHeight * 2 + gap)

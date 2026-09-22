@@ -23,3 +23,8 @@ Known art debt: imported mesh pockets differ slightly from regulation simulation
 Required acceptance remains real full matches in each mode, concurrent 1v1+2v2 with six
 clients, touch and controller play, and audio listening. Do not tick historical milestone
 boxes whose full acceptance or out-of-scope features (solo, bots, rewards) remain incomplete.
+
+Latest UI correction: compact 56 px desktop match header replaces 150 px panels and
+sits beside Roblox's menu at the top edge when space permits. Screenshots inspected for
+1v1, 2v2 and 3v3; responsive component checks at 402/750/1000 px found no panel overflow.
+All phase labels fit. Lint and 195 tests pass; physical-device acceptance is still open.
