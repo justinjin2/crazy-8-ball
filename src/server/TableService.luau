@@ -269,7 +269,10 @@ local function refresh(t: any)
 			end
 		end
 		pad.part:SetAttribute("Occupied", occupied)
-		pad.label.Text = if occupant then occupant.displayName else Strings.Match.EmptySlot
+		pad.label.Text = if occupant
+			then occupant.displayName
+			elseif e.phase == "Waiting" or e.phase == "Countdown" then Strings.Match.EmptySlot
+			else Strings.Match.InProgress
 	end
 	local host = if e.hostId then Engine.seat(e, e.hostId) else nil
 	t.hostLabel.Text = if host

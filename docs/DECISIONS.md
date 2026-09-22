@@ -672,3 +672,8 @@ Implementation detail: if the last teammate disconnects during an accepted shot,
 its replay/settling first, then award the empty-team forfeit. Runtime QA uses Studio-only
 server fixtures and never creates playable bots. Multiplayer starts at whole-table zoom
 for HUD/pocket clearance; manual orbit/down-cue zoom is preserved.
+
+Final responsive pass: fine controls replace placement instructions while expanded and
+include Lock/Close buttons. Camera framing reserves their actual height. Active-match host
+reassignment preserves the original heads-team ownership. The Studio-only finishing-rack
+fixtures verify all modes, but full human racks and physical-device acceptance remain open.

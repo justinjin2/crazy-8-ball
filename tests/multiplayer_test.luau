@@ -328,4 +328,11 @@ return {
 		H.expect(t.phase == "Result" and t.result.winner == 2 and t.result.reason == "EmptyTeam")
 		H.expect(t.pending == nil and t.shot == nil)
 	end,
+	["active host reassignment leaves the agreed coin sides unchanged"] = function()
+		local t = full(2)
+		local heads = t.coin.headsTeam
+		E.remove(t, 11, 8)
+		H.expect(t.hostId == 12 and E.seat(t, 12).host)
+		H.expect(t.coin.headsTeam == heads and t.phase == "Foul")
+	end,
 }

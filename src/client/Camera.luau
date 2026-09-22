@@ -34,6 +34,7 @@ local locked = false
 local connections: { RBXScriptConnection } = {}
 local topDown = false
 local hudTop = 0
+local hudBottom = Config.Multiplayer.CameraBottomFraction
 local transitionFrom: CFrame? = nil
 local transitionTime = 0
 local savedCamera: any = nil
@@ -431,7 +432,7 @@ local function viewFor(
 	return cf
 end
 
-function Camera.setMode(overhead: boolean, headerPixels: number)
+function Camera.setMode(overhead: boolean, headerPixels: number, bottomPixels: number?)
 	local vp = Workspace.CurrentCamera.ViewportSize
 	local reserved =
 		math.clamp(headerPixels / math.max(vp.Y, 1), 0, Config.Multiplayer.CameraMaxHudFraction)
@@ -441,6 +442,8 @@ function Camera.setMode(overhead: boolean, headerPixels: number)
 		smoothed = nil
 	end
 	topDown, hudTop = overhead, reserved
+	hudBottom =
+		math.max(Config.Multiplayer.CameraBottomFraction, (bottomPixels or 0) / math.max(vp.Y, 1))
 end
 
 local function overheadView(): CFrame
@@ -452,10 +455,10 @@ local function overheadView(): CFrame
 	local halfY = TableBuilder.studs(Config.Table.WidthInches / 2 + Config.Table.RailWidthInches)
 	local distance = math.max(
 		halfX / (tanH * (1 - 2 * M.CameraSideFraction)),
-		halfY / (tanV * math.max(0.2, 1 - hudTop - M.CameraBottomFraction))
+		halfY / (tanV * math.max(0.2, 1 - hudTop - hudBottom))
 	)
 	local up = TableBuilder.aimDirection(placement, math.pi / 2)
-	local target = tableCentre() + up * distance * tanV * (hudTop - M.CameraBottomFraction)
+	local target = tableCentre() + up * distance * tanV * (hudTop - hudBottom)
 	return CFrame.lookAt(target + Vector3.new(0, distance, 0), target, up)
 end
 
@@ -473,7 +476,7 @@ local function reserveHud(cf: CFrame, wide: boolean): CFrame
 	for _ = 1, M.CameraFitIterations do
 		result = cf
 			- cf.LookVector * (distance - originalDistance)
-			+ cf.UpVector * distance * tanV * math.max(0, hudTop - M.CameraBottomFraction)
+			+ cf.UpVector * distance * tanV * math.max(0, hudTop - hudBottom)
 		if not wide then
 			return result
 		end
@@ -486,7 +489,7 @@ local function reserveHud(cf: CFrame, wide: boolean): CFrame
 				depth <= 0
 				or math.abs(p.X) > depth * tanH * (1 - 2 * M.CameraSideFraction)
 				or y > 1 - 2 * hudTop
-				or y < -1 + 2 * M.CameraBottomFraction
+				or y < -1 + 2 * hudBottom
 			then
 				fits = false
 				break

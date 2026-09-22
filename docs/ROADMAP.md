@@ -74,8 +74,10 @@ are part of this update; the older broader phase boxes below are not completed b
 - [x] Inspect project/assets/tools and agree gameplay/design decisions.
 - [x] Shared authority, independent queues, rules and turn flow for all three team sizes.
 - [x] Integrate multiplayer HUD, camera, setup controls, audio and match lifecycle.
-- [ ] Finish integrated QA/polish and real multiplayer/device acceptance. Automated and
-  single-client Studio fixture evidence is tracked separately in MULTIPLAYER_PROGRESS.md.
+- [x] Integrated automated/Studio QA, responsive layout repairs and visual polish within
+  the connected tools. Evidence is tracked in MULTIPLAYER_PROGRESS.md.
+- [ ] Real full multiplayer matches and physical touch/controller acceptance. Follow
+  docs/MULTIPLAYER_TESTING.md; fixtures and emulator screenshots do not replace these.
 
 ## Phase 2: A real match
 

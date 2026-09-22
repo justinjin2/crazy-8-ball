@@ -213,6 +213,7 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 		return true
 	end
 	s.connected = false
+	rehost(t)
 	t.revision += 1
 	if Engine.count(t, s.team) == 0 then
 		if t.phase ~= "Resolving" then

@@ -159,7 +159,7 @@ local function clearHighlights()
 end
 local function highlightOwn()
 	clearHighlights()
-	if not snapshot or not match or not match.renderer then
+	if not snapshot or not match or not match.renderer or snapshot.phase == "Result" then
 		return
 	end
 	local team = 1
@@ -173,7 +173,13 @@ local function highlightOwn()
 		return
 	end
 	for _, b in match.state.balls do
-		if not b.pocketed and Judge.group(b.id) == group then
+		if
+			not b.pocketed
+			and (
+				Judge.group(b.id) == group
+				or (b.id == 8 and Judge.eligible(match.state.balls, group))
+			)
+		then
 			local part = match.renderer.folder:FindFirstChild(
 				if b.id == 0 then "CueBall" else "Ball_" .. b.id
 			)
@@ -262,6 +268,8 @@ local function action(kind: string, value: any?)
 			.. " "
 			.. tostring(math.floor(discretePower * 100))
 			.. "%"
+	elseif kind == "ClosePrecision" then
+		hud:togglePrecision()
 	elseif kind == "PrecisionShoot" then
 		fire(discretePower)
 	elseif kind == "PrecisionPlace" then
@@ -285,7 +293,9 @@ local function action(kind: string, value: any?)
 		end
 	elseif kind == "PrecisionToggle" then
 		if value and UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1 then
-			GuiService.SelectedObject = hud.precisionButtons.AimLeft
+			GuiService.SelectedObject = if targets:canPlace()
+				then hud.precisionButtons.PlaceLeft
+				else hud.precisionButtons.AimLeft
 		end
 	elseif kind == "Vote" then
 		lounge:action(kind, { yes = value })
@@ -469,7 +479,7 @@ Net.get("MatchFeedback").OnClientEvent:Connect(function(f: any)
 	bonusNextAt = at + M.BonusGapSeconds
 	task.delay(at - now, function()
 		local s = lounge.snapshots[f.tableId]
-		if not s or s.epoch ~= f.epoch or lounge.mySeat ~= f.tableId then
+		if not s or s.epoch ~= f.epoch or lounge.mySeat ~= f.tableId or s.phase == "Waiting" then
 			return
 		end
 		local a = audioByTable[f.tableId]
@@ -492,6 +502,8 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		leave()
 	elseif key.KeyCode == Enum.KeyCode.Escape and hud:isModal() then
 		hud:closeModal()
+	elseif key.KeyCode == Enum.KeyCode.ButtonX and canShoot() then
+		hud:togglePrecision()
 	elseif key.KeyCode == Enum.KeyCode.F3 then
 		UI.toggleStatus()
 	end
@@ -600,18 +612,31 @@ RunService.RenderStepped:Connect(function(dt)
 	if input.enabled ~= allowed then
 		input:setEnabled(allowed)
 	end
-	UI.setPlayControlsVisible(canShoot() and not modal)
+	UI.setPlayControlsVisible(canShoot() and not modal and not hud.precisionOpen)
 	input:update(dt)
 	if controlled then
-		if phase == "CoinFlip" or targets:canPlace() or phase == "PocketChoice" then
+		if
+			phase == "CoinFlip"
+			or targets:canPlace()
+			or phase == "PocketChoice"
+			or (
+				phase == "Intro"
+				and (
+					snapshot.ballInHand
+					or Judge.eligible(match.state.balls, snapshot.groups[snapshot.activeTeam])
+				)
+			)
+		then
 			Camera.setMode(
 				true,
-				hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2
+				hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2,
+				hud:reservedBottom() + M.Style.TargetSize / 2
 			)
 		else
 			Camera.setMode(
 				false,
-				hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2
+				hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2,
+				hud:reservedBottom() + M.Style.TargetSize / 2
 			)
 		end
 		if busy and not lastBusy then

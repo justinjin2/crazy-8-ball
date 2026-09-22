@@ -20,7 +20,7 @@ Read MULTIPLAYER_SPEC.md, inspect git and verify the live place before resuming.
   Studio-only QA hook in ServerStorage creates nothing in published servers.
 
 ## Verification so far
-- 194 Lune tests pass; latest StyLua, Selene, luau-lsp and diff whitespace checks pass.
+- 195 Lune tests pass; latest StyLua, Selene, luau-lsp and diff whitespace checks pass.
 - Correct Studio place 107430170196919, universe 10767330648; Rojo source sync checked.
 - Fresh desktop and iPhone-emulator portrait/landscape runs start without project errors.
 - Native screenshots inspected for queue, 1v1 red tenths clock, 2v2 confirmation,
@@ -36,10 +36,25 @@ Read MULTIPLAYER_SPEC.md, inspect git and verify the live place before resuming.
   unanimous surrender. Pocket target keyboard focus + Return enters Aiming with that call.
 - Coin, turn and foul sound asset preload availability verified earlier in this experience.
 
+- Prepared final-8 positions produced actual simulated LegalEight wins in every mode.
+  Each duplicate client shot was rejected; each original produced one replay/result.
+- Actual current-shooter death retained all six seats, applied a foul, respawned alive
+  inside the match bounds, and left deadlines running.
+- Actual cue-ball drag preserved the break line; precision aim changed the angle and
+  SHOOT accepted a shot. The final phone portrait/landscape controls were visually checked;
+  Lock advanced to Aiming with 15 seconds. Short controls replace the placement panel,
+  and camera clearance follows the visible panel height.
+- Sampled coin animation rotated, narrowed, landed and cleared on schedule. Result,
+  foul and coin screenshots were inspected; screenshots do not prove motion quality.
+- Latest fresh runtime console contains only server/client ready messages. Final lint
+  and 195 tests pass (6.81 s). No Edit-mode content was modified.
+
 ## Current work / next concrete step
-Finish fresh runtime checks of the newest camera, queue presentation, winning 8-ball
-flow for each mode, reset/disconnect, modal/precision controls and result/coin visuals.
-Update docs; commit and push verified implementation. Preserve honest acceptance limits.
+Implementation and available automated/Studio QA are finished. Core implementation was
+committed and pushed as 61e3eab; final responsive polish and this evidence are saved in the
+following git commit. Studio Play was stopped to remove all synthetic fixtures.
+Next: relaunch six clients on the current Rojo source and follow docs/MULTIPLAYER_TESTING.md
+for real multiplayer and device acceptance. Do not describe these pending checks as done.
 
 ## Remaining acceptance / tool limits
 - Six actual clients launched earlier and joined their local server, but MCP exposes only

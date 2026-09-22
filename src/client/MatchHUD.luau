@@ -80,6 +80,36 @@ local function button(parent: Instance, text: string, action: () -> ()): TextBut
 	object.Parent = parent
 	corner(object, S.Radius / 2)
 	local border = outline(object, color(S.Border), 1)
+	local pressScale = Instance.new("UIScale")
+	pressScale.Parent = object
+	local pressTween: Tween? = nil
+	local function pressed(down: boolean)
+		if pressTween then
+			pressTween:Cancel()
+		end
+		local nextTween = TweenService:Create(
+			pressScale,
+			TweenInfo.new(S.QuickMotion),
+			{ Scale = if down then S.PressedScale else 1 }
+		)
+		pressTween = nextTween
+		nextTween:Play()
+	end
+	object.InputBegan:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+			or input.KeyCode == Enum.KeyCode.ButtonA
+		then
+			pressed(true)
+		end
+	end)
+	object.InputEnded:Connect(function()
+		pressed(false)
+	end)
+	object.MouseLeave:Connect(function()
+		pressed(false)
+	end)
 	local running: Tween? = nil
 	local function highlight(selected: boolean)
 		if running then
@@ -319,9 +349,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.invalid.TextColor3 = color(S.Danger)
 	self.invalid.Font = Enum.Font.GothamBold
 	self.precisionButton = button(self.root, Copy.Precision, function()
-		self.precisionOpen = not self.precisionOpen
-		self:layout()
-		onAction("PrecisionToggle", self.precisionOpen)
+		self:togglePrecision()
 	end)
 	self.precisionButton.AnchorPoint = Vector2.new(1, 1)
 	self.precision = panel(self.root, "PrecisionControls")
@@ -337,6 +365,8 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	precision("PowerDown", Copy.PowerDown, "PrecisionPower", -S.PrecisionPowerStep)
 	precision("PowerUp", Copy.PowerUp, "PrecisionPower", S.PrecisionPowerStep)
 	precision("Shoot", Copy.Shoot, "PrecisionShoot", nil)
+	precision("Confirm", Copy.ConfirmPlacementShort, "ConfirmPlacement", nil)
+	precision("Close", Copy.PrecisionCloseShort, "ClosePrecision", nil)
 	precision("PlaceLeft", Copy.PlaceLeft, "PrecisionPlace", { x = -S.PrecisionMoveInches, y = 0 })
 	precision("PlaceRight", Copy.PlaceRight, "PrecisionPlace", { x = S.PrecisionMoveInches, y = 0 })
 	precision("PlaceUp", Copy.PlaceUp, "PrecisionPlace", { x = 0, y = S.PrecisionMoveInches })
@@ -355,6 +385,9 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.modal.ZIndex = 20
 	self.modal.Parent = self.root
 	self.dialog = panel(self.modal, "Dialog")
+	self.modalTweens = {}
+	self.dialogScale = Instance.new("UIScale")
+	self.dialogScale.Parent = self.dialog
 	self.dialog.ZIndex = 21
 	self.dialog.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.dialog.Position = UDim2.fromScale(0.5, 0.5)
@@ -404,6 +437,8 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.overlay.Visible = false
 	self.overlay.Parent = self.root
 	self.presentation = panel(self.overlay, "Presentation")
+	self.presentationScale = Instance.new("UIScale")
+	self.presentationScale.Parent = self.presentation
 	self.presentation.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.presentation.Position = UDim2.fromScale(0.5, 0.5)
 	self.presentationTitle = label(self.presentation, "Heading", S.TimerSize, "")
@@ -582,7 +617,7 @@ function MatchHUD.layout(self: any)
 	)
 	self.precisionButton.Size = UDim2.fromOffset(S.ButtonHeight * 2.6, S.ButtonHeight)
 	self.precisionButton.Text = if self.precisionOpen then Copy.PrecisionClose else Copy.Precision
-	local keys = { "AimLeft", "AimRight", "PowerDown", "PowerUp", "Shoot" }
+	local keys = { "AimLeft", "AimRight", "PowerDown", "PowerUp", "Shoot", "Close" }
 	if self.snapshot and self.snapshot.phase == "Placement" then
 		keys = {
 			"PlaceLeft",
@@ -591,16 +626,17 @@ function MatchHUD.layout(self: any)
 			"PlaceDown",
 			"AimLeft",
 			"AimRight",
-			"PowerDown",
-			"PowerUp",
 			"Shoot",
+			"Confirm",
+			"Close",
 		}
 	end
-	local cols = 3
-	local buttonWidth = S.ButtonHeight * 1.6
+	local maxCols = math.max(1, math.floor((width - margin * 2 - gap) / (S.ButtonHeight + gap)))
+	local cols = math.min(if short then #keys elseif #keys > 6 then 4 else 3, maxCols)
+	local buttonWidth =
+		math.min(S.ButtonHeight * 1.6, (width - margin * 2 - gap * (cols + 1)) / cols)
 	local rows = math.ceil(#keys / cols)
-	self.precision.Position = self.precisionButton.Position
-		- UDim2.fromOffset(0, S.ButtonHeight + gap)
+	self.precision.Position = UDim2.new(1, -margin, 1, -margin)
 	self.precision.Size =
 		UDim2.fromOffset(buttonWidth * cols + gap * (cols + 1), (S.ButtonHeight + gap) * rows + gap)
 	for _, item in self.precisionButtons do
@@ -614,6 +650,9 @@ function MatchHUD.layout(self: any)
 			gap + math.floor((index - 1) / cols) * (S.ButtonHeight + gap)
 		)
 		item.Size = UDim2.fromOffset(buttonWidth, S.ButtonHeight)
+		item.TextSize = if short or buttonWidth < S.ButtonHeight * 1.6
+			then S.NameSize
+			else S.StatusSize
 	end
 	self.dialog.Size =
 		UDim2.fromOffset(math.min(S.ModalWidth, width - margin * 2), S.ButtonHeight * 5 + gap * 3)
@@ -627,19 +666,46 @@ function MatchHUD.layout(self: any)
 	self.no.Size = UDim2.new(0.5, -gap * 2.5, 0, S.ButtonHeight)
 	self.yes.Position = UDim2.new(0.5, gap / 2, 1, -S.ButtonHeight - gap * 2)
 	self.yes.Size = self.no.Size
-	self.presentation.Size =
-		UDim2.fromOffset(math.min(S.ModalWidth, width - margin * 2), S.ButtonHeight * 5 + gap * 3)
+	self.presentation.Size = UDim2.fromOffset(
+		math.min(S.ModalWidth, width - margin * 2),
+		if self.snapshot and self.snapshot.phase == "Result"
+			then S.ResultPanelHeight
+			else S.ButtonHeight * 5 + gap * 3
+	)
 	self.presentationTitle.Position = UDim2.fromOffset(gap, gap * 2)
 	self.presentationTitle.Size = UDim2.new(1, -gap * 2, 0, S.ButtonHeight)
 	self.coin.Position = UDim2.fromScale(0.5, 0.49)
-	self.coinOwner.Position = UDim2.new(0, gap, 1, -S.ButtonHeight * 1.5)
+	self.coinOwner.Position = UDim2.new(0, gap, 1, -S.ButtonHeight * 1.8)
 	self.coinOwner.Size = UDim2.new(1, -gap * 2, 0, S.StatusSize + gap)
 	self.presentationText.Position = UDim2.new(0, gap * 2, 1, -S.ButtonHeight - gap)
 	self.presentationText.Size = UDim2.new(1, -gap * 4, 0, S.ButtonHeight)
 end
 
+function MatchHUD.togglePrecision(self: any)
+	self.precisionOpen = not self.precisionOpen
+	if
+		not self.precisionOpen
+		and GuiService.SelectedObject
+		and GuiService.SelectedObject:IsDescendantOf(self.precision)
+	then
+		GuiService.SelectedObject = nil
+	end
+	self:layout()
+	self.onAction("PrecisionToggle", self.precisionOpen)
+end
+
 function MatchHUD.reservedHeight(self: any): number
 	return self.headerBottom or S.HeaderHeight
+end
+
+function MatchHUD.reservedBottom(self: any): number
+	if self.precision.Visible then
+		return self.precision.AbsoluteSize.Y + S.HeaderMargin
+	end
+	if self.setup.Visible then
+		return self.setup.AbsoluteSize.Y + S.HeaderMargin
+	end
+	return S.ButtonHeight + S.HeaderMargin
 end
 
 function MatchHUD.voteKey(self: any): string?
@@ -651,6 +717,10 @@ function MatchHUD.voteKey(self: any): string?
 end
 
 function MatchHUD.closeModal(self: any)
+	for _, tween in self.modalTweens do
+		tween:Cancel()
+	end
+	table.clear(self.modalTweens)
 	self.modal.Visible = false
 	self.modalMode = nil
 	if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(self.modal) then
@@ -663,6 +733,22 @@ end
 function MatchHUD.showModal(self: any, mode: string)
 	self.modalMode = mode
 	self.modal.Visible = true
+	for _, tween in self.modalTweens do
+		tween:Cancel()
+	end
+	self.modal.BackgroundTransparency = 1
+	self.dialogScale.Scale = S.PanelEntranceScale
+	self.modalTweens = {
+		TweenService:Create(
+			self.modal,
+			TweenInfo.new(S.Motion),
+			{ BackgroundTransparency = 1 - S.ModalDim }
+		),
+		TweenService:Create(self.dialogScale, TweenInfo.new(S.Motion), { Scale = 1 }),
+	}
+	for _, tween in self.modalTweens do
+		tween:Play()
+	end
 	self.oldSelection = GuiService.SelectedObject
 	if mode == "Vote" then
 		self.dialogTitle.Text = Copy.VoteTitle
@@ -875,6 +961,7 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "Resolving"
 		and phase ~= "Result"
 		and phase ~= "CoinFlip"
+		and phase ~= "Foul"
 	local danger = isClock and remaining <= 5 and phase == "Aiming"
 	local shooterName = nameFor(snapshot, snapshot.shooter)
 	self.status.Text = Copy.Phase[phase] or ""
@@ -888,6 +975,8 @@ function MatchHUD.update(self: any, now: number)
 		self.status.TextColor3 = color(S.Active)
 		local elapsed = now - snapshot.phaseStartedAt
 		self.status.TextTransparency = 1 - math.clamp(math.min(elapsed, remaining) / S.Motion, 0, 1)
+	elseif phase == "Result" then
+		self.detail.Text = Copy.BackToQueue
 	elseif phase == "Foul" then
 		self.status.Text = Copy.Phase.Foul
 		self.status.TextColor3 = color(S.Danger)
@@ -921,6 +1010,7 @@ function MatchHUD.update(self: any, now: number)
 		then 1 + S.CountdownScale * math.sin((remaining % 1) * math.pi)
 		else 1
 	self.clock.TextColor3 = color(if danger then S.Danger else S.Text)
+	self.leave.Visible = phase ~= "Result"
 	self.leave.Text = if phase == "Waiting" or phase == "Countdown"
 		then Copy.LeaveQueue
 		else Copy.Leave
@@ -942,7 +1032,7 @@ function MatchHUD.update(self: any, now: number)
 				else 1
 		end
 	end
-	local placementVisible = isShooter and phase == "Placement"
+	local placementVisible = isShooter and phase == "Placement" and not self.precisionOpen
 	if self.setup.Visible ~= placementVisible then
 		self.setup.Visible = placementVisible
 		self:layout()
@@ -957,7 +1047,7 @@ function MatchHUD.update(self: any, now: number)
 		and isShooter
 		and (phase == "Aiming" or phase == "Intro")
 	local canPlay = isShooter and (phase == "Intro" or phase == "Placement" or phase == "Aiming")
-	self.precisionButton.Visible = canPlay
+	self.precisionButton.Visible = canPlay and not self.precisionOpen
 	self.precision.Visible = canPlay and self.precisionOpen
 	local vote = snapshot.vote
 	if self.modalMode == "Vote" and vote then
@@ -983,6 +1073,8 @@ function MatchHUD.update(self: any, now: number)
 			then Config.Multiplayer.CoinSeconds
 			else Config.Multiplayer.ResultSeconds
 		local elapsed = math.max(0, now - snapshot.phaseStartedAt)
+		self.presentationScale.Scale = S.PanelEntranceScale
+			+ (1 - S.PanelEntranceScale) * math.clamp(elapsed / S.Motion, 0, 1)
 		self.overlay.GroupTransparency = 1
 			- math.clamp(math.min(elapsed, duration - elapsed) / S.Motion, 0, 1)
 		self.coin.Visible = phase == "CoinFlip"

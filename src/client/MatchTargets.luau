@@ -173,6 +173,10 @@ function MatchTargets.new(
 				if self.pointer then
 					self:movePointer(self.pointer, true)
 				end
+				if not self.previewValid then
+					self.previewX, self.previewY = nil, nil
+					self.previewValid = true
+				end
 				self.dragInput = nil
 			end
 		end)

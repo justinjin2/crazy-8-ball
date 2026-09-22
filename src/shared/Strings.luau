@@ -152,6 +152,8 @@ return {
 		PocketChosen = "Pocket %d selected",
 		PlacementHandle = "MOVE",
 		PrecisionClose = "Close controls",
+		PrecisionCloseShort = "Close",
+		ConfirmPlacementShort = "Lock",
 		PlaceLeft = "←",
 		PlaceRight = "→",
 		PlaceUp = "↑",
