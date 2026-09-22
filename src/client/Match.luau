@@ -54,6 +54,9 @@ Match.__index = Match
 export type Match = typeof(setmetatable(
 	{} :: {
 		state: State,
+		rackSeed: number,
+		rackConfirmed: boolean,
+		pendingRack: { seed: number, positions: { number } }?,
 		placement: Placement.Placement,
 		-- nil while this table is too far away to be worth drawing. The simulation still
 		-- runs; only the parts are gone. See src/client/Lounge.luau.
@@ -78,10 +81,18 @@ export type Match = typeof(setmetatable(
 	Match
 ))
 
-function Match.new(p: Placement.Placement, renderer: BallRenderer.BallRenderer?): Match
+function Match.new(
+	p: Placement.Placement,
+	renderer: BallRenderer.BallRenderer?,
+	rackSeed: number?
+): Match
 	local geometry = TableGeometry.build({ pocketsOpen = true })
+	local seed = Rack.normalizeSeed(rackSeed)
 	local self = setmetatable({
-		state = Simulation.newState(geometry, Rack.newGame(geometry)),
+		state = Simulation.newState(geometry, Rack.newGame(geometry, seed)),
+		rackSeed = seed,
+		rackConfirmed = false,
+		pendingRack = nil,
 		placement = p,
 		renderer = renderer,
 		shot = nil,
@@ -130,12 +141,32 @@ function Match.isBusy(self: Match): boolean
 	return self.shot ~= nil
 end
 
---- Put all 16 balls back for a new game.
-function Match.rerack(self: Match)
+--- Apply the server's rack once per seed. Exact positions avoid recomputing its layout.
+function Match.applyRack(self: Match, seed: number, positions: { number })
 	if self.shot then
+		if seed ~= self.rackSeed then
+			-- A slow client can still be replaying when the server resets. Apply the new
+			-- authoritative rack immediately after that replay, rather than losing it.
+			self.pendingRack = { seed = seed, positions = table.clone(positions) }
+		end
 		return
 	end
-	self.state.balls = Rack.newGame(self.state.geometry)
+	if seed == self.rackSeed and self.rackConfirmed then
+		return
+	end
+	if seed == self.rackSeed and self.seq > 0 then
+		self.rackConfirmed = true
+		return -- a delayed initial rack snapshot must not overwrite a replayed shot
+	end
+	local balls = Rack.newGame(self.state.geometry, seed)
+	if #positions ~= #balls * 2 then
+		return
+	end
+	for i, ball in balls do
+		ball.x, ball.y = positions[2 * i - 1], positions[2 * i]
+	end
+	self.rackSeed, self.rackConfirmed = seed, true
+	self.state.balls, self.state.time, self.state.overrides = balls, 0, nil
 	self:renderState()
 end
 
@@ -237,7 +268,13 @@ function Match.reconcile(self: Match)
 		)
 	end
 	self.pendingChecksum = nil
-	self:renderState()
+	local pending = self.pendingRack
+	self.pendingRack = nil
+	if pending then
+		self:applyRack(pending.seed, pending.positions)
+	else
+		self:renderState()
+	end
 end
 
 local function dispatch(self: Match, ev: Event)
@@ -335,7 +372,7 @@ function Match.cueBallWorldNow(self: Match): Vector3
 	if cue then
 		x, y, z = cue.x, cue.y, cue.z
 	end
-	return TableBuilder.toWorld(self.placement, x, y, Config.Balls.RadiusInches + z)
+	return TableBuilder.toWorld(self.placement, x, y, Config.Balls.RenderRadiusInches + z)
 end
 
 --- Number of balls still on the table (excluding the cue ball).

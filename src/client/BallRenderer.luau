@@ -107,7 +107,7 @@ function BallRenderer.ensure(self: BallRenderer, id: number): BasePart
 	if existing then
 		return existing
 	end
-	local diameter = TableBuilder.studs(Config.Balls.RadiusInches * 2)
+	local diameter = TableBuilder.studs(Config.Balls.RenderRadiusInches * 2)
 	local textureId = Config.Balls.Textures[id] or ""
 	local template = meshTemplate()
 	if template and textureId ~= "" then
@@ -175,7 +175,7 @@ function BallRenderer.place(self: BallRenderer, id: number, xIn: number, yIn: nu
 	end
 	local part = self:ensure(id)
 	local pos =
-		TableBuilder.toWorld(self.placement, xIn, yIn, Config.Balls.RadiusInches + (zIn or 0))
+		TableBuilder.toWorld(self.placement, xIn, yIn, Config.Balls.RenderRadiusInches + (zIn or 0))
 	part.CFrame = CFrame.new(pos) * self.rotations[id]
 end
 
@@ -196,7 +196,8 @@ function BallRenderer.step(self: BallRenderer, b: Ball.Ball, dt: number)
 		return
 	end
 	local part = self:ensure(b.id)
-	local pos = TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RadiusInches + b.z)
+	local pos =
+		TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
 	local rot = self.rotations[b.id]
 	-- Physics (x, y, z) maps to world (X, -Z, Y). That map is a proper rotation, so angular
 	-- velocity (a pseudovector) transforms exactly like a vector; then the table's own yaw

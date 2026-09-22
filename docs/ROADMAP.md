@@ -51,10 +51,11 @@ The remaining 1.5 checks stay open.*
 - [ ] **1.6 Spin.** Spin selector (tap the cue-ball icon, pick the strike point) feeding the
   physics. Done means: top spin follows through, back spin draws back, side spin changes the
   rail rebound, visibly.
-  Physics realism A-E are implemented, including cue impact, spin controls, validated wire
-  and material replay hook; 123 tests and desktop Studio checks pass. Phone/controller acceptance remains
-  open. Keep the current imported table; its pocket mesh update is deferred. F is next;
-  this box stays unticked until physical-device and two-client acceptance checks are complete.
+  Physics realism A-F are implemented: cue impact, spin controls, validated replay, regulation
+  physics size, seeded racks and scenario harness. 132 tests and desktop Studio checks pass.
+  Phone/controller acceptance remains open. The current imported table stays; its mesh update
+  is deferred. This box stays unticked until physical-device and two-client acceptance checks
+  are complete.
 - [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
   ticks, power-bar stretch, sink burst, "Nice shot" popup. Plus the cue ball's trail. Trails
   and pocket bursts are CUE DATA (GDD section 12): the default cue's minimalist white wisp

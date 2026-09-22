@@ -23,7 +23,8 @@ after. Design intent is in GDD.md; this file says how it is built.
 ## 2. Scale and coordinates
 
 - `Config.Table.StudsPerInch = 0.16`. A 9 ft table is 100 x 50 in of playing surface, about
-  17.8 x 9.8 studs with rails. Ball radius 1.3 in (slightly oversized for readability).
+  17.8 x 9.8 studs with rails. Physics ball radius is 1.125 in (regulation); RenderScale 1.08 enlarges only the mesh
+  and visual placement. Collision clearance and physics use the physical radius.
 - Physics x runs along the table length (head rail negative, foot rail positive), physics y
   across the width. World: physics x maps to world X, physics y to world -Z, Y is up. Each table
   has its own origin and yaw; `TableBuilder.toWorld` and `toTable` convert per table.
@@ -46,6 +47,9 @@ Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves th
 break scatters the rack, rail bounce mirrors, spin signs, determinism, trace matches simulation.
 Per-shot cushion overrides are copied from a named material, sent with the replay seed,
 and cleared on completion. Live ability requests remain disabled pending server authorization.
+Rack uses a seeded integer PRNG for tiny non-overlapping offsets. TableState carries both
+the seed and exact initial positions; a reset received during replay queues until completion.
+The developer rerack request is Studio-only, seat-checked and resolved on the server.
 Generated table parts share this geometry; the imported table mesh needs separate art updates.
 
 ## 4. Networking: server-owned tables

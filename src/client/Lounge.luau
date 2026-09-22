@@ -104,7 +104,7 @@ function Lounge.new(parent: Instance): Lounge
 	for _, row in Config.Lounge.Tables do
 		local p = if row.id <= wanted then Placement.forTable(row.id) else nil
 		if p then
-			self.matches[row.id] = Match.new(p)
+			self.matches[row.id] = Match.new(p, nil, Config.Rack.DefaultSeed + row.id)
 			self.seats[row.id] = {}
 		end
 	end
@@ -201,6 +201,14 @@ function Lounge.listen(self: Lounge)
 		if typeof(snapshot) ~= "table" or typeof(snapshot.id) ~= "number" then
 			return
 		end
+		local match = self.matches[snapshot.id]
+		if
+			match
+			and typeof(snapshot.rackSeed) == "number"
+			and typeof(snapshot.rackPositions) == "table"
+		then
+			match:applyRack(snapshot.rackSeed, snapshot.rackPositions)
+		end
 		local before = #(self.seats[snapshot.id] or {})
 		self.seats[snapshot.id] = snapshot.seats or {}
 		if #self.seats[snapshot.id] > before then
@@ -252,6 +260,10 @@ end
 
 function Lounge.requestLeave(_self: Lounge)
 	Net.get("RequestLeave"):FireServer()
+end
+
+function Lounge.requestRerack(_self: Lounge, id: number)
+	Net.get("RequestRerack"):FireServer(id)
 end
 
 -- Point the pool at the nearest tables. The table the player is actually sitting at always
@@ -353,7 +365,8 @@ local function updateWatchedCues(self: Lounge, dt: number)
 			aim.shown += delta * alpha
 			CueStickBuilder.setVisible(cue, true)
 			local p = match.placement
-			local ballPos = TableBuilder.toWorld(p, cueBall.x, cueBall.y, Config.Balls.RadiusInches)
+			local ballPos =
+				TableBuilder.toWorld(p, cueBall.x, cueBall.y, Config.Balls.RenderRadiusInches)
 			CueStickBuilder.place(
 				cue,
 				ballPos,

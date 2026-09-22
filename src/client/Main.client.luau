@@ -75,12 +75,13 @@ local function cueBallWorld(): Vector3
 	end
 	local cue = m and m:findCueBall()
 	if cue then
-		return TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RadiusInches)
+		return TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RenderRadiusInches)
 	end
-	return TableBuilder.toWorld(p, 0, 0, Config.Balls.RadiusInches)
+	return TableBuilder.toWorld(p, 0, 0, Config.Balls.RenderRadiusInches)
 end
 
 local currentPull = 0
+local shownRackSeed: number? = nil
 
 -- The aim goes to the server a few times a second so opponents and spectators see the cue
 -- turn. Never the guideline and never the power (ARCHITECTURE.md section 4): watching
@@ -132,7 +133,7 @@ local function refreshCueStick()
 		return
 	end
 	CueStickBuilder.setVisible(cueStick, true)
-	local ballPos = TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RadiusInches)
+	local ballPos = TableBuilder.toWorld(p, cue.x, cue.y, Config.Balls.RenderRadiusInches)
 	local gap = TableBuilder.studs(Config.Cue.CueRestGapInches)
 		+ currentPull * Config.Cue.CuePullBackStuds
 	CueStickBuilder.place(cueStick, ballPos, Camera.aimDirection(input.angle), gap, input:getSpin())
@@ -194,7 +195,7 @@ local function movingBallWorlds(m: Match.Match, p: Placement.Placement): { Vecto
 	table.clear(movingBuffer)
 	for _, b in m.state.balls do
 		if not b.pocketed and (b.vx ~= 0 or b.vy ~= 0) then
-			local at = TableBuilder.toWorld(p, b.x, b.y, Config.Balls.RadiusInches + b.z)
+			local at = TableBuilder.toWorld(p, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
 			table.insert(movingBuffer, at)
 		end
 	end
@@ -223,6 +224,7 @@ local function setSeat(id: number?)
 		return
 	end
 	seatId = id
+	shownRackSeed = nil
 	input:resetSpin()
 	-- Leaving or being moved cancels any shot we were waiting on; the next table must not
 	-- inherit it and open with no cue.
@@ -272,7 +274,7 @@ local function setSeat(id: number?)
 			local b = Simulation.findBall(m.state, ev.ball)
 			if b then
 				effects:pocketBurst(
-					TableBuilder.toWorld(p, b.x, b.y, Config.Balls.RadiusInches),
+					TableBuilder.toWorld(p, b.x, b.y, Config.Balls.RenderRadiusInches),
 					ev.ball
 				)
 			end
@@ -382,9 +384,11 @@ if Config.Debug.TestKeysEnabled then
 			return
 		end
 		if keyInput.KeyCode == Enum.KeyCode.B then
-			-- The rack belongs to the server now, so this only clears the local view until
-			-- the next shot result arrives. Rules (2.1) replace the test key entirely.
-			m:rerack()
+			-- Server advances the seed and sends the same layout to every viewer.
+			if seatId then
+				lounge:requestRerack(seatId)
+			end
+			input:resetSpin()
 			input:setAngle(0)
 			refreshGuideline()
 		end
@@ -414,6 +418,11 @@ RunService.RenderStepped:Connect(function(dt)
 	if m == nil or p == nil then
 		wasPlaying = playing
 		return
+	end
+	if not playing and shownRackSeed ~= m.rackSeed then
+		shownRackSeed = m.rackSeed
+		input:resetSpin()
+		refreshGuideline()
 	end
 	-- Roblox's camera scripts can leave the mouse locked to the window; at the table the
 	-- cursor must stay free for dragging and for leaving the window.

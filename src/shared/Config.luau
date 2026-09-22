@@ -111,6 +111,10 @@ Config.Rack = {
 	-- Tiny gap between racked balls. Real racks are never perfectly tight; a zero gap also
 	-- makes the break resolve as one giant simultaneous contact. (tune)
 	GapInches = 0.005,
+	-- F: reproducible per-rack layout. Integer seed travels in TableState; zero normalizes
+	-- to one for xorshift32. Jitter is per axis, bounded to at most a quarter of GapInches.
+	DefaultSeed = 1,
+	JitterInches = 0.001,
 	-- Standard layout by row from the apex: 8 in the middle, opposite groups in the back
 	-- corners. Rows are listed from the apex (nearest the cue ball) backwards.
 	Layout = {
@@ -126,9 +130,12 @@ Config.Rack = {
 -- Balls
 ---------------------------------------------------------------------------------------------
 Config.Balls = {
-	-- Regulation balls are 2.25 in across (radius 1.125). Slightly oversized balls read better
-	-- on a phone from the top-down view; the physics scales with whatever is set here. (tune)
-	RadiusInches = 1.3,
+	-- WPA regulation diameter 2.25 in; selected by the designer for collision physics.
+	RadiusInches = 1.125,
+	-- Cosmetic readability only, never used for collision/placement/cloth calculations.
+	-- Modest 8% enlargement (tune 1-1.15) keeps the mesh legible without the old 2.6 in size.
+	RenderScale = 1.08,
+	RenderRadiusInches = 0, -- derived below; world visuals rest this radius above the cloth
 	MassOunces = 6, -- WPA 5.5-6 oz; equal balls, also used in the cue/ball mass ratio
 	-- Colours by number. 1-7 solids, 8 black, 9-15 stripes use the colour of (n - 8).
 	Colors = {
@@ -1633,6 +1640,7 @@ do
 	T.WidthInches = size.Width
 	T.SurfaceHeightInches = T.SurfaceHeightStuds / T.StudsPerInch
 	local D = Config.Balls.RadiusInches * 2
+	Config.Balls.RenderRadiusInches = Config.Balls.RadiusInches * Config.Balls.RenderScale
 	T.RailHeightInches = T.RailHeightBallFraction * D
 	T.CushionHeightInches = T.CushionHeightBallFraction * D
 	T.CornerMouthInches = T.CornerMouthBallFraction * D

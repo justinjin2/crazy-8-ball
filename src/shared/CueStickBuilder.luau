@@ -82,7 +82,7 @@ function CueStickBuilder.place(
 		return
 	end
 	flat = flat.Unit
-	local radius = Config.Table.StudsPerInch * Config.Balls.RadiusInches
+	local radius = Config.Table.StudsPerInch * Config.Balls.RenderRadiusInches
 	local sx, sy = if spin then spin.x else 0, if spin then spin.y else 0
 	local depth = math.sqrt(math.max(0, 1 - sx * sx - sy * sy)) * radius
 	local tip = ballPos

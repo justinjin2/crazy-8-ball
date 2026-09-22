@@ -83,7 +83,7 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 
 	-- Ring: a flat square carrying the circle-outline image, sized to the ball.
 	local ring = flatPart("Ring", folder)
-	local d = TableBuilder.studs(Config.Balls.RadiusInches * 2) * G.RingScale
+	local d = TableBuilder.studs(Config.Balls.RenderRadiusInches * 2) * G.RingScale
 	ring.Size = Vector3.new(d, 0.01, d)
 	if G.RingTextureId ~= "" then
 		local decal = Instance.new("Decal")
@@ -154,7 +154,7 @@ function Guideline.show(self: Guideline, trace: Trace)
 	end
 	local G = Config.Guideline
 	local R = Config.Balls.RadiusInches
-	local ringR = R * G.RingScale
+	local ringR = Config.Balls.RenderRadiusInches * G.RingScale
 	local stub = G.StubLengthInches
 
 	-- Corridor from the cue ball to the ghost ball: edges a ball radius either side of the

@@ -622,3 +622,24 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   exist. Reject client overrides; copy validated materials into simulation/replay and clear
   them on completion and the next strike. Three requested spin vectors and the material
   replay match exactly in same-machine regression tests; physical two-client proof remains.
+- 2026-09-22: F applies the designer's regulation-size choice: RadiusInches 1.3 -> 1.125
+  (WPA 2.25 in diameter), RenderScale 1.08 for readability (visual tuning range 1-1.15).
+  Derived render radius 1.215 in is used only for mesh size/height, cue/camera placement and
+  ghost-ring art. Collision corridor and all physics keep the regulation radius. Derived
+  nose is 1.42875 in, corner shelf 1.5 in, corner/side mouths 4.5/4.95 in. Keep the imported
+  table unchanged as explicitly requested; its pocket/nose geometry mismatch is deferred.
+- 2026-09-22: Rack.DefaultSeed=1 and JitterInches=0.001 add ordered xorshift32 offsets to
+  fourteen balls; cue and apex stay exactly on their spots. Each axis is capped at gap/4,
+  preserving non-overlap with the existing 0.005 in gap. Seed zero maps to one. Server
+  initial seed is DefaultSeed + table id; Studio reracks advance it. Send seed and exact
+  starting positions together, and queue a new rack if a client still replays the previous
+  shot. Replace the old local-only B-key reset with a Studio-only, seat-checked server request.
+- 2026-09-22: Named scenario fixtures (follow, draw, side cut) freeze explicit layouts, shots
+  and final positions with 0.02 in tolerances. These are synthetic regression baselines;
+  future measured real shots can be added through the same harness without new test code.
+- 2026-09-22: Review the old every-break >=13 balls moved threshold after regulation radius
+  and rack jitter. Across 32 consecutive seeds x three existing angles, 96 breaks moved
+  11-15 balls beyond one diameter (mean 13.395833), made 23-33 contacts, and used no emergency
+  stops or duration caps. Preserve all collision safety assertions and >=20 contacts per
+  stroke. Require >=10 moved each and ensemble mean >=13, instead of choosing a lucky seed
+  or changing physics to satisfy a universal count that realistic rack variation invalidates.

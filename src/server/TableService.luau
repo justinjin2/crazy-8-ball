@@ -25,6 +25,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local Physics = Shared:WaitForChild("Physics")
+local Ball = require(Physics:WaitForChild("Ball"))
 local Rack = require(Physics:WaitForChild("Rack"))
 local Simulation = require(Physics:WaitForChild("Simulation"))
 local TableGeometry = require(Physics:WaitForChild("Table"))
@@ -42,6 +43,8 @@ type TableState = {
 	-- The authoritative balls. Clients keep their own copy and replay shots onto it, but
 	-- this one is the truth and they settle onto it when a shot ends.
 	state: Simulation.State,
+	rackSeed: number,
+	rackPositions: { number }, -- initial x/y pairs in canonical ball-id order
 	-- Bumped per shot, so a client that missed one can tell and snap instead of replaying.
 	shotSeq: number,
 	-- Where the shooter at this table is currently aiming, relayed to everyone watching.
@@ -143,7 +146,15 @@ local function snapshot(t: TableState)
 	for i, seat in t.seats do
 		seats[i] = { userId = seat.userId, host = seat.host }
 	end
-	return { id = t.id, seats = seats }
+	return { id = t.id, seats = seats, rackSeed = t.rackSeed, rackPositions = t.rackPositions }
+end
+
+local function rackPositions(balls: { Ball.Ball }): { number }
+	local positions = table.create(#balls * 2)
+	for i, ball in balls do
+		positions[2 * i - 1], positions[2 * i] = ball.x, ball.y
+	end
+	return positions
 end
 
 local function broadcast(t: TableState)
@@ -266,7 +277,11 @@ end
 function TableService.rerack(id: number)
 	local t = tables[id]
 	if t and not TableService.isBusy(id) then
-		t.state.balls = Rack.newGame(t.state.geometry)
+		t.rackSeed = Rack.normalizeSeed(t.rackSeed + 1)
+		t.state.balls = Rack.newGame(t.state.geometry, t.rackSeed)
+		t.rackPositions = rackPositions(t.state.balls)
+		t.state.overrides = nil
+		broadcast(t)
 	end
 end
 
@@ -333,11 +348,15 @@ function TableService.start(parent: Instance)
 	for _, row in Config.Lounge.Tables do
 		local placement = if row.id <= wanted then Placement.forTable(row.id) else nil
 		if placement then
+			local seed = Rack.normalizeSeed(Config.Rack.DefaultSeed + row.id)
+			local balls = Rack.newGame(geometry, seed)
 			tables[row.id] = {
 				id = row.id,
 				placement = placement,
 				pad = buildPad(placement, row.id, folder :: Folder),
-				state = Simulation.newState(geometry, Rack.newGame(geometry)),
+				state = Simulation.newState(geometry, balls),
+				rackSeed = seed,
+				rackPositions = rackPositions(balls),
 				shotSeq = 0,
 				aim = nil,
 				aimBy = nil,
@@ -396,6 +415,19 @@ function TableService.start(parent: Instance)
 	end)
 	Net.get("RequestLeave").OnServerEvent:Connect(function(player)
 		TableService.unseat(player)
+	end)
+	Net.get("RequestRerack").OnServerEvent:Connect(function(player, id)
+		-- Developer B-key path only. A local-only reset would desync the seeded rack.
+		if
+			RunService:IsStudio()
+			and Config.Debug.TestKeysEnabled
+			and typeof(id) == "number"
+			and id == id
+			and id % 1 == 0
+			and TableService.tableOf(player) == id
+		then
+			TableService.rerack(id)
+		end
 	end)
 
 	Players.PlayerAdded:Connect(function(player)

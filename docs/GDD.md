@@ -81,12 +81,13 @@ Every feature is checked against these. If it serves none, it waits.
   the cue ball's deflection. See section 7 for the harder difficulties.
 - Balls not in your group are marked with an X and your group gets a slight highlight, drawn on
   each viewer's own screen. A HUD shows which balls you have pocketed.
-- **Physics realism choices (2026-09-22, implementation staged):** keep one power bar
+- **Physics realism choices (2026-09-22, implemented):** keep one power bar
   reaching 30 mph, with no separate break control. Classic shows the predicted cue-ball
   launch direction including side-spin deflection. Use regulation 2.25 in balls in the
   physics with visual scaling for readability. Cue elevation stays fixed at 4 degrees for
-  now, and all collectible cues have identical physics. These are the targets for physics
-  milestones D-F, not features already shipped.
+  now, and all collectible cues have identical physics. Physics milestones D-F implement these
+  choices. Keep the current imported table for now; matching its pocket mesh to the new physics
+  is deferred.
 
 ## 6. Modes, tables and joining
 

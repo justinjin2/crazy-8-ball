@@ -1,125 +1,81 @@
 # Status
 
-**Last updated:** 2026-09-22. Physics realism E implemented; A-E are verified code steps.
-Designer requested continuing through D-F in one run; F is next.
+**Last updated:** 2026-09-22. Physics realism A-F implemented. D, E and F were requested in
+one run. Code is verified; physical-device and real two-client acceptance remain open.
 
-## Current work: physics realism E
+## Physics realism: current build
 
-The cue-ball selector supports mouse/touch drag, four 44 px arrow buttons, Center and Done.
-Hold L1 and move the right stick for gamepad spin; Y centers it, release L1 retains it. The
-selector blocks aiming, zoom and shots while open, including a cancelled old power drag.
-Spin resets after a shot and seat change, moves the 3D cue tip and updates the Classic launch
-line. Object-ball direction remains geometric and the cue stub remains tangent; a simulated
-post-contact curve is deferred. All selector copy plus Leave/Pull live in shared Strings.
+- **A-C:** corrected cloth/ball tuning, radius-independent side-spin decay, ball friction,
+  throw/spin transfer, Han cushion contacts, normal-speed restitution, and supported corner
+  shelves. Pure side spin does not keep a shot open. Details and equations are in DECISIONS.
+- **D:** cue impact uses a 19 oz stick, 6 oz ball, tip restitution 0.73 and endmass ratio 25.
+  One power bar gives 15-528 in/s for centre hits; maximum stick speed is 406.981692 in/s.
+  Off-centre impact trades forward speed for spin. Elevation stays fixed at 4 degrees for
+  players; all cue styles have identical physics. Tilted spin feeds the existing cloth
+  integrator to produce swerve. Camera rollout includes the ball's current angular velocity.
+- **E:** mouse/touch spin selector with drag, four arrow buttons, Center and Done. Gamepad:
+  hold L1 + right stick, Y to center, release L1 to keep the choice. Spin resets after a shot
+  or rack/seat change, moves the 3D cue tip and updates the launch guideline. Modal input
+  blocks aim, zoom and shooting, including old cancelled pulls. HUD copy lives in Strings.
+  The actual server uses the tested ShotInput validator and seed quantizer, rejecting
+  malformed/non-finite inputs and alternate elevation, and clamping spin to the 0.5R disc.
+  Per-shot material overrides copy through simulation/replay and clear afterward. SuperBounce
+  is development hook data only; live ability requests are denied pending authorization.
+- **F:** regulation radius **1.125 in**, cosmetic RenderScale **1.08** (2.43 in mesh diameter).
+  Physics never reads render scale. Shelf is **1.5 in**, cushion nose **1.42875 in**, corner/
+  side mouths **4.5/4.95 in**. Rack jitter is deterministic xorshift32, +/-0.001 in per axis
+  on 14 balls; cue and apex spots stay exact. Seed and exact starting positions travel in
+  TableState. The Studio B-key reset now runs on the server and advances the seed, fixing
+  its former local-only desync. A reset received during replay queues until it finishes.
+  Named follow, draw and side-cut fixtures provide a reusable Lune scenario harness with
+  0.02 in position tolerances. These are synthetic regression cases, not measured real shots.
 
-Shots now carry spin and elevation. The server rejects malformed/non-finite values, enforces
-fixed 4 degrees, and clamps finite spin to the 0.5-radius disc. The actual server uses the
-same tested validation and seed-quantization helper as Lune. Material overrides are copied
-per shot, replayed, and cleared afterward. The SuperBounce development material is a hook
-only: every live player ability request is rejected until server ownership/cooldowns exist.
+**The current imported table is retained**, as the designer requested. Its mesh does not
+rebuild from Config, so its visible pockets/cushion nose still differ from the new physics.
+That art update is deferred. No place assets changed in A-F.
 
-**Verified:** 123 tests and lint/type checks pass. Three specified spin vectors replay with
-exact same-machine checksums; authorized material replay and next-shot reset also match.
-In fresh Studio, actual selector drag and power-bar shot produced seed wz=89.957759 rad/s,
-reset the dot to centre, and completed in 5.52 s (36 ball contacts, 4 rails, one pocket), with
-no drift warning. Native screenshot captured the open selector and shifted cue/guideline.
-Scripted gamepad handling clamps diagonal spin to (+0.353553,+0.353553), centers via Y,
-closes via L1 release with zero zoom events, cancels an old pull without firing, and allows
-the next deliberate shot. Layout checks fit 320x568 and 568x262 HUD rectangles; Done remains
-44 px high (short-layout panel 280x238). These are scripted/layout checks, not physical phone
-or controller acceptance. Real devices and Start Server + 2 Players remain open.
+Classic predicts the cue ball's **initial launch direction including squirt**. It remains a
+straight aid: later swerve can change a distant contact. Object-ball direction stays geometric
+and the cue's outgoing stub stays tangent; no post-contact curved preview is claimed.
 
-## Previous verified step D
+## Verification
 
-Cue impact now uses stick speed, 19 oz / 6 oz mass ratio and tip restitution 0.73. One bar
-still gives 15-528 in/s for centre hits; derived maximum stick speed is 406.981692 in/s.
-Default elevation is 4 degrees, with no player elevation control. All cue styles share physics.
-Maximum side offset loses forward speed and squirts 2.223977 degrees away from the tip.
-Tilted spin naturally swerves through the existing cloth integrator. Classic's trace accepts
-shot inputs and follows the launch ray; distant swerve is not included in this straight aid.
-Camera rollout now uses the ball's actual spin in its launch frame.
+**132 Lune tests pass**, with StyLua, Selene and luau-lsp clean. Coverage includes energy,
+contact symmetry, heavy draw, spin-disc bounds, invalid wire requests, exact same-machine
+seed replay, per-shot material reset, legal seeded racks, pockets and named scenarios.
 
-**Verified:** 118 tests and lint/type checks pass. Nine new tests cover cue energy, known
-impact/squirt values, mirror/rotation symmetry, large finite spin clamps, swerve, rollout,
-and side-spin aim contacts. At stick speed 100 in/s: centre gives 129.735566 in/s at 4 degrees
-(131.48 level); maximum side gives 79.541985. These correct the prompt's 0.75 ratio estimate.
-Default maximum follow at 20 in/s runs 54.909259 in (59.849110 with a level cue).
-The prior strong follow/draw regression now uses 0.4 power to retain its original three-inch
-assertions despite off-centre impact speed loss: follow exceeds centre by 18.8771 in and draw
-trails it by 5.81437 in. C's level-centre bank benchmark retains its exact launch conditions.
+Useful measured answers:
+- Stick 100 in/s: centre **129.735566 in/s** at 4 degrees (**131.48** level); maximum side
+  **79.541985**, correcting the prompt's approximate 0.75 speed ratio to **0.613109**.
+- Maximum side squirt **2.223977 degrees**. Studio slow english curves to **0.234541 degrees**
+  after 0.25 s. A 20 in/s maximum-follow ball runs **54.909259 in** at 4 degrees, or
+  **59.849110 in** level, correcting the original approximate rollout target.
+- Rolling 100 in/s at 45 degrees banks at **43.863807 degrees**, keeping **76.397643%** speed.
+  Perpendicular stun keeps **50.418857%** at 300 in/s, **70.285286%** at 100 in/s.
+- The 96-break seed study moved **11-15 balls** beyond a diameter, mean **13.395833**;
+  **23-33** ball contacts each, no emergency stops or duration caps. The old universal
+  13-moved assertion was too strict for jittered regulation racks. Acceptance now keeps all
+  contact/overlap/containment guards, requires at least 10 moved and 20 contacts each, and
+  a 13-ball mean across the fixed 32-seed x 3-angle ensemble. No physics/seed was tuned to it.
 
-Rojo sync and a fresh Studio desktop break passed: 8.03 s, 27 ball contacts, 22 rails, no
-pockets, clean console and no drift warning; native screenshot captured. Scripted slow
-english changed direction from 2.223977 to 0.234541 degrees after 0.25 s. The selector/wire
-are E, so this spin check does not claim a player-controlled spin shot yet.
+Rojo was confirmed before fresh Studio runs. Actual desktop checks:
+- Selector drag sent side spin (seed wz **89.957759 rad/s**), then reset to centre. That
+  shot finished in **5.52 s**, 36 ball contacts, 4 rails and one pocket, with no drift.
+- Regulation-size seeded break: **8.02 s**, 25 ball contacts, 22 rails, no pockets; clean
+  console/no drift. Runtime mesh diameter **2.43 in**; physics diameter **2.25 in**.
+- Server rack seed **2**, then rerack **3**, matched all 16 displayed balls within
+  **0.000006 in** of transmitted positions (world-render rounding).
+- Two independent actual Match replays matched the server checksum **1836635184** before
+  reconciliation. A rack reset queued during replay was applied afterward. This exercises
+  the real client module on one machine; it is not a Start Server + 2 Players test.
+- Scripted gamepad handling reaches diagonal spin (+0.353553,+0.353553), resets with Y,
+  closes with L1 release and emits no zoom. A cancelled pull fires zero shots; the next
+  deliberate pull fires once. HUD layouts fit 320x568 and 568x262; action targets stay 44 px.
+  Native screenshots captured the selector and gameplay.
 
-## Previous verified step C
-
-Cushions now use Han 2005's tilted contact normal through the ball centre and full tangential
-friction, including english and draw/follow. Restitution interpolates from 0.9 at 20 in/s to
-0.6 at 300 in/s of normal approach speed; the constant fallback is 0.85 and friction is 0.2.
-Only tangential impulses create torque. Vertical translation is discarded. Extreme future
-material overrides also have an energy-preserving outward constraint.
-
-Corner openings move back to leave a supported shelf: **1.733333 in with today's 2.6 in
-balls**, becoming **1.5 in with regulation balls in F**. Corner facings now reach the shifted
-opening rim so balls cannot escape through a gap behind the jaw. Side geometry is unchanged.
-
-**Verified:** 109 Lune tests, StyLua, Selene and luau-lsp. New coverage checks measured
-rebounds, running/reverse english, interpolation/fallback, mirror/rotation symmetry, heavy
-draw and 4,000 deterministic cushion contacts without energy gain or inward rebounds.
-Pocket coverage includes 84 corner entries across angles, speeds up to 528 in/s and english,
-plus a ball that can stop on the supported shelf. Existing break guards, throw, determinism,
-trace and server replay checks pass.
-
-Rojo sync was confirmed before fresh Studio Play. Runtime measurements match Lune:
-- Rolling 100 in/s at 45 degrees: **43.863807 degrees**, **76.397643 in/s** outgoing.
-- Perpendicular stun: **50.418857%** speed retained at 300 in/s, **70.285286%** at 100 in/s.
-  The prompt's half-speed test needed its impact speed specified; the model was not retuned.
-- Actual desktop power-bar break: **6.10 s**, 26 ball hits, 25 rails, one pocketed.
-  Console clean, no replay drift warning, native screenshot shows the settled table.
-
-Bank length also depends on spin reaching the cushion and the cloth after rebound. From one
-fixed centre-strike setup, gentle 40 in/s reaches the rail rolling and its settled rebound
-runs long (**57.216 degrees** from normal); hard 160 in/s is still sliding on arrival and
-settles short (**40.877 degrees**). Immediate contact angles alone do not have this ordering;
-it is not a universal claim for every launch spin or speed.
-
-**Visual choice decided:** keep the current imported `ServerStorage.PoolTableModel` for now,
-as requested by the designer. Its visible holes do not rebuild from Config, so the pocket
-geometry mismatch remains a deferred mesh update. The new physics shelf stays in place.
-No table art or place assets have changed.
-
-**Phone/controller acceptance remains deferred at the designer's request to move on.**
-Controller detection in A was not a successful controller shot. No new device attempt was
-made in B/C. Spin inputs remain scripted until the selector and wire arrive in E.
-
-## Previous verified contact step B
-
-Ball contacts use the six-point friction table, capped tangential impulse, throw and spin
-transfer. Normal restitution is 0.95. Full contact torque is retained while translation stays
-planar. Dropping vertical slip would prevent rolling-to-backspin transfer, so the research
-and prompt were corrected. The table's half-ball stun benchmark is **25.88181 degrees**;
-fixed friction 0.06 gives **26.56637**, and gearing english gives **30.00000**.
-B passed 98 tests including 20,000 deterministic contact pairs and guarded full breaks.
-The existing strong draw/follow setup starts 6 in behind the object to preserve enough spin;
-its original three-inch separation assertions remain. Classic's object-ball line stays
-geometric and does not compensate for throw.
-
-## Physics A and later decisions
-
-A set sliding friction 0.20, rolling resistance 0.010, cloth presets 0.015/0.012/0.008,
-ball restitution 0.95, cushion nose 0.635 diameters, rest cutoff 0.25 in/s and instant-contact
-tolerance 1e-7 s. Side spin decays at 10.9 rad/s^2 independent of radius. Spin in place no
-longer holds a shot open; keep it while other balls move and clear it when the shot ends.
-Horizontal spin and pocket motion still count. A's known answers remain tested: 30 in/s
-stun reaches rolling at 21.428571 in/s after 0.111003 s; +/-60 rad/s spin reaches zero at
-step 1322 (5.508333 s) at both radii. No place assets changed in A-C.
-
-**Decided for D-F:** one bar reaching 30 mph, Classic predicts cue-ball launch direction
-including squirt, regulation physics balls with visual scaling, fixed 4-degree elevation,
-and identical physics across collectible cues. Current radius remains 1.3 in until F.
-Roadmap 1.6 stays unticked until E and its platform acceptance checks are complete.
+**Phone/controller hands-on acceptance remains deferred at the designer's request to move
+on.** Scripted input/layout checks do not replace those or a real two-client session. Roadmap
+1.6 stays unticked until those acceptance checks pass.
 
 ## Existing build and outstanding checks
 
@@ -160,8 +116,9 @@ Roadmap 1.6 stays unticked until E and its platform acceptance checks are comple
 
 ## Next checks and handoff
 
-Try gentle shots and a hard break on phone and a real controller; verify motion finishes
-and aiming returns. Run Start Server + 2 Players for the still-open 1.5 acceptance.
-Continue into F (regulation size/rack/harness), as the designer requested.
-No place assets were edited in A-C. The standing milestone handoff asks the user
-to save `place/8ball.rbxl` and publish; scripts themselves are edited only through Rojo.
+Try the selector's top, bottom and side offsets on PC/phone, then L1 + right stick and Y on a
+real controller. Check follow, draw, cushion english, selector reset and normal zoom after
+closing. In Studio, Start Server + 2 Players should show both clients agreeing after spin
+shots and a new rack; watch for replay-drift warnings. The imported-table art update remains
+deferred. Save `place/8ball.rbxl` and publish in Studio for the live place; no assets were
+edited during this physics pass.

@@ -21,6 +21,7 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: please seat me at this table / take me off it.
 	RequestSeat = "RemoteEvent",
 	RequestLeave = "RemoteEvent",
+	RequestRerack = "RemoteEvent", -- Studio-only developer reset; server advances/broadcasts rack seed
 	-- client -> server: I want to take this shot. Inputs only; the server decides what
 	-- actually happens (ARCHITECTURE.md section 1, never trust the client).
 	-- {tableId, angle, power, spin={x,y}, elevation}; optional ability id requires server
