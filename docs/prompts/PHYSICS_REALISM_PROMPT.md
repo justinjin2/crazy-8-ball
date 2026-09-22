@@ -34,19 +34,25 @@ spin does not hang at the end.
 
 Files: `src/shared/Physics/Simulation.luau` (resolveBalls), `src/shared/Config.luau`,
 `tests/physics_collision_test.luau`.
+Correction verified 2026-09-22 against TP A.14 and pooltool's 2D resolver: keep vertical
+contact slip/impulse for torque; discard only the resulting vertical translation. Removing
+vertical slip would prevent the required rolling-to-backspin transfer. The supplied friction
+table gives 4.11819 deg throw at the specified stun hit; 3.43363 deg uses fixed mu = 0.06.
 Implement, with unit mass and I = 0.4 R^2, n = unit(b - a):
 ```
 vn = (va - vb).n ; if vn <= 0 return
 Jn = (1+e)/2 * vn ; va -= Jn n ; vb += Jn n
-vrel = (va - vb) + R*(wa + wb) x n ; vt = vrel - (vrel.n) n ; drop the z component of vt
+vrel = (va - vb) + R*(wa + wb) x n ; vt = vrel - (vrel.n) n
 mu = BallFriction(|vt|)   -- Config table, piecewise linear over in/s:
      points from 0.009951 + 0.108*exp(-0.02764*v): v=0:0.118, 20:0.072, 40:0.046, 80:0.022, 120:0.014, 200:0.010
 Jt = min(mu*Jn, |vt|/7) * (-unit(vt))     -- zero if |vt| < 1e-9
 va += Jt ; vb -= Jt ; wa += 2.5*(n x Jt)/R ; wb += 2.5*(n x Jt)/R
+va.z = 0 ; vb.z = 0   -- planar translation, full angular impulse retained
 ```
 Config: `BallFrictionTable`, `BallRestitution = 0.95`. Keep event speed = vn.
 Tests: full hit 100 in/s gives object 97.5, cue 2.5; half-ball stun hit at 40 in/s leaves the
-object at 26.57 +/- 0.05 deg (3.43 deg throw); the same with gearing outside english
+object at 25.88181 deg (4.11819 deg throw) with the table; a separate fixed-mu = 0.06
+benchmark gives 26.56637 deg (3.43363 deg throw); the same with gearing outside english
 wz = 40*sin(30deg)/R gives exactly 30.00 deg; a rolling full hit gives the object backspin and
 never more than 5/14 of the cue ball's spin; 20,000 random pairs never gain energy; the
 break test still passes and no ball is stopped by the wedge or budget paths.

@@ -31,7 +31,9 @@ after. Design intent is in GDD.md; this file says how it is built.
 
 Event-driven fixed step (1/240 s) with exact time of impact for ball-ball, ball-segment and
 ball-point contacts (no tunnelling at any power). Sliding-to-rolling friction in closed form,
-rolling resistance, spin decay. Cushion impulse at nose height with a friction cone. Six
+rolling resistance, radius-independent side-spin decay. Ball-ball contacts use a tabulated
+speed-dependent friction impulse for throw and spin transfer, retaining full contact torque
+while translation stays on the cloth. Pure side spin does not delay shot completion. Cushion impulse at nose height with a friction cone. Six
 pockets as capture circles with jaw facings and a physical drop (z, vz, funnel). Wedge guards
 against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
 Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves the table, the

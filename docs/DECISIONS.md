@@ -526,3 +526,27 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   including squirt; regulation 2.25 in physics balls with visual scaling for readability;
   fixed 4-degree elevation for now; physically identical collectible cues. These override
   conflicting alternatives in the research/prompt. D-F will implement them; A does not.
+
+- 2026-09-22: Physics B uses the requested ball-friction speed table (in/s -> coefficient):
+  0 -> 0.118, 20 -> 0.072, 40 -> 0.046, 80 -> 0.022, 120 -> 0.014, 200 -> 0.010.
+  Linear interpolation and endpoint clamping avoid exp in replays. BallSlipEpsilon is
+  1e-9 in/s as specified by the prompt; restitution remains 0.95.
+- 2026-09-22: Correct B's incompatible equations/tests using
+  [TP A.14](https://drdavepoolinfo.com/technical_proofs/new/TP_A-14.pdf) and
+  [pooltool's 2D contact resolver](https://raw.githubusercontent.com/ekiefl/pooltool/main/pooltool/physics/resolve/ball_ball/frictional_inelastic/__init__.py):
+  retain the full tangential contact slip and angular impulse, then discard vertical
+  translation. Dropping vertical slip would prevent the requested backspin transfer.
+  With impulse opposing slip, cue velocity adds it and object velocity subtracts it;
+  both angular velocities receive the same torque. The 1/7 impulse cap bounds head-on
+  spin transfer by 5/14 and the 20,000-pair test verifies energy never increases.
+- 2026-09-22: The prompt's half-ball stun at 40 in/s has 20 in/s contact slip. Its table's
+  coefficient 0.072 gives 25.88181 degrees exit (4.11819 degrees throw); the quoted
+  26.57-degree exit assumes fixed friction 0.06 (26.56637 exactly to the shown precision).
+  Preserve the specified table and test both cases with their appropriate coefficients.
+  The prompt/research are corrected rather than tuning the model to contradictory targets.
+- 2026-09-22: Preserve the existing three-inch strong follow/draw assertions by moving
+  their cue-ball setup from 10 to 6 inches behind the object: with ball-to-ball spin transfer,
+  the old setup loses too much backspin before/during contact. Measured separation from stun
+  is 4.484608 in for follow and 3.716758 in for draw. No production tuning changed for this.
+- 2026-09-22: Designer requested moving on from A's remaining device checks. Keep phone and
+  controller acceptance open while implementing B; no roadmap acceptance box is claimed done.

@@ -13,6 +13,38 @@ local function setup()
 	return Config, Ball, TableGeometry, Simulation, Rack, geometry
 end
 
+-- Remove cloth impulses only while measuring a single ball contact. Restore every shared
+-- setting even when a benchmark fails, so later suites still exercise the real table.
+local function withoutCloth(Config, callback: () -> ())
+	local P = Config.Physics
+	local sliding, rolling, spin = P.SlidingFriction, P.RollingFriction, P.SideSpinDecel
+	local rest, epsilon, friction = P.RestSpeed, P.SlideEpsilon, P.BallFrictionTable
+	P.SlidingFriction, P.RollingFriction, P.SideSpinDecel = 0, 0, 0
+	P.RestSpeed, P.SlideEpsilon = 0, 0
+	local ok, err = pcall(callback)
+	P.SlidingFriction, P.RollingFriction, P.SideSpinDecel = sliding, rolling, spin
+	P.RestSpeed, P.SlideEpsilon, P.BallFrictionTable = rest, epsilon, friction
+	if not ok then
+		error(err)
+	end
+end
+
+local function contactPair(Ball, Simulation, geometry, radius: number, angle: number)
+	local a = Ball.new(0, 0, 0)
+	-- A negligible overlap guarantees a zero-time hit despite trig rounding; pushOut
+	-- restores the separation before the public step resolves the collision.
+	local separation = 2 * radius - 1e-8
+	local b = Ball.new(1, separation * math.cos(angle), separation * math.sin(angle))
+	return Simulation.newState(geometry, { a, b }), a, b
+end
+
+local function collide(Simulation, state): number
+	local events = {}
+	Simulation.step(state, 1e-7, events)
+	H.expect(#events == 1 and events[1].type == "ballHit", "expected one isolated ball contact")
+	return events[1].speed
+end
+
 local function minSeparation(positions: { number }, pocketedFlags: { boolean }): number
 	local n = #positions / 3
 	local best = math.huge
@@ -35,9 +67,23 @@ local function minSeparation(positions: { number }, pocketedFlags: { boolean }):
 	return best
 end
 
-local function runBreak(Simulation, Rack, geometry, angle: number)
+local function runBreak(Ball, Simulation, Rack, geometry, angle: number)
 	local state = Simulation.newState(geometry, Rack.newGame(geometry))
-	return state, Simulation.run(state, { angle = angle, power = 1 })
+	local stop = Ball.stop
+	local forcedStops = 0
+	Ball.stop = function(ball)
+		if not ball.pocketed then
+			forcedStops += 1
+		end
+		stop(ball)
+	end
+	local ok, result = pcall(Simulation.run, state, { angle = angle, power = 1 })
+	Ball.stop = stop
+	if not ok then
+		error(result)
+	end
+	H.expect(forcedStops == 0, "break used a wedge, event-budget or shot-duration stop")
+	return state, result
 end
 
 -- Pocketed balls jump to their pocket, so exclude them from separation checks by tracking
@@ -60,6 +106,174 @@ local function pocketedByFrame(result, ballCount: number): { { boolean } }
 end
 
 return {
+	["a 100 in/s full hit preserves the measured 0.95 restitution"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		withoutCloth(Config, function()
+			local state, cue, object =
+				contactPair(Ball, Simulation, geometry, Config.Balls.RadiusInches, 0)
+			cue.vx = 100
+			H.near(collide(Simulation, state), 100, 1e-9, "event reports incoming normal speed")
+			H.near(cue.vx, 2.5, 1e-9, "cue residual speed")
+			H.near(object.vx, 97.5, 1e-9, "object speed")
+			H.near(cue.wz + object.wz, 0, 1e-9, "a full stun hit creates no side spin")
+		end)
+	end,
+
+	["a half-ball stun cut throws according to the configured contact friction"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		withoutCloth(Config, function()
+			local function shoot(): number
+				local state, cue, object =
+					contactPair(Ball, Simulation, geometry, Config.Balls.RadiusInches, math.rad(30))
+				cue.vx = 40
+				H.near(collide(Simulation, state), 20 * math.sqrt(3), 1e-9, "normal contact speed")
+				H.expect(
+					cue.wz > 0 and object.wz > 0,
+					"friction gives both balls the same side-spin sign"
+				)
+				return math.deg(math.atan2(object.vy, object.vx))
+			end
+			-- The speed-dependent table gives mu(20)=0.072. The research's 26.57-degree
+			-- benchmark instead assumes constant mu=0.06; keep both known answers.
+			H.near(shoot(), 25.881810296, 1e-7, "measured friction table throw")
+			Config.Physics.BallFrictionTable = {
+				{ Speed = 0, Friction = 0.06 },
+				{ Speed = 200, Friction = 0.06 },
+			}
+			H.near(shoot(), 26.566369638, 1e-7, "constant 0.06 reference throw")
+		end)
+	end,
+
+	["contact friction interpolates by slip speed and clamps beyond the table"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		withoutCloth(Config, function()
+			for _, sample in
+				{
+					{ 10, 0.095 },
+					{ 20, 0.072 },
+					{ 60, 0.034 },
+					{ 160, 0.012 },
+					{ 200, 0.010 },
+					{ 240, 0.010 },
+				}
+			do
+				local state, cue, object =
+					contactPair(Ball, Simulation, geometry, Config.Balls.RadiusInches, 0)
+				cue.vx, cue.vy = 10, sample[1]
+				collide(Simulation, state)
+				H.near(
+					object.vy / object.vx,
+					sample[2],
+					1e-9,
+					"throw tangent equals interpolated mu"
+				)
+			end
+		end)
+	end,
+
+	["gearing outside english removes half-ball throw"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			local state, cue, object = contactPair(Ball, Simulation, geometry, R, math.rad(30))
+			cue.vx, cue.wz = 40, 20 / R
+			collide(Simulation, state)
+			H.near(math.deg(math.atan2(object.vy, object.vx)), 30, 1e-9, "gearing object direction")
+			H.near(cue.wz, 20 / R, 1e-9, "no tangential impulse on the cue")
+			H.near(object.wz, 0, 1e-9, "no spin transferred without contact slip")
+		end)
+	end,
+
+	["a full hit transfers backspin with the five-fourteenths sticking limit"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			for _, incomingSpin in { 100 / R, 1 / R } do
+				local state, cue, object = contactPair(Ball, Simulation, geometry, R, 0)
+				cue.vx, cue.wy = 100, incomingSpin
+				collide(Simulation, state)
+				H.expect(object.wy < 0, "forward cue spin must transfer object backspin")
+				H.expect(-object.wy <= 5 / 14 * incomingSpin + 1e-9, "spin transfer exceeds 5/14")
+				H.near(
+					cue.wy - incomingSpin,
+					object.wy,
+					1e-9,
+					"both balls receive equal angular impulses"
+				)
+				H.expect(cue.vz == 0 and object.vz == 0, "contact preserves planar translation")
+				if incomingSpin == 1 / R then
+					H.near(object.wy, -5 / (14 * R), 1e-9, "low slip reaches the sticking cap")
+				end
+			end
+		end)
+	end,
+
+	["20000 deterministic contact pairs dissipate energy without reversing slip"] = function()
+		local Config, Ball, _, Simulation, _, geometry = setup()
+		withoutCloth(Config, function()
+			local R = Config.Balls.RadiusInches
+			local seed = 872341
+			local function random(): number
+				seed = (seed * 48271) % 2147483647
+				return seed / 2147483647
+			end
+			for index = 1, 20000 do
+				local angle = 2 * math.pi * random()
+				local nx, ny = math.cos(angle), math.sin(angle)
+				local tx, ty = -ny, nx
+				local state, a, b = contactPair(Ball, Simulation, geometry, R, angle)
+				local scale = if index % 3 == 0 then 0.01 elseif index % 3 == 1 then 10 else 528
+				local normal, tangent = scale * (0.01 + random()), scale * (2 * random() - 1)
+				local mx, my = scale * (random() - 0.5), scale * (random() - 0.5)
+				a.vx, a.vy =
+					mx + (normal * nx + tangent * tx) / 2, my + (normal * ny + tangent * ty) / 2
+				b.vx, b.vy =
+					mx - (normal * nx + tangent * tx) / 2, my - (normal * ny + tangent * ty) / 2
+				for _, ball in { a, b } do
+					ball.wx, ball.wy, ball.wz =
+						scale * (2 * random() - 1) / R,
+						scale * (2 * random() - 1) / R,
+						scale * (2 * random() - 1) / R
+				end
+				local beforeA, beforeB = Ball.clone(a), Ball.clone(b)
+				local beforeEnergy = Simulation.energy(state)
+				local beforeT = tangent + R * (a.wz + b.wz)
+				local beforeZ = R * ((a.wx + b.wx) * ny - (a.wy + b.wy) * nx)
+				H.near(collide(Simulation, state), normal, 1e-8, "incoming contact speed")
+				local energy = Simulation.energy(state)
+				H.expect(
+					energy <= beforeEnergy + 1e-9 * math.max(beforeEnergy, 1),
+					("energy rose on pair %d"):format(index)
+				)
+				H.near(a.vx + b.vx, 2 * mx, 1e-8, "x momentum")
+				H.near(a.vy + b.vy, 2 * my, 1e-8, "y momentum")
+				H.near(
+					(a.vx - b.vx) * nx + (a.vy - b.vy) * ny,
+					-0.95 * normal,
+					1e-8,
+					"normal restitution"
+				)
+				local dwx, dwy, dwz = a.wx - beforeA.wx, a.wy - beforeA.wy, a.wz - beforeA.wz
+				H.near(dwx, b.wx - beforeB.wx, 1e-8, "equal x angular impulses")
+				H.near(dwy, b.wy - beforeB.wy, 1e-8, "equal y angular impulses")
+				H.near(dwz, b.wz - beforeB.wz, 1e-8, "equal z angular impulses")
+				H.near(dwx * nx + dwy * ny, 0, 1e-8, "contact cannot torque around its normal")
+				local jt = (a.vx - beforeA.vx) * tx + (a.vy - beforeA.vy) * ty
+				H.near(dwz, 2.5 * jt / R, 1e-8, "side-spin torque follows the impulse")
+				local afterT = (a.vx - b.vx) * tx + (a.vy - b.vy) * ty + R * (a.wz + b.wz)
+				local afterZ = R * ((a.wx + b.wx) * ny - (a.wy + b.wy) * nx)
+				for _, slip in { { beforeT, afterT }, { beforeZ, afterZ } } do
+					H.expect(
+						math.abs(slip[2]) <= math.abs(slip[1]) + 1e-8,
+						"friction increased contact slip"
+					)
+					H.expect(slip[1] * slip[2] >= -1e-7, "friction reversed contact slip")
+				end
+				H.expect(a.vz == 0 and b.vz == 0, "vertical impulse must not launch a ball")
+			end
+		end)
+	end,
+
 	["the rack is legal: 16 balls, none overlapping, apex on the foot spot"] = function()
 		local Config, _, TableGeometry, _, Rack, geometry = setup()
 		local balls = Rack.newGame(geometry)
@@ -79,10 +293,10 @@ return {
 	end,
 
 	["a full-power break scatters the rack and nothing tunnels"] = function()
-		local Config, _, TableGeometry, Simulation, Rack, geometry = setup()
+		local Config, Ball, TableGeometry, Simulation, Rack, geometry = setup()
 		local R = Config.Balls.RadiusInches
 		for _, angle in { 0, 0.004, -0.01 } do
-			local state, result = runBreak(Simulation, Rack, geometry, angle)
+			local state, result = runBreak(Ball, Simulation, Rack, geometry, angle)
 			H.expect(not result.capped, "break never came to rest")
 			local flagsByFrame = pocketedByFrame(result, #state.balls)
 			for f, frame in result.frames do
@@ -160,14 +374,15 @@ return {
 
 	["stop shot: no spin stops dead, top spin follows, back spin draws back"] = function()
 		local _, Ball, _, Simulation, _, geometry = setup()
-		-- Object ball 14 in from the top-right corner pocket along the diagonal, cue ball 10 in
-		-- behind it. The object ball drops, so it can never come back and disturb the cue ball.
+		-- Object ball 14 in from the top-right corner pocket along the diagonal, cue ball 6 in
+		-- behind it. A close hit preserves enough backspin after cloth loss and ball-to-ball
+		-- spin transfer to test a strong draw. The pocketed object cannot disturb the cue later.
 		local dirX, dirY = 1 / math.sqrt(2), 1 / math.sqrt(2)
 		local ox, oy = geometry.halfLength - 10, geometry.halfWidth - 10
 		local function shoot(spinY: number): (number, boolean)
 			local state = Simulation.newState(
 				geometry,
-				{ Ball.new(0, ox - 10 * dirX, oy - 10 * dirY), Ball.new(1, ox, oy) }
+				{ Ball.new(0, ox - 6 * dirX, oy - 6 * dirY), Ball.new(1, ox, oy) }
 			)
 			local result = Simulation.run(
 				state,

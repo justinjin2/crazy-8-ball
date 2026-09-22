@@ -128,11 +128,15 @@ constant 10.9 rad/s^2 regardless of R.
 
 **Ball-ball** (TP A.5 + A.14 + A.27, pooltool frictional_inelastic):
 v_n = (v1 - v2).n; if v_n <= 0 return. J_n = (1+e) v_n / 2; v1 -= J_n n; v2 += J_n n.
-v_rel = (v1 - v2) + R (w1 + w2) x n; v_t = v_rel - (v_rel.n) n (drop the vertical part).
-J_t = min( mu(|v_t|) J_n, |v_t| / 7 ) opposing v_t. v1 -= J_t; v2 += J_t;
+v_rel = (v1 - v2) + R (w1 + w2) x n; v_t = v_rel - (v_rel.n) n (retain vertical slip).
+J_t = min( mu(|v_t|) J_n, |v_t| / 7 ) opposing v_t. v1 += J_t; v2 -= J_t;
 w1 += 2.5 (n x J_t) / R; w2 += 2.5 (n x J_t) / R.
+Discard only the resulting vertical translation, as pooltool's 2D resolver does. These
+signs and retained vertical torque correct the original summary (verified 2026-09-22).
 mu from the TP A.14 fit as a monotone table over |v_t| in in/s (no exp in the replay path).
-Expected: 3.4 deg throw on a half-ball stun hit at 40 in/s, 0 with gearing outside english.
+Expected: 4.11819 deg throw on a half-ball stun hit at 40 in/s with the prompt's table
+(mu = 0.072 at 20 in/s slip), 0 with gearing outside english. The 3.43363 deg benchmark
+uses fixed mu = 0.06, as in TP A.14's initial example, rather than the speed-dependent fit.
 
 **Cushion** (Han 2005 as in pooltool han_2005): contact angle theta from sin th = 2h/D - 1
 (15.7 deg at 0.635 D). Work in the frame (n horizontal into table, t along rail, z up).

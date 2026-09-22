@@ -237,6 +237,20 @@ Config.Physics = {
 	SideSpinDecel = 10.9,
 	-- Ball-ball restitution. Dr. Dave / pooltool: phenolic range 0.92-0.98, target 0.95.
 	BallRestitution = 0.95,
+	-- Ball contact friction vs total tangential slip speed (in/s). TP A.14's Marlow fit,
+	-- sampled as specified in PHYSICS_REALISM_PROMPT B; coefficients span 0.010-0.118.
+	-- Interpolate linearly and hold the endpoints, avoiding exp in deterministic replays.
+	BallFrictionTable = {
+		{ Speed = 0, Friction = 0.118 },
+		{ Speed = 20, Friction = 0.072 },
+		{ Speed = 40, Friction = 0.046 },
+		{ Speed = 80, Friction = 0.022 },
+		{ Speed = 120, Friction = 0.014 },
+		{ Speed = 200, Friction = 0.010 },
+	},
+	-- Contact slip below this speed is treated as zero (in/s). Prompt B's 1e-9 numerical
+	-- tolerance, kept far below SlideEpsilon; valid range 0 < value <= 1e-9.
+	BallSlipEpsilon = 1e-9,
 	-- Ball-cushion coefficient of restitution at the contact point. Real cushions: 0.7 to 0.9.
 	-- (tune)
 	RailRestitution = 0.8,

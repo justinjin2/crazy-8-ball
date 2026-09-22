@@ -50,8 +50,8 @@ Work proceeds A-F, reporting after each; the remaining 1.5 checks stay open.*
 - [ ] **1.6 Spin.** Spin selector (tap the cue-ball icon, pick the strike point) feeding the
   physics. Done means: top spin follows through, back spin draws back, side spin changes the
   rail rebound, visibly.
-  Physics realism A is implemented: constants, spin decay and shot-end behavior; 92 tests
-  and desktop Studio checks pass. Phone/controller playtests remain open. B-F are not built;
+  Physics realism A-B are implemented: tuning, spin decay, throw and spin transfer; 98 tests
+  and desktop Studio checks pass. Phone/controller acceptance is deferred; C-F are not built;
   this box stays unticked until E and the platform acceptance checks are complete.
 - [ ] **1.7 Sound and juice, pass one.** Cue strike, clack by speed, rail thud, pocket drop, aim
   ticks, power-bar stretch, sink burst, "Nice shot" popup. Plus the cue ball's trail. Trails

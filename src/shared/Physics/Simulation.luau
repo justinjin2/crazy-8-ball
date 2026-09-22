@@ -369,10 +369,29 @@ local function resolveRail(b: Ball, nx: number, ny: number): number
 	return speedIn
 end
 
--- Ball-ball hit: equal masses, impulse along the line of centres with restitution.
--- Spin is left untouched (no throw), which is what makes stop shots and draw work.
+-- Ordered piecewise-linear contact friction, clamped to the tabulated endpoint values.
+local function ballFriction(slipSpeed: number): number
+	local points = Config.Physics.BallFrictionTable
+	if slipSpeed <= points[1].Speed then
+		return points[1].Friction
+	end
+	for i = 2, #points do
+		local upper = points[i]
+		if slipSpeed <= upper.Speed then
+			local lower = points[i - 1]
+			local fraction = (slipSpeed - lower.Speed) / (upper.Speed - lower.Speed)
+			return lower.Friction + fraction * (upper.Friction - lower.Friction)
+		end
+	end
+	return points[#points].Friction
+end
+
+-- Equal-mass contact with restitution, throw and spin transfer (TP A.14 / pooltool).
+-- Keep vertical contact slip for the angular impulse, then discard vertical translation:
+-- balls stay on the cloth, but rolling into another ball can give it backspin.
 local function resolveBalls(a: Ball, b: Ball): number
 	local e = Config.Physics.BallRestitution
+	local R = Config.Balls.RadiusInches
 	local nx, ny = b.x - a.x, b.y - a.y
 	local len = math.sqrt(nx * nx + ny * ny)
 	if len < 1e-12 then
@@ -388,6 +407,32 @@ local function resolveBalls(a: Ball, b: Ball): number
 	a.vy -= j * ny
 	b.vx += j * nx
 	b.vy += j * ny
+
+	-- Tangent t = (-ny, nx, 0); the other contact tangent is vertical. The normal
+	-- impulse above cannot change either component of this relative surface velocity.
+	local slipAlong = -(a.vx - b.vx) * ny + (a.vy - b.vy) * nx + R * (a.wz + b.wz)
+	local slipVertical = R * ((a.wx + b.wx) * ny - (a.wy + b.wy) * nx)
+	local slipSpeed = math.sqrt(slipAlong * slipAlong + slipVertical * slipVertical)
+	if slipSpeed > Config.Physics.BallSlipEpsilon then
+		-- Unit masses and I = 0.4 R^2 give contact inverse mass 7. The cap prevents
+		-- slip reversing during impact and limits head-on spin transfer to 5/14.
+		local impulse = math.min(ballFriction(slipSpeed) * j, slipSpeed / 7)
+		local along = -impulse * slipAlong / slipSpeed
+		local vertical = -impulse * slipVertical / slipSpeed
+		local jx, jy = -ny * along, nx * along
+		a.vx += jx
+		a.vy += jy
+		b.vx -= jx
+		b.vy -= jy
+		-- Both torques have the same sign: opposite forces at opposite contact arms.
+		local dwx, dwy, dwz = 2.5 * ny * vertical / R, -2.5 * nx * vertical / R, 2.5 * along / R
+		a.wx += dwx
+		a.wy += dwy
+		a.wz += dwz
+		b.wx += dwx
+		b.wy += dwy
+		b.wz += dwz
+	end
 	return relVn
 end
 

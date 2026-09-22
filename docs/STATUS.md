@@ -1,46 +1,64 @@
 # Status
 
-**Last updated:** 2026-09-22. Physics realism A implemented and verified in automated tests
-and desktop Studio. Stop here to report, per `prompts/PHYSICS_REALISM_PROMPT.md`.
+**Last updated:** 2026-09-22. Physics realism B implemented; A and B are committed steps.
+Report after B, per `prompts/PHYSICS_REALISM_PROMPT.md`. C-F are not started.
 
-## Current work: physics realism A
+## Current work: physics realism B
 
-The designer requested the realism prompt ahead of the remaining roadmap checks. A changes
-only physics tuning, side-spin decay and shot-end behavior; B-F are not started. Roadmap 1.6
-stays unticked until E and its platform acceptance checks are complete.
+Ball contacts now apply speed-dependent friction, object-ball throw and spin transfer.
+The six-point Config table is interpolated linearly with clamped endpoints; no exponential
+runs in replay. Normal restitution stays 0.95 and contact sound speed stays the incoming
+normal speed. Tangential impulse is capped to prevent slip reversing. Both balls receive
+the angular impulse; translation stays on the cloth.
 
-- Sliding friction 0.20, rolling resistance 0.010; optional slow/medium/fast cloth values
-  0.015/0.012/0.008. Ball restitution 0.95; cushion nose 0.635 ball diameters.
-- Rest cutoff 0.25 in/s; instant-contact tolerance 1e-7 s.
-- Side spin decays at 10.9 rad/s^2 regardless of radius. Spin in place no longer delays
-  the next shot. Keep that spin while other balls move, then clear it when the shot ends.
-  Horizontal spin, pocket overhangs, tipping and falling still keep the simulation active.
-- Removed the unused RestSpin cutoff. Updated the old test that demanded spin-only motion
-  delay shot completion. Client Match already clears spin in its server reconciliation.
+**Two prompt corrections were necessary:** removing vertical contact slip would make its
+backspin-transfer test impossible; retain that slip/torque and discard only vertical
+translation, as pooltool's 2D resolver does. The supplied table gives mu = 0.072 at 20 in/s
+slip, so its half-ball stun benchmark exits at **25.88181 degrees**, not 26.57. The latter
+is valid with fixed mu = 0.06 and is tested separately (**26.56637 degrees**). The prompt,
+research summary and dated decision log now state this explicitly.
 
-**Verified:** `tools/lint.sh` passes StyLua, Selene and luau-lsp; **92 Lune tests pass**.
-The new cases cover known-answer sliding, both spin signs at radii 1.125 and 1.3, rest and
-pocket behavior, and all three whole-shot APIs. Existing energy, rail, pocket, determinism,
-trace and server-seed replay tests pass. Rojo sync confirmed by reading the new symbol in
-Studio before starting a fresh Play session.
+**Verified:** all **98 Lune tests pass**; `tools/lint.sh` passes StyLua, Selene and luau-lsp.
+Six new tests cover restitution, the two throw benchmarks, friction interpolation/endpoints,
+gearing english, backspin transfer and 20,000 deterministic contact pairs. That sweep checks
+energy, planar momentum, restitution, torque signs and slip non-reversal. Three full breaks
+also assert no ball is stopped by wedge/event-budget/shot-duration guards. Existing pocket,
+trace, determinism and server-seed replay tests remain green.
 
-Studio server measurements: a 30 in/s stun ball reaches rolling in **0.111003 s** at
-**21.428571 in/s**; 60 rad/s side spin reaches zero at step **1322 (5.508333 s)**.
-Six full-power maximum-english rack shots finished in **8.008-9.792 s**, none capped, with
-zero final side spin. A client Match replay matched the simulation's **3288 steps / 13.70 s**
-and cleared spin. These are scripted checks; spin has no player selector until E.
+The existing strong draw/follow test now starts the cue 6 in behind the object instead of
+10, retaining enough backspin after cloth loss and ball-to-ball spin transfer. Its original
+three-inch minimum separation assertions remain: follow exceeds stun by **4.484608 in**;
+draw trails stun by **3.716758 in**. This is a setup correction, not relaxed acceptance.
 
-A real desktop power-bar drag at 90% power produced 34 ball hits, 24 rail hits, one pocket
-and a **7.48 s** shot. Console clean, no replay drift warning. Native Studio screenshot
-shows the settled table and restored aiming visuals; no screenshot/cache added to git.
-**Phone and controller playtests are still pending.** Studio's controller emulator reports
-Gamepad1 connected, but injected ButtonA did not fire a shot. Native UI automation then
-returned `noWindowsAvailable`; do not count detection as a controller playtest.
+Rojo sync was confirmed in Edit mode before a fresh Play session. Studio measurements:
+- Full stun hit at 100 in/s: object **97.5**, cue **2.5 in/s**.
+- Half-ball stun at 40 in/s: **25.88181 degrees**; gearing outside english: **30.00000**.
+- Rolling full hit at 100 in/s gives object backspin **-3.375 rad/s** immediately after
+  contact, below the tested 5/14 transfer cap.
+- Three full breaks: **7.396-7.533 s**, no guard stops or duration caps.
+- Actual desktop power-bar break: **7.40 s**, 32 ball hits, 22 rails, two pocketed.
+  Console clean, no replay drift warning; native screenshot captured the settled table.
 
-**Decided for D-F:** one bar reaching 30 mph; Classic predicts the ball's launch direction
-including side-spin deflection; regulation physics balls with visual scaling; fixed 4-degree
-cue elevation; all collectible cues have identical physics. Current ball radius remains
-1.3 in until F. These choices are in the GDD and dated decision log.
+**Phone/controller acceptance remains deferred at the designer's request to move on.**
+Controller detection in A did not constitute a successful controller shot. Native screenshots
+worked again in B; no new phone/controller attempt was made. Spin effects are verified through
+scripted inputs until the selector and wire arrive in E. Classic's object-ball line remains
+geometric as requested, so it does not compensate for throw.
+
+## Physics A and later decisions
+
+A set sliding friction 0.20, rolling resistance 0.010, cloth presets 0.015/0.012/0.008,
+ball restitution 0.95, cushion nose 0.635 diameters, rest cutoff 0.25 in/s and instant-contact
+tolerance 1e-7 s. Side spin decays at 10.9 rad/s^2 independent of radius. Spin in place no
+longer holds a shot open; keep it while other balls move and clear it when the shot ends.
+Horizontal spin and pocket motion still count. A's known answers remain tested: 30 in/s
+stun reaches rolling at 21.428571 in/s after 0.111003 s; +/-60 rad/s spin reaches zero at
+step 1322 (5.508333 s) at both radii. No place assets changed in A or B.
+
+**Decided for D-F:** one bar reaching 30 mph, Classic predicts cue-ball launch direction
+including squirt, regulation physics balls with visual scaling, fixed 4-degree elevation,
+and identical physics across collectible cues. Current radius remains 1.3 in until F.
+Roadmap 1.6 stays unticked until E and its platform acceptance checks are complete.
 
 ## Existing build and outstanding checks
 
@@ -83,6 +101,6 @@ cue elevation; all collectible cues have identical physics. Current ball radius 
 
 Try gentle shots and a hard break on phone and a real controller; verify motion finishes
 and aiming returns. Run Start Server + 2 Players for the still-open 1.5 acceptance.
-After reporting A, B is ball-ball friction/throw; preserve the explicit stop after each
-milestone. No place assets were edited in A. The standing milestone handoff asks the user
+After reporting B, C is the cushion rewrite and corner shelf; preserve the explicit stop after each
+milestone. No place assets were edited in A or B. The standing milestone handoff asks the user
 to save `place/8ball.rbxl` and publish; scripts themselves are edited only through Rojo.
