@@ -108,6 +108,26 @@ local function queuePoint(p: Placement.Placement, team: number, slot: number): V
 	return Vector3.new(p.x + dx, p.y + Q.FloorOffset, p.z + dz)
 end
 
+-- An invisible wall around the table so nobody can walk into it, lean on it or jump onto
+-- it and stand in the shooter's view. It stops characters only: CanQuery off keeps it out
+-- of camera occlusion and every raycast, and the balls are simulated, not physical.
+local function buildBarrier(t: any, folder: Instance)
+	local B = M.Barrier
+	local hx, hy = Placement.barrierHalfExtents()
+	local part = Instance.new("Part")
+	part.Name = ("TableBarrier_%02d"):format(t.engine.id)
+	part.Anchored = true
+	part.CanCollide = true
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Transparency = 1
+	part.Size = Vector3.new(2 * hx, B.HeightStuds, 2 * hy)
+	part.CFrame = CFrame.new(t.placement.x, t.placement.y + B.HeightStuds / 2, t.placement.z)
+		* CFrame.Angles(0, t.placement.yaw, 0)
+	part.Parent = folder
+end
+
 local function buildPads(t: any, folder: Instance)
 	t.pads = {}
 	for team = 1, 2 do
@@ -416,7 +436,18 @@ local function constrain(p: Player, t: any)
 			math.clamp(x, -M.BoundaryHalfLengthStuds / scale, M.BoundaryHalfLengthStuds / scale)
 		local cy =
 			math.clamp(y, -M.BoundaryHalfWidthStuds / scale, M.BoundaryHalfWidthStuds / scale)
-		if cx ~= x or cy ~= y or root.Position.Y < t.placement.y - Q.FallTolerance then
+		-- A shooter handed back while standing against the rail is stepped out of the table's
+		-- barrier (the client does this too; this is the authority's backstop).
+		local ox, oz = Placement.outsideBarrier(
+			t.placement,
+			root.Position.X,
+			root.Position.Z,
+			M.Barrier.ReleaseClearanceStuds
+		)
+		if ox and oz then
+			root.CFrame = CFrame.new(ox, root.Position.Y, oz) * root.CFrame.Rotation
+			root.AssemblyLinearVelocity = Vector3.zero
+		elseif cx ~= x or cy ~= y or root.Position.Y < t.placement.y - Q.FallTolerance then
 			local wx, _, wz = Placement.toWorld(t.placement, cx, cy, 0)
 			root.CFrame = CFrame.new(wx, t.placement.y + Q.RespawnHeight, wz) * root.CFrame.Rotation
 			root.AssemblyLinearVelocity = Vector3.zero
@@ -532,6 +563,7 @@ function Service.start(parent: Instance)
 		}
 		tables[mode.id] = t
 		buildPads(t, folder)
+		buildBarrier(t, folder)
 		Service.broadcast(t)
 	end
 	Net.get("SnapshotRequest").OnServerEvent:Connect(function(p)

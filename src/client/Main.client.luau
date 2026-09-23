@@ -28,6 +28,7 @@ local SpinSelector = require(script.Parent.SpinSelector)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
+local PadEffects = require(script.Parent.PadEffects)
 local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
@@ -68,7 +69,6 @@ local previousMouseBehavior: Enum.MouseBehavior? = nil
 local audioByTable: { [number]: any } = {}
 local effectsByTable: { [number]: any } = {}
 local uiSounds: { [string]: Sound } = {}
-local padViews: { any } = {}
 local ownHighlights: { Highlight } = {}
 -- What the highlights were last built for, so an unchanged view does not rebuild them.
 local highlightKey = ""
@@ -415,6 +415,8 @@ local function acquireTable(s: any?)
 		input:resetSpin()
 		currentPull = 0
 		lastAim = nil
+		-- The break and a foul's ball in hand open wider than the home view.
+		Camera.setBallInHand(s.ballInHand == true)
 		Camera.resetZoom()
 		if shooter() then
 			suggestAim()
@@ -553,19 +555,11 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		UI.toggleStatus()
 	end
 end)
-for _, part in workspace:WaitForChild("Pads"):GetChildren() do
-	if part:IsA("BasePart") and part:GetAttribute("Team") then
-		local surface = part:FindFirstChild("SlotLabel")
-		local edge = surface and surface:FindFirstChildWhichIsA("UIStroke", true)
-		table.insert(padViews, { part = part, edge = edge })
-	end
-end
+local padEffects = PadEffects.new(workspace:WaitForChild("Pads"))
 input:setEnabled(false)
 UI.setPlayControlsVisible(false)
 CueStickBuilder.setVisible(cueStick, false)
-local elapsed = 0
 RunService.RenderStepped:Connect(function(dt)
-	elapsed += dt
 	local busy = lounge:update(dt)
 	for _, mode in M.Modes do
 		local a = audioByTable[mode.id]
@@ -580,16 +574,7 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
-	for _, view in padViews do
-		local tint =
-			rgb(if view.part:GetAttribute("Occupied") then M.Style.Green else M.Style.White)
-		view.part.Color = view.part.Color:Lerp(tint, 1 - math.exp(-dt / M.Style.FadeSeconds))
-		if view.edge then
-			view.edge.Color = view.part.Color
-			view.edge.Transparency = 0.15
-				+ 0.1 * math.sin(elapsed * math.pi * 2 / M.Style.PulseSeconds)
-		end
-	end
+	padEffects:update(dt)
 	for _, mode in M.Modes do
 		local panel = workspace.Pads:FindFirstChild(("QueuePanel_%02d"):format(mode.id))
 		local billboard = panel and panel:FindFirstChildWhichIsA("BillboardGui")

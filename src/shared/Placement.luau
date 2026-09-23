@@ -92,6 +92,42 @@ end
 
 --- Turn a direction in table space into a world direction. Origin and scale play no part,
 --- so a unit vector in stays a unit vector out.
+--- Half extents, in studs along the table's own length and width, of the invisible wall
+--- around a table: the table with its rails plus Multiplayer.Barrier.MarginStuds.
+function Placement.barrierHalfExtents(): (number, number)
+	local T, B = Config.Table, Config.Multiplayer.Barrier
+	local s = T.StudsPerInch
+	return (T.LengthInches / 2 + T.RailWidthInches) * s + B.MarginStuds,
+		(T.WidthInches / 2 + T.RailWidthInches) * s + B.MarginStuds
+end
+
+--- If a world point is inside the barrier (grown by `clearance` studs), the nearest world
+--- point that is `clearance` clear of it; otherwise nil. Used to step a character that was
+--- posed against the rail back out before it is handed back to physics.
+function Placement.outsideBarrier(
+	p: Placement,
+	worldX: number,
+	worldZ: number,
+	clearance: number
+): (number?, number?)
+	local s = Config.Table.StudsPerInch
+	local hx, hy = Placement.barrierHalfExtents()
+	hx, hy = hx + clearance, hy + clearance
+	local x, y = Placement.toTable(p, worldX, worldZ)
+	x, y = x * s, y * s -- studs along the table's axes
+	if math.abs(x) >= hx or math.abs(y) >= hy then
+		return nil, nil
+	end
+	-- Leave through whichever side is nearest.
+	if hx - math.abs(x) < hy - math.abs(y) then
+		x = if x < 0 then -hx else hx
+	else
+		y = if y < 0 then -hy else hy
+	end
+	local wx, _, wz = Placement.toWorld(p, x / s, y / s, 0)
+	return wx, wz
+end
+
 function Placement.dirToWorld(p: Placement, xIn: number, yIn: number): (number, number)
 	return xIn * p.cos - yIn * p.sin, -(xIn * p.sin + yIn * p.cos)
 end

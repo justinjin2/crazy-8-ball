@@ -46,8 +46,8 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 - Wrong/no first contact, scratch, or neither a pocket nor a rail after first contact
   is a foul: opponent gets ball-in-hand anywhere. Resolve motion before changing turns.
 - Break cue ball moves laterally on x=-25 inches (head string on 100-inch table).
-  Show dotted legal range; enforce bounds and overlap checks. Ten seconds placement,
-  then 15 seconds aim; early shooting is allowed.
+  Show dotted legal range; enforce bounds and overlap checks. Fifteen seconds placement,
+  then 20 seconds aim; early shooting is allowed.
 - Legal break: apex ball first AND object ball pocketed OR four DISTINCT object balls
   reaching rails (the AND applies to either spread condition). Illegal break/scratch
   gives opponent ball-in-hand without rerack. Legal break pocket keeps team possession.
@@ -65,18 +65,18 @@ Waiting → Countdown → CoinFlip → Intro → optional PocketChoice → optio
 - Intro: YOUR TURN and sound for newly designated local shooter, two seconds before
   shooting clock. Others see shooter identity. Early shot allowed unless an eight
   call is still required. Continuing 1v1 shooter skips repeated intro/sound.
-- Placement: 10 seconds with valid server-chosen fallback. The shooter drags the cue
+- Placement: 15 seconds with valid server-chosen fallback. The shooter drags the cue
   ball in the normal 3D camera (from any zoom), or uses camera-relative buttons, and
   may aim and shoot at any time. There is no lock/confirm button. The ball follows the
   finger immediately (client prediction) and slides around balls and cushions rather
   than going somewhere illegal. At the deadline it stays where it is and the
-  15-second aim follows. Dragging is also allowed in the Intro when no call is owed.
+  20-second aim follows. Dragging is also allowed in the Intro when no call is owed.
 - Pocket choice: every eight attempt, six blue pulsing targets, 10 seconds, nearest
   pocket to EIGHT on timeout (stable pocket-id tie break). Confirm early, then aim.
   Choice may change while placing or aiming without restarting the clock. When both
   are needed the call comes FIRST (top-down), then placement in the home view; no
   shooting before a required call exists.
-- Aiming: 15 seconds, whole seconds above five; red tenths at/below five, stable width.
+- Aiming: 20 seconds, whole seconds above five; red tenths at/below five, stable width.
   Accepted shot immediately stops clock. No timeout while rolling.
 - Shooting timeout is foul; two successive team shooting timeouts with no accepted
   shot by that team in between automatically forfeit. Setup auto-completion is not
@@ -114,7 +114,11 @@ target without showing a normal scoring solution. No private aim guides for othe
   behind the cue ball, halfway between the close cue view and the whole table) starts
   every turn. During a shot the camera holds, pulls out to the whole table (clear of the
   HUD), then eases back to the home view. Break placement and ball in hand happen in
-  this 3D view; the camera holds still while the ball is dragged.
+  this 3D view; the camera holds still while the ball is dragged. A turn that opens
+  with the ball in hand (the break, a foul) starts two wheel notches wider than the home
+  view (View.BallInHandZoomNotches).
+- An invisible, camera-transparent wall (Multiplayer.Barrier) surrounds each table so
+  nobody can touch it or jump onto it; a released shooter is stepped outside it.
 - The ONLY top-down view is the shooter's 8-ball pocket call (PocketChoice, and the Intro
   just before it while a call is owed). After the call or its timeout: the home view.
   Smooth ~0.55-second transition, table framed below the HUD, all pockets reachable

@@ -733,6 +733,11 @@ Config.Camera = {
 		-- shift. Only the whole-table end of the zoom is fitted clear of the match HUD,
 		-- blended in between here and ZoomMax. (tune)
 		ZoomDefault = 0.625,
+		-- A turn that starts with the cue ball in hand (the break, or after a foul) opens this
+		-- many mouse-wheel notches (Input.ZoomStep each) further out than the home view, so
+		-- there is room to see where to put the ball. That turn's shot returns to the same
+		-- framing; every other turn uses the home view. (tune)
+		BallInHandZoomNotches = 2,
 	},
 	-- A ball dropping nudges the camera a hair TOWARD the pocket it went into. This is a
 	-- reward, not an effect: it should register somewhere below conscious notice and never
@@ -1676,9 +1681,9 @@ Config.Multiplayer = {
 	CountdownSeconds = 5, -- full-queue intermission
 	CoinSeconds = 2.6, -- shared coin presentation
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
-	PlacementSeconds = 10, -- cue-ball placement window
+	PlacementSeconds = 15, -- cue-ball placement window (break and ball in hand)
 	PocketChoiceSeconds = 10, -- called-pocket selection window
-	ShotSeconds = 15, -- aiming deadline
+	ShotSeconds = 20, -- aiming deadline
 	FoulSeconds = 1.4, -- foul announcement before incoming turn
 	ResultSeconds = 2.8, -- outcome hold before table reuse
 	PocketSettleSeconds = 1, -- extra settling after a pocket
@@ -1702,6 +1707,11 @@ Config.Multiplayer = {
 	PadDistanceStuds = 12, -- from table center toward head rail
 	PadDwellSeconds = 0.35, -- intentional queue entry
 	QueueExitGraceSeconds = 0.5, -- forgive brief edge jitter
+	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
+		MarginStuds = 0.6, -- beyond the rails; stays clear of the queue pads
+		HeightStuds = 14, -- well above a character's jump
+		ReleaseClearanceStuds = 1.2, -- a released shooter is stepped this far outside it
+	},
 	BoundaryHalfLengthStuds = 13, -- local match roaming area
 	BoundaryHalfWidthStuds = 8, -- separates neighboring tables
 	RateLimits = { -- per player and channel token buckets
@@ -1763,6 +1773,36 @@ Config.Multiplayer = {
 		FallTolerance = 5, -- recover a falling participant below the table area
 		RespawnHeight = 3, -- safe standing root height above baseplate, studs
 		RespawnBoundaryInset = 1, -- keep respawns inside confinement, studs
+		-- Stepping onto a slot (src/client/PadEffects.luau). (tune)
+		EdgeBaseTransparency = 0.15, -- slot outline at rest
+		EdgePulseAmplitude = 0.1, -- slot outline breathing
+		FadeInSeconds = 0.25, -- how fast the whole effect lights up and fades out
+		ColumnHeightStuds = 9, -- light column standing out of an occupied slot
+		ColumnWidthScale = 0.9, -- column width as a fraction of the slot
+		ColumnTransparency = 0.12, -- column at the floor, fully lit
+		ColumnFadeStart = 0.35, -- fraction of the height where the column starts to thin
+		ColumnMidFade = 0.2, -- extra transparency by ColumnFadeStart, before it fades out
+		ColumnPulseSeconds = 1.8, -- slow breathing of the column
+		ColumnPulseDepth = 0.2, -- how much of the column's light the breathing takes away
+		MoteTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built-in sparkle
+		MoteRate = 16, -- light motes per second while occupied
+		MoteBurst = 40, -- motes thrown up on arrival
+		MoteSize = 0.5, -- studs, shrinking to nothing
+		MoteLifetime = { 0.8, 1.4 }, -- seconds
+		MoteSpeed = { 3, 6 }, -- studs per second, upward
+		MoteSpreadDegrees = 8, -- nearly straight up
+		GlowRange = 10, -- studs
+		GlowBrightness = 1.4, -- steady glow while occupied
+		GlowBurstBrightness = 5, -- arrival flare
+		GlowBurstSeconds = 0.6, -- flare settling time
+		FrameThicknessStuds = 0.16, -- rising square scan frame
+		FrameRiseStuds = 7, -- how high it climbs before vanishing
+		FrameRiseSeconds = 1.1, -- climb time
+		FramePeriodSeconds = 1.6, -- one frame every this often
+		JoinSound = "rbxassetid://131677760492710", -- Creator Store "Beacon SFX" power-up; loads in this experience, listening pending
+		JoinSoundVolume = 0.5, -- heard around the slot, not across the room
+		JoinSoundMinDistance = 8, -- studs at full volume
+		JoinSoundMaxDistance = 60, -- studs until silent
 	},
 	Style = {
 		PanelTop = { 36, 42, 51 }, -- gradient upper tone

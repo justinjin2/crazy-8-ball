@@ -25,6 +25,7 @@ export type Avatar = typeof(setmetatable(
 		-- their camera stays locked to the table they are still seated at.
 		wanted: boolean,
 		saved: any,
+		placement: Placement.Placement?, -- the table the character was last posed at
 	},
 	Avatar
 ))
@@ -99,6 +100,23 @@ function Avatar.release(self: Avatar)
 		end
 	end
 	self.saved = nil
+	-- The aiming stance stands against the rail, inside the table's invisible barrier: step
+	-- out of it before physics takes the body back, or the wall would shove it.
+	local root = character:FindFirstChild("HumanoidRootPart")
+	local p = self.placement
+	if p and root and root:IsA("BasePart") then
+		local x, z = Placement.outsideBarrier(
+			p,
+			root.Position.X,
+			root.Position.Z,
+			Config.Multiplayer.Barrier.ReleaseClearanceStuds
+		)
+		if x and z then
+			root.CFrame = CFrame.new(x, root.Position.Y, z) * root.CFrame.Rotation
+			root.AssemblyLinearVelocity = Vector3.zero
+		end
+	end
+	self.placement = nil
 end
 
 --- Park the character for aiming (idempotent).
@@ -157,6 +175,7 @@ function Avatar.update(
 	if not character or not self.parked then
 		return
 	end
+	self.placement = p
 	local rootCFrame, stretch, reach = AvatarPose.standing(character, p, cueWorld, dir)
 	AvatarPose.apply(character, rootCFrame, stretch, false)
 	local target = transparency

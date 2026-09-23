@@ -720,3 +720,9 @@ cradles (about 72% of the energy to the 7 and 13, nothing pocketed on eleven see
 - Measured over 200 seeded full-power breaks: 0.02 -> 0.95 balls pocketed, 6.9 -> 12.2
   distinct object balls to a rail, 11.5 -> 3.2 left in the foot quarter. A square stun
   break's cue ball now comes back off the tight rack at about 13% of its speed.
+
+2026-09-22: Designer changes after playtest: break and ball-in-hand turns open two wheel
+notches wider than the home view; placement is 15 s (was 10), aiming 20 s (was 15), the
+8-ball call stays 10 s. An invisible wall around each table stops players touching or
+jumping on it. Queue slots get a light column, sparkles, a rising scan frame, a glow flare
+and a join sound (Creator Store "Beacon SFX" 131677760492710, swappable in Config).

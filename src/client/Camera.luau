@@ -46,6 +46,7 @@ local transitionTime = 0
 local savedCamera: any = nil
 
 local zoom = Config.Camera.View.ZoomDefault
+local homeZoom = Config.Camera.View.ZoomDefault -- this turn's starting zoom (setBallInHand)
 -- The pose the smoothing chases, kept apart from what the camera actually shows. The shake
 -- is added on top of this, never folded into it: lerping from an already-shaken pose would
 -- smear the shake into the smoothing and let it drift.
@@ -264,7 +265,17 @@ end
 --- call, and whenever the camera is taken - so a pinch made for one shot does not quietly
 --- become the setting for the match.
 function Camera.resetZoom()
-	zoom = Config.Camera.View.ZoomDefault
+	zoom = homeZoom
+end
+
+--- Where resetZoom goes for the turn now starting: the home view, or - when the turn opens
+--- with the cue ball in hand (the break, a foul) - View.BallInHandZoomNotches wheel notches
+--- further out, so there is room to see where to put the ball.
+function Camera.setBallInHand(inHand: boolean)
+	local V = Config.Camera.View
+	homeZoom = if inHand
+		then math.min(V.ZoomDefault * Config.Input.ZoomStep ^ V.BallInHandZoomNotches, V.ZoomMax)
+		else V.ZoomDefault
 end
 
 function Camera.getZoom(): number

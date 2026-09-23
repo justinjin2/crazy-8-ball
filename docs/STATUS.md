@@ -12,11 +12,15 @@ Latest changes:
   camera pulls out during the shot and returns afterwards.
 - The only top-down view is the 8-ball pocket call. Break and ball-in-hand placement
   happen in 3D with no Lock button: drag the ball (it moves instantly) and shoot at any
-  time within the 10 s.
+  time within the 15 s placement window (20 s to aim, 10 s for an 8-ball call).
 - The bonus plays for the owning team in the same frame as the drop, including the first
   ball, which assigns groups. The HUD shows who is solids and who is stripes the moment
   that ball drops.
 - Pocketed balls get a red X across the whole ball.
+- Break and ball-in-hand turns open two zoom notches wider than the home view. Timers:
+  15 s to place, 20 s to aim, 10 s to call the 8. Invisible walls keep everyone off the
+  tables. Queue slots light up with a light column, sparkles, a rising scan frame and a
+  sound when someone steps on one.
 - The camera stays pulled out until the next turn starts, then either returns to the home
   view or eases (no cut) back into the player's own camera.
 - Breaks now spread properly: touching racked balls push on each other at once

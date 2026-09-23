@@ -19,7 +19,7 @@ or saved wins. The lounge is intentionally disabled.
 - Heads belongs to the host's team; the coin names the breaker (a HUD overlay; nobody's
   camera is taken for it). The breaker starts in the **home view**. Drag the cue ball
   along the dotted line (press on the ball itself) and shoot whenever you like; there is
-  no Lock button. After 10 seconds the ball stays put and the 15-second aim clock runs.
+  no Lock button. After 15 seconds the ball stays put and the 20-second aim clock runs.
   Keep the existing drag aim and pull-down power cue. Fine controls offer aim/power and
   camera-relative placement arrows (hold to repeat) plus SHOOT.
 - Ball in hand after a foul works the same way, anywhere on the cloth: the ball follows
