@@ -738,3 +738,7 @@ longer be changed while placing or aiming. Only the called pocket stays marked.
 2026-09-23: Guideline object/cue lines scale with the cut angle (object cos, cue sin, as the
 share of speed each ball carries), like GamePigeon. Longest line 16 in; cushion reflections
 keep a fixed line.
+
+2026-09-23: The post-shot zoom-out now needs a shot that could roll 1.5 table lengths (about
+35% power on a centre hit), up from 0.5 (about 25%). A ball heading off screen still pulls
+the camera out at any power.

@@ -795,15 +795,18 @@ Config.Camera = {
 		-- view for no reason.
 		--
 		-- Measured against it, this is a sharp line rather than a fussy one, because power
-		-- drives speed as power^2.6: 0.20 power runs 0.30 lengths, 0.25 runs 0.48, and 0.30
-		-- already runs 0.81. So half a table length lands at about a quarter of the bar.
+		-- drives speed as power^2.6 (centre hit, 4 degree cue): 0.25 power runs 0.51 lengths,
+		-- 0.30 runs 0.85, 0.35 runs 1.43, 0.37 runs 1.75 and 0.40 runs 2.36. The designer
+		-- wanted shots of about 35% power and under to keep the aiming view (2026-09-23), so
+		-- the line sits at 1.5 lengths, just above 35%. It was 0.5 (about 25%), which pulled
+		-- out for shots that had nothing to show.
 		--
 		-- It is a BOUND on every ball, not just the cue ball - nothing leaves a collision
 		-- faster than the ball that struck it - so this can hold the camera still on a shot
 		-- where little happens, and never on one where something travels. OffScreenMargin
 		-- above still overrides it: anything that does reach the edge pulls the camera out
 		-- however gently it was hit. (tune)
-		MinTravelTableLengths = 0.5,
+		MinTravelTableLengths = 1.5,
 		-- How long the pull-out to the whole table then takes, eased in and out of the move
 		-- (smoothstep) so it has no corners at either end. Smoothing below is applied on top,
 		-- so the move actually lands somewhat after this: at 1.2 and 0.35 it took 1.6s to get
