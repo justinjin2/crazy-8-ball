@@ -1021,10 +1021,16 @@ Config.Input = {
 -- Guideline
 ---------------------------------------------------------------------------------------------
 Config.Guideline = {
-	-- Length of the short lines drawn after first contact (object ball and cue ball), and
-	-- how much shorter the cue ball's line is.
-	StubLengthInches = 14,
-	CueStubScale = 0.6,
+	-- Length of the short lines drawn after first contact at their longest. Off a ball each is
+	-- scaled by the share of speed it carries (Aim.Trace): the object ball's line is full on
+	-- a straight-on hit and shrinks as the cut gets thinner, the cue ball's does the reverse,
+	-- like the classic phone pool games. CueStubScale sets the cue line's longest relative to
+	-- the object line's; RailStubScale is the fixed cue line off a cushion. A line shorter
+	-- than MinStubInches is not drawn. (tune)
+	StubLengthInches = 16,
+	CueStubScale = 1.0,
+	RailStubScale = 0.6,
+	MinStubInches = 0.4,
 	-- The path is a corridor one ball wide: two thin solid edge lines a ball radius either
 	-- side of the aim line, so what the cue ball clears or clips is obvious even from the
 	-- low close-up view. A faint dashed centre line scrolls towards the target.

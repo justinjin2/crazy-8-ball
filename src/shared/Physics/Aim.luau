@@ -29,6 +29,13 @@ export type Trace = {
 	-- Zero length for a dead-straight ball hit (stop shot).
 	cueDirX: number,
 	cueDirY: number,
+	-- How much of the cue ball's speed each ball carries away from a ball contact, 0..1: the
+	-- object ball takes cos(cut angle) along the line of centres, the cue ball sin(cut angle)
+	-- along the tangent line. A full hit is (1, 0), a thin cut close to (0, 1). The guideline
+	-- scales its two short lines by these, as the classic phone pool games do. A rail
+	-- contact is (0, 1): the cue ball keeps its speed.
+	objectShare: number,
+	cueShare: number,
 }
 
 local FAR = 1e6
@@ -52,6 +59,8 @@ function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 		objectDirY = 0,
 		cueDirX = dx,
 		cueDirY = dy,
+		objectShare = 0,
+		cueShare = 0,
 	}
 	if cue == nil or cue.pocketed then
 		return trace
@@ -114,11 +123,14 @@ function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 		else
 			trace.cueDirX, trace.cueDirY = tx / tlen, ty / tlen
 		end
+		trace.objectShare = math.clamp(along, 0, 1)
+		trace.cueShare = if tlen < 1e-3 then 0 else math.min(tlen, 1)
 	else
 		trace.contact = "rail"
 		local along = dx * railNx + dy * railNy
 		trace.cueDirX = dx - 2 * along * railNx
 		trace.cueDirY = dy - 2 * along * railNy
+		trace.cueShare = 1
 	end
 	return trace
 end

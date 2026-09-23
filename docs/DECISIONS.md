@@ -734,3 +734,7 @@ while the table is still filling (Waiting/Countdown) and fade once the match sta
 
 2026-09-23: The 8-ball pocket call is final once clicked (or chosen on timeout); it can no
 longer be changed while placing or aiming. Only the called pocket stays marked.
+
+2026-09-23: Guideline object/cue lines scale with the cut angle (object cos, cue sin, as the
+share of speed each ball carries), like GamePigeon. Longest line 16 in; cushion reflections
+keep a fixed line.

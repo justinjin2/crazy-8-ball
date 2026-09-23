@@ -234,8 +234,15 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 		hideStrip(self.cueStub)
 		return
 	end
-	-- Object ball direction: from the object ball's far edge outward.
-	if trace.contact == "ball" then
+	-- Object ball direction: from the object ball's far edge outward. Both short lines grow
+	-- and shrink with how full the hit is (Aim.Trace objectShare/cueShare): a straight-on hit
+	-- sends the object ball the full length and barely deflects the cue ball, a thin cut
+	-- the reverse.
+	local objectLen = stub * trace.objectShare
+	local cueLen = if trace.contact == "ball"
+		then stub * G.CueStubScale * trace.cueShare
+		else stub * G.RailStubScale
+	if trace.contact == "ball" and objectLen >= G.MinStubInches then
 		local ox, oy =
 			trace.ghostX + trace.objectDirX * (ringR + 2 * R),
 			trace.ghostY + trace.objectDirY * (ringR + 2 * R)
@@ -244,22 +251,26 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 			self.placement,
 			ox,
 			oy,
-			ox + trace.objectDirX * stub,
-			oy + trace.objectDirY * stub,
+			ox + trace.objectDirX * objectLen,
+			oy + trace.objectDirY * objectLen,
 			G.StubTransparency
 		)
 	else
 		hideStrip(self.objectStub)
 	end
 	-- Cue ball deflection: from the ring's edge outward.
+	if cueLen < G.MinStubInches then
+		hideStrip(self.cueStub)
+		return
+	end
 	local cx, cy = trace.ghostX + trace.cueDirX * ringR, trace.ghostY + trace.cueDirY * ringR
 	placeStrip(
 		self.cueStub,
 		self.placement,
 		cx,
 		cy,
-		cx + trace.cueDirX * stub * G.CueStubScale,
-		cy + trace.cueDirY * stub * G.CueStubScale,
+		cx + trace.cueDirX * cueLen,
+		cy + trace.cueDirY * cueLen,
 		G.StubTransparency
 	)
 end

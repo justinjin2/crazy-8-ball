@@ -120,4 +120,31 @@ return {
 			"ray slope"
 		)
 	end,
+
+	["guideline shares: full hit, thin cut and rail follow cos and sin of the cut angle"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local R = Config.Balls.RadiusInches
+		local straight =
+			Aim.trace(Simulation.newState(geometry, { Ball.new(0, -20, 0), Ball.new(1, 0, 0) }), 0)
+		H.near(straight.objectShare, 1, 1e-9, "a full hit sends the object ball the full line")
+		H.near(straight.cueShare, 0, 1e-9, "and leaves the cue ball no deflection line")
+		-- Offset the object ball so the line of centres sits 30 degrees off the aim.
+		local cut = math.rad(30)
+		local offset = 2 * R * math.sin(cut)
+		local t = Aim.trace(
+			Simulation.newState(geometry, { Ball.new(0, -20, 0), Ball.new(1, 0, offset) }),
+			0
+		)
+		H.near(t.objectShare, math.cos(cut), 1e-6, "object share is cos(cut)")
+		H.near(t.cueShare, math.sin(cut), 1e-6, "cue share is sin(cut)")
+		H.near(t.objectShare ^ 2 + t.cueShare ^ 2, 1, 1e-6, "the two shares split the speed")
+		local thin = Aim.trace(
+			Simulation.newState(geometry, { Ball.new(0, -20, 0), Ball.new(1, 0, 2 * R * 0.97) }),
+			0
+		)
+		H.expect(thin.objectShare < 0.3 and thin.cueShare > 0.95, "a thin cut flips the lengths")
+		local rail =
+			Aim.trace(Simulation.newState(geometry, { Ball.new(0, -20, 0), Ball.new(1, 0, 20) }), 0)
+		H.expect(rail.contact == "rail" and rail.objectShare == 0 and rail.cueShare == 1)
+	end,
 }

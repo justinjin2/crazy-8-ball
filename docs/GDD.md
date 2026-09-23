@@ -101,7 +101,9 @@ Every feature is checked against these. If it serves none, it waits.
     the camera is close to it.
 - **Guideline** (Classic difficulty): a corridor one ball wide from the cue ball to first
   contact, a ring at the contact point, a short line for the object ball and a short line for
-  the cue ball's deflection. See section 7 for the harder difficulties.
+  the cue ball's deflection. The two short lines scale with how full the hit is (GamePigeon
+  style): the object ball's line is longest on a straight-on hit and shrinks as the cut
+  thins (cos of the cut angle), the cue ball's line does the reverse (sin). See section 7 for the harder difficulties.
 - Balls not in your group are marked with an X and your group gets a slight highlight, drawn on
   each viewer's own screen. A HUD shows which balls you have pocketed.
 - **Physics realism choices (2026-09-22, implemented):** keep one power bar
