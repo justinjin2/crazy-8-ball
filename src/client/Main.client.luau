@@ -683,15 +683,18 @@ RunService.RenderStepped:Connect(function(dt)
 				Camera.beginShot(0)
 			end
 		end
-		-- `busy` is the replay itself, so the pull-out and the return to the home view follow
-		-- the balls. The view holds still while the cue ball is dragged or sits in a pocket.
+		-- The shot "plays" until the server resolves it, not just while the balls roll: the
+		-- pulled-out view stays put through the settle, and only the NEXT turn decides where
+		-- the camera goes - back to the home view if this player shoots again, or straight
+		-- back to their own Roblox camera if not (Camera.unlock eases that hand-over).
+		-- The view holds still while the cue ball is dragged or sits in a pocket.
 		local cueBall = match:findCueBall()
 		local hold = targets:isHolding() or (cueBall ~= nil and cueBall.pocketed)
 		Camera.update(
 			dt,
 			cueWorld(),
 			input.angle,
-			busy,
+			busy or phase == "Resolving",
 			if busy then match:cueBallWorldNow() else nil,
 			if busy then movingBallWorlds() else nil,
 			hold

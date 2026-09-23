@@ -12,6 +12,7 @@
 -- looks straight down on the whole table (setMode) so every pocket can be picked.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -86,6 +87,44 @@ function Camera.placement(): Placement.Placement
 	return placement
 end
 
+-- The hand-back to the player's own camera (see Camera.unlock). Roblox's camera script runs
+-- at RenderPriority.Camera and builds each frame from the camera's current CFrame, so the
+-- blend restores ITS last pose just before it runs and blends just after: the default camera
+-- keeps its own continuity, and what is shown slides from the table view into it.
+local RELEASE_BEFORE = "PoolCameraReleaseRestore"
+local RELEASE_AFTER = "PoolCameraReleaseBlend"
+local releasing = false
+
+local function stopRelease()
+	if releasing then
+		releasing = false
+		RunService:UnbindFromRenderStep(RELEASE_BEFORE)
+		RunService:UnbindFromRenderStep(RELEASE_AFTER)
+	end
+end
+
+local function startRelease(from: CFrame)
+	stopRelease()
+	releasing = true
+	local elapsed = 0
+	local own: CFrame? = nil -- the default camera's own pose, before the blend is applied
+	RunService:BindToRenderStep(RELEASE_BEFORE, Enum.RenderPriority.Camera.Value - 1, function()
+		if own then
+			Workspace.CurrentCamera.CFrame = own
+		end
+	end)
+	RunService:BindToRenderStep(RELEASE_AFTER, Enum.RenderPriority.Camera.Value + 1, function(dt)
+		local cam = Workspace.CurrentCamera
+		own = cam.CFrame
+		elapsed += dt
+		local t = math.clamp(elapsed / Config.Multiplayer.CameraReleaseSeconds, 0, 1)
+		cam.CFrame = from:Lerp(own :: CFrame, t * t * (3 - 2 * t))
+		if t >= 1 then
+			stopRelease()
+		end
+	end)
+end
+
 local function takeOver()
 	local cam = Workspace.CurrentCamera
 	cam.CameraType = Enum.CameraType.Scriptable
@@ -100,6 +139,7 @@ function Camera.lock()
 		return
 	end
 	locked = true
+	stopRelease()
 	local cam = Workspace.CurrentCamera
 	savedCamera = { kind = cam.CameraType, fov = cam.FieldOfView, subject = cam.CameraSubject }
 	transitionFrom = cam.CFrame
@@ -129,7 +169,8 @@ function Camera.lock()
 	)
 end
 
---- Hand the camera back to Roblox's default character camera.
+--- Hand the camera back to Roblox's default character camera, easing from the table view
+--- into it over Multiplayer.CameraReleaseSeconds rather than cutting.
 function Camera.unlock()
 	if not locked then
 		return
@@ -149,6 +190,7 @@ function Camera.unlock()
 	pullOutStart = nil
 	pullOutWanted = true
 	local cam = Workspace.CurrentCamera
+	local from = cam.CFrame
 	cam.CameraType = if savedCamera then savedCamera.kind else Enum.CameraType.Custom
 	if savedCamera then
 		cam.FieldOfView = savedCamera.fov
@@ -159,6 +201,9 @@ function Camera.unlock()
 	savedCamera = nil
 	transitionFrom = nil
 	topDown = false
+	if cam.CameraType ~= Enum.CameraType.Scriptable then
+		startRelease(from)
+	end
 end
 
 function Camera.isLocked(): boolean

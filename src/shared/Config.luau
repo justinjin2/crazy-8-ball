@@ -1672,6 +1672,7 @@ Config.Multiplayer = {
 	CameraFitGrowth = 1.12, -- retreat factor until every corner is clear
 	CameraMaxHudFraction = 0.65, -- portrait/landscape HUD clearance limit
 	CameraTransitionSeconds = 0.55, -- on taking the camera and on switching to/from the top-down pocket call
+	CameraReleaseSeconds = 0.7, -- easing from the table camera into the player's own camera when the turn passes
 	CameraBottomFraction = 0.14, -- leave space for setup controls
 	CameraSideFraction = 0.1, -- pocket/rail clearance
 	ActionRetrySeconds = 2, -- recover controls if an acknowledgement is lost
