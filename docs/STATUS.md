@@ -1,30 +1,31 @@
 # Status
 
-**2026-09-22: multiplayer implemented; real multiplayer/device acceptance pending.**
+**2026-09-22: multiplayer playtest fixes landed; real multiplayer/device acceptance pending.**
 
-The current update is the designer-approved scope in [MULTIPLAYER_SPEC.md](../MULTIPLAYER_SPEC.md),
-which supersedes conflicting older roadmap/GDD match rules. Shared 1v1, 2v2 and 3v3 queues,
-rules, turn flow, HUD, setup controls, surrender voting and match lifecycle are implemented.
-The baseplate now has three dedicated blue-cloth tables. The stored lounge remains disabled.
-No bots, rewards, saved wins, difficulty or abilities are included.
+The current update is [MULTIPLAYER_SPEC.md](../MULTIPLAYER_SPEC.md), revised after the
+designer's first playtest. The baseplate has three blue-cloth tables for shared 1v1, 2v2
+and 3v3 matches, and the stored lounge stays disabled. No bots, rewards, saved wins,
+difficulty or abilities.
 
-See [MULTIPLAYER_PROGRESS.md](../MULTIPLAYER_PROGRESS.md) for current tests, recovery notes,
-remaining work and tooling limits. 195 automated tests and lint pass. Three simultaneous
-server-fixture replays matched all 45 object balls on one actual client within 0.000006 in.
-Desktop/phone-emulator layouts and live keyboard confirmation flows have been inspected.
-Actual final-8 simulations won in each mode; duplicate shots were rejected. Character
-death/respawn, precision aim/shoot and placement confirmation were exercised in Studio.
-These do not constitute full six-client or physical-device acceptance.
+Latest changes:
+- Every turn starts in the **home view** (the pre-multiplayer middle framing), and the
+  camera pulls out during the shot and returns afterwards.
+- The only top-down view is the 8-ball pocket call. Break and ball-in-hand placement
+  happen in 3D with no Lock button: drag the ball (it moves instantly) and shoot at any
+  time within the 10 s.
+- The bonus plays for the owning team in the same frame as the drop, including the first
+  ball, which assigns groups. The HUD shows who is solids and who is stripes the moment
+  that ball drops.
+- Pocketed balls get a red X across the whole ball.
 
-The existing physics A-F, imported art, cue impact/spin, audio and replay systems are retained.
-Earlier detailed physics measurements remain in git history and docs/DECISIONS.md.
-Known art debt: imported mesh pockets differ slightly from regulation simulation geometry.
+Verified: lint clean and 222 Lune tests pass. On one Studio client, the home view pose
+was checked numerically, as were the top-down-only pocket call, a real mouse drag with
+the camera holding, the drop-frame reveal and bonus, and a red X screenshot. No project
+errors or drift warnings. See [MULTIPLAYER_PROGRESS.md](../MULTIPLAYER_PROGRESS.md).
 
-Required acceptance remains real full matches in each mode, concurrent 1v1+2v2 with six
-clients, touch and controller play, and audio listening. Do not tick historical milestone
-boxes whose full acceptance or out-of-scope features (solo, bots, rewards) remain incomplete.
-
-Latest UI correction: compact 56 px desktop match header replaces 150 px panels and
-sits beside Roblox's menu at the top edge when space permits. Screenshots inspected for
-1v1, 2v2 and 3v3; responsive component checks at 402/750/1000 px found no panel overflow.
-All phase labels fit. Lint and 195 tests pass; physical-device acceptance is still open.
+Still required:
+- Real full matches in each mode.
+- Two-client watcher smoothness.
+- A phone (touch) and a physical controller: LT + left stick, held arrows.
+- Audio listening.
+Known art debt: imported mesh pockets differ slightly from regulation geometry.

@@ -65,9 +65,14 @@ Shot flow:
 3. The server broadcasts the inputs (plus the final positions) to every client in the server.
    Each client replays the same simulation locally, so motion is smooth with no lag. When the
    balls stop, clients snap to the server's final positions.
-4. During a turn the shooter's aim angle and ball-in-hand position are replicated at a low rate
-   (about 10 per second) so opponents and spectators see the cue turn. Never the guideline or
-   power.
+4. During a turn the shooter's aim angle and ball-in-hand position ride the unreliable aim
+   stream (up to 15 per second, with a per-turn sequence number) so opponents and spectators
+   see the cue turn and the ball glide (eased). The shooter's own ball is predicted locally
+   and never snapped back by an echo; a reliable Place commits it on release. Never the
+   guideline or power.
+5. Pocket bonuses are decided at shot acceptance from the server's judgement and sent only
+   to the owning team before the replay; each client plays them on the matching replay
+   pocket drop. The assigning shot carries `assign`, so the HUD reveals groups at that drop.
 
 PC opponents run on the server using the same `Simulation` to try candidate shots (skill =
 aim noise and how many candidates it considers), with a per-shot compute budget so twelve

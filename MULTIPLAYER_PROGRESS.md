@@ -79,3 +79,21 @@ menu where there is room. Narrow screens reflow ball rows without shrinking the 
 Screenshots inspected for all three modes; component bounds checked at 402/750/1000 px;
 all phase labels fit. Lint clean, 195 tests pass (7.09 s), Rojo confirmed in correct place.
 Play stopped to clear fixtures. Relaunch existing test clients to load the new source.
+
+## Follow-up: playtest fixes (2026-09-22)
+Commits 08d5bc8 (home view camera, top-down only for the 8 call), 7c38f9a (bonus at the
+drop, instant group reveal, live red X), ab2752a (3D placement with prediction, no Lock,
+call-before-placement). Lint clean, 222 tests pass.
+
+Studio checks on one client with fixtures:
+- The home view pose matches `Camera.viewAt(..., ZoomDefault)` exactly (35 deg, 5.28 studs).
+  The same holds after the pocket call.
+- The pocket call is top-down.
+- A real mouse drag moved the ball under the pointer every step while the camera held.
+  On release the server's spot matched the client.
+- On an assignment shot the HUD reveal and the red X appeared in the drop frame. The local
+  team's bonus played in the same frame as its drop; the opponent's ball played none.
+- No drift warnings.
+
+Not yet checked: phone emulator layout of the new placement instruction, LT + stick and
+held arrows on a real controller, watcher smoothness on a second client, and listening.

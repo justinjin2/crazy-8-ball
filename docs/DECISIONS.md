@@ -683,3 +683,23 @@ fixtures verify all modes, but full human racks and physical-device acceptance r
 rows, compact central status/clock/Leave. Place at y=4 beside Roblox menu when width
 permits, otherwise immediately below its safe inset. Preserve ball diameter and all
 teammates; wrap ball rows on narrow screens. This supersedes the original large header.
+
+## 2026-09-22 — Playtest fixes: home view, 3D placement, instant bonus
+
+Designer playtest feedback. Decisions made with the designer:
+- The pre-multiplayer middle framing (`Config.Camera.View.ZoomDefault`) is named the
+  **home view**. Every turn starts there, and the shot pull-out and return work again.
+  `Multiplayer.InitialZoom` (whole table) is removed. The HUD-clear fit now blends in
+  from the home view to full zoom-out, so the pull-out has no pop.
+- The only top-down view is the 8-ball pocket call. The coin flip is a HUD overlay; no
+  camera is taken for it. Break placement and ball in hand happen in the 3D view.
+- Placement has no Lock button. Drag (or use arrows or LT + stick) and shoot at any time;
+  at 10 s the ball stays put. The ball is predicted locally, streamed unreliably with
+  the aim, and committed reliably on release. Rate limits are per channel.
+- Ball in hand plus the 8: call the pocket first (top-down), then place in the home view.
+- Break pockets keep the table open with no bonus (unchanged). The first ball that
+  assigns groups plays its owners' bonus in the same frame as the drop, and the HUD
+  reveals both teams' groups at that instant. The server decides everything at shot
+  acceptance.
+- Pocketed HUD balls get a red X across the whole ball.
+This supersedes "setup uses top-down" and "Multiplayer starts at whole-table zoom" above.

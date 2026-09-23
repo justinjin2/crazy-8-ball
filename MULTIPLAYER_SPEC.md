@@ -3,6 +3,9 @@
 Agreed with the designer on 2026-09-22; implementation authorized by **begin**.
 This specification supersedes conflicting GDD/roadmap details for this update only.
 The original 18-section request remains the quality and acceptance requirement.
+Revised the same day after the designer's first real playtest: home view camera,
+top-down only for the 8-ball call, 3D cue-ball placement without a lock button, the
+bonus and group reveal at the moment the ball drops, and a red X on pocketed balls.
 
 ## Scope and preservation
 
@@ -27,7 +30,8 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
   No fake functional settings. Five-second synchronized countdown only when full;
   departure cancels it, and refilling starts a fresh countdown. No duplicate starts.
 - Host team is heads. Server chooses coin result once; show the same 2–3 second
-  animation, heads/tails ownership and breaker to all participants in top-down view.
+  animation, heads/tails ownership and breaker to all participants as a HUD overlay;
+  everyone keeps their own camera until the breaker's turn starts in the home view.
 - First queued member of the winning team breaks. Teammates rotate after EVERY shot,
   including scoring shots; team keeps possession only on a legal own-ball pocket.
   Rotation is independent per team and skips departed players.
@@ -55,19 +59,23 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 
 ## Phase/timing order
 
-Waiting → Countdown → CoinFlip → Intro → optional Placement → optional PocketChoice
+Waiting → Countdown → CoinFlip → Intro → optional PocketChoice → optional Placement
 → Aiming → Resolving → optional Foul → next turn or Result → reset.
 
 - Intro: YOUR TURN and sound for newly designated local shooter, two seconds before
   shooting clock. Others see shooter identity. Early shot allowed unless an eight
   call is still required. Continuing 1v1 shooter skips repeated intro/sound.
-- Placement: 10 seconds with valid server-chosen fallback; dragging and buttons,
-  legal/invalid feedback. Early confirmation or early shot ends placement. Timeout
-  locks last valid position, then pocket choice if needed, otherwise 15-second aim.
+- Placement: 10 seconds with valid server-chosen fallback. The shooter drags the cue
+  ball in the normal 3D camera (from any zoom), or uses camera-relative buttons, and
+  may aim and shoot at any time. There is no lock/confirm button. The ball follows the
+  finger immediately (client prediction) and slides around balls and cushions rather
+  than going somewhere illegal. At the deadline it stays where it is and the
+  15-second aim follows. Dragging is also allowed in the Intro when no call is owed.
 - Pocket choice: every eight attempt, six blue pulsing targets, 10 seconds, nearest
   pocket to EIGHT on timeout (stable pocket-id tie break). Confirm early, then aim.
-  Choice may change while aiming without restarting the shooting clock. Placement
-  precedes choice if both needed; no shooting before a required call exists.
+  Choice may change while placing or aiming without restarting the clock. When both
+  are needed the call comes FIRST (top-down), then placement in the home view; no
+  shooting before a required call exists.
 - Aiming: 15 seconds, whole seconds above five; red tenths at/below five, stable width.
   Accepted shot immediately stops clock. No timeout while rolling.
 - Shooting timeout is foul; two successive team shooting timeouts with no accepted
@@ -88,9 +96,11 @@ Two dark horizontal team panels, square avatar portraits at outer sides, shared 
 ball rows, central fixed timer/status area, accessible leave button. Local team stays
 left. Show all six players compactly in 3v3, identifying labels, clear active shooter,
 smooth decreasing square perimeter clock plus separate active marker. Avatar fallback
-must be neutral and visible. Open-table label before assignment; numbered solids/stripes
-then eight after assignment; pocketed icons grey with X, stable slots and restrained
-update emphasis; distinguish locked/eligible eight. Highlight local remaining balls
+must be neutral and visible. Open-table label until the assigning ball drops: on that
+shot both teams' numbered rows appear the instant the ball falls in the replay and never
+revert. Numbered solids/stripes then eight after assignment; a pocketed ball turns grey
+with a red X across the whole ball the moment it drops, stable slots and one restrained
+pop per ball; distinguish locked/eligible eight. Highlight local remaining balls
 subtly in world. Safe insets, constraints, long-name handling, readable small screens.
 Shared reusable components/styles/motion; cancellable animations, no obsolete overlays.
 
@@ -100,19 +110,28 @@ target without showing a normal scoring solution. No private aim guides for othe
 
 ## Camera, movement and audio
 
-- Orbit/down-the-cue remains normal aiming. Top-down for shared coin sequence, break
-  placement, ball-in-hand and pocket choice. Smooth ~0.55-second transition with table
-  framed below HUD, all pockets reachable across aspect ratios. Incoming non-break
-  aim suggests closest own remaining ball (eight when eligible); manual aim remains.
+- The **home view** (Config.Camera.View.ZoomDefault, the pre-multiplayer framing:
+  behind the cue ball, halfway between the close cue view and the whole table) starts
+  every turn. During a shot the camera holds, pulls out to the whole table (clear of the
+  HUD), then eases back to the home view. Break placement and ball in hand happen in
+  this 3D view; the camera holds still while the ball is dragged.
+- The ONLY top-down view is the shooter's 8-ball pocket call (PocketChoice, and the Intro
+  just before it while a call is owed). After the call or its timeout: the home view.
+  Smooth ~0.55-second transition, table framed below the HUD, all pockets reachable
+  across aspect ratios. Incoming non-break aim suggests closest own remaining ball
+  (eight when eligible); manual aim remains.
 - Outgoing shooter watches through settling. Others have ordinary Roblox camera and
   movement within a boundary just outside their match table. All keep match HUD.
   Prevent collisions with shooter/balls and prevent shooter shift-lock turning.
 - Save/restore changed camera, movement, collision and animation properties. Clean
   handling on seat changes, reset, disconnect, result and return to roaming.
 - Physical pocket sounds retained. Bonus is PRIVATE to all ball-owning teammates,
-  even on opponent shots/fouls. Open-table shots physical-only; on assignment shot,
-  dispatch correct bonuses after ownership resolves. Cue scratch/illegal eight has
-  no bonus; winning eight gives winner bonus. No money awarded. Bound overlapping audio.
+  even on opponent shots/fouls, and plays in the same frame as the pocket drop at the
+  ball, climbing the streak ladder. Ownership comes from the server's judgement at shot
+  acceptance, so on the assigning shot the first ball and every later group ball get
+  their owners' bonus at the drop. Break and other open-table shots stay physical-only
+  (the break never assigns). Cue scratch/illegal eight has no bonus; winning eight gives
+  winner bonus. No money awarded. Bound overlapping audio.
 
 ## Surrender, disconnect, death and reset
 
@@ -179,10 +198,18 @@ calledPocket, coin{headsTeam,winnerTeam,breaker}, foul{by,team,reason},
 result{winner,reason}, vote{team,deadline,yes}, balls (x,y,z,pocketed per ball ID+1),
 shotSeq, rackSeed, rackPositions, optional shot (complete replay payload).
 Phases use exactly the title-case names above. Snapshot revisions monotonically increase.
-MatchAction client requests: {tableId,epoch,turnId,kind,x?,y?,pocket?,yes?}; kinds
-Place, ConfirmPlacement, Pocket, Surrender, Vote, LeaveQueue. SnapshotRequest requests
-initial/full state after client listeners exist. Gameplay action requests require current
-epoch/turnId; shot payload additionally supports optional cueX/cueY for atomic early shot.
+MatchAction client requests: {tableId,epoch,turnId,kind,x?,y?,seq?,pocket?,yes?}; kinds
+Place, Pocket, Surrender, Vote, LeaveQueue (no ConfirmPlacement). Place carries a
+per-turn seq; a Place or stream move with seq <= the last accepted one is ignored.
+SnapshotRequest requests initial/full state after client listeners exist. Gameplay action
+requests require current epoch/turnId; shot payload additionally supports optional
+cueX/cueY for atomic early shot (after the window closes, only the locked spot is accepted).
+AimUpdate (unreliable) is (tableId, angle, epoch, turnId, seq?, x?, y?): x/y stream the
+ball in hand without a snapshot broadcast. AimBroadcast is a flat stride-5 list
+[tableId, shooter, angle, cueX, cueY] at Config.Aim.BroadcastsPerSecond. Rate limits are
+per channel (action, place, shot, aim, snapshot) so dragging can never starve a shot.
 ShotResult includes epoch, seq, turnId, shooter, startedAt, seed, start (packed balls),
-duration, final (packed balls), checksum and overrides. MatchFeedback targets bonus/audio
-events with unique IDs. Client owns presentation only.
+duration, final (packed balls), checksum, overrides and, on the assigning shot only,
+assign {groups, ball, index}. Snapshot groups change only at resolution. MatchFeedback
+{tableId, epoch, id, seq, index, ball, team, at} goes only to the owning team at shot
+acceptance, before ShotResult. Client owns presentation only.

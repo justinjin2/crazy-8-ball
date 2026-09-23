@@ -80,13 +80,25 @@ Every feature is checked against these. If it serves none, it waits.
   milestone task, not a design question.
 - Aim ticks: a soft tick sound on every step of rotation; a stretch sound while pulling the
   power bar back (GamePigeon style, original audio).
-- **Camera:** one 3D orbit view (no toggle, no top-down). It sits on the side opposite the aim
-  and looks across the table along the aim line, framing the whole table automatically for any
-  ball position, aim and screen shape. Zoom is one continuous gesture from "whole table" down
-  to a low "down the cue" view behind the ball. Fully zoomed out always shows the whole table.
-  After the strike the camera pulls out to the whole table so every ball's path is visible,
-  then returns to the player's zoom. Your avatar is at the table in an aiming pose, faded to
-  mostly transparent, invisible when the camera is close to it.
+- **Camera:** one 3D orbit view (no toggle; top-down only while calling the 8-ball pocket). It
+  sits on the side opposite the aim and looks across the table along the aim line, framing the
+  whole table automatically for any ball position, aim and screen shape. Zoom is one continuous
+  gesture from "whole table" down to a low "down the cue" view behind the ball. Fully zoomed
+  out always shows the whole table.
+  - The **home view** is the middle of that zoom: behind the cue ball, halfway between the
+    whole table and the down-the-cue view (`Config.Camera.View.ZoomDefault`). Every turn
+    starts there and the camera always comes back to it.
+  - After the strike the camera holds a beat (less if a ball is about to leave the screen),
+    pulls out to the whole table so every ball's path is visible, then eases back to the home
+    view.
+  - Cue-ball placement (break and ball in hand) happens in this 3D view; the camera holds still
+    while the ball is dragged.
+  - The one exception: the shooter's view goes top-down to call the 8-ball pocket, and returns
+    to the home view once the pocket is called.
+  - Only the shooter's camera is taken; everyone else, including during the coin flip, keeps
+    the ordinary Roblox camera.
+  - Your avatar is at the table in an aiming pose, faded to mostly transparent, invisible when
+    the camera is close to it.
 - **Guideline** (Classic difficulty): a corridor one ball wide from the cue ball to first
   contact, a ring at the contact point, a short line for the object ball and a short line for
   the cue ball's deflection. See section 7 for the harder difficulties.

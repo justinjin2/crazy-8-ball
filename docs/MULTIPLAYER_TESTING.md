@@ -16,15 +16,23 @@ or saved wins. The lounge is intentionally disabled.
 
 ## Play each mode
 
-- Heads belongs to the host's team; the coin names the breaker. Move the cue ball along
-  the dotted line, confirm or shoot early. Keep the existing drag aim and pull-down power
-  cue. Fine controls offer aim/power or placement buttons plus SHOOT. During placement,
-  Lock finishes setup and Close returns to the drag controls.
+- Heads belongs to the host's team; the coin names the breaker (a HUD overlay; nobody's
+  camera is taken for it). The breaker starts in the **home view**. Drag the cue ball
+  along the dotted line (press on the ball itself) and shoot whenever you like; there is
+  no Lock button. After 10 seconds the ball stays put and the 15-second aim clock runs.
+  Keep the existing drag aim and pull-down power cue. Fine controls offer aim/power and
+  camera-relative placement arrows (hold to repeat) plus SHOOT.
+- Ball in hand after a foul works the same way, anywhere on the cloth: the ball follows
+  the finger with no lag and slides around balls and cushions. Watch it from a second
+  client: the watcher's ball should glide, not jump.
+- The ONLY top-down view is calling the 8-ball pocket. After the call (or its timeout)
+  the camera returns to the home view. Ball in hand on the 8: call first, then place.
 - PC: drag aim, scroll zoom, power bar, spin disc; L opens leave confirmation.
 - Touch: drag aim, pinch zoom, power bar, spin disc; use the visible leave button.
   Test portrait and landscape, including rotating during placement.
 - Controller: left stick aims, right stick zooms, R2 shoots; A is the hold/release fallback.
-  L1 + right stick selects spin, Y centers it, B backs out/opens leave. X toggles fine
+  L1 + right stick selects spin, Y centers it, B backs out/opens leave. Hold LT + left
+  stick to move the cue ball during placement. X toggles fine
   controls; select buttons/pockets with UI navigation and A. Pocket choice focuses a
   target automatically when controller input is active. Use fine placement buttons when
   dragging is unavailable.
@@ -32,7 +40,9 @@ or saved wins. The lounge is intentionally disabled.
   accepted shot, including a scoring shot. Check the next time a team gains possession
   that rotation continues and skips disconnected players.
 - Groups remain open after the break. A legal non-break scoring shot assigns the first
-  pocketed ball's group. HUD ball slots remain in place and cross out sunk balls.
+  pocketed ball's group: the HUD rows appear and the owning team hears the bonus the
+  instant that ball drops, not when the balls stop. HUD ball slots remain in place and a
+  red X crosses out each sunk ball the moment it drops.
 - On the 8, choose a blue pocket; only that call remains highlighted while aiming.
   Clicking/focusing another pocket changes the call without restarting the clock.
 
