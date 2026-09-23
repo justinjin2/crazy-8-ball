@@ -680,15 +680,18 @@ Config.Camera = {
 		-- centre shifts to the cue ball. Pinch on touch or scroll on PC.
 		ZoomMin = 0.25,
 		ZoomMax = 1.0,
-		-- Where the camera sits whenever it is handed back to the player: on joining a table
-		-- and after every shot. The exact midpoint of the zoom range, which is also the
-		-- halfway point in SCROLL NOTCHES, because the distance is interpolated geometrically
-		-- (see zoomedDistance in Camera.viewFor) - so this is the middle of the range however
-		-- you measure it. At the 9 ft table that is 5.3 studs from the cue ball at a 35 degree
-		-- pitch, against 10.1 studs at 50 degrees fitted and 2.2 studs at 18 degrees closest.
+		-- The HOME VIEW: where the camera sits whenever it is handed back to the player - the
+		-- start of every turn, after every shot, and after calling a pocket for the 8. The
+		-- exact midpoint of the zoom range, which is also the halfway point in SCROLL NOTCHES,
+		-- because the distance is interpolated geometrically (see zoomedDistance in
+		-- Camera.viewFor) - so this is the middle of the range however you measure it. At the
+		-- 9 ft table that is 5.3 studs from the cue ball at a 35 degree pitch, against 10.1
+		-- studs at 50 degrees fitted and 2.2 studs at 18 degrees closest.
 		--
 		-- A shot always ends here rather than at whatever the player had pinched to, so every
-		-- turn starts from the same framing. (tune)
+		-- turn starts from the same framing. Multiplayer uses this framing unchanged: no HUD
+		-- shift. Only the whole-table end of the zoom is fitted clear of the match HUD,
+		-- blended in between here and ZoomMax. (tune)
 		ZoomDefault = 0.625,
 	},
 	-- A ball dropping nudges the camera a hair TOWARD the pocket it went into. This is a
@@ -714,9 +717,9 @@ Config.Camera = {
 		LoudSpeed = 220,
 		MinScale = 0.45,
 	},
-	-- While a shot plays the camera zooms out to the whole-table view (if the player was
-	-- zoomed in) so every ball's path is visible, holds there, then eases back to the
-	-- player's zoom when the balls stop.
+	-- While a shot plays the camera holds the framing it was taken from, then pulls out to the
+	-- whole-table view so every ball's path is visible, and eases back to the home view
+	-- (View.ZoomDefault) when the balls stop.
 	Shot = {
 		ZoomOut = true, -- false = stay at the player's zoom during the shot
 		FocusWeight = 0, -- gaze pull toward the moving cue ball: 0 = none, 1 = track it
@@ -735,7 +738,8 @@ Config.Camera = {
 		-- off screen. This is what actually decides the timing on the shots that need it.
 		--
 		-- A ball counts as gone once its CENTRE reaches this fraction in from the screen
-		-- edge, so the camera starts moving a moment before it truly disappears rather than
+		-- edge (at the top, from the bottom of the match header, which hides the far end of
+		-- the table on a phone), so the camera starts moving a moment before it truly disappears rather than
 		-- after - by the time the centre is at the edge, half the ball is already outside.
 		-- Raise it to leave earlier, drop it to 0 to wait for the ball to actually go. (tune)
 		OffScreenMargin = 0.06,
@@ -1633,13 +1637,10 @@ Config.Multiplayer = {
 	BoundaryHalfWidthStuds = 8, -- separates neighboring tables
 	RequestBurst = 12, -- finite remote request burst per player
 	RequestPerSecond = 8, -- sustained gameplay request rate
-	CameraFitIterations = 32, -- bounded HUD-aware whole-table fitting
+	CameraFitIterations = 32, -- HUD-aware fit of the fully zoomed-out view; blended in above the home view
 	CameraFitGrowth = 1.12, -- retreat factor until every corner is clear
-	InitialZoom = 1, -- start each multiplayer turn with all pockets visible; manual zoom remains
 	CameraMaxHudFraction = 0.65, -- portrait/landscape HUD clearance limit
-	CameraTransitionSeconds = 0.55, -- smooth acquisition and phase transitions
-	CameraHudTopFraction = 0.24, -- room for top portraits/ball rows
-	CameraHudPortraitTopFraction = 0.32, -- stacked small-screen HUD clearance
+	CameraTransitionSeconds = 0.55, -- on taking the camera and on switching to/from the top-down pocket call
 	CameraBottomFraction = 0.14, -- leave space for setup controls
 	CameraSideFraction = 0.1, -- pocket/rail clearance
 	ActionRetrySeconds = 2, -- recover controls if an acknowledgement is lost

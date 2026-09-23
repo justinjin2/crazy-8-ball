@@ -16,6 +16,15 @@ return {
 		H.expect(Config.Physics.RailRestitution <= 1, "restitution above 1 would create energy")
 	end,
 
+	["the home view sits strictly inside the zoom range"] = function()
+		local V = H.require("Config").Camera.View
+		-- The camera fits the whole-table end of the zoom clear of the match HUD, blended in
+		-- from the home view up to ZoomMax. A home view at either end would make that blend
+		-- all or nothing, and would leave the player no room to zoom one way.
+		H.expect(V.ZoomMin < V.ZoomDefault, "the home view must be further out than the close view")
+		H.expect(V.ZoomDefault < V.ZoomMax, "the home view must be closer than the whole table")
+	end,
+
 	["the audio config cannot silently clip its own loudest sound"] = function()
 		local Config = H.require("Config")
 		local SoundMix = H.require("SoundMix")

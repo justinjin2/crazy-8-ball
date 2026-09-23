@@ -5,6 +5,11 @@
 -- screen for the current viewport, so the table is always fully visible at the tightest
 -- framing the screen allows. Zooming in closes on the cue ball. While a shot plays it holds
 -- its position and lets its gaze drift toward the cue ball.
+--
+-- Every turn starts in the HOME VIEW (Config.Camera.View.ZoomDefault, the pre-multiplayer
+-- framing, untouched by the match HUD), and the camera always comes back to it: after every
+-- shot and after the pocket call. The one exception is calling a pocket for the 8, which
+-- looks straight down on the whole table (setMode) so every pocket can be picked.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -39,7 +44,7 @@ local transitionFrom: CFrame? = nil
 local transitionTime = 0
 local savedCamera: any = nil
 
-local zoom = Config.Multiplayer.InitialZoom
+local zoom = Config.Camera.View.ZoomDefault
 -- The pose the smoothing chases, kept apart from what the camera actually shows. The shake
 -- is added on top of this, never folded into it: lerping from an already-shaken pose would
 -- smear the shake into the smoothing and let it drift.
@@ -48,7 +53,7 @@ local smoothed: CFrame? = nil
 local shakeDir = Vector3.zero
 local shakeScale = 0
 local shakeTime = 0
-local anchor: Vector3? = nil -- cue ball position the view is built around (frozen during a shot)
+local anchor: Vector3? = nil -- cue ball the view is built around (frozen: a shot, a hold)
 local anchorDir: Vector3? = nil
 local returnTimer = 0 -- seconds of slower easing left after a shot ends
 local wasPlaying = false
@@ -88,7 +93,8 @@ local function takeOver()
 end
 
 --- Take control of the camera (and keep it even when Roblox's default scripts reset it
---- on spawn).
+--- on spawn). It eases from wherever the player's own camera was into the home view, or
+--- into the top-down view when the turn opens with a pocket call owed for the 8 (setMode).
 function Camera.lock()
 	if locked then
 		return
@@ -98,6 +104,7 @@ function Camera.lock()
 	savedCamera = { kind = cam.CameraType, fov = cam.FieldOfView, subject = cam.CameraSubject }
 	transitionFrom = cam.CFrame
 	transitionTime = 0
+	Camera.resetZoom()
 	takeOver()
 	local function watch(cam: Camera)
 		table.insert(
@@ -138,6 +145,9 @@ function Camera.unlock()
 	shakeScale = 0
 	returnTimer = 0
 	wasPlaying = false
+	shotTime = 0
+	pullOutStart = nil
+	pullOutWanted = true
 	local cam = Workspace.CurrentCamera
 	cam.CameraType = if savedCamera then savedCamera.kind else Enum.CameraType.Custom
 	if savedCamera then
@@ -205,10 +215,11 @@ function Camera.zoomBy(factor: number)
 	zoom = math.clamp(zoom / factor, V.ZoomMin, V.ZoomMax)
 end
 
---- Back to the framing every turn starts from. Used when leaving a table and at the end of
---- each shot, so a pinch made for one shot does not quietly become the setting for the match.
+--- Back to the home view - at every turn start, after every shot, after the 8-ball pocket
+--- call, and whenever the camera is taken - so a pinch made for one shot does not quietly
+--- become the setting for the match.
 function Camera.resetZoom()
-	zoom = Config.Multiplayer.InitialZoom
+	zoom = Config.Camera.View.ZoomDefault
 end
 
 function Camera.getZoom(): number
@@ -268,7 +279,10 @@ local function project(cf: CFrame, point: Vector3, tanH: number, tanV: number): 
 end
 
 -- True when a world point has left the view, with a margin so the answer comes a moment
--- before it truly goes. A point behind the camera counts as gone.
+-- before it truly goes. A point behind the camera counts as gone. The top edge is the
+-- bottom of the match header (setMode), not the screen's: on a phone the header covers a
+-- deep band of the top, which is exactly where the aimed-along home view sends the object
+-- ball. The bottom controls are not full-width, so the bottom edge stays the screen's.
 local function offScreen(cf: CFrame, point: Vector3, vp: Vector2): boolean
 	local tanH, tanV = tangents(vp)
 	local q = project(cf, point, tanH, tanV)
@@ -276,7 +290,7 @@ local function offScreen(cf: CFrame, point: Vector3, vp: Vector2): boolean
 		return true
 	end
 	local edge = 1 - Config.Camera.Shot.OffScreenMargin
-	return math.abs(q.X) > edge or math.abs(q.Y) > edge
+	return math.abs(q.X) > edge or q.Y > edge - 2 * hudTop or q.Y < -edge
 end
 
 -- Fraction of the screen the table's outline covers (shoelace area of the projected corners).
@@ -398,13 +412,15 @@ end
 
 --- Target pose: the fitted whole-table framing at zoom 1, down to the low close view
 --- behind the cue ball at ZoomMin. `focusOverride` (a moving cue ball) pulls the gaze.
+--- Also returns the whole-table pose (zoom 1, no gaze) from the same solve, so the HUD fit
+--- does not have to solve the framing a second time every frame.
 local function viewFor(
 	cueWorld: Vector3,
 	dir: Vector3,
 	focusOverride: Vector3?,
 	viewport: Vector2?,
 	zoomOverride: number?
-): CFrame
+): (CFrame, CFrame)
 	local V = Config.Camera.View
 	local vp = viewport or Workspace.CurrentCamera.ViewportSize
 	local z = zoomOverride or zoom
@@ -414,6 +430,11 @@ local function viewFor(
 	-- look point, shifts the centre to the cue ball and moves the camera in geometrically
 	-- toward the close view along a steadily lower pitch, so the zoom is continuous.
 	local _, lookPoint = poseFor(cueWorld, dir, pitch, distance, V.FocusBallWeight, vp)
+	-- What the lines below give at zoomT = 0 (fully zoomed out) without a gaze: the pitch,
+	-- ball weight and distance are left exactly as solved and there is no look-ahead.
+	local wholeDir = (dir * math.cos(pitch) - Vector3.new(0, math.sin(pitch), 0)).Unit
+	local wholeAim = lookPoint:Lerp(cueWorld, V.FocusBallWeight)
+	local whole = CFrame.lookAt(wholeAim - wholeDir * distance, wholeAim)
 	local closePitch = math.min(math.rad(V.PitchClose), pitch)
 	pitch = pitch + (closePitch - pitch) * zoomT
 	local ballT = math.clamp(zoomT / math.max(V.CloseBallWeightAt, 1e-3), 0, 1)
@@ -429,9 +450,13 @@ local function viewFor(
 		cf =
 			CFrame.lookAt(cf.Position, aimPoint:Lerp(focusOverride, Config.Camera.Shot.FocusWeight))
 	end
-	return cf
+	return cf, whole
 end
 
+--- `overhead` is the top-down view, used only while a pocket is being called for the 8.
+--- `headerPixels` and `bottomPixels` are how much of the screen the match HUD covers above
+--- and below; the top-down view and the whole-table end of the zoom keep the table clear of
+--- them, and a ball rolling under the header counts as off screen for the shot's pull-out.
 function Camera.setMode(overhead: boolean, headerPixels: number, bottomPixels: number?)
 	local vp = Workspace.CurrentCamera.ViewportSize
 	local reserved =
@@ -440,6 +465,9 @@ function Camera.setMode(overhead: boolean, headerPixels: number, bottomPixels: n
 		transitionFrom = Workspace.CurrentCamera.CFrame
 		transitionTime = 0
 		smoothed = nil
+		if not overhead then
+			Camera.resetZoom() -- pocket called or timed out: back to the home view
+		end
 	end
 	topDown, hudTop = overhead, reserved
 	hudBottom =
@@ -462,7 +490,9 @@ local function overheadView(): CFrame
 	return CFrame.lookAt(target + Vector3.new(0, distance, 0), target, up)
 end
 
-local function reserveHud(cf: CFrame, wide: boolean): CFrame
+-- The whole-table pose `cf` moved back and up until every corner clears the match HUD and
+-- the side margins. Only ever applied to the fully zoomed-out pose; see hudWeight.
+local function hudFit(cf: CFrame): CFrame
 	if hudTop <= 0 then
 		return cf
 	end
@@ -477,9 +507,6 @@ local function reserveHud(cf: CFrame, wide: boolean): CFrame
 		result = cf
 			- cf.LookVector * (distance - originalDistance)
 			+ cf.UpVector * distance * tanV * math.max(0, hudTop - hudBottom)
-		if not wide then
-			return result
-		end
 		local fits = true
 		for _, point in corners() do
 			local p = result:PointToObjectSpace(point)
@@ -503,10 +530,24 @@ local function reserveHud(cf: CFrame, wide: boolean): CFrame
 	return result
 end
 
---- The fitted aim pose for a cue ball position and aim angle at the current zoom, for an
---- optional viewport size (defaults to the real one). Used by the framing checks.
-function Camera.viewAt(cueWorld: Vector3, angle: number, viewport: Vector2?): CFrame
-	return viewFor(cueWorld, Camera.aimDirection(angle), nil, viewport)
+-- How much of the HUD fit applies at zoom `z`: none at the home view or closer (the
+-- pre-multiplayer framing, untouched), all of it at ZoomMax, linear between, so the pull-out
+-- lands on the HUD-fitted pose without a pop.
+local function hudWeight(z: number): number
+	local V = Config.Camera.View
+	return math.clamp((z - V.ZoomDefault) / math.max(V.ZoomMax - V.ZoomDefault, 1e-3), 0, 1)
+end
+
+--- The fitted aim pose for a cue ball position and aim angle at the current zoom (or at
+--- `zoomOverride`), for an optional viewport size (defaults to the real one). Without the
+--- HUD fit, which is nothing at the home view or closer. Used by the framing checks.
+function Camera.viewAt(
+	cueWorld: Vector3,
+	angle: number,
+	viewport: Vector2?,
+	zoomOverride: number?
+): CFrame
+	return (viewFor(cueWorld, Camera.aimDirection(angle), nil, viewport, zoomOverride))
 end
 
 --- Where the camera is right now (used to fade the avatar when it gets close).
@@ -514,25 +555,30 @@ function Camera.position(): Vector3
 	return Workspace.CurrentCamera.CFrame.Position
 end
 
---- Move the camera. `playing` freezes the anchor for the duration of the shot, holds the
---- framing the shot was taken from for Shot.HoldSeconds, then pulls out to the whole-table
---- view so every ball's path is visible. When the balls stop it eases back to
---- View.ZoomDefault - the framing every turn starts from, not whatever the player had
---- pinched to. `focus` is the cue ball's current position while it moves (only used when
---- Shot.FocusWeight > 0). `moving` is every ball currently in motion, in world space: the
---- hold ends the moment one of them is about to leave the screen.
+--- Move the camera. `playing` means the shot's replay is running: it freezes the anchor for
+--- the duration of the shot, holds the framing the shot was taken from for
+--- Shot.HoldSeconds, then pulls out to the whole-table view so every ball's path is visible.
+--- When the balls stop it eases back to the home view (View.ZoomDefault) - the framing every
+--- turn starts from, not whatever the player had pinched to. `focus` is the cue ball's
+--- current position while it moves (only used when Shot.FocusWeight > 0). `moving` is every
+--- ball currently in motion, in world space: the hold ends the moment one of them is about
+--- to leave the screen. `hold` freezes the anchor too, without the shot's pull-out: while
+--- the cue ball is being dragged (so the view does not chase the finger) and while it sits
+--- in a pocket (so the view does not drift toward the pocket). When it lets go the view
+--- eases to wherever the ball now is.
 function Camera.update(
 	dt: number,
 	cueWorld: Vector3,
 	angle: number,
 	playing: boolean,
 	focus: Vector3?,
-	moving: { Vector3 }?
+	moving: { Vector3 }?,
+	hold: boolean?
 )
 	local cam = Workspace.CurrentCamera
 	local S = Config.Camera.Shot
 	local dir = Camera.aimDirection(angle)
-	if not playing or anchor == nil then
+	if (not playing and not hold) or anchor == nil then
 		anchor = cueWorld
 		anchorDir = dir
 	end
@@ -586,12 +632,18 @@ function Camera.update(
 		end
 	end
 	local gaze = if playing and S.FocusWeight > 0 then focus else nil
-	local target = if topDown
-		then overheadView()
-		else reserveHud(
-			viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride),
-			(zoomOverride or zoom) >= Config.Camera.View.ZoomMax - 0.001
-		)
+	local target: CFrame
+	if topDown then
+		target = overheadView()
+	else
+		local view, whole =
+			viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
+		-- The HUD fit is worked out on the whole-table pose and only its OFFSET is carried
+		-- over, scaled by the weight. Fitting the zoomed pose itself would jump by a whole
+		-- retreat step each time a corner crossed the HUD edge on the way out.
+		local w = hudWeight(zoomOverride or zoom)
+		target = if w > 0 then view + (hudFit(whole).Position - whole.Position) * w else view
+	end
 	local smoothing = if playing
 		then S.Smoothing
 		elseif returnTimer > 0 then S.ReturnSmoothing
@@ -626,7 +678,7 @@ end
 function Camera.snap(cueWorld: Vector3, angle: number)
 	anchor = cueWorld
 	anchorDir = Camera.aimDirection(angle)
-	local pose = viewFor(anchor :: Vector3, anchorDir :: Vector3, nil)
+	local pose = (viewFor(anchor :: Vector3, anchorDir :: Vector3, nil))
 	smoothed = pose
 	shakeScale = 0
 	Workspace.CurrentCamera.CFrame = pose

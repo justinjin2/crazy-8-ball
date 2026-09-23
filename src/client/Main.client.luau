@@ -77,8 +77,36 @@ local function cueWorld(): Vector3
 		then TableBuilder.toWorld(placement, b.x, b.y, Config.Balls.RenderRadiusInches)
 		else Vector3.zero
 end
+-- World positions of every ball that is moving right now, for the camera: it ends its hold
+-- and pulls out the moment one of them is about to leave the screen. Reused between frames
+-- rather than rebuilt, so watching for that costs nothing per frame.
+--
+-- Pocketed balls are left out deliberately. They are dropping down a hole at the very edge of
+-- the view, so counting them would end the hold on every shot that sinks anything - which is
+-- the one time the close framing is worth keeping.
+local movingBuffer: { Vector3 } = {}
+local function movingBallWorlds(): { Vector3 }
+	table.clear(movingBuffer)
+	if match and placement then
+		for _, b in match.state.balls do
+			if not b.pocketed and (b.vx ~= 0 or b.vy ~= 0) then
+				local at =
+					TableBuilder.toWorld(placement, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
+				table.insert(movingBuffer, at)
+			end
+		end
+	end
+	return movingBuffer
+end
 local function shooter(): boolean
 	return snapshot ~= nil and snapshot.shooter == player.UserId
+end
+-- True while the shooter still owes a pocket call for the 8.
+local function callPending(): boolean
+	return snapshot ~= nil
+		and match ~= nil
+		and snapshot.calledPocket == nil
+		and Judge.eligible(match.state.balls, snapshot.groups[snapshot.activeTeam])
 end
 local function canShoot(): boolean
 	if not shooter() or awaitingAt or not match or match:isBusy() or (hud and hud:isModal()) then
@@ -91,10 +119,7 @@ local function canShoot(): boolean
 	then
 		return false
 	end
-	if
-		Judge.eligible(match.state.balls, snapshot.groups[snapshot.activeTeam])
-		and not snapshot.calledPocket
-	then
+	if callPending() then
 		return false
 	end
 	return true
@@ -415,7 +440,7 @@ input:onAim(refreshAim)
 input:onSpin(refreshAim)
 input:onShoot(fire)
 input:onZoom(function(factor)
-	if canShoot() and not targets:canPlace() then
+	if canShoot() and not targets:isDragging() then
 		Camera.zoomBy(factor)
 	end
 end)
@@ -582,14 +607,14 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	targets:setEnabled(not modal)
 	local phase = snapshot.phase
-	local take = phase == "CoinFlip"
-		or (
-			shooter()
-			and phase ~= "Waiting"
-			and phase ~= "Countdown"
-			and phase ~= "Foul"
-			and phase ~= "Result"
-		)
+	-- Only the shooter's camera is taken. The coin flip is a HUD overlay watched with the
+	-- ordinary camera; the breaker is handed the home view at Intro.
+	local take = shooter()
+		and phase ~= "Waiting"
+		and phase ~= "Countdown"
+		and phase ~= "CoinFlip"
+		and phase ~= "Foul"
+		and phase ~= "Result"
 	if take ~= controlled then
 		controlled = take
 		if take then
@@ -615,30 +640,14 @@ RunService.RenderStepped:Connect(function(dt)
 	UI.setPlayControlsVisible(canShoot() and not modal and not hud.precisionOpen)
 	input:update(dt)
 	if controlled then
-		if
-			phase == "CoinFlip"
-			or targets:canPlace()
-			or phase == "PocketChoice"
-			or (
-				phase == "Intro"
-				and (
-					snapshot.ballInHand
-					or Judge.eligible(match.state.balls, snapshot.groups[snapshot.activeTeam])
-				)
-			)
-		then
-			Camera.setMode(
-				true,
-				hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2,
-				hud:reservedBottom() + M.Style.TargetSize / 2
-			)
-		else
-			Camera.setMode(
-				false,
-				hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2,
-				hud:reservedBottom() + M.Style.TargetSize / 2
-			)
-		end
+		-- Top-down only while a pocket is being called for the 8; everything else, placing
+		-- the cue ball included, plays in the 3D view.
+		local overhead = phase == "PocketChoice" or (phase == "Intro" and callPending())
+		Camera.setMode(
+			overhead,
+			hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2,
+			hud:reservedBottom() + M.Style.TargetSize / 2
+		)
 		if busy and not lastBusy then
 			local cue = match:findCueBall()
 			local speed = match:cueBallSpeedNow()
@@ -649,7 +658,19 @@ RunService.RenderStepped:Connect(function(dt)
 				Camera.beginShot(0)
 			end
 		end
-		Camera.update(dt, cueWorld(), input.angle, phase == "Resolving", match:cueBallWorldNow())
+		-- `busy` is the replay itself, so the pull-out and the return to the home view follow
+		-- the balls. The view holds still while the cue ball is dragged or sits in a pocket.
+		local cueBall = match:findCueBall()
+		local hold = targets:isDragging() or (cueBall ~= nil and cueBall.pocketed)
+		Camera.update(
+			dt,
+			cueWorld(),
+			input.angle,
+			busy,
+			if busy then match:cueBallWorldNow() else nil,
+			if busy then movingBallWorlds() else nil,
+			hold
+		)
 		if shooter() then
 			if phase == "Resolving" then
 				avatar:conceal()
