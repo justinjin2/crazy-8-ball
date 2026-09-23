@@ -300,6 +300,43 @@ Config.Physics = {
 	InstantHitSeconds = 1e-7,
 	-- Tiny separation kept between touching balls to avoid re-colliding forever.
 	ContactSlop = 1e-5,
+
+	-- Simultaneous soft contact for touching balls (Physics/Cluster.luau). A contact that
+	-- involves a ball already touching a third ball is integrated as Hertz spheres for as
+	-- long as any of the group are pressed together, instead of one pairwise impulse at a
+	-- time. Two balls on their own keep the exact pairwise model above.
+	--
+	-- Head-on contact duration at BallContactReferenceSpeed, in microseconds, of the
+	-- undamped Hertz spring; it sets the stiffness. Duration scales with speed^-0.2 and the
+	-- damping stretches it ~10%, so a real contact lasts ~220 us at 100 in/s and ~160 us
+	-- at a 30 mph break. Hertz theory for phenolic balls (modulus 5-15 GPa) gives 200-310
+	-- us at 100 in/s; 200 is the stiff end of that range.
+	-- Why this model and value, from the 2026-09-22 break investigation (seeded full-power
+	-- straight breaks from the break line): the pairwise engine pocketed 0.02 balls per
+	-- break, sent 6.9 distinct object balls to a rail and left 11.5 in the foot quarter
+	-- (200 seeds). At 200 us: 0.95 pocketed, 12.2 rail balls, 3.2 in the foot quarter.
+	-- Across 100-400 us those stay within 0.9-1.1, 12.2-13.3 and 1.6-4.2, but the cue
+	-- ball finishes further from the rack as contacts soften (19 in at 100 us, 31 at 200,
+	-- 38 at 400), so the stiff end keeps a square break's cue ball nearest the centre.
+	-- (tune 100-400)
+	BallContactMicroseconds = 200,
+	BallContactReferenceSpeed = 100, -- in/s; the speed the duration above is quoted at
+	-- A ball within this gap (inches) of a third ball makes its contacts soft. Covers the
+	-- rack's 0.005 in gaps plus jitter and balls left frozen together (ContactSlop apart),
+	-- while two balls merely passing close stay pairwise. Tune 0.005-0.05.
+	ClusterGapInches = 0.02,
+	-- Fixed soft-contact sub-step (s): ~80 velocity-Verlet sub-steps across even a full
+	-- break's contact, restitution within 0.0001 of BallRestitution from 1 to 528 in/s,
+	-- and break statistics over 200 seeds matching those at 5e-7 and 1e-6 within noise.
+	-- Cost scales with 1/step; the break's heaviest phase takes ~4.6 ms in Lune on a
+	-- desktop at this value. Numerical, not physical: keep within 5e-7 to 3e-6.
+	SoftContactStep = 2e-6,
+	-- Safety cap on one soft phase (s). Real contacts let go well inside it (a whole rack
+	-- does in about a millisecond); a phase reaching it parts any balls still pressed.
+	SoftContactMaxSeconds = 0.003,
+	-- Neighbour-list margin (inches) inside a soft phase: pairs further apart than contact
+	-- plus this are skipped until the list is rebuilt. Performance only; 0.01-0.2.
+	SoftContactSkinInches = 0.05,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1321,7 +1358,10 @@ Config.Audio = {
 	-- nine contacts land at or above it and every one of them falls inside the same 90 ms
 	-- window, starting 0.091s in as the cue ball reaches the rack. At half power NOTHING
 	-- reaches it. So this fires on a hard launch and stays completely out of the way of
-	-- ordinary play, which is exactly the ask.
+	-- ordinary play, which is exactly the ask. Since the rack became a soft cluster
+	-- (Physics.BallContactMicroseconds) 12-15 contacts clear it, all within the first
+	-- millisecond; the ceiling below stacks the first ten and the rest are inside the same
+	-- crack anyway.
 	--
 	-- Nine sounds of equal level sum to about +9.5 dB over one of them. That, and not the
 	-- volume curve, is where most of a break's new weight comes from. (tune)

@@ -17,8 +17,13 @@ Latest changes:
   ball, which assigns groups. The HUD shows who is solids and who is stripes the moment
   that ball drops.
 - Pocketed balls get a red X across the whole ball.
+- The camera stays pulled out until the next turn starts, then either returns to the home
+  view or eases (no cut) back into the player's own camera.
+- Breaks now spread properly: touching racked balls push on each other at once
+  (Physics/Cluster.luau). Over 200 seeds, 61% of full breaks pocket a ball and about 12
+  balls reach a rail. Every game opens on a random rack.
 
-Verified: lint clean and 222 Lune tests pass. On one Studio client, the home view pose
+Verified: lint clean and 232 Lune tests pass. On one Studio client, the home view pose
 was checked numerically, as were the top-down-only pocket call, a real mouse drag with
 the camera holding, the drop-frame reveal and bonus, and a red X screenshot. No project
 errors or drift warnings. See [MULTIPLAYER_PROGRESS.md](../MULTIPLAYER_PROGRESS.md).

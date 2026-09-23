@@ -10,10 +10,16 @@
 -- only, spin locked to velocity). Both are integrated in closed form, so no energy is
 -- invented by the integrator.
 --
+-- A contact between two balls is one instantaneous impulse. A contact that involves a ball
+-- already touching a third (a rack, balls frozen together) is handed to Cluster, which
+-- squashes the whole group together as soft spheres for the fraction of a millisecond the
+-- contact lasts; see Cluster.luau for why, and Simulation.step for how that fits in.
+--
 -- Units: inches, seconds, radians. Mass is 1 for every ball (only ratios matter).
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)
+local Cluster = require(script.Parent.Cluster)
 local Collision = require(script.Parent.Collision)
 local Cue = require(script.Parent.Cue)
 local TableGeometry = require(script.Parent.Table)
@@ -390,29 +396,11 @@ local function resolveRail(b: Ball, nx: number, ny: number, e: number, mu: numbe
 	return speedIn
 end
 
--- Ordered piecewise-linear contact friction, clamped to the tabulated endpoint values.
-local function ballFriction(slipSpeed: number): number
-	local points = Config.Physics.BallFrictionTable
-	if slipSpeed <= points[1].Speed then
-		return points[1].Friction
-	end
-	for i = 2, #points do
-		local upper = points[i]
-		if slipSpeed <= upper.Speed then
-			local lower = points[i - 1]
-			local fraction = (slipSpeed - lower.Speed) / (upper.Speed - lower.Speed)
-			return lower.Friction + fraction * (upper.Friction - lower.Friction)
-		end
-	end
-	return points[#points].Friction
-end
-
 -- Equal-mass contact with restitution, throw and spin transfer (TP A.14 / pooltool).
 -- Keep vertical contact slip for the angular impulse, then discard vertical translation:
 -- balls stay on the cloth, but rolling into another ball can give it backspin.
 local function resolveBalls(a: Ball, b: Ball): number
 	local e = Config.Physics.BallRestitution
-	local R = Config.Balls.RadiusInches
 	local nx, ny = b.x - a.x, b.y - a.y
 	local len = math.sqrt(nx * nx + ny * ny)
 	if len < 1e-12 then
@@ -429,17 +417,19 @@ local function resolveBalls(a: Ball, b: Ball): number
 	b.vx += j * nx
 	b.vy += j * ny
 
-	-- Tangent t = (-ny, nx, 0); the other contact tangent is vertical. The normal
-	-- impulse above cannot change either component of this relative surface velocity.
-	local slipAlong = -(a.vx - b.vx) * ny + (a.vy - b.vy) * nx + R * (a.wz + b.wz)
-	local slipVertical = R * ((a.wx + b.wx) * ny - (a.wy + b.wy) * nx)
-	local slipSpeed = math.sqrt(slipAlong * slipAlong + slipVertical * slipVertical)
-	if slipSpeed > Config.Physics.BallSlipEpsilon then
-		-- Unit masses and I = 0.4 R^2 give contact inverse mass 7. The cap prevents
-		-- slip reversing during impact and limits head-on spin transfer to 5/14.
-		local impulse = math.min(ballFriction(slipSpeed) * j, slipSpeed / 7)
-		local along = -impulse * slipAlong / slipSpeed
-		local vertical = -impulse * slipVertical / slipSpeed
+	-- Contact friction: throw and spin transfer (shared with Cluster's soft contact).
+	local along, vertical = Cluster.frictionImpulse(
+		a.vx - b.vx,
+		a.vy - b.vy,
+		a.wx + b.wx,
+		a.wy + b.wy,
+		a.wz + b.wz,
+		nx,
+		ny,
+		j
+	)
+	if along ~= 0 or vertical ~= 0 then
+		local R = Config.Balls.RadiusInches
 		local jx, jy = -ny * along, nx * along
 		a.vx += jx
 		a.vy += jy
@@ -538,7 +528,8 @@ type Hit = {
 	seg: TableGeometry.Segment?,
 }
 
-local function findEarliestHit(state: State, maxT: number): Hit?
+-- `skip`, when given, holds balls that sit this search out entirely (see Simulation.step).
+local function findEarliestHit(state: State, maxT: number, skip: { [Ball]: boolean }?): Hit?
 	local R = Config.Balls.RadiusInches
 	local geometry = state.geometry
 	local balls = state.balls
@@ -546,7 +537,7 @@ local function findEarliestHit(state: State, maxT: number): Hit?
 	local bestT = maxT
 
 	for i, a in balls do
-		if a.pocketed then
+		if a.pocketed or (skip and skip[a]) then
 			continue
 		end
 		local moving = a.vx ~= 0 or a.vy ~= 0
@@ -574,7 +565,7 @@ local function findEarliestHit(state: State, maxT: number): Hit?
 		end
 		for j = i + 1, #balls do
 			local b = balls[j]
-			if b.pocketed then
+			if b.pocketed or (skip and skip[b]) then
 				continue
 			end
 			if not moving and b.vx == 0 and b.vy == 0 then
@@ -617,10 +608,39 @@ local function pushOut(hit: Hit)
 	end
 end
 
---- Advance the simulation by one fixed step, appending any contact events.
-function Simulation.step(state: State, dt: number, events: { Event }?)
+-- Merge two event lists that are each in time order, the first list winning ties.
+local function mergeEvents(into: { Event }, first: { Event }, second: { Event })
+	local i, j = 1, 1
+	while i <= #first or j <= #second do
+		if j > #second or (i <= #first and first[i].t <= second[j].t) then
+			table.insert(into, first[i])
+			i += 1
+		else
+			table.insert(into, second[j])
+			j += 1
+		end
+	end
+end
+
+-- Advance everything not in `skip` by `span` seconds, event by event. Returns the time left
+-- over, which is negative when a soft phase ran past the end of the span.
+--
+-- A ball-ball contact that touches a third ball runs as one atomic soft phase (Cluster):
+-- the group is integrated through the whole contact from the moment of impact, then every
+-- other ball is brought up to the same time by this same loop with the group held out of
+-- it. Cluster.gather guarantees nothing outside the group can reach it, or a cushion, in
+-- that time, so the two halves cannot interact. The catch-up resolves contacts pairwise
+-- (allowSoft false): two separate clusters struck within the same millisecond are rare
+-- enough not to need nesting.
+local function advance(
+	state: State,
+	span: number,
+	events: { Event }?,
+	skip: { [Ball]: boolean }?,
+	allowSoft: boolean
+): number
 	local P = Config.Physics
-	local remaining = dt
+	local remaining = span
 	local iterations = 0
 	-- Zero-time hits per ball this step. A ball wedged between two surfaces would bounce
 	-- between them forever at t = 0; after a few dozen such hits it is stopped instead.
@@ -628,53 +648,110 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 
 	while remaining > 1e-9 and iterations < P.MaxEventsPerStep do
 		iterations += 1
-		local hit = findEarliestHit(state, remaining)
-		local advance = if hit then hit.t else remaining
+		local hit = findEarliestHit(state, remaining, skip)
+		local advanceBy = if hit then hit.t else remaining
 
 		for _, b in state.balls do
-			integrateBall(b, advance, state.geometry, events, state.time + advance)
+			if skip == nil or not skip[b] then
+				integrateBall(b, advanceBy, state.geometry, events, state.time + advanceBy)
+			end
 		end
-		state.time += advance
-		remaining -= advance
+		state.time += advanceBy
+		remaining -= advanceBy
 		capturePockets(state, events)
 
 		if hit and not hit.a.pocketed and not (hit.b and hit.b.pocketed) then
-			pushOut(hit)
-			local speed: number
-			local eventType: "railHit" | "ballHit"
-			local other: number? = nil
-			if hit.kind == "ball" and hit.b then
-				speed = resolveBalls(hit.a, hit.b)
-				eventType = "ballHit"
-				other = hit.b.id
-			else
-				local normalSpeed = -(hit.a.vx * hit.nx + hit.a.vy * hit.ny)
-				local material = state.overrides
-				local e = if material and material.RailRestitution ~= nil
-					then material.RailRestitution
-					else railRestitution(normalSpeed)
-				local mu = if material and material.RailFriction ~= nil
-					then material.RailFriction
-					else P.RailFriction
-				speed = resolveRail(hit.a, hit.nx, hit.ny, e, mu)
-				eventType = "railHit"
+			local soft: { Ball }? = nil
+			local b = hit.b
+			if
+				allowSoft
+				and hit.kind == "ball"
+				and b
+				and Cluster.touchesAnother(state.balls, hit.a, b, skip)
+			then
+				soft = Cluster.gather(state.balls, hit.a, b, state.geometry, skip)
 			end
-			if events and speed > 0 then
-				table.insert(events, {
-					t = state.time,
-					type = eventType,
-					ball = hit.a.id,
-					other = other,
-					speed = speed,
-				})
+			if soft and b then
+				-- The impact that started it is reported exactly as a pairwise hit would be.
+				local relVn = 0
+				local dx, dy = b.x - hit.a.x, b.y - hit.a.y
+				local len = math.sqrt(dx * dx + dy * dy)
+				if len > 1e-12 then
+					relVn = ((hit.a.vx - b.vx) * dx + (hit.a.vy - b.vy) * dy) / len
+				end
+				if events and relVn > 0 then
+					table.insert(events, {
+						t = state.time,
+						type = "ballHit",
+						ball = hit.a.id,
+						other = b.id,
+						speed = relVn,
+					})
+				end
+				local phaseEvents: { Event } = {}
+				local emit: Cluster.Emit? = nil
+				if events then
+					emit = function(first: Ball, second: Ball, t: number, speed: number)
+						table.insert(phaseEvents, {
+							t = t,
+							type = "ballHit",
+							ball = first.id,
+							other = second.id,
+							speed = speed,
+						})
+					end
+				end
+				local duration = Cluster.resolve(soft, hit.a, b, state.time, emit)
+
+				-- Bring every other ball up to the end of the phase.
+				local group: { [Ball]: boolean } = {}
+				for _, m in soft do
+					group[m] = true
+				end
+				local catchUp: { Event }? = if events then {} else nil
+				advance(state, duration, catchUp, group, false)
+				if events and catchUp then
+					mergeEvents(events, phaseEvents, catchUp)
+				end
+				remaining -= duration
+			else
+				pushOut(hit)
+				local speed: number
+				local eventType: "railHit" | "ballHit"
+				local other: number? = nil
+				if hit.kind == "ball" and b then
+					speed = resolveBalls(hit.a, b)
+					eventType = "ballHit"
+					other = b.id
+				else
+					local normalSpeed = -(hit.a.vx * hit.nx + hit.a.vy * hit.ny)
+					local material = state.overrides
+					local e = if material and material.RailRestitution ~= nil
+						then material.RailRestitution
+						else railRestitution(normalSpeed)
+					local mu = if material and material.RailFriction ~= nil
+						then material.RailFriction
+						else P.RailFriction
+					speed = resolveRail(hit.a, hit.nx, hit.ny, e, mu)
+					eventType = "railHit"
+				end
+				if events and speed > 0 then
+					table.insert(events, {
+						t = state.time,
+						type = eventType,
+						ball = hit.a.id,
+						other = other,
+						speed = speed,
+					})
+				end
 			end
 			if hit.t <= P.InstantHitSeconds then
 				local n = (instantHits[hit.a] or 0) + 1
 				instantHits[hit.a] = n
 				if n >= P.MaxInstantHits then
 					Ball.stop(hit.a) -- wedged: it is not going anywhere
-					if hit.b then
-						Ball.stop(hit.b)
+					if b then
+						Ball.stop(b)
 					end
 				end
 			end
@@ -682,12 +759,24 @@ function Simulation.step(state: State, dt: number, events: { Event }?)
 				-- Budget exhausted: whatever is still colliding is stuck. Stop it rather than
 				-- burning the whole shot on it.
 				Ball.stop(hit.a)
-				if hit.b then
-					Ball.stop(hit.b)
+				if b then
+					Ball.stop(b)
 				end
 			end
 		end
 	end
+	return remaining
+end
+
+--- Advance the simulation by one fixed step, appending any contact events.
+---
+--- A soft cluster contact (see Cluster) is resolved atomically, so a step in which one
+--- starts close to its end runs on to the moment it lets go: state.time can end up to
+--- SoftContactMaxSeconds past the step, and the next step simply starts from there. The
+--- server's settle and a client's frame-by-frame replay both call this with the same fixed
+--- step from the same strike, so they overrun at exactly the same places.
+function Simulation.step(state: State, dt: number, events: { Event }?)
+	advance(state, dt, events, nil, true)
 end
 
 ---------------------------------------------------------------------------------------------

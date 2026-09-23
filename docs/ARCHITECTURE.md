@@ -35,7 +35,13 @@ Event-driven fixed step (1/240 s) with exact time of impact for ball-ball, ball-
 ball-point contacts (no tunnelling at any power). Sliding-to-rolling friction in closed form,
 rolling resistance, radius-independent side-spin decay. Ball-ball contacts use a tabulated
 speed-dependent friction impulse for throw and spin transfer, retaining full contact torque
-while translation stays on the cloth. Cue impact uses stick/ball mass, tip restitution and
+while translation stays on the cloth. A contact involving a ball already within
+`ClusterGapInches` of a third ball (the rack, frozen balls) is instead resolved by
+`Physics/Cluster` as one atomic soft phase: Hertz springs with restitution-calibrated damping
+and the same contact friction, integrated at a fixed 2 us sub-step until every contact lets go,
+while the rest of the table catches up through the normal event loop. A step containing one
+may end up to `SoftContactMaxSeconds` late; server settle and client replay overrun
+identically. Cue impact uses stick/ball mass, tip restitution and
 fixed default 4-degree elevation, with squirt and tilted spin feeding cloth swerve. The
 straight Classic guideline predicts launch direction, not the later curved path. Pure side spin does not delay shot completion. Cushions
 use Han's tilted contact normal through the centre, full tangential friction, and tabulated
@@ -80,8 +86,8 @@ tables of PCs stay cheap.
 
 ## 5. Module map
 
-Shared (`src/shared`): `Config`, `Physics/` (Vec, Ball, Table, Collision, Cue, Rack, Aim,
-Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written), `Abilities/`
+Shared (`src/shared`): `Config`, `Physics/` (Vec, Ball, Table, Collision, Cluster, Cue, Rack,
+Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written), `Abilities/`
 (catalog and pure effect hooks into the simulation, to be written), `TableBuilder`,
 `CueStickBuilder`, `AvatarPose`, `ShotInput` (validation/seed quantization), `Strings` (HUD
 copy), `Catalog`

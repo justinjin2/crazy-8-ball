@@ -703,3 +703,20 @@ Designer playtest feedback. Decisions made with the designer:
   acceptance.
 - Pocketed HUD balls get a red X across the whole ball.
 This supersedes "setup uses top-down" and "Multiplayer starts at whole-table zoom" above.
+
+## 2026-09-22 — Soft simultaneous contact for touching balls
+
+Designer approved. The break was weak and bunched because every ball-ball contact was an
+instantaneous pairwise impulse, so a rack with 0.005 in gaps behaved like two Newton's
+cradles (about 72% of the energy to the 7 and 13, nothing pocketed on eleven seeds).
+- A ball-ball contact where either ball is within `Physics.ClusterGapInches` (0.02 in) of a
+  third ball is resolved as a group of Hertz spheres (`Physics/Cluster.luau`) for as long as
+  any of them touch. Two balls alone keep the exact pairwise model, bit for bit.
+- Contact time 200 us at 100 in/s (stiff end of real phenolic balls), damping calibrated so
+  an isolated pair restitutes at `BallRestitution`, same contact friction as pairwise.
+- A cluster that could reach a cushion or pocket inside the phase stays pairwise.
+- One `ballHit` per touching pair per phase, timed at first touch with the fastest closing
+  speed; the triggering pair reports exactly as before, so first contact is unchanged.
+- Measured over 200 seeded full-power breaks: 0.02 -> 0.95 balls pocketed, 6.9 -> 12.2
+  distinct object balls to a rail, 11.5 -> 3.2 left in the foot quarter. A square stun
+  break's cue ball now comes back off the tight rack at about 13% of its speed.

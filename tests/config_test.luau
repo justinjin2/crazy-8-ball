@@ -214,9 +214,10 @@ return {
 		end
 		H.expect(cueSpeed(0.5) < A.StackSpeed, "half power must not be able to stack")
 		H.expect(cueSpeed(1.0) > A.StackSpeed, "full power must be able to stack")
-		-- Measured on a full-power break: nine contacts clear the threshold inside one 90ms
-		-- window. The ceiling has to allow those, and the window has to be wide enough to
-		-- hold them.
+		-- Measured on a full-power break: nine contacts cleared the threshold inside one 90ms
+		-- window with pairwise contacts, and 12-15 inside the first millisecond now the rack
+		-- is a soft cluster. The ceiling has to allow at least the nine, and the window has
+		-- to be wide enough to hold them.
 		H.expect(A.MaxStackedClacks >= 9, "the stack ceiling must fit a real break")
 		H.expect(A.StackWindowSeconds >= 0.09, "the window must span a real break's contacts")
 
