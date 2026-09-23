@@ -74,7 +74,7 @@ Waiting → Countdown → CoinFlip → Intro → optional PocketChoice → optio
   20-second aim follows. Dragging is also allowed in the Intro when no call is owed.
 - Pocket choice: every eight attempt, six blue pulsing targets, 10 seconds, nearest
   pocket to EIGHT on timeout (stable pocket-id tie break). Confirm early, then aim.
-  Choice may change while placing or aiming without restarting the clock. When both
+  The call is final once made (changed 2026-09-23). When both
   are needed the call comes FIRST (top-down), then placement in the home view; no
   shooting before a required call exists.
 - Aiming: 20 seconds, whole seconds above five; red tenths at/below five, stable width.

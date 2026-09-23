@@ -215,7 +215,7 @@ return {
 		local x, y = P.fallback(t.state, 0, true)
 		H.expect(x == -25 and P.valid(t.state, x, y, true))
 	end,
-	["setup deadlines call before placement and reselection never extends a clock"] = function()
+	["setup deadlines call before placement and the call is final"] = function()
 		local t = full(1)
 		E.advance(t, t.deadline)
 		H.expect(t.phase == "Placement")
@@ -237,14 +237,14 @@ return {
 		H.expect(t.phase == "PocketChoice")
 		E.advance(t, 110)
 		H.expect(t.phase == "Placement" and t.calledPocket ~= nil and t.ballInHand)
-		local deadline = t.deadline
-		H.expect(E.action(t, t.shooter, action(t, "Pocket", { pocket = 2 }), 111))
-		H.expect(t.phase == "Placement" and t.deadline == deadline and t.calledPocket == 2)
+		local deadline, called = t.deadline, t.calledPocket
+		H.expect(not E.action(t, t.shooter, action(t, "Pocket", { pocket = 2 }), 111))
+		H.expect(t.phase == "Placement" and t.deadline == deadline and t.calledPocket == called)
 		E.advance(t, deadline)
 		H.expect(t.phase == "Aiming" and not t.ballInHand)
 		deadline = t.deadline
-		H.expect(E.action(t, t.shooter, action(t, "Pocket", { pocket = 3 }), deadline - 1))
-		H.expect(t.deadline == deadline and t.calledPocket == 3)
+		H.expect(not E.action(t, t.shooter, action(t, "Pocket", { pocket = 3 }), deadline - 1))
+		H.expect(t.deadline == deadline and t.calledPocket == called, "no change while aiming")
 	end,
 	["only current shooter current epoch and legal phase can act"] = function()
 		local t = full(3)

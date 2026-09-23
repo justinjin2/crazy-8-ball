@@ -499,10 +499,10 @@ function Engine.action(t: any, userId: number, request: any, now: number): boole
 			return false
 		end
 	elseif kind == "Pocket" then
-		-- A call may be changed while placing or aiming; it never moves the deadline.
+		-- The call is made once, in PocketChoice, and is final: it cannot be changed while
+		-- placing or aiming.
 		if
-			(t.phase ~= "PocketChoice" and t.phase ~= "Placement" and t.phase ~= "Aiming")
-			or not Judge.eligible(t.state.balls, t.groups[t.activeTeam])
+			t.phase ~= "PocketChoice" or not Judge.eligible(t.state.balls, t.groups[t.activeTeam])
 		then
 			return false
 		end
@@ -516,9 +516,7 @@ function Engine.action(t: any, userId: number, request: any, now: number): boole
 			return false
 		end
 		t.calledPocket = request.pocket
-		if t.phase == "PocketChoice" then
-			setup(t, now)
-		end
+		setup(t, now)
 	else
 		return false
 	end

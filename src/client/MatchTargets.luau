@@ -236,16 +236,12 @@ end
 
 function MatchTargets.canCall(self: any): boolean
 	local snapshot = self.snapshot
+	-- The call is final once made (MatchEngine), so the targets only take clicks while
+	-- the pocket is being chosen.
 	return self.enabled
 		and snapshot ~= nil
 		and snapshot.shooter == self.localUserId
-		and (
-			snapshot.phase == "PocketChoice"
-			or (
-				(snapshot.phase == "Aiming" or snapshot.phase == "Placement")
-				and snapshot.calledPocket ~= nil
-			)
-		)
+		and snapshot.phase == "PocketChoice"
 end
 
 function MatchTargets.setEnabled(self: any, enabled: boolean)
@@ -524,8 +520,16 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		local pocket = self.geometry.pockets[target.id]
 		local position, visible = self:project(camera, pocket.x, pocket.y, S.TargetHeightInches)
 		target.button.Position = UDim2.fromOffset(position.X, position.Y)
-		target.button.Visible = canCall and visible
 		local chosen = snapshot.calledPocket == target.id
+		-- After the call only the chosen pocket stays marked, for the shooter, and it is no
+		-- longer something to click or select.
+		local showChosen = chosen
+			and self.enabled
+			and snapshot.shooter == self.localUserId
+			and (snapshot.phase == "Placement" or snapshot.phase == "Aiming")
+		target.button.Visible = (canCall or showChosen) and visible
+		target.button.Active = canCall
+		target.button.Selectable = canCall
 		local highlighted = chosen or snapshot.phase == "PocketChoice" or target.hover
 		target.stroke.Enabled = highlighted
 		target.stroke.Transparency = if target.hover

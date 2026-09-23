@@ -60,7 +60,6 @@ return {
 		PowerUp = "Power +",
 		AimLeft = "Aim −",
 		AimRight = "Aim +",
-		ChangePocket = "Change pocket",
 		QueueCanceled = "Countdown canceled · waiting for players",
 		Rejected = "Action unavailable — check your turn",
 		FoulReasons = {

@@ -44,7 +44,7 @@ or saved wins. The lounge is intentionally disabled.
   instant that ball drops, not when the balls stop. HUD ball slots remain in place and a
   red X crosses out each sunk ball the moment it drops.
 - On the 8, choose a blue pocket; only that call remains highlighted while aiming.
-  Clicking/focusing another pocket changes the call without restarting the clock.
+  The call is final: the other pockets disappear and cannot be picked.
 
 ## Edge cases
 

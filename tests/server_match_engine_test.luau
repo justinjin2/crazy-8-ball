@@ -170,8 +170,8 @@ function tests.eligible_ball_in_hand_calls_before_placement()
 	expect(m.deadline == now + M.PlacementSeconds)
 	local deadline = m.deadline
 	expect(action(m, 21, "Place", { x = -30, y = 3 }, now))
-	expect(action(m, 21, "Pocket", { pocket = 3 }, now + 1), "the call can change while placing")
-	expect(m.phase == "Placement" and m.calledPocket == 3 and m.deadline == deadline)
+	expect(not action(m, 21, "Pocket", { pocket = 3 }, now + 1), "the call is final")
+	expect(m.phase == "Placement" and m.calledPocket == 2 and m.deadline == deadline)
 	local wire = E.acceptShot(m, 21, shotPayload(m, { cueX = -28, cueY = 2 }), now + 1)
 	expect(wire ~= nil and wire.start[1] == -28 and wire.start[2] == 2)
 end

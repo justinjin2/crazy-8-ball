@@ -731,3 +731,6 @@ and a join sound (Creator Store "Beacon SFX" 131677760492710, swappable in Confi
 different object balls reach a rail (standard 8-ball). The apex-first requirement is gone,
 so the aim guide never shows an invalid target on the break. Queue-slot effects show only
 while the table is still filling (Waiting/Countdown) and fade once the match starts.
+
+2026-09-23: The 8-ball pocket call is final once clicked (or chosen on timeout); it can no
+longer be changed while placing or aiming. Only the called pocket stays marked.
