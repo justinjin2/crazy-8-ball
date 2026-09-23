@@ -16,7 +16,7 @@ and are playtest values, not design decisions. Ideas that are not scheduled live
 A 3D, satisfying, chill, competitive and social 8-ball pool game on Roblox. Your own avatar lines
 up and plays every shot in a bright pool lounge. It feels as crisp as GamePigeon 8-ball, with a
 twist: every player brings one ability that helps them or sabotages the opponent. Every ball you
-pocket pays money, win or lose. Money opens loot boxes of rare cues and tables, ranks climb from
+pocket pays money, win or lose. Money opens loot boxes of rare cues, ranks climb from
 Bronze to Reyes, and the rarest items can be traded. Built for phones first, with PC and console.
 
 The goal is longevity: the respected, premier 8-ball game on Roblox that people come back to,
@@ -58,7 +58,7 @@ Every feature is checked against these. If it serves none, it waits.
 **Decided**
 - Inside a match (seconds): aim, shoot, watch, feedback (sound, popup, money), next turn.
 - Across matches (minutes): play, earn money for every ball plus bonuses, spend money on loot
-  boxes for cues and tables, roll abilities, rank up, trade, repeat.
+  boxes for cues, roll abilities, rank up, trade, repeat.
 - The currency is called **money** everywhere (UI, code, docs). Never "coins".
 
 ## 5. Platforms, controls and camera
@@ -127,7 +127,8 @@ Every feature is checked against these. If it serves none, it waits.
   Wait. Solo starts immediately.
 - The next player to step on the pad joins as the opponent, no accept step. Anyone may join a
   waiting table. Everyone else can stand around and watch. If the host leaves before the start
-  the table frees. The host's own custom table model is the table the match is played on.
+  the table frees. Every match is played on the one standard table model (collectible table
+  skins are parked until after release, section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
   Solo: normal rules with no opponent, clear one group then the other then the 8, a foul gives
   yourself ball in hand, sinking the 8 early re-racks, no shot clock, money per ball, no win
@@ -264,37 +265,37 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Money packs are sold for Robux.** Because of that, every loot box, gacha and trade is a
   paid random item under Roblox policy: odds are shown on every box, and players in regions
   where paid random items are restricted get a direct-purchase catalog instead of boxes.
-- **Permanent loot boxes** bought with money: one for cues, one for tables. Goal at release:
-  30 cues. Rarities for everything: **common, uncommon, rare, epic, legendary, ultra**
-  (name of the top tier to be picked). Rarer cues and tables have special pocket VFX.
+- **First release collectibles are cue skins only (decided 2026-09-23).** There are no table
+  skins at release: every table uses the standard model. Table skins are parked in
+  section 18 for after release.
+- **A permanent loot box** bought with money, for cues. Goal at release: 30 cues. Rarities
+  for everything: **common, uncommon, rare, epic, legendary, ultra** (name of the top tier to
+  be picked). Rarer cues have special trail and pocket VFX.
 - **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
   when a ball is pocketed, so the cue you equip changes how the table looks while you play,
   not just what the stick looks like. The default cue and every common one use the same
   minimalist trail: a thin white translucent wisp, like wind off the ball. Rarer cues
   replace it with their own trail and their own pocket effect, and that pairing is the main
   reason to want one. Effects are catalog data (a named style), never code per cue.
-- **Limited seasonal boxes** that leave and may or may not return. Season 0 has one for cues
-  and one for tables.
+- **Limited seasonal boxes** that leave and may or may not return. Season 0 has one, for cues.
 - **Shop** with high-priced, quantity-limited items that sell out and become limited forever.
-  At release: a Founder's cue and table (about 25 to 50 copies) and a Beta cue and table
-  (about 500 to 1000 copies). All economy screens live under one menu.
+  At release: a Founder's cue (about 25 to 50 copies) and a Beta cue (about 500 to 1000
+  copies). All economy screens live under one menu.
 - **Ability gacha:** spins cost Robux (packs of 1, 5, 10, 50) and there is one free spin per
   day. You keep every ability you roll; duplicates give spin credit that only buys more spins.
-- **VIP** (one-time pass): 2x money, an exclusive cue and table, other perks. Never better odds.
-- **Starter offer:** a cheap cue-and-table set for each player's first three days *(tune)*.
-- **Items:** one catalog for cues, tables and abilities (stable id, type, rarity, model,
-  effect). Every cue and table is a unique object with its own ID and a serial number for
-  limited items. Abilities are owned flags. **Cues and tables can be traded, including VIP and
-  starter-offer ones. Abilities are account-bound. Money is never traded.**
-- **Cue and table models:** every cue is its own small mesh plus a named effect style; **every table is its own full 3D
-  model** with a strict performance budget per table (see ARCHITECTURE.md). Hundreds of both
-  are expected, added as data rows plus assets.
+- **VIP** (one-time pass): 2x money, an exclusive cue, other perks. Never better odds.
+- **Starter offer:** a cheap cue for each player's first three days *(tune)*.
+- **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
+  type field leaves room for table skins later. Every cue is a unique object with its own ID
+  and a serial number for limited items. Abilities are owned flags. **Cues can be traded,
+  including VIP and starter-offer ones. Abilities are account-bound. Money is never traded.**
+- **Cue models:** every cue is its own small mesh plus a named effect style. Hundreds are
+  expected, added as data rows plus assets.
 - **Shop, inventory, save data and the first-time flow exist before the game is public.**
 
 **Open**
 - Money per ball, box prices, drop odds, pack prices *(tune)*: research other games first.
 - The name of the top rarity.
-- Whether limited-quantity table models get serial plaques in the world.
 
 ## 13. Fair play and security
 
@@ -370,7 +371,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Modular systems that can be tweaked without rewrites; every tunable in Config.
-- Built for hundreds of cues and tables: items are data rows plus assets.
+- Built for hundreds of cues: items are data rows plus assets.
 - Session-locked, versioned player saves with loss prevention from the first saved money.
 - Track important metrics, especially the first-time funnel.
 
@@ -385,6 +386,9 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   and anything new. New ideas go here.
 - Offline play if Roblox ships it.
 - New game modes and table types.
+- **Collectible table skins** (parked 2026-09-23, after release): each a full 3D table model
+  with a strict per-table budget, the host's table used for the match, rare ones with VFX, a
+  table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
 
 ## 19. Open questions (collected)
 

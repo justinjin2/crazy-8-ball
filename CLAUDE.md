@@ -29,8 +29,8 @@ Read `docs/STUDIO_NOTES.md` when Studio, Rojo, MCP, Lune or Blender misbehave. R
   `src/shared/Config.luau`** with a comment.
 - **Every feature works on phone, PC and gamepad**, and is checked on all three before a
   milestone is done. Every drag has a button alternative.
-- **Player-facing text lives in the shared strings module.** Items (cues, tables, abilities)
-  are catalog data rows plus assets, never new code per item.
+- **Player-facing text lives in the shared strings module.** Items (cues, abilities; no table
+  skins before release) are catalog data rows plus assets, never new code per item.
 - **Saves** go through the session-locked, versioned save layer; never a raw DataStore call.
 - The currency is **money** in code, UI and docs.
 

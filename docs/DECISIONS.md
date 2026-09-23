@@ -742,3 +742,12 @@ keep a fixed line.
 2026-09-23: The post-shot zoom-out now needs a shot that could roll 1.5 table lengths (about
 35% power on a centre hit), up from 0.5 (about 25%). A ball heading off screen still pulls
 the camera out at any power.
+
+## 2026-09-23 — First release: cue skins only
+
+Designer decision: no table skins at first release. Collectibles at release are cue skins
+(each with its own trail and pocket effect) plus abilities. Every match uses the standard
+table model. Table skins, the table loot box and limited Founder's/Beta/VIP tables move to
+Phase 9 (after release) and the GDD's parked list. The catalog's item `type` field keeps
+room for tables later. Roadmap 5.3 removed; 7.2, 7.3, trading, GDD section 12, ARCHITECTURE
+data model and CLAUDE.md updated to match. No code implemented table skins, so none changed.

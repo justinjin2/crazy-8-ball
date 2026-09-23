@@ -129,13 +129,14 @@ are part of this update; the older broader phase boxes below are not completed b
 
 ## Phase 5: Collectibles
 
-- [ ] **5.1 Item catalog and inventory.** Unified catalog (cues, tables, abilities), unique IDs
-  with serials, inventory UI, equip.
+- [ ] **5.1 Item catalog and inventory.** Unified catalog (cues and abilities; the item type
+  leaves room for table skins later), unique IDs with serials, inventory UI, equip.
 - [ ] **5.2 Cues.** Cue model pipeline (one mesh per cue), 30 cues at release, rarities, pocket
   VFX for rare ones.
-- [ ] **5.3 Tables.** Table model pipeline with a strict per-table budget, the host's table is
-  used in the match, VFX for rare ones.
-  Done means (5.1 to 5.3): equip a cue and a table, walk to a pad, and play on them.
+  Done means (5.1 to 5.2): equip a cue, walk to a pad, and play with it (its trail and pocket
+  effect included).
+*Scope note (2026-09-23): first release ships cue skins only. Table skins (the old 5.3) moved
+to Phase 9.*
 
 ## Phase 6: Ranks
 
@@ -155,8 +156,8 @@ are part of this update; the older broader phase boxes below are not completed b
 
 - [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
   region direct-purchase catalog.
-- [ ] **7.2 Loot boxes.** Permanent cue box and table box; Season 0 limited boxes.
-- [ ] **7.3 Shop.** One menu; quantity-limited Founder's and Beta cue and table.
+- [ ] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
+- [ ] **7.3 Shop.** One menu; quantity-limited Founder's and Beta cues.
 - [ ] **7.4 Ability gacha.** Robux spins in packs, one free daily spin, keep everything, spin
   credit for duplicates.
 - [ ] **7.5 VIP pass and starter offer.**
@@ -175,7 +176,9 @@ are part of this update; the older broader phase boxes below are not completed b
 
 ## Phase 9: After release
 
-- [ ] Trading (cues and tables, never money).
+- [ ] Trading (cues, never money; tables too once they exist).
+- [ ] Collectible table skins: table model pipeline with a strict per-table budget, the host's
+  table used for the match, rare ones with VFX, a table loot box and limited tables.
 - [ ] Seasons and themed limited sets.
 - [ ] Cross-server matchmaking; a worldwide 1v1 and 2v2 server.
 - [ ] Private friend-locked tables, party up.

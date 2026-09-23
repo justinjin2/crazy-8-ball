@@ -103,12 +103,12 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
 
 ## 6. Data model
 
-- **Catalog:** one table of item rows for cues, tables and abilities: stable string id, type,
+- **Catalog:** one table of item rows for cues and abilities (table skins are post-release; the
+  `type` field leaves room for them): stable string id, type,
   rarity, display name key, model or asset ids, effect parameters, limited quantity and
   serial rules. Adding an item is adding a row plus assets, never code.
-- **Inventory:** every cue and table is a unique object (`{uid, itemId, serial?, acquiredAt,
-  tradable}`); abilities are owned flags. Equipped cue, table and ability are ids on the
-  profile.
+- **Inventory:** every cue is a unique object (`{uid, itemId, serial?, acquiredAt,
+  tradable}`); abilities are owned flags. Equipped cue and ability are ids on the profile.
 - **Profile (saved):** money, rating and peak rank per season, stats (wins vs people, wins vs
   PC, losses, best win streak, match history last 20), opponents-played-today counters,
   daily streak state, first-time flow progress, flags (founder, VIP), settings (country).
@@ -119,8 +119,9 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
 
 ## 7. Performance budgets
 
-- Table model: at most about 20,000 triangles and eight 1024 px maps per table model; every
-  table is a full model, so the twelve in a server must share nothing but the budget. Automatic
+- Table model: every table uses the one standard model at release (no table skins); keep it
+  within about 20,000 triangles and eight 1024 px maps, the budget any later table skin must
+  also meet. Automatic
   render fidelity (LOD) on all meshes, decorative parts do not cast shadows, no per-table
   shadow-casting lights, StreamingEnabled on.
 - Balls: one shared sphere mesh (about 550 triangles) with per-ball textures.
