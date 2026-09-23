@@ -46,9 +46,19 @@ export type Lounge = typeof(setmetatable(
 		-- One spare cue stick per pooled renderer, for watching other people line up.
 		cues: { Model },
 		cueOf: { [number]: Model },
-		-- tableId -> { angle, shown, by }: the aim coming off the wire, and the eased angle
-		-- actually drawn, so a ten-a-second stream does not make the cue step.
-		aims: { [number]: { angle: number, shown: number, by: number } },
+		-- tableId -> the aim and cue-ball spot coming off the wire, and the eased angle and
+		-- spot actually drawn, so a stream of a few a second does not make either step.
+		aims: {
+			[number]: {
+				angle: number,
+				shown: number,
+				by: number,
+				x: number,
+				y: number,
+				shownX: number,
+				shownY: number,
+			},
+		},
 	},
 	Lounge
 ))
@@ -142,11 +152,19 @@ function Lounge.onShotRejected(self: Lounge, listener: (string) -> ())
 	table.insert(self.rejectListeners, listener)
 end
 
---- Tell the server where we are aiming, so the people watching see the cue turn.
-function Lounge.reportAim(self: Lounge, id: number, angle: number)
+--- Tell the server where we are aiming, so the people watching see the cue turn. While the
+--- cue ball is in hand, `seq`, `x` and `y` carry its latest spot on the same packet.
+function Lounge.reportAim(
+	self: Lounge,
+	id: number,
+	angle: number,
+	seq: number?,
+	x: number?,
+	y: number?
+)
 	local snapshot = self.snapshots[id]
 	if snapshot then
-		Net.get("AimUpdate"):FireServer(id, angle, snapshot.epoch, snapshot.turnId)
+		Net.get("AimUpdate"):FireServer(id, angle, snapshot.epoch, snapshot.turnId, seq, x, y)
 	end
 end
 function Lounge.onSnapshot(self: Lounge, listener: (any) -> ())
@@ -207,17 +225,33 @@ function Lounge.listen(self: Lounge)
 			return
 		end
 		local seen: { [number]: boolean } = {}
-		for i = 1, #batch, 3 do
-			seen[batch[i]] = true
-			local id, by, angle = batch[i], batch[i + 1], batch[i + 2]
-			if typeof(id) == "number" and typeof(angle) == "number" then
+		for i = 1, #batch, Net.AimStride do
+			local id, by, angle, x, y =
+				batch[i], batch[i + 1], batch[i + 2], batch[i + 3], batch[i + 4]
+			if
+				typeof(id) == "number"
+				and typeof(by) == "number"
+				and typeof(angle) == "number"
+				and typeof(x) == "number"
+				and typeof(y) == "number"
+			then
+				seen[id] = true
 				local existing = self.aims[id]
 				if existing then
 					existing.angle = angle
 					existing.by = by
+					existing.x, existing.y = x, y
 				else
 					-- First sighting: draw it where it is rather than easing from zero.
-					self.aims[id] = { angle = angle, shown = angle, by = by }
+					self.aims[id] = {
+						angle = angle,
+						shown = angle,
+						by = by,
+						x = x,
+						y = y,
+						shownX = x,
+						shownY = y,
+					}
 				end
 			end
 		end
@@ -397,6 +431,38 @@ local function rebind(self: Lounge, from: Vector3)
 	end
 end
 
+-- Slide each watched cue ball in hand toward the spot its shooter last sent, eased so the
+-- stream never makes it step. Never our own: the local shooter's ball is predicted in Main.
+local function followPlacement(self: Lounge, dt: number)
+	local alpha = 1 - math.exp(-dt / math.max(Config.Aim.BallSmoothingSeconds, 1e-3))
+	local me = Players.LocalPlayer.UserId
+	for id, aim in self.aims do
+		local match = self.matches[id]
+		local snapshot = self.snapshots[id]
+		if
+			match
+			and snapshot
+			and aim.by ~= me
+			and aim.by == snapshot.shooter
+			and snapshot.ballInHand == true
+			and (snapshot.phase == "Intro" or snapshot.phase == "Placement")
+			and not match:isBusy()
+		then
+			local fromX, fromY = aim.shownX, aim.shownY
+			aim.shownX += (aim.x - fromX) * alpha
+			aim.shownY += (aim.y - fromY) * alpha
+			local cue = match:findCueBall()
+			if
+				cue and (math.abs(cue.x - aim.shownX) > 1e-4 or math.abs(cue.y - aim.shownY) > 1e-4)
+			then
+				match:setCue(aim.shownX, aim.shownY)
+			end
+		else
+			aim.shownX, aim.shownY = aim.x, aim.y
+		end
+	end
+end
+
 -- Draw the cue of whoever is lining up at each table we can see. Never our own: the local
 -- player's cue is driven directly by their input, with no round trip.
 local function updateWatchedCues(self: Lounge, dt: number)
@@ -460,6 +526,7 @@ function Lounge.update(self: Lounge, dt: number): boolean
 			playingHere = busy
 		end
 	end
+	followPlacement(self, dt)
 	updateWatchedCues(self, dt)
 	return playingHere
 end

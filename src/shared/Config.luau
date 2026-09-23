@@ -824,15 +824,22 @@ Config.Pad = {
 -- Live aim: opponents and spectators watch the shooter's cue turn
 ---------------------------------------------------------------------------------------------
 Config.Aim = {
-	-- How often a shooter tells the server where they are aiming, and how often the server
-	-- passes every table's aim on. Ten a second is plenty for a cue that turns slowly, and
-	-- the stream is unreliable, so a dropped one costs a frame of lag and nothing else.
+	-- How often a shooter tells the server where they are aiming. Ten a second is plenty for
+	-- a cue that turns slowly, and the stream is unreliable, so a dropped one costs a frame of
+	-- lag and nothing else.
 	SendsPerSecond = 10,
-	BroadcastsPerSecond = 10,
+	-- How often the server passes every table's aim (and cue-ball spot) on: its own clock,
+	-- a little faster than the aim so a watched ball in hand keeps up with the drag.
+	BroadcastsPerSecond = 15,
+	-- While the shooter drags the cue ball in hand, its spot rides the same stream at this
+	-- rate (only while it is actually moving), and watchers ease their copy of the ball
+	-- toward each spot they hear over this many seconds.
+	PlacementSendsPerSecond = 15,
+	BallSmoothingSeconds = 0.1,
 	-- Do not send at all unless the aim actually moved this far (radians). A player resting
 	-- their thumb should cost nothing.
 	MinChangeRadians = 0.004,
-	-- How fast a watched cue eases to each new angle. The stream is ten a second; without
+	-- How fast a watched cue eases to each new angle. The stream is a few a second; without
 	-- easing the remote cue would visibly step.
 	SmoothingSeconds = 0.08,
 	-- ARCHITECTURE.md section 4: the aim angle and the ball in hand travel, never the
@@ -951,6 +958,10 @@ Config.Input = {
 		-- what the drag path gets from FineDragSpeedPx. 2 = a squared response.
 		AimDegreesPerSecond = 80,
 		AimCurve = 2,
+		-- Ball in hand: hold LT and the left stick slides the cue ball at this many inches a
+		-- second at full push, with the same squared response as aiming.
+		PlaceInchesPerSecond = 30,
+		PlaceCurve = 2,
 		-- Zoom is applied as exp(stick * rate * dt), so it is smooth and frame-rate
 		-- independent: a full push takes about e^1 = 2.7x per second.
 		ZoomRatePerSecond = 1.0,
@@ -1635,6 +1646,13 @@ Config.Multiplayer = {
 	BreakLineX = -25, -- head string on the 100-inch table
 	PlacementClearanceInches = 0.01, -- keep placed balls out of exact contact
 	PlacementGridInches = 1, -- deterministic fallback search spacing
+	PlacementLockLeadSeconds = 0.15, -- client stops moving the ball this long before the placement deadline so its last spot reaches the server first
+	PlacementEchoEpsilonInches = 0.001, -- a late shot may repeat the locked cue spot within this and still be accepted
+	PlacementResolveIterations = 4, -- push-out passes per drag sample (balls, pockets, jaws, cushions)
+	PlacementResolveBisections = 10, -- walk-back steps toward the last legal spot when push-out fails
+	PlacementResolveSlopInches = 0.001, -- pushed spots land this far clear so rounding never reads as contact
+	PlacementCommitIdleSeconds = 0.35, -- button nudges send one reliable Place after this pause
+	BreakAxisMinComponent = 0.35, -- break arrows follow screen-right unless the line runs nearly vertical on screen
 	PadSizeStuds = 3, -- square slot footprint
 	PadGapStuds = 0.6, -- between teammates' slots
 	PadTeamGapStuds = 2, -- separate the two labeled team areas
@@ -1643,8 +1661,13 @@ Config.Multiplayer = {
 	QueueExitGraceSeconds = 0.5, -- forgive brief edge jitter
 	BoundaryHalfLengthStuds = 13, -- local match roaming area
 	BoundaryHalfWidthStuds = 8, -- separates neighboring tables
-	RequestBurst = 12, -- finite remote request burst per player
-	RequestPerSecond = 8, -- sustained gameplay request rate
+	RateLimits = { -- per player and channel token buckets
+		action = { Burst = 12, PerSecond = 8 }, -- calls, votes, surrender, queue leave
+		place = { Burst = 10, PerSecond = 6 }, -- reliable cue-ball commits (drag release, nudge pause)
+		shot = { Burst = 4, PerSecond = 2 }, -- ShotFired; own bucket so placement can never starve it
+		aim = { Burst = 30, PerSecond = 20 }, -- unreliable aim + ball-in-hand stream (client sends <= 15/s)
+		snapshot = { Burst = 12, PerSecond = 8 }, -- full-state recovery requests
+	},
 	CameraFitIterations = 32, -- HUD-aware fit of the fully zoomed-out view; blended in above the home view
 	CameraFitGrowth = 1.12, -- retreat factor until every corner is clear
 	CameraMaxHudFraction = 0.65, -- portrait/landscape HUD clearance limit
@@ -1652,7 +1675,6 @@ Config.Multiplayer = {
 	CameraBottomFraction = 0.14, -- leave space for setup controls
 	CameraSideFraction = 0.1, -- pocket/rail clearance
 	ActionRetrySeconds = 2, -- recover controls if an acknowledgement is lost
-	PlacementSendsPerSecond = 8, -- capped drag preview updates
 	PrecisionPlaceInches = 1, -- cue-ball button step
 	PrecisionAimDegrees = 0.5, -- fine aim button step
 	PrecisionPowerStep = 0.05, -- button alternative to power drag
@@ -1727,7 +1749,9 @@ Config.Multiplayer = {
 		ShortHeaderHeight = 82, -- preserve playable surface in short viewports
 		ShortPortraitSize = 32, -- six identifiable portraits in landscape
 		ShortBallSize = 24, -- readable numbered ball row in landscape
-		ShortSetupHeight = 52, -- one-row placement instruction and confirmation
+		ShortSetupHeight = 30, -- one-line placement instruction on short screens
+		SetupHeight = 36, -- one-line placement instruction
+		SetupMinWidth = 220, -- narrower than this, the instruction stacks above the precision row
 		MobileBreakpoint = 760, -- stack central status below teams
 		NarrowBreakpoint = 480, -- use two ball rows
 		PortraitSize = 32, -- compact square avatar beside the ball row
@@ -1748,10 +1772,13 @@ Config.Multiplayer = {
 		TargetStroke = 2.5, -- readable blue selection outline
 		OwnBallOutlineTransparency = 0.6, -- subtle local group hint
 		TargetSize = 44, -- minimum pocket hit target
-		PlacementHandleSize = 48, -- draggable cue-ball handle
+		PlacementHandleSize = 48, -- draggable cue-ball handle, never smaller than this
+		PlacementGrabScale = 1.4, -- grab radius as a multiple of the ball's on-screen radius
+		PlacementBlockedInches = 1.5, -- ring turns red when the ball lags the pointer by more than this
+		PlacementRepeatDelay = 0.3, -- a held placement arrow starts repeating after this
+		PlacementRepeatInterval = 0.06, -- then steps this often while held
 		TargetHeightInches = 1.5, -- selection targets above cloth
 		TargetPulse = 0.15, -- bounded ring pulse
-		PlacementSendInterval = 0.125, -- drag reports per second capped at eight
 		BreakDotSpacingInches = 2, -- dotted break line spacing
 		Panel = { 20, 23, 29 }, -- dark neutral HUD
 		PanelLight = { 36, 42, 51 }, -- restrained gradient

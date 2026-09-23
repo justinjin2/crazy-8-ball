@@ -176,6 +176,126 @@ return {
 		end
 	end,
 
+	["resolve leaves a legal spot exactly where it was asked for"] = function()
+		local Placement, balls, geometry, Config = setup()
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		local x, y = Placement.resolve(state, -10, 4, false, balls[1].x, balls[1].y)
+		H.expect(x == -10 and y == 4)
+		local bx, by = Placement.resolve(state, 123, 5, true, Config.Multiplayer.BreakLineX, 0)
+		H.expect(bx == Config.Multiplayer.BreakLineX and by == 5, "the break keeps x exactly")
+	end,
+
+	["resolve clamps an off-table want onto the cushions"] = function()
+		local Placement, balls, geometry, Config = setup()
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		local M = Config.Multiplayer
+		local r = Config.Balls.RadiusInches + M.PlacementClearanceInches
+		local x, y = Placement.resolve(state, -15, 1000, false, balls[1].x, balls[1].y)
+		H.expect(x == -15 and Placement.valid(balls, geometry, x, y, false))
+		H.near(y, geometry.halfWidth - r, 2 * M.PlacementResolveSlopInches, "long rail")
+		x, y = Placement.resolve(state, -1000, 0, false, balls[1].x, balls[1].y)
+		H.expect(y == 0 and Placement.valid(balls, geometry, x, y, false))
+		H.near(x, -geometry.halfLength + r, 2 * M.PlacementResolveSlopInches, "head rail")
+		x, y = Placement.resolve(state, 0, -1000, true, M.BreakLineX, 0)
+		H.expect(x == M.BreakLineX and Placement.valid(balls, geometry, x, y, true))
+	end,
+
+	["resolve pushes out of a lone object ball along the contact normal"] = function()
+		local Placement, _, geometry, Config, Ball = setup()
+		local balls = { Ball.new(0, -30, 0), Ball.new(3, 0, 0) }
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		local M = Config.Multiplayer
+		local need = 2 * Config.Balls.RadiusInches + M.PlacementClearanceInches
+		local x, y = Placement.resolve(state, 0.5, 0, false, -30, 0)
+		H.near(x, need, 2 * M.PlacementResolveSlopInches, "pushed straight out")
+		H.expect(y == 0 and Placement.valid(balls, geometry, x, y, false))
+		-- Dead centre: leave toward where the drag came from, the same way every time.
+		local cx, cy = Placement.resolve(state, 0, 0, false, -30, 0)
+		local rx, ry = Placement.resolve(state, 0, 0, false, -30, 0)
+		H.expect(cx == rx and cy == ry and cx < 0 and cy == 0)
+		H.expect(Placement.valid(balls, geometry, cx, cy, false))
+	end,
+
+	["resolve on the break slides along the head string past a ball"] = function()
+		local Placement, _, geometry, Config, Ball = setup()
+		local X = Config.Multiplayer.BreakLineX
+		local balls = { Ball.new(0, X, -10), Ball.new(3, X + 1, 0) }
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		local x, y = Placement.resolve(state, X + 7, 0.5, true, X, -10)
+		H.expect(x == X and y > 0.5, "stays on the line and leaves on its own side")
+		H.expect(Placement.valid(balls, geometry, x, y, true))
+	end,
+
+	["resolve walks back along the drag when the want is wedged"] = function()
+		local Placement, _, geometry, Config, Ball = setup()
+		local R = Config.Balls.RadiusInches
+		-- A closed ring of balls around the want: no push-out can escape it.
+		local balls = { Ball.new(0, -30, 0) }
+		for i = 0, 7 do
+			local a = i * math.pi / 4
+			table.insert(balls, Ball.new(i + 1, 2 * R * math.cos(a), 2 * R * math.sin(a)))
+		end
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		local x, y = Placement.resolve(state, 0, 0, false, -30, 0)
+		H.expect(x ~= nil and y ~= nil)
+		H.expect(Placement.valid(balls, geometry, x :: number, y :: number, false))
+		H.expect(
+			y == 0 and (x :: number) > -30 and (x :: number) < 0,
+			"on the drag, as far as it goes"
+		)
+		-- Nothing legal to walk back to: the caller keeps its own spot.
+		local fx, fy = Placement.resolve(state, 0, 0, false, 0.5, 0)
+		H.expect(fx == 0.5 and fy == 0)
+		local nx, ny = Placement.resolve(state, 0, 0, false, nil, nil)
+		H.expect(nx == nil and ny == nil)
+	end,
+
+	["resolve ignores a nonfinite want"] = function()
+		local Placement, balls, geometry = setup()
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		for _, value in { 0 / 0, math.huge, -math.huge } do
+			local x, y = Placement.resolve(state, value, 0, false, 1, 2)
+			H.expect(x == 1 and y == 2)
+			x, y = Placement.resolve(state, 0, value, true, 1, 2)
+			H.expect(x == 1 and y == 2)
+		end
+	end,
+
+	["every resolved drag spot across the table is legal and repeatable"] = function()
+		local Placement, balls, geometry, Config = setup()
+		local state = { balls = balls, geometry = geometry, time = 0 }
+		for _, isBreak in { false, true } do
+			local fromX, fromY = Placement.fallback(balls, geometry, isBreak)
+			local count = 0
+			-- A serpentine drag over a 7-inch grid reaching past every cushion, each sample
+			-- starting from the last one's answer the way a real drag does.
+			local row = 0
+			for wy = -geometry.halfWidth - 7, geometry.halfWidth + 7, 7 do
+				row += 1
+				local startX, stopX, step = -geometry.halfLength - 7, geometry.halfLength + 7, 7
+				if row % 2 == 0 then
+					startX, stopX, step = stopX, startX, -7
+				end
+				for wx = startX, stopX, step do
+					local x, y = Placement.resolve(state, wx, wy, isBreak, fromX, fromY)
+					local again, againY = Placement.resolve(state, wx, wy, isBreak, fromX, fromY)
+					H.expect(x == again and y == againY, "resolve is deterministic")
+					H.expect(x ~= nil and y ~= nil)
+					H.expect(
+						Placement.valid(balls, geometry, x :: number, y :: number, isBreak),
+						("illegal spot for want %.1f, %.1f"):format(wx, wy)
+					)
+					if isBreak then
+						H.expect(x == Config.Multiplayer.BreakLineX)
+					end
+					fromX, fromY = x :: number, y :: number
+					count += 1
+				end
+			end
+			H.expect(count > 100)
+		end
+	end,
+
 	["missing cue or eight cannot mutate another ball"] = function()
 		local Placement, _, geometry, _, Ball = setup()
 		local balls = { Ball.new(1, 10, 0) }

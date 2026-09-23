@@ -11,6 +11,8 @@
 --   D-pad left/right    -> the nudge buttons, so every drag still has a button alternative
 --   right stick Y       -> zoom
 --   hold L1 + right stick -> spin; Y centres it; release L1 keeps the choice
+--   hold L2 + left stick  -> move the cue ball in hand (only while placing is allowed);
+--                          the triggers and A are ignored while L2 is held
 --   right trigger       -> power: the trigger is analog, so its position IS the bar.
 --                          Release shoots, or cancels below MinPowerToShoot.
 --   ButtonA             -> same shot for pads whose triggers are only on/off: hold to ramp
@@ -65,6 +67,14 @@ export type Input = typeof(setmetatable(
 		nudgeTime: number,
 		nudgeNext: number,
 		gamepadBound: boolean,
+		-- Ball in hand on the gamepad: Main says when placing is allowed, and while L2 is
+		-- held the left stick moves the cue ball instead of the aim.
+		placeAllowed: boolean,
+		placeModifier: boolean,
+		stickPlaceX: number,
+		stickPlaceY: number,
+		placeMoveListeners: { (number, number, number) -> () },
+		placeEndListeners: { () -> () },
 	},
 	Input
 ))
@@ -102,6 +112,12 @@ function Input.new(): Input
 		nudgeTime = 0,
 		nudgeNext = 0,
 		gamepadBound = false,
+		placeAllowed = false,
+		placeModifier = false,
+		stickPlaceX = 0,
+		stickPlaceY = 0,
+		placeMoveListeners = {},
+		placeEndListeners = {},
 	}, Input)
 	self:connectDrag()
 	return self
@@ -133,6 +149,36 @@ end
 --- goes straight to the client, so this only exists for bindings.
 function Input.onLeave(self: Input, listener: () -> ())
 	table.insert(self.leaveListeners, listener)
+end
+
+--- Fired every frame L2 + left stick moves the cue ball in hand: (sx, sy, dt), the stick
+--- after its dead zone and curve, +x right and +y up the screen.
+function Input.onPlaceMove(self: Input, listener: (number, number, number) -> ())
+	table.insert(self.placeMoveListeners, listener)
+end
+
+--- Fired when that gesture ends (L2 released, or placing no longer allowed).
+function Input.onPlaceEnd(self: Input, listener: () -> ())
+	table.insert(self.placeEndListeners, listener)
+end
+
+local function endPlace(self: Input)
+	if not self.placeModifier then
+		return
+	end
+	self.placeModifier = false
+	self.stickPlaceX, self.stickPlaceY = 0, 0
+	for _, l in self.placeEndListeners do
+		l()
+	end
+end
+
+--- Whether L2 + left stick may move the cue ball right now. Turning it off mid-gesture ends it.
+function Input.setPlaceAllowed(self: Input, allowed: boolean)
+	self.placeAllowed = allowed
+	if not allowed then
+		endPlace(self)
+	end
 end
 
 function Input.getSpin(self: Input): { x: number, y: number }
@@ -212,6 +258,7 @@ function Input.setEnabled(self: Input, enabled: boolean)
 		self.triggerHeld = false
 		self.buttonPower = nil
 		self.nudgeDir = 0
+		endPlace(self)
 		if self.power ~= nil then
 			self.power = nil
 			for _, l in self.powerListeners do
@@ -359,6 +406,7 @@ local GAMEPAD_KEYS = {
 	Enum.KeyCode.Thumbstick1,
 	Enum.KeyCode.Thumbstick2,
 	Enum.KeyCode.ButtonR2,
+	Enum.KeyCode.ButtonL2,
 	Enum.KeyCode.ButtonA,
 	Enum.KeyCode.ButtonB,
 	Enum.KeyCode.ButtonL1,
@@ -377,6 +425,44 @@ function Input.handleGamepad(
 	local ended = state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel
 	if not self.enabled then
 		return Enum.ContextActionResult.Pass
+	end
+
+	if code == Enum.KeyCode.ButtonL2 then
+		if ended then
+			local held = self.placeModifier
+			endPlace(self)
+			return if held then sink else Enum.ContextActionResult.Pass
+		elseif state == Enum.UserInputState.Begin then
+			if not self.placeAllowed or self.spinEditing then
+				return Enum.ContextActionResult.Pass
+			end
+			self.placeModifier = true
+			self.stickAim = 0
+			-- The shot buttons are sunk while L2 is held, so their release would never reach
+			-- the handlers below: drop a pull already under way rather than leave it ramping
+			-- to full and fire on the next tap.
+			if self.triggerHeld or self.buttonPower ~= nil then
+				self.triggerHeld = false
+				self.buttonPower = nil
+				if self.power ~= nil then
+					self.power = nil
+					for _, l in self.powerListeners do
+						l(nil)
+					end
+				end
+			end
+			return sink
+		end
+		return if self.placeModifier then sink else Enum.ContextActionResult.Pass
+	elseif self.placeModifier then
+		-- Placing: the left stick moves the ball; the shot buttons wait until L2 is let go.
+		if code == Enum.KeyCode.Thumbstick1 then
+			self.stickPlaceX = if ended then 0 else obj.Position.X
+			self.stickPlaceY = if ended then 0 else obj.Position.Y
+			return sink
+		elseif code == Enum.KeyCode.ButtonR2 or code == Enum.KeyCode.ButtonA then
+			return sink
+		end
 	end
 
 	if code == Enum.KeyCode.ButtonL1 then
@@ -509,7 +595,20 @@ function Input.update(self: Input, dt: number)
 		return
 	end
 
-	local aim = deadZone(self.stickAim, G.AimDeadZone)
+	if self.placeModifier then
+		-- The stick moves the ball, not the aim. Same dead zone and curved response as
+		-- aiming, applied to the stick's length so diagonals are not slower.
+		local x, y = self.stickPlaceX, self.stickPlaceY
+		local length = math.sqrt(x * x + y * y)
+		local shaped = deadZone(math.min(length, 1), G.AimDeadZone) ^ G.PlaceCurve
+		if shaped > 0 then
+			for _, l in self.placeMoveListeners do
+				l(x / length * shaped, y / length * shaped, dt)
+			end
+		end
+	end
+
+	local aim = if self.placeModifier then 0 else deadZone(self.stickAim, G.AimDeadZone)
 	if aim ~= 0 then
 		-- Curve the response so a small push is a fine adjustment, the way a slow drag is.
 		local shaped = math.sign(aim) * math.abs(aim) ^ G.AimCurve

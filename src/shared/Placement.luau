@@ -101,6 +101,61 @@ function Placement.dirToTable(p: Placement, worldX: number, worldZ: number): (nu
 	return worldX * p.cos - worldZ * p.sin, -(worldX * p.sin + worldZ * p.cos)
 end
 
+local function unit(x: number, y: number): (number, number)
+	local length = math.sqrt(x * x + y * y)
+	if length < 1e-9 then
+		return 0, 0
+	end
+	return x / length, y / length
+end
+
+-- The sign of `primary` when it is big enough to trust, else of `fallback`.
+local function toward(primary: number, fallback: number): number
+	local v = if math.abs(primary) >= Config.Multiplayer.BreakAxisMinComponent
+		then primary
+		else fallback
+	return if v < 0 then -1 else 1
+end
+
+--- Map a camera-relative move to a table-space delta, so an arrow or a stick moves the cue
+--- ball the way it looks on screen from any camera. rightX/Z and forwardX/Z are the camera's
+--- right and forward vectors in world space (height ignored); sx/sy are the screen move, +x
+--- right and +y up (away from the camera), in the same units as the result. With
+--- `lateralOnly` (the break) the ball may only slide along the head string: the result is
+--- (0, along). A `discrete` move (an arrow press) never goes dead, whichever way the line
+--- runs on screen; an analog move (the stick) is its plain projection onto the line, so the
+--- response stays smooth as the stick sweeps round.
+function Placement.screenDelta(
+	p: Placement,
+	rightX: number,
+	rightZ: number,
+	forwardX: number,
+	forwardZ: number,
+	sx: number,
+	sy: number,
+	lateralOnly: boolean?,
+	discrete: boolean?
+): (number, number)
+	local rx, ry = unit(Placement.dirToTable(p, rightX, rightZ))
+	local fx, fy = unit(Placement.dirToTable(p, forwardX, forwardZ))
+	if not lateralOnly then
+		return rx * sx + fx * sy, ry * sx + fy * sy
+	end
+	local along = ry * sx + fy * sy
+	if not discrete then
+		return 0, along
+	end
+	-- A single-axis arrow is a full step along the line: toward whichever end the press
+	-- points at, or, when the line runs nearly square to that axis on screen, toward the end
+	-- the other axis points at.
+	if sy == 0 then
+		along = toward(ry, fy) * sx
+	elseif sx == 0 then
+		along = toward(fy, ry) * sy
+	end
+	return 0, along
+end
+
 --- The world-space aim direction for a physics aim angle, as (x, y, z) with y always 0.
 --- Equivalent to dirToWorld(p, cos(angle), sin(angle)), written out because it collapses to
 --- a single rotation by angle + yaw.

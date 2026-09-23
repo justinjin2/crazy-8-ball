@@ -80,6 +80,7 @@ function QA.start(tables: any, seatOf: any, broadcast: (any) -> (), flush: (any)
 			e.groups = if data.open then {} else { "solids", "stripes" }
 			e.shot, e.pending = nil, nil
 			e.turnId += 1
+			e.placeSeq = 0 -- a new turn, so the client's placement counter starts again
 			e.shooter = if data.opponent then e.seats[#e.seats].userId else e.seats[1].userId
 			e.activeTeam = if data.opponent then 2 else 1
 			e.calledPocket = data.calledPocket

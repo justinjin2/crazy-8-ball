@@ -119,17 +119,25 @@ function tests.every_mode_rotates_after_each_shot_and_keeps_independent_team_cur
 		expect(m.shooter == (if size == 3 then 13 else 11))
 	end
 end
-function tests.foul_introduction_placement_aim_order_and_early_confirm()
+function tests.foul_intro_placement_then_aim_without_confirm()
 	local m = playing(3)
 	resolveFixture(m, true, "Scratch")
 	expect(m.phase == "Foul" and m.foul.by == 11 and m.foul.team == 1)
+	expect(not action(m, 11, "Place", { x = -30, y = 3 }), "the fouler cannot place")
 	expire(m)
 	expect(m.phase == "Intro" and m.shooter == 21 and m.ballInHand)
+	expect(action(m, 21, "Place", { x = -30, y = 3 }), "the introduction already allows placing")
 	expire(m)
 	expect(m.phase == "Placement")
-	expect(action(m, 21, "ConfirmPlacement"))
-	expect(m.phase == "Aiming" and not m.ballInHand)
-	expect(not action(m, 21, "ConfirmPlacement"))
+	expect(action(m, 21, "Place", { x = -32, y = -4 }))
+	expect(not action(m, 21, "ConfirmPlacement"), "there is no lock button")
+	expect(m.phase == "Placement" and m.ballInHand)
+	expire(m)
+	local cue = Sim.findBall(m.state, 0)
+	expect(m.phase == "Aiming" and not m.ballInHand and m.timeouts[2] == 0)
+	expect(cue.x == -32 and cue.y == -4, "the ball stays at the last placed spot")
+	H.near(m.deadline - m.phaseStartedAt, M.ShotSeconds, 1e-9, "aiming clock")
+	expect(not action(m, 21, "Place", { x = -30, y = 0 }), "locked once the window closes")
 end
 function tests.setup_deadlines_autocomplete_without_shooting_timeout()
 	local m = playing(1)
@@ -139,7 +147,7 @@ function tests.setup_deadlines_autocomplete_without_shooting_timeout()
 	expect(m.phase == "Aiming" and m.timeouts[1] == 0)
 	expect(m.deadline - m.phaseStartedAt == M.ShotSeconds)
 end
-function tests.eligible_ball_in_hand_requires_placement_then_call_and_no_early_eight()
+function tests.eligible_ball_in_hand_calls_before_placement()
 	local m = playing(2)
 	m.groups = { "solids", "stripes" }
 	for _, ball in m.state.balls do
@@ -149,18 +157,23 @@ function tests.eligible_ball_in_hand_requires_placement_then_call_and_no_early_e
 	end
 	resolveFixture(m, false, "Scratch")
 	expire(m)
-	local early = E.acceptShot(m, 21, shotPayload(m), m.phaseStartedAt)
-	expect(early == nil)
+	expect(m.phase == "Intro" and m.shooter == 21 and m.ballInHand)
+	local early, why = E.acceptShot(m, 21, shotPayload(m), m.phaseStartedAt)
+	expect(early == nil and why == "CallRequired")
+	expect(not action(m, 21, "Place", { x = -30, y = 3 }), "the call comes first")
 	expire(m)
-	expect(m.phase == "Placement")
-	expect(action(m, 21, "ConfirmPlacement"))
 	expect(m.phase == "PocketChoice")
-	expect(not action(m, 11, "Pocket", { pocket = 1 }))
-	expect(action(m, 21, "Pocket", { pocket = 2 }))
+	local now = m.phaseStartedAt + 1
+	expect(not action(m, 11, "Pocket", { pocket = 1 }, now))
+	expect(action(m, 21, "Pocket", { pocket = 2 }, now))
+	expect(m.phase == "Placement" and m.ballInHand and m.calledPocket == 2)
+	expect(m.deadline == now + M.PlacementSeconds)
 	local deadline = m.deadline
-	expect(m.phase == "Aiming" and m.calledPocket == 2)
-	expect(action(m, 21, "Pocket", { pocket = 3 }))
-	expect(m.calledPocket == 3 and m.deadline == deadline)
+	expect(action(m, 21, "Place", { x = -30, y = 3 }, now))
+	expect(action(m, 21, "Pocket", { pocket = 3 }, now + 1), "the call can change while placing")
+	expect(m.phase == "Placement" and m.calledPocket == 3 and m.deadline == deadline)
+	local wire = E.acceptShot(m, 21, shotPayload(m, { cueX = -28, cueY = 2 }), now + 1)
+	expect(wire ~= nil and wire.start[1] == -28 and wire.start[2] == 2)
 end
 function tests.call_timeout_chooses_pocket_nearest_eight()
 	local m = playing(1)
@@ -174,10 +187,154 @@ function tests.call_timeout_chooses_pocket_nearest_eight()
 	local pocket = m.state.geometry.pockets[6]
 	eight.x, eight.y = pocket.x + 2, pocket.y + 2
 	expire(m)
+	expect(m.phase == "PocketChoice" and m.ballInHand)
+	expire(m)
+	expect(m.calledPocket == pocket.id and m.phase == "Placement" and m.ballInHand)
+	expire(m)
+	expect(m.phase == "Aiming" and not m.ballInHand and m.calledPocket == pocket.id)
+end
+function tests.pocket_choice_then_placement_timeouts_chain_without_shooting_timeout()
+	local m = playing(1)
+	m.groups = { "solids", "stripes" }
+	for _, ball in m.state.balls do
+		if ball.id >= 1 and ball.id <= 7 then
+			ball.pocketed = true
+		end
+	end
 	expire(m)
 	expect(m.phase == "PocketChoice")
+	H.near(m.deadline - m.phaseStartedAt, M.PocketChoiceSeconds, 1e-9, "call window")
 	expire(m)
-	expect(m.calledPocket == pocket.id and m.phase == "Aiming")
+	expect(m.phase == "Placement" and m.timeouts[1] == 0)
+	H.near(m.deadline - m.phaseStartedAt, M.PlacementSeconds, 1e-9, "placement window")
+	expire(m)
+	expect(m.phase == "Aiming")
+	H.near(m.deadline - m.phaseStartedAt, M.ShotSeconds, 1e-9, "aiming clock")
+	expect(m.timeouts[1] == 0 and m.calledPocket ~= nil)
+end
+function tests.placement_open_truth_table()
+	local phases = {
+		"Waiting",
+		"Countdown",
+		"CoinFlip",
+		"Intro",
+		"Placement",
+		"PocketChoice",
+		"Aiming",
+		"Resolving",
+		"Foul",
+		"Result",
+	}
+	for _, name in phases do
+		for _, hand in { true, false } do
+			for _, call in { true, false } do
+				local open = hand and (name == "Placement" or (name == "Intro" and not call))
+				expect(
+					E.placementOpen(name, hand, call) == open,
+					("%s hand=%s call=%s"):format(name, tostring(hand), tostring(call))
+				)
+			end
+		end
+		expect(not E.placementOpen(name, nil, false), "no ball in hand, no placing")
+	end
+	expect(not E.placementOpen("Foul", true, false), "the fouler never places")
+end
+local function move(m: any, user: number, seq: any, x: number, y: number, now: number?): boolean
+	local request = { epoch = m.epoch, turnId = m.turnId, seq = seq, x = x, y = y }
+	return E.moveCue(m, user, request, now or m.phaseStartedAt)
+end
+function tests.stream_move_updates_without_revision_and_rejects_stale_seq()
+	local m = playing(1)
+	expire(m)
+	expect(m.phase == "Placement" and m.breakShot)
+	local X = M.BreakLineX
+	local cue = Sim.findBall(m.state, 0)
+	local revision = m.revision
+	expect(move(m, 11, 1, X, 3))
+	expect(cue.y == 3 and m.revision == revision, "the stream never forces a snapshot")
+	expect(not move(m, 11, 1, X, 4) and cue.y == 3, "a repeated seq is dropped")
+	expect(move(m, 11, 3, X, 5))
+	expect(not move(m, 11, 2, X, 6) and cue.y == 5, "a late packet cannot drag the ball back")
+	expect(not move(m, 11, 3.5, X, 6) and not move(m, 11, 0 / 0, X, 6))
+	expect(not move(m, 21, 4, X, 6), "only the shooter")
+	expect(
+		not E.moveCue(m, 11, { epoch = m.epoch, turnId = m.turnId - 1, seq = 4, x = X, y = 6 }, 0)
+	)
+	expect(not E.moveCue(m, 11, { epoch = m.epoch, turnId = m.turnId, x = X, y = 6 }, 0))
+	local object = Sim.findBall(m.state, 2)
+	object.x, object.y = X, 12
+	local checksum = Sim.checksum(m.state.balls)
+	expect(not move(m, 11, 4, X, 12), "an overlap is rejected")
+	expect(not move(m, 11, 4, X + 1, 0), "off the head string is rejected")
+	expect(Sim.checksum(m.state.balls) == checksum and m.placeSeq == 3)
+	expect(not action(m, 11, "Place", { x = X, y = 1, seq = 3 }), "Place shares the counter")
+	expect(action(m, 11, "Place", { x = X, y = 1 }), "a Place without seq is judged alone")
+	expect(action(m, 11, "Place", { x = X, y = 2, seq = 4 }) and m.placeSeq == 4)
+	expect(m.revision > revision and cue.y == 2)
+	expect(E.snapshot(m).placeSeq == nil)
+end
+function tests.moves_after_placement_deadline_rejected_before_advance()
+	local m = playing(1)
+	expire(m)
+	local X, deadline = M.BreakLineX, m.deadline
+	expect(not move(m, 11, 1, X, 3, deadline))
+	expect(not action(m, 11, "Place", { x = X, y = 3 }, deadline))
+	expect(m.phase == "Placement" and Sim.findBall(m.state, 0).y ~= 3)
+	expect(move(m, 11, 1, X, 3, deadline - 0.01))
+end
+function tests.late_shot_repeating_locked_spot_is_accepted_moved_spot_is_not()
+	local m = playing(1)
+	expire(m)
+	local X = M.BreakLineX
+	expect(action(m, 11, "Place", { x = X, y = 4, seq = 1 }))
+	expire(m)
+	expect(m.phase == "Aiming" and not m.ballInHand)
+	local now = m.phaseStartedAt
+	local moved, why = E.acceptShot(m, 11, shotPayload(m, { cueX = X, cueY = 6 }), now)
+	expect(moved == nil and why == "InvalidPlacement")
+	expect(E.acceptShot(m, 11, shotPayload(m, { cueX = X }), now) == nil)
+	expect(E.acceptShot(m, 11, shotPayload(m, { cueX = X, cueY = 0 / 0 }), now) == nil)
+	local echo = 4 + M.PlacementEchoEpsilonInches / 2
+	local wire = E.acceptShot(m, 11, shotPayload(m, { cueX = X, cueY = echo }), now)
+	expect(wire ~= nil and wire.start[1] == X and wire.start[2] == 4, "the locked spot is used")
+end
+function tests.resolved_drag_spots_are_always_accepted_by_place()
+	local P = H.require("Rules.CuePlacement")
+	local m = playing(1)
+	expire(m)
+	local g = m.state.geometry
+	local seq = 0
+	-- Break first, then ordinary ball in hand after a foul; a 7-inch sweep past every rail.
+	for _, isBreak in { true, false } do
+		if not isBreak then
+			resolveFixture(m, true, "Scratch")
+			expire(m)
+			expire(m)
+			expect(m.phase == "Placement" and not m.breakShot)
+			seq = 0
+		end
+		local cue = Sim.findBall(m.state, 0)
+		for wy = -g.halfWidth - 7, g.halfWidth + 7, 7 do
+			for wx = -g.halfLength - 7, g.halfLength + 7, 7 do
+				local x, y = P.resolve(m.state, wx, wy, m.breakShot, cue.x, cue.y)
+				seq += 1
+				expect(
+					action(m, m.shooter, "Place", { x = x, y = y, seq = seq }),
+					("Place refused a resolved spot for %.1f, %.1f"):format(wx, wy)
+				)
+				expect(cue.x == x and cue.y == y)
+			end
+		end
+	end
+end
+function tests.placement_seq_resets_each_turn()
+	local m = playing(1)
+	expire(m)
+	expect(action(m, 11, "Place", { x = M.BreakLineX, y = 4, seq = 5 }) and m.placeSeq == 5)
+	resolveFixture(m, true, "Scratch")
+	expire(m)
+	expect(m.phase == "Intro" and m.shooter == 21 and m.placeSeq == 0)
+	expect(action(m, 21, "Place", { x = -30, y = 3, seq = 1 }))
 end
 function tests.two_team_timeouts_forfeit_but_accepted_shot_clears_streak()
 	local m = playing(2)

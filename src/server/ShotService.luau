@@ -13,7 +13,7 @@ function Service.start()
 	end
 	started = true
 	Net.get("ShotFired").OnServerEvent:Connect(function(player, payload)
-		if type(payload) ~= "table" or not Tables.allow(player) then
+		if type(payload) ~= "table" or not Tables.allow(player, "shot") then
 			return
 		end
 		local id = Tables.tableOf(player)
@@ -36,7 +36,13 @@ function Service.start()
 		else
 			Net.get("ShotRejected"):FireClient(player, reason or "ShotRejected")
 		end
-		Tables.broadcast(t)
+		-- An accepted shot (or an advance above that moved a phase on) goes to everyone. A plain
+		-- rejection changes nothing, so only the shooter needs the current state back.
+		if t.engine.revision ~= t.sentRevision then
+			Tables.broadcast(t)
+		else
+			Tables.broadcast(t, player)
+		end
 	end)
 end
 return Service

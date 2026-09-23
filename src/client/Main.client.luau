@@ -289,9 +289,11 @@ local function suggestAim()
 	end
 end
 local function fire(power: number)
-	if not canShoot() or not targets:isPlacementValid() then
+	if not canShoot() then
 		return
 	end
+	-- The shot carries the cue ball in hand while the window is open, so the spot and the
+	-- shot land together; after the cutoff the server already holds the locked spot.
 	local x, y = targets:getPreview()
 	lounge:fire(
 		snapshot.id,
@@ -302,6 +304,7 @@ local function fire(power: number)
 		x,
 		y
 	)
+	targets:shotFired()
 	awaitingAt = workspace:GetServerTimeNow()
 	input:setEnabled(false)
 	input:resetSpin()
@@ -333,24 +336,7 @@ local function action(kind: string, value: any?)
 	elseif kind == "PrecisionShoot" then
 		fire(discretePower)
 	elseif kind == "PrecisionPlace" then
-		if targets:canPlace() then
-			local cue = match:findCueBall()
-			local x, y = targets:getPreview()
-			x = x or cue.x
-			y = y or cue.y
-			if snapshot.breakShot then
-				x = M.BreakLineX
-				y += if value.y ~= 0 then value.y else value.x
-			else
-				x += value.x
-				y += value.y
-			end
-			if targets:setPreview(x, y) then
-				lounge:action("Place", { x = x, y = y })
-				cue.x, cue.y = x, y
-				match:renderState()
-			end
-		end
+		targets:nudge(value.sx, value.sy)
 	elseif kind == "PrecisionToggle" then
 		if value and UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1 then
 			GuiService.SelectedObject = if targets:canPlace()
@@ -359,12 +345,6 @@ local function action(kind: string, value: any?)
 		end
 	elseif kind == "Vote" then
 		lounge:action(kind, { yes = value })
-	elseif kind == "ConfirmPlacement" then
-		local x, y = targets:getPreview()
-		if x and y then
-			lounge:action("Place", { x = x, y = y })
-		end
-		lounge:action(kind)
 	else
 		lounge:action(kind)
 	end
@@ -374,20 +354,19 @@ targets = MatchTargets.new(screen, function(pocket)
 	GuiService.SelectedObject = nil
 	lounge:action("Pocket", { pocket = pocket })
 end, function(x, y)
-	if not snapshot then
-		return
+	-- Predicted: the ball moves now, and stays put over snapshots until the turn moves on.
+	if match and snapshot then
+		match:holdCue(snapshot.epoch, snapshot.turnId, x, y)
 	end
-	lounge:action("Place", { x = x, y = y })
-	local cue = match and match:findCueBall()
-	if cue then
-		cue.x, cue.y = x, y
-		match:renderState()
-		refreshAim()
-	end
+end, function(x, y, seq)
+	lounge:action("Place", { x = x, y = y, seq = seq })
 end)
 
 local function acquireTable(s: any?)
 	local oldId = snapshot and snapshot.id
+	if match and (not s or s.id ~= oldId) then
+		match:releaseCue()
+	end
 	snapshot = s
 	if not s then
 		awaitingAt = nil
@@ -479,6 +458,12 @@ input:onZoom(function(factor)
 	if canShoot() and not targets:isDragging() then
 		Camera.zoomBy(factor)
 	end
+end)
+input:onPlaceMove(function(sx, sy, dt)
+	targets:stickMove(sx, sy, dt)
+end)
+input:onPlaceEnd(function()
+	targets:finishGesture(true)
 end)
 input:onTick(function()
 	if snapshot and canShoot() then
@@ -593,7 +578,7 @@ RunService.RenderStepped:Connect(function(dt)
 			e:attachTrail(part)
 			e.boundCue = part
 		end
-		e:updateTrail(m:findCueBall())
+		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
 	for _, view in padViews do
 		local tint =
@@ -644,7 +629,8 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		wasModal = modal
 	end
-	targets:setEnabled(not modal)
+	targets:setEnabled(not modal and awaitingAt == nil and not match:isBusy())
+	input:setPlaceAllowed(targets:canPlace())
 	local phase = snapshot.phase
 	-- Only the shooter's camera is taken. The coin flip is a HUD overlay watched with the
 	-- ordinary camera; the breaker is handed the home view at Intro.
@@ -700,7 +686,7 @@ RunService.RenderStepped:Connect(function(dt)
 		-- `busy` is the replay itself, so the pull-out and the return to the home view follow
 		-- the balls. The view holds still while the cue ball is dragged or sits in a pocket.
 		local cueBall = match:findCueBall()
-		local hold = targets:isDragging() or (cueBall ~= nil and cueBall.pocketed)
+		local hold = targets:isHolding() or (cueBall ~= nil and cueBall.pocketed)
 		Camera.update(
 			dt,
 			cueWorld(),
@@ -727,20 +713,28 @@ RunService.RenderStepped:Connect(function(dt)
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
 	targets:update(dt, workspace.CurrentCamera)
-	hud:setPlacementValid(targets:isPlacementValid())
+	hud:setPlacing(targets:canPlace(), targets:isBlocked())
 	if guideline then
 		guideline:update(dt)
 	end
 	refreshAim()
+	-- One unreliable stream for the aim and, while it moves, the cue ball in hand.
 	sinceAim += dt
+	local seq, px, py
+	if sinceAim >= 1 / Config.Aim.PlacementSendsPerSecond then
+		seq, px, py = targets:takeStream()
+	end
 	if
-		canShoot()
-		and sinceAim >= 1 / Config.Aim.SendsPerSecond
-		and (not lastAim or math.abs(input.angle - lastAim) > Config.Aim.MinChangeRadians)
+		seq
+		or (
+			canShoot()
+			and sinceAim >= 1 / Config.Aim.SendsPerSecond
+			and (not lastAim or math.abs(input.angle - lastAim) > Config.Aim.MinChangeRadians)
+		)
 	then
 		sinceAim = 0
 		lastAim = input.angle
-		lounge:reportAim(snapshot.id, input.angle)
+		lounge:reportAim(snapshot.id, input.angle, seq, px, py)
 	end
 	lastBusy = busy
 end)

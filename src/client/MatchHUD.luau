@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
@@ -11,6 +12,9 @@ local Copy = Strings.Match
 local S = Config.Multiplayer.Style
 local MatchHUD = {}
 MatchHUD.__index = MatchHUD
+
+-- The cue-ball arrows, which repeat while held.
+local PLACE_KEYS = { "PlaceLeft", "PlaceRight", "PlaceUp", "PlaceDown" }
 
 local function color(values: { number }): Color3
 	return Color3.fromRGB(values[1], values[2], values[3])
@@ -325,7 +329,14 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.connections = {}
 	self.alive = true
 	self.precisionOpen = false
-	self.placementValid = true
+	-- Ball in hand, from Main: whether the local shooter may move the cue ball now, and
+	-- whether it just failed to follow the pointer.
+	self.placing = false
+	self.placingBlocked = false
+	-- The placement arrow being held down: its step and when it next repeats.
+	self.held = nil
+	self.pressHandled = {}
+	self.setupStacked = false
 	self.invalidTarget = false
 	self.modalMode = nil
 	self.respondedVote = nil
@@ -353,14 +364,12 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	end)
 	self.setup = panel(self.root, "Setup")
 	self.setup.AnchorPoint = Vector2.new(0.5, 1)
+	-- One line of instruction while the cue ball is in hand. There is nothing to confirm:
+	-- the ball stays where it is left, and the shot can be taken at any time.
 	self.setupLabel = label(self.setup, "Instruction", S.StatusSize, "")
-	self.setupLabel.TextWrapped = true
-	self.setupLabel.TextTruncate = Enum.TextTruncate.None
-	self.confirm = button(self.setup, Copy.ConfirmPlacement, function()
-		if self.placementValid then
-			onAction("ConfirmPlacement", nil)
-		end
-	end)
+	self.setupLabel.TextScaled = true
+	self.setupSize = Instance.new("UITextSizeConstraint")
+	self.setupSize.Parent = self.setupLabel
 	self.invalid = label(self.root, "InvalidTarget", S.StatusSize, Copy.InvalidTarget)
 	self.invalid.AnchorPoint = Vector2.new(0.5, 1)
 	self.invalid.TextColor3 = color(S.Danger)
@@ -382,12 +391,56 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	precision("PowerDown", Copy.PowerDown, "PrecisionPower", -S.PrecisionPowerStep)
 	precision("PowerUp", Copy.PowerUp, "PrecisionPower", S.PrecisionPowerStep)
 	precision("Shoot", Copy.Shoot, "PrecisionShoot", nil)
-	precision("Confirm", Copy.ConfirmPlacementShort, "ConfirmPlacement", nil)
 	precision("Close", Copy.PrecisionCloseShort, "ClosePrecision", nil)
-	precision("PlaceLeft", Copy.PlaceLeft, "PrecisionPlace", { x = -S.PrecisionMoveInches, y = 0 })
-	precision("PlaceRight", Copy.PlaceRight, "PrecisionPlace", { x = S.PrecisionMoveInches, y = 0 })
-	precision("PlaceUp", Copy.PlaceUp, "PrecisionPlace", { x = 0, y = S.PrecisionMoveInches })
-	precision("PlaceDown", Copy.PlaceDown, "PrecisionPlace", { x = 0, y = -S.PrecisionMoveInches })
+	-- The arrows move the cue ball relative to the screen ({sx, sy}: +x right, +y up) and
+	-- repeat while held. A pointer or gamepad press steps on InputBegan; Activated covers a
+	-- gamepad A that never reaches InputBegan, and is skipped when InputBegan already stepped.
+	local function arrow(key: string, text: string, value: any)
+		local object = button(self.precision, text, function()
+			if self.pressHandled[key] then
+				self.pressHandled[key] = nil
+				return
+			end
+			onAction("PrecisionPlace", value)
+		end)
+		self.precisionButtons[key] = object
+		object.InputBegan:Connect(function(input: InputObject)
+			if
+				input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch
+				or input.KeyCode == Enum.KeyCode.ButtonA
+			then
+				self.pressHandled[key] = true
+				self.held = {
+					key = key,
+					value = value,
+					input = input,
+					nextAt = self.lastNow + S.PlacementRepeatDelay,
+				}
+				onAction("PrecisionPlace", value)
+			end
+		end)
+		object.InputEnded:Connect(function(input: InputObject)
+			local held = self.held
+			if
+				held
+				and held.key == key
+				and (input == held.input or input.KeyCode == Enum.KeyCode.ButtonA)
+			then
+				self.held = nil
+			end
+		end)
+		object.MouseLeave:Connect(function()
+			if self.held and self.held.key == key then
+				self.held = nil
+			end
+			self.pressHandled[key] = nil -- no Activated follows a press dragged off the button
+		end)
+	end
+	arrow("PlaceLeft", Copy.PlaceLeft, { sx = -1, sy = 0 })
+	arrow("PlaceRight", Copy.PlaceRight, { sx = 1, sy = 0 })
+	arrow("PlaceUp", Copy.PlaceUp, { sx = 0, sy = 1 })
+	arrow("PlaceDown", Copy.PlaceDown, { sx = 0, sy = -1 })
 	self.modal = Instance.new("TextButton")
 	self.modal.Name = "ConfirmationBackdrop"
 	self.modal.Size = UDim2.fromScale(1, 1)
@@ -588,50 +641,40 @@ function MatchHUD.layout(self: any)
 	self.leave.Size = UDim2.fromOffset(leaveWidth, S.ButtonHeight)
 	self.leave.TextSize = S.NameSize
 	self.leave.TextWrapped = true
-	local setupWidth = math.min(S.ModalWidth, width - margin * 2)
-	self.setup.Position = UDim2.new(0.5, 0, 1, -margin)
-	self.setup.Size = UDim2.fromOffset(setupWidth, S.ButtonHeight * 2 + gap)
-	self.setupLabel.Position = UDim2.fromOffset(gap, gap / 2)
-	self.setupLabel.Size = UDim2.new(1, -gap * 2, 0, S.ButtonHeight - gap / 2)
-	self.confirm.Position = UDim2.new(0, gap, 1, -S.ButtonHeight - gap / 2)
-	self.confirm.Size = UDim2.new(1, -gap * 2, 0, S.ButtonHeight)
-	if short then
-		self.setup.Size = UDim2.fromOffset(setupWidth, S.ShortSetupHeight)
-		self.setupLabel.Size = UDim2.new(0.65, -gap * 2, 1, -gap)
-		self.setupLabel.TextSize = S.NameSize
-		self.confirm.Position = UDim2.new(0.65, 0, 0, gap / 2)
-		self.confirm.Size = UDim2.new(0.35, -gap, 0, S.ButtonHeight)
-		self.confirm.TextSize = S.NameSize
-	else
-		self.setupLabel.TextSize = S.StatusSize
+	-- The placement instruction: one line centred at the bottom, clear of the fine-controls
+	-- button in the corner, or stacked above it when the screen is too narrow for both.
+	local precisionWidth = S.ButtonHeight * 2.6
+	local setupHeight = if short then S.ShortSetupHeight else S.SetupHeight
+	local setupWidth = math.min(S.ModalWidth, width - 2 * (margin + precisionWidth + gap))
+	self.setupStacked = setupWidth < S.SetupMinWidth
+	if self.setupStacked then
+		setupWidth = math.min(S.ModalWidth, width - margin * 2)
 	end
-	self.invalid.Position = UDim2.new(0.5, 0, 1, -(S.ButtonHeight + margin * 2))
+	self.setup.Position =
+		UDim2.new(0.5, 0, 1, -(margin + (if self.setupStacked then S.ButtonHeight + gap else 0)))
+	self.setup.Size = UDim2.fromOffset(setupWidth, setupHeight)
+	self.setupHeight = setupHeight
+	self.setupLabel.Position = UDim2.fromOffset(gap, gap / 4)
+	self.setupLabel.Size = UDim2.new(1, -gap * 2, 1, -gap / 2)
+	self.setupSize.MaxTextSize = if short then S.NameSize else S.StatusSize
 	self.invalid.Size = UDim2.new(1, -margin * 2, 0, S.StatusSize + gap)
-	self.precisionButton.Position = UDim2.new(
-		1,
-		-margin,
-		1,
-		-(
-				if self.setup.Visible
-					then (if short then S.ShortSetupHeight else S.ButtonHeight * 2 + gap) + margin * 2
-					else margin
-			)
-	)
-	self.precisionButton.Size = UDim2.fromOffset(S.ButtonHeight * 2.6, S.ButtonHeight)
+	self.precisionButton.Position = UDim2.new(1, -margin, 1, -margin)
+	self.precisionButton.Size = UDim2.fromOffset(precisionWidth, S.ButtonHeight)
 	self.precisionButton.Text = if self.precisionOpen then Copy.PrecisionClose else Copy.Precision
 	local keys = { "AimLeft", "AimRight", "PowerDown", "PowerUp", "Shoot", "Close" }
-	if self.snapshot and self.snapshot.phase == "Placement" then
-		keys = {
-			"PlaceLeft",
-			"PlaceRight",
-			"PlaceUp",
-			"PlaceDown",
-			"AimLeft",
-			"AimRight",
-			"Shoot",
-			"Confirm",
-			"Close",
-		}
+	if self.placing then
+		keys = if self.snapshot and self.snapshot.breakShot
+			then { "PlaceLeft", "PlaceRight", "AimLeft", "AimRight", "Shoot", "Close" }
+			else {
+				"PlaceLeft",
+				"PlaceRight",
+				"PlaceUp",
+				"PlaceDown",
+				"AimLeft",
+				"AimRight",
+				"Shoot",
+				"Close",
+			}
 	end
 	local maxCols = math.max(1, math.floor((width - margin * 2 - gap) / (S.ButtonHeight + gap)))
 	local cols = math.min(if short then #keys elseif #keys > 6 then 4 else 3, maxCols)
@@ -704,10 +747,14 @@ function MatchHUD.reservedBottom(self: any): number
 	if self.precision.Visible then
 		return self.precision.AbsoluteSize.Y + S.HeaderMargin
 	end
+	local bottom = S.ButtonHeight -- the fine-controls button row
 	if self.setup.Visible then
-		return self.setup.AbsoluteSize.Y + S.HeaderMargin
+		local height = self.setupHeight or S.SetupHeight
+		bottom = if self.setupStacked
+			then S.ButtonHeight + S.HeaderGap + height
+			else math.max(height, S.ButtonHeight)
 	end
-	return S.ButtonHeight + S.HeaderMargin
+	return bottom + S.HeaderMargin
 end
 
 function MatchHUD.voteKey(self: any): string?
@@ -780,8 +827,26 @@ function MatchHUD.isModal(self: any): boolean
 	return self.modal.Visible
 end
 
-function MatchHUD.setPlacementValid(self: any, valid: boolean)
-	self.placementValid = valid
+--- Whether the local shooter may move the cue ball now, and whether it could not follow the
+--- pointer. The arrows and the instruction follow it.
+function MatchHUD.setPlacing(self: any, placing: boolean, blocked: boolean)
+	self.placingBlocked = placing and blocked
+	if placing == self.placing then
+		return
+	end
+	self.placing = placing
+	if not placing then
+		self.held = nil
+	end
+	self:layout()
+	local selected = GuiService.SelectedObject
+	if not placing and selected then
+		for _, key in PLACE_KEYS do
+			if selected == self.precisionButtons[key] then
+				GuiService.SelectedObject = self.precisionButtons.AimLeft
+			end
+		end
+	end
 end
 
 function MatchHUD.setInvalidTarget(self: any, invalid: boolean)
@@ -796,6 +861,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 	if snapshot == nil then
 		self:closeModal()
 		self.precisionOpen = false
+		self.placing, self.placingBlocked, self.held = false, false, nil
 		return
 	end
 	local changed = not old
@@ -803,7 +869,6 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 		or old.turnId ~= snapshot.turnId
 		or old.phase ~= snapshot.phase
 	if changed then
-		self.placementValid = true
 		self.invalidTarget = false
 		if snapshot.phase == "Result" or (old and old.epoch ~= snapshot.epoch) then
 			self:closeModal()
@@ -1040,23 +1105,36 @@ function MatchHUD.update(self: any, now: number)
 				else 1
 		end
 	end
-	local placementVisible = isShooter and phase == "Placement" and not self.precisionOpen
+	local placementVisible = isShooter and self.placing and not self.precisionOpen
 	if self.setup.Visible ~= placementVisible then
 		self.setup.Visible = placementVisible
 		self:layout()
 	end
-	self.setupLabel.Text = if not self.placementValid
-		then Copy.PlacementInvalid
-		elseif snapshot.breakShot then Copy.BreakPlacement
-		else Copy.PlacementValid
-	self.setupLabel.TextColor3 = color(if self.placementValid then S.Text else S.Danger)
-	self.confirm.TextColor3 = color(if self.placementValid then S.Active else S.Muted)
-	self.invalid.Visible = self.invalidTarget
-		and isShooter
-		and (phase == "Aiming" or phase == "Intro")
+	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
+	self.setupLabel.Text = if self.placingBlocked
+		then Copy.PlacementBlocked
+		elseif snapshot.breakShot then (if gamepad
+			then Copy.BreakPlacementGamepad
+			else Copy.BreakPlacement)
+		elseif gamepad then Copy.PlacementHintGamepad
+		else Copy.PlacementHint
+	self.setupLabel.TextColor3 = color(if self.placingBlocked then S.Danger else S.Text)
 	local canPlay = isShooter and (phase == "Intro" or phase == "Placement" or phase == "Aiming")
 	self.precisionButton.Visible = canPlay and not self.precisionOpen
 	self.precision.Visible = canPlay and self.precisionOpen
+	self.invalid.Visible = self.invalidTarget
+		and isShooter
+		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
+	self.invalid.Position = UDim2.new(0.5, 0, 1, -(self:reservedBottom() + S.HeaderGap))
+	-- A held placement arrow keeps stepping until it is let go, at most one step a frame so
+	-- a hitch never replays a burst.
+	local held = self.held
+	if held and not (self.placing and self.precision.Visible) then
+		self.held = nil
+	elseif held and now >= held.nextAt then
+		held.nextAt = math.max(held.nextAt + S.PlacementRepeatInterval, now)
+		self.onAction("PrecisionPlace", held.value)
+	end
 	local vote = snapshot.vote
 	if self.modalMode == "Vote" and vote then
 		local count, total = 0, 0

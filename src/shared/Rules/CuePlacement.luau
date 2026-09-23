@@ -105,6 +105,168 @@ function Placement.set(state: State, id: number, x: number, y: number): boolean
 	return false
 end
 
+-- Move (x, y) straight out of a circle of radius `need` around (cx, cy). A point dead on the
+-- centre leaves toward where the drag came from, else +y, so the answer never depends on luck.
+local function pushCircle(
+	x: number,
+	y: number,
+	cx: number,
+	cy: number,
+	need: number,
+	fromX: number?,
+	fromY: number?
+): (number, number, boolean)
+	local dx, dy = x - cx, y - cy
+	local d2 = dx * dx + dy * dy
+	if d2 >= need * need then
+		return x, y, false
+	end
+	local d = math.sqrt(d2)
+	local nx, ny = 0, 1
+	if d > 1e-9 then
+		nx, ny = dx / d, dy / d
+	else
+		local fx, fy = (fromX or cx) - cx, (fromY or cy + 1) - cy
+		local fl = math.sqrt(fx * fx + fy * fy)
+		if fl > 1e-9 then
+			nx, ny = fx / fl, fy / fl
+		end
+	end
+	return cx + nx * need, cy + ny * need, true
+end
+
+-- The break version: x is pinned to the head string, so only y may change. Leaves on the side
+-- the point is already on (or the side the drag came from when level with the centre).
+local function pushLateral(
+	x: number,
+	y: number,
+	cx: number,
+	cy: number,
+	need: number,
+	fromY: number?
+): (number, boolean)
+	local ax = x - cx
+	if ax * ax >= need * need then
+		return y, false
+	end
+	local h = math.sqrt(need * need - ax * ax)
+	local dy = y - cy
+	if dy * dy >= h * h then
+		return y, false
+	end
+	local side = if dy > 0 then 1 elseif dy < 0 then -1 elseif (fromY or cy) >= cy then 1 else -1
+	return cy + side * h, true
+end
+
+-- Push (x, y) out of a cushion segment treated as a capsule of radius `need`. A point on the
+-- nose line itself leaves along the segment's inward normal.
+local function pushSegment(
+	x: number,
+	y: number,
+	s: TableGeometry.Segment,
+	need: number
+): (number, number, boolean)
+	local dx, dy = s.bx - s.ax, s.by - s.ay
+	local squared = dx * dx + dy * dy
+	local t = if squared == 0
+		then 0
+		else math.clamp(((x - s.ax) * dx + (y - s.ay) * dy) / squared, 0, 1)
+	local px, py = s.ax + t * dx, s.ay + t * dy
+	local ox, oy = x - px, y - py
+	local d2 = ox * ox + oy * oy
+	if d2 >= need * need then
+		return x, y, false
+	end
+	local d = math.sqrt(d2)
+	local nx, ny = s.nx, s.ny
+	if d > 1e-9 then
+		nx, ny = ox / d, oy / d
+	end
+	return px + nx * need, py + ny * need, true
+end
+
+--- The nearest spot to (wantX, wantY) that valid() accepts, for a cue ball being dragged from
+--- (fromX, fromY). Clamps into the cushions, then pushes out of object balls, pockets, jaws
+--- and cushions along each contact normal for a few passes. If that still leaves it wedged,
+--- it walks back along the drag and keeps the furthest legal point. On the break x stays at
+--- exactly BreakLineX. Returns (fromX, fromY) when nothing better exists, which is nil when
+--- the caller had no legal spot to start from. Cheap enough for every pointer move: no grid.
+--- The server never calls this; it only checks the result with valid().
+function Placement.resolve(
+	state: State,
+	wantX: number,
+	wantY: number,
+	isBreak: boolean?,
+	fromX: number?,
+	fromY: number?
+): (number?, number?)
+	if not Input.isFinite(wantX) or not Input.isFinite(wantY) then
+		return fromX, fromY
+	end
+	local C, R = Config.Multiplayer, Config.Balls.RadiusInches
+	local r, slop = R + C.PlacementClearanceInches, C.PlacementResolveSlopInches
+	local g = state.geometry
+	-- The cushion lines sit exactly on the outer bounds, so stop a hair short of both.
+	local maxX, maxY = g.halfLength - r - slop, g.halfWidth - r - slop
+	local tx = if isBreak then C.BreakLineX else math.clamp(wantX, -maxX, maxX)
+	local ty = math.clamp(wantY, -maxY, maxY)
+	local x, y = tx, ty
+	local need = 2 * R + C.PlacementClearanceInches + slop
+	for _ = 1, C.PlacementResolveIterations do
+		local moved = false
+		for _, b in state.balls do -- array order: deterministic
+			if b.id ~= 0 and not b.pocketed then
+				local m: boolean
+				if isBreak then
+					y, m = pushLateral(x, y, b.x, b.y, need, fromY)
+				else
+					x, y, m = pushCircle(x, y, b.x, b.y, need, fromX, fromY)
+				end
+				moved = moved or m
+			end
+		end
+		if not isBreak then -- the head string is nowhere near a pocket, jaw or end rail
+			for _, p in g.pockets do
+				local m: boolean
+				x, y, m = pushCircle(x, y, p.x, p.y, p.radius + r + slop, fromX, fromY)
+				moved = moved or m
+			end
+			for _, point in g.points do
+				local m: boolean
+				x, y, m = pushCircle(x, y, point.x, point.y, point.radius + r + slop, fromX, fromY)
+				moved = moved or m
+			end
+			for _, s in g.segments do
+				local m: boolean
+				x, y, m = pushSegment(x, y, s, r + slop)
+				moved = moved or m
+			end
+			x = math.clamp(x, -maxX, maxX)
+		end
+		y = math.clamp(y, -maxY, maxY)
+		if not moved then
+			break
+		end
+	end
+	if validFor(state, x, y, isBreak, 0) then
+		return x, y
+	end
+	-- Still wedged: walk back along the drag toward the last legal spot.
+	if fromX == nil or fromY == nil or not validFor(state, fromX, fromY, isBreak, 0) then
+		return fromX, fromY
+	end
+	local lo, hi = 0, 1
+	for _ = 1, C.PlacementResolveBisections do
+		local mid = (lo + hi) / 2
+		if validFor(state, fromX + (tx - fromX) * mid, fromY + (ty - fromY) * mid, isBreak, 0) then
+			lo = mid
+		else
+			hi = mid
+		end
+	end
+	return fromX + (tx - fromX) * lo, fromY + (ty - fromY) * lo
+end
+
 local function fallbackFor(state: State, id: number, breakLine: boolean?): (number, number)
 	local preferred = TableGeometry.headSpot(state.geometry)
 	if id == 8 then

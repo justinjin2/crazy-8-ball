@@ -152,11 +152,20 @@ local function needsCall(t: any): boolean
 	return Judge.eligible(t.state.balls, t.groups[t.activeTeam]) and t.calledPocket == nil
 end
 
+--- Whether the shooter may move the cue ball right now: ball in hand, and either the
+--- placement window or the introduction before it. An owed call for the 8 comes first, so
+--- the introduction stays closed until PocketChoice has been answered.
+function Engine.placementOpen(phase: string, ballInHand: boolean?, callNeeded: boolean): boolean
+	return ballInHand == true and (phase == "Placement" or (phase == "Intro" and not callNeeded))
+end
+
+-- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,
+-- then the ball is placed and shot in the 3D one.
 local function setup(t: any, now: number)
-	if t.ballInHand then
-		phase(t, "Placement", now, M.PlacementSeconds)
-	elseif needsCall(t) then
+	if needsCall(t) then
 		phase(t, "PocketChoice", now, M.PocketChoiceSeconds)
+	elseif t.ballInHand then
+		phase(t, "Placement", now, M.PlacementSeconds)
 	else
 		phase(t, "Aiming", now, M.ShotSeconds)
 	end
@@ -173,6 +182,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.turnId += 1
 	t.calledPocket = nil
 	t.ballInHand = hand
+	t.placeSeq = 0 -- the shooter's placement counter; never part of the snapshot
 	t.foul = nil
 	if hand then
 		local x, y = Placement.fallback(t.state, 0, t.breakShot)
@@ -356,7 +366,7 @@ function Engine.advance(t: any, now: number, coinWinner: number?)
 			end
 		end
 		t.calledPocket = best
-		phase(t, "Aiming", now, M.ShotSeconds)
+		setup(t, now)
 	elseif t.phase == "Aiming" then
 		t.timeouts[t.activeTeam] += 1
 		if t.timeouts[t.activeTeam] >= M.TimeoutLimit then
@@ -400,6 +410,42 @@ function Engine.advance(t: any, now: number, coinWinner: number?)
 			t[key] = fresh[key]
 		end
 	end
+end
+
+-- Move the cue ball for ball in hand. `seq` is the shooter's per-turn counter: unreliable
+-- packets can arrive late or out of order, so anything not newer than the last applied move
+-- is dropped. A Place without one (older clients, tests) is still judged on its own.
+local function placeCue(t: any, x: any, y: any, seq: any, now: number): boolean
+	if not Engine.placementOpen(t.phase, t.ballInHand, needsCall(t)) then
+		return false
+	end
+	if t.phase == "Placement" and t.deadline and now >= t.deadline then
+		return false
+	end
+	if seq ~= nil and (not ShotInput.isFinite(seq) or seq % 1 ~= 0 or seq <= (t.placeSeq or 0)) then
+		return false
+	end
+	if not Placement.valid(t.state, x, y, t.breakShot) then
+		return false
+	end
+	Placement.set(t.state, 0, x, y)
+	if seq ~= nil then
+		t.placeSeq = seq
+	end
+	return true
+end
+
+--- The unreliable ball-in-hand stream (AimUpdate). Same rules as Place, but no revision bump,
+--- so a drag never triggers a snapshot broadcast; the periodic snapshot and the drag's final
+--- reliable Place carry the spot. seq is required, because the stream can reorder.
+function Engine.moveCue(t: any, userId: number, request: any, now: number): boolean
+	if not Engine.seat(t, userId) or userId ~= t.shooter then
+		return false
+	end
+	if request.epoch ~= t.epoch or request.turnId ~= t.turnId or request.seq == nil then
+		return false
+	end
+	return placeCue(t, request.x, request.y, request.seq, now)
 end
 
 function Engine.action(t: any, userId: number, request: any, now: number): boolean
@@ -447,22 +493,13 @@ function Engine.action(t: any, userId: number, request: any, now: number): boole
 		return false
 	end
 	if kind == "Place" then
-		if not t.ballInHand or (t.phase ~= "Placement" and t.phase ~= "Intro") then
+		if not placeCue(t, request.x, request.y, request.seq, now) then
 			return false
 		end
-		if not Placement.valid(t.state, request.x, request.y, t.breakShot) then
-			return false
-		end
-		Placement.set(t.state, 0, request.x, request.y)
-	elseif kind == "ConfirmPlacement" then
-		if t.phase ~= "Placement" then
-			return false
-		end
-		t.ballInHand = false
-		setup(t, now)
 	elseif kind == "Pocket" then
+		-- A call may be changed while placing or aiming; it never moves the deadline.
 		if
-			(t.phase ~= "PocketChoice" and t.phase ~= "Aiming")
+			(t.phase ~= "PocketChoice" and t.phase ~= "Placement" and t.phase ~= "Aiming")
 			or not Judge.eligible(t.state.balls, t.groups[t.activeTeam])
 		then
 			return false
@@ -478,7 +515,7 @@ function Engine.action(t: any, userId: number, request: any, now: number): boole
 		end
 		t.calledPocket = request.pocket
 		if t.phase == "PocketChoice" then
-			phase(t, "Aiming", now, M.ShotSeconds)
+			setup(t, now)
 		end
 	else
 		return false
@@ -509,12 +546,27 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	end
 	local sim = Simulation.cloneState(t.state)
 	if payload.cueX ~= nil or payload.cueY ~= nil then
-		if
-			not t.ballInHand or not Placement.valid(sim, payload.cueX, payload.cueY, t.breakShot)
-		then
-			return nil, "InvalidPlacement"
+		if t.ballInHand then
+			if not Placement.valid(sim, payload.cueX, payload.cueY, t.breakShot) then
+				return nil, "InvalidPlacement"
+			end
+			Placement.set(sim, 0, payload.cueX, payload.cueY)
+		else
+			-- The window closed while this shot was in flight. Repeating the spot the ball
+			-- was locked at is fine; moving it is not.
+			local cue, eps = Simulation.findBall(sim, 0), M.PlacementEchoEpsilonInches
+			if
+				not (
+					cue
+					and ShotInput.isFinite(payload.cueX)
+					and ShotInput.isFinite(payload.cueY)
+					and math.abs(payload.cueX - cue.x) <= eps
+					and math.abs(payload.cueY - cue.y) <= eps
+				)
+			then
+				return nil, "InvalidPlacement"
+			end
 		end
-		Placement.set(sim, 0, payload.cueX, payload.cueY)
 	end
 	local start = Engine.pack(sim.balls)
 	local before = Ball.cloneList(sim.balls)

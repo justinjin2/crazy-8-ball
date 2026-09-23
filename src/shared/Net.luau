@@ -44,12 +44,20 @@ local REMOTES: { [string]: string } = {
 	-- On the shot that picks the colors, `assign` {groups, ball, index} names the ball whose
 	-- drop reveals both teams' groups, before the snapshot catches up at resolution.
 	ShotResult = "RemoteEvent",
-	-- The aim stream, and the only unreliable pair here: this is ten low-value updates a
-	-- second, and losing one just means a remote cue turns a frame later. Never worth a
-	-- retransmit, and never worth blocking the reliable queue behind.
-	AimUpdate = "UnreliableRemoteEvent", -- client -> server: where I am aiming
-	AimBroadcast = "UnreliableRemoteEvent", -- server -> all: every table's aim, batched
+	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
+	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,
+	-- and never worth blocking the reliable queue behind.
+	-- client -> server: (tableId, angle, epoch, turnId, seq?, x?, y?). seq, x and y ride along
+	-- only while the shooter is moving the cue ball in hand; seq rises every send within a
+	-- turn, because this remote guarantees neither delivery nor order.
+	AimUpdate = "UnreliableRemoteEvent",
+	-- server -> all: every table's aim, batched as a flat array of Net.AimStride values per
+	-- table, {tableId, shooterUserId, angle, cueX, cueY}; the cue spot is the server's own.
+	AimBroadcast = "UnreliableRemoteEvent",
 }
+
+-- Values per table in an AimBroadcast batch.
+Net.AimStride = 5
 
 local function container(): Instance
 	local existing = ReplicatedStorage:FindFirstChild(FOLDER)

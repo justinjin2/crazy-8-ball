@@ -117,13 +117,20 @@ end
 --- in about a third of a second and then crawls, so a threshold high enough to suppress a
 --- creep also killed the trail for almost the whole shot - measured at 2-3% of frames.
 --- MinLength on the trail itself handles the creep case properly instead.
-function Effects.updateTrail(self: Effects, ball: Ball.Ball?)
+---
+--- It IS gated on `active`, the shot replay running: dragging the cue ball in hand, or a
+--- watched one easing to its streamed spot, must not streak. Whatever was laid down before
+--- is cleared as it switches on, so a shot never starts with a ribbon back to the old spot.
+function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 	local trail = self.trail
 	if trail == nil then
 		return
 	end
-	local visible = ball ~= nil and not ball.pocketed
+	local visible = active and ball ~= nil and not ball.pocketed
 	if trail.Enabled ~= visible then
+		if visible then
+			trail:Clear()
+		end
 		trail.Enabled = visible
 	end
 end

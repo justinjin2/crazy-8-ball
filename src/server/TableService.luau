@@ -11,6 +11,7 @@ local Strings = require(Shared.Strings)
 local Net = require(Shared.Net)
 local Placement = require(Shared.Placement)
 local ShotInput = require(Shared.ShotInput)
+local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
@@ -53,15 +54,20 @@ function Service.isBusy(id: number): boolean
 	local t = tables[id]
 	return t ~= nil and t.engine.phase == "Resolving"
 end
+-- One token bucket per player and channel (Config.Multiplayer.RateLimits), so a flood on one
+-- (dragging the cue ball) can never starve another (the shot).
 function Service.allow(p: Player, channel: string?): boolean
-	local key = tostring(p.UserId) .. (channel or "action")
+	local name = channel or "action"
+	local limit = M.RateLimits[name]
+	assert(limit, "Unknown rate-limit channel")
+	local key = tostring(p.UserId) .. name
 	local bank = buckets[key]
 	local time = now()
 	if not bank then
-		bank = { at = time, tokens = M.RequestBurst }
+		bank = { at = time, tokens = limit.Burst }
 		buckets[key] = bank
 	end
-	bank.tokens = math.min(M.RequestBurst, bank.tokens + (time - bank.at) * M.RequestPerSecond)
+	bank.tokens = math.min(limit.Burst, bank.tokens + (time - bank.at) * limit.PerSecond)
 	bank.at = time
 	if bank.tokens < 1 then
 		return false
@@ -532,7 +538,11 @@ function Service.start(parent: Instance)
 	end)
 	-- Join requests cannot bypass server-observed pad occupancy.
 	Net.get("MatchAction").OnServerEvent:Connect(function(p, payload)
-		if type(payload) ~= "table" or not Service.allow(p) then
+		if type(payload) ~= "table" then
+			return
+		end
+		local isPlace = payload.kind == "Place"
+		if not Service.allow(p, if isPlace then "place" else "action") then
 			return
 		end
 		local id = seatOf[p.UserId]
@@ -543,12 +553,18 @@ function Service.start(parent: Instance)
 		Service.advance(t, now())
 		local accepted = Engine.action(t.engine, p.UserId, payload, now())
 		releaseMissing(t)
-		Service.broadcast(t)
-		if not accepted then
+		if accepted or t.engine.revision ~= t.sentRevision then
+			Service.broadcast(t) -- one snapshot per accepted Place (a drag release)
+		elseif not isPlace then
+			Service.broadcast(t, p) -- private resync only
+		end
+		-- A rejected Place is routine (the window just closed, or a stale seq) and must not
+		-- clear the client's awaiting state while a shot it already fired is in flight.
+		if not accepted and not isPlace then
 			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 		end
 	end)
-	Net.get("AimUpdate").OnServerEvent:Connect(function(p, id, angle, epoch, turnId)
+	Net.get("AimUpdate").OnServerEvent:Connect(function(p, id, angle, epoch, turnId, seq, x, y)
 		if
 			id ~= seatOf[p.UserId]
 			or not ShotInput.isFinite(angle)
@@ -570,6 +586,18 @@ function Service.start(parent: Instance)
 			return
 		end
 		t.aim = { angle = angle % (2 * math.pi), by = p.UserId, turnId = turnId, epoch = epoch }
+		if seq ~= nil then
+			-- Ball in hand rides the aim stream. The engine checks the window, the seq and
+			-- the spot; a bad one is simply dropped, like any lost unreliable packet.
+			local time = now()
+			Service.advance(t, time)
+			Engine.moveCue(
+				e,
+				p.UserId,
+				{ epoch = epoch, turnId = turnId, seq = seq, x = x, y = y },
+				time
+			)
+		end
 	end)
 	local function added(p: Player)
 		local endedCharacter: Model? = nil
@@ -627,8 +655,8 @@ function Service.start(parent: Instance)
 		end
 		seatOf[p.UserId] = nil
 		restore(p)
-		for _, suffix in { "action", "snapshot", "aim" } do
-			buckets[tostring(p.UserId) .. suffix] = nil
+		for name in M.RateLimits do
+			buckets[tostring(p.UserId) .. tostring(name)] = nil
 		end
 		for _, t in tables do
 			t.dwell[p.UserId] = nil
@@ -637,15 +665,45 @@ function Service.start(parent: Instance)
 		end
 	end)
 	require(script.Parent.StudioMatchQA).start(tables, seatOf, Service.broadcast, Service.flush)
-	local elapsed, snapshots = 0, 0
+	-- Every table's aim and cue spot, on its own clock (Config.Aim.BroadcastsPerSecond) so a
+	-- watched ball in hand is not held to the pad-poll rate.
+	local function broadcastAims()
+		local batch = {}
+		for _, mode in M.Modes do
+			local t = tables[mode.id]
+			local e = t.engine
+			local cue = Simulation.findBall(e.state, 0)
+			if
+				t.aim
+				and cue
+				and t.aim.epoch == e.epoch
+				and t.aim.turnId == e.turnId
+				and t.aim.by == e.shooter
+				and e.phase ~= "Resolving"
+				and e.phase ~= "Result"
+			then
+				table.insert(batch, e.id)
+				table.insert(batch, t.aim.by)
+				table.insert(batch, t.aim.angle)
+				table.insert(batch, cue.x)
+				table.insert(batch, cue.y)
+			end
+		end
+		Net.get("AimBroadcast"):FireAllClients(batch)
+	end
+	local elapsed, snapshots, aims = 0, 0, 0
 	RunService.Heartbeat:Connect(function(dt)
 		elapsed += dt
 		snapshots += dt
+		aims += dt
+		if aims >= 1 / Config.Aim.BroadcastsPerSecond then
+			aims = 0
+			broadcastAims()
+		end
 		if elapsed < 1 / Config.Pad.PollsPerSecond then
 			return
 		end
 		elapsed = 0
-		local batch = {}
 		for _, mode in M.Modes do
 			local t = tables[mode.id]
 			local e = t.engine
@@ -659,20 +717,7 @@ function Service.start(parent: Instance)
 			else
 				refresh(t)
 			end
-			if
-				t.aim
-				and t.aim.epoch == e.epoch
-				and t.aim.turnId == e.turnId
-				and t.aim.by == e.shooter
-				and e.phase ~= "Resolving"
-				and e.phase ~= "Result"
-			then
-				table.insert(batch, e.id)
-				table.insert(batch, t.aim.by)
-				table.insert(batch, t.aim.angle)
-			end
 		end
-		Net.get("AimBroadcast"):FireAllClients(batch)
 		if snapshots >= M.SnapshotIntervalSeconds then
 			snapshots = 0
 		end

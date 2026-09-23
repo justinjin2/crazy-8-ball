@@ -86,6 +86,10 @@ export type Match = typeof(setmetatable(
 		-- The shot being replayed picks the colors: the groups it produces, and the ball
 		-- whose drop reveals them. Cleared once the server's snapshot carries the groups.
 		assign: { groups: { [number]: string }, ball: number, index: number }?,
+		-- Where the local shooter is holding the cue ball in hand. Snapshots and echoes of
+		-- older spots keep arriving while they drag; this is re-applied over them so the
+		-- ball never snaps back. It lasts for this turn's Intro and Placement only.
+		cueHold: { epoch: number, turnId: number, x: number, y: number }?,
 	},
 	Match
 ))
@@ -125,6 +129,7 @@ function Match.new(
 		sunk = {},
 		downVersion = 0,
 		assign = nil,
+		cueHold = nil,
 	}, Match)
 	resync(self)
 	self:renderState()
@@ -236,6 +241,32 @@ function Match.ensureCueBall(self: Match)
 	end
 end
 
+--- Put the cue ball in hand at (x, y) and redraw only it: a drag moves it every frame, and
+--- redrawing all sixteen balls for that would be waste.
+function Match.setCue(self: Match, x: number, y: number)
+	local cue = Simulation.findBall(self.state, 0)
+	if cue == nil then
+		return
+	end
+	Ball.stop(cue)
+	cue.x, cue.y, cue.z, cue.vz = x, y, 0, 0
+	cue.pocketed, cue.falling, cue.pocket, cue.tip = false, false, nil, nil
+	if self.renderer then
+		self.renderer:restore(0, x, y)
+	end
+end
+
+--- The local shooter moved the cue ball in hand: show it there now, and keep showing it
+--- there over any snapshot for the same turn until the hold is released.
+function Match.holdCue(self: Match, epoch: number, turnId: number, x: number, y: number)
+	self.cueHold = { epoch = epoch, turnId = turnId, x = x, y = y }
+	self:setCue(x, y)
+end
+
+function Match.releaseCue(self: Match)
+	self.cueHold = nil
+end
+
 -- Install a complete authoritative state, including on a late join or new rack.
 function Match.applyBalls(self: Match, packed: { number })
 	if #packed ~= #self.state.balls * 4 then
@@ -246,6 +277,11 @@ function Match.applyBalls(self: Match, packed: { number })
 		b.x, b.y, b.z, b.pocketed = packed[i + 1], packed[i + 2], packed[i + 3], packed[i + 4] == 1
 		b.falling, b.tip, b.pocket = false, nil, nil
 		Ball.stop(b)
+	end
+	local hold = self.cueHold
+	local cue = Simulation.findBall(self.state, 0)
+	if hold and cue then
+		cue.x, cue.y, cue.z, cue.pocketed = hold.x, hold.y, 0, false
 	end
 	self.state.time, self.state.overrides = 0, nil
 	self:renderState()
@@ -259,6 +295,7 @@ function Match.receive(self: Match, msg: any)
 	if msg.epoch ~= self.epoch then
 		self.epoch, self.seq = msg.epoch, 0
 	end
+	self.cueHold = nil -- the shot starts from the server's spot
 	self.shot = nil
 	self:applyBalls(msg.start)
 	self:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
@@ -271,6 +308,20 @@ end
 function Match.snapshot(self: Match, snapshot: any)
 	if snapshot.epoch < self.epoch then
 		return
+	end
+	-- A held cue ball outlives only its own turn's placement: the snapshot that ends it
+	-- installs the server's spot.
+	local hold = self.cueHold
+	if
+		hold
+		and not (
+			hold.epoch == snapshot.epoch
+			and hold.turnId == snapshot.turnId
+			and snapshot.ballInHand == true
+			and (snapshot.phase == "Intro" or snapshot.phase == "Placement")
+		)
+	then
+		self.cueHold = nil
 	end
 	if snapshot.epoch ~= self.epoch then
 		self.epoch, self.seq = snapshot.epoch, 0

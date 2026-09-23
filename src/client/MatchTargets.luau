@@ -1,5 +1,12 @@
 --!strict
--- Private screen-projected setup targets. They never create physical collision geometry.
+-- Private screen-projected setup targets: the pocket rings for calling the 8, and the cue
+-- ball in hand. They never create physical collision geometry.
+--
+-- Ball in hand is predicted, so it moves the frame the finger does. Every pointer move, arrow
+-- press or stick step resolves to a legal spot here (CuePlacement.resolve, the same rules the
+-- server checks with valid()) and is shown at once through onMove. The server hears it on the
+-- unreliable aim stream (takeStream) and once more reliably when the gesture ends (onCommit).
+-- Both share a per-turn sequence number, so a late packet can never drag the ball backwards.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
@@ -7,8 +14,12 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Placement = require(Shared:WaitForChild("Placement"))
-local CuePlacement = require(Shared:WaitForChild("Rules"):WaitForChild("CuePlacement"))
-local S = Config.Multiplayer.Style
+local Rules = Shared:WaitForChild("Rules")
+local CuePlacement = require(Rules:WaitForChild("CuePlacement"))
+local Engine = require(Rules:WaitForChild("MatchEngine"))
+local Judge = require(Rules:WaitForChild("ShotJudge"))
+local M = Config.Multiplayer
+local S = M.Style
 local MatchTargets = {}
 MatchTargets.__index = MatchTargets
 
@@ -75,23 +86,42 @@ local function unpackBalls(snapshot: any): { any }
 	return balls
 end
 
+local function isPointer(input: InputObject): boolean
+	return input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch
+end
+
+--- onPocket(id) calls a pocket; onMove(x, y) shows the cue ball at a new predicted spot;
+--- onCommit(x, y, seq) sends that spot reliably (a drag release or a pause after nudges).
 function MatchTargets.new(
 	parent: Instance,
 	onPocket: (number) -> (),
-	onPlace: (number, number) -> ()
+	onMove: (number, number) -> (),
+	onCommit: (number, number, number) -> ()
 ): any
 	local self: any = setmetatable({}, MatchTargets)
 	self.snapshot = nil
 	self.enabled = true
 	self.onPocket = onPocket
-	self.onPlace = onPlace
+	self.onMove = onMove
+	self.onCommit = onCommit
 	self.connections = {}
 	self.pockets = {}
 	self.dots = {}
 	self.elapsed = 0
-	self.lastSent = -math.huge
+	-- Ball in hand for this turn. `preview` is where the ball is shown; `committed` is the
+	-- last spot sent reliably; `dirty` means the preview has moved since anything was sent.
 	self.previewX, self.previewY = nil, nil
-	self.previewValid = true
+	self.committedX, self.committedY = nil, nil
+	self.dirty = false
+	self.seq = 0
+	-- Pointer drag: the input being followed, and the offset from the pointer's hit on the
+	-- cloth to the ball, so grabbing the ball off-centre never makes it jump.
+	self.dragInput = nil
+	self.grabX, self.grabY = 0, 0
+	self.stickHolding = false -- LT + left stick is moving the ball
+	self.blocked = false -- the ball could not follow the pointer (something in the way)
+	self.pendingCommitAt = nil -- arrow nudges send one reliable Place after a short pause
 	self.root = Instance.new("Frame")
 	self.root.Name = "MatchSetupTargets"
 	self.root.BackgroundTransparency = 1
@@ -124,71 +154,84 @@ function MatchTargets.new(
 			item.hover = false
 		end)
 	end
+	-- The ring is the grab target. Being a GUI button, a press on it arrives gameProcessed,
+	-- so Input's aim drag never sees it.
 	self.handle, self.handleStroke, self.handleCaption =
 		ring(self.root, "CueBallPlacement", S.PlacementHandleSize, color(S.Active))
 	self.handleCaption.Text = Strings.Match.PlacementHandle
-	self.handle.Selectable = false -- gamepad has explicit precision placement buttons
+	self.handle.Selectable = false -- gamepad moves the ball with LT + stick or the arrows
 	table.insert(
 		self.connections,
 		self.handle.InputBegan:Connect(function(input: InputObject)
-			if not self:canPlace() then
+			if self.dragInput or not isPointer(input) or not self:canPlace() then
 				return
 			end
-			if
-				input.UserInputType == Enum.UserInputType.MouseButton1
-				or input.UserInputType == Enum.UserInputType.Touch
-			then
-				self.dragInput = input
-				self.pointer = Vector2.new(input.Position.X, input.Position.Y)
-				self:movePointer(self.pointer, true)
+			local hitX, hitY = self:pointerToTable(Vector2.new(input.Position.X, input.Position.Y))
+			if hitX == nil or hitY == nil then
+				return
 			end
+			local x, y = self:current()
+			self.grabX, self.grabY = x - hitX, y - hitY
+			self.dragInput = input
 		end)
 	)
 	table.insert(
 		self.connections,
 		UserInputService.InputChanged:Connect(function(input: InputObject)
-			if not self.dragInput or not self:canPlace() then
+			local drag = self.dragInput
+			if not drag or not self:canPlace() then
 				return
 			end
-			local touch = self.dragInput.UserInputType == Enum.UserInputType.Touch
+			local touch = drag.UserInputType == Enum.UserInputType.Touch
 			if
-				(touch and input == self.dragInput)
+				(touch and input == drag)
 				or (not touch and input.UserInputType == Enum.UserInputType.MouseMovement)
 			then
-				self.pointer = Vector2.new(input.Position.X, input.Position.Y)
-				self:movePointer(self.pointer, false)
+				-- Moved here, inside the input event, so the ball is drawn at its new spot in
+				-- the same frame rather than one RenderStepped later.
+				local hitX, hitY =
+					self:pointerToTable(Vector2.new(input.Position.X, input.Position.Y))
+				if hitX and hitY then
+					self:moveTo(hitX + self.grabX, hitY + self.grabY)
+				end
 			end
 		end)
 	)
 	table.insert(
 		self.connections,
 		UserInputService.InputEnded:Connect(function(input: InputObject)
+			local drag = self.dragInput
 			if
-				self.dragInput
-				and (
-					input == self.dragInput
-					or input.UserInputType == Enum.UserInputType.MouseButton1
-				)
+				drag
+				and (input == drag or input.UserInputType == Enum.UserInputType.MouseButton1)
 			then
-				if self.pointer then
-					self:movePointer(self.pointer, true)
-				end
-				if not self.previewValid then
-					self.previewX, self.previewY = nil, nil
-					self.previewValid = true
-				end
-				self.dragInput = nil
+				self:finishGesture(true)
 			end
 		end)
 	)
 	return self
 end
 
+--- True while the local shooter may move the cue ball: ball in hand in the placement window
+--- (or the introduction before it, when no call for the 8 is owed), stopping a little before
+--- the deadline so the last spot reaches the server while the window is still open.
 function MatchTargets.canPlace(self: any): boolean
-	return self.enabled
-		and self.snapshot ~= nil
-		and self.snapshot.shooter == self.localUserId
-		and self.snapshot.phase == "Placement"
+	local snapshot = self.snapshot
+	if not self.enabled or snapshot == nil or self.state == nil then
+		return false
+	end
+	if snapshot.shooter ~= self.localUserId then
+		return false
+	end
+	local callNeeded = snapshot.calledPocket == nil
+		and Judge.eligible(self.state.balls, snapshot.groups[snapshot.activeTeam])
+	if not Engine.placementOpen(snapshot.phase, snapshot.ballInHand, callNeeded) then
+		return false
+	end
+	if snapshot.phase == "Placement" and snapshot.deadline then
+		return workspace:GetServerTimeNow() < snapshot.deadline - M.PlacementLockLeadSeconds
+	end
+	return true
 end
 
 function MatchTargets.canCall(self: any): boolean
@@ -198,65 +241,184 @@ function MatchTargets.canCall(self: any): boolean
 		and snapshot.shooter == self.localUserId
 		and (
 			snapshot.phase == "PocketChoice"
-			or (snapshot.phase == "Aiming" and snapshot.calledPocket ~= nil)
+			or (
+				(snapshot.phase == "Aiming" or snapshot.phase == "Placement")
+				and snapshot.calledPocket ~= nil
+			)
 		)
 end
 
 function MatchTargets.setEnabled(self: any, enabled: boolean)
-	self.enabled = enabled
-	if not enabled then
-		self.dragInput = nil
+	if enabled == self.enabled then
+		return
 	end
+	if not enabled then
+		-- A dialog or a fired shot ends the gesture where it is.
+		self:finishGesture(true)
+	end
+	self.enabled = enabled
 end
 
+--- The cue-ball spot to send with a shot, or nil when the ball was not moved this turn or
+--- the placement window has closed (the server already holds the locked spot then).
 function MatchTargets.getPreview(self: any): (number?, number?)
-	if self.previewValid and self:canPlace() then
+	if self.previewX ~= nil and self:canPlace() then
 		return self.previewX, self.previewY
 	end
 	return nil, nil
 end
 
-function MatchTargets.isPlacementValid(self: any): boolean
-	return self.previewValid
-end
-
+--- A pointer is dragging the ball (aim input is paused meanwhile).
 function MatchTargets.isDragging(self: any): boolean
 	return self.dragInput ~= nil
 end
 
-function MatchTargets.setPreview(self: any, x: number, y: number): boolean
-	if not self:canPlace() or not self.state then
-		return false
-	end
-	if self.snapshot.breakShot then
-		x = Config.Multiplayer.BreakLineX
-	end
-	self.previewX, self.previewY = x, y
-	self.previewValid = CuePlacement.valid(self.state, x, y, self.snapshot.breakShot)
-	return self.previewValid
+--- The ball is being moved by a pointer or the stick (the camera holds still meanwhile).
+function MatchTargets.isHolding(self: any): boolean
+	return self.dragInput ~= nil or self.stickHolding
 end
 
-function MatchTargets.movePointer(self: any, pointer: Vector2, force: boolean)
-	if not self:canPlace() or not self.camera then
+function MatchTargets.isBlocked(self: any): boolean
+	return self.blocked
+end
+
+--- Where the cue ball in hand is shown now: the prediction, else the server's spot.
+function MatchTargets.current(self: any): (number, number)
+	local cue = self.state.balls[1]
+	return self.previewX or cue.x, self.previewY or cue.y
+end
+
+--- Try to put the ball at (wantX, wantY). It lands on the nearest legal spot, and the ring
+--- turns red when that is well short of where it was asked to go.
+function MatchTargets.moveTo(self: any, wantX: number, wantY: number)
+	local snapshot = self.snapshot
+	if not snapshot or not self.state then
 		return
+	end
+	local fromX, fromY = self:current()
+	local x, y = CuePlacement.resolve(self.state, wantX, wantY, snapshot.breakShot, fromX, fromY)
+	if x == nil or y == nil then
+		return
+	end
+	local errorX = if snapshot.breakShot then 0 else x - wantX
+	local errorY = y - wantY
+	self.blocked = errorX * errorX + errorY * errorY > S.PlacementBlockedInches ^ 2
+	if x ~= fromX or y ~= fromY then
+		self.previewX, self.previewY, self.dirty = x, y, true
+		self.onMove(x, y)
+	end
+end
+
+--- Where a screen point lands on the plane through the ball centres, in table inches.
+function MatchTargets.pointerToTable(self: any, pointer: Vector2): (number?, number?)
+	local camera = self.camera or workspace.CurrentCamera
+	if not camera or not self.placement then
+		return nil, nil
 	end
 	-- Input positions are screen coordinates; ScreenPointToRay accounts for the top inset.
-	local ray = self.camera:ScreenPointToRay(pointer.X, pointer.Y)
-	local cloth = self.placement.y + Config.Table.SurfaceHeightStuds
-	if math.abs(ray.Direction.Y) < 0.000001 then
-		return
+	local ray = camera:ScreenPointToRay(pointer.X, pointer.Y)
+	local _, height = Placement.toWorld(self.placement, 0, 0, Config.Balls.RenderRadiusInches)
+	if math.abs(ray.Direction.Y) < 1e-6 then
+		return nil, nil
 	end
-	local distance = (cloth - ray.Origin.Y) / ray.Direction.Y
+	local distance = (height - ray.Origin.Y) / ray.Direction.Y
 	if distance < 0 then
-		return
+		return nil, nil
 	end
 	local hit = ray.Origin + ray.Direction * distance
-	local x, y = Placement.toTable(self.placement, hit.X, hit.Z)
-	local valid = self:setPreview(x, y)
-	if valid and (force or self.elapsed - self.lastSent >= S.PlacementSendInterval) then
-		self.lastSent = self.elapsed
-		self.onPlace(self.previewX, self.previewY)
+	return Placement.toTable(self.placement, hit.X, hit.Z)
+end
+
+-- The camera's right and forward (screen up) directions on the cloth, for arrows and stick.
+-- Looking straight down, the forward is the camera's up vector instead.
+local function screenAxes(camera: Camera): (Vector3, Vector3)
+	local cf = camera.CFrame
+	local forward = if math.abs(cf.LookVector.Y) > 0.99 then cf.UpVector else cf.LookVector
+	return cf.RightVector, forward
+end
+
+-- Move by a screen-relative step (sx right, sy up) scaled to `inches`. `discrete` marks an
+-- arrow press, which on the break never goes dead; the stick is a plain projection.
+local function screenMove(self: any, sx: number, sy: number, inches: number, discrete: boolean)
+	local camera = self.camera or workspace.CurrentCamera
+	if not camera or not self.placement then
+		return
 	end
+	local right, forward = screenAxes(camera)
+	local dx, dy = Placement.screenDelta(
+		self.placement,
+		right.X,
+		right.Z,
+		forward.X,
+		forward.Z,
+		sx,
+		sy,
+		self.snapshot.breakShot,
+		discrete
+	)
+	local x, y = self:current()
+	self:moveTo(x + dx * inches, y + dy * inches)
+end
+
+--- One arrow step, relative to the screen. A reliable Place follows once the arrows rest.
+function MatchTargets.nudge(self: any, sx: number, sy: number)
+	if not self:canPlace() then
+		return
+	end
+	screenMove(self, sx, sy, S.PrecisionMoveInches, true)
+	self.pendingCommitAt = self.elapsed + M.PlacementCommitIdleSeconds
+end
+
+--- LT + left stick, already dead-zoned and curved by Input.
+function MatchTargets.stickMove(self: any, sx: number, sy: number, dt: number)
+	if not self:canPlace() then
+		return
+	end
+	self.stickHolding = true
+	screenMove(self, sx, sy, Config.Input.Gamepad.PlaceInchesPerSecond * dt, false)
+end
+
+--- Send the shown spot reliably, if it is not already what the server last heard that way.
+function MatchTargets.commit(self: any)
+	self.pendingCommitAt = nil
+	local x, y = self.previewX, self.previewY
+	if x == nil or y == nil or (x == self.committedX and y == self.committedY) then
+		return
+	end
+	self.seq += 1
+	self.committedX, self.committedY, self.dirty = x, y, false
+	self.onCommit(x, y, self.seq)
+end
+
+--- The next spot for the unreliable stream, or nil when the ball has not moved since the
+--- last send (or may no longer move).
+function MatchTargets.takeStream(self: any): (number?, number?, number?)
+	if not self.dirty or not self:canPlace() or self.previewX == nil then
+		return nil, nil, nil
+	end
+	self.seq += 1
+	self.dirty = false
+	return self.seq, self.previewX, self.previewY
+end
+
+--- End a pointer or stick gesture (release, dialog, or the placement cutoff), sending the
+--- final spot when `commit` is set.
+function MatchTargets.finishGesture(self: any, commit: boolean)
+	local active = self.dragInput ~= nil or self.stickHolding or self.pendingCommitAt ~= nil
+	self.dragInput = nil
+	self.stickHolding = false
+	self.blocked = false
+	self.pendingCommitAt = nil
+	if commit and active then
+		self:commit()
+	end
+end
+
+--- The shot carried the spot as cueX/cueY, so nothing else needs sending for it.
+function MatchTargets.shotFired(self: any)
+	self.pendingCommitAt = nil
+	self.dirty = false
+	self.committedX, self.committedY = self.previewX, self.previewY
 end
 
 function MatchTargets.setSnapshot(
@@ -271,21 +433,43 @@ function MatchTargets.setSnapshot(
 		return
 	end
 	local old = self.snapshot
-	local changed = old == nil
+	local turnChanged = old == nil
 		or old.id ~= snapshot.id
 		or old.epoch ~= snapshot.epoch
 		or old.turnId ~= snapshot.turnId
-		or old.phase ~= snapshot.phase
+	local phaseChanged = turnChanged or old.phase ~= snapshot.phase
 	self.snapshot, self.placement, self.geometry, self.localUserId =
 		snapshot, placement, geometry, userId
 	self.state = { geometry = geometry, balls = unpackBalls(snapshot) }
-	if changed then
+	if turnChanged then
+		-- Ball in hand belongs to one turn: a new one starts from the server's spot. A phase
+		-- change inside the turn (Intro to Placement) keeps a drag going.
 		self.dragInput = nil
+		self.stickHolding = false
+		self.blocked = false
+		self.pendingCommitAt = nil
 		self.previewX, self.previewY = nil, nil
-		self.previewValid = true
+		self.committedX, self.committedY = nil, nil
+		self.dirty = false
+		self.seq = 0
+	end
+	if phaseChanged then
 		self.confirmedPocket = nil
 	end
-	if snapshot.phase ~= "PocketChoice" and snapshot.phase ~= "Aiming" then
+	-- A pocket ring left selected when the call ends (a timeout picks the pocket without the
+	-- player's press) would keep the gamepad on the rings, so LT and the aim stick stay dead.
+	local callEnded = phaseChanged
+		and old ~= nil
+		and old.phase == "PocketChoice"
+		and snapshot.phase ~= "PocketChoice"
+	if
+		callEnded
+		or (
+			snapshot.phase ~= "PocketChoice"
+			and snapshot.phase ~= "Placement"
+			and snapshot.phase ~= "Aiming"
+		)
+	then
 		if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(self.root) then
 			GuiService.SelectedObject = nil
 		end
@@ -298,7 +482,7 @@ function MatchTargets.setSnapshot(
 		target.button.NextSelectionDown = target.button.NextSelectionRight
 	end
 	if
-		changed
+		phaseChanged
 		and snapshot.phase == "PocketChoice"
 		and self:canCall()
 		and UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
@@ -327,6 +511,14 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		return
 	end
 	local canCall, canPlace = self:canCall(), self:canPlace()
+	-- The window closed (the lead-time cutoff, or the server moved on): end the gesture, and
+	-- send its last spot while the server can still take it.
+	local open = snapshot.phase == "Intro" or snapshot.phase == "Placement"
+	if not canPlace and (self:isHolding() or self.pendingCommitAt ~= nil) then
+		self:finishGesture(open)
+	elseif self.pendingCommitAt and self.elapsed >= self.pendingCommitAt then
+		self:commit()
+	end
 	local pulse = (math.sin(self.elapsed * math.pi * 2 / S.PulsePeriod) + 1) / 2
 	for _, target in self.pockets do
 		local pocket = self.geometry.pockets[target.id]
@@ -351,14 +543,24 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		target.button.Size = UDim2.fromOffset(size, size)
 	end
 	if canPlace then
-		local cue = self.state.balls[1]
-		local x, y = self.previewX or cue.x, self.previewY or cue.y
-		local point, visible = self:project(camera, x, y, Config.Balls.RadiusInches)
+		-- The ring hugs the ball as the camera zooms: its projected radius, scaled up so it
+		-- is easy to grab, and never smaller than a comfortable touch target.
+		local x, y = self:current()
+		local radius = Config.Balls.RenderRadiusInches
+		local centre = Vector3.new(Placement.toWorld(self.placement, x, y, radius))
+		local edge = centre + camera.CFrame.RightVector * (radius * Config.Table.StudsPerInch)
+		local a, visible = camera:WorldToScreenPoint(centre)
+		local b = camera:WorldToScreenPoint(edge)
+		local radiusPx = Vector2.new(b.X - a.X, b.Y - a.Y).Magnitude
+		local size = math.max(S.PlacementHandleSize, 2 * radiusPx * S.PlacementGrabScale)
+		local point = Vector2.new(a.X, a.Y) - self.root.AbsolutePosition
 		self.handle.Position = UDim2.fromOffset(point.X, point.Y)
-		self.handle.Visible = visible
-		self.handleStroke.Color = color(if self.previewValid then S.Active else S.Danger)
+		self.handle.Size = UDim2.fromOffset(size, size)
+		self.handle.Visible = visible and a.Z > 0
+		self.handleStroke.Color = color(if self.blocked then S.Danger else S.Active)
 		self.handleCaption.TextColor3 = self.handleStroke.Color
-		self.handleStroke.Transparency = pulse * S.TargetPulse
+		self.handleCaption.Visible = not self:isHolding()
+		self.handleStroke.Transparency = if self:isHolding() then 0 else pulse * S.TargetPulse
 	else
 		self.handle.Visible = false
 	end
@@ -399,8 +601,13 @@ end
 function MatchTargets.clear(self: any)
 	self.snapshot, self.state = nil, nil
 	self.previewX, self.previewY = nil, nil
-	self.previewValid = true
+	self.committedX, self.committedY = nil, nil
+	self.dirty = false
+	self.seq = 0
 	self.dragInput = nil
+	self.stickHolding = false
+	self.blocked = false
+	self.pendingCommitAt = nil
 	self.handle.Visible = false
 	for _, target in self.pockets do
 		target.button.Visible = false

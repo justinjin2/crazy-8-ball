@@ -124,6 +124,90 @@ return {
 		end
 	end,
 
+	["screenDelta moves the ball the way the screen points at every yaw"] = function()
+		local _, Placement = setup()
+		-- A camera looking along world -Z: screen right is world +X.
+		local expected = {
+			[0] = { right = { 1, 0 }, up = { 0, 1 } },
+			[90] = { right = { 0, -1 }, up = { 1, 0 } },
+			[-90] = { right = { 0, 1 }, up = { -1, 0 } },
+		}
+		for _, yaw in { 0, 90, -90 } do
+			local p = Placement.new(4, 0, -7, yaw)
+			local want = expected[yaw]
+			-- The camera vectors need not be unit length; the result still is.
+			local rx, ry = Placement.screenDelta(p, 2, 0, 0, -3, 1, 0, false)
+			local ux, uy = Placement.screenDelta(p, 2, 0, 0, -3, 0, 1, false)
+			H.near(rx, want.right[1], 1e-9, ("yaw %d right x"):format(yaw))
+			H.near(ry, want.right[2], 1e-9, ("yaw %d right y"):format(yaw))
+			H.near(ux, want.up[1], 1e-9, ("yaw %d up x"):format(yaw))
+			H.near(uy, want.up[2], 1e-9, ("yaw %d up y"):format(yaw))
+			local lx, ly = Placement.screenDelta(p, 2, 0, 0, -3, -1, 0, false)
+			H.near(lx, -rx, 1e-9, "left is minus right")
+			H.near(ly, -ry, 1e-9, "left is minus right")
+		end
+		-- Any camera heading: the two screen axes stay perpendicular unit moves on the cloth.
+		local p = Placement.new(0, 0, 0, 37)
+		for degrees = 0, 355, 5 do
+			local a = math.rad(degrees)
+			local cx, cz = math.cos(a), math.sin(a)
+			local rx, ry = Placement.screenDelta(p, cx, cz, cz, -cx, 1, 0, false)
+			local ux, uy = Placement.screenDelta(p, cx, cz, cz, -cx, 0, 1, false)
+			H.near(rx * rx + ry * ry, 1, 1e-9, "unit right")
+			H.near(ux * ux + uy * uy, 1, 1e-9, "unit up")
+			H.near(rx * ux + ry * uy, 0, 1e-9, "perpendicular")
+		end
+	end,
+
+	["screenDelta on the break slides along the line and Left/Right never go dead"] = function()
+		local _, Placement = setup()
+		for _, yaw in { 0, 90, -90, 37 } do
+			local p = Placement.new(0, 0, 0, yaw)
+			for degrees = 0, 355, 5 do
+				local a = math.rad(degrees)
+				local cx, cz = math.cos(a), math.sin(a)
+				local lx, ly = Placement.screenDelta(p, cx, cz, cz, -cx, -1, 0, true, true)
+				local rx, ry = Placement.screenDelta(p, cx, cz, cz, -cx, 1, 0, true, true)
+				H.expect(lx == 0 and rx == 0, "never off the head string")
+				H.expect(math.abs(ry) == 1 and ly == -ry, "Left/Right are full, opposite steps")
+				local ux, uy = Placement.screenDelta(p, cx, cz, cz, -cx, 0, 1, true, true)
+				local _, dy = Placement.screenDelta(p, cx, cz, cz, -cx, 0, -1, true, true)
+				H.expect(ux == 0 and math.abs(uy) == 1 and dy == -uy, "Up/Down never go dead")
+			end
+		end
+	end,
+
+	["screenDelta on the break projects a stick push smoothly onto the line"] = function()
+		local _, Placement = setup()
+		for _, yaw in { 0, 90, -90, 37 } do
+			local p = Placement.new(0, 0, 0, yaw)
+			for degrees = 0, 355, 5 do
+				local a = math.rad(degrees)
+				local cx, cz = math.cos(a), math.sin(a)
+				local _, ry = Placement.screenDelta(p, cx, cz, cz, -cx, 1, 0, false)
+				local _, fy = Placement.screenDelta(p, cx, cz, cz, -cx, 0, 1, false)
+				-- A push exactly on one axis and one a hair off it move the ball about the same.
+				for _, push in { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } } do
+					local sx, sy = push[1], push[2]
+					local x, along = Placement.screenDelta(p, cx, cz, cz, -cx, sx, sy, true)
+					H.expect(x == 0, "the stick never leaves the head string")
+					H.near(along, ry * sx + fy * sy, 1e-9, "a stick push is its projection")
+					local _, tilted = Placement.screenDelta(
+						p,
+						cx,
+						cz,
+						cz,
+						-cx,
+						sx + 0.01 * sy,
+						sy + 0.01 * sx,
+						true
+					)
+					H.near(tilted, along, 0.02, "no jump a hair off the axis")
+				end
+			end
+		end
+	end,
+
 	["forTable gives every lounge table, and nothing else"] = function()
 		local Config, Placement = setup()
 		H.expect(#Config.Lounge.Tables == 12, "the lounge has twelve tables")
