@@ -241,11 +241,13 @@ return {
 		)
 	end,
 
-	["break requires apex first even if an object ball drops"] = function()
+	["break may hit any ball first and a dropped ball makes it legal"] = function()
 		local Judge, _, balls = setup()
 		local result =
 			Judge.judge(balls, outcome(balls, { contact(9), pocket(2) }), context(nil, true))
-		H.expect(result.foul and result.reason == "IllegalBreak" and not result.retain)
+		H.expect(not result.foul and result.retain)
+		result = Judge.judge(balls, outcome(balls, { contact(9) }), context(nil, true))
+		H.expect(result.foul and result.reason == "IllegalBreak")
 	end,
 
 	["break rail requirement counts four distinct object balls after contact"] = function()
@@ -269,14 +271,14 @@ return {
 		H.expect(result.groups[1] == nil)
 	end,
 
-	["eight on scratched or illegal break respots but passes possession"] = function()
+	["eight on a scratched break respots but passes possession"] = function()
 		local Judge, _, balls = setup()
-		for _, events in { { contact(1), pocket(8), pocket(0) }, { contact(8), pocket(8) } } do
-			local result = Judge.judge(balls, outcome(balls, events), context(nil, true))
-			H.expect(
-				result.respotEight and not result.retain and result.foul and result.winner == nil
-			)
-		end
+		local events = { contact(1), pocket(8), pocket(0) }
+		local result = Judge.judge(balls, outcome(balls, events), context(nil, true))
+		H.expect(result.respotEight and not result.retain and result.foul and result.winner == nil)
+		-- Hitting the 8 first is a fair break now; sinking it respots it and keeps the turn.
+		result = Judge.judge(balls, outcome(balls, { contact(8), pocket(8) }), context(nil, true))
+		H.expect(result.respotEight and result.retain and not result.foul and result.winner == nil)
 	end,
 
 	["early eight loses even after legal first contact"] = function()

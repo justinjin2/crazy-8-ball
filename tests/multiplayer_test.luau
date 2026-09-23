@@ -96,7 +96,7 @@ return {
 		j = J.resolve(t.state.balls, outcome(t, ev), {}, 1, false, nil)
 		H.expect(j.foul == "Scratch" and j.assign == nil and j.groups[1] == nil)
 	end,
-	["break requires apex and four distinct rails or a pocket"] = function()
+	["break requires four distinct rails or a pocket, whichever ball is hit first"] = function()
 		local t = full(1)
 		local ev = { event("ballHit", 0, 1) }
 		for _ = 1, 4 do
@@ -108,7 +108,7 @@ return {
 		end
 		H.expect(J.resolve(t.state.balls, outcome(t, ev), {}, 1, true, nil).foul == nil)
 		ev[1] = event("ballHit", 0, 2)
-		H.expect(J.resolve(t.state.balls, outcome(t, ev), {}, 1, true, nil).foul == "IllegalBreak")
+		H.expect(J.resolve(t.state.balls, outcome(t, ev), {}, 1, true, nil).foul == nil)
 	end,
 	["eight on break respots unless foul passes possession"] = function()
 		local t = full(2)

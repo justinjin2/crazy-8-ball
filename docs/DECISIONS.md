@@ -726,3 +726,8 @@ notches wider than the home view; placement is 15 s (was 10), aiming 20 s (was 1
 8-ball call stays 10 s. An invisible wall around each table stops players touching or
 jumping on it. Queue slots get a light column, sparkles, a rising scan frame, a glow flare
 and a join sound (Creator Store "Beacon SFX" 131677760492710, swappable in Config).
+
+2026-09-23: The break may hit any ball first; it is legal when an object ball drops or four
+different object balls reach a rail (standard 8-ball). The apex-first requirement is gone,
+so the aim guide never shows an invalid target on the break. Queue-slot effects show only
+while the table is still filling (Waiting/Countdown) and fade once the match starts.

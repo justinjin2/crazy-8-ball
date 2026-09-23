@@ -190,9 +190,11 @@ local function placeFrame(pad: Pad, height: number, transparency: number)
 	end
 end
 
---- Step every slot's effect. Cheap when nobody is queued: an empty, settled slot only has
---- its tint and edge pulse updated.
-function PadEffects.update(self: PadEffects, dt: number)
+--- Step every slot's effect. `queueOpen(tableId)` says whether that table is still filling
+--- (waiting or counting down): once its match starts the effect fades away even though the
+--- players stay seated. Cheap when nobody is queued: an empty, settled slot only has its
+--- tint and edge pulse updated.
+function PadEffects.update(self: PadEffects, dt: number, queueOpen: (number) -> boolean)
 	self.elapsed += dt
 	local green, white = rgb(M.Style.Green), rgb(M.Style.White)
 	local ease = 1 - math.exp(-dt / Q.FadeInSeconds)
@@ -203,7 +205,9 @@ function PadEffects.update(self: PadEffects, dt: number)
 	end
 	for _, pad in self.pads do
 		local occupied = pad.part:GetAttribute("Occupied") == true
-		if occupied and not pad.occupied then
+		local tableId = pad.part:GetAttribute("TableId")
+		local lit = occupied and (type(tableId) ~= "number" or queueOpen(tableId))
+		if lit and not pad.occupied then
 			pad.flare = Q.GlowBurstSeconds
 			pad.frameTime = 0
 			pad.motes:Emit(Q.MoteBurst)
@@ -221,8 +225,8 @@ function PadEffects.update(self: PadEffects, dt: number)
 					* math.sin(self.elapsed * math.pi * 2 / M.Style.PulseSeconds)
 		end
 
-		pad.level += ((if occupied then 1 else 0) - pad.level) * ease
-		if pad.level < 0.01 and not occupied then
+		pad.level += ((if lit then 1 else 0) - pad.level) * ease
+		if pad.level < 0.01 and not lit then
 			if pad.column.Enabled then
 				pad.level = 0
 				pad.column.Enabled = false
@@ -243,7 +247,7 @@ function PadEffects.update(self: PadEffects, dt: number)
 			NumberSequenceKeypoint.new(1, 1),
 		})
 		pad.column.Enabled = true
-		pad.motes.Rate = if occupied then Q.MoteRate else 0
+		pad.motes.Rate = if lit then Q.MoteRate else 0
 
 		-- Glow: a flare on arrival settling to a steady light.
 		pad.flare = math.max(pad.flare - dt, 0)

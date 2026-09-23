@@ -48,8 +48,9 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 - Break cue ball moves laterally on x=-25 inches (head string on 100-inch table).
   Show dotted legal range; enforce bounds and overlap checks. Fifteen seconds placement,
   then 20 seconds aim; early shooting is allowed.
-- Legal break: apex ball first AND object ball pocketed OR four DISTINCT object balls
-  reaching rails (the AND applies to either spread condition). Illegal break/scratch
+- Legal break: any ball may be hit first (changed 2026-09-23; the aim guide never marks a
+  break target invalid), then an object ball pocketed OR four DISTINCT object balls
+  reaching rails. Illegal break/scratch
   gives opponent ball-in-hand without rerack. Legal break pocket keeps team possession.
 - Eight on break is respotted. Otherwise legal eight-on-break keeps team possession;
   a simultaneous foul overrides retention. Teammate rotation still applies.

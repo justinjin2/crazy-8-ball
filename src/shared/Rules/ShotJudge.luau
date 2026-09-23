@@ -1,6 +1,5 @@
 --!strict
 -- Pure shot decisions. Consume ordered simulation events, never client claims.
-local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Parent.Physics.Ball)
 local Simulation = require(script.Parent.Parent.Physics.Simulation)
 
@@ -160,7 +159,9 @@ function Judge.resolve(
 				count += 1
 			end
 		end
-		if first ~= Config.Rack.Layout[1][1] or (#pockets == 0 and count < 4) then
+		-- Any ball may be hit first on the break (standard 8-ball): it is legal when an object
+		-- ball drops or four different object balls reach a rail.
+		if #pockets == 0 and count < 4 then
 			foul = "IllegalBreak"
 		end
 	elseif not Judge.legalTarget(before, groups[team], first) then

@@ -149,14 +149,14 @@ local function refreshAim()
 		spin = input:getSpin(),
 		elevation = Config.Cue.CueElevationDegrees,
 	})
+	-- On the break any ball is a fair first target (ShotJudge); afterwards only the shooter's
+	-- group, or the 8 once it is theirs.
 	local invalid = trace.objectId ~= nil
-		and (
-			(snapshot.breakShot and trace.objectId ~= 1)
-			or not Judge.legalTarget(
-				match.state.balls,
-				snapshot.groups[snapshot.activeTeam],
-				trace.objectId
-			)
+		and not snapshot.breakShot
+		and not Judge.legalTarget(
+			match.state.balls,
+			snapshot.groups[snapshot.activeTeam],
+			trace.objectId
 		)
 	guideline:show(trace, invalid)
 	hud:setInvalidTarget(invalid)
@@ -556,6 +556,11 @@ UserInputService.InputBegan:Connect(function(key, processed)
 	end
 end)
 local padEffects = PadEffects.new(workspace:WaitForChild("Pads"))
+-- A table's slots stay lit only while it is still filling up.
+local function queueOpen(id: number): boolean
+	local s = lounge.snapshots[id]
+	return s == nil or s.phase == "Waiting" or s.phase == "Countdown"
+end
 input:setEnabled(false)
 UI.setPlayControlsVisible(false)
 CueStickBuilder.setVisible(cueStick, false)
@@ -574,7 +579,7 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
-	padEffects:update(dt)
+	padEffects:update(dt, queueOpen)
 	for _, mode in M.Modes do
 		local panel = workspace.Pads:FindFirstChild(("QueuePanel_%02d"):format(mode.id))
 		local billboard = panel and panel:FindFirstChildWhichIsA("BillboardGui")
