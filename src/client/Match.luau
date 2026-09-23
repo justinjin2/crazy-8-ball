@@ -71,16 +71,35 @@ export type Match = typeof(setmetatable(
 			startedAt: number,
 		}?,
 		lastShot: Summary?,
-		eventListeners: { (Event) -> () },
+		eventListeners: { (Event, number) -> () },
 		-- The sequence number of the shot being replayed, and where the server says the
 		-- balls finish, so the table can settle onto the truth when the motion stops.
 		seq: number,
 		epoch: number,
 		pendingFinal: { number }?,
 		pendingChecksum: number?,
+		-- Balls shown as down. A replay marks a ball when its pocket event is dispatched,
+		-- not when b.pocketed turns on at the rim a few tenths of a second earlier; at rest
+		-- it mirrors the state. `downVersion` goes up whenever this or `assign` changes.
+		sunk: { [number]: boolean },
+		downVersion: number,
+		-- The shot being replayed picks the colors: the groups it produces, and the ball
+		-- whose drop reveals them. Cleared once the server's snapshot carries the groups.
+		assign: { groups: { [number]: string }, ball: number, index: number }?,
 	},
 	Match
 ))
+
+-- The rest state is authoritative: whatever it says is down is shown down.
+local function resync(self: Match)
+	table.clear(self.sunk)
+	for _, b in self.state.balls do
+		if b.pocketed then
+			self.sunk[b.id] = true
+		end
+	end
+	self.downVersion += 1
+end
 
 function Match.new(
 	p: Placement.Placement,
@@ -103,7 +122,11 @@ function Match.new(
 		epoch = 0,
 		pendingFinal = nil,
 		pendingChecksum = nil,
+		sunk = {},
+		downVersion = 0,
+		assign = nil,
 	}, Match)
+	resync(self)
 	self:renderState()
 	return self
 end
@@ -120,9 +143,32 @@ function Match.detach(self: Match)
 	self.renderer = nil
 end
 
---- Listen for simulation events as they happen (audio, effects, rules).
-function Match.onEvent(self: Match, listener: (Event) -> ())
+--- Listen for simulation events as they happen (audio, effects, rules). The second argument
+--- is the event's index in the shot's log, which matches the server's outcome.events index
+--- for the same replay. `epoch` and `seq` already name the shot when any event arrives.
+function Match.onEvent(self: Match, listener: (Event, number) -> ())
 	table.insert(self.eventListeners, listener)
+end
+
+--- The groups to show while a shot is being replayed: the ones it assigns, from the moment
+--- its assigning ball drops (or the replay ends), or nil to use the snapshot's own.
+function Match.revealedGroups(self: Match): { [number]: string }?
+	local a = self.assign
+	return if a and (self.shot == nil or self.sunk[a.ball]) then a.groups else nil
+end
+
+--- A presentation copy of `snapshot` for the HUD and highlights: the pocketed flags are the
+--- balls shown down right now, and the groups are revealed as soon as they are decided. The
+--- positions are left as the server sent them; nothing presentational reads them.
+function Match.view(self: Match, snapshot: any): any
+	local v = table.clone(snapshot)
+	local packed = table.clone(snapshot.balls)
+	for _, b in self.state.balls do
+		packed[b.id * 4 + 4] = if self.sunk[b.id] then 1 else 0
+	end
+	v.balls = packed
+	v.groups = self:revealedGroups() or snapshot.groups
+	return v
 end
 
 function Match.renderState(self: Match)
@@ -169,6 +215,7 @@ function Match.applyRack(self: Match, seed: number, positions: { number })
 	end
 	self.rackSeed, self.rackConfirmed = seed, true
 	self.state.balls, self.state.time, self.state.overrides = balls, 0, nil
+	resync(self)
 	self:renderState()
 end
 
@@ -202,6 +249,7 @@ function Match.applyBalls(self: Match, packed: { number })
 	end
 	self.state.time, self.state.overrides = 0, nil
 	self:renderState()
+	resync(self)
 end
 
 function Match.receive(self: Match, msg: any)
@@ -214,6 +262,10 @@ function Match.receive(self: Match, msg: any)
 	self.shot = nil
 	self:applyBalls(msg.start)
 	self:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
+	if self.seq == msg.seq then
+		self.assign = msg.assign
+		self.downVersion += 1
+	end
 end
 
 function Match.snapshot(self: Match, snapshot: any)
@@ -226,6 +278,7 @@ function Match.snapshot(self: Match, snapshot: any)
 		self.pendingFinal = nil
 		self.pendingChecksum = nil
 		self.pendingRack = nil
+		self.assign = nil
 	end
 	self.rackSeed, self.rackConfirmed = snapshot.rackSeed, true
 	if snapshot.shot then
@@ -237,6 +290,7 @@ function Match.snapshot(self: Match, snapshot: any)
 		self.pendingFinal = nil
 		self.pendingChecksum = nil
 		self.seq = snapshot.shotSeq
+		self.assign = nil -- the snapshot's own groups now include any assignment
 		self:applyBalls(snapshot.balls)
 	end
 end
@@ -309,6 +363,7 @@ function Match.reconcile(self: Match)
 		b.tip = nil
 		Ball.stop(b)
 	end
+	resync(self)
 	-- The state the guideline and the next shot are built from must be the server's, not
 	-- this client's replay of it, or the aim would quietly lie.
 	if
@@ -334,9 +389,15 @@ function Match.reconcile(self: Match)
 	end
 end
 
-local function dispatch(self: Match, ev: Event)
+-- `index` is the event's place in the shot's log. A pocket marks its ball down BEFORE the
+-- listeners run, so anything they refresh already shows it.
+local function dispatch(self: Match, ev: Event, index: number)
+	if ev.type == "pocket" and not self.sunk[ev.ball] then
+		self.sunk[ev.ball] = true
+		self.downVersion += 1
+	end
 	for _, listener in self.eventListeners do
-		listener(ev)
+		listener(ev, index)
 	end
 end
 
@@ -410,7 +471,7 @@ function Match.update(self: Match, dt: number): boolean
 
 	local events = shot.events
 	while shot.nextEvent <= #events and events[shot.nextEvent].t <= self.state.time do
-		dispatch(self, events[shot.nextEvent])
+		dispatch(self, events[shot.nextEvent], shot.nextEvent)
 		shot.nextEvent += 1
 	end
 

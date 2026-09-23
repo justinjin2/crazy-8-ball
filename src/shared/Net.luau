@@ -18,7 +18,11 @@ local FOLDER = "Net"
 local REMOTES: { [string]: string } = {
 	MatchAction = "RemoteEvent", -- phase/version validated gameplay requests
 	SnapshotRequest = "RemoteEvent", -- listeners ready; send complete authoritative state
-	MatchFeedback = "RemoteEvent", -- private team bonus audio with unique event ids
+	-- server -> the owning team only: a bonus sting this player's team earned, sent when the
+	-- shot is accepted and before its ShotResult. {tableId, epoch, id, seq, index, ball, team,
+	-- at}; the client plays it on the matching replay pocket drop (epoch, seq, ball) and
+	-- dedupes by id.
+	MatchFeedback = "RemoteEvent",
 	-- server -> all: a table's seats changed (someone joined, left, or the host moved on).
 	TableState = "RemoteEvent",
 	-- client -> server: please seat me at this table / take me off it.
@@ -37,6 +41,8 @@ local REMOTES: { [string]: string } = {
 	-- server -> all: a shot has started on a table. Carries the post-strike cue ball state
 	-- to replay from, the server's final positions to settle on, and a checksum.
 	-- Optional overrides are copied from the server's material catalog for this shot only.
+	-- On the shot that picks the colors, `assign` {groups, ball, index} names the ball whose
+	-- drop reveals both teams' groups, before the snapshot catches up at resolution.
 	ShotResult = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: this is ten low-value updates a
 	-- second, and losing one just means a remote cue turns a frame later. Never worth a

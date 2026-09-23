@@ -298,6 +298,8 @@ function Service.broadcast(t: any, player: Player?)
 	refresh(t)
 end
 
+-- Bonus grants go only to the owning team. ShotService sends them before the ShotResult, so
+-- a client already holds its grant when the replay drops the ball (see Audio.grant).
 function Service.flush(t: any)
 	for _, f in t.engine.feedback do
 		for _, s in t.engine.seats do
@@ -308,8 +310,11 @@ function Service.flush(t: any)
 						tableId = t.engine.id,
 						epoch = t.engine.epoch,
 						id = f.id,
-						at = f.at,
+						seq = f.seq,
+						index = f.index,
 						ball = f.ball,
+						team = f.team,
+						at = f.at,
 					})
 				end
 			end
@@ -631,7 +636,7 @@ function Service.start(parent: Instance)
 			t.blocked[p.UserId] = nil
 		end
 	end)
-	require(script.Parent.StudioMatchQA).start(tables, seatOf, Service.broadcast)
+	require(script.Parent.StudioMatchQA).start(tables, seatOf, Service.broadcast, Service.flush)
 	local elapsed, snapshots = 0, 0
 	RunService.Heartbeat:Connect(function(dt)
 		elapsed += dt

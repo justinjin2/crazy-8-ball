@@ -91,10 +91,10 @@ return {
 		local t = full(1)
 		local ev = { event("ballHit", 0, 9), event("pocket", 9, 1, 1), event("pocket", 1, 2, 2) }
 		local j = J.resolve(t.state.balls, outcome(t, ev), {}, 1, false, nil)
-		H.expect(j.groups[1] == "stripes" and j.keep and j.assigned)
+		H.expect(j.groups[1] == "stripes" and j.keep and j.assign ~= nil)
 		table.insert(ev, event("pocket", 0, 1, 3))
 		j = J.resolve(t.state.balls, outcome(t, ev), {}, 1, false, nil)
-		H.expect(j.foul == "Scratch" and not j.assigned and j.groups[1] == nil)
+		H.expect(j.foul == "Scratch" and j.assign == nil and j.groups[1] == nil)
 	end,
 	["break requires apex and four distinct rails or a pocket"] = function()
 		local t = full(1)

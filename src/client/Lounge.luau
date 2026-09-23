@@ -252,6 +252,8 @@ function Lounge.listen(self: Lounge)
 			return
 		end
 		self.snapshots[snapshot.id] = snapshot
+		-- Before the listeners below, so the Match's shown-down balls and revealed colors
+		-- (downVersion, assign) are current when Main presents this snapshot.
 		local match = self.matches[snapshot.id]
 		if match then
 			match:snapshot(snapshot)

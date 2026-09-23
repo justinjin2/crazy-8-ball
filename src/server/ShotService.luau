@@ -29,8 +29,10 @@ function Service.start()
 			warn("[8ball] shot failed: " .. tostring(result))
 			Net.get("ShotRejected"):FireClient(player, "SimulationError")
 		elseif result then
-			Net.get("ShotResult"):FireAllClients(result)
+			-- Grants first, so the owning team already holds its bonus when the replay drops
+			-- the ball and the sting lands with the drop (Audio.grant forgives a late one).
 			Tables.flush(t)
+			Net.get("ShotResult"):FireAllClients(result)
 		else
 			Net.get("ShotRejected"):FireClient(player, reason or "ShotRejected")
 		end

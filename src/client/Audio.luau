@@ -93,10 +93,17 @@ export type Audio = typeof(setmetatable(
 		stacked: number,
 		-- Which clip each event played last, so the next pick is never the same one.
 		lastPick: { [string]: number },
-		-- Balls pocketed in the current unbroken run, which is what raises the bonus sting.
+		-- Bonuses played in the current unbroken run, which is what raises the bonus sting.
 		-- `pocketedThisShot` is how a run is known to have ended: the next strike reads it.
 		streak: number,
 		pocketedThisShot: boolean,
+		-- The bonus is private to the ball's owners, so the server grants it (Audio.grant)
+		-- and the replay plays it. Both are keyed by epoch:seq:ball. `owed` holds grants
+		-- whose ball has not dropped yet, `recent` drops with no grant yet, `granted` the
+		-- feedback ids already taken, against a duplicate.
+		owed: { [string]: { epoch: number, seq: number } },
+		recent: { [string]: { at: Vector3, speed: number, clock: number } },
+		granted: { [string]: number },
 		roll: Roll?,
 		pull: Pull?,
 	},
@@ -215,6 +222,9 @@ function Audio.new(parent: Instance): Audio
 		lastPick = {},
 		streak = 0,
 		pocketedThisShot = false,
+		owed = {},
+		recent = {},
+		granted = {},
 		roll = nil,
 		pull = nil,
 	}, Audio)
@@ -360,8 +370,24 @@ function Audio.playAt(
 	task.delay(length / math.max(sound.PlaybackSpeed, 0.05) + 0.5, release)
 end
 
+local function keyOf(epoch: number, seq: number, ball: number): string
+	return ("%d:%d:%d"):format(epoch, seq, ball)
+end
+
+--- The reward sting over a pocket drop, one rung up the ladder for each bonus already in the
+--- run. The first is the plain sound, so the pitch only ever says "this is the Nth in a row",
+--- and the rungs are chosen so two landing together make a chord rather than a clash.
+function Audio.bonus(self: Audio, at: Vector3, speed: number)
+	local B = Config.Audio.Bonus
+	local rungs = B.StreakSemitoneSteps
+	local semitones = B.BaseSemitones + rungs[math.min(self.streak + 1, #rungs)]
+	self:playAt("PocketBonus", at, B, speed, true, 2 ^ (semitones / 12))
+	self.streak += 1
+	self.pocketedThisShot = true
+end
+
 --- Listen to a table. Every contact the simulation reports becomes a sound.
-function Audio.attach(self: Audio, match: any, privateBonus: boolean?)
+function Audio.attach(self: Audio, match: any)
 	match:onEvent(function(ev: Event)
 		local A = Config.Audio
 		local now = os.clock()
@@ -378,13 +404,32 @@ function Audio.attach(self: Audio, match: any, privateBonus: boolean?)
 			else TableBuilder.toWorld(match.placement, 0, 0, 0)
 
 		if ev.type == "cueStrike" then
-			-- A shot that pocketed nothing ends the run. Read here rather than at the end of
+			-- A shot that played no bonus ends the run. Read here rather than at the end of
 			-- the shot because a strike is the one event that is guaranteed to arrive, and it
 			-- arrives before anything this shot can add to the run.
 			if not self.pocketedThisShot then
 				self.streak = 0
 			end
 			self.pocketedThisShot = false
+			-- Grants for earlier shots can no longer drop, and a drop that has waited longer
+			-- than a late grant may is over.
+			for key, owed in self.owed do
+				if
+					owed.epoch < match.epoch or (owed.epoch == match.epoch and owed.seq < match.seq)
+				then
+					self.owed[key] = nil
+				end
+			end
+			for key, drop in self.recent do
+				if now - drop.clock > A.Bonus.LateSeconds then
+					self.recent[key] = nil
+				end
+			end
+			for id, epoch in self.granted do
+				if epoch < match.epoch then
+					self.granted[id] = nil
+				end
+			end
 			self:playAt("CueStrike", at, A.Strike, ev.speed)
 		elseif ev.type == "pocket" then
 			-- Always audible: a ball dropping is the payoff and must never be rate limited
@@ -395,19 +440,16 @@ function Audio.attach(self: Audio, match: any, privateBonus: boolean?)
 				self.streak = 0
 				self.pocketedThisShot = false
 			else
-				-- A bright sting over the top, for the reward rather than the physics, one
-				-- rung up the ladder for each ball already in the run. The first is the plain
-				-- sound, so the pitch only ever says "this is the Nth in a row", and the rungs
-				-- are chosen so two landing together make a chord rather than a clash.
-				local B = A.Bonus
-				local rungs = B.StreakSemitoneSteps
-				local semitones = B.BaseSemitones + rungs[math.min(self.streak + 1, #rungs)]
-				local pitch = 2 ^ (semitones / 12)
-				if not privateBonus then
-					self:playAt("PocketBonus", at, B, ev.speed, true, pitch)
+				-- The sting is only for the ball's owners, and only once the server says so:
+				-- in the same frame as the drop when the grant is already here, otherwise
+				-- remembered briefly for a grant that arrives just behind it.
+				local key = keyOf(match.epoch, match.seq, ev.ball)
+				if self.owed[key] then
+					self.owed[key] = nil
+					self:bonus(at, ev.speed)
+				else
+					self.recent[key] = { at = at, speed = ev.speed, clock = now }
 				end
-				self.streak += 1
-				self.pocketedThisShot = true
 			end
 		elseif ev.type == "ballHit" then
 			if ev.speed < A.MinClackSpeed then
@@ -433,11 +475,34 @@ function Audio.attach(self: Audio, match: any, privateBonus: boolean?)
 	end)
 end
 
---- Forget any run of pocketed balls. Called when the player leaves a table, so a streak is
---- not carried to the next one.
+--- A bonus the server granted this player's team (Net MatchFeedback). It sounds when the
+--- replay drops that ball; if the ball already dropped, only within Bonus.LateSeconds, after
+--- which it would read as a separate event.
+function Audio.grant(self: Audio, f: { id: string, epoch: number, seq: number, ball: number })
+	if self.granted[f.id] then
+		return
+	end
+	self.granted[f.id] = f.epoch
+	local key = keyOf(f.epoch, f.seq, f.ball)
+	local drop = self.recent[key]
+	if drop then
+		self.recent[key] = nil
+		if os.clock() - drop.clock <= Config.Audio.Bonus.LateSeconds then
+			self:bonus(drop.at, drop.speed)
+		end
+	else
+		self.owed[key] = { epoch = f.epoch, seq = f.seq }
+	end
+end
+
+--- Forget any run of pocketed balls, and any bonus still waiting on a drop. Called when the
+--- player leaves a table, so neither is carried to the next one.
 function Audio.resetStreak(self: Audio)
 	self.streak = 0
 	self.pocketedThisShot = false
+	table.clear(self.owed)
+	table.clear(self.recent)
+	table.clear(self.granted)
 end
 
 --- The soft click while the aim turns (GDD section 5: a tick every step of rotation).

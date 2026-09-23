@@ -251,14 +251,27 @@ local function makeBall(parent: Instance): any
 	number.Size = UDim2.fromScale(1, 1)
 	number.Font = Enum.Font.GothamBold
 	number.TextColor3 = color(S.Panel)
-	local cross = label(root, "Pocketed", S.BallSize, "×")
+	-- A red X across the whole ball, drawn as two crossed bars. It hangs off the slot rather
+	-- than the round Ball frame, which clips, so the bars can run past the rim; the slot's
+	-- UIScale pops it with the ball. Bar sizes follow the ball size in layout.
+	local cross = frame(root, "Pocketed")
+	cross.AnchorPoint = Vector2.new(0.5, 0.5)
+	cross.Position = UDim2.fromScale(0.5, 0.5)
 	cross.Size = UDim2.fromScale(1, 1)
-	cross.TextColor3 = color(S.Text)
-	cross.Font = Enum.Font.GothamBold
-	cross.TextStrokeColor3 = color(S.Panel)
-	cross.TextStrokeTransparency = 0.15
 	cross.ZIndex = 4
 	cross.Visible = false
+	local bars = {}
+	for _, angle in { 45, -45 } do
+		local bar = frame(cross, "Bar")
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
+		bar.Position = UDim2.fromScale(0.5, 0.5)
+		bar.Rotation = angle
+		bar.BackgroundTransparency = 0
+		bar.BackgroundColor3 = color(S.PocketedMark)
+		bar.ZIndex = 4
+		outline(bar, color(S.Panel), S.PocketedMarkStrokePx)
+		table.insert(bars, bar)
+	end
 	local scale = Instance.new("UIScale")
 	scale.Parent = root
 	return {
@@ -268,6 +281,7 @@ local function makeBall(parent: Instance): any
 		face = face,
 		number = number,
 		cross = cross,
+		bars = bars,
 		scale = scale,
 		border = border,
 		down = false,
@@ -317,6 +331,9 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.respondedVote = nil
 	self.width = 0
 	self.avatarCache = {}
+	-- Which balls were down in the last snapshot, by id, so a ball pops when IT goes down
+	-- rather than when a slot's contents change (the rows remap when colors are revealed).
+	self.downIds = {}
 	self.root = frame(screen, "MultiplayerHUD")
 	self.root.ZIndex = 2 -- setup targets are a lower sibling; dialogs always cover them
 	self.root.Size = UDim2.fromScale(1, 1)
@@ -539,7 +556,12 @@ function MatchHUD.layout(self: any)
 			)
 			ball.root.Size = UDim2.fromOffset(ballSize, ballSize)
 			ball.number.TextSize = math.max(S.NameSize, ballSize * 0.39)
-			ball.cross.TextSize = ballSize
+			local length = math.floor(ballSize * S.PocketedMarkLength + 0.5)
+			local thick =
+				math.max(S.PocketedMarkMinPx, math.floor(ballSize * S.PocketedMarkThickness + 0.5))
+			for _, bar in ball.bars do
+				bar.Size = UDim2.fromOffset(length, thick)
+			end
 		end
 		team.open.Position = UDim2.fromOffset(ballLeft, ballTop)
 		team.open.Size =
@@ -789,6 +811,12 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 	end
 	local ours = localTeam(snapshot, userId)
 	self.ours = ours
+	local previous = if old and old.epoch == snapshot.epoch then self.downIds else nil
+	local downIds = {}
+	for id = 1, 15 do
+		downIds[id] = pocketed(snapshot, id)
+	end
+	self.downIds = downIds
 	for side, team in self.teams do
 		local teamId = if side == 1 then ours else 3 - ours
 		team.teamId = teamId
@@ -869,8 +897,8 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 		for index, ball in team.balls do
 			ball.root.Visible = group ~= nil
 			local id = if index == 8 then 8 else index + (if group == "stripes" then 8 else 0)
-			local down = pocketed(snapshot, id)
-			if down and not ball.down and old and old.epoch == snapshot.epoch then
+			local down = downIds[id]
+			if down and previous and not previous[id] then
 				ball.changedAt = self.lastNow
 			end
 			ball.down = down

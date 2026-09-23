@@ -247,25 +247,29 @@ function Engine.death(t: any, userId: number, now: number)
 	end
 end
 
-local function awards(t: any, outcome: any, judgement: any, now: number, delayed: boolean)
-	for i, ev in outcome.events do
-		if ev.type == "pocket" and ev.ball ~= 0 then
-			local group = Judge.group(ev.ball)
-			local owner = if group and group == judgement.groups[1]
-				then 1
-				elseif group and group == judgement.groups[2] then 2
-				else nil
-			if ev.ball == 8 and judgement.reason == "LegalEight" then
-				owner = judgement.winner
-			end
-			if owner then
-				table.insert(t.feedback, {
-					id = ("%d:%d:%d:%d"):format(t.id, t.epoch, t.shotSeq, i),
-					team = owner,
-					ball = ev.ball,
-					at = if delayed then now else now + ev.t,
-				})
-			end
+-- Private bonus stings for the accepted shot, one per owned ball that drops. Decided at
+-- acceptance so each can sound the moment its ball drops in the replay. Owners come from the
+-- groups AFTER this shot, so the ball that picks the colors earns one too; a table that stays
+-- open (break, foul, early eight) has no groups and awards nothing. Only a winning eight pays.
+function Engine.awards(t: any, j: any, now: number)
+	for _, drop in j.drops do -- deduped, chronological, never the cue ball
+		local group = Judge.group(drop.ball)
+		local owner = if group and group == j.groups[1]
+			then 1
+			elseif group and group == j.groups[2] then 2
+			else nil
+		if drop.ball == 8 and j.reason == "LegalEight" then
+			owner = j.winner
+		end
+		if owner then
+			table.insert(t.feedback, {
+				id = ("%d:%d:%d:%d"):format(t.id, t.epoch, t.shotSeq, drop.index),
+				team = owner,
+				ball = drop.ball,
+				seq = t.shotSeq,
+				index = drop.index,
+				at = now + drop.t,
+			})
 		end
 	end
 end
@@ -282,9 +286,6 @@ local function resolve(t: any, now: number)
 	t.shot = nil
 	local j = pending.judgement
 	t.groups = j.groups
-	if j.assigned then
-		awards(t, pending.outcome, j, now, true)
-	end
 	if j.respotEight then
 		local x, y = Placement.fallback(t.state, 8, false)
 		Placement.set(t.state, 8, x, y)
@@ -544,11 +545,14 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 		final = Engine.pack(outcome.finalBalls),
 		checksum = Simulation.checksum(outcome.finalBalls),
 		overrides = outcome.overrides,
+		-- Only on the shot that picks the colors. t.groups still changes at resolution;
+		-- clients reveal both teams' groups when their replay drops this ball.
+		assign = if j.assign
+			then { groups = table.clone(j.groups), ball = j.assign.ball, index = j.assign.index }
+			else nil,
 	}
 	t.pending = { outcome = outcome, judgement = j }
-	if t.groups[t.activeTeam] ~= nil then
-		awards(t, outcome, j, now, false)
-	end
+	Engine.awards(t, j, now)
 	local pocketed = false
 	for _, ev in outcome.events do
 		if ev.type == "pocket" then

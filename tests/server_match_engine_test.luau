@@ -5,6 +5,7 @@ local E = H.require("Rules.MatchEngine")
 local M = H.require("Config").Multiplayer
 local Ball = H.require("Physics.Ball")
 local Sim = H.require("Physics.Simulation")
+local Judge = H.require("Rules.ShotJudge")
 local expect = H.expect
 local tests = {}
 local function queue(size: number, id: number?): any
@@ -61,6 +62,28 @@ local function shotPayload(m: any, extra: any?): any
 	payload.tableId, payload.epoch, payload.turnId = m.id, m.epoch, m.turnId
 	payload.angle, payload.power = 0, 0.05
 	return payload
+end
+-- Line `id` up for the +y side pocket with the cue ball straight behind it; a soft straight
+-- shot (angle pi/2, power 0.12) drops it and leaves the cue ball on the table.
+local function sidePocketShot(m: any, id: number): any
+	local ball = Sim.findBall(m.state, id)
+	local cue = Sim.findBall(m.state, 0)
+	ball.x, ball.y = 0, m.state.geometry.halfWidth - 5
+	cue.x, cue.y = 0, ball.y - 8
+	local payload = shotPayload(m)
+	payload.angle, payload.power = math.pi / 2, 0.12
+	return payload
+end
+-- A synthetic outcome for the pure judge, as the rules tests build them.
+local function fakeOutcome(m: any, events: { any }): any
+	return {
+		events = events,
+		finalBalls = Ball.cloneList(m.state.balls),
+		firstContact = Sim.firstContact(events),
+		duration = 4,
+		steps = 960,
+		capped = false,
+	}
 end
 function tests.queue_reassigns_host_cancels_and_restarts_countdown()
 	local m = queue(2)
@@ -336,14 +359,123 @@ function tests.complete_synthetic_eight_games_every_mode_release_and_allow_table
 		payload.angle, payload.power = math.pi / 2, 0.12
 		local wire = E.acceptShot(m, 11, payload, m.phaseStartedAt)
 		expect(wire ~= nil)
+		-- The winner's bonus is decided at acceptance, timed to the eight's drop.
+		expect(#m.feedback == 1, "winning eight should award one bonus")
+		local f = m.feedback[1]
+		local ev = m.pending.outcome.events[f.index]
+		expect(f.ball == 8 and f.team == 1 and f.seq == wire.seq)
+		expect(ev.type == "pocket" and ev.ball == 8 and f.at == wire.startedAt + ev.t)
 		expire(m)
 		expect(
 			m.phase == "Result" and m.result.winner == 1,
 			"legal called eight should win mode " .. size
 		)
-		expect(#m.feedback > 0, "winning eight should award bonus")
+		expect(#m.feedback == 1, "resolution adds no second bonus")
 		expire(m)
 		expect(m.phase == "Waiting" and E.count(m) == 0 and not Sim.findBall(m.state, 8).pocketed)
 	end
+end
+function tests.assignment_shot_awards_at_acceptance_not_resolution()
+	local m = playing(1)
+	m.breakShot, m.ballInHand = false, false
+	expire(m)
+	expect(m.phase == "Aiming" and m.groups[1] == nil)
+	local payload = sidePocketShot(m, 3)
+	local wire = E.acceptShot(m, 11, payload, m.phaseStartedAt)
+	expect(wire ~= nil and wire.assign ~= nil and wire.assign.ball == 3)
+	expect(wire.assign.groups[1] == "solids" and wire.assign.groups[2] == "stripes")
+	local ev = m.pending.outcome.events[wire.assign.index]
+	expect(ev.type == "pocket" and ev.ball == 3, "assign.index is the drop's event index")
+	-- The snapshot keeps the open table until resolution; only the replay reveals early.
+	local snapshot = E.snapshot(m)
+	expect(snapshot.groups[1] == nil and snapshot.groups[2] == nil)
+	expect(snapshot.shot.assign.index == wire.assign.index)
+	expect(#m.feedback == 1, "the assigning ball earns its bonus at acceptance")
+	local f = m.feedback[1]
+	expect(f.team == 1 and f.ball == 3 and f.seq == wire.seq and f.index == wire.assign.index)
+	expect(f.id == ("%d:%d:%d:%d"):format(m.id, m.epoch, wire.seq, wire.assign.index))
+	expect(f.at == wire.startedAt + ev.t)
+	table.clear(m.feedback)
+	expire(m)
+	expect(#m.feedback == 0, "resolution never grants the assignment bonus again")
+	expect(m.groups[1] == "solids" and m.groups[2] == "stripes")
+end
+function tests.legal_break_pocket_neither_assigns_nor_awards()
+	local m = playing(1)
+	expect(m.breakShot)
+	-- The apex drops on the break: a legal break that keeps the table open.
+	local wire = E.acceptShot(m, 11, sidePocketShot(m, 1), m.phaseStartedAt)
+	expect(wire ~= nil and wire.assign == nil and #m.feedback == 0)
+	local dropped = false
+	for _, ev in m.pending.outcome.events do
+		dropped = dropped or (ev.type == "pocket" and ev.ball == 1)
+	end
+	expect(dropped and m.pending.judgement.foul == nil and m.pending.judgement.keep)
+	expect(E.snapshot(m).shot.assign == nil)
+	expire(m)
+	expect(m.groups[1] == nil and m.groups[2] == nil and #m.feedback == 0 and m.shooter == 11)
+end
+function tests.awards_use_post_assignment_groups_for_both_teams()
+	local m = playing(1)
+	m.shotSeq = 4
+	E.awards(m, {
+		groups = { "stripes", "solids" },
+		drops = {
+			{ ball = 10, index = 5, t = 1.5 },
+			{ ball = 2, index = 7, t = 2 },
+			{ ball = 8, index = 9, t = 2.5 },
+		},
+	}, 100)
+	expect(#m.feedback == 2, "each ball goes to its owners; an unwon eight to nobody")
+	local a, b = m.feedback[1], m.feedback[2]
+	expect(a.team == 1 and a.ball == 10 and a.at == 101.5 and a.seq == 4 and a.index == 5)
+	expect(a.id == ("%d:%d:4:5"):format(m.id, m.epoch))
+	expect(b.team == 2 and b.ball == 2 and b.at == 102 and b.index == 7)
+	table.clear(m.feedback)
+	E.awards(m, {
+		groups = { "solids", "stripes" },
+		reason = "LegalEight",
+		winner = 2,
+		drops = { { ball = 8, index = 3, t = 1 } },
+	}, 100)
+	expect(#m.feedback == 1 and m.feedback[1].team == 2 and m.feedback[1].ball == 8)
+end
+function tests.open_table_fouls_award_nothing()
+	local m = playing(1)
+	local contact = { t = 1, type = "ballHit", ball = 0, other = 1, speed = 10 }
+	local function drop(id: number, t: number): any
+		return { t = t, type = "pocket", ball = id, other = 1, speed = 10 }
+	end
+	for _, events in
+		{
+			{ contact, drop(2, 2), drop(0, 3) }, -- scratch
+			{ contact, drop(1, 2), drop(8, 3) }, -- early eight
+			{ drop(9, 2) }, -- no contact
+		}
+	do
+		local j = Judge.resolve(m.state.balls, fakeOutcome(m, events), {}, 1, false, nil)
+		expect(j.assign == nil and j.groups[1] == nil and #j.drops > 0)
+		E.awards(m, j, 0)
+		expect(#m.feedback == 0)
+	end
+end
+function tests.resolution_never_emits_feedback()
+	local m = playing(1)
+	m.breakShot = false
+	local drop = { t = 0.5, type = "pocket", ball = 3, other = 1, speed = 10 }
+	m.pending = {
+		outcome = { finalBalls = Ball.cloneList(m.state.balls), events = { drop } },
+		judgement = {
+			groups = { "solids", "stripes" },
+			assign = { ball = 3, index = 1 },
+			keep = true,
+			pockets = { 3 },
+			drops = { { ball = 3, index = 1, t = 0.5 } },
+		},
+	}
+	m.phase = "Resolving"
+	m.deadline = m.phaseStartedAt + 1
+	expire(m)
+	expect(#m.feedback == 0 and m.groups[1] == "solids")
 end
 return tests

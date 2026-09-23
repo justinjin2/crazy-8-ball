@@ -95,6 +95,58 @@ return {
 		H.expect(tie.groups[1] == "solids", "equal timestamps preserve simulation ordering")
 	end,
 
+	["assignment names the first group ball to drop and its event index"] = function()
+		local Judge, _, balls = setup()
+		local ctx = context(nil)
+		-- Ball 10 drops first in time but sits third in the log: the index is the log's.
+		local result = Judge.judge(
+			balls,
+			outcome(balls, { contact(1), pocket(3, 1, 4), pocket(10, 2, 3) }),
+			ctx
+		)
+		H.expect(result.assign ~= nil and result.assign.ball == 10 and result.assign.index == 3)
+		local tie = Judge.judge(balls, outcome(balls, { contact(1), pocket(3), pocket(10) }), ctx)
+		H.expect(
+			tie.assign ~= nil and tie.assign.ball == 3 and tie.assign.index == 2,
+			"equal timestamps assign in simulation order"
+		)
+	end,
+
+	["the shooting second team assigns and an owned table never does"] = function()
+		local Judge, _, balls = setup()
+		local ctx = context(nil)
+		ctx.activeTeam = 2
+		local result = Judge.judge(balls, outcome(balls, { contact(9), pocket(10) }), ctx)
+		H.expect(result.assign ~= nil and result.assign.ball == 10 and result.assign.index == 2)
+		ctx.groups = result.groups
+		result = Judge.judge(balls, outcome(balls, { contact(9), pocket(10) }), ctx)
+		H.expect(result.assign == nil and result.groups[2] == "stripes")
+	end,
+
+	["scratch break and eight-on-break pockets never assign"] = function()
+		local Judge, _, balls = setup()
+		for _, fixture in
+			{
+				{ { contact(1), pocket(2), pocket(0) }, false },
+				{ { contact(1), pocket(9) }, true },
+				{ { contact(1), pocket(8) }, true },
+			}
+		do
+			local result = Judge.judge(balls, outcome(balls, fixture[1]), context(nil, fixture[2]))
+			H.expect(result.assign == nil and result.groups[1] == nil and result.groups[2] == nil)
+		end
+	end,
+
+	["an open-table eight loses early and assigns nothing"] = function()
+		local Judge, _, balls = setup()
+		local events = { contact(1), pocket(1), pocket(8, 1, 4) }
+		local result = Judge.judge(balls, outcome(balls, events), context(nil))
+		H.expect(result.winner == 2 and result.reason == "EarlyEight")
+		H.expect(result.assign == nil and result.groups[1] == nil and result.groups[2] == nil)
+		local raw = Judge.resolve(balls, outcome(balls, events), {}, 1, false, nil)
+		H.expect(#raw.drops == 2 and raw.drops[1].ball == 1 and raw.drops[2].ball == 8)
+	end,
+
 	["second team can assign and existing ownership does not change"] = function()
 		local Judge, _, balls = setup()
 		local ctx = context(nil)
@@ -289,6 +341,17 @@ return {
 		H.expect(
 			result.groups[1] == "solids" and #result.pockets == 1 and result.pockets[1].ball == 3
 		)
+		H.expect(result.assign ~= nil and result.assign.ball == 3 and result.assign.index == 3)
+		local raw = Judge.resolve(
+			balls,
+			outcome(balls, { contact(1), pocket(9), pocket(3), pocket(3) }),
+			{},
+			1,
+			false,
+			nil
+		)
+		H.expect(#raw.drops == 1 and raw.drops[1].ball == 3 and raw.drops[1].index == 3)
+		H.expect(raw.drops[1].t == 3, "a drop keeps the shot time its ball went down")
 	end,
 
 	["a real deterministic rack break satisfies the agreed rules"] = function()

@@ -10,7 +10,7 @@ local Ball = require(Shared.Physics.Ball)
 local Simulation = require(Shared.Physics.Simulation)
 local QA = {}
 
-function QA.start(tables: any, seatOf: any, broadcast: (any) -> ())
+function QA.start(tables: any, seatOf: any, broadcast: (any) -> (), flush: (any) -> ())
 	if not RunService:IsStudio() then
 		return
 	end
@@ -51,6 +51,9 @@ function QA.start(tables: any, seatOf: any, broadcast: (any) -> ())
 			Engine.advance(t.engine, now + 8, 1)
 		elseif command == "shot" then
 			local replay, reason = Engine.acceptShot(t.engine, t.engine.shooter, data, now)
+			if replay then
+				flush(t) -- grants before the snapshot that carries the replay, as ShotService does
+			end
 			broadcast(t)
 			return { replay = replay, reason = reason }
 		elseif command == "action" then

@@ -14,6 +14,11 @@ export type Context = {
 	calledPocket: number?,
 }
 export type Pocket = { ball: number, pocket: number }
+-- A ball's first drop this shot: `index` is its event's place in outcome.events (the order
+-- a client replay dispatches them in), `t` the shot time it went down.
+export type Drop = { ball: number, index: number, t: number }
+-- The drop that picked the colors on an open table.
+export type Assign = { ball: number, index: number }
 export type Verdict = {
 	groups: Groups,
 	foul: boolean,
@@ -22,6 +27,7 @@ export type Verdict = {
 	retain: boolean,
 	respotEight: boolean,
 	pockets: { Pocket },
+	assign: Assign?,
 }
 
 local Judge = {}
@@ -86,6 +92,7 @@ function Judge.resolve(
 )
 	local pockets: { number } = {}
 	local pocketDetails: { Pocket } = {}
+	local drops: { Drop } = {}
 	local rails: { [number]: boolean } = {}
 	local seenPockets: { [number]: boolean } = {}
 	local down: { [number]: boolean } = {}
@@ -131,6 +138,7 @@ function Judge.resolve(
 			end
 			if ev.ball ~= 0 then
 				table.insert(pockets, ev.ball)
+				table.insert(drops, { ball = ev.ball, index = index, t = ev.t })
 			end
 		end
 	end
@@ -173,19 +181,19 @@ function Judge.resolve(
 			winner, reason = team, "LegalEight"
 		end
 	end
-	local assigned = false
+	local assign: Assign? = nil
 	local resultGroups: Groups = {}
 	for side = 1, 2 do
 		resultGroups[side] = groups[side]
 	end
 	if not isBreak and not foul and not eight and resultGroups[team] == nil then
-		for _, id in pockets do
-			local group = Judge.group(id)
+		for _, drop in drops do
+			local group = Judge.group(drop.ball)
 			if group then
 				resultGroups[team] = group :: Group
 				local opposite: Group = if group == "solids" then "stripes" else "solids"
 				resultGroups[3 - team] = opposite
-				assigned = true
+				assign = { ball = drop.ball, index = drop.index }
 				break
 			end
 		end
@@ -203,10 +211,11 @@ function Judge.resolve(
 		winner = winner,
 		reason = reason,
 		groups = resultGroups,
-		assigned = assigned,
+		assign = assign,
 		keep = keep,
 		pockets = pockets,
 		pocketDetails = pocketDetails,
+		drops = drops,
 		respotEight = isBreak and eight,
 	}
 end
@@ -230,6 +239,7 @@ function Judge.judge(before: { Ball }, outcome: Simulation.ShotOutcome, context:
 		retain = result.keep,
 		respotEight = result.respotEight,
 		pockets = result.pocketDetails,
+		assign = result.assign,
 	}
 end
 

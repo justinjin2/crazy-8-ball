@@ -44,6 +44,11 @@ UI.addPlayControl(powerCue.root)
 local spinSelector = SpinSelector.new(screen, input)
 UI.addPlayControl(spinSelector.root)
 local snapshot: any = nil
+-- What the HUD and highlights draw: `snapshot` as match:view presents it, with balls down
+-- as the replay drops them and the colors shown the moment they are decided. `snapshot`
+-- itself stays the server's state for every rule check (canShoot, aim, targets).
+local hudView: any = nil
+local viewVersion = -1
 local match: any = nil
 local placement: any = nil
 local guideline: any = nil
@@ -62,11 +67,12 @@ local wasModal = false
 local previousMouseBehavior: Enum.MouseBehavior? = nil
 local audioByTable: { [number]: any } = {}
 local effectsByTable: { [number]: any } = {}
-local bonusSeen: { [string]: boolean } = {}
-local bonusNextAt = 0
 local uiSounds: { [string]: Sound } = {}
 local padViews: { any } = {}
 local ownHighlights: { Highlight } = {}
+-- What the highlights were last built for, so an unchanged view does not rebuild them.
+local highlightKey = ""
+local highlightRenderer: any = nil
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -181,35 +187,56 @@ local function clearHighlights()
 		h:Destroy()
 	end
 	table.clear(ownHighlights)
+	highlightKey, highlightRenderer = "", nil
 end
+-- Outline this player's group on the table, and the 8 once it is theirs to take. Reads the
+-- presentation view, so it changes with the HUD, and is rebuilt only when what it shows does.
 local function highlightOwn()
-	clearHighlights()
-	if not snapshot or not match or not match.renderer or snapshot.phase == "Result" then
+	local view = hudView
+	local renderer = match and match.renderer
+	if not view or not renderer or view.phase == "Result" then
+		clearHighlights()
 		return
 	end
 	local team = 1
-	for _, s in snapshot.seats do
+	for _, s in view.seats do
 		if s.userId == player.UserId then
 			team = s.team
 		end
 	end
-	local group = snapshot.groups[team]
+	local group = view.groups[team]
+	local downMask, eight = 0, group ~= nil
+	for id = 1, 15 do
+		if view.balls[id * 4 + 4] == 1 then
+			downMask = bit32.bor(downMask, bit32.lshift(1, id))
+		elseif Judge.group(id) == group then
+			eight = false
+		end
+	end
+	local key = ("%d:%d:%s:%s:%d"):format(
+		view.id,
+		view.epoch,
+		group or "",
+		tostring(eight),
+		downMask
+	)
+	if key == highlightKey and renderer == highlightRenderer then
+		return
+	end
+	clearHighlights()
+	highlightKey, highlightRenderer = key, renderer
 	if not group then
 		return
 	end
 	for _, b in match.state.balls do
 		if
-			not b.pocketed
-			and (
-				Judge.group(b.id) == group
-				or (b.id == 8 and Judge.eligible(match.state.balls, group))
-			)
+			view.balls[b.id * 4 + 4] ~= 1
+			and (Judge.group(b.id) == group or (b.id == 8 and eight))
 		then
-			local part = match.renderer.folder:FindFirstChild(
-				if b.id == 0 then "CueBall" else "Ball_" .. b.id
-			)
+			local part =
+				renderer.folder:FindFirstChild(if b.id == 0 then "CueBall" else "Ball_" .. b.id)
 			if not part then
-				part = match.renderer.parts and match.renderer.parts[b.id]
+				part = renderer.parts and renderer.parts[b.id]
 			end
 			if part and part:IsA("BasePart") then
 				local h = Instance.new("Highlight")
@@ -223,6 +250,14 @@ local function highlightOwn()
 			end
 		end
 	end
+end
+-- Present the current snapshot. Runs on every snapshot and whenever the replay drops a ball
+-- or reveals the colors (match.downVersion).
+local function refreshView()
+	hudView = match:view(snapshot)
+	viewVersion = match.downVersion
+	hud:setSnapshot(hudView, player.UserId)
+	highlightOwn()
 end
 local function suggestAim()
 	if not snapshot or not match or snapshot.breakShot then
@@ -375,11 +410,13 @@ local function acquireTable(s: any?)
 		end
 		targets:clear()
 		hud:setSnapshot(nil, player.UserId)
+		hudView, viewVersion = nil, -1
 		clearHighlights()
 		match, placement = nil, nil
 		lastTurnKey, lastPhaseKey = "", ""
-		table.clear(bonusSeen)
-		bonusNextAt = 0
+		if oldId and audioByTable[oldId] then
+			audioByTable[oldId]:resetStreak()
+		end
 		return
 	end
 	match = lounge:matchFor(s.id)
@@ -407,7 +444,7 @@ local function acquireTable(s: any?)
 	if s.phase == "Resolving" then
 		awaitingAt = nil
 	end
-	hud:setSnapshot(s, player.UserId)
+	refreshView()
 	targets:setSnapshot(s, placement, match.state.geometry, player.UserId)
 	local key = turnKey .. ":" .. s.phase
 	if key ~= lastPhaseKey then
@@ -420,7 +457,6 @@ local function acquireTable(s: any?)
 			sound("CoinFlip", M.CoinSound)
 		end
 	end
-	highlightOwn()
 	refreshAim()
 end
 lounge:onSeatChanged(function(id)
@@ -472,7 +508,7 @@ for _, mode in M.Modes do
 	local m = assert(lounge:matchFor(id))
 	local a = Audio.new(visuals)
 	audioByTable[id] = a
-	a:attach(m, true)
+	a:attach(m)
 	local e = Effects.new(visuals)
 	effectsByTable[id] = e
 	m:onEvent(function(ev)
@@ -494,25 +530,24 @@ for _, mode in M.Modes do
 		end
 	end)
 end
+-- A bonus this player's team earned. The server sends it ahead of the replay; the table's
+-- Audio plays it in the same frame the replay drops that ball.
 Net.get("MatchFeedback").OnClientEvent:Connect(function(f: any)
-	if type(f) ~= "table" or bonusSeen[f.id] then
+	if
+		type(f) ~= "table"
+		or type(f.id) ~= "string"
+		or type(f.tableId) ~= "number"
+		or type(f.epoch) ~= "number"
+		or type(f.seq) ~= "number"
+		or type(f.index) ~= "number"
+		or type(f.ball) ~= "number"
+	then
 		return
 	end
-	bonusSeen[f.id] = true
-	local now = workspace:GetServerTimeNow()
-	local at = math.max(now, f.at, bonusNextAt)
-	bonusNextAt = at + M.BonusGapSeconds
-	task.delay(at - now, function()
-		local s = lounge.snapshots[f.tableId]
-		if not s or s.epoch ~= f.epoch or lounge.mySeat ~= f.tableId or s.phase == "Waiting" then
-			return
-		end
-		local a = audioByTable[f.tableId]
-		local p = Placement.forTable(f.tableId)
-		if a and p then
-			a:playAt("PocketBonus", TableBuilder.toWorld(p, 0, 0, 0), Config.Audio.Bonus, 0, true)
-		end
-	end)
+	local a = audioByTable[f.tableId]
+	if a and lounge.mySeat == f.tableId then
+		a:grant(f)
+	end
 end)
 UserInputService.InputBegan:Connect(function(key, processed)
 	if processed then
@@ -579,6 +614,10 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	if not snapshot or not match then
 		return
+	end
+	-- lounge:update has dispatched this frame's events; show any ball they dropped.
+	if match.downVersion ~= viewVersion then
+		refreshView()
 	end
 	local now = workspace:GetServerTimeNow()
 	if awaitingAt and now - awaitingAt >= M.ActionRetrySeconds then

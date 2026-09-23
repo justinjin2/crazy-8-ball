@@ -1099,8 +1099,10 @@ Config.Audio = {
 		-- A bright UI sting layered ON TOP of the drop, for the reward rather than the
 		-- physics. It is the one sound here that is not a recording of something happening on
 		-- the table, so it has to stay well under the drop: the drop is the event, this is
-		-- the garnish. See Config.Audio.Bonus for how far under, and Audio.attach for the one
-		-- case it is withheld - a scratch is not a reward.
+		-- the garnish. See Config.Audio.Bonus for how far under. It is private: it sounds only
+		-- for the team that owns the ball, and only when the server grants it (Audio.grant,
+		-- played by Audio.attach), so a drop with no grant stays silent - and a scratch is
+		-- never a reward.
 		PocketBonus = {
 			-- ball_pocketed_bonus_sfx, peak 0.786, 3.496s
 			{ Id = "rbxassetid://139288823087630", Gain = 0.64 },
@@ -1203,13 +1205,14 @@ Config.Audio = {
 	-- (12 dB under) for a day and sat too far forward at the designer's ear. This is the
 	-- number to move if it disappears or creeps back out in front. (tune)
 	--
-	-- The pitch is NOT random. It climbs with a RUN of pocketed balls and drops straight back
-	-- the moment a shot pockets nothing, so where it sits means something: the first ball of a
-	-- run is the plain sound, and a high one tells you you are several deep. Random drift was
-	-- tried first and was the wrong idea - it made every pocket differ without any of them
-	-- meaning anything, and a tonal sting that wanders just sounds out of tune.
+	-- The pitch is NOT random. It climbs with a RUN of bonuses played for this player and
+	-- drops straight back at the strike after a shot that played none, so where it sits means
+	-- something: the first bonus of a run is the plain sound, and a high one tells you you are
+	-- several deep. Random drift was tried first and was the wrong idea - it made every
+	-- pocket differ without any of them meaning anything, and a tonal sting that wanders
+	-- just sounds out of tune.
 	--
-	-- The rungs of that ladder, in semitones above the plain sound, one per ball. It is a LIST
+	-- The rungs of that ladder, in semitones above the plain sound, one per bonus. It is a LIST
 	-- rather than a step size because which notes they are matters: balls often drop within a
 	-- moment of each other, and then two rungs are sounding together as a chord whether that
 	-- was intended or not.
@@ -1243,6 +1246,11 @@ Config.Audio = {
 		PitchJitter = 0,
 		BaseSemitones = -2,
 		StreakSemitoneSteps = { 0, 2, 4, 5, 7, 9, 11, 12 },
+		-- The bonus is private, so the server grants it and the replay plays it on the drop.
+		-- The grant is sent ahead of the replay; only a split packet brings it late, and one
+		-- this long after its ball dropped still sounds. Later would read as a separate
+		-- event rather than the ball's reward. (tune)
+		LateSeconds = 0.25,
 	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
@@ -1655,7 +1663,6 @@ Config.Multiplayer = {
 	FoulSound = "rbxassetid://128802141795458", -- user supplied; preload verified
 	CoinSound = "rbxassetid://7022812395", -- Creator Store coin flip; preload verified
 	UISoundVolume = 0.35, -- quiet underneath physical impact mix
-	BonusGapSeconds = 0.12, -- separate simultaneous ownership stings
 	QueueVisual = {
 		PadHeight = 0.12, -- thin floor slot, studs
 		FloorOffset = 0.08, -- avoid baseplate z-fighting, studs
@@ -1697,6 +1704,11 @@ Config.Multiplayer = {
 		Danger = { 242, 104, 112 }, -- foul and low clock
 		Selected = { 91, 177, 255 }, -- selected pocket
 		Disabled = { 77, 84, 94 }, -- inactive ball/portrait fill
+		PocketedMark = { 232, 48, 48 }, -- red X across a pocketed HUD ball
+		PocketedMarkLength = 1.15, -- X bar length as a fraction of ball diameter
+		PocketedMarkThickness = 0.14, -- X bar thickness as a fraction of ball diameter
+		PocketedMarkMinPx = 3, -- keeps the X legible on the 24px row
+		PocketedMarkStrokePx = 1, -- dark outline so the X reads on any ball colour
 		Radius = 12, -- component corner radius in pixels
 		PressedScale = 0.97, -- small button press response
 		PanelEntranceScale = 0.97, -- restrained modal/result entrance
