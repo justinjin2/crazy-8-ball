@@ -26,9 +26,11 @@ local function phase(t: any, name: string, now: number, duration: number?)
 	t.revision += 1
 end
 
-function Engine.new(id: number, teamSize: number): any
+--- A fresh table. `seed` picks the rack's tiny offsets; the server passes a random one so no
+--- two games open on the same rack. Without it (tests) the table's fixed default is used.
+function Engine.new(id: number, teamSize: number, seed: number?): any
 	local geometry = Geometry.build({ pocketsOpen = true })
-	local seed = Config.Rack.DefaultSeed + id
+	seed = Rack.normalizeSeed(seed or Config.Rack.DefaultSeed + id)
 	local t: any = {
 		id = id,
 		teamSize = teamSize,
@@ -319,7 +321,9 @@ local function resolve(t: any, now: number)
 	beginTurn(t, team, now, false, keep and t.teamSize == 1 and Engine.seat(t, t.shooter) ~= nil)
 end
 
-function Engine.advance(t: any, now: number, coinWinner: number?)
+--- `coinWinner` and `nextSeed` are the server's randomness (the coin, the next game's
+--- rack), passed in so this stays deterministic; tests may omit them.
+function Engine.advance(t: any, now: number, coinWinner: number?, nextSeed: number?)
 	if t.vote then
 		local unanimous = true
 		for _, s in t.seats do
@@ -379,11 +383,9 @@ function Engine.advance(t: any, now: number, coinWinner: number?)
 	elseif t.phase == "Foul" then
 		beginTurn(t, t.nextTeam, now, true)
 	elseif t.phase == "Result" then
-		local fresh = Engine.new(t.id, t.teamSize)
+		local fresh = Engine.new(t.id, t.teamSize, nextSeed or t.rackSeed + 1)
 		fresh.epoch = t.epoch + 1
 		fresh.revision = t.revision + 1
-		fresh.rackSeed = Rack.normalizeSeed(t.rackSeed + 1)
-		fresh.state.balls = Rack.newGame(fresh.state.geometry, fresh.rackSeed)
 		fresh.phaseStartedAt = now
 		table.clear(t)
 		for _, key in

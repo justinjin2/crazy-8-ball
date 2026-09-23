@@ -114,6 +114,9 @@ Config.Rack = {
 	-- F: reproducible per-rack layout. Integer seed travels in TableState; zero normalizes
 	-- to one for xorshift32. Jitter is per axis, bounded to at most a quarter of GapInches.
 	DefaultSeed = 1,
+	-- Largest rack seed the server draws for a new game (a positive 31-bit integer, so it
+	-- survives the network and normalizeSeed unchanged).
+	MaxSeed = 2147483647,
 	JitterInches = 0.001,
 	-- Standard layout by row from the apex: 8 in the middle, opposite groups in the back
 	-- corners. Rows are listed from the apex (nearest the cue ball) backwards.

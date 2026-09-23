@@ -635,4 +635,38 @@ function tests.resolution_never_emits_feedback()
 	expire(m)
 	expect(#m.feedback == 0 and m.groups[1] == "solids")
 end
+function tests.each_game_racks_from_the_seed_the_server_supplies()
+	local m = E.new(1, 1, 123456)
+	expect(m.rackSeed == 123456, "the server's seed opens the first game")
+	expect(E.snapshot(m).rackSeed == 123456, "clients rebuild the rack from the snapshot's seed")
+	local function finish(nextSeed: number?)
+		for team = 1, 2 do
+			if not E.seat(m, team * 10 + 1) then
+				expect(E.join(m, team * 10 + 1, "p", "p", team, 1, m.phaseStartedAt))
+			end
+		end
+		expire(m) -- countdown
+		expire(m) -- coin
+		expect(action(m, 11, "Surrender"))
+		expect(m.phase == "Result")
+		E.advance(m, m.deadline, 1, nextSeed)
+	end
+	finish(987654)
+	expect(m.phase == "Waiting" and m.rackSeed == 987654, "the next game takes a fresh seed")
+	local other = E.new(1, 1, 987655)
+	local moved = false
+	for i, b in m.state.balls do
+		local o = other.state.balls[i]
+		if b.x ~= o.x or b.y ~= o.y then
+			moved = true
+		end
+	end
+	expect(moved, "a different seed gives a different rack")
+	finish(nil)
+	expect(
+		m.rackSeed == 987655,
+		"without a supplied seed the engine still advances deterministically"
+	)
+end
+
 return tests

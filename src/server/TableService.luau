@@ -22,6 +22,12 @@ local seatOf: { [number]: number } = {}
 local buckets: { [string]: any } = {}
 local characterSaved: { [number]: any } = {}
 local rng = Random.new()
+-- Every game opens on its own rack: the seed only moves each ball a hair, but a break is
+-- sensitive to exactly that, so two games never play out the same. The seed travels in the
+-- snapshot, so every client still builds the identical rack.
+local function newSeed(): number
+	return rng:NextInteger(1, Config.Rack.MaxSeed)
+end
 local started = false
 
 local function rgb(c: { number }): Color3
@@ -41,7 +47,7 @@ end
 function Service.advance(t: any, timestamp: number)
 	-- Every remote and heartbeat supplies the same server-owned coin source. A late
 	-- request must not choose the engine's deterministic test fallback for a live coin.
-	Engine.advance(t.engine, timestamp, rng:NextInteger(1, 2))
+	Engine.advance(t.engine, timestamp, rng:NextInteger(1, 2), newSeed())
 end
 function Service.tableOf(p: Player): number?
 	return seatOf[p.UserId]
@@ -517,7 +523,7 @@ function Service.start(parent: Instance)
 		local p = Placement.forTable(mode.id)
 		assert(p, "Missing table placement")
 		local t: any = {
-			engine = Engine.new(mode.id, mode.teamSize),
+			engine = Engine.new(mode.id, mode.teamSize, newSeed()),
 			placement = p,
 			dwell = {},
 			outside = {},
