@@ -11,6 +11,7 @@ export type Context = {
 	activeTeam: number,
 	breakShot: boolean,
 	calledPocket: number?,
+	requireRail: boolean?, -- false drops the rail-after-contact rule (casual play)
 }
 export type Pocket = { ball: number, pocket: number }
 -- A ball's first drop this shot: `index` is its event's place in outcome.events (the order
@@ -100,7 +101,10 @@ function Judge.resolve(
 	groups: Groups,
 	team: number,
 	isBreak: boolean,
-	called: number?
+	called: number?,
+	-- The rail-after-contact rule: after the first hit a ball must drop or some ball must
+	-- touch a rail. Standard 8-ball, so on unless the caller passes false (casual tables).
+	requireRail: boolean?
 )
 	local pockets: { number } = {}
 	local pocketDetails: { Pocket } = {}
@@ -179,7 +183,7 @@ function Judge.resolve(
 		end
 	elseif not Judge.legalTarget(before, groups[team], first) then
 		foul = "WrongContact"
-	elseif not railAfter and not pocketAfter then
+	elseif requireRail ~= false and not railAfter and not pocketAfter then
 		foul = "NoRail"
 	end
 
@@ -242,7 +246,8 @@ function Judge.judge(before: { Ball }, outcome: Simulation.ShotOutcome, context:
 		context.groups,
 		context.activeTeam,
 		context.breakShot,
-		context.calledPocket
+		context.calledPocket,
+		context.requireRail
 	)
 	return {
 		groups = result.groups,

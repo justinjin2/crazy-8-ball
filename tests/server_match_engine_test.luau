@@ -866,4 +866,25 @@ function tests.solo_runs_on_team_tables_from_either_side()
 	end
 end
 
+function tests.soft_tap_is_legal_on_casual_tables_and_a_foul_on_ranked()
+	for _, ranked in { false, true } do
+		local m = playing(1)
+		m.breakShot, m.ballInHand = false, false
+		aim(m)
+		m.groups = { "solids", "stripes" }
+		m.ranked = ranked
+		for _, b in m.state.balls do
+			b.pocketed = b.id ~= 0 and b.id ~= 3 and b.id ~= 8
+		end
+		local cue, three = Sim.findBall(m.state, 0), Sim.findBall(m.state, 3)
+		cue.x, cue.y = -10, 0
+		three.x, three.y = -5, 0 -- in the open, far from every rail and pocket
+		local payload = shotPayload(m)
+		payload.power = 0.06
+		local wire = E.acceptShot(m, 11, payload, m.phaseStartedAt)
+		expect(wire ~= nil, "shot accepted")
+		expect(m.pending.judgement.foul == (if ranked then "NoRail" else nil), "rail rule by table")
+	end
+end
+
 return tests

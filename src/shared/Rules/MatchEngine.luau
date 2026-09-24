@@ -629,7 +629,17 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	if outcome.capped then
 		return nil, "SimulationLimit"
 	end
-	local j = Judge.resolve(before, outcome, t.groups, t.activeTeam, t.breakShot, t.calledPocket)
+	-- Casual tables (every table until ranked exists) drop the rail-after-contact rule.
+	local requireRail = if t.ranked then M.RailAfterContact.Ranked else M.RailAfterContact.Casual
+	local j = Judge.resolve(
+		before,
+		outcome,
+		t.groups,
+		t.activeTeam,
+		t.breakShot,
+		t.calledPocket,
+		requireRail
+	)
 	t.state.balls = before
 	t.shotSeq += 1
 	t.timeouts[t.activeTeam] = 0

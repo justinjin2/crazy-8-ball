@@ -44,8 +44,9 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
   breaks exact ties. Fouls never assign. All pocketed object balls remain down on fouls.
 - Open table permits either group first, never the 8. After assignment hit your group
   first, or the 8 only if your group was cleared BEFORE the shot.
-- Wrong/no first contact, scratch, or neither a pocket nor a rail after first contact
-  is a foul: opponent gets ball-in-hand anywhere. Resolve motion before changing turns.
+- Wrong/no first contact or a scratch is a foul. Neither a pocket nor a rail after first
+  contact is a foul in RANKED only; casual/public tables (all of them for now) skip that
+  rule (Config.Multiplayer.RailAfterContact, 2026-09-23). A foul: opponent gets ball-in-hand anywhere. Resolve motion before changing turns.
 - Break cue ball moves laterally on x=-25 inches (head string on 100-inch table).
   Show dotted legal range; enforce bounds and overlap checks. Fifteen seconds placement,
   then 20 seconds aim; early shooting is allowed.

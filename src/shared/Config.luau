@@ -1695,6 +1695,10 @@ Config.UI = {
 ---------------------------------------------------------------------------------------------
 -- Shared multiplayer tuning. Rule choices are recorded in MULTIPLAYER_SPEC.md.
 Config.Multiplayer = {
+	-- The rail-after-contact rule (after the first hit a ball must drop or touch a rail, or it
+	-- is a foul). The designer keeps it out of casual public games and in ranked only
+	-- (2026-09-23). Every table is casual until ranked matches exist (a table's `ranked` flag).
+	RailAfterContact = { Casual = false, Ranked = true },
 	Spawn = { X = -10, Y = 0.5, Z = 29, YawDegrees = 0 }, -- face the three queues from the baseplate arrival point
 	Modes = { { id = 1, teamSize = 1 }, { id = 2, teamSize = 2 }, { id = 3, teamSize = 3 } }, -- dedicated tables
 	CountdownCancelSeconds = 1.5, -- brief readable cancellation notice

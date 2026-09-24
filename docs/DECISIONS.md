@@ -779,3 +779,10 @@ playthrough and tutorial (GDD section 14).
 2026-09-23: Every foul shows a card under the top bar for 5 s: FOUL (or FOUL BY name) and one
 plain "you must" rule for the foul made (e.g. On the break you must pocket a ball or make 4
 balls hit the rails). Written for players new to 8-ball; wording in Strings.Match.FoulExplain.
+
+2026-09-23: The rail-after-contact rule (after the first hit a ball must drop or touch a
+rail) applies only in ranked; casual/public tables skip it, so a soft legal tap just ends the
+turn. Config.Multiplayer.RailAfterContact = {Casual = false, Ranked = true}; a table's
+`ranked` flag picks it (all tables are casual until ranked exists). The break rule is
+unchanged. The wrong-ball foul now reads "You must hit one of your own balls first.",
+avoiding "color" (a solid and a stripe share each color).

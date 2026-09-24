@@ -1126,10 +1126,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			explain = if group == nil
 				then Copy.FoulExplain.WrongContactOpen
 				elseif eligible(snapshot, foul.team) then Copy.FoulExplain.WrongContactEight
-				else string.format(
-					Copy.FoulExplain.WrongContactOwn,
-					if group == "solids" then Copy.SolidsWord else Copy.StripesWord
-				)
+				else Copy.FoulExplain.WrongContactOwn
 		end
 		self.foulTitle.Text = if foul.by == userId
 			then Copy.FoulYou

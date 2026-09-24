@@ -30,13 +30,11 @@ return {
 		-- The foul card, written for players who have never played 8-ball.
 		FoulYou = "FOUL",
 		FoulTitle = "FOUL BY %s",
-		SolidsWord = "solids",
-		StripesWord = "stripes",
 		FoulExplain = {
 			Scratch = "Pocketed the white ball.",
 			NoContact = "You must hit a ball with the white ball.",
 			WrongContactOpen = "You must hit a solid or a stripe first, not the 8.",
-			WrongContactOwn = "You must hit one of your %s first.",
+			WrongContactOwn = "You must hit one of your own balls first.",
 			WrongContactEight = "You must hit the 8 ball first.",
 			NoRail = "After hitting a ball, you must pocket a ball or make a ball touch a rail.",
 			IllegalBreak = "On the break you must pocket a ball or make 4 balls hit the rails.",

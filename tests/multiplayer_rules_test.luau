@@ -202,6 +202,18 @@ return {
 		H.expect(not after.foul and not after.retain)
 	end,
 
+	["casual play drops the rail rule but nothing else"] = function()
+		local Judge, _, balls = setup()
+		local casual = context("solids")
+		casual.requireRail = false
+		local soft = Judge.judge(balls, outcome(balls, { contact(1) }), casual)
+		H.expect(not soft.foul and not soft.retain, "a soft legal hit is no foul; the turn passes")
+		local wrong = Judge.judge(balls, outcome(balls, { contact(9) }), casual)
+		H.expect(wrong.foul and wrong.reason == "WrongContact", "wrong ball first still fouls")
+		local none = Judge.judge(balls, outcome(balls, {}), casual)
+		H.expect(none.foul and none.reason == "NoContact", "missing everything still fouls")
+	end,
+
 	["same-time contact ordering distinguishes rail before and after"] = function()
 		local Judge, _, balls = setup()
 		local before =
