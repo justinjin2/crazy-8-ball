@@ -338,6 +338,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   sounds and the money, and get to use their starter ability. The PC blunders and pockets the
   8 so they win early. Normal rules stand: if they lose, the same throwing PC repeats until the
   first win.
+- **Stronger ball highlights for learning (2026-09-23):** during the first playthrough and
+  tutorial, turn on `Config.Multiplayer.Style.StrongBallHighlights`. The player's balls get a
+  vivid solid green outline, and the other group is washed grey, so "these are yours" is
+  unmissable. Normal play keeps the subtle outline with nothing greyed (the designer's choice).
 - **First win:** a free cue box opened right on the post-match screen with a reveal (skewed
   toward rare, epic or legendary) and an Equip button, plus extra money.
 - Unranked to Bronze after one game. The first opponent shows a much higher rank so the win

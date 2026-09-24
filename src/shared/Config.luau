@@ -1886,13 +1886,14 @@ Config.Multiplayer = {
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
 		SoloPanelWidth = 280, -- the Play Solo popup under the header, pixels
 		SoloWrapColumns = 8, -- the solo 15-ball row wraps to this many + the rest on narrow screens
-		OwnBallOutlineTransparency = 0, -- solid green outline on the balls to hit
-		OwnBallFill = { 92, 223, 157 }, -- tint over the balls to hit (off: see below)
-		-- 1 = no tint. Any colored fill blends into the ball's own paint and muddies it
-		-- (a red ball under green reads brown-grey), so the balls to hit keep their true
-		-- colors and stand out by the outline and against the greyed group instead.
-		OwnBallFillTransparency = 1,
-		OwnBallOutline = { 70, 255, 130 }, -- vivid green outline on the balls to hit
+		OwnBallOutlineTransparency = 0.6, -- subtle local group hint (the normal style)
+		-- The STRONG style: a vivid solid outline on the balls to hit and the other group
+		-- washed grey. Off in normal play by the designer's choice (2026-09-23); kept for the
+		-- first-time playthrough / tutorial (GDD section 14), where making "these are yours"
+		-- unmissable matters more than a clean table.
+		StrongBallHighlights = false,
+		StrongOwnOutline = { 70, 255, 130 }, -- vivid green outline on the balls to hit
+		StrongOwnOutlineTransparency = 0, -- solid
 		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
 		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target

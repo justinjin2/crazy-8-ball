@@ -252,24 +252,26 @@ local function highlightOwn()
 	if not group then
 		return
 	end
-	-- The balls to hit glow green; the other group is washed grey so it reads as "not
-	-- yours". The 8 joins the green set once it is this player's to take, and stays plain
-	-- until then. At most 15 Highlights, inside Roblox's per-client budget.
+	-- The balls to hit get a green outline; the 8 joins them once it is this player's to take.
+	-- Style.StrongBallHighlights (the tutorial style) makes that outline vivid and also
+	-- washes the other group grey. At most 15 Highlights, inside Roblox's per-client budget.
 	local S = M.Style
+	local strong = S.StrongBallHighlights
 	for _, b in match.state.balls do
 		local ball = Judge.group(b.id)
 		local own = ball == group or (b.id == 8 and eight)
-		local other = ball ~= nil and ball ~= group
+		local other = strong and ball ~= nil and ball ~= group
 		local part = renderer.parts and renderer.parts[b.id]
 		if view.balls[b.id * 4 + 4] ~= 1 and (own or other) and part and part:IsA("BasePart") then
 			local h = Instance.new("Highlight")
 			h.Adornee = part
 			h.DepthMode = Enum.HighlightDepthMode.Occluded
 			if own then
-				h.FillColor = rgb(S.OwnBallFill)
-				h.FillTransparency = S.OwnBallFillTransparency
-				h.OutlineColor = rgb(S.OwnBallOutline)
-				h.OutlineTransparency = S.OwnBallOutlineTransparency
+				h.FillTransparency = 1
+				h.OutlineColor = rgb(if strong then S.StrongOwnOutline else S.Green)
+				h.OutlineTransparency = if strong
+					then S.StrongOwnOutlineTransparency
+					else S.OwnBallOutlineTransparency
 			else
 				h.FillColor = rgb(S.OpponentBallFill)
 				h.FillTransparency = S.OpponentBallFillTransparency

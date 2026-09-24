@@ -770,3 +770,8 @@ yourself); the first legally pocketed group is cleared first, then the other, th
 8. The 8 early, on a foul or in the wrong pocket now LOSES (the GDD's "re-racks" is replaced);
 Leave → Yes ends the game with no winner. The engine keeps the solo player's current group in
 `groups` and the other group on the empty team, so every existing rule check is reused.
+
+2026-09-23: Ball highlights back to the original subtle green outline, with no greying of the
+other group. The strong style (vivid outline plus grey wash) stays behind
+Config.Multiplayer.Style.StrongBallHighlights = false, set aside for the first-time
+playthrough and tutorial (GDD section 14).
