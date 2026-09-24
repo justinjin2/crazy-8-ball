@@ -695,17 +695,43 @@ Config.TableModel = {
 	-- Pockets, Caps and Hardware share the Parts atlas. Keep the unique ids within
 	-- ImageBudget (tests/table_looks_test.luau counts them).
 	Maps = {
-		-- Near-white repeating tile (every 1.5 studs), tinted per look.
-		Cloth = { Color = "", Normal = "", Roughness = "" },
-		RailsBlack = { Color = "", Normal = "", Roughness = "" },
-		RailsCherry = { Color = "", Normal = "", Roughness = "" },
-		BodyBlack = { Color = "", Normal = "", Roughness = "" },
-		BodyCherry = { Color = "", Normal = "", Roughness = "" },
+		-- Uploaded 2026-09-24 from assets/table/textures (1024). Near-white repeating cloth tile
+		-- (every 1.5 studs), tinted per look.
+		Cloth = {
+			Color = "rbxassetid://104070410744758",
+			Normal = "rbxassetid://121047747339628",
+			Roughness = "rbxassetid://132743328374369",
+		},
+		RailsBlack = {
+			Color = "rbxassetid://72121062541710",
+			Normal = "rbxassetid://92174527330284",
+			Roughness = "rbxassetid://124817456406827",
+		},
+		RailsCherry = {
+			Color = "rbxassetid://81503261228945",
+			Normal = "rbxassetid://92174527330284",
+			Roughness = "rbxassetid://124817456406827",
+		},
+		BodyBlack = {
+			Color = "rbxassetid://135442205956199",
+			Normal = "rbxassetid://91154183751639",
+			Roughness = "rbxassetid://113070527451560",
+		},
+		BodyCherry = {
+			Color = "rbxassetid://81072811464120",
+			Normal = "rbxassetid://91154183751639",
+			Roughness = "rbxassetid://113070527451560",
+		},
 		-- Leather, cups and chrome: the only set that needs a metalness map.
-		Parts = { Color = "", Normal = "", Roughness = "", Metalness = "" },
-		LogoPlate = { Color = "", Roughness = "" },
+		Parts = {
+			Color = "rbxassetid://94769619219469",
+			Normal = "rbxassetid://136927565609550",
+			Roughness = "rbxassetid://98528895126663",
+			Metalness = "rbxassetid://126325716540474",
+		},
+		LogoPlate = { Color = "rbxassetid://96049906872831", Roughness = "" },
 		-- RGBA overlay: sticker, rack patch, break streak, chalk, cushion and rim shading.
-		Marks = { Color = "" },
+		Marks = { Color = "rbxassetid://95409011575497" },
 	} :: {
 		[string]: { Color: string, Normal: string?, Roughness: string?, Metalness: string? },
 	},
@@ -727,7 +753,7 @@ Config.TableModel = {
 		-- Yellow-green cloth with red-brown (cherry) wood. The tint aims at an albedo of
 		-- #26A62A over the cloth map's ~0.95 grey. (tune)
 		Green = {
-			Cloth = { Maps = "Cloth", Tint = { 40, 175, 44 } },
+			Cloth = { Maps = "Cloth", Tint = { 40, 175, 45 } },
 			Rails = { Maps = "RailsCherry" },
 			Body = { Maps = "BodyCherry" },
 			Pockets = { Maps = "Parts" },
