@@ -1,9 +1,12 @@
 --!strict
 -- TableBuilder: builds the visible pool table out of Parts from the same Config numbers
 -- the physics uses, so the cushions you see are exactly the cushions the balls bounce off.
--- This module touches Instances, so it lives outside Physics and is not run in tests.
+-- It touches Instances only inside functions, so the Lune tests can load it and check the
+-- pure parts (lookFor); tests/table_looks_test.luau does.
 --
--- Layout, from the outside in: a wooden frame ring at rail-top height, the rubber cushion
+-- Two builds: the imported Blender model with its looks (the section below), and the
+-- parts-and-solid-modelling fallback used when the place has no template. The fallback's
+-- layout, from the outside in: a wooden frame ring at rail-top height, the rubber cushion
 -- strips (one per physics segment, inner face on the cushion line, lower than the frame),
 -- the cloth bed inside, and six dark pocket liners cut through the frame at the mouths.
 
@@ -132,6 +135,64 @@ function TableBuilder.createClothMaterial(): MaterialVariant
 	return variant
 end
 
+---------------------------------------------------------------------------------------------
+-- The imported table model and its looks
+--
+-- One Blender-built model (eight MeshParts, see Config.TableModel) is shared by every table.
+-- A look only changes SurfaceAppearances. Their map ids are plugin-only writes, so each look
+-- is built once in Edit mode by prepareImport into ServerStorage.<LooksFolder>.<Look>.<Mesh>
+-- and saved in the place; at run time a table clones its look's SurfaceAppearances (cloning
+-- is allowed) and sets the cloth tint (SurfaceAppearance.Color is script-writable).
+--
+--   TableBuilder.lookFor(id)             -- which look table `id` wears (pure)
+--   TableBuilder.checkTemplate(template) -- plain-English list of what is wrong with it
+--   TableBuilder.prepareImport(spec?)    -- Edit mode: tidy a fresh import, build the looks
+--   TableBuilder.applyLook(model, look)  -- run time: dress a clone in a look
+---------------------------------------------------------------------------------------------
+
+--- Config.TableModel's shape. prepareImport and checkTemplate take a fresh copy of it,
+--- because Edit-mode requires are cached for the whole Studio session.
+export type ModelSpec = typeof(Config.TableModel)
+
+type MeshSpec = { CanCollide: boolean, Collision: string?, CastShadow: boolean, AlphaMode: string? }
+
+-- Each distinct message is printed once per server, not once per table.
+local warned: { [string]: boolean } = {}
+local function warnOnce(message: string)
+	if not warned[message] then
+		warned[message] = true
+		warn("[8ball] " .. message)
+	end
+end
+
+-- Names in a fixed order, so reports and problem lists read the same on every run.
+local function sortedKeys(t: { [string]: any }): { string }
+	local keys = {}
+	for key in t do
+		table.insert(keys, key)
+	end
+	table.sort(keys)
+	return keys
+end
+
+--- The look table `id` wears: Config.TableModel.LookByTable, else DefaultLook. A name that
+--- is not a look falls back to DefaultLook with a warning. Pure (no Instances).
+function TableBuilder.lookFor(id: number): string
+	local TM = Config.TableModel
+	local wanted = TM.LookByTable[id] or TM.DefaultLook
+	if TM.Looks[wanted] ~= nil then
+		return wanted
+	end
+	warnOnce(
+		("table %d asks for look '%s', which Config.TableModel.Looks does not have; using '%s'"):format(
+			id,
+			wanted,
+			TM.DefaultLook
+		)
+	)
+	return TM.DefaultLook
+end
+
 --- The imported table model template, if the place has one.
 function TableBuilder.findModelTemplate(): Model?
 	local ServerStorage = game:GetService("ServerStorage")
@@ -142,69 +203,543 @@ function TableBuilder.findModelTemplate(): Model?
 	return nil
 end
 
---- Place a clone of the imported model at table `p` and set its collisions. Joining is the
---- floor pad's job now (src/server/TableService.luau), so no prompt is attached.
+-- Centre and half size of a part's bounding box, on the axes of `frame` (the part may be
+-- turned inside it). MeshPart.Size is the mesh's own bounding box, centred on its CFrame.
+local function boundsIn(part: BasePart, frame: CFrame): (Vector3, Vector3)
+	local x, y, z, r00, r01, r02, r10, r11, r12, r20, r21, r22 =
+		frame:ToObjectSpace(part.CFrame):GetComponents()
+	local h = part.Size / 2
+	local half = Vector3.new(
+		math.abs(r00) * h.X + math.abs(r01) * h.Y + math.abs(r02) * h.Z,
+		math.abs(r10) * h.X + math.abs(r11) * h.Y + math.abs(r12) * h.Z,
+		math.abs(r20) * h.X + math.abs(r21) * h.Y + math.abs(r22) * h.Z
+	)
+	return Vector3.new(x, y, z), half
+end
+
+local function meshNamed(model: Instance, name: string): MeshPart?
+	local found = model:FindFirstChild(name)
+	if found and found:IsA("MeshPart") then
+		return found
+	end
+	return nil
+end
+
+local function findMeshDeep(model: Instance, name: string): MeshPart?
+	for _, d in model:GetDescendants() do
+		if d:IsA("MeshPart") and d.Name == name then
+			return d
+		end
+	end
+	return nil
+end
+
+--- What is wrong with a table template, in plain English; empty when it is ready. Checks,
+--- in the template's pivot frame (the one buildFromModel places): every Config mesh is a
+--- MeshPart at the top level and nothing else is there; the Rails footprint matches
+--- Config.Table (a mismatch means a wrong Scale Unit or a 90 degree turn); the pivot is on
+--- the floor under the table centre; and the LogoPlate (the foot end) is at +X.
+function TableBuilder.checkTemplate(template: Model, spec: ModelSpec?): { string }
+	local TM = spec or Config.TableModel
+	local T = Config.Table
+	local s = T.StudsPerInch
+	local problems: { string } = {}
+	local function problem(message: string)
+		table.insert(problems, message)
+	end
+
+	for _, name in sortedKeys(TM.Meshes) do
+		local found = template:FindFirstChild(name)
+		local nested = findMeshDeep(template, name)
+		if found and found:IsA("MeshPart") then
+			continue
+		elseif nested and nested:IsA("MeshPart") then
+			problem(
+				("mesh %s is nested inside %s; run prepareImport, which moves it to the top"):format(
+					name,
+					(nested.Parent :: Instance).Name
+				)
+			)
+		elseif found then
+			problem(("%s is a %s, not a MeshPart"):format(name, found.ClassName))
+		elseif not (name == TM.CapsMesh and not TM.Caps) then
+			problem(("mesh %s is missing"):format(name))
+		end
+	end
+	local extras: { string } = {}
+	for _, d in template:GetDescendants() do
+		if d:IsA("BasePart") and TM.Meshes[d.Name] == nil then
+			table.insert(extras, d.Name)
+		end
+	end
+	table.sort(extras)
+	for _, name in extras do
+		problem(
+			("extra part %s is not in Config.TableModel.Meshes (tables draw it with collision and shadows off)"):format(
+				name
+			)
+		)
+	end
+
+	local pivot = template:GetPivot()
+	local rails = meshNamed(template, "Rails")
+	if rails then
+		local centre, half = boundsIn(rails, pivot)
+		local wantX = (T.LengthInches + 2 * T.RailWidthInches) * s
+		local wantZ = (T.WidthInches + 2 * T.RailWidthInches) * s
+		local gotX, gotZ = half.X * 2, half.Z * 2
+		local function close(got: number, want: number): boolean
+			return math.abs(got - want) <= want * TM.FootprintTolerance
+		end
+		if close(gotX, wantX) and close(gotZ, wantZ) then
+			local crown = centre.Y + half.Y
+			local wantCrown = T.SurfaceHeightStuds + T.RailTopInches * s
+			local tol = TM.PivotToleranceStuds
+			if math.abs(crown - wantCrown) > tol then
+				problem(
+					("the rail crown is %.3f studs above the pivot, not %.3f: the pivot is not on the floor (run prepareImport)"):format(
+						crown,
+						wantCrown
+					)
+				)
+			end
+			if math.abs(centre.X) > tol or math.abs(centre.Z) > tol then
+				problem(
+					("the rails are centred %.3f, %.3f studs off the pivot: the pivot is not at the table centre (run prepareImport)"):format(
+						centre.X,
+						centre.Z
+					)
+				)
+			end
+		elseif close(gotX, wantZ) and close(gotZ, wantX) then
+			problem(
+				("the table is turned 90 degrees: its long side runs along the pivot's Z (%.2f x %.2f studs); run prepareImport"):format(
+					gotX,
+					gotZ
+				)
+			)
+		else
+			problem(
+				("the rails are %.2f x %.2f studs, expected %.2f x %.2f (%.3g times the size): re-import with Scale Unit: Stud at scale 1"):format(
+					gotX,
+					gotZ,
+					wantX,
+					wantZ,
+					math.max(gotX, gotZ) / wantX
+				)
+			)
+		end
+	end
+
+	local logo = meshNamed(template, "LogoPlate")
+	if logo then
+		local at = boundsIn(logo, pivot)
+		if at.X <= 0 or math.abs(at.X) < math.abs(at.Z) then
+			problem(
+				("the LogoPlate (the foot end) is at X %.2f, Z %.2f in the pivot's frame, not at +X: the table is turned (run prepareImport)"):format(
+					at.X,
+					at.Z
+				)
+			)
+		end
+	end
+	return problems
+end
+
+--- Dress `model` in `look`: clone the look's SurfaceAppearances from ServerStorage onto its
+--- meshes, set the Config tint, and record the look in the model's "Look" attribute. Runs
+--- at run time on the server. A mesh whose look has no stored SurfaceAppearance (maps not
+--- uploaded yet) keeps what it wears, and the tint goes on that (or on the bare part). An
+--- overlay mesh (a Meshes entry with an AlphaMode, such as Marks) is see-through only through
+--- its SurfaceAppearance, so it is hidden (Transparency 1, script-writable) while it has none
+--- and shown once it has one. Returns the names of the overlays left hidden.
+function TableBuilder.applyLook(model: Model, look: string, spec: ModelSpec?): { string }
+	local TM = spec or Config.TableModel
+	if TM.Looks[look] == nil then
+		warnOnce(
+			("look '%s' is not in Config.TableModel.Looks; using '%s'"):format(look, TM.DefaultLook)
+		)
+		look = TM.DefaultLook
+	end
+	local parts = TM.Looks[look]
+	local folder = game:GetService("ServerStorage"):FindFirstChild(TM.LooksFolder)
+	local stored = folder and folder:FindFirstChild(look)
+	if stored == nil then
+		warnOnce(
+			("ServerStorage.%s.%s is missing (run TableBuilder.prepareImport in Edit mode); tables keep the template's own maps"):format(
+				TM.LooksFolder,
+				look
+			)
+		)
+	end
+	for _, meshName in sortedKeys(parts) do
+		local mesh = meshNamed(model, meshName)
+		if mesh == nil then
+			continue
+		end
+		local source = stored and stored:FindFirstChild(meshName)
+		if source and source:IsA("SurfaceAppearance") then
+			for _, old in mesh:GetChildren() do
+				if old:IsA("SurfaceAppearance") then
+					old:Destroy()
+				end
+			end
+			source:Clone().Parent = mesh
+		end
+		local tint = parts[meshName].Tint
+		if tint then
+			local appearance = mesh:FindFirstChildOfClass("SurfaceAppearance")
+			if appearance then
+				appearance.Color = color(tint)
+			else
+				mesh.Color = color(tint)
+			end
+		end
+	end
+	local hidden: { string } = {}
+	for _, meshName in sortedKeys(TM.Meshes) do
+		local ms: MeshSpec = TM.Meshes[meshName]
+		local mesh = meshNamed(model, meshName)
+		if ms.AlphaMode == nil or mesh == nil then
+			continue
+		end
+		if mesh:FindFirstChildOfClass("SurfaceAppearance") then
+			mesh.Transparency = 0
+		else
+			mesh.Transparency = 1
+			table.insert(hidden, meshName)
+		end
+	end
+	model:SetAttribute("Look", look)
+	return hidden
+end
+
+-- Triangles in a mesh, read through an EditableMesh (Edit mode, the user's own meshes).
+local function triangleCount(mesh: MeshPart): number?
+	local ok, result = pcall(function()
+		local editable = game:GetService("AssetService"):CreateEditableMeshAsync(mesh.MeshContent)
+		local count = #editable:GetFaces()
+		editable:Destroy()
+		return count
+	end)
+	return if ok then result else nil
+end
+
+local function hasAnyMap(maps: { [string]: string? }): boolean
+	for _, id in maps do
+		if id ~= "" then
+			return true
+		end
+	end
+	return false
+end
+
+--- Edit mode only (the writes it makes are plugin-only): turn a fresh import of the table
+--- into the template every table is cloned from, and build the looks. Safe to run twice.
+---   1. Finds `spec.Name` in ServerStorage (or Workspace, and moves it to ServerStorage).
+---   2. Moves nested MeshParts to the top and deletes the emptied containers.
+---   3. Rebuilds the pivot at the cloth centre on the floor, its +X towards the foot (the
+---      LogoPlate), which undoes the importer's half turn (see LoungeBuilder.correctImport).
+---   4. Sets collision, shadows, automatic render fidelity, CanTouch and CanQuery per mesh.
+---   5. Strips the importer's SurfaceAppearances and TextureIDs.
+---   6. Rebuilds ServerStorage.<LooksFolder>.<Look>.<Mesh> from the Config map ids (empty ids
+---      are skipped) and dresses the template in DefaultLook.
+--- Returns a plain-English report. `spec` defaults to Config.TableModel; pass a fresh copy
+--- after changing Config (docs/STUDIO_NOTES.md has the command-bar line).
+function TableBuilder.prepareImport(spec: ModelSpec?): string
+	local TM = spec or Config.TableModel
+	if game:GetService("RunService"):IsRunning() then
+		error("TableBuilder.prepareImport runs in Edit mode only; stop the play session first")
+	end
+	local ServerStorage = game:GetService("ServerStorage")
+	local lines: { string } = {}
+	local function say(line: string)
+		table.insert(lines, line)
+	end
+
+	local found = ServerStorage:FindFirstChild(TM.Name) or workspace:FindFirstChild(TM.Name)
+	if not (found and found:IsA("Model")) then
+		return ("No Model named %s in ServerStorage or Workspace. Import assets/table/PoolTable.fbx with the 3D Importer (Scale Unit: Stud), name the model %s and run this again."):format(
+			TM.Name,
+			TM.Name
+		)
+	end
+	local template: Model = found
+	if template.Parent ~= ServerStorage then
+		template.Parent = ServerStorage
+		say(("Moved %s from Workspace to ServerStorage."):format(TM.Name))
+	end
+
+	-- 2. Flatten. The snapshot from GetDescendants stays valid while parts move.
+	local moved, removed = 0, 0
+	for _, d in template:GetDescendants() do
+		if d:IsA("MeshPart") and d.Parent ~= template then
+			d.Parent = template
+			moved += 1
+		end
+	end
+	for _, child in template:GetChildren() do
+		if
+			(child:IsA("Model") or child:IsA("Folder"))
+			and child:FindFirstChildWhichIsA("BasePart", true) == nil
+		then
+			child:Destroy()
+			removed += 1
+		end
+	end
+	if moved > 0 or removed > 0 then
+		say(
+			("Moved %d nested meshes to the top and removed %d empty containers."):format(
+				moved,
+				removed
+			)
+		)
+	end
+
+	-- 3. Pivot: the cloth's centre across the table, the floor under the legs (Body's
+	-- bottom; the cloth mesh also carries the cushions, so its top is not the playing
+	-- surface), and +X towards the LogoPlate on the foot end.
+	local cloth, logo, body =
+		meshNamed(template, "Cloth"), meshNamed(template, "LogoPlate"), meshNamed(template, "Body")
+	if cloth and logo and body then
+		local clothAt = boundsIn(cloth, CFrame.identity)
+		local logoAt = boundsIn(logo, CFrame.identity)
+		local bodyAt, bodyHalf = boundsIn(body, CFrame.identity)
+		local foot = Vector3.new(logoAt.X - clothAt.X, 0, logoAt.Z - clothAt.Z)
+		if foot.Magnitude < 1e-3 then
+			say("Could not rebuild the pivot: the LogoPlate sits over the cloth centre.")
+		else
+			local before = template:GetPivot()
+			template.PrimaryPart = nil -- a PrimaryPart would own the pivot instead
+			template.WorldPivot = CFrame.fromMatrix(
+				Vector3.new(clothAt.X, bodyAt.Y - bodyHalf.Y, clothAt.Z),
+				foot.Unit,
+				Vector3.yAxis
+			)
+			local turn = before.RightVector:Dot(foot.Unit)
+			say(
+				if turn < -0.5
+					then "Pivot rebuilt at the cloth centre on the floor, undoing the importer's half turn."
+					elseif
+						turn < 0.5
+					then "Pivot rebuilt at the cloth centre on the floor, turned a quarter turn."
+					else "Pivot rebuilt at the cloth centre on the floor (the foot was already at +X)."
+			)
+		end
+	else
+		say("Could not rebuild the pivot: it needs the Cloth, LogoPlate and Body meshes.")
+	end
+
+	-- 4 and 5. Per-mesh settings, and a clean slate for the looks.
+	local stripped = 0
+	for _, child in template:GetChildren() do
+		if not child:IsA("MeshPart") then
+			continue
+		end
+		local ms: MeshSpec? = TM.Meshes[child.Name]
+		local collide = if ms then ms.CanCollide else false
+		child.Anchored = true
+		child.CanCollide = collide
+		child.CanQuery = collide
+		child.CanTouch = false
+		child.CastShadow = if ms then ms.CastShadow else false
+		child.RenderFidelity = Enum.RenderFidelity.Automatic
+		local fidelity = if ms and ms.CanCollide and ms.Collision then ms.Collision else "Box"
+		child.CollisionFidelity = (Enum.CollisionFidelity :: any)[fidelity]
+		if child.TextureID ~= "" then
+			child.TextureID = ""
+			stripped += 1
+		end
+		for _, old in child:GetChildren() do
+			if old:IsA("SurfaceAppearance") then
+				old:Destroy()
+				stripped += 1
+			end
+		end
+	end
+	if stripped > 0 then
+		say(("Stripped %d importer textures and SurfaceAppearances."):format(stripped))
+	end
+
+	-- 6. The looks, rebuilt from scratch so a changed id never lingers.
+	local oldFolder = ServerStorage:FindFirstChild(TM.LooksFolder)
+	if oldFolder then
+		oldFolder:Destroy()
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = TM.LooksFolder
+	for _, lookName in sortedKeys(TM.Looks) do
+		local look = TM.Looks[lookName]
+		local lookFolder = Instance.new("Folder")
+		lookFolder.Name = lookName
+		lookFolder.Parent = folder
+		local made = 0
+		local bare: { string } = {}
+		for _, meshName in sortedKeys(look) do
+			local entry = look[meshName]
+			local maps = TM.Maps[entry.Maps]
+			if maps == nil then
+				say(
+					("PROBLEM: look %s gives %s the map set %s, which Config.TableModel.Maps does not have."):format(
+						lookName,
+						meshName,
+						entry.Maps
+					)
+				)
+				continue
+			end
+			if not hasAnyMap(maps :: any) then
+				table.insert(bare, meshName)
+				continue
+			end
+			local ms: MeshSpec? = TM.Meshes[meshName]
+			local appearance = Instance.new("SurfaceAppearance")
+			appearance.Name = meshName
+			appearance.AlphaMode = (Enum.AlphaMode :: any)[if ms and ms.AlphaMode
+				then ms.AlphaMode
+				else "Overlay"]
+			if maps.Color ~= "" then
+				appearance.ColorMap = maps.Color
+			end
+			if maps.Normal and maps.Normal ~= "" then
+				appearance.NormalMap = maps.Normal
+			end
+			if maps.Roughness and maps.Roughness ~= "" then
+				appearance.RoughnessMap = maps.Roughness
+			end
+			if maps.Metalness and maps.Metalness ~= "" then
+				appearance.MetalnessMap = maps.Metalness
+			end
+			if entry.Tint then
+				appearance.Color = color(entry.Tint)
+			end
+			appearance.Parent = lookFolder
+			made += 1
+		end
+		say(
+			("Look %s: %d SurfaceAppearances%s."):format(
+				lookName,
+				made,
+				if #bare > 0
+					then "; no maps uploaded yet for " .. table.concat(bare, ", ") .. " (left bare)"
+					else ""
+			)
+		)
+	end
+	folder.Parent = ServerStorage
+	local hidden = TableBuilder.applyLook(template, TM.DefaultLook, TM)
+	say(("Template dressed in %s."):format(TM.DefaultLook))
+	for _, name in hidden do
+		say(
+			("%s hidden until its maps are uploaded (an overlay with no SurfaceAppearance would draw as solid grey)."):format(
+				name
+			)
+		)
+	end
+
+	-- Triangle budget (ARCHITECTURE section 7).
+	local total, counted, uncounted = 0, {}, {}
+	for _, name in sortedKeys(TM.Meshes) do
+		local mesh = meshNamed(template, name)
+		local count = mesh and triangleCount(mesh)
+		if count then
+			total += count
+			table.insert(counted, ("%s %d"):format(name, count))
+		else
+			table.insert(uncounted, name)
+		end
+	end
+	say(
+		("Triangles: %d of %d%s (%s)%s."):format(
+			total,
+			TM.TriangleBudget,
+			if total > TM.TriangleBudget then ", OVER BUDGET" else "",
+			table.concat(counted, ", "),
+			if #uncounted > 0 then "; could not count " .. table.concat(uncounted, ", ") else ""
+		)
+	)
+
+	local problems = TableBuilder.checkTemplate(template, TM)
+	if #problems == 0 then
+		say("checkTemplate: no problems.")
+	end
+	for _, p in problems do
+		say("PROBLEM: " .. p)
+	end
+	return table.concat(lines, "\n")
+end
+
+--- Place a clone of the template at table `p`, dressed from Config: collision and shadows
+--- per mesh (an unlisted part gets everything off and one warning), the caps removed when
+--- Config.TableModel.Caps is false, and `look` (default: lookFor(id)). Joining is the floor
+--- pad's job (src/server/TableService.luau), so no prompt is attached.
 function TableBuilder.buildFromModel(
 	template: Model,
 	parent: Instance,
 	p: Placement,
-	id: number
+	id: number,
+	look: string?
 ): Model
+	local TM = Config.TableModel
 	local model = template:Clone()
 	model.Name = TableBuilder.modelName(id)
-	model.Parent = parent
-	-- The importer keeps the pivot at the scene origin, which the Blender package puts at
-	-- the table centre on the floor, so moving the pivot moves the whole table correctly.
-	for name, spec in Config.TableModel.Meshes do
-		local mesh = model:FindFirstChild(name)
-		if mesh and mesh:IsA("BasePart") then
-			mesh.Anchored = true
-			mesh.CanCollide = spec.CanCollide
-			mesh.CanQuery = spec.CanCollide
+	for _, part in model:GetDescendants() do
+		if not part:IsA("BasePart") then
+			continue
+		end
+		local ms: MeshSpec? = TM.Meshes[part.Name]
+		part.Anchored = true
+		part.CanTouch = false
+		if ms then
+			part.CanCollide = ms.CanCollide
+			part.CanQuery = ms.CanCollide
+			part.CastShadow = ms.CastShadow
 		else
-			warn("[8ball] table model is missing mesh '" .. name .. "'")
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CastShadow = false
+			warnOnce(
+				("table model part %s is not in Config.TableModel.Meshes; drawn with collision and shadows off"):format(
+					part.Name
+				)
+			)
 		end
 	end
-	-- The Blender package authors the table with its long axis along X; the lounge stands
-	-- every table turned by its yaw, so the pivot carries the rotation too.
+	if not TM.Caps then
+		local caps = model:FindFirstChild(TM.CapsMesh)
+		if caps then
+			caps:Destroy()
+		end
+	end
+	TableBuilder.applyLook(model, look or TableBuilder.lookFor(id))
+	-- prepareImport put the pivot at the cloth centre on the floor with +X to the foot, so
+	-- the placement's position and yaw carry the whole table.
 	model:PivotTo(CFrame.new(p.x, p.y, p.z) * TableBuilder.yawCFrame(p))
+	model.Parent = parent
 	return model
 end
 
---- Edit-mode helper: put SurfaceAppearances with the Config texture ids on the template and
---- bake the collision shapes (both are plugin-only writes, so they live in the saved place).
-function TableBuilder.applyModelTextures(template: Model): number
-	local applied = 0
-	for name, spec in Config.TableModel.Meshes do
-		local mesh = template:FindFirstChild(name)
-		if mesh and mesh:IsA("MeshPart") and spec.Collision then
-			mesh.CollisionFidelity = (Enum.CollisionFidelity :: any)[spec.Collision]
-		end
-	end
-	for name, maps in Config.TableModel.Textures do
-		local mesh = template:FindFirstChild(name)
-		if mesh and mesh:IsA("MeshPart") then
-			local sa = mesh:FindFirstChildOfClass("SurfaceAppearance")
-				or Instance.new("SurfaceAppearance")
-			sa.ColorMap = maps.Color
-			sa.NormalMap = maps.Normal
-			sa.RoughnessMap = maps.Roughness
-			sa.MetalnessMap = maps.Metalness
-			sa.AlphaMode = Enum.AlphaMode.Overlay
-			sa.Parent = mesh
-			applied += 1
-		end
-	end
-	return applied
-end
+local templateChecked = false
 
 --- Build the visible table for `id` at placement `p` under `parent`: the imported model when
---- the place has one, otherwise the parts-and-solid-modelling build. Returns the model.
+--- the place has one (checked once per server, problems go to the output), otherwise the
+--- parts-and-solid-modelling build, with one warning saying why. Returns the model.
 function TableBuilder.build(parent: Instance, p: Placement, id: number): Model
 	local template = TableBuilder.findModelTemplate()
 	if template then
+		if not templateChecked then
+			templateChecked = true
+			for _, problem in TableBuilder.checkTemplate(template) do
+				warn("[8ball] table template " .. Config.TableModel.Name .. ": " .. problem)
+			end
+		end
 		return TableBuilder.buildFromModel(template, parent, p, id)
 	end
+	warnOnce(
+		("ServerStorage.%s not found; drawing the parts-built table (the old PoolTableModel is not used by this code; import the new table and run TableBuilder.prepareImport)"):format(
+			Config.TableModel.Name
+		)
+	)
 	return TableBuilder.buildFromParts(parent, p, id)
 end
 

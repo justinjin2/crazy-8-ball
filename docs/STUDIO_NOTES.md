@@ -13,12 +13,31 @@ Read when something misbehaves. Everything here was learned the hard way.
 
 ## The place file
 
-- Things scripts cannot create live in the place: `ServerStorage.PoolTableModel` (with
-  SurfaceAppearances and collision fidelity), `ServerStorage.BallMesh`, the `PoolClothBlue`
-  MaterialVariant, imported lounge meshes. MeshId, SurfaceAppearance maps, MaterialVariant maps
+- Things scripts cannot create live in the place: `ServerStorage.PoolTable` and
+  `ServerStorage.TableLooks` (the table template and its looks, below; the old
+  `PoolTableModel` stays as the rollback until sign-off), `ServerStorage.BallMesh`, the
+  `PoolClothBlue` MaterialVariant, imported lounge meshes. MeshId, SurfaceAppearance maps, MaterialVariant maps
   and CollisionFidelity are plugin-only writes: set them in Edit mode and save. `TextureID` on
   a MeshPart is scriptable, which is how per-ball textures work at runtime.
 - The user must save (`place/8ball.rbxl`) and publish after any Edit-mode change.
+
+### Preparing an imported table
+
+After importing `assets/table/PoolTable.fbx` (3D Importer, Scale Unit: Stud, scale 1, model
+named `PoolTable`), or after changing any map id or look in `Config.TableModel`, run this in
+Edit mode from the command bar or `execute_luau`:
+
+```lua
+print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(game.ReplicatedStorage.Shared.Config:Clone()).TableModel))
+```
+
+- It is safe to run twice. It moves the model to ServerStorage, flattens nested parts, rebuilds
+  the pivot (cloth centre on the floor, +X to the LogoPlate, undoing the importer's half
+  turn), sets collision, shadows and LOD, and rebuilds `ServerStorage.TableLooks`. The
+  printed report ends with any `PROBLEM:` lines from `TableBuilder.checkTemplate`.
+- The `Config:Clone()` is there because Edit-mode requires are cached: it reads the Config on
+  disk now. TableBuilder itself is still the cached copy, so after changing TableBuilder
+  restart Studio before running it.
 
 ## Studio MCP
 

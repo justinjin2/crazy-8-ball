@@ -1,0 +1,1776 @@
+{
+  "asset": "PoolTable",
+  "blender_version": "5.2.2 LTS",
+  "frame": "Blender native = (x s, y s, z s + h) from the physics frame of Geometry.json (x along the length, head -x / foot +x; y across, pockets 1-3 on +y; z up, cloth at 0), s = 0.16 studs per inch, h = 2.9 studs: the floor is Z = 0 and every mesh origin is the table centre on the floor. Roblox model local after the FBX importer = (x s, z s + h, -y s). The foot (+x) carries the logo plate. measured.* is inches in the physics frame.",
+  "generator": "assets/table/TableModel.py",
+  "geometry_source": {
+    "file": "assets/table/Geometry.json",
+    "schema": 1,
+    "sha256": "71216799ec6bdc18a469d7c804c795e257344d05b23730805489eff4eb571399"
+  },
+  "measured": {
+    "bounds_half_extents_studs": [
+      9.119999886,
+      5.119999886
+    ],
+    "break_line_x": -25,
+    "casting_profile": {
+      "corner": [
+        [
+          2.0,
+          2.279998958
+        ],
+        [
+          2.5,
+          2.279998958
+        ],
+        [
+          3.0,
+          2.260299623
+        ]
+      ],
+      "side": [
+        [
+          2.0,
+          2.240598798
+        ],
+        [
+          2.5,
+          2.279998958
+        ],
+        [
+          3.0,
+          2.260299623
+        ]
+      ]
+    },
+    "cushion_nose_height": 1.428749263,
+    "holes": [
+      {
+        "clear_min": 2.344342054,
+        "depth": 7.000000179,
+        "fit_centre": [
+          -51.058476747,
+          26.058477183
+        ],
+        "fit_radius": 2.249499043,
+        "id": 1,
+        "rim_max": 2.2522886,
+        "rim_min": 2.246575851,
+        "ring_vertices": 17,
+        "x": -51.060660172,
+        "y": 26.060660172
+      },
+      {
+        "clear_min": 2.568800336,
+        "depth": 7.000000179,
+        "fit_centre": [
+          0.0,
+          27.47331688
+        ],
+        "fit_radius": 2.476038002,
+        "id": 2,
+        "rim_max": 2.477457322,
+        "rim_min": 2.471323357,
+        "ring_vertices": 22,
+        "x": 0,
+        "y": 27.475
+      },
+      {
+        "clear_min": 2.344342054,
+        "depth": 7.000000179,
+        "fit_centre": [
+          51.058476747,
+          26.058477183
+        ],
+        "fit_radius": 2.249499043,
+        "id": 3,
+        "rim_max": 2.2522886,
+        "rim_min": 2.246575851,
+        "ring_vertices": 17,
+        "x": 51.060660172,
+        "y": 26.060660172
+      },
+      {
+        "clear_min": 2.344342054,
+        "depth": 7.000000179,
+        "fit_centre": [
+          51.058476747,
+          -26.058477183
+        ],
+        "fit_radius": 2.249499043,
+        "id": 4,
+        "rim_max": 2.2522886,
+        "rim_min": 2.246575851,
+        "ring_vertices": 17,
+        "x": 51.060660172,
+        "y": -26.060660172
+      },
+      {
+        "clear_min": 2.568800336,
+        "depth": 7.000000179,
+        "fit_centre": [
+          0.0,
+          -27.47331688
+        ],
+        "fit_radius": 2.476038002,
+        "id": 5,
+        "rim_max": 2.477457322,
+        "rim_min": 2.471323357,
+        "ring_vertices": 22,
+        "x": 0,
+        "y": -27.475
+      },
+      {
+        "clear_min": 2.344342054,
+        "depth": 7.000000179,
+        "fit_centre": [
+          -51.058476747,
+          -26.058477183
+        ],
+        "fit_radius": 2.249499043,
+        "id": 6,
+        "rim_max": 2.2522886,
+        "rim_min": 2.246575851,
+        "ring_vertices": 17,
+        "x": -51.060660172,
+        "y": -26.060660172
+      }
+    ],
+    "logo_plate_x": 56.876667341,
+    "max_deviation": {
+      "ball_envelope": 9.54e-07,
+      "hole_rim": 0.003676643,
+      "nose_line": 0.001854897,
+      "sight": 9.72e-07,
+      "sphere_clearance": 0.007725325
+    },
+    "points": [
+      {
+        "error": 1.3e-08,
+        "name": "topSideLNose",
+        "radius": 0.0,
+        "x": -2.474999987,
+        "y": 25.0
+      },
+      {
+        "error": 0.007016083,
+        "name": "topSideLJaw",
+        "radius": 0.295307203,
+        "vertices": 6,
+        "x": -2.827966669,
+        "y": 26.559915757
+      },
+      {
+        "error": 1.3e-08,
+        "name": "topSideRNose",
+        "radius": 0.0,
+        "x": 2.474999987,
+        "y": 25.0
+      },
+      {
+        "error": 0.007016083,
+        "name": "topSideRJaw",
+        "radius": 0.295307203,
+        "vertices": 6,
+        "x": 2.827966669,
+        "y": 26.559915757
+      },
+      {
+        "error": 1.455e-06,
+        "name": "topCornerRNose",
+        "radius": 0.0,
+        "x": 46.81802094,
+        "y": 25.0
+      },
+      {
+        "error": 0.003533461,
+        "name": "topCornerRJaw",
+        "radius": 0.299340985,
+        "vertices": 8,
+        "x": 48.881754245,
+        "y": 26.608152635
+      },
+      {
+        "error": 1.455e-06,
+        "name": "topCornerLNose",
+        "radius": 0.0,
+        "x": -46.81802094,
+        "y": 25.0
+      },
+      {
+        "error": 0.003533461,
+        "name": "topCornerLJaw",
+        "radius": 0.299340985,
+        "vertices": 8,
+        "x": -48.881754245,
+        "y": 26.608152635
+      },
+      {
+        "error": 1.3e-08,
+        "name": "bottomSideLNose",
+        "radius": 0.0,
+        "x": -2.474999987,
+        "y": -25.0
+      },
+      {
+        "error": 0.007016083,
+        "name": "bottomSideLJaw",
+        "radius": 0.295307203,
+        "vertices": 6,
+        "x": -2.827966669,
+        "y": -26.559915757
+      },
+      {
+        "error": 1.3e-08,
+        "name": "bottomSideRNose",
+        "radius": 0.0,
+        "x": 2.474999987,
+        "y": -25.0
+      },
+      {
+        "error": 0.007016083,
+        "name": "bottomSideRJaw",
+        "radius": 0.295307203,
+        "vertices": 6,
+        "x": 2.827966669,
+        "y": -26.559915757
+      },
+      {
+        "error": 1.455e-06,
+        "name": "bottomCornerRNose",
+        "radius": 0.0,
+        "x": 46.81802094,
+        "y": -25.0
+      },
+      {
+        "error": 0.003533461,
+        "name": "bottomCornerRJaw",
+        "radius": 0.299340985,
+        "vertices": 8,
+        "x": 48.881754245,
+        "y": -26.608152635
+      },
+      {
+        "error": 1.455e-06,
+        "name": "bottomCornerLNose",
+        "radius": 0.0,
+        "x": -46.81802094,
+        "y": -25.0
+      },
+      {
+        "error": 0.003533461,
+        "name": "bottomCornerLJaw",
+        "radius": 0.299340985,
+        "vertices": 8,
+        "x": -48.881754245,
+        "y": -26.608152635
+      },
+      {
+        "error": 3.5e-08,
+        "name": "footCornerTNose",
+        "radius": 0.0,
+        "x": 50.0,
+        "y": 21.81801945
+      },
+      {
+        "error": 0.003531639,
+        "name": "footCornerTJaw",
+        "radius": 0.299342269,
+        "vertices": 8,
+        "x": 51.608152993,
+        "y": 23.88175232
+      },
+      {
+        "error": 3.5e-08,
+        "name": "footCornerBNose",
+        "radius": 0.0,
+        "x": 50.0,
+        "y": -21.81801945
+      },
+      {
+        "error": 0.003531639,
+        "name": "footCornerBJaw",
+        "radius": 0.299342269,
+        "vertices": 8,
+        "x": 51.608152993,
+        "y": -23.88175232
+      },
+      {
+        "error": 3.5e-08,
+        "name": "headCornerTNose",
+        "radius": 0.0,
+        "x": -50.0,
+        "y": 21.81801945
+      },
+      {
+        "error": 0.003531639,
+        "name": "headCornerTJaw",
+        "radius": 0.299342269,
+        "vertices": 8,
+        "x": -51.608152993,
+        "y": 23.88175232
+      },
+      {
+        "error": 3.5e-08,
+        "name": "headCornerBNose",
+        "radius": 0.0,
+        "x": -50.0,
+        "y": -21.81801945
+      },
+      {
+        "error": 0.003531639,
+        "name": "headCornerBJaw",
+        "radius": 0.299342269,
+        "vertices": 8,
+        "x": -51.608152993,
+        "y": -23.88175232
+      }
+    ],
+    "rail_outer_half_extents": [
+      56.999999285,
+      31.999999285
+    ],
+    "rail_top": 2.080000043,
+    "segments": [
+      {
+        "a": [
+          -46.818019485,
+          25
+        ],
+        "b": [
+          -2.475,
+          25
+        ],
+        "max_deviation": 0.0,
+        "name": "topLeft"
+      },
+      {
+        "a": [
+          2.475,
+          25
+        ],
+        "b": [
+          46.818019485,
+          25
+        ],
+        "max_deviation": 0.0,
+        "name": "topRight"
+      },
+      {
+        "a": [
+          -2.475,
+          25
+        ],
+        "b": [
+          -2.834921687,
+          26.558992104
+        ],
+        "max_deviation": 1.19e-07,
+        "name": "topSideL"
+      },
+      {
+        "a": [
+          2.475,
+          25
+        ],
+        "b": [
+          2.834921687,
+          26.558992104
+        ],
+        "max_deviation": 1.19e-07,
+        "name": "topSideR"
+      },
+      {
+        "a": [
+          46.818019485,
+          25
+        ],
+        "b": [
+          48.878757778,
+          26.610025208
+        ],
+        "max_deviation": 9.54e-07,
+        "name": "topCornerR"
+      },
+      {
+        "a": [
+          -46.818019485,
+          25
+        ],
+        "b": [
+          -48.878757778,
+          26.610025208
+        ],
+        "max_deviation": 9.54e-07,
+        "name": "topCornerL"
+      },
+      {
+        "a": [
+          -46.818019485,
+          -25
+        ],
+        "b": [
+          -2.475,
+          -25
+        ],
+        "max_deviation": 0.0,
+        "name": "bottomLeft"
+      },
+      {
+        "a": [
+          2.475,
+          -25
+        ],
+        "b": [
+          46.818019485,
+          -25
+        ],
+        "max_deviation": 0.0,
+        "name": "bottomRight"
+      },
+      {
+        "a": [
+          -2.475,
+          -25
+        ],
+        "b": [
+          -2.834921687,
+          -26.558992104
+        ],
+        "max_deviation": 1.19e-07,
+        "name": "bottomSideL"
+      },
+      {
+        "a": [
+          2.475,
+          -25
+        ],
+        "b": [
+          2.834921687,
+          -26.558992104
+        ],
+        "max_deviation": 1.19e-07,
+        "name": "bottomSideR"
+      },
+      {
+        "a": [
+          46.818019485,
+          -25
+        ],
+        "b": [
+          48.878757778,
+          -26.610025208
+        ],
+        "max_deviation": 9.54e-07,
+        "name": "bottomCornerR"
+      },
+      {
+        "a": [
+          -46.818019485,
+          -25
+        ],
+        "b": [
+          -48.878757778,
+          -26.610025208
+        ],
+        "max_deviation": 9.54e-07,
+        "name": "bottomCornerL"
+      },
+      {
+        "a": [
+          50,
+          -21.818019485
+        ],
+        "b": [
+          50,
+          21.818019485
+        ],
+        "max_deviation": 0.0,
+        "name": "foot"
+      },
+      {
+        "a": [
+          50,
+          21.818019485
+        ],
+        "b": [
+          51.610025208,
+          23.878757778
+        ],
+        "max_deviation": 5.96e-07,
+        "name": "footCornerT"
+      },
+      {
+        "a": [
+          50,
+          -21.818019485
+        ],
+        "b": [
+          51.610025208,
+          -23.878757778
+        ],
+        "max_deviation": 5.96e-07,
+        "name": "footCornerB"
+      },
+      {
+        "a": [
+          -50,
+          -21.818019485
+        ],
+        "b": [
+          -50,
+          21.818019485
+        ],
+        "max_deviation": 0.0,
+        "name": "head"
+      },
+      {
+        "a": [
+          -50,
+          21.818019485
+        ],
+        "b": [
+          -51.610025208,
+          23.878757778
+        ],
+        "max_deviation": 5.96e-07,
+        "name": "headCornerT"
+      },
+      {
+        "a": [
+          -50,
+          -21.818019485
+        ],
+        "b": [
+          -51.610025208,
+          -23.878757778
+        ],
+        "max_deviation": 5.96e-07,
+        "name": "headCornerB"
+      }
+    ],
+    "spot_sticker": [
+      25.0,
+      0.0
+    ]
+  },
+  "parameters": {
+    "atlas_px": 1024,
+    "bed_under_toe": 0.15,
+    "block_edge_chamfer": 0.08,
+    "block_facet_thickness": 0.8,
+    "block_width_bottom": 5.5,
+    "block_width_top": 6.5,
+    "body_px_per_stud": 200.0,
+    "body_uv_tolerance": 0.15,
+    "bolt_below_top": 0.9,
+    "bolt_diameter": 0.35,
+    "bolt_proud": 0.08,
+    "bolt_segments": 10,
+    "bolt_spacing": 1.5,
+    "bore_depth": 0.25,
+    "bullnose_height": 1.0,
+    "cabinet_clip_sum": 86.0,
+    "cabinet_visible": 2.5,
+    "cap_end_overrun": 0.25,
+    "cap_gap": 0.003,
+    "cap_lip": 0.045,
+    "cap_over_wood": 0.25,
+    "cap_sections": {
+      "corner": 14,
+      "side": 12
+    },
+    "casting_top_target": 2.28,
+    "chalk_from_rim": 1.6,
+    "chalk_size": 2.0,
+    "chord_tol": 0.02,
+    "chord_tol_fine": 0.005,
+    "cloth_studs_per_repeat": 1.5,
+    "cloth_uv_tolerance": 0.1,
+    "cloth_uv_tolerance_knob": 0.35,
+    "colors": {
+      "Body": [
+        34,
+        32,
+        34
+      ],
+      "Caps": [
+        200,
+        202,
+        206
+      ],
+      "Cloth": [
+        1,
+        169,
+        247
+      ],
+      "Hardware": [
+        200,
+        202,
+        206
+      ],
+      "LogoPlate": [
+        190,
+        190,
+        186
+      ],
+      "Marks": [
+        255,
+        255,
+        255
+      ],
+      "Pockets": [
+        18,
+        16,
+        15
+      ],
+      "Rails": [
+        30,
+        28,
+        30
+      ]
+    },
+    "corner_clip": 2.2,
+    "cup_depth": 7.0,
+    "cup_margin": 0.01,
+    "cup_segments": 32,
+    "cushion_top_below_rail": 0.02,
+    "fall_depth": -5.0,
+    "fall_grid": 0.3,
+    "fillet_radius": 0.5,
+    "free_band": 4.0,
+    "free_grid": 0.25,
+    "gap_grid": 0.3,
+    "gap_grid_pocket": 0.1,
+    "geometry_file": "Geometry.json",
+    "grain_min_cos": 0.98,
+    "hidden_uv_scale": 0.1,
+    "knob_min_radius": 0.02,
+    "leg_bottom": 3.75,
+    "leg_chamfer": 0.2,
+    "leg_clip": 2.0,
+    "leg_groove": 0.06,
+    "leg_seam_fraction": 0.333333333,
+    "leg_top": 5.0,
+    "leveller_height": 0.4,
+    "leveller_sink": 0.05,
+    "leveller_size": 3.0,
+    "logo_aspect_tolerance": 0.02,
+    "logo_chamfer": 0.02,
+    "logo_embed": 0.02,
+    "logo_proud": 0.06,
+    "logo_size": [
+      9.0,
+      3.0
+    ],
+    "lower_rounding_setback": 0.025,
+    "marks_lift_studs": 0.004,
+    "merge_distance_studs": 1e-06,
+    "mesh_triangle_limit": 20000,
+    "min_face_area_studs": 1e-08,
+    "opening_offset": {
+      "corner": 0.3,
+      "side": -0.3
+    },
+    "parts_px_per_stud": 300.0,
+    "physics_tolerance": 0.01,
+    "rack_margin": 1.6,
+    "rail_band_to": 5.2,
+    "rail_bottom": -1.0,
+    "rails_px_per_stud": 400.0,
+    "rails_uv_tolerance": 0.15,
+    "ray_grid": 0.1,
+    "reimport_check": true,
+    "reimport_tolerance": 1e-05,
+    "rim_ring_width": 1.0,
+    "rim_roll": 0.08,
+    "rim_width": {
+      "corner": 0.35,
+      "side": 0.3
+    },
+    "roll_radius": 0.07,
+    "rounding_dz": 0.1,
+    "seam_chamfer": 0.03,
+    "sharp_angle_degrees": 35.0,
+    "sight_from_nose": 3.6875,
+    "sight_length": 1.0,
+    "sight_spacing": 12.5,
+    "sight_width": 0.44,
+    "skirt_bead": 0.08,
+    "skirt_end": 52.0,
+    "skirt_end_y": 27.0,
+    "skirt_height": 6.5,
+    "skirt_inset": 0.15,
+    "skirt_thickness": 0.9,
+    "skirt_top_chamfer": 0.1,
+    "sticker_size": 1.0,
+    "streak_width": 1.5,
+    "toe_setback": 0.3,
+    "toe_strip_hidden": 0.3,
+    "toe_strip_width": 1.5,
+    "toe_z": -0.01,
+    "triangle_budget": 13000,
+    "triangle_budgets": {
+      "Body": 2000,
+      "Caps": 1600,
+      "Cloth": 3400,
+      "Hardware": 700,
+      "LogoPlate": 64,
+      "Marks": 400,
+      "Pockets": 1900,
+      "Rails": 2500
+    },
+    "triangle_warn": 11500,
+    "tuck_drop": 0.13,
+    "tuck_out": 0.15,
+    "upper_rounding_setback": 0.035
+  },
+  "roblox_local": {
+    "Table": {
+      "MinPocketDepthInches": 7.000000179,
+      "PocketCastingTopInches": 2.279998958,
+      "RailTopInches": 2.080000043,
+      "RailWidthInches": 7,
+      "StudsPerInch": 0.16,
+      "SurfaceHeightStuds": 2.9
+    },
+    "TableModel": {
+      "MeshCentres": {
+        "Body": [
+          0.0,
+          1.370000005,
+          0.0
+        ],
+        "Caps": [
+          0.0,
+          3.246399879,
+          0.0
+        ],
+        "Cloth": [
+          0.0,
+          3.028800011,
+          0.0
+        ],
+        "Hardware": [
+          0.0,
+          1.156122684,
+          0.0
+        ],
+        "LogoPlate": [
+          9.099200249,
+          2.236000061,
+          0.0
+        ],
+        "Marks": [
+          0.0,
+          2.904000044,
+          0.0
+        ],
+        "Pockets": [
+          0.0,
+          2.506399989,
+          0.0
+        ],
+        "Rails": [
+          0.0,
+          2.986400008,
+          0.0
+        ]
+      },
+      "MeshNames": [
+        "Body",
+        "Caps",
+        "Cloth",
+        "Hardware",
+        "LogoPlate",
+        "Marks",
+        "Pockets",
+        "Rails"
+      ],
+      "MeshSizes": {
+        "Body": [
+          18.239999771,
+          2.74000001,
+          10.239999771
+        ],
+        "Caps": [
+          17.302639008,
+          0.036799908,
+          9.730436325
+        ],
+        "Cloth": [
+          16.576000214,
+          0.401599884,
+          8.596940041
+        ],
+        "Hardware": [
+          18.195371628,
+          0.053102255,
+          10.195370674
+        ],
+        "LogoPlate": [
+          0.012800217,
+          0.480000019,
+          1.440000057
+        ],
+        "Marks": [
+          16.585813522,
+          0.0,
+          8.591423035
+        ],
+        "Pockets": [
+          17.229413986,
+          1.452800035,
+          9.650436401
+        ],
+        "Rails": [
+          18.239999771,
+          0.492799997,
+          10.239999771
+        ]
+      },
+      "Name": "PoolTable"
+    }
+  },
+  "triangle_budget": {
+    "per_mesh": {
+      "Body": 2000,
+      "Caps": 1600,
+      "Cloth": 3400,
+      "Hardware": 700,
+      "LogoPlate": 64,
+      "Marks": 400,
+      "Pockets": 1900,
+      "Rails": 2500
+    },
+    "roblox_mesh_limit": 20000,
+    "total": 13000,
+    "warn_above": 11500
+  },
+  "triangle_counts": {
+    "Body": 790,
+    "Caps": 1524,
+    "Cloth": 2274,
+    "Hardware": 608,
+    "LogoPlate": 20,
+    "Marks": 94,
+    "Pockets": 1840,
+    "Rails": 984,
+    "Total": 8134
+  },
+  "uv_layout": {
+    "Body": {
+      "atlas_px": 1024,
+      "grain": {
+        "block": "vertical",
+        "leg": "vertical",
+        "skirt": "horizontal along each side"
+      },
+      "px_per_stud": 200.0,
+      "strips": {
+        "block": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.31,
+            0.53
+          ]
+        },
+        "cabinet": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.73,
+            0.83
+          ]
+        },
+        "hidden": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.91,
+            1.0
+          ]
+        },
+        "leg": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.54,
+            0.72
+          ]
+        },
+        "leveller": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.84,
+            0.9
+          ]
+        },
+        "skirt": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.0,
+            0.3
+          ]
+        }
+      }
+    },
+    "Cloth": {
+      "note": "bed planar u = x_studs / 1.5, v = y_studs / 1.5; cushions and rolls continuous arc length",
+      "studs_per_repeat": 1.5
+    },
+    "LogoPlate": {
+      "front": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "image_aspect": 3.0,
+      "other_faces": [
+        0.0,
+        0.0,
+        0.03,
+        0.03
+      ]
+    },
+    "Marks": {
+      "atlas_px": 1024,
+      "region_format": "[u0, v0, u1, v1]",
+      "regions": {
+        "chalk0": [
+          0.5,
+          0.8125,
+          0.625,
+          0.9375
+        ],
+        "chalk1": [
+          0.625,
+          0.8125,
+          0.75,
+          0.9375
+        ],
+        "chalk2": [
+          0.75,
+          0.8125,
+          0.875,
+          0.9375
+        ],
+        "chalk3": [
+          0.875,
+          0.8125,
+          1.0,
+          0.9375
+        ],
+        "rack": [
+          0.125,
+          0.625,
+          0.5,
+          1.0
+        ],
+        "rim": [
+          0.0,
+          0.0625,
+          1.0,
+          0.125
+        ],
+        "sticker": [
+          0.0,
+          0.875,
+          0.125,
+          1.0
+        ],
+        "streak": [
+          0.5,
+          0.9375,
+          1.0,
+          1.0
+        ],
+        "toe": [
+          0.0,
+          0.0,
+          1.0,
+          0.0625
+        ]
+      }
+    },
+    "Parts": {
+      "atlas_px": 1024,
+      "px_per_stud": 300.0,
+      "px_per_stud_min": 250,
+      "regions": {
+        "chrome_top": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.7,
+            0.8
+          ]
+        },
+        "chrome_underside": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.82,
+            0.88
+          ]
+        },
+        "cup": {
+          "note": "v runs down with depth",
+          "u": [
+            0.0,
+            0.71
+          ],
+          "v": [
+            0.3,
+            0.66
+          ]
+        },
+        "cup_floor": {
+          "u": [
+            0.72,
+            0.97
+          ],
+          "v": [
+            0.3,
+            0.56
+          ]
+        },
+        "leather": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.0,
+            0.25
+          ]
+        },
+        "rubber": {
+          "note": "unused",
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.9,
+            0.96
+          ]
+        }
+      }
+    },
+    "Rails": {
+      "atlas_px": 1024,
+      "piece_u_offsets": {
+        "bottomLeft": 0.68,
+        "bottomRight": 0.51,
+        "foot": 0.34,
+        "head": 0.85,
+        "topLeft": 0.0,
+        "topRight": 0.17
+      },
+      "px_per_stud": 400.0,
+      "strip_contents": {
+        "ends": "mitre and seam end faces",
+        "hidden": "bottom and inner face, squashed",
+        "pearl": "the 18 sights",
+        "profile": "flat band, bullnose, outer face; u along the grain (wraps)"
+      },
+      "strips": {
+        "ends": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.66,
+            0.86
+          ]
+        },
+        "hidden": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.95,
+            1.0
+          ]
+        },
+        "pearl": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.87,
+            0.94
+          ]
+        },
+        "profile": {
+          "u": [
+            0.0,
+            1.0
+          ],
+          "v": [
+            0.0,
+            0.64
+          ]
+        }
+      }
+    }
+  },
+  "uv_stats": {
+    "Body": {
+      "grain_min_abs_cos": 0.999999998,
+      "grain_worst_at": [
+        26,
+        [
+          -52.24,
+          31.521,
+          -12.698
+        ]
+      ],
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {
+        "body:body_uv_tolerance": [
+          199.4,
+          200.0
+        ]
+      },
+      "px_per_stud_by_tag": {
+        "20": [
+          200.0,
+          200.0
+        ],
+        "21": [
+          20.0,
+          20.0
+        ],
+        "22": [
+          200.0,
+          200.0
+        ],
+        "23": [
+          20.0,
+          20.0
+        ],
+        "24": [
+          199.4,
+          200.0
+        ],
+        "25": [
+          20.0,
+          20.0
+        ],
+        "26": [
+          199.5,
+          200.0
+        ],
+        "27": [
+          200.0,
+          200.0
+        ],
+        "28": [
+          200.0,
+          200.0
+        ],
+        "29": [
+          20.0,
+          20.0
+        ]
+      }
+    },
+    "Caps": {
+      "grain_min_abs_cos": null,
+      "grain_worst_at": null,
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {
+        "parts_min": [
+          266.9,
+          320.8
+        ]
+      },
+      "px_per_stud_by_tag": {
+        "40": [
+          266.9,
+          320.8
+        ],
+        "41": [
+          268.6,
+          303.7
+        ],
+        "42": [
+          299.8,
+          300.0
+        ]
+      }
+    },
+    "Cloth": {
+      "grain_min_abs_cos": null,
+      "grain_worst_at": null,
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {
+        "cloth:cloth_uv_tolerance": [
+          661.6,
+          688.1
+        ],
+        "cloth:cloth_uv_tolerance_knob": [
+          682.5,
+          702.7
+        ]
+      },
+      "px_per_stud_by_tag": {
+        "1": [
+          682.6,
+          682.8
+        ],
+        "2": [
+          682.7,
+          682.7
+        ],
+        "3": [
+          682.5,
+          702.7
+        ],
+        "4": [
+          682.6,
+          682.7
+        ],
+        "5": [
+          682.6,
+          682.7
+        ],
+        "6": [
+          661.6,
+          688.1
+        ],
+        "7": [
+          682.7,
+          682.7
+        ]
+      }
+    },
+    "Hardware": {
+      "grain_min_abs_cos": null,
+      "grain_worst_at": null,
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {
+        "parts_min": [
+          296.7,
+          417.6
+        ]
+      },
+      "px_per_stud_by_tag": {
+        "50": [
+          296.7,
+          417.6
+        ],
+        "51": [
+          300.0,
+          300.0
+        ]
+      }
+    },
+    "LogoPlate": {
+      "front_aspect_error": 0.009008909,
+      "grain_min_abs_cos": null,
+      "grain_worst_at": null,
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {},
+      "px_per_stud_by_tag": {
+        "60": [
+          1242.7,
+          1242.7
+        ],
+        "61": [
+          12.8,
+          12.8
+        ]
+      }
+    },
+    "Marks": {
+      "grain_min_abs_cos": null,
+      "grain_worst_at": null,
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {},
+      "px_per_stud_by_tag": {
+        "70": [
+          132.1,
+          800.0
+        ]
+      }
+    },
+    "Pockets": {
+      "grain_min_abs_cos": null,
+      "grain_worst_at": null,
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {
+        "parts_min": [
+          278.9,
+          310.8
+        ]
+      },
+      "px_per_stud_by_tag": {
+        "30": [
+          278.9,
+          300.4
+        ],
+        "32": [
+          283.3,
+          310.8
+        ],
+        "33": [
+          299.9,
+          299.9
+        ],
+        "34": [
+          300.0,
+          300.0
+        ]
+      }
+    },
+    "Rails": {
+      "grain_min_abs_cos": 0.98661836,
+      "grain_worst_at": [
+        11,
+        [
+          -0.02,
+          31.97,
+          1.166
+        ]
+      ],
+      "mirrored_by_tag": {},
+      "mirrored_faces": 0,
+      "ok": true,
+      "px_per_stud": {
+        "rails:rails_uv_tolerance": [
+          400.0,
+          413.0
+        ]
+      },
+      "px_per_stud_by_tag": {
+        "10": [
+          400.0,
+          400.0
+        ],
+        "11": [
+          400.0,
+          413.0
+        ],
+        "12": [
+          400.0,
+          400.0
+        ],
+        "13": [
+          400.0,
+          400.0
+        ],
+        "14": [
+          400.0,
+          400.0
+        ],
+        "15": [
+          12.6,
+          12.7
+        ],
+        "16": [
+          203.9,
+          203.9
+        ]
+      }
+    }
+  },
+  "validation": {
+    "budgets": {
+      "budget": 13000,
+      "counts": {
+        "Body": 790,
+        "Caps": 1524,
+        "Cloth": 2274,
+        "Hardware": 608,
+        "LogoPlate": 20,
+        "Marks": 94,
+        "Pockets": 1840,
+        "Rails": 984
+      },
+      "total": 8134,
+      "warn_above": 11500,
+      "warning": false
+    },
+    "cap_casting_limit": {
+      "crown": 2.279998958,
+      "hard_limit": 2.351,
+      "min_margin_to_limit": 5.13e-07,
+      "ok": true
+    },
+    "clearances": {
+      "barrier_half": [
+        59.25,
+        34.25
+      ],
+      "cup_depth": 7.000000179,
+      "cup_margin_to_skirt_and_cabinet": 0.893770766,
+      "marks_lift_studs": 0.004000044,
+      "marks_min_margin_outside_hole_rims": -1.195e-06,
+      "max_abs_x": 56.999999285,
+      "max_abs_y": 31.999999285,
+      "ok": true,
+      "outer_half": [
+        57,
+        32
+      ]
+    },
+    "fbx_round_trip": {
+      "max_bounds_error": 4.77e-07,
+      "per_mesh": {
+        "Body": 4.77e-07,
+        "Caps": 4.77e-07,
+        "Cloth": 2.38e-07,
+        "Hardware": 3.58e-07,
+        "LogoPlate": 1.79e-07,
+        "Marks": 2.38e-07,
+        "Pockets": 4.77e-07,
+        "Rails": 4.77e-07
+      }
+    },
+    "gaps": {
+      "with_caps": {
+        "back_faces": 0,
+        "first_failures": [],
+        "label": "with caps",
+        "misses": 0,
+        "ok": true,
+        "rays": 1335294
+      },
+      "without_caps": {
+        "back_faces": 0,
+        "first_failures": [],
+        "label": "without caps",
+        "misses": 0,
+        "ok": true,
+        "rays": 1335294
+      }
+    },
+    "orientation": {
+      "logo_plate_centroid_x": 56.876667341
+    },
+    "physics_a_nose_line": {
+      "max_deviation": 0.001854897
+    },
+    "physics_b_envelope": {
+      "free_centres": {
+        "physics_radius": 16466,
+        "render_radius": 13640
+      },
+      "min_distance": 1.124999046,
+      "want_at_least": 1.115
+    },
+    "physics_c_rubber": {
+      "min_distance": 1.125,
+      "want_at_least": 1.115
+    },
+    "physics_d_spheres": {
+      "falling": {
+        "centres": 9694,
+        "detail": {
+          "caps": -0.007725325,
+          "no_caps": -0.007725325
+        },
+        "min_gap": -0.007725325,
+        "where": {
+          "caps": [
+            2,
+            -0.586,
+            28.691,
+            0.09,
+            [
+              "Pockets",
+              32
+            ],
+            [
+              -1.153,
+              29.752,
+              0.197
+            ]
+          ],
+          "no_caps": [
+            2,
+            -0.586,
+            28.691,
+            0.09,
+            [
+              "Pockets",
+              32
+            ],
+            [
+              -1.153,
+              29.752,
+              0.197
+            ]
+          ]
+        }
+      },
+      "free_detail": {
+        "caps": -5.96e-07,
+        "no_caps": -5.96e-07
+      },
+      "free_min_gap": -5.96e-07
+    },
+    "physics_e_hole_rims": {
+      "holes": [
+        {
+          "clear_min": 2.344342054,
+          "depth": 7.000000179,
+          "fit_centre": [
+            -51.058476747,
+            26.058477183
+          ],
+          "fit_radius": 2.249499043,
+          "id": 1,
+          "rim_max": 2.2522886,
+          "rim_min": 2.246575851,
+          "ring_vertices": 17,
+          "x": -51.060660172,
+          "y": 26.060660172
+        },
+        {
+          "clear_min": 2.568800336,
+          "depth": 7.000000179,
+          "fit_centre": [
+            0.0,
+            27.47331688
+          ],
+          "fit_radius": 2.476038002,
+          "id": 2,
+          "rim_max": 2.477457322,
+          "rim_min": 2.471323357,
+          "ring_vertices": 22,
+          "x": 0,
+          "y": 27.475
+        },
+        {
+          "clear_min": 2.344342054,
+          "depth": 7.000000179,
+          "fit_centre": [
+            51.058476747,
+            26.058477183
+          ],
+          "fit_radius": 2.249499043,
+          "id": 3,
+          "rim_max": 2.2522886,
+          "rim_min": 2.246575851,
+          "ring_vertices": 17,
+          "x": 51.060660172,
+          "y": 26.060660172
+        },
+        {
+          "clear_min": 2.344342054,
+          "depth": 7.000000179,
+          "fit_centre": [
+            51.058476747,
+            -26.058477183
+          ],
+          "fit_radius": 2.249499043,
+          "id": 4,
+          "rim_max": 2.2522886,
+          "rim_min": 2.246575851,
+          "ring_vertices": 17,
+          "x": 51.060660172,
+          "y": -26.060660172
+        },
+        {
+          "clear_min": 2.568800336,
+          "depth": 7.000000179,
+          "fit_centre": [
+            0.0,
+            -27.47331688
+          ],
+          "fit_radius": 2.476038002,
+          "id": 5,
+          "rim_max": 2.477457322,
+          "rim_min": 2.471323357,
+          "ring_vertices": 22,
+          "x": 0,
+          "y": -27.475
+        },
+        {
+          "clear_min": 2.344342054,
+          "depth": 7.000000179,
+          "fit_centre": [
+            -51.058476747,
+            -26.058477183
+          ],
+          "fit_radius": 2.249499043,
+          "id": 6,
+          "rim_max": 2.2522886,
+          "rim_min": 2.246575851,
+          "ring_vertices": 17,
+          "x": -51.060660172,
+          "y": -26.060660172
+        }
+      ],
+      "max_deviation": 0.003676643
+    },
+    "physics_f_cloth_rays": {
+      "bad_inside": 0,
+      "bad_outside": 0,
+      "first_failures": [],
+      "rays_inside_holes": 8496,
+      "rays_outside_rims": 77189
+    },
+    "physics_g_sights": {
+      "count": 18,
+      "max_height_error": 4.3e-08,
+      "max_position_error": 9.72e-07
+    },
+    "topology": {
+      "Body": {
+        "boundary_edges": 8,
+        "components": 17,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": 4.037036169,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 790,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "Caps": {
+        "boundary_edges": 0,
+        "components": 6,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": 1.017038377,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 1524,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "Cloth": {
+        "boundary_edges": 416,
+        "components": 7,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": null,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 2274,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "Hardware": {
+        "boundary_edges": 0,
+        "components": 16,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": 0.005493266,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 608,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "LogoPlate": {
+        "boundary_edges": 0,
+        "components": 1,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": 2.155246593,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 20,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "Marks": {
+        "boundary_edges": 136,
+        "components": 21,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": null,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 94,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "Pockets": {
+        "boundary_edges": 284,
+        "components": 30,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": null,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 1840,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      },
+      "Rails": {
+        "boundary_edges": 0,
+        "components": 6,
+        "loose_vertices": 0,
+        "min_shell_volume_cubic_inches": 800.943670747,
+        "non_manifold_edges": 0,
+        "non_positive_volumes": 0,
+        "non_triangles": 0,
+        "ok": true,
+        "open_closed_shells": 0,
+        "triangles": 984,
+        "unexpected_boundary_edges": 0,
+        "zero_area_faces": 0
+      }
+    }
+  }
+}

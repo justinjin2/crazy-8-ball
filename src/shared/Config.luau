@@ -647,73 +647,113 @@ Config.Lounge = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Table model (imported from Blender, see assets/table/Readme.md)
+-- Table model (imported from Blender, see assets/table/Readme.md and ARCHITECTURE section 7)
 ---------------------------------------------------------------------------------------------
 Config.TableModel = {
-	-- If a Model with this name exists in ServerStorage, it is used as the visible table
-	-- instead of the parts-and-solid-modelling build. It must be authored in studs with its
-	-- origin at the table centre on the floor (the Blender package does this), and its
-	-- physics numbers must match Config.Table: the 9 ft preset does.
-	Name = "PoolTableModel",
-	-- Mesh names inside the model and how each behaves for the walking character.
+	-- The imported template: a Model with this name in ServerStorage is cloned for every
+	-- table; without it the parts-and-solid-modelling build is used (with one warning). The
+	-- old seven-mesh ServerStorage.PoolTableModel stays in the place as the rollback until the
+	-- designer signs the new table off. Its mesh names differ, so rolling back means reverting
+	-- this code in git, not only changing this name.
+	Name = "PoolTable",
+	-- ServerStorage folder of looks: <LooksFolder>.<Look>.<Mesh> is a SurfaceAppearance.
+	-- Generated in Edit mode by TableBuilder.prepareImport from Maps below (map ids are
+	-- plugin-only writes, so they must be saved in the place); never edit it by hand.
+	LooksFolder = "TableLooks",
+	-- The eight meshes the template must contain, and how each behaves. CanCollide is for
+	-- the walking character (CanQuery follows it; CanTouch is always off). Collision is the
+	-- CollisionFidelity baked in Edit mode (colliding meshes only; the rest get Box, the
+	-- cheapest). CastShadow is off for the small and flat parts (ARCHITECTURE section 7).
+	-- AlphaMode is the SurfaceAppearance's (Overlay when absent); Marks is a transparent
+	-- overlay just above the cloth. A mesh with an AlphaMode is hidden while its look has no
+	-- SurfaceAppearance for it (no maps uploaded), since bare it would draw as solid grey.
 	Meshes = {
-		Bed = { CanCollide = false },
-		Cushions = { CanCollide = false },
-		Rails = { CanCollide = true, Collision = "Hull" },
-		Pockets = { CanCollide = false },
-		Apron = { CanCollide = true, Collision = "Box" },
-		Legs = { CanCollide = true, Collision = "Box" },
-		Sights = { CanCollide = false },
-	} :: { [string]: { CanCollide: boolean, Collision: string? } },
-	-- PBR maps per mesh (uploaded 2026-09-19 from assets/table/textures). Applied in Edit
-	-- mode by TableBuilder.applyModelTextures(); scripts cannot write SurfaceAppearance maps
-	-- at runtime, so the textured model must be saved in the place.
-	Textures = {
-		Bed = {
-			Color = "rbxassetid://102609553781623",
-			Normal = "rbxassetid://99826595778879",
-			Roughness = "rbxassetid://79061809007876",
-			Metalness = "rbxassetid://117796518523512",
-		},
-		Cushions = {
-			Color = "rbxassetid://83703463882218",
-			Normal = "rbxassetid://123457432035826",
-			Roughness = "rbxassetid://119649434177392",
-			Metalness = "rbxassetid://117796518523512",
-		},
-		Rails = {
-			Color = "rbxassetid://119510198309668",
-			Normal = "rbxassetid://123261438390044",
-			Roughness = "rbxassetid://104978786475849",
-			Metalness = "rbxassetid://117796518523512",
-		},
-		Pockets = {
-			Color = "rbxassetid://94430625696465",
-			Normal = "rbxassetid://88074073045389",
-			Roughness = "rbxassetid://102085622441837",
-			Metalness = "rbxassetid://117796518523512",
-		},
-		Apron = {
-			Color = "rbxassetid://96632718126173",
-			Normal = "rbxassetid://98672244173539",
-			Roughness = "rbxassetid://131454951510818",
-			Metalness = "rbxassetid://117796518523512",
-		},
-		Legs = {
-			Color = "rbxassetid://95182369270183",
-			Normal = "rbxassetid://134542152833241",
-			Roughness = "rbxassetid://76006405458350",
-			Metalness = "rbxassetid://117796518523512",
-		},
-		Sights = {
-			Color = "rbxassetid://88180350419004",
-			Normal = "rbxassetid://74066395438874",
-			Roughness = "rbxassetid://74333689947684",
-			Metalness = "rbxassetid://117796518523512",
-		},
+		Cloth = { CanCollide = false, CastShadow = true },
+		Rails = { CanCollide = true, Collision = "Box", CastShadow = true },
+		Body = { CanCollide = true, Collision = "Box", CastShadow = true },
+		Pockets = { CanCollide = false, CastShadow = false },
+		Caps = { CanCollide = false, CastShadow = false },
+		Hardware = { CanCollide = false, CastShadow = false },
+		LogoPlate = { CanCollide = false, CastShadow = false },
+		Marks = { CanCollide = false, CastShadow = false, AlphaMode = "Transparency" },
 	} :: {
-		[string]: { Color: string, Normal: string, Roughness: string, Metalness: string },
+		[string]: {
+			CanCollide: boolean,
+			Collision: string?,
+			CastShadow: boolean,
+			AlphaMode: string?,
+		},
 	},
+	-- The chrome pocket caps are their own mesh so they can go: false removes them from
+	-- every table (the corners underneath are modelled finished).
+	CapsMesh = "Caps",
+	Caps = true,
+	-- Map sets: uploaded image ids ("rbxassetid://digits"), "" until uploaded (an empty id is
+	-- skipped, so a mesh with none keeps its bare part colour). Every table map is uploaded at
+	-- 1024 (STUDIO_NOTES, "SurfaceAppearance facts"). A missing Metalness means non-metal.
+	-- The Black and Cherry sets share their Normal and Roughness ids; only Color differs.
+	-- Pockets, Caps and Hardware share the Parts atlas. Keep the unique ids within
+	-- ImageBudget (tests/table_looks_test.luau counts them).
+	Maps = {
+		-- Near-white repeating tile (every 1.5 studs), tinted per look.
+		Cloth = { Color = "", Normal = "", Roughness = "" },
+		RailsBlack = { Color = "", Normal = "", Roughness = "" },
+		RailsCherry = { Color = "", Normal = "", Roughness = "" },
+		BodyBlack = { Color = "", Normal = "", Roughness = "" },
+		BodyCherry = { Color = "", Normal = "", Roughness = "" },
+		-- Leather, cups and chrome: the only set that needs a metalness map.
+		Parts = { Color = "", Normal = "", Roughness = "", Metalness = "" },
+		LogoPlate = { Color = "", Roughness = "" },
+		-- RGBA overlay: sticker, rack patch, break streak, chalk, cushion and rim shading.
+		Marks = { Color = "" },
+	} :: {
+		[string]: { Color: string, Normal: string?, Roughness: string?, Metalness: string? },
+	},
+	-- A look picks a map set for every mesh, and optionally a Tint: SurfaceAppearance.Color,
+	-- RGB 0-255, which multiplies the colour map and is the one thing scripts may change at
+	-- run time. Adding a look is a new row here plus maps, never new code.
+	Looks = {
+		-- Photo-16 blue cloth (about #01A9F7) with satin black wood.
+		Blue = {
+			Cloth = { Maps = "Cloth", Tint = { 1, 169, 247 } },
+			Rails = { Maps = "RailsBlack" },
+			Body = { Maps = "BodyBlack" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
+		-- Yellow-green cloth with red-brown (cherry) wood. The tint aims at an albedo of
+		-- #26A62A over the cloth map's ~0.95 grey. (tune)
+		Green = {
+			Cloth = { Maps = "Cloth", Tint = { 40, 175, 44 } },
+			Rails = { Maps = "RailsCherry" },
+			Body = { Maps = "BodyCherry" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
+	} :: { [string]: { [string]: { Maps: string, Tint: { number }? } } },
+	-- The look every table uses unless LookByTable names another.
+	DefaultLook = "Blue",
+	-- Table id -> look. TEMPORARY: table 2 (the middle of the three baseplate tables) is
+	-- green so both looks stand side by side for sign-off. Which tables use which look is
+	-- still open (GDD section 19); do not treat this as the decision.
+	LookByTable = { [2] = "Green" } :: { [number]: string },
+	-- Most triangles over all eight meshes (Roblox caps each mesh at 20,000), and most unique
+	-- 1024 images over every look (ARCHITECTURE section 7).
+	TriangleBudget = 13000,
+	ImageBudget = 18,
+	-- TableBuilder.checkTemplate: how far the Rails footprint may be off the Config one
+	-- ((Table.LengthInches or WidthInches + 2 * RailWidthInches) * StudsPerInch), as a
+	-- fraction, before it is reported as a wrong Scale Unit or a 90 degree turn; and how far
+	-- the pivot may sit off the table centre on the floor, measured at the rail crown
+	-- (Table.SurfaceHeightStuds + RailTopInches * StudsPerInch above it) and the Rails centre.
+	FootprintTolerance = 0.02,
+	PivotToleranceStuds = 0.05,
 }
 
 ---------------------------------------------------------------------------------------------
