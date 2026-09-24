@@ -126,8 +126,9 @@ Every feature is checked against these. If it serves none, it waits.
   contacts (cushion rebound, throw, spin transfer). Use regulation 2.25 in balls in the
   physics with visual scaling for readability. Cue elevation stays fixed at 4 degrees for
   now, and all collectible cues have identical physics. Physics milestones D-F implement these
-  choices. Keep the current imported table for now; matching its pocket mesh to the new physics
-  is deferred.
+  choices. The table is being remade (2026-09-24, section 16) from the physics geometry, so
+  its drawn pockets match the physics exactly: regulation pro cut, corners 2.0 and sides 2.2
+  ball widths.
 
 ## 6. Modes, tables and joining
 
@@ -142,8 +143,8 @@ Every feature is checked against these. If it serves none, it waits.
   Wait. Solo starts immediately.
 - The next player to step on the pad joins as the opponent, no accept step. Anyone may join a
   waiting table. Everyone else can stand around and watch. If the host leaves before the start
-  the table frees. Every match is played on the one standard table model (collectible table
-  skins are parked until after release, section 18).
+  the table frees. Every match is played on the one standard table model, in one of its two
+  looks (section 16). Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
   Solo: normal rules with no opponent; the first legally pocketed group is cleared first, then
   the other group, then the called 8. A foul gives yourself ball in hand; the 8 early, on a foul
@@ -385,8 +386,17 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 **Decided**
 - Bright, warm, upscale lounge (section 10). Clean glossy balls (sphere meshes with baked
-  textures), tournament blue cloth, black Diamond-style tables. Effects (streak fire, sink
-  bursts, rainbow cue ball) must read at phone size.
+  textures). Effects (streak fire, sink bursts, rainbow cue ball) must read at phone size.
+- **The table (2026-09-24):** one model styled on the Diamond Pro-Am 9 ft, with no brand name
+  or logo. Game size and cloth height stay as they are; the rails are the Pro-Am's 7 inch
+  rounded rails. Two-piece tapered legs with bolts, corner blocks, rail seams at the side
+  pockets, a blank plate on the foot end for our own logo later, no ball-return window. Chrome
+  caps on all six pockets, built as a removable part so the corners also look finished
+  without them. Two looks share the model: **bright blue cloth (photo-16 blue) with satin
+  black wood showing faint grain**, and **bright yellow-green cloth (the reference photo's
+  hue at real-cloth brightness) with red-brown wood**; chrome on both. The cloth is a fine
+  repeating texture tinted per look, lightly played: a faint break line, a rack patch, chalk
+  near the pockets and a spot sticker.
 - UI: clean, thumb-friendly, icons before words. All text lives in one strings module; Roblox
   automatic translation is switched on at release; no hand translation before then.
 
@@ -409,8 +419,9 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   and anything new. New ideas go here.
 - Offline play if Roblox ships it.
 - New game modes and table types.
-- **Collectible table skins** (parked 2026-09-23, after release): each a full 3D table model
-  with a strict per-table budget, the host's table used for the match, rare ones with VFX, a
+- **Collectible table skins** (parked 2026-09-23, after release): each a retexture of the one
+  standard table model (changed 2026-09-24; it used to be a full model per skin), the host's
+  table used for the match, rare ones with VFX, a
   table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
 - **Walk to the next shot** (parked 2026-09-24): when the same player shoots again from a
   different spot, their body currently jumps there; a short walk round the table would read
@@ -424,5 +435,6 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Age-rating and DevEx rate verification (section 2).
 - Full ability list (section 9).
 - Pro lobby look (section 10).
+- Which tables use the green look and which the blue (section 16).
 - Rating formula (section 11).
 - Economy numbers and the top rarity name (section 12).

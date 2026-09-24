@@ -1,5 +1,11 @@
 # Status
 
+**2026-09-24: focus moved to the table. The current table was audited and the designer
+interviewed; the remake is decided (ROADMAP "Table remake", DECISIONS 2026-09-24). Next: the
+build plan, starting with a Studio test of a repeating cloth texture on an imported mesh.**
+
+---
+
 **2026-09-24: realistic shooter pose landed (rake, cue extension, rail-clearing cue, wind-up,
 idle after the shot, everyone sees it). Multi-client and device acceptance pending.**
 

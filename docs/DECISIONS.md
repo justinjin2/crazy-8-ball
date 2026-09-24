@@ -846,3 +846,33 @@ collision group), so moving it never shoves a spectator.
 plus BallSocketConstraint, no Motor6D); R6 still uses Motor6D. Posing handles both.
 Config.Stance.DefaultBody is the measured default R15 (root 3.19, shoulders 4.04, arm reach
 1.93 studs).
+
+2026-09-24: The table is remade. An audit found the current model is the Blender script
+build (assets/table/PoolTable.py), not a Meshy mesh: 19,220 triangles in 7 MeshParts, 71% of
+them in the pocket cut-outs. Its cloth is one 1024 bake at 36.5 px per stud with no weave.
+Its pockets and cushion nose are still sized for the old 2.6 in ball, so the drawn mouths
+are 15% wider than the physics (5.2/5.72 in against 4.5/4.95 in). The new model is generated
+from the physics geometry and keeps the regulation pro cut the designer has been playing
+since 2026-09-22 (corners 2.0 and sides 2.2 ball widths, 1.5 in corner shelf, nose 0.635 of
+a ball). Table size and cloth height stay (16 x 8 studs, cloth at 2.9 studs); the poses,
+cue, camera and pads are tuned to them. The rails widen to the Pro-Am's 7 in, rounded on top.
+
+2026-09-24: Two looks share the one table model. Blue: photo-16 cloth (about #01A9F7) with
+satin black wood showing faint grain, like Diamond's Black PRC. Green: the reference photo's
+yellow-green hue at real-cloth brightness (the photo is overexposed and its green channel is
+clipped), with red-brown wood; the photo's "oak" samples at a hue of about 8 degrees, closer
+to cherry. Chrome caps on all six pockets on both looks, built as a separate part so the
+fully detailed corners underneath can ship without them. Pro-Am details: two-piece tapered
+legs with bolts, corner blocks, rail seams at the side pockets, a blank logo plate on the
+foot end. No ball-return window, and no Diamond name or logo (trademark). The cloth is lightly
+played. Both looks are built now; which tables use which is decided later.
+
+2026-09-24: Later table skins are retextures of this one model. This replaces 2026-09-20
+("each a full 3D table model"). Textures: masters at 4096, uploads at 2048 for cloth and
+wood and 1024 for small parts. The cloth is a repeating near-white tile tinted per look
+through SurfaceAppearance.Color, so every cloth colour shares one image set. Roblox has
+rendered up to 4K since 2026-01-30 and transcodes 8K uploads down to 4K; low-end Android gets
+no 4K. A single unique cloth image cannot reach the close aim view's density even at 4K
+(about 230 px per stud against about 420 to 560 needed); a 2048 tile every 3 studs gives
+about 680. This replaces the "eight 1024 maps" budget with about 10 to 12 images for all
+looks. Blender runs headless from Claude Code; the Blender MCP is configured only for Codex.

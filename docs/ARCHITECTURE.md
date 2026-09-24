@@ -140,9 +140,12 @@ shooters), `UI`, `Audio`, `Effects`, `Lounge`
 
 ## 7. Performance budgets
 
-- Table model: every table uses the one standard model at release (no table skins); keep it
-  within about 20,000 triangles and eight 1024 px maps, the budget any later table skin must
-  also meet. Automatic
+- Table model: every table uses the one standard model (two looks at release; later table
+  skins are retextures of it). Well under 20,000 triangles (Roblox's per-mesh cap). About
+  10 to 12 texture images shared by every look: the cloth is one repeating near-white tile
+  tinted per look with SurfaceAppearance.Color; cloth and wood are uploaded at 2048, small
+  parts at 1024, and masters are authored at 4096. Never 8K: Roblox renders at most 4K and
+  low-end Android gets no 4K. Automatic
   render fidelity (LOD) on all meshes, decorative parts do not cast shadows, no per-table
   shadow-casting lights, StreamingEnabled on.
 - Balls: one shared sphere mesh (about 550 triangles) with per-ball textures.

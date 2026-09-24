@@ -65,6 +65,18 @@ The remaining 1.5 checks stay open.*
 **FRIEND TEST 1.** Hand it to a friend with no explanation. Do they keep shooting? Compare side
 by side with GamePigeon. Fix the feel before moving on.
 
+## Table remake (2026-09-24)
+
+The designer moved the focus to the table. Decisions: DECISIONS.md (2026-09-24), GDD
+sections 5 and 16, ARCHITECTURE section 7.
+
+- [x] Audit the current table and interview the designer.
+- [ ] **Remade Pro-Am table in two looks.** One Blender-built model generated from the physics
+  geometry, so the drawn pockets match the physics. Blue cloth with satin black, and green
+  cloth with red-brown wood. Done means: both looks stand side by side in Studio. No ball
+  bounces off air or starts dropping over cloth. The cloth stays sharp in the close aim view
+  on phone, PC and gamepad. The table is within the budget in ARCHITECTURE section 7.
+
 ## Authorized multiplayer update (2026-09-22)
 
 The current user request overrides the ordinary milestone order and conflicting match
