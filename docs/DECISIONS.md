@@ -805,3 +805,7 @@ cloth, sparkles and a coloured flash; the 8 is 1.6x bigger. Still cue-style data
 2026-09-24: Pocket drop reworked again: no resting stop or hold. The ball drops with the
 physics' real gravity, then keeps accelerating down at the bottom, drifting outward and
 fading out in 0.12 s (Config.Effects.PocketFadeSeconds). Rim to gone takes about 0.2 s.
+
+2026-09-24: The pocket VFX plays only for a good pocket for the shooter: never the white,
+never the other side's balls, the 8 only once it was theirs to take; any object ball on an
+open table; every object ball in solo (the 8 once all fourteen are down).

@@ -517,6 +517,34 @@ end, function()
 	end
 end)
 
+-- Whether a ball dropping deserves the pocket effect: only a good pocket for whoever is
+-- shooting. Never the white, never the other side's balls, and the 8 only once it is theirs
+-- to take (judged on the balls as they stood before the shot, which the snapshot still holds
+-- while it rolls). An open table rewards any object ball; solo rewards every object ball,
+-- since both groups are the player's, and the 8 once all fourteen are down.
+local function rewardsPocket(tableId: number, m: any, ballId: number): boolean
+	if ballId == 0 then
+		return false
+	end
+	local s = lounge.snapshots[tableId]
+	if not s then
+		return true
+	end
+	local function downBefore(id: number): boolean
+		return s.balls ~= nil and s.balls[id * 4 + 4] == 1
+	end
+	local groups = m:revealedGroups() or s.groups or {}
+	local group = if s.activeTeam then groups[s.activeTeam] else nil
+	if ballId == 8 then
+		for id = 1, 15 do
+			if id ~= 8 and not downBefore(id) and (s.solo or Judge.group(id) == group) then
+				return false
+			end
+		end
+		return s.solo ~= nil or group ~= nil
+	end
+	return s.solo ~= nil or group == nil or Judge.group(ballId) == group
+end
 for _, mode in M.Modes do
 	local id = mode.id
 	local m = assert(lounge:matchFor(id))
@@ -538,7 +566,7 @@ for _, mode in M.Modes do
 			if not at and b then
 				at = TableBuilder.toWorld(m.placement, b.x, b.y, 0)
 			end
-			if at then
+			if at and rewardsPocket(id, m, ev.ball) then
 				e:pocketBurst(at, ev.ball)
 			end
 			if snapshot and snapshot.id == id then
