@@ -97,8 +97,21 @@ Every feature is checked against these. If it serves none, it waits.
     to the home view once the pocket is called.
   - Only the shooter's camera is taken; everyone else, including during the coin flip, keeps
     the ordinary Roblox camera.
-  - Your avatar is at the table in an aiming pose, faded to mostly transparent, invisible when
-    the camera is close to it.
+  - **The shooter's body** (decided 2026-09-24, modelled on the Steam game "9 Ball
+    Roulette"): avatars stay normal Roblox size (R15 and R6) and stand anywhere round the
+    table, never in it. The stance changes with reach: standing, leaning over, then a
+    **bridge (rake)** under the cue when the ball is realistically out of reach, and an
+    **automatic cue extension** (and rake extension) when even that falls short. Both hands
+    sit on the cue (the grip hand, and the bridge hand or the rake's handle); the head looks at
+    the cue ball. The cue is about 7 studs and tilts up to clear a rail or a ball behind the
+    cue ball: the tilt is visual only, the physics stays at 4 degrees.
+  - The cue **winds up** with the power pull, and everyone sees it; release plays a quick
+    stroke through the ball. The shooter then stands in the normal Roblox idle on the spot
+    they shot from, facing the table, unable to move. If it is still their turn they go
+    straight back into the aiming pose; if not, the normal camera and controls come back
+    from that same spot.
+  - The shooter sees their own body mostly transparent (and fading as the camera nears it);
+    everyone else sees it fully, posed.
 - **Guideline** (Classic difficulty): a corridor one ball wide from the cue ball to first
   contact, a ring at the contact point, a short line for the object ball and a short line for
   the cue ball's deflection. The two short lines scale with how full the hit is (GamePigeon
@@ -399,6 +412,9 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - **Collectible table skins** (parked 2026-09-23, after release): each a full 3D table model
   with a strict per-table budget, the host's table used for the match, rare ones with VFX, a
   table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
+- **Walk to the next shot** (parked 2026-09-24): when the same player shoots again from a
+  different spot, their body currently jumps there; a short walk round the table would read
+  better for watchers.
 - **Swerve and a curved aim guideline for side spin** (parked 2026-09-23): squirt off the aim
   and a path that curves on the cloth, with the guideline curving to match. The physics exists
   behind Config.Cue.SideSpinBendsPath.

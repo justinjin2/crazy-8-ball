@@ -87,7 +87,8 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   bar; mapping an analog axis to zoom wastes it. Departs from the GDD's "or triggers" aside.
 - 2026-09-20: Remote players' bodies are not posed for watchers; only their cue is
   replicated. AvatarPose anchors individual limbs, which does not replicate reliably from
-  the owning client. Body posing for watchers is deferred to Roadmap 2.3.
+  the owning client. Body posing for watchers is deferred to Roadmap 2.3. (Superseded
+  2026-09-24: every client now poses the shooter's body itself.)
 - 2026-09-20: Cue PowerCurve 1.6 -> 2.6 and SlidingFriction 0.20 -> 0.25, because balls read
   as sliding on ice. MaxSpeed is a 30 mph break, so at 1.6 a half-pulled bar gave 184 in/s,
   which slides 128 inches before it rolls on a 100 inch table: nothing ever rolled. At 2.6
@@ -98,11 +99,12 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   drop is shortened rather than the fixture moved, so the cord still meets the ceiling.
 - 2026-09-20: The shooter is hidden outright while the balls are moving and comes back when
   they stop, rather than staying faintly visible. They used to be posed against the LIVE cue
-  ball, so the body slid around the cloth chasing it for the length of the shot.
+  ball, so the body slid around the cloth chasing it for the length of the shot. (Superseded
+  2026-09-24: the shooter now idles on the shot spot while the balls move.)
 - 2026-09-20: Past about 8 studs of reach the shooter fades out entirely. A cue ball against
   a cushion with the shot going into it is nearly a table length from anywhere a person could
   stand, and no stance reads as a person from a camera on the far side; fading beats
-  contorting.
+  contorting. (Superseded 2026-09-24: the rake and the cue extension reach it instead.)
 - 2026-09-21: The placeholder lounge is switched off (`Config.Lounge.Enabled = false`,
   `TableCount = 1`) and testing happens on a plain baseplate with one table. The designer
   does not like the model. The lounge code, the pads, the renderer pool and the server
@@ -809,3 +811,38 @@ fading out in 0.12 s (Config.Effects.PocketFadeSeconds). Rim to gone takes about
 2026-09-24: The pocket VFX plays only for a good pocket for the shooter: never the white,
 never the other side's balls, the 8 only once it was theirs to take; any object ball on an
 open table; every object ball in solo (the 8 once all fourteen are down).
+
+2026-09-24: The shooter's pose is modelled on the Steam game "9 Ball Roulette". Avatars stay
+normal Roblox size, R15 and R6 both supported. So a ball realistically out of reach brings
+out a bridge (rake), and past the rake an automatic cue extension. The cue is about 7 studs
+(0.09 tip, 0.2 butt). It tilts up to 45 degrees to clear the rail and balls behind the cue
+ball; that tilt is visual only and never reaches the physics (fixed 4 degrees). The bridge is
+a Blender mesh the designer imports (assets/bridge), with a parts stand-in until then.
+
+2026-09-24: The wind-up is public: the power pull rides the aim stream in 1/50 steps, so
+opponents can read roughly how hard a shot will be. It is cosmetic; the shot's power still
+comes only from ShotFired.
+
+2026-09-24: After release the shooter idles in the normal Roblox idle on the spot they shot
+from, facing the table centre, and cannot move. Same shooter next: straight back to aiming.
+Turn passes: released in place with the normal camera, no teleport. The shooter sees their
+own body translucent; everyone else sees it fully visible and posed.
+
+2026-09-24: The server places the shooter. It solves the same stance as the clients, holds
+the root anchored there (following the aim at most 5 times a second) and, at shot
+acceptance, on the shot spot facing the table centre, published as the root's ShotSpot
+attribute. Each client writes the root to ShotSpot once after the stroke, so the owner hands
+the body back exactly where the server holds it. A held shooter touches nothing (PoolShooter
+collision group), so moving it never shoves a spectator.
+
+2026-09-24: Lead calls made during the build:
+- The rake gets the same automatic extension as the cue when its shaft cannot reach the hand.
+- A steep cue whose grip is out of reach stands the torso up, the "jacked-up" stance.
+- A rake whose head cannot stand on the cloth (a ball frozen on a cushion with the cue along
+  it) is hidden, and the off hand bridges instead.
+- Both extensions cap at 14 studs.
+
+2026-09-24: R15 characters in this place use the Avatar Joint Upgrade (AnimationConstraint
+plus BallSocketConstraint, no Motor6D); R6 still uses Motor6D. Posing handles both.
+Config.Stance.DefaultBody is the measured default R15 (root 3.19, shoulders 4.04, arm reach
+1.93 studs).

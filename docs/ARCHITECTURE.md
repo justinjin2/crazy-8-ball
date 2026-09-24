@@ -77,9 +77,22 @@ Shot flow:
 4. During a turn the shooter's aim angle and ball-in-hand position ride the unreliable aim
    stream (up to 15 per second, with a per-turn sequence number) so opponents and spectators
    see the cue turn and the ball glide (eased). The shooter's own ball is predicted locally
-   and never snapped back by an echo; a reliable Place commits it on release. Never the
-   guideline or power.
-5. Pocket bonuses are decided at shot acceptance from the server's judgement and sent only
+   and never snapped back by an echo; a reliable Place commits it on release. The wind-up
+   (how far the power is drawn, in 1/50 steps, `AimStream`) rides along so watchers see the
+   cue draw back; it is cosmetic, the shot's power comes only from ShotFired. Never the
+   guideline.
+5. The shooter's body (2026-09-24). While a player is the locked shooter the server anchors
+   their root and places it with the same pure stance the clients use (`ShooterStance.solve`
+   on `AvatarPose.measureBody`), following the aim at most 5 times a second. At shot
+   acceptance it puts the root on the shot spot facing the table centre and publishes that
+   CFrame as the root's `ShotSpot` attribute; when the turn passes it lets go in place. Every
+   client poses the body itself (`ShooterPoser`: limbs anchored locally, forward kinematics
+   and two-bone IK, one `BulkMoveTo`): the shooter's own client through `Avatar`, everyone
+   else through `WatchedShooters` for the tables they render. After the stroke each client
+   writes the root once, to `ShotSpot`, so the owner hands the body back exactly where the
+   server holds it. A held shooter is in the `PoolShooter` collision group, which touches
+   nothing, so moving it never shoves a spectator.
+6. Pocket bonuses are decided at shot acceptance from the server's judgement and sent only
    to the owning team before the replay; each client plays them on the matching replay
    pocket drop. The assigning shot carries `assign`, so the HUD reveals groups at that drop.
 
@@ -92,8 +105,11 @@ tables of PCs stay cheap.
 Shared (`src/shared`): `Config`, `Physics/` (Vec, Ball, Table, Collision, Cluster, Cue, Rack,
 Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written), `Abilities/`
 (catalog and pure effect hooks into the simulation, to be written), `TableBuilder`,
-`CueStickBuilder`, `AvatarPose`, `ShotInput` (validation/seed quantization), `Strings` (HUD
-copy), `Catalog`
+`CueStickBuilder`, `BridgeBuilder` (the rake, from the imported `BridgeModel` or parts),
+`AvatarPose` (rig, measurements, IK pose), and the pure stance modules `CueShape`,
+`CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands, the
+mode, the hands, extensions), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
+quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written).
 
 Server (`src/server`): `Bootstrap` (builds the lounge tables, publishes assets), `TableService`
@@ -101,7 +117,9 @@ Server (`src/server`): `Bootstrap` (builds the lounge tables, publishes assets),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`.
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
-(mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar`, `UI`, `Audio`, `Effects`, `Lounge`
+(mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
+shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
+shooters), `UI`, `Audio`, `Effects`, `Lounge`
 (pads, seats, snack counter, doors).
 
 ## 6. Data model
@@ -129,6 +147,10 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
   shadow-casting lights, StreamingEnabled on.
 - Balls: one shared sphere mesh (about 550 triangles) with per-ball textures.
 - Server: about 30 players; PCs never play PCs; per-shot bot budget.
+- Shooter posing: one rig build per character (event-invalidated), no per-frame allocation,
+  one `BulkMoveTo` per posed body, unchanged frames skipped, far bodies posed at 15 Hz, only
+  rendered tables posed. A pose costs about 0.05 ms in Studio; the bridge mesh is about 1,000
+  triangles.
 
 ## 8. Conventions
 

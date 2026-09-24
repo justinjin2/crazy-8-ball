@@ -1,6 +1,33 @@
 # Status
 
-**2026-09-22: multiplayer playtest fixes landed; real multiplayer/device acceptance pending.**
+**2026-09-24: realistic shooter pose landed (rake, cue extension, rail-clearing cue, wind-up,
+idle after the shot, everyone sees it). Multi-client and device acceptance pending.**
+
+The shooter now looks like a pool player (modelled on "9 Ball Roulette"):
+- The body stands anywhere round the table (never in it) and changes with reach: standing,
+  leaning over, a bridge (rake) under the cue, then an automatic cue extension. Both hands
+  hold the cue; the head watches the cue ball. R15 and R6.
+- The cue is about 7 studs and tilts up over a rail or a ball behind the cue ball (visual
+  only; physics stays at 4 degrees).
+- Pulling the power draws the cue back for everyone; release plays a quick stroke.
+- After the shot the shooter idles on the spot, facing the table. Same shooter: back to
+  aiming. Turn passes: normal camera and walking from that spot, no teleport.
+- The shooter sees their own body translucent; everyone else sees it fully visible.
+- The server places the shooter with the same stance maths, so every screen agrees.
+
+Verified: lint clean and 297 Lune tests pass. In Studio: default R15 and R6 test rigs posed
+in Edit mode (hands on the cue and the rake to 0.001 studs, joints closed, body outside the
+table, about 0.05 ms per pose), and on one Play client with the real avatar: aim pose and
+rake, wind-up from a real mouse drag, stroke, the idle animation on the shot spot facing the
+table, solo continuation back to aim, and a 1v1 turn pass releasing the body in place with
+the normal camera. Console clean.
+
+Still required for the pose: a two-client check (watcher sees the posed, fully visible body,
+the wind-up and the stroke), an R6 avatar in Play, phone and controller. The bridge mesh
+(`assets/bridge/BridgeModel.fbx`) still needs importing into ServerStorage; until then a
+parts stand-in is used.
+
+---
 
 The current update is [MULTIPLAYER_SPEC.md](../MULTIPLAYER_SPEC.md), revised after the
 designer's first playtest. The baseplate has three blue-cloth tables for shared 1v1, 2v2
