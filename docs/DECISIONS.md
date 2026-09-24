@@ -789,3 +789,5 @@ avoiding "color" (a solid and a stripe share each color).
 
 2026-09-23: Guideline object/cue lines shortened from 16 to 11 in at their longest (still
 scaled by the cut) to make aiming a little harder.
+
+2026-09-23: Guideline object/cue lines shortened again, 11 to 8 in (half the original 16).

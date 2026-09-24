@@ -344,7 +344,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   unmissable. Normal play keeps the subtle outline with nothing greyed (the designer's choice).
 - **Longer guideline lines for learning (2026-09-23):** the tutorial and first playthrough use
   the longer object/cue lines (`Config.Guideline.TutorialStubLengthInches`, 16 in). Normal play
-  uses the shorter `StubLengthInches` (11 in) to keep aiming a challenge.
+  uses the shorter `StubLengthInches` (8 in) to keep aiming a challenge.
 - **First win:** a free cue box opened right on the post-match screen with a reveal (skewed
   toward rare, epic or legendary) and an Equip button, plus extra money.
 - Unranked to Bronze after one game. The first opponent shows a much higher rank so the win
