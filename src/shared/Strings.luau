@@ -33,7 +33,7 @@ return {
 		SolidsWord = "solids",
 		StripesWord = "stripes",
 		FoulExplain = {
-			Scratch = "You must not pocket the white ball.",
+			Scratch = "Pocketed the white ball.",
 			NoContact = "You must hit a ball with the white ball.",
 			WrongContactOpen = "You must hit a solid or a stripe first, not the 8.",
 			WrongContactOwn = "You must hit one of your %s first.",
