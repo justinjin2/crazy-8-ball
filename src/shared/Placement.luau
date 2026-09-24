@@ -81,6 +81,47 @@ function Placement.toWorld(
 		p.z - s * (xIn * p.sin + yIn * p.cos)
 end
 
+--- World position (studs) for a point in TABLE STUDS: `xs`, `ys` along the table's length
+--- and width from its centre (physics x and y times StudsPerInch), `heightAboveFloor` above
+--- the floor the table stands on (not the cloth). ShooterStance works in these units, since
+--- a body is measured in studs; toWorld is the same turn for physics inches.
+function Placement.fromTableStuds(
+	p: Placement,
+	xs: number,
+	ys: number,
+	heightAboveFloor: number
+): (number, number, number)
+	return p.x + xs * p.cos - ys * p.sin, p.y + heightAboveFloor, p.z - (xs * p.sin + ys * p.cos)
+end
+
+--- How far a ray from (ox, oy) along (dx, dy) runs before it leaves the box centred on the
+--- origin with half extents (hx, hy): the distance to the edge when the direction is a unit
+--- vector. 0 if the start is already on or outside the box; math.huge if the direction is
+--- zero. Any units, as long as they agree.
+---
+--- A ray from inside a box always leaves it somewhere, and this finds where rather than only
+--- testing the nearest edge: a cue ball near a cushion with the shot going INTO it has its
+--- back ray run deeper into the table and out over the far rail.
+function Placement.rayExit(
+	ox: number,
+	oy: number,
+	dx: number,
+	dy: number,
+	hx: number,
+	hy: number
+): number
+	if math.abs(ox) >= hx or math.abs(oy) >= hy then
+		return 0
+	end
+	local function along(o: number, d: number, half: number): number
+		if math.abs(d) < 1e-12 then
+			return math.huge -- parallel to this pair of edges: never crosses them
+		end
+		return ((if d > 0 then half else -half) - o) / d
+	end
+	return math.min(along(ox, dx, hx), along(oy, dy, hy))
+end
+
 --- Physics coordinates (inches) for a world position (studs). The height is ignored: this
 --- is the inverse of toWorld's x and z only.
 function Placement.toTable(p: Placement, worldX: number, worldZ: number): (number, number)

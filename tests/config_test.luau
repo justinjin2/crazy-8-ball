@@ -249,6 +249,73 @@ return {
 		)
 	end,
 
+	["the cue's profile runs tip to butt and never narrows"] = function()
+		local C = H.require("Config").Cue
+		local looks = { Tip = true, Shaft = true, Butt = true }
+		local lastTo, lastTaper = 0, 0
+		for i, row in C.Profile do
+			H.expect(row.To > lastTo, ("Profile row %d does not move toward the butt"):format(i))
+			H.expect(row.Taper >= lastTaper, ("Profile row %d narrows"):format(i))
+			H.expect(
+				row.Taper >= 0 and row.Taper <= 1,
+				("Profile row %d taper out of 0..1"):format(i)
+			)
+			H.expect(
+				looks[row.Look] == true,
+				("Profile row %d has no colour: %s"):format(i, row.Look)
+			)
+			lastTo, lastTaper = row.To, row.Taper
+		end
+		H.expect(lastTo == 1, "the profile must end at the butt (To = 1)")
+		H.expect(lastTaper == 1, "the butt end is the butt's diameter")
+		H.expect(C.CueTipDiameterStuds < C.CueButtDiameterStuds, "the tip is the narrow end")
+		H.expect(C.ExtensionDiameterStuds <= C.CueButtDiameterStuds, "the extension is no wider")
+		-- The drawn pitch starts at the physics elevation and can only rise from it.
+		H.expect(C.VisualPitchMaxDegrees > C.CueElevationDegrees, "no room to tilt")
+		H.expect(C.VisualPitchMaxDegrees < 90, "a cue cannot stand on end")
+		H.expect(C.VisualRailClearanceInches >= 0 and C.VisualBallClearanceInches >= 0, "gaps")
+		H.expect(C.VisualPitchRiseSeconds <= C.VisualPitchFallSeconds, "rise faster than fall")
+	end,
+
+	["a body fits between the barrier and the fence at every facing"] = function()
+		local Config = H.require("Config")
+		local Placement = H.require("Placement")
+		local S = Config.Stance
+		local body = S.DefaultBody
+		-- The worst facing puts the footprint's diagonal across the band.
+		local half = math.sqrt(body.HalfDepth ^ 2 + body.HalfWidth ^ 2)
+		local grow = math.max(half, Config.Multiplayer.Barrier.ReleaseClearanceStuds)
+		local bx, by = Placement.barrierHalfExtents()
+		for _, teamSize in { 1, 2, 3 } do
+			local fx, fy = Placement.fenceHalfExtents(teamSize)
+			H.expect(bx + grow <= fx - half - S.FenceMarginStuds, "no room at the ends")
+			H.expect(by + grow <= fy - half - S.FenceMarginStuds, "no room along the sides")
+		end
+		H.expect(body.WaistHeight < body.ShoulderHeight, "the torso has a length")
+		H.expect(body.RootHeight > 0 and body.ArmReach > 0, "a body")
+		H.expect(S.LeanMinDegrees <= S.LeanNaturalDegrees, "natural lean below the most upright")
+		H.expect(S.LeanNaturalDegrees <= S.LeanMaxDegrees, "natural lean past the most")
+		H.expect(S.ArmNaturalFraction <= S.ArmMaxFraction and S.ArmMaxFraction <= 1, "reach")
+		H.expect(S.GripMinFromTipFraction + S.GripFromButtFraction < 1, "the grip has room")
+	end,
+
+	["the bridge's notches climb in a fixed order"] = function()
+		local Config = H.require("Config")
+		local B = Config.Bridge
+		H.expect(#B.Notches == 3, "Low, Mid and High")
+		local names = { "Low", "Mid", "High" }
+		local lastY, lastX = -math.huge, math.huge
+		for i, notch in ipairs(B.Notches) do
+			H.expect(notch.Name == names[i], "notch order " .. tostring(notch.Name))
+			H.expect(notch.Y > lastY, "notches climb")
+			H.expect(notch.X < lastX, "the lower notches sit further right")
+			lastY, lastX = notch.Y, notch.X
+		end
+		H.expect(lastY == 0 and lastX == 0, "the pivot is the High notch")
+		H.expect(B.PivotHeightStuds + B.Notches[1].Y > 0, "the Low notch is above the cloth")
+		H.expect(Config.Aim.PullSteps >= 1 and Config.Aim.PullSteps % 1 == 0, "whole pull steps")
+	end,
+
 	["shared modules cannot see Roblox globals"] = function()
 		local clean = H.evalInModuleEnv([[
 			return game == nil and workspace == nil and Vector3 == nil and CFrame == nil

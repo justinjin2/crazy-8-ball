@@ -239,6 +239,62 @@ function tests.placement_open_truth_table()
 	end
 	expect(not E.placementOpen("Foul", true, false), "the fouler never places")
 end
+-- The helper TableService.constrain and the watchers share must lock exactly what constrain
+-- locks today: a shooter outside Waiting, Countdown and Result, except in a Foul that is not
+-- solo. The one phase the two are written differently for is the coin flip, where constrain
+-- would lock the shooter but the engine never has one; that is checked on real tables.
+function tests.shooter_locked_matches_the_server_lock()
+	local phases = {
+		"Waiting",
+		"Countdown",
+		"CoinFlip",
+		"Intro",
+		"Placement",
+		"PocketChoice",
+		"Aiming",
+		"Resolving",
+		"Foul",
+		"Result",
+	}
+	-- TableService.constrain's rule, transcribed, for the table's shooter.
+	local function constrainLocks(name: string, solo: any): boolean
+		if name == "Waiting" or name == "Countdown" or name == "Result" then
+			return false
+		end
+		return name ~= "Foul" or solo ~= nil
+	end
+	-- A flag rather than { nil, solo }: iterating a table skips a nil, so that loop would never
+	-- try the table without a solo record.
+	local tried = 0
+	for _, name in phases do
+		for _, isSolo in { false, true } do
+			local solo = if isSolo then { team = 1 } else nil
+			if name ~= "CoinFlip" then
+				tried += 1
+				expect(
+					E.shooterLocked(name, solo) == constrainLocks(name, solo),
+					("%s solo=%s"):format(name, tostring(isSolo))
+				)
+			end
+		end
+	end
+	expect(tried == 2 * (#phases - 1), "every phase, with and without a solo record")
+	expect(not E.shooterLocked("Foul", nil), "a 1v1 fouler is released: the turn passes")
+	expect(E.shooterLocked("Foul", { team = 1 }), "a solo fouler keeps the table")
+	expect(not E.shooterLocked("CoinFlip", nil), "nobody to lock during the coin flip")
+	-- The coin flip really has no shooter: a first game, and a game after a Result.
+	local m = queue(1)
+	expire(m)
+	expect(m.phase == "CoinFlip" and m.shooter == nil, "a first coin flip")
+	expire(m)
+	expect(m.phase == "Intro" and m.shooter ~= nil, "the shooter arrives with the intro")
+	expect(action(m, 11, "Surrender"))
+	expire(m)
+	expect(E.join(m, 11, "a", "a", 1, 1, m.phaseStartedAt))
+	expect(E.join(m, 21, "b", "b", 2, 1, m.phaseStartedAt))
+	expire(m)
+	expect(m.phase == "CoinFlip" and m.shooter == nil, "the next game's coin flip")
+end
 local function move(m: any, user: number, seq: any, x: number, y: number, now: number?): boolean
 	local request = { epoch = m.epoch, turnId = m.turnId, seq = seq, x = x, y = y }
 	return E.moveCue(m, user, request, now or m.phaseStartedAt)

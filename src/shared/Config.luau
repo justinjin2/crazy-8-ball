@@ -39,6 +39,17 @@ Config.Table = {
 	-- Rail top height above the cloth as a fraction of the ball diameter (visual). The rubber
 	-- cushion nose that the balls hit sits lower, see Physics.CushionNoseBallFraction.
 	RailHeightBallFraction = 0.8,
+	-- The rail top the drawn cue must clear (CueClearance), in inches above the cloth. This is
+	-- the imported table mesh (rail top 3.2328 studs over cloth at 2.9 = 2.08 in), not the
+	-- fraction above: the parts fallback builds a lower rail (1.8 in), so clearing the mesh
+	-- clears both.
+	RailTopInches = 2.08,
+	-- The leather pocket castings stand a little proud of the rail (the mesh's 2.24 in). A
+	-- cue passing within PocketCastingReachInches of a pocket centre clears the casting
+	-- instead, blended in over PocketCastingBlendInches so the drawn pitch never jumps.
+	PocketCastingTopInches = 2.24,
+	PocketCastingReachInches = 4.0,
+	PocketCastingBlendInches = 1.0,
 	-- Visible cloth-covered cushion strip: how far it reaches out from the cushion line into
 	-- the wooden rail, and its height (a fraction of the ball diameter). Same height as the
 	-- rail so cushion and wood sit flush; it also tucks under the wood a little so there is
@@ -376,19 +387,51 @@ Config.Cue = {
 	PowerCurve = 2.6,
 	-- Spin offsets are given in ball radii (-1..1). Hits beyond this miscue in real life.
 	MaxSpinOffset = 0.5,
-	-- Visual cue stick (placeholder built from parts), in STUDS so it matches the avatar:
-	-- a real cue is about 85% of a person's height.
-	CueLengthStuds = 4.4,
-	CueButtDiameterStuds = 0.13,
-	CueTipDiameterStuds = 0.06,
+	-- Visual cue stick (placeholder built from parts), in STUDS so it matches the avatar. A
+	-- true-scale 58 in cue would be 9.3 studs at this table's scale; the designer chose about
+	-- 7 (2026-09-24), between that and the old 4.4 that looked like a toy next to an avatar.
+	CueLengthStuds = 7,
+	CueButtDiameterStuds = 0.2,
+	CueTipDiameterStuds = 0.09,
+	-- The drawn cue's shape, tip to butt (CueShape). Each row ends at To (a fraction of the
+	-- length, ascending to 1) and is drawn Taper of the way from the tip diameter to the butt
+	-- diameter (0..1, never decreasing); Look picks its colour. CueClearance keeps the same
+	-- shape clear of the rail and the balls, so what is drawn is what is tested.
+	Profile = {
+		{ To = 0.012, Taper = 0, Look = "Tip" },
+		{ To = 0.3, Taper = 0.1, Look = "Shaft" },
+		{ To = 0.55, Taper = 0.36, Look = "Shaft" },
+		{ To = 0.78, Taper = 0.73, Look = "Butt" },
+		{ To = 1, Taper = 1, Look = "Butt" },
+	},
+	-- The extension screwed onto the butt when even the rake cannot reach (ShooterStance),
+	-- a touch slimmer than the butt so the joint reads.
+	ExtensionDiameterStuds = 0.19,
 	-- Resting gap between the tip and the cue ball while aiming (table inches), how far the
 	-- stick draws back at full power on the bar (studs), and how much the butt is raised.
 	CueRestGapInches = 2.5,
 	CuePullBackStuds = 1.3,
-	-- Designer fixed cue elevation at 4 degrees; internal level-cue benchmarks may use 0.
-	-- No elevation control or elevated jump/massé shots in this physics pass.
+	-- The PHYSICS elevation: the designer fixed it at 4 degrees; internal level-cue benchmarks
+	-- may use 0. No elevation control or elevated jump/massé shots in this physics pass. The
+	-- drawn cue's pitch is a separate, visual-only number from CueClearance (it tilts up to
+	-- clear a rail or a ball) and never reaches the shot; ShotInput rejects any other value.
 	CueElevationDegrees = 4,
 	MaxElevationDegrees = 4,
+	-- The drawn cue's tilt (CueClearance, VISUAL ONLY). It starts at CueElevationDegrees and
+	-- tilts up just enough for the drawn cue's surface to clear the rail top (or a pocket
+	-- casting) and every ball behind the cue ball by these gaps (table inches), never past
+	-- VisualPitchMaxDegrees. Designer: 0.2 in clearance, 45 degree cap (2026-09-24).
+	VisualPitchMaxDegrees = 45,
+	VisualRailClearanceInches = 0.2,
+	VisualBallClearanceInches = 0.2,
+	-- Search resolution: the upward scan step past a blocking ball, and the bisection steps
+	-- that then pin the pitch down (20 halvings of 41 degrees is well under 0.001). (internal)
+	VisualPitchScanStepDegrees = 0.5,
+	VisualPitchBisections = 20,
+	-- How fast the drawn pitch follows its target (seconds): it rises fast so the cue never
+	-- dips into a rail while turning, and settles slowly so it does not bob. (tune)
+	VisualPitchRiseSeconds = 0.03,
+	VisualPitchFallSeconds = 0.12,
 
 	-- What a cue LOOKS like, as data. Segments run tip to butt, each a share of the length
 	-- and a colour; the cue tapers linearly from TipWidth to ButtWidth. See CueArt.luau.
@@ -898,9 +941,18 @@ Config.Aim = {
 	-- How fast a watched cue eases to each new angle. The stream is a few a second; without
 	-- easing the remote cue would visibly step.
 	SmoothingSeconds = 0.08,
-	-- ARCHITECTURE.md section 4: the aim angle and the ball in hand travel, never the
-	-- guideline and never the power. Watching someone line up is the point; seeing their
-	-- aiming aid is not.
+	-- The wind-up: how far the shooter has drawn the power (0..1) rides the aim stream so
+	-- everyone watching sees the cue draw back. Sent in 1/PullSteps steps (and snapped again on
+	-- the server): a change smaller than one step is not a change, so a resting thumb costs
+	-- nothing.
+	PullSteps = 50,
+	-- How fast a watched cue eases to each new pull (seconds). Short, so a let-go reads as a
+	-- stroke.
+	PullSmoothingSeconds = 0.05,
+	-- ARCHITECTURE.md section 4: the aim angle, the wind-up (pull) and the ball in hand travel;
+	-- the guideline never does. On 2026-09-24 the designer accepted that opponents can read
+	-- roughly how hard a shot will be. The pull is cosmetic: the shot's power comes only from
+	-- ShotFired and is validated there.
 }
 
 ---------------------------------------------------------------------------------------------
@@ -973,6 +1025,130 @@ Config.Avatar = {
 		LeftKnee = { -25, 0, 0 },
 		RightKnee = { -4, 0, 0 },
 	},
+}
+
+---------------------------------------------------------------------------------------------
+-- Shooter stance (ShooterStance): where the shooter stands and how they reach the cue, in
+-- table studs. The client poses from it and the server places the root with it. Avatars
+-- stay normal Roblox size, so a ball out of realistic reach brings out the rake, and the
+-- rake's cue an automatic extension (designer, 2026-09-24).
+---------------------------------------------------------------------------------------------
+Config.Stance = {
+	-- The body when a character cannot be measured, in studs above the floor: root centre,
+	-- the hip line the torso leans about, the shoulder pivots, half the shoulder span, one
+	-- arm from the shoulder pivot to the grip, and the half extents of the body's footprint.
+	-- An R15 block rig. (verify in Studio)
+	DefaultBody = {
+		RootHeight = 3.0,
+		WaistHeight = 2.8,
+		ShoulderHeight = 4.2,
+		ShoulderHalfWidth = 1.0,
+		ArmReach = 2.2,
+		HalfWidth = 1.0,
+		HalfDepth = 0.5,
+	},
+	-- An open stance: the body faces this far right of the cue line (a right-hander's hips
+	-- turn away from the stroking arm), with the chin this far left of the cue. (tune)
+	TwistDegrees = 40,
+	ChinSideStuds = 0.05,
+	-- Where the grip hand holds the cue: this fraction of the length up from the butt,
+	-- never within GripButtEndStuds of the butt end and never nearer the tip than
+	-- GripMinFromTipFraction of the length. It sits GripBehindRootStuds behind the hip when
+	-- the body allows, and never more than GripAboveShoulderStuds above the shoulder: a
+	-- steep cue chokes up instead. (tune)
+	GripFromButtFraction = 0.32,
+	GripButtEndStuds = 0.25,
+	GripMinFromTipFraction = 0.35,
+	GripBehindRootStuds = 0.3,
+	GripAboveShoulderStuds = 0.4,
+	-- Torso lean from vertical, degrees: the natural stance, the most it stretches, and the
+	-- most upright. A steeper drawn cue stands the body up by LeanUprightPerPitchDegree per
+	-- degree of pitch. Near the rail the lean also stops before the shoulders come within
+	-- RailShoulderClearanceStuds of the rail top. (tune)
+	LeanNaturalDegrees = 60,
+	LeanMaxDegrees = 85,
+	LeanMinDegrees = 20,
+	LeanUprightPerPitchDegree = 1,
+	RailShoulderClearanceStuds = 0.15,
+	-- Arm reach as a fraction of the body's ArmReach: comfortable (the natural stance, and
+	-- the start of a lean) and fully stretched (the end of a lean, and the grip arm). (tune)
+	ArmNaturalFraction = 0.8,
+	ArmMaxFraction = 0.97,
+	LeanBisections = 16, -- search steps for the least lean that reaches (internal)
+	-- The hand bridge: this far from the cue ball (table inches), but never within
+	-- BridgeTipClearInches of the tip at a full wind-up, the hand BridgeHandHeightStuds off
+	-- the surface. A bridge that would land within BridgeCushionInsetInches of the cushion
+	-- goes onto the rail instead, at least RailBridgeInsetInches in from either rail edge,
+	-- and stays there until it is BridgeRailHysteresisInches clear, so it does not flicker.
+	-- (tune)
+	BridgeFromBallInches = 10,
+	BridgeTipClearInches = 1.5,
+	BridgeCushionInsetInches = 1.5,
+	RailBridgeInsetInches = 0.8,
+	BridgeHandHeightStuds = 0.08,
+	BridgeRailHysteresisInches = 1.0,
+	-- A bridge nearer the ball than a full wind-up needs (on the rail, or a rake pinned
+	-- near the cushion) scales the drawn wind-up down so the tip never passes it. Cosmetic:
+	-- the shot's power is never touched.
+	LimitPullAtBridge = true,
+	-- Going back from the rake to a hand bridge needs this much spare reach (studs), so the
+	-- two do not flicker at the edge of reach.
+	ModeHysteresisStuds = 0.15,
+	-- The body's footprint stays this far inside the match fence (the barrier still wins).
+	FenceMarginStuds = 0.2,
+	-- The automatic cue extension: this much longer than the reach strictly needs, kept until
+	-- the need falls this far below zero, and never longer than MaxExtensionStuds. Measured on
+	-- an open table: a ball frozen on the far rail, shot straight at it, needs about 9.5 (an
+	-- R6 rig 10.6); the far corner on a diagonal needs up to 11.9 for R15, and an R6 rig can
+	-- hit the cap there, when the stance reports the grip out of reach. (tune)
+	ExtensionMarginStuds = 0.25,
+	MaxExtensionStuds = 12,
+	-- The root lands this far past the barrier so rounding never reads as inside it.
+	-- (internal)
+	SlopStuds = 1e-3,
+	-- The mechanical bridge (rake), used when the off hand cannot reach a hand bridge. Its
+	-- model is Config.Bridge.
+	Rake = {
+		LeanDegrees = 30, -- torso lean while using it: nearly upright
+		-- Where the off hand holds the handle: ahead of the root and out at the left
+		-- shoulder, this far below shoulder height (raised if the handle would touch the
+		-- rail).
+		HoldForwardStuds = 0.6,
+		HoldBelowShoulderStuds = 0.9,
+		HeadInsetInches = 2, -- the head stays on the cloth, this far inside the cushion
+		RailClearanceInches = 0.2, -- the handle's underside clears the rail top by this much
+		HandleBeyondHandStuds = 0.4, -- handle left showing beyond the hand
+		NotchToleranceStuds = 0.05, -- a notch within this of the cue's height is a fit
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- The bridge (rake) model, assets/bridge. These must match assets/bridge/Parameters.json.
+-- Studs, in the bridge's own frame: the pivot is the cue's axis resting in the High notch,
+-- +Z runs from the head down the shaft, +Y is up and +X is the shooter's right when looking
+-- at the ball.
+---------------------------------------------------------------------------------------------
+Config.Bridge = {
+	PivotHeightStuds = 0.36, -- the pivot above the cloth, with the head standing on it
+	-- Where the cue rests in each notch: X studs to the shooter's right of the High notch, Y
+	-- studs below the pivot. An array, lowest first, so every search runs in the same order.
+	Notches = {
+		{ Name = "Low", X = 0.365, Y = -0.2 },
+		{ Name = "Mid", X = 0.19, Y = -0.1 },
+		{ Name = "High", X = 0, Y = 0 },
+	},
+	HeadWidthStuds = 0.96, -- the head plate, across
+	HeadCentre = { 0, -0.1325, 0 }, -- the head plate's centre from the pivot
+	ShaftAxisYStuds = -0.16, -- the shaft's axis, this far below the pivot
+	ShaftLengthStuds = 6, -- the maple shaft
+	-- Where the shaft starts along +Z, inside the brass collar (parameters.shaft_z0), and its
+	-- radius at the thick end (parameters.shaft_butt_diameter / 2): ShooterStance keeps the
+	-- hand on the shaft and the shaft this wide clear of the rail top.
+	ShaftStartStuds = 0.1,
+	ShaftButtRadiusStuds = 0.065,
+	-- The head stands this far behind the cue ball's centre (plan) when it can; a full
+	-- wind-up's tip clearance pushes it further back.
+	DistanceBehindBallStuds = 1.5,
 }
 
 ---------------------------------------------------------------------------------------------

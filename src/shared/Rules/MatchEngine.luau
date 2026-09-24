@@ -161,6 +161,20 @@ function Engine.placementOpen(phase: string, ballInHand: boolean?, callNeeded: b
 	return ballInHand == true and (phase == "Placement" or (phase == "Intro" and not callNeeded))
 end
 
+--- Whether the table's shooter is held at the table in this phase: the server anchors their
+--- root where they stand, and every client poses them. From the introduction through the
+--- shot's resolution, and through a foul too when playing solo, because then nobody else takes
+--- the table. The coin flip has no shooter yet. The server lock and the watchers both ask
+--- this, so they cannot disagree. `solo` is the table's (or snapshot's) solo record, or nil.
+function Engine.shooterLocked(phase: string, solo: any): boolean
+	return phase == "Intro"
+		or phase == "Placement"
+		or phase == "PocketChoice"
+		or phase == "Aiming"
+		or phase == "Resolving"
+		or (phase == "Foul" and solo ~= nil and solo ~= false)
+end
+
 -- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,
 -- then the ball is placed and shot in the 3D one. Solo has no clock: these wait for the player.
 local function setup(t: any, now: number)

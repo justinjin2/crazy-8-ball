@@ -221,4 +221,63 @@ return {
 		H.expect(Placement.forTable(0) == nil, "no table 0")
 		H.expect(Placement.forTable(13) == nil, "no table 13")
 	end,
+
+	["fromTableStuds is toWorld in studs, height from the floor, at every yaw"] = function()
+		local Config, Placement = setup()
+		local T = Config.Table
+		local s = T.StudsPerInch
+		local points = { { 0, 0, 0 }, { 50, 25, 2 }, { -50, -25, -1 }, { 13.5, -7.25, 0.4 } }
+		for _, yaw in YAWS do
+			local p = Placement.new(-30, 2.4, -43, yaw)
+			for _, pt in points do
+				local ax, ay, az = Placement.toWorld(p, pt[1], pt[2], pt[3])
+				local bx, by, bz = Placement.fromTableStuds(
+					p,
+					pt[1] * s,
+					pt[2] * s,
+					(T.SurfaceHeightInches + pt[3]) * s
+				)
+				H.near(bx, ax, 1e-9, ("yaw %d x"):format(yaw))
+				H.near(by, ay, 1e-9, ("yaw %d y"):format(yaw))
+				H.near(bz, az, 1e-9, ("yaw %d z"):format(yaw))
+			end
+			local _, floor = Placement.fromTableStuds(p, 3, 4, 0)
+			H.near(floor, p.y, 1e-12, "height 0 is the floor the table stands on")
+		end
+	end,
+
+	["rayExit finds where a ray leaves a box, from anywhere inside"] = function()
+		local _, Placement = setup()
+		-- Along each axis from the centre.
+		H.near(Placement.rayExit(0, 0, 1, 0, 8, 4), 8, 1e-12, "+x")
+		H.near(Placement.rayExit(0, 0, -1, 0, 8, 4), 8, 1e-12, "-x")
+		H.near(Placement.rayExit(0, 0, 0, 1, 8, 4), 4, 1e-12, "+y")
+		H.near(Placement.rayExit(0, 0, 0, -1, 8, 4), 4, 1e-12, "-y")
+		-- Off centre, the nearer edge along the way.
+		H.near(Placement.rayExit(5, 1, 1, 0, 8, 4), 3, 1e-12, "near edge")
+		H.near(Placement.rayExit(5, 1, -1, 0, 8, 4), 13, 1e-12, "far edge")
+		-- A diagonal leaves through whichever edge it meets first.
+		local d = math.sqrt(0.5)
+		H.near(Placement.rayExit(0, 0, d, d, 8, 4), 4 / d, 1e-9, "through the long side")
+		H.near(Placement.rayExit(7, 0, d, -d, 8, 4), 1 / d, 1e-9, "through the short end")
+		H.near(Placement.rayExit(0, 0, d * 2, d * 2, 8, 4), 2 / d, 1e-9, "direction's own units")
+		-- Exactly into a corner.
+		local c = 1 / math.sqrt(5)
+		H.near(Placement.rayExit(0, 0, 2 * c, c, 8, 4), 4 / c, 1e-9, "corner")
+		-- Already on or past the edge: nothing to walk.
+		H.expect(Placement.rayExit(8, 0, -1, 0, 8, 4) == 0, "on the edge")
+		H.expect(Placement.rayExit(9, 1, -1, 0, 8, 4) == 0, "outside")
+		H.expect(Placement.rayExit(0, -4, 0, 1, 8, 4) == 0, "on the long side")
+		-- No direction: it never leaves.
+		H.expect(Placement.rayExit(1, 1, 0, 0, 8, 4) == math.huge, "no direction")
+		-- The exit point really is on the edge, whatever the angle.
+		for degrees = 0, 355, 5 do
+			local a = math.rad(degrees)
+			local dx, dy = math.cos(a), math.sin(a)
+			local t = Placement.rayExit(-3, 1.5, dx, dy, 8, 4)
+			local x, y = -3 + dx * t, 1.5 + dy * t
+			local onEdge = math.abs(math.abs(x) - 8) < 1e-9 or math.abs(math.abs(y) - 4) < 1e-9
+			H.expect(onEdge and math.abs(x) <= 8 + 1e-9 and math.abs(y) <= 4 + 1e-9, "on the edge")
+		end
+	end,
 }
