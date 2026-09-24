@@ -1596,8 +1596,8 @@ Config.Effects = {
 	-- outward PocketGutterDistanceInches while sinking to PocketGutterDepthInches and fading
 	-- out over PocketGutterSeconds, like a ball running off into the gutter. (tune)
 	PocketRestDepthInches = 1.6,
-	PocketHoldSeconds = 0.5,
-	PocketGutterSeconds = 0.9,
+	PocketHoldSeconds = 0.25, -- halved with the fade below: the first version lingered (2026-09-23)
+	PocketGutterSeconds = 0.45,
 	PocketGutterDistanceInches = 2.5,
 	PocketGutterDepthInches = 4,
 	PocketGutterSpin = 8, -- radians per second the ball keeps turning as it rolls away
