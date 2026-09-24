@@ -755,3 +755,5 @@ data model and CLAUDE.md updated to match. No code implemented table skins, so n
 2026-09-23: TEMPORARY difficulty trial: Config.Guideline.Enabled = false hides the aim
 corridor, contact ring, object/cue lines and the invalid-target hint; only the cue stick
 remains. Set it back to true to restore the Classic guideline.
+
+2026-09-23: Difficulty trial over: guideline restored (Config.Guideline.Enabled = true).
