@@ -527,12 +527,19 @@ for _, mode in M.Modes do
 	effectsByTable[id] = e
 	m:onEvent(function(ev)
 		if ev.type == "pocket" then
+			-- The gust rises from the pocket's own centre; the ball's spot is the fallback.
+			local at: Vector3? = nil
+			for _, p in m.state.geometry.pockets do
+				if p.id == ev.other then
+					at = TableBuilder.toWorld(m.placement, p.x, p.y, 0)
+				end
+			end
 			local b = Simulation.findBall(m.state, ev.ball)
-			if b then
-				e:pocketBurst(
-					TableBuilder.toWorld(m.placement, b.x, b.y, Config.Balls.RenderRadiusInches),
-					ev.ball
-				)
+			if not at and b then
+				at = TableBuilder.toWorld(m.placement, b.x, b.y, 0)
+			end
+			if at then
+				e:pocketBurst(at, ev.ball)
 			end
 			if snapshot and snapshot.id == id then
 				for _, p in m.state.geometry.pockets do

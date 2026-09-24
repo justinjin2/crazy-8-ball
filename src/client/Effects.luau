@@ -12,6 +12,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Debris = game:GetService("Debris")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -143,67 +145,182 @@ function Effects.detachTrail(self: Effects)
 	self.trailTo = nil
 end
 
---- The burst when a ball drops, coloured from the ball itself so the 8 reads black and a
---- stripe reads its own colour.
+local function bare(name: string, parent: Instance, position: Vector3): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Transparency = 1
+	part.Size = Vector3.new(0.2, 0.2, 0.2)
+	part.Position = position
+	part.Parent = parent
+	return part
+end
+
+--- The reward when a ball drops: a gust of wind blowing up out of the pocket in the
+--- ball's own colour (the 8 reads black-and-white, a stripe its stripe colour).
+---
+--- Four layers, all driven by the cue style so rarer cues can bring their own:
+---   * ribbons of wind spiralling up and out of the pocket (Trails on moving attachments),
+---   * fast streaks shooting straight up (squashed particles, so they read as a gust),
+---   * a flat shockwave ring racing out across the cloth,
+---   * sparkles drifting up and a coloured flash in the pocket.
+--- `at` is the pocket's centre at cloth height. Everything cleans itself up.
 function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	local spec = Effects.styleFor(self.styleName).Pocket
 	if not spec.Enabled then
 		return
 	end
+	local big = ballId == 8
+	local scale = if big then spec.EightBallScale else 1
 
 	local colors = Config.Balls.Colors
 	local rgb = colors[ballId] or colors[ballId - 8] or { 255, 255, 255 }
 	local shade = color(rgb)
-
-	local at0 = Instance.new("Part")
-	at0.Name = "PocketBurst"
-	at0.Anchored = true
-	at0.CanCollide = false
-	at0.CanQuery = false
-	at0.CanTouch = false
-	at0.CastShadow = false
-	at0.Transparency = 1
-	at0.Size = Vector3.new(0.2, 0.2, 0.2)
-	at0.Position = at
-	at0.Parent = self.folder
-
-	local emitter = Instance.new("ParticleEmitter")
-	emitter.Color = ColorSequence.new(shade)
-	emitter.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.1),
-		NumberSequenceKeypoint.new(1, 1),
+	-- The core of every layer runs toward white, so dark balls (the 8, maroon 7) still glow.
+	local bright = shade:Lerp(Color3.new(1, 1, 1), spec.CoreWhiten)
+	local tint = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, bright),
+		ColorSequenceKeypoint.new(0.35, shade),
+		ColorSequenceKeypoint.new(1, shade),
 	})
-	emitter.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, spec.SizeStuds),
+
+	local root = bare("PocketBurst", self.folder, at)
+	local lifetime = spec.SwirlSeconds + spec.TrailSeconds + 0.5
+
+	-- Streaks: particles stretched along their own motion read as a gust, not dots.
+	local streaks = Instance.new("ParticleEmitter")
+	streaks.Name = "WindStreaks"
+	streaks.Texture = spec.ParticleTexture
+	streaks.Color = tint
+	streaks.LightEmission = 1
+	streaks.LightInfluence = 0
+	streaks.Orientation = Enum.ParticleOrientation.VelocityParallel
+	streaks.Squash = NumberSequence.new(spec.StreakSquash)
+	streaks.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, spec.StreakSizeStuds * scale),
 		NumberSequenceKeypoint.new(1, 0),
 	})
-	emitter.Lifetime = NumberRange.new(spec.Lifetime * 0.6, spec.Lifetime)
-	emitter.Speed = NumberRange.new(spec.SpeedStuds * 0.4, spec.SpeedStuds)
-	emitter.SpreadAngle = Vector2.new(180, 180)
-	emitter.Drag = 4
-	emitter.LightEmission = 0.8
-	emitter.LightInfluence = 0
-	emitter.Rate = 0
-	emitter.Enabled = false
-	emitter.Parent = at0
+	streaks.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.05),
+		NumberSequenceKeypoint.new(0.6, 0.35),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	streaks.Lifetime = NumberRange.new(spec.StreakLifetime * 0.6, spec.StreakLifetime)
+	streaks.Speed =
+		NumberRange.new(spec.StreakSpeedStuds * 0.6 * scale, spec.StreakSpeedStuds * scale)
+	streaks.SpreadAngle = Vector2.new(spec.StreakSpreadDegrees, spec.StreakSpreadDegrees)
+	streaks.EmissionDirection = Enum.NormalId.Top
+	streaks.Drag = spec.StreakDrag
+	streaks.Rate = 0
+	streaks.Parent = root
+	streaks:Emit(math.floor(spec.Streaks * scale + 0.5))
 
-	local count = if ballId == 8 then spec.EightBallParticles else spec.Particles
-	emitter:Emit(count)
+	-- Sparkles: slower motes lifted by the gust and hanging a moment before they go.
+	local motes = Instance.new("ParticleEmitter")
+	motes.Name = "Sparkles"
+	motes.Texture = spec.SparkleTexture
+	motes.Color = tint
+	motes.LightEmission = 1
+	motes.LightInfluence = 0
+	motes.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, spec.SparkleSizeStuds * scale),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	motes.Transparency = NumberSequence.new(0, 1)
+	motes.Lifetime = NumberRange.new(spec.SparkleLifetime * 0.6, spec.SparkleLifetime)
+	motes.Speed = NumberRange.new(spec.SparkleSpeedStuds * 0.4, spec.SparkleSpeedStuds)
+	motes.SpreadAngle = Vector2.new(spec.SparkleSpreadDegrees, spec.SparkleSpreadDegrees)
+	motes.EmissionDirection = Enum.NormalId.Top
+	motes.Acceleration = Vector3.new(0, -spec.SparkleFallStuds, 0)
+	motes.Drag = 2
+	motes.RotSpeed = NumberRange.new(-180, 180)
+	motes.Rate = 0
+	motes.Parent = root
+	motes:Emit(math.floor(spec.Sparkles * scale + 0.5))
 
-	-- A brief light so a drop still registers when it happens at the edge of the view.
-	if spec.FlashBrightness > 0 then
-		local light = Instance.new("PointLight")
-		light.Color = shade
-		light.Brightness = spec.FlashBrightness
-		light.Range = spec.FlashRangeStuds
-		light.Shadows = false
-		light.Parent = at0
-		game:GetService("TweenService")
-			:Create(light, TweenInfo.new(spec.FlashSeconds), { Brightness = 0 })
-			:Play()
+	-- Shockwave: the ring outline image, flat on the cloth, racing outward and fading.
+	local ring = bare("Shockwave", self.folder, at + Vector3.new(0, 0.02, 0))
+	ring.Size = Vector3.new(spec.RingStartStuds, 0.02, spec.RingStartStuds)
+	local decal = Instance.new("Decal")
+	decal.Face = Enum.NormalId.Top
+	decal.Texture = Config.Guideline.RingTextureId
+	decal.Color3 = bright
+	decal.Transparency = 0
+	decal.Parent = ring
+	local ringInfo =
+		TweenInfo.new(spec.RingSeconds, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+	local ringSize = spec.RingEndStuds * scale
+	TweenService:Create(ring, ringInfo, { Size = Vector3.new(ringSize, 0.02, ringSize) }):Play()
+	TweenService:Create(decal, ringInfo, { Transparency = 1 }):Play()
+	Debris:AddItem(ring, spec.RingSeconds + 0.2)
+
+	-- Swirl: a few ribbons of wind corkscrewing up out of the pocket, widening as they rise.
+	local riders: { { part: Part, phase: number } } = {}
+	local ribbons = if big then spec.EightBallRibbons else spec.Ribbons
+	for n = 1, ribbons do
+		local rider = bare("WindRibbon", self.folder, at)
+		local a0 = Instance.new("Attachment")
+		a0.Position = Vector3.new(0, spec.RibbonWidthStuds * scale / 2, 0)
+		a0.Parent = rider
+		local a1 = Instance.new("Attachment")
+		a1.Position = Vector3.new(0, -spec.RibbonWidthStuds * scale / 2, 0)
+		a1.Parent = rider
+		local trail = Instance.new("Trail")
+		trail.Attachment0, trail.Attachment1 = a0, a1
+		trail.Color = ColorSequence.new(bright, shade)
+		trail.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.1),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		trail.WidthScale = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 0),
+		})
+		trail.Lifetime = spec.TrailSeconds
+		trail.LightEmission = 1
+		trail.LightInfluence = 0
+		trail.FaceCamera = true
+		trail.Parent = rider
+		table.insert(riders, { part = rider, phase = (n - 1) / ribbons * math.pi * 2 })
+		Debris:AddItem(rider, lifetime)
 	end
+	local elapsed = 0
+	local swirl: RBXScriptConnection
+	swirl = RunService.RenderStepped:Connect(function(dt)
+		elapsed += dt
+		local u = math.clamp(elapsed / spec.SwirlSeconds, 0, 1)
+		local rise = 1 - (1 - u) * (1 - u) -- fast out of the pocket, easing as it climbs
+		local radius = (
+			spec.SwirlStartRadiusStuds
+			+ (spec.SwirlEndRadiusStuds - spec.SwirlStartRadiusStuds) * rise
+		) * scale
+		local height = spec.SwirlHeightStuds * scale * rise
+		for _, r in riders do
+			if r.part.Parent then
+				local angle = r.phase + spec.SwirlTurns * math.pi * 2 * rise
+				r.part.Position = at
+					+ Vector3.new(math.cos(angle) * radius, height, math.sin(angle) * radius)
+			end
+		end
+		if u >= 1 then
+			swirl:Disconnect()
+		end
+	end)
 
-	Debris:AddItem(at0, spec.Lifetime + 1)
+	-- Flash: the pocket lights up in the ball's colour for a beat.
+	local light = Instance.new("PointLight")
+	light.Color = shade
+	light.Brightness = spec.FlashBrightness * scale
+	light.Range = spec.FlashRangeStuds * scale
+	light.Shadows = false
+	light.Parent = root
+	TweenService:Create(light, TweenInfo.new(spec.FlashSeconds), { Brightness = 0 }):Play()
+
+	Debris:AddItem(root, lifetime)
 end
 
 function Effects.destroy(self: Effects)

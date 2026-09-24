@@ -796,3 +796,8 @@ scaled by the cut) to make aiming a little harder.
 showing in the hole) while the physics drop finishes, holds 0.17 s (was 0.5, then 0.25), then rolls 2.5 in outward
 while sinking and fading over 0.3 s (was 0.9, then 0.45), like running into the gutter. Presentation only; the
 physics and replay are unchanged (Config.Effects.Pocket*).
+
+2026-09-23: New pocket VFX, a gust of wind up out of the pocket in the ball's colour: 3
+ribbons corkscrewing up (5 for the 8), stretched streaks shooting up, a shockwave ring on the
+cloth, sparkles and a coloured flash; the 8 is 1.6x bigger. Still cue-style data
+(Config.Effects.Styles.Default.Pocket) so rare cues can bring their own.

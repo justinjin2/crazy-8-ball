@@ -1630,19 +1630,48 @@ Config.Effects = {
 				-- which is already close to "wind". A sprite can be added later.
 				Texture = "",
 			},
-			-- The burst when a ball drops. Coloured from the ball itself so the 8 reads
-			-- black and a stripe reads its own colour.
+			-- The reward when a ball drops: a gust of wind blowing up out of the pocket in the
+			-- ball's own colour (Effects.pocketBurst). Made big on purpose (2026-09-23): it is
+			-- the dopamine hit for pocketing, so it should feel like one. (tune)
 			Pocket = {
 				Enabled = true,
-				Particles = 18,
-				EightBallParticles = 48,
-				SpeedStuds = 9,
-				Lifetime = 0.45,
-				SizeStuds = 0.5,
-				-- A brief light in the pocket so the drop registers even off-screen edge.
-				FlashBrightness = 4,
-				FlashRangeStuds = 10,
-				FlashSeconds = 0.25,
+				EightBallScale = 1.6, -- the 8 gets a bigger gust
+				CoreWhiten = 0.55, -- how far each layer's core runs toward white (dark balls still glow)
+				ParticleTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built in
+				SparkleTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built in
+				-- Swirling ribbons of wind corkscrewing up out of the pocket.
+				Ribbons = 3,
+				EightBallRibbons = 5,
+				RibbonWidthStuds = 0.22,
+				TrailSeconds = 0.35, -- how long each ribbon's tail lingers
+				SwirlSeconds = 0.6, -- the climb
+				SwirlHeightStuds = 4.2,
+				SwirlStartRadiusStuds = 0.25,
+				SwirlEndRadiusStuds = 1.1,
+				SwirlTurns = 1.25,
+				-- Streaks shooting straight up: particles squashed along their motion.
+				Streaks = 16,
+				StreakSpeedStuds = 16,
+				StreakSizeStuds = 0.45,
+				StreakSquash = -2.2, -- negative stretches them along their travel
+				StreakLifetime = 0.5,
+				StreakSpreadDegrees = 18,
+				StreakDrag = 3,
+				-- Sparkles drifting up after the gust.
+				Sparkles = 14,
+				SparkleSpeedStuds = 7,
+				SparkleSizeStuds = 0.35,
+				SparkleLifetime = 0.9,
+				SparkleSpreadDegrees = 40,
+				SparkleFallStuds = 3, -- they drift back down a little as they fade
+				-- The flat shockwave ring on the cloth.
+				RingStartStuds = 0.6,
+				RingEndStuds = 5,
+				RingSeconds = 0.45,
+				-- A coloured flash in the pocket so the drop registers even at the view's edge.
+				FlashBrightness = 6,
+				FlashRangeStuds = 12,
+				FlashSeconds = 0.35,
 			},
 		},
 	},
