@@ -500,6 +500,26 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.setupLabel.TextScaled = true
 	self.setupSize = Instance.new("UITextSizeConstraint")
 	self.setupSize.Parent = self.setupLabel
+	-- The foul card: the rule that was broken, as one plain "you must" line. It is for people
+	-- who do not know the rules, so it stays up a few seconds past the short Foul phase and
+	-- never takes input (the next shooter can already place and aim underneath it).
+	-- A plain Frame, faded by hand: a CanvasGroup can fail to draw on low-memory phones.
+	self.foulGroup = frame(self.root, "FoulCard")
+	self.foulGroup.AnchorPoint = Vector2.new(0.5, 0)
+	self.foulGroup.Visible = false
+	local foulPanel = panel(self.foulGroup, "Card")
+	foulPanel.Size = UDim2.fromScale(1, 1)
+	self.foulPanel = foulPanel
+	self.foulPanelTransparency = foulPanel.BackgroundTransparency
+	self.foulStroke = outline(foulPanel, color(S.Danger), S.FoulCardStrokePx)
+	self.foulTitle = label(foulPanel, "Title", S.StatusSize, "")
+	self.foulTitle.Font = Enum.Font.GothamBold
+	self.foulTitle.TextColor3 = color(S.Danger)
+	self.foulReason = label(foulPanel, "Reason", S.StatusSize, "")
+	self.foulReason.TextWrapped = true
+	self.foulReason.TextTruncate = Enum.TextTruncate.None
+	self.foulKey = ""
+	self.foulUntil = 0
 	self.invalid = label(self.root, "InvalidTarget", S.StatusSize, Copy.InvalidTarget)
 	self.invalid.AnchorPoint = Vector2.new(0.5, 1)
 	self.invalid.TextColor3 = color(S.Danger)
@@ -1095,6 +1115,27 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 		downIds[id] = pocketed(snapshot, id)
 	end
 	self.downIds = downIds
+	local foul = snapshot.foul
+	local foulKey = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
+	if snapshot.phase == "Foul" and foul and foulKey ~= self.foulKey then
+		self.foulKey = foulKey
+		self.foulUntil = snapshot.phaseStartedAt + S.FoulCardSeconds
+		local explain = Copy.FoulExplain[foul.reason] or ""
+		if foul.reason == "WrongContact" then
+			local group = snapshot.groups and snapshot.groups[foul.team]
+			explain = if group == nil
+				then Copy.FoulExplain.WrongContactOpen
+				elseif eligible(snapshot, foul.team) then Copy.FoulExplain.WrongContactEight
+				else string.format(
+					Copy.FoulExplain.WrongContactOwn,
+					if group == "solids" then Copy.SolidsWord else Copy.StripesWord
+				)
+		end
+		self.foulTitle.Text = if foul.by == userId
+			then Copy.FoulYou
+			else string.format(Copy.FoulTitle, nameFor(snapshot, foul.by))
+		self.foulReason.Text = explain
+	end
 	for side, team in self.teams do
 		local teamId = if side == 1 then ours else 3 - ours
 		team.teamId = teamId
@@ -1378,36 +1419,30 @@ function MatchHUD.update(self: any, now: number)
 	local canPlay = isShooter and (phase == "Intro" or phase == "Placement" or phase == "Aiming")
 	self.precisionButton.Visible = canPlay and not self.precisionOpen
 	self.precision.Visible = canPlay and self.precisionOpen
-	self.invalid.Visible = self.invalidTarget
-		and isShooter
-		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
-	self.invalid.Position = UDim2.new(0.5, 0, 1, -(self:reservedBottom() + S.HeaderGap))
-	-- A held placement arrow keeps stepping until it is let go, at most one step a frame so
-	-- a hitch never replays a burst.
-	local held = self.held
-	if held and not (self.placing and self.precision.Visible) then
-		self.held = nil
-	elseif held and now >= held.nextAt then
-		held.nextAt = math.max(held.nextAt + S.PlacementRepeatInterval, now)
-		self.onAction("PrecisionPlace", held.value)
-	end
-	local vote = snapshot.vote
-	if self.modalMode == "Vote" and vote then
-		local count, total = 0, 0
-		for _, seat in snapshot.seats do
-			if seat.team == vote.team and seat.connected ~= false then
-				total += 1
-				if vote.yes[seat.userId] or vote.yes[tostring(seat.userId)] then
-					count += 1
-				end
+	local foulLeft = self.foulUntil - now
+	local showFoul = foulLeft > 0 and snapshot.phase ~= "Result" and not self:isModal()
+	self.foulGroup.Visible = showFoul
+	if showFoul then
+		local margin, gap = S.HeaderMargin, S.HeaderGap
+		local width = math.min(S.FoulCardWidth, self.root.AbsoluteSize.X - margin * 2)
+		self.foulGroup.Size = UDim2.fromOffset(width, S.FoulCardHeight)
+		self.foulGroup.Position = UDim2.new(0.5, 0, 0, (self.headerBottom or 0) + gap)
+		local fade = 1 - math.clamp(foulLeft / S.FoulCardFadeSeconds, 0, 1)
+		local base = self.foulPanelTransparency
+		self.foulPanel.BackgroundTransparency = base + (1 - base) * fade
+		self.foulStroke.Transparency = fade
+		for _, stroke in self.foulPanel:GetChildren() do
+			if stroke:IsA("UIStroke") and stroke ~= self.foulStroke then
+				stroke.Transparency = fade
 			end
 		end
-		self.voteProgress.Text = string.format(
-			Copy.VoteProgress,
-			count,
-			total,
-			math.ceil(math.max(0, vote.deadline - now))
-		)
+		self.foulTitle.TextTransparency = fade
+		self.foulReason.TextTransparency = fade
+		local inner = width - gap * 2
+		self.foulTitle.Position = UDim2.fromOffset(gap, gap / 2)
+		self.foulTitle.Size = UDim2.fromOffset(inner, S.StatusSize + gap / 2)
+		self.foulReason.Position = UDim2.fromOffset(gap, S.StatusSize + gap)
+		self.foulReason.Size = UDim2.fromOffset(inner, S.StatusSize * 2 + 4)
 	end
 	self.overlay.Visible = phase == "CoinFlip" or phase == "Result"
 	if self.overlay.Visible then
