@@ -127,7 +127,7 @@ CFG = {
     'streak_alpha': 0.0,  # off: under Roblox's faint-alpha dither the streak drew as a dotted white line (seen in Studio 2026-09-24)
     'streak_rgb': [225, 225, 225],
     'chalk_rgb': [40, 100, 170],
-    'chalk_alpha': 0.5,
+    'chalk_alpha': 0.0,  # off (designer, 2026-09-24): the smudges read as dirt or a glitch from the player's view
     'toe_alpha': 0.0,  # off (designer, 2026-09-24): its faint edge dithered into a visible line along the cushions
     'rim_alpha': 0.0,  # off with the toe strip: same dither line round the rims
 }

@@ -363,8 +363,15 @@ def finish(bm, name, collection, sharp_degrees, material):
     sharp = math.radians(sharp_degrees)
     for f in bm.faces:
         f.smooth = True
+    def level(f):
+        return f.normal.z > 0.99999
     for e in bm.edges:
         e.smooth = len(e.link_faces) == 2 and e.calc_face_angle(pi) < sharp
+        # A level face never shares a smoothed normal with a sloped neighbour. Otherwise a long
+        # thin triangle across the cloth interpolates the pocket roll's tilt over the whole
+        # bed, which read as a fold between the side pockets in Studio (2026-09-24).
+        if e.smooth and level(e.link_faces[0]) != level(e.link_faces[1]):
+            e.smooth = False
     mesh = bpy.data.meshes.new(name + 'Mesh')
     bm.to_mesh(mesh)
     bm.free()
