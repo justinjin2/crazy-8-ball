@@ -1,0 +1,50 @@
+{
+  "note": "CC0 sources for TableTextures.py; files live in sources/<name>/ (git-ignored) and are downloaded again from these URLs; sha256 is of the downloaded file",
+  "sources": [
+    {
+      "date": "2026-09-24",
+      "file": "sources/cloth527/fabrics_0075_4k.zip",
+      "licence": "CC0",
+      "licence_url": "https://www.texturecan.com/terms/",
+      "name": "cloth527",
+      "page": "https://www.texturecan.com/details/527/",
+      "sha256": "f8b14903a9b048858eb09c1069d175bd3d851138957b70afe39415e9a2507206",
+      "title": "TextureCan #527 Snooker Pool Table Cloth (Fabrics 0075), 4K",
+      "url": "https://www.texturecan.com/downloads/fabrics_0075/fabrics_0075_4k_TgPizN.zip",
+      "used": {
+        "fabrics_0075_color_4k.jpg": "b3831330e143dadf25d43c87f5ba330ce6671739d4dc263e6c550cc4dca60365",
+        "fabrics_0075_height_4k.png": "a2f8cfd621bd80f6576ddf762e174a4c5d874a1a58d17f6e0b9ae44af9705e52"
+      }
+    },
+    {
+      "date": "2026-09-24",
+      "file": "sources/cherry_veneer/cherry_veneer_diff_4k.jpg",
+      "licence": "CC0",
+      "licence_url": "https://polyhaven.com/license",
+      "name": "cherry_veneer",
+      "page": "https://polyhaven.com/a/cherry_veneer",
+      "sha256": "6f24c89b22e5028efe385d51c9ec3064440d235c3f31981f1ef22392e80d88e3",
+      "title": "Poly Haven cherry_veneer diffuse, 4K",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/cherry_veneer/cherry_veneer_diff_4k.jpg",
+      "used": {
+        "cherry_veneer_diff_4k.jpg": "6f24c89b22e5028efe385d51c9ec3064440d235c3f31981f1ef22392e80d88e3"
+      }
+    },
+    {
+      "date": "2026-09-24",
+      "file": "sources/leather026/Leather026_2K-JPG.zip",
+      "licence": "CC0",
+      "licence_url": "https://docs.ambientcg.com/license/",
+      "name": "leather026",
+      "page": "https://ambientcg.com/view?id=Leather026",
+      "sha256": "681d26d63912c849151266a087290a41c2fc5e95789c2cd6669f36c45d70efa6",
+      "title": "ambientCG Leather026, 2K JPG",
+      "url": "https://ambientcg.com/get?file=Leather026_2K-JPG.zip",
+      "used": {
+        "Leather026_2K-JPG_Color.jpg": "5078c8f7c5658a6ff093138266c8f7b4a8f846bdf8c9062141d644730aebe7a7",
+        "Leather026_2K-JPG_NormalGL.jpg": "cb601b2b9eae5b5731905500b0e0b2afcb7bb49ef4d46d32802d3a1533acd693",
+        "Leather026_2K-JPG_Roughness.jpg": "7b27410b4185eba7915052b1686408c7d50f4a928c96f9190a266a7c40c91eb3"
+      }
+    }
+  ]
+}

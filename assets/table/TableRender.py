@@ -11,6 +11,16 @@ red) that never reach the FBX, renders nine 960 x 540 frames with Cycles (Metal 
 else CPU) and tiles them into renders/checkpoint_shape.png (3 x 3). Frames are also kept as
 renders/checkpoint_<n>_<name>.png. renders/checkpoint_*.png is git-ignored.
 
+Stages (after `--`): `shape` (the default, above), `looks`, or `all`:
+
+    ... --python assets/table/TableRender.py -- looks
+
+The looks stage (run TableTextures.py first) dresses the meshes in the real upload textures the
+way Roblox shades a SurfaceAppearance (ColorMap x Color tint, normal, roughness, metalness; no
+sheen, no AO beyond the maps), lights a bright pool hall and renders both looks (blue cloth with
+black wood, green cloth with cherry wood): renders/preview_<look>.png (the hero view) and
+renders/checkpoint_looks.png (hero, corner pocket with caps, close aim view, far view per look).
+
 Headless-safe: data calls only; the only operators are render and image saving.
 """
 
@@ -286,8 +296,7 @@ def compose(paths, out_path, cols=3):
     out.save()
 
 
-def main():
-    g, _ = tc.load_geometry(os.path.join(HERE, 'Geometry.json'))
+def render_shape(g):
     scene = tc.clear_scene('TableRender')
     objects = load_table(scene)
     setup_world(scene)
@@ -316,6 +325,212 @@ def main():
     sheet = os.path.join(out_dir, 'checkpoint_shape.png')
     compose(paths, sheet)
     print('TABLE render sheet', sheet)
+
+
+# ---------------------------------------------------------------------------------------------
+# Looks stage: the real texture sheets from TableTextures.py, shaded the way Roblox shades a
+# SurfaceAppearance (ColorMap x Color tint, normal, roughness, metalness; no sheen, no AO)
+# ---------------------------------------------------------------------------------------------
+
+LOOKS = {
+    # tint = SurfaceAppearance.Color on the Cloth (sRGB 0..255); the wood sheets per look
+    'blue': {'tint': [1, 169, 247], 'wood': 'Black'},
+    'green': {'tint': [40, 175, 45], 'wood': 'Cherry'},
+}
+LOOK_RENDER = {
+    'frame': [960, 540],  # sheet frames
+    'preview': [1600, 900],  # preview_<look>.png (the hero view)
+    'samples': 96,
+    'sky': (0.95, 0.30, 0.12),  # world radiance straight up, at the horizon, below (a bright hall)
+    'softbox': (15.0, 8.5, 7.0, 1.75),  # overhead light: width, depth (studs), height above the cloth, radiance
+    'floor': [92, 88, 84],  # hall floor (sRGB)
+}
+TEX_MAPS = {  # mesh -> (colour sheet or None per look, normal, roughness, metalness, default roughness)
+    'Cloth': ('Cloth_Color', 'Cloth_Normal', 'Cloth_Roughness', None, 0.9),
+    'Rails': ('Rails_Color_{wood}', 'Rails_Normal', 'Rails_Roughness', None, 0.4),
+    'Body': ('Body_Color_{wood}', 'Body_Normal', 'Body_Roughness', None, 0.4),
+    'Pockets': ('Parts_Color', 'Parts_Normal', 'Parts_Roughness', 'Parts_Metalness', 0.6),
+    'Caps': ('Parts_Color', 'Parts_Normal', 'Parts_Roughness', 'Parts_Metalness', 0.2),
+    'Hardware': ('Parts_Color', 'Parts_Normal', 'Parts_Roughness', 'Parts_Metalness', 0.2),
+    'LogoPlate': ('LogoPlate_Color', None, None, None, 0.7),  # no roughness map: Roblox shades it fairly matte
+    'Marks': ('Marks_Color', None, None, None, 0.9),
+}
+
+
+def tex_image(name, data):
+    img = bpy.data.images.get(name + '.png')
+    if img is None:
+        img = bpy.data.images.load(os.path.join(HERE, 'textures', name + '.png'), check_existing=True)
+        img.colorspace_settings.name = 'Non-Color' if data else 'sRGB'
+        img.alpha_mode = 'STRAIGHT'
+    return img
+
+
+def look_material(mesh, look):
+    col_name, nrm_name, rgh_name, met_name, rough_default = TEX_MAPS[mesh]
+    col_name = col_name.format(wood=LOOKS[look]['wood'])
+    mat = bpy.data.materials.new('Look_%s_%s' % (look, mesh))
+    if mat.node_tree is None:
+        mat.use_nodes = True
+    nodes, links = mat.node_tree.nodes, mat.node_tree.links
+    nodes.clear()
+    bsdf = nodes.new('ShaderNodeBsdfPrincipled')
+    out = nodes.new('ShaderNodeOutputMaterial')
+    links.new(bsdf.outputs['BSDF'], out.inputs['Surface'])
+    uv = nodes.new('ShaderNodeUVMap')
+    uv.uv_map = 'UVMap'
+
+    def tex(name, data):
+        node = nodes.new('ShaderNodeTexImage')
+        node.image = tex_image(name, data)
+        node.interpolation = 'Linear'
+        node.extension = 'REPEAT'  # Roblox repeats UVs outside 0..1
+        links.new(uv.outputs['UV'], node.inputs['Vector'])
+        return node
+    c = tex(col_name, False)
+    colour = c.outputs['Color']
+    if mesh == 'Cloth':  # SurfaceAppearance.Color multiplies the ColorMap
+        mix = nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        mix.blend_type = 'MULTIPLY'
+        mix.inputs['Factor'].default_value = 1.0
+        links.new(colour, mix.inputs['A'])
+        mix.inputs['B'].default_value = tc._color([v / 255.0 for v in LOOKS[look]['tint']])
+        colour = mix.outputs['Result']
+    links.new(colour, bsdf.inputs['Base Color'])
+    if mesh == 'Marks':
+        links.new(c.outputs['Alpha'], bsdf.inputs['Alpha'])
+    if nrm_name:
+        nm = nodes.new('ShaderNodeNormalMap')
+        nm.space = 'TANGENT'
+        nm.uv_map = 'UVMap'
+        links.new(tex(nrm_name, True).outputs['Color'], nm.inputs['Color'])
+        links.new(nm.outputs['Normal'], bsdf.inputs['Normal'])
+    if rgh_name:
+        links.new(tex(rgh_name, True).outputs['Color'], bsdf.inputs['Roughness'])
+    else:
+        bsdf.inputs['Roughness'].default_value = rough_default
+    if met_name:
+        links.new(tex(met_name, True).outputs['Color'], bsdf.inputs['Metallic'])
+    else:
+        bsdf.inputs['Metallic'].default_value = 0.0
+    return mat
+
+
+def dress_look(objects, look):
+    for name, obj in objects.items():
+        obj.data.materials.clear()
+        obj.data.materials.append(look_material(name, look))
+        obj.hide_render = False
+
+
+def setup_hall(scene, g):
+    """A well-lit pool hall: bright sky dome (brighter overhead), a big soft light over the table
+    (visible in reflections, not to the camera) and a mid-grey floor. Standard view transform."""
+    world = bpy.data.worlds.new('HallWorld')
+    if world.node_tree is None:
+        world.use_nodes = True
+    nodes, links = world.node_tree.nodes, world.node_tree.links
+    nodes.clear()
+    coord = nodes.new('ShaderNodeTexCoord')
+    sep = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(coord.outputs['Generated'], sep.inputs['Vector'])
+    ramp = nodes.new('ShaderNodeValToRGB')
+    up, hor, down = LOOK_RENDER['sky']
+    els = ramp.color_ramp.elements
+    els[0].position, els[0].color = 0.0, (down, down, down, 1.0)
+    els[1].position, els[1].color = 1.0, (up, up, up, 1.0)
+    mid = els.new(0.5)
+    mid.color = (hor, hor, hor, 1.0)
+    # Generated coordinates on the world are the view direction; z -1..1 -> 0..1
+    mapr = nodes.new('ShaderNodeMapRange')
+    mapr.inputs['From Min'].default_value = -1.0
+    mapr.inputs['From Max'].default_value = 1.0
+    links.new(sep.outputs['Z'], mapr.inputs['Value'])
+    links.new(mapr.outputs['Result'], ramp.inputs['Fac'])
+    bg = nodes.new('ShaderNodeBackground')
+    links.new(ramp.outputs['Color'], bg.inputs['Color'])
+    bg.inputs['Strength'].default_value = 1.0
+    wout = nodes.new('ShaderNodeOutputWorld')
+    links.new(bg.outputs['Background'], wout.inputs['Surface'])
+    scene.world = world
+    import bmesh
+    w, d, hgt, radiance = LOOK_RENDER['softbox']
+    zc = g['cloth']['above_floor_studs'] + hgt
+    me = bpy.data.meshes.new('Softbox')
+    bm = bmesh.new()
+    vs = [bm.verts.new(c) for c in ((-w / 2, -d / 2, zc), (-w / 2, d / 2, zc), (w / 2, d / 2, zc), (w / 2, -d / 2, zc))]
+    bm.faces.new(vs)  # normal faces down
+    bm.to_mesh(me)
+    bm.free()
+    box = bpy.data.objects.new('Softbox', me)
+    box.visible_camera = False
+    me.materials.append(emission_material('SoftboxLight', [255, 255, 255], radiance))
+    scene.collection.objects.link(box)
+    fm = bpy.data.meshes.new('Floor')
+    bm = bmesh.new()
+    sz = 60.0
+    bm.faces.new([bm.verts.new(c) for c in ((-sz, -sz, 0), (sz, -sz, 0), (sz, sz, 0), (-sz, sz, 0))])
+    bm.to_mesh(fm)
+    bm.free()
+    floor = bpy.data.objects.new('Floor', fm)
+    fm.materials.append(tc.preview_material('FloorMat', LOOK_RENDER['floor'], 0.85, 0.0))
+    scene.collection.objects.link(floor)
+
+
+def look_frames(g):
+    """(name, camera kwargs): hero, a corner pocket with its cap, the close aim view, a far view."""
+    base = {name: kw for name, kw, _, _ in frames(g)}
+    return [('hero', base['hero']), ('corner_caps', base['corner_caps']), ('aim_close', base['aim_close']),
+            ('far', dict(loc=(-3.0, -17.0, 15.0), target=(0.0, 0.3, 2.9), lens=35))]
+
+
+def render_looks(g):
+    scene = tc.clear_scene('TableLooks')
+    objects = load_table(scene)
+    setup_hall(scene, g)
+    device = setup_engine(scene)
+    scene.cycles.samples = LOOK_RENDER['samples']
+    print('TABLE looks device', device)
+    for name, x, y, rgb in (('CueBall', 30.0, 18.0, [242, 240, 232]), ('OneBall', 25.0, 0.0, [235, 185, 20]),
+                            ('TwoBall', 27.0, 1.2, [25, 60, 190]), ('ThreeBall', 27.0, -1.2, [210, 30, 30]),
+                            ('EightBall', 29.0, 0.0, [14, 14, 16])):
+        add_ball(scene, g, x, y, rgb, name)
+    out_dir = os.path.join(HERE, 'renders')
+    os.makedirs(out_dir, exist_ok=True)
+    cams = {name: camera(scene, 'Cam_' + name, **kw) for name, kw in look_frames(g)}
+    paths = []
+    for look in LOOKS:
+        dress_look(objects, look)
+        scene.render.resolution_x, scene.render.resolution_y = LOOK_RENDER['frame']
+        for name, _ in look_frames(g):
+            scene.camera = cams[name]
+            path = os.path.join(out_dir, 'checkpoint_looks_%s_%s.png' % (look, name))
+            scene.render.filepath = path
+            bpy.ops.render.render(write_still=True)
+            paths.append(path)
+            print('TABLE render', path)
+        scene.camera = cams['hero']
+        scene.render.resolution_x, scene.render.resolution_y = LOOK_RENDER['preview']
+        path = os.path.join(out_dir, 'preview_%s.png' % look)
+        scene.render.filepath = path
+        bpy.ops.render.render(write_still=True)
+        print('TABLE render', path)
+    scene.render.resolution_x, scene.render.resolution_y = LOOK_RENDER['frame']
+    sheet = os.path.join(out_dir, 'checkpoint_looks.png')
+    compose(paths, sheet, cols=4)
+    print('TABLE render sheet', sheet)
+
+
+def main():
+    argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+    stages = argv or ['shape']
+    g, _ = tc.load_geometry(os.path.join(HERE, 'Geometry.json'))
+    for stage in stages:
+        if stage in ('shape', 'all'):
+            render_shape(g)
+        if stage in ('looks', 'all'):
+            render_looks(g)
     print('TABLE render OK')
 
 

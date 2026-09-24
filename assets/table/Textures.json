@@ -1,0 +1,670 @@
+{
+  "convention": "Blender UV: (0,0) bottom-left of the image; OpenGL normals; uploads are the masters box-filtered 4x (normals renormalised)",
+  "generator": "assets/table/TableTextures.py",
+  "looks": {
+    "blue": {
+      "Body.ColorMap": "Body_Color_Black",
+      "Cloth.Color": [
+        1,
+        169,
+        247
+      ],
+      "Rails.ColorMap": "Rails_Color_Black"
+    },
+    "green": {
+      "Body.ColorMap": "Body_Color_Cherry",
+      "Cloth.Color": [
+        40,
+        175,
+        45
+      ],
+      "Rails.ColorMap": "Rails_Color_Cherry"
+    }
+  },
+  "maps": [
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/Cloth_Color.png",
+      "master": "textures/masters/Cloth_Color.png",
+      "master_sha256": "53a5bbb7010348dbefa51289796680f261368ec4fd481f972af9fb9b469ee722",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        242.2,
+        242.2,
+        242.2
+      ],
+      "mesh": "Cloth",
+      "name": "Cloth_Color",
+      "note": "near-white grey, tinted per look by SurfaceAppearance.Color",
+      "sha256": "2a5c13c3c1e4aef96e24ff6162d791f0950c3d2e800e21820d7036c4c1b5e651",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Cloth_Normal.png",
+      "master": "textures/masters/Cloth_Normal.png",
+      "master_sha256": "32551741a5b6ff5bf7ee698fecb6a0b20eda8ffe357c19cc1c21c5b53a07b778",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        127.5,
+        127.5,
+        250.2
+      ],
+      "mesh": "Cloth",
+      "name": "Cloth_Normal",
+      "note": "fibre + faint twill, OpenGL",
+      "sha256": "1622de06b2670b8f8e1e2dd0623c0390c6e2999aa323f4f3dacb411c79ad2a44",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "NormalMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Cloth_Roughness.png",
+      "master": "textures/masters/Cloth_Roughness.png",
+      "master_sha256": "482d58db5209259bf72aadfbd7dc1e3697d1de48f564ce599984d62ad388041f",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        227.0
+      ],
+      "mesh": "Cloth",
+      "name": "Cloth_Roughness",
+      "note": "0.82..0.96",
+      "sha256": "d4514a3a00904a1e21d7f6d6d8d3214dee8ee5928bb8702ee0ca0549489ded0a",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "RoughnessMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/Rails_Color_Black.png",
+      "master": "textures/masters/Rails_Color_Black.png",
+      "master_sha256": "e3bc4a1f02952e3fec087a3c70bcd12603422c02f4571a5607e13ca434d79e42",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        36.4,
+        35.9,
+        37.4
+      ],
+      "mesh": "Rails",
+      "name": "Rails_Color_Black",
+      "note": "blue look: satin black PRC, faint grain, pearl sights",
+      "sha256": "3c31f9eaec6bccac6d1fd795ee997987bdb3a36c111b7a9ab20846f5af6a4d2b",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/Rails_Color_Cherry.png",
+      "master": "textures/masters/Rails_Color_Cherry.png",
+      "master_sha256": "15b0b0fa1433b2bccf0446014f191da200477218edf7f80e8bc8b5ad367e0eea",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        116.9,
+        76.5,
+        62.5
+      ],
+      "mesh": "Rails",
+      "name": "Rails_Color_Cherry",
+      "note": "green look: red-brown cherry, pearl sights",
+      "sha256": "af44c8cf6b73c51491b7d80fc005d8261250aa27c48ca43a5c699f3fa3d8e3a5",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Rails_Normal.png",
+      "master": "textures/masters/Rails_Normal.png",
+      "master_sha256": "c5fca7feaedbf4588f0511109276b372fd5b08c7a1c393c06aacaac18432b4c9",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        127.5,
+        127.5,
+        255.0
+      ],
+      "mesh": "Rails",
+      "name": "Rails_Normal",
+      "note": "faint grain relief, both looks",
+      "sha256": "b9dc0021a396f8acee2605964def344b48200ec39334eb92bf6e458527c2314f",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "NormalMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Rails_Roughness.png",
+      "master": "textures/masters/Rails_Roughness.png",
+      "master_sha256": "af3376052dd7ab879775bea51a2b3271afc59e23675dc2ab6321d465b4cc886c",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        96.7
+      ],
+      "mesh": "Rails",
+      "name": "Rails_Roughness",
+      "note": "satin lacquer, both looks",
+      "sha256": "47141e19285aa3f5d1545776de636eea5241844c22c1556fd6a47a7301b61d91",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "RoughnessMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/Body_Color_Black.png",
+      "master": "textures/masters/Body_Color_Black.png",
+      "master_sha256": "692da27919131e35d44637d45244f7a37b1075565af527d37fad95feec281b7f",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        18.3,
+        18.2,
+        20.4
+      ],
+      "mesh": "Body",
+      "name": "Body_Color_Black",
+      "note": "blue look; black cabinet, rubber levellers",
+      "sha256": "3e495adf5785d879e3ccae139d9841d838468f404f136b403f158103c7a9f80c",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/Body_Color_Cherry.png",
+      "master": "textures/masters/Body_Color_Cherry.png",
+      "master_sha256": "aefcf320a01b10ff6f1e28c0c91c56ceb9cd45b35e4aa1e498cc641b5a01e365",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        90.1,
+        54.3,
+        42.9
+      ],
+      "mesh": "Body",
+      "name": "Body_Color_Cherry",
+      "note": "green look; black cabinet, rubber levellers",
+      "sha256": "ba8fad0b55d74a5d78d11ca8b7498afc82332d8dd552f49fe0e699b0f19e46ee",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Body_Normal.png",
+      "master": "textures/masters/Body_Normal.png",
+      "master_sha256": "ec91d966416b56b57c781cc6265c53d1a8f1699d8b2f6e0923b413a2f4a6cd69",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        127.5,
+        127.5,
+        255.0
+      ],
+      "mesh": "Body",
+      "name": "Body_Normal",
+      "note": "both looks",
+      "sha256": "4caedf93dee3090e3f7ba7e483f440c696abb0ed275bfb82dfea5b978812da77",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "NormalMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Body_Roughness.png",
+      "master": "textures/masters/Body_Roughness.png",
+      "master_sha256": "0761aa24eaa65e5838b704404b643ddb814bc54f2c1e281f35f359139947de81",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        112.6
+      ],
+      "mesh": "Body",
+      "name": "Body_Roughness",
+      "note": "both looks",
+      "sha256": "2fe9fc8796b14304145a051526ad622d3dc19e62f66d9a19d7a034767a263672",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "RoughnessMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/Parts_Color.png",
+      "master": "textures/masters/Parts_Color.png",
+      "master_sha256": "abff2af371f362f4b38887c16c24816113043595c270a75df01cd264fe96600e",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        46.4,
+        45.5,
+        44.4
+      ],
+      "mesh": "Pockets, Caps, Hardware",
+      "name": "Parts_Color",
+      "note": "leather, cups, chrome",
+      "sha256": "7bda304a4b8718d93385e5e1b53e1cbb4e29ff47fa68c5351bba78301ad1f123",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Parts_Normal.png",
+      "master": "textures/masters/Parts_Normal.png",
+      "master_sha256": "08a4e7f2d9c9f5b0958c290774533be04bd17e96289698e297466c60d056f46c",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        127.5,
+        127.5,
+        254.7
+      ],
+      "mesh": "Pockets, Caps, Hardware",
+      "name": "Parts_Normal",
+      "note": "leather pebble",
+      "sha256": "cd868e150ee2096807e95c606caf33a7a6f8c3c0c5f885438ced836993c23ec6",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "NormalMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Parts_Roughness.png",
+      "master": "textures/masters/Parts_Roughness.png",
+      "master_sha256": "3f5215c120eef068c0629355ca7805b10941cfc2a2771cb0ece2c2ad652cca0f",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        151.6
+      ],
+      "mesh": "Pockets, Caps, Hardware",
+      "name": "Parts_Roughness",
+      "note": "",
+      "sha256": "0d72a8ce12f2d480c7282ff96274964ab02430b9eecdd9f313df052bcaac8bb3",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "RoughnessMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "Non-Color",
+      "file": "textures/Parts_Metalness.png",
+      "master": "textures/masters/Parts_Metalness.png",
+      "master_sha256": "dcd55a85becb136fc3a0881d390e97ee08bd6ab4cb4b38476d11c12a77f595f3",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        57.4
+      ],
+      "mesh": "Pockets, Caps, Hardware",
+      "name": "Parts_Metalness",
+      "note": "1 on chrome",
+      "sha256": "e8aa3605c6be076cef906b5ef1cfcfbd6878667a506013c210ea27f6f14547b1",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "MetalnessMap"
+    },
+    {
+      "channels": "RGB",
+      "colour_space": "sRGB",
+      "file": "textures/LogoPlate_Color.png",
+      "master": "textures/masters/LogoPlate_Color.png",
+      "master_sha256": "836664cae55b3c4e2b6e7de25954e3d2f52d45ff7f037af42baef65cb7c1c5a3",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        25.3,
+        25.2,
+        26.9
+      ],
+      "mesh": "LogoPlate",
+      "name": "LogoPlate_Color",
+      "note": "blank satin black plate, nickel pinstripe",
+      "sha256": "4d850dc2f00e3f7e293b1023ca22e0a18c1217caa2012c89280452b0bc4e04d6",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    },
+    {
+      "channels": "RGBA",
+      "colour_space": "sRGB+alpha",
+      "file": "textures/Marks_Color.png",
+      "master": "textures/masters/Marks_Color.png",
+      "master_sha256": "80fc8709450684294b2919554e2a08aea916768ab52b0b00eb45f813cab297b3",
+      "master_size": [
+        4096,
+        4096
+      ],
+      "mean_0_255": [
+        45.4,
+        49.2,
+        53.5,
+        9.3
+      ],
+      "mesh": "Marks",
+      "name": "Marks_Color",
+      "note": "AlphaMode Transparency; RGB dilated under alpha 0",
+      "sha256": "9cb1e5a2b456db93bb5b71682acc9b82febd33ce305757bdb88ed991ecf1e77b",
+      "size": [
+        1024,
+        1024
+      ],
+      "surface_appearance": "ColorMap"
+    }
+  ],
+  "master_px": 4096,
+  "parameters_sha256": "63acb08c2dbf3db9a32486976b0ef7206bf0586428d9cc1e39b4854c9320cf77",
+  "recipe": {
+    "cloth": "random-phase synthesis of the TextureCan #527 colour and height spectra",
+    "config": {
+      "ao_block_top": [
+        0.5,
+        0.8
+      ],
+      "ao_cabinet_top": [
+        0.55,
+        0.5
+      ],
+      "ao_leg_foot": [
+        0.7,
+        0.4
+      ],
+      "ao_leg_groove": 0.45,
+      "ao_leg_top": [
+        0.45,
+        0.9
+      ],
+      "ao_rail_bottom": [
+        0.72,
+        0.6
+      ],
+      "ao_rail_inner": [
+        0.8,
+        0.25
+      ],
+      "ao_skirt_bead": [
+        0.75,
+        0.25
+      ],
+      "ao_skirt_top": [
+        0.42,
+        0.9
+      ],
+      "black_contrast": 0.2,
+      "black_ramp": [
+        [
+          13,
+          13,
+          15
+        ],
+        [
+          21,
+          21,
+          24
+        ],
+        [
+          30,
+          30,
+          34
+        ]
+      ],
+      "body_sy": 0.8,
+      "body_y0": {
+        "block": 3850.0,
+        "leg": 1480.0,
+        "skirt": 2600.0
+      },
+      "cabinet_rgb": [
+        17,
+        17,
+        19
+      ],
+      "cabinet_rough": 0.45,
+      "chalk_alpha": 0.5,
+      "chalk_rgb": [
+        40,
+        100,
+        170
+      ],
+      "cherry_contrast": 0.24,
+      "cherry_ramp": [
+        [
+          85,
+          47,
+          35
+        ],
+        [
+          124,
+          72,
+          56
+        ],
+        [
+          153,
+          97,
+          75
+        ]
+      ],
+      "chrome_rgb": [
+        214,
+        209,
+        203
+      ],
+      "chrome_rough": 0.15,
+      "chrome_under_rgb": [
+        120,
+        117,
+        113
+      ],
+      "chrome_under_rough": 0.3,
+      "cloth_color_amp": 0.016,
+      "cloth_highpass_cycles": [
+        14,
+        40
+      ],
+      "cloth_mean": 0.95,
+      "cloth_normal_strength": 0.9,
+      "cloth_rough": [
+        0.89,
+        0.022,
+        0.82,
+        0.96
+      ],
+      "cloth_twill_amp": 0.35,
+      "cloth_twill_cycles": 150,
+      "cup_falloff_v": 0.075,
+      "cup_floor_rgb": [
+        3,
+        3,
+        3
+      ],
+      "cup_rough": 0.75,
+      "end_grain_dark": 0.78,
+      "hidden_rgb": [
+        12,
+        11,
+        11
+      ],
+      "leather_detail": 0.75,
+      "leather_normal_gain": 7.0,
+      "leather_repeats": 6,
+      "leather_rgb": [
+        21,
+        21,
+        21
+      ],
+      "leather_rough": [
+        0.6,
+        0.05
+      ],
+      "leather_wall": [
+        0.035,
+        0.17,
+        0.62
+      ],
+      "logo_line_inset": 0.28,
+      "logo_line_radius": 0.18,
+      "logo_line_rgb": [
+        178,
+        176,
+        170
+      ],
+      "logo_line_width": 0.05,
+      "logo_rgb": [
+        19,
+        19,
+        21
+      ],
+      "logo_rough_note": "no roughness map: Roblox shades it fairly matte",
+      "pearl": [
+        236,
+        231,
+        220
+      ],
+      "pearl_iridescence": 7.0,
+      "pearl_rough": 0.22,
+      "rack_alpha": 0.17,
+      "rack_rgb": [
+        228,
+        228,
+        228
+      ],
+      "rails_sy": 0.39,
+      "rails_y0": [
+        1170.0,
+        2650.0
+      ],
+      "rim_alpha": 0.35,
+      "rubber_rgb": [
+        16,
+        16,
+        16
+      ],
+      "rubber_rough": 0.85,
+      "sticker_alpha": 0.95,
+      "sticker_diameter": 0.9,
+      "sticker_rgb": [
+        246,
+        246,
+        242
+      ],
+      "streak_alpha": 0.16,
+      "streak_rgb": [
+        225,
+        225,
+        225
+      ],
+      "toe_alpha": 0.35,
+      "wood_highpass_sigma": 220.0,
+      "wood_normal_strength": 0.06,
+      "wood_rough": [
+        0.38,
+        0.018,
+        0.34,
+        0.42
+      ]
+    },
+    "leather": "ambientCG Leather026 luminance ratio, normal and roughness, 6 repeats",
+    "strips": "grain along U, every strip seamless in U; contact darkening painted in (skirt top under the rail lip, block tops, leg tops, leg seam groove, cabinet top, rail edges)",
+    "wood": "Poly Haven cherry_veneer luminance, high-passed and recoloured"
+  },
+  "seeds": {
+    "black_fine": 7103,
+    "chrome": 4901,
+    "cloth_phase": 5270,
+    "cloth_rough": 5271,
+    "leather_fallback": 2601,
+    "logo": 6001,
+    "marks": 8801,
+    "pearl": 7102,
+    "wood_fallback": 7101
+  },
+  "sources": "sources/Sources.json",
+  "upload_px": 1024
+}
