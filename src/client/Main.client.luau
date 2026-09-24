@@ -268,7 +268,7 @@ local function highlightOwn()
 			if own then
 				h.FillColor = rgb(S.OwnBallFill)
 				h.FillTransparency = S.OwnBallFillTransparency
-				h.OutlineColor = rgb(S.Green)
+				h.OutlineColor = rgb(S.OwnBallOutline)
 				h.OutlineTransparency = S.OwnBallOutlineTransparency
 			else
 				h.FillColor = rgb(S.OpponentBallFill)

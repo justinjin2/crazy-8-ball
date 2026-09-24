@@ -1887,8 +1887,12 @@ Config.Multiplayer = {
 		SoloPanelWidth = 280, -- the Play Solo popup under the header, pixels
 		SoloWrapColumns = 8, -- the solo 15-ball row wraps to this many + the rest on narrow screens
 		OwnBallOutlineTransparency = 0, -- solid green outline on the balls to hit
-		OwnBallFill = { 92, 223, 157 }, -- green glow over the balls to hit
-		OwnBallFillTransparency = 0.8, -- faint, so the ball's number still reads
+		OwnBallFill = { 92, 223, 157 }, -- tint over the balls to hit (off: see below)
+		-- 1 = no tint. Any colored fill blends into the ball's own paint and muddies it
+		-- (a red ball under green reads brown-grey), so the balls to hit keep their true
+		-- colors and stand out by the outline and against the greyed group instead.
+		OwnBallFillTransparency = 1,
+		OwnBallOutline = { 70, 255, 130 }, -- vivid green outline on the balls to hit
 		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
 		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target
