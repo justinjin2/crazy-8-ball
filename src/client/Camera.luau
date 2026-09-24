@@ -614,6 +614,53 @@ function Camera.position(): Vector3
 	return Workspace.CurrentCamera.CFrame.Position
 end
 
+-- The parts of each model fadeNear looks after, found once (the cue and the rake build all of
+-- theirs up front, extensions included), and the fade each was last given. Weak keys: a model
+-- that is destroyed is not kept alive here.
+local nearParts: { [Model]: { parts: { BasePart }, shown: { number } } } = setmetatable(
+	{},
+	{ __mode = "k" }
+) :: any
+
+--- Fade a model's parts on this screen only (LocalTransparencyModifier) as each comes within
+--- `studs` of the camera: untouched from there out, gone at the camera itself. For the
+--- shooter's own cue and rake (Config.Cue.CameraFadeStuds), so a steeply raised butt swinging
+--- past the lens never blocks the view. Call after the model is placed for the frame, and
+--- after Camera.update. Other clients' copies are never touched.
+function Camera.fadeNear(model: Model, studs: number)
+	local entry = nearParts[model]
+	if not entry then
+		local parts: { BasePart } = {}
+		for _, d in model:GetDescendants() do
+			if d:IsA("BasePart") then
+				table.insert(parts, d)
+			end
+		end
+		entry = { parts = parts, shown = table.create(#parts, 0) }
+		nearParts[model] = entry
+	end
+	local eye = Workspace.CurrentCamera.CFrame.Position
+	local shown = entry.shown
+	for i, part in entry.parts do
+		-- How far the eye is outside the part's box. A cylinder's box is a touch wider than the
+		-- cylinder, so it starts fading a touch early, never late.
+		local v = part.CFrame:PointToObjectSpace(eye)
+		local half = part.Size / 2
+		local out = Vector3.new(
+			math.max(math.abs(v.X) - half.X, 0),
+			math.max(math.abs(v.Y) - half.Y, 0),
+			math.max(math.abs(v.Z) - half.Z, 0)
+		)
+		local fade = math.clamp(1 - out.Magnitude / math.max(studs, 1e-3), 0, 1)
+		-- Quantised, and written only when it changes, so a cue held still costs no writes.
+		fade = math.floor(fade * 50 + 0.5) / 50
+		if fade ~= shown[i] then
+			shown[i] = fade
+			part.LocalTransparencyModifier = fade
+		end
+	end
+end
+
 --- Move the camera. `playing` means the shot's replay is running: it freezes the anchor for
 --- the duration of the shot, holds the framing the shot was taken from for
 --- Shot.HoldSeconds, then pulls out to the whole-table view so every ball's path is visible.

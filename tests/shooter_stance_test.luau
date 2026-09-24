@@ -21,15 +21,16 @@ local S = Config.Stance
 local s = Config.Table.StudsPerInch
 local MODES = { stand = 1, lean = 2, bridge = 3, extension = 4 }
 
+-- The default R15 rig as AvatarPose.measureBody measures it in Studio.
 local R15 = S.DefaultBody
--- A standard R6 rig as measured: root centre 3 above the floor (HipHeight 0), hips 2,
--- shoulder pivots 3.5, one arm from its pivot to the grip attachment about 1.6.
+-- The default R6 rig, measured the same way: root centre 3 above the floor (HipHeight 0),
+-- hips 2, shoulder pivots 3.5, one arm 1.581 from its pivot to the grip attachment.
 local R6 = {
 	RootHeight = 3,
 	WaistHeight = 2,
 	ShoulderHeight = 3.5,
 	ShoulderHalfWidth = 1.0,
-	ArmReach = 1.6,
+	ArmReach = 1.581,
 	HalfWidth = 1.0,
 	HalfDepth = 0.5,
 }
@@ -154,9 +155,56 @@ local function checkStance(q: any, st: any, label: string)
 	end
 end
 
+-- The rake's shaft as BridgeBuilder.place draws it, worked out here the same way in table
+-- studs (z up): the model turned about the notch with its plate upright and no roll, aimed
+-- from the shaft's start through the hold until that settles. Returns the start (the shaft's
+-- attachment) and the unit direction of the shaft.
+local function drawnShaft(rake: any): (number, number, number, number, number, number)
+	local B = Config.Bridge
+	local nx, ny = 0, 0
+	for _, n in B.Notches do
+		if n.Name == rake.notch then
+			nx, ny = n.X, n.Y
+		end
+	end
+	local rise = B.ShaftAxisYStuds - ny
+	-- The start for a shaft along u: the bridge's +X is level and square to it (z x u), its
+	-- +Y is u x X.
+	local function start(ux: number, uy: number, uz: number): (number, number, number)
+		local plan = math.sqrt(ux * ux + uy * uy)
+		local rx, ry = -uy / plan, ux / plan
+		local upx, upy, upz = -uz * ry, uz * rx, ux * ry - uy * rx
+		return rake.headX - rx * nx + upx * rise,
+			rake.headY - ry * nx + upy * rise,
+			rake.headZ + upz * rise
+	end
+	local function unit(x: number, y: number, z: number): (number, number, number)
+		local m = math.sqrt(x * x + y * y + z * z)
+		return x / m, y / m, z / m
+	end
+	local ux, uy, uz =
+		unit(rake.holdX - rake.headX, rake.holdY - rake.headY, rake.holdZ - rake.headZ)
+	for _ = 1, 8 do
+		local sx, sy, sz = start(ux, uy, uz)
+		local vx, vy, vz = rake.holdX - sx, rake.holdY - sy, rake.holdZ - sz
+		if math.sqrt(vx * vx + vy * vy + vz * vz) < 1e-6 then
+			break
+		end
+		vx, vy, vz = unit(vx, vy, vz)
+		local settled = math.sqrt((vx - ux) ^ 2 + (vy - uy) ^ 2 + (vz - uz) ^ 2) < 1e-9
+		ux, uy, uz = vx, vy, vz
+		if settled then
+			break
+		end
+	end
+	local sx, sy, sz = start(ux, uy, uz)
+	return sx, sy, sz, ux, uy, uz
+end
+
 -- The rake's own promises: the head under the cue on the cloth, the notch at the cue's
--- height or the hover said so, the shaft over the rail, the hand on a shaft that long.
-local function checkRake(q: any, st: any, label: string): (boolean, boolean)
+-- height or the hover said so, the shaft as drawn over the rail, the hand on a shaft that
+-- long.
+local function checkRake(q: any, st: any, label: string): (boolean, boolean, string)
 	local rake = st.rake
 	local B, K = Config.Bridge, S.Rake
 	local area = q.area
@@ -176,12 +224,11 @@ local function checkRake(q: any, st: any, label: string): (boolean, boolean)
 		end
 	end
 	assert(notch, "unknown notch " .. tostring(rake.notch))
-	-- The shaft attaches on the head's centre line, X to the cue's left (+X is the aim's right).
+	-- The head's centre line, X to the cue's left (+X is the aim's right).
 	local ax, ay = math.cos(q.angle), math.sin(q.angle)
-	local attachX, attachY = rake.headX - notch.X * ay, rake.headY + notch.X * ax
-	local attachZ = rake.headZ + B.ShaftAxisYStuds - notch.Y
+	local centreX, centreY = rake.headX - notch.X * ay, rake.headY + notch.X * ax
 	if rake.onCloth then
-		for _, point in { { rake.headX, rake.headY }, { attachX, attachY } } do
+		for _, point in { { rake.headX, rake.headY }, { centreX, centreY } } do
 			if
 				math.abs(point[1]) > area.clothHx - inset + 1e-9
 				or math.abs(point[2]) > area.clothHy - inset + 1e-9
@@ -205,6 +252,21 @@ local function checkRake(q: any, st: any, label: string): (boolean, boolean)
 			end
 		end
 	end
+	-- The hand bridge the off hand makes when no rake is drawn: under the cue,
+	-- behind the ball, on the cloth or the rail top, and never off the table, however far
+	-- down the cue line an off-cloth head has run.
+	local fallback = rake.bridge
+	local bx, by = fallback.x - px, fallback.y - py
+	if (bx * ux + by * uy) / plan <= 0 or math.abs(bx * uy - by * ux) / plan > 1e-9 then
+		error("the rake's fallback hand bridge is not under the cue: " .. label)
+	end
+	if
+		fallback.surfaceZ ~= (if fallback.onRail then area.railTopZ else area.clothZ)
+		or math.abs(fallback.x) > area.railHx + 1e-9
+		or math.abs(fallback.y) > area.railHy + 1e-9
+	then
+		error("the rake's fallback hand bridge is off the table: " .. label)
+	end
 	H.near(rake.headZ, area.clothZ + B.PivotHeightStuds + notch.Y, 1e-9, "the notch's height")
 	local cueZ = pz + h * uz / plan
 	H.near(rake.cueZ, cueZ, 1e-9, "the cue's height over the head")
@@ -216,17 +278,24 @@ local function checkRake(q: any, st: any, label: string): (boolean, boolean)
 	elseif math.abs(rake.hover - err) > 1e-9 or math.abs(err) <= K.NotchToleranceStuds then
 		error("hover does not report the cue's height: " .. label)
 	end
-	-- The shaft from its attachment through the hold, sampled against the rail (only
-	-- promised for a head on the cloth).
+	-- The shaft as drawn, with the hand on it, sampled from its start to the hand against the
+	-- rail (only promised for a head on the cloth).
+	local attachX, attachY, attachZ, sux, suy, suz = drawnShaft(rake)
 	local vx, vy, vz = rake.holdX - attachX, rake.holdY - attachY, rake.holdZ - attachZ
+	local held = vx * sux + vy * suy + vz * suz
+	local off = math.sqrt(math.max(0, vx * vx + vy * vy + vz * vz - held * held))
+	if held <= 0 or off > 1e-6 then
+		error(("the hand is %.2g off the drawn shaft: %s"):format(off, label))
+	end
 	local run = math.sqrt(vx * vx + vy * vy)
-	local k = vz / run
+	local across = math.sqrt(sux * sux + suy * suy)
+	local k = suz / across
 	local r = B.ShaftButtRadiusStuds
 	local under = r * math.sqrt(1 + k * k)
 	local need = area.railTopZ + K.RailClearanceInches * s - 1e-6
 	for i = 0, 200 do
 		local t = run * i / 200
-		local x, y = attachX + vx / run * t, attachY + vy / run * t
+		local x, y = attachX + sux / across * t, attachY + suy / across * t
 		local ox, oy = math.abs(x), math.abs(y)
 		local overRail = (ox > area.clothHx - r or oy > area.clothHy - r)
 			and ox < area.railHx + r
@@ -241,7 +310,6 @@ local function checkRake(q: any, st: any, label: string): (boolean, boolean)
 	if h / plan - fullGap < S.BridgeTipClearInches * s - 1e-9 then
 		error("the tip reaches the rake's head: " .. label)
 	end
-	local held = math.sqrt(vx * vx + vy * vy + vz * vz)
 	H.near(rake.length, held + K.HandleBeyondHandStuds, 1e-9, "length")
 	-- The shaft's extension: whole steps, the least that keeps the hand on the shaft, and the
 	-- hand only slides in once the extension is as long as it gets.
@@ -266,7 +334,47 @@ local function checkRake(q: any, st: any, label: string): (boolean, boolean)
 	if rake.slideStuds > 0 and E < K.MaxExtensionStuds - 1e-9 then
 		error("the hand slid with extension to spare: " .. label)
 	end
-	return rake.holdReachable, rake.onCloth
+	-- The hand holds the shaft where the body wants it (HoldForward ahead of the root, out
+	-- at the left shoulder) unless raising that to clear the rail took it out of the arm's
+	-- full reach; then it holds the shaft at full stretch, unless no clear line comes
+	-- within reach at all, when holdReachable says so. (A slide for want of extension is
+	-- the exception, checked above.)
+	local body = q.body
+	local reach = body.ArmReach * S.ArmMaxFraction
+	local fx, fy = math.cos(st.yaw), math.sin(st.yaw)
+	local shw = body.ShoulderHalfWidth
+	local torso, T = math.rad(st.torsoDegrees), body.ShoulderHeight - body.WaistHeight
+	local ahead = T * math.sin(torso)
+	local shoulder = math.sqrt(
+		(rake.holdX - (st.rootX + fx * ahead - fy * shw)) ^ 2
+			+ (rake.holdY - (st.rootY + fy * ahead + fx * shw)) ^ 2
+			+ (rake.holdZ - (body.WaistHeight + T * math.cos(torso))) ^ 2
+	)
+	if rake.holdReachable ~= (shoulder <= reach + 1e-9) then
+		error(("holdReachable is wrong (%.4f from the shoulder): %s"):format(shoulder, label))
+	end
+	-- How the hold was found: "kept" where the body wants it, "slid" down the same shaft,
+	-- "turned" onto another, "short" of the reach, or "capped" by the extension's limit.
+	local how = "capped"
+	if rake.slideStuds == 0 then
+		local wantX = st.rootX + fx * K.HoldForwardStuds - fy * shw
+		local wantY = st.rootY + fy * K.HoldForwardStuds + fx * shw
+		local kept = math.abs(rake.holdX - wantX) <= 1e-9 and math.abs(rake.holdY - wantY) <= 1e-9
+		if kept and not rake.holdReachable then
+			error("the hand kept a place out of its reach: " .. label)
+		elseif not kept and rake.holdReachable and shoulder < reach - 1e-6 then
+			error(("the hand left its place %.4f inside its reach: %s"):format(shoulder, label))
+		end
+		-- The same shaft in plan: the attachment, the wanted spot and the hold in a line.
+		local ex, ey = wantX - attachX, wantY - attachY
+		local cross = math.abs(ex * (rake.holdY - attachY) - ey * (rake.holdX - attachX))
+		how = if kept
+			then "kept"
+			elseif not rake.holdReachable then "short"
+			elseif cross <= 1e-9 * math.sqrt(ex * ex + ey * ey) * run then "slid"
+			else "turned"
+	end
+	return rake.holdReachable, rake.onCloth, how
 end
 
 -- Solve with one Config key set otherwise, putting it back even if the solve fails.
@@ -357,17 +465,11 @@ return {
 								if not onCloth and spotIndex <= INTERIOR_SPOTS then
 									offCloth += 1
 								end
-								-- An ordinary body using the rake holds it, at the pitch almost
-								-- every rake shot has (a steep cue with the body far back passes
-								-- out of both hands' reach): the shaft's own extension reaches
-								-- the hand however far back the body stands.
-								if
-									b.name == "R15"
-									and (st.mode == "bridge" or st.mode == "extension")
-									and pitch == 4
-									and onCloth
-									and not reachable
-								then
+								-- An ordinary body using the rake holds it, at every pitch: the
+								-- shaft's own extension reaches the hand however far back the
+								-- body stands, and a shaft raised over the rail out of reach
+								-- slides or turns back into it.
+								if b.name == "R15" and onCloth and not reachable then
 									unreachable += 1
 								end
 							end
@@ -416,19 +518,66 @@ return {
 		end
 	end,
 
+	-- A ball 10 in off the shooter's own cushion, shot along the table with the cue flat: the
+	-- body stands at the natural distance (nothing pushes it back), worked out here from
+	-- Config by the design's formula: the grip at its natural place on the cue and
+	-- GripBehindRootStuds behind the hip, unless the bridge hand's comfortable reach, leaning
+	-- at the natural angle, holds the body closer. The grip is then GripBehindRootStuds
+	-- behind the hip.
 	["a comfortable shot is a natural stance"] = function()
-		local q = input(-40, 0, 0, 4, R15, ShooterStance.area(1))
+		local C = Config.Cue
+		local area = ShooterStance.area(1)
+		local body = R15
+		local q = input(-40, 0, 0, C.CueElevationDegrees, body, area)
 		local st = ShooterStance.solve(q)
 		H.expect(st.mode == "stand", "stands: " .. st.mode)
 		H.near(st.overhangStuds, 0, 1e-12, "no overhang")
 		H.expect(not st.fenceClamped, "the fence is nowhere near")
+		H.expect(st.gripReachable, "and the hand reaches the grip")
+
+		local L, gR = C.CueLengthStuds, C.CueRestGapInches * s
+		local c = math.cos(math.rad(C.CueElevationDegrees))
+		local px, py = axisOf(q, C.CueElevationDegrees)
+		local back = CueShape.strikeOffset(0, 0) * s
+		-- The grip's natural distance: this far back along the cue from the strike point.
+		local byGrip = (gR + L * (1 - S.GripFromButtFraction)) * c - S.GripBehindRootStuds
+		-- The bridge on the cloth, and the furthest a rail bridge goes (the root never
+		-- depends on which the hand takes).
+		local cloth = math.max(
+			S.BridgeFromBallInches * s - back,
+			gR + C.CuePullBackStuds + S.BridgeTipClearInches * s
+		) * c
+		local nose = Placement.rayExit(px, py, -1, 0, area.clothHx, area.clothHy)
+		local outer = Placement.rayExit(px, py, -1, 0, area.railHx, area.railHy)
+		local inset = S.RailBridgeInsetInches * s
+		local bridge = math.min(cloth, math.max(nose + inset, outer - inset))
+		-- The left hand's comfortable reach from the natural lean (stopped short of the rail).
+		local T = body.ShoulderHeight - body.WaistHeight
+		local psi = math.rad(S.TwistDegrees)
+		local aRail = math.acos(
+			math.clamp((area.railTopZ + S.RailShoulderClearanceStuds - body.WaistHeight) / T, -1, 1)
+		)
+		local lean = math.min(math.rad(S.LeanNaturalDegrees), aRail)
+		local forward = body.ShoulderHalfWidth * math.sin(psi) + T * math.sin(lean) * math.cos(psi)
+		local across = S.ChinSideStuds + body.ShoulderHalfWidth * math.cos(psi)
+		local drop = body.WaistHeight + T * math.cos(lean) - (area.clothZ + S.BridgeHandHeightStuds)
+		local comfortable = body.ArmReach * S.ArmNaturalFraction
+		local byHand = bridge
+			+ forward
+			+ math.sqrt(math.max(0, comfortable ^ 2 - across ^ 2 - drop ^ 2))
+		local natural = math.min(byGrip, byHand)
+		-- The root that far back along the cue line (b = -x) from the strike point.
+		H.near(px - st.rootX, natural, 1e-9, "the root stands at the natural distance")
 		H.near(
 			st.gripFromTipStuds,
-			Config.Cue.CueLengthStuds * (1 - S.GripFromButtFraction),
+			(natural + S.GripBehindRootStuds) / c - gR,
 			1e-9,
-			"the grip sits at its natural place on the cue"
+			"the grip sits GripBehindRootStuds behind the hip"
 		)
-		H.expect(st.gripReachable, "and the hand reaches it")
+		H.expect(
+			st.gripFromTipStuds <= L * (1 - S.GripFromButtFraction) + 1e-9,
+			"never further back than its natural place on the cue"
+		)
 	end,
 
 	["modes only step up as the ball moves away, and the extension only grows"] = function()
@@ -836,6 +985,57 @@ return {
 		H.expect(area.releaseClearance == Config.Multiplayer.Barrier.ReleaseClearanceStuds, "rc")
 	end,
 
+	-- Raising the hold until the shaft clears the rail can lift it out of the off arm's reach:
+	-- a shaft that crosses the rail close to the head climbs all the way back to a body
+	-- standing far off (a ball by a corner, the cue running back along the side rail). The
+	-- hand then slides down that same shaft into reach or, when the shaft passes above the
+	-- reach altogether, the shaft turns about the head onto a clear line the arm reaches;
+	-- either way it holds it at full stretch (checkRake). A turn only happens when it must:
+	-- with no turn allowed those holds are out of reach. (The slides come from balls a few
+	-- inches off a side cushion, added to the sweep's spots here.)
+	["a hold raised out of reach slides down the shaft, or the shaft turns into reach"] = function()
+		local counts: { [string]: number } = {}
+		local spots = sweepSpots()
+		table.insert(spots, { -12, 19 })
+		table.insert(spots, { 12, -19 })
+		for _, teamSize in { 1, 3 } do
+			local area = ShooterStance.area(teamSize)
+			for _, spot in spots do
+				for step = 0, 71 do
+					local angle = math.rad(step * 5)
+					for _, pitch in { 4, 20, 40 } do
+						local q = input(spot[1], spot[2], angle, pitch, R15, area)
+						local st = ShooterStance.solve(q)
+						if st.rake then
+							local label = ("team %d ball (%.2f, %.2f) at %d, pitch %d"):format(
+								teamSize,
+								spot[1],
+								spot[2],
+								step * 5,
+								pitch
+							)
+							local _, _, how = checkRake(q, st, label)
+							counts[how] = (counts[how] or 0) + 1
+							if how == "turned" then
+								local fixed = solveWith(S.Rake, "HoldTurnMaxDegrees", 0, q)
+								H.expect(
+									fixed.rake ~= nil and not fixed.rake.holdReachable,
+									"turned without needing to: " .. label
+								)
+							end
+						end
+					end
+				end
+			end
+		end
+		H.expect((counts.slid or 0) > 0, "no hold slid down its shaft")
+		H.expect((counts.turned or 0) > 0, "no shaft turned")
+		H.expect(
+			counts.short == nil,
+			("R15 fell short of the rake %d times"):format(counts.short or 0)
+		)
+	end,
+
 	-- A far ball puts the rake's head a table's length from a body standing back at the near
 	-- rail. The hand keeps its place and the shaft grows to it; with no extension allowed at
 	-- all (the old behaviour) the hand slides in along the shaft instead. Nothing but the
@@ -883,21 +1083,9 @@ return {
 							if rake and short then
 								H.expect(short.extensionStuds == 0, "an extension past the cap")
 								H.expect(rake.slideStuds == 0, "the hand slid: " .. label)
-								-- Out at the left shoulder, HoldForward ahead of the root.
-								local fx, fy = math.cos(st.yaw), math.sin(st.yaw)
-								local shw = b.body.ShoulderHalfWidth
-								H.near(
-									rake.holdX,
-									st.rootX + fx * K.HoldForwardStuds - fy * shw,
-									1e-9,
-									"hold x: " .. label
-								)
-								H.near(
-									rake.holdY,
-									st.rootY + fy * K.HoldForwardStuds + fx * shw,
-									1e-9,
-									"hold y: " .. label
-								)
+								-- Where the body wants it (out at the left shoulder, HoldForward
+								-- ahead of the root), or at the edge of the arm's reach.
+								checkRake(q, st, label)
 								H.near(
 									rake.length,
 									short.length + short.slideStuds,

@@ -9,7 +9,8 @@
 -- renderer at any moment. Walking towards a table hands it one.
 --
 -- Roadmap 1.5g adds the other players' cue sticks here, which is why the pool is a pool and
--- not "the table you are standing at".
+-- not "the table you are standing at". Each pooled table also shows its shooter posed, with
+-- their cue and rake (WatchedShooters); this module feeds that the aim stream and the shots.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,9 +22,9 @@ local Config = require(Shared:WaitForChild("Config"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
-local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 local Match = require(script.Parent:WaitForChild("Match"))
+local WatchedShooters = require(script.Parent:WaitForChild("WatchedShooters"))
 
 local Lounge = {}
 Lounge.__index = Lounge
@@ -49,19 +50,12 @@ export type Lounge = typeof(setmetatable(
 		cueOf: { [number]: Model },
 		-- tableId -> the aim, cue-ball spot and wind-up coming off the wire, and the eased
 		-- angle, spot and pull actually drawn, so a stream of a few a second makes none step.
-		aims: {
-			[number]: {
-				angle: number,
-				shown: number,
-				by: number,
-				x: number,
-				y: number,
-				shownX: number,
-				shownY: number,
-				pull: number, -- 0..1, whole 1/Config.Aim.PullSteps steps
-				shownPull: number,
-			},
-		},
+		aims: { [number]: WatchedShooters.Aim },
+		-- tableId -> the last shot the server accepted there (ShotResult): its exact angle and
+		-- where the cue ball stood, which a watched shooter's stroke freezes on.
+		shots: { [number]: WatchedShooters.Shot },
+		-- Every pooled table's shooter, posed with their cue and rake.
+		watched: WatchedShooters.WatchedShooters,
 	},
 	Lounge
 ))
@@ -98,10 +92,23 @@ function Lounge.new(parent: Instance): Lounge
 	folder.Name = "Balls"
 	folder.Parent = parent
 
+	-- The pool is built up front so no shot ever waits on sixteen parts being created: a
+	-- renderer, a cue and (WatchedShooters) a rake per slot.
+	local first = Config.Lounge.Tables[1]
+	local firstPlacement = Placement.forTable(first.id)
+	local pool, cues = {}, {}
+	for i = 1, math.min(Config.Lounge.RenderedTables, Placement.tableCount()) do
+		table.insert(pool, BallRenderer.new(folder, firstPlacement :: any, i))
+		local cue = CueStickBuilder.build(parent)
+		cue.Name = ("WatchedCue_%d"):format(i)
+		CueStickBuilder.setVisible(cue, false)
+		table.insert(cues, cue)
+	end
+
 	local self = setmetatable({
 		folder = folder,
 		matches = {},
-		pool = {},
+		pool = pool,
 		boundTo = {},
 		seats = {},
 		sinceRebind = math.huge, -- bind on the first frame
@@ -110,9 +117,11 @@ function Lounge.new(parent: Instance): Lounge
 		mySeat = nil,
 		snapshots = {},
 		snapshotListeners = {},
-		cues = {},
+		cues = cues,
 		cueOf = {},
 		aims = {},
+		shots = {},
+		watched = WatchedShooters.new(parent, cues),
 	}, Lounge)
 
 	-- Only the tables the server actually builds: a Match for a table with no model would
@@ -124,17 +133,6 @@ function Lounge.new(parent: Instance): Lounge
 			self.matches[row.id] = Match.new(p, nil, Config.Rack.DefaultSeed + row.id)
 			self.seats[row.id] = {}
 		end
-	end
-
-	-- The pool is built up front so no shot ever waits on sixteen parts being created.
-	local first = Config.Lounge.Tables[1]
-	local firstPlacement = Placement.forTable(first.id)
-	for i = 1, math.min(Config.Lounge.RenderedTables, Placement.tableCount()) do
-		table.insert(self.pool, BallRenderer.new(folder, firstPlacement :: any, i))
-		local cue = CueStickBuilder.build(parent)
-		cue.Name = ("WatchedCue_%d"):format(i)
-		CueStickBuilder.setVisible(cue, false)
-		table.insert(self.cues, cue)
 	end
 
 	self:listen()
@@ -217,6 +215,39 @@ function Lounge.fire(
 	})
 end
 
+local function finite(value: any): boolean
+	return type(value) == "number" and value == value and math.abs(value) < math.huge
+end
+
+-- Keep what a watched shooter's stroke freezes on from a shot the server accepted: the exact
+-- direction the cue ball left in (its seed velocity: side spin never bends the launch while
+-- Config.Cue.SideSpinBendsPath is off) and where it stood before the shot (the start packs
+-- every ball as x, y, z, pocketed from id 0, the cue ball). Off the network, so it is checked.
+local function recordShot(self: Lounge, msg: any)
+	local seed, start = msg.seed, msg.start
+	if
+		not finite(msg.epoch)
+		or not finite(msg.seq)
+		or typeof(seed) ~= "table"
+		or typeof(start) ~= "table"
+		or not finite(seed.vx)
+		or not finite(seed.vy)
+		or not finite(start[1])
+		or not finite(start[2])
+		or seed.vx * seed.vx + seed.vy * seed.vy < 1e-12
+	then
+		return
+	end
+	local shot = self.shots[msg.tableId]
+	if shot == nil then
+		shot = { epoch = 0, seq = 0, angle = 0, x = 0, y = 0 }
+		self.shots[msg.tableId] = shot
+	end
+	shot.epoch, shot.seq = msg.epoch, msg.seq
+	shot.angle = math.atan2(seed.vy, seed.vx)
+	shot.x, shot.y = start[1], start[2]
+end
+
 function Lounge.listen(self: Lounge)
 	local me = Players.LocalPlayer.UserId
 
@@ -271,8 +302,13 @@ function Lounge.listen(self: Lounge)
 		end
 		local match: Match.Match? = self.matches[msg.tableId]
 		if match then
+			recordShot(self, msg)
 			match:receive(msg)
 		end
+	end)
+	-- A shooter who leaves mid-turn takes their body with them: nothing posed may outlive it.
+	Players.PlayerRemoving:Connect(function(p: Player)
+		self.watched:forgetUser(p.UserId)
 	end)
 	Net.get("TableState").OnClientEvent:Connect(function(snapshot)
 		if typeof(snapshot) ~= "table" or typeof(snapshot.id) ~= "number" then
@@ -387,6 +423,8 @@ local function rebind(self: Lounge, from: Vector3)
 				CueStickBuilder.setVisible(held, false)
 				self.cueOf[id] = nil
 			end
+			-- ...and of its shooter: let go of the body, hide the rake.
+			self.watched:unbind(id)
 		end
 	end
 
@@ -466,53 +504,36 @@ local function followPlacement(self: Lounge, dt: number)
 	end
 end
 
--- Draw the cue of whoever is lining up at each table we can see. Never our own: the local
--- player's cue is driven directly by their input, with no round trip.
-local function updateWatchedCues(self: Lounge, dt: number)
+-- Ease each watched aim toward what was last heard: the stream is ten a second, so drawing it
+-- raw would visibly step. Only while the shooter is lining up at a table we can see; never
+-- our own (the local player's cue is driven directly by their input, with no round trip).
+-- WatchedShooters draws the cue and the shooter from the eased values.
+local function easeAims(self: Lounge, dt: number)
 	local A = Config.Aim
 	local alpha = 1 - math.exp(-dt / math.max(A.SmoothingSeconds, 1e-3))
 	local pullAlpha = 1 - math.exp(-dt / math.max(A.PullSmoothingSeconds, 1e-3))
-	for id, cue in self.cueOf do
+	local me = Players.LocalPlayer.UserId
+	for id in self.cueOf do
 		local aim = self.aims[id]
 		local match = self.matches[id]
-		local cueBall = match and match:findCueBall()
 		local snapshot = self.snapshots[id]
-		local mine = aim and aim.by == Players.LocalPlayer.UserId
-		-- A shot in flight has no cue against the ball, and neither has an empty table.
 		if
-			aim == nil
-			or mine
-			or cueBall == nil
-			or cueBall.pocketed
-			or match:isBusy()
-			or not snapshot
-			or snapshot.shooter ~= aim.by
-			or (
-				snapshot.phase ~= "Aiming"
-				and snapshot.phase ~= "Intro"
-				and snapshot.phase ~= "Placement"
+			aim
+			and aim.by ~= me
+			and match
+			and not match:isBusy()
+			and snapshot
+			and snapshot.shooter == aim.by
+			and (
+				snapshot.phase == "Aiming"
+				or snapshot.phase == "Intro"
+				or snapshot.phase == "Placement"
 			)
 		then
-			CueStickBuilder.setVisible(cue, false)
-		else
-			-- Ease towards the last angle heard: the stream is ten a second, so drawing it
-			-- raw would visibly step.
 			local delta = (aim.angle - aim.shown + math.pi) % (2 * math.pi) - math.pi
 			aim.shown += delta * alpha
 			-- The wind-up eases too, but quickly, so a let-go still reads as a stroke.
 			aim.shownPull += (aim.pull - aim.shownPull) * pullAlpha
-			CueStickBuilder.setVisible(cue, true)
-			local p = match.placement
-			local ballPos =
-				TableBuilder.toWorld(p, cueBall.x, cueBall.y, Config.Balls.RenderRadiusInches)
-			-- Drawn back exactly as the shooter's own cue is (Main's refreshAim).
-			CueStickBuilder.place(
-				cue,
-				ballPos,
-				TableBuilder.aimDirection(p, aim.shown),
-				TableBuilder.studs(Config.Cue.CueRestGapInches)
-					+ aim.shownPull * Config.Cue.CuePullBackStuds
-			)
 		end
 	end
 end
@@ -538,7 +559,8 @@ function Lounge.update(self: Lounge, dt: number): boolean
 		end
 	end
 	followPlacement(self, dt)
-	updateWatchedCues(self, dt)
+	easeAims(self, dt)
+	self.watched:update(dt, self.cueOf, self.snapshots, self.matches, self.aims, self.shots)
 	return playingHere
 end
 

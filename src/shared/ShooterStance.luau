@@ -32,13 +32,15 @@
 --
 -- The rake's contract with BridgeBuilder (Config.Bridge is the model's geometry): the cue
 -- rests in the chosen notch at (headX, headY, headZ), headZ being that notch's rest height
--- with the head standing on the cloth; the model's shaft starts at that notch's shaft
--- attachment (the bridge frame's (0, ShaftAxisYStuds), which is (-X, ShaftAxisYStuds - Y)
--- from the notch, +X being the aim's right) and BridgeBuilder turns the model about the notch
--- so the shaft passes through (holdX, holdY, holdZ), where the off hand holds it. The rail
--- clearance of the shaft is worked out on that line before the small turn about the notch,
--- which moves the attachment almost only along the shaft itself. A shaft too short to reach
--- the hand gets extensionStuds more of it past its butt, which BridgeBuilder draws.
+-- with the head standing on the cloth, and BridgeBuilder turns the model about the notch, plate
+-- upright and no roll, so the shaft passes through (holdX, holdY, holdZ), where the off hand
+-- holds it. The shaft starts at its attachment (the bridge frame's (0, ShaftAxisYStuds),
+-- which is (-X, ShaftAxisYStuds - Y) from the notch), and that turn swings the attachment
+-- with the shaft, so the rail clearance and the reach are worked out on the very line drawn
+-- (step 8). The hold is where the body wants it, raised for the rail, unless that is out of
+-- the off arm's full reach: then it is on a shaft still clear of the rail, at full stretch.
+-- A shaft too short to reach the hand gets extensionStuds more of it past its butt, which
+-- BridgeBuilder draws.
 
 local Config = require(script.Parent.Config)
 local CueShape = require(script.Parent.CueShape)
@@ -120,14 +122,24 @@ export type Rake = {
 	-- the shaft itself reaches the hand, else the least that does, up to Rake.MaxExtensionStuds.
 	extensionStuds: number,
 	-- How far the hold had to slide toward the head because even the longest extension does
-	-- not reach where the hand wanted it; 0 normally.
+	-- not reach where the hand wanted it; 0 normally. (Bringing a hold raised out of reach
+	-- back into it is part of choosing the hold, not a slide.)
 	slideStuds: number,
-	holdReachable: boolean, -- the off hand can reach the hold
+	-- The off hand reaches the hold: at most ArmMaxFraction of ArmReach from the left
+	-- shoulder. Always, with the head on the cloth, but for a slide past the extension's
+	-- limit and a shoulder too low beside a head by the cushion (an R6 or a small avatar),
+	-- where no straight shaft clear of the rail comes within reach.
+	holdReachable: boolean,
 	-- The head stands on the cloth: the notch and the head's centre line (where the shaft
 	-- attaches) HeadInsetInches clear of the cushions. False only when the cloth behind the
 	-- ball is too short even for the resting tip; headZ is then still the cloth's, and the
-	-- shaft's rail clearance is not promised.
+	-- shaft's rail clearance is not promised. Nor is anything about the head and the hold
+	-- then: along a cushion the head can run tens of studs down the cue line. No rake is
+	-- drawn then, and the off hand bridges at `bridge` instead.
 	onCloth: boolean,
+	-- Where a hand bridge would go on this cue line (step 3: the cloth, or the rail top by the
+	-- cushion), for a poser that draws no rake: the off hand reaches for it as far as it can.
+	bridge: HandBridge,
 }
 
 export type Stance = {
@@ -469,6 +481,10 @@ function ShooterStance.solve(q: Input): Stance
 			mode, E, sGrip, gripReachable = gripWith(handMode, nil) -- back to the lean
 		end
 	end
+	-- The hand bridge on this cue line: the off hand's in stand and lean, and the fallback a
+	-- rake stance carries for when no rake is drawn.
+	local bridge: HandBridge =
+		{ x = hx, y = hy, cueZ = pz + dB * tn, surfaceZ = surface, onRail = onRail }
 
 	-- 8. The rake: its head, the notch, and where the off hand holds it. Before the pull,
 	-- because a head that cannot sit clear of a full wind-up limits it.
@@ -529,44 +545,210 @@ function ShooterStance.solve(q: Input): Stance
 		pullLimit = limitPull(h / c)
 		local headX, headY = px + bx * h, py + by * h
 		local headZ = area.clothZ + B.PivotHeightStuds + notch.Y
-		-- The shaft attachment: the bridge's +X is the aim's right, (ay, -ax).
-		local attachX, attachY = headX - notch.X * ay, headY + notch.X * ax
-		local attachZ = headZ + B.ShaftAxisYStuds - notch.Y
+		-- The shaft BridgeBuilder draws. It turns the model about the notch, plate upright and no
+		-- roll, so the shaft's axis (the bridge frame's x = 0, y = ShaftAxisYStuds) keeps the
+		-- notch notch.X to its right, square to the shaft in plan, and runs `rise` above the
+		-- notch, square to the shaft in its upright plane (below it when negative). In plan, a
+		-- shaft along the direction (dx, dy) passes square beside the notch at beside(dx, dy)
+		-- and, tau further on, its axis is headZ + slope * tau + rise * sqrt(1 + slope^2) high.
+		-- It starts (its attachment, z = 0 in the bridge's frame) square across from the notch,
+		-- which a steeper shaft swings further along. The rail clearance, the reach and the hold
+		-- are all worked out on that line, the very one drawn.
+		local nx, rise = notch.X, B.ShaftAxisYStuds - notch.Y
+		local function beside(dx: number, dy: number): (number, number)
+			return headX + nx * dy, headY - nx * dx
+		end
+		-- The shaft along (dx, dy) at `slope`: its unit direction and its attachment.
+		local function shaft(
+			dx: number,
+			dy: number,
+			slope: number
+		): (number, number, number, number, number, number)
+			local n = math.sqrt(1 + slope * slope)
+			local sx, sy = beside(dx, dy)
+			local ahead = -rise * slope / n
+			return dx / n, dy / n, slope / n, sx + dx * ahead, sy + dy * ahead, headZ + rise / n
+		end
+		-- The least slope k with k * tau - r * sqrt(1 + k^2) >= lift: the height `lift` above
+		-- headZ at tau, less r square to the shaft. -math.huge when tau is too short for it.
+		local function slopeFor(tau: number, lift: number, r: number): number
+			if tau <= math.abs(r) + 1e-9 then
+				return -math.huge
+			end
+			local root = math.sqrt(math.max(0, tau * tau + lift * lift - r * r))
+			return (tau * lift + r * root) / (tau * tau - r * r)
+		end
+		-- The least slope of a shaft along the plan direction (dx, dy) for its underside to clear
+		-- the rail top where it first crosses it (the shaft grown by its radius, as the cue is in
+		-- CueClearance), and that crossing's plan distance on from beside the notch. The shaft
+		-- rises toward the hand, so the first crossing is the lowest. A head off the cloth is
+		-- already at the cushion, where no slope can help: no limit (-math.huge).
+		local radius = B.ShaftButtRadiusStuds
+		local lift = area.railTopZ + K.RailClearanceInches * s - headZ
+		local function clearSlope(dx: number, dy: number): (number, number)
+			if not bestOnCloth then
+				return -math.huge, math.huge
+			end
+			local sx, sy = beside(dx, dy)
+			local tIn =
+				Placement.rayExit(sx, sy, dx, dy, area.clothHx - radius, area.clothHy - radius)
+			return slopeFor(tIn, lift, radius - rise), tIn
+		end
+		-- Where the body wants the hand: ahead of the root and out at the left shoulder,
+		-- HoldBelowShoulderStuds down, raised until the shaft clears the rail. The shaft to it
+		-- runs the way that passes beside the notch and then under the hand.
 		local holdX = rx + fx * K.HoldForwardStuds + blx * shw
 		local holdY = ry + fy * K.HoldForwardStuds + bly * shw
 		local holdZ = body.ShoulderHeight - K.HoldBelowShoulderStuds
-		-- Raise the hand until the shaft's underside clears the rail top where it first
-		-- crosses it (the shaft grown by its radius, as the cue is in CueClearance). The shaft
-		-- rises toward the hand, so the first crossing is the lowest. A head off the cloth is
-		-- already at the cushion, where no hand height can help.
-		local vx, vy = holdX - attachX, holdY - attachY
-		local run = math.sqrt(vx * vx + vy * vy)
-		if run > 1e-6 and bestOnCloth then
-			local r = B.ShaftButtRadiusStuds
-			local tIn = Placement.rayExit(
-				attachX,
-				attachY,
-				vx / run,
-				vy / run,
-				area.clothHx - r,
-				area.clothHy - r
-			)
-			if tIn < run and tIn > r then
-				-- The least slope k with attachZ + k*tIn - r*sqrt(1 + k^2) at the clearance.
-				local D = area.railTopZ + K.RailClearanceInches * s - attachZ
-				local k = (tIn * D + r * math.sqrt(math.max(0, tIn * tIn + D * D - r * r)))
-					/ (tIn * tIn - r * r)
-				holdZ = math.max(holdZ, attachZ + k * run)
+		local dirX, dirY, tau = bx, by, 0
+		local offX, offY = holdX - headX, holdY - headY
+		local far = offX * offX + offY * offY
+		if far > nx * nx + 1e-12 then
+			tau = math.sqrt(far - nx * nx)
+			dirX, dirY = (tau * offX - nx * offY) / far, (tau * offY + nx * offX) / far
+			local k, tIn = clearSlope(dirX, dirY)
+			if tIn < tau and k > -math.huge then
+				holdZ = math.max(holdZ, headZ + k * tau + rise * math.sqrt(1 + k * k))
 			end
 		end
-		-- The hand holds the shaft where the body wants it. A shaft too short to get there
-		-- (a far ball, the body back at the near rail) gets an extension past its butt, like
-		-- the cue's: the least whole number of LengthStepStuds that leaves the handle showing
-		-- beyond the hand, up to Rake.MaxExtensionStuds. Only past that does the hand slide in
-		-- toward the head.
-		local shaftEnd = B.ShaftStartStuds + B.ShaftLengthStuds
+		-- The shaft through the hold. (A hold right over the notch would have none; it never is
+		-- there, as the body stands outside the barrier, and the shaft would just run level.)
+		local slope = slopeFor(tau, holdZ - headZ, -rise)
+		slope = if slope > -math.huge then slope else 0
+		local _, _, _, attachX, attachY, attachZ = shaft(dirX, dirY, slope)
+		-- Raised, that can be out of the off arm's reach (fully stretched, as the grip arm's):
+		-- a shaft that crosses the rail close to the head climbs steeply all the way back to
+		-- a body standing far off. Then the hand slides down the shaft toward the head to where
+		-- the arm reaches it, which leaves the shaft (and its clearance) exactly where it was.
+		-- A shaft passing above the reach altogether turns about the head, the least either
+		-- way, to the lowest line clear of the rail that the arm reaches, and the hand holds it
+		-- where that line comes nearest the wanted spot. The shaft is always clear of the rail
+		-- and the hand always on it. Only a body whose shoulder is too low beside a head by the
+		-- cushion (an R6 or a small avatar) can have no clear line within reach at all: then
+		-- the line that comes nearest is held where it comes nearest the shoulder, and
+		-- holdReachable says the arm falls short.
+		local ks = T * math.sin(torso)
+		local lsx, lsy = rx + fx * ks + blx * shw, ry + fy * ks + bly * shw -- the left shoulder
+		local lsz = body.WaistHeight + T * math.cos(torso)
 		local hx3, hy3, hz3 = holdX - attachX, holdY - attachY, holdZ - attachZ
 		local held = math.sqrt(hx3 * hx3 + hy3 * hy3 + hz3 * hz3)
+		if held > 1e-9 and distance(holdX, holdY, holdZ, lsx, lsy, lsz) > reach then
+			-- The shoulder from the shaft along (dx, dy) at slope k: how far along the shaft from
+			-- its attachment it is nearest, and how far outside the reach it is there (squared
+			-- studs; <= 0: the arm reaches the shaft).
+			local function sighting(dx: number, dy: number, k: number): (number, number)
+				local ux, uy, uz, sx, sy, sz = shaft(dx, dy, k)
+				local wx, wy, wz = lsx - sx, lsy - sy, lsz - sz
+				local along = wx * ux + wy * uy + wz * uz
+				return along, wx * wx + wy * wy + wz * wz - along * along - reach * reach
+			end
+			-- The stretch of that shaft the arm reaches, as distances along it from its
+			-- attachment (from > to when it misses), on the shaft.
+			local function reached(dx: number, dy: number, k: number): (number, number)
+				local along, miss = sighting(dx, dy, k)
+				if miss > 0 then
+					return math.huge, -math.huge
+				end
+				local half = math.sqrt(-miss)
+				return math.max(along - half, B.ShaftStartStuds), along + half
+			end
+			-- The lowest shaft clear of the rail along the plan direction phi (or, where the
+			-- shoulder is higher than that, the shaft at the shoulder's height where it passes
+			-- it: the nearest a shaft that way comes): its slope, and how far it passes outside
+			-- the reach.
+			local function turned(phi: number): (number, number)
+				local dx, dy = math.cos(phi), math.sin(phi)
+				local sx, sy = beside(dx, dy)
+				local a = (lsx - sx) * dx + (lsy - sy) * dy
+				if a <= math.abs(rise) + 1e-9 then
+					return 0, math.huge -- heading away from the shoulder
+				end
+				local k = math.max((clearSlope(dx, dy)), slopeFor(a, lsz - headZ, -rise))
+				local _, miss = sighting(dx, dy, k)
+				return k, miss
+			end
+			local from, to = reached(dirX, dirY, slope)
+			if from > to then
+				-- The least turn either way (anticlockwise first on a tie) whose line the arm
+				-- reaches: whole steps out, then bisect the last one. Failing that, the turn
+				-- whose line misses least: the best step, then a ternary search a step round it.
+				local phi0 = math.atan2(dirY, dirX)
+				local widest = math.rad(K.HoldTurnMaxDegrees)
+				local step = math.rad(K.HoldTurnStepDegrees)
+				local function missAt(turn: number): number
+					local _, miss = turned(phi0 + turn)
+					return miss
+				end
+				local function least(sign: number, lo: number, hi: number): number
+					for _ = 1, K.HoldTurnBisections do
+						local mid = (lo + hi) / 2
+						if missAt(sign * mid) <= 0 then
+							hi = mid
+						else
+							lo = mid
+						end
+					end
+					return sign * hi
+				end
+				local turn: number? = nil
+				local nearest, nearestMiss = 0, missAt(0)
+				local lo = 0
+				while lo < widest do
+					local hi = math.min(lo + step, widest)
+					local anti, clock = missAt(hi), missAt(-hi)
+					if anti <= 0 or clock <= 0 then
+						local a = if anti <= 0 then least(1, lo, hi) else math.huge
+						local b = if clock <= 0 then least(-1, lo, hi) else -math.huge
+						turn = if a <= -b then a else b
+						break
+					end
+					if anti < nearestMiss then
+						nearest, nearestMiss = hi, anti
+					end
+					if clock < nearestMiss then
+						nearest, nearestMiss = -hi, clock
+					end
+					lo = hi
+				end
+				if turn == nil and nearestMiss < math.huge then
+					local below = math.max(nearest - step, -widest)
+					local above = math.min(nearest + step, widest)
+					for _ = 1, K.HoldTurnBisections do
+						local third = (above - below) / 3
+						if missAt(below + third) <= missAt(above - third) then
+							above -= third
+						else
+							below += third
+						end
+					end
+					local mid = (below + above) / 2
+					turn = if missAt(mid) <= nearestMiss then mid else nearest
+				end
+				if turn then
+					local phi = phi0 + turn
+					dirX, dirY = math.cos(phi), math.sin(phi)
+					slope = turned(phi)
+					from, to = reached(dirX, dirY, slope)
+				end
+			end
+			local ux, uy, uz
+			ux, uy, uz, attachX, attachY, attachZ = shaft(dirX, dirY, slope)
+			-- Where the line comes nearest the wanted spot within the reach; on a line out of
+			-- reach even so, the nearest it comes to the shoulder (holdReachable is false).
+			local wantAlong = (holdX - attachX) * ux
+				+ (holdY - attachY) * uy
+				+ (holdZ - attachZ) * uz
+			local t = if from <= to
+				then math.clamp(wantAlong, from, to)
+				else math.max((sighting(dirX, dirY, slope)), B.ShaftStartStuds)
+			holdX, holdY, holdZ = attachX + ux * t, attachY + uy * t, attachZ + uz * t
+			hx3, hy3, hz3, held = ux * t, uy * t, uz * t, t
+		end
+		-- A shaft too short to get to the hand (a far ball, the body back at the near rail)
+		-- gets an extension past its butt, like the cue's: the least whole number of
+		-- LengthStepStuds that leaves the handle showing beyond the hand, up to
+		-- Rake.MaxExtensionStuds. Only past that does the hand slide in toward the head.
+		local shaftEnd = B.ShaftStartStuds + B.ShaftLengthStuds
 		local need = held + K.HandleBeyondHandStuds - shaftEnd
 		local extension = 0
 		if need > 0 then
@@ -581,15 +763,7 @@ function ShooterStance.solve(q: Input): Stance
 			holdX, holdY, holdZ = attachX + hx3 * k, attachY + hy3 * k, attachZ + hz3 * k
 			slide, held = held - most, most
 		end
-		local k = T * math.sin(torso)
-		local leftShoulder = distance(
-			rx + fx * k + blx * shw,
-			ry + fy * k + bly * shw,
-			body.WaistHeight + T * math.cos(torso),
-			holdX,
-			holdY,
-			holdZ
-		)
+		local leftShoulder = distance(lsx, lsy, lsz, holdX, holdY, holdZ)
 		rake = {
 			headX = headX,
 			headY = headY,
@@ -605,6 +779,7 @@ function ShooterStance.solve(q: Input): Stance
 			slideStuds = slide,
 			holdReachable = leftShoulder <= reach + 1e-9,
 			onCloth = bestOnCloth,
+			bridge = bridge,
 		}
 	end
 
@@ -631,9 +806,7 @@ function ShooterStance.solve(q: Input): Stance
 		grip = { x = gx, y = gy, z = gz },
 		gripFromTipStuds = sGrip - gR,
 		gripReachable = gripReachable,
-		handBridge = if mode == "stand" or mode == "lean"
-			then { x = hx, y = hy, cueZ = pz + dB * tn, surfaceZ = surface, onRail = onRail }
-			else nil,
+		handBridge = if mode == "stand" or mode == "lean" then bridge else nil,
 		rake = rake,
 		memory = { mode = mode, extensionStuds = E, onRail = onRail },
 	}

@@ -9,6 +9,7 @@ local GuiService = game:GetService("GuiService")
 local SoundService = game:GetService("SoundService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AimStream = require(Shared.AimStream)
+local BridgeBuilder = require(Shared.BridgeBuilder)
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Placement = require(Shared.Placement)
@@ -38,8 +39,11 @@ visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
 local lounge = Lounge.new(visuals)
 local input = Input.new()
-local avatar = Avatar.new()
 local cueStick = CueStickBuilder.build(visuals)
+-- The local shooter's rake (ShooterStance's "bridge" and "extension" modes). Built up front:
+-- building may wait a moment for the imported model to arrive.
+local rake = BridgeBuilder.build(visuals)
+local avatar = Avatar.new(rake)
 local screen = UI.screen()
 local powerCue = PowerCue.new(screen)
 UI.addPlayControl(powerCue.root)
@@ -124,15 +128,16 @@ local function callPending(): boolean
 		and snapshot.calledPocket == nil
 		and Judge.eligible(match.state.balls, snapshot.groups[snapshot.activeTeam])
 end
-local function canShoot(): boolean
-	if not shooter() or awaitingAt or not match or match:isBusy() or (hud and hud:isModal()) then
+-- The shot is this player's to take and not taken yet: their turn in an aiming phase, no shot
+-- sent, the balls still. (A modal or a pocket still to call can hold it up: canShoot.)
+local function aimTurn(): boolean
+	if not shooter() or awaitingAt or not match or match:isBusy() then
 		return false
 	end
-	if
-		snapshot.phase ~= "Aiming"
-		and snapshot.phase ~= "Intro"
-		and snapshot.phase ~= "Placement"
-	then
+	return snapshot.phase == "Aiming" or snapshot.phase == "Intro" or snapshot.phase == "Placement"
+end
+local function canShoot(): boolean
+	if not aimTurn() or (hud and hud:isModal()) then
 		return false
 	end
 	if callPending() then
@@ -140,6 +145,9 @@ local function canShoot(): boolean
 	end
 	return true
 end
+-- The cue and the rake themselves are drawn every frame after the pose (RenderStepped), from
+-- the same frame the hands hold; this only hides them. A stroke keeps them: it plays on after
+-- fire() has made canShoot() false.
 local function refreshAim()
 	local allowed = canShoot() and not targets:isDragging()
 	spinSelector:setEnabled(allowed)
@@ -147,7 +155,10 @@ local function refreshAim()
 		if guideline then
 			guideline:hide()
 		end
-		CueStickBuilder.setVisible(cueStick, false)
+		if not avatar:stroking() then
+			CueStickBuilder.setVisible(cueStick, false)
+			BridgeBuilder.setVisible(rake, false)
+		end
 		if hud then
 			hud:setInvalidTarget(false)
 		end
@@ -177,14 +188,6 @@ local function refreshAim()
 		guideline:hide()
 		hud:setInvalidTarget(false)
 	end
-	CueStickBuilder.setVisible(cueStick, true)
-	CueStickBuilder.place(
-		cueStick,
-		cueWorld(),
-		Camera.aimDirection(input.angle),
-		TableBuilder.studs(Config.Cue.CueRestGapInches) + currentPull * Config.Cue.CuePullBackStuds,
-		input:getSpin()
-	)
 end
 local function sound(key: string, id: string)
 	local existing = uiSounds[key]
@@ -321,7 +324,10 @@ local function suggestAim()
 		input:setAngle(math.atan2(target.y - cue.y, target.x - cue.x))
 	end
 end
-local function fire(power: number)
+-- `windUp` is how far the cue is drawn back as the shot goes (0..1): the power itself when it
+-- was drawn on the bar or a trigger (the default), nothing for the precision button, which
+-- fires from the cue at rest.
+local function fire(power: number, windUp: number?)
 	if not canShoot() then
 		return
 	end
@@ -333,6 +339,10 @@ local function fire(power: number)
 	-- The shot carries the cue ball in hand while the window is open, so the spot and the
 	-- shot land together; after the cutoff the server already holds the locked spot.
 	local x, y = targets:getPreview()
+	-- The stroke starts here, from the wind-up (the power listeners have already dropped the
+	-- pull to 0, so not from currentPull), and before awaitingAt: once that is set canShoot()
+	-- is false, and the stroke has to keep the cue drawn through it.
+	avatar:strike(windUp or power, x, y)
 	lounge:fire(
 		snapshot.id,
 		input.angle,
@@ -372,7 +382,7 @@ local function action(kind: string, value: any?)
 	elseif kind == "ClosePrecision" then
 		hud:togglePrecision()
 	elseif kind == "PrecisionShoot" then
-		fire(discretePower)
+		fire(discretePower, 0) -- a short jab from the cue at rest
 	elseif kind == "PrecisionPlace" then
 		targets:nudge(value.sx, value.sy)
 	elseif kind == "PrecisionToggle" then
@@ -412,6 +422,7 @@ local function acquireTable(s: any?)
 		input:resetSpin()
 		UI.setPlayControlsVisible(false)
 		CueStickBuilder.setVisible(cueStick, false)
+		BridgeBuilder.setVisible(rake, false)
 		if guideline then
 			guideline:destroy()
 			guideline = nil
@@ -449,6 +460,9 @@ local function acquireTable(s: any?)
 		input:resetSpin()
 		currentPull = 0
 		lastAim, lastPull = nil, nil
+		-- A new turn (the same shooter again included) aims afresh, never from the last
+		-- shot's frozen stance.
+		avatar:newTurn()
 		-- The break and a foul's ball in hand open wider than the home view.
 		Camera.setBallInHand(s.ballInHand == true)
 		Camera.resetZoom()
@@ -484,6 +498,8 @@ lounge:onSnapshot(function(s)
 end)
 lounge:onShotRejected(function()
 	awaitingAt = nil
+	-- The shot never happened: back from the stroke to aiming, the cue drawn again.
+	avatar:cancelStroke()
 	refreshAim()
 end)
 input:onLeave(leave)
@@ -633,6 +649,21 @@ end
 input:setEnabled(false)
 UI.setPlayControlsVisible(false)
 CueStickBuilder.setVisible(cueStick, false)
+BridgeBuilder.setVisible(rake, false)
+-- What the avatar is handed every frame, filled in place rather than built anew.
+local avatarContext: Avatar.Context = {
+	placement = nil,
+	teamSize = 1,
+	state = nil,
+	cueX = nil,
+	cueY = nil,
+	angle = 0,
+	pull = 0,
+	spin = nil,
+	showCue = false,
+	aimTurn = false,
+	cameraPos = nil,
+}
 RunService.RenderStepped:Connect(function(dt)
 	local busy = lounge:update(dt)
 	for _, mode in M.Modes do
@@ -709,7 +740,11 @@ RunService.RenderStepped:Connect(function(dt)
 				avatar:take()
 			end
 		else
+			-- The turn passed, a foul handed the table over, the game ended: the body is the
+			-- player's again, where it stands (the server lets the root go there).
 			avatar:release()
+			CueStickBuilder.setVisible(cueStick, false)
+			BridgeBuilder.setVisible(rake, false)
 			releaseMouse()
 		end
 	end
@@ -737,6 +772,8 @@ RunService.RenderStepped:Connect(function(dt)
 			else
 				Camera.beginShot(0)
 			end
+			-- The replay has the ball moving: the stroke may follow through now.
+			avatar:ballMoving()
 		end
 		-- The shot "plays" until the server resolves it, not just while the balls roll: the
 		-- pulled-out view stays put through the settle, and only the NEXT turn decides where
@@ -754,18 +791,33 @@ RunService.RenderStepped:Connect(function(dt)
 			if busy then movingBallWorlds() else nil,
 			hold
 		)
+		-- The shooter's body, then the cue and the rake in the very frame the hands hold. After
+		-- the stroke the body idles on its own at the spot it shot from, through Resolving.
 		if shooter() then
-			if phase == "Resolving" then
-				avatar:conceal()
-			else
-				avatar:take()
-				avatar:update(
-					placement,
-					cueWorld(),
-					Camera.aimDirection(input.angle),
-					Config.Avatar.AimTransparency,
-					Camera.position()
-				)
+			avatar:take()
+			local cue = match:findCueBall()
+			local live = cue ~= nil and not cue.pocketed
+			local ctx = avatarContext
+			ctx.placement = placement
+			ctx.teamSize = snapshot.teamSize or 1
+			ctx.state = match.state
+			ctx.cueX = if live then cue.x else nil
+			ctx.cueY = if live then cue.y else nil
+			ctx.angle = input.angle
+			ctx.pull = currentPull
+			ctx.spin = input:getSpin()
+			ctx.showCue = canShoot() and not targets:isDragging()
+			ctx.aimTurn = aimTurn()
+			ctx.cameraPos = Camera.position()
+			local out = avatar:update(dt, ctx)
+			CueStickBuilder.setVisible(cueStick, out.visible)
+			if out.visible then
+				CueStickBuilder.placeAt(cueStick, out.tip, out.extension)
+				Camera.fadeNear(cueStick, Config.Cue.CameraFadeStuds)
+			end
+			BridgeBuilder.setVisible(rake, out.rakeVisible)
+			if out.rakeVisible then
+				Camera.fadeNear(rake, Config.Cue.CameraFadeStuds)
 			end
 		end
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default

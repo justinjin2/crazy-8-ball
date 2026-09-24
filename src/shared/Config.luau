@@ -452,6 +452,11 @@ Config.Cue = {
 	-- dips into a rail while turning, and settles slowly so it does not bob. (tune)
 	VisualPitchRiseSeconds = 0.03,
 	VisualPitchFallSeconds = 0.12,
+	-- The shooter's own cue and rake fade out on their screen (LocalTransparencyModifier) as a
+	-- part comes within this many studs of the camera, gone entirely at the camera itself, so
+	-- a steeply raised butt swinging past the lens never blocks the view. Everyone else sees
+	-- them whole. (tune)
+	CameraFadeStuds = 1.5,
 
 	-- What a cue LOOKS like, as data. Segments run tip to butt, each a share of the length
 	-- and a colour; the cue tapers linearly from TipWidth to ButtWidth. See CueArt.luau.
@@ -898,13 +903,14 @@ Config.Camera = {
 Config.Pad = {
 	-- Where the pad sits: this far from the table centre, towards the head rail, on the
 	-- floor of that table's tier. It has to clear the place the SHOOTER stands, not just
-	-- the rail: the table half-length with rails is 8.88 studs and AvatarPose parks the
-	-- shooter at the rim, so a pad reaching in to 8.88 would sit under their feet and seat
-	-- them again the instant they left.
+	-- the rail: the table half-length with rails is 8.88 studs and ShooterStance can stand
+	-- the shooter just outside the barrier at the head rail, where they are let go when the
+	-- turn passes, so a pad reaching in that far would sit under their feet and seat them
+	-- again the instant they left.
 	DistanceStuds = 14,
 	SizeStuds = { 6, 0.08, 6 },
-	-- How close the character has to be to count as standing on it. 14 - 3 = 11 studs, well
-	-- clear of the shooter at the rim.
+	-- How close the character has to be to count as standing on it: 14 - 3 = 11 studs from
+	-- the table centre at the nearest.
 	RadiusStuds = 3,
 	-- Occupancy is polled on the server rather than using .Touched, which misses a player
 	-- who walks on and stands still. Two polls in a row are needed before it counts, so
@@ -976,75 +982,23 @@ Config.Aim = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Avatar (the shooter's R15 character at the table)
+-- Avatar (the shooter's character at the table, R15 or R6)
 ---------------------------------------------------------------------------------------------
 Config.Avatar = {
-	-- Transparency while aiming (1 = invisible).
-	AimTransparency = 0.9,
-	-- The shooter is hidden outright while the balls are moving, and comes back when they
-	-- stop. Watching a faded body slide around the cloth chasing the cue ball was worse
-	-- than not seeing them at all, and the shot is the thing worth looking at.
-	HideWhileShooting = true,
-	-- Hats, hoods, wings and other accessories are hidden while aiming so they cannot cover
-	-- the table; the body itself stays as a faded silhouette.
+	-- How see-through the local shooter sees their own body (1 = invisible): while aiming and
+	-- through the stroke, then in the idle stance at the shot spot while the balls roll. Only
+	-- on their own screen: everyone else always sees the body whole.
+	AimTransparency = 0.9, -- aiming and through the stroke
+	IdleTransparency = 0.9, -- in the idle stance after the stroke
+	-- Hats, hoods, wings and other accessories are hidden on the shooter's own screen (aiming
+	-- and idle alike) so they cannot cover the table; the body stays a faded silhouette.
 	HideAccessoriesWhileAiming = true,
 	-- When the camera ends up close to the character (the ball at the near rail, aiming
 	-- away), the character fades out completely so it never covers the cue ball. Fully
-	-- invisible within FadeNearStuds of the camera, the normal AimTransparency from
-	-- FadeFarStuds out, blended in between.
+	-- invisible within FadeNearStuds of the camera, the normal transparency (AimTransparency
+	-- or IdleTransparency) from FadeFarStuds out, blended in between.
 	FadeNearStuds = 3,
 	FadeFarStuds = 8,
-	-- Where the character stands (studs, avatar scale): this far behind the cue ball along
-	-- the aim line, and shifted sideways so the cue runs past the chin (positive = the
-	-- shooter's right).
-	StandBackStuds = 3.6,
-	SideOffsetStuds = 0.35,
-	-- When that spot would be on the table, the character stands at the rail instead and
-	-- reaches over it. The stretch pose blends in over this many studs of reach past a
-	-- normal stance. It used to be 1.2, but a plain shot from the middle of the table is
-	-- already 5.3 studs of reach, so EVERY shot came out at full stretch - which is why the
-	-- shooter always looked like they were lying across the cloth.
-	StretchBlendStuds = 6,
-	-- Past a certain reach there is no stance that reads as a person: the cue ball against
-	-- the far cushion with the shot going INTO it is nearly the length of the table away
-	-- from anywhere you could stand. Rather than contort further, the body fades out.
-	-- In STUDS of reach past a normal stance, so it is comparable with StretchBlendStuds:
-	-- a shot from the middle of the table is about 5.3 and stays fully visible, while the
-	-- worst reach on a 9 ft table is about 13 and is gone.
-	ReachFadeStartStuds = 8,
-	ReachFadeEndStuds = 12,
-	-- Procedural aiming pose. Joint rotations in degrees applied on top of the rest pose:
-	-- {pitch, yaw, roll} as CFrame.Angles(X, Y, Z). Negative pitch = bend/tilt forward.
-	Pose = {
-		Waist = { -68, 0, 0 },
-		Neck = { 62, 0, 0 },
-		LeftShoulder = { -75, 0, 30 }, -- bridge arm reaches forward along the cue
-		LeftElbow = { -15, 0, 0 },
-		LeftWrist = { -20, 0, 0 },
-		RightShoulder = { 30, 0, -28 }, -- grip arm hangs back along the butt
-		RightElbow = { -85, 0, 0 },
-		RightWrist = { 0, 0, 0 },
-		LeftHip = { 12, 18, 0 },
-		RightHip = { -12, -18, 0 },
-		LeftKnee = { -10, 0, 0 },
-		RightKnee = { -10, 0, 0 },
-	},
-	-- Stretching over the rail: torso nearly flat, bridge arm fully extended, back leg
-	-- lifted for balance, like a player reaching for a long shot.
-	StretchPose = {
-		Waist = { -88, 0, 0 },
-		Neck = { 78, 0, 0 },
-		LeftShoulder = { -100, 0, 18 },
-		LeftElbow = { 0, 0, 0 },
-		LeftWrist = { -10, 0, 0 },
-		RightShoulder = { 10, 0, -18 },
-		RightElbow = { -60, 0, 0 },
-		RightWrist = { 0, 0, 0 },
-		LeftHip = { 40, 8, 0 },
-		RightHip = { -6, -10, 0 },
-		LeftKnee = { -25, 0, 0 },
-		RightKnee = { -4, 0, 0 },
-	},
 
 	-- The posed shooter (AvatarPose), R15 and R6. ShooterStance decides where the body stands,
 	-- how far the torso leans and where the hands go; these shape the rest of the body around
@@ -1180,6 +1134,43 @@ Config.Avatar = {
 		Straightness = 0.99,
 		MaxHipDropStuds = 0.5,
 	},
+	-- The stroke once the shot is fired (ShooterPoser): the tip accelerates into the ball, rests
+	-- on it until the replay has the ball moving, follows through past contact, holds there,
+	-- and then the shooter stands up into the idle. Seconds and studs. (tune)
+	Stroke = {
+		Seconds = 0.1, -- the local shooter's stroke, from the wind-up to contact
+		-- A watched shooter's: quicker, because their replay has already started by the time
+		-- the stroke is seen.
+		WatcherSeconds = 0.06,
+		FollowThroughStuds = 0.35, -- how far past contact the tip goes
+		FollowSeconds = 0.08, -- ...and how long it takes to get there
+		HoldSeconds = 0.25, -- held at the follow-through before the idle
+		-- The longest the tip rests on the ball waiting for the replay (a slow server): after
+		-- this the stroke gives up and the shooter idles anyway.
+		MaxWaitSeconds = 1.5,
+	},
+	-- How a posed body's root follows its stance (ShooterPoser). The hands are never eased:
+	-- they stay on the cue. (tune)
+	Motion = {
+		-- The root eases toward a moving stance, settling in about this long (seconds).
+		RootSmoothingSeconds = 0.12,
+		-- ...but jumps straight there when it is more than this far away (studs), as it does on
+		-- the first frame of aiming.
+		SnapStuds = 3,
+	},
+	-- Everyone else's shooter as this client poses them (WatchedShooters), only at the tables
+	-- whose balls are drawn (Config.Lounge.RenderedTables).
+	Watch = {
+		-- Beyond this distance from the camera (studs) a watched shooter is posed less often:
+		-- a few pixels tall, a lower rate cannot be seen. (tune)
+		FarStuds = 60,
+		-- ...at most this many times a second out there (a stroke starting or the hand-over to
+		-- idle still lands at once). Nearer, every frame. (tune)
+		FarPosesPerSecond = 15,
+		-- A posed body's parts stop colliding on this client until it is let go, so a body
+		-- posed here over the rail can never shove this player's own character.
+		NoCollidePosed = true,
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1192,15 +1183,16 @@ Config.Stance = {
 	-- The body when a character cannot be measured, in studs above the floor: root centre,
 	-- the hip line the torso leans about, the shoulder pivots, half the shoulder span, one
 	-- arm from the shoulder pivot to the grip, and the half extents of the body's footprint.
-	-- An R15 block rig. (verify in Studio)
+	-- The default R15 rig as AvatarPose.measureBody measures it in Studio (2026-09-24; the
+	-- default R6 rig measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5).
 	DefaultBody = {
-		RootHeight = 3.0,
-		WaistHeight = 2.8,
-		ShoulderHeight = 4.2,
-		ShoulderHalfWidth = 1.0,
-		ArmReach = 2.2,
+		RootHeight = 3.192,
+		WaistHeight = 2.592,
+		ShoulderHeight = 4.039,
+		ShoulderHalfWidth = 0.972,
+		ArmReach = 1.931,
 		HalfWidth = 1.0,
-		HalfDepth = 0.5,
+		HalfDepth = 0.58,
 	},
 	-- An open stance: the body faces this far right of the cue line (a right-hander's hips
 	-- turn away from the stroking arm), with the chin this far left of the cue. (tune)
@@ -1253,9 +1245,10 @@ Config.Stance = {
 	FenceMarginStuds = 0.2,
 	-- The automatic cue extension: this much longer than the reach strictly needs, kept until
 	-- the need falls this far below zero, and never longer than MaxExtensionStuds. Measured on
-	-- an open table: a ball frozen on the far rail, shot straight at it, needs about 9.5 (an
-	-- R6 rig 10.6); the far corner on a diagonal needs up to 11.9 for R15, and an R6 rig can
-	-- hit the cap there, when the stance reports the grip out of reach. (tune)
+	-- an open table with the measured rigs: a ball frozen on the far rail, shot straight at
+	-- it, needs about 9.7 (R6 10.7); a ball in a corner shot back along the diagonal needs up
+	-- to 12.2 (R6 13.5), so both can hit the cap there, when the stance reports the grip out
+	-- of reach. (tune)
 	ExtensionMarginStuds = 0.25,
 	MaxExtensionStuds = 12,
 	-- A steep cue can pass above the grip arm's reach at the lean the stance chose. Then the
@@ -1273,9 +1266,17 @@ Config.Stance = {
 		LeanDegrees = 30, -- torso lean while using it: nearly upright
 		-- Where the off hand holds the handle: ahead of the root and out at the left
 		-- shoulder, this far below shoulder height (raised if the handle would touch the
-		-- rail).
+		-- rail). A raise that takes it out of the arm's full reach (ArmMaxFraction) slides the
+		-- hand down the shaft into reach, and a shaft passing above the reach altogether turns
+		-- about the head, the least either way, into a clear line the arm reaches.
 		HoldForwardStuds = 0.6,
 		HoldBelowShoulderStuds = 0.9,
+		-- That turn's search: whole steps of HoldTurnStepDegrees out to HoldTurnMaxDegrees
+		-- either way, then this many halvings of the last step (or, when no line reaches,
+		-- this many thirds round the nearest miss). (internal)
+		HoldTurnStepDegrees = 2,
+		HoldTurnMaxDegrees = 90,
+		HoldTurnBisections = 16,
 		HeadInsetInches = 2, -- the head stays on the cloth, this far inside the cushion
 		RailClearanceInches = 0.2, -- the handle's underside clears the rail top by this much
 		HandleBeyondHandStuds = 0.4, -- handle left showing beyond the hand
@@ -1284,8 +1285,9 @@ Config.Stance = {
 		-- the hand to hold it where the body wants it (a far ball, the shooter back at the
 		-- near rail), an extension is screwed onto the shaft's butt, whole
 		-- Config.Cue.Extension.LengthStepStuds at a time and never longer than this (studs);
-		-- only past it does the hand slide in toward the head. Measured over the stance sweep:
-		-- about 11.9 at the pitches the cue really takes, 13.3 at a forced 40 degrees. (tune)
+		-- only past it does the hand slide in toward the head. Measured over the stance sweep
+		-- with the measured rigs: about 12.1 (R6 12.3) at the pitches the cue really takes,
+		-- 13.5 (R6 13.7) at a forced 40 degrees. (tune)
 		MaxExtensionStuds = 14,
 	},
 }
@@ -2152,7 +2154,7 @@ Config.Multiplayer = {
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		MarginStuds = 0.6, -- beyond the rails; stays clear of the queue pads
 		HeightStuds = 14, -- well above a character's jump
-		ReleaseClearanceStuds = 1.2, -- a released shooter is stepped this far outside it
+		ReleaseClearanceStuds = 1.2, -- the shooter's root stands at least this far outside it (ShooterStance), so a shooter let go where they stand is clear of it
 	},
 	Fence = { -- invisible walls around each match area; stop participants only (PoolFence group)
 		MinHalfLengthStuds = 13, -- along the table, from its centre, at the least

@@ -143,8 +143,8 @@ function Placement.barrierHalfExtents(): (number, number)
 end
 
 --- If a world point is inside the barrier (grown by `clearance` studs), the nearest world
---- point that is `clearance` clear of it; otherwise nil. Used to step a character that was
---- posed against the rail back out before it is handed back to physics.
+--- point that is `clearance` clear of it; otherwise nil. ShooterStance never stands a shooter
+--- inside it; ShooterPoser checks that in Studio.
 function Placement.outsideBarrier(
 	p: Placement,
 	worldX: number,

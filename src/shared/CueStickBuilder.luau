@@ -233,28 +233,6 @@ function CueStickBuilder.placeAt(model: Model, tipCF: CFrame, extensionStuds: nu
 	CueStickBuilder.setExtension(model, extensionStuds)
 end
 
---- Point the stick at a cue ball: placeAt(frame(...)). The first four or five arguments are
---- the old call and still draw the cue at the physics elevation with no extension. A
---- degenerate `dir` leaves the stick where it is.
-function CueStickBuilder.place(
-	model: Model,
-	ballPos: Vector3,
-	dir: Vector3,
-	gapStuds: number,
-	spin: Spin?,
-	pitchDegrees: number?,
-	extensionStuds: number?
-)
-	if Vector3.new(dir.X, 0, dir.Z).Magnitude < 1e-6 then
-		return
-	end
-	CueStickBuilder.placeAt(
-		model,
-		CueStickBuilder.frame(ballPos, dir, gapStuds, spin, pitchDegrees),
-		extensionStuds
-	)
-end
-
 --- Show or hide the stick. The extension shows only while it has a length.
 function CueStickBuilder.setVisible(model: Model, visible: boolean)
 	if model:GetAttribute("Visible") == visible then
