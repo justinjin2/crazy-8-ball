@@ -876,3 +876,25 @@ no 4K. A single unique cloth image cannot reach the close aim view's density eve
 (about 230 px per stud against about 420 to 560 needed); a 2048 tile every 3 studs gives
 about 680. This replaces the "eight 1024 maps" budget with about 10 to 12 images for all
 looks. Blender runs headless from Claude Code; the Blender MCP is configured only for Codex.
+
+2026-09-24: Table de-risk tests (STUDIO_NOTES, "SurfaceAppearance facts") changed four details
+of the remake:
+- UVs outside 0..1 repeat, so the cloth uses continuous UVs over a repeating tile, with no
+  cuts in the mesh.
+- Studio uploads render at 1024 (measured with a 1-pixel checker; 2048 and 4096 uploads show a
+  resampling beat pattern). So every table map is authored at 4096 and uploaded at 1024. That
+  is also the most low-end phones get, so every device sees the full design.
+  - The cloth tile repeats every 1.5 studs, which gives 683 px per stud, the same density the
+    2048-every-3-studs plan had.
+  - The wood is split into two meshes: Rails, with its own 1024 sheet at about 400 px per stud
+    and the grain along each rail; and Body (skirt, cabinet, corner blocks and legs) at about
+    200 px per stud.
+  - About 16 images at 1024 (roughly 22 MB compressed) replace "10 to 12 images, cloth and
+    wood at 2048". Revisit 2048 only if a Creator Dashboard upload is shown to render above 1K.
+- Vertex colours do not show under a SurfaceAppearance. The cloth's shading near the cushions
+  and pockets goes in the transparent Marks overlay (alpha 0.2 and up where possible, because
+  fainter alpha dithers). The wood's shading is painted into its sheets.
+- The chrome caps use metalness 1 and roughness about 0.15, which reads as polished chrome
+  under this place's Sky.
+Not tested: whether different cloth tints per look break instancing (low priority; the
+fallback is one cloth colour map per look).

@@ -32,6 +32,7 @@ Read when something misbehaves. Everything here was learned the hard way.
   through the Client datamodel (for example `WorldToViewportPoint`).
 - `upload_image` needs http URLs: `python3 -m http.server 8765 --bind 127.0.0.1 --directory
   assets`, batches of four or Studio disconnects. `generate_material` needs `materialId`.
+  Images uploaded this way render at 1024 at most (see SurfaceAppearance facts).
 - MCP tools can leave Edit `UserInputService.MouseBehavior = LockCurrentPosition` (cursor
   trapped in the viewport); reset it to Default after previews.
 - Mouse and keyboard input tools are flaky (coordinates scale with the device emulator,
@@ -42,6 +43,42 @@ Read when something misbehaves. Everything here was learned the hard way.
 - The user gave standing permission to stop an active Studio play session when verifying.
 - EditableMesh (`AssetService:CreateEditableMeshAsync`) reads triangle counts of the user's own
   meshes in Edit mode.
+
+## SurfaceAppearance facts (tested 2026-09-24)
+
+These come from the table remake's de-risk tests. They ran in Edit mode through `execute_luau`:
+- EditableMesh quads were turned into MeshParts with
+  `AssetService:CreateMeshPartAsync(Content.fromObject(em))`.
+- EditableImages were set through `SurfaceAppearance.ColorMapContent` and the other
+  `*MapContent` properties.
+- Uploaded test images were used as well.
+
+What was found:
+- **UVs outside 0..1 repeat.** This holds for EditableImages and for uploaded images. A quad
+  with UVs 0..4 shows the texture 4x4 times. A seamless tile on continuous UVs shows no seams at
+  any distance. So a tiling texture needs no cuts in the mesh.
+- **`SurfaceAppearance.Color` multiplies the ColorMap.** A 0.94 grey map tinted #01A9F7 matches
+  a SmoothPlastic part of that colour. The tint is script-writable.
+- **Vertex colours are ignored once a SurfaceAppearance is present.** They show only on a bare
+  MeshPart. Shading on a SurfaceAppearance mesh has to come from its maps or from an overlay.
+- **Normal maps are OpenGL (+Y toward the image top), and UV (0,0) is the image's top-left
+  corner.** A painted dome shaded exactly like a real bump.
+- **A missing Metalness map means non-metal.** A missing Roughness map looks fairly matte,
+  rougher than an explicit 0.5.
+- **Chrome** (albedo 214,209,203, metalness 1) reads as polished chrome under this place's Sky at
+  roughness 0.08 to 0.18. At 0.3 it is softer.
+- **Transparent overlays work.** `AlphaMode.Transparency` on a quad 0.002 studs above another
+  surface shows no z-fighting. Very faint alpha (0.04 to 0.08) gets a fine even dither grain from
+  the renderer; alpha 0.2 and up is smooth.
+- **Images uploaded from Studio render at 1024.**
+  - `upload_image` accepted 2048 and 4096 PNGs.
+  - Close up, a 1-pixel checker in the 2048 image shows a resampling beat pattern, while the same
+    checker at 1024 is crisp, even at QualityLevel 21 after waiting.
+  - An EditableImage read-back cannot tell you the stored size: EditableImages cap at 1024.
+  - DevForum reports say only Creator Dashboard uploads keep 4K.
+  - So design every map to look right at 1024.
+- **Studio uploads belong to the user who uploads them** (user 544959133), not the group that owns
+  the game. The current table's maps and meshes are owned the same way and work in play.
 
 ## Testing by hand (the two checks an agent cannot do)
 
