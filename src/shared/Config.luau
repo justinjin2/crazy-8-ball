@@ -1024,6 +1024,9 @@ Config.Input = {
 -- Guideline
 ---------------------------------------------------------------------------------------------
 Config.Guideline = {
+	-- TEMPORARY (2026-09-23): the designer is trying the game with no aim lines at all,
+	-- aiming off the cue stick and the view alone. Set back to true to restore the guideline.
+	Enabled = false,
 	-- Length of the short lines drawn after first contact at their longest. Off a ball each is
 	-- scaled by the share of speed it carries (Aim.Trace): the object ball's line is full on
 	-- a straight-on hit and shrinks as the cut gets thinner, the cue ball's does the reverse,

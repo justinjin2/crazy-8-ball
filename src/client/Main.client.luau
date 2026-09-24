@@ -158,8 +158,15 @@ local function refreshAim()
 			snapshot.groups[snapshot.activeTeam],
 			trace.objectId
 		)
-	guideline:show(trace, invalid)
-	hud:setInvalidTarget(invalid)
+	-- Config.Guideline.Enabled off hides every aim aid (lines and the invalid-target hint),
+	-- leaving only the cue stick to aim by.
+	if Config.Guideline.Enabled then
+		guideline:show(trace, invalid)
+		hud:setInvalidTarget(invalid)
+	else
+		guideline:hide()
+		hud:setInvalidTarget(false)
+	end
 	CueStickBuilder.setVisible(cueStick, true)
 	CueStickBuilder.place(
 		cueStick,

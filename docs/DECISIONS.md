@@ -751,3 +751,7 @@ table model. Table skins, the table loot box and limited Founder's/Beta/VIP tabl
 Phase 9 (after release) and the GDD's parked list. The catalog's item `type` field keeps
 room for tables later. Roadmap 5.3 removed; 7.2, 7.3, trading, GDD section 12, ARCHITECTURE
 data model and CLAUDE.md updated to match. No code implemented table skins, so none changed.
+
+2026-09-23: TEMPORARY difficulty trial: Config.Guideline.Enabled = false hides the aim
+corridor, contact ring, object/cue lines and the invalid-target hint; only the cue stick
+remains. Set it back to true to restore the Classic guideline.
