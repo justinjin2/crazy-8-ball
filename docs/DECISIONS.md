@@ -786,3 +786,6 @@ turn. Config.Multiplayer.RailAfterContact = {Casual = false, Ranked = true}; a t
 `ranked` flag picks it (all tables are casual until ranked exists). The break rule is
 unchanged. The wrong-ball foul now reads "You must hit one of your own balls first.",
 avoiding "color" (a solid and a stripe share each color).
+
+2026-09-23: Guideline object/cue lines shortened from 16 to 11 in at their longest (still
+scaled by the cut) to make aiming a little harder.

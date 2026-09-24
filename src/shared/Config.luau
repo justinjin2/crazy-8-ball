@@ -1041,7 +1041,7 @@ Config.Guideline = {
 	-- like the classic phone pool games. CueStubScale sets the cue line's longest relative to
 	-- the object line's; RailStubScale is the fixed cue line off a cushion. A line shorter
 	-- than MinStubInches is not drawn. (tune)
-	StubLengthInches = 16,
+	StubLengthInches = 11, -- 16 made aiming too easy (2026-09-23)
 	CueStubScale = 1.0,
 	RailStubScale = 0.6,
 	MinStubInches = 0.4,
