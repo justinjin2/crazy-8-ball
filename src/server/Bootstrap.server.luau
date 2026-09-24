@@ -20,6 +20,28 @@ local TableService = require(script.Parent:WaitForChild("TableService"))
 -- Remotes first: TableService and every client look them up by name.
 Net.build()
 
+-- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
+-- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they
+-- are there when a client first asks. Each is checked for the class its user expects; a
+-- missing one says what the game falls back to.
+local assets = ReplicatedStorage:FindFirstChild("Assets") or Instance.new("Folder")
+assets.Name = "Assets"
+assets.Parent = ReplicatedStorage
+local function publish(name: string, class: string, missing: string)
+	local found = ServerStorage:FindFirstChild(name)
+	if found and found:IsA(class) then
+		local old = assets:FindFirstChild(name)
+		if old then
+			old:Destroy()
+		end
+		found:Clone().Parent = assets
+	else
+		warn(("[8ball] no ServerStorage.%s: %s"):format(name, missing))
+	end
+end
+publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
+publish(Config.Bridge.Template, "Model", "the bridge uses the parts fallback")
+
 -- The lounge lives in the place: its meshes, textures and materials are all things a game
 -- script may not create. With it switched off none of that is expected to be there.
 if Config.Lounge.Enabled and not LoungeBuilder.isImported(workspace) then
@@ -74,25 +96,6 @@ end
 -- inputs, this decides what actually happened.
 TableService.start(workspace)
 ShotService.start()
-
--- Publish the imported ball mesh to clients (MeshId is plugin-only, so it lives in the place).
-local assets = ReplicatedStorage:FindFirstChild("Assets") or Instance.new("Folder")
-assets.Name = "Assets"
-assets.Parent = ReplicatedStorage
-local ballMesh = ServerStorage:FindFirstChild(Config.Balls.MeshTemplate)
-if ballMesh and ballMesh:IsA("MeshPart") then
-	local old = assets:FindFirstChild(ballMesh.Name)
-	if old then
-		old:Destroy()
-	end
-	ballMesh:Clone().Parent = assets
-else
-	warn(
-		("[8ball] no ServerStorage.%s: balls use the decal fallback"):format(
-			Config.Balls.MeshTemplate
-		)
-	)
-end
 
 -- No per-table light any more. One shadow-casting SpotLight was fine above a single table
 -- and is the most expensive thing twelve tables could carry. The lounge's own pendant

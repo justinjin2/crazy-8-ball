@@ -27,7 +27,8 @@
 --   4. The mode is what reaches: a hand bridge standing, a hand bridge leaning further in,
 --      the rake ("bridge"), or the rake with an automatic cue extension ("extension") when
 --      even the rake's cue cannot reach the grip hand. Each boundary has hysteresis through
---      the Memory threaded from the last frame.
+--      the Memory threaded from the last frame. A steep cue passing above the grip arm's
+--      reach stands the torso up (Stance.UprightWhenGripOutOfReach).
 --
 -- The rake's contract with BridgeBuilder (Config.Bridge is the model's geometry): the cue
 -- rests in the chosen notch at (headX, headY, headZ), headZ being that notch's rest height
@@ -36,7 +37,8 @@
 -- from the notch, +X being the aim's right) and BridgeBuilder turns the model about the notch
 -- so the shaft passes through (holdX, holdY, holdZ), where the off hand holds it. The rail
 -- clearance of the shaft is worked out on that line before the small turn about the notch,
--- which moves the attachment almost only along the shaft itself.
+-- which moves the attachment almost only along the shaft itself. A shaft too short to reach
+-- the hand gets extensionStuds more of it past its butt, which BridgeBuilder draws.
 
 local Config = require(script.Parent.Config)
 local CueShape = require(script.Parent.CueShape)
@@ -114,8 +116,11 @@ export type Rake = {
 	-- (positive: the cue floats above the notch); 0 when it rests in one.
 	hover: number,
 	cueZ: number, -- the cue's axis height over the head (within the tolerance of headZ, or hover)
-	-- How far the hold had to slide toward the head because the shaft is not long enough to
-	-- reach where the hand wanted it; 0 normally.
+	-- The shaft's automatic extension past its butt (studs, whole LengthStepStuds): 0 while
+	-- the shaft itself reaches the hand, else the least that does, up to Rake.MaxExtensionStuds.
+	extensionStuds: number,
+	-- How far the hold had to slide toward the head because even the longest extension does
+	-- not reach where the hand wanted it; 0 normally.
 	slideStuds: number,
 	holdReachable: boolean, -- the off hand can reach the hold
 	-- The head stands on the cloth: the notch and the head's centre line (where the shaft
@@ -345,11 +350,9 @@ function ShooterStance.solve(q: Input): Stance
 	local slack = if remembered == "bridge" or remembered == "extension"
 		then S.ModeHysteresisStuds
 		else 0
-	local function handReaches(lambda: number): boolean
-		local a = tilt(lambda)
+	-- Does the left shoulder, with the torso leaning `a` from vertical, reach the bridge?
+	local function bridgeWithin(a: number, reach: number): boolean
 		local k = T * math.sin(a)
-		local reach = body.ArmReach
-			* (S.ArmNaturalFraction + (S.ArmMaxFraction - S.ArmNaturalFraction) * lambda)
 		return distance(
 			rx + fx * k + blx * shw,
 			ry + fy * k + bly * shw,
@@ -358,6 +361,13 @@ function ShooterStance.solve(q: Input): Stance
 			hy,
 			hz
 		) <= reach - slack
+	end
+	local function handReaches(lambda: number): boolean
+		return bridgeWithin(
+			tilt(lambda),
+			body.ArmReach
+				* (S.ArmNaturalFraction + (S.ArmMaxFraction - S.ArmNaturalFraction) * lambda)
+		)
 	end
 	local mode: Mode = "bridge"
 	local lambda = 0
@@ -383,11 +393,12 @@ function ShooterStance.solve(q: Input): Stance
 	local sPref =
 		math.clamp((d + S.GripBehindRootStuds) / c, sLo, math.max(sLo, math.min(sHi0, sCap)))
 	local torso, shx, shy, shz, sSh, rho, shortfall = 0, 0, 0, 0, 0, 0, 0
-	local function gripFor(m: Mode)
-		torso = if m == "bridge" then math.min(math.rad(S.Rake.LeanDegrees), cap) else tilt(lambda)
-		local k = T * math.sin(torso)
+	-- The right shoulder with the torso leaning `a` from vertical, and where the cue passes it.
+	local function shoulderAt(a: number)
+		torso = a
+		local k = T * math.sin(a)
 		shx, shy = rx + fx * k - blx * shw, ry + fy * k - bly * shw -- the right shoulder
-		shz = body.WaistHeight + T * math.cos(torso)
+		shz = body.WaistHeight + T * math.cos(a)
 		local wx, wy, wz = shx - px, shy - py, shz - pz
 		sSh = (wx * bx + wy * by) * c + wz * sn -- its nearest point along the axis
 		rho = math.sqrt(math.max(0, wx * wx + wy * wy + wz * wz - sSh * sSh))
@@ -395,36 +406,69 @@ function ShooterStance.solve(q: Input): Stance
 			then (sSh - math.sqrt(reach * reach - rho * rho)) - sHi0
 			else -math.huge
 	end
+	local function leanOf(m: Mode): number
+		return if m == "bridge" then math.min(math.rad(S.Rake.LeanDegrees), cap) else tilt(lambda)
+	end
 	local margin = S.ExtensionMarginStuds
 	local function needsExtension(): boolean
 		return if remembered == "extension" then shortfall + margin > 0 else shortfall > 0
 	end
-	gripFor(mode)
-	if (mode == "stand" or mode == "lean") and needsExtension() then
-		mode, lambda = "bridge", 0
-		gripFor(mode)
-	end
-	local E = 0
-	if mode == "bridge" and needsExtension() then
-		E = math.min(shortfall + margin, S.MaxExtensionStuds)
-		mode = "extension"
-	end
-	local sHi = sHi0 + E
-	local w = if rho <= reach then math.sqrt(reach * reach - rho * rho) else 0
-	local windowLo, windowHi = math.max(sLo, sSh - w), math.min(sHi, sSh + w)
 	local function fromShoulder(along: number): number
 		local gx, gy, gz = axisAt(along)
 		return distance(gx, gy, gz, shx, shy, shz)
 	end
-	local sGrip
-	if fromShoulder(sPref) <= reach then
-		sGrip = sPref
-	elseif rho <= reach and windowLo <= windowHi then
-		sGrip = math.clamp(sPref, windowLo, windowHi)
-	else
-		sGrip = math.clamp(sSh, sLo, sHi)
+	-- The grip in mode `m` with the torso at `a` (nil: the mode's own lean). A hand bridge
+	-- whose cue is too short for the grip hand becomes the rake, and the rake's cue gets the
+	-- extension. Returns the mode, the extension, the grip along the cue from the strike point
+	-- and whether the hand reaches it.
+	local function gripWith(m: Mode, a: number?): (Mode, number, number, boolean)
+		shoulderAt(a or leanOf(m))
+		if (m == "stand" or m == "lean") and needsExtension() then
+			m = "bridge"
+			shoulderAt(a or leanOf(m))
+		end
+		local E = 0
+		if m == "bridge" and needsExtension() then
+			E = math.min(shortfall + margin, S.MaxExtensionStuds)
+			m = "extension"
+		end
+		local sHi = sHi0 + E
+		local w = if rho <= reach then math.sqrt(reach * reach - rho * rho) else 0
+		local windowLo, windowHi = math.max(sLo, sSh - w), math.min(sHi, sSh + w)
+		local along
+		if fromShoulder(sPref) <= reach then
+			along = sPref
+		elseif rho <= reach and windowLo <= windowHi then
+			along = math.clamp(sPref, windowLo, windowHi)
+		else
+			along = math.clamp(sSh, sLo, sHi)
+		end
+		return m, E, along, fromShoulder(along) <= reach + 1e-9 and E < S.MaxExtensionStuds
 	end
-	local gripReachable = fromShoulder(sGrip) <= reach + 1e-9 and E < S.MaxExtensionStuds
+	local handMode: Mode = mode
+	local chosen: Mode, E, sGrip, gripReachable = gripWith(handMode, nil)
+	mode = chosen
+	-- A steep cue passing above the grip arm's reach at this lean: try the torso upright, the
+	-- highest shoulder, and keep whichever shoulder is nearer the cue line. Upright, the off
+	-- hand may no longer reach its hand bridge even fully stretched; then it takes the rake,
+	-- but only when that puts the grip hand on the cue: swapping a hand bridge for the rake
+	-- and still missing the grip is worse than the lean (and would bring the rake out for a
+	-- ball at the shooter's own cushion, between two hand bridges). The root stays where it
+	-- is: it never depends on the mode or the torso.
+	if not gripReachable and S.UprightWhenGripOutOfReach then
+		local leaning, raking = rho, mode == "bridge" or mode == "extension"
+		local upright: Mode = "bridge"
+		if handMode ~= "bridge" and bridgeWithin(0, body.ArmReach * S.ArmMaxFraction) then
+			upright = "stand"
+		end
+		local m: Mode, e, along, reached = gripWith(upright, 0)
+		if rho < leaning and (reached or raking == (m == "bridge" or m == "extension")) then
+			mode, E, sGrip, gripReachable = m, e, along, reached
+			lambda = 0
+		else
+			mode, E, sGrip, gripReachable = gripWith(handMode, nil) -- back to the lean
+		end
+	end
 
 	-- 8. The rake: its head, the notch, and where the off hand holds it. Before the pull,
 	-- because a head that cannot sit clear of a full wind-up limits it.
@@ -515,12 +559,24 @@ function ShooterStance.solve(q: Input): Stance
 				holdZ = math.max(holdZ, attachZ + k * run)
 			end
 		end
-		-- The hand can only be as far out as the shaft is long.
-		local most = B.ShaftStartStuds + B.ShaftLengthStuds - K.HandleBeyondHandStuds
+		-- The hand holds the shaft where the body wants it. A shaft too short to get there
+		-- (a far ball, the body back at the near rail) gets an extension past its butt, like
+		-- the cue's: the least whole number of LengthStepStuds that leaves the handle showing
+		-- beyond the hand, up to Rake.MaxExtensionStuds. Only past that does the hand slide in
+		-- toward the head.
+		local shaftEnd = B.ShaftStartStuds + B.ShaftLengthStuds
 		local hx3, hy3, hz3 = holdX - attachX, holdY - attachY, holdZ - attachZ
 		local held = math.sqrt(hx3 * hx3 + hy3 * hy3 + hz3 * hz3)
+		local need = held + K.HandleBeyondHandStuds - shaftEnd
+		local extension = 0
+		if need > 0 then
+			local step = C.Extension.LengthStepStuds
+			extension =
+				math.min(math.max(1, math.ceil(need / step - 1e-9)) * step, K.MaxExtensionStuds)
+		end
+		local most = shaftEnd + extension - K.HandleBeyondHandStuds
 		local slide = 0
-		if held > most then
+		if held > most + 1e-9 then
 			local k = most / held
 			holdX, holdY, holdZ = attachX + hx3 * k, attachY + hy3 * k, attachZ + hz3 * k
 			slide, held = held - most, most
@@ -545,6 +601,7 @@ function ShooterStance.solve(q: Input): Stance
 			length = held + K.HandleBeyondHandStuds,
 			hover = if bestFits then 0 else bestErr,
 			cueZ = pz + h * tn,
+			extensionStuds = extension,
 			slideStuds = slide,
 			holdReachable = leftShoulder <= reach + 1e-9,
 			onCloth = bestOnCloth,

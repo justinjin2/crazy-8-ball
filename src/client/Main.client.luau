@@ -8,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 local SoundService = game:GetService("SoundService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local AimStream = require(Shared.AimStream)
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Placement = require(Shared.Placement)
@@ -63,6 +64,7 @@ local lastTurnKey = ""
 local lastPhaseKey = ""
 local sinceAim = 0
 local lastAim: number? = nil
+local lastPull: number? = nil -- the wind-up last sent, quantised (AimStream)
 local lastBusy = false
 local wasModal = false
 local audioByTable: { [number]: any } = {}
@@ -323,6 +325,11 @@ local function fire(power: number)
 	if not canShoot() then
 		return
 	end
+	-- The let-go goes first: once awaitingAt is set canShoot() is false, so the aim stream
+	-- would never send the zero, and if the server turns the shot down the watchers' cue
+	-- would stay drawn back.
+	lounge:reportAim(snapshot.id, input.angle, 0)
+	lastPull = 0
 	-- The shot carries the cue ball in hand while the window is open, so the spot and the
 	-- shot land together; after the cutoff the server already holds the locked spot.
 	local x, y = targets:getPreview()
@@ -441,7 +448,7 @@ local function acquireTable(s: any?)
 		awaitingAt = nil
 		input:resetSpin()
 		currentPull = 0
-		lastAim = nil
+		lastAim, lastPull = nil, nil
 		-- The break and a foul's ball in hand open wider than the home view.
 		Camera.setBallInHand(s.ballInHand == true)
 		Camera.resetZoom()
@@ -769,23 +776,27 @@ RunService.RenderStepped:Connect(function(dt)
 		guideline:update(dt)
 	end
 	refreshAim()
-	-- One unreliable stream for the aim and, while it moves, the cue ball in hand.
+	-- One unreliable stream for the aim, the wind-up and, while it moves, the cue ball in hand.
 	sinceAim += dt
 	local seq, px, py
 	if sinceAim >= 1 / Config.Aim.PlacementSendsPerSecond then
 		seq, px, py = targets:takeStream()
 	end
+	local pull = AimStream.quantizePull(currentPull) or 0
+	-- A let-go goes at once, even where canShoot() has just turned false (a modal opening
+	-- mid-pull drops the power), or the watchers' cue would stay drawn back.
+	local aimPhase = shooter()
+		and awaitingAt == nil
+		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
+	local letGo = lastPull ~= nil and lastPull > 0 and pull == 0
 	if
 		seq
-		or (
-			canShoot()
-			and sinceAim >= 1 / Config.Aim.SendsPerSecond
-			and (not lastAim or math.abs(input.angle - lastAim) > Config.Aim.MinChangeRadians)
-		)
+		or (aimPhase and letGo)
+		or (canShoot() and AimStream.due(sinceAim, input.angle, pull, lastAim, lastPull))
 	then
 		sinceAim = 0
-		lastAim = input.angle
-		lounge:reportAim(snapshot.id, input.angle, seq, px, py)
+		lastAim, lastPull = input.angle, pull
+		lounge:reportAim(snapshot.id, input.angle, pull, seq, px, py)
 	end
 	lastBusy = busy
 end)

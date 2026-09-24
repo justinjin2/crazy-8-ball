@@ -32,6 +32,9 @@ function Service.start()
 			-- Grants first, so the owning team already holds its bonus when the replay drops
 			-- the ball and the sting lands with the drop (Audio.grant forgives a late one).
 			Tables.flush(t)
+			-- The shooter's root goes to the exact spot they shot from before anyone sees the
+			-- shot, so its ShotSpot is there by the time their stroke hands over to idle.
+			Tables.shotAccepted(t, player.UserId, payload.angle, payload.spin)
 			Net.get("ShotResult"):FireAllClients(result)
 		else
 			Net.get("ShotRejected"):FireClient(player, reason or "ShotRejected")

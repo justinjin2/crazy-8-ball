@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local AimStream = require(Shared:WaitForChild("AimStream"))
 local Config = require(Shared:WaitForChild("Config"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Net = require(Shared:WaitForChild("Net"))
@@ -46,8 +47,8 @@ export type Lounge = typeof(setmetatable(
 		-- One spare cue stick per pooled renderer, for watching other people line up.
 		cues: { Model },
 		cueOf: { [number]: Model },
-		-- tableId -> the aim and cue-ball spot coming off the wire, and the eased angle and
-		-- spot actually drawn, so a stream of a few a second does not make either step.
+		-- tableId -> the aim, cue-ball spot and wind-up coming off the wire, and the eased
+		-- angle, spot and pull actually drawn, so a stream of a few a second makes none step.
 		aims: {
 			[number]: {
 				angle: number,
@@ -57,6 +58,8 @@ export type Lounge = typeof(setmetatable(
 				y: number,
 				shownX: number,
 				shownY: number,
+				pull: number, -- 0..1, whole 1/Config.Aim.PullSteps steps
+				shownPull: number,
 			},
 		},
 	},
@@ -152,19 +155,22 @@ function Lounge.onShotRejected(self: Lounge, listener: (string) -> ())
 	table.insert(self.rejectListeners, listener)
 end
 
---- Tell the server where we are aiming, so the people watching see the cue turn. While the
---- cue ball is in hand, `seq`, `x` and `y` carry its latest spot on the same packet.
+--- Tell the server where we are aiming and how far the cue is drawn back (`pull`, 0..1,
+--- already snapped by AimStream.quantizePull), so the people watching see the cue turn and
+--- wind up. While the cue ball is in hand, `seq`, `x` and `y` carry its latest spot on the
+--- same packet.
 function Lounge.reportAim(
 	self: Lounge,
 	id: number,
 	angle: number,
+	pull: number,
 	seq: number?,
 	x: number?,
 	y: number?
 )
 	local snapshot = self.snapshots[id]
 	if snapshot then
-		Net.get("AimUpdate"):FireServer(id, angle, snapshot.epoch, snapshot.turnId, seq, x, y)
+		Net.get("AimUpdate"):FireServer(id, angle, snapshot.epoch, snapshot.turnId, pull, seq, x, y)
 	end
 end
 function Lounge.onSnapshot(self: Lounge, listener: (any) -> ())
@@ -226,31 +232,28 @@ function Lounge.listen(self: Lounge)
 		end
 		local seen: { [number]: boolean } = {}
 		for i = 1, #batch, Net.AimStride do
-			local id, by, angle, x, y =
-				batch[i], batch[i + 1], batch[i + 2], batch[i + 3], batch[i + 4]
-			if
-				typeof(id) == "number"
-				and typeof(by) == "number"
-				and typeof(angle) == "number"
-				and typeof(x) == "number"
-				and typeof(y) == "number"
-			then
-				seen[id] = true
-				local existing = self.aims[id]
-				if existing then
-					existing.angle = angle
-					existing.by = by
-					existing.x, existing.y = x, y
+			-- A malformed group is skipped; the rest of the batch still counts.
+			local row = AimStream.read(batch, i)
+			if row then
+				seen[row.id] = true
+				local existing = self.aims[row.id]
+				if existing and existing.by == row.by then
+					existing.angle = row.angle
+					existing.x, existing.y = row.x, row.y
+					existing.pull = row.pull
 				else
-					-- First sighting: draw it where it is rather than easing from zero.
-					self.aims[id] = {
-						angle = angle,
-						shown = angle,
-						by = by,
-						x = x,
-						y = y,
-						shownX = x,
-						shownY = y,
+					-- First sighting, or a new shooter: draw it where it is rather than easing
+					-- from zero or from the last shooter's cue.
+					self.aims[row.id] = {
+						angle = row.angle,
+						shown = row.angle,
+						by = row.by,
+						x = row.x,
+						y = row.y,
+						shownX = row.x,
+						shownY = row.y,
+						pull = row.pull,
+						shownPull = row.pull,
 					}
 				end
 			end
@@ -468,6 +471,7 @@ end
 local function updateWatchedCues(self: Lounge, dt: number)
 	local A = Config.Aim
 	local alpha = 1 - math.exp(-dt / math.max(A.SmoothingSeconds, 1e-3))
+	local pullAlpha = 1 - math.exp(-dt / math.max(A.PullSmoothingSeconds, 1e-3))
 	for id, cue in self.cueOf do
 		local aim = self.aims[id]
 		local match = self.matches[id]
@@ -495,15 +499,19 @@ local function updateWatchedCues(self: Lounge, dt: number)
 			-- raw would visibly step.
 			local delta = (aim.angle - aim.shown + math.pi) % (2 * math.pi) - math.pi
 			aim.shown += delta * alpha
+			-- The wind-up eases too, but quickly, so a let-go still reads as a stroke.
+			aim.shownPull += (aim.pull - aim.shownPull) * pullAlpha
 			CueStickBuilder.setVisible(cue, true)
 			local p = match.placement
 			local ballPos =
 				TableBuilder.toWorld(p, cueBall.x, cueBall.y, Config.Balls.RenderRadiusInches)
+			-- Drawn back exactly as the shooter's own cue is (Main's refreshAim).
 			CueStickBuilder.place(
 				cue,
 				ballPos,
 				TableBuilder.aimDirection(p, aim.shown),
 				TableBuilder.studs(Config.Cue.CueRestGapInches)
+					+ aim.shownPull * Config.Cue.CuePullBackStuds
 			)
 		end
 	end

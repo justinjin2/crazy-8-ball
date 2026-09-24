@@ -407,6 +407,26 @@ Config.Cue = {
 	-- The extension screwed onto the butt when even the rake cannot reach (ShooterStance),
 	-- a touch slimmer than the butt so the joint reads.
 	ExtensionDiameterStuds = 0.19,
+	-- How an extension is drawn (CueStickBuilder on the cue; BridgeBuilder uses the same look
+	-- on the rake's shaft, at the shaft's own width). From the butt outward: a metal joint
+	-- ring, the body, and a metal end cap. Built with the cue and hidden until it is needed.
+	Extension = {
+		Color = { 26, 26, 30 }, -- the body: near-black, so it reads as a separate piece
+		Material = "SmoothPlastic",
+		-- The joint ring where it screws on (studs), and its width as a multiple of the body's.
+		-- 1.05 x 0.19 stays inside the butt's 0.2, so CueShape.radiusAt (the clearance
+		-- envelope, the wider of the butt and the extension past the butt) still covers it.
+		RingLengthStuds = 0.05,
+		RingDiameterScale = 1.05,
+		RingColor = { 176, 180, 188 }, -- the Classic cue's joint collar silver
+		RingMaterial = "Metal",
+		-- The end cap on the cue's extension (studs), in the ring's colour, material and width.
+		-- Very short extensions shrink the ring and the cap to fit.
+		CapLengthStuds = 0.05,
+		-- The drawn length rounds UP to whole steps (studs), so the parts are only resized on
+		-- a real change and the drawn extension is never shorter than the stance asked for.
+		LengthStepStuds = 0.05,
+	},
 	-- Resting gap between the tip and the cue ball while aiming (table inches), how far the
 	-- stick draws back at full power on the bar (studs), and how much the butt is raised.
 	CueRestGapInches = 2.5,
@@ -1025,6 +1045,141 @@ Config.Avatar = {
 		LeftKnee = { -25, 0, 0 },
 		RightKnee = { -4, 0, 0 },
 	},
+
+	-- The posed shooter (AvatarPose), R15 and R6. ShooterStance decides where the body stands,
+	-- how far the torso leans and where the hands go; these shape the rest of the body around
+	-- that. Studs and degrees at normal avatar size.
+	Body = {
+		-- The hips tip further on a taller body: the profile's PelvisPitch is scaled by the
+		-- body's standing root height over NominalStandStuds, kept within LeanScaleMin to
+		-- LeanScaleMax. (tune)
+		NominalStandStuds = 3,
+		LeanScaleMin = 0.85,
+		LeanScaleMax = 1.3,
+		-- How far the body sways back at a full wind-up, following the cue. An R6 arm cannot
+		-- bend to follow it, so an R6 body sways further instead. (tune)
+		FollowStuds = 0.18,
+		R6FollowStuds = 0.35,
+		-- An R6 torso is one piece (no waist): it leans this share of the stance's torso lean,
+		-- about the hip line, so it does not lie flat along the cue. (tune)
+		R6TorsoPitchScale = 0.85,
+	},
+	-- The hips and chest in each stance mode (ShooterStance). Pairs are {at lean 0, at lean 1}
+	-- over the stance's lean (only stand and lean modes have one; bridge and extension are at
+	-- lean 0).
+	--   PelvisPitch          the hips tip forward this far (degrees, never past the torso)
+	--   ChestPitch           the torso's lean when a pose has no stance angle (the stance's
+	--                        torsoDegrees is used whenever it is given; degrees, on top of
+	--                        PelvisPitch)
+	--   HipTwistDegrees      the hips turn this much further open than the stance's facing
+	--   ChestCounterDegrees  the chest turns back this much of that, about its own spine (so
+	--                        the chin stays over the cue)
+	--   ChestRollDegrees     the chest rolls this far, raising the grip-side shoulder
+	--   HipBackStuds         the upper body sits back this far at full lean
+	--   CrouchStuds          ...and this much lower
+	--   LiftFrom             the back foot starts to lift at this lean (none: never lifts)
+	-- (tune)
+	Profiles = {
+		stand = { -- hand bridge at the natural lean
+			PelvisPitch = { 0, 10 },
+			ChestPitch = { 5, 20 },
+			HipTwistDegrees = 20,
+			ChestCounterDegrees = 8,
+			ChestRollDegrees = 0,
+			HipBackStuds = 0.1,
+			CrouchStuds = 0.05,
+		},
+		lean = { -- hand bridge, stretching further in
+			PelvisPitch = { 20, 42 },
+			ChestPitch = { 25, 45 },
+			HipTwistDegrees = 28,
+			ChestCounterDegrees = 12,
+			ChestRollDegrees = 4,
+			HipBackStuds = 0.35,
+			CrouchStuds = 0.15,
+			LiftFrom = 0.75,
+		},
+		bridge = { -- the rake, nearly upright
+			PelvisPitch = { 5, 18 },
+			ChestPitch = { 10, 28 },
+			HipTwistDegrees = 18,
+			ChestCounterDegrees = 6,
+			ChestRollDegrees = 0,
+			HipBackStuds = 0.15,
+			CrouchStuds = 0.05,
+		},
+		extension = { -- the rake with the cue's extension: a touch more upright than bridge
+			PelvisPitch = { 3, 14 },
+			ChestPitch = { 8, 22 },
+			HipTwistDegrees = 16,
+			ChestCounterDegrees = 5,
+			ChestRollDegrees = 0,
+			HipBackStuds = 0.1,
+			CrouchStuds = 0.03,
+		},
+	},
+	-- The head turns to look at the cue ball: this share of the way, never more than these
+	-- angles from the chest (degrees). (tune)
+	Head = {
+		LookWeight = 0.85,
+		MaxPitchDegrees = 70,
+		MaxYawDegrees = 55,
+	},
+	Arms = {
+		-- Where each elbow points, as a hint in the chest's axes {right, up the spine, back}:
+		-- the grip elbow up, back and out; the bridge elbow out and down; the rake elbow out,
+		-- down and back. (tune)
+		GripPole = { 0.35, 0.55, 0.75 },
+		BridgePole = { -0.9, -0.25, 0.2 },
+		RakePole = { -0.6, -0.3, 0.4 },
+		-- The grip hand turns this far at the wrist (degrees about its X). (tune)
+		GripWristDegrees = -10,
+		-- The bridge hand lies palm down, fingers along the cue dipping this far toward the
+		-- cloth (degrees), its palm this far above the surface (studs). (tune)
+		BridgeFingerDownDegrees = 15,
+		BridgeLiftStuds = 0.05,
+		-- The palm's centre is this share of the hand's length below the hand's centre.
+		PalmFraction = 0.25,
+		-- An arm reaching further than this share of its length straightens gradually rather
+		-- than snapping (PoseMath.twoBone's soft reach), and its hand first slides to where the
+		-- arm meets it: the grip along the cue (up to MaxGripSlideStuds; an R6 grip anywhere
+		-- along the cue's back part), the bridge hand back along it (MaxBridgeSlideStuds).
+		-- (tune)
+		SoftReach = 0.97,
+		MaxGripSlideStuds = 0.6,
+		MaxBridgeSlideStuds = 0.8,
+		-- ...and a hand is never brought nearer its shoulder than this share of the arm's
+		-- length (folded tighter, an elbow cannot reach it): a grip or rake hold that close
+		-- slides along the cue or shaft too. The stance holds the rake high to clear the rail,
+		-- often right at the shoulder. (tune)
+		MinReachFraction = 0.4,
+		-- The rake hand slides up to this far down the shaft toward the head (the shaft runs
+		-- on for several studs there), or up to the handle left past the hand
+		-- (Stance.Rake.HandleBeyondHandStuds). An R6 arm is rigid and often needs most of it.
+		-- (tune)
+		MaxRakeSlideStuds = 1.5,
+		-- A relaxed off arm (no bridge to make) hangs straight down, its wrist this share of
+		-- the arm's length below the shoulder. (tune)
+		RelaxedReach = 0.95,
+	},
+	Legs = {
+		-- Where the feet stand, {right, forward} studs from the root on the floor, in the
+		-- stance's facing: the left (front) foot and the right (back) foot, each turned out
+		-- ToeOutDegrees. (tune)
+		FrontFoot = { -0.45, 0.35 },
+		BackFoot = { 0.5, -0.45 },
+		ToeOutDegrees = 15,
+		-- A lifted back foot (a long lean) rises this far, moves this much further back and
+		-- pitches this far toe down at full lift. (tune)
+		BackLegLiftStuds = 0.8,
+		BackLegLiftBackStuds = 0.5,
+		BackFootPitchDegrees = 35,
+		-- The hips come down just far enough that neither planted leg is straighter than this
+		-- share of its length (so the feet stay on the floor with a hint of knee bend), but
+		-- never more than MaxHipDropStuds. (tune)
+		Straightness = 0.99,
+		MaxHipDropStuds = 0.5,
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1103,6 +1258,12 @@ Config.Stance = {
 	-- hit the cap there, when the stance reports the grip out of reach. (tune)
 	ExtensionMarginStuds = 0.25,
 	MaxExtensionStuds = 12,
+	-- A steep cue can pass above the grip arm's reach at the lean the stance chose. Then the
+	-- torso stands up (0 degrees: the highest shoulder, the "jacked-up" stance real players
+	-- use over a ball) whenever that brings the shoulder nearer the cue, and the off hand
+	-- takes the rake if it no longer reaches its hand bridge. The root never moves for it.
+	-- false keeps the lean and leaves the hand as near as it gets. (tune)
+	UprightWhenGripOutOfReach = true,
 	-- The root lands this far past the barrier so rounding never reads as inside it.
 	-- (internal)
 	SlopStuds = 1e-3,
@@ -1119,6 +1280,13 @@ Config.Stance = {
 		RailClearanceInches = 0.2, -- the handle's underside clears the rail top by this much
 		HandleBeyondHandStuds = 0.4, -- handle left showing beyond the hand
 		NotchToleranceStuds = 0.05, -- a notch within this of the cue's height is a fit
+		-- The rake's own automatic extension, like the cue's: when the shaft is too short for
+		-- the hand to hold it where the body wants it (a far ball, the shooter back at the
+		-- near rail), an extension is screwed onto the shaft's butt, whole
+		-- Config.Cue.Extension.LengthStepStuds at a time and never longer than this (studs);
+		-- only past it does the hand slide in toward the head. Measured over the stance sweep:
+		-- about 11.9 at the pitches the cue really takes, 13.3 at a forced 40 degrees. (tune)
+		MaxExtensionStuds = 14,
 	},
 }
 
@@ -1149,6 +1317,41 @@ Config.Bridge = {
 	-- The head stands this far behind the cue ball's centre (plan) when it can; a full
 	-- wind-up's tip clearance pushes it further back.
 	DistanceBehindBallStuds = 1.5,
+	-- The imported model: a Model of this name in ServerStorage holding the MeshParts Head,
+	-- Shaft, Ferrule and Cap (assets/bridge/Readme.md). The server publishes it to
+	-- ReplicatedStorage.Assets (Bootstrap); without it BridgeBuilder builds the bridge from
+	-- parts in the same frame.
+	Template = "BridgeModel",
+	-- How each mesh is dressed (a Roblox material name, RGB): the importer's own materials and
+	-- textures are dropped. The parts-built bridge uses the same looks.
+	Meshes = {
+		Head = { Material = "SmoothPlastic", Color = { 28, 28, 32 } }, -- the near-black plate
+		Shaft = { Material = "Wood", Color = { 200, 158, 104 } }, -- maple
+		Ferrule = { Material = "Metal", Color = { 190, 156, 84 } }, -- brass collar and ring
+		Cap = { Material = "Rubber", Color = { 22, 22, 24 } }, -- the butt cap
+	} :: { [string]: { Material: string, Color: { number } } },
+	-- How long a client waits for ReplicatedStorage.Assets before it builds the bridge from
+	-- parts instead (seconds).
+	AssetWaitSeconds = 5,
+	-- The parts-built stand-in's dimensions, studs in the frame above: the mesh's own numbers
+	-- (Parameters.json "parameters", named in each comment), with square-cut notches.
+	Fallback = {
+		HeadThicknessStuds = 0.07, -- head_thickness: the plate, front to back
+		NotchRadiusStuds = 0.055, -- notch_radius: half a notch's width
+		NotchDepthStuds = 0.11, -- notch_depth: its floor to the top of its outer wall
+		NotchRestAboveBottomStuds = 0.045, -- notch_rest_above_bottom: the cue's axis over the floor
+		LobeCrownStuds = 0.03, -- lobe_crown: the left lobe, above the High notch's wall
+		ShaftHeadDiameterStuds = 0.09, -- shaft_head_diameter (the butt: ShaftButtRadiusStuds)
+		CollarDiameterStuds = 0.14, -- collar_diameter: the brass collar holding the plate
+		CollarFromStuds = 0.035, -- collar_z0
+		CollarToStuds = 0.255, -- collar_z1
+		RingExtraDiameterStuds = 0.012, -- ring_extra_diameter: the brass ring, over the shaft
+		RingLengthStuds = 0.05, -- ring_length
+		RingPosition = 0.55, -- ring_position: its centre, as a fraction along the shaft
+		CapDiameterStuds = 0.14, -- cap_diameter: the rubber butt cap
+		CapFromStuds = 6.08, -- cap_z0
+		CapToStuds = 6.2, -- cap_z1
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1958,11 +2161,19 @@ Config.Multiplayer = {
 		ThicknessStuds = 1, -- wall thickness
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
 	},
+	-- The shooter's root on the server (TableService). While they aim, the anchored root
+	-- follows ShooterStance, so a late joiner or a far table sees the shooter at the table; at
+	-- the shot it goes exactly to the stance spot. Each client poses the body itself.
+	Stance = {
+		ServerMovesPerSecond = 5, -- while aiming, the root follows the aim at most this often (constrain runs at Pad.PollsPerSecond, so more has no effect)
+		ServerMoveStuds = 1, -- ...and only once the stance has moved this far from where the root is
+		ServerMoveDegrees = 20, -- ...or turned this far
+	},
 	RateLimits = { -- per player and channel token buckets
 		action = { Burst = 12, PerSecond = 8 }, -- calls, votes, surrender, queue leave
 		place = { Burst = 10, PerSecond = 6 }, -- reliable cue-ball commits (drag release, nudge pause)
 		shot = { Burst = 4, PerSecond = 2 }, -- ShotFired; own bucket so placement can never starve it
-		aim = { Burst = 30, PerSecond = 20 }, -- unreliable aim + ball-in-hand stream (client sends <= 15/s)
+		aim = { Burst = 30, PerSecond = 20 }, -- unreliable aim + wind-up + ball-in-hand stream (client sends <= 15/s, plus one let-go)
 		snapshot = { Burst = 12, PerSecond = 8 }, -- full-state recovery requests
 	},
 	CameraFitIterations = 32, -- HUD-aware fit of the fully zoomed-out view; blended in above the home view

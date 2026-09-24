@@ -243,13 +243,60 @@ local function checkRake(q: any, st: any, label: string): (boolean, boolean)
 	end
 	local held = math.sqrt(vx * vx + vy * vy + vz * vz)
 	H.near(rake.length, held + K.HandleBeyondHandStuds, 1e-9, "length")
-	if rake.length > B.ShaftStartStuds + B.ShaftLengthStuds + 1e-9 then
+	-- The shaft's extension: whole steps, the least that keeps the hand on the shaft, and the
+	-- hand only slides in once the extension is as long as it gets.
+	local shaftEnd = B.ShaftStartStuds + B.ShaftLengthStuds
+	local E, step = rake.extensionStuds, Config.Cue.Extension.LengthStepStuds
+	if
+		E < 0
+		or E > K.MaxExtensionStuds + 1e-9
+		or math.abs(E / step - math.round(E / step)) > 1e-6
+	then
+		error(("a rake extension of %.4f: %s"):format(E, label))
+	end
+	if rake.length > shaftEnd + E + 1e-9 then
 		error("the hand is past the end of the shaft: " .. label)
+	end
+	if E > 0 and rake.length <= shaftEnd + E - step + 1e-9 and rake.slideStuds == 0 then
+		error("the rake's extension is longer than it needs: " .. label)
 	end
 	if rake.slideStuds < 0 then
 		error("negative slide: " .. label)
 	end
+	if rake.slideStuds > 0 and E < K.MaxExtensionStuds - 1e-9 then
+		error("the hand slid with extension to spare: " .. label)
+	end
 	return rake.holdReachable, rake.onCloth
+end
+
+-- Solve with one Config key set otherwise, putting it back even if the solve fails.
+local function solveWith(t: any, key: string, value: any, q: any): any
+	local was = t[key]
+	t[key] = value
+	local ok, result = pcall(ShooterStance.solve, q)
+	t[key] = was
+	if not ok then
+		error(result, 0)
+	end
+	return result
+end
+
+-- Two stances (or any plain tables) with the same keys and exactly the same values.
+local function same(a: any, b: any): boolean
+	if type(a) ~= "table" or type(b) ~= "table" then
+		return a == b
+	end
+	for key, value in a do
+		if not same(value, b[key]) then
+			return false
+		end
+	end
+	for key in b do
+		if a[key] == nil then
+			return false
+		end
+	end
+	return true
 end
 
 -- The first INTERIOR_SPOTS of sweepSpots are away from every cushion.
@@ -310,12 +357,13 @@ return {
 								if not onCloth and spotIndex <= INTERIOR_SPOTS then
 									offCloth += 1
 								end
-								-- An ordinary body using the rake without an extension holds it,
-								-- at the pitch almost every rake shot has (a steep cue with the
-								-- body far back passes out of both hands' reach).
+								-- An ordinary body using the rake holds it, at the pitch almost
+								-- every rake shot has (a steep cue with the body far back passes
+								-- out of both hands' reach): the shaft's own extension reaches
+								-- the hand however far back the body stands.
 								if
 									b.name == "R15"
-									and st.mode == "bridge"
+									and (st.mode == "bridge" or st.mode == "extension")
 									and pitch == 4
 									and onCloth
 									and not reachable
@@ -786,5 +834,165 @@ return {
 		H.expect(area.fenceHx == fx and area.fenceHy == fy, "fence")
 		H.near(area.railTopZ - area.clothZ, T.RailTopInches * s, 1e-12, "rail top")
 		H.expect(area.releaseClearance == Config.Multiplayer.Barrier.ReleaseClearanceStuds, "rc")
+	end,
+
+	-- A far ball puts the rake's head a table's length from a body standing back at the near
+	-- rail. The hand keeps its place and the shaft grows to it; with no extension allowed at
+	-- all (the old behaviour) the hand slides in along the shaft instead. Nothing but the
+	-- rake's hold may differ between the two: not the root, the mode, the torso or the grip.
+	["a shaft too short for the hand gets an extension, and nothing else changes"] = function()
+		local K = S.Rake
+		local extended = 0
+		for _, teamSize in { 1, 3 } do
+			local area = ShooterStance.area(teamSize)
+			for _, spot in sweepSpots() do
+				for step = 0, 23 do
+					local angle = math.rad(step * 15)
+					for _, pitch in { 4, pitchFor(spot[1], spot[2], angle), 40 } do
+						for _, b in BODIES do
+							local q = input(spot[1], spot[2], angle, pitch, b.body, area)
+							local st = ShooterStance.solve(q)
+							local bare = solveWith(K, "MaxExtensionStuds", 0, q)
+							local label = ("%s team %d ball (%.2f, %.2f) at %d, pitch %.1f"):format(
+								b.name,
+								teamSize,
+								spot[1],
+								spot[2],
+								step * 15,
+								pitch
+							)
+							H.expect(
+								st.rootX == bare.rootX
+									and st.rootY == bare.rootY
+									and st.rootZ == bare.rootZ
+									and st.yaw == bare.yaw,
+								"the rake's extension moved the root: " .. label
+							)
+							H.expect(
+								st.mode == bare.mode
+									and st.torsoDegrees == bare.torsoDegrees
+									and same(st.grip, bare.grip)
+									and st.gripReachable == bare.gripReachable,
+								"the rake's extension changed the body: " .. label
+							)
+							H.expect(
+								same(st, ShooterStance.solve(q)),
+								"not deterministic: " .. label
+							)
+							local rake, short = st.rake, bare.rake
+							if rake and short then
+								H.expect(short.extensionStuds == 0, "an extension past the cap")
+								H.expect(rake.slideStuds == 0, "the hand slid: " .. label)
+								-- Out at the left shoulder, HoldForward ahead of the root.
+								local fx, fy = math.cos(st.yaw), math.sin(st.yaw)
+								local shw = b.body.ShoulderHalfWidth
+								H.near(
+									rake.holdX,
+									st.rootX + fx * K.HoldForwardStuds - fy * shw,
+									1e-9,
+									"hold x: " .. label
+								)
+								H.near(
+									rake.holdY,
+									st.rootY + fy * K.HoldForwardStuds + fx * shw,
+									1e-9,
+									"hold y: " .. label
+								)
+								H.near(
+									rake.length,
+									short.length + short.slideStuds,
+									1e-9,
+									"the shaft reaches as far as the hand slid: " .. label
+								)
+								if short.slideStuds > 0 then
+									extended += 1
+									H.expect(rake.extensionStuds > 0, "no extension: " .. label)
+								else
+									H.expect(
+										same(rake, short),
+										"an extension for nothing: " .. label
+									)
+								end
+							else
+								H.expect(
+									rake == nil and short == nil,
+									"the rake came or went: " .. label
+								)
+							end
+						end
+					end
+				end
+			end
+		end
+		H.expect(extended > 0, "no rake in the sweep needed an extension")
+	end,
+
+	-- The upright retry only ever acts on a grip the chosen lean cannot reach: then the torso
+	-- is upright, the grip is reached at least as often, and a hand bridge only gives way to
+	-- the rake when that gets the grip hand onto the cue. The root never moves for it.
+	["an out-of-reach grip stands the torso up, and never makes a stance worse"] = function()
+		local function raking(mode: string): boolean
+			return mode == "bridge" or mode == "extension"
+		end
+		local before, after, improved, upright = 0, 0, 0, 0
+		for _, teamSize in { 1, 3 } do
+			local area = ShooterStance.area(teamSize)
+			for _, spot in sweepSpots() do
+				for step = 0, 23 do
+					local angle = math.rad(step * 15)
+					for _, pitch in { pitchFor(spot[1], spot[2], angle), 20, 40 } do
+						for _, b in BODIES do
+							local q = input(spot[1], spot[2], angle, pitch, b.body, area)
+							local st = ShooterStance.solve(q)
+							local lean = solveWith(S, "UprightWhenGripOutOfReach", false, q)
+							local label = ("%s team %d ball (%.2f, %.2f) at %d, pitch %.1f"):format(
+								b.name,
+								teamSize,
+								spot[1],
+								spot[2],
+								step * 15,
+								pitch
+							)
+							checkStance(q, st, label)
+							if st.rake then
+								checkRake(q, st, label)
+							end
+							H.expect(
+								st.rootX == lean.rootX
+									and st.rootY == lean.rootY
+									and st.rootZ == lean.rootZ
+									and st.yaw == lean.yaw,
+								"standing up moved the root: " .. label
+							)
+							before += if lean.gripReachable then 1 else 0
+							after += if st.gripReachable then 1 else 0
+							if not same(st, lean) then
+								upright += 1
+								H.expect(
+									not lean.gripReachable,
+									"changed a reachable grip: " .. label
+								)
+								H.expect(
+									st.torsoDegrees == 0 and st.lean == 0,
+									"changed but not upright: " .. label
+								)
+								H.expect(
+									st.gripReachable or raking(st.mode) == raking(lean.mode),
+									"brought the rake out for a grip it still misses: " .. label
+								)
+								improved += if st.gripReachable then 1 else 0
+							end
+							q.memory = st.memory
+							H.expect(
+								same(ShooterStance.solve(q), ShooterStance.solve(q)),
+								"not deterministic: " .. label
+							)
+						end
+					end
+				end
+			end
+		end
+		H.expect(after >= before, ("reached %d grips upright, %d leaning"):format(after, before))
+		H.expect(upright > 0 and improved > 0, "standing up never helped")
 	end,
 }

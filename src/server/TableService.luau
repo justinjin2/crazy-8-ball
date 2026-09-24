@@ -9,8 +9,13 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Strings = require(Shared.Strings)
 local Net = require(Shared.Net)
+local AimStream = require(Shared.AimStream)
+local AvatarPose = require(Shared.AvatarPose)
+local CueClearance = require(Shared.CueClearance)
 local Placement = require(Shared.Placement)
+local ShooterStance = require(Shared.ShooterStance)
 local ShotInput = require(Shared.ShotInput)
+local Cue = require(Shared.Physics.Cue)
 local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local M = Config.Multiplayer
@@ -29,6 +34,18 @@ local function newSeed(): number
 	return rng:NextInteger(1, Config.Rack.MaxSeed)
 end
 local started = false
+-- The root attribute holding the exact spot (a CFrame) the server put the shooter at for
+-- their shot. Once the root is unanchored the owner's local CFrame wins, so after the stroke
+-- the client writes this spot and nothing else; nil whenever the root is not there.
+local SHOT_SPOT = "ShotSpot"
+-- Collision groups for the bodies at a table. Everyone seated is a participant: they walk on
+-- the floor, into the fence, and through one another. A shooter the server holds is in a
+-- group that touches nothing at all: the root is anchored, so it needs no floor, and the
+-- server moves that body, so a move landing inside a spectator standing by the table must not
+-- fling them out of it. Seated players only ever pass between the two while the root is
+-- anchored: in once it is held, out before it is let go.
+local PARTICIPANTS = "PoolParticipants"
+local HELD = "PoolShooter"
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
@@ -39,6 +56,10 @@ end
 local function rootOf(p: Player): BasePart?
 	local root = p.Character and p.Character:FindFirstChild("HumanoidRootPart")
 	return if root and root:IsA("BasePart") then root else nil
+end
+-- The phases the shooter aims in, and so the only ones the aim stream is taken in.
+local function aimPhase(phase: string): boolean
+	return phase == "Aiming" or phase == "Intro" or phase == "Placement"
 end
 
 function Service.get(id: number): any
@@ -394,6 +415,36 @@ function Service.flush(t: any)
 	table.clear(t.engine.feedback)
 end
 
+-- Hand a held root back to the player where it stands. An anchored part keeps whatever
+-- velocity it had when it was anchored, so a root just let go is stilled first, or it would
+-- resume the walk it was stopped in and shove the player off the spot they shot from. It is
+-- no longer at a shot spot the client should return to, either.
+local function release(root: BasePart, anchored: boolean)
+	local released = root.Anchored and not anchored
+	root.Anchored = anchored
+	if released then
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+	end
+	if root:GetAttribute(SHOT_SPOT) ~= nil then
+		root:SetAttribute(SHOT_SPOT, nil)
+	end
+end
+
+-- Put every part of a seated character in `group` (PARTICIPANTS or HELD); parts added later
+-- join it too (see constrain). Only what changes is written.
+local function setGroup(saved: any, group: string)
+	if saved.group == group then
+		return
+	end
+	saved.group = group
+	for _, row in saved.parts do
+		if row.part.Parent then
+			row.part.CollisionGroup = group
+		end
+	end
+end
+
 local function restore(p: Player)
 	local saved = characterSaved[p.UserId]
 	if not saved then
@@ -401,6 +452,9 @@ local function restore(p: Player)
 	end
 	if saved.added then
 		saved.added:Disconnect()
+	end
+	if saved.died then
+		saved.died:Disconnect()
 	end
 	for _, row in saved.parts do
 		if row.part.Parent then
@@ -414,9 +468,149 @@ local function restore(p: Player)
 		saved.hum.JumpHeight = saved.jumpHeight
 	end
 	if saved.root.Parent then
-		saved.root.Anchored = saved.anchored
+		release(saved.root, saved.anchored)
 	end
 	characterSaved[p.UserId] = nil
+end
+
+-- A root CFrame for a spot in table studs (ShooterStance's units: height above the floor the
+-- table stands on) facing `yaw` (the aim convention), or nil if a number is not finite: a
+-- NaN CFrame on a character is never worth the risk.
+local function worldSpot(
+	p: Placement.Placement,
+	x: number,
+	y: number,
+	z: number,
+	yaw: number
+): CFrame?
+	local wx, wy, wz = Placement.fromTableStuds(p, x, y, z)
+	if
+		not (
+			ShotInput.isFinite(wx)
+			and ShotInput.isFinite(wy)
+			and ShotInput.isFinite(wz)
+			and ShotInput.isFinite(yaw)
+		)
+	then
+		return nil
+	end
+	local dx, _, dz = Placement.aimVector(p, yaw)
+	local at = Vector3.new(wx, wy, wz)
+	return CFrame.lookAt(at, at + Vector3.new(dx, 0, dz))
+end
+
+-- The shooter's stance at table `t` for an aim, solved from the server's own balls with the
+-- same pure functions every client poses with, so the two agree on where the body stands:
+-- the body measured from the rig, the raw drawn pitch (the client eases its own toward it),
+-- and no pull (the root never depends on it). The Memory threads through one turn and starts
+-- afresh when the epoch, the turn or the shooter changes. nil when the rig cannot be
+-- measured (the root is then left where it is, never guessed at) or the cue ball is down.
+local function solveStance(
+	t: any,
+	character: Model,
+	angle: number,
+	spinX: number,
+	spinY: number
+): ShooterStance.Stance?
+	local e = t.engine
+	local key = ("%d:%d:%d"):format(e.epoch, e.turnId, e.shooter or 0)
+	if t.stanceKey ~= key then
+		t.stanceKey, t.stanceMemory = key, nil
+	end
+	local cue = Simulation.findBall(e.state, 0)
+	if not cue or cue.pocketed then
+		return nil
+	end
+	local ok, stance = pcall(function(): ShooterStance.Stance?
+		local body = AvatarPose.measureBody(character)
+		if not body then
+			return nil
+		end
+		local pitch = CueClearance.pitch(e.state.geometry, e.state.balls, {
+			cueX = cue.x,
+			cueY = cue.y,
+			angle = angle,
+			spinX = spinX,
+			spinY = spinY,
+		})
+		return ShooterStance.solve({
+			ballXIn = cue.x,
+			ballYIn = cue.y,
+			angle = angle,
+			spinX = spinX,
+			spinY = spinY,
+			pitchDegrees = pitch.degrees,
+			pull = 0,
+			body = body,
+			area = ShooterStance.area(e.teamSize),
+			memory = t.stanceMemory,
+		})
+	end)
+	if not ok then
+		-- The stance is presentation: a failure must never stop the poll loop or hold back a
+		-- shot's broadcast. Said once per turn, not five times a second.
+		if t.stanceWarned ~= key then
+			t.stanceWarned = key
+			warn("[8ball] shooter stance failed: " .. tostring(stance))
+		end
+		return nil
+	end
+	if stance then
+		t.stanceMemory = stance.memory
+	end
+	return stance
+end
+
+-- Move a held root. Only ever an anchored one: the client owns an unanchored body, so a
+-- write there would fight its physics and rubber-band. Returns whether it moved.
+local function placeRoot(t: any, root: BasePart, cf: CFrame): boolean
+	if not root.Anchored then
+		return false
+	end
+	root.CFrame = cf
+	root.AssemblyLinearVelocity = Vector3.zero
+	root.AssemblyAngularVelocity = Vector3.zero
+	t.stanceAt = now()
+	return true
+end
+
+-- While the shooter aims, their anchored root follows the stance, so a late joiner, a table
+-- nobody is posing and a respawned shooter all show the body at the table, and the move at
+-- the shot is tiny. At most Stance.ServerMovesPerSecond, and only once the stance is past
+-- the hysteresis from where the root IS (it may have been anywhere when the turn began).
+-- Never an unanchored root, never during Resolving (it waits at the shot spot), and never
+-- from an aim of another turn or shooter. The aim stream carries no spin, so none is used.
+local function followStance(t: any, p: Player, root: BasePart, character: Model)
+	local S = M.Stance
+	local e, aim = t.engine, t.aim
+	if
+		not root.Anchored
+		or not aimPhase(e.phase)
+		or not aim
+		or aim.by ~= p.UserId
+		or aim.epoch ~= e.epoch
+		or aim.turnId ~= e.turnId
+	then
+		return
+	end
+	if t.stanceAt and now() - t.stanceAt < 1 / S.ServerMovesPerSecond then
+		return
+	end
+	local stance = solveStance(t, character, aim.angle, 0, 0)
+	local cf = stance
+		and worldSpot(t.placement, stance.rootX, stance.rootY, stance.rootZ, stance.yaw)
+	if not cf then
+		return
+	end
+	local moved = (cf.Position - root.Position).Magnitude
+	local turned = math.deg(math.acos(math.clamp(cf.LookVector:Dot(root.CFrame.LookVector), -1, 1)))
+	if
+		(moved >= S.ServerMoveStuds or turned >= S.ServerMoveDegrees)
+		and placeRoot(t, root, cf)
+		and root:GetAttribute(SHOT_SPOT) ~= nil
+	then
+		root:SetAttribute(SHOT_SPOT, nil) -- it has left the last shot's spot
+	end
 end
 
 local function constrain(p: Player, t: any)
@@ -443,34 +637,45 @@ local function constrain(p: Player, t: any)
 			jumpHeight = hum.JumpHeight,
 			anchored = root.Anchored,
 			parts = {},
+			group = PARTICIPANTS,
 		}
 		local function excludePlayerCollision(part: Instance)
 			if part:IsA("BasePart") then
 				table.insert(saved.parts, { part = part, group = part.CollisionGroup })
-				part.CollisionGroup = "PoolParticipants"
+				part.CollisionGroup = saved.group
 			end
 		end
 		for _, part in character:GetDescendants() do
 			excludePlayerCollision(part)
 		end
 		saved.added = character.DescendantAdded:Connect(excludePlayerCollision)
+		-- A body that dies while held falls apart, and its pieces need the floor again.
+		saved.died = hum.Died:Connect(function()
+			setGroup(saved, PARTICIPANTS)
+		end)
 		characterSaved[p.UserId] = saved
 	end
-	-- A solo player keeps the table through a foul: nobody else takes over.
-	local locked = e.shooter == p.UserId and (e.phase ~= "Foul" or e.solo ~= nil)
+	-- A solo player keeps the table through a foul: nobody else takes over. The watchers ask
+	-- the same question (Engine.shooterLocked), so they pose exactly the body held here.
+	local locked = e.shooter == p.UserId and Engine.shooterLocked(e.phase, e.solo)
 	if locked then
 		hum.WalkSpeed = 0
 		hum.AutoRotate = false
 		hum.JumpPower = 0
 		hum.JumpHeight = 0
 		root.Anchored = true
+		setGroup(saved, HELD) -- only now it is anchored, before followStance can move it
+		followStance(t, p, root, character)
 		return
 	end
 	hum.WalkSpeed = saved.walk
 	hum.AutoRotate = saved.rotate
 	hum.JumpPower = saved.jump
 	hum.JumpHeight = saved.jumpHeight
-	root.Anchored = saved.anchored
+	-- Back on the floor first, then let go where it stands, the shot spot included: no
+	-- teleport when the turn passes.
+	setGroup(saved, PARTICIPANTS)
+	release(root, saved.anchored)
 	-- Everyone else walks normally: the fence and the table's own barrier are physical walls,
 	-- so nothing here moves a character that is walking about. A teleport only rescues a body
 	-- that fell through the floor or ended up well outside its fence (spawned there, clipped
@@ -493,6 +698,46 @@ local function constrain(p: Player, t: any)
 		local wx, _, wz = Placement.toWorld(t.placement, cx, cy, 0)
 		root.CFrame = CFrame.new(wx, t.placement.y + Q.RespawnHeight, wz) * root.CFrame.Rotation
 		root.AssemblyLinearVelocity = Vector3.zero
+	end
+end
+
+--- A shot was accepted at table `t` (ShotService, and the Studio QA fixture): hold the
+--- shooter and put the anchored root exactly where they shot from, turned to face the table
+--- centre (ShooterStance.idle), with that spot on the root's ShotSpot attribute for the
+--- client. Called after acceptShot, which leaves the cue ball at its spot before the shot
+--- until the shot resolves; `angle` and `spin` are the accepted payload's. The root then
+--- waits there through Resolving and is let go in place if the turn passes.
+function Service.shotAccepted(
+	t: any,
+	userId: number,
+	angle: number,
+	spin: { x: number, y: number }?
+)
+	local p = Players:GetPlayerByUserId(userId)
+	if not p or not ShotInput.isFinite(angle) then
+		return
+	end
+	constrain(p, t) -- the phase is Resolving now, so this holds the body and anchors the root
+	local root, character = rootOf(p), p.Character
+	if not root or not character then
+		return
+	end
+	local sx, sy = 0, 0
+	if type(spin) == "table" and ShotInput.isFinite(spin.x) and ShotInput.isFinite(spin.y) then
+		sx, sy = Cue.clampSpin(spin.x, spin.y)
+	end
+	local stance = solveStance(t, character, angle % (2 * math.pi), sx, sy)
+	local spot: CFrame? = nil
+	if stance then
+		local x, y, z, yaw = ShooterStance.idle(stance)
+		spot = worldSpot(t.placement, x, y, z, yaw)
+	end
+	-- No spot (a rig that cannot be measured, a body not held): the client falls back to its
+	-- own, and a spot left from an earlier shot must not outlive this one.
+	if spot and placeRoot(t, root, spot) then
+		root:SetAttribute(SHOT_SPOT, spot)
+	elseif root:GetAttribute(SHOT_SPOT) ~= nil then
+		root:SetAttribute(SHOT_SPOT, nil)
 	end
 end
 
@@ -581,9 +826,9 @@ function Service.start(parent: Instance)
 	started = true
 	-- Participants cannot push one another, while normal floor collision remains intact.
 	pcall(function()
-		PhysicsService:RegisterCollisionGroup("PoolParticipants")
+		PhysicsService:RegisterCollisionGroup(PARTICIPANTS)
 	end)
-	PhysicsService:CollisionGroupSetCollidable("PoolParticipants", "PoolParticipants", false)
+	PhysicsService:CollisionGroupSetCollidable(PARTICIPANTS, PARTICIPANTS, false)
 	-- Match fences stop only the people in a match; everyone else walks through them.
 	pcall(function()
 		PhysicsService:RegisterCollisionGroup("PoolFence")
@@ -592,8 +837,15 @@ function Service.start(parent: Instance)
 		PhysicsService:CollisionGroupSetCollidable(
 			"PoolFence",
 			group.name,
-			group.name == "PoolParticipants"
+			group.name == PARTICIPANTS
 		)
+	end
+	-- The shooter the server holds touches nothing, itself included (see HELD).
+	pcall(function()
+		PhysicsService:RegisterCollisionGroup(HELD)
+	end)
+	for _, group in PhysicsService:GetRegisteredCollisionGroups() do
+		PhysicsService:CollisionGroupSetCollidable(HELD, group.name, false)
 	end
 	local old = parent:FindFirstChild(Service.PadFolderName)
 	if old then
@@ -655,10 +907,15 @@ function Service.start(parent: Instance)
 			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 		end
 	end)
-	Net.get("AimUpdate").OnServerEvent:Connect(function(p, id, angle, epoch, turnId, seq, x, y)
+	local aimUpdate = Net.get("AimUpdate")
+	aimUpdate.OnServerEvent:Connect(function(p, id, angle, epoch, turnId, pull, seq, x, y)
+		-- The wind-up is cosmetic, but it is still checked like the angle: a pull that is not
+		-- a finite number drops the whole packet, and the rest are snapped to whole steps.
+		local held = AimStream.quantizePull(pull)
 		if
 			id ~= seatOf[p.UserId]
 			or not ShotInput.isFinite(angle)
+			or held == nil
 			or not Service.allow(p, "aim")
 		then
 			return
@@ -672,11 +929,17 @@ function Service.start(parent: Instance)
 			e.shooter ~= p.UserId
 			or e.epoch ~= epoch
 			or e.turnId ~= turnId
-			or (e.phase ~= "Aiming" and e.phase ~= "Intro" and e.phase ~= "Placement")
+			or not aimPhase(e.phase)
 		then
 			return
 		end
-		t.aim = { angle = angle % (2 * math.pi), by = p.UserId, turnId = turnId, epoch = epoch }
+		t.aim = {
+			angle = angle % (2 * math.pi),
+			pull = held,
+			by = p.UserId,
+			turnId = turnId,
+			epoch = epoch,
+		}
 		if seq ~= nil then
 			-- Ball in hand rides the aim stream. The engine checks the window, the seq and
 			-- the spot; a bad one is simply dropped, like any lost unreliable packet.
@@ -752,9 +1015,15 @@ function Service.start(parent: Instance)
 			t.blocked[p.UserId] = nil
 		end
 	end)
-	require(script.Parent.StudioMatchQA).start(tables, seatOf, Service.broadcast, Service.flush)
-	-- Every table's aim and cue spot, on its own clock (Config.Aim.BroadcastsPerSecond) so a
-	-- watched ball in hand is not held to the pad-poll rate.
+	require(script.Parent.StudioMatchQA).start(
+		tables,
+		seatOf,
+		Service.broadcast,
+		Service.flush,
+		Service.shotAccepted
+	)
+	-- Every table's aim, wind-up and cue spot, on its own clock (Config.Aim.BroadcastsPerSecond)
+	-- so a watched ball in hand is not held to the pad-poll rate.
 	local function broadcastAims()
 		local batch = {}
 		for _, mode in M.Modes do
@@ -770,11 +1039,7 @@ function Service.start(parent: Instance)
 				and e.phase ~= "Resolving"
 				and e.phase ~= "Result"
 			then
-				table.insert(batch, e.id)
-				table.insert(batch, t.aim.by)
-				table.insert(batch, t.aim.angle)
-				table.insert(batch, cue.x)
-				table.insert(batch, cue.y)
+				AimStream.pack(batch, e.id, t.aim.by, t.aim.angle, cue.x, cue.y, t.aim.pull)
 			end
 		end
 		Net.get("AimBroadcast"):FireAllClients(batch)

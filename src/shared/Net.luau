@@ -11,6 +11,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local AimStream = require(script.Parent.AimStream)
+
 local Net = {}
 
 local FOLDER = "Net"
@@ -47,17 +49,21 @@ local REMOTES: { [string]: string } = {
 	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
 	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,
 	-- and never worth blocking the reliable queue behind.
-	-- client -> server: (tableId, angle, epoch, turnId, seq?, x?, y?). seq, x and y ride along
-	-- only while the shooter is moving the cue ball in hand; seq rises every send within a
-	-- turn, because this remote guarantees neither delivery nor order.
+	-- client -> server: (tableId, angle, epoch, turnId, pull, seq?, x?, y?). pull is the
+	-- wind-up, 0..1 in whole 1/Config.Aim.PullSteps steps (AimStream), always present so no
+	-- nil sits in the middle; a let-go sends 0 at once. It is cosmetic: a shot's power comes
+	-- only from ShotFired. seq, x and y ride along only while the shooter is moving the cue
+	-- ball in hand; seq rises every send within a turn, because this remote guarantees
+	-- neither delivery nor order.
 	AimUpdate = "UnreliableRemoteEvent",
 	-- server -> all: every table's aim, batched as a flat array of Net.AimStride values per
-	-- table, {tableId, shooterUserId, angle, cueX, cueY}; the cue spot is the server's own.
+	-- table, {tableId, shooterUserId, angle, cueX, cueY, pull} (AimStream.pack and .read);
+	-- the cue spot is the server's own and the pull is snapped again on the way through.
 	AimBroadcast = "UnreliableRemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.
-Net.AimStride = 5
+Net.AimStride = AimStream.Stride
 
 local function container(): Instance
 	local existing = ReplicatedStorage:FindFirstChild(FOLDER)
