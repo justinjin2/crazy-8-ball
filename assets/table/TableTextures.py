@@ -122,9 +122,9 @@ CFG = {
     'sticker_rgb': [246, 246, 242],
     'sticker_alpha': 0.95,
     'sticker_diameter': 0.9,  # of the 1 in quad
-    'rack_alpha': 0.17,  # a touch under the ~0.2 smooth limit: faint, accepts a little dither
+    'rack_alpha': 0.0,  # off: Roblox dithers faint alpha, so the patch drew as a checkered triangle in Studio (2026-09-24)
     'rack_rgb': [228, 228, 228],
-    'streak_alpha': 0.16,
+    'streak_alpha': 0.0,  # off: under Roblox's faint-alpha dither the streak drew as a dotted white line (seen in Studio 2026-09-24)
     'streak_rgb': [225, 225, 225],
     'chalk_rgb': [40, 100, 170],
     'chalk_alpha': 0.5,

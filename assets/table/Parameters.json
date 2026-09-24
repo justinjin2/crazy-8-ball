@@ -6,7 +6,7 @@
   "geometry_source": {
     "file": "assets/table/Geometry.json",
     "schema": 1,
-    "sha256": "71216799ec6bdc18a469d7c804c795e257344d05b23730805489eff4eb571399"
+    "sha256": "9ca022204552a132a1f9364e81f969e249fab5e5c5a70b1aef08adf0cfc926c1"
   },
   "measured": {
     "bounds_half_extents_studs": [

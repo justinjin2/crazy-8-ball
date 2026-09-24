@@ -417,7 +417,7 @@
       "colour_space": "sRGB+alpha",
       "file": "textures/Marks_Color.png",
       "master": "textures/masters/Marks_Color.png",
-      "master_sha256": "80fc8709450684294b2919554e2a08aea916768ab52b0b00eb45f813cab297b3",
+      "master_sha256": "5aff1e65d07aeda03828bf01d14787186f81af1a80f6ed554dd885ce54c1b66f",
       "master_size": [
         4096,
         4096
@@ -426,12 +426,12 @@
         45.4,
         49.2,
         53.5,
-        9.3
+        7.8
       ],
       "mesh": "Marks",
       "name": "Marks_Color",
       "note": "AlphaMode Transparency; RGB dilated under alpha 0",
-      "sha256": "9cb1e5a2b456db93bb5b71682acc9b82febd33ce305757bdb88ed991ecf1e77b",
+      "sha256": "0b909b1ab8b0a8f7f42f23f10cabe86cb0dd5b9fddc747f9dfdfc69841afb5d0",
       "size": [
         1024,
         1024
@@ -609,7 +609,7 @@
       ],
       "pearl_iridescence": 7.0,
       "pearl_rough": 0.22,
-      "rack_alpha": 0.17,
+      "rack_alpha": 0.0,
       "rack_rgb": [
         228,
         228,
@@ -634,7 +634,7 @@
         246,
         242
       ],
-      "streak_alpha": 0.16,
+      "streak_alpha": 0.0,
       "streak_rgb": [
         225,
         225,

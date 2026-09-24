@@ -49,14 +49,14 @@ Config.Table = {
 	-- clears both. The shooter's pose and the cue tuning sit on it (the stance sweeps pass
 	-- from 2.08 to 2.16 and fail at 2.05 and 2.3), so changing it means retuning them.
 	RailTopInches = 2.08,
-	-- The pocket castings stand a little proud of the rail (the old mesh's 2.24 in; the new
-	-- chrome caps' crown will set it). CueClearance takes the nearest a cue's line inside the
+	-- The chrome pocket caps stand a little proud of the rail: their measured crown
+	-- (assets/table/Parameters.json, tests/table_model_test.luau). CueClearance takes the nearest a cue's line inside the
 	-- rail passes to a pocket centre: within PocketCastingReachInches - PocketCastingBlendInches
 	-- (3 in) the cue clears this full height, and from there the height it clears ramps
 	-- linearly down to RailTopInches at PocketCastingReachInches (4 in), so the drawn pitch
 	-- never jumps. The cue clearance tests start failing from about 2.35 in (2.351 with the
 	-- 7 in or the 5.5 in rail), so the caps' crown has to stay under that.
-	PocketCastingTopInches = 2.24,
+	PocketCastingTopInches = 2.28,
 	PocketCastingReachInches = 4.0,
 	PocketCastingBlendInches = 1.0,
 	-- Visible cloth-covered cushion strip: how far it reaches out from the cushion line into
@@ -731,7 +731,7 @@ Config.TableModel = {
 		},
 		LogoPlate = { Color = "rbxassetid://96049906872831", Roughness = "" },
 		-- RGBA overlay: sticker, rack patch, break streak, chalk, cushion and rim shading.
-		Marks = { Color = "rbxassetid://95409011575497" },
+		Marks = { Color = "rbxassetid://102632376550157" },
 	} :: {
 		[string]: { Color: string, Normal: string?, Roughness: string?, Metalness: string? },
 	},
