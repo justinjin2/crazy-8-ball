@@ -801,3 +801,7 @@ physics and replay are unchanged (Config.Effects.Pocket*).
 ribbons corkscrewing up (5 for the 8), stretched streaks shooting up, a shockwave ring on the
 cloth, sparkles and a coloured flash; the 8 is 1.6x bigger. Still cue-style data
 (Config.Effects.Styles.Default.Pocket) so rare cues can bring their own.
+
+2026-09-24: Pocket drop reworked again: no resting stop or hold. The ball drops with the
+physics' real gravity, then keeps accelerating down at the bottom, drifting outward and
+fading out in 0.12 s (Config.Effects.PocketFadeSeconds). Rim to gone takes about 0.2 s.

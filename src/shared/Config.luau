@@ -1590,16 +1590,12 @@ Config.Audio = {
 Config.Effects = {
 	-- Seconds for a pocketed ball to drop out of sight.
 	SinkDropSeconds = 0.35,
-	-- A pocketed ball stays in view (2026-09-23: it used to vanish the instant it dropped).
-	-- The drawn ball stops this far below the cloth, where it still shows in the hole while
-	-- the physics carries on down; once it lands it sits for PocketHoldSeconds, then rolls
-	-- outward PocketGutterDistanceInches while sinking to PocketGutterDepthInches and fading
-	-- out over PocketGutterSeconds, like a ball running off into the gutter. (tune)
-	PocketRestDepthInches = 1.6,
-	PocketHoldSeconds = 0.17, -- sped up twice with the fade below; the first version lingered (2026-09-23)
-	PocketGutterSeconds = 0.3,
-	PocketGutterDistanceInches = 2.5,
-	PocketGutterDepthInches = 4,
+	-- A pocketed ball drops in under real gravity (the physics drop, drawn as it is) and,
+	-- rather than vanishing at the bottom, keeps falling and drifting outward as it fades out
+	-- over PocketFadeSeconds. A slower "sit in the pocket, then roll out" version read as
+	-- lowering rather than dropping, and was cut (2026-09-24). (tune)
+	PocketFadeSeconds = 0.12,
+	PocketDriftInchesPerSecond = 10, -- outward, as if running off into the gutter
 	PocketGutterSpin = 8, -- radians per second the ball keeps turning as it rolls away
 	PopupSeconds = 1.1,
 

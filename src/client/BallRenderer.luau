@@ -200,10 +200,8 @@ function BallRenderer.step(self: BallRenderer, b: Ball.Ball, dt: number)
 		return
 	end
 	local part = self:ensure(b.id)
-	-- The physics drop goes deeper and faster than the eye can follow into a covered pocket,
-	-- so the drawn ball stops at a depth where it still shows in the hole (Effects).
-	local z = math.max(b.z, -Config.Effects.PocketRestDepthInches)
-	local pos = TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RenderRadiusInches + z)
+	local pos =
+		TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
 	local rot = self.rotations[b.id]
 	-- Physics (x, y, z) maps to world (X, -Z, Y). That map is a proper rotation, so angular
 	-- velocity (a pseudovector) transforms exactly like a vector; then the table's own yaw
@@ -233,10 +231,10 @@ local function setFade(part: BasePart, transparency: number)
 	end
 end
 
---- A ball has reached the bottom of a pocket at (x, y) table inches. Rather than vanishing
---- there, it stays in view in the pocket for a moment, then rolls on outward - away from the
---- table's centre, the way a ball runs off into the gutter - sinking and fading as it goes
---- (Config.Effects.Pocket*). Without a position it just hides.
+--- A ball has reached the bottom of the physics drop at (x, y) table inches. Rather than
+--- vanishing there, it keeps falling under real gravity - carrying on at the speed the drop
+--- reached, drifting a touch outward the way a ball runs off into the gutter - and fades out
+--- over Config.Effects.PocketFadeSeconds. Without a position it just hides.
 function BallRenderer.sink(self: BallRenderer, id: number, x: number?, y: number?)
 	if self.sunk[id] or self.sinking[id] then
 		return
@@ -258,11 +256,13 @@ function BallRenderer.animate(self: BallRenderer, dt: number)
 	for id, s in self.sinking do
 		s.t += dt
 		local part = self:ensure(id)
-		local u = math.clamp((s.t - E.PocketHoldSeconds) / E.PocketGutterSeconds, 0, 1)
-		local eased = u * u -- gathers pace as it rolls away
-		local along = E.PocketGutterDistanceInches * eased
-		local depth = E.PocketRestDepthInches
-			+ (E.PocketGutterDepthInches - E.PocketRestDepthInches) * eased
+		local u = math.clamp(s.t / E.PocketFadeSeconds, 0, 1)
+		-- Real gravity, continuing from the speed the physics drop reached at the bottom.
+		local g = Config.Physics.Gravity
+		local depth = Config.Table.PocketDropDepthInches
+		local speed = math.sqrt(2 * g * depth)
+		depth += speed * s.t + 0.5 * g * s.t * s.t
+		local along = E.PocketDriftInchesPerSecond * s.t
 		local pos = TableBuilder.toWorld(
 			self.placement,
 			s.x + s.dx * along,
@@ -271,7 +271,7 @@ function BallRenderer.animate(self: BallRenderer, dt: number)
 		)
 		-- Keep it turning the way it was rolling as it runs off.
 		local w = self.yaw:VectorToWorldSpace(Vector3.new(-s.dy, 0, -s.dx))
-		if u > 0 and w.Magnitude > 1e-6 then
+		if w.Magnitude > 1e-6 then
 			self.rotations[id] = CFrame.fromAxisAngle(w.Unit, E.PocketGutterSpin * dt)
 				* self.rotations[id]
 		end
