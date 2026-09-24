@@ -776,7 +776,7 @@ other group. The strong style (vivid outline plus grey wash) stays behind
 Config.Multiplayer.Style.StrongBallHighlights = false, set aside for the first-time
 playthrough and tutorial (GDD section 14).
 
-2026-09-23: Every foul shows a card under the top bar for 5 s: FOUL (or FOUL BY name) and one
+2026-09-23: Every foul shows a card under the top bar for 8 s (was 5): FOUL (or FOUL BY name) and one
 plain "you must" rule for the foul made (e.g. On the break you must pocket a ball or make 4
 balls hit the rails). Written for players new to 8-ball; wording in Strings.Match.FoulExplain.
 
