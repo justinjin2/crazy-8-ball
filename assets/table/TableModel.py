@@ -87,7 +87,7 @@ PARAMETERS = {
     'cap_over_wood': 0.25,  # the cap reaches this far past the leather rim onto the wood
     'cap_lip': 0.045,  # inner lip overhang into the opening
     'cap_sections': {'corner': 14, 'side': 12},  # segments along each cap (triangle budget)
-    'cap_end_overrun': 0.25,  # the cap runs this far past the rim ends at the cushion backs
+    'cap_end_overrun': {'corner': -0.35, 'side': -0.9},  # negative: the cap stops this far short of the rim ends, so it ends on the wood and never touches the cushion cloth
     # ---- Body ------------------------------------------------------------------------------------
     'skirt_inset': 0.15,  # skirt outer face inside the rail outer face (blocks stand 0.15 proud)
     'skirt_thickness': 0.9,
@@ -1252,7 +1252,7 @@ def cap_profile(L, pk, h):
 def build_cap(L, part, pk):
     p = L.p
     kp = p['parts_px_per_stud'] / p['atlas_px'] * L.s
-    over = p['cap_end_overrun'] / pk.Rc
+    over = p['cap_end_overrun'][pk.kind] / pk.Rc
     sgn = math.copysign(1, pk.span)
     cand = [ang(sub(q, pk.Hp)) for q in (pk.EA, pk.FA)]
     rel = [((a - pk.psiA) * sgn) % (2 * pi) for a in cand]

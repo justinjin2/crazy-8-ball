@@ -573,7 +573,10 @@
     "bullnose_height": 1.0,
     "cabinet_clip_sum": 86.0,
     "cabinet_visible": 2.5,
-    "cap_end_overrun": 0.25,
+    "cap_end_overrun": {
+      "corner": -0.35,
+      "side": -0.9
+    },
     "cap_gap": 0.003,
     "cap_lip": 0.045,
     "cap_over_wood": 0.25,
@@ -795,7 +798,7 @@
           10.239999771
         ],
         "Caps": [
-          17.302639008,
+          17.309230804,
           0.036799908,
           9.730436325
         ],
@@ -1211,21 +1214,21 @@
       "ok": true,
       "px_per_stud": {
         "parts_min": [
-          266.9,
-          320.8
+          266.7,
+          304.2
         ]
       },
       "px_per_stud_by_tag": {
         "40": [
-          266.9,
-          320.8
+          266.7,
+          304.2
         ],
         "41": [
-          268.6,
-          303.7
+          268.1,
+          303.2
         ],
         "42": [
-          299.8,
+          299.9,
           300.0
         ]
       }
@@ -1435,7 +1438,7 @@
     "cap_casting_limit": {
       "crown": 2.279998958,
       "hard_limit": 2.351,
-      "min_margin_to_limit": 5.13e-07,
+      "min_margin_to_limit": 9.47e-07,
       "ok": true
     },
     "clearances": {
@@ -1677,7 +1680,7 @@
         "boundary_edges": 0,
         "components": 6,
         "loose_vertices": 0,
-        "min_shell_volume_cubic_inches": 1.017038377,
+        "min_shell_volume_cubic_inches": 0.796054226,
         "non_manifold_edges": 0,
         "non_positive_volumes": 0,
         "non_triangles": 0,
