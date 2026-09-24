@@ -1247,10 +1247,10 @@ Config.Stance = {
 	-- the need falls this far below zero, and never longer than MaxExtensionStuds. Measured on
 	-- an open table with the measured rigs: a ball frozen on the far rail, shot straight at
 	-- it, needs about 9.7 (R6 10.7); a ball in a corner shot back along the diagonal needs up
-	-- to 12.2 (R6 13.5), so both can hit the cap there, when the stance reports the grip out
-	-- of reach. (tune)
+	-- to 12.2 (R6 13.5), so the cap sits above both, like the rake's; only past it does the
+	-- stance report the grip out of reach. (tune)
 	ExtensionMarginStuds = 0.25,
-	MaxExtensionStuds = 12,
+	MaxExtensionStuds = 14,
 	-- A steep cue can pass above the grip arm's reach at the lean the stance chose. Then the
 	-- torso stands up (0 degrees: the highest shoulder, the "jacked-up" stance real players
 	-- use over a ball) whenever that brings the shoulder nearer the cue, and the off hand
