@@ -3,7 +3,7 @@
 > **2026-09-22 multiplayer update:** [MULTIPLAYER_SPEC.md](../MULTIPLAYER_SPEC.md)
 > is the agreed design for this update. It supersedes older turn rotation, break,
 > assignment, 8-ball, timer, departure/surrender and reward details. Results are match-only;
-> bots, solo, abilities, difficulty and progression remain future work.
+> bots, abilities, difficulty and progression remain future work. Solo is built (spec, Solo).
 
 
 Working name: **Crazy 8 Ball** (final name check is a release task). Rewritten 2026-09-20 from the
@@ -108,7 +108,9 @@ Every feature is checked against these. If it serves none, it waits.
   each viewer's own screen. A HUD shows which balls you have pocketed.
 - **Physics realism choices (2026-09-22, implemented):** keep one power bar
   reaching 30 mph, with no separate break control. Classic shows the predicted cue-ball
-  launch direction including side-spin deflection. Use regulation 2.25 in balls in the
+  launch direction. Side spin does not bend it (2026-09-23): no squirt and no swerve, so the
+  cue ball leaves along the aim and runs straight to first contact; side spin acts only at
+  contacts (cushion rebound, throw, spin transfer). Use regulation 2.25 in balls in the
   physics with visual scaling for readability. Cue elevation stays fixed at 4 degrees for
   now, and all collectible cues have identical physics. Physics milestones D-F implement these
   choices. Keep the current imported table for now; matching its pocket mesh to the new physics
@@ -130,9 +132,10 @@ Every feature is checked against these. If it serves none, it waits.
   the table frees. Every match is played on the one standard table model (collectible table
   skins are parked until after release, section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
-  Solo: normal rules with no opponent, clear one group then the other then the 8, a foul gives
-  yourself ball in hand, sinking the 8 early re-racks, no shot clock, money per ball, no win
-  bonus, no rank change.
+  Solo: normal rules with no opponent; the first legally pocketed group is cleared first, then
+  the other group, then the called 8. A foul gives yourself ball in hand; the 8 early, on a foul
+  or in the wrong pocket loses (changed 2026-09-23; it no longer re-racks). No shot clock, money
+  per ball, no win bonus, no rank change.
   Teams: teams alternate turns and teammates rotate (A1, B1, A2, B2), teammates share a group,
   each player uses their own ability, the shot clock is per shooter, a whole team must agree to
   forfeit, PC can fill any seat, team matches are rated by team average.
@@ -389,6 +392,9 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - **Collectible table skins** (parked 2026-09-23, after release): each a full 3D table model
   with a strict per-table budget, the host's table used for the match, rare ones with VFX, a
   table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
+- **Swerve and a curved aim guideline for side spin** (parked 2026-09-23): squirt off the aim
+  and a path that curves on the cloth, with the guideline curving to match. The physics exists
+  behind Config.Cue.SideSpinBendsPath.
 
 ## 19. Open questions (collected)
 

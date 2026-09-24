@@ -74,9 +74,15 @@ function Cue.clampSpin(sx: number, sy: number): (number, number)
 	return sx, sy
 end
 
---- Unit launch direction with squirt opposite the tip offset (TP A.31). Positive x spin
---- is the player's right, so its launch deflection is left: positive table-plane angle.
+--- Unit launch direction. With Config.Cue.SideSpinBendsPath off (the designer's current
+--- choice) this is exactly the aim, whatever the spin, so the guideline never moves when
+--- the player adds side. With it on, squirt turns the launch opposite the tip offset
+--- (TP A.31): positive x spin is the player's right, so the deflection is left, a positive
+--- table-plane angle.
 function Cue.launchDirection(shot: Shot): (number, number)
+	if not Config.Cue.SideSpinBendsPath then
+		return math.cos(shot.angle), math.sin(shot.angle)
+	end
 	local sx = 0
 	if shot.spin then
 		sx = Cue.clampSpin(shot.spin.x, shot.spin.y)
@@ -117,8 +123,12 @@ function Cue.strike(cueBall: Ball, shot: Shot): number
 	local dx, dy = math.cos(shot.angle), math.sin(shot.angle)
 	local angular = 2.5 * impulsePerMass / R
 	-- r cross J, in forward/left/up axes. Rotate spin by the stick's direction, not the
-	-- squirted launch: their mismatch and the tilted side-spin axis produce real swerve.
-	local forwardSpin, leftSpin = angular * sx * sin, angular * verticalLever
+	-- squirted launch. On an elevated cue, side spin's axis tilts: its forward component
+	-- (sx * sin) slips on the cloth sideways and swerves the path. With SideSpinBendsPath
+	-- off that component is dropped, so side spin lives only in wz (about the vertical)
+	-- and acts at contacts; the path to first contact stays straight. Draw/follow unchanged.
+	local forwardSpin = if Config.Cue.SideSpinBendsPath then angular * sx * sin else 0
+	local leftSpin = angular * verticalLever
 	cueBall.wx = dx * forwardSpin - dy * leftSpin
 	cueBall.wy = dy * forwardSpin + dx * leftSpin
 	cueBall.wz = angular * sx * cos

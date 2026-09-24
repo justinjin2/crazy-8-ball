@@ -353,7 +353,15 @@ Config.Cue = {
 	StickMassOunces = 19,
 	TipRestitution = 0.73,
 	-- TP A.31 ball/effective-tip-endmass ratio; typical 15-40, default 25 from prompt D.
+	-- Only read while SideSpinBendsPath is on (it sets the squirt angle).
 	EndmassRatio = 25,
+	-- Designer 2026-09-23: side spin must not bend the aim line or the shot for now. True is
+	-- real cue physics: side spin squirts the launch off the aim (about 2.2 degrees at the
+	-- offset limit) and the tilted spin axis swerves the path on the cloth. It is kept for the
+	-- later feature that will also curve the guideline. False: the cue ball leaves exactly
+	-- along the aim and runs straight to first contact; side spin acts only at contacts
+	-- (cushion rebound, throw, spin transfer). Draw and follow are the same either way.
+	SideSpinBendsPath = false,
 	MinStickSpeed = 0, -- in/s; derived below to preserve MinSpeed at a centre hit
 	MaxStickSpeed = 0, -- in/s; derived below to preserve MaxSpeed at a centre hit
 	-- power (0..1) -> speed uses power^PowerCurve, so the low end is finer.
@@ -1724,8 +1732,13 @@ Config.Multiplayer = {
 		HeightStuds = 14, -- well above a character's jump
 		ReleaseClearanceStuds = 1.2, -- a released shooter is stepped this far outside it
 	},
-	BoundaryHalfLengthStuds = 13, -- local match roaming area
-	BoundaryHalfWidthStuds = 8, -- separates neighboring tables
+	Fence = { -- invisible walls around each match area; stop participants only (PoolFence group)
+		MinHalfLengthStuds = 13, -- along the table, from its centre, at the least
+		PadMarginStuds = 1.5, -- room beyond the furthest queue pad, so every player's own pad is inside
+		HalfWidthStuds = 8.5, -- across the table; tables are 20 studs apart, so a walkway stays between
+		ThicknessStuds = 1, -- wall thickness
+		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
+	},
 	RateLimits = { -- per player and channel token buckets
 		action = { Burst = 12, PerSecond = 8 }, -- calls, votes, surrender, queue leave
 		place = { Burst = 10, PerSecond = 6 }, -- reliable cue-ball commits (drag release, nudge pause)
@@ -1866,7 +1879,18 @@ Config.Multiplayer = {
 		PrecisionPowerStep = 0.05, -- power button step
 		CountdownScale = 0.08, -- restrained whole-number emphasis
 		TargetStroke = 2.5, -- readable blue selection outline
-		OwnBallOutlineTransparency = 0.6, -- subtle local group hint
+		OpenBallSize = 20, -- balls already down while the table is open, beside OPEN TABLE
+		ShortOpenBallSize = 16, -- the same on the two-row (narrow) layout
+		OpenBallMinSize = 12, -- never shrink them below this to fit
+		OpenBallMinText = 7, -- number size on those small balls
+		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
+		SoloPanelWidth = 280, -- the Play Solo popup under the header, pixels
+		SoloWrapColumns = 8, -- the solo 15-ball row wraps to this many + the rest on narrow screens
+		OwnBallOutlineTransparency = 0, -- solid green outline on the balls to hit
+		OwnBallFill = { 92, 223, 157 }, -- green glow over the balls to hit
+		OwnBallFillTransparency = 0.8, -- faint, so the ball's number still reads
+		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
+		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target
 		PlacementHandleSize = 48, -- draggable cue-ball handle, never smaller than this
 		PlacementGrabScale = 1.4, -- grab radius as a multiple of the ball's on-screen radius

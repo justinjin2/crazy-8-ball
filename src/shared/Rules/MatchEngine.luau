@@ -162,14 +162,15 @@ function Engine.placementOpen(phase: string, ballInHand: boolean?, callNeeded: b
 end
 
 -- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,
--- then the ball is placed and shot in the 3D one.
+-- then the ball is placed and shot in the 3D one. Solo has no clock: these wait for the player.
 local function setup(t: any, now: number)
+	local timed = t.solo == nil
 	if needsCall(t) then
-		phase(t, "PocketChoice", now, M.PocketChoiceSeconds)
+		phase(t, "PocketChoice", now, if timed then M.PocketChoiceSeconds else nil)
 	elseif t.ballInHand then
-		phase(t, "Placement", now, M.PlacementSeconds)
+		phase(t, "Placement", now, if timed then M.PlacementSeconds else nil)
 	else
-		phase(t, "Aiming", now, M.ShotSeconds)
+		phase(t, "Aiming", now, if timed then M.ShotSeconds else nil)
 	end
 end
 
@@ -199,7 +200,8 @@ end
 
 local function foul(t: any, reason: string, now: number)
 	t.foul = { by = t.shooter, team = t.activeTeam, reason = reason }
-	t.nextTeam = 3 - t.activeTeam
+	-- Solo has nobody to hand the table to: the fouler takes ball in hand themselves.
+	t.nextTeam = if t.solo then t.activeTeam else 3 - t.activeTeam
 	t.breakShot = false
 	t.ballInHand = true
 	phase(t, "Foul", now, M.FoulSeconds)
@@ -263,11 +265,14 @@ end
 -- acceptance so each can sound the moment its ball drops in the replay. Owners come from the
 -- groups AFTER this shot, so the ball that picks the colors earns one too; a table that stays
 -- open (break, foul, early eight) has no groups and awards nothing. Only a winning eight pays.
+-- Solo plays both groups, so once the colors exist every group ball is the solo player's.
 function Engine.awards(t: any, j: any, now: number)
+	local solo = if t.solo and j.groups[t.solo.team] then t.solo.team else nil
 	for _, drop in j.drops do -- deduped, chronological, never the cue ball
 		local group = Judge.group(drop.ball)
-		local owner = if group and group == j.groups[1]
-			then 1
+		local owner = if group and solo
+			then solo
+			elseif group and group == j.groups[1] then 1
 			elseif group and group == j.groups[2] then 2
 			else nil
 		if drop.ball == 8 and j.reason == "LegalEight" then
@@ -302,7 +307,31 @@ local function resolve(t: any, now: number)
 		local x, y = Placement.fallback(t.state, 8, false)
 		Placement.set(t.state, 8, x, y)
 	end
-	if Engine.count(t, 1) == 0 or Engine.count(t, 2) == 0 then
+	local solo = t.solo
+	if solo then
+		-- The first group picked is played first, then the other; the empty second team holds
+		-- whichever is left, so every group check (first contact, the 8, the call) just works.
+		-- Fouls that clear both groups while the table is still open never pick one: then
+		-- only the 8 is left and it is on.
+		solo.first = solo.first
+			or j.groups[solo.team]
+			or (
+				if Judge.remaining(t.state.balls, "solids")
+							+ Judge.remaining(t.state.balls, "stripes")
+						== 0
+					then "solids"
+					else nil
+			)
+		local current = Judge.soloGroup(t.state.balls, solo.first)
+		if current then
+			t.groups = {}
+			t.groups[solo.team], t.groups[3 - solo.team] = current, Judge.opposite(current)
+		end
+		if Engine.count(t, solo.team) == 0 then
+			finish(t, nil, "EmptyTeam", now)
+			return
+		end
+	elseif Engine.count(t, 1) == 0 or Engine.count(t, 2) == 0 then
 		local winner = if Engine.count(t, 1) > 0 then 1 elseif Engine.count(t, 2) > 0 then 2 else nil
 		finish(t, winner, "EmptyTeam", now)
 		return
@@ -316,9 +345,16 @@ local function resolve(t: any, now: number)
 		foul(t, j.foul, now)
 		return
 	end
-	local keep = j.keep
+	-- Solo always keeps the table and, after the break, never repeats the introduction.
+	local keep = j.keep or solo ~= nil
 	local team = if keep then t.activeTeam else 3 - t.activeTeam
-	beginTurn(t, team, now, false, keep and t.teamSize == 1 and Engine.seat(t, t.shooter) ~= nil)
+	beginTurn(
+		t,
+		team,
+		now,
+		false,
+		solo ~= nil or (keep and t.teamSize == 1 and Engine.seat(t, t.shooter) ~= nil)
+	)
 end
 
 --- `coinWinner` and `nextSeed` are the server's randomness (the coin, the next game's
@@ -381,7 +417,7 @@ function Engine.advance(t: any, now: number, coinWinner: number?, nextSeed: numb
 	elseif t.phase == "Resolving" then
 		resolve(t, now)
 	elseif t.phase == "Foul" then
-		beginTurn(t, t.nextTeam, now, true)
+		beginTurn(t, t.nextTeam, now, true, t.solo ~= nil)
 	elseif t.phase == "Result" then
 		local fresh = Engine.new(t.id, t.teamSize, nextSeed or t.rackSeed + 1)
 		fresh.epoch = t.epoch + 1
@@ -461,11 +497,25 @@ function Engine.action(t: any, userId: number, request: any, now: number): boole
 			return Engine.remove(t, userId, now)
 		end
 		return false
+	elseif kind == "StartSolo" then
+		-- Someone alone at a table plays it by themselves at once: no countdown, no coin,
+		-- and nobody can join until it ends. The break opens with ball in hand as usual.
+		if t.phase ~= "Waiting" or Engine.count(t) ~= 1 then
+			return false
+		end
+		t.solo = { team = s.team }
+		t.activeTeam, t.breakShot, t.cancelUntil, t.coin = s.team, true, nil, nil
+		beginTurn(t, s.team, now, true)
+		return true
 	end
 	if t.phase == "Waiting" or t.phase == "Countdown" or t.phase == "Result" then
 		return false
 	end
 	if kind == "Surrender" then
+		if t.solo then
+			finish(t, nil, "Surrender", now) -- leaving a solo game has no winner
+			return true
+		end
 		if t.teamSize == 1 then
 			finish(t, 3 - s.team, "Surrender", now)
 			return true
@@ -652,6 +702,7 @@ function Engine.snapshot(t: any): any
 		rackSeed = t.rackSeed,
 		rackPositions = rackPositions,
 		shot = t.shot,
+		solo = if t.solo then table.clone(t.solo) else nil,
 	}
 end
 

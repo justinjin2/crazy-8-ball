@@ -356,6 +356,23 @@ return {
 		H.expect(raw.drops[1].t == 3, "a drop keeps the shot time its ball went down")
 	end,
 
+	["solo plays the first group until it is cleared then the other"] = function()
+		local Judge, _, balls = setup()
+		H.expect(Judge.soloGroup(balls, nil) == nil, "no group before the first legal pocket")
+		H.expect(Judge.soloGroup(balls, "stripes") == "stripes")
+		H.expect(Judge.opposite("stripes") == "solids" and Judge.opposite("solids") == "stripes")
+		for id = 9, 14 do
+			balls[id + 1].pocketed = true
+		end
+		H.expect(Judge.soloGroup(balls, "stripes") == "stripes", "one stripe left")
+		balls[16].pocketed = true
+		H.expect(Judge.soloGroup(balls, "stripes") == "solids", "stripes cleared: solids next")
+		H.expect(not Judge.eligible(balls, Judge.soloGroup(balls, "stripes")), "8 still locked")
+		eligible(balls, "solids")
+		H.expect(Judge.soloGroup(balls, "stripes") == "solids")
+		H.expect(Judge.legalTarget(balls, Judge.soloGroup(balls, "stripes"), 8), "8 is on")
+	end,
+
 	["a real deterministic rack break satisfies the agreed rules"] = function()
 		local Judge = H.require("Rules.ShotJudge")
 		local geometry = H.require("Physics.Table").build()

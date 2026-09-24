@@ -128,6 +128,39 @@ local function buildBarrier(t: any, folder: Instance)
 	part.Parent = folder
 end
 
+-- Walls around the whole match area, so participants stay near their table without being
+-- teleported: they walk into these like any wall. In the PoolFence collision group, which
+-- only collides with PoolParticipants, so spectators and people heading for a queue pass
+-- straight through. CanQuery off keeps them out of camera occlusion and raycasts.
+local function buildFence(t: any, folder: Instance)
+	local F = M.Fence
+	local height = M.Barrier.HeightStuds
+	local fx, fy = Placement.fenceHalfExtents(t.engine.teamSize)
+	local w = F.ThicknessStuds
+	local base = CFrame.new(t.placement.x, t.placement.y + height / 2, t.placement.z)
+		* CFrame.Angles(0, t.placement.yaw, 0)
+	local walls = {
+		{ Vector3.new(0, 0, fy + w / 2), Vector3.new(2 * (fx + w), height, w) },
+		{ Vector3.new(0, 0, -(fy + w / 2)), Vector3.new(2 * (fx + w), height, w) },
+		{ Vector3.new(fx + w / 2, 0, 0), Vector3.new(w, height, 2 * fy) },
+		{ Vector3.new(-(fx + w / 2), 0, 0), Vector3.new(w, height, 2 * fy) },
+	}
+	for i, wall in walls do
+		local part = Instance.new("Part")
+		part.Name = ("MatchFence_%02d_%d"):format(t.engine.id, i)
+		part.Anchored = true
+		part.CanCollide = true
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Transparency = 1
+		part.Size = wall[2]
+		part.CFrame = base * CFrame.new(wall[1])
+		part.CollisionGroup = "PoolFence"
+		part.Parent = folder
+	end
+end
+
 local function buildPads(t: any, folder: Instance)
 	t.pads = {}
 	for team = 1, 2 do
@@ -307,6 +340,12 @@ local function refresh(t: any)
 			else Strings.Match.InProgress
 	end
 	local host = if e.hostId then Engine.seat(e, e.hostId) else nil
+	if e.solo and host then
+		-- A solo game holds the whole table until its result.
+		t.hostLabel.Text = Strings.Match.SoloPanel:format(host.displayName)
+		t.statusLabel.Text = Strings.Match.SoloInProgress
+		return
+	end
 	t.hostLabel.Text = if host
 		then Strings.Match.Host:format(host.displayName)
 		else Strings.Match.JoinHint
@@ -417,41 +456,43 @@ local function constrain(p: Player, t: any)
 		saved.added = character.DescendantAdded:Connect(excludePlayerCollision)
 		characterSaved[p.UserId] = saved
 	end
-	local locked = e.shooter == p.UserId and e.phase ~= "Foul"
+	-- A solo player keeps the table through a foul: nobody else takes over.
+	local locked = e.shooter == p.UserId and (e.phase ~= "Foul" or e.solo ~= nil)
 	if locked then
 		hum.WalkSpeed = 0
 		hum.AutoRotate = false
 		hum.JumpPower = 0
 		hum.JumpHeight = 0
 		root.Anchored = true
-	else
-		hum.WalkSpeed = saved.walk
-		hum.AutoRotate = saved.rotate
-		hum.JumpPower = saved.jump
-		hum.JumpHeight = saved.jumpHeight
-		root.Anchored = saved.anchored
-		local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
-		local scale = Config.Table.StudsPerInch
-		local cx =
-			math.clamp(x, -M.BoundaryHalfLengthStuds / scale, M.BoundaryHalfLengthStuds / scale)
-		local cy =
-			math.clamp(y, -M.BoundaryHalfWidthStuds / scale, M.BoundaryHalfWidthStuds / scale)
-		-- A shooter handed back while standing against the rail is stepped out of the table's
-		-- barrier (the client does this too; this is the authority's backstop).
-		local ox, oz = Placement.outsideBarrier(
-			t.placement,
-			root.Position.X,
-			root.Position.Z,
-			M.Barrier.ReleaseClearanceStuds
-		)
-		if ox and oz then
-			root.CFrame = CFrame.new(ox, root.Position.Y, oz) * root.CFrame.Rotation
-			root.AssemblyLinearVelocity = Vector3.zero
-		elseif cx ~= x or cy ~= y or root.Position.Y < t.placement.y - Q.FallTolerance then
-			local wx, _, wz = Placement.toWorld(t.placement, cx, cy, 0)
-			root.CFrame = CFrame.new(wx, t.placement.y + Q.RespawnHeight, wz) * root.CFrame.Rotation
-			root.AssemblyLinearVelocity = Vector3.zero
+		return
+	end
+	hum.WalkSpeed = saved.walk
+	hum.AutoRotate = saved.rotate
+	hum.JumpPower = saved.jump
+	hum.JumpHeight = saved.jumpHeight
+	root.Anchored = saved.anchored
+	-- Everyone else walks normally: the fence and the table's own barrier are physical walls,
+	-- so nothing here moves a character that is walking about. A teleport only rescues a body
+	-- that fell through the floor or ended up well outside its fence (spawned there, clipped
+	-- through); the client owns its character, so moving it every poll would rubber-band.
+	local scale = Config.Table.StudsPerInch
+	local fx, fy = Placement.fenceHalfExtents(e.teamSize)
+	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
+	x, y = x * scale, y * scale -- studs along the table's axes
+	local escape = M.Fence.EscapeStuds
+	local outside = math.abs(x) > fx + escape or math.abs(y) > fy + escape
+	if outside or root.Position.Y < t.placement.y - Q.FallTolerance then
+		local inset = M.Fence.ThicknessStuds + Q.RespawnBoundaryInset
+		local cx = math.clamp(x, -(fx - inset), fx - inset) / scale
+		local cy = math.clamp(y, -(fy - inset), fy - inset) / scale
+		-- Keep clear of the table itself: land on the nearer long side.
+		local bx, by = Placement.barrierHalfExtents()
+		if math.abs(cx * scale) < bx and math.abs(cy * scale) < by then
+			cy = (if cy < 0 then -1 else 1) * (fy - inset) / scale
 		end
+		local wx, _, wz = Placement.toWorld(t.placement, cx, cy, 0)
+		root.CFrame = CFrame.new(wx, t.placement.y + Q.RespawnHeight, wz) * root.CFrame.Rotation
+		root.AssemblyLinearVelocity = Vector3.zero
 	end
 end
 
@@ -543,6 +584,17 @@ function Service.start(parent: Instance)
 		PhysicsService:RegisterCollisionGroup("PoolParticipants")
 	end)
 	PhysicsService:CollisionGroupSetCollidable("PoolParticipants", "PoolParticipants", false)
+	-- Match fences stop only the people in a match; everyone else walks through them.
+	pcall(function()
+		PhysicsService:RegisterCollisionGroup("PoolFence")
+	end)
+	for _, group in PhysicsService:GetRegisteredCollisionGroups() do
+		PhysicsService:CollisionGroupSetCollidable(
+			"PoolFence",
+			group.name,
+			group.name == "PoolParticipants"
+		)
+	end
 	local old = parent:FindFirstChild(Service.PadFolderName)
 	if old then
 		old:Destroy()
@@ -564,6 +616,7 @@ function Service.start(parent: Instance)
 		tables[mode.id] = t
 		buildPads(t, folder)
 		buildBarrier(t, folder)
+		buildFence(t, folder)
 		Service.broadcast(t)
 	end
 	Net.get("SnapshotRequest").OnServerEvent:Connect(function(p)
@@ -660,11 +713,8 @@ function Service.start(parent: Instance)
 			if id then
 				local t = tables[id]
 				local root = character:WaitForChild("HumanoidRootPart") :: BasePart
-				local dx, dz = Placement.dirToWorld(
-					t.placement,
-					0,
-					M.BoundaryHalfWidthStuds - Q.RespawnBoundaryInset
-				)
+				local _, fenceY = Placement.fenceHalfExtents(t.engine.teamSize)
+				local dx, dz = Placement.dirToWorld(t.placement, 0, fenceY - Q.RespawnBoundaryInset)
 				root.CFrame = CFrame.new(
 					t.placement.x + dx,
 					t.placement.y + Q.RespawnHeight,

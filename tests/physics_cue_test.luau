@@ -1,5 +1,6 @@
 --!strict
--- Cue-impact measurements: TP A.30 energy efficiency and TP A.31 squirt, with real cloth.
+-- Cue-impact measurements: TP A.30 energy efficiency, and side spin that leaves along the aim
+-- and runs straight (squirt and swerve sit behind Config.Cue.SideSpinBendsPath, off for now).
 
 local H = require("./harness")
 
@@ -13,6 +14,18 @@ end
 local function powerForStickSpeed(Config, speed: number): number
 	local C = Config.Cue
 	return ((speed - C.MinStickSpeed) / (C.MaxStickSpeed - C.MinStickSpeed)) ^ (1 / C.PowerCurve)
+end
+
+-- Turn the squirt-and-swerve switch on for one check and always put it back, so later
+-- tests (the runner shares one Config) see the designer's setting.
+local function withBentPath(Config, callback: () -> ())
+	local saved = Config.Cue.SideSpinBendsPath
+	Config.Cue.SideSpinBendsPath = true
+	local ok, err = pcall(callback)
+	Config.Cue.SideSpinBendsPath = saved
+	if not ok then
+		error(err)
+	end
 end
 
 local function freeCloth()
@@ -74,23 +87,28 @@ return {
 		H.expect(x == 0.1 and y == -0.2, "valid offsets remain exact")
 	end,
 
-	["squirt points away from the tip and obeys mirror and rotation symmetry"] = function()
+	["side spin launches exactly along the aim and obeys mirror and rotation symmetry"] = function()
 		local Config, Ball, Cue = setup()
+		H.expect(
+			Config.Cue.SideSpinBendsPath == false,
+			"designer 2026-09-23: side spin does not bend the aim or the path yet"
+		)
+		for i = 0, 15 do
+			local angle = i * math.pi / 8 + 0.1
+			for _, spin in { { 0, 0 }, { 0.5, 0 }, { -0.5, 0 }, { 0.3, -0.4 }, { -0.2, 0.45 } } do
+				local x, y = Cue.launchDirection({
+					angle = angle,
+					power = 0.5,
+					spin = { x = spin[1], y = spin[2] },
+				})
+				H.expect(x == math.cos(angle) and y == math.sin(angle), "launch is exactly the aim")
+			end
+		end
 		local reference = Ball.new(0, 0, 0)
 		Cue.strike(reference, { angle = 0, power = 0.5, spin = { x = 0.5, y = 0 } })
-		H.near(
-			math.deg(math.atan2(reference.vy, reference.vx)),
-			2.2239765979512853,
-			1e-10,
-			"TP A31 squirt"
-		)
-		H.expect(
-			reference.vy > 0 and reference.wz > 0,
-			"right tip gives left squirt and positive english"
-		)
-		local x, y = Cue.launchDirection({ angle = 0.7, power = 0.5 })
-		H.near(x, math.cos(0.7), 1e-12, "centre has no squirt x")
-		H.near(y, math.sin(0.7), 1e-12, "centre has no squirt y")
+		H.expect(reference.vx > 0 and reference.vy == 0, "right side leaves straight along the aim")
+		H.expect(reference.wx == 0, "no tilted side-spin axis to swerve on the cloth")
+		H.expect(reference.wz > 0, "right tip still gives positive english")
 		local mirror = Ball.new(0, 0, 0)
 		Cue.strike(mirror, { angle = 0, power = 0.5, spin = { x = -0.5, y = 0 } })
 		H.near(mirror.vx, reference.vx, 1e-10, "mirror forward speed")
@@ -110,6 +128,47 @@ return {
 			H.near(b.wz, reference.wz, 1e-10, "rotation preserves english")
 		end
 		H.expect(Config.Cue.EndmassRatio == 25, "shared physics for every collectible cue")
+	end,
+
+	-- Regression anchor for the later swerve feature: the real cue physics is still there,
+	-- one switch away, and must keep giving TP A.31 squirt and cloth swerve.
+	["with SideSpinBendsPath on, side spin still squirts off the tip and swerves back"] = function()
+		local Config, Ball, Cue, Simulation = setup()
+		withBentPath(Config, function()
+			local reference = Ball.new(0, 0, 0)
+			Cue.strike(reference, { angle = 0, power = 0.5, spin = { x = 0.5, y = 0 } })
+			H.near(
+				math.deg(math.atan2(reference.vy, reference.vx)),
+				2.2239765979512853,
+				1e-10,
+				"TP A31 squirt"
+			)
+			H.expect(
+				reference.vy > 0 and reference.wz > 0,
+				"right tip gives left squirt and positive english"
+			)
+			local x, y = Cue.launchDirection({ angle = 0.7, power = 0.5 })
+			H.near(x, math.cos(0.7), 1e-12, "centre has no squirt x")
+			H.near(y, math.sin(0.7), 1e-12, "centre has no squirt y")
+
+			local b = Ball.new(0, 0, 0)
+			Cue.strike(b, { angle = 0, power = 0.25, spin = { x = 0.5, y = 0 } })
+			local initialDirection = math.atan2(b.vy, b.vx)
+			local state = Simulation.newState(freeCloth(), { b })
+			local slippedLeft = false
+			for _ = 1, 240 do
+				Simulation.step(state, Config.Physics.FixedStep, nil)
+				if b.y > 0 then
+					slippedLeft = true
+				end
+			end
+			H.expect(slippedLeft, "the shot first squirts left")
+			H.expect(
+				math.atan2(b.vy, b.vx) < initialDirection - math.rad(0.5),
+				"swerve bends its direction right"
+			)
+		end)
+		H.expect(Config.Cue.SideSpinBendsPath == false, "the switch is restored")
 	end,
 
 	["bounded elevation and the whole legal spin disc stay finite and lose energy"] = function()
@@ -142,24 +201,72 @@ return {
 		H.expect(b.vx == bounded.vx and b.wy == bounded.wy, "upper elevation bound")
 	end,
 
-	["slow english curves back toward the tip side through the existing cloth integrator"] = function()
+	["side spin at the default 4 degrees runs dead straight on the cloth"] = function()
 		local Config, Ball, Cue, Simulation = setup()
-		local b = Ball.new(0, 0, 0)
-		Cue.strike(b, { angle = 0, power = 0.25, spin = { x = 0.5, y = 0 } })
-		local initialDirection = math.atan2(b.vy, b.vx)
-		local state = Simulation.newState(freeCloth(), { b })
-		local slippedLeft = false
-		for _ = 1, 240 do
-			Simulation.step(state, Config.Physics.FixedStep, nil)
-			if b.y > 0 then
-				slippedLeft = true
+		for _, angle in { 0, 0.7 } do
+			local c, s = math.cos(angle), math.sin(angle)
+			for _, side in { -0.5, 0.5 } do
+				for _, vertical in { -0.3, 0, 0.3 } do
+					local b = Ball.new(0, 0, 0)
+					Cue.strike(
+						b,
+						{ angle = angle, power = 0.25, spin = { x = side, y = vertical } }
+					)
+					local state = Simulation.newState(freeCloth(), { b })
+					local label = ("angle %.1f spin %.1f, %.1f"):format(angle, side, vertical)
+					for _ = 1, 480 do
+						Simulation.step(state, Config.Physics.FixedStep, nil)
+						if angle == 0 then
+							H.expect(b.y == 0 and b.vy == 0, label .. ": not a hair off the aim")
+						end
+						H.near(-b.x * s + b.y * c, 0, 1e-9, label .. ": stays on the aim line")
+						H.near(-b.vx * s + b.vy * c, 0, 1e-9, label .. ": heading unchanged")
+					end
+					H.expect(b.x * c + b.y * s > 5, label .. ": travelled forwards")
+				end
 			end
 		end
-		H.expect(slippedLeft, "the shot first squirts left")
-		H.expect(
-			math.atan2(b.vy, b.vx) < initialDirection - math.rad(0.5),
-			"swerve bends its direction right"
-		)
+	end,
+
+	["side spin still acts at contacts: a rail rebound and a cut's throw depend on it"] = function()
+		local Config, Ball, Cue, Simulation = setup()
+		local geometry = H.require("Physics.Table").build({ pocketsOpen = false })
+		local function firstEventThen(state, kind: string, extra: number)
+			for _ = 1, 4800 do
+				local events = {}
+				Simulation.step(state, Config.Physics.FixedStep, events)
+				for _, event in events do
+					if event.type == kind then
+						for _ = 1, extra do
+							Simulation.step(state, Config.Physics.FixedStep, nil)
+						end
+						return
+					end
+				end
+			end
+			error("no " .. kind)
+		end
+		-- Up the table at 60 degrees into the long rail: right english is running english.
+		local function bank(side: number): number
+			local b = Ball.new(0, 0, 0)
+			Cue.strike(b, { angle = math.rad(60), power = 0.5, spin = { x = side, y = 0 } })
+			firstEventThen(Simulation.newState(geometry, { b }), "railHit", 30)
+			return math.deg(math.atan2(-b.vy, b.vx))
+		end
+		local left, natural, right = bank(-0.5), bank(0), bank(0.5)
+		H.expect(right < natural - 10, "running english rebounds much longer (flatter)")
+		H.expect(left > natural, "reverse english rebounds shorter (steeper)")
+		-- A half-ball cut: side spin throws the object ball off the line of centres.
+		local R = Config.Balls.RadiusInches
+		local function cut(side: number): number
+			local cue, object = Ball.new(0, -20, 0), Ball.new(1, 0, R)
+			Cue.strike(cue, { angle = 0, power = 0.3, spin = { x = side, y = 0 } })
+			firstEventThen(Simulation.newState(geometry, { cue, object }), "ballHit", 3)
+			return math.deg(math.atan2(object.vy, object.vx))
+		end
+		local outside, centre, inside = cut(-0.5), cut(0), cut(0.5)
+		H.expect(inside > centre + 1, "right english throws the object ball further left")
+		H.expect(outside < centre - 1, "left english throws it less")
 	end,
 
 	["spin-aware rollout agrees with free follow and conservatively bounds curved travel"] = function()

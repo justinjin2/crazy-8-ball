@@ -757,3 +757,16 @@ corridor, contact ring, object/cue lines and the invalid-target hint; only the c
 remains. Set it back to true to restore the Classic guideline.
 
 2026-09-23: Difficulty trial over: guideline restored (Config.Guideline.Enabled = true).
+
+2026-09-23: Side spin no longer bends the aim line or the shot. Squirt (launch deflection) and
+swerve (from the 4-degree cue's tilted spin axis) are off behind Config.Cue.SideSpinBendsPath =
+false; the cue ball leaves exactly along the aim and runs straight to first contact, while side
+spin still changes cushion rebounds, throw and spin transfer. Draw and follow are unchanged.
+Swerve with a curved guideline is parked in GDD section 18.
+
+2026-09-23: Solo mode. A player alone at any table (1v1, 2v2 or 3v3) can press Play Solo:
+no countdown or coin, nobody can join, no clock. Normal break and fouls (ball in hand to
+yourself); the first legally pocketed group is cleared first, then the other, then the called
+8. The 8 early, on a foul or in the wrong pocket now LOSES (the GDD's "re-racks" is replaced);
+Leave → Yes ends the game with no winner. The engine keeps the solo player's current group in
+`groups` and the other group on the empty team, so every existing rule check is reused.

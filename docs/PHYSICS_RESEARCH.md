@@ -123,6 +123,12 @@ away from the tip side, with m_r = ball mass / effective endmass (15 break cue, 
 40 low-deflection). Swerve needs no new code: the tilted spin axis from elevation feeds the
 existing sliding integrator.
 
+> **Status 2026-09-23:** squirt and swerve were implemented, then switched off by the
+> designer: side spin must not bend the aim line or the shot for now. They sit behind
+> `Config.Cue.SideSpinBendsPath` (false), kept for a later feature that also curves the
+> guideline. With it off the cue ball leaves along the aim and runs straight; side spin acts
+> only at contacts (cushion rebound, throw, spin transfer).
+
 **Cloth**: unchanged sliding/rolling equations (they are already right). wz decays at a
 constant 10.9 rad/s^2 regardless of R.
 

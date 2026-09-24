@@ -65,7 +65,6 @@ local sinceAim = 0
 local lastAim: number? = nil
 local lastBusy = false
 local wasModal = false
-local previousMouseBehavior: Enum.MouseBehavior? = nil
 local audioByTable: { [number]: any } = {}
 local effectsByTable: { [number]: any } = {}
 local uiSounds: { [string]: Sound } = {}
@@ -76,6 +75,15 @@ local highlightRenderer: any = nil
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
+end
+-- Hand the camera back and free the mouse. Never restore a mouse mode saved at take-over:
+-- a lock that Roblox's own camera set then (right-drag orbit, shift-lock) is one it stops
+-- tracking once we take the camera, so writing it back later leaves the cursor locked for
+-- good. Default is always right: the default camera re-applies shift-lock or first person
+-- itself if they are genuinely on.
+local function releaseMouse()
+	Camera.unlock()
+	UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 end
 local function cueWorld(): Vector3
 	local b = match and match:findCueBall()
@@ -212,14 +220,23 @@ local function highlightOwn()
 		end
 	end
 	local group = view.groups[team]
-	local downMask, eight = 0, group ~= nil
+	local downMask = 0
+	local left: { [string]: number } = { solids = 0, stripes = 0 } -- balls still up per group
 	for id = 1, 15 do
+		local ball = Judge.group(id)
 		if view.balls[id * 4 + 4] == 1 then
 			downMask = bit32.bor(downMask, bit32.lshift(1, id))
-		elseif Judge.group(id) == group then
-			eight = false
+		elseif ball then
+			left[ball] += 1
 		end
 	end
+	-- Solo plays the first group, then the other: read off the balls shown down, so the
+	-- switch (and the 8) comes the moment the replay drops the last of the first group.
+	local first = view.solo and (view.solo.first or group)
+	if first then
+		group = if left[first] > 0 then first else Judge.opposite(first)
+	end
+	local eight = group ~= nil and left[group] == 0
 	local key = ("%d:%d:%s:%s:%d"):format(
 		view.id,
 		view.epoch,
@@ -235,26 +252,31 @@ local function highlightOwn()
 	if not group then
 		return
 	end
+	-- The balls to hit glow green; the other group is washed grey so it reads as "not
+	-- yours". The 8 joins the green set once it is this player's to take, and stays plain
+	-- until then. At most 15 Highlights, inside Roblox's per-client budget.
+	local S = M.Style
 	for _, b in match.state.balls do
-		if
-			view.balls[b.id * 4 + 4] ~= 1
-			and (Judge.group(b.id) == group or (b.id == 8 and eight))
-		then
-			local part =
-				renderer.folder:FindFirstChild(if b.id == 0 then "CueBall" else "Ball_" .. b.id)
-			if not part then
-				part = renderer.parts and renderer.parts[b.id]
+		local ball = Judge.group(b.id)
+		local own = ball == group or (b.id == 8 and eight)
+		local other = ball ~= nil and ball ~= group
+		local part = renderer.parts and renderer.parts[b.id]
+		if view.balls[b.id * 4 + 4] ~= 1 and (own or other) and part and part:IsA("BasePart") then
+			local h = Instance.new("Highlight")
+			h.Adornee = part
+			h.DepthMode = Enum.HighlightDepthMode.Occluded
+			if own then
+				h.FillColor = rgb(S.OwnBallFill)
+				h.FillTransparency = S.OwnBallFillTransparency
+				h.OutlineColor = rgb(S.Green)
+				h.OutlineTransparency = S.OwnBallOutlineTransparency
+			else
+				h.FillColor = rgb(S.OpponentBallFill)
+				h.FillTransparency = S.OpponentBallFillTransparency
+				h.OutlineTransparency = 1
 			end
-			if part and part:IsA("BasePart") then
-				local h = Instance.new("Highlight")
-				h.Adornee = part
-				h.FillTransparency = 1
-				h.OutlineTransparency = M.Style.OwnBallOutlineTransparency
-				h.OutlineColor = rgb(M.Style.Green)
-				h.DepthMode = Enum.HighlightDepthMode.Occluded
-				h.Parent = part
-				table.insert(ownHighlights, h)
-			end
+			h.Parent = part
+			table.insert(ownHighlights, h)
 		end
 	end
 end
@@ -387,11 +409,7 @@ local function acquireTable(s: any?)
 		end
 		if controlled then
 			avatar:release()
-			Camera.unlock()
-			if previousMouseBehavior then
-				UserInputService.MouseBehavior = previousMouseBehavior
-				previousMouseBehavior = nil
-			end
+			releaseMouse()
 			controlled = false
 		end
 		targets:clear()
@@ -630,17 +648,17 @@ RunService.RenderStepped:Connect(function(dt)
 	input:setPlaceAllowed(targets:canPlace())
 	local phase = snapshot.phase
 	-- Only the shooter's camera is taken. The coin flip is a HUD overlay watched with the
-	-- ordinary camera; the breaker is handed the home view at Intro.
+	-- ordinary camera; the breaker is handed the home view at Intro. A solo player keeps it
+	-- through a foul, since the ball in hand that follows is their own.
 	local take = shooter()
 		and phase ~= "Waiting"
 		and phase ~= "Countdown"
 		and phase ~= "CoinFlip"
-		and phase ~= "Foul"
+		and (phase ~= "Foul" or snapshot.solo ~= nil)
 		and phase ~= "Result"
 	if take ~= controlled then
 		controlled = take
 		if take then
-			previousMouseBehavior = UserInputService.MouseBehavior
 			Camera.setTable(placement)
 			Camera.lock()
 			if shooter() then
@@ -648,11 +666,7 @@ RunService.RenderStepped:Connect(function(dt)
 			end
 		else
 			avatar:release()
-			Camera.unlock()
-			if previousMouseBehavior then
-				UserInputService.MouseBehavior = previousMouseBehavior
-				previousMouseBehavior = nil
-			end
+			releaseMouse()
 		end
 	end
 	local allowed = canShoot() and not targets:isDragging() and GuiService.SelectedObject == nil

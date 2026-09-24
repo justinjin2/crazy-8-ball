@@ -1,6 +1,7 @@
 --!strict
--- Guideline trace tests: initial launch ray and shared collision geometry. Swerve later
--- bends the physical path, so distant grazing-contact identity is not promised.
+-- Guideline trace tests: launch ray and shared collision geometry. With side spin not
+-- bending the path (Config.Cue.SideSpinBendsPath off) the trace is exact for any spin,
+-- even to a distant ball.
 
 local H = require("./harness")
 
@@ -73,52 +74,97 @@ return {
 		end
 	end,
 
-	["side-spin tracing shares the exact launch ray and preserves geometric object direction"] = function()
+	["side-spin tracing uses the exact aim and preserves geometric object direction"] = function()
 		local Config, Ball, _, Simulation, Aim, geometry = setup()
 		local Cue = H.require("Physics.Cue")
 		for _, side in { -0.5, 0.5 } do
-			local shot = { angle = 0, power = 0.8, spin = { x = side, y = 0 } }
+			local shot = { angle = 0.3, power = 0.8, spin = { x = side, y = 0 } }
 			local dx, dy = Cue.launchDirection(shot)
+			H.expect(dx == math.cos(0.3) and dy == math.sin(0.3), "side spin does not move the aim")
 			local state = Simulation.newState(
 				geometry,
 				{ Ball.new(0, -20, 0), Ball.new(1, -20 + 8 * dx, 8 * dy) }
 			)
 			local trace = Aim.trace(state, shot)
 			local distance = 8 - 2 * Config.Balls.RadiusInches
-			H.expect(trace.contact == "ball" and trace.objectId == 1, "short direct launch-ray hit")
-			H.near(trace.ghostX, -20 + distance * dx, 1e-8, "squirted ghost x")
-			H.near(trace.ghostY, distance * dy, 1e-8, "squirted ghost y")
+			H.expect(trace.contact == "ball" and trace.objectId == 1, "short direct hit")
+			H.near(trace.ghostX, -20 + distance * dx, 1e-8, "ghost x on the aim")
+			H.near(trace.ghostY, distance * dy, 1e-8, "ghost y on the aim")
 			H.near(trace.objectDirX, dx, 1e-8, "geometric object line x")
 			H.near(trace.objectDirY, dy, 1e-8, "geometric object line y")
 			local result = Simulation.run(state, shot)
-			H.expect(
-				result.firstContact == trace.objectId,
-				"nearby first-contact identity survives slight swerve"
-			)
+			H.expect(result.firstContact == trace.objectId, "the simulation hits the traced ball")
 		end
 	end,
 
-	["a level pure-side shot follows its squirted ray up to first contact"] = function()
-		local _, Ball, _, Simulation, Aim, geometry = setup()
-		local Cue = H.require("Physics.Cue")
-		local shot = { angle = 0.15, power = 0.6, spin = { x = 0.5, y = 0 }, elevation = 0 }
-		local dx, dy = Cue.launchDirection(shot)
-		local state = Simulation.newState(
-			geometry,
-			{ Ball.new(0, -20, 0), Ball.new(1, -20 + 20 * dx, 20 * dy) }
-		)
-		local trace = Aim.trace(state, shot)
-		local result = Simulation.run(state, shot)
-		H.expect(
-			result.firstContact == trace.objectId,
-			"level pure-side shot has no swerve before contact"
-		)
-		H.near(
-			(trace.ghostY - trace.startY) / (trace.ghostX - trace.startX),
-			dy / dx,
-			1e-10,
-			"ray slope"
-		)
+	["side spin with draw or follow meets a distant ball exactly at the no-spin ghost"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local Collision = H.require("Physics.Collision")
+		local R = Config.Balls.RadiusInches
+		local angle = 0.15
+		local c, s = math.cos(angle), math.sin(angle)
+		-- 45 inches down the aim, nudged off it for a cut so any bend would miss the ghost.
+		local objectX = -30 + 45 * c - 0.8 * R * s
+		local objectY = 45 * s + 0.8 * R * c
+		local function layout()
+			return Simulation.newState(
+				geometry,
+				{ Ball.new(0, -30, 0), Ball.new(1, objectX, objectY) }
+			)
+		end
+		local plain = Aim.trace(layout(), angle)
+		H.expect(plain.contact == "ball" and plain.objectId == 1, "the plain aim hits the 1 ball")
+		for _, spin in
+			{ { 0.5, 0 }, { -0.5, 0 }, { 0.4, 0.3 }, { 0.4, -0.3 }, { -0.4, 0.3 }, { -0.4, -0.3 } }
+		do
+			local shot = { angle = angle, power = 0.6, spin = { x = spin[1], y = spin[2] } }
+			local label = ("spin %.1f, %.1f"):format(spin[1], spin[2])
+			local state = layout()
+			local trace = Aim.trace(state, shot)
+			H.expect(
+				trace.ghostX == plain.ghostX and trace.ghostY == plain.ghostY,
+				label .. ": spin does not move the ghost"
+			)
+			-- Step the real shot to the step before first contact: the cue ball must still be
+			-- on the aim line, and continuing its heading must touch the object at the ghost.
+			local cue = Simulation.findBall(state, 0) :: any
+			Simulation.strike(state, shot)
+			local hitId: number? = nil
+			local lastX, lastY, lastVx, lastVy = cue.x, cue.y, cue.vx, cue.vy
+			for _ = 1, 4800 do
+				lastX, lastY, lastVx, lastVy = cue.x, cue.y, cue.vx, cue.vy
+				local events = {}
+				Simulation.step(state, Config.Physics.FixedStep, events)
+				for _, event in events do
+					if event.type == "ballHit" or event.type == "railHit" then
+						hitId = event.other or -1
+					end
+				end
+				if hitId then
+					break
+				end
+				H.near(-(cue.x + 30) * s + cue.y * c, 0, 1e-9, label .. ": on the aim line")
+			end
+			H.expect(hitId == trace.objectId, label .. ": the simulation hits the traced ball")
+			local speed = math.sqrt(lastVx * lastVx + lastVy * lastVy)
+			local ux, uy = lastVx / speed, lastVy / speed
+			H.near(ux, c, 1e-9, label .. ": heading x is the aim")
+			H.near(uy, s, 1e-9, label .. ": heading y is the aim")
+			local t = Collision.circleTOI(lastX, lastY, ux, uy, objectX, objectY, 0, 0, R, 1e6)
+			H.expect(t ~= nil, label .. ": still heading into the object ball")
+			H.near(
+				lastX + ux * (t :: number),
+				trace.ghostX,
+				1e-6,
+				label .. ": contact x is the ghost"
+			)
+			H.near(
+				lastY + uy * (t :: number),
+				trace.ghostY,
+				1e-6,
+				label .. ": contact y is the ghost"
+			)
+		end
 	end,
 
 	["guideline shares: full hit, thin cut and rail follow cos and sin of the cut angle"] = function()

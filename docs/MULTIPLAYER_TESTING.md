@@ -46,6 +46,17 @@ or saved wins. The lounge is intentionally disabled.
 - On the 8, choose a blue pocket; only that call remains highlighted while aiming.
   The call is final: the other pockets disappear and cannot be picked.
 
+## Play solo
+
+- Stand alone on any white square of any table. A green **Play Solo** button appears under
+  the header (controller: select it with UI navigation, then A). Press it: the break starts
+  at once with YOUR TURN, no countdown or coin, and nobody else can join that table.
+- There is no clock anywhere. A foul (illegal break, scratch, wrong first ball, no rail)
+  gives you ball in hand again. The first ball you pocket legally after the break picks the
+  group you clear first; the HUD row shows that group, then the other, then the 8.
+- Clear both groups, call the 8 and sink it: YOU WIN. The 8 early, on a foul or in the
+  wrong pocket: YOU LOSE. Leave → Yes: MATCH ENDED. Step off and back on to play again.
+
 ## Edge cases
 
 1. Fill a queue, leave during countdown, return: it cancels and restarts once. First host

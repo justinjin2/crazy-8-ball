@@ -128,6 +128,18 @@ function Placement.outsideBarrier(
 	return wx, wz
 end
 
+--- Half extents, in studs along the table's own length and width, of the fence around a
+--- match area for `teamSize` players a side: past the furthest queue pad at the head end
+--- (Multiplayer.PadDistanceStuds onwards), mirrored at the foot.
+function Placement.fenceHalfExtents(teamSize: number): (number, number)
+	local M = Config.Multiplayer
+	local F = M.Fence
+	local furthest = M.PadDistanceStuds
+		+ (teamSize - 1) * (M.PadSizeStuds + M.PadGapStuds)
+		+ M.PadSizeStuds / 2
+	return math.max(F.MinHalfLengthStuds, furthest + F.PadMarginStuds), F.HalfWidthStuds
+end
+
 function Placement.dirToWorld(p: Placement, xIn: number, yIn: number): (number, number)
 	return xIn * p.cos - yIn * p.sin, -(xIn * p.sin + yIn * p.cos)
 end

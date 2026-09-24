@@ -669,4 +669,201 @@ function tests.each_game_racks_from_the_seed_the_server_supplies()
 	)
 end
 
+-- Solo: player `side * 10 + 1` stands alone in slot 1 of their side and presses Play Solo.
+local function solo(size: number, side: number?): any
+	local team = side or 1
+	local m = E.new(1, size)
+	local user = team * 10 + 1
+	expect(E.join(m, user, "solo", "solo", team, 1, 0))
+	expect(action(m, user, "StartSolo"))
+	return m
+end
+-- Leave the solo break behind: an open table with the cue ball placed, aiming, no clock.
+local function soloAiming(m: any)
+	m.breakShot, m.ballInHand = false, false
+	expire(m) -- the introduction is the only timed phase before a shot
+	expect(m.phase == "Aiming" and m.deadline == nil)
+end
+local function sidePocket(m: any): number
+	for _, p in m.state.geometry.pockets do
+		if p.x == 0 and p.y > 0 then
+			return p.id
+		end
+	end
+	error("no +y side pocket")
+end
+local function pocketAll(m: any, first: number, last: number)
+	for _, b in m.state.balls do
+		if b.id >= first and b.id <= last then
+			b.pocketed = true
+		end
+	end
+end
+-- Resolve a shot judged by the real ShotJudge from synthetic events.
+local function judged(m: any, events: { any })
+	local before = Ball.cloneList(m.state.balls)
+	local outcome = fakeOutcome(m, events)
+	for _, ev in events do
+		if ev.type == "pocket" then
+			outcome.finalBalls[ev.ball + 1].pocketed = true
+		end
+	end
+	local j = Judge.resolve(before, outcome, m.groups, m.activeTeam, m.breakShot, m.calledPocket)
+	m.pending = { outcome = outcome, judgement = j }
+	m.phase = "Resolving"
+	m.deadline = m.phaseStartedAt + 1
+	expire(m)
+end
+function tests.solo_starts_only_for_a_lone_seated_player_in_waiting()
+	local m = E.new(1, 2)
+	expect(E.join(m, 11, "a", "a", 1, 1, 0) and E.join(m, 21, "b", "b", 2, 1, 0))
+	expect(not action(m, 11, "StartSolo"), "two seats: no solo")
+	expect(E.remove(m, 21, 1))
+	expect(not action(m, 99, "StartSolo"), "only a seated player")
+	expect(not E.action(m, 11, { kind = "StartSolo", epoch = m.epoch + 1, turnId = m.turnId }, 1))
+	expect(action(m, 11, "StartSolo") and m.solo.team == 1 and m.solo.first == nil)
+	expect(m.phase == "Intro" and m.shooter == 11 and m.breakShot and m.ballInHand)
+	expect(m.coin == nil and m.activeTeam == 1)
+	expect(not action(m, 11, "StartSolo"), "already playing")
+	expect(not E.join(m, 21, "b", "b", 2, 1, 2), "nobody joins a solo game")
+	expect(not E.join(m, 12, "c", "c", 1, 2, 2))
+	local snapshot = E.snapshot(m)
+	expect(snapshot.solo.team == 1 and snapshot.solo ~= m.solo, "the snapshot has a copy")
+	local full = queue(1)
+	expect(full.phase == "Countdown" and not action(full, 11, "StartSolo"), "not in countdown")
+end
+function tests.solo_has_no_clock_and_fouls_return_ball_in_hand_to_the_player()
+	local m = solo(1)
+	expect(m.deadline == m.phaseStartedAt + M.IntroSeconds, "the break opens with YOUR TURN")
+	expire(m)
+	expect(m.phase == "Placement" and m.deadline == nil)
+	E.advance(m, 1e9, 1)
+	expect(m.phase == "Placement", "no placement clock")
+	resolveFixture(m, false, "IllegalBreak")
+	expect(m.phase == "Foul" and m.foul.by == 11 and m.nextTeam == 1)
+	expect(m.deadline == m.phaseStartedAt + M.FoulSeconds, "the foul notice still moves on")
+	local turn = m.turnId
+	expire(m)
+	expect(m.phase == "Placement" and m.shooter == 11 and m.ballInHand and not m.breakShot)
+	expect(m.deadline == nil and m.turnId == turn + 1, "no introduction after the break")
+	expect(action(m, 11, "Place", { x = -30, y = 3 }))
+	resolveFixture(m, false, nil)
+	expect(m.phase == "Aiming" and m.shooter == 11 and m.deadline == nil, "a miss keeps the table")
+	E.advance(m, 1e9, 1)
+	expect(m.phase == "Aiming" and m.timeouts[1] == 0, "no shooting clock")
+	E.death(m, 11, 1e9)
+	expect(m.phase == "Foul")
+	expire(m)
+	expect(m.phase == "Placement" and m.shooter == 11, "a reset is an ordinary solo foul")
+end
+function tests.solo_plays_first_group_then_the_other_then_the_eight()
+	local m = solo(1)
+	soloAiming(m)
+	local wire = E.acceptShot(m, 11, sidePocketShot(m, 3), m.phaseStartedAt)
+	expect(wire ~= nil and wire.assign ~= nil and wire.assign.ball == 3)
+	expect(wire.assign.groups[1] == "solids" and wire.assign.groups[2] == "stripes")
+	expect(#m.feedback == 1 and m.feedback[1].team == 1 and m.feedback[1].ball == 3)
+	expire(m)
+	expect(m.solo.first == "solids" and m.groups[1] == "solids" and m.groups[2] == "stripes")
+	expect(m.phase == "Aiming" and m.shooter == 11 and m.deadline == nil)
+	-- The last solid drops: stripes are next and the 8 stays locked.
+	pocketAll(m, 1, 6)
+	table.clear(m.feedback)
+	wire = E.acceptShot(m, 11, sidePocketShot(m, 7), m.phaseStartedAt)
+	expect(wire ~= nil and wire.assign == nil and #m.feedback == 1 and m.feedback[1].team == 1)
+	expire(m)
+	expect(m.solo.first == "solids" and m.groups[1] == "stripes" and m.groups[2] == "solids")
+	expect(m.phase == "Aiming" and m.calledPocket == nil)
+	expect(not Judge.legalTarget(m.state.balls, m.groups[1], 8), "the 8 waits for the stripes")
+	expect(not Judge.legalTarget(m.state.balls, m.groups[1], 2), "solids are done")
+	-- Every group ball is the solo player's bonus, even the other group's.
+	table.clear(m.feedback)
+	E.awards(m, {
+		groups = m.groups,
+		drops = { { ball = 10, index = 1, t = 1 }, { ball = 2, index = 2, t = 2 } },
+	}, 0)
+	expect(#m.feedback == 2 and m.feedback[1].team == 1 and m.feedback[2].team == 1)
+	-- All fourteen down: the call, with no clock, then the 8 wins.
+	pocketAll(m, 9, 15)
+	resolveFixture(m, false, nil)
+	expect(m.groups[1] == "stripes" and m.phase == "PocketChoice" and m.deadline == nil)
+	E.advance(m, 1e9, 1)
+	expect(m.phase == "PocketChoice" and m.calledPocket == nil, "no call timeout")
+	expect(action(m, 11, "Pocket", { pocket = sidePocket(m) }))
+	expect(m.phase == "Aiming" and m.deadline == nil)
+	table.clear(m.feedback)
+	wire = E.acceptShot(m, 11, sidePocketShot(m, 8), m.phaseStartedAt)
+	expect(wire ~= nil and #m.feedback == 1 and m.feedback[1].ball == 8)
+	expire(m)
+	expect(m.phase == "Result" and m.result.winner == 1 and m.result.reason == "LegalEight")
+	expire(m)
+	expect(m.phase == "Waiting" and m.solo == nil and E.snapshot(m).solo == nil and #m.seats == 0)
+end
+function tests.solo_loses_on_early_foul_or_wrong_pocket_eights()
+	local contact = { t = 1, type = "ballHit", ball = 0, other = 10, speed = 10 }
+	local function drop(id: number, t: number, pocket: number?): any
+		return { t = t, type = "pocket", ball = id, other = pocket or 1, speed = 10 }
+	end
+	-- Early: stripes first, the 8 drops with stripes still up.
+	local m = solo(1)
+	soloAiming(m)
+	m.solo.first, m.groups = "stripes", { "stripes", "solids" }
+	judged(m, { contact, drop(10, 2), drop(8, 3) })
+	expect(m.phase == "Result" and m.result.winner == 2 and m.result.reason == "EarlyEight")
+	-- Early even with the first group cleared: the second group must go too.
+	m = solo(1)
+	soloAiming(m)
+	pocketAll(m, 9, 15)
+	m.solo.first, m.groups = "stripes", { "solids", "stripes" }
+	contact = { t = 1, type = "ballHit", ball = 0, other = 1, speed = 10 }
+	judged(m, { contact, drop(1, 2), drop(8, 3) })
+	expect(m.phase == "Result" and m.result.winner == 2 and m.result.reason == "EarlyEight")
+	-- A foul on the 8, and the 8 in a pocket that was not called.
+	for _, case in { "FoulEight", "WrongPocket" } do
+		m = solo(1)
+		soloAiming(m)
+		pocketAll(m, 1, 15)
+		Sim.findBall(m.state, 8).pocketed = false
+		resolveFixture(m, false, nil)
+		expect(m.phase == "PocketChoice")
+		expect(action(m, 11, "Pocket", { pocket = 3 }))
+		contact = { t = 1, type = "ballHit", ball = 0, other = 8, speed = 10 }
+		local events = if case == "FoulEight"
+			then { contact, drop(8, 2, 3), drop(0, 3) }
+			else { contact, drop(8, 2, 4) }
+		judged(m, events)
+		expect(m.phase == "Result" and m.result.winner == 2 and m.result.reason == case, case)
+	end
+end
+function tests.solo_surrender_and_departure_end_with_no_winner()
+	for size = 1, 3 do
+		local m = solo(size)
+		expect(action(m, 11, "Surrender"))
+		expect(m.phase == "Result" and m.result.winner == nil and m.result.reason == "Surrender")
+		expect(m.vote == nil)
+		expire(m)
+		expect(m.phase == "Waiting" and m.solo == nil and E.count(m) == 0)
+	end
+	local m = solo(1)
+	expect(E.remove(m, 11, 1))
+	expect(m.phase == "Result" and m.result.winner == nil and m.result.reason == "EmptyTeam")
+end
+function tests.solo_runs_on_team_tables_from_either_side()
+	for size = 2, 3 do
+		for side = 1, 2 do
+			local m = solo(size, side)
+			local user = side * 10 + 1
+			expect(m.solo.team == side and m.activeTeam == side and m.shooter == user)
+			expire(m)
+			resolveFixture(m, true, nil)
+			expect(m.phase == "Aiming" and m.shooter == user, "the break keeps the table")
+			resolveFixture(m, false, "Scratch")
+			expire(m)
+			expect(m.phase == "Placement" and m.shooter == user and m.activeTeam == side)
+			resolveFixture(m, false, nil)
+			expect(m.phase == "Aiming" and m.shooter == user and m.deadline == nil)
+		end
+	end
+end
+
 return tests

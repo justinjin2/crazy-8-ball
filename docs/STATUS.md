@@ -27,7 +27,16 @@ Latest changes:
   (Physics/Cluster.luau). Over 200 seeds, 61% of full breaks pocket a ball and about 12
   balls reach a rail. Every game opens on a random rack.
 
-Verified: lint clean and 232 Lune tests pass. On one Studio client, the home view pose
+- 2026-09-23 playtest fixes:
+  - Solo mode: a Play Solo button when you're alone on a pad. Clear your first group, then
+    the other group, then the 8. No clock. A foul gives ball in hand; an early 8 loses.
+  - Fixed the permanent cursor lock after a turn.
+  - Walking is normal again: physical fences replace the teleport loop.
+  - Side spin no longer bends the line or the shot.
+  - Your group glows green and the other group is greyed.
+  - Balls pocketed while the table is open show next to OPEN TABLE.
+
+Verified: lint clean and 242 Lune tests pass. On one Studio client, the home view pose
 was checked numerically, as were the top-down-only pocket call, a real mouse drag with
 the camera holding, the drop-frame reveal and bonus, and a red X screenshot. No project
 errors or drift warnings. See [MULTIPLAYER_PROGRESS.md](../MULTIPLAYER_PROGRESS.md).

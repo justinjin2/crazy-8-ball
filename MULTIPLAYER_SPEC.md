@@ -9,7 +9,8 @@ bonus and group reveal at the moment the ball drops, and a red X on pocketed bal
 
 ## Scope and preservation
 
-Three dedicated tables on the existing baseplate: 1v1, 2v2, 3v3. One configurable
+Three dedicated tables on the existing baseplate: 1v1, 2v2, 3v3; a player alone at
+any of them may instead play it solo (see Solo, added 2026-09-23). One configurable
 system, independent balls, players, clocks, camera state, sound and results. Preserve
 the imported black/blue table, existing deterministic physics, spin, orbit aiming,
 power cue, audio and visual identity. Keep the lounge stored/disabled. No bots, bot
@@ -58,10 +59,31 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
   eligible but WITHOUT pocketing eight is ordinary foul. Last group ball and eight
   on the same shot loses. A legal called eight wins.
 
+## Solo (added 2026-09-23)
+
+- A player standing alone on any table's pads (Waiting, one seat, theirs) sees **Play
+  Solo** under the header. It starts at once: no Countdown or CoinFlip, and nobody can
+  join until the result. Solo runs on the 2v2 and 3v3 tables too.
+- Normal break and legal-break rule; the 8 on the break is re-spotted. Every foul
+  (illegal break, scratch, wrong first contact, no rail) gives the SAME player ball in
+  hand and play continues. The table is open after the break; the first legally pocketed
+  object ball picks the FIRST group. Clear all of it, then all of the other group, then
+  call the 8 as usual (top-down, final).
+- The 8 early, on a foul or in the wrong pocket: YOU LOSE. A legal called 8 after all
+  fourteen: YOU WIN. Leave → Yes ends the game at once with no winner (MATCH ENDED).
+  Then the normal Result and table reset.
+- No clock: PocketChoice, Placement and Aiming have no deadline; the Foul notice still
+  passes on its own. YOUR TURN plays only at the break.
+- HUD: one panel and a 15-ball row in playing order (first group, other group, the 8),
+  wrapping to 8 + 7 on narrow screens, with the open-table row until the first group is
+  known; no clock. Once groups exist every group ball the player pockets plays their
+  bonus; the winning 8 as in matches.
+
 ## Phase/timing order
 
 Waiting → Countdown → CoinFlip → Intro → optional PocketChoice → optional Placement
-→ Aiming → Resolving → optional Foul → next turn or Result → reset.
+→ Aiming → Resolving → optional Foul → next turn or Result → reset. Solo goes straight
+from Waiting to Intro.
 
 - Intro: YOUR TURN and sound for newly designated local shooter, two seconds before
   shooting clock. Others see shooter identity. Early shot allowed unless an eight
@@ -201,10 +223,13 @@ seats[{userId,name,displayName,team,slot,host,joinedAt,connected}], hostId, acti
 shooter, turnId, breakShot, ballInHand, groups (team-indexed solids/stripes or nil),
 calledPocket, coin{headsTeam,winnerTeam,breaker}, foul{by,team,reason},
 result{winner,reason}, vote{team,deadline,yes}, balls (x,y,z,pocketed per ball ID+1),
-shotSeq, rackSeed, rackPositions, optional shot (complete replay payload).
+shotSeq, rackSeed, rackPositions, optional shot (complete replay payload), optional
+solo{team,first} (first = the group played first, nil until picked; in solo, groups hold
+the group being played for the solo team and the other group for the empty team).
 Phases use exactly the title-case names above. Snapshot revisions monotonically increase.
 MatchAction client requests: {tableId,epoch,turnId,kind,x?,y?,seq?,pocket?,yes?}; kinds
-Place, Pocket, Surrender, Vote, LeaveQueue (no ConfirmPlacement). Place carries a
+Place, Pocket, Surrender, Vote, LeaveQueue, StartSolo (no ConfirmPlacement). StartSolo is
+valid only in Waiting from the table's one connected seat. Place carries a
 per-turn seq; a Place or stream move with seq <= the last accepted one is ignored.
 SnapshotRequest requests initial/full state after client listeners exist. Gameplay action
 requests require current epoch/turnId; shot payload additionally supports optional

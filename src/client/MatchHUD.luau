@@ -174,10 +174,16 @@ local function eligible(snapshot: any, team: number): boolean
 	if group == nil then
 		return false
 	end
-	local start = if group == "solids" then 1 else 9
-	for id = start, start + 6 do
-		if not pocketed(snapshot, id) then
-			return false
+	-- Solo clears both groups before the 8. Checked on the balls, not the group, because
+	-- the replay that clears the first group still shows that group as the player's.
+	local starts: { number } = if snapshot.solo
+		then { 1, 9 }
+		else { if group == "solids" then 1 else 9 }
+	for _, start in starts do
+		for id = start, start + 6 do
+			if not pocketed(snapshot, id) then
+				return false
+			end
 		end
 	end
 	return true
@@ -293,6 +299,95 @@ local function makeBall(parent: Instance): any
 	}
 end
 
+-- Draw a numbered slot as ball `id`: its own colours, or grey with the red X once it is
+-- down. The 8 is dimmed while locked and outlined green once it is ready.
+local function paintBall(ball: any, id: number, down: boolean, ready: boolean)
+	ball.number.Text = tostring(id)
+	ball.stripe.Visible = id > 8
+	local tint = color(Config.Balls.Colors[if id > 8 then id - 8 else id])
+	ball.sphere.BackgroundColor3 = if down
+		then color(S.Disabled)
+		elseif id > 8 then color(S.Text)
+		else tint
+	ball.stripe.BackgroundColor3 = if down then color(S.Disabled) else tint
+	ball.face.BackgroundColor3 = if down then color(S.Muted) else color(S.Text)
+	ball.cross.Visible = down
+	ball.border.Color = color(if id == 8 and ready then S.Active else S.Text)
+	ball.border.Transparency = if id == 8 and ready then 0 else 0.65
+	ball.sphere.BackgroundTransparency = if id == 8 and not ready then 0.5 else 0
+end
+
+-- Size a full numbered slot: the ball, its number and the red X bars.
+local function sizeBall(ball: any, size: number)
+	ball.root.Size = UDim2.fromOffset(size, size)
+	ball.number.TextSize = math.max(S.NameSize, size * 0.39)
+	local length = math.floor(size * S.PocketedMarkLength + 0.5)
+	local thick = math.max(S.PocketedMarkMinPx, math.floor(size * S.PocketedMarkThickness + 0.5))
+	for _, bar in ball.bars do
+		bar.Size = UDim2.fromOffset(length, thick)
+	end
+end
+
+-- The OPEN TABLE label over a team's ball area, with the balls already down beside it.
+local function layoutOpen(
+	team: any,
+	ballLeft: number,
+	ballTop: number,
+	ballsWidth: number,
+	rowsHeight: number,
+	ballRows: number
+)
+	team.open.Position = UDim2.fromOffset(ballLeft, ballTop)
+	team.open.Size = UDim2.fromOffset(ballsWidth, rowsHeight)
+	team.open.TextSize = S.StatusSize
+	team.open.TextXAlignment = Enum.TextXAlignment.Center
+	if team.openCount > 0 then
+		-- The label moves aside (one row) or up (two rows) to make room for the balls.
+		local labelWidth, rowLeft, rowTop, rowWidth, size
+		if ballRows == 1 then
+			labelWidth = math.floor(ballsWidth * S.OpenLabelShare)
+			rowLeft, rowTop, rowWidth = ballLeft + labelWidth, ballTop, ballsWidth - labelWidth
+			size = S.OpenBallSize
+		else
+			labelWidth = ballsWidth
+			rowLeft, rowTop, rowWidth = ballLeft, ballTop + rowsHeight / 2, ballsWidth
+			size = S.ShortOpenBallSize
+		end
+		local miniGap = S.BallGap / 2
+		size = math.max(
+			S.OpenBallMinSize,
+			math.min(size, math.floor((rowWidth + miniGap) / team.openCount) - miniGap)
+		)
+		team.open.TextSize = S.NameSize
+		team.open.TextXAlignment = if ballRows == 1
+			then Enum.TextXAlignment.Left
+			else Enum.TextXAlignment.Center
+		team.open.Size =
+			UDim2.fromOffset(labelWidth, if ballRows == 1 then rowsHeight else rowsHeight / 2)
+		team.openRow.Position = UDim2.fromOffset(rowLeft, rowTop)
+		team.openRow.Size =
+			UDim2.fromOffset(rowWidth, if ballRows == 1 then rowsHeight else rowsHeight / 2)
+		local rowHeight = if ballRows == 1 then rowsHeight else rowsHeight / 2
+		local n = 0
+		for _, ball in team.openBalls do
+			if ball.down then
+				ball.root.Position = UDim2.fromOffset(n * (size + miniGap), (rowHeight - size) / 2)
+				ball.root.Size = UDim2.fromOffset(size, size)
+				ball.number.TextSize = math.max(S.OpenBallMinText, size * 0.45)
+				local length = math.floor(size * S.PocketedMarkLength + 0.5)
+				local thick = math.max(
+					S.PocketedMarkMinPx - 1,
+					math.floor(size * S.PocketedMarkThickness + 0.5)
+				)
+				for _, bar in ball.bars do
+					bar.Size = UDim2.fromOffset(length, thick)
+				end
+				n += 1
+			end
+		end
+	end
+end
+
 local function makeTeam(parent: Instance, name: string): any
 	local root = panel(parent, name)
 	local title = label(root, "TeamName", S.NameSize, "")
@@ -310,6 +405,18 @@ local function makeTeam(parent: Instance, name: string): any
 	end
 	local open = label(root, "OpenTable", S.StatusSize, Copy.OpenTable)
 	open.TextColor3 = color(S.Muted)
+	-- While the table is open nobody owns a group yet, but balls can already be down (the
+	-- break). They show here, small and crossed out in their own colours, until the groups
+	-- are decided. The 8 is left out: on the break it is always re-spotted.
+	local openRow = frame(root, "OpenPocketed")
+	local openBalls = {}
+	for id = 1, 15 do
+		if id ~= 8 then
+			local ball = makeBall(openRow)
+			ball.id = id
+			table.insert(openBalls, ball)
+		end
+	end
 	return {
 		root = root,
 		title = title,
@@ -317,6 +424,9 @@ local function makeTeam(parent: Instance, name: string): any
 		portraits = portraits,
 		balls = balls,
 		open = open,
+		openRow = openRow,
+		openBalls = openBalls,
+		openCount = 0,
 	}
 end
 
@@ -350,6 +460,26 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.root.Size = UDim2.fromScale(1, 1)
 	self.root.Visible = false
 	self.teams = { makeTeam(self.root, "LocalTeam"), makeTeam(self.root, "OtherTeam") }
+	-- Solo: fifteen slots on the local panel in playing order (first group, other group, 8).
+	self.teams[1].soloBalls, self.teams[2].soloBalls = {}, {}
+	for _ = 1, 15 do
+		table.insert(self.teams[1].soloBalls, makeBall(self.teams[1].root))
+	end
+	-- The Play Solo offer, under the header while this player waits alone at the table.
+	self.soloOffer = panel(self.root, "PlaySolo")
+	self.soloOffer.AnchorPoint = Vector2.new(0.5, 0)
+	self.soloOffer.Visible = false
+	self.soloHint = label(self.soloOffer, "Hint", S.NameSize, Copy.SoloHint)
+	self.soloHint.TextColor3 = color(S.Muted)
+	self.soloSentAt = -math.huge
+	self.soloButton = button(self.soloOffer, Copy.PlaySolo, function()
+		if self:soloAvailable() then
+			self.soloSentAt = self.lastNow -- hidden until the server answers
+			onAction("StartSolo", nil)
+		end
+	end)
+	self.soloButton.BackgroundColor3 = color(S.Active)
+	self.soloButton.TextColor3 = color(S.Panel)
 	self.center = panel(self.root, "MatchStatus")
 	self.status = label(self.center, "Status", S.StatusSize, "")
 	self.status.Font = Enum.Font.GothamBold
@@ -607,24 +737,29 @@ function MatchHUD.layout(self: any)
 				ballLeft + column * (ballSize + S.BallGap),
 				ballTop + row * (ballSize + S.BallGap)
 			)
-			ball.root.Size = UDim2.fromOffset(ballSize, ballSize)
-			ball.number.TextSize = math.max(S.NameSize, ballSize * 0.39)
-			local length = math.floor(ballSize * S.PocketedMarkLength + 0.5)
-			local thick =
-				math.max(S.PocketedMarkMinPx, math.floor(ballSize * S.PocketedMarkThickness + 0.5))
-			for _, bar in ball.bars do
-				bar.Size = UDim2.fromOffset(length, thick)
-			end
+			sizeBall(ball, ballSize)
 		end
-		team.open.Position = UDim2.fromOffset(ballLeft, ballTop)
-		team.open.Size =
-			UDim2.fromOffset(ballsWidth, ballSize * ballRows + S.BallGap * (ballRows - 1))
+		local rowsHeight = ballSize * ballRows + S.BallGap * (ballRows - 1)
+		layoutOpen(team, ballLeft, ballTop, ballsWidth, rowsHeight, ballRows)
 	end
 	self.center.Position = UDim2.fromOffset(
 		if inline then startX + teamWidth + gap else (width - centerWidth) / 2,
 		top + (if inline then 0 else headerHeight + gap)
 	)
 	self.center.Size = UDim2.fromOffset(centerWidth, S.HeaderHeight)
+	if self.snapshot and self.snapshot.solo then
+		self:layoutSolo(width)
+	end
+	-- The Play Solo offer hangs under the header (only while waiting, so never over play).
+	self.soloOffer.Position = UDim2.new(0.5, 0, 0, self.headerBottom + gap)
+	self.soloOffer.Size = UDim2.fromOffset(
+		math.min(S.SoloPanelWidth, availableWidth),
+		S.NameSize + S.ButtonHeight + gap * 2
+	)
+	self.soloHint.Position = UDim2.fromOffset(gap, gap / 2)
+	self.soloHint.Size = UDim2.new(1, -gap * 2, 0, S.NameSize + gap / 2)
+	self.soloButton.Position = UDim2.new(0, gap, 1, -S.ButtonHeight - gap)
+	self.soloButton.Size = UDim2.new(1, -gap * 2, 0, S.ButtonHeight)
 	local leaveWidth = S.ButtonHeight * 1.4
 	local contentWidth = centerWidth - leaveWidth - gap * 2
 	self.status.Position = UDim2.fromOffset(gap / 2, gap / 2)
@@ -726,6 +861,83 @@ function MatchHUD.layout(self: any)
 	self.presentationText.Size = UDim2.new(1, -gap * 4, 0, S.ButtonHeight)
 end
 
+-- Solo: the player's panel alone, one portrait then fifteen balls in playing order, beside
+-- the status panel when it fits and above it otherwise. The row wraps (S.SoloWrapColumns and
+-- the rest) when a single line of fifteen does not fit.
+function MatchHUD.layoutSolo(self: any, width: number)
+	local gap, portraitSize, centerWidth = S.HeaderGap, S.PortraitSize, S.HeaderCenterWidth
+	local availableWidth = width - S.HeaderMargin * 2
+	local function teamWidthFor(columns: number, size: number): number
+		return portraitSize + size * columns + S.BallGap * (columns - 1) + gap * 3
+	end
+	-- The first arrangement that fits, beside the status panel (inline) or above it.
+	local wrap = S.SoloWrapColumns
+	local choice = { columns = wrap, size = S.ShortBallSize, inline = false }
+	for _, option in
+		{
+			{ columns = 15, size = S.BallSize, inline = true },
+			{ columns = wrap, size = S.BallSize, inline = true },
+			{ columns = 15, size = S.BallSize, inline = false },
+			{ columns = wrap, size = S.BallSize, inline = false },
+		}
+	do
+		local beside = if option.inline then gap + centerWidth else 0
+		if teamWidthFor(option.columns, option.size) + beside <= availableWidth then
+			choice = option
+			break
+		end
+	end
+	local columns, ballSize, inline = choice.columns, choice.size, choice.inline
+	local rows = math.ceil(15 / columns)
+	local rowsHeight = ballSize * rows + S.BallGap * (rows - 1)
+	local ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
+	local teamWidth = teamWidthFor(columns, ballSize)
+	local headerHeight = math.max(S.HeaderHeight, rowsHeight + gap)
+	local desiredWidth = teamWidth + (if inline then gap + centerWidth else 0)
+	local besideMenu = inline and desiredWidth <= width - S.HeaderMenuLeft - S.HeaderMenuRight
+	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
+	local startX = if besideMenu
+		then S.HeaderMenuLeft + (width - S.HeaderMenuLeft - S.HeaderMenuRight - desiredWidth) / 2
+		else (width - desiredWidth) / 2
+	self.headerBottom = top + headerHeight + (if inline then 0 else S.HeaderHeight + gap)
+	local team = self.teams[1]
+	team.root.Position = UDim2.fromOffset(startX, top)
+	team.root.Size = UDim2.fromOffset(teamWidth, headerHeight)
+	local ballLeft = portraitSize + gap * 2
+	local ballTop = (headerHeight - rowsHeight) / 2
+	for n, ball in team.soloBalls do
+		local column, row = (n - 1) % columns, math.floor((n - 1) / columns)
+		ball.root.Position = UDim2.fromOffset(
+			ballLeft + column * (ballSize + S.BallGap),
+			ballTop + row * (ballSize + S.BallGap)
+		)
+		sizeBall(ball, ballSize)
+	end
+	layoutOpen(team, ballLeft, ballTop, ballsWidth, rowsHeight, rows)
+	self.center.Position = UDim2.fromOffset(
+		if inline then startX + teamWidth + gap else (width - centerWidth) / 2,
+		top + (if inline then 0 else headerHeight + gap)
+	)
+end
+
+--- Whether the local player is waiting alone at this table, so Play Solo is on offer.
+function MatchHUD.soloAvailable(self: any): boolean
+	local snapshot = self.snapshot
+	if not snapshot or snapshot.phase ~= "Waiting" or snapshot.solo then
+		return false
+	end
+	local alone = false
+	for _, seat in snapshot.seats do
+		if seat.connected ~= false then
+			if seat.userId ~= self.localUserId then
+				return false
+			end
+			alone = true
+		end
+	end
+	return alone
+end
+
 function MatchHUD.togglePrecision(self: any)
 	self.precisionOpen = not self.precisionOpen
 	if
@@ -806,10 +1018,11 @@ function MatchHUD.showModal(self: any, mode: string)
 		self.dialogTitle.Text = Copy.LeaveQuestion
 		self.dialogBody.Text = if mode == "Queue"
 			then Copy.QueueWaiting
+			elseif self.snapshot.solo then Copy.LeaveSoloGame
 			elseif self.snapshot.teamSize > 1 then Copy.LeaveTeam
 			else Copy.LeaveSolo
 	end
-	self.voteProgress.Text = Copy.ClocksContinue
+	self.voteProgress.Text = if self.snapshot.solo then "" else Copy.ClocksContinue
 	GuiService.SelectedObject = self.no
 end
 
@@ -895,6 +1108,27 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			else Copy.Stripes
 		team.group.TextColor3 = color(if ready then S.Active else S.Muted)
 		team.open.Visible = group == nil
+		team.openRow.Visible = group == nil
+		local openCount = 0
+		for _, ball in team.openBalls do
+			local down = group == nil and downIds[ball.id]
+			ball.root.Visible = down
+			if down then
+				openCount += 1
+				if previous and not previous[ball.id] then
+					ball.changedAt = self.lastNow
+				end
+			end
+			ball.down = down
+			ball.number.Text = tostring(ball.id)
+			ball.stripe.Visible = ball.id > 8
+			local tint = color(Config.Balls.Colors[if ball.id > 8 then ball.id - 8 else ball.id])
+			ball.sphere.BackgroundColor3 = if ball.id > 8 then color(S.Text) else tint
+			ball.stripe.BackgroundColor3 = tint
+			ball.face.BackgroundColor3 = color(S.Text)
+			ball.cross.Visible = true
+		end
+		team.openCount = openCount
 		local seats = {}
 		for _, seat in snapshot.seats do
 			if seat.team == teamId then
@@ -915,7 +1149,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			if seat then
 				portrait.name.Text = if seat.connected == false
 					then Copy.Disconnected
-					else (if snapshot.teamSize > 1
+					else (if snapshot.teamSize > 1 and not snapshot.solo
 						then string.format(
 							Copy.MemberName,
 							seat.slot,
@@ -960,26 +1194,33 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			end
 		end
 		for index, ball in team.balls do
-			ball.root.Visible = group ~= nil
+			ball.root.Visible = group ~= nil and not snapshot.solo
 			local id = if index == 8 then 8 else index + (if group == "stripes" then 8 else 0)
 			local down = downIds[id]
 			if down and previous and not previous[id] then
 				ball.changedAt = self.lastNow
 			end
 			ball.down = down
-			ball.number.Text = tostring(id)
-			ball.stripe.Visible = id > 8
-			local tint = color(Config.Balls.Colors[if id > 8 then id - 8 else id])
-			ball.sphere.BackgroundColor3 = if down
-				then color(S.Disabled)
-				elseif id > 8 then color(S.Text)
-				else tint
-			ball.stripe.BackgroundColor3 = if down then color(S.Disabled) else tint
-			ball.face.BackgroundColor3 = if down then color(S.Muted) else color(S.Text)
-			ball.cross.Visible = down
-			ball.border.Color = color(if id == 8 and ready then S.Active else S.Text)
-			ball.border.Transparency = if id == 8 and ready then 0 else 0.65
-			ball.sphere.BackgroundTransparency = if id == 8 and not ready then 0.5 else 0
+			paintBall(ball, id, down, ready)
+		end
+	end
+	-- Solo: one panel, and the row runs first group, other group, then the 8. The first
+	-- group shows from the moment its ball drops (the revealed groups) until the reset.
+	local solo = snapshot.solo
+	self.teams[2].root.Visible = solo == nil
+	local first = solo and (solo.first or snapshot.groups[ours])
+	local soloReady = eligible(snapshot, ours)
+	for index, ball in self.teams[1].soloBalls do
+		ball.root.Visible = first ~= nil
+		if first then
+			local solids = (index <= 7) == (first == "solids")
+			local id = if index == 15 then 8 else (index - 1) % 7 + 1 + (if solids then 0 else 8)
+			local down = downIds[id]
+			if down and previous and not previous[id] then
+				ball.changedAt = self.lastNow
+			end
+			ball.down = down
+			paintBall(ball, id, down, soloReady)
 		end
 	end
 	local vote = snapshot.vote
@@ -1031,6 +1272,7 @@ function MatchHUD.update(self: any, now: number)
 	local deadline = snapshot.deadline
 	local remaining = if deadline then math.max(0, deadline - now) else 0
 	local isClock = deadline ~= nil
+		and snapshot.solo == nil -- solo has no clock; the Intro and Foul pass unshown
 		and phase ~= "Resolving"
 		and phase ~= "Result"
 		and phase ~= "CoinFlip"
@@ -1040,8 +1282,9 @@ function MatchHUD.update(self: any, now: number)
 	self.status.Text = Copy.Phase[phase] or ""
 	self.status.TextTransparency = 0
 	self.status.TextColor3 = color(S.Text)
-	self.detail.Text = if snapshot.shooter
-		then string.format(Copy.PlayerTurn, shooterName)
+	self.detail.Text = if snapshot.solo
+		then Copy.SoloMode
+		elseif snapshot.shooter then string.format(Copy.PlayerTurn, shooterName)
 		else string.format(Copy.Mode, snapshot.teamSize, snapshot.teamSize)
 	if phase == "Intro" then
 		self.status.Text = if isShooter then Copy.YourTurn else Copy.Phase.Intro
@@ -1064,7 +1307,11 @@ function MatchHUD.update(self: any, now: number)
 				count += 1
 			end
 		end
-		self.detail.Text = string.format(Copy.Occupancy, count, snapshot.teamSize * 2)
+		self.detail.Text = string.format(
+			if self:soloAvailable() then Copy.SoloWaiting else Copy.Occupancy,
+			count,
+			snapshot.teamSize * 2
+		)
 	elseif phase == "Aiming" and isShooter then
 		self.detail.Text = if snapshot.calledPocket
 			then string.format(Copy.PocketChosen, snapshot.calledPocket)
@@ -1096,15 +1343,24 @@ function MatchHUD.update(self: any, now: number)
 		for _, portrait in team.portraits do
 			drawPerimeter(portrait, math.clamp(progress, 0, 1), danger)
 		end
-		for _, ball in team.balls do
-			local elapsed = now - ball.changedAt
-			ball.scale.Scale = if ball.down
-					and elapsed >= 0
-					and elapsed < S.Motion
-				then 1 + 0.12 * math.sin(elapsed / S.Motion * math.pi)
-				else 1
+		for _, list in { team.balls, team.openBalls, team.soloBalls } do
+			for _, ball in list do
+				local elapsed = now - ball.changedAt
+				ball.scale.Scale = if ball.down
+						and elapsed >= 0
+						and elapsed < S.Motion
+					then 1 + 0.12 * math.sin(elapsed / S.Motion * math.pi)
+					else 1
+			end
 		end
 	end
+	local offer = self:soloAvailable()
+		and not self.modal.Visible
+		and now - self.soloSentAt >= Config.Multiplayer.ActionRetrySeconds
+	if not offer and GuiService.SelectedObject == self.soloButton then
+		GuiService.SelectedObject = nil -- a hidden selection would keep play input off
+	end
+	self.soloOffer.Visible = offer
 	local placementVisible = isShooter and self.placing and not self.precisionOpen
 	if self.setup.Visible ~= placementVisible then
 		self.setup.Visible = placementVisible
@@ -1201,7 +1457,10 @@ function MatchHUD.update(self: any, now: number)
 				else Copy.Lose
 			self.presentationTitle.TextColor3 = color(if win then S.Active else S.Danger)
 			self.presentationText.Text = if result
-				then Copy.ResultReasons[result.reason] or Copy.BackToQueue
+					and snapshot.solo
+					and result.reason == "Surrender"
+				then Copy.SoloEnded
+				elseif result then Copy.ResultReasons[result.reason] or Copy.BackToQueue
 				else Copy.BackToQueue
 		end
 	end

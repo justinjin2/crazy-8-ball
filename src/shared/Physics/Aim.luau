@@ -1,6 +1,8 @@
 --!strict
--- Aim: a dry trace along the cue ball's initial launch direction, including squirt. The
--- collision geometry is shared with the simulation; later swerve and throw are not traced.
+-- Aim: a dry trace along the cue ball's launch direction (Cue.launchDirection), with the
+-- collision geometry shared with the simulation. While Config.Cue.SideSpinBendsPath is off
+-- side spin neither squirts nor swerves, so the launch is the aim and the path to first
+-- contact is straight: the trace is exact for any spin. Throw after contact is not traced.
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)

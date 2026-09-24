@@ -192,7 +192,10 @@ function Camera.unlock()
 	pullOutWanted = true
 	local cam = Workspace.CurrentCamera
 	local from = cam.CFrame
-	cam.CameraType = if savedCamera then savedCamera.kind else Enum.CameraType.Custom
+	-- Never hand back a Scriptable camera: that would leave the player with a frozen view.
+	cam.CameraType = if savedCamera and savedCamera.kind ~= Enum.CameraType.Scriptable
+		then savedCamera.kind
+		else Enum.CameraType.Custom
 	if savedCamera then
 		cam.FieldOfView = savedCamera.fov
 		if savedCamera.subject and savedCamera.subject.Parent then

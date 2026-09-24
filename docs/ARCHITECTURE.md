@@ -42,8 +42,11 @@ and the same contact friction, integrated at a fixed 2 us sub-step until every c
 while the rest of the table catches up through the normal event loop. A step containing one
 may end up to `SoftContactMaxSeconds` late; server settle and client replay overrun
 identically. Cue impact uses stick/ball mass, tip restitution and
-fixed default 4-degree elevation, with squirt and tilted spin feeding cloth swerve. The
-straight Classic guideline predicts launch direction, not the later curved path. Pure side spin does not delay shot completion. Cushions
+fixed default 4-degree elevation. Side spin does not bend the path: with
+`Config.Cue.SideSpinBendsPath` off (the designer's setting) there is no squirt and no tilted
+spin axis, so the cue ball leaves along the aim and runs straight to first contact, and the
+straight Classic guideline is exact for any spin; side spin (wz) acts only at contacts. Turning
+the switch on restores squirt and cloth swerve for the later curved-guideline feature. Pure side spin does not delay shot completion. Cushions
 use Han's tilted contact normal through the centre, full tangential friction, and tabulated
 normal-speed restitution. Translation remains planar; only tangential impulses create torque.
 Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner

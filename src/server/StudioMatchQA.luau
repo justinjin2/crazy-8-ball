@@ -6,6 +6,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Engine = require(Shared.Rules.MatchEngine)
+local Judge = require(Shared.Rules.ShotJudge)
 local Ball = require(Shared.Physics.Ball)
 local Simulation = require(Shared.Physics.Simulation)
 local QA = {}
@@ -37,18 +38,26 @@ function QA.start(tables: any, seatOf: any, broadcast: (any) -> (), flush: (any)
 				end
 				seatOf[real.UserId] = id
 			end
-			for team = 1, 2 do
-				for slot = 1, t.engine.teamSize do
-					local localSeat = team == 1 and slot == 1 and not (data and data.spectator)
-					local uid = if localSeat then real.UserId else -(team * 10 + slot)
-					local name = if localSeat
-						then real.DisplayName
-						else "FixturePlayerLongName" .. slot
-					Engine.join(t.engine, uid, name, name, team, slot, now)
+			if data and data.solo then
+				-- Solo: only the real player sits down, then starts the game as the button does.
+				local e = t.engine
+				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, 1, 1, now)
+				local request = { kind = "StartSolo", epoch = e.epoch, turnId = e.turnId }
+				assert(Engine.action(e, real.UserId, request, now), "StartSolo was refused")
+			else
+				for team = 1, 2 do
+					for slot = 1, t.engine.teamSize do
+						local localSeat = team == 1 and slot == 1 and not (data and data.spectator)
+						local uid = if localSeat then real.UserId else -(team * 10 + slot)
+						local name = if localSeat
+							then real.DisplayName
+							else "FixturePlayerLongName" .. slot
+						Engine.join(t.engine, uid, name, name, team, slot, now)
+					end
 				end
+				Engine.advance(t.engine, now + 5, 1)
+				Engine.advance(t.engine, now + 8, 1)
 			end
-			Engine.advance(t.engine, now + 5, 1)
-			Engine.advance(t.engine, now + 8, 1)
 		elseif command == "shot" then
 			local replay, reason = Engine.acceptShot(t.engine, t.engine.shooter, data, now)
 			if replay then
@@ -75,6 +84,13 @@ function QA.start(tables: any, seatOf: any, broadcast: (any) -> (), flush: (any)
 			data = data or {}
 			e.phase, e.phaseStartedAt = data.phase or "Aiming", now
 			e.deadline = now + (data.seconds or 30)
+			-- Solo has no clock on the setup and aiming phases.
+			local untimed = e.phase == "PocketChoice"
+				or e.phase == "Placement"
+				or e.phase == "Aiming"
+			if e.solo and untimed then
+				e.deadline = nil
+			end
 			e.breakShot = data.breakShot == true
 			e.ballInHand = e.phase == "Placement"
 			e.groups = if data.open then {} else { "solids", "stripes" }
@@ -89,6 +105,9 @@ function QA.start(tables: any, seatOf: any, broadcast: (any) -> (), flush: (any)
 			for _, b in e.state.balls do
 				Ball.stop(b)
 				b.pocketed = data.eligible and b.id >= 1 and b.id <= 7 or false
+				if e.solo and data.eligible then
+					b.pocketed = b.id ~= 0 and b.id ~= 8 -- solo: the 8 is on once all 14 are down
+				end
 			end
 			local cue = assert(Simulation.findBall(e.state, 0))
 			cue.x, cue.y = -25, 0
@@ -99,6 +118,16 @@ function QA.start(tables: any, seatOf: any, broadcast: (any) -> (), flush: (any)
 				local eight = assert(Simulation.findBall(e.state, 8), "QA requires eight")
 				eight.x, eight.y = 0, e.state.geometry.halfWidth - 5
 				cue.x, cue.y = 0, eight.y - 8
+			end
+			if e.solo then
+				-- Solids first; the solo player's group is whichever of the two is still up.
+				e.solo.first = e.groups[e.solo.team]
+				local current = Judge.soloGroup(e.state.balls, e.solo.first)
+				if current then
+					e.groups = {}
+					e.groups[e.solo.team], e.groups[3 - e.solo.team] =
+						current, Judge.opposite(current)
+				end
 			end
 			e.revision += 1
 		end

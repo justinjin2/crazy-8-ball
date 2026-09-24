@@ -64,6 +64,19 @@ function Judge.eligible(balls: { Ball }, group: Group?): boolean
 	return true
 end
 
+function Judge.opposite(group: string): Group
+	return if group == "solids" then "stripes" else "solids"
+end
+
+--- Solo play clears one group, then the other, then the 8. The group being played now is
+--- `first` while any of it remains, the other group after that; nil until `first` exists.
+function Judge.soloGroup(balls: { Ball }, first: Group?): Group?
+	if first == nil then
+		return nil
+	end
+	return if Judge.remaining(balls, first) > 0 then first else Judge.opposite(first)
+end
+
 function Judge.legalTarget(balls: { Ball }, group: Group?, id: number): boolean
 	local exists = false
 	for _, ball in balls do
@@ -192,8 +205,7 @@ function Judge.resolve(
 			local group = Judge.group(drop.ball)
 			if group then
 				resultGroups[team] = group :: Group
-				local opposite: Group = if group == "solids" then "stripes" else "solids"
-				resultGroups[3 - team] = opposite
+				resultGroups[3 - team] = Judge.opposite(group)
 				assign = { ball = drop.ball, index = drop.index }
 				break
 			end
