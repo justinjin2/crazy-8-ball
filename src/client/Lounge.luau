@@ -522,6 +522,9 @@ function Lounge.update(self: Lounge, dt: number): boolean
 	local playingHere = false
 	for id, match in self.matches do
 		local busy = match:update(dt)
+		if match.renderer then
+			match.renderer:animate(dt)
+		end
 		if id == self.mySeat then
 			playingHere = busy
 		end

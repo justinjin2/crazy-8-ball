@@ -1590,6 +1590,17 @@ Config.Audio = {
 Config.Effects = {
 	-- Seconds for a pocketed ball to drop out of sight.
 	SinkDropSeconds = 0.35,
+	-- A pocketed ball stays in view (2026-09-23: it used to vanish the instant it dropped).
+	-- The drawn ball stops this far below the cloth, where it still shows in the hole while
+	-- the physics carries on down; once it lands it sits for PocketHoldSeconds, then rolls
+	-- outward PocketGutterDistanceInches while sinking to PocketGutterDepthInches and fading
+	-- out over PocketGutterSeconds, like a ball running off into the gutter. (tune)
+	PocketRestDepthInches = 1.6,
+	PocketHoldSeconds = 0.5,
+	PocketGutterSeconds = 0.9,
+	PocketGutterDistanceInches = 2.5,
+	PocketGutterDepthInches = 4,
+	PocketGutterSpin = 8, -- radians per second the ball keeps turning as it rolls away
 	PopupSeconds = 1.1,
 
 	-- VFX are CUE DATA, not constants. Every cue names a style here, so equipping a rarer

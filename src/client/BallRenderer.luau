@@ -35,6 +35,9 @@ export type BallRenderer = typeof(setmetatable(
 		rotations: { [number]: CFrame },
 		spinSteps: { [number]: number },
 		sunk: { [number]: boolean },
+		-- Balls on their way out of sight after reaching the bottom of a pocket: where they
+		-- came to rest (table inches), which way the gutter runs, and how far along they are.
+		sinking: { [number]: { x: number, y: number, dx: number, dy: number, t: number } },
 	},
 	BallRenderer
 ))
@@ -73,6 +76,7 @@ function BallRenderer.new(parent: Instance, p: Placement.Placement, id: number):
 		rotations = {},
 		spinSteps = {},
 		sunk = {},
+		sinking = {},
 	}, BallRenderer)
 	return self
 end
@@ -192,12 +196,14 @@ end
 --- angular velocity, so a skidding ball barely rotates and a ball with side spin turns on
 --- the spot, exactly as the simulation says.
 function BallRenderer.step(self: BallRenderer, b: Ball.Ball, dt: number)
-	if self.sunk[b.id] then
+	if self.sunk[b.id] or self.sinking[b.id] then
 		return
 	end
 	local part = self:ensure(b.id)
-	local pos =
-		TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
+	-- The physics drop goes deeper and faster than the eye can follow into a covered pocket,
+	-- so the drawn ball stops at a depth where it still shows in the hole (Effects).
+	local z = math.max(b.z, -Config.Effects.PocketRestDepthInches)
+	local pos = TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RenderRadiusInches + z)
 	local rot = self.rotations[b.id]
 	-- Physics (x, y, z) maps to world (X, -Z, Y). That map is a proper rotation, so angular
 	-- velocity (a pseudovector) transforms exactly like a vector; then the table's own yaw
@@ -218,11 +224,64 @@ function BallRenderer.step(self: BallRenderer, b: Ball.Ball, dt: number)
 	part.CFrame = CFrame.new(pos) * rot
 end
 
---- Hide a ball that has finished dropping into a pocket.
-function BallRenderer.sink(self: BallRenderer, id: number)
-	local part = self:ensure(id)
-	self.sunk[id] = true
-	part.Transparency = 1
+local function setFade(part: BasePart, transparency: number)
+	part.Transparency = transparency
+	for _, child in part:GetChildren() do
+		if child:IsA("Decal") then
+			child.Transparency = transparency
+		end
+	end
+end
+
+--- A ball has reached the bottom of a pocket at (x, y) table inches. Rather than vanishing
+--- there, it stays in view in the pocket for a moment, then rolls on outward - away from the
+--- table's centre, the way a ball runs off into the gutter - sinking and fading as it goes
+--- (Config.Effects.Pocket*). Without a position it just hides.
+function BallRenderer.sink(self: BallRenderer, id: number, x: number?, y: number?)
+	if self.sunk[id] or self.sinking[id] then
+		return
+	end
+	if x == nil or y == nil then
+		self.sunk[id] = true
+		setFade(self:ensure(id), 1)
+		return
+	end
+	local length = math.sqrt(x * x + y * y)
+	local dx, dy = if length > 1e-6 then x / length else 0, if length > 1e-6 then y / length else 1
+	self.sinking[id] = { x = x, y = y, dx = dx, dy = dy, t = 0 }
+end
+
+--- Move the sinking balls along. Call every frame, shot or no shot: a ball that drops at the
+--- end of a shot is still on its way out after the replay has finished.
+function BallRenderer.animate(self: BallRenderer, dt: number)
+	local E = Config.Effects
+	for id, s in self.sinking do
+		s.t += dt
+		local part = self:ensure(id)
+		local u = math.clamp((s.t - E.PocketHoldSeconds) / E.PocketGutterSeconds, 0, 1)
+		local eased = u * u -- gathers pace as it rolls away
+		local along = E.PocketGutterDistanceInches * eased
+		local depth = E.PocketRestDepthInches
+			+ (E.PocketGutterDepthInches - E.PocketRestDepthInches) * eased
+		local pos = TableBuilder.toWorld(
+			self.placement,
+			s.x + s.dx * along,
+			s.y + s.dy * along,
+			Config.Balls.RenderRadiusInches - depth
+		)
+		-- Keep it turning the way it was rolling as it runs off.
+		local w = self.yaw:VectorToWorldSpace(Vector3.new(-s.dy, 0, -s.dx))
+		if u > 0 and w.Magnitude > 1e-6 then
+			self.rotations[id] = CFrame.fromAxisAngle(w.Unit, E.PocketGutterSpin * dt)
+				* self.rotations[id]
+		end
+		part.CFrame = CFrame.new(pos) * self.rotations[id]
+		setFade(part, u)
+		if u >= 1 then
+			self.sinking[id] = nil
+			self.sunk[id] = true
+		end
+	end
 end
 
 --- Bring a ball back onto the table (cue ball after a scratch, or a new rack). The ball
@@ -230,9 +289,10 @@ end
 function BallRenderer.restore(self: BallRenderer, id: number, xIn: number, yIn: number)
 	local part = self:ensure(id)
 	self.sunk[id] = nil
+	self.sinking[id] = nil
 	self.rotations[id] = CFrame.identity
 	self.spinSteps[id] = 0
-	part.Transparency = 0
+	setFade(part, 0)
 	self:place(id, xIn, yIn)
 end
 
@@ -240,10 +300,12 @@ function BallRenderer.setVisible(self: BallRenderer, id: number, visible: boolea
 	local part = self:ensure(id)
 	if visible then
 		self.sunk[id] = nil
-		part.Transparency = 0
-	else
+		self.sinking[id] = nil
+		setFade(part, 0)
+	elseif not self.sinking[id] then
+		-- A ball still rolling out of a pocket finishes that on its own and ends hidden.
 		self.sunk[id] = true
-		part.Transparency = 1
+		setFade(part, 1)
 	end
 end
 

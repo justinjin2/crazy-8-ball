@@ -515,7 +515,7 @@ function Match.update(self: Match, dt: number): boolean
 		for _, b in self.state.balls do
 			renderer:step(b, simulated)
 			if b.z <= -dropDepth + 1e-6 then
-				renderer:sink(b.id)
+				renderer:sink(b.id, b.x, b.y)
 			end
 		end
 	end
