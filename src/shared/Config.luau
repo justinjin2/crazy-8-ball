@@ -731,7 +731,7 @@ Config.TableModel = {
 		},
 		LogoPlate = { Color = "rbxassetid://96049906872831", Roughness = "" },
 		-- RGBA overlay: sticker, rack patch, break streak, chalk, cushion and rim shading.
-		Marks = { Color = "rbxassetid://115526828932461" },
+		Marks = { Color = "rbxassetid://76511654024840" },
 	} :: {
 		[string]: { Color: string, Normal: string?, Roughness: string?, Metalness: string? },
 	},

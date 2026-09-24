@@ -126,6 +126,10 @@ CFG = {
     'rack_rgb': [228, 228, 228],
     'streak_alpha': 0.0,  # off: under Roblox's faint-alpha dither the streak drew as a dotted white line (seen in Studio 2026-09-24)
     'streak_rgb': [225, 225, 225],
+    'break_radius': 1.1,  # inches: the break smudge round the head spot
+    'break_threshold': 0.55,  # higher = sparser speckle
+    'break_alpha': 0.2,  # the faintest alpha Roblox draws smooth
+    'break_rgb': [232, 232, 232],
     'chalk_rgb': [40, 100, 170],
     'chalk_alpha': 0.0,  # off (designer, 2026-09-24): the smudges read as dirt or a glitch from the player's view
     'toe_alpha': 0.0,  # off (designer, 2026-09-24): its faint edge dithered into a visible line along the cushions
@@ -691,6 +695,22 @@ def build_marks(layout, log):
     speck = np.clip(0.75 + 0.35 * standardize(fft_gauss_blur(rng.standard_normal(U_.shape), 1.5)), 0, 1)
     rgb[sl] = srgb(CFG['streak_rgb'])
     a[sl] = CFG['streak_alpha'] * core * ends * speck
+    # break smudge: faint worn patch where the cue ball sits for the break (the head spot).
+    # Speckled, never a smooth fade: each texel is clear or at break_alpha, because Roblox
+    # dithers alpha under ~0.2 into a visible pattern.
+    geo = json.load(open(os.path.join(HERE, 'Geometry.json')))
+    prm = json.load(open(os.path.join(HERE, 'Parameters.json')))['parameters']
+    head_x = geo['spots']['head'][0]
+    x0 = head_x - prm['streak_back']
+    x1 = geo['rack']['apex'][0] - geo['ball']['radius']
+    xs = x0 + U_ * (x1 - x0)
+    ys = (V_ - 0.5) * prm['streak_width']
+    r = np.sqrt((xs - head_x) ** 2 + ys ** 2) / CFG['break_radius']
+    grain = standardize(fft_gauss_blur(rng.standard_normal(U_.shape), 1.2))
+    wear = (1 - smoothstep(0.35, 1.0, r)) * 0.9 + 0.35 * grain
+    on = (wear > CFG['break_threshold']) & (r < 1.0)
+    rgb[sl] = np.where(on[..., None], srgb(CFG['break_rgb']), rgb[sl])
+    a[sl] = np.where(on, CFG['break_alpha'], a[sl])
     # chalk: four blue smudges (a few scuffs of dust in each)
     for k in range(4):
         sl, U_, V_ = local(regs['chalk%d' % k])

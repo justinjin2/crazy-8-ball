@@ -124,7 +124,8 @@ PARAMETERS = {
     'marks_lift_studs': 0.004,
     'sticker_size': 1.0,
     'rack_margin': 1.6,
-    'streak_width': 1.5,
+    'streak_width': 2.4,  # the head-end overlay strip: wide enough for a cue-ball-sized break smudge
+    'streak_back': 1.2,  # the strip starts this far behind the head spot, so the smudge is centred on it
     'chalk_size': 2.0,
     'chalk_from_rim': 1.6,  # chalk smudge centre this far outside the hole radius
     'toe_strip_width': 1.5,
@@ -1720,7 +1721,8 @@ def build_marks(L):
           (min(xs) - m, max(ys) + m)], 'rack')
     apex = tuple(L.g['rack']['apex'])
     hw = p['streak_width'] / 2
-    quad([(head[0], -hw), (apex[0] - L.R, -hw), (apex[0] - L.R, hw), (head[0], hw)], 'streak')
+    x0 = head[0] - p['streak_back']
+    quad([(x0, -hw), (apex[0] - L.R, -hw), (apex[0] - L.R, hw), (x0, hw)], 'streak')
     for k, hid in enumerate(sorted(L.pockets)):
         pk = L.pockets[hid]
         toward = unit(mul(pk.H, -1)) if pk.kind == 'side' else unit(mul(pk.axis, -1))

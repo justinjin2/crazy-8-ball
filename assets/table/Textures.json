@@ -417,7 +417,7 @@
       "colour_space": "sRGB+alpha",
       "file": "textures/Marks_Color.png",
       "master": "textures/masters/Marks_Color.png",
-      "master_sha256": "e03720dd00a9368d589bb8e8bb25b9e5b30bd2ca10f0bd1a9899a8457421a259",
+      "master_sha256": "5ecc274e81bd09710d21a5b74d194ed8179ae96de76da5ce657ee171ac6d290d",
       "master_size": [
         4096,
         4096
@@ -431,7 +431,7 @@
       "mesh": "Marks",
       "name": "Marks_Color",
       "note": "AlphaMode Transparency; RGB dilated under alpha 0",
-      "sha256": "73b982b83e0146dae74e0502b45450873926fa8969efc96948ccfc561c7ff656",
+      "sha256": "e4a7380e6543e83aa33fa193d0497ab76b03c20e2aaa1055d300d90ba84ede1e",
       "size": [
         1024,
         1024
@@ -440,7 +440,7 @@
     }
   ],
   "master_px": 4096,
-  "parameters_sha256": "94d7e998d986364da6b16a99de447605ee3b7a68981fab56e92938bc9c6b363b",
+  "parameters_sha256": "41963bbdb41d040e1eda356e1a89492e10b16afa40ad2534f56efbd61eb8de18",
   "recipe": {
     "cloth": "random-phase synthesis of the TextureCan #527 colour and height spectra",
     "config": {
@@ -501,6 +501,14 @@
         "leg": 1480.0,
         "skirt": 2600.0
       },
+      "break_alpha": 0.2,
+      "break_radius": 1.1,
+      "break_rgb": [
+        232,
+        232,
+        232
+      ],
+      "break_threshold": 0.55,
       "cabinet_rgb": [
         17,
         17,

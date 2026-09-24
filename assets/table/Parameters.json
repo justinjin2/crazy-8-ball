@@ -708,7 +708,8 @@
     "skirt_thickness": 0.9,
     "skirt_top_chamfer": 0.1,
     "sticker_size": 1.0,
-    "streak_width": 1.5,
+    "streak_back": 1.2,
+    "streak_width": 2.4,
     "toe_setback": 0.3,
     "toe_strip_hidden": 0.3,
     "toe_strip_width": 1.5,
@@ -1331,7 +1332,7 @@
       "px_per_stud": {},
       "px_per_stud_by_tag": {
         "70": [
-          132.1,
+          103.2,
           800.0
         ]
       }
