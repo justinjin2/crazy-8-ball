@@ -1,0 +1,880 @@
+{
+  "ball": {
+    "radius": 1.125,
+    "render_radius": 1.215
+  },
+  "cloth": {
+    "above_floor": 18.125,
+    "above_floor_studs": 2.9,
+    "bed_thickness": 2,
+    "half_length": 50,
+    "half_width": 25,
+    "length": 100,
+    "width": 50
+  },
+  "cushion": {
+    "nose_height": 1.42875,
+    "width": 1.8
+  },
+  "cushions": [
+    {
+      "facings": [
+        "topCornerL",
+        "topSideL"
+      ],
+      "pockets": [
+        1,
+        2
+      ],
+      "rail": "topLeft"
+    },
+    {
+      "facings": [
+        "topSideR",
+        "topCornerR"
+      ],
+      "pockets": [
+        2,
+        3
+      ],
+      "rail": "topRight"
+    },
+    {
+      "facings": [
+        "bottomCornerL",
+        "bottomSideL"
+      ],
+      "pockets": [
+        6,
+        5
+      ],
+      "rail": "bottomLeft"
+    },
+    {
+      "facings": [
+        "bottomSideR",
+        "bottomCornerR"
+      ],
+      "pockets": [
+        5,
+        4
+      ],
+      "rail": "bottomRight"
+    },
+    {
+      "facings": [
+        "footCornerB",
+        "footCornerT"
+      ],
+      "pockets": [
+        4,
+        3
+      ],
+      "rail": "foot"
+    },
+    {
+      "facings": [
+        "headCornerB",
+        "headCornerT"
+      ],
+      "pockets": [
+        6,
+        1
+      ],
+      "rail": "head"
+    }
+  ],
+  "frame": "Physics frame: x along the length (head rail -x, foot rail +x), y across (the top rail with pockets 1-3 is +y), z up with the cloth at z = 0. Every mesh origin is the table centre on the floor, so with s = studs_per_inch and h = cloth.above_floor_studs: Blender native (Z up, the floor at Z = 0) = (x * s, y * s, z * s + h); Roblox model local, after the FBX importer = (x * s, z * s + h, -y * s).",
+  "generator": "tools/export_table_geometry.luau",
+  "holes": [
+    {
+      "clear_radius": 2.34,
+      "facings": [
+        "headCornerT",
+        "topCornerL"
+      ],
+      "id": 1,
+      "jaws": [
+        "headCornerTJaw",
+        "topCornerLJaw"
+      ],
+      "kind": "corner",
+      "name": "topLeft",
+      "radius": 2.25,
+      "studs": [
+        -8.169705627484772,
+        4.169705627484772
+      ],
+      "x": -51.06066017177982,
+      "y": 26.060660171779823
+    },
+    {
+      "clear_radius": 2.5650000000000004,
+      "facings": [
+        "topSideL",
+        "topSideR"
+      ],
+      "id": 2,
+      "jaws": [
+        "topSideLJaw",
+        "topSideRJaw"
+      ],
+      "kind": "side",
+      "name": "topSide",
+      "radius": 2.475,
+      "studs": [
+        0,
+        4.396
+      ],
+      "x": 0,
+      "y": 27.475
+    },
+    {
+      "clear_radius": 2.34,
+      "facings": [
+        "topCornerR",
+        "footCornerT"
+      ],
+      "id": 3,
+      "jaws": [
+        "topCornerRJaw",
+        "footCornerTJaw"
+      ],
+      "kind": "corner",
+      "name": "topRight",
+      "radius": 2.25,
+      "studs": [
+        8.169705627484772,
+        4.169705627484772
+      ],
+      "x": 51.06066017177982,
+      "y": 26.060660171779823
+    },
+    {
+      "clear_radius": 2.34,
+      "facings": [
+        "footCornerB",
+        "bottomCornerR"
+      ],
+      "id": 4,
+      "jaws": [
+        "footCornerBJaw",
+        "bottomCornerRJaw"
+      ],
+      "kind": "corner",
+      "name": "bottomRight",
+      "radius": 2.25,
+      "studs": [
+        8.169705627484772,
+        -4.169705627484772
+      ],
+      "x": 51.06066017177982,
+      "y": -26.060660171779823
+    },
+    {
+      "clear_radius": 2.5650000000000004,
+      "facings": [
+        "bottomSideR",
+        "bottomSideL"
+      ],
+      "id": 5,
+      "jaws": [
+        "bottomSideRJaw",
+        "bottomSideLJaw"
+      ],
+      "kind": "side",
+      "name": "bottomSide",
+      "radius": 2.475,
+      "studs": [
+        0,
+        -4.396
+      ],
+      "x": 0,
+      "y": -27.475
+    },
+    {
+      "clear_radius": 2.34,
+      "facings": [
+        "bottomCornerL",
+        "headCornerB"
+      ],
+      "id": 6,
+      "jaws": [
+        "bottomCornerLJaw",
+        "headCornerBJaw"
+      ],
+      "kind": "corner",
+      "name": "bottomLeft",
+      "radius": 2.25,
+      "studs": [
+        -8.169705627484772,
+        -4.169705627484772
+      ],
+      "x": -51.06066017177982,
+      "y": -26.060660171779823
+    }
+  ],
+  "legend": {
+    "cushions": "The 6 cushions in the Physics.Table order of their rail segments: one rail segment with a facing at each end. The nose outline runs facings[1] from b to a (jaw to nose), the rail from a to b, then facings[2] from a to b (nose to jaw); the ends meet exactly. pockets are the hole ids at facings[1] and facings[2].",
+    "holes": "The 6 pocket openings in id order. The cloth is cut at radius: a ball drops once its centre crosses that circle. While it falls its physics centre is held within radius - ball.radius of the hole centre, so the drawn ball (render_radius) reaches clear_radius = radius - ball.radius + ball.render_radius: the smallest radius a liner or cup wall below the cloth may have. It is not where the cloth is cut. facings and jaws are the hole's two facing segments and their jaw points, ordered so that turning counterclockwise (seen from +z) about the hole centre from jaws[1] to jaws[2] crosses the mouth, the table side, where the cloth meets the hole.",
+    "pockets": "Depths are inches below the cloth. drop_depth: the physics drop stops with the drawn ball's bottom this far down, and the replay draws that fall exactly. min_depth: the least cup depth, which holds that drop. It does not hold the fade: after the drop the renderer keeps the ball falling under gravity and drifting outward (away from the table centre) while it fades out, its bottom reaching fade_depth and its side at most clear_radius + fade_drift from the hole centre. So the fading ball passes the cup floor, which is why the floor is near-black. casting_*: the cue clears casting_top within casting_reach - casting_blend of a hole centre, ramping linearly down to rail.top at casting_reach, so at plan distance d a casting or cap must stay under rail.top + (casting_top - rail.top) * clamp((casting_reach - d) / casting_blend, 0, 1). casting_top is the game's current value; the new caps' measured crown replaces it (Config.Table.PocketCastingTopInches gives its limit).",
+    "points": "The 24 cushion-end points in Physics.Table order, a nose then a jaw per facing. nose: radius 0, the sharp corner at its facing's a end, where the facing leaves the rail line. jaw: the rubber knob of radius pockets.jaw_radius centred on its facing's b end; a ball touches it when its centre is ball.radius + radius from it. facing and pocket name the segment and the hole it belongs to.",
+    "segments": "The 18 cushion nose lines in Physics.Table order; a ball touches one when its centre is ball.radius from it. kind rail: a straight cushion between two pockets, its normal pointing onto the cloth. kind facing: the angled cut beside a pocket, a = its nose end (where its rail segment ends), b = its jaw end, its normal facing into the pocket throat; pocket = its hole id. The rail segments topLeft, topRight, bottomLeft and bottomRight are the halves of the long rails (topLeft runs from hole 1 to hole 2), not the holes with those names: match by id and through cushions, never by name."
+  },
+  "note": "generated, do not edit; tests/table_geometry_test.luau fails when stale",
+  "pockets": {
+    "casting_blend": 1,
+    "casting_reach": 4,
+    "casting_top": 2.24,
+    "corner": {
+      "facing_degrees": 38,
+      "facing_length": 2.6151144306144847,
+      "mouth": 4.5,
+      "radius": 2.25,
+      "shelf": 1.5
+    },
+    "drop_depth": 5,
+    "fade_depth": 15.236184902259714,
+    "fade_drift": 1.2,
+    "jaw_radius": 0.3,
+    "min_depth": 6.5,
+    "side": {
+      "facing_degrees": 13,
+      "facing_length": 1.6,
+      "inset": 2.475,
+      "mouth": 4.95,
+      "radius": 2.475
+    }
+  },
+  "points": [
+    {
+      "facing": "topSideL",
+      "kind": "nose",
+      "name": "topSideLNose",
+      "pocket": 2,
+      "radius": 0,
+      "x": -2.475,
+      "y": 25
+    },
+    {
+      "facing": "topSideL",
+      "kind": "jaw",
+      "name": "topSideLJaw",
+      "pocket": 2,
+      "radius": 0.3,
+      "x": -2.8349216869501843,
+      "y": 26.558992103656376
+    },
+    {
+      "facing": "topSideR",
+      "kind": "nose",
+      "name": "topSideRNose",
+      "pocket": 2,
+      "radius": 0,
+      "x": 2.475,
+      "y": 25
+    },
+    {
+      "facing": "topSideR",
+      "kind": "jaw",
+      "name": "topSideRJaw",
+      "pocket": 2,
+      "radius": 0.3,
+      "x": 2.8349216869501843,
+      "y": 26.558992103656376
+    },
+    {
+      "facing": "topCornerR",
+      "kind": "nose",
+      "name": "topCornerRNose",
+      "pocket": 3,
+      "radius": 0,
+      "x": 46.81801948466054,
+      "y": 25
+    },
+    {
+      "facing": "topCornerR",
+      "kind": "jaw",
+      "name": "topCornerRJaw",
+      "pocket": 3,
+      "radius": 0.3,
+      "x": 48.87875777789687,
+      "y": 26.610025208497532
+    },
+    {
+      "facing": "topCornerL",
+      "kind": "nose",
+      "name": "topCornerLNose",
+      "pocket": 1,
+      "radius": 0,
+      "x": -46.81801948466054,
+      "y": 25
+    },
+    {
+      "facing": "topCornerL",
+      "kind": "jaw",
+      "name": "topCornerLJaw",
+      "pocket": 1,
+      "radius": 0.3,
+      "x": -48.87875777789687,
+      "y": 26.610025208497532
+    },
+    {
+      "facing": "bottomSideL",
+      "kind": "nose",
+      "name": "bottomSideLNose",
+      "pocket": 5,
+      "radius": 0,
+      "x": -2.475,
+      "y": -25
+    },
+    {
+      "facing": "bottomSideL",
+      "kind": "jaw",
+      "name": "bottomSideLJaw",
+      "pocket": 5,
+      "radius": 0.3,
+      "x": -2.8349216869501843,
+      "y": -26.558992103656376
+    },
+    {
+      "facing": "bottomSideR",
+      "kind": "nose",
+      "name": "bottomSideRNose",
+      "pocket": 5,
+      "radius": 0,
+      "x": 2.475,
+      "y": -25
+    },
+    {
+      "facing": "bottomSideR",
+      "kind": "jaw",
+      "name": "bottomSideRJaw",
+      "pocket": 5,
+      "radius": 0.3,
+      "x": 2.8349216869501843,
+      "y": -26.558992103656376
+    },
+    {
+      "facing": "bottomCornerR",
+      "kind": "nose",
+      "name": "bottomCornerRNose",
+      "pocket": 4,
+      "radius": 0,
+      "x": 46.81801948466054,
+      "y": -25
+    },
+    {
+      "facing": "bottomCornerR",
+      "kind": "jaw",
+      "name": "bottomCornerRJaw",
+      "pocket": 4,
+      "radius": 0.3,
+      "x": 48.87875777789687,
+      "y": -26.610025208497532
+    },
+    {
+      "facing": "bottomCornerL",
+      "kind": "nose",
+      "name": "bottomCornerLNose",
+      "pocket": 6,
+      "radius": 0,
+      "x": -46.81801948466054,
+      "y": -25
+    },
+    {
+      "facing": "bottomCornerL",
+      "kind": "jaw",
+      "name": "bottomCornerLJaw",
+      "pocket": 6,
+      "radius": 0.3,
+      "x": -48.87875777789687,
+      "y": -26.610025208497532
+    },
+    {
+      "facing": "footCornerT",
+      "kind": "nose",
+      "name": "footCornerTNose",
+      "pocket": 3,
+      "radius": 0,
+      "x": 50,
+      "y": 21.818019484660535
+    },
+    {
+      "facing": "footCornerT",
+      "kind": "jaw",
+      "name": "footCornerTJaw",
+      "pocket": 3,
+      "radius": 0.3,
+      "x": 51.61002520849753,
+      "y": 23.878757777896872
+    },
+    {
+      "facing": "footCornerB",
+      "kind": "nose",
+      "name": "footCornerBNose",
+      "pocket": 4,
+      "radius": 0,
+      "x": 50,
+      "y": -21.818019484660535
+    },
+    {
+      "facing": "footCornerB",
+      "kind": "jaw",
+      "name": "footCornerBJaw",
+      "pocket": 4,
+      "radius": 0.3,
+      "x": 51.61002520849753,
+      "y": -23.878757777896872
+    },
+    {
+      "facing": "headCornerT",
+      "kind": "nose",
+      "name": "headCornerTNose",
+      "pocket": 1,
+      "radius": 0,
+      "x": -50,
+      "y": 21.818019484660535
+    },
+    {
+      "facing": "headCornerT",
+      "kind": "jaw",
+      "name": "headCornerTJaw",
+      "pocket": 1,
+      "radius": 0.3,
+      "x": -51.61002520849753,
+      "y": 23.878757777896872
+    },
+    {
+      "facing": "headCornerB",
+      "kind": "nose",
+      "name": "headCornerBNose",
+      "pocket": 6,
+      "radius": 0,
+      "x": -50,
+      "y": -21.818019484660535
+    },
+    {
+      "facing": "headCornerB",
+      "kind": "jaw",
+      "name": "headCornerBJaw",
+      "pocket": 6,
+      "radius": 0.3,
+      "x": -51.61002520849753,
+      "y": -23.878757777896872
+    }
+  ],
+  "rack": {
+    "apex": [
+      25,
+      0
+    ],
+    "balls": [
+      {
+        "id": 1,
+        "x": 25,
+        "y": 0
+      },
+      {
+        "id": 2,
+        "x": 26.953120093739027,
+        "y": 1.1266432372699824
+      },
+      {
+        "id": 3,
+        "x": 28.90570839192896,
+        "y": 2.255357914382908
+      },
+      {
+        "id": 4,
+        "x": 30.859073730841388,
+        "y": -1.1284617928648277
+      },
+      {
+        "id": 5,
+        "x": 30.85807694442465,
+        "y": 3.3830474809449043
+      },
+      {
+        "id": 6,
+        "x": 32.81165907339018,
+        "y": -2.2542200949518523
+      },
+      {
+        "id": 7,
+        "x": 32.81168560430513,
+        "y": 4.509155389176717
+      },
+      {
+        "id": 8,
+        "x": 28.90506907178857,
+        "y": -0.0007970852022518137
+      },
+      {
+        "id": 9,
+        "x": 26.951887411434285,
+        "y": -1.1284685051436463
+      },
+      {
+        "id": 10,
+        "x": 28.905891547784165,
+        "y": -2.2556528516038443
+      },
+      {
+        "id": 11,
+        "x": 30.858899161622464,
+        "y": -3.382803814981436
+      },
+      {
+        "id": 12,
+        "x": 30.85770258802667,
+        "y": 1.1280763117902857
+      },
+      {
+        "id": 13,
+        "x": 32.81069862338052,
+        "y": -4.509005153882319
+      },
+      {
+        "id": 14,
+        "x": 32.811197238687434,
+        "y": 0.0007007792367834549
+      },
+      {
+        "id": 15,
+        "x": 32.810569925911125,
+        "y": 2.2547274239255874
+      }
+    ]
+  },
+  "rail": {
+    "barrier_half_extents_studs": [
+      9.48,
+      5.48
+    ],
+    "footprint_studs": [
+      18.240000000000002,
+      10.24
+    ],
+    "outer_half_length": 57,
+    "outer_half_width": 32,
+    "top": 2.08,
+    "width": 7
+  },
+  "schema_version": 1,
+  "segments": [
+    {
+      "a": [
+        -46.81801948466054,
+        25
+      ],
+      "b": [
+        -2.475,
+        25
+      ],
+      "kind": "rail",
+      "name": "topLeft",
+      "normal": [
+        0,
+        -1
+      ]
+    },
+    {
+      "a": [
+        2.475,
+        25
+      ],
+      "b": [
+        46.81801948466054,
+        25
+      ],
+      "kind": "rail",
+      "name": "topRight",
+      "normal": [
+        0,
+        -1
+      ]
+    },
+    {
+      "a": [
+        -2.475,
+        25
+      ],
+      "b": [
+        -2.8349216869501843,
+        26.558992103656376
+      ],
+      "kind": "facing",
+      "name": "topSideL",
+      "normal": [
+        0.9743700647852352,
+        0.224951054343865
+      ],
+      "pocket": 2
+    },
+    {
+      "a": [
+        2.475,
+        25
+      ],
+      "b": [
+        2.8349216869501843,
+        26.558992103656376
+      ],
+      "kind": "facing",
+      "name": "topSideR",
+      "normal": [
+        -0.9743700647852352,
+        0.224951054343865
+      ],
+      "pocket": 2
+    },
+    {
+      "a": [
+        46.81801948466054,
+        25
+      ],
+      "b": [
+        48.87875777789687,
+        26.610025208497532
+      ],
+      "kind": "facing",
+      "name": "topCornerR",
+      "normal": [
+        0.6156614753256583,
+        -0.7880107536067219
+      ],
+      "pocket": 3
+    },
+    {
+      "a": [
+        -46.81801948466054,
+        25
+      ],
+      "b": [
+        -48.87875777789687,
+        26.610025208497532
+      ],
+      "kind": "facing",
+      "name": "topCornerL",
+      "normal": [
+        -0.6156614753256583,
+        -0.7880107536067219
+      ],
+      "pocket": 1
+    },
+    {
+      "a": [
+        -46.81801948466054,
+        -25
+      ],
+      "b": [
+        -2.475,
+        -25
+      ],
+      "kind": "rail",
+      "name": "bottomLeft",
+      "normal": [
+        0,
+        1
+      ]
+    },
+    {
+      "a": [
+        2.475,
+        -25
+      ],
+      "b": [
+        46.81801948466054,
+        -25
+      ],
+      "kind": "rail",
+      "name": "bottomRight",
+      "normal": [
+        0,
+        1
+      ]
+    },
+    {
+      "a": [
+        -2.475,
+        -25
+      ],
+      "b": [
+        -2.8349216869501843,
+        -26.558992103656376
+      ],
+      "kind": "facing",
+      "name": "bottomSideL",
+      "normal": [
+        0.9743700647852352,
+        -0.224951054343865
+      ],
+      "pocket": 5
+    },
+    {
+      "a": [
+        2.475,
+        -25
+      ],
+      "b": [
+        2.8349216869501843,
+        -26.558992103656376
+      ],
+      "kind": "facing",
+      "name": "bottomSideR",
+      "normal": [
+        -0.9743700647852352,
+        -0.224951054343865
+      ],
+      "pocket": 5
+    },
+    {
+      "a": [
+        46.81801948466054,
+        -25
+      ],
+      "b": [
+        48.87875777789687,
+        -26.610025208497532
+      ],
+      "kind": "facing",
+      "name": "bottomCornerR",
+      "normal": [
+        0.6156614753256583,
+        0.7880107536067219
+      ],
+      "pocket": 4
+    },
+    {
+      "a": [
+        -46.81801948466054,
+        -25
+      ],
+      "b": [
+        -48.87875777789687,
+        -26.610025208497532
+      ],
+      "kind": "facing",
+      "name": "bottomCornerL",
+      "normal": [
+        -0.6156614753256583,
+        0.7880107536067219
+      ],
+      "pocket": 6
+    },
+    {
+      "a": [
+        50,
+        -21.818019484660535
+      ],
+      "b": [
+        50,
+        21.818019484660535
+      ],
+      "kind": "rail",
+      "name": "foot",
+      "normal": [
+        -1,
+        0
+      ]
+    },
+    {
+      "a": [
+        50,
+        21.818019484660535
+      ],
+      "b": [
+        51.61002520849753,
+        23.878757777896872
+      ],
+      "kind": "facing",
+      "name": "footCornerT",
+      "normal": [
+        -0.7880107536067219,
+        0.6156614753256583
+      ],
+      "pocket": 3
+    },
+    {
+      "a": [
+        50,
+        -21.818019484660535
+      ],
+      "b": [
+        51.61002520849753,
+        -23.878757777896872
+      ],
+      "kind": "facing",
+      "name": "footCornerB",
+      "normal": [
+        -0.7880107536067219,
+        -0.6156614753256583
+      ],
+      "pocket": 4
+    },
+    {
+      "a": [
+        -50,
+        -21.818019484660535
+      ],
+      "b": [
+        -50,
+        21.818019484660535
+      ],
+      "kind": "rail",
+      "name": "head",
+      "normal": [
+        1,
+        0
+      ]
+    },
+    {
+      "a": [
+        -50,
+        21.818019484660535
+      ],
+      "b": [
+        -51.61002520849753,
+        23.878757777896872
+      ],
+      "kind": "facing",
+      "name": "headCornerT",
+      "normal": [
+        0.7880107536067219,
+        0.6156614753256583
+      ],
+      "pocket": 1
+    },
+    {
+      "a": [
+        -50,
+        -21.818019484660535
+      ],
+      "b": [
+        -51.61002520849753,
+        -23.878757777896872
+      ],
+      "kind": "facing",
+      "name": "headCornerB",
+      "normal": [
+        0.7880107536067219,
+        -0.6156614753256583
+      ],
+      "pocket": 6
+    }
+  ],
+  "spots": {
+    "break_line_x": -25,
+    "foot": [
+      25,
+      0
+    ],
+    "head": [
+      -25,
+      0
+    ]
+  },
+  "studs_per_inch": 0.16,
+  "units": "Lengths are inches unless the key ends in _studs; holes[].studs is studs too (it is named just studs). Keys ending in _degrees are degrees. Every two-number array is in plan, [x, y] in the physics frame: segments a, b and normal, spots head and foot, rack.apex, and holes[].studs = [x * s, y * s]. footprint_studs and barrier_half_extents_studs are [along x (the length), along y (the width)]."
+}

@@ -66,18 +66,19 @@ return {
 		H.near(wz, 0, 1e-9, "width does not move Z")
 	end,
 
-	["the placed footprint matches the lounge package"] = function()
+	["the placed footprint is the 7 in rail table"] = function()
 		local Config, Placement = setup()
-		-- assets/lounge/Readme.md: the 9 ft table is 17.76 x 9.76 studs natively and the
-		-- lounge records placed_plan_footprint_studs as 9.76 across X by 17.76 along Z.
+		-- The Pro-Am rail is 7 in from cushion nose to outer edge, so the 9 ft table is
+		-- 100 + 2 * 7 = 114 in = 18.24 studs long and 50 + 2 * 7 = 64 in = 10.24 studs wide.
+		-- At yaw 90 (every lounge table) that is 10.24 across X by 18.24 along Z.
 		local T = Config.Table
 		local halfLen = T.LengthInches / 2 + T.RailWidthInches
 		local halfWid = T.WidthInches / 2 + T.RailWidthInches
 		local p = Placement.new(0, 0, 0, 90)
 		local ax, _, az = Placement.toWorld(p, halfLen, halfWid, 0)
 		local bx, _, bz = Placement.toWorld(p, -halfLen, -halfWid, 0)
-		H.near(math.abs(ax - bx), 9.76, 1e-3, "footprint across X")
-		H.near(math.abs(az - bz), 17.76, 1e-3, "footprint along Z")
+		H.near(math.abs(ax - bx), 10.24, 1e-3, "footprint across X")
+		H.near(math.abs(az - bz), 18.24, 1e-3, "footprint along Z")
 	end,
 
 	["aimVector agrees with toWorld's own rotation"] = function()

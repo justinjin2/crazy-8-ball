@@ -23,7 +23,7 @@ after. Design intent is in GDD.md; this file says how it is built.
 ## 2. Scale and coordinates
 
 - `Config.Table.StudsPerInch = 0.16`. A 9 ft table is 100 x 50 in of playing surface, about
-  17.8 x 9.8 studs with rails. Physics ball radius is 1.125 in (regulation); RenderScale 1.08 enlarges only the mesh
+  18.2 x 10.2 studs with rails. Physics ball radius is 1.125 in (regulation); RenderScale 1.08 enlarges only the mesh
   and visual placement. Collision clearance and physics use the physical radius.
 - Physics x runs along the table length (head rail negative, foot rail positive), physics y
   across the width. World: physics x maps to world X, physics y to world -Z, Y is up. Each table

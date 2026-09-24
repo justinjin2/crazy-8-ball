@@ -34,19 +34,28 @@ Config.Table = {
 	SurfaceHeightStuds = 2.9,
 	-- Filled in at the bottom of this file from the two values above.
 	SurfaceHeightInches = 0,
-	-- Wooden rail width (visual only).
-	RailWidthInches = 5.5,
+	-- The Pro-Am rail: wood from the cushion nose to the table's outer edge. Not visual only:
+	-- it also drives the barrier around the table (Placement.barrierHalfExtents), the rail
+	-- extents ShooterStance stands the shooter and lays the rail bridge against, the rectangle
+	-- CueClearance keeps the cue above, and the camera's whole-table fit. It must match the
+	-- table mesh (tests/table_model_test.luau, coming with the new model).
+	RailWidthInches = 7,
 	-- Rail top height above the cloth as a fraction of the ball diameter (visual). The rubber
 	-- cushion nose that the balls hit sits lower, see Physics.CushionNoseBallFraction.
 	RailHeightBallFraction = 0.8,
-	-- The rail top the drawn cue must clear (CueClearance), in inches above the cloth. This is
-	-- the imported table mesh (rail top 3.2328 studs over cloth at 2.9 = 2.08 in), not the
-	-- fraction above: the parts fallback builds a lower rail (1.8 in), so clearing the mesh
-	-- clears both.
+	-- The rail crown, in inches above the cloth: the table mesh is built to it (Geometry.json
+	-- rail.top) and measured against it, and the drawn cue must clear it (CueClearance). Not
+	-- the fraction above: the parts fallback builds a lower rail (1.8 in), so clearing this
+	-- clears both. The shooter's pose and the cue tuning sit on it (the stance sweeps pass
+	-- from 2.08 to 2.16 and fail at 2.05 and 2.3), so changing it means retuning them.
 	RailTopInches = 2.08,
-	-- The leather pocket castings stand a little proud of the rail (the mesh's 2.24 in). A
-	-- cue passing within PocketCastingReachInches of a pocket centre clears the casting
-	-- instead, blended in over PocketCastingBlendInches so the drawn pitch never jumps.
+	-- The pocket castings stand a little proud of the rail (the old mesh's 2.24 in; the new
+	-- chrome caps' crown will set it). CueClearance takes the nearest a cue's line inside the
+	-- rail passes to a pocket centre: within PocketCastingReachInches - PocketCastingBlendInches
+	-- (3 in) the cue clears this full height, and from there the height it clears ramps
+	-- linearly down to RailTopInches at PocketCastingReachInches (4 in), so the drawn pitch
+	-- never jumps. The cue clearance tests start failing from about 2.35 in (2.351 with the
+	-- 7 in or the 5.5 in rail), so the caps' crown has to stay under that.
 	PocketCastingTopInches = 2.24,
 	PocketCastingReachInches = 4.0,
 	PocketCastingBlendInches = 1.0,
@@ -95,6 +104,17 @@ Config.Table = {
 	-- The drop: once a ball's centre is over the hole it falls under gravity while the funnel
 	-- shape pulls it towards the middle and the liner slows it. It stops this far down. (tune)
 	PocketDropDepthInches = 5,
+	-- The drawn pocket cup must be at least this deep below the cloth. That holds the physics
+	-- drop, which the replay draws exactly: the drawn ball's bottom stops PocketDropDepthInches
+	-- (5 in) down. It does NOT hold the rest of the fade: BallRenderer.animate keeps the ball
+	-- falling under gravity and drifting outward for Effects.PocketFadeSeconds, its bottom
+	-- reaching about 15.2 in down and its side up to 1.2 in past the hole's clear_radius
+	-- (Geometry.json pockets.fade_depth and fade_drift). A 6.5 to 7 in floor is passed a fifth
+	-- to a quarter of the way into the fade. The cloth is only 18.1 in up, so no cup inside
+	-- the body holds all of that; the floor is near-black so the fading ball reads as falling
+	-- into the dark, as on the old 6.5 in cups the drop was tuned on (2026-09-24). Holding the
+	-- whole fade means shortening the renderer's fall, not deepening the cup.
+	MinPocketDepthInches = 6.5,
 	PocketFunnelAccel = 900, -- in/s^2 towards the pocket centre while dropping
 	PocketDragPerSecond = 5, -- fraction of horizontal speed lost per second in the liner
 	PocketWallRestitution = 0.25, -- bounce off the liner wall
@@ -903,7 +923,7 @@ Config.Camera = {
 Config.Pad = {
 	-- Where the pad sits: this far from the table centre, towards the head rail, on the
 	-- floor of that table's tier. It has to clear the place the SHOOTER stands, not just
-	-- the rail: the table half-length with rails is 8.88 studs and ShooterStance can stand
+	-- the rail: the table half-length with rails is 9.12 studs and ShooterStance can stand
 	-- the shooter just outside the barrier at the head rail, where they are let go when the
 	-- turn passes, so a pad reaching in that far would sit under their feet and seat them
 	-- again the instant they left.
@@ -2152,7 +2172,10 @@ Config.Multiplayer = {
 	PadDwellSeconds = 0.35, -- intentional queue entry
 	QueueExitGraceSeconds = 0.5, -- forgive brief edge jitter
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
-		MarginStuds = 0.6, -- beyond the rails; stays clear of the queue pads
+		-- Beyond the rails; stays clear of the queue pads. 5.5 in rails + 0.6 and 7 in rails +
+		-- 0.36 put the wall in the same place (half extents 9.48 x 5.48 studs), so the stance,
+		-- fence and pads tuned to it stay put.
+		MarginStuds = 0.36,
 		HeightStuds = 14, -- well above a character's jump
 		ReleaseClearanceStuds = 1.2, -- the shooter's root stands at least this far outside it (ShooterStance), so a shooter let go where they stand is clear of it
 	},

@@ -28,34 +28,6 @@ local function sortedKeys(t: { [string]: any }): { string }
 	return keys
 end
 
--- The same shape, numbers within 1e-6 and strings exactly; arrays in the same order.
-local function same(config: any, json: any, path: string)
-	if type(json) == "number" then
-		H.expect(type(config) == "number", path .. " is not a number in Config")
-		H.near(config, json, 1e-6, path)
-	elseif type(json) == "table" then
-		H.expect(type(config) == "table", path .. " is missing from Config")
-		if #json > 0 then
-			H.expect(
-				#config == #json,
-				("%s has %d entries, Parameters.json %d"):format(path, #config, #json)
-			)
-			for i, value in json do
-				same(config[i], value, ("%s[%d]"):format(path, i))
-			end
-		else
-			for _, key in sortedKeys(json) do
-				same(config[key], json[key], path .. "." .. key)
-			end
-		end
-	else
-		H.expect(
-			config == json,
-			("%s is %s, Parameters.json says %s"):format(path, tostring(config), tostring(json))
-		)
-	end
-end
-
 -- Config.Bridge.Fallback's keys and the "parameters" they copy.
 local FALLBACK = {
 	HeadThicknessStuds = "head_thickness",
@@ -80,9 +52,10 @@ return {
 		local B = H.require("Config").Bridge
 		local json = load()
 		-- Every number the game reads, under the same names (roblox_local), and the two the
-		-- shaft's clearance and grip need from the raw parameters.
+		-- shaft's clearance and grip need from the raw parameters. The same shape, numbers
+		-- within 1e-6 and strings exactly; arrays in the same order.
 		for _, key in sortedKeys(json.roblox_local) do
-			same(B[key], json.roblox_local[key], "Config.Bridge." .. key)
+			H.matchesJson(B[key], json.roblox_local[key], "Config.Bridge." .. key, 1e-6)
 		end
 		local p = json.parameters
 		H.near(B.ShaftButtRadiusStuds, p.shaft_butt_diameter / 2, 1e-6, "ShaftButtRadiusStuds")

@@ -228,4 +228,63 @@ function Harness.near(actual: number, expected: number, tolerance: number, messa
 	end
 end
 
+local function sortedKeys(t: { [string]: any }): { string }
+	local keys = {}
+	for key in t do
+		table.insert(keys, key)
+	end
+	table.sort(keys)
+	return keys
+end
+
+--- Check `actual` against `expected`, a value decoded from JSON: the same shape, numbers
+--- within `tolerance`, strings and booleans exactly, arrays the same length and order, and
+--- objects compared on the EXPECTED side's keys (sorted, so the first mismatch reported is
+--- always the same one). Keys only `actual` has are ignored; call it both ways to catch
+--- those too. Fails naming `path` extended down to the first value that differs.
+function Harness.matchesJson(actual: any, expected: any, path: string, tolerance: number)
+	if type(expected) == "number" then
+		if type(actual) ~= "number" then
+			error(
+				("%s is %s, expected the number %.17g"):format(path, tostring(actual), expected),
+				0
+			)
+		end
+		-- NaN compares false with everything, so a NaN on either side would slip past the
+		-- tolerance check below (and serde writes NaN and inf as null).
+		if actual ~= actual or expected ~= expected or math.abs(actual) == math.huge then
+			error(("%s is %s, not a finite number"):format(path, tostring(actual)), 0)
+		end
+		if math.abs(actual - expected) > tolerance then
+			error(
+				("%s is %.17g, expected %.17g (within %.3g)"):format(
+					path,
+					actual,
+					expected,
+					tolerance
+				),
+				0
+			)
+		end
+	elseif type(expected) == "table" then
+		if type(actual) ~= "table" then
+			error(("%s is %s, expected a table"):format(path, tostring(actual)), 0)
+		end
+		if #expected > 0 then
+			if #actual ~= #expected then
+				error(("%s has %d entries, expected %d"):format(path, #actual, #expected), 0)
+			end
+			for i = 1, #expected do
+				Harness.matchesJson(actual[i], expected[i], ("%s[%d]"):format(path, i), tolerance)
+			end
+		else
+			for _, key in sortedKeys(expected) do
+				Harness.matchesJson(actual[key], expected[key], path .. "." .. key, tolerance)
+			end
+		end
+	elseif actual ~= expected then
+		error(("%s is %s, expected %s"):format(path, tostring(actual), tostring(expected)), 0)
+	end
+end
+
 return Harness
