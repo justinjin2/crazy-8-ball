@@ -1,8 +1,35 @@
 # Status
 
-**2026-09-24: focus moved to the table. The current table was audited and the designer
-interviewed; the remake is decided (ROADMAP "Table remake", DECISIONS 2026-09-24). Next: the
-build plan, starting with a Studio test of a repeating cloth texture on an imported mesh.**
+**2026-09-24: the new table is in Studio (branch `table-remake`). Designer playtest, device
+check and the milestone save are pending.**
+
+The table was remade from scratch (ROADMAP "Table remake"):
+- One model, styled on the Diamond Pro-Am with no brand, built by a Blender script straight
+  from the physics (`assets/table/`). The cushions, jaws and pocket rims sit within 0.004 in of
+  where the balls play. The old table's pockets were 15% wider than the physics.
+- 7 in rounded rails, chrome caps on all six pockets (removable), two-piece bolted legs,
+  corner blocks, 18 pearl sights and a blank logo plate. 8,134 triangles (the old table had
+  19,220).
+- Two looks on the same mesh: bright blue cloth with satin black wood, and bright green cloth
+  with red-brown wood. 17 textures at 1024 are shared by all tables; the cloth is one
+  repeating tile tinted per look.
+- In Studio the template is `ServerStorage.PoolTable` and its looks are in
+  `ServerStorage.TableLooks`. Table 2 is green as a temporary side-by-side showcase; which
+  tables use which look is still open.
+
+Verified:
+- lint clean and 314 Lune tests pass, including the new geometry, looks and model tests;
+- `TableModel.py` passes every check (physics match, gaps, budgets, UVs, FBX round trip);
+- in Edit mode, both looks render correctly;
+- in Play, the server builds 3 tables (blue, green, blue) with all 8 textured parts; console
+  clean.
+
+Still required:
+- the designer's playtest (pockets feel, close aim view);
+- a phone, PC and gamepad look at the cloth up close;
+- save to `place/8ball.rbxl` and publish;
+- then merge `table-remake` into main and delete `assets/table/legacy/` and
+  `ServerStorage.PoolTableModel`.
 
 ---
 

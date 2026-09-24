@@ -898,3 +898,18 @@ of the remake:
   under this place's Sky.
 Not tested: whether different cloth tints per look break instancing (low priority; the
 fallback is one cloth colour map per look).
+
+2026-09-24: Table remake build calls:
+- The new template is named `PoolTable`, so the old `PoolTableModel` stays untouched as the
+  rollback until sign-off.
+- `Multiplayer.Barrier.MarginStuds` goes from 0.6 to 0.36, so the wider 7 in rail leaves the
+  invisible wall where it was.
+- The chrome caps' crown is 2.28 in (`PocketCastingTopInches`). The cue-clearance tests allow
+  up to 2.351.
+- The caps stop on the wood: at least 0.25 in behind the cushion backs at the corners and
+  0.9 in at the sides (the designer asked that they not touch the cloth).
+- The faint break streak and rack patch are off. Roblox dithers alpha under about 0.15, so
+  they drew as a dotted line and a checkered triangle. The foot-spot sticker, the chalk and
+  the shading at the cushions and rims stay.
+- Table 2 shows the green look as a temporary side-by-side showcase until the designer decides
+  which tables use which look.
