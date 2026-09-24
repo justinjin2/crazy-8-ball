@@ -27,3 +27,7 @@ assets/**/mcp_tools.json
 assets/**/renders/checkpoint_*.png
 assets/**/checkpoints/
 __pycache__/
+
+# Table package: downloaded texture sources and 4K masters are rebuilt from Sources.json / seeds
+assets/table/sources/*/
+assets/table/textures/masters/
