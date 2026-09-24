@@ -793,6 +793,6 @@ scaled by the cut) to make aiming a little harder.
 2026-09-23: Guideline object/cue lines shortened again, 11 to 8 in (half the original 16).
 
 2026-09-23: Pocketed balls stay visible: the drawn ball stops 1.6 in below the cloth (still
-showing in the hole) while the physics drop finishes, holds 0.25 s (was 0.5), then rolls 2.5 in outward
-while sinking and fading over 0.45 s (was 0.9), like running into the gutter. Presentation only; the
+showing in the hole) while the physics drop finishes, holds 0.17 s (was 0.5, then 0.25), then rolls 2.5 in outward
+while sinking and fading over 0.3 s (was 0.9, then 0.45), like running into the gutter. Presentation only; the
 physics and replay are unchanged (Config.Effects.Pocket*).
