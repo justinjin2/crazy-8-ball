@@ -417,7 +417,7 @@
       "colour_space": "sRGB+alpha",
       "file": "textures/Marks_Color.png",
       "master": "textures/masters/Marks_Color.png",
-      "master_sha256": "5aff1e65d07aeda03828bf01d14787186f81af1a80f6ed554dd885ce54c1b66f",
+      "master_sha256": "a1f525e55e2a8d92cebf724860fc88d7800b823e0a40109163d1090c75d57d4b",
       "master_size": [
         4096,
         4096
@@ -426,12 +426,12 @@
         45.4,
         49.2,
         53.5,
-        7.8
+        2.7
       ],
       "mesh": "Marks",
       "name": "Marks_Color",
       "note": "AlphaMode Transparency; RGB dilated under alpha 0",
-      "sha256": "0b909b1ab8b0a8f7f42f23f10cabe86cb0dd5b9fddc747f9dfdfc69841afb5d0",
+      "sha256": "aac420219ccb3a9e14126d55535ab02573e6a78a81e8cd7fd8f4b015abc6e6b5",
       "size": [
         1024,
         1024
@@ -440,7 +440,7 @@
     }
   ],
   "master_px": 4096,
-  "parameters_sha256": "63acb08c2dbf3db9a32486976b0ef7206bf0586428d9cc1e39b4854c9320cf77",
+  "parameters_sha256": "94d7e998d986364da6b16a99de447605ee3b7a68981fab56e92938bc9c6b363b",
   "recipe": {
     "cloth": "random-phase synthesis of the TextureCan #527 colour and height spectra",
     "config": {
@@ -620,7 +620,7 @@
         1170.0,
         2650.0
       ],
-      "rim_alpha": 0.35,
+      "rim_alpha": 0.0,
       "rubber_rgb": [
         16,
         16,
@@ -640,7 +640,7 @@
         225,
         225
       ],
-      "toe_alpha": 0.35,
+      "toe_alpha": 0.0,
       "wood_highpass_sigma": 220.0,
       "wood_normal_strength": 0.06,
       "wood_rough": [

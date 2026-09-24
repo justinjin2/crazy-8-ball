@@ -687,7 +687,7 @@ Config.TableModel = {
 	-- The chrome pocket caps are their own mesh so they can go: false removes them from
 	-- every table (the corners underneath are modelled finished).
 	CapsMesh = "Caps",
-	Caps = true,
+	Caps = false, -- TEMPORARILY OFF (designer, 2026-09-24): to see the table without chrome caps
 	-- Map sets: uploaded image ids ("rbxassetid://digits"), "" until uploaded (an empty id is
 	-- skipped, so a mesh with none keeps its bare part colour). Every table map is uploaded at
 	-- 1024 (STUDIO_NOTES, "SurfaceAppearance facts"). A missing Metalness means non-metal.
@@ -731,7 +731,7 @@ Config.TableModel = {
 		},
 		LogoPlate = { Color = "rbxassetid://96049906872831", Roughness = "" },
 		-- RGBA overlay: sticker, rack patch, break streak, chalk, cushion and rim shading.
-		Marks = { Color = "rbxassetid://102632376550157" },
+		Marks = { Color = "rbxassetid://114216659621156" },
 	} :: {
 		[string]: { Color: string, Normal: string?, Roughness: string?, Metalness: string? },
 	},
@@ -1610,20 +1610,22 @@ Config.Audio = {
 				FromSpeed = 6,
 				UpToSpeed = math.huge,
 			},
-			-- rattle_1, peak 0.425
-			{
-				Id = "rbxassetid://104388069204336",
-				Gain = 1.18,
-				FromSpeed = 6,
-				UpToSpeed = math.huge,
-			},
-			-- rattle_2, peak 0.267
-			{
-				Id = "rbxassetid://84658060587712",
-				Gain = 1.87,
-				FromSpeed = 6,
-				UpToSpeed = math.huge,
-			},
+			-- TEMPORARILY OFF (designer, 2026-09-24): the two rattle takes, so every hit is a clean
+			-- clack. Uncomment to bring them back.
+			-- -- rattle_1, peak 0.425
+			-- {
+			-- Id = "rbxassetid://104388069204336",
+			-- Gain = 1.18,
+			-- FromSpeed = 6,
+			-- UpToSpeed = math.huge,
+			-- },
+			-- -- rattle_2, peak 0.267
+			-- {
+			-- Id = "rbxassetid://84658060587712",
+			-- Gain = 1.87,
+			-- FromSpeed = 6,
+			-- UpToSpeed = math.huge,
+			-- },
 		},
 		-- One take for every cushion contact, soft through hard. The older, harder recording
 		-- was dropped outright at the designer's call: it did not sound like a ball meeting

@@ -128,8 +128,8 @@ CFG = {
     'streak_rgb': [225, 225, 225],
     'chalk_rgb': [40, 100, 170],
     'chalk_alpha': 0.5,
-    'toe_alpha': 0.35,
-    'rim_alpha': 0.35,
+    'toe_alpha': 0.0,  # off (designer, 2026-09-24): its faint edge dithered into a visible line along the cushions
+    'rim_alpha': 0.0,  # off with the toe strip: same dither line round the rims
 }
 
 # Parameters.json uv_layout, mirrored here for the per-strip painting (asserted against the file).
