@@ -25,6 +25,7 @@ local Camera = require(script.Parent.Camera)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
 local Hub = require(script.Parent.Hub)
+local HubDecor = require(script.Parent.HubDecor)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
 local UI = require(script.Parent.UI)
@@ -566,8 +567,7 @@ local function rewardsPocket(tableId: number, m: any, ballId: number): boolean
 	end
 	return s.solo ~= nil or group == nil or Judge.group(ballId) == group
 end
-for _, mode in M.Modes do
-	local id = mode.id
+for id = 1, Placement.tableCount() do
 	local m = assert(hub:matchFor(id))
 	local a = Audio.new(visuals)
 	audioByTable[id] = a
@@ -664,13 +664,13 @@ local avatarContext: Avatar.Context = {
 }
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
-	for _, mode in M.Modes do
-		local a = audioByTable[mode.id]
-		local m = assert(hub:matchFor(mode.id))
+	for id = 1, Placement.tableCount() do
+		local a = audioByTable[id]
+		local m = assert(hub:matchFor(id))
 		a:updateRoll(m, dt)
 		a:updatePull(dt)
-		local e = effectsByTable[mode.id]
-		local part = hub:cueBallPartFor(mode.id)
+		local e = effectsByTable[id]
+		local part = hub:cueBallPartFor(id)
 		if part and e.boundCue ~= part then
 			e:attachTrail(part)
 			e.boundCue = part
@@ -678,8 +678,9 @@ RunService.RenderStepped:Connect(function(dt)
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
 	padEffects:update(dt, queueOpen)
-	for _, mode in M.Modes do
-		local panel = workspace.Pads:FindFirstChild(("QueuePanel_%02d"):format(mode.id))
+	HubDecor.update(hub.mySeat)
+	for id = 1, Placement.tableCount() do
+		local panel = workspace.Pads:FindFirstChild(("QueuePanel_%02d"):format(id))
 		local billboard = panel and panel:FindFirstChildWhichIsA("BillboardGui")
 		if billboard then
 			billboard.Enabled = not controlled

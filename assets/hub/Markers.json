@@ -2342,7 +2342,7 @@
     "Saturation": 0.18,
     "TintColor": "#FFFFFF"
    },
-   "EnvironmentDiffuseScale": 0.35,
+   "EnvironmentDiffuseScale": 0.45,
    "EnvironmentSpecularScale": 0.6,
    "GeographicLatitude": 34,
    "GlobalShadows": true,
@@ -2372,22 +2372,22 @@
     "Sky": "Day"
    },
    "Dusk": {
-    "Ambient": "#5C6278",
+    "Ambient": "#80869A",
     "Atmosphere": {
-     "Color": "#E7B39A",
-     "Decay": "#6A5B8C",
-     "Density": 0.32,
+     "Color": "#E9C2AE",
+     "Decay": "#7A6C98",
+     "Density": 0.28,
      "Glare": 0.35,
      "Haze": 1.6,
      "Offset": 0.2
     },
-    "Brightness": 1.6,
+    "Brightness": 2.0,
     "Cards": "Cards_Night, EmissiveMask = Cards_Night_Emissive.png, EmissiveStrength 0.6",
     "ClockTime": 18.1,
     "ExposureCompensation": 0.1,
     "Facades": "Facade_Night maps, EmissiveMask = Facade_Night_EmissiveDusk.png, EmissiveStrength 1.5",
     "HazeDeckColor": "#E9A48A",
-    "OutdoorAmbient": "#8C7A8E",
+    "OutdoorAmbient": "#9C98A8",
     "Sky": "Dusk"
    },
    "Night": {
@@ -2415,7 +2415,7 @@
   {
    "angle": 100.0,
    "attach": "Pendant_T1",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2440,14 +2440,14 @@
     19.48,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T2",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2472,14 +2472,14 @@
     19.48,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T3",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2504,14 +2504,14 @@
     19.48,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T4",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2536,14 +2536,14 @@
     19.48,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T5",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2568,14 +2568,14 @@
     19.48,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T6",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2600,14 +2600,14 @@
     53.72,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T7",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2632,14 +2632,14 @@
     53.72,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T8",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2664,14 +2664,14 @@
     53.72,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T9",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2696,14 +2696,14 @@
     53.72,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T10",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2728,14 +2728,14 @@
     53.72,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T11",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2760,14 +2760,14 @@
     -47.88,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T12",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2792,14 +2792,14 @@
     -47.88,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T13",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2824,14 +2824,14 @@
     -27.64,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T14",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2856,14 +2856,14 @@
     -27.64,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T15",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2888,14 +2888,14 @@
     30.0,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
   {
    "angle": 100.0,
    "attach": "Pendant_T16",
-   "brightness": 2.2,
+   "brightness": 2.6,
    "colour": "#FFF3D6",
    "direction": [
     0.0,
@@ -2920,7 +2920,7 @@
     30.0,
     9.45
    ],
-   "range": 14.0,
+   "range": 18.0,
    "shadows": false,
    "type": "SurfaceLight"
   },
@@ -3506,7 +3506,7 @@
      "Palette_Roughness.png"
     ]
    },
-   "triangles": 432
+   "triangles": 430
   },
   "Arch_Terrace": {
    "can_collide": false,

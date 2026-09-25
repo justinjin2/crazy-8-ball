@@ -156,10 +156,13 @@ end
 local function buildFence(t: any, folder: Instance)
 	local F = M.Fence
 	local height = M.Barrier.HeightStuds
-	local fx, fy = Placement.fenceHalfExtents(t.engine.teamSize)
+	local fx, fy, cx = Placement.fenceHalfExtents(t.engine.teamSize)
 	local w = F.ThicknessStuds
+	-- The box is longer at the head (the pads) than at the foot, so it is centred cx along the
+	-- table rather than on it.
 	local base = CFrame.new(t.placement.x, t.placement.y + height / 2, t.placement.z)
 		* CFrame.Angles(0, t.placement.yaw, 0)
+		* CFrame.new(cx, 0, 0)
 	local walls = {
 		{ Vector3.new(0, 0, fy + w / 2), Vector3.new(2 * (fx + w), height, w) },
 		{ Vector3.new(0, 0, -(fy + w / 2)), Vector3.new(2 * (fx + w), height, w) },
@@ -683,14 +686,14 @@ local function constrain(p: Player, t: any)
 	-- that fell through the floor or ended up well outside its fence (spawned there, clipped
 	-- through); the client owns its character, so moving it every poll would rubber-band.
 	local scale = Config.Table.StudsPerInch
-	local fx, fy = Placement.fenceHalfExtents(e.teamSize)
+	local fx, fy, fcx = Placement.fenceHalfExtents(e.teamSize)
 	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
 	x, y = x * scale, y * scale -- studs along the table's axes
 	local escape = M.Fence.EscapeStuds
-	local outside = math.abs(x) > fx + escape or math.abs(y) > fy + escape
+	local outside = math.abs(x - fcx) > fx + escape or math.abs(y) > fy + escape
 	if outside or root.Position.Y < t.placement.y - Q.FallTolerance then
 		local inset = M.Fence.ThicknessStuds + Q.RespawnBoundaryInset
-		local cx = math.clamp(x, -(fx - inset), fx - inset) / scale
+		local cx = math.clamp(x, fcx - (fx - inset), fcx + fx - inset) / scale
 		local cy = math.clamp(y, -(fy - inset), fy - inset) / scale
 		-- Keep clear of the table itself: land on the nearer long side.
 		local bx, by = Placement.barrierHalfExtents()
@@ -864,18 +867,20 @@ function Service.start(parent: Instance)
 	local folder = Instance.new("Folder")
 	folder.Name = Service.PadFolderName
 	folder.Parent = parent
-	for _, mode in M.Modes do
-		local p = Placement.forTable(mode.id)
-		assert(p, "Missing table placement")
+	-- One server-owned table per hub row, each seating its zone's team size.
+	for id = 1, Placement.tableCount() do
+		local p = Placement.forTable(id)
+		local teamSize = Placement.teamSizeOf(id)
+		assert(p and teamSize, "Missing table placement")
 		local t: any = {
-			engine = Engine.new(mode.id, mode.teamSize, newSeed()),
+			engine = Engine.new(id, teamSize, newSeed()),
 			placement = p,
 			dwell = {},
 			outside = {},
 			blocked = {},
 			sentRevision = 0,
 		}
-		tables[mode.id] = t
+		tables[id] = t
 		buildPads(t, folder)
 		buildBarrier(t, folder)
 		buildFence(t, folder)
@@ -885,8 +890,8 @@ function Service.start(parent: Instance)
 		if not Service.allow(p, "snapshot") then
 			return
 		end
-		for _, mode in M.Modes do
-			Service.broadcast(tables[mode.id], p)
+		for id = 1, Placement.tableCount() do
+			Service.broadcast(tables[id], p)
 		end
 	end)
 	-- Join requests cannot bypass server-observed pad occupancy.
@@ -1040,8 +1045,8 @@ function Service.start(parent: Instance)
 	-- so a watched ball in hand is not held to the pad-poll rate.
 	local function broadcastAims()
 		local batch = {}
-		for _, mode in M.Modes do
-			local t = tables[mode.id]
+		for id = 1, Placement.tableCount() do
+			local t = tables[id]
 			local e = t.engine
 			local cue = Simulation.findBall(e.state, 0)
 			if
@@ -1080,8 +1085,8 @@ function Service.start(parent: Instance)
 			return
 		end
 		elapsed = 0
-		for _, mode in M.Modes do
-			local t = tables[mode.id]
+		for id = 1, Placement.tableCount() do
+			local t = tables[id]
 			local e = t.engine
 			local time = now()
 			poll(t, time)

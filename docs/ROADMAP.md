@@ -42,6 +42,9 @@ anyway.
   reduced to about 550 triangles. Gamepad: aim with the stick, zoom, shoot.
   Done means: two players in one server play at two different tables while a third walks
   between them and sees both games, on phone, PC and gamepad.
+*Progress (2026-09-25): all sixteen tables run in the hub map (10 1v1, 4 2v2, 2 3v3), each
+with its own pads, barrier and fence; checked in Studio play-solo. The two-player,
+phone and gamepad checks in "Done means" are still open.*
 *Order note (2026-09-21): 1.7 is being built before 1.6 at the designer's request.*
 *Order note (2026-09-22): the designer requested `prompts/PHYSICS_REALISM_PROMPT.md`.
 Work proceeds A-F; the designer then requested continuing through D-F in one run.
@@ -145,6 +148,12 @@ are part of this update; the older broader phase boxes below are not completed b
   import it, place the tables from its `Markers.json`, create the lamp lights and the Lighting
   recipe, sittable seats, snack counter with drink and snack tools and animations, zone signs,
   pro-lobby door placeholder.
+  *Progress (2026-09-25):*
+  - *Done: the map is imported, aligned and textured, with the Dusk sky and the Lighting
+    recipe; tables, props, seats (Sit prompt), lights and collision are placed from the markers;
+    the zone signs and the pro-lobby door are in.*
+  - *Open: the snack counter tools and animations, and the phone and gamepad checks on real
+    devices.*
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
 - [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.

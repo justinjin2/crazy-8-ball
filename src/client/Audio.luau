@@ -156,7 +156,13 @@ end
 ---
 --- Without this the first contact of the session is silent: a Sound told to play an asset it
 --- has not fetched yet simply does not, and the break is exactly when the most sounds fire.
+local preloaded = false
 local function preload(folder: Instance)
+	-- Every table has its own Audio (sixteen in the hub); the clips are shared, so fetch once.
+	if preloaded then
+		return
+	end
+	preloaded = true
 	local holder = Instance.new("Folder")
 	holder.Name = "Preload"
 	holder.Parent = folder

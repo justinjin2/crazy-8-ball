@@ -287,8 +287,10 @@ return {
 		local grow = math.max(half, Config.Multiplayer.Barrier.ReleaseClearanceStuds)
 		local bx, by = Placement.barrierHalfExtents()
 		for _, teamSize in { 1, 2, 3 } do
-			local fx, fy = Placement.fenceHalfExtents(teamSize)
-			H.expect(bx + grow <= fx - half - S.FenceMarginStuds, "no room at the ends")
+			local fx, fy, cx = Placement.fenceHalfExtents(teamSize)
+			-- Both ends: the head reaches cx - fx, the foot cx + fx.
+			H.expect(bx + grow <= fx + cx - half - S.FenceMarginStuds, "no room at the foot")
+			H.expect(bx + grow <= fx - cx - half - S.FenceMarginStuds, "no room at the head")
 			H.expect(by + grow <= fy - half - S.FenceMarginStuds, "no room along the sides")
 		end
 		H.expect(body.WaistHeight < body.ShoulderHeight, "the torso has a length")

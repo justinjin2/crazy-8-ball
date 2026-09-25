@@ -126,19 +126,25 @@ Shared (`src/shared`): `Config`, `Physics/` (Vec, Ball, Table, Collision, Cluste
 Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written), `Abilities/`
 (catalog and pure effect hooks into the simulation, to be written), `TableBuilder`,
 `CueStickBuilder`, `BridgeBuilder` (the rake, from the imported `BridgeModel` or parts),
-`AvatarPose` (rig, measurements, IK pose), and the pure stance modules `CueShape`,
+`AvatarPose` (rig, measurements, IK pose), `HubLayout` (generated from
+`assets/hub/Markers.json` by `tools/gen_hub_layout.py`: prop copies, seats, lights, collision,
+anchors), and the pure stance modules `CueShape`,
 `CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands, the
 mode, the hands, extensions), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
 quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written).
 
-Server (`src/server`): `Bootstrap` (builds the hub tables, publishes assets), `TableService`
+Server (`src/server`): `Bootstrap` (dresses the hub, builds the hub tables, publishes assets),
+`HubService` (the data-driven half of the hub map: clones props from
+`ServerStorage.Hub_PropLibrary`, Seats with a Sit prompt, the thirty lights, invisible
+collision), `TableService`
 (per-table state, joins, seats, match loop), `ShotService` (validation, simulation, broadcast),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`.
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
-shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
+shooter), `HubDecor` (hides the player's own table pendant from the pool camera),
+`ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
 shooters), `UI`, `Audio`, `Effects`, `Hub`
 (pads, seats, snack counter, doors).
 

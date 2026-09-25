@@ -1,0 +1,40 @@
+{
+ "note": "Roblox asset ids of the hub images uploaded on 2026-09-25 through the Studio MCP (upload_image, 1024 at most). The SurfaceAppearances and the Sky in the place use these. Day and Night skies and the Day facade and card maps are not uploaded: the hub runs at dusk. Props_Color and MarbleReflection_Color were uploaded from the first bake; the files in textures/ are a later rebake with the same UV layout (mean difference 0.24 of 255), so the uploads still match.",
+ "textures": {
+  "Marble_Color.png": "rbxassetid://114033119789385",
+  "Marble_Roughness.png": "rbxassetid://128764044149860",
+  "Marble_Normal.png": "rbxassetid://79849411122191",
+  "Carpet_Color.png": "rbxassetid://103758003296663",
+  "Carpet_Roughness.png": "rbxassetid://82518893312327",
+  "Carpet_Normal.png": "rbxassetid://114423896506221",
+  "Slats_Color.png": "rbxassetid://129076627478862",
+  "Slats_Roughness.png": "rbxassetid://87829333538896",
+  "Palette_Color.png": "rbxassetid://72636813375319",
+  "Palette_Roughness.png": "rbxassetid://119002813601593",
+  "Palette_Metalness.png": "rbxassetid://128136827357515",
+  "Props_Color.png": "rbxassetid://92146153487699",
+  "Props_Roughness.png": "rbxassetid://119222958720357",
+  "Props_Metalness.png": "rbxassetid://77215210798792",
+  "MarbleReflection_Color.png": "rbxassetid://126559156686782",
+  "FlutedGlass_Color.png": "rbxassetid://75918208121056",
+  "FlutedGlass_Normal.png": "rbxassetid://101077667784693",
+  "Facade_Night_Color.png": "rbxassetid://124192199824829",
+  "Facade_Night_Roughness.png": "rbxassetid://82067430724798",
+  "Facade_Night_EmissiveDusk.png": "rbxassetid://108925668185559",
+  "Cards_Night_Color.png": "rbxassetid://73956606868240",
+  "Cards_Night_Roughness.png": "rbxassetid://124812783435077",
+  "Cards_Night_Emissive.png": "rbxassetid://77569997884169",
+  "Sign_Zone_1v1_Color.png": "rbxassetid://119565597308021",
+  "Sign_Zone_2v2_Color.png": "rbxassetid://81634036959859",
+  "Sign_Zone_3v3_Color.png": "rbxassetid://75005097392023",
+  "Sign_Logo_Color.png": "rbxassetid://71685918298802"
+ },
+ "sky": {
+  "Dusk_Bk.png": "rbxassetid://108984185802342",
+  "Dusk_Dn.png": "rbxassetid://74855325306672",
+  "Dusk_Ft.png": "rbxassetid://132217216992636",
+  "Dusk_Lf.png": "rbxassetid://78674839790817",
+  "Dusk_Rt.png": "rbxassetid://79166983619034",
+  "Dusk_Up.png": "rbxassetid://112452918734876"
+ }
+}

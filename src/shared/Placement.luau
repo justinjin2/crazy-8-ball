@@ -169,16 +169,31 @@ function Placement.outsideBarrier(
 	return wx, wz
 end
 
---- Half extents, in studs along the table's own length and width, of the fence around a
---- match area for `teamSize` players a side: past the furthest queue pad at the head end
---- (Multiplayer.PadDistanceStuds onwards), mirrored at the foot.
-function Placement.fenceHalfExtents(teamSize: number): (number, number)
+--- The fence around a match area for `teamSize` players a side, in studs along the table's
+--- own length and width: half extents (hx, hy) of a box whose centre sits `cx` along the
+--- table's length from the table centre. At the head end (negative x) it reaches past the
+--- furthest queue pad (Multiplayer.PadDistanceStuds onwards); at the foot it stops at
+--- Fence.FootHalfLengthStuds, since nobody queues there and the hub's 2v2 tables stand
+--- foot to foot. So the fence runs from cx - hx (head) to cx + hx (foot).
+function Placement.fenceHalfExtents(teamSize: number): (number, number, number)
 	local M = Config.Multiplayer
 	local F = M.Fence
 	local furthest = M.PadDistanceStuds
 		+ (teamSize - 1) * (M.PadSizeStuds + M.PadGapStuds)
 		+ M.PadSizeStuds / 2
-	return math.max(F.MinHalfLengthStuds, furthest + F.PadMarginStuds), F.HalfWidthStuds
+	local head = math.max(F.MinHalfLengthStuds, furthest + F.PadMarginStuds)
+	local foot = F.FootHalfLengthStuds
+	return (head + foot) / 2, F.HalfWidthStuds, (foot - head) / 2
+end
+
+--- How many players a side table `id` seats (its zone: 1v1, 2v2 or 3v3), or nil.
+function Placement.teamSizeOf(id: number): number?
+	for _, row in Config.Hub.Tables do
+		if row.id == id then
+			return row.teamSize
+		end
+	end
+	return nil
 end
 
 function Placement.dirToWorld(p: Placement, xIn: number, yIn: number): (number, number)

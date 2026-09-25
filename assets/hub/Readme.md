@@ -57,6 +57,16 @@ Through the Blender MCP, run any list of stages with
 Change a number in `PARAMETERS` and rerun from the first stage it affects. `furnish` rebuilds
 the prop masters, so run `bake` again after it.
 
+## In the game (since 2026-09-25)
+
+The package is imported into the place. The meshes are in `workspace.Hub` and the prop
+library is in `ServerStorage`. The server's `HubService` builds the rest from
+`src/shared/HubLayout.luau`: prop copies, seats, lights and collision.
+
+After re-exporting, run `python3 tools/gen_hub_layout.py` and then `tools/format.sh`, so the
+game picks up the new markers. Details are in `docs/STUDIO_NOTES.md`, under "The hub map in
+the place".
+
 ## Units and frame
 
 - 1 Blender unit is 1 stud. Blender uses X east, Y north, Z up, and the main floor is Z = 0.

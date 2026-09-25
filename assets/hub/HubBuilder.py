@@ -191,7 +191,7 @@ PARAMETERS = {
     },
     # ---- lights (Roblox values; the preview factors turn them into Blender watts) ----------------------
     'lights': {
-        'pendant': {'brightness': 2.2, 'range': 14.0, 'angle': 100.0},
+        'pendant': {'brightness': 2.6, 'range': 18.0, 'angle': 100.0},  # tuned in Studio 2026-09-25
         'ambient': [
             {'name': 'Light_WalkwayTray_W', 'type': 'SurfaceLight', 'position': [-45.0, -4.82, 27.9],
              'direction': [0, 0, -1], 'face_size': [80.0, 12.0], 'colour': '#FFF3D6', 'kelvin': 4000,
@@ -2484,13 +2484,14 @@ def stage_architecture():
             (ax_, ay_), (bx_, by_) = pts[i], pts[i + 1]
             walls.poly([(bx_, by_, 0.0), (ax_, ay_, 0.0), (ax_, ay_, 0.6), (bx_, by_, 0.6)], 'navy')
     # south wall: white, the band, soft-sky accent under the balcony
-    walls.poly([(x1, y0, 0.0), (x0, y0, 0.0), (x0, y0, band0), (x1, y0, band0)][::-1], 'wall')
-    walls.poly([(x0, y0 + 0.02, band0), (x1, y0 + 0.02, band0), (x1, y0 + 0.02, band1), (x0, y0 + 0.02, band1)], 'yellow')
-    walls.poly([(x0, y0, band1), (x1, y0, band1), (x1, y0, H), (x0, y0, H)], 'wall')
+    # Hand-built faces: a face [a, b, b up, a up] faces (b - a) x up, so a run along -X faces +Y.
+    walls.poly([(x1, y0, 0.0), (x0, y0, 0.0), (x0, y0, band0), (x1, y0, band0)], 'wall')
+    walls.poly([(x1, y0 + 0.02, band0), (x0, y0 + 0.02, band0), (x0, y0 + 0.02, band1), (x1, y0 + 0.02, band1)], 'yellow')
+    walls.poly([(x1, y0, band1), (x0, y0, band1), (x0, y0, H), (x1, y0, H)], 'wall')
     walls.rect(x0, y0 - w, x1, y0, 'wall')
     for xa, xb in ((x0, sx0), (L['cue_x'][1] + 1.2, x1)):
-        walls.poly([(xa, y0 + 0.03, 0.6), (xb, y0 + 0.03, 0.6), (xb, y0 + 0.03, bz - bs), (xa, y0 + 0.03, bz - bs)], 'accent')
-        walls.poly([(xa, y0 + 0.03, 0.0), (xb, y0 + 0.03, 0.0), (xb, y0 + 0.03, 0.6), (xa, y0 + 0.03, 0.6)], 'navy')
+        walls.poly([(xb, y0 + 0.03, 0.6), (xa, y0 + 0.03, 0.6), (xa, y0 + 0.03, bz - bs), (xb, y0 + 0.03, bz - bs)], 'accent')
+        walls.poly([(xb, y0 + 0.03, 0.0), (xa, y0 + 0.03, 0.0), (xa, y0 + 0.03, 0.6), (xb, y0 + 0.03, 0.6)], 'navy')
     # the pro lobby door: soft-sky wall panel, locked door, glowing frame, blank sign
     pd = P['pro_door']
     pa, pb_ = walk_c - pd['panel'] / 2, walk_c + pd['panel'] / 2
@@ -2511,8 +2512,8 @@ def stage_architecture():
     ceil.quad_z(x0, walk_n, x1, y1, H, 'wall', down=True)
     tt = a['tray_top']
     ceil.quad_z(x0, walk_s, x1, walk_n, tt, 'navy', down=True)
-    ceil.poly([(x0, walk_s, H), (x1, walk_s, H), (x1, walk_s, tt), (x0, walk_s, tt)], 'wall')
-    ceil.poly([(x1, walk_n, H), (x0, walk_n, H), (x0, walk_n, tt), (x1, walk_n, tt)], 'wall')
+    ceil.poly([(x1, walk_s, H), (x0, walk_s, H), (x0, walk_s, tt), (x1, walk_s, tt)], 'wall')
+    ceil.poly([(x0, walk_n, H), (x1, walk_n, H), (x1, walk_n, tt), (x0, walk_n, tt)], 'wall')
     E['LED_Tray'].box(x0, walk_s, H - 0.25, x1, walk_s + led + 0.05, H, 'wall', faces={'-z', '+y'})
     E['LED_Tray'].box(x0, walk_n - led - 0.05, H - 0.25, x1, walk_n, H, 'wall', faces={'-z', '-y'})
     E['LED_Tray'].box(x0, walk_s + 1.0, tt - 0.05, x1, walk_s + 1.0 + led, tt, 'wall', faces={'-z'})
@@ -2535,12 +2536,12 @@ def stage_architecture():
             E['LED_Ceiling'].box(sx_0 + 0.5, ly0, bb - 0.03, sx_1 - 0.5, ly0 + led, bb, 'wall', faces={'-z'})
             zy = inner + (0.02 if inner == sy_0 else -0.02)
             face_y = inner
-            if inner == sy_0:
-                E['Zone_' + zone].poly([(sx_0 + 0.5, zy, bb + 0.4), (sx_1 - 0.5, zy, bb + 0.4),
-                                        (sx_1 - 0.5, zy, bb + 0.4 + led), (sx_0 + 0.5, zy, bb + 0.4 + led)])
-            else:
+            if inner == sy_0:  # the south bulkhead's strip faces north (+Y), the north one south
                 E['Zone_' + zone].poly([(sx_1 - 0.5, zy, bb + 0.4), (sx_0 + 0.5, zy, bb + 0.4),
                                         (sx_0 + 0.5, zy, bb + 0.4 + led), (sx_1 - 0.5, zy, bb + 0.4 + led)])
+            else:
+                E['Zone_' + zone].poly([(sx_0 + 0.5, zy, bb + 0.4), (sx_1 - 0.5, zy, bb + 0.4),
+                                        (sx_1 - 0.5, zy, bb + 0.4 + led), (sx_0 + 0.5, zy, bb + 0.4 + led)])
             del edge, face_y
             n_ = int((sx_1 - sx_0) // a['downlight_every'])
             ymid = (yb0 + yb1) / 2 + (0.6 if inner == sy_0 else -0.6)
@@ -2600,11 +2601,11 @@ def stage_architecture():
     # ---- balcony: slab, fascia with LED, solid-faced railing with gold cap --------------------------
     balc.quad_z(x0, y0, x1, bf, bz - bs, 'wall', down=True)
     balc.quad_z(px0, bf, px1, pf, bz - bs, 'wall', down=True)
-    balc.poly([(x0, bf, bz - bs), (px0, bf, bz - bs), (px0, bf, bz), (x0, bf, bz)], 'white_gloss')
-    balc.poly([(px1, bf, bz - bs), (x1, bf, bz - bs), (x1, bf, bz), (px1, bf, bz)], 'white_gloss')
-    balc.poly([(px0, pf, bz - bs), (px1, pf, bz - bs), (px1, pf, bz), (px0, pf, bz)], 'white_gloss')
-    balc.poly([(px1, bf, bz - bs), (px1, pf, bz - bs), (px1, pf, bz), (px1, bf, bz)][::-1], 'white_gloss')
-    balc.poly([(px0, pf, bz - bs), (px0, bf, bz - bs), (px0, bf, bz), (px0, pf, bz)][::-1], 'white_gloss')
+    balc.poly([(px0, bf, bz - bs), (x0, bf, bz - bs), (x0, bf, bz), (px0, bf, bz)], 'white_gloss')
+    balc.poly([(x1, bf, bz - bs), (px1, bf, bz - bs), (px1, bf, bz), (x1, bf, bz)], 'white_gloss')
+    balc.poly([(px1, pf, bz - bs), (px0, pf, bz - bs), (px0, pf, bz), (px1, pf, bz)], 'white_gloss')
+    balc.poly([(px1, bf, bz - bs), (px1, pf, bz - bs), (px1, pf, bz), (px1, bf, bz)], 'white_gloss')
+    balc.poly([(px0, pf, bz - bs), (px0, bf, bz - bs), (px0, bf, bz), (px0, pf, bz)], 'white_gloss')
     el = E['LED_Balcony']
     el.box(x0, bf, bz - bs, px0, bf + 0.05, bz - bs + led, 'wall', faces={'+y', '-z'})
     el.box(px1, bf, bz - bs, x1, bf + 0.05, bz - bs + led, 'wall', faces={'+y', '-z'})
@@ -2627,39 +2628,37 @@ def stage_architecture():
         ya, yb = foot - k * st['run'], foot - (k - 1) * st['run']
         zt = k * st['rise']
         marble.quad_z(sx0, ya, sx1, yb, zt)
-        stair.poly([(sx0, yb, zt - st['rise']), (sx1, yb, zt - st['rise']), (sx1, yb, zt - 0.25), (sx0, yb, zt - 0.25)],
+        stair.poly([(sx1, yb, zt - st['rise']), (sx0, yb, zt - st['rise']), (sx0, yb, zt - 0.25), (sx1, yb, zt - 0.25)],
                    'white_gloss')
-        stair.poly([(sx0, yb, zt - 0.25), (sx1, yb, zt - 0.25), (sx1, yb, zt), (sx0, yb, zt)], 'gold')
+        stair.poly([(sx1, yb, zt - 0.25), (sx0, yb, zt - 0.25), (sx0, yb, zt), (sx1, yb, zt)], 'gold')
     stair.rect(sx0, pf, sx1, foot, 'stair')
     # the balustrade on the west side: solid panel following the stair, gold cap
     bt = 0.5
     zf, ztp = 3.4, bz + b['rail_h'] - cap
-    for xf, sgn in ((sx0, -1), (sx0 + bt, 1)):
-        pts = [(xf, foot, 0.0), (xf, pf, 0.0), (xf, pf, ztp), (xf, foot, zf)]
+    for xf, sgn in ((sx0, -1), (sx0 + bt, 1)):  # running +Y (pf -> foot) faces +X
+        pts = [(xf, pf, 0.0), (xf, foot, 0.0), (xf, foot, zf), (xf, pf, ztp)]
         stair.poly(pts if sgn > 0 else pts[::-1], 'white_gloss')
-    stair.poly([(sx0, foot, zf), (sx0 + bt, foot, zf), (sx0 + bt, pf, ztp), (sx0, pf, ztp)], 'white_gloss')
+    stair.poly([(sx0, foot, zf), (sx0 + bt, foot, zf), (sx0 + bt, pf, ztp), (sx0, pf, ztp)][::-1], 'white_gloss')
     stair.poly([(sx0, foot, 0.0), (sx0 + bt, foot, 0.0), (sx0 + bt, foot, zf), (sx0, foot, zf)][::-1], 'white_gloss')
-    stair.poly([(sx0 - 0.1, foot, zf), (sx0 + bt + 0.1, foot, zf), (sx0 + bt + 0.1, pf, ztp + cap - 0.0),
-                (sx0 - 0.1, pf, ztp + cap)][::-1], 'gold')
     stair.poly([(sx0 - 0.1, foot, zf + cap), (sx0 + bt + 0.1, foot, zf + cap), (sx0 + bt + 0.1, pf, ztp + cap),
-                (sx0 - 0.1, pf, ztp + cap)], 'gold')
+                (sx0 - 0.1, pf, ztp + cap)][::-1], 'gold')
     for k in range(1, ss['tiers'] + 1):
         ya, yb = foot - k * ss['run'], foot - (k - 1) * ss['run']
         zt = k * ss['rise']
         stair.box(tx0, ya, 0.0, tx1, yb, zt, 'wall', faces={'+z', '+y', '+x'})
-        stair.poly([(tx0, yb, zt - 0.2), (tx1, yb, zt - 0.2), (tx1, yb, zt), (tx0, yb, zt)], 'gold')
+        stair.poly([(tx1, yb, zt - 0.2), (tx0, yb, zt - 0.2), (tx0, yb, zt), (tx1, yb, zt)], 'gold')
         cz = 'sunflower' if k % 2 else 'tangerine'
         stair.box(tx0 + 0.3, yb - 2.1, zt, tx1 - 0.3, yb - 0.2, zt + 0.45, cz, chamfer=0.18)
     stair.rect(tx0, pf, tx1, foot, 'stair')
     # the core under the prow, the secret nook behind the stair seats, the cue room
     rooms.rect(sx0, y0, tx1, pf, 'core')
     rooms.rect(tx1, y0, px1, bf, 'core')
-    rooms.poly([(tx1, bf, 0.0), (px1, bf, 0.0), (px1, bf, bz - bs), (tx1, bf, bz - bs)], 'accent')  # nook back
+    rooms.poly([(px1, bf, 0.0), (tx1, bf, 0.0), (tx1, bf, bz - bs), (px1, bf, bz - bs)], 'accent')  # nook back
     rooms.poly([(tx1, pf, 0.0), (tx1, bf, 0.0), (tx1, bf, bz - bs), (tx1, pf, bz - bs)][::-1], 'wall')
     cx0_, cx1_ = L['cue_x']
     d0, d1 = P['cue_room']['door']
-    rooms.poly([(cx0_, y0, 0.0), (cx0_, bf, 0.0), (cx0_, bf, bz - bs), (cx0_, y0, bz - bs)][::-1], 'wall')
-    rooms.poly([(cx0_, y0 + 0.02, 0.0), (cx1_, y0 + 0.02, 0.0), (cx1_, y0 + 0.02, bz - bs), (cx0_, y0 + 0.02, bz - bs)],
+    rooms.poly([(cx0_, y0, 0.0), (cx0_, bf, 0.0), (cx0_, bf, bz - bs), (cx0_, y0, bz - bs)], 'wall')
+    rooms.poly([(cx1_, y0 + 0.02, 0.0), (cx0_, y0 + 0.02, 0.0), (cx0_, y0 + 0.02, bz - bs), (cx1_, y0 + 0.02, bz - bs)],
                'yellow')
     rooms.box(cx1_ - 0.4, y0, 0.0, cx1_, bf, bz - bs, 'accent', kind='wall')
     rooms.box(cx0_, bf - 0.4, 0.0, d0, bf, 1.0, 'navy', kind='wall')
@@ -3789,8 +3788,8 @@ def catenary(batch, a, b, sag, n):
         oct_ = [(p.x + r, p.y, p.z - 0.25), (p.x, p.y + r, p.z - 0.25), (p.x - r, p.y, p.z - 0.25), (p.x, p.y - r, p.z - 0.25)]
         top, bot = (p.x, p.y, p.z), (p.x, p.y, p.z - 0.6)
         for j in range(4):
-            batch.poly([oct_[j], oct_[(j + 1) % 4], top][::-1])
-            batch.poly([oct_[j], oct_[(j + 1) % 4], bot])
+            batch.poly([oct_[j], oct_[(j + 1) % 4], top])
+            batch.poly([oct_[j], oct_[(j + 1) % 4], bot][::-1])
 
 
 def build_piano(piano, bench, cx, cy, z):
@@ -5351,14 +5350,14 @@ def lighting_recipe():
     """Suggested Roblox Lighting per time of day. Realistic style; checked to still read in Soft
     (the table pools come from the pendant SurfaceLights, which need no shadows)."""
     base = {'LightingStyle': 'Realistic', 'Technology': 'Future (falls back to Soft on low settings)',
-            'GlobalShadows': True, 'ShadowSoftness': 0.25, 'EnvironmentDiffuseScale': 0.35,
+            'GlobalShadows': True, 'ShadowSoftness': 0.25, 'EnvironmentDiffuseScale': 0.45,
             'EnvironmentSpecularScale': 0.6, 'GeographicLatitude': 34,
             'Bloom': {'Intensity': 0.55, 'Size': 22, 'Threshold': 1.6},
             'ColorCorrection': {'Brightness': 0.02, 'Contrast': 0.06, 'Saturation': 0.18, 'TintColor': '#FFFFFF'}}
     times = {
-        'Dusk': {'ClockTime': 18.1, 'Ambient': '#5C6278', 'OutdoorAmbient': '#8C7A8E', 'Brightness': 1.6,
+        'Dusk': {'ClockTime': 18.1, 'Ambient': '#80869A', 'OutdoorAmbient': '#9C98A8', 'Brightness': 2.0,
                  'ExposureCompensation': 0.1, 'Sky': 'Dusk', 'HazeDeckColor': P['sky']['presets']['Dusk']['haze'],
-                 'Atmosphere': {'Density': 0.32, 'Offset': 0.2, 'Color': '#E7B39A', 'Decay': '#6A5B8C',
+                 'Atmosphere': {'Density': 0.28, 'Offset': 0.2, 'Color': '#E9C2AE', 'Decay': '#7A6C98',
                                 'Glare': 0.35, 'Haze': 1.6},
                  'Facades': 'Facade_Night maps, EmissiveMask = Facade_Night_EmissiveDusk.png, EmissiveStrength 1.5',
                  'Cards': 'Cards_Night, EmissiveMask = Cards_Night_Emissive.png, EmissiveStrength 0.6'},
@@ -5441,6 +5440,32 @@ def stage_validate():
     check('closed_meshes', not open_, {'rule': 'Hub_Collision and every prop master (except Emissive_* glow '
                                                 'strips and the backless Tower_* masters) have no open edges',
                                        'open': open_, 'furniture_open_edges_info': report})
+    # 4b. faces on the room's inner wall planes must face into the room (Roblox hides back faces;
+    # Blender draws both sides, so a reversed wall looks fine in the previews and vanishes in game)
+    r = P['room']
+    planes = [(1, r['y0'], (0, 1)), (1, r['y1'], (0, -1)), (0, r['x0'], (1, 0)), (0, r['x1'], (-1, 0))]
+    wrong = {}
+    import bmesh as _bm
+    for o in pk['Hub_Architecture'] + pk['Hub_Emissive'] + pk['Hub_Screens']:
+        mw = o.matrix_world
+        bm = _bm.new()
+        bm.from_mesh(o.data)
+        # Only open (hand-built) faces: a closed box's end against the wall faces the wall and is
+        # never seen, which is fine.
+        open_faces = {f.index for f in bm.faces if any(e.is_boundary for e in f.edges)}
+        bm.free()
+        for poly in o.data.polygons:
+            if poly.index not in open_faces:
+                continue
+            c = mw @ poly.center
+            nrm = (mw.to_3x3() @ poly.normal)
+            if abs(nrm.z) > 0.5:
+                continue
+            for axis, value, (ix, iy) in planes:
+                if abs(c[axis] - value) < 0.08 and abs(nrm[axis]) > 0.9:
+                    if nrm.x * ix + nrm.y * iy < 0:
+                        wrong[o.name] = wrong.get(o.name, 0) + 1
+    check('walls_face_the_room', not wrong, {'faces_facing_out': wrong})
     # 5. clearances: the layout audit on the finished geometry
     a = stage_audit()
     check('clearances_and_walks', a['pass'], {'fails': a['fails'], 'longest_walk': a['farthest']['path'],
@@ -5568,6 +5593,8 @@ def write_validation_md(res):
                 d['count_1024'], d['limit_1024'], len(d['small_sets']), ', '.join(sorted(d['masters_4096'])))
         elif name == 'skyboxes':
             key = '%d faces at 1024' % len(d['faces'])
+        elif name == 'walls_face_the_room':
+            key = '%d wall faces facing out' % sum(d['faces_facing_out'].values())
         elif name == 'lights':
             key = '%d lights (%d pendants)' % (d['count'], d['pendants'])
         else:

@@ -1,7 +1,6 @@
 --!strict
--- Server bootstrap. Builds the tables, wires up the pads and the shot authority, and
--- publishes the assets the client cannot reach on its own. Until the hub map exists the
--- tables stand on a plain baseplate (Config.Hub).
+-- Server bootstrap. Dresses the hub map, builds the tables, wires up the pads and the shot
+-- authority, and publishes the assets the client cannot reach on its own.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -11,6 +10,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local HubService = require(script.Parent:WaitForChild("HubService"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
@@ -39,7 +39,10 @@ end
 publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
 publish(Config.Bridge.Template, "Model", "the bridge uses the parts fallback")
 
--- Arrive facing all three mode queues.
+-- The hub's props, seats, lights and collision (the map's meshes are in the place).
+HubService.start()
+
+-- Arrive on the balcony prow, looking out over the club.
 local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
 if spawn then
 	local p = Config.Multiplayer.Spawn

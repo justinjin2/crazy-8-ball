@@ -111,12 +111,14 @@ local function checkPlace(st: any, body: any, area: any, label: string)
 	if ux < area.barrierHx + ex - 1e-9 and uy < area.barrierHy + ey - 1e-9 then
 		error("footprint overlaps the barrier: " .. label)
 	end
-	if ux > area.fenceHx - ex + 1e-9 or uy > area.fenceHy - ey + 1e-9 then
+	-- The fence box sits fenceCx along the table (it is longer at the head than the foot).
+	local fx = math.abs(st.rootX - area.fenceCx)
+	if fx > area.fenceHx - ex + 1e-9 or uy > area.fenceHy - ey + 1e-9 then
 		error("footprint outside the fence: " .. label)
 	end
 	if not st.fenceClamped then
 		local m = S.FenceMarginStuds
-		if ux > area.fenceHx - ex - m + 1e-9 or uy > area.fenceHy - ey - m + 1e-9 then
+		if fx > area.fenceHx - ex - m + 1e-9 or uy > area.fenceHy - ey - m + 1e-9 then
 			error("inside the fence margin without being clamped: " .. label)
 		end
 	end
@@ -757,6 +759,7 @@ return {
 		for _, extra in { 3, 1 } do
 			local area = ShooterStance.area(1)
 			area.fenceHx, area.fenceHy = area.barrierHx + extra, area.barrierHy + extra
+			area.fenceCx = 0
 			local clamped, count = 0, 0
 			for _, spot in sweepSpots() do
 				for step = 0, 23 do
@@ -976,11 +979,11 @@ return {
 		local T = Config.Table
 		local area = ShooterStance.area(2)
 		local bx, by = Placement.barrierHalfExtents()
-		local fx, fy = Placement.fenceHalfExtents(2)
+		local fx, fy, fcx = Placement.fenceHalfExtents(2)
 		H.near(area.clothHx, T.LengthInches / 2 * s, 1e-12, "cloth")
 		H.near(area.railHy, (T.WidthInches / 2 + T.RailWidthInches) * s, 1e-12, "rail")
 		H.expect(area.barrierHx == bx and area.barrierHy == by, "barrier")
-		H.expect(area.fenceHx == fx and area.fenceHy == fy, "fence")
+		H.expect(area.fenceHx == fx and area.fenceHy == fy and area.fenceCx == fcx, "fence")
 		H.near(area.railTopZ - area.clothZ, T.RailTopInches * s, 1e-12, "rail top")
 		H.expect(area.releaseClearance == Config.Multiplayer.Barrier.ReleaseClearanceStuds, "rc")
 	end,

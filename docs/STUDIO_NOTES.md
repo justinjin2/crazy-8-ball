@@ -112,6 +112,39 @@ When testing a Sky, move the place's own Sky to ServerStorage first, because two
 Lighting clash. Put it back afterwards. `SurfaceAppearance` has `EmissiveMaskContent`,
 `EmissiveStrength` and `EmissiveTint`, which the hub towers use for lit windows.
 
+## The hub map in the place (imported 2026-09-25)
+
+- The eight `assets/hub/Hub_*.fbx` were imported with the table's settings. The importer turned
+  every model half a turn about Y, as it did the table. It also dropped each model at its own
+  insertion point, stacked in height. They were lined up per model by comparing every mesh's
+  centre with `Markers.json.meshes[].centre`: afterwards every mesh sits within 0.0001 studs.
+- In the place:
+  - `workspace.Hub` holds Architecture, Furniture, Emissive, Glass, Screens and Skyline.
+  - `ServerStorage.Hub_PropLibrary` holds one of each prop at the origin; HubService clones
+    from it.
+  - The imported `Hub_Collision` meshes were deleted: HubService builds plain invisible parts
+    from `HubLayout.Collision` instead. The old Baseplate is gone too, and the SpawnLocation
+    is a small invisible pad that Bootstrap moves onto the balcony prow.
+- Every hub MeshPart is Anchored, CanCollide off and CanTouch off. Glow meshes are Neon;
+  windows, partitions and the cue-room window are Glass at 0.7.
+- SurfaceAppearances use the ids in `assets/hub/Uploads.json`:
+  - 27 maps and the six Dusk sky faces are uploaded; Day and Night are not.
+  - The towers and cards use `EmissiveMaskContent` with `EmissiveStrength` 1.5 and 0.6.
+- **Roblox hides back faces; Blender draws both.** Several hand-built flat faces (the south
+  wall, the balcony fronts, the tray sides, stair risers) pointed away from the room. In
+  Blender they looked fine; in Studio you saw the sky through them.
+  - In the place, the affected meshes have `MeshPart.DoubleSided = true`, which is writable
+    from the command bar.
+  - `HubBuilder.py` is fixed at the source, and validation now checks that open faces on the
+    wall planes face the room.
+- `Lighting.Technology` cannot even be read from a script ("lacking capability"). Set it in the
+  Properties panel. `LightingStyle` can be set from a script and is Realistic.
+- Previewing the runtime half in Edit mode: `require(game.ServerScriptService.Server.HubService:Clone()).start()`
+  plus `TableBuilder.build` for each table. Delete `workspace.Hub.Props/Seats/Lights/Collision`
+  and the preview tables before saving, because the server builds them at run time.
+- Studio play-solo frame rate is not a performance measure: it read 15 fps with the whole hub
+  hidden too (the window throttles). Measure on a real phone.
+
 ## Testing by hand (the two checks an agent cannot do)
 
 Every milestone has to be checked on phone, PC and gamepad, and 1.5 adds a two-player check.

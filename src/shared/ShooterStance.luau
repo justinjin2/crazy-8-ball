@@ -67,8 +67,9 @@ export type Area = {
 	railHy: number,
 	barrierHx: number, -- the invisible wall around the table
 	barrierHy: number,
-	fenceHx: number, -- inner faces of the match fence
+	fenceHx: number, -- inner faces of the match fence: half extents of a box...
 	fenceHy: number,
+	fenceCx: number, -- ...centred this far along the table's length (negative: toward the head)
 	clothZ: number, -- cloth height above the floor
 	railTopZ: number, -- rail top height above the floor
 	releaseClearance: number, -- the root stays at least this far outside the barrier
@@ -214,7 +215,7 @@ function ShooterStance.area(teamSize: number): Area
 	local T = Config.Table
 	local s = T.StudsPerInch
 	local barrierHx, barrierHy = Placement.barrierHalfExtents()
-	local fenceHx, fenceHy = Placement.fenceHalfExtents(teamSize)
+	local fenceHx, fenceHy, fenceCx = Placement.fenceHalfExtents(teamSize)
 	return {
 		clothHx = T.LengthInches / 2 * s,
 		clothHy = T.WidthInches / 2 * s,
@@ -224,6 +225,7 @@ function ShooterStance.area(teamSize: number): Area
 		barrierHy = barrierHy,
 		fenceHx = fenceHx,
 		fenceHy = fenceHy,
+		fenceCx = fenceCx,
 		clothZ = T.SurfaceHeightStuds,
 		railTopZ = T.SurfaceHeightStuds + T.RailTopInches * s,
 		releaseClearance = Config.Multiplayer.Barrier.ReleaseClearanceStuds,
@@ -340,7 +342,7 @@ function ShooterStance.solve(q: Input): Stance
 	local dExit = Placement.rayExit(ox, oy, bx, by, area.barrierHx + grow, area.barrierHy + grow)
 		+ S.SlopStuds
 	local dFence = Placement.rayExit(
-		ox,
+		ox - area.fenceCx,
 		oy,
 		bx,
 		by,

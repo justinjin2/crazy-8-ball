@@ -1,5 +1,38 @@
 # Status
 
+**2026-09-25 (later): the Skyline Club is in the game. All sixteen tables play in it.**
+
+- Imported and aligned: every mesh is where the package puts it (within 0.0001 studs).
+- Textured: 50 SurfaceAppearances with the uploaded maps (ids in `assets/hub/Uploads.json`),
+  plus Neon glow, Glass and the Dusk sky.
+- Lighting: Realistic style, ClockTime 18.1, neutral ambient, Atmosphere, Bloom and
+  ColorCorrection. DepthOfField is off.
+- Code:
+  - `HubService` builds 277 prop copies, 188 seats (Sit prompt), 30 lights and 78 collision
+    boxes from `src/shared/HubLayout.luau`, which is generated from `Markers.json`.
+  - `TableService` and the client now run sixteen tables, each seating its zone's size.
+  - The match fence is lopsided so the 2v2 tables don't trap each other's players.
+  - `HubDecor` hides your own table's pendant while you play.
+- Checked in Studio play-solo:
+  - spawn on the balcony, then down the stair to the plaza, lounge and terrace;
+  - nobody can jump off the terrace;
+  - stepping on a pad joins the table;
+  - the Sit prompt seats you;
+  - no console errors.
+- Tests: 336 pass, including the new `hub_layout_test`. Lint is clean.
+- Fixed along the way: some hand-built faces faced out of the room, so Roblox hid them.
+  - In the place: DoubleSided on the affected meshes.
+  - At the source: HubBuilder, plus a validation check.
+- Still to do:
+  - Set `Lighting.Technology` to **Future** by hand (scripts cannot touch it).
+  - Save to `place/8ball.rbxl` and publish.
+  - Check on a real phone and a controller: frame rate, readability, the Sit prompt, joining
+    a pad.
+  - Two players on two tables.
+  - Snack counter tools.
+
+---
+
 **2026-09-25: the hub map package (Skyline Club) is built and import-ready in `assets/hub`.
 It is not imported into Studio yet (that is roadmap 4.1).**
 

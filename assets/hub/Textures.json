@@ -84,7 +84,7 @@
  },
  "MarbleReflection": {
   "files": {
-   "MarbleReflection_Color.png": "25e0ed24d9c8d69f5ca7d981b380fe4fdda9fbd5488a8f823f0d16d0ec4d176f"
+   "MarbleReflection_Color.png": "b88dbb81d00a1d62ec8b599f6455ce7c883c6bb2ca0f5d5cc2084d1351f35975"
   },
   "masters": {},
   "recipe": "{\"blur_px\": 6, \"floor_pct\": 60.0, \"gamma\": 1.4, \"lift\": 0.004, \"max_alpha\": 0.35, \"px\": [2048, 1024], \"roughness\": 0.3, \"samples\": 48, \"top_pct\": 99.5}",
@@ -162,7 +162,7 @@
    ]
   },
   "files": {
-   "Props_Color.png": "8ba9cd2628766816bf73e4d3695ba38ab4934f1430462bb3b32724466c7a58a5",
+   "Props_Color.png": "9d8ac3897ea271451f99230a13bba9c71e79137719d21f91aadbb3dff56e1b49",
    "Props_Metalness.png": "3471dff00e4715243c8eec6aa62c792d109e8f57d422160933fb60ad76994b93",
    "Props_Roughness.png": "663fe6856d7b4a0567b5c95ba43f45679986bdb38640a2bbb09f9318febfd60a"
   },

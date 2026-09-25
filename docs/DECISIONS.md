@@ -988,4 +988,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - Lit tower windows use SurfaceAppearance EmissiveMaskContent, which Studio supports.
   - The marble reflection is a transparent overlay with a baked blurred glossy reflection of
     the glow meshes and windows. Roblox lights draw their own live highlights.
+- 2026-09-25: The hub runs sixteen server-owned tables, one per hub row, each seating its
+  zone's team size (Config.Hub.Tables teamSize; the old one-table-per-mode list is gone).
+  - A table's match fence is now lopsided: it reaches past the pads at the head and stops 13
+    studs past the centre at the foot. The 2v2 tables stand foot to foot and would otherwise
+    trap each other's players.
+- 2026-09-25: Hub seats are sat on with a Sit prompt (6 studs), never by touch, so walking past
+  the rows of armchairs never grabs anyone. A player's own table pendant is hidden for them
+  while they are seated at it. Pendant lights were tuned in Studio to Brightness 2.6 and Range
+  18. The dusk ambient was made neutral (Ambient #80869A, OutdoorAmbient #9C98A8) so the white
+  walls stay white.
 
