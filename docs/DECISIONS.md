@@ -971,3 +971,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   Hub brief: one approval stop after the blockout, then a non-stop build; dusk as the main
   look with day and night skies; city and mountains outside; a walk-out terrace; blank logo
   panels; a locked pro lobby door visible from spawn.
+- 2026-09-25: The designer signed off the remade table and jump shots after playing them by
+  hand (feel, pockets, jump heights). Both merged into main; the tuning numbers stay as tuned.

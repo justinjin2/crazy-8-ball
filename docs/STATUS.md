@@ -1,5 +1,17 @@
 # Status
 
+**2026-09-25: the remade table and jump shots are signed off by the designer and merged into
+main.**
+
+- Both roadmap boxes are ticked. The jump heights and pocket feel stay as tuned.
+- Still to do by the designer:
+  - Save the place to `place/8ball.rbxl` (the copy in git is from 2026-09-20) and publish.
+  - Decide whether to remove the old table: `ServerStorage.PoolTableModel` in the place and
+    `assets/table/legacy/` in the repo. The new table no longer uses either.
+- Next up: the hub map (Skyline Club, brief in `docs/prompts/`), or the next roadmap box.
+
+---
+
 **2026-09-24 (later): jump shots reviewed by three independent agents, fixed and retuned.**
 
 - **Landing before the foul (designer):** a ball that flies off now skips off the rail if it

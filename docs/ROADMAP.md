@@ -70,7 +70,7 @@ The designer moved the focus to the table. Decisions: DECISIONS.md (2026-09-24),
 sections 5 and 16, ARCHITECTURE section 7.
 
 - [x] Audit the current table and interview the designer.
-- [ ] **Remade Pro-Am table in two looks.** One Blender-built model generated from the physics
+- [x] **Remade Pro-Am table in two looks.** One Blender-built model generated from the physics
   geometry, so the drawn pockets match the physics. Blue cloth with satin black, and green
   cloth with red-brown wood. Done means: both looks stand side by side in Studio. No ball
   bounces off air or starts dropping over cloth. The cloth stays sharp in the close aim view
@@ -81,7 +81,7 @@ sections 5 and 16, ARCHITECTURE section 7.
 The designer made jump shots the priority. Decisions: DECISIONS.md (2026-09-24), GDD
 sections 5 and 7, ARCHITECTURE section 3.
 
-- [ ] **Jump shots.** A cue-angle slider in the spin panel (4-60 degrees). Raised, the cue
+- [x] **Jump shots.** A cue-angle slider in the spin panel (4-60 degrees). Raised, the cue
   ball bounces off the slate, can clear a ball, and too much power flies it off the table
   (foul, ball in hand; object balls respotted; the 8 loses). Hard flat shots pop the cue ball
   only rarely; object balls never leave the cloth. Done means: jump a ball and fly one off
