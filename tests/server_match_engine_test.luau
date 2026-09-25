@@ -297,6 +297,46 @@ end
 -- locks today: a shooter outside Waiting, Countdown and Result, except in a Foul that is not
 -- solo. The one phase the two are written differently for is the coin flip, where constrain
 -- would lock the shooter but the engine never has one; that is checked on real tables.
+-- The server holds the shooter while they are the table's, except while the balls roll:
+-- then only until the stroke has played (HoldAfterShotSeconds), so they may walk while
+-- they watch (designer, 2026-09-25).
+function tests.shooter_is_let_go_to_walk_once_the_stroke_has_played()
+	local hold = M.Stance.HoldAfterShotSeconds
+	expect(hold > 0, "the stroke has time to play")
+	for _, name in
+		{
+			"Waiting",
+			"Countdown",
+			"CoinFlip",
+			"Intro",
+			"Placement",
+			"PocketChoice",
+			"Aiming",
+			"Foul",
+			"Result",
+		}
+	do
+		for _, solo in { false, { team = 1 } } do
+			local record = if solo then solo else nil
+			for _, since in { 0, hold, hold * 10 } do
+				expect(
+					E.shooterHeld(name, record, since) == E.shooterLocked(name, record),
+					("%s solo=%s: held as locked"):format(name, tostring(solo ~= false))
+				)
+			end
+		end
+	end
+	for _, solo in { nil :: any, { team = 1 } } do
+		expect(E.shooterLocked("Resolving", solo), "the roll is still the shooter's")
+		expect(E.shooterHeld("Resolving", solo, 0), "held as the stroke starts")
+		expect(E.shooterHeld("Resolving", solo, hold * 0.99), "held until the stroke has played")
+		expect(not E.shooterHeld("Resolving", solo, hold), "free to walk after it")
+		expect(not E.shooterHeld("Resolving", solo, hold * 10), "free while the balls roll")
+		expect(not E.shooterHeld("Resolving", solo, nil), "free when the shot's time is unknown")
+	end
+	expect(E.shooterHeld("Foul", { team = 1 }, hold * 10), "a solo fouler is held again")
+end
+
 function tests.shooter_locked_matches_the_server_lock()
 	local phases = {
 		"Waiting",

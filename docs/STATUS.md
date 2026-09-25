@@ -20,7 +20,12 @@ Checked in Studio play-solo on R15; the designer's look at this round is next.**
 - Verified: lint clean, 328 Lune tests pass. Studio play-solo (R15, accessories hidden in a
   test camera): the break, a side-rail shot and a kneel look right, feet on the floor, the
   head above the rail, no console errors.
-- Still required: the designer's look; R6 in Studio; a 360-degree aim sweep watched from a
+- New: the shooter can walk while the balls roll, about a second after the shot (the shot
+  camera keeps following the balls); their next turn poses them again from where they
+  walked. Checked in Studio play-solo: released 1 s after the shot, walked to the fence,
+  back into the aiming pose on the next turn, no console errors.
+- Still required: the designer's look; the walk checked with a watcher client and on a phone
+  and a controller; R6 in Studio; a 360-degree aim sweep watched from a
   second client; the climb back down after a kneel (still a cut); phone, PC, gamepad.
   Merge `shooter-reach` into `main` once accepted.
 

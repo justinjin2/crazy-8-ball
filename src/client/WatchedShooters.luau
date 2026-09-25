@@ -6,7 +6,8 @@
 -- reach.
 -- When the replay of their shot starts, the stroke plays from the exact angle and cue-ball
 -- spot the server accepted (Hub.shots), and the body then idles at the spot it shot from
--- (the server's ShotSpot, see ShooterPoser) until the turn moves on.
+-- (the server's ShotSpot, see ShooterPoser) until the server lets the root go
+-- (Engine.shooterHeld) and the player walks off while the balls roll.
 --
 -- A remote body is only ever moved on this client: its limbs are anchored and placed here
 -- while it is posed, and nothing else about it is touched (never its transparency, never its
@@ -21,8 +22,10 @@
 --   the local player becomes the shooter      Avatar poses them instead
 -- and the server letting the root go early is the poser's own guard.
 --
--- Engine.shooterLocked is the very question TableService.constrain asks before it holds a
--- shooter, so a body is only ever posed here while the server holds its root.
+-- TableService.constrain holds a shooter only while Engine.shooterLocked is true (and lets
+-- them walk once their stroke has played, Engine.shooterHeld), and the poser's own guard lets
+-- the limbs go the moment the root is let go, so a body is only ever posed here while the
+-- server holds its root.
 --
 -- One slot per pooled cue, built up front with its frame and its inputs, so a frame
 -- allocates nothing here. A table far from the camera poses less often (Config.Avatar.Watch).

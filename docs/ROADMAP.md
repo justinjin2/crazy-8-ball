@@ -104,6 +104,10 @@ and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
   right in each pose from a watcher's view;
   the aim turns all the way round with the body gliding, not jumping; a ball along a side
   rail is played from that side rail; phone, PC and gamepad checked; console clean.
+- [ ] **Walk while the balls roll.** Once the stroke has played the shooter can walk while
+  the balls roll; the shot camera stays until they stop; their next turn poses them again
+  from wherever they walked. Done means: checked in Studio with a watcher client; phone
+  thumbstick and controller stick move the body; console clean.
 
 ## Authorized multiplayer update (2026-09-22)
 

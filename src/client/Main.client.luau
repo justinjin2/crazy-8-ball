@@ -782,9 +782,14 @@ RunService.RenderStepped:Connect(function(dt)
 			if busy then movingBallWorlds() else nil,
 			hold
 		)
-		-- The shooter's body, then the cue in the very frame the hands hold. After
-		-- the stroke the body idles on its own at the spot it shot from, through Resolving.
-		if shooter() then
+		-- The shooter's body, then the cue in the very frame the hands hold. Once the
+		-- stroke has played the body is the player's again while the balls roll: they may
+		-- walk (the server lets the root go, Engine.shooterHeld) while the shot camera still
+		-- follows the balls, and their next turn poses them again from wherever they walked.
+		if shooter() and phase == "Resolving" and not avatar:stroking() then
+			avatar:release()
+			CueStickBuilder.setVisible(cueStick, false)
+		elseif shooter() then
 			avatar:take()
 			local cue = match:findCueBall()
 			local live = cue ~= nil and not cue.pocketed

@@ -1034,3 +1034,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     gap.
   - Smaller and R6 bodies cannot reach about 2% of ordinary shots (a ball frozen to a
     cushion under a steep jump cue); they stand with the hands as near the cue as they get.
+- 2026-09-25: The shooter may walk while the balls roll (designer). The server holds the root
+  at the shot spot only for Multiplayer.Stance.HoldAfterShotSeconds (1.2 s, so the stroke plays
+  out on every screen) and then lets it go (Engine.shooterHeld); the shooter's own client hands
+  the body back as soon as its stroke has played. The shot camera keeps following the balls
+  until they stop (designer's choice over the normal camera). Their next turn poses them again
+  from wherever they walked. Supersedes the GDD's "unable to move" after the shot.

@@ -125,10 +125,10 @@ Every feature is checked against these. If it serves none, it waits.
     cue as they get. The cue tilts up to clear a rail or a ball behind the cue ball: the tilt is visual
     only, the physics stays at 4 degrees.
   - The cue **winds up** with the power pull, and everyone sees it; release plays a quick
-    stroke through the ball. The shooter then stands in the normal Roblox idle on the spot
-    they shot from, facing the table, unable to move. If it is still their turn they go
-    straight back into the aiming pose; if not, the normal camera and controls come back
-    from that same spot.
+    stroke through the ball. Once the stroke has played (about a second) the shooter can walk
+    again while the balls roll, the shot camera still following the balls until they stop
+    (designer, 2026-09-25). If it is still their turn they go back into the aiming pose from
+    wherever they walked; if not, the normal camera comes back where they stand.
   - The shooter sees their own body mostly transparent (and fading as the camera nears it);
     everyone else sees it fully, posed.
 - **Guideline** (Classic difficulty): a corridor one ball wide from the cue ball to first

@@ -2281,6 +2281,11 @@ Config.Multiplayer = {
 		ServerMovesPerSecond = 5, -- while aiming, the root follows the aim at most this often (constrain runs at Pad.PollsPerSecond, so more has no effect)
 		ServerMoveStuds = 1, -- ...and only once the stance has moved this far from where the root is
 		ServerMoveDegrees = 20, -- ...or turned this far
+		-- After the shot the root is held at the shot spot this long (seconds), so the stroke
+		-- and its follow-through play out on the shooter's screen and on every watcher's (a
+		-- network delay behind), and is then let go: the player may walk while the balls
+		-- roll, the shot camera still following them (designer, 2026-09-25). (tune)
+		HoldAfterShotSeconds = 1.2,
 	},
 	RateLimits = { -- per player and channel token buckets
 		action = { Burst = 12, PerSecond = 8 }, -- calls, votes, surrender, queue leave

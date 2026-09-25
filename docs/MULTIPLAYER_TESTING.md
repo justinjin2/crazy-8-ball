@@ -71,9 +71,11 @@ Use **Server and Clients** with 2 clients on the 1v1 table (or 3 with a spectato
 - Watcher (the other client): the shooter is fully visible, bent over the cue with both
   hands on it, and glides (never jumps) as the aim turns.
 - Pull the power bar slowly: both screens show the cue drawing back. Release: a quick stroke
-  through the ball, then the shooter stands in the normal idle on the spot, facing the table.
-- Pot a ball (same shooter): straight back into the aiming pose. Miss: the camera and
-  walking come back from exactly that spot, with no jump, and the watcher sees no jump either.
+  through the ball and its follow-through on both screens; about a second after the shot the
+  shooter can walk (WASD, the phone thumbstick, the controller's left stick) while the balls
+  roll, the shot camera still following the balls. The watcher sees them walk normally.
+- Pot a ball (same shooter): back into the aiming pose from wherever they walked, gliding,
+  in the home view. Miss: the normal camera comes back where they stand.
 - Respawn, leave or rebind mid-aim: no limb stays frozen in the air on either screen.
 - Repeat once with an R6 avatar (Game Settings → Avatar → R6) and once on phone emulation
   and a controller.

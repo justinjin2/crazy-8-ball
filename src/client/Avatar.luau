@@ -7,9 +7,9 @@
 -- fire() calls strike(): the inputs freeze (angle, cue spot, spin, pitch, stance), so the body
 -- never chases the ball once it moves, and the poser plays the stroke from the drawn wind-up into
 -- the ball, rests there until the replay moves it (ballMoving), and follows through. After that
--- the body idles on its own, facing the table, at the spot the server holds it at, until the
--- next turn: straight back to aiming if it is this player's again; otherwise release() hands it
--- back where it stands. Before the shot, while the cue is hidden (the cue ball dragged in hand,
+-- Main hands the body back (release()) while the balls roll, so the player may walk once the
+-- server lets the root go; their next turn takes it again and poses it from wherever they
+-- walked. Before the shot, while the cue is hidden (the cue ball dragged in hand,
 -- a modal open), the body idles too, but where the live stance stands, following it.
 --
 -- On this player's own screen the body is translucent (aiming and idle alike), fades out

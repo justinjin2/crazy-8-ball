@@ -162,11 +162,11 @@ function Engine.placementOpen(phase: string, ballInHand: boolean?, callNeeded: b
 	return ballInHand == true and (phase == "Placement" or (phase == "Intro" and not callNeeded))
 end
 
---- Whether the table's shooter is held at the table in this phase: the server anchors their
---- root where they stand, and every client poses them. From the introduction through the
---- shot's resolution, and through a foul too when playing solo, because then nobody else takes
---- the table. The coin flip has no shooter yet. The server lock and the watchers both ask
---- this, so they cannot disagree. `solo` is the table's (or snapshot's) solo record, or nil.
+--- Whether the table's shooter is the table's in this phase: every client poses them (the
+--- aim, the stroke), and the server may hold them (Engine.shooterHeld). From the introduction
+--- through the shot's resolution, and through a foul too when playing solo, because then
+--- nobody else takes the table. The coin flip has no shooter yet. `solo` is the table's (or
+--- snapshot's) solo record, or nil.
 function Engine.shooterLocked(phase: string, solo: any): boolean
 	return phase == "Intro"
 		or phase == "Placement"
@@ -174,6 +174,18 @@ function Engine.shooterLocked(phase: string, solo: any): boolean
 		or phase == "Aiming"
 		or phase == "Resolving"
 		or (phase == "Foul" and solo ~= nil and solo ~= false)
+end
+
+--- Whether the server holds the table's shooter now (their root anchored where the stance
+--- puts it, walking off): whenever they are locked, except while the balls roll after their
+--- shot, once Multiplayer.Stance.HoldAfterShotSeconds have passed since it was accepted, so
+--- the stroke plays out on every screen and then the player may walk while they watch
+--- (designer, 2026-09-25). `secondsSinceShot` nil (the shot's time unknown): free to walk.
+function Engine.shooterHeld(phase: string, solo: any, secondsSinceShot: number?): boolean
+	if phase == "Resolving" then
+		return secondsSinceShot ~= nil and secondsSinceShot < M.Stance.HoldAfterShotSeconds
+	end
+	return Engine.shooterLocked(phase, solo)
 end
 
 -- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,

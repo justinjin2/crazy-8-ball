@@ -660,9 +660,10 @@ local function constrain(p: Player, t: any)
 		end)
 		characterSaved[p.UserId] = saved
 	end
-	-- A solo player keeps the table through a foul: nobody else takes over. The watchers ask
-	-- the same question (Engine.shooterLocked), so they pose exactly the body held here.
-	local locked = e.shooter == p.UserId and Engine.shooterLocked(e.phase, e.solo)
+	-- A solo player keeps the table through a foul: nobody else takes over. Once the shot's
+	-- stroke has played, the shooter may walk while the balls roll (Engine.shooterHeld).
+	local since = if t.shotAt then now() - t.shotAt else nil
+	local locked = e.shooter == p.UserId and Engine.shooterHeld(e.phase, e.solo, since)
 	if locked then
 		hum.WalkSpeed = 0
 		hum.AutoRotate = false
@@ -711,7 +712,8 @@ end
 --- centre (ShooterStance.idle), with that spot on the root's ShotSpot attribute for the
 --- client. Called after acceptShot, which leaves the cue ball at its spot before the shot
 --- until the shot resolves; `angle` and `spin` are the accepted payload's. The root then
---- waits there through Resolving and is let go in place if the turn passes.
+--- waits there while the stroke plays (Multiplayer.Stance.HoldAfterShotSeconds) and is let
+--- go in place, so the player can walk while the balls roll.
 function Service.shotAccepted(
 	t: any,
 	userId: number,
@@ -723,6 +725,7 @@ function Service.shotAccepted(
 	if not p or not ShotInput.isFinite(angle) then
 		return
 	end
+	t.shotAt = now()
 	constrain(p, t) -- the phase is Resolving now, so this holds the body and anchors the root
 	local root, character = rootOf(p), p.Character
 	if not root or not character then
