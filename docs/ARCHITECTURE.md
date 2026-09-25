@@ -11,7 +11,8 @@ after. Design intent is in GDD.md; this file says how it is built.
   ball models only follow what the simulation says.
 - **A shot is inputs.** `Simulation.run(state, shot) -> ShotResult`. Rendering, audio, effects,
   rules and abilities consume the result. `shot = {angle, power, spin = {x, y}, elevation?, ability?}`.
-  Server inputs use fixed 4-degree elevation; ability ids require server authorization.
+  Elevation is 4-60 degrees in whole steps (ShotInput.roundElevation); ability ids require
+  server authorization.
 - **Determinism.** No `os.clock`, no `math.random`, no hash-order iteration inside Physics or
   Rules. Same inputs give the same result on every device.
 - **Never trust the client.** The server owns match state, validates every shot and ability,
@@ -42,17 +43,31 @@ and the same contact friction, integrated at a fixed 2 us sub-step until every c
 while the rest of the table catches up through the normal event loop. A step containing one
 may end up to `SoftContactMaxSeconds` late; server settle and client replay overrun
 identically. Cue impact uses stick/ball mass, tip restitution and
-fixed default 4-degree elevation. Side spin does not bend the path: with
+a default 4-degree elevation. Side spin does not bend the path: with
 `Config.Cue.SideSpinBendsPath` off (the designer's setting) there is no squirt and no tilted
 spin axis, so the cue ball leaves along the aim and runs straight to first contact, and the
 straight Classic guideline is exact for any spin; side spin (wz) acts only at contacts. Turning
 the switch on restores squirt and cloth swerve for the later curved-guideline feature. Pure side spin does not delay shot completion. Cushions
 use Han's tilted contact normal through the centre, full tangential friction, and tabulated
-normal-speed restitution. Translation remains planar; only tangential impulses create torque.
+normal-speed restitution. Translation stays planar for a ball on the cloth; only tangential impulses create torque.
 Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner
 openings have a flat shelf scaled to ball diameter, and facings extend to their rim. Wedge guards
 against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
-Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves the table, the
+Balls can fly (jump shots, `Physics/Flight`). `Cue.strike` sends the stroke's downward part
+into the slate, which rebounds at `SlateRestitution` less `ClothHopLossSpeed`; a rebound
+under `MinHopSpeed` is swallowed and nothing changes, so ordinary shots are bit-identical to
+the planar engine. A ball in the air flies a parabola (no cloth friction), lands with slate
+friction, and while any ball is airborne the event window is cut to `AirStepSeconds` and its
+ball contacts use `Collision.sphereTOI` and a 3-D normal. A ball on the cloth never takes
+vertical velocity (the slate holds it), so only the flyer flies and object balls stay down.
+Cushions treat a ball below `AirCushionMinHeightInches` as on the cloth; higher, Han's tilted
+normal keeps its vertical part, and above the cushion it passes over. A ball in the air that
+crosses a cushion line outside an opening is `offTable` (pocketed, no pocket, `offTable`
+event). A low hop into a rack still breaks it by soft contact: the flyer is laid flat for the
+phase and kicked up after, energy-bounded. The replay seed carries `vz`. `Aim.trace` walks
+the hops for the guideline (landings, "off"). Rules: `OffTable` foul, `EightOffTable` loss,
+object balls respotted by `CuePlacement` at the foot spot.
+Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves the table except by flying (jump tests), the
 break scatters the rack, rail bounce mirrors, spin signs, determinism, trace matches simulation.
 Per-shot cushion overrides are copied from a named material, sent with the replay seed,
 and cleared on completion. Live ability requests remain disabled pending server authorization.

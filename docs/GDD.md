@@ -75,6 +75,13 @@ Every feature is checked against these. If it serves none, it waits.
   Center and Done, with light background dimming and no title, hint, box or arrow buttons.
   Use a broad red marker on the selector and a smaller one on the left toggle. Clicking
   outside closes it and retains the selection. Gamepad stick controls remain.
+- **Cue angle (jump shots, decided 2026-09-24):** a vertical slider beside the white ball in
+  the spin panel sets how steeply the cue is raised, 4 degrees (normal) to 60, in whole
+  degrees. Tap or drag the track; the arrow keys and L1 + left stick (or D-pad) step it. A
+  raised angle shows under the spin toggle and resets to 4 after every shot, like spin.
+  Raising the cue and striking down bounces the cue ball off the slate: it can jump a
+  blocking ball, and too much power sends it off the table. The guideline follows the jump:
+  a small ring where it comes down, and a red cross where it would fly off.
 - Gamepad: left stick aims, up and down on the right stick (or triggers) zooms, a hold-and-
   release button shoots with power, the spin selector is a stick target. Exact bindings are a
   milestone task, not a design question.
@@ -124,8 +131,11 @@ Every feature is checked against these. If it serves none, it waits.
   launch direction. Side spin does not bend it (2026-09-23): no squirt and no swerve, so the
   cue ball leaves along the aim and runs straight to first contact; side spin acts only at
   contacts (cushion rebound, throw, spin transfer). Use regulation 2.25 in balls in the
-  physics with visual scaling for readability. Cue elevation stays fixed at 4 degrees for
-  now, and all collectible cues have identical physics. Physics milestones D-F implement these
+  physics with visual scaling for readability. Cue elevation is 4 degrees unless the player
+  raises it for a jump (2026-09-24, above), and all collectible cues have identical physics.
+  Ordinary shots stay on the cloth: only the very top of the power bar hops the cue ball a
+  whisker, and only rarely does that pop it off a nearby ball and off the table. Object
+  balls never leave the cloth. Physics milestones D-F implement these
   choices. The table is being remade (2026-09-24, section 16) from the physics geometry, so
   its drawn pockets match the physics exactly: regulation pro cut, corners 2.0 and sides 2.2
   ball widths.
@@ -177,6 +187,10 @@ Every feature is checked against these. If it serves none, it waits.
   your group then sink the 8 to win. Sinking the 8 early, or scratching on the 8, loses the
   game immediately. The 8 sunk on the break is re-spotted and the same player continues. No
   calling pockets.
+- **A ball off the table** (jump shots, decided 2026-09-24, standard rules): a foul with ball
+  in hand. An object ball that flies off goes back on the foot spot (or the nearest free
+  spot). The 8 off the table loses the game, except on the break, where it is re-spotted
+  (and it is still a foul).
 - **Shot clock** about 20 seconds *(tune)*. Zero = foul with ball in hand. Two timeouts in a
   row = automatic forfeit *(tune)*.
 - **Forfeit** button, costs rating, behind a confirmation that warns "you will lose rating".

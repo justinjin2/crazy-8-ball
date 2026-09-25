@@ -913,3 +913,25 @@ fallback is one cloth colour map per look).
   the shading at the cushions and rims stay.
 - Table 2 shows the green look as a temporary side-by-side showcase until the designer decides
   which tables use which look.
+
+2026-09-24: Jump shots (designer's priority). Decisions:
+- The control is a cue-angle slider inside the spin panel, 4-60 degrees in whole steps, reset
+  to 4 after each shot like spin. Tap or drag the track; no arrow buttons, matching the spin
+  panel's designer-set style (tapping the track is the button alternative to dragging).
+  Arrow keys step it; on gamepad L1 + left stick (D-pad up is reserved by Roblox's menus in
+  Studio's input tool, so it is only a bonus).
+- Off-table follows standard rules: foul with ball in hand; object balls respotted at the foot
+  spot; the 8 off the table loses, or on the break is respotted.
+- Rarity for flat shots (designer: rare, cue ball only): the cloth soaks up
+  ClothHopLossSpeed 10 in/s of every rebound and MinHopSpeed 3 in/s is swallowed. Measured
+  over 36-300 full-power shots at a nearby ball: the cue ball pops in about 7% and leaves
+  the table in about 4%; at 90% power never. Balls on the cloth never take vertical
+  velocity from a contact (the slate holds them), so object balls never fly.
+- A cushion treats a ball below 0.5 in as on the cloth (AirCushionMinHeightInches), so a
+  hard flat shot's hop (at most about 0.05 in now) is never launched off a rail.
+- Raising the cue past 4 degrees keeps the spin disc's meaning (the 4-degree draw bias is
+  kept) instead of pooltool's table-frame lever, which would turn a centre-hit jump into a
+  screw-back. Every shot at 4 degrees is bit-identical to before.
+- A low hop into a rack still uses soft contact (the flyer is laid flat for the phase and
+  kicked up after, energy-bounded), so a full-power break still spreads the rack.
+

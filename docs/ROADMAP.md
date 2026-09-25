@@ -77,6 +77,17 @@ sections 5 and 16, ARCHITECTURE section 7.
   bounces off air or starts dropping over cloth. The cloth stays sharp in the close aim view
   on phone, PC and gamepad. The table is within the budget in ARCHITECTURE section 7.
 
+## Jump shots (2026-09-24)
+
+The designer made jump shots the priority. Decisions: DECISIONS.md (2026-09-24), GDD
+sections 5 and 7, ARCHITECTURE section 3.
+
+- [ ] **Jump shots.** A cue-angle slider in the spin panel (4-60 degrees). Raised, the cue
+  ball bounces off the slate, can clear a ball, and too much power flies it off the table
+  (foul, ball in hand; object balls respotted; the 8 loses). Hard flat shots pop the cue ball
+  only rarely; object balls never leave the cloth. Done means: jump a ball and fly one off
+  in Studio on phone, PC and a real controller; lint, tests and console clean.
+
 ## Authorized multiplayer update (2026-09-22)
 
 The current user request overrides the ordinary milestone order and conflicting match

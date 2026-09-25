@@ -1,5 +1,52 @@
 # Status
 
+**2026-09-24: jump shots landed (branch `jump-shots`, from `table-remake`). A real
+controller, a phone and a two-player check are still to do.**
+
+What was built:
+- A cue-angle slider sits beside the white ball in the spin panel. It runs from 4 degrees
+  (normal) to 60. Tap or drag the track, or use the up and down arrow keys. On a gamepad,
+  hold L1 and push the left stick. The chosen angle shows under the spin button, and it
+  resets after every shot, the same as spin.
+- A raised cue drives the cue ball into the slate, so it bounces. With the right power it
+  jumps a blocking ball. Too much power sends it off the table. The ball carries on to the
+  floor, bounces and fades out.
+- Rules:
+  - A ball off the table is a foul, and the opponent gets ball in hand.
+  - An object ball that flies off goes back on the foot spot.
+  - The 8 flying off loses the game. On the break, the 8 goes back on its spot instead.
+- Very hard flat shots only rarely pop the cue ball, and object balls never leave the cloth.
+- The aim line follows a jump. It skips the balls the cue ball clears, puts a small ring
+  where it lands, and shows a red cross where it would fly off.
+- Other players see your raised cue. A flying ball has a shadow under it, and it knocks
+  when it lands.
+
+Verified:
+- Lint is clean and all 330 Lune tests pass. They include new tests for flight, bounces,
+  clearing a ball, flying off, dropping into a pocket from the air, energy, replay
+  checksums, the aim line and the off-table rules.
+- Every ordinary 4-degree shot plays exactly as before (the saved test shots are
+  unchanged).
+- In Studio Play:
+  - The slider set 32 degrees from a tap and 34 after two up-arrow presses. The badge
+    showed 34.
+  - L1 opened the panel.
+  - A 60-degree full-power shot flew off: it rose about 61 inches, dropped to the floor and
+    faded. The FOUL card read "A ball flew off the table.", followed by ball in hand.
+  - A 45-degree jump showed its shadow.
+  - The console was clean.
+
+Still required:
+- A real controller (L1 + left stick, and the D-pad, which Studio's input tool cannot
+  press).
+- A phone: tap the slider.
+- A two-client check that a watcher sees the raised cue and the flight.
+- The designer's feel check on jump heights. The tuning numbers are
+  `Config.Physics.SlateRestitution` and `ClothHopLossSpeed`.
+- Merge `table-remake`, then `jump-shots`, into main.
+
+---
+
 **2026-09-24: the new table is in Studio (branch `table-remake`). Designer playtest, device
 check and the milestone save are pending.**
 
