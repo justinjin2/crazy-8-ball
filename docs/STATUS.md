@@ -1,6 +1,6 @@
 # Status
 
-**2026-09-25 (branch `shooter-reach`): the body reaches every shot by pose and position alone,
+**2026-09-25 (merged into `main`): the body reaches every shot by pose and position alone,
 with both feet planted, the head clear of the table, and both arms reaching along the cue.
 Checked in Studio play-solo on R15; the designer's look at this round is next.**
 
@@ -27,7 +27,6 @@ Checked in Studio play-solo on R15; the designer's look at this round is next.**
 - Still required: the designer's look; the walk checked with a watcher client and on a phone
   and a controller; R6 in Studio; a 360-degree aim sweep watched from a
   second client; the climb back down after a kneel (still a cut); phone, PC, gamepad.
-  Merge `shooter-reach` into `main` once accepted.
 
 ---
 
