@@ -973,3 +973,19 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   panels; a locked pro lobby door visible from spawn.
 - 2026-09-25: The designer signed off the remade table and jump shots after playing them by
   hand (feel, pockets, jump heights). Both merged into main; the tuning numbers stay as tuned.
+- 2026-09-25: Hub layout approved by the designer. It differs from the brief's starting plan so
+  that every table, the bar and the terrace door are within 128 studs of the spawn stair (the
+  longest walk is 105):
+  - the spawn stair comes down from a prow in the middle of the south balcony into a plaza that
+    is the crossroads;
+  - 1v1 (10 tables) has the north windows, 2v2 (4 tables, running east to west) is south-west,
+    3v3 (2 tables) is north-east;
+  - the lounge, bar, piano and terrace are south-east;
+  - the featured screen is on the south wall above the balcony.
+- 2026-09-25: Hub package finished (`assets/hub`).
+  - Roblox skybox faces tested in Studio with labelled faces: Ft looks along -Z, Bk +Z,
+    Rt -X, Lf +X. Up and Dn are turned (image right towards -Z). Nothing is mirrored.
+  - Lit tower windows use SurfaceAppearance EmissiveMaskContent, which Studio supports.
+  - The marble reflection is a transparent overlay with a baked blurred glossy reflection of
+    the glow meshes and windows. Roblox lights draw their own live highlights.
+

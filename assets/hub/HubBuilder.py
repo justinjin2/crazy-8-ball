@@ -230,6 +230,13 @@ PARAMETERS = {
         ],
         'preview': {'surface': 7.0, 'point': 3.0, 'spot': 4.0, 'exposure': 0.3, 'neon': 8.0},
     },
+    # ---- stage 5: bakes --------------------------------------------------------------------------------
+    'bake': {
+        'atlas_px': 1024, 'supersample': 2, 'cells': 4, 'cell_pad': 0.006, 'samples': 64, 'margin': 8,
+        'ao_distance': 1.2, 'ao_strength': 0.45,  # AO baked lightly: colour x (1 - 0.45 x occlusion)
+        'reflection': {'px': [2048, 1024], 'samples': 48, 'roughness': 0.3, 'lift': 0.004, 'blur_px': 6,
+                       'floor_pct': 60.0, 'top_pct': 99.5, 'gamma': 1.4, 'max_alpha': 0.35},
+    },
     # ---- textures ----------------------------------------------------------------------------------
     'textures': {
         'seed': 8,
@@ -240,7 +247,7 @@ PARAMETERS = {
         'palette': {'size': 512, 'cells': 16, 'version': 2},
         'fluted': {'size': 512, 'studs': 2.0, 'ribs': 8, 'alpha': 0.42, 'version': 2},
         'facade': {'size': 1024, 'cells': 16, 'version': 2},
-        'cards': {'master': 2048, 'height': 512, 'version': 3},
+        'cards': {'master': 4096, 'height': 1024, 'version': 4},
     },
 }
 
@@ -2226,6 +2233,7 @@ class Batch:
             sm = [self.sm[fi] for fi in g]
             me.polygons.foreach_set('use_smooth', sm)
             me.validate(clean_customdata=False)
+            weld(me)
             me.update()
             me.materials.append(mat)
             obj = bpy.data.objects.new(name, me)
@@ -2243,6 +2251,16 @@ class Batch:
                     obj['hub_floor'] = 1
             objs.append(obj)
         return objs
+
+
+def weld(me, dist=1e-4):
+    """Merge coincident vertices (UVs are per corner, so they survive) so shells are closed."""
+    import bmesh as _bm
+    bm = _bm.new()
+    bm.from_mesh(me)
+    _bm.ops.remove_doubles(bm, verts=bm.verts, dist=dist)
+    bm.to_mesh(me)
+    bm.free()
 
 
 def rect_in_group(r_, verts):
@@ -2899,7 +2917,7 @@ def prop_armchair(fab, frame, glow):
     put(fab, bm_box(2.7, 0.62, 2.3, 0.3, 3), 'fabric_white', (0, -1.05, 2.95), rot=(-9, 0, 0))
     for sx in (-1, 1):
         for sy in (-1, 1):
-            frame.cylinder(sx * 1.15, sy * 1.0, 0.14, 0.0, 1.3, 8, 'gold', top=False)
+            frame.cylinder(sx * 1.15, sy * 1.0, 0.14, 0.0, 1.3, 8, 'gold', top=True, bottom=True)
         tube(frame, (sx * 1.42, 1.1, 1.3), (sx * 1.42, 1.1, 2.55), 0.26, 'gold')
         tube(frame, (sx * 1.42, 1.1, 2.55), (sx * 1.42, -1.25, 2.7), 0.26, 'gold')
         tube(frame, (sx * 1.42, -1.25, 1.3), (sx * 1.42, -1.25, 2.7), 0.26, 'gold')
@@ -2910,7 +2928,7 @@ def prop_armchair(fab, frame, glow):
 @prop('SideTable', kind='table_small')
 def prop_side_table(main, _b, _g):
     put(main, bm_cyl(0.8, 0.3, 20, bevel=0.1), 'side_table', (0, 0, 2.05))
-    main.cylinder(0, 0, 0.15, 0.2, 1.9, 8, 'gold', top=False)
+    main.cylinder(0, 0, 0.15, 0.2, 1.9, 8, 'gold', top=True, bottom=True)
     put(main, bm_cyl(0.6, 0.25, 16, bevel=0.08), 'gold', (0, 0, 0.125))
 
 
@@ -2962,7 +2980,7 @@ def prop_pouf(fab, _b, _g):
 def prop_plant(main, _b, _g):
     """White planter with a gold rim and a bushy emerald plant. Keep away from the tables."""
     put(main, bm_cyl(1.0, 1.9, 16, r2=0.8, bevel=0.1), 'planter_white', (0, 0, 0.95))
-    main.cylinder(0, 0, 1.05, 1.8, 2.0, 16, 'gold', top=False)
+    main.cylinder(0, 0, 1.05, 1.8, 2.0, 16, 'gold', top=True, bottom=True)
     rng = random.Random(7)
     for i in range(6):
         a = i * 1.05
@@ -2979,33 +2997,35 @@ def prop_cue_rack(main, _b, _g):
         put(main, bm_box(3.4, 0.6, 0.3, 0.08, 1), 'gold', (0, 0.45, zz), smooth=False)
     for i in range(6):
         x = -1.5 + i * 0.6
-        main.cylinder(x, 0.55, 0.13, 1.0, 3.6, 6, 'cue_dark', top=False)
-        main.cylinder(x, 0.55, 0.13, 3.6, 6.7, 6, 'cue_wood', top=False)
-        main.cylinder(x, 0.55, 0.13, 6.7, 6.9, 6, 'key_white')
+        # one continuous welded tube per cue (no caps hidden inside it)
+        main.cylinder(x, 0.55, 0.13, 1.0, 3.6, 6, 'cue_dark', top=False, bottom=True)
+        main.cylinder(x, 0.55, 0.13, 3.6, 6.7, 6, 'cue_wood', top=False, bottom=False)
+        main.cylinder(x, 0.55, 0.13, 6.7, 6.9, 6, 'key_white', top=True, bottom=False)
 
 
 @prop('Plinth', kind='plinth')
 def prop_plinth(main, _b, _g):
     """Statue plinth: marble drum with gold rings. Height 1 (scale Z for the podium)."""
     put(main, bm_cyl(1.5, 1.0, 24, bevel=0.06), 'marble_flat', (0, 0, 0.5))
-    main.cylinder(0, 0, 1.55, 0.0, 0.18, 24, 'gold', top=False)
-    main.cylinder(0, 0, 1.55, 0.86, 1.0, 24, 'gold', top=False)
+    main.cylinder(0, 0, 1.55, 0.0, 0.18, 24, 'gold', top=True, bottom=True)
+    main.cylinder(0, 0, 1.55, 0.86, 1.0, 24, 'gold', top=True, bottom=True)
 
 
 @prop('Umbrella', kind='umbrella', block=False)
 def prop_umbrella(main, _b, _g):
     """Terrace umbrella: striped canopy (sunflower and white), gold pole, heavy base."""
-    main.cylinder(0, 0, 0.14, 0.2, 7.9, 8, 'gold', top=False)
+    main.cylinder(0, 0, 0.14, 0.2, 7.9, 8, 'gold', top=True, bottom=True)
     put(main, bm_cyl(1.0, 0.4, 16, bevel=0.1), 'navy', (0, 0, 0.2))
     n = 12
     for i in range(n):
         a, b_ = 2 * math.pi * i / n, 2 * math.pi * (i + 1) / n
         sw = 'sunflower' if i % 2 == 0 else 'white_matte'
         p0, p1 = (5.0 * math.cos(a), 5.0 * math.sin(a), 6.3), (5.0 * math.cos(b_), 5.0 * math.sin(b_), 6.3)
+        q0, q1 = (p0[0], p0[1], 5.9), (p1[0], p1[1], 5.9)
         main.poly([p0, p1, (0, 0, 7.9)], sw)
-        main.poly([(0, 0, 7.6), p1, p0], sw)
-        main.poly([p0, (p0[0], p0[1], 5.9), (p1[0], p1[1], 5.9), p1][::-1], sw)
-    main.cylinder(0, 0, 0.3, 7.8, 8.2, 8, 'gold')
+        main.poly([(0, 0, 7.6), q1, q0], sw)
+        main.poly([p0, q0, q1, p1][::-1], sw)
+    main.cylinder(0, 0, 0.3, 7.8, 8.2, 8, 'gold', top=True, bottom=True)
 
 
 def pendant_parts(shape):
@@ -3704,7 +3724,7 @@ def stage_furnish():
               name='Pendant_T%d' % tb['n'])
     objs = B.emit()
     stage3_collision(L)
-    n_props = sum(1 for o in pkg_collection('HUB_Props').objects if o.get('hub_part') == 0)
+    n_props = sum(1 for o in pkg_collection('HUB_Props').objects if o.get('hub_part') == 0 and o.get('hub_stage') == 3)
     print('HUB furnish: %d furniture meshes, %d prop placements (%d armchairs in bands), %d anchors' % (
         len(objs), n_props, chairs, len(anchors)))
     return objs
@@ -4209,27 +4229,28 @@ def tex_facade(night, dusk_mask=False):
 def tex_cards(night):
     tp = P['textures']['cards']
     w, h = tp['master'], tp['height']
+    k = w // 2048  # the silhouettes are designed at 2048 x 512
     rng = random.Random(P['textures']['seed'] * 1000 + 50)
     height = np.zeros(w, np.float32)
     x = 0
     spires = []
     while x < w:
-        bw = rng.randint(18, 70)
-        bh = rng.randint(60, 300) if rng.random() > 0.12 else rng.randint(300, 440)
+        bw = rng.randint(18, 70) * k
+        bh = (rng.randint(60, 300) if rng.random() > 0.12 else rng.randint(300, 440)) * k
         height[x:x + bw] = np.maximum(height[x:x + bw], bh)
         if rng.random() < 0.08:
-            spires.append((x + bw // 2, bh + rng.randint(20, 60)))
-        x += bw - rng.randint(0, 10)
+            spires.append((x + bw // 2, bh + rng.randint(20, 60) * k))
+        x += bw - rng.randint(0, 10) * k
     alpha = np.zeros((h, w), np.float32)
     rows = np.arange(h)[:, None]
     alpha[(h - rows) <= height[None, :]] = 1.0
     for sx, sh in spires:
-        alpha[max(0, h - sh):h, sx - 1:sx + 2] = 1.0
+        alpha[max(0, h - sh):h, sx - k:sx + 2 * k] = 1.0
     yy, xx = np.mgrid[0:h, 0:w]
-    win = ((xx % 7) < 3) & ((yy % 9) < 4)
+    win = ((xx % (7 * k)) < 3 * k) & ((yy % (9 * k)) < 4 * k)
     nrng = np.random.default_rng(P['textures']['seed'] * 1000 + 51)
-    litmap = nrng.random((h // 9 + 1, w // 7 + 1))
-    lit = win & (litmap[yy // 9, xx // 7] < (0.34 if night else 0.0)) & (alpha > 0)
+    litmap = nrng.random((h // (9 * k) + 1, w // (7 * k) + 1))
+    lit = win & (litmap[yy // (9 * k), xx // (7 * k)] < (0.34 if night else 0.0)) & (alpha > 0)
     grad = (yy / h).astype(np.float32)[..., None]
     if night:
         base = np.array(hex_rgb('#141B31'))[None, None, :] * (0.8 + 0.4 * grad)
@@ -4707,6 +4728,875 @@ def stage_render(which='all', prefix='checkpoint_stage4'):
 
 
 # =================================================================================================
+# Stage 5: optimise, unwrap, bake, export, validate
+# =================================================================================================
+def select_only(objs):
+    vl = bpy.context.view_layer
+    for o in bpy.context.scene.objects:
+        o.select_set(False)
+    for o in objs:
+        o.select_set(True)
+    vl.objects.active = objs[0]
+
+
+def unhide_hub_layers():
+    """Selecting (export, bake) fails on objects hidden in the viewport: show every hub layer and
+    return what to restore."""
+    saved = []
+
+    def walk(lc):
+        if lc.collection.name.startswith('HUB') and lc.collection.name != 'HUB_Plan':
+            saved.append((lc, lc.hide_viewport, lc.collection.hide_viewport))
+            lc.hide_viewport = False
+            lc.collection.hide_viewport = False
+        for c in lc.children:
+            walk(c)
+    walk(bpy.context.view_layer.layer_collection)
+    for o in walk_objects(bpy.data.collections[ROOT]):
+        if o.hide_get():
+            saved.append((o, True, None))
+            o.hide_set(False)
+    return saved
+
+
+def restore_hub_layers(saved):
+    for item, a, b in saved:
+        if b is None:
+            item.hide_set(a)
+        else:
+            item.hide_viewport, item.collection.hide_viewport = a, b
+
+
+def set_layer_excluded(name, excluded):
+    def walk(lc):
+        if lc.collection.name == name:
+            lc.exclude = excluded
+            return True
+        return any(walk(c) for c in lc.children)
+    walk(bpy.context.view_layer.layer_collection)
+
+
+def cycles_setup(samples):
+    scene = bpy.context.scene
+    set_engine(scene, 'CYCLES')
+    scene.cycles.samples = samples
+    try:
+        prefs = bpy.context.preferences.addons['cycles'].preferences
+        prefs.compute_device_type = 'METAL'
+        prefs.get_devices()
+        for d in prefs.devices:
+            d.use = True
+        scene.cycles.device = 'GPU'
+    except Exception:
+        scene.cycles.device = 'CPU'
+    scene.render.bake.margin = P['bake']['margin']
+    scene.render.bake.use_clear = True
+    scene.render.bake.target = 'IMAGE_TEXTURES'
+
+
+def image_to_array(img):
+    w, h = img.size
+    a = np.empty(w * h * 4, np.float32)
+    img.pixels.foreach_get(a)
+    return a.reshape(h, w, 4)[::-1]  # row 0 = image top
+
+
+def linear_to_srgb(a):
+    a = np.clip(a, 0, None)
+    return np.where(a <= 0.0031308, a * 12.92, 1.055 * np.power(a, 1 / 2.4) - 0.055)
+
+
+def bake_into(objs, mats, img, bake_type, **kw):
+    """Bake every selected object into `img` through a temporary active image node."""
+    added = []
+    for mat in mats:
+        node = mat.node_tree.nodes.new('ShaderNodeTexImage')
+        node.image = img
+        node.name = 'HUB_BakeTarget'
+        mat.node_tree.nodes.active = node
+        added.append((mat, node))
+    select_only(objs)
+    bpy.ops.object.bake(type=bake_type, **kw)
+    for mat, node in added:
+        mat.node_tree.nodes.remove(node)
+
+
+def unwrap(obj, layer='Atlas'):
+    me = obj.data
+    uv = me.uv_layers.get(layer) or me.uv_layers.new(name=layer)
+    me.uv_layers.active = uv
+    select_only([obj])
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(angle_limit=math.radians(55), island_margin=0.04, area_weight=0.0,
+                             correct_aspect=True, scale_to_bounds=True)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    return obj.data.uv_layers[layer]  # edit mode rebuilt the mesh data: fetch the layer again
+
+
+def stage_bake():
+    scene = bpy.context.scene
+    L = layout()
+    lib = pkg_collection('HUB_PropLibrary')
+    masters = [o for o in lib.objects if o.type == 'MESH' and not o.name.startswith('Emissive_')
+               and not o.get('hub_prop', '').startswith('Tower_')]
+    already = all(m.data.materials and m.data.materials[0].name.startswith('Hub_Props') for m in masters)
+    root = bpy.data.collections[ROOT]
+    saved = {c.name: c.hide_render for c in root.children}
+    set_layer_excluded('HUB_PropLibrary', False)
+    shown = unhide_hub_layers()
+    if not already:
+        bake_props(masters, root)
+    else:
+        print('HUB bake: prop masters already baked (run furnish to rebuild them)')
+    for c in root.children:
+        c.hide_render = saved.get(c.name, False)
+    set_layer_excluded('HUB_PropLibrary', True)
+    bake_reflection(L, root)
+    restore_hub_layers(shown)
+    set_engine(scene, 'BLENDER_EEVEE')
+    for c in root.children:
+        c.hide_render = saved.get(c.name, False)
+
+
+def bake_props(masters, root):
+    """Every prop master gets its own cell of one atlas: colour (palette x light AO), roughness and
+    metalness. The fabric of tinted props stays near white so SurfaceAppearance.Color tints it."""
+    bk = P['bake']
+    n = bk['atlas_px'] * bk['supersample']
+    cells = bk['cells']
+    order = sorted(masters, key=lambda o: o.name)
+    assert len(order) <= cells * cells, ('too many prop masters for the atlas', len(order))
+    for c in root.children:  # nothing else may occlude the props while baking AO
+        c.hide_render = c.name != 'HUB_PropLibrary'
+    homes = {}
+    layout_rects = {}
+    for i, o in enumerate(order):
+        homes[o] = o.location.copy()
+        o.location = ((i % cells) * 40.0 - 200.0, (i // cells) * 40.0 + 2000.0, 0.0)  # apart from each other
+        uv = unwrap(o)
+        cx, cy = i % cells, i // cells
+        pad = bk['cell_pad']
+        u0, v0 = cx / cells + pad, 1.0 - (cy + 1) / cells + pad
+        sz = 1.0 / cells - 2 * pad
+        co = np.empty(len(uv.data) * 2, np.float32)
+        uv.data.foreach_get('uv', co)
+        co = co.reshape(-1, 2)
+        co[:, 0] = u0 + co[:, 0] * sz
+        co[:, 1] = v0 + co[:, 1] * sz
+        uv.data.foreach_set('uv', co.ravel())
+        layout_rects[o.name] = [cx, cy]
+    bpy.context.view_layer.update()
+    cycles_setup(bk['samples'])
+    scene = bpy.context.scene
+    world_backup = scene.world
+    scene.world = sky_world('HubBakeWorld', dict(P['sky']['presets']['Day'], ambient='#FFFFFF'))
+    scene.world.light_settings.distance = bk['ao_distance']
+    mats = list({m for o in order for m in o.data.materials})
+    imgs = {}
+    for kind in ('Color', 'AO', 'Roughness', 'Metalness'):
+        imgs[kind] = bpy.data.images.new('HUB_Bake_' + kind, n, n, alpha=False, float_buffer=True)
+        imgs[kind].colorspace_settings.name = 'Non-Color' if kind != 'Color' else 'Linear Rec.709'
+    # base colour and metalness go through emission: a DIFFUSE bake returns black for metal (the gold)
+    bake_socket_via_emit(order, mats, imgs['Color'], 'Base Color')
+    bake_into(order, mats, imgs['AO'], 'AO')
+    bake_into(order, mats, imgs['Roughness'], 'ROUGHNESS')
+    bake_socket_via_emit(order, mats, imgs['Metalness'], 'Metallic')
+    scene.world = world_backup
+    col = image_to_array(imgs['Color'])[..., :3]
+    ao = image_to_array(imgs['AO'])[..., 0]
+    rough = image_to_array(imgs['Roughness'])[..., 0]
+    metal = image_to_array(imgs['Metalness'])[..., 0]
+    ao_mix = 1.0 - bk['ao_strength'] * (1.0 - np.clip(ao, 0, 1))  # bake AO lightly
+    col = linear_to_srgb(col) * ao_mix[..., None]
+    up = P['textures']['upload']
+    maps = {'Color': col, 'Roughness': np.clip(rough, 0, 1), 'Metalness': np.clip(metal, 0, 1)}
+    man = textures_manifest()
+    files = {}
+    for m, arr in maps.items():
+        arr = downscale(arr, up)
+        path = os.path.join(TEX_DIR, 'Props_%s.png' % m)
+        write_png(path, to_u8(arr))
+        files['Props_%s.png' % m] = sha(path)
+    man['Props'] = {'recipe': json.dumps(bk, sort_keys=True), 'files': files, 'masters': {}, 'size': up,
+                    'cells': layout_rects}
+    save_manifest(man)
+    for img in imgs.values():
+        bpy.data.images.remove(img)
+    SURFACES['Props'] = {'maps': ['Color', 'Roughness', 'Metalness']}
+    props_mat = surface_material('Props')
+    tint_mat = props_tint_material()
+    for o in order:
+        me = o.data
+        me.uv_layers.remove(me.uv_layers['UVMap'])
+        me.uv_layers['Atlas'].name = 'UVMap'
+        me.uv_layers.active = me.uv_layers['UVMap']
+        me.uv_layers['UVMap'].active_render = True
+        tinted = bool(o.get('hub_tint'))
+        me.materials.clear()
+        me.materials.append(tint_mat if tinted else props_mat)
+        o['hub_surface'] = 'Props'
+        o.location = homes[o]
+    print('HUB bake: %d prop masters baked into the Props atlas' % len(order))
+
+
+def bake_socket_via_emit(objs, mats, img, socket_name):
+    """Bake whatever feeds one BSDF input by routing it into emission for a single EMIT bake."""
+    saved = []
+    for mat in mats:
+        nodes, links = mat.node_tree.nodes, mat.node_tree.links
+        bsdf = next(nn for nn in nodes if nn.type == 'BSDF_PRINCIPLED')
+        src = next((lk.from_socket for lk in links if lk.to_socket == bsdf.inputs[socket_name]), None)
+        old = [(lk.from_socket, lk.to_socket) for lk in links if lk.to_socket == bsdf.inputs['Emission Color']]
+        colour = tuple(bsdf.inputs['Emission Color'].default_value)
+        strength = bsdf.inputs['Emission Strength'].default_value
+        for lk in [lk for lk in links if lk.to_socket == bsdf.inputs['Emission Color']]:
+            links.remove(lk)
+        if src is not None:
+            links.new(src, bsdf.inputs['Emission Color'])
+        else:
+            v = bsdf.inputs[socket_name].default_value
+            bsdf.inputs['Emission Color'].default_value = tuple(v) if hasattr(v, '__len__') else (v, v, v, 1.0)
+        bsdf.inputs['Emission Strength'].default_value = 1.0
+        saved.append((mat, bsdf, old, colour, strength))
+    bake_into(objs, mats, img, 'EMIT')
+    for mat, bsdf, old, colour, strength in saved:
+        for lk in [lk for lk in mat.node_tree.links if lk.to_socket == bsdf.inputs['Emission Color']]:
+            mat.node_tree.links.remove(lk)
+        for a_, b_ in old:
+            mat.node_tree.links.new(a_, b_)
+        bsdf.inputs['Emission Color'].default_value = colour
+        bsdf.inputs['Emission Strength'].default_value = strength
+
+
+def props_tint_material():
+    name = 'Hub_Props_Tinted'
+    mat = bpy.data.materials.get(name)
+    if mat is not None:
+        return mat
+    mat = surface_material('Props', name=name)
+    nodes, links = mat.node_tree.nodes, mat.node_tree.links
+    bsdf = next(n for n in nodes if n.type == 'BSDF_PRINCIPLED')
+    src = next(lk for lk in links if lk.to_socket == bsdf.inputs['Base Color']).from_socket
+    info = nodes.new('ShaderNodeObjectInfo')
+    mix = nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    mix.blend_type = 'MULTIPLY'
+    mix.inputs['Factor'].default_value = 1.0
+    links.new(src, socket(mix.inputs, 'A_Color', 'A'))
+    links.new(info.outputs['Color'], socket(mix.inputs, 'B_Color', 'B'))
+    links.new(socket(mix.outputs, 'Result_Color', 'Result'), bsdf.inputs['Base Color'])
+    mat['hub_surface'] = 'Props'
+    mat['hub_tinted'] = 1
+    return mat
+
+
+def reflection_rects(L):
+    r = P['room']
+    x0, x1, y0 = r['x0'], r['x1'], r['y0']
+    sx0 = L['stair_x'][0]
+    tx1 = L['seats_x'][1]
+    px1 = L['prow_x'][1]
+    foot, pf, bf = L['stair_foot_y'], L['prow_front'], L['balcony_front']
+    return [(x0, L['y_part_2n'], x1, L['walk_n']), (sx0, foot, x1, L['y_part_2n']), (tx1, pf, x1, foot),
+            (px1, bf, x1, pf)]
+
+
+def bake_reflection(L, root):
+    """A soft, blurred reflection of the bright things above the marble (pendants, LED lines,
+    windows, the bar), baked straight down with Cycles into a transparent overlay just above the
+    floor. Roblox has no mirror reflections; this fakes them at low strength."""
+    bk = P['bake']['reflection']
+    old = bpy.data.objects.get('Arch_Floor_Reflection')
+    if old is not None:
+        bpy.data.objects.remove(old, do_unlink=True)
+    rects = reflection_rects(L)
+    bx0, by0 = min(rc[0] for rc in rects), min(rc[1] for rc in rects)
+    bx1, by1 = max(rc[2] for rc in rects), max(rc[3] for rc in rects)
+    b = Batch('Arch_Floor_Reflection', 'MarbleReflection', 'HUB_Architecture', 5, uv='explicit',
+              material=material('HubReflectionBake', '#FFFFFF', bk['roughness']))
+    z = bk['lift']
+    for (a0, c0, a1, c1) in rects:
+        pts = [(a0, c0, z), (a1, c0, z), (a1, c1, z), (a0, c1, z)]
+        b.poly(pts, uvs=[((x - bx0) / (bx1 - bx0), (y - by0) / (by1 - by0)) for x, y, _z in pts])
+    obj = b.emit()[0]
+    obj['hub_overlay'] = 1
+    w, h = bk['px']
+    img = bpy.data.images.new('HUB_Bake_Reflection', w, h, alpha=False, float_buffer=True)
+    cycles_setup(bk['samples'])
+    scene = bpy.context.scene
+    scene.render.bake.view_from = 'ABOVE_SURFACE'
+    for c in root.children:  # Roblox lights draw their own live highlights on the marble: bake only
+        c.hide_render = c.name in ('HUB_Plan', 'HUB_Collision', 'HUB_SkyFar', 'HUB_Preview')  # glow + windows
+    apply_time('Dusk')
+    mat = obj.data.materials[0]
+    bsdf = next(n for n in mat.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+    bsdf.inputs['Metallic'].default_value = 1.0
+    bsdf.inputs['Roughness'].default_value = bk['roughness']
+    bake_into([obj], [mat], img, 'GLOSSY', pass_filter={'DIRECT', 'INDIRECT', 'COLOR'})
+    a = image_to_array(img)[..., :3]
+    bpy.data.images.remove(img)
+    r_ = max(1, int(bk['blur_px']))
+    a = np.stack([blur(a[..., k], r_, 3) for k in range(3)], axis=-1)
+    lum = a @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    # only the brightest things show: the white ceiling everywhere would lay a film over the marble
+    lo, hi = np.percentile(lum, bk['floor_pct']), np.percentile(lum, bk['top_pct'])
+    alpha = np.clip((lum - lo) / max(hi - lo, 1e-6), 0.0, 1.0) ** bk['gamma'] * bk['max_alpha']
+    colour = linear_to_srgb(a / np.maximum(a.max(axis=-1, keepdims=True), 1e-4))
+    rgba_ = np.concatenate([colour, alpha[..., None]], axis=-1)
+    up = P['textures']['upload']
+    rgba_ = downscale(rgba_, up)
+    path = os.path.join(TEX_DIR, 'MarbleReflection_Color.png')
+    write_png(path, to_u8(rgba_))
+    man = textures_manifest()
+    man['MarbleReflection'] = {'recipe': json.dumps(bk, sort_keys=True), 'files': {'MarbleReflection_Color.png': sha(path)},
+                               'masters': {}, 'size': up, 'uv_bounds': [bx0, by0, bx1, by1]}
+    save_manifest(man)
+    SURFACES['MarbleReflection'] = {'maps': ['Color'], 'alpha': True}
+    obj.data.materials.clear()
+    rm = surface_material('MarbleReflection')
+    bsdf = next(n for n in rm.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+    bsdf.inputs['Roughness'].default_value = 0.15
+    obj.data.materials.append(rm)
+    obj['hub_surface'] = 'MarbleReflection'
+    obj['hub_stage'] = 5
+    print('HUB bake: marble reflection overlay %dx%d, max alpha %.2f' % (rgba_.shape[1], rgba_.shape[0],
+                                                                         float(rgba_[..., 3].max())))
+
+
+# ---- export: FBX packages, Markers.json, validation ------------------------------------------------------
+def to_roblox(v):
+    """Blender (x east, y north, z up) -> Roblox (X, Y up, Z south): (x, z, -y)."""
+    return [round(v[0], 4) + 0.0, round(v[2], 4) + 0.0, round(-v[1], 4) + 0.0]
+
+
+FACING_ROBLOX = {'+X': '+X', '-X': '-X', '+Y': '-Z', '-Y': '+Z'}
+
+
+def ensure_fbx():
+    if 'fbx' not in dir(bpy.ops.export_scene):
+        import addon_utils
+        addon_utils.enable('io_scene_fbx', default_set=True)
+
+
+def export_fbx(path, objects):
+    """Same settings as the table package (assets/table/table_common.py), wall clock pinned."""
+    import datetime
+    from io_scene_fbx import export_fbx_bin, fbx_utils
+    original, original_uuid = export_fbx_bin.fbx_header_elements, fbx_utils._key_to_uuid
+
+    def fixed(root, scene_data, time=None):
+        return original(root, scene_data, datetime.datetime(2026, 1, 1, 0, 0, 0))
+
+    def stable_uuid(uuids, key):
+        if not isinstance(key, int):
+            key = int.from_bytes(hashlib.sha1(str(key).encode('utf-8')).digest()[:8], 'little') >> 1
+        return original_uuid(uuids, key)
+    export_fbx_bin.fbx_header_elements = fixed
+    fbx_utils._key_to_uuid = stable_uuid
+    try:
+        select_only(objects)
+        bpy.ops.export_scene.fbx(filepath=path, use_selection=True, object_types={'MESH'}, axis_forward='-Z',
+                                 axis_up='Y', global_scale=1.0, apply_unit_scale=False,
+                                 apply_scale_options='FBX_SCALE_UNITS', use_space_transform=True,
+                                 bake_space_transform=True, use_mesh_modifiers=True, use_triangles=True,
+                                 mesh_smooth_type='OFF', add_leaf_bones=False, bake_anim=False,
+                                 path_mode='RELATIVE', embed_textures=False, colors_type='SRGB',
+                                 use_custom_props=True)
+    finally:
+        export_fbx_bin.fbx_header_elements = original
+        fbx_utils._key_to_uuid = original_uuid
+        for o in bpy.context.scene.objects:
+            o.select_set(False)
+
+
+def world_bounds(obj):
+    m = obj.matrix_world
+    pts = [m @ v.co for v in obj.data.vertices]
+    return [min(p[i] for p in pts) for i in range(3)] + [max(p[i] for p in pts) for i in range(3)]
+
+
+def reimport_check(path, objects):
+    expected = {o.name: world_bounds(o) for o in objects}
+    renamed = {}
+    for o in objects:
+        renamed[o] = o.name
+        o.name = o.name + '__src'
+    before = {pool: set(getattr(bpy.data, pool)) for pool in ('objects', 'meshes', 'materials', 'images')}
+    scratch = bpy.data.scenes.new('HubReimport')
+    with bpy.context.temp_override(scene=scratch, view_layer=scratch.view_layers[0]):
+        bpy.ops.import_scene.fbx(filepath=path)
+    scratch.view_layers[0].update()
+    worst, missing, per = 0.0, [], {}
+    found = set()
+    for o in scratch.objects:
+        if o.type != 'MESH':
+            continue
+        found.add(o.name)
+        exp = expected.get(o.name)
+        if exp is None:
+            missing.append('unexpected ' + o.name)
+            continue
+        got = world_bounds(o)
+        err = max(abs(a - b) for a, b in zip(got, exp))
+        per[o.name] = err
+        worst = max(worst, err)
+    missing += ['missing ' + n for n in expected if n not in found]
+    for pool, old in before.items():
+        for block in list(getattr(bpy.data, pool)):
+            if block not in old:
+                getattr(bpy.data, pool).remove(block)
+    bpy.data.scenes.remove(scratch)
+    for o, n in renamed.items():
+        o.name = n
+    return worst, missing, per
+
+
+def package_objects():
+    out = {}
+    for pkg, cname in PKG_COLL.items():
+        coll = bpy.data.collections.get(cname)
+        out[pkg] = sorted([o for o in coll.objects if o.type == 'MESH'], key=lambda o: o.name) if coll else []
+    return out
+
+
+def mesh_record(o):
+    surf = o.get('hub_surface', '')
+    b = world_bounds(o)
+    centre = ((b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2)
+    rec = {'package': o.get('hub_package', ''), 'triangles': tri_count(o), 'surface': surf,
+           'centre': to_roblox(centre),  # where the importer should leave this mesh (alignment check)
+           'size': [round(b[3] - b[0], 4), round(b[5] - b[2], 4), round(b[4] - b[1], 4)]}
+    if surf in ('Palette', 'Props', 'Marble', 'Carpet', 'Slats', 'FlutedGlass', 'MarbleReflection', 'Facade_Night',
+                'Facade_Day', 'Cards_Night', 'Cards_Day') or surf.startswith('Sign_'):
+        man = textures_manifest()
+        key = surf
+        files = sorted(man.get(key, {}).get('files', {}))
+        rec['surface_appearance'] = {'maps': files}
+        if surf in ('FlutedGlass', 'MarbleReflection', 'Cards_Day', 'Cards_Night'):
+            rec['surface_appearance']['alpha_mode'] = 'Transparency'
+        if o.get('hub_tint') or (o.data.materials and o.data.materials[0].get('hub_tinted')):
+            rec['surface_appearance']['tint'] = 'per placement (SurfaceAppearance.Color)'
+        rec['material'] = 'SmoothPlastic'
+    elif surf == 'Neon':
+        rec['material'] = 'Neon'
+        rec['color'] = o.get('hub_neon', P['palette']['warm_led'])
+    elif surf == 'Glass':
+        rec['material'] = 'Glass'
+        rec['color'] = '#CFE8F2'
+        rec['transparency'] = 0.7
+    elif surf == 'Screen':
+        rec['material'] = 'SmoothPlastic'
+        rec['color'] = '#07090D'
+        rec['note'] = 'glossy black when off; add a SurfaceGui (Face below) for content'
+    elif surf == 'VertexColour':
+        rec['material'] = 'SmoothPlastic'
+        rec['note'] = 'no SurfaceAppearance: the vertex colours are the gradient; set Color per time of day'
+    elif surf == 'Collision':
+        rec['material'] = 'SmoothPlastic'
+        rec['transparency'] = 1.0
+        rec['can_collide'] = True
+    if surf != 'Collision':
+        rec['can_collide'] = False
+    if o.get('hub_screen') or o.get('hub_sign'):
+        rec['facing_roblox'] = FACING_ROBLOX[o['hub_facing']]
+    return rec
+
+
+def stage_export():
+    scene = bpy.context.scene
+    L = layout()
+    ensure_fbx()
+    set_layer_excluded('HUB_PropLibrary', False)
+    shown = unhide_hub_layers()
+    bpy.context.view_layer.update()
+    pk = package_objects()
+    results = {}
+    for pkg, objs in pk.items():
+        if not objs:
+            continue
+        path = os.path.join(HERE, pkg + '.fbx')
+        export_fbx(path, objs)
+        worst, missing, per = reimport_check(path, objs)
+        results[pkg] = {'file': pkg + '.fbx', 'meshes': len(objs), 'triangles': sum(tri_count(o) for o in objs),
+                        'max_bounds_error': worst, 'problems': missing, 'bytes': os.path.getsize(path)}
+        print('HUB export %s: %d meshes, round trip %.2e %s' % (pkg, len(objs), worst, missing or ''))
+    restore_hub_layers(shown)
+    set_layer_excluded('HUB_PropLibrary', True)
+    markers = build_markers(L, pk)
+    with open(os.path.join(HERE, 'Markers.json'), 'w') as f:
+        json.dump(markers, f, indent=1, sort_keys=True)
+    scene['hub_export'] = json.dumps(results)
+    return results
+
+
+def build_markers(L, pk):
+    mk = pkg_collection('HUB_Markers')
+    anchors = {}
+    for o in sorted(mk.objects, key=lambda o: o.name):
+        if o.type != 'EMPTY':
+            continue
+        rec = {'position': to_roblox(o.location), 'position_blender': [round(c, 4) for c in o.location],
+               'yaw_deg': round(math.degrees(o.rotation_euler.z), 3)}
+        for k in ('table', 'zone'):
+            if k in o:
+                rec[k] = o[k]
+        anchors[o.name] = rec
+    screens, signs = {}, {}
+    for o in pk.get('Hub_Screens', []):
+        c = [sum(world_bounds(o)[i::3][:2]) / 2 for i in range(3)] if False else None
+        b = world_bounds(o)
+        centre = [(b[0] + b[3]) / 2, (b[1] + b[4]) / 2, (b[2] + b[5]) / 2]
+        rec = {'mesh': o.name, 'centre': to_roblox(centre), 'centre_blender': [round(v, 4) for v in centre],
+               'size': list(o.get('hub_size', [0, 0])), 'facing_blender': o.get('hub_facing'),
+               'facing_roblox': FACING_ROBLOX[o['hub_facing']],
+               'surfacegui_face': {'+X': 'Right', '-X': 'Left', '+Y': 'Front', '-Y': 'Back'}[o['hub_facing']]}
+        if o.get('zone'):
+            rec['zone'] = o['zone']
+        (signs if (o.name.startswith('Sign_')) else screens)[o.name] = rec
+        del c
+    tables = [{'name': 'Table_%d' % tb['n'], 'zone': tb['zone'], 'position': to_roblox((tb['x'], tb['y'], 0.0)),
+               'position_blender': [round(tb['x'], 4), round(tb['y'], 4), 0.0], 'yaw_deg': tb['yaw'],
+               'head': tb['head'], 'pad': 'Pad_%d' % tb['n'],
+               'pad_position': to_roblox((tb['pad'][0], tb['pad'][1], 0.0)), 'pad_size': P['pad']['size']}
+              for tb in L['tables']]
+    masters = {}
+    for o in pk.get('Hub_PropLibrary', []):
+        name = o.get('hub_prop', o.name)
+        m = masters.setdefault(name, {'parts': [], 'tint': False, 'seats': []})
+        m['parts'].append(o.name)
+        if o.get('hub_tint'):
+            m['tint'] = True
+        spec = PROP_SPECS.get(name, {})
+        m['seats'] = spec.get('seats', [])
+        m['kind'] = spec.get('kind', 'prop')
+    placements, seats = [], []
+    for o in sorted(pkg_collection('HUB_Props').objects, key=lambda o: o.name):
+        if o.get('hub_part') != 0:
+            continue
+        loc = o.location
+        rec = {'prop': o['hub_prop'], 'position': to_roblox(loc), 'position_blender': [round(c, 4) for c in loc],
+               'yaw_deg': round(float(o.get('hub_yaw', 0.0)), 3), 'scale': [round(c, 4) for c in o.scale]}
+        if o.get('hub_tint_hex'):
+            rec['tint'] = o['hub_tint_hex']
+        if o.get('zone'):
+            rec['zone'] = o['zone']
+        if o.name.startswith('Pendant_T'):
+            rec['table'] = o.name.split('_')[1].split('P')[0].replace('T', 'Table_')
+        placements.append(rec)
+        for sx, sy, sz in json.loads(o.get('hub_seats', '[]')):
+            m_ = o.matrix_world
+            p_ = m_ @ Vector((sx, sy, sz))
+            seats.append({'position': to_roblox(p_), 'yaw_deg': rec['yaw_deg'], 'prop': o['hub_prop']})
+    for name, a in anchors.items():
+        if name.startswith('Seat_'):
+            seats.append({'position': a['position'], 'yaw_deg': a['yaw_deg'], 'anchor': name})
+    lights = []
+    for d in lights_data(L):
+        r = dict(d)
+        r['position'] = to_roblox(d['position'])
+        r['position_blender'] = [round(c, 4) + 0.0 for c in d['position']]
+        if 'direction' in d:
+            r['direction'] = to_roblox(d['direction'])
+        if d['type'] == 'SurfaceLight':
+            r['face'] = 'Bottom' if d.get('direction', [0, 0, -1])[2] < 0 else 'Top'
+            r['note'] = 'put on a thin invisible part the size of face_size, face down'
+        lights.append(r)
+    collision = []
+    for o in pk.get('Hub_Collision', []):
+        bmin_x, bmin_y, bmin_z, bmax_x, bmax_y, bmax_z = json.loads(o['hub_col'])
+        c = ((bmin_x + bmax_x) / 2, (bmin_y + bmax_y) / 2, (bmin_z + bmax_z) / 2)
+        collision.append({'name': o.name, 'shape': o.get('hub_col_shape', 'Box'), 'centre': to_roblox(c),
+                          'size': [round(bmax_x - bmin_x, 4), round(bmax_z - bmin_z, 4), round(bmax_y - bmin_y, 4)],
+                          'rises_towards': FACING_ROBLOX.get(o.get('hub_col_rise_towards', ''), None)})
+    meshes = {}
+    for pkg, objs in pk.items():
+        for o in objs:
+            meshes[o.name] = mesh_record(o)
+    faces = {t: {f: 'sky/%s_%s.png' % (t, f) for f in ROBLOX_FACES} for t in ('Dusk', 'Day', 'Night')}
+    return {
+        'schema': 1,
+        'generated_by': 'assets/hub/HubBuilder.py',
+        'units': 'studs',
+        'frame': {'blender': 'X east, Y north, Z up; main floor Z = 0',
+                  'roblox': 'position = (x, z, -y) of the Blender position; yaw_deg is a rotation about +Y, '
+                            'equal to the Blender yaw about +Z',
+                  'model_origin': 'every FBX shares one origin: Blender (0, 0, 0), the room centre on the main floor'},
+        'anchors': anchors,
+        'screens': screens,
+        'signs': signs,
+        'tables': tables,
+        'props': {'library': 'Hub_PropLibrary.fbx', 'masters': masters, 'placements': placements},
+        'seats': seats,
+        'lights': lights,
+        'lighting': lighting_recipe(),
+        'sky': {'faces': faces, 'mapping': SKY_MAPPING_DOC, 'tested': 'labelled test cubemap in Studio, 2026-09-25'},
+        'collision': collision,
+        'meshes': meshes,
+    }
+
+
+SKY_MAPPING_DOC = {
+    'SkyboxFt': 'seen looking towards Roblox -Z (Blender +Y, north), upright',
+    'SkyboxBk': 'seen looking towards Roblox +Z (south), upright',
+    'SkyboxRt': 'seen looking towards Roblox -X (west), upright',
+    'SkyboxLf': 'seen looking towards Roblox +X (east), upright',
+    'SkyboxUp': 'looking up; image top towards Roblox +X, image right towards -Z',
+    'SkyboxDn': 'looking down; image top towards Roblox -X, image right towards -Z',
+    'mirrored': False,
+}
+
+
+def lighting_recipe():
+    """Suggested Roblox Lighting per time of day. Realistic style; checked to still read in Soft
+    (the table pools come from the pendant SurfaceLights, which need no shadows)."""
+    base = {'LightingStyle': 'Realistic', 'Technology': 'Future (falls back to Soft on low settings)',
+            'GlobalShadows': True, 'ShadowSoftness': 0.25, 'EnvironmentDiffuseScale': 0.35,
+            'EnvironmentSpecularScale': 0.6, 'GeographicLatitude': 34,
+            'Bloom': {'Intensity': 0.55, 'Size': 22, 'Threshold': 1.6},
+            'ColorCorrection': {'Brightness': 0.02, 'Contrast': 0.06, 'Saturation': 0.18, 'TintColor': '#FFFFFF'}}
+    times = {
+        'Dusk': {'ClockTime': 18.1, 'Ambient': '#5C6278', 'OutdoorAmbient': '#8C7A8E', 'Brightness': 1.6,
+                 'ExposureCompensation': 0.1, 'Sky': 'Dusk', 'HazeDeckColor': P['sky']['presets']['Dusk']['haze'],
+                 'Atmosphere': {'Density': 0.32, 'Offset': 0.2, 'Color': '#E7B39A', 'Decay': '#6A5B8C',
+                                'Glare': 0.35, 'Haze': 1.6},
+                 'Facades': 'Facade_Night maps, EmissiveMask = Facade_Night_EmissiveDusk.png, EmissiveStrength 1.5',
+                 'Cards': 'Cards_Night, EmissiveMask = Cards_Night_Emissive.png, EmissiveStrength 0.6'},
+        'Day': {'ClockTime': 13.0, 'Ambient': '#707884', 'OutdoorAmbient': '#9AA6B8', 'Brightness': 2.4,
+                'ExposureCompensation': 0.0, 'Sky': 'Day', 'HazeDeckColor': P['sky']['presets']['Day']['haze'],
+                'Atmosphere': {'Density': 0.28, 'Offset': 0.1, 'Color': '#C9DDF0', 'Decay': '#8FA9C8',
+                               'Glare': 0.1, 'Haze': 1.2},
+                'Facades': 'Facade_Day maps, no emissive', 'Cards': 'Cards_Day'},
+        'Night': {'ClockTime': 21.5, 'Ambient': '#3A4058', 'OutdoorAmbient': '#2A3050', 'Brightness': 0.6,
+                  'ExposureCompensation': 0.15, 'Sky': 'Night', 'HazeDeckColor': P['sky']['presets']['Night']['haze'],
+                  'Atmosphere': {'Density': 0.35, 'Offset': 0.15, 'Color': '#2C3561', 'Decay': '#161B38',
+                                 'Glare': 0.0, 'Haze': 1.8},
+                  'Facades': 'Facade_Night maps, EmissiveMask = Facade_Night_Emissive.png, EmissiveStrength 3',
+                  'Cards': 'Cards_Night, EmissiveMask = Cards_Night_Emissive.png, EmissiveStrength 2'},
+    }
+    return {'base': base, 'times': times, 'default': 'Dusk'}
+
+
+def stage_validate():
+    """Checks against the brief's thresholds (never relaxed to pass)."""
+    scene = bpy.context.scene
+    L = layout()
+    set_layer_excluded('HUB_PropLibrary', False)
+    bpy.context.view_layer.update()
+    pk = package_objects()
+    res = {'checks': {}, 'pass': True}
+    fails = []
+
+    def check(name, ok, detail):
+        res['checks'][name] = {'ok': bool(ok), 'detail': detail}
+        if not ok:
+            fails.append(name)
+    # 1. FBX round trip
+    exp = json.loads(scene.get('hub_export', '{}'))
+    worst = max((v['max_bounds_error'] for v in exp.values()), default=None)
+    probs = [p_ for v in exp.values() for p_ in v['problems']]
+    check('fbx_round_trip', exp and worst is not None and worst <= 1e-3 and not probs,
+          {'packages': exp, 'max_bounds_error': worst, 'tolerance': 1e-3})
+    # 2. triangle budgets
+    props = pkg_collection('HUB_Props').objects
+    master_tris = {o.name: tri_count(o) for o in pk['Hub_PropLibrary']}
+    placement_tris = sum(master_tris.get(o['hub_master'], 0) for o in props if o.get('hub_master') in master_tris)
+    unique = sum(tri_count(o) for pkg in ('Hub_Architecture', 'Hub_Furniture', 'Hub_Emissive', 'Hub_Glass',
+                                          'Hub_Skyline', 'Hub_Screens') for o in pk[pkg])
+    env = unique + placement_tris
+    check('environment_triangles', env <= 200000, {'total': env, 'unique_meshes': unique,
+                                                    'prop_placements': placement_tris, 'limit': 200000,
+                                                    'tables_extra': 16 * 8134})
+    per_mesh = {o.name: tri_count(o) for objs in pk.values() for o in objs}
+    over = {k: v for k, v in per_mesh.items() if v > 10000}
+    check('per_mesh_triangles', not over, {'limit': 10000, 'largest': sorted(per_mesh.items(), key=lambda kv: -kv[1])[:6],
+                                           'over': over})
+    towers = {o.name: tri_count(o) for o in pk['Hub_PropLibrary'] if o.name.startswith('Tower_')}
+    tower_place = [o for o in props if o.get('hub_prop', '').startswith('Tower_')]
+    sky_tris = sum(tri_count(o) for o in pk['Hub_Skyline']) + sum(towers[o['hub_master']] for o in tower_place)
+    check('skyline_triangles', sky_tris <= 6000 and all(12 <= v <= 40 for v in towers.values())
+          and 20 <= len(tower_place) <= 40,
+          {'total': sky_tris, 'limit': 6000, 'tower_masters': towers, 'tower_placements': len(tower_place)})
+    piano = [o for o in pk['Hub_Furniture'] if o.name == 'Placeholder_Piano']
+    check('piano_triangles', piano and tri_count(piano[0]) <= 2000, {'triangles': tri_count(piano[0]) if piano else None,
+                                                                      'limit': 2000})
+    # 3. UV checks: atlas islands must not overlap; screens and signs are exactly 0..1
+    overlaps = uv_overlap(pk['Hub_PropLibrary'])
+    check('uv_overlap_props_atlas', overlaps['overlapping_texels'] == 0, overlaps)
+    bad = {}
+    for o in pk['Hub_Screens']:
+        uv = o.data.uv_layers.active.data
+        us = [d.uv[0] for d in uv]
+        vs = [d.uv[1] for d in uv]
+        if abs(min(us)) > 1e-6 or abs(max(us) - 1) > 1e-6 or abs(min(vs)) > 1e-6 or abs(max(vs) - 1) > 1e-6:
+            bad[o.name] = [min(us), max(us), min(vs), max(vs)]
+    check('screen_uvs_0_to_1', not bad, {'screens': len(pk['Hub_Screens']), 'bad': bad})
+    # 4. closed meshes: collision and prop masters (glow strips and the backless towers are exempt)
+    open_ = {}
+    for o in pk['Hub_Collision'] + [m for m in pk['Hub_PropLibrary'] if not m.name.startswith(('Emissive_', 'Tower_'))]:
+        n = boundary_edges(o)
+        if n:
+            open_[o.name] = n
+    report = {o.name: boundary_edges(o) for pkg in ('Hub_Furniture',) for o in pk[pkg]}
+    check('closed_meshes', not open_, {'rule': 'Hub_Collision and every prop master (except Emissive_* glow '
+                                                'strips and the backless Tower_* masters) have no open edges',
+                                       'open': open_, 'furniture_open_edges_info': report})
+    # 5. clearances: the layout audit on the finished geometry
+    a = stage_audit()
+    check('clearances_and_walks', a['pass'], {'fails': a['fails'], 'longest_walk': a['farthest']['path'],
+                                              'report': 'layout_audit.md'})
+    # 6. textures
+    man = textures_manifest()
+    sizes, bad_t = {}, {}
+    for f in sorted(os.listdir(TEX_DIR)):
+        if not f.endswith('.png'):
+            continue
+        img = read_png_header(os.path.join(TEX_DIR, f))
+        sizes[f] = img
+        w, h = img
+        if w > 1024 or h > 1024 or (w & (w - 1)) or (h & (h - 1)):
+            bad_t[f] = img
+    sets_1024 = sorted(k for k, v in man.items() if v.get('size', 0) >= 1024)
+    sets_small = sorted(k for k, v in man.items() if v.get('size', 0) < 1024)
+    masters = {k: v['masters'] for k, v in man.items() if v.get('masters')}
+    check('textures', not bad_t and len(sets_1024) <= 12 and all(m >= 4096 for v in masters.values() for m in v.values())
+          and {'Marble', 'Carpet'} <= set(masters),
+          {'sets_at_1024': sets_1024, 'count_1024': len(sets_1024), 'limit_1024': 12, 'small_sets': sets_small,
+           'masters_4096': masters, 'bad': bad_t, 'files': sizes})
+    sky = {f: read_png_header(os.path.join(SKY_DIR, f)) for f in sorted(os.listdir(SKY_DIR)) if f.endswith('.png')}
+    check('skyboxes', len(sky) == 18 and all(v == (1024, 1024) for v in sky.values()), {'faces': sky})
+    lights = lights_data(L)
+    check('lights', len(lights) <= 30 and sum(1 for d in lights if d['name'].startswith('Light_Pendant')) == 16,
+          {'count': len(lights), 'limit': 'about 30', 'pendants': 16})
+    set_layer_excluded('HUB_PropLibrary', True)
+    res['fails'] = fails
+    res['pass'] = not fails
+    with open(os.path.join(HERE, 'Validation.json'), 'w') as f:
+        json.dump(res, f, indent=1, sort_keys=True, default=str)
+    write_validation_md(res)
+    print('HUB validate: %s %s' % ('PASS' if res['pass'] else 'FAIL', fails))
+    return res
+
+
+def read_png_header(path):
+    with open(path, 'rb') as f:
+        head = f.read(24)
+    return struct.unpack('>II', head[16:24])
+
+
+def boundary_edges(o):
+    import bmesh as _bm
+    bm = _bm.new()
+    bm.from_mesh(o.data)
+    n = sum(1 for e in bm.edges if e.is_boundary)
+    bm.free()
+    return n
+
+
+def uv_overlap(objs, px=1024):
+    """Rasterise every atlas triangle; a texel covered by two different triangles of the textured
+    prop masters is an overlap (tints and glow strips excluded: untextured)."""
+    grid = np.zeros((px, px), np.int32)
+    over = 0
+    per = {}
+    tid = 0
+    for o in objs:
+        if o.name.startswith(('Emissive_', 'Tower_')):
+            continue
+        me = o.data
+        me.calc_loop_triangles()
+        uv = me.uv_layers.active.data
+        mine = 0
+        for tri in me.loop_triangles:
+            tid += 1
+            pts = np.array([uv[li].uv for li in tri.loops]) * px
+            x0_, y0_ = np.floor(pts.min(axis=0)).astype(int)
+            x1_, y1_ = np.ceil(pts.max(axis=0)).astype(int)
+            x0_, y0_ = max(x0_, 0), max(y0_, 0)
+            x1_, y1_ = min(x1_, px - 1), min(y1_, px - 1)
+            if x1_ < x0_ or y1_ < y0_:
+                continue
+            ys, xs = np.mgrid[y0_:y1_ + 1, x0_:x1_ + 1]
+            cx, cy = xs + 0.5, ys + 0.5
+            (ax, ay), (bx, by), (qx, qy) = pts
+            d = (by - qy) * (ax - qx) + (qx - bx) * (ay - qy)
+            if abs(d) < 1e-9:
+                continue
+            l1 = ((by - qy) * (cx - qx) + (qx - bx) * (cy - qy)) / d
+            l2 = ((qy - ay) * (cx - qx) + (ax - qx) * (cy - qy)) / d
+            l3 = 1 - l1 - l2
+            inside = (l1 > 0.02) & (l2 > 0.02) & (l3 > 0.02)  # texel centres well inside only
+            sub = grid[y0_:y1_ + 1, x0_:x1_ + 1]
+            clash = inside & (sub != 0) & (sub != tid)
+            mine += int(clash.sum())
+            sub[inside] = tid
+        per[o.name] = mine
+        over += mine
+    return {'overlapping_texels': over, 'per_mesh': per, 'grid_px': px}
+
+
+def write_validation_md(res):
+    lines = ['# Skyline Club: validation', '',
+             'Generated by `assets/hub/HubBuilder.py -- export validate`. Thresholds come from the brief and are '
+             'never relaxed to pass.', '', '**Result: %s**' % ('PASS' if res['pass'] else 'FAIL: ' + ', '.join(res['fails'])),
+             '', '| Check | OK | Key numbers |', '|---|---|---|']
+    for name, c in res['checks'].items():
+        d = c['detail']
+        if name == 'fbx_round_trip':
+            key = 'max bounds error %.2e over %d packages' % (d['max_bounds_error'] or 0, len(d['packages']))
+        elif name == 'environment_triangles':
+            key = '%d of %d (unique meshes %d, prop placements %d); the 16 tables add %d' % (
+                d['total'], d['limit'], d['unique_meshes'], d['prop_placements'], d['tables_extra'])
+        elif name == 'per_mesh_triangles':
+            key = 'largest: ' + ', '.join('%s %d' % kv for kv in d['largest'][:3])
+        elif name == 'skyline_triangles':
+            key = '%d of %d; %d towers from %d masters (%s tris)' % (
+                d['total'], d['limit'], d['tower_placements'], len(d['tower_masters']),
+                '/'.join(str(v) for v in d['tower_masters'].values()))
+        elif name == 'piano_triangles':
+            key = '%s of %d' % (d['triangles'], d['limit'])
+        elif name == 'uv_overlap_props_atlas':
+            key = '%d overlapping texels' % d['overlapping_texels']
+        elif name == 'screen_uvs_0_to_1':
+            key = '%d screen and sign quads' % d['screens']
+        elif name == 'closed_meshes':
+            key = '%d open meshes under the rule' % len(d['open'])
+        elif name == 'clearances_and_walks':
+            key = 'audit %s, longest walk %.1f studs' % ('pass' if c['ok'] else 'fail', d['longest_walk'])
+        elif name == 'textures':
+            key = '%d sets at 1024 (limit %d), %d small sets, 4096 masters: %s' % (
+                d['count_1024'], d['limit_1024'], len(d['small_sets']), ', '.join(sorted(d['masters_4096'])))
+        elif name == 'skyboxes':
+            key = '%d faces at 1024' % len(d['faces'])
+        elif name == 'lights':
+            key = '%d lights (%d pendants)' % (d['count'], d['pendants'])
+        else:
+            key = ''
+        lines.append('| %s | %s | %s |' % (name, 'yes' if c['ok'] else '**NO**', key))
+    tex = res['checks'].get('textures', {}).get('detail', {})
+    lines += ['', '## Texture sets', '', 'At 1024: ' + ', '.join(tex.get('sets_at_1024', [])) + '.',
+              '', 'Small (512 or less): ' + ', '.join(tex.get('small_sets', [])) + '.', '',
+              '## Notes', '',
+              '- Closed-mesh rule: collision boxes and prop masters are closed shells. Architecture and furniture '
+              'are built as visible surfaces (no hidden faces), so they are open by design; the invisible COL_ '
+              'boxes give the collision.',
+              '- The triangle budget counts every prop placement at its master\'s triangle count (Roblox clones '
+              'them), plus every unique mesh. The 16 tables are extra, as the brief says.', '']
+    with open(os.path.join(HERE, 'Validation.md'), 'w') as f:
+        f.write('\n'.join(lines))
+
+
+# =================================================================================================
+# Stage 6: final dusk renders (the Readme is written by hand from Markers.json and Validation.md)
+# =================================================================================================
+FINAL_VIEWS = 'spawn,eye_1v1,lounge,bar_plaza,terrace,window_night,overview'
+
+
+def stage_final():
+    return stage_render(FINAL_VIEWS, prefix='final')
+
+
+# =================================================================================================
 # Save and the stage runner
 # =================================================================================================
 def stage_save(path=None):
@@ -4722,7 +5612,8 @@ def stage_save(path=None):
 
 STAGES = {'blockout': stage_blockout, 'audit': stage_audit, 'render1': stage_render1,
           'architecture': stage_architecture, 'furnish': stage_furnish, 'skytest': stage_skytest, 'skyline': stage_skyline,
-          'skyboxes': stage_skyboxes, 'lighting': stage_lighting, 'render': stage_render,
+          'skyboxes': stage_skyboxes, 'lighting': stage_lighting, 'render': stage_render, 'bake': stage_bake, 'export': stage_export,
+          'validate': stage_validate, 'final': stage_final,
           'save': stage_save}
 
 

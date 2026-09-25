@@ -1,41 +1,51 @@
 # Skyline Club hub: progress
 
-Brief: `docs/prompts/HUB_BLENDER_PROMPT.md`. Builder: `assets/hub/HubBuilder.py` (idempotent,
-stages run through the Blender MCP or headless). Scene: `assets/hub/Hub.blend`.
+Brief: `docs/prompts/HUB_BLENDER_PROMPT.md`. Builder: `assets/hub/HubBuilder.py`. Scene:
+`assets/hub/Hub.blend`. How to use the package: `assets/hub/Readme.md`.
 
-## Status: stage 1 done, waiting for the designer's approval (the brief's only stop)
+## Status: all six stages done; the package is import-ready (2026-09-25)
 
 ## Done
 
-- **Stage 1: blockout and audit** (2026-09-25)
-  - Shell (171.5 x 151.5 interior, 26 ceiling), full-height windows on the north, east and west,
-    solid south wall with the high yellow band.
-  - Zones: 1v1 (10 tables, north along the windows), 2v2 (4, south-west), 3v3 (2, north-east),
-    marble walkway east-west, marble plaza, lounge, bar, cue room, piano stage, terrace.
-  - Balcony (Z 11.2, 12 deep) with a spawn prow, 14-step stair and 7-tier stair seats.
-  - 16 table instances of the appended PoolTable collection in the green look; join pads,
-    `Table_n` / `Pad_n` / `Spawn` / screen / kiosk / statue / piano / pro-door anchors.
-  - Seat-band proxies for the clearance and hearing-distance checks.
-  - `layout_audit.md`: PASS. Longest required walk 105.3 studs (limit 128).
-  - Renders (git-ignored checkpoints): `renders/checkpoint_stage1_{plan,spawn,eye_1v1,north_windows,overview}.png`.
-  - Headless run verified: the same audit, byte for byte.
+1. **Blockout and audit.** The layout was approved by the designer (see DECISIONS.md).
+2. **Architecture and materials.**
+   - Procedural textures: 4096 marble and carpet masters (1024 uploads), slat ceiling, palette
+     atlas, fluted glass.
+   - Walls and windows with the yellow band, curved NW and NE corners, the raised walkway tray,
+     bulkheads with downlights and LED lines, beams.
+   - Black-framed glass partitions, black glass columns with gold edges.
+   - Balcony and prow, the stair, stair seats, the cue room, the yellow fin, the piano stage, the
+     terrace, the collision boxes.
+3. **Furniture and anchors.**
+   - Prop library: armchair, side table, sofa, stool, pouf, plant, cue rack, plinth, umbrella and
+     three pendant shapes, with 247 placements.
+   - Unique furniture: bar, kiosks, booths, jukebox, capsule and lattice screens, the wavy ribbon,
+     zone signs and screens, the featured screen, logo panels, the piano placeholder.
+   - 86 anchors and 188 seats.
+4. **Skyline and lights.**
+   - The far city and mountains rendered into Dusk, Day and Night skyboxes. The face orientation
+     was tested with labelled faces in Studio.
+   - 30 near towers from 4 masters, 5 silhouette cards, the haze deck.
+   - 30 Roblox lights and the EEVEE dusk preview. The review renders were checked against the
+     palette and fixed.
+5. **Optimise, bake, export.**
+   - Prop atlas bake: colour × light AO, roughness, metalness.
+   - Marble reflection overlay (a Cycles glossy bake, blurred).
+   - Eight FBX packages, `Markers.json`, `Validation.md`: PASS.
+6. **Final dusk renders** (`renders/final_*.png`) and `Readme.md`.
 
-## Remaining
+## Remaining (outside this brief)
 
-2. Architecture and materials: ceiling panels, bulkheads, LED lines, partitions (black frames),
-   columns, the hero floors, windows, terrace, curved yellow wall.
-3. Furniture, props, anchors, pendants, emissives, signs, cue room, piano placeholder.
-4. Skyline, skyboxes, EEVEE dusk lighting preview and review renders.
-5. Optimise, unwrap, bake, export, validation.
-6. Final renders and `Readme.md`.
+Roadmap 4.1 continues in Studio: import, align, upload textures and skyboxes, place tables,
+props, seats and lights from `Markers.json`, and apply the Lighting recipe.
 
 ## Last success
 
-`blockout audit render1 save` through the MCP, 2026-09-25; headless `blockout audit` matches.
+2026-09-25:
+- Through the MCP: `architecture furnish skyline lighting audit save`.
+- Headless on `Hub.blend`: `bake export validate save`, then `final`. Validation PASS.
 
 ## Exact resume step
 
-After the designer approves the layout (or asks for changes to `PARAMETERS`, then re-run
-`blockout audit render1 save`), start stage 2 by adding `stage_architecture` to
-`HubBuilder.py`. It replaces the `BO_*` blockout objects in HUB_Shell, HUB_Ceiling, HUB_Balcony,
-HUB_Zones and HUB_Circulation, keeps HUB_Tables and HUB_Markers, and re-runs `audit` at the end.
+None needed. To change anything, edit `PARAMETERS` and rerun from the first affected stage,
+as described in the Readme's Rebuild section.

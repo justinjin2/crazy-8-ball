@@ -99,6 +99,19 @@ What was found:
 - **Studio uploads belong to the user who uploads them** (user 544959133), not the group that owns
   the game. The current table's maps and meshes are owned the same way and work in play.
 
+## Sky faces (tested 2026-09-25)
+
+Tested with six labelled faces (`assets/hub/sky/test/`) and Edit-mode `screen_capture`
+looking along each axis. Nothing is mirrored:
+- SkyboxFt shows when looking towards -Z, SkyboxBk towards +Z, SkyboxRt towards -X and
+  SkyboxLf towards +X. All four are upright.
+- SkyboxUp: looking up, the image top points to +X and the image right to -Z.
+- SkyboxDn: looking down, the image top points to -X and the image right to -Z.
+
+When testing a Sky, move the place's own Sky to ServerStorage first, because two Skies in
+Lighting clash. Put it back afterwards. `SurfaceAppearance` has `EmissiveMaskContent`,
+`EmissiveStrength` and `EmissiveTint`, which the hub towers use for lit windows.
+
 ## Testing by hand (the two checks an agent cannot do)
 
 Every milestone has to be checked on phone, PC and gamepad, and 1.5 adds a two-player check.

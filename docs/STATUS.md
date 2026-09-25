@@ -1,5 +1,33 @@
 # Status
 
+**2026-09-25: the hub map package (Skyline Club) is built and import-ready in `assets/hub`.
+It is not imported into Studio yet (that is roadmap 4.1).**
+
+- Layout: approved by the designer after the stage 1 stop.
+  - 1v1 (10 tables) along the north windows, 2v2 (4) in the south-west, 3v3 (2) in the
+    north-east.
+  - A spawn balcony with a prow and a wide stair into the central plaza crossroads.
+  - Bar, lounge, piano stage and terrace in the south-east.
+  - Every table, the bar and the terrace door are within a 105-stud walk of the stair
+    (limit 128).
+- Package:
+  - Eight FBX files, `Markers.json` (anchors, tables, pads, 277 prop placements, 188 seats,
+    30 lights, collision, mesh settings, sky mapping, Lighting recipe) and textures.
+  - Three skyboxes (Dusk, Day, Night).
+  - `Validation.md` passes: 182,533 of 200,000 environment triangles, 9 of 12 texture sets,
+    FBX round trip exact.
+- Renders: `assets/hub/renders/final_*.png`.
+- Import steps: `assets/hub/Readme.md`.
+- Studio fact found: the Sky face orientation, now in STUDIO_NOTES.
+  - The test uploaded 6 small labelled images to the account.
+  - The place's own Sky was put back unchanged.
+- Next up: roadmap 4.1 in Studio.
+  - Import the packages, align them, upload the textures and skyboxes.
+  - Place the tables, props, seats and lights from `Markers.json`.
+  - Apply the Lighting recipe, then check it on a phone.
+
+---
+
 **2026-09-25: the remade table and jump shots are signed off by the designer and merged into
 main.**
 

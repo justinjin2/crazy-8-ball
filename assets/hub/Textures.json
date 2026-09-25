@@ -1,28 +1,28 @@
 {
  "Cards_Day": {
   "files": {
-   "Cards_Day_Color.png": "48af833e8297d8d31bddf97b9040c59c1713c10dd37121b068af54b651bdfd20",
+   "Cards_Day_Color.png": "4eeccdf6e7b9d5cf60364eded2440289060ba2e79452fce19761aac35fc4fa9d",
    "Cards_Day_Roughness.png": "951e94701e3e52ce748707c357c76385747742184ab3aa3cde78a28f99cf890b"
   },
   "masters": {
-   "Color": 2048,
-   "Roughness": 2048
+   "Color": 4096,
+   "Roughness": 4096
   },
-  "recipe": "{\"height\": 512, \"master\": 2048, \"version\": 3}",
+  "recipe": "{\"height\": 1024, \"master\": 4096, \"version\": 4}",
   "size": 1024
  },
  "Cards_Night": {
   "files": {
-   "Cards_Night_Color.png": "43d53bf87b3db7510e9fa050e1a2b4334ed006055091d67d5cf2ed39aa1f43be",
-   "Cards_Night_Emissive.png": "c80cd8cbf301f3c4c87ad0744c7601f875639ce2edfd4a642d26b11aed9dc0d5",
+   "Cards_Night_Color.png": "da19c1ffe3f82316bdc9c8e3f589f13ec31dd8b84093b2d8345d20fb49eab7d3",
+   "Cards_Night_Emissive.png": "52ae0e269037281b1fe00d6fcd78abab44bf38791648cdfb728ce07db426d5e2",
    "Cards_Night_Roughness.png": "951e94701e3e52ce748707c357c76385747742184ab3aa3cde78a28f99cf890b"
   },
   "masters": {
-   "Color": 2048,
-   "Emissive": 2048,
-   "Roughness": 2048
+   "Color": 4096,
+   "Emissive": 4096,
+   "Roughness": 4096
   },
-  "recipe": "{\"height\": 512, \"master\": 2048, \"version\": 3}",
+  "recipe": "{\"height\": 1024, \"master\": 4096, \"version\": 4}",
   "size": 1024
  },
  "Carpet": {
@@ -82,6 +82,20 @@
   "recipe": "{\"grout_px\": 5, \"master\": 4096, \"tile_studs\": 6.0, \"tiles\": 4, \"version\": 4}",
   "size": 1024
  },
+ "MarbleReflection": {
+  "files": {
+   "MarbleReflection_Color.png": "25e0ed24d9c8d69f5ca7d981b380fe4fdda9fbd5488a8f823f0d16d0ec4d176f"
+  },
+  "masters": {},
+  "recipe": "{\"blur_px\": 6, \"floor_pct\": 60.0, \"gamma\": 1.4, \"lift\": 0.004, \"max_alpha\": 0.35, \"px\": [2048, 1024], \"roughness\": 0.3, \"samples\": 48, \"top_pct\": 99.5}",
+  "size": 1024,
+  "uv_bounds": [
+   -85.5,
+   -63.0,
+   86.0,
+   2.4799999999999986
+  ]
+ },
  "Palette": {
   "files": {
    "Palette_Color.png": "e62446e2f42997eaa66e72c492ce55782625ebdb951dfc67bea5e3231042333a",
@@ -91,6 +105,70 @@
   "masters": {},
   "recipe": "{\"cells\": 16, \"size\": 512, \"version\": 2}",
   "size": 512
+ },
+ "Props": {
+  "cells": {
+   "Prop_Armchair_Fabric": [
+    0,
+    0
+   ],
+   "Prop_Armchair_Frame": [
+    1,
+    0
+   ],
+   "Prop_BarStool": [
+    2,
+    0
+   ],
+   "Prop_CueRack": [
+    3,
+    0
+   ],
+   "Prop_Pendant_Hex": [
+    0,
+    1
+   ],
+   "Prop_Pendant_Square": [
+    1,
+    1
+   ],
+   "Prop_Pendant_Y": [
+    2,
+    1
+   ],
+   "Prop_Plant": [
+    3,
+    1
+   ],
+   "Prop_Plinth": [
+    0,
+    2
+   ],
+   "Prop_Pouf_Fabric": [
+    1,
+    2
+   ],
+   "Prop_SideTable": [
+    2,
+    2
+   ],
+   "Prop_Sofa": [
+    3,
+    2
+   ],
+   "Prop_Umbrella": [
+    0,
+    3
+   ]
+  },
+  "files": {
+   "Props_Color.png": "8ba9cd2628766816bf73e4d3695ba38ab4934f1430462bb3b32724466c7a58a5",
+   "Props_Metalness.png": "3471dff00e4715243c8eec6aa62c792d109e8f57d422160933fb60ad76994b93",
+   "Props_Roughness.png": "663fe6856d7b4a0567b5c95ba43f45679986bdb38640a2bbb09f9318febfd60a"
+  },
+  "masters": {},
+  "recipe": "{\"ao_distance\": 1.2, \"ao_strength\": 0.45, \"atlas_px\": 1024, \"cell_pad\": 0.006, \"cells\": 4, \"margin\": 8, \"reflection\": {\"blur_px\": 6, \"floor_pct\": 60.0, \"gamma\": 1.4, \"lift\": 0.004, \"max_alpha\": 0.35, \"px\": [2048, 1024], \"roughness\": 0.3, \"samples\": 48, \"top_pct\": 99.5}, \"samples\": 64, \"supersample\": 2}",
+  "size": 1024
  },
  "Sign_Logo": {
   "files": {
