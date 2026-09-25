@@ -1228,7 +1228,7 @@ Config.Stance = {
 	-- arm from the shoulder pivot to the grip, the half extents of the body's footprint, the
 	-- hip (leg) pivots and one thigh from its hip pivot to its knee pivot. The default R15
 	-- rig as AvatarPose.measureBody measures it in Studio (2026-09-24; the default R6 rig
-	-- measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0 and 2.0, its leg being rigid).
+	-- measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0 and 2.06, its leg being rigid; measured 2026-09-25).
 	DefaultBody = {
 		RootHeight = 3.192,
 		WaistHeight = 2.592,
@@ -1237,8 +1237,8 @@ Config.Stance = {
 		ArmReach = 1.931,
 		HalfWidth = 1.0,
 		HalfDepth = 0.58,
-		HipHeight = 2.05,
-		ThighLength = 1.05,
+		HipHeight = 2.192,
+		ThighLength = 0.921,
 	},
 	-- The ways the body can stand to the cue, each tried at every support. TwistDegrees: the
 	-- body faces this far right of the aim (a right-hander's hips turn away from the stroking
