@@ -1227,8 +1227,9 @@ Config.Stance = {
 	-- the hip line the torso leans about, the shoulder pivots, half the shoulder span, one
 	-- arm from the shoulder pivot to the grip, the half extents of the body's footprint, the
 	-- hip (leg) pivots and one thigh from its hip pivot to its knee pivot. The default R15
-	-- rig as AvatarPose.measureBody measures it in Studio (2026-09-24; the default R6 rig
-	-- measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0 and 2.06, its leg being rigid; measured 2026-09-25).
+	-- rig as AvatarPose.measureBody measures it in Studio (2026-09-24, the legs 2026-09-25;
+	-- the default R6 rig measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0 and 2.06, its leg
+	-- being rigid).
 	DefaultBody = {
 		RootHeight = 3.192,
 		WaistHeight = 2.592,
