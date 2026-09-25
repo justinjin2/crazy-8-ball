@@ -1,5 +1,27 @@
 # Status
 
+**2026-09-25 (branch `shooter-reach`): the rake and the cue extension are gone. The body
+reaches every shot by pose and position alone. Studio check pending.**
+
+- The stance is a search over four poses: standing, leaning further in, the hips up on the
+  rail edge lying over the table, and kneeling on the table. Each can turn to the cue in
+  seven ways (Config.Stance.Sides). The body is no longer tied to the cue line: a ball along
+  a side rail is played from that side rail.
+- Every shot is reached with both hands on a normal-length cue (default R15: 48% floor, 37%
+  rail, 15% kneeling). About 0.2 ms per stance in Lune.
+- AvatarPose poses the legs for the rail (hanging over its outer edge, the back one raised)
+  and the kneel (knees on the cloth, shins lying back). ShooterPoser eases the lean, the
+  hands' targets and the root between stances, so a new pose glides in.
+- Removed: `BridgeBuilder`, `Config.Bridge`, `assets/bridge`, the cue extension parts.
+- Verified: lint clean, 328 Lune tests pass (the new stance sweep holds both hands on the
+  cue, the body in its region, the torso and head clear of the table and the cue, the idle
+  spot on the floor).
+- Still required: the Studio look at each pose (R15 and R6), a 360-degree aim sweep in Play,
+  the climb back down after a shot on the rail or table (it is still a cut), phone, PC,
+  gamepad, and the designer's look.
+
+---
+
 **2026-09-25 (later): the Skyline Club is in the game. All sixteen tables play in it.**
 
 - Imported and aligned: every mesh is where the package puts it (within 0.0001 studs).

@@ -998,4 +998,20 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   while they are seated at it. Pendant lights were tuned in Studio to Brightness 2.6 and Range
   18. The dusk ambient was made neutral (Ambient #80869A, OutdoorAmbient #9C98A8) so the white
   walls stay white.
-
+- 2026-09-25: The rake (mechanical bridge) and the automatic cue extension are gone
+  (designer). The cue is always its own length and the table keeps its size: only the
+  shooter's pose and position change. This supersedes the 2026-09-24 lines on the rake, its
+  extension, the cue extension and the rake that hides by a cushion.
+  - The stance is a search: supports (floor, hips up on the rail edge, kneeling on the
+    table), each with every side (Config.Stance.Sides), at the least lean that reaches.
+    The body is not tied to the cue line, so a ball along a side rail is played from that
+    rail.
+  - Why the body climbs at all: a Roblox avatar's hip line (2.59 studs) is below this
+    table's rail top (3.23), so a body standing on the floor cannot lean far over it. The
+    rake used to cover 77% of shots; a larger avatar or a smaller table would not have
+    removed the need, and both were ruled out.
+  - Measured over an even grid of shots with the default R15: 48% from the floor, 37% on
+    the rail, 15% kneeling, all reached. A stance costs about 0.2 ms in Lune.
+  - A steep jump cue chokes up further (Stance.SteepGripMinFromTipFraction); a steep cue
+    that no bridge on the surface reaches raises the bridge hand under it.
+  - After the shot the shooter stands on the floor clear of the barrier, facing the table.

@@ -60,12 +60,13 @@ or saved wins.
 ## Shooter pose (2026-09-24)
 
 Use **Server and Clients** with 2 clients on the 1v1 table (or 3 with a spectator).
-- Shooter: your body is translucent. Aim all the way round the table: you never stand in
-  it. Near your own cushion you lean or bridge on the rail; further out a rake appears under
-  the cue; for far balls the cue grows an extension. Near a rail the cue tilts up and never
-  goes through the wood.
+- Shooter: your body is translucent. Aim all the way round the table. Near your own
+  cushion you lean or bridge on the rail; further out the body goes up onto the rail edge,
+  and for balls far in it kneels on the table. The cue never changes length. A ball along a
+  side rail is played from that side rail. Near a rail the cue tilts up and never goes
+  through the wood.
 - Watcher (the other client): the shooter is fully visible, bent over the cue with both
-  hands on it (or on the rake), and turns with the aim.
+  hands on it, and glides (never jumps) as the aim turns.
 - Pull the power bar slowly: both screens show the cue drawing back. Release: a quick stroke
   through the ball, then the shooter stands in the normal idle on the spot, facing the table.
 - Pot a ball (same shooter): straight back into the aiming pose. Miss: the camera and

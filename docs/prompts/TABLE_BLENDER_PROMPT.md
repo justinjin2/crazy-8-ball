@@ -40,7 +40,8 @@ Scale:
   - Never use `bpy.context.window`, `bpy.context.screen`, edit-mode operators, boolean or bevel
     modifiers, or `smart_project`.
   - The only operators allowed are FBX export and import, render and save.
-- **Use `assets/bridge/Bridge.py` as the template:** a commented `PARAMETERS` dict,
+- **Use `assets/table/TableModel.py` as the template** (it was built from the rake's
+  `Bridge.py`, removed 2026-09-25): a commented `PARAMETERS` dict,
   `clear_scene`, `finish`, `validate`, `export_fbx`, `reimport_check`, `write_parameters`,
   `clean()` rounding, embedding the script in the .blend, deleting any `.blend1`, and printing
   progress lines (`TABLE ...` / `TABLE OK`) with exit code 1 on any failed check.

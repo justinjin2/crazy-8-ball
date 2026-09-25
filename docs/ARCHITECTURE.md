@@ -125,12 +125,12 @@ tables of PCs stay cheap.
 Shared (`src/shared`): `Config`, `Physics/` (Vec, Ball, Table, Collision, Cluster, Cue, Rack,
 Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written), `Abilities/`
 (catalog and pure effect hooks into the simulation, to be written), `TableBuilder`,
-`CueStickBuilder`, `BridgeBuilder` (the rake, from the imported `BridgeModel` or parts),
+`CueStickBuilder`,
 `AvatarPose` (rig, measurements, IK pose), `HubLayout` (generated from
 `assets/hub/Markers.json` by `tools/gen_hub_layout.py`: prop copies, seats, lights, collision,
 anchors), and the pure stance modules `CueShape`,
-`CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands, the
-mode, the hands, extensions), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
+`CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands, sits
+or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
 quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written).
 
@@ -179,8 +179,8 @@ shooters), `UI`, `Audio`, `Effects`, `Hub`
 - Server: about 30 players; PCs never play PCs; per-shot bot budget.
 - Shooter posing: one rig build per character (event-invalidated), no per-frame allocation,
   one `BulkMoveTo` per posed body, unchanged frames skipped, far bodies posed at 15 Hz, only
-  rendered tables posed. A pose costs about 0.05 ms in Studio; the bridge mesh is about 1,000
-  triangles.
+  rendered tables posed. A pose costs about 0.05 ms in Studio; a stance solve about 0.2 ms
+  in Lune.
 
 ## 8. Conventions
 

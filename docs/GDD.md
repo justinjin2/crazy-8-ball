@@ -104,14 +104,19 @@ Every feature is checked against these. If it serves none, it waits.
     to the home view once the pocket is called.
   - Only the shooter's camera is taken; everyone else, including during the coin flip, keeps
     the ordinary Roblox camera.
-  - **The shooter's body** (decided 2026-09-24, modelled on the Steam game "9 Ball
-    Roulette"): avatars stay normal Roblox size (R15 and R6) and stand anywhere round the
-    table, never in it. The stance changes with reach: standing, leaning over, then a
-    **bridge (rake)** under the cue when the ball is realistically out of reach, and an
-    **automatic cue extension** (and rake extension) when even that falls short. Both hands
-    sit on the cue (the grip hand, and the bridge hand or the rake's handle); the head looks at
-    the cue ball. The cue is about 7 studs and tilts up to clear a rail or a ball behind the
-    cue ball: the tilt is visual only, the physics stays at 4 degrees.
+  - **The shooter's body** (decided 2026-09-24, reworked 2026-09-25): avatars stay normal
+    Roblox size (R15 and R6), the cue is always its own length (about 7 studs, no extension)
+    and there is **no rake**. Only the body's pose and position change to reach the ball. It
+    is not tied to the cue line: like a real player it stands wherever it reaches, for
+    example at the side rail beside a ball whose shot runs along that rail. Four base poses:
+    standing on the floor, leaning further in with the back foot lifting, the hips up on the
+    rail edge lying over the table, and kneeling on the table. Each is shaped by how far the
+    body turns to the cue, whether the cue runs under the chin or by the hip, and how far it
+    leans. The body climbs only when it must: about 48% of shots from the floor, 37% up on
+    the rail and 15% kneeling. Both hands are always on the cue (the grip hand on its back
+    part, the bridge hand on the cloth or the rail top under it); the head looks at the cue
+    ball. The cue tilts up to clear a rail or a ball behind the cue ball: the tilt is visual
+    only, the physics stays at 4 degrees.
   - The cue **winds up** with the power pull, and everyone sees it; release plays a quick
     stroke through the ball. The shooter then stands in the normal Roblox idle on the spot
     they shot from, facing the table, unable to move. If it is still their turn they go
