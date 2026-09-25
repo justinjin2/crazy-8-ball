@@ -4,10 +4,8 @@
 main.**
 
 - Both roadmap boxes are ticked. The jump heights and pocket feel stay as tuned.
-- Still to do by the designer:
-  - Save the place to `place/8ball.rbxl` (the copy in git is from 2026-09-20) and publish.
-  - Decide whether to remove the old table: `ServerStorage.PoolTableModel` in the place and
-    `assets/table/legacy/` in the repo. The new table no longer uses either.
+- The place is saved to `place/8ball.rbxl` and published. The old seven-mesh table is gone
+  from the place and the repo.
 - Next up: the hub map (Skyline Club, brief in `docs/prompts/`), or the next roadmap box.
 
 ---
