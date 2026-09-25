@@ -1,0 +1,136 @@
+{
+ "Cards_Day": {
+  "files": {
+   "Cards_Day_Color.png": "48af833e8297d8d31bddf97b9040c59c1713c10dd37121b068af54b651bdfd20",
+   "Cards_Day_Roughness.png": "951e94701e3e52ce748707c357c76385747742184ab3aa3cde78a28f99cf890b"
+  },
+  "masters": {
+   "Color": 2048,
+   "Roughness": 2048
+  },
+  "recipe": "{\"height\": 512, \"master\": 2048, \"version\": 3}",
+  "size": 1024
+ },
+ "Cards_Night": {
+  "files": {
+   "Cards_Night_Color.png": "43d53bf87b3db7510e9fa050e1a2b4334ed006055091d67d5cf2ed39aa1f43be",
+   "Cards_Night_Emissive.png": "c80cd8cbf301f3c4c87ad0744c7601f875639ce2edfd4a642d26b11aed9dc0d5",
+   "Cards_Night_Roughness.png": "951e94701e3e52ce748707c357c76385747742184ab3aa3cde78a28f99cf890b"
+  },
+  "masters": {
+   "Color": 2048,
+   "Emissive": 2048,
+   "Roughness": 2048
+  },
+  "recipe": "{\"height\": 512, \"master\": 2048, \"version\": 3}",
+  "size": 1024
+ },
+ "Carpet": {
+  "files": {
+   "Carpet_Color.png": "b6e0fc0e26672dd327644f92adb9898f88acc9e1f0ad75a4ec5c1cd3c48cd636",
+   "Carpet_Normal.png": "02084c4a92e675d5b45be9d4dc21a7f12a8aaff4c7573116230603e0a0259652",
+   "Carpet_Roughness.png": "8441899f43bcc1c0bcb353e2887273865930695f484a41bc07b834988c8b17f0"
+  },
+  "masters": {
+   "Color": 4096,
+   "Normal": 4096,
+   "Roughness": 4096
+  },
+  "recipe": "{\"block_studs\": 6.4, \"blocks\": 4, \"master\": 4096, \"version\": 3}",
+  "size": 1024
+ },
+ "Facade_Day": {
+  "files": {
+   "Facade_Day_Color.png": "5d5b266c71436128640e32c56e4df79bebcfad8d69de88a8e655bc6907f095eb",
+   "Facade_Day_Roughness.png": "7cdfad5a92e86d782f3286cb7153ae445f31a79c4e1f69c81b141666b08e27be"
+  },
+  "masters": {},
+  "recipe": "{\"cells\": 16, \"size\": 1024, \"version\": 2}",
+  "size": 1024
+ },
+ "Facade_Night": {
+  "files": {
+   "Facade_Night_Color.png": "24b031150a90ec7557375e0553a40ec04aff8db446bbeb47a2668ba3d221a2de",
+   "Facade_Night_Emissive.png": "e553bb7953cadc95e9f6cd953c45a437f7d0e213dad1c1c85fa3c5192f36904a",
+   "Facade_Night_EmissiveDusk.png": "63f92b62ab979804d68f4fdb4797e696cbd7749e5f3aaefc651e983e957227b9",
+   "Facade_Night_Roughness.png": "7cdfad5a92e86d782f3286cb7153ae445f31a79c4e1f69c81b141666b08e27be"
+  },
+  "masters": {},
+  "recipe": "{\"cells\": 16, \"size\": 1024, \"version\": 2}",
+  "size": 1024
+ },
+ "FlutedGlass": {
+  "files": {
+   "FlutedGlass_Color.png": "5250ad0725ca02b31f8c332ed94e9a5b96c9ae07b8ea358106c5b53845d70f99",
+   "FlutedGlass_Normal.png": "22e40931b0ca13adc09d696446c46683de2fec829053befdf066483f6c6d1cb5"
+  },
+  "masters": {},
+  "recipe": "{\"alpha\": 0.42, \"ribs\": 8, \"size\": 512, \"studs\": 2.0, \"version\": 2}",
+  "size": 512
+ },
+ "Marble": {
+  "files": {
+   "Marble_Color.png": "6c0d3b159ea5a3e98924ce1f1c1d457d80be5bb3e5ddfc2c09060d5b0751cb05",
+   "Marble_Normal.png": "a5eedf0dfaee12b3908361e2fc12c93d68f8e01f7878717fe044e43ad4ed4eae",
+   "Marble_Roughness.png": "258b639e36f1a10c0ef4b95cbb93c097e3e719f2124dc4b4c8fc0f2749285618"
+  },
+  "masters": {
+   "Color": 4096,
+   "Normal": 4096,
+   "Roughness": 4096
+  },
+  "recipe": "{\"grout_px\": 5, \"master\": 4096, \"tile_studs\": 6.0, \"tiles\": 4, \"version\": 4}",
+  "size": 1024
+ },
+ "Palette": {
+  "files": {
+   "Palette_Color.png": "e62446e2f42997eaa66e72c492ce55782625ebdb951dfc67bea5e3231042333a",
+   "Palette_Metalness.png": "58776c2fb42863b5292820d53c411870dc626d85f24174f2dd0ca310ed02e51b",
+   "Palette_Roughness.png": "9fdf6ab46d4a60b63068c9b9a4ec5af78f34863f7d374b3155e53fbc8b9c78ee"
+  },
+  "masters": {},
+  "recipe": "{\"cells\": 16, \"size\": 512, \"version\": 2}",
+  "size": 512
+ },
+ "Sign_Logo": {
+  "files": {
+   "Sign_Logo_Color.png": "65e6ceeb0de20643ec2a13a16abf48f4808e611cc96cf7b935df6441ebf2573a"
+  },
+  "masters": {},
+  "recipe": "{}",
+  "size": 512
+ },
+ "Sign_Zone_1v1": {
+  "files": {
+   "Sign_Zone_1v1_Color.png": "fbe71c0435986882939351d814bafe66a76f3ac9f948eceb674e51e95823f5b1"
+  },
+  "masters": {},
+  "recipe": "{}",
+  "size": 256
+ },
+ "Sign_Zone_2v2": {
+  "files": {
+   "Sign_Zone_2v2_Color.png": "ca273f64fe5542b49368492a21d1976053f851b2f5687509cce929897baa5a29"
+  },
+  "masters": {},
+  "recipe": "{}",
+  "size": 256
+ },
+ "Sign_Zone_3v3": {
+  "files": {
+   "Sign_Zone_3v3_Color.png": "18a3a3b22853b8fe8b1a8df6b24bb10eb512b24c849e13472fc2fa91e80909f0"
+  },
+  "masters": {},
+  "recipe": "{}",
+  "size": 256
+ },
+ "Slats": {
+  "files": {
+   "Slats_Color.png": "119f16f034c59bf251d2d116a32cbdd603d647043c6412833f57484de120f438",
+   "Slats_Roughness.png": "e76750f4ef7f58737b33d4ee1f81c876789e7a690860c26e85f5f7fc5a67efe5"
+  },
+  "masters": {},
+  "recipe": "{\"master\": 1024, \"pitch_px\": 128, \"slat_px\": 84, \"studs\": 8.0, \"version\": 2}",
+  "size": 1024
+ }
+}
