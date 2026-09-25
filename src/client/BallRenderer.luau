@@ -321,24 +321,52 @@ end
 function BallRenderer.animate(self: BallRenderer, dt: number)
 	local E = Config.Effects
 	local g = Config.Physics.Gravity
-	local floor = -Config.Table.SurfaceHeightInches
+	local T = Config.Table
+	local R = Config.Balls.RadiusInches
+	local floor = -T.SurfaceHeightInches
+	-- The wooden rail's footprint: past the cushion line, out to the outer edge.
+	local outerX = T.LengthInches / 2 + T.RailWidthInches
+	local outerY = T.WidthInches / 2 + T.RailWidthInches
 	for id, f in self.flying do
 		f.t += dt
 		f.x += f.vx * dt
 		f.y += f.vy * dt
-		f.vz -= g * dt
-		f.z += f.vz * dt
-		if f.z <= floor and f.vz < 0 then
-			f.z = floor
-			f.vz = -f.vz * E.FlyOffFloorRestitution
-			f.landedAt = f.landedAt or f.t
+		if f.landedAt and f.z <= floor and math.abs(f.vz) < 1 then
+			-- Rolling on the floor: it slows to a stop.
+			local speed = math.sqrt(f.vx * f.vx + f.vy * f.vy)
+			if speed > 0 then
+				local slower = math.max(0, speed - E.FloorRollDecel * dt) / speed
+				f.vx *= slower
+				f.vy *= slower
+			end
+			f.z, f.vz = floor, 0
+		else
+			f.vz -= g * dt
+			f.z += f.vz * dt
+			local overRail = math.abs(f.x) < outerX and math.abs(f.y) < outerY
+			if overRail and f.z > 0 and f.z < T.RailTopInches and f.vz < 0 then
+				-- Came down on the rail top: skip off it and carry on over the edge.
+				f.z = T.RailTopInches
+				f.vz = -f.vz * E.FlyOffRailRestitution
+			elseif f.z <= floor and f.vz < 0 then
+				f.z = floor
+				f.vz = -f.vz * E.FlyOffFloorRestitution
+				f.landedAt = f.landedAt or f.t
+			end
 		end
 		local part = self:ensure(id)
+		-- Turn it the way it travels, as a rolling ball does.
+		local w = self.yaw:VectorToWorldSpace(Vector3.new(-f.vy / R, 0, -f.vx / R))
+		local rate = w.Magnitude
+		if rate > 1e-6 then
+			self.rotations[id] = CFrame.fromAxisAngle(w / rate, rate * dt) * self.rotations[id]
+		end
 		part.CFrame = CFrame.new(
 			TableBuilder.toWorld(self.placement, f.x, f.y, Config.Balls.RenderRadiusInches + f.z)
 		) * self.rotations[id]
+		-- Seen landing and rolling for FlyOffRollSeconds, then gone.
 		local fade = if f.landedAt
-			then math.clamp((f.t - f.landedAt) / E.FlyOffFadeSeconds, 0, 1)
+			then math.clamp((f.t - f.landedAt - E.FlyOffRollSeconds) / E.FlyOffFadeSeconds, 0, 1)
 			else 0
 		setFade(part, fade)
 		if fade >= 1 or f.t >= E.FlyOffMaxSeconds then

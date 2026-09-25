@@ -2124,12 +2124,18 @@ Config.Effects = {
 	PocketFadeSeconds = 0.12,
 	PocketDriftInchesPerSecond = 10, -- outward, as if running off into the gutter
 	PocketGutterSpin = 8, -- radians per second the ball keeps turning as it rolls away
-	-- A ball that flies off the table (jump shots) is drawn carrying on to the floor, a
-	-- cloth's height below, bouncing once or twice at this restitution, then fading out over
-	-- FlyOffFadeSeconds from its first floor bounce. Cosmetic only. (tune)
+	-- A ball that flies off the table (jump shots) is drawn carrying on: it skips off the rail
+	-- top if it comes down on it, drops a cloth's height to the floor, bounces at this
+	-- restitution, rolls on the floor for FlyOffRollSeconds (slowing at FloorRollDecel), then
+	-- fades over FlyOffFadeSeconds. The designer wants it seen landing and rolling before the
+	-- foul (2026-09-24), so the server holds the foul for exactly this long (MatchEngine,
+	-- Flight.floorTime). Cosmetic otherwise. (tune)
 	FlyOffFloorRestitution = 0.4,
-	FlyOffFadeSeconds = 0.7,
-	FlyOffMaxSeconds = 3, -- gives up and hides it after this, wherever it is
+	FlyOffRailRestitution = 0.35,
+	FlyOffRollSeconds = 1,
+	FlyOffFadeSeconds = 0.35,
+	FloorRollDecel = 40, -- in/s^2, a ball rolling on a hard floor
+	FlyOffMaxSeconds = 5, -- gives up and hides it after this, wherever it is
 	-- A soft round shadow on the cloth under a ball in the air, so its height reads on a
 	-- phone: darkest right under a ball just off the cloth, fading out by FadeHeightInches.
 	Shadow = {

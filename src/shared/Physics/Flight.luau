@@ -46,6 +46,15 @@ function Flight.fly(b: Ball, h: number): number
 	return dt
 end
 
+--- Seconds until a ball that left the table at height z, moving up at vz, reaches the floor
+--- a cloth's height below (Config.Table.SurfaceHeightInches). The renderer draws that fall
+--- and the server waits for it before calling the foul.
+function Flight.floorTime(z: number, vz: number): number
+	local g = Config.Physics.Gravity
+	local drop = math.max(z, 0) + Config.Table.SurfaceHeightInches
+	return (vz + math.sqrt(math.max(0, vz * vz + 2 * g * drop))) / g
+end
+
 --- The slate pushes back on a ball driven into it at `downSpeed` (in/s, positive). The ball
 --- rebounds at SlateRestitution times that, less ClothHopLossSpeed that the cloth soaks up,
 --- with Coulomb friction at the contact changing its skid and spin like a short slide on the

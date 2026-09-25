@@ -3,6 +3,7 @@
 -- testable in Lune. The Roblox adapter supplies identity, proximity, clock and coin RNG.
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Parent.Physics.Ball)
+local Flight = require(script.Parent.Parent.Physics.Flight)
 local Geometry = require(script.Parent.Parent.Physics.Table)
 local Rack = require(script.Parent.Parent.Physics.Rack)
 local Simulation = require(script.Parent.Parent.Physics.Simulation)
@@ -685,12 +686,26 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	t.pending = { outcome = outcome, judgement = j }
 	Engine.awards(t, j, now)
 	local pocketed = false
+	local settle = outcome.duration
 	for _, ev in outcome.events do
 		if ev.type == "pocket" then
 			pocketed = true
+		elseif ev.type == "offTable" then
+			-- Everyone watches it drop to the floor and roll before the foul is called.
+			local ball = Simulation.findBall({ balls = outcome.finalBalls } :: any, ev.ball)
+			if ball then
+				local E = Config.Effects
+				settle = math.max(
+					settle,
+					ev.t
+						+ Flight.floorTime(ball.z, ball.vz)
+						+ E.FlyOffRollSeconds
+						+ E.FlyOffFadeSeconds
+				)
+			end
 		end
 	end
-	phase(t, "Resolving", now, outcome.duration + (if pocketed then M.PocketSettleSeconds else 0))
+	phase(t, "Resolving", now, settle + (if pocketed then M.PocketSettleSeconds else 0))
 	return t.shot, nil
 end
 

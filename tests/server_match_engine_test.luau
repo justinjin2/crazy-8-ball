@@ -114,6 +114,31 @@ function tests.balls_that_flew_off_are_respotted_and_the_cue_ball_comes_back_in_
 	local cue = Sim.findBall(m.state, 0)
 	expect(not cue.pocketed and not cue.offTable and m.ballInHand, "cue ball back, in hand")
 end
+function tests.a_ball_off_the_table_is_seen_landing_and_rolling_before_the_foul()
+	local m = playing(1)
+	aim(m)
+	local now = m.phaseStartedAt + 1
+	local payload = shotPayload(m, { elevation = 60 })
+	payload.angle, payload.power = math.pi, 1 -- steep and hard at the head rail: over it
+	local wire = E.acceptShot(m, m.shooter, payload, now)
+	expect(wire ~= nil and m.phase == "Resolving", "the jump is accepted")
+	local offAt: number? = nil
+	for _, ev in m.pending.outcome.events do
+		if ev.type == "offTable" and ev.ball == 0 then
+			offAt = ev.t
+		end
+	end
+	expect(offAt ~= nil, "the cue ball flies off")
+	local Effects = H.require("Config").Effects
+	local hold = m.deadline - now
+	expect(
+		hold >= (offAt :: number) + Effects.FlyOffRollSeconds + Effects.FlyOffFadeSeconds + 0.2,
+		("the foul waits for the fall and the roll (held %.2f s)"):format(hold)
+	)
+	expect(hold > wire.duration + Effects.FlyOffRollSeconds, "longer than the shot itself")
+	expire(m)
+	expect(m.phase == "Foul" and m.foul.reason == "OffTable")
+end
 function tests.queue_reassigns_host_cancels_and_restarts_countdown()
 	local m = queue(2)
 	expect(m.hostId == 11 and m.phase == "Countdown")
