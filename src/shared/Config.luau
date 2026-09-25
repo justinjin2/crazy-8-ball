@@ -1518,6 +1518,7 @@ Config.Input = {
 		ZoomDeadZone = 0.2,
 		SpinDeadZone = 0.15, -- same stick-drift tolerance as aiming (0-1)
 		SpinPerSecond = 0.55, -- ball radii per second while L1 + right stick adjusts the tip
+		ElevationPerSecond = 30, -- cue-angle degrees per second at full L1 + left stick (tune)
 		-- Aim rate at full deflection. The curve makes small pushes much finer, which is
 		-- what the drag path gets from FineDragSpeedPx. 2 = a squared response.
 		AimDegreesPerSecond = 80,
@@ -1770,6 +1771,17 @@ Config.Audio = {
 		-- sample stops sounding like a ball hitting a cushion and starts sounding like a
 		-- synthesiser. Together these reach 0.855 .. 1.124, or -14.5% to +12.4%. (tune)
 		PitchJitter = 0.05,
+	},
+	-- A ball in the air coming down on the slate (jump shots): the one cushion recording,
+	-- pitched well down so it reads as a knock on stone rather than a rail, and far more
+	-- present than a rail because it is rare and part of the trick. (tune)
+	Land = {
+		MinVolume = 0.05,
+		MaxVolume = 0.5,
+		MinPitch = 0.62,
+		MaxPitch = 0.8,
+		QuietSpeed = 4,
+		PitchJitter = 0.04,
 	},
 	-- The strike gets its own speed range, tied to the cue itself. On the shared range
 	-- (10..400) everything from about 93% power upwards produced an identical sound, because
@@ -2112,6 +2124,21 @@ Config.Effects = {
 	PocketFadeSeconds = 0.12,
 	PocketDriftInchesPerSecond = 10, -- outward, as if running off into the gutter
 	PocketGutterSpin = 8, -- radians per second the ball keeps turning as it rolls away
+	-- A ball that flies off the table (jump shots) is drawn carrying on to the floor, a
+	-- cloth's height below, bouncing once or twice at this restitution, then fading out over
+	-- FlyOffFadeSeconds from its first floor bounce. Cosmetic only. (tune)
+	FlyOffFloorRestitution = 0.4,
+	FlyOffFadeSeconds = 0.7,
+	FlyOffMaxSeconds = 3, -- gives up and hides it after this, wherever it is
+	-- A soft round shadow on the cloth under a ball in the air, so its height reads on a
+	-- phone: darkest right under a ball just off the cloth, fading out by FadeHeightInches.
+	Shadow = {
+		Color = { 0, 0, 0 },
+		NearTransparency = 0.45,
+		FadeHeightInches = 14,
+		MinHeightInches = 0.03, -- below this the ball's own contact shadow is enough
+		GrowPerInch = 0.04, -- the shadow widens a little as the ball rises (fraction per in)
+	},
 	PopupSeconds = 1.1,
 
 	-- VFX are CUE DATA, not constants. Every cue names a style here, so equipping a rarer

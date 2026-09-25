@@ -38,9 +38,24 @@ export type BallRenderer = typeof(setmetatable(
 		-- Balls on their way out of sight after reaching the bottom of a pocket: where they
 		-- came to rest (table inches), which way the gutter runs, and how far along they are.
 		sinking: { [number]: { x: number, y: number, dx: number, dy: number, t: number } },
+		-- Balls that flew off the table, carried on to the floor (table inches, z from the
+		-- resting height as in the physics) until they fade out.
+		flying: { [number]: Flying },
+		shadows: { [number]: Part },
 	},
 	BallRenderer
 ))
+
+type Flying = {
+	x: number,
+	y: number,
+	z: number,
+	vx: number,
+	vy: number,
+	vz: number,
+	t: number,
+	landedAt: number?,
+}
 
 local function ballColor(id: number): Color3
 	local colors = Config.Balls.Colors
@@ -77,6 +92,8 @@ function BallRenderer.new(parent: Instance, p: Placement.Placement, id: number):
 		spinSteps = {},
 		sunk = {},
 		sinking = {},
+		flying = {},
+		shadows = {},
 	}, BallRenderer)
 	return self
 end
@@ -94,6 +111,10 @@ function BallRenderer.rebind(self: BallRenderer, p: Placement.Placement, id: num
 		self.spinSteps[ballId] = 0
 	end
 	self.sunk = {}
+	self.flying = {}
+	for _, shadow in self.shadows do
+		shadow.Transparency = 1
+	end
 end
 
 -- The imported sphere mesh, if the place has it and the server published it.
@@ -192,13 +213,49 @@ local function renormalise(rot: CFrame): CFrame
 	return CFrame.fromMatrix(Vector3.zero, right, up)
 end
 
+-- The shadow disc under ball `id` at height z (inches above the cloth), or hidden.
+local function shadowAt(self: BallRenderer, id: number, x: number, y: number, z: number)
+	local S = Config.Effects.Shadow
+	local shadow: Part? = self.shadows[id]
+	if z < S.MinHeightInches then
+		if shadow then
+			shadow.Transparency = 1
+		end
+		return
+	end
+	if not shadow then
+		local disc = Instance.new("Part")
+		disc.Name = "Shadow" .. id
+		disc.Shape = Enum.PartType.Cylinder
+		disc.Anchored = true
+		disc.CanCollide = false
+		disc.CanQuery = false
+		disc.CanTouch = false
+		disc.CastShadow = false
+		disc.Material = Enum.Material.SmoothPlastic
+		disc.Color = Color3.fromRGB(S.Color[1], S.Color[2], S.Color[3])
+		disc.Parent = self.folder
+		self.shadows[id] = disc
+		shadow = disc
+	end
+	local disc = shadow :: Part
+	local d = TableBuilder.studs(Config.Balls.RenderRadiusInches * 2) * (1 + S.GrowPerInch * z)
+	disc.Size = Vector3.new(0.01, d, d)
+	-- A cylinder's axis is its X: stand it up, just above the cloth.
+	disc.CFrame = CFrame.new(TableBuilder.toWorld(self.placement, x, y, 0.02))
+		* CFrame.Angles(0, 0, math.pi / 2)
+	disc.Transparency = S.NearTransparency
+		+ (1 - S.NearTransparency) * math.clamp(z / S.FadeHeightInches, 0, 1)
+end
+
 --- Move and turn ball `b` for a frame of `dt` seconds. The turn comes from the ball's
 --- angular velocity, so a skidding ball barely rotates and a ball with side spin turns on
 --- the spot, exactly as the simulation says.
 function BallRenderer.step(self: BallRenderer, b: Ball.Ball, dt: number)
-	if self.sunk[b.id] or self.sinking[b.id] then
+	if self.sunk[b.id] or self.sinking[b.id] or self.flying[b.id] then
 		return
 	end
+	shadowAt(self, b.id, b.x, b.y, if b.pocketed then 0 else b.z)
 	local part = self:ensure(b.id)
 	local pos =
 		TableBuilder.toWorld(self.placement, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
@@ -249,16 +306,52 @@ function BallRenderer.sink(self: BallRenderer, id: number, x: number?, y: number
 	self.sinking[id] = { x = x, y = y, dx = dx, dy = dy, t = 0 }
 end
 
---- Move the sinking balls along. Call every frame, shot or no shot: a ball that drops at the
---- end of a shot is still on its way out after the replay has finished.
+--- Ball `b` has just flown off the table: carry it on along its flight, down past the rail
+--- to the floor, a bounce, and out of sight. Cosmetic only; the physics has let it go.
+function BallRenderer.flyOff(self: BallRenderer, b: Ball.Ball)
+	if self.sunk[b.id] or self.sinking[b.id] or self.flying[b.id] then
+		return
+	end
+	shadowAt(self, b.id, 0, 0, 0)
+	self.flying[b.id] = { x = b.x, y = b.y, z = b.z, vx = b.vx, vy = b.vy, vz = b.vz, t = 0 }
+end
+
+--- Move the sinking and flying balls along. Call every frame, shot or no shot: a ball that
+--- drops at the end of a shot is still on its way out after the replay has finished.
 function BallRenderer.animate(self: BallRenderer, dt: number)
 	local E = Config.Effects
+	local g = Config.Physics.Gravity
+	local floor = -Config.Table.SurfaceHeightInches
+	for id, f in self.flying do
+		f.t += dt
+		f.x += f.vx * dt
+		f.y += f.vy * dt
+		f.vz -= g * dt
+		f.z += f.vz * dt
+		if f.z <= floor and f.vz < 0 then
+			f.z = floor
+			f.vz = -f.vz * E.FlyOffFloorRestitution
+			f.landedAt = f.landedAt or f.t
+		end
+		local part = self:ensure(id)
+		part.CFrame = CFrame.new(
+			TableBuilder.toWorld(self.placement, f.x, f.y, Config.Balls.RenderRadiusInches + f.z)
+		) * self.rotations[id]
+		local fade = if f.landedAt
+			then math.clamp((f.t - f.landedAt) / E.FlyOffFadeSeconds, 0, 1)
+			else 0
+		setFade(part, fade)
+		if fade >= 1 or f.t >= E.FlyOffMaxSeconds then
+			self.flying[id] = nil
+			self.sunk[id] = true
+			setFade(part, 1)
+		end
+	end
 	for id, s in self.sinking do
 		s.t += dt
 		local part = self:ensure(id)
 		local u = math.clamp(s.t / E.PocketFadeSeconds, 0, 1)
 		-- Real gravity, continuing from the speed the physics drop reached at the bottom.
-		local g = Config.Physics.Gravity
 		local depth = Config.Table.PocketDropDepthInches
 		local speed = math.sqrt(2 * g * depth)
 		depth += speed * s.t + 0.5 * g * s.t * s.t
@@ -290,6 +383,8 @@ function BallRenderer.restore(self: BallRenderer, id: number, xIn: number, yIn: 
 	local part = self:ensure(id)
 	self.sunk[id] = nil
 	self.sinking[id] = nil
+	self.flying[id] = nil
+	shadowAt(self, id, xIn, yIn, 0)
 	self.rotations[id] = CFrame.identity
 	self.spinSteps[id] = 0
 	setFade(part, 0)
@@ -301,11 +396,14 @@ function BallRenderer.setVisible(self: BallRenderer, id: number, visible: boolea
 	if visible then
 		self.sunk[id] = nil
 		self.sinking[id] = nil
+		self.flying[id] = nil
 		setFade(part, 0)
-	elseif not self.sinking[id] then
-		-- A ball still rolling out of a pocket finishes that on its own and ends hidden.
+	elseif not self.sinking[id] and not self.flying[id] then
+		-- A ball still rolling out of a pocket (or bouncing on the floor) finishes that on
+		-- its own and ends hidden.
 		self.sunk[id] = true
 		setFade(part, 1)
+		shadowAt(self, id, 0, 0, 0)
 	end
 end
 

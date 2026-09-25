@@ -12,7 +12,8 @@
 --   D-pad left/right    -> the nudge buttons, so every drag still has a button alternative
 --   right stick Y       -> zoom
 --   hold L1 + right stick -> spin; Y centres it; release L1 keeps the choice
---   hold L1 + D-pad up/down -> raise or lower the cue angle one step (held repeats)
+--   hold L1 + left stick up/down -> raise or lower the cue angle; L1 + D-pad up/down steps
+--                          it too, where the pad's D-pad is not taken by Roblox's own menus
 --   hold L2 + left stick  -> move the cue ball in hand (only while placing is allowed);
 --                          the triggers and A are ignored while L2 is held
 --   right trigger       -> power: the trigger is analog, so its position IS the bar.
@@ -46,6 +47,8 @@ export type Input = typeof(setmetatable(
 		elevation: number,
 		elevationListeners: { (number) -> () },
 		elevationDir: number,
+		stickElevation: number,
+		elevationAccum: number?, -- the stick's unrounded angle while it is held
 		elevationTime: number,
 		elevationNext: number,
 		spinEditingListeners: { (boolean) -> () },
@@ -98,6 +101,8 @@ function Input.new(): Input
 		elevation = Config.Cue.CueElevationDegrees,
 		elevationListeners = {},
 		elevationDir = 0,
+		stickElevation = 0,
+		elevationAccum = nil,
 		elevationTime = 0,
 		elevationNext = 0,
 		enabled = true,
@@ -280,6 +285,8 @@ function Input.setSpinEditing(self: Input, editing: boolean)
 	self.stickSpinX = 0
 	self.stickSpinY = 0
 	self.elevationDir = 0
+	self.stickElevation = 0
+	self.elevationAccum = nil
 	self.nudgeDir = 0
 	self.triggerHeld = false
 	self.buttonPower = nil
@@ -536,7 +543,9 @@ function Input.handleGamepad(
 		self.stickZoom = if ended or self.spinEditing then 0 else obj.Position.Y
 		return sink
 	elseif self.spinEditing then
-		if code == Enum.KeyCode.DPadUp or code == Enum.KeyCode.DPadDown then
+		if code == Enum.KeyCode.Thumbstick1 then
+			self.stickElevation = if ended then 0 else obj.Position.Y
+		elseif code == Enum.KeyCode.DPadUp or code == Enum.KeyCode.DPadDown then
 			if ended then
 				self:holdElevation(0)
 			elseif state == Enum.UserInputState.Begin then
@@ -653,6 +662,17 @@ function Input.update(self: Input, dt: number)
 				self.spinX + x * G.SpinPerSecond * dt,
 				self.spinY + y * G.SpinPerSecond * dt
 			)
+		end
+		local lift = deadZone(self.stickElevation, G.SpinDeadZone)
+		if lift ~= 0 then
+			-- Accumulate unrounded so a gentle push still gets from one step to the next.
+			local accum = (self.elevationAccum or self.elevation) + lift * G.ElevationPerSecond * dt
+			local cueConfig = Config.Cue
+			accum = math.clamp(accum, cueConfig.CueElevationDegrees, cueConfig.MaxElevationDegrees)
+			self.elevationAccum = accum
+			self:setElevation(accum)
+		else
+			self.elevationAccum = nil
 		end
 		if self.elevationDir ~= 0 then
 			self.elevationTime += dt

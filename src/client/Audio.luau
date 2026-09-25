@@ -462,6 +462,9 @@ function Audio.attach(self: Audio, match: any)
 			end
 			self.lastClack = now
 			self:playAt("BallClack", at, A.Clack, ev.speed)
+		elseif ev.type == "land" then
+			-- A ball coming down on the slate: a dull knock, the cushion take pitched down.
+			self:playAt("RailThud", at, A.Land, ev.speed)
 		elseif ev.type == "railHit" then
 			if ev.speed < A.MinRailSpeed then
 				return

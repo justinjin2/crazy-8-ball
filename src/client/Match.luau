@@ -275,7 +275,7 @@ function Match.applyBalls(self: Match, packed: { number })
 	for _, b in self.state.balls do
 		local i = b.id * 4
 		b.x, b.y, b.z, b.pocketed = packed[i + 1], packed[i + 2], packed[i + 3], packed[i + 4] == 1
-		b.falling, b.tip, b.pocket = false, nil, nil
+		b.falling, b.tip, b.pocket, b.offTable = false, nil, nil, false
 		Ball.stop(b)
 	end
 	local hold = self.cueHold
@@ -410,6 +410,7 @@ function Match.reconcile(self: Match)
 		drift = math.max(drift, math.sqrt(dx * dx + dy * dy))
 		b.x, b.y, b.z = x, y, z
 		b.pocketed = final[4 * i] == 1
+		b.offTable = b.offTable and b.pocketed
 		b.falling = false
 		b.tip = nil
 		Ball.stop(b)
@@ -445,6 +446,10 @@ end
 local function dispatch(self: Match, ev: Event, index: number)
 	if ev.type == "pocket" and not self.sunk[ev.ball] then
 		self.sunk[ev.ball] = true
+		self.downVersion += 1
+	elseif ev.type == "offTable" then
+		-- Out of play, but not pocketed: the server puts it back (or it is the cue ball, in
+		-- hand). Only the drawn cue's clearance needs to know the table changed.
 		self.downVersion += 1
 	end
 	for _, listener in self.eventListeners do
@@ -513,6 +518,9 @@ function Match.update(self: Match, dt: number): boolean
 		local simulated = self.state.time - timeBefore
 		local dropDepth = Config.Table.PocketDropDepthInches
 		for _, b in self.state.balls do
+			if b.offTable then
+				renderer:flyOff(b)
+			end
 			renderer:step(b, simulated)
 			if b.z <= -dropDepth + 1e-6 then
 				renderer:sink(b.id, b.x, b.y)

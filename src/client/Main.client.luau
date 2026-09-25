@@ -110,7 +110,8 @@ local function movingBallWorlds(): { Vector3 }
 	table.clear(movingBuffer)
 	if match and placement then
 		for _, b in match.state.balls do
-			if not b.pocketed and (b.vx ~= 0 or b.vy ~= 0) then
+			-- A ball in the air counts even going straight up: it may be leaving the frame.
+			if not b.pocketed and (b.vx ~= 0 or b.vy ~= 0 or b.z > 0 or b.vz ~= 0) then
 				local at =
 					TableBuilder.toWorld(placement, b.x, b.y, Config.Balls.RenderRadiusInches + b.z)
 				table.insert(movingBuffer, at)

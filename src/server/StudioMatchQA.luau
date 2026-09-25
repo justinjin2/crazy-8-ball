@@ -69,7 +69,7 @@ function QA.start(
 			local replay, reason = Engine.acceptShot(t.engine, shooter, data, now)
 			if replay then
 				flush(t) -- grants before the snapshot that carries the replay, as ShotService does
-				shotAccepted(t, shooter, data.angle, data.spin) -- and the stance, as it does
+				shotAccepted(t, shooter, data.angle, data.spin, data.elevation) -- and the stance, as it does
 			end
 			broadcast(t)
 			return { replay = replay, reason = reason }
