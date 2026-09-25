@@ -959,4 +959,6 @@ a realism review against Dr. Dave's TP B.10):
 2026-09-24: Clean cloth (designer): the foot-spot dot and the break smudge are gone. The whole
 Marks overlay mesh is removed from every table (`Config.TableModel.Marks = false`, like the
 caps switch), leaving the plain tiled cloth; no new images needed.
-
+- 2026-09-25: The hub has 16 tables: 10 for 1v1, 4 for 2v2, 2 for 3v3 *(tune)*. The hub is
+  far more saturated than its references (cobalt sofas, zone-coloured armchairs, light walls);
+  the palette lives in `docs/prompts/HUB_BLENDER_PROMPT.md`.

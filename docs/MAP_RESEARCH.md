@@ -90,7 +90,7 @@ decor. In a social hub the other players are the novelty.
 - **Voice chat fades from 7 studs, silent at 80.** Chat bubbles show to 100. Spectator seats
   7 to 20 studs from a table so watchers hear the players.
 - **About 80% mobile.** Must look good in the Soft lighting style (Realistic drops to Soft on
-  low graphics settings). Shadows switch off below graphics level 4. All 12 tables share one
+  low graphics settings). Shadows switch off below graphics level 4. All 16 tables share one
   mesh; few lights with short range; small textures 256 px.
 - **Build for change:** the model needs named decor anchor points and swappable prop sets so
   seasonal overlays, statues and screens can change without touching the building.

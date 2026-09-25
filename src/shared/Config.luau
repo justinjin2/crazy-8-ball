@@ -555,14 +555,14 @@ Config.Cue = {
 }
 
 ---------------------------------------------------------------------------------------------
--- The hub: where the twelve tables stand (studs). Physics x -> world X, physics y ->
+-- The hub: where the sixteen tables stand (studs). Physics x -> world X, physics y ->
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
 Config.Hub = {
 	-- PLACEHOLDER grid on the baseplate until the hub map exists (docs/prompts/
 	-- HUB_BLENDER_PROMPT.md); its Markers.json will replace these rows. Y is the FLOOR
 	-- height the table stands on, not the cloth: Placement.toWorld adds
-	-- Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees about world +Y. Three rows of
+	-- Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees about world +Y. Four rows of
 	-- four, 20 studs apart across and 43 along, which keeps 10 studs of cue room around each.
 	Tables = {
 		{ id = 1, X = -30, Y = 0, Z = 0, YawDegrees = 90 },
@@ -577,16 +577,20 @@ Config.Hub = {
 		{ id = 10, X = -10, Y = 0, Z = -86, YawDegrees = 90 },
 		{ id = 11, X = 10, Y = 0, Z = -86, YawDegrees = 90 },
 		{ id = 12, X = 30, Y = 0, Z = -86, YawDegrees = 90 },
+		{ id = 13, X = -30, Y = 0, Z = -129, YawDegrees = 90 },
+		{ id = 14, X = -10, Y = 0, Z = -129, YawDegrees = 90 },
+		{ id = 15, X = 10, Y = 0, Z = -129, YawDegrees = 90 },
+		{ id = 16, X = 30, Y = 0, Z = -129, YawDegrees = 90 },
 	},
 
-	-- How many tables to build, taken from the front of Tables. Twelve is the full hub;
+	-- How many tables to build, taken from the front of Tables. Sixteen is the full hub;
 	-- the baseplate tests the shot on a few.
 	TableCount = 3,
 
 	-- Which table the client treats as "the" table before it has a seat.
 	ActiveTableId = 1,
 
-	-- How many tables draw their balls at once. Twelve racked tables is 192 ball meshes, and
+	-- How many tables draw their balls at once. Sixteen racked tables is 256 ball meshes, and
 	-- the ones across the room are a few pixels each. The nearest few are bound to a small
 	-- pool of renderers instead; every table still simulates, it just may not be drawn.
 	RenderedTables = 4,

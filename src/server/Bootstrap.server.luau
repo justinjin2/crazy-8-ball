@@ -46,7 +46,7 @@ if spawn then
 	spawn.CFrame = CFrame.new(p.X, p.Y, p.Z) * CFrame.Angles(0, math.rad(p.YawDegrees), 0)
 end
 
--- Every table lives under one folder, named by id, so twelve of them can be told apart.
+-- Every table lives under one folder, named by id, so sixteen of them can be told apart.
 local existing = workspace:FindFirstChild(TableBuilder.FolderName)
 if existing then
 	existing:Destroy()
@@ -55,7 +55,7 @@ local tables = Instance.new("Folder")
 tables.Name = TableBuilder.FolderName
 tables.Parent = workspace
 
--- Only the first TableCount of them: twelve for the full hub, a few on the testing baseplate.
+-- Only the first TableCount of them: sixteen for the full hub, a few on the testing baseplate.
 local built = 0
 local wanted = Placement.tableCount()
 for _, row in Config.Hub.Tables do

@@ -12,7 +12,7 @@ How to use this file:
 
 Rewritten 2026-09-20. Order follows the designer's priority: the shot, then feel, then
 abilities, then the hub map, then collectibles, then ranks, then economy, then public
-release, then trading. Twelve server-owned tables were pulled forward (1.5) because the server move is needed
+release, then trading. Server-owned tables were pulled forward (1.5) because the server move is needed
 anyway.
 
 ---
@@ -32,7 +32,7 @@ anyway.
 - [x] **1.4 Camera and avatar.** One orbit camera opposite the aim with automatic whole-table
   framing and continuous zoom to a down-the-cue view; posed, faded avatar; pull-out during a
   shot. Imported Blender table model, sphere-mesh balls with baked textures.
-- [ ] **1.5 Twelve server-owned tables.** Tables stand on the baseplate until the hub map
+- [ ] **1.5 Server-owned tables (sixteen in the hub).** Tables stand on the baseplate until the hub map
   (4.1) exists. Each table is owned by the server:
   the client sends shot inputs, the server validates and runs the simulation, every client
   replays the same shot, so everyone in the server sees every table's balls. Join by stepping
@@ -148,7 +148,7 @@ are part of this update; the older broader phase boxes below are not completed b
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
 - [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
-- [ ] **4.4 Performance pass.** Low-end phone with twelve busy tables: streaming, LOD, shadow
+- [ ] **4.4 Performance pass.** Low-end phone with sixteen busy tables: streaming, LOD, shadow
   and light budget, no stutter.
 
 ## Phase 5: Collectibles

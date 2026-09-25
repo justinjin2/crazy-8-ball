@@ -141,7 +141,7 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
 - The package in `assets/table` has rebuild scripts and a `Readme.md` with import steps; the
   hub package (`assets/hub`) will add a `Markers.json` with Roblox-space positions. Import through the 3D
   Importer with Scale Unit: Stud, scale 1. Table instances are placed by script from the
-  markers, not imported twelve times.
+  markers, not imported once per table.
 - `docs/prompts/` holds the briefs used for Blender agent jobs; reuse them as templates.
 
 ## Audio

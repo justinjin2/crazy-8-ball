@@ -211,7 +211,7 @@ return {
 
 	["forTable gives every hub table, and nothing else"] = function()
 		local Config, Placement = setup()
-		H.expect(#Config.Hub.Tables == 12, "the hub has twelve tables")
+		H.expect(#Config.Hub.Tables == 16, "the hub has sixteen tables")
 		for _, row in Config.Hub.Tables do
 			local p = Placement.forTable(row.id)
 			H.expect(p ~= nil, ("table %d has a placement"):format(row.id))
@@ -220,7 +220,7 @@ return {
 			H.near((p :: any).z, row.Z, 1e-9, "z")
 		end
 		H.expect(Placement.forTable(0) == nil, "no table 0")
-		H.expect(Placement.forTable(13) == nil, "no table 13")
+		H.expect(Placement.forTable(17) == nil, "no table 17")
 	end,
 
 	["fromTableStuds is toWorld in studs, height from the floor, at every yaw"] = function()

@@ -79,7 +79,7 @@ end
 
 function BallRenderer.new(parent: Instance, p: Placement.Placement, id: number): BallRenderer
 	local folder = Instance.new("Folder")
-	-- One folder per table, named by table id: twelve folders all called "Balls" would be
+	-- One folder per table, named by table id: sixteen folders all called "Balls" would be
 	-- unreadable in the explorer once the hub is built.
 	folder.Name = ("Balls_%02d"):format(id)
 	folder.Parent = parent

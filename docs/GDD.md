@@ -171,8 +171,8 @@ Every feature is checked against these. If it serves none, it waits.
   again.
 - One **Find another server** button, hidden during a match. Cross-server and worldwide
   matchmaking are not planned for release (section 18).
-- Servers hold about 30 players *(tune)*. The 12 tables are grouped into 1v1, 2v2 and 3v3
-  zones (section 10); how many tables each zone gets is open. PC never plays PC.
+- Servers hold about 30 players *(tune)*. The 16 tables are grouped into zones (section 10):
+  10 for 1v1, 4 for 2v2 and 2 for 3v3 *(tune)*. PC never plays PC.
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
@@ -260,6 +260,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   area, a balcony where players spawn, tall ceilings. Based on the references in
   `assets/hub/reference/`, brighter and more colourful than them. Separate 1v1, 2v2 and 3v3
   zones. The building never changes; screens, statues, showcases and seasonal decor on it do.
+  Strongly saturated furniture and accents on light, clean walls
+  (bright cobalt sofas, zone-coloured armchairs), never dull or gray; palette in the brief.
   Brief: `docs/prompts/HUB_BLENDER_PROMPT.md`; reasoning: `docs/MAP_RESEARCH.md`.
 - Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
   snacks that the player can drink or eat (a tool with a short animation). No alcohol.
@@ -455,6 +457,5 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Full ability list (section 9).
 - Pro lobby look (section 10).
 - Which tables use the green look and which the blue (section 16).
-- How many tables each of the 1v1, 2v2 and 3v3 zones gets (section 6; the brief starts at 6/4/2).
 - Rating formula (section 11).
 - Economy numbers and the top rarity name (section 12).

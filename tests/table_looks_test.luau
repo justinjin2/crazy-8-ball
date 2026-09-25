@@ -158,7 +158,7 @@ return {
 		local Config = H.require("Config")
 		local TM = Config.TableModel
 		local TableBuilder = H.require("TableBuilder")
-		for id = 1, 12 do
+		for id = 1, #Config.Hub.Tables do
 			local look = TableBuilder.lookFor(id)
 			H.expect(
 				TM.Looks[look] ~= nil,

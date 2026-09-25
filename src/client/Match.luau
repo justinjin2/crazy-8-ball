@@ -6,7 +6,7 @@
 -- It deliberately does NOT call Simulation.run. That function simulates the whole shot to
 -- rest before it returns: up to 9,600 fixed steps of an O(balls^2) search, which is tens of
 -- milliseconds on a desktop and several times that on a phone, all of it inside one frame.
--- With twelve tables in a hub and a shot landing on any of them, that is a visible freeze
+-- With sixteen tables in a hub and a shot landing on any of them, that is a visible freeze
 -- every break. Stepping forward from the render loop spreads exactly the same work over the
 -- time the shot takes anyway (about four steps per frame) and never blocks.
 --

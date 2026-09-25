@@ -117,7 +117,7 @@ Shot flow:
    pocket drop. The assigning shot carries `assign`, so the HUD reveals groups at that drop.
 
 PC opponents run on the server using the same `Simulation` to try candidate shots (skill =
-aim noise and how many candidates it considers), with a per-shot compute budget so twelve
+aim noise and how many candidates it considers), with a per-shot compute budget so sixteen
 tables of PCs stay cheap.
 
 ## 5. Module map

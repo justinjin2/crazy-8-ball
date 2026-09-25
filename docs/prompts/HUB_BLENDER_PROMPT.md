@@ -15,7 +15,7 @@ This is a brand-new design built from the references below.
 3. `assets/table/Readme.md` and `assets/table/Parameters.json`: the finished pool table and the
    package conventions (units, axes, naming, one material per mesh, baked maps, FBX settings,
    validation). The hub package must read as if the same author made it.
-4. `assets/table/TableModel.blend`: APPEND the table (8 meshes, 8,134 triangles) and place 12
+4. `assets/table/TableModel.blend`: APPEND the table (8 meshes, 8,134 triangles) and place 16
    collection instances for layout and renders only. Never rebuild, edit or export it.
 
 ## What it is
@@ -51,23 +51,30 @@ materials, with the changes listed below.
    drinks and snacks; no alcohol anywhere).
 3. **Three zones: 1v1, 2v2, 3v3.** Each is its own area, separated by glass partitions and
    walkways. Zone identity comes from:
-   - an accent colour: 1v1 amber `#F2B84B`, 2v2 teal `#2FA7A0`, 3v3 violet `#7B5CE0`;
+   - an accent colour: 1v1 amber `#FFB000`, 2v2 turquoise `#00C2A8`, 3v3 violet `#8A4DFF`;
+   - the spectator armchairs, upholstered in the zone's colour;
    - a big overhead zone sign;
    - a carpet inlay stripe;
    - the pendant shape.
 
-   Table split is a parameter: `ZONE_TABLES = {1v1: 6, 2v2: 4, 3v3: 2}` (tune).
+   **16 tables:** `ZONE_TABLES = {1v1: 10, 2v2: 4, 3v3: 2}` (a parameter, tune).
 4. **A balcony along the south wall.** Players spawn up here, looking over the whole club. The
    way down is a wide stair with sittable stair seats beside it, facing the tables.
 5. **The mirrored columns become brushed-gold and black metal.** Roblox reflects only the
    sky, never the room, so mirrors look broken.
-6. **Brighter and more colourful than the reference.** The photos are too gray for a young
-   audience:
-   - lift the wall grays lighter;
-   - push the accents about 15% more saturated;
-   - warm the light slightly.
+6. **Far more saturated than the reference. This matters more than matching the photos.**
+   The reference is dull and gray; our players are mostly kids and teens on phones, and
+   saturated colour reads as happy and energetic. Keep the reference's layout and shapes,
+   but recolour everything soft or decorative with bold, clean, candy-bright colour:
+   - **the sofas are bright cobalt blue, not gray-blue or navy;**
+   - every armchair, stool, cushion and sign is a strong saturated colour from the palette;
+   - **no gray, beige or muted upholstery anywhere;**
+   - walls and floors stay light and clean (not gray) so the colours pop against them.
 
-   The tables must stay the brightest, highest-contrast thing in every view.
+   Check every render against the palette swatches: if a colour looks dusty, washed out or
+   gray, push it back to the palette value. Saturation must survive the lighting and AO
+   (bake AO lightly, and never let tinted light desaturate the furniture). The pool tables
+   stay the focal point through the light pools over them, not by keeping the room dull.
 
 ## Style: stylized realism
 
@@ -89,19 +96,30 @@ Somewhere between low-poly cartoon and realistic, and never busy:
   baked into the colour map under lamps and bright windows. Roblox has no real floor
   reflections.
 
-Palette (starting point; you may adjust for harmony, and log it):
+Palette. **Use these values; do not tone them down.** You may add in-between shades of the
+same hues for variety, never grayer versions. About 60% light neutrals, 30% saturated
+furniture, 10% zone accents and glow.
 
-| Colour | Hex | Where |
-|---|---|---|
-| Light gray | `#C9CED3` | walls |
-| Cool gray | `#8C949C` | accent walls |
-| White | `#F4F5F6` | bulkheads, bar |
-| Near-black | `#1E2124` | ceiling |
-| Charcoal gray | `#5B6168` | carpet, with `#9AA1A8` streaks |
-| Marble white | `#E6E4E0` | lounge floor |
-| Teal | `#2E8F8C` | upholstery |
-| Amber | `#E8A13A` | cushions |
-| Brushed gold | `#C9A45C` | trim, stool legs |
+| Group | Colour | Hex | Where |
+|---|---|---|---|
+| Neutrals | Cloud white | `#EEF1F6` | walls, bulkheads |
+| Neutrals | Soft sky | `#B9C7DC` | accent wall panels |
+| Neutrals | Warm marble | `#F4F0E8` | lounge and bar floor |
+| Neutrals | Slate blue | `#3E4A6B` | hall carpet, with `#6F7FA8` streaks |
+| Neutrals | Midnight navy | `#19213A` | slat ceiling panels, partition frames |
+| Furniture | Cobalt blue | `#2563FF` | lounge sofas |
+| Furniture | Sunflower | `#FFC531` | cushions, ottomans |
+| Furniture | Tangerine | `#FF7A1A` | cushions, poufs |
+| Furniture | Coral red | `#FF4F5E` | bar stool seats, booth backs |
+| Furniture | Glossy white | `#FFFFFF` | bar counter, screen frames |
+| Furniture | Leaf green | `#2DBE4E` | plants |
+| Zones | 1v1 amber | `#FFB000` | 1v1 armchairs, sign, carpet stripe, LED lines |
+| Zones | 2v2 turquoise | `#00C2A8` | 2v2 armchairs, sign, carpet stripe, LED lines |
+| Zones | 3v3 violet | `#8A4DFF` | 3v3 armchairs, sign, carpet stripe, LED lines |
+| Metal and glow | Bright gold | `#F0B429` | trim, stool legs, column caps |
+| Metal and glow | Warm LED | `#FFF3D6` | pendant undersides, ceiling LED lines |
+| Tables | Blue cloth | `#01A9F7` | from the table package, not editable here |
+| Tables | Green cloth | `#28AF2D` | from the table package, not editable here |
 
 Table cloth colours come from the table package. Which zone uses the green look and which the
 blue is still open, so make it a parameter (`ZONE_LOOK`) and default every zone to blue.
@@ -112,22 +130,25 @@ blue is still open, so make it a parameter (`ZONE_LOOK`) and default every zone 
   X runs east, Y runs north. The main floor is Z = 0.
 - **Avatars:** 5 studs tall, 4 wide with arms out. Walk speed is 16 studs/s.
 - **The table:** 18.24 × 10.24 studs with rails (9 ft Pro-Am at 0.16 stud per inch). The cloth
-  is at 2.9. Place the long axis along X.
+  is at 2.9. Either orientation is fine; the starting plan runs the long axis north-south.
 - **Table clearance:** keep 10 studs clear around every table to anything standing on the
   floor: walls, furniture, partitions, steps, other tables. Corridors between tables may be
   shared.
 - **Join pads:** each table has a 6 × 6 floor pad centred 14 studs from the table centre
   towards the head rail. It is flat and code-built, but leave the floor there clear.
-- **Size:** the interior is at most about 150 × 125 studs. From the spawn, every zone, the
-  bar and the terrace door are within a 10-second walk.
+- **Size:** the interior is at most about 170 × 150 studs. Every table, the bar and the
+  terrace door are within an 8-second walk (128 studs) of the foot of the spawn stair.
 - **Starting plan** (improve it if the audit passes):
-  - **North, along the windows:** the 2v2 zone (2 × 2 tables) and the 3v3 zone (2 tables in
-    one row, with extra room for six players).
+  - **North, along the windows (about 67 deep):** from west to east, the 2v2 zone (2 across
+    × 2 deep, about 51 wide), the 3v3 zone (2 tables side by side with 12 studs of clearance
+    for six players, about 60 wide), then the lounge and bar with the terrace door.
   - **Main walkway:** runs east to west through the middle. Spawn, bar, featured screen and
     kiosks meet at one crossroads, the busiest spot on purpose.
-  - **South:** the 1v1 zone (3 × 2 tables) and the lounge.
+  - **South (about 67 deep):** the 1v1 zone (5 across × 2 deep, about 114 wide) and, beside
+    it, the spawn stair, the kiosks and the featured screen.
   - **Balcony:** along the south wall, floor at Z = 11.2 (fourteen 0.8-rise, 1.6-run steps),
-    12 deep, with a solid-faced 3.5-stud railing.
+    12 deep, with a solid-faced 3.5-stud railing. It must not overhang any table's clear
+    height; seating goes underneath it.
   - **Terrace:** off the lounge through the east glass.
 - **Seating goes at the edges.** Put armchairs, benches and booths along partitions, windows
   and under the balcony, 7 to 20 studs from a table so watchers can hear the players. Keep
@@ -181,8 +202,8 @@ views looking out of each window wall to prove it holds up.
 
 ## Mobile budget (low-end phones)
 
-- **Triangles:** at most 120,000 for the environment, including the skyline. The 12 tables add
-  about 98,000 on top. At most 10,000 per mesh.
+- **Triangles:** at most 110,000 for the environment, including the skyline. The 16 tables add
+  about 130,000 on top. At most 10,000 per mesh.
 - **Textures:** at most 10 sets at 1024 (colour and roughness; metalness only where there is
   metal; normal maps only where they clearly help). Small props share 512 or 256 atlases.
 - **Repeated props are exported ONCE.** Chairs, stools, sofas, pendants, plants, cue racks,
@@ -200,7 +221,7 @@ Do not bake direct light into colour maps (AO only). In `Markers.json`, write ev
 game should create: position, direction, shape and size of the glowing face, colour
 temperature, and a suggested Roblox light type with Brightness, Range and Angle. Table
 pendants are a `SurfaceLight` facing down, sized to the pendant's glowing face. Keep the total
-around 25 or fewer.
+around 30 or fewer (16 table pendants plus a few ambient lights).
 
 Also write a suggested Roblox Lighting recipe:
 
@@ -225,7 +246,7 @@ After every stage:
 - update `assets/hub/PROGRESS.md`: done, remaining, last success, exact resume step;
 - check the result with an MCP viewport screenshot.
 
-1. **Blockout and audit.** Shell, windows, zones, balcony, stairs, walkways and the 12 table
+1. **Blockout and audit.** Shell, windows, zones, balcony, stairs, walkways and the 16 table
    instances. Run a numeric clearance and walk-distance audit and write it to
    `assets/hub/layout_audit.md`. Render:
    - a labelled top-down plan;

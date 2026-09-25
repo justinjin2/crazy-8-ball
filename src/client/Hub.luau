@@ -2,7 +2,7 @@
 -- Hub: the client's view of the room. It owns one simulation per table, a small pool of
 -- ball renderers pointed at the nearest few, and the seat state the server sends down.
 --
--- Twelve tables all drawing their balls would be 192 ball meshes on top of a scene that
+-- Sixteen tables all drawing their balls would be 256 ball meshes on top of a scene that
 -- already carries about a quarter of a million triangles of table, and the ones across the
 -- room are a few pixels tall. So every table has a Match (the state is sixteen balls of
 -- plain data, which costs nothing) but only Config.Hub.RenderedTables of them hold a
