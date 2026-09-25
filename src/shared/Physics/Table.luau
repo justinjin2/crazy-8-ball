@@ -255,19 +255,18 @@ end
 
 --- The pocket a ball centred at (x, y) ON THE CLOTH has dropped into, or nil. The centre
 --- being inside the opening rim IS the condition: the ball has nothing under it any more.
---- (A ball in the air is not asked: see Simulation's off-table check.)
+--- (A ball in the air asks openingAt instead: see Simulation.) One pass, like openingAt plus
+--- the safety net, because this is asked of every ball on every step.
 function TableGeometry.pocketAt(geometry: Geometry, x: number, y: number): Pocket?
-	local opening = TableGeometry.openingAt(geometry, x, y)
-	if opening or not geometry.pocketsOpen then
-		return opening
+	if not geometry.pocketsOpen then
+		return nil
 	end
-	-- Safety net, not a way to pocket: nothing on the cloth should get this far past the
-	-- cushion line without having crossed an opening rim, but if it does, the nearest pocket
-	-- takes it rather than letting a ball wander off the table.
 	local T = Config.Table
-	local shelf = T.PocketShelfBallRadii * Config.Balls.RadiusInches
-		+ T.CornerShelfInches / math.sqrt(2)
-	if TableGeometry.containsCenter(geometry, x, y, shelf) then
+	local biggest = math.max(T.CornerPocketRadiusInches, T.SidePocketRadiusInches)
+	if
+		math.abs(x) < geometry.halfLength - biggest
+		and math.abs(y) < geometry.halfWidth - biggest
+	then
 		return nil
 	end
 	local nearest: Pocket? = nil
@@ -275,12 +274,23 @@ function TableGeometry.pocketAt(geometry: Geometry, x: number, y: number): Pocke
 	for _, p in geometry.pockets do
 		local dx, dy = x - p.x, y - p.y
 		local dist = math.sqrt(dx * dx + dy * dy)
+		if dist <= p.radius then
+			return p
+		end
 		if dist < nearestDist then
 			nearestDist = dist
 			nearest = p
 		end
 	end
-	return nearest
+	-- Safety net, not a way to pocket: nothing on the cloth should get this far past the
+	-- cushion line without having crossed an opening rim, but if it does, the nearest pocket
+	-- takes it rather than letting a ball wander off the table.
+	local shelf = T.PocketShelfBallRadii * Config.Balls.RadiusInches
+		+ T.CornerShelfInches / math.sqrt(2)
+	if not TableGeometry.containsCenter(geometry, x, y, shelf) then
+		return nearest
+	end
+	return nil
 end
 
 --- The head spot (cue ball start) and foot spot (rack apex), in inches.

@@ -53,19 +53,24 @@ normal-speed restitution. Translation stays planar for a ball on the cloth; only
 Six pockets use capture circles with jaw facings and a physical drop (z, vz, funnel). Corner
 openings have a flat shelf scaled to ball diameter, and facings extend to their rim. Wedge guards
 against zero-time hit loops. `Aim.trace` gives the guideline from the same code as the shot.
-Balls can fly (jump shots, `Physics/Flight`). `Cue.strike` sends the stroke's downward part
-into the slate, which rebounds at `SlateRestitution` less `ClothHopLossSpeed`; a rebound
-under `MinHopSpeed` is swallowed and nothing changes, so ordinary shots are bit-identical to
-the planar engine. A ball in the air flies a parabola (no cloth friction), lands with slate
+Balls can fly (jump shots, `Physics/Flight`), after Dr. Dave's TP B.10 model. `Cue.strike`
+sends the stroke's downward part into the slate, which rebounds at `SlateRestitution` (0.6);
+a near-level stroke gets only `FlatStrikeBounce` of that, rising to all of it at
+`Cue.JumpCapDegrees`, and a raised cue's top stroke speed falls to `Cue.JumpMaxStickSpeed`
+(12 mph) by the same angle. A rebound under `MinHopSpeed` is swallowed and nothing changes,
+so ordinary shots are bit-identical to the planar engine. A ball in the air flies a parabola (no cloth friction), lands with slate
 friction, and while any ball is airborne the event window is cut to `AirStepSeconds` and its
 ball contacts use `Collision.sphereTOI` and a 3-D normal. A ball on the cloth never takes
 vertical velocity (the slate holds it), so only the flyer flies and object balls stay down.
-Cushions treat a ball below `AirCushionMinHeightInches` as on the cloth; higher, Han's tilted
-normal keeps its vertical part, and above the cushion it passes over. A ball in the air that
-crosses a cushion line outside an opening is `offTable` (pocketed, no pocket, `offTable`
-event). A low hop into a rack still breaks it by soft contact: the flyer is laid flat for the
+A ball in the air below the cushion top meets a cushion like a ball on the cloth and keeps
+its own vertical speed (no launch). Higher, it never touches the cushion: `Simulation.goesOver`
+rules it `offTable` (pocketed, no pocket, `offTable` event) once it is over a real cushion
+face or jaw moving outward, or a radius past the cushion line anywhere but the hole. A ball
+coming slowly down onto another's top slides off, paid for from the contact's lost energy. A low hop into a rack still breaks it by soft contact: the flyer is laid flat for the
 phase and kicked up after, energy-bounded. The replay seed carries `vz`. `Aim.trace` walks
-the hops for the guideline (landings, "off"). Rules: `OffTable` foul, `EightOffTable` loss,
+the hops for the guideline (landings, "off") with the same `goesOver`/`touchesCushion`. A
+ball that flies off is drawn falling to the floor and rolling; the server holds the foul for
+`Flight.floorTime` + `Effects.FlyOffRollSeconds` + `FlyOffFadeSeconds`. Rules: `OffTable` foul, `EightOffTable` loss,
 object balls respotted by `CuePlacement` at the foot spot.
 Tests in `tests/`: energy never increases, no overlap at rest, no ball leaves the table except by flying (jump tests), the
 break scatters the rack, rail bounce mirrors, spin signs, determinism, trace matches simulation.

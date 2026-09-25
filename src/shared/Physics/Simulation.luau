@@ -272,7 +272,7 @@ local function integrateBall(
 		end
 		return
 	end
-	if Flight.isAirborne(b) then
+	if b.z > 0 or b.vz > 0 then -- in the air (Flight.isAirborne, inlined: this is hot)
 		local flown = Flight.fly(b, h)
 		if flown >= h then
 			return
@@ -396,60 +396,13 @@ end
 -- Its line of action passes through the centre, so only tangential impulses create torque.
 --
 -- A ball on the cloth is held down by the slate through the contact (Han's assumption), so
--- its vertical translation is discarded. So is a ball only skimming the cloth (below
--- AirCushionMinHeightInches, a flat shot's hop). A ball flying higher meets the nose lower on
--- its face, keeps the vertical part, and can be thrown up and over the rail.
-local function resolveRailAirborne(b: Ball, nx: number, ny: number, e: number, mu: number): number
-	local R = Config.Balls.RadiusInches
-	local limit = Config.Physics.AirCushionMaxTilt
-	local sinTheta =
-		math.clamp((Config.Physics.CushionNoseHeightInches - R - b.z) / R, -limit, limit)
-	local cosTheta = math.sqrt(1 - sinTheta * sinTheta)
-	local tx, ty = -ny, nx
-	local vn = b.vx * nx + b.vy * ny
-	local vz = b.vz
-	-- Approach along the true normal (cos, 0, -sin): the ball may be dropping onto the nose.
-	local approach = -(vn * cosTheta - vz * sinTheta)
-	if vn >= 0 or approach <= 0 then
-		return 0
-	end
-	local vt = b.vx * tx + b.vy * ty
-	local wn = b.wx * nx + b.wy * ny
-	local wt = b.wx * tx + b.wy * ty
-	local wz = b.wz
-
-	local slipAlong = vt - R * (cosTheta * wz + sinTheta * wn)
-	local slipTilt = sinTheta * vn + cosTheta * vz + R * wt
-	local slipSpeed = math.sqrt(slipAlong * slipAlong + slipTilt * slipTilt)
-	local normalImpulse = (1 + e) * approach
-	local along, tilt = 0, 0
-	if slipSpeed > 0 then
-		local impulse = math.min(slipSpeed / 3.5, mu * normalImpulse)
-		along = -impulse * slipAlong / slipSpeed
-		tilt = -impulse * slipTilt / slipSpeed
-	end
-	vn += normalImpulse * cosTheta + tilt * sinTheta
-	vz += -normalImpulse * sinTheta + tilt * cosTheta
-	vt += along
-	wn -= 2.5 * sinTheta * along / R
-	wt += 2.5 * tilt / R
-	wz -= 2.5 * cosTheta * along / R
-
-	vn = math.abs(vn)
-	b.vx = vn * nx + vt * tx
-	b.vy = vn * ny + vt * ty
-	b.vz = vz
-	b.wx = wn * nx + wt * tx
-	b.wy = wn * ny + wt * ty
-	b.wz = wz
-	return approach
-end
-
+-- its vertical translation is discarded. A ball in the air lower than the cushion top meets
+-- it the same way and keeps its own vertical speed: it rebounds off the rubber, it is not
+-- launched by it. (A version that kept the tilted normal's vertical part threw balls 4-11 ft
+-- up and could freeze one rising past the nose; the 2026-09-24 fuzz found both.) Higher
+-- than the cushion top it never touches it: see checkOffTable.
 local function resolveRail(b: Ball, nx: number, ny: number, e: number, mu: number): number
 	local R = Config.Balls.RadiusInches
-	if Flight.isAirborne(b) and b.z >= Config.Physics.AirCushionMinHeightInches then
-		return resolveRailAirborne(b, nx, ny, e, mu)
-	end
 	local sinTheta = Config.Physics.CushionNoseHeightInches / R - 1
 	local cosTheta = math.sqrt(1 - sinTheta * sinTheta)
 	local tx, ty = -ny, nx
@@ -514,6 +467,26 @@ local function resolveBalls3D(a: Ball, b: Ball): number
 	if relVn <= 0 then
 		return 0
 	end
+	-- A ball settling onto the top of another cannot balance there: rather than bounce on
+	-- it forever in ever smaller hops, a slow contact from above is dead and sends the top
+	-- ball off the side it leans to (straight down: a fixed side, so replays agree), paid
+	-- for out of the energy the dead contact loses, so none is ever created.
+	local P = Config.Physics
+	local g = P.Gravity
+	local perch: Ball? = nil
+	local slideX, slideY = 0, 0
+	local energyBefore = Ball.kineticEnergy(a, R, g) + Ball.kineticEnergy(b, R, g)
+	if math.abs(nz) > 0.5 and relVn < P.PerchSpeed then
+		local sign = if nz < 0 then -1 else 1
+		perch = if nz < 0 then a else b
+		slideX, slideY = sign * nx, sign * ny
+		local h = math.sqrt(slideX * slideX + slideY * slideY)
+		if h < 1e-6 then
+			slideX, slideY, h = 1, 0, 1
+		end
+		slideX, slideY = slideX / h * P.PerchSlideSpeed, slideY / h * P.PerchSlideSpeed
+		e = 0
+	end
 	local j = (1 + e) * relVn / 2
 	a.vx -= j * nx
 	a.vy -= j * ny
@@ -559,6 +532,29 @@ local function resolveBalls3D(a: Ball, b: Ball): number
 	if bDown then
 		b.vz = 0
 	end
+	if perch then
+		-- The largest share of the slide the contact's loss can pay for (bisection: exact
+		-- arithmetic only, so every machine lands on the same number).
+		local vx, vy = perch.vx, perch.vy
+		local function after(k: number): number
+			perch.vx, perch.vy = vx + slideX * k, vy + slideY * k
+			return Ball.kineticEnergy(a, R, g) + Ball.kineticEnergy(b, R, g)
+		end
+		local lo, hi = 0, 1
+		if after(1) > energyBefore then
+			for _ = 1, 20 do
+				local mid = (lo + hi) / 2
+				if after(mid) > energyBefore then
+					hi = mid
+				else
+					lo = mid
+				end
+			end
+			after(lo)
+		end
+		-- Rolling off another ball's top touches it every step: not a hit anyone hears.
+		return 0
+	end
 	return relVn
 end
 
@@ -566,7 +562,7 @@ end
 -- Keep vertical contact slip for the angular impulse, then discard vertical translation:
 -- balls stay on the cloth, but rolling into another ball can give it backspin.
 local function resolveBalls(a: Ball, b: Ball): number
-	if Flight.isAirborne(a) or Flight.isAirborne(b) then
+	if a.z > 0 or a.vz > 0 or b.z > 0 or b.vz > 0 then -- either in the air
 		return resolveBalls3D(a, b)
 	end
 	local e = Config.Physics.BallRestitution
@@ -628,10 +624,19 @@ local function capturePockets(state: State, events: { Event }?)
 	local g = Config.Physics.Gravity
 	local minTheta = math.rad(Config.Table.PocketTipMinDegrees)
 	for _, b in state.balls do
-		if b.pocketed or Flight.isAirborne(b) then
+		if b.pocketed then
 			continue
 		end
-		local pocket = TableGeometry.pocketAt(state.geometry, b.x, b.y)
+		-- A ball in the air lower than the cushion top over an opening meets the back of the
+		-- pocket and goes down it, as a hard flat shot's hop into a pocket must. Higher, it
+		-- flies over (and may still come down into it).
+		local flying = b.z > 0 or b.vz > 0 -- Flight.isAirborne, inlined: this is hot
+		if flying and b.z >= Config.Table.CushionHeightInches then
+			continue
+		end
+		local pocket = if flying
+			then TableGeometry.openingAt(state.geometry, b.x, b.y)
+			else TableGeometry.pocketAt(state.geometry, b.x, b.y)
 		if pocket == nil then
 			continue
 		end
@@ -639,6 +644,19 @@ local function capturePockets(state: State, events: { Event }?)
 		b.falling = true
 		b.pocket = pocket.id
 		b.wz = 0 -- side spin has nothing to bite on once the ball is off the cloth
+		if flying then
+			b.wx, b.wy = 0, 0
+			if events then
+				table.insert(events, {
+					t = state.time,
+					type = "pocket",
+					ball = b.id,
+					other = pocket.id,
+					speed = math.sqrt(b.vx * b.vx + b.vy * b.vy + b.vz * b.vz),
+				})
+			end
+			continue
+		end
 
 		-- The rim point the ball crossed, and the direction from it into the pocket.
 		local dx, dy = b.x - pocket.x, b.y - pocket.y
@@ -683,21 +701,81 @@ local function capturePockets(state: State, events: { Event }?)
 	end
 end
 
--- A ball in the air whose centre has crossed a cushion line, anywhere but over a pocket
--- opening, has gone over the cushion: high enough to clear it, or already past the nose and
--- out over the rail. (Lower down it would have hit the cushion.)
-local function checkOffTable(state: State, events: { Event }?)
+--- Whether a ball centred at (x, y) overlaps a cushion face or a jaw, in plan. Aim.trace uses
+--- it to find where a low flight meets a cushion.
+function Simulation.touchesCushion(geometry: Geometry, x: number, y: number): boolean
 	local R = Config.Balls.RadiusInches
-	local clear = Config.Table.CushionHeightInches
-	local geometry = state.geometry
+	for _, seg in geometry.segments do
+		local d = (x - seg.ax) * seg.nx + (y - seg.ay) * seg.ny
+		if d < R and d > -R then
+			local ex, ey = seg.bx - seg.ax, seg.by - seg.ay
+			local along = ((x - seg.ax) * ex + (y - seg.ay) * ey) / (ex * ex + ey * ey)
+			if along >= 0 and along <= 1 then
+				return true
+			end
+		end
+	end
+	for _, pt in geometry.points do
+		local dx, dy = x - pt.x, y - pt.y
+		local reach = R + pt.radius
+		if dx * dx + dy * dy < reach * reach then
+			return true
+		end
+	end
+	return false
+end
+
+--- Whether a ball in the air at (x, y, z) moving (vx, vy) is going over a cushion: a radius
+--- past the cushion line (out over the rail) anywhere but the hole itself, or higher than
+--- the cushion top, over a real cushion face or jaw and moving outward across it. The mouth
+--- in front of a pocket has no cushion, so a ball flying into it may still drop in.
+--- Aim.trace asks the same question for the guideline.
+function Simulation.goesOver(
+	geometry: Geometry,
+	x: number,
+	y: number,
+	z: number,
+	vx: number,
+	vy: number
+): boolean
+	local R = Config.Balls.RadiusInches
+	if TableGeometry.openingAt(geometry, x, y) then
+		return false
+	end
+	if not TableGeometry.containsCenter(geometry, x, y, R) then
+		return true
+	end
+	if z < Config.Table.CushionHeightInches then
+		return false
+	end
+	for _, seg in geometry.segments do
+		local d = (x - seg.ax) * seg.nx + (y - seg.ay) * seg.ny
+		if d < R and d > -R and vx * seg.nx + vy * seg.ny < 0 then
+			local ex, ey = seg.bx - seg.ax, seg.by - seg.ay
+			local along = ((x - seg.ax) * ex + (y - seg.ay) * ey) / (ex * ex + ey * ey)
+			if along >= 0 and along <= 1 then
+				return true
+			end
+		end
+	end
+	for _, pt in geometry.points do
+		local dx, dy = x - pt.x, y - pt.y
+		local reach = R + pt.radius
+		if dx * dx + dy * dy < reach * reach and dx * vx + dy * vy < 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- A ball in the air going over a cushion is off the table (see goesOver). Lower than the
+-- cushion top it would have hit the cushion instead (findEarliestHit).
+local function checkOffTable(state: State, events: { Event }?)
 	for _, b in state.balls do
-		if not Flight.isAirborne(b) or TableGeometry.containsCenter(geometry, b.x, b.y) then
-			continue
-		end
-		if TableGeometry.openingAt(geometry, b.x, b.y) then
-			continue
-		end
-		if b.z >= clear or not TableGeometry.containsCenter(geometry, b.x, b.y, R) then
+		if
+			Flight.isAirborne(b)
+			and Simulation.goesOver(state.geometry, b.x, b.y, b.z, b.vx, b.vy)
+		then
 			leaveTable(b, events, state.time)
 		end
 	end
@@ -718,7 +796,12 @@ type Hit = {
 }
 
 -- `skip`, when given, holds balls that sit this search out entirely (see Simulation.step).
-local function findEarliestHit(state: State, maxT: number, skip: { [Ball]: boolean }?): Hit?
+local function findEarliestHit(
+	state: State,
+	maxT: number,
+	skip: { [Ball]: boolean }?,
+	anyAir: boolean
+): Hit?
 	local R = Config.Balls.RadiusInches
 	local geometry = state.geometry
 	local balls = state.balls
@@ -730,7 +813,7 @@ local function findEarliestHit(state: State, maxT: number, skip: { [Ball]: boole
 		if a.pocketed or (skip and skip[a]) then
 			continue
 		end
-		local flying = Flight.isAirborne(a)
+		local flying = anyAir and Flight.isAirborne(a)
 		local moving = a.vx ~= 0 or a.vy ~= 0 or flying
 		-- Broad phase: a ball that cannot reach the cushion line this step skips every rail
 		-- and jaw test (facings and jaws all lie on or beyond the cushion line). A ball flying
@@ -760,7 +843,10 @@ local function findEarliestHit(state: State, maxT: number, skip: { [Ball]: boole
 			if b.pocketed or (skip and skip[b]) then
 				continue
 			end
-			local bFlying = Flight.isAirborne(b)
+			if not moving and b.vx == 0 and b.vy == 0 and not anyAir then
+				continue
+			end
+			local bFlying = anyAir and Flight.isAirborne(b)
 			if not moving and b.vx == 0 and b.vy == 0 and not bFlying then
 				continue
 			end
@@ -809,7 +895,9 @@ local function pushOut(hit: Hit)
 		end
 	elseif hit.kind == "ball" and hit.b and (Flight.isAirborne(a) or Flight.isAirborne(hit.b)) then
 		-- In the air: separate along the 3-D line of centres, moving only balls that are off
-		-- the cloth (the slate holds the other one up).
+		-- the cloth (the slate holds the other one up). Separating in plan only wedged a ball
+		-- coming down into a rack; lifting one adds height energy, so it is paid for out of
+		-- that ball's own speed.
 		local b = hit.b
 		local dx, dy, dz = b.x - a.x, b.y - a.y, b.z - a.z
 		local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
@@ -819,12 +907,29 @@ local function pushOut(hit: Hit)
 			local nx, ny, nz = dx / dist, dy / dist, dz / dist
 			local aShare = if aFree and bFree then 0.5 elseif aFree then 1 else 0
 			local push = want - dist
-			a.x -= nx * push * aShare
-			a.y -= ny * push * aShare
-			a.z = math.max(0, a.z - nz * push * aShare)
-			b.x += nx * push * (1 - aShare)
-			b.y += ny * push * (1 - aShare)
-			b.z = math.max(0, b.z + nz * push * (1 - aShare))
+			local function move(ball: Ball, sign: number, share: number)
+				if share <= 0 then
+					return
+				end
+				local z0 = ball.z
+				ball.x += sign * nx * push * share
+				ball.y += sign * ny * push * share
+				ball.z = math.max(0, ball.z + sign * nz * push * share)
+				local lift = ball.z - z0
+				if lift > 0 then
+					local g = Config.Physics.Gravity
+					local kinetic = 0.5
+						* (ball.vx * ball.vx + ball.vy * ball.vy + ball.vz * ball.vz)
+					if kinetic > 0 then
+						local scale = math.sqrt(math.max(0, kinetic - g * lift) / kinetic)
+						ball.vx *= scale
+						ball.vy *= scale
+						ball.vz *= scale
+					end
+				end
+			end
+			move(a, -1, aShare)
+			move(b, 1, 1 - aShare)
 		end
 	elseif hit.kind == "ball" and hit.b then
 		local b = hit.b
@@ -967,13 +1072,16 @@ local function advance(
 		iterations += 1
 		-- Anything in the air shortens the search window (see findEarliestHit).
 		local window = remaining
+		local anyAir = false
 		for _, b in state.balls do
-			if Flight.isAirborne(b) and not (skip and skip[b]) then
+			-- Flight.isAirborne, inlined: this runs for every ball on every event.
+			if not b.pocketed and (b.z > 0 or b.vz > 0) and not (skip and skip[b]) then
 				window = math.min(remaining, P.AirStepSeconds)
+				anyAir = true
 				break
 			end
 		end
-		local hit = findEarliestHit(state, window, skip)
+		local hit = findEarliestHit(state, window, skip, anyAir)
 		local advanceBy = if hit then hit.t else window
 
 		for _, b in state.balls do
@@ -984,7 +1092,9 @@ local function advance(
 		state.time += advanceBy
 		remaining -= advanceBy
 		capturePockets(state, events)
-		checkOffTable(state, events)
+		if anyAir then
+			checkOffTable(state, events)
+		end
 
 		if hit and not hit.a.pocketed and not (hit.b and hit.b.pocketed) then
 			local soft: { Ball }? = nil

@@ -25,11 +25,19 @@ function Cue.speedForPower(power: number): number
 	return C.MinSpeed + (C.MaxSpeed - C.MinSpeed) * (p ^ C.PowerCurve)
 end
 
---- The power bar controls cue-stick speed; off-centre strikes give less ball speed.
-function Cue.stickSpeedForPower(power: number): number
+--- The power bar controls cue-stick speed; off-centre strikes give less ball speed. A raised
+--- cue cannot be swung at break speed, so from the default angle up to JumpCapDegrees the
+--- top of the bar comes down to JumpMaxStickSpeed, and the whole bar spans that range.
+function Cue.stickSpeedForPower(power: number, elevation: number?): number
 	local C = Config.Cue
-	return C.MinStickSpeed
-		+ (C.MaxStickSpeed - C.MinStickSpeed) * math.clamp(power, 0, 1) ^ C.PowerCurve
+	local raised = math.clamp(
+		((elevation or C.CueElevationDegrees) - C.CueElevationDegrees)
+			/ (C.JumpCapDegrees - C.CueElevationDegrees),
+		0,
+		1
+	)
+	local top = C.MaxStickSpeed + (C.JumpMaxStickSpeed - C.MaxStickSpeed) * raised
+	return C.MinStickSpeed + (top - C.MinStickSpeed) * math.clamp(power, 0, 1) ^ C.PowerCurve
 end
 
 --- Free-path travel bound to rest, including draw/follow and swerve. Angular velocity is in the
@@ -124,7 +132,7 @@ function Cue.strike(cueBall: Ball, shot: Shot): number
 	local e = C.TipRestitution
 	local eta = ((1 - massRatio * e) ^ 2 + massRatio * (1 + e) ^ 2) / (1 + massRatio) ^ 2
 	local radicand = 1 - (1 - eta) / massRatio * K
-	local impulsePerMass = Cue.stickSpeedForPower(shot.power)
+	local impulsePerMass = Cue.stickSpeedForPower(shot.power, math.deg(theta))
 		* (1 + math.sqrt(math.max(0, radicand)))
 		/ K
 	local speed = impulsePerMass * cos
@@ -144,8 +152,22 @@ function Cue.strike(cueBall: Ball, shot: Shot): number
 	cueBall.wy = dy * forwardSpin + dx * leftSpin
 	cueBall.wz = angular * sx * cos
 	-- The downward part of the stroke goes into the slate. Below MinHopSpeed the cloth takes
-	-- it and nothing changes; above it the ball jumps.
-	Flight.slate(cueBall, impulsePerMass * sin, false)
+	-- it and nothing changes; above it the ball jumps. A near-level stroke barely presses the
+	-- ball into the cloth and the cloth soaks up most of it (FlatStrikeBounce); from
+	-- JumpCapDegrees up it bounces off the slate in full, which is what a jump shot is.
+	local raised = math.clamp(
+		(math.deg(theta) - C.CueElevationDegrees) / (C.JumpCapDegrees - C.CueElevationDegrees),
+		0,
+		1
+	)
+	local P = Config.Physics
+	local bounce = P.SlateRestitution * (P.FlatStrikeBounce + (1 - P.FlatStrikeBounce) * raised)
+	-- The slate's grip on the stroke fades in the same way. At the default angle a hard shot
+	-- then only gains its whisker of hop, with the same speed and draw as the stroke below
+	-- it: the power bar stays smooth where the hop begins (2026-09-24 regression check).
+	if Flight.slate(cueBall, impulsePerMass * sin, false, bounce, P.SlateFriction * raised) then
+		speed = math.sqrt(cueBall.vx * cueBall.vx + cueBall.vy * cueBall.vy)
+	end
 	return speed
 end
 

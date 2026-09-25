@@ -922,16 +922,37 @@ fallback is one cloth colour map per look).
   Studio's input tool, so it is only a bonus).
 - Off-table follows standard rules: foul with ball in hand; object balls respotted at the foot
   spot; the 8 off the table loses, or on the break is respotted.
-- Rarity for flat shots (designer: rare, cue ball only): the cloth soaks up
-  ClothHopLossSpeed 10 in/s of every rebound and MinHopSpeed 3 in/s is swallowed. Measured
-  over 36-300 full-power shots at a nearby ball: the cue ball pops in about 7% and leaves
-  the table in about 4%; at 90% power never. Balls on the cloth never take vertical
-  velocity from a contact (the slate holds them), so object balls never fly.
-- A cushion treats a ball below 0.5 in as on the cloth (AirCushionMinHeightInches), so a
-  hard flat shot's hop (at most about 0.05 in now) is never launched off a rail.
+- Rarity for flat shots (designer: rare, cue ball only): superseded the same day by the
+  realism review below.
 - Raising the cue past 4 degrees keeps the spin disc's meaning (the 4-degree draw bias is
   kept) instead of pooltool's table-frame lever, which would turn a centre-hit jump into a
   screw-back. Every shot at 4 degrees is bit-identical to before.
 - A low hop into a rack still uses soft contact (the flyer is laid flat for the phase and
   kicked up after, energy-bounded), so a full-power break still spreads the rack.
+
+2026-09-24: Jump shots, after the independent review (a regression check, a 32,000-shot fuzz and
+a realism review against Dr. Dave's TP B.10):
+- Jumping a ball over another is realistic, and the model follows TP B.10. Slate
+  restitution is 0.6 with no cloth loss, which matches TP B.10's launch angles and clearing
+  speeds. A raised cue's top stroke drops to 12 mph (Cue.JumpMaxStickSpeed), reached by
+  15 degrees, because nobody swings a raised cue at break speed. A full-power jump now rises
+  about 9, 18 and 26 in at 30, 45 and 60 degrees (it was 19, 41 and 62). At 45 degrees a ball
+  clears a blocker from about 70% power. At 60 degrees, full power still flies off the table.
+- Flat shots stay rare (designer): a near-level stroke gets FlatStrikeBounce 0.4 of the slate
+  bounce, rising to all of it at 15 degrees. Rebounds under MinHopSpeed 8 in/s are swallowed.
+  Only the top ~4% of the power bar hops, by about 0.1 in. Full power straight at a nearby
+  ball pops the cue ball in about 8% of shots and sends it off in about 5% (90 shots).
+- Fixed from the fuzz:
+  - A ball rising past a cushion froze in mid-air.
+  - A cushion launched a flying ball 4-11 ft up. A flying ball below the cushion top now
+    rebounds like a ball on the cloth and keeps its own vertical speed.
+  - A ball coming down onto a cushion top was teleported.
+  - A high ball over a corner mouth was ruled off. Off the table is now judged from the real
+    cushion faces and jaws (Simulation.goesOver).
+  - A ball perched on another bounced until the shot timed out. It now slides off, and the
+    energy for that comes from the contact's loss.
+- A ball that flies off is shown landing on the floor and rolling for about a second before
+  the foul card (designer). The server holds the foul for exactly that long.
+- Deferred (would need the designer): a steep hit above centre jamming instead of jumping,
+  and a double hit at steep hard strokes.
 

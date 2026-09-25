@@ -205,6 +205,8 @@ return {
 		for _, case in
 			{
 				{ power = 0.65, elevation = 45 },
+				{ power = 0.8, elevation = 45 },
+				{ power = 0.9, elevation = 60 },
 				{ power = 0.6, elevation = 60 },
 				{ power = 0.4, elevation = 45 },
 				{ power = 0.3, elevation = 30 },
@@ -214,16 +216,33 @@ return {
 			local shot = { angle = 0, power = case.power, elevation = case.elevation }
 			local trace = Aim.trace(layout(), shot)
 			local result = Simulation.runHeadless(layout(), shot)
+			-- The first thing the cue ball meets in the simulation: a ball, a cushion, or the
+			-- floor. The guideline shows exactly that.
+			local kind, id = "none", nil
+			for _, ev in result.events do
+				if ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
+					kind, id = "ball", if ev.ball == 0 then ev.other else ev.ball
+					break
+				elseif ev.type == "railHit" and ev.ball == 0 then
+					kind = "rail"
+					break
+				elseif ev.type == "offTable" and ev.ball == 0 then
+					kind = "off"
+					break
+				end
+			end
 			H.expect(
-				trace.contact == "ball" and trace.objectId == result.firstContact,
-				("power %.2f at %s degrees: traced %s, simulated %s"):format(
+				trace.contact == kind and trace.objectId == id,
+				("power %.2f at %s degrees: traced %s %s, simulated %s %s"):format(
 					case.power,
 					tostring(case.elevation),
+					trace.contact,
 					tostring(trace.objectId),
-					tostring(result.firstContact)
+					kind,
+					tostring(id)
 				)
 			)
-			if result.firstContact == 2 then
+			if id == 2 then
 				H.expect(#trace.landings >= 1 or trace.airborne, "a jump shows where it comes down")
 			end
 		end

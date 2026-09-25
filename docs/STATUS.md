@@ -1,5 +1,36 @@
 # Status
 
+**2026-09-24 (later): jump shots reviewed by three independent agents, fixed and retuned.**
+
+- **Landing before the foul (designer):** a ball that flies off now skips off the rail if it
+  hits it, falls to the floor, bounces and rolls for about a second. Only then does the foul
+  card show. The server waits exactly that long.
+- **Regression check:** 8,658 ordinary 4-degree shots played exactly as before jump shots
+  existed. Object balls never left the cloth.
+- **Bugs fixed from the reviews:**
+  - A ball rising into a cushion froze in mid-air.
+  - Cushions launched flying balls 4-11 ft up.
+  - A ball coming down onto a cushion top was teleported.
+  - Off-table was wrong at corner pocket mouths.
+  - A ball perched on another bounced until the shot timed out.
+  - A tiny energy gain on separation.
+  - A hard flat shot hopping into a pocket wasn't pocketed, so a scratch became off the
+    table.
+  - The power bar dipped where the flat hop begins.
+- **Speed:** normal shots were 48% slower than before jump shots; now about 6%.
+- **Realism:**
+  - Jumping a ball over another is realistic. The model now follows Dr. Dave's TP B.10:
+    slate bounce 0.6, and a raised cue's top stroke is 12 mph.
+  - Full-power jumps rise about 9, 18 and 26 in at 30, 45 and 60 degrees (they were 19,
+    41 and 62).
+  - At 45 degrees a ball clears a blocker from about 70% power. 60 degrees at full power
+    still flies off.
+  - Flat full-power shots at a nearby ball send the cue ball off about 5% of the time.
+
+Still required: a real controller, a phone, a two-player check and the designer's feel check.
+
+---
+
 **2026-09-24: jump shots landed (branch `jump-shots`, from `table-remake`). A real
 controller, a phone and a two-player check are still to do.**
 

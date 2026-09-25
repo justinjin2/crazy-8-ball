@@ -86,13 +86,13 @@ return {
 		local _, Ball, TableGeometry, Simulation = setup()
 		local geometry = TableGeometry.build({ pocketsOpen = true })
 		local state = jumpLayout(Ball, Simulation, geometry)
-		local result = Simulation.run(state, { angle = 0, power = 0.65, elevation = 45 })
+		local result = Simulation.run(state, { angle = 0, power = 0.8, elevation = 45 })
 		H.expect(result.firstContact == 2, "cleared the 1 and hit the 2 first")
 		H.expect(#events(result, "offTable") == 0, "nothing left the table")
 		local blocker = Simulation.findBall({ balls = result.finalBalls } :: any, 1)
 		H.expect(blocker and blocker.x == -18 and blocker.y == 0, "the blocker was never touched")
 		-- The same shot at the default angle just hits the blocker.
-		local flat = Simulation.run(state, { angle = 0, power = 0.65 })
+		local flat = Simulation.run(state, { angle = 0, power = 0.8 })
 		H.expect(flat.firstContact == 1, "a level cue hits the blocker")
 	end,
 
@@ -137,11 +137,11 @@ return {
 				H.expect(b.vz == 0 and b.z == 0, ("power %.2f stays down"):format(power))
 			end
 		end
-		-- The very top of the bar hops a whisker: well under a tenth of an inch.
+		-- The very top of the bar hops a whisker: about a tenth of an inch.
 		local b = Ball.new(0, 0, 0)
 		Cue.strike(b, { angle = 0, power = 1 })
 		local hop = b.vz * b.vz / (2 * Config.Physics.Gravity)
-		H.expect(b.vz > 0 and hop < 0.1, ("full power hops %.3f in"):format(hop))
+		H.expect(b.vz > 0 and hop < 0.15, ("full power hops %.3f in"):format(hop))
 	end,
 
 	["a raised cue at low power stays down and keeps the level-cue spin"] = function()
@@ -161,7 +161,7 @@ return {
 	["object balls never leave the cloth, even when a jumping ball lands on them"] = function()
 		local Config, Ball, TableGeometry, Simulation = setup()
 		local geometry = TableGeometry.build({ pocketsOpen = true })
-		for _, power in { 0.55, 0.6, 0.7, 0.8 } do
+		for _, power in { 0.6, 0.7, 0.8, 0.9, 1 } do
 			for _, elevation in { 30, 45, 60 } do
 				local state = jumpLayout(Ball, Simulation, geometry)
 				local result =
@@ -176,7 +176,7 @@ return {
 				end
 			end
 		end
-		H.expect(Config.Physics.ClothHopLossSpeed > 0)
+		H.expect(Config.Physics.MinHopSpeed > 0, "tiny bounces are swallowed")
 	end,
 
 	["jump shots never gain energy and replay exactly"] = function()
@@ -265,5 +265,115 @@ return {
 			off <= math.ceil(shots * 0.1),
 			("%d of %d full-power flat shots sent the cue ball off"):format(off, shots)
 		)
+	end,
+
+	-- Regressions from the 2026-09-24 fuzz (a frozen ball, a rail launch, a perch, a mouth).
+	["a ball rising past a cushion rebounds instead of freezing in the air"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = true })
+		local b = Ball.new(0, geometry.halfLength - Config.Balls.RadiusInches - 0.05, 0)
+		b.z, b.vz, b.vx = 0.8, 150, 20
+		local state = Simulation.newState(geometry, { b })
+		local stops = 0
+		local stop = Ball.stop
+		Ball.stop = function(ball)
+			if not ball.pocketed then
+				stops += 1
+			end
+			stop(ball)
+		end
+		local ok, err = pcall(function()
+			for _ = 1, 240 do
+				Simulation.step(state, Config.Physics.FixedStep)
+			end
+		end)
+		Ball.stop = stop
+		H.expect(ok, tostring(err))
+		H.expect(stops == 0, ("the ball was force-stopped %d times"):format(stops))
+		H.expect(b.vx <= 0 or b.pocketed, "it came back off the cushion")
+	end,
+
+	["a flying ball meeting a cushion is not launched up by it"] = function()
+		local _, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = true })
+		for _, case in { { x = 10, angle = math.pi / 2 }, { x = -25, angle = 0 } } do
+			local state = Simulation.newState(geometry, { Ball.new(0, case.x, 0) })
+			local result = Simulation.run(state, { angle = case.angle, power = 1, elevation = 10 })
+			local peak = 0
+			for _, frame in result.frames do
+				peak = math.max(peak, frame.positions[3])
+			end
+			H.expect(peak < 12, ("a 10 degree shot rose %.1f in"):format(peak))
+		end
+	end,
+
+	["a ball coming down on top of another slides off and the shot ends"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = true })
+		local top = Ball.new(0, 0, 0)
+		top.z = 4
+		local state = Simulation.newState(geometry, { top, Ball.new(1, 0, 0) })
+		local log = {}
+		local steps = 0
+		while not Simulation.isAtRest(state) and steps < 2400 do
+			Simulation.step(state, Config.Physics.FixedStep, log)
+			steps += 1
+		end
+		H.expect(Simulation.isAtRest(state), "it settles well inside 10 s")
+		H.expect(#events({ events = log }, "ballHit") < 100, "without endless chatter")
+		local R = Config.Balls.RadiusInches
+		H.expect(
+			top.z == 0 and math.sqrt(top.x * top.x + top.y * top.y) >= 2 * R - 1e-3,
+			"beside it"
+		)
+	end,
+
+	["a high ball over a corner pocket's mouth drops in rather than off the table"] = function()
+		local Config, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = true })
+		local b = Ball.new(0, 47.5, 23.5)
+		b.z, b.vx, b.vy = 2.5, 30, 30
+		local state = Simulation.newState(geometry, { b })
+		for _ = 1, 480 do
+			Simulation.step(state, Config.Physics.FixedStep)
+		end
+		H.expect(b.pocketed and not b.offTable, "pocketed, not off the table")
+	end,
+
+	-- From the 2026-09-24 regression check.
+	["a hard flat shot hopping into a pocket is still pocketed"] = function()
+		local _, Ball, TableGeometry, Simulation = setup()
+		local geometry = TableGeometry.build({ pocketsOpen = true })
+		for _, case in
+			{
+				{ x = 0, y = -10, angle = -math.pi / 2 },
+				{ x = 0, y = -20, angle = -math.pi / 2 },
+				{ x = 35.228, y = -21.395, angle = -0.17453 },
+			}
+		do
+			local state = Simulation.newState(geometry, { Ball.new(0, case.x, case.y) })
+			local result = Simulation.runHeadless(state, { angle = case.angle, power = 1 })
+			local cue = result.finalBalls[1]
+			H.expect(
+				cue.pocketed and not cue.offTable and cue.pocket ~= nil,
+				("from (%.1f, %.1f): a scratch, not off the table or rattled out"):format(
+					case.x,
+					case.y
+				)
+			)
+		end
+	end,
+
+	["the power bar stays smooth where the flat hop begins"] = function()
+		local Config, Ball, _, _, Cue = setup()
+		local lastSpeed, lastDraw = -math.huge, -math.huge
+		for i = 800, 1000 do
+			local b = Ball.new(0, 0, 0)
+			local speed = Cue.strike(b, { angle = 0, power = i / 1000, spin = { x = 0, y = -0.4 } })
+			local draw = -b.wy * Config.Balls.RadiusInches
+			H.expect(speed >= lastSpeed, ("speed drops at power %.3f"):format(i / 1000))
+			H.expect(draw >= lastDraw, ("draw drops at power %.3f"):format(i / 1000))
+			lastSpeed, lastDraw = speed, draw
+		end
 	end,
 }

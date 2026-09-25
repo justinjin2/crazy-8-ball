@@ -56,14 +56,21 @@ function Flight.floorTime(z: number, vz: number): number
 end
 
 --- The slate pushes back on a ball driven into it at `downSpeed` (in/s, positive). The ball
---- rebounds at SlateRestitution times that, less ClothHopLossSpeed that the cloth soaks up,
+--- rebounds at SlateRestitution (or `restitution`) times that, less ClothHopLossSpeed (and
+--- `friction` replaces SlateFriction),
 --- with Coulomb friction at the contact changing its skid and spin like a short slide on the
 --- cloth. A rebound under MinHopSpeed is swallowed and the ball stays on the table; then,
 --- unless `always` is set (a real landing), nothing else changes either, so every ordinary
 --- shot plays exactly as it did before jumps existed. Returns true if the ball is in the air.
-function Flight.slate(b: Ball, downSpeed: number, always: boolean): boolean
+function Flight.slate(
+	b: Ball,
+	downSpeed: number,
+	always: boolean,
+	restitution: number?,
+	friction: number?
+): boolean
 	local P = Config.Physics
-	local e = P.SlateRestitution
+	local e = restitution or P.SlateRestitution
 	local up = e * downSpeed - P.ClothHopLossSpeed
 	local hops = up >= P.MinHopSpeed
 	b.z = 0
@@ -78,7 +85,7 @@ function Flight.slate(b: Ball, downSpeed: number, always: boolean): boolean
 	local u = math.sqrt(ux * ux + uy * uy)
 	if u > P.SlideEpsilon then
 		-- Unit mass, solid sphere: contact inverse mass 1 + 5/2, as in cloth sliding.
-		local impulse = math.min(u / 3.5, P.SlateFriction * normalImpulse)
+		local impulse = math.min(u / 3.5, (friction or P.SlateFriction) * normalImpulse)
 		local uhx, uhy = ux / u, uy / u
 		b.vx -= impulse * uhx
 		b.vy -= impulse * uhy

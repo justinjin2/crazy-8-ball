@@ -335,32 +335,35 @@ Config.Physics = {
 	-- Balls in the air (jump shots, Physics/Flight.luau; designer 2026-09-24). An elevated
 	-- cue drives the ball down into the slate and it rebounds; a ball coming down bounces.
 	-- Ball-slate coefficient of restitution: the rebound's upward speed over the downward
-	-- speed. Dr. Dave's jump-shot analysis uses about 0.5 for slate under cloth. (tune 0.3-0.6)
-	SlateRestitution = 0.5,
+	-- speed. Dr. Dave's jump-shot analysis (TP B.10) uses 0.6; his FAQ gives 0.5-0.7, pooltool
+	-- 0.5. 0.6 matches TP B.10's launch angles and clearing speeds (2026-09-24 realism
+	-- review). (tune 0.5-0.7)
+	SlateRestitution = 0.6,
 	-- Ball-cloth friction during that bounce: turns skid and spin into each other like a
 	-- very short slide. Same range as SlidingFriction. (tune 0.15-0.3)
 	SlateFriction = 0.2,
-	-- The cloth soaks up this much of every rebound's upward speed (in/s), and a rebound
-	-- left slower than MinHopSpeed is swallowed and the ball stays down. Together they
-	-- keep ordinary shots on the table: a 4 degree cue drives the ball down at most
-	-- 37 in/s (full power), so it hops only near the top of the power bar and only by a
-	-- whisker, and a hard flat shot rarely pops the cue ball off an object ball. The
-	-- designer asked for that to be rare (2026-09-24). (tune loss 8-14, min 1-6)
-	ClothHopLossSpeed = 10,
-	MinHopSpeed = 3,
+	-- A rebound slower than MinHopSpeed (in/s) is swallowed by the cloth and the ball stays
+	-- down (pooltool ignores bounces under about 5 mm the same way); ClothHopLossSpeed is
+	-- taken off every rebound first (0: the review found any loss makes jumps harder than
+	-- the published numbers). FlatStrikeBounce is the share of SlateRestitution a stroke at
+	-- the default 4 degrees gets, rising to all of it at Cue.JumpCapDegrees: a near-level
+	-- stroke barely presses the ball into the cloth and the cloth soaks it up. Together they
+	-- keep ordinary shots on the table: only the top few percent of the power bar hops the
+	-- cue ball, a whisker, and it pops off a nearby ball and off the table in a few percent
+	-- of full-power shots. The designer asked for that to be rare (2026-09-24). (tune)
+	ClothHopLossSpeed = 0,
+	MinHopSpeed = 8,
+	FlatStrikeBounce = 0.4,
+	-- A ball coming down on top of another more slowly than PerchSpeed (in/s along the line
+	-- of centres) stops bouncing and slides off the side at PerchSlideSpeed: no ball can
+	-- balance on another, and without this it bounced there in ever smaller hops until the
+	-- shot timed out (2026-09-24 fuzz). Numerical; 3-10 each.
+	PerchSpeed = 6,
+	PerchSlideSpeed = 6,
 	-- While any ball is in the air the event search window is capped at this (s), so
 	-- contacts with it can treat its curved path as straight. Numerical; 1/2400 bends by
 	-- well under a thousandth of an inch. Keep within 1/4800 to 1/1200.
 	AirStepSeconds = 1 / 2400,
-	-- A ball flying lower than this (inches off the cloth) meets a cushion as if it were on
-	-- the cloth. The nose passes the ball's centre at 0.30 in, so from there up the push
-	-- turns upward; the extra margin keeps a hard flat shot's hop (at most 0.44 in at full
-	-- power) from being launched off a rail, which the designer wants rare. (tune 0.3-0.6)
-	AirCushionMinHeightInches = 0.5,
-	-- A flying ball meets the cushion nose lower on its face the higher it flies, which
-	-- tilts the push up. Past the nose the push is capped at this tilt (sine) so a ball
-	-- skimming the cushion top is thrown up and over rather than along. Geometric, 0.8-0.95.
-	AirCushionMaxTilt = 0.9,
 
 	-- Simultaneous soft contact for touching balls (Physics/Cluster.luau). A contact that
 	-- involves a ball already touching a third ball is integrated as Hertz spheres for as
@@ -494,6 +497,13 @@ Config.Cue = {
 	CueElevationDegrees = 4,
 	MaxElevationDegrees = 60,
 	ElevationStepDegrees = 1,
+	-- The fastest stroke a raised cue can make (in/s at the tip). Nobody swings a cue raised
+	-- 30-60 degrees over a bridge at break speed: Dr. Dave's jump analysis (TP B.10) calls
+	-- 12 mph (211 in/s) a typical fast jump stroke. The top of the power bar comes down from
+	-- MaxStickSpeed at the default angle to this by JumpCapDegrees, so a full-power jump rises
+	-- tens of inches, not five feet (2026-09-24 realism review). (tune 180-260)
+	JumpMaxStickSpeed = 211,
+	JumpCapDegrees = 15,
 	-- The drawn cue's tilt (CueClearance, VISUAL ONLY). It starts at CueElevationDegrees and
 	-- tilts up just enough for the drawn cue's surface to clear the rail top (or a pocket
 	-- casting) and every ball behind the cue ball by these gaps (table inches), never past

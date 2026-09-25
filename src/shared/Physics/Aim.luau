@@ -53,7 +53,7 @@ export type Trace = {
 
 local FAR = 1e6
 -- Step along an arc (inches of travel) and the bisection that pins a contact down.
-local ARC_STEP_INCHES = 0.25
+local ARC_STEP_INCHES = 0.1
 local ARC_BISECTIONS = 16
 local MAX_HOPS = 8
 
@@ -116,11 +116,12 @@ local function traceFlight(state: State, probe: Ball, trace: Trace): boolean
 					end
 				end
 			end
-			if not TableGeometry.containsCenter(geometry, x, y, -R) then
-				if TableGeometry.openingAt(geometry, x, y) then
-					return nil, nil
-				end
-				return if z >= clear then "off" else "rail", nil
+			-- The simulation's own rule for going over a cushion (Simulation.goesOver).
+			if Simulation.goesOver(geometry, x, y, z, probe.vx, probe.vy) then
+				return "off", nil
+			end
+			if z < clear and Simulation.touchesCushion(geometry, x, y) then
+				return "rail", nil
 			end
 			return nil, nil
 		end
