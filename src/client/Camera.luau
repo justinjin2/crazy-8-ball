@@ -612,8 +612,8 @@ function Camera.position(): Vector3
 	return Workspace.CurrentCamera.CFrame.Position
 end
 
--- The parts of each model fadeNear looks after, found once (the cue and the rake build all of
--- theirs up front, extensions included), and the fade each was last given. Weak keys: a model
+-- The parts of each model fadeNear looks after, found once (the cue builds all of its own up
+-- front), and the fade each was last given. Weak keys: a model
 -- that is destroyed is not kept alive here.
 local nearParts: { [Model]: { parts: { BasePart }, shown: { number } } } = setmetatable(
 	{},
@@ -622,7 +622,7 @@ local nearParts: { [Model]: { parts: { BasePart }, shown: { number } } } = setme
 
 --- Fade a model's parts on this screen only (LocalTransparencyModifier) as each comes within
 --- `studs` of the camera: untouched from there out, gone at the camera itself. For the
---- shooter's own cue and rake (Config.Cue.CameraFadeStuds), so a steeply raised butt swinging
+--- shooter's own cue (Config.Cue.CameraFadeStuds), so a steeply raised butt swinging
 --- past the lens never blocks the view. Call after the model is placed for the frame, and
 --- after Camera.update. Other clients' copies are never touched.
 function Camera.fadeNear(model: Model, studs: number)

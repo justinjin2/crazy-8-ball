@@ -269,7 +269,6 @@ return {
 		H.expect(lastTo == 1, "the profile must end at the butt (To = 1)")
 		H.expect(lastTaper == 1, "the butt end is the butt's diameter")
 		H.expect(C.CueTipDiameterStuds < C.CueButtDiameterStuds, "the tip is the narrow end")
-		H.expect(C.ExtensionDiameterStuds <= C.CueButtDiameterStuds, "the extension is no wider")
 		-- The drawn pitch starts at the physics elevation and can only rise from it.
 		H.expect(C.VisualPitchMaxDegrees > C.CueElevationDegrees, "no room to tilt")
 		H.expect(C.VisualPitchMaxDegrees < 90, "a cue cannot stand on end")
@@ -299,22 +298,13 @@ return {
 		H.expect(S.LeanNaturalDegrees <= S.LeanMaxDegrees, "natural lean past the most")
 		H.expect(S.ArmNaturalFraction <= S.ArmMaxFraction and S.ArmMaxFraction <= 1, "reach")
 		H.expect(S.GripMinFromTipFraction + S.GripFromButtFraction < 1, "the grip has room")
-	end,
-
-	["the bridge's notches climb in a fixed order"] = function()
-		local Config = H.require("Config")
-		local B = Config.Bridge
-		H.expect(#B.Notches == 3, "Low, Mid and High")
-		local names = { "Low", "Mid", "High" }
-		local lastY, lastX = -math.huge, math.huge
-		for i, notch in ipairs(B.Notches) do
-			H.expect(notch.Name == names[i], "notch order " .. tostring(notch.Name))
-			H.expect(notch.Y > lastY, "notches climb")
-			H.expect(notch.X < lastX, "the lower notches sit further right")
-			lastY, lastX = notch.Y, notch.X
-		end
-		H.expect(lastY == 0 and lastX == 0, "the pivot is the High notch")
-		H.expect(B.PivotHeightStuds + B.Notches[1].Y > 0, "the Low notch is above the cloth")
+		H.expect(S.SteepGripMinFromTipFraction <= S.GripMinFromTipFraction, "steep chokes up")
+		H.expect(body.HipHeight < body.WaistHeight and body.ThighLength > 0, "legs")
+		H.expect(S.BridgeMinRiseStuds < S.BridgeMaxRiseStuds, "a bridge has a height range")
+		H.expect(S.BridgeFrozenInsetInches < S.BridgeCushionInsetInches, "frozen is closer")
+		H.expect(S.MaxBridgeInches >= S.BridgeFromBallInches, "the bridge may reach further")
+		H.expect(S.ExtraLeanDegrees[1] == 0, "the least lean is always tried first")
+		H.expect(#S.Sides > 0 and S.Sides[1].Cost == 0, "the classic stance comes first")
 		H.expect(Config.Aim.PullSteps >= 1 and Config.Aim.PullSteps % 1 == 0, "whole pull steps")
 	end,
 

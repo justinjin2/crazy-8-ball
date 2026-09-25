@@ -1,15 +1,14 @@
 --!strict
 -- CueStickBuilder: the drawn cue, one cylinder per piece of CueShape.pieces (the same shape
--- CueClearance keeps clear of the rails and the balls), plus the automatic extension on the
--- butt (ShooterStance), built with the cue and hidden until a stance asks for it.
+-- CueClearance keeps clear of the rails and the balls). It is always its own length: the
+-- shooter's body reaches it, never an extension (ShooterStance).
 --
 -- The model's pivot is the tip, and the stick runs along the pivot's local +Z toward the butt:
 -- frame() gives that tip CFrame for a shot, and the poser is handed the same CFrame, which is
 -- what keeps the hands on the cue. The pitch is VISUAL ONLY (CueClearance): the shot is always
 -- fired at Config.Cue.CueElevationDegrees.
 --
--- Attributes on the model: ExtensionStuds (the drawn extension, whole LengthStepStuds) and
--- Visible (the last setVisible). Every extension part carries Extension = true.
+-- Attributes on the model: Visible (the last setVisible).
 
 local Config = require(script.Parent.Config)
 local CueShape = require(script.Parent.CueShape)
@@ -28,14 +27,8 @@ local LOOKS: { [string]: { color: { number }, material: Enum.Material } } = {
 	Butt = { color = Config.Look.CueButtColor, material = Enum.Material.Wood },
 }
 
-local EXTENSION_PARTS = { "ExtensionRing", "Extension", "ExtensionCap" }
-
 local function color(rgb: { number }): Color3
 	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
-end
-
-local function material(name: string): Enum.Material
-	return (Enum.Material :: any)[name]
 end
 
 -- Cylinders lie along X; turned to lie along +Z, centred on their stretch of the stick.
@@ -68,46 +61,18 @@ local function cylinder(
 	return part
 end
 
---- Round a wanted extension UP to whole Config.Cue.Extension.LengthStepStuds (0 for none),
---- so the drawn one is never shorter than the stance asked for and only a real change resizes
---- the parts.
-function CueStickBuilder.quantizeExtension(studs: number?): number
-	local E = studs or 0
-	if not (E > 1e-3) then -- NaN too
-		return 0
-	end
-	local step = Config.Cue.Extension.LengthStepStuds
-	return math.max(1, math.ceil(E / step - 1e-9)) * step
-end
-
--- The ring, body and cap along [L, L + E]: a short extension shrinks the ring and the cap
--- together so they always fit, and the body between them may then have no length at all.
-local function extensionLayout(E: number): (number, number, number)
-	local X = Config.Cue.Extension
-	local k = math.min(1, E / (X.RingLengthStuds + X.CapLengthStuds))
-	local ring, cap = X.RingLengthStuds * k, X.CapLengthStuds * k
-	return ring, E - ring - cap, cap
-end
-
--- Show or hide every part for the model's attributes: the extension's only when there is one.
+-- Show or hide every part for the model's Visible attribute.
 local function applyVisibility(model: Model)
 	local visible = model:GetAttribute("Visible") == true
-	local E = (model:GetAttribute("ExtensionStuds") :: number?) or 0
-	local _, body = extensionLayout(E)
 	for _, part in model:GetChildren() do
 		if part:IsA("BasePart") then
-			local shown = visible
-			if part:GetAttribute("Extension") then
-				shown = visible and E > 1e-3 and (part.Name ~= "Extension" or body > 1e-3)
-			end
-			part.Transparency = if shown then 0 else 1
+			part.Transparency = if visible then 0 else 1
 		end
 	end
 end
 
 function CueStickBuilder.build(parent: Instance): Model
 	local C = Config.Cue
-	local X = C.Extension
 	local model = Instance.new("Model")
 	model.Name = "CueStick"
 
@@ -124,47 +89,7 @@ function CueStickBuilder.build(parent: Instance): Model
 		)
 	end
 
-	-- The extension's parts, laid out properly by setExtension once there is one.
-	local L = C.CueLengthStuds
-	local ringDiameter = C.ExtensionDiameterStuds * X.RingDiameterScale
-	local ringMaterial = material(X.RingMaterial)
-	for _, part in
-		{
-			cylinder(
-				"ExtensionRing",
-				X.RingLengthStuds,
-				ringDiameter,
-				L,
-				X.RingColor,
-				ringMaterial,
-				model
-			),
-			cylinder(
-				"Extension",
-				0,
-				C.ExtensionDiameterStuds,
-				L,
-				X.Color,
-				material(X.Material),
-				model
-			),
-			cylinder(
-				"ExtensionCap",
-				X.CapLengthStuds,
-				ringDiameter,
-				L,
-				X.RingColor,
-				ringMaterial,
-				model
-			),
-		}
-	do
-		part:SetAttribute("Extension", true)
-		part.Transparency = 1
-	end
-
 	model.WorldPivot = CFrame.new(0, 0, 0)
-	model:SetAttribute("ExtensionStuds", 0)
 	model:SetAttribute("Visible", true)
 	model.Parent = parent
 	return model
@@ -199,41 +124,12 @@ function CueStickBuilder.frame(
 	return CFrame.lookAt(tip, tip - axis)
 end
 
---- Size and place the extension on the butt: `studs` is rounded up to whole steps and the
---- parts are only touched when that changes. Keeps the model where it is.
-function CueStickBuilder.setExtension(model: Model, studs: number?)
-	local E = CueStickBuilder.quantizeExtension(studs)
-	local was = (model:GetAttribute("ExtensionStuds") :: number?) or 0
-	if math.abs(E - was) <= 1e-3 then
-		return
-	end
-	model:SetAttribute("ExtensionStuds", E)
-	if E > 1e-3 then
-		local C = Config.Cue
-		local L = C.CueLengthStuds
-		local ring, body, cap = extensionLayout(E)
-		local pivot = model:GetPivot()
-		local lengths = { ring, body, cap }
-		local starts = { L, L + ring, L + E - cap }
-		for i, name in EXTENSION_PARTS do
-			local part = model:FindFirstChild(name)
-			if part and part:IsA("BasePart") then
-				part.Size = Vector3.new(math.max(lengths[i], 1e-3), part.Size.Y, part.Size.Z)
-				part.CFrame = pivot * along(starts[i], lengths[i])
-			end
-		end
-	end
-	applyVisibility(model)
-end
-
---- Draw the cue at a tip CFrame from frame(), with an extension of `extensionStuds` (none
---- when nil).
-function CueStickBuilder.placeAt(model: Model, tipCF: CFrame, extensionStuds: number?)
+--- Draw the cue at a tip CFrame from frame().
+function CueStickBuilder.placeAt(model: Model, tipCF: CFrame)
 	model:PivotTo(tipCF)
-	CueStickBuilder.setExtension(model, extensionStuds)
 end
 
---- Show or hide the stick. The extension shows only while it has a length.
+--- Show or hide the stick.
 function CueStickBuilder.setVisible(model: Model, visible: boolean)
 	if model:GetAttribute("Visible") == visible then
 		return

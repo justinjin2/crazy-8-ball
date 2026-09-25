@@ -19,7 +19,7 @@ export type Piece = {
 	from: number, -- studs from the tip
 	to: number,
 	diameter: number, -- studs
-	look: string, -- "Tip" | "Shaft" | "Butt" | "Extension": which colour the builder uses
+	look: string, -- "Tip" | "Shaft" | "Butt": which colour the builder uses
 }
 
 local function diameterOf(taper: number): number
@@ -28,10 +28,9 @@ local function diameterOf(taper: number): number
 end
 
 --- The cylinders a cue of `lengthStuds` (default Config.Cue.CueLengthStuds) is drawn from,
---- tip first. They are contiguous and cover exactly the length; an `extensionStuds` longer
---- than a hair adds one more piece past the butt. The first piece of each look keeps the
---- plain name ("Tip", "Shaft", "Butt") and later ones are numbered ("Shaft2").
-function CueShape.pieces(lengthStuds: number?, extensionStuds: number?): { Piece }
+--- tip first. They are contiguous and cover exactly the length. The first piece of each look
+--- keeps the plain name ("Tip", "Shaft", "Butt") and later ones are numbered ("Shaft2").
+function CueShape.pieces(lengthStuds: number?): { Piece }
 	local L = lengthStuds or Config.Cue.CueLengthStuds
 	local pieces: { Piece } = {}
 	local seen: { [string]: number } = {}
@@ -49,24 +48,13 @@ function CueShape.pieces(lengthStuds: number?, extensionStuds: number?): { Piece
 		})
 		from = to
 	end
-	local E = extensionStuds or 0
-	if E > 1e-3 then
-		table.insert(pieces, {
-			name = "Extension",
-			from = L,
-			to = L + E,
-			diameter = Config.Cue.ExtensionDiameterStuds,
-			look = "Extension",
-		})
-	end
 	return pieces
 end
 
 --- The cue's radius (studs) at `distanceFromTipStuds`, as a continuous, never-decreasing
 --- ENVELOPE that is at least as wide as every piece drawn there. Inside a piece it runs
 --- linearly from that piece's radius up to the next piece's, so a joint never has a step for
---- a clearance search to catch on; past the butt it is the wider of the butt and the
---- extension, before the tip the tip's.
+--- a clearance search to catch on; past the butt it is the butt's, before the tip the tip's.
 function CueShape.radiusAt(distanceFromTipStuds: number, lengthStuds: number?): number
 	local C = Config.Cue
 	local L = lengthStuds or C.CueLengthStuds
@@ -75,7 +63,7 @@ function CueShape.radiusAt(distanceFromTipStuds: number, lengthStuds: number?): 
 		return C.CueTipDiameterStuds / 2
 	end
 	if d >= L then
-		return math.max(C.CueButtDiameterStuds, C.ExtensionDiameterStuds) / 2
+		return C.CueButtDiameterStuds / 2
 	end
 	local profile = C.Profile
 	local from = 0

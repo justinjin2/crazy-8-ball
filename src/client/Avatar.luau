@@ -1,8 +1,8 @@
 --!strict
 -- Avatar: the local player's own body as the shooter, through one ShooterPoser (a respawn gets
 -- a new one). Every frame it works out the shot's look (the cue's pitch that clears the rail and
--- the balls, eased; the stance; the cue; the rake), hands the poser that frame, and gives Main
--- the cue and the rake to draw in the very same frame, which is what keeps the hands on them.
+-- the balls, eased; the stance; the cue), hands the poser that frame, and gives Main the cue to
+-- draw in the very same frame, which is what keeps the hands on it.
 --
 -- fire() calls strike(): the inputs freeze (angle, cue spot, spin, pitch, stance), so the body
 -- never chases the ball once it moves, and the poser plays the stroke from the drawn wind-up into
@@ -49,12 +49,10 @@ export type Context = {
 	cameraPos: Vector3?, -- where the camera is, for the body's fade
 }
 
--- What update() returns (one table, reused): draw the cue and show the rake from these.
+-- What update() returns (one table, reused): draw the cue from these.
 export type Out = {
 	visible: boolean, -- the cue is drawn (aiming or stroking)
 	tip: CFrame, -- ...at this tip (CueStickBuilder.placeAt)
-	extension: number, -- ...with this much extension, studs
-	rakeVisible: boolean, -- the rake is in use (ShooterPoser.compose has placed it)
 }
 
 -- While the server holds the root (anchored, and in a collision group that touches nothing,
@@ -72,7 +70,6 @@ export type Avatar = typeof(setmetatable(
 	{} :: {
 		character: Model?,
 		poser: ShooterPoser.Poser?,
-		rake: Model?, -- the local shooter's rake (Main builds it)
 		-- Whether the player is MEANT to be at a table, as opposed to whether this particular
 		-- body currently is: a respawn hands over a fresh character, which is posed the moment
 		-- it is meant to be.
@@ -150,7 +147,7 @@ local function holdFooting(self: Avatar, character: Model)
 	end
 end
 
-local function newInputs(p: Placement.Placement, rake: Model?): ShooterPoser.Inputs
+local function newInputs(p: Placement.Placement): ShooterPoser.Inputs
 	return {
 		placement = p,
 		teamSize = 1,
@@ -164,7 +161,6 @@ local function newInputs(p: Placement.Placement, rake: Model?): ShooterPoser.Inp
 		pull = 0,
 		gap = nil,
 		memory = nil,
-		rake = rake,
 	}
 end
 
@@ -176,14 +172,13 @@ local function forgetAim(self: Avatar)
 	self.pitchState = nil
 end
 
-function Avatar.new(rake: Model?): Avatar
+function Avatar.new(): Avatar
 	local self = setmetatable({
 		character = nil :: Model?,
 		poser = nil :: ShooterPoser.Poser?,
-		rake = rake,
 		wanted = false,
 		frame = AvatarPose.newFrame(),
-		out = { visible = false, tip = CFrame.identity, extension = 0, rakeVisible = false },
+		out = { visible = false, tip = CFrame.identity },
 		live = nil :: ShooterPoser.Inputs?,
 		liveValid = false,
 		frozen = nil :: ShooterPoser.Inputs?,
@@ -268,13 +263,13 @@ function Avatar.strike(self: Avatar, windUp: number, x: number?, y: number?)
 	if not poser or not live or not self.liveValid or poser.state ~= "aim" then
 		return -- nothing aimed this turn (or the body is not held yet): no stroke to play
 	end
-	local frozen: ShooterPoser.Inputs = self.frozen or newInputs(live.placement, self.rake)
+	local frozen: ShooterPoser.Inputs = self.frozen or newInputs(live.placement)
 	self.frozen = frozen
 	-- Field by field: nil ones (memory) must overwrite too.
 	frozen.placement, frozen.teamSize, frozen.body = live.placement, live.teamSize, live.body
 	frozen.cueX, frozen.cueY = x or live.cueX, y or live.cueY
 	frozen.angle, frozen.spinX, frozen.spinY = live.angle, live.spinX, live.spinY
-	frozen.pitch, frozen.memory, frozen.rake = live.pitch, live.memory, live.rake
+	frozen.pitch, frozen.memory = live.pitch, live.memory
 	-- The stroke's gap comes from the poser; the stance's own wind-up plays no part.
 	frozen.pull, frozen.gap = 0, nil
 	self.frozenValid = true
@@ -376,7 +371,7 @@ end
 --- this player is the shooter, after take(). Returns the same table every time.
 function Avatar.update(self: Avatar, dt: number, ctx: Context): Out
 	local out = self.out
-	out.visible, out.rakeVisible = false, false
+	out.visible = false
 	local poser, character, p = self.poser, self.character, ctx.placement
 	if not poser or not character or not p or not self.wanted then
 		return out
@@ -398,7 +393,7 @@ function Avatar.update(self: Avatar, dt: number, ctx: Context): Out
 			local was = self.live
 			local live: ShooterPoser.Inputs = if was and was.placement == p
 				then was
-				else newInputs(p, self.rake)
+				else newInputs(p)
 			self.live = live
 			live.teamSize = ctx.teamSize
 			live.body = AvatarPose.measureBody(character) or Config.Stance.DefaultBody
@@ -417,15 +412,15 @@ function Avatar.update(self: Avatar, dt: number, ctx: Context): Out
 
 	if inputs then
 		inputs.gap = gap
-		local stance, tip, rakeVisible, extension = ShooterPoser.compose(inputs, self.frame)
+		local stance, tip = ShooterPoser.compose(inputs, self.frame)
 		if inputs == self.live then
 			self.memory = stance.memory
 		end
 		if following then
-			poser:pose("idle", self.frame, dt) -- no cue and no rake
+			poser:pose("idle", self.frame, dt) -- no cue
 		else
 			poser:pose("aim", self.frame, dt)
-			out.visible, out.tip, out.extension, out.rakeVisible = true, tip, extension, rakeVisible
+			out.visible, out.tip = true, tip
 		end
 	else
 		poser:pose("idle", nil, dt)

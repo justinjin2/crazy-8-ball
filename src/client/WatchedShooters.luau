@@ -1,8 +1,8 @@
 --!strict
 -- WatchedShooters: everyone else's shooter, as this client draws them. At every table whose
 -- balls are drawn (Hub's pool, Config.Hub.RenderedTables) the player lining up there is
--- posed in their stance, FULLY VISIBLE, holding their cue (the drawn pitch, the automatic
--- extension, the wind-up off the aim stream) and the rake when the ball is out of reach.
+-- posed in their stance, FULLY VISIBLE, holding their cue (the drawn pitch and the wind-up
+-- off the aim stream), up on the rail or the table when the ball is out of reach.
 -- When the replay of their shot starts, the stroke plays from the exact angle and cue-ball
 -- spot the server accepted (Hub.shots), and the body then idles at the spot it shot from
 -- (the server's ShotSpot, see ShooterPoser) until the turn moves on.
@@ -10,8 +10,7 @@
 -- A remote body is only ever moved on this client: its limbs are anchored and placed here
 -- while it is posed, and nothing else about it is touched (never its transparency, never its
 -- Animate script: that is only ever the local player's own, in Avatar). Every way a pose can
--- end goes through drop(), which destroys the poser (every limb let go) and hides the cue
--- and the rake:
+-- end goes through drop(), which destroys the poser (every limb let go) and hides the cue:
 --   the shooter changes or the turn passes    the snapshot's shooter, Engine.shooterLocked
 --   the game ends, a new one starts           Engine.shooterLocked (Result, Waiting, ...)
 --   the table leaves the pool                 Hub.rebind -> unbind, and cueOf each frame
@@ -24,7 +23,7 @@
 -- Engine.shooterLocked is the very question TableService.constrain asks before it holds a
 -- shooter, so a body is only ever posed here while the server holds its root.
 --
--- One slot per pooled cue, built up front with its rake, its frame and its inputs, so a frame
+-- One slot per pooled cue, built up front with its frame and its inputs, so a frame
 -- allocates nothing here. A table far from the camera poses less often (Config.Avatar.Watch).
 
 local Players = game:GetService("Players")
@@ -34,7 +33,6 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AimStream = require(Shared:WaitForChild("AimStream"))
 local AvatarPose = require(Shared:WaitForChild("AvatarPose"))
-local BridgeBuilder = require(Shared:WaitForChild("BridgeBuilder"))
 local Config = require(Shared:WaitForChild("Config"))
 local CueClearance = require(Shared:WaitForChild("CueClearance"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
@@ -96,7 +94,6 @@ type Clearance = {
 -- One pooled cue and everything drawn with it.
 type Slot = {
 	cue: Model, -- Hub's, bound to a table by Hub.cueOf
-	rake: Model,
 	frame: AvatarPose.Frame,
 	inputs: ShooterPoser.Inputs,
 	query: CueClearance.Query,
@@ -120,9 +117,8 @@ type Slot = {
 	frozen: boolean,
 	strikeSeq: number?, -- the replay this turn's stroke was started for
 	sincePose: number, -- seconds since this slot last posed (far tables)
-	-- The last compose(): what it was given, and whether it used the rake. While nothing has
-	-- moved it is not asked again (a shooter thinking costs no stance solve): the frame, the
-	-- cue and the rake all stay as they are.
+	-- The last compose(): what it was given. While nothing has moved it is not asked again (a
+	-- shooter thinking costs no stance solve): the frame and the cue stay as they are.
 	composed: boolean,
 	composedAngle: number,
 	composedX: number,
@@ -130,7 +126,6 @@ type Slot = {
 	composedPull: number,
 	composedPitch: number,
 	composedBody: ShooterStance.Body?,
-	rakeVisible: boolean,
 }
 
 export type WatchedShooters = typeof(setmetatable(
@@ -152,17 +147,12 @@ local STILL_SPOT = 1e-4
 local STILL_PULL = 1e-4
 local STILL_PITCH = 1e-4
 
---- The watchers for Hub's pooled cues: one rake and one slot per cue, built now (building a
---- rake may wait a moment for the imported model to arrive).
-function WatchedShooters.new(parent: Instance, cues: { Model }): WatchedShooters
+--- The watchers for Hub's pooled cues: one slot per cue, built now.
+function WatchedShooters.new(cues: { Model }): WatchedShooters
 	local slots: { [Model]: Slot } = {}
-	for i, cue in cues do
-		local rake = BridgeBuilder.build(parent)
-		rake.Name = ("WatchedRake_%d"):format(i)
-		BridgeBuilder.setVisible(rake, false)
+	for _, cue in cues do
 		slots[cue] = {
 			cue = cue,
-			rake = rake,
 			frame = AvatarPose.newFrame(),
 			inputs = {
 				placement = Placement.new(0, 0, 0, 0), -- the table's, before every compose()
@@ -177,7 +167,6 @@ function WatchedShooters.new(parent: Instance, cues: { Model }): WatchedShooters
 				pull = 0,
 				gap = nil,
 				memory = nil,
-				rake = rake,
 			},
 			query = { cueX = 0, cueY = 0, angle = 0 },
 			clearance = {
@@ -213,7 +202,6 @@ function WatchedShooters.new(parent: Instance, cues: { Model }): WatchedShooters
 			composedPull = 0,
 			composedPitch = 0,
 			composedBody = nil,
-			rakeVisible = false,
 		}
 	end
 	return setmetatable({
@@ -232,7 +220,7 @@ local function forgetTurn(slot: Slot)
 	slot.composed = false
 end
 
--- Let go of whoever this slot posed: every limb back as it was, the cue and the rake hidden.
+-- Let go of whoever this slot posed: every limb back as it was, the cue hidden.
 local function drop(slot: Slot)
 	if slot.poser then
 		slot.poser:destroy()
@@ -244,7 +232,6 @@ local function drop(slot: Slot)
 		forgetTurn(slot)
 	end
 	CueStickBuilder.setVisible(slot.cue, false)
-	BridgeBuilder.setVisible(slot.rake, false)
 end
 
 --- Table `id` has left the pool: let go of its shooter.
@@ -368,10 +355,9 @@ local function step(
 	local gap = poser:advance(dt)
 	if gap == nil and not aimLive and not strike then
 		-- Nothing to line up: the body is the owner's again (idle after the stroke, or as the
-		-- server holds it), with no cue or rake.
+		-- server holds it), with no cue.
 		poser:pose("idle", nil, dt)
 		CueStickBuilder.setVisible(slot.cue, false)
-		BridgeBuilder.setVisible(slot.rake, false)
 		slot.sincePose = math.huge -- the next aim poses at once
 		return
 	end
@@ -421,15 +407,14 @@ local function step(
 		inputs.pull = slot.pull
 		inputs.gap = gap
 		inputs.memory = slot.memory
-		local stance, tip, rakeVisible, extension = ShooterPoser.compose(inputs, slot.frame)
+		local stance, tip = ShooterPoser.compose(inputs, slot.frame)
 		if not slot.frozen then
 			slot.memory = stance.memory
 		end
 		slot.composed = true
 		slot.composedAngle, slot.composedX, slot.composedY = slot.angle, slot.x, slot.y
 		slot.composedPull, slot.composedPitch, slot.composedBody = slot.pull, pitch, body
-		slot.rakeVisible = rakeVisible
-		CueStickBuilder.placeAt(slot.cue, tip, extension)
+		CueStickBuilder.placeAt(slot.cue, tip)
 		if strike then
 			-- The stroke starts from the cue as it is drawn this frame (the wind-up at the
 			-- let-go), the ball already moving; the body idles at the stance's spot unless the
@@ -446,7 +431,6 @@ local function step(
 	-- a frame that changes nothing itself.
 	poser:pose("aim", slot.frame, elapsed)
 	CueStickBuilder.setVisible(slot.cue, true)
-	BridgeBuilder.setVisible(slot.rake, slot.rakeVisible)
 end
 
 --- Pose every pooled table's shooter for this frame, from the Hub's tables (keyed by table

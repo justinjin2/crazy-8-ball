@@ -10,7 +10,7 @@
 --
 -- Roadmap 1.5g adds the other players' cue sticks here, which is why the pool is a pool and
 -- not "the table you are standing at". Each pooled table also shows its shooter posed, with
--- their cue and rake (WatchedShooters); this module feeds that the aim stream and the shots.
+-- their cue (WatchedShooters); this module feeds that the aim stream and the shots.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -54,7 +54,7 @@ export type Hub = typeof(setmetatable(
 		-- tableId -> the last shot the server accepted there (ShotResult): its exact angle and
 		-- where the cue ball stood, which a watched shooter's stroke freezes on.
 		shots: { [number]: WatchedShooters.Shot },
-		-- Every pooled table's shooter, posed with their cue and rake.
+		-- Every pooled table's shooter, posed with their cue.
 		watched: WatchedShooters.WatchedShooters,
 	},
 	Hub
@@ -93,7 +93,7 @@ function Hub.new(parent: Instance): Hub
 	folder.Parent = parent
 
 	-- The pool is built up front so no shot ever waits on sixteen parts being created: a
-	-- renderer, a cue and (WatchedShooters) a rake per slot.
+	-- renderer and a cue per slot (WatchedShooters).
 	local first = Config.Hub.Tables[1]
 	local firstPlacement = Placement.forTable(first.id)
 	local pool, cues = {}, {}
@@ -121,7 +121,7 @@ function Hub.new(parent: Instance): Hub
 		cueOf = {},
 		aims = {},
 		shots = {},
-		watched = WatchedShooters.new(parent, cues),
+		watched = WatchedShooters.new(cues),
 	}, Hub)
 
 	-- Only the tables the server actually builds: a Match for a table with no model would
@@ -428,7 +428,7 @@ local function rebind(self: Hub, from: Vector3)
 				CueStickBuilder.setVisible(held, false)
 				self.cueOf[id] = nil
 			end
-			-- ...and of its shooter: let go of the body, hide the rake.
+			-- ...and of its shooter: let go of the body.
 			self.watched:unbind(id)
 		end
 	end

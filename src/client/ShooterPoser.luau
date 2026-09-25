@@ -7,8 +7,10 @@
 --           is never touched.
 --   aim     every rig part but the root anchored, on this client only, and posed
 --           (AvatarPose.pose) whenever the frame changes; the root is written with the pose,
---           eased toward the stance (Config.Avatar.Motion). The local player's Animate is off
---           and its tracks stopped; a remote body's Animate and transparency are never touched.
+--           and both are eased toward the stance (Config.Avatar.Motion): a new stance, even
+--           another side of the ball or up onto the rail, is glided to, while the hands stay
+--           exactly on the cue. The local player's Animate is off and its tracks stopped; a
+--           remote body's Animate and transparency are never touched.
 --   stroke  aim, with the cue's gap from the stroke clock (advance) on the frozen frame the
 --           driver supplies.
 --   idle    the limbs let go again, so the owner's Animate idle plays. After the stroke, where
@@ -28,14 +30,12 @@
 --
 -- compose() is the one place that knows how a ShooterStance becomes a Frame: it solves the
 -- stance, works out the cue's tip CFrame (the one the cue is drawn with, which is what keeps the
--- hands on it), places the rake, and fills the Frame.
+-- hands on it), and fills the Frame.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AvatarPose = require(Shared:WaitForChild("AvatarPose"))
-local BridgeBuilder = require(Shared:WaitForChild("BridgeBuilder"))
 local Config = require(Shared:WaitForChild("Config"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Placement = require(Shared:WaitForChild("Placement"))
@@ -63,7 +63,6 @@ export type Inputs = {
 	-- nil = the rest gap plus the pull.
 	gap: number?,
 	memory: ShooterStance.Memory?, -- the previous frame's stance.memory (hysteresis)
-	rake: Model?, -- this shooter's bridge (BridgeBuilder.build); nil draws none
 }
 
 -- Everything a poser has written, as it was before, so rest can put it back. Lists (in the
@@ -98,6 +97,7 @@ export type Poser = typeof(setmetatable(
 		savedRig: AvatarPose.Rig?, -- the rig (and version) `saved` was last extended from
 		savedVersion: number,
 		shownRoot: CFrame?, -- the eased root last written; nil snaps on the next one
+		shownPose: ShownPose?, -- ...and the eased pose (nil with it)
 		-- The skip-unchanged key: the last posed frame's, and scratch for this frame's.
 		key: { number },
 		nextKey: { number },
@@ -119,6 +119,16 @@ export type Poser = typeof(setmetatable(
 	ShooterPoser
 ))
 
+-- The pose values eased toward each new stance (the rest of the frame is exact).
+type ShownPose = {
+	torso: number,
+	lean: number,
+	lift: number,
+	hand: Vector3,
+	hang: Vector3,
+	supportY: number,
+}
+
 -- The root attribute holding the exact spot (a CFrame) the server holds the shooter at for the
 -- shot (TableService.shotAccepted); nil whenever the root is not there.
 local SHOT_SPOT = "ShotSpot"
@@ -127,14 +137,12 @@ local SHOT_SPOT = "ShotSpot"
 -- KEY_FINE: nothing finer shows on screen. Slots in the key (see fillKey).
 local KEY_STUDS = 1e-3
 local KEY_FINE = 1e-4
-local KEY_SIZE = 29
+local KEY_SIZE = 30
 
 -- The eased root lands exactly on its target once this close, so a still stance stops
 -- changing the key and costs nothing.
 local SETTLE_STUDS = 1e-3
 local SETTLE_DOT = 1 - 1e-8
-
-local IS_STUDIO = RunService:IsStudio()
 
 local PROFILES = (Config.Avatar.Profiles :: any) :: { [string]: { LiftFrom: number? } }
 
@@ -181,50 +189,13 @@ local function spotAt(p: Placement.Placement, x: number, y: number, z: number, y
 	return CFrame.lookAt(at, at + Vector3.new(dx, 0, dz))
 end
 
--- Where each rake was last placed, so a still one is not moved again every frame (nothing but
--- compose() moves a rake).
-type RakeAt = { head: Vector3, hold: Vector3, notch: string, extension: number, grip: CFrame }
-local rakeAt: { [Model]: RakeAt } = setmetatable({}, { __mode = "k" }) :: any
-
-local function placeRake(
-	model: Model,
-	head: Vector3,
-	hold: Vector3,
-	notch: string,
-	extension: number
-): CFrame
-	local last = rakeAt[model]
-	if
-		last
-		and last.head == head
-		and last.hold == hold
-		and last.notch == notch
-		and last.extension == extension
-	then
-		return last.grip
-	end
-	local grip = BridgeBuilder.place(model, head, hold, notch, extension)
-	if last then
-		last.head, last.hold, last.notch, last.extension, last.grip =
-			head, hold, notch, extension, grip
-	else
-		rakeAt[model] =
-			{ head = head, hold = hold, notch = notch, extension = extension, grip = grip }
-	end
-	return grip
-end
-
-local warnedBarrier = false
-
---- Solve the stance for `inputs`, fill `frame` with the pose it asks for, and place the rake.
---- Returns the stance (thread stance.memory into the next frame's inputs), the cue's tip CFrame
---- (draw the cue with CueStickBuilder.placeAt(cue, tip, extension)), whether the rake is in
---- use (show or hide it with BridgeBuilder.setVisible; compose() has already placed it) and the
---- cue's extension in studs, rounded as the cue draws it.
+--- Solve the stance for `inputs` and fill `frame` with the pose it asks for. Returns the
+--- stance (thread stance.memory into the next frame's inputs) and the cue's tip CFrame (draw
+--- the cue with CueStickBuilder.placeAt(cue, tip)).
 function ShooterPoser.compose(
 	inputs: Inputs,
 	frame: AvatarPose.Frame
-): (ShooterStance.Stance, CFrame, boolean, number)
+): (ShooterStance.Stance, CFrame)
 	debug.profilebegin("ShooterPoser.compose")
 	local C = Config.Cue
 	local p = inputs.placement
@@ -244,12 +215,13 @@ function ShooterPoser.compose(
 	local dx, dy, dz = Placement.aimVector(p, inputs.angle)
 	spin.x, spin.y = inputs.spinX, inputs.spinY
 	local tip = CueStickBuilder.frame(ball, Vector3.new(dx, dy, dz), gap, spin, stance.pitchDegrees)
-	local extension = CueStickBuilder.quantizeExtension(stance.extensionStuds)
 
 	-- The body.
 	frame.root = spotAt(p, stance.rootX, stance.rootY, stance.rootZ, stance.yaw)
 	frame.floorY = p.y
 	frame.mode = stance.mode
+	frame.supportY = p.y + stance.supportZ
+	frame.hang = Vector3.new(Placement.fromTableStuds(p, stance.hangX, stance.hangY, 0))
 	frame.lean = stance.lean
 	frame.torsoDegrees = stance.torsoDegrees
 	-- The body sways with the cue as drawn: the wind-up the stance allowed, and through the
@@ -261,60 +233,26 @@ function ShooterPoser.compose(
 	)
 	frame.tip = tip
 	frame.gripAlong = stance.gripFromTipStuds
-	frame.cueLength = C.CueLengthStuds + extension
+	frame.cueLength = C.CueLengthStuds
 	frame.look = ball
 	local profile = PROFILES[stance.mode]
 	local liftFrom = profile and profile.LiftFrom
 	frame.backLegLift = if liftFrom then smoothstep(liftFrom, 1, stance.lean) else 0
 
-	-- The off hand: the rake's shaft, or a hand bridge.
-	local rake = stance.rake
-	local model = inputs.rake
-	local rakeVisible = false
-	if rake and rake.onCloth and model then
-		local head = Vector3.new(Placement.fromTableStuds(p, rake.headX, rake.headY, rake.headZ))
-		local hold = Vector3.new(Placement.fromTableStuds(p, rake.holdX, rake.holdY, rake.holdZ))
-		local grip = placeRake(model, head, hold, rake.notch, rake.extensionStuds)
-		frame.offKind = 2
-		frame.offHand = grip.Position
-		frame.offAxis = grip.ZVector -- down the shaft, head to butt
-		rakeVisible = true
-	else
-		-- The stance's hand bridge or, for a rake stance with no rake drawn (no model, or no
-		-- rake that stands on the cloth: a ball frozen to a cushion with the cue glancing along
-		-- it, where the head's spot means nothing; a rake on the rail is never drawn), the spot
-		-- a hand bridge would take on this cue line, the cloth or the rail top. The hand
-		-- reaches for it as far as the arm goes (AvatarPose slides it back along the cue, then
-		-- the arm straightens toward it).
-		local bridge = if rake then rake.bridge else stance.handBridge
-		if bridge then
-			frame.offKind = 1
-			frame.offHand =
-				Vector3.new(Placement.fromTableStuds(p, bridge.x, bridge.y, bridge.surfaceZ))
-		else
-			frame.offKind = 0
-		end
-		frame.offAxis = tip.ZVector
-	end
-
-	-- ShooterStance promises the root is never inside the table's barrier; say so in Studio if
-	-- it ever is (once: it would repeat every frame).
-	if IS_STUDIO and not warnedBarrier then
-		local at = frame.root.Position
-		if Placement.outsideBarrier(p, at.X, at.Z, 0) ~= nil then
-			warnedBarrier = true
-			warn(
-				("[8ball] ShooterPoser: a %s stance stands inside the barrier (ball %.2f, %.2f, angle %.4f)"):format(
-					stance.mode,
-					inputs.cueX,
-					inputs.cueY,
-					inputs.angle
-				)
-			)
-		end
-	end
+	-- The off hand: always a bridge under the cue, on the cloth or the rail top (or raised
+	-- under a steep cue). AvatarPose puts the palm just above this spot.
+	local bridge = stance.handBridge
+	frame.offKind = 1
+	frame.offHand = Vector3.new(
+		Placement.fromTableStuds(
+			p,
+			bridge.x,
+			bridge.y,
+			bridge.handZ - Config.Stance.BridgeHandHeightStuds
+		)
+	)
 	debug.profileend()
-	return stance, tip, rakeVisible, extension
+	return stance, tip
 end
 
 --- The spot the shooter idles at after the shot, facing the table centre (ShooterStance.idle),
@@ -342,6 +280,7 @@ function ShooterPoser.new(character: Model, isLocal: boolean): Poser
 		savedRig = nil :: AvatarPose.Rig?,
 		savedVersion = 0,
 		shownRoot = nil :: CFrame?,
+		shownPose = nil :: ShownPose?,
 		key = table.create(KEY_SIZE, 0),
 		nextKey = table.create(KEY_SIZE, 0),
 		keyMode = "",
@@ -594,7 +533,7 @@ local function fillKey(key: { number }, f: AvatarPose.Frame, root: CFrame, versi
 	local at, look = root.Position, root.LookVector
 	local tip = f.tip
 	local tipAt, axis = tip.Position, tip.ZVector
-	local hand, handAxis, target = f.offHand, f.offAxis, f.look
+	local hand, hang, target = f.offHand, f.hang, f.look
 	key[1] = quantise(at.X, KEY_STUDS)
 	key[2] = quantise(at.Y, KEY_STUDS)
 	key[3] = quantise(at.Z, KEY_STUDS)
@@ -612,9 +551,9 @@ local function fillKey(key: { number }, f: AvatarPose.Frame, root: CFrame, versi
 	key[15] = quantise(hand.X, KEY_STUDS)
 	key[16] = quantise(hand.Y, KEY_STUDS)
 	key[17] = quantise(hand.Z, KEY_STUDS)
-	key[18] = quantise(handAxis.X, KEY_FINE)
-	key[19] = quantise(handAxis.Y, KEY_FINE)
-	key[20] = quantise(handAxis.Z, KEY_FINE)
+	key[18] = quantise(hang.X, KEY_STUDS)
+	key[19] = quantise(hang.Y, KEY_STUDS)
+	key[20] = quantise(hang.Z, KEY_STUDS)
 	key[21] = quantise(f.lean, KEY_FINE)
 	key[22] = if f.torsoDegrees then quantise(f.torsoDegrees, KEY_FINE) else math.huge
 	key[23] = quantise(f.pull, KEY_FINE)
@@ -623,17 +562,20 @@ local function fillKey(key: { number }, f: AvatarPose.Frame, root: CFrame, versi
 	key[26] = quantise(target.Z, KEY_STUDS)
 	key[27] = quantise(f.backLegLift, KEY_FINE)
 	key[28] = quantise(f.floorY, KEY_STUDS)
-	key[29] = version
+	key[29] = quantise(f.supportY, KEY_STUDS)
+	key[30] = version
 end
 
 -- The root to show this frame on the way to `target` (Config.Avatar.Motion): eased from the
 -- last one shown, straight there when that is far or there is none, and exactly there once
 -- close. The hands are never eased: they are on the cue.
-local function ease(self: Poser, target: CFrame, dt: number): CFrame
+local function ease(self: Poser, target: CFrame, dt: number): (CFrame, boolean)
 	local M = Config.Avatar.Motion
 	local last = self.shownRoot
 	local shown: CFrame = target
+	local snapped = true
 	if last and (target.Position - last.Position).Magnitude <= M.SnapStuds then
+		snapped = false
 		shown = last:Lerp(target, PoseMath.alpha(dt, M.RootSmoothingSeconds))
 		if
 			(shown.Position - target.Position).Magnitude < SETTLE_STUDS
@@ -643,7 +585,72 @@ local function ease(self: Poser, target: CFrame, dt: number): CFrame
 		end
 	end
 	self.shownRoot = shown
-	return shown
+	return shown, snapped
+end
+
+-- One eased value: toward `want` by `k`, exactly there once within `settle`.
+local function toward(have: number, want: number, k: number, settle: number): number
+	local v = have + (want - have) * k
+	return if math.abs(v - want) < settle then want else v
+end
+
+local function towardV(have: Vector3, want: Vector3, k: number): Vector3
+	local v = have:Lerp(want, k)
+	return if (v - want).Magnitude < SETTLE_STUDS then want else v
+end
+
+-- The pose to show this frame on the way to `f`'s (Config.Avatar.Motion.PoseSmoothingSeconds):
+-- the lean, torso, back leg and the bridge hand's and hanging feet's targets glide, so a new
+-- stance flows in rather than snapping, and snap with the root. Written into `f`, which is
+-- returned to the caller's values by restorePose.
+type Wanted = {
+	torso: number,
+	lean: number,
+	lift: number,
+	hand: Vector3,
+	hang: Vector3,
+	supportY: number,
+}
+local wanted: Wanted =
+	{ torso = 0, lean = 0, lift = 0, hand = Vector3.zero, hang = Vector3.zero, supportY = 0 }
+local function easePose(self: Poser, f: AvatarPose.Frame, dt: number, snapped: boolean)
+	wanted.torso, wanted.lean, wanted.lift = f.torsoDegrees or 0, f.lean, f.backLegLift
+	wanted.hand, wanted.hang, wanted.supportY = f.offHand, f.hang, f.supportY
+	local was = self.shownPose
+	local P: ShownPose
+	if was == nil or snapped then
+		P = {
+			torso = wanted.torso,
+			lean = wanted.lean,
+			lift = wanted.lift,
+			hand = wanted.hand,
+			hang = wanted.hang,
+			supportY = wanted.supportY,
+		}
+		self.shownPose = P
+	else
+		P = was
+		local k = PoseMath.alpha(dt, Config.Avatar.Motion.PoseSmoothingSeconds)
+		P.torso = toward(P.torso, wanted.torso, k, KEY_FINE)
+		P.lean = toward(P.lean, wanted.lean, k, KEY_FINE)
+		P.lift = toward(P.lift, wanted.lift, k, KEY_FINE)
+		P.hand = towardV(P.hand, wanted.hand, k)
+		P.hang = towardV(P.hang, wanted.hang, k)
+		P.supportY = toward(P.supportY, wanted.supportY, k, SETTLE_STUDS)
+	end
+	if f.torsoDegrees then
+		f.torsoDegrees = P.torso
+	end
+	f.lean, f.backLegLift = P.lean, P.lift
+	f.offHand, f.hang, f.supportY = P.hand, P.hang, P.supportY
+end
+
+local function restorePose(f: AvatarPose.Frame)
+	if f.torsoDegrees then
+		f.torsoDegrees = wanted.torso
+	end
+	f.lean, f.backLegLift = wanted.lean, wanted.lift
+	f.offHand, f.hang, f.supportY = wanted.hand, wanted.hang, wanted.supportY
 end
 
 -- Idle before the shot: the limbs are the joints' (and the owner's Animate's), and only the
@@ -651,6 +658,7 @@ end
 -- server's own placement replicating moves it too).
 local function follow(self: Poser, root: BasePart, f: AvatarPose.Frame, dt: number)
 	local shown = ease(self, f.root, dt)
+	self.shownPose = nil -- the limbs are the joints' now: the next pose starts afresh
 	if
 		(root.Position - shown.Position).Magnitude > KEY_STUDS
 		or root.CFrame.LookVector:Dot(shown.LookVector) < SETTLE_DOT
@@ -677,7 +685,8 @@ local function posed(
 		self.keyValid = false
 	end
 	local target = f.root
-	local shown = ease(self, target, dt)
+	local shown, snapped = ease(self, target, dt)
+	easePose(self, f, dt, snapped)
 
 	local key, nextKey = self.key, self.nextKey
 	fillKey(nextKey, f, shown, rig.version)
@@ -695,6 +704,7 @@ local function posed(
 		end
 	end
 	if same then
+		restorePose(f)
 		return
 	end
 	self.key, self.nextKey = nextKey, key
@@ -702,6 +712,7 @@ local function posed(
 	f.root = shown
 	AvatarPose.pose(rig, f)
 	f.root = target
+	restorePose(f)
 end
 
 --- Move toward `want` and pose. Call every frame. "aim" needs `frame` (from compose()) and is

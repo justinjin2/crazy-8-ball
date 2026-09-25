@@ -37,7 +37,6 @@ local function publish(name: string, class: string, missing: string)
 	end
 end
 publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
-publish(Config.Bridge.Template, "Model", "the bridge uses the parts fallback")
 
 -- The hub's props, seats, lights and collision (the map's meshes are in the place).
 HubService.start()

@@ -91,7 +91,7 @@ return {
 		end
 	end,
 
-	["the pieces run tip to butt without gaps, plus an extension when asked"] = function()
+	["the pieces run tip to butt without gaps"] = function()
 		local Config, CueShape = setup()
 		local L = Config.Cue.CueLengthStuds
 		local pieces = CueShape.pieces()
@@ -108,15 +108,6 @@ return {
 			H.expect(names[piece.name] == nil, "piece names are unique: " .. piece.name)
 			names[piece.name] = true
 		end
-
-		local extended = CueShape.pieces(L, 2.5)
-		H.expect(#extended == #pieces + 1, "the extension is one more piece")
-		local last = extended[#extended]
-		H.expect(last.name == "Extension" and last.look == "Extension", "named Extension")
-		H.near(last.from, L, 1e-12, "it starts at the butt")
-		H.near(last.to, L + 2.5, 1e-12, "and runs its length")
-		H.near(last.diameter, Config.Cue.ExtensionDiameterStuds, 1e-12, "its diameter")
-		H.expect(#CueShape.pieces(L, 1e-4) == #pieces, "a hair of extension draws nothing")
 	end,
 
 	["the tip meets the rendered ball: a centre hit is one radius straight back"] = function()

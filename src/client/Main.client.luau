@@ -9,7 +9,6 @@ local GuiService = game:GetService("GuiService")
 local SoundService = game:GetService("SoundService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AimStream = require(Shared.AimStream)
-local BridgeBuilder = require(Shared.BridgeBuilder)
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Placement = require(Shared.Placement)
@@ -41,10 +40,7 @@ visuals.Parent = workspace
 local hub = Hub.new(visuals)
 local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
--- The local shooter's rake (ShooterStance's "bridge" and "extension" modes). Built up front:
--- building may wait a moment for the imported model to arrive.
-local rake = BridgeBuilder.build(visuals)
-local avatar = Avatar.new(rake)
+local avatar = Avatar.new()
 local screen = UI.screen()
 local powerCue = PowerCue.new(screen)
 UI.addPlayControl(powerCue.root)
@@ -148,8 +144,8 @@ local function canShoot(): boolean
 	end
 	return true
 end
--- The cue and the rake themselves are drawn every frame after the pose (RenderStepped), from
--- the same frame the hands hold; this only hides them. A stroke keeps them: it plays on after
+-- The cue itself is drawn every frame after the pose (RenderStepped), from the same frame
+-- the hands hold; this only hides it. A stroke keeps them: it plays on after
 -- fire() has made canShoot() false.
 local function refreshAim()
 	local allowed = canShoot() and not targets:isDragging()
@@ -160,7 +156,6 @@ local function refreshAim()
 		end
 		if not avatar:stroking() then
 			CueStickBuilder.setVisible(cueStick, false)
-			BridgeBuilder.setVisible(rake, false)
 		end
 		if hud then
 			hud:setInvalidTarget(false)
@@ -419,7 +414,6 @@ local function acquireTable(s: any?)
 		input:resetElevation()
 		UI.setPlayControlsVisible(false)
 		CueStickBuilder.setVisible(cueStick, false)
-		BridgeBuilder.setVisible(rake, false)
 		if guideline then
 			guideline:destroy()
 			guideline = nil
@@ -647,7 +641,6 @@ end
 input:setEnabled(false)
 UI.setPlayControlsVisible(false)
 CueStickBuilder.setVisible(cueStick, false)
-BridgeBuilder.setVisible(rake, false)
 -- What the avatar is handed every frame, filled in place rather than built anew.
 local avatarContext: Avatar.Context = {
 	placement = nil,
@@ -743,7 +736,6 @@ RunService.RenderStepped:Connect(function(dt)
 			-- player's again, where it stands (the server lets the root go there).
 			avatar:release()
 			CueStickBuilder.setVisible(cueStick, false)
-			BridgeBuilder.setVisible(rake, false)
 			releaseMouse()
 		end
 	end
@@ -790,7 +782,7 @@ RunService.RenderStepped:Connect(function(dt)
 			if busy then movingBallWorlds() else nil,
 			hold
 		)
-		-- The shooter's body, then the cue and the rake in the very frame the hands hold. After
+		-- The shooter's body, then the cue in the very frame the hands hold. After
 		-- the stroke the body idles on its own at the spot it shot from, through Resolving.
 		if shooter() then
 			avatar:take()
@@ -812,12 +804,8 @@ RunService.RenderStepped:Connect(function(dt)
 			local out = avatar:update(dt, ctx)
 			CueStickBuilder.setVisible(cueStick, out.visible)
 			if out.visible then
-				CueStickBuilder.placeAt(cueStick, out.tip, out.extension)
+				CueStickBuilder.placeAt(cueStick, out.tip)
 				Camera.fadeNear(cueStick, Config.Cue.CameraFadeStuds)
-			end
-			BridgeBuilder.setVisible(rake, out.rakeVisible)
-			if out.rakeVisible then
-				Camera.fadeNear(rake, Config.Cue.CameraFadeStuds)
 			end
 		end
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
