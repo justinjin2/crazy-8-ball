@@ -1055,7 +1055,7 @@ Config.Avatar = {
 		R6TorsoPitchScale = 0.85,
 	},
 	-- The hips and chest in each stance mode (ShooterStance). Pairs are {at lean 0, at lean 1}
-	-- over the stance's lean (stand is always at 0; lean, rail and table run through their
+	-- over the stance's lean (stand is always at 0; lean, stretch and table run through their
 	-- lean ranges).
 	--   PelvisPitch          the hips tip forward this far (degrees, never past the torso)
 	--   ChestPitch           the torso's lean when a pose has no stance angle (the stance's
@@ -1068,6 +1068,7 @@ Config.Avatar = {
 	--   HipBackStuds         the upper body sits back this far at full lean
 	--   CrouchStuds          ...and this much lower
 	--   LiftFrom             the back foot starts to lift at this lean (none: never lifts)
+	--   BackLegLift          the back foot is always lifted this far (0..1), whatever the lean
 	-- (tune)
 	Profiles = {
 		stand = { -- hand bridge at the natural lean
@@ -1089,16 +1090,29 @@ Config.Avatar = {
 			CrouchStuds = 0.15,
 			LiftFrom = 0.75,
 		},
-		rail = { -- the hips up on the rail edge, lying over it: the hips tip well forward
-			PelvisPitch = { 45, 70 },
-			ChestPitch = { 50, 80 },
+		-- One foot on the floor on its toes, the belly against the rail edge, the back leg
+		-- lifted behind. The hips tip only a little: tipping lifts the hip joints, and the
+		-- planted leg has no length to spare.
+		stretch = {
+			PelvisPitch = { 20, 35 },
+			ChestPitch = { 40, 70 },
+			HipTwistDegrees = 20,
+			ChestCounterDegrees = 10,
+			ChestRollDegrees = 4,
+			HipBackStuds = 0,
+			CrouchStuds = 0,
+			BackLegLift = 1,
+		},
+		table = { -- kneeling on the cloth, sitting back toward the heels
+			PelvisPitch = { 25, 50 },
+			ChestPitch = { 30, 70 },
 			HipTwistDegrees = 10,
 			ChestCounterDegrees = 5,
 			ChestRollDegrees = 3,
 			HipBackStuds = 0,
 			CrouchStuds = 0,
 		},
-		table = { -- kneeling on the cloth, sitting back toward the heels
+		rail = { -- kneeling up on the rail top (the last resort), as on the cloth
 			PelvisPitch = { 25, 50 },
 			ChestPitch = { 30, 70 },
 			HipTwistDegrees = 10,
@@ -1161,11 +1175,10 @@ Config.Avatar = {
 		-- never more than MaxHipDropStuds. (tune)
 		Straightness = 0.99,
 		MaxHipDropStuds = 0.5,
-		-- Up on the rail (ShooterStance "rail"), the legs hang over the rail's outer edge toward
-		-- the stance's hang point on the floor, the back (right) one this much further back and
-		-- raised. (tune)
-		RailBackFootBackStuds = 0.5,
-		RailBackFootRaiseStuds = 0.6,
+		-- Stretching over the rail (ShooterStance "stretch"), the front (left) foot stays on the
+		-- floor up on its toes, pitched this far toe down, and the back leg is lifted behind.
+		-- AvatarPose.measureBody measures the body's ToeRise at this pitch. (tune)
+		StretchToePitchDegrees = 50,
 		-- Kneeling on the table ("table"), the knees rest on the cloth (the stance's
 		-- Table.KneeRestStuds up), each shin lying back along it with the foot pitched this far
 		-- toe down, and the knees this far apart either side of the hips' own spread. (tune)
@@ -1219,17 +1232,20 @@ Config.Avatar = {
 -- Shooter stance (ShooterStance): where the shooter stands, sits or kneels and how they reach
 -- the cue, in table studs. The client poses from it and the server places the root with it.
 -- Avatars stay normal Roblox size, the cue its own length and the table its size; there is no
--- rake and no cue extension. A ball out of reach from the floor is reached by the body: the
--- hips up on the rail, then kneeling on the table (designer, 2026-09-25).
+-- rake and no cue extension. A ball out of reach from the floor is reached by the body: one
+-- foot on the floor stretching over the rail, then kneeling on the table (designer,
+-- 2026-09-25).
 ---------------------------------------------------------------------------------------------
 Config.Stance = {
 	-- The body when a character cannot be measured, in studs above the floor: root centre,
 	-- the hip line the torso leans about, the shoulder pivots, half the shoulder span, one
 	-- arm from the shoulder pivot to the grip, the half extents of the body's footprint, the
-	-- hip (leg) pivots and one thigh from its hip pivot to its knee pivot. The default R15
-	-- rig as AvatarPose.measureBody measures it in Studio (2026-09-24, the legs 2026-09-25;
-	-- the default R6 rig measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0 and 2.06, its leg
-	-- being rigid).
+	-- hip (leg) pivots, one thigh from its hip pivot to its knee pivot, the neck pivot, the
+	-- neck pivot to the head's centre, the head's radius, and how far the ankle rises on the
+	-- toes (Avatar.Legs.StretchToePitchDegrees). The default R15 rig as
+	-- AvatarPose.measureBody measures it in Studio (2026-09-24, the legs and head
+	-- 2026-09-25; the default R6 rig measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0, 2.06,
+	-- 4.0, 0.5, 0.5 and 0, its leg being rigid).
 	DefaultBody = {
 		RootHeight = 3.192,
 		WaistHeight = 2.592,
@@ -1240,6 +1256,10 @@ Config.Stance = {
 		HalfDepth = 0.58,
 		HipHeight = 2.192,
 		ThighLength = 0.921,
+		NeckHeight = 4.29,
+		HeadLift = 0.576,
+		HeadRadius = 0.591,
+		ToeRise = 0.29,
 	},
 	-- The ways the body can stand to the cue, each tried at every support. TwistDegrees: the
 	-- body faces this far right of the aim (a right-hander's hips turn away from the stroking
@@ -1288,7 +1308,7 @@ Config.Stance = {
 	-- Torso lean from vertical on the floor, degrees: the natural stance, the most it
 	-- stretches, and the most upright. A steeper drawn cue stands the body up by
 	-- LeanUprightPerPitchDegree per degree of pitch. (tune)
-	LeanNaturalDegrees = 60,
+	LeanNaturalDegrees = 45,
 	LeanMaxDegrees = 85,
 	LeanMinDegrees = 20,
 	LeanUprightPerPitchDegree = 1,
@@ -1308,24 +1328,33 @@ Config.Stance = {
 	FloorGapStuds = 0.6,
 	-- The root is always at least this far back along the cue from the strike point. (tune)
 	UMinStuds = 0.8,
-	-- The hips up on the rail edge, the belly on it and the torso over the table, the feet off
-	-- the floor (the back one lifted): the waist WaistAboveStuds above the rail top, the root
-	-- from InStuds inside the rail's outer edge to OutStuds outside it; the torso leans from
-	-- LeanMinDegrees to LeanMaxDegrees; the hanging feet reach for the floor HangOutStuds
-	-- outside the rail. (tune)
-	Rail = {
-		WaistAboveStuds = 0.4,
-		InStuds = 1.4,
-		OutStuds = 0.3,
+	-- Where the spot nearest the natural distance does not clear the table, the search steps
+	-- out from it this far at a time for one that does. (internal)
+	ClearStepStuds = 0.2,
+	-- Stretching over the rail: one foot on the floor up on its toes (the hips as high as that
+	-- leg reaches, less KneeBendStuds), the back leg lifted behind, the root from MinOutStuds
+	-- to MaxOutStuds outside the rail's outer edge (the table's apron is flush with that edge,
+	-- so the hips stay outside it), the belly allowed BellyIntoRailStuds into the rail top
+	-- where it leans on the edge; the torso leans from LeanMinDegrees to LeanMaxDegrees. An
+	-- avatar's legs are too short for any stance with the hips on the rail to keep a foot on
+	-- the floor, so a shot this does not reach is taken kneeling on the table (designer,
+	-- 2026-09-25). (tune)
+	Stretch = {
+		KneeBendStuds = 0.1,
+		MinOutStuds = 0.4,
+		MaxOutStuds = 1.0,
+		BellyIntoRailStuds = 0.2,
 		LeanMinDegrees = 40,
 		LeanMaxDegrees = 90,
-		HangOutStuds = 0.35,
 	},
 	-- Kneeling on the table: the root at least KneelInsetStuds inside the cushion noses, the
 	-- knee pivots KneeRestStuds above the cloth, the thighs leaning ThighBackDegrees back from
-	-- upright; the torso leans from LeanMinDegrees to LeanMaxDegrees. (tune)
+	-- upright; the torso leans from LeanMinDegrees to LeanMaxDegrees. The last resort, kneeling
+	-- up on the rail top the same way (ShooterStance "rail"), keeps the root over the rail at
+	-- least RailKneelOutStuds inside its outer edge, so the knees behind it stay on it. (tune)
 	Table = {
 		KneelInsetStuds = 0.5,
+		RailKneelOutStuds = 0.8,
 		KneeRestStuds = 0.15,
 		ThighBackDegrees = 60,
 		LeanMinDegrees = 20,
@@ -1334,31 +1363,35 @@ Config.Stance = {
 	-- What the body must clear, studs (tune):
 	--   TorsoFractions          the points up the torso (waist 0 to shoulders 1) checked
 	--   TorsoHalfThicknessStuds ...each this far above whatever is under it
-	--   HeadAboveShouldersStuds the head's centre above the shoulders' centre, along the spine
-	--   HeadRadiusStuds         ...its clearance
 	--   ClothStuds, RailStuds   what counts as under: the cloth plus the balls on it, the rail
+	--   HeadGapStuds            the head (the body's measured head, looking at the cue ball)
+	--                           stays this far above whatever is under any part of it, so it
+	--                           reads clearly above the table
 	--   CueTorsoStuds           the cue keeps this far from those torso points
-	--   CueHeadStuds            ...and from the head's centre
+	--   CueHeadStuds            ...and this far outside the head
 	Clearance = {
 		TorsoFractions = { 0.35, 0.7 },
 		TorsoHalfThicknessStuds = 0.3,
-		HeadAboveShouldersStuds = 0.55,
-		HeadRadiusStuds = 0.3,
 		ClothStuds = 0.4,
 		RailStuds = 0.05,
+		HeadGapStuds = 0.25,
 		CueTorsoStuds = 0.3,
-		CueHeadStuds = 0.25,
+		CueHeadStuds = 0.05,
 	},
-	-- The hand bridge: this far from the cue ball (table inches), but never within
-	-- BridgeTipClearInches of the tip at a full wind-up; out of reach it may sit up to
+	-- The hand bridge: the bridge arm reaches out toward the ball, the hand as far along the
+	-- cue as BridgeArmExtendFraction of the arm's reach takes it (nearly straight, lining the
+	-- cue up), but never nearer the cue ball than BridgeFromBallInches (table inches) nor
+	-- within BridgeTipClearInches of the tip at a full wind-up; out of reach it may sit up to
 	-- MaxBridgeInches back. On the cloth it stays BridgeCushionInsetInches clear of the
-	-- cushion (BridgeFrozenInsetInches when the cue runs along it, nothing else left), on the rail RailBridgeInsetInches in from either rail edge, and never within
+	-- cushion (BridgeFrozenInsetInches when the cue runs along it, nothing else left), on the
+	-- rail RailBridgeInsetInches in from either rail edge, and never within
 	-- PocketBridgeMarginStuds of a pocket's mouth. The cue passes between BridgeMinRiseStuds and
 	-- BridgeMaxRiseStuds above the surface there (a steep cue with no such spot raises the
 	-- hand under it); the hand's target is BridgeHandHeightStuds off the surface. Moving
 	-- between the cloth and the rail costs BridgeRailHysteresisInches, so it does not flicker.
 	-- (tune)
-	BridgeFromBallInches = 10,
+	BridgeArmExtendFraction = 0.95,
+	BridgeFromBallInches = 6,
 	BridgeTipClearInches = 1.5,
 	MaxBridgeInches = 22,
 	BridgeCushionInsetInches = 1.5,

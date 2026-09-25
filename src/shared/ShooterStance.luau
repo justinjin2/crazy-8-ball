@@ -20,9 +20,11 @@
 --      the bridge runs, the parts of the cue line over the cloth or the rail top (never a
 --      pocket) where the cue sits low enough over the surface for a hand bridge under it.
 --   3. A search over SUPPORTS, cheapest first: standing on the floor (a plain stance, then
---      leaning further in, the back foot lifting), the hips up on the rail, then kneeling on
---      the table. The first support with any stance that reaches wins, so the body only climbs
---      when it has to. Within a support every SIDE is tried (Config.Stance.Sides: the classic
+--      leaning further in, the back foot lifting), stretching over the rail (one foot on the
+--      floor up on its toes, the belly on the rail edge, the back leg lifted), kneeling on the
+--      table, and last kneeling up on the rail top (a small body with a steep cue or a ball by
+--      a rail that nothing else reaches). The first support with any stance that reaches wins,
+--      so the body only climbs when it has to. Within a support every SIDE is tried (Config.Stance.Sides: the classic
 --      open stance with the chin over the cue, the cue by the right hip, the body square to it
 --      reaching across), each at the least lean from the support's range that lets the right
 --      shoulder reach the grip window and the left shoulder a bridge run. The body is not tied
@@ -31,8 +33,11 @@
 --      (Config.Stance.Costs), the one used last frame (the Memory) a little cheaper, so it
 --      does not flip between two near-equal stances.
 --   4. The torso and head must clear the rail, the cloth and the balls on it, and the cue must
---      pass clear of the torso and head. A candidate that fails is not used.
---   5. The grip and bridge hands' places on the cue at the chosen spot, and the pull.
+--      pass clear of the torso and head. The head is the body's own, measured, placed the way
+--      AvatarPose poses it (looking at the cue ball) and kept HeadGapStuds above anything
+--      under any part of it. A candidate that fails is not used.
+--   5. The grip and bridge hands' places on the cue at the chosen spot (the bridge arm reaching
+--      out nearly straight toward the ball), and the pull.
 --
 -- For a given lean the feasible spots along a side's line are intervals, found in closed form
 -- (a shoulder moving along the cue direction against a segment, or a run, of the cue), so the
@@ -60,6 +65,10 @@ export type Body = {
 	HalfDepth: number, -- ...and front to back
 	HipHeight: number, -- the hip (leg) pivots, standing
 	ThighLength: number, -- hip pivot to knee pivot (R6: the whole rigid leg)
+	NeckHeight: number, -- the neck pivot, standing
+	HeadLift: number, -- neck pivot to the head's centre
+	HeadRadius: number, -- half the head's height or depth, the larger
+	ToeRise: number, -- how far the ankle rises on the toes (0 for a rigid R6 leg)
 }
 
 -- The table's surroundings, table studs (ShooterStance.area).
@@ -79,9 +88,10 @@ export type Area = {
 	pockets: { { x: number, y: number, r: number } }, -- no bridge within these circles
 }
 
--- What the body stands on: the floor ("stand" at the natural lean, "lean" further in), the
--- rail ("rail": the hips up on the rail top) or the cloth ("table": kneeling).
-export type Mode = "stand" | "lean" | "rail" | "table"
+-- What the body stands on: the floor ("stand" at the natural lean, "lean" further in, and
+-- "stretch": one foot on the floor on its toes, the belly on the rail edge), the cloth
+-- ("table": kneeling) or the rail top ("rail": kneeling up on it, the last resort).
+export type Mode = "stand" | "lean" | "stretch" | "table" | "rail"
 
 -- Threaded from one frame's stance into the next, for hysteresis.
 export type Memory = { mode: Mode, side: string, onRail: boolean }
@@ -120,17 +130,14 @@ export type Stance = {
 	side: string, -- Config.Stance.Sides[i].Name
 	rootX: number, -- the root's centre, table studs
 	rootY: number,
-	rootZ: number, -- above the floor: RootHeight on the floor, higher on the rail or table
+	rootZ: number, -- above the floor: RootHeight standing, higher stretching or kneeling
 	yaw: number, -- facing, aim-angle convention
 	-- 0..1 through the support's lean range (the Config.Avatar.Profiles pairs): stand is
 	-- always 0, lean runs from the natural lean to the most.
 	lean: number,
 	torsoDegrees: number, -- torso lean from vertical
 	twistDegrees: number, -- the facing, this far right of the aim
-	supportZ: number, -- what the legs rest on: 0 (floor), the rail top or the cloth
-	-- On the rail, where the hanging (right) foot reaches for the floor, outside the rail.
-	hangX: number,
-	hangY: number,
+	supportZ: number, -- what the knees rest on: the cloth or the rail top (0: on the floor)
 	pitchDegrees: number, -- the drawn pitch used (clamped)
 	cueGapStuds: number, -- tip to strike point along the axis, with the pull
 	pullLimit: number, -- the drawn wind-up is scaled by this so the tip never passes the bridge
@@ -311,10 +318,11 @@ end
 --- The height of the hip pivots above the floor in `mode` (the floor's own when standing).
 function ShooterStance.hipHeight(mode: Mode, body: Body, area: Area): number
 	local S = Config.Stance
-	if mode == "rail" then
-		return area.railTopZ + S.Rail.WaistAboveStuds - (body.WaistHeight - body.HipHeight)
-	elseif mode == "table" then
-		return area.clothZ
+	if mode == "stretch" then
+		-- The planted leg nearly straight, up on its toes.
+		return body.HipHeight + body.ToeRise - S.Stretch.KneeBendStuds
+	elseif mode == "table" or mode == "rail" then
+		return (if mode == "rail" then area.railTopZ else area.clothZ)
 			+ S.Table.KneeRestStuds
 			+ body.ThighLength * math.cos(math.rad(S.Table.ThighBackDegrees))
 	end
@@ -461,7 +469,7 @@ function ShooterStance.solve(q: Input): Stance
 	local foot = math.sqrt(body.HalfDepth * body.HalfDepth + body.HalfWidth * body.HalfWidth)
 	local fenceX = area.fenceHx - foot - S.FenceMarginStuds
 	local fenceY = area.fenceHy - foot - S.FenceMarginStuds
-	local R, Tb = S.Rail, S.Table
+	local St, Tb = S.Stretch, S.Table
 	-- The root's pieces along the ray from (ox, oy) along b (u from UMinStuds on).
 	local function region(mode: Mode, ox: number, oy: number, into: { number })
 		table.clear(into)
@@ -482,15 +490,48 @@ function ShooterStance.solve(q: Input): Stance
 			if e1 <= e2 then
 				subtract({ lo, hi }, e1, e2, tmp)
 			end
-		elseif mode == "rail" then
-			-- Between InStuds inside the rail's outer edge and OutStuds outside it.
-			local i1, i2 =
-				rayInside(ox, oy, bx, by, area.railHx + R.OutStuds, area.railHy + R.OutStuds)
+		elseif mode == "stretch" then
+			-- Between MinOutStuds and MaxOutStuds outside the rail's outer edge.
+			local i1, i2 = rayInside(
+				ox,
+				oy,
+				bx,
+				by,
+				area.railHx + St.MaxOutStuds,
+				area.railHy + St.MaxOutStuds
+			)
 			if i1 <= i2 then
 				local band = { math.max(lo, i1), math.min(hi, i2) }
 				if band[1] <= band[2] then
-					local n1, n2 =
-						rayInside(ox, oy, bx, by, area.railHx - R.InStuds, area.railHy - R.InStuds)
+					local n1, n2 = rayInside(
+						ox,
+						oy,
+						bx,
+						by,
+						area.railHx + St.MinOutStuds,
+						area.railHy + St.MinOutStuds
+					)
+					if n1 <= n2 then
+						subtract(band, n1, n2, tmp)
+					else
+						tmp = band
+					end
+				end
+			end
+		elseif mode == "rail" then
+			-- Kneeling on the rail top: the hips over its inner part, the knees behind them.
+			local i1, i2 = rayInside(
+				ox,
+				oy,
+				bx,
+				by,
+				area.railHx - Tb.RailKneelOutStuds,
+				area.railHy - Tb.RailKneelOutStuds
+			)
+			if i1 <= i2 then
+				local band = { math.max(lo, i1), math.min(hi, i2) }
+				if band[1] <= band[2] then
+					local n1, n2 = rayInside(ox, oy, bx, by, area.clothHx, area.clothHy)
 					if n1 <= n2 then
 						subtract(band, n1, n2, tmp)
 					else
@@ -521,6 +562,19 @@ function ShooterStance.solve(q: Input): Stance
 			return area.railTopZ + K.RailStuds
 		end
 		return -INF
+	end
+	-- ...and the highest of them anywhere within r of it (each box grown by r).
+	local function surfaceNear(x: number, y: number, r: number): number
+		local ax, ay = math.abs(x), math.abs(y)
+		local z = -INF
+		if ax <= area.clothHx + r and ay <= area.clothHy + r then
+			z = area.clothZ + K.ClothStuds
+		end
+		local inCloth = ax + r <= area.clothHx and ay + r <= area.clothHy
+		if not inCloth and ax <= area.railHx + r and ay <= area.railHy + r then
+			z = math.max(z, area.railTopZ + K.RailStuds)
+		end
+		return z
 	end
 	-- The cue's nearest approach to a point (the drawn cue, tip at rest to butt).
 	local function cueDistance(x: number, y: number, z: number): number
@@ -734,26 +788,52 @@ function ShooterStance.solve(q: Input): Stance
 	end
 
 	-- The torso and head at a spot clear the table and the cue.
+	local ballX, ballY = q.ballXIn * s, q.ballYIn * s
+	local ballZ = area.clothZ + Config.Balls.RenderRadiusInches * s
+	local Look = Config.Avatar.Head
+	local maxPitch = math.rad(Look.MaxPitchDegrees)
+	local neckUp = body.NeckHeight - body.WaistHeight
 	local function clear(fr: Frame, u: number): boolean
 		local rx, ry = fr.ox + bx * u, fr.oy + by * u
 		for _, t in K.TorsoFractions do
 			local x, y = rx + fr.fx * fr.k * t, ry + fr.fy * fr.k * t
 			local z = fr.waistZ + (fr.cz - fr.waistZ) * t
-			if z - K.TorsoHalfThicknessStuds < surfaceAt(x, y) then
+			local under = surfaceAt(x, y)
+			-- Stretching, the belly may lean on the rail edge.
+			if fr.mode == "stretch" and t < 0.5 and under == area.railTopZ + K.RailStuds then
+				under -= St.BellyIntoRailStuds
+			end
+			if z - K.TorsoHalfThicknessStuds < under then
 				return false
 			end
 			if cueDistance(x, y, z) < K.CueTorsoStuds then
 				return false
 			end
 		end
+		-- The head as AvatarPose poses it: on the neck up the leaning spine, turned at the neck
+		-- toward the cue ball (a pitch up tips it back along the chest's back).
 		local sa, ca = math.sin(fr.a), math.cos(fr.a)
-		local hx = rx + fr.fx * (fr.k + K.HeadAboveShouldersStuds * sa)
-		local hy = ry + fr.fy * (fr.k + K.HeadAboveShouldersStuds * sa)
-		local hz = fr.cz + K.HeadAboveShouldersStuds * ca
-		if hz - K.HeadRadiusStuds < surfaceAt(hx, hy) then
+		local ux, uy, uz = fr.fx * sa, fr.fy * sa, ca -- up the spine
+		local kx, ky, kz = -fr.fx * ca, -fr.fy * ca, sa -- the chest's back
+		local nx, ny, nz = rx + ux * neckUp, ry + uy * neckUp, fr.waistZ + uz * neckUp
+		local lx0, ly0, lz0 = ballX - nx, ballY - ny, ballZ - nz
+		local len = math.sqrt(lx0 * lx0 + ly0 * ly0 + lz0 * lz0)
+		local pitch = 0
+		if len > 1e-6 then
+			local up = (lx0 * ux + ly0 * uy + lz0 * uz) / len
+			pitch =
+				math.clamp(math.asin(math.clamp(up, -1, 1)) * Look.LookWeight, -maxPitch, maxPitch)
+		end
+		local cp, sp = math.cos(pitch), math.sin(pitch)
+		local lift = body.HeadLift
+		local hx = nx + lift * (ux * cp + kx * sp)
+		local hy = ny + lift * (uy * cp + ky * sp)
+		local hz = nz + lift * (uz * cp + kz * sp)
+		local r = body.HeadRadius
+		if hz - r - K.HeadGapStuds < surfaceNear(hx, hy, r) then
 			return false
 		end
-		return cueDistance(hx, hy, hz) >= K.CueHeadStuds
+		return cueDistance(hx, hy, hz) >= r + K.CueHeadStuds
 	end
 
 	-- 5. The search.
@@ -766,21 +846,22 @@ function ShooterStance.solve(q: Input): Stance
 	)
 	local ranges: { [string]: { number } } = {
 		stand = { leanNat, math.max(leanNat, math.rad(S.LeanMaxDegrees)) },
-		rail = {
-			math.min(math.rad(R.LeanMinDegrees), leanNat),
-			math.rad(R.LeanMaxDegrees),
+		stretch = {
+			math.min(math.rad(St.LeanMinDegrees), leanNat),
+			math.rad(St.LeanMaxDegrees),
 		},
 		table = {
 			math.min(math.rad(Tb.LeanMinDegrees), leanNat),
 			math.rad(Tb.LeanMaxDegrees),
 		},
 	}
+	ranges.rail = ranges.table
 	local costs = S.Costs
 	local sides = (S.Sides :: any) :: { Side }
 	type Pick = { fr: Frame, u: number, cost: number }
 	local best: Pick? = nil
 	local spots = {}
-	for _, tier in { "stand", "rail", "table" } do
+	for _, tier in { "stand", "stretch", "table", "rail" } do
 		local lo, hi = ranges[tier][1], ranges[tier][2]
 		for _, side in sides do
 			-- A side whose own cost, less the memory's discount, cannot beat the best so far is
@@ -833,6 +914,39 @@ function ShooterStance.solve(q: Input): Stance
 					sticky = costs.Sticky
 				end
 			end
+			-- Where along the line the body clears the table: the spot nearest the natural
+			-- distance, or else the nearest to it that clears, stepping out from it along each
+			-- feasible stretch ClearStepStuds at a time to the stretch's ends (further out, the
+			-- head can be over the floor rather than the rail). Small steps keep the spot
+			-- moving smoothly as the aim turns.
+			local function clearSpot(f: Frame): number?
+				local v = nearest(spots, uPref)
+				if v == nil or clear(f, v) then
+					return v
+				end
+				local found: number? = nil
+				local gap = INF
+				local step = S.ClearStepStuds
+				for i = 1, #spots, 2 do
+					local a, b = spots[i], spots[i + 1]
+					local start = math.clamp(uPref, a, b)
+					for dir = -1, 1, 2 do
+						local w = start
+						while gap > math.abs(w - uPref) do
+							if clear(f, w) then
+								found, gap = w, math.abs(w - uPref)
+								break
+							end
+							local edge = if dir < 0 then a else b
+							if w == edge then
+								break
+							end
+							w = if dir < 0 then math.max(a, w - step) else math.min(b, w + step)
+						end
+					end
+				end
+				return found
+			end
 			local chosen: Frame? = nil
 			local u, cost = 0, INF
 			for _, extra in S.ExtraLeanDegrees do
@@ -846,8 +960,8 @@ function ShooterStance.solve(q: Input): Stance
 				if extra ~= 0 and not feasible(f, spots) then
 					continue
 				end
-				local v = nearest(spots, uPref)
-				if v == nil or not clear(f, v) then
+				local v = clearSpot(f)
+				if v == nil then
 					continue
 				end
 				local c2 = side.Cost
@@ -911,15 +1025,17 @@ function ShooterStance.solve(q: Input): Stance
 	local gx0, gy0, gz0 = axisAt(gripAlong)
 	local gripReachable = reached and distance(gx0, gy0, gz0, rsx, rsy, fr.cz) <= reachGrip + 1e-6
 
-	-- The bridge: the reachable point on a run nearest the preferred one, the rail's own runs
-	-- a little preferred while the hand was on the rail last frame.
+	-- The bridge: the arm reaches out nearly straight (BridgeArmExtendFraction of its reach)
+	-- toward the ball, so the hand sits on a run as near the ball as that takes it, never
+	-- nearer than the preferred nearest; the rail's own runs a little preferred while the hand
+	-- was on the rail last frame.
 	local lsx = rx + fr.fx * fr.k + fr.blx * shw
 	local lsy = ry + fr.fy * fr.k + fr.bly * shw
 	local bridgeRun: Run? = nil
 	local bridgeAlong = sPrefB
 	local bridgeReachable = false
 	do
-		local r = fr.reachBridge + 1e-6
+		local r = math.max(fr.reachBridge, body.ArmReach * S.BridgeArmExtendFraction) + 1e-6
 		local bestScore = INF
 		local wasRail = memory ~= nil and memory.onRail
 		for _, run in runs do
@@ -985,17 +1101,6 @@ function ShooterStance.solve(q: Input): Stance
 	local gap = gR + math.clamp(q.pull, 0, 1) * pullLimit * C.CuePullBackStuds
 	local gx, gy, gz = axisAt(gap + (gripAlong - gR))
 
-	-- The hanging foot on the rail: straight out past the rail's nearest outer edge.
-	local hangX, hangY = rx, ry
-	if mode == "rail" then
-		local dx, dy = area.railHx - math.abs(rx), area.railHy - math.abs(ry)
-		if dx < dy then
-			hangX = (if rx < 0 then -1 else 1) * (area.railHx + R.HangOutStuds)
-		else
-			hangY = (if ry < 0 then -1 else 1) * (area.railHy + R.HangOutStuds)
-		end
-	end
-
 	-- The idle spot: this one when it is on the floor clear of the barrier (by the release
 	-- clearance, or the body's footprint at any facing), else straight out through the
 	-- nearest side, and inside the fence.
@@ -1029,12 +1134,10 @@ function ShooterStance.solve(q: Input): Stance
 		lean = if mode == "stand" then 0 else math.clamp(fr.lambda, 0, 1),
 		torsoDegrees = math.deg(fr.a),
 		twistDegrees = fr.side.TwistDegrees,
-		supportZ = if mode == "rail"
-			then area.railTopZ
-			elseif mode == "table" then area.clothZ
+		supportZ = if mode == "table"
+			then area.clothZ
+			elseif mode == "rail" then area.railTopZ
 			else 0,
-		hangX = hangX,
-		hangY = hangY,
 		pitchDegrees = pitchDegrees,
 		cueGapStuds = gap,
 		pullLimit = pullLimit,

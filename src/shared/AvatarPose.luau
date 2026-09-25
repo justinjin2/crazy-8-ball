@@ -29,8 +29,9 @@
 -- R6 limbs are rigid, so they aim, and a hand slides along the cue (PoseMath.lineSphere) to
 -- where the arm meets it. A hand that cannot quite reach slides along the cue rather than
 -- leaving it. The legs follow the stance's support: standing, the hips drop just enough for
--- both feet to stay on the floor; up on the rail, they hang over its outer edge toward the
--- floor; kneeling on the table, the knees rest on the cloth with the shins lying back.
+-- both feet to stay on the floor; stretching over the rail, the front foot stays on the floor
+-- up on its toes and the back leg lifts behind; kneeling on the table, the knees rest on the
+-- cloth with the shins lying back.
 
 local Players = game:GetService("Players")
 
@@ -114,10 +115,8 @@ export type Frame = {
 	root: CFrame,
 	floorY: number, -- world height of the floor the shooter stands on
 	mode: ShooterStance.Mode, -- picks Config.Avatar.Profiles[mode] and what the legs do
-	-- "rail": world height of the rail top; "table": of the cloth the knees rest on.
+	-- "table", "rail": world height of the cloth or the rail top the knees rest on.
 	supportY: number,
-	-- "rail": the point on the floor, outside the rail, the hanging feet reach for.
-	hang: Vector3,
 	lean: number, -- 0..1, the stance's lean through its mode's range
 	torsoDegrees: number?, -- the stance's torso lean from vertical; nil: the profile's own
 	pull: number, -- 0..1 wind-up: the body sways back with it
@@ -148,6 +147,7 @@ type Profile = {
 	HipBackStuds: number,
 	CrouchStuds: number,
 	LiftFrom: number?,
+	BackLegLift: number?,
 }
 
 local PROFILES = (Config.Avatar.Profiles :: any) :: { [string]: Profile }
@@ -405,6 +405,19 @@ local function measure(rig: Rig): ShooterStance.Body
 	local hipL = (restCF[legL.upper] * rig.p1[legL.upper]).Y
 	local hipR = (restCF[legR.upper] * rig.p1[legR.upper]).Y
 	local thigh = math.min(legL.upperBone.length, legR.upperBone.length)
+	-- The head: the neck pivot, the head's centre, and half its height or depth.
+	local neck = restCF[rig.chest] * rig.p0[rig.head]
+	local headCF, headSize = restCF[rig.head], parts[rig.head].Size
+	-- Up on the toes (the front foot, stretching): the ankle pivot swings about the foot's
+	-- front bottom edge as the foot pitches toe down. A rigid R6 leg has no ankle.
+	local toeRise = 0
+	if r15 then
+		local foot = legL.finish
+		local size = parts[foot].Size
+		local v = rig.p1[foot] - Vector3.new(0, -size.Y / 2, -size.Z / 2)
+		local p = math.rad(Config.Avatar.Legs.StretchToePitchDegrees)
+		toeRise = v.Y * math.cos(p) + v.Z * math.sin(p) - v.Y
+	end
 	return {
 		RootHeight = rig.stand,
 		WaistHeight = rig.stand + rig.waist.Y,
@@ -417,6 +430,10 @@ local function measure(rig: Rig): ShooterStance.Body
 		HalfDepth = halfDepth,
 		HipHeight = rig.stand + (hipL + hipR) / 2,
 		ThighLength = thigh,
+		NeckHeight = rig.stand + neck.Y,
+		HeadLift = (headCF.Position - neck).Magnitude,
+		HeadRadius = math.max(headSize.Y, headSize.Z) / 2,
+		ToeRise = toeRise,
 	}
 end
 
@@ -762,7 +779,6 @@ function AvatarPose.newFrame(): Frame
 		floorY = 0,
 		mode = "stand",
 		supportY = 0,
-		hang = ZERO,
 		lean = 0,
 		torsoDegrees = nil,
 		pull = 0,
@@ -920,28 +936,20 @@ local function solve(rig: Rig, f: Frame)
 
 	-- 2. Where the legs go. Standing, the feet are planted around where the root stands (an
 	-- R15 body's sway and lean never drag them), the back foot may lift, toe down, and the
-	-- hips come down just enough for both legs to reach, so the feet stay on the floor. Up on
-	-- the rail, the legs hang over its outer edge toward the stance's hang point, the back one
-	-- raised. Kneeling on the table, each knee rests on the cloth below and behind its hip,
-	-- the shin lying back along it. The hips never move for the rail or the table: the stance
-	-- put the root at the height those need.
+	-- hips come down just enough for both legs to reach, so the feet stay on the floor.
+	-- Stretching over the rail, the same, with the front foot up on its toes (the stance put
+	-- the root as high as that leg reaches) and the back leg lifted. Kneeling on the table (or
+	-- up on the rail top), each knee rests on the surface below and behind its hip, the shin
+	-- lying back along it; the hips never move for that: the stance put the root at the height
+	-- it needs.
 	local legL, legR = rig.legL, rig.legR
 	local lift = math.clamp(f.backLegLift, 0, 1)
 	local hipL = waist + hipRot * (p0[legL.upper] - hipPivot)
 	local hipR = waist + hipRot * (p0[legR.upper] - hipPivot)
 	local targetL, targetR, kneeL, kneeR
-	local kneeling = f.mode == "table"
-	if f.mode == "rail" then
-		local out = Vector3.new(f.hang.X - root.X, 0, f.hang.Z - root.Z)
-		out = if out.Magnitude > 1e-6 then out.Unit else -fwd
-		local side = out:Cross(UP)
-		local spread = (hipR - hipL):Dot(side) / 2
-		targetL = f.hang - side * spread + UP * legL.ankle
-		targetR = f.hang
-			+ side * spread
-			+ out * Legs.RailBackFootBackStuds
-			+ UP * (Legs.RailBackFootRaiseStuds + legR.ankle)
-	elseif kneeling then
+	local kneeling = f.mode == "table" or f.mode == "rail"
+	local stretching = f.mode == "stretch"
+	if kneeling then
 		-- The knee on the cloth (KneeRestStuds up), straight back from the hip as far as the
 		-- thigh reaches down to it; the ankle a shin's length further back, just above.
 		local rest = Config.Stance.Table.KneeRestStuds
@@ -970,7 +978,8 @@ local function solve(rig: Rig, f: Frame)
 			floor += Vector3.new(sway.X, 0, sway.Z)
 		end
 		local front, back = Legs.FrontFoot, Legs.BackFoot
-		targetL = floor + right * front[1] + fwd * front[2] + UP * legL.ankle
+		local toes = if stretching and rig.body then rig.body.ToeRise else 0
+		targetL = floor + right * front[1] + fwd * front[2] + UP * (legL.ankle + toes)
 		targetR = floor
 			+ right * back[1]
 			+ fwd * (back[2] - lift * Legs.BackLegLiftBackStuds)
@@ -1116,12 +1125,11 @@ local function solve(rig: Rig, f: Frame)
 	end
 
 	-- 6. The legs reach their targets. Standing, knees over the toes and the feet flat, toes out
-	-- (the back one pitched down as it lifts). On the rail, hanging, the feet pointed down.
+	-- (the back one pitched down as it lifts). Stretching, the front foot up on its toes.
 	-- Kneeling, each knee lands on its spot on the cloth and the foot lies pitched toe down.
 	local toe = math.rad(Legs.ToeOutDegrees)
-	local footPitch = if f.mode == "rail"
-		then math.rad(Legs.BackFootPitchDegrees)
-		else lift * math.rad(Legs.BackFootPitchDegrees)
+	local footPitch = lift * math.rad(Legs.BackFootPitchDegrees)
+	local frontPitch = if stretching then math.rad(Legs.StretchToePitchDegrees) else 0
 	for side = 1, 2 do
 		local leg = if side == 1 then legL else legR
 		local H = if side == 1 then hipL else hipR
@@ -1139,7 +1147,7 @@ local function solve(rig: Rig, f: Frame)
 			local foot = leg.finish
 			local down = if kneeling
 				then math.rad(Legs.KneelFootPitchDegrees)
-				elseif side == 1 and f.mode ~= "rail" then 0
+				elseif side == 1 then frontPitch
 				else footPitch
 			cf[foot] = place(
 				cf[leg.lower] * p0[foot],

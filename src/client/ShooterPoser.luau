@@ -8,8 +8,8 @@
 --   aim     every rig part but the root anchored, on this client only, and posed
 --           (AvatarPose.pose) whenever the frame changes; the root is written with the pose,
 --           and both are eased toward the stance (Config.Avatar.Motion): a new stance, even
---           another side of the ball or up onto the rail, is glided to, while the hands stay
---           exactly on the cue. The local player's Animate is off and its tracks stopped; a
+--           another side of the ball or a stretch over the rail, is glided to, while the hands
+--           stay exactly on the cue. The local player's Animate is off and its tracks stopped; a
 --           remote body's Animate and transparency are never touched.
 --   stroke  aim, with the cue's gap from the stroke clock (advance) on the frozen frame the
 --           driver supplies.
@@ -125,7 +125,6 @@ type ShownPose = {
 	lean: number,
 	lift: number,
 	hand: Vector3,
-	hang: Vector3,
 	supportY: number,
 }
 
@@ -137,14 +136,16 @@ local SHOT_SPOT = "ShotSpot"
 -- KEY_FINE: nothing finer shows on screen. Slots in the key (see fillKey).
 local KEY_STUDS = 1e-3
 local KEY_FINE = 1e-4
-local KEY_SIZE = 30
+local KEY_SIZE = 27
 
 -- The eased root lands exactly on its target once this close, so a still stance stops
 -- changing the key and costs nothing.
 local SETTLE_STUDS = 1e-3
 local SETTLE_DOT = 1 - 1e-8
 
-local PROFILES = (Config.Avatar.Profiles :: any) :: { [string]: { LiftFrom: number? } }
+local PROFILES = (Config.Avatar.Profiles :: any) :: {
+	[string]: { LiftFrom: number?, BackLegLift: number? },
+}
 
 local function smoothstep(from: number, to: number, x: number): number
 	if to <= from then
@@ -221,7 +222,6 @@ function ShooterPoser.compose(
 	frame.floorY = p.y
 	frame.mode = stance.mode
 	frame.supportY = p.y + stance.supportZ
-	frame.hang = Vector3.new(Placement.fromTableStuds(p, stance.hangX, stance.hangY, 0))
 	frame.lean = stance.lean
 	frame.torsoDegrees = stance.torsoDegrees
 	-- The body sways with the cue as drawn: the wind-up the stance allowed, and through the
@@ -237,7 +237,10 @@ function ShooterPoser.compose(
 	frame.look = ball
 	local profile = PROFILES[stance.mode]
 	local liftFrom = profile and profile.LiftFrom
-	frame.backLegLift = if liftFrom then smoothstep(liftFrom, 1, stance.lean) else 0
+	frame.backLegLift = if profile and profile.BackLegLift
+		then profile.BackLegLift
+		elseif liftFrom then smoothstep(liftFrom, 1, stance.lean)
+		else 0
 
 	-- The off hand: always a bridge under the cue, on the cloth or the rail top (or raised
 	-- under a steep cue). AvatarPose puts the palm just above this spot.
@@ -533,7 +536,7 @@ local function fillKey(key: { number }, f: AvatarPose.Frame, root: CFrame, versi
 	local at, look = root.Position, root.LookVector
 	local tip = f.tip
 	local tipAt, axis = tip.Position, tip.ZVector
-	local hand, hang, target = f.offHand, f.hang, f.look
+	local hand, target = f.offHand, f.look
 	key[1] = quantise(at.X, KEY_STUDS)
 	key[2] = quantise(at.Y, KEY_STUDS)
 	key[3] = quantise(at.Z, KEY_STUDS)
@@ -551,19 +554,16 @@ local function fillKey(key: { number }, f: AvatarPose.Frame, root: CFrame, versi
 	key[15] = quantise(hand.X, KEY_STUDS)
 	key[16] = quantise(hand.Y, KEY_STUDS)
 	key[17] = quantise(hand.Z, KEY_STUDS)
-	key[18] = quantise(hang.X, KEY_STUDS)
-	key[19] = quantise(hang.Y, KEY_STUDS)
-	key[20] = quantise(hang.Z, KEY_STUDS)
-	key[21] = quantise(f.lean, KEY_FINE)
-	key[22] = if f.torsoDegrees then quantise(f.torsoDegrees, KEY_FINE) else math.huge
-	key[23] = quantise(f.pull, KEY_FINE)
-	key[24] = quantise(target.X, KEY_STUDS)
-	key[25] = quantise(target.Y, KEY_STUDS)
-	key[26] = quantise(target.Z, KEY_STUDS)
-	key[27] = quantise(f.backLegLift, KEY_FINE)
-	key[28] = quantise(f.floorY, KEY_STUDS)
-	key[29] = quantise(f.supportY, KEY_STUDS)
-	key[30] = version
+	key[18] = quantise(f.lean, KEY_FINE)
+	key[19] = if f.torsoDegrees then quantise(f.torsoDegrees, KEY_FINE) else math.huge
+	key[20] = quantise(f.pull, KEY_FINE)
+	key[21] = quantise(target.X, KEY_STUDS)
+	key[22] = quantise(target.Y, KEY_STUDS)
+	key[23] = quantise(target.Z, KEY_STUDS)
+	key[24] = quantise(f.backLegLift, KEY_FINE)
+	key[25] = quantise(f.floorY, KEY_STUDS)
+	key[26] = quantise(f.supportY, KEY_STUDS)
+	key[27] = version
 end
 
 -- The root to show this frame on the way to `target` (Config.Avatar.Motion): eased from the
@@ -600,22 +600,20 @@ local function towardV(have: Vector3, want: Vector3, k: number): Vector3
 end
 
 -- The pose to show this frame on the way to `f`'s (Config.Avatar.Motion.PoseSmoothingSeconds):
--- the lean, torso, back leg and the bridge hand's and hanging feet's targets glide, so a new
--- stance flows in rather than snapping, and snap with the root. Written into `f`, which is
--- returned to the caller's values by restorePose.
+-- the lean, torso, back leg, the bridge hand's target and the kneeling cloth's height glide,
+-- so a new stance flows in rather than snapping, and snap with the root. Written into `f`,
+-- which is returned to the caller's values by restorePose.
 type Wanted = {
 	torso: number,
 	lean: number,
 	lift: number,
 	hand: Vector3,
-	hang: Vector3,
 	supportY: number,
 }
-local wanted: Wanted =
-	{ torso = 0, lean = 0, lift = 0, hand = Vector3.zero, hang = Vector3.zero, supportY = 0 }
+local wanted: Wanted = { torso = 0, lean = 0, lift = 0, hand = Vector3.zero, supportY = 0 }
 local function easePose(self: Poser, f: AvatarPose.Frame, dt: number, snapped: boolean)
 	wanted.torso, wanted.lean, wanted.lift = f.torsoDegrees or 0, f.lean, f.backLegLift
-	wanted.hand, wanted.hang, wanted.supportY = f.offHand, f.hang, f.supportY
+	wanted.hand, wanted.supportY = f.offHand, f.supportY
 	local was = self.shownPose
 	local P: ShownPose
 	if was == nil or snapped then
@@ -624,7 +622,6 @@ local function easePose(self: Poser, f: AvatarPose.Frame, dt: number, snapped: b
 			lean = wanted.lean,
 			lift = wanted.lift,
 			hand = wanted.hand,
-			hang = wanted.hang,
 			supportY = wanted.supportY,
 		}
 		self.shownPose = P
@@ -635,14 +632,13 @@ local function easePose(self: Poser, f: AvatarPose.Frame, dt: number, snapped: b
 		P.lean = toward(P.lean, wanted.lean, k, KEY_FINE)
 		P.lift = toward(P.lift, wanted.lift, k, KEY_FINE)
 		P.hand = towardV(P.hand, wanted.hand, k)
-		P.hang = towardV(P.hang, wanted.hang, k)
 		P.supportY = toward(P.supportY, wanted.supportY, k, SETTLE_STUDS)
 	end
 	if f.torsoDegrees then
 		f.torsoDegrees = P.torso
 	end
 	f.lean, f.backLegLift = P.lean, P.lift
-	f.offHand, f.hang, f.supportY = P.hand, P.hang, P.supportY
+	f.offHand, f.supportY = P.hand, P.supportY
 end
 
 local function restorePose(f: AvatarPose.Frame)
@@ -650,7 +646,7 @@ local function restorePose(f: AvatarPose.Frame)
 		f.torsoDegrees = wanted.torso
 	end
 	f.lean, f.backLegLift = wanted.lean, wanted.lift
-	f.offHand, f.hang, f.supportY = wanted.hand, wanted.hang, wanted.supportY
+	f.offHand, f.supportY = wanted.hand, wanted.supportY
 end
 
 -- Idle before the shot: the limbs are the joints' (and the owner's Animate's), and only the

@@ -4,8 +4,8 @@
 -- The hard promises are geometric and easy to break with a sign: the cue is always its own
 -- length and both hands are on it (the grip on its back part, the bridge on the cloth or the
 -- rail top under it, never over a pocket), the body is in its support's region (on the floor
--- outside the rail, up on the rail edge, or kneeling on the cloth), its torso and head clear
--- the table and the cue, it is inside the match fence, and it stands up on the floor clear of
+-- outside the rail, stretching over it with a foot on the floor, or kneeling on the cloth),
+-- its torso and head clear the table and the cue, it is inside the match fence, and it stands up on the floor clear of
 -- the barrier once the shot is away. A 360 degree sweep over positions, pitches, bodies and
 -- team sizes holds all of that; walks and sweeps of the aim hold the rest.
 
@@ -21,13 +21,14 @@ local geometry = H.require("Physics.Table").build({ pocketsOpen = true })
 local S = Config.Stance
 local K = S.Clearance
 local s = Config.Table.StudsPerInch
-local TIERS = { stand = 1, lean = 1, rail = 2, table = 3 }
+local TIERS = { stand = 1, lean = 1, stretch = 2, table = 3, rail = 4 }
 
 -- The default R15 rig as AvatarPose.measureBody measures it in Studio.
 local R15 = S.DefaultBody
 -- The default R6 rig, measured the same way: root centre 3 above the floor (HipHeight 0),
 -- hips 2, shoulder pivots 3.5, one arm 1.581 from its pivot to the grip attachment, legs 2
--- (rigid, so the whole leg is its "thigh").
+-- (rigid, so the whole leg is its "thigh" and it has no toes to rise on), the neck 4, the
+-- head's centre 0.5 above it, the head 1 stud tall and deep.
 local R6 = {
 	RootHeight = 3,
 	WaistHeight = 2,
@@ -38,6 +39,10 @@ local R6 = {
 	HalfDepth = 0.5,
 	HipHeight = 2,
 	ThighLength = 2,
+	NeckHeight = 4,
+	HeadLift = 0.5,
+	HeadRadius = 0.5,
+	ToeRise = 0,
 }
 local function scaled(body: any, k: number): any
 	local out = {}
@@ -46,10 +51,13 @@ local function scaled(body: any, k: number): any
 	end
 	return out
 end
+-- `small`: with a foot on the floor, a body this small cannot reach a ball frozen to a
+-- cushion under a steep jump cue, even kneeling (about 2% of ordinary shots); it then stands
+-- and its hands come as near the cue as they get. Every other body reaches every shot.
 local BODIES = {
 	{ name = "R15", body = R15 },
-	{ name = "R6", body = R6 },
-	{ name = "R15 x0.8", body = scaled(R15, 0.8) },
+	{ name = "R6", body = R6, small = true },
+	{ name = "R15 x0.8", body = scaled(R15, 0.8), small = true },
 	{ name = "R15 x1.3", body = scaled(R15, 1.3) },
 }
 
@@ -146,6 +154,44 @@ local function under(area: any, x: number, y: number): number
 	return -math.huge
 end
 
+-- ...and the highest of those anywhere within r of it: a box within r counts.
+local function highestNear(area: any, x: number, y: number, r: number): number
+	local z = -math.huge
+	if inside(x, y, area.clothHx + r, area.clothHy + r) then
+		z = area.clothZ + K.ClothStuds
+	end
+	local deepInCloth = math.abs(x) + r <= area.clothHx and math.abs(y) + r <= area.clothHy
+	if not deepInCloth and inside(x, y, area.railHx + r, area.railHy + r) then
+		z = math.max(z, area.railTopZ + K.RailStuds)
+	end
+	return z
+end
+
+-- The head's centre as AvatarPose poses it: on the neck up the leaning spine, pitched at the
+-- neck toward the cue ball's centre (Config.Avatar.Head), a pitch up tipping it back.
+local function headOf(q: any, st: any, sh: any, body: any): (number, number, number)
+	local sa, ca = math.sin(sh.a), math.cos(sh.a)
+	local ux, uy, uz = sh.fx * sa, sh.fy * sa, ca
+	local kx, ky, kz = -sh.fx * ca, -sh.fy * ca, sa
+	local up = body.NeckHeight - body.WaistHeight
+	local nx, ny, nz = st.rootX + ux * up, st.rootY + uy * up, sh.waistZ + uz * up
+	local bx, by = q.ballXIn * s, q.ballYIn * s
+	local bz = q.area.clothZ + Config.Balls.RenderRadiusInches * s
+	local lx, ly, lz = bx - nx, by - ny, bz - nz
+	local len = math.sqrt(lx * lx + ly * ly + lz * lz)
+	local Look = Config.Avatar.Head
+	local pitch = math.clamp(
+		math.asin((lx * ux + ly * uy + lz * uz) / len) * Look.LookWeight,
+		-math.rad(Look.MaxPitchDegrees),
+		math.rad(Look.MaxPitchDegrees)
+	)
+	local lift = body.HeadLift
+	local cp, sp = math.cos(pitch), math.sin(pitch)
+	return nx + lift * (ux * cp + kx * sp),
+		ny + lift * (uy * cp + ky * sp),
+		nz + lift * (uz * cp + kz * sp)
+end
+
 local function sideNamed(name: string): any
 	for _, side in S.Sides do
 		if side.Name == name then
@@ -157,8 +203,10 @@ end
 
 local EPS = 1e-6
 
--- Everything a stance promises about itself, whatever the shot.
-local function checkStance(q: any, st: any, label: string)
+-- Everything a stance promises about itself, whatever the shot. With `mayMiss` (a small body)
+-- a stance that reached nothing only has to be where it may be with its grip on the cue;
+-- returns whether it reached.
+local function checkStance(q: any, st: any, label: string, mayMiss: boolean?): boolean
 	local body, area = q.body, q.area
 	local C = Config.Cue
 	local L = q.cueLengthStuds or C.CueLengthStuds
@@ -176,12 +224,25 @@ local function checkStance(q: any, st: any, label: string)
 			boxDistance(x, y, area.railHx, area.railHy) >= S.FloorGapStuds - EPS,
 			"standing against or in the table: " .. label
 		)
-	elseif st.mode == "rail" then
-		local R = S.Rail
+	elseif st.mode == "stretch" then
+		local St = S.Stretch
+		local hi, lo = St.MaxOutStuds + EPS, St.MinOutStuds - EPS
 		H.expect(
-			inside(x, y, area.railHx + R.OutStuds + EPS, area.railHy + R.OutStuds + EPS)
-				and not inside(x, y, area.railHx - R.InStuds - EPS, area.railHy - R.InStuds - EPS),
-			"on the rail but not by its edge: " .. label
+			inside(x, y, area.railHx + hi, area.railHy + hi)
+				and not inside(x, y, area.railHx + lo, area.railHy + lo),
+			"stretching but not by the rail edge: " .. label
+		)
+		-- The planted leg reaches the floor on its toes.
+		H.expect(
+			ShooterStance.hipHeight("stretch", body, area) <= body.HipHeight + body.ToeRise + EPS,
+			"the planted foot is off the floor: " .. label
+		)
+	elseif st.mode == "rail" then
+		local k = S.Table.RailKneelOutStuds
+		H.expect(
+			inside(x, y, area.railHx - k + EPS, area.railHy - k + EPS)
+				and not inside(x, y, area.clothHx - EPS, area.clothHy - EPS),
+			"kneeling off the rail top: " .. label
 		)
 	else
 		H.expect(st.mode == "table", "unknown mode: " .. label)
@@ -210,6 +271,9 @@ local function checkStance(q: any, st: any, label: string)
 			and st.gripFromTipStuds <= L - S.GripButtEndStuds + EPS,
 		"grip off the cue's back part: " .. label
 	)
+	if mayMiss and not (st.gripReachable and st.bridgeReachable) then
+		return false
+	end
 	H.expect(st.gripReachable, "the grip is out of reach: " .. label)
 	local sh = shoulders(st, body)
 	local px, py, pz, ux, uy, uz = axisOf(q, st.pitchDegrees)
@@ -263,8 +327,11 @@ local function checkStance(q: any, st: any, label: string)
 	else
 		H.expect(b.cueZ - b.handZ <= S.BridgeMaxRiseStuds + EPS, "a raised hand far under the cue")
 	end
+	-- The bridge arm reaches out as far as BridgeArmExtendFraction takes it (the search's own
+	-- reach may be longer).
 	local reach = body.ArmReach
-		* (
+		* math.max(
+			S.BridgeArmExtendFraction,
 			if st.mode == "stand"
 				then S.ArmNaturalFraction
 				elseif st.mode == "lean" then S.ArmNaturalFraction
@@ -289,15 +356,22 @@ local function checkStance(q: any, st: any, label: string)
 	for _, t in K.TorsoFractions do
 		local tx, ty = x + sh.fx * sh.k * t, y + sh.fy * sh.k * t
 		local tz = sh.waistZ + (sh.cz - sh.waistZ) * t
-		H.expect(tz - K.TorsoHalfThicknessStuds >= under(area, tx, ty) - EPS, "torso: " .. label)
+		local floor = under(area, tx, ty)
+		local onRail = not inside(tx, ty, area.clothHx, area.clothHy)
+			and inside(tx, ty, area.railHx, area.railHy)
+		if st.mode == "stretch" and t < 0.5 and onRail then
+			floor -= S.Stretch.BellyIntoRailStuds -- the belly on the rail edge
+		end
+		H.expect(tz - K.TorsoHalfThicknessStuds >= floor - EPS, "torso: " .. label)
 		H.expect(cueDistance(tx, ty, tz) >= K.CueTorsoStuds - EPS, "cue in torso: " .. label)
 	end
-	local hr = K.HeadAboveShouldersStuds
-	local hx = sh.cx + sh.fx * hr * math.sin(sh.a)
-	local hy = sh.cy + sh.fy * hr * math.sin(sh.a)
-	local hz = sh.cz + hr * math.cos(sh.a)
-	H.expect(hz - K.HeadRadiusStuds >= under(area, hx, hy) - EPS, "head in the table: " .. label)
-	H.expect(cueDistance(hx, hy, hz) >= K.CueHeadStuds - EPS, "cue in the head: " .. label)
+	local hx, hy, hz = headOf(q, st, sh, body)
+	local r = body.HeadRadius
+	H.expect(
+		hz - r - K.HeadGapStuds >= highestNear(area, hx, hy, r) - EPS,
+		"head in the table: " .. label
+	)
+	H.expect(cueDistance(hx, hy, hz) >= r + K.CueHeadStuds - EPS, "cue in the head: " .. label)
 
 	-- The idle spot: on the floor, clear of the barrier (and turning there is clear too).
 	local ix, iy, iz = ShooterStance.idle(st)
@@ -307,6 +381,7 @@ local function checkStance(q: any, st: any, label: string)
 		not inside(ix, iy, area.barrierHx + grow - EPS, area.barrierHy + grow - EPS),
 		"idle inside the barrier: " .. label
 	)
+	return true
 end
 
 -- Solve with one Config key set otherwise, putting it back even if the solve fails.
@@ -353,6 +428,7 @@ return {
 	["sweep: 360 degrees round the table, both hands on the cue, the body where it may be"] = function()
 		local tiers: { [string]: { number } } = {}
 		local solves = 0
+		local misses: { [string]: number } = {}
 		for _, teamSize in { 1, 3 } do
 			local area = ShooterStance.area(teamSize)
 			for _, spot in sweepSpots() do
@@ -373,8 +449,10 @@ return {
 								step * 5,
 								chosen
 							)
-							checkStance(q, st, label)
-							local row = tiers[b.name] or { 0, 0, 0 }
+							if not checkStance(q, st, label, b.small) then
+								misses[b.name] = (misses[b.name] or 0) + 1
+							end
+							local row = tiers[b.name] or { 0, 0, 0, 0 }
 							tiers[b.name] = row
 							row[TIERS[st.mode]] += 1
 						end
@@ -383,22 +461,35 @@ return {
 			end
 		end
 		H.expect(solves <= 40000, ("the sweep grew to %d solves"):format(solves))
+		-- The sweep's spots are the hard ones (frozen to cushions, in the corners, steep cues):
+		-- a small body still reaches nearly all of them.
+		for _, b in BODIES do
+			local n = 0
+			for _, count in tiers[b.name] do
+				n += count
+			end
+			H.expect(
+				(misses[b.name] or 0) <= 0.1 * n,
+				("%s reached nothing in %d of %d"):format(b.name, misses[b.name] or 0, n)
+			)
+		end
 		-- A shorter reach climbs at least as often.
 		local function climbs(name: string): number
 			local row = tiers[name]
-			return row[2] + row[3]
+			return row[2] + row[3] + row[4]
 		end
 		H.expect(climbs("R15 x0.8") >= climbs("R15"), "a small body climbs less often")
 		H.expect(climbs("R15 x1.3") <= climbs("R15"), "a big body climbs more often")
 	end,
 
-	-- The split over an even grid of ordinary shots (flat cue): most shots from the floor, and
-	-- only the far-in ones on the table. Printed so a tuning change shows what it did.
+	-- The split over an even grid of ordinary shots (flat cue): about half from the floor and
+	-- the far-in ones kneeling on the table (a foot on the floor reaches only so far onto a
+	-- table this size; designer, 2026-09-25). Printed so a tuning change shows what it did.
 	["most shots are taken from the floor, few from the table"] = function()
 		local area = ShooterStance.area(1)
 		local L, W = Config.Table.LengthInches, Config.Table.WidthInches
 		local R = Config.Balls.RadiusInches
-		local count, n = { 0, 0, 0 }, 0
+		local count, n = { 0, 0, 0, 0 }, 0
 		for i = 0, 16 do
 			for j = 0, 8 do
 				local x = -L / 2 + R + (L - 2 * R) * i / 16
@@ -412,26 +503,30 @@ return {
 				end
 			end
 		end
-		local floor, rail, tbl = count[1] / n, count[2] / n, count[3] / n
+		local floor, stretch, tbl, rail = count[1] / n, count[2] / n, count[3] / n, count[4] / n
 		print(
-			("        R15: floor %.1f%%, rail %.1f%%, table %.1f%%"):format(
+			("        R15: floor %.1f%%, stretch %.1f%%, table %.1f%%, rail %.1f%%"):format(
 				floor * 100,
-				rail * 100,
-				tbl * 100
+				stretch * 100,
+				tbl * 100,
+				rail * 100
 			)
 		)
-		H.expect(floor >= 0.4, "fewer than 40% of shots from the floor")
-		H.expect(tbl <= 0.2, "more than 20% of shots kneeling on the table")
+		H.expect(floor >= 0.45, "fewer than 45% of shots from the floor")
+		H.expect(tbl + rail <= 0.5, "more than half the shots kneeling on the table")
+		H.expect(rail <= 0.01, "the default body kneels on the rail top")
 	end,
 
+	-- A comfortable shot is taken standing, near upright, in the open stance with the chin over
+	-- the cue or just beside it (right over it, a real head would sit too low over the rail).
 	["a comfortable shot is a natural stance at the natural distance"] = function()
 		local C = Config.Cue
 		local area = ShooterStance.area(1)
 		local q = input(-40, 0, 0, C.CueElevationDegrees, R15, area)
 		local st = ShooterStance.solve(q)
-		H.expect(st.mode == "stand", "stands: " .. st.mode)
-		H.expect(st.side == "classic", "the classic stance: " .. st.side)
-		H.near(st.torsoDegrees, S.LeanNaturalDegrees, 1e-9, "the natural lean")
+		H.expect(st.mode == "stand" or st.mode == "lean", "stands: " .. st.mode)
+		H.expect(st.side == "classic" or st.side == "classicOut", "the open stance: " .. st.side)
+		H.expect(st.torsoDegrees <= S.LeanNaturalDegrees + 5, "near the natural lean")
 		-- The root no further back along the cue than where the grip sits just behind the hip at
 		-- its natural place on the cue (nearer, when the bridge hand wants it), and clear of the
 		-- rail.
@@ -446,7 +541,8 @@ return {
 	end,
 
 	-- The designer's example: a ball by a side rail with the shot running along it. A player
-	-- stands at that side rail beside the ball, not away at the end rail.
+	-- plays it from that side rail beside the ball, not away at the end rail: from the floor
+	-- when it reaches, else kneeling on the cloth by that rail.
 	["a ball by the side rail, shot along it, is played from that side rail"] = function()
 		local area = ShooterStance.area(1)
 		for _, case in { { -10, 20, 0 }, { 10, -20, math.pi }, { 6, 20, 0 } } do
@@ -455,16 +551,15 @@ return {
 			local st = ShooterStance.solve(q)
 			local label = ("ball (%d, %d) at %.2f"):format(x, y, angle)
 			checkStance(q, st, label)
-			H.expect(st.mode ~= "table", "kneels on the table: " .. label)
 			-- On that side of the table, level with the ball rather than at the end rail.
 			H.expect(st.rootY * y > 0, "the body is on the far side: " .. label)
-			H.expect(math.abs(st.rootY) >= area.clothHy - S.Rail.InStuds, "not at the side")
+			H.expect(math.abs(st.rootY) >= math.abs(y) * s - 1, "not by that rail: " .. label)
 			H.expect(math.abs(st.rootX) < area.railHx, "at the end rail: " .. label)
 		end
 	end,
 
 	["the table's supports only step up as the ball moves away"] = function()
-		for _, b in { { "R15", R15 }, { "R6", R6 } } do
+		for _, b in { { "R15", R15, false }, { "R6", R6, true } } do
 			for _, line in { { 0, 1 }, { 10, 1 }, { 0, -1 } } do
 				local y, dir = line[1], line[2]
 				local angle = if dir > 0 then 0 else math.pi
@@ -477,11 +572,15 @@ return {
 					local st = ShooterStance.solve(q)
 					memory = st.memory
 					local label = ("%s ball (%d, %d) toward %s"):format(b[1], x, y, tostring(dir))
-					checkStance(q, st, label)
-					H.expect(TIERS[st.mode] >= last, "stepped back down: " .. label)
-					last = TIERS[st.mode]
+					if checkStance(q, st, label, b[3]) then
+						H.expect(TIERS[st.mode] >= last, "stepped back down: " .. label)
+						last = TIERS[st.mode]
+					end
 				end
-				H.expect(last >= TIERS.rail, "a ball at the far rail is not reached from the floor")
+				H.expect(
+					last >= TIERS.stretch,
+					"a ball at the far rail is not reached from the floor"
+				)
 			end
 		end
 	end,
@@ -648,7 +747,7 @@ return {
 		local area = ShooterStance.area(1)
 		local q = input(-40, 0, 0, 4, R15, area)
 		local plain = ShooterStance.solve(q)
-		q.memory = { mode = "rail", side = "square", onRail = true }
+		q.memory = { mode = "stretch", side = "square", onRail = true }
 		local remembered = ShooterStance.solve(q)
 		H.expect(
 			remembered.mode == plain.mode and remembered.side == plain.side,

@@ -2,7 +2,8 @@
 -- WatchedShooters: everyone else's shooter, as this client draws them. At every table whose
 -- balls are drawn (Hub's pool, Config.Hub.RenderedTables) the player lining up there is
 -- posed in their stance, FULLY VISIBLE, holding their cue (the drawn pitch and the wind-up
--- off the aim stream), up on the rail or the table when the ball is out of reach.
+-- off the aim stream), stretching over the rail or up on the table when the ball is out of
+-- reach.
 -- When the replay of their shot starts, the stroke plays from the exact angle and cue-ball
 -- spot the server accepted (Hub.shots), and the body then idles at the spot it shot from
 -- (the server's ShotSpot, see ShooterPoser) until the turn moves on.
