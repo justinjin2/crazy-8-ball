@@ -41,14 +41,14 @@ function Placement.new(x: number, y: number, z: number, yawDegrees: number): Pla
 	}
 end
 
---- How many tables this build actually stands up: twelve in the lounge, one on a testing
+--- How many tables this build actually stands up: twelve in the hub, a few on the testing
 --- baseplate. Everything that iterates tables goes through this so the server, the pads and
 --- the client cannot disagree about how many there are.
 function Placement.tableCount(): number
-	return math.clamp(Config.Lounge.TableCount, 1, #Config.Lounge.Tables)
+	return math.clamp(Config.Hub.TableCount, 1, #Config.Hub.Tables)
 end
 
---- The placement for table `id` in Config.Lounge.Tables (1-12), or nil if there is no such
+--- The placement for table `id` in Config.Hub.Tables (1-12), or nil if there is no such
 --- table. Results are built once and reused.
 local cache: { [number]: Placement } = {}
 function Placement.forTable(id: number): Placement?
@@ -56,7 +56,7 @@ function Placement.forTable(id: number): Placement?
 	if cached then
 		return cached
 	end
-	for _, row in Config.Lounge.Tables do
+	for _, row in Config.Hub.Tables do
 		if row.id == id then
 			local made = Placement.new(row.X, row.Y, row.Z, row.YawDegrees)
 			cache[id] = made

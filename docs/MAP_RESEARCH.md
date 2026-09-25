@@ -1,7 +1,7 @@
 # Map research: what keeps players in a hub that never changes
 
-Research for the new hub map (2026-09-24). This replaces the old lounge as the reference for
-map design. Nothing here is Decided until it is copied into the GDD. Evidence strength is
+Research for the new hub map (2026-09-24). This is the reference for map design.
+Nothing here is Decided until it is copied into the GDD. Evidence strength is
 marked: **strong** (repeated observation or experiments), **moderate**, **soft** (expert
 opinion or anecdote).
 

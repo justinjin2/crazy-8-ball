@@ -117,7 +117,7 @@ Done means: side spin visibly deflects the cue ball and slow english curves back
 
 ## Milestone E: spin on the wire, the selector, and the ability hook
 
-Files: `src/client/Input.luau`, `src/client/UI.luau`, `src/client/Lounge.luau`,
+Files: `src/client/Input.luau`, `src/client/UI.luau`, `src/client/Hub.luau`,
 `src/client/Main.client.luau`, `src/shared/Net.luau`, `src/server/ShotService.luau`,
 `src/client/Match.luau`, `src/client/Guideline.luau`, `tests/shot_authority_test.luau`.
 - Spin selector: tap/click the cue-ball icon, drag the strike point, reset to centre after

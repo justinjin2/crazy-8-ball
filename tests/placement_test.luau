@@ -3,7 +3,7 @@
 --
 -- These matter more than they look. A pool table is symmetric end to end, so a sign error
 -- in the yaw maths builds a table that LOOKS right and plays mirrored: the guideline would
--- point at the wrong pocket with nothing on screen to give it away. Every lounge table is
+-- point at the wrong pocket with nothing on screen to give it away. Every hub table is
 -- at yaw 90, so the yaw path is load-bearing from the first table onwards.
 
 local H = require("./harness")
@@ -36,7 +36,7 @@ return {
 		H.near(wx, 10, 1e-9, "centre x")
 		H.near(wz, -86, 1e-9, "centre z")
 		-- The cloth sits SurfaceHeightStuds above the floor the table stands on, which is
-		-- exactly the lounge package's cloth_height_above_floor.
+		-- the table package's cloth height.
 		H.near(wy, 4.8 + Config.Table.SurfaceHeightStuds, 1e-9, "cloth height")
 	end,
 
@@ -70,7 +70,7 @@ return {
 		local Config, Placement = setup()
 		-- The Pro-Am rail is 7 in from cushion nose to outer edge, so the 9 ft table is
 		-- 100 + 2 * 7 = 114 in = 18.24 studs long and 50 + 2 * 7 = 64 in = 10.24 studs wide.
-		-- At yaw 90 (every lounge table) that is 10.24 across X by 18.24 along Z.
+		-- At yaw 90 (every hub table) that is 10.24 across X by 18.24 along Z.
 		local T = Config.Table
 		local halfLen = T.LengthInches / 2 + T.RailWidthInches
 		local halfWid = T.WidthInches / 2 + T.RailWidthInches
@@ -209,10 +209,10 @@ return {
 		end
 	end,
 
-	["forTable gives every lounge table, and nothing else"] = function()
+	["forTable gives every hub table, and nothing else"] = function()
 		local Config, Placement = setup()
-		H.expect(#Config.Lounge.Tables == 12, "the lounge has twelve tables")
-		for _, row in Config.Lounge.Tables do
+		H.expect(#Config.Hub.Tables == 12, "the hub has twelve tables")
+		for _, row in Config.Hub.Tables do
 			local p = Placement.forTable(row.id)
 			H.expect(p ~= nil, ("table %d has a placement"):format(row.id))
 			H.near((p :: any).x, row.X, 1e-9, "x")

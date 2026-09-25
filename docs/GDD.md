@@ -14,7 +14,7 @@ and are playtest values, not design decisions. Ideas that are not scheduled live
 ## 1. The pitch
 
 A 3D, satisfying, chill, competitive and social 8-ball pool game on Roblox. Your own avatar lines
-up and plays every shot in a bright pool lounge. It feels as crisp as GamePigeon 8-ball, with a
+up and plays every shot in a bright pool club high above a city. It feels as crisp as GamePigeon 8-ball, with a
 twist: every player brings one ability that helps them or sabotages the opponent. Every ball you
 pocket pays money, win or lose. Money opens loot boxes of rare cues, ranks climb from
 Bronze to Reyes, and the rarest items can be traded. Built for phones first, with PC and console.
@@ -143,7 +143,7 @@ Every feature is checked against these. If it serves none, it waits.
 ## 6. Modes, tables and joining
 
 **Decided**
-- Players spawn in the lounge and walk to any free table. There are no menus to find a game.
+- Players spawn in the hub and walk to any free table. There are no menus to find a game.
 - **Joining: step on the table's floor pad.** Entering the pad plays a sound and a VFX and the
   pad turns green so everyone can see someone is queueing. The first person on a free table's
   pad is the **host**. A small floating popup gives the host: **Play Solo** ("still earn money"),
@@ -171,7 +171,8 @@ Every feature is checked against these. If it serves none, it waits.
   again.
 - One **Find another server** button, hidden during a match. Cross-server and worldwide
   matchmaking are not planned for release (section 18).
-- Servers hold about 30 players *(tune)* and all 12 tables can host any mode. PC never plays PC.
+- Servers hold about 30 players *(tune)*. The 12 tables are grouped into 1v1, 2v2 and 3v3
+  zones (section 10); how many tables each zone gets is open. PC never plays PC.
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
@@ -251,12 +252,15 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - The full ability list and how many exist at release.
 - Exact cooldown lengths per ability *(tune)*.
 
-## 10. The lounge and the world
+## 10. The hub and the world
 
 **Decided**
-- **Look:** the bright, warm, upscale lounge that was built (golden-hour windows, cream walls,
-  honey timber, teal seating, coral and yellow accents, twelve tables in three rising rows of
-  four, a snack counter, plants, cue racks, signs). Package in `assets/lounge/`.
+- **Look: the Skyline Club** (2026-09-24). A modern pool club on the top floor of a
+  skyscraper, windows on three sides onto a city skyline, a rooftop terrace off the lounge
+  area, a balcony where players spawn, tall ceilings. Based on the references in
+  `assets/hub/reference/`, brighter and more colourful than them. Separate 1v1, 2v2 and 3v3
+  zones. The building never changes; screens, statues, showcases and seasonal decor on it do.
+  Brief: `docs/prompts/HUB_BLENDER_PROMPT.md`; reasoning: `docs/MAP_RESEARCH.md`.
 - Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
   snacks that the player can drink or eat (a tool with a short animation). No alcohol.
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
@@ -399,7 +403,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 16. Art direction
 
 **Decided**
-- Bright, warm, upscale lounge (section 10). Clean glossy balls (sphere meshes with baked
+- The Skyline Club (section 10): stylized realism, simple shapes with soft oversized bevels,
+  clean low-noise materials, readable at phone size. Clean glossy balls (sphere meshes with baked
   textures). Effects (streak fire, sink bursts, rainbow cue ball) must read at phone size.
 - **The table (2026-09-24):** one model styled on the Diamond Pro-Am 9 ft, with no brand name
   or logo. Game size and cloth height stay as they are; the rails are the Pro-Am's 7 inch
@@ -450,5 +455,6 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Full ability list (section 9).
 - Pro lobby look (section 10).
 - Which tables use the green look and which the blue (section 16).
+- How many tables each of the 1v1, 2v2 and 3v3 zones gets (section 6; the brief starts at 6/4/2).
 - Rating formula (section 11).
 - Economy numbers and the top rarity name (section 12).

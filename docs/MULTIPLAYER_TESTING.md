@@ -2,7 +2,7 @@
 
 The three tables are left-to-right **1v1, 2v2, 3v3** when arriving from the spawn.
 Source is saved in git and streamed by Rojo. Results are match-only; nothing awards money
-or saved wins. The lounge is intentionally disabled.
+or saved wins.
 
 ## Start the current build
 

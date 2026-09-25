@@ -262,7 +262,10 @@ function TableBuilder.checkTemplate(template: Model, spec: ModelSpec?): { string
 			)
 		elseif found then
 			problem(("%s is a %s, not a MeshPart"):format(name, found.ClassName))
-		elseif not (name == TM.CapsMesh and not TM.Caps) then
+		elseif
+			not (name == TM.CapsMesh and not TM.Caps)
+			and not (name == TM.MarksMesh and not TM.Marks)
+		then
 			problem(("mesh %s is missing"):format(name))
 		end
 	end
@@ -439,7 +442,7 @@ end
 ---   1. Finds `spec.Name` in ServerStorage (or Workspace, and moves it to ServerStorage).
 ---   2. Moves nested MeshParts to the top and deletes the emptied containers.
 ---   3. Rebuilds the pivot at the cloth centre on the floor, its +X towards the foot (the
----      LogoPlate), which undoes the importer's half turn (see LoungeBuilder.correctImport).
+---      LogoPlate), which undoes the importer's half turn.
 ---   4. Sets collision, shadows, automatic render fidelity, CanTouch and CanQuery per mesh.
 ---   5. Strips the importer's SurfaceAppearances and TextureIDs.
 ---   6. Rebuilds ServerStorage.<LooksFolder>.<Look>.<Mesh> from the Config map ids (empty ids
@@ -671,7 +674,7 @@ end
 
 --- Place a clone of the template at table `p`, dressed from Config: collision and shadows
 --- per mesh (an unlisted part gets everything off and one warning), the caps removed when
---- Config.TableModel.Caps is false, and `look` (default: lookFor(id)). Joining is the floor
+--- Config.TableModel.Caps is false, the marks overlay when Marks is false, and `look` (default: lookFor(id)). Joining is the floor
 --- pad's job (src/server/TableService.luau), so no prompt is attached.
 function TableBuilder.buildFromModel(
 	template: Model,
@@ -709,6 +712,12 @@ function TableBuilder.buildFromModel(
 		local caps = model:FindFirstChild(TM.CapsMesh)
 		if caps then
 			caps:Destroy()
+		end
+	end
+	if not TM.Marks then
+		local marks = model:FindFirstChild(TM.MarksMesh)
+		if marks then
+			marks:Destroy()
 		end
 	end
 	TableBuilder.applyLook(model, look or TableBuilder.lookFor(id))

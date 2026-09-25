@@ -16,11 +16,10 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   from the low view.
 - 2026-09-19: Sphere-mesh balls with baked textures instead of decals on Ball parts. Decals
   blurred up close.
-- 2026-09-19: Imported Blender table model and bright lounge package replace the parts-built
-  table and the planned dim room.
+- 2026-09-19: Imported Blender table model replaces the parts-built table.
 - 2026-09-20: Working name Crazy 8 Ball. Currency is "money". No loser finisher effect.
-- 2026-09-20: Next milestone is the lounge with twelve server-owned tables (Roadmap 1.5), then
-  spin, sound and rules. The server move is needed anyway and the map is built.
+- 2026-09-20: Next milestone is twelve server-owned tables (Roadmap 1.5), then spin, sound and
+  rules. The server move is needed anyway.
 - 2026-09-20: Shop, inventory, save data and the first-time flow must exist before the game is
   public; Founder's and Beta items go on sale at that release.
 - 2026-09-20: All three difficulty levels are built early as a host option with no lock until
@@ -59,7 +58,7 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
 - 2026-09-20: Codex also writes game code; both tools follow the same rules file (AGENTS.md is
   a symlink to CLAUDE.md) and update STATUS.md. Private GitHub remote; place file committed at
   each milestone; binaries stay in plain git with hygiene rules.
-- 2026-09-20: Spectators sitting on lounge chairs get free look only; table cameras wait for
+- 2026-09-20: Spectators sitting on chairs get free look only; table cameras wait for
   Roadmap 2.3. Closes the open question in GDD section 6.
 - 2026-09-20: Table position and yaw live in a pure `Placement` module, not in TableBuilder.
   A pool table is symmetric end to end, so a yaw sign error builds a table that looks right
@@ -105,11 +104,8 @@ decided; the GDD and roadmap state the result without dates. Newest at the botto
   a cushion with the shot going into it is nearly a table length from anywhere a person could
   stand, and no stance reads as a person from a camera on the far side; fading beats
   contorting. (Superseded 2026-09-24: the rake and the cue extension reach it instead.)
-- 2026-09-21: The placeholder lounge is switched off (`Config.Lounge.Enabled = false`,
-  `TableCount = 1`) and testing happens on a plain baseplate with one table. The designer
-  does not like the model. The lounge code, the pads, the renderer pool and the server
-  authority all stay; only the geometry and the table count change. The imported model was
-  moved to ServerStorage rather than deleted.
+- 2026-09-21: Testing happens on a plain baseplate with a few tables until there is a map.
+  The pads, the renderer pool and the server authority are unchanged.
 - 2026-09-21: Sound and juice (Roadmap 1.7) is pulled ahead of spin (1.6) at the designer's
   request.
 - 2026-09-21: A cue owns its cue-ball TRAIL and its pocket burst, not just its mesh. Default
@@ -955,4 +951,7 @@ a realism review against Dr. Dave's TP B.10):
   the foul card (designer). The server holds the foul for exactly that long.
 - Deferred (would need the designer): a steep hit above centre jamming instead of jumping,
   and a double hit at steep hard strokes.
-
+- 2026-09-24: The old map model is deleted (package, builder, its test and its Config).
+  The new map is the Skyline Club hub (`docs/prompts/HUB_BLENDER_PROMPT.md`), with separate
+  1v1, 2v2 and 3v3 zones. The client's room module is renamed `Hub`, and `Config.Hub.Tables`
+  is a flat baseplate grid until the hub's Markers.json replaces it.

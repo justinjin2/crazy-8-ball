@@ -5,8 +5,7 @@ MCP, delivered as a Roblox-ready package. Work in stages. **Stop and wait for my
 two gates marked STOP**; everywhere else, decide for yourself, log real tradeoffs in
 `assets/hub/DECISIONS.md`, and keep going.
 
-This is a brand-new design. **Do not open or reuse anything in `assets/lounge/`**; that old map
-is being deleted.
+This is a brand-new design built from the references below.
 
 ## Read first, in this order
 

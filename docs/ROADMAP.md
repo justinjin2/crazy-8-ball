@@ -11,9 +11,9 @@ How to use this file:
 - Decisions that change a milestone go in DECISIONS.md with the date.
 
 Rewritten 2026-09-20. Order follows the designer's priority: the shot, then feel, then
-abilities, then the lounge look, then collectibles, then ranks, then economy, then public
-release, then trading. The lounge with twelve server-owned tables was pulled forward (1.5)
-because the server move is needed anyway and the map is already built.
+abilities, then the hub map, then collectibles, then ranks, then economy, then public
+release, then trading. Twelve server-owned tables were pulled forward (1.5) because the server move is needed
+anyway.
 
 ---
 
@@ -32,14 +32,13 @@ because the server move is needed anyway and the map is already built.
 - [x] **1.4 Camera and avatar.** One orbit camera opposite the aim with automatic whole-table
   framing and continuous zoom to a down-the-cue view; posed, faded avatar; pull-out during a
   shot. Imported Blender table model, sphere-mesh balls with baked textures.
-- [ ] **1.5 Lounge and twelve server-owned tables.** Import the lounge package
-  (`assets/lounge/`, tables placed from `Markers.json`). Each table is owned by the server:
+- [ ] **1.5 Twelve server-owned tables.** Tables stand on the baseplate until the hub map
+  (4.1) exists. Each table is owned by the server:
   the client sends shot inputs, the server validates and runs the simulation, every client
   replays the same shot, so everyone in the server sees every table's balls. Join by stepping
   on the table's floor pad (sound, VFX, green indicator); first joiner is host; second joiner
   is the opponent; host and settings slots exist from day one. Opponent and spectators see the
-  shooter's cue turn (aim angle and ball-in-hand position replicated at a low rate). Invisible
-  seats on the sofas and chairs. StreamingEnabled on, no per-table shadow lights, ball mesh
+  shooter's cue turn (aim angle and ball-in-hand position replicated at a low rate). StreamingEnabled on, no per-table shadow lights, ball mesh
   reduced to about 550 triangles. Gamepad: aim with the stick, zoom, shoot.
   Done means: two players in one server play at two different tables while a third walks
   between them and sees both games, on phone, PC and gamepad.
@@ -142,8 +141,10 @@ are part of this update; the older broader phase boxes below are not completed b
 
 ## Phase 4: Look, feel and platforms
 
-- [ ] **4.1 Lounge art and lighting pass.** Lighting recipe from the package, snack counter
-  with drink and snack tools and animations, signs, pro-lobby door placeholder.
+- [ ] **4.1 The hub map (Skyline Club).** Build it from `docs/prompts/HUB_BLENDER_PROMPT.md`,
+  import it, place the tables from its `Markers.json`, create the lamp lights and the Lighting
+  recipe, sittable seats, snack counter with drink and snack tools and animations, zone signs,
+  pro-lobby door placeholder.
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
 - [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.

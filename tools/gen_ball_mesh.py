@@ -8,7 +8,7 @@ Longitude runs around Y (up); u = 0.5 at +X, increasing towards +Z. v = 1 at the
 import math
 import os
 
-# Triangle budget, not looks: 16 balls per table across a twelve-table lounge is what sets
+# Triangle budget, not looks: 16 balls per table across a twelve-table hub is what sets
 # this, and ARCHITECTURE.md section 7 puts the shared ball mesh at about 550 triangles.
 # 48 x 24 gave 2,208, which is four times the budget and no smoother at the size a ball is
 # actually drawn. Triangles = SEGMENTS * (2 * RINGS - 2).

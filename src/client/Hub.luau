@@ -1,11 +1,11 @@
 --!strict
--- Lounge: the client's view of the room. It owns one simulation per table, a small pool of
+-- Hub: the client's view of the room. It owns one simulation per table, a small pool of
 -- ball renderers pointed at the nearest few, and the seat state the server sends down.
 --
 -- Twelve tables all drawing their balls would be 192 ball meshes on top of a scene that
 -- already carries about a quarter of a million triangles of table, and the ones across the
 -- room are a few pixels tall. So every table has a Match (the state is sixteen balls of
--- plain data, which costs nothing) but only Config.Lounge.RenderedTables of them hold a
+-- plain data, which costs nothing) but only Config.Hub.RenderedTables of them hold a
 -- renderer at any moment. Walking towards a table hands it one.
 --
 -- Roadmap 1.5g adds the other players' cue sticks here, which is why the pool is a pool and
@@ -26,12 +26,12 @@ local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local WatchedShooters = require(script.Parent:WaitForChild("WatchedShooters"))
 
-local Lounge = {}
-Lounge.__index = Lounge
+local Hub = {}
+Hub.__index = Hub
 
 export type Seat = { userId: number, host: boolean, connected: boolean, team: number, slot: number }
 
-export type Lounge = typeof(setmetatable(
+export type Hub = typeof(setmetatable(
 	{} :: {
 		folder: Folder,
 		matches: { [number]: Match.Match },
@@ -57,7 +57,7 @@ export type Lounge = typeof(setmetatable(
 		-- Every pooled table's shooter, posed with their cue and rake.
 		watched: WatchedShooters.WatchedShooters,
 	},
-	Lounge
+	Hub
 ))
 
 -- GDD section 6 wants stepping on a pad to be felt, not just seen. The sound waits on an
@@ -87,17 +87,17 @@ local function flashPad(id: number)
 	end
 end
 
-function Lounge.new(parent: Instance): Lounge
+function Hub.new(parent: Instance): Hub
 	local folder = Instance.new("Folder")
 	folder.Name = "Balls"
 	folder.Parent = parent
 
 	-- The pool is built up front so no shot ever waits on sixteen parts being created: a
 	-- renderer, a cue and (WatchedShooters) a rake per slot.
-	local first = Config.Lounge.Tables[1]
+	local first = Config.Hub.Tables[1]
 	local firstPlacement = Placement.forTable(first.id)
 	local pool, cues = {}, {}
-	for i = 1, math.min(Config.Lounge.RenderedTables, Placement.tableCount()) do
+	for i = 1, math.min(Config.Hub.RenderedTables, Placement.tableCount()) do
 		table.insert(pool, BallRenderer.new(folder, firstPlacement :: any, i))
 		local cue = CueStickBuilder.build(parent)
 		cue.Name = ("WatchedCue_%d"):format(i)
@@ -122,12 +122,12 @@ function Lounge.new(parent: Instance): Lounge
 		aims = {},
 		shots = {},
 		watched = WatchedShooters.new(parent, cues),
-	}, Lounge)
+	}, Hub)
 
 	-- Only the tables the server actually builds: a Match for a table with no model would
 	-- draw sixteen balls floating where that table would have been.
 	local wanted = Placement.tableCount()
-	for _, row in Config.Lounge.Tables do
+	for _, row in Config.Hub.Tables do
 		local p = if row.id <= wanted then Placement.forTable(row.id) else nil
 		if p then
 			self.matches[row.id] = Match.new(p, nil, Config.Rack.DefaultSeed + row.id)
@@ -143,13 +143,13 @@ function Lounge.new(parent: Instance): Lounge
 end
 
 --- Called whenever the local player's seat changes: the table id, or nil for "not seated".
-function Lounge.onSeatChanged(self: Lounge, listener: (number?) -> ())
+function Hub.onSeatChanged(self: Hub, listener: (number?) -> ())
 	table.insert(self.seatListeners, listener)
 end
 
 --- Called when the server turns a shot down. The client disables its own controls when it
 --- fires and waits for a ShotResult, so this is what stops them staying dead.
-function Lounge.onShotRejected(self: Lounge, listener: (string) -> ())
+function Hub.onShotRejected(self: Hub, listener: (string) -> ())
 	table.insert(self.rejectListeners, listener)
 end
 
@@ -157,8 +157,8 @@ end
 --- already snapped by AimStream.quantizePull), so the people watching see the cue turn and
 --- wind up, and at what cue angle (`elevation`, degrees) so a raised cue is drawn raised.
 --- While the cue ball is in hand, `seq`, `x` and `y` carry its latest spot on the same packet.
-function Lounge.reportAim(
-	self: Lounge,
+function Hub.reportAim(
+	self: Hub,
 	id: number,
 	angle: number,
 	pull: number,
@@ -173,10 +173,10 @@ function Lounge.reportAim(
 			:FireServer(id, angle, snapshot.epoch, snapshot.turnId, pull, seq, x, y, elevation)
 	end
 end
-function Lounge.onSnapshot(self: Lounge, listener: (any) -> ())
+function Hub.onSnapshot(self: Hub, listener: (any) -> ())
 	table.insert(self.snapshotListeners, listener)
 end
-function Lounge.action(self: Lounge, kind: string, data: any?)
+function Hub.action(self: Hub, kind: string, data: any?)
 	local snapshot = self.mySeat and self.snapshots[self.mySeat]
 	if not snapshot then
 		return
@@ -190,8 +190,8 @@ end
 --- Ask the server to take a shot at table `id`. Nothing happens locally: the shot starts
 --- when the server broadcasts it back, so every client (including this one) plays the same
 --- motion from the same numbers at the same moment.
-function Lounge.fire(
-	self: Lounge,
+function Hub.fire(
+	self: Hub,
 	id: number,
 	angle: number,
 	power: number,
@@ -225,7 +225,7 @@ end
 -- direction the cue ball left in (its seed velocity: side spin never bends the launch while
 -- Config.Cue.SideSpinBendsPath is off) and where it stood before the shot (the start packs
 -- every ball as x, y, z, pocketed from id 0, the cue ball). Off the network, so it is checked.
-local function recordShot(self: Lounge, msg: any)
+local function recordShot(self: Hub, msg: any)
 	local seed, start = msg.seed, msg.start
 	if
 		not finite(msg.epoch)
@@ -251,7 +251,7 @@ local function recordShot(self: Lounge, msg: any)
 	shot.x, shot.y = start[1], start[2]
 end
 
-function Lounge.listen(self: Lounge)
+function Hub.listen(self: Hub)
 	local me = Players.LocalPlayer.UserId
 
 	Net.get("ShotRejected").OnClientEvent:Connect(function(reason)
@@ -363,13 +363,13 @@ function Lounge.listen(self: Lounge)
 end
 
 --- The simulation for table `id`.
-function Lounge.matchFor(self: Lounge, id: number): Match.Match?
+function Hub.matchFor(self: Hub, id: number): Match.Match?
 	return self.matches[id]
 end
 
 --- The rendered cue ball for table `id`, if that table is currently being drawn. The trail
 --- hangs off this part directly, so it follows the ball without any per-frame work here.
-function Lounge.cueBallPartFor(self: Lounge, id: number): BasePart?
+function Hub.cueBallPartFor(self: Hub, id: number): BasePart?
 	local renderer = self.boundTo[id]
 	if renderer == nil then
 		return nil
@@ -379,26 +379,26 @@ function Lounge.cueBallPartFor(self: Lounge, id: number): BasePart?
 end
 
 --- Who is sitting at table `id`.
-function Lounge.seatsAt(self: Lounge, id: number): { Seat }
+function Hub.seatsAt(self: Hub, id: number): { Seat }
 	return self.seats[id] or {}
 end
 
 --- Ask the server for a seat, or to give one up.
-function Lounge.requestSeat(_self: Lounge, id: number)
+function Hub.requestSeat(_self: Hub, id: number)
 	Net.get("RequestSeat"):FireServer(id)
 end
 
-function Lounge.requestLeave(_self: Lounge)
+function Hub.requestLeave(_self: Hub)
 	Net.get("RequestLeave"):FireServer()
 end
 
-function Lounge.requestRerack(_self: Lounge, id: number)
+function Hub.requestRerack(_self: Hub, id: number)
 	Net.get("RequestRerack"):FireServer(id)
 end
 
 -- Point the pool at the nearest tables. The table the player is actually sitting at always
 -- keeps one, however far the camera has wandered during a shot.
-local function rebind(self: Lounge, from: Vector3)
+local function rebind(self: Hub, from: Vector3)
 	local order = {}
 	for id, match in self.matches do
 		local p = match.placement
@@ -479,7 +479,7 @@ end
 
 -- Slide each watched cue ball in hand toward the spot its shooter last sent, eased so the
 -- stream never makes it step. Never our own: the local shooter's ball is predicted in Main.
-local function followPlacement(self: Lounge, dt: number)
+local function followPlacement(self: Hub, dt: number)
 	local alpha = 1 - math.exp(-dt / math.max(Config.Aim.BallSmoothingSeconds, 1e-3))
 	local me = Players.LocalPlayer.UserId
 	for id, aim in self.aims do
@@ -513,7 +513,7 @@ end
 -- raw would visibly step. Only while the shooter is lining up at a table we can see; never
 -- our own (the local player's cue is driven directly by their input, with no round trip).
 -- WatchedShooters draws the cue and the shooter from the eased values.
-local function easeAims(self: Lounge, dt: number)
+local function easeAims(self: Hub, dt: number)
 	local A = Config.Aim
 	local alpha = 1 - math.exp(-dt / math.max(A.SmoothingSeconds, 1e-3))
 	local pullAlpha = 1 - math.exp(-dt / math.max(A.PullSmoothingSeconds, 1e-3))
@@ -545,9 +545,9 @@ end
 
 --- Step every table and keep the renderer pool pointed at the nearest ones. Returns true if
 --- the table the player is sitting at is mid-shot.
-function Lounge.update(self: Lounge, dt: number): boolean
+function Hub.update(self: Hub, dt: number): boolean
 	self.sinceRebind += dt
-	if self.sinceRebind >= Config.Lounge.RebindEverySeconds then
+	if self.sinceRebind >= Config.Hub.RebindEverySeconds then
 		self.sinceRebind = 0
 		local camera = Workspace.CurrentCamera
 		rebind(self, if camera then camera.CFrame.Position else Vector3.zero)
@@ -570,7 +570,7 @@ function Lounge.update(self: Lounge, dt: number): boolean
 end
 
 --- How many tables are currently drawing their balls (for the debug readout).
-function Lounge.renderedCount(self: Lounge): number
+function Hub.renderedCount(self: Hub): number
 	local n = 0
 	for _ in self.boundTo do
 		n += 1
@@ -578,4 +578,4 @@ function Lounge.renderedCount(self: Lounge): number
 	return n
 end
 
-return Lounge
+return Hub

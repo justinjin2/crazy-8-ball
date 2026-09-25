@@ -142,7 +142,7 @@ parts stand-in is used.
 
 The current update is [MULTIPLAYER_SPEC.md](../MULTIPLAYER_SPEC.md), revised after the
 designer's first playtest. The baseplate has three blue-cloth tables for shared 1v1, 2v2
-and 3v3 matches, and the stored lounge stays disabled. No bots, rewards, saved wins,
+and 3v3 matches, on the baseplate. No bots, rewards, saved wins,
 difficulty or abilities.
 
 Latest changes:

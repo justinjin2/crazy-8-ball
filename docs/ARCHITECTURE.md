@@ -83,7 +83,7 @@ Generated table parts share this geometry; the imported table mesh needs separat
 
 ## 4. Networking: server-owned tables
 
-Each table in the lounge is a `Table` instance on the server with: id, origin and yaw, host,
+Each table in the hub is a `Table` instance on the server with: id, origin and yaw, host,
 settings (mode, difficulty, abilities on/off), seats with teams, match state (rules state
 machine, physics state, turn, clocks), spectators.
 
@@ -132,14 +132,14 @@ mode, the hands, extensions), `PoseMath`, `AimStream`; `ShotInput` (validation/s
 quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written).
 
-Server (`src/server`): `Bootstrap` (builds the lounge tables, publishes assets), `TableService`
+Server (`src/server`): `Bootstrap` (builds the hub tables, publishes assets), `TableService`
 (per-table state, joins, seats, match loop), `ShotService` (validation, simulation, broadcast),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`.
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
-shooters), `UI`, `Audio`, `Effects`, `Lounge`
+shooters), `UI`, `Audio`, `Effects`, `Hub`
 (pads, seats, snack counter, doors).
 
 ## 6. Data model
@@ -202,7 +202,7 @@ shooting clock; resolution waits for motion/falls and the pocket buffer. Epoch/s
 checks reject stale actions and duplicate replay packets. Group assignment and 8-ball
 eligibility are decided from pre-shot state and server events.
 
-`Lounge` keeps one client Match per table. Snapshots include full ball state for late
+`Hub` keeps one client Match per table. Snapshots include full ball state for late
 listeners, placement and table reuse. `Main` derives private controls from the replicated
 phase. `MatchHUD` and `MatchTargets` share Config styles and Strings copy; existing Camera,
 Input, Avatar, Audio, Effects and renderer modules retain their separate responsibilities.

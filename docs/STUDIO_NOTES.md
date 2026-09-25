@@ -16,7 +16,7 @@ Read when something misbehaves. Everything here was learned the hard way.
 - Things scripts cannot create live in the place: `ServerStorage.PoolTable` and
   `ServerStorage.TableLooks` (the table template and its looks, below; the old
   `PoolTableModel` stays as the rollback until sign-off), `ServerStorage.BallMesh`, the
-  `PoolClothBlue` MaterialVariant, imported lounge meshes. MeshId, SurfaceAppearance maps, MaterialVariant maps
+  `PoolClothBlue` MaterialVariant. MeshId, SurfaceAppearance maps, MaterialVariant maps
   and CollisionFidelity are plugin-only writes: set them in Edit mode and save. `TextureID` on
   a MeshPart is scriptable, which is how per-ball textures work at runtime.
 - The user must save (`place/8ball.rbxl`) and publish after any Edit-mode change.
@@ -138,8 +138,8 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
 
 - Blender 5.2 at `/Applications/Blender.app`. Headless:
   `/Applications/Blender.app/Contents/MacOS/Blender -b file.blend --python-expr "..."`.
-- Packages in `assets/table` and `assets/lounge` have rebuild scripts, a `Readme.md` with
-  import steps, and `Markers.json` (lounge) with Roblox-space positions. Import through the 3D
+- The package in `assets/table` has rebuild scripts and a `Readme.md` with import steps; the
+  hub package (`assets/hub`) will add a `Markers.json` with Roblox-space positions. Import through the 3D
   Importer with Scale Unit: Stud, scale 1. Table instances are placed by script from the
   markers, not imported twelve times.
 - `docs/prompts/` holds the briefs used for Blender agent jobs; reuse them as templates.

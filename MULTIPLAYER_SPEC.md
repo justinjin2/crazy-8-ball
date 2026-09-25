@@ -13,7 +13,7 @@ Three dedicated tables on the existing baseplate: 1v1, 2v2, 3v3; a player alone 
 any of them may instead play it solo (see Solo, added 2026-09-23). One configurable
 system, independent balls, players, clocks, camera state, sound and results. Preserve
 the imported black/blue table, existing deterministic physics, spin, orbit aiming,
-power cue, audio and visual identity. Keep the lounge stored/disabled. No bots, bot
+power cue, audio and visual identity. Stay on the baseplate. No bots, bot
 countdown, abilities, difficulty settings, progression, saved wins, money, ratings,
 rewards, matchmaking or rematch screen. Results are match-only. PC mouse/keyboard,
 portrait/landscape touch and gamepad are in scope; optional precision controls give
@@ -209,7 +209,7 @@ scripted Studio integration, real clients and hands-on phone/controller acceptan
 Correct project /Users/justinjin/Desktop/8ball; place 107430170196919, universe
 10767330648. Baseline commit 57f2693; clean tree, 132 tests, lint clean. All 35 source
 files matched Edit Studio checksums; Rojo connected, git push dry-run successful.
-Table/ball/lounge assets present. Supplied sounds and coin candidate preload successfully.
+Table and ball assets present. Supplied sounds and coin candidate preload successfully.
 Native screenshot worked; native toolbar interaction intermittently noWindowsAvailable.
 User launched six local test clients: server log records Player -1 through -6 and six
 connected players, correct place/universe. MCP lists ONLY original Edit instance;

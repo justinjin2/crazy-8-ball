@@ -92,7 +92,7 @@ High impact:
 - **Power bar wastes range**: 42% of the bar is break-only (8-30 mph); the 1-4 mph band that
   most shots live in gets 29%. Spin is free (same speed for any offset; real max offset gives
   ~0.75x). Move to a stick model (section 5) and a separate break stroke.
-- **Spin never reaches the server**: `ShotService.validate` ignores `payload.spin`, Lounge.fire
+- **Spin never reaches the server**: `ShotService.validate` ignores `payload.spin`, Hub.fire
   sends only angle and power, and `math.huge` passes the angle check. Clamp spin to the 0.5R
   disc server-side.
 - **Guideline** casts along the raw aim angle (Aim.trace) so it will lie by the squirt angle,

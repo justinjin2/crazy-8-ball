@@ -1,7 +1,7 @@
 --!strict
 -- Checks the table looks in Config.TableModel: that every look dresses every mesh from a map
 -- set that exists, that the numbers and ids are the shapes Studio accepts, that the image
--- budget holds, and that TableBuilder.lookFor picks a real look for every lounge table.
+-- budget holds, and that TableBuilder.lookFor picks a real look for every hub table.
 --
 -- Looks are data rows plus uploaded maps, never code, so a typo here would otherwise only
 -- show up as a bare or wrongly coloured table in Studio.
@@ -101,22 +101,23 @@ return {
 			)
 		end
 		H.expect(TM.Meshes[TM.CapsMesh] ~= nil, "CapsMesh names a mesh")
+		H.expect(TM.Meshes[TM.MarksMesh] ~= nil, "MarksMesh names a mesh")
 		H.expect(TM.Meshes.LogoPlate ~= nil, "the LogoPlate is the orientation marker")
 		H.expect(TM.Meshes.Cloth ~= nil and TM.Meshes.Body ~= nil, "Cloth and Body place the pivot")
 		H.expect(TM.Meshes.Rails ~= nil, "Rails measure the footprint")
 	end,
 
-	["LookByTable names lounge tables and real looks"] = function()
+	["LookByTable names hub tables and real looks"] = function()
 		local Config = H.require("Config")
 		local TM = Config.TableModel
 		local ids: { [number]: boolean } = {}
-		for _, row in Config.Lounge.Tables do
+		for _, row in Config.Hub.Tables do
 			ids[row.id] = true
 		end
 		for id, look in TM.LookByTable do
 			H.expect(
 				ids[id] == true,
-				("LookByTable names table %s, which the lounge does not have"):format(tostring(id))
+				("LookByTable names table %s, which the hub does not have"):format(tostring(id))
 			)
 			H.expect(
 				TM.Looks[look] ~= nil,
@@ -153,7 +154,7 @@ return {
 		)
 	end,
 
-	["every lounge table gets a real look"] = function()
+	["every hub table gets a real look"] = function()
 		local Config = H.require("Config")
 		local TM = Config.TableModel
 		local TableBuilder = H.require("TableBuilder")

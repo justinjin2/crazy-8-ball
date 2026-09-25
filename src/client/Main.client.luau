@@ -24,7 +24,7 @@ local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
-local Lounge = require(script.Parent.Lounge)
+local Hub = require(script.Parent.Hub)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
 local UI = require(script.Parent.UI)
@@ -37,7 +37,7 @@ workspace:WaitForChild(TableBuilder.FolderName)
 local visuals = Instance.new("Folder")
 visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
-local lounge = Lounge.new(visuals)
+local hub = Hub.new(visuals)
 local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
 -- The local shooter's rake (ShooterStance's "bridge" and "extension" modes). Built up front:
@@ -336,7 +336,7 @@ local function fire(power: number, windUp: number?)
 	-- The let-go goes first: once awaitingAt is set canShoot() is false, so the aim stream
 	-- would never send the zero, and if the server turns the shot down the watchers' cue
 	-- would stay drawn back.
-	lounge:reportAim(snapshot.id, input.angle, 0, input:getElevation())
+	hub:reportAim(snapshot.id, input.angle, 0, input:getElevation())
 	lastPull = 0
 	-- The shot carries the cue ball in hand while the window is open, so the spot and the
 	-- shot land together; after the cutoff the server already holds the locked spot.
@@ -345,7 +345,7 @@ local function fire(power: number, windUp: number?)
 	-- pull to 0, so not from currentPull), and before awaitingAt: once that is set canShoot()
 	-- is false, and the stroke has to keep the cue drawn through it.
 	avatar:strike(windUp or power, x, y)
-	lounge:fire(snapshot.id, input.angle, power, input:getSpin(), input:getElevation(), x, y)
+	hub:fire(snapshot.id, input.angle, power, input:getSpin(), input:getElevation(), x, y)
 	targets:shotFired()
 	awaitingAt = workspace:GetServerTimeNow()
 	input:setEnabled(false)
@@ -387,22 +387,22 @@ local function action(kind: string, value: any?)
 				else hud.precisionButtons.AimLeft
 		end
 	elseif kind == "Vote" then
-		lounge:action(kind, { yes = value })
+		hub:action(kind, { yes = value })
 	else
-		lounge:action(kind)
+		hub:action(kind)
 	end
 end
 hud = MatchHUD.new(screen, action)
 targets = MatchTargets.new(screen, function(pocket)
 	GuiService.SelectedObject = nil
-	lounge:action("Pocket", { pocket = pocket })
+	hub:action("Pocket", { pocket = pocket })
 end, function(x, y)
 	-- Predicted: the ball moves now, and stays put over snapshots until the turn moves on.
 	if match and snapshot then
 		match:holdCue(snapshot.epoch, snapshot.turnId, x, y)
 	end
 end, function(x, y, seq)
-	lounge:action("Place", { x = x, y = y, seq = seq })
+	hub:action("Place", { x = x, y = y, seq = seq })
 end)
 
 local function acquireTable(s: any?)
@@ -439,7 +439,7 @@ local function acquireTable(s: any?)
 		end
 		return
 	end
-	match = lounge:matchFor(s.id)
+	match = hub:matchFor(s.id)
 	placement = Placement.forTable(s.id)
 	if oldId ~= s.id then
 		if guideline then
@@ -485,15 +485,15 @@ local function acquireTable(s: any?)
 	end
 	refreshAim()
 end
-lounge:onSeatChanged(function(id)
-	acquireTable(if id then lounge.snapshots[id] else nil)
+hub:onSeatChanged(function(id)
+	acquireTable(if id then hub.snapshots[id] else nil)
 end)
-lounge:onSnapshot(function(s)
-	if lounge.mySeat == s.id then
+hub:onSnapshot(function(s)
+	if hub.mySeat == s.id then
 		acquireTable(s)
 	end
 end)
-lounge:onShotRejected(function()
+hub:onShotRejected(function()
 	awaitingAt = nil
 	-- The shot never happened: back from the stroke to aiming, the cue drawn again.
 	avatar:cancelStroke()
@@ -547,7 +547,7 @@ local function rewardsPocket(tableId: number, m: any, ballId: number): boolean
 	if ballId == 0 then
 		return false
 	end
-	local s = lounge.snapshots[tableId]
+	local s = hub.snapshots[tableId]
 	if not s then
 		return true
 	end
@@ -568,7 +568,7 @@ local function rewardsPocket(tableId: number, m: any, ballId: number): boolean
 end
 for _, mode in M.Modes do
 	local id = mode.id
-	local m = assert(lounge:matchFor(id))
+	local m = assert(hub:matchFor(id))
 	local a = Audio.new(visuals)
 	audioByTable[id] = a
 	a:attach(m)
@@ -615,7 +615,7 @@ Net.get("MatchFeedback").OnClientEvent:Connect(function(f: any)
 		return
 	end
 	local a = audioByTable[f.tableId]
-	if a and lounge.mySeat == f.tableId then
+	if a and hub.mySeat == f.tableId then
 		a:grant(f)
 	end
 end)
@@ -641,7 +641,7 @@ end)
 local padEffects = PadEffects.new(workspace:WaitForChild("Pads"))
 -- A table's slots stay lit only while it is still filling up.
 local function queueOpen(id: number): boolean
-	local s = lounge.snapshots[id]
+	local s = hub.snapshots[id]
 	return s == nil or s.phase == "Waiting" or s.phase == "Countdown"
 end
 input:setEnabled(false)
@@ -663,14 +663,14 @@ local avatarContext: Avatar.Context = {
 	cameraPos = nil,
 }
 RunService.RenderStepped:Connect(function(dt)
-	local busy = lounge:update(dt)
+	local busy = hub:update(dt)
 	for _, mode in M.Modes do
 		local a = audioByTable[mode.id]
-		local m = assert(lounge:matchFor(mode.id))
+		local m = assert(hub:matchFor(mode.id))
 		a:updateRoll(m, dt)
 		a:updatePull(dt)
 		local e = effectsByTable[mode.id]
-		local part = lounge:cueBallPartFor(mode.id)
+		local part = hub:cueBallPartFor(mode.id)
 		if part and e.boundCue ~= part then
 			e:attachTrail(part)
 			e.boundCue = part
@@ -688,7 +688,7 @@ RunService.RenderStepped:Connect(function(dt)
 	if not snapshot or not match then
 		return
 	end
-	-- lounge:update has dispatched this frame's events; show any ball they dropped.
+	-- hub:update has dispatched this frame's events; show any ball they dropped.
 	if match.downVersion ~= viewVersion then
 		refreshView()
 	end
@@ -858,7 +858,7 @@ RunService.RenderStepped:Connect(function(dt)
 	then
 		sinceAim = 0
 		lastAim, lastPull, lastElevation = input.angle, pull, input:getElevation()
-		lounge:reportAim(snapshot.id, input.angle, pull, input:getElevation(), seq, px, py)
+		hub:reportAim(snapshot.id, input.angle, pull, input:getElevation(), seq, px, py)
 	end
 	lastBusy = busy
 end)

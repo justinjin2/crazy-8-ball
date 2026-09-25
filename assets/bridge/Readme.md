@@ -68,7 +68,7 @@ disagree. After a rebuild the FBX also has to be imported again (next section).
    name.
 5. **Store it.** Drag **BridgeModel** into **ServerStorage**.
 6. **Don't fix the rotation by hand.** When Studio imports any FBX from this project, it turns
-   it half a turn (the same turn `LoungeBuilder.correctImport` undoes) and moves the pivot. The
+   it half a turn (the same turn `TableBuilder.prepareImport` undoes) and moves the pivot. The
    game straightens the bridge itself: `BridgeBuilder.normalize` reads which way the `Shaft`
    points and where the `Head` is. Don't rotate or re-pivot it.
 7. **Test.** Press **Play**. The Output window must **not** show

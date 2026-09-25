@@ -26,10 +26,8 @@ local Camera = {}
 -- There is one camera per client and the player is only ever at one table, so the table
 -- being played lives here as module state rather than being threaded through the eight
 -- private framing functions below (six of which would only pass it on).
-local placement: Placement.Placement = assert(
-	Placement.forTable(Config.Lounge.ActiveTableId),
-	"Config.Lounge.ActiveTableId names no table"
-)
+local placement: Placement.Placement =
+	assert(Placement.forTable(Config.Hub.ActiveTableId), "Config.Hub.ActiveTableId names no table")
 
 -- Outer corners of the table (rails included) at cloth height, in world space. Cached
 -- because the framing solver asks for them many times a frame; setTable clears it, which

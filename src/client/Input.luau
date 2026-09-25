@@ -460,7 +460,7 @@ end
 -- reasons. It binds above Roblox's own control module, so the thumbstick reaches us instead
 -- of arriving with gameProcessed already set; sinking it stops the same stick from walking
 -- the character while it aims; and binding only while the player is at the table keeps
--- ButtonB from firing "leave" at someone who is just wandering the lounge.
+-- ButtonB from firing "leave" at someone who is just wandering the hub.
 local GAMEPAD_ACTION = "8ballGamepad"
 
 local GAMEPAD_KEYS = {

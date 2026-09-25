@@ -6,7 +6,7 @@ Read MULTIPLAYER_SPEC.md, inspect git and verify the live place before resuming.
 ## Implemented
 - Shared pure MatchEngine, ShotJudge and CuePlacement; configurable 1v1/2v2/3v3.
 - Three tables, individual team queue slots, host reassignment, cancellation-safe
-  intermission and one server coin result. Baseplate retained; lounge disabled.
+  intermission and one server coin result. Baseplate retained.
 - Server-owned turns, teammate rotation, open-table assignment, break and 8-ball rules,
   placement, pocket calls, synchronized deadlines, timeouts and shot settling.
 - Unanimous surrender, shorthanded disconnects, reset/death handling, empty-team loss,

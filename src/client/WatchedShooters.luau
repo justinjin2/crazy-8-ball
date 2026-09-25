@@ -1,10 +1,10 @@
 --!strict
 -- WatchedShooters: everyone else's shooter, as this client draws them. At every table whose
--- balls are drawn (Lounge's pool, Config.Lounge.RenderedTables) the player lining up there is
+-- balls are drawn (Hub's pool, Config.Hub.RenderedTables) the player lining up there is
 -- posed in their stance, FULLY VISIBLE, holding their cue (the drawn pitch, the automatic
 -- extension, the wind-up off the aim stream) and the rake when the ball is out of reach.
 -- When the replay of their shot starts, the stroke plays from the exact angle and cue-ball
--- spot the server accepted (Lounge.shots), and the body then idles at the spot it shot from
+-- spot the server accepted (Hub.shots), and the body then idles at the spot it shot from
 -- (the server's ShotSpot, see ShooterPoser) until the turn moves on.
 --
 -- A remote body is only ever moved on this client: its limbs are anchored and placed here
@@ -14,7 +14,7 @@
 -- and the rake:
 --   the shooter changes or the turn passes    the snapshot's shooter, Engine.shooterLocked
 --   the game ends, a new one starts           Engine.shooterLocked (Result, Waiting, ...)
---   the table leaves the pool                 Lounge.rebind -> unbind, and cueOf each frame
+--   the table leaves the pool                 Hub.rebind -> unbind, and cueOf each frame
 --   the shooter respawns                      their Character is a different model
 --   the shooter leaves the game               Players.PlayerRemoving -> forgetUser
 --   the body is taken out of the game         its Parent is nil
@@ -47,7 +47,7 @@ local ShooterPoser = require(script.Parent:WaitForChild("ShooterPoser"))
 local WatchedShooters = {}
 WatchedShooters.__index = WatchedShooters
 
--- One table's live aim off the stream (Lounge): what was last heard, and what is drawn,
+-- One table's live aim off the stream (Hub): what was last heard, and what is drawn,
 -- eased so a stream of a few a second never steps.
 export type Aim = {
 	angle: number, -- radians, last heard
@@ -71,7 +71,7 @@ export type Shot = {
 	y: number,
 }
 
--- What update() reads from the Lounge this frame, all keyed by table id.
+-- What update() reads from the Hub this frame, all keyed by table id.
 type Source = {
 	cueOf: { [number]: Model }, -- the pooled cue drawing each table
 	snapshots: { [number]: any },
@@ -95,7 +95,7 @@ type Clearance = {
 
 -- One pooled cue and everything drawn with it.
 type Slot = {
-	cue: Model, -- Lounge's, bound to a table by Lounge.cueOf
+	cue: Model, -- Hub's, bound to a table by Hub.cueOf
 	rake: Model,
 	frame: AvatarPose.Frame,
 	inputs: ShooterPoser.Inputs,
@@ -152,7 +152,7 @@ local STILL_SPOT = 1e-4
 local STILL_PULL = 1e-4
 local STILL_PITCH = 1e-4
 
---- The watchers for Lounge's pooled cues: one rake and one slot per cue, built now (building a
+--- The watchers for Hub's pooled cues: one rake and one slot per cue, built now (building a
 --- rake may wait a moment for the imported model to arrive).
 function WatchedShooters.new(parent: Instance, cues: { Model }): WatchedShooters
 	local slots: { [Model]: Slot } = {}
@@ -343,7 +343,7 @@ local function step(
 	local lining = AIM_PHASES[s.phase] == true and not busy and ball ~= nil and not ball.pocketed
 	local heard = lining and aim ~= nil and aim.by == shooterId
 	if heard and aim and ball then
-		-- The ball, not the stream's spot: a ball in hand is eased onto its spot (Lounge).
+		-- The ball, not the stream's spot: a ball in hand is eased onto its spot (Hub).
 		slot.angle, slot.x, slot.y, slot.pull = aim.shown, ball.x, ball.y, aim.shownPull
 		slot.elevation = aim.elevation or Config.Cue.CueElevationDegrees
 	end
@@ -449,7 +449,7 @@ local function step(
 	BridgeBuilder.setVisible(slot.rake, slot.rakeVisible)
 end
 
---- Pose every pooled table's shooter for this frame, from the Lounge's tables (keyed by table
+--- Pose every pooled table's shooter for this frame, from the Hub's tables (keyed by table
 --- id): the cue each pooled table is drawn with, the snapshots, the Matches, the aims (eased
 --- already) and the last shot accepted at each.
 function WatchedShooters.update(
@@ -465,7 +465,7 @@ function WatchedShooters.update(
 	local source = self.source
 	source.cueOf, source.snapshots, source.matches = cueOf, snapshots, matches
 	source.aims, source.shots = aims, shots
-	-- A slot whose table has left the pool (Lounge.rebind also calls unbind).
+	-- A slot whose table has left the pool (Hub.rebind also calls unbind).
 	for cue, slot in self.slots do
 		local id = slot.tableId
 		if id ~= nil and cueOf[id] ~= cue then

@@ -555,142 +555,44 @@ Config.Cue = {
 }
 
 ---------------------------------------------------------------------------------------------
--- The lounge: where the twelve tables stand (studs). Physics x -> world X, physics y ->
+-- The hub: where the twelve tables stand (studs). Physics x -> world X, physics y ->
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
-Config.Lounge = {
-	-- Transcribed from assets/lounge/Markers.json (schema_version 1). Y is the FLOOR height
-	-- of the tier the table stands on, not the cloth: Placement.toWorld adds
-	-- Table.SurfaceHeightStuds (2.9) on top, which is exactly the package's
-	-- cloth_height_above_floor. Yaw is degrees about world +Y.
-	--
-	-- Do not hand-edit: tests/lounge_layout_test.luau checks every number against
-	-- Markers.json, so a typo here fails tools/test.sh.
-	-- Tables 1-4 are the front row, 5-8 the middle tier, 9-12 the rear tier.
+Config.Hub = {
+	-- PLACEHOLDER grid on the baseplate until the hub map exists (docs/prompts/
+	-- HUB_BLENDER_PROMPT.md); its Markers.json will replace these rows. Y is the FLOOR
+	-- height the table stands on, not the cloth: Placement.toWorld adds
+	-- Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees about world +Y. Three rows of
+	-- four, 20 studs apart across and 43 along, which keeps 10 studs of cue room around each.
 	Tables = {
 		{ id = 1, X = -30, Y = 0, Z = 0, YawDegrees = 90 },
 		{ id = 2, X = -10, Y = 0, Z = 0, YawDegrees = 90 },
 		{ id = 3, X = 10, Y = 0, Z = 0, YawDegrees = 90 },
 		{ id = 4, X = 30, Y = 0, Z = 0, YawDegrees = 90 },
-		{ id = 5, X = -30, Y = 2.4, Z = -43, YawDegrees = 90 },
-		{ id = 6, X = -10, Y = 2.4, Z = -43, YawDegrees = 90 },
-		{ id = 7, X = 10, Y = 2.4, Z = -43, YawDegrees = 90 },
-		{ id = 8, X = 30, Y = 2.4, Z = -43, YawDegrees = 90 },
-		{ id = 9, X = -30, Y = 4.8, Z = -86, YawDegrees = 90 },
-		{ id = 10, X = -10, Y = 4.8, Z = -86, YawDegrees = 90 },
-		{ id = 11, X = 10, Y = 4.8, Z = -86, YawDegrees = 90 },
-		{ id = 12, X = 30, Y = 4.8, Z = -86, YawDegrees = 90 },
+		{ id = 5, X = -30, Y = 0, Z = -43, YawDegrees = 90 },
+		{ id = 6, X = -10, Y = 0, Z = -43, YawDegrees = 90 },
+		{ id = 7, X = 10, Y = 0, Z = -43, YawDegrees = 90 },
+		{ id = 8, X = 30, Y = 0, Z = -43, YawDegrees = 90 },
+		{ id = 9, X = -30, Y = 0, Z = -86, YawDegrees = 90 },
+		{ id = 10, X = -10, Y = 0, Z = -86, YawDegrees = 90 },
+		{ id = 11, X = 10, Y = 0, Z = -86, YawDegrees = 90 },
+		{ id = 12, X = 30, Y = 0, Z = -86, YawDegrees = 90 },
 	},
-	-- The imported lounge is a placeholder the designer has set aside, so the game currently
-	-- runs on a plain baseplate. FALSE means: do not expect lounge geometry in the place,
-	-- do not build the pendant lights or the sofa seats, and leave Lighting alone.
-	--
-	-- Nothing else changes. The tables are still server-owned, shots are still validated and
-	-- broadcast by the server, and the pads still work; there are just fewer tables and no
-	-- room around them. Turn this back on when there is a lounge worth standing in.
-	Enabled = false,
 
-	-- How many tables to build, taken from the front of Tables below. Twelve is the lounge;
-	-- one is what the shot is actually tested on.
+	-- How many tables to build, taken from the front of Tables. Twelve is the full hub;
+	-- the baseplate tests the shot on a few.
 	TableCount = 3,
 
 	-- Which table the client treats as "the" table before it has a seat.
 	ActiveTableId = 1,
 
-	-- How many tables draw their balls at once. Twelve racked tables is 192 ball meshes for
-	-- a scene that already carries a quarter of a million triangles of table, and the ones
-	-- across the room are a few pixels each. The nearest few are bound to a small pool of
-	-- renderers instead; every table still simulates, it just may not be drawn.
+	-- How many tables draw their balls at once. Twelve racked tables is 192 ball meshes, and
+	-- the ones across the room are a few pixels each. The nearest few are bound to a small
+	-- pool of renderers instead; every table still simulates, it just may not be drawn.
 	RenderedTables = 4,
 	-- How often the pool is re-pointed at the nearest tables. Every frame is wasteful and
 	-- the player cannot cross twenty studs in half a second.
 	RebindEverySeconds = 0.5,
-
-	-- Where the player spawns (Markers.json "Spawn_Lounge", the seating area).
-	Spawn = { X = 0, Y = 0.1, Z = 20 },
-
-	-- The six FBX packages and how each behaves once imported, from step 5 of
-	-- assets/lounge/Readme.md. Two deliberate departures from that note, both so the room
-	-- is playable rather than only pretty: the window glass collides (the package would
-	-- have it pass-through, and there is no proxy behind it, so players would walk out of
-	-- the building) and the furniture collides (there is no proxy for the sofas either).
-	Packages = {
-		Lounge_Architecture = { CanCollide = true, Collision = "Box", CastShadow = true },
-		Lounge_Collision = { CanCollide = true, Collision = "Box", CastShadow = false, Hide = true },
-		Lounge_Emissive = { CanCollide = false, CastShadow = false, Material = "Neon" },
-		Lounge_Furniture = { CanCollide = true, Collision = "Box", CastShadow = true },
-		Lounge_Props = { CanCollide = false, CastShadow = false },
-		Lounge_Signs = { CanCollide = false, CastShadow = false },
-	},
-	-- Per-part exceptions, by exact name or by a name fragment.
-	PartRules = {
-		Glass_Windows = { Material = "Glass", Transparency = 0.65, Color = { 214, 232, 240 } },
-	},
-	-- Anything whose name contains one of these is flat on the floor and must not be walked
-	-- into (a rug with a collision box is a step).
-	NoCollideFragments = { "Rug" },
-	-- Invisible seats on the lounge furniture. GDD section 10 wants the chairs and sofas
-	-- sittable; sitting is free look only, so a spectator keeps the normal walk-around
-	-- camera (decided 2026-09-20, closing the open question in GDD section 6). Table
-	-- cameras for spectators are Roadmap 2.3.
-	Seating = {
-		{ Part = "Furniture_Sofa_Teal_Foreground", Seats = 3 },
-		{ Part = "Furniture_Sofa_Teal_Left", Seats = 3 },
-		{ Part = "Furniture_Loveseat_Cream", Seats = 2 },
-		{ Part = "Furniture_Armchair_Teal_Right", Seats = 1 },
-		{ Part = "Furniture_Ottoman_Butter", Seats = 1 },
-	},
-	-- Where a seated player faces: the middle of the lounge rug, so everyone on the sofas
-	-- looks inwards at the seating area rather than at a wall.
-	SeatingFocus = { X = 0, Y = 0, Z = 26.8 },
-	-- How far up the furniture the seat sits, as a fraction of its height, and the seat
-	-- pad's size in studs.
-	SeatHeightFraction = 0.55,
-	SeatSizeStuds = { 2.2, 0.4, 2.2 },
-	-- Parts the package ships that the game provides for real, so they are deleted rather
-	-- than left to clash. Table_DisplayProps_NN is a tray of fake balls and a rack sitting
-	-- on each table's cloth, put there so the Blender render looked furnished; the real
-	-- tables carry sixteen simulated balls and the fakes sat on top of them.
-	RemovePartFragments = { "Table_DisplayProps" },
-
-	-- How far the pendant fixtures are lifted above where the Blender package hung them.
-	-- The package drops them to 7.5 studs above the floor, which is 4.6 above the cloth,
-	-- and the aim camera sits at about 10.8 - so the fixture hung squarely between the
-	-- player and the table. Lifting shortens the drop; the cord still meets the ceiling.
-	PendantLiftStuds = 4.5,
-
-	-- One pendant over each table. Markers.json puts every pendant directly above its own
-	-- table at the same height above that tier's floor, so one number covers all twelve.
-	-- Shadows are OFF on purpose: twelve shadow-casting lights is the most expensive thing
-	-- this scene could contain, and the sun does the shadow work instead. This replaces the
-	-- old per-table SpotLight that did not scale past one table.
-	Pendant = {
-		HeightAboveFloor = 7.42,
-		Brightness = 1.8,
-		RangeStuds = 24,
-		AngleDegrees = 120,
-		Color = { 255, 177, 110 }, -- 3000 K, warm
-		Shadows = false,
-	},
-
-	-- Lighting recipe supplied with the package. Its own notes call these a starting point
-	-- that was never evaluated inside Studio, so treat every number as (tune).
-	Lighting = {
-		ClockTime = 17.4,
-		Brightness = 2,
-		Ambient = { 150, 146, 133 },
-		OutdoorAmbient = { 170, 154, 130 },
-		ColorShiftTop = { 18, 10, 3 },
-		EnvironmentDiffuseScale = 0.65,
-		EnvironmentSpecularScale = 0.5,
-		Bloom = { Intensity = 0.12, Size = 20, Threshold = 1.2 },
-		ColorCorrection = {
-			Brightness = 0.02,
-			Contrast = 0.04,
-			Saturation = 0.04,
-			TintColor = { 255, 244, 224 },
-		},
-	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -735,6 +637,11 @@ Config.TableModel = {
 	-- every table (the corners underneath are modelled finished).
 	CapsMesh = "Caps",
 	Caps = false, -- TEMPORARILY OFF (designer, 2026-09-24): to see the table without chrome caps
+	-- The Marks overlay (the foot-spot sticker and the break smudge at the head spot) is its
+	-- own mesh too: false removes it from every table, leaving plain clean cloth. Off
+	-- (designer, 2026-09-24): "a new looking clean table".
+	MarksMesh = "Marks",
+	Marks = false,
 	-- Map sets: uploaded image ids ("rbxassetid://digits"), "" until uploaded (an empty id is
 	-- skipped, so a mesh with none keeps its bare part colour). Every table map is uploaded at
 	-- 1024 (STUDIO_NOTES, "SurfaceAppearance facts"). A missing Metalness means non-metal.
@@ -1292,7 +1199,7 @@ Config.Avatar = {
 		SnapStuds = 3,
 	},
 	-- Everyone else's shooter as this client poses them (WatchedShooters), only at the tables
-	-- whose balls are drawn (Config.Lounge.RenderedTables).
+	-- whose balls are drawn (Config.Hub.RenderedTables).
 	Watch = {
 		-- Beyond this distance from the camera (studs) a watched shooter is posed less often:
 		-- a few pixels tall, a lower rate cannot be seen. (tune)
@@ -1970,7 +1877,7 @@ Config.Audio = {
 	-- about 16 x 8 studs (100 x 50 inches at 0.16 studs/inch) and the close view sits 2.2
 	-- studs from the cue ball, so the old value of 8 put the camera inside the min distance
 	-- when zoomed in and outside it when fitted - a loudness swing of about 3x from the
-	-- zoom alone, which reads as "the volume is broken". Lounge tables are 20+ studs apart,
+	-- zoom alone, which reads as "the volume is broken". Hub tables are 20+ studs apart,
 	-- so a neighbouring game still attenuates properly. Measured in Studio: over a whole
 	-- shot the camera sits 16.2 to 17.5 studs from the table and drops to 2.2 studs in the
 	-- close aiming view, so 18 keeps the entire zoom range inside the plateau. (tune)
