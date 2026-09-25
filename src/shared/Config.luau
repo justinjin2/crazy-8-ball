@@ -1067,41 +1067,38 @@ Config.Avatar = {
 	--   ChestRollDegrees     the chest rolls this far, raising the grip-side shoulder
 	--   HipBackStuds         the upper body sits back this far at full lean
 	--   CrouchStuds          ...and this much lower
-	--   LiftFrom             the back foot starts to lift at this lean (none: never lifts)
-	--   BackLegLift          the back foot is always lifted this far (0..1), whatever the lean
-	-- (tune)
+	--   LiftFrom             the back foot starts to lift at this lean (none: never lifts; the
+	--                        designer wants both feet planted, 2026-09-25)
+	-- The hips tip and twist only a little: R15 legs and hips are rigid blocks, and a pelvis
+	-- turned well away from the thighs shows as a gap at the hips. (tune)
 	Profiles = {
 		stand = { -- hand bridge at the natural lean
 			PelvisPitch = { 0, 10 },
 			ChestPitch = { 5, 20 },
-			HipTwistDegrees = 20,
-			ChestCounterDegrees = 8,
+			HipTwistDegrees = 8,
+			ChestCounterDegrees = 4,
 			ChestRollDegrees = 0,
 			HipBackStuds = 0.1,
 			CrouchStuds = 0.05,
 		},
 		lean = { -- hand bridge, stretching further in
-			PelvisPitch = { 20, 42 },
+			PelvisPitch = { 10, 15 },
 			ChestPitch = { 25, 45 },
-			HipTwistDegrees = 28,
-			ChestCounterDegrees = 12,
+			HipTwistDegrees = 8,
+			ChestCounterDegrees = 4,
 			ChestRollDegrees = 4,
-			HipBackStuds = 0.35,
-			CrouchStuds = 0.15,
-			LiftFrom = 0.75,
+			HipBackStuds = 0.2,
+			CrouchStuds = 0,
 		},
-		-- One foot on the floor on its toes, the belly against the rail edge, the back leg
-		-- lifted behind. The hips tip only a little: tipping lifts the hip joints, and the
-		-- planted leg has no length to spare.
+		-- Both feet on the floor, the belly against the rail edge.
 		stretch = {
-			PelvisPitch = { 20, 35 },
+			PelvisPitch = { 10, 15 },
 			ChestPitch = { 40, 70 },
-			HipTwistDegrees = 20,
-			ChestCounterDegrees = 10,
+			HipTwistDegrees = 8,
+			ChestCounterDegrees = 4,
 			ChestRollDegrees = 4,
 			HipBackStuds = 0,
 			CrouchStuds = 0,
-			BackLegLift = 1,
 		},
 		table = { -- kneeling on the cloth, sitting back toward the heels
 			PelvisPitch = { 25, 50 },
@@ -1144,11 +1141,12 @@ Config.Avatar = {
 		PalmFraction = 0.25,
 		-- An arm reaching further than this share of its length straightens gradually rather
 		-- than snapping (PoseMath.twoBone's soft reach), and its hand first slides to where the
-		-- arm meets it: the grip along the cue (up to MaxGripSlideStuds; an R6 grip anywhere
-		-- along the cue's back part), the bridge hand back along it (MaxBridgeSlideStuds).
-		-- (tune)
+		-- arm meets it: the grip along the cue (up to MaxGripSlideStuds, enough for the cue to
+		-- slide back through a straight arm's hand over a whole wind-up, Cue.CuePullBackStuds;
+		-- an R6 grip anywhere along the cue's back part), the bridge hand back along it
+		-- (MaxBridgeSlideStuds). (tune)
 		SoftReach = 0.97,
-		MaxGripSlideStuds = 0.6,
+		MaxGripSlideStuds = 1.5,
 		MaxBridgeSlideStuds = 0.8,
 		-- ...and a hand is never brought nearer its shoulder than this share of the arm's
 		-- length (folded tighter, an elbow cannot reach it): a grip that close slides along
@@ -1175,10 +1173,6 @@ Config.Avatar = {
 		-- never more than MaxHipDropStuds. (tune)
 		Straightness = 0.99,
 		MaxHipDropStuds = 0.5,
-		-- Stretching over the rail (ShooterStance "stretch"), the front (left) foot stays on the
-		-- floor up on its toes, pitched this far toe down, and the back leg is lifted behind.
-		-- AvatarPose.measureBody measures the body's ToeRise at this pitch. (tune)
-		StretchToePitchDegrees = 50,
 		-- Kneeling on the table ("table"), the knees rest on the cloth (the stance's
 		-- Table.KneeRestStuds up), each shin lying back along it with the foot pitched this far
 		-- toe down, and the knees this far apart either side of the hips' own spread. (tune)
@@ -1241,11 +1235,10 @@ Config.Stance = {
 	-- the hip line the torso leans about, the shoulder pivots, half the shoulder span, one
 	-- arm from the shoulder pivot to the grip, the half extents of the body's footprint, the
 	-- hip (leg) pivots, one thigh from its hip pivot to its knee pivot, the neck pivot, the
-	-- neck pivot to the head's centre, the head's radius, and how far the ankle rises on the
-	-- toes (Avatar.Legs.StretchToePitchDegrees). The default R15 rig as
+	-- neck pivot to the head's centre and the head's radius. The default R15 rig as
 	-- AvatarPose.measureBody measures it in Studio (2026-09-24, the legs and head
 	-- 2026-09-25; the default R6 rig measures 3.0, 2.0, 3.5, 1.0, 1.581, 1.0, 0.5, 2.0, 2.06,
-	-- 4.0, 0.5, 0.5 and 0, its leg being rigid).
+	-- 4.0, 0.5 and 0.5, its leg being rigid).
 	DefaultBody = {
 		RootHeight = 3.192,
 		WaistHeight = 2.592,
@@ -1259,7 +1252,6 @@ Config.Stance = {
 		NeckHeight = 4.29,
 		HeadLift = 0.576,
 		HeadRadius = 0.591,
-		ToeRise = 0.29,
 	},
 	-- The ways the body can stand to the cue, each tried at every support. TwistDegrees: the
 	-- body faces this far right of the aim (a right-hander's hips turn away from the stroking
@@ -1292,18 +1284,22 @@ Config.Stance = {
 		PerStudFromNatural = 0.3,
 		Sticky = 1,
 	},
-	-- Where the grip hand holds the cue: this fraction of the length up from the butt,
-	-- never within GripButtEndStuds of the butt end and never nearer the tip than
-	-- GripMinFromTipFraction of the length (a steep jump cue chokes up further, down to
-	-- SteepGripMinFromTipFraction at SteepGripDegrees and above). It sits GripBehindRootStuds
-	-- behind the hip when the body allows, and never more than GripAboveShoulderStuds above
-	-- the shoulder: a steep cue chokes up instead. (tune)
-	GripFromButtFraction = 0.32,
+	-- Where the grip hand holds the cue: the arm reaches back along it toward the butt, the
+	-- hand GripArmRestFraction of the arm's reach behind the shoulder at rest (a long wind-up
+	-- slides the cue back through the hand once the arm is straight: Avatar.Arms
+	-- MaxGripSlideStuds), never within GripButtEndStuds of the
+	-- butt end and never nearer the tip than GripMinFromTipFraction of the length (a steep
+	-- jump cue chokes up further, down to SteepGripMinFromTipFraction at SteepGripDegrees and
+	-- above), and never more than GripAboveShoulderStuds above the shoulder: a steep cue
+	-- chokes up instead. The body stands where a grip GripFromButtFraction of the length up
+	-- from the butt sits GripBehindRootStuds behind the hip, when it can. (tune)
+	GripArmRestFraction = 0.8,
+	GripFromButtFraction = 0.15,
 	GripButtEndStuds = 0.25,
 	GripMinFromTipFraction = 0.35,
 	SteepGripMinFromTipFraction = 0.15,
 	SteepGripDegrees = 30,
-	GripBehindRootStuds = 0.3,
+	GripBehindRootStuds = 0.9,
 	GripAboveShoulderStuds = 0.4,
 	-- Torso lean from vertical on the floor, degrees: the natural stance, the most it
 	-- stretches, and the most upright. A steeper drawn cue stands the body up by
@@ -1331,16 +1327,14 @@ Config.Stance = {
 	-- Where the spot nearest the natural distance does not clear the table, the search steps
 	-- out from it this far at a time for one that does. (internal)
 	ClearStepStuds = 0.2,
-	-- Stretching over the rail: one foot on the floor up on its toes (the hips as high as that
-	-- leg reaches, less KneeBendStuds), the back leg lifted behind, the root from MinOutStuds
-	-- to MaxOutStuds outside the rail's outer edge (the table's apron is flush with that edge,
-	-- so the hips stay outside it), the belly allowed BellyIntoRailStuds into the rail top
-	-- where it leans on the edge; the torso leans from LeanMinDegrees to LeanMaxDegrees. An
-	-- avatar's legs are too short for any stance with the hips on the rail to keep a foot on
-	-- the floor, so a shot this does not reach is taken kneeling on the table (designer,
-	-- 2026-09-25). (tune)
+	-- Stretching over the rail: both feet on the floor, the root from MinOutStuds to
+	-- MaxOutStuds outside the rail's outer edge (the table's apron is flush with that edge, so
+	-- the hips stay outside it), the belly allowed BellyIntoRailStuds into the rail top where
+	-- it leans on the edge; the torso leans from LeanMinDegrees to LeanMaxDegrees. An avatar's
+	-- legs are too short for any stance with the hips on the rail to keep a foot on the floor,
+	-- so a shot this does not reach is taken kneeling on the table (designer, 2026-09-25).
+	-- (tune)
 	Stretch = {
-		KneeBendStuds = 0.1,
 		MinOutStuds = 0.4,
 		MaxOutStuds = 1.0,
 		BellyIntoRailStuds = 0.2,

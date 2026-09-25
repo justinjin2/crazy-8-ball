@@ -20,9 +20,8 @@
 --      the bridge runs, the parts of the cue line over the cloth or the rail top (never a
 --      pocket) where the cue sits low enough over the surface for a hand bridge under it.
 --   3. A search over SUPPORTS, cheapest first: standing on the floor (a plain stance, then
---      leaning further in, the back foot lifting), stretching over the rail (one foot on the
---      floor up on its toes, the belly on the rail edge, the back leg lifted), kneeling on the
---      table, and last kneeling up on the rail top (a small body with a steep cue or a ball by
+--      leaning further in), stretching over the rail (both feet on the floor, the belly on
+--      the rail edge), kneeling on the table, and last kneeling up on the rail top (a small body with a steep cue or a ball by
 --      a rail that nothing else reaches). The first support with any stance that reaches wins,
 --      so the body only climbs when it has to. Within a support every SIDE is tried (Config.Stance.Sides: the classic
 --      open stance with the chin over the cue, the cue by the right hip, the body square to it
@@ -68,7 +67,6 @@ export type Body = {
 	NeckHeight: number, -- the neck pivot, standing
 	HeadLift: number, -- neck pivot to the head's centre
 	HeadRadius: number, -- half the head's height or depth, the larger
-	ToeRise: number, -- how far the ankle rises on the toes (0 for a rigid R6 leg)
 }
 
 -- The table's surroundings, table studs (ShooterStance.area).
@@ -89,7 +87,7 @@ export type Area = {
 }
 
 -- What the body stands on: the floor ("stand" at the natural lean, "lean" further in, and
--- "stretch": one foot on the floor on its toes, the belly on the rail edge), the cloth
+-- "stretch": the belly on the rail edge), the cloth
 -- ("table": kneeling) or the rail top ("rail": kneeling up on it, the last resort).
 export type Mode = "stand" | "lean" | "stretch" | "table" | "rail"
 
@@ -318,10 +316,7 @@ end
 --- The height of the hip pivots above the floor in `mode` (the floor's own when standing).
 function ShooterStance.hipHeight(mode: Mode, body: Body, area: Area): number
 	local S = Config.Stance
-	if mode == "stretch" then
-		-- The planted leg nearly straight, up on its toes.
-		return body.HipHeight + body.ToeRise - S.Stretch.KneeBendStuds
-	elseif mode == "table" or mode == "rail" then
+	if mode == "table" or mode == "rail" then
 		return (if mode == "rail" then area.railTopZ else area.clothZ)
 			+ S.Table.KneeRestStuds
 			+ body.ThighLength * math.cos(math.rad(S.Table.ThighBackDegrees))
@@ -1000,31 +995,7 @@ function ShooterStance.solve(q: Input): Stance
 	local rx, ry = fr.ox + bx * u, fr.oy + by * u
 	local mode: Mode = fr.mode
 
-	-- 6. The hands at the chosen spot. The grip just behind the hip, within the arm's reach.
-	local rsx = rx + fr.fx * fr.k - fr.blx * shw
-	local rsy = ry + fr.fy * fr.k - fr.bly * shw
-	local gripAlong = math.clamp((u + S.GripBehindRootStuds) / c, sLo, math.max(sLo, sHi))
-	do
-		local wx, wy, wz = rsx - px, rsy - py, fr.cz - pz
-		local s0 = (wx * bx + wy * by) * c + wz * sn
-		local perp2 = wx * wx + wy * wy + wz * wz - s0 * s0
-		-- The stretch of the cue within reach (at the edge of reach, as the least lean leaves it,
-		-- rounding can put it a hair outside: then the nearest point).
-		local h2 = reachGrip * reachGrip - perp2
-		local lo, hi = 1, 0
-		if h2 >= 0 then
-			local h = math.sqrt(h2)
-			lo, hi = math.max(sLo, s0 - h), math.min(sHi, s0 + h)
-		end
-		if lo <= hi then
-			gripAlong = math.clamp(gripAlong, lo, hi)
-		else
-			gripAlong = math.clamp(s0, sLo, sHi)
-		end
-	end
-	local gx0, gy0, gz0 = axisAt(gripAlong)
-	local gripReachable = reached and distance(gx0, gy0, gz0, rsx, rsy, fr.cz) <= reachGrip + 1e-6
-
+	-- 6. The hands at the chosen spot.
 	-- The bridge: the arm reaches out nearly straight (BridgeArmExtendFraction of its reach)
 	-- toward the ball, so the hand sits on a run as near the ball as that takes it, never
 	-- nearer than the preferred nearest; the rail's own runs a little preferred while the hand
@@ -1095,6 +1066,42 @@ function ShooterStance.solve(q: Input): Stance
 	if S.LimitPullAtBridge then
 		pullLimit = math.clamp((bridgeAlong - tipClear - gR) / C.CuePullBackStuds, 0, 1)
 	end
+
+	-- The grip: the arm reaches back along the cue toward the butt, the hand behind the
+	-- shoulder GripArmRestFraction of the arm's reach from it at rest (a long wind-up slides the
+	-- cue back through the hand once the arm is straight, AvatarPose), and never more than
+	-- GripAboveShoulderStuds above the shoulder (a steep cue chokes up instead).
+	local rsx = rx + fr.fx * fr.k - fr.blx * shw
+	local rsy = ry + fr.fy * fr.k - fr.bly * shw
+	local gripAlong
+	do
+		local wx, wy, wz = rsx - px, rsy - py, fr.cz - pz
+		local s0 = (wx * bx + wy * by) * c + wz * sn -- the shoulder's foot on the axis
+		local perp2 = wx * wx + wy * wy + wz * wz - s0 * s0
+		local function farEnd(r: number): number
+			return s0 + math.sqrt(math.max(0, r * r - perp2))
+		end
+		local want = farEnd(body.ArmReach * S.GripArmRestFraction)
+		if sn > 1e-6 then
+			want = math.min(want, (fr.cz + S.GripAboveShoulderStuds - pz) / sn)
+		end
+		gripAlong = math.clamp(math.max(want, s0), sLo, math.max(sLo, sHi))
+		-- The stretch of the cue within reach (at the edge of reach, as the least lean leaves it,
+		-- rounding can put it a hair outside: then the nearest point).
+		local h2 = reachGrip * reachGrip - perp2
+		local lo, hi = 1, 0
+		if h2 >= 0 then
+			local h = math.sqrt(h2)
+			lo, hi = math.max(sLo, s0 - h), math.min(sHi, s0 + h)
+		end
+		if lo <= hi then
+			gripAlong = math.clamp(gripAlong, lo, hi)
+		else
+			gripAlong = math.clamp(s0, sLo, sHi)
+		end
+	end
+	local gx0, gy0, gz0 = axisAt(gripAlong)
+	local gripReachable = reached and distance(gx0, gy0, gz0, rsx, rsy, fr.cz) <= reachGrip + 1e-6
 
 	-- 7. The pull: the root never moves with it; the cue and the grip hand slide back along
 	-- the axis together.

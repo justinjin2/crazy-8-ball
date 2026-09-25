@@ -96,9 +96,12 @@ The designer removed the rake. The cue and the table stay as they are; only the 
 and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
 
 - [ ] **Shooter reach without the rake.** The stance searches spots round and over the
-  table: floor, leaning, hips up on the rail, kneeling on the table; the body is not tied to
-  the cue line. Done means: every shot is reached with both hands on a normal-length cue (the
-  Lune sweep); in Studio the R15 and R6 rigs look right in each pose from a watcher's view;
+  table: floor, leaning, stretching over the rail with both feet planted, kneeling on the
+  table (and last, on the rail top); the body is not tied to the cue line; the head clears
+  the table; the grip arm reaches back to the butt and the bridge arm out toward the ball.
+  Done means: every shot is reached with both hands on a normal-length cue by the default
+  body (the Lune sweep; small and R6 bodies nearly all); in Studio the R15 and R6 rigs look
+  right in each pose from a watcher's view;
   the aim turns all the way round with the body gliding, not jumping; a ball along a side
   rail is played from that side rail; phone, PC and gamepad checked; console clean.
 

@@ -143,9 +143,7 @@ local KEY_SIZE = 27
 local SETTLE_STUDS = 1e-3
 local SETTLE_DOT = 1 - 1e-8
 
-local PROFILES = (Config.Avatar.Profiles :: any) :: {
-	[string]: { LiftFrom: number?, BackLegLift: number? },
-}
+local PROFILES = (Config.Avatar.Profiles :: any) :: { [string]: { LiftFrom: number? } }
 
 local function smoothstep(from: number, to: number, x: number): number
 	if to <= from then
@@ -237,10 +235,7 @@ function ShooterPoser.compose(
 	frame.look = ball
 	local profile = PROFILES[stance.mode]
 	local liftFrom = profile and profile.LiftFrom
-	frame.backLegLift = if profile and profile.BackLegLift
-		then profile.BackLegLift
-		elseif liftFrom then smoothstep(liftFrom, 1, stance.lean)
-		else 0
+	frame.backLegLift = if liftFrom then smoothstep(liftFrom, 1, stance.lean) else 0
 
 	-- The off hand: always a bridge under the cue, on the cloth or the rail top (or raised
 	-- under a steep cue). AvatarPose puts the palm just above this spot.

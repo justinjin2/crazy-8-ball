@@ -1,24 +1,28 @@
 # Status
 
-**2026-09-25 (branch `shooter-reach`): the rake and the cue extension are gone. The body
-reaches every shot by pose and position alone. Studio check pending.**
+**2026-09-25 (branch `shooter-reach`): the body reaches every shot by pose and position alone,
+with both feet planted, the head clear of the table, and both arms reaching along the cue.
+Checked in Studio play-solo on R15; the designer's look at this round is next.**
 
-- The stance is a search over four poses: standing, leaning further in, the hips up on the
-  rail edge lying over the table, and kneeling on the table. Each can turn to the cue in
-  seven ways (Config.Stance.Sides). The body is no longer tied to the cue line: a ball along
-  a side rail is played from that side rail.
-- Every shot is reached with both hands on a normal-length cue (default R15: 48% floor, 37%
-  rail, 15% kneeling). About 0.2 ms per stance in Lune.
-- AvatarPose poses the legs for the rail (hanging over its outer edge, the back one raised)
-  and the kneel (knees on the cloth, shins lying back). ShooterPoser eases the lean, the
-  hands' targets and the root between stances, so a new pose glides in.
-- Removed: `BridgeBuilder`, `Config.Bridge`, `assets/bridge`, the cue extension parts.
-- Verified: lint clean, 328 Lune tests pass (the new stance sweep holds both hands on the
-  cue, the body in its region, the torso and head clear of the table and the cue, the idle
-  spot on the floor).
-- Still required: the Studio look at each pose (R15 and R6), a 360-degree aim sweep in Play,
-  the climb back down after a shot on the rail or table (it is still a cut), phone, PC,
-  gamepad, and the designer's look.
+- Poses: standing, leaning further in, stretching over the rail (belly on the edge), kneeling
+  on the table, and last kneeling up on the rail top. Both feet stay on the floor in every
+  standing pose. Each pose can turn to the cue in seven ways (Config.Stance.Sides), and the
+  body is not tied to the cue line.
+- Default R15 on an even grid: 48% floor, 4% stretching, 48% kneeling on the table, every
+  shot reached. A foot on the floor only reaches about 2.5 studs onto this table.
+- The head: AvatarPose.measureBody now measures the neck and the head; the stance places the
+  head as the pose looks at the cue ball and keeps it HeadGapStuds above anything under it.
+  Natural lean 45 degrees.
+- The grip arm reaches back to hold the cue near its butt (a long wind-up slides the cue
+  through the hand); the bridge arm reaches out nearly straight toward the ball.
+- R6 and smaller bodies cannot reach about 2% of ordinary shots (a ball frozen to a cushion
+  under a steep jump cue): they stand with the hands as near the cue as they get.
+- Verified: lint clean, 328 Lune tests pass. Studio play-solo (R15, accessories hidden in a
+  test camera): the break, a side-rail shot and a kneel look right, feet on the floor, the
+  head above the rail, no console errors.
+- Still required: the designer's look; R6 in Studio; a 360-degree aim sweep watched from a
+  second client; the climb back down after a kneel (still a cut); phone, PC, gamepad.
+  Merge `shooter-reach` into `main` once accepted.
 
 ---
 

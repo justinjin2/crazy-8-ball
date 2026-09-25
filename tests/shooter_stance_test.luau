@@ -27,7 +27,7 @@ local TIERS = { stand = 1, lean = 1, stretch = 2, table = 3, rail = 4 }
 local R15 = S.DefaultBody
 -- The default R6 rig, measured the same way: root centre 3 above the floor (HipHeight 0),
 -- hips 2, shoulder pivots 3.5, one arm 1.581 from its pivot to the grip attachment, legs 2
--- (rigid, so the whole leg is its "thigh" and it has no toes to rise on), the neck 4, the
+-- (rigid, so the whole leg is its "thigh"), the neck 4, the
 -- head's centre 0.5 above it, the head 1 stud tall and deep.
 local R6 = {
 	RootHeight = 3,
@@ -42,7 +42,6 @@ local R6 = {
 	NeckHeight = 4,
 	HeadLift = 0.5,
 	HeadRadius = 0.5,
-	ToeRise = 0,
 }
 local function scaled(body: any, k: number): any
 	local out = {}
@@ -232,10 +231,10 @@ local function checkStance(q: any, st: any, label: string, mayMiss: boolean?): b
 				and not inside(x, y, area.railHx + lo, area.railHy + lo),
 			"stretching but not by the rail edge: " .. label
 		)
-		-- The planted leg reaches the floor on its toes.
+		-- Both feet on the floor: the hips at their standing height.
 		H.expect(
-			ShooterStance.hipHeight("stretch", body, area) <= body.HipHeight + body.ToeRise + EPS,
-			"the planted foot is off the floor: " .. label
+			ShooterStance.hipHeight("stretch", body, area) == body.HipHeight,
+			"the feet are off the floor: " .. label
 		)
 	elseif st.mode == "rail" then
 		local k = S.Table.RailKneelOutStuds
@@ -564,18 +563,25 @@ return {
 				local y, dir = line[1], line[2]
 				local angle = if dir > 0 then 0 else math.pi
 				local area = ShooterStance.area(1)
-				local last, memory = 0, nil
+				local last, memory, lastPitch = 0, nil, math.huge
 				for i = -48, 48 do
 					local x = i * dir
-					local q = input(x, y, angle, pitchFor(x, y, angle), b[2], area)
+					local pitch = pitchFor(x, y, angle)
+					local q = input(x, y, angle, pitch, b[2], area)
 					q.memory = memory
 					local st = ShooterStance.solve(q)
 					memory = st.memory
 					local label = ("%s ball (%d, %d) toward %s"):format(b[1], x, y, tostring(dir))
 					if checkStance(q, st, label, b[3]) then
-						H.expect(TIERS[st.mode] >= last, "stepped back down: " .. label)
+						-- A cue flattening as the ball leaves the near cushion (it had to rise over
+						-- the rail) makes the shot easier: only a cue no flatter than the last
+						-- step's holds the support where it was.
+						if pitch >= lastPitch - 1e-9 then
+							H.expect(TIERS[st.mode] >= last, "stepped back down: " .. label)
+						end
 						last = TIERS[st.mode]
 					end
+					lastPitch = pitch
 				end
 				H.expect(
 					last >= TIERS.stretch,

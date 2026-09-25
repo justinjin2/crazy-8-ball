@@ -129,8 +129,8 @@ Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written)
 `AvatarPose` (rig, measurements, IK pose), `HubLayout` (generated from
 `assets/hub/Markers.json` by `tools/gen_hub_layout.py`: prop copies, seats, lights, collision,
 anchors), and the pure stance modules `CueShape`,
-`CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands, sits
-or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
+`CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands,
+stretches or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
 quantization), `Strings` (HUD copy), `Catalog`
 (item data rows, to be written).
 

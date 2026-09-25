@@ -1015,3 +1015,22 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - A steep jump cue chokes up further (Stance.SteepGripMinFromTipFraction); a steep cue
     that no bridge on the surface reaches raises the bridge hand under it.
   - After the shot the shooter stands on the floor clear of the barrier, facing the table.
+- 2026-09-25 (later): The shooter's pose after the designer's Studio look.
+  - Both feet stay planted on the floor in every standing pose: no floating feet, no lifted
+    back leg, no tiptoe. The hips up on the rail are gone: an avatar's legs (hip 2.2 studs)
+    cannot reach the floor from the rail top (3.23). In their place the body stretches over
+    the rail with its belly on the edge (the hips stay outside it, as the table's apron is
+    flush with the edge). What that does not reach is taken kneeling on the table, which the
+    designer accepts as a bit of humour: 48% floor, 4% stretching, 48% kneeling for the
+    default R15 (up from 15% kneeling). Kneeling up on the rail top is the last resort.
+  - The head is the avatar's own (AvatarPose.measureBody: neck, head size), placed as the
+    pose looks at the cue ball, and stays Stance.Clearance.HeadGapStuds clear of anything
+    under any part of it. Head only: big hats and costumes may dip into the table
+    (designer). The natural lean is 45 degrees, so the body stands higher.
+  - The grip arm reaches back along the cue to hold it near the butt (not beside the chest);
+    a long wind-up slides the cue through the hand once the arm is straight. The bridge arm
+    reaches out nearly straight toward the ball instead of a fixed 10 in from it.
+  - The hips tip and twist only a little: blocky R15 hips turned away from the thighs show a
+    gap.
+  - Smaller and R6 bodies cannot reach about 2% of ordinary shots (a ball frozen to a
+    cushion under a steep jump cue); they stand with the hands as near the cue as they get.

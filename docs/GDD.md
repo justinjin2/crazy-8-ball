@@ -108,14 +108,21 @@ Every feature is checked against these. If it serves none, it waits.
     Roblox size (R15 and R6), the cue is always its own length (about 7 studs, no extension)
     and there is **no rake**. Only the body's pose and position change to reach the ball. It
     is not tied to the cue line: like a real player it stands wherever it reaches, for
-    example at the side rail beside a ball whose shot runs along that rail. Four base poses:
-    standing on the floor, leaning further in with the back foot lifting, the hips up on the
-    rail edge lying over the table, and kneeling on the table. Each is shaped by how far the
-    body turns to the cue, whether the cue runs under the chin or by the hip, and how far it
-    leans. The body climbs only when it must: about 48% of shots from the floor, 37% up on
-    the rail and 15% kneeling. Both hands are always on the cue (the grip hand on its back
-    part, the bridge hand on the cloth or the rail top under it); the head looks at the cue
-    ball. The cue tilts up to clear a rail or a ball behind the cue ball: the tilt is visual
+    example at the side rail beside a ball whose shot runs along that rail. Poses: standing
+    on the floor, leaning further in, stretching over the rail with the belly on its edge
+    (always both feet planted on the floor: no floating feet, no lifted leg), kneeling on the
+    table, and as a last resort kneeling up on the rail top. A foot on the floor only reaches
+    so far onto a table this size, so far-in shots are taken kneeling on the table (accepted
+    as a bit of humour). Each pose is shaped by how far the body turns to the cue, whether
+    the cue runs under the chin or by the hip, and how far it leans. The body climbs only
+    when it must: about 48% of shots from the floor, 4% stretching and 48% kneeling on the
+    table for the default body. The head is the avatar's own, measured, and stays clearly
+    above the table (big hats and costumes may still dip in). Both hands are always on the
+    cue: the grip arm reaches back to hold the cue near its butt, and the bridge arm reaches
+    out nearly straight toward the ball (the bridge on the cloth or the rail top under the
+    cue); the head looks at the cue ball. Smaller or R6 bodies cannot reach about 2% of shots
+    (a ball frozen to a cushion under a steep jump cue): they stand, the hands as near the
+    cue as they get. The cue tilts up to clear a rail or a ball behind the cue ball: the tilt is visual
     only, the physics stays at 4 degrees.
   - The cue **winds up** with the power pull, and everyone sees it; release plays a quick
     stroke through the ball. The shooter then stands in the normal Roblox idle on the spot
