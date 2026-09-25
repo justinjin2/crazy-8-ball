@@ -962,3 +962,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-25: The hub has 16 tables: 10 for 1v1, 4 for 2v2, 2 for 3v3 *(tune)*. The hub is
   far more saturated than its references (cobalt sofas, zone-coloured armchairs, light walls);
   the palette lives in `docs/prompts/HUB_BLENDER_PROMPT.md`.
+- 2026-09-25: Hub budget raised to 200,000 environment triangles (about 330,000 with the tables),
+  to be checked on a real phone after import. Marble on walking and lounge floors (faked
+  reflections), detailed gray carpet in the play zones, and a placeholder piano stage in the
+  lounge.

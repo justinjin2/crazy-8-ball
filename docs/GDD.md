@@ -263,6 +263,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Strongly saturated furniture and accents on light, clean walls
   (bright cobalt sofas, zone-coloured armchairs), never dull or gray; palette in the brief.
   Brief: `docs/prompts/HUB_BLENDER_PROMPT.md`; reasoning: `docs/MAP_RESEARCH.md`.
+- **Floors:** polished, reflective-looking marble where people walk and hang out; detailed
+  gray carpet planks in the three play zones.
+- **Piano stage** in the lounge: a placeholder piano for now (a playable piano is parked,
+  section 18).
 - Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
   snacks that the player can drink or eat (a tool with a short animation). No alcohol.
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
@@ -444,6 +448,8 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   standard table model (changed 2026-09-24; it used to be a full model per skin), the host's
   table used for the match, rare ones with VFX, a
   table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
+- **Playable piano** (parked 2026-09-25): the lounge's placeholder piano becomes one players
+  can play.
 - **Walk to the next shot** (parked 2026-09-24): when the same player shoots again from a
   different spot, their body currently jumps there; a short walk round the table would read
   better for watchers.

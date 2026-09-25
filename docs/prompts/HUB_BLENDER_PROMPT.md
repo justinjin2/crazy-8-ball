@@ -27,20 +27,39 @@ materials, with the changes listed below.
 
 ### Keep from the references
 
-- **ref_01, ref_07:** the long hall. Black linear-slat ceiling, white ceiling bulkheads with
-  inset LED lines, a warm yellow accent band high on the walls, cool gray walls, charcoal
-  carpet with light streaks, black-framed glass partitions, and slim spectator armchairs with
-  small side tables.
-- **ref_04, ref_05, ref_07:** geometric pendants over every table: nested squares, hexagon
-  rings and Y shapes, with glowing undersides. Use a different pendant shape per zone.
-- **ref_02, ref_03:** the lounge. Light marble-look floor, low sofas with amber cushions, a
-  white bar counter with gold-legged stools, vertical LED wall lines, and a fluted glass
-  screen.
-- **ref_05, ref_06:** three wall screens above the bar and a display cabinet. The screens
-  become leaderboards and the cabinet becomes the cue showcase.
-- **ref_06:** the giant billiard-ball mural wall. It becomes the big **featured-match
-  screen**.
-- **ref_04:** the terrace with umbrellas and a railing, seen through the glass.
+- **ref_01, ref_07 (the hall):**
+  - A long hall whose centre ceiling is a band of black linear slats, flanked by white
+    ceiling bulkheads with recessed downlights and inset LED lines.
+  - A warm yellow band high on the walls. In ref_07 it sweeps round a curved wall; keep that
+    curve somewhere.
+  - The **gray carpet-plank floor with light streaks**, laid in alternating directions (see
+    Materials).
+  - Tall columns clad in glossy black glass with gold edges.
+  - Black-framed glass partitions, and white geometric lattice screens (ref_07) as
+    see-through dividers.
+  - Along the edges: slim velvet armchairs on thin gold legs, each pair with a small dark
+    side table.
+- **ref_01, ref_04, ref_05, ref_07 (pendants):** geometric pendants over every table, with
+  glowing undersides. The shapes are long hexagon frames (ref_01), nested double squares
+  (ref_04) and Y or three-arm stars (ref_05, ref_07). Use one shape per zone.
+- **ref_02 (the entry and walkway):**
+  - A glossy white marble floor meeting the carpet in a clean straight edge.
+  - A glass wall separating the walkway from the hall.
+  - A curved yellow feature wall.
+  - A recessed tray ceiling outlined in LED over the walkway.
+  - A **cue room behind a big glass window**, with cues racked on the wall inside. This
+    becomes the cue showcase.
+- **ref_03 (the lounge and bar):**
+  - Polished marble floor.
+  - Low sofas with plump cushions in a row along a wall with **diagonal LED lines** set into
+    it.
+  - **Capsule-shaped fluted glass screens with gold frames** as dividers.
+  - A **white marble bar counter** with gold-legged stools.
+  - A wavy LED ribbon light hanging above.
+- **ref_05, ref_06:** three screens above the bar, a tall display case, and a giant
+  billiard-ball wall mural with armchairs lined up beneath it. The bar screens become
+  leaderboards; the mural becomes the big **featured-match screen**.
+- **ref_04:** full-height windows, and a terrace outside with umbrellas and a railing.
 
 ### Changes from the references
 
@@ -69,12 +88,19 @@ materials, with the changes listed below.
    - **the sofas are bright cobalt blue, not gray-blue or navy;**
    - every armchair, stool, cushion and sign is a strong saturated colour from the palette;
    - **no gray, beige or muted upholstery anywhere;**
-   - walls and floors stay light and clean (not gray) so the colours pop against them.
+   - walls stay light and clean so the colours pop. The carpet is the one gray surface,
+     exactly like the reference, and its calm gray makes the coloured chairs pop even more.
 
    Check every render against the palette swatches: if a colour looks dusty, washed out or
    gray, push it back to the palette value. Saturation must survive the lighting and AO
    (bake AO lightly, and never let tinted light desaturate the furniture). The pool tables
    stay the focal point through the light pools over them, not by keeping the room dull.
+7. **A piano spot (placeholder).** In the lounge, near the windows and visible from the main
+   walkway, add a low round stage: about 14 studs across, 0.8 high, with a single step and a
+   gold edge. On it goes `Placeholder_Piano`, a simple glossy-black grand piano silhouette
+   (at most 2,000 triangles) with a bench, which will be swapped for a real playable piano
+   later. Give it `Piano` and `Piano_Bench` anchors, a light marker above it, and a ring of
+   standing room around it for people to gather.
 
 ## Style: stylized realism
 
@@ -87,14 +113,53 @@ Somewhere between low-poly cartoon and realistic, and never busy:
 - **Clean, low-noise PBR:**
   - flat colour, gentle gradients and baked AO;
   - roughness does the material work;
-  - no photo grime;
-  - large, low-contrast patterns (the carpet streaks stay subtle).
+  - no photo grime.
+
+  The two hero floors below are the exception: they get real, detailed textures.
 - **Linear slat ceiling as a texture, not geometry.** Use a few large dark ceiling panels with
   a baked slat texture (colour plus roughness), plus a handful of real beams. Hundreds of thin
   slats would shimmer on phones and waste triangles.
-- **Glossy floors are faked.** Use roughness around 0.35 to 0.45, plus soft light streaks
-  baked into the colour map under lamps and bright windows. Roblox has no real floor
-  reflections.
+
+## Materials: the two hero floors and the shiny parts
+
+Floors split by use: **carpet where people play, marble where people walk and hang out.**
+The main walkway, the spawn landing, the balcony, the lounge, the bar and the piano stage are
+marble. The three play zones are carpet.
+
+**Marble (polished and reflective, like ref_02 and ref_03):**
+- Large warm-white tiles, about 6 × 6 studs, with soft gray veining that varies tile to
+  tile, and fine grout lines in the texture (not geometry).
+- Its own texture set: colour, roughness (0.12 to 0.2, polished) and a subtle normal map.
+- **How it looks reflective in Roblox.** Roblox has no real mirror reflections, so fake them
+  in three layers:
+  1. The low roughness gives sharp highlights from every Roblox light and from the sun.
+  2. The surface picks up the skybox, which reads as the city reflected near the windows.
+  3. Bake a soft, blurred reflection of the brightest things above the floor into its colour
+     map at low strength: pendants, LED lines, windows and the bar. Use a Cycles glossy bake
+     from a straight-down view, blurred.
+
+  The result should look like a polished floor from any normal walking view.
+
+**Gray carpet (high quality and textured, like ref_01, ref_04 and ref_07):**
+- Carpet planks about 1.6 × 6.4 studs, laid in alternating directions (quarter-turned
+  blocks), as in the references.
+- Base gray `#5E636B` with fine light streaks `#B9BDC4` running along each plank, and each
+  plank a slightly different shade.
+- Its own texture set: colour, roughness (0.85 to 0.95, matte) and a **normal map with a
+  visible loop-pile fibre texture and faint plank seams**. It should look like real
+  commercial carpet up close and like calm, even gray from across the room.
+- Author the textures at 4096 and upload at 1024. Tile the texture so it never shows an
+  obvious repeat. The zone stripes are inlays in their zone colour, cut into the plank
+  pattern.
+
+**Other shiny parts:**
+- The bar top and bar front: white marble, same set as the floor.
+- Column cladding: glossy black (roughness about 0.1), which reads as black glass with
+  sharp highlights, with bright gold edges.
+- Gold trim and chair legs: metallic gold, roughness about 0.25.
+- Screen faces: glossy black when off.
+- Glass: windows, partitions, the cue-room window, and the fluted capsule screens (for the
+  fluted ones, use a ribbed normal map on a single pane).
 
 Palette. **Use these values; do not tone them down.** You may add in-between shades of the
 same hues for variety, never grayer versions. About 60% light neutrals, 30% saturated
@@ -104,10 +169,11 @@ furniture, 10% zone accents and glow.
 |---|---|---|---|
 | Neutrals | Cloud white | `#EEF1F6` | walls, bulkheads |
 | Neutrals | Soft sky | `#B9C7DC` | accent wall panels |
-| Neutrals | Warm marble | `#F4F0E8` | lounge and bar floor |
-| Neutrals | Slate blue | `#3E4A6B` | hall carpet, with `#6F7FA8` streaks |
-| Neutrals | Midnight navy | `#19213A` | slat ceiling panels, partition frames |
-| Furniture | Cobalt blue | `#2563FF` | lounge sofas |
+| Neutrals | Warm marble | `#F4F0E8` | walkway, lounge, bar, balcony and stage floors, bar top (gray veining) |
+| Neutrals | Carpet gray | `#5E636B` | play-zone carpet, with `#B9BDC4` streaks |
+| Neutrals | Sunny yellow | `#FFD23F` | the high wall band and the curved feature wall |
+| Neutrals | Midnight navy | `#19213A` | slat ceiling, partition frames, glossy column cladding |
+| Furniture | Cobalt blue | `#2563FF` | lounge sofas (velvet) |
 | Furniture | Sunflower | `#FFC531` | cushions, ottomans |
 | Furniture | Tangerine | `#FF7A1A` | cushions, poufs |
 | Furniture | Coral red | `#FF4F5E` | bar stool seats, booth backs |
@@ -169,8 +235,8 @@ empties, exported to `Markers.json`) for:
   Each is a separate flat quad mesh with clean 0 to 1 UVs, so Roblox can put a SurfaceGui on
   it. Record its facing direction.
 - **Statues:** `Statue_1` to `Statue_3`, plinths for the weekly top-3 players.
-- **Kiosks and fixtures:** `Showcase_Cue_*` (cabinet slots), `Kiosk_Shop`, `Kiosk_Trade`,
-  `Jukebox`.
+- **Kiosks and fixtures:** `Showcase_Cue_*` (rack slots in the glass cue room),
+  `Kiosk_Shop`, `Kiosk_Trade`, `Jukebox`, `Piano`, `Piano_Bench`.
 - **Decor slots:** `Decor_Seasonal_*`, 10 to 15 spots for swappable holiday props.
 - **Hidden spots:** `Secret_*`, 3 to 5 tucked-away nooks for hidden collectibles.
 - **Spawn:** on the balcony.
@@ -202,10 +268,14 @@ views looking out of each window wall to prove it holds up.
 
 ## Mobile budget (low-end phones)
 
-- **Triangles:** at most 110,000 for the environment, including the skyline. The 16 tables add
-  about 130,000 on top. At most 10,000 per mesh.
-- **Textures:** at most 10 sets at 1024 (colour and roughness; metalness only where there is
-  metal; normal maps only where they clearly help). Small props share 512 or 256 atlases.
+- **Triangles:** at most 200,000 for the environment, including the skyline and the piano
+  placeholder. The 16 tables add about 130,000 on top. At most 10,000 per mesh. Spend the
+  triangles where players look closely: soft, rounded sofas and chairs, bevels on edges near
+  eye level, the pendants, the bar and the lounge. Not on the skyline, the ceiling or
+  corners nobody sees.
+- **Textures:** at most 12 sets at 1024. Each has colour and roughness; metalness only where
+  there is metal. Normal maps go on the carpet, the marble and the fluted glass, and
+  elsewhere only where they clearly help. Small props share 512 or 256 atlases.
 - **Repeated props are exported ONCE.** Chairs, stools, sofas, pendants, plants, cue racks,
   plinths and towers each go into `Hub_PropLibrary.fbx` as a single master. Every placement
   goes into `Markers.json` and Roblox clones them. Identical meshes batch cheaply in Roblox.
@@ -258,11 +328,14 @@ After every stage:
 2. **Architecture and materials:** ceiling panels, bulkheads, LED lines, partitions, columns,
    floors, windows, terrace.
 3. **Furniture, props, anchors, pendants, emissives, signs** (zone signs as separate
-   replaceable meshes with their own texture).
+   replaceable meshes with their own texture), the cue room, and the piano stage with its
+   placeholder.
 4. **Skyline** (skyboxes, cards, towers, haze deck), then the lighting preview in EEVEE. Render:
    - the spawn view;
    - the 1v1 view;
-   - the lounge and bar;
+   - the lounge, bar and piano stage;
+   - close-ups at avatar eye height of the marble floor (showing its reflections) and the
+     carpet (showing fibre and planks);
    - a window view by day and by night;
    - one 390 × 844 phone-framed crop to check phone readability.
 
