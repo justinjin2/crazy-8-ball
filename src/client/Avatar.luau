@@ -40,6 +40,7 @@ export type Context = {
 	angle: number, -- aim angle, radians
 	pull: number, -- the wind-up drawn right now, 0..1
 	spin: { x: number, y: number }?, -- strike offset, ball radii
+	elevation: number?, -- the chosen cue angle, degrees: the drawn cue never goes lower
 	showCue: boolean, -- the player may aim now (canShoot, and not dragging the cue ball)
 	-- The shot is the player's to take and not taken yet (their turn, no shot sent, the balls
 	-- still): while the cue is hidden all the same (the cue ball dragged, a modal open) the
@@ -100,7 +101,7 @@ export type Avatar = typeof(setmetatable(
 local FREEFALL = Enum.HumanoidStateType.Freefall
 
 -- Keys for the pitch cache: the inputs the pitch depends on while the balls stand still.
-local PITCH_ANGLE, PITCH_X, PITCH_Y, PITCH_SPIN_X, PITCH_SPIN_Y = 1, 2, 3, 4, 5
+local PITCH_ANGLE, PITCH_X, PITCH_Y, PITCH_SPIN_X, PITCH_SPIN_Y, PITCH_FLOOR = 1, 2, 3, 4, 5, 6
 
 local function restGap(): number
 	return Config.Cue.CueRestGapInches * Config.Table.StudsPerInch
@@ -190,9 +191,16 @@ function Avatar.new(rake: Model?): Avatar
 		memory = nil :: ShooterStance.Memory?,
 		pitchShown = nil :: number?,
 		pitchTarget = Config.Cue.CueElevationDegrees,
-		pitchKey = table.create(5, 0),
+		pitchKey = table.create(6, 0),
 		pitchState = nil :: any,
-		pitchQuery = { cueX = 0, cueY = 0, angle = 0, spinX = 0, spinY = 0 },
+		pitchQuery = {
+			cueX = 0,
+			cueY = 0,
+			angle = 0,
+			spinX = 0,
+			spinY = 0,
+			floorDegrees = Config.Cue.CueElevationDegrees,
+		},
 		footing = nil :: Footing?,
 	}, Avatar)
 	local player = Players.LocalPlayer
@@ -305,7 +313,13 @@ function Avatar.stroking(self: Avatar): boolean
 end
 
 -- The drawn pitch for the live inputs, eased (CueClearance: VISUAL ONLY, never fired).
-local function pitchFor(self: Avatar, dt: number, live: ShooterPoser.Inputs, state: any): number
+local function pitchFor(
+	self: Avatar,
+	dt: number,
+	live: ShooterPoser.Inputs,
+	state: any,
+	floor: number
+): number
 	local key = self.pitchKey
 	if
 		self.pitchState ~= state
@@ -314,11 +328,13 @@ local function pitchFor(self: Avatar, dt: number, live: ShooterPoser.Inputs, sta
 		or key[PITCH_Y] ~= live.cueY
 		or key[PITCH_SPIN_X] ~= live.spinX
 		or key[PITCH_SPIN_Y] ~= live.spinY
+		or key[PITCH_FLOOR] ~= floor
 	then
 		self.pitchState = state
 		key[PITCH_ANGLE], key[PITCH_X], key[PITCH_Y] = live.angle, live.cueX, live.cueY
-		key[PITCH_SPIN_X], key[PITCH_SPIN_Y] = live.spinX, live.spinY
+		key[PITCH_SPIN_X], key[PITCH_SPIN_Y], key[PITCH_FLOOR] = live.spinX, live.spinY, floor
 		local q = self.pitchQuery
+		q.floorDegrees = floor
 		q.cueX, q.cueY, q.angle, q.spinX, q.spinY =
 			live.cueX, live.cueY, live.angle, live.spinX, live.spinY
 		self.pitchTarget = CueClearance.pitch(state.geometry, state.balls, q).degrees
@@ -392,7 +408,8 @@ function Avatar.update(self: Avatar, dt: number, ctx: Context): Out
 			live.spinY = if spin then spin.y else 0
 			live.pull = ctx.pull
 			live.memory = self.memory
-			live.pitch = pitchFor(self, dt, live, state)
+			live.pitch =
+				pitchFor(self, dt, live, state, ctx.elevation or Config.Cue.CueElevationDegrees)
 			self.liveValid = true
 			inputs = live
 		end

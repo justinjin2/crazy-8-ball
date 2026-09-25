@@ -59,6 +59,7 @@ export type Aim = {
 	shownY: number,
 	pull: number, -- the wind-up, 0..1, whole 1/Config.Aim.PullSteps steps
 	shownPull: number,
+	elevation: number?, -- the shooter's cue angle, degrees (the drawn cue never goes lower)
 }
 
 -- The last shot the server accepted at a table (ShotResult), as a stroke freezes on it.
@@ -88,6 +89,7 @@ type Clearance = {
 	y: number,
 	seq: number, -- the Match's shot and shown-down counters: the balls have not moved since
 	version: number,
+	elevation: number,
 	degrees: number,
 }
 
@@ -111,6 +113,7 @@ type Slot = {
 	x: number, -- cue ball, table inches
 	y: number,
 	pull: number,
+	elevation: number, -- the shooter's chosen cue angle, the floor for the drawn pitch
 	pitch: number?, -- the drawn pitch, eased (nil: snap to the next target)
 	-- The stroke has started: the inputs above (and the memory) no longer follow the aim, so
 	-- compose() solves the very stance the stroke started from every frame.
@@ -184,6 +187,7 @@ function WatchedShooters.new(parent: Instance, cues: { Model }): WatchedShooters
 				y = 0,
 				seq = 0,
 				version = 0,
+				elevation = 0,
 				degrees = 0,
 			},
 			tableId = nil,
@@ -197,6 +201,7 @@ function WatchedShooters.new(parent: Instance, cues: { Model }): WatchedShooters
 			x = 0,
 			y = 0,
 			pull = 0,
+			elevation = Config.Cue.CueElevationDegrees,
 			pitch = nil,
 			frozen = false,
 			strikeSeq = nil,
@@ -269,6 +274,7 @@ local function pitchTarget(slot: Slot, m: Match.Match): number
 		c.valid
 		and c.seq == m.seq
 		and c.version == m.downVersion
+		and c.elevation == slot.elevation
 		and math.abs(AimStream.angleDelta(slot.angle, c.angle)) < STILL_ANGLE
 		and math.abs(slot.x - c.x) < STILL_SPOT
 		and math.abs(slot.y - c.y) < STILL_SPOT
@@ -276,9 +282,9 @@ local function pitchTarget(slot: Slot, m: Match.Match): number
 		return c.degrees
 	end
 	local q = slot.query
-	q.cueX, q.cueY, q.angle = slot.x, slot.y, slot.angle
+	q.cueX, q.cueY, q.angle, q.floorDegrees = slot.x, slot.y, slot.angle, slot.elevation
 	c.degrees = CueClearance.pitch(m.state.geometry, m.state.balls, q).degrees
-	c.valid, c.seq, c.version = true, m.seq, m.downVersion
+	c.valid, c.seq, c.version, c.elevation = true, m.seq, m.downVersion, slot.elevation
 	c.angle, c.x, c.y = slot.angle, slot.x, slot.y
 	return c.degrees
 end
@@ -339,6 +345,7 @@ local function step(
 	if heard and aim and ball then
 		-- The ball, not the stream's spot: a ball in hand is eased onto its spot (Lounge).
 		slot.angle, slot.x, slot.y, slot.pull = aim.shown, ball.x, ball.y, aim.shownPull
+		slot.elevation = aim.elevation or Config.Cue.CueElevationDegrees
 	end
 	-- The server drops a table from the aim stream the moment it accepts the shot, and the
 	-- stream is unreliable, so that can land a frame or more before the ShotResult starts the

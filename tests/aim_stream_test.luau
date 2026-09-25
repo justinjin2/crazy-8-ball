@@ -24,13 +24,13 @@ local function readAll(AimStream: any, batch: { any }): { any }
 end
 
 return {
-	["a row packs and reads back, six values a table"] = function()
+	["a row packs and reads back, seven values a table"] = function()
 		local Config, AimStream = setup()
-		H.expect(AimStream.Stride == 6, "stride")
+		H.expect(AimStream.Stride == 7, "stride")
 		local batch = {}
-		AimStream.pack(batch, 1, 111, 0.25, -12.5, 3.75, 0.5)
-		AimStream.pack(batch, 3, 333, 6.1, 40, -20, 0)
-		H.expect(#batch == 12, "two rows of six")
+		AimStream.pack(batch, 1, 111, 0.25, -12.5, 3.75, 0.5, 45)
+		AimStream.pack(batch, 3, 333, 6.1, 40, -20, 0, 4)
+		H.expect(#batch == 14, "two rows of seven")
 		local rows = readAll(AimStream, batch)
 		H.expect(#rows == 2, "both read back")
 		local a, b = rows[1], rows[2]
@@ -38,29 +38,40 @@ return {
 		H.expect(a.x == -12.5 and a.y == 3.75 and a.pull == 0.5, "first row, cue and pull")
 		H.expect(b.id == 3 and b.by == 333 and b.angle == 6.1, "second row")
 		H.expect(b.x == 40 and b.y == -20 and b.pull == 0, "second row, cue and pull")
+		H.expect(a.elevation == 45 and b.elevation == 4, "cue angles")
+		local wild = {}
+		AimStream.pack(wild, 1, 1, 0, 0, 0, 0, 999.4)
+		H.expect(
+			(AimStream.read(wild, 1) :: any).elevation == Config.Cue.MaxElevationDegrees,
+			"an angle off the end is clamped on read"
+		)
 		H.expect(Config.Aim.PullSteps == 50, "pull steps")
 	end,
 
 	["a malformed group is skipped and the rest are kept"] = function()
 		local _, AimStream = setup()
 		local batch: { any } = {}
-		AimStream.pack(batch, 1, 11, 0.1, 0, 0, 0.2)
-		AimStream.pack(batch, 2, 22, 0.2, 0, 0, 0.4)
-		AimStream.pack(batch, 3, 33, 0.3, 0, 0, 0.6)
-		AimStream.pack(batch, 4, 44, 0.4, 0, 0, 0.8)
+		AimStream.pack(batch, 1, 11, 0.1, 0, 0, 0.2, 4)
+		AimStream.pack(batch, 2, 22, 0.2, 0, 0, 0.4, 4)
+		AimStream.pack(batch, 3, 33, 0.3, 0, 0, 0.6, 4)
+		AimStream.pack(batch, 4, 44, 0.4, 0, 0, 0.8, 4)
 		batch[1] = "1" -- a string id
-		batch[9] = 0 / 0 -- a NaN angle
-		batch[18] = math.huge -- an infinite pull
+		batch[10] = 0 / 0 -- a NaN angle
+		batch[20] = math.huge -- an infinite pull
 		table.insert(batch, 5) -- a short tail: the start of a sixth row
 		table.insert(batch, 55)
 		local rows = readAll(AimStream, batch)
 		H.expect(#rows == 1 and rows[1].id == 4, ("kept %d rows"):format(#rows))
-		H.expect(AimStream.read(batch, 25) == nil, "the short tail")
+		H.expect(AimStream.read(batch, 29) == nil, "the short tail")
 		H.expect(AimStream.read({}, 1) == nil, "an empty batch")
 		local missing = {}
-		AimStream.pack(missing, 9, 99, 1, 2, 3, 0.5)
+		AimStream.pack(missing, 9, 99, 1, 2, 3, 0.5, 4)
 		missing[6] = nil
 		H.expect(AimStream.read(missing, 1) == nil, "a missing pull")
+		local noAngle = {}
+		AimStream.pack(noAngle, 9, 99, 1, 2, 3, 0.5, 4)
+		noAngle[7] = "4"
+		H.expect(AimStream.read(noAngle, 1) == nil, "a cue angle that is not a number")
 	end,
 
 	["the pull is clamped and snapped to whole steps, and only numbers count"] = function()
@@ -88,7 +99,7 @@ return {
 		H.expect(AimStream.quantizePull(nil) == nil, "nothing")
 		-- A reader snaps again rather than trusting the sender.
 		local batch = {}
-		AimStream.pack(batch, 1, 1, 0, 0, 0, 0.5 + step * 0.3)
+		AimStream.pack(batch, 1, 1, 0, 0, 0, 0.5 + step * 0.3, 4)
 		H.near((AimStream.read(batch, 1) :: any).pull, 0.5, 1e-12, "re-snapped on read")
 	end,
 

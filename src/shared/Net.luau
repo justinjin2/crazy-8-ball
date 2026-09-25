@@ -57,7 +57,8 @@ local REMOTES: { [string]: string } = {
 	-- neither delivery nor order.
 	AimUpdate = "UnreliableRemoteEvent",
 	-- server -> all: every table's aim, batched as a flat array of Net.AimStride values per
-	-- table, {tableId, shooterUserId, angle, cueX, cueY, pull} (AimStream.pack and .read);
+	-- table, {tableId, shooterUserId, angle, cueX, cueY, pull, elevation} (AimStream.pack
+	-- and .read);
 	-- the cue spot is the server's own and the pull is snapped again on the way through.
 	AimBroadcast = "UnreliableRemoteEvent",
 }

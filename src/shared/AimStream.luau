@@ -9,14 +9,16 @@
 -- drawn back after the shooter released it reads as a stroke that never happened.
 --
 -- The broadcast is a flat array, Stride values per table:
---   { tableId, shooterUserId, angle, cueX, cueY, pull }
+--   { tableId, shooterUserId, angle, cueX, cueY, pull, elevation }
+-- `elevation` is the shooter's cue angle (degrees), so a raised cue is drawn raised.
 -- read() checks every value in a group, since the array comes off the network.
 
 local Config = require(script.Parent.Config)
+local ShotInput = require(script.Parent.ShotInput)
 
 local AimStream = {}
 
-AimStream.Stride = 6
+AimStream.Stride = 7
 
 export type Row = {
 	id: number, -- table id
@@ -25,6 +27,7 @@ export type Row = {
 	x: number, -- cue ball, table inches (the server's own spot)
 	y: number,
 	pull: number, -- wind-up, whole steps of 1/PullSteps
+	elevation: number, -- cue angle, degrees, whole ElevationStepDegrees steps
 }
 
 local function finite(value: any): boolean
@@ -54,7 +57,8 @@ function AimStream.pack(
 	angle: number,
 	x: number,
 	y: number,
-	pull: number
+	pull: number,
+	elevation: number
 )
 	table.insert(batch, id)
 	table.insert(batch, by)
@@ -62,6 +66,7 @@ function AimStream.pack(
 	table.insert(batch, x)
 	table.insert(batch, y)
 	table.insert(batch, pull)
+	table.insert(batch, elevation)
 end
 
 --- The row starting at `batch[i]`, or nil if any of its values is missing or not a finite
@@ -69,14 +74,15 @@ end
 function AimStream.read(batch: { any }, i: number): Row?
 	local id, by, angle = batch[i], batch[i + 1], batch[i + 2]
 	local x, y, pull = batch[i + 3], batch[i + 4], batch[i + 5]
+	local elevation = ShotInput.roundElevation(batch[i + 6])
 	if not (finite(id) and finite(by) and finite(angle) and finite(x) and finite(y)) then
 		return nil
 	end
 	local snapped = AimStream.quantizePull(pull)
-	if snapped == nil then
+	if snapped == nil or elevation == nil then
 		return nil
 	end
-	return { id = id, by = by, angle = angle, x = x, y = y, pull = snapped }
+	return { id = id, by = by, angle = angle, x = x, y = y, pull = snapped, elevation = elevation }
 end
 
 --- Whether the shooter should send now. `since` is the seconds since the last send; `pull`
@@ -89,7 +95,9 @@ function AimStream.due(
 	angle: number,
 	pull: number,
 	lastAngle: number?,
-	lastPull: number?
+	lastPull: number?,
+	elevation: number?,
+	lastElevation: number?
 ): boolean
 	if lastPull ~= nil and lastPull > 0 and pull == 0 then
 		return true
@@ -102,6 +110,7 @@ function AimStream.due(
 	end
 	return math.abs(AimStream.angleDelta(angle, lastAngle)) > Config.Aim.MinChangeRadians
 		or pull ~= lastPull
+		or elevation ~= lastElevation
 end
 
 return AimStream

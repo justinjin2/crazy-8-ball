@@ -155,20 +155,22 @@ end
 
 --- Tell the server where we are aiming and how far the cue is drawn back (`pull`, 0..1,
 --- already snapped by AimStream.quantizePull), so the people watching see the cue turn and
---- wind up. While the cue ball is in hand, `seq`, `x` and `y` carry its latest spot on the
---- same packet.
+--- wind up, and at what cue angle (`elevation`, degrees) so a raised cue is drawn raised.
+--- While the cue ball is in hand, `seq`, `x` and `y` carry its latest spot on the same packet.
 function Lounge.reportAim(
 	self: Lounge,
 	id: number,
 	angle: number,
 	pull: number,
+	elevation: number,
 	seq: number?,
 	x: number?,
 	y: number?
 )
 	local snapshot = self.snapshots[id]
 	if snapshot then
-		Net.get("AimUpdate"):FireServer(id, angle, snapshot.epoch, snapshot.turnId, pull, seq, x, y)
+		Net.get("AimUpdate")
+			:FireServer(id, angle, snapshot.epoch, snapshot.turnId, pull, seq, x, y, elevation)
 	end
 end
 function Lounge.onSnapshot(self: Lounge, listener: (any) -> ())
@@ -273,6 +275,7 @@ function Lounge.listen(self: Lounge)
 					existing.angle = row.angle
 					existing.x, existing.y = row.x, row.y
 					existing.pull = row.pull
+					existing.elevation = row.elevation
 				else
 					-- First sighting, or a new shooter: draw it where it is rather than easing
 					-- from zero or from the last shooter's cue.
@@ -286,6 +289,7 @@ function Lounge.listen(self: Lounge)
 						shownY = row.y,
 						pull = row.pull,
 						shownPull = row.pull,
+						elevation = row.elevation,
 					}
 				end
 			end

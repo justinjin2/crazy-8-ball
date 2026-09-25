@@ -4,7 +4,7 @@ return {
 	LeaveTable = "Leave table",
 	Pull = "PULL",
 	PowerPercent = "%d%%",
-	Spin = { Center = "Center", Done = "Done" },
+	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
 	Match = {
 		Mode = "%dv%d",
 		TeamSlot = "TEAM %s · %d",

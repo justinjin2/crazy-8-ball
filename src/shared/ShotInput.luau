@@ -14,6 +14,22 @@ function ShotInput.isFinite(value: any): boolean
 	return type(value) == "number" and value == value and math.abs(value) < math.huge
 end
 
+--- A cue angle rounded to whole ElevationStepDegrees steps inside the legal range, or nil
+--- for anything that is not a finite number. The slider, the aim stream and the server all
+--- round the same way, so everyone draws and plays the same angle.
+function ShotInput.roundElevation(degrees: any): number?
+	if not ShotInput.isFinite(degrees) then
+		return nil
+	end
+	local C = Config.Cue
+	local step = C.ElevationStepDegrees
+	return math.clamp(
+		C.CueElevationDegrees + math.floor((degrees - C.CueElevationDegrees) / step + 0.5) * step,
+		C.CueElevationDegrees,
+		C.MaxElevationDegrees
+	)
+end
+
 --- Return a fresh, bounded shot. No client-supplied material coefficients are accepted.
 --- `authorizedAbility` comes from server ownership/cooldown checks, never the payload.
 function ShotInput.validate(payload: any, authorizedAbility: string?): (Cue.Shot?, string?)
@@ -52,13 +68,7 @@ function ShotInput.validate(payload: any, authorizedAbility: string?): (Cue.Shot
 			return nil, "cue elevation out of range"
 		end
 		-- The slider moves in whole steps; round so every replay starts from the same number.
-		local step = C.ElevationStepDegrees
-		elevation = math.clamp(
-			C.CueElevationDegrees
-				+ math.floor((payload.elevation - C.CueElevationDegrees) / step + 0.5) * step,
-			C.CueElevationDegrees,
-			C.MaxElevationDegrees
-		)
+		elevation = ShotInput.roundElevation(payload.elevation) :: number
 	end
 	if payload.overrides ~= nil then
 		return nil, "material overrides are server-owned"

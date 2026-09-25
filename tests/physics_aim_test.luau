@@ -193,4 +193,49 @@ return {
 			Aim.trace(Simulation.newState(geometry, { Ball.new(0, -20, 0), Ball.new(1, 0, 20) }), 0)
 		H.expect(rail.contact == "rail" and rail.objectShare == 0 and rail.cueShare == 1)
 	end,
+
+	["a jump shot's trace skips the ball it clears and matches the simulation"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local function layout()
+			return Simulation.newState(
+				geometry,
+				{ Ball.new(0, -30, 0), Ball.new(1, -18, 0), Ball.new(2, 0, 0) }
+			)
+		end
+		for _, case in
+			{
+				{ power = 0.65, elevation = 45 },
+				{ power = 0.6, elevation = 60 },
+				{ power = 0.4, elevation = 45 },
+				{ power = 0.3, elevation = 30 },
+				{ power = 0.65 },
+			}
+		do
+			local shot = { angle = 0, power = case.power, elevation = case.elevation }
+			local trace = Aim.trace(layout(), shot)
+			local result = Simulation.runHeadless(layout(), shot)
+			H.expect(
+				trace.contact == "ball" and trace.objectId == result.firstContact,
+				("power %.2f at %s degrees: traced %s, simulated %s"):format(
+					case.power,
+					tostring(case.elevation),
+					tostring(trace.objectId),
+					tostring(result.firstContact)
+				)
+			)
+			if result.firstContact == 2 then
+				H.expect(#trace.landings >= 1 or trace.airborne, "a jump shows where it comes down")
+			end
+		end
+	end,
+
+	["a jump that would fly over a cushion is traced as off the table"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(0, -30, 0) })
+		local shot = { angle = 0, power = 1, elevation = 60 }
+		local trace = Aim.trace(state, shot)
+		local result = Simulation.runHeadless(state, shot)
+		H.expect(trace.contact == "off" and trace.airborne, "traced off the table")
+		H.expect(result.finalBalls[1].offTable, "and it does fly off")
+	end,
 }

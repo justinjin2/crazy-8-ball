@@ -1,6 +1,7 @@
 --!strict
--- A full-disc spin control with pointer dragging and a gamepad modifier.
--- Input owns the chosen spin and modal lock; this module only draws and edits that value.
+-- A full-disc spin control with pointer dragging and a gamepad modifier, and beside it the
+-- cue-angle slider for jump shots (tap or drag the track; arrow keys or L1 + D-pad step it).
+-- Input owns the chosen spin, cue angle and modal lock; this module only draws and edits them.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -17,6 +18,7 @@ export type SpinSelector = typeof(setmetatable(
 	{} :: {
 		root: Frame,
 		toggle: TextButton,
+		badge: TextLabel,
 		input: Input.Input,
 		enabled: boolean,
 	},
@@ -117,6 +119,21 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	icon.Active = false
 	icon.Selectable = false
 	local iconDot = dot(icon, C.IconDotSizePx)
+	-- A raised cue is easy to forget once the panel closes: its angle sits under the toggle.
+	local badge = Instance.new("TextLabel")
+	badge.Name = "CueAngle"
+	badge.AnchorPoint = Vector2.new(0.5, 0)
+	badge.Position = UDim2.new(0.5, 0, 1, 4)
+	badge.Size = UDim2.new(1, 0, 0, C.AngleBadgeHeightPx)
+	badge.BackgroundColor3 = rgb(Config.UI.Panel)
+	badge.BorderSizePixel = 0
+	badge.TextColor3 = rgb(Config.UI.Accent)
+	badge.TextSize = C.TextSizePx
+	badge.Font = Enum.Font.GothamBold
+	badge.ZIndex = toggle.ZIndex + 1
+	badge.Visible = false
+	badge.Parent = toggle
+	corner(badge, UDim.new(0, C.CornerRadiusPx))
 
 	local panel = Instance.new("Frame")
 	panel.Name = "SpinPanel"
@@ -128,13 +145,51 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	panel.ZIndex = toggle.ZIndex + 1
 	panel.Visible = false
 	panel.Parent = root
-	local panelWidth = C.PanelWidthPx
+	local rowWidth = C.BallSizePx + C.GapPx + C.AngleColumnPx
+	local panelWidth = math.max(C.PanelWidthPx, rowWidth + C.MarginPx * 2)
 	local y = C.MarginPx
 	local target = ball(panel, "StrikeTarget", C.BallSizePx)
-	target.AnchorPoint = Vector2.new(0.5, 0)
-	target.Position = UDim2.new(0.5, 0, 0, y)
 	target.Selectable = false
 	local strikeDot = dot(target, C.DotSizePx)
+
+	-- The cue-angle slider: a track the height of the ball, filled from the bottom up to a
+	-- thumb that reads the angle. Top is the steepest cue.
+	local column = button(panel, "CueAngle", "")
+	column.BackgroundTransparency = 1
+	column.AutoButtonColor = false
+	column.Selectable = false
+	local track = Instance.new("Frame")
+	track.Name = "Track"
+	track.AnchorPoint = Vector2.new(0.5, 0)
+	track.BackgroundColor3 = rgb(C.AngleTrackColor)
+	track.BorderSizePixel = 0
+	track.Active = false
+	track.ZIndex = column.ZIndex + 1
+	track.Parent = column
+	corner(track, UDim.new(0.5, 0))
+	local fill = Instance.new("Frame")
+	fill.Name = "Fill"
+	fill.AnchorPoint = Vector2.new(0, 1)
+	fill.Position = UDim2.fromScale(0, 1)
+	fill.BackgroundColor3 = rgb(Config.UI.Accent)
+	fill.BorderSizePixel = 0
+	fill.Active = false
+	fill.ZIndex = track.ZIndex + 1
+	fill.Parent = track
+	corner(fill, UDim.new(0.5, 0))
+	local thumb = Instance.new("TextLabel")
+	thumb.Name = "Thumb"
+	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+	thumb.Size = UDim2.new(1, 0, 0, C.AngleThumbHeightPx)
+	thumb.BackgroundColor3 = rgb(Config.UI.Accent)
+	thumb.BorderSizePixel = 0
+	thumb.TextColor3 = rgb(Config.UI.Panel)
+	thumb.TextSize = C.TextSizePx
+	thumb.Font = Enum.Font.GothamBold
+	thumb.Active = false
+	thumb.ZIndex = track.ZIndex + 2
+	thumb.Parent = column
+	corner(thumb, UDim.new(0, C.CornerRadiusPx))
 	y += C.BallSizePx + C.GapPx
 
 	local actionWidth = (panelWidth - C.MarginPx * 2 - C.GapPx) / 2
@@ -163,6 +218,13 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 		)
 		local delta = ballSize - C.BallSizePx
 		target.Size = UDim2.fromOffset(ballSize, ballSize)
+		local left = (panelWidth - (rowWidth + delta)) / 2
+		target.Position = UDim2.fromOffset(left, C.MarginPx)
+		column.Position = UDim2.fromOffset(left + ballSize + C.GapPx, C.MarginPx)
+		column.Size = UDim2.fromOffset(C.AngleColumnPx, ballSize)
+		local thumbHalf = C.AngleThumbHeightPx / 2
+		track.Position = UDim2.new(0.5, 0, 0, thumbHalf)
+		track.Size = UDim2.new(0, C.AngleTrackWidthPx, 1, -C.AngleThumbHeightPx)
 		reset.Position = UDim2.new(reset.Position.X, UDim.new(0, actionsY + delta))
 		done.Position = UDim2.new(done.Position.X, UDim.new(0, actionsY + delta))
 		panel.Size = UDim2.fromOffset(panelWidth, fullHeight + delta)
@@ -173,6 +235,7 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	local self = setmetatable({
 		root = root,
 		toggle = toggle,
+		badge = badge,
 		input = input,
 		enabled = true,
 	}, SpinSelector)
@@ -190,6 +253,26 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 	end
 	input:onSpin(refresh)
 	refresh(input.spinX, input.spinY)
+
+	local Cue = Config.Cue
+	local lowest, steepest = Cue.CueElevationDegrees, Cue.MaxElevationDegrees
+	local function showAngle(degrees: number)
+		local fraction = (degrees - lowest) / (steepest - lowest)
+		local text = string.format(S.Degrees, degrees)
+		thumb.Text = text
+		-- The thumb's centre runs the track's length: half a thumb in from each end.
+		thumb.Position = UDim2.new(
+			0.5,
+			0,
+			1 - fraction,
+			C.AngleThumbHeightPx / 2 - (1 - fraction) * C.AngleThumbHeightPx
+		)
+		fill.Size = UDim2.fromScale(1, fraction)
+		badge.Text = text
+		badge.Visible = self.enabled and degrees > lowest
+	end
+	input:onElevation(showAngle)
+	showAngle(input:getElevation())
 	input:onSpinEditing(function(editing)
 		blocker.Visible = editing
 		panel.Visible = editing
@@ -222,10 +305,39 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 			input:setSpin((localPoint.X - radius) * scale, (radius - localPoint.Y) * scale)
 		end
 	end
+	local function chooseAngle(position: Vector3)
+		local travel = column.AbsoluteSize.Y - C.AngleThumbHeightPx
+		if travel > 0 then
+			local fromTop = position.Y - column.AbsolutePosition.Y - C.AngleThumbHeightPx / 2
+			local fraction = 1 - math.clamp(fromTop / travel, 0, 1)
+			input:setElevation(lowest + fraction * (steepest - lowest))
+		end
+	end
+	-- One drag at a time, on either control; `onAngle` says which.
+	local onAngle = false
 	target.InputBegan:Connect(function(object: InputObject)
 		if self.enabled and input.spinEditing and active == nil and isPointer(object) then
-			active = object
+			active, onAngle = object, false
 			choose(object.Position)
+		end
+	end)
+	column.InputBegan:Connect(function(object: InputObject)
+		if self.enabled and input.spinEditing and active == nil and isPointer(object) then
+			active, onAngle = object, true
+			chooseAngle(object.Position)
+		end
+	end)
+	-- Arrow keys step the angle while the panel is open (held repeats, like the D-pad).
+	local heldKey: Enum.KeyCode? = nil
+	UserInputService.InputBegan:Connect(function(object: InputObject)
+		local code = object.KeyCode
+		if
+			self.enabled
+			and input.spinEditing
+			and (code == Enum.KeyCode.Up or code == Enum.KeyCode.Down)
+		then
+			heldKey = code
+			input:holdElevation(if code == Enum.KeyCode.Up then 1 else -1)
 		end
 	end)
 	UserInputService.InputChanged:Connect(function(object: InputObject)
@@ -240,12 +352,20 @@ function SpinSelector.new(screen: ScreenGui, input: Input.Input): SpinSelector
 				and object.UserInputType == Enum.UserInputType.MouseMovement
 			)
 		then
-			choose(object.Position)
+			if onAngle then
+				chooseAngle(object.Position)
+			else
+				choose(object.Position)
+			end
 		end
 	end)
 	UserInputService.InputEnded:Connect(function(object: InputObject)
 		if object == active then
 			active = nil
+		end
+		if heldKey ~= nil and object.KeyCode == heldKey then
+			heldKey = nil
+			input:holdElevation(0)
 		end
 	end)
 	return self
@@ -254,6 +374,7 @@ end
 function SpinSelector.setEnabled(self: SpinSelector, enabled: boolean)
 	self.enabled = enabled
 	self.toggle.Visible = enabled
+	self.badge.Visible = enabled and self.input:getElevation() > Config.Cue.CueElevationDegrees
 	if not enabled then
 		self.input:setSpinEditing(false)
 	end

@@ -240,7 +240,11 @@ function ShooterStance.solve(q: Input): Stance
 	local L = q.cueLengthStuds or C.CueLengthStuds
 
 	-- 1. The cue's axis: from the strike point P back along b, rising at the pitch.
-	local pitchDegrees = math.clamp(q.pitchDegrees, C.CueElevationDegrees, C.VisualPitchMaxDegrees)
+	local pitchDegrees = math.clamp(
+		q.pitchDegrees,
+		C.CueElevationDegrees,
+		math.max(C.VisualPitchMaxDegrees, C.MaxElevationDegrees)
+	)
 	local theta = math.rad(pitchDegrees)
 	local c, sn = math.cos(theta), math.sin(theta)
 	local tn = sn / c

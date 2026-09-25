@@ -34,7 +34,7 @@ function Service.start()
 			Tables.flush(t)
 			-- The shooter's root goes to the exact spot they shot from before anyone sees the
 			-- shot, so its ShotSpot is there by the time their stroke hands over to idle.
-			Tables.shotAccepted(t, player.UserId, payload.angle, payload.spin)
+			Tables.shotAccepted(t, player.UserId, payload.angle, payload.spin, payload.elevation)
 			Net.get("ShotResult"):FireAllClients(result)
 		else
 			Net.get("ShotRejected"):FireClient(player, reason or "ShotRejected")

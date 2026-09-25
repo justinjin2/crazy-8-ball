@@ -5,6 +5,8 @@
 --     dashes scroll towards the target so the direction is obvious
 --   * a white ring outline where the cue ball will be at first contact (the "ghost" ball)
 --   * thin solid lines for where the object ball goes and where the cue ball deflects
+--   * on a jump shot, a small ring where the cue ball comes down each time, and a red cross
+--     where it would fly off the table
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -32,6 +34,7 @@ export type Guideline = typeof(setmetatable(
 		objectStub: Strip,
 		cueStub: Strip,
 		crosses: { Strip },
+		landings: { Part },
 		scroll: number,
 	},
 	Guideline
@@ -83,17 +86,25 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 	folder.Parent = parent
 
 	-- Ring: a flat square carrying the circle-outline image, sized to the ball.
-	local ring = flatPart("Ring", folder)
-	local d = TableBuilder.studs(Config.Balls.RenderRadiusInches * 2) * G.RingScale
-	ring.Size = Vector3.new(d, 0.01, d)
-	if G.RingTextureId ~= "" then
-		local decal = Instance.new("Decal")
-		decal.Name = "Outline"
-		decal.Face = Enum.NormalId.Top
-		decal.Texture = G.RingTextureId
-		decal.Color3 = lineColor()
-		decal.Transparency = 1
-		decal.Parent = ring
+	local function makeRing(name: string, scale: number): Part
+		local ring = flatPart(name, folder)
+		local d = TableBuilder.studs(Config.Balls.RenderRadiusInches * 2) * scale
+		ring.Size = Vector3.new(d, 0.01, d)
+		if G.RingTextureId ~= "" then
+			local decal = Instance.new("Decal")
+			decal.Name = "Outline"
+			decal.Face = Enum.NormalId.Top
+			decal.Texture = G.RingTextureId
+			decal.Color3 = lineColor()
+			decal.Transparency = 1
+			decal.Parent = ring
+		end
+		return ring
+	end
+	local ring = makeRing("Ring", G.RingScale)
+	local landings = {}
+	for i = 1, G.MaxLandingMarks do
+		table.insert(landings, makeRing("Landing" .. i, G.LandingRingScale))
 	end
 
 	local self = setmetatable({
@@ -106,9 +117,19 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 		objectStub = makeStrip("ObjectStub", folder, false),
 		cueStub = makeStrip("CueStub", folder, false),
 		crosses = { makeStrip("InvalidA", folder, false), makeStrip("InvalidB", folder, false) },
+		landings = landings,
 		scroll = 0,
 	}, Guideline)
 	return self
+end
+
+local function setRing(ring: Part, transparency: number)
+	local outline = ring:FindFirstChild("Outline")
+	if outline and outline:IsA("Decal") then
+		outline.Transparency = transparency
+	else
+		ring.Transparency = transparency
+	end
 end
 
 local function hideStrip(strip: Strip)
@@ -203,13 +224,23 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 	self.ring.CFrame = CFrame.new(
 		TableBuilder.toWorld(self.placement, trace.ghostX, trace.ghostY, G.HeightAboveClothInches)
 	)
-	local outline = self.ring:FindFirstChild("Outline")
-	if outline and outline:IsA("Decal") then
-		outline.Transparency = G.LineTransparency
-	else
-		self.ring.Transparency = G.LineTransparency
+	setRing(self.ring, G.LineTransparency)
+	-- Where a jump comes down on the way.
+	for index, mark in self.landings do
+		local spot = trace.landings[index]
+		if spot then
+			mark.CFrame = CFrame.new(
+				TableBuilder.toWorld(self.placement, spot.x, spot.y, G.HeightAboveClothInches)
+			)
+			setRing(mark, G.LandingTransparency)
+		else
+			setRing(mark, 1)
+		end
 	end
 
+	-- Flying off the table is marked like an illegal target: a red cross, no stubs.
+	local off = trace.contact == "off"
+	invalid = invalid or off
 	for index, cross in self.crosses do
 		if invalid then
 			local sign = if index == 1 then 1 else -1
@@ -300,10 +331,9 @@ function Guideline.hide(self: Guideline)
 	hideStrip(self.rightEdge)
 	hideStrip(self.objectStub)
 	hideStrip(self.cueStub)
-	self.ring.Transparency = 1
-	local outline = self.ring:FindFirstChild("Outline")
-	if outline and outline:IsA("Decal") then
-		outline.Transparency = 1
+	setRing(self.ring, 1)
+	for _, mark in self.landings do
+		setRing(mark, 1)
 	end
 end
 

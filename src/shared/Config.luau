@@ -1492,6 +1492,10 @@ Config.Input = {
 	NudgeDegrees = 0.2,
 	NudgeRepeatDelay = 0.35,
 	NudgeRepeatInterval = 0.06,
+	-- Cue-angle buttons in the spin panel (D-pad up/down with L1, or the arrow keys): one
+	-- ElevationStepDegrees step per press, repeating after this delay at this interval (s).
+	ElevationRepeatDelay = 0.35,
+	ElevationRepeatInterval = 0.07,
 	-- Power bar: pulling this fraction of the bar's height gives full power, and the smallest
 	-- power that still shoots (anything less on release cancels).
 	PowerPullBarFraction = 0.9,
@@ -1569,6 +1573,11 @@ Config.Guideline = {
 	DashTextureId = "rbxassetid://83727874065758",
 	RingTextureId = "rbxassetid://137854164925995",
 	HeightAboveClothInches = 0.15,
+	-- Jump shots: a small, fainter ring where the cue ball comes down on the way (up to this
+	-- many), and the red cross where it would fly off the table.
+	MaxLandingMarks = 4,
+	LandingRingScale = 0.6,
+	LandingTransparency = 0.45,
 	Color = { 255, 255, 255 },
 	LineTransparency = 0.15,
 	StubTransparency = 0.3,
@@ -2197,6 +2206,14 @@ Config.UI = {
 		BallColor = { 244, 244, 236 },
 		DotColor = { 220, 75, 70 },
 		CenterColor = { 150, 154, 165 },
+		-- Cue-angle slider beside the strike ball (jump shots, 2026-09-24). Tap or drag the
+		-- track; the thumb shows the angle in degrees; top is the steepest.
+		AngleColumnPx = 60, -- the slider's column, right of the ball
+		AngleTrackWidthPx = 10,
+		AngleThumbHeightPx = 30,
+		AngleTrackColor = { 70, 74, 84 },
+		-- A raised cue shows its angle under the left toggle, so it is never forgotten.
+		AngleBadgeHeightPx = 22,
 	},
 	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
 	-- The power bar: a vertical panel on the right that you press and drag down, with the

@@ -510,7 +510,8 @@ local function solveStance(
 	character: Model,
 	angle: number,
 	spinX: number,
-	spinY: number
+	spinY: number,
+	elevation: number?
 ): ShooterStance.Stance?
 	local e = t.engine
 	local key = ("%d:%d:%d"):format(e.epoch, e.turnId, e.shooter or 0)
@@ -532,6 +533,7 @@ local function solveStance(
 			angle = angle,
 			spinX = spinX,
 			spinY = spinY,
+			floorDegrees = elevation,
 		})
 		return ShooterStance.solve({
 			ballXIn = cue.x,
@@ -596,7 +598,7 @@ local function followStance(t: any, p: Player, root: BasePart, character: Model)
 	if t.stanceAt and now() - t.stanceAt < 1 / S.ServerMovesPerSecond then
 		return
 	end
-	local stance = solveStance(t, character, aim.angle, 0, 0)
+	local stance = solveStance(t, character, aim.angle, 0, 0, aim.elevation)
 	local cf = stance
 		and worldSpot(t.placement, stance.rootX, stance.rootY, stance.rootZ, stance.yaw)
 	if not cf then
@@ -711,7 +713,8 @@ function Service.shotAccepted(
 	t: any,
 	userId: number,
 	angle: number,
-	spin: { x: number, y: number }?
+	spin: { x: number, y: number }?,
+	elevation: number?
 )
 	local p = Players:GetPlayerByUserId(userId)
 	if not p or not ShotInput.isFinite(angle) then
@@ -726,7 +729,14 @@ function Service.shotAccepted(
 	if type(spin) == "table" and ShotInput.isFinite(spin.x) and ShotInput.isFinite(spin.y) then
 		sx, sy = Cue.clampSpin(spin.x, spin.y)
 	end
-	local stance = solveStance(t, character, angle % (2 * math.pi), sx, sy)
+	local stance = solveStance(
+		t,
+		character,
+		angle % (2 * math.pi),
+		sx,
+		sy,
+		ShotInput.roundElevation(elevation)
+	)
 	local spot: CFrame? = nil
 	if stance then
 		local x, y, z, yaw = ShooterStance.idle(stance)
@@ -908,51 +918,55 @@ function Service.start(parent: Instance)
 		end
 	end)
 	local aimUpdate = Net.get("AimUpdate")
-	aimUpdate.OnServerEvent:Connect(function(p, id, angle, epoch, turnId, pull, seq, x, y)
-		-- The wind-up is cosmetic, but it is still checked like the angle: a pull that is not
-		-- a finite number drops the whole packet, and the rest are snapped to whole steps.
-		local held = AimStream.quantizePull(pull)
-		if
-			id ~= seatOf[p.UserId]
-			or not ShotInput.isFinite(angle)
-			or held == nil
-			or not Service.allow(p, "aim")
-		then
-			return
+	aimUpdate.OnServerEvent:Connect(
+		function(p, id, angle, epoch, turnId, pull, seq, x, y, elevation)
+			-- The wind-up is cosmetic, but it is still checked like the angle: a pull that is not
+			-- a finite number drops the whole packet, and the rest are snapped to whole steps.
+			local held = AimStream.quantizePull(pull)
+			if
+				id ~= seatOf[p.UserId]
+				or not ShotInput.isFinite(angle)
+				or held == nil
+				or not Service.allow(p, "aim")
+			then
+				return
+			end
+			local t = tables[id]
+			if not t then
+				return
+			end
+			local e = t.engine
+			if
+				e.shooter ~= p.UserId
+				or e.epoch ~= epoch
+				or e.turnId ~= turnId
+				or not aimPhase(e.phase)
+			then
+				return
+			end
+			t.aim = {
+				angle = angle % (2 * math.pi),
+				pull = held,
+				-- A missing or bad angle just draws the default cue: it is cosmetic.
+				elevation = ShotInput.roundElevation(elevation) or Config.Cue.CueElevationDegrees,
+				by = p.UserId,
+				turnId = turnId,
+				epoch = epoch,
+			}
+			if seq ~= nil then
+				-- Ball in hand rides the aim stream. The engine checks the window, the seq and
+				-- the spot; a bad one is simply dropped, like any lost unreliable packet.
+				local time = now()
+				Service.advance(t, time)
+				Engine.moveCue(
+					e,
+					p.UserId,
+					{ epoch = epoch, turnId = turnId, seq = seq, x = x, y = y },
+					time
+				)
+			end
 		end
-		local t = tables[id]
-		if not t then
-			return
-		end
-		local e = t.engine
-		if
-			e.shooter ~= p.UserId
-			or e.epoch ~= epoch
-			or e.turnId ~= turnId
-			or not aimPhase(e.phase)
-		then
-			return
-		end
-		t.aim = {
-			angle = angle % (2 * math.pi),
-			pull = held,
-			by = p.UserId,
-			turnId = turnId,
-			epoch = epoch,
-		}
-		if seq ~= nil then
-			-- Ball in hand rides the aim stream. The engine checks the window, the seq and
-			-- the spot; a bad one is simply dropped, like any lost unreliable packet.
-			local time = now()
-			Service.advance(t, time)
-			Engine.moveCue(
-				e,
-				p.UserId,
-				{ epoch = epoch, turnId = turnId, seq = seq, x = x, y = y },
-				time
-			)
-		end
-	end)
+	)
 	local function added(p: Player)
 		local endedCharacter: Model? = nil
 		local function characterEnded(character: Model)
@@ -1039,7 +1053,16 @@ function Service.start(parent: Instance)
 				and e.phase ~= "Resolving"
 				and e.phase ~= "Result"
 			then
-				AimStream.pack(batch, e.id, t.aim.by, t.aim.angle, cue.x, cue.y, t.aim.pull)
+				AimStream.pack(
+					batch,
+					e.id,
+					t.aim.by,
+					t.aim.angle,
+					cue.x,
+					cue.y,
+					t.aim.pull,
+					t.aim.elevation
+				)
 			end
 		end
 		Net.get("AimBroadcast"):FireAllClients(batch)

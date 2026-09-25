@@ -2,9 +2,10 @@
 -- CueClearance: how steeply the DRAWN cue has to tilt so it clears the rail and the balls.
 --
 -- VISUAL ONLY. The pitch this returns is for drawing the cue and posing the shooter, and must
--- never be passed to fire(), Aim.trace or ShotInput: the physics elevation is fixed at
--- Config.Cue.CueElevationDegrees, and the server rejects any other elevation anyway, so a
--- leak would fail loudly rather than change a shot.
+-- never be passed to fire(), Aim.trace or ShotInput: the physics elevation is the player's
+-- chosen cue angle (the spin panel's slider), which this only ever raises the drawing above.
+-- The query's `floorDegrees` is that angle: the drawn cue starts there instead of at
+-- Config.Cue.CueElevationDegrees.
 --
 -- A cue ball near a cushion would otherwise have the drawn cue running through the rail, and
 -- one with a ball close behind it would have the cue through that ball. Real players raise
@@ -40,6 +41,7 @@ export type Query = {
 	restGapInches: number?, -- tip to ball at rest (default Config.Cue.CueRestGapInches)
 	fullGapInches: number?, -- tip to ball at a full wind-up (default rest + CuePullBackStuds)
 	cueLengthStuds: number?, -- default Config.Cue.CueLengthStuds
+	floorDegrees: number?, -- the chosen cue angle (default CueElevationDegrees): never lower
 }
 
 export type Limit = "floor" | "rail" | "ball" | "ballSegment" | "cap"
@@ -244,11 +246,18 @@ end
 
 --- The least pitch (degrees) that keeps the drawn cue clear of the rail and of `balls` (the
 --- physics balls: id, x, y, z, pocketed; the cue ball, id 0, is skipped), between
---- CueElevationDegrees and VisualPitchMaxDegrees. See the module header: VISUAL ONLY.
+--- the chosen angle (q.floorDegrees, else CueElevationDegrees) and VisualPitchMaxDegrees (or
+--- the chosen angle, if that is steeper). See the module header: VISUAL ONLY.
 function CueClearance.pitch(geometry: Geometry, balls: { any }, q: Query): Result
 	local C = Config.Cue
 	local u = setupFor(q)
-	local lo, cap = math.rad(C.CueElevationDegrees), math.rad(C.VisualPitchMaxDegrees)
+	local floor = math.clamp(
+		q.floorDegrees or C.CueElevationDegrees,
+		C.CueElevationDegrees,
+		C.MaxElevationDegrees
+	)
+	local lo = math.rad(floor)
+	local cap = math.rad(math.max(C.VisualPitchMaxDegrees, floor))
 	local function rail(theta: number): boolean
 		return railOK(geometry, u, theta)
 	end
@@ -293,7 +302,7 @@ function CueClearance.pitch(geometry: Geometry, balls: { any }, q: Query): Resul
 		end
 	end
 	return {
-		degrees = C.VisualPitchMaxDegrees,
+		degrees = math.deg(cap),
 		railDegrees = math.deg(railTheta),
 		limit = "cap",
 		blockingBall = nil,

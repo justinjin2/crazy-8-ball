@@ -16,7 +16,7 @@ function QA.start(
 	seatOf: any,
 	broadcast: (any) -> (),
 	flush: (any) -> (),
-	shotAccepted: (any, number, number, { x: number, y: number }?) -> ()
+	shotAccepted: (any, number, number, { x: number, y: number }?, number?) -> ()
 )
 	if not RunService:IsStudio() then
 		return

@@ -68,6 +68,7 @@ local lastTurnKey = ""
 local lastPhaseKey = ""
 local sinceAim = 0
 local lastAim: number? = nil
+local lastElevation: number? = nil
 local lastPull: number? = nil -- the wind-up last sent, quantised (AimStream)
 local lastBusy = false
 local wasModal = false
@@ -168,7 +169,7 @@ local function refreshAim()
 		angle = input.angle,
 		power = math.max(currentPull, Config.Input.MinPowerToShoot),
 		spin = input:getSpin(),
-		elevation = Config.Cue.CueElevationDegrees,
+		elevation = input:getElevation(),
 	})
 	-- On the break any ball is a fair first target (ShotJudge); afterwards only the shooter's
 	-- group, or the 8 once it is theirs.
@@ -334,7 +335,7 @@ local function fire(power: number, windUp: number?)
 	-- The let-go goes first: once awaitingAt is set canShoot() is false, so the aim stream
 	-- would never send the zero, and if the server turns the shot down the watchers' cue
 	-- would stay drawn back.
-	lounge:reportAim(snapshot.id, input.angle, 0)
+	lounge:reportAim(snapshot.id, input.angle, 0, input:getElevation())
 	lastPull = 0
 	-- The shot carries the cue ball in hand while the window is open, so the spot and the
 	-- shot land together; after the cutoff the server already holds the locked spot.
@@ -343,19 +344,12 @@ local function fire(power: number, windUp: number?)
 	-- pull to 0, so not from currentPull), and before awaitingAt: once that is set canShoot()
 	-- is false, and the stroke has to keep the cue drawn through it.
 	avatar:strike(windUp or power, x, y)
-	lounge:fire(
-		snapshot.id,
-		input.angle,
-		power,
-		input:getSpin(),
-		Config.Cue.CueElevationDegrees,
-		x,
-		y
-	)
+	lounge:fire(snapshot.id, input.angle, power, input:getSpin(), input:getElevation(), x, y)
 	targets:shotFired()
 	awaitingAt = workspace:GetServerTimeNow()
 	input:setEnabled(false)
 	input:resetSpin()
+	input:resetElevation()
 	refreshAim()
 end
 local function leave()
@@ -420,6 +414,7 @@ local function acquireTable(s: any?)
 		awaitingAt = nil
 		input:setEnabled(false)
 		input:resetSpin()
+		input:resetElevation()
 		UI.setPlayControlsVisible(false)
 		CueStickBuilder.setVisible(cueStick, false)
 		BridgeBuilder.setVisible(rake, false)
@@ -458,8 +453,9 @@ local function acquireTable(s: any?)
 		lastTurnKey = turnKey
 		awaitingAt = nil
 		input:resetSpin()
+		input:resetElevation()
 		currentPull = 0
-		lastAim, lastPull = nil, nil
+		lastAim, lastPull, lastElevation = nil, nil, nil
 		-- A new turn (the same shooter again included) aims afresh, never from the last
 		-- shot's frozen stance.
 		avatar:newTurn()
@@ -505,6 +501,7 @@ end)
 input:onLeave(leave)
 input:onAim(refreshAim)
 input:onSpin(refreshAim)
+input:onElevation(refreshAim)
 input:onShoot(fire)
 input:onZoom(function(factor)
 	if canShoot() and not targets:isDragging() then
@@ -806,6 +803,7 @@ RunService.RenderStepped:Connect(function(dt)
 			ctx.angle = input.angle
 			ctx.pull = currentPull
 			ctx.spin = input:getSpin()
+			ctx.elevation = input:getElevation()
 			ctx.showCue = canShoot() and not targets:isDragging()
 			ctx.aimTurn = aimTurn()
 			ctx.cameraPos = Camera.position()
@@ -844,11 +842,22 @@ RunService.RenderStepped:Connect(function(dt)
 	if
 		seq
 		or (aimPhase and letGo)
-		or (canShoot() and AimStream.due(sinceAim, input.angle, pull, lastAim, lastPull))
+		or (
+			canShoot()
+			and AimStream.due(
+				sinceAim,
+				input.angle,
+				pull,
+				lastAim,
+				lastPull,
+				input:getElevation(),
+				lastElevation
+			)
+		)
 	then
 		sinceAim = 0
-		lastAim, lastPull = input.angle, pull
-		lounge:reportAim(snapshot.id, input.angle, pull, seq, px, py)
+		lastAim, lastPull, lastElevation = input.angle, pull, input:getElevation()
+		lounge:reportAim(snapshot.id, input.angle, pull, input:getElevation(), seq, px, py)
 	end
 	lastBusy = busy
 end)

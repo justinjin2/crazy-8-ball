@@ -1,5 +1,6 @@
 --!strict
--- Input: turns touches, mouse drags, buttons and a gamepad into aim, spin and a shot.
+-- Input: turns touches, mouse drags, buttons and a gamepad into aim, spin, cue angle and a
+-- shot.
 -- Cue supplies the same strike-point clamp used by the simulation.
 --
 --   drag on the table (anywhere not on a button)  -> rotate the aim, slow drags are finer
@@ -11,6 +12,7 @@
 --   D-pad left/right    -> the nudge buttons, so every drag still has a button alternative
 --   right stick Y       -> zoom
 --   hold L1 + right stick -> spin; Y centres it; release L1 keeps the choice
+--   hold L1 + D-pad up/down -> raise or lower the cue angle one step (held repeats)
 --   hold L2 + left stick  -> move the cue ball in hand (only while placing is allowed);
 --                          the triggers and A are ignored while L2 is held
 --   right trigger       -> power: the trigger is analog, so its position IS the bar.
@@ -29,6 +31,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Cue = require(Shared:WaitForChild("Physics"):WaitForChild("Cue"))
+local ShotInput = require(Shared:WaitForChild("ShotInput"))
 
 local Input = {}
 Input.__index = Input
@@ -40,6 +43,11 @@ export type Input = typeof(setmetatable(
 		spinY: number,
 		spinEditing: boolean,
 		spinListeners: { (number, number) -> () },
+		elevation: number,
+		elevationListeners: { (number) -> () },
+		elevationDir: number,
+		elevationTime: number,
+		elevationNext: number,
 		spinEditingListeners: { (boolean) -> () },
 		enabled: boolean,
 		aimListeners: { (number) -> () },
@@ -87,6 +95,11 @@ function Input.new(): Input
 		spinEditing = false,
 		spinListeners = {},
 		spinEditingListeners = {},
+		elevation = Config.Cue.CueElevationDegrees,
+		elevationListeners = {},
+		elevationDir = 0,
+		elevationTime = 0,
+		elevationNext = 0,
 		enabled = true,
 		aimListeners = {},
 		tickListeners = {},
@@ -204,6 +217,46 @@ function Input.onSpin(self: Input, listener: (number, number) -> ())
 	table.insert(self.spinListeners, listener)
 end
 
+--- The cue angle for the next shot, in degrees (Config.Cue.CueElevationDegrees by default).
+function Input.getElevation(self: Input): number
+	return self.elevation
+end
+
+--- Set the cue angle, rounded to whole ElevationStepDegrees steps within the legal range.
+function Input.setElevation(self: Input, degrees: number)
+	local rounded = ShotInput.roundElevation(degrees)
+	if rounded == nil or rounded == self.elevation then
+		return
+	end
+	self.elevation = rounded
+	for _, listener in self.elevationListeners do
+		listener(rounded)
+	end
+end
+
+function Input.stepElevation(self: Input, steps: number)
+	self:setElevation(self.elevation + steps * Config.Cue.ElevationStepDegrees)
+end
+
+function Input.resetElevation(self: Input)
+	self:setElevation(Config.Cue.CueElevationDegrees)
+end
+
+function Input.onElevation(self: Input, listener: (number) -> ())
+	table.insert(self.elevationListeners, listener)
+end
+
+--- Hold a cue-angle button (D-pad or arrow key) while the spin panel is open: one step now,
+--- then repeating after a pause while held. 0 releases it.
+function Input.holdElevation(self: Input, direction: number)
+	self.elevationDir = if self.spinEditing then direction else 0
+	if self.elevationDir ~= 0 then
+		self.elevationTime = 0
+		self.elevationNext = Config.Input.ElevationRepeatDelay
+		self:stepElevation(self.elevationDir)
+	end
+end
+
 function Input.onSpinEditing(self: Input, listener: (boolean) -> ())
 	table.insert(self.spinEditingListeners, listener)
 end
@@ -226,6 +279,7 @@ function Input.setSpinEditing(self: Input, editing: boolean)
 	self.stickZoom = 0
 	self.stickSpinX = 0
 	self.stickSpinY = 0
+	self.elevationDir = 0
 	self.nudgeDir = 0
 	self.triggerHeld = false
 	self.buttonPower = nil
@@ -413,6 +467,8 @@ local GAMEPAD_KEYS = {
 	Enum.KeyCode.ButtonY,
 	Enum.KeyCode.DPadLeft,
 	Enum.KeyCode.DPadRight,
+	Enum.KeyCode.DPadUp,
+	Enum.KeyCode.DPadDown,
 }
 
 function Input.handleGamepad(
@@ -480,7 +536,13 @@ function Input.handleGamepad(
 		self.stickZoom = if ended or self.spinEditing then 0 else obj.Position.Y
 		return sink
 	elseif self.spinEditing then
-		if state == Enum.UserInputState.Begin then
+		if code == Enum.KeyCode.DPadUp or code == Enum.KeyCode.DPadDown then
+			if ended then
+				self:holdElevation(0)
+			elseif state == Enum.UserInputState.Begin then
+				self:holdElevation(if code == Enum.KeyCode.DPadUp then 1 else -1)
+			end
+		elseif state == Enum.UserInputState.Begin then
 			if code == Enum.KeyCode.ButtonY then
 				self:resetSpin()
 			elseif code == Enum.KeyCode.ButtonB then
@@ -591,6 +653,13 @@ function Input.update(self: Input, dt: number)
 				self.spinX + x * G.SpinPerSecond * dt,
 				self.spinY + y * G.SpinPerSecond * dt
 			)
+		end
+		if self.elevationDir ~= 0 then
+			self.elevationTime += dt
+			while self.elevationTime >= self.elevationNext do
+				self:stepElevation(self.elevationDir)
+				self.elevationNext += C.ElevationRepeatInterval
+			end
 		end
 		return
 	end
