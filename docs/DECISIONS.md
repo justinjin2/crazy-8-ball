@@ -966,3 +966,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   to be checked on a real phone after import. Marble on walking and lounge floors (faked
   reflections), detailed gray carpet in the play zones, and a placeholder piano stage in the
   lounge.
+- 2026-09-25: Regular lobby tables are all green, pro lobby tables all blue
+  (`Config.TableModel.DefaultLook = "Green"`, closing the open question in GDD section 16).
+  Hub brief: one approval stop after the blockout, then a non-stop build; dusk as the main
+  look with day and night skies; city and mountains outside; a walk-out terrace; blank logo
+  panels; a locked pro lobby door visible from spawn.

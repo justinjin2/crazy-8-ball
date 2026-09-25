@@ -1,9 +1,17 @@
 # BUILD THE SKYLINE CLUB: the game's hub map, via Blender MCP
 
 You are building the one map of a Roblox 8-ball pool game in Blender 5.2 through the Blender
-MCP, delivered as a Roblox-ready package. Work in stages. **Stop and wait for my review at the
-two gates marked STOP**; everywhere else, decide for yourself, log real tradeoffs in
-`assets/hub/DECISIONS.md`, and keep going.
+MCP, delivered as a Roblox-ready package. Work in stages.
+
+**There is exactly one stop.** After stage 1 (the layout blockout), stop and wait for my
+approval. After I approve, build stages 2 to 6 straight through without stopping or asking
+me anything, until the package is import-ready. When something is unclear after the stop:
+- decide for yourself;
+- log the choice and its tradeoff in `assets/hub/DECISIONS.md`;
+- keep going.
+
+If a stage fails, fix it and carry on. Only stop early if something makes the whole package
+impossible, and then say exactly what is blocking it.
 
 This is a brand-new design built from the references below.
 
@@ -21,7 +29,9 @@ This is a brand-new design built from the references below.
 ## What it is
 
 **Skyline Club**: a modern pool club on the top floor of a skyscraper. Windows on three sides
-look out over a city skyline, and a rooftop terrace opens off the lounge. It is the place where
+look out at sunset over a city skyline with mountain ridges behind it, and a walk-out rooftop
+terrace opens off the lounge. This map is the **regular lobby**; the pro lobby is a separate
+place built later. It is the place where
 players play, watch, show off cues, trade and hang out. Follow the reference's layout and
 materials, with the changes listed below.
 
@@ -101,6 +111,20 @@ materials, with the changes listed below.
    (at most 2,000 triangles) with a bench, which will be swapped for a real playable piano
    later. Give it `Piano` and `Piano_Bench` anchors, a light marker above it, and a ring of
    standing room around it for people to gather.
+8. **A walk-out terrace.** Players can go outside through wide glass doors from the lounge.
+   - Hangout seating under umbrellas, string lights (glow meshes), planters, and a
+     solid-faced railing with the skyline view.
+   - No tables out there.
+   - Players must not be able to fall or jump off: put an invisible `COL_` wall behind the
+     railing, 12 studs tall.
+   - Same marble floor as the lounge, or a warm outdoor tile.
+9. **A pro lobby door.** A tall locked door with a glowing frame (`Emissive_ProDoor`) and a
+   blank sign panel above it, in the main walkway and clearly visible from the spawn balcony.
+   It leads nowhere yet; later it becomes the teleport to the pro lobby. Add a `Door_ProLobby`
+   anchor.
+10. **Signs carry no name.** Every logo or venue sign is a blank, replaceable panel
+    (`Sign_Logo_*`, each its own mesh with its own 0 to 1 UVs), showing simple placeholder art
+    until the real logo exists. Zone signs still read 1v1, 2v2 and 3v3.
 
 ## Style: stylized realism
 
@@ -178,17 +202,17 @@ furniture, 10% zone accents and glow.
 | Furniture | Tangerine | `#FF7A1A` | cushions, poufs |
 | Furniture | Coral red | `#FF4F5E` | bar stool seats, booth backs |
 | Furniture | Glossy white | `#FFFFFF` | bar counter, screen frames |
-| Furniture | Leaf green | `#2DBE4E` | plants |
+| Furniture | Emerald | `#1F8F55` | plants (cooler and darker than the green cloth; keep them away from the tables) |
 | Zones | 1v1 amber | `#FFB000` | 1v1 armchairs, sign, carpet stripe, LED lines |
 | Zones | 2v2 turquoise | `#00C2A8` | 2v2 armchairs, sign, carpet stripe, LED lines |
 | Zones | 3v3 violet | `#8A4DFF` | 3v3 armchairs, sign, carpet stripe, LED lines |
 | Metal and glow | Bright gold | `#F0B429` | trim, stool legs, column caps |
 | Metal and glow | Warm LED | `#FFF3D6` | pendant undersides, ceiling LED lines |
-| Tables | Blue cloth | `#01A9F7` | from the table package, not editable here |
-| Tables | Green cloth | `#28AF2D` | from the table package, not editable here |
+| Tables | Green cloth | `#28AF2D` | every table in this map, from the table package |
 
-Table cloth colours come from the table package. Which zone uses the green look and which the
-blue is still open, so make it a parameter (`ZONE_LOOK`) and default every zone to blue.
+**Every table here uses the table package's green look** (green cloth, red-brown wood). The
+blue look belongs to the future pro lobby. The saturated furniture must look good next to
+green cloth; check it in the renders.
 
 ## Scale, layout and gameplay rules
 
@@ -236,7 +260,8 @@ empties, exported to `Markers.json`) for:
   it. Record its facing direction.
 - **Statues:** `Statue_1` to `Statue_3`, plinths for the weekly top-3 players.
 - **Kiosks and fixtures:** `Showcase_Cue_*` (rack slots in the glass cue room),
-  `Kiosk_Shop`, `Kiosk_Trade`, `Jukebox`, `Piano`, `Piano_Bench`.
+  `Kiosk_Shop`, `Kiosk_Trade`, `Jukebox`, `Piano`, `Piano_Bench`, `Door_ProLobby`,
+  `Sign_Logo_*`.
 - **Decor slots:** `Decor_Seasonal_*`, 10 to 15 spots for swappable holiday props.
 - **Hidden spots:** `Secret_*`, 3 to 5 tucked-away nooks for hidden collectibles.
 - **Spawn:** on the balcony.
@@ -246,9 +271,10 @@ empties, exported to `Markers.json`) for:
 
 Build the city in layers so it costs almost nothing in Roblox:
 
-1. **Far layer: 0 triangles.** Build a detailed city in Blender (as heavy as you like), then
-   render it into two Roblox skyboxes, `Day` and `Night`: 6 square 1024 faces each, from the
-   room centre, with only the far city visible. Roblox Sky face orientation is easy to get
+1. **Far layer: 0 triangles.** Build a detailed city in Blender (as heavy as you like), with
+   layered mountain ridges fading into haze behind it. Render it into three Roblox skyboxes,
+   `Dusk` (the main look), `Day` and `Night`: 6 square 1024 faces each, from the room centre,
+   with only the far city visible. Roblox Sky face orientation is easy to get
    wrong, so first render a labelled test cubemap (big arrows and face names) and document
    the correct mapping.
 2. **Middle layer: about 3 to 5 large flat cards,** 400 to 800 studs out. They carry baked
@@ -259,7 +285,8 @@ Build the city in layers so it costs almost nothing in Roblox:
    - 12 to 40 triangles each, with no backs, bottoms or hidden faces;
    - built from 3 or 4 master meshes reused many times;
    - sharing one facade trim-sheet texture with window grids;
-   - with a night variant of that texture where the windows are lit.
+   - with a night variant of that texture where the windows are lit (also used at dusk,
+     with fewer windows lit).
 4. **Haze deck:** a large gradient plane just below the window sills hides the street level
    and the tower bottoms. Leave distance haze to Roblox Atmosphere.
 
@@ -301,7 +328,7 @@ Also write a suggested Roblox Lighting recipe:
 - Atmosphere;
 - Bloom;
 - ColorCorrection;
-- day and night ClockTime.
+- ClockTime for dusk (the default look), day and night.
 
 The pools of light on the tables must read even with shadows off.
 
@@ -324,13 +351,15 @@ After every stage:
    - an eye-level view in the 1v1 zone;
    - a view out of the north windows.
 
-   **STOP. Show me the renders and wait for my review.**
+   **STOP. This is the only stop.** Show me the renders and a short summary of the layout,
+   then wait. After I approve, run stages 2 to 6 without stopping.
 2. **Architecture and materials:** ceiling panels, bulkheads, LED lines, partitions, columns,
    floors, windows, terrace.
 3. **Furniture, props, anchors, pendants, emissives, signs** (zone signs as separate
    replaceable meshes with their own texture), the cue room, and the piano stage with its
    placeholder.
-4. **Skyline** (skyboxes, cards, towers, haze deck), then the lighting preview in EEVEE. Render:
+4. **Skyline** (skyboxes, cards, towers, mountains, haze deck), then the lighting preview in
+   EEVEE at dusk. Render these for the record (do not stop):
    - the spawn view;
    - the 1v1 view;
    - the lounge, bar and piano stage;
@@ -339,7 +368,8 @@ After every stage:
    - a window view by day and by night;
    - one 390 × 844 phone-framed crop to check phone readability.
 
-   **STOP. Show me the renders and wait for my review.**
+   Look at these yourself against the palette and the references. Fix anything dull, gray,
+   off-palette or unreadable at phone size before moving on.
 5. **Optimise, unwrap, bake, export:**
    - FBX packages `Hub_Architecture`, `Hub_Furniture` (unique pieces only),
      `Hub_PropLibrary`, `Hub_Emissive`, `Hub_Glass`, `Hub_Skyline`, `Hub_Screens`,
@@ -348,7 +378,7 @@ After every stage:
    - validation of FBX round trip, triangle budgets, UV overlap, closed meshes, clearances and
      texture sizes into `Validation.json` and `Validation.md`. Do not relax a threshold to
      pass.
-6. **Final renders and `assets/hub/Readme.md`:** Roblox import steps, SurfaceAppearance
+6. **Final dusk renders and `assets/hub/Readme.md`:** Roblox import steps, SurfaceAppearance
    assignment, the Neon and Glass list, how the prop clones and lights are placed from
    `Markers.json`, the skybox setup, and the Lighting recipe.
 

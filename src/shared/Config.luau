@@ -721,12 +721,11 @@ Config.TableModel = {
 			Marks = { Maps = "Marks" },
 		},
 	} :: { [string]: { [string]: { Maps: string, Tint: { number }? } } },
-	-- The look every table uses unless LookByTable names another.
-	DefaultLook = "Blue",
-	-- Table id -> look. TEMPORARY: table 2 (the middle of the three baseplate tables) is
-	-- green so both looks stand side by side for sign-off. Which tables use which look is
-	-- still open (GDD section 19); do not treat this as the decision.
-	LookByTable = { [2] = "Green" } :: { [number]: string },
+	-- The look every table uses unless LookByTable names another. The regular lobby (this
+	-- place) is green; the pro lobby, a separate place, will be all blue (GDD section 16).
+	DefaultLook = "Green",
+	-- Table id -> look, for exceptions. None in the regular lobby.
+	LookByTable = {} :: { [number]: string },
 	-- Most triangles over all eight meshes (Roblox caps each mesh at 20,000), and most unique
 	-- 1024 images over every look (ARCHITECTURE section 7).
 	TriangleBudget = 13000,

@@ -270,8 +270,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
   snacks that the player can drink or eat (a tool with a short animation). No alcohol.
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
-  and above, where only Difficult and Challenger are available. Its look is decided later
-  (the old "dim moody neon room" idea is the candidate).
+  and above, where only Difficult and Challenger are available. All its tables use the blue
+  look; the rest of its look is decided later (a dim, moody neon room is the candidate). A
+  locked, glowing pro lobby door stands in the hub, visible from spawn.
 - A player's win streak shows above their head, and their country flag next to their name.
 
 ## 11. Progression and ranks
@@ -419,7 +420,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   caps on all six pockets, built as a removable part so the corners also look finished
   without them. Two looks share the model: **bright blue cloth (photo-16 blue) with satin
   black wood showing faint grain**, and **bright yellow-green cloth (the reference photo's
-  hue at real-cloth brightness) with red-brown wood**; chrome on both. The cloth is a fine
+  hue at real-cloth brightness) with red-brown wood**; chrome on both. **The regular lobby uses green on every table; the pro lobby uses blue
+  on every table** (2026-09-25). The cloth is a fine
   repeating texture tinted per look, lightly played: a faint break line, a rack patch, chalk
   near the pockets and a spot sticker.
 - UI: clean, thumb-friendly, icons before words. All text lives in one strings module; Roblox
@@ -462,6 +464,5 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Age-rating and DevEx rate verification (section 2).
 - Full ability list (section 9).
 - Pro lobby look (section 10).
-- Which tables use the green look and which the blue (section 16).
 - Rating formula (section 11).
 - Economy numbers and the top rarity name (section 12).
