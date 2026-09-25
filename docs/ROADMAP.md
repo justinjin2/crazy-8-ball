@@ -32,7 +32,7 @@ anyway.
 - [x] **1.4 Camera and avatar.** One orbit camera opposite the aim with automatic whole-table
   framing and continuous zoom to a down-the-cue view; posed, faded avatar; pull-out during a
   shot. Imported Blender table model, sphere-mesh balls with baked textures.
-- [ ] **1.5 Server-owned tables (sixteen in the hub).** Tables stand on the baseplate until the hub map
+- [ ] **1.5 Server-owned tables (sixteen of them).** Tables stand on the baseplate until the hub map
   (4.1) exists. Each table is owned by the server:
   the client sends shot inputs, the server validates and runs the simulation, every client
   replays the same shot, so everyone in the server sees every table's balls. Join by stepping
@@ -42,9 +42,9 @@ anyway.
   reduced to about 550 triangles. Gamepad: aim with the stick, zoom, shoot.
   Done means: two players in one server play at two different tables while a third walks
   between them and sees both games, on phone, PC and gamepad.
-*Progress (2026-09-25): all sixteen tables run in the hub map (10 1v1, 4 2v2, 2 3v3), each
-with its own pads, barrier and fence; checked in Studio play-solo. The two-player,
-phone and gamepad checks in "Done means" are still open.*
+*Progress (2026-09-25): sixteen 1v1 tables run on the baseplate (8 green, 8 blue), each with
+its own pads, barrier and fence; checked in Studio play-solo. The two-player, phone and
+gamepad checks in "Done means" are still open.*
 *Order note (2026-09-21): 1.7 is being built before 1.6 at the designer's request.*
 *Order note (2026-09-22): the designer requested `prompts/PHYSICS_REALISM_PROMPT.md`.
 Work proceeds A-F; the designer then requested continuing through D-F in one run.
@@ -163,16 +163,10 @@ are part of this update; the older broader phase boxes below are not completed b
 
 ## Phase 4: Look, feel and platforms
 
-- [ ] **4.1 The hub map (Skyline Club).** Build it from `docs/prompts/HUB_BLENDER_PROMPT.md`,
-  import it, place the tables from its `Markers.json`, create the lamp lights and the Lighting
-  recipe, sittable seats, snack counter with drink and snack tools and animations, zone signs,
-  pro-lobby door placeholder.
-  *Progress (2026-09-25):*
-  - *Done: the map is imported, aligned and textured, with the Dusk sky and the Lighting
-    recipe; tables, props, seats (Sit prompt), lights and collision are placed from the markers;
-    the zone signs and the pro-lobby door are in.*
-  - *Open: the snack counter tools and animations, and the phone and gamepad checks on real
-    devices.*
+- [ ] **4.1 The hub map.** To be designed: the designer will choose the map (GDD section 10,
+  Open). Import it, place the tables in it, lighting, sittable seats, snack counter with drink
+  and snack tools and animations, zone signs, pro-lobby door placeholder. Until then the tables
+  stand on the baseplate.
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
 - [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.

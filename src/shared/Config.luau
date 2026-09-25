@@ -536,32 +536,31 @@ Config.Cue = {
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
 Config.Hub = {
-	-- The Skyline Club's sixteen tables, from assets/hub/Markers.json (tables[].position and
-	-- yaw_deg; the hub's origin is the room centre on the main floor). Y is the FLOOR height
-	-- the table stands on, not the cloth: Placement.toWorld adds Table.SurfaceHeightStuds (2.9)
-	-- on top. Yaw is degrees about world +Y; the head rail (and the queue pads) point the way
-	-- the markers' `head` says. teamSize is the zone: 1v1 along the north windows, 2v2 in the
-	-- south-west (tables running east-west, pads at the outer ends), 3v3 in the north-east.
+	-- A grid on the baseplate until the hub map is chosen (designer, 2026-09-25): four rows of
+	-- four, 20 studs apart across and 43 along, which keeps 10 studs of cue room around each.
+	-- Every table is 1v1 for now (teamSize). Y is the FLOOR height the table stands on, not
+	-- the cloth: Placement.toWorld adds Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees
+	-- about world +Y; at 90 the head rail and the queue pads face world +Z, toward the spawn.
 	Tables = {
-		{ id = 1, X = -67.18, Y = 0, Z = -19.48, YawDegrees = 90, teamSize = 1 },
-		{ id = 2, X = -46.94, Y = 0, Z = -19.48, YawDegrees = 90, teamSize = 1 },
-		{ id = 3, X = -26.7, Y = 0, Z = -19.48, YawDegrees = 90, teamSize = 1 },
-		{ id = 4, X = -6.46, Y = 0, Z = -19.48, YawDegrees = 90, teamSize = 1 },
-		{ id = 5, X = 13.78, Y = 0, Z = -19.48, YawDegrees = 90, teamSize = 1 },
-		{ id = 6, X = -67.18, Y = 0, Z = -53.72, YawDegrees = 90, teamSize = 1 },
-		{ id = 7, X = -46.94, Y = 0, Z = -53.72, YawDegrees = 90, teamSize = 1 },
-		{ id = 8, X = -26.7, Y = 0, Z = -53.72, YawDegrees = 90, teamSize = 1 },
-		{ id = 9, X = -6.46, Y = 0, Z = -53.72, YawDegrees = 90, teamSize = 1 },
-		{ id = 10, X = 13.78, Y = 0, Z = -53.72, YawDegrees = 90, teamSize = 1 },
-		{ id = 11, X = -63.18, Y = 0, Z = 47.88, YawDegrees = 0, teamSize = 2 },
-		{ id = 12, X = -34.94, Y = 0, Z = 47.88, YawDegrees = 180, teamSize = 2 },
-		{ id = 13, X = -63.18, Y = 0, Z = 27.64, YawDegrees = 0, teamSize = 2 },
-		{ id = 14, X = -34.94, Y = 0, Z = 27.64, YawDegrees = 180, teamSize = 2 },
-		{ id = 15, X = 46.42, Y = 0, Z = -30, YawDegrees = 90, teamSize = 3 },
-		{ id = 16, X = 68.66, Y = 0, Z = -30, YawDegrees = 90, teamSize = 3 },
+		{ id = 1, X = -30, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 2, X = -10, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 3, X = 10, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 4, X = 30, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 5, X = -30, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 6, X = -10, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 7, X = 10, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 8, X = 30, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 9, X = -30, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
+		{ id = 10, X = -10, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
+		{ id = 11, X = 10, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
+		{ id = 12, X = 30, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
+		{ id = 13, X = -30, Y = 0, Z = -129, YawDegrees = 90, teamSize = 1 },
+		{ id = 14, X = -10, Y = 0, Z = -129, YawDegrees = 90, teamSize = 1 },
+		{ id = 15, X = 10, Y = 0, Z = -129, YawDegrees = 90, teamSize = 1 },
+		{ id = 16, X = 30, Y = 0, Z = -129, YawDegrees = 90, teamSize = 1 },
 	},
 
-	-- How many tables to build, taken from the front of Tables. Sixteen is the full hub.
+	-- How many tables to build, taken from the front of Tables.
 	TableCount = 16,
 
 	-- Which table the client treats as "the" table before it has a seat.
@@ -574,22 +573,6 @@ Config.Hub = {
 	-- How often the pool is re-pointed at the nearest tables. Every frame is wasteful and
 	-- the player cannot cross twenty studs in half a second.
 	RebindEverySeconds = 0.5,
-}
-
----------------------------------------------------------------------------------------------
--- The hub map (Skyline Club, assets/hub). Its meshes are imported into the place under
--- workspace.<Folder>; the server HubService adds everything data-driven from
--- src/shared/HubLayout.luau (generated from the package's Markers.json): prop copies, seats,
--- lights and collision.
----------------------------------------------------------------------------------------------
-Config.HubMap = {
-	Folder = "Hub", -- workspace folder of the imported hub meshes; HubService builds inside it
-	PropLibrary = "Hub_PropLibrary", -- ServerStorage model with one of each prop, at the origin
-	PendantPrefix = "Pendant_T", -- a table's pendant is the Model "<prefix><table id>"
-	SeatSize = { 2, 0.2, 2 }, -- the invisible Seat under each sittable spot, studs
-	SeatDrop = 0.1, -- the Seat's centre sits this far below the recorded seat surface
-	SitDistance = 6, -- how close the Sit prompt appears, studs (touching a seat never sits you)
-	LightThickness = 0.2, -- the invisible part a light hangs on, studs
 }
 
 ---------------------------------------------------------------------------------------------
@@ -714,11 +697,21 @@ Config.TableModel = {
 			Marks = { Maps = "Marks" },
 		},
 	} :: { [string]: { [string]: { Maps: string, Tint: { number }? } } },
-	-- The look every table uses unless LookByTable names another. The regular lobby (this
-	-- place) is green; the pro lobby, a separate place, will be all blue (GDD section 16).
+	-- The look every table uses unless LookByTable names another. Eventually the regular lobby
+	-- (this place) is green and the pro lobby, a separate place, all blue (GDD section 16).
 	DefaultLook = "Green",
-	-- Table id -> look, for exceptions. None in the regular lobby.
-	LookByTable = {} :: { [number]: string },
+	-- Table id -> look, for exceptions. For now the baseplate shows both (designer,
+	-- 2026-09-25): the right half of the grid (X = 10 and 30, Config.Hub.Tables) is blue.
+	LookByTable = {
+		[3] = "Blue",
+		[4] = "Blue",
+		[7] = "Blue",
+		[8] = "Blue",
+		[11] = "Blue",
+		[12] = "Blue",
+		[15] = "Blue",
+		[16] = "Blue",
+	} :: { [number]: string },
 	-- Most triangles over all eight meshes (Roblox caps each mesh at 20,000), and most unique
 	-- 1024 images over every look (ARCHITECTURE section 7).
 	TriangleBudget = 13000,
@@ -1888,7 +1881,7 @@ Config.Audio = {
 	-- about 16 x 8 studs (100 x 50 inches at 0.16 studs/inch) and the close view sits 2.2
 	-- studs from the cue ball, so the old value of 8 put the camera inside the min distance
 	-- when zoomed in and outside it when fitted - a loudness swing of about 3x from the
-	-- zoom alone, which reads as "the volume is broken". Hub tables are 20+ studs apart,
+	-- zoom alone, which reads as "the volume is broken". Tables are 20+ studs apart,
 	-- so a neighbouring game still attenuates properly. Measured in Studio: over a whole
 	-- shot the camera sits 16.2 to 17.5 studs from the table and drops to 2.2 studs in the
 	-- close aiming view, so 18 keeps the entire zoom range inside the plateau. (tune)
@@ -2222,9 +2215,9 @@ Config.Multiplayer = {
 	-- is a foul). The designer keeps it out of casual public games and in ranked only
 	-- (2026-09-23). Every table is casual until ranked matches exist (a table's `ranked` flag).
 	RailAfterContact = { Casual = false, Ranked = true },
-	-- On the balcony prow (Markers.json anchors.Spawn, floor 11.2), looking north over the club.
-	-- Y is the SpawnLocation's centre: a thin invisible pad lying on the prow floor.
-	Spawn = { X = 2.19, Y = 11.3, Z = 59, YawDegrees = 0 },
+	-- On the baseplate in front of the table grid (Config.Hub.Tables), facing it: the green
+	-- tables on the left, the blue on the right. Y is the SpawnLocation's centre.
+	Spawn = { X = 0, Y = 0.5, Z = 29, YawDegrees = 0 },
 	CountdownCancelSeconds = 1.5, -- brief readable cancellation notice
 	CountdownSeconds = 5, -- full-queue intermission
 	CoinSeconds = 2.6, -- shared coin presentation
@@ -2265,9 +2258,8 @@ Config.Multiplayer = {
 	},
 	Fence = { -- invisible walls around each match area; stop participants only (PoolFence group)
 		MinHalfLengthStuds = 13, -- along the table, from its centre, at the least
-		-- The foot end needs no room for pads, so the fence stops here past the centre. The
-		-- hub's 2v2 tables stand foot to foot 28.24 studs apart: 13 + 1 each side leaves them
-		-- a quarter stud clear of each other (Placement.fenceHalfExtents).
+		-- The foot end needs no room for pads, so the fence stops here past the centre, which
+		-- lets tables stand foot to foot closer together (Placement.fenceHalfExtents).
 		FootHalfLengthStuds = 13,
 		PadMarginStuds = 1.5, -- room beyond the furthest queue pad, so every player's own pad is inside
 		HalfWidthStuds = 8.5, -- across the table; tables are 20 studs apart, so a walkway stays between

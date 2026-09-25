@@ -870,7 +870,7 @@ function Service.start(parent: Instance)
 	local folder = Instance.new("Folder")
 	folder.Name = Service.PadFolderName
 	folder.Parent = parent
-	-- One server-owned table per hub row, each seating its zone's team size.
+	-- One server-owned table per Config.Hub row, each seating its own team size.
 	for id = 1, Placement.tableCount() do
 		local p = Placement.forTable(id)
 		local teamSize = Placement.teamSizeOf(id)

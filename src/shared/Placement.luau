@@ -41,8 +41,7 @@ function Placement.new(x: number, y: number, z: number, yawDegrees: number): Pla
 	}
 end
 
---- How many tables this build actually stands up: sixteen in the hub, a few on the testing
---- baseplate. Everything that iterates tables goes through this so the server, the pads and
+--- How many tables this build actually stands up (Config.Hub.TableCount). Everything that iterates tables goes through this so the server, the pads and
 --- the client cannot disagree about how many there are.
 function Placement.tableCount(): number
 	return math.clamp(Config.Hub.TableCount, 1, #Config.Hub.Tables)
@@ -173,8 +172,8 @@ end
 --- own length and width: half extents (hx, hy) of a box whose centre sits `cx` along the
 --- table's length from the table centre. At the head end (negative x) it reaches past the
 --- furthest queue pad (Multiplayer.PadDistanceStuds onwards); at the foot it stops at
---- Fence.FootHalfLengthStuds, since nobody queues there and the hub's 2v2 tables stand
---- foot to foot. So the fence runs from cx - hx (head) to cx + hx (foot).
+--- Fence.FootHalfLengthStuds, since nobody queues there, so tables can stand foot to foot
+--- closer together. So the fence runs from cx - hx (head) to cx + hx (foot).
 function Placement.fenceHalfExtents(teamSize: number): (number, number, number)
 	local M = Config.Multiplayer
 	local F = M.Fence

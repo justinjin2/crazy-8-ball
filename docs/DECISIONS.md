@@ -952,52 +952,20 @@ a realism review against Dr. Dave's TP B.10):
 - Deferred (would need the designer): a steep hit above centre jamming instead of jumping,
   and a double hit at steep hard strokes.
 - 2026-09-24: The old map model is deleted (package, builder, its test and its Config).
-  The new map is the Skyline Club hub (`docs/prompts/HUB_BLENDER_PROMPT.md`), with separate
-  1v1, 2v2 and 3v3 zones. The client's room module is renamed `Hub`, and `Config.Hub.Tables`
-  is a flat baseplate grid until the hub's Markers.json replaces it.
+  The client's room module is renamed `Hub`, and `Config.Hub.Tables` is a flat baseplate grid
+  until a hub map replaces it.
 
 2026-09-24: Clean cloth (designer): the foot-spot dot and the break smudge are gone. The whole
 Marks overlay mesh is removed from every table (`Config.TableModel.Marks = false`, like the
 caps switch), leaving the plain tiled cloth; no new images needed.
-- 2026-09-25: The hub has 16 tables: 10 for 1v1, 4 for 2v2, 2 for 3v3 *(tune)*. The hub is
-  far more saturated than its references (cobalt sofas, zone-coloured armchairs, light walls);
-  the palette lives in `docs/prompts/HUB_BLENDER_PROMPT.md`.
-- 2026-09-25: Hub budget raised to 200,000 environment triangles (about 330,000 with the tables),
-  to be checked on a real phone after import. Marble on walking and lounge floors (faked
-  reflections), detailed gray carpet in the play zones, and a placeholder piano stage in the
-  lounge.
 - 2026-09-25: Regular lobby tables are all green, pro lobby tables all blue
   (`Config.TableModel.DefaultLook = "Green"`, closing the open question in GDD section 16).
-  Hub brief: one approval stop after the blockout, then a non-stop build; dusk as the main
-  look with day and night skies; city and mountains outside; a walk-out terrace; blank logo
-  panels; a locked pro lobby door visible from spawn.
 - 2026-09-25: The designer signed off the remade table and jump shots after playing them by
   hand (feel, pockets, jump heights). Both merged into main; the tuning numbers stay as tuned.
-- 2026-09-25: Hub layout approved by the designer. It differs from the brief's starting plan so
-  that every table, the bar and the terrace door are within 128 studs of the spawn stair (the
-  longest walk is 105):
-  - the spawn stair comes down from a prow in the middle of the south balcony into a plaza that
-    is the crossroads;
-  - 1v1 (10 tables) has the north windows, 2v2 (4 tables, running east to west) is south-west,
-    3v3 (2 tables) is north-east;
-  - the lounge, bar, piano and terrace are south-east;
-  - the featured screen is on the south wall above the balcony.
-- 2026-09-25: Hub package finished (`assets/hub`).
-  - Roblox skybox faces tested in Studio with labelled faces: Ft looks along -Z, Bk +Z,
-    Rt -X, Lf +X. Up and Dn are turned (image right towards -Z). Nothing is mirrored.
-  - Lit tower windows use SurfaceAppearance EmissiveMaskContent, which Studio supports.
-  - The marble reflection is a transparent overlay with a baked blurred glossy reflection of
-    the glow meshes and windows. Roblox lights draw their own live highlights.
-- 2026-09-25: The hub runs sixteen server-owned tables, one per hub row, each seating its
-  zone's team size (Config.Hub.Tables teamSize; the old one-table-per-mode list is gone).
-  - A table's match fence is now lopsided: it reaches past the pads at the head and stops 13
-    studs past the centre at the foot. The 2v2 tables stand foot to foot and would otherwise
-    trap each other's players.
-- 2026-09-25: Hub seats are sat on with a Sit prompt (6 studs), never by touch, so walking past
-  the rows of armchairs never grabs anyone. A player's own table pendant is hidden for them
-  while they are seated at it. Pendant lights were tuned in Studio to Brightness 2.6 and Range
-  18. The dusk ambient was made neutral (Ambient #80869A, OutdoorAmbient #9C98A8) so the white
-  walls stay white.
+- 2026-09-25: Sixteen server-owned tables, one per Config.Hub.Tables row, each seating its own
+  team size (the row's teamSize; the old one-table-per-mode list is gone).
+  - A table's match fence is lopsided: it reaches past the pads at the head and stops 13 studs
+    past the centre at the foot, so tables can stand foot to foot.
 - 2026-09-25: The rake (mechanical bridge) and the automatic cue extension are gone
   (designer). The cue is always its own length and the table keeps its size: only the
   shooter's pose and position change. This supersedes the 2026-09-24 lines on the rake, its
@@ -1040,3 +1008,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the body back as soon as its stroke has played. The shot camera keeps following the balls
   until they stop (designer's choice over the normal camera). Their next turn poses them again
   from wherever they walked. Supersedes the GDD's "unable to move" after the shot.
+- 2026-09-25: The test hub map is removed (designer: it was a test, not the final map; they will
+  come back to the map). Its code, package, brief and notes are gone; the hub map's look is
+  Open again (GDD section 10). Back to a plain baseplate: sixteen 1v1 tables in a four by four
+  grid (Config.Hub.Tables), the left two columns green cloth with wood and the right two blue
+  cloth with black wood (Config.TableModel.LookByTable), the spawn in front of them.

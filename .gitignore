@@ -31,6 +31,3 @@ __pycache__/
 # Table package: downloaded texture sources and 4K masters are rebuilt from Sources.json / seeds
 assets/table/sources/*/
 assets/table/textures/masters/
-
-# Hub package: 4096 texture masters are rebuilt from seeds by HubBuilder.py
-assets/hub/textures/masters/

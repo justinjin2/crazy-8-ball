@@ -1,6 +1,7 @@
 --!strict
--- Server bootstrap. Dresses the hub map, builds the tables, wires up the pads and the shot
--- authority, and publishes the assets the client cannot reach on its own.
+-- Server bootstrap. Builds the tables, wires up the pads and the shot authority, and
+-- publishes the assets the client cannot reach on its own. Until the hub map exists the
+-- tables stand on a plain baseplate (Config.Hub).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -10,7 +11,6 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
-local HubService = require(script.Parent:WaitForChild("HubService"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
@@ -38,10 +38,7 @@ local function publish(name: string, class: string, missing: string)
 end
 publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
 
--- The hub's props, seats, lights and collision (the map's meshes are in the place).
-HubService.start()
-
--- Arrive on the balcony prow, looking out over the club.
+-- Arrive in front of the tables, facing them.
 local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
 if spawn then
 	local p = Config.Multiplayer.Spawn
@@ -57,7 +54,7 @@ local tables = Instance.new("Folder")
 tables.Name = TableBuilder.FolderName
 tables.Parent = workspace
 
--- Only the first TableCount of them: sixteen for the full hub, a few on the testing baseplate.
+-- Only the first TableCount of them.
 local built = 0
 local wanted = Placement.tableCount()
 for _, row in Config.Hub.Tables do

@@ -76,6 +76,6 @@ tools/get-types.sh                # one-time download of Roblox type defs for lu
 - `src/server/` Bootstrap and services; `src/client/` Main plus one module per system
 - `tests/` Lune tests and harness; `tools/` lint, test and asset-generator scripts
 - `assets/balls`, `assets/ui` generated images and the ball mesh; `assets/table` Blender package with its
-  own Readme, `assets/hub` the hub map (references now, package later); `place/8ball.rbxl` the Studio place
+  own Readme; `place/8ball.rbxl` the Studio place
 - `docs/` GDD, ROADMAP, ARCHITECTURE, STATUS, DECISIONS, STUDIO_NOTES, `prompts/` (briefs for
   Blender jobs), `ideas/` (raw dumps already merged, do not read)

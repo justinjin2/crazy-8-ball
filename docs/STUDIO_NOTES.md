@@ -62,6 +62,15 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
 - The user gave standing permission to stop an active Studio play session when verifying.
 - EditableMesh (`AssetService:CreateEditableMeshAsync`) reads triangle counts of the user's own
   meshes in Edit mode.
+- Studio play-solo frame rate is not a performance measure: it can read 15 fps on a light scene
+  (the window throttles). Measure on a real phone.
+- The shooter's own body is see-through while aiming, so judge a pose from outside: in a Client
+  `execute_luau`, connect RenderStepped and PreRender (connected after the game's, so they run
+  last) to set `workspace.CurrentCamera.CFrame` and each character part's
+  `LocalTransparencyModifier` to 0 (1 for accessories, to see the body under a costume).
+  `BindToRenderStep` at any priority loses to the game's camera. Disconnect when done.
+- The controller's ButtonA through `user_keyboard_input` fires a shot (hold to ramp the power);
+  a mouse drag on the power bar near the top of the screen hits Roblox's CoreGui.
 
 ## SurfaceAppearance facts (tested 2026-09-24)
 
@@ -101,7 +110,7 @@ What was found:
 
 ## Sky faces (tested 2026-09-25)
 
-Tested with six labelled faces (`assets/hub/sky/test/`) and Edit-mode `screen_capture`
+Tested with six labelled faces and Edit-mode `screen_capture`
 looking along each axis. Nothing is mirrored:
 - SkyboxFt shows when looking towards -Z, SkyboxBk towards +Z, SkyboxRt towards -X and
   SkyboxLf towards +X. All four are upright.
@@ -110,40 +119,7 @@ looking along each axis. Nothing is mirrored:
 
 When testing a Sky, move the place's own Sky to ServerStorage first, because two Skies in
 Lighting clash. Put it back afterwards. `SurfaceAppearance` has `EmissiveMaskContent`,
-`EmissiveStrength` and `EmissiveTint`, which the hub towers use for lit windows.
-
-## The hub map in the place (imported 2026-09-25)
-
-- The eight `assets/hub/Hub_*.fbx` were imported with the table's settings. The importer turned
-  every model half a turn about Y, as it did the table. It also dropped each model at its own
-  insertion point, stacked in height. They were lined up per model by comparing every mesh's
-  centre with `Markers.json.meshes[].centre`: afterwards every mesh sits within 0.0001 studs.
-- In the place:
-  - `workspace.Hub` holds Architecture, Furniture, Emissive, Glass, Screens and Skyline.
-  - `ServerStorage.Hub_PropLibrary` holds one of each prop at the origin; HubService clones
-    from it.
-  - The imported `Hub_Collision` meshes were deleted: HubService builds plain invisible parts
-    from `HubLayout.Collision` instead. The old Baseplate is gone too, and the SpawnLocation
-    is a small invisible pad that Bootstrap moves onto the balcony prow.
-- Every hub MeshPart is Anchored, CanCollide off and CanTouch off. Glow meshes are Neon;
-  windows, partitions and the cue-room window are Glass at 0.7.
-- SurfaceAppearances use the ids in `assets/hub/Uploads.json`:
-  - 27 maps and the six Dusk sky faces are uploaded; Day and Night are not.
-  - The towers and cards use `EmissiveMaskContent` with `EmissiveStrength` 1.5 and 0.6.
-- **Roblox hides back faces; Blender draws both.** Several hand-built flat faces (the south
-  wall, the balcony fronts, the tray sides, stair risers) pointed away from the room. In
-  Blender they looked fine; in Studio you saw the sky through them.
-  - In the place, the affected meshes have `MeshPart.DoubleSided = true`, which is writable
-    from the command bar.
-  - `HubBuilder.py` is fixed at the source, and validation now checks that open faces on the
-    wall planes face the room.
-- `Lighting.Technology` cannot even be read from a script ("lacking capability"). Set it in the
-  Properties panel. `LightingStyle` can be set from a script and is Realistic.
-- Previewing the runtime half in Edit mode: `require(game.ServerScriptService.Server.HubService:Clone()).start()`
-  plus `TableBuilder.build` for each table. Delete `workspace.Hub.Props/Seats/Lights/Collision`
-  and the preview tables before saving, because the server builds them at run time.
-- Studio play-solo frame rate is not a performance measure: it read 15 fps with the whole hub
-  hidden too (the window throttles). Measure on a real phone.
+`EmissiveStrength` and `EmissiveTint`, useful for lit windows.
 
 ## Testing by hand (the two checks an agent cannot do)
 
@@ -184,10 +160,9 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
 
 - Blender 5.2 at `/Applications/Blender.app`. Headless:
   `/Applications/Blender.app/Contents/MacOS/Blender -b file.blend --python-expr "..."`.
-- The package in `assets/table` has rebuild scripts and a `Readme.md` with import steps; the
-  hub package (`assets/hub`) will add a `Markers.json` with Roblox-space positions. Import through the 3D
-  Importer with Scale Unit: Stud, scale 1. Table instances are placed by script from the
-  markers, not imported once per table.
+- The package in `assets/table` has rebuild scripts and a `Readme.md` with import steps.
+  Import through the 3D Importer with Scale Unit: Stud, scale 1. Table instances are placed
+  by script (Config.Hub.Tables), not imported once per table.
 - `docs/prompts/` holds the briefs used for Blender agent jobs; reuse them as templates.
 
 ## Audio

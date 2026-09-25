@@ -158,7 +158,7 @@ end
 --- has not fetched yet simply does not, and the break is exactly when the most sounds fire.
 local preloaded = false
 local function preload(folder: Instance)
-	-- Every table has its own Audio (sixteen in the hub); the clips are shared, so fetch once.
+	-- Every table has its own Audio (sixteen of them); the clips are shared, so fetch once.
 	if preloaded then
 		return
 	end

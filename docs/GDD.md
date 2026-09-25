@@ -14,7 +14,7 @@ and are playtest values, not design decisions. Ideas that are not scheduled live
 ## 1. The pitch
 
 A 3D, satisfying, chill, competitive and social 8-ball pool game on Roblox. Your own avatar lines
-up and plays every shot in a bright pool club high above a city. It feels as crisp as GamePigeon 8-ball, with a
+up and plays every shot in a bright pool hall. It feels as crisp as GamePigeon 8-ball, with a
 twist: every player brings one ability that helps them or sabotages the opponent. Every ball you
 pocket pays money, win or lose. Money opens loot boxes of rare cues, ranks climb from
 Bronze to Reyes, and the rarest items can be traded. Built for phones first, with PC and console.
@@ -183,8 +183,9 @@ Every feature is checked against these. If it serves none, it waits.
   again.
 - One **Find another server** button, hidden during a match. Cross-server and worldwide
   matchmaking are not planned for release (section 18).
-- Servers hold about 30 players *(tune)*. The 16 tables are grouped into zones (section 10):
-  10 for 1v1, 4 for 2v2 and 2 for 3v3 *(tune)*. PC never plays PC.
+- Servers hold about 30 players *(tune)*. For now all 16 tables are 1v1 (designer,
+  2026-09-25); how they split between 1v1, 2v2 and 3v3 is decided with the hub map
+  (section 10) *(tune)*. PC never plays PC.
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
@@ -267,25 +268,19 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 10. The hub and the world
 
 **Decided**
-- **Look: the Skyline Club** (2026-09-24). A modern pool club on the top floor of a
-  skyscraper, windows on three sides onto a city skyline, a rooftop terrace off the lounge
-  area, a balcony where players spawn, tall ceilings. Based on the references in
-  `assets/hub/reference/`, brighter and more colourful than them. Separate 1v1, 2v2 and 3v3
-  zones. The building never changes; screens, statues, showcases and seasonal decor on it do.
-  Strongly saturated furniture and accents on light, clean walls
-  (bright cobalt sofas, zone-coloured armchairs), never dull or gray; palette in the brief.
-  Brief: `docs/prompts/HUB_BLENDER_PROMPT.md`; reasoning: `docs/MAP_RESEARCH.md`.
-- **Floors:** polished, reflective-looking marble where people walk and hang out; detailed
-  gray carpet planks in the three play zones.
-- **Piano stage** in the lounge: a placeholder piano for now (a playable piano is parked,
-  section 18).
+- **For now, a plain baseplate** (designer, 2026-09-25): sixteen 1v1 tables in a grid of
+  four by four, the left two columns green cloth with wood and the right two blue cloth with
+  black wood (the two table looks, section 16), the spawn in front of them.
 - Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
   snacks that the player can drink or eat (a tool with a short animation). No alcohol.
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
   and above, where only Difficult and Challenger are available. All its tables use the blue
-  look; the rest of its look is decided later (a dim, moody neon room is the candidate). A
-  locked, glowing pro lobby door stands in the hub, visible from spawn.
+  look; the rest of its look is decided later (a dim, moody neon room is the candidate).
 - A player's win streak shows above their head, and their country flag next to their name.
+
+**Open**
+- The hub map: its look, layout and zones. The designer will come back to it; the research
+  is in `docs/MAP_RESEARCH.md`.
 
 ## 11. Progression and ranks
 
@@ -422,8 +417,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 16. Art direction
 
 **Decided**
-- The Skyline Club (section 10): stylized realism, simple shapes with soft oversized bevels,
-  clean low-noise materials, readable at phone size. Clean glossy balls (sphere meshes with baked
+- The hub's look is Open (section 10). Everything reads at phone size. Clean glossy balls (sphere meshes with baked
   textures). Effects (streak fire, sink bursts, rainbow cue ball) must read at phone size.
 - **The table (2026-09-24):** one model styled on the Diamond Pro-Am 9 ft, with no brand name
   or logo. Game size and cloth height stay as they are; the rails are the Pro-Am's 7 inch
@@ -433,7 +427,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   without them. Two looks share the model: **bright blue cloth (photo-16 blue) with satin
   black wood showing faint grain**, and **bright yellow-green cloth (the reference photo's
   hue at real-cloth brightness) with red-brown wood**; chrome on both. **The regular lobby uses green on every table; the pro lobby uses blue
-  on every table** (2026-09-25). The cloth is a fine
+  on every table** (2026-09-25); until the hub map, the baseplate shows eight of each
+  (designer, 2026-09-25). The cloth is a fine
   repeating texture tinted per look, lightly played: a faint break line, a rack patch, chalk
   near the pockets and a spot sticker.
 - UI: clean, thumb-friendly, icons before words. All text lives in one strings module; Roblox
@@ -462,8 +457,6 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   standard table model (changed 2026-09-24; it used to be a full model per skin), the host's
   table used for the match, rare ones with VFX, a
   table loot box, Founder's/Beta/VIP tables, tradable, serial plaques for limited ones.
-- **Playable piano** (parked 2026-09-25): the lounge's placeholder piano becomes one players
-  can play.
 - **Walk to the next shot** (parked 2026-09-24): when the same player shoots again from a
   different spot, their body currently jumps there; a short walk round the table would read
   better for watchers.

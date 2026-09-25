@@ -1,5 +1,26 @@
 # Status
 
+**2026-09-25 (latest): back on a plain baseplate with sixteen 1v1 tables, eight green and
+eight blue. The test hub map is removed from the game and the repo.**
+
+- The map's code, package, brief, tests and notes are gone; the hub map's look is Open again
+  (GDD section 10), for the designer to come back to.
+- Config.Hub.Tables is a four by four grid, 20 studs across and 43 along; every table is 1v1.
+  The left two columns are green cloth with wood, the right two blue cloth with black wood
+  (Config.TableModel.LookByTable). The spawn is in front of the grid, facing it.
+- In the place (through Studio MCP, Edit mode): `workspace.Hub` and its prop library are
+  deleted; the Baseplate (512 by 512, top at y 0, grid texture), the visible 12 by 12 spawn pad
+  and the lighting are back as they were in `place/8ball.rbxl` before the map (Soft, 14:30,
+  Brightness 3, a default Sky, Bloom, ColorCorrection and DepthOfField off).
+  `ServerStorage.BridgeModel`, a leftover of the removed rake, is still in the place.
+- Verified: lint clean, 327 Lune tests pass (the grid, the looks and the fences are tested).
+  Studio play-solo: 16 tables built, 8 of each look, 2 pads each, the spawn in front, a solo
+  game on a blue table, no console errors.
+- Still to do: save the place to `place/8ball.rbxl` and publish; check `Lighting.Technology`
+  (scripts cannot read it; before the map it was ShadowMap).
+
+---
+
 **2026-09-25 (merged into `main`): the body reaches every shot by pose and position alone,
 with both feet planted, the head clear of the table, and both arms reaching along the cue.
 Checked in Studio play-solo on R15; the designer's look at this round is next.**
@@ -30,74 +51,12 @@ Checked in Studio play-solo on R15; the designer's look at this round is next.**
 
 ---
 
-**2026-09-25 (later): the Skyline Club is in the game. All sixteen tables play in it.**
-
-- Imported and aligned: every mesh is where the package puts it (within 0.0001 studs).
-- Textured: 50 SurfaceAppearances with the uploaded maps (ids in `assets/hub/Uploads.json`),
-  plus Neon glow, Glass and the Dusk sky.
-- Lighting: Realistic style, ClockTime 18.1, neutral ambient, Atmosphere, Bloom and
-  ColorCorrection. DepthOfField is off.
-- Code:
-  - `HubService` builds 277 prop copies, 188 seats (Sit prompt), 30 lights and 78 collision
-    boxes from `src/shared/HubLayout.luau`, which is generated from `Markers.json`.
-  - `TableService` and the client now run sixteen tables, each seating its zone's size.
-  - The match fence is lopsided so the 2v2 tables don't trap each other's players.
-  - `HubDecor` hides your own table's pendant while you play.
-- Checked in Studio play-solo:
-  - spawn on the balcony, then down the stair to the plaza, lounge and terrace;
-  - nobody can jump off the terrace;
-  - stepping on a pad joins the table;
-  - the Sit prompt seats you;
-  - no console errors.
-- Tests: 336 pass, including the new `hub_layout_test`. Lint is clean.
-- Fixed along the way: some hand-built faces faced out of the room, so Roblox hid them.
-  - In the place: DoubleSided on the affected meshes.
-  - At the source: HubBuilder, plus a validation check.
-- Still to do:
-  - Set `Lighting.Technology` to **Future** by hand (scripts cannot touch it).
-  - Save to `place/8ball.rbxl` and publish.
-  - Check on a real phone and a controller: frame rate, readability, the Sit prompt, joining
-    a pad.
-  - Two players on two tables.
-  - Snack counter tools.
-
----
-
-**2026-09-25: the hub map package (Skyline Club) is built and import-ready in `assets/hub`.
-It is not imported into Studio yet (that is roadmap 4.1).**
-
-- Layout: approved by the designer after the stage 1 stop.
-  - 1v1 (10 tables) along the north windows, 2v2 (4) in the south-west, 3v3 (2) in the
-    north-east.
-  - A spawn balcony with a prow and a wide stair into the central plaza crossroads.
-  - Bar, lounge, piano stage and terrace in the south-east.
-  - Every table, the bar and the terrace door are within a 105-stud walk of the stair
-    (limit 128).
-- Package:
-  - Eight FBX files, `Markers.json` (anchors, tables, pads, 277 prop placements, 188 seats,
-    30 lights, collision, mesh settings, sky mapping, Lighting recipe) and textures.
-  - Three skyboxes (Dusk, Day, Night).
-  - `Validation.md` passes: 182,533 of 200,000 environment triangles, 9 of 12 texture sets,
-    FBX round trip exact.
-- Renders: `assets/hub/renders/final_*.png`.
-- Import steps: `assets/hub/Readme.md`.
-- Studio fact found: the Sky face orientation, now in STUDIO_NOTES.
-  - The test uploaded 6 small labelled images to the account.
-  - The place's own Sky was put back unchanged.
-- Next up: roadmap 4.1 in Studio.
-  - Import the packages, align them, upload the textures and skyboxes.
-  - Place the tables, props, seats and lights from `Markers.json`.
-  - Apply the Lighting recipe, then check it on a phone.
-
----
-
 **2026-09-25: the remade table and jump shots are signed off by the designer and merged into
 main.**
 
 - Both roadmap boxes are ticked. The jump heights and pocket feel stay as tuned.
 - The place is saved to `place/8ball.rbxl` and published. The old seven-mesh table is gone
   from the place and the repo.
-- Next up: the hub map (Skyline Club, brief in `docs/prompts/`), or the next roadmap box.
 
 ---
 
