@@ -955,3 +955,8 @@ a realism review against Dr. Dave's TP B.10):
   The new map is the Skyline Club hub (`docs/prompts/HUB_BLENDER_PROMPT.md`), with separate
   1v1, 2v2 and 3v3 zones. The client's room module is renamed `Hub`, and `Config.Hub.Tables`
   is a flat baseplate grid until the hub's Markers.json replaces it.
+
+2026-09-24: Clean cloth (designer): the foot-spot dot and the break smudge are gone. The whole
+Marks overlay mesh is removed from every table (`Config.TableModel.Marks = false`, like the
+caps switch), leaving the plain tiled cloth; no new images needed.
+

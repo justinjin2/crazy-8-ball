@@ -674,8 +674,9 @@ end
 
 --- Place a clone of the template at table `p`, dressed from Config: collision and shadows
 --- per mesh (an unlisted part gets everything off and one warning), the caps removed when
---- Config.TableModel.Caps is false, the marks overlay when Marks is false, and `look` (default: lookFor(id)). Joining is the floor
---- pad's job (src/server/TableService.luau), so no prompt is attached.
+--- Config.TableModel.Caps is false, the marks overlay when Marks is false, and `look`
+--- (default: lookFor(id)). Joining is the floor pad's job (src/server/TableService.luau), so
+--- no prompt is attached.
 function TableBuilder.buildFromModel(
 	template: Model,
 	parent: Instance,

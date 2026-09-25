@@ -41,7 +41,9 @@ tools/test.sh   # table_geometry_test, table_looks_test, table_model_test
 | `legacy/` | The old 7-mesh table, kept until sign-off. |
 
 The meshes are Cloth, Rails, Body, Pockets, Caps (removable chrome caps), Hardware (leg bolts),
-LogoPlate (the orientation marker, at the foot) and Marks (a transparent overlay). The total is
+LogoPlate (the orientation marker, at the foot) and Marks (a transparent overlay with the
+foot-spot sticker and the break smudge; switched off with `Config.TableModel.Marks = false`
+since 2026-09-24, so every table shows clean cloth). The total is
 8,134 triangles.
 
 ## Import into Studio (after the mesh changes)
