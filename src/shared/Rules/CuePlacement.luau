@@ -99,6 +99,7 @@ function Placement.set(state: State, id: number, x: number, y: number): boolean
 			Ball.stop(b)
 			b.x, b.y, b.z, b.vz = x, y, 0, 0
 			b.pocketed, b.falling, b.pocket, b.tip = false, false, nil, nil
+			b.offTable = false
 			return true
 		end
 	end
@@ -269,7 +270,9 @@ end
 
 local function fallbackFor(state: State, id: number, breakLine: boolean?): (number, number)
 	local preferred = TableGeometry.headSpot(state.geometry)
-	if id == 8 then
+	if id ~= 0 then
+		-- The 8 (respotted after the break) and any object ball that flew off the table go
+		-- back on the foot spot, or as near it as is free.
 		preferred = TableGeometry.footSpot(state.geometry)
 	elseif breakLine then
 		preferred = Config.Multiplayer.BreakLineX

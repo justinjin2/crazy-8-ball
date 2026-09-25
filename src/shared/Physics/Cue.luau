@@ -4,6 +4,7 @@
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)
+local Flight = require(script.Parent.Flight)
 
 type Ball = Ball.Ball
 
@@ -13,7 +14,7 @@ export type Shot = {
 	angle: number, -- radians, 0 = towards +x (the foot rail), counter-clockwise positive
 	power: number, -- 0..1
 	spin: { x: number, y: number }?, -- strike offset in ball radii: x = side (right +), y = top (+) / back (-)
-	elevation: number?, -- degrees above the cloth; internal/test override, bounded by Config
+	elevation: number?, -- degrees above the cloth (4 by default; the cue-angle slider raises it)
 	ability: string?, -- server-authorized catalog id; Simulation resolves per-shot material
 }
 
@@ -94,7 +95,11 @@ function Cue.launchDirection(shot: Shot): (number, number)
 	return math.cos(angle), math.sin(angle)
 end
 
---- Apply the strike to the cue ball in place. Returns the speed given.
+--- Apply the strike to the cue ball in place. Returns the (horizontal) speed given.
+---
+--- An elevated cue also drives the ball down into the slate; if that is hard enough the ball
+--- rebounds into the air (Flight.slate). At the default 4 degrees that only happens near
+--- the top of the power bar; raised for a jump shot it is the whole point.
 function Cue.strike(cueBall: Ball, shot: Shot): number
 	local C = Config.Cue
 	local R = Config.Balls.RadiusInches
@@ -106,7 +111,12 @@ function Cue.strike(cueBall: Ball, shot: Shot): number
 		math.rad(math.clamp(shot.elevation or C.CueElevationDegrees, 0, C.MaxElevationDegrees))
 	local cos, sin = math.cos(theta), math.sin(theta)
 	local c = math.sqrt(1 - sx * sx - sy * sy)
-	local verticalLever = sy * cos - c * sin
+	-- The strike point on the spin disc keeps its meaning at every cue angle. Up to the
+	-- default elevation this is pooltool's elevated lever arm (a 4 degree cue adds a little
+	-- draw); raising the cue further for a jump keeps that same bias instead of turning a
+	-- centre hit into a screw-back, as if the player lifted the butt and re-aimed the tip.
+	local reference = math.min(theta, math.rad(C.CueElevationDegrees))
+	local verticalLever = sy * cos - c * math.sin(reference)
 	local massRatio = Config.Balls.MassOunces / C.StickMassOunces
 	local K = 1 + massRatio + 2.5 * (sx * sx + verticalLever * verticalLever)
 	-- TP A.30 equations 19/23: inelastic energy efficiency, calibrated by tip COR at
@@ -120,6 +130,7 @@ function Cue.strike(cueBall: Ball, shot: Shot): number
 	local speed = impulsePerMass * cos
 	local launchX, launchY = Cue.launchDirection(shot)
 	cueBall.vx, cueBall.vy, cueBall.vz = launchX * speed, launchY * speed, 0
+	cueBall.z = 0
 	local dx, dy = math.cos(shot.angle), math.sin(shot.angle)
 	local angular = 2.5 * impulsePerMass / R
 	-- r cross J, in forward/left/up axes. Rotate spin by the stick's direction, not the
@@ -132,6 +143,9 @@ function Cue.strike(cueBall: Ball, shot: Shot): number
 	cueBall.wx = dx * forwardSpin - dy * leftSpin
 	cueBall.wy = dy * forwardSpin + dx * leftSpin
 	cueBall.wz = angular * sx * cos
+	-- The downward part of the stroke goes into the slate. Below MinHopSpeed the cloth takes
+	-- it and nothing changes; above it the ball jumps.
+	Flight.slate(cueBall, impulsePerMass * sin, false)
 	return speed
 end
 

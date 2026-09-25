@@ -321,6 +321,11 @@ local function resolve(t: any, now: number)
 		local x, y = Placement.fallback(t.state, 8, false)
 		Placement.set(t.state, 8, x, y)
 	end
+	-- Object balls that flew off the table go back on, in number order.
+	for _, id in j.respot or {} do
+		local x, y = Placement.fallback(t.state, id, false)
+		Placement.set(t.state, id, x, y)
+	end
 	local solo = t.solo
 	if solo then
 		-- The first group picked is played first, then the other; the empty second team holds

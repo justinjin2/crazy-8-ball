@@ -232,6 +232,7 @@ local function recordShot(self: Lounge, msg: any)
 		or typeof(start) ~= "table"
 		or not finite(seed.vx)
 		or not finite(seed.vy)
+		or (seed.vz ~= nil and not finite(seed.vz))
 		or not finite(start[1])
 		or not finite(start[2])
 		or seed.vx * seed.vx + seed.vy * seed.vy < 1e-12

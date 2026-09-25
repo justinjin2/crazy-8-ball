@@ -25,6 +25,10 @@ local function pocket(id: number, hole: number?, t: number?)
 	return { t = t or 3, type = "pocket", ball = id, other = hole or 1, speed = 10 }
 end
 
+local function flyOff(id: number, t: number?)
+	return { t = t or 2.5, type = "offTable", ball = id, speed = 100 }
+end
+
 local function outcome(balls, events)
 	local Ball = H.require("Physics.Ball")
 	local after = Ball.cloneList(balls)
@@ -32,6 +36,9 @@ local function outcome(balls, events)
 		if event.type == "pocket" then
 			after[event.ball + 1].pocketed = true
 			after[event.ball + 1].pocket = event.other
+		elseif event.type == "offTable" then
+			after[event.ball + 1].pocketed = true
+			after[event.ball + 1].offTable = true
 		end
 	end
 	return {
@@ -395,5 +402,32 @@ return {
 		local result = Judge.judge(balls, shot, context(nil, true))
 		H.expect(not shot.capped and not result.foul, "a full-power apex break must pass")
 		H.expect(result.groups[1] == nil and result.winner == nil)
+	end,
+
+	["a cue ball off the table is a foul with ball in hand, not a scratch"] = function()
+		local Judge, _, balls = setup()
+		local events = { contact(1), rail(1), flyOff(0) }
+		local result = Judge.judge(balls, outcome(balls, events), context("solids"))
+		H.expect(result.foul and result.reason == "OffTable" and not result.retain)
+		H.expect(result.winner == nil and #result.respot == 0)
+	end,
+
+	["an object ball off the table is a foul and goes back on the table"] = function()
+		local Judge, _, balls = setup()
+		local events = { contact(3), pocket(2), flyOff(12), flyOff(5) }
+		local result = Judge.judge(balls, outcome(balls, events), context("solids"))
+		H.expect(result.foul and result.reason == "OffTable" and not result.retain)
+		H.expect(#result.respot == 2 and result.respot[1] == 5 and result.respot[2] == 12)
+		H.expect(result.winner == nil, "an object ball off the table does not end the game")
+	end,
+
+	["the eight off the table loses, or on the break is respotted"] = function()
+		local Judge, _, balls = setup()
+		local result =
+			Judge.judge(balls, outcome(balls, { contact(1), flyOff(8) }), context("solids"))
+		H.expect(result.winner == 2 and result.reason == "EightOffTable")
+		result = Judge.judge(balls, outcome(balls, { contact(1), flyOff(8) }), context(nil, true))
+		H.expect(result.foul and result.reason == "OffTable" and result.respotEight)
+		H.expect(result.winner == nil and #result.respot == 0)
 	end,
 }

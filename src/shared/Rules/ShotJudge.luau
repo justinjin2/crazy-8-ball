@@ -26,6 +26,7 @@ export type Verdict = {
 	winner: number?,
 	retain: boolean,
 	respotEight: boolean,
+	respot: { number }, -- object balls that flew off the table, to go back on the foot spot
 	pockets: { Pocket },
 	assign: Assign?,
 }
@@ -125,6 +126,11 @@ function Judge.resolve(
 		return if at == bt then a < b else at < bt
 	end)
 	local scratch, eight, eightPocket = false, false, nil
+	-- Balls that flew off the table (jump shots): a foul whoever it is. Object balls are
+	-- respotted; the 8 loses the game, or on the break is respotted.
+	local off: { [number]: boolean } = {}
+	local cueOff, eightOff = false, false
+	local respot: { number } = {}
 	local contacted, railAfter, pocketAfter = false, false, false
 	local first: number? = nil
 	for _, index in order do
@@ -134,6 +140,16 @@ function Judge.resolve(
 				first = if ev.ball == 0 then ev.other else ev.ball
 			end
 			contacted = true
+		end
+		if ev.type == "offTable" and not off[ev.ball] and not down[ev.ball] then
+			off[ev.ball] = true
+			if ev.ball == 0 then
+				cueOff = true
+			elseif ev.ball == 8 then
+				eightOff = true
+			else
+				table.insert(respot, ev.ball)
+			end
 		end
 		if ev.type == "railHit" and contacted then
 			railAfter = true
@@ -160,13 +176,16 @@ function Judge.resolve(
 	end
 	first = first or outcome.firstContact
 	for _, ball in outcome.finalBalls do
-		if ball.id == 0 and ball.pocketed then
+		if ball.id == 0 and ball.pocketed and not ball.offTable then
 			scratch = true
 		end
 	end
+	table.sort(respot)
 	local foul: string? = nil
 	if scratch then
 		foul = "Scratch"
+	elseif cueOff or eightOff or #respot > 0 then
+		foul = "OffTable"
 	elseif first == nil then
 		foul = "NoContact"
 	elseif isBreak then
@@ -188,7 +207,9 @@ function Judge.resolve(
 	end
 
 	local winner, reason = nil, nil
-	if eight and not isBreak then
+	if eightOff and not isBreak then
+		winner, reason = 3 - team, "EightOffTable"
+	elseif eight and not isBreak then
 		if foul then
 			winner, reason = 3 - team, "FoulEight"
 		elseif not Judge.eligible(before, groups[team]) then
@@ -233,7 +254,8 @@ function Judge.resolve(
 		pockets = pockets,
 		pocketDetails = pocketDetails,
 		drops = drops,
-		respotEight = isBreak and eight,
+		respotEight = isBreak and (eight or eightOff),
+		respot = respot, -- object balls (never the 8 or the cue ball) that flew off, by number
 	}
 end
 
@@ -256,6 +278,7 @@ function Judge.judge(before: { Ball }, outcome: Simulation.ShotOutcome, context:
 		winner = result.winner,
 		retain = result.keep,
 		respotEight = result.respotEight,
+		respot = result.respot,
 		pockets = result.pocketDetails,
 		assign = result.assign,
 	}

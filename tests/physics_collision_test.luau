@@ -144,7 +144,7 @@ local function pocketedByFrame(result, ballCount: number): { { boolean } }
 	for f, frame in result.frames do
 		while eventIndex <= #result.events and result.events[eventIndex].t <= frame.t do
 			local ev = result.events[eventIndex]
-			if ev.type == "pocket" then
+			if ev.type == "pocket" or ev.type == "offTable" then
 				flags[ev.ball + 1] = true
 			end
 			eventIndex += 1
@@ -604,7 +604,9 @@ return {
 					)
 				)
 				for i = 1, #state.balls do
-					if not flagsByFrame[f][i] then
+					-- A ball below the cloth is toppling over a pocket lip (its pocket event
+					-- fires when it comes off the lip): it is in the opening, not off the table.
+					if not flagsByFrame[f][i] and frame.positions[3 * i] >= 0 then
 						local x, y = frame.positions[3 * i - 2], frame.positions[3 * i - 1]
 						H.expect(
 							TableGeometry.containsCenter(

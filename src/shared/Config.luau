@@ -332,6 +332,36 @@ Config.Physics = {
 	-- Tiny separation kept between touching balls to avoid re-colliding forever.
 	ContactSlop = 1e-5,
 
+	-- Balls in the air (jump shots, Physics/Flight.luau; designer 2026-09-24). An elevated
+	-- cue drives the ball down into the slate and it rebounds; a ball coming down bounces.
+	-- Ball-slate coefficient of restitution: the rebound's upward speed over the downward
+	-- speed. Dr. Dave's jump-shot analysis uses about 0.5 for slate under cloth. (tune 0.3-0.6)
+	SlateRestitution = 0.5,
+	-- Ball-cloth friction during that bounce: turns skid and spin into each other like a
+	-- very short slide. Same range as SlidingFriction. (tune 0.15-0.3)
+	SlateFriction = 0.2,
+	-- The cloth soaks up this much of every rebound's upward speed (in/s), and a rebound
+	-- left slower than MinHopSpeed is swallowed and the ball stays down. Together they
+	-- keep ordinary shots on the table: a 4 degree cue drives the ball down at most
+	-- 37 in/s (full power), so it hops only near the top of the power bar and only by a
+	-- whisker, and a hard flat shot rarely pops the cue ball off an object ball. The
+	-- designer asked for that to be rare (2026-09-24). (tune loss 8-14, min 1-6)
+	ClothHopLossSpeed = 10,
+	MinHopSpeed = 3,
+	-- While any ball is in the air the event search window is capped at this (s), so
+	-- contacts with it can treat its curved path as straight. Numerical; 1/2400 bends by
+	-- well under a thousandth of an inch. Keep within 1/4800 to 1/1200.
+	AirStepSeconds = 1 / 2400,
+	-- A ball flying lower than this (inches off the cloth) meets a cushion as if it were on
+	-- the cloth. The nose passes the ball's centre at 0.30 in, so from there up the push
+	-- turns upward; the extra margin keeps a hard flat shot's hop (at most 0.44 in at full
+	-- power) from being launched off a rail, which the designer wants rare. (tune 0.3-0.6)
+	AirCushionMinHeightInches = 0.5,
+	-- A flying ball meets the cushion nose lower on its face the higher it flies, which
+	-- tilts the push up. Past the nose the push is capped at this tilt (sine) so a ball
+	-- skimming the cushion top is thrown up and over rather than along. Geometric, 0.8-0.95.
+	AirCushionMaxTilt = 0.9,
+
 	-- Simultaneous soft contact for touching balls (Physics/Cluster.luau). A contact that
 	-- involves a ball already touching a third ball is integrated as Hertz spheres for as
 	-- long as any of the group are pressed together, instead of one pairwise impulse at a
@@ -365,6 +395,10 @@ Config.Physics = {
 	-- Safety cap on one soft phase (s). Real contacts let go well inside it (a whole rack
 	-- does in about a millisecond); a phase reaching it parts any balls still pressed.
 	SoftContactMaxSeconds = 0.003,
+	-- A ball hopping into a group lower than this (inches above the ball it hits) still
+	-- breaks it by soft contact, laid flat for the phase and kicked up after (Simulation's
+	-- layFlat). Covers a hard break's hop; higher it is the pairwise 3-D contact. 0.3-0.6.
+	SoftContactMaxHopInches = 0.5,
 	-- Neighbour-list margin (inches) inside a soft phase: pairs further apart than contact
 	-- plus this are skipped until the list is rebuilt. Performance only; 0.01-0.2.
 	SoftContactSkinInches = 0.05,
@@ -451,12 +485,15 @@ Config.Cue = {
 	-- stick draws back at full power on the bar (studs), and how much the butt is raised.
 	CueRestGapInches = 2.5,
 	CuePullBackStuds = 1.3,
-	-- The PHYSICS elevation: the designer fixed it at 4 degrees; internal level-cue benchmarks
-	-- may use 0. No elevation control or elevated jump/massé shots in this physics pass. The
-	-- drawn cue's pitch is a separate, visual-only number from CueClearance (it tilts up to
-	-- clear a rail or a ball) and never reaches the shot; ShotInput rejects any other value.
+	-- The PHYSICS elevation. Every shot starts at the default 4 degrees; internal level-cue
+	-- benchmarks may use 0. The player raises it with the cue-angle slider in the spin panel
+	-- (jump shots, designer 2026-09-24) up to MaxElevationDegrees, in whole steps of
+	-- ElevationStepDegrees; ShotInput rejects anything else. The drawn cue's pitch
+	-- (CueClearance) never drops below the chosen angle, and may tilt further to clear a rail
+	-- or a ball, which is visual only. (tune the maximum 45-70)
 	CueElevationDegrees = 4,
-	MaxElevationDegrees = 4,
+	MaxElevationDegrees = 60,
+	ElevationStepDegrees = 1,
 	-- The drawn cue's tilt (CueClearance, VISUAL ONLY). It starts at CueElevationDegrees and
 	-- tilts up just enough for the drawn cue's surface to clear the rail top (or a pocket
 	-- casting) and every ball behind the cue ball by these gaps (table inches), never past

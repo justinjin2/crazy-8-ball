@@ -6,6 +6,7 @@ local M = H.require("Config").Multiplayer
 local Ball = H.require("Physics.Ball")
 local Sim = H.require("Physics.Simulation")
 local Judge = H.require("Rules.ShotJudge")
+local TableGeometry = H.require("Physics.Table")
 local expect = H.expect
 local tests = {}
 local function queue(size: number, id: number?): any
@@ -84,6 +85,34 @@ local function fakeOutcome(m: any, events: { any }): any
 		steps = 960,
 		capped = false,
 	}
+end
+function tests.balls_that_flew_off_are_respotted_and_the_cue_ball_comes_back_in_hand()
+	local m = playing(1)
+	for _, id in { 0, 5 } do
+		local b = Sim.findBall(m.state, id)
+		b.pocketed, b.offTable = true, true
+	end
+	m.pending = {
+		outcome = { finalBalls = Ball.cloneList(m.state.balls), events = {} },
+		judgement = {
+			groups = m.groups,
+			keep = false,
+			foul = "OffTable",
+			pockets = {},
+			respot = { 5 },
+		},
+	}
+	m.phase = "Resolving"
+	m.deadline = m.phaseStartedAt + 1
+	expire(m)
+	local five = Sim.findBall(m.state, 5)
+	local fx = TableGeometry.footSpot(m.state.geometry)
+	expect(not five.pocketed and not five.offTable, "the ball is back on the table")
+	expect(math.abs(five.x - fx) < 30, "near the foot spot")
+	expect(m.phase == "Foul" and m.foul.reason == "OffTable")
+	expire(m)
+	local cue = Sim.findBall(m.state, 0)
+	expect(not cue.pocketed and not cue.offTable and m.ballInHand, "cue ball back, in hand")
 end
 function tests.queue_reassigns_host_cancels_and_restarts_countdown()
 	local m = queue(2)

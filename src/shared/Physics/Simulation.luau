@@ -15,6 +15,11 @@
 -- squashes the whole group together as soft spheres for the fraction of a millisecond the
 -- contact lasts; see Cluster.luau for why, and Simulation.step for how that fits in.
 --
+-- A ball knocked off the cloth (a jump shot, a hard break's hop) flies under gravity and
+-- bounces on the slate (see Flight.luau). While any ball is in the air, steps are cut to
+-- AirStepSeconds and contacts with it are found in 3-D. A ball that flies over a cushion
+-- is off the table: it leaves play like a pocketed ball, with an `offTable` event.
+--
 -- Units: inches, seconds, radians. Mass is 1 for every ball (only ratios matter).
 
 local Config = require(script.Parent.Parent.Config)
@@ -22,6 +27,7 @@ local Ball = require(script.Parent.Ball)
 local Cluster = require(script.Parent.Cluster)
 local Collision = require(script.Parent.Collision)
 local Cue = require(script.Parent.Cue)
+local Flight = require(script.Parent.Flight)
 local TableGeometry = require(script.Parent.Table)
 
 type Ball = Ball.Ball
@@ -44,10 +50,10 @@ export type State = {
 
 export type Event = {
 	t: number,
-	type: "cueStrike" | "railHit" | "ballHit" | "pocket",
+	type: "cueStrike" | "railHit" | "ballHit" | "pocket" | "land" | "offTable",
 	ball: number, -- ball id
 	other: number?, -- other ball id for ballHit, pocket id for pocket
-	speed: number, -- impact speed along the contact normal (in/s)
+	speed: number, -- impact speed along the contact normal (in/s); land: speed coming down
 }
 
 export type Frame = {
@@ -108,7 +114,7 @@ function Simulation.energy(state: State): number
 	local R = Config.Balls.RadiusInches
 	local total = 0
 	for _, b in state.balls do
-		total += Ball.kineticEnergy(b, R)
+		total += Ball.kineticEnergy(b, R, Config.Physics.Gravity)
 	end
 	return total
 end
@@ -229,6 +235,24 @@ local function integrateTip(b: Ball, h: number, pocket: TableGeometry.Pocket?, t
 	}
 end
 
+-- A ball that has flown over a cushion is out of play: it counts as pocketed, in no pocket,
+-- and keeps the velocity it left with so the renderer can carry on its flight to the floor.
+local function leaveTable(b: Ball, events: { Event }?, time: number)
+	b.pocketed = true
+	b.offTable = true
+	b.falling = false
+	b.pocket = nil
+	b.tip = nil
+	if events then
+		table.insert(events, {
+			t = time,
+			type = "offTable",
+			ball = b.id,
+			speed = math.sqrt(b.vx * b.vx + b.vy * b.vy + b.vz * b.vz),
+		})
+	end
+end
+
 local function integrateBall(
 	b: Ball,
 	h: number,
@@ -246,6 +270,29 @@ local function integrateBall(
 		elseif b.falling then
 			integrateFalling(b, h, pocket)
 		end
+		return
+	end
+	if Flight.isAirborne(b) then
+		local flown = Flight.fly(b, h)
+		if flown >= h then
+			return
+		end
+		-- Touched down, h - flown before the end of this interval.
+		local landedAt = time - (h - flown)
+		if TableGeometry.openingAt(geometry, b.x, b.y) then
+			-- Nothing under it: it drops in (capturePockets takes it, still moving down).
+			return
+		end
+		if not TableGeometry.containsCenter(geometry, b.x, b.y, Config.Balls.RadiusInches) then
+			leaveTable(b, events, landedAt) -- came down on the rail, not the cloth
+			return
+		end
+		local down = -b.vz
+		Flight.slate(b, down, true)
+		if events then
+			table.insert(events, { t = landedAt, type = "land", ball = b.id, speed = down })
+		end
+		integrateBall(b, h - flown, geometry, events, time)
 		return
 	end
 	local P = Config.Physics
@@ -347,8 +394,62 @@ end
 -- Han 2005, as corrected in pooltool's han_2005/model.py. Work in an inward-facing
 -- cushion frame (n, t = z cross n, z); the true normal is (cos(theta), 0, -sin(theta)).
 -- Its line of action passes through the centre, so only tangential impulses create torque.
+--
+-- A ball on the cloth is held down by the slate through the contact (Han's assumption), so
+-- its vertical translation is discarded. So is a ball only skimming the cloth (below
+-- AirCushionMinHeightInches, a flat shot's hop). A ball flying higher meets the nose lower on
+-- its face, keeps the vertical part, and can be thrown up and over the rail.
+local function resolveRailAirborne(b: Ball, nx: number, ny: number, e: number, mu: number): number
+	local R = Config.Balls.RadiusInches
+	local limit = Config.Physics.AirCushionMaxTilt
+	local sinTheta =
+		math.clamp((Config.Physics.CushionNoseHeightInches - R - b.z) / R, -limit, limit)
+	local cosTheta = math.sqrt(1 - sinTheta * sinTheta)
+	local tx, ty = -ny, nx
+	local vn = b.vx * nx + b.vy * ny
+	local vz = b.vz
+	-- Approach along the true normal (cos, 0, -sin): the ball may be dropping onto the nose.
+	local approach = -(vn * cosTheta - vz * sinTheta)
+	if vn >= 0 or approach <= 0 then
+		return 0
+	end
+	local vt = b.vx * tx + b.vy * ty
+	local wn = b.wx * nx + b.wy * ny
+	local wt = b.wx * tx + b.wy * ty
+	local wz = b.wz
+
+	local slipAlong = vt - R * (cosTheta * wz + sinTheta * wn)
+	local slipTilt = sinTheta * vn + cosTheta * vz + R * wt
+	local slipSpeed = math.sqrt(slipAlong * slipAlong + slipTilt * slipTilt)
+	local normalImpulse = (1 + e) * approach
+	local along, tilt = 0, 0
+	if slipSpeed > 0 then
+		local impulse = math.min(slipSpeed / 3.5, mu * normalImpulse)
+		along = -impulse * slipAlong / slipSpeed
+		tilt = -impulse * slipTilt / slipSpeed
+	end
+	vn += normalImpulse * cosTheta + tilt * sinTheta
+	vz += -normalImpulse * sinTheta + tilt * cosTheta
+	vt += along
+	wn -= 2.5 * sinTheta * along / R
+	wt += 2.5 * tilt / R
+	wz -= 2.5 * cosTheta * along / R
+
+	vn = math.abs(vn)
+	b.vx = vn * nx + vt * tx
+	b.vy = vn * ny + vt * ty
+	b.vz = vz
+	b.wx = wn * nx + wt * tx
+	b.wy = wn * ny + wt * ty
+	b.wz = wz
+	return approach
+end
+
 local function resolveRail(b: Ball, nx: number, ny: number, e: number, mu: number): number
 	local R = Config.Balls.RadiusInches
+	if Flight.isAirborne(b) and b.z >= Config.Physics.AirCushionMinHeightInches then
+		return resolveRailAirborne(b, nx, ny, e, mu)
+	end
 	local sinTheta = Config.Physics.CushionNoseHeightInches / R - 1
 	local cosTheta = math.sqrt(1 - sinTheta * sinTheta)
 	local tx, ty = -ny, nx
@@ -396,10 +497,78 @@ local function resolveRail(b: Ball, nx: number, ny: number, e: number, mu: numbe
 	return speedIn
 end
 
+-- The same contact when a ball is in the air: the normal runs centre to centre in 3-D and
+-- the friction impulse keeps its vertical part. A ball coming down on top of another pushes
+-- it into the slate, which holds it, and is itself thrown back up.
+local function resolveBalls3D(a: Ball, b: Ball): number
+	local R = Config.Balls.RadiusInches
+	local e = Config.Physics.BallRestitution
+	local aDown, bDown = not Flight.isAirborne(a), not Flight.isAirborne(b)
+	local nx, ny, nz = b.x - a.x, b.y - a.y, b.z - a.z
+	local len = math.sqrt(nx * nx + ny * ny + nz * nz)
+	if len < 1e-12 then
+		return 0
+	end
+	nx, ny, nz = nx / len, ny / len, nz / len
+	local relVn = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny + (a.vz - b.vz) * nz
+	if relVn <= 0 then
+		return 0
+	end
+	local j = (1 + e) * relVn / 2
+	a.vx -= j * nx
+	a.vy -= j * ny
+	a.vz -= j * nz
+	b.vx += j * nx
+	b.vy += j * ny
+	b.vz += j * nz
+
+	-- Surface slip at the contact: relative velocity plus R (wa + wb) x n, tangential part.
+	local swx, swy, swz = a.wx + b.wx, a.wy + b.wy, a.wz + b.wz
+	local sx = a.vx - b.vx + R * (swy * nz - swz * ny)
+	local sy = a.vy - b.vy + R * (swz * nx - swx * nz)
+	local sz = a.vz - b.vz + R * (swx * ny - swy * nx)
+	local sn = sx * nx + sy * ny + sz * nz
+	sx, sy, sz = sx - sn * nx, sy - sn * ny, sz - sn * nz
+	local slip = math.sqrt(sx * sx + sy * sy + sz * sz)
+	if slip > Config.Physics.BallSlipEpsilon then
+		-- Contact inverse mass 7, as in Cluster.frictionImpulse.
+		local impulse = math.min(Cluster.ballFriction(slip) * j, slip / 7)
+		local tx, ty, tz = sx / slip, sy / slip, sz / slip
+		a.vx -= impulse * tx
+		a.vy -= impulse * ty
+		a.vz -= impulse * tz
+		b.vx += impulse * tx
+		b.vy += impulse * ty
+		b.vz += impulse * tz
+		-- Both torques have the same sign: opposite forces at opposite contact arms.
+		local k = -2.5 * impulse / R
+		local dwx, dwy, dwz =
+			k * (ny * tz - nz * ty), k * (nz * tx - nx * tz), k * (nx * ty - ny * tx)
+		a.wx += dwx
+		a.wy += dwy
+		a.wz += dwz
+		b.wx += dwx
+		b.wy += dwy
+		b.wz += dwz
+	end
+	-- A ball on the cloth stays there, as in the planar model: the slate holds it against the
+	-- push down, and the friction's vertical part only turns it. Only the flyer flies.
+	if aDown then
+		a.vz = 0
+	end
+	if bDown then
+		b.vz = 0
+	end
+	return relVn
+end
+
 -- Equal-mass contact with restitution, throw and spin transfer (TP A.14 / pooltool).
 -- Keep vertical contact slip for the angular impulse, then discard vertical translation:
 -- balls stay on the cloth, but rolling into another ball can give it backspin.
 local function resolveBalls(a: Ball, b: Ball): number
+	if Flight.isAirborne(a) or Flight.isAirborne(b) then
+		return resolveBalls3D(a, b)
+	end
 	local e = Config.Physics.BallRestitution
 	local nx, ny = b.x - a.x, b.y - a.y
 	local len = math.sqrt(nx * nx + ny * ny)
@@ -459,7 +628,7 @@ local function capturePockets(state: State, events: { Event }?)
 	local g = Config.Physics.Gravity
 	local minTheta = math.rad(Config.Table.PocketTipMinDegrees)
 	for _, b in state.balls do
-		if b.pocketed then
+		if b.pocketed or Flight.isAirborne(b) then
 			continue
 		end
 		local pocket = TableGeometry.pocketAt(state.geometry, b.x, b.y)
@@ -514,6 +683,26 @@ local function capturePockets(state: State, events: { Event }?)
 	end
 end
 
+-- A ball in the air whose centre has crossed a cushion line, anywhere but over a pocket
+-- opening, has gone over the cushion: high enough to clear it, or already past the nose and
+-- out over the rail. (Lower down it would have hit the cushion.)
+local function checkOffTable(state: State, events: { Event }?)
+	local R = Config.Balls.RadiusInches
+	local clear = Config.Table.CushionHeightInches
+	local geometry = state.geometry
+	for _, b in state.balls do
+		if not Flight.isAirborne(b) or TableGeometry.containsCenter(geometry, b.x, b.y) then
+			continue
+		end
+		if TableGeometry.openingAt(geometry, b.x, b.y) then
+			continue
+		end
+		if b.z >= clear or not TableGeometry.containsCenter(geometry, b.x, b.y, R) then
+			leaveTable(b, events, state.time)
+		end
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -- Stepping
 ---------------------------------------------------------------------------------------------
@@ -536,17 +725,20 @@ local function findEarliestHit(state: State, maxT: number, skip: { [Ball]: boole
 	local best: Hit? = nil
 	local bestT = maxT
 
+	local clear = Config.Table.CushionHeightInches
 	for i, a in balls do
 		if a.pocketed or (skip and skip[a]) then
 			continue
 		end
-		local moving = a.vx ~= 0 or a.vy ~= 0
+		local flying = Flight.isAirborne(a)
+		local moving = a.vx ~= 0 or a.vy ~= 0 or flying
 		-- Broad phase: a ball that cannot reach the cushion line this step skips every rail
-		-- and jaw test (facings and jaws all lie on or beyond the cushion line).
+		-- and jaw test (facings and jaws all lie on or beyond the cushion line). A ball flying
+		-- higher than the cushion passes over all of them.
 		local reach = math.sqrt(a.vx * a.vx + a.vy * a.vy) * maxT + R
 		local nearRail = math.abs(a.x) + reach >= geometry.halfLength
 			or math.abs(a.y) + reach >= geometry.halfWidth
-		if moving and nearRail then
+		if moving and nearRail and a.z < clear then
 			for _, seg in geometry.segments do
 				local t = Collision.segmentTOI(a.x, a.y, a.vx, a.vy, R, seg, bestT)
 				if t and t < bestT then
@@ -568,10 +760,33 @@ local function findEarliestHit(state: State, maxT: number, skip: { [Ball]: boole
 			if b.pocketed or (skip and skip[b]) then
 				continue
 			end
-			if not moving and b.vx == 0 and b.vy == 0 then
+			local bFlying = Flight.isAirborne(b)
+			if not moving and b.vx == 0 and b.vy == 0 and not bFlying then
 				continue
 			end
-			local t = Collision.circleTOI(a.x, a.y, a.vx, a.vy, b.x, b.y, b.vx, b.vy, R, bestT)
+			local t: number?
+			if flying or bFlying then
+				-- z moves in a parabola; over one AirStepSeconds window it is straight to well
+				-- under a thousandth of an inch, and pushOut takes up the rest.
+				t = Collision.sphereTOI(
+					a.x,
+					a.y,
+					a.z,
+					a.vx,
+					a.vy,
+					a.vz,
+					b.x,
+					b.y,
+					b.z,
+					b.vx,
+					b.vy,
+					b.vz,
+					R,
+					bestT
+				)
+			else
+				t = Collision.circleTOI(a.x, a.y, a.vx, a.vy, b.x, b.y, b.vx, b.vy, R, bestT)
+			end
 			if t and t < bestT then
 				bestT = t
 				best = { kind = "ball", t = t, a = a, b = b, nx = 0, ny = 0 }
@@ -592,6 +807,25 @@ local function pushOut(hit: Hit)
 			a.x += (R + slop - d) * seg.nx
 			a.y += (R + slop - d) * seg.ny
 		end
+	elseif hit.kind == "ball" and hit.b and (Flight.isAirborne(a) or Flight.isAirborne(hit.b)) then
+		-- In the air: separate along the 3-D line of centres, moving only balls that are off
+		-- the cloth (the slate holds the other one up).
+		local b = hit.b
+		local dx, dy, dz = b.x - a.x, b.y - a.y, b.z - a.z
+		local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
+		local want = 2 * R + slop
+		if dist > 1e-12 and dist < want then
+			local aFree, bFree = Flight.isAirborne(a), Flight.isAirborne(b)
+			local nx, ny, nz = dx / dist, dy / dist, dz / dist
+			local aShare = if aFree and bFree then 0.5 elseif aFree then 1 else 0
+			local push = want - dist
+			a.x -= nx * push * aShare
+			a.y -= ny * push * aShare
+			a.z = math.max(0, a.z - nz * push * aShare)
+			b.x += nx * push * (1 - aShare)
+			b.y += ny * push * (1 - aShare)
+			b.z = math.max(0, b.z + nz * push * (1 - aShare))
+		end
 	elseif hit.kind == "ball" and hit.b then
 		local b = hit.b
 		local dx, dy = b.x - a.x, b.y - a.y
@@ -604,6 +838,89 @@ local function pushOut(hit: Hit)
 			a.y -= ny * push
 			b.x += nx * push
 			b.y += ny * push
+		end
+	end
+end
+
+-- A ball hopping a fraction of an inch as it hits a group (a hard break) meets the first ball
+-- above its centre. The group's contact is still soft, and soft contact is planar, so the
+-- flyer is laid in the plane for the phase: moved back along the line of centres to just
+-- touching (at most a few hundredths of an inch; SoftContactMaxHopInches bounds it).
+-- Afterwards liftFlyer turns the momentum it handed over into the vertical kick the tilted
+-- contact gives it (the struck ball's share goes into the slate), and takes the kick's energy
+-- out of the group so nothing is created.
+type Lift = {
+	flyer: Ball,
+	group: { Ball },
+	nx: number,
+	ny: number,
+	tilt: number,
+	vx: number,
+	vy: number,
+	energy: number,
+}
+
+local function layFlat(flyer: Ball, other: Ball, group: { Ball }): Lift
+	local R = Config.Balls.RadiusInches
+	local g = Config.Physics.Gravity
+	local dx, dy, dz = other.x - flyer.x, other.y - flyer.y, other.z - flyer.z
+	local horizontal = math.sqrt(dx * dx + dy * dy)
+	local nx, ny =
+		if horizontal > 1e-12 then dx / horizontal else 1,
+		if horizontal > 1e-12 then dy / horizontal else 0
+	local want = 2 * R + Config.Physics.ContactSlop
+	if horizontal < want then
+		flyer.x -= nx * (want - horizontal)
+		flyer.y -= ny * (want - horizontal)
+	end
+	local energy = 0
+	for _, m in group do
+		energy += Ball.kineticEnergy(m, R, g)
+	end
+	-- Slope of the true contact normal: rise over run at the moment of touch.
+	local run = math.sqrt(math.max(4 * R * R - dz * dz, 1e-12))
+	return {
+		flyer = flyer,
+		group = group,
+		nx = nx,
+		ny = ny,
+		tilt = -dz / run,
+		vx = flyer.vx,
+		vy = flyer.vy,
+		energy = energy,
+	}
+end
+
+local function liftFlyer(lift: Lift)
+	local R = Config.Balls.RadiusInches
+	local g = Config.Physics.Gravity
+	local flyer = lift.flyer
+	local handed = (lift.vx - flyer.vx) * lift.nx + (lift.vy - flyer.vy) * lift.ny
+	if handed <= 0 then
+		return
+	end
+	-- Only the ball in the air takes the vertical part: the slate holds the struck ball down.
+	flyer.vz += lift.tilt * handed
+	if flyer.z <= 0 and flyer.vz < 0 then
+		flyer.vz = 0
+	end
+	-- Pay for the kick out of the group's horizontal motion if the phase's own losses did
+	-- not already cover it.
+	local horizontal, vertical = 0, 0
+	for _, m in lift.group do
+		local total = Ball.kineticEnergy(m, R, g)
+		local up = 0.5 * m.vz * m.vz + g * m.z
+		horizontal += total - up
+		vertical += up
+	end
+	if horizontal > 0 and horizontal + vertical > lift.energy then
+		local scale = math.sqrt(math.max(0, lift.energy - vertical) / horizontal)
+		for _, m in lift.group do
+			m.vx *= scale
+			m.vy *= scale
+			m.wx *= scale
+			m.wy *= scale
+			m.wz *= scale
 		end
 	end
 end
@@ -648,8 +965,16 @@ local function advance(
 
 	while remaining > 1e-9 and iterations < P.MaxEventsPerStep do
 		iterations += 1
-		local hit = findEarliestHit(state, remaining, skip)
-		local advanceBy = if hit then hit.t else remaining
+		-- Anything in the air shortens the search window (see findEarliestHit).
+		local window = remaining
+		for _, b in state.balls do
+			if Flight.isAirborne(b) and not (skip and skip[b]) then
+				window = math.min(remaining, P.AirStepSeconds)
+				break
+			end
+		end
+		local hit = findEarliestHit(state, window, skip)
+		local advanceBy = if hit then hit.t else window
 
 		for _, b in state.balls do
 			if skip == nil or not skip[b] then
@@ -659,19 +984,31 @@ local function advance(
 		state.time += advanceBy
 		remaining -= advanceBy
 		capturePockets(state, events)
+		checkOffTable(state, events)
 
 		if hit and not hit.a.pocketed and not (hit.b and hit.b.pocketed) then
 			local soft: { Ball }? = nil
 			local b = hit.b
+			-- A ball hopping low into a group (a hard break's cue ball) still breaks it as soft
+			-- contact; see liftFlyer. Higher, or two in the air, is the pairwise 3-D model.
+			local flyer: Ball? = nil
+			if b and Flight.isAirborne(hit.a) ~= Flight.isAirborne(b) then
+				flyer = if Flight.isAirborne(hit.a) then hit.a else b
+			end
 			if
 				allowSoft
 				and hit.kind == "ball"
 				and b
+				and not (Flight.isAirborne(hit.a) and Flight.isAirborne(b))
+				and (flyer == nil or math.abs(hit.a.z - b.z) <= P.SoftContactMaxHopInches)
 				and Cluster.touchesAnother(state.balls, hit.a, b, skip)
 			then
-				soft = Cluster.gather(state.balls, hit.a, b, state.geometry, skip)
+				soft = Cluster.gather(state.balls, hit.a, b, state.geometry, skip, flyer)
 			end
 			if soft and b then
+				local lift = if flyer
+					then layFlat(flyer, if flyer == hit.a then b else hit.a, soft)
+					else nil
 				-- The impact that started it is reported exactly as a pairwise hit would be.
 				local relVn = 0
 				local dx, dy = b.x - hit.a.x, b.y - hit.a.y
@@ -702,6 +1039,9 @@ local function advance(
 					end
 				end
 				local duration = Cluster.resolve(soft, hit.a, b, state.time, emit)
+				if lift then
+					liftFlyer(lift)
+				end
 
 				-- Bring every other ball up to the end of the phase.
 				local group: { [Ball]: boolean } = {}
@@ -853,6 +1193,7 @@ function Simulation.respotCueBall(state: State): boolean
 		return false
 	end
 	cue.pocketed = false
+	cue.offTable = false
 	cue.falling = false
 	cue.pocket = nil
 	cue.tip = nil

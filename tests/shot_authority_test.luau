@@ -56,7 +56,11 @@ return {
 		do
 			rejected({ angle = 0, power = 0.5, spin = spin }, "malformed spin")
 		end
-		rejected({ angle = 0, power = 0.5, elevation = 0 }, "player-controlled elevation")
+		rejected({ angle = 0, power = 0.5, elevation = 0 }, "elevation below the default")
+		rejected(
+			{ angle = 0, power = 0.5, elevation = Config.Cue.MaxElevationDegrees + 0.5 },
+			"elevation above the maximum"
+		)
 		rejected({ angle = 0, power = 0.5, overrides = {} }, "even empty forged material")
 		rejected(
 			{ angle = 0, power = 0.5, overrides = { RailRestitution = 1, RailFriction = 0 } },
@@ -67,7 +71,7 @@ return {
 		end
 	end,
 
-	["validated shots normalize angle clamp the spin disc and fix elevation"] = function()
+	["validated shots normalize angle clamp the spin disc and round elevation"] = function()
 		local Config = H.require("Config")
 		local ShotInput = H.require("ShotInput")
 		local payload =
@@ -77,7 +81,15 @@ return {
 		H.near(shot.angle, math.pi, 1e-12, "normalized angle")
 		H.near(shot.spin.x, 0.3, 1e-12, "clamped side")
 		H.near(shot.spin.y, -0.4, 1e-12, "clamped draw")
-		H.expect(shot.elevation == Config.Cue.CueElevationDegrees, "server-fixed elevation")
+		H.expect(shot.elevation == Config.Cue.CueElevationDegrees, "default elevation")
+		local raised = ShotInput.validate({ angle = 0, power = 0.5, elevation = 44.6 })
+		H.expect(raised ~= nil and raised.elevation == 45, "elevation rounds to a whole step")
+		local top = ShotInput.validate({
+			angle = 0,
+			power = 0.5,
+			elevation = Config.Cue.MaxElevationDegrees,
+		})
+		H.expect(top.elevation == Config.Cue.MaxElevationDegrees, "maximum elevation accepted")
 		H.expect(
 			payload.spin.x == 3 and payload.spin.y == -4,
 			"validation does not mutate the request"
@@ -148,7 +160,7 @@ return {
 				-- A client: take the seed off the wire and step from it. It never strikes.
 				local mine = Simulation.cloneState(state)
 				local myCue = Simulation.findBall(mine, 0)
-				myCue.vx, myCue.vy = seed.vx, seed.vy
+				myCue.vx, myCue.vy, myCue.vz = seed.vx, seed.vy, seed.vz
 				myCue.wx, myCue.wy, myCue.wz = seed.wx, seed.wy, seed.wz
 				mine.time = 0
 				local client = Simulation.settle(mine, {})
@@ -201,9 +213,10 @@ return {
 			local sim = Simulation.cloneState(state)
 			local strike = Simulation.strike(sim, shot)
 			local cue = Simulation.findBall(sim, 0)
-			local before = { vx = cue.vx, vy = cue.vy, wx = cue.wx, wy = cue.wy, wz = cue.wz }
+			local before =
+				{ vx = cue.vx, vy = cue.vy, vz = cue.vz, wx = cue.wx, wy = cue.wy, wz = cue.wz }
 			local seed = ShotInput.quantiseSeed(cue)
-			for _, field in { "vx", "vy", "wx", "wy", "wz" } do
+			for _, field in { "vx", "vy", "vz", "wx", "wy", "wz" } do
 				H.near(
 					seed[field],
 					before[field],
@@ -219,7 +232,7 @@ return {
 			local server = Simulation.settle(sim, { strike })
 			local clientState = Simulation.cloneState(state)
 			local clientCue = Simulation.findBall(clientState, 0)
-			clientCue.vx, clientCue.vy = seed.vx, seed.vy
+			clientCue.vx, clientCue.vy, clientCue.vz = seed.vx, seed.vy, seed.vz
 			clientCue.wx, clientCue.wy, clientCue.wz = seed.wx, seed.wy, seed.wz
 			local client = Simulation.settle(clientState, {})
 			H.expect(
@@ -273,7 +286,7 @@ return {
 		local clientState = Simulation.cloneState(state)
 		clientState.overrides = table.clone(server.overrides)
 		local clientCue = Simulation.findBall(clientState, 0)
-		clientCue.vx, clientCue.vy = seed.vx, seed.vy
+		clientCue.vx, clientCue.vy, clientCue.vz = seed.vx, seed.vy, seed.vz
 		clientCue.wx, clientCue.wy, clientCue.wz = seed.wx, seed.wy, seed.wz
 		local client = Simulation.settle(clientState, {})
 		H.expect(

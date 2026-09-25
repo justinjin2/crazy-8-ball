@@ -32,6 +32,7 @@ return {
 		FoulTitle = "FOUL BY %s",
 		FoulExplain = {
 			Scratch = "Pocketed the white ball.",
+			OffTable = "A ball flew off the table.",
 			NoContact = "You must hit a ball with the white ball.",
 			WrongContactOpen = "You must hit a solid or a stripe first, not the 8.",
 			WrongContactOwn = "You must hit one of your own balls first.",
@@ -87,6 +88,7 @@ return {
 		SoloEnded = "Solo game ended",
 		FoulReasons = {
 			Scratch = "Cue ball scratched",
+			OffTable = "Ball flew off the table",
 			NoContact = "No ball contacted",
 			WrongContact = "Wrong first contact",
 			NoRail = "No pocket or rail after contact",
@@ -112,6 +114,7 @@ return {
 			EarlyEight = "8-ball pocketed early",
 			WrongPocket = "8-ball in the wrong pocket",
 			FoulEight = "Foul on an 8-ball pocket",
+			EightOffTable = "8-ball flew off the table",
 			Surrender = "Team surrendered",
 			EmptyTeam = "A team has left",
 			Timeouts = "Two consecutive shooting timeouts",

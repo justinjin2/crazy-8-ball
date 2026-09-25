@@ -33,7 +33,8 @@ export type Ball = {
 	wx: number,
 	wy: number,
 	wz: number,
-	pocketed: boolean, -- captured by a pocket (rules use this)
+	pocketed: boolean, -- captured by a pocket, or off the table (rules use this)
+	offTable: boolean, -- flew off the table (always also pocketed, with no pocket)
 	falling: boolean, -- still dropping into the pocket (animation still running)
 	pocket: number?, -- pocket id once captured
 	tip: Tip?, -- set while the ball is still toppling over the lip, before it drops free
@@ -52,6 +53,7 @@ function Ball.new(id: number, x: number, y: number): Ball
 		wy = 0,
 		wz = 0,
 		pocketed = false,
+		offTable = false,
 		falling = false,
 		pocket = nil,
 		tip = nil,
@@ -71,6 +73,7 @@ function Ball.clone(b: Ball): Ball
 		wy = b.wy,
 		wz = b.wz,
 		pocketed = b.pocketed,
+		offTable = b.offTable,
 		falling = b.falling,
 		pocket = b.pocket,
 		tip = if b.tip then table.clone(b.tip) else nil,
@@ -89,25 +92,27 @@ function Ball.speed(b: Ball): number
 	return math.sqrt(b.vx * b.vx + b.vy * b.vy)
 end
 
---- True while motion can affect the shot (including a pocket drop). Horizontal spin can
---- restart translation through cloth friction; side spin alone does not keep a shot open.
+--- True while motion can affect the shot (including a pocket drop and a ball in the air).
+--- Horizontal spin can restart translation through cloth friction; side spin alone does not
+--- keep a shot open.
 function Ball.isMoving(b: Ball): boolean
 	if b.pocketed then
 		return b.falling
 	end
-	return b.vx ~= 0 or b.vy ~= 0 or b.wx ~= 0 or b.wy ~= 0
+	return b.vx ~= 0 or b.vy ~= 0 or b.wx ~= 0 or b.wy ~= 0 or b.z > 0 or b.vz ~= 0
 end
 
 function Ball.stop(b: Ball)
 	b.vx, b.vy, b.vz, b.wx, b.wy, b.wz = 0, 0, 0, 0, 0, 0
 end
 
---- Kinetic energy for a unit mass: translational plus rotational (solid sphere, I = 2/5 R^2).
-function Ball.kineticEnergy(b: Ball, radius: number): number
+--- Mechanical energy for a unit mass: translational plus rotational (solid sphere,
+--- I = 2/5 R^2), plus height above the cloth for a ball in the air (zero on the table).
+function Ball.kineticEnergy(b: Ball, radius: number, gravity: number?): number
 	if b.pocketed then
 		return 0
 	end
-	local linear = 0.5 * (b.vx * b.vx + b.vy * b.vy)
+	local linear = 0.5 * (b.vx * b.vx + b.vy * b.vy + b.vz * b.vz) + (gravity or 0) * b.z
 	local inertia = 0.4 * radius * radius
 	local rotational = 0.5 * inertia * (b.wx * b.wx + b.wy * b.wy + b.wz * b.wz)
 	return linear + rotational

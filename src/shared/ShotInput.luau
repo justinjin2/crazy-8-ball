@@ -8,7 +8,7 @@ local Cue = require(script.Parent.Physics.Cue)
 
 local ShotInput = {}
 
-export type Seed = { vx: number, vy: number, wx: number, wy: number, wz: number }
+export type Seed = { vx: number, vy: number, vz: number, wx: number, wy: number, wz: number }
 
 function ShotInput.isFinite(value: any): boolean
 	return type(value) == "number" and value == value and math.abs(value) < math.huge
@@ -39,14 +39,26 @@ function ShotInput.validate(payload: any, authorizedAbility: string?): (Cue.Shot
 		end
 		sx, sy = Cue.clampSpin(payload.spin.x, payload.spin.y)
 	end
-	local elevation = Config.Cue.CueElevationDegrees
+	local C = Config.Cue
+	local elevation = C.CueElevationDegrees
 	if payload.elevation ~= nil then
 		if not ShotInput.isFinite(payload.elevation) then
 			return nil, "elevation is not finite"
 		end
-		if payload.elevation ~= elevation then
-			return nil, "cue elevation is fixed"
+		if
+			payload.elevation < C.CueElevationDegrees
+			or payload.elevation > C.MaxElevationDegrees
+		then
+			return nil, "cue elevation out of range"
 		end
+		-- The slider moves in whole steps; round so every replay starts from the same number.
+		local step = C.ElevationStepDegrees
+		elevation = math.clamp(
+			C.CueElevationDegrees
+				+ math.floor((payload.elevation - C.CueElevationDegrees) / step + 0.5) * step,
+			C.CueElevationDegrees,
+			C.MaxElevationDegrees
+		)
 	end
 	if payload.overrides ~= nil then
 		return nil, "material overrides are server-owned"
@@ -86,9 +98,9 @@ function ShotInput.quantiseSeed(cue: Ball.Ball): Seed
 		local places = Config.Physics.SeedPlaces
 		return math.floor(value * places + 0.5) / places
 	end
-	cue.vx, cue.vy = quantise(cue.vx), quantise(cue.vy)
+	cue.vx, cue.vy, cue.vz = quantise(cue.vx), quantise(cue.vy), quantise(cue.vz)
 	cue.wx, cue.wy, cue.wz = quantise(cue.wx), quantise(cue.wy), quantise(cue.wz)
-	return { vx = cue.vx, vy = cue.vy, wx = cue.wx, wy = cue.wy, wz = cue.wz }
+	return { vx = cue.vx, vy = cue.vy, vz = cue.vz, wx = cue.wx, wy = cue.wy, wz = cue.wz }
 end
 
 return ShotInput

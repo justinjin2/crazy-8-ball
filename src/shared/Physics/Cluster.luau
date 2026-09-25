@@ -30,6 +30,7 @@
 
 local Config = require(script.Parent.Parent.Config)
 local Ball = require(script.Parent.Ball)
+local Flight = require(script.Parent.Flight)
 local TableGeometry = require(script.Parent.Table)
 
 type Ball = Ball.Ball
@@ -50,8 +51,8 @@ local HERTZ_DURATION = 2.9432
 -- Friction (shared with Simulation's pairwise model)
 ---------------------------------------------------------------------------------------------
 
--- Ordered piecewise-linear contact friction, clamped to the tabulated endpoint values.
-local function ballFriction(slipSpeed: number): number
+--- Ordered piecewise-linear contact friction, clamped to the tabulated endpoint values.
+function Cluster.ballFriction(slipSpeed: number): number
 	local points = Config.Physics.BallFrictionTable
 	if slipSpeed <= points[1].Speed then
 		return points[1].Friction
@@ -91,7 +92,7 @@ function Cluster.frictionImpulse(
 	if slipSpeed > Config.Physics.BallSlipEpsilon then
 		-- Unit masses and I = 0.4 R^2 give contact inverse mass 7. The cap prevents
 		-- slip reversing during impact and limits head-on spin transfer to 5/14.
-		local impulse = math.min(ballFriction(slipSpeed) * j, slipSpeed / 7)
+		local impulse = math.min(Cluster.ballFriction(slipSpeed) * j, slipSpeed / 7)
 		return -impulse * slipAlong / slipSpeed, -impulse * slipVertical / slipSpeed
 	end
 	return 0, 0
@@ -216,7 +217,8 @@ function Cluster.gather(
 	a: Ball,
 	b: Ball,
 	geometry: Geometry,
-	skip: { [Ball]: boolean }?
+	skip: { [Ball]: boolean }?,
+	flyer: Ball?
 ): { Ball }?
 	local P = Config.Physics
 	local R = Config.Balls.RadiusInches
@@ -243,6 +245,15 @@ function Cluster.gather(
 					break
 				end
 			end
+		end
+	end
+
+	-- The soft phase is planar: a ball in the air among them takes the pairwise 3-D model.
+	-- The one exception is `flyer`, a ball hopping low into the group, which the caller has
+	-- laid flat for the phase and gives its vertical kick afterwards.
+	for _, m in chosen do
+		if m ~= flyer and Flight.isAirborne(m) then
+			return nil
 		end
 	end
 

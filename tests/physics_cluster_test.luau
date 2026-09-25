@@ -238,7 +238,11 @@ return {
 		for seed = 1, 4 do
 			local outcome = realBreak(seed)
 			H.expect(outcome.firstContact == 1, "seed " .. seed .. ": first contact is not the 1")
+			-- A full-power strike can hop the cue ball a whisker; its landing is not a contact.
 			local first = outcome.events[2]
+			if first.type == "land" then
+				first = outcome.events[3]
+			end
 			H.expect(
 				first.type == "ballHit" and first.ball == 0 and first.other == 1,
 				"seed " .. seed .. ": the event after the strike is cue ball on the apex"

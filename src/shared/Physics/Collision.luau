@@ -1,5 +1,5 @@
 --!strict
--- Collision: exact time-of-impact tests for circles moving at constant velocity.
+-- Collision: exact time-of-impact tests for circles (and spheres) moving at constant velocity.
 -- Every test returns the impact time in [0, maxT] or nil, plus the contact normal
 -- pointing from the obstacle INTO the ball (the direction to push the ball out).
 -- Nothing here changes state; Simulation resolves the hits.
@@ -114,6 +114,53 @@ function Collision.circleTOI(
 	end
 	local rr = 2 * r
 	local c = dx * dx + dy * dy - rr * rr
+	local t: number
+	if c <= 0 then
+		t = 0
+	else
+		local disc = b * b - 4 * a * c
+		if disc < 0 then
+			return nil
+		end
+		t = (-b - math.sqrt(disc)) / (2 * a)
+	end
+	if t > maxT then
+		return nil
+	end
+	return t
+end
+
+--- Two equal spheres of radius r moving at constant 3-D velocity (a ball in the air against
+--- another ball; Simulation keeps the step short enough that gravity's curve is negligible).
+--- Returns t or nil.
+function Collision.sphereTOI(
+	ax: number,
+	ay: number,
+	az: number,
+	avx: number,
+	avy: number,
+	avz: number,
+	bx: number,
+	by: number,
+	bz: number,
+	bvx: number,
+	bvy: number,
+	bvz: number,
+	r: number,
+	maxT: number
+): number?
+	local dx, dy, dz = ax - bx, ay - by, az - bz
+	local dvx, dvy, dvz = avx - bvx, avy - bvy, avz - bvz
+	local b = 2 * (dx * dvx + dy * dvy + dz * dvz)
+	if b >= 0 then
+		return nil -- separating
+	end
+	local a = dvx * dvx + dvy * dvy + dvz * dvz
+	if a <= 0 then
+		return nil
+	end
+	local rr = 2 * r
+	local c = dx * dx + dy * dy + dz * dz - rr * rr
 	local t: number
 	if c <= 0 then
 		t = 0

@@ -353,7 +353,7 @@ end
 function Match.replay(
 	self: Match,
 	seq: number,
-	seed: { vx: number, vy: number, wx: number, wy: number, wz: number },
+	seed: { vx: number, vy: number, vz: number?, wx: number, wy: number, wz: number },
 	startedAt: number,
 	final: { number },
 	checksum: number,
@@ -367,7 +367,7 @@ function Match.replay(
 		return
 	end
 	-- Start from the server's numbers exactly. Nothing here recomputes the strike.
-	cue.vx, cue.vy = seed.vx, seed.vy
+	cue.vx, cue.vy, cue.vz, cue.z = seed.vx, seed.vy, seed.vz or 0, 0
 	cue.wx, cue.wy, cue.wz = seed.wx, seed.wy, seed.wz
 	self.state.time = 0
 	self.state.overrides = if overrides then table.clone(overrides) else nil
