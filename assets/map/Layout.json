@@ -1977,6 +1977,8 @@
   "city_edge_max": -200.0,
   "city_pitch": 110.0,
   "city_reach": 2300.0,
+  "height_cap_base": 200.0,
+  "height_cap_slope": 0.25,
   "land_drop": 0.6,
   "land_x": 155.0,
   "land_z": -165.0,

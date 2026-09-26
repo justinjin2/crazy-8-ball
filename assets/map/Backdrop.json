@@ -1,21 +1,21 @@
 {
  "chunks": {
-  "IslandShallows_0": 528,
-  "IslandShallows_1": 528,
-  "Islands_0": 5461,
-  "Islands_1": 5584,
-  "Skyline_m1_0": 3314,
-  "Skyline_m1_1": 2810,
-  "Skyline_m1_m1": 7276,
-  "Skyline_m1_m2": 6113,
-  "Skyline_m2_0": 3541,
-  "Skyline_m2_1": 592,
-  "Skyline_m2_m1": 7958,
-  "Skyline_m2_m2": 2054
+  "IslandShallows_0": 792,
+  "IslandShallows_1": 792,
+  "Islands_0": 5644,
+  "Islands_1": 5450,
+  "Skyline_m1_0": 5624,
+  "Skyline_m1_1": 2756,
+  "Skyline_m1_m1": 11373,
+  "Skyline_m1_m2": 6265,
+  "Skyline_m2_0": 3753,
+  "Skyline_m2_1": 538,
+  "Skyline_m2_m1": 8382,
+  "Skyline_m2_m2": 2043
  },
  "modules": {
-  "islands": 12101,
-  "skyline": 33658
+  "islands": 12678,
+  "skyline": 40734
  },
- "total_triangles": 45759
+ "total_triangles": 53412
 }

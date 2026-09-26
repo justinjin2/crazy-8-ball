@@ -2674,8 +2674,8 @@ Config.Map = {
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
-		Skyline = { Color = "rbxassetid://137381376954012" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
-		Islands = { Color = "rbxassetid://102751887345193" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
+		Skyline = { Color = "rbxassetid://129098724801552" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
+		Islands = { Color = "rbxassetid://88987645328245" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
 		-- shallows_color.png: near_color's shallows strip alone, every other strip clear (the same
 		-- layout, so the meshes keep their UVs). On near_color the far, low-angle mip levels mixed
 		-- the opaque strips round the shallows in, and the rings showed a hard edge.
