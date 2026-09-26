@@ -15,6 +15,9 @@ gradients that darken toward the art's cool shadow tint, since Roblox has no GI 
     overlays.png       RGBA: the warm glow under a table, a wall-foot shade, a column shade
     props_color.png    the props trim sheet (map_common.PROP_TRIM), soft shade baked in
     plants.png         RGBA: palm frond, fern frond, leafy clump (props/plants_textures.py)
+    near_color.png     RGBA, the near world's trim sheet (map_common.NEAR_TRIM): facades,
+                       roofs, streets, paving, sand, the painted shallows (the only strip with
+                       alpha) and the boats
 """
 
 import os
@@ -469,6 +472,156 @@ def props(rng):
     save_rgb(img, 'props_color.png')
 
 
+# ---------------------------------------------------------------------------------------------
+# The near world's trim sheet (map_common.NEAR_TRIM): facades, roofs, streets, the promenade,
+# the beach, the painted shallows (the one strip with alpha) and the boats
+# ---------------------------------------------------------------------------------------------
+
+def near(rng):
+    n = MASTER
+    s = n / mc.TRIM_PX
+    img = np.zeros((n, n, 3))
+    alpha = np.ones((n, n))
+    fine = periodic_noise(rng, n, n, 18)
+    soft = periodic_noise(rng, n, n, 160)
+    u_studs = {name: (np.arange(n) + 0.5) / n * studs for name, (_, _, studs) in mc.NEAR_TRIM.items()}
+
+    def strip(name):
+        top, bottom, _ = mc.NEAR_TRIM[name]
+        r0, r1 = int(top * s), int(bottom * s)
+        v = 1.0 - (np.arange(r0, r1) + 0.5 - r0) / (r1 - r0)  # 1 at the strip's top, 0 at its foot
+        return r0, r1, v[:, None], u_studs[name][None, :]
+
+    def base(hex_colour, r0, r1, fine_amt=0.006, soft_amt=0.01):
+        var = fine[r0:r1] * fine_amt + soft[r0:r1] * soft_amt
+        return colour_array(hex_colour)[None, None, :] * (1 + var)[..., None]
+
+    def hexmix(a, b, t):
+        return '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(a), mc.rgb(b), t))
+
+    def ao(col, v, reach=0.18, amount=0.3):
+        shade = (1 - smoothstep(0.0, reach, v)) * amount * P['ao_scale']
+        return toward_shadow(col, np.broadcast_to(shade, col.shape[:2]))
+
+    glass_lo = mc.shade(mc.rgb(mc.hexc('city_glass_day')), 0.35)
+    glass_hi = mc.rgb(mc.hexc('sky_horizon_day'))
+
+    def glass(hgt, lo=0.0, hi=10.0):
+        """Window glass: the city's blue, reflecting the pale sky toward the top."""
+        t = np.clip((hgt - lo) / max(hi - lo, 1e-6), 0, 1) ** 1.4
+        return np.array(glass_lo)[None, None, :] + (np.array(glass_hi) - np.array(glass_lo))[None, None, :] * t[..., None] * 0.55
+
+    floor_h = mc.FACADE_FLOOR_STUDS
+
+    def facade(name, wall_hex, windows):
+        r0, r1, v, u = strip(name)
+        hgt = np.broadcast_to(v * floor_h, (r1 - r0, n))
+        uu = np.broadcast_to(u, (r1 - r0, n))
+        col = base(wall_hex, r0, r1)
+        mask = windows(uu, hgt)
+        col = np.where(mask[..., None], glass(hgt, 2.0, 9.0), col)
+        col = ao(col, v, 0.1, 0.25)  # the slab line at the floor
+        img[r0:r1] = col
+
+    # Glass curtain wall: glass everywhere but the mullions and a spandrel band at the floor.
+    r0, r1, v, u = strip('n_glass')
+    hgt = np.broadcast_to(v * floor_h, (r1 - r0, n))
+    col = glass(hgt, 0.0, 10.0) * 1.05
+    mull = (np.broadcast_to(u, hgt.shape) % 2.5) < 0.18
+    spandrel = hgt < 1.1
+    frame = colour_array(hexmix(mc.hexc('city_facade_day'), '#FFFFFF', 0.3))
+    col = np.where((mull | spandrel)[..., None], frame[None, None, :] * np.ones_like(col), col)
+    img[r0:r1] = ao(col, v, 0.1, 0.2)
+    # Stone, terracotta and white: punched or ribbon windows in the wall.
+    facade('n_stone', mc.hexc('city_facade_day'),
+           lambda uu, h: ((uu % 5.0) > 1.0) & ((uu % 5.0) < 4.0) & (h > 2.5) & (h < 8.3))
+    facade('n_terracotta', mc.hexc('facade_terracotta_day'),
+           lambda uu, h: ((uu % 4.0) > 1.0) & ((uu % 4.0) < 3.0) & (h > 2.4) & (h < 8.0))
+    facade('n_white', hexmix(mc.hexc('facade_white_day'), '#FFFFFF', 0.45),
+           lambda uu, h: ((uu % 3.3) > 0.15) & (h > 3.2) & (h < 7.8))
+    # Lobby: cream piers every 5 studs, tall glass lit warm inside, a canopy shade at the top.
+    r0, r1, v, u = strip('n_lobby')
+    hgt = np.broadcast_to(v * floor_h, (r1 - r0, n))
+    uu = np.broadcast_to(u, hgt.shape)
+    col = base(mc.hexc('column'), r0, r1)
+    inside = mc.mix(mc.rgb(mc.hexc('lantern_glass')), mc.rgb(mc.hexc('city_glass_day')), 0.55)
+    pane = ((uu % 5.0) > 0.9) & (hgt > 0.5) & (hgt < 8.4)
+    col = np.where(pane[..., None], np.array(inside)[None, None, :] * np.ones_like(col), col)
+    col = toward_shadow(col, np.broadcast_to(smoothstep(8.0, 9.2, hgt) * 0.35, col.shape[:2]))
+    img[r0:r1] = ao(col, v, 0.08, 0.3)
+    # Roof: light grey membrane with faint seams every 4 studs; cap: the facade's stone, lit.
+    r0, r1, v, u = strip('n_roof')
+    col = base(hexmix(mc.hexc('city_facade_day'), '#A7A9B2', 0.5), r0, r1, 0.01, 0.02)
+    seam = np.broadcast_to((u % 4.0) < 0.1, col.shape[:2])
+    img[r0:r1] = np.where(seam[..., None], col * 0.93, col)
+    r0, r1, v, u = strip('n_cap')
+    img[r0:r1] = ao(base(hexmix(mc.hexc('city_facade_day'), '#FFFFFF', 0.25), r0, r1), v, 0.25, 0.25)
+    # Road: the art's warm grey asphalt, a light kerb at each edge, white edge lines and a
+    # dashed centre line (3 studs of dash every 6 along U).
+    asphalt = hexmix(mc.hexc('road_day'), '#707078', 0.5)
+    paint = colour_array('#EDEAE4')
+    r0, r1, v, u = strip('n_road')
+    col = base(asphalt, r0, r1, 0.02, 0.02)
+    vv, uu = np.broadcast_to(v, col.shape[:2]), np.broadcast_to(u, col.shape[:2])
+    kerb = (vv < 0.04) | (vv > 0.96)
+    lines = ((vv > 0.08) & (vv < 0.1)) | ((vv > 0.9) & (vv < 0.92)) | ((np.abs(vv - 0.5) < 0.012) & ((uu % 6.0) < 3.0))
+    col = np.where(kerb[..., None], colour_array(mc.hexc('step'))[None, None, :] * np.ones_like(col), col)
+    col = np.where(lines[..., None], paint[None, None, :] * np.ones_like(col), col)
+    img[r0:r1] = col
+    r0, r1, v, u = strip('n_crosswalk')
+    col = base(asphalt, r0, r1, 0.02, 0.02)
+    stripes = np.broadcast_to((u % 1.5) < 0.75, col.shape[:2])
+    img[r0:r1] = np.where(stripes[..., None], paint[None, None, :] * np.ones_like(col), col)
+    # Paving: sidewalk slabs, the plaza's big slabs, the promenade's warm tiles.
+
+    def paving(name, hex_colour, slab_u, rows_v, joint=0.06, darken=0.9):
+        r0, r1, v, u = strip(name)
+        col = base(hex_colour, r0, r1, 0.01, 0.015)
+        uu, vv = np.broadcast_to(u, col.shape[:2]), np.broadcast_to(v, col.shape[:2])
+        row = np.floor(vv * rows_v)
+        offset = (row % 2) * slab_u / 2
+        ju = ((uu + offset) % slab_u) < joint
+        jv = ((vv * rows_v) % 1.0) < joint * rows_v / (mc.NEAR_TRIM[name][2] * 0.5)
+        img[r0:r1] = np.where((ju | jv)[..., None], col * darken, col)
+
+    paving('n_sidewalk', hexmix(mc.hexc('city_facade_day'), '#FFFFFF', 0.35), 2.0, 2)
+    paving('n_plaza', hexmix(mc.ALBEDO['floor'], mc.hexc('step'), 0.3), 6.0, 1, 0.08, 0.93)
+    paving('n_promenade', hexmix(mc.hexc('sand'), mc.ALBEDO['floor'], 0.5), 2.0, 3)
+    r0, r1, v, u = strip('n_seawall')
+    img[r0:r1] = ao(base(mc.hexc('step'), r0, r1, 0.01, 0.02) * 0.9, v, 0.3, 0.4)
+    # Sand: dry at the top, wet (darker, a little warmer) toward the waterline at the foot.
+    r0, r1, v, u = strip('n_sand')
+    dry = base(mc.hexc('sand'), r0, r1, 0.02, 0.02)
+    wet = dry * np.array([0.84, 0.8, 0.76])[None, None, :]
+    t = np.broadcast_to(1 - smoothstep(0.0, 0.35, v), dry.shape[:2])
+    img[r0:r1] = dry * (1 - t[..., None]) + wet * t[..., None]
+    # Shallows (alpha): foam where it meets the sand (the top), the art's turquoise, then the
+    # water's own blue as it clears to nothing at the foot.
+    r0, r1, v, u = strip('n_shallows')
+    rows = r1 - r0
+    vv = np.broadcast_to(v, (rows, n))
+    turq, deep = colour_array(mc.hexc('shallows_day')), colour_array(mc.hexc('water_near'))
+    t = smoothstep(0.1, 0.85, vv)
+    col = deep[None, None, :] * (1 - t[..., None]) + turq[None, None, :] * t[..., None]
+    wobble = 0.015 * np.sin(np.broadcast_to(u, (rows, n)) * 2 * np.pi / 4.0)
+    foam = smoothstep(0.9, 0.95, vv + wobble)
+    col = col * (1 - foam[..., None]) + colour_array('#F4FAFA')[None, None, :] * foam[..., None]
+    img[r0:r1] = col
+    alpha[r0:r1] = np.clip(smoothstep(0.0, 0.7, vv) * 0.85 + foam * 0.15, 0, 1)
+    # Boats: a white hull with a blue stripe and a dark foot; cream sail cloth; dark wood.
+    r0, r1, v, u = strip('n_hull')
+    col = base(mc.hexc('boat_hull_day'), r0, r1, 0.004, 0.006)
+    vv = np.broadcast_to(v, col.shape[:2])
+    stripe = (vv > 0.55) & (vv < 0.72)
+    col = np.where(stripe[..., None], colour_array(mc.hexc('cushion_blue'))[None, None, :] * np.ones_like(col), col)
+    img[r0:r1] = ao(col, v, 0.2, 0.5)
+    r0, r1, v, u = strip('n_sail')
+    img[r0:r1] = base(mc.hexc('umbrella_canvas_day'), r0, r1, 0.004, 0.008)
+    r0, r1, v, u = strip('n_wood')
+    img[r0:r1] = base(mc.hexc('palm_trunk'), r0, r1, 0.03, 0.02)
+    save_rgba(img, alpha, 'near_color.png', bleed=mc.rgb(mc.hexc('water_near')))
+
+
 def plants(rng):
     """plants.png is drawn by props/plants_textures.py (builder B, Stage 3); skipped until it
     exists."""
@@ -489,6 +642,7 @@ if __name__ == '__main__':
     overlays()
     props(np.random.default_rng(SEED + 3))
     plants(np.random.default_rng(SEED + 4))
+    near(np.random.default_rng(SEED + 5))
     for name in sorted(os.listdir(OUT)):
         if name.endswith('.png'):
             im = Image.open(os.path.join(OUT, name))

@@ -235,4 +235,55 @@ return {
 			)
 		end
 	end,
+
+	["every near-world mesh has a row, a real map set and budgets that hold"] = function()
+		local M = H.require("Config").Map
+		local N = M.Near
+		local FIDELITY = { Automatic = true, Precise = true, Performance = true }
+		for name, row in N.Meshes do
+			H.expect(
+				M.Maps[row.Maps] ~= nil,
+				("Near.Meshes.%s names the map set %s, which Maps lacks"):format(name, row.Maps)
+			)
+			if row.AlphaMode then
+				H.expect(
+					ALPHA_MODES[row.AlphaMode],
+					("Near.Meshes.%s: AlphaMode %s"):format(name, row.AlphaMode)
+				)
+			end
+			if row.Fidelity then
+				H.expect(
+					FIDELITY[row.Fidelity],
+					("Near.Meshes.%s: Fidelity %s"):format(name, row.Fidelity)
+				)
+			end
+		end
+		H.expect(M.TriangleCaps[N.Import] ~= nil, "the near world has a triangle cap")
+		H.expect(#N.Boat.Paths >= 2 and #N.Boat.Paths <= 3, "two or three sailboats (the brief)")
+		-- Every mesh gen_near.py built (Near.json) has a row, and every row a mesh; the boat is
+		-- the template, not a mesh row.
+		if fs.isFile("assets/map/Near.json") then
+			local serde = require("@lune/serde")
+			local doc = serde.decode("json", fs.readFile("assets/map/Near.json"))
+			for name in doc.triangles do
+				if name ~= N.Boat.Mesh then
+					H.expect(
+						N.Meshes[name] ~= nil,
+						("Near.json builds %s, which Near.Meshes lacks"):format(name)
+					)
+				end
+			end
+			for name in N.Meshes do
+				H.expect(
+					doc.triangles[name] ~= nil,
+					("Near.Meshes.%s is not in Near.json"):format(name)
+				)
+			end
+			local total = doc.total_triangles + doc.triangles[N.Boat.Mesh] * (#N.Boat.Paths - 1)
+			H.expect(
+				total <= M.TriangleCaps[N.Import],
+				("the near world's %d triangles are over its cap"):format(total)
+			)
+		end
+	end,
 }

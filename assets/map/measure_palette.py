@@ -254,6 +254,17 @@ REGIONS = [
      "rooftop floor between the front tables"),
     ("lantern_glass_sunset", PS, (420, 315, 428, 345), 3, "largest", "none",
      "floor lantern panel at the entrance"),
+    # --- The near world below the roof (Stage 4): the city panel and the day panel's beach ---
+    ("road_day", CS, (383, 165, 392, 195), 3, "largest", "none",
+     "the street running down the middle of the city panel: the art paints it warm mauve-grey"),
+    ("facade_terracotta_day", CS, (22, 108, 38, 160), 3, "lightest", "darker",
+     "salmon-terracotta block at the far left; the shade is its window grid"),
+    ("facade_white_day", CS, (475, 85, 498, 140), 3, "lightest", "darker",
+     "the lit face of the cream-white tower right of centre; the shade is its windows"),
+    ("boat_hull_day", PD, (727, 185, 740, 190), 3, "lightest", "none",
+     "white yacht off the beach below the ocean side"),
+    ("shallows_day", PD, (700, 228, 725, 240), 3, "largest", "none",
+     "turquoise water just off the beach below the ocean side"),
 ]
 
 

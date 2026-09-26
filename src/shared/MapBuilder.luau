@@ -693,6 +693,153 @@ function MapBuilder.prepareProps(spec: any, data: any): string
 	return table.concat(lines, "\n")
 end
 
+--- Edit mode only: turn a fresh import of the near world (Config.Map.Near, fbx/Near.fbx) into
+--- the map. Safe to run twice.
+---  1. Takes the imported model (Workspace, or the map's own from an earlier run), flattens it
+---     and places it by its anchor cubes, as Map.<Import>.
+---  2. Dresses each mesh (Config.Map.Near.Meshes): anchored, never colliding, no shadows,
+---     RenderFidelity Performance (or the row's Fidelity), its map set.
+---  3. Keeps the Boat mesh as the template in ServerStorage.<Templates> and clones it once per
+---     path into Map.<Import>.<Folder>, each with its BoatIndex and BoatOffset attributes (the
+---     client drifts them: MapAmbience), at its pose at time 0 when `motion` (MapMotion) is
+---     given, else at its path's centre.
+---  4. Removes the gray-box's near rows, refills the water, and makes the model Persistent.
+---  5. Counts triangles against TriangleCaps.Near and MeshParts against the backdrop budget.
+--- Returns a report; anything wrong is a line starting "PROBLEM:".
+function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
+	if game:GetService("RunService"):IsRunning() then
+		error("MapBuilder.prepareNear runs in Edit mode only; stop the play session first")
+	end
+	local lines: { string } = {}
+	local function say(line: string)
+		table.insert(lines, line)
+	end
+	local map = mapModel()
+	local N = spec.Near
+	local model = takeImport(N.Import, map, spec.Anchors, say)
+	if model == nil then
+		return ("No Model named %s in Workspace. Import assets/map/fbx/Near.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
+			N.Import
+		)
+	end
+	assert(model, "the near world's model")
+
+	-- The boat template, kept out of the world.
+	local B = N.Boat
+	local store = game:GetService("ServerStorage")
+	local templates = store:FindFirstChild(B.Templates)
+	if not templates then
+		local made = Instance.new("Folder")
+		made.Name = B.Templates
+		made.Parent = store
+		templates = made
+	end
+	assert(templates, "the templates folder")
+	local fresh = model:FindFirstChild(B.Mesh)
+	if fresh and fresh:IsA("MeshPart") then
+		local old = templates:FindFirstChild(B.Mesh)
+		if old and old ~= fresh then
+			old:Destroy()
+		end
+		fresh.Parent = templates
+	end
+	local template = templates:FindFirstChild(B.Mesh)
+
+	-- The meshes.
+	local total, counted, meshParts = 0, true, 0
+	for _, child in model:GetChildren() do
+		if child:IsA("MeshPart") and N.Meshes[child.Name] == nil then
+			say(("PROBLEM: %s is not in Config.Map.Near.Meshes."):format(child.Name))
+		end
+	end
+	for _, name in sortedKeys(N.Meshes) do
+		local row = N.Meshes[name]
+		local part = model:FindFirstChild(name)
+		if not (part and part:IsA("MeshPart")) then
+			say(("PROBLEM: the near world has no mesh %s."):format(name))
+			continue
+		end
+		if not dress(part, spec, row.Maps, row.AlphaMode, nil, false, say) then
+			say(("%s: no image uploaded yet for %s."):format(name, row.Maps))
+		end
+		part.RenderFidelity = (Enum.RenderFidelity :: any)[row.Fidelity or "Performance"]
+		meshParts += 1
+		local tris = triangleCount(part)
+		if tris then
+			total += tris
+		else
+			counted = false
+		end
+	end
+
+	-- The boats.
+	local old = model:FindFirstChild(B.Folder)
+	if old then
+		old:Destroy()
+	end
+	if template and template:IsA("MeshPart") then
+		dress(template, spec, "Near", nil, nil, false, say)
+		template.RenderFidelity = Enum.RenderFidelity.Performance
+		local tris = triangleCount(template)
+		if tris then
+			total += tris * #B.Paths
+		end
+		local folder = Instance.new("Model")
+		folder.Name = B.Folder
+		local offset = CFrame.new(template.Position) * template.CFrame.Rotation
+		for i, path in B.Paths do
+			local start: CFrame
+			if motion then
+				local p = motion.boatPose(path, 0, B)
+				start = CFrame.new(p.x, p.y, p.z) * CFrame.Angles(0, p.yaw, 0)
+			else
+				start = CFrame.new(path.Centre[1], B.SeaY, path.Centre[2])
+			end
+			local boat = template:Clone()
+			boat.Name = ("Boat%02d"):format(i)
+			boat:SetAttribute("BoatIndex", i)
+			boat:SetAttribute("BoatOffset", offset)
+			boat.CFrame = start * offset
+			boat.Parent = folder
+			meshParts += 1
+		end
+		folder.Parent = model
+	else
+		say(
+			("PROBLEM: no %s mesh in the import or in ServerStorage.%s."):format(
+				B.Mesh,
+				B.Templates
+			)
+		)
+	end
+
+	say(("Removed %d gray-box parts of the near world."):format(removeGrayBox(map, "near")))
+	fillWater(data)
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+
+	local cap = spec.TriangleCaps[N.Import]
+	if counted then
+		say(("%d triangles with the boats (cap %d)."):format(total, cap))
+		if total > cap then
+			say(("PROBLEM: %d triangles is over the cap of %d."):format(total, cap))
+		end
+	else
+		say("Could not read every mesh's triangles (EditableMesh).")
+	end
+	say(
+		("%d MeshParts in the near world (backdrop budget %d)."):format(meshParts, N.MeshPartBudget)
+	)
+	if meshParts > N.MeshPartBudget then
+		say(
+			("PROBLEM: %d MeshParts is over the backdrop budget of %d."):format(
+				meshParts,
+				N.MeshPartBudget
+			)
+		)
+	end
+	return table.concat(lines, "\n")
+end
+
 -- Write a preset block's values onto an instance: hex strings become colours, asset ids stay
 -- strings, numbers and booleans go as they are. Nested tables are the caller's.
 local function applyValues(target: Instance, values: { [string]: any })

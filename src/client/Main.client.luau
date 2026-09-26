@@ -23,6 +23,7 @@ local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
+local MapAmbience = require(script.Parent.MapAmbience)
 local Hub = require(script.Parent.Hub)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
@@ -623,6 +624,7 @@ UserInputService.InputBegan:Connect(function(key, processed)
 end)
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
+local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
@@ -680,6 +682,7 @@ RunService.RenderStepped:Connect(function(dt)
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
 	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled)
+	mapAmbience:update(os.clock())
 	-- The sign over the table you walk up to; none while you are in a box or playing.
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")

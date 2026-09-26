@@ -1,4 +1,15 @@
 {
+  "boat_hull_day": {
+    "box": [727, 185, 740, 190],
+    "clusters": [["#E7F2F5", 0.431], ["#A2A8B4", 0.292], ["#525868", 0.277]],
+    "hex": "#E7F2F5",
+    "image": "assets/map/reference/panels/day.jpg",
+    "k": 3,
+    "note": "white yacht off the beach below the ocean side",
+    "pick": "lightest",
+    "shade": null,
+    "source": "image"
+  },
   "city_facade_day": {
     "box": [120, 235, 135, 295],
     "clusters": [["#C2B2AA", 0.488], ["#75697B", 0.436], ["#686A4D", 0.077]],
@@ -162,6 +173,28 @@
     "note": "cream cushion on the 02 ocean-side sofa: lit top; shade is its shaded front",
     "pick": "lightest",
     "shade": "#DAA798",
+    "source": "image"
+  },
+  "facade_terracotta_day": {
+    "box": [22, 108, 38, 160],
+    "clusters": [["#E2AD9E", 0.531], ["#7E5155", 0.249], ["#B7867F", 0.22]],
+    "hex": "#E2AD9E",
+    "image": "assets/map/reference/panels/city-side.jpg",
+    "k": 3,
+    "note": "salmon-terracotta block at the far left; the shade is its window grid",
+    "pick": "lightest",
+    "shade": "#B7867F",
+    "source": "image"
+  },
+  "facade_white_day": {
+    "box": [475, 85, 498, 140],
+    "clusters": [["#93878B", 0.387], ["#C9B6B5", 0.373], ["#615862", 0.24]],
+    "hex": "#C9B6B5",
+    "image": "assets/map/reference/panels/city-side.jpg",
+    "k": 3,
+    "note": "the lit face of the cream-white tower right of centre; the shade is its windows",
+    "pick": "lightest",
+    "shade": "#93878B",
     "source": "image"
   },
   "fern": {
@@ -670,6 +703,17 @@
     "shade": null,
     "source": "image"
   },
+  "road_day": {
+    "box": [383, 165, 392, 195],
+    "clusters": [["#A48494", 0.5], ["#C9868E", 0.281], ["#746480", 0.219]],
+    "hex": "#A48494",
+    "image": "assets/map/reference/panels/city-side.jpg",
+    "k": 3,
+    "note": "the street running down the middle of the city panel: the art paints it warm mauve-grey",
+    "pick": "largest",
+    "shade": null,
+    "source": "image"
+  },
   "sand": {
     "box": [20, 118, 60, 130],
     "clusters": [["#F5DEC1", 0.662], ["#90D5DD", 0.273], ["#8D846E", 0.065]],
@@ -677,6 +721,17 @@
     "image": "assets/map/reference/panels/ocean-side.jpg",
     "k": 3,
     "note": "beach",
+    "pick": "largest",
+    "shade": null,
+    "source": "image"
+  },
+  "shallows_day": {
+    "box": [700, 228, 725, 240],
+    "clusters": [["#77DAE7", 0.77], ["#72B091", 0.123], ["#6A8A2B", 0.107]],
+    "hex": "#77DAE7",
+    "image": "assets/map/reference/panels/day.jpg",
+    "k": 3,
+    "note": "turquoise water just off the beach below the ocean side",
     "pick": "largest",
     "shade": null,
     "source": "image"

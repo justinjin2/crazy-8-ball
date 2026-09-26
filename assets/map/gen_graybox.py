@@ -16,7 +16,6 @@ script; the gray-box is replaced stage by stage by the Blender meshes.
 import json
 import math
 import os
-import random
 import sys
 
 sys.dont_write_bytecode = True
@@ -26,7 +25,6 @@ import city_plan as cp  # noqa: E402
 import map_common as mc  # noqa: E402
 import map_layout as ml  # noqa: E402
 
-SEED = 26092026  # the block city and the islands
 OUT = os.path.join(HERE, '..', '..', 'src', 'server', 'MapData', 'GrayBox.json')
 
 # The world round the rooftop (Spec section 7; city_plan.WORLD holds the numbers).
@@ -310,7 +308,7 @@ def city(g, folder):
     lowered land up to a stud over the street, and each lot a podium, a shaft and, on the tall
     ones, a crown. The near blocks' rows are tagged 'near' (gen_near.py builds them)."""
     size = W['city_block']
-    for b in cp.blocks(lambda i, j: random.Random(cp.block_seed(SEED, i, j))):
+    for b in cp.city_blocks():
         group = 'near' if b['near'] else None
         if b['sidewalk']:
             top = STREET_Y + 1.0

@@ -6,6 +6,9 @@ Layout.json for the Lune tests.
 """
 
 import math
+import random
+
+CITY_SEED = 26092026  # the city's random numbers (each block's own: block_seed)
 
 # ---------------------------------------------------------------------------------------------
 # The world (studs; Roblox axes: the ocean is +X and behind the tower, -Z)
@@ -90,6 +93,11 @@ def block_seed(seed, i, j):
     on Python 3.11 and later). Each block has its own, so changing the coast or the near
     radius re-rolls only the blocks it touches."""
     return seed * 1_000_003 + (i + 1000) * 4099 + (j + 1000)
+
+
+def city_blocks():
+    """The city as the gray-box and the near world build it (CITY_SEED, a source per block)."""
+    return blocks(lambda i, j: random.Random(block_seed(CITY_SEED, i, j)))
 
 
 def blocks(rng_for):

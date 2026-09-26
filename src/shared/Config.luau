@@ -2627,8 +2627,9 @@ Config.Multiplayer = {
 
 ---------------------------------------------------------------------------------------------
 -- The hub map (the rooftop pool club; docs/prompts/ROOFTOP_MAP_PROMPT.md, assets/map/Spec.md).
--- Built in Edit mode by src/shared/MapBuilder.luau and saved in the place; nothing in the
--- running game reads this. Colours are hex strings (this file loads in Lune).
+-- Built in Edit mode by src/shared/MapBuilder.luau and saved in the place. In the running game
+-- only the drifting boats read it (Map.Near.Boat: src/client/MapAmbience.luau). Colours are
+-- hex strings (this file loads in Lune).
 ---------------------------------------------------------------------------------------------
 Config.Map = {
 	Name = "Map", -- Workspace model holding the whole map
@@ -2672,6 +2673,7 @@ Config.Map = {
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
+		Near = { Color = "rbxassetid://101080418807638" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2688,7 +2690,7 @@ Config.Map = {
 	-- Most unique map images (the brief: 20, besides the two skyboxes and four far cards).
 	ImageBudget = 20,
 	-- Triangle caps by group (the brief, section 6), checked by prepareImport and prepareProps.
-	TriangleCaps = { Rooftop = 60000, Props = 140000 },
+	TriangleCaps = { Rooftop = 60000, Props = 140000, Near = 50000 },
 	MeshPartBudget = 400, -- rooftop and props (the brief)
 	LightBudget = 20, -- PointLights, SpotLights and SurfaceLights in the whole map, Shadows off
 
@@ -2735,6 +2737,71 @@ Config.Map = {
 		-- The Seat parts: invisible pads on the seat surfaces; a character sits facing the
 		-- prop's seat direction (gen_props seats' yaw).
 		SeatSize = { 2, 0.2, 2 },
+	},
+
+	-- The near world below the roof (assets/map/fbx/Near.fbx, gen_near.py; Stage 4): the
+	-- tower's walls, the streets and neighbour buildings, the promenade, beach and painted
+	-- shallows, palms, trees and one sailboat template. MapBuilder.prepareNear places it by
+	-- its anchors as Map.<Import>. Nobody can get down there, so nothing in it collides.
+	Near = {
+		Import = "Near", -- the imported model's name in Workspace, then Map.<Import>
+		-- Every mesh the model must hold: its map set (Maps) and alpha. The backdrop casts no
+		-- shadows and draws at RenderFidelity Performance (the brief); the tower's walls are
+		-- big and close, so they keep Automatic.
+		Meshes = {
+			Tower = { Maps = "Arch", Fidelity = "Automatic" },
+			Ground = { Maps = "Near" },
+			Buildings_Left = { Maps = "Near" },
+			Buildings_Front = { Maps = "Near" },
+			Coast = { Maps = "Near" },
+			Shallows = { Maps = "Near", AlphaMode = "Transparency" },
+			Palms = { Maps = "Plants", AlphaMode = "Transparency" },
+			Trees = { Maps = "Plants", AlphaMode = "Transparency" },
+		} :: { [string]: { Maps: string, AlphaMode: string?, Fidelity: string? } },
+		-- The backdrop's MeshParts (the brief: about 30, for the near world and Stages 5 and 6).
+		MeshPartBudget = 30,
+		-- The sailboats: the Boat mesh kept in ServerStorage.<Templates>, cloned once per path
+		-- into Map.<Import>.<Folder>; each client drifts them along their paths from the
+		-- server's clock (MapMotion.boatPose), so everyone sees the same boats.
+		Boat = {
+			Mesh = "Boat",
+			Templates = "MapNear",
+			Folder = "Boats",
+			SeaY = -302, -- the sea's surface (city_plan.WORLD.sea_y; the tests check they agree)
+			MaxSpeed = 4, -- studs a second: drifting, never racing (the brief)
+			BobHeight = 0.3, -- studs, up and down on the swell...
+			BobSeconds = 5.5, -- ...once in this long
+			RollDegrees = 2, -- side to side...
+			RollSeconds = 7,
+			PitchDegrees = 1, -- and bow to stern
+			PitchSeconds = 6,
+			-- Long slow loops at sea, off the ocean side and behind the tower (Centre X, Z;
+			-- Radius along X, Z; Seconds a loop; Phase 0..1 where it starts; Direction 1
+			-- anticlockwise seen from above, -1 clockwise).
+			Paths = {
+				{
+					Centre = { 700, -300 },
+					Radius = { 260, 180 },
+					Seconds = 900,
+					Phase = 0,
+					Direction = 1,
+				},
+				{
+					Centre = { 1150, 250 },
+					Radius = { 300, 140 },
+					Seconds = 1100,
+					Phase = 0.4,
+					Direction = -1,
+				},
+				{
+					Centre = { 420, -900 },
+					Radius = { 220, 160 },
+					Seconds = 800,
+					Phase = 0.7,
+					Direction = 1,
+				},
+			},
+		},
 	},
 }
 
