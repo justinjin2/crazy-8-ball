@@ -1122,3 +1122,19 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - In play both read lighter than their swatches (the raspberry quite pink, the charcoal a
     slate grey); the designer's call whether to trade some contrast for a redder or darker
     felt.
+- 2026-09-26: The hub map, Stage 0 (designer interview; spec in `assets/map/Spec.md`):
+  - Queue pads on the map sit in front of each table, centred on the long side facing the
+    entrance (not at the head end); the pad's shape may still change, so the grid is computed
+    from the pad size in Config.
+  - The map uses the regular lobby's mode looks (wood frames: green 1v1, raspberry 2v2,
+    charcoal 3v3), replacing the brief's "all green".
+  - Side seating follows the day view (02): city side planters, palms and lanterns; ocean
+    side umbrella sets with loungers and sofa groups along the railing.
+  - The entrance stair walks down to a small dead-end landing.
+  - Prop scale is split: seats, steps and railings at player scale (1 m = 2.86 studs), big
+    decor about 1.4 times that, the layout on the table's scale (the art draws real tables;
+    ours are 2.25 times a real one in plan).
+  - The snack counter is the art's lit back bar, centred along the back of the lounge.
+  - The sunset sun: Roblox's sun always sets toward -X (the city side), so the Sunset state
+    uses a real dawn sun (ClockTime 6.4, latitude -30) to sit low over the ocean, right of
+    the lounge, as in the art; Day is latitude 45, ClockTime 10. Never a painted sun.

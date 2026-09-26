@@ -1,0 +1,534 @@
+"""The rooftop plan: every position on the hub map, in one place.
+
+Pure Python (no bpy, no Pillow at import), so Blender generators, the plan drawing and the
+checks all read the same numbers. Studs, Roblox world axes: X to the right as seen from the
+entrance (the city is -X, the ocean +X), Y up (the rooftop floor is Y = 0), Z toward the
+entrance (the lounge is -Z). Yaw is degrees about +Y, as CFrame.Angles(0, yaw, 0).
+
+The table grid, the modes and the spawn are gameplay: they are written into
+src/shared/Config.luau (Config.Hub.Tables, Config.TableModel.LookByTable,
+Config.Multiplayer.Spawn) and tests/map_layout_test.luau checks that the two agree. The queue
+pad's size comes from Config too (GAME below); when the pad changes, change GAME, re-run, and
+everything re-spaces. Everything else here is the map's own. The brief is
+docs/prompts/ROOFTOP_MAP_PROMPT.md; the spec is assets/map/Spec.md.
+
+Run it to write Layout.json and check the plan (exit 1 on any problem):
+    python3 assets/map/map_layout.py
+"""
+
+import json
+import math
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+# ---------------------------------------------------------------------------------------------
+# Gameplay footprint, mirrored from Config (tests/map_layout_test.luau keeps them equal)
+# ---------------------------------------------------------------------------------------------
+GAME = {
+    'table_length': (100 + 2 * 7) * 0.16,  # Table.LengthInches + 2 rails, times StudsPerInch
+    'table_width': (50 + 2 * 7) * 0.16,
+    'barrier_half': (9.48, 5.48),  # Placement.barrierHalfExtents (rails + Barrier.MarginStuds)
+    'fence_half': (13.0, 8.5),  # Multiplayer.Fence.HalfLengthStuds, HalfWidthStuds
+    'fence_wall': 1.0,  # Fence.ThicknessStuds, outside the inner face
+    # The queue pad (Multiplayer.Queue): round for now (its shape may change), centred on the
+    # table's long side toward the entrance (designer, 2026-09-26), just beyond the walkway.
+    'pad_radius': {1: 3.5, 2: 4.25, 3: 5.0},  # PadRadiusStuds by team size
+    'pad_gap': 1.0,  # PadGapStuds: from the walkway's edge to the pad
+    'fence_margin': 0.5,  # FenceMarginStuds: the match fence stands this far beyond the pad
+    'pad_side': -1,  # the sign of physics y the pad sits on: world +Z (the entrance) at yaw 0
+    'player_height': 5.0,
+}
+
+# Every table plays one mode (team size a side) and wears that mode's regular-lobby look
+# (wood frames; designer, 2026-09-26). Rows front to back, columns city to ocean: the 1v1
+# tables at the front, the 3v3 pair at the back centre, as on the baseplate.
+MODES = [
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+    [1, 2, 2, 1],
+    [2, 3, 3, 2],
+]
+LOOK_BY_MODE = {1: 'Green', 2: 'RedWood', 3: 'CharcoalWood'}
+
+# ---------------------------------------------------------------------------------------------
+# The plan's choices (studs). Spacing is on the table's scale (the art's layout); anything a
+# player sits on or climbs is at player scale; big decor about 1.4x player scale (designer,
+# 2026-09-26). A re-run is the tweak.
+# ---------------------------------------------------------------------------------------------
+P = {
+    # Tables: 4 across (X) and 4 deep (Z), long sides to the entrance (yaw 0), pads in front.
+    # Aisles are measured between match fences; the row pitch leaves room for the biggest
+    # pad anywhere in the grid, so every row is evenly spaced like the art.
+    'table_yaw': 0,
+    'aisle_x': 10.0,  # between columns (the aisles running toward the lounge)
+    'aisle_z': 8.0,  # between rows, at the narrowest (behind the biggest pad)
+    # Walkways round the field (between the outer fences and the next thing).
+    'front_walk': 10.0,  # field front to the entrance landing
+    'back_walk': 8.0,  # field back to the lounge steps
+    'side_walk': 10.0,  # field side to the side zones
+    'side_zone': 16.0,  # side zone depth, walkway edge to the railing's inner face
+    # The edge: a low parapet with a dark-framed glass railing on top (player scale).
+    'parapet_height': 1.2,
+    'parapet_thickness': 1.2,
+    'railing_top': 3.6,  # above the floor
+    'safety_wall_top': 40.0,  # the invisible wall above the railing reaches this high
+    # Entrance, at the front centre: the landing (spawn), a grand stair down to a small dead
+    # end (the art's central flight is 1.7 table lengths wide).
+    'landing_depth': 10.0,
+    'steps_width': 26.0,
+    'step_count': 10,
+    'step_rise': 0.5,
+    'step_run': 1.6,
+    'lower_landing_depth': 8.0,
+    'entrance_column': 2.8,  # square, cream, framing the view from the stair head
+    'entrance_column_height': 16.0,
+    # Lounge across the back, raised four steps, under a pergola about 75% of the field wide.
+    'lounge_step_count': 4,
+    'lounge_step_rise': 0.5,
+    'lounge_step_run': 2.0,
+    'lounge_flight_half_width': 14.0,  # the central flight (the rest of the edge is a low riser)
+    'lounge_depth': 28.0,  # platform, top step to the back railing
+    'lounge_half_width': 56.0,
+    'pergola_half_width': 48.0,
+    'pergola_front_inset': 3.0,  # pergola front columns this far behind the platform edge
+    'pergola_depth': 22.0,
+    'pergola_height': 15.0,  # clear height under the beams
+    'pergola_column': 2.6,
+    'pergola_bays': 5,  # 6 columns per row, 19.2 apart: no column in the middle of the view
+    # Spawn on the landing, facing the tables. Y is the SpawnLocation's centre (a 1-stud pad).
+    'spawn_from_landing_front': 4.5,
+}
+
+# Prop footprints (studs): width along the prop's own X, depth along its own Z, height.
+# Stage 3 builds to these (Spec section 4).
+PROP_SIZE = {
+    'fern_planter': (3.2, 3.2, 7.0),  # box 3.0 high, ferns above
+    'palm_planter': (4.8, 4.8, 26.0),  # box 3.2 high, palm crown about 18 across
+    'lantern': (1.5, 1.5, 4.0),
+    'lantern_tall': (2.2, 2.2, 6.5),
+    'umbrella_set': (12.0, 12.0, 12.0),  # canopy 12 across, two loungers under it
+    'side_couch': (12.0, 6.0, 2.6),  # a sofa with its back to the railing and an ottoman
+    'lounge_couch': (20.0, 9.0, 2.6),  # U sectional, seat 1.3, round a coffee table or fire pit
+    'coffee_table': (2.8, 2.8, 1.3),
+    'fire_pit': (4.5, 4.5, 1.4),
+    'piano': (4.4, 5.8, 3.0),
+    'piano_bench': (2.4, 1.0, 1.4),
+    'snack_counter': (24.0, 5.0, 8.0),  # the art's lit back bar: counter 3.2 high, shelves to 8
+    'globe_light': (1.5, 1.5, 1.5),
+    'table_glow': (22.0, 14.0, 0.02),
+}
+
+# Things that block walking (their footprint is solid). Glow planes and lights do not.
+SOLID = {'fern_planter', 'palm_planter', 'lantern', 'lantern_tall', 'umbrella_set', 'side_couch',
+         'lounge_couch', 'coffee_table', 'fire_pit', 'piano', 'piano_bench', 'snack_counter',
+         'column'}
+
+MIN_WALKWAY = 8.0  # section 4 of the brief: main walkways at least this wide
+
+
+# ---------------------------------------------------------------------------------------------
+# Derived gameplay shapes (the same sums as src/shared/Placement.luau)
+# ---------------------------------------------------------------------------------------------
+
+def queue_pad_local(team):
+    """The pad: centre (cx, cy) and radius in table studs (x along the length, y physics)."""
+    fy = GAME['fence_half'][1]
+    r = GAME['pad_radius'][team]
+    return 0.0, GAME['pad_side'] * (fy + GAME['pad_gap'] + r), r
+
+
+def match_fence_local(team):
+    """The walkway grown to take in the pad: half extents (hx, hy), centre (cx, cy)."""
+    fx, fy = GAME['fence_half']
+    pcx, pcy, r = queue_pad_local(team)
+    m = GAME['fence_margin']
+    x0, x1 = min(-fx, pcx - r - m), max(fx, pcx + r + m)
+    y0, y1 = min(-fy, pcy - r - m), max(fy, pcy + r + m)
+    return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
+
+
+def local_rect_to_world(t, cx, cy, hx, hy):
+    """A table-local box (x along the length, y = physics y) as a world rectangle
+    (x0, z0, x1, z1). Physics y maps to world -Z at yaw 0 (Placement.toWorld)."""
+    yaw = math.radians(t['yaw'])
+    c, s = math.cos(yaw), math.sin(yaw)
+    xs, zs = [], []
+    for lx in (cx - hx, cx + hx):
+        for ly in (cy - hy, cy + hy):
+            xs.append(t['X'] + lx * c - ly * s)
+            zs.append(t['Z'] - (lx * s + ly * c))
+    return (min(xs), min(zs), max(xs), max(zs))
+
+
+def local_point_to_world(t, lx, ly):
+    yaw = math.radians(t['yaw'])
+    c, s = math.cos(yaw), math.sin(yaw)
+    return t['X'] + lx * c - ly * s, t['Z'] - (lx * s + ly * c)
+
+
+# ---------------------------------------------------------------------------------------------
+# The plan
+# ---------------------------------------------------------------------------------------------
+
+def build():
+    teams = sorted({m for row in MODES for m in row})
+    widest = max(2 * match_fence_local(n)[0] for n in teams)
+    deepest = max(2 * match_fence_local(n)[1] for n in teams)
+    pitch_x = widest + P['aisle_x']
+    pitch_z = deepest + P['aisle_z']
+
+    # Table centres, centred on X = 0 and Z = 0. Row 1 is the front (nearest the spawn); ids
+    # run left to right, front to back, like the baseplate grid.
+    xs = [(i - 1.5) * pitch_x for i in range(4)]
+    zs = [(1.5 - r) * pitch_z for r in range(4)]
+    tables = []
+    for r, z in enumerate(zs):
+        for i, x in enumerate(xs):
+            team = MODES[r][i]
+            tables.append({'id': r * 4 + i + 1, 'X': x, 'Y': 0.0, 'Z': z, 'yaw': P['table_yaw'],
+                           'teamSize': team, 'look': LOOK_BY_MODE[team]})
+
+    fences, pads, barriers = [], [], []
+    bx, bz = GAME['barrier_half']
+    for t in tables:
+        hx, hy, cx, cy = match_fence_local(t['teamSize'])
+        fences.append(local_rect_to_world(t, cx, cy, hx, hy))
+        pcx, pcy, r = queue_pad_local(t['teamSize'])
+        px, pz = local_point_to_world(t, pcx, pcy)
+        pads.append({'X': px, 'Z': pz, 'radius': r})
+        barriers.append(local_rect_to_world(t, 0, 0, bx, bz))
+
+    field = (min(f[0] for f in fences), min(f[1] for f in fences),
+             max(f[2] for f in fences), max(f[3] for f in fences))
+    fx0, fz0, fx1, fz1 = field
+
+    # Terrace edges (the railing's inner face).
+    rail_x = fx1 + P['side_walk'] + P['side_zone']
+    landing_front = fz1 + P['front_walk']  # the landing starts here...
+    front_edge = landing_front + P['landing_depth']  # ...and the stair starts here
+    lounge_front = fz0 - P['back_walk']  # the lounge steps start here (going back)
+    lounge_steps_depth = P['lounge_step_count'] * P['lounge_step_run']
+    platform_front = lounge_front - lounge_steps_depth
+    back_edge = platform_front - P['lounge_depth']
+    platform_y = P['lounge_step_count'] * P['lounge_step_rise']
+
+    steps_depth = P['step_count'] * P['step_run']
+    lower_y = -P['step_count'] * P['step_rise']
+    lower_front = front_edge + steps_depth + P['lower_landing_depth']
+
+    spawn = {'X': 0.0, 'Y': 0.5, 'Z': landing_front + P['spawn_from_landing_front'], 'yaw': 0.0}
+
+    lw, lf = P['lounge_half_width'], P['lounge_flight_half_width']
+    pw = P['pergola_half_width']
+    zones = {
+        'field': field,
+        'terrace': (-rail_x, back_edge, rail_x, front_edge),
+        'landing': (-rail_x, landing_front, rail_x, front_edge),
+        'steps': (-P['steps_width'] / 2, front_edge, P['steps_width'] / 2, front_edge + steps_depth),
+        'lower_landing': (-P['steps_width'] / 2, front_edge + steps_depth, P['steps_width'] / 2, lower_front),
+        'lounge_steps': (-lf, platform_front, lf, lounge_front),
+        'lounge_riser': (-lw, platform_front, lw, platform_front + 0.01),
+        'lounge': (-lw, back_edge, lw, platform_front),
+        'pergola': (-pw, platform_front - P['pergola_front_inset'] - P['pergola_depth'],
+                    pw, platform_front - P['pergola_front_inset']),
+        'side_city': (-rail_x, back_edge, -(fx1 + P['side_walk']), landing_front),
+        'side_ocean': (fx1 + P['side_walk'], back_edge, rail_x, landing_front),
+    }
+    heights = {'lounge': platform_y, 'lower_landing': lower_y}
+
+    # Walkways that must stay clear (at least MIN_WALKWAY wide, nothing solid inside except
+    # the crossing planters, whose clearance is checked separately).
+    walkways = {
+        'front': (fx0 - P['side_walk'], fz1, fx1 + P['side_walk'], landing_front),
+        'back': (fx0 - P['side_walk'], lounge_front, fx1 + P['side_walk'], fz0),
+        'side_city': (fx0 - P['side_walk'], fz0, fx0, fz1),
+        'side_ocean': (fx1, fz0, fx1 + P['side_walk'], fz1),
+    }
+    # Aisles between columns and between rows: the narrowest gap between neighbouring fences.
+    aisle_x_spans = []
+    for i in range(3):
+        a = max(fences[r * 4 + i][2] for r in range(4))
+        b = min(fences[r * 4 + i + 1][0] for r in range(4))
+        aisle_x_spans.append((a, b))
+    aisle_z_spans = []  # front to back
+    for r in range(3):
+        a = max(fences[(r + 1) * 4 + i][3] for i in range(4))  # the row behind, its front edge
+        b = min(fences[r * 4 + i][1] for i in range(4))  # this row, its back edge
+        aisle_z_spans.append((a, b))
+    for k, (a, b) in enumerate(aisle_x_spans):
+        walkways['aisle_col_%d' % (k + 1)] = (a, fz0, b, fz1)
+    for k, (a, b) in enumerate(aisle_z_spans):
+        walkways['aisle_row_%d' % (k + 1)] = (fx0, a, fx1, b)
+    crossings = [((a + b) / 2, (c + d) / 2) for (c, d) in aisle_z_spans for (a, b) in aisle_x_spans]
+
+    props = []
+
+    def prop(kind, x, z, yaw=0.0, y=0.0, **extra):
+        w, d, h = PROP_SIZE[kind]
+        item = {'kind': kind, 'X': round(x, 4), 'Y': round(y, 4), 'Z': round(z, 4), 'yaw': yaw,
+                'size': [w, h, d]}
+        item.update(extra)
+        props.append(item)
+
+    def column(x, z, y, height, size, part_of):
+        props.append({'kind': 'column', 'X': round(x, 4), 'Y': y, 'Z': round(z, 4), 'yaw': 0.0,
+                      'size': [size, height, size], 'part_of': part_of})
+
+    # Under-table glow: one flat plane under each table.
+    for t in tables:
+        prop('table_glow', t['X'], t['Z'], t['yaw'], 0.01)
+
+    # Fern planters at the aisle crossings, as in the top-down art: all three between rows 1
+    # and 2 and between rows 3 and 4, none between rows 2 and 3.
+    for k, (x, z) in enumerate(crossings):
+        row, _ = divmod(k, 3)
+        if row != 1:
+            prop('fern_planter', x, z)
+
+    # Side zones: a regular rhythm along each railing. Big items line up with the table rows,
+    # lanterns with the row gaps and the front and back walkways.
+    row_z = zs
+    gap_z = [(fz1 + landing_front) / 2] + [(a + b) / 2 for (a, b) in aisle_z_spans] + [(fz0 + lounge_front) / 2]
+    zone_x = fx1 + P['side_walk']  # the side zone's inner edge
+    for z in gap_z:
+        prop('lantern', -(zone_x + 1.5), z)
+        prop('lantern', zone_x + 1.5, z)
+    # City side (02): big planters against the railing, palms at the first and last rows and
+    # ferns between.
+    for k, z in enumerate(row_z):
+        kind = 'palm_planter' if k in (0, 3) else 'fern_planter'
+        size = PROP_SIZE[kind][0]
+        prop(kind, -(rail_x - size / 2 - 0.8), z, 90.0)
+    # Ocean side (02, designer's choice): umbrella sets with loungers at the first and third
+    # rows, sofa groups along the railing at the second and fourth, palms in the gaps between.
+    for k, z in enumerate(row_z):
+        if k in (0, 2):
+            prop('umbrella_set', rail_x - PROP_SIZE['umbrella_set'][0] / 2 - 1.0, z, -90.0)
+        else:
+            prop('side_couch', rail_x - PROP_SIZE['side_couch'][1] / 2 - 0.4, z, -90.0)
+    for a, b in ((row_z[0], row_z[1]), (row_z[2], row_z[3])):
+        prop('palm_planter', rail_x - PROP_SIZE['palm_planter'][0] / 2 - 0.8, (a + b) / 2, -90.0)
+
+    # Entrance: tall lanterns flank the stair head, big palm planters both sides of the stair,
+    # cream columns frame the view (the entrance panel), palms in the front corners.
+    sx = P['steps_width'] / 2
+    prop('lantern_tall', -(sx + 1.8), front_edge - 1.8)
+    prop('lantern_tall', sx + 1.8, front_edge - 1.8)
+    prop('palm_planter', -(sx + 6.6), front_edge - 3.0)
+    prop('palm_planter', sx + 6.6, front_edge - 3.0)
+    col = P['entrance_column']
+    for side in (-1, 1):
+        column(side * (sx + 13.0), front_edge - col / 2 - 0.3, 0.0, P['entrance_column_height'], col, 'entrance')
+    for side in (-1, 1):
+        prop('palm_planter', side * (rail_x - 3.2), front_edge - 3.2)
+
+    # Lounge (02, top-down, lounge-back): the raised platform across the back centre, under
+    # the pergola. The snack counter is the art's lit back bar, centred along the back; in
+    # front of it, a U couch round a coffee table on the city side and a U couch round the
+    # fire pit on the ocean side; the grand piano at the ocean end (02). Lanterns flank the
+    # central flight; fern planters line the platform edge either side of it; palms in big
+    # planters at the platform's front corners.
+    y = platform_y
+    pz0, pz1 = zones['pergola'][1], zones['pergola'][3]
+    prop('snack_counter', 0.0, pz0 + P['pergola_column'] + 0.4 + PROP_SIZE['snack_counter'][1] / 2, 0.0, y)
+    group_z = (pz0 + pz1) / 2 + 1.0
+    prop('lounge_couch', -26.0, group_z, 0.0, y)
+    prop('coffee_table', -26.0, group_z + 1.0, 0.0, y)
+    prop('lounge_couch', 22.0, group_z, 0.0, y)
+    prop('fire_pit', 22.0, group_z + 1.0, 0.0, y)
+    prop('piano', 40.0, group_z - 2.0, -20.0, y)
+    prop('piano_bench', 38.2, group_z + 2.6, -20.0, y)
+    for side in (-1, 1):
+        prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
+        for x in (lf + 8.0, lf + 22.0):
+            prop('fern_planter', side * x, platform_front - 2.2, 0.0, y)
+        prop('palm_planter', side * (lw - 3.2), platform_front - 3.2, 0.0, y)
+    # The back corners at floor level: a sofa group (city) and an umbrella set (ocean), as in
+    # the top-down art, with palms in the far corners.
+    corner_x = (lw + rail_x) / 2
+    corner_z = (back_edge + lounge_front) / 2
+    prop('side_couch', -corner_x, corner_z - 4.0, 0.0)
+    prop('umbrella_set', corner_x, corner_z - 2.0, 180.0)
+    for side in (-1, 1):
+        prop('palm_planter', side * (rail_x - 3.2), back_edge + 3.2)
+    # Globe lights hang from the pergola's front and middle beams, one per bay.
+    bay = 2 * pw / P['pergola_bays']
+    for k in range(P['pergola_bays']):
+        x = -pw + bay * (k + 0.5)
+        for z in (pz1 - 1.3, (pz0 + pz1) / 2):
+            prop('globe_light', x, z, 0.0, y + P['pergola_height'] - 3.0)
+    # Pergola columns: a front and a back row.
+    pcol = P['pergola_column']
+    for k in range(P['pergola_bays'] + 1):
+        x = -pw + bay * k
+        for z in (pz1 - pcol / 2, pz0 + pcol / 2):
+            column(x, z, y, P['pergola_height'], pcol, 'pergola')
+
+    return {
+        'units': 'studs; Roblox world axes: X right from the entrance (city -X, ocean +X), Y up, Z toward the entrance',
+        'tables': tables,
+        'spawn': spawn,
+        'pads': pads,
+        'fences': fences,
+        'barriers': barriers,
+        'zones': zones,
+        'heights': heights,
+        'walkways': walkways,
+        'crossings': crossings,
+        'props': props,
+        'pitch': [pitch_x, pitch_z],
+        'cameras': cameras(spawn, zones),
+    }
+
+
+def cameras(spawn, zones):
+    """Camera poses for the verification captures (section 8 of the brief): position, a point to
+    look at and the vertical field of view in degrees; the capture is cropped to the reference
+    image's aspect. First guesses from the art; Stage 1 tunes them against the gray-box."""
+    front = zones['terrace'][3]
+    back = zones['terrace'][1]
+    lounge = zones['lounge'][3]
+    return {
+        'entrance': {'ref': 'panels/entrance.jpg', 'pos': (0, 6.0, front + 1.0), 'look': (0, 3.5, 0.0), 'fov': 70},
+        'day-view': {'ref': '02-day-view.jpg', 'pos': (16, 26.0, front - 2.0), 'look': (-6, 0, back / 2), 'fov': 62},
+        'high-day': {'ref': 'panels/day.jpg', 'pos': (0, 125.0, front + 125.0), 'look': (0, 0, -20.0), 'fov': 55},
+        'high-sunset': {'ref': 'panels/sunset.jpg', 'pos': (0, 125.0, front + 125.0), 'look': (0, 0, -20.0), 'fov': 55},
+        'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 600.0, (front + back) / 2),
+                     'look': (0, 0, (front + back) / 2 - 0.001), 'fov': 30},
+        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (0, 8.5, lounge + 2.0), 'look': (0, 4.0, back - 60.0), 'fov': 70},
+        'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 26.0, 0), 'look': (-600, -140, 0), 'fov': 45},
+        'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 26.0, -20), 'look': (700, -120, -160), 'fov': 45},
+        'phone-eye': {'ref': None, 'pos': (0, 5.5, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},
+    }
+
+
+# ---------------------------------------------------------------------------------------------
+# Checks
+# ---------------------------------------------------------------------------------------------
+
+def footprint(p):
+    w, _, d = p['size']
+    yaw = math.radians(p['yaw'])
+    c, s = abs(math.cos(yaw)), abs(math.sin(yaw))
+    hx = (w * c + d * s) / 2
+    hz = (w * s + d * c) / 2
+    return (p['X'] - hx, p['Z'] - hz, p['X'] + hx, p['Z'] + hz)
+
+
+def overlaps(a, b, grow=0.0):
+    return a[0] - grow < b[2] and b[0] - grow < a[2] and a[1] - grow < b[3] and b[1] - grow < a[3]
+
+
+def rect_gap(a, b):
+    dx = max(b[0] - a[2], a[0] - b[2], 0.0)
+    dz = max(b[1] - a[3], a[1] - b[3], 0.0)
+    return math.hypot(dx, dz)
+
+
+def check(plan):
+    problems = []
+    solids = [(p['kind'], footprint(p)) for p in plan['props'] if p['kind'] in SOLID]
+    # Nothing solid inside a match fence (walls included); the pads are inside the fences.
+    w = GAME['fence_wall']
+    for i, f in enumerate(plan['fences']):
+        grown = (f[0] - w, f[1] - w, f[2] + w, f[3] + w)
+        for kind, r in solids:
+            if overlaps(grown, r):
+                problems.append('%s at %s is inside table %d match fence' % (kind, r, i + 1))
+    # No two fences (with walls) overlap.
+    fences = plan['fences']
+    for i in range(len(fences)):
+        for j in range(i + 1, len(fences)):
+            a, b = fences[i], fences[j]
+            if overlaps((a[0] - w, a[1] - w, a[2] + w, a[3] + w), (b[0] - w, b[1] - w, b[2] + w, b[3] + w)):
+                problems.append('fences %d and %d overlap' % (i + 1, j + 1))
+    # Walkways: wide enough, and nothing solid in them except crossing planters.
+    crossing_set = {(round(x, 4), round(z, 4)) for x, z in plan['crossings']}
+    for name, r in plan['walkways'].items():
+        width = min(r[2] - r[0], r[3] - r[1])
+        if width < MIN_WALKWAY - 1e-9:
+            problems.append('walkway %s is %.2f wide' % (name, width))
+        for p in plan['props']:
+            if p['kind'] not in SOLID:
+                continue
+            if (round(p['X'], 4), round(p['Z'], 4)) in crossing_set:
+                continue
+            if overlaps(r, footprint(p)):
+                problems.append('%s at (%.1f, %.1f) blocks walkway %s' % (p['kind'], p['X'], p['Z'], name))
+    # A crossing planter keeps MIN_WALKWAY of floor to anything solid (table barriers and props).
+    blockers = list(plan['barriers']) + [r for _, r in solids]
+    for p in plan['props']:
+        if (round(p['X'], 4), round(p['Z'], 4)) in crossing_set and p['kind'] in SOLID:
+            me = footprint(p)
+            near = min(rect_gap(me, b) for b in blockers if b != me)
+            if near < MIN_WALKWAY - 1e-9:
+                problems.append('crossing planter at (%.1f, %.1f) is only %.2f from something solid'
+                                % (p['X'], p['Z'], near))
+    # Solid props do not overlap one another, except what a U couch holds in its middle.
+    held = {('lounge_couch', 'coffee_table'), ('lounge_couch', 'fire_pit')}
+    for i in range(len(solids)):
+        for j in range(i + 1, len(solids)):
+            pair = (solids[i][0], solids[j][0])
+            if pair in held or pair[::-1] in held:
+                continue
+            if overlaps(solids[i][1], solids[j][1], -0.01):
+                problems.append('%s %s and %s %s overlap' % (solids[i][0], solids[i][1], solids[j][0], solids[j][1]))
+    # Nothing solid on the lounge steps' central flight or the entrance stair.
+    for zone in ('lounge_steps', 'steps'):
+        for kind, r in solids:
+            if overlaps(plan['zones'][zone], r):
+                problems.append('%s blocks the %s' % (kind, zone))
+    # Everything stands on the terrace.
+    tx0, tz0, tx1, tz1 = plan['zones']['terrace']
+    for kind, r in solids:
+        if r[0] < tx0 or r[2] > tx1 or r[1] < tz0 or r[3] > tz1:
+            problems.append('%s at %s hangs over the edge' % (kind, r))
+    return problems
+
+
+def summary(plan):
+    z = plan['zones']
+    t = z['terrace']
+    f = z['field']
+    lines = [
+        'pitch: %.1f across, %.1f deep' % tuple(plan['pitch']),
+        'field (fences): X %.1f..%.1f (%.1f), Z %.1f..%.1f (%.1f)' % (f[0], f[2], f[2] - f[0], f[1], f[3], f[3] - f[1]),
+        'terrace: X %.1f..%.1f (%.1f wide), Z %.1f..%.1f (%.1f deep, the stair beyond)'
+        % (t[0], t[2], t[2] - t[0], t[1], t[3], t[3] - t[1]),
+        'spawn: X %.1f Z %.1f' % (plan['spawn']['X'], plan['spawn']['Z']),
+        'aisles: ' + ', '.join('%s %.1f' % (k, min(v[2] - v[0], v[3] - v[1]))
+                               for k, v in plan['walkways'].items() if k.startswith('aisle')),
+    ]
+    counts = {}
+    for p in plan['props']:
+        key = p['kind'] + ('/' + p['part_of'] if 'part_of' in p else '')
+        counts[key] = counts.get(key, 0) + 1
+    lines.append('props: ' + ', '.join('%s %d' % kv for kv in sorted(counts.items())))
+    return '\n'.join(lines)
+
+
+def _rounded(v):
+    if isinstance(v, float):
+        return round(v, 4) + 0.0
+    if isinstance(v, (list, tuple)):
+        return [_rounded(x) for x in v]
+    if isinstance(v, dict):
+        return {str(k): _rounded(x) for k, x in v.items()}
+    return v
+
+
+def write(plan, path=os.path.join(HERE, 'Layout.json')):
+    with open(path, 'w') as handle:
+        json.dump(_rounded(plan), handle, indent=1, sort_keys=True)
+        handle.write('\n')
+
+
+if __name__ == '__main__':
+    plan = build()
+    print(summary(plan))
+    problems = check(plan)
+    for line in problems:
+        print('PROBLEM:', line)
+    write(plan)
+    raise SystemExit(1 if problems else 0)

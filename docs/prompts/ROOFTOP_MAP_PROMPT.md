@@ -76,6 +76,10 @@ are out.
 
 Record these in GDD section 10 (Decided) and `docs/DECISIONS.md` if they are not there yet.
 
+**Later decisions win.** The Stage 0 interview changed some of the above (the table looks by
+mode, the queue pads in front of each table, the side seating, the prop scale, the back bar):
+`assets/map/Spec.md` section 0 is the current list.
+
 ## 4. The look
 
 - **Kid-friendly, calm and clean. Bright and saturated, never neon or muddy.** The playing area
@@ -362,3 +366,9 @@ One line per stage: date, stage, result, commit.
 
 - 2026-09-26: brief written, references saved in `assets/map/reference/`, designer decisions
   recorded. Next: Stage 0.
+- 2026-09-26: Stage 0 done. Preflight: Studio and Rojo synced; headless Blender 5.2 runs;
+  the Blender MCP add-on file is updated (protocol 11) but its live connection waits on a
+  Blender restart and Start MCP Server. Spec, measured palette (79 regions), layout with checks, plan PNG,
+  budget table; designer interview recorded in Spec section 0. Sun measured: sunset is a
+  dawn sun (latitude -30, ClockTime 6.4). Next: Stage 1, which also moves the queue pad to
+  the table's front long side in Placement.

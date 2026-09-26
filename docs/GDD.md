@@ -304,14 +304,25 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     day, a 1 minute fade, 5 minutes of sunset, a 1 minute fade back *(tune)*.
   - In: the pergola lounge with couches, a fire pit, a grand piano, the snack counter,
     planters, palms, lanterns, umbrella seating and the glass railing. Out: the art's
-    infinity-pool strip and banners.
+    infinity-pool strip, banners and pink light pillar.
+  - On the map every queue pad sits **in front of its table**, centred on the long side that
+    faces the entrance (designer, 2026-09-26). The pad's shape may still change; the table
+    grid is computed from its size, so it re-spaces itself.
+  - The sides follow the day view: the city side has planters, palms and lanterns; the ocean
+    side has umbrella sets with loungers and sofa groups along the railing.
+  - The snack counter is the art's lit back bar, centred along the back of the lounge under
+    the pergola, with the couches in front of it.
+  - The entrance stair walks down to a small dead-end landing.
+  - Props: seats, steps and railings are sized for the player; planters, palms, umbrellas and
+    the pergola about 1.4 times that, so they hold their own beside the big tables; the
+    spacing follows the art's layout.
   - Calm and clean for kids: bright saturated colours, wide walkways, props in a regular
     rhythm. Everything we ship stays under about 512k triangles, so the whole game stays
     under 1 million with players in it.
 
 **Open**
-- The rooftop's exact dimensions, prop counts and palette: measured from the art in the
-  brief's Stage 0 and confirmed at its checkpoints.
+- The rooftop's exact dimensions, prop counts and palette: measured in the brief's Stage 0
+  (`assets/map/Spec.md`), confirmed at its checkpoints.
 
 ## 11. Progression and ranks
 
