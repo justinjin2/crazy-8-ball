@@ -441,25 +441,32 @@ def sweep(mesh, path, profile, strip, want, u_scale=1.0):
 
 
 def sweep_rings(mesh, rings, strip, want):
-    """Faces between consecutive rings (points, y, v) of equal length, U along the last ring's
-    length in studs; where a ring repeats a point the quad closes to a triangle."""
-    ref = rings[-1][0]
-    us = [0.0]
-    for i in range(len(ref) - 1):
-        us.append(us[-1] + math.hypot(ref[i + 1][0] - ref[i][0], ref[i + 1][1] - ref[i][1]))
+    """Faces between consecutive rings (points, y, v) of equal length, U along each ring's own
+    length in studs (a single shared U squeezed the texture on a curve's inner ring into
+    streaks; Stage 4); where a ring repeats a point the quad closes to a triangle."""
+    def lengths(pts):
+        out = [0.0]
+        for i in range(len(pts) - 1):
+            out.append(out[-1] + math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]))
+        return out
+
+    us = [lengths(r[0]) for r in rings]
+    n = len(rings[0][0])
     for k in range(len(rings) - 1):
         (pa, ya, va), (pb, yb, vb) = rings[k], rings[k + 1]
-        for i in range(len(ref) - 1):
+        ua, ub = us[k], us[k + 1]
+        for i in range(n - 1):
             a0, a1 = (pa[i][0], ya, pa[i][1]), (pa[i + 1][0], ya, pa[i + 1][1])
             b0, b1 = (pb[i][0], yb, pb[i][1]), (pb[i + 1][0], yb, pb[i + 1][1])
-            u0, u1 = mc.trim_u(strip, us[i]), mc.trim_u(strip, us[i + 1])
             ta, tb = mc.trim_v(strip, va), mc.trim_v(strip, vb)
+            A0, A1 = (mc.trim_u(strip, ua[i]), ta), (mc.trim_u(strip, ua[i + 1]), ta)
+            B0, B1 = (mc.trim_u(strip, ub[i]), tb), (mc.trim_u(strip, ub[i + 1]), tb)
             if a0 == a1:
-                facing(mesh, [a0, b1, b0], [(u0, ta), (u1, tb), (u0, tb)], want)
+                facing(mesh, [a0, b1, b0], [A0, B1, B0], want)
             elif b0 == b1:
-                facing(mesh, [a0, a1, b0], [(u0, ta), (u1, ta), (u0, tb)], want)
+                facing(mesh, [a0, a1, b0], [A0, A1, B0], want)
             else:
-                facing(mesh, [a0, a1, b1, b0], [(u0, ta), (u1, ta), (u1, tb), (u0, tb)], want)
+                facing(mesh, [a0, a1, b1, b0], [A0, A1, B1, B0], want)
 
 
 def coast(coast_mesh, shallows):
