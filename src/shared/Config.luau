@@ -539,30 +539,30 @@ Config.Hub = {
 	-- The rooftop map (assets/map/Spec.md, drawn in assets/map/Plan.png): four rows of four,
 	-- turned sideways like the concept art, long sides to the entrance (+Z), the queue pad in
 	-- front of each (Placement.queuePad). 36 studs apart across (the match fence's 26 plus a
-	-- 10 stud aisle) and 36.5 deep (the deepest fence, a 3v3's 30, plus an 8 stud aisle), so
-	-- every row is evenly spaced. Every table plays one mode, `teamSize` a side (designer,
+	-- 10 stud aisle) and 31.5 deep (the match fence's 23.5 plus an 8 stud aisle), so every row
+	-- is evenly spaced. Every table plays one mode, `teamSize` a side (designer,
 	-- 2026-09-26): ten 1v1 at the front, four 2v2, and the two 3v3 at the back centre; their
 	-- looks are in TableModel.LookByTable. The positions come from assets/map/map_layout.py,
 	-- and tests/map_layout_test.luau keeps the two equal. Y is the FLOOR height the table
 	-- stands on, not the cloth: Placement.toWorld adds Table.SurfaceHeightStuds (2.9) on top.
 	-- Yaw is degrees about world +Y; at 0 the length runs along world X, the head rail at -X.
 	Tables = {
-		{ id = 1, X = -54, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
-		{ id = 2, X = -18, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
-		{ id = 3, X = 18, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
-		{ id = 4, X = 54, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
-		{ id = 5, X = -54, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
-		{ id = 6, X = -18, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
-		{ id = 7, X = 18, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
-		{ id = 8, X = 54, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
-		{ id = 9, X = -54, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 1 },
-		{ id = 10, X = -18, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 2 },
-		{ id = 11, X = 18, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 2 },
-		{ id = 12, X = 54, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 1 },
-		{ id = 13, X = -54, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 2 },
-		{ id = 14, X = -18, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 3 },
-		{ id = 15, X = 18, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 3 },
-		{ id = 16, X = 54, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 2 },
+		{ id = 1, X = -54, Y = 0, Z = 47.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 2, X = -18, Y = 0, Z = 47.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 3, X = 18, Y = 0, Z = 47.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 4, X = 54, Y = 0, Z = 47.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 5, X = -54, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 6, X = -18, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 7, X = 18, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 8, X = 54, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 9, X = -54, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 10, X = -18, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 2 },
+		{ id = 11, X = 18, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 2 },
+		{ id = 12, X = 54, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 13, X = -54, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 2 },
+		{ id = 14, X = -18, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 3 },
+		{ id = 15, X = 18, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 3 },
+		{ id = 16, X = 54, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 2 },
 	},
 
 	-- How many tables to build, taken from the front of Tables.
@@ -2367,7 +2367,7 @@ Config.Multiplayer = {
 	-- On the rooftop's entrance landing, at the top of the stair, facing the tables
 	-- (assets/map/Spec.md). Y is the SpawnLocation's centre: it is the art's entrance mat, a
 	-- 0.2 stud slab lying on the floor (MapBuilder).
-	Spawn = { X = 0, Y = 0.1, Z = 86.25, YawDegrees = 0 },
+	Spawn = { X = 0, Y = 0.1, Z = 76.75, YawDegrees = 0 },
 	CoinSeconds = 2.6, -- shared coin presentation; the host's Start leads straight into it
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
 	PlacementSeconds = 15, -- cue-ball placement window (break and ball in hand)

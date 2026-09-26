@@ -20,8 +20,8 @@ Change those scripts, never the numbers here by hand, then update this file.
   green". Ten 1v1 tables sit at the front, four 2v2 and two 3v3 toward the back, as on the
   baseplate.
 - **Queue pads sit in front of each table:** centred on the long side that faces the
-  entrance. The pad's shape (a circle now) may change, so the grid is computed from the pad
-  numbers in Config and re-spaces itself when they change.
+  entrance. They are rectangles (the other session's change, 8f66025), sized by mode. The
+  grid is computed from the pad size in Config, so it re-spaces itself if that changes.
 - **Prop scale is split.**
   - Spacing and zones follow the table's scale (the art's layout).
   - Anything a player sits on, climbs or leans on is at player scale.
@@ -152,37 +152,38 @@ most of that; the far colours above already carry the painter's haze.
 | Tables | 16 at yaw 0, long sides to the entrance. Ids 1 to 4 are the front row, left to right; 13 to 16 are the back row |
 | Modes (front row to back) | 1v1 x4; 1v1 x4; 1v1, 2v2, 2v2, 1v1; 2v2, 3v3, 3v3, 2v2 |
 | Looks | 1v1 Green, 2v2 RedWood, 3v3 CharcoalWood |
-| Queue pads | centred in front of each table (+Z); radius 3.5 / 4.25 / 5 by mode (Config, may change) |
-| Match fence | 26 across (X); from 8.5 behind the table centre to 10 + 2 x radius in front (27, 28.5 and 30 deep) |
-| Pitch | 36 across, 36.5 deep (every row leaves room for the biggest pad) |
-| Table centres | X = -54, -18, 18, 54; Z = 54.75, 18.25, -18.25, -54.75 |
-| Field (fence outline) | X -67 to 67, Z -63.25 to 71.75 (134 x 135) |
-| Aisles between fences | 10 between columns; 11, 9.5 and 8 between rows (front to back) |
+| Queue pads | rectangles centred in front of each table (+Z): 10, 14 or 18 long by mode, 5 deep (`Queue.PadSizeStuds`) |
+| Match fence | 26 across (X); 23.5 deep, from 8.5 behind the table centre to 15 in front, for every mode |
+| Pitch | 36 across, 31.5 deep |
+| Table centres | X = -54, -18, 18, 54; Z = 47.25, 15.75, -15.75, -47.25 |
+| Field (fence outline) | X -67 to 67, Z -55.75 to 62.25 (134 x 118) |
+| Aisles between fences | 10 between columns, 8 between rows |
 
-The art spaces its rows about 22 to 24 studs apart. Ours are 36.5 apart, because each match
-area holds the shooter's walkway on both long sides plus the pad in front. So the field is
-about as deep as it is wide; the art's is wider than deep. The columns match the art: 36
-against the art's 34.
+The art spaces its rows about 22 to 24 studs apart. Ours are 31.5 apart, because each match
+area holds the shooter's walkway on both long sides plus the pad in front. The columns match
+the art: 36 against the art's 34.
 
 ### The terrace
 
 | Zone | X | Z | Y |
 |---|---|---|---|
-| Terrace (railing inner face) | -93 to 93 (186) | -107.25 to 91.75 (199) | 0 |
-| Front walkway | -77 to 77 | 71.75 to 81.75 | 0 |
-| Entrance landing (spawn at X 0, Z 86.25, facing -Z) | full width | 81.75 to 91.75 | 0 |
-| Entrance stair: 10 steps, 0.5 up, 1.6 deep | -13 to 13 | 91.75 to 107.75 | 0 down to -5 |
-| Lower landing (dead end) | -13 to 13 | 107.75 to 115.75 | -5 |
-| Side walkways | 67 to 77 each side | -63.25 to 71.75 | 0 |
-| City side zone / ocean side zone | -93 to -77 / 77 to 93 | -107.25 to 81.75 | 0 |
-| Back walkway | -77 to 77 | -71.25 to -63.25 | 0 |
-| Lounge central flight: 4 steps, 0.5 up, 2 deep | -14 to 14 | -79.25 to -71.25 | 0 up to 2 |
-| Lounge platform (the rest of its front edge is a 2-stud riser) | -56 to 56 | -107.25 to -79.25 | 2 |
-| Pergola: 5 bays of 19.2, 15 clear | -48 to 48 | -104.25 to -82.25 | 2 |
+| Terrace (railing inner face) | -93 to 93 (186) | -99.75 to 82.25 (182) | 0 |
+| Front walkway | -77 to 77 | 62.25 to 72.25 | 0 |
+| Entrance landing (the spawn mat at X 0, Z 76.75, facing -Z) | full width | 72.25 to 82.25 | 0 |
+| Entrance stair: 10 steps, 0.5 up, 1.6 deep | -13 to 13 | 82.25 to 98.25 | 0 down to -5 |
+| Lower landing (dead end) | -13 to 13 | 98.25 to 106.25 | -5 |
+| Side walkways | 67 to 77 each side | -55.75 to 62.25 | 0 |
+| City side zone / ocean side zone | -93 to -77 / 77 to 93 | -99.75 to 72.25 | 0 |
+| Back walkway | -77 to 77 | -63.75 to -55.75 | 0 |
+| Lounge central flight: 4 steps, 0.5 up, 2 deep | -14 to 14 | -71.75 to -63.75 | 0 up to 2 |
+| Lounge platform (the rest of its front edge is a 2-stud riser) | -56 to 56 | -99.75 to -71.75 | 2 |
+| Pergola: 5 bays of 19.2, 15 clear | -48 to 48 | -96.75 to -74.75 | 2 |
 
 - **The edge all round** is a low parapet (1.2 high, 1.2 thick) with a dark-framed glass
   railing to 3.6 above the floor, and an invisible wall above it to 40.
 - **The back corners** beside the platform (X 56 to 93) stay at floor level.
+- **The spawn is the art's entrance mat:** the SpawnLocation is a 16 x 0.2 x 6 dark slab lying
+  on the floor between the tall lanterns.
 
 ### Walkways
 
@@ -247,19 +248,23 @@ bench.
 ## 5. Camera poses
 
 One pose per reference view, for the captures in every stage's verification. The capture is
-cropped to the reference's aspect. These are first guesses from the art; Stage 1 tunes them
-against the gray-box. `map_layout.cameras` holds them:
+cropped to the reference's aspect. They were tuned against the art in Stage 1;
+`map_layout.cameras` holds them relative to the terrace's edges:
 
 | View | Reference | Position | Looks at | FOV |
 |---|---|---|---|---:|
-| entrance | `panels/entrance.jpg` | (0, 6, 92.75) | (0, 3.5, 0) | 70 |
-| day-view | `02-day-view.jpg` | (16, 26, 89.75) | (-6, 0, -53.6) | 62 |
-| high three-quarter (day, sunset) | `panels/day.jpg`, `panels/sunset.jpg` | (0, 125, 216.75) | (0, 0, -20) | 55 |
-| top-down | `panels/top-down.jpg` | (0, 600, -7.75), straight down, -Z up | | 30 |
-| lounge-back | `panels/lounge-back.jpg` | (0, 8.5, -77.25) | (0, 4, -167.25) | 70 |
-| city-side | `panels/city-side.jpg` | (-90, 26, 0) | (-600, -140, 0) | 45 |
-| ocean-side | `panels/ocean-side.jpg` | (90, 26, -20) | (700, -120, -160) | 45 |
-| phone eye | (none; 750 x 361) | (0, 5.5, 86.25) | (0, 4, 0) | 70 |
+| entrance | `panels/entrance.jpg` | (0, 7, 68.5) | (0, 4, -60) | 70 |
+| day-view | `02-day-view.jpg` | (24, 20, 70.25) | (-8, 0, -45) | 55 |
+| high three-quarter (day, sunset) | `panels/day.jpg`, `panels/sunset.jpg` | (0, 46, 130.5) | (0, 0, -8) | 50 |
+| top-down | `panels/top-down.jpg` | (0, 400, -8.75), straight down, -Z up | | 30 |
+| lounge-back | `panels/lounge-back.jpg` | (0, 7.5, -72) | (0, 4, -139.75) | 70 |
+| city-side | `panels/city-side.jpg` | (-90, 30, 0) | (-600, -60, 0) | 25 |
+| ocean-side | `panels/ocean-side.jpg` | (90, 30, -20) | (700, -80, -250) | 25 |
+| phone eye | (none; 750 x 361) | (0, 5.6, 76.75) | (0, 4, 0) | 70 |
+
+Captures are taken in Play mode, where the server has built the tables and pads. A Client
+`execute_luau` holds the camera with a RenderStepped connection (`_G.MapPose`) and the
+character waits on the lower landing.
 
 ## 6. The sun
 
@@ -299,7 +304,9 @@ against the gray-box. `map_layout.cameras` holds them:
     and sea level Y = -302.
   - `FallenPartsDestroyHeight` goes below the street (the place has -500).
 - **The coast** makes an L round the tower:
-  - Land (the city) is to the left and front-left; water is to the right and behind.
+  - Land (the city) is to the left and front-left, and carries on behind the tower beyond
+    X -350 to the horizon, so the city fills the left of every view as in the art.
+  - Water is to the right (X > 110) and behind the tower (Z < -150, X -350 to 110).
   - The beach promenade, sand and palms run along the tower's ocean side and round behind it.
   - Beyond the beach come turquoise shallows, then deep blue sea.
 - **Near (Stage 4, within about 400 studs):** the tower's walls, neighbour roofs below ours,

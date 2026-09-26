@@ -116,12 +116,22 @@ return {
 			for k = 1, 4 do
 				H.near(got[k], want[k], TOL, ("table %d fence: %s"):format(row.id, REBUILD))
 			end
-			local cx, cy, r = Placement.queuePad(row.teamSize)
-			local px, _, pz = Placement.fromTableStuds(Placement.forTable(row.id), cx, cy, 0)
+			local p = Placement.forTable(row.id)
+			local cx, cy, hx, hy = Placement.queuePad(row.teamSize)
+			local px, _, pz = Placement.fromTableStuds(p, cx, cy, 0)
 			local pad = layout.pads[i]
 			H.near(pad.X, px, TOL, ("table %d pad X: %s"):format(row.id, REBUILD))
 			H.near(pad.Z, pz, TOL, ("table %d pad Z: %s"):format(row.id, REBUILD))
-			H.near(pad.radius, r, TOL, ("table %d pad radius: %s"):format(row.id, REBUILD))
+			-- The pad's world rectangle (tables stand at multiples of 90 degrees).
+			local x0, z0, x1, z1 = math.huge, math.huge, -math.huge, -math.huge
+			for _, c in { { cx - hx, cy - hy }, { cx + hx, cy + hy } } do
+				local wx, _, wz = Placement.fromTableStuds(p, c[1], c[2], 0)
+				x0, z0 = math.min(x0, wx), math.min(z0, wz)
+				x1, z1 = math.max(x1, wx), math.max(z1, wz)
+			end
+			for k, v in { x0, z0, x1, z1 } do
+				H.near(pad.rect[k], v, TOL, ("table %d pad outline: %s"):format(row.id, REBUILD))
+			end
 		end
 	end,
 

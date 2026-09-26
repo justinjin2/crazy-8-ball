@@ -142,8 +142,7 @@ def draw_plan(plan):
                 q1 = (p0[0] + (p1[0] - p0[0]) * (s + 1) / steps, p0[1] + (p1[1] - p0[1]) * (s + 1) / steps)
                 d.line([q0, q1], fill=COLOURS['fence'], width=2)
     for pad in plan['pads']:
-        a, b = pt(pad['X'] - pad['radius'], pad['Z'] - pad['radius']), pt(pad['X'] + pad['radius'], pad['Z'] + pad['radius'])
-        d.ellipse([a[0], a[1], b[0], b[1]], fill=(245, 248, 255, 230), outline=COLOURS['box'], width=3)
+        rect(pad['rect'], (245, 248, 255, 230), COLOURS['box'], 3)
     tl, tw = ml.GAME['table_length'], ml.GAME['table_width']
     for t, pad in zip(plan['tables'], plan['pads']):
         rect((t['X'] - tl / 2, t['Z'] - tw / 2, t['X'] + tl / 2, t['Z'] + tw / 2), COLOURS['rail'])

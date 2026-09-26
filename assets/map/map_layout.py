@@ -31,9 +31,9 @@ GAME = {
     'barrier_half': (9.48, 5.48),  # Placement.barrierHalfExtents (rails + Barrier.MarginStuds)
     'fence_half': (13.0, 8.5),  # Multiplayer.Fence.HalfLengthStuds, HalfWidthStuds
     'fence_wall': 1.0,  # Fence.ThicknessStuds, outside the inner face
-    # The queue pad (Multiplayer.Queue): round for now (its shape may change), centred on the
-    # table's long side toward the entrance (designer, 2026-09-26), just beyond the walkway.
-    'pad_radius': {1: 3.5, 2: 4.25, 3: 5.0},  # PadRadiusStuds by team size
+    # The queue pad (Multiplayer.Queue): a rectangle centred on the table's long side toward
+    # the entrance (designer, 2026-09-26), just beyond the walkway.
+    'pad_size': {1: (10.0, 5.0), 2: (14.0, 5.0), 3: (18.0, 5.0)},  # PadSizeStuds: along, out
     'pad_gap': 1.0,  # PadGapStuds: from the walkway's edge to the pad
     'fence_margin': 0.5,  # FenceMarginStuds: the match fence stands this far beyond the pad
     'pad_side': -1,  # Queue.PadSide: the sign of physics y the pad sits on (world +Z at yaw 0)
@@ -133,19 +133,21 @@ MIN_WALKWAY = 8.0  # section 4 of the brief: main walkways at least this wide
 # ---------------------------------------------------------------------------------------------
 
 def queue_pad_local(team):
-    """The pad: centre (cx, cy) and radius in table studs (x along the length, y physics)."""
+    """The pad: centre (cx, cy) and half extents (hx, hy) in table studs (x along the length,
+    y physics), as Placement.queuePad."""
     fy = GAME['fence_half'][1]
-    r = GAME['pad_radius'][team]
-    return 0.0, GAME['pad_side'] * (fy + GAME['pad_gap'] + r), r
+    length, depth = GAME['pad_size'][team]
+    hx, hy = length / 2, depth / 2
+    return 0.0, GAME['pad_side'] * (fy + GAME['pad_gap'] + hy), hx, hy
 
 
 def match_fence_local(team):
     """The walkway grown to take in the pad: half extents (hx, hy), centre (cx, cy)."""
     fx, fy = GAME['fence_half']
-    pcx, pcy, r = queue_pad_local(team)
+    pcx, pcy, phx, phy = queue_pad_local(team)
     m = GAME['fence_margin']
-    x0, x1 = min(-fx, pcx - r - m), max(fx, pcx + r + m)
-    y0, y1 = min(-fy, pcy - r - m), max(fy, pcy + r + m)
+    x0, x1 = min(-fx, pcx - phx - m), max(fx, pcx + phx + m)
+    y0, y1 = min(-fy, pcy - phy - m), max(fy, pcy + phy + m)
     return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
 
 
@@ -195,9 +197,9 @@ def build():
     for t in tables:
         hx, hy, cx, cy = match_fence_local(t['teamSize'])
         fences.append(local_rect_to_world(t, cx, cy, hx, hy))
-        pcx, pcy, r = queue_pad_local(t['teamSize'])
+        pcx, pcy, phx, phy = queue_pad_local(t['teamSize'])
         px, pz = local_point_to_world(t, pcx, pcy)
-        pads.append({'X': px, 'Z': pz, 'radius': r})
+        pads.append({'X': px, 'Z': pz, 'rect': local_rect_to_world(t, pcx, pcy, phx, phy)})
         barriers.append(local_rect_to_world(t, 0, 0, bx, bz))
 
     field = (min(f[0] for f in fences), min(f[1] for f in fences),
@@ -387,21 +389,27 @@ def build():
 def cameras(spawn, zones):
     """Camera poses for the verification captures (section 8 of the brief): position, a point to
     look at and the vertical field of view in degrees; the capture is cropped to the reference
-    image's aspect. First guesses from the art; Stage 1 tunes them against the gray-box."""
+    image's aspect. Tuned against the art in Stage 1, relative to the terrace's edges."""
     front = zones['terrace'][3]
     back = zones['terrace'][1]
+    table_row = zones['field'][3] - 15.0  # the front row of tables, about
     lounge = zones['lounge'][3]
+    mid = (front + back) / 2
     return {
-        'entrance': {'ref': 'panels/entrance.jpg', 'pos': (0, 6.0, front + 1.0), 'look': (0, 3.5, 0.0), 'fov': 70},
-        'day-view': {'ref': '02-day-view.jpg', 'pos': (16, 26.0, front - 2.0), 'look': (-6, 0, back / 2), 'fov': 62},
-        'high-day': {'ref': 'panels/day.jpg', 'pos': (0, 125.0, front + 125.0), 'look': (0, 0, -20.0), 'fov': 55},
-        'high-sunset': {'ref': 'panels/sunset.jpg', 'pos': (0, 125.0, front + 125.0), 'look': (0, 0, -20.0), 'fov': 55},
-        'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 600.0, (front + back) / 2),
-                     'look': (0, 0, (front + back) / 2 - 0.001), 'fov': 30},
-        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (0, 8.5, lounge + 2.0), 'look': (0, 4.0, back - 60.0), 'fov': 70},
-        'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 26.0, 0), 'look': (-600, -140, 0), 'fov': 45},
-        'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 26.0, -20), 'look': (700, -120, -160), 'fov': 45},
-        'phone-eye': {'ref': None, 'pos': (0, 5.5, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},
+        # Just behind the front row, eye height: a table either side, the centre planter, the
+        # pergola beyond (panels/entrance.jpg).
+        'entrance': {'ref': 'panels/entrance.jpg', 'pos': (0, 7.0, table_row + 21.25), 'look': (0, 4.0, -60.0), 'fov': 70},
+        # Over the front walkway, right of centre, looking back and left (02).
+        'day-view': {'ref': '02-day-view.jpg', 'pos': (24, 20.0, front - 12.0), 'look': (-8, 0, -45.0), 'fov': 55},
+        # The high three-quarter view from beyond the entrance, pitched 18 degrees down so the
+        # horizon sits near the top as in the day and sunset panels.
+        'high-day': {'ref': 'panels/day.jpg', 'pos': (0, 46.0, front + 48.25), 'look': (0, 0, -8.0), 'fov': 50},
+        'high-sunset': {'ref': 'panels/sunset.jpg', 'pos': (0, 46.0, front + 48.25), 'look': (0, 0, -8.0), 'fov': 50},
+        'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 400.0, mid), 'look': (0, 0, mid - 0.01), 'fov': 30},
+        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (0, 7.5, lounge - 0.25), 'look': (0, 4.0, back - 40.0), 'fov': 70},
+        'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 30.0, 0), 'look': (-600, -60, 0), 'fov': 25},
+        'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 30.0, -20), 'look': (700, -80, -250), 'fov': 25},
+        'phone-eye': {'ref': None, 'pos': (0, 5.6, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},
     }
 
 
