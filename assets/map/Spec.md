@@ -516,12 +516,15 @@ stages that build the real thing:
       instead.
     - The sea at the lowest graphics level stays one blue: painted shallows without their
       islands would look odd, and the near islands can't be painted (ghosts).
-  - **Open for the designer (Checkpoint C):** the art frames sea and far mountains in the
-    pergola's opening; ours shows the city through its left half, because the city is densest
-    ahead and left (Checkpoint A).
-  - **For later polish:**
+  - **Checkpoint C (designer):** approved as it is, the city through the pergola's left half
+    included.
+  - **The backdrop is background (designer, Checkpoint C).** The city, the mountains and the
+    sea only set the scene: Stage 7's lighting and atmosphere soften and blur them (haze,
+    depth of field where the device draws it) so the eye goes to the pool tables, which also
+    masks the low poly. No detail pass on the backdrop is planned; where the critics' polish
+    notes (here and Stage 5) ask for more backdrop detail, softening answers them instead.
+  - **For later polish, if softening leaves them showing:**
     - the far islands: fewer identical mounds, a few long low ranges hugging the horizon;
-    - the mid city: more blue and violet-grey facades, fewer window stripes far out, a park or
-      river gap (with the Stage 5 notes);
+    - the mid city: more blue and violet-grey facades, fewer window stripes far out;
     - the islands' mottled texture toward two-tone shading;
     - Stage 7: shade faces darker, the haze for depth, warm lamp glow.

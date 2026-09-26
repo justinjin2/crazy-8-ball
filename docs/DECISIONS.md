@@ -1235,3 +1235,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - beyond the near world the stair side's thinning eases in by bearing (90 to 135 degrees)
     instead of a straight line at Z 250, and the 3D city's outer 400 studs step down toward
     the painting, so no hard edge shows in the city-side view (the near world is unchanged).
+- 2026-09-26: Rooftop map, Checkpoint C (designer): the far horizon is approved as it is, with
+  the city showing through the pergola's left half. The city, mountains and sea are background:
+  the lighting and atmosphere (Stage 7) soften and blur them so the focal point is the pool
+  tables, which also masks the backdrop's low poly. No detail pass on the backdrop is planned.

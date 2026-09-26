@@ -461,5 +461,8 @@ One line per stage: date, stage, result, commit.
   - Play: 24 of 24 paths, 7 of 7 edge pushes, a clean console.
   - Critic: layout 5, 6, 5; backdrop 4, 5, 5. The notes carried forward are in Spec
     section 9.
-  - Waiting: the designer's OK at Checkpoint C.
+  - Checkpoint C: approved as it is (designer). The backdrop is background: Stage 7's
+    lighting and atmosphere soften and blur it so the pool tables are the focal point
+    (DECISIONS).
+  - Next: Stage 7 (sunset and the cycle).
 

@@ -1,6 +1,6 @@
 # Status
 
-**2026-09-26: the rooftop map, Stage 6 of 8 built (the far horizon), waiting at Checkpoint C.**
+**2026-09-26: the rooftop map, Stage 6 of 8 done (the far horizon); Checkpoint C approved.**
 
 - **Built:**
   - The far horizon painted into the day sky (`assets/map/gen_sky.py`), which every device
@@ -17,8 +17,8 @@
     level shows the city, the downtowns and the mountains.
   - 24 of 24 paths and 7 of 7 edge pushes pass, and the console is clean.
   - Three critic rounds; what they left is in Spec section 9.
-- **Waiting:** the designer's OK at Checkpoint C (the city side, the ocean side and the high
-  view against the art; one open question: city or sea through the pergola's opening).
+- **Checkpoint C:** approved as it is. The backdrop is background: Stage 7's lighting and
+  atmosphere soften and blur it so the pool tables are the focal point (DECISIONS).
 - **Next:** Stage 7, the sunset sky and the day and sunset cycle.
 
 ---
