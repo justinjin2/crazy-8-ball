@@ -49,6 +49,35 @@ WORLD = {
     'city_reach': 2300.0,  # the 3D city out to this far (Stage 5); beyond, it is painted (Stage 6)
 }
 
+# The city's shape beyond the near world (the near world keeps its own line, Z 250, so Near.fbx
+# is unchanged). Stage 6 critic 2: a straight line showed as a hard vertical edge in the
+# city-side view, and the 3D city's tallest towers stood right at its edge, a wall before the
+# painting.
+CITY = {
+    # Behind the spawn (the stair side) the city thins out and stays low, easing in by bearing
+    # from the tower (0 straight ahead, 90 the city side, 180 behind): none at behind_from...
+    'behind_from': 90.0,
+    'behind_to': 135.0,  # ...all of it here
+    'behind_drop': 0.55,  # a fully behind block is left out this often
+    'outer_taper': 400.0,  # the 3D city's outer ring this deep steps down toward the painting...
+    'outer_drop': 0.4,  # ...its heights down this much at the very edge
+    # The far city (painted): towers gather in the downtowns and the city between them is a
+    # low carpet, so the horizon has a skyline's hierarchy instead of an even barcode.
+    'far_tower_base': 0.02,  # a far lot is a tower this often away from any downtown...
+    'far_tower_core': 0.75,  # ...and this much more often at a downtown's heart, where they rise
+    'far_tower_rise': 280.0,  # this much taller (away from the downtowns a tower barely clears the roof)
+    'far_lot_counts': (1, 1, 2),  # lots per far block: fewer, wider towers than the mid city's
+}
+
+# The far downtowns: (bearing from straight ahead toward the city (-X) in degrees, distance,
+# radius). Ahead-left, where the player faces, and clear of the pergola's opening from the
+# spawn (about 20 degrees either side of straight ahead); the six painted landmarks stand in them.
+FAR_DOWNTOWNS = [
+    (34.0, 3300.0, 500.0),
+    (62.0, 4600.0, 650.0),
+    (96.0, 3100.0, 500.0),
+]
+
 
 def land_x():
     """Where the land (street level) ends on the ocean side and the beach begins."""
@@ -114,14 +143,26 @@ def far_blocks():
     at the horizon, all a phone sees of the city, reads as a skyline."""
     W = WORLD
     return blocks(lambda i, j: random.Random(block_seed(CITY_SEED, i, j)),
-                  reach=(W['city_reach'], W['far_reach']), make_lot=far_lot)
+                  reach=(W['city_reach'], W['far_reach']), make_lot=far_lot, counts=CITY['far_lot_counts'])
 
 
-def blocks(rng_for, reach=None, make_lot=None):
+def behind_share(cx, cz, dist):
+    """How far a block is into the stair side behind the spawn, 0 to 1: the near world by its
+    old line (Z 250), beyond it eased in by bearing (CITY behind_from to behind_to)."""
+    if dist < WORLD['near_radius']:
+        return 1.0 if cz > 250 else 0.0
+    bearing = math.degrees(math.atan2(-cx, -cz))
+    t = (bearing - CITY['behind_from']) / (CITY['behind_to'] - CITY['behind_from'])
+    t = min(1.0, max(0.0, t))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def blocks(rng_for, reach=None, make_lot=None, counts=(1, 2, 2, 4)):
     """Every city block, in grid order, with its lots. rng_for(i, j) gives the random source
-    for block (i, j) (random.Random(block_seed(SEED, i, j)) in the generators). The blocks ahead of the spawn and to its left (the way the player faces)
-    are all built, with towers rising over the railing; behind the spawn (+Z, the stair side)
-    the city thins out and stays low.
+    for block (i, j) (random.Random(block_seed(SEED, i, j)) in the generators). The blocks ahead
+    of the spawn and to its left (the way the player faces) are all built, with towers rising
+    over the railing; behind the spawn (+Z, the stair side) the city thins out and stays low
+    (behind_share). counts: the lots a block may have, drawn evenly.
 
     A block: {'i', 'j', 'cx', 'cz', 'dist', 'behind', 'sidewalk', 'near', 'lots'}; a lot: see
     lot(). 'near' blocks are the near world's (gen_near.py builds them, Stage 4)."""
@@ -147,12 +188,12 @@ def blocks(rng_for, reach=None, make_lot=None):
             if x1 > 20 and z1 > -130:
                 continue
             rng = rng_for(i, j)
-            behind = cz > 250  # behind the spawn: the stair side, seldom looked at
-            if behind and rng.random() < 0.55:
+            behind = behind_share(cx, cz, d)  # the stair side, seldom looked at
+            if behind > 0.0 and rng.random() < CITY['behind_drop'] * behind:
                 continue
             block = {'i': i, 'j': j, 'cx': cx, 'cz': cz, 'dist': d, 'behind': behind,
                      'sidewalk': d < 1200, 'near': d < W['near_radius'], 'lots': []}
-            count = rng.choice((1, 2, 2, 4))
+            count = rng.choice(counts)
             for k in range(count):
                 if count == 1:
                     lx, lz, lw, ld = cx, cz, size - 8, size - 8
@@ -165,22 +206,33 @@ def blocks(rng_for, reach=None, make_lot=None):
     return out
 
 
+def downtown(x, z):
+    """How near a spot is to a far downtown's heart, 0 to 1 (a Gaussian of its radius)."""
+    best = 0.0
+    for bearing, dist, radius in FAR_DOWNTOWNS:
+        a = math.radians(bearing)
+        dx, dz = x + math.sin(a) * dist, z + math.cos(a) * dist
+        best = max(best, math.exp(-(dx * dx + dz * dz) / (radius * radius)))
+    return best
+
+
 def far_lot(rng, x, z, w, d_, dist, behind):
-    """A far lot (painted): about 30% towers rising 40 to 220 studs over the roof, the rest
-    mid-rise; behind the spawn low, as the mid city's. Same record as lot(). (Stage 6 critic:
-    a taller mix read as a wall of spires.)"""
+    """A far lot (painted): towers in the downtowns (FAR_DOWNTOWNS), rising higher at their
+    hearts, and a low carpet between them; behind the spawn low, as the mid city's. Same record
+    as lot(). (Stage 6 critics: a tall mix read as a wall of spires, an even one as a barcode.)"""
     podium = rng.uniform(12, 30)
-    if behind:
-        height = rng.uniform(40, 160)
-    elif rng.random() < 0.3:
-        height = 300 + rng.uniform(40, 220)
-    else:
-        height = rng.uniform(100, 280)
+    core = downtown(x, z)
+    height = rng.uniform(80, 240)
+    if rng.random() < CITY['far_tower_base'] + CITY['far_tower_core'] * core:
+        height = 300 + rng.uniform(-30, 40) + CITY['far_tower_rise'] * core
+    if behind > 0.0:
+        height += (rng.uniform(40, 160) - height) * behind
     rec = {'x': x, 'z': z, 'w': w, 'd': d_, 'dist': dist, 'behind': behind, 'podium': podium,
-           'height': height, 'far': True, 'glass': rng.random() < 0.4, 'top': 0.0, 'shaft': None, 'crown': 0.0}
+           'height': height, 'far': True, 'glass': rng.random() < 0.4, 'top': 0.0, 'shaft': None, 'crown': 0.0,
+           'core': core}
     if height <= podium + 4:
         return rec
-    slim = (0.4, 0.6) if height > 300 else (0.6, 0.85)
+    slim = (0.55, 0.8) if height > 300 else (0.65, 0.9)
     rec['shaft'] = (w * rng.uniform(*slim), d_ * rng.uniform(*slim))
     rec['crown'] = rng.uniform(15, 40) if height > 320 else 0.0
     return rec
@@ -197,17 +249,24 @@ def lot(rng, x, z, w, d_, dist, behind):
     top = 1.0 if dist < 1200 else 0.0  # stand on the sidewalk slab where there is one
     # Towers that rise over the roof are slimmer than the blocks round them.
     podium = rng.uniform(12, 30)
-    if behind:
+    if behind >= 1.0:
         height = rng.uniform(40, 120)
-    elif dist < 700:
-        height = rng.uniform(50, 230)  # close by, everything stays below the roof
-    elif dist < 1500:
-        height = 300 + rng.uniform(30, 150) if rng.random() < 0.16 else rng.uniform(80, 260)
     else:
-        height = 300 + rng.uniform(60, 240) if rng.random() < 0.3 else rng.uniform(140, 300)
+        if dist < 700:
+            height = rng.uniform(50, 230)  # close by, everything stays below the roof
+        elif dist < 1500:
+            height = 300 + rng.uniform(30, 150) if rng.random() < 0.16 else rng.uniform(80, 260)
+        else:
+            height = 300 + rng.uniform(60, 240) if rng.random() < 0.3 else rng.uniform(140, 300)
+        if behind > 0.0:
+            height += (rng.uniform(40, 120) - height) * behind
     W = WORLD
     if dist >= W['near_radius']:
         height = min(height, W['height_cap_base'] + (dist - W['near_radius']) * W['height_cap_slope'])
+        # The outer ring steps down toward the painting.
+        edge = (dist - (W['city_reach'] - CITY['outer_taper'])) / CITY['outer_taper']
+        if edge > 0.0:
+            height *= 1.0 - CITY['outer_drop'] * min(1.0, edge)
     far = dist > 1600
     glass = rng.random() < 0.4
     rec = {'x': x, 'z': z, 'w': w, 'd': d_, 'dist': dist, 'behind': behind, 'podium': podium,
@@ -292,6 +351,14 @@ FAR_ISLANDS = [
     ('hill', 133.0, 6300.0, 160.0, 130.0),
     ('islet', 140.0, 5800.0, 75.0, 50.0),
     ('islet', 52.0, 6400.0, 85.0, 65.0),
+    # Nearer far islands on the ocean side (Stage 6 critic 2: phones, which draw none of the 3D
+    # islands, saw an empty sea there). Each on its own bearing and further out than the 3D ones,
+    # so none reads as a painted twin of a near island.
+    ('ridge', 28.0, 3900.0, 480.0, 620.0),  # a far range behind the near peak right of the pergola
+    ('hill', 50.0, 3900.0, 200.0, 230.0),
+    ('peak', 70.0, 3300.0, 220.0, 330.0),
+    ('hill', 88.0, 3100.0, 180.0, 170.0),
+    ('islet', 57.0, 3450.0, 100.0, 90.0),
 ]
 
 

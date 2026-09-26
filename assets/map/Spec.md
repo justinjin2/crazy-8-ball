@@ -336,12 +336,17 @@ character waits on the lower landing.
     out (about 5000, 850 to 950 tall), one straight behind the pergola and one beside the
     sunset sun, and smaller islands in two clusters. The art's ocean panel also has islands
     near and mid-distance, which Stage 5 adds.
-- **The sea in the gray-box:** Terrain water out to 6500 studs, then flat slabs to 8000.
-  Distant water reflects the pale sky at a grazing angle, so far off the sea reads nearly as
-  pale as the sky and the islands look as if they float. Stage 4 tunes the water colour and
+- **The sea:** Terrain water and the land slabs reach 2,600 studs (`water_reach`); the skybox
+  paints the sea and land from there to the horizon. Stage 4 tuned the water colour and
   Atmosphere for a crisp deep-blue horizon, as in the art.
-- **Far (Stage 6, 2000 studs and beyond):** skyline and island silhouettes on cards, faded by
-  Atmosphere.
+- **Far (Stage 6, beyond the mid backdrop):** painted into the skybox, not on cards, because
+  phones draw nothing that far (section 9). `gen_sky.py` renders it from the roof's eye with
+  the same generators: the far city from 2,300 to 7,000 studs (`city_plan.far_blocks`, about
+  9,100 lots, six landmark towers), low blue hills behind it, the far islands, the coast point
+  and small islets (`city_plan.FAR_ISLANDS`, built by `backdrop/islands.py`'s `Island`), and the
+  land and sea under them, all faded toward the horizon colour with distance. The near islands
+  are 3D only: a painted twin shows as a ghost peak behind its 3D island from the roof's
+  edges.
 
 ## 8. Budgets
 

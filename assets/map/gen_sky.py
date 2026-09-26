@@ -335,9 +335,16 @@ FAR = {
     'light_sun': 0.26,
     'foot_shade': 0.86,  # a wall's colour at its foot, of its colour at its top
     'spire_every': 37,  # every this-many tall towers wears a spire
-    'landmarks': 6,  # the tallest far towers are raised into landmarks this tall over the roof...
-    'landmark_rise': (260.0, 380.0),
-    'far_blend': 0.45,  # the far islands' greens blended this far toward the art's far island blue-green
+    'landmarks': 2,  # the tallest far towers at each downtown's heart (city_plan.FAR_DOWNTOWNS)...
+    'landmark_rise': (300.0, 480.0),  # ...raised into landmarks this tall over the roof
+    'landmark_heart': 0.6,  # a landmark's lot is at least this near its downtown's heart (city_plan.downtown)
+    # The far islands: stronger light and shade and less haze than the city, so they read as green
+    # mountains with a shaded flank, not milky cut-outs (Stage 6 critic 2).
+    'island_ambient': 0.6,
+    'island_sun': 0.4,
+    'island_fade_length': 22000.0,
+    'far_blend': 0.3,  # the far islands' greens blended this far toward the art's far island blue-green
+    'rock_green': 0.5,  # far islands' rock this far toward the dark jungle green (no grey skirt)
     'hills': (11000.0, 16000.0),  # low blue hills behind the city on the horizon, this far out...
     'hill_height': (180.0, 520.0),  # ...this tall over the street
 }
@@ -395,9 +402,13 @@ def unit(hex_colour):
     return tuple(v / 255.0 for v in mc.rgb(hex_colour))
 
 
-def far_material(c, sun, lit=True):
+def far_material(c, sun, lit=True, ambient=None, sun_light=None, fade_length=None):
     """Emission: the corner colour times the light (ambient plus the sun on the face), faded
-    toward the horizon colour with distance from the eye (aerial perspective)."""
+    toward the horizon colour with distance from the eye (aerial perspective). The light and
+    the fade default to FAR's."""
+    ambient = FAR['light_ambient'] if ambient is None else ambient
+    sun_light = FAR['light_sun'] if sun_light is None else sun_light
+    fade_length = FAR['fade_length'] if fade_length is None else fade_length
     m = bpy.data.materials.new('Far')
     m.use_nodes = True
     t = m.node_tree
@@ -420,8 +431,8 @@ def far_material(c, sun, lit=True):
         light = t.nodes.new('ShaderNodeMapRange')
         light.inputs['From Min'].default_value = 0.0
         light.inputs['From Max'].default_value = 1.0
-        light.inputs['To Min'].default_value = FAR['light_ambient']
-        light.inputs['To Max'].default_value = FAR['light_ambient'] + FAR['light_sun']
+        light.inputs['To Min'].default_value = ambient
+        light.inputs['To Max'].default_value = ambient + sun_light
         t.links.new(pos.outputs[0], light.inputs['Value'])
         comb = t.nodes.new('ShaderNodeCombineColor')
         for i in range(3):
@@ -437,7 +448,7 @@ def far_material(c, sun, lit=True):
     t.links.new(dist.outputs['Value'], past.inputs[0])
     clampd = math_node(t, 'MAXIMUM', b=0.0)
     t.links.new(past.outputs[0], clampd.inputs[0])
-    scaled = math_node(t, 'DIVIDE', b=-FAR['fade_length'])
+    scaled = math_node(t, 'DIVIDE', b=-fade_length)
     t.links.new(clampd.outputs[0], scaled.inputs[0])
     ex = math_node(t, 'EXPONENT')
     t.links.new(scaled.outputs[0], ex.inputs[0])
@@ -485,12 +496,19 @@ def far_city(painted):
     tall = 0
     count = 0
     blocks = cp.far_blocks()
-    # The tallest lots ahead-left (the way the player faces) become the far landmarks.
-    ranked = sorted(((lot['height'], b['i'], b['j'], k) for b in blocks for k, lot in enumerate(b['lots'])
-                     if lot['shaft'] and lot['x'] < 0 and lot['z'] < 0), reverse=True)
+    # The tallest lots at each downtown's heart become the far landmarks, rising in turn.
+    picks = []
+    for bearing, dist, radius in cp.FAR_DOWNTOWNS:
+        a = math.radians(bearing)
+        cx, cz = -math.sin(a) * dist, -math.cos(a) * dist
+        ranked = sorted(((lot['height'], b['i'], b['j'], k) for b in blocks for k, lot in enumerate(b['lots'])
+                         if lot['shaft'] and math.hypot(lot['x'] - cx, lot['z'] - cz) < radius
+                         and cp.downtown(lot['x'], lot['z']) >= FAR['landmark_heart']), reverse=True)
+        assert len(ranked) >= FAR['landmarks'], ('a downtown without landmark lots', bearing)
+        picks += [r[1:] for r in ranked[:FAR['landmarks']]]
     lo, hi = FAR['landmark_rise']
-    marks = {(i, j, k): -W['street_y'] + lo + (hi - lo) * n / max(1, FAR['landmarks'] - 1)
-             for n, (_, i, j, k) in enumerate(ranked[:FAR['landmarks']])}
+    marks = {pick: -W['street_y'] + lo + (hi - lo) * ((n * 5) % len(picks)) / max(1, len(picks) - 1)
+             for n, pick in enumerate(picks)}
     for b in blocks:
         for k, lot in enumerate(b['lots']):
             if (b['i'], b['j'], k) in marks:
@@ -519,14 +537,18 @@ def far_city(painted):
 
 def paint_island(painted, isle, far):
     """One island from backdrop/islands.py's shape (grid and shore rings), coloured by its
-    material() per vertex. Far islands lean toward the art's far island blue-green, with rock
-    at the shore instead of a white beach rim (Stage 6 critic)."""
+    material() per vertex. Far islands lean toward the art's far island blue-green, their rock
+    toward the jungle and their shore the dark green, with no white beach rim or grey skirt
+    (Stage 6 critics)."""
     dark, mid, lit = (unit(FAR_COLOURS[k]) for k in ('jungle_dark', 'jungle', 'jungle_lit'))
     rock, sand = unit(FAR_COLOURS['rock']), unit(FAR_COLOURS['sand'])
     tint = unit(FAR_COLOURS['island_far'])
 
     def blend(a, b, t):
         return tuple(x + (y - x) * t for x, y in zip(a, b))
+
+    if far:
+        rock = blend(rock, dark, FAR['rock_green'])
 
     grid = []
     for row in isle.grid:
@@ -555,7 +577,7 @@ def paint_island(painted, isle, far):
             for tri in ([(a0, b0, b1)] if k == 0 else [(a0, b0, b1), (a0, b1, a1)]):
                 up_face([v[0] for v in tri], [v[1] for v in tri])
     edge = [v[0] for v in grid[-1]]
-    shore = blend(rock, tint, 0.3) if far else sand
+    shore = blend(dark, tint, FAR['far_blend']) if far else sand
     for j in range(m):
         jn = (j + 1) % m
         for ring_a, ring_b in ((edge, isle.water), (isle.water, isle.floor)):
@@ -613,7 +635,9 @@ def build_far(scene, c, sun):
     city.to_object('FarCity', lit_mat)
     isles = Painted()
     far_islands(isles)
-    isles.to_object('FarIslands', lit_mat)
+    isles.to_object('FarIslands', far_material(c, sun, lit=True, ambient=FAR['island_ambient'],
+                                               sun_light=FAR['island_sun'],
+                                               fade_length=FAR['island_fade_length']))
     hills = Painted()
     far_hills(hills, random.Random(SEED + 7))
     hills.to_object('FarHills', flat_mat)

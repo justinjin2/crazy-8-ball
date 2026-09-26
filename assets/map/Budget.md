@@ -14,8 +14,8 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
 | Props | 140,000 | 60,959 | 60,959 | 3 |
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 8,869 | 8,869 | 4 |
-| Mid backdrop: skyline and islands | 110,000 | 57,199 | 57,199 | 5 |
-| Far cards | 2,000 | | | 6 |
+| Mid backdrop: skyline and islands | 110,000 | 57,863 | 57,863 | 5, 6 |
+| Far horizon: painted into the day skybox, no geometry | 2,000 | 0 | 0 | 6 |
 | **Everything we ship** | **512,000** | | | |
 | Headroom for avatars | 488,000 or more | | | |
 
@@ -44,9 +44,9 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 10 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands) |
+| Unique map textures (1024 exports) | 20 | 11 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows) |
 | Skyboxes | 2 (six faces each) | 1 (day; gen_sky.py) |
-| Far-card images | 4 | 0 |
+| Far-card images | 4 | 0 (the far horizon is painted into the skybox faces instead) |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
 | MeshParts, backdrop | about 30 | 23 (the near world: 8 meshes and 3 boats; the mid backdrop: 12 chunks) |
 | PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 3 (the tall lanterns, the fire pit) |
@@ -79,3 +79,14 @@ In Studio the count matches Blender. With the near world there are 23 backdrop M
 (budget 30). There are three new images: `skyline_color`, `islands_color`, and
 `shallows_color` (the shallows alone, so far-off mip levels no longer bleed into them). That
 makes 11 of the 20.
+
+## Stage 6: the far horizon (2026-09-26)
+
+No new geometry and no new images. `gen_sky.py` renders the far world into the day skybox's
+six faces (1,024 pixels each): 5,837 far lots (59,455 faces) and 23 far islands (20,184
+faces), in Blender only. The 3D water and land slabs shrank from 8,000 to 2,600 studs, so
+the gray-box lost its far island cones and slabs.
+
+The second critic round reshaped the mid city (the stair side eases in by bearing, the outer
+400 studs step down): the skyline module went from 44,465 to 45,129 triangles, the backdrop to
+57,863 in the same 12 chunks, matching in Studio.
