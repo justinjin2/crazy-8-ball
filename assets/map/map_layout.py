@@ -362,7 +362,9 @@ def build():
     prop('fire_pit', bay_w, group_z + 1.0, 0.0, y)
     for side in (-1, 1):
         prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
-        for x in (lf + 8.0, lf + 32.0):  # between the pergola's front columns
+        # Ferns on the platform's edge: flanking the flight, and toward its ends (clear of the
+        # views down the bays either side of the piano).
+        for x in (lf + 2.4, lf + 39.0):
             prop('fern_planter', side * x, platform_front - 2.2, 0.0, y)
         # A pair of palms at each end of the pergola, just off the platform, stepping down.
         prop('palm_planter', side * (lw + 3.0), platform_front - 2.6, 0.0, 0.0, height=32.0)

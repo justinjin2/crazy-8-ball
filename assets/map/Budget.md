@@ -11,7 +11,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 |---|---:|---:|---:|---|
 | 16 tables (existing, 8,134 each) | 130,000 | 130,144 | 130,144 | existing |
 | Balls, cues, effects (existing) | 20,000 | | | existing |
-| Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | | | 2 |
+| Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 4,302 | 4,302 | 2 |
 | Props | 140,000 | | | 3 |
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | | | 4 |
 | Mid backdrop: skyline and islands | 110,000 | | | 5 |
@@ -34,7 +34,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Grand piano | 4,000 | 1 | | 4,000 at cap |
 | Snack counter | 4,000 | 0 (out for now, Checkpoint A) | | |
 | Globe light | 150 | 10 | | 1,500 at cap |
-| Pergola | 8,000 | 1 (counted in architecture) | | 8,000 at cap |
+| Pergola | 8,000 | 1 (counted in architecture) | 982 (with the 2 entrance columns) | 982 |
 
 At their caps the props come to about 89,000 triangles (the pergola aside), inside the
 props group's 140,000.
@@ -43,9 +43,30 @@ props group's 140,000.
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 0 |
+| Unique map textures (1024 exports) | 20 | 5 (arch, floor colour, floor normal, foliage, overlays) |
 | Skyboxes | 2 (six faces each) | 0 |
 | Far-card images | 4 | 0 |
-| MeshParts, rooftop and props | 400 | 0 |
+| MeshParts, rooftop and props | 400 | 10 (architecture) |
 | MeshParts, backdrop | about 30 | 0 |
 | PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 0 |
+
+## Stage 2: the architecture (2026-09-26)
+
+Blender (`gen_rooftop.py`, triangles after triangulation) and Studio (EditableMesh) agree:
+
+| Mesh | Triangles |
+|---|---:|
+| Parapet | 600 |
+| RailingFrame | 1,944 |
+| RailingGlass | 40 |
+| Steps | 116 |
+| Pergola (and the two entrance columns) | 982 |
+| PergolaSlats | 304 |
+| Vines | 108 |
+| TowerTop | 124 |
+| TableGlow | 32 |
+| FloorShade | 52 |
+| **Total** | **4,302** |
+
+The floor is Parts with a tiled MaterialVariant: no triangles. No lights yet.
+
