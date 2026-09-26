@@ -57,7 +57,10 @@ COLOURS = {
     'day': {
         'top': mc.hexc('sky_top_day'),
         'horizon': mc.hexc('sky_horizon_day'),
-        'sea': mc.hexc('water_far'),
+        # Below the horizon: the Terrain water's rendered blue (between #349BD6 at high quality
+        # and #1791D8 at low). At low quality Roblox draws the water only near the camera and
+        # the sky shows beyond it, so the two must match; the art's far sea is #3187DE.
+        'sea': '#2F92D8',
         'cloud_lit': '#F7F8FF',  # the art's sunlit tops read near white; cloud_day is their average
         'cloud_mid': mc.hexc('cloud_day'),
         'cloud_shade': mc.hexc('cloud_day', 'shade'),

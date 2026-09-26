@@ -2770,16 +2770,28 @@ Config.Lighting = {
 		-- 2026-09-26): the art's gradient and cumulus clouds, the far sea below the horizon.
 		-- MapBuilder.applyLighting updates the place's own Sky (two Skies clash).
 		Sky = {
-			SkyboxBk = "rbxassetid://136236624760686",
-			SkyboxDn = "rbxassetid://96517970409100",
-			SkyboxFt = "rbxassetid://128267964114576",
-			SkyboxLf = "rbxassetid://119703293534272",
-			SkyboxRt = "rbxassetid://98150517049636",
+			SkyboxBk = "rbxassetid://108692667437067",
+			SkyboxDn = "rbxassetid://125140061064357",
+			SkyboxFt = "rbxassetid://100849324244766",
+			SkyboxLf = "rbxassetid://100893690229120",
+			SkyboxRt = "rbxassetid://134163911405833",
 			SkyboxUp = "rbxassetid://118017971954719",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
 			MoonAngularSize = 11,
 			StarCount = 0, -- no stars by day
 			CelestialBodiesShown = true, -- the sun is Roblox's, never painted
+		},
+		-- Terrain water (Studio test, 2026-09-26): nearly clear, with little reflection, so the
+		-- sea renders the art's bright blue (about #349BD6) instead of mirroring the pale sky
+		-- (Roblox's reflectance 1 made the far sea read nearly as pale as the sky). What lies
+		-- under the water shows only at high graphics quality, so the shallows are painted on
+		-- the near world's beach, not seen through the water.
+		Water = {
+			WaterColor = "#1B6FBF",
+			WaterTransparency = 0.85,
+			WaterReflectance = 0.3,
+			WaterWaveSize = 0.1, -- calm (Roblox's 0.15)
+			WaterWaveSpeed = 6,
 		},
 	},
 }

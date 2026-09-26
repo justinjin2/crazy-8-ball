@@ -236,9 +236,9 @@ def build(g, plan):
     # Beyond the Terrain water and the land, flat slabs to the horizon (a hair under the water
     # line so they never fight the Terrain's surface).
     F_ = FAR_REACH
-    # Darker than water_far: the slab takes the sun directly where the Terrain water does not, so
-    # this is the albedo that renders like the far water (sampled from a Stage 1 capture).
-    far_sea = '#5A82A8'
+    # The slab takes the sun directly where the Terrain water does not, so this is the albedo
+    # that renders like the far Terrain water under the Day light (about #349BD6; Stage 4 test).
+    far_sea = '#4E8FAE'
     for rect in ((R_, -F_, F_, F_), (COAST_X, R_, R_, F_), (CITY_EDGE_MAX, -F_, R_, -R_)):
         slab(g, 'Backdrop', 'SeaFar', rect, SEA_Y - 3, SEA_Y - 0.6, far_sea)
     for rect in ((-F_, -F_, -R_, F_), (-R_, R_, COAST_X, F_), (-R_, -F_, CITY_EDGE_MAX, -R_)):

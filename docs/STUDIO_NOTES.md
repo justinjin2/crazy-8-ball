@@ -163,7 +163,22 @@ looking along each axis. Nothing is mirrored:
 - SkyboxDn: looking down, the image top points to -X and the image right to -Z.
 
 When testing a Sky, move the place's own Sky to ServerStorage first, because two Skies in
-Lighting clash. Put it back afterwards. `SurfaceAppearance` has `EmissiveMaskContent`,
+Lighting clash. Put it back afterwards. (`MapBuilder.applyLighting` updates the place's own
+Sky instead of adding one.)
+
+## Water and distance at low quality (tested 2026-09-26)
+
+Tested with a sand slope and a dark seabed under Terrain water, at Edit quality 21 and 4
+(`settings().Rendering.EditQualityLevel`; Automatic by default, put it back after).
+- Parts under Terrain water show through only at high quality. At low quality the water is
+  opaque, so shallows have to be painted on a thin band over the water, not seen through it.
+  A dark seabed does not deepen the blue.
+- Roblox's default WaterReflectance of 1 mirrors the pale sky, so the far sea reads almost as
+  pale as the sky. At 0.3, with a clear blue colour, it reads the art's bright blue.
+- At low quality Roblox draws Terrain water only near the camera, in blocky patches, and
+  drops distant parts: the islands 3,500 studs and more away vanish. Only the skybox is
+  always drawn. The sky's lower half is therefore painted the water's rendered blue, and
+  anything that must be seen far away on a phone belongs in the skybox. `SurfaceAppearance` has `EmissiveMaskContent`,
 `EmissiveStrength` and `EmissiveTint`, useful for lit windows.
 
 ## Testing by hand (the two checks an agent cannot do)
