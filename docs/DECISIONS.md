@@ -1185,3 +1185,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   and, behind the tower, from Z -150 to -215. The city's bending shore further back stays
   where it was. The gray-box city was re-rolled once, seeded per block from now on, with the
   islands written in as they were.
+- 2026-09-26: Rank badges, round three (designer): Diamond takes Grandmaster's cyan and
+  Grandmaster turns orange; the stars and gems were too hard to read when small, so they are
+  bigger, brighter and each sits in a dark socket; Reyes gets a nod to "The Magician" and
+  "Bata": a little wizard hat hooked on the badge's top-right corner (picked from three
+  mock-ups: on the corner, worn by the 8 ball, or with a cue as a wand at the bottom).

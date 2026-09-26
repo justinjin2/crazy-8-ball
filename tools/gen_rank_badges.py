@@ -11,7 +11,8 @@ blades for Reyes). On top of that, the same rules everywhere:
 - a crown from Expert up, bigger each tier (Reyes has the biggest, in gold);
 - pips in an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
   to Grandmaster (1 pip = division I, 5 = V).
-Reyes is one badge with no pips. Unranked is a plain grey badge. No words in any image.
+Reyes is one badge with no pips, and a little wizard hat on its corner for Efren Reyes'
+nicknames "The Magician" and "Bata". Unranked is a plain grey badge. No words in any image.
 
 Outputs under assets/ui/ranks/ (see README.md there):
   <tier>_<1..5>.png, reyes.png, unranked.png  512 px badges, plus the .svg source of each
@@ -41,15 +42,17 @@ EDGE = 3.5  # the thin ink lines between parts (the outer outline is ink_filter'
 CX, CY = 128, 138  # the ball's centre, the same on every badge (low, to leave room for crowns)
 RING = 58  # the metal ring's outer radius
 BALL = 46
-PIP_ARC = 70  # pips sit on this radius around the ball...
-PIP_STEP = 25  # ...this many degrees apart, centred under the ball
-PIP_SIZE = 15
+PIP_ARC = 76  # pips sit on this radius around the ball...
+PIP_STEP = 30  # ...this many degrees apart, centred under the ball
+PIP_SIZE = 20.5  # a star's radius; each pip sits in a dark socket this much bigger:
+PIP_SOCKET = 3.5  # so the count reads even when the badge is small
 CROWN_BASE = 80  # the crown's bottom edge, on the ring's top
 LIGHT = (-0.55, -0.83)  # towards the light, for the facets: the top left
 OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
 LIP = 5
 
 GOLD = ("#FFF3A6", "#FFC928", "#C97F00")
+HAT = ("#9C8CFF", "#5A41D6", "#26177A")  # Reyes' wizard hat, for "The Magician"
 
 # name, metal (light, mid, dark), pip kind, crown level (0 = none), frame. Lowest tier first.
 TIERS = [
@@ -57,11 +60,11 @@ TIERS = [
     ("silver", ("#FFFFFF", "#C3CCD9", "#77849A"), "star", 0, "hex"),
     ("gold", GOLD, "star", 0, "hex"),
     ("platinum", ("#F2FBFF", "#A6D6F2", "#5588B8"), "star", 0, "hex"),
-    ("diamond", ("#A8DBFF", "#3B9BFF", "#1A52C2"), "star", 0, "hex"),
+    ("diamond", ("#C2FDFF", "#27D0E6", "#08789E"), "star", 0, "hex"),
     ("expert", ("#FFB0A8", "#F2413F", "#9A1226"), "gem", 1, "round"),
     ("veteran", ("#C8F7A8", "#4FC93A", "#1A7A28"), "gem", 2, "crest"),
     ("master", ("#DEC4FF", "#9B55F5", "#4C18A8"), "gem", 3, "crest"),
-    ("grandmaster", ("#C2FDFF", "#27D0E6", "#08789E"), "gem", 4, "crest"),
+    ("grandmaster", ("#FFD9A6", "#FF8A1E", "#B84400"), "gem", 4, "crest"),
 ]
 REYES = ("reyes", ("#8C8CA2", "#3C3C4C", "#14141C"), None, 5, "round")
 UNRANKED = ("unranked", ("#EEF1F6", "#B4BDCB", "#7D889B"), None, 0, "hex")
@@ -150,6 +153,8 @@ def gradients(metal):
         # pips and crowns: brighter than the metal they sit on
         f'<linearGradient id="p" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="{mix(light, "#FFFFFF", 0.55)}"/>'
         f'<stop offset="0.55" stop-color="{light}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
+        f'<linearGradient id="s" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="#FFFFFF"/>'
+        f'<stop offset="0.5" stop-color="{mix(light, "#FFFFFF", 0.4)}"/><stop offset="1" stop-color="{mix(light, mid, 0.3)}"/></linearGradient>'
         f'<linearGradient id="c" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="{mix(light, "#FFFFFF", 0.4)}"/>'
         f'<stop offset="0.55" stop-color="{mix(light, mid, 0.55)}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
         # gold, for Reyes' trim and crown
@@ -157,6 +162,9 @@ def gradients(metal):
         f'<stop offset="0.5" stop-color="{gmid}"/><stop offset="1" stop-color="{gdark}"/></linearGradient>'
         f'<linearGradient id="gr" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(gmid, gdark, 0.45)}"/>'
         f'<stop offset="0.6" stop-color="{gmid}"/><stop offset="1" stop-color="{mix(glight, gmid, 0.4)}"/></linearGradient>'
+        # Reyes' wizard hat
+        f'<linearGradient id="hat" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="{HAT[0]}"/>'
+        f'<stop offset="0.5" stop-color="{HAT[1]}"/><stop offset="1" stop-color="{HAT[2]}"/></linearGradient>'
         # the 8 ball
         '<radialGradient id="ball" cx="0.38" cy="0.32" r="0.78"><stop offset="0" stop-color="#5C6275"/>'
         '<stop offset="0.4" stop-color="#23262F"/><stop offset="1" stop-color="#06070B"/></radialGradient>'
@@ -210,9 +218,9 @@ def star(c, r, fill="url(#p)"):
     )
 
 
-def gem(c, h, light, mid, dark):
+def gem(c, h, light, mid, dark, width=0.72):
     """A faceted diamond (rhombus) gem, taller than wide, lit from the top left."""
-    w = h * 0.72
+    w = h * width
     top, right, bottom, left = (c[0], c[1] - h), (c[0] + w, c[1]), (c[0], c[1] + h), (c[0] - w, c[1])
     mid_pt = (c[0], c[1] - h * 0.18)
     return (
@@ -311,15 +319,18 @@ def eight_ball():
 
 
 def pips(kind, count, metal):
+    """The division: 1 to 5 bright stars or gems in dark sockets, in an arc under the ball."""
     light, mid, dark = metal
-    out = []
-    for i in range(count):
-        a = 90 + (i - (count - 1) / 2) * PIP_STEP
-        c = along((CX, CY), a, PIP_ARC)
+    centres = [along((CX, CY), 90 + (i - (count - 1) / 2) * PIP_STEP, PIP_ARC) for i in range(count)]
+    r = PIP_SIZE + PIP_SOCKET
+    socket = mix(dark, INK, 0.55)
+    out = [f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r}" fill="{socket}" stroke="{INK}" stroke-width="{EDGE}"/>' for c in centres]
+    out += [f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r - EDGE / 2}" fill="{socket}"/>' for c in centres]
+    for c in centres:
         if kind == "star":
-            out.append(star(c, PIP_SIZE))
+            out.append(star(c, PIP_SIZE, fill="url(#s)"))
         else:
-            out.append(gem(c, PIP_SIZE + 1.5, mix(light, "#FFFFFF", 0.3), mid, dark))
+            out.append(gem(c, PIP_SIZE + 1, mix(light, "#FFFFFF", 0.5), light, mix(light, mid, 0.7), 0.84))
     return "".join(out)
 
 
@@ -365,6 +376,46 @@ def crown(level, face="url(#c)", rim="url(#r)", gem_colours=None):
                 f'fill="{mix(light, "#FFFFFF", 0.3)}" stroke="{INK}" stroke-width="2"/>'
             )
     return "".join(parts)
+
+
+def flat_star(c, r, fill):
+    """A small star with no outline, for decorations too small to carry one."""
+    pts = []
+    for i in range(10):
+        a = math.radians(-90 + i * 36)
+        rr = r if i % 2 == 0 else r * 0.45
+        pts.append((c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr))
+    return poly(pts, fill, False)
+
+
+def wizard_hat(bx, by, w, h, tilt, droop):
+    """A little wizard hat (moon, stars, gold band, a gold star on the tip), brim centred on
+    (bx, by), tilted by `tilt` degrees; droop bends the tip sideways. Reyes' nod to his
+    nicknames "The Magician" and "Bata"."""
+    left, right, tip = (bx - w / 2, by), (bx + w / 2, by), (bx + droop, by - h)
+    cone = (
+        f"M{pt(left)} C{bx - w * 0.3:.1f} {by - h * 0.45:.1f} {bx - w * 0.05 + droop * 0.4:.1f} {by - h * 0.9:.1f} {pt(tip)} "
+        f"C{bx + w * 0.12 + droop * 0.3:.1f} {by - h * 0.72:.1f} {bx + w * 0.32:.1f} {by - h * 0.4:.1f} {pt(right)} Z"
+    )
+    brim = f'<ellipse cx="{bx}" cy="{by}" rx="{w * 0.72:.1f}" ry="{w * 0.17:.1f}" fill="url(#hat)" stroke="{INK}" stroke-width="{EDGE}"/>'
+    band = poly([(bx - w * 0.47, by - 1), (bx + w * 0.47, by - 1), (bx + w * 0.4, by - h * 0.16), (bx - w * 0.41, by - h * 0.16)], "url(#g)")
+    mc = (bx - w * 0.08 + droop * 0.15, by - h * 0.42)
+    mr = w * 0.13
+    moon = (
+        f'<circle cx="{mc[0]:.1f}" cy="{mc[1]:.1f}" r="{mr:.1f}" fill="#FFE27A"/>'
+        f'<circle cx="{mc[0] + mr * 0.45:.1f}" cy="{mc[1] - mr * 0.25:.1f}" r="{mr * 0.85:.1f}" fill="url(#hat)"/>'
+    )
+    body = (
+        brim
+        + path(cone, "url(#hat)")
+        + gloss(bx - w * 0.2, by - h * 0.45, w * 0.07, h * 0.2, -15, 0.55)
+        + band
+        + moon
+        + flat_star((bx + w * 0.17 + droop * 0.1, by - h * 0.34), w * 0.1, "#FFE27A")
+        + flat_star((bx + droop * 0.55 + w * 0.02, by - h * 0.7), w * 0.075, "#FFE27A")
+        + star(tip, w * 0.17, "url(#g)")
+    )
+    return f'<g transform="rotate({tilt} {bx} {by})">{body}</g>'
 
 
 # ---------------------------------------------------------------------------------------
@@ -516,6 +567,8 @@ def badge_body(tier, count):
             parts.append(crown(crown_level, gem_colours=(mix(light, "#FFFFFF", 0.4), light, mid)))
         parts.append(ring())
     parts.append(eight_ball())
+    if name == "reyes":
+        parts.append(wizard_hat(194, 84, 52, 60, 26, 12))  # hooked on the top-right corner
     if pip:
         parts.append(pips(pip, count, metal))
     return gradients(metal), "".join(parts)

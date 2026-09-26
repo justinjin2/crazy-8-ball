@@ -118,8 +118,11 @@ order; that is Open.
   every badge: the ball and its ring the same size in the same place; a crown from Expert up
   (bigger each tier, Veteran included; Reyes the biggest, in gold); pips in an arc under the
   ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 =
-  division I). Reyes is black and gold with no pips and no signature. No banner and no words:
-  the rank's name is game text beside the badge where needed.
+  division I), big and bright, each in a dark socket of its tier's colour so the count reads
+  when the badge is small. Diamond is cyan and Grandmaster orange (2026-09-26). Reyes is black
+  and gold with no pips and no signature, and a little wizard hat hooked on its top-right
+  corner for Efren Reyes' nicknames "The Magician" and "Bata" (the crown stays on top). No
+  banner and no words: the rank's name is game text beside the badge where needed.
 
 ## 7. Motion
 
