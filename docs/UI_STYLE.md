@@ -31,7 +31,10 @@ screen, a popup).
 **Decided**
 - **Fredoka One for all text.** Roblox has it in one weight only (checked in Studio
   2026-09-25), so titles stand out by size, colour and outline, not boldness.
-- **White text with a dark outline**, for now.
+- **White text with a dark outline** for titles, names, numbers and buttons.
+- **Small descriptive text is dark ink with no outline** (descriptions, notes, detail lines):
+  on small text an outline squeezes the letters together and fills the o's and a's, and
+  Roblox cannot space letters out (designer, 2026-09-26).
 - Every word is real Roblox text (TextLabel, TextButton, TextBox), never part of an image,
   and lives in `Strings`. This is what makes Roblox automatic translation work.
 - Text must survive translations about 40% longer than English: it shrinks to a minimum size
@@ -41,7 +44,8 @@ screen, a popup).
 - Player names are never translated (`AutoLocalize` off on those labels).
 
 **Starting values**
-- Sizes: title 40, heading 28, button 24, body 18, never below 16 px.
+- Sizes: title 32, heading 22, button 20, body 16, never below 14 px (2026-09-26: the whole
+  PC GUI shrunk to about 80% of the first build; it was 40, 28, 24, 18 and 16).
 - Outline: about a tenth of the text size, at least 2 px. Ink `#1B2033`.
 
 **Decided exceptions** (2026-09-25)
@@ -128,7 +132,10 @@ order; that is Open.
   X when down). Tokens in `Config.UI.Kit`; `src/client/UIAnim.luau` for every animation.
 - **The art:** `tools/gen_ui_art.py` renders the icons (`assets/ui/icons`) and the effect
   images (`assets/ui/art`: the pattern tile, ball gloss and band, rays, 9-slice shadow).
-- **Screens:** the match top bar (a compact version on phones) and status card, the foul
-  popup (no panel, 3 s), the hints, fine controls, the leave and surrender dialog, the coin
-  and result cards, the host menu, the floor box, the table sign (only near its table), the
-  power bar, the spin panel and the pocket targets.
+- **Screens:** the match top bar and status card, the foul popup (no panel, 3 s), the hints,
+  the leave and surrender dialog, the coin and result cards, the host menu, the floor box, the
+  table sign (only near its table), the power bar, the spin panel and the pocket targets.
+- **Phones** (2026-09-26): the top bar is compact and sits in Roblox's own top row beside its
+  menu, chat and voice buttons (it asks Roblox for that room, ScreenInsets.TopbarSafeInsets),
+  so the table keeps the screen; the host menu lays its two columns side by side, bigger and
+  clear of the jump button.

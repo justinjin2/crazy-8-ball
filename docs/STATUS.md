@@ -1,5 +1,36 @@
 # Status
 
+**2026-09-26 (latest): the UI redo's second round, from the designer's playtest: phone
+layout fixed, Fine controls removed, smaller PC GUI, clearer small text.**
+
+- **Phones:**
+  - The top bar sits in Roblox's top row beside its menu, chat and voice buttons (solo and
+    1v1; a 2v2 or 3v3 sits just under them on one line).
+  - With the table no longer half covered, the camera stops backing away, and the power bar
+    starts near the top.
+  - The host menu shows its two columns side by side, bigger, and fits on the screen.
+- **Everywhere:**
+  - Fine controls are gone. The project rule is now "every control works by touch, mouse and
+    gamepad" (CLAUDE.md, GDD).
+  - Small text (descriptions, notes, the detail line) is dark with no outline.
+  - The PC GUI is about 80% of its old size.
+  - The ball-in-hand ring is plain blue.
+  - The table sign shows abilities ON or OFF.
+  - The host menu lists Play against PC first, with no SOON tag. Until bots exist, the button
+    does nothing.
+  - The extra notes are gone, and the difficulty descriptions are the designer's own words.
+- **Verified:**
+  - Lint is clean and 332 Lune tests pass.
+  - Studio Play in the phone emulator (750x361): the host menu, the table sign with its
+    abilities pill, 1v1 and solo bars beside Roblox's buttons, the power bar with its PULL
+    label, no Fine controls, and a clean console.
+  - Edit previews (numbers) of the solo, 1v1 and 3v3 bars at 1280x720, 1920x1080, 750x361 and
+    667x375: every mode on one line.
+- **Still to do:** the designer's look on a PC window (Studio is set to the phone emulator), a
+  real phone and controller, and a two-player match.
+
+---
+
 **2026-09-25 (latest): every screen is redone in the new cartoony style: white inked cards, a
 faint pool-ball pattern, candy buttons, Fredoka One and glossy icons. The table sign only
 shows when you walk right up to a table.**

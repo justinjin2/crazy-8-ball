@@ -88,6 +88,18 @@ function HudParts.text(
 	return object
 end
 
+--- Small descriptive text (a description, a note, a detail line): dark ink with no outline,
+--- sitting cleanly on the white card. An outline on small text squeezes the letters together
+--- and fills the o's and a's (designer, 2026-09-26); titles, names and buttons keep theirs.
+function HudParts.note(parent: Instance, name: string, size: number, text: string): TextLabel
+	local object = HudParts.text(parent, name, size, text, INK)
+	local outline = object:FindFirstChild("Outline")
+	if outline then
+		outline:Destroy()
+	end
+	return object
+end
+
 --- Change a kit text's size: its largest size, its floor and its outline together. `floor`
 --- lowers the smallest it may shrink to (player names, which are data, not reading text).
 function HudParts.setTextSize(object: TextLabel, size: number, floor: number?)
@@ -434,11 +446,11 @@ function HudParts.setButtonIcon(button: TextButton, key: string?)
 	end
 end
 
-function HudParts.setButtonTextSize(button: TextButton, size: number)
+function HudParts.setButtonTextSize(button: TextButton, size: number, floor: number?)
 	local c = candies[button]
 	if c and c.textSize ~= size then
 		c.textSize = size
-		HudParts.setTextSize(c.label, size)
+		HudParts.setTextSize(c.label, size, floor)
 	end
 end
 

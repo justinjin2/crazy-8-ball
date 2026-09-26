@@ -61,7 +61,6 @@ local queueMenu: any = nil
 local targets: any = nil
 local awaitingAt: number? = nil
 local currentPull = 0
-local discretePower = M.PrecisionPowerDefault
 local controlled = false
 local lastTurnKey = ""
 local lastPhaseKey = ""
@@ -359,27 +358,7 @@ local function leave()
 	end
 end
 local function action(kind: string, value: any?)
-	if kind == "PrecisionAim" then
-		if canShoot() then
-			input:setAngle(input.angle + math.rad(value :: number))
-		end
-	elseif kind == "PrecisionPower" then
-		discretePower =
-			math.clamp(discretePower + (value :: number), Config.Input.MinPowerToShoot, 1)
-		hud:setShootPower(discretePower)
-	elseif kind == "ClosePrecision" then
-		hud:togglePrecision()
-	elseif kind == "PrecisionShoot" then
-		fire(discretePower, 0) -- a short jab from the cue at rest
-	elseif kind == "PrecisionPlace" then
-		targets:nudge(value.sx, value.sy)
-	elseif kind == "PrecisionToggle" then
-		if value and UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1 then
-			GuiService.SelectedObject = if targets:canPlace()
-				then hud.precisionButtons.PlaceLeft
-				else hud.precisionButtons.AimLeft
-		end
-	elseif kind == "Vote" then
+	if kind == "Vote" then
 		hub:action(kind, { yes = value })
 	elseif kind == "SetDifficulty" or kind == "SetAbilities" then
 		hub:action(kind, { value = value })
@@ -628,8 +607,6 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		leave()
 	elseif key.KeyCode == Enum.KeyCode.Escape and hud:isModal() then
 		hud:closeModal()
-	elseif key.KeyCode == Enum.KeyCode.ButtonX and canShoot() then
-		hud:togglePrecision()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and snapshot and snapshot.phase == "Waiting" then
 		queueMenu:focus()
 	elseif key.KeyCode == Enum.KeyCode.F3 then
@@ -701,7 +678,8 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	hud:update(now)
 	queueMenu:update(now)
-	local controlsTop = hud:reservedHeight() + M.Style.HeaderGap
+	-- The power bar starts under the top bar, leaving room for its PULL label above it.
+	local controlsTop = hud:reservedHeight() + M.Style.HeaderGap + Config.UI.PowerLabelSize + 6
 	local available =
 		math.max(M.Style.ButtonHeight, screen.AbsoluteSize.Y - controlsTop - M.Style.ButtonHeight)
 	local height = math.min(Config.UI.PowerBarMaxHeightPx, available)
@@ -751,7 +729,7 @@ RunService.RenderStepped:Connect(function(dt)
 	if input.enabled ~= allowed then
 		input:setEnabled(allowed)
 	end
-	UI.setPlayControlsVisible(canShoot() and not modal and not hud.precisionOpen)
+	UI.setPlayControlsVisible(canShoot() and not modal)
 	input:update(dt)
 	if controlled then
 		-- Top-down only while a pocket is being called for the 8; everything else, placing

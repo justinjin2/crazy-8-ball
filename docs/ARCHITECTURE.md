@@ -140,10 +140,10 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
 shooters), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
-seats), `MatchHUD` (the top bar, the foul popup, fine controls, dialogs, the coin and result
-cards), `QueueMenu` (the card everyone in a queue box sees: host, difficulty, abilities,
-Start), `TableSign` (the one sign over the table the player walks up to, drawn from the
-snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
+seats), `MatchHUD` (the top bar, beside Roblox's own buttons when it fits, the foul popup,
+the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone in a queue box
+sees: host, difficulty, abilities, Start; two columns side by side on a phone), `TableSign`
+(the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
 animation), `BoxEffects` (the queue boxes' glow, motes and join sound).
 

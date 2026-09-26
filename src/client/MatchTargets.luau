@@ -2,8 +2,8 @@
 -- Private screen-projected setup targets: the pocket rings for calling the 8, and the cue
 -- ball in hand. They never create physical collision geometry.
 --
--- Ball in hand is predicted, so it moves the frame the finger does. Every pointer move, arrow
--- press or stick step resolves to a legal spot here (CuePlacement.resolve, the same rules the
+-- Ball in hand is predicted, so it moves the frame the finger does. Every pointer move or
+-- stick step resolves to a legal spot here (CuePlacement.resolve, the same rules the
 -- server checks with valid()) and is shown at once through onMove. The server hears it on the
 -- unreliable aim stream (takeStream) and once more reliably when the gesture ends (onCommit).
 -- Both share a per-turn sequence number, so a late packet can never drag the ball backwards.
@@ -129,7 +129,6 @@ function MatchTargets.new(
 	self.grabX, self.grabY = 0, 0
 	self.stickHolding = false -- LT + left stick is moving the ball
 	self.blocked = false -- the ball could not follow the pointer (something in the way)
-	self.pendingCommitAt = nil -- arrow nudges send one reliable Place after a short pause
 	self.root = Instance.new("Frame")
 	self.root.Name = "MatchSetupTargets"
 	self.root.BackgroundTransparency = 1
@@ -171,8 +170,11 @@ function MatchTargets.new(
 	-- The ring is the grab target. Being a GUI button, a press on it arrives gameProcessed,
 	-- so Input's aim drag never sees it.
 	self.handle, self.handleStroke, self.handleInk, self.handleCaption =
-		ring(self.root, "CueBallPlacement", S.PlacementHandleSize, tone("Green"))
+		ring(self.root, "CueBallPlacement", S.PlacementHandleSize, tone("Blue"))
 	self.handleCaption.Text = Strings.Match.PlacementHandle
+	-- A plain blue ring round the ball in hand, no ink: the outline read as black on the cloth
+	-- (designer, 2026-09-26).
+	self.handleInk.Enabled = false
 	-- A glove on the ring: this ball is in your hand.
 	local hand = HudParts.icon(self.handle, "Hand")
 	hand.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -377,15 +379,6 @@ local function screenMove(self: any, sx: number, sy: number, inches: number, dis
 	self:moveTo(x + dx * inches, y + dy * inches)
 end
 
---- One arrow step, relative to the screen. A reliable Place follows once the arrows rest.
-function MatchTargets.nudge(self: any, sx: number, sy: number)
-	if not self:canPlace() then
-		return
-	end
-	screenMove(self, sx, sy, S.PrecisionMoveInches, true)
-	self.pendingCommitAt = self.elapsed + M.PlacementCommitIdleSeconds
-end
-
 --- LT + left stick, already dead-zoned and curved by Input.
 function MatchTargets.stickMove(self: any, sx: number, sy: number, dt: number)
 	if not self:canPlace() then
@@ -397,7 +390,6 @@ end
 
 --- Send the shown spot reliably, if it is not already what the server last heard that way.
 function MatchTargets.commit(self: any)
-	self.pendingCommitAt = nil
 	local x, y = self.previewX, self.previewY
 	if x == nil or y == nil or (x == self.committedX and y == self.committedY) then
 		return
@@ -421,11 +413,10 @@ end
 --- End a pointer or stick gesture (release, dialog, or the placement cutoff), sending the
 --- final spot when `commit` is set.
 function MatchTargets.finishGesture(self: any, commit: boolean)
-	local active = self.dragInput ~= nil or self.stickHolding or self.pendingCommitAt ~= nil
+	local active = self.dragInput ~= nil or self.stickHolding
 	self.dragInput = nil
 	self.stickHolding = false
 	self.blocked = false
-	self.pendingCommitAt = nil
 	if commit and active then
 		self:commit()
 	end
@@ -433,7 +424,6 @@ end
 
 --- The shot carried the spot as cueX/cueY, so nothing else needs sending for it.
 function MatchTargets.shotFired(self: any)
-	self.pendingCommitAt = nil
 	self.dirty = false
 	self.committedX, self.committedY = self.previewX, self.previewY
 end
@@ -464,7 +454,6 @@ function MatchTargets.setSnapshot(
 		self.dragInput = nil
 		self.stickHolding = false
 		self.blocked = false
-		self.pendingCommitAt = nil
 		self.previewX, self.previewY = nil, nil
 		self.committedX, self.committedY = nil, nil
 		self.dirty = false
@@ -531,10 +520,8 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 	-- The window closed (the lead-time cutoff, or the server moved on): end the gesture, and
 	-- send its last spot while the server can still take it.
 	local open = snapshot.phase == "Intro" or snapshot.phase == "Placement"
-	if not canPlace and (self:isHolding() or self.pendingCommitAt ~= nil) then
+	if not canPlace and self:isHolding() then
 		self:finishGesture(open)
-	elseif self.pendingCommitAt and self.elapsed >= self.pendingCommitAt then
-		self:commit()
 	end
 	local pulse = (math.sin(self.elapsed * math.pi * 2 / S.PulsePeriod) + 1) / 2
 	for _, target in self.pockets do
@@ -584,12 +571,11 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		self.handle.Position = UDim2.fromOffset(point.X, point.Y)
 		self.handle.Size = UDim2.fromOffset(size, size)
 		self.handle.Visible = visible and a.Z > 0
-		self.handleStroke.Color = if self.blocked then tone("Red") else tone("Green")
+		self.handleStroke.Color = if self.blocked then tone("Red") else tone("Blue")
 		self.handleCaption.TextColor3 = self.handleStroke.Color
 		self.handleCaption.Visible = not self:isHolding()
 		self.handleIcon.Visible = not self:isHolding()
 		self.handleStroke.Transparency = if self:isHolding() then 0 else pulse * S.TargetPulse
-		self.handleInk.Transparency = self.handleStroke.Transparency
 	else
 		self.handle.Visible = false
 	end
@@ -636,7 +622,6 @@ function MatchTargets.clear(self: any)
 	self.dragInput = nil
 	self.stickHolding = false
 	self.blocked = false
-	self.pendingCommitAt = nil
 	self.handle.Visible = false
 	for _, target in self.pockets do
 		target.button.Visible = false

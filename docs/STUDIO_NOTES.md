@@ -123,6 +123,15 @@ What was found:
 
 ## UI facts (tested 2026-09-25)
 
+- A ScreenGui with `ScreenInsets = TopbarSafeInsets` covers exactly the free part of Roblox's
+  top bar; its AbsolutePosition and AbsoluteSize share the coordinates of every other
+  ScreenGui (in the phone emulator, 750x361: x 208 to 750, 58 high, y -58). MatchHUD measures
+  its bar's room from one. An unparented ScreenGui still reports a size, so check the parent.
+- The Studio device emulator (a phone) applies in Edit mode too: the viewport reports the
+  phone's size, and Play shows the touch thumbstick and jump button. Handy for phone layout.
+- A BillboardGui with AlwaysOnTop did not appear in `screen_capture` (2026-09-26); the table
+  sign stays AlwaysOnTop = false.
+
 - In a Sibling-ZIndex ScreenGui, ZIndex -1 and 0 draw under default (1) siblings: the kit's
   card shadow and fill rely on it.
 - A TextLabel or TextButton can carry two UIStrokes at once: one Contextual (the text's

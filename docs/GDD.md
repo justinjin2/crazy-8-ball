@@ -65,7 +65,8 @@ Every feature is checked against these. If it serves none, it waits.
 
 **Decided**
 - **Every feature works on phone, PC and gamepad, and is checked on all three in every
-  milestone.** Every screen has a button alternative to every drag.
+  milestone.** Every control works by touch, mouse and gamepad; a drag needs no button twin
+  (changed 2026-09-26: the Fine controls panel is gone).
 - PC: hold click and drag left or right to aim, scroll wheel to zoom, pull the power bar on the
   right down and release to shoot, click the cue-ball icon to set spin.
 - Mobile: swipe left or right to aim, pinch to zoom, pull the power bar with a thumb, tap the

@@ -2116,27 +2116,27 @@ Config.Effects = {
 Config.UI = {
 	-- Spin selector: full-disc dragging, with 44 px Center/Done targets on small screens.
 	Spin = {
-		ToggleSizePx = 80, -- larger left-middle cue-ball button
+		ToggleSizePx = 64, -- the left-middle cue-ball button
 		MarginPx = 12,
 		ToggleMarginPx = 18,
-		BallSizePx = 180, -- full white disc maps to the existing legal spin range
+		BallSizePx = 150, -- full white disc maps to the existing legal spin range
 		ButtonSizePx = 44,
 		GapPx = 8,
-		PanelWidthPx = 280,
-		TextSizePx = 16,
-		DotSizePx = 36, -- selector marker, slightly smaller than the previous 39.6 px version
-		IconDotSizePx = 17.6, -- retain the left toggle's smaller marker
+		PanelWidthPx = 240,
+		TextSizePx = 14,
+		DotSizePx = 30, -- the strike point on the big ball
+		IconDotSizePx = 14, -- the strike point on the left toggle
 		CornerRadiusPx = 12,
 		OverlayTransparency = 0.9, -- only 10% dimming while spin is selected
 		BallColor = { 244, 244, 236 },
 		DotColor = { 220, 75, 70 },
 		-- Cue-angle slider beside the strike ball (jump shots, 2026-09-24). Tap or drag the
 		-- track; the thumb shows the angle in degrees; top is the steepest.
-		AngleColumnPx = 60, -- the slider's column, right of the ball
+		AngleColumnPx = 50, -- the slider's column, right of the ball
 		AngleTrackWidthPx = 10,
-		AngleThumbHeightPx = 30,
+		AngleThumbHeightPx = 26,
 		-- A raised cue shows its angle under the left toggle, so it is never forgotten.
-		AngleBadgeHeightPx = 22,
+		AngleBadgeHeightPx = 20,
 	},
 	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
@@ -2146,17 +2146,17 @@ Config.UI = {
 	-- full pull and a centred bar pushes that off the bottom of the screen. The control
 	-- needs room for the bar AND the cue hanging under it - about 1.97 bar heights all told -
 	-- so the height fraction is set to leave that much below the top margin on any screen.
-	PowerBarWidthPx = 52,
+	PowerBarWidthPx = 44,
 	PowerBarHeightFraction = 0.4,
 	PowerBarMinHeightPx = 140,
-	PowerBarMaxHeightPx = 300,
+	PowerBarMaxHeightPx = 250,
 	PowerBarRightMarginPx = 18,
 	-- To the TOP of the bar. The Leave button sits at the top right and runs to 52 px down,
 	-- and the PULL label sits 28 px above the bar, so anything under about 0.13 puts the
 	-- label behind that button. (tune)
 	PowerBarTopFraction = 0.145,
 	PowerBarTransparency = 0.15, -- the white track, a little see-through over the table
-	PowerLabelSize = 18, -- PULL and the percentage over the bar
+	PowerLabelSize = 16, -- PULL and the percentage over the bar
 
 	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
 	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull
@@ -2181,7 +2181,8 @@ Config.UI = {
 		HideStuds = 8, -- and goes once you are this far out, so it does not flicker at the edge
 		HeightStuds = 6.5, -- above the queue box
 		WidthPx = 280, -- its size on screen, pixels (the same at any distance)
-		HeightPx = 160,
+		HeightPx = 190, -- mode, host, count and abilities, difficulty, and the status pill
+		PillWidthPx = 60, -- the abilities ON/OFF pill
 	},
 
 	-- The shared UI kit (src/client/HudParts.luau): the one look every screen is built from.
@@ -2202,7 +2203,7 @@ Config.UI = {
 		},
 		PanelFade = { 226, 238, 255 }, -- panels fade from white at the top to this pale blue
 		PanelStrokePx = 3, -- the ink outline round every panel
-		PanelCornerPx = 18, -- panel corner radius
+		PanelCornerPx = 16, -- panel corner radius
 		PillCornerPx = 999, -- pills are fully round at the ends
 		-- The shadow under panels: a 9-slice blurred square (tools/gen_ui_art.py shadow.png).
 		ShadowImage = "rbxassetid://73622387505906",
@@ -2217,7 +2218,8 @@ Config.UI = {
 		PatternTransparency = 0.92, -- about 8% strength: felt, not seen (tune)
 		-- Text: Fredoka One, white, outlined in ink. Sizes are pixels; nothing goes below Min
 		-- except ball numbers, which are part of the ball graphic.
-		Text = { Title = 40, Heading = 28, Button = 24, Body = 18, Min = 16 },
+		-- About 80% of the first build's sizes (designer, 2026-09-26: "shrink the new gui").
+		Text = { Title = 32, Heading = 22, Button = 20, Body = 16, Min = 14 },
 		TextOutlineRatio = 0.1, -- outline thickness as a share of the text size
 		TextOutlineMinPx = 2, -- never thinner than this
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
@@ -2231,7 +2233,7 @@ Config.UI = {
 		},
 		ButtonLipShare = 0.18, -- the lip is this share of the button's height
 		ButtonStrokePx = 3, -- ink outline
-		ButtonCornerPx = 14,
+		ButtonCornerPx = 12,
 		ButtonIconShare = 0.62, -- an icon on a button is this share of its height
 		PressedScale = 0.94, -- the squish when pressed
 		SelectedScale = 1.04, -- a gamepad-selected or hovered button grows a little
@@ -2334,7 +2336,6 @@ Config.Multiplayer = {
 	PlacementResolveIterations = 4, -- push-out passes per drag sample (balls, pockets, jaws, cushions)
 	PlacementResolveBisections = 10, -- walk-back steps toward the last legal spot when push-out fails
 	PlacementResolveSlopInches = 0.001, -- pushed spots land this far clear so rounding never reads as contact
-	PlacementCommitIdleSeconds = 0.35, -- button nudges send one reliable Place after this pause
 	BreakAxisMinComponent = 0.35, -- break arrows follow screen-right unless the line runs nearly vertical on screen
 	-- One long box along a long side of every table (designer, 2026-09-25). Up to six step
 	-- in; the first in is the host, who picks the difficulty and presses Start. Two play 1v1,
@@ -2399,10 +2400,6 @@ Config.Multiplayer = {
 	CameraBottomFraction = 0.14, -- leave space for setup controls
 	CameraSideFraction = 0.1, -- pocket/rail clearance
 	ActionRetrySeconds = 2, -- recover controls if an acknowledgement is lost
-	PrecisionPlaceInches = 1, -- cue-ball button step
-	PrecisionAimDegrees = 0.5, -- fine aim button step
-	PrecisionPowerStep = 0.05, -- button alternative to power drag
-	PrecisionPowerDefault = 0.4, -- initial discrete power
 	MaxReplayStepsPerFrame = 32, -- bounded catch-up work per visible table
 	SnapshotIntervalSeconds = 2, -- recover late/missed client subscriptions
 	YourTurnSound = "rbxassetid://120722072794939", -- user supplied; preload verified
@@ -2472,79 +2469,79 @@ Config.Multiplayer = {
 		HeaderMargin = 10, -- outer safe-area margin
 		HeaderGap = 8, -- spacing between panels and rows
 		HeaderTop = 6, -- minimal spacing at the upper screen edge
-		HeaderHeight = 80, -- the top bar's cards: a portrait with its name under it
-		HeaderCenterWidth = 372, -- the status card: phase icon, status, clock and Leave
-		ClockTextSize = 20, -- the shot clock in its pill
-		ClockPillWidth = 72, -- the clock pill, pixels
-		ClockPillHeight = 28,
-		LeaveWidth = 104, -- the red Leave button in the status card
-		HeaderMenuLeft = 250, -- room for Roblox menu/chat/voice at screen top
-		HeaderMenuRight = 64, -- room for Roblox controls at screen right
+		HeaderHeight = 64, -- the top bar's cards: a portrait with its name under it
+		HeaderCenterWidth = 300, -- the status card: phase icon, status, clock and Leave
+		ClockTextSize = 16, -- the shot clock in its pill
+		ClockPillWidth = 58, -- the clock pill, pixels
+		ClockPillHeight = 24,
+		LeaveWidth = 84, -- the red Leave button in the status card
+		-- Room for Roblox's own buttons at the top, only when Roblox does not report the free
+		-- part of its top bar (GuiService / ScreenInsets.TopbarSafeInsets; MatchHUD).
+		HeaderMenuLeft = 250, -- the menu, chat and voice buttons on the left
+		HeaderMenuRight = 64, -- anything on the right
 		ShortHeight = 430, -- compact layout for phone landscape
 		-- Short screens (a phone on its side, height under ShortHeight) use a compact top bar
 		-- so a 3v3 still fits on one line and the table keeps most of the screen.
-		ShortHeaderHeight = 60, -- the compact bar's cards
-		ShortPortraitSize = 36, -- six identifiable portraits in landscape
-		ShortCenterWidth = 280, -- the compact status card (a 1v1 fits beside it on a 667 px phone)
-		ShortStatusSize = 18, -- its status line
-		ShortNameSize = 14, -- names under portraits
-		ShortLeaveWidth = 56, -- its Leave button, the door icon alone
+		ShortHeaderHeight = 52, -- the compact bar's cards
+		ShortPortraitSize = 30, -- six identifiable portraits in landscape
+		ShortCenterWidth = 190, -- the compact status card at its narrowest (a 1v1 fits beside Roblox's buttons on a phone)
+		ShortCenterMax = 250, -- it grows into the room the balls leave, up to this
+		ShortStatusSize = 16, -- its status line
+		StatusFloor = 12, -- a long status shrinks this far in the compact card
+		ShortNameSize = 12, -- names under portraits
+		ShortLeaveWidth = 44, -- its Leave button, the door icon alone
 		TeamNameShrink = 3, -- names under two or three portraits are this much smaller; long ones end in ...
-		ShortBallSize = 24, -- balls in two rows of four, and on short screens
-		ShortSetupHeight = 36, -- one-line placement instruction on short screens
-		SetupHeight = 44, -- one-line placement instruction
-		SetupMinWidth = 220, -- narrower than this, the instruction stacks above the precision row
-		SetupMaxWidth = 560, -- the ball-in-hand hint pill at its widest
+		ShortBallSize = 20, -- balls in two rows of four, and on short screens
+		ShortSetupHeight = 30, -- one-line placement instruction on short screens
+		SetupHeight = 36, -- one-line placement instruction
+		SetupMaxWidth = 460, -- the ball-in-hand hint pill at its widest
 		MobileBreakpoint = 760, -- stack central status below teams
 		NarrowBreakpoint = 480, -- use two ball rows
-		PortraitSize = 48, -- square avatar beside the ball row, its name under it
-		PortraitCornerPx = 12, -- the portrait's rounded corners
-		PortraitGap = 8, -- teammate portrait spacing
-		ActiveDotPx = 14, -- the green dot on the shooter's portrait
-		ActiveEdgePx = 4, -- the shooter's green outline and the clock running round it
-		BallSize = 34, -- numbered HUD ball diameter
-		BallGap = 5, -- stable ball-slot spacing
-		NameSize = 16, -- player names and secondary lines (the kit's smallest text)
-		StatusSize = 22, -- the status line and other primary labels
-		ButtonHeight = 48, -- touch target (at least 44)
-		ResultPanelHeight = 210, -- the result card; its icon sits on the top edge
-		ResultIconSize = 112, -- trophy, sad ball or flag
-		CoinPanelHeight = 290, -- the coin flip card
-		CoinSize = 96, -- the coin
-		DialogIconSize = 64, -- the door or flag over the leave question
-		ModalWidth = 420, -- responsive dialog maximum width
+		PortraitSize = 38, -- square avatar beside the ball row, its name under it
+		PortraitCornerPx = 10, -- the portrait's rounded corners
+		PortraitGap = 6, -- teammate portrait spacing
+		ActiveDotPx = 11, -- the green dot on the shooter's portrait
+		ActiveEdgePx = 3, -- the shooter's green outline and the clock running round it
+		BallSize = 27, -- numbered HUD ball diameter
+		BallGap = 4, -- stable ball-slot spacing
+		NameSize = 14, -- player names and secondary lines (the kit's smallest text)
+		StatusSize = 18, -- the status line and other primary labels
+		ButtonHeight = 44, -- touch target (at least 44)
+		ResultPanelHeight = 170, -- the result card; its icon sits on the top edge
+		ResultIconSize = 90, -- trophy, sad ball or flag
+		CoinPanelHeight = 235, -- the coin flip card
+		CoinSize = 78, -- the coin
+		DialogIconSize = 52, -- the door or flag over the leave question
+		ModalWidth = 340, -- responsive dialog maximum width
 		ModalDim = 0.45, -- how much the screen behind a dialog darkens
-		PrecisionAngleDegrees = 0.5, -- aim button step
-		PrecisionMoveInches = 1, -- placement button step
-		PrecisionPowerStep = 0.05, -- power button step
 		TargetStroke = 4, -- the coloured ring round a pocket target or the ball in hand
 		TargetInkPx = 2, -- the ink outline just outside it
 		PlacementIconPx = 26, -- the glove on the ball-in-hand ring
 		-- The foul popup (no panel, designer 2026-09-25): FOUL! and a few words on the rule.
 		FoulCardSeconds = 3, -- up this long from the foul (it was 8, a card that stayed too long)
 		FoulCardFadeSeconds = 0.4, -- and fades out over its last part
-		FoulCardWidth = 460, -- pixels, narrower on small screens
-		FoulTitleSize = 44, -- FOUL!
-		FoulReasonSize = 20, -- the reason under it
-		OpenBallSize = 22, -- balls already down while the table is open, beside OPEN TABLE
-		ShortOpenBallSize = 18, -- the same on the two-row (narrow) layout
-		OpenBallMinSize = 14, -- never shrink them below this to fit
+		FoulCardWidth = 380, -- pixels, narrower on small screens
+		FoulTitleSize = 36, -- FOUL!
+		FoulReasonSize = 16, -- the reason under it
+		OpenBallSize = 18, -- balls already down while the table is open, beside OPEN TABLE
+		ShortOpenBallSize = 15, -- the same on the two-row (narrow) layout
+		OpenBallMinSize = 12, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
 		-- The queue menu (src/client/QueueMenu.luau), top right while waiting in a box.
-		QueueMenuWidth = 320, -- pixels, before shrinking to fit
-		QueueMenuPadding = 12, -- inside the card
+		QueueMenuWidth = 260, -- pixels, one column (tall screens), before shrinking to fit
+		QueueWideColumn = 236, -- each of the two side-by-side columns on a phone on its side
+		QueueMenuPadding = 10, -- inside the card
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueTouchRight = 120, -- on touch screens the card keeps this far from the right edge: the jump button
-		QueueHostSize = 22, -- the host's name
-		QueueHostRowHeight = 40, -- the crown, HOST and the name
-		QueueCountWidth = 88, -- the people n/6 pill
-		QueuePillHeight = 32, -- the count and team-split pills
-		QueueLevelHeight = 106, -- the difficulty tiles: picture over name
-		QueueStartHeight = 56, -- Start, bigger than the rest
-		QueueToggleWidth = 84, -- the abilities ON/OFF button
-		QueueSoonWidth = 64, -- the SOON tag on Play against PC
-		QueueNoticeSeconds = 2.5, -- "Coming soon" stays up this long
+		QueueTouchRight = 120, -- on tall touch screens the card keeps this far from the right edge: the jump button
+		QueueHostSize = 18, -- the host's name
+		QueueHostRowHeight = 32, -- the crown, HOST and the name
+		QueueCountWidth = 72, -- the people n/6 pill
+		QueuePillHeight = 26, -- the count and team-split pills
+		QueueLevelHeight = 86, -- the difficulty tiles: picture over name
+		QueueTileTextFloor = 10, -- a tile's name shrinks this far before it spills over the next
+		QueueStartHeight = 46, -- Start, bigger than the rest
+		QueueToggleWidth = 68, -- the abilities ON/OFF button
 		SoloWrapColumns = 8, -- the solo 15-ball row wraps to this many + the rest on narrow screens
 		OwnBallOutlineTransparency = 0.6, -- subtle local group hint (the normal style)
 		-- The STRONG style: a vivid solid outline on the balls to hit and the other group
@@ -2560,8 +2557,6 @@ Config.Multiplayer = {
 		PlacementHandleSize = 48, -- draggable cue-ball handle, never smaller than this
 		PlacementGrabScale = 1.4, -- grab radius as a multiple of the ball's on-screen radius
 		PlacementBlockedInches = 1.5, -- ring turns red when the ball lags the pointer by more than this
-		PlacementRepeatDelay = 0.3, -- a held placement arrow starts repeating after this
-		PlacementRepeatInterval = 0.06, -- then steps this often while held
 		TargetHeightInches = 1.5, -- selection targets above cloth
 		TargetPulse = 0.15, -- bounded ring pulse
 		BreakDotSpacingInches = 2, -- dotted break line spacing

@@ -39,16 +39,16 @@ local function row(parent: Instance, name: string, height: number, order: number
 	return object
 end
 
--- A line of text across the card; `lines` rows tall.
+-- A line of small dark text across the card (HudParts.note); `lines` rows at most, the box
+-- growing to fit.
 local function line(
 	parent: Instance,
 	name: string,
 	size: number,
 	order: number,
-	tint: Color3?,
 	lines: number?
 ): TextLabel
-	local object = HudParts.text(parent, name, size, "", tint)
+	local object = HudParts.note(parent, name, size, "")
 	object.Size = UDim2.new(1, 0, 0, size + S.QueueMenuLineGap)
 	object.TextXAlignment = Enum.TextXAlignment.Left
 	object.LayoutOrder = order
@@ -88,7 +88,6 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.localUserId = if Players.LocalPlayer then Players.LocalPlayer.UserId else 0
 	self.soloOpen = false -- the host pressed Start alone: Play solo / Play against PC
 	self.sentAt = -math.huge -- a Start or Play solo on its way to the server
-	self.noticeUntil = -math.huge -- "Coming soon" after Play against PC
 	self.wanted = nil -- the host's last pick, shown until the server's snapshot agrees
 	self.now = 0
 	self.open = false
@@ -111,31 +110,49 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	content.Position = UDim2.fromOffset(S.QueueMenuPadding, S.QueueMenuPadding)
 	content.Size = UDim2.new(1, -S.QueueMenuPadding * 2, 1, -S.QueueMenuPadding * 2)
 	self.content = content
+	-- Two columns: stacked one over the other on a tall screen, side by side on a phone on its
+	-- side, so the card is big enough to read and still fits the screen (designer, 2026-09-26).
 	local list = Instance.new("UIListLayout")
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Padding = UDim.new(0, S.HeaderGap)
 	list.Parent = content
 	self.list = list
+	self.wide = false
+	local function column(name: string, order: number): Frame
+		local object = HudParts.frame(content, name)
+		object.Size = UDim2.fromScale(1, 0)
+		object.AutomaticSize = Enum.AutomaticSize.Y
+		object.LayoutOrder = order
+		local rows = Instance.new("UIListLayout")
+		rows.SortOrder = Enum.SortOrder.LayoutOrder
+		rows.Padding = UDim.new(0, S.HeaderGap)
+		rows.Parent = object
+		return object
+	end
+	-- The table and its settings on the left, what to do about them on the right.
+	local left = column("Settings", 1)
+	local right = column("Actions", 2)
+	self.columns = { left, right }
 
 	-- Who hosts (a crown by their name), and how many are in.
-	local host = row(content, "Host", S.QueueHostRowHeight, 1)
+	local host = row(left, "Host", S.QueueHostRowHeight, 1)
 	local crown = HudParts.icon(host, "Crown")
 	crown.Size = UDim2.fromOffset(S.QueueHostRowHeight, S.QueueHostRowHeight)
 	local nameLeft = S.QueueHostRowHeight + 6
 	local countWidth = S.QueueCountWidth
-	self.hostTitle = HudParts.text(host, "HostTitle", K.Text.Min, Copy.HostTitle, tone("Soft"))
+	self.hostTitle = HudParts.note(host, "HostTitle", K.Text.Min, Copy.HostTitle)
 	self.hostTitle.TextXAlignment = Enum.TextXAlignment.Left
 	self.hostTitle.Position = UDim2.fromOffset(nameLeft, 0)
-	self.hostTitle.Size = UDim2.new(1, -nameLeft - countWidth - 6, 0, K.Text.Min + 2)
+	self.hostTitle.Size = UDim2.new(1, -nameLeft - countWidth - 6, 0, K.Text.Min + 1)
 	self.hostName = HudParts.text(host, "HostName", S.QueueHostSize, "")
 	self.hostName.AutoLocalize = false -- player names are never translated
 	self.hostName.TextScaled = false
 	self.hostName.TextWrapped = false
 	self.hostName.TextTruncate = Enum.TextTruncate.AtEnd
 	self.hostName.TextXAlignment = Enum.TextXAlignment.Left
-	self.hostName.Position = UDim2.fromOffset(nameLeft, K.Text.Min + 1)
+	self.hostName.Position = UDim2.fromOffset(nameLeft, K.Text.Min)
 	self.hostName.Size =
-		UDim2.new(1, -nameLeft - countWidth - 6, 0, S.QueueHostRowHeight - K.Text.Min - 1)
+		UDim2.new(1, -nameLeft - countWidth - 6, 0, S.QueueHostRowHeight - K.Text.Min)
 	local count = HudParts.pill(host, "Count")
 	count.AnchorPoint = Vector2.new(1, 0.5)
 	count.Position = UDim2.fromScale(1, 0.5)
@@ -149,7 +166,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.players.Size = UDim2.new(1, -S.QueuePillHeight - 6, 1, -2)
 
 	-- Four or six split into the box's halves: green with a check once they are even.
-	self.split = HudParts.pill(content, "TeamSplit")
+	self.split = HudParts.pill(left, "TeamSplit")
 	self.split.Size = UDim2.new(1, 0, 0, S.QueuePillHeight)
 	self.split.LayoutOrder = 2
 	self.splitCheck = HudParts.icon(self.split, "Check")
@@ -160,9 +177,9 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.splitText.Size = UDim2.new(1, -S.QueuePillHeight * 2 - 8, 1, -2)
 
 	-- Difficulty: three tiles, each a picture of the lines you get, the chosen one blue.
-	self.levelTitle = line(content, "DifficultyTitle", K.Text.Min, 3, tone("Soft"))
+	self.levelTitle = line(left, "DifficultyTitle", K.Text.Min, 3)
 	self.levelTitle.Text = Copy.DifficultyTitle
-	local levels = row(content, "Levels", S.QueueLevelHeight, 4)
+	local levels = row(left, "Levels", S.QueueLevelHeight, 4)
 	local levelList = Instance.new("UIListLayout")
 	levelList.FillDirection = Enum.FillDirection.Horizontal
 	levelList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -177,13 +194,14 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		b.Name = level
 		b.LayoutOrder = i
 		b.Size = UDim2.new(1 / #order, -S.HeaderGap * (#order - 1) / #order, 1, 0)
-		HudParts.setButtonTextSize(b, K.Text.Min)
+		-- A long name shrinks inside its tile rather than spilling over the next one.
+		HudParts.setButtonTextSize(b, K.Text.Min, S.QueueTileTextFloor)
 		self.levels[level] = b
 	end
-	self.levelInfo = line(content, "LevelInfo", K.Text.Min, 5, tone("Soft"), 2)
+	self.levelInfo = line(left, "LevelInfo", K.Text.Min, 5, 2)
 
-	-- Abilities: an ON/OFF toggle, and a note that they are not in the game yet.
-	local abilities = row(content, "Abilities", S.ButtonHeight, 6)
+	-- Abilities: an ON/OFF toggle.
+	local abilities = row(right, "Abilities", S.ButtonHeight, 1)
 	local bolt = HudParts.icon(abilities, "Lightning")
 	bolt.AnchorPoint = Vector2.new(0, 0.5)
 	bolt.Position = UDim2.fromScale(0, 0.5)
@@ -202,42 +220,31 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.abilities.AnchorPoint = Vector2.new(1, 0)
 	self.abilities.Position = UDim2.fromScale(1, 0)
 	self.abilities.Size = UDim2.new(0, S.QueueToggleWidth, 1, 0)
-	self.abilitiesNote = line(content, "AbilitiesNote", K.Text.Min, 7, tone("Soft"))
-	self.abilitiesNote.Text = Copy.AbilitiesNote
 
-	-- Why the game cannot start, whose turn it is to start it, or "Coming soon".
-	self.status = line(content, "Status", K.Text.Min, 8, tone("Soft"), 2)
+	-- Why the game cannot start, or whose turn it is to start it.
+	self.status = line(right, "Status", K.Text.Min, 2, 2)
 
-	-- The host's Start, or, alone, the two ways to play by themselves.
-	self.start = button(content, "Start", Copy.Start, 9, "Green", "Play", function()
+	-- The host's Start, or, alone, the two ways to play by themselves: against the PC first.
+	self.start = button(right, "Start", Copy.Start, 3, "Green", "Play", function()
 		self:pressStart()
 	end)
 	self.start.Size = UDim2.new(1, 0, 0, S.QueueStartHeight)
-	self.solo = button(content, "PlaySolo", Copy.PlaySolo, 10, "Green", "Person", function()
+	-- Bots come before release (Roadmap 2.4); until then this button does nothing.
+	self.pc = button(right, "PlayPC", Copy.PlayPC, 4, "Blue", "Robot", function() end)
+	self.solo = button(right, "PlaySolo", Copy.PlaySolo, 5, "Green", "Person", function()
 		if self:canSend() and self:alone() then
 			self.sentAt = self.now
 			self.onAction("StartSolo", nil)
 		end
 	end)
-	self.pc = button(content, "PlayPC", Copy.PlayPC, 11, "Blue", "Robot", function()
-		self.noticeUntil = self.now + S.QueueNoticeSeconds
-	end)
-	local soon = HudParts.pill(self.pc, "Soon", tone("Gold"))
-	soon.AnchorPoint = Vector2.new(1, 0.5)
-	soon.Position = UDim2.new(1, 6, 0, 2)
-	soon.Size = UDim2.fromOffset(S.QueueSoonWidth, K.Text.Min + 8)
-	soon.Rotation = 8
-	soon.ZIndex = 5
-	local soonText = HudParts.text(soon, "Text", K.Text.Min, Copy.Soon)
-	soonText.Size = UDim2.fromScale(1, 1)
-	self.back = button(content, "Back", Copy.Back, 12, "White", nil, function()
+	self.back = button(right, "Back", Copy.Back, 6, "White", nil, function()
 		self.soloOpen = false
 		self:focus()
 	end)
-	self.leave = button(content, "Leave", Copy.Leave, 13, "Red", "Door", function()
+	self.leave = button(right, "Leave", Copy.Leave, 7, "Red", "Door", function()
 		self.onAction("LeaveQueue", nil)
 	end)
-	self.hint = line(content, "GamepadHint", K.Text.Min, 14, tone("Soft"))
+	self.hint = line(right, "GamepadHint", K.Text.Min, 8)
 	self.hint.Text = Copy.GamepadHint
 	self.hint.TextXAlignment = Enum.TextXAlignment.Center
 	return self
@@ -374,8 +381,9 @@ function QueueMenu.blur(self: any)
 	end
 end
 
--- Keep the card on screen: under the top bar on the right, shrunk to fit short screens, and
--- on touch screens moved left of the jump button rather than squeezed above it.
+-- Keep the card on screen, under the top bar on the right. On a short screen (a phone on its
+-- side) its two columns sit side by side, so it is wide and short: big enough to read, clear
+-- of the jump button below it. On a tall touch screen it stays left of the jump button.
 function QueueMenu.layout(self: any)
 	local screen: any = self.root.Parent
 	if not screen then
@@ -383,9 +391,24 @@ function QueueMenu.layout(self: any)
 	end
 	local size: Vector2 = screen.AbsoluteSize
 	local margin = S.HeaderMargin
-	local right = if UserInputService.TouchEnabled then S.QueueTouchRight else margin
+	local wide = size.Y < S.ShortHeight
+	if wide ~= self.wide then
+		self.wide = wide
+		self.list.FillDirection = if wide
+			then Enum.FillDirection.Horizontal
+			else Enum.FillDirection.Vertical
+		for _, column in self.columns do
+			column.Size = if wide
+				then UDim2.fromOffset(S.QueueWideColumn, 0)
+				else UDim2.fromScale(1, 0)
+		end
+	end
+	local width = if wide
+		then S.QueueWideColumn * 2 + S.HeaderGap + 2 * S.QueueMenuPadding
+		else S.QueueMenuWidth
+	local right = if UserInputService.TouchEnabled and not wide then S.QueueTouchRight else margin
 	local natural = self.list.AbsoluteContentSize.Y / self.scale.Scale + 2 * S.QueueMenuPadding
-	self.root.Size = UDim2.fromOffset(S.QueueMenuWidth, natural)
+	self.root.Size = UDim2.fromOffset(width, natural)
 	local room = math.max(1, size.Y - 2 * margin)
 	self.scale.Scale = math.clamp(room / math.max(natural, 1), S.QueueMenuMinScale, 1)
 	self.root.Position = UDim2.new(1, -right, 0, margin)
@@ -456,12 +479,9 @@ function QueueMenu.update(self: any, now: number)
 		self.pulse = nil
 	end
 
-	local notice = now < self.noticeUntil
-	self.status.TextColor3 = if notice then tone("Gold") else tone("Soft")
-	self.status.Text = if notice
-		then Copy.ComingSoon
-		elseif not host then Copy.WaitingForHost:format(hostName)
-		elseif solo then Copy.SoloHint
+	self.status.Text = if not host
+		then Copy.WaitingForHost:format(hostName)
+		elseif solo then ""
 		elseif count == 1 then Copy.AloneHint
 		elseif reason then Copy.Reasons[reason] or ""
 		else ""

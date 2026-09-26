@@ -1,7 +1,7 @@
 --!strict
 -- TableSign: the card floating over a table's queue box. It says what the table is doing
--- (the modes, or the game being played), who hosts, how many are in, the chosen difficulty,
--- and whether you can step in.
+-- (the modes, or the game being played), who hosts, how many are in, whether abilities are
+-- on, the chosen difficulty, and whether you can step in.
 --
 -- Only one shows, over the table you walk right up to (Config.UI.Sign, measured by
 -- Placement.nearestArea), and never while you are in a box or playing: the host menu or the
@@ -64,7 +64,7 @@ function TableSign.new(playerGui: Instance): any
 	self.host.TextXAlignment = Enum.TextXAlignment.Left
 	self.host.Position = UDim2.fromOffset(pad + rowHeight + 6, 40)
 	self.host.Size = UDim2.new(1, -pad * 2 - rowHeight - 6, 0, rowHeight)
-	-- People n/6 on the left, the difficulty's picture and name on the right.
+	-- People n/6 on the left, abilities ON or OFF on the right, then the difficulty.
 	local infoTop = 40 + rowHeight + 4
 	self.people = HudParts.icon(card, "People")
 	self.people.Position = UDim2.fromOffset(pad, infoTop)
@@ -74,13 +74,23 @@ function TableSign.new(playerGui: Instance): any
 	self.count.TextXAlignment = Enum.TextXAlignment.Left
 	self.count.Position = UDim2.fromOffset(pad + rowHeight + 4, infoTop)
 	self.count.Size = UDim2.new(0.4, -rowHeight, 0, rowHeight)
+	self.bolt = HudParts.icon(card, "Lightning")
+	self.bolt.Position = UDim2.new(0.46, 0, 0, infoTop)
+	self.bolt.Size = UDim2.fromOffset(rowHeight, rowHeight)
+	self.abilities = HudParts.pill(card, "Abilities")
+	self.abilities.Position = UDim2.new(0.46, rowHeight + 4, 0, infoTop + 2)
+	self.abilities.Size = UDim2.fromOffset(Sign.PillWidthPx, rowHeight - 4)
+	self.abilitiesText = HudParts.text(self.abilities, "Text", K.Text.Min, "")
+	self.abilitiesText.Position = UDim2.fromOffset(4, 1)
+	self.abilitiesText.Size = UDim2.new(1, -8, 1, -2)
+	local levelTop = infoTop + rowHeight + 4
 	self.level = HudParts.icon(card, "Classic", "LevelIcon")
-	self.level.Position = UDim2.new(0.42, 0, 0, infoTop)
+	self.level.Position = UDim2.fromOffset(pad, levelTop)
 	self.level.Size = UDim2.fromOffset(rowHeight, rowHeight)
 	self.levelName = HudParts.text(card, "Level", K.Text.Body, "")
 	self.levelName.TextXAlignment = Enum.TextXAlignment.Left
-	self.levelName.Position = UDim2.new(0.42, rowHeight + 4, 0, infoTop)
-	self.levelName.Size = UDim2.new(0.58, -rowHeight - 4 - pad, 0, rowHeight)
+	self.levelName.Position = UDim2.fromOffset(pad + rowHeight + 4, levelTop)
+	self.levelName.Size = UDim2.new(1, -pad * 2 - rowHeight - 4, 0, rowHeight)
 	-- The status pill hangs off the bottom edge: step in, waiting, full or playing.
 	self.status = HudParts.pill(card, "Status")
 	self.status.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -119,6 +129,10 @@ function TableSign.fill(self: any, snapshot: any?)
 		or Config.Difficulty.Default
 	HudParts.setIcon(self.level, difficulty)
 	self.levelName.Text = Copy.Queue.Levels[difficulty] or ""
+	-- Abilities are on unless the host turned them off (on by default, GDD section 6).
+	local abilities = not (snapshot and snapshot.settings and snapshot.settings.abilities == false)
+	self.abilitiesText.Text = if abilities then Copy.Queue.On else Copy.Queue.Off
+	self.abilities.BackgroundColor3 = if abilities then tone("Green") else tone("Grey")
 	local words, colour
 	if not waiting then
 		words, colour = Copy.SignPlaying, "Blue"

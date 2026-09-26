@@ -1058,3 +1058,19 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - Phones get a compact top bar (a 3v3 fits on one line) and an icon-only red Leave.
   - Ball numbers may go below the 16 px text floor (they are part of the ball), and long player
     names end in "..." rather than shrinking (names are data, not reading text).
+- 2026-09-26: UI redo, second round (designer, after playing it):
+  - Fine controls are removed on every platform; the rule "every drag has a button
+    alternative" becomes "every control works by touch, mouse and gamepad" (CLAUDE.md, GDD
+    section 5). The gamepad keeps its sticks, triggers and D-pad steps.
+  - Small descriptive text is dark ink with no outline; titles, names and buttons keep white
+    with a thick outline (the outline squeezed small letters together).
+  - The PC GUI is about 80% of the first build's size.
+  - On phones the top bar sits in Roblox's top row beside its buttons, which also stops the
+    camera backing away from a tall stacked bar; the power bar starts higher with it.
+  - The host menu on a phone is two columns side by side. Play against PC is listed before
+    Play solo and has no SOON tag (bots come before release; it does nothing until then); the
+    abilities note and the solo hint are gone.
+  - Difficulty descriptions: "Easiest, shows aim line and ball path!", "Harder, only aim
+    line!", "Hardest! No lines at all!".
+  - The table sign also shows whether abilities are on.
+  - The ball-in-hand ring is plain blue again, with no ink outline.

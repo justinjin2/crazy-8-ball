@@ -4,12 +4,11 @@
 -- Cue supplies the same strike-point clamp used by the simulation.
 --
 --   drag on the table (anywhere not on a button)  -> rotate the aim, slow drags are finer
---   nudge buttons                                  -> tiny fixed steps
 --   press the power bar, pull down, release        -> shoot with that power
 --
 -- Gamepad (GDD section 5 leaves the exact bindings to the milestone):
 --   left stick X        -> aim, finer near centre
---   D-pad left/right    -> the nudge buttons, so every drag still has a button alternative
+--   D-pad left/right    -> tiny fixed aim steps
 --   right stick Y       -> zoom
 --   hold L1 + right stick -> spin; Y centres it; release L1 keeps the choice
 --   hold L1 + left stick up/down -> raise or lower the cue angle; L1 + D-pad up/down steps

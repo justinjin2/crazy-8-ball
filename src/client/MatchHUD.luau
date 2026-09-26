@@ -5,7 +5,6 @@
 --   numbered balls) and the status card (a phase icon, what is happening, the clock, Leave);
 -- - the foul popup, with no panel;
 -- - the ball-in-hand hint and the wrong-target warning;
--- - fine controls;
 -- - the leave and surrender dialog;
 -- - the coin flip and result cards.
 local Players = game:GetService("Players")
@@ -23,9 +22,6 @@ local S = Config.Multiplayer.Style
 local K = Config.UI.Kit
 local MatchHUD = {}
 MatchHUD.__index = MatchHUD
-
--- The cue-ball arrows, which repeat while held.
-local PLACE_KEYS = { "PlaceLeft", "PlaceRight", "PlaceUp", "PlaceDown" }
 
 local tone = HudParts.tone
 local frame = HudParts.frame
@@ -260,7 +256,7 @@ local function makeTeam(parent: Instance, name: string): any
 	for _ = 1, 8 do
 		table.insert(balls, HudParts.ball(root))
 	end
-	local open = text(root, "OpenTable", S.StatusSize, Copy.OpenTable, tone("Soft"))
+	local open = HudParts.note(root, "OpenTable", S.StatusSize, Copy.OpenTable)
 	-- While the table is open nobody owns a group yet, but balls can already be down (the
 	-- break). They show here, small and crossed out in their own colours, until the groups
 	-- are decided. The 8 is left out: on the break it is always re-spotted.
@@ -293,15 +289,10 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.lastNow = workspace:GetServerTimeNow()
 	self.connections = {}
 	self.alive = true
-	self.precisionOpen = false
 	-- Ball in hand, from Main: whether the local shooter may move the cue ball now, and
 	-- whether it just failed to follow the pointer.
 	self.placing = false
 	self.placingBlocked = false
-	-- The placement arrow being held down: its step and when it next repeats.
-	self.held = nil
-	self.pressHandled = {}
-	self.setupStacked = false
 	self.invalidTarget = false
 	self.modalMode = nil
 	self.respondedVote = nil
@@ -316,6 +307,25 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.root.ZIndex = 2 -- setup targets are a lower sibling; dialogs always cover them
 	self.root.Size = UDim2.fromScale(1, 1)
 	self.root.Visible = false
+	-- The free part of Roblox's own top bar (right of its menu, chat and voice buttons): a
+	-- ScreenGui with TopbarSafeInsets covers exactly that, on every device. The top bar sits
+	-- there when it fits, so a phone keeps the table in view (designer, 2026-09-26).
+	local probe = Instance.new("ScreenGui")
+	probe.Name = "TopbarRoom"
+	probe.ScreenInsets = Enum.ScreenInsets.TopbarSafeInsets
+	probe.ResetOnSpawn = false
+	-- Only a real PlayerGui has Roblox's top bar (an Edit-mode preview uses the fallbacks).
+	probe.Parent = if Players.LocalPlayer
+		then Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+		else nil
+	self.topbarRoom = frame(probe, "Area")
+	self.topbarRoom.Size = UDim2.fromScale(1, 1)
+	table.insert(
+		self.connections,
+		self.topbarRoom:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			self:layout()
+		end)
+	)
 	self.teams = { makeTeam(self.root, "LocalTeam"), makeTeam(self.root, "OtherTeam") }
 	-- Solo: fifteen slots on the local panel in playing order (first group, other group, 8).
 	self.teams[1].soloBalls, self.teams[2].soloBalls = {}, {}
@@ -330,7 +340,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.status = text(self.center, "Status", S.StatusSize, "")
 	self.status.TextXAlignment = Enum.TextXAlignment.Left
 	self.status.TextWrapped = false
-	self.detail = text(self.center, "Detail", S.NameSize, "", tone("Soft"))
+	self.detail = HudParts.note(self.center, "Detail", S.NameSize, "")
 	self.detail.TextXAlignment = Enum.TextXAlignment.Left
 	-- The detail line often carries a player's name: a long one ends in "..." instead.
 	self.detail.TextScaled = false
@@ -376,83 +386,6 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.invalidLine.text.Text = Copy.InvalidTarget
 	self.invalidLine.text.TextWrapped = false
 
-	-- Fine controls: every drag has a button alternative.
-	self.precisionButton = candy(self.root, Copy.Precision, function()
-		self:togglePrecision()
-	end, "White", "Sliders")
-	self.precisionButton.AnchorPoint = Vector2.new(1, 1)
-	self.precision = HudParts.card(self.root, "PrecisionControls")
-	self.precision.AnchorPoint = Vector2.new(1, 1)
-	self.precisionButtons = {}
-	local function precision(
-		key: string,
-		words: string,
-		kind: string,
-		value: any,
-		look: string,
-		icon: string?
-	)
-		self.precisionButtons[key] = candy(self.precision, words, function()
-			onAction(kind, value)
-		end, look, icon)
-	end
-	precision("AimLeft", Copy.AimLeft, "PrecisionAim", -S.PrecisionAngleDegrees, "Blue")
-	precision("AimRight", Copy.AimRight, "PrecisionAim", S.PrecisionAngleDegrees, "Blue")
-	precision("PowerDown", Copy.PowerDown, "PrecisionPower", -S.PrecisionPowerStep, "Blue")
-	precision("PowerUp", Copy.PowerUp, "PrecisionPower", S.PrecisionPowerStep, "Blue")
-	precision("Shoot", Copy.Shoot, "PrecisionShoot", nil, "Green", "Cue")
-	precision("Close", Copy.PrecisionCloseShort, "ClosePrecision", nil, "White")
-	-- The arrows move the cue ball relative to the screen ({sx, sy}: +x right, +y up) and
-	-- repeat while held. A pointer or gamepad press steps on InputBegan; Activated covers a
-	-- gamepad A that never reaches InputBegan, and is skipped when InputBegan already stepped.
-	local function arrow(key: string, value: any, turn: number)
-		local object = candy(self.precision, "", function()
-			if self.pressHandled[key] then
-				self.pressHandled[key] = nil
-				return
-			end
-			onAction("PrecisionPlace", value)
-		end, "Blue", "Arrow")
-		HudParts.candyParts(object).icon.Rotation = turn
-		self.precisionButtons[key] = object
-		object.InputBegan:Connect(function(input: InputObject)
-			if
-				input.UserInputType == Enum.UserInputType.MouseButton1
-				or input.UserInputType == Enum.UserInputType.Touch
-				or input.KeyCode == Enum.KeyCode.ButtonA
-			then
-				self.pressHandled[key] = true
-				self.held = {
-					key = key,
-					value = value,
-					input = input,
-					nextAt = self.lastNow + S.PlacementRepeatDelay,
-				}
-				onAction("PrecisionPlace", value)
-			end
-		end)
-		object.InputEnded:Connect(function(input: InputObject)
-			local held = self.held
-			if
-				held
-				and held.key == key
-				and (input == held.input or input.KeyCode == Enum.KeyCode.ButtonA)
-			then
-				self.held = nil
-			end
-		end)
-		object.MouseLeave:Connect(function()
-			if self.held and self.held.key == key then
-				self.held = nil
-			end
-			self.pressHandled[key] = nil -- no Activated follows a press dragged off the button
-		end)
-	end
-	arrow("PlaceLeft", { sx = -1, sy = 0 }, 180)
-	arrow("PlaceRight", { sx = 1, sy = 0 }, 0)
-	arrow("PlaceUp", { sx = 0, sy = 1 }, -90)
-	arrow("PlaceDown", { sx = 0, sy = -1 }, 90)
-
 	-- The leave / surrender question, over a dimmed screen.
 	self.modal = Instance.new("TextButton")
 	self.modal.Name = "ConfirmationBackdrop"
@@ -473,7 +406,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.dialog.Position = UDim2.fromScale(0.5, 0.5)
 	self.dialogIcon = HudParts.icon(self.dialog, "Door", "DialogIcon")
 	self.dialogTitle = text(self.dialog, "Title", K.Text.Heading, "")
-	self.dialogBody = text(self.dialog, "Explanation", K.Text.Body, "", tone("Soft"))
+	self.dialogBody = HudParts.note(self.dialog, "Explanation", K.Text.Body, "")
 	self.voteProgress = text(self.dialog, "VoteStatus", K.Text.Body, "", tone("Green"))
 	self.yes = candy(self.dialog, Copy.Yes, function()
 		local mode = self.modalMode
@@ -523,7 +456,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.resultIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.resultIcon.ZIndex = 3
 	self.presentationTitle = text(self.presentation, "Heading", K.Text.Title, "")
-	self.presentationText = text(self.presentation, "Explanation", K.Text.Body, "", tone("Soft"))
+	self.presentationText = HudParts.note(self.presentation, "Explanation", K.Text.Body, "")
 	self.coin = frame(self.presentation, "Coin")
 	self.coin.AnchorPoint = Vector2.new(0.5, 0.5)
 	local coinFace = HudParts.icon(self.coin, "Coin", "Face")
@@ -532,7 +465,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.coinGlyph = text(self.coin, "Glyph", K.Text.Title, Copy.CoinHeadGlyph, tone("Gold"))
 	self.coinGlyph.Size = UDim2.fromScale(1, 1)
 	self.coinGlyph.ZIndex = 2
-	self.coinOwner = text(self.presentation, "Sides", S.NameSize, "", tone("Soft"))
+	self.coinOwner = HudParts.note(self.presentation, "Sides", S.NameSize, "")
 	table.insert(
 		self.connections,
 		self.root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -556,16 +489,41 @@ function MatchHUD.layout(self: any)
 	local count = if self.snapshot then self.snapshot.teamSize else 3
 	local portraitSize = d.portrait
 	local portraitsWidth = portraitSize * count + S.PortraitGap * (count - 1)
-	local ballsWidth = d.ball * 8 + S.BallGap * 7
-	local centerWidth = d.center
 	local availableWidth = width - margin * 2
-	local columns = if (portraitsWidth + ballsWidth + gap * 3) * 2 + centerWidth + gap * 2
-			<= availableWidth
-		then 8
-		else 4
-	local ballSize = if columns == 8 then d.ball else S.ShortBallSize
-	ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
+	local menuLeft, menuRight = self:menuRoom(width)
+	local besideRoom = math.min(width - menuLeft - menuRight, availableWidth)
+	-- The first arrangement that fits, beside Roblox's buttons or under them: one row of eight
+	-- balls a side, or two rows of four. A phone would rather have two rows beside the buttons
+	-- (the table keeps the screen); a computer would rather have one row of bigger balls.
+	-- Failing both, the teams sit over the status card.
+	local function widthFor(columns: number, size: number, center: number): number
+		local balls = size * columns + S.BallGap * (columns - 1)
+		return (portraitsWidth + balls + gap * 3) * 2 + center + gap * 2
+	end
+	local oneRowBeside = { columns = 8, size = d.ball, beside = true }
+	local oneRowUnder = { columns = 8, size = d.ball, beside = false }
+	local twoRowsBeside = { columns = 4, size = S.ShortBallSize, beside = true }
+	local twoRowsUnder = { columns = 4, size = S.ShortBallSize, beside = false }
+	local order: { any } = if short
+		then { oneRowBeside, twoRowsBeside, oneRowUnder, twoRowsUnder }
+		else { oneRowBeside, oneRowUnder, twoRowsBeside, twoRowsUnder }
+	local columns, ballSize, besideMenu = 4, S.ShortBallSize, false
+	for _, option in order do
+		local room = if option.beside then besideRoom else availableWidth
+		if widthFor(option.columns, option.size, d.center) <= room then
+			columns, ballSize, besideMenu = option.columns, option.size, option.beside
+			break
+		end
+	end
+	local ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
 	local desiredTeamWidth = portraitsWidth + ballsWidth + gap * 3
+	-- On a short screen the status card takes what room is left, up to ShortCenterMax, so
+	-- its words fit beside Leave.
+	local room = if besideMenu then besideRoom else availableWidth
+	local centerWidth = if short
+		then math.clamp(room - desiredTeamWidth * 2 - gap * 2, d.center, S.ShortCenterMax)
+		else d.center
+	d.center = centerWidth
 	local desiredWidth = desiredTeamWidth * 2 + centerWidth + gap * 2
 	local inline = desiredWidth <= availableWidth
 	local teamWidth = if inline then desiredTeamWidth else (availableWidth - gap) / 2
@@ -573,10 +531,10 @@ function MatchHUD.layout(self: any)
 	local headerHeight = if inline
 		then math.max(d.header, ballSize * ballRows + S.BallGap * (ballRows - 1) + gap * 2)
 		else portraitSize + d.name + gap * 2 + ballSize * ballRows + S.BallGap * (ballRows - 1)
-	local besideMenu = inline and desiredWidth <= width - S.HeaderMenuLeft - S.HeaderMenuRight
+	besideMenu = besideMenu and inline
 	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
 	local startX = if besideMenu
-		then S.HeaderMenuLeft + (width - S.HeaderMenuLeft - S.HeaderMenuRight - desiredWidth) / 2
+		then menuLeft + (besideRoom - desiredWidth) / 2
 		else (width - (if inline then desiredWidth else availableWidth)) / 2
 	self.headerBottom = top + headerHeight + (if inline then 0 else d.header + gap)
 	for i, team in self.teams do
@@ -624,17 +582,10 @@ function MatchHUD.layout(self: any)
 		self:layoutSolo(width)
 	end
 	self:layoutStatus()
-	-- The placement instruction: one line centred at the bottom, clear of the fine-controls
-	-- button in the corner, or stacked above it when the screen is too narrow for both.
-	local precisionWidth = S.ButtonHeight * 3.4
+	-- The placement instruction: one line centred at the bottom.
 	local setupHeight = if short then S.ShortSetupHeight else S.SetupHeight
-	local setupWidth = math.min(S.SetupMaxWidth, width - 2 * (margin + precisionWidth + gap))
-	self.setupStacked = setupWidth < S.SetupMinWidth
-	if self.setupStacked then
-		setupWidth = math.min(S.SetupMaxWidth, width - margin * 2)
-	end
-	self.setup.Position =
-		UDim2.new(0.5, 0, 1, -(margin + (if self.setupStacked then S.ButtonHeight + gap else 0)))
+	local setupWidth = math.min(S.SetupMaxWidth, width - margin * 2)
+	self.setup.Position = UDim2.new(0.5, 0, 1, -margin)
 	self.setup.Size = UDim2.fromOffset(setupWidth, setupHeight)
 	self.setupHeight = setupHeight
 	layoutIconLine(self.setupLine, setupHeight)
@@ -648,56 +599,6 @@ function MatchHUD.layout(self: any)
 		math.min(self.invalidLine.text.TextBounds.X, width - margin * 2 - invalidHeight * 2)
 	local rowWidth = wordsWidth + invalidHeight * 1.3
 	self.invalid.Size = UDim2.fromOffset(rowWidth, invalidHeight)
-	self.precisionButton.Position = UDim2.new(1, -margin, 1, -margin)
-	self.precisionButton.Size = UDim2.fromOffset(precisionWidth, S.ButtonHeight)
-	HudParts.setText(
-		self.precisionButton,
-		if self.precisionOpen then Copy.PrecisionClose else Copy.Precision
-	)
-	HudParts.setButtonTextSize(self.precisionButton, S.NameSize + 2)
-	local keys = { "AimLeft", "AimRight", "PowerDown", "PowerUp", "Shoot", "Close" }
-	if self.placing then
-		keys = if self.snapshot and self.snapshot.breakShot
-			then { "PlaceLeft", "PlaceRight", "AimLeft", "AimRight", "Shoot", "Close" }
-			else {
-				"PlaceLeft",
-				"PlaceRight",
-				"PlaceUp",
-				"PlaceDown",
-				"AimLeft",
-				"AimRight",
-				"Shoot",
-				"Close",
-			}
-	end
-	local maxCols = math.max(1, math.floor((width - margin * 2 - gap) / (S.ButtonHeight + gap)))
-	local cols = math.min(if short then #keys elseif #keys > 6 then 4 else 3, maxCols)
-	local buttonWidth =
-		math.min(S.ButtonHeight * 2.4, (width - margin * 2 - gap * (cols + 1)) / cols)
-	local rows = math.ceil(#keys / cols)
-	self.precision.Position = UDim2.new(1, -margin, 1, -margin)
-	self.precision.Size =
-		UDim2.fromOffset(buttonWidth * cols + gap * (cols + 1), (S.ButtonHeight + gap) * rows + gap)
-	for _, item in self.precisionButtons do
-		item.Visible = false
-	end
-	for index, key in keys do
-		local item = self.precisionButtons[key]
-		item.Visible = true
-		item.Position = UDim2.fromOffset(
-			gap + ((index - 1) % cols) * (buttonWidth + gap),
-			gap + math.floor((index - 1) / cols) * (S.ButtonHeight + gap)
-		)
-		item.Size = UDim2.fromOffset(buttonWidth, S.ButtonHeight)
-		if key == "Shoot" then
-			-- A narrow Shoot button keeps its words and drops the cue.
-			HudParts.setButtonIcon(item, if buttonWidth >= S.ButtonHeight * 2.2 then "Cue" else nil)
-		end
-		HudParts.setButtonTextSize(
-			item,
-			if short or buttonWidth < S.ButtonHeight * 2 then S.NameSize else S.StatusSize - 2
-		)
-	end
 	-- The dialog: its icon on top, the question, the explanation, the vote, then No and Yes.
 	local dialogWidth = math.min(S.ModalWidth, width - margin * 2)
 	local iconSize = S.DialogIconSize
@@ -742,6 +643,20 @@ function MatchHUD.layout(self: any)
 	self.presentationText.Size = UDim2.new(1, -gap * 4, 0, S.ButtonHeight * 1.2)
 end
 
+-- How much of the screen's top edge Roblox's own buttons take, left and right, in the root's
+-- pixels (Config fallbacks when Roblox does not say).
+function MatchHUD.menuRoom(self: any, width: number): (number, number)
+	local room = self.topbarRoom
+	local probe = room and room.Parent
+	if room and probe and probe.Parent and room.AbsoluteSize.X > 0 then
+		local rootLeft = self.root.AbsolutePosition.X
+		local left = room.AbsolutePosition.X - rootLeft
+		local right = rootLeft + width - (room.AbsolutePosition.X + room.AbsoluteSize.X)
+		return math.max(0, left) + S.HeaderGap, math.max(0, right) + S.HeaderGap
+	end
+	return S.HeaderMenuLeft, S.HeaderMenuRight
+end
+
 -- Inside the status card: the phase icon on the left, the status over the detail and the
 -- clock, and Leave on the right.
 function MatchHUD.layoutStatus(self: any)
@@ -762,7 +677,7 @@ function MatchHUD.layoutStatus(self: any)
 	local textLeft = pad + iconSize + pad / 2
 	local textWidth = width - textLeft - d.leave - pad * 2
 	local statusHeight = d.status + 4
-	HudParts.setTextSize(self.status, d.status)
+	HudParts.setTextSize(self.status, d.status, S.StatusFloor)
 	HudParts.setTextSize(self.detail, d.name)
 	self.status.Position = UDim2.fromOffset(textLeft, pad)
 	self.status.Size = UDim2.fromOffset(textWidth, statusHeight)
@@ -787,26 +702,35 @@ end
 -- the rest) when a single line of fifteen does not fit.
 function MatchHUD.layoutSolo(self: any, width: number)
 	local d = self.bar
-	local gap, portraitSize, centerWidth = S.HeaderGap, d.portrait, d.center
+	local gap, portraitSize = S.HeaderGap, d.portrait
+	local short = self.root.AbsoluteSize.Y < S.ShortHeight
 	local availableWidth = width - S.HeaderMargin * 2
+	local menuLeft, menuRight = self:menuRoom(width)
+	local besideRoom = math.min(width - menuLeft - menuRight, availableWidth)
 	local function teamWidthFor(columns: number, size: number): number
 		return portraitSize + size * columns + S.BallGap * (columns - 1) + gap * 3
 	end
-	-- The first arrangement that fits, beside the status panel (inline) or above it.
+	-- The first arrangement that fits: beside Roblox's buttons with the status card beside
+	-- it, then under them on one line, then the status under the balls. The row wraps
+	-- (S.SoloWrapColumns) when a single line of fifteen does not fit.
 	local wrap = S.SoloWrapColumns
-	local choice = { columns = wrap, size = S.ShortBallSize, inline = false }
+	local choice = { columns = wrap, size = S.ShortBallSize, inline = false, beside = false }
 	for _, option in
 		{
-			{ columns = 15, size = d.ball, inline = true },
-			{ columns = 15, size = S.ShortBallSize, inline = true },
-			{ columns = wrap, size = d.ball, inline = true },
-			{ columns = wrap, size = S.ShortBallSize, inline = true },
-			{ columns = 15, size = d.ball, inline = false },
-			{ columns = wrap, size = d.ball, inline = false },
+			{ columns = 15, size = d.ball, inline = true, beside = true },
+			{ columns = wrap, size = d.ball, inline = true, beside = true },
+			{ columns = wrap, size = S.ShortBallSize, inline = true, beside = true },
+			{ columns = 15, size = d.ball, inline = true, beside = false },
+			{ columns = 15, size = S.ShortBallSize, inline = true, beside = false },
+			{ columns = wrap, size = d.ball, inline = true, beside = false },
+			{ columns = wrap, size = S.ShortBallSize, inline = true, beside = false },
+			{ columns = 15, size = d.ball, inline = false, beside = false },
+			{ columns = wrap, size = d.ball, inline = false, beside = false },
 		}
 	do
-		local beside = if option.inline then gap + centerWidth else 0
-		if teamWidthFor(option.columns, option.size) + beside <= availableWidth then
+		local room = if option.beside then besideRoom else availableWidth
+		local beside = if option.inline then gap + d.center else 0
+		if teamWidthFor(option.columns, option.size) + beside <= room then
 			choice = option
 			break
 		end
@@ -816,12 +740,19 @@ function MatchHUD.layoutSolo(self: any, width: number)
 	local rowsHeight = ballSize * rows + S.BallGap * (rows - 1)
 	local ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
 	local teamWidth = teamWidthFor(columns, ballSize)
+	-- On a short screen the status card takes what room is left, up to ShortCenterMax.
+	local room = if choice.beside then besideRoom else availableWidth
+	local centerWidth = if short and inline
+		then math.clamp(room - teamWidth - gap, d.center, S.ShortCenterMax)
+		else d.center
+	d.center = centerWidth
+	self.center.Size = UDim2.fromOffset(centerWidth, d.header)
 	local headerHeight = math.max(d.header, rowsHeight + gap * 2)
 	local desiredWidth = teamWidth + (if inline then gap + centerWidth else 0)
-	local besideMenu = inline and desiredWidth <= width - S.HeaderMenuLeft - S.HeaderMenuRight
+	local besideMenu = choice.beside
 	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
 	local startX = if besideMenu
-		then S.HeaderMenuLeft + (width - S.HeaderMenuLeft - S.HeaderMenuRight - desiredWidth) / 2
+		then menuLeft + (besideRoom - desiredWidth) / 2
 		else (width - desiredWidth) / 2
 	self.headerBottom = top + headerHeight + (if inline then 0 else d.header + gap)
 	local team = self.teams[1]
@@ -844,45 +775,12 @@ function MatchHUD.layoutSolo(self: any, width: number)
 	)
 end
 
-function MatchHUD.togglePrecision(self: any)
-	self.precisionOpen = not self.precisionOpen
-	if
-		not self.precisionOpen
-		and GuiService.SelectedObject
-		and GuiService.SelectedObject:IsDescendantOf(self.precision)
-	then
-		GuiService.SelectedObject = nil
-	end
-	self:layout()
-	if self.precisionOpen then
-		UIAnim.popIn(self.precision)
-	end
-	self.onAction("PrecisionToggle", self.precisionOpen)
-end
-
---- The Shoot button in fine controls shows the power it will shoot with.
-function MatchHUD.setShootPower(self: any, power: number)
-	HudParts.setText(
-		self.precisionButtons.Shoot,
-		string.format(Copy.ShootPower, math.floor(power * 100))
-	)
-end
-
 function MatchHUD.reservedHeight(self: any): number
 	return self.headerBottom or S.HeaderHeight
 end
 
 function MatchHUD.reservedBottom(self: any): number
-	if self.precision.Visible then
-		return self.precision.AbsoluteSize.Y + S.HeaderMargin
-	end
-	local bottom = S.ButtonHeight -- the fine-controls button row
-	if self.setup.Visible then
-		local height = self.setupHeight or S.SetupHeight
-		bottom = if self.setupStacked
-			then S.ButtonHeight + S.HeaderGap + height
-			else math.max(height, S.ButtonHeight)
-	end
+	local bottom = if self.setup.Visible then self.setupHeight or S.SetupHeight else 0
 	return bottom + S.HeaderMargin
 end
 
@@ -963,25 +861,14 @@ function MatchHUD.isModal(self: any): boolean
 end
 
 --- Whether the local shooter may move the cue ball now, and whether it could not follow the
---- pointer. The arrows and the instruction follow it.
+--- pointer. The instruction follows it.
 function MatchHUD.setPlacing(self: any, placing: boolean, blocked: boolean)
 	self.placingBlocked = placing and blocked
 	if placing == self.placing then
 		return
 	end
 	self.placing = placing
-	if not placing then
-		self.held = nil
-	end
 	self:layout()
-	local selected = GuiService.SelectedObject
-	if not placing and selected then
-		for _, key in PLACE_KEYS do
-			if selected == self.precisionButtons[key] then
-				GuiService.SelectedObject = self.precisionButtons.AimLeft
-			end
-		end
-	end
 end
 
 function MatchHUD.setInvalidTarget(self: any, invalid: boolean)
@@ -999,8 +886,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 	self.root.Visible = snapshot ~= nil
 	if snapshot == nil then
 		self:closeModal()
-		self.precisionOpen = false
-		self.placing, self.placingBlocked, self.held = false, false, nil
+		self.placing, self.placingBlocked = false, false
 		return
 	end
 	local changed = not old
@@ -1300,7 +1186,7 @@ function MatchHUD.update(self: any, now: number)
 			end
 		end
 	end
-	local placementVisible = isShooter and self.placing and not self.precisionOpen
+	local placementVisible = isShooter and self.placing
 	if self.setup.Visible ~= placementVisible then
 		self.setup.Visible = placementVisible
 		self:layout()
@@ -1314,22 +1200,10 @@ function MatchHUD.update(self: any, now: number)
 		elseif gamepad then Copy.PlacementHintGamepad
 		else Copy.PlacementHint
 	self.setupLabel.TextColor3 = if self.placingBlocked then tone("Red") else tone("White")
-	local canPlay = isShooter and (phase == "Intro" or phase == "Placement" or phase == "Aiming")
-	self.precisionButton.Visible = canPlay and not self.precisionOpen
-	self.precision.Visible = canPlay and self.precisionOpen
 	self.invalid.Visible = self.invalidTarget
 		and isShooter
 		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
 	self.invalid.Position = UDim2.new(0.5, 0, 1, -(self:reservedBottom() + S.HeaderGap))
-	-- A held placement arrow keeps stepping until it is let go, at most one step a frame so
-	-- a hitch never replays a burst.
-	local held = self.held
-	if held and not (self.placing and self.precision.Visible) then
-		self.held = nil
-	elseif held and now >= held.nextAt then
-		held.nextAt = math.max(held.nextAt + S.PlacementRepeatInterval, now)
-		self.onAction("PrecisionPlace", held.value)
-	end
 	local vote = snapshot.vote
 	if self.modalMode == "Vote" and vote then
 		local count, total = 0, 0
@@ -1464,6 +1338,10 @@ function MatchHUD.destroy(self: any)
 		connection:Disconnect()
 	end
 	self.root:Destroy()
+	local probe = self.topbarRoom and self.topbarRoom.Parent
+	if probe then
+		probe:Destroy()
+	end
 end
 
 return MatchHUD
