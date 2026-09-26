@@ -315,12 +315,17 @@ character waits on the lower landing.
   - Its walls drop about 300 studs to the street (about 30 floors). Street level is Y = -300
     and sea level Y = -302.
   - `FallenPartsDestroyHeight` goes below the street (the place has -500).
-- **The coast** makes an L round the tower:
+- **The coast** makes an L round the tower. The numbers are `city_plan.WORLD`, copied into
+  `Layout.json`.
   - Land (the city) is to the left and front-left, and carries on behind the tower beyond
     X -350 to the horizon, so the city fills the left of every view as in the art.
-  - Water is to the right (X > 110) and behind the tower (Z < -150, X -350 to 110).
-  - The beach promenade, sand and palms run along the tower's ocean side and round behind it.
-  - Beyond the beach come turquoise shallows, then deep blue sea.
+  - From the tower toward the sea: the street, a 30-stud promenade on the sea wall, a
+    50-stud beach, then the water. The waterline is X 205 on the ocean side and Z -215
+    behind the tower. Stage 4 moved it out from X 110 and Z -150, because the old coast
+    left only 17 studs between the tower and the water.
+  - Behind the waterline the city's shore bends in from Z -150 (pinned), as before.
+  - Beyond the beach come turquoise shallows (a painted band over the water), then deep blue
+    sea.
 - **Near (Stage 4, within about 400 studs):** the tower's walls, neighbour roofs below ours,
   streets, the promenade, the beach, sailboats.
 - **Mid (Stage 5, 400 to 2000 studs):**

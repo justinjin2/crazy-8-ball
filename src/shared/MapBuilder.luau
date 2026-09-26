@@ -25,7 +25,7 @@
 
 local MapBuilder = {}
 
---- Each gray-box part carries its row's group ("arch" or "props") and role ("floor",
+--- Each gray-box part carries its row's group ("arch", "props" or "near") and role ("floor",
 --- "collide" or "visual") as attributes (gen_graybox.py). Once a group's meshes are imported,
 --- its visual parts go, its floor and collide parts become the tiled floor and invisible
 --- walls in Map.Collision, and the rest of the gray-box stays.
@@ -66,7 +66,38 @@ local function importedGroups(map: Model, spec: any?): { [string]: boolean }
 	return {
 		arch = map:FindFirstChild(spec.Architecture) ~= nil,
 		props = placed ~= nil and #placed:GetChildren() > 0,
+		near = spec.Near ~= nil and map:FindFirstChild(spec.Near.Import) ~= nil,
 	}
+end
+
+-- The sea: Terrain water in data.water's rectangles, data.water.depth deep under its surface.
+-- The map's only Terrain is this sea, so it is cleared and refilled.
+local function fillWater(data: any)
+	local w = data.water
+	local terrain = workspace.Terrain
+	terrain:Clear()
+	for _, r in w.fills do
+		terrain:FillBlock(
+			CFrame.new((r[1] + r[3]) / 2, w.seaY - w.depth / 2, (r[2] + r[4]) / 2),
+			Vector3.new(r[3] - r[1], w.depth, r[4] - r[2]),
+			Enum.Material.Water
+		)
+	end
+end
+
+-- Remove the gray-box parts of one group (its real meshes are in). Returns how many.
+local function removeGrayBox(map: Model, groupName: string): number
+	local removed = 0
+	local box = map:FindFirstChild(MapBuilder.GrayBoxName)
+	if box then
+		for _, d in box:GetDescendants() do
+			if d:IsA("BasePart") and d:GetAttribute(MapBuilder.GroupAttribute) == groupName then
+				d:Destroy()
+				removed += 1
+			end
+		end
+	end
+	return removed
 end
 
 -- A gray-box row's CFrame: world, or in its prop's own frame, plus an extra turn.
@@ -150,21 +181,7 @@ function MapBuilder.buildGrayBox(data: any, spec: any?): string
 	end
 	box.Parent = map
 
-	-- The sea: Terrain water to the right of the coast and behind the tower (the city carries
-	-- on behind it on the left, beyond cityBackX), 4 studs deep.
-	-- The map's only Terrain is this sea, so it is cleared and refilled.
-	local w = data.water
-	local terrain = workspace.Terrain
-	terrain:Clear()
-	local function fill(x0: number, z0: number, x1: number, z1: number)
-		terrain:FillBlock(
-			CFrame.new((x0 + x1) / 2, w.seaY - 2, (z0 + z1) / 2),
-			Vector3.new(x1 - x0, 4, z1 - z0),
-			Enum.Material.Water
-		)
-	end
-	fill(w.coastX, -w.reach, w.reach, w.reach)
-	fill(w.cityBackX, -w.reach, w.coastX, w.coastZ)
+	fillWater(data)
 
 	local base = workspace:FindFirstChild("Baseplate")
 	if base then
@@ -381,16 +398,7 @@ local function buildCollision(map: Model, spec: any, data: any, groupName: strin
 		part.Parent = folder
 	end
 	folder.Parent = collision
-	local removed = 0
-	local box = map:FindFirstChild(MapBuilder.GrayBoxName)
-	if box then
-		for _, d in box:GetDescendants() do
-			if d:IsA("BasePart") and d:GetAttribute(MapBuilder.GroupAttribute) == groupName then
-				d:Destroy()
-				removed += 1
-			end
-		end
-	end
+	local removed = removeGrayBox(map, groupName)
 	return ("Collision.%s: %d floor parts, %d invisible parts; removed %d gray-box parts."):format(
 		folderName,
 		floors,

@@ -1968,6 +1968,45 @@
    62.25
   ]
  },
+ "world": {
+  "beach": 50.0,
+  "city_back_x": -350.0,
+  "city_bend_z": -150.0,
+  "city_block": 80.0,
+  "city_creep": 0.12,
+  "city_edge_max": -200.0,
+  "city_pitch": 110.0,
+  "city_reach": 2300.0,
+  "far_reach": 8000.0,
+  "land_drop": 0.6,
+  "land_x": 155.0,
+  "land_z": -165.0,
+  "max_part": 2000.0,
+  "near_coast": 1000.0,
+  "near_radius": 450.0,
+  "promenade": 30.0,
+  "sea_y": -302.0,
+  "shore_x": 205.0,
+  "shore_z": -215.0,
+  "street_y": -300.0,
+  "water_depth": 4.0,
+  "water_fills": [
+   [
+    193.0,
+    -6500.0,
+    6500.0,
+    6500.0
+   ],
+   [
+    -350.0,
+    -6500.0,
+    193.0,
+    -203.0
+   ]
+  ],
+  "water_overlap": 12.0,
+  "water_reach": 6500.0
+ },
  "zones": {
   "field": [
    -67.0,

@@ -22,23 +22,24 @@ import sys
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import city_plan as cp  # noqa: E402
 import map_common as mc  # noqa: E402
 import map_layout as ml  # noqa: E402
 
 SEED = 26092026  # the block city and the islands
 OUT = os.path.join(HERE, '..', '..', 'src', 'server', 'MapData', 'GrayBox.json')
 
-# The world round the rooftop (Spec section 7).
-STREET_Y = -300.0
-SEA_Y = -302.0
-COAST_X = 110.0  # water to the right of this...
-COAST_Z = -150.0  # ...and behind this, between CITY_BACK_X and COAST_X
-CITY_BACK_X = -350.0  # the city carries on behind the tower on the left...
-CITY_CREEP = 0.12  # ...its shore bending in toward the middle of the view with distance...
-CITY_EDGE_MAX = -200.0  # ...but never past this, so the sea stays behind the pergola
-MAX_PART = 2000.0  # Roblox clamps a Part at 2048 studs; big slabs are tiled
-WATER_REACH = 6500.0  # Terrain water out to this far (the islands stand in it)...
-FAR_REACH = 8000.0  # ...then flat sea and ground slabs to here, so no edge shows before the haze
+# The world round the rooftop (Spec section 7; city_plan.WORLD holds the numbers).
+W = cp.WORLD
+STREET_Y = W['street_y']
+SEA_Y = W['sea_y']
+LAND_TOP = STREET_Y - W['land_drop']  # the gray-box land, just under the near world's ground
+CITY_BACK_X = W['city_back_x']
+CITY_EDGE_MAX = W['city_edge_max']
+MAX_PART = W['max_part']
+WATER_REACH = W['water_reach']
+FAR_REACH = W['far_reach']
+city_edge_x = cp.city_edge_x
 
 with open(os.path.join(HERE, 'Palette.json')) as handle:
     PALETTE = json.load(handle)
@@ -91,18 +92,21 @@ class Lua:
         self.rows = []
 
     def part(self, folder, name, size, pos, colour, yaw=0.0, shape='Block', material='SmoothPlastic',
-             transparency=0.0, collide=False, local=None, rot=None, shadow=True, role=None):
+             transparency=0.0, collide=False, local=None, rot=None, shadow=True, role=None, group=None):
         """pos is world (x, y, z) of the part's centre, or with `local` the prop's (X, Y, Z, yaw)
         and pos in the prop's own frame. rot is an extra (rx, ry, rz) in degrees.
 
         role says what the part becomes once its group's real meshes are imported (MapBuilder):
         'floor' (stays, as the tiled floor), 'collide' (stays, invisible), 'visual' (replaced
         by the meshes). The group is 'arch' for the Rooftop folder and the columns, 'props'
-        for the other props; the world (Near, Backdrop) has none yet."""
+        for the other props (both inferred in main), and 'near' where given: the near world's
+        rows (the tower, the near city blocks, the near beach), which gen_near.py's meshes
+        replace. The rest of the world has none yet."""
         self.rows.append({
             'f': folder, 'n': name, 's': shape, 'size': [round(v, 4) for v in size],
             'p': [round(v, 4) for v in pos], 'c': colour, 'yaw': yaw, 'm': material,
             't': transparency, 'k': collide, 'local': local, 'rot': rot, 'shadow': shadow, 'role': role,
+            'group': group,
         })
 
 
@@ -216,22 +220,31 @@ def build(g, plan):
     N = 'Near'
     depth = -1 - STREET_Y
     g.part(N, 'Tower', (tx1 - tx0 + 2 * pt, depth, tz1 - tz0 + 2 * pt), ((tx0 + tx1) / 2, (-1 + STREET_Y) / 2, (tz0 + tz1) / 2),
-           C['facade'])
+           C['facade'], role='visual', group='near')
     g.part(N, 'TowerStairBay', (2 * (sx + pt), lower_y - 1 - STREET_Y, lower_end - front + pt),
-           (0, (lower_y - 1 + STREET_Y) / 2, (front + lower_end + pt) / 2), C['facade'])
-    # Land: the city's ground front-left of the coast and, behind the tower, left of
-    # CITY_BACK_X; sand strips along the water's edge. Big slabs are tiled under the Part limit.
+           (0, (lower_y - 1 + STREET_Y) / 2, (front + lower_end + pt) / 2), C['facade'], role='visual', group='near')
+    # Land at street level (its top just under the street, under the near world's ground): up to
+    # the ocean-side beach and the back beach, and beyond city_back_x behind them. Sand from the
+    # sea wall down to the waterline. Big slabs are tiled under the Part limit. The near world's
+    # beach mesh covers the coast within near_coast of the tower: those slabs are tagged 'near'.
     R_ = WATER_REACH
-    slab(g, N, 'Land', (-R_, COAST_Z, COAST_X, R_), STREET_Y - 4, STREET_Y, C['street'])
-    slab(g, N, 'Beach', (COAST_X, COAST_Z - 60, COAST_X + 60, R_), SEA_Y - 1, SEA_Y + 2, C['sand'])
-    slab(g, N, 'Beach', (CITY_BACK_X, COAST_Z - 60, COAST_X, COAST_Z), SEA_Y - 1, SEA_Y + 2, C['sand'])
-    # Behind the tower the shore bends in with distance: land and beach in 150-deep steps.
-    z = COAST_Z
+    NC = W['near_coast']
+    land_x, land_z = cp.land_x(), cp.land_z()
+    shore_x, shore_z = W['shore_x'], W['shore_z']
+    beach_top = SEA_Y + 1.5
+    slab(g, N, 'Land', (-R_, land_z, land_x, R_), STREET_Y - 4, LAND_TOP, C['street'])
+    slab(g, N, 'Land', (-R_, shore_z, CITY_BACK_X, land_z), STREET_Y - 4, LAND_TOP, C['street'])
+    slab(g, N, 'Beach', (land_x, shore_z, shore_x, NC), SEA_Y - 1, beach_top, C['sand'], group='near')
+    slab(g, N, 'Beach', (land_x, NC, shore_x, R_), SEA_Y - 1, beach_top, C['sand'])
+    slab(g, N, 'Beach', (CITY_BACK_X, shore_z, land_x, land_z), SEA_Y - 1, beach_top, C['sand'], group='near')
+    # Behind the waterline the city's shore bends in with distance: land and beach in 150-deep steps.
+    z = shore_z
     while z > -R_:
         z0 = max(z - 150.0, -R_)
         edge = city_edge_x((z + z0) / 2)
-        slab(g, N, 'Land', (-R_, z0, edge, z), STREET_Y - 4, STREET_Y, C['street'])
-        slab(g, N, 'Beach', (edge, z0, edge + 50, z), SEA_Y - 1, SEA_Y + 2, C['sand'])
+        slab(g, N, 'Land', (-R_, z0, edge, z), STREET_Y - 4, LAND_TOP, C['street'])
+        slab(g, N, 'Beach', (edge, z0, edge + W['beach'], z), SEA_Y - 1, beach_top, C['sand'],
+             group='near' if z0 >= -NC else None)
         z = z0
     # Beyond the Terrain water and the land, flat slabs to the horizon (a hair under the water
     # line so they never fight the Terrain's surface).
@@ -239,29 +252,16 @@ def build(g, plan):
     # The slab takes the sun directly where the Terrain water does not, so this is the albedo
     # that renders like the far Terrain water under the Day light (about #349BD6; Stage 4 test).
     far_sea = '#4E8FAE'
-    for rect in ((R_, -F_, F_, F_), (COAST_X, R_, R_, F_), (CITY_EDGE_MAX, -F_, R_, -R_)):
+    for rect in ((R_, -F_, F_, F_), (shore_x, R_, R_, F_), (CITY_EDGE_MAX, -F_, R_, -R_)):
         slab(g, 'Backdrop', 'SeaFar', rect, SEA_Y - 3, SEA_Y - 0.6, far_sea)
-    for rect in ((-F_, -F_, -R_, F_), (-R_, R_, COAST_X, F_), (-R_, -F_, CITY_EDGE_MAX, -R_)):
-        slab(g, 'Backdrop', 'LandFar', rect, STREET_Y - 4, STREET_Y, C['street'])
+    for rect in ((-F_, -F_, -R_, F_), (-R_, R_, land_x, F_), (-R_, -F_, CITY_EDGE_MAX, -R_)):
+        slab(g, 'Backdrop', 'LandFar', rect, STREET_Y - 4, LAND_TOP, C['street'])
 
-    # ---- Backdrop: the city on a street grid, and the islands (seeded) ------------------------
-    rng = random.Random(SEED)
+    # ---- Backdrop: the city on a street grid (seeded per block), and the islands --------------
     B = 'Backdrop'
-    city(g, rng, B)
-    # Islands: steep green cones over the sea, toward the ocean and behind; one beside the sunset
-    # sun (azimuth 36, Spec section 6).
-    # Far out (3500 to 6000) like the art's: two big peaks, one straight behind the pergola and
-    # one beside the sunset sun (azimuth 36, Spec section 6), and smaller islands in two
-    # clusters with radii varying about 3:1.
-    islands = [(3.0, 4800, 520, 950), (36.4 + 7, 5200, 480, 850)]
-    for centre, count in ((70.0, 4), (115.0, 4)):
-        for k in range(count):
-            az = centre + rng.uniform(-12, 12)
-            dist = rng.uniform(3500, 6000)
-            radius = rng.uniform(90, 270)
-            height = rng.uniform(150, 350)
-            islands.append((az, dist, radius, height))
-    for k, (az, dist, radius, height) in enumerate(islands):
+    city(g, B)
+    # Islands: steep green cones over the sea (ISLANDS), 3500 to 6000 out like the art's.
+    for k, (az, dist, radius, height) in enumerate(ISLANDS):
         a = math.radians(az)
         cx, cz = dist * math.sin(a), -dist * math.cos(a)
         steps = 12
@@ -273,16 +273,26 @@ def build(g, plan):
                    shape='Cylinder', rot=(0, 0, 90))
 
 
-def city_edge_x(z):
-    """The city's shore on the right (its largest X) at a Z behind the tower: it bends in
-    toward the middle of the view from the spawn with distance, so the city fills more of the
-    way the player faces (designer, 2026-09-26)."""
-    if z >= COAST_Z:
-        return COAST_X
-    return min(CITY_EDGE_MAX, CITY_BACK_X + (COAST_Z - z) * CITY_CREEP)
+# The islands as (azimuth from the entrance's view in degrees, distance, radius, height): two big
+# peaks, one straight behind the pergola and one beside the sunset sun (azimuth 36, Spec
+# section 6), and two clusters of smaller ones at azimuths about 70 and 115. Drawn once from the
+# seeded city's random sequence and written in here (Stage 4), so the city can change without
+# moving them: they are the approved gray-box.
+ISLANDS = [
+    (3.0, 4800, 520, 950),
+    (43.4, 5200, 480, 850),
+    (65.25196297055106, 5620.915540308757, 242.38591554029477, 316.68027142460613),
+    (60.95217457129261, 4121.8307746989885, 135.37545713535582, 304.30671451964423),
+    (62.971173246002614, 4698.077431640283, 230.005286804647, 192.4002488805018),
+    (61.6932506704206, 4227.665335533769, 183.45975386031657, 219.691074395954),
+    (106.65813480094175, 5256.492096427421, 111.78037070202618, 295.8957101627758),
+    (111.32626236052815, 4671.617934743987, 197.54349273984235, 314.90769999973145),
+    (126.67188902898008, 4587.965834115703, 133.379328818131, 184.0627491404195),
+    (120.89160651657247, 4824.758051137796, 221.0465659024085, 267.3165549287895),
+]
 
 
-def slab(g, folder, name, rect, y0, y1, colour):
+def slab(g, folder, name, rect, y0, y1, colour, group=None):
     """A flat slab over rect (x0, z0, x1, z1) from y0 to y1, tiled under the Part size limit."""
     x0, z0, x1, z1 = rect
     nx = max(1, math.ceil((x1 - x0) / MAX_PART))
@@ -291,87 +301,43 @@ def slab(g, folder, name, rect, y0, y1, colour):
         for j in range(nz):
             a, b = x0 + (x1 - x0) * i / nx, x0 + (x1 - x0) * (i + 1) / nx
             c, d = z0 + (z1 - z0) * j / nz, z0 + (z1 - z0) * (j + 1) / nz
-            g.part(folder, name, (b - a, y1 - y0, d - c), ((a + b) / 2, (y0 + y1) / 2, (c + d) / 2), colour)
+            g.part(folder, name, (b - a, y1 - y0, d - c), ((a + b) / 2, (y0 + y1) / 2, (c + d) / 2), colour,
+                   role='visual' if group else None, group=group)
 
 
-CITY_PITCH = 110.0  # a city block and its street
-CITY_BLOCK = 80.0  # the block itself (the street is the rest)
-CITY_REACH = 2300.0  # blocks out to this far; the horizon beyond is Stage 6's cards
+def city(g, folder):
+    """The city from city_plan: a sidewalk slab under each block within 1200, from the
+    lowered land up to a stud over the street, and each lot a podium, a shaft and, on the tall
+    ones, a crown. The near blocks' rows are tagged 'near' (gen_near.py builds them)."""
+    size = W['city_block']
+    for b in cp.blocks(lambda i, j: random.Random(cp.block_seed(SEED, i, j))):
+        group = 'near' if b['near'] else None
+        if b['sidewalk']:
+            top = STREET_Y + 1.0
+            g.part(folder, 'Block', (size, top - LAND_TOP, size), (b['cx'], (top + LAND_TOP) / 2, b['cz']), '#B9B3B7',
+                   role='visual' if group else None, group=group)
+        for lot in b['lots']:
+            building(g, folder, lot, group)
 
 
-def city(g, rng, folder):
-    """The city on a street grid. The blocks ahead of the spawn and to its left (the way the
-    player faces) are all built, with towers rising over the railing; behind the spawn (+Z,
-    the stair side) the city thins out and stays low. Each lot is a podium, a shaft and, on
-    the tall ones, a crown."""
-    half = CITY_BLOCK / 2
-    n = int(CITY_REACH // CITY_PITCH) + 1
-    for i in range(-n, 2):
-        for j in range(-n, n + 1):
-            cx, cz = (i + 0.5) * CITY_PITCH, (j + 0.5) * CITY_PITCH
-            x0, x1, z0, z1 = cx - half, cx + half, cz - half, cz + half
-            d = math.hypot(cx, cz)
-            if d > CITY_REACH:
-                continue
-            # On the land: front-left of the coast, or left of the bending shore behind.
-            if z1 > COAST_Z - 20 and x1 > COAST_X - 30:
-                continue
-            if z0 < COAST_Z and x1 > city_edge_x(z0) - 30:
-                continue
-            # The tower's own lot and plaza, and the beach promenade front-right, stay clear.
-            if x1 > -160 and x0 < 160 and z1 > -180 and z0 < 170:
-                continue
-            if x1 > 20 and z1 > -130:
-                continue
-            behind = cz > 250  # behind the spawn: the stair side, seldom looked at
-            if behind and rng.random() < 0.55:
-                continue
-            # A sidewalk slab for the near blocks.
-            if d < 1200:
-                g.part(folder, 'Block', (CITY_BLOCK, 1.0, CITY_BLOCK), (cx, STREET_Y + 0.5, cz), '#B9B3B7')
-            lots = rng.choice((1, 2, 2, 4))
-            for k in range(lots):
-                if lots == 1:
-                    lx, lz, lw, ld = cx, cz, CITY_BLOCK - 8, CITY_BLOCK - 8
-                elif lots == 2:
-                    lx, lz, lw, ld = cx + (k - 0.5) * half, cz, half - 6, CITY_BLOCK - 8
-                else:
-                    lx, lz, lw, ld = cx + ((k % 2) - 0.5) * half, cz + ((k // 2) - 0.5) * half, half - 6, half - 6
-                building(g, rng, folder, lx, lz, lw, ld, d, behind)
-
-
-def building(g, rng, folder, x, z, w, d_, dist, behind):
-    """One lot: a podium, a shaft and maybe a crown. Heights from the street (Y -300); the
-    roof is 300 up. Within 700 of the tower everything stays below the roof; further out some
-    slim towers rise over it, more of them the further out, so the skyline shows over the city
-    railing."""
-    top = 1.0 if dist < 1200 else 0.0  # stand on the sidewalk slab where there is one
-    # Towers that rise over the roof are slimmer than the blocks round them.
-    podium = rng.uniform(12, 30)
-    if behind:
-        height = rng.uniform(40, 120)
-    elif dist < 700:
-        height = rng.uniform(50, 230)  # close by, everything stays below the roof
-    elif dist < 1500:
-        height = 300 + rng.uniform(30, 150) if rng.random() < 0.16 else rng.uniform(80, 260)
-    else:
-        height = 300 + rng.uniform(60, 240) if rng.random() < 0.3 else rng.uniform(140, 300)
-    far = dist > 1600
-    glass = rng.random() < 0.4
-    shaft_colour = C['city_far'] if far else (C['glass_city'] if glass else C['facade'])
-    base_y = STREET_Y + top
-    g.part(folder, 'Podium', (w, podium, d_), (x, base_y + podium / 2, z), C['facade'])
-    if height <= podium + 4:
+def building(g, folder, lot, group=None):
+    x, z, w, d_ = lot['x'], lot['z'], lot['w'], lot['d']
+    podium, height = lot['podium'], lot['height']
+    shaft_colour = C['city_far'] if lot['far'] else (C['glass_city'] if lot['glass'] else C['facade'])
+    # On a sidewalk slab, a stud over the street; elsewhere on the lowered land.
+    base_y = STREET_Y + lot['top'] if lot['top'] else LAND_TOP
+    tag = {'role': 'visual', 'group': group} if group else {}
+    podium += STREET_Y - base_y if not lot['top'] else 0.0  # the same top whichever it stands on
+    g.part(folder, 'Podium', (w, podium, d_), (x, base_y + podium / 2, z), C['facade'], **tag)
+    if lot['shaft'] is None:
         return
-    slim = (0.45, 0.65) if height > 300 else (0.6, 0.85)
-    sw, sd = w * rng.uniform(*slim), d_ * rng.uniform(*slim)
-    shaft = height - podium
-    tall = height > 280
-    crown = rng.uniform(12, 30) if tall else 0.0
-    g.part(folder, 'Shaft', (sw, shaft - crown, sd), (x, base_y + podium + (shaft - crown) / 2, z), shaft_colour)
+    sw, sd = lot['shaft']
+    crown = lot['crown']
+    g.part(folder, 'Shaft', (sw, height - lot['podium'] - crown, sd),
+           (x, base_y + podium + (height - lot['podium'] - crown) / 2, z), shaft_colour, **tag)
     if crown:
-        g.part(folder, 'Crown', (sw * 0.55, crown, sd * 0.55), (x, base_y + height - crown / 2, z),
-               C['glass_city'] if not glass else C['facade'])
+        g.part(folder, 'Crown', (sw * 0.55, crown, sd * 0.55), (x, STREET_Y + lot['top'] + height - crown / 2, z),
+               C['glass_city'] if not lot['glass'] else C['facade'], **tag)
 
 
 def prop(g, p, i):
@@ -506,7 +472,7 @@ def main():
         if r['role']:
             row['role'] = r['role']
             is_arch = r['f'] == 'Rooftop' or r['n'].startswith(('column_', 'table_glow_'))
-            row['g'] = 'arch' if is_arch else 'props'
+            row['g'] = r['group'] or ('arch' if is_arch else 'props')
         if not r['shadow']:
             row['ns'] = True
         rows.append(row)
@@ -517,8 +483,8 @@ def main():
         'seats': seats,
         'lights': lights,
         'rows': rows,
-        'water': {'seaY': SEA_Y, 'reach': WATER_REACH, 'coastX': COAST_X, 'coastZ': COAST_Z,
-                  'cityBackX': CITY_BACK_X},
+        'water': {'seaY': SEA_Y, 'depth': W['water_depth'],
+                  'fills': [[round(v, 4) for v in rect] for rect in cp.water_fills()]},
         'spawn': [s['X'], s['Y'], s['Z']],
         'spawnSize': s['size'],
         'spawnColour': hexc('lounger'),

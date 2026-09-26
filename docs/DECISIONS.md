@@ -1180,3 +1180,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - The four 2v2 tables stand together (2 x 2) in the back-left corner and the two 3v3 in
     the back-right corner, seen from the spawn. The third row's right two tables are now
     1v1, so there are still ten 1v1.
+- 2026-09-26: The rooftop map's coast moves out to make room for a promenade and a beach
+  below the ocean side (Stage 4, the Spec's number). The waterline goes from X 110 to 205
+  and, behind the tower, from Z -150 to -215. The city's bending shore further back stays
+  where it was. The gray-box city was re-rolled once, seeded per block from now on, with the
+  islands written in as they were.

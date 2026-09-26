@@ -19,8 +19,11 @@ Run it to write Layout.json and check the plan (exit 1 on any problem):
 import json
 import math
 import os
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import city_plan  # noqa: E402  (the world round the rooftop, copied into Layout.json)
 
 # ---------------------------------------------------------------------------------------------
 # Gameplay footprint, mirrored from Config (tests/map_layout_test.luau keeps them equal)
@@ -438,6 +441,9 @@ def build():
         'props': props,
         'pitch': [pitch_x, pitch_z],
         'cameras': cameras(spawn, zones),
+        # The world round the rooftop (city_plan.py), for the Lune tests and the generators.
+        'world': dict(city_plan.WORLD, land_x=city_plan.land_x(), land_z=city_plan.land_z(),
+                      water_fills=[list(r) for r in city_plan.water_fills()]),
     }
 
 
