@@ -36,8 +36,8 @@ WORLD = {
     # Beyond the near world a building is at most height_cap_base tall at the near radius, the cap
     # rising height_cap_slope a stud outward, so the city steps up from low blocks near the tower
     # to towers in the middle distance, as in the art (Stage 5 critic: the near ring was a wall).
-    'height_cap_base': 200.0,
-    'height_cap_slope': 0.25,
+    'height_cap_base': 150.0,  # (Stage 5 critic 2: only landmarks over the roof close in)
+    'height_cap_slope': 0.2,
     'near_coast': 1000.0,  # the near world's beach runs this far along the coast; the gray-box's beyond
     'max_part': 2000.0,  # Roblox clamps a Part at 2048 studs: big slabs are tiled
     'water_reach': 8000.0,  # the Terrain water and the land out to this far; beyond, the sky's lower
