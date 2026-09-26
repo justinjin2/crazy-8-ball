@@ -111,12 +111,12 @@ and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
 
 ## Fixed-mode tables and queue pads (2026-09-26)
 
-The designer went back to one mode per table, with one round pad each to step onto, and a
+The designer went back to one mode per table, with one rectangular pad each to step onto, and a
 look per mode and lobby. Decisions: DECISIONS.md (2026-09-26), GDD sections 6, 10 and 16.
 
 - [ ] **Tables, pads and looks.** Ten 1v1, four 2v2 and two 3v3 tables (1v1 at the front);
-  one glowing pad per table at the head end that joins instantly, rings and an arrow while it
-  has room; teams by arrival; solo only on 1v1; six looks (green/wood, blue/black, red on
+  one glowing rectangular pad per table in front of its long side that joins instantly,
+  pulsing outlines and an arrow while it has room; teams by arrival; solo only on 1v1; six looks (green/wood, blue/black, red on
   either, charcoal on either), the baseplate showing each. Done means: lint, tests, Studio
   play (joining, fixtures, looks), the place saved.
 - [ ] **Checked on every device.** A real phone and controller, and a real two-player and

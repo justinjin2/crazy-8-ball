@@ -645,17 +645,17 @@ local avatarContext: Avatar.Context = {
 	aimTurn = false,
 	cameraPos = nil,
 }
--- Which table's pad a root stands on (grown by `margin` studs), found from the pads' own
--- attributes, or nil.
+-- Which table's pad a root stands on (grown by `margin` studs), the same test as the
+-- server's (TableService onPad), or nil.
 local predictedPad: number? = nil
 local function padUnder(root: BasePart, margin: number): number?
 	for id = 1, Placement.tableCount() do
 		local pad = zones:FindFirstChild(("QueuePad_%02d"):format(id))
-		local radius = pad and pad:GetAttribute("Radius")
-		if pad and pad:IsA("BasePart") and type(radius) == "number" then
-			local d = root.Position - pad.Position
+		if pad and pad:IsA("BasePart") then
+			local d = pad.CFrame:PointToObjectSpace(root.Position)
 			if
-				Vector2.new(d.X, d.Z).Magnitude <= radius + margin
+				math.abs(d.X) <= pad.Size.X / 2 + margin
+				and math.abs(d.Z) <= pad.Size.Z / 2 + margin
 				and math.abs(d.Y) < M.QueueVisual.VerticalTolerance
 			then
 				return id

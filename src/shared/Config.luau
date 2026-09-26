@@ -2392,10 +2392,12 @@ Config.Multiplayer = {
 	-- One pad per table (Placement.queuePad). The first on is the host, who picks the
 	-- difficulty and presses Start once the pad is full; teams alternate in arrival order.
 	Queue = {
-		-- One round pad per table (designer, 2026-09-26): stand anywhere on it to join. It
-		-- holds both teams, twice the table's teamSize. It sits in front of the table, centred
-		-- on the long side toward the entrance (designer, 2026-09-26; its shape may change).
-		PadRadiusStuds = { 3.5, 4.25, 5 }, -- by team size: 1v1, 2v2, 3v3 (tune)
+		-- One rectangular pad per table (designer, 2026-09-26: a rectangle, not the circle
+		-- tried first): stand anywhere on it to join. It holds both teams, twice the table's
+		-- teamSize. It sits in front of the table, centred on the long side toward the
+		-- entrance, lying along it.
+		-- By team size (1v1, 2v2, 3v3): { length along the table, depth out from it }. (tune)
+		PadSizeStuds = { { 10, 5 }, { 14, 5 }, { 18, 5 } },
 		-- Which long side: the sign of physics y. -1 is world +Z at yaw 0, toward the entrance.
 		PadSide = -1,
 		PadGapStuds = 1, -- from the walkway's long edge (Fence.HalfWidthStuds) to the pad
@@ -2458,19 +2460,23 @@ Config.Multiplayer = {
 	CoinSound = "rbxassetid://7022812395", -- Creator Store coin flip; preload verified
 	UISoundVolume = 0.35, -- quiet underneath physical impact mix
 	QueueVisual = {
-		-- The queue pad (TableService.buildPad): a white disc with a glowing rim, the table's
-		-- mode written big on it and STEP IN or the count under that.
-		PadHeight = 0.16, -- the disc's thickness, studs
+		-- The queue pad (TableService.buildPad): a white rounded rectangle with a glowing rim,
+		-- the table's mode written big on it and STEP IN or the count under that. The part is
+		-- invisible and all of it is drawn on its top face, so the corners can round.
+		PadHeight = 0.12, -- thin floor plate, studs
 		FloorOffset = 0.08, -- avoid z-fighting with the floor, studs
-		PadColor = { 245, 248, 255 }, -- the disc: near white
+		PadColor = { 245, 248, 255 }, -- the plate: near white
 		PadTransparency = 0.05,
-		RimStuds = 0.45, -- the glowing rim showing round the disc
+		PadCornerPx = 36, -- its rounded corners, pixels (at PixelsPerStud)
+		RimPx = 14, -- the glowing rim round it, pixels
 		RimFree = { 59, 155, 255 }, -- house blue while there is room
 		RimFull = { 255, 201, 40 }, -- gold once the pad is full or its game is on
 		PixelsPerStud = 40, -- sharp words on the pad without large canvases
 		ModeTextSize = 110, -- "1v1" on the pad, pixels (about 2.75 studs tall)
 		CountTextSize = 50, -- STEP IN or 1/2 under it
-		LabelRotation = 270, -- turns the pad's words to read upright from the entrance, tables at yaw 0 (tune)
+		-- Turns the pad about its table's up axis, a quarter turn at a time, so its words lie
+		-- along the table and read upright from the entrance (tables at yaw 0). (tune)
+		LabelRotation = 270,
 		LightBrightness = 0.35, -- bounded ambient glow from the pad
 		LightRange = 6, -- studs
 		VerticalTolerance = 6, -- a pad cannot seat someone on a different floor, studs
@@ -2478,7 +2484,7 @@ Config.Multiplayer = {
 		FallTolerance = 5, -- recover a falling participant below the table area
 		RespawnHeight = 3, -- safe standing root height above the floor, studs
 		RespawnBoundaryInset = 1, -- keep respawns inside confinement, studs
-		-- The pad's effects (src/client/BoxEffects.luau). (tune)
+		-- The pad's effects (src/client/PadEffects.luau). (tune)
 		FadeInSeconds = 0.25, -- how fast the whole effect lights up and fades out
 		MoteTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built-in sparkle
 		MoteRate = 30, -- light motes per second while occupied, over the whole pad
@@ -2491,11 +2497,11 @@ Config.Multiplayer = {
 		GlowBrightness = 1.4, -- steady glow while occupied
 		GlowBurstBrightness = 5, -- arrival flare
 		GlowBurstSeconds = 0.6, -- flare settling time
-		-- Rings pulse out from the rim while the pad has room: "step here".
-		RingPeriodSeconds = 1.6, -- one ring every this often
-		RingReach = 0.55, -- how far past the rim a ring travels before it fades, as a share of the radius
-		RingStrokePx = 14, -- ring thickness on the pad's canvas (PixelsPerStud)
-		RingTransparency = 0.25, -- a ring at its brightest
+		-- Outlines pulse out from the rim while the pad has room: "step here".
+		RingPeriodSeconds = 1.6, -- one outline every this often
+		RingReachStuds = 2, -- how far past the rim an outline travels before it fades
+		RingStrokePx = 12, -- outline thickness (PixelsPerStud)
+		RingTransparency = 0.25, -- an outline at its brightest
 		-- A big arrow bobs above the pad, pointing down, while it has room and you are not
 		-- seated anywhere.
 		ArrowHeightStuds = 6, -- above the pad

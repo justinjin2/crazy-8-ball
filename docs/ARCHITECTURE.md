@@ -209,8 +209,8 @@ It receives time and coin outcomes as arguments, so the same lifecycle runs unde
 simulation events; `CuePlacement` validates and deterministically finds legal fallbacks.
 Physics remains unchanged and instance-free.
 
-`TableService` is the Roblox adapter for server-observed queue pads (one round pad per table in
-front of its long side, `Placement.queuePad`, polled at 10 Hz with no dwell), global membership, rate
+`TableService` is the Roblox adapter for server-observed queue pads (one rectangular pad per table
+in front of its long side, `Placement.queuePad`, polled at 10 Hz with no dwell), global membership, rate
 limits, character constraints and snapshots. `ShotService` validates ownership/version
 through the engine, simulates once and broadcasts the replay. Accepted shots stop the
 shooting clock; resolution waits for motion/falls and the pocket buffer. Epoch/sequence

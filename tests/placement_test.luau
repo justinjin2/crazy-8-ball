@@ -336,9 +336,9 @@ return {
 		end
 	end,
 
-	-- The queue pad is round, in front of the table on its long side (Queue.PadSide), beyond
-	-- the walkway the shooter stands in, and the match fence takes in both: whoever starts a
-	-- game standing on the pad is inside it.
+	-- The queue pad is a rectangle lying along the table's long side (Queue.PadSide), centred
+	-- on it, beyond the walkway the shooter stands in, and the match fence takes in both:
+	-- whoever starts a game standing on the pad is inside it.
 	["the queue pad sits outside the walkway and inside the match fence"] = function()
 		local Config, Placement = setup()
 		local Q = Config.Multiplayer.Queue
@@ -346,25 +346,27 @@ return {
 		local _, barrierY = Placement.barrierHalfExtents()
 		H.near(wcx, 0, 1e-9, "the walkway is centred on the table")
 		H.expect(Q.PadSide == 1 or Q.PadSide == -1, "PadSide names a long side")
-		local lastRadius = 0
+		local lastLength = 0
 		for teamSize = 1, 3 do
-			local pcx, pcy, r = Placement.queuePad(teamSize)
+			local pcx, pcy, hx, hy = Placement.queuePad(teamSize)
 			local fx, fy, fcx, fcy = Placement.matchFence(teamSize)
-			H.near(r, Q.PadRadiusStuds[teamSize], 1e-9, "the radius for the mode")
-			H.expect(r > lastRadius, "a bigger team gets a bigger pad")
-			lastRadius = r
+			H.near(2 * hx, Q.PadSizeStuds[teamSize][1], 1e-9, "the length for the mode")
+			H.near(2 * hy, Q.PadSizeStuds[teamSize][2], 1e-9, "the depth for the mode")
+			H.expect(hx > hy, "it lies along the table")
+			H.expect(hx > lastLength, "a bigger team gets a longer pad")
+			lastLength = hx
 			H.expect(pcx == 0 and pcy * Q.PadSide > 0, "centred on the PadSide long side")
-			H.expect(math.abs(pcy) - r >= wy, "beyond the walkway")
-			H.expect(math.abs(pcy) - r > barrierY, "clear of the table")
-			H.expect(r < wx, "no wider than the walkway is long")
+			H.expect(math.abs(pcy) - hy >= wy, "beyond the walkway")
+			H.expect(math.abs(pcy) - hy > barrierY, "clear of the table")
+			H.expect(hx <= wx, "no longer than the walkway")
 			local function inside(x0: number, x1: number, y0: number, y1: number): boolean
 				return x0 >= fcx - fx and x1 <= fcx + fx and y0 >= fcy - fy and y1 <= fcy + fy
 			end
 			H.expect(inside(-wx, wx, -wy, wy), "the fence holds the walkway")
-			H.expect(inside(pcx - r, pcx + r, pcy - r, pcy + r), "the fence holds the pad")
+			H.expect(inside(pcx - hx, pcx + hx, pcy - hy, pcy + hy), "the fence holds the pad")
 			H.near(
 				fcy + Q.PadSide * fy,
-				pcy + Q.PadSide * (r + Q.FenceMarginStuds),
+				pcy + Q.PadSide * (hy + Q.FenceMarginStuds),
 				1e-9,
 				"with the margin beyond it"
 			)

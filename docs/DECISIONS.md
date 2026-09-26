@@ -1138,3 +1138,13 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - The sunset sun: Roblox's sun always sets toward -X (the city side), so the Sunset state
     uses a real dawn sun (ClockTime 6.4, latitude -30) to sit low over the ocean, right of
     the lounge, as in the art; Day is latitude 45, ClockTime 10. Never a painted sun.
+- 2026-09-26: The queue pad is a rectangle again (designer: "go back to the rectangle
+  design"). The round pad lasted a day.
+  - A white rounded rectangle with a glowing rim, lying along the table's long side toward the
+    entrance: 10, 14 or 18 studs long by 5 deep for 1v1, 2v2 and 3v3 (`Queue.PadSizeStuds`).
+    The mode and STEP IN or the count are written along it, and rounded outlines pulse out of
+    it while it has room.
+  - The floating sign sank into the floor over the round pad. A BillboardGui's
+    StudsOffsetWorldSpace is measured in its adornee's own axes, and the disc was a Cylinder
+    turned on its side, so "up" pointed sideways. The rectangle is turned only about the up
+    axis, so the sign rises straight up again.

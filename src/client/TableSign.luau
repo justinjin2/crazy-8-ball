@@ -146,6 +146,8 @@ function TableSign.fill(self: any, id: number, snapshot: any?)
 	self.status.BackgroundColor3 = tone(colour)
 end
 
+-- The sign hangs over the table's pad. Its StudsOffsetWorldSpace is measured in the pad's own
+-- axes, so it rises straight up only because the pad lies level (TableService.buildPad).
 local function padPart(zones: Instance, id: number): BasePart?
 	local part = zones:FindFirstChild(("QueuePad_%02d"):format(id))
 	return if part and part:IsA("BasePart") then part else nil

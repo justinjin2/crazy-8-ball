@@ -190,99 +190,91 @@ local function buildFence(t: any, folder: Instance)
 	end
 end
 
--- The table's queue pad (Placement.queuePad, designer 2026-09-26): a round white disc in
--- front of the table, on its long side toward the entrance, with a glowing rim, the table's
--- mode written big on it and STEP IN or the count under that. Stand anywhere on it to join.
--- The server keeps its attributes and words current (refresh); PadEffects on each client
--- tints and lights it, pulses rings out of it and bobs an arrow over it from those
--- attributes.
+-- The table's queue pad (Placement.queuePad, designer 2026-09-26): a white rounded
+-- rectangle lying along the table's long side toward the entrance, with a glowing rim, the
+-- table's mode written big on it and STEP IN or the count under that. Stand anywhere on it
+-- to join. The part is invisible and level (turned only about the up axis, so the sign that
+-- floats over it, TableSign, rises straight up); everything shows on its top face. The
+-- server keeps its attributes and words current (refresh); PadEffects on each client tints
+-- the rim, pulses outlines out of it and bobs an arrow over it from those attributes.
 local function buildPad(t: any, folder: Instance)
 	local id = t.engine.id
 	local teamSize = t.engine.teamSize
-	local cx, cy, r = Placement.queuePad(teamSize)
-	-- A Cylinder part lies along its X axis; turned a quarter about Z it lies flat.
-	local flat = CFrame.Angles(0, 0, math.pi / 2)
+	local cx, cy, hx, hy = Placement.queuePad(teamSize)
+	-- A top face's canvas runs across its part (the part's Z), so a quarter turn
+	-- (LabelRotation) lays the words along the table; the part's size turns with it.
+	local turned = math.round(Q.LabelRotation / 90) % 2 == 1
 	local pad = Instance.new("Part")
 	pad.Name = ("QueuePad_%02d"):format(id)
-	pad.Shape = Enum.PartType.Cylinder
 	pad.Anchored = true
 	pad.CanCollide = false
 	pad.CanTouch = false
 	pad.CanQuery = false
 	pad.CastShadow = false
-	pad.Size = Vector3.new(Q.PadHeight, 2 * r, 2 * r)
-	pad.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight / 2) * flat
-	pad.Color = rgb(Q.PadColor)
-	pad.Transparency = Q.PadTransparency
-	pad.Material = Enum.Material.SmoothPlastic
+	pad.Transparency = 1
+	pad.Size = if turned
+		then Vector3.new(2 * hy, Q.PadHeight, 2 * hx)
+		else Vector3.new(2 * hx, Q.PadHeight, 2 * hy)
+	pad.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight / 2)
+		* CFrame.Angles(0, math.rad(Q.LabelRotation), 0)
 	pad:SetAttribute("TableId", id)
 	pad:SetAttribute("TeamSize", teamSize)
 	pad:SetAttribute("Capacity", teamSize * 2)
-	pad:SetAttribute("Radius", r)
 	pad:SetAttribute("Occupied", false)
 	pad:SetAttribute("Count", 0)
 	pad:SetAttribute("Full", false)
 	pad.Parent = folder
-	-- The glowing rim: a Neon disc a little wider, just under the pad.
-	local rim = Instance.new("Part")
-	rim.Name = "Rim"
-	rim.Shape = Enum.PartType.Cylinder
-	rim.Anchored = true
-	rim.CanCollide = false
-	rim.CanTouch = false
-	rim.CanQuery = false
-	rim.CastShadow = false
-	rim.Material = Enum.Material.Neon
-	rim.Color = rgb(Q.RimFree)
-	rim.Size = Vector3.new(Q.PadHeight * 0.6, 2 * (r + Q.RimStuds), 2 * (r + Q.RimStuds))
-	rim.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight * 0.3) * flat
-	rim.Parent = pad
-	-- The words: an invisible square just over the disc, its top face written on.
-	local face = Instance.new("Part")
-	face.Name = "Label"
-	face.Anchored = true
-	face.CanCollide = false
-	face.CanTouch = false
-	face.CanQuery = false
-	face.CastShadow = false
-	face.Transparency = 1
-	face.Size = Vector3.new(2 * r, 0.05, 2 * r)
-	face.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight + 0.03)
-		* CFrame.Angles(0, math.rad(Q.LabelRotation), 0)
-	face.Parent = pad
 	local gui = Instance.new("SurfaceGui")
 	gui.Name = "PadLabel"
 	gui.Face = Enum.NormalId.Top
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	gui.PixelsPerStud = Q.PixelsPerStud
 	gui.LightInfluence = 0
-	gui.Parent = face
-	local column = Instance.new("Frame")
-	column.BackgroundTransparency = 1
-	column.Size = UDim2.fromScale(1, 1)
-	column.Parent = gui
+	gui.Parent = pad
+	-- The plate, inset by the rim so its glowing outline fits on the canvas.
+	local plate = Instance.new("Frame")
+	plate.Name = "Plate"
+	plate.AnchorPoint = Vector2.new(0.5, 0.5)
+	plate.Position = UDim2.fromScale(0.5, 0.5)
+	plate.Size = UDim2.new(1, -2 * Q.RimPx, 1, -2 * Q.RimPx)
+	plate.BackgroundColor3 = rgb(Q.PadColor)
+	plate.BackgroundTransparency = Q.PadTransparency
+	plate.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, Q.PadCornerPx)
+	corner.Parent = plate
+	local rim = Instance.new("UIStroke")
+	rim.Name = "Rim"
+	rim.Color = rgb(Q.RimFree)
+	rim.Thickness = Q.RimPx
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Parent = plate
 	local list = Instance.new("UIListLayout")
 	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	list.VerticalAlignment = Enum.VerticalAlignment.Center
 	list.SortOrder = Enum.SortOrder.LayoutOrder
-	list.Parent = column
-	local size = 2 * r * Q.PixelsPerStud
+	list.Parent = plate
 	local mode = label(
-		column,
+		plate,
 		Strings.Match.Mode:format(teamSize, teamSize),
-		UDim2.fromOffset(size, Q.ModeTextSize),
+		UDim2.new(1, 0, 0, Q.ModeTextSize),
 		UDim2.new(),
 		Q.ModeTextSize
 	)
 	mode.Name = "Mode"
 	mode.LayoutOrder = 1
 	local count =
-		label(column, "", UDim2.fromOffset(size, Q.CountTextSize), UDim2.new(), Q.CountTextSize)
+		label(plate, "", UDim2.new(1, 0, 0, Q.CountTextSize), UDim2.new(), Q.CountTextSize)
 	count.Name = "Count"
 	count.LayoutOrder = 2
+	local light = Instance.new("SurfaceLight")
+	light.Face = Enum.NormalId.Top
+	light.Brightness = Q.LightBrightness
+	light.Range = Q.LightRange
+	light.Color = rgb(Kit.Colors.White)
+	light.Shadows = false
+	light.Parent = pad
 	t.pad, t.countText = pad, count
-	t.padCentre = Vector3.new(Placement.fromTableStuds(t.placement, cx, cy, 0))
-	t.padRadius = r
 end
 
 local function setText(object: TextLabel, text: string)
@@ -702,11 +694,13 @@ local function releaseMissing(t: any)
 	end
 end
 
--- Whether a root stands on table `t`'s queue pad, grown by `margin` studs: within its radius
--- across the floor and on the same floor.
+-- Whether a root stands on table `t`'s queue pad, grown by `margin` studs: inside its
+-- rectangle across the floor and on the same floor.
 local function onPad(t: any, root: BasePart, margin: number): boolean
-	local d = root.Position - t.padCentre
-	return Vector2.new(d.X, d.Z).Magnitude <= t.padRadius + margin
+	local d = t.pad.CFrame:PointToObjectSpace(root.Position)
+	local half = t.pad.Size / 2
+	return math.abs(d.X) <= half.X + margin
+		and math.abs(d.Z) <= half.Z + margin
 		and math.abs(d.Y) < Q.VerticalTolerance
 end
 

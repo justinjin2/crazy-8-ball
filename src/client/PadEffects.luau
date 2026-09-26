@@ -1,12 +1,12 @@
 --!strict
 -- PadEffects: a table's queue pad says "step here", and comes alive while people wait on it.
 -- The server only keeps each pad's attributes (TableService.refresh): Count, Capacity,
--- Occupied, Full and its Radius. Everything here is local presentation, seen by everyone
--- nearby because every client watches every pad.
+-- Occupied and Full. Everything here is local presentation, seen by everyone nearby because
+-- every client watches every pad.
 --
 -- While a pad has room (designer, 2026-09-26: the old box did not look like something to step
 -- on):
---   - rings pulse outward from its rim, again and again,
+--   - rounded outlines pulse outward from its rim, again and again,
 --   - a big arrow bobs above it pointing down, unless you are already on a pad or playing.
 -- Its rim glows blue while empty, green once somebody is on it, gold when it is full or its
 -- game is on. While occupied, light motes drift up from it and its glow flares whenever
@@ -26,9 +26,8 @@ PadEffects.__index = PadEffects
 
 type Pad = {
 	part: BasePart,
-	rim: BasePart?,
-	radius: number,
-	host: Part, -- local, flat and level: holds the motes, glow, sound, rings and arrow
+	rim: UIStroke?,
+	host: Part, -- local, level over the pad: holds the motes, glow, sound, rings and arrow
 	count: number,
 	glow: PointLight,
 	motes: ParticleEmitter,
@@ -58,13 +57,19 @@ local function folderFor(): Folder
 	return folder
 end
 
+-- The pad's glowing outline (TableService.buildPad), once it has replicated.
+local function rimOf(part: BasePart): UIStroke?
+	local label = part:FindFirstChild("PadLabel")
+	local plate = label and label:FindFirstChild("Plate")
+	local rim = plate and plate:FindFirstChild("Rim")
+	return if rim and rim:IsA("UIStroke") then rim else nil
+end
+
 local function build(part: BasePart): Pad
 	local green = rgb(Kit.Colors.Green)
-	local attr = part:GetAttribute("Radius")
-	local radius = if type(attr) == "number" then attr else part.Size.Y / 2
-	local reach = radius * (1 + Q.RingReach)
-	-- A level square over the pad (the disc itself is a turned cylinder): the rings are drawn
-	-- on its top, the motes rise from it and the arrow hangs over it.
+	local reach = Q.RingReachStuds
+	-- A level plate over the pad, turned with it and wider by the rings' reach all round: the
+	-- rings are drawn on its top, the motes rise from it and the arrow hangs over it.
 	local host = Instance.new("Part")
 	host.Name = part.Name .. "_Effects"
 	host.Anchored = true
@@ -73,8 +78,8 @@ local function build(part: BasePart): Pad
 	host.CanQuery = false
 	host.CastShadow = false
 	host.Transparency = 1
-	host.Size = Vector3.new(2 * reach, 0.05, 2 * reach)
-	host.CFrame = CFrame.new(part.Position + Vector3.new(0, part.Size.X / 2 + 0.02, 0))
+	host.Size = Vector3.new(part.Size.X + 2 * reach, 0.05, part.Size.Z + 2 * reach)
+	host.CFrame = part.CFrame * CFrame.new(0, part.Size.Y / 2 + 0.02, 0)
 	host.Parent = folderFor()
 
 	local motes = Instance.new("ParticleEmitter")
@@ -102,7 +107,7 @@ local function build(part: BasePart): Pad
 	glow.Shadows = false
 	glow.Parent = host
 
-	-- Rings pulsing out from the rim, drawn as round outlines on the square's top.
+	-- Rings pulsing out from the rim, drawn as rounded outlines on the plate's top.
 	local gui = Instance.new("SurfaceGui")
 	gui.Name = "Rings"
 	gui.Face = Enum.NormalId.Top
@@ -119,7 +124,7 @@ local function build(part: BasePart): Pad
 		ring.BackgroundTransparency = 1
 		ring.Parent = gui
 		local round = Instance.new("UICorner")
-		round.CornerRadius = UDim.new(0.5, 0)
+		round.CornerRadius = UDim.new(0, Q.PadCornerPx)
 		round.Parent = ring
 		local stroke = Instance.new("UIStroke")
 		stroke.Color = rgb(Q.RimFree)
@@ -154,11 +159,9 @@ local function build(part: BasePart): Pad
 	sound.Parent = host
 
 	local count = part:GetAttribute("Count")
-	local rim = part:FindFirstChild("Rim")
 	return {
 		part = part,
-		rim = if rim and rim:IsA("BasePart") then rim else nil,
-		radius = radius,
+		rim = rimOf(part),
 		host = host,
 		count = if type(count) == "number" then count else 0,
 		glow = glow,
@@ -177,7 +180,7 @@ end
 function PadEffects.new(folder: Instance): PadEffects
 	local self = setmetatable({ pads = {} :: { Pad }, elapsed = 0 }, PadEffects)
 	local function add(part: Instance)
-		if not part:IsA("BasePart") or part:GetAttribute("Radius") == nil then
+		if not part:IsA("BasePart") or part:GetAttribute("Capacity") == nil then
 			return
 		end
 		for _, pad in self.pads do
@@ -236,15 +239,20 @@ function PadEffects.update(
 		-- The rim: blue with room, green with somebody on, gold when full or playing.
 		local tint =
 			rgb(if not open then Q.RimFull elseif occupied then Kit.Colors.Green else Q.RimFree)
+		pad.rim = pad.rim or rimOf(part)
 		if pad.rim then
 			pad.rim.Color = pad.rim.Color:Lerp(tint, 1 - math.exp(-dt / M.Style.FadeSeconds))
 		end
 
-		-- "Step here": rings and the arrow while the pad has room.
+		-- "Step here": rings and the arrow while the pad has room. A ring starts on the rim and
+		-- grows by RingReachStuds all round; the host's canvas runs across it (its Z).
 		for n, ring in pad.rings do
 			local t = ((self.elapsed / Q.RingPeriodSeconds) + (n - 1) / #pad.rings) % 1
-			local diameter = 2 * pad.radius * (1 + Q.RingReach * t) * Q.PixelsPerStud
-			ring.Size = UDim2.fromOffset(diameter, diameter)
+			local grow = 2 * Q.RingReachStuds * t
+			ring.Size = UDim2.fromOffset(
+				(part.Size.Z + grow) * Q.PixelsPerStud,
+				(part.Size.X + grow) * Q.PixelsPerStud
+			)
 			local stroke = ring:FindFirstChildOfClass("UIStroke")
 			if stroke then
 				stroke.Color = tint

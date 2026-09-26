@@ -187,14 +187,16 @@ function Placement.teamSizeOf(id: number): number?
 end
 
 --- The table's queue pad (Multiplayer.Queue), in studs along the table's own length and
---- width: its centre (cx, cy) and radius. It sits in front of the table, centred on the long
---- side Queue.PadSide (toward the entrance), just beyond the walkway, so a queue never stands
---- where a shooter might; a bigger team gets a bigger pad.
-function Placement.queuePad(teamSize: number): (number, number, number)
+--- width: its centre (cx, cy) and half extents (hx along the length, hy across). A
+--- rectangle lying along the long side Queue.PadSide (toward the entrance), centred on it,
+--- just beyond the walkway, so a queue never stands where a shooter might; a bigger team gets
+--- a longer pad.
+function Placement.queuePad(teamSize: number): (number, number, number, number)
 	local Q = Config.Multiplayer.Queue
 	local _, wy = Placement.fenceHalfExtents()
-	local r = Q.PadRadiusStuds[math.clamp(teamSize, 1, #Q.PadRadiusStuds)]
-	return 0, Q.PadSide * (wy + Q.PadGapStuds + r), r
+	local size = Q.PadSizeStuds[math.clamp(teamSize, 1, #Q.PadSizeStuds)]
+	local hx, hy = size[1] / 2, size[2] / 2
+	return 0, Q.PadSide * (wy + Q.PadGapStuds + hy), hx, hy
 end
 
 --- The fence round a whole match area, in studs along the table's own length and width:
@@ -204,12 +206,12 @@ end
 function Placement.matchFence(teamSize: number): (number, number, number, number)
 	local Q = Config.Multiplayer.Queue
 	local wx, wy, wcx = Placement.fenceHalfExtents()
-	local pcx, pcy, r = Placement.queuePad(teamSize)
+	local pcx, pcy, phx, phy = Placement.queuePad(teamSize)
 	local m = Q.FenceMarginStuds
-	local x0 = math.min(wcx - wx, pcx - r - m)
-	local x1 = math.max(wcx + wx, pcx + r + m)
-	local y0 = math.min(-wy, pcy - r - m)
-	local y1 = math.max(wy, pcy + r + m)
+	local x0 = math.min(wcx - wx, pcx - phx - m)
+	local x1 = math.max(wcx + wx, pcx + phx + m)
+	local y0 = math.min(-wy, pcy - phy - m)
+	local y1 = math.max(wy, pcy + phy + m)
 	return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
 end
 

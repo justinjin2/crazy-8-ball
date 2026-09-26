@@ -160,11 +160,11 @@ Every feature is checked against these. If it serves none, it waits.
 - **Every table plays one mode** (changed 2026-09-26; for a day any table played any mode from
   one long queue box). Of sixteen tables, **ten are 1v1, four 2v2 and two 3v3**, the 1v1
   tables nearest the spawn and the 3v3 at the back.
-- **Joining: step onto the table's queue pad.** Each table has one round glowing pad in front
-  of it, centred on the long side that faces the entrance (changed 2026-09-26 for the rooftop
-  map; its shape may still change), holding both teams (2, 4 or 6). Its mode is written big on it
-  with STEP IN or the count; rings pulse out of it and a big arrow bobs over it while it has
-  room. Joining is instant: the host menu pops up the moment you step on. Stepping on plays a
+- **Joining: step onto the table's queue pad.** Each table has one glowing rectangular pad in
+  front of it, lying along the long side that faces the entrance (changed 2026-09-26 for the
+  rooftop map; a round pad was tried the same day and dropped), longer for bigger modes,
+  holding both teams (2, 4 or 6). Its mode is written big on it with STEP IN or the count;
+  outlines pulse out of it and a big arrow bobs over it while it has room. Joining is instant: the host menu pops up the moment you step on. Stepping on plays a
   sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
   accept step; anyone may step onto a waiting pad with room, and walking off (or Leave) leaves
   at once. Everyone else can stand around and watch. The sign over a table (mode, host, count,

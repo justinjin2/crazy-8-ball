@@ -1,7 +1,28 @@
 # Status
 
-**2026-09-26 (latest): every table plays one mode again, with one glowing queue pad each, and
-each mode has its own look.**
+**2026-09-26 (latest): the queue pad is a rectangle again, and the floating sign floats over it
+instead of sinking into the floor.**
+
+- **Pad:** a white rounded rectangle with a glowing rim, lying along the table's long side
+  toward the entrance, 10, 14 or 18 studs long for 1v1, 2v2 and 3v3. The mode and STEP IN or
+  the count read along it from the entrance; rounded outlines pulse out of it and the arrow
+  bobs over it while it has room.
+- **Sign fix:** the sign's height is measured in the pad's own axes, and the round pad was a
+  cylinder lying on its side, so the sign went sideways into the floor. The rectangle lies
+  level, so the sign sits 6.5 studs above it.
+- **Verified:**
+  - Lint is clean and the placement tests pass. `tests/map_layout_test` fails for now (3
+    tests) until the rooftop session regenerates `assets/map/Layout.json` for the new pad
+    size.
+  - Studio Play on the rooftop gray-box:
+    - the sign over a 1v1 pad at head height;
+    - the pad from above ("1v1 / STEP IN", upright from the entrance);
+    - stepping on: the host menu in about 0.1 s, the rim green, "1/2", the sign hidden;
+    - a 2v2 sign and the 3v3 pads from above;
+    - a clean console.
+
+**Earlier on 2026-09-26: every table plays one mode again, with one glowing queue pad each,
+and each mode has its own look.**
 
 - **Tables:**
   - Ten 1v1, four 2v2 and two 3v3; the 1v1 tables at the front, the 3v3 at the back.
@@ -9,8 +30,8 @@ each mode has its own look.**
     red 2v2, slate charcoal 3v3); the right two have black frames (the pro lobby's: blue 1v1,
     the same red and charcoal). Every combination is on the baseplate for testing.
 - **Queue pad:**
-  - One round pad per table at the head end, toward the spawn, sized by mode, with the mode
-    written big on it and STEP IN or the count.
+  - One pad per table (now a rectangle, above), sized by mode, with the mode written big on
+    it and STEP IN or the count.
   - While it has room, rings pulse out of it and a big arrow bobs over it. Its rim is blue,
     green once somebody is on, gold when full or playing.
   - Stepping on is instant: the host menu shows the same frame, before the server has seated
