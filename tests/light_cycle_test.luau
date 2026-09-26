@@ -82,6 +82,43 @@ return {
 		end
 	end,
 
+	["the developer commands fade toward the day or the sunset from the light shown now"] = function()
+		local LC = H.require("LightCycle")
+		local C = H.require("Config").Lighting.Cycle
+		-- Every moment of a cycle, under two different earlier offsets.
+		for _, offset in { 0, 333.3 } do
+			for s = 0, 1019, 7 do
+				local t = 1790460000 + s
+				local before = LC.blend(t + offset, C)
+				for _, hold in { "Sunset", "Day" } do
+					local o = LC.offsetToward(t, offset, C, hold)
+					local goal = if hold == "Sunset" then 1 else 0
+					H.expect(o >= 0 and o < LC.period(C), "an offset within one cycle")
+					H.near(LC.blend(t + o, C), before, 1e-9, ("no jump: %s at %d"):format(hold, s))
+					-- Asking again changes nothing.
+					H.near(LC.offsetToward(t, o, C, hold), o, 1e-9, "asking twice")
+					-- Away from the goal, the light moves only toward it and is there within a
+					-- fade. (Already holding the goal, the cycle simply runs on.)
+					if before ~= goal then
+						local next = LC.blend(t + o + 1, C)
+						H.expect(
+							math.abs(goal - next) <= math.abs(goal - before) + 1e-9,
+							"toward the goal"
+						)
+						local later = LC.blend(t + o + C.Fade, C)
+						H.near(later, goal, 1e-9, ("%s within a fade from %d"):format(hold, s))
+					end
+				end
+			end
+		end
+		H.expect(
+			type(C.OffsetAttribute) == "string" and C.OffsetAttribute ~= "",
+			"an attribute name"
+		)
+		local D = H.require("Config").Debug.Commands
+		H.expect(D.Day:sub(1, 1) == "/" and D.Sunset:sub(1, 1) == "/", "chat commands start with /")
+	end,
+
 	["Day and Sunset have the same keys, and the ends of the blend are the two states"] = function()
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting

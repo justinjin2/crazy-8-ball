@@ -2856,6 +2856,9 @@ Config.Lighting = {
 		Speed = 1,
 		Rate = 12, -- a client applies the fading light this many times a second
 		Look = 2, -- seconds between a client's looks for map parts still streaming in
+		-- workspace's attribute holding the cycle's offset (scaled seconds), set by the /day and
+		-- /sunset developer commands (Config.Debug.Commands); the server's, so all agree.
+		OffsetAttribute = "DayCycleOffset",
 	},
 	-- The sky's images change in one frame at these blends (0 Day, 1 Sunset), both ways: Day's
 	-- sky, then DuskSky, then Sunset's. One swap from the blue day sky to the magenta sunset one
@@ -3054,6 +3057,15 @@ Config.Debug = {
 	-- Main maps it. Keyboard only: it is a tool, not a feature that needs a phone path.
 	ShowStatus = false,
 	StatusKey = "F3",
+	-- Developer chat commands (DevCommands): typed in the Roblox chat, checked on the server. Who
+	-- may use them: anyone in Studio, these user ids, and the owner of the group that owns the
+	-- game (rank GroupRank). Anyone else's command does nothing. Not player-facing: no text.
+	Commands = {
+		Day = "/day", -- the day/sunset cycle fades to day now (the 1 min fade)
+		Sunset = "/sunset", -- ...or to sunset; it runs on from there
+		UserIds = { 544959133 }, -- the designer
+		GroupRank = 255, -- the group's owner
+	},
 	-- Print physics events to the console.
 	LogEvents = false,
 	-- Print a timing line when a shot finishes playing back.

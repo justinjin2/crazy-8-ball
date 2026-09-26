@@ -49,6 +49,34 @@ function LightCycle.blend(t: number, cycle: Cycle): number
 	return 1 - ease(s / cycle.Fade)
 end
 
+--- A new offset (scaled seconds, added to the scaled clock) that sends the cycle toward a hold,
+--- "Day" or "Sunset", through its fade, from the light it shows now: t is the scaled clock and
+--- offset the one in use. Holding the other state, the fade starts at once; half way through
+--- the fade back, it turns round at the same blend; already on its way, nothing changes. The
+--- cycle runs on from there. A developer's chat command sets it (DevCommands), so every client
+--- moves together.
+function LightCycle.offsetToward(t: number, offset: number, cycle: Cycle, hold: string): number
+	local period = LightCycle.period(cycle)
+	local s = (t + offset) % period
+	local fadeIn, sunset = cycle.Day, cycle.Day + cycle.Fade
+	local fadeOut = sunset + cycle.Sunset
+	local target = s
+	if hold == "Sunset" then
+		if s < fadeIn then
+			target = fadeIn -- from the day hold: the fade in starts now
+		elseif s >= fadeOut then
+			target = fadeIn + (period - s) -- mid fade out: the same blend on the fade in
+		end
+	else
+		if s >= sunset and s < fadeOut then
+			target = fadeOut -- from the sunset hold: the fade out starts now
+		elseif s >= fadeIn and s < sunset then
+			target = fadeOut + (sunset - s) -- mid fade in: the same blend on the fade out
+		end
+	end
+	return (offset + target - s) % period
+end
+
 --- The sun at a blend: GeographicLatitude and ClockTime along the SunPath keyframes (by Blend,
 --- rising), straight between them and held past the ends.
 function LightCycle.sun(blend: number, path: { SunKey }): (number, number)

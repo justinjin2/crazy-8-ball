@@ -11,6 +11,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local DevCommands = require(script.Parent:WaitForChild("DevCommands"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
@@ -71,6 +72,7 @@ end
 -- inputs, this decides what actually happened.
 TableService.start(workspace)
 ShotService.start()
+DevCommands.start() -- /day and /sunset, for the developer only
 
 print(
 	("[8ball] server ready. %d tables with queue pads, %dx%d in, %.2f studs/in"):format(

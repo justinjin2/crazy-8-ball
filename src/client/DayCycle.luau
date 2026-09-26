@@ -92,7 +92,11 @@ function DayCycle.update(self: DayCycle, now: number)
 	if self.dirty or handles == nil or (not handles.complete and now >= self.nextLook) then
 		self:look(now)
 	end
-	local blend = LightCycle.blend(workspace:GetServerTimeNow() * C.Speed, C)
+	-- The /day and /sunset developer commands shift the cycle for everyone (DevCommands).
+	local offset = workspace:GetAttribute(C.OffsetAttribute)
+	local t = workspace:GetServerTimeNow() * C.Speed
+		+ (if type(offset) == "number" then offset else 0)
+	local blend = LightCycle.blend(t, C)
 	if self.last ~= nil and (blend == self.blend or now < self.nextApply) then
 		return
 	end
