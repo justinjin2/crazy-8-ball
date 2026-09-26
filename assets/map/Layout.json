@@ -1977,6 +1977,7 @@
   "city_edge_max": -200.0,
   "city_pitch": 110.0,
   "city_reach": 2300.0,
+  "far_reach": 7000.0,
   "height_cap_base": 150.0,
   "height_cap_slope": 0.2,
   "land_drop": 0.6,
@@ -1994,18 +1995,18 @@
   "water_fills": [
    [
     155.0,
-    -8000.0,
-    8000.0,
-    8000.0
+    -2600.0,
+    2600.0,
+    2600.0
    ],
    [
     -350.0,
-    -8000.0,
+    -2600.0,
     155.0,
     -165.0
    ]
   ],
-  "water_reach": 8000.0
+  "water_reach": 2600.0
  },
  "zones": {
   "field": [

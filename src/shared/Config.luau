@@ -2863,11 +2863,11 @@ Config.Lighting = {
 		-- 2026-09-26): the art's gradient and cumulus clouds, the far sea below the horizon.
 		-- MapBuilder.applyLighting updates the place's own Sky (two Skies clash).
 		Sky = {
-			SkyboxBk = "rbxassetid://114301763439239",
-			SkyboxDn = "rbxassetid://90087010114161",
-			SkyboxFt = "rbxassetid://126444211947012",
-			SkyboxLf = "rbxassetid://139421310807518",
-			SkyboxRt = "rbxassetid://106785970184296",
+			SkyboxBk = "rbxassetid://140648357214869",
+			SkyboxDn = "rbxassetid://75999332903627",
+			SkyboxFt = "rbxassetid://111976464433235",
+			SkyboxLf = "rbxassetid://93639379167467",
+			SkyboxRt = "rbxassetid://102845020912080",
 			SkyboxUp = "rbxassetid://93123509257023",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
 			MoonAngularSize = 11,

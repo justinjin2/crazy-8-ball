@@ -40,12 +40,13 @@ WORLD = {
     'height_cap_slope': 0.2,
     'near_coast': 1000.0,  # the near world's beach runs this far along the coast; the gray-box's beyond
     'max_part': 2000.0,  # Roblox clamps a Part at 2048 studs: big slabs are tiled
-    'water_reach': 8000.0,  # the Terrain water and the land out to this far; beyond, the sky's lower
-                            # half is painted land toward the city and sea toward the ocean. (Flat
-                            # sea slabs past the water showed its edge as a teal stripe; Stage 4.)
+    'water_reach': 2600.0,  # the 3D Terrain water and land out to this far (a square); beyond, the
+                            # skybox holds everything, painted from the roof by gen_sky.py (Stage 6):
+                            # anything 3D further out would hide the painting behind it
+    'far_reach': 7000.0,  # the far city, painted into the skybox, from city_reach out to this far
     'city_pitch': 110.0,  # a city block and its street
     'city_block': 80.0,  # the block itself (the street is the rest)
-    'city_reach': 2300.0,  # blocks out to this far; the horizon beyond is Stage 6's cards
+    'city_reach': 2300.0,  # the 3D city out to this far (Stage 5); beyond, it is painted (Stage 6)
 }
 
 
@@ -106,7 +107,17 @@ def city_blocks():
     return blocks(lambda i, j: random.Random(block_seed(CITY_SEED, i, j)))
 
 
-def blocks(rng_for):
+def far_blocks():
+    """The far city, painted into the skybox (gen_sky.py, Stage 6): the blocks from city_reach
+    out to far_reach, on the same grid and land, seeded per block like the rest. Its towers
+    are taller and more frequent than the mid city's (far_lot), so the thin band of skyline
+    at the horizon, all a phone sees of the city, reads as a skyline."""
+    W = WORLD
+    return blocks(lambda i, j: random.Random(block_seed(CITY_SEED, i, j)),
+                  reach=(W['city_reach'], W['far_reach']), make_lot=far_lot)
+
+
+def blocks(rng_for, reach=None, make_lot=None):
     """Every city block, in grid order, with its lots. rng_for(i, j) gives the random source
     for block (i, j) (random.Random(block_seed(SEED, i, j)) in the generators). The blocks ahead of the spawn and to its left (the way the player faces)
     are all built, with towers rising over the railing; behind the spawn (+Z, the stair side)
@@ -117,14 +128,16 @@ def blocks(rng_for):
     W = WORLD
     pitch, size = W['city_pitch'], W['city_block']
     half = size / 2
-    n = int(W['city_reach'] // pitch) + 1
+    near_d, far_d = reach or (0.0, W['city_reach'])
+    make_lot = make_lot or lot
+    n = int(far_d // pitch) + 1
     out = []
     for i in range(-n, 2):
         for j in range(-n, n + 1):
             cx, cz = (i + 0.5) * pitch, (j + 0.5) * pitch
             x0, x1, z0, z1 = cx - half, cx + half, cz - half, cz + half
             d = math.hypot(cx, cz)
-            if d > W['city_reach']:
+            if d > far_d or d <= near_d:
                 continue
             if not buildable(x0, z0, x1, z1):
                 continue
@@ -147,9 +160,29 @@ def blocks(rng_for):
                     lx, lz, lw, ld = cx + (k - 0.5) * half, cz, half - 6, size - 8
                 else:
                     lx, lz, lw, ld = cx + ((k % 2) - 0.5) * half, cz + ((k // 2) - 0.5) * half, half - 6, half - 6
-                block['lots'].append(lot(rng, lx, lz, lw, ld, d, behind))
+                block['lots'].append(make_lot(rng, lx, lz, lw, ld, d, behind))
             out.append(block)
     return out
+
+
+def far_lot(rng, x, z, w, d_, dist, behind):
+    """A far lot (painted): about 45% towers rising 100 to 400 studs over the roof, the rest
+    mid-rise; behind the spawn low, as the mid city's. Same record as lot()."""
+    podium = rng.uniform(12, 30)
+    if behind:
+        height = rng.uniform(40, 160)
+    elif rng.random() < 0.45:
+        height = 300 + rng.uniform(100, 400)
+    else:
+        height = rng.uniform(120, 300)
+    rec = {'x': x, 'z': z, 'w': w, 'd': d_, 'dist': dist, 'behind': behind, 'podium': podium,
+           'height': height, 'far': True, 'glass': rng.random() < 0.4, 'top': 0.0, 'shaft': None, 'crown': 0.0}
+    if height <= podium + 4:
+        return rec
+    slim = (0.4, 0.6) if height > 300 else (0.6, 0.85)
+    rec['shaft'] = (w * rng.uniform(*slim), d_ * rng.uniform(*slim))
+    rec['crown'] = rng.uniform(15, 40) if height > 320 else 0.0
+    return rec
 
 
 def lot(rng, x, z, w, d_, dist, behind):
@@ -229,3 +262,43 @@ def landmarks():
     for m in out:
         assert 1000.0 <= m['dist'] <= 1550.0 and m['x'] < 0, ('a landmark out of the mid ring', m)
     return out
+
+
+# ---------------------------------------------------------------------------------------------
+# The far islands, painted into the skybox (Stage 6): (kind, azimuth from straight ahead toward
+# the ocean in degrees, distance, radius, height). The approved gray-box islands (Stage 1),
+# with the one behind the pergola moved from azimuth 3 to 7 so it clears the city's shore, and
+# the coast point on the ocean side (Spec section 9). Kinds are backdrop/islands.py's.
+# ---------------------------------------------------------------------------------------------
+
+FAR_ISLANDS = [
+    ('ridge', 7.0, 4800.0, 520.0, 950.0),  # the big peak straight behind the pergola
+    ('ridge', 43.4, 5200.0, 480.0, 850.0),  # the big peak beside the sunset sun
+    ('peak', 65.25, 5620.9, 242.4, 316.7),
+    ('hill', 60.95, 4121.8, 135.4, 304.3),
+    ('hill', 62.97, 4698.1, 230.0, 192.4),
+    ('hill', 61.69, 4227.7, 183.5, 219.7),
+    ('peak', 106.66, 5256.5, 111.8, 295.9),
+    ('peak', 111.33, 4671.6, 197.5, 314.9),
+    ('hill', 126.67, 4588.0, 133.4, 184.1),
+    ('hill', 120.89, 4824.8, 221.0, 267.3),
+    ('hill', 100.0, 3400.0, 420.0, 120.0),  # the coast point: a long low headland with beaches
+]
+
+
+def far_island_at_sea(az, dist, radius):
+    """Whether a far island's whole disc lies at sea: right of the city's bending shore, and
+    beyond the 3D world's reach (so no 3D water or land stands in front of it)."""
+    W = WORLD
+    a = math.radians(az)
+    cx, cz = dist * math.sin(a), -dist * math.cos(a)
+    for k in range(32):
+        t = 2 * math.pi * k / 32
+        x, z = cx + radius * math.cos(t), cz + radius * math.sin(t)
+        if max(abs(x), abs(z)) < W['water_reach'] + 60:  # the 3D water and land are a square
+            return False
+        if z < W['shore_z'] and x < city_edge_x(z) + 40:
+            return False
+        if z >= W['shore_z'] and x < W['shore_x'] + 40:
+            return False
+    return True

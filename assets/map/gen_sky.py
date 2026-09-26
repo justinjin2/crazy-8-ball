@@ -30,14 +30,18 @@ from mathutils import Matrix, Vector
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import city_plan as cp  # noqa: E402
 import map_common as mc  # noqa: E402
+
+sys.path.insert(0, os.path.join(HERE, 'backdrop'))
+import islands as near_islands  # noqa: E402  (the Island generator, reused for the far islands)
 
 SEED = 4026
 SIZE = 1024  # each face; Cycles' samples antialias it (Roblox shows 1024 at most)
 SAMPLES = 48
 
 P = {
-    'radius': 1000.0,  # the dome the clouds sit on (Blender units; only angles matter)
+    'radius': 50000.0,  # the dome the clouds sit on: behind the painted far world (Stage 6)
     'count': 30,
     # (lowest, highest elevation in degrees, share of the clouds): low down, as in the art, whose
     # upper sky is mostly clear (Stage 4 critic: they filled the top half at eye height).
@@ -292,6 +296,7 @@ def build(scene, light):
     c = COLOURS[light]
     sun = Vector(mc.rb(SUN[light])).normalized()
     world(scene, c)
+    build_far(scene, c, sun)
     material = cloud_material(c, sun)
     rng = random.Random(SEED)
     R = P['radius']
@@ -308,6 +313,252 @@ def build(scene, light):
         right = depth.cross(up)
         basis = Matrix((right, depth, up)).transposed().to_4x4()
         obj.matrix_world = Matrix.Translation(d * R) @ basis
+
+
+# ---------------------------------------------------------------------------------------------
+# The far world, painted (Stage 6): at graphics levels 1 to 10 Roblox draws nothing beyond a few
+# hundred studs, so everything past the 3D world's reach lives in the skybox: the far city, the
+# far islands and the coast point, on painted land and sea, faded into the horizon by distance.
+# Rendered from the roof's eye at the true positions (Roblox axes through map_common.rb).
+# ---------------------------------------------------------------------------------------------
+
+EYE = (0.0, 5.0, 0.0)  # the roof's eye, Roblox studs: the sky is painted from here
+FAR = {
+    'ground_from': 500.0,  # the painted land and sea start this far out (the 3D covers the overlap)
+    'ground_to': 100000.0,  # and run to here (0.17 degrees under the horizon)
+    'fade_start': 800.0,  # the aerial fade (toward the horizon colour) starts here...
+    'fade_length': 7000.0,  # ...and closes 63% of the way by this far past it (tuned in Studio)
+    'light_ambient': 0.74,  # a face's light: this, plus light_sun x its sun angle
+    'light_sun': 0.26,
+    'foot_shade': 0.86,  # a wall's colour at its foot, of its colour at its top
+    'spire_every': 37,  # every this-many tall towers wears a spire (the far landmarks)
+}
+FAR_COLOURS = {
+    # The Stage 5 skyline's facade family, flat (a far tower is a few pixels wide).
+    'glass': '#8AA4C2', 'white': '#EDE3D7', 'stone': '#D8C8B6', 'terracotta': '#B8917A',
+    'roof': '#E4E0DC', 'land': '#9BA592', 'sand': '#F2DCC0',
+    'jungle_dark': '#3F6E44', 'jungle': '#4E8550', 'jungle_lit': '#66985A', 'rock': '#8A7F84',
+}
+
+
+class Painted:
+    """Faces with a colour per corner, for one Blender mesh."""
+
+    def __init__(self):
+        self.verts, self.faces, self.cols = [], [], []
+
+    def face(self, pts, cols):
+        base = len(self.verts)
+        self.verts += [mc.rb(p) for p in pts]
+        self.faces.append(tuple(range(base, base + len(pts))))
+        self.cols += [c for c in cols]
+
+    def box(self, x0, z0, x1, z1, y0, y1, side, top):
+        foot = tuple(v * FAR['foot_shade'] for v in side)
+        for a, b in ((( x0, z0), (x0, z1)), ((x0, z1), (x1, z1)), ((x1, z1), (x1, z0)), ((x1, z0), (x0, z0))):
+            self.face([(a[0], y0, a[1]), (b[0], y0, b[1]), (b[0], y1, b[1]), (a[0], y1, a[1])], [foot, foot, side, side])
+        self.face([(x0, y1, z0), (x0, y1, z1), (x1, y1, z1), (x1, y1, z0)], [top] * 4)
+
+    def spire(self, x, z, r, y0, y1, colour):
+        pts = [(x - r, z - r), (x - r, z + r), (x + r, z + r), (x + r, z - r)]
+        for i in range(4):
+            a, b = pts[i], pts[(i + 1) % 4]
+            self.face([(a[0], y0, a[1]), (b[0], y0, b[1]), (x, y1, z)], [colour] * 3)
+
+    def to_object(self, name, material):
+        """A Blender mesh of these faces, its corner colours (sRGB 0..1) as a linear point
+        attribute: every face has its own vertices, so a point colour is a corner colour."""
+        import numpy as np
+        mesh = bpy.data.meshes.new(name)
+        mesh.from_pydata(self.verts, [], self.faces)
+        cols = np.asarray(self.cols, dtype=np.float64)
+        lin = np.where(cols <= 0.04045, cols / 12.92, ((cols + 0.055) / 1.055) ** 2.4)
+        rgba = np.concatenate([lin, np.ones((len(lin), 1))], axis=1).astype(np.float32)
+        attr = mesh.color_attributes.new(name='Col', type='FLOAT_COLOR', domain='POINT')
+        attr.data.foreach_set('color', rgba.ravel())
+        mesh.materials.append(material)
+        obj = bpy.data.objects.new(name, mesh)
+        bpy.context.scene.collection.objects.link(obj)
+        return obj
+
+
+def unit(hex_colour):
+    return tuple(v / 255.0 for v in mc.rgb(hex_colour))
+
+
+def far_material(c, sun, lit=True):
+    """Emission: the corner colour times the light (ambient plus the sun on the face), faded
+    toward the horizon colour with distance from the eye (aerial perspective)."""
+    m = bpy.data.materials.new('Far')
+    m.use_nodes = True
+    t = m.node_tree
+    t.nodes.clear()
+    col = t.nodes.new('ShaderNodeVertexColor')
+    col.layer_name = 'Col'
+    geo = t.nodes.new('ShaderNodeNewGeometry')
+    shade = t.nodes.new('ShaderNodeMix')
+    shade.data_type = 'RGBA'
+    shade.blend_type = 'MULTIPLY'
+    shade.inputs['Factor'].default_value = 1.0
+    t.links.new(col.outputs['Color'], shade.inputs['A'])
+    if lit:
+        dot = t.nodes.new('ShaderNodeVectorMath')
+        dot.operation = 'DOT_PRODUCT'
+        dot.inputs[1].default_value = sun
+        t.links.new(geo.outputs['Normal'], dot.inputs[0])
+        pos = math_node(t, 'MAXIMUM', b=0.0)
+        t.links.new(dot.outputs['Value'], pos.inputs[0])
+        light = t.nodes.new('ShaderNodeMapRange')
+        light.inputs['From Min'].default_value = 0.0
+        light.inputs['From Max'].default_value = 1.0
+        light.inputs['To Min'].default_value = FAR['light_ambient']
+        light.inputs['To Max'].default_value = FAR['light_ambient'] + FAR['light_sun']
+        t.links.new(pos.outputs[0], light.inputs['Value'])
+        comb = t.nodes.new('ShaderNodeCombineColor')
+        for i in range(3):
+            t.links.new(light.outputs['Result'], comb.inputs[i])
+        t.links.new(comb.outputs['Color'], shade.inputs['B'])
+    else:
+        shade.inputs['B'].default_value = (1.0, 1.0, 1.0, 1.0)
+    dist = t.nodes.new('ShaderNodeVectorMath')
+    dist.operation = 'DISTANCE'
+    dist.inputs[1].default_value = mc.rb(EYE)
+    t.links.new(geo.outputs['Position'], dist.inputs[0])
+    past = math_node(t, 'SUBTRACT', b=FAR['fade_start'])
+    t.links.new(dist.outputs['Value'], past.inputs[0])
+    clampd = math_node(t, 'MAXIMUM', b=0.0)
+    t.links.new(past.outputs[0], clampd.inputs[0])
+    scaled = math_node(t, 'DIVIDE', b=-FAR['fade_length'])
+    t.links.new(clampd.outputs[0], scaled.inputs[0])
+    ex = math_node(t, 'EXPONENT')
+    t.links.new(scaled.outputs[0], ex.inputs[0])
+    fade = math_node(t, 'SUBTRACT', a=1.0)
+    t.links.new(ex.outputs[0], fade.inputs[1])
+    mix = t.nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    mix.inputs['B'].default_value = linear(c['horizon'])
+    t.links.new(fade.outputs[0], mix.inputs['Factor'])
+    t.links.new(shade.outputs['Result'], mix.inputs['A'])
+    em = node(t, 'ShaderNodeEmission', Strength=1.0)
+    t.links.new(mix.outputs['Result'], em.inputs['Color'])
+    out = t.nodes.new('ShaderNodeOutputMaterial')
+    t.links.new(em.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def far_ground(painted):
+    """The land (under the city: left of the coast, the bending shore behind) as strips over Z;
+    the sea is the world's own colour below the horizon. At the street's height."""
+    W = cp.WORLD
+    L = FAR['ground_to']
+    y = W['street_y']
+    colour = unit(FAR_COLOURS['land'])
+    edges = [(L, cp.land_x()), (cp.land_z(), cp.land_x()), (cp.land_z(), W['city_back_x']),
+             (W['shore_z'], W['city_back_x'])]
+    z = W['shore_z']
+    while z > -L:
+        z1 = max(-L, z - (150.0 if z > -3000 else 5000.0))
+        edges.append((z1, cp.city_edge_x(z1)))
+        z = z1
+    for (za, xa), (zb, xb) in zip(edges, edges[1:]):
+        if za == zb:
+            continue
+        painted.face([(-L, y, za), (-L, y, zb), (xb, y, zb), (xa, y, za)], [colour] * 4)
+
+
+def far_city(painted):
+    """Every far lot: a podium, a shaft and a crown, in the skyline's facade colours; every
+    few tall towers a spire."""
+    W = cp.WORLD
+    street = W['street_y']
+    styles = [unit(FAR_COLOURS[k]) for k in ('glass', 'white', 'stone', 'terracotta')]
+    roof = unit(FAR_COLOURS['roof'])
+    tall = 0
+    count = 0
+    for b in cp.far_blocks():
+        for k, lot in enumerate(b['lots']):
+            assert lot['dist'] >= W['city_reach'] - 60.0, ('a far lot too near', lot['dist'])
+            style = styles[0] if lot['glass'] else styles[1 + (b['i'] * 7 + b['j'] * 3 + k) % 3]
+            x, z, w, d = lot['x'], lot['z'], lot['w'], lot['d']
+            base = street
+            painted.box(x - w / 2, z - d / 2, x + w / 2, z + d / 2, base, base + lot['podium'], style, roof)
+            count += 1
+            if lot['shaft'] is None:
+                continue
+            sw, sd = lot['shaft']
+            top = street + lot['height'] - lot['crown']
+            painted.box(x - sw / 2, z - sd / 2, x + sw / 2, z + sd / 2, base + lot['podium'], top, style, roof)
+            if lot['crown']:
+                painted.box(x - sw * 0.3, z - sd * 0.3, x + sw * 0.3, z + sd * 0.3, top, top + lot['crown'],
+                            tuple(min(1.0, v * 1.08) for v in style), roof)
+                top += lot['crown']
+            if lot['height'] > 560:
+                tall += 1
+                if tall % FAR['spire_every'] == 0:
+                    painted.spire(x, z, sw * 0.12, top, top + lot['height'] * 0.18, roof)
+    return count
+
+
+def far_islands(painted):
+    """The far islands and the coast point: backdrop/islands.py's Island shapes (grid and
+    shore rings only), coloured by its own material() per vertex, the waterline's sand."""
+    dark, mid, lit = (unit(FAR_COLOURS[k]) for k in ('jungle_dark', 'jungle', 'jungle_lit'))
+    rock, sand = unit(FAR_COLOURS['rock']), unit(FAR_COLOURS['sand'])
+
+    def blend(a, b, t):
+        return tuple(x + (y - x) * t for x, y in zip(a, b))
+
+    for n, (kind, az, dist, radius, height) in enumerate(cp.FAR_ISLANDS):
+        assert cp.far_island_at_sea(az, dist, radius), ('a far island off the sea', kind, az)
+        isle = near_islands.Island(100 + n, 9, kind, az, dist, radius, height)
+        isle.shape()
+        grid = []
+        for row in isle.grid:
+            out = []
+            for p, t, s in row:
+                green, rk = isle.material(t, s)
+                g = blend(dark, mid, green * 2) if green < 0.5 else blend(mid, lit, green * 2 - 1)
+                out.append((p, blend(g, rock, rk)))
+            grid.append(out)
+        m = len(isle.spokes)
+        for k in range(len(grid) - 1):
+            for j in range(m):
+                jn = (j + 1) % m
+                a0, a1, b0, b1 = grid[k][j], grid[k][jn], grid[k + 1][j], grid[k + 1][jn]
+                tris = [(a0, b0, b1)] if k == 0 else [(a0, b0, b1), (a0, b1, a1)]
+                for tri in tris:
+                    pts = [v[0] for v in tri]
+                    cols = [v[1] for v in tri]
+                    # Face up (outward from the summit): flip if the winding points down.
+                    ux, uy, uz = (pts[1][i] - pts[0][i] for i in range(3))
+                    vx, vy, vz = (pts[2][i] - pts[0][i] for i in range(3))
+                    if (uz * vx - ux * vz) < 0:
+                        pts, cols = pts[::-1], cols[::-1]
+                    painted.face(pts, cols)
+        edge = [v[0] for v in grid[-1]]
+        for j in range(m):
+            jn = (j + 1) % m
+            for ring_a, ring_b in ((edge, isle.water), (isle.water, isle.floor)):
+                pts = [ring_a[j], ring_b[j], ring_b[jn], ring_a[jn]]
+                ux, uy, uz = (pts[1][i] - pts[0][i] for i in range(3))
+                vx, vy, vz = (pts[2][i] - pts[0][i] for i in range(3))
+                if (uz * vx - ux * vz) < 0:
+                    pts = pts[::-1]
+                painted.face(pts, [sand] * 4)
+
+
+def build_far(scene, c, sun):
+    lit_mat, flat_mat = far_material(c, sun, lit=True), far_material(c, sun, lit=False)
+    ground = Painted()
+    far_ground(ground)
+    ground.to_object('FarGround', flat_mat)
+    city = Painted()
+    lots = far_city(city)
+    city.to_object('FarCity', lit_mat)
+    isles = Painted()
+    far_islands(isles)
+    isles.to_object('FarIslands', lit_mat)
+    print('far world: %d lots, %d city faces, %d island faces' % (lots, len(city.faces), len(isles.faces)))
 
 
 def render_faces(scene, light):
@@ -330,7 +581,7 @@ def render_faces(scene, light):
     cam_data.sensor_fit = 'HORIZONTAL'
     cam_data.angle = math.pi / 2
     cam_data.clip_start = 1.0
-    cam_data.clip_end = P['radius'] * 4
+    cam_data.clip_end = max(P['radius'], FAR['ground_to']) * 3
     cam = bpy.data.objects.new('SkyCam', cam_data)
     scene.collection.objects.link(cam)
     scene.camera = cam
@@ -338,7 +589,7 @@ def render_faces(scene, light):
     for face, (forward, up) in FACES.items():
         f, u = Vector(forward), Vector(up)
         r = f.cross(u)
-        cam.matrix_world = Matrix((r, u, -f)).transposed().to_4x4()
+        cam.matrix_world = Matrix.Translation(Vector(mc.rb(EYE))) @ Matrix((r, u, -f)).transposed().to_4x4()
         path = os.path.join(HERE, 'textures', 'sky_%s_%s.png' % (light, face))
         scene.render.filepath = path
         bpy.ops.render.render(write_still=True)

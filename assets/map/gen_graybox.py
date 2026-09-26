@@ -246,36 +246,7 @@ def build(g, plan):
     # ---- Backdrop: the city on a street grid (seeded per block), and the islands --------------
     B = 'Backdrop'
     city(g, B)
-    # Islands: steep green cones over the sea (ISLANDS), 3500 to 6000 out like the art's.
-    for k, (az, dist, radius, height) in enumerate(ISLANDS):
-        a = math.radians(az)
-        cx, cz = dist * math.sin(a), -dist * math.cos(a)
-        steps = 12
-        for s in range(steps):
-            r = radius * (1 - s / steps) ** 1.15
-            h = height / steps
-            y = SEA_Y + h * (s + 0.5)
-            g.part(B, 'Island%02d' % k, (h, 2 * r, 2 * r), (cx, y, cz), C['island'] if s else C['sand'],
-                   shape='Cylinder', rot=(0, 0, 90))
-
-
-# The islands as (azimuth from the entrance's view in degrees, distance, radius, height): two big
-# peaks, one straight behind the pergola and one beside the sunset sun (azimuth 36, Spec
-# section 6), and two clusters of smaller ones at azimuths about 70 and 115. Drawn once from the
-# seeded city's random sequence and written in here (Stage 4), so the city can change without
-# moving them: they are the approved gray-box.
-ISLANDS = [
-    (3.0, 4800, 520, 950),
-    (43.4, 5200, 480, 850),
-    (65.25196297055106, 5620.915540308757, 242.38591554029477, 316.68027142460613),
-    (60.95217457129261, 4121.8307746989885, 135.37545713535582, 304.30671451964423),
-    (62.971173246002614, 4698.077431640283, 230.005286804647, 192.4002488805018),
-    (61.6932506704206, 4227.665335533769, 183.45975386031657, 219.691074395954),
-    (106.65813480094175, 5256.492096427421, 111.78037070202618, 295.8957101627758),
-    (111.32626236052815, 4671.617934743987, 197.54349273984235, 314.90769999973145),
-    (126.67188902898008, 4587.965834115703, 133.379328818131, 184.0627491404195),
-    (120.89160651657247, 4824.758051137796, 221.0465659024085, 267.3165549287895),
-]
+    # The islands beyond the 3D world are painted into the skybox (gen_sky.py, Stage 6).
 
 
 def slab(g, folder, name, rect, y0, y1, colour, group=None):
