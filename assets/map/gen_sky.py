@@ -38,15 +38,17 @@ SAMPLES = 48
 
 P = {
     'radius': 1000.0,  # the dome the clouds sit on (Blender units; only angles matter)
-    'count': 20,
-    # (lowest, highest elevation in degrees, share of the clouds): most low down, as in the art.
-    'bands': ((1.0, 8.0, 0.45), (8.0, 18.0, 0.4), (18.0, 32.0, 0.15)),
-    'width_deg': (12.0, 27.0),  # a cloud's angular width: the art's big puffy cumulus
+    'count': 22,
+    # (lowest, highest elevation in degrees, share of the clouds): low down, as in the art, whose
+    # upper sky is mostly clear (Stage 4 critic: they filled the top half at eye height).
+    'bands': ((0.5, 5.0, 0.55), (5.0, 11.0, 0.35), (11.0, 19.0, 0.1)),
+    'width_deg': (6.0, 13.0),  # a cloud's angular width: small puffy cumulus
     'squash': 0.92,  # clouds are a little wider than tall
     'base_flat': 0.3,  # the flat base sits this far (of a base ball's radius) below its centre
-    'horizon_haze': 0.35,  # clouds at the horizon blend this far toward the horizon colour...
+    'horizon_haze': 0.15,  # clouds at the horizon blend this far toward the horizon colour...
     'haze_top_deg': 14.0,  # ...fading out by this elevation
-    'sky_curve': 0.55,  # the gradient's power: under 1 keeps the pale band near the horizon
+    'sky_curve': 0.7,  # the gradient's power (with sky_mid: the pale band over the lowest third)
+    'sky_mid': (0.35, 0.45),  # at this far up the gradient, this much of the way to the top colour
     'sea_band': 0.006,  # below the horizon the sky turns to the far sea over this much of sin(elevation)
     'land_blend': 0.09,  # below it, land toward -X and sea toward +X, blended over this much of the x direction
 }
@@ -56,12 +58,15 @@ SUN = {'day': (0.465, 0.806, 0.367)}
 
 COLOURS = {
     'day': {
-        'top': mc.hexc('sky_top_day'),
-        'horizon': mc.hexc('sky_horizon_day'),
+        # Roblox's tone mapping renders a skybox paler and greyer than painted (#3894FC came out
+        # #56A9DD), so these are painted deeper and more saturated than the art's measured
+        # sky_top_day and sky_horizon_day to render near them (Stage 4 critic).
+        'top': '#1480FF',
+        'horizon': '#A8D6FD',
         # Below the horizon: the Terrain water's rendered blue (between #349BD6 at high quality
         # and #1791D8 at low). At low quality Roblox draws the water only near the camera and
         # the sky shows beyond it, so the two must match; the art's far sea is #3187DE.
-        'sea': '#2F92D8',
+        'sea': '#1E78D7',  # the far sea at the horizon, a step deeper than the near water (the art)
         # Below the horizon toward the city (Roblox -X, where the land runs past the world's
         # edge): the far land's rendered colour (sampled in Studio, Stage 4), so the city's
         # ground meets the sky with no strip of painted sea.
@@ -134,7 +139,8 @@ def world(scene, c):
     t.links.new(sep.outputs['Z'], up.inputs[0])
     curve = math_node(t, 'POWER', b=P['sky_curve'])
     t.links.new(up.outputs[0], curve.inputs[0])
-    sky = ramp(t, [(0.0, c['horizon']), (1.0, c['top'])])
+    mid = '#%02X%02X%02X' % tuple(int(round(v)) for v in mc.mix(mc.rgb(c['horizon']), mc.rgb(c['top']), P['sky_mid'][1]))
+    sky = ramp(t, [(0.0, c['horizon']), (P['sky_mid'][0], mid), (1.0, c['top'])])
     t.links.new(curve.outputs[0], sky.inputs['Fac'])
     below = t.nodes.new('ShaderNodeMapRange')
     below.clamp = True

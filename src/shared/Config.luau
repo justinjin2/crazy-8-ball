@@ -2673,7 +2673,7 @@ Config.Map = {
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
-		Near = { Color = "rbxassetid://108214621634353" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
+		Near = { Color = "rbxassetid://133224464893796" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2828,24 +2828,26 @@ Config.Lighting = {
 		OutdoorAmbient = "#7D6C62", -- warm shade
 		ColorShift_Top = "#FFDEBE", -- the sun's warm tint on lit faces
 		ColorShift_Bottom = "#000000",
+		-- A pale sky-blue haze, so the far distance fades toward the art's pale horizon rather
+		-- than grey (Stage 4 critic). Stage 7 tunes it per light state.
 		Atmosphere = {
 			Density = 0.05,
 			Offset = 0,
-			Haze = 0.2,
+			Haze = 0,
 			Glare = 0,
-			Color = "#D7DEEB",
-			Decay = "#96BEEB",
+			Color = "#C6E5FC",
+			Decay = "#A9D4FA",
 		},
 		-- Lighting.Sky: assets/map/gen_sky.py's day faces (textures/sky_day_*.png, uploaded
 		-- 2026-09-26): the art's gradient and cumulus clouds, the far sea below the horizon.
 		-- MapBuilder.applyLighting updates the place's own Sky (two Skies clash).
 		Sky = {
-			SkyboxBk = "rbxassetid://92350886007315",
-			SkyboxDn = "rbxassetid://128349656936407",
-			SkyboxFt = "rbxassetid://122722650488640",
-			SkyboxLf = "rbxassetid://100893690229120",
-			SkyboxRt = "rbxassetid://134639978712815",
-			SkyboxUp = "rbxassetid://118017971954719",
+			SkyboxBk = "rbxassetid://81273265415512",
+			SkyboxDn = "rbxassetid://82835678068870",
+			SkyboxFt = "rbxassetid://121024599066813",
+			SkyboxLf = "rbxassetid://98216794610026",
+			SkyboxRt = "rbxassetid://85847632181986",
+			SkyboxUp = "rbxassetid://104824050051235",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
 			MoonAngularSize = 11,
 			StarCount = 0, -- no stars by day
@@ -2859,8 +2861,8 @@ Config.Lighting = {
 		Water = {
 			WaterColor = "#1B6FBF",
 			WaterTransparency = 0.85,
-			WaterReflectance = 0.3,
-			WaterWaveSize = 0.1, -- calm (Roblox's 0.15)
+			WaterReflectance = 0.15, -- the sky's white cloud smears in the water gone (Stage 4 critic)
+			WaterWaveSize = 0.06, -- calm, no shimmer (Roblox's 0.15)
 			WaterWaveSpeed = 6,
 		},
 	},

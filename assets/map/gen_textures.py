@@ -558,7 +558,9 @@ def near(rng):
     img[r0:r1] = ao(base(hexmix(mc.hexc('city_facade_day'), '#FFFFFF', 0.25), r0, r1), v, 0.25, 0.25)
     # Road: the art's warm grey asphalt, a light kerb at each edge, white edge lines and a
     # dashed centre line (3 studs of dash every 6 along U).
-    asphalt = hexmix(mc.hexc('road_day'), '#707078', 0.5)
+    # The art's road is warm mauve-grey under its warm light; in the game's day light it read
+    # lavender (Stage 4 critic), so it is mostly desaturated here.
+    asphalt = mc.desaturate(hexmix(mc.hexc('road_day'), '#707078', 0.5), 0.8)
     paint = colour_array('#EDEAE4')
     r0, r1, v, u = strip('n_road')
     col = base(asphalt, r0, r1, 0.02, 0.02)

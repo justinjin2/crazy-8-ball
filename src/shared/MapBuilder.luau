@@ -716,6 +716,16 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 	end
 	local map = mapModel()
 	local N = spec.Near
+	-- The previous run's boats go first: takeImport flattens a model's MeshParts, which would
+	-- pull them out of their folder as strays.
+	local previous = map:FindFirstChild(N.Import)
+	if previous then
+		for _, d in previous:GetDescendants() do
+			if d:IsA("BasePart") and d:GetAttribute("BoatIndex") ~= nil then
+				d:Destroy()
+			end
+		end
+	end
 	local model = takeImport(N.Import, map, spec.Anchors, say)
 	if model == nil then
 		return ("No Model named %s in Workspace. Import assets/map/fbx/Near.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
