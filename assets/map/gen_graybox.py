@@ -78,7 +78,7 @@ C = {
     'island': hexc('island_green'),
     'rock': hexc('island_rock'),
     'sand': hexc('sand'),
-    'street': '#8C8A92',
+    'street': '#8E9298',  # neutral asphalt grey (the Stage 4 critics found the mauve-grey muddy)
 }
 
 
@@ -294,10 +294,11 @@ def slab(g, folder, name, rect, y0, y1, colour, group=None):
 def city(g, folder):
     """The city from city_plan: a sidewalk slab under each block within 1200, from the
     lowered land up to a stud over the street, and each lot a podium, a shaft and, on the tall
-    ones, a crown. The near blocks' rows are tagged 'near' (gen_near.py builds them)."""
+    ones, a crown. The near blocks' rows are tagged 'near' (gen_near.py builds them), the rest
+    'mid' (gen_backdrop.py's skyline builds them, Stage 5)."""
     size = W['city_block']
     for b in cp.city_blocks():
-        group = 'near' if b['near'] else None
+        group = 'near' if b['near'] else 'mid'
         if b['sidewalk']:
             top = STREET_Y + 1.0
             g.part(folder, 'Block', (size, top - LAND_TOP, size), (b['cx'], (top + LAND_TOP) / 2, b['cz']), '#B9B3B7',

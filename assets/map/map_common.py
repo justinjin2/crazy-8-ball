@@ -169,14 +169,38 @@ NEAR_TRIM = {
 }
 FACADE_STYLES = ('n_glass', 'n_stone', 'n_terracotta', 'n_white')
 _ALL_TRIM = dict(TRIM, **PROP_TRIM, **NEAR_TRIM)
+_PAD = {}  # strips with more padding than TRIM_PAD (register_trim)
+
+
+def register_trim(layout, pad=TRIM_PAD):
+    """Add another sheet's strips {name: (first row, last row + 1, studs per image width)} so
+    trim_v, trim_u and every Mesh method can use them (the backdrop builders' sheets register
+    themselves this way, Stage 5). Names must be new; `pad` pixels are kept clear at each
+    strip's edges (the backdrop is seen from far off, where mip levels blend neighbours)."""
+    for name, row in layout.items():
+        assert name not in _ALL_TRIM or _ALL_TRIM[name] == row, ('a strip registered twice', name)
+        assert 0 <= row[0] < row[1] <= TRIM_PX, ('a strip outside the sheet', name, row)
+        _ALL_TRIM[name] = row
+        _PAD[name] = pad
+
+
+def chunk_cell(x, z, size=1200.0):
+    """The grid cell (i, j) of a point, for splitting the backdrop into MeshParts (Stage 5)."""
+    return int(math.floor(x / size)), int(math.floor(z / size))
+
+
+def cell_name(prefix, cell):
+    """A chunk's mesh name: Prefix_i_j, with m for minus (Skyline_m2_0)."""
+    return '%s_%s_%s' % (prefix, *('m%d' % -v if v < 0 else '%d' % v for v in cell))
 
 
 def trim_v(strip, frac):
     """Blender V (0 at the image bottom) for a height fraction 0..1 within a strip (of either
     trim sheet: architecture strips or p_ prop strips)."""
     top, bottom, _ = _ALL_TRIM[strip]
-    lo = 1.0 - (bottom - TRIM_PAD) / TRIM_PX
-    hi = 1.0 - (top + TRIM_PAD) / TRIM_PX
+    pad = _PAD.get(strip, TRIM_PAD)
+    lo = 1.0 - (bottom - pad) / TRIM_PX
+    hi = 1.0 - (top + pad) / TRIM_PX
     return lo + (hi - lo) * max(0.0, min(1.0, frac))
 
 

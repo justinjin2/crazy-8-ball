@@ -286,4 +286,57 @@ return {
 			)
 		end
 	end,
+
+	["every backdrop chunk has a row, a real map set and budgets that hold"] = function()
+		local M = H.require("Config").Map
+		local Bk = M.Backdrop
+		for name, row in Bk.Meshes do
+			H.expect(
+				M.Maps[row.Maps] ~= nil,
+				("Backdrop.Meshes.%s names the map set %s, which Maps lacks"):format(name, row.Maps)
+			)
+			if row.AlphaMode then
+				H.expect(
+					ALPHA_MODES[row.AlphaMode],
+					("Backdrop.Meshes.%s: AlphaMode %s"):format(name, row.AlphaMode)
+				)
+			end
+		end
+		H.expect(M.TriangleCaps[Bk.Import] ~= nil, "the backdrop has a triangle cap")
+		-- Every chunk gen_backdrop.py built (Backdrop.json) takes a row by its prefix.
+		if fs.isFile("assets/map/Backdrop.json") then
+			local serde = require("@lune/serde")
+			local doc = serde.decode("json", fs.readFile("assets/map/Backdrop.json"))
+			local chunks = 0
+			for name in doc.chunks do
+				local prefix = name:match("^(%a+)_") or name
+				H.expect(
+					Bk.Meshes[prefix] ~= nil,
+					("Backdrop.json builds %s, which has no row"):format(name)
+				)
+				chunks += 1
+			end
+			H.expect(
+				doc.total_triangles <= M.TriangleCaps[Bk.Import],
+				("the backdrop's %d triangles are over its cap"):format(doc.total_triangles)
+			)
+			-- With the near world's meshes (Near.json) and its boats, within the backdrop budget.
+			if fs.isFile("assets/map/Near.json") then
+				local near = serde.decode("json", fs.readFile("assets/map/Near.json"))
+				local nearParts = #M.Near.Boat.Paths
+				for name in near.triangles do
+					if name ~= M.Near.Boat.Mesh then
+						nearParts += 1
+					end
+				end
+				H.expect(
+					chunks + nearParts <= M.BackdropMeshPartBudget,
+					("%d backdrop MeshParts is over the budget of %d"):format(
+						chunks + nearParts,
+						M.BackdropMeshPartBudget
+					)
+				)
+			end
+		end
+	end,
 }

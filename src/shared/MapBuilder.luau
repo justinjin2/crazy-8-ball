@@ -25,7 +25,7 @@
 
 local MapBuilder = {}
 
---- Each gray-box part carries its row's group ("arch", "props" or "near") and role ("floor",
+--- Each gray-box part carries its row's group ("arch", "props", "near" or "mid") and role ("floor",
 --- "collide" or "visual") as attributes (gen_graybox.py). Once a group's meshes are imported,
 --- its visual parts go, its floor and collide parts become the tiled floor and invisible
 --- walls in Map.Collision, and the rest of the gray-box stays.
@@ -67,6 +67,7 @@ local function importedGroups(map: Model, spec: any?): { [string]: boolean }
 		arch = map:FindFirstChild(spec.Architecture) ~= nil,
 		props = placed ~= nil and #placed:GetChildren() > 0,
 		near = spec.Near ~= nil and map:FindFirstChild(spec.Near.Import) ~= nil,
+		mid = spec.Backdrop ~= nil and map:FindFirstChild(spec.Backdrop.Import) ~= nil,
 	}
 end
 
@@ -693,6 +694,99 @@ function MapBuilder.prepareProps(spec: any, data: any): string
 	return table.concat(lines, "\n")
 end
 
+-- Dress every MeshPart of an imported model from its Config row (rowFor(name) -> row or nil):
+-- anchored, never colliding, the row's map set and alpha, shadows only where CastShadow,
+-- RenderFidelity Performance (or the row's Fidelity). `expected` lists rows that must each
+-- have a mesh of that exact name (nil when rows match many meshes by prefix). Returns the
+-- triangles, whether every mesh could be counted, and the MeshParts dressed.
+local function dressRows(
+	spec: any,
+	model: Model,
+	rowFor: (string) -> any,
+	expected: { string }?,
+	what: string,
+	say: (string) -> ()
+): (number, boolean, number)
+	local total, counted, parts = 0, true, 0
+	for _, child in model:GetChildren() do
+		if not child:IsA("MeshPart") then
+			continue
+		end
+		local row = rowFor(child.Name)
+		if row == nil then
+			say(("PROBLEM: %s has no row in Config.Map.%s."):format(child.Name, what))
+			continue
+		end
+		if not dress(child, spec, row.Maps, row.AlphaMode, nil, row.CastShadow == true, say) then
+			say(("%s: no image uploaded yet for %s."):format(child.Name, row.Maps))
+		end
+		child.RenderFidelity = (Enum.RenderFidelity :: any)[row.Fidelity or "Performance"]
+		parts += 1
+		local tris = triangleCount(child)
+		if tris then
+			total += tris
+		else
+			counted = false
+		end
+	end
+	local names: { string } = expected or {}
+	for _, name in names do
+		local part = model:FindFirstChild(name)
+		if not (part and part:IsA("MeshPart")) then
+			say(("PROBLEM: the %s has no mesh %s."):format(what, name))
+		end
+	end
+	return total, counted, parts
+end
+
+-- The triangle report for one group against its cap.
+local function triangleReport(
+	total: number,
+	counted: boolean,
+	cap: number,
+	what: string,
+	say: (string) -> ()
+)
+	if counted then
+		say(("%d triangles in the %s (cap %d)."):format(total, what, cap))
+		if total > cap then
+			say(("PROBLEM: %d triangles is over the cap of %d."):format(total, cap))
+		end
+	else
+		say("Could not read every mesh's triangles (EditableMesh).")
+	end
+end
+
+-- The backdrop's MeshParts (the near world's and the mid backdrop's together) against their
+-- budget (the brief: about 30).
+local function backdropBudget(map: Model, spec: any, say: (string) -> ())
+	local count = 0
+	for _, name in { spec.Near.Import, spec.Backdrop.Import } do
+		local model = map:FindFirstChild(name)
+		if model then
+			for _, d in model:GetDescendants() do
+				if d:IsA("MeshPart") then
+					count += 1
+				end
+			end
+		end
+	end
+	say(
+		("%d MeshParts in the near world and the backdrop (budget %d)."):format(
+			count,
+			spec.BackdropMeshPartBudget
+		)
+	)
+	if count > spec.BackdropMeshPartBudget then
+		say(
+			("PROBLEM: %d MeshParts is over the backdrop budget of %d."):format(
+				count,
+				spec.BackdropMeshPartBudget
+			)
+		)
+	end
+end
+
 --- Edit mode only: turn a fresh import of the near world (Config.Map.Near, fbx/Near.fbx) into
 --- the map. Safe to run twice.
 ---  1. Takes the imported model (Workspace, or the map's own from an earlier run), flattens it
@@ -756,31 +850,9 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 	local template = templates:FindFirstChild(B.Mesh)
 
 	-- The meshes.
-	local total, counted, meshParts = 0, true, 0
-	for _, child in model:GetChildren() do
-		if child:IsA("MeshPart") and N.Meshes[child.Name] == nil then
-			say(("PROBLEM: %s is not in Config.Map.Near.Meshes."):format(child.Name))
-		end
-	end
-	for _, name in sortedKeys(N.Meshes) do
-		local row = N.Meshes[name]
-		local part = model:FindFirstChild(name)
-		if not (part and part:IsA("MeshPart")) then
-			say(("PROBLEM: the near world has no mesh %s."):format(name))
-			continue
-		end
-		if not dress(part, spec, row.Maps, row.AlphaMode, nil, row.CastShadow == true, say) then
-			say(("%s: no image uploaded yet for %s."):format(name, row.Maps))
-		end
-		part.RenderFidelity = (Enum.RenderFidelity :: any)[row.Fidelity or "Performance"]
-		meshParts += 1
-		local tris = triangleCount(part)
-		if tris then
-			total += tris
-		else
-			counted = false
-		end
-	end
+	local total, counted = dressRows(spec, model, function(name: string): any
+		return N.Meshes[name]
+	end, sortedKeys(N.Meshes), "Near", say)
 
 	-- The boats.
 	local old = model:FindFirstChild(B.Folder)
@@ -813,7 +885,6 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 			boat:SetAttribute("BoatOffset", offset)
 			boat.CFrame = start * offset
 			boat.Parent = folder
-			meshParts += 1
 		end
 		folder.Parent = model
 	else
@@ -829,26 +900,41 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 	fillWater(data)
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 
-	local cap = spec.TriangleCaps[N.Import]
-	if counted then
-		say(("%d triangles with the boats (cap %d)."):format(total, cap))
-		if total > cap then
-			say(("PROBLEM: %d triangles is over the cap of %d."):format(total, cap))
-		end
-	else
-		say("Could not read every mesh's triangles (EditableMesh).")
+	triangleReport(total, counted, spec.TriangleCaps[N.Import], "near world, with the boats", say)
+	backdropBudget(map, spec, say)
+	return table.concat(lines, "\n")
+end
+
+--- Edit mode only: turn a fresh import of the mid backdrop (Config.Map.Backdrop,
+--- fbx/Backdrop.fbx: the skyline's and the islands' chunks) into Map.<Import>. Safe to run
+--- twice. Places it by its anchor cubes, dresses each chunk by its name's prefix (Skyline_m2_0
+--- takes the Skyline row), makes it Persistent, and removes the gray-box's mid-city rows.
+--- `_data` (the gray-box data) is taken for the same call shape as the others; unused yet.
+--- Returns a report; anything wrong is a line starting "PROBLEM:".
+function MapBuilder.prepareBackdrop(spec: any, _data: any): string
+	if game:GetService("RunService"):IsRunning() then
+		error("MapBuilder.prepareBackdrop runs in Edit mode only; stop the play session first")
 	end
-	say(
-		("%d MeshParts in the near world (backdrop budget %d)."):format(meshParts, N.MeshPartBudget)
-	)
-	if meshParts > N.MeshPartBudget then
-		say(
-			("PROBLEM: %d MeshParts is over the backdrop budget of %d."):format(
-				meshParts,
-				N.MeshPartBudget
-			)
+	local lines: { string } = {}
+	local function say(line: string)
+		table.insert(lines, line)
+	end
+	local map = mapModel()
+	local Bk = spec.Backdrop
+	local model = takeImport(Bk.Import, map, spec.Anchors, say)
+	if model == nil then
+		return ("No Model named %s in Workspace. Import assets/map/fbx/Backdrop.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
+			Bk.Import
 		)
 	end
+	assert(model, "the backdrop's model")
+	local total, counted = dressRows(spec, model, function(name: string): any
+		return Bk.Meshes[name:match("^(%a+)_") or name]
+	end, nil, "Backdrop", say)
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	say(("Removed %d gray-box parts of the mid city."):format(removeGrayBox(map, "mid")))
+	triangleReport(total, counted, spec.TriangleCaps[Bk.Import], "backdrop", say)
+	backdropBudget(map, spec, say)
 	return table.concat(lines, "\n")
 end
 

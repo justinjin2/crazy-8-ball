@@ -15,6 +15,8 @@ gradients that darken toward the art's cool shadow tint, since Roblox has no GI 
     overlays.png       RGBA: the warm glow under a table, a wall-foot shade, a column shade
     props_color.png    the props trim sheet (map_common.PROP_TRIM), soft shade baked in
     plants.png         RGBA: palm frond, fern frond, leafy clump (props/plants_textures.py)
+    skyline_color.png  the mid skyline's sheet (backdrop/skyline_textures.py, Stage 5)
+    islands_color.png  the near islands' sheet (backdrop/islands_textures.py, Stage 5)
     near_color.png     RGBA, the near world's trim sheet (map_common.NEAR_TRIM): facades,
                        roofs, streets, paving, sand, the painted shallows (the only strip with
                        alpha) and the boats
@@ -636,6 +638,21 @@ def near(rng):
     save_rgba(img, alpha, 'near_color.png', bleed=mc.rgb(mc.hexc('water_near')))
 
 
+def write_backdrop_sheet(name):
+    """Draw and save the backdrop module's own sheet (backdrop/<name>_textures.py: IMAGE, SEED,
+    draw(rng, size)): RGB, or RGBA when draw returns four channels."""
+    folder = os.path.join(HERE, 'backdrop')
+    if folder not in sys.path:
+        sys.path.insert(0, folder)
+    module = __import__(name + '_textures')
+    arr = module.draw(np.random.default_rng(module.SEED), MASTER)
+    if arr.shape[2] == 4:
+        save_rgba(arr[..., :3], arr[..., 3] / 255.0, module.IMAGE)
+    else:
+        save_rgb(arr, module.IMAGE)
+    print('wrote', module.IMAGE)
+
+
 def plants(rng):
     """plants.png is drawn by props/plants_textures.py (builder B, Stage 3); skipped until it
     exists."""
@@ -657,6 +674,9 @@ if __name__ == '__main__':
     props(np.random.default_rng(SEED + 3))
     plants(np.random.default_rng(SEED + 4))
     near(np.random.default_rng(SEED + 5))
+    for sheet in ('skyline', 'islands'):
+        if os.path.exists(os.path.join(HERE, 'backdrop', sheet + '_textures.py')):
+            write_backdrop_sheet(sheet)
     for name in sorted(os.listdir(OUT)):
         if name.endswith('.png'):
             im = Image.open(os.path.join(OUT, name))

@@ -176,3 +176,48 @@ def lot(rng, x, z, w, d_, dist, behind):
     rec['shaft'] = (w * rng.uniform(*slim), d_ * rng.uniform(*slim))
     rec['crown'] = rng.uniform(12, 30) if height > 280 else 0.0
     return rec
+
+
+# ---------------------------------------------------------------------------------------------
+# Landmarks: five distinctive towers in the mid ring, ahead and to the left of the spawn (the
+# way the player faces on arrival), each a lot of the city's own (Stage 5)
+# ---------------------------------------------------------------------------------------------
+
+LANDMARKS = [
+    # (kind, bearing in degrees from straight ahead (-Z) toward the city (-X), distance)
+    ('stepped', 22.0, 900.0),  # a tower rising in setbacks to a stepped crown
+    ('spire', 38.0, 1350.0),  # the tallest, a slim glass tower with a spire
+    ('twin', 55.0, 1050.0),  # two towers side by side on one lot
+    ('slant', 70.0, 1400.0),  # a tower with a slanted glass top
+    ('needle', 86.0, 850.0),  # a slim glass needle
+]
+LANDMARK_RISE = (150.0, 240.0)  # studs over the roof (the street is 300 under it)
+
+
+def landmarks():
+    """The five landmark lots: [{'kind', 'block': (i, j), 'lot': index, 'x', 'z', 'dist',
+    'height'}], the nearest mid-ring lot with a shaft to each LANDMARKS spot, never the same
+    lot twice. Heights rise LANDMARK_RISE over the roof, the spire the tallest."""
+    W = WORLD
+    lots = []
+    for b in city_blocks():
+        if b['near']:
+            continue
+        for k, lot in enumerate(b['lots']):
+            if lot['shaft'] is not None and 700.0 <= lot['dist'] <= 1500.0:
+                lots.append(((b['i'], b['j']), k, lot))
+    out, taken = [], set()
+    lo, hi = LANDMARK_RISE
+    for n, (kind, bearing, dist) in enumerate(LANDMARKS):
+        a = math.radians(bearing)
+        tx, tz = -math.sin(a) * dist, -math.cos(a) * dist
+        best = min((l for l in lots if (l[0], l[1]) not in taken),
+                   key=lambda l: math.hypot(l[2]['x'] - tx, l[2]['z'] - tz))
+        taken.add((best[0], best[1]))
+        rise = hi if kind == 'spire' else lo + (hi - lo) * (n % 3) / 3.0
+        out.append({'kind': kind, 'block': best[0], 'lot': best[1], 'x': best[2]['x'], 'z': best[2]['z'],
+                    'dist': best[2]['dist'], 'height': -W['street_y'] + rise})
+    assert len({(m['block'], m['lot']) for m in out}) == len(LANDMARKS), 'landmarks share a lot'
+    for m in out:
+        assert 650.0 <= m['dist'] <= 1550.0 and m['x'] < 0, ('a landmark out of the mid ring', m)
+    return out

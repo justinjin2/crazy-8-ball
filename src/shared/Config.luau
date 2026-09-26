@@ -2674,6 +2674,8 @@ Config.Map = {
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
+		Skyline = { Color = "" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
+		Islands = { Color = "" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2690,8 +2692,9 @@ Config.Map = {
 	-- Most unique map images (the brief: 20, besides the two skyboxes and four far cards).
 	ImageBudget = 20,
 	-- Triangle caps by group (the brief, section 6), checked by prepareImport and prepareProps.
-	TriangleCaps = { Rooftop = 60000, Props = 140000, Near = 50000 },
+	TriangleCaps = { Rooftop = 60000, Props = 140000, Near = 50000, Backdrop = 110000 },
 	MeshPartBudget = 400, -- rooftop and props (the brief)
+	BackdropMeshPartBudget = 30, -- the near world and the mid backdrop together (the brief: about 30)
 	LightBudget = 20, -- PointLights, SpotLights and SurfaceLights in the whole map, Shadows off
 
 	-- The props (assets/map/fbx/Props.fbx, gen_props.py): one template per kind, each up to
@@ -2761,8 +2764,6 @@ Config.Map = {
 		} :: {
 			[string]: { Maps: string, AlphaMode: string?, Fidelity: string?, CastShadow: boolean? },
 		},
-		-- The backdrop's MeshParts (the brief: about 30, for the near world and Stages 5 and 6).
-		MeshPartBudget = 30,
 		-- The sailboats: the Boat mesh kept in ServerStorage.<Templates>, cloned once per path
 		-- into Map.<Import>.<Folder>; each client drifts them along their paths from the
 		-- server's clock (MapMotion.boatPose), so everyone sees the same boats.
@@ -2807,6 +2808,20 @@ Config.Map = {
 				},
 			},
 		},
+	},
+
+	-- The mid backdrop (assets/map/fbx/Backdrop.fbx, gen_backdrop.py; Stage 5): the skyline from
+	-- the near world's edge out to 2,300 studs and the near islands out to 2,500, in chunks
+	-- named Prefix_i_j, each dressed by its prefix's row. Everything further is painted into
+	-- the skybox (Stage 6): at low graphics levels Roblox draws nothing this far. No shadows,
+	-- RenderFidelity Performance (the brief).
+	Backdrop = {
+		Import = "Backdrop", -- the imported model's name in Workspace, then Map.<Import>
+		Meshes = {
+			Skyline = { Maps = "Skyline" },
+			Islands = { Maps = "Islands" },
+			IslandShallows = { Maps = "Near", AlphaMode = "Transparency" },
+		} :: { [string]: { Maps: string, AlphaMode: string? } },
 	},
 }
 
