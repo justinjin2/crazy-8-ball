@@ -41,7 +41,8 @@ instead of sinking into the floor.**
 and each mode has its own look.**
 
 - **Tables:**
-  - Ten 1v1, four 2v2 and two 3v3; the 1v1 tables at the front, the 3v3 at the back.
+  - Ten 1v1, four 2v2 and two 3v3; the 1v1 tables at the front, the 2v2 together in the
+    back-left corner and the 3v3 in the back-right corner.
   - The left two columns have wood frames (the regular lobby's looks: green 1v1, raspberry
     red 2v2, slate charcoal 3v3); the right two have black frames (the pro lobby's: blue 1v1,
     the same red and charcoal). Every combination is on the baseplate for testing.

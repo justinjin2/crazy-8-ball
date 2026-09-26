@@ -377,20 +377,22 @@ def building(g, rng, folder, x, z, w, d_, dist, behind):
 def prop(g, p, i):
     kind = p['kind']
     L = (p['X'], p['Y'], p['Z'], p['yaw'])
-    w, h, d = p['size']
+    # A scaled prop (map_layout: the seating, the crossing planters) is its template's parts,
+    # every size and offset times k; w, h, d are the template's own.
+    k = p.get('scale', 1.0)
+    w, h, d = (v / k for v in p['size'])
     F = 'Props'
     name = '%s_%02d' % (kind, i)
 
     def part(size, pos, colour, **kw):
         kw.setdefault('role', 'collide' if kw.get('collide') else 'visual')
-        g.part(F, name, size, pos, colour, local=L, **kw)
+        g.part(F, name, tuple(v * k for v in size), tuple(v * k for v in pos), colour, local=L, **kw)
 
     if kind == 'table_glow':
         part((w, 0.05, d), (0, 0.03, 0), C['glow'], material='Neon', transparency=0.88)
     elif kind == 'fern_planter':
-        k = p.get('scale', 1.0)
-        part((w, 3.0 * k, d), (0, 1.5 * k, 0), C['stone'], collide=True)
-        part((4.4 * k, 4.4 * k, 4.4 * k), (0, 5.0 * k, 0), C['leaf'], shape='Ball')
+        part((w, 3.0, d), (0, 1.5, 0), C['stone'], collide=True)
+        part((4.4, 4.4, 4.4), (0, 5.0, 0), C['leaf'], shape='Ball')
     elif kind == 'palm_planter':
         part((w, 3.2, d), (0, 1.6, 0), C['stone'], collide=True)
         part((1.1, h - 7, 1.1), (0, 3.2 + (h - 7) / 2, 0), C['trunk'])

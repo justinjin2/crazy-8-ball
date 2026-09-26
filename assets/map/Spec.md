@@ -17,14 +17,17 @@ Change those scripts, never the numbers here by hand, then update this file.
   an invisible wall.
 - **Table looks follow the table's mode**, with wood frames (the regular lobby): green 1v1,
   raspberry 2v2 (`RedWood`), charcoal 3v3 (`CharcoalWood`). This replaces the brief's "all
-  green". Ten 1v1 tables sit at the front, four 2v2 and two 3v3 toward the back, as on the
-  baseplate.
+  green". Ten 1v1 tables sit at the front. The four 2v2 stand together (2 x 2) in the back
+  city corner and the two 3v3 in the back ocean corner (designer, Checkpoint B).
 - **Queue pads sit in front of each table:** centred on the long side that faces the
   entrance. They are rectangles (the other session's change, 8f66025), sized by mode. The
   grid is computed from the pad size in Config, so it re-spaces itself if that changes.
 - **Prop scale is split.**
   - Spacing and zones follow the table's scale (the art's layout).
-  - Anything a player sits on, climbs or leans on is at player scale.
+  - What a player sits on is sized for a Roblox character, not a real person (designer,
+    Checkpoint B). The sofas, the umbrella sets with their loungers, the piano and bench and
+    the coffee table are built at player scale and placed at 1.6x; the fire pit at 1.3x.
+  - Anything a player climbs or leans on (steps, railing) is at player scale.
   - Big decor (planters, palms, umbrellas, the pergola) is about 1.4x player scale, so it
     holds its own beside the 18-stud tables.
 - **No snack counter for now** (designer, Checkpoint A): the **grand piano** is the
@@ -209,7 +212,7 @@ top-down, and one big item per table row along each railing.
 
 | Prop | Count | Where |
 |---|---:|---|
-| Fern planter | 14 | 6 at the aisle crossings (none in the middle row gap), scaled 1.3 to the art's chunkier boxes; 4 on the city railing, one per row; 4 on the lounge edge, between the pergola's front columns |
+| Fern planter | 12 | 4 at the side aisles' crossings (none in the middle row gap, and the centre aisle from the spawn to the lounge is clear; designer, Checkpoint B), scaled 1.3 to the art's chunkier boxes; 4 on the city railing, one per row; 4 on the lounge edge, between the pergola's front columns |
 | Fern trough (a long low planter) | 11 | 5 along the city railing between the big planters, so the edge reads as one green line (the top-down art); 4 along the front parapet; 2 on the back railing behind the U sectionals (the lounge-back art) |
 | Palm planter | 18 | in clusters, not an even ring, at mixed heights (20 to 32): a pair beside the stair; a pair in each front corner; three in each back corner; a pair at each end of the pergola, just off the platform; 2 on the ocean railing. Each stands 7 in from the railing so its crown stays over the roof |
 | Lantern | 12 | 5 per side at the row gaps and the front and back walkways, standing just in front of the planted edge (5 in from the railing); 2 flanking the lounge flight |
@@ -227,6 +230,8 @@ top-down, and one big item per table row along each railing.
 ## 4. Prop sizes
 
 Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor is about 1.4 x P.
+The seating is built to these sizes and placed at 1.6x (the fire pit 1.3x) for a Roblox
+character (Checkpoint B); the placed size is given after the arrow.
 
 | Prop | Size | Detail |
 |---|---|---|
@@ -234,12 +239,12 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Palm planter | 4.8 x 4.8 box, 3.2 high | palm 20 to 32 tall (per palm, so clusters step), trunk 1.7 thick at the foot, 22 fronds, crown about 18 across |
 | Lantern | 1.5 x 1.5 x 4.0 | P 1.0 m lantern x 1.4 |
 | Tall lantern | 2.2 x 2.2 x 6.5 | |
-| Umbrella set | 12 canopy, rim at 9, top at 12 | two loungers 5.6 x 2.0, seat 1.0, back to 2.6 (P) |
-| Sofa group | 12 x 6 footprint | sofa 11 x 3, seat 1.3, back 2.6 (P); ottoman 2.9 square, 1.1 high |
-| U sectional | 20 x 9 x 2.6 | seat 1.3, back 2.3 to 2.6 (P); cushions on the back |
-| Coffee table | 2.8 round x 1.3 | P |
-| Fire pit | 4.5 round x 1.4 | flame about 1.4 above the rim |
-| Grand piano | 4.4 x 5.8 x 3.0 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 |
+| Umbrella set | 12 canopy, rim at 9, top at 12 -> 19.2 canopy, top at 19.2 | two loungers 5.6 x 2.0, seat 1.0, back to 2.6 (P) -> 9.0 x 3.2, seat 1.6 |
+| Sofa group | 12 x 6 footprint -> 19.2 x 9.6 | sofa 11 x 3, seat 1.3, back 2.6 (P) -> seat 2.1, back 4.2; ottoman 2.9 square, 1.1 high |
+| U sectional | 20 x 9 x 2.6 -> 32 x 14.4 x 4.2 | seat 1.3, back 2.3 to 2.6 (P) -> seat 2.1; cushions on the back |
+| Coffee table | 2.8 round x 1.3 -> 4.5 round x 2.1 | P |
+| Fire pit | 4.5 round x 1.4 -> 5.9 round x 1.8 (1.3x) | flame about 1.4 above the rim |
+| Grand piano | 4.4 x 5.8 x 3.0 -> 7.0 x 9.3 x 4.8 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 -> 3.8 x 1.6 x 2.2 |
 | Globe light | 2.25 round (the template scaled 1.5) | its centre 5.6 under the fascia's underside |
 | Pergola | 115 x 24, 22 clear | 4.5-square plain cream columns, 4 per row; a 6.5-deep fascia with a shaded underside; wood slats every 2; vine clumps at the column heads; bougainvillea on the right end column |
 | Fern trough | 16 x 3, 3.2 high (as tall as the other planters) | ferns above to about 6.5 |
@@ -399,8 +404,8 @@ stages that build the real thing:
     each leaf and palm stop 18 degrees of hue toward green and scale its brightness by 0.88.
     Its upload (rbxassetid://130898709634640) never loaded in Studio (still processing or
     held by moderation), so the old atlas stays. Retry at Stage 4.
-  - **Sofas.** Round 3 wanted taller backs and a walnut plinth. The backs are at player scale
-    (2.3 to 2.6); the designer decides.
+  - **Sofas.** Round 3 wanted taller backs and a walnut plinth. The designer had all the
+    seating scaled up 1.6x instead (Checkpoint B).
   - **Thinning** is the designer's call at Checkpoint B:
     - fewer back-corner palms;
     - ferns instead of palms beside the stair;

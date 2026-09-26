@@ -408,6 +408,17 @@ One line per stage: date, stage, result, commit.
     right way.
   - Critic: layout 5, 6, 6; palette 4, 4, 5; calm 6 each round. Lighting and backdrop wait
     for Stages 4 to 7. The notes carried forward are in Spec section 9.
-  - Commits 0425b88, 816f52d, 073496f, 9930514, and round three's.
+  - Commits 0425b88, 816f52d, 073496f, 9930514, 0596fde.
   - Waiting at CHECKPOINT B.
+- 2026-09-26: CHECKPOINT B approved by the designer with changes.
+  - The seating is sized for a Roblox character: the sofas, umbrella sets and loungers, the
+    piano and bench and the coffee table are placed at 1.6x, the fire pit at 1.3x. The
+    lounger's sit spot moved back against its backrest.
+  - The centre aisle from the spawn to the lounge is clear (its two planters are gone).
+  - The four 2v2 tables stand together in the back-left corner and the two 3v3 in the
+    back-right; the third row's right two are 1v1.
+  - In Studio: 91 props, 60,959 triangles, 171 MeshParts, 32 seats. Play: every pad and
+    seating area has a path from the spawn, 7 of 7 edge pushes pass, and every seat type
+    sits and stands facing the right way.
+  - Next: Stage 4 (the near surroundings, the ocean and the day sky).
 

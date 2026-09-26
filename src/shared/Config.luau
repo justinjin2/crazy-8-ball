@@ -541,8 +541,9 @@ Config.Hub = {
 	-- front of each (Placement.queuePad). 36 studs apart across (the match fence's 26 plus a
 	-- 10 stud aisle) and 31.5 deep (the match fence's 23.5 plus an 8 stud aisle), so every row
 	-- is evenly spaced. Every table plays one mode, `teamSize` a side (designer,
-	-- 2026-09-26): ten 1v1 at the front, four 2v2, and the two 3v3 at the back centre; their
-	-- looks are in TableModel.LookByTable. The positions come from assets/map/map_layout.py,
+	-- 2026-09-26): ten 1v1 at the front, the four 2v2 together (2 x 2) in the back city corner
+	-- and the two 3v3 in the back ocean corner (designer, Checkpoint B); their looks are in
+	-- TableModel.LookByTable. The positions come from assets/map/map_layout.py,
 	-- and tests/map_layout_test.luau keeps the two equal. Y is the FLOOR height the table
 	-- stands on, not the cloth: Placement.toWorld adds Table.SurfaceHeightStuds (2.9) on top.
 	-- Yaw is degrees about world +Y; at 0 the length runs along world X, the head rail at -X.
@@ -555,14 +556,14 @@ Config.Hub = {
 		{ id = 6, X = -18, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
 		{ id = 7, X = 18, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
 		{ id = 8, X = 54, Y = 0, Z = 15.75, YawDegrees = 0, teamSize = 1 },
-		{ id = 9, X = -54, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 9, X = -54, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 2 },
 		{ id = 10, X = -18, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 2 },
-		{ id = 11, X = 18, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 2 },
+		{ id = 11, X = 18, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 1 },
 		{ id = 12, X = 54, Y = 0, Z = -15.75, YawDegrees = 0, teamSize = 1 },
 		{ id = 13, X = -54, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 2 },
-		{ id = 14, X = -18, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 3 },
+		{ id = 14, X = -18, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 2 },
 		{ id = 15, X = 18, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 3 },
-		{ id = 16, X = 54, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 2 },
+		{ id = 16, X = 54, Y = 0, Z = -47.25, YawDegrees = 0, teamSize = 3 },
 	},
 
 	-- How many tables to build, taken from the front of Tables.
@@ -754,12 +755,12 @@ Config.TableModel = {
 	-- and the team tables their mode's wood look; see Hub.Tables for the modes. The
 	-- black-frame looks stay for the pro lobby.
 	LookByTable = {
+		[9] = "RedWood",
 		[10] = "RedWood",
-		[11] = "RedWood",
 		[13] = "RedWood",
-		[14] = "CharcoalWood",
+		[14] = "RedWood",
 		[15] = "CharcoalWood",
-		[16] = "RedWood",
+		[16] = "CharcoalWood",
 	} :: { [number]: string },
 	-- Most triangles over all eight meshes (Roblox caps each mesh at 20,000), and most unique
 	-- 1024 images over every look (ARCHITECTURE section 7).

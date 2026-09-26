@@ -12,7 +12,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | 16 tables (existing, 8,134 each) | 130,000 | 130,144 | 130,144 | existing |
 | Balls, cues, effects (existing) | 20,000 | | | existing |
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
-| Props | 140,000 | 62,739 | 62,739 | 3 |
+| Props | 140,000 | 60,959 | 60,959 | 3 |
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | | | 4 |
 | Mid backdrop: skyline and islands | 110,000 | | | 5 |
 | Far cards | 2,000 | | | 6 |
@@ -24,7 +24,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Prop | Cap | Count in plan | Built | Total |
 |---|---:|---:|---:|---:|
 | Palm (trunk 600 or less, fronds as alpha cards) | 2,500 | 18 | 1,092 (trunk 236) | 19,656 |
-| Fern planter | 1,200 | 14 (the 6 at the crossings scaled 1.3) | 890 | 12,460 |
+| Fern planter | 1,200 | 12 (the 4 at the crossings scaled 1.3) | 890 | 10,680 |
 | Square planter box | 300 | 18 palm boxes (the fern and trough boxes are in their kinds) | 258 | 4,644 |
 | Sectional couch | 3,000 | 2 U sectionals, 3 sofa groups | 1,480 / 794 | 5,342 |
 | Coffee table | 500 | 1 | 278 | 278 |
@@ -37,7 +37,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Globe light | 150 | 6 | 144 | 864 |
 | Pergola | 8,000 | 1 (counted in architecture) | about 460 with its slats (plain columns) | 460 |
 
-Built (Stage 3), the props come to 62,739 triangles over every placement, inside the props
+Built (Stage 3), the props come to 60,959 triangles over every placement, inside the props
 group's 140,000. Studio's EditableMesh count matches Blender's.
 
 ## Other limits
@@ -47,7 +47,7 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 | Unique map textures (1024 exports) | 20 | 7 (arch, floor colour, floor normal, foliage, overlays, props, plants) |
 | Skyboxes | 2 (six faces each) | 0 |
 | Far-card images | 4 | 0 |
-| MeshParts, rooftop and props | 400 | 175 (architecture 10, props 165) |
+| MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
 | MeshParts, backdrop | about 30 | 0 |
 | PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 3 (the tall lanterns, the fire pit) |
 

@@ -449,7 +449,9 @@ def build_umbrella_set():
     _umbrella_frame(m, R)
     for lx in (-LOUNGER_X, LOUNGER_X):
         _lounger(m, lx)
-    seats = [(-LOUNGER_X, 1.0, 1.0, 0.0), (LOUNGER_X, 1.0, 1.0, 0.0)]
+    # Against the backrest's foot (its hinge at z -0.8), between the armrests: the sit pose is
+    # upright, so a spot further forward left a gap behind the player (Checkpoint B).
+    seats = [(-LOUNGER_X, 1.0, -0.35, 0.0), (LOUNGER_X, 1.0, -0.35, 0.0)]
     return {'Opaque': m, 'seats': seats, 'lights': []}
 
 

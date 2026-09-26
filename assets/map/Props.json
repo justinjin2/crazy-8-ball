@@ -41,7 +41,7 @@
    ],
    "layout_kind": "fern_planter",
    "lights": [],
-   "placements": 14,
+   "placements": 12,
    "seats": [],
    "triangles": 890
   },
@@ -336,7 +336,7 @@
    ],
    "layout_kind": "planter_bed",
    "lights": [],
-   "placements": 9,
+   "placements": 11,
    "seats": [],
    "triangles": 1122
   },
@@ -404,13 +404,13 @@
     [
      -1.8,
      1.0,
-     1.0,
+     -0.35,
      0.0
     ],
     [
      1.8,
      1.0,
-     1.0,
+     -0.35,
      0.0
     ]
    ],
@@ -419,5 +419,5 @@
  },
  "palm_height": 22.8,
  "planter_box_height": 3.2,
- "total_triangles": 60495
+ "total_triangles": 60959
 }

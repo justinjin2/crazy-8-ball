@@ -42,12 +42,13 @@ GAME = {
 
 # Every table plays one mode (team size a side) and wears that mode's regular-lobby look
 # (wood frames; designer, 2026-09-26). Rows front to back, columns city to ocean: the 1v1
-# tables at the front, the 3v3 pair at the back centre, as on the baseplate.
+# tables at the front, the four 2v2 together in the back city corner (2 x 2), the 3v3 pair in
+# the back ocean corner (designer, Checkpoint B).
 MODES = [
     [1, 1, 1, 1],
     [1, 1, 1, 1],
-    [1, 2, 2, 1],
-    [2, 3, 3, 2],
+    [2, 2, 1, 1],
+    [2, 2, 3, 3],
 ]
 LOOK_BY_MODE = {1: 'Green', 2: 'RedWood', 3: 'CharcoalWood'}
 
@@ -102,6 +103,11 @@ P = {
     'globe_scale': 1.5,  # the GlobeLight template (globe 1.5, cord to 3.75 over its centre) scaled so
     'globe_hang': 5.6,  # ...its centre hangs this far under the fascia's underside
     'crossing_planter_scale': 1.3,  # the aisle-crossing fern planters, chunkier as in the art (Stage 3 critic 2)
+    # What a player sits on is sized for a Roblox character, not a real person: the sofas, the
+    # umbrella sets' loungers, the piano and its bench and the coffee table, all scaled up
+    # (designer, Checkpoint B). The fire pit less, so it still fits inside its U.
+    'seating_scale': 1.6,
+    'fire_pit_scale': 1.3,
     'mat_size': (16.0, 0.2, 6.0),  # the entrance mat (the SpawnLocation), between the tall lanterns
 }
 
@@ -123,6 +129,10 @@ PROP_SIZE = {
     'planter_bed': (16.0, 3.0, 6.5),  # a long trough of ferns along a parapet: 3.2 high, ferns above
     'table_glow': (26.0, 18.0, 0.02),  # the table (18.24 x 10.24) and a soft warm pool about 3.5 round it
 }
+
+# Where a prop's solid part is smaller than its size: an umbrella set's canopy is overhead, so
+# only its loungers and pole block walking (width, depth at scale 1, round the prop's centre).
+SOLID_SIZE = {'umbrella_set': (6.0, 7.0)}
 
 # Things that block walking (their footprint is solid). Glow planes and lights do not.
 SOLID = {'fern_planter', 'palm_planter', 'planter_bed', 'lantern', 'lantern_tall', 'umbrella_set', 'side_couch',
@@ -282,6 +292,12 @@ def build():
         item.update(extra)
         props.append(item)
 
+    def sized(kind, k):
+        """A kind's footprint (width, depth, height) at scale k."""
+        return tuple(v * k for v in PROP_SIZE[kind])
+
+    S = P['seating_scale']
+
     def column(x, z, y, height, size, part_of):
         props.append({'kind': 'column', 'X': round(x, 4), 'Y': y, 'Z': round(z, 4), 'yaw': 0.0,
                       'size': [size, height, size], 'part_of': part_of})
@@ -290,11 +306,12 @@ def build():
     for t in tables:
         prop('table_glow', t['X'], t['Z'], t['yaw'], 0.01)
 
-    # Fern planters at the aisle crossings, as in the top-down art: all three between rows 1
-    # and 2 and between rows 3 and 4, none between rows 2 and 3.
+    # Fern planters at the aisle crossings, as in the top-down art: the side aisles' crossings
+    # between rows 1 and 2 and between rows 3 and 4. None between rows 2 and 3, and none in the
+    # centre aisle, the clear walk from the spawn to the lounge (designer, Checkpoint B).
     for k, (x, z) in enumerate(crossings):
-        row, _ = divmod(k, 3)
-        if row != 1:
+        row, col = divmod(k, 3)
+        if row != 1 and col != 1:
             prop('fern_planter', x, z, scale=P['crossing_planter_scale'])
 
     # Side zones: a regular rhythm along each railing. Big items line up with the table rows,
@@ -324,9 +341,10 @@ def build():
     for k, z in enumerate(row_z):
         if k in (0, 2):
             # Loungers face the sea (the set's front, +Z, turned to +X).
-            prop('umbrella_set', rail_x - PROP_SIZE['umbrella_set'][0] / 2 - 1.0, z, 90.0)
+            # The loungers' feet 3 in from the railing; the canopy overhangs the walkway.
+            prop('umbrella_set', rail_x - SOLID_SIZE['umbrella_set'][1] * S / 2 - 3.0, z, 90.0, scale=S)
         else:
-            prop('side_couch', rail_x - PROP_SIZE['side_couch'][1] / 2 - 0.4, z, -90.0)
+            prop('side_couch', rail_x - sized('side_couch', S)[1] / 2 - 0.4, z, -90.0, scale=S)
     inset = P['palm_inset']
     for (a, b), height in zip(((row_z[0], row_z[1]), (row_z[2], row_z[3])), (26.0, 22.0)):
         prop('palm_planter', rail_x - inset, (a + b) / 2, -90.0, height=height)
@@ -357,18 +375,18 @@ def build():
     # line the platform edge; palms at the pergola's ends.
     y = platform_y
     pz0, pz1 = zones['pergola'][1], zones['pergola'][3]
-    piano_d = PROP_SIZE['piano'][1]
-    bench_d = PROP_SIZE['piano_bench'][1]
+    piano_d = sized('piano', S)[1]
+    bench_d = sized('piano_bench', S)[1]
     bench_z = pz0 + P['pergola_column'] + 1.0 + bench_d / 2
-    piano_z = bench_z + bench_d / 2 + 0.6 + piano_d / 2
-    prop('piano_bench', 0.0, bench_z, 0.0, y)
-    prop('piano', 0.0, piano_z, 180.0, y)  # the keyboard (the prop's +Z side) faces the bench
+    piano_z = bench_z + bench_d / 2 + 0.6 * S + piano_d / 2
+    prop('piano_bench', 0.0, bench_z, 0.0, y, scale=S)
+    prop('piano', 0.0, piano_z, 180.0, y, scale=S)  # the keyboard (the prop's +Z side) faces the bench
     group_z = (pz0 + pz1) / 2 + 1.0
     bay_w = 2 * P['pergola_half_width'] / P['pergola_bays']
-    prop('lounge_couch', -bay_w, group_z, 0.0, y)  # in the bays either side of the piano's
-    prop('coffee_table', -bay_w, group_z + 1.0, 0.0, y)
-    prop('lounge_couch', bay_w, group_z, 0.0, y)
-    prop('fire_pit', bay_w, group_z + 1.0, 0.0, y)
+    prop('lounge_couch', -bay_w, group_z, 0.0, y, scale=S)  # in the bays either side of the piano's
+    prop('coffee_table', -bay_w, group_z + 1.0 * S, 0.0, y, scale=S)
+    prop('lounge_couch', bay_w, group_z, 0.0, y, scale=S)
+    prop('fire_pit', bay_w, group_z + 1.0 * S, 0.0, y, scale=P['fire_pit_scale'])
     for side in (-1, 1):
         # A fern trough on the back railing behind each U couch: the lounge-back art's planted
         # edge behind the sofa (Stage 3 critic 2).
@@ -385,8 +403,9 @@ def build():
     # the top-down art, with palms in the far corners.
     corner_x = (lw + rail_x) / 2
     corner_z = (back_edge + lounge_front) / 2
-    prop('side_couch', -corner_x, corner_z - 4.0, 0.0)
-    prop('umbrella_set', corner_x, corner_z - 2.0, 180.0)
+    # In front of the corner palms, clear of them and of the pergola-end palms.
+    prop('side_couch', -corner_x, corner_z + 2.3, 0.0, scale=S)
+    prop('umbrella_set', corner_x - 2.0, corner_z + 2.25, 180.0, scale=S)
     for side in (-1, 1):
         # Three palms in each back corner at three heights.
         prop('palm_planter', side * (rail_x - inset), back_edge + inset, height=32.0)
@@ -458,6 +477,9 @@ def cameras(spawn, zones):
 
 def footprint(p):
     w, _, d = p['size']
+    if p['kind'] in SOLID_SIZE:
+        k = p.get('scale', 1.0)
+        w, d = (v * k for v in SOLID_SIZE[p['kind']])
     yaw = math.radians(p['yaw'])
     c, s = abs(math.cos(yaw)), abs(math.sin(yaw))
     hx = (w * c + d * s) / 2

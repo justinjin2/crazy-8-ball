@@ -159,7 +159,8 @@ Every feature is checked against these. If it serves none, it waits.
 - Players spawn in the hub and walk to any free table. There are no menus to find a game.
 - **Every table plays one mode** (changed 2026-09-26; for a day any table played any mode from
   one long queue box). Of sixteen tables, **ten are 1v1, four 2v2 and two 3v3**, the 1v1
-  tables nearest the spawn and the 3v3 at the back.
+  tables nearest the spawn. The four 2v2 stand together (2 x 2) in the back-left corner and
+  the two 3v3 in the back-right corner, seen from the spawn (changed 2026-09-26).
 - **Joining: step onto the table's queue pad.** Each table has one glowing rectangular pad in
   front of it, lying along the long side that faces the entrance (changed 2026-09-26 for the
   rooftop map; a round pad was tried the same day and dropped), longer for bigger modes,

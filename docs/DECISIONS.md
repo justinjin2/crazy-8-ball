@@ -1171,3 +1171,12 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   ball, the tier's own plates, feathers, shards, fins, laurel or wings) instead of one more
   feather per tier. Kept from the first round: stars and gems for divisions, growing crowns
   from Expert, no banner, Reyes without a signature, the ball in the same place on every badge.
+- 2026-09-26: Checkpoint B (the rooftop's props) approved with changes by the designer.
+  - Seating is sized for a Roblox character, not a real person. The sofas, the umbrella sets
+    with their loungers, the piano and its bench and the coffee table are placed at 1.6x;
+    the fire pit at 1.3x, so it still fits inside its U.
+  - The centre aisle from the spawn to the lounge is clear: its two crossing planters are
+    gone.
+  - The four 2v2 tables stand together (2 x 2) in the back-left corner and the two 3v3 in
+    the back-right corner, seen from the spawn. The third row's right two tables are now
+    1v1, so there are still ten 1v1.
