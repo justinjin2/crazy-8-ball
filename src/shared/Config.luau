@@ -2676,6 +2676,10 @@ Config.Map = {
 		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
 		Skyline = { Color = "rbxassetid://137381376954012" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
 		Islands = { Color = "rbxassetid://102751887345193" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
+		-- shallows_color.png: near_color's shallows strip alone, every other strip clear (the same
+		-- layout, so the meshes keep their UVs). On near_color the far, low-angle mip levels mixed
+		-- the opaque strips round the shallows in, and the rings showed a hard edge.
+		Shallows = { Color = "rbxassetid://104750795818920" },
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2758,7 +2762,7 @@ Config.Map = {
 			Buildings_Left = { Maps = "Near" },
 			Buildings_Front = { Maps = "Near" },
 			Coast = { Maps = "Near" },
-			Shallows = { Maps = "Near", AlphaMode = "Transparency" },
+			Shallows = { Maps = "Shallows", AlphaMode = "Transparency" },
 			Palms = { Maps = "Plants", AlphaMode = "Transparency" },
 			Trees = { Maps = "Plants", AlphaMode = "Transparency" },
 		} :: {
@@ -2820,7 +2824,7 @@ Config.Map = {
 		Meshes = {
 			Skyline = { Maps = "Skyline" },
 			Islands = { Maps = "Islands" },
-			IslandShallows = { Maps = "Near", AlphaMode = "Transparency" },
+			IslandShallows = { Maps = "Shallows", AlphaMode = "Transparency" },
 		} :: { [string]: { Maps: string, AlphaMode: string? } },
 	},
 }

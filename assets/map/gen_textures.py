@@ -17,6 +17,7 @@ gradients that darken toward the art's cool shadow tint, since Roblox has no GI 
     plants.png         RGBA: palm frond, fern frond, leafy clump (props/plants_textures.py)
     skyline_color.png  the mid skyline's sheet (backdrop/skyline_textures.py, Stage 5)
     islands_color.png  the near islands' sheet (backdrop/islands_textures.py, Stage 5)
+    shallows_color.png RGBA, near_color's shallows strip alone (the rest clear) for the shallows meshes
     near_color.png     RGBA, the near world's trim sheet (map_common.NEAR_TRIM): facades,
                        roofs, streets, paving, sand, the painted shallows (the only strip with
                        alpha) and the boats
@@ -636,6 +637,13 @@ def near(rng):
     r0, r1, v, u = strip('n_wood')
     img[r0:r1] = base(mc.hexc('palm_trunk'), r0, r1, 0.03, 0.02)
     save_rgba(img, alpha, 'near_color.png', bleed=mc.rgb(mc.hexc('water_near')))
+    # The shallows' own copy: the same layout (so the meshes keep their UVs), every other strip
+    # clear. Seen far off at a low angle, Roblox samples a blurred mip level that mixed the
+    # opaque strips round the shallows into it, giving the rings a hard edge (Stage 5).
+    top, bottom, _ = mc.NEAR_TRIM['n_shallows']
+    keep = np.zeros(n, dtype=bool)
+    keep[int(top * s):int(bottom * s)] = True
+    save_rgba(img, np.where(keep[:, None], alpha, 0.0), 'shallows_color.png', bleed=mc.rgb(mc.hexc('water_near')))
 
 
 def write_backdrop_sheet(name):
