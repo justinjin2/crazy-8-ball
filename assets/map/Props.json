@@ -1,0 +1,423 @@
+{
+ "kinds": {
+  "CoffeeTable": {
+   "bounds": [
+    [
+     -1.4,
+     0.0,
+     -1.4
+    ],
+    [
+     1.4,
+     1.3,
+     1.4
+    ]
+   ],
+   "groups": [
+    "Opaque"
+   ],
+   "layout_kind": "coffee_table",
+   "lights": [],
+   "placements": 1,
+   "seats": [],
+   "triangles": 278
+  },
+  "FernPlanter": {
+   "bounds": [
+    [
+     -2.532774321089727,
+     0.0,
+     -2.4987298833791742
+    ],
+    [
+     2.435184751586385,
+     6.917589459593254,
+     2.5708858012132856
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Foliage"
+   ],
+   "layout_kind": "fern_planter",
+   "lights": [],
+   "placements": 14,
+   "seats": [],
+   "triangles": 890
+  },
+  "FirePit": {
+   "bounds": [
+    [
+     -2.27,
+     0.0,
+     -2.2355135993377124
+    ],
+    [
+     2.27,
+     2.8,
+     2.2355135993377124
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Glow"
+   ],
+   "layout_kind": "fire_pit",
+   "lights": [
+    [
+     0.0,
+     2.2,
+     0.0
+    ]
+   ],
+   "placements": 1,
+   "seats": [],
+   "triangles": 1061
+  },
+  "GlobeLight": {
+   "bounds": [
+    [
+     -0.75,
+     -0.75,
+     -0.75
+    ],
+    [
+     0.75,
+     3.75,
+     0.75
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Glow"
+   ],
+   "layout_kind": "globe_light",
+   "lights": [],
+   "placements": 6,
+   "seats": [],
+   "triangles": 144
+  },
+  "Lantern": {
+   "bounds": [
+    [
+     -0.75,
+     0.0,
+     -0.75
+    ],
+    [
+     0.75,
+     4.0,
+     0.75
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Glow"
+   ],
+   "layout_kind": "lantern",
+   "lights": [],
+   "placements": 12,
+   "seats": [],
+   "triangles": 202
+  },
+  "LanternTall": {
+   "bounds": [
+    [
+     -1.1,
+     0.0,
+     -1.1
+    ],
+    [
+     1.1,
+     6.5,
+     1.1
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Glow"
+   ],
+   "layout_kind": "lantern_tall",
+   "lights": [
+    [
+     0.0,
+     4.0,
+     0.0
+    ]
+   ],
+   "placements": 2,
+   "seats": [],
+   "triangles": 202
+  },
+  "LoungeCouch": {
+   "bounds": [
+    [
+     -10.0,
+     0.0,
+     -4.500000000000001
+    ],
+    [
+     10.0,
+     2.822225430397774,
+     4.5
+    ]
+   ],
+   "groups": [
+    "Opaque"
+   ],
+   "layout_kind": "lounge_couch",
+   "lights": [],
+   "placements": 2,
+   "seats": [
+    [
+     -6.0,
+     1.3,
+     -3.0,
+     0.0
+    ],
+    [
+     -2.0,
+     1.3,
+     -3.0,
+     0.0
+    ],
+    [
+     2.0,
+     1.3,
+     -3.0,
+     0.0
+    ],
+    [
+     6.0,
+     1.3,
+     -3.0,
+     0.0
+    ],
+    [
+     -8.5,
+     1.3,
+     0.5,
+     90.0
+    ],
+    [
+     -8.5,
+     1.3,
+     3.5,
+     90.0
+    ],
+    [
+     8.5,
+     1.3,
+     0.5,
+     -90.0
+    ],
+    [
+     8.5,
+     1.3,
+     3.5,
+     -90.0
+    ]
+   ],
+   "triangles": 1480
+  },
+  "Palm": {
+   "bounds": [
+    [
+     -6.87635382878329,
+     -0.45,
+     -7.947707020366339
+    ],
+    [
+     10.168788243395895,
+     22.799999999999997,
+     9.089824302167516
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Foliage"
+   ],
+   "layout_kind": "palm_planter",
+   "lights": [],
+   "placements": 18,
+   "seats": [],
+   "triangles": 892
+  },
+  "PalmPlanter": {
+   "bounds": [
+    [
+     -2.7734388451146184,
+     0.0,
+     -2.9428341195858865
+    ],
+    [
+     2.8716852781130324,
+     3.8716282321040083,
+     2.9218811917841543
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Foliage"
+   ],
+   "layout_kind": "palm_planter",
+   "lights": [],
+   "placements": 18,
+   "seats": [],
+   "triangles": 258
+  },
+  "Piano": {
+   "bounds": [
+    [
+     -2.245886114908084,
+     0.0,
+     -2.9
+    ],
+    [
+     2.2,
+     5.562040351734069,
+     2.9
+    ]
+   ],
+   "groups": [
+    "Opaque"
+   ],
+   "layout_kind": "piano",
+   "lights": [],
+   "placements": 1,
+   "seats": [],
+   "triangles": 658
+  },
+  "PianoBench": {
+   "bounds": [
+    [
+     -1.2,
+     0.0,
+     -0.5
+    ],
+    [
+     1.2,
+     1.4,
+     0.5
+    ]
+   ],
+   "groups": [
+    "Opaque"
+   ],
+   "layout_kind": "piano_bench",
+   "lights": [],
+   "placements": 1,
+   "seats": [
+    [
+     0.0,
+     1.4,
+     0.0,
+     0.0
+    ]
+   ],
+   "triangles": 92
+  },
+  "PlanterBed": {
+   "bounds": [
+    [
+     -8.303737375841246,
+     0.0,
+     -2.2978943901560194
+    ],
+    [
+     8.114753525591544,
+     4.90337022609922,
+     2.4441546184436755
+    ]
+   ],
+   "groups": [
+    "Opaque",
+    "Foliage"
+   ],
+   "layout_kind": "planter_bed",
+   "lights": [],
+   "placements": 9,
+   "seats": [],
+   "triangles": 1122
+  },
+  "SideCouch": {
+   "bounds": [
+    [
+     -6.0,
+     0.0,
+     -2.9000000000000004
+    ],
+    [
+     6.0,
+     2.822225430397774,
+     2.8
+    ]
+   ],
+   "groups": [
+    "Opaque"
+   ],
+   "layout_kind": "side_couch",
+   "lights": [],
+   "placements": 3,
+   "seats": [
+    [
+     -3.5,
+     1.3,
+     -1.4,
+     0.0
+    ],
+    [
+     0.0,
+     1.3,
+     -1.4,
+     0.0
+    ],
+    [
+     3.5,
+     1.3,
+     -1.4,
+     0.0
+    ]
+   ],
+   "triangles": 794
+  },
+  "UmbrellaSet": {
+   "bounds": [
+    [
+     -6.1629860852631975,
+     0.0,
+     -6.162986085263197
+    ],
+    [
+     6.162986085263197,
+     11.8,
+     6.162986085263197
+    ]
+   ],
+   "groups": [
+    "Opaque"
+   ],
+   "layout_kind": "umbrella_set",
+   "lights": [],
+   "placements": 3,
+   "seats": [
+    [
+     -1.8,
+     1.0,
+     1.0,
+     0.0
+    ],
+    [
+     1.8,
+     1.0,
+     1.0,
+     0.0
+    ]
+   ],
+   "triangles": 838
+  }
+ },
+ "palm_height": 22.8,
+ "planter_box_height": 3.2,
+ "total_triangles": 56895
+}

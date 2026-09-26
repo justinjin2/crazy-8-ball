@@ -2666,11 +2666,11 @@ Config.Map = {
 	-- The files are assets/map/textures/*.png at 1024, drawn by assets/map/gen_textures.py.
 	Maps = {
 		-- Uploaded 2026-09-26 from assets/map/textures (1024; third round, after the Stage 2 critic).
-		Arch = { Color = "rbxassetid://75893924679734" }, -- arch_color.png: the trim sheet, soft shade baked in
+		Arch = { Color = "rbxassetid://95334117032577" }, -- arch_color.png: the trim sheet, soft shade baked in
 		Foliage = { Color = "rbxassetid://139476467352315" }, -- foliage.png: vines and bougainvillea (alpha)
-		Overlays = { Color = "rbxassetid://82239904410624" }, -- overlays.png: the table glow and the contact shade (alpha)
-		Props = { Color = "" }, -- props_color.png: the props trim sheet, soft shade baked in
-		Plants = { Color = "" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
+		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
+		Props = { Color = "rbxassetid://138853548592185" }, -- props_color.png: the props trim sheet, soft shade baked in
+		Plants = { Color = "rbxassetid://92882871806278" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
