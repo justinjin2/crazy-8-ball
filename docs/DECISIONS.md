@@ -1194,3 +1194,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   is a rainbow badge instead of orange, in the house rainbow (UI_STYLE section 4's VIP
   colours), with each wing feather its own colour and prismatic gems. That it shares VIP's
   rainbow is noted as Open in UI_STYLE section 4.
+- 2026-09-26: Rank badges, round five (designer): the overlapping pip sockets looked like icons
+  piled on each other, so the pips now sit apart in one smooth curved tray with bevel shading,
+  and each has a glow and a small shadow.

@@ -42,10 +42,10 @@ EDGE = 3.5  # the thin ink lines between parts (the outer outline is ink_filter'
 CX, CY = 128, 138  # the ball's centre, the same on every badge (low, to leave room for crowns)
 RING = 58  # the metal ring's outer radius
 BALL = 46
-PIP_ARC = 76  # pips sit on this radius around the ball...
-PIP_STEP = 30  # ...this many degrees apart, centred under the ball
-PIP_SIZE = 20.5  # a star's radius; each pip sits in a dark socket this much bigger:
-PIP_SOCKET = 3.5  # so the count reads even when the badge is small
+PIP_ARC = 74  # pips sit on this radius around the ball...
+PIP_STEP = 30  # ...this many degrees apart (so they never overlap), centred under the ball
+PIP_SIZE = 18.5  # a star's radius; the pips sit in one curved tray this much wider,
+PIP_TRAY = 4.5  # so the count reads even when the badge is small
 CROWN_BASE = 80  # the crown's bottom edge, on the ring's top
 LIGHT = (-0.55, -0.83)  # towards the light, for the facets: the top left
 OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
@@ -352,22 +352,55 @@ def eight_ball():
     )
 
 
+def arc(radius, a0, a1):
+    """An SVG arc path round the ball's centre, clockwise from angle a0 to a1 (degrees)."""
+    p0, p1 = along((CX, CY), a0, radius), along((CX, CY), a1, radius)
+    return f"M{pt(p0)} A{radius} {radius} 0 0 1 {pt(p1)}"
+
+
 def pips(kind, count, metal):
-    """The division: 1 to 5 bright stars or gems in dark sockets, in an arc under the ball."""
+    """The division: 1 to 5 bright stars or gems set in one curved tray under the ball. The
+    tray is darker by the ball and lighter at its rim, like a groove cut into the frame, and
+    each pip has a soft glow behind it and a shadow under it, so it sits in the tray."""
     light, mid, dark = metal
-    centres = [along((CX, CY), 90 + (i - (count - 1) / 2) * PIP_STEP, PIP_ARC) for i in range(count)]
-    r = PIP_SIZE + PIP_SOCKET
-    socket = mix(dark, INK, 0.55)
-    out = [f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r}" fill="{socket}" stroke="{INK}" stroke-width="{EDGE}"/>' for c in centres]
-    out += [f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r - EDGE / 2}" fill="{socket}"/>' for c in centres]
+    angles = [90 + (i - (count - 1) / 2) * PIP_STEP for i in range(count)]
+    centres = [along((CX, CY), a, PIP_ARC) for a in angles]
+    half = PIP_SIZE + PIP_TRAY
+    a0, a1 = angles[0], angles[-1] + 0.01  # a single pip is a round tray
+    groove = arc(PIP_ARC, a0, a1)
+    inner, outer = PIP_ARC - half, PIP_ARC + half
+    out = [
+        '<defs><radialGradient id="tray" gradientUnits="userSpaceOnUse" '
+        f'cx="{CX}" cy="{CY}" r="{outer}">'
+        f'<stop offset="{inner / outer:.3f}" stop-color="{mix(dark, INK, 0.8)}"/>'
+        f'<stop offset="{PIP_ARC / outer:.3f}" stop-color="{mix(dark, INK, 0.6)}"/>'
+        f'<stop offset="1" stop-color="{mix(dark, INK, 0.38)}"/></radialGradient>'
+        '<radialGradient id="glow"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/>'
+        '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs>',
+        f'<path d="{groove}" fill="none" stroke="{INK}" stroke-width="{2 * half + EDGE}" stroke-linecap="round"/>',
+        f'<path d="{groove}" fill="none" stroke="url(#tray)" stroke-width="{2 * half - EDGE}" stroke-linecap="round"/>',
+        # a lit rim along the tray's outer edge and a shadow along its inner edge
+        f'<path d="{arc(outer - EDGE - 1.2, a0, a1)}" fill="none" stroke="{light}" stroke-width="1.6" '
+        'stroke-opacity="0.45" stroke-linecap="round"/>',
+        f'<path d="{arc(inner + EDGE + 1.5, a0, a1)}" fill="none" stroke="#000000" stroke-width="2.4" '
+        'stroke-opacity="0.35" stroke-linecap="round"/>',
+    ]
     for c in centres:
+        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{PIP_SIZE * 1.15:.1f}" fill="url(#glow)" '
+                   f'opacity="0.8"/>')
+        shadow = (c[0], c[1] + 2.4)
         if kind == "star":
+            out.append(star(shadow, PIP_SIZE, fill="#000000").replace("<path", '<path opacity="0.4"', 1))
             out.append(star(c, PIP_SIZE, fill="url(#s)"))
-        elif metal == PRISM:  # a rainbow tier's gems are prismatic: each facet a pale rainbow tint
-            tints = tuple(mix(RAINBOW[k], "#FFFFFF", 0.45) for k in (0, 2, 4, 5))
-            out.append(gem(c, PIP_SIZE + 1, light, light, mid, 0.84, tints))
         else:
-            out.append(gem(c, PIP_SIZE + 1, mix(light, "#FFFFFF", 0.5), light, mix(light, mid, 0.7), 0.84))
+            if metal == PRISM:  # a rainbow tier's gems are prismatic: each facet a pale rainbow tint
+                facets = tuple(mix(RAINBOW[k], "#FFFFFF", 0.45) for k in (0, 2, 4, 5))
+            else:
+                facets = (mix(light, "#FFFFFF", 0.7), mix(light, "#FFFFFF", 0.5), light, mix(light, mid, 0.7))
+            h = PIP_SIZE + 1.5
+            out.append(poly([(shadow[0], shadow[1] - h), (shadow[0] + h * 0.84, shadow[1]), (shadow[0], shadow[1] + h),
+                             (shadow[0] - h * 0.84, shadow[1])], "#000000", False, 'opacity="0.4"'))
+            out.append(gem(c, h, light, light, mid, 0.84, facets))
     return "".join(out)
 
 

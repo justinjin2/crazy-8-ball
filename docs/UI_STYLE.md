@@ -120,8 +120,9 @@ order; that is Open.
   every badge: the ball and its ring the same size in the same place; a crown from Expert up
   (bigger each tier, Veteran included; Reyes the biggest, in gold); pips in an arc under the
   ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 =
-  division I), big and bright, each in a dark socket of its tier's colour so the count reads
-  when the badge is small. Diamond is cyan; Grandmaster is a rainbow badge in the house
+  division I), big and bright, spaced so they never overlap and set in one smooth curved tray
+  in a deep shade of the tier's colour (darker by the ball, a lit rim, a soft glow and shadow
+  under each pip), so the count reads when the badge is small. Diamond is cyan; Grandmaster is a rainbow badge in the house
   rainbow (section 4's VIP colours: a rainbow frame and ring, feathers red to purple,
   prismatic gems) (2026-09-26). Reyes is black and gold with no pips and no signature. No
   banner and no words: the rank's name is game text beside the badge where needed.
