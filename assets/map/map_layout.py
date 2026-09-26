@@ -315,7 +315,8 @@ def build():
     # rows, sofa groups along the railing at the second and fourth, palms in the gaps between.
     for k, z in enumerate(row_z):
         if k in (0, 2):
-            prop('umbrella_set', rail_x - PROP_SIZE['umbrella_set'][0] / 2 - 1.0, z, -90.0)
+            # Loungers face the sea (the set's front, +Z, turned to +X).
+            prop('umbrella_set', rail_x - PROP_SIZE['umbrella_set'][0] / 2 - 1.0, z, 90.0)
         else:
             prop('side_couch', rail_x - PROP_SIZE['side_couch'][1] / 2 - 0.4, z, -90.0)
     inset = P['palm_inset']

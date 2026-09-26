@@ -2669,6 +2669,8 @@ Config.Map = {
 		Arch = { Color = "rbxassetid://75893924679734" }, -- arch_color.png: the trim sheet, soft shade baked in
 		Foliage = { Color = "rbxassetid://139476467352315" }, -- foliage.png: vines and bougainvillea (alpha)
 		Overlays = { Color = "rbxassetid://82239904410624" }, -- overlays.png: the table glow and the contact shade (alpha)
+		Props = { Color = "" }, -- props_color.png: the props trim sheet, soft shade baked in
+		Plants = { Color = "" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2684,8 +2686,52 @@ Config.Map = {
 	},
 	-- Most unique map images (the brief: 20, besides the two skyboxes and four far cards).
 	ImageBudget = 20,
-	-- Triangle caps by group (the brief, section 6), checked by prepareImport.
-	TriangleCaps = { Rooftop = 60000 },
+	-- Triangle caps by group (the brief, section 6), checked by prepareImport and prepareProps.
+	TriangleCaps = { Rooftop = 60000, Props = 140000 },
+	MeshPartBudget = 400, -- rooftop and props (the brief)
+	LightBudget = 20, -- PointLights, SpotLights and SurfaceLights in the whole map, Shadows off
+
+	-- The props (assets/map/fbx/Props.fbx, gen_props.py): one template per kind, each up to
+	-- three meshes named <Kind>__Opaque (the props trim sheet), <Kind>__Foliage (the plants
+	-- alpha atlas) and <Kind>__Glow (a flat colour that glows). MapBuilder.prepareProps keeps
+	-- the templates in ServerStorage and clones one to every spot in the plan.
+	Props = {
+		Import = "Props", -- the imported model's name in Workspace
+		Templates = "MapProps", -- ServerStorage.<Templates>: one template per kind
+		Placed = "Props", -- Workspace.Map.<Placed>: every placed prop
+		Seats = "Seats", -- Workspace.Map.<Seats>: the invisible Seat parts
+		Groups = {
+			Opaque = { Maps = "Props" },
+			Foliage = { Maps = "Plants", AlphaMode = "Transparency" },
+			-- The glass and flames: a flat colour. SmoothPlastic by day; Stage 7 makes it Neon
+			-- at sunset.
+			Glow = { Material = "SmoothPlastic" },
+		},
+		-- Per kind: whether its opaque mesh casts a shadow (only the big ones; foliage and
+		-- glow never do), and the Glow mesh's colour.
+		Kinds = {
+			LoungeCouch = { CastShadow = true },
+			SideCouch = { CastShadow = true },
+			CoffeeTable = { CastShadow = false },
+			FirePit = { CastShadow = true, Glow = "#F6AA3F" },
+			FernPlanter = { CastShadow = false },
+			PalmPlanter = { CastShadow = true },
+			Palm = { CastShadow = false },
+			PlanterBed = { CastShadow = false },
+			Lantern = { CastShadow = false, Glow = "#FDF5AB" },
+			LanternTall = { CastShadow = false, Glow = "#FDF5AB" },
+			GlobeLight = { CastShadow = false, Glow = "#FAE091" },
+			UmbrellaSet = { CastShadow = true },
+			Piano = { CastShadow = true },
+			PianoBench = { CastShadow = false },
+		} :: { [string]: { CastShadow: boolean, Glow: string? } },
+		-- A PointLight at each prop's light spot (gen_props: the tall lanterns and the fire
+		-- pit). Day values; Stage 7 brightens them at sunset. (tune)
+		Light = { Range = 14, Brightness = 0.4, Color = "#FFD9A0" },
+		-- The Seat parts: invisible pads on the seat surfaces; a character sits facing the
+		-- prop's seat direction (gen_props seats' yaw).
+		SeatSize = { 2, 0.2, 2 },
+	},
 }
 
 ---------------------------------------------------------------------------------------------

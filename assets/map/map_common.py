@@ -107,17 +107,51 @@ TRIM = {
 TRIM_PAD = 3  # pixels kept clear at each strip edge in V (mip bleeding)
 FACADE_FLOOR_STUDS = 10.0  # the 'facade' strip is one floor this tall
 
+# The props trim sheet (textures/props_color.png), laid out the same way: one strip per prop
+# material, soft AO at each strip's foot. The names start with p_ so a mesh can never mix the
+# two sheets by accident (a prop mesh uses only p_ strips, an architecture mesh none).
+PROP_STRIP_PX = 46
+_PROP_STRIPS = [
+    # name, studs per image width along U, what it is
+    ('p_fabric', 4.0),  # couch fabric: warm grey-cream
+    ('p_cushion_blue', 4.0),
+    ('p_cushion_teal', 4.0),  # the art's light blue-grey cushion
+    ('p_cushion_orange', 4.0),
+    ('p_cushion_white', 4.0),
+    ('p_wood', 4.0),  # warm wood (coffee table top, umbrella frame): grain along U
+    ('p_wood_dark', 4.0),  # dark wood (table legs and aprons, lounger frames)
+    ('p_stone_dark', 4.0),  # the fire pit's dark stone
+    ('p_stone_cap', 4.0),  # the fire pit's light stone cap
+    ('p_glass_ring', 4.0),  # the fire pit's blue glass ring
+    ('p_frame', 4.0),  # lantern frames: dark bronze
+    ('p_canvas', 6.0),  # umbrella canvas: cream, soft panel shading along U
+    ('p_pole', 4.0),  # umbrella pole: wood
+    ('p_lounger', 4.0),  # lounger body: dark warm grey
+    ('p_piano', 4.0),  # the grand piano: black with a sheen near the top of the strip
+    ('p_keys', 1.2),  # piano keys: white keys with the black ones in 2s and 3s along U
+    ('p_planter', 4.0),  # planter boxes: warm light stone
+    ('p_soil', 4.0),  # soil in a planter
+    ('p_trunk', 4.0),  # palm trunk: rings along V
+    ('p_metal', 4.0),  # metal: brushed grey
+    ('p_leaf', 4.0),  # solid leaf green (opaque leafy bits)
+    ('p_white', 4.0),  # off-white (lounger cushions, piano bench cushion)
+]
+PROP_TRIM = {name: (k * PROP_STRIP_PX, (k + 1) * PROP_STRIP_PX, studs)
+             for k, (name, studs) in enumerate(_PROP_STRIPS)}
+_ALL_TRIM = dict(TRIM, **PROP_TRIM)
+
 
 def trim_v(strip, frac):
-    """Blender V (0 at the image bottom) for a height fraction 0..1 within a strip."""
-    top, bottom, _ = TRIM[strip]
+    """Blender V (0 at the image bottom) for a height fraction 0..1 within a strip (of either
+    trim sheet: architecture strips or p_ prop strips)."""
+    top, bottom, _ = _ALL_TRIM[strip]
     lo = 1.0 - (bottom - TRIM_PAD) / TRIM_PX
     hi = 1.0 - (top + TRIM_PAD) / TRIM_PX
     return lo + (hi - lo) * max(0.0, min(1.0, frac))
 
 
 def trim_u(strip, studs):
-    return studs / TRIM[strip][2]
+    return studs / _ALL_TRIM[strip][2]
 
 
 # The overlays (textures/overlays.png, RGBA): the warm glow under each table, a linear contact
@@ -135,6 +169,50 @@ FOLIAGE = {
     'climb': (0.0, 0.0, 0.5, 0.5),  # a climbing vine for column faces
     'bloom': (0.5, 0.0, 1.0, 0.5),  # a bougainvillea cluster
 }
+
+# The plants atlas (textures/plants.png, RGBA; drawn by props/plants_textures.py).
+PLANTS = {
+    'frond': (0.0, 0.5, 1.0, 1.0),  # a palm frond: its stem along U, the base at u0, the tip at u1
+    'fern': (0.0, 0.0, 0.5, 0.5),  # a fern frond: the same way round
+    'clump': (0.5, 0.0, 1.0, 0.5),  # a round leafy clump seen from above
+}
+
+
+# Which prop templates (gen_props.py kinds) dress each Layout.json prop kind. A palm planter is
+# a PalmPlanter box with a Palm on top, scaled to the planned height.
+PROP_TEMPLATES = {
+    'lounge_couch': ['LoungeCouch'], 'side_couch': ['SideCouch'], 'coffee_table': ['CoffeeTable'],
+    'fire_pit': ['FirePit'], 'fern_planter': ['FernPlanter'], 'palm_planter': ['PalmPlanter', 'Palm'],
+    'planter_bed': ['PlanterBed'], 'lantern': ['Lantern'], 'lantern_tall': ['LanternTall'],
+    'globe_light': ['GlobeLight'], 'umbrella_set': ['UmbrellaSet'], 'piano': ['Piano'],
+    'piano_bench': ['PianoBench'],
+}
+PALM_HEIGHT = 22.8  # the Palm template's crown top above its origin (26 overall on its box)
+PLANTER_BOX_HEIGHT = 3.2  # the PalmPlanter box; the Palm stands on it
+
+
+def angles(rx=0.0, ry=0.0, rz=0.0):
+    """The 3x3 rotation of Roblox's CFrame.Angles(rx, ry, rz), degrees: v' = Rx(Ry(Rz v))."""
+    def rot(axis, deg):
+        c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        if axis == 'x':
+            return ((1, 0, 0), (0, c, -s), (0, s, c))
+        if axis == 'y':
+            return ((c, 0, s), (0, 1, 0), (-s, 0, c))
+        return ((c, -s, 0), (s, c, 0), (0, 0, 1))
+
+    def mul(a, b):
+        return tuple(tuple(sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)) for i in range(3))
+    return mul(mul(rot('x', rx), rot('y', ry)), rot('z', rz))
+
+
+def _circle(cx, cz, r, segs, phase=0.0):
+    """Points round a circle in outward_rect's winding (so walls face out)."""
+    out = []
+    for i in range(segs):
+        t = 2 * math.pi * (i + phase) / segs
+        out.append((cx + r * math.cos(t), cz - r * math.sin(t)))
+    return out
 
 
 # ---------------------------------------------------------------------------------------------
@@ -221,6 +299,85 @@ class Mesh:
         (u0, v0, u1, v1): p0 at (u0, v0), p1 (u1, v0), p2 (u1, v1), p3 (u0, v1)."""
         u0, v0, u1, v1 = uv_rect
         self.face([p0, p1, p2, p3], [(u0, v0), (u1, v0), (u1, v1), (u0, v1)], double=double)
+
+    # -- prop building blocks (Stage 3) --------------------------------------------------------
+
+    def box(self, x0, y0, z0, x1, y1, z1, strip, top_strip=None, bottom=False, chamfer=0.0,
+            v_range=(0.0, 1.0)):
+        """An axis-aligned box, its vertical corners optionally chamfered; sides in `strip`
+        (V over the height), the top (and optional bottom) in `top_strip` (default the same)."""
+        hx, hz = (x1 - x0) / 2, (z1 - z0) / 2
+        c = min(chamfer, hx * 0.9, hz * 0.9)
+        poly = chamfer_rect((x0 + x1) / 2, (z0 + z1) / 2, hx, hz, c) if c > 0 else outward_rect(x0, z0, x1, z1)
+        self.prism(poly, y0, y1, strip, top=True, bottom=bottom, top_strip=top_strip or strip, v_range=v_range)
+
+    def frustum(self, cx, cz, r0, r1, y0, y1, segs, strip, top=True, bottom=False, top_strip=None,
+                v_range=(0.0, 1.0), cy=0.0):
+        """A vertical frustum (a cylinder when r0 == r1, a cone when r1 == 0) round (cx, cz),
+        radius r0 at y0 and r1 at y1, `segs` sides; U round the bottom rim in studs."""
+        lo = _circle(cx, cz, r0, segs)
+        hi = _circle(cx, cz, max(r1, 1e-6), segs)
+        va, vb = trim_v(strip, v_range[0]), trim_v(strip, v_range[1])
+        step = 2 * math.pi * r0 / segs
+        for i in range(segs):
+            j = (i + 1) % segs
+            ua, ub = trim_u(strip, i * step), trim_u(strip, (i + 1) * step)
+            if r1 <= 1e-6:
+                self.face([(lo[i][0], y0, lo[i][1]), (lo[j][0], y0, lo[j][1]), (cx, y1, cz)],
+                          [(ua, va), (ub, va), ((ua + ub) / 2, vb)])
+            else:
+                self.face([(lo[i][0], y0, lo[i][1]), (lo[j][0], y0, lo[j][1]), (hi[j][0], y1, hi[j][1]),
+                           (hi[i][0], y1, hi[i][1])], [(ua, va), (ub, va), (ub, vb), (ua, vb)])
+        if top and r1 > 1e-6:
+            self.flat(hi, y1, top_strip or strip, up=True)
+        if bottom:
+            self.flat(lo, y0, top_strip or strip, up=False)
+
+    def cylinder(self, cx, cz, r, y0, y1, segs, strip, top=True, bottom=False, top_strip=None,
+                 v_range=(0.0, 1.0)):
+        self.frustum(cx, cz, r, r, y0, y1, segs, strip, top, bottom, top_strip, v_range)
+
+    def sphere(self, cx, cy, cz, r, segs, rings, strip, squash=1.0):
+        """A low-poly UV sphere (squash scales its height); V runs from the bottom of the strip
+        at the south pole to its top at the north pole."""
+        def ring(k):
+            a = math.pi * k / rings - math.pi / 2
+            return r * math.cos(a), cy + r * squash * math.sin(a)
+        step = 2 * math.pi * r / segs
+        for k in range(rings):
+            (ra, ya), (rb_, yb) = ring(k), ring(k + 1)
+            lo, hi = _circle(cx, cz, max(ra, 1e-6), segs), _circle(cx, cz, max(rb_, 1e-6), segs)
+            va, vb = trim_v(strip, k / rings), trim_v(strip, (k + 1) / rings)
+            for i in range(segs):
+                j = (i + 1) % segs
+                ua, ub = trim_u(strip, i * step), trim_u(strip, (i + 1) * step)
+                if k == 0:
+                    self.face([(cx, ya, cz), (hi[j][0], yb, hi[j][1]), (hi[i][0], yb, hi[i][1])],
+                              [((ua + ub) / 2, va), (ub, vb), (ua, vb)])
+                elif k == rings - 1:
+                    self.face([(lo[i][0], ya, lo[i][1]), (lo[j][0], ya, lo[j][1]), (cx, yb, cz)],
+                              [(ua, va), (ub, va), ((ua + ub) / 2, vb)])
+                else:
+                    self.face([(lo[i][0], ya, lo[i][1]), (lo[j][0], ya, lo[j][1]), (hi[j][0], yb, hi[j][1]),
+                               (hi[i][0], yb, hi[i][1])], [(ua, va), (ub, va), (ub, vb), (ua, vb)])
+
+    def add(self, other, rot=(0.0, 0.0, 0.0), offset=(0.0, 0.0, 0.0), scale=1.0):
+        """Append another mesh: scaled (uniform, positive), turned by CFrame.Angles(*rot)
+        (degrees) about its own origin, then moved by offset. Windings keep."""
+        m = angles(*rot)
+        base = len(self.verts)
+        for x, y, z in other.verts:
+            x, y, z = x * scale, y * scale, z * scale
+            self.verts.append((m[0][0] * x + m[0][1] * y + m[0][2] * z + offset[0],
+                               m[1][0] * x + m[1][1] * y + m[1][2] * z + offset[1],
+                               m[2][0] * x + m[2][1] * y + m[2][2] * z + offset[2]))
+        for idx, uvs in other.faces:
+            self.faces.append((tuple(i + base for i in idx), list(uvs)))
+        return self
+
+    def bounds(self):
+        xs, ys, zs = zip(*self.verts) if self.verts else ((0,), (0,), (0,))
+        return (min(xs), min(ys), min(zs)), (max(xs), max(ys), max(zs))
 
 
 def outward_rect(x0, z0, x1, z1):

@@ -22,6 +22,7 @@ import sys
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import map_common as mc  # noqa: E402
 import map_layout as ml  # noqa: E402
 
 SEED = 26092026  # the block city and the islands
@@ -91,11 +92,13 @@ class Lua:
 
     def part(self, folder, name, size, pos, colour, yaw=0.0, shape='Block', material='SmoothPlastic',
              transparency=0.0, collide=False, local=None, rot=None, shadow=True, role=None):
-        """role says what the part becomes once the real map is imported (MapBuilder): 'floor'
-        (stays, as the tiled floor), 'collide' (stays, invisible), 'arch' (replaced by the
-        Stage 2 architecture meshes); none for props and the world (later stages)."""
         """pos is world (x, y, z) of the part's centre, or with `local` the prop's (X, Y, Z, yaw)
-        and pos in the prop's own frame. rot is an extra (rx, ry, rz) in degrees."""
+        and pos in the prop's own frame. rot is an extra (rx, ry, rz) in degrees.
+
+        role says what the part becomes once its group's real meshes are imported (MapBuilder):
+        'floor' (stays, as the tiled floor), 'collide' (stays, invisible), 'visual' (replaced
+        by the meshes). The group is 'arch' for the Rooftop folder and the columns, 'props'
+        for the other props; the world (Near, Backdrop) has none yet."""
         self.rows.append({
             'f': folder, 'n': name, 's': shape, 'size': [round(v, 4) for v in size],
             'p': [round(v, 4) for v in pos], 'c': colour, 'yaw': yaw, 'm': material,
@@ -156,14 +159,14 @@ def build(g, plan):
                C['stone'], collide=True, role='collide')
         g.part(R, name + 'Glass', sz(length, top - ph, 0.2), (mx, floor_y + (top + ph) / 2, mz), C['glass'],
                material='Glass', transparency=0.6, collide=True, role='collide')
-        g.part(R, name + 'TopRail', sz(length + pt, 0.3, 0.35), (mx, floor_y + top, mz), C['frame'], role='arch')
+        g.part(R, name + 'TopRail', sz(length + pt, 0.3, 0.35), (mx, floor_y + top, mz), C['frame'], role='visual')
         posts = max(1, round(length / 4.0))
         for k in range(posts + 1):
             t = k / posts
             g.part(R, name + 'Post', (0.25, top - ph, 0.25), (ax + (bx - ax) * t + outward[0] * pt / 2,
                                                              floor_y + (top + ph) / 2,
                                                              az + (bz - az) * t + outward[1] * pt / 2), C['frame'],
-                   role='arch')
+                   role='visual')
         g.part(R, name + 'SafetyWall', sz(length + pt, wall_top - (floor_y + top), pt),
                (mx, (wall_top + floor_y + top) / 2, mz), '#FFFFFF', transparency=1, collide=True, role='collide')
 
@@ -194,16 +197,16 @@ def build(g, plan):
     beam_y = platform_y + P['pergola_height']
     for name, z in (('FrontBeam', pz1 - P['pergola_column'] / 2), ('BackBeam', pz0 + P['pergola_column'] / 2),
                     ('MidBeam', (pz0 + pz1) / 2)):
-        g.part(R, 'Pergola' + name, (px1 - px0 + 3, 1.6, 1.4), (0, beam_y + 0.8, z), C['cream'], role='arch')
+        g.part(R, 'Pergola' + name, (px1 - px0 + 3, 1.6, 1.4), (0, beam_y + 0.8, z), C['cream'], role='visual')
     x = px0 + 1.5
     while x < px1 - 0.5:
         g.part(R, 'PergolaSlat', (1.2, 0.6, pz1 - pz0 + 2), (x, beam_y + 1.9, (pz0 + pz1) / 2), C['slat'],
-               shadow=False, role='arch')  # no zebra stripes until the lighting stage
+               shadow=False, role='visual')  # no zebra stripes until the lighting stage
         x += 3.0
     # Vines along the front beam: a few green clumps, a pink one at the ocean end (02).
     for k, vx in enumerate((px0 + 2, -30, 0.0, 30, px1 - 2)):
         colour = hexc('flower_vivid') if k == 4 else C['leaf']
-        g.part(R, 'Vine', (4.0, 2.0, 1.4), (vx, beam_y + 0.4, pz1 + 0.6), colour, shadow=False, role='arch')
+        g.part(R, 'Vine', (4.0, 2.0, 1.4), (vx, beam_y + 0.4, pz1 + 0.6), colour, shadow=False, role='visual')
 
     # ---- Props ---------------------------------------------------------------------------
     for i, p in enumerate(plan['props']):
@@ -379,6 +382,7 @@ def prop(g, p, i):
     name = '%s_%02d' % (kind, i)
 
     def part(size, pos, colour, **kw):
+        kw.setdefault('role', 'collide' if kw.get('collide') else 'visual')
         g.part(F, name, size, pos, colour, local=L, **kw)
 
     if kind == 'table_glow':
@@ -449,6 +453,36 @@ def prop(g, p, i):
         raise SystemExit('no gray-box for ' + kind)
 
 
+def prop_placements(plan):
+    """Every prop template to clone in Studio (MapBuilder.prepareProps), and the world spots of
+    their seats and lights from Props.json (gen_props.py; empty until it exists)."""
+    path = os.path.join(HERE, 'Props.json')
+    kinds = json.load(open(path))['kinds'] if os.path.exists(path) else {}
+    placements, seats, lights = [], [], []
+
+    def world(p, local):
+        yaw = math.radians(p['yaw'])
+        c, s = math.cos(yaw), math.sin(yaw)
+        x, y, z = local[:3]
+        return [round(p['X'] + x * c + z * s, 4), round(p['Y'] + y, 4), round(p['Z'] - x * s + z * c, 4)]
+
+    for p in plan['props']:
+        for kind in mc.PROP_TEMPLATES.get(p['kind'], []):
+            place = dict(p)
+            scale = 1.0
+            if kind == 'Palm':
+                place['Y'] = p['Y'] + mc.PLANTER_BOX_HEIGHT
+                scale = (p['size'][1] - mc.PLANTER_BOX_HEIGHT) / mc.PALM_HEIGHT
+            placements.append({'kind': kind, 'cf': [round(place['X'], 4), round(place['Y'], 4),
+                                                    round(place['Z'], 4), place['yaw']], 'scale': round(scale, 4)})
+            rec = kinds.get(kind, {})
+            for seat in rec.get('seats', []):
+                seats.append({'p': world(place, [v * scale for v in seat[:3]]), 'yaw': (place['yaw'] + seat[3]) % 360})
+            for light in rec.get('lights', []):
+                lights.append({'kind': kind, 'p': world(place, [v * scale for v in light[:3]])})
+    return placements, seats, lights
+
+
 def main():
     plan = ml.build()
     problems = ml.check(plan)
@@ -466,11 +500,17 @@ def main():
             row['rot'] = list(r['rot'])
         if r['role']:
             row['role'] = r['role']
+            is_arch = r['f'] == 'Rooftop' or r['n'].startswith(('column_', 'table_glow_'))
+            row['g'] = 'arch' if is_arch else 'props'
         if not r['shadow']:
             row['ns'] = True
         rows.append(row)
+    placements, seats, lights = prop_placements(plan)
     s = plan['spawn']
     data = {
+        'placements': placements,
+        'seats': seats,
+        'lights': lights,
         'rows': rows,
         'water': {'seaY': SEA_Y, 'reach': WATER_REACH, 'coastX': COAST_X, 'coastZ': COAST_Z,
                   'cityBackX': CITY_BACK_X},

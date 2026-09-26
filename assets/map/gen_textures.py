@@ -13,6 +13,8 @@ gradients that darken toward the art's cool shadow tint, since Roblox has no GI 
     floor_normal.png   its normal map (OpenGL, +Y up): the grout sits a little lower
     foliage.png        RGBA: a hanging vine band, a climbing vine, a bougainvillea cluster
     overlays.png       RGBA: the warm glow under a table, a wall-foot shade, a column shade
+    props_color.png    the props trim sheet (map_common.PROP_TRIM), soft shade baked in
+    plants.png         RGBA: palm frond, fern frond, leafy clump (props/plants_textures.py)
 """
 
 import os
@@ -383,12 +385,104 @@ def overlays():
     save_rgba(rgb_arr, alpha, 'overlays.png')
 
 
+# ---------------------------------------------------------------------------------------------
+# Props trim sheet (map_common.PROP_TRIM): one strip per prop material, soft AO at its foot
+# ---------------------------------------------------------------------------------------------
+
+PROP_COLOURS = {
+    'p_fabric': mc.hexc('couch_day'),
+    'p_cushion_blue': mc.hexc('cushion_blue'),
+    'p_cushion_teal': mc.hexc('cushion_teal'),
+    'p_cushion_orange': mc.hexc('cushion_orange'),
+    'p_cushion_white': mc.hexc('cushion_white'),
+    'p_wood': mc.hexc('coffee_table'),
+    'p_wood_dark': mc.hexc('coffee_table', 'shade'),
+    'p_stone_dark': mc.hexc('firepit_stone'),
+    'p_stone_cap': mc.hexc('firepit_top'),
+    'p_glass_ring': mc.hexc('firepit_ring'),
+    'p_frame': mc.hexc('lantern_frame'),
+    'p_canvas': mc.hexc('umbrella_canvas_day'),
+    'p_pole': mc.hexc('umbrella_pole'),
+    'p_lounger': mc.hexc('lounger'),
+    'p_piano': mc.hexc('piano_black'),
+    'p_keys': '#F4F1EA',
+    'p_planter': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.ALBEDO['stone']), mc.rgb(mc.hexc('planter')), 0.35)),
+    'p_soil': '#3B2A22',
+    'p_trunk': mc.hexc('palm_trunk'),
+    'p_metal': '#8C8A92',
+    'p_leaf': mc.ALBEDO['leaf_mid'],
+    'p_white': '#F2EEE8',
+}
+
+
+def props(rng):
+    n = MASTER
+    s = n / mc.TRIM_PX
+    img = np.zeros((n, n, 3))
+    fine = periodic_noise(rng, n, n, 14)
+    for name, (top, bottom, studs) in mc.PROP_TRIM.items():
+        r0, r1 = int(top * s), int(bottom * s)
+        rows = r1 - r0
+        v = (1.0 - (np.arange(r0, r1) + 0.5 - r0) / rows)[:, None]  # 1 at the top, 0 at the foot
+        base = colour_array(PROP_COLOURS[name])
+        col = base[None, None, :] * (1 + 0.006 * fine[r0:r1])[..., None]
+        col = np.broadcast_to(col, (rows, n, 3)).copy()
+        u = (np.arange(n) + 0.5) / n  # 0..1 along the image
+        if name in ('p_wood', 'p_wood_dark', 'p_pole'):
+            grain = periodic_noise(rng, rows, n, 3)
+            grain = (grain + np.roll(grain, 1, 1) + np.roll(grain, 2, 1) + np.roll(grain, -1, 1)) / 4
+            col = col * (1 + 0.06 * grain)[..., None]
+        if name == 'p_canvas':
+            panel = 0.5 + 0.5 * np.cos(u * 2 * np.pi * 6)  # soft folds, 6 per image
+            col = col * (1 - 0.05 * panel)[None, :, None]
+        if name == 'p_piano':
+            sheen = smoothstep(0.7, 0.9, v) * (1 - smoothstep(0.9, 0.98, v))
+            col = col + sheen[..., None] * np.array([150.0, 150.0, 160.0])[None, None, :]
+        if name == 'p_keys':
+            # Two octaves across: 14 white keys, black keys over the top 60% in 2s and 3s.
+            white = u * 14 % 1.0
+            gap = (white < 0.04) | (white > 0.96)
+            col = np.where(gap[None, :, None], colour_array('#9C978E')[None, None, :], col)
+            black = np.zeros(n, dtype=bool)
+            for octave in range(2):
+                for k in (1, 2, 4, 5, 6):  # black keys sit before these white keys
+                    centre = (octave * 7 + k) / 14
+                    black |= np.abs(u - centre) < 0.018
+            mask = black[None, :] & (v > 0.4)
+            col = np.where(mask[..., None], colour_array('#15141A')[None, None, :], col)
+        if name == 'p_trunk':
+            rings = 0.5 + 0.5 * np.cos(v * 2 * np.pi * 6)
+            col = col * (1 - 0.18 * rings ** 3)[..., None] * (1 + 0.03 * periodic_noise(rng, rows, n, 6))[..., None]
+        if name == 'p_metal':
+            col = col * (1 + 0.1 * (v - 0.5))[..., None]
+        # Soft AO at the foot, a slight lift at the top (the brief's baked shading).
+        ao = (1 - smoothstep(0.0, 0.3, v)) * 0.32 * P['ao_scale']
+        col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
+        col = col * (1 + 0.04 * smoothstep(0.85, 1.0, v))[..., None]
+        img[r0:r1] = col
+    save_rgb(img, 'props_color.png')
+
+
+def plants(rng):
+    """plants.png is drawn by props/plants_textures.py (builder B, Stage 3); skipped until it
+    exists."""
+    path = os.path.join(HERE, 'props', 'plants_textures.py')
+    if not os.path.exists(path):
+        return
+    sys.path.insert(0, os.path.join(HERE, 'props'))
+    import plants_textures  # noqa: E402
+    rgba = plants_textures.draw(rng, MASTER)
+    save_rgba(rgba[..., :3], rgba[..., 3], 'plants.png', bleed=mc.rgb(mc.ALBEDO['leaf_mid']))
+
+
 if __name__ == '__main__':
     rng = np.random.default_rng(SEED)
     floor(rng)
     arch(rng)
     foliage(rng)
     overlays()
+    props(np.random.default_rng(SEED + 3))
+    plants(np.random.default_rng(SEED + 4))
     for name in sorted(os.listdir(OUT)):
         if name.endswith('.png'):
             im = Image.open(os.path.join(OUT, name))

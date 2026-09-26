@@ -3,7 +3,7 @@
 -- docs/prompts/ROOFTOP_MAP_PROMPT.md, the spec assets/map/Spec.md). Nothing in the running
 -- game requires it: it is run from the command bar or the MCP execute_luau tool, like
 -- TableBuilder.prepareImport, and what it builds is saved in the place. Every function is safe
--- to run twice.
+-- to run twice. Every step in assets/map/Readme.md.
 --
 -- Stage 1 builds a gray-box from data that assets/map/gen_graybox.py writes to
 -- src/server/MapData/GrayBox.json (Rojo syncs it to ServerScriptService.Server.MapData):
@@ -14,20 +14,23 @@
 --
 -- The :Clone() calls read what is on disk now: Edit-mode requires are cached (STUDIO_NOTES).
 --
--- Stage 2 imports the architecture (assets/map/fbx/Rooftop.fbx, 3D Importer; the steps are in
--- assets/map/Readme.md) and prepares it:
+-- Stage 2 imports the architecture (assets/map/fbx/Rooftop.fbx) and prepares it; Stage 3 the
+-- props (assets/map/fbx/Props.fbx):
 --
 --   local Server, Shared = game.ServerScriptService.Server, game.ReplicatedStorage.Shared
---   print(require(Shared.MapBuilder:Clone()).prepareImport(
---       require(Shared.Config:Clone()).Map, require(Server.MapData.GrayBox:Clone())))
+--   local MB, spec = require(Shared.MapBuilder:Clone()), require(Shared.Config:Clone()).Map
+--   local data = require(Server.MapData.GrayBox:Clone())
+--   print(MB.prepareImport(spec, data))
+--   print(MB.prepareProps(spec, data))
 
 local MapBuilder = {}
 
---- Each gray-box part carries its row's role (gen_graybox.py) in this attribute: "floor"
---- (becomes the tiled floor), "collide" (becomes an invisible wall or step) or "arch" (replaced
---- by the architecture meshes).
+--- Each gray-box part carries its row's group ("arch" or "props") and role ("floor",
+--- "collide" or "visual") as attributes (gen_graybox.py). Once a group's meshes are imported,
+--- its visual parts go, its floor and collide parts become the tiled floor and invisible
+--- walls in Map.Collision, and the rest of the gray-box stays.
+MapBuilder.GroupAttribute = "MapGroup"
 MapBuilder.RoleAttribute = "MapRole"
-local REPLACED = { floor = true, collide = true, arch = true }
 
 --- The model in Workspace that holds the whole map.
 MapBuilder.MapName = "Map"
@@ -54,6 +57,18 @@ local function mapModel(): Model
 	return made
 end
 
+-- Which groups already have their real meshes in the map.
+local function importedGroups(map: Model, spec: any?): { [string]: boolean }
+	if spec == nil then
+		return {}
+	end
+	local placed = map:FindFirstChild(spec.Props.Placed)
+	return {
+		arch = map:FindFirstChild(spec.Architecture) ~= nil,
+		props = placed ~= nil and #placed:GetChildren() > 0,
+	}
+end
+
 -- A gray-box row's CFrame: world, or in its prop's own frame, plus an extra turn.
 local function rowCFrame(r: any): CFrame
 	local cf: CFrame
@@ -74,11 +89,11 @@ end
 --- Builds Workspace.Map.GrayBox from gen_graybox.py's data: one Part per row, grouped into
 --- models by the row's folder (Rooftop, Props, Near, Backdrop); clears Terrain and fills the
 --- sea with water; removes Workspace.Baseplate and makes the SpawnLocation the entrance mat.
---- With `spec` (Config.Map) and the architecture already imported, the rows it replaced
---- (the roles floor, collide and arch) are left out. Returns a one-line report.
+--- With `spec` (Config.Map), the rows of a group whose meshes are already imported are left
+--- out. Returns a one-line report.
 function MapBuilder.buildGrayBox(data: any, spec: any?): string
 	local map = mapModel()
-	local imported = spec ~= nil and map:FindFirstChild(spec.Architecture) ~= nil
+	local imported = importedGroups(map, spec)
 	local old = map:FindFirstChild(MapBuilder.GrayBoxName)
 	if old then
 		old:Destroy()
@@ -100,7 +115,7 @@ function MapBuilder.buildGrayBox(data: any, spec: any?): string
 
 	local count = 0
 	for _, r in data.rows do
-		if imported and r.role and REPLACED[r.role] then
+		if r.g and imported[r.g] then
 			continue
 		end
 		local part = Instance.new("Part")
@@ -118,7 +133,8 @@ function MapBuilder.buildGrayBox(data: any, spec: any?): string
 		part.BottomSurface = Enum.SurfaceType.Smooth
 		part.Size = Vector3.new(r.size[1], r.size[2], r.size[3])
 		part.CFrame = rowCFrame(r)
-		if r.role then
+		if r.g then
+			part:SetAttribute(MapBuilder.GroupAttribute, r.g)
 			part:SetAttribute(MapBuilder.RoleAttribute, r.role)
 		end
 		part.Parent = group(r.f)
@@ -182,42 +198,21 @@ local function triangleCount(mesh: MeshPart): number?
 	return if ok then result else nil
 end
 
---- Edit mode only (MeshPart and MaterialVariant maps are plugin-only writes): turn a fresh
---- import of the architecture (Config.Map.Architecture) into the map. Safe to run twice.
----  1. Finds the imported model in Workspace or the map and flattens it.
----  2. Puts it back where Blender built it, from the three anchor cubes, then deletes them.
----  3. Sets up each mesh (Config.Map.Meshes): anchored, never colliding, shadows, automatic
----     LOD, a SurfaceAppearance from Maps or a flat colour.
----  4. Makes the floor's MaterialVariant (Config.Map.Floor).
----  5. Builds Map.Collision from the gray-box data's floor and collide rows (the floor tiled
----     and visible, the rest invisible) and removes the gray-box parts they replace.
----  6. Counts triangles against Config.Map.TriangleCaps.
---- Returns a report; anything wrong is a line starting "PROBLEM:".
-function MapBuilder.prepareImport(spec: any, data: any): string
-	if game:GetService("RunService"):IsRunning() then
-		error("MapBuilder.prepareImport runs in Edit mode only; stop the play session first")
-	end
-	local lines: { string } = {}
-	local function say(line: string)
-		table.insert(lines, line)
-	end
-	local map = mapModel()
-	-- A fresh import (in Workspace) replaces the one already in the map.
-	local fresh = workspace:FindFirstChild(spec.Architecture)
-	local previous = map:FindFirstChild(spec.Architecture)
-	if fresh and fresh:IsA("Model") and previous then
+-- Find a fresh import (in Workspace) or the one kept from an earlier run (`keptIn`), flatten
+-- it, and put it back where Blender built it from its three anchor cubes (then delete them).
+-- Returns the model, or nil when there is neither.
+local function takeImport(name: string, keptIn: Instance, anchors: any, say: (string) -> ()): Model?
+	local fresh = workspace:FindFirstChild(name)
+	local previous = keptIn:FindFirstChild(name)
+	if fresh and fresh:IsA("Model") and previous and previous ~= fresh then
 		previous:Destroy()
-		say("Replaced the previous import.")
+		say(("Replaced the previous %s import."):format(name))
 	end
 	local found = if fresh and fresh:IsA("Model") then fresh else previous
 	if not (found and found:IsA("Model")) then
-		return ("No Model named %s in Workspace. Import assets/map/fbx/Rooftop.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
-			spec.Architecture
-		)
+		return nil
 	end
 	local model: Model = found
-
-	-- 1. Flatten: every MeshPart straight under the model, no empty containers.
 	for _, d in model:GetDescendants() do
 		if d:IsA("MeshPart") and d.Parent ~= model then
 			d.Parent = model
@@ -228,9 +223,7 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 			child:Destroy()
 		end
 	end
-
-	-- 2. Place by the anchors: the frame they span now is moved onto the world's.
-	local A = spec.Anchors
+	local A = anchors
 	local o, x, z = model:FindFirstChild(A.O), model:FindFirstChild(A.X), model:FindFirstChild(A.Z)
 	if o and x and z then
 		local po = (o :: BasePart).Position
@@ -238,7 +231,8 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 		local scale = (vx.Magnitude + vz.Magnitude) / (2 * A.Spacing)
 		if math.abs(scale - 1) > 0.01 then
 			say(
-				("PROBLEM: the anchors are %.3f times as far apart as they should be: re-import with Scale Unit: Stud and scale 1."):format(
+				("PROBLEM: %s's anchors are %.3f times as far apart as they should be: re-import with Scale Unit: Stud and scale 1."):format(
+					name,
 					scale
 				)
 			)
@@ -251,24 +245,188 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 				part.CFrame = fix * part.CFrame
 			end
 		end
-		local turned = math.deg(math.atan2(-ax.Z, ax.X))
 		say(
-			("Placed by the anchors: moved %.2f studs, turned %.1f degrees."):format(
+			("%s placed by its anchors: moved %.2f studs, turned %.1f degrees."):format(
+				name,
 				po.Magnitude,
-				turned
+				math.deg(math.atan2(-ax.Z, ax.X))
 			)
 		)
 		o:Destroy()
 		x:Destroy()
 		z:Destroy()
-	else
-		say("No anchors (already placed on an earlier run).")
 	end
 	model.WorldPivot = CFrame.identity
-	model.Name = spec.Architecture
-	model.Parent = map
+	model.Name = name
+	model.Parent = keptIn
+	return model
+end
 
-	-- 3. The meshes.
+-- Set a mesh up as a visual only (anchored, never colliding, automatic LOD), dressed in a map
+-- set's SurfaceAppearance or a flat colour. Returns false when its images are not uploaded yet.
+local function dress(
+	part: MeshPart,
+	spec: any,
+	mapsName: string?,
+	alphaMode: string?,
+	colour: string?,
+	castShadow: boolean,
+	say: (string) -> ()
+): boolean
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = castShadow
+	part.RenderFidelity = Enum.RenderFidelity.Automatic
+	part.CollisionFidelity = Enum.CollisionFidelity.Box
+	part.TextureID = ""
+	for _, old in part:GetChildren() do
+		if old:IsA("SurfaceAppearance") then
+			old:Destroy()
+		end
+	end
+	part.Material = Enum.Material.SmoothPlastic
+	if mapsName then
+		local maps = spec.Maps[mapsName]
+		if maps == nil then
+			say(
+				("PROBLEM: %s names the map set %s, which Config.Map.Maps does not have."):format(
+					part.Name,
+					mapsName
+				)
+			)
+			return false
+		elseif maps.Color == "" then
+			if alphaMode then
+				part.Transparency = 1 -- bare, an overlay would draw as a solid grey sheet
+			end
+			return false
+		end
+		local sa = Instance.new("SurfaceAppearance")
+		sa.ColorMap = maps.Color
+		if maps.Normal and maps.Normal ~= "" then
+			sa.NormalMap = maps.Normal
+		end
+		if maps.Roughness and maps.Roughness ~= "" then
+			sa.RoughnessMap = maps.Roughness
+		end
+		sa.AlphaMode = (Enum.AlphaMode :: any)[alphaMode or "Overlay"]
+		sa.Parent = part
+	elseif colour then
+		part.Color = Color3.fromHex(colour)
+	end
+	return true
+end
+
+-- Map.Collision.<Group> from the gray-box data's floor and collide rows of one group (the
+-- floor tiled and visible, the rest invisible), and the gray-box parts of that group removed.
+-- Returns a report line.
+local function buildCollision(map: Model, spec: any, data: any, groupName: string): string
+	local existing = map:FindFirstChild(spec.CollisionName)
+	local collision: Instance
+	if existing and existing:IsA("Model") then
+		collision = existing
+	else
+		if existing then
+			existing:Destroy()
+		end
+		local made = Instance.new("Model")
+		made.Name = spec.CollisionName
+		made.Parent = map
+		collision = made
+	end
+	-- Before Stage 3 the collision parts sat straight in the model: clear those.
+	for _, child in collision:GetChildren() do
+		if child:IsA("BasePart") then
+			child:Destroy()
+		end
+	end
+	local folderName = groupName:sub(1, 1):upper() .. groupName:sub(2)
+	local old = collision:FindFirstChild(folderName)
+	if old then
+		old:Destroy()
+	end
+	local folder = Instance.new("Model")
+	folder.Name = folderName
+	local F = spec.Floor
+	local floors, walls = 0, 0
+	for _, r in data.rows do
+		if r.g ~= groupName or (r.role ~= "floor" and r.role ~= "collide") then
+			continue
+		end
+		local part = Instance.new("Part")
+		part.Name = r.n
+		part.Anchored = true
+		part.CanCollide = true
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Shape = (Enum.PartType :: any)[r.s]
+		part.Size = Vector3.new(r.size[1], r.size[2], r.size[3])
+		part.CFrame = rowCFrame(r)
+		part.TopSurface = Enum.SurfaceType.Smooth
+		part.BottomSurface = Enum.SurfaceType.Smooth
+		if r.role == "floor" then
+			part.Material = (Enum.Material :: any)[F.BaseMaterial]
+			part.MaterialVariant = F.Variant
+			part.Color = Color3.fromHex(F.Tint)
+			part.CanQuery = true
+			floors += 1
+		else
+			part.Transparency = 1
+			-- Tall invisible walls stay out of raycasts (the camera); steps stay in.
+			part.CanQuery = not (r.n:find("SafetyWall") or r.n:find("Glass"))
+			walls += 1
+		end
+		part.Parent = folder
+	end
+	folder.Parent = collision
+	local removed = 0
+	local box = map:FindFirstChild(MapBuilder.GrayBoxName)
+	if box then
+		for _, d in box:GetDescendants() do
+			if d:IsA("BasePart") and d:GetAttribute(MapBuilder.GroupAttribute) == groupName then
+				d:Destroy()
+				removed += 1
+			end
+		end
+	end
+	return ("Collision.%s: %d floor parts, %d invisible parts; removed %d gray-box parts."):format(
+		folderName,
+		floors,
+		walls,
+		removed
+	)
+end
+
+--- Edit mode only (MeshPart and MaterialVariant maps are plugin-only writes): turn a fresh
+--- import of the architecture (Config.Map.Architecture) into the map. Safe to run twice.
+---  1. Takes the imported model (Workspace, or the map's from an earlier run), flattens it
+---     and places it by its anchor cubes.
+---  2. Sets up each mesh (Config.Map.Meshes): anchored, never colliding, shadows, automatic
+---     LOD, a SurfaceAppearance from Maps or a flat colour.
+---  3. Makes the floor's MaterialVariant (Config.Map.Floor).
+---  4. Builds Map.Collision.Arch from the gray-box data and removes the gray-box parts of the
+---     architecture.
+---  5. Counts triangles against Config.Map.TriangleCaps.
+--- Returns a report; anything wrong is a line starting "PROBLEM:".
+function MapBuilder.prepareImport(spec: any, data: any): string
+	if game:GetService("RunService"):IsRunning() then
+		error("MapBuilder.prepareImport runs in Edit mode only; stop the play session first")
+	end
+	local lines: { string } = {}
+	local function say(line: string)
+		table.insert(lines, line)
+	end
+	local map = mapModel()
+	local model = takeImport(spec.Architecture, map, spec.Anchors, say)
+	if model == nil then
+		return ("No Model named %s in Workspace. Import assets/map/fbx/Rooftop.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
+			spec.Architecture
+		)
+	end
+	assert(model, "the architecture model")
+
 	for _, child in model:GetChildren() do
 		if child:IsA("MeshPart") and spec.Meshes[child.Name] == nil then
 			say(("PROBLEM: %s is not in Config.Map.Meshes."):format(child.Name))
@@ -283,49 +441,9 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 			say(("PROBLEM: the model has no mesh %s."):format(name))
 			continue
 		end
-		part.Anchored = true
-		part.CanCollide = false
-		part.CanQuery = false
-		part.CanTouch = false
-		part.CastShadow = ms.CastShadow
-		part.RenderFidelity = Enum.RenderFidelity.Automatic
-		part.CollisionFidelity = Enum.CollisionFidelity.Box
-		part.TextureID = ""
-		for _, old in part:GetChildren() do
-			if old:IsA("SurfaceAppearance") then
-				old:Destroy()
-			end
-		end
-		part.Material = Enum.Material.SmoothPlastic
 		part.Transparency = ms.Transparency or 0
-		if ms.Maps then
-			local maps = spec.Maps[ms.Maps]
-			if maps == nil then
-				say(
-					("PROBLEM: %s names the map set %s, which Config.Map.Maps does not have."):format(
-						name,
-						ms.Maps
-					)
-				)
-			elseif maps.Color == "" then
-				say(("%s: no image uploaded yet for %s."):format(name, ms.Maps))
-				if ms.AlphaMode then
-					part.Transparency = 1 -- bare, an overlay would draw as a solid grey sheet
-				end
-			else
-				local sa = Instance.new("SurfaceAppearance")
-				sa.ColorMap = maps.Color
-				if maps.Normal and maps.Normal ~= "" then
-					sa.NormalMap = maps.Normal
-				end
-				if maps.Roughness and maps.Roughness ~= "" then
-					sa.RoughnessMap = maps.Roughness
-				end
-				sa.AlphaMode = (Enum.AlphaMode :: any)[ms.AlphaMode or "Overlay"]
-				sa.Parent = part
-			end
-		elseif ms.Color then
-			part.Color = Color3.fromHex(ms.Color)
+		if not dress(part, spec, ms.Maps, ms.AlphaMode, ms.Color, ms.CastShadow, say) then
+			say(("%s: no image uploaded yet for %s."):format(name, tostring(ms.Maps)))
 		end
 		local tris = triangleCount(part)
 		if tris then
@@ -344,7 +462,7 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 		say("Could not read every mesh's triangles (EditableMesh).")
 	end
 
-	-- 4. The floor's MaterialVariant.
+	-- The floor's MaterialVariant.
 	local F = spec.Floor
 	local MaterialService = game:GetService("MaterialService")
 	local oldVariant = MaterialService:FindFirstChild(F.Variant)
@@ -366,60 +484,204 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 	end
 	variant.Parent = MaterialService
 
-	-- 5. Collision and the floor, from the gray-box data; the gray-box parts they replace go.
-	local oldCollision = map:FindFirstChild(spec.CollisionName)
-	if oldCollision then
-		oldCollision:Destroy()
+	say(buildCollision(map, spec, data, "arch"))
+	return table.concat(lines, "\n")
+end
+
+--- Edit mode only: turn a fresh import of the props (Config.Map.Props.Import) into templates
+--- and place them. Safe to run twice.
+---  1. Takes the imported model (Workspace, or ServerStorage's templates from an earlier run),
+---     flattens it, places it by its anchors and keeps it as ServerStorage.<Templates>.
+---  2. Dresses each template mesh by its group (<Kind>__Opaque, __Foliage, __Glow) and kind.
+---  3. Rebuilds Map.<Placed>: one model per placement in the gray-box data, each a clone of
+---     its kind's meshes turned and scaled into place.
+---  4. Rebuilds Map.<Seats> (invisible Seat parts) and the PointLights.
+---  5. Builds Map.Collision.Props from the gray-box data and removes the gray-box props.
+---  6. Checks triangles, MeshParts and lights against their budgets.
+--- Returns a report; anything wrong is a line starting "PROBLEM:".
+function MapBuilder.prepareProps(spec: any, data: any): string
+	if game:GetService("RunService"):IsRunning() then
+		error("MapBuilder.prepareProps runs in Edit mode only; stop the play session first")
 	end
-	local collision = Instance.new("Model")
-	collision.Name = spec.CollisionName
-	local floors, walls = 0, 0
-	for _, r in data.rows do
-		if r.role ~= "floor" and r.role ~= "collide" then
+	local lines: { string } = {}
+	local function say(line: string)
+		table.insert(lines, line)
+	end
+	local P = spec.Props
+	local map = mapModel()
+	local ServerStorage = game:GetService("ServerStorage")
+	-- The templates live in ServerStorage under the Templates name; a fresh import is renamed.
+	local fresh = workspace:FindFirstChild(P.Import)
+	if fresh and fresh:IsA("Model") then
+		fresh.Name = P.Templates
+		fresh.Parent = workspace
+	end
+	local templates = takeImport(P.Templates, ServerStorage, spec.Anchors, say)
+	if templates == nil then
+		return ("No Model named %s in Workspace. Import assets/map/fbx/Props.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
+			P.Import
+		)
+	end
+	assert(templates, "the props templates")
+
+	-- 2. The template meshes, by kind.
+	local byKind: { [string]: { MeshPart } } = {}
+	local trisByKind: { [string]: number } = {}
+	local counted = true
+	local bare = 0
+	for _, part in templates:GetChildren() do
+		if not part:IsA("MeshPart") then
 			continue
 		end
-		local part = Instance.new("Part")
-		part.Name = r.n
-		part.Anchored = true
-		part.CanCollide = true
-		part.CanTouch = false
-		part.CastShadow = false
-		part.Size = Vector3.new(r.size[1], r.size[2], r.size[3])
-		part.CFrame = rowCFrame(r)
-		part.TopSurface = Enum.SurfaceType.Smooth
-		part.BottomSurface = Enum.SurfaceType.Smooth
-		if r.role == "floor" then
-			part.Material = variant.BaseMaterial
-			part.MaterialVariant = F.Variant
-			part.Color = Color3.fromHex(F.Tint)
-			part.CanQuery = true
-			floors += 1
+		local kind, groupName = part.Name:match("^(.-)__(.+)$")
+		local ks = kind and P.Kinds[kind]
+		local gs = groupName and P.Groups[groupName]
+		if not (kind and ks and gs) then
+			say(("PROBLEM: %s is not a <Kind>__<Group> in Config.Map.Props."):format(part.Name))
+			continue
+		end
+		local shadow = ks.CastShadow and groupName == "Opaque"
+		part.Transparency = 0
+		if not dress(part, spec, gs.Maps, gs.AlphaMode, ks.Glow, shadow, say) then
+			bare += 1
+		end
+		if gs.Material then
+			part.Material = (Enum.Material :: any)[gs.Material]
+		end
+		byKind[kind] = byKind[kind] or {}
+		table.insert(byKind[kind], part)
+		local tris = triangleCount(part)
+		if tris then
+			trisByKind[kind] = (trisByKind[kind] or 0) + tris
 		else
-			part.Transparency = 1
-			-- Tall invisible walls stay out of raycasts (the camera); steps stay in.
-			part.CanQuery = not (r.n:find("SafetyWall") or r.n:find("Glass"))
-			walls += 1
-		end
-		part.Parent = collision
-	end
-	collision.Parent = map
-	local removed = 0
-	local box = map:FindFirstChild(MapBuilder.GrayBoxName)
-	if box then
-		for _, d in box:GetDescendants() do
-			if d:IsA("BasePart") and REPLACED[d:GetAttribute(MapBuilder.RoleAttribute) or ""] then
-				d:Destroy()
-				removed += 1
-			end
+			counted = false
 		end
 	end
+	if bare > 0 then
+		say(
+			("%d template meshes have no images uploaded yet (Config.Map.Maps.Props, Plants)."):format(
+				bare
+			)
+		)
+	end
+
+	-- 3. Place: a clone of the kind's meshes at every placement.
+	local oldPlaced = map:FindFirstChild(P.Placed)
+	if oldPlaced then
+		oldPlaced:Destroy()
+	end
+	local placed = Instance.new("Model")
+	placed.Name = P.Placed
+	local meshParts, total = 0, 0
+	local counts: { [string]: number } = {}
+	for i, p in data.placements do
+		local parts = byKind[p.kind]
+		if not parts then
+			say(("PROBLEM: no template for %s (placement %d)."):format(p.kind, i))
+			continue
+		end
+		local at = CFrame.new(p.cf[1], p.cf[2], p.cf[3]) * CFrame.Angles(0, math.rad(p.cf[4]), 0)
+		local s = p.scale or 1
+		local model = Instance.new("Model")
+		model.Name = ("%s_%02d"):format(p.kind, i)
+		for _, t in parts do
+			local clone = t:Clone()
+			clone.Size = t.Size * s
+			clone.CFrame = at * CFrame.new(t.Position * s) * t.CFrame.Rotation
+			clone.Parent = model
+			meshParts += 1
+		end
+		model.Parent = placed
+		counts[p.kind] = (counts[p.kind] or 0) + 1
+		total += trisByKind[p.kind] or 0
+	end
+	placed.Parent = map
+
+	-- 4. Seats and lights.
+	local oldSeats = map:FindFirstChild(P.Seats)
+	if oldSeats then
+		oldSeats:Destroy()
+	end
+	local seats = Instance.new("Folder")
+	seats.Name = P.Seats
+	for i, seat in data.seats do
+		local part = Instance.new("Seat")
+		part.Name = ("Seat_%02d"):format(i)
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanTouch = true
+		part.CanQuery = false
+		part.CastShadow = false
+		part.Transparency = 1
+		part.Size = Vector3.new(P.SeatSize[1], P.SeatSize[2], P.SeatSize[3])
+		-- A seated character faces the seat's LookVector (-Z), so turn it half round from yaw.
+		part.CFrame = CFrame.new(seat.p[1], seat.p[2] + P.SeatSize[2] / 2, seat.p[3])
+			* CFrame.Angles(0, math.rad(seat.yaw + 180), 0)
+		part.Parent = seats
+	end
+	seats.Parent = map
+	local L = P.Light
+	for i, light in data.lights do
+		local holder = Instance.new("Part")
+		holder.Name = ("Light_%02d"):format(i)
+		holder.Anchored = true
+		holder.CanCollide = false
+		holder.CanTouch = false
+		holder.CanQuery = false
+		holder.CastShadow = false
+		holder.Transparency = 1
+		holder.Size = Vector3.new(0.2, 0.2, 0.2)
+		holder.CFrame = CFrame.new(light.p[1], light.p[2], light.p[3])
+		local point = Instance.new("PointLight")
+		point.Range = L.Range
+		point.Brightness = L.Brightness
+		point.Color = Color3.fromHex(L.Color)
+		point.Shadows = false
+		point.Parent = holder
+		holder.Parent = placed
+	end
+
+	-- 5. Collision.
+	say(buildCollision(map, spec, data, "props"))
+
+	-- 6. Budgets.
+	local kinds = sortedKeys(counts)
+	local parts = {}
+	for _, kind in kinds do
+		table.insert(parts, ("%s %d"):format(kind, counts[kind]))
+	end
+	say(("Placed %d props (%s)."):format(#data.placements, table.concat(parts, ", ")))
+	local cap = spec.TriangleCaps.Props
+	if counted then
+		say(("%d triangles over every placement (cap %d)."):format(total, cap))
+		if total > cap then
+			say(("PROBLEM: %d triangles is over the cap of %d."):format(total, cap))
+		end
+	else
+		say("Could not read every template's triangles (EditableMesh).")
+	end
+	local rooftop = map:FindFirstChild(spec.Architecture)
+	local archParts = if rooftop then #rooftop:GetChildren() else 0
 	say(
-		("Collision: %d floor parts, %d invisible parts; removed %d gray-box parts."):format(
-			floors,
-			walls,
-			removed
+		("%d MeshParts with the architecture's %d (budget %d); %d seats; %d lights."):format(
+			meshParts,
+			archParts,
+			spec.MeshPartBudget,
+			#data.seats,
+			#data.lights
 		)
 	)
+	if meshParts + archParts > spec.MeshPartBudget then
+		say(
+			("PROBLEM: %d MeshParts is over the budget of %d."):format(
+				meshParts + archParts,
+				spec.MeshPartBudget
+			)
+		)
+	end
+	if #data.lights > spec.LightBudget then
+		say(("PROBLEM: %d lights is over the budget of %d."):format(#data.lights, spec.LightBudget))
+	end
 	return table.concat(lines, "\n")
 end
 

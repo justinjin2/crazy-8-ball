@@ -158,4 +158,63 @@ return {
 		check(Day, "Lighting.Day")
 		H.expect(Day.Brightness > 0 and Day.ClockTime >= 0 and Day.ClockTime < 24, "a sane sun")
 	end,
+
+	["every prop kind has a row, a real group and budgets that hold"] = function()
+		local M = H.require("Config").Map
+		local P = M.Props
+		for name, g in P.Groups do
+			if g.Maps then
+				H.expect(
+					M.Maps[g.Maps] ~= nil,
+					("Props.Groups.%s names the map set %s, which Maps lacks"):format(name, g.Maps)
+				)
+			end
+			if g.AlphaMode then
+				H.expect(
+					ALPHA_MODES[g.AlphaMode],
+					("Props.Groups.%s: AlphaMode %s"):format(name, g.AlphaMode)
+				)
+			end
+		end
+		for kind, k in P.Kinds do
+			H.expect(type(k.CastShadow) == "boolean", kind .. ": CastShadow")
+			if k.Glow then
+				H.expect(isHex(k.Glow), kind .. ": Glow is a hex colour")
+			end
+		end
+		H.expect(isHex(P.Light.Color), "Props.Light.Color is a hex colour")
+		-- Every kind gen_props.py built (Props.json) has a row, and every Glow mesh a colour.
+		if fs.isFile("assets/map/Props.json") then
+			local serde = require("@lune/serde")
+			local doc = serde.decode("json", fs.readFile("assets/map/Props.json"))
+			local lights = 0
+			for kind, rec in doc.kinds do
+				H.expect(
+					P.Kinds[kind] ~= nil,
+					("Props.json builds %s, which Config.Map.Props.Kinds lacks"):format(kind)
+				)
+				for _, group in rec.groups do
+					H.expect(
+						P.Groups[group] ~= nil,
+						("%s has a %s mesh, which Props.Groups lacks"):format(kind, group)
+					)
+					if group == "Glow" then
+						H.expect(
+							P.Kinds[kind] and P.Kinds[kind].Glow ~= nil,
+							kind .. " has a Glow mesh but no Glow colour"
+						)
+					end
+				end
+				lights += #rec.lights * rec.placements
+			end
+			H.expect(
+				lights <= M.LightBudget,
+				("%d lights is over the budget of %d"):format(lights, M.LightBudget)
+			)
+			H.expect(
+				doc.total_triangles <= M.TriangleCaps.Props,
+				"the props are over their triangle cap"
+			)
+		end
+	end,
 }
