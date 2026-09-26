@@ -53,7 +53,7 @@ P = {
     'haze_top_deg': 14.0,  # ...fading out by this elevation
     'sky_curve': 0.7,  # the gradient's power (with sky_mid: the pale band over the lowest third)
     'sky_mid': (0.35, 0.45),  # at this far up the gradient, this much of the way to the top colour
-    'sea_band': 0.006,  # below the horizon the sky turns to the far sea over this much of sin(elevation)
+    'sea_band': 0.015,  # below the horizon the sky turns to the far sea over this much of sin(elevation)
     'land_blend': 0.09,  # below it, land toward -X and sea toward +X, blended over this much of the x direction
 }
 
@@ -76,7 +76,9 @@ COLOURS = {
         # Below the horizon toward the city (Roblox -X, where the land runs past the world's
         # edge): the far land's rendered colour (sampled in Studio, Stage 4), so the city's
         # ground meets the sky with no strip of painted sea.
-        'land': '#A89FA8',
+        # (only past the painted land plane's far edge, 0.17 degrees under the horizon: the
+        # horizon's own colour, so no line shows there; Stage 6)
+        'land': '#D4EAFA',
         'cloud_lit': '#F7F8FF',  # the art's sunlit tops read near white; cloud_day is their average
         'cloud_mid': mc.hexc('cloud_day'),
         'cloud_shade': mc.hexc('cloud_day', 'shade'),
@@ -326,18 +328,25 @@ EYE = (0.0, 5.0, 0.0)  # the roof's eye, Roblox studs: the sky is painted from h
 FAR = {
     'ground_from': 500.0,  # the painted land and sea start this far out (the 3D covers the overlap)
     'ground_to': 100000.0,  # and run to here (0.17 degrees under the horizon)
-    'fade_start': 800.0,  # the aerial fade (toward the horizon colour) starts here...
-    'fade_length': 7000.0,  # ...and closes 63% of the way by this far past it (tuned in Studio)
+    'fade_start': 1500.0,  # the aerial fade (toward the horizon colour) starts here...
+    'fade_length': 14000.0,  # ...and closes 63% of the way by this far past it (Stage 6 critic:
+                             # at 7,000 the far world read washed out and ghostly)
     'light_ambient': 0.74,  # a face's light: this, plus light_sun x its sun angle
     'light_sun': 0.26,
     'foot_shade': 0.86,  # a wall's colour at its foot, of its colour at its top
-    'spire_every': 37,  # every this-many tall towers wears a spire (the far landmarks)
+    'spire_every': 37,  # every this-many tall towers wears a spire
+    'landmarks': 6,  # the tallest far towers are raised into landmarks this tall over the roof...
+    'landmark_rise': (260.0, 380.0),
+    'far_blend': 0.45,  # the far islands' greens blended this far toward the art's far island blue-green
+    'hills': (11000.0, 16000.0),  # low blue hills behind the city on the horizon, this far out...
+    'hill_height': (180.0, 520.0),  # ...this tall over the street
 }
 FAR_COLOURS = {
     # The Stage 5 skyline's facade family, flat (a far tower is a few pixels wide).
     'glass': '#8AA4C2', 'white': '#EDE3D7', 'stone': '#D8C8B6', 'terracotta': '#B8917A',
     'roof': '#E4E0DC', 'land': '#9BA592', 'sand': '#F2DCC0',
     'jungle_dark': '#3F6E44', 'jungle': '#4E8550', 'jungle_lit': '#66985A', 'rock': '#8A7F84',
+    'island_far': mc.hexc('island_far'), 'hills': mc.hexc('mountain_far'),
 }
 
 
@@ -475,8 +484,17 @@ def far_city(painted):
     roof = unit(FAR_COLOURS['roof'])
     tall = 0
     count = 0
-    for b in cp.far_blocks():
+    blocks = cp.far_blocks()
+    # The tallest lots ahead-left (the way the player faces) become the far landmarks.
+    ranked = sorted(((lot['height'], b['i'], b['j'], k) for b in blocks for k, lot in enumerate(b['lots'])
+                     if lot['shaft'] and lot['x'] < 0 and lot['z'] < 0), reverse=True)
+    lo, hi = FAR['landmark_rise']
+    marks = {(i, j, k): -W['street_y'] + lo + (hi - lo) * n / max(1, FAR['landmarks'] - 1)
+             for n, (_, i, j, k) in enumerate(ranked[:FAR['landmarks']])}
+    for b in blocks:
         for k, lot in enumerate(b['lots']):
+            if (b['i'], b['j'], k) in marks:
+                lot = dict(lot, height=marks[(b['i'], b['j'], k)], crown=30.0)
             assert lot['dist'] >= W['city_reach'] - 60.0, ('a far lot too near', lot['dist'])
             style = styles[0] if lot['glass'] else styles[1 + (b['i'] * 7 + b['j'] * 3 + k) % 3]
             x, z, w, d = lot['x'], lot['z'], lot['w'], lot['d']
@@ -499,52 +517,93 @@ def far_city(painted):
     return count
 
 
-def far_islands(painted):
-    """The far islands and the coast point: backdrop/islands.py's Island shapes (grid and
-    shore rings only), coloured by its own material() per vertex, the waterline's sand."""
+def paint_island(painted, isle, far):
+    """One island from backdrop/islands.py's shape (grid and shore rings), coloured by its
+    material() per vertex. Far islands lean toward the art's far island blue-green, with rock
+    at the shore instead of a white beach rim (Stage 6 critic)."""
     dark, mid, lit = (unit(FAR_COLOURS[k]) for k in ('jungle_dark', 'jungle', 'jungle_lit'))
     rock, sand = unit(FAR_COLOURS['rock']), unit(FAR_COLOURS['sand'])
+    tint = unit(FAR_COLOURS['island_far'])
 
     def blend(a, b, t):
         return tuple(x + (y - x) * t for x, y in zip(a, b))
 
+    grid = []
+    for row in isle.grid:
+        out = []
+        for p, t, s in row:
+            green, rk = isle.material(t, s)
+            g = blend(dark, mid, green * 2) if green < 0.5 else blend(mid, lit, green * 2 - 1)
+            col = blend(g, rock, rk)
+            if far:
+                col = blend(col, tint, FAR['far_blend'])
+            out.append((p, col))
+        grid.append(out)
+
+    def up_face(pts, cols):
+        ux, uy, uz = (pts[1][i] - pts[0][i] for i in range(3))
+        vx, vy, vz = (pts[2][i] - pts[0][i] for i in range(3))
+        if (uz * vx - ux * vz) < 0:
+            pts, cols = pts[::-1], cols[::-1]
+        painted.face(pts, cols)
+
+    m = len(isle.spokes)
+    for k in range(len(grid) - 1):
+        for j in range(m):
+            jn = (j + 1) % m
+            a0, a1, b0, b1 = grid[k][j], grid[k][jn], grid[k + 1][j], grid[k + 1][jn]
+            for tri in ([(a0, b0, b1)] if k == 0 else [(a0, b0, b1), (a0, b1, a1)]):
+                up_face([v[0] for v in tri], [v[1] for v in tri])
+    edge = [v[0] for v in grid[-1]]
+    shore = blend(rock, tint, 0.3) if far else sand
+    for j in range(m):
+        jn = (j + 1) % m
+        for ring_a, ring_b in ((edge, isle.water), (isle.water, isle.floor)):
+            up_face([ring_a[j], ring_b[j], ring_b[jn], ring_a[jn]], [shore] * 4)
+
+
+def far_islands(painted):
+    """The far islands and the coast point (city_plan.FAR_ISLANDS), and the near islands too:
+    at low graphics levels phones draw none of the 3D ones, and where the 3D ones do draw they
+    cover their painted twins (the 3D water hides what parallax would show below the
+    horizon)."""
     for n, (kind, az, dist, radius, height) in enumerate(cp.FAR_ISLANDS):
         assert cp.far_island_at_sea(az, dist, radius), ('a far island off the sea', kind, az)
         isle = near_islands.Island(100 + n, 9, kind, az, dist, radius, height)
         isle.shape()
-        grid = []
-        for row in isle.grid:
-            out = []
-            for p, t, s in row:
-                green, rk = isle.material(t, s)
-                g = blend(dark, mid, green * 2) if green < 0.5 else blend(mid, lit, green * 2 - 1)
-                out.append((p, blend(g, rock, rk)))
-            grid.append(out)
-        m = len(isle.spokes)
-        for k in range(len(grid) - 1):
-            for j in range(m):
-                jn = (j + 1) % m
-                a0, a1, b0, b1 = grid[k][j], grid[k][jn], grid[k + 1][j], grid[k + 1][jn]
-                tris = [(a0, b0, b1)] if k == 0 else [(a0, b0, b1), (a0, b1, a1)]
-                for tri in tris:
-                    pts = [v[0] for v in tri]
-                    cols = [v[1] for v in tri]
-                    # Face up (outward from the summit): flip if the winding points down.
-                    ux, uy, uz = (pts[1][i] - pts[0][i] for i in range(3))
-                    vx, vy, vz = (pts[2][i] - pts[0][i] for i in range(3))
-                    if (uz * vx - ux * vz) < 0:
-                        pts, cols = pts[::-1], cols[::-1]
-                    painted.face(pts, cols)
-        edge = [v[0] for v in grid[-1]]
-        for j in range(m):
-            jn = (j + 1) % m
-            for ring_a, ring_b in ((edge, isle.water), (isle.water, isle.floor)):
-                pts = [ring_a[j], ring_b[j], ring_b[jn], ring_a[jn]]
-                ux, uy, uz = (pts[1][i] - pts[0][i] for i in range(3))
-                vx, vy, vz = (pts[2][i] - pts[0][i] for i in range(3))
-                if (uz * vx - ux * vz) < 0:
-                    pts = pts[::-1]
-                painted.face(pts, [sand] * 4)
+        paint_island(painted, isle, far=True)
+    for isle in near_islands.make_islands():
+        paint_island(painted, isle, far=False)
+
+
+def far_hills(painted, rng):
+    """Low blue hills along the city side's horizon, far behind the city (the art's distant
+    ranges): a ridge line of peaks round the city's arc, faded almost to the sky."""
+    W = cp.WORLD
+    colour = unit(FAR_COLOURS['hills'])
+    d0, d1 = FAR['hills']
+    h0, h1 = FAR['hill_height']
+    base = W['street_y'] - 20.0
+    steps = 90
+    prev = None
+    for k in range(steps + 1):
+        az = -175.0 + 170.0 * k / steps  # from behind the spawn round to straight ahead, via the city
+        a = math.radians(az)
+        d = rng.uniform(d0, d1)
+        h = W['street_y'] + rng.uniform(h0, h1) * (0.6 + 0.4 * math.sin(k * 0.37) ** 2)
+        top = (d * math.sin(a), h, -d * math.cos(a))
+        foot = ((d - 800.0) * math.sin(a), base, -(d - 800.0) * math.cos(a))
+        if prev:
+            pts = [prev[1], foot, top, prev[0]]
+            ux, uy, uz = (pts[1][i] - pts[0][i] for i in range(3))
+            vx, vy, vz = (pts[2][i] - pts[0][i] for i in range(3))
+            nx = uy * vz - uz * vy
+            nz = ux * vy - uy * vx
+            # face the eye (the origin): the normal points toward -position
+            if nx * top[0] + nz * top[2] > 0:
+                pts = pts[::-1]
+            painted.face(pts, [colour] * 4)
+        prev = (top, foot)
 
 
 def build_far(scene, c, sun):
@@ -558,6 +617,9 @@ def build_far(scene, c, sun):
     isles = Painted()
     far_islands(isles)
     isles.to_object('FarIslands', lit_mat)
+    hills = Painted()
+    far_hills(hills, random.Random(SEED + 7))
+    hills.to_object('FarHills', flat_mat)
     print('far world: %d lots, %d city faces, %d island faces' % (lots, len(city.faces), len(isles.faces)))
 
 

@@ -166,15 +166,16 @@ def blocks(rng_for, reach=None, make_lot=None):
 
 
 def far_lot(rng, x, z, w, d_, dist, behind):
-    """A far lot (painted): about 45% towers rising 100 to 400 studs over the roof, the rest
-    mid-rise; behind the spawn low, as the mid city's. Same record as lot()."""
+    """A far lot (painted): about 30% towers rising 40 to 220 studs over the roof, the rest
+    mid-rise; behind the spawn low, as the mid city's. Same record as lot(). (Stage 6 critic:
+    a taller mix read as a wall of spires.)"""
     podium = rng.uniform(12, 30)
     if behind:
         height = rng.uniform(40, 160)
-    elif rng.random() < 0.45:
-        height = 300 + rng.uniform(100, 400)
+    elif rng.random() < 0.3:
+        height = 300 + rng.uniform(40, 220)
     else:
-        height = rng.uniform(120, 300)
+        height = rng.uniform(100, 280)
     rec = {'x': x, 'z': z, 'w': w, 'd': d_, 'dist': dist, 'behind': behind, 'podium': podium,
            'height': height, 'far': True, 'glass': rng.random() < 0.4, 'top': 0.0, 'shaft': None, 'crown': 0.0}
     if height <= podium + 4:
@@ -283,6 +284,14 @@ FAR_ISLANDS = [
     ('hill', 126.67, 4588.0, 133.4, 184.1),
     ('hill', 120.89, 4824.8, 221.0, 267.3),
     ('hill', 100.0, 3400.0, 420.0, 120.0),  # the coast point: a long low headland with beaches
+    # Small low islands along the right horizon (Stage 6 critic: the art's is full of them).
+    ('islet', 78.0, 6200.0, 90.0, 70.0),
+    ('islet', 86.0, 5900.0, 70.0, 55.0),
+    ('hill', 93.0, 6500.0, 150.0, 110.0),
+    ('islet', 118.0, 6100.0, 80.0, 60.0),
+    ('hill', 133.0, 6300.0, 160.0, 130.0),
+    ('islet', 140.0, 5800.0, 75.0, 50.0),
+    ('islet', 52.0, 6400.0, 85.0, 65.0),
 ]
 
 
