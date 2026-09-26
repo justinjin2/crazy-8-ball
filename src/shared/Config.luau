@@ -2130,13 +2130,11 @@ Config.UI = {
 		OverlayTransparency = 0.9, -- only 10% dimming while spin is selected
 		BallColor = { 244, 244, 236 },
 		DotColor = { 220, 75, 70 },
-		CenterColor = { 150, 154, 165 },
 		-- Cue-angle slider beside the strike ball (jump shots, 2026-09-24). Tap or drag the
 		-- track; the thumb shows the angle in degrees; top is the steepest.
 		AngleColumnPx = 60, -- the slider's column, right of the ball
 		AngleTrackWidthPx = 10,
 		AngleThumbHeightPx = 30,
-		AngleTrackColor = { 70, 74, 84 },
 		-- A raised cue shows its angle under the left toggle, so it is never forgotten.
 		AngleBadgeHeightPx = 22,
 	},
@@ -2157,6 +2155,8 @@ Config.UI = {
 	-- and the PULL label sits 28 px above the bar, so anything under about 0.13 puts the
 	-- label behind that button. (tune)
 	PowerBarTopFraction = 0.145,
+	PowerBarTransparency = 0.15, -- the white track, a little see-through over the table
+	PowerLabelSize = 18, -- PULL and the percentage over the bar
 
 	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
 	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull
@@ -2171,10 +2171,7 @@ Config.UI = {
 	-- Slices used to draw the taper. A Frame cannot be a trapezoid, so the cue is built
 	-- from thin bands; enough of them and the steps disappear. (tune)
 	PowerCueSlices = 44,
-	-- Colours (RGB 0-255).
-	Accent = { 255, 205, 60 },
-	Panel = { 20, 20, 24 },
-	PanelTransparency = 0.35,
+	StatusTransparency = 0.35, -- the developer status line's ink backing (Config.Debug.ShowStatus)
 
 	-- The sign over a table's queue box (src/client/TableSign.luau). Only one shows: over the
 	-- table you walk right up to, popping in, and never while you are in a box or playing
@@ -2469,14 +2466,6 @@ Config.Multiplayer = {
 		JoinSoundMaxDistance = 60, -- studs until silent
 	},
 	Style = {
-		PanelTop = { 36, 42, 51 }, -- gradient upper tone
-		Active = { 92, 223, 157 }, -- current shooter and legal placement
-		Danger = { 242, 104, 112 }, -- foul and low clock
-		Selected = { 91, 177, 255 }, -- selected pocket
-		Disabled = { 77, 84, 94 }, -- inactive ball/portrait fill
-		Radius = 12, -- component corner radius in pixels
-		PressedScale = 0.97, -- small button press response
-		PanelEntranceScale = 0.97, -- restrained modal/result entrance
 		QuickMotion = 0.15, -- hover transitions in seconds
 		Motion = 0.25, -- status and ball emphasis in seconds
 		PulsePeriod = 1.8, -- local queue/pocket pulse period
@@ -2505,6 +2494,7 @@ Config.Multiplayer = {
 		ShortSetupHeight = 36, -- one-line placement instruction on short screens
 		SetupHeight = 44, -- one-line placement instruction
 		SetupMinWidth = 220, -- narrower than this, the instruction stacks above the precision row
+		SetupMaxWidth = 560, -- the ball-in-hand hint pill at its widest
 		MobileBreakpoint = 760, -- stack central status below teams
 		NarrowBreakpoint = 480, -- use two ball rows
 		PortraitSize = 48, -- square avatar beside the ball row, its name under it
@@ -2527,7 +2517,9 @@ Config.Multiplayer = {
 		PrecisionAngleDegrees = 0.5, -- aim button step
 		PrecisionMoveInches = 1, -- placement button step
 		PrecisionPowerStep = 0.05, -- power button step
-		TargetStroke = 2.5, -- readable blue selection outline
+		TargetStroke = 4, -- the coloured ring round a pocket target or the ball in hand
+		TargetInkPx = 2, -- the ink outline just outside it
+		PlacementIconPx = 26, -- the glove on the ball-in-hand ring
 		-- The foul popup (no panel, designer 2026-09-25): FOUL! and a few words on the rule.
 		FoulCardSeconds = 3, -- up this long from the foul (it was 8, a card that stayed too long)
 		FoulCardFadeSeconds = 0.4, -- and fades out over its last part
@@ -2573,19 +2565,9 @@ Config.Multiplayer = {
 		TargetHeightInches = 1.5, -- selection targets above cloth
 		TargetPulse = 0.15, -- bounded ring pulse
 		BreakDotSpacingInches = 2, -- dotted break line spacing
-		Panel = { 20, 23, 29 }, -- dark neutral HUD
-		PanelLight = { 36, 42, 51 }, -- restrained gradient
-		Text = { 244, 247, 250 }, -- primary copy
-		Muted = { 159, 171, 186 }, -- secondary copy
-		Green = { 92, 223, 157 }, -- active/ready
-		Red = { 242, 104, 112 }, -- foul/urgency
-		Blue = { 91, 177, 255 }, -- called pockets
-		Gold = { 255, 205, 60 }, -- established cue controls/coin
-		White = { 235, 241, 248 }, -- empty slot
-		Border = { 81, 96, 113 }, -- subtle panel outline
-		CornerPx = 12, -- shared corner shape
+		Green = { 92, 223, 157 }, -- the glow on your own balls on the table (Main)
+		Red = { 242, 104, 112 }, -- the guideline's red X on a wrong target (Guideline)
 		FadeSeconds = 0.25, -- panel/status motion
-		ControlSeconds = 0.15, -- hover/press motion
 		PulseSeconds = 1.8, -- calm ambient pulse
 	},
 }

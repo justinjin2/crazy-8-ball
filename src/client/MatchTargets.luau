@@ -18,14 +18,12 @@ local Rules = Shared:WaitForChild("Rules")
 local CuePlacement = require(Rules:WaitForChild("CuePlacement"))
 local Engine = require(Rules:WaitForChild("MatchEngine"))
 local Judge = require(Rules:WaitForChild("ShotJudge"))
+local HudParts = require(script.Parent.HudParts)
 local M = Config.Multiplayer
 local S = M.Style
+local tone = HudParts.tone
 local MatchTargets = {}
 MatchTargets.__index = MatchTargets
-
-local function color(values: { number }): Color3
-	return Color3.fromRGB(values[1], values[2], values[3])
-end
 
 local function round(object: Instance)
 	local corner = Instance.new("UICorner")
@@ -33,12 +31,14 @@ local function round(object: Instance)
 	corner.Parent = object
 end
 
+-- A round target: a coloured ring with a thin ink outline round it (the kit's look), and a
+-- caption under it. Returns the button, its coloured stroke, the ink stroke and the caption.
 local function ring(
 	parent: Instance,
 	name: string,
 	size: number,
 	tint: Color3
-): (TextButton, UIStroke, TextLabel)
+): (TextButton, UIStroke, UIStroke, TextLabel)
 	local button = Instance.new("TextButton")
 	button.Name = name
 	button.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -55,18 +55,26 @@ local function ring(
 	stroke.Color = tint
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	stroke.Parent = button
-	local caption = Instance.new("TextLabel")
-	caption.BackgroundTransparency = 1
+	-- The ink sits just outside the colour, so the ring reads on bright cloth.
+	local outer = Instance.new("Frame")
+	outer.Name = "Ink"
+	outer.BackgroundTransparency = 1
+	outer.AnchorPoint = Vector2.new(0.5, 0.5)
+	outer.Position = UDim2.fromScale(0.5, 0.5)
+	outer.Size = UDim2.new(1, S.TargetStroke * 2, 1, S.TargetStroke * 2)
+	outer.Active = false
+	outer.Parent = button
+	round(outer)
+	local ink = Instance.new("UIStroke")
+	ink.Thickness = S.TargetInkPx
+	ink.Color = tone("Ink")
+	ink.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	ink.Parent = outer
+	local caption = HudParts.text(button, "Caption", S.NameSize, "", tint)
+	caption.TextWrapped = false
 	caption.Position = UDim2.new(-0.5, 0, 1, S.HeaderGap / 2)
-	caption.Size = UDim2.fromScale(2, 0.4)
-	caption.Font = Enum.Font.GothamBold
-	caption.TextSize = S.NameSize
-	caption.TextColor3 = tint
-	caption.TextStrokeColor3 = color(S.Panel)
-	caption.TextStrokeTransparency = 0.1
-	caption.Text = ""
-	caption.Parent = button
-	return button, stroke, caption
+	caption.Size = UDim2.new(2, 0, 0, S.NameSize + 6)
+	return button, stroke, ink, caption
 end
 
 local function unpackBalls(snapshot: any): { any }
@@ -128,11 +136,17 @@ function MatchTargets.new(
 	self.root.Size = UDim2.fromScale(1, 1)
 	self.root.Parent = parent
 	for id = 1, 6 do
-		local button, stroke, caption =
-			ring(self.root, "Pocket" .. id, S.TargetSize, color(S.Selected))
+		local button, stroke, ink, caption =
+			ring(self.root, "Pocket" .. id, S.TargetSize, tone("Blue"))
 		caption.Text = string.format(Strings.Match.PocketLabel, id)
-		local item: any =
-			{ id = id, button = button, stroke = stroke, caption = caption, hover = false }
+		local item: any = {
+			id = id,
+			button = button,
+			stroke = stroke,
+			ink = ink,
+			caption = caption,
+			hover = false,
+		}
 		table.insert(self.pockets, item)
 		button.Activated:Connect(function()
 			if self:canCall() then
@@ -156,9 +170,16 @@ function MatchTargets.new(
 	end
 	-- The ring is the grab target. Being a GUI button, a press on it arrives gameProcessed,
 	-- so Input's aim drag never sees it.
-	self.handle, self.handleStroke, self.handleCaption =
-		ring(self.root, "CueBallPlacement", S.PlacementHandleSize, color(S.Active))
+	self.handle, self.handleStroke, self.handleInk, self.handleCaption =
+		ring(self.root, "CueBallPlacement", S.PlacementHandleSize, tone("Green"))
 	self.handleCaption.Text = Strings.Match.PlacementHandle
+	-- A glove on the ring: this ball is in your hand.
+	local hand = HudParts.icon(self.handle, "Hand")
+	hand.AnchorPoint = Vector2.new(0.5, 0.5)
+	hand.Position = UDim2.fromScale(0.92, 0.08)
+	hand.Size = UDim2.fromOffset(S.PlacementIconPx, S.PlacementIconPx)
+	hand.Active = false
+	self.handleIcon = hand
 	self.handle.Selectable = false -- gamepad moves the ball with LT + stick or the arrows
 	table.insert(
 		self.connections,
@@ -535,6 +556,8 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		target.stroke.Transparency = if target.hover
 			then 0
 			else S.TargetPulse + pulse * S.TargetPulse
+		target.ink.Enabled = highlighted
+		target.ink.Transparency = target.stroke.Transparency
 		target.caption.Visible = highlighted
 			and (target.hover or chosen or snapshot.phase == "PocketChoice")
 		local size = S.TargetSize * (1 + (if chosen then S.TargetPulse * pulse else 0))
@@ -561,10 +584,12 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 		self.handle.Position = UDim2.fromOffset(point.X, point.Y)
 		self.handle.Size = UDim2.fromOffset(size, size)
 		self.handle.Visible = visible and a.Z > 0
-		self.handleStroke.Color = color(if self.blocked then S.Danger else S.Active)
+		self.handleStroke.Color = if self.blocked then tone("Red") else tone("Green")
 		self.handleCaption.TextColor3 = self.handleStroke.Color
 		self.handleCaption.Visible = not self:isHolding()
+		self.handleIcon.Visible = not self:isHolding()
 		self.handleStroke.Transparency = if self:isHolding() then 0 else pulse * S.TargetPulse
+		self.handleInk.Transparency = self.handleStroke.Transparency
 	else
 		self.handle.Visible = false
 	end
@@ -582,7 +607,7 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			dot.Name = "BreakLineDot"
 			dot.BorderSizePixel = 0
 			dot.AnchorPoint = Vector2.new(0.5, 0.5)
-			dot.BackgroundColor3 = color(S.Text)
+			dot.BackgroundColor3 = tone("White")
 			dot.Size = UDim2.fromOffset(S.HeaderGap / 2, S.HeaderGap / 2)
 			dot.Parent = self.root
 			round(dot)

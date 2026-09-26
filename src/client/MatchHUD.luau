@@ -628,10 +628,10 @@ function MatchHUD.layout(self: any)
 	-- button in the corner, or stacked above it when the screen is too narrow for both.
 	local precisionWidth = S.ButtonHeight * 3.4
 	local setupHeight = if short then S.ShortSetupHeight else S.SetupHeight
-	local setupWidth = math.min(S.ModalWidth, width - 2 * (margin + precisionWidth + gap))
+	local setupWidth = math.min(S.SetupMaxWidth, width - 2 * (margin + precisionWidth + gap))
 	self.setupStacked = setupWidth < S.SetupMinWidth
 	if self.setupStacked then
-		setupWidth = math.min(S.ModalWidth, width - margin * 2)
+		setupWidth = math.min(S.SetupMaxWidth, width - margin * 2)
 	end
 	self.setup.Position =
 		UDim2.new(0.5, 0, 1, -(margin + (if self.setupStacked then S.ButtonHeight + gap else 0)))

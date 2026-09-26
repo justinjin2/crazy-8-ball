@@ -125,7 +125,8 @@ outlines and a faint pool-ball pattern, candy buttons, glossy icons. Choices: DE
   controls.
 - [x] **Queue area.** The host menu (difficulty tiles with aim-line icons), the floor box, and
   the table sign that pops up only when you walk right up to that table.
-- [ ] **Everything else.** Pocket targets, the power bar and the spin panel.
+- [x] **Everything else.** Pocket targets, the ball-in-hand ring, the power bar and the spin
+  panel.
 - [ ] **Checked on every device.** PC, phone-sized screens and gamepad selection in Studio;
   the designer's look; a real phone and controller.
 

@@ -1,6 +1,6 @@
 --!strict
--- UI: the in-match screen elements. The leave button and a developer status line. Built to
--- work with one thumb on a phone.
+-- UI: the shared ScreenGui every screen parents into, and a developer status line. (Leave
+-- lives in the match screen's status card, MatchHUD.)
 --
 -- The power control is NOT here: it is a cue you drag, and it lives in PowerCue.luau. This
 -- module owns the shared ScreenGui that it and everything else parents into.
@@ -10,14 +10,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
-local Strings = require(Shared:WaitForChild("Strings"))
 
 local UI = {}
 
 local gui: ScreenGui? = nil
 local statusLabel: TextLabel? = nil
 local playControls: { GuiObject } = {}
-local leaveButton: TextButton? = nil
 
 -- The status line is a developer readout, not part of the game, so it is off unless somebody
 -- asks for it. Two things have to agree before it shows: the player is at a table, and the
@@ -47,18 +45,6 @@ local function ensureGui(): ScreenGui
 	return screen
 end
 
-local function styleButton(button: TextButton)
-	button.BackgroundColor3 = rgb(Config.UI.Panel)
-	button.BackgroundTransparency = Config.UI.PanelTransparency
-	button.TextColor3 = Color3.new(1, 1, 1)
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = 22
-	button.AutoButtonColor = true
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
-	corner.Parent = button
-end
-
 --- The shared HUD layer. PowerCue parents into this rather than making a second ScreenGui,
 --- so there is one place that decides what is on screen during a match.
 function UI.screen(): ScreenGui
@@ -82,10 +68,10 @@ function UI.setStatus(text: string)
 	if not statusLabel then
 		local label = Instance.new("TextLabel")
 		label.Name = "Status"
-		label.BackgroundColor3 = rgb(Config.UI.Panel)
-		label.BackgroundTransparency = Config.UI.PanelTransparency
+		label.BackgroundColor3 = rgb(Config.UI.Kit.Colors.Ink)
+		label.BackgroundTransparency = Config.UI.StatusTransparency
 		label.TextColor3 = Color3.new(1, 1, 1)
-		label.Font = Enum.Font.Gotham
+		label.Font = (Enum.Font :: any)[Config.UI.Kit.Font]
 		label.TextSize = 16
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.TextYAlignment = Enum.TextYAlignment.Top
@@ -120,25 +106,6 @@ function UI.setPlayControlsVisible(visible: boolean)
 	end
 	playVisible = visible
 	refreshStatus()
-	if leaveButton then
-		leaveButton.Visible = visible
-	end
-end
-
---- A "Leave table" button in the top-right corner.
-function UI.createLeaveButton(onLeave: () -> ())
-	local button = Instance.new("TextButton")
-	button.Name = "Leave"
-	button.Text = Strings.LeaveTable
-	button.AnchorPoint = Vector2.new(1, 0)
-	button.Position = UDim2.new(1, -18, 0, 12)
-	button.Size = UDim2.fromOffset(120, 40)
-	styleButton(button)
-	button.TextSize = 16
-	button.Visible = false
-	button.Parent = ensureGui()
-	button.Activated:Connect(onLeave)
-	leaveButton = button
 end
 
 return UI

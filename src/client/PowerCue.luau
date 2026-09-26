@@ -10,6 +10,9 @@
 -- (Roadmap 5.2). CueArt does the arithmetic and is Lune-tested; this module only turns its
 -- slices into Frames.
 --
+-- In the UI kit's look (docs/UI_STYLE.md): a white track with an ink outline, and a fill that
+-- runs green to yellow to red as the pull grows.
+--
 -- A Frame cannot be a trapezoid, so the taper is built from thin bands stacked tip to butt.
 -- Every position and size is in SCALE rather than pixels, so the whole control is resolution
 -- independent and the pull reads the same on a phone and a monitor.
@@ -21,6 +24,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CueArt = require(Shared:WaitForChild("CueArt"))
+local HudParts = require(script.Parent.HudParts)
+local K = Config.UI.Kit
 
 local PowerCue = {}
 PowerCue.__index = PowerCue
@@ -104,8 +109,8 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, U.PowerBarTopFraction, 0)
 	-- Height follows the screen so the whole bar, and the whole pull, fits a phone.
 	bar.Size = UDim2.new(0, U.PowerBarWidthPx, U.PowerBarHeightFraction, 0)
-	bar.BackgroundColor3 = rgb(U.Panel)
-	bar.BackgroundTransparency = U.PanelTransparency
+	bar.BackgroundColor3 = rgb(K.Colors.White)
+	bar.BackgroundTransparency = U.PowerBarTransparency
 	bar.AutoButtonColor = false
 	bar.Parent = screen
 
@@ -115,44 +120,40 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	limit.Parent = bar
 
 	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 12)
+	corner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
 	corner.Parent = bar
 
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.new(1, 1, 1)
-	stroke.Transparency = 0.6
-	stroke.Thickness = 1.5
+	stroke.Color = rgb(K.Colors.Ink)
+	stroke.Thickness = K.ButtonStrokePx
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	stroke.Parent = bar
+	local fade = Instance.new("UIGradient")
+	fade.Rotation = 90
+	fade.Color = ColorSequence.new(rgb(K.Colors.White), rgb(K.PanelFade))
+	fade.Parent = bar
 
 	-- Fill charges from the top as the player pulls down, behind the cue.
 	local fill = Instance.new("Frame")
 	fill.Name = "Fill"
-	fill.BackgroundColor3 = rgb(U.Accent)
+	fill.BackgroundColor3 = rgb(K.Colors.Green)
 	fill.BorderSizePixel = 0
 	fill.Size = UDim2.fromScale(1, 0)
 	fill.ZIndex = 1
 	fill.Parent = bar
 	local fillCorner = Instance.new("UICorner")
-	fillCorner.CornerRadius = UDim.new(0, 12)
+	fillCorner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
 	fillCorner.Parent = fill
 
 	local cue = buildCue(bar, styleName or Config.Cue.DefaultStyle)
 
-	local text = Instance.new("TextLabel")
-	text.Name = "Percent"
-	text.BackgroundTransparency = 1
-	text.Size = UDim2.new(1, 0, 0, 24)
-	text.Position = UDim2.new(0, 0, 1, 4)
-	text.TextColor3 = Color3.new(1, 1, 1)
-	text.Font = Enum.Font.GothamBold
-	text.TextSize = 14
-	text.Text = Strings.Pull
-	text.Size = UDim2.new(1, 0, 0, 24)
+	local text = HudParts.text(bar, "Percent", U.PowerLabelSize, Strings.Pull)
+	text.TextWrapped = false
+	text.Size = UDim2.new(1, 16, 0, U.PowerLabelSize + 6)
 	-- ABOVE the bar. At full pull the cue hangs well below it, and a label underneath would
 	-- be sitting behind the cue exactly when it has the most to say.
-	text.AnchorPoint = Vector2.new(0, 1)
-	text.Position = UDim2.fromOffset(0, -4)
-	text.Parent = bar
+	text.AnchorPoint = Vector2.new(0.5, 1)
+	text.Position = UDim2.new(0.5, 0, 0, -4)
 
 	return setmetatable({
 		root = bar,
@@ -171,6 +172,11 @@ function PowerCue.setPull(self: PowerCue, pull: number?)
 	self.pull = value
 	self.cue.Position = UDim2.fromScale(0.5, value * travelScale())
 	self.fill.Size = UDim2.fromScale(1, value)
+	-- Green for a soft touch, through yellow, to red at full power.
+	local green, yellow, red = rgb(K.Colors.Green), rgb(K.Colors.Gold), rgb(K.Colors.Red)
+	self.fill.BackgroundColor3 = if value < 0.5
+		then green:Lerp(yellow, value * 2)
+		else yellow:Lerp(red, (value - 0.5) * 2)
 	self.text.Text = if pull
 		then Strings.PowerPercent:format(math.floor(value * 100 + 0.5))
 		else Strings.Pull
