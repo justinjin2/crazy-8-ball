@@ -372,3 +372,36 @@ stages that build the real thing:
 - **Palms (Checkpoint B):** the art has ferns and tall lanterns flanking the stair rather
   than palms; the palms at the pergola ends rise clear of its roof (about 38 and 30).
 - **Light (Stages 4 and 7):** a crisp deep-blue horizon; the floor must not glare white.
+- **Stage 3 critic, carried forward.** Three rounds, the cap.
+
+  | Area | Round 1 | Round 2 | Round 3 |
+  |---|---|---|---|
+  | Layout | 5 | 6 | 6 |
+  | Silhouettes | 5 | 5 | 5 |
+  | Palette | 4 | 4 | 5 |
+  | Materials | 4 | 4 | 4 |
+  | Lighting | 3 | 3 | 3 |
+  | Backdrop | 2 | 2 | 3 |
+  | Calm | 6 | 6 | 6 |
+  | Phone readability | 5 | 6 | 5 |
+
+  - **Contradictions, kept as measured.** The rounds disagreed on these:
+    - the fire pit's drum (round 1: light stone; round 3: grey-taupe);
+    - the planters (white in 03; grey in the entrance panel only);
+    - the fire pit's blue ring and the dark loungers, which 03 has.
+  - **Glows (Stage 7).** Neon renders a colour much lighter than its value. The day art's
+    lantern glass is pale yellow; 03's dusk glass is amber. Stage 7 sets the glow colour per
+    light state.
+  - **Globes (Stage 7).** Round 3 wanted the globes hung lower into the lounge view. They hang
+    5.6 under the fascia, and a lower hang needs a longer cord in the mesh.
+  - **Foliage (Stage 4).** Round 3 found the greens lime; the measured greens were taken
+    under the art's warm light. The fix, built and tried: in `props/plants_textures.py`, turn
+    each leaf and palm stop 18 degrees of hue toward green and scale its brightness by 0.88.
+    Its upload (rbxassetid://130898709634640) never loaded in Studio (still processing or
+    held by moderation), so the old atlas stays. Retry at Stage 4.
+  - **Sofas.** Round 3 wanted taller backs and a walnut plinth. The backs are at player scale
+    (2.3 to 2.6); the designer decides.
+  - **Thinning** is the designer's call at Checkpoint B:
+    - fewer back-corner palms;
+    - ferns instead of palms beside the stair;
+    - the edge troughs merged into longer runs.

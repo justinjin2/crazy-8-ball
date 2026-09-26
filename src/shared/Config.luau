@@ -2716,7 +2716,7 @@ Config.Map = {
 			LoungeCouch = { CastShadow = true },
 			SideCouch = { CastShadow = true },
 			CoffeeTable = { CastShadow = false },
-			FirePit = { CastShadow = true, Glow = "#D6862E" }, -- the flame, orange (fire and its shade)
+			FirePit = { CastShadow = true, Glow = "#C25A1E" }, -- the flame: deeper still, or Neon reads it lemon (critic 3)
 			FernPlanter = { CastShadow = false },
 			PalmPlanter = { CastShadow = true },
 			Palm = { CastShadow = false },

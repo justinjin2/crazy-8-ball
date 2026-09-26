@@ -398,4 +398,16 @@ One line per stage: date, stage, result, commit.
   - The last round's pergola change (3 bays, taller; 3,790 triangles) is built but not yet
     imported: it goes in with Stage 3's import.
   - Commits 9b098db, 6f6c794, e845f10, 237a2e8, 9aab8e7. Next: Stage 3 (props).
+- 2026-09-26: Stage 3 done (three critic rounds, the cap).
+  - The props are built in Blender by gen_props.py and three family modules (seating,
+    plants, lights), one template per kind. MapBuilder.prepareProps clones the templates to
+    the plan's spots, with invisible collision, Seat parts and lights.
+  - In Studio: 93 props, 62,739 triangles (matching Blender; cap 140,000), 175 MeshParts,
+    32 seats and 3 lights.
+  - Play: 25 of 25 paths, 7 of 7 edge pushes, and every seat type sits and stands facing the
+    right way.
+  - Critic: layout 5, 6, 6; palette 4, 4, 5; calm 6 each round. Lighting and backdrop wait
+    for Stages 4 to 7. The notes carried forward are in Spec section 9.
+  - Commits 0425b88, 816f52d, 073496f, 9930514, and round three's.
+  - Waiting at CHECKPOINT B.
 
