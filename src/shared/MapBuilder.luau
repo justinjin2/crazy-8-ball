@@ -507,8 +507,10 @@ end
 ---  4. Rebuilds Map.<Seats> (invisible Seat parts) and the PointLights.
 ---  5. Builds Map.Collision.Props from the gray-box data and removes the gray-box props.
 ---  6. Checks triangles, MeshParts and lights against their budgets.
+--- lighting is Config.Lighting: the glow colours and the lights start as its Day (the client's
+--- DayCycle, or MapLighting.preview, then lights them by the cycle).
 --- Returns a report; anything wrong is a line starting "PROBLEM:".
-function MapBuilder.prepareProps(spec: any, data: any): string
+function MapBuilder.prepareProps(spec: any, data: any, lighting: any): string
 	if game:GetService("RunService"):IsRunning() then
 		error("MapBuilder.prepareProps runs in Edit mode only; stop the play session first")
 	end
@@ -516,7 +518,9 @@ function MapBuilder.prepareProps(spec: any, data: any): string
 	local function say(line: string)
 		table.insert(lines, line)
 	end
+	assert(lighting and lighting.Day, "prepareProps needs Config.Lighting (its third argument)")
 	local P = spec.Props
+	local day = lighting.Day
 	local map = mapModel()
 	local ServerStorage = game:GetService("ServerStorage")
 	-- The templates live in ServerStorage under the Templates name; a fresh import is renamed.
@@ -551,7 +555,16 @@ function MapBuilder.prepareProps(spec: any, data: any): string
 		end
 		local shadow = ks.CastShadow and groupName == "Opaque"
 		part.Transparency = 0
-		if not dress(part, spec, gs.Maps, gs.AlphaMode, ks.Glow, shadow, say) then
+		local glow = if groupName == "Glow" then day.Glow[kind] else nil
+		if groupName == "Glow" and glow == nil then
+			say(
+				("PROBLEM: %s has a Glow mesh but Config.Lighting.Day.Glow has no %s."):format(
+					kind,
+					kind
+				)
+			)
+		end
+		if not dress(part, spec, gs.Maps, gs.AlphaMode, glow, shadow, say) then
 			bare += 1
 		end
 		if gs.Material then
@@ -629,7 +642,7 @@ function MapBuilder.prepareProps(spec: any, data: any): string
 		part.Parent = seats
 	end
 	seats.Parent = map
-	local L = P.Light
+	local L = day.Lights
 	for i, light in data.lights do
 		local holder = Instance.new("Part")
 		holder.Name = ("Light_%02d"):format(i)
@@ -936,46 +949,6 @@ function MapBuilder.prepareBackdrop(spec: any, _data: any): string
 	triangleReport(total, counted, spec.TriangleCaps[Bk.Import], "backdrop", say)
 	backdropBudget(map, spec, say)
 	return table.concat(lines, "\n")
-end
-
--- Write a preset block's values onto an instance: hex strings become colours, asset ids stay
--- strings, numbers and booleans go as they are. Nested tables are the caller's.
-local function applyValues(target: Instance, values: { [string]: any })
-	for key, value in values do
-		if type(value) == "table" then
-			continue
-		elseif type(value) == "string" and value:sub(1, 1) == "#" then
-			(target :: any)[key] = Color3.fromHex(value)
-		else
-			(target :: any)[key] = value
-		end
-	end
-end
-
---- Edit mode: apply a lighting preset (Config.Lighting.Day) for captures and so the place is
---- saved lit that way: Lighting's own values, its Atmosphere, its Sky (the place's own one,
---- updated; two Skies clash) and the Terrain's water. Returns a one-line report.
-function MapBuilder.applyLighting(preset: any): string
-	local Lighting = game:GetService("Lighting")
-	applyValues(Lighting, preset)
-	local atmosphere = Lighting:FindFirstChildWhichIsA("Atmosphere") or Instance.new("Atmosphere")
-	applyValues(atmosphere, preset.Atmosphere)
-	atmosphere.Parent = Lighting
-	if preset.Sky then
-		local sky = Lighting:FindFirstChildWhichIsA("Sky") or Instance.new("Sky")
-		applyValues(sky, preset.Sky)
-		sky.Parent = Lighting
-	end
-	if preset.Water then
-		applyValues(workspace.Terrain, preset.Water)
-	end
-	return ("Lighting: clock %.2f, latitude %d, brightness %.2f; sky %s, water %s."):format(
-		Lighting.ClockTime,
-		Lighting.GeographicLatitude,
-		Lighting.Brightness,
-		if preset.Sky then "set" else "unchanged",
-		if preset.Water then "set" else "unchanged"
-	)
 end
 
 return MapBuilder

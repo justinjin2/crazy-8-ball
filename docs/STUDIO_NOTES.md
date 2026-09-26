@@ -163,8 +163,8 @@ looking along each axis. Nothing is mirrored:
 - SkyboxDn: looking down, the image top points to -X and the image right to -Z.
 
 When testing a Sky, move the place's own Sky to ServerStorage first, because two Skies in
-Lighting clash. Put it back afterwards. (`MapBuilder.applyLighting` updates the place's own
-Sky instead of adding one.)
+Lighting clash. Put it back afterwards. (`MapLighting.preview` updates the place's own Sky
+instead of adding one, and removes extras.)
 
 ## Water and distance at low quality (tested 2026-09-26)
 

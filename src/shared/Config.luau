@@ -2715,32 +2715,27 @@ Config.Map = {
 			Foliage = { Maps = "Plants", AlphaMode = "Transparency" },
 			-- The glass and flames: a flat colour that glows (Neon), so the lanterns read warm
 			-- and lit as in the art even by day (as SmoothPlastic they read mint; Stage 3 critic).
-			-- Stage 7 tunes them per light state.
+			-- Their colours are Config.Lighting's Glow, by kind and light state.
 			Glow = { Material = "Neon" },
 		},
 		-- Per kind: whether its opaque mesh casts a shadow (only the big ones; foliage and
-		-- glow never do), and the Glow mesh's colour. Neon renders a colour much lighter, so
-		-- these are the art's deeper amber and flame clusters: they render as its lit glass
-		-- and flame (the pale measured #FAE091 read white-lime; Stage 3 critic 2).
+		-- glow never do). A kind with a Glow mesh takes its colour from Config.Lighting's Glow.
 		Kinds = {
 			LoungeCouch = { CastShadow = true },
 			SideCouch = { CastShadow = true },
 			CoffeeTable = { CastShadow = false },
-			FirePit = { CastShadow = true, Glow = "#C25A1E" }, -- the flame: deeper still, or Neon reads it lemon (critic 3)
+			FirePit = { CastShadow = true },
 			FernPlanter = { CastShadow = false },
 			PalmPlanter = { CastShadow = true },
 			Palm = { CastShadow = false },
 			PlanterBed = { CastShadow = false },
-			Lantern = { CastShadow = false, Glow = "#FBB267" }, -- the art's amber lantern glass
-			LanternTall = { CastShadow = false, Glow = "#FBB267" },
-			GlobeLight = { CastShadow = false, Glow = "#FBB267" },
+			Lantern = { CastShadow = false },
+			LanternTall = { CastShadow = false },
+			GlobeLight = { CastShadow = false },
 			UmbrellaSet = { CastShadow = true },
 			Piano = { CastShadow = true },
 			PianoBench = { CastShadow = false },
-		} :: { [string]: { CastShadow: boolean, Glow: string? } },
-		-- A PointLight at each prop's light spot (gen_props: the tall lanterns and the fire
-		-- pit). Day values; Stage 7 brightens them at sunset. (tune)
-		Light = { Range = 14, Brightness = 0.4, Color = "#FFD9A0" },
+		} :: { [string]: { CastShadow: boolean } },
 		-- The Seat parts: invisible pads on the seat surfaces; a character sits facing the
 		-- prop's seat direction (gen_props seats' yaw).
 		SeatSize = { 2, 0.2, 2 },
@@ -2830,17 +2825,45 @@ Config.Map = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Lighting (the rooftop map). For now only a Day preset, applied in Edit mode by
--- MapBuilder.applyLighting and saved in the place; Stage 7 of the map brief adds Sunset, the
--- cycle between them and the client module that drives it. Colours are hex strings.
+-- Lighting (the rooftop map): the Day and Sunset states and the cycle between them, the same
+-- for everyone on a server (the brief: Day 10 min, a 1 min fade, Sunset 5 min, a 1 min fade;
+-- no night). LightCycle mixes the two states by the server's clock, MapLighting puts a state
+-- onto the place (MapLighting.preview in Edit mode, for captures and so the place is saved
+-- lit), and DayCycle drives it on each client. Day and Sunset have the same keys (a Lune test
+-- checks). Colours are hex strings. The background (the city, the islands, the sea) is kept
+-- soft by the haze and the depth of field so the eye goes to the tables (designer,
+-- Checkpoint C).
 ---------------------------------------------------------------------------------------------
 Config.Lighting = {
+	Cycle = {
+		Day = 600, -- seconds of day
+		Fade = 60, -- seconds of each fade, eased
+		Sunset = 300, -- seconds of sunset
+		-- Test only: the cycle runs this many times as fast (Checkpoint D's timed run). A Lune
+		-- test keeps it 1, so a test value cannot be committed.
+		Speed = 1,
+		Rate = 12, -- a client applies the fading light this many times a second
+		Look = 2, -- seconds between a client's looks for map parts still streaming in
+	},
+	-- The sky's images change in one frame at this blend (0 Day, 1 Sunset), both ways.
+	SkySwap = 0.5,
+	-- Round the swap (Width of the blend either side), the Atmosphere thickens by Density and
+	-- Haze and the sky's light on the scene (EnvironmentDiffuse and Specular scales) dims by
+	-- the share Environment, so the swap hides in a passing haze. (tune)
+	SwapHaze = { Width = 0.12, Density = 0.25, Haze = 1.5, Environment = 0.5 },
+	-- The sun by blend (Spec section 6): Roblox's sun sets over the city, so the sunset one is a
+	-- dawn sun swung by the latitude to sit low over the sea, right of the lounge. Measured in
+	-- Studio (2026-09-26): straight between these two it slides down the ocean side (azimuth
+	-- 128 to 36, elevation 54 to 4), never across the sky or under the horizon. It arrives by
+	-- the swap, so it stands in the painted sunset glow whenever the sunset sky is up.
+	SunPath = {
+		{ Blend = 0, GeographicLatitude = 45, ClockTime = 10 },
+		{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 6.4 },
+	},
 	-- Day (Spec section 6): the sun high and front-right. Tuned in Studio (2026-09-26) until
 	-- the floor rendered near the art's measured #F1CDBD: Roblox's default noon light (a white
 	-- sun, a strong blue sky fill) washed every warm colour to grey. (tune)
 	Day = {
-		GeographicLatitude = 45,
-		ClockTime = 10,
 		Brightness = 2.4,
 		ExposureCompensation = -0.05,
 		EnvironmentDiffuseScale = 0.45, -- less of the blue sky's fill
@@ -2850,7 +2873,7 @@ Config.Lighting = {
 		ColorShift_Top = "#FFDEBE", -- the sun's warm tint on lit faces
 		ColorShift_Bottom = "#000000",
 		-- A pale sky-blue haze, so the far distance fades toward the art's pale horizon rather
-		-- than grey (Stage 4 critic). Stage 7 tunes it per light state.
+		-- than grey (Stage 4 critic).
 		Atmosphere = {
 			Density = 0.05,
 			Offset = 0,
@@ -2859,9 +2882,8 @@ Config.Lighting = {
 			Color = "#C6E5FC",
 			Decay = "#A9D4FA",
 		},
-		-- Lighting.Sky: assets/map/gen_sky.py's day faces (textures/sky_day_*.png, uploaded
-		-- 2026-09-26): the art's gradient and cumulus clouds, the far sea below the horizon.
-		-- MapBuilder.applyLighting updates the place's own Sky (two Skies clash).
+		-- Lighting.Sky: assets/map/gen_sky.py's day faces (textures/sky_day_*.png): the art's
+		-- gradient and cumulus clouds, the far city and islands painted on the horizon (Stage 6).
 		Sky = {
 			SkyboxBk = "rbxassetid://83526260541580",
 			SkyboxDn = "rbxassetid://89826709775610",
@@ -2870,8 +2892,8 @@ Config.Lighting = {
 			SkyboxRt = "rbxassetid://115328556471822",
 			SkyboxUp = "rbxassetid://93123509257023",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
-			MoonAngularSize = 11,
-			StarCount = 0, -- no stars by day
+			MoonAngularSize = 0, -- no moon: a dawn sky can show it near the horizon
+			StarCount = 0, -- no stars
 			CelestialBodiesShown = true, -- the sun is Roblox's, never painted
 		},
 		-- Terrain water (Studio test, 2026-09-26): nearly clear, with little reflection, so the
@@ -2886,6 +2908,98 @@ Config.Lighting = {
 			WaterWaveSize = 0.06, -- calm, no shimmer (Roblox's 0.15)
 			WaterWaveSpeed = 6,
 		},
+		-- Post effects: always enabled (MapLighting.preview), faded by their numbers. (tune)
+		ColorCorrection = { Brightness = 0, Contrast = 0, Saturation = 0, TintColor = "#FFFFFF" },
+		Bloom = { Intensity = 0, Size = 24, Threshold = 2 },
+		SunRays = { Intensity = 0, Spread = 0.5 },
+		-- The background soft, the rooftop sharp (designer, Checkpoint C): in focus from the
+		-- camera out to InFocusRadius, blurred by FarIntensity beyond. Devices that skip the
+		-- effect still get the haze. (tune)
+		DepthOfField = {
+			FarIntensity = 0,
+			FocusDistance = 0,
+			InFocusRadius = 200,
+			NearIntensity = 0,
+		},
+		-- The Neon glass and flames (Map.Props.<Kind>__Glow), by prop kind. Neon renders a colour
+		-- much lighter, so these are the art's deeper amber and flame clusters: they render as its
+		-- lit glass and flame (the pale measured #FAE091 read white-lime; Stage 3 critic 2).
+		Glow = {
+			Lantern = "#FBB267", -- the art's amber lantern glass
+			LanternTall = "#FBB267",
+			GlobeLight = "#FBB267",
+			FirePit = "#C25A1E", -- the flame: deeper still, or Neon reads it lemon (critic 3)
+		},
+		-- The PointLights at the props' light spots (the tall lanterns, the globes, the fire pit).
+		Lights = { Brightness = 0.4, Range = 14, Color = "#FFD9A0" },
+		-- Self-lit glow (SurfaceAppearance emissive, through a mask image): the under-table glow
+		-- (Map.Rooftop.TableGlow) and the skyline's lit windows (Map.Backdrop.Skyline_*).
+		TableGlow = { EmissiveStrength = 0, EmissiveTint = "#EF9054" },
+		Windows = { EmissiveStrength = 0, EmissiveTint = "#D5B59C" },
+	},
+	-- Sunset (Spec section 2's sunset targets: a magenta and purple sky, the sun low over the sea
+	-- right of the lounge, warm lanterns, lit windows; the floor near #EAA1A5). Same keys as Day.
+	-- (tune: Stage 7)
+	Sunset = {
+		Brightness = 2,
+		ExposureCompensation = 0.1,
+		EnvironmentDiffuseScale = 0.5,
+		EnvironmentSpecularScale = 0.6,
+		Ambient = "#000000",
+		OutdoorAmbient = "#7A5A8C", -- purple shade
+		ColorShift_Top = "#FF9A6A", -- the low sun's orange on lit faces
+		ColorShift_Bottom = "#000000",
+		Atmosphere = {
+			Density = 0.3,
+			Offset = 0,
+			Haze = 1.5,
+			Glare = 0.6,
+			Color = "#F0A0A8",
+			Decay = "#7A5AA0",
+		},
+		-- gen_sky.py's sunset faces (textures/sky_sunset_*.png); the day ones until uploaded.
+		Sky = {
+			SkyboxBk = "rbxassetid://83526260541580",
+			SkyboxDn = "rbxassetid://89826709775610",
+			SkyboxFt = "rbxassetid://85312380025917",
+			SkyboxLf = "rbxassetid://116034246180095",
+			SkyboxRt = "rbxassetid://115328556471822",
+			SkyboxUp = "rbxassetid://93123509257023",
+			SunAngularSize = 12,
+			MoonAngularSize = 0,
+			StarCount = 0,
+			CelestialBodiesShown = true,
+		},
+		Water = {
+			WaterColor = "#6A4C9C", -- toward the art's purple sunset sea (#74519F)
+			WaterTransparency = 0.85,
+			WaterReflectance = 0.05,
+			WaterWaveSize = 0.06,
+			WaterWaveSpeed = 6,
+		},
+		ColorCorrection = {
+			Brightness = 0,
+			Contrast = 0.05,
+			Saturation = 0.1,
+			TintColor = "#FFE6E0",
+		},
+		Bloom = { Intensity = 0.8, Size = 28, Threshold = 1 },
+		SunRays = { Intensity = 0.12, Spread = 0.6 },
+		DepthOfField = {
+			FarIntensity = 0,
+			FocusDistance = 0,
+			InFocusRadius = 200,
+			NearIntensity = 0,
+		},
+		Glow = {
+			Lantern = "#FFC070",
+			LanternTall = "#FFC070",
+			GlobeLight = "#FFC070",
+			FirePit = "#E06A20",
+		},
+		Lights = { Brightness = 2, Range = 20, Color = "#FFB070" },
+		TableGlow = { EmissiveStrength = 3, EmissiveTint = "#EF9054" },
+		Windows = { EmissiveStrength = 2.5, EmissiveTint = "#D5B59C" },
 	},
 }
 

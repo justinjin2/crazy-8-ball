@@ -57,12 +57,13 @@ changes; re-importing only the one that changed is fine.
 
    ```lua
    local Server, Shared = game.ServerScriptService.Server, game.ReplicatedStorage.Shared
-   local MB, spec = require(Shared.MapBuilder:Clone()), require(Shared.Config:Clone()).Map
-   local data = require(Server.MapData.GrayBox:Clone())
-   print(MB.prepareImport(spec, data)) print(MB.prepareProps(spec, data))
+   local MB, cfg = require(Shared.MapBuilder:Clone()), require(Shared.Config:Clone())
+   local spec, data = cfg.Map, require(Server.MapData.GrayBox:Clone())
+   print(MB.prepareImport(spec, data)) print(MB.prepareProps(spec, data, cfg.Lighting))
    print(MB.prepareNear(spec, data, require(Shared.MapMotion:Clone())))
    print(MB.prepareBackdrop(spec, data))
-   print(MB.applyLighting(require(Shared.Config:Clone()).Lighting.Day))
+   local ML, LC = require(Shared.MapLighting:Clone()), require(Shared.LightCycle:Clone())
+   print(ML.preview(LC.state(0, cfg.Lighting), spec)) -- 0 Day, 1 Sunset, or a blend between
    ```
 
    - **The architecture:** `prepareImport` places it by its anchor cubes and sets every mesh
@@ -75,7 +76,9 @@ changes; re-importing only the one that changed is fine.
    - **The near world:** `prepareNear` places it by its anchors like the architecture, keeps
      the sailboat as a template in `ServerStorage.MapNear` and puts three boats at sea
      (`Workspace.Map.Near.Boats`; each player's game drifts them, `MapAmbience`), and refills
-     the water. **The lighting:** `applyLighting` sets the Day sky, water and atmosphere.
+     the water. **The lighting:** `MapLighting.preview` gives Lighting one of each effect
+     and lights the place as Day (0), Sunset (1) or a blend; in Play each player's
+     `DayCycle` runs the cycle.
    - Each removes the gray-box parts it replaces. Any `PROBLEM:` line says what to fix. Both
      are safe to run twice.
 5. Save the place and publish (once per milestone).

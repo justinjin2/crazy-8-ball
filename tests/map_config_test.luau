@@ -139,8 +139,8 @@ return {
 		end
 	end,
 
-	["the day lighting preset is numbers, hex colours, sky ids and switches"] = function()
-		local Day = H.require("Config").Lighting.Day
+	["the lighting states are numbers, hex colours, sky ids and switches"] = function()
+		local L = H.require("Config").Lighting
 		local function check(t: { [string]: any }, where: string)
 			for key, value in t do
 				if type(value) == "table" then
@@ -163,17 +163,20 @@ return {
 				end
 			end
 		end
-		check(Day, "Lighting.Day")
-		H.expect(Day.Brightness > 0 and Day.ClockTime >= 0 and Day.ClockTime < 24, "a sane sun")
-		-- The Sky has all six faces or none (a partial set shows Roblox's default in the gaps).
-		if Day.Sky then
-			local set = 0
+		for _, name in { "Day", "Sunset" } do
+			local state = L[name]
+			check(state, "Lighting." .. name)
+			H.expect(state.Brightness > 0, name .. ": a lit sun")
+			-- The Sky has all six faces (a partial set shows Roblox's default in the gaps).
 			for _, face in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do
-				if (Day.Sky["Skybox" .. face] or "") ~= "" then
-					set += 1
-				end
+				H.expect(
+					isAssetId(state.Sky["Skybox" .. face] or ""),
+					("%s: the sky's %s face"):format(name, face)
+				)
 			end
-			H.expect(set == 0 or set == 6, ("the sky has %d of its 6 faces"):format(set))
+		end
+		for _, key in L.SunPath do
+			H.expect(key.ClockTime >= 0 and key.ClockTime < 24, "a sane sun")
 		end
 	end,
 
@@ -194,14 +197,12 @@ return {
 				)
 			end
 		end
+		local L = H.require("Config").Lighting
 		for kind, k in P.Kinds do
 			H.expect(type(k.CastShadow) == "boolean", kind .. ": CastShadow")
-			if k.Glow then
-				H.expect(isHex(k.Glow), kind .. ": Glow is a hex colour")
-			end
 		end
-		H.expect(isHex(P.Light.Color), "Props.Light.Color is a hex colour")
-		-- Every kind gen_props.py built (Props.json) has a row, and every Glow mesh a colour.
+		-- Every kind gen_props.py built (Props.json) has a row, and every Glow mesh a colour in
+		-- both light states.
 		if fs.isFile("assets/map/Props.json") then
 			local serde = require("@lune/serde")
 			local doc = serde.decode("json", fs.readFile("assets/map/Props.json"))
@@ -217,10 +218,15 @@ return {
 						("%s has a %s mesh, which Props.Groups lacks"):format(kind, group)
 					)
 					if group == "Glow" then
-						H.expect(
-							P.Kinds[kind] and P.Kinds[kind].Glow ~= nil,
-							kind .. " has a Glow mesh but no Glow colour"
-						)
+						for _, name in { "Day", "Sunset" } do
+							H.expect(
+								isHex(L[name].Glow[kind]),
+								("%s has a Glow mesh but Lighting.%s.Glow has no colour for it"):format(
+									kind,
+									name
+								)
+							)
+						end
 					end
 				end
 				lights += #rec.lights * rec.placements
