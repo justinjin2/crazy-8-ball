@@ -2673,7 +2673,7 @@ Config.Map = {
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
-		Near = { Color = "rbxassetid://133224464893796" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
+		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2768,6 +2768,7 @@ Config.Map = {
 		-- server's clock (MapMotion.boatPose), so everyone sees the same boats.
 		Boat = {
 			Mesh = "Boat",
+			Scale = 1.5, -- the template (40 long) this much bigger, so a boat reads from the roof (critic 2)
 			Templates = "MapNear",
 			Folder = "Boats",
 			SeaY = -304, -- the sea's surface (city_plan.WORLD.sea_y; the tests check they agree)
@@ -2842,12 +2843,12 @@ Config.Lighting = {
 		-- 2026-09-26): the art's gradient and cumulus clouds, the far sea below the horizon.
 		-- MapBuilder.applyLighting updates the place's own Sky (two Skies clash).
 		Sky = {
-			SkyboxBk = "rbxassetid://81273265415512",
-			SkyboxDn = "rbxassetid://82835678068870",
-			SkyboxFt = "rbxassetid://121024599066813",
-			SkyboxLf = "rbxassetid://98216794610026",
-			SkyboxRt = "rbxassetid://85847632181986",
-			SkyboxUp = "rbxassetid://104824050051235",
+			SkyboxBk = "rbxassetid://114301763439239",
+			SkyboxDn = "rbxassetid://90087010114161",
+			SkyboxFt = "rbxassetid://126444211947012",
+			SkyboxLf = "rbxassetid://139421310807518",
+			SkyboxRt = "rbxassetid://106785970184296",
+			SkyboxUp = "rbxassetid://93123509257023",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
 			MoonAngularSize = 11,
 			StarCount = 0, -- no stars by day
@@ -2861,7 +2862,7 @@ Config.Lighting = {
 		Water = {
 			WaterColor = "#1B6FBF",
 			WaterTransparency = 0.85,
-			WaterReflectance = 0.15, -- the sky's white cloud smears in the water gone (Stage 4 critic)
+			WaterReflectance = 0.05, -- barely any: the sky's clouds smeared white on the water (Stage 4 critics)
 			WaterWaveSize = 0.06, -- calm, no shimmer (Roblox's 0.15)
 			WaterWaveSpeed = 6,
 		},

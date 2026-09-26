@@ -591,14 +591,16 @@ def near(rng):
     paving('n_promenade', hexmix(mc.hexc('sand'), mc.ALBEDO['floor'], 0.5), 2.0, 3)
     # Grass: the park's lawns, the art's measured green, faint mowing stripes along U.
     r0, r1, v, u = strip('n_grass')
-    col = base(mc.hexc('lawn_day'), r0, r1, 0.03, 0.03)
+    # The art's parks are fresh green; the measured lawn rendered olive under the warm day
+    # light (critic 2), so it is painted a cooler, livelier green.
+    col = base('#4E9A48', r0, r1, 0.03, 0.03)
     mow = np.broadcast_to(np.where((u % 8.0) < 4.0, 1.03, 0.97), col.shape[:2])
     img[r0:r1] = col * mow[..., None]
     r0, r1, v, u = strip('n_seawall')
     img[r0:r1] = ao(base(mc.hexc('step'), r0, r1, 0.01, 0.02) * 0.9, v, 0.3, 0.4)
     # Sand: dry at the top, wet (darker, a little warmer) toward the waterline at the foot.
     r0, r1, v, u = strip('n_sand')
-    dry = base(mc.hexc('sand'), r0, r1, 0.02, 0.02)
+    dry = base(mc.hexc('sand'), r0, r1, 0.008, 0.01)
     wet = dry * np.array([0.84, 0.8, 0.76])[None, None, :]
     t = np.broadcast_to(1 - smoothstep(0.0, 0.35, v), dry.shape[:2])
     img[r0:r1] = dry * (1 - t[..., None]) + wet * t[..., None]
@@ -619,7 +621,7 @@ def near(rng):
     img[r0:r1] = col
     # Clear over the strip's lowest quarter, so distant mip levels never bleed the lawn strip
     # below it into the band's outer edge.
-    alpha[r0:r1] = np.clip(smoothstep(0.25, 0.7, vv) * 0.92 + foam * 0.08, 0, 1)
+    alpha[r0:r1] = np.clip(smoothstep(0.2, 0.85, vv) ** 1.5 * 0.9 + foam * 0.1, 0, 1)
     # Boats: a white hull with a blue stripe and a dark foot; cream sail cloth; dark wood.
     r0, r1, v, u = strip('n_hull')
     col = base(mc.hexc('boat_hull_day'), r0, r1, 0.004, 0.006)

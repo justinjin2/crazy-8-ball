@@ -796,7 +796,8 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 		end
 		local folder = Instance.new("Model")
 		folder.Name = B.Folder
-		local offset = CFrame.new(template.Position) * template.CFrame.Rotation
+		local scale = B.Scale or 1
+		local offset = CFrame.new(template.Position * scale) * template.CFrame.Rotation
 		for i, path in B.Paths do
 			local start: CFrame
 			if motion then
@@ -806,6 +807,7 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 				start = CFrame.new(path.Centre[1], B.SeaY, path.Centre[2])
 			end
 			local boat = template:Clone()
+			boat.Size = template.Size * scale
 			boat.Name = ("Boat%02d"):format(i)
 			boat:SetAttribute("BoatIndex", i)
 			boat:SetAttribute("BoatOffset", offset)

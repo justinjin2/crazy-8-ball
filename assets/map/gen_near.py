@@ -56,14 +56,21 @@ P = {
     'wall_drop': 1.4,  # the sea wall: the beach's top sits this far under the promenade
     'under': 12.0,  # the sand runs on under the water this far past the waterline...
     'under_drop': 1.2,  # ...down this far
-    'shallows_in': 3.0,  # the painted shallows start this far up the sand (the foam line)...
-    'shallows_out': 70.0,  # ...and fade out this far past the waterline
+    'shallows_in': 6.0,  # the painted shallows start this far up the sand (the foam line hides the
+                         # Terrain water's stepped edge against the sand)...
+    'shallows_out': 140.0,  # ...and fade out this far past the waterline (a soft edge; critic 2)
     'shallows_lift': 0.5,  # over the water's surface (at 0.15 it flickered with the water from the roof)
     'plaza_margin': 15.0,  # grid cells this close to the tower are its paved plaza; the rest a park
-    'palm_every': 24.0,  # palms along the beach, this far apart...
-    'palm_offset': 9.0,  # ...this far out from the sea wall...
+    'corner_radius': 80.0,  # the waterline rounds the tower's back-right corner in this wide a curve...
+    'corner_segments': 8,  # ...in this many straight pieces
+    # Palms along the beach in clumps, as in the art, not an even row (critic 2): a clump every
+    # palm_every along the sea wall, 3 to 5 palms within the offsets from the wall...
+    'palm_every': 70.0,
+    'palm_clump': (3, 5),
+    'palm_offset': (5.0, 17.0),
     'palm_reach': 650.0,  # ...up to this far along the coast
-    'palm_height': (22.0, 30.0),
+    'palm_height': (24.0, 36.0),
+    'palm_scale': 1.4,  # fronds and trunk this much bigger than the first build's
     'tree_every': 16.0,  # street trees round each near block's edge
     'tree_inset': 2.0,
     'tree_size': (12.0, 9.0),  # the two leafy clumps of a tree, across (big and round, as in the art)
@@ -364,10 +371,26 @@ def block(mesh, x, z, w, d, y0, y1, style, rng, lobby=None, clutter=False):
 # ---------------------------------------------------------------------------------------------
 
 def coast_path():
-    """The land's edge along the coast, walked with the sea on the left: along the back
-    beach from the city's side to the corner, then along the ocean side toward the front."""
+    """The land's edge along the coast (the sea wall), walked with the sea on the left: along
+    the back beach from the city's side to the corner, then along the ocean side toward the
+    front."""
     lx, lz = cp.land_x(), cp.land_z()
     return [(W['city_back_x'], lz), (lx, lz), (lx, W['near_coast'])]
+
+
+def waterline_rings():
+    """The sea wall (square-cornered) and the waterline (its corner rounded, so the shore
+    curves round the tower's back corner as the art's does; Stage 4 critic) as point lists of
+    equal length, the wall's corner repeated against the waterline's arc."""
+    lx, lz = cp.land_x(), cp.land_z()
+    sx, sz = W['shore_x'], W['shore_z']
+    r, n = P['corner_radius'], P['corner_segments']
+    cx, cz = sx - r, sz + r
+    arc = [(cx + r * math.cos(math.radians(-90.0 + 90.0 * k / n)),
+            cz + r * math.sin(math.radians(-90.0 + 90.0 * k / n))) for k in range(n + 1)]
+    wall = [(W['city_back_x'], lz)] + [(lx, lz)] * (n + 1) + [(lx, W['near_coast'])]
+    water = [(W['city_back_x'], sz)] + arc + [(sx, W['near_coast'])]
+    return wall, water
 
 
 def offset_path(path, d):
@@ -417,6 +440,28 @@ def sweep(mesh, path, profile, strip, want, u_scale=1.0):
             u += seg
 
 
+def sweep_rings(mesh, rings, strip, want):
+    """Faces between consecutive rings (points, y, v) of equal length, U along the last ring's
+    length in studs; where a ring repeats a point the quad closes to a triangle."""
+    ref = rings[-1][0]
+    us = [0.0]
+    for i in range(len(ref) - 1):
+        us.append(us[-1] + math.hypot(ref[i + 1][0] - ref[i][0], ref[i + 1][1] - ref[i][1]))
+    for k in range(len(rings) - 1):
+        (pa, ya, va), (pb, yb, vb) = rings[k], rings[k + 1]
+        for i in range(len(ref) - 1):
+            a0, a1 = (pa[i][0], ya, pa[i][1]), (pa[i + 1][0], ya, pa[i + 1][1])
+            b0, b1 = (pb[i][0], yb, pb[i][1]), (pb[i + 1][0], yb, pb[i + 1][1])
+            u0, u1 = mc.trim_u(strip, us[i]), mc.trim_u(strip, us[i + 1])
+            ta, tb = mc.trim_v(strip, va), mc.trim_v(strip, vb)
+            if a0 == a1:
+                facing(mesh, [a0, b1, b0], [(u0, ta), (u1, tb), (u0, tb)], want)
+            elif b0 == b1:
+                facing(mesh, [a0, a1, b0], [(u0, ta), (u1, ta), (u0, tb)], want)
+            else:
+                facing(mesh, [a0, a1, b1, b0], [(u0, ta), (u1, ta), (u1, tb), (u0, tb)], want)
+
+
 def coast(coast_mesh, shallows):
     path = coast_path()
     beach, prom = W['beach'], W['promenade']
@@ -425,11 +470,13 @@ def coast(coast_mesh, shallows):
     seaward = lambda n: n  # noqa: E731
     sweep(coast_mesh, path, [(-prom, STREET, 0.0), (0.0, STREET, 1.0)], 'n_promenade', up)
     sweep(coast_mesh, path, [(0.0, STREET, 1.0), (0.0, wall_bottom, 0.0)], 'n_seawall', seaward)
-    sweep(coast_mesh, path, [(0.0, wall_bottom, 1.0), (beach, SEA, 0.08),
-                             (beach + P['under'], SEA - P['under_drop'], 0.0)], 'n_sand', up)
+    # The beach: from the wall's foot down to the (rounded) waterline and on under the water.
+    wall, water = waterline_rings()
+    sweep_rings(coast_mesh, [(wall, wall_bottom, 1.0), (water, SEA, 0.08),
+                             (offset_path(water, P['under']), SEA - P['under_drop'], 0.0)], 'n_sand', UP)
     lift = SEA + P['shallows_lift']
-    sweep(shallows, path, [(beach - P['shallows_in'], lift, 1.0), (beach + P['shallows_out'], lift, 0.0)],
-          'n_shallows', up)
+    sweep_rings(shallows, [(offset_path(water, -P['shallows_in']), lift, 1.0),
+                           (offset_path(water, P['shallows_out']), lift, 0.0)], 'n_shallows', UP)
     # The ends: the sea wall's face closed where the coast stops (behind, on the city side).
     (ax, az) = path[0]
     coast_mesh.wall((ax, az), (ax, az - beach), wall_bottom, STREET, 'n_seawall')
@@ -445,13 +492,14 @@ CLUMP = mc.PLANTS['clump']
 
 def palm(mesh, cards, x, z, y, height, rng):
     """A trunk (six sides) and eight frond cards, springing up then drooping, seen from above."""
-    lean = (rng.uniform(-1.5, 1.5), rng.uniform(-1.5, 1.5))
+    k = P['palm_scale']
+    lean = (rng.uniform(-2.5, 2.5), rng.uniform(-2.5, 2.5))
     top = (x + lean[0], y + height, z + lean[1])
-    mesh.frustum(x, z, 0.9, 0.55, y, y + height, 6, 'n_wood', top=False)
+    mesh.frustum(x, z, 0.9 * k, 0.55 * k, y, y + height, 6, 'n_wood', top=False)
     u0, v0, u1, v1 = FROND
     ua, ub = u0 + 0.006, u1 - 0.006
     vc, vh = (v0 + v1) / 2, (v1 - v0) * 0.48
-    length, width = 9.5, 3.4
+    length, width = 9.5 * k, 3.4 * k
     for k in range(8):
         a = math.radians(k * 45 + rng.uniform(-12, 12))
         dx, dz = math.cos(a), math.sin(a)
@@ -459,7 +507,7 @@ def palm(mesh, cards, x, z, y, height, rng):
         # base, a knee a little up and out, the tip down
         pts = [(top[0], top[1], top[2]),
                (top[0] + dx * length * 0.45, top[1] + 0.8, top[2] + dz * length * 0.45),
-               (top[0] + dx * length, top[1] - 3.0, top[2] + dz * length)]
+               (top[0] + dx * length, top[1] - 3.0 * k, top[2] + dz * length)]
         us = [ua, ua + (ub - ua) * 0.45, ub]
         for s in range(2):
             (x0_, y0_, z0_), (x1_, y1_, z1_) = pts[s], pts[s + 1]
@@ -570,19 +618,26 @@ def build():
                     continue
                 tree(meshes['Trees'], meshes['Ground'], x, z, STREET, rng)
     coast(meshes['Coast'], meshes['Shallows'])
-    # Palms along the beach, behind the sea wall's foot.
+    # Palms along the beach in clumps, standing on the sand (which falls from the wall's foot
+    # to the waterline).
     path = coast_path()
-    line = offset_path(path, P['palm_offset'])
+    wall_bottom = STREET - P['wall_drop']
     walked = 0.0
-    for i in range(len(line) - 1):
-        (ax, az), (bx, bz) = line[i], line[i + 1]
+    for i in range(len(path) - 1):
+        (ax, az), (bx, bz) = path[i], path[i + 1]
         seg = math.hypot(bx - ax, bz - az)
+        dx, dz = (bx - ax) / seg, (bz - az) / seg
+        nx, nz = dz, -dx  # toward the sea
         t = (P['palm_every'] - walked % P['palm_every']) % P['palm_every'] + P['palm_every'] / 2
-        while t < seg and walked + t < P['palm_reach'] + 400:
-            x, z = ax + (bx - ax) * t / seg, az + (bz - az) * t / seg
-            if walked + t <= P['palm_reach'] or z < 0:
-                palm(meshes['Ground'], meshes['Palms'], x, z, STREET - P['wall_drop'] - 0.2,
-                     rng.uniform(*P['palm_height']), rng)
+        while t < seg:
+            along = walked + t
+            if along <= P['palm_reach'] or (az + dz * t) < 0:
+                for _ in range(rng.randint(*P['palm_clump'])):
+                    s_ = t + rng.uniform(-9, 9)
+                    off = rng.uniform(*P['palm_offset'])
+                    x, z = ax + dx * s_ + nx * off, az + dz * s_ + nz * off
+                    y = wall_bottom - (off / W['beach']) * (wall_bottom - SEA) - 0.2
+                    palm(meshes['Ground'], meshes['Palms'], x, z, y, rng.uniform(*P['palm_height']), rng)
             t += P['palm_every']
         walked += seg
     boat(meshes['Boat'])

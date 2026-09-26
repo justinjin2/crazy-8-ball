@@ -38,11 +38,11 @@ SAMPLES = 48
 
 P = {
     'radius': 1000.0,  # the dome the clouds sit on (Blender units; only angles matter)
-    'count': 22,
+    'count': 30,
     # (lowest, highest elevation in degrees, share of the clouds): low down, as in the art, whose
     # upper sky is mostly clear (Stage 4 critic: they filled the top half at eye height).
-    'bands': ((0.5, 5.0, 0.55), (5.0, 11.0, 0.35), (11.0, 19.0, 0.1)),
-    'width_deg': (6.0, 13.0),  # a cloud's angular width: small puffy cumulus
+    'bands': ((0.3, 4.0, 0.6), (4.0, 9.0, 0.3), (9.0, 14.0, 0.1)),
+    'width_deg': (4.5, 11.0),  # a cloud's angular width: small puffy cumulus sitting on the horizon
     'squash': 0.92,  # clouds are a little wider than tall
     'base_flat': 0.3,  # the flat base sits this far (of a base ball's radius) below its centre
     'horizon_haze': 0.15,  # clouds at the horizon blend this far toward the horizon colour...
@@ -62,11 +62,13 @@ COLOURS = {
         # #56A9DD), so these are painted deeper and more saturated than the art's measured
         # sky_top_day and sky_horizon_day to render near them (Stage 4 critic).
         'top': '#1480FF',
-        'horizon': '#A8D6FD',
+        'horizon': '#D4EAFA',  # pale with a touch of warmth, as the art's horizon (critic 2)
         # Below the horizon: the Terrain water's rendered blue (between #349BD6 at high quality
         # and #1791D8 at low). At low quality Roblox draws the water only near the camera and
         # the sky shows beyond it, so the two must match; the art's far sea is #3187DE.
-        'sea': '#1E78D7',  # the far sea at the horizon, a step deeper than the near water (the art)
+        # The far sea at the horizon: painted to render a touch deeper than the Terrain water
+        # beside it (#1E78D7 rendered #0C76CB, a dark band; critic 2).
+        'sea': '#3490DE',
         # Below the horizon toward the city (Roblox -X, where the land runs past the world's
         # edge): the far land's rendered colour (sampled in Studio, Stage 4), so the city's
         # ground meets the sky with no strip of painted sea.

@@ -30,7 +30,6 @@ WORLD = {
     'city_bend_z': -150.0,  # ...its shore bending in from here (pinned: the coast moved, the bend did not)...
     'city_creep': 0.12,  # ...toward the middle of the view with distance...
     'city_edge_max': -200.0,  # ...but never past this, so the sea stays behind the pergola
-    'water_overlap': 12.0,  # the water starts this far inside the waterline, so the sand dips under it
     'water_depth': 4.0,  # Terrain water, this deep under the surface
     'land_drop': 0.6,  # the gray-box land's top sits this far under the street, under the near ground
     'near_radius': 450.0,  # city blocks with their centre this close belong to the near world (Stage 4)
@@ -78,12 +77,12 @@ def buildable(x0, z0, x1, z1, margin=10.0):
 
 
 def water_fills():
-    """The Terrain water as (x0, z0, x1, z1) rectangles: right of the waterline, and behind
-    the tower between the city and the ocean side (the water starts water_overlap inside the
-    waterline, under the sand's dip)."""
+    """The Terrain water as (x0, z0, x1, z1) rectangles: from the sea wall's foot outward on
+    the ocean side, and behind the tower between the city and the ocean side. It runs on
+    under the beach (the sand lies above it), so a curved waterline always meets water."""
     W = WORLD
-    r, o = W['water_reach'], W['water_overlap']
-    return [(W['shore_x'] - o, -r, r, r), (W['city_back_x'], -r, W['shore_x'] - o, W['shore_z'] + o)]
+    r = W['water_reach']
+    return [(land_x(), -r, r, r), (W['city_back_x'], -r, land_x(), land_z())]
 
 
 # ---------------------------------------------------------------------------------------------
