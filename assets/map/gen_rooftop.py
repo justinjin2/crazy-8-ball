@@ -77,7 +77,7 @@ PARAMETERS = {
     'drape_height': 9.5,  # from the fascia's top down (hangs about 3 under its foot)
     'card_offset': 0.06,  # vine cards stand this far off the surface they hang on
     'climb_card': 3.4,  # a square climber card on a column face
-    'bloom_card': 4.0,
+    'bloom_card': 6.5,
     'floor_height': 10.0,  # the tower's storeys (the facade strip is one)
     'tower_floors': 4,  # storeys drawn under the parapet
     'facade_offset': 0.12,  # the facade stands this far off the gray-box tower block
@@ -372,7 +372,7 @@ def geometry():
     cu0, cv0, cu1, cv1 = mc.FOLIAGE['climb']
     card = A['climb_card']
     for i, col in enumerate(front_cols):
-        stacks = 4 if i in (0, len(front_cols) - 1) else (2 if i in (2, 3) else 0)
+        stacks = 4 if i in (0, len(front_cols) - 1) else 2
         s = col['size'][0] / 2
         y_top = col['Y'] + col['size'][1]
         for k in range(stacks):
@@ -394,7 +394,7 @@ def geometry():
     right = front_cols[-1]
     for bx, by in ((right['X'] - 1.2, beam_y - 1.0), (right['X'] + 1.2, beam_y - 3.6), (right['X'] - 0.6, beam_y - 6.4),
                    (right['X'] + 0.8, beam_y - 9.0), (front_cols[1]['X'] + 1.5, beam_y + 0.8),
-                   (front_cols[3]['X'] - 1.5, beam_y + 1.0)):
+                   (front_cols[2]['X'] - 1.5, beam_y + 1.0)):
         zc = zf_row + ft / 2 + off * 2
         vines.face([(bx - bc / 2, by - bc / 2, zc), (bx + bc / 2, by - bc / 2, zc), (bx + bc / 2, by + bc / 2, zc),
                     (bx - bc / 2, by + bc / 2, zc)], [(bu0, bv0), (bu1, bv0), (bu1, bv1), (bu0, bv1)], double=True)

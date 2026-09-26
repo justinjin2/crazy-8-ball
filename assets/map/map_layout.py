@@ -93,9 +93,9 @@ P = {
     'pergola_half_width': 57.5,  # about 115 wide, as the art's (about 40% of the entrance view)
     'pergola_front_inset': 3.0,  # pergola front columns this far behind the platform edge
     'pergola_depth': 24.0,
-    'pergola_height': 18.0,  # clear height under its deep fascia (the fascia's top at 24.5 above the platform)
+    'pergola_height': 22.0,  # clear height under its deep fascia (the fascia's top at 28.5 above the platform)
     'pergola_column': 4.5,  # thick, plain cream columns (the art; Stage 1 and 2 critics)
-    'pergola_bays': 5,  # 6 columns per row, 23 apart: no column in the middle of the view
+    'pergola_bays': 3,  # 4 columns per row, 38.3 apart: a pavilion, none behind the piano (Stage 2 critics)
     'palm_inset': 7.0,  # a palm planter's centre this far in from the railing, so its crown stays over the roof
     # Spawn on the landing, facing the tables. The SpawnLocation is the art's entrance mat.
     'spawn_from_landing_front': 4.5,
@@ -364,7 +364,7 @@ def build():
         prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
         # Ferns on the platform's edge: flanking the flight, and toward its ends (clear of the
         # views down the bays either side of the piano).
-        for x in (lf + 2.4, lf + 39.0):
+        for x in (lf + 11.0, lf + 39.0):  # beside the columns, clear of them and of the flight
             prop('fern_planter', side * x, platform_front - 2.2, 0.0, y)
         # A pair of palms at each end of the pergola, just off the platform, stepping down.
         prop('palm_planter', side * (lw + 3.0), platform_front - 2.6, 0.0, 0.0, height=32.0)
@@ -417,6 +417,7 @@ def cameras(spawn, zones):
     front = zones['terrace'][3]
     back = zones['terrace'][1]
     table_row = zones['field'][3] - 15.0  # the front row of tables, about
+    bay_x = 2 * P['pergola_half_width'] / P['pergola_bays']  # the fire-pit sofa's bay
     lounge = zones['lounge'][3]
     mid = (front + back) / 2
     return {
@@ -432,7 +433,7 @@ def cameras(spawn, zones):
         'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 400.0, mid), 'look': (0, 0, mid - 0.01), 'fov': 30},
         # At the front of the lounge, facing the fire-pit sofa with the sea and the big island
         # beyond it (panels/lounge-back.jpg).
-        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (23, 7.5, lounge - 0.25), 'look': (23, 3.0, back - 40.0), 'fov': 70},
+        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (bay_x, 7.5, lounge - 0.25), 'look': (bay_x, 3.0, back - 40.0), 'fov': 70},
         'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 30.0, 0), 'look': (-600, -20, 0), 'fov': 25},
         'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 30.0, -20), 'look': (700, -80, -250), 'fov': 25},
         'phone-eye': {'ref': None, 'pos': (0, 5.6, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},

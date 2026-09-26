@@ -182,7 +182,7 @@ the art: 36 against the art's 34.
 | Back walkway | -77 to 77 | -63.75 to -55.75 | 0 |
 | Lounge central flight: 4 steps, 0.5 up, 2 deep | -14 to 14 | -71.75 to -63.75 | 0 up to 2 |
 | Lounge platform (the rest of its front edge is a 2-stud riser) | -62 to 62 | -101.75 to -71.75 | 2 |
-| Pergola: 5 bays of 23, 19 clear (about 40% of the entrance view, as in the art) | -57.5 to 57.5 | -98.75 to -74.75 | 2 |
+| Pergola: 3 bays of 38.3, 22 clear under a 6.5-deep fascia (a tall pavilion, as in the art) | -57.5 to 57.5 | -98.75 to -74.75 | 2 |
 
 - **The edge all round** is a low parapet (1.2 high, 1.2 thick) with a dark-framed glass
   railing to 5 above the floor (a character's head height), and an invisible wall above it to 40.

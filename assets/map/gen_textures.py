@@ -180,7 +180,7 @@ def arch(rng):
     # Riser: about 12 L* darker than a tread so every level change reads, AO at the foot, a
     # warm light band under the nosing.
     r0, r1, v = strip('riser')
-    col = texture(stone * 0.86, r1 - r0, r0)
+    col = texture(stone * 0.8, r1 - r0, r0)
     ao = (1 - smoothstep(0.0, 0.3, v)) * 0.5 * P['ao_scale']
     col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     warm = colour_array(mc.ALBEDO['cream']) * 1.08
@@ -365,8 +365,8 @@ def overlays():
     hx, hy, r = 9.12, 5.12, 1.0
     qx, qy = np.abs(px_x) - (hx - r), np.abs(px_y) - (hy - r)
     dist = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - r
-    glow = 1.0 - smoothstep(0.0, 3.5, np.maximum(dist, 0))  # 1 under the table, gone 3.5 out
-    alpha[:, :half] = 0.55 * glow
+    glow = (1.0 - smoothstep(0.0, 3.5, np.maximum(dist, 0))) ** 1.8  # soft, gone 3.5 out
+    alpha[:, :half] = 0.4 * glow
     rgb_arr[:, :half] = colour_array(mc.ALBEDO['glow'])
     # Edge: the top-right quarter (Blender V 0.5..1); dark at its bottom row (the wall).
     rows = np.arange(half)[:, None].astype(np.float64)
