@@ -216,7 +216,7 @@ top-down, and one big item per table row along each railing.
 | Tall lantern | 2 | flanking the stair head |
 | Umbrella set (canopy and two loungers) | 3 | ocean side at rows 1 and 3; the ocean back corner |
 | Sofa group (sofa, ottoman) | 3 | ocean side at rows 2 and 4; the city back corner |
-| U sectional | 2 | under the pergola either side of the piano (X -30 and 30): city side round a coffee table, ocean side round the fire pit |
+| U sectional | 2 | under the pergola in the bays either side of the piano (X -23 and 23): city side round a coffee table, ocean side round the fire pit |
 | Coffee table | 1 | inside the city U |
 | Fire pit | 1 | inside the ocean U |
 | Grand piano and bench | 1 | centred at the back of the pergola, the bench behind it (designer, Checkpoint A) |
@@ -262,7 +262,7 @@ cropped to the reference's aspect. They were tuned against the art in Stage 1;
 | day-view | `02-day-view.jpg` | (24, 20, 70.25) | (-8, 0, -45) | 55 |
 | high three-quarter (day, sunset) | `panels/day.jpg`, `panels/sunset.jpg` | (0, 46, 130.5) | (0, 0, -8) | 50 |
 | top-down | `panels/top-down.jpg` | (0, 400, -9.75), straight down, -Z up | | 30 |
-| lounge-back | `panels/lounge-back.jpg` | (30, 7.5, -72) | (30, 3, -141.75) | 70 |
+| lounge-back | `panels/lounge-back.jpg` | (23, 7.5, -72) | (23, 3, -141.75) | 70 |
 | city-side | `panels/city-side.jpg` | (-90, 30, 0) | (-600, -20, 0) | 25 |
 | ocean-side | `panels/ocean-side.jpg` | (90, 30, -20) | (700, -80, -250) | 25 |
 | phone eye | (none; 750 x 361) | (0, 5.6, 76.75) | (0, 4, 0) | 70 |

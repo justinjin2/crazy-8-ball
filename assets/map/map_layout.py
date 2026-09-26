@@ -94,7 +94,7 @@ P = {
     'pergola_front_inset': 3.0,  # pergola front columns this far behind the platform edge
     'pergola_depth': 24.0,
     'pergola_height': 19.0,  # clear height under the beams (tall, so it anchors the view from the entrance)
-    'pergola_column': 2.6,
+    'pergola_column': 3.4,  # heavier cream columns (the art; Stage 1 critic)
     'pergola_bays': 5,  # 6 columns per row, 23 apart: no column in the middle of the view
     'palm_inset': 7.0,  # a palm planter's centre this far in from the railing, so its crown stays over the roof
     # Spawn on the landing, facing the tables. The SpawnLocation is the art's entrance mat.
@@ -355,10 +355,11 @@ def build():
     prop('piano_bench', 0.0, bench_z, 0.0, y)
     prop('piano', 0.0, piano_z, 180.0, y)  # the keyboard (the prop's +Z side) faces the bench
     group_z = (pz0 + pz1) / 2 + 1.0
-    prop('lounge_couch', -30.0, group_z, 0.0, y)
-    prop('coffee_table', -30.0, group_z + 1.0, 0.0, y)
-    prop('lounge_couch', 30.0, group_z, 0.0, y)
-    prop('fire_pit', 30.0, group_z + 1.0, 0.0, y)
+    bay_w = 2 * P['pergola_half_width'] / P['pergola_bays']
+    prop('lounge_couch', -bay_w, group_z, 0.0, y)  # in the bays either side of the piano's
+    prop('coffee_table', -bay_w, group_z + 1.0, 0.0, y)
+    prop('lounge_couch', bay_w, group_z, 0.0, y)
+    prop('fire_pit', bay_w, group_z + 1.0, 0.0, y)
     for side in (-1, 1):
         prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
         for x in (lf + 8.0, lf + 32.0):  # between the pergola's front columns
@@ -429,7 +430,7 @@ def cameras(spawn, zones):
         'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 400.0, mid), 'look': (0, 0, mid - 0.01), 'fov': 30},
         # At the front of the lounge, facing the fire-pit sofa with the sea and the big island
         # beyond it (panels/lounge-back.jpg).
-        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (30, 7.5, lounge - 0.25), 'look': (30, 3.0, back - 40.0), 'fov': 70},
+        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (23, 7.5, lounge - 0.25), 'look': (23, 3.0, back - 40.0), 'fov': 70},
         'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 30.0, 0), 'look': (-600, -20, 0), 'fov': 25},
         'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 30.0, -20), 'look': (700, -80, -250), 'fov': 25},
         'phone-eye': {'ref': None, 'pos': (0, 5.6, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},

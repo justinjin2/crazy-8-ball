@@ -90,13 +90,16 @@ class Lua:
         self.rows = []
 
     def part(self, folder, name, size, pos, colour, yaw=0.0, shape='Block', material='SmoothPlastic',
-             transparency=0.0, collide=False, local=None, rot=None, shadow=True):
+             transparency=0.0, collide=False, local=None, rot=None, shadow=True, role=None):
+        """role says what the part becomes once the real map is imported (MapBuilder): 'floor'
+        (stays, as the tiled floor), 'collide' (stays, invisible), 'arch' (replaced by the
+        Stage 2 architecture meshes); none for props and the world (later stages)."""
         """pos is world (x, y, z) of the part's centre, or with `local` the prop's (X, Y, Z, yaw)
         and pos in the prop's own frame. rot is an extra (rx, ry, rz) in degrees."""
         self.rows.append({
             'f': folder, 'n': name, 's': shape, 'size': [round(v, 4) for v in size],
             'p': [round(v, 4) for v in pos], 'c': colour, 'yaw': yaw, 'm': material,
-            't': transparency, 'k': collide, 'local': local, 'rot': rot, 'shadow': shadow,
+            't': transparency, 'k': collide, 'local': local, 'rot': rot, 'shadow': shadow, 'role': role,
         })
 
 
@@ -117,25 +120,26 @@ def build(g, plan):
 
     # ---- Rooftop -------------------------------------------------------------------------
     R = 'Rooftop'
-    g.part(R, 'Floor', (tx1 - tx0, 1, tz1 - tz0), ((tx0 + tx1) / 2, -0.5, (tz0 + tz1) / 2), C['floor'], collide=True)
+    g.part(R, 'Floor', (tx1 - tx0, 1, tz1 - tz0), ((tx0 + tx1) / 2, -0.5, (tz0 + tz1) / 2), C['floor'], collide=True,
+           role='floor')
     # Entrance stair, down toward +Z, and the lower landing.
     n, rise, run = P['step_count'], P['step_rise'], P['step_run']
     for k in range(n):
         top_y = -rise * (k + 1)
         g.part(R, 'Step%02d' % (k + 1), (2 * sx, top_y + 6, run),
-               (0, (top_y - 6) / 2, front + run * (k + 0.5)), C['stone'], collide=True)
+               (0, (top_y - 6) / 2, front + run * (k + 0.5)), C['stone'], collide=True, role='collide')
     g.part(R, 'LowerLanding', (2 * sx, 1, lower_end - stair_end), (0, lower_y - 0.5, (stair_end + lower_end) / 2),
-           C['floor'], collide=True)
+           C['floor'], collide=True, role='floor')
     # Lounge platform and its central flight (going back, up).
     lx0, lz0, lx1, lz1 = zones['lounge']
     g.part(R, 'LoungePlatform', (lx1 - lx0, platform_y, lz1 - lz0), (0, platform_y / 2, (lz0 + lz1) / 2),
-           C['floor'], collide=True)
+           C['floor'], collide=True, role='floor')
     fx0, fz0, fx1, fz1 = zones['lounge_steps']
     m, lrise, lrun = P['lounge_step_count'], P['lounge_step_rise'], P['lounge_step_run']
     for k in range(m):
         h = lrise * (k + 1)
         g.part(R, 'LoungeStep%d' % (k + 1), (fx1 - fx0, h, lrun), (0, h / 2, fz1 - lrun * (k + 0.5)),
-               C['stone'], collide=True)
+               C['stone'], collide=True, role='collide')
 
     # Parapet, glass railing, top rail, posts and the invisible wall, along a run of edge.
     def edge(name, a, b, floor_y, outward):
@@ -149,18 +153,19 @@ def build(g, plan):
             return (w, h, t) if along_x else (t, h, w)
         base = floor_y - 6 if floor_y < 0 else -1
         g.part(R, name + 'Parapet', sz(length + pt, floor_y + ph - base, pt), (mx, (floor_y + ph + base) / 2, mz),
-               C['stone'], collide=True)
+               C['stone'], collide=True, role='collide')
         g.part(R, name + 'Glass', sz(length, top - ph, 0.2), (mx, floor_y + (top + ph) / 2, mz), C['glass'],
-               material='Glass', transparency=0.6, collide=True)
-        g.part(R, name + 'TopRail', sz(length + pt, 0.3, 0.35), (mx, floor_y + top, mz), C['frame'], collide=True)
+               material='Glass', transparency=0.6, collide=True, role='collide')
+        g.part(R, name + 'TopRail', sz(length + pt, 0.3, 0.35), (mx, floor_y + top, mz), C['frame'], role='arch')
         posts = max(1, round(length / 4.0))
         for k in range(posts + 1):
             t = k / posts
             g.part(R, name + 'Post', (0.25, top - ph, 0.25), (ax + (bx - ax) * t + outward[0] * pt / 2,
                                                              floor_y + (top + ph) / 2,
-                                                             az + (bz - az) * t + outward[1] * pt / 2), C['frame'])
+                                                             az + (bz - az) * t + outward[1] * pt / 2), C['frame'],
+                   role='arch')
         g.part(R, name + 'SafetyWall', sz(length + pt, wall_top - (floor_y + top), pt),
-               (mx, (wall_top + floor_y + top) / 2, mz), '#FFFFFF', transparency=1, collide=True)
+               (mx, (wall_top + floor_y + top) / 2, mz), '#FFFFFF', transparency=1, collide=True, role='collide')
 
     lw = P['lounge_half_width']
     edge('Back', (tx0, tz0), (-lw, tz0), 0.0, (0, -1))
@@ -173,10 +178,15 @@ def build(g, plan):
     # The stair runs down between two walls to the lower landing's railing.
     for side, name in ((-1, 'StairWallCity'), (1, 'StairWallOcean')):
         x = side * (sx + pt / 2)
-        g.part(R, name, (pt, ph + 6 + 1, lower_end - front), (x, (ph + 1 - 6 + lower_y) / 2 + 0.0, (front + lower_end) / 2),
-               C['stone'], collide=True)
-        g.part(R, name + 'SafetyWall', (pt, wall_top - ph, lower_end - front), (x, (wall_top + ph) / 2, (front + lower_end) / 2),
-               '#FFFFFF', transparency=1, collide=True)
+        # The stair's side walls: a solid wall from below the lower landing up to the
+        # parapet's height at the roof, with the glass railing and the safety wall above.
+        base = lower_y - 1
+        g.part(R, name, (pt, ph - base, lower_end - front), (x, (ph + base) / 2, (front + lower_end) / 2),
+               C['stone'], collide=True, role='collide')
+        g.part(R, name + 'Glass', (0.2, top - ph, lower_end - front), (x, (top + ph) / 2, (front + lower_end) / 2),
+               C['glass'], material='Glass', transparency=0.6, collide=True, role='collide')
+        g.part(R, name + 'SafetyWall', (pt, wall_top - top, lower_end - front), (x, (wall_top + top) / 2, (front + lower_end) / 2),
+               '#FFFFFF', transparency=1, collide=True, role='collide')
     edge('LowerLanding', (-sx, lower_end), (sx, lower_end), lower_y, (0, 1))
 
     # Pergola: columns come with the props; beams and slats here.
@@ -184,16 +194,16 @@ def build(g, plan):
     beam_y = platform_y + P['pergola_height']
     for name, z in (('FrontBeam', pz1 - P['pergola_column'] / 2), ('BackBeam', pz0 + P['pergola_column'] / 2),
                     ('MidBeam', (pz0 + pz1) / 2)):
-        g.part(R, 'Pergola' + name, (px1 - px0 + 3, 1.6, 1.4), (0, beam_y + 0.8, z), C['cream'], collide=True)
+        g.part(R, 'Pergola' + name, (px1 - px0 + 3, 1.6, 1.4), (0, beam_y + 0.8, z), C['cream'], role='arch')
     x = px0 + 1.5
     while x < px1 - 0.5:
         g.part(R, 'PergolaSlat', (1.2, 0.6, pz1 - pz0 + 2), (x, beam_y + 1.9, (pz0 + pz1) / 2), C['slat'],
-               shadow=False)  # no zebra stripes until the lighting stage
+               shadow=False, role='arch')  # no zebra stripes until the lighting stage
         x += 3.0
     # Vines along the front beam: a few green clumps, a pink one at the ocean end (02).
     for k, vx in enumerate((px0 + 2, -30, 0.0, 30, px1 - 2)):
         colour = hexc('flower_vivid') if k == 4 else C['leaf']
-        g.part(R, 'Vine', (4.0, 2.0, 1.4), (vx, beam_y + 0.4, pz1 + 0.6), colour, shadow=False)
+        g.part(R, 'Vine', (4.0, 2.0, 1.4), (vx, beam_y + 0.4, pz1 + 0.6), colour, shadow=False, role='arch')
 
     # ---- Props ---------------------------------------------------------------------------
     for i, p in enumerate(plan['props']):
@@ -433,7 +443,8 @@ def prop(g, p, i):
         part((w, w, w), (0, 0, 0), C['globe'], shape='Ball', material='Neon')
         part((0.08, 3.0, 0.08), (0, 1.5, 0), C['frame'])
     elif kind == 'column':
-        part((w, h, d), (0, h / 2, 0), C['cream'], collide=True)
+        # Architecture (Stage 2 meshes); its collision stays as an invisible part.
+        part((w, h, d), (0, h / 2, 0), C['cream'], collide=True, role='collide')
     else:
         raise SystemExit('no gray-box for ' + kind)
 
@@ -453,6 +464,8 @@ def main():
             row['local'] = [round(v, 4) for v in r['local']]
         if r['rot'] is not None:
             row['rot'] = list(r['rot'])
+        if r['role']:
+            row['role'] = r['role']
         if not r['shadow']:
             row['ns'] = True
         rows.append(row)

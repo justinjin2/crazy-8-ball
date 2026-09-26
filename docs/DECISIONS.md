@@ -1155,4 +1155,3 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - The city is densest in the direction the player faces on arrival (ahead and left), not
     behind the spawn where the stair is; in the gray-box a street grid of podium, shaft and
     crown buildings whose shore bends in toward the middle of the view with distance.
-

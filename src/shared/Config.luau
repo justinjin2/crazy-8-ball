@@ -2624,6 +2624,69 @@ Config.Multiplayer = {
 	},
 }
 
+---------------------------------------------------------------------------------------------
+-- The hub map (the rooftop pool club; docs/prompts/ROOFTOP_MAP_PROMPT.md, assets/map/Spec.md).
+-- Built in Edit mode by src/shared/MapBuilder.luau and saved in the place; nothing in the
+-- running game reads this. Colours are hex strings (this file loads in Lune).
+---------------------------------------------------------------------------------------------
+Config.Map = {
+	Name = "Map", -- Workspace model holding the whole map
+	CollisionName = "Collision", -- its invisible walls and steps, and the tiled floor
+	-- The architecture from assets/map/fbx/Rooftop.fbx (3D Importer, assets/map/Readme.md);
+	-- MapBuilder.prepareImport puts it back where Blender built it with three anchor cubes
+	-- (AnchorO at the origin, AnchorX and AnchorZ this far along +X and +Z), then deletes them.
+	Architecture = "Rooftop",
+	Anchors = { O = "AnchorO", X = "AnchorX", Z = "AnchorZ", Spacing = 10 },
+	-- Every mesh the model must hold and how it behaves. None collides: collision is the
+	-- gray-box's invisible parts (CollisionName). Maps names a set in Maps (a SurfaceAppearance
+	-- from it); without Maps the mesh is a flat Color. AlphaMode is the SurfaceAppearance's.
+	-- Shadows: only the big solid pieces cast them (ARCHITECTURE section 7); the slats do not,
+	-- so the lounge has no zebra stripes.
+	Meshes = {
+		Parapet = { Maps = "Arch", CastShadow = true },
+		RailingFrame = { Color = "#1B1B22", CastShadow = false },
+		RailingGlass = { Color = "#66B4D2", Transparency = 0.75, CastShadow = false },
+		Steps = { Maps = "Arch", CastShadow = false },
+		Pergola = { Maps = "Arch", CastShadow = true },
+		PergolaSlats = { Maps = "Arch", CastShadow = false },
+		Vines = { Maps = "Foliage", AlphaMode = "Transparency", CastShadow = false },
+		TowerTop = { Maps = "Arch", CastShadow = false },
+		TableGlow = { Maps = "Overlays", AlphaMode = "Transparency", CastShadow = false },
+		FloorShade = { Maps = "Overlays", AlphaMode = "Transparency", CastShadow = false },
+	} :: {
+		[string]: {
+			Maps: string?,
+			Color: string?,
+			Transparency: number?,
+			AlphaMode: string?,
+			CastShadow: boolean,
+		},
+	},
+	-- Uploaded images ("rbxassetid://digits"), "" until uploaded (an empty id is skipped).
+	-- The files are assets/map/textures/*.png at 1024, drawn by assets/map/gen_textures.py.
+	Maps = {
+		-- Uploaded 2026-09-26 from assets/map/textures (1024).
+		Arch = { Color = "rbxassetid://120419615746045" }, -- arch_color.png: the trim sheet, soft shade baked in
+		Foliage = { Color = "rbxassetid://90341093081178" }, -- foliage.png: vines and bougainvillea (alpha)
+		Overlays = { Color = "rbxassetid://129551470225419" }, -- overlays.png: the table glow and the contact shade (alpha)
+	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
+	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
+	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 tiles of 4.5 studs per
+	-- image, which divides both table pitches (36 and 31.5).
+	Floor = {
+		Variant = "RooftopTile", -- MaterialService.<Variant>
+		BaseMaterial = "Slate", -- what it overrides (footstep sounds)
+		StudsPerTile = 9,
+		Color = "rbxassetid://101520167876049", -- floor_color.png
+		Normal = "rbxassetid://123542904955349", -- floor_normal.png
+		Tint = "#FFFFFF", -- the floor parts' Color (multiplies the map)
+	},
+	-- Most unique map images (the brief: 20, besides the two skyboxes and four far cards).
+	ImageBudget = 20,
+	-- Triangle caps by group (the brief, section 6), checked by prepareImport.
+	TriangleCaps = { Rooftop = 60000 },
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,

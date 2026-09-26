@@ -121,6 +121,14 @@ What was found:
 - **Studio uploads belong to the user who uploads them** (user 544959133), not the group that owns
   the game. The current table's maps and meshes are owned the same way and work in play.
 
+## Part materials are mapped in world space (tested 2026-09-26)
+
+Two Brick Parts with different sizes and centres (one moved 0.37 studs sideways, one 5.3
+longer) meeting at a seam show one continuous pattern across it: a Part's material (and a
+MaterialVariant) is projected from world coordinates, not from the part. So a tiled floor
+can be any number of Parts with one MaterialVariant and its grid lines up everywhere; the
+rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
+
 ## UI facts (tested 2026-09-25)
 
 - A ScreenGui with `ScreenInsets = TopbarSafeInsets` covers exactly the free part of Roblox's
