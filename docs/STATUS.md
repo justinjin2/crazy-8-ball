@@ -1,6 +1,27 @@
 # Status
 
-**2026-09-26: the rooftop map, Stage 4 of 8 done (the near world, the sea and the day sky).**
+**2026-09-26: the rooftop map, Stage 5 of 8 done (the mid backdrop: the skyline and the
+near islands).**
+
+- **Built:**
+  - `assets/map/gen_backdrop.py` with two modules:
+    - the city from 450 to 2,300 studs: 1,054 low-poly buildings stepping up with
+      distance, five landmark towers, tree lawns;
+    - eight jungle islands with turquoise shallows.
+  - 57,199 triangles (cap 110,000).
+  - Phones draw nothing that far, so everything beyond is painted into the sky next
+    (DECISIONS).
+- **Verified:**
+  - In Studio the count matches Blender.
+  - 24 of 24 paths and 7 of 7 edge pushes pass, and the console is clean.
+  - Three critic rounds; what they left is in Spec section 9.
+- **Next:** Stage 6, the far horizon painted into the skybox, then Checkpoint C (the city
+  side, the ocean side and the high view, for the designer).
+
+---
+
+**Earlier on 2026-09-26: the rooftop map, Stage 4 of 8 done (the near world, the sea and the
+day sky).**
 
 - **Built:**
   - A day sky rendered in Blender (`assets/map/gen_sky.py`): a blue gradient with small

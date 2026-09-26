@@ -66,3 +66,16 @@ Studio: 8,869, matching Blender. It has 11 MeshParts: the tower's walls, the gro
 building chunks, the coast, the shallows band, palms, trees, and three boats. There is one new
 texture (`near_color.png`) and one skybox (six faces, `gen_sky.py`). The Terrain water reaches
 8,000 studs; it costs no triangles.
+
+## Stage 5: the mid backdrop (2026-09-26)
+
+`gen_backdrop.py` drives two builder modules:
+- `backdrop/skyline.py`: 1,054 lots from 450 to 2,300 studs, five landmarks and tree lawns,
+  44,465 triangles;
+- `backdrop/islands.py`: eight islands with their shallows, 12,734 triangles.
+
+That's 57,199 triangles in 12 chunks, each at most 12,148 triangles and 1,332 studs across.
+In Studio the count matches Blender. With the near world there are 23 backdrop MeshParts
+(budget 30). There are three new images: `skyline_color`, `islands_color`, and
+`shallows_color` (the shallows alone, so far-off mip levels no longer bleed into them). That
+makes 11 of the 20.

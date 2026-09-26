@@ -458,3 +458,28 @@ stages that build the real thing:
     bearings, adding depth where the device draws them;
   - "far cards" as Parts (the brief's Stage 6) would vanish exactly where they are needed,
     so they are the skybox paintings instead.
+- **Stage 5 critic, carried forward.** Three rounds, the cap.
+
+  | Area | Round 1 | Round 2 | Round 3 |
+  |---|---|---|---|
+  | Layout | 4 | 5 | 6 |
+  | Silhouettes | 5 | 5 | 4 |
+  | Palette | 5 | 4 | 5 |
+  | Materials | 4 | 4 | 3 |
+  | Lighting | 5 | 6 | 5 |
+  | Backdrop | 4 | 5 | 4 |
+  | Calm | 4 | 5 | 5 |
+  | Phone readability | 6 | 5 | 6 |
+
+  - **Kept on purpose.** The rounds contradicted each other on the glass: round 2 wanted it
+    desaturated, round 3 more saturated. It stays a soft steel grey-blue, so the skyline never
+    matches the gameplay's blue arrows and rings on a phone (DECISIONS).
+  - **The skyline, a later polish pass:**
+    - a clear hierarchy: 10 to 14 hero towers in 2 or 3 groups, wider, with crowns, over a
+      mid-rise carpet;
+    - a window-grid texture instead of horizontal bands;
+    - tree cover toward 35% of the near lots, with bigger crowns and a grey-green ground;
+    - lower towers in the eye-height sightline behind the left join arrows.
+  - **The islands:** 2 or 3 humps each with a jagged ridge, grey-brown cliffs on the steep
+    seaward sides, bigger and softer canopy blotches, rocks in groups, more and bigger palms.
+  - **Stage 7 (lighting):** shade faces about 30% darker, and the Atmosphere haze for depth.

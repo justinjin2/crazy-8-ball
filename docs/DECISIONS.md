@@ -1208,3 +1208,12 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-26: Rank badges, round eight (designer, still preferring the reference): no tray at
   all. The pips sit on the ring's bottom edge like the reference's star, the middle one
   biggest, each with a thick ink outline, a shadow and a glow so they pop by themselves.
+- 2026-09-26: The rooftop map's backdrop is split by what each device can draw. At graphics
+  levels 1 to 10, where most phones run, Roblox draws nothing beyond a few hundred studs, so:
+  - the mid backdrop (the city from 450 to 2,300 studs out and the near islands) is 3D only,
+    extra depth on devices that draw it;
+  - everything beyond is painted into the skybox (Stage 6), which every device shows.
+  A building can't be both built and painted: the two drift up to 8 degrees apart as a
+  player crosses the roof. The city's heights step up with distance (only the landmarks rise
+  over the roof close in), and its glass is a soft steel grey-blue, so the skyline never
+  matches the gameplay's blue arrows and rings on a phone.

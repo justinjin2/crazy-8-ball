@@ -438,4 +438,16 @@ One line per stage: date, stage, result, commit.
     forward are in Spec section 9.
   - Waiting: the Near.fbx re-import for the shallows' corner fix (with Stage 5's import).
   - Next: Stage 5 (the mid backdrop).
+- 2026-09-26: Stage 5 done (three critic rounds, the cap).
+  - gen_backdrop.py drives two modules, built by two parallel builders:
+    - backdrop/skyline.py: 1,054 lots from 450 to 2,300 studs, heights stepping up with
+      distance, five landmarks, tree lawns;
+    - backdrop/islands.py: eight smooth jungle islands with shallows.
+  - 57,199 triangles in 12 chunks (cap 110,000); 23 backdrop MeshParts (budget 30); 11 of 20
+    images.
+  - The split by device (DECISIONS): the mid backdrop is 3D only; everything beyond is
+    painted into the skybox in Stage 6, since phones draw nothing that far.
+  - Play: 24 of 24 paths, 7 of 7 edge pushes, a clean console.
+  - Critic: layout 4, 5, 6; the rest 4 to 6. The notes carried forward are in Spec section 9.
+  - Next: Stage 6 (the far horizon painted into the skybox), then Checkpoint C.
 
