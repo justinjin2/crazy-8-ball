@@ -216,12 +216,12 @@ top-down, and one big item per table row along each railing.
 | Tall lantern | 2 | flanking the stair head |
 | Umbrella set (canopy and two loungers) | 3 | ocean side at rows 1 and 3; the ocean back corner |
 | Sofa group (sofa, ottoman) | 3 | ocean side at rows 2 and 4; the city back corner |
-| U sectional | 2 | under the pergola in the bays either side of the piano (X -23 and 23): city side round a coffee table, ocean side round the fire pit |
+| U sectional | 2 | under the pergola in the bays either side of the piano (X -38.3 and 38.3): city side round a coffee table, ocean side round the fire pit |
 | Coffee table | 1 | inside the city U |
 | Fire pit | 1 | inside the ocean U |
 | Grand piano and bench | 1 | centred at the back of the pergola, the bench behind it (designer, Checkpoint A) |
-| Globe light | 10 | one per bay on the pergola's front and middle beams |
-| Cream column | 2 + 12 | 2 framing the entrance; 12 pergola columns (two rows of six) |
+| Globe light | 6 | one per bay on the pergola's front and middle beams |
+| Cream column | 2 + 8 | 2 framing the entrance; 8 pergola columns (two rows of four) |
 | Under-table glow | 16 | a flat plane under each table |
 
 ## 4. Prop sizes
@@ -241,7 +241,7 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Fire pit | 4.5 round x 1.4 | flame about 1.4 above the rim |
 | Grand piano | 4.4 x 5.8 x 3.0 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 |
 | Globe light | 1.5 round | hangs 3 below the beams |
-| Pergola | 115 x 24, 19 clear | columns 2.6 square, cream; slatted wood roof (slats about 1.2 wide every 3) with vines and a few bougainvillea |
+| Pergola | 115 x 24, 22 clear | 4.5-square plain cream columns, 4 per row; a 6.5-deep fascia with a shaded underside; wood slats every 2; vine clumps at the column heads; bougainvillea on the right end column |
 | Fern trough | 16 x 3, 2.5 high | ferns above to about 5 |
 | Entrance column | 2.8 square x 16 | cream |
 | Railing | 5.0 high overall (a character's head) | parapet 1.2; posts about every 4 |
@@ -262,7 +262,7 @@ cropped to the reference's aspect. They were tuned against the art in Stage 1;
 | day-view | `02-day-view.jpg` | (24, 20, 70.25) | (-8, 0, -45) | 55 |
 | high three-quarter (day, sunset) | `panels/day.jpg`, `panels/sunset.jpg` | (0, 46, 130.5) | (0, 0, -8) | 50 |
 | top-down | `panels/top-down.jpg` | (0, 400, -9.75), straight down, -Z up | | 30 |
-| lounge-back | `panels/lounge-back.jpg` | (23, 7.5, -72) | (23, 3, -141.75) | 70 |
+| lounge-back | `panels/lounge-back.jpg` | (38.3, 7.5, -72) | (38.3, 3, -141.75) | 70 |
 | city-side | `panels/city-side.jpg` | (-90, 30, 0) | (-600, -20, 0) | 25 |
 | ocean-side | `panels/ocean-side.jpg` | (90, 30, -20) | (700, -80, -250) | 25 |
 | phone eye | (none; 750 x 361) | (0, 5.6, 76.75) | (0, 4, 0) | 70 |
@@ -351,9 +351,24 @@ stages that build the real thing:
   -200, so the sea stays behind the pergola. Nothing within 700 studs rises over the roof;
   slim towers beyond. The real skyline keeps that layout: many slim towers, a continuous
   skyline on the horizon.
-- **Pergola (Stage 2):** heavier than the gray-box. Fewer, thicker cream columns (about 4.5
-  square) wrapped in vines, under a solid fascia about 3.5 deep. Check the clear height
-  against the lounge-back view.
+- **Pergola (Stage 2, done):** 3 bays, 4.5-square plain columns, a 6.5-deep fascia, 22 clear.
+- **Stage 2 critic, carried forward.** Three rounds, the cap. Scores at the last:
+
+  | Area | Score |
+  |---|---|
+  | Layout | 6 |
+  | Calm | 6 |
+  | Phone readability | 5 |
+  | Silhouettes, palette, materials | 4 each |
+  | Lighting | 3 |
+  | Backdrop | 3 |
+
+  - The floor's colour: round 1 found it too grey, round 3 too pink. The measured colours
+    stay; Stage 7's warm light is where the floor's final look is judged.
+  - Vines: round 1 wanted clumps, round 3 fewer, bigger drapes. Judge at Checkpoint B.
+  - The edge: round 3 wanted a heavier parapet (2.4 high, 2 thick) and fewer posts. Judge at
+    Checkpoint B with the props in.
+  - Materials read matte. Stage 7's lighting (sheen, the sun's angle) is the fix.
 - **Palms (Checkpoint B):** the art has ferns and tall lanterns flanking the stair rather
   than palms; the palms at the pergola ends rise clear of its roof (about 38 and 30).
 - **Light (Stages 4 and 7):** a crisp deep-blue horizon; the floor must not glare white.

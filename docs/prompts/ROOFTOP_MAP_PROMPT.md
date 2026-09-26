@@ -388,3 +388,14 @@ One line per stage: date, stage, result, commit.
 - 2026-09-26: CHECKPOINT A approved by the designer with changes: the snack counter is out,
   the piano is centred at the back of the lounge, the railing is 5 studs tall, and the city
   is densest ahead and left of the spawn (a street-grid gray-box). Next: Stage 2.
+- 2026-09-26: Stage 2 done (three critic rounds, the cap).
+  - The architecture is built in Blender by gen_rooftop.py: parapet, the glass railing at a
+    character's head, steps, the pergola, the tower top, the table glow and floor shade.
+  - The floor is Parts with a MaterialVariant (Part materials map in world space).
+  - Five procedural 1024 textures and a Day light preset (Config.Lighting.Day).
+  - In Studio 3,834 triangles, matching Blender; 24 of 24 paths and 7 of 7 edge pushes pass.
+  - Critic: layout 6, calm 6, phone 5; the rest waits for props and lighting.
+  - The last round's pergola change (3 bays, taller; 3,790 triangles) is built but not yet
+    imported: it goes in with Stage 3's import.
+  - Commits 9b098db, 6f6c794, e845f10, 237a2e8, 9aab8e7. Next: Stage 3 (props).
+
