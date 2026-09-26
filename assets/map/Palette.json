@@ -461,6 +461,17 @@
     "shade": null,
     "source": "image"
   },
+  "lawn_day": {
+    "box": [180, 138, 245, 175],
+    "clusters": [["#3E4C56", 0.395], ["#696E52", 0.36], ["#AE9AA4", 0.245]],
+    "hex": "#767F4B",
+    "image": "assets/map/reference/panels/city-side.jpg",
+    "k": 3,
+    "note": "the city panel's park and street greenery, lower left of the river: the saturated leaves",
+    "pick": "vivid:100:150:35:75",
+    "shade": null,
+    "source": "image"
+  },
   "leaf_dark": {
     "box": [395, 350, 470, 420],
     "clusters": [["#E8CEA9", 0.258], ["#2F410D", 0.241], ["#7B7B23", 0.232], ["#131E06", 0.164], ["#998692", 0.105]],

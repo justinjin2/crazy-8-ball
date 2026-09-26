@@ -57,8 +57,9 @@ P = {
     'under': 12.0,  # the sand runs on under the water this far past the waterline...
     'under_drop': 1.2,  # ...down this far
     'shallows_in': 3.0,  # the painted shallows start this far up the sand (the foam line)...
-    'shallows_out': 90.0,  # ...and fade out this far past the waterline
-    'shallows_lift': 0.15,  # over the water's surface
+    'shallows_out': 70.0,  # ...and fade out this far past the waterline
+    'shallows_lift': 0.5,  # over the water's surface (at 0.15 it flickered with the water from the roof)
+    'plaza_margin': 15.0,  # grid cells this close to the tower are its paved plaza; the rest a park
     'palm_every': 24.0,  # palms along the beach, this far apart...
     'palm_offset': 9.0,  # ...this far out from the sea wall...
     'palm_reach': 650.0,  # ...up to this far along the coast
@@ -194,7 +195,8 @@ def tower(tower_mesh, ground):
 
 def classify():
     """Every grid cell (i, j) in reach: 'near' (a near city block), 'city' (a gray-box block,
-    left as it is), or 'plaza' (open, on the land). Returns (cells, near_blocks)."""
+    left as it is), 'plaza' (open, round the tower's foot) or 'park' (open, further out: lawns
+    and trees). Returns (cells, near_blocks)."""
     pitch = W['city_pitch']
     blocks = cp.city_blocks()
     by_cell = {(b['i'], b['j']): b for b in blocks}
@@ -209,8 +211,17 @@ def classify():
             if b is not None:
                 cells[(i, j)] = 'near' if b['near'] else 'city'
             elif land_rect(*cell_rect(i, j)) is not None:
-                cells[(i, j)] = 'plaza'
+                cells[(i, j)] = 'plaza' if near_tower(cell_rect(i, j)) else 'park'
     return cells, [b for b in blocks if b['near']]
+
+
+def near_tower(rect):
+    """Whether a rectangle comes within plaza_margin of the tower."""
+    outline = tower_outline()
+    m = P['plaza_margin']
+    x0, x1 = min(p[0] for p in outline) - m, max(p[0] for p in outline) + m
+    z0, z1 = min(p[1] for p in outline) - m, max(p[1] for p in outline) + m
+    return rect[0] < x1 and rect[2] > x0 and rect[1] < z1 and rect[3] > z0
 
 
 def cell_rect(i, j):
@@ -240,10 +251,10 @@ def ground(mesh, cells):
             x0, z0, x1, z1 = r
             mesh.prism(mc.outward_rect(x0, z0, x1, z1), road_y - 0.2, kerb_y, 'n_cap', top=False)
             flat_rect(mesh, x0, z0, x1, z1, kerb_y, 'n_sidewalk', 0.5)
-        elif kind == 'plaza':
+        elif kind in ('plaza', 'park'):
             lr = land_rect(*r)
             if lr:
-                flat_rect(mesh, *lr, road_y, 'n_plaza', 0.5)
+                flat_rect(mesh, *lr, road_y, 'n_plaza' if kind == 'plaza' else 'n_grass', 0.5)
 
     def kind(i, j):
         return cells.get((i, j))
@@ -263,13 +274,13 @@ def ground(mesh, cells):
                     sides = (kind(k, m - 1), kind(k, m))
                     x0, x1 = k * pitch + hs, (k + 1) * pitch - hs
                     z0, z1 = m * pitch - hs, m * pitch + hs
-                if not any(s in ('near', 'plaza') for s in sides):
+                if not any(s in ('near', 'plaza', 'park') for s in sides):
                     continue
                 lr = land_rect(x0, z0, x1, z1)
                 if lr is None:
                     continue
                 x0, z0, x1, z1 = lr
-                if all(s in ('plaza', None) for s in sides):
+                if all(s in ('plaza', 'park', None) for s in sides):
                     flat_rect(mesh, x0, z0, x1, z1, road_y, 'n_plaza', 0.5)
                     continue
                 c = P['crossing']
@@ -287,12 +298,12 @@ def ground(mesh, cells):
     for k in range(-n, n + 1):
         for m in range(-n, n + 1):
             round_ = [kind(k - 1, m - 1), kind(k, m - 1), kind(k - 1, m), kind(k, m)]
-            if not any(s in ('near', 'plaza') for s in round_):
+            if not any(s in ('near', 'plaza', 'park') for s in round_):
                 continue
             lr = land_rect(k * pitch - hs, m * pitch - hs, k * pitch + hs, m * pitch + hs)
             if lr is None:
                 continue
-            plaza = all(s in ('plaza', None) for s in round_)
+            plaza = all(s in ('plaza', 'park', None) for s in round_)
             flat_rect(mesh, *lr, road_y, 'n_plaza' if plaza else 'n_road', 0.5 if plaza else 0.3)
 
 
@@ -539,17 +550,20 @@ def build():
             for k in range(int(seg // every)):
                 t = (k + 0.5) * every / seg
                 tree(meshes['Trees'], meshes['Ground'], ax + (bx - ax) * t, az + (bz - az) * t, STREET + P['kerb'], brng)
-    # Plaza trees: a loose grid in the open cells, clear of the tower and the promenade.
+    # Trees in the open cells, clear of the tower and the promenade: a loose grid of four in
+    # the plaza's, a denser, jittered grid of nine on the park's lawns.
     for (i, j), kind in sorted(cells.items()):
-        if kind != 'plaza':
+        if kind not in ('plaza', 'park'):
             continue
         lr = land_rect(*cell_rect(i, j))
         if lr is None:
             continue
-        for fx in (0.25, 0.75):
-            for fz in (0.25, 0.75):
-                x = lr[0] + (lr[2] - lr[0]) * fx
-                z = lr[1] + (lr[3] - lr[1]) * fz
+        grid = (0.25, 0.75) if kind == 'plaza' else (0.18, 0.5, 0.82)
+        for fx in grid:
+            for fz in grid:
+                jx, jz = (rng.uniform(-0.06, 0.06), rng.uniform(-0.06, 0.06)) if kind == 'park' else (0.0, 0.0)
+                x = lr[0] + (lr[2] - lr[0]) * (fx + jx)
+                z = lr[1] + (lr[3] - lr[1]) * (fz + jz)
                 if tx0 < x < tx1 and tz0 < z < tz1:
                     continue
                 if (lr[2] - lr[0]) < 30 or (lr[3] - lr[1]) < 30:

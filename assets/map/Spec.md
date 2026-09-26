@@ -313,7 +313,7 @@ character waits on the lower landing.
 - **The tower:**
   - Its footprint is the terrace, plus the stair bay.
   - Its walls drop about 300 studs to the street (about 30 floors). Street level is Y = -300
-    and sea level Y = -302.
+    and sea level Y = -304, on the Terrain's 4-stud voxel grid so the water is crisp (Stage 4).
   - `FallenPartsDestroyHeight` goes below the street (the place has -500).
 - **The coast** makes an L round the tower. The numbers are `city_plan.WORLD`, copied into
   `Layout.json`.

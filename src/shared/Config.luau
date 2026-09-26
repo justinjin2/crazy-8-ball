@@ -2673,7 +2673,7 @@ Config.Map = {
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
-		Near = { Color = "rbxassetid://101080418807638" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
+		Near = { Color = "rbxassetid://119871859335339" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2746,10 +2746,11 @@ Config.Map = {
 	Near = {
 		Import = "Near", -- the imported model's name in Workspace, then Map.<Import>
 		-- Every mesh the model must hold: its map set (Maps) and alpha. The backdrop casts no
-		-- shadows and draws at RenderFidelity Performance (the brief); the tower's walls are
-		-- big and close, so they keep Automatic.
+		-- shadows and draws at RenderFidelity Performance (the brief). The tower's walls are
+		-- big and close, so they keep Automatic, and cast the tower's shadow: without it the
+		-- rooftop's own shadow lay on the plaza 300 below as a floating outline.
 		Meshes = {
-			Tower = { Maps = "Arch", Fidelity = "Automatic" },
+			Tower = { Maps = "Arch", Fidelity = "Automatic", CastShadow = true },
 			Ground = { Maps = "Near" },
 			Buildings_Left = { Maps = "Near" },
 			Buildings_Front = { Maps = "Near" },
@@ -2757,7 +2758,9 @@ Config.Map = {
 			Shallows = { Maps = "Near", AlphaMode = "Transparency" },
 			Palms = { Maps = "Plants", AlphaMode = "Transparency" },
 			Trees = { Maps = "Plants", AlphaMode = "Transparency" },
-		} :: { [string]: { Maps: string, AlphaMode: string?, Fidelity: string? } },
+		} :: {
+			[string]: { Maps: string, AlphaMode: string?, Fidelity: string?, CastShadow: boolean? },
+		},
 		-- The backdrop's MeshParts (the brief: about 30, for the near world and Stages 5 and 6).
 		MeshPartBudget = 30,
 		-- The sailboats: the Boat mesh kept in ServerStorage.<Templates>, cloned once per path
@@ -2767,7 +2770,7 @@ Config.Map = {
 			Mesh = "Boat",
 			Templates = "MapNear",
 			Folder = "Boats",
-			SeaY = -302, -- the sea's surface (city_plan.WORLD.sea_y; the tests check they agree)
+			SeaY = -304, -- the sea's surface (city_plan.WORLD.sea_y; the tests check they agree)
 			MaxSpeed = 4, -- studs a second: drifting, never racing (the brief)
 			BobHeight = 0.3, -- studs, up and down on the swell...
 			BobSeconds = 5.5, -- ...once in this long

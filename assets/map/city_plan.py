@@ -16,7 +16,8 @@ CITY_SEED = 26092026  # the city's random numbers (each block's own: block_seed)
 
 WORLD = {
     'street_y': -300.0,  # the street round the tower (the roof is at 0: about 30 floors up)
-    'sea_y': -302.0,  # the sea's surface
+    'sea_y': -304.0,  # the sea's surface: on the Terrain's 4-stud voxel grid, so the water is crisp
+                      # (at -302 it half-filled two voxels), and 4 under the street so the beach slopes
     # The coast (Stage 4 moved the waterline out from X 110 and Z -150, so a promenade and a
     # beach fit between the tower and the sea). From the tower out: the street, the promenade
     # (paved, at street level, on top of the sea wall), the beach (sand, down to the water),

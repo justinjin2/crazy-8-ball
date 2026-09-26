@@ -261,6 +261,8 @@ REGIONS = [
      "salmon-terracotta block at the far left; the shade is its window grid"),
     ("facade_white_day", CS, (475, 85, 498, 140), 3, "lightest", "darker",
      "the lit face of the cream-white tower right of centre; the shade is its windows"),
+    ("lawn_day", CS, (180, 138, 245, 175), 3, "vivid:100:150:35:75", "none",
+     "the city panel's park and street greenery, lower left of the river: the saturated leaves"),
     ("boat_hull_day", PD, (727, 185, 740, 190), 3, "lightest", "none",
      "white yacht off the beach below the ocean side"),
     ("shallows_day", PD, (700, 228, 725, 240), 3, "largest", "none",

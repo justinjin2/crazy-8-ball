@@ -697,8 +697,8 @@ end
 --- the map. Safe to run twice.
 ---  1. Takes the imported model (Workspace, or the map's own from an earlier run), flattens it
 ---     and places it by its anchor cubes, as Map.<Import>.
----  2. Dresses each mesh (Config.Map.Near.Meshes): anchored, never colliding, no shadows,
----     RenderFidelity Performance (or the row's Fidelity), its map set.
+---  2. Dresses each mesh (Config.Map.Near.Meshes): anchored, never colliding, no shadows (or
+---     the row's CastShadow), RenderFidelity Performance (or the row's Fidelity), its map set.
 ---  3. Keeps the Boat mesh as the template in ServerStorage.<Templates> and clones it once per
 ---     path into Map.<Import>.<Folder>, each with its BoatIndex and BoatOffset attributes (the
 ---     client drifts them: MapAmbience), at its pose at time 0 when `motion` (MapMotion) is
@@ -759,7 +759,7 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 			say(("PROBLEM: the near world has no mesh %s."):format(name))
 			continue
 		end
-		if not dress(part, spec, row.Maps, row.AlphaMode, nil, false, say) then
+		if not dress(part, spec, row.Maps, row.AlphaMode, nil, row.CastShadow == true, say) then
 			say(("%s: no image uploaded yet for %s."):format(name, row.Maps))
 		end
 		part.RenderFidelity = (Enum.RenderFidelity :: any)[row.Fidelity or "Performance"]

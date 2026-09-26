@@ -587,6 +587,11 @@ def near(rng):
     paving('n_sidewalk', hexmix(mc.hexc('city_facade_day'), '#FFFFFF', 0.35), 2.0, 2)
     paving('n_plaza', hexmix(mc.ALBEDO['floor'], mc.hexc('step'), 0.3), 6.0, 1, 0.08, 0.93)
     paving('n_promenade', hexmix(mc.hexc('sand'), mc.ALBEDO['floor'], 0.5), 2.0, 3)
+    # Grass: the park's lawns, the art's measured green, faint mowing stripes along U.
+    r0, r1, v, u = strip('n_grass')
+    col = base(mc.hexc('lawn_day'), r0, r1, 0.03, 0.03)
+    mow = np.broadcast_to(np.where((u % 4.0) < 2.0, 1.03, 0.97), col.shape[:2])
+    img[r0:r1] = col * mow[..., None]
     r0, r1, v, u = strip('n_seawall')
     img[r0:r1] = ao(base(mc.hexc('step'), r0, r1, 0.01, 0.02) * 0.9, v, 0.3, 0.4)
     # Sand: dry at the top, wet (darker, a little warmer) toward the waterline at the foot.
@@ -600,14 +605,17 @@ def near(rng):
     r0, r1, v, u = strip('n_shallows')
     rows = r1 - r0
     vv = np.broadcast_to(v, (rows, n))
-    turq, deep = colour_array(mc.hexc('shallows_day')), colour_array(mc.hexc('water_near'))
+    # The measured turquoise is the art's sunlit colour; the band is lit again in the game,
+    # so it is drawn a step deeper (it rendered pale). Out at the foot it is the water's blue.
+    turq = colour_array(mc.hexc('shallows_day')) * 0.82
+    deep = colour_array(mc.hexc('water_near'))
     t = smoothstep(0.1, 0.85, vv)
     col = deep[None, None, :] * (1 - t[..., None]) + turq[None, None, :] * t[..., None]
     wobble = 0.015 * np.sin(np.broadcast_to(u, (rows, n)) * 2 * np.pi / 4.0)
     foam = smoothstep(0.9, 0.95, vv + wobble)
     col = col * (1 - foam[..., None]) + colour_array('#F4FAFA')[None, None, :] * foam[..., None]
     img[r0:r1] = col
-    alpha[r0:r1] = np.clip(smoothstep(0.0, 0.7, vv) * 0.85 + foam * 0.15, 0, 1)
+    alpha[r0:r1] = np.clip(smoothstep(0.0, 0.6, vv) * 0.92 + foam * 0.08, 0, 1)
     # Boats: a white hull with a blue stripe and a dark foot; cream sail cloth; dark wood.
     r0, r1, v, u = strip('n_hull')
     col = base(mc.hexc('boat_hull_day'), r0, r1, 0.004, 0.006)
