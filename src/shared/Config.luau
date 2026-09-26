@@ -2669,8 +2669,8 @@ Config.Map = {
 		Arch = { Color = "rbxassetid://95334117032577" }, -- arch_color.png: the trim sheet, soft shade baked in
 		Foliage = { Color = "rbxassetid://139476467352315" }, -- foliage.png: vines and bougainvillea (alpha)
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
-		Props = { Color = "rbxassetid://138853548592185" }, -- props_color.png: the props trim sheet, soft shade baked in
-		Plants = { Color = "rbxassetid://92882871806278" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
+		Props = { Color = "rbxassetid://111472510185672" }, -- props_color.png: the props trim sheet, soft shade baked in
+		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
@@ -2703,9 +2703,10 @@ Config.Map = {
 		Groups = {
 			Opaque = { Maps = "Props" },
 			Foliage = { Maps = "Plants", AlphaMode = "Transparency" },
-			-- The glass and flames: a flat colour. SmoothPlastic by day; Stage 7 makes it Neon
-			-- at sunset.
-			Glow = { Material = "SmoothPlastic" },
+			-- The glass and flames: a flat colour that glows (Neon), so the lanterns read warm
+			-- and lit as in the art even by day (as SmoothPlastic they read mint; Stage 3 critic).
+			-- Stage 7 tunes them per light state.
+			Glow = { Material = "Neon" },
 		},
 		-- Per kind: whether its opaque mesh casts a shadow (only the big ones; foliage and
 		-- glow never do), and the Glow mesh's colour.
@@ -2718,8 +2719,8 @@ Config.Map = {
 			PalmPlanter = { CastShadow = true },
 			Palm = { CastShadow = false },
 			PlanterBed = { CastShadow = false },
-			Lantern = { CastShadow = false, Glow = "#FDF5AB" },
-			LanternTall = { CastShadow = false, Glow = "#FDF5AB" },
+			Lantern = { CastShadow = false, Glow = "#FAE091" }, -- the art's warm globe colour
+			LanternTall = { CastShadow = false, Glow = "#FAE091" },
 			GlobeLight = { CastShadow = false, Glow = "#FAE091" },
 			UmbrellaSet = { CastShadow = true },
 			Piano = { CastShadow = true },

@@ -28,8 +28,8 @@ P = {
     'chamfer': 0.08,  # the box's vertical edges
     'fold': 24.0,  # a frond card's halves droop this many degrees either side of its stem
     # Palm
-    'trunk_base_r': 0.55,  # 1.1 thick at the foot
-    'trunk_top_r': 0.37,  # 0.74 under the crown
+    'trunk_base_r': 0.85,  # 1.7 thick at the foot (Stage 3 critic: the trunks read as poles)
+    'trunk_top_r': 0.55,  # 1.1 under the crown
     'trunk_sides': 8,
     'trunk_foot': -0.45,  # below the Palm's origin (the box top), into the soil
     'trunk_lean': 1.3,  # the crown this far off the base's axis, along +X (a gentle curve)
@@ -274,8 +274,8 @@ def trunk(mesh, height):
 # and out and droop to about -50 degrees at the tip; a middle ring arches higher (the art's
 # fountain); three young fronds stand up in the middle.
 CROWN = [
-    (9, 10.0, (40, 20, -4, -28, -50), 0.0, 0.0),
-    (5, 8.6, (64, 48, 28, 4, -22), 20.0, 0.18),
+    (12, 10.0, (40, 20, -4, -28, -50), 0.0, 0.0),
+    (7, 8.6, (64, 48, 28, 4, -22), 20.0, 0.18),
     (3, 5.4, (80, 70, 58, 44), 60.0, 0.35),
 ]
 
@@ -315,15 +315,15 @@ def build_palm():
 def build_planter_bed():
     rng = random.Random(1603)
     opaque, foliage = mc.Mesh('Opaque'), mc.Mesh('Foliage')
-    y_soil = planter(opaque, 16.0, 3.0, 2.5)
+    y_soil = planter(opaque, 16.0, 3.0, 3.2)  # as tall as the other planters (Stage 3 critic)
     for k in range(7):
         x = -6.5 + 2.1667 * k + rng.uniform(-0.12, 0.12)
         mound(foliage, x, y_soil + 0.02, 0.0, 2.6, 0.8, 180 * (k % 2))
         # The end clusters a little smaller, so the ferns spill under a stud past the ends.
         fern_bush(foliage, rng, x, y_soil, rng.uniform(-0.15, 0.15), [
-            (4, 2.4, (50, 18, -24), 0.4),  # arching over the trough's sides and ends
-            (2, 3.2, (74, 56, 32), 0.15),  # upright, arching
-        ], reach=0.8 if k in (0, 6) else 1.0, wide=0.95)
+            (4, 3.1, (50, 18, -24), 0.4),  # arching over the trough's sides and ends
+            (2, 4.2, (74, 56, 32), 0.15),  # upright, arching
+        ], reach=0.8 if k in (0, 6) else 1.0, wide=1.1)
     return {'Opaque': opaque, 'Foliage': foliage}
 
 

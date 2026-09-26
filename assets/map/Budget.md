@@ -11,8 +11,8 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 |---|---:|---:|---:|---|
 | 16 tables (existing, 8,134 each) | 130,000 | 130,144 | 130,144 | existing |
 | Balls, cues, effects (existing) | 20,000 | | | existing |
-| Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,834 | 3,834 | 2 |
-| Props | 140,000 | | | 3 |
+| Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
+| Props | 140,000 | 56,895 | 56,895 | 3 |
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | | | 4 |
 | Mid backdrop: skyline and islands | 110,000 | | | 5 |
 | Far cards | 2,000 | | | 6 |
@@ -23,32 +23,33 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 
 | Prop | Cap | Count in plan | Built | Total |
 |---|---:|---:|---:|---:|
-| Palm (trunk 600 or less, fronds as alpha cards) | 2,500 | 12 | | 30,000 at cap |
-| Fern planter | 1,200 | 12 | | 14,400 at cap |
-| Square planter box | 300 | 24 (one under every palm and fern) | | 7,200 at cap |
-| Sectional couch | 3,000 | 5 (2 U sectionals, 3 sofa groups) | | 15,000 at cap |
-| Coffee table | 500 | 1, plus 3 ottomans | | 2,000 at cap |
-| Lantern | 400 | 14 (2 of them tall) | | 5,600 at cap |
-| Umbrella with two loungers | 2,500 | 3 | | 7,500 at cap |
-| Fire pit | 1,500 | 1 | | 1,500 at cap |
-| Grand piano | 4,000 | 1 | | 4,000 at cap |
+| Palm (trunk 600 or less, fronds as alpha cards) | 2,500 | 18 | 892 (trunk 236) | 16,056 |
+| Fern planter | 1,200 | 14 | 890 | 12,460 |
+| Square planter box | 300 | 18 palm boxes (the fern and trough boxes are in their kinds) | 258 | 4,644 |
+| Sectional couch | 3,000 | 2 U sectionals, 3 sofa groups | 1,480 / 794 | 5,342 |
+| Coffee table | 500 | 1 | 278 | 278 |
+| Lantern | 400 | 12 + 2 tall | 202 | 2,828 |
+| Umbrella with two loungers | 2,500 | 3 | 838 | 2,514 |
+| Fire pit | 1,500 | 1 | 1,061 | 1,061 |
+| Grand piano | 4,000 | 1 (and its bench, 92) | 658 | 750 |
 | Snack counter | 4,000 | 0 (out for now, Checkpoint A) | | |
-| Globe light | 150 | 10 | | 1,500 at cap |
+| Fern trough (ours, no brief cap) | 1,200 | 9 | 1,122 | 10,098 |
+| Globe light | 150 | 6 | 144 | 864 |
 | Pergola | 8,000 | 1 (counted in architecture) | about 460 with its slats (plain columns) | 460 |
 
-At their caps the props come to about 89,000 triangles (the pergola aside), inside the
-props group's 140,000.
+Built (Stage 3), the props come to 56,895 triangles over every placement, inside the props
+group's 140,000. Studio's EditableMesh count matches Blender's.
 
 ## Other limits
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 5 (arch, floor colour, floor normal, foliage, overlays) |
+| Unique map textures (1024 exports) | 20 | 7 (arch, floor colour, floor normal, foliage, overlays, props, plants) |
 | Skyboxes | 2 (six faces each) | 0 |
 | Far-card images | 4 | 0 |
-| MeshParts, rooftop and props | 400 | 10 (architecture) |
+| MeshParts, rooftop and props | 400 | 181 (architecture 10, props 171) |
 | MeshParts, backdrop | about 30 | 0 |
-| PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 0 |
+| PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 3 (the tall lanterns, the fire pit) |
 
 ## Stage 2: the architecture (2026-09-26)
 

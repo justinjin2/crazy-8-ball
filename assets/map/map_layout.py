@@ -99,6 +99,8 @@ P = {
     'palm_inset': 7.0,  # a palm planter's centre this far in from the railing, so its crown stays over the roof
     # Spawn on the landing, facing the tables. The SpawnLocation is the art's entrance mat.
     'spawn_from_landing_front': 4.5,
+    'globe_scale': 1.5,  # the GlobeLight template (globe 1.5, cord to 3.75 over its centre) scaled so
+    'globe_hang': 5.6,  # ...its centre hangs this far under the fascia's underside
     'mat_size': (16.0, 0.2, 6.0),  # the entrance mat (the SpawnLocation), between the tall lanterns
 }
 
@@ -116,8 +118,8 @@ PROP_SIZE = {
     'fire_pit': (4.5, 4.5, 1.4),
     'piano': (4.4, 5.8, 3.0),
     'piano_bench': (2.4, 1.0, 1.4),
-    'globe_light': (1.5, 1.5, 1.5),
-    'planter_bed': (16.0, 3.0, 5.0),  # a long low trough of ferns along a parapet: 2.5 high, ferns above
+    'globe_light': (2.25, 2.25, 2.25),  # the template scaled 1.5 (Stage 3 critic: they did not show)
+    'planter_bed': (16.0, 3.0, 6.5),  # a long trough of ferns along a parapet: 3.2 high, ferns above
     'table_glow': (26.0, 18.0, 0.02),  # the table (18.24 x 10.24) and a soft warm pool about 3.5 round it
 }
 
@@ -296,10 +298,13 @@ def build():
     # lanterns with the row gaps and the front and back walkways.
     row_z = zs
     gap_z = [(fz1 + landing_front) / 2] + [(a + b) / 2 for (a, b) in aisle_z_spans] + [(fz0 + lounge_front) / 2]
-    zone_x = fx1 + P['side_walk']  # the side zone's inner edge
+    # Lanterns stand in front of the planted edge, not alone on open floor (Stage 3 critic); on
+    # the ocean side they step aside from the palms in the row gaps.
+    palm_gaps = [(row_z[0] + row_z[1]) / 2, (row_z[2] + row_z[3]) / 2]
     for z in gap_z:
-        prop('lantern', -(zone_x + 1.5), z)
-        prop('lantern', zone_x + 1.5, z)
+        prop('lantern', -(rail_x - 5.0), z)
+        zo = z + 3.4 if any(abs(z - g) < 1e-6 for g in palm_gaps) else z
+        prop('lantern', rail_x - 5.0, zo)
     # City side (02): big fern planters against the railing at every row (the palms stand in
     # clusters at the corners and ends instead, not in an even ring).
     for k, z in enumerate(row_z):
@@ -386,7 +391,7 @@ def build():
     for k in range(P['pergola_bays']):
         x = -pw + bay * (k + 0.5)
         for z in (pz1 - 1.3, (pz0 + pz1) / 2):
-            prop('globe_light', x, z, 0.0, y + P['pergola_height'] - 3.0)
+            prop('globe_light', x, z, 0.0, y + P['pergola_height'] - P['globe_hang'])
     # Pergola columns: a front and a back row.
     pcol = P['pergola_column']
     for k in range(P['pergola_bays'] + 1):

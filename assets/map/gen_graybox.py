@@ -396,8 +396,8 @@ def prop(g, p, i):
         # A Ball part is as big as its smallest side, so the flat crown is a disc.
         part((3.0, 18, 18), (0, h - 4, 0), C['palm'], shape='Cylinder', rot=(0, 0, 90), shadow=False)
     elif kind == 'planter_bed':
-        part((w, 2.5, d), (0, 1.25, 0), C['stone'], collide=True)
-        part((w - 0.4, 2.2, d + 0.8), (0, 3.4, 0), C['leaf'])
+        part((w, 3.2, d), (0, 1.6, 0), C['stone'], collide=True)
+        part((w - 0.4, 2.6, d + 0.8), (0, 4.4, 0), C['leaf'])
     elif kind in ('lantern', 'lantern_tall'):
         part((w, h, d), (0, h / 2, 0), C['lantern_frame'], collide=True)
         part((w - 0.3, h * 0.7, d + 0.02), (0, h * 0.5, 0), C['lantern_glass'], material='Neon')
@@ -473,6 +473,8 @@ def prop_placements(plan):
             if kind == 'Palm':
                 place['Y'] = p['Y'] + mc.PLANTER_BOX_HEIGHT
                 scale = (p['size'][1] - mc.PLANTER_BOX_HEIGHT) / mc.PALM_HEIGHT
+            elif kind == 'GlobeLight':
+                scale = ml.P['globe_scale']
             placements.append({'kind': kind, 'cf': [round(place['X'], 4), round(place['Y'], 4),
                                                     round(place['Z'], 4), place['yaw']], 'scale': round(scale, 4)})
             rec = kinds.get(kind, {})

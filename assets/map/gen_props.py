@@ -55,7 +55,7 @@ PALM_HEIGHT = mc.PALM_HEIGHT
 PLANTER_BOX_HEIGHT = mc.PLANTER_BOX_HEIGHT
 # Flat colours for the Glow meshes (Config.Map.Props repeats them for Studio).
 GLOW = {
-    'Lantern': mc.hexc('lantern_glass'), 'LanternTall': mc.hexc('lantern_glass'),
+    'Lantern': mc.hexc('globe_light'), 'LanternTall': mc.hexc('globe_light'),
     'GlobeLight': mc.hexc('globe_light'), 'FirePit': mc.hexc('fire'),
 }
 GROUPS = ('Opaque', 'Foliage', 'Glow')

@@ -136,9 +136,11 @@ def _palm_frond(draw, rng, s):
         'rachis': (0.024 * s, 0.004 * s),
         'shade_width': 0.72,
         # Lit: palm_mid at the base (inside the crown), palm_lit, then toward leaf_lit at the tip.
-        'lit': lambda t, g: (_mix(PALM_MID, PALM_LIT, t / 0.22 + g) if t < 0.22
-                             else _mix(PALM_LIT, LEAF_LIT, (t - 0.22) / 0.78 * 0.7 + g)),
-        'shade': lambda t: _mix(_mix(PALM_MID, LEAF_DARK, 0.45), PALM_MID, t / 0.35),
+        # Deeper than first drawn (Stage 3 critic: the crowns read lime): palm_mid darkened
+        # toward leaf_dark most of the way, palm_lit only toward the tip.
+        'lit': lambda t, g: (_mix(_mix(PALM_MID, LEAF_DARK, 0.3), PALM_MID, t / 0.5 + g) if t < 0.5
+                             else _mix(PALM_MID, PALM_LIT, (t - 0.5) / 0.5 * 0.8 + g)),
+        'shade': lambda t: _mix(_mix(PALM_MID, LEAF_DARK, 0.6), _mix(PALM_MID, LEAF_DARK, 0.3), t / 0.35),
         'stem': lambda t: (_mix(_mix(PALM_MID, TRUNK, 0.45), PALM_MID, t / 0.12) if t < 0.12
                            else _mix(PALM_MID, LEAF_LIT, (t - 0.12) / 0.4)),
     }

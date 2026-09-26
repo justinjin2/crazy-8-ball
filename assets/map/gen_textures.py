@@ -390,7 +390,8 @@ def overlays():
 # ---------------------------------------------------------------------------------------------
 
 PROP_COLOURS = {
-    'p_fabric': mc.hexc('couch_day'),
+    # Greige, not white (Stage 3 critic): the day couch mixed with the art's grey cushion.
+    'p_fabric': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('couch_day')), mc.rgb(mc.hexc('cushion_teal')), 0.35)),
     'p_cushion_blue': mc.hexc('cushion_blue'),
     'p_cushion_teal': mc.hexc('cushion_teal'),
     'p_cushion_orange': mc.hexc('cushion_orange'),
@@ -401,14 +402,15 @@ PROP_COLOURS = {
     'p_stone_cap': mc.hexc('firepit_top'),
     'p_glass_ring': mc.hexc('firepit_ring'),
     'p_frame': mc.hexc('lantern_frame'),
-    'p_canvas': mc.hexc('umbrella_canvas_day'),
+    'p_canvas': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('umbrella_canvas_day')), mc.rgb(mc.hexc('umbrella_canvas')), 0.5)),
     'p_pole': mc.hexc('umbrella_pole'),
     'p_lounger': mc.hexc('lounger'),
     'p_piano': mc.hexc('piano_black'),
     'p_keys': '#F4F1EA',
     'p_planter': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.ALBEDO['stone']), mc.rgb(mc.hexc('planter')), 0.35)),
     'p_soil': '#3B2A22',
-    'p_trunk': mc.hexc('palm_trunk'),
+    # Warmer and lighter than the measured trunk, which rendered near black (Stage 3 critic).
+    'p_trunk': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('palm_trunk')), mc.rgb(mc.hexc('coffee_table')), 0.55)),
     'p_metal': '#8C8A92',
     'p_leaf': mc.ALBEDO['leaf_mid'],
     'p_white': '#F2EEE8',
@@ -452,7 +454,7 @@ def props(rng):
             col = np.where(mask[..., None], colour_array('#15141A')[None, None, :], col)
         if name == 'p_trunk':
             rings = 0.5 + 0.5 * np.cos(v * 2 * np.pi * 6)
-            col = col * (1 - 0.18 * rings ** 3)[..., None] * (1 + 0.03 * periodic_noise(rng, rows, n, 6))[..., None]
+            col = col * (1 - 0.1 * rings ** 3)[..., None] * (1 + 0.03 * periodic_noise(rng, rows, n, 6))[..., None]
         if name == 'p_metal':
             col = col * (1 + 0.1 * (v - 0.5))[..., None]
         # Soft AO at the foot, a slight lift at the top (the brief's baked shading).
