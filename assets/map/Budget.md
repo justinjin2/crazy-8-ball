@@ -14,7 +14,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
 | Props | 140,000 | 60,959 | 60,959 | 3 |
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 8,869 | 8,869 | 4 |
-| Mid backdrop: skyline and islands | 110,000 | | | 5 |
+| Mid backdrop: skyline and islands | 110,000 | 45,759 | | 5 |
 | Far cards | 2,000 | | | 6 |
 | **Everything we ship** | **512,000** | | | |
 | Headroom for avatars | 488,000 or more | | | |
@@ -44,11 +44,11 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 8 (arch, floor colour, floor normal, foliage, overlays, props, plants, near) |
+| Unique map textures (1024 exports) | 20 | 10 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands) |
 | Skyboxes | 2 (six faces each) | 1 (day; gen_sky.py) |
 | Far-card images | 4 | 0 |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
-| MeshParts, backdrop | about 30 | 11 (the near world: 8 meshes and 3 boats) |
+| MeshParts, backdrop | about 30 | 23 (the near world: 8 meshes and 3 boats; the mid backdrop: 12 chunks) |
 | PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 3 (the tall lanterns, the fire pit) |
 
 ## Stage 2: the architecture (2026-09-26)

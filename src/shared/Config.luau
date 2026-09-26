@@ -2674,8 +2674,8 @@ Config.Map = {
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
-		Skyline = { Color = "" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
-		Islands = { Color = "" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
+		Skyline = { Color = "rbxassetid://137381376954012" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
+		Islands = { Color = "rbxassetid://102751887345193" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
