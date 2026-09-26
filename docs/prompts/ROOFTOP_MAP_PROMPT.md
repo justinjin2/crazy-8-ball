@@ -465,4 +465,16 @@ One line per stage: date, stage, result, commit.
     lighting and atmosphere soften and blur it so the pool tables are the focal point
     (DECISIONS).
   - Next: Stage 7 (sunset and the cycle).
+- 2026-09-26: Stage 7 built (three critic rounds, the cap); waiting at Checkpoint D.
+  - LightCycle (pure, tested), MapLighting (preview in Edit), DayCycle (client), Config.Lighting
+    with Day, Sunset, SunPath, SkySwaps, DuskSky, SwapHaze, DuskWarm.
+  - Three skies (day, dusk, sunset) from the same cloud scene: one swap straight to sunset
+    popped, so the brief's in-between sky was added (DECISIONS).
+  - The lit windows are an emissive mask on the skyline's texture, not a Neon mesh
+    (DECISIONS). The table glow is emissive too. The pergola globes are lit.
+  - Lighting.Technology no longer exists (unified lighting), so there was nothing to set.
+  - /day and /sunset developer chat commands fade the whole server there.
+  - Play: 24 of 24 paths, 7 of 7 edge pushes, a clean console.
+  - Critic: palette 4, 4, 5; calm 6, 6, 7. The notes carried forward are in Spec section 9.
+  - Waiting: the designer's OK at Checkpoint D.
 

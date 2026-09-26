@@ -528,3 +528,44 @@ stages that build the real thing:
     - the mid city: more blue and violet-grey facades, fewer window stripes far out;
     - the islands' mottled texture toward two-tone shading;
     - Stage 7: shade faces darker, the haze for depth, warm lamp glow.
+- **Stage 7 critic (the sunset and the cycle), carried forward.** Three rounds, the cap.
+
+  | Area | Round 1 | Round 2 | Round 3 |
+  |---|---|---|---|
+  | Layout | 6 | 6 | 6 |
+  | Silhouettes | 5 | 6 | 5 |
+  | Palette | 4 | 4 | 5 |
+  | Materials | 4 | 5 | 6 |
+  | Lighting | 4 | 5 | 5 |
+  | Backdrop | 5 | 5 | 4 |
+  | Calm | 6 | 6 | 7 |
+  | Phone readability | 5 | 6 | 6 |
+
+  - **Fixed along the way:**
+    - the pink wash (a cool lavender shade and a peach sun);
+    - the white sun (smaller, less bloom);
+    - a violet sky with orange only toward the sun;
+    - the orange boxes under the tables (a tight rim);
+    - lime lantern glass;
+    - a grey mid-fade (DuskWarm);
+    - the near islands and sea toward the art's violet;
+    - the swap split into two steps by a dusk sky.
+  - **Tested, not the cause:** the pale sheen on the sea toward the low sun is the sun's glare
+    on the water. It does not move with the water's colour, reflection or transparency, or
+    with the Atmosphere (Play, 2026-09-26).
+  - **For a later pass:**
+    - **Sun:** it sits about 4 degrees up; the art has it touching the horizon. Moving it
+      means a new SunPath end and re-rendering the painted glow.
+    - **Near islands:**
+      - they go very dark early in the fade, because their tint mixes straight from white;
+      - the violet tint on a green texture reads olive at sunset, so the islands could take a
+        greyscale texture coloured through the tint instead.
+    - **The swap:** it still shows (the painted peaks and the sky change in one frame).
+      Options: a fourth and fifth sky, or swaps timed where the skies look most alike.
+    - **A warm focal point:** brighter pergola globes on their own (they share the lanterns'
+      light today), a warm glow under the pergola beams, and a touch more contrast at
+      sunset.
+    - **Phone readability:**
+      - the white queue pads outshine the tables at sunset;
+      - the raspberry back row sinks into the rose floor;
+      - the palm fronds read yellow-olive.

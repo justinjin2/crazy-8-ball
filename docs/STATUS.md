@@ -1,5 +1,28 @@
 # Status
 
+**2026-09-26: the rooftop map, Stage 7 of 8 built (the sunset and the day/sunset cycle), waiting at
+Checkpoint D.**
+
+- **Built:**
+  - The cycle, the same for everyone (Day 10 min, a 1 min fade, Sunset 5 min, a fade back), from
+    the server's clock with no network traffic: `LightCycle` (pure, Lune-tested), `MapLighting`,
+    `DayCycle`.
+  - A sunset sky and a dusk sky rendered from the day's cloud scene (the approved day sky is
+    unchanged): a violet sky, the sun low over the sea right of the lounge, the far city lit up,
+    island silhouettes.
+  - At sunset: the city's windows light up, a warm rim glows under each table, and the
+    lanterns, pergola globes (now lit: 9 lights of 20) and fire pit warm up.
+  - Depth of field keeps the background soft (the designer's direction at Checkpoint C).
+  - `/day` and `/sunset` chat commands for the designer: the whole server fades there.
+- **Verified:** 355 Lune tests pass; the fade and both commands were run in Play; 24 of 24 paths
+  and 7 of 7 edge pushes pass; a clean console; three critic rounds (notes in Spec section 9).
+- **Found:** this place is on Roblox's unified lighting, so there is no Technology setting to
+  switch (STUDIO_NOTES).
+- **Waiting:** the designer's OK at Checkpoint D.
+- **Next:** Stage 8, the finish (docs, then the one save and publish).
+
+---
+
 **2026-09-26: the rooftop map, Stage 6 of 8 done (the far horizon); Checkpoint C approved.**
 
 - **Built:**
