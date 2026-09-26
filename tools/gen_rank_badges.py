@@ -2,11 +2,12 @@
 """Generate the rank badges (docs/GDD.md section 11, docs/UI_STYLE.md sections 6 and 7).
 
 Drawn in the icon style of tools/gen_ui_art.py (thick ink outline, drop lip, gradients, gloss)
-and rendered the same way. Every badge shares one core in the same place: a shield, a metal
-ring and the 8 ball, so badges line up in any UI and one shine animation fits them all. The
-rank shows by:
-- colour, one per tier;
-- side ornaments that grow each tier;
+and rendered the same way. Each tier is its own badge after the designer's reference sheet: a
+faceted frame round a big 8 ball, with the tier's own ornaments (tall side plates for Bronze,
+Silver and Gold; crystal feathers for Platinum; crystal shards for Diamond; fins for Expert; a
+laurel for Veteran; a crystal burst for Master; swept wings for Grandmaster; black and gold
+blades for Reyes). On top of that, the same rules everywhere:
+- the 8 ball and its ring are the same size in the same place on every badge;
 - a crown from Expert up, bigger each tier (Reyes has the biggest, in gold);
 - pips in an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
   to Grandmaster (1 pip = division I, 5 = V).
@@ -37,33 +38,33 @@ SIZE = 512  # output px; everything is drawn on a 256-unit canvas
 INK = ui.INK
 EDGE = 3.5  # the thin ink lines between parts (the outer outline is ink_filter's)
 
-CX, CY = 128, 148  # the ball's centre, the same on every badge (low, to leave room for crowns)
-RING = 52  # the metal ring's outer radius
-BALL = 38
+CX, CY = 128, 138  # the ball's centre, the same on every badge (low, to leave room for crowns)
+RING = 58  # the metal ring's outer radius
+BALL = 46
 PIP_ARC = 70  # pips sit on this radius around the ball...
-PIP_STEP = 26  # ...this many degrees apart, centred under the ball
-PIP_SIZE = 15.5
-SHIELD = [(128, 64), (192, 98), (192, 178), (128, 228), (64, 178), (64, 98)]
-CROWN_BASE = 92  # the crown's bottom edge, just above the ring
+PIP_STEP = 25  # ...this many degrees apart, centred under the ball
+PIP_SIZE = 15
+CROWN_BASE = 80  # the crown's bottom edge, on the ring's top
+LIGHT = (-0.55, -0.83)  # towards the light, for the facets: the top left
 OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
 LIP = 5
 
 GOLD = ("#FFF3A6", "#FFC928", "#C97F00")
 
-# name, metal (light, mid, dark), pip kind, crown level (0 = none). Lowest tier first.
+# name, metal (light, mid, dark), pip kind, crown level (0 = none), frame. Lowest tier first.
 TIERS = [
-    ("bronze", ("#FFD6AE", "#D8864A", "#8A461C"), "star", 0),
-    ("silver", ("#FFFFFF", "#C3CCD9", "#77849A"), "star", 0),
-    ("gold", GOLD, "star", 0),
-    ("platinum", ("#F2FBFF", "#A6D6F2", "#5588B8"), "star", 0),
-    ("diamond", ("#A8DBFF", "#3B9BFF", "#1A52C2"), "star", 0),
-    ("expert", ("#FFB0A8", "#F2413F", "#9A1226"), "gem", 1),
-    ("veteran", ("#C8F7A8", "#4FC93A", "#1A7A28"), "gem", 2),
-    ("master", ("#DEC4FF", "#9B55F5", "#4C18A8"), "gem", 3),
-    ("grandmaster", ("#C2FDFF", "#27D0E6", "#08789E"), "gem", 4),
+    ("bronze", ("#FFD6AE", "#D8864A", "#8A461C"), "star", 0, "hex"),
+    ("silver", ("#FFFFFF", "#C3CCD9", "#77849A"), "star", 0, "hex"),
+    ("gold", GOLD, "star", 0, "hex"),
+    ("platinum", ("#F2FBFF", "#A6D6F2", "#5588B8"), "star", 0, "hex"),
+    ("diamond", ("#A8DBFF", "#3B9BFF", "#1A52C2"), "star", 0, "hex"),
+    ("expert", ("#FFB0A8", "#F2413F", "#9A1226"), "gem", 1, "round"),
+    ("veteran", ("#C8F7A8", "#4FC93A", "#1A7A28"), "gem", 2, "crest"),
+    ("master", ("#DEC4FF", "#9B55F5", "#4C18A8"), "gem", 3, "crest"),
+    ("grandmaster", ("#C2FDFF", "#27D0E6", "#08789E"), "gem", 4, "crest"),
 ]
-REYES = ("reyes", ("#8C8CA2", "#3C3C4C", "#14141C"), None, 5)
-UNRANKED = ("unranked", ("#EEF1F6", "#B4BDCB", "#7D889B"), None, 0)
+REYES = ("reyes", ("#8C8CA2", "#3C3C4C", "#14141C"), None, 5, "round")
+UNRANKED = ("unranked", ("#EEF1F6", "#B4BDCB", "#7D889B"), None, 0, "hex")
 
 
 # ---------------------------------------------------------------------------------------
@@ -197,23 +198,6 @@ def shard(p, ang, length, width, fill="url(#w)", light="#FFFFFF"):
     )
 
 
-def slab(p, ang, length, w0, w1, r=7, fill="url(#m)"):
-    """A flat tapered plate with rounded corners (the lowest tiers' wings)."""
-    pts = [
-        along(p, ang, 0, w0 / 2),
-        along(p, ang, length, w1 / 2),
-        along(p, ang, length, -w1 / 2),
-        along(p, ang, 0, -w0 / 2),
-    ]
-    lower = [p, pts[3], pts[2], along(p, ang, length)]
-    return (
-        path(rpoly(pts, r), fill)
-        + poly(lower, "#000000", False, 'opacity="0.2"')
-        + ui.line([along(p, ang, 8, w0 * 0.22), along(p, ang, length - 8, w1 * 0.22)], "#FFFFFF", 2.6, 'opacity="0.55"')
-        + path(rpoly(pts, r), "none")
-    )
-
-
 def star(c, r, fill="url(#p)"):
     pts = []
     for i in range(10):
@@ -243,18 +227,72 @@ def gem(c, h, light, mid, dark):
     )
 
 
-def shield(face="url(#m)", rim="url(#r)", inset=0.87):
-    outer = rpoly(SHIELD, 15)
-    inner = rpoly(scaled(SHIELD, inset), 12)
-    return path(outer, rim) + path(inner, face, False) + gloss(94, 104, 18, 9, -35, 0.7)
+def inset_poly(points, d):
+    """The polygon moved d units inwards on every side (points clockwise on screen)."""
+    n = len(points)
+    lines = []
+    for i in range(n):
+        a, b = points[i], points[(i + 1) % n]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        length = math.hypot(dx, dy)
+        lines.append(((a[0] - dy / length * d, a[1] + dx / length * d), (dx, dy)))
+    out = []
+    for i in range(n):
+        (p1, d1), (p2, d2) = lines[i - 1], lines[i]
+        cross = d1[0] * d2[1] - d1[1] * d2[0]
+        t = ((p2[0] - p1[0]) * d2[1] - (p2[1] - p1[1]) * d2[0]) / cross
+        out.append((p1[0] + d1[0] * t, p1[1] + d1[1] * t))
+    return out
+
+
+def facet_colour(metal, a, b):
+    """A flat facet's colour from which way edge a->b faces: lit from the top left."""
+    light, mid, dark = metal
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    t = (dy * LIGHT[0] - dx * LIGHT[1]) / math.hypot(dx, dy)
+    return mix(mid, light, t * 0.9) if t >= 0 else mix(mid, dark, -t * 0.85)
+
+
+def faceted(points, metal, bevel, face="url(#m)"):
+    """A bevelled plate like the reference's frames: one flat facet per edge round a face."""
+    inner = inset_poly(points, bevel)
+    out = []
+    n = len(points)
+    for i in range(n):
+        j = (i + 1) % n
+        colour = facet_colour(metal, points[i], points[j])
+        out.append(poly([points[i], points[j], inner[j], inner[i]], colour, False, f'stroke="{colour}" stroke-width="0.8"'))
+    out.append(poly(inner, face, False))
+    out.append(poly(inner, "none", False, f'stroke="{INK}" stroke-width="1.6" stroke-opacity="0.45" stroke-linejoin="round"'))
+    out.append(poly(points, "none"))
+    return "".join(out)
+
+
+def round_frame():
+    pts = [along((CX, CY), a, 70) for a in range(120, 421, 20)]
+    return pts + [(CX, CY + 90)]
+
+
+FRAMES = {
+    # pointed top and bottom, like Bronze to Diamond in the reference
+    "hex": [(128, 42), (198, 84), (198, 180), (128, 228), (58, 180), (58, 84)],
+    # a flat top for a crown to sit on
+    "crest": [(96, 72), (160, 72), (198, 98), (198, 180), (128, 228), (58, 180), (58, 98)],
+    # a ring with a point at the bottom, like Expert and Reyes
+    "round": round_frame(),
+}
+
+
+def frame(kind, metal, face="url(#r)"):
+    return faceted(FRAMES[kind], metal, 10, face) + gloss(86, 76, 16, 6, -32, 0.75)
 
 
 def ring(face="url(#m)", rim="url(#r)"):
     return (
         f'<circle cx="{CX}" cy="{CY}" r="{RING}" fill="{rim}" stroke="{INK}" stroke-width="{EDGE}"/>'
         f'<circle cx="{CX}" cy="{CY}" r="{RING - 5}" fill="{face}"/>'
-        f'<circle cx="{CX}" cy="{CY}" r="{BALL + 5}" fill="{INK}"/>'
-        + gloss(CX - 31, CY - 32, 13, 5.5, -45, 0.8)
+        f'<circle cx="{CX}" cy="{CY}" r="{BALL + 4}" fill="{INK}"/>'
+        + gloss(CX - 36, CY - 36, 14, 6, -45, 0.8)
     )
 
 
@@ -281,14 +319,14 @@ def pips(kind, count, metal):
         if kind == "star":
             out.append(star(c, PIP_SIZE))
         else:
-            out.append(gem(c, PIP_SIZE + 1, mix(light, "#FFFFFF", 0.3), mid, dark))
+            out.append(gem(c, PIP_SIZE + 1.5, mix(light, "#FFFFFF", 0.3), mid, dark))
     return "".join(out)
 
 
 def crown(level, face="url(#c)", rim="url(#r)", gem_colours=None):
-    """A crown on top of the shield. Level 1 (Expert) to 5 (Reyes): wider, taller, more points."""
-    w = [0, 72, 80, 90, 100, 114][level]
-    h = [0, 44, 50, 56, 62, 68][level]
+    """A crown on top of the frame. Level 1 (Expert) to 5 (Reyes): wider, taller, more points."""
+    w = [0, 70, 78, 88, 98, 112][level]
+    h = [0, 38, 44, 50, 56, 62][level]
     n = 3 if level <= 2 else 5
     band = 13 + level
     tip_r = [0, 5, 5.5, 5.5, 6, 7][level]
@@ -330,7 +368,8 @@ def crown(level, face="url(#c)", rim="url(#r)", gem_colours=None):
 
 
 # ---------------------------------------------------------------------------------------
-# Ornaments: one function per tier, drawing the left side (mirrored onto the right)
+# Ornaments: one design per tier, after the reference sheet. Each draws the left side
+# (mirrored onto the right), behind the frame.
 # ---------------------------------------------------------------------------------------
 
 
@@ -345,72 +384,98 @@ def fan(kind, pivot, specs, width, bend=0.0, **kw):
     return "".join(out)
 
 
-def orn_bronze(m):
-    return slab((92, 160), 197, 76, 38, 30, 9)
-
-
-def orn_silver(m):
-    return slab((92, 178), 186, 64, 28, 20, 7) + blade((88, 150), 212, 86, 40, bend=-4, rib=m[0])
-
-
-def orn_gold(m):
-    return blade((90, 176), 192, 76, 34, bend=-4, rib=m[0]) + blade((86, 146), 222, 96, 44, bend=-8, rib=m[0])
-
-
-def orn_platinum(m):
-    return fan("blade", (90, 154), ((250, 80), (228, 98), (206, 84), (186, 74)), 30, bend=-12, rib=m[0])
-
-
-def orn_diamond(m):
-    return shard((128, 88), 270, 60, 30, light=m[0]) + fan(
-        "shard", (92, 156), ((252, 82), (228, 102), (204, 84), (182, 70)), 30, light=m[0]
+def fin(p, ang, length, width, metal):
+    """An angular fin: a straight top edge to the tip, a shoulder on the lower edge."""
+    tip = along(p, ang, length)
+    b1, b2 = along(p, ang, 0, -width * 0.45), along(p, ang, 0, width * 0.45)
+    shoulder = along(p, ang, length * 0.55, width * 0.6)
+    light, mid, dark = metal
+    return (
+        poly([b1, tip, shoulder, b2], "url(#w)")
+        + poly([b1, tip, p], mix(light, mid, 0.35), False, 'opacity="0.85"')
+        + poly([p, tip, shoulder, b2], dark, False, 'opacity="0.35"')
+        + poly([b1, tip, shoulder, b2], "none")
     )
 
 
+def dark_metal(m):
+    light, mid, dark = m
+    return (mix(light, mid, 0.5), mix(mid, dark, 0.35), mix(dark, "#000000", 0.2))
+
+
+def orn_bronze(m):
+    """One tall plate each side, leaning out, over a darker foot."""
+    return faceted([(52, 180), (84, 196), (112, 228), (80, 228)], dark_metal(m), 5) + faceted(
+        [(30, 92), (62, 102), (84, 204), (54, 198)], m, 6
+    )
+
+
+def orn_silver(m):
+    """A taller plate each side with a pointed top."""
+    return faceted([(48, 176), (84, 196), (112, 228), (78, 228)], dark_metal(m), 5) + faceted(
+        [(24, 68), (64, 102), (84, 204), (50, 194)], m, 6
+    )
+
+
+def orn_gold(m):
+    """A broad plate each side, flaring out like a shoulder."""
+    return faceted([(38, 170), (86, 198), (112, 228), (74, 228)], dark_metal(m), 5) + faceted(
+        [(12, 74), (60, 90), (86, 206), (40, 186)], m, 6
+    )
+
+
+def orn_platinum(m):
+    """Crystal feathers."""
+    return fan("blade", (84, 176), ((250, 112), (232, 100), (214, 80), (196, 60)), 28, bend=-10, rib=m[0])
+
+
+def orn_diamond(m):
+    """Big crystal shards rising beside the frame."""
+    return fan("shard", (92, 184), ((256, 136), (234, 108), (212, 78), (192, 50)), 30, light=m[0])
+
+
 def orn_expert(m):
-    return fan("blade", (92, 160), ((258, 86), (236, 100), (214, 92), (192, 78), (172, 62)), 30, bend=-16, rib=m[0])
+    """Red fins, stacked."""
+    return "".join(
+        fin((86, 168), a, length, width, m) for a, length, width in ((236, 104, 34), (212, 82, 32), (190, 64, 28), (170, 44, 22))
+    )
 
 
 def orn_veteran(m):
-    """A laurel wreath round the left of the shield."""
+    """A laurel wreath round the frame."""
     out = []
-    radius = 84
-    stem = [along((CX, CY), 98 + i * 20, radius) for i in range(8)]
+    radius = 86
+    stem = [along((CX, CY), 96 + i * 20, radius) for i in range(8)]
     stem_d = "M" + " L".join(pt(p) for p in stem)
     out.append(f'<path d="{stem_d}" fill="none" stroke="{INK}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>')
     out.append(f'<path d="{stem_d}" fill="none" stroke="{m[2]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')
     for i in range(7):
-        a = 102 + i * 20
+        a = 100 + i * 20
         p = along((CX, CY), a, radius)
         tangent = a + 90  # pointing up the wreath
-        length = 40 - i * 0.8
-        out.append(blade(p, tangent + 46, length, 23, bend=-3, rib=m[2]))
-        out.append(blade(p, tangent - 8, length * 0.8, 18, bend=3, rib=m[2]))
-    out.append(blade(along((CX, CY), 242, radius), 332, 34, 20, bend=-2, rib=m[2]))
+        length = 42 - i * 0.8
+        out.append(blade(p, tangent + 46, length, 25, bend=-3, rib=m[2]))
+        out.append(blade(p, tangent - 8, length * 0.8, 19, bend=3, rib=m[2]))
     return "".join(out)
 
 
 def orn_master(m):
-    return fan("shard", (94, 162), ((262, 96), (240, 110), (218, 100), (196, 80), (174, 70), (154, 50)), 30, light=m[0])
+    """A burst of crystals."""
+    return fan("shard", (92, 176), ((262, 124), (240, 116), (216, 92), (194, 70), (172, 46)), 30, light=m[0])
 
 
 def orn_grandmaster(m):
-    """Two layers of feathers: long deep ones behind, short bright ones in front."""
-    back = fan("blade", (92, 156), ((266, 108), (246, 120), (226, 106), (206, 88), (186, 78), (166, 64)), 30, bend=-18, rib=m[0])
-    front = fan("blade", (96, 160), ((250, 78), (228, 76), (206, 66), (184, 56)), 22, bend=-12, fill="url(#c)", rib="#FFFFFF")
-    return back + front
-
-
-REYES_WINGS = ((266, 110), (242, 118), (220, 104), (198, 88), (176, 76))
+    """Swept wings: long deep feathers behind, short bright ones in front, spikes on the shoulders."""
+    back = fan("blade", (88, 170), ((246, 118), (224, 96), (202, 76), (182, 62)), 30, bend=-16, rib=m[0])
+    front = fan("blade", (92, 172), ((240, 72), (218, 66), (196, 54)), 22, bend=-10, fill="url(#c)", rib="#FFFFFF")
+    return back + front + shard((72, 104), 238, 34, 16, light=m[0])
 
 
 def orn_reyes(m):
-    """Black blades edged in gold, with gold spikes between them, like the reference."""
-    out = [fan("blade", (94, 158), [(a + 12, length * 0.9) for a, length in REYES_WINGS], 19, bend=-10, fill="url(#g)", rib=GOLD[0])]
-    for a, length in REYES_WINGS:
-        out.append(blade((94, 158), a, length, 36, bend=-14, fill="url(#g)"))
-        out.append(blade(along((94, 158), a, 8), a, length * 0.72, 16, bend=-9, fill="url(#m)", rib="#9A9AB0"))
-    return "".join(out)
+    """Black crystal blades with gold blades between them."""
+    dark = fan("shard", (86, 170), ((240, 112), (212, 80), (186, 66)), 34, fill="url(#m)", light="#9A9AB0")
+    gold = fan("blade", (88, 170), ((258, 96), (226, 96), (199, 74)), 20, bend=-6, fill="url(#g)", rib=GOLD[0])
+    return dark + gold
 
 
 ORNAMENTS = {
@@ -433,20 +498,20 @@ ORNAMENTS = {
 
 
 def badge_body(tier, count):
-    name, metal, pip, crown_level = tier
+    name, metal, pip, crown_level, frame_kind = tier
     light, mid, dark = metal
     parts = []
     if name in ORNAMENTS:
         parts.append(mirrored(ORNAMENTS[name](metal)))
     if name == "reyes":
-        # a black shield with a gold trim line, and everything else gold
-        parts.append(shield(rim="url(#m)", inset=0.9))
-        trim = rpoly(scaled(SHIELD, 0.9), 13)
-        parts.append(f'<path d="{trim}" fill="none" stroke="url(#g)" stroke-width="3.5"/>')
+        # a black frame with a gold trim line; the crown and ring gold
+        parts.append(frame(frame_kind, metal, face="url(#m)"))
+        trim = inset_poly(FRAMES[frame_kind], 10)
+        parts.append(poly(trim, "none", False, 'stroke="url(#g)" stroke-width="3" stroke-linejoin="round"'))
         parts.append(crown(crown_level, face="url(#g)", rim="url(#gr)", gem_colours=("#FF8A8A", "#E0203A", "#7A0A1E")))
         parts.append(ring(face="url(#g)", rim="url(#gr)"))
     else:
-        parts.append(shield())
+        parts.append(frame(frame_kind, metal))
         if crown_level:
             parts.append(crown(crown_level, gem_colours=(mix(light, "#FFFFFF", 0.4), light, mid)))
         parts.append(ring())
@@ -700,8 +765,8 @@ document.getElementById("dark").onchange = e => {
 # period: seconds between sweeps; sweep: seconds a sweep takes; width: band half-width
 # (fraction of the badge); strength: the band's peak opacity; angle: its travel direction.
 # spots: where sparkles may appear, on the 256-unit canvas.
-LOW_SPOTS = [[84, 82], [172, 84], [196, 124], [62, 128], [128, 46]]
-HIGH_SPOTS = [[128, 32], [92, 52], [166, 52], [40, 92], [216, 92], [54, 170], [202, 170], [84, 88], [172, 88]]
+LOW_SPOTS = [[84, 70], [172, 70], [40, 104], [216, 104], [128, 48]]
+HIGH_SPOTS = [[128, 24], [98, 42], [158, 42], [36, 90], [220, 90], [30, 150], [226, 150], [72, 96], [184, 96]]
 FX = {
     "none": None,
     "low": {"period": 4.0, "sweep": 0.9, "width": 0.16, "strength": 0.55, "angle": 20, "sparkles": 0, "twinkle": 1, "spots": LOW_SPOTS, "sparkleSize": 0},
@@ -715,7 +780,7 @@ def preview_html():
     import json
 
     rows = [{"title": "unranked", "fx": "none", "names": ["unranked"]}]
-    for name, _, pip, level in TIERS:
+    for name, _, _, level, _ in TIERS:
         rows.append({"title": name, "fx": "high" if level else "low", "names": [f"{name}_{d}" for d in range(1, 6)]})
     rows.append({"title": "reyes", "fx": "top", "names": ["reyes"]})
     return PREVIEW.replace("__FX__", json.dumps(FX)).replace("__ROWS__", json.dumps(rows))

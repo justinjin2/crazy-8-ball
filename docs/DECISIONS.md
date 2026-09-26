@@ -1166,3 +1166,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - Drawn in code in the icon style (tools/gen_rank_badges.py) so all 47 match. Kept in
     `assets/ui/ranks/` and not uploaded or wired up yet, so this work does not overlap the
     map session in Studio.
+- 2026-09-26: Rank badges redrawn after the reference (designer: "actually looking like a
+  badge"). Each tier has its own badge design from the reference sheet (faceted frame, big 8
+  ball, the tier's own plates, feathers, shards, fins, laurel or wings) instead of one more
+  feather per tier. Kept from the first round: stars and gems for divisions, growing crowns
+  from Expert, no banner, Reyes without a signature, the ball in the same place on every badge.

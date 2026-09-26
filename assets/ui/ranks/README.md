@@ -23,10 +23,10 @@ The number is the division: `_1` is I (the bottom), `_5` is V (the top). Badges 
 (Roblox shows images up to 1024 px, so they stay sharp). Going in the game means 95 uploads:
 47 badges, 47 shine masks and the sparkle.
 
-**Same layout on every badge.** The 8 ball's centre is at 50% across and 58% down, and the
-shield, ring and ball are the same size on every badge; crowns rise above and pips sit in an
-arc under the ball. So one ImageLabel can switch from any badge to any other (for a rank-up
-animation) without anything jumping.
+**Each tier is its own badge** after the designer's reference sheet, but the 8 ball and its
+ring are the same size in the same place on every one (50% across, 54% down); crowns rise
+above and pips sit in an arc under the ball. So one ImageLabel can switch from any badge to
+any other (for a rank-up animation) without the ball jumping.
 
 ## The shine (starting values, for Config when the badges go in)
 

@@ -111,12 +111,15 @@ order; that is Open.
   Difficult the aim line only, Challenger no lines and a crossed-out eye.
 - **Rank badges** (designer, 2026-09-26; `assets/ui/ranks/`, made by `tools/gen_rank_badges.py`,
   not in the game yet). 47 images: Unranked (plain grey), five per tier from Bronze to
-  Grandmaster, and one Reyes. Every badge has the same shield, metal ring and 8 ball in the
-  same place; the rank shows by the tier's colour, side ornaments that grow each tier, a crown
-  from Expert up (bigger each tier, Veteran included; Reyes the biggest, in gold) and pips in
-  an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert to
-  Grandmaster (1 = division I). Reyes is black and gold with no pips and no signature. No
-  banner and no words: the rank's name is game text beside the badge where needed.
+  Grandmaster, and one Reyes. Each tier is its own badge after the designer's reference sheet
+  (a faceted frame round a big 8 ball; side plates for Bronze to Gold, crystal feathers for
+  Platinum, crystal shards for Diamond, fins for Expert, a laurel for Veteran, a crystal burst
+  for Master, swept wings for Grandmaster), not one more ornament per tier. The same rules on
+  every badge: the ball and its ring the same size in the same place; a crown from Expert up
+  (bigger each tier, Veteran included; Reyes the biggest, in gold); pips in an arc under the
+  ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 =
+  division I). Reyes is black and gold with no pips and no signature. No banner and no words:
+  the rank's name is game text beside the badge where needed.
 
 ## 7. Motion
 
