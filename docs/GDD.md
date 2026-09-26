@@ -318,9 +318,11 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   - The city is densest and most detailed in the view the player gets on arrival (ahead and
     to the left); behind the spawn, the stair side, it stays low and sparse.
   - The entrance stair walks down to a small dead-end landing.
-  - Props: seats, steps and railings are sized for the player; planters, palms, umbrellas and
-    the pergola about 1.4 times that, so they hold their own beside the big tables; the
-    spacing follows the art's layout.
+  - Props: steps and railings are sized for the player; what a player sits on (sofas,
+    loungers, the piano and bench, and the coffee table) is sized for a Roblox character,
+    1.6 times that (designer, Checkpoint B); planters, palms, umbrellas and the pergola about
+    1.4 times it, so they hold their own beside the big tables; the spacing follows the
+    art's layout.
   - Calm and clean for kids: bright saturated colours, wide walkways, props in a regular
     rhythm. Everything we ship stays under about 512k triangles, so the whole game stays
     under 1 million with players in it.
