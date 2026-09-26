@@ -1,23 +1,25 @@
 """The near islands on the ocean side, 900 to 2,500 studs out (Stage 5; Spec section 7), as in
-the art's ocean panel: a couple of steep jungle peaks and smaller rocky islets in two clusters,
-each island with mauve crags at its shore, a sand beach toward the tower, a few palms, and a
-painted turquoise ring of shallows round it.
+the art's ocean panel: steep jungle peaks and smaller rocky islets in two clusters, each island
+with grey-mauve crags at its shore, a sand beach toward the tower, clumps of palms, and a
+painted turquoise band of shallows close round its coast.
 
     cluster 0  azimuth 55 to 85: the ocean-side view
     cluster 1  azimuth 20 to 45: right of the pergola from the entrance, the high and day views
 (azimuth from straight ahead, -Z, toward the ocean, +X: x = d sin a, z = -d cos a).
 
 build() returns [(chunk name, Mesh)]: a cluster's islands in Islands_<n> (this module's sheet,
-islands_textures.py), its shallows in IslandShallows_<n> (near_color.png's n_shallows strip,
-alpha: v 1 is the foam at the sand, 0 clear). Pure Python, deterministic (random.Random with
-fixed seeds), so every run builds the same islands.
+islands_textures.py; shaded smooth, SMOOTH), its shallows in IslandShallows_<n> (the
+n_shallows strip of near_color.png, alpha: v 1 is the foam at the sand, 0.2 and less clear).
+Pure Python, deterministic (random.Random with fixed seeds), so every run builds the same
+islands, and the sheet's painter (islands_textures.draw) sees the same shapes.
 
 An island is a heightfield on a polar grid round its summit: rings of vertices from the summit
-out to the land's edge, each vertex jittered, raised along a few ridges (with shoulders on
-them) and lowered in the gullies between, then the shore (a beach apron toward the tower,
-low cliffs elsewhere) down to the waterline and on under the sea. Every face picks its strip
-(jungle, dark gully, light canopy, rock, sand) from where it lies; V is the height over the
-sea on one scale for every island, so the foot is shaded and the tops are lit alike.
+out to the land's edge, each vertex jittered, raised along a few ridges (with shoulders,
+spires or humps on them) and lowered in the gullies between, then the shore (a beach apron
+toward the tower, low cliffs elsewhere) down to the waterline and on under the sea. The land
+is mapped from above onto the island's own tile of the sheet (make_islands, tile_uv), which
+the painter fills from the same shape: rock and the greens blended where they lie, shaded by
+height, with soft round blotches of tree canopy.
 """
 
 import math
@@ -40,15 +42,22 @@ SMOOTH = {'Islands'}  # gen_backdrop merges these chunks' vertices and shades th
 SEA = cp.WORLD['sea_y']
 SEED = 7307
 
+# A rounded hump (a hill's second top): a dome's profile, not a spire's.
+HUMP = ((0.0, 1.0), (0.25, 0.93), (0.55, 0.62), (0.8, 0.28), (1.0, 0.0))
+
 ISLANDS = [
-    # (cluster, kind, azimuth in degrees, distance, radius, height over the sea): the summit's
-    # place; radius is the land's mean reach from it (the beach and shallows lie beyond).
+    # (cluster, kind, azimuth in degrees, distance, radius, height over the sea[, KINDS
+    # overrides]): the summit's place; radius is the land's mean reach from it (the beach and
+    # shallows lie beyond).
     (0, 'ridge', 63.0, 2130.0, 250.0, 300.0),  # the ocean-side view's big massif: spires on a ridge
     (0, 'hill', 77.0, 1680.0, 165.0, 150.0),  # the near jungle island, crags at its shore
     (0, 'islet', 84.0, 1160.0, 70.0, 62.0),  # a rocky islet, a jungle cap
     (0, 'islet', 57.0, 1720.0, 55.0, 48.0),  # a small one between the two
     (1, 'peak', 33.0, 2150.0, 270.0, 320.0),  # the big peak right of the pergola
-    (1, 'hill', 42.0, 1600.0, 87.0, 78.0),  # 0.6 of its first size: it loomed beside the roof (high view)
+    # 0.6 of its first size (it loomed beside the roof in the high view), with a second, lower
+    # hump beside its top (it read as a plain cone)
+    (1, 'hill', 42.0, 1600.0, 87.0, 78.0, {'spires': ((1, 0.45, 0.86, 0.62),), 'spire_profile': HUMP,
+                                            'shoulders': ((0.5, 0.06, 0.1),)}),
     (1, 'islet', 24.5, 1790.0, 62.0, 56.0),
     (1, 'islet', 44.0, 2330.0, 60.0, 52.0),
 ]
@@ -60,11 +69,12 @@ KINDS = {
     # side, across the view: a long slope one way, a steep side the other); wide (and this
     # much further across the view than along it); shoulders on the ridges across the view
     # (s, lift range as a fraction of the height); lumps anywhere (count, s range, lift range:
-    # a hill's canopy clumps, a peak's foothills); spires on the ridge line across the view;
-    # rock streaks down the slopes; beach (widest, studs), cliff heights where there is none,
-    # shallows (studs past the waterline: close round the coast, not a halo), crags at the
-    # shore (count, heights), sea stacks off it, boulders, palms; the outline's bays and
-    # points; ref_r, the radius the dressing is sized for (smaller islands get less of it).
+    # a hill's canopy clumps, a peak's foothills); spires (or humps) on the ridge line across
+    # the view, and their profile; rock streaks down the slopes; beach (widest, studs), cliff
+    # heights where there is none, shallows (studs past the waterline: close round the
+    # coast, not a halo), crags at the shore (count, heights), sea stacks off it, boulders,
+    # palm clumps; the outline's bays and points; ref_r, the radius the dressing is sized for
+    # (smaller islands get less of it).
     'peak': {
         'spokes': 48,
         'rings': (0.0, 0.05, 0.1, 0.16, 0.23, 0.3, 0.38, 0.46, 0.55, 0.64, 0.73, 0.81, 0.88, 0.94, 1.0),
@@ -72,8 +82,9 @@ KINDS = {
                     (0.68, 0.13), (0.85, 0.05), (1.0, 0.0)),
         'ridges': (5, 7), 'ridge_lift': 0.4, 'ridge_from': 0.12, 'tail': 0.22, 'wide': 0.12,
         'shoulders': ((0.14, 0.04, 0.08), (0.32, 0.12, 0.2), (0.55, 0.12, 0.2)), 'lumps': (5, 0.45, 0.85, 0.04, 0.1),
-        'spires': (), 'streaks': 3, 'beach': 38.0, 'cliff': (7.0, 14.0), 'shallows': 60.0, 'crags': (9, 12),
-        'crag_h': (18.0, 60.0), 'stacks': (2, 3), 'boulders': 7, 'palms': (9, 12), 'outline': 0.09, 'ref_r': 250.0,
+        'spires': (), 'spire_profile': None, 'streaks': 3, 'beach': 38.0, 'cliff': (7.0, 14.0), 'shallows': 60.0,
+        'crags': (9, 12), 'crag_h': (18.0, 60.0), 'stacks': (2, 3), 'boulders': 7, 'clumps': (3, 4),
+        'outline': 0.09, 'ref_r': 250.0,
     },
     'ridge': {  # a peak whose summit is a jagged ridge line across the view: spires and saddles
         'spokes': 48,
@@ -88,7 +99,7 @@ KINDS = {
         'spires': ((1, 0.38, 0.76, 0.56), (-1, 0.46, 0.66, 0.52), (1, 0.73, 0.36, 0.36)),
         'spire_profile': ((0.0, 1.0), (0.12, 0.85), (0.35, 0.58), (0.65, 0.27), (1.0, 0.0)),
         'streaks': 2, 'beach': 38.0, 'cliff': (7.0, 14.0), 'shallows': 60.0, 'crags': (9, 12),
-        'crag_h': (18.0, 60.0), 'stacks': (2, 3), 'boulders': 7, 'palms': (9, 12), 'outline': 0.08, 'ref_r': 250.0,
+        'crag_h': (18.0, 60.0), 'stacks': (2, 3), 'boulders': 7, 'clumps': (3, 4), 'outline': 0.08, 'ref_r': 250.0,
     },
     'hill': {
         'spokes': 36, 'rings': (0.0, 0.09, 0.19, 0.3, 0.41, 0.52, 0.63, 0.73, 0.82, 0.9, 0.96, 1.0),
@@ -96,8 +107,9 @@ KINDS = {
                     (1.0, 0.0)),
         'ridges': (4, 6), 'ridge_lift': 0.2, 'ridge_from': 0.3, 'tail': 0.12, 'wide': 0.12,
         'shoulders': ((0.28, 0.06, 0.12), (0.55, 0.08, 0.14), (0.45, 0.06, 0.12)), 'lumps': (7, 0.1, 0.8, 0.06, 0.13),
-        'spires': (), 'streaks': 1, 'beach': 34.0, 'cliff': (6.0, 11.0), 'shallows': 50.0, 'crags': (7, 9),
-        'crag_h': (22.0, 58.0), 'stacks': (2, 3), 'boulders': 5, 'palms': (10, 13), 'outline': 0.1, 'ref_r': 160.0,
+        'spires': (), 'spire_profile': None, 'streaks': 1, 'beach': 34.0, 'cliff': (6.0, 11.0), 'shallows': 50.0,
+        'crags': (7, 9), 'crag_h': (22.0, 58.0), 'stacks': (2, 3), 'boulders': 5, 'clumps': (2, 3),
+        'outline': 0.1, 'ref_r': 160.0,
     },
     'islet': {
         'spokes': 24, 'rings': (0.0, 0.16, 0.33, 0.5, 0.66, 0.8, 0.91, 1.0),
@@ -105,8 +117,9 @@ KINDS = {
                     (1.0, 0.0)),
         'ridges': (3, 4), 'ridge_lift': 0.2, 'ridge_from': 0.35, 'tail': 0.1, 'wide': 0.12,
         'shoulders': ((0.45, 0.08, 0.16),), 'lumps': (3, 0.1, 0.6, 0.06, 0.12),
-        'spires': (), 'streaks': 0, 'beach': 20.0, 'cliff': (5.0, 9.0), 'shallows': 40.0, 'crags': (4, 5),
-        'crag_h': (16.0, 40.0), 'stacks': (1, 2), 'boulders': 3, 'palms': (4, 6), 'outline': 0.12, 'ref_r': 65.0,
+        'spires': (), 'spire_profile': None, 'streaks': 0, 'beach': 20.0, 'cliff': (5.0, 9.0), 'shallows': 40.0,
+        'crags': (4, 5), 'crag_h': (16.0, 40.0), 'stacks': (1, 2), 'boulders': 3, 'clumps': (1, 2),
+        'outline': 0.12, 'ref_r': 65.0,
     },
 }
 
@@ -123,10 +136,13 @@ P = {
     'egg': 0.18,  # the land reaches this much further toward the tower (the summit sits back)
     'ridge_sharp': 14.0,  # the ridges' cos power: higher, narrower crests
     'ridge_out': 0.08,  # ridges reach out (gullies cut in) this fraction of the land's reach
-    'green_gain': 1.0,  # a vertex's green: gully (0) to canopy (1), 0.5 + this x its ridge value
-    'streak_width': 0.18,  # radians either side of a rock streak's line
+    'green_gain': 1.0,  # the ground's green: gully (0) to canopy (1), 0.5 + this x its ridge value
+    'patch': 0.2,  # canopy patches (round lit spots) this wide, a fraction of the island's radius
+    'streak_width': 0.18,  # radians either side of a rock streak's line...
+    'streak_rock': 0.6,  # ...which is at most this much rock (softened into the green)
     'shore_rock': 0.85,  # past this s, the land off the beach is the shore's cliffs (islets: islet_rock)
     'islet_rock': 0.74,
+    'tile_margin': 4.0,  # studs of tile round the waterline (the land lies inside it)
     'shallows_in': 3.0,  # the painted shallows start this far up the beach from the waterline...
     'foam_out': 8.0,  # ...the foam ends this far out (v 0.86: just past the strip's foam)...
     'shallows_mid': 0.45,  # ...v at half the band's width (the turquoise thinning)...
@@ -135,6 +151,10 @@ P = {
     'palm_h': (30.0, 46.0),  # palm heights, studs (the near world's are 24 to 36; these are seen
                              # from 1,000 studs and more)
     'palm_frond': (13.0, 18.0),  # frond lengths
+    'clump': (3, 5),  # palms in a clump...
+    'clump_spread': 14.0,  # ...within this many studs of its middle...
+    'clump_up': 0.35,  # ...the second clump a little up the slope, off the beach, and this share of the rest
+    'clump_turn': 55.0,  # degrees either side of the beach's middle (the side the roof sees)
     'water_margin': 20.0,  # every footprint this far inside the Terrain water
     'boat_clear': 80.0,  # and this far clear of the boats' loops (shallows included)
     'island_gap': 60.0,  # open water at least this wide between two islands' waterlines
@@ -160,13 +180,9 @@ def sub(a, b):
     return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
 
-def normal(pts):
-    return cross(sub(pts[1], pts[0]), sub(pts[2], pts[0]))
-
-
 def facing(mesh, pts, uvs, want):
     """A face turned toward `want` (Mesh.face's normal is (p1 - p0) x (p2 - p0))."""
-    n = normal(pts)
+    n = cross(sub(pts[1], pts[0]), sub(pts[2], pts[0]))
     if n[0] * want[0] + n[1] * want[1] + n[2] * want[2] < 0:
         pts, uvs = list(reversed(pts)), list(reversed(uvs))
     mesh.face(pts, uvs)
@@ -207,9 +223,9 @@ class Island:
     """An island's shape as functions of the angle round its summit (radians, x = cos, z = sin)
     and the radial fraction s (0 at the summit, 1 at the land's edge)."""
 
-    def __init__(self, index, cluster, kind, az, dist, radius, height):
+    def __init__(self, index, cluster, kind, az, dist, radius, height, extra=None):
         self.index, self.cluster, self.kind = index, cluster, kind
-        self.k = KINDS[kind]
+        self.k = dict(KINDS[kind], **(extra or {}))
         self.rng = random.Random(SEED * 100 + index)
         a = math.radians(az)
         self.cx, self.cz = dist * math.sin(a), -dist * math.cos(a)
@@ -266,7 +282,7 @@ class Island:
                         for _ in range(self.k['streaks'])]
         # The ridge function's mean, taken off so gullies come out negative.
         self.ridge_mean = sum(self._ridge_raw(2 * math.pi * i / 360) for i in range(360)) / 360
-        # The spires: each a sharp cone on the ridge line, its tip a vertex of the grid.
+        # The spires: each a cone (or a hill's round hump) on the ridge line, its tip a vertex.
         rings = self.k['rings']
         self.spires = []
         for side, s_want, hf, rf in self.k['spires']:
@@ -280,8 +296,13 @@ class Island:
         self.beach_mid = self.toward + math.radians(rng.uniform(-P['beach_turn'], P['beach_turn']))
         self.beach_w = self.k['beach'] * rng.uniform(0.85, 1.1) * (0.6 + 0.4 * self.size)
         self.cliff = [(rng.uniform(0, 2 * math.pi), rng.uniform(*self.k['cliff'])) for _ in range(3)]
+        self.tile = None  # (x, y, w, h), pixels of the 1024 sheet (make_islands)
 
     # -- shape -----------------------------------------------------------------------------
+
+    def spoke(self, j):
+        """The angle of spoke j (the first half a spoke past straight toward the tower)."""
+        return self.toward + self.step * (j + 0.5)
 
     def reach(self, t):
         """The land's edge (studs from the summit) at angle t."""
@@ -291,10 +312,6 @@ class Island:
         for n, amp, ph in self.harm:
             f += amp * math.cos(n * t + ph)
         return self.R * f
-
-    def spoke(self, j):
-        """The angle of spoke j (the first half a spoke past straight toward the tower)."""
-        return self.toward + self.step * (j + 0.5)
 
     def radius(self, t, s):
         """A land vertex's reach from the summit before its jitter: ridges reach out, gullies
@@ -368,16 +385,46 @@ class Island:
             return self.edge_height(t) * (1 - (r - edge) / b)
         return 0.0
 
+    def material(self, t, s):
+        """The ground's cover at angle t, fraction s: (green, rock). Green runs from the dark
+        gullies (0) through the slopes (0.5) to the lit canopy (1): the ridges, a hill's round
+        crown and a few canopy patches; rock is the shore's cliffs off the beach and the
+        streaks down the slopes (those only partly, softened into the green)."""
+        green = 0.5 + P['green_gain'] * self.ridge(t) * self.relief(s)
+        if self.kind in ('hill', 'islet'):
+            green = max(green, 1 - smoothstep(0.18, 0.34, s))
+        r = s * self.reach(t)
+        x, z = r * math.cos(t), r * math.sin(t)
+        for px, pz, width in self.patches:
+            green = max(green, math.exp(-((x - px) ** 2 + (z - pz) ** 2) / width ** 2))
+        edge = P['islet_rock'] if self.kind == 'islet' else P['shore_rock']
+        rock = smoothstep(edge - 0.08, edge + 0.04, s) * (1 - smoothstep(0.25, 0.55, self.sandy(t)))
+        for a, s0, s1 in self.streaks:
+            band = 1 - smoothstep(0.5 * P['streak_width'], P['streak_width'], abs(angle_diff(t, a)))
+            band *= smoothstep(s0 - 0.04, s0 + 0.04, s) * (1 - smoothstep(s1 - 0.04, s1 + 0.04, s))
+            rock = max(rock, band * P['streak_rock'])
+        return max(0.0, min(1.0, green)), rock
+
+    def fields(self, x, z):
+        """For the painter: (height over the sea, green, rock) at world (x, z); past the land's
+        edge, the edge's."""
+        t = math.atan2(z - self.cz, x - self.cx)
+        r = math.hypot(x - self.cx, z - self.cz)
+        edge = self.reach(t)
+        s = min(1.0, r / edge)
+        green, rock = self.material(t, s)
+        return self.height(t, s, min(r, edge)), green, rock
+
     def point(self, t, r, y):
         return (self.cx + r * math.cos(t), SEA + y, self.cz + r * math.sin(t))
 
-    # -- the land and the shore ------------------------------------------------------------
+    # -- the land's grid and its tile -------------------------------------------------------
 
-    def build_land(self, mesh):
+    def shape(self):
+        """The land's grid (every vertex placed), the shore rings and the canopy patches."""
         rng = self.rng
         n = self.k['spokes']
         rings = self.k['rings']
-        step = self.step
         spokes = [self.spoke(j) for j in range(n)]
         tips = {(sp['j'], sp['k']) for sp in self.spires}  # spire tips: exactly on their spoke
         grid = []  # grid[k][j] = (point, angle, s)
@@ -388,7 +435,7 @@ class Island:
                     row.append((self.point(0.0, 0.0, self.H), t0, 0.0))
                     continue
                 w = math.sin(math.pi * s) ** 0.8
-                ja = rng.uniform(-1, 1) * P['jitter_a'] * step if s < 1 else 0.0
+                ja = rng.uniform(-1, 1) * P['jitter_a'] * self.step if s < 1 else 0.0
                 jr = rng.uniform(-1, 1) * P['jitter_r'] * w
                 jh = rng.uniform(-1, 1) * P['jitter_h'] * self.H * w if s < 1 else 0.0
                 if (j, k) in tips:
@@ -403,18 +450,54 @@ class Island:
         first = max(p[0][1] for p in grid[1]) - SEA
         top = self.point(0.0, 0.0, max(self.H, first + 0.03 * self.H))
         grid[0] = [(top, t, 0.0) for _, t, _ in grid[0]]
-        # The shore: the land's edge (the last ring), the waterline, the sea floor under it.
-        water = [self.point(t, self.waterline(t), 0.0) for t in spokes]
-        floor = [self.point(t, self.waterline(t) + P['under'] * (0.4 + 0.6 * self.sandy(t)), -P['base_drop'])
-                 for t in spokes]
-        self.spokes, self.water = spokes, water
-        # Canopy patches: a few spots on the slopes where the jungle is lit lighter.
-        self.patches = [(rng.uniform(0, 2 * math.pi), rng.uniform(0.25, 0.7)) for _ in range(3)]
-        # Every vertex's UV in i_land: U its material, V its height (the same for every face
-        # that shares it, so colours shade across faces).
-        grid = [[(p, (self.land_u(t, s), mc.trim_v('i_land', tex.land_v(p[1] - SEA)))) for p, t, s in row]
-                for row in grid]
-        for k in range(len(rings) - 1):
+        self.grid, self.spokes = grid, spokes
+        # The shore: the waterline and the sea floor under it.
+        self.water = [self.point(t, self.waterline(t), 0.0) for t in spokes]
+        self.floor = [self.point(t, self.waterline(t) + P['under'] * (0.4 + 0.6 * self.sandy(t)), -P['base_drop'])
+                      for t in spokes]
+        # Canopy patches: a few round spots on the slopes where the jungle is lit lighter
+        # (local x, z from the summit, width).
+        self.patches = []
+        for _ in range(3):
+            t, f = rng.uniform(0, 2 * math.pi), rng.uniform(0.25, 0.7)
+            r = f * self.reach(t)
+            self.patches.append((r * math.cos(t), r * math.sin(t), self.R * P['patch']))
+
+    def tile_size(self):
+        """The island's tile on the sheet, gutter included (pixels of the 1024 sheet): its
+        waterline's box seen from above, at tex.STUDS_PER_PX."""
+        m = P['tile_margin']
+        xs, zs = [p[0] for p in self.water], [p[2] for p in self.water]
+        self.box = (min(xs) - m, min(zs) - m, max(xs) + m, max(zs) + m)
+        g, spp = tex.GUTTER, tex.STUDS_PER_PX
+        return (int(math.ceil((self.box[2] - self.box[0]) / spp)) + 2 * g,
+                int(math.ceil((self.box[3] - self.box[1]) / spp)) + 2 * g)
+
+    def tile_px(self, x, z):
+        """World (x, z) to its pixel on the 1024 sheet (column, row from the top)."""
+        tx, ty = self.tile[0], self.tile[1]
+        return (tx + tex.GUTTER + (x - self.box[0]) / tex.STUDS_PER_PX,
+                ty + tex.GUTTER + (z - self.box[1]) / tex.STUDS_PER_PX)
+
+    def tile_uv(self, p):
+        col, row = self.tile_px(p[0], p[2])
+        return (col / mc.TRIM_PX, 1.0 - row / mc.TRIM_PX)
+
+    # -- the land and the shore ------------------------------------------------------------
+
+    def build_land(self, mesh):
+        """The land (mapped from above onto its tile) and the shore band (sand toward the
+        tower, rock elsewhere) down to the sea floor."""
+        grid = [[(p, self.tile_uv(p)) for p, _, _ in row] for row in self.grid]
+        x0, y0, w, h = self.tile
+        g = tex.GUTTER
+        for row in grid:
+            for p, _ in row:
+                col, r = self.tile_px(p[0], p[2])
+                assert x0 + g - 0.5 <= col <= x0 + w - g + 0.5 and y0 + g - 0.5 <= r <= y0 + h - g + 0.5, \
+                    ('island %d: land outside its tile' % self.index, round(col), round(r))
+        n = len(self.spokes)
+        for k in range(len(grid) - 1):
             for j in range(n):
                 jn = (j + 1) % n
                 a0, a1 = grid[k][j], grid[k][jn]
@@ -428,39 +511,17 @@ class Island:
                     tris = [(a0, b0, a1), (a1, b0, b1)]
                 for tri in tris:
                     facing(mesh, [v[0] for v in tri], [v[1] for v in tri], UP)
-        edge = [grid[-1][j][0] for j in range(n)]
+        edge = [p for p, _, _ in self.grid[-1]]
         for j in range(n):
             jn = (j + 1) % n
-            sand = (self.sandy(spokes[j]) + self.sandy(spokes[jn])) / 2 > 0.5
-            for ring_a, ring_b, lo in ((edge, water, False), (water, floor, True)):
+            sand = (self.sandy(self.spokes[j]) + self.sandy(self.spokes[jn])) / 2 > 0.5
+            for ring_a, ring_b, lo in ((edge, self.water, False), (self.water, self.floor, True)):
                 quad = [ring_a[j], ring_b[j], ring_b[jn], ring_a[jn]]
                 if sand:
                     fr = [0.2 if lo else 1.0, 0.0 if lo else 0.2, 0.0 if lo else 0.2, 0.2 if lo else 1.0]
-                    uvs = [uv('i_sand', p, f) for p, f in zip(quad, fr)]
-                    facing(mesh, quad, uvs, UP)
+                    facing(mesh, quad, [uv('i_sand', p, f) for p, f in zip(quad, fr)], UP)
                 else:
                     facing(mesh, quad, [uv('i_rock', p, rock_v(p[1])) for p in quad], UP)
-
-    def land_u(self, t, s):
-        """A land vertex's U in i_land: its green (gully, slope or canopy, from the ridges, a
-        hill's round crown and the canopy patches), blended toward rock on the shore's cliffs
-        off the beach and down the rock streaks."""
-        green = 0.5 + P['green_gain'] * self.ridge(t) * self.relief(s)
-        if self.kind in ('hill', 'islet'):
-            green = max(green, 1 - smoothstep(0.18, 0.34, s))
-        for a, s0 in self.patches:
-            green = max(green, (1 - smoothstep(0.2, 0.35, abs(angle_diff(t, a)))) *
-                        (1 - smoothstep(0.06, 0.13, abs(s - s0))))
-        green = max(0.0, min(1.0, green))
-        edge = P['islet_rock'] if self.kind == 'islet' else P['shore_rock']
-        rock = smoothstep(edge - 0.08, edge + 0.04, s) * (1 - smoothstep(0.25, 0.55, self.sandy(t)))
-        for a, s0, s1 in self.streaks:
-            band = 1 - smoothstep(0.5 * P['streak_width'], P['streak_width'], abs(angle_diff(t, a)))
-            band *= smoothstep(s0 - 0.04, s0 + 0.04, s) * (1 - smoothstep(s1 - 0.04, s1 + 0.04, s))
-            rock = max(rock, band)
-        u = tex.LAND_U
-        g = u['gully'] + (u['canopy'] - u['gully']) * green
-        return g + (u['rock'] - g) * rock
 
     # -- crags, boulders, palms ------------------------------------------------------------
 
@@ -479,19 +540,17 @@ class Island:
                 row.append((x + lean[0] * f + rr * math.cos(t), SEA + y, z + lean[1] * f + rr * math.sin(t)))
             levels.append(row)
         apex = (x + lean[0], SEA + h, z + lean[1])
-        centre = lambda p: (p[0] - x, 0.0, p[2] - z)  # noqa: E731
         for k in range(len(levels) - 1):
             lo, hi = levels[k], levels[k + 1]
             for i in range(sides):
                 i2 = (i + 1) % sides
                 for tri in ([lo[i], lo[i2], hi[i2]], [lo[i], hi[i2], hi[i]]):
-                    c = [sum(p[a] for p in tri) / 3 for a in range(3)]
-                    facing(mesh, tri, [uv('i_rock', p, rock_v(p[1])) for p in tri], centre(c))
+                    out = (sum(p[0] for p in tri) / 3 - x, 0.0, sum(p[2] for p in tri) / 3 - z)
+                    facing(mesh, tri, [uv('i_rock', p, rock_v(p[1])) for p in tri], out)
         top = levels[-1]
         for i in range(sides):
             tri = [top[i], top[(i + 1) % sides], apex]
-            c = [sum(p[a] for p in tri) / 3 for a in range(3)]
-            want = (c[0] - x - lean[0], 0.3 * r, c[2] - z - lean[1])
+            want = (sum(p[0] for p in tri) / 3 - x - lean[0], 0.3 * r, sum(p[2] for p in tri) / 3 - z - lean[1])
             facing(mesh, tri, [uv('i_rock', p, rock_v(p[1])) for p in tri], want)
 
     def palm(self, mesh, x, z, y, height):
@@ -575,15 +634,26 @@ class Island:
             self.crag(mesh, x, z, h, r, sides=5, rings=((0.0, 1.0), (0.55, 0.7)))
             crags.append((x, z, r))
         self.crag_spots = crags
-        # Palms: in a clump or two where the jungle meets the beach, and a few on the slope.
-        count = max(3, int(round(rng.randint(*kd['palms']) * (0.4 + 0.6 * self.size))))
-        for i in range(count):
-            t = self.beach_mid + math.radians(rng.uniform(-50, 50))
+        # Palms in clumps of three to five on the side the roof sees: most where the jungle
+        # meets the beach, some a little up the slope. None stands in the water.
+        clumps = max(1, int(round(rng.randint(*kd['clumps']) * (0.4 + 0.6 * self.size))))
+        for c in range(clumps):
+            t = self.beach_mid + math.radians(rng.uniform(-P['clump_turn'], P['clump_turn']))
             edge = self.reach(t)
-            b = self.beach(t)
-            r = edge + rng.uniform(-0.1 * edge if i % 3 == 2 else -6.0, 0.45 * b)
-            x, z = self.cx + r * math.cos(t), self.cz + r * math.sin(t)
-            self.palm(mesh, x, z, self.ground(x, z), rng.uniform(*P['palm_h']))
+            if c == 1 or (c > 1 and rng.random() < P['clump_up']):  # the second always up the slope
+                r0 = edge * rng.uniform(0.62, 0.82)
+            else:
+                r0 = edge + rng.uniform(-4.0, 0.3 * self.beach(t))
+            mx, mz = self.cx + r0 * math.cos(t), self.cz + r0 * math.sin(t)
+            for _ in range(rng.randint(*P['clump'])):
+                a, d = rng.uniform(0, 2 * math.pi), rng.uniform(3.0, P['clump_spread'])
+                x, z = mx + d * math.cos(a), mz + d * math.sin(a)
+                tp = math.atan2(z - self.cz, x - self.cx)
+                rp = math.hypot(x - self.cx, z - self.cz)
+                limit = self.reach(tp) + 0.6 * self.beach(tp)
+                if rp > limit:
+                    x, z = self.cx + limit * math.cos(tp), self.cz + limit * math.sin(tp)
+                self.palm(mesh, x, z, self.ground(x, z), rng.uniform(*P['palm_h']))
 
     # -- the painted shallows --------------------------------------------------------------
 
@@ -592,7 +662,7 @@ class Island:
         the summit: the first, radial rings read as round halos), feathered into the sea."""
         lift = P['shallows_lift']
         width = self.k['shallows']
-        wl = [self.point(t, self.waterline(t), 0.0) for t in self.spokes]
+        wl = self.water
         n = len(wl)
         normals = []
         for i in range(n):
@@ -613,19 +683,18 @@ class Island:
         # U along the waterline's length for every ring: each ring's own length ran the outer
         # ring's U far ahead of the inner's, and the skew pushed the band to a blurry mip
         # level that pulled its neighbours' opaque alpha in (a pale sector on every ring).
-        wl = wl + [wl[0]]
-        ua = [0.0]
-        for i in range(len(wl) - 1):
-            ua.append(ua[-1] + math.hypot(wl[i + 1][0] - wl[i][0], wl[i + 1][2] - wl[i][2]))
-        ub = ua
+        closed = wl + [wl[0]]
+        us = [0.0]
+        for i in range(n):
+            us.append(us[-1] + math.hypot(closed[i + 1][0] - closed[i][0], closed[i + 1][2] - closed[i][2]))
         for k in range(len(rings) - 1):
             (pa, va), (pb, vb) = rings[k], rings[k + 1]
-            for i in range(len(pa) - 1):
+            for i in range(n):
                 quad = [pa[i], pa[i + 1], pb[i + 1], pb[i]]
-                uvs = [(mc.trim_u('n_shallows', ua[i]), mc.trim_v('n_shallows', va)),
-                       (mc.trim_u('n_shallows', ua[i + 1]), mc.trim_v('n_shallows', va)),
-                       (mc.trim_u('n_shallows', ub[i + 1]), mc.trim_v('n_shallows', vb)),
-                       (mc.trim_u('n_shallows', ub[i]), mc.trim_v('n_shallows', vb))]
+                uvs = [(mc.trim_u('n_shallows', us[i]), mc.trim_v('n_shallows', va)),
+                       (mc.trim_u('n_shallows', us[i + 1]), mc.trim_v('n_shallows', va)),
+                       (mc.trim_u('n_shallows', us[i + 1]), mc.trim_v('n_shallows', vb)),
+                       (mc.trim_u('n_shallows', us[i]), mc.trim_v('n_shallows', vb))]
                 facing(mesh, quad, uvs, UP)
 
     def footprint(self):
@@ -671,23 +740,36 @@ def loop_clearance(pts, loop):
     return best
 
 
+# ---------------------------------------------------------------------------------------------
+# Build
+# ---------------------------------------------------------------------------------------------
+
+def make_islands():
+    """Every island shaped (its grid, shore and canopy patches) and given its tile on the
+    sheet. build() and the sheet's painter (islands_textures.draw) both start here."""
+    isles = [Island(i, *row) for i, row in enumerate(ISLANDS)]
+    for isle in isles:
+        isle.shape()
+    for isle, rect in zip(isles, tex.pack_tiles([isle.tile_size() for isle in isles])):
+        isle.tile = rect
+    return isles
+
+
 def build():
     chunks = {}
-    islands = []
-    for index, row in enumerate(ISLANDS):
-        isle = Island(index, *row)
+    islands = make_islands()
+    for isle in islands:
         land = chunks.setdefault('Islands_%d' % isle.cluster, mc.Mesh('Islands_%d' % isle.cluster))
         water = chunks.setdefault('IslandShallows_%d' % isle.cluster, mc.Mesh('IslandShallows_%d' % isle.cluster))
         isle.build_land(land)
         isle.build_dressing(land)
         isle.build_shallows(water)
-        islands.append(isle)
         foot = isle.footprint()
         for x, z in foot:
-            assert in_water(x, z, P['water_margin']), ('island %d leaves the water' % index, round(x), round(z))
+            assert in_water(x, z, P['water_margin']), ('island %d leaves the water' % isle.index, round(x), round(z))
         for loop in BOAT_LOOPS:
             clear = loop_clearance(foot, loop)
-            assert clear >= P['boat_clear'], ('island %d too near a boat loop' % index, loop, round(clear))
+            assert clear >= P['boat_clear'], ('island %d too near a boat loop' % isle.index, loop, round(clear))
     for a in islands:  # open water between any two islands' waterlines
         for b in islands:
             if a.index < b.index:

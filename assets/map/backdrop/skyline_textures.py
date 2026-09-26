@@ -4,24 +4,25 @@
     python3 assets/map/backdrop/skyline_textures.py
 
 Seen from 450 to 2,300 studs away (and on a phone), so it is drawn for distance: big calm
-features, broad window bands only a little darker than the wall, no fine window grids or
-pinstripes (they shimmer), no noise, and PAD pixels clear at each strip edge.
+features, no vertical stripes or fine window grids (they read as corrugated sheet and shimmer),
+no noise, and PAD pixels clear at each strip edge.
 
 Facade strips (s_glass, s_white, s_stone, s_terracotta) map V to height over the street (0 at
 the street, 1 at FACADE_TOP studs up), so a whole wall is one quad and every building shares one
-gradient: a soft cool shade at the foot, lighter toward the top. Glass has no bands: steel blue,
-dark at the foot and lighter up the tower (the pale sky it reflects), with only a very faint
-mullion. White, stone and terracotta have broad vertical window bands about 15% darker than the
-wall; stone and terracotta add faint floor lines every FLOOR_LINE studs (the same heights on
-every building). Along U each facade strip is ZONES zones of ZONE studs: the first LIGHT are the
-style's variants (tone and window rhythm, centred on the zone's middle), the next LIGHT the same
-variants a little lighter, for crowns, caps and rooftop boxes (skyline.py centres every wall of
-a building in one zone, so a building keeps one variant all round).
+gradient: a soft cool shade at the foot, lighter toward the top. Glass is a desaturated steel
+grey-blue, darker at the foot and lighter up the tower, with only a very faint mullion (it must
+not match the gameplay's blue arrows and rings). White, stone and terracotta have faint
+HORIZONTAL window bands, one per floor (a variant's floor height, 10 to 13 studs; the same
+heights on every building of that variant), about BAND darker than the wall. The masonry strips
+are the tallest, so a floor spans about five texels. Along U each facade strip is ZONES zones of
+ZONE studs: the first LIGHT are the style's variants (tone and floor height), the next LIGHT the
+same variants a little lighter, for crowns, caps and rooftop boxes (skyline.py centres every
+wall of a building in one zone, so a building keeps one variant all round).
 
 The rest: s_roof (flat roofs: V picks a tone), s_accent (masts and spires: light steel),
-s_paving and s_park (block tops), s_tree (canopies: V from the dark rim to the lit top, U in
-TREE_TONES zones of TREE_ZONE studs, one green each). The order keeps neighbours alike (distant
-mip levels blend a strip with the next, and the sheet wraps top to bottom).
+s_paving and s_park (block tops, lawns), s_tree (canopies, the #3E6B3A family: V from the dark
+rim to the lit top, U in TREE_TONES zones of TREE_ZONE studs, one green each). The order keeps
+neighbours alike (distant mip levels blend a strip with the next, and the sheet wraps).
 """
 
 import os
@@ -46,13 +47,13 @@ STRIPS = {
     # name: (first row, last row + 1 of a 1024 sheet, studs per image width along U)
     's_roof': (0, 48, 256.0),  # flat roofs, lit: V picks the tone
     's_accent': (48, 80, 32.0),  # masts and spires: light steel
-    's_glass': (80, 272, ZONE * ZONES),  # steel-blue glass: dark at the foot, light up the tower
-    's_white': (272, 448, ZONE * ZONES),  # warm white: broad window bands
-    's_stone': (448, 624, ZONE * ZONES),  # cream stone: window bands, faint floor lines
-    's_terracotta': (624, 800, ZONE * ZONES),  # terracotta and brick: window bands, floor lines
-    's_paving': (800, 848, 256.0),  # block tops: light warm paving
-    's_park': (848, 912, 256.0),  # block tops and roof gardens: lawn, V picks the tone
-    's_tree': (912, 1024, TREE_ZONE * TREE_TONES),  # canopies: dark rim to lit top, a green per zone
+    's_glass': (80, 176, ZONE * ZONES),  # steel grey-blue glass: a gradient only, so short
+    's_white': (176, 400, ZONE * ZONES),  # warm white: faint floor bands
+    's_stone': (400, 624, ZONE * ZONES),  # cream stone: faint floor bands
+    's_terracotta': (624, 848, ZONE * ZONES),  # muted terracotta: faint floor bands
+    's_paving': (848, 880, 256.0),  # block tops: light warm paving
+    's_park': (880, 928, 256.0),  # block tops, roof gardens and tree lots: lawn, V picks the tone
+    's_tree': (928, 1024, TREE_ZONE * TREE_TONES),  # canopies: dark rim to lit top, a green per zone
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -65,52 +66,52 @@ SHADE = mc.ALBEDO['shadow']  # the painter's cool shade (#5D719E): every foot da
 FOOT_STUDS = 34.0  # the soft shade at a facade's foot fades out this high over the street
 FOOT_SHADE = 0.28  # ...from this much toward SHADE at the street
 LIFT = 0.1  # masonry walls this much toward white at FACADE_TOP (the lit upper floors)
-BAND = 0.15  # a window band is this much darker than its wall (the review: about 15%)
-BAND_TINT = 0.35  # ...and this far toward its style's window hue, at the same lightness
-FLOOR_LINE = 52.0  # studs between the faint floor lines on stone and terracotta
-FLOOR_LINE_WIDTH = 2.6  # studs
-FLOOR_LINE_DARK = 0.09  # this much darker than the wall
+BAND = 0.08  # a floor's window band is this much darker than its wall (the review: about 8%)
+BAND_TINT = 0.3  # ...and this far toward its style's window hue, at the same lightness
+BAND_SILL, BAND_HEAD = 0.34, 0.86  # the band's foot and top, as fractions of a floor
+BAND_SOFT = 0.12  # its edges soften over this much of a floor (no hard lines to shimmer)
 LIGHTER = 0.13  # the lighter zones: this far toward white (masonry) or pale steel (glass)
-PALE_STEEL = '#B4CCE4'
+PALE_STEEL = '#C8D4E0'
 
-# Glass variants, steel blue (the review: between #1E5BC6 and #5088C4): (foot, top). No bands.
+# Glass variants, a desaturated steel grey-blue (the review: #6F8FB2 at the foot to #A9BED2 at
+# the top): (foot, top). No bands.
 GLASS = [
-    ('#1E5BC6', '#5088C4'),
-    ('#1D55B4', '#487EBC'),  # a little deeper
-    ('#2764C4', '#5890C8'),  # a little lighter
-    ('#2459AE', '#4E84BE'),  # greyer steel
+    ('#6F8FB2', '#A9BED2'),
+    ('#6887A8', '#A0B6CB'),  # a little deeper
+    ('#7896B8', '#B2C5D6'),  # a little lighter
+    ('#6D8AA6', '#A6B9CA'),  # greyer
 ]
 GLASS_TOP_POWER = 0.85  # the gradient's curve up the tower (under 1: it lightens early)
-MULLION = (8.0, 0.9, 0.025)  # a very faint lighter line: every, studs wide, how much lighter
-# Masonry variants: (wall, window hue, bay studs, window studs, paired).
+MULLION = (8.0, 0.9, 0.02)  # a very faint lighter line: every, studs wide, how much lighter
+# Masonry variants: (wall, window hue, floor height in studs). Faint horizontal window bands.
 WHITE = [
-    ('#F5E8DA', '#8E9AB6', 8.0, 2.6, False),  # warm white (the review: about 5% warmer)
-    ('#F2EAE1', '#8498BC', 12.0, 4.4, False),  # white, wide window bands
-    ('#F7EADB', '#96A0B8', 16.0, 3.0, True),  # cream white, paired bands
-    ('#EDE3D9', '#8A98B4', 10.0, 3.2, False),  # light warm grey-white
+    ('#F5E8DA', '#8E9AB6', 12.0),  # warm white
+    ('#F2EAE1', '#8498BC', 10.5),  # white
+    ('#F7EADB', '#96A0B8', 13.0),  # cream white
+    ('#EDE3D9', '#8A98B4', 11.5),  # light warm grey-white
 ]
 STONE = [
-    ('#E8D2B0', '#948E9C', 10.0, 3.2, False),  # cream stone
-    ('#DEC6A4', '#8A8698', 8.0, 2.6, False),  # sand stone
-    ('#EDDEC6', '#9C9CAC', 16.0, 3.0, True),  # pale limestone, paired bands
-    ('#D9C8B2', '#9092A4', 12.0, 4.0, False),  # warm grey stone
+    ('#E8D2B0', '#948E9C', 12.5),  # cream stone
+    ('#DEC6A4', '#8A8698', 11.0),  # sand stone
+    ('#EDDEC6', '#9C9CAC', 13.0),  # pale limestone
+    ('#D9C8B2', '#9092A4', 10.5),  # warm grey stone
 ]
 TERRACOTTA = [
-    ('#DC8E72', '#685870', 8.0, 2.8, False),  # the art's salmon terracotta
-    ('#C8745A', '#5C5068', 10.0, 3.4, False),  # deeper brick
-    ('#E2A088', '#6C6278', 16.0, 3.2, True),  # pink terracotta, paired bands
-    ('#D4906A', '#64586C', 12.0, 4.0, False),  # orange-tan brick
+    ('#B08A70', '#6E5A56', 11.5),  # muted terracotta (the review: toward #B08A70)
+    ('#A67E66', '#665250', 12.5),  # deeper
+    ('#BA947A', '#76625C', 10.5),  # pinker tan
+    ('#B28868', '#6C5854', 13.0),  # warmer brick
 ]
 ACCENT = ('#98A6B8', '#E2E8EF')  # masts and spires: steel at the foot, light at the top
 ROOF = ('#CBC6C4', '#DAD8DE')  # the roof tones from frac 0 (warm) to frac 1 (light, cool)
 PAVING = '#D8CEC4'  # lighter and warmer than the grey streets round it
-PARK = ('#468E42', '#58A64C')  # the lawn tones from frac 0 to 1 (the near world's #4E9A48 between)
+PARK = ('#4A8240', '#5A9A4A')  # the lawn tones from frac 0 to 1
 TREES = [
-    # (rim, middle, lit top): a canopy's green, one per tree zone along U
-    ('#2B5A2C', '#468A38', '#8CBE4C'),  # fresh green
-    ('#224C2A', '#3A7634', '#74AA44'),  # deep green
-    ('#38562A', '#5A8436', '#9CB84E'),  # olive, as the art's sunlit trees
-    ('#22503A', '#3A7A48', '#76B05A'),  # blue-green
+    # (rim, middle, lit top): a canopy's green, one per tree zone along U (the #3E6B3A family)
+    ('#2A4A2A', '#3E6B3A', '#6E955A'),
+    ('#26442A', '#3A6438', '#648C50'),  # deeper
+    ('#30502C', '#46733C', '#7A9E5C'),  # a little yellower
+    ('#284A34', '#3C6A44', '#6A9660'),  # a little bluer
 ]
 
 
@@ -185,34 +186,27 @@ def glass_strip(frac, u):
     return out
 
 
-def masonry_strip(variants, frac, u, floor_lines):
+def masonry_strip(variants, frac, u):
     h = frac * FACADE_TOP
-    k, p = _zone_pos(u, ZONE, ZONES)
+    k, _ = _zone_pos(u, ZONE, ZONES)
     rows = h.shape[0]
     out = np.zeros((rows, u.shape[1], 3))
     white, shade = _c('#FFFFFF'), _c(SHADE)
     lift = _smooth(30.0, FACADE_TOP, h) * LIFT  # (rows, 1)
-    line = np.zeros_like(h)
-    if floor_lines:
-        line = _band(h - FLOOR_LINE, FLOOR_LINE, FLOOR_LINE_WIDTH, 1.6) * (h > FLOOR_LINE * 0.5) * FLOOR_LINE_DARK
     for z in range(ZONES):
-        wall_hex, hue, bay, width, paired = variants[z % LIGHT]
+        wall_hex, hue, floor = variants[z % LIGHT]
         sel = (k[0] == z)
-        pz = p[:, sel]
-        n = pz.shape[1]
+        n = int(sel.sum())
         wall, win = _c(wall_hex), band_colour(wall_hex, hue)
         if z >= LIGHT:
             wall, win = lighter(wall), lighter(win)
-        if paired:
-            gap = 1.6
-            mask = np.maximum(_band(pz - (gap + width) / 2, bay, width, 0.5), _band(pz + (gap + width) / 2, bay, width, 0.5))
-        else:
-            mask = _band(pz, bay, width, 0.5)
-        # The bands stop short of the street: a solid base course under 5 studs.
-        mask = np.broadcast_to(mask, (rows, n)) * _smooth(3.0, 6.0, h)
-        col = _lerp(np.broadcast_to(wall, (rows, n, 3)), win, mask)
+        # One soft window band per floor, between its sill and its head; none in the base
+        # course under the first floor.
+        f = (h / floor) % 1.0
+        band = _smooth(BAND_SILL - BAND_SOFT, BAND_SILL, f) * (1 - _smooth(BAND_HEAD, BAND_HEAD + BAND_SOFT, f))
+        band = band * _smooth(floor * 0.6, floor, h)
+        col = _lerp(np.broadcast_to(wall, (rows, n, 3)), win, np.broadcast_to(band, (rows, n)))
         col = _lerp(col, white, np.broadcast_to(lift, (rows, n)))
-        col = col * (1 - np.broadcast_to(line, (rows, n)))[..., None]
         col = _lerp(col, shade, np.broadcast_to(_foot(h), (rows, n)))
         out[:, sel] = col
     return out
@@ -239,9 +233,9 @@ PAINTERS = {
     's_roof': lambda f, u: ramp_strip(ROOF[0], ROOF[1], f, u),
     's_accent': lambda f, u: ramp_strip(ACCENT[0], ACCENT[1], f, u),
     's_glass': glass_strip,
-    's_white': lambda f, u: masonry_strip(WHITE, f, u, False),
-    's_stone': lambda f, u: masonry_strip(STONE, f, u, True),
-    's_terracotta': lambda f, u: masonry_strip(TERRACOTTA, f, u, True),
+    's_white': lambda f, u: masonry_strip(WHITE, f, u),
+    's_stone': lambda f, u: masonry_strip(STONE, f, u),
+    's_terracotta': lambda f, u: masonry_strip(TERRACOTTA, f, u),
     's_paving': lambda f, u: ramp_strip(PAVING, PAVING, f, u),
     's_park': lambda f, u: ramp_strip(PARK[0], PARK[1], f, u),
     's_tree': tree_strip,

@@ -3,14 +3,18 @@ city_plan.city_blocks() beyond the near radius, at the plan's own spots and size
 towers on a painted sheet (skyline_textures.py, which draws for distance).
 
 Every block is one raised slab top at STREET + 1 (its 80-stud square): paved, or a park (lawn,
-its podium roofs lawn gardens filled with canopies). Every lot is a podium, a shaft and, when
-the plan gives it one, a crown: boxes with no bottom faces, one quad per wall, V by height over
-the street (the sheet's facade strips are one tall gradient each, windows as broad vertical
-bands along U), so parapets and window lines are painted, not modelled. Crowns, setback caps
-and rooftop boxes are the tower's own facade a little lighter (the strip's lighter zones). The
-five city_plan.landmarks() lots are replaced by their landmark (stepped, spire, twin, slant,
-needle). Tree canopies, in clumps of round low-poly mounds 15 to 30 studs across, line the
-block edges that face the roof and fill the parks, so the city reads green between its blocks.
+its podium roofs lawn gardens with canopies). Every lot is a podium, a shaft and, when the plan
+gives it one, a crown: boxes with no bottom faces, one quad per wall, V by height over the
+street (the sheet's facade strips are one tall gradient each, masonry with faint horizontal
+floor bands), so parapets and windows are painted, not modelled. The plan's height is each
+lot's maximum: lots flattened by the plan's height cap are lowered at random and neighbours in
+a block are staggered by at least P['stagger'], so the skyline is not a comb of flat tops;
+shafts rising over P['slim_over'] are slimmed. Crowns, setback caps and rooftop boxes are the
+tower's own facade a little lighter (the strip's lighter zones). The five city_plan.landmarks()
+lots are replaced by their landmark (stepped, spire, twin, slant, needle). About P['tree_lots']
+of the other lots between 450 and 1,200 studs are tree lots instead: a lawn and dense canopies.
+Canopies, round low-poly mounds 18 to 44 studs across, line the block edges that face the roof
+and fill the parks, so the city reads green between its blocks.
 
 build() returns [(chunk name, Mesh)]: all of a block goes to the chunk of its centre
 (map_common.chunk_cell), so no building is split across MeshParts. Every choice is seeded per
@@ -38,14 +42,23 @@ GROUND = STREET + 1.0  # every block's slab top, and every building's foot
 SKY_SEED = 5102  # the skyline's own choices per block (styles, crowns, parks, trees)
 STYLES = ('s_glass', 's_white', 's_stone', 's_terracotta')
 
+W = cp.WORLD
 P = {
     'park_share': 0.26,  # this share of the blocks are parks (lawn, roof gardens, canopies)
-    # A lot's style by its height: weights for (glass, white, stone, terracotta). Glass towers
-    # are the tall slim ones; the mid-rises are masonry, as in the art.
-    'style_tall': (0.56, 0.3, 0.14, 0.0),  # over the roof (300 over the street)
-    'style_mid': (0.3, 0.3, 0.2, 0.2),  # 180 to 300
-    'style_low': (0.1, 0.2, 0.3, 0.4),  # under 180
+    # A lot's style by its plan height: weights for (glass, white, stone, terracotta). Glass is
+    # about 30% of the lots (the review: the rest white, cream stone and terracotta), most of
+    # it on the tall slim towers.
+    'style_tall': (0.55, 0.25, 0.2, 0.0),  # over the roof (300 over the street)
+    'style_mid': (0.32, 0.26, 0.21, 0.21),  # 180 to 300
+    'style_low': (0.22, 0.22, 0.26, 0.3),  # under 180
     'glass_podium': ('s_white', 's_stone'),  # a glass tower stands on a light masonry podium
+    # Massing (the review): the plan's height is a lot's maximum.
+    'capped': (0.62, 1.0),  # a lot the plan's height cap flattened is lowered by this factor
+    'stagger': 0.2,  # neighbours in a block differ in height by at least this share
+    'slim_over': 250.0,  # a shaft rising over this many studs...
+    'slim': (0.6, 0.7),  # ...is slimmed to this much of the plan's footprint...
+    'slim_min': 8.0,  # ...but no thinner than this
+    'crown_over': 280.0,  # a lot the plan crowns keeps its crown while it stays this tall
     'crown_scale': ((0.55, 0.3), (0.7, 0.7)),  # a crown's footprint of the shaft's, and how often
     'setback': 0.35,  # a tower over 250 steps back this often...
     'setback_at': (0.55, 0.78),  # ...this far up its shaft...
@@ -55,19 +68,28 @@ P = {
     'penthouse_height': (5.0, 10.0),
     'antenna': 0.2,  # a crowned tower over the roof carries a mast this often (short: the
     'antenna_height': (12.0, 30.0),  # landmarks' spires are the tall ones)
+    # Tree lots: this share of the (non-landmark) lots in this distance range is a lawn and
+    # dense canopies instead of a building.
+    'tree_lots': 0.15,
+    'tree_lot_reach': (450.0, 1200.0),
+    'tree_lot_radius': (9.0, 13.0),  # its canopies, on a grid about 1.5 radii apart
+    'tree_lot_height': (0.75, 1.0),  # their height over the rim, of the radius
+    'lawn_lift': 1.2,  # a tree lot's lawn over the block's slab (clear of it in the depth buffer)
     # Canopies: clumps of round mounds (a big one and one or two smaller beside it).
-    'tree_cap': 12000,  # triangles of canopies in the whole skyline
-    'tree_radius': (9.5, 15.0),  # a clump's big mound (19 to 30 studs across)
-    'tree_side': (0.55, 0.8),  # a clump's smaller mounds, of the big one's radius
+    'tree_cap': 18000,  # triangles of canopies in the whole skyline (and every chunk under CHUNK_LIMIT)
+    'tree_radius': (15.0, 22.0),  # a kerb clump's big mound (30 to 44 studs across)
+    'tree_side': (0.6, 0.85),  # a clump's smaller mounds, of the big one's radius
+    'tree_min_radius': 7.0,  # no mound smaller (small ones in the gaps read as litter)
     'tree_height': (0.6, 0.8),  # a mound's height over its rim, of its radius (squat: round)
     'tree_lift': 0.22,  # its rim this far over the ground, of its radius (the canopy's widest line)
-    'garden_radius': (6.0, 12.0),  # a canopy on a park's podium roof
+    'garden_radius': (7.0, 12.0),  # a canopy on a park's podium roof
     # Clumps along a block's edges by the block's distance: (reach, park, paved). Clumps sit
     # mostly on the two edges facing the roof (the others hide behind the block's podiums).
-    'clumps': ((1000.0, 8, 6), (1500.0, 6, 3.5), (1900.0, 2, 1), (9999.0, 1, 0.3)),
+    'clumps': ((1000.0, 5, 4), (1500.0, 5, 3.5), (1900.0, 2, 1), (9999.0, 1, 0.3)),
     'facing_edges': 0.75,  # this share of the clumps on the two edges facing the roof
     'gardens': ((1000.0, 2), (1500.0, 1), (1900.0, 1), (9999.0, 0)),  # a park podium's canopies per side, at most
 }
+CHUNK_LIMIT = 14800  # triangles per chunk, under gen_backdrop's CHUNK_CAP (15,000)
 TREE_SEGS = 6  # a canopy mound is six-sided: 6 triangles (more canopies in the budget)
 
 
@@ -124,10 +146,11 @@ def spike(mesh, x, z, r, y0, y1, segs=4):
     mesh.frustum(x, z, r, 0.0, y0, y1, segs, 's_accent', top=False)
 
 
-def plant(trees, rng, x, z, y, r):
+def plant(trees, rng, x, z, y, r, height=None):
     """Note a canopy mound (its shape's random numbers drawn now, so thinning keeps the rest):
-    its green is one of the tree strip's zones, at a random spot inside it."""
-    h = r * rng.uniform(*P['tree_height'])
+    its height over its rim a `height` range of its radius, its green one of the tree strip's
+    zones at a random spot inside it."""
+    h = r * rng.uniform(*(height or P['tree_height']))
     rim = 2 * math.pi * r
     u0 = rng.randrange(tex.TREE_TONES) * tex.TREE_ZONE + rng.uniform(0.0, max(tex.TREE_ZONE - rim, 0.0))
     trees.append((x, z, y, r, h, rng.random(), rng.uniform(-0.12, 0.12), rng.uniform(-0.12, 0.12), u0))
@@ -139,7 +162,7 @@ def clump(trees, rng, x, z, y, r, along):
     plant(trees, rng, x, z, y, r)
     across = (-along[1], along[0])
     for side in rng.sample((-1, 1), rng.randint(1, 2)):
-        k = rng.uniform(*P['tree_side'])
+        k = max(rng.uniform(*P['tree_side']), P['tree_min_radius'] / r)
         off = r * rng.uniform(0.8, 1.1) * side
         j = r * rng.uniform(-0.3, 0.3)
         plant(trees, rng, x + along[0] * off + across[0] * j, z + along[1] * off + across[1] * j, y, r * k)
@@ -175,10 +198,11 @@ def pick_style(rng, lot, avoid):
     return style
 
 
-def building(mesh, trees, rng, lot, style, park, dist):
-    """A podium, a shaft and, when the plan gives it one, a crown; a mast or a rooftop box on
-    some. Every piece stands on GROUND; the plan's height is over the street's slab. Crowns and
-    rooftop boxes are the tower's own facade, lighter (its zone + tex.LIGHT)."""
+def building(mesh, trees, rng, lot, style, park, dist, height):
+    """A podium, a shaft and maybe a crown, `height` over the street's slab (the plan's, or
+    lower: the stagger); a mast or a rooftop box on some. Every piece stands on GROUND. A shaft
+    rising over P['slim_over'] is slimmed. Crowns and rooftop boxes are the tower's own facade,
+    lighter (its zone + tex.LIGHT)."""
     x, z, w, d = lot['x'], lot['z'], lot['w'], lot['d']
     zone = rng.randrange(tex.LIGHT)
     light = zone + tex.LIGHT
@@ -186,14 +210,18 @@ def building(mesh, trees, rng, lot, style, park, dist):
     podium_style = rng.choice(P['glass_podium']) if style == 's_glass' else style
     centred(mesh, x, z, w, d, GROUND, podium_top, podium_style, rng.randrange(tex.LIGHT) if style == 's_glass' else zone,
             top_strip='s_park' if park else 's_roof', top_frac=rng.uniform(0.15, 0.85))
-    if lot['shaft'] is None:
+    if lot['shaft'] is None or height <= lot['podium'] + 4:
         return
     sw, sd = lot['shaft']
-    top = GROUND + lot['height']
-    crown = lot['crown']
+    if height > P['slim_over']:
+        k = rng.uniform(*P['slim'])
+        sw, sd = max(sw * k, P['slim_min']), max(sd * k, P['slim_min'])
+    base = (sw, sd)
+    top = GROUND + height
+    crown = lot['crown'] if height > P['crown_over'] else 0.0
     shaft_top = top - crown
     roof_frac = rng.uniform(0.25, 0.95)
-    if lot['height'] > 250 and rng.random() < P['setback']:
+    if height > 250 and rng.random() < P['setback']:
         # A setback part way up: the shaft's upper floors on a smaller footprint.
         cut = podium_top + (shaft_top - podium_top) * rng.uniform(*P['setback_at'])
         centred(mesh, x, z, sw, sd, podium_top, cut, style, zone, top_frac=roof_frac)
@@ -206,15 +234,15 @@ def building(mesh, trees, rng, lot, style, park, dist):
         (k_small, share), (k_big, _) = P['crown_scale']
         k = k_small if rng.random() < share else k_big
         centred(mesh, x, z, sw * k, sd * k, shaft_top, top, style, light, top_frac=min(roof_frac + 0.1, 1.0))
-        if lot['height'] > 300 and rng.random() < P['antenna']:
+        if height > 300 and rng.random() < P['antenna']:
             spike(mesh, x, z, min(sw, sd) * k * 0.1, top, top + rng.uniform(*P['antenna_height']), segs=3)
-    elif lot['height'] > 120 and rng.random() < P['penthouse']:
+    elif height > 120 and rng.random() < P['penthouse']:
         k = rng.uniform(*P['penthouse_size'])
         ox, oz = rng.uniform(-0.2, 0.2) * sw, rng.uniform(-0.2, 0.2) * sd
         centred(mesh, x + ox, z + oz, sw * k, sd * k, top, top + rng.uniform(*P['penthouse_height']),
                 style, light, top_frac=min(roof_frac + 0.1, 1.0))
     if park and by_distance(P['gardens'], dist):
-        garden(trees, rng, lot, podium_top, by_distance(P['gardens'], dist))
+        garden(trees, rng, lot, base, podium_top, by_distance(P['gardens'], dist))
 
 
 def by_distance(table, dist):
@@ -223,24 +251,67 @@ def by_distance(table, dist):
     return row[1] if len(row) == 2 else row[1:]
 
 
-def garden(trees, rng, lot, y, per_side):
-    """A park lot's podium roof filled with canopies round its shaft: up to `per_side` along
-    each side of the ring, big enough to lean on the shaft and hang over the podium's edge."""
+def garden(trees, rng, lot, shaft, y, per_side):
+    """A park lot's podium roof filled with canopies round its shaft (its footprint `shaft`): up
+    to `per_side` along each side of the ring, big enough to lean on the shaft and hang over the
+    podium's edge; none on a ring too narrow for a canopy of P['tree_min_radius']."""
     x, z, w, d = lot['x'], lot['z'], lot['w'], lot['d']
-    sw, sd = lot['shaft']
+    sw, sd = shaft
+    lo, hi = P['garden_radius']
     for side in range(4):
         along_x = side < 2  # the ring's sides at -Z and +Z run along X
         margin = ((d - sd) if along_x else (w - sw)) / 2
+        r = min(hi, margin * 0.9 + 3.0)
+        if r < max(lo, P['tree_min_radius']):
+            continue
         length = w if along_x else d
-        lo, hi = P['garden_radius']
-        r = min(hi, max(lo, margin * 0.9 + 3.0))
         count = max(1, min(per_side, int(length / (1.7 * r))))
         sign = 1 if side % 2 else -1
         for n in range(count):
             t = (n + 0.5) / count * length - length / 2 + rng.uniform(-0.15, 0.15) * r
             off = (sd if along_x else sw) / 2 + margin / 2
             cx, cz = (x + t, z + sign * off) if along_x else (x + sign * off, z + t)
-            plant(trees, rng, cx, cz, y, r * rng.uniform(0.85, 1.0))
+            plant(trees, rng, cx, cz, y, max(r * rng.uniform(0.85, 1.0), P['tree_min_radius']))
+
+
+def tree_lot(mesh, trees, rng, lot):
+    """A lot of trees instead of a building: a lawn over its footprint and dense big canopies
+    on a jittered grid, with one more in the middle."""
+    x, z, w, d = lot['x'], lot['z'], lot['w'], lot['d']
+    outline = mc.outward_rect(x - w / 2, z - d / 2, x + w / 2, z + d / 2)
+    mesh.flat(outline, GROUND + P['lawn_lift'], 's_park', up=True, frac=rng.uniform(0.2, 0.6))
+    y = GROUND + P['lawn_lift']
+    r = rng.uniform(*P['tree_lot_radius'])
+    nx, nz = max(1, round(w / (1.5 * r))), max(1, round(d / (1.5 * r)))
+    for i in range(nx):
+        for j in range(nz):
+            cx = x - w / 2 + (i + 0.5) * w / nx + rng.uniform(-0.2, 0.2) * r
+            cz = z - d / 2 + (j + 0.5) * d / nz + rng.uniform(-0.2, 0.2) * r
+            plant(trees, rng, cx, cz, y, r * rng.uniform(0.85, 1.15), P['tree_lot_height'])
+    if nx * nz > 1:
+        plant(trees, rng, x, z, y, r * 1.1, P['tree_lot_height'])
+
+
+def staggered_heights(rng, b, kinds, marks):
+    """The height of each building lot in block b: the plan's, lowered at random where the
+    plan's height cap flattened it, then, tallest first, each lowered until it is at least
+    P['stagger'] under every taller neighbour in the block (landmarks count at their own
+    height). Never over the plan's, never so low the shaft disappears."""
+    cap = W['height_cap_base'] + (b['dist'] - W['near_radius']) * W['height_cap_slope']
+    heights = {}
+    for k, lot in enumerate(b['lots']):
+        if kinds[k] == 'building':
+            h = lot['height']
+            heights[k] = h * rng.uniform(*P['capped']) if h >= cap - 0.5 else h
+    done = [marks[k]['height'] for k in range(len(kinds)) if kinds[k] == 'landmark']
+    for k in sorted(heights, key=lambda n: -heights[n]):
+        h = heights[k]
+        for other in done:
+            if h > (1 - P['stagger']) * other:
+                h = (1 - P['stagger']) * other * rng.uniform(0.88, 1.0)
+        heights[k] = max(h, b['lots'][k]['podium'] + 10.0)
+        done.append(heights[k])
+    return heights
 
 
 # ---------------------------------------------------------------------------------------------
@@ -354,10 +425,11 @@ def block_top(mesh, b, park):
 
 
 def edge_clumps(trees, rng, b, count):
-    """`count` clumps of canopies along a block's kerbs (half over the slab's rim, half over the
-    street), mostly on the two edges facing the roof, spread along each edge."""
+    """`count` clumps of canopies along a block's kerbs (centred on its edge: half over the
+    street, half over the slab's rim and the podiums' feet), mostly on the two edges facing the
+    roof, spread along each edge."""
     half = cp.WORLD['city_block'] / 2
-    inset = half - 1.0
+    inset = half
     # Edges as (unit normal out of the block); the two facing the roof (the origin) first.
     edges = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     edges.sort(key=lambda e: e[0] * b['cx'] + e[1] * b['cz'])
@@ -378,21 +450,33 @@ def build():
     marks = {(m['block'], m['lot']): m for m in cp.landmarks()}
     blocks = [b for b in cp.city_blocks() if not b['near']]
     pieces = []
+    lo, hi = P['tree_lot_reach']
     for b in blocks:
         rng = random.Random(cp.block_seed(SKY_SEED, b['i'], b['j']))
         park = rng.random() < P['park_share']
         mesh = mc.Mesh('block')
         trees = []
         block_top(mesh, b, park)
+        block_marks = {k: marks[((b['i'], b['j']), k)] for k in range(len(b['lots'])) if ((b['i'], b['j']), k) in marks}
+        kinds = []
+        for k in range(len(b['lots'])):
+            if k in block_marks:
+                kinds.append('landmark')
+            elif lo <= b['dist'] < hi and rng.random() < P['tree_lots']:
+                kinds.append('trees')
+            else:
+                kinds.append('building')
+        heights = staggered_heights(rng, b, kinds, block_marks)
         avoid = set()
         for k, lot in enumerate(b['lots']):
-            mark = marks.get(((b['i'], b['j']), k))
-            if mark:
-                landmark(mesh, lot, mark)
-                continue
-            style = pick_style(rng, lot, avoid)
-            avoid = {style}
-            building(mesh, trees, rng, lot, style, park, b['dist'])
+            if kinds[k] == 'landmark':
+                landmark(mesh, lot, block_marks[k])
+            elif kinds[k] == 'trees':
+                tree_lot(mesh, trees, rng, lot)
+            else:
+                style = pick_style(rng, lot, avoid)
+                avoid = {style}
+                building(mesh, trees, rng, lot, style, park, b['dist'], heights[k])
         # Canopy clumps along the kerbs: more on parks and near the tower, fewer behind it.
         per_park, per_paved = by_distance(P['clumps'], b['dist'])
         count = per_park if park else per_paved
@@ -401,11 +485,18 @@ def build():
             count //= 2
         edge_clumps(trees, rng, b, count)
         pieces.append((mc.cell_name('Skyline', mc.chunk_cell(b['cx'], b['cz'])), mesh, trees))
-    # Over the canopy cap, thin the mounds, the far ones first (a seeded choice: each mound's
-    # chance to stay falls with its block's distance).
+    # Over the canopy cap (or a chunk's limit), thin the mounds, the far ones first (a seeded
+    # choice: each mound's chance to stay falls with its block's distance).
     thin = random.Random(SKY_SEED)
-    specs = [(thin.random() * blocks[n]['dist'], n, t) for n, (_, _, trees) in enumerate(pieces) for t in trees]
-    specs = [(n, t) for _, n, t in sorted(specs)[:P['tree_cap'] // TREE_SEGS]]
-    for n, spec in specs:
-        tree(pieces[n][1], spec)
+    specs = sorted((thin.random() * blocks[n]['dist'], n, t) for n, (_, _, trees) in enumerate(pieces) for t in trees)
+    room = {}
+    for name, mesh, _ in pieces:
+        room[name] = room.get(name, CHUNK_LIMIT) - mesh.triangles()
+    left = P['tree_cap'] // TREE_SEGS
+    for _, n, spec in specs:
+        name = pieces[n][0]
+        if left and room[name] >= TREE_SEGS:
+            tree(pieces[n][1], spec)
+            room[name] -= TREE_SEGS
+            left -= 1
     return [(name, mesh) for name, mesh, _ in pieces]
