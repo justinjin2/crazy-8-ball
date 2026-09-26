@@ -2665,10 +2665,10 @@ Config.Map = {
 	-- Uploaded images ("rbxassetid://digits"), "" until uploaded (an empty id is skipped).
 	-- The files are assets/map/textures/*.png at 1024, drawn by assets/map/gen_textures.py.
 	Maps = {
-		-- Uploaded 2026-09-26 from assets/map/textures (1024).
-		Arch = { Color = "rbxassetid://120419615746045" }, -- arch_color.png: the trim sheet, soft shade baked in
-		Foliage = { Color = "rbxassetid://90341093081178" }, -- foliage.png: vines and bougainvillea (alpha)
-		Overlays = { Color = "rbxassetid://129551470225419" }, -- overlays.png: the table glow and the contact shade (alpha)
+		-- Uploaded 2026-09-26 from assets/map/textures (1024; second round, after the Stage 2 critic).
+		Arch = { Color = "rbxassetid://113429096351234" }, -- arch_color.png: the trim sheet, soft shade baked in
+		Foliage = { Color = "rbxassetid://126276496135367" }, -- foliage.png: vines and bougainvillea (alpha)
+		Overlays = { Color = "rbxassetid://96625423952855" }, -- overlays.png: the table glow and the contact shade (alpha)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 tiles of 4.5 studs per
@@ -2677,14 +2677,45 @@ Config.Map = {
 		Variant = "RooftopTile", -- MaterialService.<Variant>
 		BaseMaterial = "Slate", -- what it overrides (footstep sounds)
 		StudsPerTile = 9,
-		Color = "rbxassetid://101520167876049", -- floor_color.png
-		Normal = "rbxassetid://123542904955349", -- floor_normal.png
+		Color = "rbxassetid://134567346798562", -- floor_color.png
+		Normal = "rbxassetid://86667051171067", -- floor_normal.png
 		Tint = "#FFFFFF", -- the floor parts' Color (multiplies the map)
 	},
 	-- Most unique map images (the brief: 20, besides the two skyboxes and four far cards).
 	ImageBudget = 20,
 	-- Triangle caps by group (the brief, section 6), checked by prepareImport.
 	TriangleCaps = { Rooftop = 60000 },
+}
+
+---------------------------------------------------------------------------------------------
+-- Lighting (the rooftop map). For now only a Day preset, applied in Edit mode by
+-- MapBuilder.applyLighting and saved in the place; Stage 7 of the map brief adds Sunset, the
+-- cycle between them and the client module that drives it. Colours are hex strings.
+---------------------------------------------------------------------------------------------
+Config.Lighting = {
+	-- Day (Spec section 6): the sun high and front-right. Tuned in Studio (2026-09-26) until
+	-- the floor rendered near the art's measured #F1CDBD: Roblox's default noon light (a white
+	-- sun, a strong blue sky fill) washed every warm colour to grey. (tune)
+	Day = {
+		GeographicLatitude = 45,
+		ClockTime = 10,
+		Brightness = 2.4,
+		ExposureCompensation = -0.05,
+		EnvironmentDiffuseScale = 0.45, -- less of the blue sky's fill
+		EnvironmentSpecularScale = 0.6,
+		Ambient = "#000000",
+		OutdoorAmbient = "#7D6C62", -- warm shade
+		ColorShift_Top = "#FFDEBE", -- the sun's warm tint on lit faces
+		ColorShift_Bottom = "#000000",
+		Atmosphere = {
+			Density = 0.05,
+			Offset = 0,
+			Haze = 0.2,
+			Glare = 0,
+			Color = "#D7DEEB",
+			Decay = "#96BEEB",
+		},
+	},
 }
 
 Config.Debug = {

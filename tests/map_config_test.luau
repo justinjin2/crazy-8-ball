@@ -139,4 +139,24 @@ return {
 			)
 		end
 	end,
+
+	["the day lighting preset is numbers and hex colours"] = function()
+		local Day = H.require("Config").Lighting.Day
+		local function check(t: { [string]: any }, where: string)
+			for key, value in t do
+				if type(value) == "table" then
+					check(value, where .. "." .. key)
+				elseif type(value) == "string" then
+					H.expect(
+						isHex(value),
+						("%s.%s: %q is not a hex colour"):format(where, key, value)
+					)
+				else
+					H.expect(type(value) == "number", ("%s.%s is a number"):format(where, key))
+				end
+			end
+		end
+		check(Day, "Lighting.Day")
+		H.expect(Day.Brightness > 0 and Day.ClockTime >= 0 and Day.ClockTime < 24, "a sane sun")
+	end,
 }

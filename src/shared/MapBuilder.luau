@@ -202,8 +202,14 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 		table.insert(lines, line)
 	end
 	local map = mapModel()
-	local found = map:FindFirstChild(spec.Architecture)
-		or workspace:FindFirstChild(spec.Architecture)
+	-- A fresh import (in Workspace) replaces the one already in the map.
+	local fresh = workspace:FindFirstChild(spec.Architecture)
+	local previous = map:FindFirstChild(spec.Architecture)
+	if fresh and fresh:IsA("Model") and previous then
+		previous:Destroy()
+		say("Replaced the previous import.")
+	end
+	local found = if fresh and fresh:IsA("Model") then fresh else previous
 	if not (found and found:IsA("Model")) then
 		return ("No Model named %s in Workspace. Import assets/map/fbx/Rooftop.fbx with the 3D Importer (assets/map/Readme.md) and run this again."):format(
 			spec.Architecture
@@ -415,6 +421,36 @@ function MapBuilder.prepareImport(spec: any, data: any): string
 		)
 	)
 	return table.concat(lines, "\n")
+end
+
+--- Edit mode: apply a lighting preset (Config.Lighting.Day) to Lighting and its Atmosphere,
+--- for captures and so the place is saved lit that way. Returns a one-line report.
+function MapBuilder.applyLighting(preset: any): string
+	local Lighting = game:GetService("Lighting")
+	for key, value in preset do
+		if key == "Atmosphere" then
+			continue
+		end
+		if type(value) == "string" then
+			(Lighting :: any)[key] = Color3.fromHex(value)
+		else
+			(Lighting :: any)[key] = value
+		end
+	end
+	local atmosphere = Lighting:FindFirstChildWhichIsA("Atmosphere") or Instance.new("Atmosphere")
+	for key, value in preset.Atmosphere do
+		if type(value) == "string" then
+			(atmosphere :: any)[key] = Color3.fromHex(value)
+		else
+			(atmosphere :: any)[key] = value
+		end
+	end
+	atmosphere.Parent = Lighting
+	return ("Lighting: clock %.2f, latitude %d, brightness %.2f."):format(
+		Lighting.ClockTime,
+		Lighting.GeographicLatitude,
+		Lighting.Brightness
+	)
 end
 
 return MapBuilder

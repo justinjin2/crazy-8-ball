@@ -39,11 +39,11 @@ def desaturate(hex_colour, amount):
     return '#%02X%02X%02X' % tuple(out)
 
 
-# The albedo of each material (Spec section 2). Only these colours are used. The floor's
-# measured colour carries the art's painted warm light, so as an albedo it keeps half its
-# saturation; the warm sun (Stage 7) puts the rest back.
+# The albedo of each material (Spec section 2). Only these colours are used. (A half-
+# desaturated floor was tried first: under Roblox's cool sky it rendered neutral grey, so the
+# measured colours are used as they are; Stage 2 critic.)
 ALBEDO = {
-    'floor': desaturate(hexc('floor_panel_day'), 0.5),
+    'floor': hexc('floor_panel_day'),
     'stone': hexc('step'),
     'stone_shade': hexc('step', 'shade'),
     'cream': hexc('column'),

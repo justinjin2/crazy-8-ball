@@ -25,6 +25,7 @@ sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import map_common as mc  # noqa: E402
+import map_layout as ml  # noqa: E402
 
 SEED = 26092026
 MASTER = 2048
@@ -33,9 +34,11 @@ OUT = os.path.join(HERE, 'textures')
 
 P = {
     'tile_studs': 4.5,  # one floor tile
-    'grout_studs': 0.07,  # grout line width
-    'grout_darken': 0.11,  # grout this much darker (about 8 L*)
-    'tile_jitter': 0.022,  # per-tile lightness variation
+    'grout_studs': 0.06,  # grout line width
+    'grout_darken': 0.085,  # grout this much darker, in the floor's own hue (about 7 L*)
+    'slab_alternation': 0.035,  # a faint two-tone checker of slabs (about 4 L*), as in 02
+    'tile_jitter': 0.01,  # and a little per-tile variation on top
+    'ao_scale': 0.7,  # every baked shade, this much of its first strength (Stage 2 critic)
     'mottle': 0.012,  # soft variation inside a tile
     'edge_soft_studs': 0.05,  # the tile's rounded edge
     'normal_strength': 3.0,
@@ -117,10 +120,11 @@ def floor(rng):
     base = colour_array(mc.ALBEDO['floor'])
     # Per-tile lightness (the four tiles of the image), and a soft mottle.
     ix, iy = (x // (px * P['tile_studs'])).astype(int), (y // (px * P['tile_studs'])).astype(int)
-    jitter = rng.uniform(-1, 1, (2, 2))[iy % 2, ix % 2] * P['tile_jitter']
+    checker = np.where((ix + iy) % 2 == 0, 1.0, -1.0) * P['slab_alternation']
+    jitter = checker + rng.uniform(-1, 1, (2, 2))[iy % 2, ix % 2] * P['tile_jitter']
     mottle = periodic_noise(rng, n, n, n / 6) * P['mottle']
     tile = base[None, None, :] * (1 + jitter + mottle)[..., None]
-    grout = toward_shadow(base[None, None, :] * (1 - P['grout_darken']), np.full((n, n), 0.12))
+    grout = base[None, None, :] * (1 - P['grout_darken'])
     colour = tile * inside[..., None] + grout * (1 - inside[..., None])
     save_rgb(colour, 'floor_color.png')
     # Normal map from a height field (the tile surface 1, the grout 0), OpenGL convention.
@@ -166,29 +170,32 @@ def arch(rng):
     # Wall: AO over the lowest fifth, a light top edge.
     r0, r1, v = strip('wall')
     col = texture(stone, r1 - r0, r0)
-    ao = (1 - smoothstep(0.0, 0.22, v)) * 0.42 + (1 - smoothstep(0.0, 0.05, v)) * 0.12
+    ao = ((1 - smoothstep(0.0, 0.22, v)) * 0.42 + (1 - smoothstep(0.0, 0.05, v)) * 0.12) * P['ao_scale']
     col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     col = col * (1 + 0.05 * smoothstep(0.93, 0.99, v))[..., None]
     img[r0:r1] = col
     # Top: the lit tops, slightly lighter.
     r0, r1, v = strip('top')
     img[r0:r1] = texture(stone * 1.04, r1 - r0, r0, 0.006, 0.01)
-    # Riser: AO at the foot, a nosing highlight at the top.
+    # Riser: about 12 L* darker than a tread so every level change reads, AO at the foot, a
+    # warm light band under the nosing.
     r0, r1, v = strip('riser')
-    col = texture(stone * 0.97, r1 - r0, r0)
-    ao = (1 - smoothstep(0.0, 0.3, v)) * 0.5
+    col = texture(stone * 0.86, r1 - r0, r0)
+    ao = (1 - smoothstep(0.0, 0.3, v)) * 0.5 * P['ao_scale']
     col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
-    col = col * (1 + 0.06 * smoothstep(0.86, 0.96, v))[..., None]
+    warm = colour_array(mc.ALBEDO['cream']) * 1.08
+    band = smoothstep(0.84, 0.92, v)
+    col = col * (1 - band[..., None]) + warm[None, None, :] * band[..., None]
     img[r0:r1] = col
     # Column: AO at the foot and a little under the capital.
     r0, r1, v = strip('column')
     col = texture(cream, r1 - r0, r0, 0.006, 0.01)
-    ao = (1 - smoothstep(0.0, 0.12, v)) * 0.38 + smoothstep(0.93, 1.0, v) * 0.14
+    ao = ((1 - smoothstep(0.0, 0.12, v)) * 0.38 + smoothstep(0.93, 1.0, v) * 0.14) * P['ao_scale']
     img[r0:r1] = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     # Fascia: a shadow line along its underside, a light top.
     r0, r1, v = strip('fascia')
     col = texture(cream * 1.02, r1 - r0, r0, 0.006, 0.01)
-    ao = (1 - smoothstep(0.0, 0.18, v)) * 0.3
+    ao = (1 - smoothstep(0.0, 0.18, v)) * 0.3 * P['ao_scale']
     col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     img[r0:r1] = col * (1 + 0.05 * smoothstep(0.85, 0.97, v))[..., None]
     # Wood: grain along U (stretched noise), lighter towards the top.
@@ -264,7 +271,7 @@ def foliage(rng):
     dark = mc.rgb(mc.ALBEDO['leaf_dark']) + (255,)
     stem = tuple(int(c) for c in mc.mix(mc.rgb(mc.ALBEDO['leaf_dark']), (60, 40, 30), 0.4)) + (255,)
 
-    def leaves_along(points, density, size, wrap_w=None, x_off=0):
+    def leaves_along(points, density, size, wrap_w=None, x_off=0, dark_bias=False):
         for (x0, y0), (x1, y1) in zip(points, points[1:]):
             seg = np.hypot(x1 - x0, y1 - y0)
             count = max(1, int(seg * density))
@@ -275,29 +282,32 @@ def foliage(rng):
                 ln = size * rng.uniform(0.75, 1.25)
                 off = ln * 0.45
                 cx, cy = x + off * np.cos(ang), y + off * np.sin(ang)
-                pair = (lit, mid) if rng.uniform() < 0.6 else (mid, dark)
+                pair = (lit, mid) if rng.uniform() < (0.3 if dark_bias else 0.6) else (mid, dark)
                 xs = [cx + x_off] if wrap_w is None else [cx + x_off, cx + x_off - wrap_w, cx + x_off + wrap_w]
                 for xx in xs:
                     leaf(draw, xx, cy, ln, ln * 0.55, ang, pair[0], pair[1], ss)
 
-    # Drape: the top half (rows 0..n/2), seamless along U.
+    # Drape: the top half (rows 0..n/2), seamless along U: clumps of vine hanging from the
+    # fascia, covering well under half its length, in the darker warm greens (Stage 2 critic).
     band_h = n // 2
     width = n
-    for k in range(70):
-        x = rng.uniform(0, width)
-        length = band_h * rng.uniform(0.2, 0.92)
-        pts = [(x, 0.0)]
-        yy, xx = 0.0, x
-        while yy < length:
-            yy += band_h * 0.05
-            xx += rng.uniform(-10, 10)
-            pts.append((xx, yy))
-        for dx in (-width, 0, width):
-            draw.line([(px + dx, py) for px, py in pts], fill=stem, width=5)
-        leaves_along(pts, 0.05, 42, wrap_w=width)
-    # A dense crown along the top edge, so the band covers the fascia's lower edge.
-    crown = [(float(x), rng.uniform(10, band_h * 0.14)) for x in np.linspace(0, width, 60)]
-    leaves_along(crown, 0.35, 56, wrap_w=width)
+    clumps = [(k + rng.uniform(0.3, 0.7)) / 2 * width for k in range(2)]
+    for cx in clumps:
+        spread = rng.uniform(0.07, 0.09) * width
+        for k in range(12):
+            x = cx + rng.normal(0, spread * 0.5)
+            length = band_h * rng.uniform(0.25, 0.85)
+            pts = [(x, 0.0)]
+            yy, xx = 0.0, x
+            while yy < length:
+                yy += band_h * 0.05
+                xx += rng.uniform(-8, 8)
+                pts.append((xx, yy))
+            for dx in (-width, 0, width):
+                draw.line([(px + dx, py) for px, py in pts], fill=stem, width=5)
+            leaves_along(pts, 0.05, 44, wrap_w=width, dark_bias=True)
+        crown = [(cx + t * spread, rng.uniform(8, band_h * 0.16)) for t in np.linspace(-1.2, 1.2, 14)]
+        leaves_along(crown, 0.4, 58, wrap_w=width, dark_bias=True)
     # Climb: the bottom-left quarter, stems from its foot to its top.
     q = n // 2
     for k in range(5):
@@ -343,15 +353,17 @@ def overlays():
     rgb_arr = np.zeros((n, n, 3))
     alpha = np.zeros((n, n))
     half = n // 2
-    # Glow: the left half maps the 22 x 14 glow plane; the table (18.24 x 10.24) in its middle.
+    # Glow: the left half maps the glow plane (map_layout's table_glow size) with the table in
+    # its middle: strong right at the table's foot and gone within a stud (Stage 2 critic).
+    gw, _, gd = ml.PROP_SIZE['table_glow']
     ys, xs = np.mgrid[0:n, 0:half].astype(np.float64)
-    px_x, px_y = (xs + 0.5) / half * 22.0 - 11.0, (ys + 0.5) / n * 14.0 - 7.0
-    hx, hy, r = 9.12, 5.12, 1.2
+    px_x, px_y = (xs + 0.5) / half * gw - gw / 2, (ys + 0.5) / n * gd - gd / 2
+    hx, hy, r = 9.12, 5.12, 1.0
     qx, qy = np.abs(px_x) - (hx - r), np.abs(px_y) - (hy - r)
     dist = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - r
-    glow = np.where(dist < 0, 1.0, np.exp(-np.maximum(dist, 0) / 1.1))
-    edge_fade = smoothstep(0.0, 0.6, np.minimum(np.minimum(px_x + 11, 11 - px_x), np.minimum(px_y + 7, 7 - px_y)))
-    alpha[:, :half] = 0.5 * glow * edge_fade
+    glow = np.where(dist < 0, 1.0, np.exp(-np.maximum(dist, 0) / 0.35))
+    edge_fade = smoothstep(0.0, 0.3, np.minimum(np.minimum(px_x + gw / 2, gw / 2 - px_x), np.minimum(px_y + gd / 2, gd / 2 - px_y)))
+    alpha[:, :half] = 0.8 * glow * edge_fade
     rgb_arr[:, :half] = colour_array(mc.ALBEDO['glow'])
     # Edge: the top-right quarter (Blender V 0.5..1); dark at its bottom row (the wall).
     rows = np.arange(half)[:, None].astype(np.float64)

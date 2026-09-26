@@ -60,11 +60,10 @@ PARAMETERS = {
     'glass_top_gap': 0.2,  # glass stops this far under the handrail's top
     'nosing': 0.07,  # the chamfer on each step's front edge
     'riser_offset': 0.04,  # the lounge riser stands this far proud of the platform part
-    'plinth_extra': 0.3,  # column plinth and capital, this much wider each side than the shaft
-    'plinth_height': 0.6,
-    'capital_height': 0.7,
-    'column_chamfer': 0.18,
-    'fascia_height': 3.0,
+    'column_chamfer': 0.22,  # the columns are plain square shafts, as in the art
+    'riser_lip': 0.3,  # the lounge platform's coping overhangs its riser this much...
+    'riser_lip_height': 0.25,  # ...and is this thick
+    'fascia_height': 3.5,
     'fascia_thickness': 1.2,
     'fascia_overrun': 2.0,  # the fascia runs this far past the end columns' centres
     'joist_width': 1.0,
@@ -73,7 +72,7 @@ PARAMETERS = {
     'slat_pitch': 3.0,
     'slat_thickness': 0.6,
     'slat_below_top': 0.2,  # the slats' top sits this far under the fascia's top
-    'drape_tile_studs': 13.0,  # the drape image's width in studs (its height is drape_height)
+    'drape_tile_studs': 16.0,  # the drape image's width in studs (its height is drape_height): a clump every 8
     'drape_height': 6.5,  # from the fascia's top down
     'card_offset': 0.06,  # vine cards stand this far off the surface they hang on
     'climb_card': 3.4,  # a square climber card on a column face
@@ -271,16 +270,24 @@ def geometry():
     # The riser: the platform's front either side of the flight, and its two ends.
     ro = A['riser_offset']
     zf = platform_front + ro
+    lip, lh = A['riser_lip'], A['riser_lip_height']
+    y_lip = platform_y - lh
     for x0, x1 in ((-lw - ro, -lf), (lf, lw + ro)):
-        steps.wall((x0, zf), (x1, zf), 0.0, platform_y, 'riser')
-        steps.flat([(x0, platform_front), (x0, zf), (x1, zf), (x1, platform_front)], platform_y + 0.001, 'top')
+        steps.wall((x0, zf), (x1, zf), 0.0, y_lip, 'riser', v_range=(0.0, 0.8))
+        # The coping: a slab overhanging the riser, its top flush with the platform.
+        xa = x0 - (lip if x0 < -lf else 0.0)
+        xb = x1 + (lip if x1 > lf else 0.0)
+        coping = mc.outward_rect(xa, platform_front, xb, zf + lip)
+        steps.prism(coping, y_lip, platform_y + 0.001, 'top', top=True)
+        steps.flat(coping, y_lip, 'riser', up=False, frac=0.1)
     for side in (-1, 1):
         x = side * (lw + ro)
         a, b = ((x, back), (x, zf)) if side < 0 else ((x, zf), (x, back))
-        steps.wall(a, b, 0.0, platform_y, 'riser')
-        lip = [(x, back), (x, zf), (side * lw, zf), (side * lw, back)] if side < 0 else \
-            [(side * lw, back), (side * lw, zf), (x, zf), (x, back)]
-        steps.flat(lip, platform_y + 0.001, 'top')
+        steps.wall(a, b, 0.0, y_lip, 'riser', v_range=(0.0, 0.8))
+        xo = x + side * lip
+        coping = mc.outward_rect(min(side * lw, xo), back, max(side * lw, xo), zf + lip)
+        steps.prism(coping, y_lip, platform_y + 0.001, 'top', top=True)
+        steps.flat(coping, y_lip, 'riser', up=False, frac=0.1)
 
     # ---- Pergola: columns, fascia, joist, slats -----------------------------------------------
     px0, pz0, px1, pz1 = Z['pergola']
@@ -292,13 +299,9 @@ def geometry():
         s = col['size'][0] / 2
         y0 = col['Y']
         y1 = y0 + col['size'][1]
-        e = A['plinth_extra']
-        pergola.prism(mc.chamfer_rect(col['X'], col['Z'], s + e, s + e, 0.12), y0, y0 + A['plinth_height'], 'wall',
-                      top=True)
-        pergola.prism(mc.chamfer_rect(col['X'], col['Z'], s, s, A['column_chamfer']), y0 + A['plinth_height'],
-                      y1 - A['capital_height'], 'column', top=False)
-        pergola.prism(mc.chamfer_rect(col['X'], col['Z'], s + e, s + e, 0.12), y1 - A['capital_height'], y1,
-                      'fascia', top=True, bottom=True)
+        entrance = col.get('part_of') == 'entrance'
+        # A plain shaft; the entrance's two free-standing columns get a flat cap.
+        pergola.prism(mc.chamfer_rect(col['X'], col['Z'], s, s, A['column_chamfer']), y0, y1, 'column', top=entrance)
     zf_row, zb_row = pz1 - pcol / 2, pz0 + pcol / 2
     ft, fh = A['fascia_thickness'], A['fascia_height']
     over = pw + A['fascia_overrun']
@@ -353,7 +356,7 @@ def geometry():
     for i, col in enumerate(front_cols):
         stacks = 4 if i in (0, len(front_cols) - 1) else (2 if i in (2, 3) else 0)
         s = col['size'][0] / 2
-        y_top = col['Y'] + col['size'][1] - A['capital_height']
+        y_top = col['Y'] + col['size'][1]
         for k in range(stacks):
             y1 = y_top - k * card * 0.92
             y0 = y1 - card
@@ -370,8 +373,9 @@ def geometry():
                             (xc, y1, col['Z'] - card / 2)], [(ua, cv0), (ub, cv0), (ub, cv1), (ua, cv1)], double=True)
     bu0, bv0, bu1, bv1 = mc.FOLIAGE['bloom']
     bc = A['bloom_card']
-    for bx, by in ((front_cols[-1]['X'] - 1.0, beam_y - 0.8), (front_cols[-1]['X'] + 1.8, beam_y - 3.2),
-                   (-38.0, beam_y + 0.2), (24.0, beam_y + 0.4)):
+    right = front_cols[-1]
+    for bx, by in ((right['X'] - 1.2, beam_y - 1.0), (right['X'] + 1.2, beam_y - 3.6), (right['X'] - 0.6, beam_y - 6.4),
+                   (right['X'] + 0.8, beam_y - 9.0), (-38.0, beam_y + 0.4), (24.0, beam_y + 0.6)):
         zc = zf_row + ft / 2 + off * 2
         vines.face([(bx - bc / 2, by - bc / 2, zc), (bx + bc / 2, by - bc / 2, zc), (bx + bc / 2, by + bc / 2, zc),
                     (bx - bc / 2, by + bc / 2, zc)], [(bu0, bv0), (bu1, bv0), (bu1, bv1), (bu0, bv1)], double=True)
