@@ -18,6 +18,7 @@ the measured facts are `Spec.md`; the budget is `Budget.md`.
 | `gen_props.py`, `props/*.py` | The props: one template per kind (family modules), headless; writes `fbx/Props.fbx`, `Props.json` and `Props.blend` |
 | `city_plan.py` | The world round the rooftop: street and sea levels, the coast, the water, and the city's blocks and lots (shared by the gray-box and the near world) |
 | `gen_near.py` | The near world below the roof (tower walls, streets, neighbour buildings, promenade, beach, shallows, palms, trees, a sailboat), headless; writes `fbx/Near.fbx`, `Near.json` and `Near.blend` |
+| `gen_backdrop.py`, `backdrop/*.py` | The mid backdrop (the skyline and the near islands), one module each with its own sheet, headless; writes `fbx/Backdrop.fbx`, `Backdrop.json` and `Backdrop.blend` |
 | `gen_sky.py` | The skybox: a gradient and cumulus clouds rendered to six faces, headless; writes `textures/sky_day_*.png` |
 | `reference/` | The concept art |
 | `checkpoints/` | Captures and side-by-sides (git-ignored) |
@@ -34,22 +35,24 @@ $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_rooftop.py 
 $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_props.py              # the props FBX
 $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_props.py -- render    # and a render per kind
 $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_near.py               # the near world FBX
+$B -b --factory-startup --python-exit-code 1 --python assets/map/gen_backdrop.py           # the mid backdrop FBX
 $B -b --factory-startup --python-exit-code 1 --python assets/map/gen_sky.py                # the six sky faces
 python3 assets/map/gen_graybox.py       # the gray-box data (Rojo syncs it)
 tools/test.sh                           # map_layout_test and map_config_test among them
 ```
 
-## Import into Studio (the architecture, the props and the near world)
+## Import into Studio (the architecture, the props, the near world and the backdrop)
 
-Do this whenever `fbx/Rooftop.fbx`, `fbx/Props.fbx` or `fbx/Near.fbx` changes; re-importing only
-the one that changed is fine.
+Do this whenever `fbx/Rooftop.fbx`, `fbx/Props.fbx`, `fbx/Near.fbx` or `fbx/Backdrop.fbx`
+changes; re-importing only the one that changed is fine.
 
 1. In Studio, **File**, then **Import 3D**, then choose `assets/map/fbx/Rooftop.fbx`.
 2. In the import window: **Scale Unit: Stud**, scale **1**, **Merge Meshes off**, **Import
    Materials/Textures off**. Click **Import**. The model, named `Rooftop`, lands in Workspace;
    where does not matter.
-3. The same again for `assets/map/fbx/Props.fbx` (the model is named `Props`) and
-   `assets/map/fbx/Near.fbx` (the model is named `Near`).
+3. The same again for `assets/map/fbx/Props.fbx` (the model is named `Props`),
+   `assets/map/fbx/Near.fbx` (`Near`) and `assets/map/fbx/Backdrop.fbx` (`Backdrop`). Wait until
+   each has appeared in Workspace before running step 4.
 4. Run this in the command bar (or the agent runs it through the MCP):
 
    ```lua
@@ -58,6 +61,7 @@ the one that changed is fine.
    local data = require(Server.MapData.GrayBox:Clone())
    print(MB.prepareImport(spec, data)) print(MB.prepareProps(spec, data))
    print(MB.prepareNear(spec, data, require(Shared.MapMotion:Clone())))
+   print(MB.prepareBackdrop(spec, data))
    print(MB.applyLighting(require(Shared.Config:Clone()).Lighting.Day))
    ```
 
