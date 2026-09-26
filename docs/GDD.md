@@ -287,8 +287,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - A player's win streak shows above their head, and their country flag next to their name.
 
 **Open**
-- The hub map: its look, layout and zones. The designer will come back to it; the research
-  is in `docs/MAP_RESEARCH.md`.
+- The hub map: its look, layout and zones. The designer's direction (2026-09-25) is an
+  open-air rooftop pool club between a city skyline and a tropical coast, with its own new
+  brief to come. Nothing carries over from the removed maps.
 
 ## 11. Progression and ranks
 
