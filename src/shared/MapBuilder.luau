@@ -329,6 +329,11 @@ local function dress(
 		if maps.Roughness and maps.Roughness ~= "" then
 			sa.RoughnessMap = maps.Roughness
 		end
+		-- A self-lit mask: dark until the day cycle raises EmissiveStrength (Config.Lighting).
+		if maps.Emissive and maps.Emissive ~= "" then
+			sa.EmissiveMaskContent = Content.fromUri(maps.Emissive)
+			sa.EmissiveStrength = 0
+		end
 		sa.AlphaMode = (Enum.AlphaMode :: any)[alphaMode or "Overlay"]
 		sa.Parent = part
 	elseif colour then

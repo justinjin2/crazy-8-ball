@@ -67,13 +67,27 @@ function LightCycle.sun(blend: number, path: { SunKey }): (number, number)
 	return last.GeographicLatitude, last.ClockTime
 end
 
---- The swap bump: 1 at SkySwap, easing to 0 by Width either side of it.
+--- The swap bump: 1 at each of SkySwaps, easing to 0 by Width either side of it.
 function LightCycle.swapBump(blend: number, lighting: any): number
-	local d = math.abs(blend - lighting.SkySwap) / lighting.SwapHaze.Width
-	if d >= 1 then
-		return 0
+	local bump = 0
+	for _, at in lighting.SkySwaps do
+		local d = math.abs(blend - at) / lighting.SwapHaze.Width
+		if d < 1 then
+			bump = math.max(bump, ease(1 - d))
+		end
 	end
-	return ease(1 - d)
+	return bump
+end
+
+--- Which sky shows at a blend: 0 Day's, 1 DuskSky, 2 Sunset's (how many swaps are passed).
+function LightCycle.skyStage(blend: number, lighting: any): number
+	local stage = 0
+	for _, at in lighting.SkySwaps do
+		if blend >= at then
+			stage += 1
+		end
+	end
+	return stage
 end
 
 local function isHex(value: any): boolean
@@ -116,11 +130,17 @@ local function mix(
 end
 
 --- The whole light state at a blend (Config.Lighting's Day and Sunset keys, plus the sun's
---- GeographicLatitude and ClockTime from SunPath). Around SkySwap, where the sky's images change
---- in one frame, SwapHaze thickens the Atmosphere and dims the sky's light on the scene so the
---- change hides in a passing haze.
+--- GeographicLatitude and ClockTime from SunPath). The sky's images are Day's, DuskSky's or
+--- Sunset's (skyStage). Round each swap, where they change in one frame, SwapHaze thickens the
+--- Atmosphere and dims the sky's light on the scene so the change hides in a passing haze.
 function LightCycle.state(blend: number, lighting: any): { [string]: any }
-	local out = mix(lighting.Day, lighting.Sunset, blend, blend >= lighting.SkySwap)
+	local stage = LightCycle.skyStage(blend, lighting)
+	local out = mix(lighting.Day, lighting.Sunset, blend, stage >= #lighting.SkySwaps)
+	if stage > 0 and stage < #lighting.SkySwaps then
+		for key, id in lighting.DuskSky do
+			out.Sky[key] = id
+		end
+	end
 	out.GeographicLatitude, out.ClockTime = LightCycle.sun(blend, lighting.SunPath)
 	local bump = LightCycle.swapBump(blend, lighting)
 	if bump > 0 then

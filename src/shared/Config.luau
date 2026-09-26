@@ -2670,17 +2670,29 @@ Config.Map = {
 		-- Uploaded 2026-09-26 from assets/map/textures (1024; third round, after the Stage 2 critic).
 		Arch = { Color = "rbxassetid://95334117032577" }, -- arch_color.png: the trim sheet, soft shade baked in
 		Foliage = { Color = "rbxassetid://139476467352315" }, -- foliage.png: vines and bougainvillea (alpha)
-		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
+		-- overlays.png: the table glow and the contact shade (alpha); overlays_emissive.png: the
+		-- glow pool white, so the cycle can light it up at sunset (Config.Lighting's TableGlow).
+		Overlays = {
+			Color = "rbxassetid://121924065179218",
+			Emissive = "rbxassetid://97683849370663",
+		},
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
-		Skyline = { Color = "rbxassetid://77744835406237" }, -- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py)
+		-- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py);
+		-- skyline_emissive.png: a third of its windows white, lit at sunset (Lighting's Windows).
+		Skyline = {
+			Color = "rbxassetid://77744835406237",
+			Emissive = "rbxassetid://78621028936301",
+		},
 		Islands = { Color = "rbxassetid://76649656535397" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
 		-- shallows_color.png: near_color's shallows strip alone, every other strip clear (the same
 		-- layout, so the meshes keep their UVs). On near_color the far, low-angle mip levels mixed
 		-- the opaque strips round the shallows in, and the rings showed a hard edge.
 		Shallows = { Color = "rbxassetid://104750795818920" },
-	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
+	} :: {
+		[string]: { Color: string, Normal: string?, Roughness: string?, Emissive: string? },
+	},
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
 	-- image, about half a table long as in the art (Stage 2 critic). 9 divides the table pitch
@@ -2845,17 +2857,31 @@ Config.Lighting = {
 		Rate = 12, -- a client applies the fading light this many times a second
 		Look = 2, -- seconds between a client's looks for map parts still streaming in
 	},
-	-- The sky's images change in one frame at this blend (0 Day, 1 Sunset), both ways.
-	SkySwap = 0.5,
-	-- Round the swap (Width of the blend either side), the Atmosphere thickens by Density and
+	-- The sky's images change in one frame at these blends (0 Day, 1 Sunset), both ways: Day's
+	-- sky, then DuskSky, then Sunset's. One swap from the blue day sky to the magenta sunset one
+	-- popped even under a haze (Studio, 2026-09-26), so an in-between sky halves each step.
+	SkySwaps = { 0.3, 0.6 },
+	-- gen_sky.py's dusk faces (textures/sky_dusk_*.png): half way from the day sky to the sunset
+	-- one, the same cloud scene.
+	DuskSky = {
+		SkyboxBk = "rbxassetid://97011302091571",
+		SkyboxDn = "rbxassetid://102061841421939",
+		SkyboxFt = "rbxassetid://125796463836231",
+		SkyboxLf = "rbxassetid://133390470841807",
+		SkyboxRt = "rbxassetid://81619901606509",
+		SkyboxUp = "rbxassetid://100961493923085",
+	},
+	-- Round each swap (Width of the blend either side), the Atmosphere thickens by Density and
 	-- Haze and the sky's light on the scene (EnvironmentDiffuse and Specular scales) dims by
-	-- the share Environment, so the swap hides in a passing haze. (tune)
-	SwapHaze = { Width = 0.12, Density = 0.25, Haze = 1.5, Environment = 0.5 },
+	-- the share Environment. Only a hint: a real haze (0.5) takes the sky's colour and tints the
+	-- whole rooftop with it, so the swap showed more, not less (Play, 2026-09-26); the dusk sky
+	-- does the hiding.
+	SwapHaze = { Width = 0.1, Density = 0.03, Haze = 0, Environment = 0.2 },
 	-- The sun by blend (Spec section 6): Roblox's sun sets over the city, so the sunset one is a
 	-- dawn sun swung by the latitude to sit low over the sea, right of the lounge. Measured in
 	-- Studio (2026-09-26): straight between these two it slides down the ocean side (azimuth
-	-- 128 to 36, elevation 54 to 4), never across the sky or under the horizon. It arrives by
-	-- the swap, so it stands in the painted sunset glow whenever the sunset sky is up.
+	-- 128 to 36, elevation 54 to 4), never across the sky or under the horizon. It arrives
+	-- before the sunset sky's swap, so it stands in the painted glow whenever that sky is up.
 	SunPath = {
 		{ Blend = 0, GeographicLatitude = 45, ClockTime = 10 },
 		{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 6.4 },
@@ -2913,12 +2939,14 @@ Config.Lighting = {
 		Bloom = { Intensity = 0, Size = 24, Threshold = 2 },
 		SunRays = { Intensity = 0, Spread = 0.5 },
 		-- The background soft, the rooftop sharp (designer, Checkpoint C): in focus from the
-		-- camera out to InFocusRadius, blurred by FarIntensity beyond. Devices that skip the
-		-- effect still get the haze. (tune)
+		-- camera out to FocusDistance + InFocusRadius (260 studs: the whole roof, the lounge
+		-- from the entrance), blurred beyond by FarIntensity (at 1 the lounge blurred from the
+		-- day view). Tested in Play, 2026-09-26: Studio's Edit viewport draws no depth of field.
+		-- Devices that skip the effect still have the soft painted sky.
 		DepthOfField = {
-			FarIntensity = 0,
-			FocusDistance = 0,
-			InFocusRadius = 200,
+			FarIntensity = 0.5,
+			FocusDistance = 100,
+			InFocusRadius = 160,
 			NearIntensity = 0,
 		},
 		-- The Neon glass and flames (Map.Props.<Kind>__Glow), by prop kind. Neon renders a colour
@@ -2933,62 +2961,71 @@ Config.Lighting = {
 		-- The PointLights at the props' light spots (the tall lanterns, the globes, the fire pit).
 		Lights = { Brightness = 0.4, Range = 14, Color = "#FFD9A0" },
 		-- Self-lit glow (SurfaceAppearance emissive, through a mask image): the under-table glow
-		-- (Map.Rooftop.TableGlow) and the skyline's lit windows (Map.Backdrop.Skyline_*).
+		-- (Map.Rooftop.TableGlow) and the skyline's lit windows (Map.Backdrop.Skyline_*). Color
+		-- tints the skyline's and the near islands' look (white: as painted).
 		TableGlow = { EmissiveStrength = 0, EmissiveTint = "#EF9054" },
-		Windows = { EmissiveStrength = 0, EmissiveTint = "#D5B59C" },
+		Windows = { EmissiveStrength = 0, EmissiveTint = "#D5B59C", Color = "#FFFFFF" },
+		Islands = { Color = "#FFFFFF" },
 	},
 	-- Sunset (Spec section 2's sunset targets: a magenta and purple sky, the sun low over the sea
 	-- right of the lounge, warm lanterns, lit windows; the floor near #EAA1A5). Same keys as Day.
 	-- (tune: Stage 7)
 	Sunset = {
 		Brightness = 2,
-		ExposureCompensation = 0.1,
+		ExposureCompensation = 0,
 		EnvironmentDiffuseScale = 0.5,
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		OutdoorAmbient = "#7A5A8C", -- purple shade
+		-- The shade: a warm mauve, so the floor under the low sun reads the art's pink (#EAA1A5)
+		-- rather than lavender (the sun grazes the floor, so most of it is shade).
+		OutdoorAmbient = "#9A6A84",
 		ColorShift_Top = "#FF9A6A", -- the low sun's orange on lit faces
 		ColorShift_Bottom = "#000000",
+		-- A thin rose tint, no haze: in Play (not in Edit's preview) Haze 0.3 and density 0.1
+		-- fogged the 3D city, islands and sea into one flat magenta (Studio, 2026-09-26).
 		Atmosphere = {
-			Density = 0.3,
+			Density = 0.05,
 			Offset = 0,
-			Haze = 1.5,
-			Glare = 0.6,
-			Color = "#F0A0A8",
-			Decay = "#7A5AA0",
+			Haze = 0,
+			Glare = 0,
+			Color = "#E8A0B4",
+			Decay = "#6A4C9A",
 		},
-		-- gen_sky.py's sunset faces (textures/sky_sunset_*.png); the day ones until uploaded.
+		-- gen_sky.py's sunset faces (textures/sky_sunset_*.png): the day's cloud scene lit by the
+		-- low sun, a glow round it, the purple sea with the sun's path, the far city's lit windows.
 		Sky = {
-			SkyboxBk = "rbxassetid://83526260541580",
-			SkyboxDn = "rbxassetid://89826709775610",
-			SkyboxFt = "rbxassetid://85312380025917",
-			SkyboxLf = "rbxassetid://116034246180095",
-			SkyboxRt = "rbxassetid://115328556471822",
-			SkyboxUp = "rbxassetid://93123509257023",
+			SkyboxBk = "rbxassetid://134632329029809",
+			SkyboxDn = "rbxassetid://134370543660980",
+			SkyboxFt = "rbxassetid://125549990051047",
+			SkyboxLf = "rbxassetid://98648756985700",
+			SkyboxRt = "rbxassetid://132085445248776",
+			SkyboxUp = "rbxassetid://72825249699275",
 			SunAngularSize = 12,
 			MoonAngularSize = 0,
 			StarCount = 0,
 			CelestialBodiesShown = true,
 		},
 		Water = {
-			WaterColor = "#6A4C9C", -- toward the art's purple sunset sea (#74519F)
+			WaterColor = "#8A62B8", -- toward the art's purple sunset sea (#74519F)
 			WaterTransparency = 0.85,
-			WaterReflectance = 0.05,
+			-- More reflection than by day: the sea picks up the pink sky round the sun, as in
+			-- the art (at 0.05 it was flat indigo). No clouds to smear at this sun angle.
+			WaterReflectance = 0.4,
 			WaterWaveSize = 0.06,
 			WaterWaveSpeed = 6,
 		},
 		ColorCorrection = {
 			Brightness = 0,
 			Contrast = 0.05,
-			Saturation = 0.1,
-			TintColor = "#FFE6E0",
+			Saturation = 0.08,
+			TintColor = "#FFF0EC",
 		},
-		Bloom = { Intensity = 0.8, Size = 28, Threshold = 1 },
-		SunRays = { Intensity = 0.12, Spread = 0.6 },
+		Bloom = { Intensity = 0.5, Size = 24, Threshold = 1.2 }, -- the lanterns and windows bloom a little
+		SunRays = { Intensity = 0.06, Spread = 0.5 },
 		DepthOfField = {
-			FarIntensity = 0,
-			FocusDistance = 0,
-			InFocusRadius = 200,
+			FarIntensity = 0.5,
+			FocusDistance = 100,
+			InFocusRadius = 160,
 			NearIntensity = 0,
 		},
 		Glow = {
@@ -2997,9 +3034,14 @@ Config.Lighting = {
 			GlobeLight = "#FFC070",
 			FirePit = "#E06A20",
 		},
-		Lights = { Brightness = 2, Range = 20, Color = "#FFB070" },
-		TableGlow = { EmissiveStrength = 3, EmissiveTint = "#EF9054" },
-		Windows = { EmissiveStrength = 2.5, EmissiveTint = "#D5B59C" },
+		-- Brighter than by day, not blinding: at 2 and 20 studs the globes washed the lounge's
+		-- couches white (Play, 2026-09-26).
+		Lights = { Brightness = 0.7, Range = 16, Color = "#FFB070" },
+		TableGlow = { EmissiveStrength = 1, EmissiveTint = "#EF9054" },
+		-- The city and the near islands toward the art's dusk (blue-violet glass, island
+		-- silhouettes #564175), as the painted far world is.
+		Windows = { EmissiveStrength = 2.5, EmissiveTint = "#D5B59C", Color = "#7C74B4" },
+		Islands = { Color = "#A080B8" },
 	},
 }
 

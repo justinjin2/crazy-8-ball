@@ -41,8 +41,9 @@ function DayCycle.new(): DayCycle
 	-- Load both skies' faces up front, so the swap never shows a face still loading.
 	task.spawn(function()
 		local ids: { string } = {}
-		for _, state in { L.Day, L.Sunset } do
-			for key: string, id in state.Sky :: { [string]: any } do
+		local skies: { { [string]: any } } = { L.Day.Sky, L.DuskSky, L.Sunset.Sky }
+		for _, sky in skies do
+			for key: string, id in sky :: { [string]: any } do
 				if key:match("^Skybox") then
 					table.insert(ids, id)
 				end

@@ -106,6 +106,7 @@ return {
 			add(maps.Color, set .. ".Color")
 			add(maps.Normal, set .. ".Normal")
 			add(maps.Roughness, set .. ".Roughness")
+			add(maps.Emissive, set .. ".Emissive")
 		end
 		add(M.Floor.Color, "Floor.Color")
 		add(M.Floor.Normal, "Floor.Normal")
@@ -174,6 +175,12 @@ return {
 					("%s: the sky's %s face"):format(name, face)
 				)
 			end
+		end
+		for _, face in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do
+			H.expect(
+				isAssetId(L.DuskSky["Skybox" .. face] or ""),
+				("DuskSky: the %s face"):format(face)
+			)
 		end
 		for _, key in L.SunPath do
 			H.expect(key.ClockTime >= 0 and key.ClockTime < 24, "a sane sun")

@@ -92,7 +92,13 @@
     "Glow"
    ],
    "layout_kind": "globe_light",
-   "lights": [],
+   "lights": [
+    [
+     0.0,
+     0.0,
+     0.0
+    ]
+   ],
    "placements": 6,
    "seats": [],
    "triangles": 144

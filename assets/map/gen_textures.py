@@ -389,6 +389,11 @@ def overlays():
     alpha[half:, half:] = 0.4 * np.clip(1 - rr, 0, 1) ** 1.6
     rgb_arr[half:, half:] = colour_array(mc.ALBEDO['shadow'])
     save_rgba(rgb_arr, alpha, 'overlays.png')
+    # The under-table glow's emissive mask (Stage 7): the glow pool white, the shade quarters
+    # black, so the cycle can light the pool up at sunset (TableGlow's EmissiveStrength).
+    mask = np.zeros((n, n))
+    mask[:, :half] = glow
+    save_rgb(np.repeat(mask[..., None] * 255.0, 3, axis=2), 'overlays_emissive.png')
 
 
 # ---------------------------------------------------------------------------------------------
@@ -659,6 +664,9 @@ def write_backdrop_sheet(name):
     else:
         save_rgb(arr, module.IMAGE)
     print('wrote', module.IMAGE)
+    if hasattr(module, 'draw_emissive'):
+        save_rgb(module.draw_emissive(np.random.default_rng(module.SEED + 1), MASTER), module.EMISSIVE_IMAGE)
+        print('wrote', module.EMISSIVE_IMAGE)
 
 
 def plants(rng):

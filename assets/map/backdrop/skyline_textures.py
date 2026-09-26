@@ -36,6 +36,15 @@ import map_common as mc  # noqa: E402
 
 IMAGE = 'skyline_color.png'
 SEED = 5101
+# The lit windows at sunset (Stage 7): an emissive mask for the same sheet, white where a window
+# is lit, so the city's windows glow when the cycle raises the chunks' EmissiveStrength. A wall's
+# floors are its strip's window bands (glass, which has none, takes GLASS_FLOOR), cut along U into
+# windows LIT_CELL studs apart, LIT_ACROSS of a cell wide; LIT_SHARE of them are lit.
+EMISSIVE_IMAGE = 'skyline_emissive.png'
+LIT_CELL = 6.0
+LIT_ACROSS = 0.62
+LIT_SHARE = 0.34
+GLASS_FLOOR = 11.0
 PAD = 8
 FACADE_TOP = 560.0  # studs over the street at the top of a facade strip
 ZONE = 72.0  # studs: one facade variant along U (no wall in the plan is wider)
@@ -258,6 +267,58 @@ def draw(rng, size):
         rows_done += r1 - r0
     assert rows_done == size, 'the strips must fill the sheet'
     return np.clip(img, 0.0, 255.0)
+
+
+def lit_strip(rng, floors, frac, u):
+    """The lit-window mask (0..1) for a facade strip: floors[z] is zone z's floor height."""
+    h = frac * FACADE_TOP  # (rows, 1)
+    k, _ = _zone_pos(u, ZONE, ZONES)
+    rows = h.shape[0]
+    out = np.zeros((rows, u.shape[1]))
+    cells = int(round(ZONE * ZONES / LIT_CELL))
+    lit = rng.random((int(FACADE_TOP // min(floors)) + 2, cells)) < LIT_SHARE
+    cell = np.floor(u / LIT_CELL).astype(int) % cells  # (1, cols)
+    p = (u % LIT_CELL) / LIT_CELL
+    side = (1.0 - LIT_ACROSS) / 2
+    across = _smooth(side - 0.06, side + 0.06, p) * (1 - _smooth(1 - side - 0.06, 1 - side + 0.06, p))
+    for z in range(ZONES):
+        floor = floors[z % LIGHT]
+        sel = (k[0] == z)
+        f = (h / floor) % 1.0
+        band = _smooth(BAND_SILL - BAND_SOFT, BAND_SILL, f) * (1 - _smooth(BAND_HEAD, BAND_HEAD + BAND_SOFT, f))
+        band = band * _smooth(floor * 0.6, floor, h)
+        index = np.floor(h / floor).astype(int)  # (rows, 1)
+        on = lit[index, cell[:, sel]]  # (rows, n)
+        out[:, sel] = band * across[:, sel] * on
+    return out
+
+
+LIT_FLOORS = {
+    's_glass': [GLASS_FLOOR] * LIGHT,
+    's_white': [v[2] for v in WHITE],
+    's_stone': [v[2] for v in STONE],
+    's_terracotta': [v[2] for v in TERRACOTTA],
+}
+
+
+def draw_emissive(rng, size):
+    """The lit-window mask at size x size (RGB, 0..255; white lit): the facade strips' windows,
+    black everywhere else."""
+    img = np.zeros((size, size))
+    s = size / mc.TRIM_PX
+    for name, (top, bottom, studs) in STRIPS.items():
+        if name not in LIT_FLOORS:
+            continue
+        r0, r1 = int(round(top * s)), int(round(bottom * s))
+        rows = (np.arange(r0, r1) + 0.5) / s
+        frac = np.clip(((bottom - PAD) - rows) / (bottom - top - 2 * PAD), 0.0, 1.0)[:, None]
+        u = ((np.arange(size) + 0.5) / size * studs)[None, :]
+        strip = lit_strip(rng, LIT_FLOORS[name], frac, u)
+        pad = int(round(PAD * s))
+        strip[:pad] = 0.0  # the clear edge rows stay dark, so no light bleeds between strips
+        strip[-pad:] = 0.0
+        img[r0:r1] = strip
+    return np.repeat(np.clip(img, 0.0, 1.0)[..., None] * 255.0, 3, axis=2)
 
 
 if __name__ == '__main__':

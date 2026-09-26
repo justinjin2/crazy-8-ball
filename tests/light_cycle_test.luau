@@ -100,12 +100,27 @@ return {
 		H.expect(LC.mixHex("#000000", "#FF8040", 0) == "#000000", "mix at 0")
 		H.expect(LC.mixHex("#000000", "#FF8040", 1) == "#FF8040", "mix at 1")
 		H.expect(LC.mixHex("#000000", "#FF8040", 0.5) == "#804020", "mix half way")
-		local before, after = LC.state(L.SkySwap - 1e-6, L), LC.state(L.SkySwap, L)
+		local first, second = L.SkySwaps[1], L.SkySwaps[2]
+		H.expect(#L.SkySwaps == 2 and first < second, "two swaps, in order")
+		local function sky(blend: number): { [string]: any }
+			return LC.state(blend, L).Sky
+		end
 		for key, id in L.Day.Sky do
 			if key:match("^Skybox") then
-				H.expect(before.Sky[key] == id, key .. ": Day's until the swap")
-				H.expect(after.Sky[key] == L.Sunset.Sky[key], key .. ": Sunset's from the swap")
+				H.expect(sky(first - 1e-6)[key] == id, key .. ": Day's until the first swap")
+				H.expect(
+					sky(first)[key] == L.DuskSky[key],
+					key .. ": the dusk sky's from the first"
+				)
+				H.expect(
+					sky(second - 1e-6)[key] == L.DuskSky[key],
+					key .. ": the dusk sky's until the second"
+				)
+				H.expect(sky(second)[key] == L.Sunset.Sky[key], key .. ": Sunset's from the second")
 			end
+		end
+		for key in L.DuskSky do
+			H.expect(L.Day.Sky[key] ~= nil, "DuskSky." .. key .. " is a sky face")
 		end
 	end,
 
@@ -118,7 +133,7 @@ return {
 			H.expect(path[i].Blend > path[i - 1].Blend, "keyframes in order")
 		end
 		H.expect(
-			path[#path].Blend <= L.SkySwap,
+			path[#path].Blend <= L.SkySwaps[#L.SkySwaps],
 			"the sun is at the sunset glow when the sunset sky shows"
 		)
 		local lat, clock = LC.sun(0.25, path)
@@ -137,13 +152,22 @@ return {
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting
 		local S = L.SwapHaze
-		H.near(LC.swapBump(L.SkySwap, L), 1, 1e-9, "the peak")
-		H.near(LC.swapBump(L.SkySwap + S.Width, L), 0, 1e-9, "gone at the width")
+		for _, at in L.SkySwaps do
+			H.near(LC.swapBump(at, L), 1, 1e-9, "the peak")
+			H.near(LC.swapBump(at + S.Width, L), 0, 1e-9, "gone at the width")
+		end
+		H.near(
+			LC.swapBump((L.SkySwaps[1] + L.SkySwaps[2]) / 2, L),
+			0,
+			1e-9,
+			"clear between the swaps"
+		)
 		H.near(LC.swapBump(0, L), 0, 0, "none by day")
 		H.near(LC.swapBump(1, L), 0, 0, "none at sunset")
-		local at = LC.state(L.SkySwap, L)
+		local swap = L.SkySwaps[1]
+		local at = LC.state(swap, L)
 		local base = L.Day.Atmosphere.Density
-			+ (L.Sunset.Atmosphere.Density - L.Day.Atmosphere.Density) * L.SkySwap
+			+ (L.Sunset.Atmosphere.Density - L.Day.Atmosphere.Density) * swap
 		H.near(at.Atmosphere.Density, base + S.Density, 1e-9, "the haze at the swap")
 		-- The mix leaves Config's own tables alone.
 		H.near(L.Day.Atmosphere.Density, H.require("Config").Lighting.Day.Atmosphere.Density, 0)

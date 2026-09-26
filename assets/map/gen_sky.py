@@ -57,8 +57,10 @@ P = {
     'land_blend': 0.09,  # below it, land toward -X and sea toward +X, blended over this much of the x direction
 }
 
-# The Spec's Day sun (latitude 45, clock 10), toward the sun, Roblox axes.
-SUN = {'day': (0.465, 0.806, 0.367)}
+# Toward the sun, Roblox axes: the Spec's Day sun (latitude 45, clock 10) and its Sunset sun
+# (latitude -30, clock 6.4: low over the sea, right of the lounge; Config.Lighting.SunPath).
+SUN = {'day': (0.465, 0.806, 0.367), 'sunset': (0.591, 0.062, -0.804)}
+SUN['dusk'] = SUN['sunset']  # the in-between sky: the sun is already down by its swap (SunPath)
 
 COLOURS = {
     'day': {
@@ -82,6 +84,33 @@ COLOURS = {
         'cloud_lit': '#F7F8FF',  # the art's sunlit tops read near white; cloud_day is their average
         'cloud_mid': mc.hexc('cloud_day'),
         'cloud_shade': mc.hexc('cloud_day', 'shade'),
+    },
+    # Sunset (Stage 7; Spec section 2's sunset targets, painted deeper, as the day's are): the art's
+    # purple top, magenta middle and orange horizon, a yellow glow round the low sun, the purple
+    # sea with the sun's orange path on it, magenta clouds lit peach from the sun's side.
+    'sunset': {
+        'top': '#4B2E9E',  # the art's #7B60BB
+        'mid': '#C4417F',  # the art's #D96094, at sky_mid
+        'horizon': '#FF7A52',  # the art's #FD7E62
+        # Round the sun: a broad warm lobe and a tight bright one (power: how tight; share: how
+        # much of the way to the glow colour at the sun itself).
+        'glow': '#FFD47A',
+        'glow_lobes': ((3.0, 0.45), (60.0, 0.9)),
+        'sea': '#4A3288',  # the art's #74519F
+        'sea_glow': '#F2766A',  # the art's #E87177, in the sun's path...
+        'sea_path': 24.0,  # ...this tight across...
+        'sea_path_fade': 0.25,  # ...fading out by this much of sin(depression) under the horizon
+        'land': '#FF7A52',  # past the painted land, the horizon's own colour
+        'cloud_lit': '#FFB08C',
+        'cloud_mid': '#EE5476',  # the art's #F56077
+        'cloud_shade': '#9E3C86',  # the art's #CD4D8B, deeper
+        # The far world: faded toward a dusky pink rather than the bright horizon, so the
+        # islands and the city stay silhouettes as in the art; lit by a purple ambient and the
+        # low orange sun (multipliers on the day's white light).
+        'far_haze': '#B0507E',
+        'light_tint_ambient': (0.8, 0.72, 1.0),
+        'light_tint_sun': (1.5, 0.85, 0.5),
+        'windows': '#FFD8A8',  # lit windows on the far city (the art's #D5B59C, glowing)
     },
 }
 
@@ -152,9 +181,13 @@ def world(scene, c):
     t.links.new(sep.outputs['Z'], up.inputs[0])
     curve = math_node(t, 'POWER', b=P['sky_curve'])
     t.links.new(up.outputs[0], curve.inputs[0])
-    mid = '#%02X%02X%02X' % tuple(int(round(v)) for v in mc.mix(mc.rgb(c['horizon']), mc.rgb(c['top']), P['sky_mid'][1]))
+    mid = c.get('mid') or '#%02X%02X%02X' % tuple(
+        int(round(v)) for v in mc.mix(mc.rgb(c['horizon']), mc.rgb(c['top']), P['sky_mid'][1]))
     sky = ramp(t, [(0.0, c['horizon']), (P['sky_mid'][0], mid), (1.0, c['top'])])
     t.links.new(curve.outputs[0], sky.inputs['Fac'])
+    sky_out = sky.outputs['Color']
+    if 'glow' in c:
+        sky_out = sun_glow(t, coord, c, sky_out)
     below = t.nodes.new('ShaderNodeMapRange')
     below.clamp = True
     below.inputs['From Min'].default_value = 0.0
@@ -175,15 +208,78 @@ def world(scene, c):
     below_col.inputs['A'].default_value = linear(c['land'])
     below_col.inputs['B'].default_value = linear(c['sea'])
     t.links.new(ground.outputs['Result'], below_col.inputs['Factor'])
+    below_out = below_col.outputs['Result']
+    if 'sea_glow' in c:
+        below_out = sea_path(t, sep, c, below_out)
     mix = t.nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
-    t.links.new(below_col.outputs['Result'], mix.inputs['B'])
+    t.links.new(below_out, mix.inputs['B'])
     t.links.new(below.outputs['Result'], mix.inputs['Factor'])
-    t.links.new(sky.outputs['Color'], mix.inputs['A'])
+    t.links.new(sky_out, mix.inputs['A'])
     bg = node(t, 'ShaderNodeBackground', Strength=1.0)
     t.links.new(mix.outputs['Result'], bg.inputs['Color'])
     out = t.nodes.new('ShaderNodeOutputWorld')
     t.links.new(bg.outputs[0], out.inputs['Surface'])
+
+
+def sun_glow(t, coord, c, colour):
+    """The sky mixed toward c['glow'] round the sun: for each (power, share) lobe, by the cosine
+    of the angle to the sun raised to the power."""
+    dot = t.nodes.new('ShaderNodeVectorMath')
+    dot.operation = 'DOT_PRODUCT'
+    dot.inputs[1].default_value = Vector(mc.rb(SUN['sunset'])).normalized()
+    t.links.new(coord.outputs['Generated'], dot.inputs[0])
+    pos = math_node(t, 'MAXIMUM', b=0.0)
+    t.links.new(dot.outputs['Value'], pos.inputs[0])
+    for power, share in c['glow_lobes']:
+        lobe = math_node(t, 'POWER', b=power)
+        t.links.new(pos.outputs[0], lobe.inputs[0])
+        amount = math_node(t, 'MULTIPLY', b=share)
+        t.links.new(lobe.outputs[0], amount.inputs[0])
+        mix = t.nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        mix.inputs['B'].default_value = linear(c['glow'])
+        t.links.new(amount.outputs[0], mix.inputs['Factor'])
+        t.links.new(colour, mix.inputs['A'])
+        colour = mix.outputs['Result']
+    return colour
+
+
+def sea_path(t, sep, c, colour):
+    """The sun's path on the sea: toward c['sea_glow'] by how nearly a ray below the horizon
+    points the sun's way across (a tight lobe), fading with depth under the horizon."""
+    sun = Vector(mc.rb(SUN['sunset']))
+    flat = Vector((sun.x, sun.y, 0.0)).normalized()
+    comb = t.nodes.new('ShaderNodeCombineXYZ')
+    t.links.new(sep.outputs['X'], comb.inputs['X'])
+    t.links.new(sep.outputs['Y'], comb.inputs['Y'])
+    norm = t.nodes.new('ShaderNodeVectorMath')
+    norm.operation = 'NORMALIZE'
+    t.links.new(comb.outputs['Vector'], norm.inputs[0])
+    dot = t.nodes.new('ShaderNodeVectorMath')
+    dot.operation = 'DOT_PRODUCT'
+    dot.inputs[1].default_value = flat
+    t.links.new(norm.outputs['Vector'], dot.inputs[0])
+    pos = math_node(t, 'MAXIMUM', b=0.0)
+    t.links.new(dot.outputs['Value'], pos.inputs[0])
+    lobe = math_node(t, 'POWER', b=c['sea_path'])
+    t.links.new(pos.outputs[0], lobe.inputs[0])
+    depth = t.nodes.new('ShaderNodeMapRange')
+    depth.clamp = True
+    depth.inputs['From Min'].default_value = 0.0
+    depth.inputs['From Max'].default_value = -c['sea_path_fade']
+    depth.inputs['To Min'].default_value = 1.0
+    depth.inputs['To Max'].default_value = 0.0
+    t.links.new(sep.outputs['Z'], depth.inputs['Value'])
+    amount = math_node(t, 'MULTIPLY')
+    t.links.new(lobe.outputs[0], amount.inputs[0])
+    t.links.new(depth.outputs['Result'], amount.inputs[1])
+    mix = t.nodes.new('ShaderNodeMix')
+    mix.data_type = 'RGBA'
+    mix.inputs['B'].default_value = linear(c['sea_glow'])
+    t.links.new(amount.outputs[0], mix.inputs['Factor'])
+    t.links.new(colour, mix.inputs['A'])
+    return mix.outputs['Result']
 
 
 def cloud_material(c, sun):
@@ -304,7 +400,46 @@ def cloud_mesh(name, rng, width):
     return mesh
 
 
+def mix_value(a, b, w):
+    """a share w of the way from a to b: hex colours per channel, numbers, and tuples of either."""
+    if isinstance(a, str):
+        return '#%02X%02X%02X' % tuple(int(round(v)) for v in mc.mix(mc.rgb(a), mc.rgb(b), w))
+    if isinstance(a, tuple):
+        return tuple(mix_value(x, y, w) for x, y in zip(a, b))
+    return a + (b - a) * w
+
+
+def dusk_colours():
+    """The in-between sky (Stage 7): half way from Day to Sunset, so the cycle's sky swaps
+    come as two half-size steps (Config.Lighting.SkySwaps) rather than one. Keys only the sunset
+    has mix from the day's own equivalent (its horizon, its sea, white light, no glow)."""
+    day, sun = COLOURS['day'], COLOURS['sunset']
+    day_mid = '#%02X%02X%02X' % tuple(
+        int(round(v)) for v in mc.mix(mc.rgb(day['horizon']), mc.rgb(day['top']), P['sky_mid'][1]))
+    stand_in = {'mid': day_mid, 'far_haze': day['horizon'], 'sea_glow': day['sea'], 'glow': day['horizon'],
+                'light_tint_ambient': (1.0, 1.0, 1.0), 'light_tint_sun': (1.0, 1.0, 1.0),
+                'windows': mc.hexc('city_facade_day')}
+    out = {}
+    for key, value in sun.items():
+        if key == 'glow_lobes':
+            out[key] = tuple((power, share * DUSK) for power, share in value)
+        elif key in ('sea_path', 'sea_path_fade'):
+            out[key] = value
+        else:
+            out[key] = mix_value(day.get(key, stand_in.get(key)), value, DUSK)
+    return out
+
+
+DUSK = 0.5  # how far from Day to Sunset the in-between sky is
+
+
 def build(scene, light):
+    if light == 'dusk':
+        COLOURS['dusk'] = dusk_colours()
+        for key, value in FAR_COLOURS_SUNSET.items():
+            FAR_COLOURS[key] = mix_value(FAR_COLOURS[key], value, DUSK)
+    elif light == 'sunset':
+        FAR_COLOURS.update(FAR_COLOURS_SUNSET)
     c = COLOURS[light]
     sun = Vector(mc.rb(SUN[light])).normalized()
     world(scene, c)
@@ -363,12 +498,27 @@ FAR = {
     'hill_height': (180.0, 520.0),  # ...this tall over the street...
     'hills_az': (-175.0, -12.0),  # ...from behind the spawn round to here, where the turned shore is
 }
+FAR_WINDOWS = {
+    'reach': 4800.0,  # lit windows on far towers this near (farther ones are sub-pixel)
+    'floor': 12.0,  # a floor's height
+    'lit': 0.3,  # the share of floors lit on a face
+    'height': 5.0,  # a lit strip's height
+    'across': 0.8,  # its width, of the face's
+}
 FAR_COLOURS = {
     # The Stage 5 skyline's facade family, flat (a far tower is a few pixels wide).
     'glass': '#8AA4C2', 'white': '#EDE3D7', 'stone': '#D8C8B6', 'terracotta': '#B8917A',
     'roof': '#E4E0DC', 'land': '#9BA592', 'sand': '#F2DCC0',
     'jungle_dark': '#3F6E44', 'jungle': '#4E8550', 'jungle_lit': '#66985A', 'rock': '#8A7F84',
     'island_far': mc.hexc('island_far'), 'hills': mc.hexc('mountain_far'),
+}
+# At sunset the far world is the art's dusk: blue-violet glass, facades in purple shade, island
+# silhouettes (#564175) and hills in purple, the land dark (Spec section 2's sunset targets).
+FAR_COLOURS_SUNSET = {
+    'glass': '#3E4C93', 'white': '#A286B4', 'stone': '#94789E', 'terracotta': '#A06C84',
+    'roof': '#B494C0', 'land': '#56406E', 'sand': '#C08E98',
+    'jungle_dark': '#3A2C5A', 'jungle': '#4A3A6A', 'jungle_lit': '#5E4A7A', 'rock': '#44365E',
+    'island_far': '#564175', 'hills': '#6A5A9E',
 }
 
 
@@ -443,16 +593,18 @@ def far_material(c, sun, lit=True, ambient=None, sun_light=None, fade_length=Non
         t.links.new(geo.outputs['Normal'], dot.inputs[0])
         pos = math_node(t, 'MAXIMUM', b=0.0)
         t.links.new(dot.outputs['Value'], pos.inputs[0])
-        light = t.nodes.new('ShaderNodeMapRange')
-        light.inputs['From Min'].default_value = 0.0
-        light.inputs['From Max'].default_value = 1.0
-        light.inputs['To Min'].default_value = ambient
-        light.inputs['To Max'].default_value = ambient + sun_light
-        t.links.new(pos.outputs[0], light.inputs['Value'])
-        comb = t.nodes.new('ShaderNodeCombineColor')
-        for i in range(3):
-            t.links.new(light.outputs['Result'], comb.inputs[i])
-        t.links.new(comb.outputs['Color'], shade.inputs['B'])
+        # The light: ambient plus sun_light x the sun on the face, each tinted by the light's
+        # colour (white by day; a purple ambient and an orange sun at sunset).
+        tint_a = c.get('light_tint_ambient', (1.0, 1.0, 1.0))
+        tint_s = c.get('light_tint_sun', (1.0, 1.0, 1.0))
+        sun_part = math_node(t, 'MULTIPLY', b=sun_light)
+        t.links.new(pos.outputs[0], sun_part.inputs[0])
+        light = t.nodes.new('ShaderNodeVectorMath')
+        light.operation = 'MULTIPLY_ADD'
+        light.inputs[1].default_value = tint_s
+        light.inputs[2].default_value = tuple(ambient * v for v in tint_a)
+        t.links.new(sun_part.outputs[0], light.inputs[0])
+        t.links.new(light.outputs['Vector'], shade.inputs['B'])
     else:
         shade.inputs['B'].default_value = (1.0, 1.0, 1.0, 1.0)
     dist = t.nodes.new('ShaderNodeVectorMath')
@@ -471,7 +623,7 @@ def far_material(c, sun, lit=True, ambient=None, sun_light=None, fade_length=Non
     t.links.new(ex.outputs[0], fade.inputs[1])
     mix = t.nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
-    mix.inputs['B'].default_value = linear(c['horizon'])
+    mix.inputs['B'].default_value = linear(c.get('far_haze', c['horizon']))
     t.links.new(fade.outputs[0], mix.inputs['Factor'])
     t.links.new(shade.outputs['Result'], mix.inputs['A'])
     em = node(t, 'ShaderNodeEmission', Strength=1.0)
@@ -502,9 +654,38 @@ def far_ground(painted):
         painted.face([(-L, y, za), (-L, y, zb), (xb, y, zb), (xa, y, za)], [colour] * 4)
 
 
-def far_city(painted):
+def lit_windows(windows, lot, base, top, colour, rng):
+    """Lit floors on a tower's faces toward the eye: thin strips a little proud of the wall."""
+    W = FAR_WINDOWS
+    x, z = lot['x'], lot['z']
+    sw, sd = lot['shaft']
+    faces = []
+    if x + sw / 2 < 0:
+        faces.append(('x', x + sw / 2 + 0.5, z, sd))
+    if x - sw / 2 > 0:
+        faces.append(('x', x - sw / 2 - 0.5, z, sd))
+    if z + sd / 2 < 0:
+        faces.append(('z', z + sd / 2 + 0.5, x, sw))
+    if z - sd / 2 > 0:
+        faces.append(('z', z - sd / 2 - 0.5, x, sw))
+    for axis, at, mid, span in faces:
+        half = span * W['across'] / 2
+        y = base + W['floor']
+        while y + W['height'] < top - W['floor']:
+            if rng.random() < W['lit']:
+                y0, y1 = y, y + W['height']
+                if axis == 'x':
+                    pts = [(at, y0, mid - half), (at, y0, mid + half), (at, y1, mid + half), (at, y1, mid - half)]
+                else:
+                    pts = [(mid - half, y0, at), (mid + half, y0, at), (mid + half, y1, at), (mid - half, y1, at)]
+                windows.face(pts, [colour] * 4)
+            y += W['floor']
+
+
+def far_city(painted, windows=None, window_colour=None):
     """Every far lot: a podium, a shaft and a crown, in the skyline's facade colours; every
-    few tall towers a spire."""
+    few tall towers a spire. With `windows` (a Painted, at sunset), lit floors on the towers
+    within FAR_WINDOWS['reach']."""
     W = cp.WORLD
     street = W['street_y']
     styles = [unit(FAR_COLOURS[k]) for k in ('glass', 'white', 'stone', 'terracotta')]
@@ -540,6 +721,9 @@ def far_city(painted):
             sw, sd = lot['shaft']
             top = street + lot['height'] - lot['crown']
             painted.box(x - sw / 2, z - sd / 2, x + sw / 2, z + sd / 2, base + lot['podium'], top, style, roof)
+            if windows is not None and lot['dist'] < FAR_WINDOWS['reach']:
+                rng = random.Random(cp.block_seed(SEED + 11, b['i'], b['j']) * 4 + k)
+                lit_windows(windows, lot, base + lot['podium'], top, window_colour, rng)
             if lot['crown']:
                 painted.box(x - sw * 0.3, z - sd * 0.3, x + sw * 0.3, z + sd * 0.3, top, top + lot['crown'],
                             tuple(min(1.0, v * 1.08) for v in style), roof)
@@ -648,8 +832,11 @@ def build_far(scene, c, sun):
     far_ground(ground)
     ground.to_object('FarGround', flat_mat)
     city = Painted()
-    lots = far_city(city)
+    windows = Painted() if 'windows' in c else None
+    lots = far_city(city, windows, unit(c['windows']) if windows is not None else None)
     city.to_object('FarCity', lit_mat)
+    if windows is not None and windows.faces:
+        windows.to_object('FarWindows', flat_mat)
     isles = Painted()
     far_islands(isles)
     isles.to_object('FarIslands', far_material(c, sun, lit=True, ambient=FAR['island_ambient'],
@@ -730,9 +917,7 @@ def preview(paths, light):
 
 def main():
     args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
-    light = 'sunset' if 'sunset' in args else 'day'
-    if light not in COLOURS:
-        raise SystemExit('no %s sky yet (Stage 7)' % light)
+    light = 'sunset' if 'sunset' in args else 'dusk' if 'dusk' in args else 'day'
     scene = mc.clear_scene()
     build(scene, light)
     paths = render_faces(scene, light)

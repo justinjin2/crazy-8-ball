@@ -300,7 +300,8 @@ def build_globe_light():
     top = GLOBE_R + CORD
     loft(m, [lift(mc.outward_rect(-c, -c, c, c), y1), lift(mc.outward_rect(-c, -c, c, c), top)], 'p_frame',
          [0.5, 0.9])
-    return {'Opaque': m, 'Glow': glow, 'seats': [], 'lights': []}
+    # A PointLight in the globe: the lounge's warm pools under the pergola at sunset (Stage 7).
+    return {'Opaque': m, 'Glow': glow, 'seats': [], 'lights': [(0.0, 0.0, 0.0)]}
 
 
 # ---------------------------------------------------------------------------------------------

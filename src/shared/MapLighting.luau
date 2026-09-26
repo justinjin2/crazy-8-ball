@@ -37,7 +37,8 @@ export type Handles = {
 	glows: { [string]: { BasePart } }, -- Map.Props' <Kind>__Glow meshes, by kind
 	lights: { PointLight },
 	tableGlow: { SurfaceAppearance },
-	windows: { SurfaceAppearance },
+	windows: { SurfaceAppearance }, -- the skyline chunks' looks (their windows and their tint)
+	islands: { SurfaceAppearance }, -- the near islands' looks (their tint)
 	complete: boolean, -- false while the map's props, rooftop or backdrop are yet to stream in
 }
 
@@ -49,6 +50,17 @@ local function value(v: any): any
 	return v
 end
 
+local BACKDROP_LOOKS = { "^Skyline_", "^Islands_" } -- the backdrop chunks the cycle tints
+
+local function backdropLook(name: string): boolean
+	for _, pattern in BACKDROP_LOOKS do
+		if name:match(pattern) then
+			return true
+		end
+	end
+	return false
+end
+
 -- Whether a part is one of the map's glow, light or emissive pieces, so a client re-collects
 -- when one streams in (it would otherwise keep the look it was saved with).
 function MapLighting.relevant(inst: Instance): boolean
@@ -56,12 +68,11 @@ function MapLighting.relevant(inst: Instance): boolean
 		return true
 	elseif inst:IsA("SurfaceAppearance") then
 		local parent = inst.Parent
-		return parent ~= nil
-			and (parent.Name == "TableGlow" or parent.Name:match("^Skyline_") ~= nil)
+		return parent ~= nil and (parent.Name == "TableGlow" or backdropLook(parent.Name))
 	elseif inst:IsA("BasePart") then
 		return inst.Name:match("__Glow$") ~= nil
 			or inst.Name == "TableGlow"
-			or inst.Name:match("^Skyline_") ~= nil
+			or backdropLook(inst.Name)
 	end
 	return false
 end
@@ -69,8 +80,15 @@ end
 --- Finds everything a state is written to. spec is Config.Map.
 function MapLighting.collect(spec: any): Handles
 	local Lighting = game:GetService("Lighting")
-	local h: Handles =
-		{ blocks = {}, glows = {}, lights = {}, tableGlow = {}, windows = {}, complete = true }
+	local h: Handles = {
+		blocks = {},
+		glows = {},
+		lights = {},
+		tableGlow = {},
+		windows = {},
+		islands = {},
+		complete = true,
+	}
 	for name, class in BLOCKS do
 		local inst = Lighting:FindFirstChildOfClass(class)
 		if inst then
@@ -102,10 +120,11 @@ function MapLighting.collect(spec: any): Handles
 	end
 	if backdrop then
 		for _, part in backdrop:GetChildren() do
-			local look = part.Name:match("^Skyline_")
-				and part:FindFirstChildOfClass("SurfaceAppearance")
-			if look then
+			local look = part:FindFirstChildOfClass("SurfaceAppearance")
+			if look and part.Name:match("^Skyline_") then
 				table.insert(h.windows, look)
+			elseif look and part.Name:match("^Islands_") then
+				table.insert(h.islands, look)
 			end
 		end
 	end
@@ -175,7 +194,7 @@ function MapLighting.apply(
 	end
 	if not emissiveBlocked then
 		local groups: { [string]: { SurfaceAppearance } } =
-			{ TableGlow = h.tableGlow, Windows = h.windows }
+			{ TableGlow = h.tableGlow, Windows = h.windows, Islands = h.islands }
 		for name, looks in groups do
 			for key, v in state[name] or {} do
 				if moved(name .. "." .. key, v) then
