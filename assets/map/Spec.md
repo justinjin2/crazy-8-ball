@@ -449,3 +449,12 @@ stages that build the real thing:
     near the horizon; the top a deeper blue.
   - **Boats:** they drift 1,000 to 1,500 studs out behind the tower, in the high and day
     views, but read as specks from there; white sails with light shade sides.
+- **Draw distance (Studio test, 2026-09-26; STUDIO_NOTES).** At graphics levels 1 to 10, where
+  most phones run, Roblox draws nothing past a few hundred studs: the skybox is the whole
+  backdrop. So for Stages 5 and 6:
+  - the skyline and island silhouettes are painted into the skybox (`gen_sky.py` renders
+    them from the same generators), which gives every phone the art's horizon;
+  - the 3D skyline and islands (Stage 5) stand in front of those paintings at the same
+    bearings, adding depth where the device draws them;
+  - "far cards" as Parts (the brief's Stage 6) would vanish exactly where they are needed,
+    so they are the skybox paintings instead.

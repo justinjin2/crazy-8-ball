@@ -179,6 +179,16 @@ Tested with a sand slope and a dark seabed under Terrain water, at Edit quality 
   drops distant parts: the islands 3,500 studs and more away vanish. Only the skybox is
   always drawn. The sky's lower half is therefore painted the water's rendered blue, and
   anything that must be seen far away on a phone belongs in the skybox.
+- **Draw distance by quality level** (tested 2026-09-26 with coloured test blocks at 400, 700,
+  1,000, 2,000 and 4,000 studs):
+  - At levels 1 to 10, none of them draws, not even the 250-stud block 400 studs out. The
+    near world, the block city and the islands all vanish; only the skybox, the Terrain
+    water near the camera and the rooftop itself remain.
+  - From about level 12 the near city starts to draw. At level 16 and above every block
+    draws, out to 4,000 studs.
+  - Phones usually run at low levels, so on most phones the backdrop is the skybox alone.
+    Anything the art needs on the horizon (the skyline, the islands) has to be painted into
+    the sky as well as built.
 - Distant Terrain water streams in over about 20 seconds after Play starts. Capture far views
   only after that.
 - Roblox renders a skybox paler and greyer than painted: #3894FC showed as #56A9DD. Paint
