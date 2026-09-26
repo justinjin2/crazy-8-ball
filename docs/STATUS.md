@@ -1,5 +1,47 @@
 # Status
 
+**2026-09-25 (latest): every screen is redone in the new cartoony style: white inked cards, a
+faint pool-ball pattern, candy buttons, Fredoka One and glossy icons. The table sign only
+shows when you walk right up to a table.**
+
+- **Top bar:** the reference match bar on white. Portraits with the clock running round the
+  shooter; glossy balls with a thick ink ring (stripes no longer melt into the white), grey
+  with a red X once down. The status card has a phase icon (a cue on your turn, an hourglass
+  on theirs, a glove, a target, a whistle, a coin, a trophy), the clock pill and a red Leave.
+  Your turn makes the cue pop and a shine sweep the card. Phones get a compact bar: a 3v3
+  fits on one line and Leave is the door icon.
+- **Foul popup:** no panel. A whistle, a big red FOUL! and a few plain words ("Scratched the
+  white ball"), gone after 3 s (it was an 8 s card).
+- **Queue area:**
+  - The host menu has a crown, a people count, and difficulty tiles with aim-line pictures (the
+    chosen one blue; a guest sees the others faded). The ON toggle is green and Start breathes
+    once it can be pressed; the menu pops in and out.
+  - The floor box is white and inked with a people icon.
+  - The sign over a table now pops in only within 6 studs of that table, one at a time, and
+    hides while you are in a box or playing. The server no longer builds sixteen billboards.
+- **Also restyled:** the coin flip, win (trophy over turning rays) and lose cards, the leave and
+  surrender dialog, fine controls, the ball-in-hand hint and ring, the wrong-target warning,
+  the pocket targets, the power bar (fill runs green to red) and the spin panel.
+- **How:** a UI kit (`HudParts`, `UIAnim`, `Config.UI.Kit`) and 25 icons plus effect images
+  drawn by `tools/gen_ui_art.py`, uploaded to Roblox. Choices: DECISIONS.md and UI_STYLE.md.
+- **Verified:**
+  - Lint is clean and 332 Lune tests pass (new: the nearest-table check).
+  - Studio Edit previews at 1920x1080 and at 844x390 and 667x375 phone sizes: solo, 1v1 and
+    3v3 bars, open table, the foul popup, coin, win, lose, the leave dialog, fine controls,
+    and the host menu (host, alone, solo choices, four uneven, four even, guest).
+  - Studio Play: a 1v1 top bar, the foul popup, placement, the pocket call, the spin panel,
+    the power bar, the sign popping in near a table and hiding in the box, the green team
+    halves with four in, and gamepad Y putting the selection on Start. The console is clean.
+- **Still to do:**
+  - The designer's look.
+  - A real phone and controller.
+  - A two-player match.
+  - B on a gamepad: Studio's input tool cannot press it; the code is unchanged.
+  - Uploaded images need Roblox moderation before other players see them.
+  - The place save and publish from the earlier rounds.
+
+---
+
 **2026-09-25 (latest): one queue box per table, a host menu with three difficulties, and no
 countdown. Any of the sixteen tables plays 1v1, 2v2 or 3v3.**
 

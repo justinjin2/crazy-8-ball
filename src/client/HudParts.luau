@@ -222,9 +222,25 @@ local function candyColors(tone: string): ColorSequence
 	})
 end
 
+-- How much the UIScales on an object and its ancestors shrink or grow it. AbsoluteSize
+-- includes them, but offsets inside are scaled again, so layout must divide them out.
+local function scaleOf(object: Instance): number
+	local total = 1
+	local node: Instance? = object
+	while node and not node:IsA("LayerCollector") do
+		for _, child in node:GetChildren() do
+			if child:IsA("UIScale") then
+				total *= child.Scale
+			end
+		end
+		node = node.Parent
+	end
+	return if total > 0 then total else 1
+end
+
 -- Place the icon and the words above the lip, the icon to the left of the words.
 local function layoutCandy(button: TextButton, c: Candy)
-	local size = button.AbsoluteSize
+	local size = button.AbsoluteSize / scaleOf(button)
 	if size.Y <= 0 then
 		return
 	end

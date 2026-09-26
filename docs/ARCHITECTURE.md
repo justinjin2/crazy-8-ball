@@ -139,10 +139,18 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
-shooters), `UI`, `Audio`, `Effects`, `Hub` (one Match per table, seats), `MatchHUD` (the
-match header and overlays), `QueueMenu` (the card everyone in a queue box sees: host,
-difficulty, abilities, Start), `HudParts` (the panels and buttons both are built from),
-`BoxEffects` (the queue boxes' glow, motes and join sound).
+shooters), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
+seats), `MatchHUD` (the top bar, the foul popup, fine controls, dialogs, the coin and result
+cards), `QueueMenu` (the card everyone in a queue box sees: host, difficulty, abilities,
+Start), `TableSign` (the one sign over the table the player walks up to, drawn from the
+snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
+buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
+animation), `BoxEffects` (the queue boxes' glow, motes and join sound).
+
+UI art: `tools/gen_ui_art.py` draws the icons and effect images as SVG from one shared style
+(ink outline, drop lip, gloss) and renders them to PNG with headless Chrome into
+`assets/ui/icons` and `assets/ui/art`. They are uploaded through Studio and referenced by id
+from `Config.UI.Kit.Icons` and `.Art`; swapping an image is a Config change, never code.
 
 ## 6. Data model
 
@@ -209,7 +217,9 @@ eligibility are decided from pre-shot state and server events.
 
 `Hub` keeps one client Match per table. Snapshots include full ball state for late
 listeners, placement and table reuse. `Main` derives private controls from the replicated
-phase. `MatchHUD` and `MatchTargets` share Config styles and Strings copy; existing Camera,
+phase. `MatchHUD`, `MatchTargets`, `QueueMenu` and `TableSign` build from `HudParts` and share
+Config styles and Strings copy; the server only keeps the queue box's floor words and
+attributes (`TableService`), and each client draws the table sign; existing Camera,
 Input, Avatar, Audio, Effects and renderer modules retain their separate responsibilities.
 
 `StudioMatchQA` creates a server-only BindableFunction in ServerStorage exclusively when

@@ -49,10 +49,18 @@ local function line(
 	lines: number?
 ): TextLabel
 	local object = HudParts.text(parent, name, size, "", tint)
-	object.Size = UDim2.new(1, 0, 0, (size + S.QueueMenuLineGap) * (lines or 1))
+	object.Size = UDim2.new(1, 0, 0, size + S.QueueMenuLineGap)
 	object.TextXAlignment = Enum.TextXAlignment.Left
-	object.TextWrapped = (lines or 1) > 1
 	object.LayoutOrder = order
+	if (lines or 1) > 1 then
+		-- A sentence keeps its size and the box grows to its lines (a translation may be
+		-- longer; docs/UI_STYLE.md section 3).
+		object.TextScaled = false
+		object.TextWrapped = true
+		object.AutomaticSize = Enum.AutomaticSize.Y
+	else
+		object.TextWrapped = false
+	end
 	return object
 end
 

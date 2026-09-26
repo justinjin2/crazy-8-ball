@@ -42,7 +42,20 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
 ## Studio MCP
 
 - Every call needs `studio_id` from `list_roblox_studios`.
-- `screen_capture` is black in Play mode. Preview visuals in Edit mode: build the table with
+- `screen_capture` works in Play mode now (it captured the game view and the GUI on
+  2026-09-25; it used to come back black). Pair it with the QA fixture
+  (`ServerStorage.PoolMatchQA`, Server datamodel) to put a match in any phase first. A
+  forced "Foul" needs the fixture's `nextTeam` (set since 2026-09-25) or the engine errors
+  every frame when the foul ends.
+- Edit-mode previews of the screens: clone `StarterPlayerScripts.Client` into ServerStorage
+  and require the clone (the originals stay cached), copy a fresh `require` of a cloned
+  `Config` and `Strings` into the cached tables, build into a ScreenGui in StarterGui (a
+  Frame of 844x390 or 667x375 stands in for a phone), capture, then DELETE the preview:
+  anything left in StarterGui is copied into the game at the next Play. MatchHUD and
+  QueueMenu take user id 0 when there is no LocalPlayer, for these previews.
+- `user_keyboard_input` can press ButtonY but not ButtonB ("permanently bound to a CoreGUI
+  core action").
+- Earlier previews in Edit mode: build the table with
   `TableBuilder.build(workspace)`, add preview parts in a `CameraPreview` folder, set the
   camera, capture, then destroy the preview and the table. Beams do not render in captures.
 - Edit-mode `require` results are cached for the Studio session: when Config changed since
@@ -107,6 +120,21 @@ What was found:
   - So design every map to look right at 1024.
 - **Studio uploads belong to the user who uploads them** (user 544959133), not the group that owns
   the game. The current table's maps and meshes are owned the same way and work in play.
+
+## UI facts (tested 2026-09-25)
+
+- In a Sibling-ZIndex ScreenGui, ZIndex -1 and 0 draw under default (1) siblings: the kit's
+  card shadow and fill rely on it.
+- A TextLabel or TextButton can carry two UIStrokes at once: one Contextual (the text's
+  outline) and one Border (the box's outline).
+- A UIGradient on a TextButton also tints its own text, so candy buttons draw their face as a
+  child frame and their words as a separate label.
+- AbsoluteSize includes every UIScale above an object, but offsets inside it are scaled again:
+  lay out from AbsoluteSize divided by those scales (HudParts does).
+- ClipsDescendants clips to the rectangle, not the UICorner: a round clip needs a UICorner on
+  the clipped image itself (the card pattern) or a pre-clipped image (the ball's stripe band).
+- Headless Chrome renders the SVG icons in about a second, but hangs for minutes after the
+  screenshot when given `--user-data-dir`; `tools/gen_ui_art.py` leaves it out.
 
 ## Sky faces (tested 2026-09-25)
 

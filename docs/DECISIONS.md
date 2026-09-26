@@ -1038,3 +1038,23 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-25: Rarities are common (grey), uncommon (green), rare (blue), epic (purple),
   legendary (gold), mythic (celestial prismatic), unique (pink, new) and VIP (rainbow);
   "ultra" is dropped. Their order and what VIP rarity means are still Open.
+- 2026-09-25: The UI redo (designer interview), settling UI_STYLE's Open items for now:
+  - Panels: a thick dark-ink outline, a soft drop shadow, a white-to-pale-blue fade and a faint
+    pattern of tiny pool balls (about 8%).
+  - Buttons: raised candy buttons (light top, darker lip, a squish when pressed) in traffic
+    colours: green Start/Play/Yes, red Leave/Surrender, blue for choices and the house accent,
+    yellow for special things. A dialog's leaving or surrendering button is red and the one
+    that keeps playing blue. Gamepad selection is a thick gold outline. Colours may change.
+  - Icons: glossy cartoon icons with a thick ink outline, drawn in code
+    (`tools/gen_ui_art.py`) so they all match; any can be swapped for a better image by id.
+  - Motion: things pop in with a small overshoot and pop out quickly; only your turn, the win
+    card, a ready Start and a pocketed ball shine, bounce or breathe.
+  - The foul popup has no panel: FOUL! and a few plain words on the rule, gone after 3 s (it
+    was a card for 8 s).
+  - Difficulty icons are aim-line pictures on a little table: many lines, one line, none.
+  - The sign over a table shows only when you walk right up to that table (within 6 studs of
+    its match area) and pops in; never while you are in a box or playing. The server stopped
+    building sixteen always-on billboards.
+  - Phones get a compact top bar (a 3v3 fits on one line) and an icon-only red Leave.
+  - Ball numbers may go below the 16 px text floor (they are part of the ball), and long player
+    names end in "..." rather than shrinking (names are data, not reading text).
