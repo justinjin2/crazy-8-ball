@@ -287,8 +287,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   front, four 2v2, two 3v3 at the back; section 6), the left two columns in the regular
   lobby's wood looks and the right two in the pro lobby's black looks (section 16), so every
   combination can be tried; the spawn in front of them (designer, 2026-09-26).
-- Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
-  snacks that the player can drink or eat (a tool with a short animation). No alcohol.
+- Chairs and sofas are sittable. No alcohol anywhere. (The snack counter is parked, section
+  18.)
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
   and above, where only Difficult and Challenger are available. All its tables have black frames
   (blue felt 1v1, red 2v2, charcoal 3v3; section 16); the rest of its look is decided later (a dim, moody neon room is the candidate).
@@ -303,16 +303,19 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     and four deep.
   - Day and Sunset only, no night, the same for everyone on a server: about 10 minutes of
     day, a 1 minute fade, 5 minutes of sunset, a 1 minute fade back *(tune)*.
-  - In: the pergola lounge with couches, a fire pit, a grand piano, the snack counter,
-    planters, palms, lanterns, umbrella seating and the glass railing. Out: the art's
-    infinity-pool strip, banners and pink light pillar.
+  - In: the pergola lounge with couches, a fire pit, a grand piano, planters, palms,
+    lanterns, umbrella seating and the glass railing. Out: the art's infinity-pool strip,
+    banners and pink light pillar, and (for now) the snack counter.
   - On the map every queue pad sits **in front of its table**, centred on the long side that
     faces the entrance (designer, 2026-09-26). The pad's shape may still change; the table
     grid is computed from its size, so it re-spaces itself.
   - The sides follow the day view: the city side has planters, palms and lanterns; the ocean
     side has umbrella sets with loungers and sofa groups along the railing.
-  - The snack counter is the art's lit back bar, centred along the back of the lounge under
-    the pergola, with the couches in front of it.
+  - The grand piano is the lounge's centrepiece, centred at the back under the pergola, the
+    player at the keys facing the tables; a sofa group either side of it.
+  - The glass railing round the roof reaches a character's head (5 studs).
+  - The city is densest and most detailed in the view the player gets on arrival (ahead and
+    to the left); behind the spawn, the stair side, it stays low and sparse.
   - The entrance stair walks down to a small dead-end landing.
   - Props: seats, steps and railings are sized for the player; planters, palms, umbrellas and
     the pergola about 1.4 times that, so they hold their own beside the big tables; the
@@ -499,6 +502,10 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Track important metrics, especially the first-time funnel.
 
 ## 18. Parked ideas (not scheduled)
+
+- **Snack counter** (parked 2026-09-26, taken off the rooftop map at its Checkpoint A): a
+  counter that hands out non-alcoholic drinks and snacks the player can drink or eat (a tool
+  with a short animation).
 
 - Cross-server and worldwide matchmaking, a global server for 1v1 and 2v2.
 - Private friend-locked tables. Party up with friends.

@@ -51,7 +51,6 @@ PROP_COLOURS = {
     'fire_pit': (240, 110, 40),
     'piano': (20, 20, 20),
     'piano_bench': (40, 40, 40),
-    'snack_counter': (200, 120, 60),
     'globe_light': (255, 230, 150),
     'column': (245, 238, 220),
     'table_glow': (255, 200, 120),

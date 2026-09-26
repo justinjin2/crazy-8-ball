@@ -1148,3 +1148,11 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     StudsOffsetWorldSpace is measured in its adornee's own axes, and the disc was a Cylinder
     turned on its side, so "up" pointed sideways. The rectangle is turned only about the up
     axis, so the sign rises straight up again.
+- 2026-09-26: Rooftop map, Checkpoint A (designer): the layout is approved, with changes.
+  - No snack counter for now (parked in GDD section 18); the grand piano is the lounge's
+    centrepiece, centred at the back, the bench behind it so the player faces the tables.
+  - The glass railing reaches a character's head: 5 studs above the floor (was 3.6).
+  - The city is densest in the direction the player faces on arrival (ahead and left), not
+    behind the spawn where the stair is; in the gray-box a street grid of podium, shaft and
+    crown buildings whose shore bends in toward the middle of the view with distance.
+

@@ -31,7 +31,6 @@ local SOLID = {
 	fire_pit = true,
 	piano = true,
 	piano_bench = true,
-	snack_counter = true,
 	column = true,
 }
 

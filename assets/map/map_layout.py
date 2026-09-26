@@ -71,7 +71,7 @@ P = {
     # The edge: a low parapet with a dark-framed glass railing on top (player scale).
     'parapet_height': 1.2,
     'parapet_thickness': 1.2,
-    'railing_top': 3.6,  # above the floor
+    'railing_top': 5.0,  # above the floor: head height of a Roblox character (designer, 2026-09-26)
     'safety_wall_top': 40.0,  # the invisible wall above the railing reaches this high
     # Entrance, at the front centre: the landing (spawn), a grand stair down to a small dead
     # end (the art's central flight is 1.7 table lengths wide).
@@ -116,7 +116,6 @@ PROP_SIZE = {
     'fire_pit': (4.5, 4.5, 1.4),
     'piano': (4.4, 5.8, 3.0),
     'piano_bench': (2.4, 1.0, 1.4),
-    'snack_counter': (24.0, 5.0, 8.0),  # the art's lit back bar: counter 3.2 high, shelves to 8
     'globe_light': (1.5, 1.5, 1.5),
     'planter_bed': (16.0, 3.0, 5.0),  # a long low trough of ferns along a parapet: 2.5 high, ferns above
     'table_glow': (22.0, 14.0, 0.02),
@@ -124,7 +123,7 @@ PROP_SIZE = {
 
 # Things that block walking (their footprint is solid). Glow planes and lights do not.
 SOLID = {'fern_planter', 'palm_planter', 'planter_bed', 'lantern', 'lantern_tall', 'umbrella_set', 'side_couch',
-         'lounge_couch', 'coffee_table', 'fire_pit', 'piano', 'piano_bench', 'snack_counter',
+         'lounge_couch', 'coffee_table', 'fire_pit', 'piano', 'piano_bench',
          'column'}
 
 MIN_WALKWAY = 8.0  # section 4 of the brief: main walkways at least this wide
@@ -342,21 +341,24 @@ def build():
             prop('planter_bed', side * x, front_edge - bed_d / 2 - 0.8)
 
     # Lounge (02, top-down, lounge-back): the raised platform across the back centre, under
-    # the pergola. The snack counter is the art's lit back bar, centred along the back; in
-    # front of it, a U couch round a coffee table on the city side and a U couch round the
-    # fire pit on the ocean side; the grand piano at the ocean end (02). Lanterns flank the
-    # central flight; fern planters line the platform edge either side of it; palms in big
-    # planters at the platform's front corners.
+    # the pergola. The grand piano is the centrepiece at the back, its bench behind it so the
+    # player at the keys faces the tables (designer, 2026-09-26; the snack counter is out for
+    # now). A U couch round a coffee table on the city side and a U couch round the fire pit
+    # on the ocean side, either side of it. Lanterns flank the central flight; fern planters
+    # line the platform edge; palms at the pergola's ends.
     y = platform_y
     pz0, pz1 = zones['pergola'][1], zones['pergola'][3]
-    prop('snack_counter', 0.0, pz0 + P['pergola_column'] + 0.4 + PROP_SIZE['snack_counter'][1] / 2, 0.0, y)
+    piano_d = PROP_SIZE['piano'][1]
+    bench_d = PROP_SIZE['piano_bench'][1]
+    bench_z = pz0 + P['pergola_column'] + 1.0 + bench_d / 2
+    piano_z = bench_z + bench_d / 2 + 0.6 + piano_d / 2
+    prop('piano_bench', 0.0, bench_z, 0.0, y)
+    prop('piano', 0.0, piano_z, 180.0, y)  # the keyboard (the prop's +Z side) faces the bench
     group_z = (pz0 + pz1) / 2 + 1.0
-    prop('lounge_couch', -26.0, group_z, 0.0, y)
-    prop('coffee_table', -26.0, group_z + 1.0, 0.0, y)
-    prop('lounge_couch', 22.0, group_z, 0.0, y)
-    prop('fire_pit', 22.0, group_z + 1.0, 0.0, y)
-    prop('piano', 40.0, group_z - 2.0, -20.0, y)
-    prop('piano_bench', 38.2, group_z + 2.6, -20.0, y)
+    prop('lounge_couch', -30.0, group_z, 0.0, y)
+    prop('coffee_table', -30.0, group_z + 1.0, 0.0, y)
+    prop('lounge_couch', 30.0, group_z, 0.0, y)
+    prop('fire_pit', 30.0, group_z + 1.0, 0.0, y)
     for side in (-1, 1):
         prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
         for x in (lf + 8.0, lf + 32.0):  # between the pergola's front columns
@@ -427,7 +429,7 @@ def cameras(spawn, zones):
         'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 400.0, mid), 'look': (0, 0, mid - 0.01), 'fov': 30},
         # At the front of the lounge, facing the fire-pit sofa with the sea and the big island
         # beyond it (panels/lounge-back.jpg).
-        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (22, 7.5, lounge - 0.25), 'look': (22, 3.0, back - 40.0), 'fov': 70},
+        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (30, 7.5, lounge - 0.25), 'look': (30, 3.0, back - 40.0), 'fov': 70},
         'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 30.0, 0), 'look': (-600, -20, 0), 'fov': 25},
         'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 30.0, -20), 'look': (700, -80, -250), 'fov': 25},
         'phone-eye': {'ref': None, 'pos': (0, 5.6, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},

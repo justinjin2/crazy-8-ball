@@ -27,8 +27,13 @@ Change those scripts, never the numbers here by hand, then update this file.
   - Anything a player sits on, climbs or leans on is at player scale.
   - Big decor (planters, palms, umbrellas, the pergola) is about 1.4x player scale, so it
     holds its own beside the 18-stud tables.
-- **The snack counter is the art's lit back bar**, centred along the back of the lounge
-  under the pergola.
+- **No snack counter for now** (designer, Checkpoint A): the **grand piano** is the
+  centrepiece at the back of the lounge, centred, its bench behind it so the player at the
+  keys faces the tables.
+- **The railing reaches a character's head:** 5 studs above the floor (Checkpoint A).
+- **The city faces the spawn** (Checkpoint A): the view the player gets on arrival (ahead
+  and to the left) is where the city is densest and most detailed; behind the spawn, the
+  stair side, it thins out and stays low.
 - Banners and the pink light pillar (the day panel's pergola ends, 02) are out, with the
   infinity-pool strip.
 
@@ -180,7 +185,7 @@ the art: 36 against the art's 34.
 | Pergola: 5 bays of 23, 19 clear (about 40% of the entrance view, as in the art) | -57.5 to 57.5 | -98.75 to -74.75 | 2 |
 
 - **The edge all round** is a low parapet (1.2 high, 1.2 thick) with a dark-framed glass
-  railing to 3.6 above the floor, and an invisible wall above it to 40.
+  railing to 5 above the floor (a character's head height), and an invisible wall above it to 40.
 - **The back corners** beside the platform (X 62 to 93) stay at floor level.
 - **The spawn is the art's entrance mat:** the SpawnLocation is a 16 x 0.2 x 6 dark slab lying
   on the floor between the tall lanterns.
@@ -211,11 +216,10 @@ top-down, and one big item per table row along each railing.
 | Tall lantern | 2 | flanking the stair head |
 | Umbrella set (canopy and two loungers) | 3 | ocean side at rows 1 and 3; the ocean back corner |
 | Sofa group (sofa, ottoman) | 3 | ocean side at rows 2 and 4; the city back corner |
-| U sectional | 2 | under the pergola: city side round a coffee table, ocean side round the fire pit |
+| U sectional | 2 | under the pergola either side of the piano (X -30 and 30): city side round a coffee table, ocean side round the fire pit |
 | Coffee table | 1 | inside the city U |
 | Fire pit | 1 | inside the ocean U |
-| Grand piano and bench | 1 | the ocean end of the pergola (02) |
-| Snack counter (back bar) | 1 | centred along the back of the pergola; `SnackCounterServe` attachment on its front |
+| Grand piano and bench | 1 | centred at the back of the pergola, the bench behind it (designer, Checkpoint A) |
 | Globe light | 10 | one per bay on the pergola's front and middle beams |
 | Cream column | 2 + 12 | 2 framing the entrance; 12 pergola columns (two rows of six) |
 | Under-table glow | 16 | a flat plane under each table |
@@ -236,12 +240,11 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Coffee table | 2.8 round x 1.3 | P |
 | Fire pit | 4.5 round x 1.4 | flame about 1.4 above the rim |
 | Grand piano | 4.4 x 5.8 x 3.0 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 |
-| Snack counter | 24 x 5 | counter 3.2 high (P 1.1 m), lit shelves behind to 8 |
 | Globe light | 1.5 round | hangs 3 below the beams |
 | Pergola | 115 x 24, 19 clear | columns 2.6 square, cream; slatted wood roof (slats about 1.2 wide every 3) with vines and a few bougainvillea |
 | Fern trough | 16 x 3, 2.5 high | ferns above to about 5 |
 | Entrance column | 2.8 square x 16 | cream |
-| Railing | 3.6 high overall | parapet 1.2; posts about every 4 |
+| Railing | 5.0 high overall (a character's head) | parapet 1.2; posts about every 4 |
 | Steps | riser 0.5 | tread 1.6 (entrance), 2.0 (lounge) |
 
 Every seat is a `Seat` part (GDD section 10): sofas, U sectionals, loungers and the piano
@@ -259,7 +262,7 @@ cropped to the reference's aspect. They were tuned against the art in Stage 1;
 | day-view | `02-day-view.jpg` | (24, 20, 70.25) | (-8, 0, -45) | 55 |
 | high three-quarter (day, sunset) | `panels/day.jpg`, `panels/sunset.jpg` | (0, 46, 130.5) | (0, 0, -8) | 50 |
 | top-down | `panels/top-down.jpg` | (0, 400, -9.75), straight down, -Z up | | 30 |
-| lounge-back | `panels/lounge-back.jpg` | (22, 7.5, -72) | (22, 3, -141.75) | 70 |
+| lounge-back | `panels/lounge-back.jpg` | (30, 7.5, -72) | (30, 3, -141.75) | 70 |
 | city-side | `panels/city-side.jpg` | (-90, 30, 0) | (-600, -20, 0) | 25 |
 | ocean-side | `panels/ocean-side.jpg` | (90, 30, -20) | (700, -80, -250) | 25 |
 | phone eye | (none; 750 x 361) | (0, 5.6, 76.75) | (0, 4, 0) | 70 |
@@ -342,8 +345,12 @@ stages that build the real thing:
 - **Islands (Stage 5):** the art's big peak stands right of the pergola from the entrance
   (azimuth about 17 to 38), about 6 degrees tall and twice as wide as tall. There is no cone
   straight behind the pergola. Add mid-distance islands in clusters as in the ocean panel.
-- **Skyline (Stage 5):** many slim towers, 16 to 24 wide near, a continuous skyline on the
-  horizon from azimuth -160 to -20; nothing but sea and islands behind the lounge.
+- **Skyline (Stages 4 and 5):** the gray-box city is a street grid (110-stud blocks, 30-stud
+  streets) of podium, shaft and crown buildings, densest where the spawn looks (ahead and
+  left); its shore bends in behind the tower toward the middle of the view, never past X
+  -200, so the sea stays behind the pergola. Nothing within 700 studs rises over the roof;
+  slim towers beyond. The real skyline keeps that layout: many slim towers, a continuous
+  skyline on the horizon.
 - **Pergola (Stage 2):** heavier than the gray-box. Fewer, thicker cream columns (about 4.5
   square) wrapped in vines, under a solid fascia about 3.5 deep. Check the clear height
   against the lounge-back view.

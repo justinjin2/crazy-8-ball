@@ -385,3 +385,6 @@ One line per stage: date, stage, result, commit.
     (azimuth about 25, about 6 degrees tall); a denser, slimmer skyline; heavier pergola
     columns and fascia (Stage 2); the stair-flank palms against ferns (Checkpoint B).
   - Waiting at CHECKPOINT A.
+- 2026-09-26: CHECKPOINT A approved by the designer with changes: the snack counter is out,
+  the piano is centred at the back of the lounge, the railing is 5 studs tall, and the city
+  is densest ahead and left of the spawn (a street-grid gray-box). Next: Stage 2.

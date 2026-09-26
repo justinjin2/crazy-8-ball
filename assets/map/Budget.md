@@ -32,11 +32,11 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Umbrella with two loungers | 2,500 | 3 | | 7,500 at cap |
 | Fire pit | 1,500 | 1 | | 1,500 at cap |
 | Grand piano | 4,000 | 1 | | 4,000 at cap |
-| Snack counter | 4,000 | 1 | | 4,000 at cap |
+| Snack counter | 4,000 | 0 (out for now, Checkpoint A) | | |
 | Globe light | 150 | 10 | | 1,500 at cap |
 | Pergola | 8,000 | 1 (counted in architecture) | | 8,000 at cap |
 
-At their caps the props come to about 93,000 triangles (the pergola aside), inside the
+At their caps the props come to about 89,000 triangles (the pergola aside), inside the
 props group's 140,000.
 
 ## Other limits
