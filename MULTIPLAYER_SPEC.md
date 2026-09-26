@@ -22,21 +22,24 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 
 ## Queue and teams
 
-Changed 2026-09-25 (designer): the per-seat pads and the countdown are gone.
+Changed 2026-09-26 (designer): every table plays one mode again, with one round pad.
 
-- One long box along a long side of every table, up to six players. Any table plays
-  1v1, 2v2 or 3v3. Empty white, occupied green, readable status text on the floor and
-  a floating panel (modes, host, occupancy or in progress); bounded VFX.
-- Leaving the queue area releases the seat. First joiner hosts; if they leave,
-  longest-waiting remaining player hosts and the settings stay. Reject duplicate and
-  cross-table joins, and a seventh player.
-- Everyone in the box sees the queue menu; only the host can use it: difficulty
+- Of the sixteen tables, ten are 1v1, four 2v2 and two 3v3 (`Config.Hub.Tables` teamSize).
+  Each has one round pad at its head end, toward the spawn, holding both teams (2, 4 or
+  6); the mode is written big on it with STEP IN or the count. Rings pulse out of it and an
+  arrow bobs over it while it has room; its rim is blue, green once somebody is on, gold
+  when full or playing. A floating sign (mode, host, count, abilities, difficulty) shows
+  only when you walk right up to its table.
+- Standing on the pad joins at once (the server polls at 10 Hz with no dwell, and the
+  client shows the menu the same frame). Leaving the pad releases the seat after a short
+  grace. First on hosts; if they leave, the next to arrive hosts and the settings stay.
+  Reject duplicate and cross-table joins, and anybody once the pad is full.
+- Everyone on the pad sees the queue menu; only the host can use it: difficulty
   (Classic default, Difficult, Challenger), abilities on/off (a placeholder, on by
-  default), Start. Settings reset when the box empties and after every game.
-- Start needs 2, 4 or 6 players. Two: the host is team A, the other team B. Four or six:
-  the box's head half is team A's and its foot half team B's, the half you stand in is
-  your team, and Start is refused until each half holds half. Odd counts are refused.
-  A host alone gets Play solo and Play against PC (a placeholder: "Coming soon").
+  default), Start. Settings reset when the pad empties and after every game.
+- Start needs the pad full. Teams go by arrival: first on (the host) team A, the next team
+  B, alternately. Alone on a 1v1 table the host gets Play solo and Play against PC (a
+  placeholder that does nothing until bots exist); the team tables have no solo.
 - No countdown: Start goes straight to the coin flip. No duplicate starts.
 - Host team is heads. Server chooses coin result once; show the same 2–3 second
   animation, heads/tails ownership and breaker to all participants as a HUD overlay;
@@ -70,8 +73,8 @@ Changed 2026-09-25 (designer): the per-seat pads and the countdown are gone.
 
 ## Solo (added 2026-09-23)
 
-- A host alone in a box (Waiting, one seat, theirs) presses Start and picks **Play
-  solo**. It starts at once: no CoinFlip, and nobody can join until the result.
+- A host alone on a 1v1 table's pad (Waiting, one seat, theirs) presses Start and picks
+  **Play solo**. It starts at once: no CoinFlip, and nobody can join until the result.
 - Normal break and legal-break rule; the 8 on the break is re-spotted. Every foul
   (illegal break, scratch, wrong first contact, no rail) gives the SAME player ball in
   hand and play continues. The table is open after the break; the first legally pocketed

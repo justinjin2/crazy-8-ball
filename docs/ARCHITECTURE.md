@@ -141,11 +141,11 @@ Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`,
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
 shooters), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
 seats), `MatchHUD` (the top bar, beside Roblox's own buttons when it fits, the foul popup,
-the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone in a queue box
-sees: host, difficulty, abilities, Start; two columns side by side on a phone), `TableSign`
+the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone on a queue pad
+sees: host, difficulty, abilities, Start; beside the jump button on a phone), `TableSign`
 (the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
-animation), `BoxEffects` (the queue boxes' glow, motes and join sound).
+animation), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound).
 
 UI art: `tools/gen_ui_art.py` draws the icons and effect images as SVG from one shared style
 (ink outline, drop lip, gloss) and renders them to PNG with headless Chrome into
@@ -201,14 +201,16 @@ from `Config.UI.Kit.Icons` and `.Art`; swapping an image is a Config change, nev
 
 `Rules/MatchEngine` owns one plain-data state per table, with explicit phase, epoch,
 revision, turn id, seats, groups, deadline, replay, vote and the host's settings
-(difficulty, abilities). Seats get a team and slot only when the host starts
-(`Engine.startState` is the rule the server enforces and the queue menu greys Start from).
+(difficulty, abilities). Each table plays one mode, `teamSize` a side (`Engine.new(id,
+teamSize)`, from `Config.Hub.Tables`); its pad holds twice that. Seats get a team and slot
+only when the host starts, alternately by arrival (`Engine.startState(seats, teamSize)` is the
+rule the server enforces and the queue menu greys Start from: the pad must be full).
 It receives time and coin outcomes as arguments, so the same lifecycle runs under Lune. `ShotJudge` consumes ordered
 simulation events; `CuePlacement` validates and deterministically finds legal fallbacks.
 Physics remains unchanged and instance-free.
 
-`TableService` is the Roblox adapter for server-observed queue boxes (one per table, up to
-six; the half each player stands in is their side), global membership, rate
+`TableService` is the Roblox adapter for server-observed queue pads (one round pad per table at
+its head end, `Placement.queuePad`, polled at 10 Hz with no dwell), global membership, rate
 limits, character constraints and snapshots. `ShotService` validates ownership/version
 through the engine, simulates once and broadcasts the replay. Accepted shots stop the
 shooting clock; resolution waits for motion/falls and the pocket buffer. Epoch/sequence
@@ -218,8 +220,10 @@ eligibility are decided from pre-shot state and server events.
 `Hub` keeps one client Match per table. Snapshots include full ball state for late
 listeners, placement and table reuse. `Main` derives private controls from the replicated
 phase. `MatchHUD`, `MatchTargets`, `QueueMenu` and `TableSign` build from `HudParts` and share
-Config styles and Strings copy; the server only keeps the queue box's floor words and
-attributes (`TableService`), and each client draws the table sign; existing Camera,
+Config styles and Strings copy; the server only keeps the queue pad's words and attributes
+(`TableService`), and each client draws the table sign and the pad's rings and arrow
+(`PadEffects`), and pops the queue menu the frame you step on (`Main`, predicted from the
+table's snapshot until the server's seat arrives); existing Camera,
 Input, Avatar, Audio, Effects and renderer modules retain their separate responsibilities.
 
 `StudioMatchQA` creates a server-only BindableFunction in ServerStorage exclusively when

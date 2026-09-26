@@ -1,5 +1,47 @@
 # Status
 
+**2026-09-26 (latest): every table plays one mode again, with one glowing queue pad each, and
+each mode has its own look.**
+
+- **Tables:**
+  - Ten 1v1, four 2v2 and two 3v3; the 1v1 tables at the front, the 3v3 at the back.
+  - The left two columns have wood frames (the regular lobby's looks: green 1v1, raspberry
+    red 2v2, slate charcoal 3v3); the right two have black frames (the pro lobby's: blue 1v1,
+    the same red and charcoal). Every combination is on the baseplate for testing.
+- **Queue pad:**
+  - One round pad per table at the head end, toward the spawn, sized by mode, with the mode
+    written big on it and STEP IN or the count.
+  - While it has room, rings pulse out of it and a big arrow bobs over it. Its rim is blue,
+    green once somebody is on, gold when full or playing.
+  - Stepping on is instant: the host menu shows the same frame, before the server has seated
+    you (0.03 s measured in Studio, 0.42 s before).
+- **Menu:**
+  - Start needs the pad full ("Need 3 more players" until then).
+  - Teams go by arrival, alternately, the host team A.
+  - Solo and Play against PC only on 1v1 tables.
+  - The table sign's title is the table's mode.
+- **Verified:**
+  - Lint is clean and 332 Lune tests pass. The rewritten tests cover a full pad, teams by
+    arrival, start needs a full pad, solo only on 1v1, and every mode in every look on the
+    grid.
+  - Studio (phone emulator):
+    - prepareImport built six looks, with the template check clean;
+    - the grid and pads from above;
+    - close-ups of the red and charcoal felts with a full rack (every ball, the 8 included,
+      clearly visible);
+    - joining a 1v1, a 2v2 and a 3v3 pad (the menu, counts and messages; stepping off closes
+      it);
+    - fixtures filling the 2v2 and 3v3 with teams alternating;
+    - a clean console.
+- **For the designer:**
+  - In play the raspberry reads quite pink and the charcoal a slate grey. A redder or darker
+    felt costs contrast with the maroon balls and the 8; it's one Config number each.
+- **Still to do:**
+  - Save the place (ServerStorage.TableLooks now holds six looks) and publish.
+  - A real phone and controller, and real two- and four-player games.
+
+---
+
 **2026-09-26 (latest): the status card and the host menu, round three (designer's playtest).**
 
 - **Status card:** one line ("YOUR TURN", "THEIR TURN", "ALLY'S TURN", "FOUL!", "ROLLING",

@@ -32,16 +32,16 @@ local function phase(t: any, name: string, now: number, duration: number?)
 	t.revision += 1
 end
 
---- A fresh table. `seed` picks the rack's tiny offsets; the server passes a random one so no
---- two games open on the same rack. Without it (tests) the table's fixed default is used.
---- Any table seats 1v1, 2v2 or 3v3: `teamSize` stays 0 until the host starts, then it is
---- half the players in the box (1 for solo).
-function Engine.new(id: number, seed: number?): any
+--- A fresh table. Every table plays one mode (designer, 2026-09-26): `teamSize` players a
+--- side, 1 for 1v1, 2 for 2v2, 3 for 3v3 (Config.Hub.Tables), so its pad holds twice that.
+--- `seed` picks the rack's tiny offsets; the server passes a random one so no two games open
+--- on the same rack. Without it (tests) the table's fixed default is used.
+function Engine.new(id: number, teamSize: number, seed: number?): any
 	local geometry = Geometry.build({ pocketsOpen = true })
 	seed = Rack.normalizeSeed(seed or Config.Rack.DefaultSeed + id)
 	local t: any = {
 		id = id,
-		teamSize = 0,
+		teamSize = teamSize,
 		settings = defaultSettings(),
 		epoch = 1,
 		revision = 1,
@@ -104,25 +104,24 @@ local function rehost(t: any)
 	end
 end
 
-local function validSide(side: any): boolean
-	return side == 1 or side == 2
+--- How many players the table's pad holds: both teams.
+function Engine.capacity(t: any): number
+	return t.teamSize * 2
 end
 
---- Step into the table's queue box, standing in half `side` (1 the head half, team A's; 2
---- the foot half, team B's). Only while the table waits, and only up to Queue.Capacity. The
+--- Step onto the table's pad. Only while the table waits, and only while it has room. The
 --- seat has no team or slot until the host starts; nothing starts by itself.
 function Engine.join(
 	t: any,
 	userId: number,
 	name: string,
 	displayName: string,
-	side: number,
 	now: number
 ): boolean
-	if t.phase ~= "Waiting" or not validSide(side) then
+	if t.phase ~= "Waiting" then
 		return false
 	end
-	if Engine.seat(t, userId) or Engine.count(t) >= M.Queue.Capacity then
+	if Engine.seat(t, userId) or Engine.count(t) >= Engine.capacity(t) then
 		return false
 	end
 	t.joinOrder += 1
@@ -130,7 +129,6 @@ function Engine.join(
 		userId = userId,
 		name = name,
 		displayName = displayName,
-		side = side,
 		joinedAt = now,
 		order = t.joinOrder,
 		connected = true,
@@ -141,41 +139,24 @@ function Engine.join(
 	return true
 end
 
---- Which half of the box a queued player stands in now (the server watches them walk).
-function Engine.setSide(t: any, userId: number, side: number): boolean
-	local s = Engine.seat(t, userId)
-	if t.phase ~= "Waiting" or not s or not validSide(side) then
-		return false
-	end
-	if s.side ~= side then
-		s.side = side
-		t.revision += 1
-	end
-	return true
-end
-
---- Whether the players in a box can start, and if not why: "Alone" (the host is offered
---- solo instead), "Odd" (three or five: teams need two, four or six), or "Uneven" (four or
---- six, but the box's two halves do not hold half each). Pure over a seat list, so the queue
---- menu greys its Start button from the snapshot with the same rule the server enforces.
-function Engine.startState(seats: { any }): (boolean, string?)
-	local n, head = 0, 0
+--- Whether the players on a pad can start a game of `teamSize` a side, and if not why:
+--- "Alone" (on a 1v1 table the host is offered solo instead), or "Short" with how many more
+--- are needed. A game needs the pad full. Pure over a seat list, so the queue menu greys its
+--- Start button from the snapshot with the same rule the server enforces.
+function Engine.startState(seats: { any }, teamSize: number): (boolean, string?, number)
+	local n = 0
 	for _, s in seats do
 		if s.connected ~= false then
 			n += 1
-			if s.side == 1 then
-				head += 1
-			end
 		end
 	end
-	if n <= 1 then
-		return false, "Alone"
-	elseif n % 2 == 1 then
-		return false, "Odd"
-	elseif n > 2 and head ~= n / 2 then
-		return false, "Uneven"
+	local missing = teamSize * 2 - n
+	if missing <= 0 then
+		return true, nil, 0
+	elseif n <= 1 and teamSize == 1 then
+		return false, "Alone", missing
 	end
-	return true, nil
+	return false, "Short", missing
 end
 
 local function finish(t: any, winner: number?, reason: string, now: number)
@@ -478,7 +459,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 	elseif t.phase == "Foul" then
 		beginTurn(t, t.nextTeam, now, true, t.solo ~= nil)
 	elseif t.phase == "Result" then
-		local fresh = Engine.new(t.id, nextSeed or t.rackSeed + 1)
+		local fresh = Engine.new(t.id, t.teamSize, nextSeed or t.rackSeed + 1)
 		fresh.epoch = t.epoch + 1
 		fresh.revision = t.revision + 1
 		fresh.phaseStartedAt = now
@@ -559,13 +540,14 @@ local function start(t: any, host: any, now: number, coinWinner: number?)
 	table.sort(seats, function(a: any, b: any)
 		return a.order < b.order
 	end)
+	-- Teams by arrival: the first in (the host) is team A, the next team B, and so on
+	-- alternately (designer, 2026-09-26).
 	local slots = { 0, 0 }
 	for i, s in seats do
-		local team = if #seats == 2 then i else s.side
+		local team = (i - 1) % 2 + 1
 		slots[team] += 1
 		s.team, s.slot = team, slots[team]
 	end
-	t.teamSize = #seats // 2
 	local winner = if coinWinner == 2 then 2 else 1
 	t.activeTeam, t.breakShot = winner, true
 	t.coin = {
@@ -606,17 +588,18 @@ function Engine.action(
 			return false
 		end
 		if kind == "Start" then
-			if not Engine.startState(t.seats) then
+			if not Engine.startState(t.seats, t.teamSize) then
 				return false
 			end
 			start(t, s, now, coinWinner)
 		elseif kind == "StartSolo" then
 			-- The host alone plays the table by themselves at once: no coin, and nobody can
-			-- join until it ends. The break opens with ball in hand as usual.
-			if Engine.count(t) ~= 1 then
+			-- join until it ends. The break opens with ball in hand as usual. Only on a 1v1
+			-- table: the team tables are kept for team games (designer, 2026-09-26).
+			if Engine.count(t) ~= 1 or t.teamSize ~= 1 then
 				return false
 			end
-			s.team, s.slot, t.teamSize = 1, 1, 1
+			s.team, s.slot = 1, 1
 			t.solo = { team = s.team }
 			t.activeTeam, t.breakShot, t.coin = s.team, true, nil
 			beginTurn(t, s.team, now, true)

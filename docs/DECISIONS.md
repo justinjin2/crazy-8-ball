@@ -1099,3 +1099,26 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     it bigger.
   - Money per difficulty: 1x Classic, 1.5x Difficult, 2x Challenger (GDD section 12), shown
     under each difficulty with the new cash icon.
+- 2026-09-26: Every table plays one mode again (designer). This supersedes the 2026-09-25 queue
+  box and its halves.
+  - Ten 1v1, four 2v2 and two 3v3 tables; the 1v1 at the front, the 3v3 at the back.
+  - One round pad per table at the head end, toward the spawn, sized by mode, holding both
+    teams. Stand anywhere on it to join: no dwell, polled at 10 Hz, and the client pops the
+    menu the same frame. The 0.35 s dwell and the halves are gone; the spawn moved back to
+    Z 38 to clear the front pads.
+  - Start needs the pad full; teams go by arrival, alternately, the host team A. Solo and PC
+    only on 1v1 tables.
+  - The pad says "step here": a glowing rim (blue, green once somebody is on, gold when full or
+    playing), rings pulsing outward and a bobbing arrow while it has room, and the mode written
+    big on it.
+  - The sign over a table is titled by its mode (1v1, 2v2, 3v3).
+- 2026-09-26: Table looks by lobby (designer). Regular lobby, wood frames: green 1v1, raspberry
+  red 2v2, slate charcoal 3v3. Pro lobby, black frames: blue 1v1, raspberry red 2v2, slate
+  charcoal 3v3. The baseplate shows every combination for testing.
+  - Red and charcoal were chosen by colour difference (CIEDE2000) against every ball:
+    raspberry (191, 38, 89) keeps at least 17 from the red and maroon balls and slate
+    (90, 94, 102) 22 from the 8, where the green cloth is 14.8 from the green ball. A truer
+    or darker red blends into the maroon balls (7 to 11).
+  - In play both read lighter than their swatches (the raspberry quite pink, the charcoal a
+    slate grey); the designer's call whether to trade some contrast for a redder or darker
+    felt.

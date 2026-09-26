@@ -32,7 +32,7 @@ function QA.start(
 		if command == "fixture" or command == "queue" then
 			-- Synthetic identities exercise six-portrait presentation, not network clients.
 			local previousEpoch = t.engine.epoch
-			t.engine = Engine.new(id)
+			t.engine = Engine.new(id, t.engine.teamSize)
 			t.engine.epoch = previousEpoch + 1
 			local real = assert(Players:GetPlayers()[1], "QA requires a running client")
 			if not (data and data.spectator) then
@@ -46,25 +46,30 @@ function QA.start(
 			end
 			local e = t.engine
 			if command == "queue" then
-				-- A box still waiting for its host: the real player first (the host), then one
-				-- synthetic player per entry of data.sides, standing in that half. The real
-				-- player has to stand in the box, or the poll lets them go.
+				-- A pad still waiting for its host: the real player first (the host), then
+				-- data.others synthetic players (as many as fit). The real player has to stand
+				-- on the pad, or the poll lets them go.
 				local q = data or {}
-				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, q.side or 1, now)
-				for i, side in q.sides or {} do
+				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, now)
+				for i = 1, q.others or 0 do
 					local name = "FixturePlayerLongName" .. i
-					Engine.join(e, -i, name, name, side, now)
+					Engine.join(e, -i, name, name, now)
 				end
 				broadcast(t)
 				return Engine.snapshot(e)
 			elseif data and data.solo then
 				-- Solo: only the real player sits down, then starts the game as the button does.
-				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, 1, now)
+				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, now)
 				local request = { kind = "StartSolo", epoch = e.epoch, turnId = e.turnId }
 				assert(Engine.action(e, real.UserId, request, now), "StartSolo was refused")
 			else
-				-- data.teamSize a side (1 by default), team A in the head half; the first in hosts.
-				local size = data and data.teamSize or 1
+				-- The table's own team size a side, joined A1, B1, A2, B2...: teams alternate
+				-- by arrival, so this order puts each in its team. The first in hosts.
+				local size = e.teamSize
+				assert(
+					not (data and data.teamSize) or data.teamSize == size,
+					"This table plays another mode: pick a table with that team size"
+				)
 				for slot = 1, size do
 					for team = 1, 2 do
 						local localSeat = team == 1 and slot == 1 and not (data and data.spectator)
@@ -72,7 +77,7 @@ function QA.start(
 						local name = if localSeat
 							then real.DisplayName
 							else "FixturePlayerLongName" .. slot
-						Engine.join(e, uid, name, name, team, now)
+						Engine.join(e, uid, name, name, now)
 					end
 				end
 				local request = { kind = "Start", epoch = e.epoch, turnId = e.turnId }

@@ -5,13 +5,13 @@ local J = H.require("Rules.ShotJudge")
 local P = H.require("Rules.CuePlacement")
 local Ball = H.require("Physics.Ball")
 local S = H.require("Physics.Simulation")
--- n a side in the box, each in their team's half; the host (11) starts at 5 and the coin
--- falls team A's, so the introduction opens at 7.6.
+-- A full pad of n a side, joined A1, B1, A2, B2... (teams go by arrival); the host (11)
+-- starts at 5 and the coin falls team A's, so the introduction opens at 7.6.
 local function full(n)
-	local t = E.new(n)
-	for team = 1, 2 do
-		for slot = 1, n do
-			H.expect(E.join(t, team * 10 + slot, "Player", "Player", team, 0))
+	local t = E.new(n, n)
+	for slot = 1, n do
+		for team = 1, 2 do
+			H.expect(E.join(t, team * 10 + slot, "Player", "Player", 0))
 		end
 	end
 	H.expect(E.action(t, 11, { kind = "Start", epoch = t.epoch, turnId = t.turnId }, 5, 1))
@@ -68,19 +68,20 @@ end
 return {
 	["every mode waits for its host rehosts and starts only once"] = function()
 		for n = 1, 3 do
-			local t = E.new(n)
-			for team = 1, 2 do
-				for slot = 1, n do
-					E.join(t, team * 10 + slot, "p", "p", team, 0)
+			local t = E.new(n, n)
+			for slot = 1, n do
+				for team = 1, 2 do
+					E.join(t, team * 10 + slot, "p", "p", 0)
 				end
 			end
 			H.expect(t.phase == "Waiting" and t.deadline == nil)
-			H.expect(not E.join(t, 11, "p", "p", 1, 1))
+			H.expect(not E.join(t, 11, "p", "p", 1))
+			H.expect(not E.join(t, 98, "p", "p", 1), "the pad is full")
 			E.remove(t, 11, 2)
 			H.expect(t.phase == "Waiting" and t.hostId ~= 11)
 			E.advance(t, 9)
 			H.expect(t.phase == "Waiting")
-			E.join(t, 99, "p", "p", 1, 10)
+			E.join(t, 99, "p", "p", 10)
 			local start = { kind = "Start", epoch = t.epoch, turnId = t.turnId }
 			H.expect(E.action(t, t.hostId, start, 15, 2))
 			local rev = t.revision
@@ -342,7 +343,7 @@ return {
 		local t = full(2)
 		local heads = t.coin.headsTeam
 		E.remove(t, 11, 8)
-		H.expect(t.hostId == 12 and E.seat(t, 12).host)
+		H.expect(t.hostId == 21 and E.seat(t, 21).host, "the next to arrive hosts")
 		H.expect(t.coin.headsTeam == heads and t.phase == "Foul")
 	end,
 }

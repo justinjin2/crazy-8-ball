@@ -176,30 +176,40 @@ function Placement.fenceHalfExtents(): (number, number, number)
 	return F.HalfLengthStuds, F.HalfWidthStuds, 0
 end
 
---- The table's queue box (Multiplayer.Queue), in studs along the table's own length and
---- width: its centre (cx, cy) and half extents (hx, hy). It lies along the long side
---- Queue.Side, just beyond the walkway, so a queue never stands where a shooter might.
---- Its head half (x < cx) is team A's, its foot half team B's.
-function Placement.queueBox(): (number, number, number, number)
+--- How many players a side table `id` plays (Config.Hub.Tables), or nil for no such table.
+function Placement.teamSizeOf(id: number): number?
+	for _, row in Config.Hub.Tables do
+		if row.id == id then
+			return row.teamSize
+		end
+	end
+	return nil
+end
+
+--- The table's queue pad (Multiplayer.Queue), in studs along the table's own length and
+--- width: its centre (cx, cy) and radius. It sits at the head end, toward the spawn, just
+--- beyond the walkway, so a queue never stands where a shooter might; a bigger team gets a
+--- bigger pad.
+function Placement.queuePad(teamSize: number): (number, number, number)
 	local Q = Config.Multiplayer.Queue
-	local _, wy = Placement.fenceHalfExtents()
-	local cy = Q.Side * (wy + Q.BoxGapStuds + Q.BoxDepthStuds / 2)
-	return 0, cy, Q.BoxLengthStuds / 2, Q.BoxDepthStuds / 2
+	local wx = Placement.fenceHalfExtents()
+	local r = Q.PadRadiusStuds[math.clamp(teamSize, 1, #Q.PadRadiusStuds)]
+	return -(wx + Q.PadGapStuds + r), 0, r
 end
 
 --- The fence round a whole match area, in studs along the table's own length and width:
---- the walkway grown to take in the queue box and Queue.FenceMarginStuds beyond it, so the
---- players who start a match standing in the box are already inside. Half extents (hx, hy)
---- of a box centred (cx, cy) from the table centre; lopsided across, toward the box.
-function Placement.matchFence(): (number, number, number, number)
+--- the walkway grown to take in the queue pad and Queue.FenceMarginStuds beyond it, so the
+--- players who start a match standing on the pad are already inside. Half extents (hx, hy)
+--- of a box centred (cx, cy) from the table centre; lopsided along, toward the pad.
+function Placement.matchFence(teamSize: number): (number, number, number, number)
 	local Q = Config.Multiplayer.Queue
 	local wx, wy, wcx = Placement.fenceHalfExtents()
-	local bcx, bcy, bhx, bhy = Placement.queueBox()
+	local pcx, pcy, r = Placement.queuePad(teamSize)
 	local m = Q.FenceMarginStuds
-	local x0 = math.min(wcx - wx, bcx - bhx - m)
-	local x1 = math.max(wcx + wx, bcx + bhx + m)
-	local y0 = math.min(-wy, bcy - bhy - m)
-	local y1 = math.max(wy, bcy + bhy + m)
+	local x0 = math.min(wcx - wx, pcx - r - m)
+	local x1 = math.max(wcx + wx, pcx + r + m)
+	local y0 = math.min(-wy, pcy - r - m)
+	local y1 = math.max(wy, pcy + r + m)
 	return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
 end
 
@@ -209,11 +219,11 @@ end
 --- lower id.
 function Placement.nearestArea(x: number, z: number): (number?, number)
 	local s = Config.Table.StudsPerInch
-	local hx, hy, cx, cy = Placement.matchFence()
 	local bestId, best = nil, math.huge
 	for id = 1, Placement.tableCount() do
 		local p = Placement.forTable(id)
 		if p then
+			local hx, hy, cx, cy = Placement.matchFence(Placement.teamSizeOf(id) or 1)
 			local ix, iy = Placement.toTable(p, x, z)
 			local dx = math.max(math.abs(ix * s - cx) - hx, 0)
 			local dy = math.max(math.abs(iy * s - cy) - hy, 0)

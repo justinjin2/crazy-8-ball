@@ -1,15 +1,15 @@
 --!strict
--- TableSign: the card floating over a table's queue box. It says what the table is doing
--- (the modes, or the game being played), who hosts, how many are in, whether abilities are
--- on, the chosen difficulty, and whether you can step in.
+-- TableSign: the card floating over a table's queue pad. It says the table's mode (1v1, 2v2
+-- or 3v3), who hosts, how many are on the pad, whether abilities are on, the chosen
+-- difficulty, and whether you can step in.
 --
 -- Only one shows, over the table you walk right up to (Config.UI.Sign, measured by
--- Placement.nearestArea), and never while you are in a box or playing: the host menu or the
+-- Placement.nearestArea), and never while you are on a pad or playing: the host menu or the
 -- top bar says it all then. It pops in when you arrive and pops out when you walk away
 -- (designer, 2026-09-25: it used to hang over all sixteen tables all the time).
 --
 -- It is drawn from the table snapshot every client already has, so everyone near a table
--- reads the same thing; the server only keeps the box itself (TableService).
+-- reads the same thing; the server only keeps the pad itself (TableService).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -18,7 +18,6 @@ local Placement = require(Shared:WaitForChild("Placement"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match
-local M = Config.Multiplayer
 local Sign = Config.UI.Sign
 local K = Config.UI.Kit
 local tone = HudParts.tone
@@ -103,8 +102,10 @@ function TableSign.new(playerGui: Instance): any
 	return self
 end
 
--- Write the card from the table's snapshot (nil until it has arrived: an empty box).
-function TableSign.fill(self: any, snapshot: any?)
+-- Write table `id`'s card from its snapshot (nil until it has arrived: an empty pad).
+function TableSign.fill(self: any, id: number, snapshot: any?)
+	local teamSize = if snapshot then snapshot.teamSize else Placement.teamSizeOf(id) or 1
+	local capacity = teamSize * 2
 	local phase = if snapshot then snapshot.phase else "Waiting"
 	local waiting = phase == "Waiting"
 	local count, hostName = 0, nil
@@ -117,14 +118,12 @@ function TableSign.fill(self: any, snapshot: any?)
 		end
 	end
 	local solo = snapshot and snapshot.solo
-	self.mode.Text = if solo
-		then Copy.SoloTitle
-		elseif waiting then Copy.AnyMode
-		else Copy.Mode:format(snapshot.teamSize, snapshot.teamSize)
+	-- The table's own mode, SOLO while somebody plays it alone.
+	self.mode.Text = if solo then Copy.SoloTitle else Copy.Mode:format(teamSize, teamSize)
 	self.crown.Visible = hostName ~= nil
 	self.host.Text = hostName or Copy.StepIn
 	self.host.Position = UDim2.fromOffset(if hostName then 44 else 10, 40)
-	self.count.Text = Copy.Queue.PlayerCount:format(count, M.Queue.Capacity)
+	self.count.Text = Copy.Queue.PlayerCount:format(count, capacity)
 	local difficulty = snapshot and snapshot.settings and snapshot.settings.difficulty
 		or Config.Difficulty.Default
 	HudParts.setIcon(self.level, difficulty)
@@ -135,25 +134,25 @@ function TableSign.fill(self: any, snapshot: any?)
 	self.abilities.BackgroundColor3 = if abilities then tone("Green") else tone("Grey")
 	local words, colour
 	if not waiting then
-		words, colour = Copy.SignPlaying, "Blue"
-	elseif count >= M.Queue.Capacity then
-		words, colour = Copy.BoxFull, "Red"
+		words, colour = Copy.PadPlaying, "Blue"
+	elseif count >= capacity then
+		words, colour = Copy.PadFull, "Red"
 	elseif count > 0 then
 		words, colour = Copy.Waiting, "Gold"
 	else
-		words, colour = Copy.SignStepIn, "Green"
+		words, colour = Copy.PadStepIn, "Green"
 	end
 	self.statusText.Text = words
 	self.status.BackgroundColor3 = tone(colour)
 end
 
-local function boxPart(zones: Instance, id: number): BasePart?
-	local part = zones:FindFirstChild(("QueueBox_%02d"):format(id))
+local function padPart(zones: Instance, id: number): BasePart?
+	local part = zones:FindFirstChild(("QueuePad_%02d"):format(id))
 	return if part and part:IsA("BasePart") then part else nil
 end
 
 --- Step the sign. `position` is the local character's (nil without one); `busy` is true
---- while the player is in a box or playing; `snapshotFor` gives a table's latest snapshot.
+--- while the player is on a pad or playing; `snapshotFor` gives a table's latest snapshot.
 function TableSign.update(
 	self: any,
 	position: Vector3?,
@@ -165,7 +164,7 @@ function TableSign.update(
 	if position and not busy then
 		local id, distance = Placement.nearestArea(position.X, position.Z)
 		local limit = if id == self.id then Sign.HideStuds else Sign.ShowStuds
-		if id and distance <= limit and boxPart(zones, id) then
+		if id and distance <= limit and padPart(zones, id) then
 			target = id
 		end
 	end
@@ -178,9 +177,9 @@ function TableSign.update(
 				return
 			end
 			if target then
-				self.gui.Adornee = boxPart(zones, target)
+				self.gui.Adornee = padPart(zones, target)
 				self.gui.Enabled = true
-				self:fill(snapshotFor(target))
+				self:fill(target, snapshotFor(target))
 				UIAnim.popIn(self.card)
 			else
 				self.gui.Enabled = false
@@ -190,7 +189,7 @@ function TableSign.update(
 		UIAnim.popOut(self.card, arrive)
 	end
 	if self.id and self.card.Visible then
-		self:fill(snapshotFor(self.id))
+		self:fill(self.id, snapshotFor(self.id))
 	end
 end
 

@@ -1,5 +1,5 @@
 --!strict
--- Server bootstrap. Builds the tables, wires up the queue boxes and the shot authority, and
+-- Server bootstrap. Builds the tables, wires up the queue pads and the shot authority, and
 -- publishes the assets the client cannot reach on its own. Until the hub map exists the
 -- tables stand on a plain baseplate (Config.Hub).
 
@@ -67,13 +67,13 @@ for _, row in Config.Hub.Tables do
 	end
 end
 
--- The queue boxes and the seat state behind them, then the shot authority: the client sends
+-- The queue pads and the seat state behind them, then the shot authority: the client sends
 -- inputs, this decides what actually happened.
 TableService.start(workspace)
 ShotService.start()
 
 print(
-	("[8ball] server ready. %d tables with queue boxes, %dx%d in, %.2f studs/in"):format(
+	("[8ball] server ready. %d tables with queue pads, %dx%d in, %.2f studs/in"):format(
 		built,
 		Config.Table.LengthInches,
 		Config.Table.WidthInches,

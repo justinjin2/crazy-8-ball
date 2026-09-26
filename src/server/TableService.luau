@@ -1,5 +1,5 @@
 --!strict
--- Roblox adapter: identity/proximity, queue boxes, replication and characters.
+-- Roblox adapter: identity/proximity, queue pads, replication and characters.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -21,7 +21,7 @@ local M = Config.Multiplayer
 local Q = M.QueueVisual
 local Kit = Config.UI.Kit
 local Service = {}
--- Every table's queue box, host panel, barrier and fence.
+-- Every table's queue pad, barrier and fence.
 Service.ZoneFolderName = "TableZones"
 local tables: { [number]: any } = {}
 local seatOf: { [number]: number } = {}
@@ -164,9 +164,9 @@ end
 local function buildFence(t: any, folder: Instance)
 	local F = M.Fence
 	local height = M.Barrier.HeightStuds
-	local fx, fy, cx, cy = Placement.matchFence()
+	local fx, fy, cx, cy = Placement.matchFence(t.engine.teamSize)
 	local w = F.ThicknessStuds
-	-- The box takes in the queue box along one long side, so it is centred off the table.
+	-- The fence takes in the queue pad at the head end, so it is centred off the table.
 	local base = tableFrame(t.placement, cx, cy, height / 2)
 	local walls = {
 		{ Vector3.new(0, 0, fy + w / 2), Vector3.new(2 * (fx + w), height, w) },
@@ -190,151 +190,98 @@ local function buildFence(t: any, folder: Instance)
 	end
 end
 
--- A flat floor part with a label across its top: the queue box, or one of its halves.
--- `backing` is how see-through the white label panel over it is; `icon` (a Config.UI.Kit
--- icon) sits before the words.
-local function floorPart(
-	name: string,
-	size: Vector3,
-	cf: CFrame,
-	folder: Instance,
-	backing: number,
-	textSize: number,
-	icon: string?
-): (Part, TextLabel)
-	local part = Instance.new("Part")
-	part.Name = name
-	part.Anchored = true
-	part.CanCollide = false
-	part.CanTouch = false
-	part.CanQuery = false
-	part.CastShadow = false
-	part.Size = size
-	part.CFrame = cf
-	part.Color = rgb(Kit.Colors.White)
-	part.Material = Enum.Material.SmoothPlastic
-	part.Parent = folder
+-- The table's queue pad (Placement.queuePad, designer 2026-09-26): a round white disc at the
+-- head end with a glowing rim, the table's mode written big on it and STEP IN or the count
+-- under that. Stand anywhere on it to join. The server keeps its attributes and words
+-- current (refresh); BoxEffects on each client tints and lights it, pulses rings out of it
+-- and bobs an arrow over it from those attributes.
+local function buildPad(t: any, folder: Instance)
+	local id = t.engine.id
+	local teamSize = t.engine.teamSize
+	local cx, cy, r = Placement.queuePad(teamSize)
+	-- A Cylinder part lies along its X axis; turned a quarter about Z it lies flat.
+	local flat = CFrame.Angles(0, 0, math.pi / 2)
+	local pad = Instance.new("Part")
+	pad.Name = ("QueuePad_%02d"):format(id)
+	pad.Shape = Enum.PartType.Cylinder
+	pad.Anchored = true
+	pad.CanCollide = false
+	pad.CanTouch = false
+	pad.CanQuery = false
+	pad.CastShadow = false
+	pad.Size = Vector3.new(Q.PadHeight, 2 * r, 2 * r)
+	pad.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight / 2) * flat
+	pad.Color = rgb(Q.PadColor)
+	pad.Transparency = Q.PadTransparency
+	pad.Material = Enum.Material.SmoothPlastic
+	pad:SetAttribute("TableId", id)
+	pad:SetAttribute("TeamSize", teamSize)
+	pad:SetAttribute("Capacity", teamSize * 2)
+	pad:SetAttribute("Radius", r)
+	pad:SetAttribute("Occupied", false)
+	pad:SetAttribute("Count", 0)
+	pad:SetAttribute("Full", false)
+	pad.Parent = folder
+	-- The glowing rim: a Neon disc a little wider, just under the pad.
+	local rim = Instance.new("Part")
+	rim.Name = "Rim"
+	rim.Shape = Enum.PartType.Cylinder
+	rim.Anchored = true
+	rim.CanCollide = false
+	rim.CanTouch = false
+	rim.CanQuery = false
+	rim.CastShadow = false
+	rim.Material = Enum.Material.Neon
+	rim.Color = rgb(Q.RimFree)
+	rim.Size = Vector3.new(Q.PadHeight * 0.6, 2 * (r + Q.RimStuds), 2 * (r + Q.RimStuds))
+	rim.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight * 0.3) * flat
+	rim.Parent = pad
+	-- The words: an invisible square just over the disc, its top face written on.
+	local face = Instance.new("Part")
+	face.Name = "Label"
+	face.Anchored = true
+	face.CanCollide = false
+	face.CanTouch = false
+	face.CanQuery = false
+	face.CastShadow = false
+	face.Transparency = 1
+	face.Size = Vector3.new(2 * r, 0.05, 2 * r)
+	face.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.PadHeight + 0.03)
+		* CFrame.Angles(0, math.rad(Q.LabelRotation), 0)
+	face.Parent = pad
 	local gui = Instance.new("SurfaceGui")
-	gui.Name = "FloorLabel"
+	gui.Name = "PadLabel"
 	gui.Face = Enum.NormalId.Top
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 	gui.PixelsPerStud = Q.PixelsPerStud
-	gui.Parent = part
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.fromScale(1, 1)
-	frame.BackgroundColor3 = rgb(Kit.Colors.White)
-	frame.BackgroundTransparency = backing
-	frame.Parent = gui
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, Q.CornerPixels)
-	corner.Parent = frame
-	local border = Instance.new("UIStroke")
-	border.Name = "Edge"
-	border.Color = rgb(Kit.Colors.Ink)
-	border.Thickness = Q.EdgePixels
-	border.Transparency = Q.EdgeTransparency
-	border.Parent = frame
-	local gradient = Instance.new("UIGradient")
-	gradient.Rotation = Q.GradientRotation
-	gradient.Transparency = NumberSequence.new(Q.GradientMin, Q.GradientMax)
-	gradient.Parent = frame
-	-- A top face's canvas runs across the part (its Z), so the row, sized to the part's
-	-- length, is turned a quarter to lie along it: the icon, then the words.
-	local keep = 1 - 2 * Q.LabelInset
-	local rowHeight = size.Z * Q.PixelsPerStud * keep
-	local row = Instance.new("Frame")
-	row.Name = "Row"
-	row.BackgroundTransparency = 1
-	row.AnchorPoint = Vector2.new(0.5, 0.5)
-	row.Position = UDim2.fromScale(0.5, 0.5)
-	row.Size = UDim2.fromOffset(size.X * Q.PixelsPerStud * keep, rowHeight)
-	row.Rotation = Q.LabelRotation
-	row.Parent = frame
+	gui.LightInfluence = 0
+	gui.Parent = face
+	local column = Instance.new("Frame")
+	column.BackgroundTransparency = 1
+	column.Size = UDim2.fromScale(1, 1)
+	column.Parent = gui
 	local list = Instance.new("UIListLayout")
-	list.FillDirection = Enum.FillDirection.Horizontal
 	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	list.VerticalAlignment = Enum.VerticalAlignment.Center
 	list.SortOrder = Enum.SortOrder.LayoutOrder
-	list.Padding = UDim.new(0, Q.FloorIconGapPx)
-	list.Parent = row
-	if icon then
-		local image = Instance.new("ImageLabel")
-		image.Name = "Icon"
-		image.BackgroundTransparency = 1
-		image.Image = Kit.Icons[icon]
-		image.Size = UDim2.fromOffset(Q.FloorIconPx, Q.FloorIconPx)
-		image.LayoutOrder = 1
-		image.Parent = row
-	end
-	local text = label(row, "", UDim2.fromOffset(0, rowHeight), UDim2.new(), textSize)
-	text.Name = "Text"
-	text.AutomaticSize = Enum.AutomaticSize.X
-	text.LayoutOrder = 2
-	return part, text
-end
-
--- The table's queue box (Placement.queueBox): one long floor strip up to six people step
--- into, with its two halves (team A's at the head, team B's at the foot) laid over it for
--- when four or six are in, and a line between them (the sign above is the client's). The
--- server keeps the box's attributes and words current (refresh); BoxEffects on each client
--- tints, lights and sounds it from those attributes.
-local function buildBox(t: any, folder: Instance)
-	local id = t.engine.id
-	local cx, cy, hx, hy = Placement.queueBox()
-	local length, depth = 2 * hx, 2 * hy
-	local box, boxText = floorPart(
-		("QueueBox_%02d"):format(id),
-		Vector3.new(length, Q.BoxHeight, depth),
-		tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.BoxHeight / 2),
-		folder,
-		Q.FrameTransparency,
-		Q.FloorTextSize,
-		"People"
+	list.Parent = column
+	local size = 2 * r * Q.PixelsPerStud
+	local mode = label(
+		column,
+		Strings.Match.Mode:format(teamSize, teamSize),
+		UDim2.fromOffset(size, Q.ModeTextSize),
+		UDim2.new(),
+		Q.ModeTextSize
 	)
-	box.Transparency = Q.EmptyTransparency
-	box:SetAttribute("TableId", id)
-	box:SetAttribute("Occupied", false)
-	box:SetAttribute("Count", 0)
-	box:SetAttribute("Halves", false)
-	box:SetAttribute("Even", false)
-	local light = Instance.new("SurfaceLight")
-	light.Face, light.Brightness, light.Range = Enum.NormalId.Top, Q.LightBrightness, Q.LightRange
-	light.Color, light.Shadows, light.Parent = rgb(Kit.Colors.White), false, box
-	t.box, t.boxText, t.halves = box, boxText, {}
-	for side = 1, 2 do
-		local along = (if side == 1 then -1 else 1) * length / 4
-		local half, text = floorPart(
-			("QueueHalf_%02d_%d"):format(id, side),
-			Vector3.new(length / 2 - Q.HalfGapStuds, Q.BoxHeight, depth - Q.HalfGapStuds),
-			tableFrame(
-				t.placement,
-				cx + along,
-				cy,
-				Q.FloorOffset + Q.BoxHeight * 1.5 + Q.HalfLiftStuds
-			),
-			box,
-			Q.HalfBackingTransparency,
-			Q.HalfTextSize
-		)
-		half.Transparency = 1 -- shown only while four or six are in (refresh)
-		local gui = half:FindFirstChildOfClass("SurfaceGui") :: SurfaceGui
-		gui.Enabled = false
-		t.halves[side] = { part = half, text = text, gui = gui }
-	end
-	local divider = Instance.new("Part")
-	divider.Name = "Divider"
-	divider.Anchored = true
-	divider.CanCollide = false
-	divider.CanTouch = false
-	divider.CanQuery = false
-	divider.CastShadow = false
-	divider.Material = Enum.Material.Neon
-	divider.Color = rgb(Kit.Colors.White)
-	divider.Transparency = 1
-	divider.Size = Vector3.new(Q.DividerStuds, Q.BoxHeight, depth)
-	divider.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.BoxHeight * 2)
-	divider.Parent = box
-	t.divider = divider
+	mode.Name = "Mode"
+	mode.LayoutOrder = 1
+	local count =
+		label(column, "", UDim2.fromOffset(size, Q.CountTextSize), UDim2.new(), Q.CountTextSize)
+	count.Name = "Count"
+	count.LayoutOrder = 2
+	t.pad, t.countText = pad, count
+	t.padCentre = Vector3.new(Placement.fromTableStuds(t.placement, cx, cy, 0))
+	t.padRadius = r
 end
 
 local function setText(object: TextLabel, text: string)
@@ -343,52 +290,27 @@ local function setText(object: TextLabel, text: string)
 	end
 end
 
--- The box from the engine: who is in it, the halves when four or six are, and what the table
--- is doing. Attributes and words only change when they differ. The sign over the box is the
--- client's (TableSign), drawn from the snapshot every client already has.
+-- The pad from the engine: how many are on it, whether it is full or its game is on, and the
+-- words under the mode. Attributes and words only change when they differ. The sign over it
+-- is the client's (TableSign), drawn from the snapshot every client already has.
 local function refresh(t: any)
 	local e = t.engine
 	local C = Strings.Match
-	local count, inHalf = 0, { 0, 0 }
-	for _, s in e.seats do
-		if s.connected then
-			count += 1
-			if s.side then
-				inHalf[s.side] += 1
-			end
-		end
-	end
+	local count = Engine.count(e)
+	local capacity = Engine.capacity(e)
 	local waiting = e.phase == "Waiting"
-	-- Four or six split into teams by the half they stand in: both halves grey until the
-	-- split is even, then both green (designer, 2026-09-25). Two need no halves.
-	local halves = waiting and (count == 4 or count == 6)
-	local even = inHalf[1] == inHalf[2]
-	local box = t.box
-	box:SetAttribute("Occupied", count > 0)
-	box:SetAttribute("Count", count)
-	for _, half in t.halves do
-		half.part.Transparency = if halves then Q.HalfTransparency else 1
-		half.part.Color = rgb(if even then Kit.Colors.Green else Q.HalfUneven)
-		half.gui.Enabled = halves
-	end
-	t.divider.Transparency = if halves then Q.DividerTransparency else 1
+	local pad = t.pad
+	pad:SetAttribute("Occupied", count > 0)
+	pad:SetAttribute("Count", count)
+	pad:SetAttribute("Full", not waiting or count >= capacity)
 	setText(
-		t.boxText,
+		t.countText,
 		if not waiting
-			then C.InProgress
-			elseif halves then ""
-			elseif count >= M.Queue.Capacity then C.BoxFull
-			elseif count > 0 then C.BoxJoin:format(count, M.Queue.Capacity)
-			else C.BoxEmpty:format(M.Queue.Capacity)
+			then C.PadPlaying
+			elseif count >= capacity then C.PadFull
+			elseif count > 0 then C.PadCount:format(count, capacity)
+			else C.PadStepIn
 	)
-	for side, half in t.halves do
-		setText(
-			half.text,
-			if halves
-				then C.HalfCount:format(if side == 1 then "A" else "B", inHalf[side], count // 2)
-				else ""
-		)
-	end
 end
 
 function Service.broadcast(t: any, player: Player?)
@@ -696,7 +618,7 @@ local function constrain(p: Player, t: any)
 	-- that fell through the floor or ended up well outside its fence (spawned there, clipped
 	-- through); the client owns its character, so moving it every poll would rubber-band.
 	local scale = Config.Table.StudsPerInch
-	local fx, fy, fcx, fcy = Placement.matchFence()
+	local fx, fy, fcx, fcy = Placement.matchFence(t.engine.teamSize)
 	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
 	x, y = x * scale, y * scale -- studs along the table's axes
 	local escape = M.Fence.EscapeStuds
@@ -705,11 +627,10 @@ local function constrain(p: Player, t: any)
 		local inset = M.Fence.ThicknessStuds + Q.RespawnBoundaryInset
 		local cx = math.clamp(x, fcx - (fx - inset), fcx + fx - inset)
 		local cy = math.clamp(y, fcy - (fy - inset), fcy + fy - inset)
-		-- Keep clear of the table itself: land on the queue box's line instead.
+		-- Keep clear of the table itself: land on the queue pad instead.
 		local bx, by = Placement.barrierHalfExtents()
 		if math.abs(cx) < bx and math.abs(cy) < by then
-			local _, boxY = Placement.queueBox()
-			cy = boxY
+			cx, cy = Placement.queuePad(t.engine.teamSize)
 		end
 		local wx, _, wz = Placement.fromTableStuds(t.placement, cx, cy, 0)
 		root.CFrame = CFrame.new(wx, t.placement.y + Q.RespawnHeight, wz) * root.CFrame.Rotation
@@ -780,30 +701,12 @@ local function releaseMissing(t: any)
 	end
 end
 
--- Where a root stands relative to table `t`'s queue box, in the box's own studs: X along
--- the table's length (head negative), Z across it, Y up from the box.
-local function inBoxSpace(t: any, root: BasePart): Vector3
-	return t.box.CFrame:PointToObjectSpace(root.Position)
-end
-
-local function insideBox(t: any, v: Vector3, margin: number): boolean
-	local half = t.box.Size / 2
-	return math.abs(v.X) <= half.X + margin
-		and math.abs(v.Z) <= half.Z + margin
-		and math.abs(v.Y) < Q.VerticalTolerance
-end
-
--- The half of the box a point is in: 1 the head half (team A's), 2 the foot half. A player
--- already in one keeps it until Queue.SideHysteresisStuds past the middle, so standing on
--- the line does not flicker between teams.
-local function sideAt(v: Vector3, current: number?): number
-	local h = M.Queue.SideHysteresisStuds
-	if current == 1 and v.X < h then
-		return 1
-	elseif current == 2 and v.X > -h then
-		return 2
-	end
-	return if v.X < 0 then 1 else 2
+-- Whether a root stands on table `t`'s queue pad, grown by `margin` studs: within its radius
+-- across the floor and on the same floor.
+local function onPad(t: any, root: BasePart, margin: number): boolean
+	local d = root.Position - t.padCentre
+	return Vector2.new(d.X, d.Z).Magnitude <= t.padRadius + margin
+		and math.abs(d.Y) < Q.VerticalTolerance
 end
 
 local function poll(t: any, time: number)
@@ -815,18 +718,16 @@ local function poll(t: any, time: number)
 	end)
 	for _, p in players do
 		local root = rootOf(p)
-		local v = if root then inBoxSpace(t, root) else nil
-		local inside = v ~= nil and insideBox(t, v, 0)
-		local inQueueArea = v ~= nil and insideBox(t, v, Q.AreaMargin)
+		local inside = root ~= nil and onPad(t, root, 0)
+		local inQueueArea = root ~= nil and onPad(t, root, Q.AreaMargin)
 		if not inQueueArea then
 			t.blocked[p.UserId] = nil
 		end
 		local s = Engine.seat(e, p.UserId)
 		if s then
 			if e.phase == "Waiting" then
-				if inQueueArea and v then
+				if inQueueArea then
 					t.outside[p.UserId] = nil
-					Engine.setSide(e, p.UserId, sideAt(v, s.side))
 				else
 					t.outside[p.UserId] = t.outside[p.UserId] or time
 					if time - t.outside[p.UserId] >= Queue.ExitGraceSeconds then
@@ -836,10 +737,10 @@ local function poll(t: any, time: number)
 			else
 				constrain(p, t)
 			end
-		elseif inside and v and not seatOf[p.UserId] and not t.blocked[p.UserId] then
+		elseif inside and not seatOf[p.UserId] and not t.blocked[p.UserId] then
 			t.dwell[p.UserId] = t.dwell[p.UserId] or time
 			if time - t.dwell[p.UserId] >= Queue.DwellSeconds then
-				if Engine.join(e, p.UserId, p.Name, p.DisplayName, sideAt(v, nil), time) then
+				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time) then
 					seatOf[p.UserId] = e.id
 				end
 			end
@@ -885,12 +786,12 @@ function Service.start(parent: Instance)
 	local folder = Instance.new("Folder")
 	folder.Name = Service.ZoneFolderName
 	folder.Parent = parent
-	-- One server-owned table per Config.Hub row; any of them seats 1v1, 2v2 or 3v3.
+	-- One server-owned table per Config.Hub row, each playing its own mode.
 	for id = 1, Placement.tableCount() do
 		local p = Placement.forTable(id)
 		assert(p, "Missing table placement")
 		local t: any = {
-			engine = Engine.new(id, newSeed()),
+			engine = Engine.new(id, Placement.teamSizeOf(id) or 1, newSeed()),
 			placement = p,
 			dwell = {},
 			outside = {},
@@ -898,7 +799,7 @@ function Service.start(parent: Instance)
 			sentRevision = 0,
 		}
 		tables[id] = t
-		buildBox(t, folder)
+		buildPad(t, folder)
 		buildBarrier(t, folder)
 		buildFence(t, folder)
 		Service.broadcast(t)
@@ -1013,8 +914,8 @@ function Service.start(parent: Instance)
 			if id then
 				local t = tables[id]
 				local root = character:WaitForChild("HumanoidRootPart") :: BasePart
-				-- Back in the queue box, which the match fence takes in.
-				local cx, cy = Placement.queueBox()
+				-- Back on the queue pad, which the match fence takes in.
+				local cx, cy = Placement.queuePad(t.engine.teamSize)
 				root.CFrame =
 					CFrame.new(Placement.fromTableStuds(t.placement, cx, cy, Q.RespawnHeight))
 			end

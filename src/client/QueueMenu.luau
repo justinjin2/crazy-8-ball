@@ -1,15 +1,17 @@
 --!strict
--- QueueMenu: the card everyone in a table's queue box sees while the table waits (designer,
--- 2026-09-25). It shows who hosts, how many are in, the difficulty and abilities the host
--- picked, and why the game cannot start yet. Only the host can change anything: the
--- difficulty, the abilities toggle (a placeholder until abilities exist), and Start, which
--- offers Play solo or Play against PC (a placeholder until bots exist) to a host alone.
+-- QueueMenu: the card everyone on a table's queue pad sees while the table waits (designer,
+-- 2026-09-25). It shows who hosts, how many are on the pad of how many it holds, the
+-- difficulty and abilities the host picked, and how many more players the game needs. Only
+-- the host can change anything: the difficulty, the abilities toggle (a placeholder until
+-- abilities exist), and Start once the pad is full. Alone on a 1v1 table, Start offers Play
+-- solo or Play against PC (a placeholder until bots exist) instead.
 -- Everyone gets Leave. It shows only what the table's snapshot says; every press is a
 -- request the server checks (MatchEngine.action).
 --
 -- Built from the UI kit (HudParts): a white card with a crown by the host's name, three
 -- difficulty tiles with aim-line pictures, and candy buttons. It pops in when you step into
--- a box and out when you leave; Start breathes once it can be pressed.
+-- a pad (Main shows it the moment you do, before the server has seated you) and out when you
+-- leave; Start breathes once it can be pressed.
 --
 -- Gamepad: selection is never taken while the player can walk (the stick would stop moving
 -- them). Y focuses the card (QueueMenu.focus), B leaves it again (Main).
@@ -148,17 +150,6 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.players.AutoLocalize = false -- only numbers
 	self.players.Position = UDim2.fromOffset(S.QueuePillHeight, 1)
 	self.players.Size = UDim2.new(1, -S.QueuePillHeight - 6, 1, -2)
-
-	-- Four or six split into the box's halves: green with a check once they are even.
-	self.split = HudParts.pill(left, "TeamSplit")
-	self.split.Size = UDim2.new(1, 0, 0, S.QueuePillHeight)
-	self.split.LayoutOrder = 2
-	self.splitCheck = HudParts.icon(self.split, "Check")
-	self.splitCheck.Position = UDim2.fromOffset(6, 2)
-	self.splitCheck.Size = UDim2.fromOffset(S.QueuePillHeight - 4, S.QueuePillHeight - 4)
-	self.splitText = HudParts.text(self.split, "Text", K.Text.Body, "")
-	self.splitText.Position = UDim2.fromOffset(S.QueuePillHeight + 4, 1)
-	self.splitText.Size = UDim2.new(1, -S.QueuePillHeight * 2 - 8, 1, -2)
 
 	-- Difficulty: three tiles, each a picture of the lines you get, the chosen one blue, and
 	-- under each the money it pays (designer, 2026-09-26).
@@ -306,8 +297,13 @@ function QueueMenu.count(self: any): number
 	return n
 end
 
+--- The host alone on a 1v1 table: Start offers Play solo and Play against PC instead. The
+--- team tables are kept for team games (designer, 2026-09-26).
 function QueueMenu.alone(self: any): boolean
-	return self.snapshot ~= nil and self:isHost() and self:count() == 1
+	return self.snapshot ~= nil
+		and self:isHost()
+		and self:count() == 1
+		and self.snapshot.teamSize == 1
 end
 
 function QueueMenu.canSend(self: any): boolean
@@ -335,7 +331,7 @@ function QueueMenu.pressStart(self: any)
 		GuiService.SelectedObject = if GuiService.SelectedObject then self.solo else nil
 		return
 	end
-	if Engine.startState(self.snapshot.seats) then
+	if Engine.startState(self.snapshot.seats, self.snapshot.teamSize) then
 		self.sentAt = self.now -- hidden until the server answers
 		self.onAction("Start", nil)
 	end
@@ -466,28 +462,19 @@ function QueueMenu.update(self: any, now: number)
 	local count = self:count()
 	local settings = self:shown()
 	local hostName = ""
-	local inHalf = { 0, 0 }
 	for _, seat in snapshot.seats do
 		if seat.connected ~= false then
 			if seat.userId == snapshot.hostId then
 				hostName = seat.displayName or seat.name
-			end
-			if seat.side == 1 or seat.side == 2 then
-				inHalf[seat.side] += 1
 			end
 		end
 	end
 	if count ~= 1 then
 		self.soloOpen = false
 	end
-	local ok, reason = Engine.startState(snapshot.seats)
+	local ok, reason, missing = Engine.startState(snapshot.seats, snapshot.teamSize)
 	self.hostName.Text = hostName
-	self.players.Text = Copy.PlayerCount:format(count, M.Queue.Capacity)
-	local halves = count == 4 or count == 6
-	self.split.Visible = halves
-	self.splitText.Text = Copy.TeamSplit:format(inHalf[1], inHalf[2])
-	self.split.BackgroundColor3 = if ok then tone("Green") else tone("Grey")
-	self.splitCheck.Visible = ok == true
+	self.players.Text = Copy.PlayerCount:format(count, snapshot.teamSize * 2)
 
 	for level, b in self.levels do
 		local chosen = settings.difficulty == level
@@ -512,7 +499,8 @@ function QueueMenu.update(self: any, now: number)
 		then UDim2.fromScale(1, 1)
 		else UDim2.fromOffset(S.QueueStartHeight, S.QueueStartHeight)
 	HudParts.setText(self.leave, if alone then Copy.Leave else "")
-	local startable = count == 1 or ok
+	-- A full pad starts; alone on a 1v1 table, Start offers the solo choices.
+	local startable = ok or self:alone()
 	HudParts.setEnabled(self.start, startable)
 	HudParts.setTone(self.start, if startable then "Green" else "Grey")
 	-- Start breathes while it is there to be pressed.
@@ -526,9 +514,9 @@ function QueueMenu.update(self: any, now: number)
 
 	self.status.Text = if not host
 		then Copy.WaitingForHost:format(hostName)
-		elseif solo or count == 1 then ""
-		elseif reason then Copy.Reasons[reason] or ""
-		else ""
+		elseif solo or reason == "Alone" or not reason then ""
+		elseif missing == 1 then Copy.NeedOneMore
+		else Copy.NeedMore:format(missing)
 	self.status.Visible = self.status.Text ~= ""
 
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1

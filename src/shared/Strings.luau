@@ -5,24 +5,19 @@ return {
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
 	Match = {
-		Mode = "%dv%d",
-		-- The queue box (TableService) and the sign floating over it (TableSign).
-		AnyMode = "1v1 · 2v2 · 3v3",
+		Mode = "%dv%d", -- a table's mode: 1v1, 2v2, 3v3
+		-- The queue pad (TableService) and the sign floating over its table (TableSign).
 		SoloTitle = "SOLO",
 		StepIn = "Step in to play",
-		BoxEmpty = "STEP IN · UP TO %d",
-		BoxJoin = "%d/%d · STEP IN",
-		BoxFull = "FULL",
-		HalfCount = "TEAM %s · %d/%d",
+		PadStepIn = "STEP IN", -- on an empty pad, under its mode
+		PadCount = "%d/%d", -- on a pad with players on it: how many, of how many it holds
+		PadFull = "FULL",
+		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on
 		Waiting = "WAITING",
-		InProgress = "MATCH IN PROGRESS",
-		SignStepIn = "STEP IN", -- the sign's pill over an empty box
-		SignPlaying = "PLAYING", -- the sign's pill while its game is on
 		-- The queue menu (QueueMenu), seen by everyone in the box; only the host can use it.
 		Queue = {
 			HostTitle = "HOST",
-			PlayerCount = "%d/%d", -- in the people pill: how many are in the box, of six
-			TeamSplit = "Team A %d  ·  Team B %d",
+			PlayerCount = "%d/%d", -- in the people pill: how many are on the pad, of how many it holds
 			MoneyMultiplier = "%sx", -- the money a difficulty pays, beside the cash icon: 1x, 1.5x, 2x
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
 			LevelInfo = {
@@ -39,10 +34,8 @@ return {
 			Back = "Back",
 			Leave = "Leave",
 			WaitingForHost = "Waiting for %s to start",
-			Reasons = {
-				Odd = "Need 2, 4 or 6 players",
-				Uneven = "Split evenly into Team A and B",
-			},
+			NeedMore = "Need %d more players", -- a team table waits for its pad to fill
+			NeedOneMore = "Need 1 more player",
 			GamepadHint = "Y · Menu",
 		},
 		OpenTable = "OPEN TABLE",

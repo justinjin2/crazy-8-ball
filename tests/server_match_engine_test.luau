@@ -9,14 +9,14 @@ local Judge = H.require("Rules.ShotJudge")
 local TableGeometry = H.require("Physics.Table")
 local expect = H.expect
 local tests = {}
--- A box of `size` a side, still waiting: user team * 10 + slot steps in, alternating teams,
--- each in their team's half (A's is half 1), so 11 is first in and hosts.
+-- A pad of `size` a side, still waiting: user team * 10 + slot steps on, alternating teams
+-- (teams go by arrival, first in team A), so 11 is first in and hosts.
 local function queue(size: number, id: number?): any
-	local m = E.new(id or 1)
+	local m = E.new(id or 1, size)
 	for slot = 1, size do
 		for team = 1, 2 do
 			local user = team * 10 + slot
-			expect(E.join(m, user, tostring(user), tostring(user), team, slot - 1))
+			expect(E.join(m, user, tostring(user), tostring(user), slot - 1))
 		end
 	end
 	return m
@@ -147,7 +147,7 @@ function tests.a_ball_off_the_table_is_seen_landing_and_rolling_before_the_foul(
 	expire(m)
 	expect(m.phase == "Foul" and m.foul.reason == "OffTable")
 end
-function tests.a_full_box_waits_for_its_host_and_the_next_in_hosts_when_they_leave()
+function tests.a_full_pad_waits_for_its_host_and_the_next_in_hosts_when_they_leave()
 	local m = queue(2)
 	expect(
 		m.hostId == 11 and m.phase == "Waiting" and m.deadline == nil,
@@ -157,64 +157,62 @@ function tests.a_full_box_waits_for_its_host_and_the_next_in_hosts_when_they_lea
 	expect(E.remove(m, 11, 2))
 	expect(m.hostId == 21 and m.phase == "Waiting" and m.deadline == nil)
 	expect(m.settings.difficulty == "Challenger", "the host's choices outlive the host")
-	expect(not start(m, 1, 21), "three left: odd")
-	expect(E.join(m, 14, "14", "14", 1, 10))
+	expect(not start(m, 1, 21), "three on a 2v2 pad: one short")
+	expect(E.join(m, 14, "14", "14", 10))
 	expect(start(m, 2, 21), "the new host starts")
 	expect(m.phase == "CoinFlip" and m.teamSize == 2)
-	expect(m.coin.headsTeam == 2 and m.coin.winnerTeam == 2 and m.coin.breaker == 21)
-	expect(E.seat(m, 14).team == 1 and E.seat(m, 14).slot == 2, "slots follow who came first")
+	-- By arrival now: 21 (the host) A, 12 B, 22 A, 14 B.
+	expect(E.seat(m, 21).team == 1 and E.seat(m, 12).team == 2 and E.seat(m, 22).team == 1)
+	expect(E.seat(m, 14).team == 2 and E.seat(m, 14).slot == 2, "slots follow who came first")
+	expect(m.coin.headsTeam == 1 and m.coin.winnerTeam == 2 and m.coin.breaker == 12)
 end
-function tests.rejects_duplicate_seats_a_seventh_player_bad_halves_and_rejoins_in_a_match()
-	local m = queue(2)
-	expect(not E.join(m, 11, "x", "x", 1, 5), "already in")
-	expect(not E.join(m, 99, "x", "x", 3, 5), "no third half")
-	expect(not E.join(m, 99, "x", "x", 0, 5))
-	expect(E.join(m, 15, "x", "x", 1, 5) and E.join(m, 25, "x", "x", 2, 5), "six fit")
-	expect(not E.join(m, 99, "x", "x", 1, 5), "a seventh does not")
+function tests.rejects_duplicate_seats_a_full_pad_and_joins_in_a_match()
+	local m = queue(3)
+	expect(not E.join(m, 11, "x", "x", 5), "already on")
+	expect(not E.join(m, 99, "x", "x", 5), "a seventh does not fit a 3v3 pad")
+	local pair = queue(1, 2)
+	expect(not E.join(pair, 99, "x", "x", 5), "a third does not fit a 1v1 pad")
 	expect(start(m))
 	expect(m.teamSize == 3)
-	expect(not E.join(m, 99, "x", "x", 1, 10), "nobody joins a game")
-	expect(not E.setSide(m, 11, 2), "halves only matter before the start")
+	expect(not E.join(m, 98, "x", "x", 10), "nobody joins a game")
 end
--- Who can start, by the halves the box's players stand in (1 = team A's, 2 = B's).
-function tests.start_needs_two_four_or_six_split_evenly()
+-- Who can start, by how many are on a pad of `teamSize` a side: it has to be full; alone on a
+-- 1v1 table the host is offered solo instead.
+function tests.start_needs_a_full_pad()
 	local cases = {
-		{ {}, false, "Alone" },
-		{ { 1 }, false, "Alone" },
-		{ { 1, 1 }, true, nil }, -- two play by who came first, halves or not
-		{ { 1, 2 }, true, nil },
-		{ { 1, 2, 2 }, false, "Odd" },
-		{ { 1, 1, 2, 2 }, true, nil },
-		{ { 1, 1, 1, 2 }, false, "Uneven" },
-		{ { 2, 2, 2, 2 }, false, "Uneven" },
-		{ { 1, 2, 1, 2, 1 }, false, "Odd" },
-		{ { 1, 1, 1, 2, 2, 2 }, true, nil },
-		{ { 1, 1, 2, 2, 2, 2 }, false, "Uneven" },
+		{ 1, 0, false, "Alone", 2 },
+		{ 1, 1, false, "Alone", 1 },
+		{ 1, 2, true, nil, 0 },
+		{ 2, 1, false, "Short", 3 },
+		{ 2, 3, false, "Short", 1 },
+		{ 2, 4, true, nil, 0 },
+		{ 3, 5, false, "Short", 1 },
+		{ 3, 6, true, nil, 0 },
 	}
 	for _, case in cases do
 		local seats = {}
-		for i, side in case[1] do
-			table.insert(seats, { userId = i, side = side, connected = true })
+		for i = 1, case[2] do
+			table.insert(seats, { userId = i, connected = true })
 		end
-		local ok, reason = E.startState(seats)
-		expect(ok == case[2] and reason == case[3], ("%d in the box"):format(#seats))
+		local ok, reason, missing = E.startState(seats, case[1])
+		expect(
+			ok == case[3] and reason == case[4] and missing == case[5],
+			("%d on a %dv%d pad"):format(case[2], case[1], case[1])
+		)
 	end
-	local gone =
-		{ { userId = 1, side = 1, connected = true }, { userId = 2, side = 1, connected = false } }
-	expect(select(2, E.startState(gone)) == "Alone", "a disconnected seat is not counted")
+	local gone = { { userId = 1, connected = true }, { userId = 2, connected = false } }
+	expect(select(2, E.startState(gone, 1)) == "Alone", "a disconnected seat is not counted")
 end
-function tests.only_the_host_starts_and_only_an_even_split()
+function tests.only_the_host_starts_and_teams_alternate_by_arrival()
 	local m = queue(2)
-	expect(E.setSide(m, 21, 1))
-	expect(not start(m), "three in half A, one in half B")
-	expect(E.setSide(m, 21, 2) and E.setSide(m, 21, 2))
 	expect(not start(m, 1, 21), "only the host")
 	expect(start(m))
-	expect(E.seat(m, 21).team == 2 and E.seat(m, 22).team == 2, "team B from half B")
+	expect(E.seat(m, 11).team == 1 and E.seat(m, 21).team == 2, "first A, second B")
+	expect(E.seat(m, 12).team == 1 and E.seat(m, 22).team == 2, "and so on")
+	expect(E.seat(m, 12).slot == 2 and E.seat(m, 22).slot == 2)
 	expect(not start(m), "only once")
-	-- Two players need no halves: first in (the host) is team A, whatever half they stand in.
-	local pair = E.new(2)
-	expect(E.join(pair, 7, "a", "a", 2, 0) and E.join(pair, 8, "b", "b", 2, 0))
+	local pair = E.new(2, 1)
+	expect(E.join(pair, 7, "a", "a", 0) and E.join(pair, 8, "b", "b", 0))
 	expect(start(pair))
 	expect(E.seat(pair, 7).team == 1 and E.seat(pair, 8).team == 2 and pair.teamSize == 1)
 end
@@ -242,7 +240,7 @@ function tests.the_host_sets_difficulty_and_abilities_before_the_game()
 	expect(m.phase == "Waiting" and m.settings.difficulty == "Classic", "a new box starts afresh")
 	expect(m.settings.abilities == true)
 	-- A box that empties before its game starts afresh too.
-	expect(E.join(m, 11, "a", "a", 1, 0))
+	expect(E.join(m, 11, "a", "a", 0))
 	expect(action(m, 11, "SetDifficulty", { value = "Challenger" }))
 	expect(E.remove(m, 11, 1))
 	expect(m.settings.difficulty == "Classic")
@@ -467,8 +465,8 @@ function tests.shooter_locked_matches_the_server_lock()
 	expect(m.phase == "Intro" and m.shooter ~= nil, "the shooter arrives with the intro")
 	expect(action(m, 11, "Surrender"))
 	expire(m)
-	expect(E.join(m, 11, "a", "a", 1, m.phaseStartedAt))
-	expect(E.join(m, 21, "b", "b", 2, m.phaseStartedAt))
+	expect(E.join(m, 11, "a", "a", m.phaseStartedAt))
+	expect(E.join(m, 21, "b", "b", m.phaseStartedAt))
 	expect(start(m))
 	expect(m.phase == "CoinFlip" and m.shooter == nil, "the next game's coin flip")
 end
@@ -663,9 +661,10 @@ function tests.one_on_one_surrender_resets_rack_epoch_and_releases_all_seats()
 		m.phase == "Waiting" and #m.seats == 0 and m.epoch == epoch + 1 and m.rackSeed == seed + 1
 	)
 	expect(m.turnId == 0 and m.vote == nil and m.shot == nil and m.pending == nil)
-	expect(E.join(m, 11, "again", "again", 1, m.phaseStartedAt))
-	expect(E.join(m, 21, "again", "again", 2, m.phaseStartedAt))
-	expect(m.phase == "Waiting" and m.teamSize == 0 and start(m) and m.phase == "CoinFlip")
+	expect(E.join(m, 11, "again", "again", m.phaseStartedAt))
+	expect(E.join(m, 21, "again", "again", m.phaseStartedAt))
+	expect(m.phase == "Waiting" and m.teamSize == 1, "the table keeps its mode")
+	expect(start(m) and m.phase == "CoinFlip")
 end
 function tests.disconnect_shorthanded_rotation_skips_absent_and_empty_team_forfeits()
 	local m = playing(3)
@@ -869,13 +868,13 @@ function tests.resolution_never_emits_feedback()
 	expect(#m.feedback == 0 and m.groups[1] == "solids")
 end
 function tests.each_game_racks_from_the_seed_the_server_supplies()
-	local m = E.new(1, 123456)
+	local m = E.new(1, 1, 123456)
 	expect(m.rackSeed == 123456, "the server's seed opens the first game")
 	expect(E.snapshot(m).rackSeed == 123456, "clients rebuild the rack from the snapshot's seed")
 	local function finish(nextSeed: number?)
 		for team = 1, 2 do
 			if not E.seat(m, team * 10 + 1) then
-				expect(E.join(m, team * 10 + 1, "p", "p", team, m.phaseStartedAt))
+				expect(E.join(m, team * 10 + 1, "p", "p", m.phaseStartedAt))
 			end
 		end
 		expect(start(m))
@@ -886,7 +885,7 @@ function tests.each_game_racks_from_the_seed_the_server_supplies()
 	end
 	finish(987654)
 	expect(m.phase == "Waiting" and m.rackSeed == 987654, "the next game takes a fresh seed")
-	local other = E.new(1, 987655)
+	local other = E.new(1, 1, 987655)
 	local moved = false
 	for i, b in m.state.balls do
 		local o = other.state.balls[i]
@@ -902,12 +901,11 @@ function tests.each_game_racks_from_the_seed_the_server_supplies()
 	)
 end
 
--- Solo: player `side * 10 + 1` stands alone in half `side` of the box and presses Play solo.
-local function solo(side: number?): any
-	local half = side or 1
-	local m = E.new(1)
-	local user = half * 10 + 1
-	expect(E.join(m, user, "solo", "solo", half, 0))
+-- Solo: player 11 stands alone on a 1v1 table's pad and presses Play solo.
+local function solo(): any
+	local m = E.new(1, 1)
+	local user = 11
+	expect(E.join(m, user, "solo", "solo", 0))
 	expect(action(m, user, "StartSolo"))
 	return m
 end
@@ -948,8 +946,12 @@ local function judged(m: any, events: { any })
 	expire(m)
 end
 function tests.solo_starts_only_for_a_lone_host_in_waiting()
-	local m = E.new(1)
-	expect(E.join(m, 11, "a", "a", 1, 0) and E.join(m, 21, "b", "b", 2, 0))
+	-- Only on a 1v1 table: the team tables are kept for team games (designer, 2026-09-26).
+	local team = E.new(3, 2)
+	expect(E.join(team, 11, "a", "a", 0))
+	expect(not action(team, 11, "StartSolo"), "no solo on a 2v2 table")
+	local m = E.new(1, 1)
+	expect(E.join(m, 11, "a", "a", 0) and E.join(m, 21, "b", "b", 0))
 	expect(not action(m, 11, "StartSolo"), "two seats: no solo")
 	expect(not start(m, 1, 21), "only the host starts")
 	expect(E.remove(m, 21, 1))
@@ -960,15 +962,15 @@ function tests.solo_starts_only_for_a_lone_host_in_waiting()
 	expect(m.phase == "Intro" and m.shooter == 11 and m.breakShot and m.ballInHand)
 	expect(m.coin == nil and m.activeTeam == 1 and m.teamSize == 1)
 	expect(not action(m, 11, "StartSolo"), "already playing")
-	expect(not E.join(m, 21, "b", "b", 2, 2), "nobody joins a solo game")
-	expect(not E.join(m, 12, "c", "c", 1, 2))
+	expect(not E.join(m, 21, "b", "b", 2), "nobody joins a solo game")
+	expect(not E.join(m, 12, "c", "c", 2))
 	local snapshot = E.snapshot(m)
 	expect(snapshot.solo.team == 1 and snapshot.solo ~= m.solo, "the snapshot has a copy")
 	local started = queue(1)
 	expect(start(started) and not action(started, 11, "StartSolo"), "not once a game starts")
 end
 function tests.solo_has_no_clock_and_fouls_return_ball_in_hand_to_the_player()
-	local m = solo(1)
+	local m = solo()
 	expect(m.deadline == m.phaseStartedAt + M.IntroSeconds, "the break opens with YOUR TURN")
 	expire(m)
 	expect(m.phase == "Placement" and m.deadline == nil)
@@ -992,7 +994,7 @@ function tests.solo_has_no_clock_and_fouls_return_ball_in_hand_to_the_player()
 	expect(m.phase == "Placement" and m.shooter == 11, "a reset is an ordinary solo foul")
 end
 function tests.solo_plays_first_group_then_the_other_then_the_eight()
-	local m = solo(1)
+	local m = solo()
 	soloAiming(m)
 	local wire = E.acceptShot(m, 11, sidePocketShot(m, 3), m.phaseStartedAt)
 	expect(wire ~= nil and wire.assign ~= nil and wire.assign.ball == 3)
@@ -1040,13 +1042,13 @@ function tests.solo_loses_on_early_foul_or_wrong_pocket_eights()
 		return { t = t, type = "pocket", ball = id, other = pocket or 1, speed = 10 }
 	end
 	-- Early: stripes first, the 8 drops with stripes still up.
-	local m = solo(1)
+	local m = solo()
 	soloAiming(m)
 	m.solo.first, m.groups = "stripes", { "stripes", "solids" }
 	judged(m, { contact, drop(10, 2), drop(8, 3) })
 	expect(m.phase == "Result" and m.result.winner == 2 and m.result.reason == "EarlyEight")
 	-- Early even with the first group cleared: the second group must go too.
-	m = solo(1)
+	m = solo()
 	soloAiming(m)
 	pocketAll(m, 9, 15)
 	m.solo.first, m.groups = "stripes", { "solids", "stripes" }
@@ -1055,7 +1057,7 @@ function tests.solo_loses_on_early_foul_or_wrong_pocket_eights()
 	expect(m.phase == "Result" and m.result.winner == 2 and m.result.reason == "EarlyEight")
 	-- A foul on the 8, and the 8 in a pocket that was not called.
 	for _, case in { "FoulEight", "WrongPocket" } do
-		m = solo(1)
+		m = solo()
 		soloAiming(m)
 		pocketAll(m, 1, 15)
 		Sim.findBall(m.state, 8).pocketed = false
@@ -1071,32 +1073,32 @@ function tests.solo_loses_on_early_foul_or_wrong_pocket_eights()
 	end
 end
 function tests.solo_surrender_and_departure_end_with_no_winner()
-	for side = 1, 2 do
-		local m = solo(side)
-		expect(action(m, side * 10 + 1, "Surrender"))
-		expect(m.phase == "Result" and m.result.winner == nil and m.result.reason == "Surrender")
-		expect(m.vote == nil)
-		expire(m)
-		expect(m.phase == "Waiting" and m.solo == nil and E.count(m) == 0)
-	end
+	local surrendered = solo()
+	expect(action(surrendered, 11, "Surrender"))
+	expect(
+		surrendered.phase == "Result"
+			and surrendered.result.winner == nil
+			and surrendered.result.reason == "Surrender"
+	)
+	expect(surrendered.vote == nil)
+	expire(surrendered)
+	expect(surrendered.phase == "Waiting" and surrendered.solo == nil and E.count(surrendered) == 0)
 	local m = solo()
 	expect(E.remove(m, 11, 1))
 	expect(m.phase == "Result" and m.result.winner == nil and m.result.reason == "EmptyTeam")
 end
-function tests.solo_runs_from_either_half_of_the_box()
-	for side = 1, 2 do
-		local m = solo(side)
-		local user = side * 10 + 1
-		expect(m.solo.team == 1 and m.activeTeam == 1 and m.shooter == user)
-		expire(m)
-		resolveFixture(m, true, nil)
-		expect(m.phase == "Aiming" and m.shooter == user, "the break keeps the table")
-		resolveFixture(m, false, "Scratch")
-		expire(m)
-		expect(m.phase == "Placement" and m.shooter == user and m.activeTeam == 1)
-		resolveFixture(m, false, nil)
-		expect(m.phase == "Aiming" and m.shooter == user and m.deadline == nil)
-	end
+function tests.solo_keeps_the_table_through_the_break_and_fouls()
+	local m = solo()
+	local user = 11
+	expect(m.solo.team == 1 and m.activeTeam == 1 and m.shooter == user)
+	expire(m)
+	resolveFixture(m, true, nil)
+	expect(m.phase == "Aiming" and m.shooter == user, "the break keeps the table")
+	resolveFixture(m, false, "Scratch")
+	expire(m)
+	expect(m.phase == "Placement" and m.shooter == user and m.activeTeam == 1)
+	resolveFixture(m, false, nil)
+	expect(m.phase == "Aiming" and m.shooter == user and m.deadline == nil)
 end
 
 function tests.soft_tap_is_legal_on_casual_tables_and_a_foul_on_ranked()

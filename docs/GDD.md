@@ -157,25 +157,30 @@ Every feature is checked against these. If it serves none, it waits.
 
 **Decided**
 - Players spawn in the hub and walk to any free table. There are no menus to find a game.
-- **Joining: step into the table's queue box** (changed 2026-09-25; it used to be one floor pad
-  per seat). Every table has one long box along a long side that up to six people step into, so
-  any table plays 1v1, 2v2 or 3v3. Stepping in plays a sound and a VFX and the box turns green
-  so everyone can see someone is queueing. There is no accept step; anyone may step into a
-  waiting box, and walking out (or Leave) leaves at once. Everyone else can stand around and
-  watch.
-- The first person in is the **host**. Everyone in the box sees the **queue menu**: the host's
-  name, how many are in, the **difficulty** (Classic, Difficult, Challenger; Classic
+- **Every table plays one mode** (changed 2026-09-26; for a day any table played any mode from
+  one long queue box). Of sixteen tables, **ten are 1v1, four 2v2 and two 3v3**, the 1v1
+  tables nearest the spawn and the 3v3 at the back.
+- **Joining: step onto the table's queue pad.** Each table has one round glowing pad at its
+  head end, toward the spawn, holding both teams (2, 4 or 6). Its mode is written big on it
+  with STEP IN or the count; rings pulse out of it and a big arrow bobs over it while it has
+  room. Joining is instant: the host menu pops up the moment you step on. Stepping on plays a
+  sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
+  accept step; anyone may step onto a waiting pad with room, and walking off (or Leave) leaves
+  at once. Everyone else can stand around and watch. The sign over a table (mode, host, count,
+  abilities, difficulty) shows only when you walk right up to it.
+- The first person on is the **host**. Everyone on the pad sees the **queue menu**: the host's
+  name, how many are on the pad, the **difficulty** (Classic, Difficult, Challenger; Classic
   preselected) and **abilities** on or off (on by default; the toggle does nothing until
   abilities exist). Only the host can change them or press **Start**. If the host leaves, the
-  next person in becomes host and the settings stay; they go back to Classic and on when the
-  box empties and after every game.
-- **Start:** with two players the game begins at once, no countdown: straight to the coin flip.
-  With four or six, the box shows its two halves (team A's and team B's) and your half is your
-  team; both halves stay grey, and Start stays greyed, until each holds half, then both turn
-  green. Three or five cannot start ("Need 2, 4 or 6 players"). Alone, Start offers **Play
-  solo** (starts immediately) and **Play against PC** (shows "Coming soon" until bots exist).
-  There is no automatic start against PC.
-- Every match is played on the one standard table model, in one of its two looks (section 16).
+  next to arrive becomes host and the settings stay; they go back to Classic and on when the
+  pad empties and after every game.
+- **Start** needs the pad full; the game begins at once, no countdown: straight to the coin
+  flip. **Teams go by arrival**: the first on (the host) is team A, the next team B, and so on
+  alternately. Until the pad is full the menu says how many more are needed. Alone on a **1v1
+  table**, Start offers **Play solo** (starts immediately) and **Play against PC** (does
+  nothing until bots exist); the 2v2 and 3v3 tables have no solo. There is no automatic
+  start against PC.
+- Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
   Solo: normal rules with no opponent; the first legally pocketed group is cleared first, then
@@ -277,22 +282,23 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 10. The hub and the world
 
 **Decided**
-- **For now, a plain baseplate** (designer, 2026-09-25): sixteen 1v1 tables in a grid of
-  four by four, the left two columns green cloth with wood and the right two blue cloth with
-  black wood (the two table looks, section 16), the spawn in front of them.
+- **For now, a plain baseplate**: sixteen tables in a grid of four by four (ten 1v1 at the
+  front, four 2v2, two 3v3 at the back; section 6), the left two columns in the regular
+  lobby's wood looks and the right two in the pro lobby's black looks (section 16), so every
+  combination can be tried; the spawn in front of them (designer, 2026-09-26).
 - Chairs and sofas are sittable. The **snack counter** hands out non-alcoholic drinks and
   snacks that the player can drink or eat (a tool with a short animation). No alcohol.
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
-  and above, where only Difficult and Challenger are available. All its tables use the blue
-  look; the rest of its look is decided later (a dim, moody neon room is the candidate).
+  and above, where only Difficult and Challenger are available. All its tables have black frames
+  (blue felt 1v1, red 2v2, charcoal 3v3; section 16); the rest of its look is decided later (a dim, moody neon room is the candidate).
 - A player's win streak shows above their head, and their country flag next to their name.
 
 - **The hub map is an open-air rooftop pool club** (designer, 2026-09-26), matching the
   concept art in `assets/map/reference/`: a city skyline on the left and a tropical coast with
   green mountain islands on the right, as seen from the entrance. The brief is
   `docs/prompts/ROOFTOP_MAP_PROMPT.md`. Nothing carries over from the removed maps.
-  - All 16 tables use the green look (this is the regular lobby; blue stays for the Pro
-    lobby). The tables turn sideways like the art: long sides face the entrance, four across
+  - All 16 tables have the regular lobby's wood frames: green felt 1v1, red 2v2, charcoal 3v3
+    (section 16; the black-frame looks stay for the Pro lobby). The tables turn sideways like the art: long sides face the entrance, four across
     and four deep.
   - Day and Sunset only, no night, the same for everyone on a server: about 10 minutes of
     day, a 1 minute fade, 5 minutes of sunset, a 1 minute fade back *(tune)*.
@@ -455,11 +461,16 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   rounded rails. Two-piece tapered legs with bolts, corner blocks, rail seams at the side
   pockets, a blank plate on the foot end for our own logo later, no ball-return window. Chrome
   caps on all six pockets, built as a removable part so the corners also look finished
-  without them. Two looks share the model: **bright blue cloth (photo-16 blue) with satin
-  black wood showing faint grain**, and **bright yellow-green cloth (the reference photo's
-  hue at real-cloth brightness) with red-brown wood**; chrome on both. **The regular lobby uses green on every table; the pro lobby uses blue
-  on every table** (2026-09-25); until the hub map, the baseplate shows eight of each
-  (designer, 2026-09-25). The cloth is a fine
+  without them. Looks are a cloth colour on one of two frames, **satin black wood showing
+  faint grain** or **red-brown wood**, chrome on both (changed 2026-09-26):
+  - **Regular lobby, wood frames:** bright yellow-green cloth (the reference photo's hue at
+    real-cloth brightness) on the 1v1 tables, raspberry red on the 2v2, slate charcoal on the
+    3v3.
+  - **Pro lobby, black frames:** bright blue cloth (photo-16 blue) on the 1v1 tables, and the
+    same raspberry red and slate charcoal on the 2v2 and 3v3.
+  - The red and charcoal were picked by colour difference against every ball so none blends
+    in: a truer red hides the red and maroon balls, a darker charcoal the 8.
+  - Until the hub map, the baseplate shows every combination (section 10). The cloth is a fine
   repeating texture tinted per look, lightly played: a faint break line, a rack patch, chalk
   near the pockets and a spot sticker.
 - UI: clean, thumb-friendly, icons before words. All text lives in one strings module; Roblox

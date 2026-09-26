@@ -1,7 +1,8 @@
-# Pool table package (Pro-Am style, two looks)
+# Pool table package (Pro-Am style, six looks on two frames)
 
 This folder holds one table model, built headlessly in Blender from the game's physics. Every
-look (skin) uses the same model and only changes textures. The standing brief is
+look (skin) uses the same model and only changes textures: a cloth tint (green, blue, raspberry
+red or slate charcoal) on the cherry-wood or black-wood frame maps (`Config.TableModel.Looks`). The standing brief is
 `docs/prompts/TABLE_BLENDER_PROMPT.md`. The decisions behind it are in `docs/DECISIONS.md`
 (2026-09-24).
 

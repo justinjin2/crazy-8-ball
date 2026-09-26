@@ -536,30 +536,30 @@ Config.Cue = {
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
 Config.Hub = {
-	-- A grid on the baseplate until the hub map is chosen (designer, 2026-09-25): four rows of
-	-- four, 26 studs apart across and 43 along. Across is the match fence's width (22 studs:
-	-- the walkway plus the queue box along one long side, Placement.matchFence) and a 4 stud
-	-- gap. Any table seats 1v1, 2v2 or 3v3; the host picks by who is in the box. Y is the
-	-- FLOOR height the table stands on, not the cloth: Placement.toWorld adds
-	-- Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees about world +Y; at 90 the head
-	-- rail faces world +Z, toward the spawn, and the queue box is on world +X.
+	-- A grid on the baseplate until the hub map is chosen: four rows of four, 26 studs apart
+	-- across and 43 along. Every table plays one mode, `teamSize` a side (designer,
+	-- 2026-09-26): ten 1v1, four 2v2 and two 3v3, the 1v1 tables at the front and the 3v3 at
+	-- the back; the left two columns have wood frames, the right two black (TableModel
+	-- LookByTable). Y is the FLOOR height the table stands on, not the cloth:
+	-- Placement.toWorld adds Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees about world
+	-- +Y; at 90 the head rail faces world +Z, toward the spawn, where the queue pad is.
 	Tables = {
-		{ id = 1, X = -39, Y = 0, Z = 0, YawDegrees = 90 },
-		{ id = 2, X = -13, Y = 0, Z = 0, YawDegrees = 90 },
-		{ id = 3, X = 13, Y = 0, Z = 0, YawDegrees = 90 },
-		{ id = 4, X = 39, Y = 0, Z = 0, YawDegrees = 90 },
-		{ id = 5, X = -39, Y = 0, Z = -43, YawDegrees = 90 },
-		{ id = 6, X = -13, Y = 0, Z = -43, YawDegrees = 90 },
-		{ id = 7, X = 13, Y = 0, Z = -43, YawDegrees = 90 },
-		{ id = 8, X = 39, Y = 0, Z = -43, YawDegrees = 90 },
-		{ id = 9, X = -39, Y = 0, Z = -86, YawDegrees = 90 },
-		{ id = 10, X = -13, Y = 0, Z = -86, YawDegrees = 90 },
-		{ id = 11, X = 13, Y = 0, Z = -86, YawDegrees = 90 },
-		{ id = 12, X = 39, Y = 0, Z = -86, YawDegrees = 90 },
-		{ id = 13, X = -39, Y = 0, Z = -129, YawDegrees = 90 },
-		{ id = 14, X = -13, Y = 0, Z = -129, YawDegrees = 90 },
-		{ id = 15, X = 13, Y = 0, Z = -129, YawDegrees = 90 },
-		{ id = 16, X = 39, Y = 0, Z = -129, YawDegrees = 90 },
+		{ id = 1, X = -39, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 2, X = -13, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 3, X = 13, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 4, X = 39, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
+		{ id = 5, X = -39, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 6, X = -13, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 7, X = 13, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 8, X = 39, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
+		{ id = 9, X = -39, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
+		{ id = 10, X = -13, Y = 0, Z = -86, YawDegrees = 90, teamSize = 2 },
+		{ id = 11, X = 13, Y = 0, Z = -86, YawDegrees = 90, teamSize = 2 },
+		{ id = 12, X = 39, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
+		{ id = 13, X = -39, Y = 0, Z = -129, YawDegrees = 90, teamSize = 2 },
+		{ id = 14, X = -13, Y = 0, Z = -129, YawDegrees = 90, teamSize = 3 },
+		{ id = 15, X = 13, Y = 0, Z = -129, YawDegrees = 90, teamSize = 3 },
+		{ id = 16, X = 39, Y = 0, Z = -129, YawDegrees = 90, teamSize = 2 },
 	},
 
 	-- How many tables to build, taken from the front of Tables.
@@ -698,21 +698,69 @@ Config.TableModel = {
 			LogoPlate = { Maps = "LogoPlate" },
 			Marks = { Maps = "Marks" },
 		},
+		-- The team tables (designer, 2026-09-26). Raspberry red for 2v2 and slate charcoal for
+		-- 3v3, each on either frame. Picked by colour difference (CIEDE2000) against every
+		-- ball: raspberry keeps at least 17 from the red and maroon balls, slate 22 from the 8
+		-- (the green cloth is 14.8 from the green ball). A truer red blends the red balls in.
+		RedWood = {
+			Cloth = { Maps = "Cloth", Tint = { 191, 38, 89 } },
+			Rails = { Maps = "RailsCherry" },
+			Body = { Maps = "BodyCherry" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
+		RedBlack = {
+			Cloth = { Maps = "Cloth", Tint = { 191, 38, 89 } },
+			Rails = { Maps = "RailsBlack" },
+			Body = { Maps = "BodyBlack" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
+		CharcoalWood = {
+			Cloth = { Maps = "Cloth", Tint = { 90, 94, 102 } },
+			Rails = { Maps = "RailsCherry" },
+			Body = { Maps = "BodyCherry" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
+		CharcoalBlack = {
+			Cloth = { Maps = "Cloth", Tint = { 90, 94, 102 } },
+			Rails = { Maps = "RailsBlack" },
+			Body = { Maps = "BodyBlack" },
+			Pockets = { Maps = "Parts" },
+			Caps = { Maps = "Parts" },
+			Hardware = { Maps = "Parts" },
+			LogoPlate = { Maps = "LogoPlate" },
+			Marks = { Maps = "Marks" },
+		},
 	} :: { [string]: { [string]: { Maps: string, Tint: { number }? } } },
-	-- The look every table uses unless LookByTable names another. Eventually the regular lobby
-	-- (this place) is green and the pro lobby, a separate place, all blue (GDD section 16).
+	-- The look every table uses unless LookByTable names another.
 	DefaultLook = "Green",
-	-- Table id -> look, for exceptions. For now the baseplate shows both (designer,
-	-- 2026-09-25): the right half of the grid (X = 13 and 39, Config.Hub.Tables) is blue.
+	-- Table id -> look. The regular lobby has wood frames (green 1v1, red 2v2, charcoal 3v3)
+	-- and the pro lobby black frames (blue 1v1, red 2v2, charcoal 3v3) (designer,
+	-- 2026-09-26). Until the pro lobby exists the baseplate shows every combination: the left
+	-- two columns (X -39 and -13) wood, the right two black; see Hub.Tables for the modes.
 	LookByTable = {
 		[3] = "Blue",
 		[4] = "Blue",
 		[7] = "Blue",
 		[8] = "Blue",
-		[11] = "Blue",
+		[10] = "RedWood",
+		[11] = "RedBlack",
 		[12] = "Blue",
-		[15] = "Blue",
-		[16] = "Blue",
+		[13] = "RedWood",
+		[14] = "CharcoalWood",
+		[15] = "CharcoalBlack",
+		[16] = "RedBlack",
 	} :: { [number]: string },
 	-- Most triangles over all eight meshes (Roblox caps each mesh at 20,000), and most unique
 	-- 1024 images over every look (ARCHITECTURE section 7).
@@ -2176,13 +2224,13 @@ Config.UI = {
 	PowerCueSlices = 44,
 	StatusTransparency = 0.35, -- the developer status line's ink backing (Config.Debug.ShowStatus)
 
-	-- The sign over a table's queue box (src/client/TableSign.luau). Only one shows: over the
+	-- The sign over a table's queue pad (src/client/TableSign.luau). Only one shows: over the
 	-- table you walk right up to, popping in, and never while you are in a box or playing
 	-- (designer, 2026-09-25: it used to hang over all sixteen tables all the time).
 	Sign = {
 		ShowStuds = 6, -- it pops up within this far of the table's match area (tune)
 		HideStuds = 8, -- and goes once you are this far out, so it does not flicker at the edge
-		HeightStuds = 6.5, -- above the queue box
+		HeightStuds = 6.5, -- above the queue pad
 		WidthPx = 280, -- its size on screen, pixels (the same at any distance)
 		HeightPx = 190, -- mode, host, count and abilities, difficulty, and the status pill
 		PillWidthPx = 60, -- the abilities ON/OFF pill
@@ -2317,9 +2365,10 @@ Config.Multiplayer = {
 	-- is a foul). The designer keeps it out of casual public games and in ranked only
 	-- (2026-09-23). Every table is casual until ranked matches exist (a table's `ranked` flag).
 	RailAfterContact = { Casual = false, Ranked = true },
-	-- On the baseplate in front of the table grid (Config.Hub.Tables), facing it: the green
-	-- tables on the left, the blue on the right. Y is the SpawnLocation's centre.
-	Spawn = { X = 0, Y = 0.5, Z = 29, YawDegrees = 0 },
+	-- On the baseplate in front of the table grid (Config.Hub.Tables), facing it, clear of the
+	-- front row's queue pads: wood-frame tables on the left, black on the right. Y is the
+	-- SpawnLocation's centre.
+	Spawn = { X = 0, Y = 0.5, Z = 38, YawDegrees = 0 },
 	CoinSeconds = 2.6, -- shared coin presentation; the host's Start leads straight into it
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
 	PlacementSeconds = 15, -- cue-ball placement window (break and ball in hand)
@@ -2341,24 +2390,20 @@ Config.Multiplayer = {
 	PlacementResolveBisections = 10, -- walk-back steps toward the last legal spot when push-out fails
 	PlacementResolveSlopInches = 0.001, -- pushed spots land this far clear so rounding never reads as contact
 	BreakAxisMinComponent = 0.35, -- break arrows follow screen-right unless the line runs nearly vertical on screen
-	-- One long box along a long side of every table (designer, 2026-09-25). Up to six step
-	-- in; the first in is the host, who picks the difficulty and presses Start. Two play 1v1,
-	-- four or six split into the box's two halves, one team each (Placement.queueBox).
+	-- One pad per table (Placement.queuePad). The first on is the host, who picks the
+	-- difficulty and presses Start once the pad is full; teams alternate in arrival order.
 	Queue = {
-		Capacity = 6, -- players in one box: up to 3v3
-		BoxLengthStuds = 18, -- along the table's length, six abreast
-		BoxDepthStuds = 4, -- out from the table
-		BoxGapStuds = 0.5, -- from the walkway's edge (Fence.HalfWidthStuds) to the box
-		-- Which long side: the sign of physics y. -1 puts it on world +X at yaw 90, the right
-		-- of each table as you walk in from the spawn.
-		Side = -1,
-		SideHysteresisStuds = 0.4, -- past the middle line by this much before your half changes
-		FenceMarginStuds = 0.5, -- the match fence stands this far beyond the box
-		-- The server checks who is in each box this often, rather than using .Touched, which
-		-- misses a player who walks in and stands still.
-		PollsPerSecond = 5,
-		DwellSeconds = 0.35, -- inside the box this long before you join: walking across does not
-		ExitGraceSeconds = 0.5, -- outside it this long before you leave: forgive edge jitter
+		-- One round pad per table, at its head end toward the spawn (designer, 2026-09-26):
+		-- stand anywhere on it to join. It holds both teams, twice the table's teamSize.
+		PadRadiusStuds = { 3.5, 4.25, 5 }, -- by team size: 1v1, 2v2, 3v3 (tune)
+		PadGapStuds = 1, -- from the walkway's head end (Fence.HalfLengthStuds) to the pad
+		FenceMarginStuds = 0.5, -- the match fence stands this far beyond the pad
+		-- The server checks who is on each pad this often, rather than using .Touched, which
+		-- misses a player who walks on and stands still. It also paces the match loop.
+		PollsPerSecond = 10,
+		-- Join the moment you are on it (designer, 2026-09-26: "it needs to be instant").
+		DwellSeconds = 0,
+		ExitGraceSeconds = 0.5, -- off it this long before you leave: forgive edge jitter
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same
@@ -2370,7 +2415,7 @@ Config.Multiplayer = {
 	Fence = { -- invisible walls around each match area; stop participants only (PoolFence group)
 		-- The walkway round the table, where the shooter stands (ShooterStance.area): this far
 		-- from the table centre along its length, both ends, and across its width. The match
-		-- fence is the walkway grown to take in the queue box (Placement.matchFence).
+		-- fence is the walkway grown to take in the queue pad (Placement.matchFence).
 		HalfLengthStuds = 13,
 		HalfWidthStuds = 8.5,
 		ThicknessStuds = 1, -- wall thickness
@@ -2380,7 +2425,7 @@ Config.Multiplayer = {
 	-- follows ShooterStance, so a late joiner or a far table sees the shooter at the table; at
 	-- the shot it goes exactly to the stance spot. Each client poses the body itself.
 	Stance = {
-		ServerMovesPerSecond = 5, -- while aiming, the root follows the aim at most this often (constrain runs at Pad.PollsPerSecond, so more has no effect)
+		ServerMovesPerSecond = 5, -- while aiming, the root follows the aim at most this often (constrain runs at Queue.PollsPerSecond, so more has no effect)
 		ServerMoveStuds = 1, -- ...and only once the stance has moved this far from where the root is
 		ServerMoveDegrees = 20, -- ...or turned this far
 		-- After the shot the root is held at the shot spot this long (seconds), so the stroke
@@ -2411,43 +2456,30 @@ Config.Multiplayer = {
 	CoinSound = "rbxassetid://7022812395", -- Creator Store coin flip; preload verified
 	UISoundVolume = 0.35, -- quiet underneath physical impact mix
 	QueueVisual = {
-		BoxHeight = 0.12, -- thin floor strip, studs
+		-- The queue pad (TableService.buildPad): a white disc with a glowing rim, the table's
+		-- mode written big on it and STEP IN or the count under that.
+		PadHeight = 0.16, -- the disc's thickness, studs
 		FloorOffset = 0.08, -- avoid baseplate z-fighting, studs
-		PixelsPerStud = 40, -- sharp floor labels without large canvases
-		FrameTransparency = 0.7, -- the white label panel: faint, so the box's green shows through
-		CornerPixels = 24, -- rounded floor strip corners
-		EdgePixels = 4, -- softly pulsing outline thickness
-		EdgeTransparency = 0.15, -- brightest edge phase
-		GradientRotation = 45, -- subtle diagonal surface highlight
-		GradientMin = 0.05, -- first gradient stop transparency
-		GradientMax = 0.5, -- last gradient stop transparency
-		LightBrightness = 0.35, -- bounded ambient surface glow
-		LightRange = 5, -- local box lighting, studs
-		EmptyTransparency = 0.18, -- the box's white footprint
-		LabelInset = 0.08, -- floor words keep this share of the strip clear at each edge
-		FloorTextSize = 52, -- the box's words, pixels (at PixelsPerStud: 1.3 studs tall)
-		HalfTextSize = 44, -- a team half's words (a half is half as long)
-		FloorIconPx = 84, -- the people icon before the box's words
-		FloorIconGapPx = 14, -- between the icon and the words
-		LabelRotation = 90, -- floor words lie along the box, upright from outside it (90 or -90)
-		HalfGapStuds = 0.3, -- the two halves stop short of the middle and the edges by this
-		HalfLiftStuds = 0.02, -- halves float this far over the box, so they never z-fight it
-		HalfTransparency = 0.25, -- a shown half
-		HalfBackingTransparency = 0.8, -- its label panel lets the grey or green show through
-		HalfUneven = { 150, 156, 166 }, -- grey: the halves do not hold half each yet
-		DividerStuds = 0.2, -- the line between the halves
-		DividerTransparency = 0.1, -- shown with the halves
-		VerticalTolerance = 6, -- a box cannot seat someone on a different floor, studs
-		AreaMargin = 1, -- the queue area around the box: leaving it starts the exit grace
+		PadColor = { 245, 248, 255 }, -- the disc: near white
+		PadTransparency = 0.05,
+		RimStuds = 0.45, -- the glowing rim showing round the disc
+		RimFree = { 59, 155, 255 }, -- house blue while there is room
+		RimFull = { 255, 201, 40 }, -- gold once the pad is full or its game is on
+		PixelsPerStud = 40, -- sharp words on the pad without large canvases
+		ModeTextSize = 110, -- "1v1" on the pad, pixels (about 2.75 studs tall)
+		CountTextSize = 50, -- STEP IN or 1/2 under it
+		LabelRotation = 180, -- turns the pad's words to read upright from the spawn (tune)
+		LightBrightness = 0.35, -- bounded ambient glow from the pad
+		LightRange = 6, -- studs
+		VerticalTolerance = 6, -- a pad cannot seat someone on a different floor, studs
+		AreaMargin = 1, -- the queue area round the pad: leaving it starts the exit grace
 		FallTolerance = 5, -- recover a falling participant below the table area
 		RespawnHeight = 3, -- safe standing root height above baseplate, studs
 		RespawnBoundaryInset = 1, -- keep respawns inside confinement, studs
-		-- Somebody in the box (src/client/BoxEffects.luau). (tune)
-		EdgeBaseTransparency = 0.15, -- box outline at rest
-		EdgePulseAmplitude = 0.1, -- box outline breathing
+		-- The pad's effects (src/client/BoxEffects.luau). (tune)
 		FadeInSeconds = 0.25, -- how fast the whole effect lights up and fades out
 		MoteTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built-in sparkle
-		MoteRate = 30, -- light motes per second while occupied, over the whole box
+		MoteRate = 30, -- light motes per second while occupied, over the whole pad
 		MoteBurst = 40, -- motes thrown up on arrival
 		MoteSize = 0.5, -- studs, shrinking to nothing
 		MoteLifetime = { 0.8, 1.4 }, -- seconds
@@ -2457,12 +2489,20 @@ Config.Multiplayer = {
 		GlowBrightness = 1.4, -- steady glow while occupied
 		GlowBurstBrightness = 5, -- arrival flare
 		GlowBurstSeconds = 0.6, -- flare settling time
-		FrameThicknessStuds = 0.16, -- rising scan frame round the box
-		FrameRiseStuds = 7, -- how high it climbs before vanishing
-		FrameRiseSeconds = 1.1, -- climb time
-		FramePeriodSeconds = 1.6, -- one frame every this often
+		-- Rings pulse out from the rim while the pad has room: "step here".
+		RingPeriodSeconds = 1.6, -- one ring every this often
+		RingReach = 0.55, -- how far past the rim a ring travels before it fades, as a share of the radius
+		RingStrokePx = 14, -- ring thickness on the pad's canvas (PixelsPerStud)
+		RingTransparency = 0.25, -- a ring at its brightest
+		-- A big arrow bobs above the pad, pointing down, while it has room and you are not
+		-- seated anywhere.
+		ArrowHeightStuds = 6, -- above the pad
+		ArrowSizeStuds = 3.2,
+		ArrowBobStuds = 0.7, -- up and down
+		ArrowBobSeconds = 1.2, -- one bob
+		ArrowMaxDistance = 90, -- studs: hidden further away
 		JoinSound = "rbxassetid://131677760492710", -- Creator Store "Beacon SFX" power-up; loads in this experience, listening pending
-		JoinSoundVolume = 0.5, -- heard around the box, not across the room
+		JoinSoundVolume = 0.5, -- heard around the pad, not across the room
 		JoinSoundMinDistance = 8, -- studs at full volume
 		JoinSoundMaxDistance = 60, -- studs until silent
 	},

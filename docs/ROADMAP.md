@@ -109,6 +109,19 @@ and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
   from wherever they walked. Done means: checked in Studio with a watcher client; phone
   thumbstick and controller stick move the body; console clean.
 
+## Fixed-mode tables and queue pads (2026-09-26)
+
+The designer went back to one mode per table, with one round pad each to step onto, and a
+look per mode and lobby. Decisions: DECISIONS.md (2026-09-26), GDD sections 6, 10 and 16.
+
+- [ ] **Tables, pads and looks.** Ten 1v1, four 2v2 and two 3v3 tables (1v1 at the front);
+  one glowing pad per table at the head end that joins instantly, rings and an arrow while it
+  has room; teams by arrival; solo only on 1v1; six looks (green/wood, blue/black, red on
+  either, charcoal on either), the baseplate showing each. Done means: lint, tests, Studio
+  play (joining, fixtures, looks), the place saved.
+- [ ] **Checked on every device.** A real phone and controller, and a real two-player and
+  four-player match.
+
 ## UI redo (2026-09-25)
 
 The designer asked for every screen in the new style (UI_STYLE.md): white cards with ink

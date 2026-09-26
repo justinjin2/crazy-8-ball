@@ -29,7 +29,7 @@ local SpinSelector = require(script.Parent.SpinSelector)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
-local BoxEffects = require(script.Parent.BoxEffects)
+local PadEffects = require(script.Parent.PadEffects)
 local QueueMenu = require(script.Parent.QueueMenu)
 local TableSign = require(script.Parent.TableSign)
 local M = Config.Multiplayer
@@ -461,7 +461,15 @@ local function acquireTable(s: any?)
 	end
 	refreshAim()
 end
+-- The pad you just left (Leave, or a game that ended): the server will not seat you on it
+-- again until you step off, so neither does the predicted menu below.
+local seatedAt: number? = nil
+local leftPad: number? = nil
 hub:onSeatChanged(function(id)
+	if id == nil and seatedAt then
+		leftPad = seatedAt
+	end
+	seatedAt = id
 	acquireTable(if id then hub.snapshots[id] else nil)
 end)
 hub:onSnapshot(function(s)
@@ -614,7 +622,7 @@ UserInputService.InputBegan:Connect(function(key, processed)
 	end
 end)
 local zones = workspace:WaitForChild("TableZones")
-local boxEffects = BoxEffects.new(zones)
+local padEffects = PadEffects.new(zones)
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
@@ -637,6 +645,25 @@ local avatarContext: Avatar.Context = {
 	aimTurn = false,
 	cameraPos = nil,
 }
+-- Which table's pad a root stands on (grown by `margin` studs), found from the pads' own
+-- attributes, or nil.
+local predictedPad: number? = nil
+local function padUnder(root: BasePart, margin: number): number?
+	for id = 1, Placement.tableCount() do
+		local pad = zones:FindFirstChild(("QueuePad_%02d"):format(id))
+		local radius = pad and pad:GetAttribute("Radius")
+		if pad and pad:IsA("BasePart") and type(radius) == "number" then
+			local d = root.Position - pad.Position
+			if
+				Vector2.new(d.X, d.Z).Magnitude <= radius + margin
+				and math.abs(d.Y) < M.QueueVisual.VerticalTolerance
+			then
+				return id
+			end
+		end
+	end
+	return nil
+end
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
 	for id = 1, Placement.tableCount() do
@@ -652,7 +679,7 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
-	boxEffects:update(dt, queueOpen)
+	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled)
 	-- The sign over the table you walk up to; none while you are in a box or playing.
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
@@ -664,6 +691,37 @@ RunService.RenderStepped:Connect(function(dt)
 			return hub.snapshots[id]
 		end
 	)
+	-- Stepping onto a pad pops the host menu this frame (designer, 2026-09-26: "it needs to
+	-- be instant"), before the server, which polls the pads, has seated you: the table's
+	-- snapshot with you added. The server's own arrives a moment later and takes over; if it
+	-- never seats you (the pad filled first), the menu goes when you step off.
+	if hub.mySeat == nil and not controlled then
+		local root = if rootPart and rootPart:IsA("BasePart") then rootPart else nil
+		local on = root and padUnder(root, 0)
+		if leftPad and not (root and padUnder(root, M.QueueVisual.AreaMargin) == leftPad) then
+			leftPad = nil
+		end
+		local s = if on and on ~= leftPad then hub.snapshots[on] else nil
+		if s and s.phase == "Waiting" and #s.seats < s.teamSize * 2 then
+			local predicted = table.clone(s)
+			predicted.seats = table.clone(s.seats)
+			table.insert(predicted.seats, {
+				userId = player.UserId,
+				name = player.Name,
+				displayName = player.DisplayName,
+				connected = true,
+			})
+			predicted.hostId = s.hostId or player.UserId
+			queueMenu:setSnapshot(predicted, player.UserId)
+			queueMenu:update(workspace:GetServerTimeNow())
+			predictedPad = on
+		elseif predictedPad then
+			predictedPad = nil
+			queueMenu:setSnapshot(nil, player.UserId)
+		end
+	elseif predictedPad then
+		predictedPad = nil -- the server has seated you; the real snapshot drives the menu
+	end
 	if not snapshot or not match then
 		return
 	end
