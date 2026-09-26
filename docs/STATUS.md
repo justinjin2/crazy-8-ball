@@ -52,8 +52,8 @@ day sky).**
 - **What:** 47 badges in `assets/ui/ranks/`: Unranked, Bronze I to Grandmaster V (stars up to
   Diamond, gems from Expert, crowns from Expert that grow each tier), and Reyes. Redrawn the
   same day so each tier is its own badge like the designer's reference sheet, then: Diamond
-  cyan, Grandmaster black and gold, Reyes rainbow, and bold outlined pips on the ring's bottom
-  edge (no tray). Each has a
+  cyan, Grandmaster black and gold, Reyes rainbow, crisp bevelled pips on the ring's bottom
+  edge (no tray, nothing below them), and more glare. `--gif` renders them all shining. Each has a
   white shine mask for the light sweep, plus a sparkle image. Made by
   `tools/gen_rank_badges.py`; look and shine in `docs/UI_STYLE.md` sections 6 and 7.
 - **Verified:** every badge rendered and checked on a contact sheet and at full size (none

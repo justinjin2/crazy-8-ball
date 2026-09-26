@@ -61,3 +61,7 @@ python3 -m http.server 8765 --directory assets/ui
 
 then open http://localhost:8765/ranks/preview.html (tick "dark background" to see the
 sparkles and Reyes' rays best).
+
+Or, without a browser: `python3 tools/gen_rank_badges.py --gif shine.gif` writes a looping
+GIF of every badge shining (and `--sheet sheet.png` a still contact sheet). Keep those out of
+the repo; they are for reviewing.

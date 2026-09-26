@@ -121,9 +121,13 @@ order; that is Open.
   (bigger each tier, Veteran included; Reyes the biggest); pips on the ring's bottom edge like
   the reference's single star, following its curve: 1 to 5 stars from Bronze to Diamond, 1 to
   5 gems from Expert to Grandmaster (1 = division I). The middle pip is the biggest and each
-  step outwards a little smaller; they never overlap; each has a thick ink outline, a small
-  shadow and a soft glow, so it pops on any colour with nothing behind it (no tray). The pips
-  never hide the badge's own shape: the frame's point stays the bottom of every badge. Diamond is cyan. Grandmaster is black and gold
+  step outwards a little smaller; they never overlap; each has an ink outline and a soft glow,
+  so it pops on any colour with nothing behind it (no tray). Stars are crisp and straight-edged,
+  bevelled like a pyramid (each facet lit or shaded), never puffy. On a badge with pips the
+  frame ends just under the middle one, so the pips are the badge's lower edge and nothing
+  hangs below them; Unranked and Reyes keep the frame's point. Glare like the reference:
+  polished metal with a bright band, white streaks on the lit bevels, a glint on the frame's
+  lit corner and on each pip, and a big glossy reflection on the 8 ball. Diamond is cyan. Grandmaster is black and gold
   (a gold trim, crown and ring, black feathers with gold veins, gold gems). Reyes is a rainbow
   badge in the house rainbow (section 4's VIP colours: a rainbow frame, ring and crown, its
   crystals and blades red to purple), with no pips and no signature (2026-09-26). No banner

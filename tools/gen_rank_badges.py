@@ -21,7 +21,8 @@ Outputs under assets/ui/ranks/ (see README.md there):
   sparkle.png                                 a white four-point twinkle, 128 px
   preview.html                                every badge with its animation (open in Chrome)
 
-Run: python3 tools/gen_rank_badges.py [--sheet path.png]   (--sheet also writes a contact sheet)
+Run: python3 tools/gen_rank_badges.py [--sheet sheet.png] [--gif shine.gif]
+(--sheet also writes a contact sheet, --gif every badge shining; both for review only)
 """
 import base64
 import math
@@ -44,11 +45,11 @@ RING = 58  # the metal ring's outer radius
 BALL = 46
 # The pips sit on the ring's bottom edge like the reference's single star, following its
 # curve, with the frame's point still showing below. The middle one is the biggest.
-PIP_RING = 64  # the pips' centres, this far from the ball's centre (the ring's edge is 58)
-PIP_SIZE = 19  # the middle pip's radius...
+PIP_RING = 60  # the pips' centres, this far from the ball's centre (on the ring, whose edge is 58)
+PIP_SIZE = 18  # the middle pip's radius...
 PIP_TAPER = 0.1  # ...each step outwards this much smaller
 PIP_GAP = 0.9  # neighbours' centres this fraction of their two radii apart: close, never overlapping
-PIP_OUTLINE = 3.2  # the thick sticker outline round each pip, so it pops on any colour
+PIP_OUTLINE = 2  # the outline round each pip, so it pops on any colour
 CROWN_BASE = 80  # the crown's bottom edge, on the ring's top
 LIGHT = (-0.55, -0.83)  # towards the light, for the facets: the top left
 OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
@@ -166,7 +167,8 @@ def gradients(metal):
     else:
         tier = (
             # metal face: light top-left to dark bottom-right
-            linear("m", [(0, light), (0.5, mid), (1, dark)])
+            linear("m", [(0, mix(light, "#FFFFFF", 0.3)), (0.34, light), (0.46, mid), (0.52, mix(light, "#FFFFFF", 0.2)),
+                         (0.6, mid), (1, dark)])
             # metal rim: turned the other way, so a rim round a face reads as a bevel
             + linear("r", [(0, mix(mid, dark, 0.45)), (0.6, mid), (1, mix(light, mid, 0.4))])
             # wings: a little deeper than the face, so they read against it
@@ -223,13 +225,31 @@ def shard(p, ang, length, width, fill="url(#w)", light="#FFFFFF"):
     )
 
 
-def star_path(c, r):
+def star_points(c, r, inner=0.48):
     pts = []
     for i in range(10):
         a = math.radians(-90 + i * 36)
-        rr = r if i % 2 == 0 else r * 0.5
+        rr = r if i % 2 == 0 else r * inner
         pts.append((c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr))
-    return rpoly(pts, 2.2)
+    return pts
+
+
+def star_path(c, r):
+    return "M" + " L".join(pt(p) for p in star_points(c, r)) + " Z"
+
+
+def bevelled_star(c, r, light, mid, dark):
+    """A crisp star with straight edges, raised like a pyramid: each of its ten facets lit
+    or shaded by which way it faces, like the reference's star."""
+    pts = star_points(c, r)
+    out = []
+    for i in range(10):
+        a, b = pts[i], pts[(i + 1) % 10]
+        t = facing(a, b)
+        colour = mix(mid, light, t) if t >= 0 else mix(mid, dark, -t)
+        out.append(poly([c, a, b], colour, False, f'stroke="{colour}" stroke-width="0.6"'))
+    out.append(f'<path d="{star_path(c, r)}" fill="none" stroke="{INK}" stroke-width="{EDGE}" stroke-linejoin="miter"/>')
+    return "".join(out) + glint((c[0] - r * 0.28, c[1] - r * 0.32), r * 0.3, 0.9)
 
 
 def star(c, r, fill="url(#s)"):
@@ -301,41 +321,73 @@ def facet_colour(metal, a, b):
         mx, my = (a[0] + b[0]) / 2 - CX, (a[1] + b[1]) / 2 - CY
         mid = rainbow_at((math.degrees(math.atan2(my, mx)) + 90) / 360)
         light, dark = mix(mid, "#FFFFFF", 0.55), mix(mid, dark, 0.3)
-    return mix(mid, light, t * 0.9) if t >= 0 else mix(mid, dark, -t * 0.85)
+    light, dark = mix(light, "#FFFFFF", 0.3), mix(dark, "#000000", 0.15)
+    return mix(mid, light, t) if t >= 0 else mix(mid, dark, -t)
+
+
+def facing(a, b):
+    """How much edge a->b faces the light: 1 straight at it, -1 away."""
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    return (dy * LIGHT[0] - dx * LIGHT[1]) / math.hypot(dx, dy)
+
+
+def glint(c, size, opacity=0.95):
+    """A sharp four-point glint of light, the reference's glare on polished metal."""
+    x, y = c
+    d = (
+        f"M{x:.1f} {y - size:.1f} C{x + size * 0.1:.1f} {y - size * 0.15:.1f} {x + size * 0.15:.1f} {y - size * 0.1:.1f} "
+        f"{x + size:.1f} {y:.1f} C{x + size * 0.15:.1f} {y + size * 0.1:.1f} {x + size * 0.1:.1f} {y + size * 0.15:.1f} "
+        f"{x:.1f} {y + size:.1f} C{x - size * 0.1:.1f} {y + size * 0.15:.1f} {x - size * 0.15:.1f} {y + size * 0.1:.1f} "
+        f"{x - size:.1f} {y:.1f} C{x - size * 0.15:.1f} {y - size * 0.1:.1f} {x - size * 0.1:.1f} {y - size * 0.15:.1f} {x:.1f} {y - size:.1f} Z"
+    )
+    return (
+        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{size * 0.55:.1f}" fill="url(#shine)" opacity="{opacity * 0.9:.2f}"/>'
+        f'<path d="{d}" fill="#FFFFFF" opacity="{opacity}"/>'
+    )
 
 
 def faceted(points, metal, bevel, face="url(#m)"):
-    """A bevelled plate like the reference's frames: one flat facet per edge round a face."""
+    """A bevelled plate like the reference's frames: one flat facet per edge round a face, and
+    a streak of glare along the facets that face the light."""
     inner = inset_poly(points, bevel)
     out = []
+    streaks = []
     n = len(points)
     for i in range(n):
         j = (i + 1) % n
         colour = facet_colour(metal, points[i], points[j])
         out.append(poly([points[i], points[j], inner[j], inner[i]], colour, False, f'stroke="{colour}" stroke-width="0.8"'))
+        t = facing(points[i], points[j])
+        if t > 0.35:
+            a = ((points[i][0] * 2 + inner[i][0]) / 3, (points[i][1] * 2 + inner[i][1]) / 3)
+            b = ((points[j][0] * 2 + inner[j][0]) / 3, (points[j][1] * 2 + inner[j][1]) / 3)
+            a, b = (a[0] + (b[0] - a[0]) * 0.15, a[1] + (b[1] - a[1]) * 0.15), (a[0] + (b[0] - a[0]) * 0.8, a[1] + (b[1] - a[1]) * 0.8)
+            streaks.append(ui.line([a, b], "#FFFFFF", max(1.4, bevel * 0.22), f'opacity="{0.35 + 0.5 * t:.2f}"'))
+    out += streaks
     out.append(poly(inner, face, False))
-    out.append(poly(inner, "none", False, f'stroke="{INK}" stroke-width="1.6" stroke-opacity="0.45" stroke-linejoin="round"'))
+    out.append(poly(inner, "none", False, f'stroke="{INK}" stroke-width="1.8" stroke-opacity="0.6" stroke-linejoin="round"'))
     out.append(poly(points, "none"))
     return "".join(out)
 
 
-def round_frame():
-    pts = [along((CX, CY), a, 70) for a in range(120, 421, 20)]
-    return pts + [(CX, CY + 90)]
+def frame_points(kind, has_pips):
+    """The frame's outline. With pips its bottom stops at them, so the pips are the badge's
+    lower edge and nothing hangs below them; without (Unranked, Reyes) it runs to a point."""
+    bottom = 212 if has_pips else 228  # with pips: just under the middle one
+    if kind == "hex":  # pointed top and bottom, like Bronze to Diamond in the reference
+        return [(128, 42), (198, 84), (198, 176), (128, bottom), (58, 176), (58, 84)]
+    if kind == "crest":  # a flat top for a crown to sit on
+        return [(96, 72), (160, 72), (198, 98), (198, 176), (128, bottom), (58, 176), (58, 98)]
+    # "round": a ring, with a point at the bottom when there are no pips (like Reyes)
+    if has_pips:
+        return [along((CX, CY), a, 70) for a in range(90, 450, 20)]
+    return [along((CX, CY), a, 70) for a in range(120, 421, 20)] + [(CX, CY + 90)]
 
 
-FRAMES = {
-    # pointed top and bottom, like Bronze to Diamond in the reference
-    "hex": [(128, 42), (198, 84), (198, 180), (128, 228), (58, 180), (58, 84)],
-    # a flat top for a crown to sit on
-    "crest": [(96, 72), (160, 72), (198, 98), (198, 180), (128, 228), (58, 180), (58, 98)],
-    # a ring with a point at the bottom, like Expert and Reyes
-    "round": round_frame(),
-}
-
-
-def frame(kind, metal, face="url(#r)"):
-    return faceted(FRAMES[kind], metal, 10, face) + gloss(86, 76, 16, 6, -32, 0.75)
+def frame(kind, metal, has_pips, face="url(#r)"):
+    pts = frame_points(kind, has_pips)
+    corner = min(pts, key=lambda p: p[0] + p[1])  # the corner nearest the light
+    return faceted(pts, metal, 10, face) + gloss(86, 76, 16, 6, -32, 0.75) + glint(corner, 9)
 
 
 def ring(face="url(#m)", rim="url(#r)"):
@@ -356,8 +408,11 @@ def eight_ball():
         f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="{spot_r:.1f}" fill="#FFFFFF"/>'
         f'<text x="{sx:.1f}" y="{sy + spot_r * 0.5:.1f}" font-family="Arial Black, Arial, sans-serif" '
         f'font-weight="900" font-size="{spot_r * 1.45:.1f}" text-anchor="middle" fill="{INK}">8</text>'
-        + gloss(CX - r * 0.42, CY - r * 0.5, r * 0.34, r * 0.17, -35, 0.85)
-        + gloss(CX + r * 0.45, CY + r * 0.5, r * 0.14, r * 0.07, -40, 0.35)
+        + gloss(CX - r * 0.36, CY - r * 0.44, r * 0.5, r * 0.28, -35, 0.45)
+        + gloss(CX - r * 0.42, CY - r * 0.52, r * 0.3, r * 0.13, -35, 0.95)
+        + glint((CX - r * 0.52, CY - r * 0.46), r * 0.16)
+        + f'<path d="M{CX + r * 0.93:.1f} {CY + r * 0.3:.1f} A{r * 0.97:.1f} {r * 0.97:.1f} 0 0 1 {CX + r * 0.2:.1f} {CY + r * 0.95:.1f}" '
+        f'fill="none" stroke="#FFFFFF" stroke-width="{r * 0.07:.1f}" stroke-linecap="round" opacity="0.35"/>'
     )
 
 
@@ -377,8 +432,8 @@ def pip_layout(count):
 
 
 def pips(kind, count, metal):
-    """The division: 1 to 5 bright stars or gems along the ring's bottom, each with a thick
-    outline, a small shadow and a soft glow, so they pop without a tray behind them."""
+    """The division: 1 to 5 bright stars or gems on the ring's bottom, each with an outline and
+    a soft glow, so they pop without a tray behind them."""
     light, mid, dark = metal
     out = [
         '<defs><radialGradient id="glow"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>'
@@ -387,11 +442,9 @@ def pips(kind, count, metal):
     thick = f'stroke="{INK}" stroke-width="{2 * PIP_OUTLINE + EDGE}" stroke-linejoin="round"'
     for c, r in pip_layout(count):
         out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r * 1.35:.1f}" fill="url(#glow)"/>')
-        shadow = (c[0], c[1] + 3)
         if kind == "star":
-            out.append(path(star_path(shadow, r), "#000000", False, 'opacity="0.35"'))
             out.append(path(star_path(c, r), INK, False, thick))
-            out.append(star(c, r, fill="url(#s)"))
+            out.append(bevelled_star(c, r, "#FFFFFF", mix(light, "#FFFFFF", 0.3), mix(light, mid, 0.55)))
         else:
             if metal == PRISM:  # a rainbow tier's gems are prismatic: each facet a pale rainbow tint
                 facets = tuple(mix(RAINBOW[k], "#FFFFFF", 0.45) for k in (0, 2, 4, 5))
@@ -405,7 +458,6 @@ def pips(kind, count, metal):
             def rhombus(p):
                 return [(p[0], p[1] - h), (p[0] + w, p[1]), (p[0], p[1] + h), (p[0] - w, p[1])]
 
-            out.append(poly(rhombus(shadow), "#000000", False, 'opacity="0.35"'))
             out.append(poly(rhombus(c), INK, False, thick))
             out.append(gem(c, h, light, light, mid, 0.84, facets))
     return "".join(out)
@@ -486,30 +538,19 @@ def fin(p, ang, length, width, metal):
     )
 
 
-def dark_metal(m):
-    light, mid, dark = m
-    return (mix(light, mid, 0.5), mix(mid, dark, 0.35), mix(dark, "#000000", 0.2))
-
-
 def orn_bronze(m):
-    """One tall plate each side, leaning out, over a darker foot."""
-    return faceted([(52, 180), (84, 196), (112, 228), (80, 228)], dark_metal(m), 5) + faceted(
-        [(30, 92), (62, 102), (84, 204), (54, 198)], m, 6
-    )
+    """One tall plate each side, leaning out."""
+    return faceted([(30, 92), (62, 102), (80, 186), (52, 182)], m, 6)
 
 
 def orn_silver(m):
     """A taller plate each side with a pointed top."""
-    return faceted([(48, 176), (84, 196), (112, 228), (78, 228)], dark_metal(m), 5) + faceted(
-        [(24, 68), (64, 102), (84, 204), (50, 194)], m, 6
-    )
+    return faceted([(24, 68), (64, 102), (80, 186), (48, 178)], m, 6)
 
 
 def orn_gold(m):
     """A broad plate each side, flaring out like a shoulder."""
-    return faceted([(38, 170), (86, 198), (112, 228), (74, 228)], dark_metal(m), 5) + faceted(
-        [(12, 74), (60, 90), (86, 206), (40, 186)], m, 6
-    )
+    return faceted([(12, 74), (60, 90), (82, 188), (38, 172)], m, 6)
 
 
 def orn_platinum(m):
@@ -533,12 +574,12 @@ def orn_veteran(m):
     """A laurel wreath round the frame."""
     out = []
     radius = 86
-    stem = [along((CX, CY), 96 + i * 20, radius) for i in range(8)]
+    stem = [along((CX, CY), 138 + i * 20, radius) for i in range(6)]
     stem_d = "M" + " L".join(pt(p) for p in stem)
     out.append(f'<path d="{stem_d}" fill="none" stroke="{INK}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>')
     out.append(f'<path d="{stem_d}" fill="none" stroke="{m[2]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')
-    for i in range(7):
-        a = 100 + i * 20
+    for i in range(6):
+        a = 142 + i * 20
         p = along((CX, CY), a, radius)
         tangent = a + 90  # pointing up the wreath
         length = 42 - i * 0.8
@@ -603,14 +644,14 @@ def badge_body(tier, count):
         parts.append(mirrored(ORNAMENTS[name](metal)))
     if metal == BLACK:
         # a black frame with a gold trim line; the crown and ring gold
-        parts.append(frame(frame_kind, metal, face="url(#m)"))
-        trim = inset_poly(FRAMES[frame_kind], 10)
+        parts.append(frame(frame_kind, metal, bool(pip), face="url(#m)"))
+        trim = inset_poly(frame_points(frame_kind, bool(pip)), 10)
         parts.append(poly(trim, "none", False, 'stroke="url(#g)" stroke-width="3" stroke-linejoin="round"'))
         if crown_level:
             parts.append(crown(crown_level, face="url(#g)", rim="url(#gr)", gem_colours=RUBY))
         parts.append(ring(face="url(#g)", rim="url(#gr)"))
     else:
-        parts.append(frame(frame_kind, metal))
+        parts.append(frame(frame_kind, metal, bool(pip)))
         if crown_level:
             parts.append(crown(crown_level, gem_colours=(mix(light, "#FFFFFF", 0.4), light, mid)))
         parts.append(ring())
@@ -875,6 +916,71 @@ FX = {
 }
 
 
+def animated_gif(path_out, cell=100, fps=12, seconds=4.0):
+    """Every badge shining, as a looping GIF, for reviewing the animation (not a game asset).
+    The same effects as preview.html, fitted to one loop: each tier's sweep and twinkle run a
+    whole number of times per loop (so their timing is close to FX, not exact), and the rays
+    turn one wedge per 4/14 of their turn, which loops seamlessly."""
+    import numpy as np
+
+    rows = [["unranked", "reyes"]] + [[f"{t[0]}_{d}" for d in range(1, 6)] for t in TIERS]
+    fx_of = {"unranked": FX["none"], "reyes": FX["top"]}
+    for name, _, _, level, _ in TIERS:
+        for d in range(1, 6):
+            fx_of[f"{name}_{d}"] = FX["high" if level else "low"]
+    pad, label = 8, 0
+    width, height = pad + 5 * (cell + pad), pad + len(rows) * (cell + pad)
+    frames = round(seconds * fps)
+    sparkle = Image.open(os.path.join(ROOT, "sparkle.png")).convert("RGBA")
+    rays = Image.open(os.path.join(ROOT, "..", "art", "rays.png")).convert("RGBA")
+    gold = Image.new("RGBA", rays.size, (255, 201, 40, 255))
+    gold.putalpha(rays.getchannel("A").point(lambda a: int(a * FX["top"]["rays"]["alpha"])))
+    art = {}
+    for r, row in enumerate(rows):
+        for c, name in enumerate(row):
+            badge = Image.open(os.path.join(ROOT, name + ".png")).convert("RGBA").resize((cell, cell), Image.LANCZOS)
+            mask = np.asarray(Image.open(os.path.join(ROOT, "shine", name + ".png")).getchannel("A")
+                              .resize((cell, cell), Image.LANCZOS), dtype=np.float32) / 255
+            art[name] = (badge, mask, (pad + c * (cell + pad), pad + r * (cell + pad)), r)
+    ys, xs = np.mgrid[0:cell, 0:cell].astype(np.float32)
+    out = []
+    for f in range(frames):
+        t = f / fps
+        sheet = Image.new("RGBA", (width, height), (234, 241, 251, 255))
+        for name, (badge, mask, (x0, y0), row) in art.items():
+            fx = fx_of[name]
+            tile = Image.new("RGBA", (cell, cell), (0, 0, 0, 0))
+            if fx and fx.get("rays"):
+                size = int(cell * 1.24)
+                spun = gold.resize((size, size), Image.LANCZOS).rotate(-t / seconds * 360 * 4 / 14, Image.BICUBIC)
+                tile.alpha_composite(spun, (cell // 2 - size // 2, int(cell * 0.53) - size // 2))
+            tile.alpha_composite(badge)
+            if fx:
+                sweeps = max(1, round(seconds / fx["period"]))
+                phase = ((t + row * 0.23) % (seconds / sweeps)) / fx["sweep"]
+                if phase < 1:
+                    a = math.radians(fx["angle"])
+                    u = ((xs - cell / 2) * math.cos(a) + (ys - cell / 2) * math.sin(a)) / cell - (phase * 2 - 1)
+                    band = np.clip(1 - np.abs(u) / fx["width"], 0, 1) * fx["strength"]
+                    alpha = Image.fromarray((band * mask * 255).astype(np.uint8))
+                    white = Image.new("RGBA", (cell, cell), (255, 255, 255, 0))
+                    white.putalpha(alpha)
+                    tile.alpha_composite(white)
+                twinkle = seconds / max(1, round(seconds / fx["twinkle"])) if fx["sparkles"] else 1
+                for i in range(fx["sparkles"]):
+                    cycle = (t + row * 0.37 + i * twinkle / fx["sparkles"]) / twinkle
+                    k, p = int(cycle), cycle - int(cycle)
+                    if p > 0.5:
+                        continue
+                    spot = fx["spots"][(k * 3 + i * 5) % len(fx["spots"])]
+                    size = max(2, int(math.sin(p * 2 * math.pi) * cell * fx["sparkleSize"]))
+                    twink = sparkle.resize((size, size), Image.LANCZOS).rotate(math.degrees(p * 1.5), Image.BICUBIC)
+                    tile.alpha_composite(twink, (int(spot[0] / 256 * cell - size / 2), int(spot[1] / 256 * cell - size / 2)))
+            sheet.alpha_composite(tile, (x0, y0))
+        out.append(sheet.convert("RGB").quantize(colors=255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE))
+    out[0].save(path_out, save_all=True, append_images=out[1:], duration=round(1000 / fps), loop=0, optimize=True)
+
+
 def preview_html():
     import json
 
@@ -908,6 +1014,8 @@ def main():
         f.write(preview_html())
     if "--sheet" in sys.argv:
         contact_sheet(badges, sys.argv[sys.argv.index("--sheet") + 1])
+    if "--gif" in sys.argv:
+        animated_gif(sys.argv[sys.argv.index("--gif") + 1])
     print(f"wrote {len(badges)} badges, their shine masks and the sparkle under {os.path.normpath(ROOT)}")
 
 

@@ -1217,3 +1217,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   player crosses the roof. The city's heights step up with distance (only the landmarks rise
   over the roof close in), and its glass is a soft steel grey-blue, so the skyline never
   matches the gameplay's blue arrows and rings on a phone.
+- 2026-09-26: Rank badges, round nine (designer): stars were too puffy ("looks AI
+  generated"), so they are straight-edged and bevelled; nothing hangs below the pips any more
+  (the frame ends at them, and Bronze to Gold lose the dark feet under their plates, Veteran's
+  laurel stops beside them); more of the reference's glare (a bright band on polished metal,
+  streaks on lit bevels, glints, a glossier 8 ball). Checked in motion with a GIF of all 47.
