@@ -90,7 +90,8 @@ COLOURS = {
     # sea with the sun's orange path on it, magenta clouds lit peach from the sun's side.
     'sunset': {
         'top': '#4B2E9E',  # the art's #7B60BB
-        'mid': '#C4417F',  # the art's #D96094, at sky_mid
+        'mid': '#A63C8E',  # the art's #D96094, at sky_mid; toward violet (Stage 7 critic 1: the
+                           # upper sky read raspberry)
         'horizon': '#FF7A52',  # the art's #FD7E62
         # Round the sun: a broad warm lobe and a tight bright one (power: how tight; share: how
         # much of the way to the glow colour at the sun itself).
@@ -431,13 +432,15 @@ def dusk_colours():
 
 
 DUSK = 0.5  # how far from Day to Sunset the in-between sky is
+DUSK_FAR = 0.75  # ...and its far city and islands: toward their sunset look sooner, since
+                 # half way from the day's green to the sunset's purple read grey (critic 1)
 
 
 def build(scene, light):
     if light == 'dusk':
         COLOURS['dusk'] = dusk_colours()
         for key, value in FAR_COLOURS_SUNSET.items():
-            FAR_COLOURS[key] = mix_value(FAR_COLOURS[key], value, DUSK)
+            FAR_COLOURS[key] = mix_value(FAR_COLOURS[key], value, DUSK_FAR)
     elif light == 'sunset':
         FAR_COLOURS.update(FAR_COLOURS_SUNSET)
     c = COLOURS[light]
