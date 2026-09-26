@@ -1222,3 +1222,16 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (the frame ends at them, and Bronze to Gold lose the dark feet under their plates, Veteran's
   laurel stops beside them); more of the reference's glare (a bright band on polished metal,
   streaks on lit bevels, glints, a glossier 8 ball). Checked in motion with a GIF of all 47.
+- 2026-09-26: The rooftop map's far horizon (Stage 6) is painted into the skybox, not on the
+  brief's far cards: cards 2,000 studs out would vanish on the phones that need them most
+  (graphics levels 1 to 10 draw nothing that far). The 3D water and land stop at 2,600 studs,
+  where the painting takes over. Along the way:
+  - the big island behind the pergola moved from azimuth 3 to 7, clear of the city's shore;
+  - the near islands stay 3D only (a painted twin showed as a ghost peak behind its 3D island
+    from the roof's edges); five far-only islands on the ocean side, one a range behind the
+    near peak right of the pergola, give phones islands there instead;
+  - the far city's towers gather in three downtowns ahead-left, with six painted landmarks,
+    over a low carpet: a skyline's hierarchy rather than an even band;
+  - beyond the near world the stair side's thinning eases in by bearing (90 to 135 degrees)
+    instead of a straight line at Z 250, and the 3D city's outer 400 studs step down toward
+    the painting, so no hard edge shows in the city-side view (the near world is unchanged).

@@ -488,3 +488,40 @@ stages that build the real thing:
   - **The islands:** 2 or 3 humps each with a jagged ridge, grey-brown cliffs on the steep
     seaward sides, bigger and softer canopy blotches, rocks in groups, more and bigger palms.
   - **Stage 7 (lighting):** shade faces about 30% darker, and the Atmosphere haze for depth.
+- **Stage 6 critic, carried forward.** Three rounds, the cap.
+
+  | Area | Round 1 | Round 2 | Round 3 |
+  |---|---|---|---|
+  | Layout | 5 | 6 | 5 |
+  | Silhouettes | 4 | 6 | 4 |
+  | Palette | 4 | 5 | 4 |
+  | Materials | 5 | 5 | 4 |
+  | Lighting | 4 | 4 | 3 |
+  | Backdrop | 4 | 5 (3 at level 1) | 5 |
+  | Calm | 5 | 6 | 5 |
+  | Phone readability | 5 | 6 | 5 |
+
+  - **Fixed along the way:** a lower, calmer far city in three downtowns with six landmarks;
+    islets and five far-only islands on the ocean side; greener far islands with shaded
+    flanks; no ghost twins of the near islands; the stair side's hard edge; the pale sand
+    strip on the far shore (now a green waterfront) and the pale wedge of land colour right
+    of the city (the painted shore turns away beyond the far city, so the sea runs on to the
+    horizon behind the pergola).
+  - **Kept on purpose.**
+    - The rounds contradicted each other on the far islands: round 2 wanted them greener and
+      more saturated, round 3 slate blue, lower and wider. They stay green with a shaded flank,
+      fading with distance.
+    - Round 3 asked to paint the twin-spire landmarks into the sky at full height; a building
+      can't be both built and painted (DECISIONS), so phones see the six painted far landmarks
+      instead.
+    - The sea at the lowest graphics level stays one blue: painted shallows without their
+      islands would look odd, and the near islands can't be painted (ghosts).
+  - **Open for the designer (Checkpoint C):** the art frames sea and far mountains in the
+    pergola's opening; ours shows the city through its left half, because the city is densest
+    ahead and left (Checkpoint A).
+  - **For later polish:**
+    - the far islands: fewer identical mounds, a few long low ranges hugging the horizon;
+    - the mid city: more blue and violet-grey facades, fewer window stripes far out, a park or
+      river gap (with the Stage 5 notes);
+    - the islands' mottled texture toward two-tone shading;
+    - Stage 7: shade faces darker, the haze for depth, warm lamp glow.

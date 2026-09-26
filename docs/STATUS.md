@@ -1,5 +1,28 @@
 # Status
 
+**2026-09-26: the rooftop map, Stage 6 of 8 built (the far horizon), waiting at Checkpoint C.**
+
+- **Built:**
+  - The far horizon painted into the day sky (`assets/map/gen_sky.py`), which every device
+    shows, even phones that draw nothing past a few hundred studs:
+    - a far city to 7,000 studs out, its towers gathered in three downtowns ahead-left with
+      six landmarks, over a low carpet with blue hills behind;
+    - far islands and islets on the painted sea, five of them nearer so phones see islands
+      on the ocean side.
+  - The 3D sea and land stop at 2,600 studs, where the painting takes over.
+  - The mid city steps down toward the painting and eases out on the stair side (a
+    re-exported `Backdrop.fbx`, 57,863 triangles); a green waterfront on the far shore.
+- **Verified:**
+  - No seams or ghost peaks at the join from the Checkpoint C views; the lowest graphics
+    level shows the city, the downtowns and the mountains.
+  - 24 of 24 paths and 7 of 7 edge pushes pass, and the console is clean.
+  - Three critic rounds; what they left is in Spec section 9.
+- **Waiting:** the designer's OK at Checkpoint C (the city side, the ocean side and the high
+  view against the art; one open question: city or sea through the pergola's opening).
+- **Next:** Stage 7, the sunset sky and the day and sunset cycle.
+
+---
+
 **2026-09-26: the rooftop map, Stage 5 of 8 done (the mid backdrop: the skyline and the
 near islands).**
 

@@ -134,7 +134,12 @@ def math_node(tree, op, a=None, b=None, clamp=False):
 
 def world(scene, c):
     """The sky gradient by the ray's elevation; below the horizon, the far land toward the city
-    (-X) and the far sea toward the ocean (+X)."""
+    (-X) and the far sea toward the ocean (+X). Ahead (-Z) the split leans left to where the
+    painted land's far edge is (its shore turns away past the far city), so the sea shows there
+    and no pale wedge of land colour sits between the city and the sea (Stage 6 critic 3)."""
+    W = cp.WORLD
+    L = FAR['ground_to']
+    lean = -(cp.city_edge_x(-L) - (L - W['far_reach']) * FAR['shore_turn']) / L  # tan of the far edge's bearing
     w = bpy.data.worlds.new('Sky')
     scene.world = w
     w.use_nodes = True
@@ -155,11 +160,16 @@ def world(scene, c):
     below.inputs['From Min'].default_value = 0.0
     below.inputs['From Max'].default_value = -P['sea_band']
     t.links.new(sep.outputs['Z'], below.inputs['Value'])
+    ahead = math_node(t, 'MAXIMUM', b=0.0)  # Blender +Y is Roblox -Z, straight ahead
+    t.links.new(sep.outputs['Y'], ahead.inputs[0])
+    leaned = math_node(t, 'MULTIPLY_ADD', b=lean)
+    t.links.new(ahead.outputs[0], leaned.inputs[0])
+    t.links.new(sep.outputs['X'], leaned.inputs[2])
     ground = t.nodes.new('ShaderNodeMapRange')
     ground.clamp = True
     ground.inputs['From Min'].default_value = -P['land_blend']
     ground.inputs['From Max'].default_value = P['land_blend']
-    t.links.new(sep.outputs['X'], ground.inputs['Value'])
+    t.links.new(leaned.outputs[0], ground.inputs['Value'])
     below_col = t.nodes.new('ShaderNodeMix')
     below_col.data_type = 'RGBA'
     below_col.inputs['A'].default_value = linear(c['land'])
@@ -345,8 +355,13 @@ FAR = {
     'island_fade_length': 22000.0,
     'far_blend': 0.3,  # the far islands' greens blended this far toward the art's far island blue-green
     'rock_green': 0.5,  # far islands' rock this far toward the dark jungle green (no grey skirt)
+    # Beyond the far city the shore turns away left, this many studs outward per stud further
+    # out, so the sea runs on to the horizon behind the pergola as in the art (Stage 6 critic 3:
+    # the land running straight on read as a pale wedge there).
+    'shore_turn': 0.34,
     'hills': (11000.0, 16000.0),  # low blue hills behind the city on the horizon, this far out...
-    'hill_height': (180.0, 520.0),  # ...this tall over the street
+    'hill_height': (180.0, 520.0),  # ...this tall over the street...
+    'hills_az': (-175.0, -12.0),  # ...from behind the spawn round to here, where the turned shore is
 }
 FAR_COLOURS = {
     # The Stage 5 skyline's facade family, flat (a far tower is a few pixels wide).
@@ -477,8 +492,9 @@ def far_ground(painted):
              (W['shore_z'], W['city_back_x'])]
     z = W['shore_z']
     while z > -L:
-        z1 = max(-L, z - (150.0 if z > -3000 else 5000.0))
-        edges.append((z1, cp.city_edge_x(z1)))
+        z1 = max(-L, z - (150.0 if z > -3000 else 1000.0 if z > -20000 else 10000.0))
+        beyond = max(0.0, -z1 - W['far_reach'])
+        edges.append((z1, cp.city_edge_x(z1) - beyond * FAR['shore_turn']))
         z = z1
     for (za, xa), (zb, xb) in zip(edges, edges[1:]):
         if za == zb:
@@ -606,7 +622,8 @@ def far_hills(painted, rng):
     steps = 90
     prev = None
     for k in range(steps + 1):
-        az = -175.0 + 170.0 * k / steps  # from behind the spawn round to straight ahead, via the city
+        az0, az1 = FAR['hills_az']
+        az = az0 + (az1 - az0) * k / steps  # from behind the spawn round toward straight ahead, via the city
         a = math.radians(az)
         d = rng.uniform(d0, d1)
         h = W['street_y'] + rng.uniform(h0, h1) * (0.6 + 0.4 * math.sin(k * 0.37) ** 2)

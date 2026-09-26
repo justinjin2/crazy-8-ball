@@ -450,4 +450,16 @@ One line per stage: date, stage, result, commit.
   - Play: 24 of 24 paths, 7 of 7 edge pushes, a clean console.
   - Critic: layout 4, 5, 6; the rest 4 to 6. The notes carried forward are in Spec section 9.
   - Next: Stage 6 (the far horizon painted into the skybox), then Checkpoint C.
+- 2026-09-26: Stage 6 built (three critic rounds, the cap); waiting at Checkpoint C.
+  - The far cards became the skybox painting (DECISIONS): gen_sky.py renders the far city
+    (three downtowns, six landmarks), the far islands and islets, the land and the hills from
+    the roof's eye; the 3D sea and land stop at 2,600 studs.
+  - The near islands stay 3D only (painted twins ghosted); five far-only islands give phones
+    islands on the ocean side.
+  - The mid city eases out on the stair side and steps down at its edge (Backdrop.fbx
+    re-imported, 57,863 triangles); the far shore is a green waterfront.
+  - Play: 24 of 24 paths, 7 of 7 edge pushes, a clean console.
+  - Critic: layout 5, 6, 5; backdrop 4, 5, 5. The notes carried forward are in Spec
+    section 9.
+  - Waiting: the designer's OK at Checkpoint C.
 

@@ -79,6 +79,9 @@ C = {
     'rock': hexc('island_rock'),
     'sand': hexc('sand'),
     'street': '#8E9298',  # neutral asphalt grey (the Stage 4 critics found the mauve-grey muddy)
+    # The city's bending shore beyond the near world is a waterfront park, not sand: a sand strip
+    # 1,000 to 2,600 studs out read as a pale slab on the sea from the high view (Stage 6 critic 3).
+    'shore_park': hexc('lawn_day'),
 }
 
 
@@ -240,8 +243,9 @@ def build(g, plan):
         z0 = max(z - 150.0, -R_)
         edge = city_edge_x((z + z0) / 2)
         slab(g, N, 'Land', (-R_, z0, edge, z), STREET_Y - 4, LAND_TOP, C['street'])
-        slab(g, N, 'Beach', (edge, z0, edge + W['beach'], z), SEA_Y - 1, beach_top, C['sand'],
-             group='near' if z0 >= -NC else None)
+        near = z0 >= -NC
+        slab(g, N, 'Beach', (edge, z0, edge + W['beach'], z), SEA_Y - 1, beach_top, C['sand'] if near else C['shore_park'],
+             group='near' if near else None)
         z = z0
     # ---- Backdrop: the city on a street grid (seeded per block), and the islands --------------
     B = 'Backdrop'
