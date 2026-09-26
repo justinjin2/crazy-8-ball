@@ -12,6 +12,8 @@ The pieces live in family modules, assets/map/backdrop/<name>.py (the brief's sk
 islands generators). Each exposes:
     CAP        its triangle cap
     MATERIALS  {chunk prefix: (image file in textures/, alpha)}: every chunk's image
+    SMOOTH     (optional) chunk prefixes to smooth-shade: their coincident vertices are merged
+               and every face shaded smooth (soft slopes instead of facets; Stage 5 critic)
     build()    [(chunk name, map_common.Mesh)], in world studs and Roblox axes; pieces with the
                same chunk name are merged into one mesh (one MeshPart in Studio). A chunk name
                is Prefix_i_j (map_common.cell_name); the prefix picks its Config.Map.Backdrop row.
@@ -84,6 +86,20 @@ def image_material(name, image_file, alpha=False):
     return mat
 
 
+def smooth(obj):
+    """Merge an object's coincident vertices (Mesh.face gives every face its own) and shade
+    it smooth, so the FBX carries soft normals. UVs are per corner, so they are kept."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.01)
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj['triangle_count'] = len(obj.data.polygons)
+
+
 def build(modules):
     """{chunk name: Mesh}, {module: triangles}, {chunk: module}, {prefix: (image, alpha)}."""
     chunks, per_module, owner, materials = {}, {}, {}, {}
@@ -112,6 +128,7 @@ def main():
     scene.collection.children.link(collection)
     modules = load_modules(only or None)
     chunks, per_module, owner, prefixes = build(modules)
+    smooth_prefixes = set().union(*(getattr(m, 'SMOOTH', set()) for m in modules.values())) if modules else set()
     mats = {prefix: image_material(prefix, image, alpha) for prefix, (image, alpha) in prefixes.items()}
     report, objects, counts = [], [], {}
     total = 0
@@ -125,7 +142,10 @@ def main():
         counts[name] = tris
         total += tris
         report.append('%-22s %6d triangles, %5.0f studs across  (%s)' % (name, tris, span, owner[name]))
-        objects.append(mc.to_object(m, collection, mats[name.split('_')[0]]))
+        obj = mc.to_object(m, collection, mats[name.split('_')[0]])
+        if name.split('_')[0] in smooth_prefixes:
+            smooth(obj)
+        objects.append(obj)
     for mname, tris in per_module.items():
         report.append('module %-15s %6d triangles (cap %d)' % (mname, tris, modules[mname].CAP))
     assert total <= TOTAL_CAP, ('the mid backdrop over its cap', total)

@@ -33,6 +33,11 @@ WORLD = {
     'water_depth': 4.0,  # Terrain water, this deep under the surface
     'land_drop': 0.6,  # the gray-box land's top sits this far under the street, under the near ground
     'near_radius': 450.0,  # city blocks with their centre this close belong to the near world (Stage 4)
+    # Beyond the near world a building is at most height_cap_base tall at the near radius, the cap
+    # rising height_cap_slope a stud outward, so the city steps up from low blocks near the tower
+    # to towers in the middle distance, as in the art (Stage 5 critic: the near ring was a wall).
+    'height_cap_base': 200.0,
+    'height_cap_slope': 0.25,
     'near_coast': 1000.0,  # the near world's beach runs this far along the coast; the gray-box's beyond
     'max_part': 2000.0,  # Roblox clamps a Part at 2048 studs: big slabs are tiled
     'water_reach': 8000.0,  # the Terrain water and the land out to this far; beyond, the sky's lower
@@ -166,6 +171,9 @@ def lot(rng, x, z, w, d_, dist, behind):
         height = 300 + rng.uniform(30, 150) if rng.random() < 0.16 else rng.uniform(80, 260)
     else:
         height = 300 + rng.uniform(60, 240) if rng.random() < 0.3 else rng.uniform(140, 300)
+    W = WORLD
+    if dist >= W['near_radius']:
+        height = min(height, W['height_cap_base'] + (dist - W['near_radius']) * W['height_cap_slope'])
     far = dist > 1600
     glass = rng.random() < 0.4
     rec = {'x': x, 'z': z, 'w': w, 'd': d_, 'dist': dist, 'behind': behind, 'podium': podium,
@@ -185,11 +193,11 @@ def lot(rng, x, z, w, d_, dist, behind):
 
 LANDMARKS = [
     # (kind, bearing in degrees from straight ahead (-Z) toward the city (-X), distance)
-    ('stepped', 22.0, 900.0),  # a tower rising in setbacks to a stepped crown
+    ('stepped', 22.0, 1150.0),  # a tower rising in setbacks to a stepped crown
     ('spire', 38.0, 1350.0),  # the tallest, a slim glass tower with a spire
     ('twin', 55.0, 1050.0),  # two towers side by side on one lot
     ('slant', 70.0, 1400.0),  # a tower with a slanted glass top
-    ('needle', 86.0, 850.0),  # a slim glass needle
+    ('needle', 86.0, 1100.0),  # a slim glass needle
 ]
 LANDMARK_RISE = (150.0, 240.0)  # studs over the roof (the street is 300 under it)
 
@@ -204,7 +212,7 @@ def landmarks():
         if b['near']:
             continue
         for k, lot in enumerate(b['lots']):
-            if lot['shaft'] is not None and 700.0 <= lot['dist'] <= 1500.0:
+            if lot['shaft'] is not None and 1000.0 <= lot['dist'] <= 1500.0:
                 lots.append(((b['i'], b['j']), k, lot))
     out, taken = [], set()
     lo, hi = LANDMARK_RISE
@@ -219,5 +227,5 @@ def landmarks():
                     'dist': best[2]['dist'], 'height': -W['street_y'] + rise})
     assert len({(m['block'], m['lot']) for m in out}) == len(LANDMARKS), 'landmarks share a lot'
     for m in out:
-        assert 650.0 <= m['dist'] <= 1550.0 and m['x'] < 0, ('a landmark out of the mid ring', m)
+        assert 1000.0 <= m['dist'] <= 1550.0 and m['x'] < 0, ('a landmark out of the mid ring', m)
     return out
