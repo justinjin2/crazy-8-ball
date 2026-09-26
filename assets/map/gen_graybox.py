@@ -34,7 +34,8 @@ COAST_X = 110.0  # water to the right of this...
 COAST_Z = -150.0  # ...and behind this, between CITY_BACK_X and COAST_X
 CITY_BACK_X = -350.0  # the city carries on behind the tower on the left, to the horizon
 MAX_PART = 2000.0  # Roblox clamps a Part at 2048 studs; big slabs are tiled
-WATER_REACH = 3000.0  # Terrain water out to this far
+WATER_REACH = 3000.0  # Terrain water out to this far...
+FAR_REACH = 8000.0  # ...then flat sea and ground slabs to here, so no edge shows before the haze
 
 with open(os.path.join(HERE, 'Palette.json')) as handle:
     PALETTE = json.load(handle)
@@ -181,10 +182,10 @@ def build(g, plan):
     for name, z in (('FrontBeam', pz1 - P['pergola_column'] / 2), ('BackBeam', pz0 + P['pergola_column'] / 2),
                     ('MidBeam', (pz0 + pz1) / 2)):
         g.part(R, 'Pergola' + name, (px1 - px0 + 3, 1.6, 1.4), (0, beam_y + 0.8, z), C['cream'], collide=True)
-    x = px0 + 1.0
+    x = px0 + 1.5
     while x < px1 - 0.5:
-        g.part(R, 'PergolaSlat', (0.5, 0.6, pz1 - pz0 + 2), (x, beam_y + 1.9, (pz0 + pz1) / 2), C['slat'])
-        x += 2.0
+        g.part(R, 'PergolaSlat', (1.2, 0.6, pz1 - pz0 + 2), (x, beam_y + 1.9, (pz0 + pz1) / 2), C['slat'])
+        x += 3.0
     # Vines along the front beam: a few green clumps, a pink one at the ocean end (02).
     for k, vx in enumerate((px0 + 2, -30, 0.0, 30, px1 - 2)):
         colour = hexc('flower_vivid') if k == 4 else C['leaf']
@@ -209,6 +210,16 @@ def build(g, plan):
     slab(g, N, 'Beach', (COAST_X, COAST_Z - 60, COAST_X + 60, R_), SEA_Y - 1, SEA_Y + 2, C['sand'])
     slab(g, N, 'Beach', (CITY_BACK_X, COAST_Z - 60, COAST_X, COAST_Z), SEA_Y - 1, SEA_Y + 2, C['sand'])
     slab(g, N, 'Beach', (CITY_BACK_X, -R_, CITY_BACK_X + 60, COAST_Z - 60), SEA_Y - 1, SEA_Y + 2, C['sand'])
+    # Beyond the Terrain water and the land, flat slabs to the horizon (a hair under the water
+    # line so they never fight the Terrain's surface).
+    F_ = FAR_REACH
+    # Darker than water_far: the slab takes the sun directly where the Terrain water does not, so
+    # this is the albedo that renders like the far water (sampled from a Stage 1 capture).
+    far_sea = '#5A82A8'
+    for rect in ((R_, -F_, F_, F_), (COAST_X, R_, R_, F_), (CITY_BACK_X, -F_, R_, -R_)):
+        slab(g, 'Backdrop', 'SeaFar', rect, SEA_Y - 3, SEA_Y - 0.6, far_sea)
+    for rect in ((-F_, -F_, -R_, F_), (-R_, R_, COAST_X, F_), (-R_, -F_, CITY_BACK_X, -R_)):
+        slab(g, 'Backdrop', 'LandFar', rect, STREET_Y - 4, STREET_Y, C['street'])
 
     # ---- Backdrop: block city and island cones (seeded) -------------------------------------
     rng = random.Random(SEED)
@@ -230,28 +241,43 @@ def build(g, plan):
         d = math.hypot(x, z)
         w = rng.uniform(40, 110)
         dd = rng.uniform(40, 110)
-        if d < 450:
-            height = rng.uniform(80, 260)  # neighbours: roofs below ours
-        elif rng.random() < 0.12:
-            height = rng.uniform(320, 460)  # a few towers taller than ours
-        else:
-            height = rng.uniform(120, 300)
+        # Everything within 1500 studs stays below the roof (Y -40 at most), so the city is a
+        # view down onto rooftops, not a wall; the tall towers stand far off (below).
+        height = rng.uniform(60, 180) if d < 450 else rng.uniform(100, 260)
         colour = C['glass_city'] if rng.random() < 0.45 else C['facade']
         g.part(B, 'Building', (w, height, dd), (x, STREET_Y + height / 2, z), colour, yaw=round(rng.choice((0, 0, 0, 15, 30)), 1))
         placed += 1
+    # A few slim towers taller than ours, far off on the city side (the art's skyline).
+    towers = 0
+    while towers < 8:
+        a = math.radians(rng.uniform(-150, -30))  # azimuth: -90 is straight out on the city side
+        dist = rng.uniform(1800, 2500)
+        x, z = dist * math.sin(a), -dist * math.cos(a)
+        if z < COAST_Z and x > CITY_BACK_X - 100:
+            continue
+        foot = rng.uniform(40, 60)
+        height = -STREET_Y + rng.uniform(100, 200)
+        g.part(B, 'Tower', (foot, height, foot), (x, STREET_Y + height / 2, z), C['glass_city'])
+        towers += 1
     # Islands: steep green cones over the sea, toward the ocean and behind; one beside the sunset
     # sun (azimuth 36, Spec section 6).
-    islands = [(36.4 + 6, 1900, 260, 360)]
-    for _ in range(9):
-        az = rng.uniform(15, 150)
-        dist = rng.uniform(900, 2600)
-        radius = rng.uniform(120, 300)
-        height = radius * rng.uniform(0.8, 1.3)
+    # Peaks up to about 140 studs above the roof, 1400 to 2600 out: a few degrees over the
+    # horizon, like the art.
+    # Spread evenly round the sea with some jitter (random azimuths clumped), near and far
+    # alternating, like the art's scattered islands.
+    islands = [(36.4 + 6, 2200, 280, 440)]
+    for k in range(9):
+        az = 18 + k * 15 + rng.uniform(-4, 4)
+        dist = (1500 if k % 2 == 0 else 2300) + rng.uniform(-150, 250)
+        radius = rng.uniform(150, 280)
+        height = rng.uniform(300, 430)
+        if abs(az - islands[0][0]) < 8:
+            continue
         islands.append((az, dist, radius, height))
     for k, (az, dist, radius, height) in enumerate(islands):
         a = math.radians(az)
         cx, cz = dist * math.sin(a), -dist * math.cos(a)
-        steps = 6
+        steps = 12
         for s in range(steps):
             r = radius * (1 - s / steps) ** 1.15
             h = height / steps
@@ -283,21 +309,27 @@ def prop(g, p, i):
         g.part(F, name, size, pos, colour, local=L, **kw)
 
     if kind == 'table_glow':
-        part((w, 0.05, d), (0, 0.03, 0), C['glow'], material='Neon', transparency=0.75)
+        part((w, 0.05, d), (0, 0.03, 0), C['glow'], material='Neon', transparency=0.88)
     elif kind == 'fern_planter':
         part((w, 3.0, d), (0, 1.5, 0), C['stone'], collide=True)
-        part((w + 1.2, 4.0, d + 1.2), (0, 4.8, 0), C['leaf'], shape='Ball')
+        part((4.4, 4.4, 4.4), (0, 5.0, 0), C['leaf'], shape='Ball')
     elif kind == 'palm_planter':
         part((w, 3.2, d), (0, 1.6, 0), C['stone'], collide=True)
         part((1.1, h - 7, 1.1), (0, 3.2 + (h - 7) / 2, 0), C['trunk'])
-        part((18, 4, 18), (0, h - 4, 0), C['palm'], shape='Ball')
+        # A Ball part is as big as its smallest side, so the flat crown is a disc.
+        part((3.0, 18, 18), (0, h - 4, 0), C['palm'], shape='Cylinder', rot=(0, 0, 90))
+    elif kind == 'planter_bed':
+        part((w, 2.5, d), (0, 1.25, 0), C['stone'], collide=True)
+        part((w - 0.4, 2.2, d + 0.8), (0, 3.4, 0), C['leaf'])
     elif kind in ('lantern', 'lantern_tall'):
         part((w, h, d), (0, h / 2, 0), C['lantern_frame'], collide=True)
         part((w - 0.3, h * 0.7, d + 0.02), (0, h * 0.5, 0), C['lantern_glass'], material='Neon')
         part((w + 0.02, h * 0.7, d - 0.3), (0, h * 0.5, 0), C['lantern_glass'], material='Neon')
     elif kind == 'umbrella_set':
         part((0.4, 10, 0.4), (0, 5, 0), C['pole'], collide=True)
-        part((0.6, 12, 12), (0, 9.3, 0), C['canvas'], shape='Cylinder', rot=(0, 0, 90))
+        # A square pyramid-ish canopy (a hipped gable of two wedges), rim at 9, peak at 11.
+        part((12, 2, 6), (0, 10, 3), C['canvas'], shape='Wedge')
+        part((12, 2, 6), (0, 10, -3), C['canvas'], shape='Wedge', rot=(0, 180, 0))
         for lx in (-1.8, 1.8):
             part((2.0, 1.0, 5.6), (lx, 0.5, 0.6), C['lounger'], collide=True)
             part((2.0, 1.4, 0.4), (lx, 1.6, -2.0), C['lounger'], rot=(-30, 0, 0))
@@ -329,9 +361,11 @@ def prop(g, p, i):
         part((w, 3.2, 2.4), (0, 1.6, d / 2 - 1.2), C['cream'], collide=True)
         part((w, 0.25, 2.6), (0, 3.3, d / 2 - 1.2), C['wood_top'])
         part((w, 0.3, 0.1), (0, 3.0, d / 2 + 0.02), C['led'], material='Neon')
-        part((w, 8.0, 1.0), (0, 4.0, -d / 2 + 0.5), C['wood_dark'], collide=True)
-        for k in range(3):
-            part((w - 1, 0.2, 1.0), (0, 4.5 + 1.4 * k, -d / 2 + 1.3), C['led'], material='Neon')
+        # Lit shelves in two units at the ends, so the sea shows over the middle of the bar.
+        for side in (-1, 1):
+            part((7.0, 6.0, 1.0), (side * (w / 2 - 3.5), 3.0, -d / 2 + 0.5), C['wood_dark'], collide=True)
+            for k in range(2):
+                part((6.4, 0.2, 0.9), (side * (w / 2 - 3.5), 3.6 + 1.6 * k, -d / 2 + 1.1), C['led'])
     elif kind == 'globe_light':
         part((w, w, w), (0, 0, 0), C['globe'], shape='Ball', material='Neon')
         part((0.08, 3.0, 0.08), (0, 1.5, 0), C['frame'])

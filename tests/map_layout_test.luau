@@ -21,6 +21,7 @@ local TOL = 1e-3 -- studs; Layout.json rounds to 4 decimals
 local SOLID = {
 	fern_planter = true,
 	palm_planter = true,
+	planter_bed = true,
 	lantern = true,
 	lantern_tall = true,
 	umbrella_set = true,

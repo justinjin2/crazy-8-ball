@@ -177,7 +177,7 @@ the art: 36 against the art's 34.
 | Back walkway | -77 to 77 | -63.75 to -55.75 | 0 |
 | Lounge central flight: 4 steps, 0.5 up, 2 deep | -14 to 14 | -71.75 to -63.75 | 0 up to 2 |
 | Lounge platform (the rest of its front edge is a 2-stud riser) | -56 to 56 | -99.75 to -71.75 | 2 |
-| Pergola: 5 bays of 19.2, 15 clear | -48 to 48 | -96.75 to -74.75 | 2 |
+| Pergola: 5 bays of 19.2, 18 clear | -48 to 48 | -96.75 to -74.75 | 2 |
 
 - **The edge all round** is a low parapet (1.2 high, 1.2 thick) with a dark-framed glass
   railing to 3.6 above the floor, and an invisible wall above it to 40.
@@ -205,6 +205,7 @@ top-down, and one big item per table row along each railing.
 | Prop | Count | Where |
 |---|---:|---|
 | Fern planter | 12 | 6 at the aisle crossings (none in the middle row gap); 2 on the city railing; 4 on the lounge edge beside the flight |
+| Fern trough (a long low planter) | 10 | 6 along the city railing between the big planters, so the edge reads as one green line (the top-down art); 4 along the front parapet |
 | Palm planter | 12 | 2 on the city railing; 2 on the ocean railing; 2 beside the stair; 2 in the front corners; 2 in the back corners; 2 at the platform's front corners |
 | Lantern | 12 | 5 per side at the row gaps and the front and back walkways; 2 flanking the lounge flight |
 | Tall lantern | 2 | flanking the stair head |
@@ -237,7 +238,8 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Grand piano | 4.4 x 5.8 x 3.0 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 |
 | Snack counter | 24 x 5 | counter 3.2 high (P 1.1 m), lit shelves behind to 8 |
 | Globe light | 1.5 round | hangs 3 below the beams |
-| Pergola | 96 x 22, 15 clear | columns 2.6 square, cream; slatted wood roof with vines and a few bougainvillea |
+| Pergola | 96 x 22, 18 clear | columns 2.6 square, cream; slatted wood roof (slats about 1.2 wide every 3) with vines and a few bougainvillea |
+| Fern trough | 16 x 3, 2.5 high | ferns above to about 5 |
 | Entrance column | 2.8 square x 16 | cream |
 | Railing | 3.6 high overall | parapet 1.2; posts about every 4 |
 | Steps | riser 0.5 | tread 1.6 (entrance), 2.0 (lounge) |
@@ -262,7 +264,9 @@ cropped to the reference's aspect. They were tuned against the art in Stage 1;
 | ocean-side | `panels/ocean-side.jpg` | (90, 30, -20) | (700, -80, -250) | 25 |
 | phone eye | (none; 750 x 361) | (0, 5.6, 76.75) | (0, 4, 0) | 70 |
 
-Captures are taken in Play mode, where the server has built the tables and pads. A Client
+Captures are taken in Play mode, where the server has built the tables and pads.
+`Workspace.StreamingEnabled` is on, so the Near and Backdrop models are
+`ModelStreamingMode.Persistent` (MapBuilder), or the far world never reaches the client. A Client
 `execute_luau` holds the camera with a RenderStepped connection (`_G.MapPose`) and the
 character waits on the lower landing.
 

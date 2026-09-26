@@ -93,7 +93,7 @@ P = {
     'pergola_half_width': 48.0,
     'pergola_front_inset': 3.0,  # pergola front columns this far behind the platform edge
     'pergola_depth': 22.0,
-    'pergola_height': 15.0,  # clear height under the beams
+    'pergola_height': 18.0,  # clear height under the beams (tall, so it anchors the view from the entrance)
     'pergola_column': 2.6,
     'pergola_bays': 5,  # 6 columns per row, 19.2 apart: no column in the middle of the view
     # Spawn on the landing, facing the tables. The SpawnLocation is the art's entrance mat.
@@ -117,11 +117,12 @@ PROP_SIZE = {
     'piano_bench': (2.4, 1.0, 1.4),
     'snack_counter': (24.0, 5.0, 8.0),  # the art's lit back bar: counter 3.2 high, shelves to 8
     'globe_light': (1.5, 1.5, 1.5),
+    'planter_bed': (16.0, 3.0, 5.0),  # a long low trough of ferns along a parapet: 2.5 high, ferns above
     'table_glow': (22.0, 14.0, 0.02),
 }
 
 # Things that block walking (their footprint is solid). Glow planes and lights do not.
-SOLID = {'fern_planter', 'palm_planter', 'lantern', 'lantern_tall', 'umbrella_set', 'side_couch',
+SOLID = {'fern_planter', 'palm_planter', 'planter_bed', 'lantern', 'lantern_tall', 'umbrella_set', 'side_couch',
          'lounge_couch', 'coffee_table', 'fire_pit', 'piano', 'piano_bench', 'snack_counter',
          'column'}
 
@@ -304,6 +305,13 @@ def build():
         kind = 'palm_planter' if k in (0, 3) else 'fern_planter'
         size = PROP_SIZE[kind][0]
         prop(kind, -(rail_x - size / 2 - 0.8), z, 90.0)
+    # ...and troughs of ferns between them, so the city railing reads as one green line (the
+    # top-down art's planted edge).
+    bed_d = PROP_SIZE['planter_bed'][1]
+    bed_z = [(row_z[k] + row_z[k + 1]) / 2 for k in range(3)] + [row_z[0] + 16.0, row_z[3] - 16.0,
+                                                                  (row_z[3] - 16.0 + back_edge) / 2 - 4.0]
+    for z in bed_z:
+        prop('planter_bed', -(rail_x - bed_d / 2 - 0.8), z, 90.0)
     # Ocean side (02, designer's choice): umbrella sets with loungers at the first and third
     # rows, sofa groups along the railing at the second and fourth, palms in the gaps between.
     for k, z in enumerate(row_z):
@@ -326,6 +334,9 @@ def build():
         column(side * (sx + 13.0), front_edge - col / 2 - 0.3, 0.0, P['entrance_column_height'], col, 'entrance')
     for side in (-1, 1):
         prop('palm_planter', side * (rail_x - 3.2), front_edge - 3.2)
+        # Troughs of ferns along the front parapet, between the stair and the corners.
+        for x in (40.0, 64.0):
+            prop('planter_bed', side * x, front_edge - bed_d / 2 - 0.8)
 
     # Lounge (02, top-down, lounge-back): the raised platform across the back centre, under
     # the pergola. The snack counter is the art's lit back bar, centred along the back; in

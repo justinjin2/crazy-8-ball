@@ -90,6 +90,14 @@ function MapBuilder.buildGrayBox(data: any): string
 		part.Parent = group(r.f)
 		count += 1
 	end
+	-- The far world must never stream out (StreamingEnabled): the backdrop is kilometres off,
+	-- well past the streaming radius.
+	for _, name in { "Near", "Backdrop" } do
+		local model = box:FindFirstChild(name)
+		if model and model:IsA("Model") then
+			model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+		end
+	end
 	box.Parent = map
 
 	-- The sea: Terrain water to the right of the coast and behind the tower (the city carries
