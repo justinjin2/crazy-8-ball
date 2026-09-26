@@ -109,6 +109,25 @@ and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
   from wherever they walked. Done means: checked in Studio with a watcher client; phone
   thumbstick and controller stick move the body; console clean.
 
+## UI redo (2026-09-25)
+
+The designer asked for every screen in the new style (UI_STYLE.md): white cards with ink
+outlines and a faint pool-ball pattern, candy buttons, glossy icons. Choices: DECISIONS.md
+(2026-09-25). It moves part of 4.2 forward; 4.2 keeps the victory and post-match screens.
+
+- [x] **Kit and art.** `tools/gen_ui_art.py` draws the icons and effect images; the kit
+  (HudParts: card, pill, text, candy button, icon, HUD ball) and UIAnim; tokens in
+  `Config.UI.Kit`. Done means: a kit sample renders right in Studio; lint and tests clean.
+- [ ] **Top bar and foul popup.** The reference's match bar on white: portraits, outlined
+  glossy balls, a status card with a phase icon, the clock and a red Leave; the foul popup
+  with no panel, gone after about 3 s; the wrong-target text and the ball-in-hand hint.
+- [ ] **Queue area.** The host menu (difficulty tiles with aim-line icons), the floor box, and
+  the table sign that pops up only when you walk right up to that table.
+- [ ] **Everything else.** The coin flip, win and lose, the leave and surrender dialogs, fine
+  controls, pocket targets, the power bar and the spin panel.
+- [ ] **Checked on every device.** PC, phone-sized screens and gamepad selection in Studio;
+  the designer's look; a real phone and controller.
+
 ## Authorized multiplayer update (2026-09-22)
 
 The current user request overrides the ordinary milestone order and conflicting match

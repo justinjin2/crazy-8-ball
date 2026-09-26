@@ -2175,6 +2175,123 @@ Config.UI = {
 	Accent = { 255, 205, 60 },
 	Panel = { 20, 20, 24 },
 	PanelTransparency = 0.35,
+
+	-- The shared UI kit (src/client/HudParts.luau): the one look every screen is built from.
+	-- docs/UI_STYLE.md; the designer's choices of 2026-09-25: white panels with a thick ink
+	-- outline, a soft shadow and a faint pool-ball pattern; raised candy buttons in traffic
+	-- colours; glossy cartoon icons. Colours are RGB 0-255.
+	Kit = {
+		Font = "FredokaOne", -- Enum.Font name; Config is loaded by Lune, which has no Enum
+		Colors = {
+			Ink = { 27, 32, 51 }, -- #1B2033: outlines on panels, buttons, balls and all text
+			White = { 255, 255, 255 }, -- panels and body text
+			Soft = { 214, 226, 245 }, -- secondary text: still white-ish, set apart from headings
+			Green = { 61, 214, 107 }, -- ready, go, your turn, the active shooter
+			Red = { 255, 77, 77 }, -- foul, danger, low clock
+			Blue = { 59, 155, 255 }, -- the house accent: selected things, called pockets
+			Gold = { 255, 201, 40 }, -- special: the coin, SOON, gamepad selection
+			Grey = { 156, 163, 175 }, -- pocketed balls and anything switched off
+		},
+		PanelFade = { 226, 238, 255 }, -- panels fade from white at the top to this pale blue
+		PanelStrokePx = 3, -- the ink outline round every panel
+		PanelCornerPx = 18, -- panel corner radius
+		PillCornerPx = 999, -- pills are fully round at the ends
+		-- The shadow under panels: a 9-slice blurred square (tools/gen_ui_art.py shadow.png).
+		ShadowImage = "rbxassetid://73622387505906",
+		ShadowSlice = { 48, 48, 80, 80 }, -- SliceCenter in the 128 px image, pixels
+		ShadowSpreadPx = 14, -- reaches this far past the panel on every side
+		ShadowDropPx = 6, -- and sits this far lower, as if lit from above
+		ShadowTransparency = 0.72, -- 0.5 read as a dark smear under a small panel (tune)
+		-- The faint pool-ball pattern over every panel (pattern.png, tiled).
+		PatternImage = "rbxassetid://123651371748115",
+		PatternTilePx = 88, -- one 256 px tile of eight balls shown this big
+		PatternColor = { 74, 123, 192 }, -- pale blue marks
+		PatternTransparency = 0.92, -- about 8% strength: felt, not seen (tune)
+		-- Text: Fredoka One, white, outlined in ink. Sizes are pixels; nothing goes below Min
+		-- except ball numbers, which are part of the ball graphic.
+		Text = { Title = 40, Heading = 28, Button = 24, Body = 18, Min = 16 },
+		TextOutlineRatio = 0.1, -- outline thickness as a share of the text size
+		TextOutlineMinPx = 2, -- never thinner than this
+		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
+		Buttons = {
+			Green = { Top = { 140, 240, 160 }, Mid = { 61, 214, 107 }, Lip = { 30, 150, 70 } },
+			Red = { Top = { 255, 150, 150 }, Mid = { 255, 77, 77 }, Lip = { 196, 38, 56 } },
+			Blue = { Top = { 150, 206, 255 }, Mid = { 59, 155, 255 }, Lip = { 31, 104, 208 } },
+			Yellow = { Top = { 255, 236, 150 }, Mid = { 255, 201, 40 }, Lip = { 214, 145, 0 } },
+			Grey = { Top = { 222, 227, 236 }, Mid = { 186, 194, 208 }, Lip = { 132, 142, 160 } },
+			White = { Top = { 255, 255, 255 }, Mid = { 244, 248, 255 }, Lip = { 190, 206, 230 } },
+		},
+		ButtonLipShare = 0.18, -- the lip is this share of the button's height
+		ButtonStrokePx = 3, -- ink outline
+		ButtonCornerPx = 14,
+		ButtonIconShare = 0.62, -- an icon on a button is this share of its height
+		PressedScale = 0.94, -- the squish when pressed
+		SelectedScale = 1.04, -- a gamepad-selected or hovered button grows a little
+		SelectedStrokePx = 5, -- and its outline thickens, in Gold
+		DisabledTransparency = 0.45, -- a button only the host may press, seen by a guest
+		Ball = {
+			StrokePx = 2.5, -- the ink ring that keeps every ball (stripes above all) off the white
+			DiscShare = 0.5, -- the white number disc, as a share of the ball
+			NumberShare = 0.4, -- the digits, as a share of the ball
+		},
+		-- Glossy cartoon icons, no words (tools/gen_ui_art.py, assets/ui/icons). Any one can be
+		-- swapped for a better image by changing its id here.
+		Icons = {
+			Cue = "rbxassetid://116758585284705", -- your turn, aiming, Shoot
+			Hourglass = "rbxassetid://96213788446334", -- someone else's turn
+			Stopwatch = "rbxassetid://74222974804673", -- the shot clock
+			Whistle = "rbxassetid://123711745342070", -- a foul
+			Crown = "rbxassetid://88932863469480", -- the host
+			People = "rbxassetid://126967121282359", -- how many are in
+			Person = "rbxassetid://134579193841579", -- Play solo
+			Robot = "rbxassetid://118948986409177", -- Play against PC
+			Play = "rbxassetid://87915961490645", -- Start
+			Door = "rbxassetid://108459063618521", -- Leave
+			Flag = "rbxassetid://121800890987382", -- surrender, and a draw
+			Trophy = "rbxassetid://133568661073411", -- a win
+			Sad = "rbxassetid://83322300789151", -- a loss
+			Coin = "rbxassetid://94354793241176", -- the coin flip
+			Hand = "rbxassetid://98407510851293", -- ball in hand
+			Target = "rbxassetid://101004180917014", -- choose a pocket
+			Rolling = "rbxassetid://117937533191868", -- balls moving
+			Lightning = "rbxassetid://79533357402482", -- abilities
+			Check = "rbxassetid://102199824142465", -- ready, even split
+			X = "rbxassetid://114855661740318", -- a pocketed ball, a wrong target
+			Arrow = "rbxassetid://135119886891841", -- points right; turned for the others
+			Sliders = "rbxassetid://72906258640929", -- fine controls
+			Classic = "rbxassetid://77520789288930", -- difficulty: every line
+			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
+			Challenger = "rbxassetid://111544414092808", -- difficulty: no lines
+		},
+		Art = {
+			BallGloss = "rbxassetid://109282983367810", -- shading and shine over a HUD ball
+			BallBand = "rbxassetid://118056017631758", -- a stripe's band, clipped round, tinted
+			Rays = "rbxassetid://112352358460844", -- spinning behind the win trophy
+		},
+		-- Rarity colours (UI_STYLE section 4), for the shop and inventory later.
+		Rarity = {
+			Common = { 156, 163, 175 },
+			Uncommon = { 61, 214, 107 },
+			Rare = { 59, 155, 255 },
+			Epic = { 162, 89, 255 },
+			Legendary = { 242, 178, 0 },
+			Unique = { 255, 92, 184 },
+		},
+		-- src/client/UIAnim.luau. Things pop in with a little overshoot; only important things
+		-- shine or bounce (designer, 2026-09-25).
+		Motion = {
+			PopSeconds = 0.32, -- pop in
+			PopFromScale = 0.6, -- from this size
+			OutSeconds = 0.14, -- pop out, quicker
+			SlideSeconds = 0.25,
+			SlidePx = 24, -- how far a slide travels
+			ShineSeconds = 0.7, -- one shine sweep across a panel or button
+			PulseSeconds = 0.9, -- one breath of a pulsing button
+			PulseScale = 1.05, -- how big it breathes
+			BounceScale = 1.2, -- a pocketed ball's pop
+			RaysDegreesPerSecond = 30, -- the win card's rays
+		},
+	},
 }
 
 ---------------------------------------------------------------------------------------------
