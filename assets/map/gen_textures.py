@@ -390,13 +390,16 @@ def overlays():
 # ---------------------------------------------------------------------------------------------
 
 PROP_COLOURS = {
-    # Greige, not white (Stage 3 critic): the day couch mixed with the art's grey cushion.
-    'p_fabric': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('couch_day')), mc.rgb(mc.hexc('cushion_teal')), 0.35)),
+    # Warm cream, not white (Stage 3 critic 1) and not cool grey (critic 2): the day couch
+    # with a little of the art's grey cushion.
+    'p_fabric': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('couch_day')), mc.rgb(mc.hexc('cushion_teal')), 0.15)),
     'p_cushion_blue': mc.hexc('cushion_blue'),
     'p_cushion_teal': mc.hexc('cushion_teal'),
     'p_cushion_orange': mc.hexc('cushion_orange'),
     'p_cushion_white': mc.hexc('cushion_white'),
-    'p_wood': mc.hexc('coffee_table'),
+    # Dark walnut: the coffee table's top toward its shade. The top alone rendered rust in day
+    # light; the lounge-back art's tables are dark wood (Stage 3 critic 2).
+    'p_wood': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('coffee_table')), mc.rgb(mc.hexc('coffee_table', 'shade')), 0.4)),
     'p_wood_dark': mc.hexc('coffee_table', 'shade'),
     'p_stone_dark': mc.hexc('firepit_stone'),
     'p_stone_cap': mc.hexc('firepit_top'),
@@ -404,7 +407,8 @@ PROP_COLOURS = {
     'p_frame': mc.hexc('lantern_frame'),
     'p_canvas': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.hexc('umbrella_canvas_day')), mc.rgb(mc.hexc('umbrella_canvas')), 0.5)),
     'p_pole': mc.hexc('umbrella_pole'),
-    'p_lounger': mc.hexc('lounger'),
+    # The art's dark lounger a step lighter: the measured one rendered as black slabs.
+    'p_lounger': '#%02X%02X%02X' % tuple(int(round(min(255, c * 1.3))) for c in mc.rgb(mc.hexc('lounger'))),
     'p_piano': mc.hexc('piano_black'),
     'p_keys': '#F4F1EA',
     'p_planter': '#%02X%02X%02X' % tuple(int(round(c)) for c in mc.mix(mc.rgb(mc.ALBEDO['stone']), mc.rgb(mc.hexc('planter')), 0.35)),

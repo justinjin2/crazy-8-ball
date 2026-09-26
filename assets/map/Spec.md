@@ -209,10 +209,10 @@ top-down, and one big item per table row along each railing.
 
 | Prop | Count | Where |
 |---|---:|---|
-| Fern planter | 14 | 6 at the aisle crossings (none in the middle row gap); 4 on the city railing, one per row; 4 on the lounge edge, between the pergola's front columns |
-| Fern trough (a long low planter) | 9 | 5 along the city railing between the big planters, so the edge reads as one green line (the top-down art); 4 along the front parapet |
+| Fern planter | 14 | 6 at the aisle crossings (none in the middle row gap), scaled 1.3 to the art's chunkier boxes; 4 on the city railing, one per row; 4 on the lounge edge, between the pergola's front columns |
+| Fern trough (a long low planter) | 11 | 5 along the city railing between the big planters, so the edge reads as one green line (the top-down art); 4 along the front parapet; 2 on the back railing behind the U sectionals (the lounge-back art) |
 | Palm planter | 18 | in clusters, not an even ring, at mixed heights (20 to 32): a pair beside the stair; a pair in each front corner; three in each back corner; a pair at each end of the pergola, just off the platform; 2 on the ocean railing. Each stands 7 in from the railing so its crown stays over the roof |
-| Lantern | 12 | 5 per side at the row gaps and the front and back walkways; 2 flanking the lounge flight |
+| Lantern | 12 | 5 per side at the row gaps and the front and back walkways, standing just in front of the planted edge (5 in from the railing); 2 flanking the lounge flight |
 | Tall lantern | 2 | flanking the stair head |
 | Umbrella set (canopy and two loungers) | 3 | ocean side at rows 1 and 3; the ocean back corner |
 | Sofa group (sofa, ottoman) | 3 | ocean side at rows 2 and 4; the city back corner |
@@ -231,7 +231,7 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Prop | Size | Detail |
 |---|---|---|
 | Fern planter | 3.2 x 3.2 x 7 | box 3.0 high (P 2.1 x 1.4); ferns to 7 |
-| Palm planter | 4.8 x 4.8 box, 3.2 high | palm 20 to 32 tall (per palm, so clusters step), crown about 18 across |
+| Palm planter | 4.8 x 4.8 box, 3.2 high | palm 20 to 32 tall (per palm, so clusters step), trunk 1.7 thick at the foot, 22 fronds, crown about 18 across |
 | Lantern | 1.5 x 1.5 x 4.0 | P 1.0 m lantern x 1.4 |
 | Tall lantern | 2.2 x 2.2 x 6.5 | |
 | Umbrella set | 12 canopy, rim at 9, top at 12 | two loungers 5.6 x 2.0, seat 1.0, back to 2.6 (P) |
@@ -240,9 +240,9 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Coffee table | 2.8 round x 1.3 | P |
 | Fire pit | 4.5 round x 1.4 | flame about 1.4 above the rim |
 | Grand piano | 4.4 x 5.8 x 3.0 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 |
-| Globe light | 1.5 round | hangs 3 below the beams |
+| Globe light | 2.25 round (the template scaled 1.5) | its centre 5.6 under the fascia's underside |
 | Pergola | 115 x 24, 22 clear | 4.5-square plain cream columns, 4 per row; a 6.5-deep fascia with a shaded underside; wood slats every 2; vine clumps at the column heads; bougainvillea on the right end column |
-| Fern trough | 16 x 3, 2.5 high | ferns above to about 5 |
+| Fern trough | 16 x 3, 3.2 high (as tall as the other planters) | ferns above to about 6.5 |
 | Entrance column | 2.8 square x 16 | cream |
 | Railing | 5.0 high overall (a character's head) | parapet 1.2; posts about every 4 |
 | Steps | riser 0.5 | tread 1.6 (entrance), 2.0 (lounge) |

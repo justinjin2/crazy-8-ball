@@ -388,8 +388,9 @@ def prop(g, p, i):
     if kind == 'table_glow':
         part((w, 0.05, d), (0, 0.03, 0), C['glow'], material='Neon', transparency=0.88)
     elif kind == 'fern_planter':
-        part((w, 3.0, d), (0, 1.5, 0), C['stone'], collide=True)
-        part((4.4, 4.4, 4.4), (0, 5.0, 0), C['leaf'], shape='Ball')
+        k = p.get('scale', 1.0)
+        part((w, 3.0 * k, d), (0, 1.5 * k, 0), C['stone'], collide=True)
+        part((4.4 * k, 4.4 * k, 4.4 * k), (0, 5.0 * k, 0), C['leaf'], shape='Ball')
     elif kind == 'palm_planter':
         part((w, 3.2, d), (0, 1.6, 0), C['stone'], collide=True)
         part((1.1, h - 7, 1.1), (0, 3.2 + (h - 7) / 2, 0), C['trunk'])
@@ -469,7 +470,7 @@ def prop_placements(plan):
     for p in plan['props']:
         for kind in mc.PROP_TEMPLATES.get(p['kind'], []):
             place = dict(p)
-            scale = 1.0
+            scale = p.get('scale', 1.0)
             if kind == 'Palm':
                 place['Y'] = p['Y'] + mc.PLANTER_BOX_HEIGHT
                 scale = (p['size'][1] - mc.PLANTER_BOX_HEIGHT) / mc.PALM_HEIGHT

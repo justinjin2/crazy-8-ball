@@ -101,6 +101,7 @@ P = {
     'spawn_from_landing_front': 4.5,
     'globe_scale': 1.5,  # the GlobeLight template (globe 1.5, cord to 3.75 over its centre) scaled so
     'globe_hang': 5.6,  # ...its centre hangs this far under the fascia's underside
+    'crossing_planter_scale': 1.3,  # the aisle-crossing fern planters, chunkier as in the art (Stage 3 critic 2)
     'mat_size': (16.0, 0.2, 6.0),  # the entrance mat (the SpawnLocation), between the tall lanterns
 }
 
@@ -274,6 +275,8 @@ def build():
     def prop(kind, x, z, yaw=0.0, y=0.0, **extra):
         w, d, h = PROP_SIZE[kind]
         h = extra.pop('height', h)  # a palm's own height, so a cluster steps up and down
+        k = extra.get('scale', 1.0)  # the whole template scaled (MapBuilder.prepareProps)
+        w, d, h = w * k, d * k, h * k
         item = {'kind': kind, 'X': round(x, 4), 'Y': round(y, 4), 'Z': round(z, 4), 'yaw': yaw,
                 'size': [w, h, d]}
         item.update(extra)
@@ -292,7 +295,7 @@ def build():
     for k, (x, z) in enumerate(crossings):
         row, _ = divmod(k, 3)
         if row != 1:
-            prop('fern_planter', x, z)
+            prop('fern_planter', x, z, scale=P['crossing_planter_scale'])
 
     # Side zones: a regular rhythm along each railing. Big items line up with the table rows,
     # lanterns with the row gaps and the front and back walkways.
@@ -367,6 +370,9 @@ def build():
     prop('lounge_couch', bay_w, group_z, 0.0, y)
     prop('fire_pit', bay_w, group_z + 1.0, 0.0, y)
     for side in (-1, 1):
+        # A fern trough on the back railing behind each U couch: the lounge-back art's planted
+        # edge behind the sofa (Stage 3 critic 2).
+        prop('planter_bed', side * bay_w, back_edge + PROP_SIZE['planter_bed'][1] / 2 + 0.8, 0.0, y)
         prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
         # Ferns on the platform's edge: flanking the flight, and toward its ends (clear of the
         # views down the bays either side of the piano).

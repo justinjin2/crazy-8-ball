@@ -2669,7 +2669,7 @@ Config.Map = {
 		Arch = { Color = "rbxassetid://95334117032577" }, -- arch_color.png: the trim sheet, soft shade baked in
 		Foliage = { Color = "rbxassetid://139476467352315" }, -- foliage.png: vines and bougainvillea (alpha)
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
-		Props = { Color = "rbxassetid://111472510185672" }, -- props_color.png: the props trim sheet, soft shade baked in
+		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
@@ -2709,19 +2709,21 @@ Config.Map = {
 			Glow = { Material = "Neon" },
 		},
 		-- Per kind: whether its opaque mesh casts a shadow (only the big ones; foliage and
-		-- glow never do), and the Glow mesh's colour.
+		-- glow never do), and the Glow mesh's colour. Neon renders a colour much lighter, so
+		-- these are the art's deeper amber and flame clusters: they render as its lit glass
+		-- and flame (the pale measured #FAE091 read white-lime; Stage 3 critic 2).
 		Kinds = {
 			LoungeCouch = { CastShadow = true },
 			SideCouch = { CastShadow = true },
 			CoffeeTable = { CastShadow = false },
-			FirePit = { CastShadow = true, Glow = "#F6AA3F" },
+			FirePit = { CastShadow = true, Glow = "#D6862E" }, -- the flame, orange (fire and its shade)
 			FernPlanter = { CastShadow = false },
 			PalmPlanter = { CastShadow = true },
 			Palm = { CastShadow = false },
 			PlanterBed = { CastShadow = false },
-			Lantern = { CastShadow = false, Glow = "#FAE091" }, -- the art's warm globe colour
-			LanternTall = { CastShadow = false, Glow = "#FAE091" },
-			GlobeLight = { CastShadow = false, Glow = "#FAE091" },
+			Lantern = { CastShadow = false, Glow = "#FBB267" }, -- the art's amber lantern glass
+			LanternTall = { CastShadow = false, Glow = "#FBB267" },
+			GlobeLight = { CastShadow = false, Glow = "#FBB267" },
 			UmbrellaSet = { CastShadow = true },
 			Piano = { CastShadow = true },
 			PianoBench = { CastShadow = false },
