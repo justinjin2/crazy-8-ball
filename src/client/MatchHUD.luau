@@ -140,12 +140,14 @@ local function makePortrait(parent: Instance): any
 	avatar.Size = UDim2.new(1, -4, 1, -4)
 	avatar.Parent = imageFrame
 	corner(avatar, S.PortraitCornerPx - 2)
-	local name = text(root, "Name", S.NameSize, "")
-	name.AutoLocalize = false -- player names are never translated
-	-- A name is data, not reading text: a long one is cut short with "..." rather than shrunk.
-	name.TextScaled = false
-	name.TextWrapped = false
-	name.TextTruncate = Enum.TextTruncate.AtEnd
+	-- No name under the portrait (designer, 2026-09-26; a rank badge goes there later). A player
+	-- who has left gets a red X over a faded picture.
+	local gone = HudParts.icon(imageFrame, "X", "Left")
+	gone.AnchorPoint = Vector2.new(0.5, 0.5)
+	gone.Position = UDim2.fromScale(0.5, 0.5)
+	gone.Size = UDim2.fromScale(0.7, 0.7)
+	gone.ZIndex = 5
+	gone.Visible = false
 	local active = frame(imageFrame, "ActiveMarker")
 	active.AnchorPoint = Vector2.new(0.5, 0.5)
 	active.Position = UDim2.new(1, -2, 1, -2)
@@ -172,7 +174,7 @@ local function makePortrait(parent: Instance): any
 		imageFrame = imageFrame,
 		image = avatar,
 		fallback = fallback,
-		name = name,
+		gone = gone,
 		active = active,
 		border = border,
 		edges = perimeter,
@@ -212,7 +214,7 @@ local function layoutOpen(
 			S.OpenBallMinSize,
 			math.min(size, math.floor((rowWidth + miniGap) / team.openCount) - miniGap)
 		)
-		HudParts.setTextSize(team.open, sizes.name)
+		HudParts.setTextSize(team.open, S.NameSize)
 		team.open.TextXAlignment = if ballRows == 1
 			then Enum.TextXAlignment.Left
 			else Enum.TextXAlignment.Center
@@ -241,8 +243,11 @@ local function barSizes(short: boolean): any
 		header = if short then S.ShortHeaderHeight else S.HeaderHeight,
 		center = if short then S.ShortCenterWidth else S.HeaderCenterWidth,
 		status = if short then S.ShortStatusSize else S.StatusSize,
-		name = if short then S.ShortNameSize else S.NameSize,
-		leave = if short then S.ShortLeaveWidth else S.LeaveWidth,
+		leave = if short then S.ShortLeaveSize else S.LeaveSize,
+		clockWidth = if short then S.ShortClockPillWidth else S.ClockPillWidth,
+		clockHeight = if short then S.ShortClockPillHeight else S.ClockPillHeight,
+		clockText = if short then S.ShortClockTextSize else S.ClockTextSize,
+		gap = if short then S.ShortHeaderGap else S.HeaderGap, -- a phone packs a little tighter
 		ball = if short then S.ShortBallSize else S.BallSize,
 	}
 end
@@ -337,23 +342,20 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.center = HudParts.card(self.root, "MatchStatus")
 	self.centerFill = self.center:FindFirstChild("Fill")
 	self.phaseIcon = HudParts.icon(self.center, "Cue", "PhaseIcon")
+	-- One line: whose turn it is, or what is happening (designer, 2026-09-26).
 	self.status = text(self.center, "Status", S.StatusSize, "")
 	self.status.TextXAlignment = Enum.TextXAlignment.Left
 	self.status.TextWrapped = false
-	self.detail = HudParts.note(self.center, "Detail", S.NameSize, "")
-	self.detail.TextXAlignment = Enum.TextXAlignment.Left
-	-- The detail line often carries a player's name: a long one ends in "..." instead.
-	self.detail.TextScaled = false
-	self.detail.TextWrapped = false
-	self.detail.TextTruncate = Enum.TextTruncate.AtEnd
 	self.clockPill = HudParts.pill(self.center, "Clock")
 	self.clockScale = Instance.new("UIScale")
 	self.clockScale.Parent = self.clockPill
 	self.clockIcon = HudParts.icon(self.clockPill, "Stopwatch")
 	self.clock = text(self.clockPill, "Timer", S.ClockTextSize, "")
-	self.leave = candy(self.center, Copy.Leave, function()
+	-- A small red door: Leave, without taking the status's room.
+	self.leave = candy(self.center, "", function()
 		self:openLeave()
 	end, "Red", "Door")
+	HudParts.setMinHit(self.leave, S.TouchTargetPx)
 
 	-- One line of instruction while the cue ball is in hand. There is nothing to confirm:
 	-- the ball stays where it is left, and the shot can be taken at any time.
@@ -482,10 +484,10 @@ function MatchHUD.layout(self: any)
 		return
 	end
 	self.width = width
-	local margin, gap = S.HeaderMargin, S.HeaderGap
 	local short = self.root.AbsoluteSize.Y < S.ShortHeight
 	local d = barSizes(short)
 	self.bar = d
+	local margin, gap = S.HeaderMargin, d.gap
 	local count = if self.snapshot then self.snapshot.teamSize else 3
 	local portraitSize = d.portrait
 	local portraitsWidth = portraitSize * count + S.PortraitGap * (count - 1)
@@ -530,7 +532,7 @@ function MatchHUD.layout(self: any)
 	local ballRows = 8 / columns
 	local headerHeight = if inline
 		then math.max(d.header, ballSize * ballRows + S.BallGap * (ballRows - 1) + gap * 2)
-		else portraitSize + d.name + gap * 2 + ballSize * ballRows + S.BallGap * (ballRows - 1)
+		else portraitSize + gap * 3 + ballSize * ballRows + S.BallGap * (ballRows - 1)
 	besideMenu = besideMenu and inline
 	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
 	local startX = if besideMenu
@@ -544,16 +546,13 @@ function MatchHUD.layout(self: any)
 		team.root.Size = UDim2.fromOffset(teamWidth, headerHeight)
 		local portraitLeft = if i == 1 then gap else teamWidth - portraitsWidth - gap
 		for n, portrait in team.portraits do
-			portrait.root.Position =
-				UDim2.fromOffset(portraitLeft + (n - 1) * (portraitSize + S.PortraitGap), gap / 2)
-			portrait.root.Size = UDim2.fromOffset(portraitSize, portraitSize + d.name + gap / 2)
-			portrait.imageFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
-			portrait.name.Position = UDim2.fromOffset(-S.PortraitGap / 2, portraitSize + 1)
-			portrait.name.Size = UDim2.fromOffset(portraitSize + S.PortraitGap, d.name + 4)
-			HudParts.setTextSize(
-				portrait.name,
-				if count > 1 then d.name - S.TeamNameShrink else d.name
+			-- Centred in the card's height beside the balls, or at its top over them.
+			portrait.root.Position = UDim2.fromOffset(
+				portraitLeft + (n - 1) * (portraitSize + S.PortraitGap),
+				if inline then (headerHeight - portraitSize) / 2 else gap
 			)
+			portrait.root.Size = UDim2.fromOffset(portraitSize, portraitSize)
+			portrait.imageFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.root.Visible = n <= count and portrait.occupied
 		end
 		local ballLeft = if inline
@@ -561,7 +560,7 @@ function MatchHUD.layout(self: any)
 			else (teamWidth - ballsWidth) / 2
 		local ballTop = if inline
 			then (headerHeight - ballSize * ballRows - S.BallGap * (ballRows - 1)) / 2
-			else portraitSize + d.name + gap
+			else portraitSize + gap * 2
 		for n, ball in team.balls do
 			local column, row = (n - 1) % columns, math.floor((n - 1) / columns)
 			ball.root.Position = UDim2.fromOffset(
@@ -657,44 +656,33 @@ function MatchHUD.menuRoom(self: any, width: number): (number, number)
 	return S.HeaderMenuLeft, S.HeaderMenuRight
 end
 
--- Inside the status card: the phase icon on the left, the status over the detail and the
--- clock, and Leave on the right.
+-- Inside the status card: the phase icon on the left, the one-line status, the clock and a
+-- small Leave on the right.
 function MatchHUD.layoutStatus(self: any)
 	local d = self.bar
 	local width, height = d.center, d.header
-	local short = height < S.HeaderHeight
-	local pad = S.HeaderGap
-	local iconSize = height - pad * 2
+	local pad = d.gap
+	local iconSize = height - pad * 2 - (if height < S.HeaderHeight then 4 else 0)
 	self.phaseIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.phaseIcon.Position = UDim2.fromOffset(pad + iconSize / 2, height / 2)
 	self.phaseIcon.Size = UDim2.fromOffset(iconSize, iconSize)
-	local leaveHeight = math.min(height - 8, math.max(44, height - pad * 3))
-	self.leave.Position = UDim2.fromOffset(width - pad - d.leave, (height - leaveHeight) / 2)
-	self.leave.Size = UDim2.fromOffset(d.leave, leaveHeight)
-	HudParts.setButtonTextSize(self.leave, d.status - 2)
-	-- Short screens show the door alone; the red and the door say Leave.
-	HudParts.setText(self.leave, if short then "" else Copy.Leave)
-	local textLeft = pad + iconSize + pad / 2
-	local textWidth = width - textLeft - d.leave - pad * 2
-	local statusHeight = d.status + 4
-	HudParts.setTextSize(self.status, d.status, S.StatusFloor)
-	HudParts.setTextSize(self.detail, d.name)
-	self.status.Position = UDim2.fromOffset(textLeft, pad)
-	self.status.Size = UDim2.fromOffset(textWidth, statusHeight)
-	local rowTop = pad + statusHeight + 2
-	local pillWidth = S.ClockPillWidth
-	local pillHeight = math.min(S.ClockPillHeight, height - rowTop - 2)
-	self.clockPill.Position = UDim2.fromOffset(textLeft + textWidth - pillWidth, rowTop - 2)
+	local leaveLeft = width - pad - d.leave
+	self.leave.Position = UDim2.fromOffset(leaveLeft, (height - d.leave) / 2)
+	self.leave.Size = UDim2.fromOffset(d.leave, d.leave)
+	local pillWidth, pillHeight = d.clockWidth, d.clockHeight
+	local pillLeft = leaveLeft - pad / 2 - pillWidth
+	self.clockPill.Position = UDim2.fromOffset(pillLeft, (height - pillHeight) / 2)
 	self.clockPill.Size = UDim2.fromOffset(pillWidth, pillHeight)
-	self.clockIcon.Position = UDim2.fromOffset(2, 1)
-	self.clockIcon.Size = UDim2.fromOffset(pillHeight - 2, pillHeight - 2)
-	self.clock.Position = UDim2.fromOffset(pillHeight, 1)
-	self.clock.Size = UDim2.fromOffset(pillWidth - pillHeight - 6, pillHeight - 2)
-	self.detail.Position = UDim2.fromOffset(textLeft, rowTop)
-	self.detail.Size = UDim2.fromOffset(
-		if self.clockPill.Visible then textWidth - pillWidth - 4 else textWidth,
-		d.name + 6
-	)
+	self.clockIcon.Position = UDim2.fromOffset(3, 2)
+	self.clockIcon.Size = UDim2.fromOffset(pillHeight - 4, pillHeight - 4)
+	self.clock.Position = UDim2.fromOffset(pillHeight - 1, 1)
+	self.clock.Size = UDim2.fromOffset(pillWidth - pillHeight - 4, pillHeight - 2)
+	HudParts.setTextSize(self.clock, d.clockText)
+	local textLeft = pad + iconSize + pad / 2
+	local textRight = (if self.clockPill.Visible then pillLeft else leaveLeft) - pad / 2
+	HudParts.setTextSize(self.status, d.status, S.StatusFloor)
+	self.status.Position = UDim2.fromOffset(textLeft, (height - d.status - 6) / 2)
+	self.status.Size = UDim2.fromOffset(math.max(1, textRight - textLeft), d.status + 6)
 end
 
 -- Solo: the player's panel alone, one portrait then fifteen balls in playing order, beside
@@ -702,7 +690,7 @@ end
 -- the rest) when a single line of fifteen does not fit.
 function MatchHUD.layoutSolo(self: any, width: number)
 	local d = self.bar
-	local gap, portraitSize = S.HeaderGap, d.portrait
+	local gap, portraitSize = d.gap, d.portrait
 	local short = self.root.AbsoluteSize.Y < S.ShortHeight
 	local availableWidth = width - S.HeaderMargin * 2
 	local menuLeft, menuRight = self:menuRoom(width)
@@ -773,6 +761,17 @@ function MatchHUD.layoutSolo(self: any, width: number)
 		if inline then startX + teamWidth + gap else (width - centerWidth) / 2,
 		top + (if inline then 0 else headerHeight + gap)
 	)
+end
+
+-- The team of whoever is shooting now.
+function MatchHUD.shooterTeam(self: any): number?
+	local snapshot = self.snapshot
+	for _, seat in (if snapshot then snapshot.seats else {}) do
+		if seat.userId == snapshot.shooter then
+			return seat.team
+		end
+	end
+	return nil
 end
 
 function MatchHUD.reservedHeight(self: any): number
@@ -988,12 +987,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 				then S.ActiveEdgePx
 				else K.PanelStrokePx
 			if seat then
-				portrait.name.Text = if seat.connected == false
-					then Copy.Disconnected
-					else seat.displayName or seat.name
-				portrait.name.TextColor3 = if portrait.active.Visible
-					then tone("Green")
-					else tone("White")
+				portrait.gone.Visible = seat.connected == false
 				portrait.image.ImageTransparency = if seat.connected == false then 0.6 else 0
 				if portrait.userId ~= seat.userId then
 					portrait.userId = seat.userId
@@ -1121,34 +1115,33 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "CoinFlip"
 		and phase ~= "Foul"
 	local danger = isClock and remaining <= 5 and phase == "Aiming"
-	local shooterName = nameFor(snapshot, snapshot.shooter)
 	HudParts.setIcon(self.phaseIcon, phaseIcon(snapshot, isShooter, self.ours or 1))
-	self.status.Text = Copy.Phase[phase] or ""
+	-- One line: your turn, theirs (or a teammate's), or what the table is doing.
+	local Status = Copy.Status
+	local teamTurn = not isShooter and self:shooterTeam() == self.ours
+	local line, colour = Status.TheirTurn, "White"
+	if phase == "Foul" then
+		line, colour = Status.Foul, "Red"
+	elseif phase == "Resolving" then
+		line = Status.Rolling
+	elseif phase == "CoinFlip" then
+		line = Status.CoinFlip
+	elseif phase == "Result" then
+		line = Status.Over
+	elseif isShooter or snapshot.solo then
+		line, colour = Status.YourTurn, "Green"
+	elseif teamTurn then
+		line = Status.AllyTurn
+	end
+	self.status.Text = line
+	self.status.TextColor3 = tone(colour)
 	HudParts.setTextTransparency(self.status, 0)
-	self.status.TextColor3 = tone("White")
-	self.detail.Text = if snapshot.solo
-		then Copy.SoloMode
-		elseif snapshot.shooter then string.format(Copy.PlayerTurn, shooterName)
-		else string.format(Copy.Mode, snapshot.teamSize, snapshot.teamSize)
 	if phase == "Intro" then
-		self.status.Text = if isShooter then Copy.YourTurn else Copy.Phase.Intro
-		self.status.TextColor3 = tone("Green")
 		local elapsed = now - snapshot.phaseStartedAt
 		HudParts.setTextTransparency(
 			self.status,
 			1 - math.clamp(math.min(elapsed, remaining) / S.Motion, 0, 1)
 		)
-	elseif phase == "Result" then
-		self.detail.Text = Copy.BackToQueue
-	elseif phase == "Foul" then
-		self.status.Text = Copy.Phase.Foul
-		self.status.TextColor3 = tone("Red")
-		self.detail.Text =
-			string.format(Copy.FoulBy, nameFor(snapshot, snapshot.foul and snapshot.foul.by))
-	elseif phase == "Aiming" and isShooter then
-		self.detail.Text = if snapshot.calledPocket
-			then string.format(Copy.PocketChosen, snapshot.calledPocket)
-			else Copy.YourTurn
 	end
 	if self.clockPill.Visible ~= isClock then
 		self.clockPill.Visible = isClock

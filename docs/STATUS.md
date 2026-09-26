@@ -1,5 +1,32 @@
 # Status
 
+**2026-09-26 (latest): the status card and the host menu, round three (designer's playtest).**
+
+- **Status card:** one line ("YOUR TURN", "THEIR TURN", "ALLY'S TURN", "FOUL!", "ROLLING",
+  "COIN FLIP", "GAME OVER"), a bigger clock, and Leave as a small red door (still a 44 px touch
+  area). It no longer overlaps the words.
+- **Portraits:** no names under them (a rank badge comes later). A player who left gets a red X.
+- **Host menu:**
+  - One column on the right again, short enough to fit a phone (94% size in the 750x361
+    emulator), beside the jump button.
+  - Leave is a small red door beside Start.
+  - Under each difficulty: a cash icon and 1x, 1.5x or 2x money (Config.Difficulty; the new
+    Money icon).
+  - Shorter description and messages; no DIFFICULTY heading or "Start alone" hint.
+- **Fixed on the way:** the OPEN TABLE label would have errored once balls were down on an
+  open table (it asked for a size that no longer existed); caught by an Edit preview.
+- **Verified:**
+  - Lint is clean and 332 Lune tests pass.
+  - Studio Play in the phone emulator: the host menu, a 1v1 bar with "YOUR TURN" and "THEIR
+    TURN" fitting beside the clock and the door, and a clean console.
+  - Edit-preview numbers for solo, 1v1, 3v3 and an open table at 1280x720, 1920x1080 and
+    667x375: every bar on one line, the status words inside their space (a 3v3 on the
+    smallest phone shrinks them a little).
+- **Still to do:** the designer's look on a PC window, a real phone and controller, and a
+  two-player match.
+
+---
+
 **2026-09-26 (latest): the UI redo's second round, from the designer's playtest: phone
 layout fixed, Fine controls removed, smaller PC GUI, clearer small text.**
 

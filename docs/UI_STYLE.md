@@ -137,5 +137,10 @@ order; that is Open.
   table sign (only near its table), the power bar, the spin panel and the pocket targets.
 - **Phones** (2026-09-26): the top bar is compact and sits in Roblox's own top row beside its
   menu, chat and voice buttons (it asks Roblox for that room, ScreenInsets.TopbarSafeInsets),
-  so the table keeps the screen; the host menu lays its two columns side by side, bigger and
-  clear of the jump button.
+  so the table keeps the screen. The host menu stays one column on the right, short enough to
+  fit, beside the jump button (or above it when that lets it be bigger).
+- **The status card** (2026-09-26): one line ("YOUR TURN", "THEIR TURN", "FOUL!"), a big clock,
+  and a small red door for Leave whose touch area is still 44 px. No names under the
+  portraits (a rank badge goes there later).
+- **The host menu:** a small red door beside a wide Start; the money each difficulty pays
+  (cash icon and 1x, 1.5x, 2x) under its tile; one short line describing the chosen level.

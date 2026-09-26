@@ -1421,6 +1421,9 @@ Config.Difficulty = {
 	Default = "Classic",
 	-- The menu's order, left to right.
 	Order = { "Classic", "Difficult", "Challenger" },
+	-- Money earned is multiplied by the table's difficulty (designer, 2026-09-26; shown under
+	-- each difficulty in the host menu, paid once money exists, Roadmap 4.3). (tune)
+	MoneyMultiplier = { Classic = 1, Difficult = 1.5, Challenger = 2 },
 	-- What each level draws (src/client/Guideline.luau). Corridor: the aim line to the ghost
 	-- ball and its ring. Stubs: the object ball's line and the cue ball's deflection or rail
 	-- bounce. Landings: where a jump shot comes down. The red X on a wrong target or an off
@@ -2272,6 +2275,7 @@ Config.UI = {
 			Classic = "rbxassetid://77520789288930", -- difficulty: every line
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
 			Challenger = "rbxassetid://111544414092808", -- difficulty: no lines
+			Money = "rbxassetid://73979676771161", -- money: a stack of green cash, never coins
 		},
 		Art = {
 			BallGloss = "rbxassetid://109282983367810", -- shading and shine over a HUD ball
@@ -2471,10 +2475,15 @@ Config.Multiplayer = {
 		HeaderTop = 6, -- minimal spacing at the upper screen edge
 		HeaderHeight = 64, -- the top bar's cards: a portrait with its name under it
 		HeaderCenterWidth = 300, -- the status card: phase icon, status, clock and Leave
-		ClockTextSize = 16, -- the shot clock in its pill
-		ClockPillWidth = 58, -- the clock pill, pixels
-		ClockPillHeight = 24,
-		LeaveWidth = 84, -- the red Leave button in the status card
+		ClockTextSize = 24, -- the shot clock in its pill (big: designer, 2026-09-26)
+		ClockPillWidth = 76, -- the clock pill, pixels
+		ClockPillHeight = 38,
+		ShortClockTextSize = 20, -- the same on a phone
+		ShortClockPillWidth = 54,
+		ShortClockPillHeight = 32,
+		LeaveSize = 34, -- the small red door (Leave) in the status card, square
+		ShortLeaveSize = 30, -- the same on a phone
+		TouchTargetPx = 44, -- a small button's touch area is still at least this (UI_STYLE section 5)
 		-- Room for Roblox's own buttons at the top, only when Roblox does not report the free
 		-- part of its top bar (GuiService / ScreenInsets.TopbarSafeInsets; MatchHUD).
 		HeaderMenuLeft = 250, -- the menu, chat and voice buttons on the left
@@ -2487,17 +2496,15 @@ Config.Multiplayer = {
 		ShortCenterWidth = 190, -- the compact status card at its narrowest (a 1v1 fits beside Roblox's buttons on a phone)
 		ShortCenterMax = 250, -- it grows into the room the balls leave, up to this
 		ShortStatusSize = 16, -- its status line
-		StatusFloor = 12, -- a long status shrinks this far in the compact card
-		ShortNameSize = 12, -- names under portraits
-		ShortLeaveWidth = 44, -- its Leave button, the door icon alone
-		TeamNameShrink = 3, -- names under two or three portraits are this much smaller; long ones end in ...
+		StatusFloor = 11, -- a long status shrinks this far in the compact card
+		ShortHeaderGap = 6, -- the compact bar's spacing (HeaderGap on a computer)
 		ShortBallSize = 20, -- balls in two rows of four, and on short screens
 		ShortSetupHeight = 30, -- one-line placement instruction on short screens
 		SetupHeight = 36, -- one-line placement instruction
 		SetupMaxWidth = 460, -- the ball-in-hand hint pill at its widest
 		MobileBreakpoint = 760, -- stack central status below teams
 		NarrowBreakpoint = 480, -- use two ball rows
-		PortraitSize = 38, -- square avatar beside the ball row, its name under it
+		PortraitSize = 46, -- square avatar beside the ball row (no name under it)
 		PortraitCornerPx = 10, -- the portrait's rounded corners
 		PortraitGap = 6, -- teammate portrait spacing
 		ActiveDotPx = 11, -- the green dot on the shooter's portrait
@@ -2505,7 +2512,7 @@ Config.Multiplayer = {
 		BallSize = 27, -- numbered HUD ball diameter
 		BallGap = 4, -- stable ball-slot spacing
 		NameSize = 14, -- player names and secondary lines (the kit's smallest text)
-		StatusSize = 18, -- the status line and other primary labels
+		StatusSize = 20, -- the one-line status and other primary labels
 		ButtonHeight = 44, -- touch target (at least 44)
 		ResultPanelHeight = 170, -- the result card; its icon sits on the top edge
 		ResultIconSize = 90, -- trophy, sad ball or flag
@@ -2528,17 +2535,19 @@ Config.Multiplayer = {
 		OpenBallMinSize = 12, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
 		-- The queue menu (src/client/QueueMenu.luau), top right while waiting in a box.
-		QueueMenuWidth = 260, -- pixels, one column (tall screens), before shrinking to fit
-		QueueWideColumn = 236, -- each of the two side-by-side columns on a phone on its side
+		QueueMenuWidth = 260, -- pixels, before shrinking to fit
 		QueueMenuPadding = 10, -- inside the card
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
+		QueueRowGap = 6, -- between the card's rows
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueTouchRight = 120, -- on tall touch screens the card keeps this far from the right edge: the jump button
+		QueueTouchRight = 120, -- on touch screens without a jump button showing, the card keeps this far from the right edge
 		QueueHostSize = 18, -- the host's name
 		QueueHostRowHeight = 32, -- the crown, HOST and the name
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
-		QueueLevelHeight = 86, -- the difficulty tiles: picture over name
+		QueueLevelHeight = 92, -- the difficulty tiles: picture over name
+		QueueMoneyHeight = 22, -- the money each difficulty pays, under its tile
+		QueueAbilitiesHeight = 40, -- the abilities row and its ON/OFF button
 		QueueTileTextFloor = 10, -- a tile's name shrinks this far before it spills over the next
 		QueueStartHeight = 46, -- Start, bigger than the rest
 		QueueToggleWidth = 68, -- the abilities ON/OFF button

@@ -217,6 +217,10 @@ type Candy = {
 	enabled: boolean,
 	lit: boolean,
 	vertical: boolean,
+	action: () -> (),
+	squish: (boolean) -> (),
+	light: (boolean) -> (),
+	hit: TextButton?,
 }
 
 -- Held strongly and cleared on Destroying: a weak table keyed on Instances can lose entries.
@@ -341,6 +345,10 @@ function HudParts.candy(
 		enabled = true,
 		lit = false,
 		vertical = false,
+		action = action,
+		squish = function(_: boolean) end,
+		light = function(_: boolean) end,
+		hit = nil,
 	}
 	candies[button] = c
 	button.Destroying:Connect(function()
@@ -374,6 +382,7 @@ function HudParts.candy(
 		edge.Thickness = if c.lit then K.SelectedStrokePx else K.ButtonStrokePx
 		squish(false)
 	end
+	c.squish, c.light = squish, light
 	button.InputBegan:Connect(function(input)
 		if
 			input.UserInputType == Enum.UserInputType.MouseButton1
@@ -420,6 +429,52 @@ function HudParts.tile(
 	c.vertical = true
 	layoutCandy(button, c)
 	return button
+end
+
+--- Give a small button a touch area of at least `minPx` square, centred on it, without
+--- growing its look, so a compact button still meets the touch target (UI_STYLE section 5).
+function HudParts.setMinHit(button: TextButton, minPx: number)
+	local c = candies[button]
+	if not c or c.hit then
+		return
+	end
+	local hit = Instance.new("TextButton")
+	hit.Name = "Hit"
+	hit.BackgroundTransparency = 1
+	hit.Text = ""
+	hit.AutoButtonColor = false
+	hit.Selectable = false
+	hit.AnchorPoint = Vector2.new(0.5, 0.5)
+	hit.Position = UDim2.fromScale(0.5, 0.5)
+	hit.Size = UDim2.fromScale(1, 1)
+	hit.ZIndex = 10
+	local least = Instance.new("UISizeConstraint")
+	least.MinSize = Vector2.new(minPx, minPx)
+	least.Parent = hit
+	hit.Parent = button
+	hit.InputBegan:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
+			c.squish(true)
+		end
+	end)
+	hit.InputEnded:Connect(function()
+		c.squish(false)
+	end)
+	hit.MouseEnter:Connect(function()
+		c.light(true)
+	end)
+	hit.MouseLeave:Connect(function()
+		c.light(false)
+	end)
+	hit.Activated:Connect(function()
+		if c.enabled then
+			c.action()
+		end
+	end)
+	c.hit = hit
 end
 
 function HudParts.setText(button: TextButton, text: string)

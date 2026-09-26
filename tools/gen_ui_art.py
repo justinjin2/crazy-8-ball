@@ -430,6 +430,25 @@ def icon_sliders():
     return "".join(parts)
 
 
+def icon_money():
+    """Money is a stack of green cash, never coins (docs/UI_STYLE.md section 6)."""
+    parts = []
+    for i, (x, y) in enumerate(((52, 150), (40, 118), (28, 86))):
+        parts.append(
+            f'<rect x="{x}" y="{y}" width="176" height="84" rx="12" fill="url(#green)" transform="rotate(-8 128 128)"/>'
+        )
+        parts.append(
+            f'<rect x="{x + 12}" y="{y + 10}" width="152" height="64" rx="8" fill="none" stroke="#1E9E47" stroke-width="5" transform="rotate(-8 128 128)"/>'
+        )
+    # The top bill: a round seal in the middle and a paper band round the stack.
+    parts += [
+        '<ellipse cx="112" cy="130" rx="26" ry="24" fill="#A8F5BE" stroke="#1E9E47" stroke-width="5" transform="rotate(-8 128 128)"/>',
+        '<rect x="96" y="76" width="30" height="104" rx="6" fill="#FFF3D6" transform="rotate(-8 128 128)"/>',
+        gloss(80, 104, 30, 9, angle=-8, opacity=0.6),
+    ]
+    return "".join(parts)
+
+
 def mini_table(inner):
     """The difficulty pictures: a little green table seen from above."""
     return (
@@ -509,6 +528,7 @@ ICONS = {
     "x": icon_x,
     "arrow": icon_arrow,
     "sliders": icon_sliders,
+    "money": icon_money,
     "level_classic": icon_level_classic,
     "level_difficult": icon_level_difficult,
     "level_challenger": icon_level_challenger,

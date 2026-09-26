@@ -336,6 +336,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Money** is earned for every ball pocketed, more on streaks and trickshots, in every mode
   including Solo and PC. Solo and PC income slows after a daily amount *(tune)*, never to zero.
   Money farming with macros is not punished.
+- **Difficulty multiplies money** (designer, 2026-09-26): 1x Classic, 1.5x Difficult, 2x
+  Challenger *(tune)*, shown under each difficulty in the host menu
+  (`Config.Difficulty.MoneyMultiplier`). This is separate from the rating multiplier in
+  section 11.
 - **Money packs are sold for Robux.** Because of that, every loot box, gacha and trade is a
   paid random item under Roblox policy: odds are shown on every box, and players in regions
   where paid random items are restricted get a direct-purchase catalog instead of boxes.

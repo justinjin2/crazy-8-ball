@@ -1088,3 +1088,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     palm or fern fallback; no AI 3D generators or Creator Store models.
   - Budget: everything we ship under about 512k triangles, leaving room for avatars under the
     designer's 1 million total.
+- 2026-09-26: UI redo, third round (designer):
+  - The status card says one line ("YOUR TURN", "THEIR TURN", "ALLY'S TURN", "FOUL!",
+    "ROLLING"), the clock is bigger, and Leave is a small red door (its touch area stays 44 px).
+  - No player names under the top bar's portraits; a rank badge will go there. A player who
+    left gets a red X on their faded picture.
+  - The host menu on a phone is one column again (two side by side took the whole screen),
+    kept short: no DIFFICULTY heading, no "Start alone" hint, Leave beside Start, shorter
+    descriptions and reasons. It sits beside Roblox's jump button, or above it if that makes
+    it bigger.
+  - Money per difficulty: 1x Classic, 1.5x Difficult, 2x Challenger (GDD section 12), shown
+    under each difficulty with the new cash icon.
