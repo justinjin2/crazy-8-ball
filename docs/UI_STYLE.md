@@ -118,11 +118,12 @@ order; that is Open.
   Platinum, crystal shards for Diamond, fins for Expert, a laurel for Veteran, a crystal burst
   for Master, swept wings for Grandmaster), not one more ornament per tier. The same rules on
   every badge: the ball and its ring the same size in the same place; a crown from Expert up
-  (bigger each tier, Veteran included; Reyes the biggest); pips in an arc under the ball: 1 to
-  5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 = division I), big
-  and bright, spaced so they never overlap and set in one smooth curved tray in a deep shade
-  of the tier's colour (darker by the ball, a lit rim, a soft glow and shadow under each pip),
-  so the count reads when the badge is small. Diamond is cyan. Grandmaster is black and gold
+  (bigger each tier, Veteran included; Reyes the biggest); pips in a V under the ball that
+  follows the frame's pointed bottom (the middle one at the point): 1 to 5 stars from Bronze
+  to Diamond, 1 to 5 gems from Expert to Grandmaster (1 = division I), bright, spaced so they
+  never overlap and set in one slim tray in a deep shade of the tier's colour (darker by the
+  ball, a lit lower rim, a soft glow and shadow under each pip). The tray must never hide the
+  badge's own shape: the frame's point stays the bottom of every badge. Diamond is cyan. Grandmaster is black and gold
   (a gold trim, crown and ring, black feathers with gold veins, gold gems). Reyes is a rainbow
   badge in the house rainbow (section 4's VIP colours: a rainbow frame, ring and crown, its
   crystals and blades red to purple), with no pips and no signature (2026-09-26). No banner

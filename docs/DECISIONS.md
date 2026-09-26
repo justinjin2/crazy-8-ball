@@ -1201,3 +1201,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   ring and crown, its crystals and blades red to purple) and Grandmaster becomes black and gold
   (Reyes' old look on Grandmaster's shape, with gold gems). The VIP-rainbow Open note now
   names Reyes.
+- 2026-09-26: Rank badges, round seven (designer): the round tray covered the badge's pointed
+  bottom and made every badge look round, so the pips now sit in a V (a chevron) that follows
+  the frame's point, in one slim tray; one pip sits right at the point. Pips a little smaller
+  (still countable at 64 px) so the tray stays inside the badge's shape.

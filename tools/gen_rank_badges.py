@@ -9,7 +9,7 @@ laurel for Veteran; a crystal burst for Master; swept black and gold wings for G
 rainbow crystals and blades for Reyes). On top of that, the same rules everywhere:
 - the 8 ball and its ring are the same size in the same place on every badge;
 - a crown from Expert up, bigger each tier (Reyes has the biggest);
-- pips in an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
+- pips in a V under the ball, following the frame's pointed bottom: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
   to Grandmaster (1 pip = division I, 5 = V).
 Grandmaster is black and gold. Reyes is a rainbow badge, one badge with no pips. Unranked is a plain grey
 badge. No words in any image.
@@ -42,10 +42,13 @@ EDGE = 3.5  # the thin ink lines between parts (the outer outline is ink_filter'
 CX, CY = 128, 138  # the ball's centre, the same on every badge (low, to leave room for crowns)
 RING = 58  # the metal ring's outer radius
 BALL = 46
-PIP_ARC = 74  # pips sit on this radius around the ball...
-PIP_STEP = 30  # ...this many degrees apart (so they never overlap), centred under the ball
-PIP_SIZE = 18.5  # a star's radius; the pips sit in one curved tray this much wider,
-PIP_TRAY = 4.5  # so the count reads even when the badge is small
+# The pips sit in a V (a chevron) that echoes the frame's pointed bottom: the middle one at the
+# point, the others climbing its two sides, all in one slim tray parallel to the frame's edges.
+PIP_APEX = 203  # the V's lowest point (the frames' own point is at 228)
+PIP_SLOPE = 0.62  # how steeply the V's sides climb (the hex frame's lower edges: 0.69)
+PIP_SPACING = 29  # across the badge between pips, so they never overlap
+PIP_SIZE = 16.5  # a star's radius; the tray is this much wider on each side:
+PIP_TRAY = 3.5
 CROWN_BASE = 80  # the crown's bottom edge, on the ring's top
 LIGHT = (-0.55, -0.83)  # towards the light, for the facets: the top left
 OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
@@ -354,43 +357,44 @@ def eight_ball():
     )
 
 
-def arc(radius, a0, a1):
-    """An SVG arc path round the ball's centre, clockwise from angle a0 to a1 (degrees)."""
-    p0, p1 = along((CX, CY), a0, radius), along((CX, CY), a1, radius)
-    return f"M{pt(p0)} A{radius} {radius} 0 0 1 {pt(p1)}"
-
-
 def pips(kind, count, metal):
-    """The division: 1 to 5 bright stars or gems set in one curved tray under the ball. The
-    tray is darker by the ball and lighter at its rim, like a groove cut into the frame, and
-    each pip has a soft glow behind it and a shadow under it, so it sits in the tray."""
+    """The division: 1 to 5 bright stars or gems in a V under the ball, set in one slim tray
+    that follows the frame's pointed bottom. The tray is darker by the ball with a lit lower
+    rim, and each pip has a soft glow behind it and a shadow under it."""
     light, mid, dark = metal
-    angles = [90 + (i - (count - 1) / 2) * PIP_STEP for i in range(count)]
-    centres = [along((CX, CY), a, PIP_ARC) for a in angles]
+    xs = [(i - (count - 1) / 2) * PIP_SPACING for i in range(count)]
+    centres = [(CX + x, PIP_APEX - abs(x) * PIP_SLOPE) for x in xs]
     half = PIP_SIZE + PIP_TRAY
-    a0, a1 = angles[0], angles[-1] + 0.01  # a single pip is a round tray
-    groove = arc(PIP_ARC, a0, a1)
-    inner, outer = PIP_ARC - half, PIP_ARC + half
+    groove = centres  # through the pips: a point under an odd count, a short flat under an even one
+    top = min(y for _, y in groove) - half
     out = [
-        '<defs><radialGradient id="tray" gradientUnits="userSpaceOnUse" '
-        f'cx="{CX}" cy="{CY}" r="{outer}">'
-        f'<stop offset="{inner / outer:.3f}" stop-color="{mix(dark, INK, 0.8)}"/>'
-        f'<stop offset="{PIP_ARC / outer:.3f}" stop-color="{mix(dark, INK, 0.6)}"/>'
-        f'<stop offset="1" stop-color="{mix(dark, INK, 0.38)}"/></radialGradient>'
+        '<defs><linearGradient id="tray" gradientUnits="userSpaceOnUse" '
+        f'x1="0" y1="{top:.1f}" x2="0" y2="{PIP_APEX + half * 1.3:.1f}">'
+        f'<stop offset="0" stop-color="{mix(dark, INK, 0.8)}"/>'
+        f'<stop offset="0.55" stop-color="{mix(dark, INK, 0.6)}"/>'
+        f'<stop offset="1" stop-color="{mix(dark, INK, 0.35)}"/></linearGradient>'
         '<radialGradient id="glow"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/>'
-        '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs>',
-        f'<path d="{groove}" fill="none" stroke="{INK}" stroke-width="{2 * half + EDGE}" stroke-linecap="round"/>',
-        f'<path d="{groove}" fill="none" stroke="url(#tray)" stroke-width="{2 * half - EDGE}" stroke-linecap="round"/>',
-        # a lit rim along the tray's outer edge and a shadow along its inner edge
-        f'<path d="{arc(outer - EDGE - 1.2, a0, a1)}" fill="none" stroke="{light}" stroke-width="1.6" '
-        'stroke-opacity="0.45" stroke-linecap="round"/>',
-        f'<path d="{arc(inner + EDGE + 1.5, a0, a1)}" fill="none" stroke="#000000" stroke-width="2.4" '
-        'stroke-opacity="0.35" stroke-linecap="round"/>',
+        '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs>'
     ]
+    if count > 1:
+        d = "M" + " L".join(pt(p) for p in groove)
+        # a mitred join keeps the tray's bottom pointed, like the frame's
+        stroke = 'fill="none" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4"'
+        out.append(f'<path d="{d}" {stroke} stroke="{INK}" stroke-width="{2 * half + EDGE}"/>')
+        out.append(f'<path d="{d}" {stroke} stroke="url(#tray)" stroke-width="{2 * half - EDGE}"/>')
+        # a lit rim along the tray's lower edge and a shadow along its upper edge
+        drop = (half - EDGE - 1.5) / math.cos(math.atan(PIP_SLOPE))
+        lift = (half - EDGE - 2) / math.cos(math.atan(PIP_SLOPE))
+        lower = "M" + " L".join(pt((x, y + drop)) for x, y in groove)
+        upper = "M" + " L".join(pt((x, y - lift)) for x, y in groove)
+        out.append(f'<path d="{lower}" fill="none" stroke="{light}" stroke-width="1.6" stroke-opacity="0.45" stroke-linecap="round"/>')
+        out.append(f'<path d="{upper}" fill="none" stroke="#000000" stroke-width="2.4" stroke-opacity="0.35" stroke-linecap="round"/>')
+    else:
+        c = centres[0]
+        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{half}" fill="url(#tray)" stroke="{INK}" stroke-width="{EDGE}"/>')
     for c in centres:
-        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{PIP_SIZE * 1.15:.1f}" fill="url(#glow)" '
-                   f'opacity="0.8"/>')
-        shadow = (c[0], c[1] + 2.4)
+        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{PIP_SIZE * 1.15:.1f}" fill="url(#glow)" opacity="0.8"/>')
+        shadow = (c[0], c[1] + 2.2)
         if kind == "star":
             out.append(star(shadow, PIP_SIZE, fill="#000000").replace("<path", '<path opacity="0.4"', 1))
             out.append(star(c, PIP_SIZE, fill="url(#s)"))
