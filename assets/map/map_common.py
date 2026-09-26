@@ -101,7 +101,8 @@ TRIM = {
     'fascia': (544, 640, 8.0),  # the pergola's fascia: a shadow line along its underside
     'wood': (640, 736, 6.0),  # slats: grain along U
     'facade': (736, 992, 20.0),  # one tower floor, 10 studs tall: a band of windows
-    'dark': (992, 1024, 8.0),  # near black (spare)
+    'soffit': (992, 1008, 8.0),  # the pergola fascia's underside and inner faces: the cream's shade
+    'dark': (1008, 1024, 8.0),  # near black (spare)
 }
 TRIM_PAD = 3  # pixels kept clear at each strip edge in V (mip bleeding)
 FACADE_FLOOR_STUDS = 10.0  # the 'facade' strip is one floor this tall

@@ -93,7 +93,7 @@ P = {
     'pergola_half_width': 57.5,  # about 115 wide, as the art's (about 40% of the entrance view)
     'pergola_front_inset': 3.0,  # pergola front columns this far behind the platform edge
     'pergola_depth': 24.0,
-    'pergola_height': 21.0,  # clear height under the fascia (tall, so it anchors the view from the entrance)
+    'pergola_height': 18.0,  # clear height under its deep fascia (the fascia's top at 24.5 above the platform)
     'pergola_column': 4.5,  # thick, plain cream columns (the art; Stage 1 and 2 critics)
     'pergola_bays': 5,  # 6 columns per row, 23 apart: no column in the middle of the view
     'palm_inset': 7.0,  # a palm planter's centre this far in from the railing, so its crown stays over the roof
@@ -118,7 +118,7 @@ PROP_SIZE = {
     'piano_bench': (2.4, 1.0, 1.4),
     'globe_light': (1.5, 1.5, 1.5),
     'planter_bed': (16.0, 3.0, 5.0),  # a long low trough of ferns along a parapet: 2.5 high, ferns above
-    'table_glow': (20.0, 12.0, 0.02),  # the table (18.24 x 10.24) and a tight warm rim
+    'table_glow': (26.0, 18.0, 0.02),  # the table (18.24 x 10.24) and a soft warm pool about 3.5 round it
 }
 
 # Things that block walking (their footprint is solid). Glow planes and lights do not.

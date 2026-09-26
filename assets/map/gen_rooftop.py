@@ -49,12 +49,12 @@ import map_layout as ml  # noqa: E402
 # Every drawing choice (studs). The layout's own numbers come from map_layout.P.
 PARAMETERS = {
     'coping_height': 0.25,  # the cap on the parapet
-    'coping_overhang': 0.12,  # past each face of the parapet
+    'coping_overhang': 0.25,  # past each face of the parapet
     'wall_chamfer': 0.06,  # the parapet's vertical corners
     'post_size': 0.2,  # railing post, square
     'post_spacing': 3.8,  # at most this far apart
-    'rail_width': 0.3,  # handrail
-    'rail_height': 0.2,
+    'rail_width': 0.4,  # handrail
+    'rail_height': 0.25,
     'shoe_width': 0.16,  # the rail the glass stands in
     'shoe_height': 0.12,
     'glass_top_gap': 0.2,  # glass stops this far under the handrail's top
@@ -63,25 +63,26 @@ PARAMETERS = {
     'column_chamfer': 0.22,  # the columns are plain square shafts, as in the art
     'riser_lip': 0.3,  # the lounge platform's coping overhangs its riser this much...
     'riser_lip_height': 0.25,  # ...and is this thick
-    'fascia_height': 3.5,
+    'fascia_height': 6.5,  # deep, so the pergola reads as a heavy roof (Stage 2 critic)
     'fascia_thickness': 1.2,
     'fascia_overrun': 2.0,  # the fascia runs this far past the end columns' centres
     'joist_width': 1.0,
     'joist_height': 1.4,
     'slat_width': 1.2,
-    'slat_pitch': 3.0,
+    'slat_pitch': 2.0,
     'slat_thickness': 0.6,
     'slat_below_top': 0.2,  # the slats' top sits this far under the fascia's top
-    'drape_tile_studs': 16.0,  # the drape image's width in studs (its height is drape_height): a clump every 8
-    'drape_height': 6.5,  # from the fascia's top down
+    'drape_tile_studs': 16.0,  # the drape image's width in studs: its two clumps sit at u 0.25 and 0.75
+    'drape_card': 7.0,  # one clump card centred on each column head, this wide
+    'drape_height': 9.5,  # from the fascia's top down (hangs about 3 under its foot)
     'card_offset': 0.06,  # vine cards stand this far off the surface they hang on
     'climb_card': 3.4,  # a square climber card on a column face
     'bloom_card': 4.0,
     'floor_height': 10.0,  # the tower's storeys (the facade strip is one)
     'tower_floors': 4,  # storeys drawn under the parapet
     'facade_offset': 0.12,  # the facade stands this far off the gray-box tower block
-    'cornice_height': 1.2,
-    'cornice_depth': 0.45,
+    'cornice_height': 2.5,
+    'cornice_depth': 0.6,
     'shade_width': 2.2,  # the contact shade strip on the floor at a wall's foot
     'shade_lift': 0.015,  # overlays float this far over the floor
     'glow_lift': 0.02,
@@ -311,17 +312,28 @@ def geometry():
         (-pw - ft / 2, zb_row + ft / 2, -pw + ft / 2, zf_row - ft / 2),
         (pw - ft / 2, zb_row + ft / 2, pw + ft / 2, zf_row - ft / 2),
     ]
+    zmid, xmid = (zf_row + zb_row) / 2, 0.0
     for x0, z0, x1, z1 in fascia_boxes:
         outline = mc.outward_rect(x0, z0, x1, z1)
-        pergola.prism(outline, beam_y, beam_y + fh, 'fascia', top=True)
-        pergola.flat(outline, beam_y, 'fascia', up=False, frac=0.05)
+        # Outer faces in the lit cream, inner faces (toward the pergola's middle) in its shade.
+        n = len(outline)
+        cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
+        u = 0.0
+        for i in range(n):
+            a, b = outline[i], outline[(i + 1) % n]
+            nx, nz = -(b[1] - a[1]), b[0] - a[0]
+            mx, mz = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+            inward = (nx * (xmid - mx) + nz * (zmid - mz)) > 0 and abs(cz - zmid) + abs(cx - xmid) > 0
+            u = pergola.wall(a, b, beam_y, beam_y + fh, 'soffit' if inward else 'fascia', u)
+        pergola.flat(outline, beam_y + fh, 'top', up=True)
+        pergola.flat(outline, beam_y, 'soffit', up=False)
     jw, jh = A['joist_width'], A['joist_height']
     top_y = beam_y + fh - A['slat_below_top']
     slat_bottom = top_y - A['slat_thickness']
     zm = (zf_row + zb_row) / 2
     joist = mc.outward_rect(-pw + ft / 2, zm - jw / 2, pw - ft / 2, zm + jw / 2)
-    pergola.prism(joist, slat_bottom - jh, slat_bottom, 'fascia', top=False)
-    pergola.flat(joist, slat_bottom - jh, 'fascia', up=False, frac=0.05)
+    pergola.prism(joist, slat_bottom - jh, slat_bottom, 'soffit', top=False)
+    pergola.flat(joist, slat_bottom - jh, 'soffit', up=False)
     x = -pw + A['slat_pitch'] / 2
     while x < pw - A['slat_pitch'] / 2 + 1e-6:
         w = A['slat_width'] / 2
@@ -339,19 +351,25 @@ def geometry():
     u0, v0, u1, v1 = mc.FOLIAGE['drape']
     dz = zf_row + ft / 2 + off
     dy1, dy0 = beam_y + fh, beam_y + fh - A['drape_height']
-    vines.face([(-over - 0.5, dy0, dz), (over + 0.5, dy0, dz), (over + 0.5, dy1, dz), (-over - 0.5, dy1, dz)],
-               [(-over / drape_u, v0), (over / drape_u, v0), (over / drape_u, v1), (-over / drape_u, v1)], double=True)
-    # Along the front part of each side fascia.
-    for side in (-1, 1):
-        xx = side * (pw + ft / 2 + off)
-        za, zb_ = zf_row - ft / 2, zf_row - ft / 2 - (zf_row - zb_row) * 0.45
-        a, b = ((xx, za), (xx, zb_)) if side < 0 else ((xx, zb_), (xx, za))
-        la = math.dist(a, b)
-        vines.face([(a[0], dy0 + 1.5, a[1]), (b[0], dy0 + 1.5, b[1]), (b[0], dy1, b[1]), (a[0], dy1, a[1])],
-                   [(0.13, v0), (0.13 + la / drape_u, v0), (0.13 + la / drape_u, v1), (0.13, v1)], double=True)
-    cu0, cv0, cu1, cv1 = mc.FOLIAGE['climb']
     front_cols = sorted([c for c in columns if c.get('part_of') == 'pergola' and c['Z'] > (pz0 + pz1) / 2],
                         key=lambda c: c['X'])
+    # One clump centred on each column head, the bays between bare (Stage 2 critic): the drape
+    # image holds two clumps, at u 0.25 and 0.75; alternate them.
+    half_u = A['drape_card'] / drape_u / 2
+    hw = A['drape_card'] / 2
+    for i, col in enumerate(front_cols):
+        uc = 0.25 if i % 2 == 0 else 0.75
+        x = col['X']
+        vines.face([(x - hw, dy0, dz), (x + hw, dy0, dz), (x + hw, dy1, dz), (x - hw, dy1, dz)],
+                   [(uc - half_u, v0), (uc + half_u, v0), (uc + half_u, v1), (uc - half_u, v1)], double=True)
+    # And on the side fascias, at their front corners.
+    for side in (-1, 1):
+        xx = side * (pw + ft / 2 + off)
+        zc = zf_row - ft / 2 - hw - 0.5
+        a, b = ((xx, zc + hw), (xx, zc - hw)) if side < 0 else ((xx, zc - hw), (xx, zc + hw))
+        vines.face([(a[0], dy0 + 1.0, a[1]), (b[0], dy0 + 1.0, b[1]), (b[0], dy1, b[1]), (a[0], dy1, a[1])],
+                   [(0.75 - half_u, v0), (0.75 + half_u, v0), (0.75 + half_u, v1), (0.75 - half_u, v1)], double=True)
+    cu0, cv0, cu1, cv1 = mc.FOLIAGE['climb']
     card = A['climb_card']
     for i, col in enumerate(front_cols):
         stacks = 4 if i in (0, len(front_cols) - 1) else (2 if i in (2, 3) else 0)
@@ -375,7 +393,8 @@ def geometry():
     bc = A['bloom_card']
     right = front_cols[-1]
     for bx, by in ((right['X'] - 1.2, beam_y - 1.0), (right['X'] + 1.2, beam_y - 3.6), (right['X'] - 0.6, beam_y - 6.4),
-                   (right['X'] + 0.8, beam_y - 9.0), (-38.0, beam_y + 0.4), (24.0, beam_y + 0.6)):
+                   (right['X'] + 0.8, beam_y - 9.0), (front_cols[1]['X'] + 1.5, beam_y + 0.8),
+                   (front_cols[3]['X'] - 1.5, beam_y + 1.0)):
         zc = zf_row + ft / 2 + off * 2
         vines.face([(bx - bc / 2, by - bc / 2, zc), (bx + bc / 2, by - bc / 2, zc), (bx + bc / 2, by + bc / 2, zc),
                     (bx - bc / 2, by + bc / 2, zc)], [(bu0, bv0), (bu1, bv0), (bu1, bv1), (bu0, bv1)], double=True)

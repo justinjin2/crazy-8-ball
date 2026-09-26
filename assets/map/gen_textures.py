@@ -33,14 +33,14 @@ EXPORT = 1024
 OUT = os.path.join(HERE, 'textures')
 
 P = {
-    'tile_studs': 4.5,  # one floor tile
-    'grout_studs': 0.06,  # grout line width
+    'tile_studs': 9.0,  # one floor slab, about half a table long as in the art (StudsPerTile 18)
+    'grout_studs': 0.08,  # grout line width
     'grout_darken': 0.085,  # grout this much darker, in the floor's own hue (about 7 L*)
-    'slab_alternation': 0.035,  # a faint two-tone checker of slabs (about 4 L*), as in 02
+    'slab_alternation': 0.022,  # a faint two-tone checker of slabs (under 3 L*), as in 02
     'tile_jitter': 0.01,  # and a little per-tile variation on top
     'ao_scale': 0.7,  # every baked shade, this much of its first strength (Stage 2 critic)
     'mottle': 0.012,  # soft variation inside a tile
-    'edge_soft_studs': 0.05,  # the tile's rounded edge
+    'edge_soft_studs': 0.06,  # the tile's rounded edge
     'normal_strength': 3.0,
 }
 
@@ -167,9 +167,9 @@ def arch(rng):
         var = fine[r0:r0 + rows] * amount_fine + soft[r0:r0 + rows] * amount_soft
         return base[None, None, :] * (1 + var)[..., None]
 
-    # Wall: AO over the lowest fifth, a light top edge.
+    # Wall: smooth plaster, AO over the lowest fifth, a light top edge.
     r0, r1, v = strip('wall')
-    col = texture(stone, r1 - r0, r0)
+    col = texture(stone, r1 - r0, r0, 0.002, 0.003)
     ao = ((1 - smoothstep(0.0, 0.22, v)) * 0.42 + (1 - smoothstep(0.0, 0.05, v)) * 0.12) * P['ao_scale']
     col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     col = col * (1 + 0.05 * smoothstep(0.93, 0.99, v))[..., None]
@@ -189,12 +189,12 @@ def arch(rng):
     img[r0:r1] = col
     # Column: AO at the foot and a little under the capital.
     r0, r1, v = strip('column')
-    col = texture(cream, r1 - r0, r0, 0.006, 0.01)
+    col = texture(cream, r1 - r0, r0, 0.002, 0.003)  # smooth plaster, no streaks (Stage 2 critic)
     ao = ((1 - smoothstep(0.0, 0.12, v)) * 0.38 + smoothstep(0.93, 1.0, v) * 0.14) * P['ao_scale']
     img[r0:r1] = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     # Fascia: a shadow line along its underside, a light top.
     r0, r1, v = strip('fascia')
-    col = texture(cream * 1.02, r1 - r0, r0, 0.006, 0.01)
+    col = texture(cream * 1.02, r1 - r0, r0, 0.002, 0.003)
     ao = (1 - smoothstep(0.0, 0.18, v)) * 0.3 * P['ao_scale']
     col = toward_shadow(col, np.broadcast_to(ao, col.shape[:2]))
     img[r0:r1] = col * (1 + 0.05 * smoothstep(0.85, 0.97, v))[..., None]
@@ -215,11 +215,12 @@ def arch(rng):
     hgt = v * mc.FACADE_FLOOR_STUDS  # studs above the floor line
     wall = mc.mix(mc.rgb(mc.ALBEDO['stone']), mc.rgb(mc.ALBEDO['facade']), 0.35)
     col = texture(np.array(wall), rows, r0, 0.006, 0.01)
-    cell = u % 5.0
-    win_x = (cell > 0.7) & (cell < 4.3)
+    cell = u % 10.0  # a window every 10 studs, 7 wide (half as many; Stage 2 critic)
+    win_x = (cell > 1.5) & (cell < 8.5)
     win_y = (hgt > 2.2) & (hgt < 8.6)
-    glass_top = np.array(mc.rgb(mc.ALBEDO['window_sky']), dtype=np.float64)
-    glass_low = np.array(mc.rgb(mc.ALBEDO['window']), dtype=np.float64)
+    # Calmer glass than the city's, so the tower does not compete with the skyline.
+    glass_top = np.array(mc.shade(mc.rgb(mc.ALBEDO['window_sky']), 0.45), dtype=np.float64)
+    glass_low = np.array(mc.shade(mc.rgb(mc.ALBEDO['window']), 0.55), dtype=np.float64)
     t = np.clip((hgt - 2.2) / 6.4, 0, 1)
     glass = glass_low[None, None, :] + (glass_top - glass_low)[None, None, :] * (t[..., None] ** 1.5)
     glass = np.broadcast_to(glass, (rows, n, 3))
@@ -231,6 +232,9 @@ def arch(rng):
     slab = hgt < 0.8
     col = np.where(np.broadcast_to(slab, col.shape[:2])[..., None], toward_shadow(col, np.full(col.shape[:2], 0.18)), col)
     img[r0:r1] = col
+    # Soffit: the cream in its own shade (the palette's column shade), flat.
+    r0, r1, v = strip('soffit')
+    img[r0:r1] = colour_array(mc.hexc('column', 'shade'))[None, None, :]
     # Dark: near black.
     r0, r1, v = strip('dark')
     img[r0:r1] = colour_array('#17171D')[None, None, :]
@@ -291,7 +295,7 @@ def foliage(rng):
     # fascia, covering well under half its length, in the darker warm greens (Stage 2 critic).
     band_h = n // 2
     width = n
-    clumps = [(k + rng.uniform(0.3, 0.7)) / 2 * width for k in range(2)]
+    clumps = [0.25 * width, 0.75 * width]  # gen_rooftop centres a card on each (FOLIAGE_CLUMPS)
     for cx in clumps:
         spread = rng.uniform(0.07, 0.09) * width
         for k in range(12):
@@ -354,16 +358,15 @@ def overlays():
     alpha = np.zeros((n, n))
     half = n // 2
     # Glow: the left half maps the glow plane (map_layout's table_glow size) with the table in
-    # its middle: strong right at the table's foot and gone within a stud (Stage 2 critic).
+    # its middle: a soft warm pool from the table's foot, gone 3.5 studs out (Stage 2 critic).
     gw, _, gd = ml.PROP_SIZE['table_glow']
     ys, xs = np.mgrid[0:n, 0:half].astype(np.float64)
     px_x, px_y = (xs + 0.5) / half * gw - gw / 2, (ys + 0.5) / n * gd - gd / 2
     hx, hy, r = 9.12, 5.12, 1.0
     qx, qy = np.abs(px_x) - (hx - r), np.abs(px_y) - (hy - r)
     dist = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0) - r
-    glow = np.where(dist < 0, 1.0, np.exp(-np.maximum(dist, 0) / 0.35))
-    edge_fade = smoothstep(0.0, 0.3, np.minimum(np.minimum(px_x + gw / 2, gw / 2 - px_x), np.minimum(px_y + gd / 2, gd / 2 - px_y)))
-    alpha[:, :half] = 0.8 * glow * edge_fade
+    glow = 1.0 - smoothstep(0.0, 3.5, np.maximum(dist, 0))  # 1 under the table, gone 3.5 out
+    alpha[:, :half] = 0.55 * glow
     rgb_arr[:, :half] = colour_array(mc.ALBEDO['glow'])
     # Edge: the top-right quarter (Blender V 0.5..1); dark at its bottom row (the wall).
     rows = np.arange(half)[:, None].astype(np.float64)

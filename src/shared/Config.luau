@@ -2645,7 +2645,7 @@ Config.Map = {
 	Meshes = {
 		Parapet = { Maps = "Arch", CastShadow = true },
 		RailingFrame = { Color = "#1B1B22", CastShadow = false },
-		RailingGlass = { Color = "#66B4D2", Transparency = 0.75, CastShadow = false },
+		RailingGlass = { Color = "#66B4D2", Transparency = 0.6, CastShadow = false },
 		Steps = { Maps = "Arch", CastShadow = false },
 		Pergola = { Maps = "Arch", CastShadow = true },
 		PergolaSlats = { Maps = "Arch", CastShadow = false },
@@ -2665,20 +2665,21 @@ Config.Map = {
 	-- Uploaded images ("rbxassetid://digits"), "" until uploaded (an empty id is skipped).
 	-- The files are assets/map/textures/*.png at 1024, drawn by assets/map/gen_textures.py.
 	Maps = {
-		-- Uploaded 2026-09-26 from assets/map/textures (1024; second round, after the Stage 2 critic).
-		Arch = { Color = "rbxassetid://113429096351234" }, -- arch_color.png: the trim sheet, soft shade baked in
-		Foliage = { Color = "rbxassetid://126276496135367" }, -- foliage.png: vines and bougainvillea (alpha)
-		Overlays = { Color = "rbxassetid://96625423952855" }, -- overlays.png: the table glow and the contact shade (alpha)
+		-- Uploaded 2026-09-26 from assets/map/textures (1024; third round, after the Stage 2 critic).
+		Arch = { Color = "rbxassetid://75893924679734" }, -- arch_color.png: the trim sheet, soft shade baked in
+		Foliage = { Color = "rbxassetid://139476467352315" }, -- foliage.png: vines and bougainvillea (alpha)
+		Overlays = { Color = "rbxassetid://82239904410624" }, -- overlays.png: the table glow and the contact shade (alpha)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
-	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 tiles of 4.5 studs per
-	-- image, which divides both table pitches (36 and 31.5).
+	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
+	-- image, about half a table long as in the art (Stage 2 critic). 9 divides the table pitch
+	-- across (36); the rows (31.5 apart) sit mirrored about the terrace's middle.
 	Floor = {
 		Variant = "RooftopTile", -- MaterialService.<Variant>
 		BaseMaterial = "Slate", -- what it overrides (footstep sounds)
-		StudsPerTile = 9,
-		Color = "rbxassetid://134567346798562", -- floor_color.png
-		Normal = "rbxassetid://86667051171067", -- floor_normal.png
+		StudsPerTile = 18,
+		Color = "rbxassetid://111994988694463", -- floor_color.png
+		Normal = "rbxassetid://78720275464973", -- floor_normal.png
 		Tint = "#FFFFFF", -- the floor parts' Color (multiplies the map)
 	},
 	-- Most unique map images (the brief: 20, besides the two skyboxes and four far cards).

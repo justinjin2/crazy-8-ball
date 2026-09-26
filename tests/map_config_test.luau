@@ -115,28 +115,27 @@ return {
 		)
 	end,
 
-	["the floor tile divides both table pitches"] = function()
+	["every table sits the same way on the floor's slabs"] = function()
 		local Config = H.require("Config")
 		local F = Config.Map.Floor
 		H.expect(MATERIALS[F.BaseMaterial], "Floor.BaseMaterial " .. F.BaseMaterial)
 		H.expect(isHex(F.Tint), "Floor.Tint is a hex colour")
-		-- One image holds 2 x 2 tiles; every table then sits the same way on the grid.
-		local tile = F.StudsPerTile / 2
+		-- One image holds 2 x 2 slabs, mapped from the world origin. Across, every table's
+		-- offset is whole slabs; along, the rows mirror about Z = 0, so each row has a twin.
+		local slab = F.StudsPerTile / 2
 		local rows = Config.Hub.Tables
-		for i = 2, #rows do
-			local dx, dz = rows[i].X - rows[1].X, rows[i].Z - rows[1].Z
+		local zs: { [number]: boolean } = {}
+		for _, row in rows do
 			H.near(
-				dx / tile,
-				math.round(dx / tile),
+				row.X / slab,
+				math.round(row.X / slab),
 				1e-9,
-				("table %d's X offset is whole tiles"):format(rows[i].id)
+				("table %d's X is whole slabs"):format(row.id)
 			)
-			H.near(
-				dz / tile,
-				math.round(dz / tile),
-				1e-9,
-				("table %d's Z offset is whole tiles"):format(rows[i].id)
-			)
+			zs[row.Z] = true
+		end
+		for z in zs do
+			H.expect(zs[-z] ~= nil, ("the row at Z %.2f has a mirror twin"):format(z))
 		end
 	end,
 
