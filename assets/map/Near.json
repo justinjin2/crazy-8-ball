@@ -6,7 +6,7 @@
   "length": 40.0,
   "mast": 46.0
  },
- "total_triangles": 9451,
+ "total_triangles": 9471,
  "triangles": {
   "Boat": 37,
   "Buildings_Front": 794,
@@ -14,7 +14,7 @@
   "Coast": 42,
   "Ground": 2922,
   "Palms": 1344,
-  "Shallows": 20,
+  "Shallows": 40,
   "Tower": 384,
   "Trees": 980
  }

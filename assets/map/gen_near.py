@@ -58,7 +58,9 @@ P = {
     'under_drop': 1.2,  # ...down this far
     'shallows_in': 6.0,  # the painted shallows start this far up the sand (the foam line hides the
                          # Terrain water's stepped edge against the sand)...
-    'shallows_out': 140.0,  # ...and fade out this far past the waterline (a soft edge; critic 2)
+    'shallows_out': 140.0,  # ...turquoise out this far past the waterline...
+    'shallows_mid_v': 0.45,  # ...(the strip's V there: a faint turquoise)...
+    'shallows_far': 600.0,  # ...fading out to clear this far (the strip's V 0.2 is clear)
     'shallows_lift': 0.5,  # over the water's surface (at 0.15 it flickered with the water from the roof)
     'plaza_margin': 15.0,  # grid cells this close to the tower are its paved plaza; the rest a park
     'corner_radius': 80.0,  # the waterline rounds the tower's back-right corner in this wide a curve...
@@ -482,8 +484,11 @@ def coast(coast_mesh, shallows):
     sweep_rings(coast_mesh, [(wall, wall_bottom, 1.0), (water, SEA, 0.08),
                              (offset_path(water, P['under']), SEA - P['under_drop'], 0.0)], 'n_sand', UP)
     lift = SEA + P['shallows_lift']
+    # One band: foam at the sand, the turquoise out to shallows_out, then a faint tint on out to
+    # shallows_far (the art's turquoise near the shore; Stage 4 critics), clear at its edge.
     sweep_rings(shallows, [(offset_path(water, -P['shallows_in']), lift, 1.0),
-                           (offset_path(water, P['shallows_out']), lift, 0.0)], 'n_shallows', UP)
+                           (offset_path(water, P['shallows_out']), lift, P['shallows_mid_v']),
+                           (offset_path(water, P['shallows_far']), lift, 0.2)], 'n_shallows', UP)
     # The ends: the sea wall's face closed where the coast stops (behind, on the city side).
     (ax, az) = path[0]
     coast_mesh.wall((ax, az), (ax, az - beach), wall_bottom, STREET, 'n_seawall')
