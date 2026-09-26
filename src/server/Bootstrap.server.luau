@@ -1,7 +1,7 @@
 --!strict
 -- Server bootstrap. Builds the tables, wires up the queue pads and the shot authority, and
--- publishes the assets the client cannot reach on its own. Until the hub map exists the
--- tables stand on a plain baseplate (Config.Hub).
+-- publishes the assets the client cannot reach on its own. The tables stand on the rooftop
+-- map (Workspace.Map, built in Edit mode; Config.Hub and assets/map/Spec.md).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")

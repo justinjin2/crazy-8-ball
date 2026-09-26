@@ -187,20 +187,20 @@ function Placement.teamSizeOf(id: number): number?
 end
 
 --- The table's queue pad (Multiplayer.Queue), in studs along the table's own length and
---- width: its centre (cx, cy) and radius. It sits at the head end, toward the spawn, just
---- beyond the walkway, so a queue never stands where a shooter might; a bigger team gets a
---- bigger pad.
+--- width: its centre (cx, cy) and radius. It sits in front of the table, centred on the long
+--- side Queue.PadSide (toward the entrance), just beyond the walkway, so a queue never stands
+--- where a shooter might; a bigger team gets a bigger pad.
 function Placement.queuePad(teamSize: number): (number, number, number)
 	local Q = Config.Multiplayer.Queue
-	local wx = Placement.fenceHalfExtents()
+	local _, wy = Placement.fenceHalfExtents()
 	local r = Q.PadRadiusStuds[math.clamp(teamSize, 1, #Q.PadRadiusStuds)]
-	return -(wx + Q.PadGapStuds + r), 0, r
+	return 0, Q.PadSide * (wy + Q.PadGapStuds + r), r
 end
 
 --- The fence round a whole match area, in studs along the table's own length and width:
 --- the walkway grown to take in the queue pad and Queue.FenceMarginStuds beyond it, so the
 --- players who start a match standing on the pad are already inside. Half extents (hx, hy)
---- of a box centred (cx, cy) from the table centre; lopsided along, toward the pad.
+--- of a box centred (cx, cy) from the table centre; lopsided across, toward the pad.
 function Placement.matchFence(teamSize: number): (number, number, number, number)
 	local Q = Config.Multiplayer.Queue
 	local wx, wy, wcx = Placement.fenceHalfExtents()

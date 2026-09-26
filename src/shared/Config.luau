@@ -536,30 +536,33 @@ Config.Cue = {
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
 Config.Hub = {
-	-- A grid on the baseplate until the hub map is chosen: four rows of four, 26 studs apart
-	-- across and 43 along. Every table plays one mode, `teamSize` a side (designer,
-	-- 2026-09-26): ten 1v1, four 2v2 and two 3v3, the 1v1 tables at the front and the 3v3 at
-	-- the back; the left two columns have wood frames, the right two black (TableModel
-	-- LookByTable). Y is the FLOOR height the table stands on, not the cloth:
-	-- Placement.toWorld adds Table.SurfaceHeightStuds (2.9) on top. Yaw is degrees about world
-	-- +Y; at 90 the head rail faces world +Z, toward the spawn, where the queue pad is.
+	-- The rooftop map (assets/map/Spec.md, drawn in assets/map/Plan.png): four rows of four,
+	-- turned sideways like the concept art, long sides to the entrance (+Z), the queue pad in
+	-- front of each (Placement.queuePad). 36 studs apart across (the match fence's 26 plus a
+	-- 10 stud aisle) and 36.5 deep (the deepest fence, a 3v3's 30, plus an 8 stud aisle), so
+	-- every row is evenly spaced. Every table plays one mode, `teamSize` a side (designer,
+	-- 2026-09-26): ten 1v1 at the front, four 2v2, and the two 3v3 at the back centre; their
+	-- looks are in TableModel.LookByTable. The positions come from assets/map/map_layout.py,
+	-- and tests/map_layout_test.luau keeps the two equal. Y is the FLOOR height the table
+	-- stands on, not the cloth: Placement.toWorld adds Table.SurfaceHeightStuds (2.9) on top.
+	-- Yaw is degrees about world +Y; at 0 the length runs along world X, the head rail at -X.
 	Tables = {
-		{ id = 1, X = -39, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
-		{ id = 2, X = -13, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
-		{ id = 3, X = 13, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
-		{ id = 4, X = 39, Y = 0, Z = 0, YawDegrees = 90, teamSize = 1 },
-		{ id = 5, X = -39, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
-		{ id = 6, X = -13, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
-		{ id = 7, X = 13, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
-		{ id = 8, X = 39, Y = 0, Z = -43, YawDegrees = 90, teamSize = 1 },
-		{ id = 9, X = -39, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
-		{ id = 10, X = -13, Y = 0, Z = -86, YawDegrees = 90, teamSize = 2 },
-		{ id = 11, X = 13, Y = 0, Z = -86, YawDegrees = 90, teamSize = 2 },
-		{ id = 12, X = 39, Y = 0, Z = -86, YawDegrees = 90, teamSize = 1 },
-		{ id = 13, X = -39, Y = 0, Z = -129, YawDegrees = 90, teamSize = 2 },
-		{ id = 14, X = -13, Y = 0, Z = -129, YawDegrees = 90, teamSize = 3 },
-		{ id = 15, X = 13, Y = 0, Z = -129, YawDegrees = 90, teamSize = 3 },
-		{ id = 16, X = 39, Y = 0, Z = -129, YawDegrees = 90, teamSize = 2 },
+		{ id = 1, X = -54, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 2, X = -18, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 3, X = 18, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 4, X = 54, Y = 0, Z = 54.75, YawDegrees = 0, teamSize = 1 },
+		{ id = 5, X = -54, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 6, X = -18, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 7, X = 18, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 8, X = 54, Y = 0, Z = 18.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 9, X = -54, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 10, X = -18, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 2 },
+		{ id = 11, X = 18, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 2 },
+		{ id = 12, X = 54, Y = 0, Z = -18.25, YawDegrees = 0, teamSize = 1 },
+		{ id = 13, X = -54, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 2 },
+		{ id = 14, X = -18, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 3 },
+		{ id = 15, X = 18, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 3 },
+		{ id = 16, X = 54, Y = 0, Z = -54.75, YawDegrees = 0, teamSize = 2 },
 	},
 
 	-- How many tables to build, taken from the front of Tables.
@@ -747,20 +750,16 @@ Config.TableModel = {
 	DefaultLook = "Green",
 	-- Table id -> look. The regular lobby has wood frames (green 1v1, red 2v2, charcoal 3v3)
 	-- and the pro lobby black frames (blue 1v1, red 2v2, charcoal 3v3) (designer,
-	-- 2026-09-26). Until the pro lobby exists the baseplate shows every combination: the left
-	-- two columns (X -39 and -13) wood, the right two black; see Hub.Tables for the modes.
+	-- 2026-09-26). This place is the regular lobby: the 1v1 tables take DefaultLook (green)
+	-- and the team tables their mode's wood look; see Hub.Tables for the modes. The
+	-- black-frame looks stay for the pro lobby.
 	LookByTable = {
-		[3] = "Blue",
-		[4] = "Blue",
-		[7] = "Blue",
-		[8] = "Blue",
 		[10] = "RedWood",
-		[11] = "RedBlack",
-		[12] = "Blue",
+		[11] = "RedWood",
 		[13] = "RedWood",
 		[14] = "CharcoalWood",
-		[15] = "CharcoalBlack",
-		[16] = "RedBlack",
+		[15] = "CharcoalWood",
+		[16] = "RedWood",
 	} :: { [number]: string },
 	-- Most triangles over all eight meshes (Roblox caps each mesh at 20,000), and most unique
 	-- 1024 images over every look (ARCHITECTURE section 7).
@@ -2365,10 +2364,10 @@ Config.Multiplayer = {
 	-- is a foul). The designer keeps it out of casual public games and in ranked only
 	-- (2026-09-23). Every table is casual until ranked matches exist (a table's `ranked` flag).
 	RailAfterContact = { Casual = false, Ranked = true },
-	-- On the baseplate in front of the table grid (Config.Hub.Tables), facing it, clear of the
-	-- front row's queue pads: wood-frame tables on the left, black on the right. Y is the
-	-- SpawnLocation's centre.
-	Spawn = { X = 0, Y = 0.5, Z = 38, YawDegrees = 0 },
+	-- On the rooftop's entrance landing, at the top of the stair, facing the tables
+	-- (assets/map/Spec.md). Y is the SpawnLocation's centre: it is the art's entrance mat, a
+	-- 0.2 stud slab lying on the floor (MapBuilder).
+	Spawn = { X = 0, Y = 0.1, Z = 86.25, YawDegrees = 0 },
 	CoinSeconds = 2.6, -- shared coin presentation; the host's Start leads straight into it
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
 	PlacementSeconds = 15, -- cue-ball placement window (break and ball in hand)
@@ -2393,10 +2392,13 @@ Config.Multiplayer = {
 	-- One pad per table (Placement.queuePad). The first on is the host, who picks the
 	-- difficulty and presses Start once the pad is full; teams alternate in arrival order.
 	Queue = {
-		-- One round pad per table, at its head end toward the spawn (designer, 2026-09-26):
-		-- stand anywhere on it to join. It holds both teams, twice the table's teamSize.
+		-- One round pad per table (designer, 2026-09-26): stand anywhere on it to join. It
+		-- holds both teams, twice the table's teamSize. It sits in front of the table, centred
+		-- on the long side toward the entrance (designer, 2026-09-26; its shape may change).
 		PadRadiusStuds = { 3.5, 4.25, 5 }, -- by team size: 1v1, 2v2, 3v3 (tune)
-		PadGapStuds = 1, -- from the walkway's head end (Fence.HalfLengthStuds) to the pad
+		-- Which long side: the sign of physics y. -1 is world +Z at yaw 0, toward the entrance.
+		PadSide = -1,
+		PadGapStuds = 1, -- from the walkway's long edge (Fence.HalfWidthStuds) to the pad
 		FenceMarginStuds = 0.5, -- the match fence stands this far beyond the pad
 		-- The server checks who is on each pad this often, rather than using .Touched, which
 		-- misses a player who walks on and stands still. It also paces the match loop.
@@ -2459,7 +2461,7 @@ Config.Multiplayer = {
 		-- The queue pad (TableService.buildPad): a white disc with a glowing rim, the table's
 		-- mode written big on it and STEP IN or the count under that.
 		PadHeight = 0.16, -- the disc's thickness, studs
-		FloorOffset = 0.08, -- avoid baseplate z-fighting, studs
+		FloorOffset = 0.08, -- avoid z-fighting with the floor, studs
 		PadColor = { 245, 248, 255 }, -- the disc: near white
 		PadTransparency = 0.05,
 		RimStuds = 0.45, -- the glowing rim showing round the disc
@@ -2468,13 +2470,13 @@ Config.Multiplayer = {
 		PixelsPerStud = 40, -- sharp words on the pad without large canvases
 		ModeTextSize = 110, -- "1v1" on the pad, pixels (about 2.75 studs tall)
 		CountTextSize = 50, -- STEP IN or 1/2 under it
-		LabelRotation = 180, -- turns the pad's words to read upright from the spawn (tune)
+		LabelRotation = 270, -- turns the pad's words to read upright from the entrance, tables at yaw 0 (tune)
 		LightBrightness = 0.35, -- bounded ambient glow from the pad
 		LightRange = 6, -- studs
 		VerticalTolerance = 6, -- a pad cannot seat someone on a different floor, studs
 		AreaMargin = 1, -- the queue area round the pad: leaving it starts the exit grace
 		FallTolerance = 5, -- recover a falling participant below the table area
-		RespawnHeight = 3, -- safe standing root height above baseplate, studs
+		RespawnHeight = 3, -- safe standing root height above the floor, studs
 		RespawnBoundaryInset = 1, -- keep respawns inside confinement, studs
 		-- The pad's effects (src/client/BoxEffects.luau). (tune)
 		FadeInSeconds = 0.25, -- how fast the whole effect lights up and fades out

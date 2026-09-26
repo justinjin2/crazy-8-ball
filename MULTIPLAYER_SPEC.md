@@ -25,7 +25,8 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 Changed 2026-09-26 (designer): every table plays one mode again, with one round pad.
 
 - Of the sixteen tables, ten are 1v1, four 2v2 and two 3v3 (`Config.Hub.Tables` teamSize).
-  Each has one round pad at its head end, toward the spawn, holding both teams (2, 4 or
+  Each has one round pad in front of it, centred on the long side toward the entrance
+  (`Queue.PadSide`; designer, 2026-09-26), holding both teams (2, 4 or
   6); the mode is written big on it with STEP IN or the count. Rings pulse out of it and an
   arrow bobs over it while it has room; its rim is blue, green once somebody is on, gold
   when full or playing. A floating sign (mode, host, count, abilities, difficulty) shows

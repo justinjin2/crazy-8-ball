@@ -36,7 +36,7 @@ GAME = {
     'pad_radius': {1: 3.5, 2: 4.25, 3: 5.0},  # PadRadiusStuds by team size
     'pad_gap': 1.0,  # PadGapStuds: from the walkway's edge to the pad
     'fence_margin': 0.5,  # FenceMarginStuds: the match fence stands this far beyond the pad
-    'pad_side': -1,  # the sign of physics y the pad sits on: world +Z (the entrance) at yaw 0
+    'pad_side': -1,  # Queue.PadSide: the sign of physics y the pad sits on (world +Z at yaw 0)
     'player_height': 5.0,
 }
 
@@ -96,8 +96,9 @@ P = {
     'pergola_height': 15.0,  # clear height under the beams
     'pergola_column': 2.6,
     'pergola_bays': 5,  # 6 columns per row, 19.2 apart: no column in the middle of the view
-    # Spawn on the landing, facing the tables. Y is the SpawnLocation's centre (a 1-stud pad).
+    # Spawn on the landing, facing the tables. The SpawnLocation is the art's entrance mat.
     'spawn_from_landing_front': 4.5,
+    'mat_size': (16.0, 0.2, 6.0),  # the entrance mat (the SpawnLocation), between the tall lanterns
 }
 
 # Prop footprints (studs): width along the prop's own X, depth along its own Z, height.
@@ -217,7 +218,8 @@ def build():
     lower_y = -P['step_count'] * P['step_rise']
     lower_front = front_edge + steps_depth + P['lower_landing_depth']
 
-    spawn = {'X': 0.0, 'Y': 0.5, 'Z': landing_front + P['spawn_from_landing_front'], 'yaw': 0.0}
+    spawn = {'X': 0.0, 'Y': P['mat_size'][1] / 2, 'Z': landing_front + P['spawn_from_landing_front'], 'yaw': 0.0,
+             'size': list(P['mat_size'])}
 
     lw, lf = P['lounge_half_width'], P['lounge_flight_half_width']
     pw = P['pergola_half_width']

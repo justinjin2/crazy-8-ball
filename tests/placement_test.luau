@@ -3,8 +3,8 @@
 --
 -- These matter more than they look. A pool table is symmetric end to end, so a sign error
 -- in the yaw maths builds a table that LOOKS right and plays mirrored: the guideline would
--- point at the wrong pocket with nothing on screen to give it away. Every table is
--- at yaw 90, so the yaw path is load-bearing from the first table onwards.
+-- point at the wrong pocket with nothing on screen to give it away. Every rooftop table is
+-- at yaw 0, but the tests turn tables through every yaw so any layout stays safe.
 
 local H = require("./harness")
 
@@ -56,13 +56,17 @@ return {
 				H.expect(id == row.id, ("table %d end"):format(row.id))
 				H.near(d, 2, 1e-9, "two studs past the end")
 				-- Three and four studs out beyond a corner: five in a straight line from this
-				-- table, unless a neighbour's area is nearer still.
+				-- table, unless a neighbour's area is nearer still, or just as near with a lower
+				-- id (ties go to the lower id; an 8 stud aisle makes one exactly).
 				wx, _, wz = Placement.fromTableStuds(p, cx - fx - 3, cy - fy - 4, 0)
 				id, d = Placement.nearestArea(wx, wz)
 				if id == row.id then
 					H.near(d, 5, 1e-9, "a corner is measured straight")
 				else
-					H.expect(d < 5, "a neighbour only wins when it is nearer")
+					H.expect(
+						d < 5 - 1e-9 or (d <= 5 + 1e-9 and (id :: number) < row.id),
+						"a neighbour only wins when it is nearer, or as near with a lower id"
+					)
 				end
 			end
 		end
@@ -265,60 +269,50 @@ return {
 		end
 	end,
 
-	-- The baseplate grid (designer, 2026-09-26): sixteen tables, ids 1 to 16. Ten 1v1, four
-	-- 2v2 and two 3v3, each mode half in the regular lobby's wood look and half in the pro
-	-- lobby's black look: 1v1 green/wood and blue/black, 2v2 red on either, 3v3 charcoal on
-	-- either. The 1v1 tables stand at the front, the 3v3 at the back.
-	["the baseplate has every mode in every look"] = function()
+	-- The rooftop map (designer, 2026-09-26; assets/map/Spec.md): sixteen tables, ids 1 to 16,
+	-- in four rows of four. Ten 1v1, four 2v2 and two 3v3, every one in the regular lobby's
+	-- wood look for its mode: 1v1 green, 2v2 red, 3v3 charcoal. The 1v1 tables stand at the
+	-- front (nearest the entrance, +Z), the 3v3 at the back.
+	["the rooftop has ten 1v1 at the front and wood looks by mode"] = function()
 		local Config, Placement = setup()
 		local TableBuilder = H.require("TableBuilder")
 		local rows = Config.Hub.Tables
 		H.expect(#rows == 16 and Placement.tableCount() == 16, "sixteen tables, all built")
 		local byMode: { [number]: number } = {}
-		local byLook: { [string]: number } = {}
-		local lookOfMode = {
-			[1] = { Green = true, Blue = true },
-			[2] = { RedWood = true, RedBlack = true },
-			[3] = { CharcoalWood = true, CharcoalBlack = true },
-		}
+		local lookOfMode = { [1] = "Green", [2] = "RedWood", [3] = "CharcoalWood" }
 		for i, row in rows do
 			H.expect(row.id == i, ("table ids run 1 to 16 (row %d)"):format(i))
 			H.expect(Placement.teamSizeOf(row.id) == row.teamSize, "teamSizeOf reads the row")
 			byMode[row.teamSize] = (byMode[row.teamSize] or 0) + 1
 			local look = TableBuilder.lookFor(row.id)
-			byLook[look] = (byLook[look] or 0) + 1
 			H.expect(
-				lookOfMode[row.teamSize][look],
+				look == lookOfMode[row.teamSize],
 				("table %d: %s on a %dv%d"):format(i, look, row.teamSize, row.teamSize)
-			)
-			-- Wood frames on the left (X < 0), black on the right.
-			local wood = look == "Green" or look == "RedWood" or look == "CharcoalWood"
-			H.expect(
-				wood == (row.X < 0),
-				("table %d: wood on the left, black on the right"):format(i)
 			)
 		end
 		H.expect(
 			byMode[1] == 10 and byMode[2] == 4 and byMode[3] == 2,
 			"ten 1v1, four 2v2, two 3v3"
 		)
-		H.expect(byLook.Green == 5 and byLook.Blue == 5, "the 1v1 tables: five of each look")
-		H.expect(byLook.RedWood == 2 and byLook.RedBlack == 2, "the 2v2 tables: two of each")
-		H.expect(
-			byLook.CharcoalWood == 1 and byLook.CharcoalBlack == 1,
-			"the 3v3 tables: one of each"
-		)
-		-- Front to back: every 1v1 row is in front of every 2v2 row, every 2v2 in front of 3v3.
-		local frontmost: { [number]: number } = {}
-		local backmost: { [number]: number } = {}
+		-- Front to back: the front row (largest Z) is all 1v1, and no 3v3 stands in front of a
+		-- 2v2 or a 1v1.
+		local frontZ = -math.huge
 		for _, row in rows do
-			frontmost[row.teamSize] = math.max(frontmost[row.teamSize] or -math.huge, row.Z)
-			backmost[row.teamSize] = math.min(backmost[row.teamSize] or math.huge, row.Z)
+			frontZ = math.max(frontZ, row.Z)
 		end
-		H.expect(
-			backmost[1] >= frontmost[2] - 43 and frontmost[3] <= backmost[2],
-			"1v1 in front, 3v3 at the back"
-		)
+		local front3 = -math.huge
+		local back1 = math.huge
+		for _, row in rows do
+			if row.Z == frontZ then
+				H.expect(row.teamSize == 1, ("table %d in the front row is 1v1"):format(row.id))
+			end
+			if row.teamSize == 3 then
+				front3 = math.max(front3, row.Z)
+			elseif row.teamSize == 1 then
+				back1 = math.min(back1, row.Z)
+			end
+		end
+		H.expect(front3 < back1, "the 3v3 tables stand behind every 1v1 table")
 	end,
 
 	["no two match fences overlap"] = function()
@@ -342,14 +336,16 @@ return {
 		end
 	end,
 
-	-- The queue pad is round, at the head end beyond the walkway the shooter stands in, and the
-	-- match fence takes in both: whoever starts a game standing on the pad is inside it.
+	-- The queue pad is round, in front of the table on its long side (Queue.PadSide), beyond
+	-- the walkway the shooter stands in, and the match fence takes in both: whoever starts a
+	-- game standing on the pad is inside it.
 	["the queue pad sits outside the walkway and inside the match fence"] = function()
 		local Config, Placement = setup()
 		local Q = Config.Multiplayer.Queue
 		local wx, wy, wcx = Placement.fenceHalfExtents()
-		local barrierX = Placement.barrierHalfExtents()
+		local _, barrierY = Placement.barrierHalfExtents()
 		H.near(wcx, 0, 1e-9, "the walkway is centred on the table")
+		H.expect(Q.PadSide == 1 or Q.PadSide == -1, "PadSide names a long side")
 		local lastRadius = 0
 		for teamSize = 1, 3 do
 			local pcx, pcy, r = Placement.queuePad(teamSize)
@@ -357,15 +353,21 @@ return {
 			H.near(r, Q.PadRadiusStuds[teamSize], 1e-9, "the radius for the mode")
 			H.expect(r > lastRadius, "a bigger team gets a bigger pad")
 			lastRadius = r
-			H.expect(pcx < 0 and pcy == 0, "at the head end, on the table's line")
-			H.expect(-(pcx + r) >= wx, "beyond the walkway")
-			H.expect(-(pcx + r) > barrierX, "clear of the table")
+			H.expect(pcx == 0 and pcy * Q.PadSide > 0, "centred on the PadSide long side")
+			H.expect(math.abs(pcy) - r >= wy, "beyond the walkway")
+			H.expect(math.abs(pcy) - r > barrierY, "clear of the table")
+			H.expect(r < wx, "no wider than the walkway is long")
 			local function inside(x0: number, x1: number, y0: number, y1: number): boolean
 				return x0 >= fcx - fx and x1 <= fcx + fx and y0 >= fcy - fy and y1 <= fcy + fy
 			end
 			H.expect(inside(-wx, wx, -wy, wy), "the fence holds the walkway")
 			H.expect(inside(pcx - r, pcx + r, pcy - r, pcy + r), "the fence holds the pad")
-			H.near(fcx - fx, pcx - r - Q.FenceMarginStuds, 1e-9, "with the margin beyond it")
+			H.near(
+				fcy + Q.PadSide * fy,
+				pcy + Q.PadSide * (r + Q.FenceMarginStuds),
+				1e-9,
+				"with the margin beyond it"
+			)
 		end
 	end,
 

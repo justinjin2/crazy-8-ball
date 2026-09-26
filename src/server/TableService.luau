@@ -166,7 +166,7 @@ local function buildFence(t: any, folder: Instance)
 	local height = M.Barrier.HeightStuds
 	local fx, fy, cx, cy = Placement.matchFence(t.engine.teamSize)
 	local w = F.ThicknessStuds
-	-- The fence takes in the queue pad at the head end, so it is centred off the table.
+	-- The fence takes in the queue pad in front of the table, so it is centred off the table.
 	local base = tableFrame(t.placement, cx, cy, height / 2)
 	local walls = {
 		{ Vector3.new(0, 0, fy + w / 2), Vector3.new(2 * (fx + w), height, w) },
@@ -190,11 +190,12 @@ local function buildFence(t: any, folder: Instance)
 	end
 end
 
--- The table's queue pad (Placement.queuePad, designer 2026-09-26): a round white disc at the
--- head end with a glowing rim, the table's mode written big on it and STEP IN or the count
--- under that. Stand anywhere on it to join. The server keeps its attributes and words
--- current (refresh); BoxEffects on each client tints and lights it, pulses rings out of it
--- and bobs an arrow over it from those attributes.
+-- The table's queue pad (Placement.queuePad, designer 2026-09-26): a round white disc in
+-- front of the table, on its long side toward the entrance, with a glowing rim, the table's
+-- mode written big on it and STEP IN or the count under that. Stand anywhere on it to join.
+-- The server keeps its attributes and words current (refresh); PadEffects on each client
+-- tints and lights it, pulses rings out of it and bobs an arrow over it from those
+-- attributes.
 local function buildPad(t: any, folder: Instance)
 	local id = t.engine.id
 	local teamSize = t.engine.teamSize
