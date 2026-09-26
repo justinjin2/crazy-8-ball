@@ -194,6 +194,26 @@ Tested with a sand slope and a dark seabed under Terrain water, at Edit quality 
 - Roblox renders a skybox paler and greyer than painted: #3894FC showed as #56A9DD. Paint
   sky colours deeper and more saturated than the target.
 
+## Lighting in Edit and in Play (tested 2026-09-26)
+
+- **No Technology setting.** This place is on Roblox's unified lighting: Lighting has no
+  `Technology` property (its `RBX_OriginalTechnologyOnFileLoad` attribute says it was
+  ShadowMap), only `LightingStyle` (Soft) and `PrioritizeLightingQuality`. The brief's "set
+  Future" step no longer applies.
+- **Tune light in Play, not in the Edit preview.** Edit's viewport draws no DepthOfField at
+  all, and draws Atmosphere haze far thinner: Haze 0.3 at Density 0.1 looked fine in Edit
+  and fogged the whole 3D city and sea into one flat colour in Play.
+- **A LocalScript may write SurfaceAppearance `EmissiveStrength`, `EmissiveTint` and
+  `Color`** at runtime (the day cycle does, for the glowing tables and windows).
+  `EmissiveMaskContent` is set once in Edit (`Content.fromUri`).
+- `MapLighting.preview` lights the place in Edit (Day, Sunset or a blend); in Play every
+  client's `DayCycle` runs the cycle. A client frozen at a blend for captures:
+  `MapLighting.apply(LightCycle.state(b, Config.Lighting), MapLighting.collect(Config.Map), nil)`
+  holds while the cycle holds.
+- Studio's chat box has CoreGui focus, so the MCP's keyboard input cannot type into it, and
+  `TextChannel:SendAsync("/day")` from a test script hangs. Test the commands' work by
+  calling `DevCommands.toward("Day")` in the Server datamodel.
+
 ## The 3D Importer and scripts right after an import (2026-09-26)
 
 The importer can still be adding the model when the user says "imported". A setup script run

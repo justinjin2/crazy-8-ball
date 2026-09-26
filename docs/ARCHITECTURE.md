@@ -130,10 +130,14 @@ Aim, Simulation), `Rules/` (Rules state machine, ShotJudge; pure, to be written)
 `CueClearance` (the drawn cue's visual pitch), `ShooterStance` (where the body stands,
 stretches or kneels, and where both hands hold the cue), `PoseMath`, `AimStream`; `ShotInput` (validation/seed
 quantization), `Strings` (HUD copy), `Catalog`
-(item data rows, to be written).
+(item data rows, to be written). The hub map: `MapBuilder` (Edit-mode setup of the imported
+map), `MapMotion` (the boats' paths, pure), `LightCycle` (the day/sunset cycle: server time
+to a blend, the two light states mixed, the sun's path; pure), `MapLighting` (puts a light
+state onto the place; `preview` in Edit mode).
 
 Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `TableService`
 (per-table state, joins, seats, match loop), `ShotService` (validation, simulation, broadcast),
+`DevCommands` (the developer's `/day` and `/sunset` chat commands, checked on the server),
 `BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`.
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
@@ -145,7 +149,9 @@ the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone o
 sees: host, difficulty, abilities, Start; beside the jump button on a phone), `TableSign`
 (the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
-animation), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound).
+animation), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
+`MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
+clock, no network traffic).
 
 UI art: `tools/gen_ui_art.py` draws the icons and effect images as SVG from one shared style
 (ink outline, drop lip, gloss) and renders them to PNG with headless Chrome into

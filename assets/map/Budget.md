@@ -44,12 +44,12 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 11 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows) |
-| Skyboxes | 2 (six faces each) | 1 (day; gen_sky.py) |
+| Unique map textures (1024 exports) | 20 | 13 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows, and the emissive masks for the skyline's windows and the table glow) |
+| Skyboxes | 2 (six faces each) | 3 (day, dusk, sunset; gen_sky.py): the brief's allowed in-between sky, because one swap popped (DECISIONS) |
 | Far-card images | 4 | 0 (the far horizon is painted into the skybox faces instead) |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
 | MeshParts, backdrop | about 30 | 23 (the near world: 8 meshes and 3 boats; the mid backdrop: 12 chunks) |
-| PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 3 (the tall lanterns, the fire pit) |
+| PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 9 (the two tall lanterns, the fire pit, the six pergola globes) |
 
 ## Stage 2: the architecture (2026-09-26)
 

@@ -1239,3 +1239,19 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the city showing through the pergola's left half. The city, mountains and sea are background:
   the lighting and atmosphere (Stage 7) soften and blur them so the focal point is the pool
   tables, which also masks the backdrop's low poly. No detail pass on the backdrop is planned.
+- 2026-09-26: The rooftop map's day and sunset cycle (Stage 7):
+  - Lighting.Technology is gone (the place is on Roblox's unified lighting, style Soft), so
+    the brief's Future step is dropped; the look was tuned in Play.
+  - The lit windows at sunset are an emissive mask on the skyline's own texture, not the
+    brief's Neon window mesh: the same glow with no new MeshParts, triangles or import, and
+    phones (which draw no 3D skyline) see the lit windows painted in the sunset sky.
+  - The sky swap: one swap from the blue day sky straight to the magenta sunset popped, and a
+    haze bump made it worse (Atmosphere haze takes the sky's colour and tints the whole
+    rooftop), so a third, in-between dusk sky is rendered from the same cloud scene and the
+    cycle swaps day, dusk, sunset; the haze bump is only a hint.
+  - The background is kept soft by depth of field (the roof sharp to 260 studs; PC-class
+    devices) as the designer asked at Checkpoint C; the sunset has no haze (it fogged the 3D
+    world away in Play).
+  - The designer's `/day` and `/sunset` chat commands (only for them, the group's owner, or
+    anyone in Studio; checked on the server) send the whole server's cycle toward that state
+    through its one-minute fade, so the transition shows.
