@@ -1,0 +1,110 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Rank badges</title>
+<style>
+  body { margin: 0; padding: 24px; background: #EAF1FB; color: #1B2033;
+         font: 15px/1.4 "Arial Rounded MT Bold", system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p { margin: 0 0 18px; max-width: 70ch; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
+  .row h2 { width: 100%; margin: 6px 0 0; font-size: 15px; text-transform: uppercase; opacity: .7; }
+  figure { margin: 0; text-align: center; }
+  canvas { width: 150px; height: 150px; display: block; }
+  figcaption { font-size: 12px; opacity: .65; }
+  label { display: inline-block; margin-bottom: 14px; }
+</style></head><body>
+<h1>Rank badges</h1>
+<p>Made by tools/gen_rank_badges.py. The shine is drawn the way the game will do it: a soft white
+band swept across the badge's shine mask, sparkles from Expert up, and turning gold rays behind
+Reyes. Timings are starting values (README.md).</p>
+<label><input type="checkbox" id="dark"> dark background</label>
+<p id="error" hidden><b>Some images did not load.</b> Serve this folder over http (see README.md) or open it in Chrome.</p>
+<div id="grid"></div>
+<script>
+const FX = {"none": null, "low": {"period": 4.0, "sweep": 0.9, "width": 0.16, "strength": 0.55, "angle": 20, "sparkles": 0, "twinkle": 1, "spots": [[84, 82], [172, 84], [196, 124], [62, 128], [128, 46]], "sparkleSize": 0}, "high": {"period": 3.0, "sweep": 0.8, "width": 0.16, "strength": 0.6, "angle": 20, "sparkles": 3, "twinkle": 1.6, "spots": [[128, 32], [92, 52], [166, 52], [40, 92], [216, 92], [54, 170], [202, 170], [84, 88], [172, 88]], "sparkleSize": 0.16}, "top": {"period": 2.2, "sweep": 0.7, "width": 0.18, "strength": 0.7, "angle": 20, "sparkles": 5, "twinkle": 1.4, "spots": [[128, 32], [92, 52], [166, 52], [40, 92], [216, 92], [54, 170], [202, 170], [84, 88], [172, 88]], "sparkleSize": 0.19, "rays": {"turn": 14, "alpha": 0.45, "colour": "#FFC928"}}};
+const ROWS = [{"title": "unranked", "fx": "none", "names": ["unranked"]}, {"title": "bronze", "fx": "low", "names": ["bronze_1", "bronze_2", "bronze_3", "bronze_4", "bronze_5"]}, {"title": "silver", "fx": "low", "names": ["silver_1", "silver_2", "silver_3", "silver_4", "silver_5"]}, {"title": "gold", "fx": "low", "names": ["gold_1", "gold_2", "gold_3", "gold_4", "gold_5"]}, {"title": "platinum", "fx": "low", "names": ["platinum_1", "platinum_2", "platinum_3", "platinum_4", "platinum_5"]}, {"title": "diamond", "fx": "low", "names": ["diamond_1", "diamond_2", "diamond_3", "diamond_4", "diamond_5"]}, {"title": "expert", "fx": "high", "names": ["expert_1", "expert_2", "expert_3", "expert_4", "expert_5"]}, {"title": "veteran", "fx": "high", "names": ["veteran_1", "veteran_2", "veteran_3", "veteran_4", "veteran_5"]}, {"title": "master", "fx": "high", "names": ["master_1", "master_2", "master_3", "master_4", "master_5"]}, {"title": "grandmaster", "fx": "high", "names": ["grandmaster_1", "grandmaster_2", "grandmaster_3", "grandmaster_4", "grandmaster_5"]}, {"title": "reyes", "fx": "top", "names": ["reyes"]}];
+const load = src => new Promise(res => {
+  const i = new Image(); i.onload = () => res(i);
+  i.onerror = () => { document.getElementById("error").hidden = false; res(null); }; i.src = src;
+});
+const badges = [];
+(async () => {
+  const sparkle = await load("sparkle.png");
+  const rays = await load("../art/rays.png");
+  const grid = document.getElementById("grid");
+  for (const row of ROWS) {
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `<h2>${row.title}</h2>`;
+    grid.appendChild(div);
+    for (const name of row.names) {
+      const fig = document.createElement("figure");
+      const canvas = document.createElement("canvas");
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.height = 150 * dpr;
+      fig.appendChild(canvas);
+      fig.insertAdjacentHTML("beforeend", `<figcaption>${name.replace("_", " ")}</figcaption>`);
+      div.appendChild(fig);
+      const [img, mask] = await Promise.all([load(name + ".png"), load("shine/" + name + ".png")]);
+      const off = document.createElement("canvas");
+      off.width = off.height = canvas.width;
+      badges.push({ canvas, img, mask, off, fx: FX[row.fx], seed: badges.length * 0.37 });
+    }
+  }
+  requestAnimationFrame(frame);
+  function frame(ms) {
+    const t = ms / 1000;
+    for (const b of badges) draw(b, t);
+    requestAnimationFrame(frame);
+  }
+  function draw(b, t) {
+    const c = b.canvas.getContext("2d"), s = b.canvas.width, fx = b.fx;
+    c.clearRect(0, 0, s, s);
+    if (!b.img) return;
+    if (fx && fx.rays && rays) {
+      c.save(); c.translate(s / 2, s * 0.53); c.rotate(t * 2 * Math.PI / fx.rays.turn);
+      c.globalAlpha = fx.rays.alpha; const r = s * 0.62;
+      c.drawImage(tint(rays, fx.rays.colour, 256), -r, -r, 2 * r, 2 * r); c.restore(); c.globalAlpha = 1;
+    }
+    c.drawImage(b.img, 0, 0, s, s);
+    if (!fx) return;
+    // the sweep: a band along a tilted axis, clipped to the mask
+    const phase = ((t + b.seed) % fx.period) / fx.sweep;
+    if (phase < 1 && b.mask) {
+      const o = b.off.getContext("2d");
+      o.globalCompositeOperation = "source-over"; o.clearRect(0, 0, s, s);
+      o.drawImage(b.mask, 0, 0, s, s);
+      o.globalCompositeOperation = "source-in";
+      const a = fx.angle * Math.PI / 180, dx = Math.cos(a) * s, dy = Math.sin(a) * s;
+      const cx = s / 2 + (phase * 2 - 1) * dx, cy = s / 2 + (phase * 2 - 1) * dy;
+      const g = o.createLinearGradient(cx - dx * fx.width, cy - dy * fx.width, cx + dx * fx.width, cy + dy * fx.width);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.5, `rgba(255,255,255,${fx.strength})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      o.fillStyle = g; o.fillRect(0, 0, s, s);
+      c.drawImage(b.off, 0, 0);
+    }
+    // sparkles: each twinkles in turn at one of the badge's bright spots
+    for (let i = 0; sparkle && i < fx.sparkles; i++) {
+      const cycle = (t + b.seed + i * fx.twinkle / fx.sparkles) / fx.twinkle;
+      const k = Math.floor(cycle), p = cycle - k;
+      if (p > 0.5) continue;
+      const spot = fx.spots[(k * 3 + i * 5) % fx.spots.length];
+      const size = Math.sin(p * 2 * Math.PI) * s * fx.sparkleSize;
+      c.save(); c.translate(spot[0] / 256 * s, spot[1] / 256 * s); c.rotate(p * 1.5);
+      c.drawImage(sparkle, -size / 2, -size / 2, size, size); c.restore();
+    }
+  }
+  const tints = new Map();
+  function tint(img, colour, n) {
+    if (tints.has(colour)) return tints.get(colour);
+    const cv = document.createElement("canvas"); cv.width = cv.height = n;
+    const x = cv.getContext("2d"); x.drawImage(img, 0, 0, n, n);
+    x.globalCompositeOperation = "source-in"; x.fillStyle = colour; x.fillRect(0, 0, n, n);
+    tints.set(colour, cv); return cv;
+  }
+})();
+document.getElementById("dark").onchange = e => {
+  document.body.style.background = e.target.checked ? "#1B2033" : "#EAF1FB";
+  document.body.style.color = e.target.checked ? "#EAF1FB" : "#1B2033";
+};
+</script></body></html>

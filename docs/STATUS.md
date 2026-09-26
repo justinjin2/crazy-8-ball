@@ -1,5 +1,20 @@
 # Status
 
+**2026-09-26: the rank badges are drawn (not in the game yet).**
+
+- **What:** 47 badges in `assets/ui/ranks/`: Unranked, Bronze I to Grandmaster V (stars up to
+  Diamond, gems from Expert, crowns from Expert that grow each tier), and Reyes. Each has a
+  white shine mask for the light sweep, plus a sparkle image. Made by
+  `tools/gen_rank_badges.py`; look and shine in `docs/UI_STYLE.md` sections 6 and 7.
+- **Verified:** every badge rendered and checked on a contact sheet and at full size (none
+  touches the image edge; the generator warns if one does); `preview.html` shows the sweep,
+  the sparkles and Reyes' gold rays running.
+- **Still to do (later, after the map work in Studio):** upload the 95 images, add the ids and
+  shine timings to Config, and build the badge and its shine in the UI kit (steps in
+  `assets/ui/ranks/README.md`).
+
+---
+
 **2026-09-26 (latest): the queue pad is a rectangle again, and the floating sign floats over it
 instead of sinking into the floor.**
 

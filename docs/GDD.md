@@ -335,6 +335,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Reyes**. Each has divisions **I to V** (I is the bottom, V the top) except Reyes. Reyes is
   named after Efren Reyes (placeholder, check rights before launch).
 - Players are **Unranked** until their first rated match, then Bronze I after one game.
+- **Rank badges** are drawn (2026-09-26, `assets/ui/ranks/`): 1 to 5 stars show the division
+  from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster; crowns from Expert up; Reyes
+  and Unranked have one badge each. Look and shine: `docs/UI_STYLE.md` sections 6 and 7.
 - **One visible rating number** drives the rank; bands per division live in Config and widen
   higher up. Rank follows the number both ways with a floor at Bronze I. A **peak rank** is
   saved: rank-up rewards are granted once per division, difficulty unlocks use the peak.

@@ -1155,3 +1155,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - The city is densest in the direction the player faces on arrival (ahead and left), not
     behind the spawn where the stair is; in the gray-box a street grid of podium, shaft and
     crown buildings whose shore bends in toward the middle of the view with distance.
+- 2026-09-26: Rank badges (designer, from a reference sheet of ten tier badges).
+  - Consistency over the reference: stars for Bronze to Diamond and gems for Expert to
+    Grandmaster, 1 to 5 of them for divisions I to V (46 ranked badges); a crown on every tier
+    from Expert up, growing each tier (the reference had none on Veteran); Reyes one badge,
+    no pips, no signature. Plus a plain grey Unranked badge (47 images).
+  - No banner and no words in the images (UI_STYLE's no-words rule); the name is game text.
+  - They always shine, more as you climb: sweep; sweep and sparkles from Expert; sweep,
+    sparkles and gold rays for Reyes.
+  - Drawn in code in the icon style (tools/gen_rank_badges.py) so all 47 match. Kept in
+    `assets/ui/ranks/` and not uploaded or wired up yet, so this work does not overlap the
+    map session in Studio.

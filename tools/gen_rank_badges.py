@@ -1,0 +1,751 @@
+#!/usr/bin/env python3
+"""Generate the rank badges (docs/GDD.md section 11, docs/UI_STYLE.md sections 6 and 7).
+
+Drawn in the icon style of tools/gen_ui_art.py (thick ink outline, drop lip, gradients, gloss)
+and rendered the same way. Every badge shares one core in the same place: a shield, a metal
+ring and the 8 ball, so badges line up in any UI and one shine animation fits them all. The
+rank shows by:
+- colour, one per tier;
+- side ornaments that grow each tier;
+- a crown from Expert up, bigger each tier (Reyes has the biggest, in gold);
+- pips in an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
+  to Grandmaster (1 pip = division I, 5 = V).
+Reyes is one badge with no pips. Unranked is a plain grey badge. No words in any image.
+
+Outputs under assets/ui/ranks/ (see README.md there):
+  <tier>_<1..5>.png, reyes.png, unranked.png  512 px badges, plus the .svg source of each
+  shine/<name>.png                            white silhouette of the badge's colours, which
+                                              the shine sweep is clipped to
+  sparkle.png                                 a white four-point twinkle, 128 px
+  preview.html                                every badge with its animation (open in Chrome)
+
+Run: python3 tools/gen_rank_badges.py [--sheet path.png]   (--sheet also writes a contact sheet)
+"""
+import base64
+import math
+import os
+import subprocess
+import sys
+import tempfile
+
+from PIL import Image, ImageDraw, ImageFont
+
+import gen_ui_art as ui
+
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "ui", "ranks")
+SIZE = 512  # output px; everything is drawn on a 256-unit canvas
+INK = ui.INK
+EDGE = 3.5  # the thin ink lines between parts (the outer outline is ink_filter's)
+
+CX, CY = 128, 148  # the ball's centre, the same on every badge (low, to leave room for crowns)
+RING = 52  # the metal ring's outer radius
+BALL = 38
+PIP_ARC = 70  # pips sit on this radius around the ball...
+PIP_STEP = 26  # ...this many degrees apart, centred under the ball
+PIP_SIZE = 15.5
+SHIELD = [(128, 64), (192, 98), (192, 178), (128, 228), (64, 178), (64, 98)]
+CROWN_BASE = 92  # the crown's bottom edge, just above the ring
+OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
+LIP = 5
+
+GOLD = ("#FFF3A6", "#FFC928", "#C97F00")
+
+# name, metal (light, mid, dark), pip kind, crown level (0 = none). Lowest tier first.
+TIERS = [
+    ("bronze", ("#FFD6AE", "#D8864A", "#8A461C"), "star", 0),
+    ("silver", ("#FFFFFF", "#C3CCD9", "#77849A"), "star", 0),
+    ("gold", GOLD, "star", 0),
+    ("platinum", ("#F2FBFF", "#A6D6F2", "#5588B8"), "star", 0),
+    ("diamond", ("#A8DBFF", "#3B9BFF", "#1A52C2"), "star", 0),
+    ("expert", ("#FFB0A8", "#F2413F", "#9A1226"), "gem", 1),
+    ("veteran", ("#C8F7A8", "#4FC93A", "#1A7A28"), "gem", 2),
+    ("master", ("#DEC4FF", "#9B55F5", "#4C18A8"), "gem", 3),
+    ("grandmaster", ("#C2FDFF", "#27D0E6", "#08789E"), "gem", 4),
+]
+REYES = ("reyes", ("#8C8CA2", "#3C3C4C", "#14141C"), None, 5)
+UNRANKED = ("unranked", ("#EEF1F6", "#B4BDCB", "#7D889B"), None, 0)
+
+
+# ---------------------------------------------------------------------------------------
+# Small helpers
+# ---------------------------------------------------------------------------------------
+
+
+def hex_rgb(h):
+    return tuple(int(h[i : i + 2], 16) for i in (1, 3, 5))
+
+
+def mix(a, b, t):
+    ra, rb = hex_rgb(a), hex_rgb(b)
+    return "#" + "".join(f"{round(x + (y - x) * t):02X}" for x, y in zip(ra, rb))
+
+
+def pt(p):
+    return f"{p[0]:.1f} {p[1]:.1f}"
+
+
+def along(p, ang, dist, side=0.0):
+    """The point `dist` along direction `ang` (degrees, y down) from p, `side` to its left."""
+    a = math.radians(ang)
+    ux, uy = math.cos(a), math.sin(a)
+    return (p[0] + ux * dist + uy * side, p[1] + uy * dist - ux * side)
+
+
+def rpoly(points, r):
+    """A closed polygon path with every corner rounded by about r."""
+    n = len(points)
+    d = []
+    for i in range(n):
+        p0, p1, p2 = points[i - 1], points[i], points[(i + 1) % n]
+
+        def toward(a, b):
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            length = math.hypot(dx, dy)
+            t = min(r, length / 2) / length
+            return (a[0] + dx * t, a[1] + dy * t)
+
+        a, b = toward(p1, p0), toward(p1, p2)
+        d.append(("L" if i else "M") + f"{pt(a)} Q{pt(p1)} {pt(b)}")
+    return " ".join(d) + " Z"
+
+
+def scaled(points, k, c=(CX, CY)):
+    return [(c[0] + (x - c[0]) * k, c[1] + (y - c[1]) * k) for x, y in points]
+
+
+def path(d, fill, stroke=True, extra=""):
+    s = f' stroke="{INK}" stroke-width="{EDGE}" stroke-linejoin="round"' if stroke else ""
+    return f'<path d="{d}" fill="{fill}"{s} {extra}/>'
+
+
+def poly(points, fill, stroke=True, extra=""):
+    return path("M" + " L".join(pt(p) for p in points) + " Z", fill, stroke, extra)
+
+
+def mirrored(body):
+    """The body plus its mirror image across the badge's centre line."""
+    return body + f'<g transform="matrix(-1 0 0 1 256 0)">{body}</g>'
+
+
+# ---------------------------------------------------------------------------------------
+# Parts
+# ---------------------------------------------------------------------------------------
+
+
+def gradients(metal):
+    light, mid, dark = metal
+    glight, gmid, gdark = GOLD
+    return (
+        "<defs>"
+        # metal face: light top-left to dark bottom-right
+        f'<linearGradient id="m" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{light}"/>'
+        f'<stop offset="0.5" stop-color="{mid}"/><stop offset="1" stop-color="{dark}"/></linearGradient>'
+        # metal rim: turned the other way, so a rim round a face reads as a bevel
+        f'<linearGradient id="r" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(mid, dark, 0.45)}"/>'
+        f'<stop offset="0.6" stop-color="{mid}"/><stop offset="1" stop-color="{mix(light, mid, 0.4)}"/></linearGradient>'
+        # wings: a little deeper than the face, so they read against it
+        f'<linearGradient id="w" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(light, mid, 0.35)}"/>'
+        f'<stop offset="0.55" stop-color="{mid}"/><stop offset="1" stop-color="{dark}"/></linearGradient>'
+        # pips and crowns: brighter than the metal they sit on
+        f'<linearGradient id="p" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="{mix(light, "#FFFFFF", 0.55)}"/>'
+        f'<stop offset="0.55" stop-color="{light}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
+        f'<linearGradient id="c" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="{mix(light, "#FFFFFF", 0.4)}"/>'
+        f'<stop offset="0.55" stop-color="{mix(light, mid, 0.55)}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
+        # gold, for Reyes' trim and crown
+        f'<linearGradient id="g" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{glight}"/>'
+        f'<stop offset="0.5" stop-color="{gmid}"/><stop offset="1" stop-color="{gdark}"/></linearGradient>'
+        f'<linearGradient id="gr" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(gmid, gdark, 0.45)}"/>'
+        f'<stop offset="0.6" stop-color="{gmid}"/><stop offset="1" stop-color="{mix(glight, gmid, 0.4)}"/></linearGradient>'
+        # the 8 ball
+        '<radialGradient id="ball" cx="0.38" cy="0.32" r="0.78"><stop offset="0" stop-color="#5C6275"/>'
+        '<stop offset="0.4" stop-color="#23262F"/><stop offset="1" stop-color="#06070B"/></radialGradient>'
+        "</defs>"
+    )
+
+
+def gloss(cx, cy, rx, ry, angle=-30, opacity=0.75):
+    return ui.gloss(cx, cy, rx, ry, angle, opacity)
+
+
+def blade(p, ang, length, width, bend=0.0, fill="url(#w)", shade="#000000", rib=None):
+    """A pointed, slightly bulging blade or feather from p. bend curls the tip to its left."""
+    tip = along(p, ang, length, bend)
+    b1, b2 = along(p, ang, 0, width * 0.3), along(p, ang, 0, -width * 0.3)
+    c1 = along(p, ang, length * 0.5, width * 0.75 + bend * 0.5)
+    c2 = along(p, ang, length * 0.5, -width * 0.75 + bend * 0.5)
+    outline = f"M{pt(b1)} Q{pt(c1)} {pt(tip)} Q{pt(c2)} {pt(b2)} Z"
+    half = f"M{pt(p)} L{pt(b2)} Q{pt(c2)} {pt(tip)} Z"
+    out = path(outline, fill) + path(half, shade, False, 'opacity="0.22"')
+    if rib:
+        a, b = along(p, ang, length * 0.12, bend * 0.02), along(p, ang, length * 0.72, bend * 0.55)
+        out += ui.line([a, b], rib, 2.6, 'opacity="0.7"')
+    return out + path(outline, "none")
+
+
+def shard(p, ang, length, width, fill="url(#w)", light="#FFFFFF"):
+    """A crystal: a long six-sided gem with a lit half and a shaded half."""
+    tip = along(p, ang, length)
+    s1, s2 = along(p, ang, length * 0.7, width / 2), along(p, ang, length * 0.7, -width / 2)
+    b1, b2 = along(p, ang, 0, width * 0.3), along(p, ang, 0, -width * 0.3)
+    outline = [b1, s1, tip, s2, b2]
+    return (
+        poly(outline, fill)
+        + poly([p, b2, s2, tip], "#000000", False, 'opacity="0.25"')
+        + poly([p, b1, s1, tip], light, False, 'opacity="0.18"')
+        + ui.line([along(p, ang, length * 0.08), along(p, ang, length * 0.9)], light, 2.2, 'opacity="0.6"')
+        + poly(outline, "none")
+    )
+
+
+def slab(p, ang, length, w0, w1, r=7, fill="url(#m)"):
+    """A flat tapered plate with rounded corners (the lowest tiers' wings)."""
+    pts = [
+        along(p, ang, 0, w0 / 2),
+        along(p, ang, length, w1 / 2),
+        along(p, ang, length, -w1 / 2),
+        along(p, ang, 0, -w0 / 2),
+    ]
+    lower = [p, pts[3], pts[2], along(p, ang, length)]
+    return (
+        path(rpoly(pts, r), fill)
+        + poly(lower, "#000000", False, 'opacity="0.2"')
+        + ui.line([along(p, ang, 8, w0 * 0.22), along(p, ang, length - 8, w1 * 0.22)], "#FFFFFF", 2.6, 'opacity="0.55"')
+        + path(rpoly(pts, r), "none")
+    )
+
+
+def star(c, r, fill="url(#p)"):
+    pts = []
+    for i in range(10):
+        a = math.radians(-90 + i * 36)
+        rr = r if i % 2 == 0 else r * 0.47
+        pts.append((c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr))
+    return (
+        path(rpoly(pts, 1.6), fill)
+        + gloss(c[0] - r * 0.22, c[1] - r * 0.3, r * 0.32, r * 0.18, -25, 0.85)
+    )
+
+
+def gem(c, h, light, mid, dark):
+    """A faceted diamond (rhombus) gem, taller than wide, lit from the top left."""
+    w = h * 0.72
+    top, right, bottom, left = (c[0], c[1] - h), (c[0] + w, c[1]), (c[0], c[1] + h), (c[0] - w, c[1])
+    mid_pt = (c[0], c[1] - h * 0.18)
+    return (
+        poly([left, top, mid_pt], mix(light, "#FFFFFF", 0.35), False)
+        + poly([top, right, mid_pt], light, False)
+        + poly([left, mid_pt, bottom], mid, False)
+        + poly([mid_pt, right, bottom], dark, False)
+        + poly([top, right, bottom, left], "none")
+        + f'<path d="M{pt(left)} L{pt(mid_pt)} L{pt(right)} M{pt(mid_pt)} L{pt(bottom)}" fill="none" '
+        f'stroke="{INK}" stroke-width="1.4" opacity="0.45"/>'
+        + gloss(c[0] - w * 0.3, c[1] - h * 0.45, w * 0.22, h * 0.14, -40, 0.9)
+    )
+
+
+def shield(face="url(#m)", rim="url(#r)", inset=0.87):
+    outer = rpoly(SHIELD, 15)
+    inner = rpoly(scaled(SHIELD, inset), 12)
+    return path(outer, rim) + path(inner, face, False) + gloss(94, 104, 18, 9, -35, 0.7)
+
+
+def ring(face="url(#m)", rim="url(#r)"):
+    return (
+        f'<circle cx="{CX}" cy="{CY}" r="{RING}" fill="{rim}" stroke="{INK}" stroke-width="{EDGE}"/>'
+        f'<circle cx="{CX}" cy="{CY}" r="{RING - 5}" fill="{face}"/>'
+        f'<circle cx="{CX}" cy="{CY}" r="{BALL + 5}" fill="{INK}"/>'
+        + gloss(CX - 31, CY - 32, 13, 5.5, -45, 0.8)
+    )
+
+
+def eight_ball():
+    r = BALL
+    spot_r = r * 0.44
+    sx, sy = CX, CY - r * 0.06
+    return (
+        f'<circle cx="{CX}" cy="{CY}" r="{r}" fill="url(#ball)"/>'
+        f'<circle cx="{sx:.1f}" cy="{sy:.1f}" r="{spot_r:.1f}" fill="#FFFFFF"/>'
+        f'<text x="{sx:.1f}" y="{sy + spot_r * 0.5:.1f}" font-family="Arial Black, Arial, sans-serif" '
+        f'font-weight="900" font-size="{spot_r * 1.45:.1f}" text-anchor="middle" fill="{INK}">8</text>'
+        + gloss(CX - r * 0.42, CY - r * 0.5, r * 0.34, r * 0.17, -35, 0.85)
+        + gloss(CX + r * 0.45, CY + r * 0.5, r * 0.14, r * 0.07, -40, 0.35)
+    )
+
+
+def pips(kind, count, metal):
+    light, mid, dark = metal
+    out = []
+    for i in range(count):
+        a = 90 + (i - (count - 1) / 2) * PIP_STEP
+        c = along((CX, CY), a, PIP_ARC)
+        if kind == "star":
+            out.append(star(c, PIP_SIZE))
+        else:
+            out.append(gem(c, PIP_SIZE + 1, mix(light, "#FFFFFF", 0.3), mid, dark))
+    return "".join(out)
+
+
+def crown(level, face="url(#c)", rim="url(#r)", gem_colours=None):
+    """A crown on top of the shield. Level 1 (Expert) to 5 (Reyes): wider, taller, more points."""
+    w = [0, 72, 80, 90, 100, 114][level]
+    h = [0, 44, 50, 56, 62, 68][level]
+    n = 3 if level <= 2 else 5
+    band = 13 + level
+    tip_r = [0, 5, 5.5, 5.5, 6, 7][level]
+    x0, x1 = CX - w / 2, CX + w / 2
+    top_band = CROWN_BASE - band
+    tips, valleys = [], []
+    for i in range(n):
+        t = i / (n - 1)
+        centre = 1 - abs(t - 0.5) * 2  # 1 in the middle, 0 at the ends
+        tips.append((x0 - 6 + (w + 12) * t, CROWN_BASE - h * (0.68 + 0.32 * centre)))
+    for i in range(n - 1):
+        valleys.append(((tips[i][0] + tips[i + 1][0]) / 2, top_band - h * 0.16))
+    outline = [(x0, CROWN_BASE)]
+    for i in range(n):
+        outline.append(tips[i])
+        if i < n - 1:
+            outline.append(valleys[i])
+    outline.append((x1, CROWN_BASE))
+    parts = [path(rpoly(outline, 2.5), face)]
+    for i in range(n):  # shade the right side of each point
+        right = valleys[i] if i < n - 1 else (x1 + 3, top_band)
+        parts.append(poly([tips[i], (tips[i][0], top_band), right], "#000000", False, 'opacity="0.16"'))
+    parts.append(path(rpoly(outline, 2.5), "none"))
+    for tip in tips:
+        parts.append(
+            f'<circle cx="{tip[0]:.1f}" cy="{tip[1]:.1f}" r="{tip_r}" fill="{face}" stroke="{INK}" stroke-width="{EDGE}"/>'
+        )
+    parts.append(path(rpoly([(x0 - 4, top_band), (x1 + 4, top_band), (x1 + 1, CROWN_BASE), (x0 - 1, CROWN_BASE)], 4), rim))
+    parts.append(gloss(x0 + w * 0.2, top_band - h * 0.3, 5, 13, -15, 0.75))
+    if gem_colours:
+        light, mid, dark = gem_colours
+        parts.append(gem((CX, top_band + band * 0.2), band * 0.62 + 4, light, mid, dark))
+        for side in (-1, 1):
+            parts.append(
+                f'<circle cx="{CX + side * w * 0.3:.1f}" cy="{top_band + band / 2:.1f}" r="{2.8 + level * 0.4:.1f}" '
+                f'fill="{mix(light, "#FFFFFF", 0.3)}" stroke="{INK}" stroke-width="2"/>'
+            )
+    return "".join(parts)
+
+
+# ---------------------------------------------------------------------------------------
+# Ornaments: one function per tier, drawing the left side (mirrored onto the right)
+# ---------------------------------------------------------------------------------------
+
+
+def fan(kind, pivot, specs, width, bend=0.0, **kw):
+    """Blades or shards from one pivot. specs: (angle, length), drawn top first so lower overlap."""
+    out = []
+    for a, length in specs:
+        if kind == "blade":
+            out.append(blade(pivot, a, length, width, bend=bend, **kw))
+        else:
+            out.append(shard(pivot, a, length, width, **kw))
+    return "".join(out)
+
+
+def orn_bronze(m):
+    return slab((92, 160), 197, 76, 38, 30, 9)
+
+
+def orn_silver(m):
+    return slab((92, 178), 186, 64, 28, 20, 7) + blade((88, 150), 212, 86, 40, bend=-4, rib=m[0])
+
+
+def orn_gold(m):
+    return blade((90, 176), 192, 76, 34, bend=-4, rib=m[0]) + blade((86, 146), 222, 96, 44, bend=-8, rib=m[0])
+
+
+def orn_platinum(m):
+    return fan("blade", (90, 154), ((250, 80), (228, 98), (206, 84), (186, 74)), 30, bend=-12, rib=m[0])
+
+
+def orn_diamond(m):
+    return shard((128, 88), 270, 60, 30, light=m[0]) + fan(
+        "shard", (92, 156), ((252, 82), (228, 102), (204, 84), (182, 70)), 30, light=m[0]
+    )
+
+
+def orn_expert(m):
+    return fan("blade", (92, 160), ((258, 86), (236, 100), (214, 92), (192, 78), (172, 62)), 30, bend=-16, rib=m[0])
+
+
+def orn_veteran(m):
+    """A laurel wreath round the left of the shield."""
+    out = []
+    radius = 84
+    stem = [along((CX, CY), 98 + i * 20, radius) for i in range(8)]
+    stem_d = "M" + " L".join(pt(p) for p in stem)
+    out.append(f'<path d="{stem_d}" fill="none" stroke="{INK}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>')
+    out.append(f'<path d="{stem_d}" fill="none" stroke="{m[2]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>')
+    for i in range(7):
+        a = 102 + i * 20
+        p = along((CX, CY), a, radius)
+        tangent = a + 90  # pointing up the wreath
+        length = 40 - i * 0.8
+        out.append(blade(p, tangent + 46, length, 23, bend=-3, rib=m[2]))
+        out.append(blade(p, tangent - 8, length * 0.8, 18, bend=3, rib=m[2]))
+    out.append(blade(along((CX, CY), 242, radius), 332, 34, 20, bend=-2, rib=m[2]))
+    return "".join(out)
+
+
+def orn_master(m):
+    return fan("shard", (94, 162), ((262, 96), (240, 110), (218, 100), (196, 80), (174, 70), (154, 50)), 30, light=m[0])
+
+
+def orn_grandmaster(m):
+    """Two layers of feathers: long deep ones behind, short bright ones in front."""
+    back = fan("blade", (92, 156), ((266, 108), (246, 120), (226, 106), (206, 88), (186, 78), (166, 64)), 30, bend=-18, rib=m[0])
+    front = fan("blade", (96, 160), ((250, 78), (228, 76), (206, 66), (184, 56)), 22, bend=-12, fill="url(#c)", rib="#FFFFFF")
+    return back + front
+
+
+REYES_WINGS = ((266, 110), (242, 118), (220, 104), (198, 88), (176, 76))
+
+
+def orn_reyes(m):
+    """Black blades edged in gold, with gold spikes between them, like the reference."""
+    out = [fan("blade", (94, 158), [(a + 12, length * 0.9) for a, length in REYES_WINGS], 19, bend=-10, fill="url(#g)", rib=GOLD[0])]
+    for a, length in REYES_WINGS:
+        out.append(blade((94, 158), a, length, 36, bend=-14, fill="url(#g)"))
+        out.append(blade(along((94, 158), a, 8), a, length * 0.72, 16, bend=-9, fill="url(#m)", rib="#9A9AB0"))
+    return "".join(out)
+
+
+ORNAMENTS = {
+    "bronze": orn_bronze,
+    "silver": orn_silver,
+    "gold": orn_gold,
+    "platinum": orn_platinum,
+    "diamond": orn_diamond,
+    "expert": orn_expert,
+    "veteran": orn_veteran,
+    "master": orn_master,
+    "grandmaster": orn_grandmaster,
+    "reyes": orn_reyes,
+}
+
+
+# ---------------------------------------------------------------------------------------
+# Badges
+# ---------------------------------------------------------------------------------------
+
+
+def badge_body(tier, count):
+    name, metal, pip, crown_level = tier
+    light, mid, dark = metal
+    parts = []
+    if name in ORNAMENTS:
+        parts.append(mirrored(ORNAMENTS[name](metal)))
+    if name == "reyes":
+        # a black shield with a gold trim line, and everything else gold
+        parts.append(shield(rim="url(#m)", inset=0.9))
+        trim = rpoly(scaled(SHIELD, 0.9), 13)
+        parts.append(f'<path d="{trim}" fill="none" stroke="url(#g)" stroke-width="3.5"/>')
+        parts.append(crown(crown_level, face="url(#g)", rim="url(#gr)", gem_colours=("#FF8A8A", "#E0203A", "#7A0A1E")))
+        parts.append(ring(face="url(#g)", rim="url(#gr)"))
+    else:
+        parts.append(shield())
+        if crown_level:
+            parts.append(crown(crown_level, gem_colours=(mix(light, "#FFFFFF", 0.4), light, mid)))
+        parts.append(ring())
+    parts.append(eight_ball())
+    if pip:
+        parts.append(pips(pip, count, metal))
+    return gradients(metal), "".join(parts)
+
+
+def ink_filter():
+    """The outer ink outline and drop lip: like ui's, but thinner and crisper."""
+    sigma = 3.2
+    # blurred alpha one outline-width outside an edge, from the normal distribution's tail
+    tail = 0.5 * math.erfc(OUTLINE / sigma / math.sqrt(2))
+    slope = 40
+    return f"""<defs><filter id="badgeInk" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="{sigma}" result="blur"/>
+  <feComponentTransfer in="blur" result="grown"><feFuncA type="linear" slope="{slope}" intercept="{0.5 - slope * tail:.3f}"/></feComponentTransfer>
+  <feOffset in="grown" dy="{LIP}" result="lip"/>
+  <feMerge result="both"><feMergeNode in="lip"/><feMergeNode in="grown"/></feMerge>
+  <feFlood flood-color="{INK}"/>
+  <feComposite in2="both" operator="in" result="outline"/>
+  <feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter></defs>"""
+
+
+def svg_badge(defs, body):
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{SIZE}" height="{SIZE}" viewBox="0 0 256 256">'
+        f'{ui.defs()}{ink_filter()}{defs}<g filter="url(#badgeInk)">{body}</g></svg>'
+    )
+
+
+def svg_shine(defs, body):
+    """The badge's coloured area in flat white (no ink outline), for clipping the shine."""
+    white = (
+        '<defs><filter id="shineMask" x="-10%" y="-10%" width="120%" height="120%">'
+        '<feFlood flood-color="#FFFFFF"/><feComposite in2="SourceAlpha" operator="in"/></filter></defs>'
+    )
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{SIZE}" height="{SIZE}" viewBox="0 0 256 256">'
+        f'{ui.defs()}{defs}{white}<g filter="url(#shineMask)">{body}</g></svg>'
+    )
+
+
+def svg_sparkle():
+    d = "M64 6 C67 50 78 61 122 64 C78 67 67 78 64 122 C61 78 50 67 6 64 C50 61 61 50 64 6 Z"
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><defs>'
+        '<radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.8"/>'
+        '<stop offset="0.35" stop-color="#FFFFFF" stop-opacity="0.25"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>'
+        f'</radialGradient></defs><circle cx="64" cy="64" r="44" fill="url(#glow)"/><path d="{d}" fill="#FFFFFF"/></svg>'
+    )
+
+
+def all_badges():
+    """(file name, tier name, division or None, defs, body), lowest rank first."""
+    out = [("unranked", "unranked", None) + badge_body(UNRANKED, 0)]
+    for tier in TIERS:
+        for division in range(1, 6):
+            out.append((f"{tier[0]}_{division}", tier[0], division) + badge_body(tier, division))
+    out.append(("reyes", "reyes", None) + badge_body(REYES, 0))
+    return out
+
+
+# ---------------------------------------------------------------------------------------
+# Rendering (isolated SVG documents, so every badge can reuse the same gradient ids)
+# ---------------------------------------------------------------------------------------
+
+
+def render(jobs):
+    """jobs: list of (svg_text, size, png_path). Chrome screenshots of grids, cropped."""
+    columns, batch = 6, 18
+    scale = ui.RENDER_SCALE
+    for start in range(0, len(jobs), batch):
+        chunk = jobs[start : start + batch]
+        cell = max(size for _, size, _ in chunk)
+        rows = math.ceil(len(chunk) / columns)
+        html = ["<html><body style='margin:0;background:transparent'>"]
+        for i, (text, size, _) in enumerate(chunk):
+            x, y = (i % columns) * cell, (i // columns) * cell
+            data = base64.b64encode(text.encode()).decode()
+            html.append(
+                f"<img src='data:image/svg+xml;base64,{data}' width='{size}' height='{size}' "
+                f"style='position:absolute;left:{x}px;top:{y}px'>"
+            )
+        html.append("</body></html>")
+        with tempfile.TemporaryDirectory() as tmp:
+            page = os.path.join(tmp, "sheet.html")
+            shot = os.path.join(tmp, "sheet.png")
+            with open(page, "w") as f:
+                f.write("".join(html))
+            subprocess.run(
+                [
+                    ui.CHROME,
+                    "--headless=new",
+                    "--disable-gpu",
+                    "--hide-scrollbars",
+                    "--default-background-color=00000000",
+                    f"--force-device-scale-factor={scale}",
+                    f"--window-size={columns * cell},{rows * cell}",
+                    f"--screenshot={shot}",
+                    "file://" + page,
+                ],
+                check=True,
+                capture_output=True,
+            )
+            sheet = Image.open(shot).convert("RGBA")
+        for i, (_, size, png) in enumerate(chunk):
+            x, y = (i % columns) * cell * scale, (i // columns) * cell * scale
+            crop = sheet.crop((x, y, x + size * scale, y + size * scale))
+            crop.resize((size, size), Image.LANCZOS).save(png, optimize=True)
+
+
+def contact_sheet(badges, path_out):
+    """Every badge on a pale panel with its name, for reviewing (not a game asset)."""
+    cell, pad = 180, 24
+    rows = [["unranked", "reyes"]] + [[f"{t[0]}_{d}" for d in range(1, 6)] for t in TIERS]
+    width = pad + 5 * cell
+    height = pad + len(rows) * (cell + 18)
+    sheet = Image.new("RGBA", (width, height), (234, 241, 251, 255))
+    draw = ImageDraw.Draw(sheet)
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf", 15)
+    except OSError:
+        font = ImageFont.load_default()
+    for r, row in enumerate(rows):
+        for c, name in enumerate(row):
+            img = Image.open(os.path.join(ROOT, name + ".png")).resize((cell - 12, cell - 12), Image.LANCZOS)
+            x, y = pad // 2 + c * cell, pad // 2 + r * (cell + 18)
+            sheet.alpha_composite(img, (x + 6, y))
+            label = name.replace("_", " ")
+            tw = draw.textlength(label, font=font)
+            draw.text((x + (cell - tw) / 2, y + cell - 10), label, fill=(27, 32, 51, 255), font=font)
+    sheet.convert("RGB").save(path_out)
+
+
+PREVIEW = """<!doctype html>
+<html><head><meta charset="utf-8"><title>Rank badges</title>
+<style>
+  body { margin: 0; padding: 24px; background: #EAF1FB; color: #1B2033;
+         font: 15px/1.4 "Arial Rounded MT Bold", system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p { margin: 0 0 18px; max-width: 70ch; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
+  .row h2 { width: 100%; margin: 6px 0 0; font-size: 15px; text-transform: uppercase; opacity: .7; }
+  figure { margin: 0; text-align: center; }
+  canvas { width: 150px; height: 150px; display: block; }
+  figcaption { font-size: 12px; opacity: .65; }
+  label { display: inline-block; margin-bottom: 14px; }
+</style></head><body>
+<h1>Rank badges</h1>
+<p>Made by tools/gen_rank_badges.py. The shine is drawn the way the game will do it: a soft white
+band swept across the badge's shine mask, sparkles from Expert up, and turning gold rays behind
+Reyes. Timings are starting values (README.md).</p>
+<label><input type="checkbox" id="dark"> dark background</label>
+<p id="error" hidden><b>Some images did not load.</b> Serve this folder over http (see README.md) or open it in Chrome.</p>
+<div id="grid"></div>
+<script>
+const FX = __FX__;
+const ROWS = __ROWS__;
+const load = src => new Promise(res => {
+  const i = new Image(); i.onload = () => res(i);
+  i.onerror = () => { document.getElementById("error").hidden = false; res(null); }; i.src = src;
+});
+const badges = [];
+(async () => {
+  const sparkle = await load("sparkle.png");
+  const rays = await load("../art/rays.png");
+  const grid = document.getElementById("grid");
+  for (const row of ROWS) {
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `<h2>${row.title}</h2>`;
+    grid.appendChild(div);
+    for (const name of row.names) {
+      const fig = document.createElement("figure");
+      const canvas = document.createElement("canvas");
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.height = 150 * dpr;
+      fig.appendChild(canvas);
+      fig.insertAdjacentHTML("beforeend", `<figcaption>${name.replace("_", " ")}</figcaption>`);
+      div.appendChild(fig);
+      const [img, mask] = await Promise.all([load(name + ".png"), load("shine/" + name + ".png")]);
+      const off = document.createElement("canvas");
+      off.width = off.height = canvas.width;
+      badges.push({ canvas, img, mask, off, fx: FX[row.fx], seed: badges.length * 0.37 });
+    }
+  }
+  requestAnimationFrame(frame);
+  function frame(ms) {
+    const t = ms / 1000;
+    for (const b of badges) draw(b, t);
+    requestAnimationFrame(frame);
+  }
+  function draw(b, t) {
+    const c = b.canvas.getContext("2d"), s = b.canvas.width, fx = b.fx;
+    c.clearRect(0, 0, s, s);
+    if (!b.img) return;
+    if (fx && fx.rays && rays) {
+      c.save(); c.translate(s / 2, s * 0.53); c.rotate(t * 2 * Math.PI / fx.rays.turn);
+      c.globalAlpha = fx.rays.alpha; const r = s * 0.62;
+      c.drawImage(tint(rays, fx.rays.colour, 256), -r, -r, 2 * r, 2 * r); c.restore(); c.globalAlpha = 1;
+    }
+    c.drawImage(b.img, 0, 0, s, s);
+    if (!fx) return;
+    // the sweep: a band along a tilted axis, clipped to the mask
+    const phase = ((t + b.seed) % fx.period) / fx.sweep;
+    if (phase < 1 && b.mask) {
+      const o = b.off.getContext("2d");
+      o.globalCompositeOperation = "source-over"; o.clearRect(0, 0, s, s);
+      o.drawImage(b.mask, 0, 0, s, s);
+      o.globalCompositeOperation = "source-in";
+      const a = fx.angle * Math.PI / 180, dx = Math.cos(a) * s, dy = Math.sin(a) * s;
+      const cx = s / 2 + (phase * 2 - 1) * dx, cy = s / 2 + (phase * 2 - 1) * dy;
+      const g = o.createLinearGradient(cx - dx * fx.width, cy - dy * fx.width, cx + dx * fx.width, cy + dy * fx.width);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.5, `rgba(255,255,255,${fx.strength})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      o.fillStyle = g; o.fillRect(0, 0, s, s);
+      c.drawImage(b.off, 0, 0);
+    }
+    // sparkles: each twinkles in turn at one of the badge's bright spots
+    for (let i = 0; sparkle && i < fx.sparkles; i++) {
+      const cycle = (t + b.seed + i * fx.twinkle / fx.sparkles) / fx.twinkle;
+      const k = Math.floor(cycle), p = cycle - k;
+      if (p > 0.5) continue;
+      const spot = fx.spots[(k * 3 + i * 5) % fx.spots.length];
+      const size = Math.sin(p * 2 * Math.PI) * s * fx.sparkleSize;
+      c.save(); c.translate(spot[0] / 256 * s, spot[1] / 256 * s); c.rotate(p * 1.5);
+      c.drawImage(sparkle, -size / 2, -size / 2, size, size); c.restore();
+    }
+  }
+  const tints = new Map();
+  function tint(img, colour, n) {
+    if (tints.has(colour)) return tints.get(colour);
+    const cv = document.createElement("canvas"); cv.width = cv.height = n;
+    const x = cv.getContext("2d"); x.drawImage(img, 0, 0, n, n);
+    x.globalCompositeOperation = "source-in"; x.fillStyle = colour; x.fillRect(0, 0, n, n);
+    tints.set(colour, cv); return cv;
+  }
+})();
+document.getElementById("dark").onchange = e => {
+  document.body.style.background = e.target.checked ? "#1B2033" : "#EAF1FB";
+  document.body.style.color = e.target.checked ? "#EAF1FB" : "#1B2033";
+};
+</script></body></html>
+"""
+
+# Starting values for the shine (copy into Config when the badges go in the game).
+# period: seconds between sweeps; sweep: seconds a sweep takes; width: band half-width
+# (fraction of the badge); strength: the band's peak opacity; angle: its travel direction.
+# spots: where sparkles may appear, on the 256-unit canvas.
+LOW_SPOTS = [[84, 82], [172, 84], [196, 124], [62, 128], [128, 46]]
+HIGH_SPOTS = [[128, 32], [92, 52], [166, 52], [40, 92], [216, 92], [54, 170], [202, 170], [84, 88], [172, 88]]
+FX = {
+    "none": None,
+    "low": {"period": 4.0, "sweep": 0.9, "width": 0.16, "strength": 0.55, "angle": 20, "sparkles": 0, "twinkle": 1, "spots": LOW_SPOTS, "sparkleSize": 0},
+    "high": {"period": 3.0, "sweep": 0.8, "width": 0.16, "strength": 0.6, "angle": 20, "sparkles": 3, "twinkle": 1.6, "spots": HIGH_SPOTS, "sparkleSize": 0.16},
+    "top": {"period": 2.2, "sweep": 0.7, "width": 0.18, "strength": 0.7, "angle": 20, "sparkles": 5, "twinkle": 1.4, "spots": HIGH_SPOTS, "sparkleSize": 0.19,
+            "rays": {"turn": 14, "alpha": 0.45, "colour": "#FFC928"}},
+}
+
+
+def preview_html():
+    import json
+
+    rows = [{"title": "unranked", "fx": "none", "names": ["unranked"]}]
+    for name, _, pip, level in TIERS:
+        rows.append({"title": name, "fx": "high" if level else "low", "names": [f"{name}_{d}" for d in range(1, 6)]})
+    rows.append({"title": "reyes", "fx": "top", "names": ["reyes"]})
+    return PREVIEW.replace("__FX__", json.dumps(FX)).replace("__ROWS__", json.dumps(rows))
+
+
+def main():
+    if not os.path.exists(ui.CHROME):
+        sys.exit("Google Chrome is needed to render the SVGs: " + ui.CHROME)
+    shine_dir = os.path.join(ROOT, "shine")
+    os.makedirs(shine_dir, exist_ok=True)
+    badges = all_badges()
+    jobs = []
+    for name, _, _, defs, body in badges:
+        text = svg_badge(defs, body)
+        with open(os.path.join(ROOT, name + ".svg"), "w") as f:
+            f.write(text)
+        jobs.append((text, SIZE, os.path.join(ROOT, name + ".png")))
+        jobs.append((svg_shine(defs, body), SIZE, os.path.join(shine_dir, name + ".png")))
+    jobs.append((svg_sparkle(), 128, os.path.join(ROOT, "sparkle.png")))
+    render(jobs)
+    for name, *_ in badges:
+        box = Image.open(os.path.join(ROOT, name + ".png")).getchannel("A").point(lambda a: 255 if a > 8 else 0).getbbox()
+        if box[0] < 4 or box[1] < 4 or box[2] > SIZE - 4 or box[3] > SIZE - 4:
+            print(f"warning: {name} reaches the edge of the image {box}")
+    with open(os.path.join(ROOT, "preview.html"), "w") as f:
+        f.write(preview_html())
+    if "--sheet" in sys.argv:
+        contact_sheet(badges, sys.argv[sys.argv.index("--sheet") + 1])
+    print(f"wrote {len(badges)} badges, their shine masks and the sparkle under {os.path.normpath(ROOT)}")
+
+
+if __name__ == "__main__":
+    main()
