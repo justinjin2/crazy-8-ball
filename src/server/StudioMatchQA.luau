@@ -124,6 +124,7 @@ function QA.start(
 			e.activeTeam = if data.opponent then 2 else 1
 			e.calledPocket = data.calledPocket
 			e.foul = { by = e.shooter, team = e.activeTeam, reason = "Scratch" }
+			e.nextTeam = 3 - e.activeTeam -- a forced Foul hands the table over when it ends
 			e.result = { winner = data.winner or 1, reason = "LegalEight" }
 			for _, b in e.state.balls do
 				Ball.stop(b)

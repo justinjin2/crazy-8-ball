@@ -101,12 +101,13 @@ function HudParts.text(
 	return object
 end
 
---- Change a kit text's size: its largest size, its floor and its outline together.
-function HudParts.setTextSize(object: TextLabel, size: number)
+--- Change a kit text's size: its largest size, its floor and its outline together. `floor`
+--- lowers the smallest it may shrink to (player names, which are data, not reading text).
+function HudParts.setTextSize(object: TextLabel, size: number, floor: number?)
 	local limit = object:FindFirstChildOfClass("UITextSizeConstraint")
 	if limit then
 		limit.MaxTextSize = math.max(1, math.floor(size))
-		limit.MinTextSize = math.max(1, math.floor(math.min(size, K.Text.Min)))
+		limit.MinTextSize = math.max(1, math.floor(math.min(size, floor or K.Text.Min)))
 	end
 	object.TextSize = size
 	local stroke = object:FindFirstChild("Outline")
@@ -296,6 +297,7 @@ function HudParts.candy(
 	gradient.Parent = face
 	local label = HudParts.text(body, "Label", K.Text.Button, text)
 	label.ZIndex = 2
+	label.TextWrapped = false -- a button's words shrink to fit on one line
 	local icon = HudParts.icon(body, iconKey or "Play", "Icon")
 	icon.ZIndex = 2
 	icon.Visible = iconKey ~= nil

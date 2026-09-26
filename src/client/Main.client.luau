@@ -365,10 +365,7 @@ local function action(kind: string, value: any?)
 	elseif kind == "PrecisionPower" then
 		discretePower =
 			math.clamp(discretePower + (value :: number), Config.Input.MinPowerToShoot, 1)
-		hud.precisionButtons.Shoot.Text = require(Shared.Strings).Match.Shoot
-			.. " "
-			.. tostring(math.floor(discretePower * 100))
-			.. "%"
+		hud:setShootPower(discretePower)
 	elseif kind == "ClosePrecision" then
 		hud:togglePrecision()
 	elseif kind == "PrecisionShoot" then

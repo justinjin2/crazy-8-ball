@@ -39,6 +39,9 @@ local function ensureGui(): ScreenGui
 	screen.Name = "PoolHud"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = false -- keep clear of Roblox's top bar on phones
+	-- Siblings sort by ZIndex and children draw over parents, which the kit relies on: a card's
+	-- shadow and fill (ZIndex -1 and 0) sit under whatever is put in it.
+	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screen.Parent = player:WaitForChild("PlayerGui")
 	gui = screen
 	return screen
