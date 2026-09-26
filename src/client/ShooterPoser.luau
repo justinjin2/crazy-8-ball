@@ -50,7 +50,6 @@ export type State = "rest" | "aim" | "stroke" | "idle"
 -- One frame's worth of what a shooter is doing, for compose().
 export type Inputs = {
 	placement: Placement.Placement,
-	teamSize: number, -- players a side at the table (the fence the stance stays inside)
 	body: ShooterStance.Body, -- AvatarPose.measureBody, or Config.Stance.DefaultBody
 	cueX: number, -- cue ball, table inches
 	cueY: number,
@@ -153,16 +152,8 @@ local function smoothstep(from: number, to: number, x: number): number
 	return t * t * (3 - 2 * t)
 end
 
--- A table's surroundings depend only on its team size: worked out once per size.
-local areas: { [number]: ShooterStance.Area } = {}
-local function areaFor(teamSize: number): ShooterStance.Area
-	local area = areas[teamSize]
-	if area == nil then
-		area = ShooterStance.area(teamSize)
-		areas[teamSize] = area
-	end
-	return area
-end
+-- Every table's surroundings are the same: worked out once.
+local AREA = ShooterStance.area()
 
 -- Scratch reused by every compose(): solve() and frame() read them and keep nothing.
 local query: ShooterStance.Input = {
@@ -175,7 +166,7 @@ local query: ShooterStance.Input = {
 	pull = 0,
 	cueLengthStuds = nil,
 	body = Config.Stance.DefaultBody,
-	area = areaFor(1),
+	area = AREA,
 	memory = nil,
 }
 local spin: CueStickBuilder.Spin = { x = 0, y = 0 }
@@ -198,7 +189,7 @@ function ShooterPoser.compose(
 	debug.profilebegin("ShooterPoser.compose")
 	local C = Config.Cue
 	local p = inputs.placement
-	local area = areaFor(inputs.teamSize)
+	local area = AREA
 
 	query.ballXIn, query.ballYIn = inputs.cueX, inputs.cueY
 	query.angle, query.spinX, query.spinY = inputs.angle, inputs.spinX, inputs.spinY

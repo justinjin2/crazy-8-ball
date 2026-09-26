@@ -29,10 +29,10 @@ function QA.start(
 		if command == "snapshot" then
 			return Engine.snapshot(t.engine)
 		end
-		if command == "fixture" then
+		if command == "fixture" or command == "queue" then
 			-- Synthetic identities exercise six-portrait presentation, not network clients.
 			local previousEpoch = t.engine.epoch
-			t.engine = Engine.new(id, t.engine.teamSize)
+			t.engine = Engine.new(id)
 			t.engine.epoch = previousEpoch + 1
 			local real = assert(Players:GetPlayers()[1], "QA requires a running client")
 			if not (data and data.spectator) then
@@ -44,25 +44,40 @@ function QA.start(
 				end
 				seatOf[real.UserId] = id
 			end
-			if data and data.solo then
+			local e = t.engine
+			if command == "queue" then
+				-- A box still waiting for its host: the real player first (the host), then one
+				-- synthetic player per entry of data.sides, standing in that half. The real
+				-- player has to stand in the box, or the poll lets them go.
+				local q = data or {}
+				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, q.side or 1, now)
+				for i, side in q.sides or {} do
+					local name = "FixturePlayerLongName" .. i
+					Engine.join(e, -i, name, name, side, now)
+				end
+				broadcast(t)
+				return Engine.snapshot(e)
+			elseif data and data.solo then
 				-- Solo: only the real player sits down, then starts the game as the button does.
-				local e = t.engine
-				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, 1, 1, now)
+				Engine.join(e, real.UserId, real.DisplayName, real.DisplayName, 1, now)
 				local request = { kind = "StartSolo", epoch = e.epoch, turnId = e.turnId }
 				assert(Engine.action(e, real.UserId, request, now), "StartSolo was refused")
 			else
-				for team = 1, 2 do
-					for slot = 1, t.engine.teamSize do
+				-- data.teamSize a side (1 by default), team A in the head half; the first in hosts.
+				local size = data and data.teamSize or 1
+				for slot = 1, size do
+					for team = 1, 2 do
 						local localSeat = team == 1 and slot == 1 and not (data and data.spectator)
 						local uid = if localSeat then real.UserId else -(team * 10 + slot)
 						local name = if localSeat
 							then real.DisplayName
 							else "FixturePlayerLongName" .. slot
-						Engine.join(t.engine, uid, name, name, team, slot, now)
+						Engine.join(e, uid, name, name, team, now)
 					end
 				end
-				Engine.advance(t.engine, now + 5, 1)
-				Engine.advance(t.engine, now + 8, 1)
+				local request = { kind = "Start", epoch = e.epoch, turnId = e.turnId }
+				assert(Engine.action(e, e.hostId, request, now, 1), "Start was refused")
+				Engine.advance(e, now + 8)
 			end
 		elseif command == "shot" then
 			local shooter = t.engine.shooter
@@ -82,7 +97,7 @@ function QA.start(
 		elseif command == "death" then
 			Engine.death(t.engine, data.userId, now)
 		elseif command == "advance" then
-			Engine.advance(t.engine, data.now or t.engine.deadline, data.coin or 1)
+			Engine.advance(t.engine, data.now or t.engine.deadline)
 		elseif command ~= "phase" then
 			error("Unknown QA command")
 		end

@@ -168,31 +168,39 @@ function Placement.outsideBarrier(
 	return wx, wz
 end
 
---- The fence around a match area for `teamSize` players a side, in studs along the table's
---- own length and width: half extents (hx, hy) of a box whose centre sits `cx` along the
---- table's length from the table centre. At the head end (negative x) it reaches past the
---- furthest queue pad (Multiplayer.PadDistanceStuds onwards); at the foot it stops at
---- Fence.FootHalfLengthStuds, since nobody queues there, so tables can stand foot to foot
---- closer together. So the fence runs from cx - hx (head) to cx + hx (foot).
-function Placement.fenceHalfExtents(teamSize: number): (number, number, number)
-	local M = Config.Multiplayer
-	local F = M.Fence
-	local furthest = M.PadDistanceStuds
-		+ (teamSize - 1) * (M.PadSizeStuds + M.PadGapStuds)
-		+ M.PadSizeStuds / 2
-	local head = math.max(F.MinHalfLengthStuds, furthest + F.PadMarginStuds)
-	local foot = F.FootHalfLengthStuds
-	return (head + foot) / 2, F.HalfWidthStuds, (foot - head) / 2
+--- The walkway round a table, where its shooter may stand (ShooterStance.area), in studs
+--- along the table's own length and width: half extents (hx, hy) of a box whose centre sits
+--- `cx` along the table's length from the table centre (0: nothing queues at either end).
+function Placement.fenceHalfExtents(): (number, number, number)
+	local F = Config.Multiplayer.Fence
+	return F.HalfLengthStuds, F.HalfWidthStuds, 0
 end
 
---- How many players a side table `id` seats (its zone: 1v1, 2v2 or 3v3), or nil.
-function Placement.teamSizeOf(id: number): number?
-	for _, row in Config.Hub.Tables do
-		if row.id == id then
-			return row.teamSize
-		end
-	end
-	return nil
+--- The table's queue box (Multiplayer.Queue), in studs along the table's own length and
+--- width: its centre (cx, cy) and half extents (hx, hy). It lies along the long side
+--- Queue.Side, just beyond the walkway, so a queue never stands where a shooter might.
+--- Its head half (x < cx) is team A's, its foot half team B's.
+function Placement.queueBox(): (number, number, number, number)
+	local Q = Config.Multiplayer.Queue
+	local _, wy = Placement.fenceHalfExtents()
+	local cy = Q.Side * (wy + Q.BoxGapStuds + Q.BoxDepthStuds / 2)
+	return 0, cy, Q.BoxLengthStuds / 2, Q.BoxDepthStuds / 2
+end
+
+--- The fence round a whole match area, in studs along the table's own length and width:
+--- the walkway grown to take in the queue box and Queue.FenceMarginStuds beyond it, so the
+--- players who start a match standing in the box are already inside. Half extents (hx, hy)
+--- of a box centred (cx, cy) from the table centre; lopsided across, toward the box.
+function Placement.matchFence(): (number, number, number, number)
+	local Q = Config.Multiplayer.Queue
+	local wx, wy, wcx = Placement.fenceHalfExtents()
+	local bcx, bcy, bhx, bhy = Placement.queueBox()
+	local m = Q.FenceMarginStuds
+	local x0 = math.min(wcx - wx, bcx - bhx - m)
+	local x1 = math.max(wcx + wx, bcx + bhx + m)
+	local y0 = math.min(-wy, bcy - bhy - m)
+	local y1 = math.max(wy, bcy + bhy + m)
+	return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
 end
 
 function Placement.dirToWorld(p: Placement, xIn: number, yIn: number): (number, number)

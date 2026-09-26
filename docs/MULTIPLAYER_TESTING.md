@@ -1,6 +1,7 @@
 # Multiplayer acceptance and reproducible checks
 
-The three tables are left-to-right **1v1, 2v2, 3v3** when arriving from the spawn.
+Every table plays **1v1, 2v2 or 3v3** from one long queue box on its right side (as you
+walk in from the spawn); the host picks by pressing Start with 2, 4 or 6 in the box.
 Source is saved in git and streamed by Rojo. Results are match-only; nothing awards money
 or saved wins.
 
@@ -10,9 +11,13 @@ or saved wins.
    old local tests. Already-running clients retain the source from when they launched.
 2. Check the Rojo plugin says connected to `8ball` / `localhost:34872`.
 3. Choose **Test → Start Test Session → Server and Clients**, set **6** clients and Play.
-4. Use two clients for the left table, four for the middle, or all six for the right.
-   Each person steps into one white square. Each side's A/B slots choose that team.
-   Remain in the queue area until it fills and the five-second countdown finishes.
+4. Put two, four or six clients into one table's box. The first in is the host. With four or
+   six, stand in the box's halves: the head half (nearest the spawn) is team A, the foot
+   half team B; both halves turn green when they hold half each. Check the other clients'
+   menus are read-only, then press Start on the host: the coin flip follows at once.
+5. Try three or five in the box: Start stays grey with "Need 2, 4 or 6 players". Change the
+   difficulty on the host: every client's menu follows. Walk the host out: the next in
+   becomes host with the same settings.
 
 ## Play each mode
 
@@ -48,14 +53,15 @@ or saved wins.
 
 ## Play solo
 
-- Stand alone on any white square of any table. A green **Play Solo** button appears under
-  the header (controller: select it with UI navigation, then A). Press it: the break starts
-  at once with YOUR TURN, no countdown or coin, and nobody else can join that table.
+- Stand alone in any table's box and press **Start** in the queue menu, then **Play solo**
+  (controller: Y selects the menu, then A). The break starts at once with YOUR TURN, no
+  coin, and nobody else can join that table. **Play against PC** only says "Coming soon".
 - There is no clock anywhere. A foul (illegal break, scratch, wrong first ball, no rail)
   gives you ball in hand again. The first ball you pocket legally after the break picks the
   group you clear first; the HUD row shows that group, then the other, then the 8.
 - Clear both groups, call the 8 and sink it: YOU WIN. The 8 early, on a foul or in the
-  wrong pocket: YOU LOSE. Leave → Yes: MATCH ENDED. Step off and back on to play again.
+  wrong pocket: YOU LOSE. Leave → Yes: MATCH ENDED. Step out of the box and back in to play
+  again.
 
 ## Shooter pose (2026-09-24)
 
@@ -82,9 +88,9 @@ Use **Server and Clients** with 2 clients on the 1v1 table (or 3 with a spectato
 
 ## Edge cases
 
-1. Fill a queue, leave during countdown, return: it cancels and restarts once. First host
-   leaves: the longest-waiting remaining player hosts. Crossing another queue cannot
-   reserve two tables. Empty/occupied pads and occupancy text agree on all clients.
+1. First host leaves: the longest-waiting remaining player hosts, settings kept. A seventh
+   player cannot join. Crossing another box cannot reserve two tables. Box colour, halves
+   and the panel's occupancy text agree on all clients.
 2. Wrong first target, no contact, scratch, no rail/pocket, illegal break and clock expiry:
    wait for the shot to settle, then opponent gets legal 10-second ball-in-hand. Try
    overlapping/outside placements, early shooting, and allowing placement to expire.
@@ -142,5 +148,5 @@ prepares the named final-8 scenario. These controls create nothing outside Studi
 are never client remotes. Stop Play to clear all fixtures and return to the real queues.
 
 If Edit-mode assets are changed in a future pass, save `place/8ball.rbxl` and publish from
-Studio once that milestone is accepted. This update generates tables/pads at runtime;
+Studio once that milestone is accepted. This update generates tables and boxes at runtime;
 source files and git are the durable implementation save.

@@ -10,7 +10,8 @@ bonus and group reveal at the moment the ball drops, and a red X on pocketed bal
 ## Scope and preservation
 
 Three dedicated tables on the existing baseplate: 1v1, 2v2, 3v3; a player alone at
-any of them may instead play it solo (see Solo, added 2026-09-23). One configurable
+any of them may instead play it solo (see Solo, added 2026-09-23). Since 2026-09-25 every
+table seats any of the three from one queue box (see Queue and teams). One configurable
 system, independent balls, players, clocks, camera state, sound and results. Preserve
 the imported black/blue table, existing deterministic physics, spin, orbit aiming,
 power cue, audio and visual identity. Stay on the baseplate. No bots, bot
@@ -21,15 +22,22 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 
 ## Queue and teams
 
-- Two labeled team areas with one square slot per required player. Players choose a
-  team by standing in a slot. 1v1 has two pads; 2v2 four; 3v3 six.
-- Empty white, occupied green, readable mode/occupancy/status text; soft gradients,
-  glowing edges and restrained pulse. Smooth occupancy transitions, bounded VFX.
-- Leaving the queue area releases the slot. First joiner hosts; if they leave,
-  longest-waiting remaining player hosts. Reject duplicate/cross-table joins.
-- Floating host panel shows mode, occupancy, waiting/countdown/in-progress status.
-  No fake functional settings. Five-second synchronized countdown only when full;
-  departure cancels it, and refilling starts a fresh countdown. No duplicate starts.
+Changed 2026-09-25 (designer): the per-seat pads and the countdown are gone.
+
+- One long box along a long side of every table, up to six players. Any table plays
+  1v1, 2v2 or 3v3. Empty white, occupied green, readable status text on the floor and
+  a floating panel (modes, host, occupancy or in progress); bounded VFX.
+- Leaving the queue area releases the seat. First joiner hosts; if they leave,
+  longest-waiting remaining player hosts and the settings stay. Reject duplicate and
+  cross-table joins, and a seventh player.
+- Everyone in the box sees the queue menu; only the host can use it: difficulty
+  (Classic default, Difficult, Challenger), abilities on/off (a placeholder, on by
+  default), Start. Settings reset when the box empties and after every game.
+- Start needs 2, 4 or 6 players. Two: the host is team A, the other team B. Four or six:
+  the box's head half is team A's and its foot half team B's, the half you stand in is
+  your team, and Start is refused until each half holds half. Odd counts are refused.
+  A host alone gets Play solo and Play against PC (a placeholder: "Coming soon").
+- No countdown: Start goes straight to the coin flip. No duplicate starts.
 - Host team is heads. Server chooses coin result once; show the same 2–3 second
   animation, heads/tails ownership and breaker to all participants as a HUD overlay;
   everyone keeps their own camera until the breaker's turn starts in the home view.
@@ -62,9 +70,8 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 
 ## Solo (added 2026-09-23)
 
-- A player standing alone on any table's pads (Waiting, one seat, theirs) sees **Play
-  Solo** under the header. It starts at once: no Countdown or CoinFlip, and nobody can
-  join until the result. Solo runs on the 2v2 and 3v3 tables too.
+- A host alone in a box (Waiting, one seat, theirs) presses Start and picks **Play
+  solo**. It starts at once: no CoinFlip, and nobody can join until the result.
 - Normal break and legal-break rule; the 8 on the break is re-spotted. Every foul
   (illegal break, scratch, wrong first contact, no rail) gives the SAME player ball in
   hand and play continues. The table is open after the break; the first legally pocketed
@@ -82,7 +89,7 @@ button alternatives to dragging. All tuning belongs in Config and all copy in St
 
 ## Phase/timing order
 
-Waiting → Countdown → CoinFlip → Intro → optional PocketChoice → optional Placement
+Waiting → (host's Start) CoinFlip → Intro → optional PocketChoice → optional Placement
 → Aiming → Resolving → optional Foul → next turn or Result → reset. Solo goes straight
 from Waiting to Intro.
 
@@ -220,7 +227,8 @@ latest local place predates this task. Physical device and six-client gameplay Q
 ## Implementation contract
 
 TableState snapshots: id, epoch, revision, teamSize, phase, phaseStartedAt, deadline,
-seats[{userId,name,displayName,team,slot,host,joinedAt,connected}], hostId, activeTeam,
+seats[{userId,name,displayName,side,team?,slot?,host,joinedAt,connected}] (team and slot
+from Start on), hostId, settings{difficulty,abilities}, activeTeam,
 shooter, turnId, breakShot, ballInHand, groups (team-indexed solids/stripes or nil),
 calledPocket, coin{headsTeam,winnerTeam,breaker}, foul{by,team,reason},
 result{winner,reason}, vote{team,deadline,yes}, balls (x,y,z,pocketed per ball ID+1),
@@ -229,8 +237,9 @@ solo{team,first} (first = the group played first, nil until picked; in solo, gro
 the group being played for the solo team and the other group for the empty team).
 Phases use exactly the title-case names above. Snapshot revisions monotonically increase.
 MatchAction client requests: {tableId,epoch,turnId,kind,x?,y?,seq?,pocket?,yes?}; kinds
-Place, Pocket, Surrender, Vote, LeaveQueue, StartSolo (no ConfirmPlacement). StartSolo is
-valid only in Waiting from the table's one connected seat. Place carries a
+Place, Pocket, Surrender, Vote, LeaveQueue, Start, StartSolo, SetDifficulty {value},
+SetAbilities {value} (no ConfirmPlacement). Start, StartSolo and the two settings are
+valid only in Waiting from the host; StartSolo only when the host is alone. Place carries a
 per-turn seq; a Place or stream move with seq <= the last accepted one is ignored.
 SnapshotRequest requests initial/full state after client listeners exist. Gameplay action
 requests require current epoch/turnId; shot payload additionally supports optional

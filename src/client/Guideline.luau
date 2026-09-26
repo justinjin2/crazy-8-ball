@@ -7,6 +7,8 @@
 --   * thin solid lines for where the object ball goes and where the cue ball deflects
 --   * on a jump shot, a small ring where the cue ball comes down each time, and a red cross
 --     where it would fly off the table
+-- How much of it a table draws is its difficulty (Config.Difficulty); the red cross is
+-- always drawn.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -170,11 +172,14 @@ local function placeStrip(
 	end
 end
 
-function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
+--- Draw `trace` at difficulty `level` (a Config.Difficulty.Levels key; nil is the default).
+function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level: string?)
 	if trace.contact == "none" then
 		self:hide()
 		return
 	end
+	local D = Config.Difficulty
+	local draws = D.Levels[level or D.Default] or D.Levels[D.Default]
 	local G = Config.Guideline
 	local R = Config.Balls.RadiusInches
 	local ringR = Config.Balls.RenderRadiusInches * G.RingScale
@@ -185,7 +190,7 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 	-- line runs from the cue ball's front edge to the ring's near edge.
 	local dx, dy = trace.ghostX - trace.startX, trace.ghostY - trace.startY
 	local len = math.sqrt(dx * dx + dy * dy)
-	if len > R + ringR then
+	if draws.Corridor and len > R + ringR then
 		local ux, uy = dx / len, dy / len
 		local px, py = -uy, ux -- perpendicular to the aim
 		local function placeEdge(strip: Strip, sgn: number)
@@ -224,10 +229,10 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 	self.ring.CFrame = CFrame.new(
 		TableBuilder.toWorld(self.placement, trace.ghostX, trace.ghostY, G.HeightAboveClothInches)
 	)
-	setRing(self.ring, G.LineTransparency)
+	setRing(self.ring, if draws.Corridor then G.LineTransparency else 1)
 	-- Where a jump comes down on the way.
 	for index, mark in self.landings do
-		local spot = trace.landings[index]
+		local spot = draws.Landings and trace.landings[index]
 		if spot then
 			mark.CFrame = CFrame.new(
 				TableBuilder.toWorld(self.placement, spot.x, spot.y, G.HeightAboveClothInches)
@@ -260,7 +265,7 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?)
 			hideStrip(cross)
 		end
 	end
-	if invalid then
+	if invalid or not draws.Stubs then
 		hideStrip(self.objectStub)
 		hideStrip(self.cueStub)
 		return

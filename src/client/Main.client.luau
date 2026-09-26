@@ -29,7 +29,8 @@ local SpinSelector = require(script.Parent.SpinSelector)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
-local PadEffects = require(script.Parent.PadEffects)
+local BoxEffects = require(script.Parent.BoxEffects)
+local QueueMenu = require(script.Parent.QueueMenu)
 local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
@@ -55,6 +56,7 @@ local match: any = nil
 local placement: any = nil
 local guideline: any = nil
 local hud: any = nil
+local queueMenu: any = nil
 local targets: any = nil
 local awaitingAt: number? = nil
 local currentPull = 0
@@ -176,15 +178,10 @@ local function refreshAim()
 			snapshot.groups[snapshot.activeTeam],
 			trace.objectId
 		)
-	-- Config.Guideline.Enabled off hides every aim aid (lines and the invalid-target hint),
-	-- leaving only the cue stick to aim by.
-	if Config.Guideline.Enabled then
-		guideline:show(trace, invalid)
-		hud:setInvalidTarget(invalid)
-	else
-		guideline:hide()
-		hud:setInvalidTarget(false)
-	end
+	-- The host's difficulty decides how many lines are drawn; the wrong-target warning is
+	-- shown at every level (Config.Difficulty).
+	guideline:show(trace, invalid, snapshot.settings and snapshot.settings.difficulty)
+	hud:setInvalidTarget(invalid)
 end
 local function sound(key: string, id: string)
 	local existing = uiSounds[key]
@@ -353,6 +350,9 @@ local function leave()
 		hud:closeModal()
 	elseif GuiService.SelectedObject then
 		GuiService.SelectedObject = nil
+	elseif snapshot and snapshot.phase == "Waiting" then
+		-- Leaving a queue costs nothing (walking out does the same): no question asked.
+		hub:action("LeaveQueue")
 	else
 		hud:openLeave()
 	end
@@ -383,11 +383,14 @@ local function action(kind: string, value: any?)
 		end
 	elseif kind == "Vote" then
 		hub:action(kind, { yes = value })
+	elseif kind == "SetDifficulty" or kind == "SetAbilities" then
+		hub:action(kind, { value = value })
 	else
 		hub:action(kind)
 	end
 end
 hud = MatchHUD.new(screen, action)
+queueMenu = QueueMenu.new(screen, action)
 targets = MatchTargets.new(screen, function(pocket)
 	GuiService.SelectedObject = nil
 	hub:action("Pocket", { pocket = pocket })
@@ -424,6 +427,7 @@ local function acquireTable(s: any?)
 		end
 		targets:clear()
 		hud:setSnapshot(nil, player.UserId)
+		queueMenu:setSnapshot(nil, player.UserId)
 		hudView, viewVersion = nil, -1
 		clearHighlights()
 		match, placement = nil, nil
@@ -465,6 +469,7 @@ local function acquireTable(s: any?)
 		awaitingAt = nil
 	end
 	refreshView()
+	queueMenu:setSnapshot(s, player.UserId)
 	targets:setSnapshot(s, placement, match.state.geometry, player.UserId)
 	local key = turnKey .. ":" .. s.phase
 	if key ~= lastPhaseKey then
@@ -627,15 +632,18 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		hud:closeModal()
 	elseif key.KeyCode == Enum.KeyCode.ButtonX and canShoot() then
 		hud:togglePrecision()
+	elseif key.KeyCode == Enum.KeyCode.ButtonY and snapshot and snapshot.phase == "Waiting" then
+		queueMenu:focus()
 	elseif key.KeyCode == Enum.KeyCode.F3 then
 		UI.toggleStatus()
 	end
 end)
-local padEffects = PadEffects.new(workspace:WaitForChild("Pads"))
--- A table's slots stay lit only while it is still filling up.
+local zones = workspace:WaitForChild("TableZones")
+local boxEffects = BoxEffects.new(zones)
+-- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
 	local s = hub.snapshots[id]
-	return s == nil or s.phase == "Waiting" or s.phase == "Countdown"
+	return s == nil or s.phase == "Waiting"
 end
 input:setEnabled(false)
 UI.setPlayControlsVisible(false)
@@ -643,7 +651,6 @@ CueStickBuilder.setVisible(cueStick, false)
 -- What the avatar is handed every frame, filled in place rather than built anew.
 local avatarContext: Avatar.Context = {
 	placement = nil,
-	teamSize = 1,
 	state = nil,
 	cueX = nil,
 	cueY = nil,
@@ -669,9 +676,9 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
-	padEffects:update(dt, queueOpen)
+	boxEffects:update(dt, queueOpen)
 	for id = 1, Placement.tableCount() do
-		local panel = workspace.Pads:FindFirstChild(("QueuePanel_%02d"):format(id))
+		local panel = zones:FindFirstChild(("QueuePanel_%02d"):format(id))
 		local billboard = panel and panel:FindFirstChildWhichIsA("BillboardGui")
 		if billboard then
 			billboard.Enabled = not controlled
@@ -690,6 +697,7 @@ RunService.RenderStepped:Connect(function(dt)
 		Net.get("SnapshotRequest"):FireServer()
 	end
 	hud:update(now)
+	queueMenu:update(now)
 	local controlsTop = hud:reservedHeight() + M.Style.HeaderGap
 	local available =
 		math.max(M.Style.ButtonHeight, screen.AbsoluteSize.Y - controlsTop - M.Style.ButtonHeight)
@@ -717,7 +725,6 @@ RunService.RenderStepped:Connect(function(dt)
 	-- through a foul, since the ball in hand that follows is their own.
 	local take = shooter()
 		and phase ~= "Waiting"
-		and phase ~= "Countdown"
 		and phase ~= "CoinFlip"
 		and (phase ~= "Foul" or snapshot.solo ~= nil)
 		and phase ~= "Result"
@@ -793,7 +800,6 @@ RunService.RenderStepped:Connect(function(dt)
 			local live = cue ~= nil and not cue.pocketed
 			local ctx = avatarContext
 			ctx.placement = placement
-			ctx.teamSize = snapshot.teamSize or 1
 			ctx.state = match.state
 			ctx.cueX = if live then cue.x else nil
 			ctx.cueY = if live then cue.y else nil

@@ -156,17 +156,26 @@ Every feature is checked against these. If it serves none, it waits.
 
 **Decided**
 - Players spawn in the hub and walk to any free table. There are no menus to find a game.
-- **Joining: step on the table's floor pad.** Entering the pad plays a sound and a VFX and the
-  pad turns green so everyone can see someone is queueing. The first person on a free table's
-  pad is the **host**. A small floating popup gives the host: **Play Solo** ("still earn money"),
-  **Wait for a player**, **Play against PC** ("earn rewards and rank too"), plus difficulty
-  (Classic preselected and marked recommended) and abilities on or off (on by default). If the
-  host does nothing, the match starts against PC after 15 seconds *(tune)* unless they chose
-  Wait. Solo starts immediately.
-- The next player to step on the pad joins as the opponent, no accept step. Anyone may join a
-  waiting table. Everyone else can stand around and watch. If the host leaves before the start
-  the table frees. Every match is played on the one standard table model, in one of its two
-  looks (section 16). Collectible table skins are parked until after release (section 18).
+- **Joining: step into the table's queue box** (changed 2026-09-25; it used to be one floor pad
+  per seat). Every table has one long box along a long side that up to six people step into, so
+  any table plays 1v1, 2v2 or 3v3. Stepping in plays a sound and a VFX and the box turns green
+  so everyone can see someone is queueing. There is no accept step; anyone may step into a
+  waiting box, and walking out (or Leave) leaves at once. Everyone else can stand around and
+  watch.
+- The first person in is the **host**. Everyone in the box sees the **queue menu**: the host's
+  name, how many are in, the **difficulty** (Classic, Difficult, Challenger; Classic
+  preselected) and **abilities** on or off (on by default; the toggle does nothing until
+  abilities exist). Only the host can change them or press **Start**. If the host leaves, the
+  next person in becomes host and the settings stay; they go back to Classic and on when the
+  box empties and after every game.
+- **Start:** with two players the game begins at once, no countdown: straight to the coin flip.
+  With four or six, the box shows its two halves (team A's and team B's) and your half is your
+  team; both halves stay grey, and Start stays greyed, until each holds half, then both turn
+  green. Three or five cannot start ("Need 2, 4 or 6 players"). Alone, Start offers **Play
+  solo** (starts immediately) and **Play against PC** (shows "Coming soon" until bots exist).
+  There is no automatic start against PC.
+- Every match is played on the one standard table model, in one of its two looks (section 16).
+  Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
   Solo: normal rules with no opponent; the first legally pocketed group is cleared first, then
   the other group, then the called 8. A foul gives yourself ball in hand; the 8 early, on a foul
@@ -183,9 +192,8 @@ Every feature is checked against these. If it serves none, it waits.
   again.
 - One **Find another server** button, hidden during a match. Cross-server and worldwide
   matchmaking are not planned for release (section 18).
-- Servers hold about 30 players *(tune)*. For now all 16 tables are 1v1 (designer,
-  2026-09-25); how they split between 1v1, 2v2 and 3v3 is decided with the hub map
-  (section 10) *(tune)*. PC never plays PC.
+- Servers hold about 30 players *(tune)*. Every table seats 1v1, 2v2 or 3v3, decided by who
+  is in its box. PC never plays PC.
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
@@ -213,9 +221,9 @@ Every feature is checked against these. If it serves none, it waits.
 - **Three difficulty levels, chosen by the host for the whole table** (both players see the
   same guideline):
   - **Classic** (default, recommended): full guideline as in section 5.
-  - **Difficult**: the cue ball path only, no object-ball line and no deflection line.
-  - **Challenger**: a short aim stub that only reaches balls close to the cue ball, nothing
-    else.
+  - **Difficult**: the aim line only (the corridor to first contact and its ring), no
+    object-ball line, no deflection or bounce line, no jump landings.
+  - **Challenger**: no lines at all (changed 2026-09-25; it used to be a short aim stub).
   All three exist from the start. Until ranks exist there is no lock. Once ranks exist, the
   host cannot pick Difficult or Challenger until their peak rank unlocks them *(tune,
   placeholder Diamond I for both)*; a guest below that rank sees "Your rank is not qualified
@@ -375,9 +383,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 14. First-time playthrough and onboarding
 
 **Decided**
-- The first match: the host popup is hidden. The new player joins a match against what looks
+- The first match: the queue menu is hidden. The new player joins a match against what looks
   like a real player and is actually a **disguised PC** (made-up name, never a real user's
-  name; random avatar; a higher rank badge once ranks exist) that walks onto the pad from the
+  name; random avatar; a higher rank badge once ranks exist) that walks into the box from the
   edge of the player's view a few seconds after they arrive. They always break first. A
   passive, looping ghost animation shows pulling the cue back and moving the ball on the break
   line, and disappears on the first drag. No shot clock. They pocket a few balls, see the

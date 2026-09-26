@@ -128,21 +128,22 @@ Neither of these can be driven from an agent session, so they are written out he
 
 **Two players in one server.** Studio's Test tab, the "Clients and Servers" group: set
 **Players** to 2, then click **Start**. Studio opens one server window and two client
-windows. In client A walk onto a pad and take a shot; in client B watch that table. Then put
-B on a different table's pad and have both shoot. What to look for:
+windows. In client A step into a table's box and play solo; in client B watch that table.
+Then put B in a different table's box and have both shoot. What to look for:
 
 - both clients see the SAME balls end up in the same places (the server is the authority)
 - the watching client sees the shooter's cue turn while they aim
-- a pad turns green for both clients when either one steps on it
-- walking a client across a pad on the way somewhere else does NOT seat them
+- a box turns green for both clients when either one steps in
+- walking a client across a box on the way somewhere else does NOT seat them
 - the console has no `replay drifted from the server` warning: that line means a client's
   replay of a shot did not match the server's run of it, and is the thing to report
 
 Stop with the **Cleanup** button in the same group, not by closing the windows.
 
 **Gamepad.** Plug in any controller before pressing Play; Roblox picks up Xbox and
-PlayStation pads without setup. `UserInputService.GamepadEnabled` should read true. Walk to a
-pad, then check: left stick turns the aim (and keeps turning while held, rather than only
+PlayStation pads without setup. `UserInputService.GamepadEnabled` should read true. Walk into
+a box, press Y to put the selection on the queue menu (B takes it off), start a solo game,
+then check: left stick turns the aim (and keeps turning while held, rather than only
 while it moves), D-pad left/right nudges it a hair, right stick zooms, holding and releasing
 the right trigger shoots with the power it was pulled to, ButtonA does the same on a pad with
 digital triggers, and B leaves the table. The bindings are in `Config.Input.Gamepad`.

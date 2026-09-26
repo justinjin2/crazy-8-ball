@@ -8,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local HudParts = require(script.Parent.HudParts)
 local Copy = Strings.Match
 local S = Config.Multiplayer.Style
 local MatchHUD = {}
@@ -16,131 +17,13 @@ MatchHUD.__index = MatchHUD
 -- The cue-ball arrows, which repeat while held.
 local PLACE_KEYS = { "PlaceLeft", "PlaceRight", "PlaceUp", "PlaceDown" }
 
-local function color(values: { number }): Color3
-	return Color3.fromRGB(values[1], values[2], values[3])
-end
-
-local function frame(parent: Instance, name: string): Frame
-	local object = Instance.new("Frame")
-	object.Name = name
-	object.BorderSizePixel = 0
-	object.BackgroundTransparency = 1
-	object.Parent = parent
-	return object
-end
-
-local function corner(parent: Instance, radius: number)
-	local object = Instance.new("UICorner")
-	object.CornerRadius = UDim.new(0, radius)
-	object.Parent = parent
-end
-
-local function outline(parent: Instance, tint: Color3, thickness: number): UIStroke
-	local object = Instance.new("UIStroke")
-	object.Color = tint
-	object.Thickness = thickness
-	object.Transparency = 0.3
-	object.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	object.Parent = parent
-	return object
-end
-
-local function label(parent: Instance, name: string, size: number, text: string): TextLabel
-	local object = Instance.new("TextLabel")
-	object.Name = name
-	object.BackgroundTransparency = 1
-	object.Font = Enum.Font.GothamMedium
-	object.TextSize = size
-	object.TextColor3 = color(S.Text)
-	object.Text = text
-	object.TextTruncate = Enum.TextTruncate.AtEnd
-	object.Parent = parent
-	return object
-end
-
-local function panel(parent: Instance, name: string): Frame
-	local object = frame(parent, name)
-	object.BackgroundTransparency = 0.06
-	object.BackgroundColor3 = color(S.Panel)
-	corner(object, S.Radius)
-	outline(object, color(S.Border), 1)
-	local gradient = Instance.new("UIGradient")
-	gradient.Color = ColorSequence.new(color(S.PanelTop), color(S.Panel))
-	gradient.Rotation = 90
-	gradient.Parent = object
-	return object
-end
-
-local function button(parent: Instance, text: string, action: () -> ()): TextButton
-	local object = Instance.new("TextButton")
-	object.BackgroundColor3 = color(S.PanelTop)
-	object.BorderSizePixel = 0
-	object.AutoButtonColor = false
-	object.Font = Enum.Font.GothamBold
-	object.TextSize = S.StatusSize
-	object.TextColor3 = color(S.Text)
-	object.Text = text
-	object.Selectable = true
-	object.Parent = parent
-	corner(object, S.Radius / 2)
-	local border = outline(object, color(S.Border), 1)
-	local pressScale = Instance.new("UIScale")
-	pressScale.Parent = object
-	local pressTween: Tween? = nil
-	local function pressed(down: boolean)
-		if pressTween then
-			pressTween:Cancel()
-		end
-		local nextTween = TweenService:Create(
-			pressScale,
-			TweenInfo.new(S.QuickMotion),
-			{ Scale = if down then S.PressedScale else 1 }
-		)
-		pressTween = nextTween
-		nextTween:Play()
-	end
-	object.InputBegan:Connect(function(input)
-		if
-			input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch
-			or input.KeyCode == Enum.KeyCode.ButtonA
-		then
-			pressed(true)
-		end
-	end)
-	object.InputEnded:Connect(function()
-		pressed(false)
-	end)
-	object.MouseLeave:Connect(function()
-		pressed(false)
-	end)
-	local running: Tween? = nil
-	local function highlight(selected: boolean)
-		if running then
-			running:Cancel()
-		end
-		local nextTween = TweenService:Create(border, TweenInfo.new(S.QuickMotion), {
-			Color = color(if selected then S.Selected else S.Border),
-			Transparency = if selected then 0 else 0.3,
-		})
-		running = nextTween
-		nextTween:Play()
-	end
-	object.MouseEnter:Connect(function()
-		highlight(true)
-	end)
-	object.MouseLeave:Connect(function()
-		highlight(false)
-	end)
-	object.SelectionGained:Connect(function()
-		highlight(true)
-	end)
-	object.SelectionLost:Connect(function()
-		highlight(false)
-	end)
-	object.Activated:Connect(action)
-	return object
-end
+local color = HudParts.color
+local frame = HudParts.frame
+local corner = HudParts.corner
+local outline = HudParts.outline
+local label = HudParts.label
+local panel = HudParts.panel
+local button = HudParts.button
 
 local function nameFor(snapshot: any, userId: number?): string
 	for _, seat in snapshot.seats do
@@ -465,28 +348,11 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	for _ = 1, 15 do
 		table.insert(self.teams[1].soloBalls, makeBall(self.teams[1].root))
 	end
-	-- The Play Solo offer, under the header while this player waits alone at the table.
-	self.soloOffer = panel(self.root, "PlaySolo")
-	self.soloOffer.AnchorPoint = Vector2.new(0.5, 0)
-	self.soloOffer.Visible = false
-	self.soloHint = label(self.soloOffer, "Hint", S.NameSize, Copy.SoloHint)
-	self.soloHint.TextColor3 = color(S.Muted)
-	self.soloSentAt = -math.huge
-	self.soloButton = button(self.soloOffer, Copy.PlaySolo, function()
-		if self:soloAvailable() then
-			self.soloSentAt = self.lastNow -- hidden until the server answers
-			onAction("StartSolo", nil)
-		end
-	end)
-	self.soloButton.BackgroundColor3 = color(S.Active)
-	self.soloButton.TextColor3 = color(S.Panel)
 	self.center = panel(self.root, "MatchStatus")
 	self.status = label(self.center, "Status", S.StatusSize, "")
 	self.status.Font = Enum.Font.GothamBold
 	self.clock = label(self.center, "Timer", S.TimerSize, "")
 	self.clock.Font = Enum.Font.RobotoMono
-	self.clockScale = Instance.new("UIScale")
-	self.clockScale.Parent = self.clock
 	self.detail = label(self.center, "Detail", S.NameSize, "")
 	self.detail.TextColor3 = color(S.Muted)
 	self.leave = button(self.center, Copy.Leave, function()
@@ -627,8 +493,6 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		if mode == "Vote" then
 			self.respondedVote = self:voteKey()
 			onAction("Vote", true)
-		elseif mode == "Queue" then
-			onAction("LeaveQueue", nil)
 		else
 			onAction("Surrender", nil)
 		end
@@ -770,16 +634,6 @@ function MatchHUD.layout(self: any)
 	if self.snapshot and self.snapshot.solo then
 		self:layoutSolo(width)
 	end
-	-- The Play Solo offer hangs under the header (only while waiting, so never over play).
-	self.soloOffer.Position = UDim2.new(0.5, 0, 0, self.headerBottom + gap)
-	self.soloOffer.Size = UDim2.fromOffset(
-		math.min(S.SoloPanelWidth, availableWidth),
-		S.NameSize + S.ButtonHeight + gap * 2
-	)
-	self.soloHint.Position = UDim2.fromOffset(gap, gap / 2)
-	self.soloHint.Size = UDim2.new(1, -gap * 2, 0, S.NameSize + gap / 2)
-	self.soloButton.Position = UDim2.new(0, gap, 1, -S.ButtonHeight - gap)
-	self.soloButton.Size = UDim2.new(1, -gap * 2, 0, S.ButtonHeight)
 	local leaveWidth = S.ButtonHeight * 1.4
 	local contentWidth = centerWidth - leaveWidth - gap * 2
 	self.status.Position = UDim2.fromOffset(gap / 2, gap / 2)
@@ -940,24 +794,6 @@ function MatchHUD.layoutSolo(self: any, width: number)
 	)
 end
 
---- Whether the local player is waiting alone at this table, so Play Solo is on offer.
-function MatchHUD.soloAvailable(self: any): boolean
-	local snapshot = self.snapshot
-	if not snapshot or snapshot.phase ~= "Waiting" or snapshot.solo then
-		return false
-	end
-	local alone = false
-	for _, seat in snapshot.seats do
-		if seat.connected ~= false then
-			if seat.userId ~= self.localUserId then
-				return false
-			end
-			alone = true
-		end
-	end
-	return alone
-end
-
 function MatchHUD.togglePrecision(self: any)
 	self.precisionOpen = not self.precisionOpen
 	if
@@ -1036,9 +872,8 @@ function MatchHUD.showModal(self: any, mode: string)
 		self.dialogBody.Text = Copy.VoteBody
 	else
 		self.dialogTitle.Text = Copy.LeaveQuestion
-		self.dialogBody.Text = if mode == "Queue"
-			then Copy.QueueWaiting
-			elseif self.snapshot.solo then Copy.LeaveSoloGame
+		self.dialogBody.Text = if self.snapshot.solo
+			then Copy.LeaveSoloGame
 			elseif self.snapshot.teamSize > 1 then Copy.LeaveTeam
 			else Copy.LeaveSolo
 	end
@@ -1048,12 +883,16 @@ end
 
 function MatchHUD.openLeave(self: any)
 	local snapshot = self.snapshot
-	if not snapshot or snapshot.phase == "Result" or self.modal.Visible then
+	-- The queue is left from its own menu (QueueMenu), or by walking out of the box.
+	if
+		not snapshot
+		or snapshot.phase == "Waiting"
+		or snapshot.phase == "Result"
+		or self.modal.Visible
+	then
 		return
 	end
-	self:showModal(
-		if snapshot.phase == "Waiting" or snapshot.phase == "Countdown" then "Queue" else "Leave"
-	)
+	self:showModal("Leave")
 end
 
 function MatchHUD.isModal(self: any): boolean
@@ -1087,6 +926,10 @@ function MatchHUD.setInvalidTarget(self: any, invalid: boolean)
 end
 
 function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
+	-- Waiting for the host is the queue menu's (QueueMenu): nobody has a team yet.
+	if snapshot and snapshot.phase == "Waiting" then
+		snapshot = nil
+	end
 	local old = self.snapshot
 	self.snapshot = snapshot
 	self.localUserId = userId
@@ -1338,18 +1181,6 @@ function MatchHUD.update(self: any, now: number)
 		self.status.TextTransparency = 1 - math.clamp(math.min(elapsed, remaining) / S.Motion, 0, 1)
 		self.detail.Text =
 			string.format(Copy.FoulBy, nameFor(snapshot, snapshot.foul and snapshot.foul.by))
-	elseif phase == "Waiting" or phase == "Countdown" then
-		local count = 0
-		for _, seat in snapshot.seats do
-			if seat.connected ~= false then
-				count += 1
-			end
-		end
-		self.detail.Text = string.format(
-			if self:soloAvailable() then Copy.SoloWaiting else Copy.Occupancy,
-			count,
-			snapshot.teamSize * 2
-		)
 	elseif phase == "Aiming" and isShooter then
 		self.detail.Text = if snapshot.calledPocket
 			then string.format(Copy.PocketChosen, snapshot.calledPocket)
@@ -1360,18 +1191,8 @@ function MatchHUD.update(self: any, now: number)
 			then string.format("%.1f", remaining)
 			else tostring(math.ceil(remaining)))
 		else ""
-	if phase == "Waiting" and snapshot.cancelUntil and now < snapshot.cancelUntil then
-		self.status.Text = Copy.CountdownCanceled
-		self.status.TextColor3 = color(S.Danger)
-	end
-	self.clockScale.Scale = if phase == "Countdown"
-		then 1 + S.CountdownScale * math.sin((remaining % 1) * math.pi)
-		else 1
 	self.clock.TextColor3 = color(if danger then S.Danger else S.Text)
 	self.leave.Visible = phase ~= "Result"
-	self.leave.Text = if phase == "Waiting" or phase == "Countdown"
-		then Copy.LeaveQueue
-		else Copy.Leave
 	local progress = if phase == "Aiming"
 			and isClock
 			and deadline > snapshot.phaseStartedAt
@@ -1392,13 +1213,6 @@ function MatchHUD.update(self: any, now: number)
 			end
 		end
 	end
-	local offer = self:soloAvailable()
-		and not self.modal.Visible
-		and now - self.soloSentAt >= Config.Multiplayer.ActionRetrySeconds
-	if not offer and GuiService.SelectedObject == self.soloButton then
-		GuiService.SelectedObject = nil -- a hidden selection would keep play input off
-	end
-	self.soloOffer.Visible = offer
 	local placementVisible = isShooter and self.placing and not self.precisionOpen
 	if self.setup.Visible ~= placementVisible then
 		self.setup.Visible = placementVisible
@@ -1416,6 +1230,37 @@ function MatchHUD.update(self: any, now: number)
 	local canPlay = isShooter and (phase == "Intro" or phase == "Placement" or phase == "Aiming")
 	self.precisionButton.Visible = canPlay and not self.precisionOpen
 	self.precision.Visible = canPlay and self.precisionOpen
+	self.invalid.Visible = self.invalidTarget
+		and isShooter
+		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
+	self.invalid.Position = UDim2.new(0.5, 0, 1, -(self:reservedBottom() + S.HeaderGap))
+	-- A held placement arrow keeps stepping until it is let go, at most one step a frame so
+	-- a hitch never replays a burst.
+	local held = self.held
+	if held and not (self.placing and self.precision.Visible) then
+		self.held = nil
+	elseif held and now >= held.nextAt then
+		held.nextAt = math.max(held.nextAt + S.PlacementRepeatInterval, now)
+		self.onAction("PrecisionPlace", held.value)
+	end
+	local vote = snapshot.vote
+	if self.modalMode == "Vote" and vote then
+		local count, total = 0, 0
+		for _, seat in snapshot.seats do
+			if seat.team == vote.team and seat.connected ~= false then
+				total += 1
+				if vote.yes[seat.userId] or vote.yes[tostring(seat.userId)] then
+					count += 1
+				end
+			end
+		end
+		self.voteProgress.Text = string.format(
+			Copy.VoteProgress,
+			count,
+			total,
+			math.ceil(math.max(0, vote.deadline - now))
+		)
+	end
 	local foulLeft = self.foulUntil - now
 	local showFoul = foulLeft > 0 and snapshot.phase ~= "Result" and not self:isModal()
 	self.foulGroup.Visible = showFoul

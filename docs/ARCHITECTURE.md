@@ -139,8 +139,10 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
-shooters), `UI`, `Audio`, `Effects`, `Hub`
-(pads, seats, snack counter, doors).
+shooters), `UI`, `Audio`, `Effects`, `Hub` (one Match per table, seats), `MatchHUD` (the
+match header and overlays), `QueueMenu` (the card everyone in a queue box sees: host,
+difficulty, abilities, Start), `HudParts` (the panels and buttons both are built from),
+`BoxEffects` (the queue boxes' glow, motes and join sound).
 
 ## 6. Data model
 
@@ -190,12 +192,15 @@ shooters), `UI`, `Audio`, `Effects`, `Hub`
 ## Multiplayer match boundary (2026-09-22)
 
 `Rules/MatchEngine` owns one plain-data state per table, with explicit phase, epoch,
-revision, turn id, seats, groups, deadline, replay and vote. It receives time and coin
-outcomes as arguments, so the same lifecycle runs under Lune. `ShotJudge` consumes ordered
+revision, turn id, seats, groups, deadline, replay, vote and the host's settings
+(difficulty, abilities). Seats get a team and slot only when the host starts
+(`Engine.startState` is the rule the server enforces and the queue menu greys Start from).
+It receives time and coin outcomes as arguments, so the same lifecycle runs under Lune. `ShotJudge` consumes ordered
 simulation events; `CuePlacement` validates and deterministically finds legal fallbacks.
 Physics remains unchanged and instance-free.
 
-`TableService` is the Roblox adapter for server-observed pads, global membership, rate
+`TableService` is the Roblox adapter for server-observed queue boxes (one per table, up to
+six; the half each player stands in is their side), global membership, rate
 limits, character constraints and snapshots. `ShotService` validates ownership/version
 through the engine, simulates once and broadcasts the replay. Accepted shots stop the
 shooting clock; resolution waits for motion/falls and the pocket buffer. Epoch/sequence

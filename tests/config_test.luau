@@ -276,6 +276,31 @@ return {
 		H.expect(C.VisualPitchRiseSeconds <= C.VisualPitchFallSeconds, "rise faster than fall")
 	end,
 
+	-- Every difficulty says what it draws, the menu lists each once, and the default is one.
+	["every difficulty level is complete and the default is one of them"] = function()
+		local D = H.require("Config").Difficulty
+		H.expect(D.Levels[D.Default] ~= nil, "the default is a level")
+		local listed = 0
+		for _, name in D.Order do
+			local row = D.Levels[name]
+			H.expect(row ~= nil, name .. " is a level")
+			for _, key in { "Corridor", "Stubs", "Landings" } do
+				H.expect(type(row[key]) == "boolean", ("%s.%s"):format(name, key))
+			end
+			listed += 1
+		end
+		local count = 0
+		for _ in D.Levels do
+			count += 1
+		end
+		H.expect(listed == count, "the menu lists every level")
+		H.expect(D.Levels.Challenger.Corridor == false, "Challenger draws no lines")
+		H.expect(
+			D.Levels.Difficult.Corridor and not D.Levels.Difficult.Stubs,
+			"Difficult: aim only"
+		)
+	end,
+
 	["a body fits between the barrier and the fence at every facing"] = function()
 		local Config = H.require("Config")
 		local Placement = H.require("Placement")
@@ -285,13 +310,11 @@ return {
 		local half = math.sqrt(body.HalfDepth ^ 2 + body.HalfWidth ^ 2)
 		local grow = math.max(half, Config.Multiplayer.Barrier.ReleaseClearanceStuds)
 		local bx, by = Placement.barrierHalfExtents()
-		for _, teamSize in { 1, 2, 3 } do
-			local fx, fy, cx = Placement.fenceHalfExtents(teamSize)
-			-- Both ends: the head reaches cx - fx, the foot cx + fx.
-			H.expect(bx + grow <= fx + cx - half - S.FenceMarginStuds, "no room at the foot")
-			H.expect(bx + grow <= fx - cx - half - S.FenceMarginStuds, "no room at the head")
-			H.expect(by + grow <= fy - half - S.FenceMarginStuds, "no room along the sides")
-		end
+		local fx, fy, cx = Placement.fenceHalfExtents()
+		-- Both ends: the head reaches cx - fx, the foot cx + fx.
+		H.expect(bx + grow <= fx + cx - half - S.FenceMarginStuds, "no room at the foot")
+		H.expect(bx + grow <= fx - cx - half - S.FenceMarginStuds, "no room at the head")
+		H.expect(by + grow <= fy - half - S.FenceMarginStuds, "no room along the sides")
 		H.expect(body.WaistHeight < body.ShoulderHeight, "the torso has a length")
 		H.expect(body.RootHeight > 0 and body.ArmReach > 0, "a body")
 		H.expect(S.LeanMinDegrees <= S.LeanNaturalDegrees, "natural lean below the most upright")

@@ -428,8 +428,8 @@ return {
 		local tiers: { [string]: { number } } = {}
 		local solves = 0
 		local misses: { [string]: number } = {}
-		for _, teamSize in { 1, 3 } do
-			local area = ShooterStance.area(teamSize)
+		do
+			local area = ShooterStance.area()
 			for _, spot in sweepSpots() do
 				for step = 0, 71 do
 					local angle = math.rad(step * 5)
@@ -440,9 +440,8 @@ return {
 							q.pull = step % 2
 							local st = ShooterStance.solve(q)
 							solves += 1
-							local label = ("%s team %d ball (%.2f, %.2f) at %d, pitch %d"):format(
+							local label = ("%s ball (%.2f, %.2f) at %d, pitch %d"):format(
 								b.name,
-								teamSize,
 								spot[1],
 								spot[2],
 								step * 5,
@@ -485,7 +484,7 @@ return {
 	-- the far-in ones kneeling on the table (a foot on the floor reaches only so far onto a
 	-- table this size; designer, 2026-09-25). Printed so a tuning change shows what it did.
 	["most shots are taken from the floor, few from the table"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		local L, W = Config.Table.LengthInches, Config.Table.WidthInches
 		local R = Config.Balls.RadiusInches
 		local count, n = { 0, 0, 0, 0 }, 0
@@ -520,7 +519,7 @@ return {
 	-- the cue or just beside it (right over it, a real head would sit too low over the rail).
 	["a comfortable shot is a natural stance at the natural distance"] = function()
 		local C = Config.Cue
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		local q = input(-40, 0, 0, C.CueElevationDegrees, R15, area)
 		local st = ShooterStance.solve(q)
 		H.expect(st.mode == "stand" or st.mode == "lean", "stands: " .. st.mode)
@@ -543,7 +542,7 @@ return {
 	-- plays it from that side rail beside the ball, not away at the end rail: from the floor
 	-- when it reaches, else kneeling on the cloth by that rail.
 	["a ball by the side rail, shot along it, is played from that side rail"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		for _, case in { { -10, 20, 0 }, { 10, -20, math.pi }, { 6, 20, 0 } } do
 			local x, y, angle = case[1], case[2], case[3]
 			local q = input(x, y, angle, pitchFor(x, y, angle), R15, area)
@@ -562,7 +561,7 @@ return {
 			for _, line in { { 0, 1 }, { 10, 1 }, { 0, -1 } } do
 				local y, dir = line[1], line[2]
 				local angle = if dir > 0 then 0 else math.pi
-				local area = ShooterStance.area(1)
+				local area = ShooterStance.area()
 				local last, memory, lastPitch = 0, nil, math.huge
 				for i = -48, 48 do
 					local x = i * dir
@@ -592,7 +591,7 @@ return {
 	end,
 
 	["the grip rides the cue through the wind-up; the root stays put"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		for _, spot in sweepSpots() do
 			for step = 0, 11 do
 				local angle = math.rad(step * 30 + 7)
@@ -627,7 +626,7 @@ return {
 	-- straight back. (A change of pose, the bridge hand moving between the cloth and the rail
 	-- included, and a hop may move the root further: the poser glides it there.)
 	["turning the aim round: few pose changes, no flicker, a smooth root in between"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		for _, ball in { { 0, 0 }, { -30, 12 }, { 44, -20 }, { -10, 20 }, { -47, -22 } } do
 			local memory, last = nil, nil
 			local changes, hops, history = 0, 0, {}
@@ -679,7 +678,7 @@ return {
 	end,
 
 	["a ball near the shooter's cushion bridges on the rail and shortens the wind-up"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		local q = input(-46, 0, 0, pitchFor(-46, 0, 0), R15, area)
 		local st = ShooterStance.solve(q)
 		local bridge = st.handBridge
@@ -697,7 +696,7 @@ return {
 	end,
 
 	["a ball frozen to a cushion, the cue along it, bridges right against the cushion"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		local R = Config.Balls.RadiusInches
 		local x = -(geometry.halfLength - R)
 		for _, angle in { math.pi / 2, -math.pi / 2 } do
@@ -713,7 +712,7 @@ return {
 	end,
 
 	["the same input always gives the same stance"] = function()
-		local area = ShooterStance.area(3)
+		local area = ShooterStance.area()
 		local function flat(st: any): string
 			local parts = {}
 			local function add(prefix: string, t: any)
@@ -750,7 +749,7 @@ return {
 	-- have picked on its own (checkStance holds either way), and on an ordinary shot it
 	-- changes nothing at all.
 	["the memory only keeps a near-equal pose"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		local q = input(-40, 0, 0, 4, R15, area)
 		local plain = ShooterStance.solve(q)
 		q.memory = { mode = "stretch", side = "square", onRail = true }
@@ -763,8 +762,8 @@ return {
 	end,
 
 	["after the shot the shooter stands up on the floor facing the table centre"] = function()
-		for _, teamSize in { 1, 3 } do
-			local area = ShooterStance.area(teamSize)
+		do
+			local area = ShooterStance.area()
 			for _, spot in sweepSpots() do
 				for step = 0, 23 do
 					local angle = math.rad(step * 15)
@@ -817,7 +816,7 @@ return {
 
 	["the area matches the table, the barrier and the fence"] = function()
 		local T = Config.Table
-		local area = ShooterStance.area(2)
+		local area = ShooterStance.area()
 		local bx, by = Placement.barrierHalfExtents()
 		local fx, fy, fcx = Placement.fenceHalfExtents(2)
 		H.near(area.clothHx, T.LengthInches / 2 * s, 1e-12, "cloth")
@@ -835,7 +834,7 @@ return {
 	-- Without a hand bridge that sits low enough (a steep jump cue with the ball far in), the
 	-- hand stands up under the cue rather than leaving it floating.
 	["a steep cue far from any rail raises the bridge hand under it"] = function()
-		local area = ShooterStance.area(1)
+		local area = ShooterStance.area()
 		local q = input(0, 0, 0, 45, R15, area)
 		local st = solveWith(S, "BridgeMaxRiseStuds", 0.2, q)
 		H.expect(st.handBridge.raised, "raised")

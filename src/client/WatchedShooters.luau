@@ -160,7 +160,6 @@ function WatchedShooters.new(cues: { Model }): WatchedShooters
 			frame = AvatarPose.newFrame(),
 			inputs = {
 				placement = Placement.new(0, 0, 0, 0), -- the table's, before every compose()
-				teamSize = 1,
 				body = Config.Stance.DefaultBody,
 				cueX = 0,
 				cueY = 0,
@@ -403,7 +402,6 @@ local function step(
 	if not still then
 		local inputs = slot.inputs
 		inputs.placement = p
-		inputs.teamSize = s.teamSize or 1
 		inputs.body = body
 		inputs.cueX, inputs.cueY = slot.x, slot.y
 		inputs.angle = slot.angle

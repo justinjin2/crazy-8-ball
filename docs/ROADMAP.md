@@ -36,15 +36,15 @@ anyway.
   (4.1) exists. Each table is owned by the server:
   the client sends shot inputs, the server validates and runs the simulation, every client
   replays the same shot, so everyone in the server sees every table's balls. Join by stepping
-  on the table's floor pad (sound, VFX, green indicator); first joiner is host; second joiner
-  is the opponent; host and settings slots exist from day one. Opponent and spectators see the
+  into the table's queue box (sound, VFX, green indicator); first joiner is host and starts
+  the game from the queue menu; host and settings slots exist from day one. Opponent and spectators see the
   shooter's cue turn (aim angle and ball-in-hand position replicated at a low rate). StreamingEnabled on, no per-table shadow lights, ball mesh
   reduced to about 550 triangles. Gamepad: aim with the stick, zoom, shoot.
   Done means: two players in one server play at two different tables while a third walks
   between them and sees both games, on phone, PC and gamepad.
-*Progress (2026-09-25): sixteen 1v1 tables run on the baseplate (8 green, 8 blue), each with
-its own pads, barrier and fence; checked in Studio play-solo. The two-player, phone and
-gamepad checks in "Done means" are still open.*
+*Progress (2026-09-25): sixteen tables run on the baseplate (8 green, 8 blue), each with one
+queue box for up to six (1v1, 2v2 or 3v3, the host's Start), a barrier and a fence; checked
+in Studio play-solo. The two-player, phone and gamepad checks in "Done means" are still open.*
 *Order note (2026-09-21): 1.7 is being built before 1.6 at the designer's request.*
 *Order note (2026-09-22): the designer requested `prompts/PHYSICS_REALISM_PROMPT.md`.
 Work proceeds A-F; the designer then requested continuing through D-F in one run.
@@ -132,13 +132,18 @@ are part of this update; the older broader phase boxes below are not completed b
 - [ ] **2.2 Difficulty levels.** Classic, Difficult, Challenger as a host setting for the whole
   table, no lock yet. Done means: all three guidelines behave as described and both players see
   the same one.
+*Progress (2026-09-25): built. The host picks it in the queue menu; Classic draws every line,
+Difficult the aim line only, Challenger none (ball glow and red X stay). Checked in Studio
+play-solo on PC; the phone, gamepad and two-player checks are open.*
 - [ ] **2.3 Pace and presence.** Shot timer, emotes during the opponent's turn, spectators,
   ball X marks and highlights, pocketed-balls HUD. Done means: there is never a moment where a
   player has nothing to do or see.
-- [ ] **2.4 PC opponent and the host popup.** Bot that picks reasonable shots with a skill knob
-  and human-like delay; the host popup (Solo, Wait for a player, Play against PC, difficulty,
-  abilities on/off) with the 15-second auto-start; versus screen. Done means: a solo player
-  steps on a pad and gets a fair, beatable match without anyone else in the server.
+- [ ] **2.4 PC opponent.** Bot that picks reasonable shots with a skill knob and human-like
+  delay, behind the queue menu's Play against PC; versus screen. Done means: a solo player
+  steps into a box and gets a fair, beatable match without anyone else in the server.
+*Progress (2026-09-25): the queue menu is built (host name, difficulty, abilities on/off as a
+placeholder, Start; alone, Play solo and Play against PC, which says "Coming soon"). There is
+no automatic start against PC (designer).*
 - [ ] **2.5 Teams.** 2v2 and 3v3: rotating turns, shared groups, per-shooter clock, whole-team
   forfeit, PC fill for any seat. Done means: four friends finish a 2v2.
 - [ ] **2.6 Juice, pass two.** Turn streaks (x2 on fire, x3 blue fire), trickshot detection

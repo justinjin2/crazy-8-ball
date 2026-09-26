@@ -13,6 +13,11 @@ local Placement = require(script.Parent.CuePlacement)
 local M = Config.Multiplayer
 local Engine = {}
 
+-- A table's queue settings, as the host last left them. Fresh for every new box and game.
+local function defaultSettings(): any
+	return { difficulty = Config.Difficulty.Default, abilities = true }
+end
+
 function Engine.pack(balls: { any }): { number }
 	local out = {}
 	for _, b in balls do
@@ -29,12 +34,15 @@ end
 
 --- A fresh table. `seed` picks the rack's tiny offsets; the server passes a random one so no
 --- two games open on the same rack. Without it (tests) the table's fixed default is used.
-function Engine.new(id: number, teamSize: number, seed: number?): any
+--- Any table seats 1v1, 2v2 or 3v3: `teamSize` stays 0 until the host starts, then it is
+--- half the players in the box (1 for solo).
+function Engine.new(id: number, seed: number?): any
 	local geometry = Geometry.build({ pocketsOpen = true })
 	seed = Rack.normalizeSeed(seed or Config.Rack.DefaultSeed + id)
 	local t: any = {
 		id = id,
-		teamSize = teamSize,
+		teamSize = 0,
+		settings = defaultSettings(),
 		epoch = 1,
 		revision = 1,
 		phase = "Waiting",
@@ -96,36 +104,33 @@ local function rehost(t: any)
 	end
 end
 
+local function validSide(side: any): boolean
+	return side == 1 or side == 2
+end
+
+--- Step into the table's queue box, standing in half `side` (1 the head half, team A's; 2
+--- the foot half, team B's). Only while the table waits, and only up to Queue.Capacity. The
+--- seat has no team or slot until the host starts; nothing starts by itself.
 function Engine.join(
 	t: any,
 	userId: number,
 	name: string,
 	displayName: string,
-	team: number,
-	slot: number,
+	side: number,
 	now: number
 ): boolean
-	if t.phase ~= "Waiting" and t.phase ~= "Countdown" then
+	if t.phase ~= "Waiting" or not validSide(side) then
 		return false
 	end
-	if team % 1 ~= 0 or team < 1 or team > 2 or slot % 1 ~= 0 or slot < 1 or slot > t.teamSize then
+	if Engine.seat(t, userId) or Engine.count(t) >= M.Queue.Capacity then
 		return false
-	end
-	if Engine.seat(t, userId) then
-		return false
-	end
-	for _, s in t.seats do
-		if s.team == team and s.slot == slot then
-			return false
-		end
 	end
 	t.joinOrder += 1
 	table.insert(t.seats, {
 		userId = userId,
 		name = name,
 		displayName = displayName,
-		team = team,
-		slot = slot,
+		side = side,
 		joinedAt = now,
 		order = t.joinOrder,
 		connected = true,
@@ -133,11 +138,44 @@ function Engine.join(
 	})
 	rehost(t)
 	t.revision += 1
-	if Engine.count(t) == t.teamSize * 2 then
-		t.cancelUntil = nil
-		phase(t, "Countdown", now, M.CountdownSeconds)
+	return true
+end
+
+--- Which half of the box a queued player stands in now (the server watches them walk).
+function Engine.setSide(t: any, userId: number, side: number): boolean
+	local s = Engine.seat(t, userId)
+	if t.phase ~= "Waiting" or not s or not validSide(side) then
+		return false
+	end
+	if s.side ~= side then
+		s.side = side
+		t.revision += 1
 	end
 	return true
+end
+
+--- Whether the players in a box can start, and if not why: "Alone" (the host is offered
+--- solo instead), "Odd" (three or five: teams need two, four or six), or "Uneven" (four or
+--- six, but the box's two halves do not hold half each). Pure over a seat list, so the queue
+--- menu greys its Start button from the snapshot with the same rule the server enforces.
+function Engine.startState(seats: { any }): (boolean, string?)
+	local n, head = 0, 0
+	for _, s in seats do
+		if s.connected ~= false then
+			n += 1
+			if s.side == 1 then
+				head += 1
+			end
+		end
+	end
+	if n <= 1 then
+		return false, "Alone"
+	elseif n % 2 == 1 then
+		return false, "Odd"
+	elseif n > 2 and head ~= n / 2 then
+		return false, "Uneven"
+	end
+	return true, nil
 end
 
 local function finish(t: any, winner: number?, reason: string, now: number)
@@ -239,7 +277,7 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 	if not s then
 		return false
 	end
-	if t.phase == "Waiting" or t.phase == "Countdown" then
+	if t.phase == "Waiting" then
 		for i, v in t.seats do
 			if v == s then
 				table.remove(t.seats, i)
@@ -247,8 +285,9 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 			end
 		end
 		rehost(t)
-		if t.phase == "Countdown" then
-			t.cancelUntil = now + M.CountdownCancelSeconds
+		-- The host's choices outlive the host (the next in takes over), not the box emptying.
+		if Engine.count(t) == 0 then
+			t.settings = defaultSettings()
 		end
 		phase(t, "Waiting", now, nil)
 		return true
@@ -389,9 +428,9 @@ local function resolve(t: any, now: number)
 	)
 end
 
---- `coinWinner` and `nextSeed` are the server's randomness (the coin, the next game's
---- rack), passed in so this stays deterministic; tests may omit them.
-function Engine.advance(t: any, now: number, coinWinner: number?, nextSeed: number?)
+--- `nextSeed` is the server's randomness (the next game's rack), passed in so this stays
+--- deterministic; tests may omit it.
+function Engine.advance(t: any, now: number, nextSeed: number?)
 	if t.vote then
 		local unanimous = true
 		for _, s in t.seats do
@@ -409,19 +448,7 @@ function Engine.advance(t: any, now: number, coinWinner: number?, nextSeed: numb
 	if not t.deadline or now < t.deadline then
 		return
 	end
-	if t.phase == "Countdown" then
-		local host = Engine.seat(t, t.hostId)
-		local winner = if coinWinner == 2 then 2 else 1
-		t.activeTeam = winner
-		t.breakShot = true
-		local breaker = choose(t, winner)
-		t.coin = {
-			headsTeam = if host then host.team else 1,
-			winnerTeam = winner,
-			breaker = breaker.userId,
-		}
-		phase(t, "CoinFlip", now, M.CoinSeconds)
-	elseif t.phase == "CoinFlip" then
+	if t.phase == "CoinFlip" then
 		beginTurn(t, t.activeTeam, now, true)
 	elseif t.phase == "Intro" then
 		setup(t, now)
@@ -451,7 +478,7 @@ function Engine.advance(t: any, now: number, coinWinner: number?, nextSeed: numb
 	elseif t.phase == "Foul" then
 		beginTurn(t, t.nextTeam, now, true, t.solo ~= nil)
 	elseif t.phase == "Result" then
-		local fresh = Engine.new(t.id, t.teamSize, nextSeed or t.rackSeed + 1)
+		local fresh = Engine.new(t.id, nextSeed or t.rackSeed + 1)
 		fresh.epoch = t.epoch + 1
 		fresh.revision = t.revision + 1
 		fresh.phaseStartedAt = now
@@ -460,6 +487,7 @@ function Engine.advance(t: any, now: number, coinWinner: number?, nextSeed: numb
 			{
 				"id",
 				"teamSize",
+				"settings",
 				"epoch",
 				"revision",
 				"phase",
@@ -518,29 +546,96 @@ function Engine.moveCue(t: any, userId: number, request: any, now: number): bool
 	return placeCue(t, request.x, request.y, request.seq, now)
 end
 
-function Engine.action(t: any, userId: number, request: any, now: number): boolean
+-- The host's Start: teams from the box, then the coin at once (no countdown, designer
+-- 2026-09-25). Two players split by who came first, the host being team A; four or six by
+-- the half each stands in, slots in the order they came. The host's team calls heads.
+local function start(t: any, host: any, now: number, coinWinner: number?)
+	local seats = {}
+	for _, s in t.seats do
+		if s.connected then
+			table.insert(seats, s)
+		end
+	end
+	table.sort(seats, function(a: any, b: any)
+		return a.order < b.order
+	end)
+	local slots = { 0, 0 }
+	for i, s in seats do
+		local team = if #seats == 2 then i else s.side
+		slots[team] += 1
+		s.team, s.slot = team, slots[team]
+	end
+	t.teamSize = #seats // 2
+	local winner = if coinWinner == 2 then 2 else 1
+	t.activeTeam, t.breakShot = winner, true
+	t.coin = {
+		headsTeam = host.team,
+		winnerTeam = winner,
+		breaker = choose(t, winner).userId,
+	}
+	phase(t, "CoinFlip", now, M.CoinSeconds)
+end
+
+--- `coinWinner` is the server's coin for a Start (1 or 2), passed in like advance's seed so
+--- this stays deterministic; tests may omit it.
+function Engine.action(
+	t: any,
+	userId: number,
+	request: any,
+	now: number,
+	coinWinner: number?
+): boolean
 	local s = Engine.seat(t, userId)
 	if not s or request.epoch ~= t.epoch or request.turnId ~= t.turnId then
 		return false
 	end
 	local kind = request.kind
 	if kind == "LeaveQueue" then
-		if t.phase == "Waiting" or t.phase == "Countdown" then
+		if t.phase == "Waiting" then
 			return Engine.remove(t, userId, now)
 		end
 		return false
-	elseif kind == "StartSolo" then
-		-- Someone alone at a table plays it by themselves at once: no countdown, no coin,
-		-- and nobody can join until it ends. The break opens with ball in hand as usual.
-		if t.phase ~= "Waiting" or Engine.count(t) ~= 1 then
+	elseif
+		kind == "Start"
+		or kind == "StartSolo"
+		or kind == "SetDifficulty"
+		or kind == "SetAbilities"
+	then
+		-- The queue menu: the host's alone, and only before the game.
+		if t.phase ~= "Waiting" or t.hostId ~= userId then
 			return false
 		end
-		t.solo = { team = s.team }
-		t.activeTeam, t.breakShot, t.cancelUntil, t.coin = s.team, true, nil, nil
-		beginTurn(t, s.team, now, true)
+		if kind == "Start" then
+			if not Engine.startState(t.seats) then
+				return false
+			end
+			start(t, s, now, coinWinner)
+		elseif kind == "StartSolo" then
+			-- The host alone plays the table by themselves at once: no coin, and nobody can
+			-- join until it ends. The break opens with ball in hand as usual.
+			if Engine.count(t) ~= 1 then
+				return false
+			end
+			s.team, s.slot, t.teamSize = 1, 1, 1
+			t.solo = { team = s.team }
+			t.activeTeam, t.breakShot, t.coin = s.team, true, nil
+			beginTurn(t, s.team, now, true)
+		elseif kind == "SetDifficulty" then
+			if type(request.value) ~= "string" or not Config.Difficulty.Levels[request.value] then
+				return false
+			end
+			t.settings.difficulty = request.value
+			t.revision += 1
+		else
+			if type(request.value) ~= "boolean" then
+				return false
+			end
+			t.settings.abilities = request.value
+			t.revision += 1
+		end
 		return true
 	end
-	if t.phase == "Waiting" or t.phase == "Countdown" or t.phase == "Result" then
+	if t.phase == "Waiting" or t.phase == "Result" then
 		return false
 	end
 	if kind == "Surrender" then
@@ -738,7 +833,6 @@ function Engine.snapshot(t: any): any
 		teamSize = t.teamSize,
 		phase = t.phase,
 		phaseStartedAt = t.phaseStartedAt,
-		cancelUntil = t.cancelUntil,
 		deadline = t.deadline,
 		seats = seats,
 		hostId = t.hostId,
@@ -759,6 +853,7 @@ function Engine.snapshot(t: any): any
 		rackPositions = rackPositions,
 		shot = t.shot,
 		solo = if t.solo then table.clone(t.solo) else nil,
+		settings = table.clone(t.settings),
 	}
 end
 

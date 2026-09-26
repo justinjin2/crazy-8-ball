@@ -1,6 +1,34 @@
 # Status
 
-**2026-09-25 (latest): back on a plain baseplate with sixteen 1v1 tables, eight green and
+**2026-09-25 (latest): one queue box per table, a host menu with three difficulties, and no
+countdown. Any of the sixteen tables plays 1v1, 2v2 or 3v3.**
+
+- Every table has one long box along its right side (as you walk in from the spawn) for up to
+  six. The first in hosts. Everyone in the box sees the queue menu (top right): the host's
+  name, players n/6, difficulty (Classic, Difficult, Challenger), abilities on/off (does
+  nothing yet) and, for the host, Start.
+- Start: two play at once (straight to the coin flip); four or six must split evenly between
+  the box's two halves, which show grey and turn green when even; three or five are greyed
+  out with "Need 2, 4 or 6 players". Alone: Play solo, or Play against PC ("Coming soon").
+- Difficulty (Config.Difficulty): Classic every line; Difficult the aim line and ring only;
+  Challenger no lines. The group glow and red X stay.
+- The grid moved to 26 studs apart across to fit the boxes. Gamepad: Y puts the selection on
+  the menu, B takes it off. On touch screens the card sits left of the jump button.
+- Also fixed: the "INVALID FIRST TARGET" warning was stuck in the top left of every match, and
+  held placement arrows and the surrender-vote count had stopped updating (a block of
+  MatchHUD.update was lost on 2026-09-23; restored).
+- Verified: lint clean, 331 Lune tests pass. Studio play-solo: the boxes and floor words,
+  joining, host menu, the difficulty and abilities choices reaching the server, Play solo in
+  each difficulty (lines checked per level), Play against PC's notice, the guest's read-only
+  menu, 3 players greyed, 4 uneven (grey halves) then even (green), Start into a 2v2 coin
+  flip, L and walking out leaving. Fake players came from the Studio QA fixture.
+- Still to do: a real two-player check (Studio's Clients and Servers), and the menu on a real
+  phone and gamepad. Save the place to `place/8ball.rbxl` and publish (from the map removal);
+  check `Lighting.Technology`.
+
+---
+
+**2026-09-25: back on a plain baseplate with sixteen 1v1 tables, eight green and
 eight blue. The test hub map is removed from the game and the repo.**
 
 - The map's code, package, brief, tests and notes are gone; the hub map's look is Open again

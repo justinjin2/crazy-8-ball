@@ -60,33 +60,6 @@ export type Hub = typeof(setmetatable(
 	Hub
 ))
 
--- GDD section 6 wants stepping on a pad to be felt, not just seen. The sound waits on an
--- asset id; the flash needs none, so the pad's own glow is pulsed instead.
-local function flashPad(id: number)
-	local pads = Workspace:FindFirstChild("Pads")
-	local pad = pads and pads:FindFirstChild(("Pad_%02d"):format(id))
-	local glow = pad and pad:FindFirstChildOfClass("SurfaceLight")
-	if glow == nil then
-		return
-	end
-	local S = Config.Pad
-	local settled = glow.Brightness
-	glow.Brightness = S.FlashBrightness
-	game:GetService("TweenService")
-		:Create(glow, TweenInfo.new(S.FlashSeconds), { Brightness = settled })
-		:Play()
-	if S.StepSoundId ~= "" and pad and pad:IsA("BasePart") then
-		local sound = Instance.new("Sound")
-		sound.SoundId = S.StepSoundId
-		sound.Volume = S.StepSoundVolume
-		sound.Parent = pad
-		sound:Play()
-		sound.Ended:Once(function()
-			sound:Destroy()
-		end)
-	end
-end
-
 function Hub.new(parent: Instance): Hub
 	local folder = Instance.new("Folder")
 	folder.Name = "Balls"
@@ -336,11 +309,7 @@ function Hub.listen(self: Hub)
 		if match then
 			match:snapshot(snapshot)
 		end
-		local before = #(self.seats[snapshot.id] or {})
 		self.seats[snapshot.id] = snapshot.seats or {}
-		if #self.seats[snapshot.id] > before then
-			flashPad(snapshot.id)
-		end
 		-- Work out where the local player is now sitting, if anywhere.
 		local found: number? = nil
 		for id, seats in self.seats do

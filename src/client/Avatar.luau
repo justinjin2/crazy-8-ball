@@ -33,7 +33,6 @@ Avatar.__index = Avatar
 -- What Main hands update() every frame (one table, filled in place).
 export type Context = {
 	placement: Placement.Placement?, -- the table being played
-	teamSize: number, -- players a side there (the fence the stance stays inside)
 	state: any, -- the match's ball state (geometry, balls): the drawn cue clears them
 	cueX: number?, -- the cue ball, table inches; nil while it is down
 	cueY: number?,
@@ -150,7 +149,6 @@ end
 local function newInputs(p: Placement.Placement): ShooterPoser.Inputs
 	return {
 		placement = p,
-		teamSize = 1,
 		body = Config.Stance.DefaultBody,
 		cueX = 0,
 		cueY = 0,
@@ -266,7 +264,7 @@ function Avatar.strike(self: Avatar, windUp: number, x: number?, y: number?)
 	local frozen: ShooterPoser.Inputs = self.frozen or newInputs(live.placement)
 	self.frozen = frozen
 	-- Field by field: nil ones (memory) must overwrite too.
-	frozen.placement, frozen.teamSize, frozen.body = live.placement, live.teamSize, live.body
+	frozen.placement, frozen.body = live.placement, live.body
 	frozen.cueX, frozen.cueY = x or live.cueX, y or live.cueY
 	frozen.angle, frozen.spinX, frozen.spinY = live.angle, live.spinX, live.spinY
 	frozen.pitch, frozen.memory = live.pitch, live.memory
@@ -395,7 +393,6 @@ function Avatar.update(self: Avatar, dt: number, ctx: Context): Out
 				then was
 				else newInputs(p)
 			self.live = live
-			live.teamSize = ctx.teamSize
 			live.body = AvatarPose.measureBody(character) or Config.Stance.DefaultBody
 			live.cueX, live.cueY, live.angle = cueX, cueY, ctx.angle
 			local spin = ctx.spin

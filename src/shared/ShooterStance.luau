@@ -77,7 +77,7 @@ export type Area = {
 	railHy: number,
 	barrierHx: number, -- the invisible wall around the table
 	barrierHy: number,
-	fenceHx: number, -- inner faces of the match fence: half extents of a box...
+	fenceHx: number, -- the walkway the shooter stands in (Placement.fenceHalfExtents): half extents of a box...
 	fenceHy: number,
 	fenceCx: number, -- ...centred this far along the table's length (negative: toward the head)
 	clothZ: number, -- cloth height above the floor
@@ -279,12 +279,12 @@ local function nearest(list: { number }, want: number): number?
 	return best
 end
 
---- The surroundings of a table whose match has `teamSize` players a side.
-function ShooterStance.area(teamSize: number): Area
+--- The surroundings of a table: the table itself and the walkway round it.
+function ShooterStance.area(): Area
 	local T = Config.Table
 	local s = T.StudsPerInch
 	local barrierHx, barrierHy = Placement.barrierHalfExtents()
-	local fenceHx, fenceHy, fenceCx = Placement.fenceHalfExtents(teamSize)
+	local fenceHx, fenceHy, fenceCx = Placement.fenceHalfExtents()
 	local hx, hy = T.LengthInches / 2 * s, T.WidthInches / 2 * s
 	local margin = Config.Stance.PocketBridgeMarginStuds
 	local corner = T.CornerMouthInches / 2 * s + margin

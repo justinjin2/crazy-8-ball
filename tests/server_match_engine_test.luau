@@ -9,23 +9,31 @@ local Judge = H.require("Rules.ShotJudge")
 local TableGeometry = H.require("Physics.Table")
 local expect = H.expect
 local tests = {}
+-- A box of `size` a side, still waiting: user team * 10 + slot steps in, alternating teams,
+-- each in their team's half (A's is half 1), so 11 is first in and hosts.
 local function queue(size: number, id: number?): any
-	local m = E.new(id or 1, size)
+	local m = E.new(id or 1)
 	for slot = 1, size do
 		for team = 1, 2 do
 			local user = team * 10 + slot
-			expect(E.join(m, user, tostring(user), tostring(user), team, slot, slot - 1))
+			expect(E.join(m, user, tostring(user), tostring(user), team, slot - 1))
 		end
 	end
 	return m
 end
 local function expire(m: any)
 	expect(m.deadline ~= nil)
-	E.advance(m, m.deadline, 1)
+	E.advance(m, m.deadline)
+end
+-- The host presses Start; `coin` is the server's coin (team 1 wins by default).
+local function start(m: any, coin: number?, user: number?): boolean
+	local request = { kind = "Start", epoch = m.epoch, turnId = m.turnId }
+	return E.action(m, user or m.hostId, request, m.phaseStartedAt, coin or 1)
 end
 local function playing(size: number, id: number?): any
 	local m = queue(size, id)
-	expire(m)
+	expect(start(m))
+	expect(m.phase == "CoinFlip")
 	expire(m)
 	expect(m.phase == "Intro" and m.shooter == 11)
 	return m
@@ -139,27 +147,105 @@ function tests.a_ball_off_the_table_is_seen_landing_and_rolling_before_the_foul(
 	expire(m)
 	expect(m.phase == "Foul" and m.foul.reason == "OffTable")
 end
-function tests.queue_reassigns_host_cancels_and_restarts_countdown()
+function tests.a_full_box_waits_for_its_host_and_the_next_in_hosts_when_they_leave()
 	local m = queue(2)
-	expect(m.hostId == 11 and m.phase == "Countdown")
-	local stale = m.deadline
+	expect(
+		m.hostId == 11 and m.phase == "Waiting" and m.deadline == nil,
+		"nothing starts by itself"
+	)
+	expect(action(m, 11, "SetDifficulty", { value = "Challenger" }))
 	expect(E.remove(m, 11, 2))
 	expect(m.hostId == 21 and m.phase == "Waiting" and m.deadline == nil)
-	E.advance(m, stale, 1)
-	expect(m.phase == "Waiting")
-	expect(E.join(m, 14, "14", "14", 1, 1, 10))
-	expect(m.deadline == 10 + M.CountdownSeconds)
-	expire(m)
-	expect(m.phase == "CoinFlip" and m.coin.headsTeam == 2 and m.coin.breaker == 12)
+	expect(m.settings.difficulty == "Challenger", "the host's choices outlive the host")
+	expect(not start(m, 1, 21), "three left: odd")
+	expect(E.join(m, 14, "14", "14", 1, 10))
+	expect(start(m, 2, 21), "the new host starts")
+	expect(m.phase == "CoinFlip" and m.teamSize == 2)
+	expect(m.coin.headsTeam == 2 and m.coin.winnerTeam == 2 and m.coin.breaker == 21)
+	expect(E.seat(m, 14).team == 1 and E.seat(m, 14).slot == 2, "slots follow who came first")
 end
-function tests.rejects_duplicate_seats_occupied_slots_and_active_match_rejoins()
+function tests.rejects_duplicate_seats_a_seventh_player_bad_halves_and_rejoins_in_a_match()
 	local m = queue(2)
-	expect(not E.join(m, 11, "x", "x", 1, 2, 5))
-	expect(not E.join(m, 99, "x", "x", 2, 2, 5))
-	expect(not E.join(m, 99, "x", "x", 3, 1, 5))
-	expect(not E.join(m, 99, "x", "x", 1, 0, 5))
+	expect(not E.join(m, 11, "x", "x", 1, 5), "already in")
+	expect(not E.join(m, 99, "x", "x", 3, 5), "no third half")
+	expect(not E.join(m, 99, "x", "x", 0, 5))
+	expect(E.join(m, 15, "x", "x", 1, 5) and E.join(m, 25, "x", "x", 2, 5), "six fit")
+	expect(not E.join(m, 99, "x", "x", 1, 5), "a seventh does not")
+	expect(start(m))
+	expect(m.teamSize == 3)
+	expect(not E.join(m, 99, "x", "x", 1, 10), "nobody joins a game")
+	expect(not E.setSide(m, 11, 2), "halves only matter before the start")
+end
+-- Who can start, by the halves the box's players stand in (1 = team A's, 2 = B's).
+function tests.start_needs_two_four_or_six_split_evenly()
+	local cases = {
+		{ {}, false, "Alone" },
+		{ { 1 }, false, "Alone" },
+		{ { 1, 1 }, true, nil }, -- two play by who came first, halves or not
+		{ { 1, 2 }, true, nil },
+		{ { 1, 2, 2 }, false, "Odd" },
+		{ { 1, 1, 2, 2 }, true, nil },
+		{ { 1, 1, 1, 2 }, false, "Uneven" },
+		{ { 2, 2, 2, 2 }, false, "Uneven" },
+		{ { 1, 2, 1, 2, 1 }, false, "Odd" },
+		{ { 1, 1, 1, 2, 2, 2 }, true, nil },
+		{ { 1, 1, 2, 2, 2, 2 }, false, "Uneven" },
+	}
+	for _, case in cases do
+		local seats = {}
+		for i, side in case[1] do
+			table.insert(seats, { userId = i, side = side, connected = true })
+		end
+		local ok, reason = E.startState(seats)
+		expect(ok == case[2] and reason == case[3], ("%d in the box"):format(#seats))
+	end
+	local gone =
+		{ { userId = 1, side = 1, connected = true }, { userId = 2, side = 1, connected = false } }
+	expect(select(2, E.startState(gone)) == "Alone", "a disconnected seat is not counted")
+end
+function tests.only_the_host_starts_and_only_an_even_split()
+	local m = queue(2)
+	expect(E.setSide(m, 21, 1))
+	expect(not start(m), "three in half A, one in half B")
+	expect(E.setSide(m, 21, 2) and E.setSide(m, 21, 2))
+	expect(not start(m, 1, 21), "only the host")
+	expect(start(m))
+	expect(E.seat(m, 21).team == 2 and E.seat(m, 22).team == 2, "team B from half B")
+	expect(not start(m), "only once")
+	-- Two players need no halves: first in (the host) is team A, whatever half they stand in.
+	local pair = E.new(2)
+	expect(E.join(pair, 7, "a", "a", 2, 0) and E.join(pair, 8, "b", "b", 2, 0))
+	expect(start(pair))
+	expect(E.seat(pair, 7).team == 1 and E.seat(pair, 8).team == 2 and pair.teamSize == 1)
+end
+function tests.the_host_sets_difficulty_and_abilities_before_the_game()
+	local m = queue(1)
+	local s = E.snapshot(m).settings
+	expect(s.difficulty == "Classic" and s.abilities == true, "Classic and abilities on by default")
+	expect(not action(m, 21, "SetDifficulty", { value = "Difficult" }), "only the host")
+	expect(not action(m, 11, "SetDifficulty", { value = "Impossible" }), "only real levels")
+	expect(not action(m, 11, "SetDifficulty", { value = 3 }))
+	expect(not action(m, 11, "SetAbilities", { value = "no" }), "only on or off")
+	local revision = m.revision
+	expect(action(m, 11, "SetDifficulty", { value = "Difficult" }))
+	expect(action(m, 11, "SetAbilities", { value = false }))
+	expect(m.revision == revision + 2, "each change is broadcast")
+	s = E.snapshot(m).settings
+	expect(s.difficulty == "Difficult" and s.abilities == false)
+	expect(s ~= m.settings, "the snapshot has a copy")
+	expect(start(m))
+	expect(not action(m, 11, "SetDifficulty", { value = "Classic" }), "fixed once the game starts")
 	expire(m)
-	expect(not E.join(m, 99, "x", "x", 1, 1, 10))
+	expect(E.snapshot(m).settings.difficulty == "Difficult", "the game keeps it")
+	expect(action(m, 11, "Surrender"))
+	expire(m)
+	expect(m.phase == "Waiting" and m.settings.difficulty == "Classic", "a new box starts afresh")
+	expect(m.settings.abilities == true)
+	-- A box that empties before its game starts afresh too.
+	expect(E.join(m, 11, "a", "a", 1, 0))
+	expect(action(m, 11, "SetDifficulty", { value = "Challenger" }))
+	expect(E.remove(m, 11, 1))
+	expect(m.settings.difficulty == "Classic")
 end
 function tests.every_mode_rotates_after_each_shot_and_keeps_independent_team_cursor()
 	for size = 1, 3 do
@@ -269,7 +355,6 @@ end
 function tests.placement_open_truth_table()
 	local phases = {
 		"Waiting",
-		"Countdown",
 		"CoinFlip",
 		"Intro",
 		"Placement",
@@ -294,7 +379,7 @@ function tests.placement_open_truth_table()
 	expect(not E.placementOpen("Foul", true, false), "the fouler never places")
 end
 -- The helper TableService.constrain and the watchers share must lock exactly what constrain
--- locks today: a shooter outside Waiting, Countdown and Result, except in a Foul that is not
+-- locks today: a shooter outside Waiting and Result, except in a Foul that is not
 -- solo. The one phase the two are written differently for is the coin flip, where constrain
 -- would lock the shooter but the engine never has one; that is checked on real tables.
 -- The server holds the shooter while they are the table's, except while the balls roll:
@@ -306,7 +391,6 @@ function tests.shooter_is_let_go_to_walk_once_the_stroke_has_played()
 	for _, name in
 		{
 			"Waiting",
-			"Countdown",
 			"CoinFlip",
 			"Intro",
 			"Placement",
@@ -340,7 +424,6 @@ end
 function tests.shooter_locked_matches_the_server_lock()
 	local phases = {
 		"Waiting",
-		"Countdown",
 		"CoinFlip",
 		"Intro",
 		"Placement",
@@ -352,7 +435,7 @@ function tests.shooter_locked_matches_the_server_lock()
 	}
 	-- TableService.constrain's rule, transcribed, for the table's shooter.
 	local function constrainLocks(name: string, solo: any): boolean
-		if name == "Waiting" or name == "Countdown" or name == "Result" then
+		if name == "Waiting" or name == "Result" then
 			return false
 		end
 		return name ~= "Foul" or solo ~= nil
@@ -378,15 +461,15 @@ function tests.shooter_locked_matches_the_server_lock()
 	expect(not E.shooterLocked("CoinFlip", nil), "nobody to lock during the coin flip")
 	-- The coin flip really has no shooter: a first game, and a game after a Result.
 	local m = queue(1)
-	expire(m)
+	expect(start(m))
 	expect(m.phase == "CoinFlip" and m.shooter == nil, "a first coin flip")
 	expire(m)
 	expect(m.phase == "Intro" and m.shooter ~= nil, "the shooter arrives with the intro")
 	expect(action(m, 11, "Surrender"))
 	expire(m)
-	expect(E.join(m, 11, "a", "a", 1, 1, m.phaseStartedAt))
-	expect(E.join(m, 21, "b", "b", 2, 1, m.phaseStartedAt))
-	expire(m)
+	expect(E.join(m, 11, "a", "a", 1, m.phaseStartedAt))
+	expect(E.join(m, 21, "b", "b", 2, m.phaseStartedAt))
+	expect(start(m))
 	expect(m.phase == "CoinFlip" and m.shooter == nil, "the next game's coin flip")
 end
 local function move(m: any, user: number, seq: any, x: number, y: number, now: number?): boolean
@@ -522,7 +605,7 @@ function tests.accepted_shot_has_complete_wire_state_and_cannot_repeat()
 	expect(duplicate == nil and m.shotSeq == 1)
 	local snapshot = E.snapshot(m)
 	expect(snapshot.shot.seq == wire.seq and snapshot.balls[1] == wire.start[1])
-	E.advance(m, m.deadline - 0.01, 2)
+	E.advance(m, m.deadline - 0.01)
 	expect(m.phase == "Resolving" and m.timeouts[1] == 0)
 	expire(m)
 	expect(m.phase == "Foul" and m.shot == nil)
@@ -561,7 +644,7 @@ function tests.surrender_unanimous_reject_no_cooldown_expiry_and_opponent_vote()
 	expect(action(m, 12, "Vote", { yes = false }, now))
 	expect(m.vote == nil and not action(m, 11, "Surrender", nil, now + 1))
 	expect(action(m, 11, "Surrender", nil, now + M.VoteCooldownSeconds))
-	E.advance(m, now + M.VoteCooldownSeconds + M.VoteSeconds, 1)
+	E.advance(m, now + M.VoteCooldownSeconds + M.VoteSeconds)
 	expect(m.vote == nil and m.phase ~= "Result")
 	local later = now + 2 * M.VoteCooldownSeconds
 	expect(action(m, 11, "Surrender", nil, later))
@@ -580,9 +663,9 @@ function tests.one_on_one_surrender_resets_rack_epoch_and_releases_all_seats()
 		m.phase == "Waiting" and #m.seats == 0 and m.epoch == epoch + 1 and m.rackSeed == seed + 1
 	)
 	expect(m.turnId == 0 and m.vote == nil and m.shot == nil and m.pending == nil)
-	expect(E.join(m, 11, "again", "again", 1, 1, m.phaseStartedAt))
-	expect(E.join(m, 21, "again", "again", 2, 1, m.phaseStartedAt))
-	expect(m.phase == "Countdown")
+	expect(E.join(m, 11, "again", "again", 1, m.phaseStartedAt))
+	expect(E.join(m, 21, "again", "again", 2, m.phaseStartedAt))
+	expect(m.phase == "Waiting" and m.teamSize == 0 and start(m) and m.phase == "CoinFlip")
 end
 function tests.disconnect_shorthanded_rotation_skips_absent_and_empty_team_forfeits()
 	local m = playing(3)
@@ -786,24 +869,24 @@ function tests.resolution_never_emits_feedback()
 	expect(#m.feedback == 0 and m.groups[1] == "solids")
 end
 function tests.each_game_racks_from_the_seed_the_server_supplies()
-	local m = E.new(1, 1, 123456)
+	local m = E.new(1, 123456)
 	expect(m.rackSeed == 123456, "the server's seed opens the first game")
 	expect(E.snapshot(m).rackSeed == 123456, "clients rebuild the rack from the snapshot's seed")
 	local function finish(nextSeed: number?)
 		for team = 1, 2 do
 			if not E.seat(m, team * 10 + 1) then
-				expect(E.join(m, team * 10 + 1, "p", "p", team, 1, m.phaseStartedAt))
+				expect(E.join(m, team * 10 + 1, "p", "p", team, m.phaseStartedAt))
 			end
 		end
-		expire(m) -- countdown
+		expect(start(m))
 		expire(m) -- coin
 		expect(action(m, 11, "Surrender"))
 		expect(m.phase == "Result")
-		E.advance(m, m.deadline, 1, nextSeed)
+		E.advance(m, m.deadline, nextSeed)
 	end
 	finish(987654)
 	expect(m.phase == "Waiting" and m.rackSeed == 987654, "the next game takes a fresh seed")
-	local other = E.new(1, 1, 987655)
+	local other = E.new(1, 987655)
 	local moved = false
 	for i, b in m.state.balls do
 		local o = other.state.balls[i]
@@ -819,12 +902,12 @@ function tests.each_game_racks_from_the_seed_the_server_supplies()
 	)
 end
 
--- Solo: player `side * 10 + 1` stands alone in slot 1 of their side and presses Play Solo.
-local function solo(size: number, side: number?): any
-	local team = side or 1
-	local m = E.new(1, size)
-	local user = team * 10 + 1
-	expect(E.join(m, user, "solo", "solo", team, 1, 0))
+-- Solo: player `side * 10 + 1` stands alone in half `side` of the box and presses Play solo.
+local function solo(side: number?): any
+	local half = side or 1
+	local m = E.new(1)
+	local user = half * 10 + 1
+	expect(E.join(m, user, "solo", "solo", half, 0))
 	expect(action(m, user, "StartSolo"))
 	return m
 end
@@ -864,30 +947,32 @@ local function judged(m: any, events: { any })
 	m.deadline = m.phaseStartedAt + 1
 	expire(m)
 end
-function tests.solo_starts_only_for_a_lone_seated_player_in_waiting()
-	local m = E.new(1, 2)
-	expect(E.join(m, 11, "a", "a", 1, 1, 0) and E.join(m, 21, "b", "b", 2, 1, 0))
+function tests.solo_starts_only_for_a_lone_host_in_waiting()
+	local m = E.new(1)
+	expect(E.join(m, 11, "a", "a", 1, 0) and E.join(m, 21, "b", "b", 2, 0))
 	expect(not action(m, 11, "StartSolo"), "two seats: no solo")
+	expect(not start(m, 1, 21), "only the host starts")
 	expect(E.remove(m, 21, 1))
 	expect(not action(m, 99, "StartSolo"), "only a seated player")
 	expect(not E.action(m, 11, { kind = "StartSolo", epoch = m.epoch + 1, turnId = m.turnId }, 1))
+	expect(not start(m), "Start alone is the menu's: solo or PC")
 	expect(action(m, 11, "StartSolo") and m.solo.team == 1 and m.solo.first == nil)
 	expect(m.phase == "Intro" and m.shooter == 11 and m.breakShot and m.ballInHand)
-	expect(m.coin == nil and m.activeTeam == 1)
+	expect(m.coin == nil and m.activeTeam == 1 and m.teamSize == 1)
 	expect(not action(m, 11, "StartSolo"), "already playing")
-	expect(not E.join(m, 21, "b", "b", 2, 1, 2), "nobody joins a solo game")
-	expect(not E.join(m, 12, "c", "c", 1, 2, 2))
+	expect(not E.join(m, 21, "b", "b", 2, 2), "nobody joins a solo game")
+	expect(not E.join(m, 12, "c", "c", 1, 2))
 	local snapshot = E.snapshot(m)
 	expect(snapshot.solo.team == 1 and snapshot.solo ~= m.solo, "the snapshot has a copy")
-	local full = queue(1)
-	expect(full.phase == "Countdown" and not action(full, 11, "StartSolo"), "not in countdown")
+	local started = queue(1)
+	expect(start(started) and not action(started, 11, "StartSolo"), "not once a game starts")
 end
 function tests.solo_has_no_clock_and_fouls_return_ball_in_hand_to_the_player()
 	local m = solo(1)
 	expect(m.deadline == m.phaseStartedAt + M.IntroSeconds, "the break opens with YOUR TURN")
 	expire(m)
 	expect(m.phase == "Placement" and m.deadline == nil)
-	E.advance(m, 1e9, 1)
+	E.advance(m, 1e9)
 	expect(m.phase == "Placement", "no placement clock")
 	resolveFixture(m, false, "IllegalBreak")
 	expect(m.phase == "Foul" and m.foul.by == 11 and m.nextTeam == 1)
@@ -899,7 +984,7 @@ function tests.solo_has_no_clock_and_fouls_return_ball_in_hand_to_the_player()
 	expect(action(m, 11, "Place", { x = -30, y = 3 }))
 	resolveFixture(m, false, nil)
 	expect(m.phase == "Aiming" and m.shooter == 11 and m.deadline == nil, "a miss keeps the table")
-	E.advance(m, 1e9, 1)
+	E.advance(m, 1e9)
 	expect(m.phase == "Aiming" and m.timeouts[1] == 0, "no shooting clock")
 	E.death(m, 11, 1e9)
 	expect(m.phase == "Foul")
@@ -937,7 +1022,7 @@ function tests.solo_plays_first_group_then_the_other_then_the_eight()
 	pocketAll(m, 9, 15)
 	resolveFixture(m, false, nil)
 	expect(m.groups[1] == "stripes" and m.phase == "PocketChoice" and m.deadline == nil)
-	E.advance(m, 1e9, 1)
+	E.advance(m, 1e9)
 	expect(m.phase == "PocketChoice" and m.calledPocket == nil, "no call timeout")
 	expect(action(m, 11, "Pocket", { pocket = sidePocket(m) }))
 	expect(m.phase == "Aiming" and m.deadline == nil)
@@ -986,33 +1071,31 @@ function tests.solo_loses_on_early_foul_or_wrong_pocket_eights()
 	end
 end
 function tests.solo_surrender_and_departure_end_with_no_winner()
-	for size = 1, 3 do
-		local m = solo(size)
-		expect(action(m, 11, "Surrender"))
+	for side = 1, 2 do
+		local m = solo(side)
+		expect(action(m, side * 10 + 1, "Surrender"))
 		expect(m.phase == "Result" and m.result.winner == nil and m.result.reason == "Surrender")
 		expect(m.vote == nil)
 		expire(m)
 		expect(m.phase == "Waiting" and m.solo == nil and E.count(m) == 0)
 	end
-	local m = solo(1)
+	local m = solo()
 	expect(E.remove(m, 11, 1))
 	expect(m.phase == "Result" and m.result.winner == nil and m.result.reason == "EmptyTeam")
 end
-function tests.solo_runs_on_team_tables_from_either_side()
-	for size = 2, 3 do
-		for side = 1, 2 do
-			local m = solo(size, side)
-			local user = side * 10 + 1
-			expect(m.solo.team == side and m.activeTeam == side and m.shooter == user)
-			expire(m)
-			resolveFixture(m, true, nil)
-			expect(m.phase == "Aiming" and m.shooter == user, "the break keeps the table")
-			resolveFixture(m, false, "Scratch")
-			expire(m)
-			expect(m.phase == "Placement" and m.shooter == user and m.activeTeam == side)
-			resolveFixture(m, false, nil)
-			expect(m.phase == "Aiming" and m.shooter == user and m.deadline == nil)
-		end
+function tests.solo_runs_from_either_half_of_the_box()
+	for side = 1, 2 do
+		local m = solo(side)
+		local user = side * 10 + 1
+		expect(m.solo.team == 1 and m.activeTeam == 1 and m.shooter == user)
+		expire(m)
+		resolveFixture(m, true, nil)
+		expect(m.phase == "Aiming" and m.shooter == user, "the break keeps the table")
+		resolveFixture(m, false, "Scratch")
+		expire(m)
+		expect(m.phase == "Placement" and m.shooter == user and m.activeTeam == 1)
+		resolveFixture(m, false, nil)
+		expect(m.phase == "Aiming" and m.shooter == user and m.deadline == nil)
 	end
 end
 

@@ -1013,3 +1013,22 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   Open again (GDD section 10). Back to a plain baseplate: sixteen 1v1 tables in a four by four
   grid (Config.Hub.Tables), the left two columns green cloth with wood and the right two blue
   cloth with black wood (Config.TableModel.LookByTable), the spawn in front of them.
+- 2026-09-25 (later): One queue box per table replaces the per-seat pads and the dedicated
+  1v1/2v2/3v3 tables (designer; decided in an interview).
+  - Every table has one long box along a long side (Placement.queueBox), up to six players, so
+    any table plays 1v1, 2v2 or 3v3. The tables moved from 20 to 26 studs apart to make room;
+    the match fence takes in the box, and the shooter's walkway is now the same at both ends.
+  - The first in is the host. Everyone in the box sees the queue menu; only the host can use
+    it. The next in becomes host if the host leaves, and the settings stay; they reset to
+    Classic and abilities on when the box empties and after every game. Leaving the box (or
+    Leave) is instant, with no confirmation.
+  - Teams: two players split by who came first (the host is team A). Four or six split by
+    the half of the box they stand in (head half team A, foot half team B); the halves show
+    only then, both grey until each holds half, then both green. Three or five cannot start.
+  - No countdown: the host's Start goes straight to the coin flip, which stays. Alone, Start
+    offers Play solo and Play against PC; PC says "Coming soon" until bots exist. The GDD's
+    15-second automatic start against PC is dropped.
+  - Difficulty is the host's, for the whole table (Config.Difficulty): Classic every line,
+    Difficult the aim line and its ring only, Challenger no lines at all (it used to be a short
+    stub). The group glow and the red X stay at every level.
+  - Abilities on/off is in the menu now, on by default, and does nothing until abilities exist.

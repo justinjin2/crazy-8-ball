@@ -17,9 +17,11 @@ local YAWS = { 0, 90, 180, 270, 37, -90 }
 -- The four corners of a table's match fence, in world X and Z.
 local function fenceCorners(Placement: any, row: any): { { number } }
 	local p = Placement.forTable(row.id)
-	local fx, fy, cx = Placement.fenceHalfExtents(row.teamSize)
+	local fx, fy, cx, cy = Placement.matchFence()
 	local out = {}
-	for _, c in { { cx - fx, -fy }, { cx + fx, -fy }, { cx + fx, fy }, { cx - fx, fy } } do
+	for _, c in
+		{ { cx - fx, cy - fy }, { cx + fx, cy - fy }, { cx + fx, cy + fy }, { cx - fx, cy + fy } }
+	do
 		local wx, _, wz = Placement.fromTableStuds(p, c[1], c[2], 0)
 		table.insert(out, { wx, wz })
 	end
@@ -231,9 +233,9 @@ return {
 		end
 	end,
 
-	-- The baseplate grid (designer, 2026-09-25): sixteen 1v1 tables, ids 1 to 16, half of them
-	-- in each look.
-	["the baseplate has sixteen 1v1 tables, eight green and eight blue"] = function()
+	-- The baseplate grid (designer, 2026-09-25): sixteen tables, ids 1 to 16, half of them in
+	-- each look. Any of them seats 1v1, 2v2 or 3v3 (the queue box).
+	["the baseplate has sixteen tables, eight green and eight blue"] = function()
 		local Config, Placement = setup()
 		local TableBuilder = H.require("TableBuilder")
 		local rows = Config.Hub.Tables
@@ -241,7 +243,6 @@ return {
 		local looks: { [string]: number } = {}
 		for i, row in rows do
 			H.expect(row.id == i, ("table ids run 1 to 16 (row %d)"):format(i))
-			H.expect(Placement.teamSizeOf(row.id) == 1, ("table %d is 1v1"):format(row.id))
 			local look = TableBuilder.lookFor(row.id)
 			looks[look] = (looks[look] or 0) + 1
 		end
@@ -269,17 +270,33 @@ return {
 		end
 	end,
 
-	["the fence reaches past the pads at the head and stops short at the foot"] = function()
+	-- The queue box lies along a long side, beyond the walkway the shooter stands in, and the
+	-- match fence takes in both: whoever starts a game standing in the box is inside it.
+	["the queue box sits outside the walkway and inside the match fence"] = function()
 		local Config, Placement = setup()
-		local M = Config.Multiplayer
-		for _, teamSize in { 1, 2, 3 } do
-			local fx, _, cx = Placement.fenceHalfExtents(teamSize)
-			local furthest = M.PadDistanceStuds
-				+ (teamSize - 1) * (M.PadSizeStuds + M.PadGapStuds)
-				+ M.PadSizeStuds / 2
-			H.expect(fx - cx >= furthest, "the head end holds every pad") -- head at cx - fx
-			H.near(cx + fx, M.Fence.FootHalfLengthStuds, 1e-9, "the foot end")
+		local Q = Config.Multiplayer.Queue
+		local wx, wy, wcx = Placement.fenceHalfExtents()
+		local bcx, bcy, bhx, bhy = Placement.queueBox()
+		local fx, fy, fcx, fcy = Placement.matchFence()
+		local barrierX, barrierY = Placement.barrierHalfExtents()
+		H.near(wcx, 0, 1e-9, "the walkway is centred on the table")
+		H.near(bhx * 2, Q.BoxLengthStuds, 1e-9, "box length")
+		H.near(bhy * 2, Q.BoxDepthStuds, 1e-9, "box depth")
+		H.expect(bhx <= barrierX, "the box is no longer than the table beside it")
+		H.expect(bcy * Q.Side > 0, "on the Queue.Side long side")
+		H.expect(math.abs(bcy) - bhy >= wy, "beyond the walkway")
+		H.expect(math.abs(bcy) - bhy > barrierY, "clear of the table")
+		local function inside(x0: number, x1: number, y0: number, y1: number): boolean
+			return x0 >= fcx - fx and x1 <= fcx + fx and y0 >= fcy - fy and y1 <= fcy + fy
 		end
+		H.expect(inside(-wx, wx, -wy, wy), "the fence holds the walkway")
+		H.expect(inside(bcx - bhx, bcx + bhx, bcy - bhy, bcy + bhy), "the fence holds the box")
+		H.expect(
+			not inside(bcx - bhx, bcx + bhx, bcy - bhy - 0.01, bcy + bhy + 0.01)
+				or Q.FenceMarginStuds > 0,
+			"with room to spare"
+		)
+		H.near(fcy + Q.Side * fy, bcy + Q.Side * (bhy + Q.FenceMarginStuds), 1e-9, "margin")
 	end,
 
 	["forTable gives every table, and nothing else"] = function()
