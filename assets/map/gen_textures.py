@@ -392,7 +392,7 @@ def overlays():
     # The under-table glow's emissive mask (Stage 7): the glow pool white, the shade quarters
     # black, so the cycle can light the pool up at sunset (TableGlow's EmissiveStrength).
     mask = np.zeros((n, n))
-    mask[:, :half] = glow
+    mask[:, :half] = glow ** 3  # a tight rim at the table's foot, not the whole soft pool (critic 2)
     save_rgb(np.repeat(mask[..., None] * 255.0, 3, axis=2), 'overlays_emissive.png')
 
 

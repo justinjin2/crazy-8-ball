@@ -185,6 +185,26 @@ return {
 		H.near(clock, a.ClockTime + (b.ClockTime - a.ClockTime) * w, 1e-9, "between keyframes")
 	end,
 
+	["the dusk warmth names real colours and is gone at the two ends"] = function()
+		local LC = H.require("LightCycle")
+		local L = H.require("Config").Lighting
+		local W = L.DuskWarm
+		H.expect(W.Width <= 0.5, "no warmth at either end")
+		for path in W.Colours do
+			local block, key = path:match("^(%w+)%.(%w+)$")
+			local day = if block then L.Day[block][key] else L.Day[path]
+			H.expect(
+				type(day) == "string" and day:match("^#%x%x%x%x%x%x$") ~= nil,
+				path .. " is a colour of the states"
+			)
+		end
+		local mid = LC.state(0.5, L)
+		H.expect(
+			mid.OutdoorAmbient ~= LC.mixHex(L.Day.OutdoorAmbient, L.Sunset.OutdoorAmbient, 0.5),
+			"warmer half way"
+		)
+	end,
+
 	["the swap haze peaks at the swap and is gone beyond its width"] = function()
 		local LC = H.require("LightCycle")
 		local L = H.require("Config").Lighting

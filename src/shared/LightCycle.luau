@@ -158,7 +158,7 @@ local function mix(
 end
 
 --- The whole light state at a blend (Config.Lighting's Day and Sunset keys, plus the sun's
---- GeographicLatitude and ClockTime from SunPath). The sky's images are Day's, DuskSky's or
+--- GeographicLatitude and ClockTime from SunPath). Half way, DuskWarm warms it. The sky's images are Day's, DuskSky's or
 --- Sunset's (skyStage). Round each swap, where they change in one frame, SwapHaze thickens the
 --- Atmosphere and dims the sky's light on the scene so the change hides in a passing haze.
 function LightCycle.state(blend: number, lighting: any): { [string]: any }
@@ -170,6 +170,17 @@ function LightCycle.state(blend: number, lighting: any): { [string]: any }
 		end
 	end
 	out.GeographicLatitude, out.ClockTime = LightCycle.sun(blend, lighting.SunPath)
+	local warm = lighting.DuskWarm
+	local d = math.abs(blend - 0.5) / warm.Width
+	if d < 1 then
+		local w = ease(1 - d) * warm.Amount
+		for path, colour in warm.Colours do
+			local block, key = path:match("^(%w+)%.(%w+)$")
+			local target = if block then out[block] else out
+			local name = key or path
+			target[name] = LightCycle.mixHex(target[name], colour, w)
+		end
+	end
 	local bump = LightCycle.swapBump(blend, lighting)
 	if bump > 0 then
 		local S = lighting.SwapHaze

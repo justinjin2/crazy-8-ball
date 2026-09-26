@@ -90,13 +90,12 @@ COLOURS = {
     # sea with the sun's orange path on it, magenta clouds lit peach from the sun's side.
     'sunset': {
         'top': '#4B2E9E',  # the art's #7B60BB
-        'mid': '#A63C8E',  # the art's #D96094, at sky_mid; toward violet (Stage 7 critic 1: the
-                           # upper sky read raspberry)
-        'horizon': '#FF7A52',  # the art's #FD7E62
-        # Round the sun: a broad warm lobe and a tight bright one (power: how tight; share: how
-        # much of the way to the glow colour at the sun itself).
+        'mid': '#7E4AA8',  # toward the art's violet top (#7B60BB): critics 1 and 2 read raspberry
+        'horizon': '#B45A92',  # pink-violet round the horizon; orange only toward the sun (critic 2)
+        # Round the sun: (power: how tight; share: how much of the way to its colour at the sun
+        # itself; colour): a broad orange lobe (the art's #FD7E62 horizon), a warm one, a tight gold.
         'glow': '#FFD47A',
-        'glow_lobes': ((3.0, 0.45), (60.0, 0.9)),
+        'glow_lobes': ((2.5, 0.85, '#FF7A52'), (8.0, 0.6, '#FFA860'), (60.0, 0.9, '#FFD47A')),
         'sea': '#4A3288',  # the art's #74519F
         'sea_glow': '#F2766A',  # the art's #E87177, in the sun's path...
         'sea_path': 24.0,  # ...this tight across...
@@ -232,14 +231,14 @@ def sun_glow(t, coord, c, colour):
     t.links.new(coord.outputs['Generated'], dot.inputs[0])
     pos = math_node(t, 'MAXIMUM', b=0.0)
     t.links.new(dot.outputs['Value'], pos.inputs[0])
-    for power, share in c['glow_lobes']:
+    for power, share, hue in c['glow_lobes']:
         lobe = math_node(t, 'POWER', b=power)
         t.links.new(pos.outputs[0], lobe.inputs[0])
         amount = math_node(t, 'MULTIPLY', b=share)
         t.links.new(lobe.outputs[0], amount.inputs[0])
         mix = t.nodes.new('ShaderNodeMix')
         mix.data_type = 'RGBA'
-        mix.inputs['B'].default_value = linear(c['glow'])
+        mix.inputs['B'].default_value = linear(hue)
         t.links.new(amount.outputs[0], mix.inputs['Factor'])
         t.links.new(colour, mix.inputs['A'])
         colour = mix.outputs['Result']
@@ -423,7 +422,7 @@ def dusk_colours():
     out = {}
     for key, value in sun.items():
         if key == 'glow_lobes':
-            out[key] = tuple((power, share * DUSK) for power, share in value)
+            out[key] = tuple((power, share * DUSK, hue) for power, share, hue in value)
         elif key in ('sea_path', 'sea_path_fade'):
             out[key] = value
         else:
@@ -432,8 +431,8 @@ def dusk_colours():
 
 
 DUSK = 0.5  # how far from Day to Sunset the in-between sky is
-DUSK_FAR = 0.75  # ...and its far city and islands: toward their sunset look sooner, since
-                 # half way from the day's green to the sunset's purple read grey (critic 1)
+DUSK_FAR = 0.35  # ...and its far city and islands: nearer their day look, so at the first swap
+                 # the painted peaks stay near the 3D islands' green (critic 2; 0.75 flipped them)
 
 
 def build(scene, light):
