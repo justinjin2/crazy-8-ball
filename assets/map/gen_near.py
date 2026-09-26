@@ -66,8 +66,8 @@ P = {
     'palm_height': (22.0, 30.0),
     'tree_every': 16.0,  # street trees round each near block's edge
     'tree_inset': 2.0,
-    'tree_size': (10.0, 7.0),  # the two leafy clumps of a tree, across
-    'tree_height': 9.0,
+    'tree_size': (12.0, 9.0),  # the two leafy clumps of a tree, across (big and round, as in the art)
+    'tree_height': 6.5,
 }
 
 CAPS = {  # triangles per mesh (the brief: the near world 50,000 in all)
@@ -470,13 +470,13 @@ def palm(mesh, cards, x, z, y, height, rng):
 
 
 def tree(cards, trunks, x, z, y, rng):
-    """A thin trunk and two leafy clumps (flat cards seen from above), the smaller one lower and
-    off to a side."""
+    """A thin trunk and two leafy clumps (flat cards seen from above), the smaller one on top
+    and off to a side, so the crown has a little height."""
     h = P['tree_height'] * rng.uniform(0.85, 1.15)
     trunks.frustum(x, z, 0.35, 0.25, y, y + h - 1.0, 4, 'n_wood', top=False)
     u0, v0, u1, v1 = CLUMP
     m = 0.01
-    for size, lift, off in ((P['tree_size'][0], 0.0, 0.0), (P['tree_size'][1], -1.6, 2.2)):
+    for size, lift, off in ((P['tree_size'][0], 0.0, 0.0), (P['tree_size'][1], 1.4, 1.6)):
         a = rng.uniform(0, 2 * math.pi)
         cx, cz = x + math.cos(a) * off, z + math.sin(a) * off
         r = size / 2 * rng.uniform(0.9, 1.1)

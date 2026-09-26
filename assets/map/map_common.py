@@ -143,25 +143,29 @@ PROP_TRIM = {name: (k * PROP_STRIP_PX, (k + 1) * PROP_STRIP_PX, studs)
 # laid out like the architecture sheet with n_ names. Facades are one floor (FACADE_FLOOR_STUDS)
 # tall, like the tower's; frac 0 is a strip's foot.
 NEAR_TRIM = {
-    'n_glass': (0, 88, 20.0),  # blue glass curtain wall: mullions every 2.5, a spandrel at the floor
-    'n_stone': (88, 176, 20.0),  # cream stone, punched windows
-    'n_terracotta': (176, 264, 20.0),  # salmon terracotta, punched windows
-    'n_white': (264, 352, 20.0),  # white modern, ribbon windows
-    'n_lobby': (352, 440, 20.0),  # a ground floor: tall glass with a lit interior between piers
-    'n_roof': (440, 488, 16.0),  # flat roof: light grey membrane, faint seams along U
-    'n_cap': (488, 520, 8.0),  # roof parapet caps and rooftop boxes
-    'n_road': (520, 600, 24.0),  # a street across V (kerb to kerb): edge lines, a dashed centre
-    'n_crosswalk': (600, 640, 12.0),  # zebra stripes along U
-    'n_sidewalk': (640, 680, 8.0),  # paving slabs
-    'n_plaza': (680, 720, 12.0),  # the tower's plaza and the park's paths: big light slabs
-    'n_grass': (720, 760, 16.0),  # the park's lawns
-    'n_promenade': (760, 800, 8.0),  # warm paving along the sea wall
-    'n_seawall': (800, 832, 8.0),  # the sea wall's face: stone, shade at the foot
-    'n_sand': (832, 896, 16.0),  # wet sand at the foot (the waterline), dry at the top
-    'n_shallows': (896, 960, 16.0),  # alpha: clear at the foot, turquoise, foam at the top (the sand)
-    'n_hull': (960, 984, 8.0),  # boat hull: white with a blue stripe
-    'n_sail': (984, 1000, 8.0),  # sail cloth: cream
-    'n_wood': (1000, 1024, 4.0),  # dark wood and trunks: masts, decks, palm and tree trunks
+    # Ordered so neighbours are alike (distant mip levels blend a strip with its neighbours,
+    # and the sheet wraps top to bottom): light stone at both edges, the wood mid-sheet. The
+    # ground's strips repeat over many studs, so seen from the roof they stay at a sharp mip
+    # level instead of blending into their neighbours (Stage 4: lawns read beige, trunks blue).
+    'n_cap': (0, 32, 8.0),  # roof parapet caps and rooftop boxes: light stone
+    'n_roof': (32, 72, 32.0),  # flat roof: light grey membrane, faint seams along U
+    'n_glass': (72, 152, 20.0),  # blue glass curtain wall: mullions every 2.5, a spandrel at the floor
+    'n_stone': (152, 232, 20.0),  # cream stone, punched windows
+    'n_terracotta': (232, 312, 20.0),  # salmon terracotta, punched windows
+    'n_white': (312, 392, 20.0),  # white modern, ribbon windows
+    'n_lobby': (392, 472, 20.0),  # a ground floor: tall glass with a lit interior between piers
+    'n_wood': (472, 496, 4.0),  # dark wood and trunks: masts, decks, palm and tree trunks
+    'n_hull': (496, 520, 8.0),  # boat hull: white with a blue stripe
+    'n_sail': (520, 536, 8.0),  # sail cloth: cream
+    'n_seawall': (536, 568, 16.0),  # the sea wall's face: stone, shade at the foot
+    'n_promenade': (568, 616, 32.0),  # warm paving along the sea wall
+    'n_sand': (616, 680, 64.0),  # wet sand at the foot (the waterline), dry at the top
+    'n_shallows': (680, 736, 64.0),  # alpha: clear at the foot, turquoise, foam at the top (the sand)
+    'n_grass': (736, 800, 128.0),  # the park's lawns
+    'n_plaza': (800, 864, 48.0),  # the tower's plaza and the park's paths: big light slabs
+    'n_road': (864, 944, 96.0),  # a street across V (kerb to kerb): edge lines, a dashed centre
+    'n_crosswalk': (944, 984, 12.0),  # zebra stripes along U
+    'n_sidewalk': (984, 1024, 32.0),  # paving slabs: light, at the sheet's edge beside n_cap
 }
 FACADE_STYLES = ('n_glass', 'n_stone', 'n_terracotta', 'n_white')
 _ALL_TRIM = dict(TRIM, **PROP_TRIM, **NEAR_TRIM)

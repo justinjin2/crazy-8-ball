@@ -590,7 +590,7 @@ def near(rng):
     # Grass: the park's lawns, the art's measured green, faint mowing stripes along U.
     r0, r1, v, u = strip('n_grass')
     col = base(mc.hexc('lawn_day'), r0, r1, 0.03, 0.03)
-    mow = np.broadcast_to(np.where((u % 4.0) < 2.0, 1.03, 0.97), col.shape[:2])
+    mow = np.broadcast_to(np.where((u % 8.0) < 4.0, 1.03, 0.97), col.shape[:2])
     img[r0:r1] = col * mow[..., None]
     r0, r1, v, u = strip('n_seawall')
     img[r0:r1] = ao(base(mc.hexc('step'), r0, r1, 0.01, 0.02) * 0.9, v, 0.3, 0.4)
@@ -615,7 +615,9 @@ def near(rng):
     foam = smoothstep(0.9, 0.95, vv + wobble)
     col = col * (1 - foam[..., None]) + colour_array('#F4FAFA')[None, None, :] * foam[..., None]
     img[r0:r1] = col
-    alpha[r0:r1] = np.clip(smoothstep(0.0, 0.6, vv) * 0.92 + foam * 0.08, 0, 1)
+    # Clear over the strip's lowest quarter, so distant mip levels never bleed the lawn strip
+    # below it into the band's outer edge.
+    alpha[r0:r1] = np.clip(smoothstep(0.25, 0.7, vv) * 0.92 + foam * 0.08, 0, 1)
     # Boats: a white hull with a blue stripe and a dark foot; cream sail cloth; dark wood.
     r0, r1, v, u = strip('n_hull')
     col = base(mc.hexc('boat_hull_day'), r0, r1, 0.004, 0.006)

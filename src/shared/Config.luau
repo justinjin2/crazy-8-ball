@@ -2673,7 +2673,7 @@ Config.Map = {
 		Overlays = { Color = "rbxassetid://121924065179218" }, -- overlays.png: the table glow and the contact shade (alpha)
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
-		Near = { Color = "rbxassetid://119871859335339" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
+		Near = { Color = "rbxassetid://108214621634353" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
 	} :: { [string]: { Color: string, Normal: string?, Roughness: string? } },
 	-- The floor: the gray-box's floor parts with this MaterialVariant. Part materials map in
 	-- world space (STUDIO_NOTES), so the grid lines up everywhere: 2 x 2 slabs of 9 studs per
