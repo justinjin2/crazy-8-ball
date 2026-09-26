@@ -13,8 +13,8 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Balls, cues, effects (existing) | 20,000 | | | existing |
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
 | Props | 140,000 | 60,959 | 60,959 | 3 |
-| Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 8,869 | 8,869 | 4 |
-| Mid backdrop: skyline and islands | 110,000 | 57,863 | 57,863 | 5, 6 |
+| Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 8,809 | 8,809 | 4 |
+| Mid backdrop: skyline and islands | 110,000 | 66,665 | 66,665 | 5, 6 |
 | Far horizon: painted into the day skybox, no geometry | 2,000 | 0 | 0 | 6 |
 | **Everything we ship** | **512,000** | | | |
 | Headroom for avatars | 488,000 or more | | | |
@@ -48,7 +48,7 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 | Skyboxes | 2 (six faces each) | 3 (day, dusk, sunset; gen_sky.py): the brief's allowed in-between sky, because one swap popped (DECISIONS) |
 | Far-card images | 4 | 0 (the far horizon is painted into the skybox faces instead) |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
-| MeshParts, backdrop | about 30 | 23 (the near world: 8 meshes and 3 boats; the mid backdrop: 12 chunks) |
+| MeshParts, backdrop | about 30 | 25 (the near world: 8 meshes and 3 boats; the mid backdrop: 14 chunks) |
 | PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 9 (the two tall lanterns, the fire pit, the six pergola globes) |
 
 ## Stage 2: the architecture (2026-09-26)
@@ -90,3 +90,18 @@ the gray-box lost its far island cones and slabs.
 The second critic round reshaped the mid city (the stair side eases in by bearing, the outer
 400 studs step down): the skyline module went from 44,465 to 45,129 triangles, the backdrop to
 57,863 in the same 12 chunks, matching in Studio.
+
+## The stair side filled, and full detail (2026-09-26)
+
+The designer found a flat grey plain behind the spawn (the thinned mid city) and warped towers
+at a distance. The mid city now keeps every block on the stair side (still low), and the strip
+beside the beach promenade is built too (`city_plan.blocks`' `fill_beyond`). The near world's
+blocks and the painted far city are unchanged.
+- The skyline module is 53,931 triangles, and the backdrop 66,665 in 14 chunks (two new ones
+  beside the beach). Studio matches Blender.
+- The near world is 8,735 in Blender and 8,809 in Studio with the boats. Some parks between 450
+  and 520 studs out became city cells.
+- 25 backdrop MeshParts (budget 30).
+- Every near and backdrop mesh but the tower now draws at RenderFidelity Precise, so each
+  triangle counted here is drawn at every distance. Performance's LOD crumpled the boxes.
+

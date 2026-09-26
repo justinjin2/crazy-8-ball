@@ -477,12 +477,10 @@ def build():
                 style = pick_style(rng, lot, avoid)
                 avoid = {style}
                 building(mesh, trees, rng, lot, style, park, b['dist'], heights[k])
-        # Canopy clumps along the kerbs: more on parks and near the tower, fewer behind it.
+        # Canopy clumps along the kerbs: more on parks and near the tower.
         per_park, per_paved = by_distance(P['clumps'], b['dist'])
         count = per_park if park else per_paved
         count = int(count) + (1 if rng.random() < count - int(count) else 0)
-        if b['behind']:
-            count //= 2
         edge_clumps(trees, rng, b, count)
         pieces.append((mc.cell_name('Skyline', mc.chunk_cell(b['cx'], b['cz'])), mesh, trees))
     # Over the canopy cap (or a chunk's limit), thin the mounds, the far ones first (a seeded

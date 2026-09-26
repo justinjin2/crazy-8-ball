@@ -336,6 +336,10 @@ character waits on the lower landing.
     out (about 5000, 850 to 950 tall), one straight behind the pergola and one beside the
     sunset sun, and smaller islands in two clusters. The art's ocean panel also has islands
     near and mid-distance, which Stage 5 adds.
+- **The stair side (2026-09-26, designer):** the mid city keeps every block behind the spawn
+  (low, 40 to 120 studs) and builds the strip beside the beach promenade, so no flat grey land
+  shows from the roof; the near world and the painted far city keep their thinning
+  (`city_plan.blocks`' `fill_beyond`). The backdrop draws at RenderFidelity Precise.
 - **The sea:** Terrain water and the land slabs reach 2,600 studs (`water_reach`); the skybox
   paints the sea and land from there to the horizon. Stage 4 tuned the water colour and
   Atmosphere for a crisp deep-blue horizon, as in the art.

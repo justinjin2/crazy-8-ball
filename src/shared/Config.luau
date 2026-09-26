@@ -2759,19 +2759,22 @@ Config.Map = {
 	-- its anchors as Map.<Import>. Nobody can get down there, so nothing in it collides.
 	Near = {
 		Import = "Near", -- the imported model's name in Workspace, then Map.<Import>
-		-- Every mesh the model must hold: its map set (Maps) and alpha. The backdrop casts no
-		-- shadows and draws at RenderFidelity Performance (the brief). The tower's walls are
-		-- big and close, so they keep Automatic, and cast the tower's shadow: without it the
-		-- rooftop's own shadow lay on the plaza 300 below as a floating outline.
+		-- Every mesh the model must hold: its map set (Maps), alpha and RenderFidelity. The
+		-- backdrop casts no shadows. It draws at Precise, not the brief's Performance: Roblox's
+		-- distance LOD crumpled the boxy meshes and smeared their textures, so the parks below
+		-- read as grass terraces and the far towers warped (designer, 2026-09-26). Only about
+		-- 9,000 triangles here. The tower's walls are big and close, so they keep Automatic,
+		-- and cast the tower's shadow: without it the rooftop's own shadow lay on the plaza 300
+		-- below as a floating outline.
 		Meshes = {
 			Tower = { Maps = "Arch", Fidelity = "Automatic", CastShadow = true },
-			Ground = { Maps = "Near" },
-			Buildings_Left = { Maps = "Near" },
-			Buildings_Front = { Maps = "Near" },
-			Coast = { Maps = "Near" },
-			Shallows = { Maps = "Shallows", AlphaMode = "Transparency" },
-			Palms = { Maps = "Plants", AlphaMode = "Transparency" },
-			Trees = { Maps = "Plants", AlphaMode = "Transparency" },
+			Ground = { Maps = "Near", Fidelity = "Precise" },
+			Buildings_Left = { Maps = "Near", Fidelity = "Precise" },
+			Buildings_Front = { Maps = "Near", Fidelity = "Precise" },
+			Coast = { Maps = "Near", Fidelity = "Precise" },
+			Shallows = { Maps = "Shallows", AlphaMode = "Transparency", Fidelity = "Precise" },
+			Palms = { Maps = "Plants", AlphaMode = "Transparency", Fidelity = "Precise" },
+			Trees = { Maps = "Plants", AlphaMode = "Transparency", Fidelity = "Precise" },
 		} :: {
 			[string]: { Maps: string, AlphaMode: string?, Fidelity: string?, CastShadow: boolean? },
 		},
@@ -2824,15 +2827,15 @@ Config.Map = {
 	-- The mid backdrop (assets/map/fbx/Backdrop.fbx, gen_backdrop.py; Stage 5): the skyline from
 	-- the near world's edge out to 2,300 studs and the near islands out to 2,500, in chunks
 	-- named Prefix_i_j, each dressed by its prefix's row. Everything further is painted into
-	-- the skybox (Stage 6): at low graphics levels Roblox draws nothing this far. No shadows,
-	-- RenderFidelity Performance (the brief).
+	-- the skybox (Stage 6): at low graphics levels Roblox draws nothing this far. No shadows.
+	-- RenderFidelity Precise, as the near world's (Performance's LOD warped the towers).
 	Backdrop = {
 		Import = "Backdrop", -- the imported model's name in Workspace, then Map.<Import>
 		Meshes = {
-			Skyline = { Maps = "Skyline" },
-			Islands = { Maps = "Islands" },
-			IslandShallows = { Maps = "Shallows", AlphaMode = "Transparency" },
-		} :: { [string]: { Maps: string, AlphaMode: string? } },
+			Skyline = { Maps = "Skyline", Fidelity = "Precise" },
+			Islands = { Maps = "Islands", Fidelity = "Precise" },
+			IslandShallows = { Maps = "Shallows", AlphaMode = "Transparency", Fidelity = "Precise" },
+		} :: { [string]: { Maps: string, AlphaMode: string?, Fidelity: string? } },
 	},
 }
 
@@ -2915,10 +2918,12 @@ Config.Lighting = {
 		ColorShift_Top = "#FFDEBE", -- the sun's warm tint on lit faces
 		ColorShift_Bottom = "#000000",
 		-- A pale sky-blue haze, so the far distance fades toward the art's pale horizon rather
-		-- than grey (Stage 4 critic).
+		-- than grey (Stage 4 critic). Density 0.15 and Offset 0.2 fade the far city and its
+		-- join with the painted sky while the roof stays crisp (designer, 2026-09-26: "fade away
+		-- into the distance"; tuned in Play, where 0.3 greyed the whole city).
 		Atmosphere = {
-			Density = 0.05,
-			Offset = 0,
+			Density = 0.15,
+			Offset = 0.2,
 			Haze = 0,
 			Glare = 0,
 			Color = "#C6E5FC",
@@ -3000,9 +3005,10 @@ Config.Lighting = {
 		ColorShift_Bottom = "#000000",
 		-- A thin rose tint, no haze: in Play (not in Edit's preview) Haze 0.3 and density 0.1
 		-- fogged the 3D city, islands and sea into one flat magenta (Studio, 2026-09-26).
+		-- Density alone, 0.15 as by day, keeps the lit windows and fades the far edge (Play).
 		Atmosphere = {
-			Density = 0.05,
-			Offset = 0,
+			Density = 0.15,
+			Offset = 0.2,
 			Haze = 0,
 			Glare = 0,
 			Color = "#D8BCC8",

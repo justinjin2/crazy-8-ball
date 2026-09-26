@@ -879,7 +879,7 @@ function MapBuilder.prepareNear(spec: any, data: any, motion: any?): string
 	end
 	if template and template:IsA("MeshPart") then
 		dress(template, spec, "Near", nil, nil, false, say)
-		template.RenderFidelity = Enum.RenderFidelity.Performance
+		template.RenderFidelity = Enum.RenderFidelity.Precise -- 37 triangles: LOD only warps it
 		local tris = triangleCount(template)
 		if tris then
 			total += tris * #B.Paths

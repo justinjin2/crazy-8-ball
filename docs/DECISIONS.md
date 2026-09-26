@@ -1255,3 +1255,20 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - The designer's `/day` and `/sunset` chat commands (only for them, the group's owner, or
     anyone in Studio; checked on the server) send the whole server's cycle toward that state
     through its one-minute fade, so the transition shows.
+- 2026-09-26: The rooftop's city, after the designer's look in Play:
+  - **Full detail.** The near world and the mid backdrop draw at RenderFidelity Precise, not
+    the brief's Performance. Roblox's distance LOD crumpled the boxy meshes and smeared
+    their textures: far towers warped, and the parks and beach below read as "random terraces
+    of grass" and odd sand. It costs about 75,000 triangles at full detail, inside the caps.
+    Only the tower's walls keep Automatic.
+  - **The stair side is filled.** The empty flat grey ground behind the spawn was the mid
+    city's thinning (the stair side "seldom looked at"). The designer chose buildings over a
+    fog that would also have hidden the city they like.
+    - The mid city keeps every block there, still low (40 to 120 studs, the roof 300 up), and
+      the strip beside the beach promenade is built too.
+    - The near world's parks and the painted far city are unchanged.
+  - **A light haze.** Atmosphere Density 0.15 and Offset 0.2 by day and at sunset (Haze stays
+    0) fade the far city and its join with the painted sky; the roof stays crisp. Density 0.3
+    greyed the whole city in a test.
+  - This revisits Checkpoint C's "no detail pass on the backdrop": the designer asked.
+

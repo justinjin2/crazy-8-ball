@@ -132,8 +132,9 @@ def block_seed(seed, i, j):
 
 
 def city_blocks():
-    """The city as the gray-box and the near world build it (CITY_SEED, a source per block)."""
-    return blocks(lambda i, j: random.Random(block_seed(CITY_SEED, i, j)))
+    """The city as the gray-box and the near world build it (CITY_SEED, a source per block).
+    The mid city behind the spawn is built in full (see blocks' fill_beyond)."""
+    return blocks(lambda i, j: random.Random(block_seed(CITY_SEED, i, j)), fill_beyond=WORLD['near_radius'])
 
 
 def far_blocks():
@@ -151,18 +152,24 @@ def behind_share(cx, cz, dist):
     old line (Z 250), beyond it eased in by bearing (CITY behind_from to behind_to)."""
     if dist < WORLD['near_radius']:
         return 1.0 if cz > 250 else 0.0
-    bearing = math.degrees(math.atan2(-cx, -cz))
+    # The ocean side's bearings are negative; either side of straight behind counts alike.
+    bearing = abs(math.degrees(math.atan2(-cx, -cz)))
     t = (bearing - CITY['behind_from']) / (CITY['behind_to'] - CITY['behind_from'])
     t = min(1.0, max(0.0, t))
     return t * t * (3.0 - 2.0 * t)
 
 
-def blocks(rng_for, reach=None, make_lot=None, counts=(1, 2, 2, 4)):
+def blocks(rng_for, reach=None, make_lot=None, counts=(1, 2, 2, 4), fill_beyond=None):
     """Every city block, in grid order, with its lots. rng_for(i, j) gives the random source
     for block (i, j) (random.Random(block_seed(SEED, i, j)) in the generators). The blocks ahead
     of the spawn and to its left (the way the player faces) are all built, with towers rising
     over the railing; behind the spawn (+Z, the stair side) the city thins out and stays low
     (behind_share). counts: the lots a block may have, drawn evenly.
+
+    fill_beyond: from this distance out, the stair side keeps every block (still low) and the
+    strip beside the beach promenade is built too. The designer found the thinned 3D city a
+    flat grey plain from the roof (2026-09-26); the near world keeps its parks, and the
+    painted far city (far_blocks) its old thinning, so the sky faces need no re-render.
 
     A block: {'i', 'j', 'cx', 'cz', 'dist', 'behind', 'sidewalk', 'near', 'lots'}; a lot: see
     lot(). 'near' blocks are the near world's (gen_near.py builds them, Stage 4)."""
@@ -182,14 +189,16 @@ def blocks(rng_for, reach=None, make_lot=None, counts=(1, 2, 2, 4)):
                 continue
             if not buildable(x0, z0, x1, z1):
                 continue
+            fill = fill_beyond is not None and d >= fill_beyond
             # The tower's own lot and plaza, and the beach promenade front-right, stay clear.
             if x1 > -160 and x0 < 160 and z1 > -180 and z0 < 170:
                 continue
-            if x1 > 20 and z1 > -130:
+            if x1 > 20 and z1 > -130 and not fill:
                 continue
             rng = rng_for(i, j)
-            behind = behind_share(cx, cz, d)  # the stair side, seldom looked at
-            if behind > 0.0 and rng.random() < CITY['behind_drop'] * behind:
+            behind = behind_share(cx, cz, d)  # the stair side
+            # The drop is rolled even for a block that is kept, so its lots come out the same.
+            if behind > 0.0 and rng.random() < CITY['behind_drop'] * behind and not fill:
                 continue
             block = {'i': i, 'j': j, 'cx': cx, 'cz': cz, 'dist': d, 'behind': behind,
                      'sidewalk': d < 1200, 'near': d < W['near_radius'], 'lots': []}

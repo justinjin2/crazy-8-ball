@@ -1,5 +1,29 @@
 # Status
 
+**2026-09-26 (latest): the rooftop city fixed after the designer's look in Play: no warped
+towers, no empty grey ground, a soft far edge.**
+
+- **Built:**
+  - The near world and the city backdrop draw at full detail (RenderFidelity Precise). Roblox's
+    distance LOD had crumpled the far towers and broken up the parks and beach below the
+    tower.
+  - The side behind the spawn is a full low city now (155 more blocks, the strip by the beach
+    included), not a flat grey plain. `Near.fbx` and `Backdrop.fbx` were regenerated and
+    imported. The near world's own blocks and the painted far city are unchanged.
+  - A light haze (Atmosphere Density 0.15, Offset 0.2, by day and at sunset) fades the far
+    city and its join with the painted sky.
+- **Verified:**
+  - 355 Lune tests pass and lint is clean.
+  - Blender and Studio agree: the backdrop is 66,665 triangles (cap 110,000) and the near
+    world 8,809 (cap 50,000), with 25 MeshParts (budget 30).
+  - Play captures of the designer's three views (the high view over the stair side, the
+    railing toward the city, and looking down toward the spawn), by day and at sunset, and at
+    phone graphics (level 4). The console is clean.
+- **Still to do:** save the place to `place/8ball.rbxl` and publish (the map imports changed),
+  then Checkpoint D.
+
+---
+
 **2026-09-26: the rooftop map, Stage 7 of 8 built (the sunset and the day/sunset cycle), waiting at
 Checkpoint D.**
 

@@ -303,6 +303,7 @@ return {
 	["every backdrop chunk has a row, a real map set and budgets that hold"] = function()
 		local M = H.require("Config").Map
 		local Bk = M.Backdrop
+		local FIDELITY = { Automatic = true, Precise = true, Performance = true }
 		for name, row in Bk.Meshes do
 			H.expect(
 				M.Maps[row.Maps] ~= nil,
@@ -312,6 +313,12 @@ return {
 				H.expect(
 					ALPHA_MODES[row.AlphaMode],
 					("Backdrop.Meshes.%s: AlphaMode %s"):format(name, row.AlphaMode)
+				)
+			end
+			if row.Fidelity then
+				H.expect(
+					FIDELITY[row.Fidelity],
+					("Backdrop.Meshes.%s: Fidelity %s"):format(name, row.Fidelity)
 				)
 			end
 		end

@@ -194,6 +194,16 @@ Tested with a sand slope and a dark seabed under Terrain water, at Edit quality 
 - Roblox renders a skybox paler and greyer than painted: #3894FC showed as #56A9DD. Paint
   sky colours deeper and more saturated than the target.
 
+## Mesh LOD warps boxy meshes (tested 2026-09-26)
+
+- A MeshPart at RenderFidelity **Performance** (and **Automatic** beyond a few hundred studs)
+  is drawn from a decimated mesh. The decimation crumples box buildings into slanted shards
+  and smears their UVs; a small camera move flips the level, so a tower looks fine from one
+  spot and broken from the next. **Precise** always draws the real mesh. The map's backdrop
+  uses Precise (`Config.Map.Near/Backdrop` rows' `Fidelity`).
+- RenderFidelity can be written in Edit through the MCP (plugin security), not by a game
+  script.
+
 ## Lighting in Edit and in Play (tested 2026-09-26)
 
 - **No Technology setting.** This place is on Roblox's unified lighting: Lighting has no
