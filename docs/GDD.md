@@ -287,10 +287,25 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   look; the rest of its look is decided later (a dim, moody neon room is the candidate).
 - A player's win streak shows above their head, and their country flag next to their name.
 
+- **The hub map is an open-air rooftop pool club** (designer, 2026-09-26), matching the
+  concept art in `assets/map/reference/`: a city skyline on the left and a tropical coast with
+  green mountain islands on the right, as seen from the entrance. The brief is
+  `docs/prompts/ROOFTOP_MAP_PROMPT.md`. Nothing carries over from the removed maps.
+  - All 16 tables use the green look (this is the regular lobby; blue stays for the Pro
+    lobby). The tables turn sideways like the art: long sides face the entrance, four across
+    and four deep.
+  - Day and Sunset only, no night, the same for everyone on a server: about 10 minutes of
+    day, a 1 minute fade, 5 minutes of sunset, a 1 minute fade back *(tune)*.
+  - In: the pergola lounge with couches, a fire pit, a grand piano, the snack counter,
+    planters, palms, lanterns, umbrella seating and the glass railing. Out: the art's
+    infinity-pool strip and banners.
+  - Calm and clean for kids: bright saturated colours, wide walkways, props in a regular
+    rhythm. Everything we ship stays under about 512k triangles, so the whole game stays
+    under 1 million with players in it.
+
 **Open**
-- The hub map: its look, layout and zones. The designer's direction (2026-09-25) is an
-  open-air rooftop pool club between a city skyline and a tropical coast, with its own new
-  brief to come. Nothing carries over from the removed maps.
+- The rooftop's exact dimensions, prop counts and palette: measured from the art in the
+  brief's Stage 0 and confirmed at its checkpoints.
 
 ## 11. Progression and ranks
 

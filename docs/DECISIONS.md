@@ -1074,3 +1074,17 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     line!", "Hardest! No lines at all!".
   - The table sign also shows whether abilities are on.
   - The ball-in-hand ring is plain blue again, with no ink outline.
+- 2026-09-26: The hub map (designer, from the rooftop concept art now in
+  `assets/map/reference/`; brief `docs/prompts/ROOFTOP_MAP_PROMPT.md`):
+  - All 16 tables are green (the regular lobby); blue stays for the Pro lobby.
+  - The tables turn sideways like the art (long sides to the entrance), so the terrace is wide
+    and shallow. The grid is recomputed in Config.Hub.Tables in the brief's Stage 1.
+  - Day and Sunset, no night, cycling for everyone on a server: 10 min day, 1 min fade, 5 min
+    sunset, 1 min fade.
+  - Extras in: a fire pit and a grand piano. Out: the infinity-pool strip and banners.
+  - The build runs in stages with four designer checkpoints (gray-box layout, rooftop and
+    props, city and ocean, lighting). Everything built procedurally in Blender from scripts in
+    the repo; Poly Haven CC0 textures as bake inputs, Poly Pizza CC0/CC-BY models only as a
+    palm or fern fallback; no AI 3D generators or Creator Store models.
+  - Budget: everything we ship under about 512k triangles, leaving room for avatars under the
+    designer's 1 million total.
