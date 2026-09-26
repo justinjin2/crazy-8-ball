@@ -84,6 +84,8 @@ order; that is Open.
 - **The house accent is blue.** A gamepad-selected or hovered button gets a thick gold outline.
 
 **Open**
+- Grandmaster's rank badge uses the VIP rainbow (2026-09-26). If VIP items also look rainbow,
+  decide whether the two should differ so a rank is never mistaken for a VIP item.
 - The order of the rarities (where mythic and unique sit) and what VIP means (GDD section 12).
 
 ## 5. Buttons
@@ -119,9 +121,9 @@ order; that is Open.
   (bigger each tier, Veteran included; Reyes the biggest, in gold); pips in an arc under the
   ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 =
   division I), big and bright, each in a dark socket of its tier's colour so the count reads
-  when the badge is small. Diamond is cyan and Grandmaster orange (2026-09-26). Reyes is black
-  and gold with no pips and no signature, and a little wizard hat hooked on its top-right
-  corner for Efren Reyes' nicknames "The Magician" and "Bata" (the crown stays on top). No
+  when the badge is small. Diamond is cyan; Grandmaster is a rainbow badge in the house
+  rainbow (section 4's VIP colours: a rainbow frame and ring, feathers red to purple,
+  prismatic gems) (2026-09-26). Reyes is black and gold with no pips and no signature. No
   banner and no words: the rank's name is game text beside the badge where needed.
 
 ## 7. Motion

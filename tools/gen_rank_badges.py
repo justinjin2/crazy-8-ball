@@ -11,8 +11,8 @@ blades for Reyes). On top of that, the same rules everywhere:
 - a crown from Expert up, bigger each tier (Reyes has the biggest, in gold);
 - pips in an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
   to Grandmaster (1 pip = division I, 5 = V).
-Reyes is one badge with no pips, and a little wizard hat on its corner for Efren Reyes'
-nicknames "The Magician" and "Bata". Unranked is a plain grey badge. No words in any image.
+Grandmaster is a rainbow badge. Reyes is one badge with no pips. Unranked is a plain grey
+badge. No words in any image.
 
 Outputs under assets/ui/ranks/ (see README.md there):
   <tier>_<1..5>.png, reyes.png, unranked.png  512 px badges, plus the .svg source of each
@@ -52,7 +52,9 @@ OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges h
 LIP = 5
 
 GOLD = ("#FFF3A6", "#FFC928", "#C97F00")
-HAT = ("#9C8CFF", "#5A41D6", "#26177A")  # Reyes' wizard hat, for "The Magician"
+# Grandmaster's rainbow: the house rainbow of UI_STYLE section 4, in order round the frame
+RAINBOW = ("#FF4D4D", "#FF9F1C", "#FFE14D", "#3DD66B", "#3B9BFF", "#A259FF")
+PRISM = ("#FFF4FF", "#B98CFF", "#3A2380")  # stands in for a rainbow tier's light, mid and dark
 
 # name, metal (light, mid, dark), pip kind, crown level (0 = none), frame. Lowest tier first.
 TIERS = [
@@ -64,7 +66,7 @@ TIERS = [
     ("expert", ("#FFB0A8", "#F2413F", "#9A1226"), "gem", 1, "round"),
     ("veteran", ("#C8F7A8", "#4FC93A", "#1A7A28"), "gem", 2, "crest"),
     ("master", ("#DEC4FF", "#9B55F5", "#4C18A8"), "gem", 3, "crest"),
-    ("grandmaster", ("#FFD9A6", "#FF8A1E", "#B84400"), "gem", 4, "crest"),
+    ("grandmaster", PRISM, "gem", 4, "crest"),
 ]
 REYES = ("reyes", ("#8C8CA2", "#3C3C4C", "#14141C"), None, 5, "round")
 UNRANKED = ("unranked", ("#EEF1F6", "#B4BDCB", "#7D889B"), None, 0, "hex")
@@ -136,37 +138,47 @@ def mirrored(body):
 # ---------------------------------------------------------------------------------------
 
 
+def linear(gid, stops, x2=0.35, y2=1):
+    """A linear gradient from (light) top left to (dark) bottom right. stops: (offset, colour)."""
+    body = "".join(f'<stop offset="{o:.2f}" stop-color="{c}"/>' for o, c in stops)
+    return f'<linearGradient id="{gid}" x1="0" y1="0" x2="{x2}" y2="{y2}">{body}</linearGradient>'
+
+
+def rainbow(gid, towards="#FFFFFF", amount=0.0):
+    """A diagonal rainbow, optionally mixed towards white (lighter) or a dark (deeper)."""
+    n = len(RAINBOW) - 1
+    return linear(gid, [(i / n, mix(c, towards, amount)) for i, c in enumerate(RAINBOW)], 1, 1)
+
+
 def gradients(metal):
     light, mid, dark = metal
     glight, gmid, gdark = GOLD
+    if metal == PRISM:  # a rainbow tier: the metal's face, rim, wings and crown are rainbows
+        tier = rainbow("m") + rainbow("r", PRISM[2], 0.3) + rainbow("w", PRISM[2], 0.1) + rainbow("c", "#FFFFFF", 0.3)
+        for k in range(FEATHER_HUES):  # one gradient per feather colour, red to purple
+            hue = feather_hue(k)
+            tier += linear(f"h{k}", [(0, mix(hue, "#FFFFFF", 0.45)), (0.5, hue), (1, mix(hue, PRISM[2], 0.35))])
+    else:
+        tier = (
+            # metal face: light top-left to dark bottom-right
+            linear("m", [(0, light), (0.5, mid), (1, dark)])
+            # metal rim: turned the other way, so a rim round a face reads as a bevel
+            + linear("r", [(0, mix(mid, dark, 0.45)), (0.6, mid), (1, mix(light, mid, 0.4))])
+            # wings: a little deeper than the face, so they read against it
+            + linear("w", [(0, mix(light, mid, 0.35)), (0.55, mid), (1, dark)])
+            # crowns: brighter than the metal they sit on
+            + linear("c", [(0, mix(light, "#FFFFFF", 0.4)), (0.55, mix(light, mid, 0.55)), (1, mid)], 0.3)
+        )
     return (
         "<defs>"
-        # metal face: light top-left to dark bottom-right
-        f'<linearGradient id="m" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{light}"/>'
-        f'<stop offset="0.5" stop-color="{mid}"/><stop offset="1" stop-color="{dark}"/></linearGradient>'
-        # metal rim: turned the other way, so a rim round a face reads as a bevel
-        f'<linearGradient id="r" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(mid, dark, 0.45)}"/>'
-        f'<stop offset="0.6" stop-color="{mid}"/><stop offset="1" stop-color="{mix(light, mid, 0.4)}"/></linearGradient>'
-        # wings: a little deeper than the face, so they read against it
-        f'<linearGradient id="w" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(light, mid, 0.35)}"/>'
-        f'<stop offset="0.55" stop-color="{mid}"/><stop offset="1" stop-color="{dark}"/></linearGradient>'
-        # pips and crowns: brighter than the metal they sit on
-        f'<linearGradient id="p" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="{mix(light, "#FFFFFF", 0.55)}"/>'
-        f'<stop offset="0.55" stop-color="{light}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
-        f'<linearGradient id="s" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="#FFFFFF"/>'
-        f'<stop offset="0.5" stop-color="{mix(light, "#FFFFFF", 0.4)}"/><stop offset="1" stop-color="{mix(light, mid, 0.3)}"/></linearGradient>'
-        f'<linearGradient id="c" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="{mix(light, "#FFFFFF", 0.4)}"/>'
-        f'<stop offset="0.55" stop-color="{mix(light, mid, 0.55)}"/><stop offset="1" stop-color="{mid}"/></linearGradient>'
+        + tier
+        # stars: brighter still
+        + linear("s", [(0, "#FFFFFF"), (0.5, mix(light, "#FFFFFF", 0.4)), (1, mix(light, mid, 0.3))], 0.2)
         # gold, for Reyes' trim and crown
-        f'<linearGradient id="g" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{glight}"/>'
-        f'<stop offset="0.5" stop-color="{gmid}"/><stop offset="1" stop-color="{gdark}"/></linearGradient>'
-        f'<linearGradient id="gr" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="{mix(gmid, gdark, 0.45)}"/>'
-        f'<stop offset="0.6" stop-color="{gmid}"/><stop offset="1" stop-color="{mix(glight, gmid, 0.4)}"/></linearGradient>'
-        # Reyes' wizard hat
-        f'<linearGradient id="hat" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="{HAT[0]}"/>'
-        f'<stop offset="0.5" stop-color="{HAT[1]}"/><stop offset="1" stop-color="{HAT[2]}"/></linearGradient>'
+        + linear("g", [(0, glight), (0.5, gmid), (1, gdark)])
+        + linear("gr", [(0, mix(gmid, gdark, 0.45)), (0.6, gmid), (1, mix(glight, gmid, 0.4))])
         # the 8 ball
-        '<radialGradient id="ball" cx="0.38" cy="0.32" r="0.78"><stop offset="0" stop-color="#5C6275"/>'
+        + '<radialGradient id="ball" cx="0.38" cy="0.32" r="0.78"><stop offset="0" stop-color="#5C6275"/>'
         '<stop offset="0.4" stop-color="#23262F"/><stop offset="1" stop-color="#06070B"/></radialGradient>'
         "</defs>"
     )
@@ -206,7 +218,7 @@ def shard(p, ang, length, width, fill="url(#w)", light="#FFFFFF"):
     )
 
 
-def star(c, r, fill="url(#p)"):
+def star(c, r, fill="url(#s)"):
     pts = []
     for i in range(10):
         a = math.radians(-90 + i * 36)
@@ -218,16 +230,18 @@ def star(c, r, fill="url(#p)"):
     )
 
 
-def gem(c, h, light, mid, dark, width=0.72):
-    """A faceted diamond (rhombus) gem, taller than wide, lit from the top left."""
+def gem(c, h, light, mid, dark, width=0.72, facets=None):
+    """A faceted diamond (rhombus) gem, taller than wide, lit from the top left. facets
+    overrides the four facets' colours (top left, top right, bottom left, bottom right)."""
     w = h * width
     top, right, bottom, left = (c[0], c[1] - h), (c[0] + w, c[1]), (c[0], c[1] + h), (c[0] - w, c[1])
     mid_pt = (c[0], c[1] - h * 0.18)
+    tl, tr, bl, br = facets or (mix(light, "#FFFFFF", 0.35), light, mid, dark)
     return (
-        poly([left, top, mid_pt], mix(light, "#FFFFFF", 0.35), False)
-        + poly([top, right, mid_pt], light, False)
-        + poly([left, mid_pt, bottom], mid, False)
-        + poly([mid_pt, right, bottom], dark, False)
+        poly([left, top, mid_pt], tl, False)
+        + poly([top, right, mid_pt], tr, False)
+        + poly([left, mid_pt, bottom], bl, False)
+        + poly([mid_pt, right, bottom], br, False)
         + poly([top, right, bottom, left], "none")
         + f'<path d="M{pt(left)} L{pt(mid_pt)} L{pt(right)} M{pt(mid_pt)} L{pt(bottom)}" fill="none" '
         f'stroke="{INK}" stroke-width="1.4" opacity="0.45"/>'
@@ -253,11 +267,31 @@ def inset_poly(points, d):
     return out
 
 
+FEATHER_HUES = 7
+
+
+def feather_hue(k):
+    """The k-th of FEATHER_HUES colours from red to purple."""
+    return rainbow_at(k / (FEATHER_HUES - 1) * (len(RAINBOW) - 1) / len(RAINBOW))
+
+
+def rainbow_at(turn):
+    """The rainbow's colour a fraction `turn` of the way round (0 and 1 both red)."""
+    x = (turn % 1) * len(RAINBOW)
+    i = int(x)
+    return mix(RAINBOW[i], RAINBOW[(i + 1) % len(RAINBOW)], x - i)
+
+
 def facet_colour(metal, a, b):
-    """A flat facet's colour from which way edge a->b faces: lit from the top left."""
+    """A flat facet's colour from which way edge a->b faces: lit from the top left. On a
+    rainbow tier the hue also runs round the frame, red at the top."""
     light, mid, dark = metal
     dx, dy = b[0] - a[0], b[1] - a[1]
     t = (dy * LIGHT[0] - dx * LIGHT[1]) / math.hypot(dx, dy)
+    if metal == PRISM:
+        mx, my = (a[0] + b[0]) / 2 - CX, (a[1] + b[1]) / 2 - CY
+        mid = rainbow_at((math.degrees(math.atan2(my, mx)) + 90) / 360)
+        light, dark = mix(mid, "#FFFFFF", 0.55), mix(mid, dark, 0.3)
     return mix(mid, light, t * 0.9) if t >= 0 else mix(mid, dark, -t * 0.85)
 
 
@@ -329,6 +363,9 @@ def pips(kind, count, metal):
     for c in centres:
         if kind == "star":
             out.append(star(c, PIP_SIZE, fill="url(#s)"))
+        elif metal == PRISM:  # a rainbow tier's gems are prismatic: each facet a pale rainbow tint
+            tints = tuple(mix(RAINBOW[k], "#FFFFFF", 0.45) for k in (0, 2, 4, 5))
+            out.append(gem(c, PIP_SIZE + 1, light, light, mid, 0.84, tints))
         else:
             out.append(gem(c, PIP_SIZE + 1, mix(light, "#FFFFFF", 0.5), light, mix(light, mid, 0.7), 0.84))
     return "".join(out)
@@ -376,46 +413,6 @@ def crown(level, face="url(#c)", rim="url(#r)", gem_colours=None):
                 f'fill="{mix(light, "#FFFFFF", 0.3)}" stroke="{INK}" stroke-width="2"/>'
             )
     return "".join(parts)
-
-
-def flat_star(c, r, fill):
-    """A small star with no outline, for decorations too small to carry one."""
-    pts = []
-    for i in range(10):
-        a = math.radians(-90 + i * 36)
-        rr = r if i % 2 == 0 else r * 0.45
-        pts.append((c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr))
-    return poly(pts, fill, False)
-
-
-def wizard_hat(bx, by, w, h, tilt, droop):
-    """A little wizard hat (moon, stars, gold band, a gold star on the tip), brim centred on
-    (bx, by), tilted by `tilt` degrees; droop bends the tip sideways. Reyes' nod to his
-    nicknames "The Magician" and "Bata"."""
-    left, right, tip = (bx - w / 2, by), (bx + w / 2, by), (bx + droop, by - h)
-    cone = (
-        f"M{pt(left)} C{bx - w * 0.3:.1f} {by - h * 0.45:.1f} {bx - w * 0.05 + droop * 0.4:.1f} {by - h * 0.9:.1f} {pt(tip)} "
-        f"C{bx + w * 0.12 + droop * 0.3:.1f} {by - h * 0.72:.1f} {bx + w * 0.32:.1f} {by - h * 0.4:.1f} {pt(right)} Z"
-    )
-    brim = f'<ellipse cx="{bx}" cy="{by}" rx="{w * 0.72:.1f}" ry="{w * 0.17:.1f}" fill="url(#hat)" stroke="{INK}" stroke-width="{EDGE}"/>'
-    band = poly([(bx - w * 0.47, by - 1), (bx + w * 0.47, by - 1), (bx + w * 0.4, by - h * 0.16), (bx - w * 0.41, by - h * 0.16)], "url(#g)")
-    mc = (bx - w * 0.08 + droop * 0.15, by - h * 0.42)
-    mr = w * 0.13
-    moon = (
-        f'<circle cx="{mc[0]:.1f}" cy="{mc[1]:.1f}" r="{mr:.1f}" fill="#FFE27A"/>'
-        f'<circle cx="{mc[0] + mr * 0.45:.1f}" cy="{mc[1] - mr * 0.25:.1f}" r="{mr * 0.85:.1f}" fill="url(#hat)"/>'
-    )
-    body = (
-        brim
-        + path(cone, "url(#hat)")
-        + gloss(bx - w * 0.2, by - h * 0.45, w * 0.07, h * 0.2, -15, 0.55)
-        + band
-        + moon
-        + flat_star((bx + w * 0.17 + droop * 0.1, by - h * 0.34), w * 0.1, "#FFE27A")
-        + flat_star((bx + droop * 0.55 + w * 0.02, by - h * 0.7), w * 0.075, "#FFE27A")
-        + star(tip, w * 0.17, "url(#g)")
-    )
-    return f'<g transform="rotate({tilt} {bx} {by})">{body}</g>'
 
 
 # ---------------------------------------------------------------------------------------
@@ -516,10 +513,15 @@ def orn_master(m):
 
 
 def orn_grandmaster(m):
-    """Swept wings: long deep feathers behind, short bright ones in front, spikes on the shoulders."""
-    back = fan("blade", (88, 170), ((246, 118), (224, 96), (202, 76), (182, 62)), 30, bend=-16, rib=m[0])
-    front = fan("blade", (92, 172), ((240, 72), (218, 66), (196, 54)), 22, bend=-10, fill="url(#c)", rib="#FFFFFF")
-    return back + front + shard((72, 104), 238, 34, 16, light=m[0])
+    """Swept rainbow wings (each feather its own colour, red at the top to purple at the
+    bottom; long feathers behind, short ones in front) and spikes on the shoulders."""
+    back = ((246, 118), (224, 96), (202, 76), (182, 62))
+    front = ((240, 72), (218, 66), (196, 54))
+    feathers = sorted([(a, n, "back") for a, n in back] + [(a, n, "front") for a, n in front], reverse=True)
+    colour = {(a, layer): f"url(#h{k})" for k, (a, _, layer) in enumerate(feathers)}
+    out = [blade((88, 170), a, n, 30, bend=-16, fill=colour[(a, "back")], rib="#FFFFFF") for a, n in back]
+    out += [blade((92, 172), a, n, 22, bend=-10, fill=colour[(a, "front")], rib="#FFFFFF") for a, n in front]
+    return "".join(out) + shard((72, 104), 238, 34, 16, fill="url(#c)", light=m[0])
 
 
 def orn_reyes(m):
@@ -567,8 +569,6 @@ def badge_body(tier, count):
             parts.append(crown(crown_level, gem_colours=(mix(light, "#FFFFFF", 0.4), light, mid)))
         parts.append(ring())
     parts.append(eight_ball())
-    if name == "reyes":
-        parts.append(wizard_hat(194, 84, 52, 60, 26, 12))  # hooked on the top-right corner
     if pip:
         parts.append(pips(pip, count, metal))
     return gradients(metal), "".join(parts)

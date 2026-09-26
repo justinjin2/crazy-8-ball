@@ -31,7 +31,7 @@
 - **What:** 47 badges in `assets/ui/ranks/`: Unranked, Bronze I to Grandmaster V (stars up to
   Diamond, gems from Expert, crowns from Expert that grow each tier), and Reyes. Redrawn the
   same day so each tier is its own badge like the designer's reference sheet, then: Diamond
-  cyan, Grandmaster orange, bigger pips in sockets, and a wizard hat on Reyes. Each has a
+  cyan, Grandmaster rainbow, and bigger pips in sockets. Each has a
   white shine mask for the light sweep, plus a sparkle image. Made by
   `tools/gen_rank_badges.py`; look and shine in `docs/UI_STYLE.md` sections 6 and 7.
 - **Verified:** every badge rendered and checked on a contact sheet and at full size (none

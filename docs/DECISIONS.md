@@ -1190,3 +1190,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   bigger, brighter and each sits in a dark socket; Reyes gets a nod to "The Magician" and
   "Bata": a little wizard hat hooked on the badge's top-right corner (picked from three
   mock-ups: on the corner, worn by the 8 ball, or with a cue as a wand at the bottom).
+- 2026-09-26: Rank badges, round four (designer): no wizard hat on Reyes after all; Grandmaster
+  is a rainbow badge instead of orange, in the house rainbow (UI_STYLE section 4's VIP
+  colours), with each wing feather its own colour and prismatic gems. That it shares VIP's
+  rainbow is noted as Open in UI_STYLE section 4.
