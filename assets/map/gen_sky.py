@@ -563,17 +563,14 @@ def paint_island(painted, isle, far):
 
 
 def far_islands(painted):
-    """The far islands and the coast point (city_plan.FAR_ISLANDS), and the near islands too:
-    at low graphics levels phones draw none of the 3D ones, and where the 3D ones do draw they
-    cover their painted twins (the 3D water hides what parallax would show below the
-    horizon)."""
+    """The far islands and the coast point (city_plan.FAR_ISLANDS). The near islands are 3D
+    only: painted twins showed as ghost peaks behind them from the roof's edges (a 90-stud
+    step off the painting's eye moves a 2,000-stud island 2.6 degrees; Stage 6)."""
     for n, (kind, az, dist, radius, height) in enumerate(cp.FAR_ISLANDS):
         assert cp.far_island_at_sea(az, dist, radius), ('a far island off the sea', kind, az)
         isle = near_islands.Island(100 + n, 9, kind, az, dist, radius, height)
         isle.shape()
         paint_island(painted, isle, far=True)
-    for isle in near_islands.make_islands():
-        paint_island(painted, isle, far=False)
 
 
 def far_hills(painted, rng):
