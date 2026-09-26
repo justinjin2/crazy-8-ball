@@ -88,14 +88,15 @@ P = {
     'lounge_step_rise': 0.5,
     'lounge_step_run': 2.0,
     'lounge_flight_half_width': 14.0,  # the central flight (the rest of the edge is a low riser)
-    'lounge_depth': 28.0,  # platform, top step to the back railing
-    'lounge_half_width': 56.0,
-    'pergola_half_width': 48.0,
+    'lounge_depth': 30.0,  # platform, top step to the back railing
+    'lounge_half_width': 62.0,
+    'pergola_half_width': 57.5,  # about 115 wide, as the art's (about 40% of the entrance view)
     'pergola_front_inset': 3.0,  # pergola front columns this far behind the platform edge
-    'pergola_depth': 22.0,
-    'pergola_height': 18.0,  # clear height under the beams (tall, so it anchors the view from the entrance)
+    'pergola_depth': 24.0,
+    'pergola_height': 19.0,  # clear height under the beams (tall, so it anchors the view from the entrance)
     'pergola_column': 2.6,
-    'pergola_bays': 5,  # 6 columns per row, 19.2 apart: no column in the middle of the view
+    'pergola_bays': 5,  # 6 columns per row, 23 apart: no column in the middle of the view
+    'palm_inset': 7.0,  # a palm planter's centre this far in from the railing, so its crown stays over the roof
     # Spawn on the landing, facing the tables. The SpawnLocation is the art's entrance mat.
     'spawn_from_landing_front': 4.5,
     'mat_size': (16.0, 0.2, 6.0),  # the entrance mat (the SpawnLocation), between the tall lanterns
@@ -271,6 +272,7 @@ def build():
 
     def prop(kind, x, z, yaw=0.0, y=0.0, **extra):
         w, d, h = PROP_SIZE[kind]
+        h = extra.pop('height', h)  # a palm's own height, so a cluster steps up and down
         item = {'kind': kind, 'X': round(x, 4), 'Y': round(y, 4), 'Z': round(z, 4), 'yaw': yaw,
                 'size': [w, h, d]}
         item.update(extra)
@@ -299,17 +301,15 @@ def build():
     for z in gap_z:
         prop('lantern', -(zone_x + 1.5), z)
         prop('lantern', zone_x + 1.5, z)
-    # City side (02): big planters against the railing, palms at the first and last rows and
-    # ferns between.
+    # City side (02): big fern planters against the railing at every row (the palms stand in
+    # clusters at the corners and ends instead, not in an even ring).
     for k, z in enumerate(row_z):
-        kind = 'palm_planter' if k in (0, 3) else 'fern_planter'
-        size = PROP_SIZE[kind][0]
-        prop(kind, -(rail_x - size / 2 - 0.8), z, 90.0)
+        size = PROP_SIZE['fern_planter'][0]
+        prop('fern_planter', -(rail_x - size / 2 - 0.8), z, 90.0)
     # ...and troughs of ferns between them, so the city railing reads as one green line (the
     # top-down art's planted edge).
     bed_d = PROP_SIZE['planter_bed'][1]
-    bed_z = [(row_z[k] + row_z[k + 1]) / 2 for k in range(3)] + [row_z[0] + 16.0, row_z[3] - 16.0,
-                                                                  (row_z[3] - 16.0 + back_edge) / 2 - 4.0]
+    bed_z = [(row_z[k] + row_z[k + 1]) / 2 for k in range(3)] + [row_z[0] + 16.0, row_z[3] - 16.0]
     for z in bed_z:
         prop('planter_bed', -(rail_x - bed_d / 2 - 0.8), z, 90.0)
     # Ocean side (02, designer's choice): umbrella sets with loungers at the first and third
@@ -319,21 +319,24 @@ def build():
             prop('umbrella_set', rail_x - PROP_SIZE['umbrella_set'][0] / 2 - 1.0, z, -90.0)
         else:
             prop('side_couch', rail_x - PROP_SIZE['side_couch'][1] / 2 - 0.4, z, -90.0)
-    for a, b in ((row_z[0], row_z[1]), (row_z[2], row_z[3])):
-        prop('palm_planter', rail_x - PROP_SIZE['palm_planter'][0] / 2 - 0.8, (a + b) / 2, -90.0)
+    inset = P['palm_inset']
+    for (a, b), height in zip(((row_z[0], row_z[1]), (row_z[2], row_z[3])), (26.0, 22.0)):
+        prop('palm_planter', rail_x - inset, (a + b) / 2, -90.0, height=height)
 
     # Entrance: tall lanterns flank the stair head, big palm planters both sides of the stair,
     # cream columns frame the view (the entrance panel), palms in the front corners.
     sx = P['steps_width'] / 2
     prop('lantern_tall', -(sx + 1.8), front_edge - 1.8)
     prop('lantern_tall', sx + 1.8, front_edge - 1.8)
-    prop('palm_planter', -(sx + 6.6), front_edge - 3.0)
-    prop('palm_planter', sx + 6.6, front_edge - 3.0)
+    prop('palm_planter', -(sx + 6.6), front_edge - 3.0, height=30.0)
+    prop('palm_planter', sx + 6.6, front_edge - 3.0, height=30.0)
     col = P['entrance_column']
     for side in (-1, 1):
         column(side * (sx + 13.0), front_edge - col / 2 - 0.3, 0.0, P['entrance_column_height'], col, 'entrance')
     for side in (-1, 1):
-        prop('palm_planter', side * (rail_x - 3.2), front_edge - 3.2)
+        # A pair of palms in each front corner, a tall one and a short one.
+        prop('palm_planter', side * (rail_x - inset), front_edge - inset, height=26.0)
+        prop('palm_planter', side * (rail_x - inset - 6.5), front_edge - inset + 2.0, height=20.0)
         # Troughs of ferns along the front parapet, between the stair and the corners.
         for x in (40.0, 64.0):
             prop('planter_bed', side * x, front_edge - bed_d / 2 - 0.8)
@@ -356,9 +359,11 @@ def build():
     prop('piano_bench', 38.2, group_z + 2.6, -20.0, y)
     for side in (-1, 1):
         prop('lantern', side * (lf + 1.5), lounge_front - 1.5)
-        for x in (lf + 8.0, lf + 22.0):
+        for x in (lf + 8.0, lf + 32.0):  # between the pergola's front columns
             prop('fern_planter', side * x, platform_front - 2.2, 0.0, y)
-        prop('palm_planter', side * (lw - 3.2), platform_front - 3.2, 0.0, y)
+        # A pair of palms at each end of the pergola, just off the platform, stepping down.
+        prop('palm_planter', side * (lw + 3.0), platform_front - 2.6, 0.0, 0.0, height=32.0)
+        prop('palm_planter', side * (lw + 3.0), platform_front - 9.0, 0.0, 0.0, height=24.0)
     # The back corners at floor level: a sofa group (city) and an umbrella set (ocean), as in
     # the top-down art, with palms in the far corners.
     corner_x = (lw + rail_x) / 2
@@ -366,7 +371,10 @@ def build():
     prop('side_couch', -corner_x, corner_z - 4.0, 0.0)
     prop('umbrella_set', corner_x, corner_z - 2.0, 180.0)
     for side in (-1, 1):
-        prop('palm_planter', side * (rail_x - 3.2), back_edge + 3.2)
+        # Three palms in each back corner at three heights.
+        prop('palm_planter', side * (rail_x - inset), back_edge + inset, height=32.0)
+        prop('palm_planter', side * (rail_x - inset - 6.5), back_edge + inset - 1.5, height=26.0)
+        prop('palm_planter', side * (rail_x - inset + 1.0), back_edge + inset + 6.5, height=20.0)
     # Globe lights hang from the pergola's front and middle beams, one per bay.
     bay = 2 * pw / P['pergola_bays']
     for k in range(P['pergola_bays']):
@@ -417,8 +425,10 @@ def cameras(spawn, zones):
         'high-day': {'ref': 'panels/day.jpg', 'pos': (0, 46.0, front + 48.25), 'look': (0, 0, -8.0), 'fov': 50},
         'high-sunset': {'ref': 'panels/sunset.jpg', 'pos': (0, 46.0, front + 48.25), 'look': (0, 0, -8.0), 'fov': 50},
         'top-down': {'ref': 'panels/top-down.jpg', 'pos': (0, 400.0, mid), 'look': (0, 0, mid - 0.01), 'fov': 30},
-        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (0, 7.5, lounge - 0.25), 'look': (0, 4.0, back - 40.0), 'fov': 70},
-        'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 30.0, 0), 'look': (-600, -60, 0), 'fov': 25},
+        # At the front of the lounge, facing the fire-pit sofa with the sea and the big island
+        # beyond it (panels/lounge-back.jpg).
+        'lounge-back': {'ref': 'panels/lounge-back.jpg', 'pos': (22, 7.5, lounge - 0.25), 'look': (22, 3.0, back - 40.0), 'fov': 70},
+        'city-side': {'ref': 'panels/city-side.jpg', 'pos': (zones['terrace'][0] + 3, 30.0, 0), 'look': (-600, -20, 0), 'fov': 25},
         'ocean-side': {'ref': 'panels/ocean-side.jpg', 'pos': (zones['terrace'][2] - 3, 30.0, -20), 'look': (700, -80, -250), 'fov': 25},
         'phone-eye': {'ref': None, 'pos': (0, 5.6, spawn['Z']), 'look': (0, 4.0, 0), 'fov': 70, 'aspect': 750 / 361},
     }

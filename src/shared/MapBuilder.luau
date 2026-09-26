@@ -66,7 +66,7 @@ function MapBuilder.buildGrayBox(data: any): string
 		part.CanCollide = r.k
 		part.CanQuery = r.k
 		part.CanTouch = false
-		part.CastShadow = r.t < 0.5 and r.m ~= "Neon"
+		part.CastShadow = not r.ns and r.t < 0.5 and r.m ~= "Neon"
 		part.Material = (Enum.Material :: any)[r.m]
 		part.Transparency = r.t
 		part.Color = Color3.fromHex(r.c)

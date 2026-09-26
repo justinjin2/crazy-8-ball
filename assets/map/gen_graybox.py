@@ -34,7 +34,7 @@ COAST_X = 110.0  # water to the right of this...
 COAST_Z = -150.0  # ...and behind this, between CITY_BACK_X and COAST_X
 CITY_BACK_X = -350.0  # the city carries on behind the tower on the left, to the horizon
 MAX_PART = 2000.0  # Roblox clamps a Part at 2048 studs; big slabs are tiled
-WATER_REACH = 3000.0  # Terrain water out to this far...
+WATER_REACH = 6500.0  # Terrain water out to this far (the islands stand in it)...
 FAR_REACH = 8000.0  # ...then flat sea and ground slabs to here, so no edge shows before the haze
 
 with open(os.path.join(HERE, 'Palette.json')) as handle:
@@ -87,13 +87,13 @@ class Lua:
         self.rows = []
 
     def part(self, folder, name, size, pos, colour, yaw=0.0, shape='Block', material='SmoothPlastic',
-             transparency=0.0, collide=False, local=None, rot=None):
+             transparency=0.0, collide=False, local=None, rot=None, shadow=True):
         """pos is world (x, y, z) of the part's centre, or with `local` the prop's (X, Y, Z, yaw)
         and pos in the prop's own frame. rot is an extra (rx, ry, rz) in degrees."""
         self.rows.append({
             'f': folder, 'n': name, 's': shape, 'size': [round(v, 4) for v in size],
             'p': [round(v, 4) for v in pos], 'c': colour, 'yaw': yaw, 'm': material,
-            't': transparency, 'k': collide, 'local': local, 'rot': rot,
+            't': transparency, 'k': collide, 'local': local, 'rot': rot, 'shadow': shadow,
         })
 
 
@@ -184,12 +184,13 @@ def build(g, plan):
         g.part(R, 'Pergola' + name, (px1 - px0 + 3, 1.6, 1.4), (0, beam_y + 0.8, z), C['cream'], collide=True)
     x = px0 + 1.5
     while x < px1 - 0.5:
-        g.part(R, 'PergolaSlat', (1.2, 0.6, pz1 - pz0 + 2), (x, beam_y + 1.9, (pz0 + pz1) / 2), C['slat'])
+        g.part(R, 'PergolaSlat', (1.2, 0.6, pz1 - pz0 + 2), (x, beam_y + 1.9, (pz0 + pz1) / 2), C['slat'],
+               shadow=False)  # no zebra stripes until the lighting stage
         x += 3.0
     # Vines along the front beam: a few green clumps, a pink one at the ocean end (02).
     for k, vx in enumerate((px0 + 2, -30, 0.0, 30, px1 - 2)):
         colour = hexc('flower_vivid') if k == 4 else C['leaf']
-        g.part(R, 'Vine', (3.5, 2.5, 2.5), (vx, beam_y + 0.4, pz1 + 0.6), colour, shape='Ball')
+        g.part(R, 'Vine', (4.0, 2.0, 1.4), (vx, beam_y + 0.4, pz1 + 0.6), colour, shadow=False)
 
     # ---- Props ---------------------------------------------------------------------------
     for i, p in enumerate(plan['props']):
@@ -247,7 +248,20 @@ def build(g, plan):
         colour = C['glass_city'] if rng.random() < 0.45 else C['facade']
         g.part(B, 'Building', (w, height, dd), (x, STREET_Y + height / 2, z), colour, yaw=round(rng.choice((0, 0, 0, 15, 30)), 1))
         placed += 1
-    # A few slim towers taller than ours, far off on the city side (the art's skyline).
+    # A few slim towers taller than ours 700 to 1200 out on the city side, so the skyline shows
+    # over the railing at eye height (the art's entrance and day views)...
+    towers = 0
+    while towers < 7:
+        a = math.radians(rng.uniform(-115, -40))  # azimuth: -90 is straight out on the city side
+        dist = rng.uniform(700, 1200)
+        x, z = dist * math.sin(a), -dist * math.cos(a)
+        if z < COAST_Z and x > CITY_BACK_X - 100:
+            continue
+        foot = rng.uniform(30, 45)
+        height = -STREET_Y + rng.uniform(60, 180)
+        g.part(B, 'Tower', (foot, height, foot), (x, STREET_Y + height / 2, z), C['glass_city'])
+        towers += 1
+    # ...and slim ones far off.
     towers = 0
     while towers < 8:
         a = math.radians(rng.uniform(-150, -30))  # azimuth: -90 is straight out on the city side
@@ -261,19 +275,17 @@ def build(g, plan):
         towers += 1
     # Islands: steep green cones over the sea, toward the ocean and behind; one beside the sunset
     # sun (azimuth 36, Spec section 6).
-    # Peaks up to about 140 studs above the roof, 1400 to 2600 out: a few degrees over the
-    # horizon, like the art.
-    # Spread evenly round the sea with some jitter (random azimuths clumped), near and far
-    # alternating, like the art's scattered islands.
-    islands = [(36.4 + 6, 2200, 280, 440)]
-    for k in range(9):
-        az = 18 + k * 15 + rng.uniform(-4, 4)
-        dist = (1500 if k % 2 == 0 else 2300) + rng.uniform(-150, 250)
-        radius = rng.uniform(150, 280)
-        height = rng.uniform(300, 430)
-        if abs(az - islands[0][0]) < 8:
-            continue
-        islands.append((az, dist, radius, height))
+    # Far out (3500 to 6000) like the art's: two big peaks, one straight behind the pergola and
+    # one beside the sunset sun (azimuth 36, Spec section 6), and smaller islands in two
+    # clusters with radii varying about 3:1.
+    islands = [(3.0, 4800, 520, 950), (36.4 + 7, 5200, 480, 850)]
+    for centre, count in ((70.0, 4), (115.0, 4)):
+        for k in range(count):
+            az = centre + rng.uniform(-12, 12)
+            dist = rng.uniform(3500, 6000)
+            radius = rng.uniform(90, 270)
+            height = rng.uniform(150, 350)
+            islands.append((az, dist, radius, height))
     for k, (az, dist, radius, height) in enumerate(islands):
         a = math.radians(az)
         cx, cz = dist * math.sin(a), -dist * math.cos(a)
@@ -282,7 +294,7 @@ def build(g, plan):
             r = radius * (1 - s / steps) ** 1.15
             h = height / steps
             y = SEA_Y + h * (s + 0.5)
-            g.part(B, 'Island%02d' % k, (h, 2 * r, 2 * r), (cx, y, cz), C['island'] if s else C['rock'],
+            g.part(B, 'Island%02d' % k, (h, 2 * r, 2 * r), (cx, y, cz), C['island'] if s else C['sand'],
                    shape='Cylinder', rot=(0, 0, 90))
 
 
@@ -317,7 +329,7 @@ def prop(g, p, i):
         part((w, 3.2, d), (0, 1.6, 0), C['stone'], collide=True)
         part((1.1, h - 7, 1.1), (0, 3.2 + (h - 7) / 2, 0), C['trunk'])
         # A Ball part is as big as its smallest side, so the flat crown is a disc.
-        part((3.0, 18, 18), (0, h - 4, 0), C['palm'], shape='Cylinder', rot=(0, 0, 90))
+        part((3.0, 18, 18), (0, h - 4, 0), C['palm'], shape='Cylinder', rot=(0, 0, 90), shadow=False)
     elif kind == 'planter_bed':
         part((w, 2.5, d), (0, 1.25, 0), C['stone'], collide=True)
         part((w - 0.4, 2.2, d + 0.8), (0, 3.4, 0), C['leaf'])
@@ -328,8 +340,8 @@ def prop(g, p, i):
     elif kind == 'umbrella_set':
         part((0.4, 10, 0.4), (0, 5, 0), C['pole'], collide=True)
         # A square pyramid-ish canopy (a hipped gable of two wedges), rim at 9, peak at 11.
-        part((12, 2, 6), (0, 10, 3), C['canvas'], shape='Wedge')
-        part((12, 2, 6), (0, 10, -3), C['canvas'], shape='Wedge', rot=(0, 180, 0))
+        part((12, 2, 6), (0, 10, 3), C['canvas'], shape='Wedge', shadow=False)
+        part((12, 2, 6), (0, 10, -3), C['canvas'], shape='Wedge', rot=(0, 180, 0), shadow=False)
         for lx in (-1.8, 1.8):
             part((2.0, 1.0, 5.6), (lx, 0.5, 0.6), C['lounger'], collide=True)
             part((2.0, 1.4, 0.4), (lx, 1.6, -2.0), C['lounger'], rot=(-30, 0, 0))
@@ -390,6 +402,8 @@ def main():
             row['local'] = [round(v, 4) for v in r['local']]
         if r['rot'] is not None:
             row['rot'] = list(r['rot'])
+        if not r['shadow']:
+            row['ns'] = True
         rows.append(row)
     s = plan['spawn']
     data = {

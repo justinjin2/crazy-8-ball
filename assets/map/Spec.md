@@ -167,21 +167,21 @@ the art: 36 against the art's 34.
 
 | Zone | X | Z | Y |
 |---|---|---|---|
-| Terrace (railing inner face) | -93 to 93 (186) | -99.75 to 82.25 (182) | 0 |
+| Terrace (railing inner face) | -93 to 93 (186) | -101.75 to 82.25 (184) | 0 |
 | Front walkway | -77 to 77 | 62.25 to 72.25 | 0 |
 | Entrance landing (the spawn mat at X 0, Z 76.75, facing -Z) | full width | 72.25 to 82.25 | 0 |
 | Entrance stair: 10 steps, 0.5 up, 1.6 deep | -13 to 13 | 82.25 to 98.25 | 0 down to -5 |
 | Lower landing (dead end) | -13 to 13 | 98.25 to 106.25 | -5 |
 | Side walkways | 67 to 77 each side | -55.75 to 62.25 | 0 |
-| City side zone / ocean side zone | -93 to -77 / 77 to 93 | -99.75 to 72.25 | 0 |
+| City side zone / ocean side zone | -93 to -77 / 77 to 93 | -101.75 to 72.25 | 0 |
 | Back walkway | -77 to 77 | -63.75 to -55.75 | 0 |
 | Lounge central flight: 4 steps, 0.5 up, 2 deep | -14 to 14 | -71.75 to -63.75 | 0 up to 2 |
-| Lounge platform (the rest of its front edge is a 2-stud riser) | -56 to 56 | -99.75 to -71.75 | 2 |
-| Pergola: 5 bays of 19.2, 18 clear | -48 to 48 | -96.75 to -74.75 | 2 |
+| Lounge platform (the rest of its front edge is a 2-stud riser) | -62 to 62 | -101.75 to -71.75 | 2 |
+| Pergola: 5 bays of 23, 19 clear (about 40% of the entrance view, as in the art) | -57.5 to 57.5 | -98.75 to -74.75 | 2 |
 
 - **The edge all round** is a low parapet (1.2 high, 1.2 thick) with a dark-framed glass
   railing to 3.6 above the floor, and an invisible wall above it to 40.
-- **The back corners** beside the platform (X 56 to 93) stay at floor level.
+- **The back corners** beside the platform (X 62 to 93) stay at floor level.
 - **The spawn is the art's entrance mat:** the SpawnLocation is a 16 x 0.2 x 6 dark slab lying
   on the floor between the tall lanterns.
 
@@ -204,9 +204,9 @@ top-down, and one big item per table row along each railing.
 
 | Prop | Count | Where |
 |---|---:|---|
-| Fern planter | 12 | 6 at the aisle crossings (none in the middle row gap); 2 on the city railing; 4 on the lounge edge beside the flight |
-| Fern trough (a long low planter) | 10 | 6 along the city railing between the big planters, so the edge reads as one green line (the top-down art); 4 along the front parapet |
-| Palm planter | 12 | 2 on the city railing; 2 on the ocean railing; 2 beside the stair; 2 in the front corners; 2 in the back corners; 2 at the platform's front corners |
+| Fern planter | 14 | 6 at the aisle crossings (none in the middle row gap); 4 on the city railing, one per row; 4 on the lounge edge, between the pergola's front columns |
+| Fern trough (a long low planter) | 9 | 5 along the city railing between the big planters, so the edge reads as one green line (the top-down art); 4 along the front parapet |
+| Palm planter | 18 | in clusters, not an even ring, at mixed heights (20 to 32): a pair beside the stair; a pair in each front corner; three in each back corner; a pair at each end of the pergola, just off the platform; 2 on the ocean railing. Each stands 7 in from the railing so its crown stays over the roof |
 | Lantern | 12 | 5 per side at the row gaps and the front and back walkways; 2 flanking the lounge flight |
 | Tall lantern | 2 | flanking the stair head |
 | Umbrella set (canopy and two loungers) | 3 | ocean side at rows 1 and 3; the ocean back corner |
@@ -227,7 +227,7 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Prop | Size | Detail |
 |---|---|---|
 | Fern planter | 3.2 x 3.2 x 7 | box 3.0 high (P 2.1 x 1.4); ferns to 7 |
-| Palm planter | 4.8 x 4.8 box, 3.2 high | palm to about 26, crown about 18 across |
+| Palm planter | 4.8 x 4.8 box, 3.2 high | palm 20 to 32 tall (per palm, so clusters step), crown about 18 across |
 | Lantern | 1.5 x 1.5 x 4.0 | P 1.0 m lantern x 1.4 |
 | Tall lantern | 2.2 x 2.2 x 6.5 | |
 | Umbrella set | 12 canopy, rim at 9, top at 12 | two loungers 5.6 x 2.0, seat 1.0, back to 2.6 (P) |
@@ -238,7 +238,7 @@ Width x depth x height in studs. "P" is player scale (1 m = 2.86 studs); decor i
 | Grand piano | 4.4 x 5.8 x 3.0 | P (2.0 x 1.5 m, 1.0 m tall); bench 2.4 x 1.0 x 1.4 |
 | Snack counter | 24 x 5 | counter 3.2 high (P 1.1 m), lit shelves behind to 8 |
 | Globe light | 1.5 round | hangs 3 below the beams |
-| Pergola | 96 x 22, 18 clear | columns 2.6 square, cream; slatted wood roof (slats about 1.2 wide every 3) with vines and a few bougainvillea |
+| Pergola | 115 x 24, 19 clear | columns 2.6 square, cream; slatted wood roof (slats about 1.2 wide every 3) with vines and a few bougainvillea |
 | Fern trough | 16 x 3, 2.5 high | ferns above to about 5 |
 | Entrance column | 2.8 square x 16 | cream |
 | Railing | 3.6 high overall | parapet 1.2; posts about every 4 |
@@ -258,9 +258,9 @@ cropped to the reference's aspect. They were tuned against the art in Stage 1;
 | entrance | `panels/entrance.jpg` | (0, 7, 68.5) | (0, 4, -60) | 70 |
 | day-view | `02-day-view.jpg` | (24, 20, 70.25) | (-8, 0, -45) | 55 |
 | high three-quarter (day, sunset) | `panels/day.jpg`, `panels/sunset.jpg` | (0, 46, 130.5) | (0, 0, -8) | 50 |
-| top-down | `panels/top-down.jpg` | (0, 400, -8.75), straight down, -Z up | | 30 |
-| lounge-back | `panels/lounge-back.jpg` | (0, 7.5, -72) | (0, 4, -139.75) | 70 |
-| city-side | `panels/city-side.jpg` | (-90, 30, 0) | (-600, -60, 0) | 25 |
+| top-down | `panels/top-down.jpg` | (0, 400, -9.75), straight down, -Z up | | 30 |
+| lounge-back | `panels/lounge-back.jpg` | (22, 7.5, -72) | (22, 3, -141.75) | 70 |
+| city-side | `panels/city-side.jpg` | (-90, 30, 0) | (-600, -20, 0) | 25 |
 | ocean-side | `panels/ocean-side.jpg` | (90, 30, -20) | (700, -80, -250) | 25 |
 | phone eye | (none; 750 x 361) | (0, 5.6, 76.75) | (0, 4, 0) | 70 |
 
@@ -316,8 +316,17 @@ character waits on the lower landing.
 - **Near (Stage 4, within about 400 studs):** the tower's walls, neighbour roofs below ours,
   streets, the promenade, the beach, sailboats.
 - **Mid (Stage 5, 400 to 2000 studs):**
-  - The skyline, with a few towers taller than ours as in the art.
-  - The islands: steep green cones with beaches and rocks, one beside the sunset sun.
+  - The skyline: rooftops below ours within about 1500 studs, and a few slim towers taller
+    than ours (60 to 180 above the roof) 700 to 1200 out on the city side, so the skyline
+    shows over the railing at eye height as in the art.
+  - The islands: steep green cones with beaches and rocks. The gray-box puts two big peaks far
+    out (about 5000, 850 to 950 tall), one straight behind the pergola and one beside the
+    sunset sun, and smaller islands in two clusters. The art's ocean panel also has islands
+    near and mid-distance, which Stage 5 adds.
+- **The sea in the gray-box:** Terrain water out to 6500 studs, then flat slabs to 8000.
+  Distant water reflects the pale sky at a grazing angle, so far off the sea reads nearly as
+  pale as the sky and the islands look as if they float. Stage 4 tunes the water colour and
+  Atmosphere for a crisp deep-blue horizon, as in the art.
 - **Far (Stage 6, 2000 studs and beyond):** skyline and island silhouettes on cards, faded by
   Atmosphere.
 
