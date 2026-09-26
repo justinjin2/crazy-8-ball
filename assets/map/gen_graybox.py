@@ -36,7 +36,6 @@ CITY_BACK_X = W['city_back_x']
 CITY_EDGE_MAX = W['city_edge_max']
 MAX_PART = W['max_part']
 WATER_REACH = W['water_reach']
-FAR_REACH = W['far_reach']
 city_edge_x = cp.city_edge_x
 
 with open(os.path.join(HERE, 'Palette.json')) as handle:
@@ -244,17 +243,6 @@ def build(g, plan):
         slab(g, N, 'Beach', (edge, z0, edge + W['beach'], z), SEA_Y - 1, beach_top, C['sand'],
              group='near' if z0 >= -NC else None)
         z = z0
-    # Beyond the Terrain water and the land, flat slabs to the horizon (a hair under the water
-    # line so they never fight the Terrain's surface).
-    F_ = FAR_REACH
-    # The slab takes the sun directly where the Terrain water does not, so this is the albedo
-    # that renders like the far Terrain water under the Day light (about #349BD6; Stage 4 test).
-    far_sea = '#4E8FAE'
-    for rect in ((R_, -F_, F_, F_), (shore_x, R_, R_, F_), (CITY_EDGE_MAX, -F_, R_, -R_)):
-        slab(g, 'Backdrop', 'SeaFar', rect, SEA_Y - 3, SEA_Y - 0.6, far_sea)
-    for rect in ((-F_, -F_, -R_, F_), (-R_, R_, land_x, F_), (-R_, -F_, CITY_EDGE_MAX, -R_)):
-        slab(g, 'Backdrop', 'LandFar', rect, STREET_Y - 4, LAND_TOP, C['street'])
-
     # ---- Backdrop: the city on a street grid (seeded per block), and the islands --------------
     B = 'Backdrop'
     city(g, B)

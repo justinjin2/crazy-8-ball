@@ -36,8 +36,9 @@ WORLD = {
     'near_radius': 450.0,  # city blocks with their centre this close belong to the near world (Stage 4)
     'near_coast': 1000.0,  # the near world's beach runs this far along the coast; the gray-box's beyond
     'max_part': 2000.0,  # Roblox clamps a Part at 2048 studs: big slabs are tiled
-    'water_reach': 6500.0,  # Terrain water out to this far (the islands stand in it)...
-    'far_reach': 8000.0,  # ...then flat sea and ground slabs to here, so no edge shows before the haze
+    'water_reach': 8000.0,  # the Terrain water and the land out to this far; beyond, the sky's lower
+                            # half is painted land toward the city and sea toward the ocean. (Flat
+                            # sea slabs past the water showed its edge as a teal stripe; Stage 4.)
     'city_pitch': 110.0,  # a city block and its street
     'city_block': 80.0,  # the block itself (the street is the rest)
     'city_reach': 2300.0,  # blocks out to this far; the horizon beyond is Stage 6's cards

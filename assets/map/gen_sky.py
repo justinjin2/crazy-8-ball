@@ -48,6 +48,7 @@ P = {
     'haze_top_deg': 14.0,  # ...fading out by this elevation
     'sky_curve': 0.55,  # the gradient's power: under 1 keeps the pale band near the horizon
     'sea_band': 0.006,  # below the horizon the sky turns to the far sea over this much of sin(elevation)
+    'land_blend': 0.09,  # below it, land toward -X and sea toward +X, blended over this much of the x direction
 }
 
 # The Spec's Day sun (latitude 45, clock 10), toward the sun, Roblox axes.
@@ -61,6 +62,10 @@ COLOURS = {
         # and #1791D8 at low). At low quality Roblox draws the water only near the camera and
         # the sky shows beyond it, so the two must match; the art's far sea is #3187DE.
         'sea': '#2F92D8',
+        # Below the horizon toward the city (Roblox -X, where the land runs past the world's
+        # edge): the far land's rendered colour (sampled in Studio, Stage 4), so the city's
+        # ground meets the sky with no strip of painted sea.
+        'land': '#A89FA8',
         'cloud_lit': '#F7F8FF',  # the art's sunlit tops read near white; cloud_day is their average
         'cloud_mid': mc.hexc('cloud_day'),
         'cloud_shade': mc.hexc('cloud_day', 'shade'),
@@ -115,7 +120,8 @@ def math_node(tree, op, a=None, b=None, clamp=False):
 
 
 def world(scene, c):
-    """The sky gradient by the ray's elevation, the far sea below the horizon."""
+    """The sky gradient by the ray's elevation; below the horizon, the far land toward the city
+    (-X) and the far sea toward the ocean (+X)."""
     w = bpy.data.worlds.new('Sky')
     scene.world = w
     w.use_nodes = True
@@ -135,9 +141,19 @@ def world(scene, c):
     below.inputs['From Min'].default_value = 0.0
     below.inputs['From Max'].default_value = -P['sea_band']
     t.links.new(sep.outputs['Z'], below.inputs['Value'])
+    ground = t.nodes.new('ShaderNodeMapRange')
+    ground.clamp = True
+    ground.inputs['From Min'].default_value = -P['land_blend']
+    ground.inputs['From Max'].default_value = P['land_blend']
+    t.links.new(sep.outputs['X'], ground.inputs['Value'])
+    below_col = t.nodes.new('ShaderNodeMix')
+    below_col.data_type = 'RGBA'
+    below_col.inputs['A'].default_value = linear(c['land'])
+    below_col.inputs['B'].default_value = linear(c['sea'])
+    t.links.new(ground.outputs['Result'], below_col.inputs['Factor'])
     mix = t.nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
-    mix.inputs['B'].default_value = linear(c['sea'])
+    t.links.new(below_col.outputs['Result'], mix.inputs['B'])
     t.links.new(below.outputs['Result'], mix.inputs['Factor'])
     t.links.new(sky.outputs['Color'], mix.inputs['A'])
     bg = node(t, 'ShaderNodeBackground', Strength=1.0)
