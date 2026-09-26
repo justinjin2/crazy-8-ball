@@ -84,7 +84,7 @@ order; that is Open.
 - **The house accent is blue.** A gamepad-selected or hovered button gets a thick gold outline.
 
 **Open**
-- Grandmaster's rank badge uses the VIP rainbow (2026-09-26). If VIP items also look rainbow,
+- Reyes' rank badge uses the VIP rainbow (2026-09-26). If VIP items also look rainbow,
   decide whether the two should differ so a rank is never mistaken for a VIP item.
 - The order of the rarities (where mythic and unique sit) and what VIP means (GDD section 12).
 
@@ -118,14 +118,15 @@ order; that is Open.
   Platinum, crystal shards for Diamond, fins for Expert, a laurel for Veteran, a crystal burst
   for Master, swept wings for Grandmaster), not one more ornament per tier. The same rules on
   every badge: the ball and its ring the same size in the same place; a crown from Expert up
-  (bigger each tier, Veteran included; Reyes the biggest, in gold); pips in an arc under the
-  ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 =
-  division I), big and bright, spaced so they never overlap and set in one smooth curved tray
-  in a deep shade of the tier's colour (darker by the ball, a lit rim, a soft glow and shadow
-  under each pip), so the count reads when the badge is small. Diamond is cyan; Grandmaster is a rainbow badge in the house
-  rainbow (section 4's VIP colours: a rainbow frame and ring, feathers red to purple,
-  prismatic gems) (2026-09-26). Reyes is black and gold with no pips and no signature. No
-  banner and no words: the rank's name is game text beside the badge where needed.
+  (bigger each tier, Veteran included; Reyes the biggest); pips in an arc under the ball: 1 to
+  5 stars from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster (1 = division I), big
+  and bright, spaced so they never overlap and set in one smooth curved tray in a deep shade
+  of the tier's colour (darker by the ball, a lit rim, a soft glow and shadow under each pip),
+  so the count reads when the badge is small. Diamond is cyan. Grandmaster is black and gold
+  (a gold trim, crown and ring, black feathers with gold veins, gold gems). Reyes is a rainbow
+  badge in the house rainbow (section 4's VIP colours: a rainbow frame, ring and crown, its
+  crystals and blades red to purple), with no pips and no signature (2026-09-26). No banner
+  and no words: the rank's name is game text beside the badge where needed.
 
 ## 7. Motion
 

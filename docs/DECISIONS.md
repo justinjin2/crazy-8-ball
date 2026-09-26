@@ -1197,3 +1197,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-26: Rank badges, round five (designer): the overlapping pip sockets looked like icons
   piled on each other, so the pips now sit apart in one smooth curved tray with bevel shading,
   and each has a glow and a small shadow.
+- 2026-09-26: Rank badges, round six (designer): the rainbow moves to Reyes (a rainbow frame,
+  ring and crown, its crystals and blades red to purple) and Grandmaster becomes black and gold
+  (Reyes' old look on Grandmaster's shape, with gold gems). The VIP-rainbow Open note now
+  names Reyes.

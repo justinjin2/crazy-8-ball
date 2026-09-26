@@ -5,13 +5,13 @@ Drawn in the icon style of tools/gen_ui_art.py (thick ink outline, drop lip, gra
 and rendered the same way. Each tier is its own badge after the designer's reference sheet: a
 faceted frame round a big 8 ball, with the tier's own ornaments (tall side plates for Bronze,
 Silver and Gold; crystal feathers for Platinum; crystal shards for Diamond; fins for Expert; a
-laurel for Veteran; a crystal burst for Master; swept wings for Grandmaster; black and gold
-blades for Reyes). On top of that, the same rules everywhere:
+laurel for Veteran; a crystal burst for Master; swept black and gold wings for Grandmaster;
+rainbow crystals and blades for Reyes). On top of that, the same rules everywhere:
 - the 8 ball and its ring are the same size in the same place on every badge;
-- a crown from Expert up, bigger each tier (Reyes has the biggest, in gold);
+- a crown from Expert up, bigger each tier (Reyes has the biggest);
 - pips in an arc under the ball: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
   to Grandmaster (1 pip = division I, 5 = V).
-Grandmaster is a rainbow badge. Reyes is one badge with no pips. Unranked is a plain grey
+Grandmaster is black and gold. Reyes is a rainbow badge, one badge with no pips. Unranked is a plain grey
 badge. No words in any image.
 
 Outputs under assets/ui/ranks/ (see README.md there):
@@ -55,6 +55,8 @@ GOLD = ("#FFF3A6", "#FFC928", "#C97F00")
 # Grandmaster's rainbow: the house rainbow of UI_STYLE section 4, in order round the frame
 RAINBOW = ("#FF4D4D", "#FF9F1C", "#FFE14D", "#3DD66B", "#3B9BFF", "#A259FF")
 PRISM = ("#FFF4FF", "#B98CFF", "#3A2380")  # stands in for a rainbow tier's light, mid and dark
+BLACK = ("#8C8CA2", "#3C3C4C", "#14141C")  # a black-and-gold tier's black: frame and wings
+RUBY = ("#FF8A8A", "#E0203A", "#7A0A1E")  # the gem on a gold crown
 
 # name, metal (light, mid, dark), pip kind, crown level (0 = none), frame. Lowest tier first.
 TIERS = [
@@ -66,9 +68,9 @@ TIERS = [
     ("expert", ("#FFB0A8", "#F2413F", "#9A1226"), "gem", 1, "round"),
     ("veteran", ("#C8F7A8", "#4FC93A", "#1A7A28"), "gem", 2, "crest"),
     ("master", ("#DEC4FF", "#9B55F5", "#4C18A8"), "gem", 3, "crest"),
-    ("grandmaster", PRISM, "gem", 4, "crest"),
+    ("grandmaster", BLACK, "gem", 4, "crest"),
 ]
-REYES = ("reyes", ("#8C8CA2", "#3C3C4C", "#14141C"), None, 5, "round")
+REYES = ("reyes", PRISM, None, 5, "round")
 UNRANKED = ("unranked", ("#EEF1F6", "#B4BDCB", "#7D889B"), None, 0, "hex")
 
 
@@ -278,8 +280,8 @@ def feather_hue(k):
 def rainbow_at(turn):
     """The rainbow's colour a fraction `turn` of the way round (0 and 1 both red)."""
     x = (turn % 1) * len(RAINBOW)
-    i = int(x)
-    return mix(RAINBOW[i], RAINBOW[(i + 1) % len(RAINBOW)], x - i)
+    i = int(x) % len(RAINBOW)  # a turn a hair below 0 wraps to exactly 1.0
+    return mix(RAINBOW[i], RAINBOW[(i + 1) % len(RAINBOW)], x - int(x))
 
 
 def facet_colour(metal, a, b):
@@ -395,6 +397,8 @@ def pips(kind, count, metal):
         else:
             if metal == PRISM:  # a rainbow tier's gems are prismatic: each facet a pale rainbow tint
                 facets = tuple(mix(RAINBOW[k], "#FFFFFF", 0.45) for k in (0, 2, 4, 5))
+            elif metal == BLACK:  # a black tier's gems are gold
+                facets = (mix(GOLD[0], "#FFFFFF", 0.4), GOLD[0], GOLD[1], mix(GOLD[1], GOLD[2], 0.5))
             else:
                 facets = (mix(light, "#FFFFFF", 0.7), mix(light, "#FFFFFF", 0.5), light, mix(light, mid, 0.7))
             h = PIP_SIZE + 1.5
@@ -546,22 +550,27 @@ def orn_master(m):
 
 
 def orn_grandmaster(m):
-    """Swept rainbow wings (each feather its own colour, red at the top to purple at the
-    bottom; long feathers behind, short ones in front) and spikes on the shoulders."""
-    back = ((246, 118), (224, 96), (202, 76), (182, 62))
-    front = ((240, 72), (218, 66), (196, 54))
-    feathers = sorted([(a, n, "back") for a, n in back] + [(a, n, "front") for a, n in front], reverse=True)
-    colour = {(a, layer): f"url(#h{k})" for k, (a, _, layer) in enumerate(feathers)}
-    out = [blade((88, 170), a, n, 30, bend=-16, fill=colour[(a, "back")], rib="#FFFFFF") for a, n in back]
-    out += [blade((92, 172), a, n, 22, bend=-10, fill=colour[(a, "front")], rib="#FFFFFF") for a, n in front]
-    return "".join(out) + shard((72, 104), 238, 34, 16, fill="url(#c)", light=m[0])
+    """Swept wings: long black feathers with gold veins behind, short gold ones in front, and
+    gold spikes on the shoulders."""
+    back = fan("blade", (88, 170), ((246, 118), (224, 96), (202, 76), (182, 62)), 30, bend=-16, rib=GOLD[0])
+    front = fan("blade", (92, 172), ((240, 72), (218, 66), (196, 54)), 22, bend=-10, fill="url(#g)", rib="#FFFFFF")
+    return back + front + shard((72, 104), 238, 34, 16, fill="url(#g)", light=GOLD[0])
+
+
+def rainbow_fills(n):
+    """n feather colours, red to purple, as gradient references."""
+    return [f"url(#h{round(k * (FEATHER_HUES - 1) / (n - 1))})" for k in range(n)]
 
 
 def orn_reyes(m):
-    """Black crystal blades with gold blades between them."""
-    dark = fan("shard", (86, 170), ((240, 112), (212, 80), (186, 66)), 34, fill="url(#m)", light="#9A9AB0")
-    gold = fan("blade", (88, 170), ((258, 96), (226, 96), (199, 74)), 20, bend=-6, fill="url(#g)", rib=GOLD[0])
-    return dark + gold
+    """Crystal blades with blades between them, each its own rainbow colour, red at the top."""
+    shards = ((240, 112), (212, 80), (186, 66))
+    blades = ((258, 96), (226, 96), (199, 74))
+    order = sorted([(a, "shard") for a, _ in shards] + [(a, "blade") for a, _ in blades], reverse=True)
+    fill = dict(zip(order, rainbow_fills(len(order))))
+    out = [shard((86, 170), a, n, 34, fill=fill[(a, "shard")], light="#FFFFFF") for a, n in shards]
+    out += [blade((88, 170), a, n, 20, bend=-6, fill=fill[(a, "blade")], rib="#FFFFFF") for a, n in blades]
+    return "".join(out)
 
 
 ORNAMENTS = {
@@ -589,12 +598,13 @@ def badge_body(tier, count):
     parts = []
     if name in ORNAMENTS:
         parts.append(mirrored(ORNAMENTS[name](metal)))
-    if name == "reyes":
+    if metal == BLACK:
         # a black frame with a gold trim line; the crown and ring gold
         parts.append(frame(frame_kind, metal, face="url(#m)"))
         trim = inset_poly(FRAMES[frame_kind], 10)
         parts.append(poly(trim, "none", False, 'stroke="url(#g)" stroke-width="3" stroke-linejoin="round"'))
-        parts.append(crown(crown_level, face="url(#g)", rim="url(#gr)", gem_colours=("#FF8A8A", "#E0203A", "#7A0A1E")))
+        if crown_level:
+            parts.append(crown(crown_level, face="url(#g)", rim="url(#gr)", gem_colours=RUBY))
         parts.append(ring(face="url(#g)", rim="url(#gr)"))
     else:
         parts.append(frame(frame_kind, metal))

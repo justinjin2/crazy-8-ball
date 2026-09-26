@@ -12,8 +12,8 @@ work does not overlap the map work in Studio. Design notes: `docs/UI_STYLE.md` s
 |---|---|
 | `unranked.png` | plain grey badge; no pips, no shine |
 | `bronze_1.png` to `diamond_5.png` | 1 to 5 stars (bronze, silver, gold, platinum, diamond) |
-| `expert_1.png` to `grandmaster_5.png` | 1 to 5 gems and a crown (expert, veteran, master, grandmaster) |
-| `reyes.png` | one badge: black and gold, the biggest crown, no pips |
+| `expert_1.png` to `grandmaster_5.png` | 1 to 5 gems and a crown (expert, veteran, master, grandmaster in black and gold) |
+| `reyes.png` | one badge: rainbow, the biggest crown, no pips |
 | `shine/<same name>.png` | the badge's shape in white, which the light sweep is clipped to |
 | `sparkle.png` | the white twinkle for Expert and up (128 px) |
 | `*.svg` | the drawings the PNGs are rendered from |
