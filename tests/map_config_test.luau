@@ -139,24 +139,42 @@ return {
 		end
 	end,
 
-	["the day lighting preset is numbers and hex colours"] = function()
+	["the day lighting preset is numbers, hex colours, sky ids and switches"] = function()
 		local Day = H.require("Config").Lighting.Day
 		local function check(t: { [string]: any }, where: string)
 			for key, value in t do
 				if type(value) == "table" then
 					check(value, where .. "." .. key)
+				elseif type(value) == "string" and key:match("^Skybox") then
+					H.expect(
+						isAssetId(value),
+						("%s.%s: %q is not an image id"):format(where, key, value)
+					)
 				elseif type(value) == "string" then
 					H.expect(
 						isHex(value),
 						("%s.%s: %q is not a hex colour"):format(where, key, value)
 					)
 				else
-					H.expect(type(value) == "number", ("%s.%s is a number"):format(where, key))
+					H.expect(
+						type(value) == "number" or type(value) == "boolean",
+						("%s.%s is a number or a switch"):format(where, key)
+					)
 				end
 			end
 		end
 		check(Day, "Lighting.Day")
 		H.expect(Day.Brightness > 0 and Day.ClockTime >= 0 and Day.ClockTime < 24, "a sane sun")
+		-- The Sky has all six faces or none (a partial set shows Roblox's default in the gaps).
+		if Day.Sky then
+			local set = 0
+			for _, face in { "Bk", "Dn", "Ft", "Lf", "Rt", "Up" } do
+				if (Day.Sky["Skybox" .. face] or "") ~= "" then
+					set += 1
+				end
+			end
+			H.expect(set == 0 or set == 6, ("the sky has %d of its 6 faces"):format(set))
+		end
 	end,
 
 	["every prop kind has a row, a real group and budgets that hold"] = function()

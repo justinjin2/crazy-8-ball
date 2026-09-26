@@ -2766,6 +2766,21 @@ Config.Lighting = {
 			Color = "#D7DEEB",
 			Decay = "#96BEEB",
 		},
+		-- Lighting.Sky: assets/map/gen_sky.py's day faces (textures/sky_day_*.png, uploaded
+		-- 2026-09-26): the art's gradient and cumulus clouds, the far sea below the horizon.
+		-- MapBuilder.applyLighting updates the place's own Sky (two Skies clash).
+		Sky = {
+			SkyboxBk = "rbxassetid://136236624760686",
+			SkyboxDn = "rbxassetid://96517970409100",
+			SkyboxFt = "rbxassetid://128267964114576",
+			SkyboxLf = "rbxassetid://119703293534272",
+			SkyboxRt = "rbxassetid://98150517049636",
+			SkyboxUp = "rbxassetid://118017971954719",
+			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
+			MoonAngularSize = 11,
+			StarCount = 0, -- no stars by day
+			CelestialBodiesShown = true, -- the sun is Roblox's, never painted
+		},
 	},
 }
 

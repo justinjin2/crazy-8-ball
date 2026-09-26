@@ -685,33 +685,43 @@ function MapBuilder.prepareProps(spec: any, data: any): string
 	return table.concat(lines, "\n")
 end
 
---- Edit mode: apply a lighting preset (Config.Lighting.Day) to Lighting and its Atmosphere,
---- for captures and so the place is saved lit that way. Returns a one-line report.
+-- Write a preset block's values onto an instance: hex strings become colours, asset ids stay
+-- strings, numbers and booleans go as they are. Nested tables are the caller's.
+local function applyValues(target: Instance, values: { [string]: any })
+	for key, value in values do
+		if type(value) == "table" then
+			continue
+		elseif type(value) == "string" and value:sub(1, 1) == "#" then
+			(target :: any)[key] = Color3.fromHex(value)
+		else
+			(target :: any)[key] = value
+		end
+	end
+end
+
+--- Edit mode: apply a lighting preset (Config.Lighting.Day) for captures and so the place is
+--- saved lit that way: Lighting's own values, its Atmosphere, its Sky (the place's own one,
+--- updated; two Skies clash) and the Terrain's water. Returns a one-line report.
 function MapBuilder.applyLighting(preset: any): string
 	local Lighting = game:GetService("Lighting")
-	for key, value in preset do
-		if key == "Atmosphere" then
-			continue
-		end
-		if type(value) == "string" then
-			(Lighting :: any)[key] = Color3.fromHex(value)
-		else
-			(Lighting :: any)[key] = value
-		end
-	end
+	applyValues(Lighting, preset)
 	local atmosphere = Lighting:FindFirstChildWhichIsA("Atmosphere") or Instance.new("Atmosphere")
-	for key, value in preset.Atmosphere do
-		if type(value) == "string" then
-			(atmosphere :: any)[key] = Color3.fromHex(value)
-		else
-			(atmosphere :: any)[key] = value
-		end
-	end
+	applyValues(atmosphere, preset.Atmosphere)
 	atmosphere.Parent = Lighting
-	return ("Lighting: clock %.2f, latitude %d, brightness %.2f."):format(
+	if preset.Sky then
+		local sky = Lighting:FindFirstChildWhichIsA("Sky") or Instance.new("Sky")
+		applyValues(sky, preset.Sky)
+		sky.Parent = Lighting
+	end
+	if preset.Water then
+		applyValues(workspace.Terrain, preset.Water)
+	end
+	return ("Lighting: clock %.2f, latitude %d, brightness %.2f; sky %s, water %s."):format(
 		Lighting.ClockTime,
 		Lighting.GeographicLatitude,
-		Lighting.Brightness
+		Lighting.Brightness,
+		if preset.Sky then "set" else "unchanged",
+		if preset.Water then "set" else "unchanged"
 	)
 end
 
