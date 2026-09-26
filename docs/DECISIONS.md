@@ -1205,3 +1205,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   bottom and made every badge look round, so the pips now sit in a V (a chevron) that follows
   the frame's point, in one slim tray; one pip sits right at the point. Pips a little smaller
   (still countable at 64 px) so the tray stays inside the badge's shape.
+- 2026-09-26: Rank badges, round eight (designer, still preferring the reference): no tray at
+  all. The pips sit on the ring's bottom edge like the reference's star, the middle one
+  biggest, each with a thick ink outline, a shadow and a glow so they pop by themselves.

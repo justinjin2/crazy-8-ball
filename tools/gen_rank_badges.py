@@ -9,7 +9,7 @@ laurel for Veteran; a crystal burst for Master; swept black and gold wings for G
 rainbow crystals and blades for Reyes). On top of that, the same rules everywhere:
 - the 8 ball and its ring are the same size in the same place on every badge;
 - a crown from Expert up, bigger each tier (Reyes has the biggest);
-- pips in a V under the ball, following the frame's pointed bottom: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
+- pips along the ring's bottom, the middle one biggest, each boldly outlined: 1 to 5 stars from Bronze to Diamond, 1 to 5 gems from Expert
   to Grandmaster (1 pip = division I, 5 = V).
 Grandmaster is black and gold. Reyes is a rainbow badge, one badge with no pips. Unranked is a plain grey
 badge. No words in any image.
@@ -42,13 +42,13 @@ EDGE = 3.5  # the thin ink lines between parts (the outer outline is ink_filter'
 CX, CY = 128, 138  # the ball's centre, the same on every badge (low, to leave room for crowns)
 RING = 58  # the metal ring's outer radius
 BALL = 46
-# The pips sit in a V (a chevron) that echoes the frame's pointed bottom: the middle one at the
-# point, the others climbing its two sides, all in one slim tray parallel to the frame's edges.
-PIP_APEX = 203  # the V's lowest point (the frames' own point is at 228)
-PIP_SLOPE = 0.62  # how steeply the V's sides climb (the hex frame's lower edges: 0.69)
-PIP_SPACING = 29  # across the badge between pips, so they never overlap
-PIP_SIZE = 16.5  # a star's radius; the tray is this much wider on each side:
-PIP_TRAY = 3.5
+# The pips sit on the ring's bottom edge like the reference's single star, following its
+# curve, with the frame's point still showing below. The middle one is the biggest.
+PIP_RING = 64  # the pips' centres, this far from the ball's centre (the ring's edge is 58)
+PIP_SIZE = 19  # the middle pip's radius...
+PIP_TAPER = 0.1  # ...each step outwards this much smaller
+PIP_GAP = 0.9  # neighbours' centres this fraction of their two radii apart: close, never overlapping
+PIP_OUTLINE = 3.2  # the thick sticker outline round each pip, so it pops on any colour
 CROWN_BASE = 80  # the crown's bottom edge, on the ring's top
 LIGHT = (-0.55, -0.83)  # towards the light, for the facets: the top left
 OUTLINE = 6  # the outer ink outline, a little thinner than the icons' (badges have finer parts)
@@ -223,14 +223,18 @@ def shard(p, ang, length, width, fill="url(#w)", light="#FFFFFF"):
     )
 
 
-def star(c, r, fill="url(#s)"):
+def star_path(c, r):
     pts = []
     for i in range(10):
         a = math.radians(-90 + i * 36)
-        rr = r if i % 2 == 0 else r * 0.47
+        rr = r if i % 2 == 0 else r * 0.5
         pts.append((c[0] + math.cos(a) * rr, c[1] + math.sin(a) * rr))
+    return rpoly(pts, 2.2)
+
+
+def star(c, r, fill="url(#s)"):
     return (
-        path(rpoly(pts, 1.6), fill)
+        path(star_path(c, r), fill)
         + gloss(c[0] - r * 0.22, c[1] - r * 0.3, r * 0.32, r * 0.18, -25, 0.85)
     )
 
@@ -357,47 +361,37 @@ def eight_ball():
     )
 
 
+def pip_layout(count):
+    """(centre, radius) of each pip: the biggest in the middle, a curve along the ring."""
+    radii = [PIP_SIZE * (1 - PIP_TAPER * abs(i - (count - 1) / 2)) for i in range(count)]
+    angles = [90.0] * count
+    half = count // 2
+    for i in range(half, count):  # from the middle outwards on the right, mirrored on the left
+        if i == (count - 1) / 2:
+            continue
+        prev_r, prev_a = (radii[i - 1], angles[i - 1]) if i > half or count % 2 else (radii[i], 90.0)
+        chord = (prev_r + radii[i]) * PIP_GAP * (1 if i > half or count % 2 else 0.5)
+        angles[i] = prev_a - math.degrees(2 * math.asin(chord / 2 / PIP_RING))
+        angles[count - 1 - i] = 180 - angles[i]
+    return [(along((CX, CY), a, PIP_RING), r) for a, r in zip(angles, radii)]
+
+
 def pips(kind, count, metal):
-    """The division: 1 to 5 bright stars or gems in a V under the ball, set in one slim tray
-    that follows the frame's pointed bottom. The tray is darker by the ball with a lit lower
-    rim, and each pip has a soft glow behind it and a shadow under it."""
+    """The division: 1 to 5 bright stars or gems along the ring's bottom, each with a thick
+    outline, a small shadow and a soft glow, so they pop without a tray behind them."""
     light, mid, dark = metal
-    xs = [(i - (count - 1) / 2) * PIP_SPACING for i in range(count)]
-    centres = [(CX + x, PIP_APEX - abs(x) * PIP_SLOPE) for x in xs]
-    half = PIP_SIZE + PIP_TRAY
-    groove = centres  # through the pips: a point under an odd count, a short flat under an even one
-    top = min(y for _, y in groove) - half
     out = [
-        '<defs><linearGradient id="tray" gradientUnits="userSpaceOnUse" '
-        f'x1="0" y1="{top:.1f}" x2="0" y2="{PIP_APEX + half * 1.3:.1f}">'
-        f'<stop offset="0" stop-color="{mix(dark, INK, 0.8)}"/>'
-        f'<stop offset="0.55" stop-color="{mix(dark, INK, 0.6)}"/>'
-        f'<stop offset="1" stop-color="{mix(dark, INK, 0.35)}"/></linearGradient>'
-        '<radialGradient id="glow"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.5"/>'
+        '<defs><radialGradient id="glow"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>'
         '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs>'
     ]
-    if count > 1:
-        d = "M" + " L".join(pt(p) for p in groove)
-        # a mitred join keeps the tray's bottom pointed, like the frame's
-        stroke = 'fill="none" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4"'
-        out.append(f'<path d="{d}" {stroke} stroke="{INK}" stroke-width="{2 * half + EDGE}"/>')
-        out.append(f'<path d="{d}" {stroke} stroke="url(#tray)" stroke-width="{2 * half - EDGE}"/>')
-        # a lit rim along the tray's lower edge and a shadow along its upper edge
-        drop = (half - EDGE - 1.5) / math.cos(math.atan(PIP_SLOPE))
-        lift = (half - EDGE - 2) / math.cos(math.atan(PIP_SLOPE))
-        lower = "M" + " L".join(pt((x, y + drop)) for x, y in groove)
-        upper = "M" + " L".join(pt((x, y - lift)) for x, y in groove)
-        out.append(f'<path d="{lower}" fill="none" stroke="{light}" stroke-width="1.6" stroke-opacity="0.45" stroke-linecap="round"/>')
-        out.append(f'<path d="{upper}" fill="none" stroke="#000000" stroke-width="2.4" stroke-opacity="0.35" stroke-linecap="round"/>')
-    else:
-        c = centres[0]
-        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{half}" fill="url(#tray)" stroke="{INK}" stroke-width="{EDGE}"/>')
-    for c in centres:
-        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{PIP_SIZE * 1.15:.1f}" fill="url(#glow)" opacity="0.8"/>')
-        shadow = (c[0], c[1] + 2.2)
+    thick = f'stroke="{INK}" stroke-width="{2 * PIP_OUTLINE + EDGE}" stroke-linejoin="round"'
+    for c, r in pip_layout(count):
+        out.append(f'<circle cx="{c[0]:.1f}" cy="{c[1]:.1f}" r="{r * 1.35:.1f}" fill="url(#glow)"/>')
+        shadow = (c[0], c[1] + 3)
         if kind == "star":
-            out.append(star(shadow, PIP_SIZE, fill="#000000").replace("<path", '<path opacity="0.4"', 1))
-            out.append(star(c, PIP_SIZE, fill="url(#s)"))
+            out.append(path(star_path(shadow, r), "#000000", False, 'opacity="0.35"'))
+            out.append(path(star_path(c, r), INK, False, thick))
+            out.append(star(c, r, fill="url(#s)"))
         else:
             if metal == PRISM:  # a rainbow tier's gems are prismatic: each facet a pale rainbow tint
                 facets = tuple(mix(RAINBOW[k], "#FFFFFF", 0.45) for k in (0, 2, 4, 5))
@@ -405,9 +399,14 @@ def pips(kind, count, metal):
                 facets = (mix(GOLD[0], "#FFFFFF", 0.4), GOLD[0], GOLD[1], mix(GOLD[1], GOLD[2], 0.5))
             else:
                 facets = (mix(light, "#FFFFFF", 0.7), mix(light, "#FFFFFF", 0.5), light, mix(light, mid, 0.7))
-            h = PIP_SIZE + 1.5
-            out.append(poly([(shadow[0], shadow[1] - h), (shadow[0] + h * 0.84, shadow[1]), (shadow[0], shadow[1] + h),
-                             (shadow[0] - h * 0.84, shadow[1])], "#000000", False, 'opacity="0.4"'))
+            h = r * 1.08
+            w = h * 0.84
+
+            def rhombus(p):
+                return [(p[0], p[1] - h), (p[0] + w, p[1]), (p[0], p[1] + h), (p[0] - w, p[1])]
+
+            out.append(poly(rhombus(shadow), "#000000", False, 'opacity="0.35"'))
+            out.append(poly(rhombus(c), INK, False, thick))
             out.append(gem(c, h, light, light, mid, 0.84, facets))
     return "".join(out)
 
