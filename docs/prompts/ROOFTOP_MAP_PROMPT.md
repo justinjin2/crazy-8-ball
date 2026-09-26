@@ -372,3 +372,16 @@ One line per stage: date, stage, result, commit.
   budget table; designer interview recorded in Spec section 0. Sun measured: sunset is a
   dawn sun (latitude -30, ClockTime 6.4). Next: Stage 1, which also moves the queue pad to
   the table's front long side in Placement.
+- 2026-09-26: Stage 1 done.
+  - Config: the rooftop grid (16 sideways tables, 36 x 31.5 apart), mode looks and the spawn
+    mat. The queue pad sits in front of each table (Queue.PadSide); the other session made it
+    a rectangle, and the rows re-spaced from it.
+  - The gray-box: MapBuilder.buildGrayBox from gen_graybox.py data.
+  - Critic, 3 rounds: layout 5, 5, 6; calm 5, 6, 5; phone 5, 4, 6. The rest waits for later
+    stages.
+  - Play: 24 of 24 paths from the spawn and 7 of 7 edge pushes pass.
+  - Commits 51e2b89, c67d1c5, 616c555, 6446ee3.
+  - Carried forward (Spec section 7 and the stages): the big island right of the pergola
+    (azimuth about 25, about 6 degrees tall); a denser, slimmer skyline; heavier pergola
+    columns and fascia (Stage 2); the stair-flank palms against ferns (Checkpoint B).
+  - Waiting at CHECKPOINT A.

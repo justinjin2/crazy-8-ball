@@ -333,3 +333,20 @@ character waits on the lower landing.
 ## 8. Budgets
 
 `Budget.md` holds the brief's caps and the running count.
+
+## 9. Carried forward from the Stage 1 critic
+
+The gray-box went through three critic rounds (the brief's cap). These notes are for the
+stages that build the real thing:
+
+- **Islands (Stage 5):** the art's big peak stands right of the pergola from the entrance
+  (azimuth about 17 to 38), about 6 degrees tall and twice as wide as tall. There is no cone
+  straight behind the pergola. Add mid-distance islands in clusters as in the ocean panel.
+- **Skyline (Stage 5):** many slim towers, 16 to 24 wide near, a continuous skyline on the
+  horizon from azimuth -160 to -20; nothing but sea and islands behind the lounge.
+- **Pergola (Stage 2):** heavier than the gray-box. Fewer, thicker cream columns (about 4.5
+  square) wrapped in vines, under a solid fascia about 3.5 deep. Check the clear height
+  against the lounge-back view.
+- **Palms (Checkpoint B):** the art has ferns and tall lanterns flanking the stair rather
+  than palms; the palms at the pergola ends rise clear of its roof (about 38 and 30).
+- **Light (Stages 4 and 7):** a crisp deep-blue horizon; the floor must not glare white.
