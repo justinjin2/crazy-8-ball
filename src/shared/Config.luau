@@ -2176,6 +2176,17 @@ Config.UI = {
 	Panel = { 20, 20, 24 },
 	PanelTransparency = 0.35,
 
+	-- The sign over a table's queue box (src/client/TableSign.luau). Only one shows: over the
+	-- table you walk right up to, popping in, and never while you are in a box or playing
+	-- (designer, 2026-09-25: it used to hang over all sixteen tables all the time).
+	Sign = {
+		ShowStuds = 6, -- it pops up within this far of the table's match area (tune)
+		HideStuds = 8, -- and goes once you are this far out, so it does not flicker at the edge
+		HeightStuds = 6.5, -- above the queue box
+		WidthPx = 280, -- its size on screen, pixels (the same at any distance)
+		HeightPx = 160,
+	},
+
 	-- The shared UI kit (src/client/HudParts.luau): the one look every screen is built from.
 	-- docs/UI_STYLE.md; the designer's choices of 2026-09-25: white panels with a thick ink
 	-- outline, a soft shadow and a faint pool-ball pattern; raised candy buttons in traffic
@@ -2287,7 +2298,7 @@ Config.UI = {
 			SlidePx = 24, -- how far a slide travels
 			ShineSeconds = 0.7, -- one shine sweep across a panel or button
 			PulseSeconds = 0.9, -- one breath of a pulsing button
-			PulseScale = 1.05, -- how big it breathes
+			PulseScale = 1.03, -- how big it breathes (a full-width Start stays inside its card)
 			BounceScale = 1.2, -- a pocketed ball's pop
 			RaysDegreesPerSecond = 30, -- the win card's rays
 		},
@@ -2405,7 +2416,7 @@ Config.Multiplayer = {
 		BoxHeight = 0.12, -- thin floor strip, studs
 		FloorOffset = 0.08, -- avoid baseplate z-fighting, studs
 		PixelsPerStud = 40, -- sharp floor labels without large canvases
-		FrameTransparency = 0.35, -- dark label backing
+		FrameTransparency = 0.7, -- the white label panel: faint, so the box's green shows through
 		CornerPixels = 24, -- rounded floor strip corners
 		EdgePixels = 4, -- softly pulsing outline thickness
 		EdgeTransparency = 0.15, -- brightest edge phase
@@ -2415,8 +2426,11 @@ Config.Multiplayer = {
 		LightBrightness = 0.35, -- bounded ambient surface glow
 		LightRange = 5, -- local box lighting, studs
 		EmptyTransparency = 0.18, -- the box's white footprint
-		LabelInset = 0.18, -- floor words keep this share of the strip clear at each edge
-		FloorTextSize = 40, -- the largest the floor words scale to, pixels
+		LabelInset = 0.08, -- floor words keep this share of the strip clear at each edge
+		FloorTextSize = 52, -- the box's words, pixels (at PixelsPerStud: 1.3 studs tall)
+		HalfTextSize = 44, -- a team half's words (a half is half as long)
+		FloorIconPx = 84, -- the people icon before the box's words
+		FloorIconGapPx = 14, -- between the icon and the words
 		LabelRotation = 90, -- floor words lie along the box, upright from outside it (90 or -90)
 		HalfGapStuds = 0.3, -- the two halves stop short of the middle and the edges by this
 		HalfLiftStuds = 0.02, -- halves float this far over the box, so they never z-fight it
@@ -2425,14 +2439,6 @@ Config.Multiplayer = {
 		HalfUneven = { 150, 156, 166 }, -- grey: the halves do not hold half each yet
 		DividerStuds = 0.2, -- the line between the halves
 		DividerTransparency = 0.1, -- shown with the halves
-		PanelOffset = 6.5, -- floating panel above the box, studs
-		PanelWidth = 240, -- readable mode/host panel, pixels
-		PanelHeight = 104, -- fixed panel height, pixels
-		PanelMaxDistance = 90, -- avoid distant billboard clutter, studs
-		PanelTransparency = 0.08, -- readable dark backing
-		ModeLabel = { 1, 0.35, 0, 0.04, 24 }, -- panel headline layout
-		HostLabel = { 0.9, 0.25, 0.05, 0.42, 14 }, -- quiet host label
-		StatusLabel = { 1, 0.25, 0, 0.7, 16 }, -- occupancy/status line
 		VerticalTolerance = 6, -- a box cannot seat someone on a different floor, studs
 		AreaMargin = 1, -- the queue area around the box: leaving it starts the exit grace
 		FallTolerance = 5, -- recover a falling participant below the table area
@@ -2533,16 +2539,19 @@ Config.Multiplayer = {
 		OpenBallMinSize = 14, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
 		-- The queue menu (src/client/QueueMenu.luau), top right while waiting in a box.
-		QueueMenuWidth = 290, -- pixels, before shrinking to fit
+		QueueMenuWidth = 320, -- pixels, before shrinking to fit
 		QueueMenuPadding = 12, -- inside the card
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
 		QueueTouchRight = 120, -- on touch screens the card keeps this far from the right edge: the jump button
-		QueueHostSize = 20, -- the host's name
-		QueueLevelHeight = 40, -- the difficulty segments and the abilities row
-		QueueToggleWidth = 72, -- the abilities ON/OFF button
-		QueueSoonWidth = 44, -- the SOON tag on Play against PC
-		QueueDisabledText = 0.55, -- text transparency of a control only the host may press
+		QueueHostSize = 22, -- the host's name
+		QueueHostRowHeight = 40, -- the crown, HOST and the name
+		QueueCountWidth = 88, -- the people n/6 pill
+		QueuePillHeight = 32, -- the count and team-split pills
+		QueueLevelHeight = 106, -- the difficulty tiles: picture over name
+		QueueStartHeight = 56, -- Start, bigger than the rest
+		QueueToggleWidth = 84, -- the abilities ON/OFF button
+		QueueSoonWidth = 64, -- the SOON tag on Play against PC
 		QueueNoticeSeconds = 2.5, -- "Coming soon" stays up this long
 		SoloWrapColumns = 8, -- the solo 15-ball row wraps to this many + the rest on narrow screens
 		OwnBallOutlineTransparency = 0.6, -- subtle local group hint (the normal style)

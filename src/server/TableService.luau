@@ -19,6 +19,7 @@ local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
+local Kit = Config.UI.Kit
 local Service = {}
 -- Every table's queue box, host panel, barrier and fence.
 Service.ZoneFolderName = "TableZones"
@@ -111,9 +112,16 @@ local function label(
 ): TextLabel
 	local l = Instance.new("TextLabel")
 	l.BackgroundTransparency = 1
-	l.TextColor3 = rgb(M.Style.Text)
-	l.Font = Enum.Font.GothamBold
+	l.TextColor3 = rgb(Kit.Colors.White)
+	l.Font = (Enum.Font :: any)[Kit.Font]
 	l.TextSize = fontSize
+	-- White words outlined in ink, like every screen (docs/UI_STYLE.md).
+	local outline = Instance.new("UIStroke")
+	outline.Color = rgb(Kit.Colors.Ink)
+	outline.Thickness =
+		math.max(Kit.TextOutlineMinPx, math.floor(fontSize * Kit.TextOutlineRatio + 0.5))
+	outline.LineJoinMode = Enum.LineJoinMode.Round
+	outline.Parent = l
 	l.Size = size
 	l.Position = position
 	l.Text = text
@@ -183,13 +191,16 @@ local function buildFence(t: any, folder: Instance)
 end
 
 -- A flat floor part with a label across its top: the queue box, or one of its halves.
--- `backing` is how see-through the dark label panel over it is.
+-- `backing` is how see-through the white label panel over it is; `icon` (a Config.UI.Kit
+-- icon) sits before the words.
 local function floorPart(
 	name: string,
 	size: Vector3,
 	cf: CFrame,
 	folder: Instance,
-	backing: number
+	backing: number,
+	textSize: number,
+	icon: string?
 ): (Part, TextLabel)
 	local part = Instance.new("Part")
 	part.Name = name
@@ -200,7 +211,7 @@ local function floorPart(
 	part.CastShadow = false
 	part.Size = size
 	part.CFrame = cf
-	part.Color = rgb(M.Style.White)
+	part.Color = rgb(Kit.Colors.White)
 	part.Material = Enum.Material.SmoothPlastic
 	part.Parent = folder
 	local gui = Instance.new("SurfaceGui")
@@ -211,7 +222,7 @@ local function floorPart(
 	gui.Parent = part
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.fromScale(1, 1)
-	frame.BackgroundColor3 = rgb(M.Style.Panel)
+	frame.BackgroundColor3 = rgb(Kit.Colors.White)
 	frame.BackgroundTransparency = backing
 	frame.Parent = gui
 	local corner = Instance.new("UICorner")
@@ -219,7 +230,7 @@ local function floorPart(
 	corner.Parent = frame
 	local border = Instance.new("UIStroke")
 	border.Name = "Edge"
-	border.Color = rgb(M.Style.White)
+	border.Color = rgb(Kit.Colors.Ink)
 	border.Thickness = Q.EdgePixels
 	border.Transparency = Q.EdgeTransparency
 	border.Parent = frame
@@ -227,29 +238,44 @@ local function floorPart(
 	gradient.Rotation = Q.GradientRotation
 	gradient.Transparency = NumberSequence.new(Q.GradientMin, Q.GradientMax)
 	gradient.Parent = frame
-	-- A top face's canvas runs across the part (its Z), so the words, sized to the part's
-	-- length, are turned a quarter to lie along it.
+	-- A top face's canvas runs across the part (its Z), so the row, sized to the part's
+	-- length, is turned a quarter to lie along it: the icon, then the words.
 	local keep = 1 - 2 * Q.LabelInset
-	local text = label(
-		frame,
-		"",
-		UDim2.fromOffset(size.X * Q.PixelsPerStud * keep, size.Z * Q.PixelsPerStud * keep),
-		UDim2.fromScale(0.5, 0.5),
-		Q.FloorTextSize
-	)
+	local rowHeight = size.Z * Q.PixelsPerStud * keep
+	local row = Instance.new("Frame")
+	row.Name = "Row"
+	row.BackgroundTransparency = 1
+	row.AnchorPoint = Vector2.new(0.5, 0.5)
+	row.Position = UDim2.fromScale(0.5, 0.5)
+	row.Size = UDim2.fromOffset(size.X * Q.PixelsPerStud * keep, rowHeight)
+	row.Rotation = Q.LabelRotation
+	row.Parent = frame
+	local list = Instance.new("UIListLayout")
+	list.FillDirection = Enum.FillDirection.Horizontal
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.VerticalAlignment = Enum.VerticalAlignment.Center
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Padding = UDim.new(0, Q.FloorIconGapPx)
+	list.Parent = row
+	if icon then
+		local image = Instance.new("ImageLabel")
+		image.Name = "Icon"
+		image.BackgroundTransparency = 1
+		image.Image = Kit.Icons[icon]
+		image.Size = UDim2.fromOffset(Q.FloorIconPx, Q.FloorIconPx)
+		image.LayoutOrder = 1
+		image.Parent = row
+	end
+	local text = label(row, "", UDim2.fromOffset(0, rowHeight), UDim2.new(), textSize)
 	text.Name = "Text"
-	text.AnchorPoint = Vector2.new(0.5, 0.5)
-	text.TextScaled = true
-	text.Rotation = Q.LabelRotation
-	local limit = Instance.new("UITextSizeConstraint")
-	limit.MaxTextSize = Q.FloorTextSize
-	limit.Parent = text
+	text.AutomaticSize = Enum.AutomaticSize.X
+	text.LayoutOrder = 2
 	return part, text
 end
 
 -- The table's queue box (Placement.queueBox): one long floor strip up to six people step
 -- into, with its two halves (team A's at the head, team B's at the foot) laid over it for
--- when four or six are in, a line between them, and the host panel floating above. The
+-- when four or six are in, and a line between them (the sign above is the client's). The
 -- server keeps the box's attributes and words current (refresh); BoxEffects on each client
 -- tints, lights and sounds it from those attributes.
 local function buildBox(t: any, folder: Instance)
@@ -261,7 +287,9 @@ local function buildBox(t: any, folder: Instance)
 		Vector3.new(length, Q.BoxHeight, depth),
 		tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.BoxHeight / 2),
 		folder,
-		Q.FrameTransparency
+		Q.FrameTransparency,
+		Q.FloorTextSize,
+		"People"
 	)
 	box.Transparency = Q.EmptyTransparency
 	box:SetAttribute("TableId", id)
@@ -271,7 +299,7 @@ local function buildBox(t: any, folder: Instance)
 	box:SetAttribute("Even", false)
 	local light = Instance.new("SurfaceLight")
 	light.Face, light.Brightness, light.Range = Enum.NormalId.Top, Q.LightBrightness, Q.LightRange
-	light.Color, light.Shadows, light.Parent = rgb(M.Style.White), false, box
+	light.Color, light.Shadows, light.Parent = rgb(Kit.Colors.White), false, box
 	t.box, t.boxText, t.halves = box, boxText, {}
 	for side = 1, 2 do
 		local along = (if side == 1 then -1 else 1) * length / 4
@@ -285,7 +313,8 @@ local function buildBox(t: any, folder: Instance)
 				Q.FloorOffset + Q.BoxHeight * 1.5 + Q.HalfLiftStuds
 			),
 			box,
-			Q.HalfBackingTransparency
+			Q.HalfBackingTransparency,
+			Q.HalfTextSize
 		)
 		half.Transparency = 1 -- shown only while four or six are in (refresh)
 		local gui = half:FindFirstChildOfClass("SurfaceGui") :: SurfaceGui
@@ -300,60 +329,12 @@ local function buildBox(t: any, folder: Instance)
 	divider.CanQuery = false
 	divider.CastShadow = false
 	divider.Material = Enum.Material.Neon
-	divider.Color = rgb(M.Style.White)
+	divider.Color = rgb(Kit.Colors.White)
 	divider.Transparency = 1
 	divider.Size = Vector3.new(Q.DividerStuds, Q.BoxHeight, depth)
 	divider.CFrame = tableFrame(t.placement, cx, cy, Q.FloorOffset + Q.BoxHeight * 2)
 	divider.Parent = box
 	t.divider = divider
-	local anchor = Instance.new("Part")
-	anchor.Name = ("QueuePanel_%02d"):format(id)
-	anchor.Anchored = true
-	anchor.CanCollide = false
-	anchor.CanTouch = false
-	anchor.CanQuery = false
-	anchor.Transparency = 1
-	anchor.Size = Vector3.one
-	anchor.CFrame = tableFrame(t.placement, cx, cy, Q.PanelOffset)
-	anchor.Parent = folder
-	local gui = Instance.new("BillboardGui")
-	gui.Name = "HostPanel"
-	gui.Size = UDim2.fromOffset(Q.PanelWidth, Q.PanelHeight)
-	gui.MaxDistance = Q.PanelMaxDistance
-	gui.Parent = anchor
-	local panel = Instance.new("Frame")
-	panel.Size = UDim2.fromScale(1, 1)
-	panel.BackgroundColor3 = rgb(M.Style.Panel)
-	panel.BackgroundTransparency = Q.PanelTransparency
-	panel.Parent = gui
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, M.Style.CornerPx)
-	corner.Parent = panel
-	local edge = Instance.new("UIStroke")
-	edge.Color = rgb(M.Style.Border)
-	edge.Parent = panel
-	t.title = label(
-		panel,
-		Strings.Match.AnyMode,
-		UDim2.fromScale(Q.ModeLabel[1], Q.ModeLabel[2]),
-		UDim2.fromScale(Q.ModeLabel[3], Q.ModeLabel[4]),
-		Q.ModeLabel[5]
-	)
-	t.hostLabel = label(
-		panel,
-		"",
-		UDim2.fromScale(Q.HostLabel[1], Q.HostLabel[2]),
-		UDim2.fromScale(Q.HostLabel[3], Q.HostLabel[4]),
-		Q.HostLabel[5]
-	)
-	t.hostLabel.TextTruncate = Enum.TextTruncate.AtEnd
-	t.statusLabel = label(
-		panel,
-		"",
-		UDim2.fromScale(Q.StatusLabel[1], Q.StatusLabel[2]),
-		UDim2.fromScale(Q.StatusLabel[3], Q.StatusLabel[4]),
-		Q.StatusLabel[5]
-	)
 end
 
 local function setText(object: TextLabel, text: string)
@@ -362,8 +343,9 @@ local function setText(object: TextLabel, text: string)
 	end
 end
 
--- The box and its host panel, from the engine: who is in it, the halves when four or six
--- are, and what the table is doing. Attributes and words only change when they differ.
+-- The box from the engine: who is in it, the halves when four or six are, and what the table
+-- is doing. Attributes and words only change when they differ. The sign over the box is the
+-- client's (TableSign), drawn from the snapshot every client already has.
 local function refresh(t: any)
 	local e = t.engine
 	local C = Strings.Match
@@ -386,7 +368,7 @@ local function refresh(t: any)
 	box:SetAttribute("Count", count)
 	for _, half in t.halves do
 		half.part.Transparency = if halves then Q.HalfTransparency else 1
-		half.part.Color = rgb(if even then M.Style.Green else Q.HalfUneven)
+		half.part.Color = rgb(if even then Kit.Colors.Green else Q.HalfUneven)
 		half.gui.Enabled = halves
 	end
 	t.divider.Transparency = if halves then Q.DividerTransparency else 1
@@ -407,23 +389,6 @@ local function refresh(t: any)
 				else ""
 		)
 	end
-	local host = if e.hostId then Engine.seat(e, e.hostId) else nil
-	if e.solo and host then
-		-- A solo game holds the whole table until its result.
-		setText(t.title, C.SoloTitle)
-		setText(t.hostLabel, C.SoloPanel:format(host.displayName))
-		setText(t.statusLabel, C.SoloInProgress)
-		return
-	end
-	setText(t.title, if waiting then C.AnyMode else C.Mode:format(e.teamSize, e.teamSize))
-	setText(t.hostLabel, if host then C.Host:format(host.displayName) else C.StepIn)
-	setText(
-		t.statusLabel,
-		if not waiting
-			then C.InProgress
-			elseif count >= M.Queue.Capacity then C.BoxFull
-			else C.QueueStatus:format(count, M.Queue.Capacity, C.Waiting)
-	)
 end
 
 function Service.broadcast(t: any, player: Player?)

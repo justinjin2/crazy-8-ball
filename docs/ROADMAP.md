@@ -123,7 +123,7 @@ outlines and a faint pool-ball pattern, candy buttons, glossy icons. Choices: DE
   phones); the foul popup with no panel, gone after 3 s; the wrong-target text and the
   ball-in-hand hint; the coin flip, win and lose cards; the leave and surrender dialog; fine
   controls.
-- [ ] **Queue area.** The host menu (difficulty tiles with aim-line icons), the floor box, and
+- [x] **Queue area.** The host menu (difficulty tiles with aim-line icons), the floor box, and
   the table sign that pops up only when you walk right up to that table.
 - [ ] **Everything else.** Pocket targets, the power bar and the spin panel.
 - [ ] **Checked on every device.** PC, phone-sized screens and gamepad selection in Studio;

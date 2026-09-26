@@ -31,6 +31,7 @@ local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
 local BoxEffects = require(script.Parent.BoxEffects)
 local QueueMenu = require(script.Parent.QueueMenu)
+local TableSign = require(script.Parent.TableSign)
 local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
@@ -637,6 +638,7 @@ UserInputService.InputBegan:Connect(function(key, processed)
 end)
 local zones = workspace:WaitForChild("TableZones")
 local boxEffects = BoxEffects.new(zones)
+local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
 	local s = hub.snapshots[id]
@@ -674,13 +676,17 @@ RunService.RenderStepped:Connect(function(dt)
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
 	boxEffects:update(dt, queueOpen)
-	for id = 1, Placement.tableCount() do
-		local panel = zones:FindFirstChild(("QueuePanel_%02d"):format(id))
-		local billboard = panel and panel:FindFirstChildWhichIsA("BillboardGui")
-		if billboard then
-			billboard.Enabled = not controlled
+	-- The sign over the table you walk up to; none while you are in a box or playing.
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	tableSign:update(
+		if rootPart and rootPart:IsA("BasePart") then rootPart.Position else nil,
+		hub.mySeat ~= nil or controlled,
+		zones,
+		function(id: number)
+			return hub.snapshots[id]
 		end
-	end
+	)
 	if not snapshot or not match then
 		return
 	end

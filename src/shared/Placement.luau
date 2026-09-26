@@ -203,6 +203,29 @@ function Placement.matchFence(): (number, number, number, number)
 	return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
 end
 
+--- The table whose match area (matchFence) is nearest the world point (x, z), and how far
+--- outside that area the point is, in studs (0 inside it). The client shows only that
+--- table's sign, and only when a player walks right up to it (TableSign). Ties go to the
+--- lower id.
+function Placement.nearestArea(x: number, z: number): (number?, number)
+	local s = Config.Table.StudsPerInch
+	local hx, hy, cx, cy = Placement.matchFence()
+	local bestId, best = nil, math.huge
+	for id = 1, Placement.tableCount() do
+		local p = Placement.forTable(id)
+		if p then
+			local ix, iy = Placement.toTable(p, x, z)
+			local dx = math.max(math.abs(ix * s - cx) - hx, 0)
+			local dy = math.max(math.abs(iy * s - cy) - hy, 0)
+			local d = math.sqrt(dx * dx + dy * dy)
+			if d < best then
+				best, bestId = d, id
+			end
+		end
+	end
+	return bestId, best
+end
+
 function Placement.dirToWorld(p: Placement, xIn: number, yIn: number): (number, number)
 	return xIn * p.cos - yIn * p.sin, -(xIn * p.sin + yIn * p.cos)
 end

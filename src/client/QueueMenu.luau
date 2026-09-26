@@ -7,6 +7,10 @@
 -- Everyone gets Leave. It shows only what the table's snapshot says; every press is a
 -- request the server checks (MatchEngine.action).
 --
+-- Built from the UI kit (HudParts): a white card with a crown by the host's name, three
+-- difficulty tiles with aim-line pictures, and candy buttons. It pops in when you step into
+-- a box and out when you leave; Start breathes once it can be pressed.
+--
 -- Gamepad: selection is never taken while the player can walk (the stick would stop moving
 -- them). Y focuses the card (QueueMenu.focus), B leaves it again (Main).
 local Players = game:GetService("Players")
@@ -18,12 +22,12 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 local HudParts = require(script.Parent.HudParts)
+local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match.Queue
 local M = Config.Multiplayer
 local S = M.Style
-local color = HudParts.color
-local label = HudParts.label
-local button = HudParts.button
+local K = Config.UI.Kit
+local tone = HudParts.tone
 local QueueMenu = {}
 QueueMenu.__index = QueueMenu
 
@@ -35,166 +39,199 @@ local function row(parent: Instance, name: string, height: number, order: number
 	return object
 end
 
-local function line(parent: Instance, name: string, size: number, order: number): TextLabel
-	local object = label(parent, name, size, "")
-	object.Size = UDim2.new(1, 0, 0, size + S.QueueMenuLineGap)
+-- A line of text across the card; `lines` rows tall.
+local function line(
+	parent: Instance,
+	name: string,
+	size: number,
+	order: number,
+	tint: Color3?,
+	lines: number?
+): TextLabel
+	local object = HudParts.text(parent, name, size, "", tint)
+	object.Size = UDim2.new(1, 0, 0, (size + S.QueueMenuLineGap) * (lines or 1))
 	object.TextXAlignment = Enum.TextXAlignment.Left
+	object.TextWrapped = (lines or 1) > 1
 	object.LayoutOrder = order
 	return object
 end
 
--- A button that also knows whether it may be pressed: a dimmed one stays on screen (the
--- others in the box see the host's choices) but does nothing and cannot be selected.
-local function setEnabled(object: TextButton, enabled: boolean)
-	object.Active = enabled
-	object.Selectable = enabled
-	object.AutoButtonColor = false
-	object.TextTransparency = if enabled then 0 else S.QueueDisabledText
+local function button(
+	parent: Instance,
+	name: string,
+	text: string,
+	order: number,
+	look: string,
+	icon: string?,
+	action: () -> ()
+): TextButton
+	local object = HudParts.candy(parent, text, action, look, icon)
+	object.Name = name
+	object.LayoutOrder = order
+	object.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
+	return object
 end
 
 function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	local self: any = setmetatable({}, QueueMenu)
 	self.onAction = onAction
 	self.snapshot = nil
-	self.localUserId = Players.LocalPlayer.UserId
+	-- No LocalPlayer only in an Edit-mode preview of the screens.
+	self.localUserId = if Players.LocalPlayer then Players.LocalPlayer.UserId else 0
 	self.soloOpen = false -- the host pressed Start alone: Play solo / Play against PC
 	self.sentAt = -math.huge -- a Start or Play solo on its way to the server
 	self.noticeUntil = -math.huge -- "Coming soon" after Play against PC
 	self.wanted = nil -- the host's last pick, shown until the server's snapshot agrees
 	self.now = 0
+	self.open = false
+	self.pulse = nil -- Start breathing while it can be pressed
 
-	local root = HudParts.panel(screen, "QueueMenu")
+	-- The holder is fitted to the screen (its UIScale); the card inside pops in and out.
+	local root = HudParts.frame(screen, "QueueMenu")
 	root.AnchorPoint = Vector2.new(1, 0)
 	root.Size = UDim2.fromOffset(S.QueueMenuWidth, 0)
-	root.AutomaticSize = Enum.AutomaticSize.Y
 	root.Visible = false
 	self.root = root
 	self.scale = Instance.new("UIScale")
 	self.scale.Parent = root
-	local padding = Instance.new("UIPadding")
-	local pad = UDim.new(0, S.QueueMenuPadding)
-	padding.PaddingTop, padding.PaddingBottom, padding.PaddingLeft, padding.PaddingRight =
-		pad, pad, pad, pad
-	padding.Parent = root
+	local card = HudParts.card(root, "Card")
+	card.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.Position = UDim2.fromScale(0.5, 0.5)
+	card.Size = UDim2.fromScale(1, 1)
+	self.card = card
+	local content = HudParts.frame(card, "Content")
+	content.Position = UDim2.fromOffset(S.QueueMenuPadding, S.QueueMenuPadding)
+	content.Size = UDim2.new(1, -S.QueueMenuPadding * 2, 1, -S.QueueMenuPadding * 2)
+	self.content = content
 	local list = Instance.new("UIListLayout")
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Padding = UDim.new(0, S.HeaderGap)
-	list.Parent = root
+	list.Parent = content
 	self.list = list
 
-	-- Who hosts, and who is in.
-	self.hostTitle = line(root, "HostTitle", S.NameSize, 1)
-	self.hostTitle.Text = Copy.HostTitle
-	self.hostTitle.TextColor3 = color(S.Muted)
-	self.hostName = line(root, "HostName", S.QueueHostSize, 2)
-	self.hostName.Font = Enum.Font.GothamBold
-	self.players = line(root, "Players", S.StatusSize, 3)
-	self.split = line(root, "TeamSplit", S.StatusSize, 4)
-	self.split.Font = Enum.Font.GothamBold
+	-- Who hosts (a crown by their name), and how many are in.
+	local host = row(content, "Host", S.QueueHostRowHeight, 1)
+	local crown = HudParts.icon(host, "Crown")
+	crown.Size = UDim2.fromOffset(S.QueueHostRowHeight, S.QueueHostRowHeight)
+	local nameLeft = S.QueueHostRowHeight + 6
+	local countWidth = S.QueueCountWidth
+	self.hostTitle = HudParts.text(host, "HostTitle", K.Text.Min, Copy.HostTitle, tone("Soft"))
+	self.hostTitle.TextXAlignment = Enum.TextXAlignment.Left
+	self.hostTitle.Position = UDim2.fromOffset(nameLeft, 0)
+	self.hostTitle.Size = UDim2.new(1, -nameLeft - countWidth - 6, 0, K.Text.Min + 2)
+	self.hostName = HudParts.text(host, "HostName", S.QueueHostSize, "")
+	self.hostName.AutoLocalize = false -- player names are never translated
+	self.hostName.TextScaled = false
+	self.hostName.TextWrapped = false
+	self.hostName.TextTruncate = Enum.TextTruncate.AtEnd
+	self.hostName.TextXAlignment = Enum.TextXAlignment.Left
+	self.hostName.Position = UDim2.fromOffset(nameLeft, K.Text.Min + 1)
+	self.hostName.Size =
+		UDim2.new(1, -nameLeft - countWidth - 6, 0, S.QueueHostRowHeight - K.Text.Min - 1)
+	local count = HudParts.pill(host, "Count")
+	count.AnchorPoint = Vector2.new(1, 0.5)
+	count.Position = UDim2.fromScale(1, 0.5)
+	count.Size = UDim2.fromOffset(countWidth, S.QueuePillHeight)
+	local people = HudParts.icon(count, "People")
+	people.Position = UDim2.fromOffset(4, 2)
+	people.Size = UDim2.fromOffset(S.QueuePillHeight - 4, S.QueuePillHeight - 4)
+	self.players = HudParts.text(count, "Players", K.Text.Body, "")
+	self.players.AutoLocalize = false -- only numbers
+	self.players.Position = UDim2.fromOffset(S.QueuePillHeight, 1)
+	self.players.Size = UDim2.new(1, -S.QueuePillHeight - 6, 1, -2)
 
-	-- Difficulty: three segments, the chosen one lit.
-	self.levelTitle = line(root, "DifficultyTitle", S.NameSize, 5)
+	-- Four or six split into the box's halves: green with a check once they are even.
+	self.split = HudParts.pill(content, "TeamSplit")
+	self.split.Size = UDim2.new(1, 0, 0, S.QueuePillHeight)
+	self.split.LayoutOrder = 2
+	self.splitCheck = HudParts.icon(self.split, "Check")
+	self.splitCheck.Position = UDim2.fromOffset(6, 2)
+	self.splitCheck.Size = UDim2.fromOffset(S.QueuePillHeight - 4, S.QueuePillHeight - 4)
+	self.splitText = HudParts.text(self.split, "Text", K.Text.Body, "")
+	self.splitText.Position = UDim2.fromOffset(S.QueuePillHeight + 4, 1)
+	self.splitText.Size = UDim2.new(1, -S.QueuePillHeight * 2 - 8, 1, -2)
+
+	-- Difficulty: three tiles, each a picture of the lines you get, the chosen one blue.
+	self.levelTitle = line(content, "DifficultyTitle", K.Text.Min, 3, tone("Soft"))
 	self.levelTitle.Text = Copy.DifficultyTitle
-	self.levelTitle.TextColor3 = color(S.Muted)
-	local levels = row(root, "Levels", S.QueueLevelHeight, 6)
+	local levels = row(content, "Levels", S.QueueLevelHeight, 4)
 	local levelList = Instance.new("UIListLayout")
 	levelList.FillDirection = Enum.FillDirection.Horizontal
 	levelList.SortOrder = Enum.SortOrder.LayoutOrder
-	levelList.Padding = UDim.new(0, S.HeaderGap / 2)
+	levelList.Padding = UDim.new(0, S.HeaderGap)
 	levelList.Parent = levels
 	self.levels = {}
 	local order = Config.Difficulty.Order
 	for i, level in order do
-		local b = button(levels, Copy.Levels[level], function()
+		local b = HudParts.tile(levels, Copy.Levels[level], function()
 			self:choose("SetDifficulty", level)
-		end)
+		end, "White", level)
 		b.Name = level
 		b.LayoutOrder = i
-		b.TextSize = S.NameSize + 1
-		b.Size = UDim2.new(1 / #order, -S.HeaderGap / 2, 1, 0)
+		b.Size = UDim2.new(1 / #order, -S.HeaderGap * (#order - 1) / #order, 1, 0)
+		HudParts.setButtonTextSize(b, K.Text.Min)
 		self.levels[level] = b
 	end
-	self.levelInfo = line(root, "LevelInfo", S.NameSize, 7)
-	self.levelInfo.TextColor3 = color(S.Muted)
+	self.levelInfo = line(content, "LevelInfo", K.Text.Min, 5, tone("Soft"), 2)
 
 	-- Abilities: an ON/OFF toggle, and a note that they are not in the game yet.
-	local abilities = row(root, "Abilities", S.QueueLevelHeight, 8)
-	local abilitiesTitle = label(abilities, "Title", S.NameSize, Copy.AbilitiesTitle)
-	abilitiesTitle.TextColor3 = color(S.Muted)
+	local abilities = row(content, "Abilities", S.ButtonHeight, 6)
+	local bolt = HudParts.icon(abilities, "Lightning")
+	bolt.AnchorPoint = Vector2.new(0, 0.5)
+	bolt.Position = UDim2.fromScale(0, 0.5)
+	bolt.Size = UDim2.fromOffset(S.QueueHostRowHeight - 4, S.QueueHostRowHeight - 4)
+	local abilitiesTitle = HudParts.text(abilities, "Title", K.Text.Body, Copy.AbilitiesTitle)
 	abilitiesTitle.TextXAlignment = Enum.TextXAlignment.Left
-	abilitiesTitle.Size = UDim2.fromScale(0.6, 1)
-	self.abilities = button(abilities, Copy.On, function()
+	abilitiesTitle.Position = UDim2.fromOffset(S.QueueHostRowHeight + 2, 0)
+	abilitiesTitle.Size = UDim2.new(1, -S.QueueHostRowHeight - S.QueueToggleWidth - 8, 1, 0)
+	self.abilities = HudParts.candy(abilities, Copy.On, function()
 		local shown = self:shown()
 		if shown then
 			self:choose("SetAbilities", not shown.abilities)
 		end
-	end)
+	end, "Green")
 	self.abilities.Name = "Toggle"
 	self.abilities.AnchorPoint = Vector2.new(1, 0)
 	self.abilities.Position = UDim2.fromScale(1, 0)
 	self.abilities.Size = UDim2.new(0, S.QueueToggleWidth, 1, 0)
-	self.abilitiesNote = line(root, "AbilitiesNote", S.NameSize, 9)
+	self.abilitiesNote = line(content, "AbilitiesNote", K.Text.Min, 7, tone("Soft"))
 	self.abilitiesNote.Text = Copy.AbilitiesNote
-	self.abilitiesNote.TextColor3 = color(S.Muted)
 
 	-- Why the game cannot start, whose turn it is to start it, or "Coming soon".
-	self.status = line(root, "Status", S.NameSize, 10)
-	self.status.TextWrapped = true
-	self.status.TextTruncate = Enum.TextTruncate.None
-	self.status.Size = UDim2.new(1, 0, 0, (S.NameSize + S.QueueMenuLineGap) * 2)
+	self.status = line(content, "Status", K.Text.Min, 8, tone("Soft"), 2)
 
 	-- The host's Start, or, alone, the two ways to play by themselves.
-	self.start = button(root, Copy.Start, function()
+	self.start = button(content, "Start", Copy.Start, 9, "Green", "Play", function()
 		self:pressStart()
 	end)
-	self.start.Name = "Start"
-	self.start.LayoutOrder = 11
-	self.start.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
-	self.solo = button(root, Copy.PlaySolo, function()
+	self.start.Size = UDim2.new(1, 0, 0, S.QueueStartHeight)
+	self.solo = button(content, "PlaySolo", Copy.PlaySolo, 10, "Green", "Person", function()
 		if self:canSend() and self:alone() then
 			self.sentAt = self.now
 			self.onAction("StartSolo", nil)
 		end
 	end)
-	self.solo.Name = "PlaySolo"
-	self.solo.LayoutOrder = 12
-	self.solo.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
-	self.pc = button(root, Copy.PlayPC, function()
+	self.pc = button(content, "PlayPC", Copy.PlayPC, 11, "Blue", "Robot", function()
 		self.noticeUntil = self.now + S.QueueNoticeSeconds
 	end)
-	self.pc.Name = "PlayPC"
-	self.pc.LayoutOrder = 13
-	self.pc.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
-	local soon = label(self.pc, "Soon", S.NameSize - 2, Copy.Soon)
-	soon.Font = Enum.Font.GothamBold
-	soon.BackgroundTransparency = 0
-	soon.BackgroundColor3 = color(S.Gold)
-	soon.TextColor3 = color(S.Panel)
+	local soon = HudParts.pill(self.pc, "Soon", tone("Gold"))
 	soon.AnchorPoint = Vector2.new(1, 0.5)
-	soon.Position = UDim2.new(1, -S.HeaderGap, 0.5, 0)
-	soon.Size = UDim2.fromOffset(S.QueueSoonWidth, S.NameSize + 4)
-	HudParts.corner(soon, S.Radius / 3)
-	self.back = button(root, Copy.Back, function()
+	soon.Position = UDim2.new(1, 6, 0, 2)
+	soon.Size = UDim2.fromOffset(S.QueueSoonWidth, K.Text.Min + 8)
+	soon.Rotation = 8
+	soon.ZIndex = 5
+	local soonText = HudParts.text(soon, "Text", K.Text.Min, Copy.Soon)
+	soonText.Size = UDim2.fromScale(1, 1)
+	self.back = button(content, "Back", Copy.Back, 12, "White", nil, function()
 		self.soloOpen = false
 		self:focus()
 	end)
-	self.back.Name = "Back"
-	self.back.LayoutOrder = 14
-	self.back.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
-	self.leave = button(root, Copy.Leave, function()
+	self.leave = button(content, "Leave", Copy.Leave, 13, "Red", "Door", function()
 		self.onAction("LeaveQueue", nil)
 	end)
-	self.leave.Name = "Leave"
-	self.leave.LayoutOrder = 15
-	self.leave.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
-	self.leave.BackgroundColor3 = color(S.Panel)
-	self.hint = line(root, "GamepadHint", S.NameSize, 16)
+	self.hint = line(content, "GamepadHint", K.Text.Min, 14, tone("Soft"))
 	self.hint.Text = Copy.GamepadHint
-	self.hint.TextColor3 = color(S.Muted)
 	self.hint.TextXAlignment = Enum.TextXAlignment.Center
-
-	self.solo.BackgroundColor3 = color(S.Active)
-	self.solo.TextColor3 = color(S.Panel)
 	return self
 end
 
@@ -262,6 +299,29 @@ function QueueMenu.pressStart(self: any)
 	end
 end
 
+-- Show or hide the card, popping it in or out.
+function QueueMenu.setOpen(self: any, open: boolean)
+	if open == self.open then
+		return
+	end
+	self.open = open
+	if open then
+		self.root.Visible = true
+		self.card.Visible = false
+		UIAnim.popIn(self.card)
+	else
+		if self.pulse then
+			self.pulse.stop()
+			self.pulse = nil
+		end
+		UIAnim.popOut(self.card, function()
+			if not self.open then
+				self.root.Visible = false
+			end
+		end)
+	end
+end
+
 --- The table snapshot the local player is seated at, or nil. The card shows only while
 --- that table waits for its host.
 function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
@@ -276,7 +336,7 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 	end
 	if not snapshot then
 		self:blur()
-		self.root.Visible = false
+		self:setOpen(false)
 	end
 end
 
@@ -316,7 +376,8 @@ function QueueMenu.layout(self: any)
 	local size: Vector2 = screen.AbsoluteSize
 	local margin = S.HeaderMargin
 	local right = if UserInputService.TouchEnabled then S.QueueTouchRight else margin
-	local natural = (self.list.AbsoluteContentSize.Y + 2 * S.QueueMenuPadding) / self.scale.Scale
+	local natural = self.list.AbsoluteContentSize.Y / self.scale.Scale + 2 * S.QueueMenuPadding
+	self.root.Size = UDim2.fromOffset(S.QueueMenuWidth, natural)
 	local room = math.max(1, size.Y - 2 * margin)
 	self.scale.Scale = math.clamp(room / math.max(natural, 1), S.QueueMenuMinScale, 1)
 	self.root.Position = UDim2.new(1, -right, 0, margin)
@@ -327,7 +388,7 @@ end
 function QueueMenu.update(self: any, now: number)
 	self.now = now
 	local snapshot = self.snapshot
-	self.root.Visible = snapshot ~= nil
+	self:setOpen(snapshot ~= nil)
 	if not snapshot then
 		return
 	end
@@ -351,25 +412,23 @@ function QueueMenu.update(self: any, now: number)
 	end
 	local ok, reason = Engine.startState(snapshot.seats)
 	self.hostName.Text = hostName
-	self.players.Text = Copy.Players:format(count, M.Queue.Capacity)
+	self.players.Text = Copy.PlayerCount:format(count, M.Queue.Capacity)
 	local halves = count == 4 or count == 6
 	self.split.Visible = halves
-	self.split.Text = Copy.TeamSplit:format(inHalf[1], inHalf[2])
-	self.split.TextColor3 = color(if ok then S.Green else S.Muted)
+	self.splitText.Text = Copy.TeamSplit:format(inHalf[1], inHalf[2])
+	self.split.BackgroundColor3 = if ok then tone("Green") else tone("Grey")
+	self.splitCheck.Visible = ok == true
 
 	for level, b in self.levels do
 		local chosen = settings.difficulty == level
-		setEnabled(b, host)
-		b.BackgroundColor3 = color(if chosen then S.Selected else S.PanelTop)
-		if chosen then
-			b.TextTransparency = 0
-		end
+		HudParts.setTone(b, if chosen then "Blue" else "White")
+		-- A guest sees the host's choice at full strength and the others faded.
+		HudParts.setEnabled(b, host, not host and not chosen)
 	end
 	self.levelInfo.Text = Copy.LevelInfo[settings.difficulty] or ""
-	setEnabled(self.abilities, host)
-	self.abilities.Text = if settings.abilities then Copy.On else Copy.Off
-	self.abilities.BackgroundColor3 = color(if settings.abilities then S.Active else S.PanelTop)
-	self.abilities.TextColor3 = color(if settings.abilities then S.Panel else S.Text)
+	HudParts.setEnabled(self.abilities, host, false)
+	HudParts.setText(self.abilities, if settings.abilities then Copy.On else Copy.Off)
+	HudParts.setTone(self.abilities, if settings.abilities then "Green" else "Grey")
 
 	local sending = not self:canSend()
 	local solo = host and self.soloOpen
@@ -378,12 +437,19 @@ function QueueMenu.update(self: any, now: number)
 	self.pc.Visible = solo and not sending
 	self.back.Visible = solo and not sending
 	local startable = count == 1 or ok
-	setEnabled(self.start, startable)
-	self.start.BackgroundColor3 = color(if startable then S.Active else S.Disabled)
-	self.start.TextColor3 = color(if startable then S.Panel else S.Text)
+	HudParts.setEnabled(self.start, startable)
+	HudParts.setTone(self.start, if startable then "Green" else "Grey")
+	-- Start breathes while it is there to be pressed.
+	local breathe = self.start.Visible and startable
+	if breathe and not self.pulse then
+		self.pulse = UIAnim.pulse(self.start)
+	elseif not breathe and self.pulse then
+		self.pulse.stop()
+		self.pulse = nil
+	end
 
 	local notice = now < self.noticeUntil
-	self.status.TextColor3 = color(if notice then S.Gold else S.Muted)
+	self.status.TextColor3 = if notice then tone("Gold") else tone("Soft")
 	self.status.Text = if notice
 		then Copy.ComingSoon
 		elseif not host then Copy.WaitingForHost:format(hostName)

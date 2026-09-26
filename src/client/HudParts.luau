@@ -217,6 +217,7 @@ type Candy = {
 	textSize: number,
 	enabled: boolean,
 	lit: boolean,
+	vertical: boolean,
 }
 
 -- Held strongly and cleared on Destroying: a weak table keyed on Instances can lose entries.
@@ -243,6 +244,17 @@ local function layoutCandy(button: TextButton, c: Candy)
 	local lip = math.floor(size.Y * K.ButtonLipShare + 0.5)
 	local usable = size.Y - lip
 	local pad = math.max(6, math.floor(usable * 0.18))
+	if c.vertical then
+		-- A tile: the icon big on top, the words under it.
+		local labelHeight = math.floor(usable * 0.3)
+		local iconSize = math.floor(math.min(size.X - pad * 2, usable - labelHeight - pad * 0.8))
+		c.icon.AnchorPoint = Vector2.new(0.5, 0)
+		c.icon.Position = UDim2.fromOffset(size.X / 2, math.floor(pad * 0.5))
+		c.icon.Size = UDim2.fromOffset(iconSize, iconSize)
+		c.label.Position = UDim2.fromOffset(4, usable - labelHeight - 2)
+		c.label.Size = UDim2.fromOffset(math.max(1, size.X - 8), labelHeight)
+		return
+	end
 	local hasIcon = c.icon.Visible
 	local iconSize = if hasIcon then math.floor(usable * K.ButtonIconShare) else 0
 	local hasText = c.label.Text ~= ""
@@ -313,6 +325,7 @@ function HudParts.candy(
 		textSize = K.Text.Button,
 		enabled = true,
 		lit = false,
+		vertical = false,
 	}
 	candies[button] = c
 	button.Destroying:Connect(function()
@@ -379,6 +392,21 @@ function HudParts.candy(
 	return button
 end
 
+--- A tall candy tile: a big icon over its name (the difficulty choices).
+function HudParts.tile(
+	parent: Instance,
+	text: string,
+	action: () -> (),
+	tone: string?,
+	iconKey: string
+): TextButton
+	local button = HudParts.candy(parent, text, action, tone, iconKey)
+	local c = candies[button]
+	c.vertical = true
+	layoutCandy(button, c)
+	return button
+end
+
 function HudParts.setText(button: TextButton, text: string)
 	local c = candies[button]
 	if c and c.label.Text ~= text then
@@ -411,16 +439,18 @@ function HudParts.setButtonTextSize(button: TextButton, size: number)
 	end
 end
 
---- A button that may not be pressed stays on screen, faded, and cannot be selected.
-function HudParts.setEnabled(button: TextButton, enabled: boolean)
+--- A button that may not be pressed stays on screen, faded, and cannot be selected. `faded`
+--- false keeps a locked button's full look (the host's choice, seen by a guest).
+function HudParts.setEnabled(button: TextButton, enabled: boolean, faded: boolean?)
 	local c = candies[button]
-	if not c or c.enabled == enabled then
+	local fadeIt = if faded == nil then not enabled else faded
+	if not c or (c.enabled == enabled and (c.face.BackgroundTransparency > 0) == fadeIt) then
 		return
 	end
 	c.enabled = enabled
 	button.Active = enabled
 	button.Selectable = enabled
-	local fade = if enabled then 0 else K.DisabledTransparency
+	local fade = if fadeIt then K.DisabledTransparency else 0
 	c.face.BackgroundTransparency = fade
 	c.edge.Transparency = fade
 	HudParts.setTextTransparency(c.label, fade)

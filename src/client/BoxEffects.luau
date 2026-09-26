@@ -17,6 +17,7 @@ local Config = require(Shared:WaitForChild("Config"))
 
 local M = Config.Multiplayer
 local Q = M.QueueVisual
+local Kit = Config.UI.Kit
 
 local BoxEffects = {}
 BoxEffects.__index = BoxEffects
@@ -49,7 +50,7 @@ local function bar(parent: Instance, size: Vector3): BasePart
 	part.CanTouch = false
 	part.CastShadow = false
 	part.Material = Enum.Material.Neon
-	part.Color = rgb(M.Style.Green)
+	part.Color = rgb(Kit.Colors.Green)
 	part.Transparency = 1
 	part.Size = size
 	part.Parent = parent
@@ -57,7 +58,7 @@ local function bar(parent: Instance, size: Vector3): BasePart
 end
 
 local function build(part: BasePart, edge: UIStroke?): Box
-	local green = rgb(M.Style.Green)
+	local green = rgb(Kit.Colors.Green)
 
 	local motes = Instance.new("ParticleEmitter")
 	motes.Name = "LightMotes"
@@ -140,9 +141,10 @@ function BoxEffects.new(folder: Instance): BoxEffects
 		end
 		-- The label arrives with the box, but not necessarily in the same frame.
 		local surface = part:FindFirstChild("FloorLabel") or part:WaitForChild("FloorLabel", 5)
-		local edge = surface and surface:FindFirstChildWhichIsA("UIStroke", true)
+		local found = surface and surface:FindFirstChild("Edge", true)
+		local edge = if found and found:IsA("UIStroke") then found else nil
 		if part.Parent then
-			table.insert(self.boxes, build(part, edge :: UIStroke?))
+			table.insert(self.boxes, build(part, edge))
 		end
 	end
 	folder.ChildAdded:Connect(function(part)
@@ -176,7 +178,7 @@ end
 --- pulse updated.
 function BoxEffects.update(self: BoxEffects, dt: number, queueOpen: (number) -> boolean)
 	self.elapsed += dt
-	local green, white = rgb(M.Style.Green), rgb(M.Style.White)
+	local green, white = rgb(Kit.Colors.Green), rgb(Kit.Colors.White)
 	local ease = 1 - math.exp(-dt / Q.FadeInSeconds)
 	for i = #self.boxes, 1, -1 do
 		if self.boxes[i].part.Parent == nil then
@@ -201,7 +203,7 @@ function BoxEffects.update(self: BoxEffects, dt: number, queueOpen: (number) -> 
 		local tint = if occupied then green else white
 		box.part.Color = box.part.Color:Lerp(tint, 1 - math.exp(-dt / M.Style.FadeSeconds))
 		if box.edge then
-			box.edge.Color = box.part.Color
+			-- The ink edge breathes (docs/UI_STYLE.md: everything is outlined in ink).
 			box.edge.Transparency = Q.EdgeBaseTransparency
 				+ Q.EdgePulseAmplitude
 					* math.sin(self.elapsed * math.pi * 2 / M.Style.PulseSeconds)

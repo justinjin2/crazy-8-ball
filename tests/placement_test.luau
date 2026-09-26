@@ -39,6 +39,38 @@ local function bounds(corners: { { number } }): (number, number, number, number)
 end
 
 return {
+	["nearestArea finds the table you stand at and how far outside its area you are"] = function()
+		local Config, Placement = setup()
+		local fx, fy, cx, cy = Placement.matchFence()
+		for _, row in Config.Hub.Tables do
+			if row.id <= Placement.tableCount() then
+				local p = Placement.forTable(row.id)
+				-- Inside the area (its centre): this table, no distance.
+				local wx, _, wz = Placement.fromTableStuds(p, cx, cy, 0)
+				local id, d = Placement.nearestArea(wx, wz)
+				H.expect(id == row.id, ("table %d centre"):format(row.id))
+				H.near(d, 0, 1e-9, "inside")
+				-- Two studs past the far end of its length: still this table, two studs out.
+				wx, _, wz = Placement.fromTableStuds(p, cx + fx + 2, cy, 0)
+				id, d = Placement.nearestArea(wx, wz)
+				H.expect(id == row.id, ("table %d end"):format(row.id))
+				H.near(d, 2, 1e-9, "two studs past the end")
+				-- Three and four studs out beyond a corner: five in a straight line from this
+				-- table, unless a neighbour's area is nearer still.
+				wx, _, wz = Placement.fromTableStuds(p, cx - fx - 3, cy - fy - 4, 0)
+				id, d = Placement.nearestArea(wx, wz)
+				if id == row.id then
+					H.near(d, 5, 1e-9, "a corner is measured straight")
+				else
+					H.expect(d < 5, "a neighbour only wins when it is nearer")
+				end
+			end
+		end
+		-- Far from everything, it is still the nearest table, a long way off.
+		local id, d = Placement.nearestArea(0, 5000)
+		H.expect(id ~= nil and d > 1000, "far away")
+	end,
+
 	["toTable undoes toWorld at every yaw"] = function()
 		local _, Placement = setup()
 		local points = { { 0, 0 }, { 50, 25 }, { -50, -25 }, { 13.5, -7.25 }, { -3, 19 } }

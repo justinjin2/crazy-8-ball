@@ -7,10 +7,9 @@ return {
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
 	Match = {
 		Mode = "%dv%d",
-		-- The queue box and the panel floating over it (TableService).
+		-- The queue box (TableService) and the sign floating over it (TableSign).
 		AnyMode = "1v1 · 2v2 · 3v3",
 		SoloTitle = "SOLO",
-		Host = "Host · %s",
 		StepIn = "Step in to play",
 		BoxEmpty = "STEP IN · UP TO %d",
 		BoxJoin = "%d/%d · STEP IN",
@@ -18,11 +17,12 @@ return {
 		HalfCount = "TEAM %s · %d/%d",
 		Waiting = "WAITING",
 		InProgress = "MATCH IN PROGRESS",
-		QueueStatus = "%d/%d  ·  %s",
+		SignStepIn = "STEP IN", -- the sign's pill over an empty box
+		SignPlaying = "PLAYING", -- the sign's pill while its game is on
 		-- The queue menu (QueueMenu), seen by everyone in the box; only the host can use it.
 		Queue = {
 			HostTitle = "HOST",
-			Players = "Players %d/%d",
+			PlayerCount = "%d/%d", -- in the people pill: how many are in the box, of six
 			TeamSplit = "Team A %d  ·  Team B %d",
 			DifficultyTitle = "DIFFICULTY",
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
@@ -114,8 +114,6 @@ return {
 		AimRight = "Aim +",
 		Rejected = "Action unavailable — check your turn",
 		SoloMode = "SOLO GAME",
-		SoloPanel = "SOLO · %s",
-		SoloInProgress = "SOLO GAME IN PROGRESS",
 		LeaveSoloGame = "Yes ends your solo game now.",
 		SoloEnded = "Solo game ended",
 		FoulReasons = {
