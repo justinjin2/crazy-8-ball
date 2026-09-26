@@ -415,3 +415,37 @@ stages that build the real thing:
     - fewer back-corner palms;
     - ferns instead of palms beside the stair;
     - the edge troughs merged into longer runs.
+- **Stage 4 critic, carried forward.** Three rounds, the cap.
+
+  | Area | Round 1 | Round 2 | Round 3 |
+  |---|---|---|---|
+  | Layout | 5 | 5 | 5 |
+  | Silhouettes | 4 | 4 | 5 |
+  | Palette | 4 | 5 | 5 |
+  | Materials | 4 | 5 | 4 |
+  | Lighting | 5 | 5 | 5 |
+  | Backdrop | 3 | 3 | 3 |
+  | Calm | 5 | 6 | 7 |
+  | Phone readability | 6 | 6 | 6 |
+
+  - **What the roof sees.** The near world lies under the railing's sightline from almost
+    everywhere on the roof: through the glass, the sea shows only past about 900 studs. What
+    carries the ocean side in every view is the sea's colour, the islands and anything past
+    about 1,000 studs.
+  - **Stage 5 (islands and the coast beyond):**
+    - a turquoise gradient on the water, from the shore out to about 600 studs (the art's
+      #43C1D7 near shore), and round each island;
+    - a palm-topped point of the coast curving out 3,000 to 4,000 studs on the ocean side,
+      as in the art's ocean-side panel, so a shoreline shows from the roof;
+    - the far city side: the flat ground slab under the sky reads muddy (a hazy skyline
+      card, Stage 6).
+  - **The near world, a later polish pass:**
+    - the park as irregular clusters of big round canopies rather than a grid of lawns;
+    - the sand warmer with no streaks;
+    - a darker kerb between the sand and the promenade;
+    - a white foam line at the waterline;
+    - palms all along the beach.
+  - **Sky (Stage 7, with the sunset render):** more small cumulus, a band of 6 to 8 per view
+    near the horizon; the top a deeper blue.
+  - **Boats:** they drift 1,000 to 1,500 studs out behind the tower, in the high and day
+    views, but read as specks from there; white sails with light shade sides.

@@ -2779,27 +2779,28 @@ Config.Map = {
 			RollSeconds = 7,
 			PitchDegrees = 1, -- and bow to stern
 			PitchSeconds = 6,
-			-- Long slow loops at sea, off the ocean side and behind the tower (Centre X, Z;
+			-- Long slow loops at sea behind the tower and off its ocean side, where the roof's
+			-- high and day views look (Stage 4 critic: none showed from the roof). Centre X, Z;
 			-- Radius along X, Z; Seconds a loop; Phase 0..1 where it starts; Direction 1
-			-- anticlockwise seen from above, -1 clockwise).
+			-- anticlockwise seen from above, -1 clockwise.
 			Paths = {
 				{
-					Centre = { 700, -300 },
-					Radius = { 260, 180 },
+					Centre = { 450, -1000 },
+					Radius = { 250, 150 },
 					Seconds = 900,
 					Phase = 0,
 					Direction = 1,
 				},
 				{
-					Centre = { 1150, 250 },
+					Centre = { 900, -600 },
 					Radius = { 300, 140 },
 					Seconds = 1100,
 					Phase = 0.4,
 					Direction = -1,
 				},
 				{
-					Centre = { 420, -900 },
-					Radius = { 220, 160 },
+					Centre = { 250, -1500 },
+					Radius = { 200, 150 },
 					Seconds = 800,
 					Phase = 0.7,
 					Direction = 1,

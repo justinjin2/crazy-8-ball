@@ -178,7 +178,17 @@ Tested with a sand slope and a dark seabed under Terrain water, at Edit quality 
 - At low quality Roblox draws Terrain water only near the camera, in blocky patches, and
   drops distant parts: the islands 3,500 studs and more away vanish. Only the skybox is
   always drawn. The sky's lower half is therefore painted the water's rendered blue, and
-  anything that must be seen far away on a phone belongs in the skybox. `SurfaceAppearance` has `EmissiveMaskContent`,
+  anything that must be seen far away on a phone belongs in the skybox.
+- Distant Terrain water streams in over about 20 seconds after Play starts. Capture far views
+  only after that.
+- Roblox renders a skybox paler and greyer than painted: #3894FC showed as #56A9DD. Paint
+  sky colours deeper and more saturated than the target.
+
+## The 3D Importer and scripts right after an import (2026-09-26)
+
+The importer can still be adding the model when the user says "imported". A setup script run
+straight away may miss it: `prepareNear` reported the old triangle count and no "Replaced the
+previous import" line. Run it again, or check that the fresh model is in Workspace first. `SurfaceAppearance` has `EmissiveMaskContent`,
 `EmissiveStrength` and `EmissiveTint`, useful for lit windows.
 
 ## Testing by hand (the two checks an agent cannot do)

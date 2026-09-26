@@ -1,5 +1,31 @@
 # Status
 
+**2026-09-26: the rooftop map, Stage 4 of 8 done (the near world, the sea and the day sky).**
+
+- **Built:**
+  - A day sky rendered in Blender (`assets/map/gen_sky.py`): a blue gradient with small
+    cartoon cumulus low on the horizon.
+  - A calm, bright blue sea out to 8,000 studs.
+  - The near world 300 studs below the roof (`assets/map/gen_near.py`, 9,451 triangles):
+    - the tower's walls and lobby;
+    - streets and a park;
+    - 23 neighbour buildings;
+    - a promenade and a beach that curves round the tower's corner, with palm clumps and a
+      turquoise band of shallows;
+    - three sailboats drifting slowly (`MapMotion`, `MapAmbience`; the same for every
+      player).
+  - The coast moved out to fit the beach (DECISIONS).
+- **Verified:**
+  - In Studio, 9,525 triangles including the boats (cap 50,000) and 11 MeshParts.
+  - 24 of 24 paths and 7 of 7 edge pushes pass, and the console is clean.
+  - Three critic rounds (the cap); what they left is carried to Stages 5 to 7 in Spec
+    section 9.
+- **Waiting:** a Near.fbx re-import for the shallows' corner fix, which goes in with Stage 5's
+  import.
+- **Next:** Stage 5, the mid backdrop (the real skyline and islands).
+
+---
+
 **2026-09-26: the rank badges are drawn (not in the game yet).**
 
 - **What:** 47 badges in `assets/ui/ranks/`: Unranked, Bronze I to Grandmaster V (stars up to

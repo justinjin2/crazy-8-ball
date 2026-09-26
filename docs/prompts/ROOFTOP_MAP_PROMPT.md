@@ -421,4 +421,21 @@ One line per stage: date, stage, result, commit.
     seating area has a path from the spawn, 7 of 7 edge pushes pass, and every seat type
     sits and stands facing the right way.
   - Next: Stage 4 (the near surroundings, the ocean and the day sky).
+- 2026-09-26: Stage 4 done (three critic rounds, the cap).
+  - The sky: gen_sky.py renders six faces in Blender (a gradient, 30 small toon cumulus low
+    on the horizon, the far land and sea painted below it).
+  - The sea: Terrain water to 8,000 studs, nearly clear with almost no reflection.
+  - The near world (gen_near.py, from city_plan.py, which the gray-box shares):
+    - the tower's walls and lobby, the streets, a park and 23 neighbour buildings;
+    - the promenade and a beach curving round the corner, with painted shallows and palm
+      clumps;
+    - three sailboats drifting (MapMotion, MapAmbience).
+  - The coast moved out to fit the beach (DECISIONS).
+  - In Studio: 9,525 triangles (cap 50,000), 11 MeshParts, 1 skybox, 8 map images.
+  - Play: 24 of 24 paths, 7 of 7 edge pushes, the boats drift about 1.5 studs a second, and
+    the console is clean.
+  - Critic: calm 5, 6, 7; palette 4, 5, 5; backdrop 3 until Stages 5 and 6. The notes carried
+    forward are in Spec section 9.
+  - Waiting: the Near.fbx re-import for the shallows' corner fix (with Stage 5's import).
+  - Next: Stage 5 (the mid backdrop).
 
