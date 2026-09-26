@@ -10,6 +10,7 @@ file; Codex reads AGENTS.md, which is the same file).
 3. `docs/ARCHITECTURE.md` before touching `src/`.
 4. `docs/GDD.md` for design intent; sections are split into Decided and Open. Never guess an
    Open item, ask.
+5. `docs/UI_STYLE.md` before building or changing any screen.
 Read `docs/STUDIO_NOTES.md` when Studio, Rojo, MCP, Lune or Blender misbehave. Read
 `assets/*/Readme.md` only when importing that package. `docs/DECISIONS.md` is the dated log.
 
@@ -77,5 +78,5 @@ tools/get-types.sh                # one-time download of Roblox type defs for lu
 - `tests/` Lune tests and harness; `tools/` lint, test and asset-generator scripts
 - `assets/balls`, `assets/ui` generated images and the ball mesh; `assets/table` Blender package with its
   own Readme; `place/8ball.rbxl` the Studio place
-- `docs/` GDD, ROADMAP, ARCHITECTURE, STATUS, DECISIONS, STUDIO_NOTES, `prompts/` (briefs for
+- `docs/` GDD, ROADMAP, ARCHITECTURE, STATUS, DECISIONS, STUDIO_NOTES, UI_STYLE, `prompts/` (briefs for
   Blender jobs), `ideas/` (raw dumps already merged, do not read)

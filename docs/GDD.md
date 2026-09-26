@@ -326,8 +326,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   skins at release: every table uses the standard model. Table skins are parked in
   section 18 for after release.
 - **A permanent loot box** bought with money, for cues. Goal at release: 30 cues. Rarities
-  for everything: **common, uncommon, rare, epic, legendary, ultra** (name of the top tier to
-  be picked). Rarer cues have special trail and pocket VFX.
+  for everything: **common, uncommon, rare, epic, legendary, mythic, unique and VIP** (their
+  order is Open; "ultra" is dropped). Colours in `docs/UI_STYLE.md`. Rarer cues have special
+  trail and pocket VFX.
 - **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
   when a ball is pocketed, so the cue you equip changes how the table looks while you play,
   not just what the stick looks like. The default cue and every common one use the same
@@ -352,7 +353,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 **Open**
 - Money per ball, box prices, drop odds, pack prices *(tune)*: research other games first.
-- The name of the top rarity.
+- The order of the rarities (where mythic and unique sit), and whether VIP is the top
+  loot-box rarity or only for VIP-pass items (the VIP pass above has an exclusive cue).
 
 ## 13. Fair play and security
 
@@ -441,6 +443,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   near the pockets and a spot sticker.
 - UI: clean, thumb-friendly, icons before words. All text lives in one strings module; Roblox
   automatic translation is switched on at release; no hand translation before then.
+- **UI style (`docs/UI_STYLE.md`):** cartoony and bubbly, white panels, Fredoka One for all
+  text, white text with a dark outline, money shown as a stack of green cash.
 
 ## 17. Data and engineering principles
 
@@ -478,4 +482,4 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Full ability list (section 9).
 - Pro lobby look (section 10).
 - Rating formula (section 11).
-- Economy numbers and the top rarity name (section 12).
+- Economy numbers, the rarity order and what VIP rarity means (section 12).

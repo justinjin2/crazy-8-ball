@@ -1032,3 +1032,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     Difficult the aim line and its ring only, Challenger no lines at all (it used to be a short
     stub). The group glow and the red X stay at every level.
   - Abilities on/off is in the menu now, on by default, and does nothing until abilities exist.
+- 2026-09-25: UI style (designer, after the first reference): cartoony and bubbly, white
+  panels, Fredoka One for all text, white text with a dark outline for now, money shown as a
+  stack of green cash. Button colours are not decided yet. Recorded in `docs/UI_STYLE.md`.
+- 2026-09-25: Rarities are common (grey), uncommon (green), rare (blue), epic (purple),
+  legendary (gold), mythic (celestial prismatic), unique (pink, new) and VIP (rainbow);
+  "ultra" is dropped. Their order and what VIP rarity means are still Open.
