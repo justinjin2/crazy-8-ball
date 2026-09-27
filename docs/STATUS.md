@@ -1,6 +1,25 @@
 # Status
 
-**2026-09-26 (latest): the road to release is set; the next work is the pool game itself.**
+**2026-09-26 (latest): after a shot the camera swings to a side view of the whole table (a test).**
+
+- **Built:** once the half-second hold ends, the shooter's camera swings round the table (0.9 s,
+  eased) to a fixed semi-top-down view from the nearer long side, the table centred and as
+  large as the match HUD allows, and swings back to the aiming view when the balls stop. Soft
+  shots still keep the aiming view. `Config.Camera.Shot.PullOutView = "Aim"` brings the old
+  pull-out back.
+- **Verified:** lint clean, 355 Lune tests pass. In Studio Play (PC window, shots fired with the
+  controller's A button): a shot aimed down the length (a quarter turn, to the side the camera
+  stood on), a shot turning 76 degrees, and a soft tap that stayed in the aiming view. A
+  per-frame camera trace showed each swing takes 0.9 s, never loses a table corner from view
+  and never jumps; the side view matches the designer's reference framing. Console clean.
+- **Needs a check by hand:** the phone emulator and a real phone (a narrower screen changes
+  the fit), and a real controller.
+- **Open:** in the side view the shooter's own avatar, standing at the table, can cover a corner
+  of it.
+
+---
+
+**2026-09-26: the road to release is set; the next work is the pool game itself.**
 
 - **Decided (designer):** the order is (1) the pool game, its UI and mechanics on phone, PC and
   console; (2) ranks and EXP; (3) ten bots, one per tier; (4) cues, money, the shop, inventory,

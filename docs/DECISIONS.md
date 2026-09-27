@@ -1323,3 +1323,11 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-26: The first-time tutorial (8.1, the onboarding first match) and the analytics funnel
   (8.2) are built together once everything else is done, just before the performance pass and
   the game page (designer).
+- 2026-09-26: After a shot the camera pulls out to a fixed semi-top-down side view of the whole
+  table instead of the whole table along the aim (designer, as a test; the older view stays
+  behind `Config.Camera.Shot.PullOutView`). It swings round the table from the long side needing
+  the smaller turn, so it never turns more than about a quarter of the way round (less motion,
+  less dizziness). The designer kept the half-second hold, kept soft shots in the aiming view,
+  chose about 0.9 s for the swing, and a swing back to the aiming view when the balls stop.
+  The side view is fitted exactly between the match HUD's bands (the old stepwise HUD fit left
+  the table up to 12% small).

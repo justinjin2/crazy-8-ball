@@ -103,8 +103,16 @@ Every feature is checked against these. If it serves none, it waits.
     whole table and the down-the-cue view (`Config.Camera.View.ZoomDefault`). Every turn
     starts there and the camera always comes back to it.
   - After the strike the camera holds a beat (less if a ball is about to leave the screen),
-    pulls out to the whole table so every ball's path is visible, then eases back to the home
-    view.
+    then pulls out so every ball's path is visible. It swings round the table (about 0.9 s,
+    eased) to a fixed, semi-top-down view of the whole table from one of its long sides, the
+    table centred and as large as the match HUD allows: the same view every shot, still
+    tilted enough to show perspective. It takes the long side that needs the smaller turn
+    from where the shot was aimed (aimed straight down the length, the side the camera
+    already stands on), so the camera never turns more than about a quarter of the way
+    round. When the balls stop it swings back the short way to the home view. Soft shots
+    (about 35% power and under) stay in the aiming view unless a ball reaches the screen
+    edge. (A test, 2026-09-26; `Config.Camera.Shot.PullOutView = "Aim"` restores the older
+    whole-table view along the aim.)
   - Cue-ball placement (break and ball in hand) happens in this 3D view; the camera holds still
     while the ball is dragged.
   - The one exception: the shooter's view goes top-down to call the 8-ball pocket, and returns

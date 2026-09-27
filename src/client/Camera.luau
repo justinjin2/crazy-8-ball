@@ -4,7 +4,9 @@
 -- solves for the closest distance (and shallowest pitch) that keeps the whole table on
 -- screen for the current viewport, so the table is always fully visible at the tightest
 -- framing the screen allows. Zooming in closes on the cue ball. While a shot plays it holds
--- its position and lets its gaze drift toward the cue ball.
+-- the framing the shot was taken from for a beat, then pulls out so the whole table shows: by
+-- default it swings round to a fixed semi-top-down view from the nearer long side
+-- (Config.Camera.Shot.PullOutView), and swings back when the balls stop.
 --
 -- Every turn starts in the HOME VIEW (Config.Camera.View.ZoomDefault, the pre-multiplayer
 -- framing, untouched by the match HUD), and the camera always comes back to it: after every
@@ -68,6 +70,14 @@ local pullOutStart: number? = nil
 -- Whether this shot is big enough to be worth leaving the close view for at all. Decided once
 -- at the strike from the cue ball's speed; a ball reaching the screen edge overrides it.
 local pullOutWanted = true
+-- The "Side" pull-out (Shot.PullOutView): the flat world direction the side view looks across
+-- the table, chosen once when this shot pulls out; nil while it has not.
+local sideAcross: Vector3? = nil
+-- A pose as an orbit round the point on the cloth it looks through (see orbitOf).
+type Orbit = { pivot: Vector3, yaw: number, pitch: number, distance: number }
+-- A swing in flight: from the pose the camera was showing, round the table to a target pose,
+-- over `seconds`. `yawRef` is the target's heading last frame, unwrapped (see swingPose).
+local swing: { from: Orbit, time: number, seconds: number, yawRef: number }? = nil
 
 --- World-space aim direction for a physics angle on the current table. The angle is in
 --- table space, so the table's yaw turns it: at yaw 0 this is (cos, 0, -sin) as before.
@@ -188,6 +198,8 @@ function Camera.unlock()
 	shotTime = 0
 	pullOutStart = nil
 	pullOutWanted = true
+	sideAcross = nil
+	swing = nil
 	local cam = Workspace.CurrentCamera
 	local from = cam.CFrame
 	-- Never hand back a Scriptable camera: that would leave the player with a frozen view.
@@ -595,6 +607,134 @@ local function hudWeight(z: number): number
 	return math.clamp((z - V.ZoomDefault) / math.max(V.ZoomMax - V.ZoomDefault, 1e-3), 0, 1)
 end
 
+-- The side view: the whole table from one long side, looking `across` it at the fitted pitch,
+-- as large as it fits in the space the match HUD leaves (the same bands and side margins
+-- hudFit keeps clear, but found exactly here: hudFit retreats in CameraFitGrowth steps, which
+-- left the table up to 12% small) and centred in that space. No shift toward the cue ball,
+-- so it is the same view every shot.
+local function sideView(across: Vector3): CFrame
+	local vp = Workspace.CurrentCamera.ViewportSize
+	local centre = tableCentre()
+	local pitch = solveFraming(centre, across, 0, vp)
+	local tanH, tanV = tangents(vp)
+	local top, bottom = 1 - 2 * hudTop, -1 + 2 * hudBottom
+	local side = 1 - 2 * Config.Multiplayer.CameraSideFraction
+	-- The pose at `distance`, slid up or down (never tilted) until the table's outline is
+	-- centred between the bands, and whether it then fits.
+	local function at(distance: number): (CFrame, boolean)
+		local cf = poseFor(centre, across, pitch, distance, 0, vp)
+		for pass = 1, 4 do
+			local minY, maxY, maxX = math.huge, -math.huge, 0
+			for _, corner in corners() do
+				local q = project(cf, corner, tanH, tanV)
+				if q == nil then
+					return cf, false
+				end
+				minY, maxY = math.min(minY, q.Y), math.max(maxY, q.Y)
+				maxX = math.max(maxX, math.abs(q.X))
+			end
+			if pass == 4 then
+				return cf, minY >= bottom and maxY <= top and maxX <= side
+			end
+			local above = (minY + maxY) / 2 - (top + bottom) / 2
+			cf += cf.UpVector * (above * tanV * distance)
+		end
+		return cf, false
+	end
+	local V = Config.Camera.View
+	local lo, hi = TableBuilder.studs(V.DistanceMinInches), TableBuilder.studs(V.DistanceMaxInches)
+	local best, fits = at(hi)
+	if not fits then
+		return best -- nothing fits (a sliver of a screen): as far out as the search goes
+	end
+	for _ = 1, 16 do
+		local mid = (lo + hi) / 2
+		local pose, ok = at(mid)
+		if ok then
+			hi, best = mid, pose
+		else
+			lo = mid
+		end
+	end
+	return best
+end
+
+-- Which way the side view looks across the table, seen from the pose `cf`: from the long side
+-- that needs the smaller turn. Aimed nearly straight down the length, both need about a
+-- quarter turn, so it takes the side the camera already stands on and travels less too.
+local function nearerSide(cf: CFrame): Vector3
+	local across = TableBuilder.aimDirection(placement, math.pi / 2)
+	local look = Vector3.new(cf.LookVector.X, 0, cf.LookVector.Z)
+	local lean = if look.Magnitude > 1e-3 then look.Unit:Dot(across) else 0
+	if math.abs(lean) < math.sin(math.rad(Config.Camera.Shot.SideTieDegrees)) then
+		lean = -(cf.Position - tableCentre()):Dot(across)
+	end
+	return if lean >= 0 then across else -across
+end
+
+-- A pose as an orbit round the point on the cloth it looks through: that point, the compass
+-- heading and downward pitch of the gaze, and the distance to the point. Blending two orbits
+-- swings the camera ROUND the table; blending the two CFrames directly would cut the chord
+-- between them, which on a quarter turn dives the camera toward the table and can lose the
+-- far end of it from view.
+local function orbitOf(cf: CFrame): Orbit
+	local look = cf.LookVector
+	local drop = cf.Position.Y - tableCentre().Y
+	-- A level or rising gaze never meets the cloth (no view here has one): orbit the point
+	-- as far ahead as the table centre is instead.
+	local distance = if look.Y < -1e-3 and drop > 0
+		then drop / -look.Y
+		else (cf.Position - tableCentre()).Magnitude
+	distance = math.max(distance, 0.1)
+	return {
+		pivot = cf.Position + look * distance,
+		yaw = math.atan2(look.Z, look.X),
+		pitch = math.asin(math.clamp(-look.Y, -1, 1)),
+		distance = distance,
+	}
+end
+
+local function orbitPose(o: Orbit): CFrame
+	local flat = math.cos(o.pitch)
+	local look = Vector3.new(flat * math.cos(o.yaw), -math.sin(o.pitch), flat * math.sin(o.yaw))
+	return CFrame.lookAt(o.pivot - look * o.distance, o.pivot)
+end
+
+-- Start swinging from the pose `from` (what the camera shows, without the shake) over `seconds`.
+local function startSwing(from: CFrame, seconds: number)
+	local o = orbitOf(from)
+	swing = { from = o, time = 0, seconds = seconds, yawRef = o.yaw }
+end
+
+-- This frame's pose on the swing toward `target`, eased in and out (smoothstep), or nil once
+-- the swing has landed. The target may move (the player can aim while the camera swings
+-- back). The heading goes the short way round, measured from last frame's heading rather
+-- than afresh, so a target passing directly behind cannot flip the swing to the other side.
+-- The distance blends geometrically, like the zoom.
+local function swingPose(target: CFrame, dt: number): CFrame?
+	local s = swing
+	if not s then
+		return nil
+	end
+	s.time += dt
+	local t = math.clamp(s.time / math.max(s.seconds, 1e-3), 0, 1)
+	if t >= 1 then
+		swing = nil
+		return nil
+	end
+	local e = t * t * (3 - 2 * t)
+	local to = orbitOf(target)
+	local yaw = s.yawRef + ((to.yaw - s.yawRef + math.pi) % (2 * math.pi) - math.pi)
+	s.yawRef = yaw
+	local from = s.from
+	return orbitPose({
+		pivot = from.pivot:Lerp(to.pivot, e),
+		yaw = from.yaw + (yaw - from.yaw) * e,
+		pitch = from.pitch + (to.pitch - from.pitch) * e,
+		distance = from.distance * (to.distance / from.distance) ^ e,
+	})
+end
+
 --- The fitted aim pose for a cue ball position and aim angle at the current zoom (or at
 --- `zoomOverride`), for an optional viewport size (defaults to the real one). Without the
 --- HUD fit, which is nothing at the home view or closer. Used by the framing checks.
@@ -661,8 +801,9 @@ end
 
 --- Move the camera. `playing` means the shot's replay is running: it freezes the anchor for
 --- the duration of the shot, holds the framing the shot was taken from for
---- Shot.HoldSeconds, then pulls out to the whole-table view so every ball's path is visible.
---- When the balls stop it eases back to the home view (View.ZoomDefault) - the framing every
+--- Shot.HoldSeconds, then pulls out to a whole-table view so every ball's path is visible:
+--- the side view (swung round the table) or the view along the aim, per Shot.PullOutView.
+--- When the balls stop it goes back to the home view (View.ZoomDefault) - the framing every
 --- turn starts from, not whatever the player had pinched to. `focus` is the cue ball's
 --- current position while it moves (only used when Shot.FocusWeight > 0). `moving` is every
 --- ball currently in motion, in world space: the hold ends the moment one of them is about
@@ -691,6 +832,11 @@ function Camera.update(
 		-- Every turn starts from the same framing, whatever the player pinched to for the
 		-- shot they just took.
 		Camera.resetZoom()
+		-- Back from the side view the way it came, round the table.
+		if sideAcross then
+			startSwing(smoothed or cam.CFrame, S.SideReturnSeconds)
+		end
+		sideAcross = nil
 	end
 	wasPlaying = playing
 	if playing then
@@ -708,6 +854,10 @@ function Camera.update(
 	-- HoldSeconds. But a ball on its way off the screen ends it at once, because there is no
 	-- point holding a framing that no longer contains the shot - a bank across the table can
 	-- put the object ball out of view well inside the hold.
+	--
+	-- Where it pulls out to is Shot.PullOutView: "Side" swings round to the side view, "Aim"
+	-- zooms out to the whole table along the aim.
+	local side = S.PullOutView == "Side"
 	local zoomOverride: number? = nil
 	if playing and S.ZoomOut then
 		if pullOutStart == nil then
@@ -727,9 +877,14 @@ function Camera.update(
 			-- leaving for in the first place.
 			if gone or (pullOutWanted and shotTime >= S.HoldSeconds) then
 				pullOutStart = shotTime
+				if side then
+					local from = smoothed or cam.CFrame
+					sideAcross = nearerSide(from)
+					startSwing(from, S.SidePullOutSeconds)
+				end
 			end
 		end
-		if pullOutStart then
+		if pullOutStart and not side then
 			local t = math.clamp((shotTime - pullOutStart) / math.max(S.PullOutSeconds, 1e-3), 0, 1)
 			local eased = t * t * (3 - 2 * t)
 			zoomOverride = zoom + (Config.Camera.View.ZoomMax - zoom) * eased
@@ -739,6 +894,9 @@ function Camera.update(
 	local target: CFrame
 	if topDown then
 		target = overheadView()
+		swing = nil -- calling a pocket for the 8 eases to the overhead view on its own
+	elseif sideAcross then
+		target = sideView(sideAcross)
 	else
 		local view, whole =
 			viewFor(anchor :: Vector3, anchorDir :: Vector3, gaze, nil, zoomOverride)
@@ -753,8 +911,13 @@ function Camera.update(
 		elseif returnTimer > 0 then S.ReturnSmoothing
 		else Config.Camera.View.Smoothing
 	local alpha = 1 - math.exp(-dt / math.max(smoothing, 1e-3))
+	-- A swing sets the pose outright: easing it again would lag it into the chord it avoids.
+	local swung = swingPose(target, dt)
+	if swung and swung.Position.X ~= swung.Position.X then
+		swung = nil
+	end
 	if target.Position.X == target.Position.X then -- never chase a NaN pose
-		local base = (smoothed or cam.CFrame):Lerp(target, alpha)
+		local base = swung or (smoothed or cam.CFrame):Lerp(target, alpha)
 		if transitionFrom then
 			transitionTime += dt
 			local t = math.clamp(transitionTime / Config.Multiplayer.CameraTransitionSeconds, 0, 1)
@@ -784,6 +947,7 @@ function Camera.snap(cueWorld: Vector3, angle: number)
 	anchorDir = Camera.aimDirection(angle)
 	local pose = (viewFor(anchor :: Vector3, anchorDir :: Vector3, nil))
 	smoothed = pose
+	swing = nil
 	shakeScale = 0
 	Workspace.CurrentCamera.CFrame = pose
 end

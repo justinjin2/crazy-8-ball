@@ -920,9 +920,9 @@ Config.Camera = {
 		LoudSpeed = 220,
 		MinScale = 0.45,
 	},
-	-- While a shot plays the camera holds the framing it was taken from, then pulls out to the
-	-- whole-table view so every ball's path is visible, and eases back to the home view
-	-- (View.ZoomDefault) when the balls stop.
+	-- While a shot plays the camera holds the framing it was taken from, then pulls out to a
+	-- whole-table view (PullOutView) so every ball's path is visible, and goes back to the home
+	-- view (View.ZoomDefault) when the balls stop.
 	Shot = {
 		ZoomOut = true, -- false = stay at the player's zoom during the shot
 		FocusWeight = 0, -- gaze pull toward the moving cue ball: 0 = none, 1 = track it
@@ -965,7 +965,25 @@ Config.Camera = {
 		-- above still overrides it: anything that does reach the edge pulls the camera out
 		-- however gently it was hit. (tune)
 		MinTravelTableLengths = 1.5,
-		-- How long the pull-out to the whole table then takes, eased in and out of the move
+		-- Where the pull-out goes (designer, 2026-09-26, a test). "Side": the camera swings
+		-- round the table to a fixed semi-top-down view of all of it from one long side, the
+		-- table centred, the same view every shot. It takes the long side that needs the
+		-- smaller turn from where the shot was aimed, so the camera never turns more than about
+		-- a quarter of the way round, and when the balls stop it swings back the same way.
+		-- "Aim": the older pull-out, the whole table seen along the aim line.
+		PullOutView = "Side",
+		-- The "Side" swing out takes this long, eased in and out (smoothstep) and not smoothed
+		-- on top, so the camera arrives at exactly this time. The designer chose about 0.9 s:
+		-- quick enough to catch the balls rolling, gentle enough for a quarter turn. (tune)
+		SidePullOutSeconds = 0.9,
+		-- ...and the swing back to the aiming view once the balls stop, if it is still your
+		-- turn. (tune)
+		SideReturnSeconds = 0.9,
+		-- A shot aimed within this many degrees of straight down the table's length needs about
+		-- a quarter turn to either side; the camera then takes the side it already stands on,
+		-- so it also travels less. (tune)
+		SideTieDegrees = 5,
+		-- How long the "Aim" pull-out to the whole table takes, eased in and out of the move
 		-- (smoothstep) so it has no corners at either end. Smoothing below is applied on top,
 		-- so the move actually lands somewhat after this: at 1.2 and 0.35 it took 1.6s to get
 		-- 95% of the way out, which read as slow. Both came down together, because cutting
