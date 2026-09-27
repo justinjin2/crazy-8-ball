@@ -56,6 +56,9 @@ local function inkStroke(parent: Instance, thickness: number, mode: Enum.ApplySt
 end
 
 local function outlineFor(size: number): number
+	if size < K.TextOutlineThinBelowPx then
+		return K.TextOutlineThinPx -- small text: a thin outline keeps the letters' holes open
+	end
 	return math.max(K.TextOutlineMinPx, math.floor(size * K.TextOutlineRatio + 0.5))
 end
 

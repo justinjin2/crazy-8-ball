@@ -2261,6 +2261,9 @@ Config.UI = {
 	PowerBarLargeMaxHeightPx = 480,
 	PowerLargeCueWidthPx = 20,
 	PowerLargeCueTravelScale = 0.55,
+	-- ...and sits this share of the screen above the centre (designer, 2026-09-27: a little
+	-- higher). Its full-pull cue then ends 5% higher too. (tune)
+	PowerBarLargeRaiseFraction = 0.05,
 	PowerLargeLabelSize = 20,
 	PowerBarTransparency = 0.15, -- the white track, a little see-through over the table
 	PowerLabelSize = 16, -- PULL and the percentage over the bar
@@ -2328,7 +2331,13 @@ Config.UI = {
 		-- About 80% of the first build's sizes (designer, 2026-09-26: "shrink the new gui").
 		Text = { Title = 32, Heading = 22, Button = 20, Body = 16, Min = 14 },
 		TextOutlineRatio = 0.1, -- outline thickness as a share of the text size
-		TextOutlineMinPx = 2, -- never thinner than this
+		TextOutlineMinPx = 2, -- never thinner than this, from TextOutlineThinBelowPx up
+		-- Text smaller than this gets a TextOutlineThinPx outline instead: Roblox strokes the
+		-- inside edges of letters too, and at 14 px a 2 px outline closed the holes of o, a, e,
+		-- 0 and 8 (designer, 2026-09-27; Fredoka One kept, compared in Studio against Nunito,
+		-- Builder Sans, Montserrat and Luckiest Guy).
+		TextOutlineThinBelowPx = 20,
+		TextOutlineThinPx = 1,
 		-- Raised candy buttons: a light top, the colour, then a darker lip along the bottom.
 		Buttons = {
 			Green = { Top = { 140, 240, 160 }, Mid = { 61, 214, 107 }, Lip = { 30, 150, 70 } },

@@ -118,8 +118,10 @@ local function label(
 	-- White words outlined in ink, like every screen (docs/UI_STYLE.md).
 	local outline = Instance.new("UIStroke")
 	outline.Color = rgb(Kit.Colors.Ink)
-	outline.Thickness =
-		math.max(Kit.TextOutlineMinPx, math.floor(fontSize * Kit.TextOutlineRatio + 0.5))
+	-- The kit's rule (HudParts.outlineFor): thin on small text, so letters keep their holes.
+	outline.Thickness = if fontSize < Kit.TextOutlineThinBelowPx
+		then Kit.TextOutlineThinPx
+		else math.max(Kit.TextOutlineMinPx, math.floor(fontSize * Kit.TextOutlineRatio + 0.5))
 	outline.LineJoinMode = Enum.LineJoinMode.Round
 	outline.Parent = l
 	l.Size = size

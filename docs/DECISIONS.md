@@ -1366,3 +1366,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-26: The zoom guide is greyed out, smaller and reads "Zoom In/Out", so it looks like a
   control guide rather than a button (designer); its mouse icon shows a big ridged wheel
   rolling up and down.
+- 2026-09-27: The power bar sits 5% of the screen higher on a computer or tablet (designer;
+  phones keep it just under the top bar, where Leave sits above it).
+- 2026-09-27: Fredoka One kept; text under 20 px gets a 1 px outline instead of 2 px (designer,
+  after a Studio comparison with Nunito Heavy, Builder Sans Heavy, Montserrat Black and Luckiest
+  Guy). Roblox strokes the inside edges of letters, so a 2 px outline closed the holes of o, a,
+  e, 0 and 8 at 14 px; 1 px keeps them open.

@@ -46,16 +46,17 @@ screen, a popup).
 **Starting values**
 - Sizes: title 32, heading 22, button 20, body 16, never below 14 px (2026-09-26: the whole
   PC GUI shrunk to about 80% of the first build; it was 40, 28, 24, 18 and 16).
-- Outline: about a tenth of the text size, at least 2 px. Ink `#1B2033`.
+- Outline: about a tenth of the text size, at least 2 px; text under 20 px gets a 1 px outline,
+  because Roblox strokes the inside edges of letters too and a thicker one closes the holes of
+  o, a, e, 0 and 8 (designer, 2026-09-27: Fredoka One kept). Ink `#1B2033`.
 
 **Decided exceptions** (2026-09-25)
 - Ball numbers may be smaller than 16 px: they are part of the ball graphic.
 - A long player name ends in "..." instead of shrinking or wrapping: names are data, not
   reading text, and are never translated.
 
-**Open**
-- If Fredoka One looks blobby at small sizes on a phone, switch only the small text to
-  Nunito (suggestion).
+- Fredoka One stays for all text (designer, 2026-09-27): small text blotting its letters was
+  the outline, not the font, and the thin outline above fixed it.
 
 ## 4. Colours
 

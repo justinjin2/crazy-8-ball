@@ -1,6 +1,16 @@
 # Status
 
-**2026-09-26 (latest): the top bar redone for every screen; bigger centred power bar; zoom guide.**
+**2026-09-27 (latest): power bar a little higher; small text keeps its letters' holes.**
+
+- **Built:** on a computer or tablet the power bar sits 5% of the screen higher. Text under 20 px
+  gets a 1 px outline (was 2 px), which kept closing the holes of o, a, e, 0, 8; Fredoka One
+  stays (the designer's pick from a Studio comparison of five fonts).
+- **Verified:** lint clean, 357 tests pass; Studio PC view: bar top at 28% of the screen, the hint
+  pill, MOVE and the zoom guide with open letters. Console clean.
+
+---
+
+**2026-09-26: the top bar redone for every screen; bigger centred power bar; zoom guide.**
 
 - **Built:** one-row top bar scaled to fit any width (team, big centred clock, team, Leave at
   the right; solo: 15 balls and Leave); the status card replaced by a 2 s turn popup; on a

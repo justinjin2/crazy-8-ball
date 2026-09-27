@@ -186,7 +186,12 @@ function PowerCue.place(self: PowerCue, headerBottom: number)
 			U.PowerBarLargeMaxHeightPx
 		)
 		bar.AnchorPoint = Vector2.new(1, 0.5)
-		bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, 0.5, 0)
+		bar.Position = UDim2.new(
+			1,
+			-U.PowerBarRightMarginPx,
+			0.5,
+			-screenHeight * U.PowerBarLargeRaiseFraction
+		)
 		bar.Size = UDim2.fromOffset(U.PowerBarLargeWidthPx, height)
 	else
 		-- Under the top bar, leaving room for its PULL label above it.
