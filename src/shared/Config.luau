@@ -2757,6 +2757,7 @@ Config.UI = {
 		-- the world, far ones keep a readable floor. (tune)
 		Nameplate = {
 			UseDisplayName = false, -- false: the username (Player.Name), as the designer asked
+			AlwaysOnTop = true, -- over the world (hats and walls never cut it); false to see it in Studio captures
 			SizeStuds = 0.5, -- the badge's height in the world... (0.9 was huge up close)
 			SizePx = 14, -- ...plus this many pixels at any distance
 			NameShare = 0.5, -- the name's box, as a share of the badge's height (the badge art has margins)

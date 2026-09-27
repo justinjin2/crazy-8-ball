@@ -165,7 +165,9 @@ function Nameplates.add(self: any, player: Player)
 	local words = if P.UseDisplayName then player.DisplayName else player.Name
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Nameplate_" .. player.UserId
-	gui.AlwaysOnTop = false -- Studio captures do not draw AlwaysOnTop (STUDIO_NOTES)
+	-- Drawn over the world like Roblox's own names, so a hat or a wall never cuts it; Studio's
+	-- screen captures do not draw AlwaysOnTop (STUDIO_NOTES), so turn it off to check there.
+	gui.AlwaysOnTop = P.AlwaysOnTop
 	gui.LightInfluence = 0 -- the same at night
 	gui.ResetOnSpawn = false
 	gui.ClipsDescendants = false -- the badge's pop and sparkles reach past its box

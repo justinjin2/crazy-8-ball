@@ -770,6 +770,7 @@ function Roadmap.build(self: any)
 	gui.Name = "Roadmap"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
+	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets -- the top bar row, not a notch
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.DisplayOrder = self.screen.DisplayOrder + R.DisplayOrderAbove
 	gui.Enabled = false

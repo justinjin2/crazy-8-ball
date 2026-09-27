@@ -123,6 +123,10 @@ function Progression.update(state: State)
 	rankHud:setVisible(not state.inMatch and not busy)
 	plates:setHidden(if state.inMatch then state.matchUserIds else NOBODY)
 	if #heldRanks > 0 and not state.shooting and not busy then
+		-- The roadmap draws over the HUD screen, so it makes way for the popup.
+		if roadmap:isOpen() then
+			roadmap:close()
+		end
 		newRank:show(table.remove(heldRanks, 1))
 	end
 end
