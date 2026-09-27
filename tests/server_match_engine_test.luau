@@ -236,7 +236,7 @@ function tests.a_walker_who_steps_off_in_the_grace_stops_the_countdown()
 	expect(m.phase == "CoinFlip")
 end
 function tests.request_players_while_the_pad_has_room_with_a_cooldown()
-	local cooldown = M.Queue.RequestCooldownSeconds
+	local cooldown = M.Queue.RequestSeconds
 	local m = E.new(1, 1)
 	expect(E.join(m, 11, "a", "a", 0))
 	expect(not action(m, 21, "RequestOpponent", nil, 1), "only a seated host")

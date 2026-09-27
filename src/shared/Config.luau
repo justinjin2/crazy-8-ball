@@ -2326,8 +2326,9 @@ Config.UI = {
 		ShowStuds = 6, -- it pops up within this far of the table's match area (tune)
 		HideStuds = 8, -- and goes once you are this far out, so it does not flicker at the edge
 		HeightStuds = 6.5, -- above the queue pad
-		WidthPx = 280, -- its size on screen, pixels (the same at any distance)
-		HeightPx = 158, -- mode, host, count and difficulty, and the status pill
+		WidthPx = 220, -- its width on screen, pixels (the same at any distance); its height fits its rows
+		MarginPx = 14, -- room round the card for its shadow and the pop's overshoot
+		ModeTextPx = 34, -- the big 1v1, 2v2 or 3v3 (designer, 2026-09-27)
 	},
 
 	-- The shared UI kit (src/client/HudParts.luau): the one look every screen is built from.
@@ -2522,10 +2523,11 @@ Config.Multiplayer = {
 		-- after the pad fills, so someone who walked on by accident can step off (designer,
 		-- 2026-09-27). A pad that is already full at Start begins at once. (tune)
 		ReadyGraceSeconds = 3,
-		-- Request opponent (alone on a 1v1 table, after Start): everyone free in the server
-		-- gets a popup to join (designer, 2026-09-27). (tune)
-		RequestCooldownSeconds = 20, -- the host may ask again after this long
-		RequestShowSeconds = 15, -- the popup goes by itself after this long
+		-- Request opponent / players (the host's card while the pad has room): everyone free in
+		-- the server gets a popup to join (designer, 2026-09-27). A request stands this long:
+		-- the popup shows, the host's card stays folded to "Requested!", and the host cannot
+		-- ask again; then the card unfolds if nobody came. (tune)
+		RequestSeconds = 15,
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same
@@ -2740,6 +2742,14 @@ Config.Multiplayer = {
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
 		QueueTouchRight = 120, -- on touch screens without a jump button showing, the card keeps this far from the right edge
 		QueueTitleHeight = 32, -- the difficulty's picture and "Classic 1v1"
+		-- Where the card goes (designer, 2026-09-27: keep it out of the way). A screen at least
+		-- this tall, in GUI pixels, is big (PC, console, tablet): the card sits on the right,
+		-- halfway down, at full size. Shorter (a phone) tucks it into the top right corner at
+		-- QueueCornerScale. (tune)
+		QueueWideMinHeight = 500,
+		QueueCornerScale = 0.72,
+		QueueFoldSeconds = 0.3, -- the card folding to "Requested!" and back, about this long
+		QueueFoldEdgePx = 3, -- room above and below a folding part for its buttons' outlines
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre.

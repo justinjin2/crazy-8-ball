@@ -750,14 +750,14 @@ local function poll(t: any, time: number)
 end
 
 -- Whether table `t`'s host still wants players: waiting with room on the pad, and asked
--- recently enough for the popup to still be up (Queue.RequestShowSeconds).
+-- recently enough for the popup to still be up (Queue.RequestSeconds).
 local function wantsOpponent(t: any, epoch: any, time: number): boolean
 	local e = t.engine
 	return e.epoch == epoch
 		and e.phase == "Waiting"
 		and Engine.count(e) < Engine.capacity(e)
 		and e.requestedAt ~= nil
-		and time - e.requestedAt <= M.Queue.RequestShowSeconds
+		and time - e.requestedAt <= M.Queue.RequestSeconds
 end
 
 -- Ask everyone free in the server (not seated at any table) whether they want to play at

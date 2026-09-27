@@ -4,7 +4,7 @@
 -- everyone free in the server (TableService); Join asks the server to stand you on their pad,
 -- which seats you, and a full pad starts after the join grace (MatchEngine.startsAt).
 --
--- One at a time, the newest. It goes by itself after Queue.RequestShowSeconds, when you
+-- One at a time, the newest. It goes by itself after Queue.RequestSeconds, when you
 -- dismiss it or join, and as soon as the table's snapshot says the ask no longer stands (the
 -- pad filled, the host left or played solo), or you sit down anywhere.
 --
@@ -149,7 +149,7 @@ function OpponentPrompt.update(
 		and s.phase == "Waiting"
 		and s.hostId == ask.userId
 		and #s.seats < s.teamSize * 2
-	local old = type(ask.at) == "number" and now - ask.at > M.Queue.RequestShowSeconds
+	local old = type(ask.at) == "number" and now - ask.at > M.Queue.RequestSeconds
 	if seated or old or not stands then
 		self:close()
 		return

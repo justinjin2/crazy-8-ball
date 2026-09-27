@@ -1,6 +1,24 @@
 # Status
 
-**2026-09-27 (latest): the queue pad just plays: no settings, no Start.**
+**2026-09-27 (latest): smaller queue GUI that folds after a request.**
+
+- **Built:** the sign over the pad is smaller (fits its rows, 220 px wide) with the mode big;
+  no JOIN pill or "Join to play" on an empty pad; the pad's arrow hides while its sign is up.
+  The host card is tucked into the top right corner at 72% on phone-sized screens and on the
+  right, halfway down, on big ones (`Style.QueueWideMinHeight`). After Request opponent it
+  folds (animated, `Style.QueueFoldSeconds`) to the game and "Requested!", and unfolds with
+  Play against PC and Play solo if nobody joined within `Queue.RequestSeconds` (15 s, now one
+  window for the popup, the fold and asking again).
+- **Verified:** lint clean, 366 tests pass. Studio phone emulator: the small sign (big 1v1,
+  0/2, Classic, no pill, no arrow over it); the corner card; Request folds it to Requested!;
+  it unfolds after 15 s (height 107 to 163 px over about 0.35 s, sampled per frame). Console
+  clean.
+- **Needs a check by hand:** the right-side placement on a PC-sized window or tablet; a
+  controller; two players (popup Join, the countdown).
+
+---
+
+**2026-09-27: the queue pad just plays: no settings, no Start.**
 
 - **Built:** the pad says JOIN and is see-through glass tinted with its rim. Stepping on gives
   the host a small card top right: "Classic 1v1" (or 2v2, 3v3), the count, "Waiting for

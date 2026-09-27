@@ -645,10 +645,10 @@ function Engine.action(
 			-- While the pad has room, the host may ask everyone free in the server to join
 			-- (designer, 2026-09-27: an opponent on 1v1, players on the team tables); the
 			-- server sends the asks (TableService). Not more often than
-			-- Queue.RequestCooldownSeconds.
+			-- Queue.RequestSeconds.
 			if
 				Engine.count(t) >= Engine.capacity(t)
-				or (t.requestedAt and now - t.requestedAt < M.Queue.RequestCooldownSeconds)
+				or (t.requestedAt and now - t.requestedAt < M.Queue.RequestSeconds)
 			then
 				return false
 			end

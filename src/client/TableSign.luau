@@ -1,8 +1,8 @@
 --!strict
--- TableSign: the card floating over a table's queue pad. It says the table's mode (1v1, 2v2
--- or 3v3), who hosts, how many are on the pad, the difficulty, and whether you can join, or
--- that the game is about to start. No abilities: they are not in the release (designer,
--- 2026-09-27).
+-- TableSign: the small card floating over a table's queue pad. It says the table's mode big
+-- (1v1, 2v2 or 3v3), who hosts, how many are on the pad, the difficulty, and whether it is
+-- waiting, about to start, full or playing. An empty pad's sign has no host row and no pill:
+-- stepping on is the way in. No abilities: they are not in the release (designer, 2026-09-27).
 --
 -- Only one shows: over the table you walk right up to (Config.UI.Sign, measured by
 -- Placement.nearestArea), or over your own while you wait on its pad as a guest. Never while
@@ -32,7 +32,7 @@ function TableSign.new(playerGui: Instance): any
 	self.token = 0 -- the latest show or hide, so a finished pop-out never undoes a newer one
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "TableSign"
-	gui.Size = UDim2.fromOffset(Sign.WidthPx, Sign.HeightPx)
+	gui.Size = UDim2.fromOffset(Sign.WidthPx, 0) -- its height follows the rows (fill)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, Sign.HeightStuds, 0)
 	gui.LightInfluence = 0
 	gui.ResetOnSpawn = false
@@ -40,22 +40,23 @@ function TableSign.new(playerGui: Instance): any
 	gui.Enabled = false
 	gui.Parent = playerGui
 	self.gui = gui
-	-- The card leaves room round it for its shadow, the pop's overshoot and the status pill.
+	-- The card leaves room round it for its shadow and the pop's overshoot, and below it for
+	-- the status pill.
 	local card = HudParts.card(gui, "Card")
-	card.AnchorPoint = Vector2.new(0.5, 0.5)
-	card.Position = UDim2.new(0.5, 0, 0.5, -8)
-	card.Size = UDim2.new(1, -28, 1, -44)
+	card.AnchorPoint = Vector2.new(0.5, 0)
+	card.Position = UDim2.new(0.5, 0, 0, Sign.MarginPx)
+	card.Size = UDim2.new(1, -Sign.MarginPx * 2, 0, 0)
 	card.Visible = false
 	self.card = card
 	local pad = 10
-	self.mode = HudParts.text(card, "Mode", K.Text.Heading - 4, "")
+	-- The mode, big: 1v1, 2v2 or 3v3 (designer, 2026-09-27).
+	self.mode = HudParts.text(card, "Mode", Sign.ModeTextPx, "")
 	self.mode.TextWrapped = false
-	self.mode.Position = UDim2.fromOffset(pad, 6)
-	self.mode.Size = UDim2.new(1, -pad * 2, 0, 30)
-	-- A crown by the host's name.
+	self.mode.Position = UDim2.fromOffset(pad, 4)
+	self.mode.Size = UDim2.new(1, -pad * 2, 0, Sign.ModeTextPx + 2)
+	-- A crown by the host's name, once somebody is on the pad.
 	local rowHeight = 28
 	self.crown = HudParts.icon(card, "Crown")
-	self.crown.Position = UDim2.fromOffset(pad, 40)
 	self.crown.Size = UDim2.fromOffset(rowHeight, rowHeight)
 	self.host = HudParts.text(card, "Host", K.Text.Body, "")
 	self.host.AutoLocalize = false
@@ -63,26 +64,22 @@ function TableSign.new(playerGui: Instance): any
 	self.host.TextWrapped = false
 	self.host.TextTruncate = Enum.TextTruncate.AtEnd
 	self.host.TextXAlignment = Enum.TextXAlignment.Left
-	self.host.Position = UDim2.fromOffset(pad + rowHeight + 6, 40)
 	self.host.Size = UDim2.new(1, -pad * 2 - rowHeight - 6, 0, rowHeight)
 	-- People n/6 on the left, the difficulty on the right.
-	local infoTop = 40 + rowHeight + 4
 	self.people = HudParts.icon(card, "People")
-	self.people.Position = UDim2.fromOffset(pad, infoTop)
 	self.people.Size = UDim2.fromOffset(rowHeight, rowHeight)
 	self.count = HudParts.text(card, "Count", K.Text.Body, "")
 	self.count.AutoLocalize = false -- only numbers
 	self.count.TextXAlignment = Enum.TextXAlignment.Left
-	self.count.Position = UDim2.fromOffset(pad + rowHeight + 4, infoTop)
 	self.count.Size = UDim2.new(0.4, -rowHeight, 0, rowHeight)
 	self.level = HudParts.icon(card, "Classic", "LevelIcon")
-	self.level.Position = UDim2.new(0.42, 0, 0, infoTop)
 	self.level.Size = UDim2.fromOffset(rowHeight, rowHeight)
 	self.levelName = HudParts.text(card, "Level", K.Text.Body, "")
 	self.levelName.TextXAlignment = Enum.TextXAlignment.Left
-	self.levelName.Position = UDim2.new(0.42, rowHeight + 4, 0, infoTop)
 	self.levelName.Size = UDim2.new(0.58, -pad - rowHeight - 4, 0, rowHeight)
-	-- The status pill hangs off the bottom edge: join, waiting, starting, full or playing.
+	self.rowHeight, self.pad = rowHeight, pad
+	-- The status pill hangs off the bottom edge: waiting, starting, full or playing. An empty
+	-- pad has none: stepping on is the way in (designer, 2026-09-27).
 	self.status = HudParts.pill(card, "Status")
 	self.status.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.status.Position = UDim2.fromScale(0.5, 1)
@@ -92,6 +89,28 @@ function TableSign.new(playerGui: Instance): any
 	self.statusText.Position = UDim2.fromOffset(8, 2)
 	self.statusText.Size = UDim2.new(1, -16, 1, -4)
 	return self
+end
+
+-- Lay the rows out top to bottom, the host's only when there is one, and fit the card and
+-- the sign round them.
+function TableSign.arrange(self: any, hasHost: boolean, hasPill: boolean)
+	local rowHeight, pad, gap = self.rowHeight, self.pad, 2
+	local top = 4 + Sign.ModeTextPx + 2 + gap
+	self.crown.Visible = hasHost
+	self.host.Visible = hasHost
+	if hasHost then
+		self.crown.Position = UDim2.fromOffset(pad, top)
+		self.host.Position = UDim2.fromOffset(pad + rowHeight + 6, top)
+		top += rowHeight + gap
+	end
+	self.people.Position = UDim2.fromOffset(pad, top)
+	self.count.Position = UDim2.fromOffset(pad + rowHeight + 4, top)
+	self.level.Position = UDim2.new(0.42, 0, 0, top)
+	self.levelName.Position = UDim2.new(0.42, rowHeight + 4, 0, top)
+	local height = top + rowHeight + (if hasPill then 16 else 8)
+	self.status.Visible = hasPill
+	self.card.Size = UDim2.new(1, -Sign.MarginPx * 2, 0, height)
+	self.gui.Size = UDim2.fromOffset(Sign.WidthPx, height + Sign.MarginPx * 2 + 16)
 end
 
 -- Write table `id`'s card from its snapshot (nil until it has arrived: an empty pad).
@@ -112,15 +131,13 @@ function TableSign.fill(self: any, id: number, snapshot: any?, now: number)
 	local solo = snapshot and snapshot.solo
 	-- The table's own mode, SOLO while somebody plays it alone.
 	self.mode.Text = if solo then Copy.SoloTitle else Copy.Mode:format(teamSize, teamSize)
-	self.crown.Visible = hostName ~= nil
-	self.host.Text = hostName or Copy.StepIn
-	self.host.Position = UDim2.fromOffset(if hostName then 44 else 10, 40)
+	self.host.Text = hostName or ""
 	self.count.Text = Copy.Queue.PlayerCount:format(count, capacity)
 	local difficulty = snapshot and snapshot.settings and snapshot.settings.difficulty
 		or Config.Difficulty.Default
 	HudParts.setIcon(self.level, difficulty)
 	self.levelName.Text = Copy.Queue.Levels[difficulty] or ""
-	local words, colour
+	local words: string?, colour: string? = nil, nil
 	local startsAt = snapshot and snapshot.startsAt
 	if not waiting then
 		words, colour = Copy.PadPlaying, "Blue"
@@ -130,11 +147,12 @@ function TableSign.fill(self: any, id: number, snapshot: any?, now: number)
 		words, colour = Copy.PadFull, "Red"
 	elseif count > 0 then
 		words, colour = Copy.Waiting, "Gold"
-	else
-		words, colour = Copy.PadJoin, "Green"
 	end
-	self.statusText.Text = words
-	self.status.BackgroundColor3 = tone(colour)
+	self.statusText.Text = words or ""
+	if colour then
+		self.status.BackgroundColor3 = tone(colour)
+	end
+	self:arrange(hostName ~= nil, words ~= nil)
 end
 
 -- The sign hangs over the table's pad. Its StudsOffsetWorldSpace is measured in the pad's own

@@ -719,7 +719,7 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
-	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled)
+	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled, tableSign.id)
 	-- The shot clock's last seconds tick once a second for the shooter, until the shot goes.
 	if
 		snapshot

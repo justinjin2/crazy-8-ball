@@ -209,13 +209,15 @@ end
 
 --- Step every pad's effects. `queueOpen(tableId)` says whether that table still waits for
 --- its host (its game has not started); `seated` whether the local player is on a pad or
---- playing, which hides the arrows. Cheap when a pad is empty and settled: only its rings,
+--- playing, which hides the arrows; `signed` the table whose sign is up (TableSign), whose
+--- arrow would sit on it: you are already there, so it hides too. Cheap when a pad is empty and settled: only its rings,
 --- arrow and rim are touched.
 function PadEffects.update(
 	self: PadEffects,
 	dt: number,
 	queueOpen: (number) -> boolean,
-	seated: boolean
+	seated: boolean,
+	signed: number?
 )
 	self.elapsed += dt
 	local ease = 1 - math.exp(-dt / Q.FadeInSeconds)
@@ -275,7 +277,7 @@ function PadEffects.update(
 					else 1
 			end
 		end
-		pad.arrow.Enabled = open and not seated
+		pad.arrow.Enabled = open and not seated and (signed == nil or tableId ~= signed)
 		pad.arrow.StudsOffsetWorldSpace = Vector3.new(0, Q.ArrowHeightStuds + bob, 0)
 
 		pad.level += ((if lit then 1 else 0) - pad.level) * ease

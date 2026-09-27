@@ -1417,3 +1417,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   itself 3 s after the last one stepped on. Public tables play Classic with no abilities (no
   toggle; Difficult and Challenger may become pro-lobby only). The sign is back over the pad,
   without abilities. Supersedes the card over the table and the Start/Back flow above.
+- 2026-09-27 (later): Smaller queue GUI (designer): the sign over the pad drops the JOIN pill
+  and "Join to play" and fits its rows (220 px wide), the mode written bigger (34 px); the
+  host card is tucked top right at 72% on phone-sized screens (under 500 px tall) and sits on
+  the right, halfway down, on big ones; after Request it folds to "Requested!" and unfolds if
+  nobody joins within 15 s (one request window: the popup, the fold and the re-ask wait are
+  all 15 s, was 15 and 20). The pad's arrow hides while its sign is up, so it never covers
+  the mode (Claude's call).

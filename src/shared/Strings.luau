@@ -10,8 +10,7 @@ return {
 		Mode = "%dv%d", -- a table's mode: 1v1, 2v2, 3v3
 		-- The queue pad (TableService) and the sign floating over its table (TableSign).
 		SoloTitle = "SOLO",
-		StepIn = "Join to play", -- on the sign while nobody is on the pad
-		PadJoin = "JOIN", -- on an empty pad, under its mode, and on the sign
+		PadJoin = "JOIN", -- on an empty pad, under its mode
 		PadCount = "%d/%d", -- on a pad with players on it: how many, of how many it holds
 		PadFull = "FULL",
 		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on

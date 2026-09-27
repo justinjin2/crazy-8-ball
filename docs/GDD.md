@@ -193,12 +193,16 @@ Every feature is checked against these. If it serves none, it waits.
   sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
   accept step; anyone may step onto a waiting pad with room, and walking off leaves at once. Everyone else can stand around and watch. Players in a match stay by their table:
   invisible walls, a few studs beyond its area and its pad, let someone waiting for their turn
-  walk about a little but never reach another table (designer, 2026-09-26). The sign over a
-  table's pad (mode, host, count, difficulty, and JOIN, WAITING, STARTING 3 or PLAYING; no
-  abilities) shows when you walk right up to it, and to guests while they wait on the pad.
+  walk about a little but never reach another table (designer, 2026-09-26). The small sign
+  over a table's pad (the mode big, the host, count and difficulty, and a WAITING, STARTING 3,
+  FULL or PLAYING pill; an empty pad's sign has no pill and no "join" words, since stepping on
+  is the way in; no abilities; designer, 2026-09-27) shows when you walk right up to it, and
+  to guests while they wait on the pad. That pad's bobbing arrow hides while its sign shows.
 - **No settings and no Start: just play** (designer, 2026-09-27). The first person on is the
-  **host** and gets a small card top right: the game ("Classic 1v1"), how many are on the pad,
-  and "Waiting for opponent..." ("Waiting for players..." on 2v2 and 3v3). Public tables play
+  **host** and gets a small card: the game ("Classic 1v1"), how many are on the pad, and
+  "Waiting for opponent..." ("Waiting for players..." on 2v2 and 3v3). It keeps out of the
+  way (designer, 2026-09-27): tucked into the top right corner, shrunk, on a phone-sized
+  screen; on the right, halfway down, on a big one (PC, console, tablet). Public tables play
   Classic with no abilities. If the host leaves, the next to arrive becomes host.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
@@ -213,7 +217,9 @@ Every feature is checked against these. If it serves none, it waits.
   a table gets a small popup at the bottom of the screen, the host's face and "<name> needs an
   opponent..." (or "needs players...") with **Join** (stands them on the host's pad) and
   **Dismiss**. It goes by itself after 15 s *(tune)* or as soon as the pad fills or the host
-  leaves. The host can ask again after 20 s *(tune)*.
+  leaves. While a request stands the host's card folds up (animated) to the game and a greyed
+  "Requested!"; if nobody came it unfolds again after the same 15 s, with the full choices and
+  Request ready to press again.
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.
