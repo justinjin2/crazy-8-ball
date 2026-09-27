@@ -1372,3 +1372,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   after a Studio comparison with Nunito Heavy, Builder Sans Heavy, Montserrat Black and Luckiest
   Guy). Roblox strokes the inside edges of letters, so a 2 px outline closed the holes of o, a,
   e, 0 and 8 at 14 px; 1 px keeps them open.
+- 2026-09-27 (designer): the Leave door fills its button (icon-only buttons at 95%); the zoom
+  guide lighter and bigger (40 px icon, 16 px words) with the mouse wheel circled in red; the top
+  bar is pinned to where Roblox's top row really is (an iPhone 17 Pro drew it lower, over the
+  table, because its screen starts below GuiService's inset); on a phone the camera starts one
+  zoom step closer and the break opens there too (Camera.View.PhoneZoomNotchesIn and
+  PhoneBallInHandZoomNotches).

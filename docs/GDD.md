@@ -102,6 +102,9 @@ Every feature is checked against these. If it serves none, it waits.
   whole table automatically for any ball position, aim and screen shape. Zoom is one continuous
   gesture from "whole table" down to a low "down the cue" view behind the ball. Fully zoomed
   out always shows the whole table.
+  - On a phone every turn starts one zoom step closer, and the break (or any ball in hand)
+    opens at that same close view rather than zoomed out; the pockets behind the cue ball may
+    be off screen (designer, 2026-09-27).
   - The **home view** is the middle of that zoom: behind the cue ball, halfway between the
     whole table and the down-the-cue view (`Config.Camera.View.ZoomDefault`). Every turn
     starts there and the camera always comes back to it.

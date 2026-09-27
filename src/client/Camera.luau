@@ -284,11 +284,18 @@ end
 --- Where resetZoom goes for the turn now starting: the home view, or - when the turn opens
 --- with the cue ball in hand (the break, a foul) - View.BallInHandZoomNotches wheel notches
 --- further out, so there is room to see where to put the ball.
+---
+--- On a phone (a screen shorter than Multiplayer.Style.ShortHeight) the home view is
+--- View.PhoneZoomNotchesIn notches closer, and a ball-in-hand turn (the break included) opens
+--- View.PhoneBallInHandZoomNotches further out than that (designer, 2026-09-27: start closer
+--- on a phone; the pockets behind the cue ball may be off screen).
 function Camera.setBallInHand(inHand: boolean)
 	local V = Config.Camera.View
-	homeZoom = if inHand
-		then math.min(V.ZoomDefault * Config.Input.ZoomStep ^ V.BallInHandZoomNotches, V.ZoomMax)
-		else V.ZoomDefault
+	local step = Config.Input.ZoomStep
+	local phone = Workspace.CurrentCamera.ViewportSize.Y < Config.Multiplayer.Style.ShortHeight
+	local home = if phone then V.ZoomDefault / step ^ V.PhoneZoomNotchesIn else V.ZoomDefault
+	local notches = if phone then V.PhoneBallInHandZoomNotches else V.BallInHandZoomNotches
+	homeZoom = if inHand then math.min(home * step ^ notches, V.ZoomMax) else home
 end
 
 function Camera.getZoom(): number

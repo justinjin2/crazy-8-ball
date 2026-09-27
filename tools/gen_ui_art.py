@@ -402,7 +402,7 @@ def chevron(cx, cy, w, h, up, colour="url(#blue)"):
 
 def icon_scroll_zoom():
     # A white mouse with a big ridged blue scroll wheel rolling up and down: an arrowhead above
-    # and below the wheel, and motion lines beside it. Scroll to zoom.
+    # and below the wheel, and a red ring circling it. Scroll to zoom.
     parts = [
         '<rect x="58" y="36" width="140" height="196" rx="70" fill="url(#white)"/>',
         ink_line([(62, 118), (194, 118)], 5),
@@ -415,13 +415,10 @@ def icon_scroll_zoom():
     parts += [
         gloss(118, 78, 6, 14, angle=0, opacity=0.6),
         # the roll: up above the wheel, down below it
-        chevron(128, 26, 44, 26, up=True),
-        chevron(128, 176, 44, 26, up=False),
-        # motion lines either side of the wheel
-        line([(88, 72), (88, 98)], "#3B9BFF", 6),
-        line([(88, 110), (88, 136)], "#3B9BFF", 6),
-        line([(168, 72), (168, 98)], "#3B9BFF", 6),
-        line([(168, 110), (168, 136)], "#3B9BFF", 6),
+        chevron(128, 24, 40, 24, up=True),
+        chevron(128, 186, 40, 24, up=False),
+        # a red ring circling the wheel, so the eye goes straight to it (designer, 2026-09-27)
+        '<ellipse cx="128" cy="104" rx="44" ry="58" fill="none" stroke="#FF4D4D" stroke-width="9"/>',
     ]
     return "".join(parts)
 

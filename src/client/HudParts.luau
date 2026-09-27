@@ -278,8 +278,9 @@ local function layoutCandy(button: TextButton, c: Candy)
 		return
 	end
 	local hasIcon = c.icon.Visible
-	local iconSize = if hasIcon then math.floor(usable * K.ButtonIconShare) else 0
 	local hasText = c.label.Text ~= ""
+	local share = if hasText then K.ButtonIconShare else K.ButtonIconOnlyShare
+	local iconSize = if hasIcon then math.floor(usable * share) else 0
 	if hasIcon and not hasText then
 		c.icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		c.icon.Position = UDim2.fromOffset(size.X / 2, usable / 2)

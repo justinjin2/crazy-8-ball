@@ -896,6 +896,12 @@ Config.Camera = {
 		-- there is room to see where to put the ball. That turn's shot returns to the same
 		-- framing; every other turn uses the home view. (tune)
 		BallInHandZoomNotches = 2,
+		-- On a phone (Camera.setBallInHand) every turn starts closer: the home view this many
+		-- notches in, and a ball-in-hand turn (the break) opens this many notches out from
+		-- that, instead of BallInHandZoomNotches (designer, 2026-09-27: the break was too far
+		-- out on a phone; the pockets behind the cue ball may be off screen). (tune)
+		PhoneZoomNotchesIn = 1,
+		PhoneBallInHandZoomNotches = 0,
 	},
 	-- A ball dropping nudges the camera a hair TOWARD the pocket it went into. This is a
 	-- reward, not an effect: it should register somewhere below conscious notice and never
@@ -2230,16 +2236,17 @@ Config.UI = {
 	-- turn, a mouse-wheel or pinching-hand icon and "Zoom In/Out", nothing behind them, greyed
 	-- out so it reads as a control guide, not a button (designer, 2026-09-26). (tune)
 	ZoomHint = {
-		IconPx = 32,
-		ShortIconPx = 26, -- a phone on its side
-		TextSize = 14,
-		ShortTextSize = 12, -- under the kit's 14 px floor on purpose: a faint guide, not reading text
+		IconPx = 40,
+		ShortIconPx = 32, -- a phone on its side
+		TextSize = 16,
+		ShortTextSize = 14,
 		PaddingPx = 4, -- between the icon and the words
 		GapPx = 10, -- between the guide and the spin button
-		Tint = { 205, 205, 210 }, -- greys the icon and the words
-		IconTransparency = 0.35,
-		TextTransparency = 0.25,
-		OutlineTransparency = 0.55, -- the words' ink outline, fainter still
+		-- A light grey, clearly readable (designer, 2026-09-27: it was too faint).
+		Tint = { 238, 238, 242 }, -- greys the icon and the words a touch
+		IconTransparency = 0.1,
+		TextTransparency = 0.05,
+		OutlineTransparency = 0.25, -- the words' ink outline
 	},
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
 	-- fill charging up behind it (PowerCue.place, every frame).
@@ -2351,6 +2358,7 @@ Config.UI = {
 		ButtonStrokePx = 3, -- ink outline
 		ButtonCornerPx = 12,
 		ButtonIconShare = 0.62, -- an icon on a button is this share of its height
+		ButtonIconOnlyShare = 0.95, -- an icon with no words (Leave's door) fills most of the button (designer, 2026-09-27)
 		PressedScale = 0.94, -- the squish when pressed
 		SelectedScale = 1.04, -- a gamepad-selected or hovered button grows a little
 		SelectedStrokePx = 5, -- and its outline thickens, in Gold
@@ -2389,7 +2397,7 @@ Config.UI = {
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
 			Challenger = "rbxassetid://111544414092808", -- difficulty: no lines
 			Money = "rbxassetid://73979676771161", -- money: a stack of green cash, never coins
-			ScrollZoom = "rbxassetid://109357219235276", -- the zoom guide on a computer: a mouse wheel rolling
+			ScrollZoom = "rbxassetid://76220420219490", -- the zoom guide on a computer: a mouse wheel rolling
 			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
 		},
 		Art = {

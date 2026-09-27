@@ -182,9 +182,11 @@ order; that is Open.
 - **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on
   a computer or tablet bigger and centred on the right edge.
 - **The zoom guide** (designer, 2026-09-26): over the spin button while it is your turn, a
-  small icon and "Zoom In/Out" with nothing behind them, greyed out and faint so it reads as a
-  control guide rather than a button: a deliberate exception to the kit's cards. A mouse with
-  a big ridged wheel rolling up and down on a computer, a pinching hand on touch. Hidden on a
-  gamepad for now.
+  small icon and "Zoom In/Out" with nothing behind them, lightly greyed so it reads as a
+  control guide rather than a button, but clear (2026-09-27): a deliberate exception to the
+  kit's cards. A mouse whose big ridged wheel is circled in red, with arrows up and down, on a
+  computer; a pinching hand on touch. Hidden on a gamepad for now.
+- **An icon-only button** (Leave's red door) shows its icon at 95% of the button (designer,
+  2026-09-27).
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays
   (cash icon and 1x, 1.5x, 2x) under its tile; one short line describing the chosen level.

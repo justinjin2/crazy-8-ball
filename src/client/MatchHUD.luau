@@ -299,12 +299,14 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		else nil
 	self.topbarRoom = frame(probe, "Area")
 	self.topbarRoom.Size = UDim2.fromScale(1, 1)
-	table.insert(
-		self.connections,
-		self.topbarRoom:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-			self:layout()
-		end)
-	)
+	for _, property in { "AbsoluteSize", "AbsolutePosition" } do
+		table.insert(
+			self.connections,
+			self.topbarRoom:GetPropertyChangedSignal(property):Connect(function()
+				self:layout()
+			end)
+		)
+	end
 	-- The top bar: both teams, the clock between them and Leave at the right end, in one
 	-- container laid out at its natural size and scaled down to fit the room beside Roblox's
 	-- buttons (layout), so it stays one row on every screen (designer, 2026-09-26).
@@ -496,7 +498,7 @@ function MatchHUD.layout(self: any)
 	local scale = math.min(1, room / natural)
 	self.barScale.Scale = scale
 	self.topBar.Size = UDim2.fromOffset(natural, height)
-	local top = S.HeaderTop - GuiService:GetGuiInset().Y
+	local top = self:barTop()
 	self.topBar.Position = UDim2.fromOffset(menuLeft + (room - natural * scale) / 2, top)
 	self.headerBottom = top + height * scale
 	for i, team in self.teams do
@@ -615,6 +617,19 @@ function MatchHUD.fitSetup(self: any)
 		+ 4
 	local most = math.min(S.SetupMaxWidth, self.width - S.HeaderMargin * 2)
 	self.setup.Size = UDim2.fromOffset(math.min(most, words + chrome), height)
+end
+
+-- Where the bar's top goes, in the root's pixels: HeaderTop below the top of Roblox's own top
+-- row, measured from where that row really is (ScreenInsets.TopbarSafeInsets) rather than from
+-- GuiService's inset. On some phones (an iPhone 17 Pro) this screen starts lower than the inset
+-- says, and the bar sat below the row, over the table (designer, 2026-09-27).
+function MatchHUD.barTop(self: any): number
+	local room = self.topbarRoom
+	local probe = room and room.Parent
+	if room and probe and probe.Parent and room.AbsoluteSize.Y > 0 then
+		return room.AbsolutePosition.Y - self.root.AbsolutePosition.Y + S.HeaderTop
+	end
+	return S.HeaderTop - GuiService:GetGuiInset().Y
 end
 
 -- How much of the screen's top edge Roblox's own buttons take, left and right, in the root's

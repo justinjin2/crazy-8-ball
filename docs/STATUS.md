@@ -1,6 +1,19 @@
 # Status
 
-**2026-09-27 (latest): power bar a little higher; small text keeps its letters' holes.**
+**2026-09-27 (latest): bigger Leave icon, clearer zoom guide, bar pinned to the top row, closer phone camera.**
+
+- **Built:** the Leave door fills its button; the zoom guide lighter and bigger, the mouse wheel
+  circled in red; the top bar placed from Roblox's real top row (fixes the iPhone 17 Pro drawing
+  it lower); on a phone every turn starts a zoom step closer and the break opens at that view.
+- **Verified:** lint clean, 357 tests pass. Studio phone emulator: door fills Leave, zoom guide
+  clear with the ringed wheel, bar in the top row, aiming and break views closer (the break shows
+  the rack and far pockets, the near pockets off screen). Console clean.
+- **Needs a check by hand:** the iPhone 17 Pro emulator (the bar should now sit in the top row
+  like the 16 Pro Max), and a real phone.
+
+---
+
+**2026-09-27: power bar a little higher; small text keeps its letters' holes.**
 
 - **Built:** on a computer or tablet the power bar sits 5% of the screen higher. Text under 20 px
   gets a 1 px outline (was 2 px), which kept closing the holes of o, a, e, 0, 8; Fredoka One
