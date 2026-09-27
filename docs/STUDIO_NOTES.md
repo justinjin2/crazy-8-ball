@@ -154,6 +154,10 @@ rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
   `TextWrapped` back on. A kit text (`HudParts.text`, TextScaled) given `TextWrapped = false`
   then draws at its fixed `TextSize` and no longer shrinks to its box. For text that must
   scale with its box (the nameplates), leave TextWrapped alone.
+- **A BillboardGui's pixel part barely shows** (seen 2026-09-27, Retina Mac): a nameplate sized
+  `{0.75 studs + 18 px}` drew at about the size of its 0.75 studs alone at 20 studs, and its
+  AbsoluteSize did not match what was drawn. Size world labels in studs and check them in a
+  capture (with AlwaysOnTop off), not from AbsoluteSize.
 - In a Sibling-ZIndex ScreenGui, ZIndex -1 and 0 draw under default (1) siblings: the kit's
   card shadow and fill rely on it.
 - A TextLabel or TextButton can carry two UIStrokes at once: one Contextual (the text's

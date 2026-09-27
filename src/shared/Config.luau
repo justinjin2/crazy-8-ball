@@ -2735,10 +2735,10 @@ Config.UI = {
 		-- about 1 s in all.
 		Cash = {
 			ZIndex = 45, -- over everything, the money HUD included
-			ChipHeightPx = 30, -- the chip's height (a computer)
-			ShortChipHeightPx = 24, -- on a phone
-			TextPx = 24, -- "+$10"
-			ShortTextPx = 20,
+			ChipHeightPx = 36, -- the chip's height (a computer; 30 read small over the table)
+			ShortChipHeightPx = 28, -- on a phone
+			TextPx = 28, -- "+$10"
+			ShortTextPx = 22,
 			IconWidthShare = 1.4, -- the bundle is wide: its box is this many chip heights across
 			PopSeconds = 0.2, -- pops out at the pocket with a small overshoot
 			PopFromScale = 0.3, -- from this size
@@ -2758,9 +2758,13 @@ Config.UI = {
 		Nameplate = {
 			UseDisplayName = false, -- false: the username (Player.Name), as the designer asked
 			AlwaysOnTop = true, -- over the world (hats and walls never cut it); false to see it in Studio captures
-			SizeStuds = 0.5, -- the badge's height in the world... (0.9 was huge up close)
-			SizePx = 14, -- ...plus this many pixels at any distance
-			NameShare = 0.5, -- the name's box, as a share of the badge's height (the badge art has margins)
+			-- The plate's height in the world (the badge; the name is NameShare of it). Sized to
+			-- read like reference 02 at a normal camera distance.
+			SizeStuds = 1.1,
+			-- ...plus this many pixels at any distance. In Studio this part drew far smaller than
+			-- its number (STUDIO_NOTES), so the studs carry the size.
+			SizePx = 8,
+			NameShare = 0.55, -- the name's box, as a share of the badge's height (the badge art has margins)
 			NameSlack = 0.08, -- extra room after the name for its outline
 			GapShare = 0.12, -- between the badge and the name, as a share of the badge
 			OffsetStuds = 3.2, -- the plate's middle, above the head's centre (clear of tall hats)
