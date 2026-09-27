@@ -1,6 +1,14 @@
 # Status
 
-**2026-09-27 (latest): the zoom guide goes away once you zoom.**
+**2026-09-27 (latest): NICE SHOT! is a lot smaller.**
+
+- **Built:** its word is 22 px (was 40) and the rays behind it 90 px (was 150).
+- **Verified:** lint clean, 363 tests pass; Studio phone emulator, QA combo: the smaller word
+  over the side pocket, readable. Console clean.
+
+---
+
+**2026-09-27: the zoom guide goes away once you zoom.**
 
 - **Built:** the first zoom (mouse wheel or pinch, on your turn) hides the zoom guide for the
   rest of the session; it shows again when the player rejoins.

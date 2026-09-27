@@ -2147,10 +2147,12 @@ Config.Effects = {
 		-- behind the top bar.
 		HeightStuds = 1.1,
 		RiseStuds = 0.5, -- it floats up this far as it lives
-		SizePx = { 240, 64 }, -- on screen, the same size near or far (a phone reads it)
-		TextSize = 40,
+		-- On screen, the same size near or far; small (designer, 2026-09-27: a lot smaller than
+		-- the first 40 px).
+		SizePx = { 150, 34 },
+		TextSize = 22,
 		TiltDegrees = -6, -- a little jaunty
-		RaysPx = 150, -- the gold rays turning behind the word
+		RaysPx = 90, -- the gold rays turning behind the word
 		RaysDegreesPerSecond = 90,
 		SparkleCount = 26, -- gold sparkles thrown out of the pocket, on top of its burst
 		SparkleSpeed = { 3, 6 }, -- studs per second: they stay round the pocket
