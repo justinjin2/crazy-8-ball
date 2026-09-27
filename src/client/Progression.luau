@@ -8,7 +8,6 @@
 -- - DevNotice: a private line in the chat window (the developer commands).
 -- It also starts ChatTags (the [TIER] tag before names in chat).
 -- Nothing here ever sends an amount back: the numbers are already in the save.
-local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
@@ -116,18 +115,22 @@ function Progression.isBusy(): boolean
 	return started and (result:isOpen() or newRank:isOpen() or roadmap:isOpen())
 end
 
---- Gamepad: put the selection on the rank HUD's badge (Main's Y when there is nothing else
---- to focus); A then opens the roadmap. Returns whether it could.
-function Progression.focusRank(): boolean
-	if not started or Progression.isBusy() then
+--- Gamepad Y in the hub (Main): open the roadmap, or close it if it is up (designer,
+--- 2026-09-27). It used to put the selection on the rank badge, and a selected button takes
+--- the left stick from walking. Returns whether it did anything.
+function Progression.toggleRank(): boolean
+	if not started then
 		return false
 	end
-	local button = rankHud:button()
-	if button and button:IsDescendantOf(game) and button.Visible then
-		GuiService.SelectedObject = button
+	if roadmap:isOpen() then
+		roadmap:close()
 		return true
 	end
-	return false
+	if Progression.isBusy() then
+		return false
+	end
+	roadmap:open()
+	return true
 end
 
 --- Main calls this every frame with where the player is: the rank HUD hides in a match, the

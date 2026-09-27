@@ -1485,6 +1485,15 @@ Config.Input = {
 		-- 0..1 in Position.Z). ButtonA is the fallback for pads with digital triggers:
 		-- power ramps up while it is held, at this much per second.
 		PowerRampPerSecond = 1.1,
+		-- A pull (R2 or A held) is called off when the left stick moves this far (0-1) from
+		-- where it was as the pull began (designer, 2026-09-27: change your mind by aiming).
+		CancelStickPush = 0.3,
+		-- Y in the hub can leave the selection on the host menu or the opponent prompt, and
+		-- a selected button takes the left stick from walking. A push harder than this that
+		-- has not moved the selection after FreeStickSeconds (it hit the menu's edge) lets go
+		-- of the menu so the player walks again.
+		FreeStickPush = 0.8,
+		FreeStickSeconds = 0.25,
 	},
 }
 
@@ -2480,6 +2489,28 @@ Config.UI = {
 		TextTransparency = 0.05,
 		OutlineTransparency = 0.25, -- the words' ink outline
 	},
+	-- The controller guide (PadGuide, designer 2026-09-27): a faint strip at the bottom left,
+	-- above the money HUD, while it is your turn on a gamepad, and a Circle beside Leave.
+	-- Roblox's own button glyphs; the kit's arrows beside the sticks.
+	PadGuide = {
+		GlyphPx = 30, -- a button or stick picture
+		ShortGlyphPx = 24, -- on a phone on its side
+		ArrowShare = 0.6, -- a chevron beside a stick, of the glyph (its image has padding)
+		TextSize = 16,
+		ShortTextSize = 14,
+		PartGapPx = 2, -- between an item's pictures and its words
+		ItemGapPx = 16, -- between the items in a row
+		RowGapPx = 4,
+		AboveMoneyPx = 10, -- the strip's bottom this far over the money HUD's top
+		-- As the zoom guide: a light grey, clearly readable, but a guide rather than a button.
+		Tint = { 238, 238, 242 }, -- the arrows and words
+		GlyphTransparency = 0.1,
+		IconTransparency = 0.1,
+		TextTransparency = 0.05,
+		OutlineTransparency = 0.25,
+		LeaveShare = 0.75, -- the Circle beside Leave, of the Leave button's size
+		LeaveGapPx = 4,
+	},
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
 	-- fill charging up behind it (PowerCue.place, every frame).
 	--
@@ -3110,6 +3141,8 @@ Config.UI = {
 			-- the tip is one clean joint (2026-09-27; four rotated bars left a seam there).
 			ChevronRight = "rbxassetid://83677689417587",
 			ChevronLeft = "rbxassetid://139144449776506",
+			ChevronUp = "rbxassetid://86978612733332", -- the controller guide's arrows by a stick
+			ChevronDown = "rbxassetid://133654278514766",
 			Sliders = "rbxassetid://72906258640929", -- fine controls
 			Classic = "rbxassetid://77520789288930", -- difficulty: every line
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
@@ -3470,6 +3503,9 @@ Config.Multiplayer = {
 		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
 		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target
+		-- Choosing a pocket with the stick (MatchTargets.linkPockets): a ring off to the side
+		-- of a push counts this many times its sideways distance, so the straight one wins.
+		PocketNavAcrossWeight = 2,
 		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
 		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this
 		-- share of the hole's narrow way on screen, before the pulse (TargetPulse) adds 15%.

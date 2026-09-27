@@ -215,8 +215,14 @@ order; that is Open.
   small icon and "Zoom In/Out" with nothing behind them, lightly greyed so it reads as a
   control guide rather than a button, but clear (2026-09-27): a deliberate exception to the
   kit's cards. A mouse whose big ridged wheel is circled in red, with arrows up and down, on a
-  computer; a pinching hand on touch. Hidden on a gamepad for now. Once the player zooms it
-  stays hidden for the session (2026-09-27).
+  computer; a pinching hand on touch. Hidden on a gamepad, where the controller guide covers
+  zoom. Once the player zooms it stays hidden for the session (2026-09-27).
+- **The controller guide** (designer, 2026-09-27; `PadGuide`): while it is your turn on a
+  gamepad, a faint strip at the bottom left above the money HUD, in the zoom guide's style:
+  left stick with left/right chevrons "Turn", the D-pad "Fine aim", right stick with up/down
+  chevrons "Zoom", L1 "Spin & angle", R2 and X "Shoot"; and a Circle just right of Leave. The
+  button pictures are Roblox's own, so they match the controller (PlayStation or Xbox); the
+  chevrons are the kit's white ones.
 - **An icon-only button** (Leave's red door) shows its icon at 95% of the button (designer,
   2026-09-27).
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays

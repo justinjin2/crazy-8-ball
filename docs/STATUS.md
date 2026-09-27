@@ -1,6 +1,25 @@
 # Status
 
-**2026-09-27 (latest, branch `ranks-money`): the economy plan.**
+**2026-09-27 (latest, branch `ranks-money`): controller pass with a PS5 pad.**
+
+- **Built:** Y in the hub opens or closes Ranked (it selected the rank badge, and a selected
+  button takes the left stick, so the character froze); a hard stick push that goes nowhere
+  in the host menu or the opponent prompt lets go of the menu; a pull (X or R2) is called off
+  by moving the stick or the D-pad; holding L1, left stick = spin, right stick = cue angle;
+  choosing the 8's pocket, each ring's up/down/left/right is the ring that way on screen; a
+  controller guide strip at the bottom left (Turn, Fine aim, Zoom, Spin & angle, Shoot, with
+  Roblox's own glyphs and the kit's white chevrons) and a Circle beside Leave.
+- **Verified:** lint clean, 425 tests pass. Studio: Y opens and closes Ranked with nothing
+  left selected; X held and released shoots, X held with a D-pad press during the pull does
+  not; the pocket links from the top-down view (1 2 3 over 6 5 4: 4 left is 5, 5 up is 2);
+  the guide and the Circle showing PlayStation glyphs (screenshots). Console clean.
+- **Needs a check by hand (PS5 pad):** the left-stick cancel and the L1 stick swap (Studio
+  cannot move a real stick); the guide appearing by itself when the pad is used; walking off
+  the pad with a hard push after Y on the host menu.
+
+---
+
+**2026-09-27 (branch `ranks-money`): the economy plan.**
 
 - **Written:** `docs/ECONOMY.md`, every economy and rank number from the designer's interview:
   money per match and mode, RP for every tier and difficulty, the opponent-gap factor, the

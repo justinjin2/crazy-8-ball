@@ -90,14 +90,17 @@ Every feature is checked against these. If it serves none, it waits.
   outside closes it and retains the selection. Gamepad stick controls remain.
 - **Cue angle (jump shots, decided 2026-09-24):** a vertical slider beside the white ball in
   the spin panel sets how steeply the cue is raised, 4 degrees (normal) to 60, in whole
-  degrees. Tap or drag the track; the arrow keys and L1 + left stick (or D-pad) step it. A
+  degrees. Tap or drag the track; the arrow keys and L1 + right stick (or D-pad) step it. A
   raised angle shows under the spin toggle and resets to 4 after every shot, like spin.
   Raising the cue and striking down bounces the cue ball off the slate: it can jump a
   blocking ball, and too much power sends it off the table. The guideline follows the jump:
   a small ring where it comes down, and a red cross where it would fly off.
 - Gamepad: left stick aims, up and down on the right stick (or triggers) zooms, a hold-and-
   release button shoots with power, the spin selector is a stick target. Exact bindings are a
-  milestone task, not a design question.
+  milestone task, not a design question. Decided with a PS5 pad (designer, 2026-09-27):
+  holding L1, the left stick moves the spin and the right stick raises or lowers the cue;
+  moving the stick or the D-pad during a pull calls the shot off; Y in the hub opens or
+  closes Ranked; choosing the 8's pocket, the stick goes to the ring that way on screen.
 - Aim ticks: a soft tick sound on every step of rotation; a stretch sound while pulling the
   power bar back (GamePigeon style, original audio).
 - **Camera:** one 3D orbit view (no toggle; top-down only while calling the 8-ball pocket). It

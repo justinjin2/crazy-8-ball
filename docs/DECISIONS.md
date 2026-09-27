@@ -1574,3 +1574,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   players (at most 50) so the top scales down for a small game; PC RP x0.5 at every tier at
   launch so a lone high player can climb; boosts add rather than multiply; Money Party and
   Fast Open at launch, a Cue Pass later; the starter pack holds no case.
+- 2026-09-27 (designer, PS5 pad): Y in the hub opens or closes Ranked (it used to select the
+  rank badge, which froze walking); a pull is called off by moving the stick or the D-pad;
+  holding L1, the left stick is spin and the right stick the cue angle; choosing the 8's
+  pocket, the stick goes to the ring that way on screen; a controller guide strip (Roblox's
+  own button glyphs) and a Circle beside Leave while it is your turn on a gamepad.

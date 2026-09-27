@@ -4,6 +4,14 @@ return {
 	Pull = "PULL",
 	-- The zoom guide over the spin button while it is your turn, beside its icon (ZoomHint).
 	ZoomHint = "Zoom In/Out",
+	-- The controller guide at the bottom left while it is your turn on a gamepad (PadGuide).
+	PadGuide = {
+		Turn = "Turn", -- the left stick, left and right
+		FineAim = "Fine aim", -- the D-pad, left and right
+		Zoom = "Zoom", -- the right stick, up and down
+		SpinAngle = "Spin & angle", -- hold L1
+		Shoot = "Shoot", -- R2 or X (A)
+	},
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
 	Match = {

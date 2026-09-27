@@ -32,6 +32,7 @@ local Hub = require(script.Parent.Hub)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
 local ZoomHint = require(script.Parent.ZoomHint)
+local PadGuide = require(script.Parent.PadGuide)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
@@ -55,6 +56,7 @@ local powerCue = PowerCue.new(screen)
 UI.addPlayControl(powerCue.root)
 local spinSelector = SpinSelector.new(screen, input)
 local zoomHint = ZoomHint.new(screen) -- scroll or pinch to zoom, over the spin button
+local padGuide = PadGuide.new(screen) -- the controller guide, bottom left, on a gamepad
 UI.addPlayControl(spinSelector.root)
 local snapshot: any = nil
 -- What the HUD and highlights draw: `snapshot` as match:view presents it, with balls down
@@ -380,6 +382,7 @@ local function action(kind: string, value: any?)
 	end
 end
 hud = MatchHUD.new(screen, action)
+padGuide:attachLeave(hud.leave) -- the Circle beside Leave
 queueMenu = QueueMenu.new(screen, action)
 -- Ranks and money: the HUDs, nameplates, flying cash, result screen, NEW RANK! and roadmap.
 Progression.start(screen, {
@@ -675,7 +678,7 @@ UserInputService.InputBegan:Connect(function(key, processed)
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot and opponentPrompt:isOpen() then
 		opponentPrompt:focus()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot then
-		Progression.focusRank() -- the rank HUD's badge; A opens the roadmap
+		Progression.toggleRank() -- opens the roadmap, or closes it
 	elseif key.KeyCode == Enum.KeyCode.F3 then
 		UI.toggleStatus()
 	end
@@ -725,6 +728,41 @@ local function padUnder(root: BasePart, margin: number): number?
 		end
 	end
 	return nil
+end
+-- Y in the hub can leave the gamepad's selection on the host menu or the opponent prompt,
+-- and a selected button takes the left stick from walking. A hard push that has not moved
+-- the selection after Gamepad.FreeStickSeconds (it hit the menu's edge) lets go of the menu
+-- so the player walks again.
+local freeStick = { at = nil :: number?, from = nil :: GuiObject?, moved = false }
+local function freeStickFromMenu()
+	local G = Config.Input.Gamepad
+	local selected = GuiService.SelectedObject
+	local inMenu = selected ~= nil
+		and (queueMenu:focused() or selected:IsDescendantOf(opponentPrompt.root))
+	local push = 0
+	if inMenu then
+		for _, state in UserInputService:GetGamepadState(Enum.UserInputType.Gamepad1) do
+			if state.KeyCode == Enum.KeyCode.Thumbstick1 then
+				push = Vector2.new(state.Position.X, state.Position.Y).Magnitude
+			end
+		end
+	end
+	if push < G.FreeStickPush then
+		freeStick.at, freeStick.from, freeStick.moved = nil, nil, false
+		return
+	end
+	local now = os.clock()
+	if freeStick.at == nil then
+		freeStick.at, freeStick.from, freeStick.moved = now, selected, false
+		return
+	end
+	if selected ~= freeStick.from then
+		freeStick.moved = true -- this push went somewhere in the menu: it is navigating
+	end
+	if not freeStick.moved and now - freeStick.at >= G.FreeStickSeconds then
+		GuiService.SelectedObject = nil
+		freeStick.at, freeStick.from, freeStick.moved = nil, nil, false
+	end
 end
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
@@ -891,6 +929,8 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	UI.setPlayControlsVisible(canShoot() and not modal)
 	zoomHint:setVisible(canShoot() and not modal)
+	padGuide:setVisible(canShoot() and not modal)
+	freeStickFromMenu()
 	input:update(dt)
 	if controlled then
 		-- Top-down only while a pocket is being called for the 8; everything else, placing

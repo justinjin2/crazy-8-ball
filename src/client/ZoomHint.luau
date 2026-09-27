@@ -4,8 +4,8 @@
 -- On a computer the icon is a mouse with its wheel and an up-and-down arrow, on a phone or
 -- tablet a hand pinching, so players know the camera zooms and tilts down to the cue (the
 -- tutorial explains it further). It follows the last input used, so a laptop with a touch
--- screen shows whichever the player is using. Hidden on a gamepad for now (its guide comes
--- later).
+-- screen shows whichever the player is using. Hidden on a gamepad: the controller guide
+-- (PadGuide) covers zoom there.
 --
 -- Gone for the rest of the session once the player zooms (designer, 2026-09-27): that shows
 -- they know how. It comes back only when they rejoin.

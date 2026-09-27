@@ -522,6 +522,15 @@ def icon_chevron_left():
     return chevron_icon(-1)
 
 
+def icon_chevron_up():
+    # Turned inside the ink filter's group, so the lip still drops underneath.
+    return f'<g transform="rotate(-90 128 128)">{chevron_icon(1)}</g>'
+
+
+def icon_chevron_down():
+    return f'<g transform="rotate(90 128 128)">{chevron_icon(1)}</g>'
+
+
 def icon_sliders():
     parts = []
     for y, x, colour in ((68, 92, "blue"), (128, 166, "green"), (188, 112, "red")):
@@ -904,6 +913,8 @@ ICONS = {
     "arrow": icon_arrow,
     "chevron_right": icon_chevron_right,
     "chevron_left": icon_chevron_left,
+    "chevron_up": icon_chevron_up,
+    "chevron_down": icon_chevron_down,
     "sliders": icon_sliders,
     "money": icon_money,
     "cash_single": icon_cash_single,

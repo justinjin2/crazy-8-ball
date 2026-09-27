@@ -530,6 +530,47 @@ function MatchTargets.hole(self: any, camera: Camera, pocket: any): (Vector2, bo
 	return centre, visible, shortest
 end
 
+local DIRECTIONS = {
+	{ name = "NextSelectionUp", dir = Vector2.new(0, -1) },
+	{ name = "NextSelectionDown", dir = Vector2.new(0, 1) },
+	{ name = "NextSelectionLeft", dir = Vector2.new(-1, 0) },
+	{ name = "NextSelectionRight", dir = Vector2.new(1, 0) },
+}
+
+-- Choosing the 8's pocket with a gamepad: each ring's neighbour up, down, left and right is
+-- the ring that way on screen (designer, 2026-09-27: 4 to 5 is one push left, not a detour
+-- down), found from where the rings are drawn this frame. A push with no ring that way stays
+-- put rather than wandering off to other buttons.
+function MatchTargets.linkPockets(self: any)
+	local shown = {}
+	for _, target in self.pockets do
+		if target.button.Visible then
+			table.insert(shown, target.button)
+		end
+	end
+	for _, from in shown do
+		local here = from.AbsolutePosition + from.AbsoluteSize / 2
+		for _, way in DIRECTIONS do
+			local best, bestScore = from, math.huge
+			for _, to in shown do
+				if to ~= from then
+					local offset = to.AbsolutePosition + to.AbsoluteSize / 2 - here
+					local along = offset:Dot(way.dir)
+					local across = math.abs(offset.X * way.dir.Y - offset.Y * way.dir.X)
+					-- Within about 63 degrees of the push, nearest first, straight preferred.
+					if along > 0 and across <= along * 2 then
+						local score = along + across * S.PocketNavAcrossWeight
+						if score < bestScore then
+							best, bestScore = to, score
+						end
+					end
+				end
+			end
+			(from :: any)[way.name] = best
+		end
+	end
+end
+
 function MatchTargets.update(self: any, dt: number, camera: Camera)
 	self.elapsed += dt
 	self.camera = camera
@@ -588,6 +629,9 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			end
 		end
 		target.button.Size = UDim2.fromOffset(size, size)
+	end
+	if canCall then
+		self:linkPockets()
 	end
 	if canPlace then
 		-- The ring hugs the ball as the camera zooms: its projected radius, scaled up so it

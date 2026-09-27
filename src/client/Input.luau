@@ -10,14 +10,17 @@
 --   left stick X        -> aim, finer near centre
 --   D-pad left/right    -> tiny fixed aim steps
 --   right stick Y       -> zoom
---   hold L1 + right stick -> spin; Y centres it; release L1 keeps the choice
---   hold L1 + left stick up/down -> raise or lower the cue angle; L1 + D-pad up/down steps
---                          it too, where the pad's D-pad is not taken by Roblox's own menus
+--   hold L1 + left stick  -> spin; Y centres it; release L1 keeps the choice
+--   hold L1 + right stick up/down -> raise or lower the cue angle (designer, 2026-09-27:
+--                          left for spin, right for angle); L1 + D-pad up/down steps it too,
+--                          where the pad's D-pad is not taken by Roblox's own menus
 --   hold L2 + left stick  -> move the cue ball in hand (only while placing is allowed);
 --                          the triggers and A are ignored while L2 is held
 --   right trigger       -> power: the trigger is analog, so its position IS the bar.
 --                          Release shoots, or cancels below MinPowerToShoot.
 --   ButtonA             -> same shot for pads whose triggers are only on/off: hold to ramp
+--   moving the left stick (past Gamepad.CancelStickPush from where it was) or pressing the
+--   D-pad left or right during a pull cancels it; the button's release then does nothing
 --   ButtonB             -> leave the table
 --
 -- The sticks and the ramp are advanced from Input.update, which the client's render loop
@@ -73,6 +76,7 @@ export type Input = typeof(setmetatable(
 		spinModifier: boolean,
 		triggerHeld: boolean,
 		buttonPower: number?,
+		pullStickX: number, -- the left stick's X when the pull began (a push away cancels it)
 		nudgeDir: number,
 		nudgeTime: number,
 		nudgeNext: number,
@@ -125,6 +129,7 @@ function Input.new(): Input
 		spinModifier = false,
 		triggerHeld = false,
 		buttonPower = nil,
+		pullStickX = 0,
 		nudgeDir = 0,
 		nudgeTime = 0,
 		nudgeNext = 0,
@@ -503,16 +508,7 @@ function Input.handleGamepad(
 			-- The shot buttons are sunk while L2 is held, so their release would never reach
 			-- the handlers below: drop a pull already under way rather than leave it ramping
 			-- to full and fire on the next tap.
-			if self.triggerHeld or self.buttonPower ~= nil then
-				self.triggerHeld = false
-				self.buttonPower = nil
-				if self.power ~= nil then
-					self.power = nil
-					for _, l in self.powerListeners do
-						l(nil)
-					end
-				end
-			end
+			self:cancelPull()
 			return sink
 		end
 		return if self.placeModifier then sink else Enum.ContextActionResult.Pass
@@ -537,13 +533,14 @@ function Input.handleGamepad(
 		end
 		return sink
 	elseif code == Enum.KeyCode.Thumbstick2 then
-		self.stickSpinX = if ended then 0 else obj.Position.X
-		self.stickSpinY = if ended then 0 else obj.Position.Y
+		-- Zoom; while L1 is held, the cue's angle instead (push up raises it).
+		self.stickElevation = if ended or not self.spinEditing then 0 else obj.Position.Y
 		self.stickZoom = if ended or self.spinEditing then 0 else obj.Position.Y
 		return sink
 	elseif self.spinEditing then
 		if code == Enum.KeyCode.Thumbstick1 then
-			self.stickElevation = if ended then 0 else obj.Position.Y
+			self.stickSpinX = if ended then 0 else obj.Position.X
+			self.stickSpinY = if ended then 0 else obj.Position.Y
 		elseif code == Enum.KeyCode.DPadUp or code == Enum.KeyCode.DPadDown then
 			if ended then
 				self:holdElevation(0)
@@ -576,6 +573,9 @@ function Input.handleGamepad(
 				self:releasePower()
 			end
 		elseif state == Enum.UserInputState.Begin or self.triggerHeld then
+			if not self.triggerHeld then
+				self.pullStickX = self.stickAim
+			end
 			self.triggerHeld = true
 			self:setPower(math.clamp(obj.Position.Z, 0, 1))
 		end
@@ -591,6 +591,7 @@ function Input.handleGamepad(
 				self:releasePower()
 			end
 		elseif state == Enum.UserInputState.Begin and self.buttonPower == nil then
+			self.pullStickX = self.stickAim
 			self.buttonPower = 0
 			self:setPower(0)
 		end
@@ -599,6 +600,7 @@ function Input.handleGamepad(
 		if ended then
 			self.nudgeDir = 0
 		elseif state == Enum.UserInputState.Begin then
+			self:cancelPull() -- a fine turn means the player is not ready to shoot
 			-- Screen-left turns the aim clockwise, matching the on-screen nudge buttons.
 			self.nudgeDir = if code == Enum.KeyCode.DPadLeft then 1 else -1
 			self.nudgeTime = 0
@@ -696,6 +698,15 @@ function Input.update(self: Input, dt: number)
 		end
 	end
 
+	-- Moving the stick during a pull calls the shot off (designer, 2026-09-27), measured
+	-- from where the stick was when the pull began, so aiming and pressing at once is fine.
+	if
+		(self.triggerHeld or self.buttonPower ~= nil)
+		and math.abs(self.stickAim - self.pullStickX) > G.CancelStickPush
+	then
+		self:cancelPull()
+	end
+
 	local aim = if self.placeModifier then 0 else deadZone(self.stickAim, G.AimDeadZone)
 	if aim ~= 0 then
 		-- Curve the response so a small push is a fine adjustment, the way a slow drag is.
@@ -726,6 +737,22 @@ function Input.update(self: Input, dt: number)
 		ramp = math.clamp(ramp + G.PowerRampPerSecond * dt, 0, 1)
 		self.buttonPower = ramp
 		self:setPower(ramp)
+	end
+end
+
+--- Call off a gamepad pull (R2 or the A ramp) under way: the power bar empties and the
+--- button's release does nothing; a fresh press starts a new pull.
+function Input.cancelPull(self: Input)
+	if not self.triggerHeld and self.buttonPower == nil then
+		return
+	end
+	self.triggerHeld = false
+	self.buttonPower = nil
+	if self.power ~= nil then
+		self.power = nil
+		for _, l in self.powerListeners do
+			l(nil)
+		end
 	end
 end
 
