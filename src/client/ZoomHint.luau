@@ -7,7 +7,8 @@
 -- screen shows whichever the player is using. Hidden on a gamepad for now (its guide comes
 -- later).
 --
--- Not a kit card on purpose (designer): transparent, just the glossy icon and outlined words.
+-- Not a kit card on purpose (designer): transparent, just the icon and outlined words, both
+-- greyed out and faint, so it reads as a control guide rather than a button to press.
 
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -62,6 +63,17 @@ function ZoomHint.new(screen: ScreenGui): ZoomHint
 	local words = HudParts.text(root, "Words", Config.UI.ZoomHint.TextSize, Strings.ZoomHint)
 	words.TextWrapped = false
 	words.TextXAlignment = Enum.TextXAlignment.Left
+	-- Greyed out: a guide, not a button.
+	local Z = Config.UI.ZoomHint
+	local tint = Color3.fromRGB(Z.Tint[1], Z.Tint[2], Z.Tint[3])
+	icon.ImageColor3 = tint
+	icon.ImageTransparency = Z.IconTransparency
+	words.TextColor3 = tint
+	words.TextTransparency = Z.TextTransparency
+	local outline = words:FindFirstChildOfClass("UIStroke")
+	if outline then
+		outline.Transparency = Z.OutlineTransparency
+	end
 	local self = setmetatable({
 		screen = screen,
 		root = root,
@@ -107,7 +119,7 @@ function ZoomHint.layout(self: ZoomHint)
 	local iconSize = if short then Z.ShortIconPx else Z.IconPx
 	local textSize = if short then Z.ShortTextSize else Z.TextSize
 	local pad = Z.PaddingPx
-	HudParts.setTextSize(self.words, textSize)
+	HudParts.setTextSize(self.words, textSize, textSize)
 	local wordsWidth = TextService:GetTextSize(
 		self.words.Text,
 		textSize,

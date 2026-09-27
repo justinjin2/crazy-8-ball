@@ -3,7 +3,7 @@
 return {
 	Pull = "PULL",
 	-- The zoom guide over the spin button while it is your turn, beside its icon (ZoomHint).
-	ZoomHint = "Zoom",
+	ZoomHint = "Zoom In/Out",
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
 	Match = {

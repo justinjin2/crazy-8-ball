@@ -1363,3 +1363,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   slides 0.55 of the bar there so it stays on screen). A zoom guide over the spin button during
   your turn: a mouse-wheel or pinch icon and the word "Zoom", no background (designer: not the
   kit's card style), always shown during your turn.
+- 2026-09-26: The zoom guide is greyed out, smaller and reads "Zoom In/Out", so it looks like a
+  control guide rather than a button (designer); its mouse icon shows a big ridged wheel
+  rolling up and down.

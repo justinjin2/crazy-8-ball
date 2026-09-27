@@ -2227,15 +2227,19 @@ Config.UI = {
 		AngleBadgeHeightPx = 20,
 	},
 	-- The zoom guide (src/client/ZoomHint.luau): just above the spin button while it is your
-	-- turn, a mouse-wheel or pinching-hand icon and the word Zoom, nothing behind them
-	-- (designer, 2026-09-26). (tune)
+	-- turn, a mouse-wheel or pinching-hand icon and "Zoom In/Out", nothing behind them, greyed
+	-- out so it reads as a control guide, not a button (designer, 2026-09-26). (tune)
 	ZoomHint = {
-		IconPx = 48,
-		ShortIconPx = 36, -- a phone on its side
-		TextSize = 16, -- white, ink-outlined, like the other words over the table (designer: small)
-		ShortTextSize = 14,
-		PaddingPx = 4, -- between the icon and the word
+		IconPx = 32,
+		ShortIconPx = 26, -- a phone on its side
+		TextSize = 14,
+		ShortTextSize = 12, -- under the kit's 14 px floor on purpose: a faint guide, not reading text
+		PaddingPx = 4, -- between the icon and the words
 		GapPx = 10, -- between the guide and the spin button
+		Tint = { 205, 205, 210 }, -- greys the icon and the words
+		IconTransparency = 0.35,
+		TextTransparency = 0.25,
+		OutlineTransparency = 0.55, -- the words' ink outline, fainter still
 	},
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
 	-- fill charging up behind it (PowerCue.place, every frame).

@@ -180,9 +180,10 @@ order; that is Open.
   only as wide as its words.
 - **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on
   a computer or tablet bigger and centred on the right edge.
-- **The zoom guide** (designer, 2026-09-26): over the spin button while it is your turn, an
-  icon and the word Zoom with nothing behind them, a deliberate exception to the kit's cards:
-  a mouse wheel with an up-and-down arrow on a computer, a pinching hand on touch. Hidden on a
+- **The zoom guide** (designer, 2026-09-26): over the spin button while it is your turn, a
+  small icon and "Zoom In/Out" with nothing behind them, greyed out and faint so it reads as a
+  control guide rather than a button: a deliberate exception to the kit's cards. A mouse with
+  a big ridged wheel rolling up and down on a computer, a pinching hand on touch. Hidden on a
   gamepad for now.
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays
   (cash icon and 1x, 1.5x, 2x) under its tile; one short line describing the chosen level.
