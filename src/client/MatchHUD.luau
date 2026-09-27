@@ -10,6 +10,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -495,15 +496,22 @@ function MatchHUD.layout(self: any)
 	local menuLeft, menuRight = self:menuRoom(width)
 	local besideRoom = math.min(width - menuLeft - menuRight, availableWidth)
 	-- The first arrangement that fits, beside Roblox's buttons or under them: one row of eight
-	-- balls a side, or two rows of four. A phone would rather have two rows beside the buttons
-	-- (the table keeps the screen); a computer would rather have one row of bigger balls.
-	-- Failing both, the teams sit over the status card.
+	-- balls a side, or two rows of four. One row keeps the bar thinnest, so its balls shrink to
+	-- fit (down to BallMinSize) before two rows are used. A phone would rather have two rows
+	-- beside the buttons than one under them (the table keeps the screen); a computer would
+	-- rather have one row of bigger balls. Failing both, the teams sit over the status card.
 	local function widthFor(columns: number, size: number, center: number): number
 		local balls = size * columns + S.BallGap * (columns - 1)
 		return (portraitsWidth + balls + gap * 3) * 2 + center + gap * 2
 	end
-	local oneRowBeside = { columns = 8, size = d.ball, beside = true }
-	local oneRowUnder = { columns = 8, size = d.ball, beside = false }
+	-- The biggest ball, up to `size`, that fits `columns` a side in `room` (0 if none does).
+	local function fitBall(columns: number, size: number, room: number): number
+		local perTeam = (room - d.center - gap * 2) / 2 - portraitsWidth - gap * 3
+		local fit = math.floor((perTeam - S.BallGap * (columns - 1)) / columns)
+		return if fit >= S.BallMinSize then math.min(size, fit) else 0
+	end
+	local oneRowBeside = { columns = 8, size = d.ball, beside = true, shrink = true }
+	local oneRowUnder = { columns = 8, size = d.ball, beside = false, shrink = true }
 	local twoRowsBeside = { columns = 4, size = S.ShortBallSize, beside = true }
 	local twoRowsUnder = { columns = 4, size = S.ShortBallSize, beside = false }
 	local order: { any } = if short
@@ -512,8 +520,12 @@ function MatchHUD.layout(self: any)
 	local columns, ballSize, besideMenu = 4, S.ShortBallSize, false
 	for _, option in order do
 		local room = if option.beside then besideRoom else availableWidth
-		if widthFor(option.columns, option.size, d.center) <= room then
-			columns, ballSize, besideMenu = option.columns, option.size, option.beside
+		local size = if option.shrink
+			then fitBall(option.columns, option.size, room)
+			elseif widthFor(option.columns, option.size, d.center) <= room then option.size
+			else 0
+		if size > 0 then
+			columns, ballSize, besideMenu = option.columns, size, option.beside
 			break
 		end
 	end
@@ -581,14 +593,14 @@ function MatchHUD.layout(self: any)
 		self:layoutSolo(width)
 	end
 	self:layoutStatus()
-	-- The placement instruction: one line centred at the bottom.
+	-- The placement instruction: one thin line centred at the bottom, as wide as its words.
 	local setupHeight = if short then S.ShortSetupHeight else S.SetupHeight
-	local setupWidth = math.min(S.SetupMaxWidth, width - margin * 2)
 	self.setup.Position = UDim2.new(0.5, 0, 1, -margin)
-	self.setup.Size = UDim2.fromOffset(setupWidth, setupHeight)
 	self.setupHeight = setupHeight
+	self.setupTextSize = if short then S.ShortSetupTextSize else S.SetupTextSize
 	layoutIconLine(self.setupLine, setupHeight)
-	HudParts.setTextSize(self.setupLabel, if short then S.NameSize else S.StatusSize)
+	HudParts.setTextSize(self.setupLabel, self.setupTextSize)
+	self:fitSetup()
 	local invalidHeight = S.StatusSize + gap * 2
 	self.invalid.Size = UDim2.new(1, -margin * 2, 0, invalidHeight)
 	layoutIconLine(self.invalidLine, invalidHeight)
@@ -642,6 +654,26 @@ function MatchHUD.layout(self: any)
 	self.presentationText.Size = UDim2.new(1, -gap * 4, 0, S.ButtonHeight * 1.2)
 end
 
+-- The hint pill just wide enough for its icon and words, never wider than SetupMaxWidth or
+-- the screen (a longer line, a translation say, shrinks its words to fit instead).
+function MatchHUD.fitSetup(self: any)
+	local height = self.setupHeight or S.SetupHeight
+	local words = TextService:GetTextSize(
+		self.setupLabel.Text,
+		self.setupTextSize or S.SetupTextSize,
+		self.setupLabel.Font,
+		Vector2.new(10000, 1000)
+	).X
+	-- layoutIconLine's room: the icon and its margins, the right margin, and the outline.
+	local chrome = math.floor(height * 0.25)
+		+ math.floor(height * 0.8)
+		+ 6
+		+ math.floor(height * 0.3)
+		+ 4
+	local most = math.min(S.SetupMaxWidth, self.width - S.HeaderMargin * 2)
+	self.setup.Size = UDim2.fromOffset(math.min(most, words + chrome), height)
+end
+
 -- How much of the screen's top edge Roblox's own buttons take, left and right, in the root's
 -- pixels (Config fallbacks when Roblox does not say).
 function MatchHUD.menuRoom(self: any, width: number): (number, number)
@@ -662,7 +694,7 @@ function MatchHUD.layoutStatus(self: any)
 	local d = self.bar
 	local width, height = d.center, d.header
 	local pad = d.gap
-	local iconSize = height - pad * 2 - (if height < S.HeaderHeight then 4 else 0)
+	local iconSize = height - 8 -- 4 of white above and below, like the balls
 	self.phaseIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.phaseIcon.Position = UDim2.fromOffset(pad + iconSize / 2, height / 2)
 	self.phaseIcon.Size = UDim2.fromOffset(iconSize, iconSize)
@@ -1185,13 +1217,17 @@ function MatchHUD.update(self: any, now: number)
 		self:layout()
 	end
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
-	self.setupLabel.Text = if self.placingBlocked
+	local hint = if self.placingBlocked
 		then Copy.PlacementBlocked
 		elseif snapshot.breakShot then (if gamepad
 			then Copy.BreakPlacementGamepad
 			else Copy.BreakPlacement)
 		elseif gamepad then Copy.PlacementHintGamepad
 		else Copy.PlacementHint
+	if self.setupLabel.Text ~= hint then
+		self.setupLabel.Text = hint
+		self:fitSetup()
+	end
 	self.setupLabel.TextColor3 = if self.placingBlocked then tone("Red") else tone("White")
 	self.invalid.Visible = self.invalidTarget
 		and isShooter

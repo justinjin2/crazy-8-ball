@@ -2543,16 +2543,19 @@ Config.Multiplayer = {
 		HeaderMargin = 10, -- outer safe-area margin
 		HeaderGap = 8, -- spacing between panels and rows
 		HeaderTop = 6, -- minimal spacing at the upper screen edge
-		HeaderHeight = 64, -- the top bar's cards: a portrait with its name under it
-		HeaderCenterWidth = 300, -- the status card: phase icon, status, clock and Leave
-		ClockTextSize = 24, -- the shot clock in its pill (big: designer, 2026-09-26)
-		ClockPillWidth = 76, -- the clock pill, pixels
-		ClockPillHeight = 38,
-		ShortClockTextSize = 20, -- the same on a phone
-		ShortClockPillWidth = 54,
-		ShortClockPillHeight = 32,
-		LeaveSize = 34, -- the small red door (Leave) in the status card, square
-		ShortLeaveSize = 30, -- the same on a phone
+		-- The top bar is as small as it can be: the balls and a sliver of white round them
+		-- (designer, 2026-09-26: it blocked the table on every device; it was 64 on a computer
+		-- and 52 on a phone). The portrait, clock, phase icon and Leave fit inside that height.
+		HeaderHeight = 37, -- the top bar's cards: BallSize and 5 each side (the ink outline takes 3)
+		HeaderCenterWidth = 280, -- the status card: phase icon, status, clock and Leave
+		ClockTextSize = 20, -- the shot clock in its pill
+		ClockPillWidth = 74, -- the clock pill, pixels
+		ClockPillHeight = 27,
+		ShortClockTextSize = 16, -- the same on a phone
+		ShortClockPillWidth = 58,
+		ShortClockPillHeight = 22,
+		LeaveSize = 27, -- the small red door (Leave) in the status card, square
+		ShortLeaveSize = 22, -- the same on a phone (its touch area is still TouchTargetPx)
 		TouchTargetPx = 44, -- a small button's touch area is still at least this (UI_STYLE section 5)
 		-- Room for Roblox's own buttons at the top, only when Roblox does not report the free
 		-- part of its top bar (GuiService / ScreenInsets.TopbarSafeInsets; MatchHUD).
@@ -2561,23 +2564,28 @@ Config.Multiplayer = {
 		ShortHeight = 430, -- compact layout for phone landscape
 		-- Short screens (a phone on its side, height under ShortHeight) use a compact top bar
 		-- so a 3v3 still fits on one line and the table keeps most of the screen.
-		ShortHeaderHeight = 52, -- the compact bar's cards
-		ShortPortraitSize = 30, -- six identifiable portraits in landscape
+		ShortHeaderHeight = 30, -- the compact bar's cards: ShortBallSize and 5 each side
+		ShortPortraitSize = 22, -- six portraits in landscape, inside the bar
 		ShortCenterWidth = 190, -- the compact status card at its narrowest (a 1v1 fits beside Roblox's buttons on a phone)
 		ShortCenterMax = 250, -- it grows into the room the balls leave, up to this
 		ShortStatusSize = 16, -- its status line
 		StatusFloor = 11, -- a long status shrinks this far in the compact card
 		ShortHeaderGap = 6, -- the compact bar's spacing (HeaderGap on a computer)
 		ShortBallSize = 20, -- balls in two rows of four, and on short screens
-		ShortSetupHeight = 30, -- one-line placement instruction on short screens
-		SetupHeight = 36, -- one-line placement instruction
+		BallMinSize = 16, -- one row of eight shrinks its balls this far before two rows are used
+		-- The ball-in-hand hint: one thin line at the bottom, only as wide as its words
+		-- (designer, 2026-09-26: as small as possible; it was 36 and 30 high and always 460 wide).
+		ShortSetupHeight = 24, -- one-line placement instruction on short screens
+		SetupHeight = 28, -- one-line placement instruction
+		SetupTextSize = 16, -- its words (the kit's body size)
+		ShortSetupTextSize = 14, -- the same on a phone (the kit's smallest)
 		SetupMaxWidth = 460, -- the ball-in-hand hint pill at its widest
 		MobileBreakpoint = 760, -- stack central status below teams
 		NarrowBreakpoint = 480, -- use two ball rows
-		PortraitSize = 46, -- square avatar beside the ball row (no name under it)
+		PortraitSize = 29, -- square avatar beside the ball row, inside the bar (no name under it)
 		PortraitCornerPx = 10, -- the portrait's rounded corners
 		PortraitGap = 6, -- teammate portrait spacing
-		ActiveDotPx = 11, -- the green dot on the shooter's portrait
+		ActiveDotPx = 9, -- the green dot on the shooter's portrait
 		ActiveEdgePx = 3, -- the shooter's green outline and the clock running round it
 		BallSize = 27, -- numbered HUD ball diameter
 		BallGap = 4, -- stable ball-slot spacing

@@ -166,8 +166,14 @@ order; that is Open.
   menu, chat and voice buttons (it asks Roblox for that room, ScreenInsets.TopbarSafeInsets),
   so the table keeps the screen. The host menu stays one column on the right, short enough to
   fit, beside the jump button (or above it when that lets it be bigger).
-- **The status card** (2026-09-26): one line ("YOUR TURN", "THEIR TURN", "FOUL!"), a big clock,
+- **The status card** (2026-09-26): one line ("YOUR TURN", "THEIR TURN", "FOUL!"), the clock,
   and a small red door for Leave whose touch area is still 44 px. No names under the
   portraits (a rank badge goes there later).
+- **As small as possible** (designer, 2026-09-26: the bar blocked the table on every device):
+  the top bar is only as tall as the balls plus a sliver of white (37 px on a computer, 30 on
+  a phone; it was 64 and 52), with the portrait, phase icon, clock and Leave fitted inside
+  it. One row of balls keeps it thinnest, so the balls shrink to fit (down to 16 px) before a
+  narrow screen falls back to two rows. The ball-in-hand hint is one thin line, only as wide
+  as its words.
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays
   (cash icon and 1x, 1.5x, 2x) under its tile; one short line describing the chosen level.
