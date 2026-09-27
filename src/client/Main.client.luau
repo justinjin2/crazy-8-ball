@@ -764,6 +764,26 @@ local function freeStickFromMenu()
 		freeStick.at, freeStick.from, freeStick.moved = nil, nil, false
 	end
 end
+-- In a match the gamepad plays, and a selected button would take its sticks (the input is
+-- off while anything is selected). Starting a game from the host menu with the gamepad hides
+-- the menu under its selection, and Roblox hands the selection to the next button it finds
+-- (the spin toggle), so the player had to press Circle before they could play (designer,
+-- 2026-09-27). Drop any selection there that is not one of the match's own: the leave
+-- dialog, the pocket rings while calling the 8, or a result or NEW RANK! screen.
+local function dropStrayMatchSelection()
+	local selected = GuiService.SelectedObject
+	if not selected or not snapshot or snapshot.phase == "Waiting" then
+		return
+	end
+	if
+		selected:IsDescendantOf(hud.modal)
+		or selected:IsDescendantOf(targets.root)
+		or Progression.isBusy()
+	then
+		return
+	end
+	GuiService.SelectedObject = nil
+end
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
 	for id = 1, Placement.tableCount() do
@@ -931,6 +951,7 @@ RunService.RenderStepped:Connect(function(dt)
 	zoomHint:setVisible(canShoot() and not modal)
 	padGuide:setVisible(canShoot() and not modal)
 	freeStickFromMenu()
+	dropStrayMatchSelection()
 	input:update(dt)
 	if controlled then
 		-- Top-down only while a pocket is being called for the 8; everything else, placing

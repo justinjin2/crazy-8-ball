@@ -8,6 +8,8 @@ Read when something misbehaves. Everything here was learned the hard way.
   from the agent session. After every Studio restart or Rojo restart the user must click
   Connect in the Rojo plugin. Confirm sync before playtesting with the MCP `script_grep` for a
   string you just added. Studio's Play copy is a snapshot: stop Play, let it sync, start Play.
+  Files saved while a playtest runs reach the Edit scripts only after Stop (seen 2026-09-27:
+  a Play started right after an edit ran the old code); check the Edit copy, then Play.
 - StyLua reformatting breaks exact-string scripted edits: after every scripted edit, grep for
   the new text. Run `tools/format.sh` then `tools/lint.sh`.
 

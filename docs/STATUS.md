@@ -8,8 +8,12 @@
   by moving the stick or the D-pad; holding L1, left stick = spin, right stick = cue angle;
   choosing the 8's pocket, each ring's up/down/left/right is the ring that way on screen; a
   controller guide strip at the bottom left (Turn, Fine aim, Zoom, Spin & angle, Shoot, with
-  Roblox's own glyphs and the kit's white chevrons) and a Circle beside Leave.
-- **Verified:** lint clean, 425 tests pass. Studio: Y opens and closes Ranked with nothing
+  Roblox's own glyphs and the kit's white chevrons) and a Circle beside Leave. A game started
+  from the host menu with the pad is playable at once: a leftover selection (Roblox handed it
+  from the hidden menu to the spin toggle, so Circle was needed first) is dropped in a match.
+- **Verified:** lint clean, 425 tests pass. Studio: Play solo selected with Y, the game
+  started under it, and the selection was gone a frame later (no frame on the spin toggle).
+  Y opens and closes Ranked with nothing
   left selected; X held and released shoots, X held with a D-pad press during the pull does
   not; the pocket links from the top-down view (1 2 3 over 6 5 4: 4 left is 5, 5 up is 2);
   the guide and the Circle showing PlayStation glyphs (screenshots). Console clean.
