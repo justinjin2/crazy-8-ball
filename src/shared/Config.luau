@@ -3027,11 +3027,13 @@ Config.UI = {
 		ShadowSpreadPx = 14, -- reaches this far past the panel on every side
 		ShadowDropPx = 6, -- and sits this far lower, as if lit from above
 		ShadowTransparency = 0.72, -- 0.5 read as a dark smear under a small panel (tune)
-		-- The faint pool-ball pattern over every panel (pattern.png, tiled).
-		PatternImage = "rbxassetid://123651371748115",
-		PatternTilePx = 88, -- one 256 px tile of eight balls shown this big
-		PatternColor = { 74, 123, 192 }, -- pale blue marks
-		PatternTransparency = 0.92, -- about 8% strength: felt, not seen (tune)
+		-- The faint pattern over every panel (pattern.png, tiled): soft pale-blue 8 balls of a
+		-- few sizes, each turned its own way, and small bubbles, after the designer's reference
+		-- (2026-09-27; was tiny flat pool balls, 123651371748115). The image has its own colours.
+		PatternImage = "rbxassetid://132770883034156",
+		PatternTilePx = 380, -- one 512 px tile of eight balls shown this big
+		PatternColor = { 255, 255, 255 }, -- no tint: the balls are drawn in their pale blues
+		PatternTransparency = 0.7, -- faint, like the reference (tune)
 		-- Text: Fredoka One, white, outlined in ink. Sizes are pixels; nothing goes below Min
 		-- except ball numbers, which are part of the ball graphic.
 		-- About 80% of the first build's sizes (designer, 2026-09-26: "shrink the new gui").

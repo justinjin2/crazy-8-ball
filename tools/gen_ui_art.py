@@ -922,43 +922,59 @@ ICONS = {
 # ---------------------------------------------------------------------------------------
 
 
-def art_pattern():
-    """The panel pattern tile: tiny pool balls, drawn solid; Config sets how faint."""
-    balls = []
-    spots = [
-        (40, 40, "solid"),
-        (168, 40, "stripe"),
-        (104, 104, "stripe"),
-        (232, 104, "solid"),
-        (40, 168, "stripe"),
-        (168, 168, "solid"),
-        (104, 232, "solid"),
-        (232, 232, "stripe"),
-    ]
-    r = 13
-    for x, y, kind in spots:
-        # Draw each ball at every wrap-around position so the tile repeats seamlessly.
-        for dx in (-256, 0, 256):
-            for dy in (-256, 0, 256):
-                cx, cy = x + dx, y + dy
-                if -r <= cx <= 256 + r and -r <= cy <= 256 + r:
-                    if kind == "solid":
-                        balls.append(
-                            f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#FFFFFF"/>'
-                            f'<circle cx="{cx}" cy="{cy}" r="{r * 0.42:.1f}" fill="#000000"/>'
-                        )
-                    else:
-                        # The band's corners sit just inside the ring, so no clipping is needed.
-                        balls.append(
-                            f'<circle cx="{cx}" cy="{cy}" r="{r - 1.5}" fill="none" stroke="#FFFFFF" stroke-width="3"/>'
-                            f'<rect x="{cx - r * 0.89:.1f}" y="{cy - r * 0.45:.1f}" width="{r * 1.78:.1f}" height="{r * 0.9:.1f}" fill="#FFFFFF"/>'
-                        )
-    body = "".join(balls)
-    # White marks with the number spots knocked out.
+def pattern_ball(cx, cy, r, tilt, n):
+    """One soft 8 ball for the panel pattern: a shaded body, its number disc toward the upper
+    left and turned by `tilt` degrees, a small 8 and a shine. In its own pale blues and white,
+    so the disc and shine stay lighter than the ball; Config only sets how faint."""
+    g = f"pb{n}"
+    dx, dy = -0.3 * r, -0.28 * r  # the disc sits up and left, as if the ball has rolled
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">'
-        '<defs><mask id="patternMask">' + body + "</mask></defs>"
-        '<rect width="256" height="256" fill="#FFFFFF" mask="url(#patternMask)"/></svg>'
+        f'<radialGradient id="{g}" cx="0.36" cy="0.32" r="0.72">'
+        '<stop offset="0" stop-color="#EEF3FB"/><stop offset="0.6" stop-color="#C8D6EC"/>'
+        '<stop offset="1" stop-color="#9FB4D6"/></radialGradient>'
+        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="url(#{g})"/>'
+        f'<g transform="translate({cx + dx:.1f} {cy + dy:.1f}) rotate({tilt})">'
+        f'<ellipse rx="{r * 0.42:.1f}" ry="{r * 0.38:.1f}" fill="#F7F8FA"/>'
+        # The 8: two small stacked rings.
+        f'<circle cy="{-r * 0.11:.1f}" r="{r * 0.085:.1f}" fill="none" stroke="#A3B6D6" stroke-width="{r * 0.06:.1f}"/>'
+        f'<circle cy="{r * 0.1:.1f}" r="{r * 0.11:.1f}" fill="none" stroke="#A3B6D6" stroke-width="{r * 0.06:.1f}"/>'
+        "</g>"
+        f'<ellipse cx="{cx + r * 0.32:.1f}" cy="{cy + r * 0.42:.1f}" rx="{r * 0.34:.1f}" ry="{r * 0.16:.1f}" '
+        f'fill="#FFFFFF" opacity="0.35" transform="rotate(-35 {cx + r * 0.32:.1f} {cy + r * 0.42:.1f})"/>'
+    )
+
+
+def art_pattern():
+    """The panel pattern tile, after the designer's reference (2026-09-27): soft 8 balls of a
+    few sizes, each turned its own way, and a few small bubbles, scattered so the repeat does
+    not show. Drawn in colour on clear; Config.UI.Kit sets how faint."""
+    size = 512
+    balls = [  # x, y, radius, tilt
+        (90, 80, 46, -20),
+        (300, 60, 30, 15),
+        (430, 175, 40, -8),
+        (200, 215, 26, 22),
+        (62, 330, 34, 8),
+        (330, 345, 48, -28),
+        (170, 455, 30, -14),
+        (472, 425, 24, 18),
+    ]
+    bubbles = [(250, 128, 9), (425, 300, 7), (36, 205, 8), (290, 480, 6)]
+    parts = []
+    n = 0
+    for x, y, r, tilt in balls:
+        # Draw each at every wrap-around position so the tile repeats seamlessly.
+        for dx in (-size, 0, size):
+            for dy in (-size, 0, size):
+                cx, cy = x + dx, y + dy
+                if -r <= cx <= size + r and -r <= cy <= size + r:
+                    parts.append(pattern_ball(cx, cy, r, tilt, n))
+                    n += 1
+    for x, y, r in bubbles:
+        parts.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="#C4D3EA"/>')
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
+        f'viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
     )
 
 
@@ -1010,7 +1026,7 @@ def art_rays():
 
 
 ART = {
-    "pattern": (art_pattern, 256),
+    "pattern": (art_pattern, 512),
     "ball_gloss": (art_gloss, 256),
     "ball_band": (art_band, 256),
     "rays": (art_rays, 512),
@@ -1084,8 +1100,8 @@ def main():
     os.makedirs(icons_dir, exist_ok=True)
     os.makedirs(art_dir, exist_ok=True)
     jobs = []
-    # Names on the command line draw only those icons (and no effect art), so adding an icon
-    # does not rewrite every other image.
+    # Names on the command line draw only those icons or effect images (and no shadow), so
+    # adding or redrawing one does not rewrite every other image.
     only = set(sys.argv[1:])
     for name, draw in ICONS.items():
         if only and name not in only:
@@ -1094,14 +1110,16 @@ def main():
         with open(os.path.join(icons_dir, name + ".svg"), "w") as f:
             f.write(text)
         jobs.append((text, 256, os.path.join(icons_dir, name + ".png")))
-    for name, (draw, size) in ([] if only else ART.items()):
+    for name, (draw, size) in ART.items():
+        if only and name not in only:
+            continue
         text = draw()
         with open(os.path.join(art_dir, name + ".svg"), "w") as f:
             f.write(text)
         jobs.append((text, size, os.path.join(art_dir, name + ".png")))
     render(jobs)
     if only:
-        print(f"wrote {len(jobs)} icons under {ROOT}")
+        print(f"wrote {len(jobs)} images under {ROOT}")
         return
     shadow_png(os.path.join(art_dir, "shadow.png"))
     print(f"wrote {len(ICONS)} icons and {len(ART) + 1} effect images under {ROOT}")

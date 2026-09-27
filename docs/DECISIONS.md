@@ -1528,3 +1528,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27 (designer): while you shoot at a called pocket, its marker sits inside the hole
   (sized from the hole on screen) with no caption, never over the jaws; choosing keeps the
   44 px rings.
+- 2026-09-27 (designer): the panel pattern is faint soft 8 balls of a few sizes, each turned
+  its own way, after the designer's reference, instead of tiny flat pool balls; for every
+  panel now and later (it comes from the kit's card).

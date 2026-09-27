@@ -23,8 +23,11 @@ screen, a popup).
 - **A thick outline in the dark ink** of the text outlines, so the whole UI looks inked like a
   cartoon (2026-09-25).
 - **A soft white-to-pale-blue fade and a soft drop shadow**, so panels look puffy, not flat.
-- **A faint pattern of tiny pool balls** (some striped) over every panel, about 8% strong:
-  felt more than seen.
+- **A faint pattern of soft 8 balls** over every panel (designer, 2026-09-27, after a
+  reference; it was tiny flat pool balls): pale-blue shaded balls of a few sizes, each turned
+  its own way with its number disc toward the top left, and a few small bubbles, scattered so
+  the repeat does not show. Faint: felt more than seen. Every panel gets it from the kit's
+  card (`HudParts.card`), so new screens have it too.
 - **Popups never darken the screen** (designer, 2026-09-27, said for the dialogs and again for
   the rank screens): no dim behind a popup, a dialog, the end-of-match screen or NEW RANK!, because
   the dark layer shows where it stops at the screen's edges on different devices. The one
