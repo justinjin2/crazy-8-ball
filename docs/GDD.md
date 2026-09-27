@@ -218,7 +218,7 @@ Every feature is checked against these. If it serves none, it waits.
 - **Request opponent / players** (designer, 2026-09-27): everyone in the server who is not at
   a table gets a small popup at the bottom of the screen, the host's face and "<name> needs an
   opponent..." (or "needs players...") with **Join** (stands them on the host's pad) and
-  **Dismiss**. It goes by itself after 15 s *(tune)* or as soon as the pad fills or the host
+  **Dismiss**, small and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as soon as the pad fills or the host
   leaves. While a request stands the host's card folds up (animated) to the game and a greyed
   "Requested!"; if nobody came it unfolds again after the same 15 s, with the full choices and
   Request ready to press again.

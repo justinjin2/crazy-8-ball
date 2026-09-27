@@ -751,6 +751,10 @@ RunService.RenderStepped:Connect(function(dt)
 		and hub.snapshots[predictedPad] ~= nil
 		and hub.snapshots[predictedPad].hostId == nil
 	local hosting = (waiting and seated.hostId == player.UserId) or predictedHost
+	-- Stepped off your pad: the host's card goes at once (designer, 2026-09-27: it lingered),
+	-- not when the server lets you go after its exit grace; back on in time, it comes back.
+	local root = if rootPart and rootPart:IsA("BasePart") then rootPart else nil
+	queueMenu:setAway(waiting and root ~= nil and padUnder(root, 0) ~= hub.mySeat)
 	tableSign:update(
 		if rootPart and rootPart:IsA("BasePart") then rootPart.Position else nil,
 		controlled or hosting or (hub.mySeat ~= nil and not waiting),

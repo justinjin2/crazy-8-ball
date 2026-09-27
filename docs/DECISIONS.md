@@ -1431,3 +1431,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   "Waiting for opponent" gets three dots that light up one by one.
 - 2026-09-27: Ball in hand after a foul: 10 s to move the cue ball (was 15), then the shot
   clock (designer).
+- 2026-09-27: The host's card goes the moment the host steps off the pad, not after the
+  server's exit grace; the request popup is smaller and lower (250 x 66, was 330 x 96) so it
+  clears the player's legs, its buttons keeping a 44 px touch area (designer).

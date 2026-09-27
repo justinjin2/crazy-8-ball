@@ -77,6 +77,9 @@ function OpponentPrompt.new(screen: ScreenGui, onJoin: (number, number) -> ()): 
 	self.dismiss.AnchorPoint = Vector2.new(1, 1)
 	self.dismiss.Position = UDim2.new(1, -pad, 1, -pad)
 	self.dismiss.Size = half
+	-- Small to look at, still a full touch target (docs/UI_STYLE.md section 5).
+	HudParts.setMinHit(self.join, S.TouchTargetPx)
+	HudParts.setMinHit(self.dismiss, S.TouchTargetPx)
 	-- The gamepad's way in, over the card's top edge.
 	self.hint = HudParts.note(root, "GamepadHint", K.Text.Min, Copy.GamepadHint)
 	self.hint.AnchorPoint = Vector2.new(0.5, 1)

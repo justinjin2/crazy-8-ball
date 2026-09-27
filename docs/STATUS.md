@@ -1,6 +1,18 @@
 # Status
 
-**2026-09-27 (latest): ball in hand after a foul gets 10 s to move the ball (was 15).**
+**2026-09-27 (latest): the host card goes at once off the pad; a smaller request popup.**
+
+- **Built:** stepping off the pad hides the host's card on your own screen at once
+  (`QueueMenu.setAway`), before the server's exit grace lets you go; back on in time, it
+  returns. The request popup is 250 x 66 (was 330 x 96), 6 px off the bottom, with a 48 px
+  face and 30 px buttons that still take a 44 px touch.
+- **Verified:** lint clean, 366 tests pass. Studio phone emulator: the card hid 0.22 s after
+  stepping off (its pop-out); the popup sits below the character's feet. Console clean.
+- **Needs a check by hand:** two players: the popup on the other player's screen.
+
+---
+
+**2026-09-27: ball in hand after a foul gets 10 s to move the ball (was 15).**
 
 - **Built:** `Multiplayer.PlacementSeconds` 15 -> 10; the shot clock follows as before. The
   break keeps its own 20 s.

@@ -89,6 +89,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.requestedAt = -math.huge -- this host's last request, before the server's answer
 	self.now = 0
 	self.open = false
+	self.away = false -- the host stepped off the pad; the server lets them go shortly
 	self.snap = true -- the folds jump to where they belong the next frame (on opening)
 
 	-- The holder is fitted to the screen (its UIScale); the card inside pops in and out.
@@ -253,6 +254,19 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 	end
 end
 
+--- The host has stepped off the pad (Main): hide the card now rather than after the server's
+--- exit grace; stepping back on in time shows it again.
+function QueueMenu.setAway(self: any, away: boolean)
+	if away == self.away then
+		return
+	end
+	self.away = away
+	if away then
+		self:blur()
+		self:setOpen(false)
+	end
+end
+
 --- Whether a gamepad is on the card now.
 function QueueMenu.focused(self: any): boolean
 	local selected = GuiService.SelectedObject
@@ -382,7 +396,7 @@ function QueueMenu.update(self: any, now: number)
 	local dt = math.clamp(now - self.now, 0, 0.1)
 	self.now = now
 	local snapshot = self.snapshot
-	local host = snapshot ~= nil and self:isHost()
+	local host = snapshot ~= nil and self:isHost() and not self.away
 	self:setOpen(host)
 	if not host then
 		return

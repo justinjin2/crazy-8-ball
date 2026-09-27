@@ -2758,13 +2758,14 @@ Config.Multiplayer = {
 		QueueFoldSidePx = 10, -- and beside them: the part reaches this far past the card's column
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
-		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre.
-		PromptWidth = 330, -- pixels, before shrinking to fit a narrow screen
-		PromptHeight = 96,
-		PromptPadding = 10, -- inside the card
-		PromptFaceSize = 72, -- the host's headshot
-		PromptButtonHeight = 40, -- Join and Dismiss
-		PromptBottom = 16, -- above the screen's bottom edge
+		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre, kept
+		-- small and low so it clears the player's legs (designer, 2026-09-27: was 330 x 96).
+		PromptWidth = 250, -- pixels, before shrinking to fit a narrow screen
+		PromptHeight = 66,
+		PromptPadding = 6, -- inside the card
+		PromptFaceSize = 48, -- the host's headshot
+		PromptButtonHeight = 30, -- Join and Dismiss (each still takes a 44 px touch, HudParts.setMinHit)
+		PromptBottom = 6, -- above the screen's bottom edge
 		PromptMinScale = 0.7, -- never shrink it further than this
 		PromptHeadshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150", -- the host's face
 		OwnBallOutlineTransparency = 0.6, -- subtle local group hint (the normal style)
