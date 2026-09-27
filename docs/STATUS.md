@@ -1,6 +1,14 @@
 # Status
 
-**2026-09-27 (latest): the shot clock ring hugs the shooter's portrait and drains.**
+**2026-09-27 (latest): the group popup stays a second longer.**
+
+- **Built:** YOU ARE SOLIDS / YOU ARE STRIPES now stays up 3.5 s (was 2.5).
+- **Verified:** lint clean, 357 tests pass. In Play (phone emulator, QA fixture) the popup was
+  on screen 3.5 s when the groups were decided. Console clean.
+
+---
+
+**2026-09-27: the shot clock ring hugs the shooter's portrait and drains.**
 
 - **Built:** the clock round the shooter's portrait is now a rounded ring on the portrait's own
   outline (it was four square bars sized from the scaled bar, so on a phone it sat off the

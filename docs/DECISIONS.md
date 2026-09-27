@@ -1380,3 +1380,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   PhoneBallInHandZoomNotches).
 - 2026-09-27: When the first legal ball after the break decides the groups, each player gets a
   2.5 s popup, "YOU ARE SOLIDS" or "YOU ARE STRIPES", with a solid or striped ball (designer).
+- 2026-09-27: The group popup (YOU ARE SOLIDS / STRIPES) stays up 3.5 s, a second longer
+  (designer).
