@@ -1434,3 +1434,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: The host's card goes the moment the host steps off the pad, not after the
   server's exit grace; the request popup is smaller and lower (250 x 66, was 330 x 96) so it
   clears the player's legs, its buttons keeping a 44 px touch area (designer).
+- 2026-09-27: The green balls (6 and 14) are a deeper green, RGB 12, 92, 52 (was 20, 130, 70),
+  so they stand out on the green cloth: CIEDE2000 against the cloth 31.6 (was 17.2), still
+  30.6 from the 8 (designer asked; the shade is Claude's pick).

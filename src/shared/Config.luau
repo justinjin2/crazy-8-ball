@@ -179,7 +179,7 @@ Config.Balls = {
 		[3] = { 210, 40, 40 }, -- red
 		[4] = { 100, 40, 150 }, -- purple
 		[5] = { 245, 120, 30 }, -- orange
-		[6] = { 20, 130, 70 }, -- green
+		[6] = { 12, 92, 52 }, -- green: deep, so it stands out on the green cloth (designer, 2026-09-27: was 20, 130, 70)
 		[7] = { 120, 30, 30 }, -- maroon
 		[8] = { 20, 20, 22 }, -- black
 	},
@@ -216,7 +216,7 @@ Config.Balls = {
 		[3] = "rbxassetid://71634972299335",
 		[4] = "rbxassetid://102547838391993",
 		[5] = "rbxassetid://132260486678576",
-		[6] = "rbxassetid://136578775839073",
+		[6] = "rbxassetid://103480111027469", -- deeper green, re-uploaded 2026-09-27
 		[7] = "rbxassetid://85399541656812",
 		[8] = "rbxassetid://139487783589064",
 		[9] = "rbxassetid://92953629012840",
@@ -224,7 +224,7 @@ Config.Balls = {
 		[11] = "rbxassetid://80865252504873",
 		[12] = "rbxassetid://139601741020258",
 		[13] = "rbxassetid://127747571775456",
-		[14] = "rbxassetid://83778966609567",
+		[14] = "rbxassetid://71960739423576", -- deeper green, re-uploaded 2026-09-27
 		[15] = "rbxassetid://136241349086894",
 	},
 	-- Decal asset ids, filled in once the generated images (tools/gen_ball_decals.py) are
@@ -708,7 +708,8 @@ Config.TableModel = {
 		-- The team tables (designer, 2026-09-26). Raspberry red for 2v2 and slate charcoal for
 		-- 3v3, each on either frame. Picked by colour difference (CIEDE2000) against every
 		-- ball: raspberry keeps at least 17 from the red and maroon balls, slate 22 from the 8
-		-- (the green cloth is 14.8 from the green ball). A truer red blends the red balls in.
+		-- (the green cloth was 14.8 from the green ball, 31.6 since it went deeper on
+		-- 2026-09-27). A truer red blends the red balls in.
 		RedWood = {
 			Cloth = { Maps = "Cloth", Tint = { 191, 38, 89 } },
 			Rails = { Maps = "RailsCherry" },

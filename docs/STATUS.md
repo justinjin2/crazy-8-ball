@@ -1,6 +1,17 @@
 # Status
 
-**2026-09-27 (latest): the host card goes at once off the pad; a smaller request popup.**
+**2026-09-27 (latest): the green balls are deeper green.**
+
+- **Built:** balls 6 and 14 in RGB 12, 92, 52 (was 20, 130, 70): `Config.Balls.Colors[6]`
+  (the HUD balls too) and `tools/gen_ball_textures.py`; tex_6 and tex_14 regenerated and
+  uploaded from Studio (new ids in `Config.Balls.Textures`). Against the green cloth the colour
+  difference went from 17.2 to 31.6 (CIEDE2000).
+- **Verified:** lint clean, 366 tests pass; Studio: every table's 6 and 14 carry the new
+  textures, and a close-up of a rack shows them clearly apart from the cloth.
+
+---
+
+**2026-09-27: the host card goes at once off the pad; a smaller request popup.**
 
 - **Built:** stepping off the pad hides the host's card on your own screen at once
   (`QueueMenu.setAway`), before the server's exit grace lets you go; back on in time, it
