@@ -198,3 +198,23 @@ order; that is Open.
   2026-09-27).
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays
   (cash icon and 1x, 1.5x, 2x) under its tile; one short line describing the chosen level.
+- **Ranks and money** (2026-09-27, branch `ranks-money`; sizes in `Config.UI.Progress`):
+  - *The rank badge* (`RankBadge`): every screen's badge, with the shine from section 7 on one
+    shared clock; the HUD's badge pops up under the mouse and squishes when pressed.
+  - *The rank HUD*, top left beside Roblox's buttons (reference 02): the badge bigger than and
+    over the pill's left end, the rank name and an XP bar "520 / 1,000 XP" that counts when it
+    changes. Hidden in a match and under the popups. Pressing it opens the roadmap.
+  - *The money HUD*, bottom left, always on: the cash stack over a pill with "$1,250" (from 10
+    million "$12.5M"). It takes no input, so the thumbstick under it still works.
+  - *Nameplates*: the small badge, then the username, over every head, drawn over the world;
+    the players of your match are hidden while you play.
+  - *The flying cash*: "+$10" with the single bundle pops out of the pocket, hangs, and arcs
+    into the money HUD, which bumps, sparkles and counts up; nice shots are gold ("+$15").
+  - *The end-of-match screen*: the same for every player (reference 05, light): cards with VS,
+    the winner crowned over turning rays with WINNER, then your XP bar and the money list
+    counting up, the total flying into the HUD. Solo: one card and the money.
+  - *NEW RANK!*: the big badge over turning rays, confetti, the name and the reward chip; a new
+    tier bursts from the old badge with "PLATINUM!"; a lost division is a small quiet card.
+  - *The roadmap*: a road of all 46 divisions scrolling sideways, each tier's I a big gate on its
+    colour band, reward chips between stops, YOU with your picture, Next pulsing, locked stops
+    greyed; the current-rank and next-reward cards above, the ten tiers below, one line of rules.

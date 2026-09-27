@@ -1,6 +1,28 @@
 # Status
 
-**2026-09-27 (latest): a bigger host card on big screens.**
+**2026-09-27 (latest, branch `ranks-money`, overnight): saves, ranks and money.**
+
+- **Built:** saves (ProfileStore behind `PlayerData`, save layout v1 with migrations and
+  validation, a separate Studio store); ranks (46 divisions from rank XP, all 1,000 XP for now,
+  win +250, tier floors, one-time money rewards, forfeits and the one-minute mark); money ($10 a
+  ball, nice shots $15/$20, win $50 / loss $15, solo 30% then $1 after $300 a day); the rank HUD
+  top left, the money HUD bottom left, nameplates, badges in the match bar, the flying cash, one
+  end-of-match screen for both players, NEW RANK!, the rank roadmap, nine UI sounds; the
+  developer commands /rank, /xp, /money, /addmoney, /result, /newrank, /resetdata, /rankhelp;
+  Rank and Money in the player list. Two audits by fresh subagents. Morning report:
+  `docs/prompts/RANKS_MONEY_REPORT.md`.
+- **Verified:** lint clean, all tests pass (Lune: the save layout, ranks, money, formatting,
+  nice-shot kinds, the match result). Studio with API access: saves persist across play
+  sessions, bad input refused, a failed load kicks; every command; money per pot and the match
+  settle (wins, losses, forfeits before and after a minute, solo); every screen on a PC window
+  and at phone size; sounds load and play. Console clean.
+- **Needs a check by hand:** a real phone (the thumbstick under the money HUD, the rank HUD in
+  Roblox's top bar), a controller (A on the badge, the roadmap's D-pad and B, the popups' A),
+  two real players (both result screens), listening to the placeholder sounds, a two-server
+  save takeover (live only). Then merge `ranks-money` into `main`.
+
+---
+**2026-09-27: a bigger host card on big screens.**
 
 - **Built:** `Style.QueueWideScale` 1.3 (was 1) for screens at least 500 px tall; there the
   card is also raised to end above a touch jump button (a tablet).
