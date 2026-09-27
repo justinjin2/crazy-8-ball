@@ -3455,6 +3455,12 @@ Config.Multiplayer = {
 		OpponentBallFill = { 70, 74, 82 }, -- grey wash over the other group's balls
 		OpponentBallFillTransparency = 0.5, -- clearly dimmed, still recognisable
 		TargetSize = 44, -- minimum pocket hit target
+		-- After the call, the chosen pocket's marker sits inside its hole while you shoot, so it
+		-- never covers the jaws (designer, 2026-09-27): its outer edge (ink included) spans this
+		-- share of the hole's narrow way on screen, before the pulse (TargetPulse) adds 15%.
+		CalledRingShare = 0.75,
+		CalledRingMinPx = 8, -- never smaller than this inside its outline, however far the pocket
+		CalledRingSamples = 8, -- directions sampled round the hole to find its narrow way
 		PlacementHandleSize = 48, -- draggable cue-ball handle, never smaller than this
 		PlacementGrabScale = 1.4, -- grab radius as a multiple of the ball's on-screen radius
 		PlacementBlockedInches = 1.5, -- ring turns red when the ball lags the pointer by more than this

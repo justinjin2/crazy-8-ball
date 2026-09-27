@@ -1525,3 +1525,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   is bigger on a computer (1.5 times its phone size, was 1.15); the hover sound is Roblox's
   "RBLX UI Hover 01" (0.2 s) instead of the 2.7 s Cute Pop. The roadmap's arrows get a
   one-piece chevron image, since four rotated bars left a seam at the tip.
+- 2026-09-27 (designer): while you shoot at a called pocket, its marker sits inside the hole
+  (sized from the hole on screen) with no caption, never over the jaws; choosing keeps the
+  44 px rings.

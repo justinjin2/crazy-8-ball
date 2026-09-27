@@ -509,6 +509,27 @@ function MatchTargets.project(
 	return Vector2.new(screen.X, screen.Y) - self.root.AbsolutePosition, visible and screen.Z > 0
 end
 
+-- The called pocket's hole on screen, for the marker that stays up while the shooter aims:
+-- its centre at the rail top, where the black opening shows, and the shortest of its projected
+-- radii in pixels (the hole is an ellipse in perspective; the ring has to fit across its
+-- narrow way).
+function MatchTargets.hole(self: any, camera: Camera, pocket: any): (Vector2, boolean, number)
+	local top = Config.Table.RailTopInches
+	local centre, visible = self:project(camera, pocket.x, pocket.y, top)
+	local shortest = math.huge
+	for i = 0, S.CalledRingSamples - 1 do
+		local angle = i * math.pi / S.CalledRingSamples -- half a turn: opposite points match
+		local edge = self:project(
+			camera,
+			pocket.x + math.cos(angle) * pocket.radius,
+			pocket.y + math.sin(angle) * pocket.radius,
+			top
+		)
+		shortest = math.min(shortest, (edge - centre).Magnitude)
+	end
+	return centre, visible, shortest
+end
+
 function MatchTargets.update(self: any, dt: number, camera: Camera)
 	self.elapsed += dt
 	self.camera = camera
@@ -526,9 +547,19 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 	local pulse = (math.sin(self.elapsed * math.pi * 2 / S.PulsePeriod) + 1) / 2
 	for _, target in self.pockets do
 		local pocket = self.geometry.pockets[target.id]
-		local position, visible = self:project(camera, pocket.x, pocket.y, S.TargetHeightInches)
-		target.button.Position = UDim2.fromOffset(position.X, position.Y)
 		local chosen = snapshot.calledPocket == target.id
+		local position, visible = self:project(camera, pocket.x, pocket.y, S.TargetHeightInches)
+		-- Choosing, every ring is a comfortable 44 px button. Once called, the marker sits
+		-- inside the hole so it never covers the pocket's jaws (designer, 2026-09-27).
+		local base = S.TargetSize
+		local marker = chosen and not canCall
+		if marker then
+			local hole, holeVisible, radiusPx = self:hole(camera, pocket)
+			position, visible = hole, holeVisible
+			local outline = 2 * (S.TargetStroke + S.TargetInkPx) -- drawn outside the button
+			base = math.max(S.CalledRingMinPx, 2 * radiusPx * S.CalledRingShare - outline)
+		end
+		target.button.Position = UDim2.fromOffset(position.X, position.Y)
 		-- After the call only the chosen pocket stays marked, for the shooter, and it is no
 		-- longer something to click or select.
 		local showChosen = chosen
@@ -545,9 +576,11 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			else S.TargetPulse + pulse * S.TargetPulse
 		target.ink.Enabled = highlighted
 		target.ink.Transparency = target.stroke.Transparency
+		-- The marker has no caption: the words would cover the pocket's near jaw.
 		target.caption.Visible = highlighted
+			and not marker
 			and (target.hover or chosen or snapshot.phase == "PocketChoice")
-		local size = S.TargetSize * (1 + (if chosen then S.TargetPulse * pulse else 0))
+		local size = base * (1 + (if chosen then S.TargetPulse * pulse else 0))
 		if self.confirmedPocket == target.id and self.confirmedAt then
 			local t = (self.elapsed - self.confirmedAt) / S.Motion
 			if t < 1 then

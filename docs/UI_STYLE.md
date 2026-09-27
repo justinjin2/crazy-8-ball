@@ -167,6 +167,10 @@ order; that is Open.
 - **Screens:** the match top bar, the turn popup, the foul popup (no panel, 3 s), the hints,
   the leave and surrender dialog, the coin and result cards, the host menu, the floor box, the
   table sign (only near its table), the power bar, the spin panel and the pocket targets.
+- **Calling the 8** (designer, 2026-09-27): choosing, every pocket gets a 44 px ring with its
+  name. Once called, while you shoot, the chosen pocket keeps a ring sized to sit inside its
+  hole on screen (it grows and shrinks with the zoom), with no caption, so nothing covers
+  the pocket's jaws.
 - **Phones** (2026-09-26): the top bar is compact and sits in Roblox's own top row beside its
   menu, chat and voice buttons (it asks Roblox for that room, ScreenInsets.TopbarSafeInsets),
   so the table keeps the screen. The host menu stays one column on the right, short enough to

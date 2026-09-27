@@ -11,6 +11,10 @@
   fades as one piece), the new hover sound loaded and playing on a tier. Console clean.
 - **Needs a check by hand:** the roadmap and HUD in the phone emulator; how the new hover
   sound feels.
+- **Also built:** calling the 8, the chosen pocket's marker now sits inside the hole while you
+  shoot (sized from the hole on screen, no caption), so it never covers the jaws; choosing
+  keeps the 44 px rings. Verified in Studio on a far side pocket (a small ring in the hole)
+  and a near corner (a 53 px ring in the hole), and the six 44 px rings while choosing.
 
 ---
 
