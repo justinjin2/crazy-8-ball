@@ -355,6 +355,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     the buildings light tan, grey and glass with windows, lit warm yellow at sunset.
   - At sunset a lamp over every table keeps the games easy to see, and the fire pit burns
     (Roblox's own fire; out by day).
+  - **Bright, saturated and happy** (designer, 2026-09-26), in the spirit of the biggest Roblox
+    games: clear colour and contrast by day, little haze. The sunset is a warm **golden hour**,
+    not a dim dusk: the sun a little above the sea lights the roof gold and peach while the
+    sky carries the magenta and purple.
   - Players walk 30% faster on the roof than Roblox's default; the camera zoom is Roblox's own.
   - The sea moves (gentle waves) and sailboats drift on it.
 

@@ -2926,7 +2926,7 @@ Config.Lighting = {
 		Width = 0.35,
 		Amount = 0.6,
 		Colours = {
-			OutdoorAmbient = "#A07A80",
+			OutdoorAmbient = "#B08C84", -- between the day's and the sunset's warm shades (2026-09-26 look)
 			ColorShift_Top = "#FFB880",
 			["ColorCorrection.TintColor"] = "#FFE6D0",
 		},
@@ -2934,30 +2934,38 @@ Config.Lighting = {
 	-- The sun by blend (Spec section 6): Roblox's sun sets over the city, so the sunset one is a
 	-- dawn sun swung by the latitude to sit low over the sea, right of the lounge. Measured in
 	-- Studio (2026-09-26): straight between these two it slides down the ocean side (azimuth
-	-- 128 to 36, elevation 54 to 4), never across the sky or under the horizon. It arrives
+	-- 128 to 35, elevation 54 to 12), never across the sky or under the horizon. It arrives
 	-- before the sunset sky's swap, so it stands in the painted glow whenever that sky is up.
+	-- The sunset sun is a golden hour, 12 degrees up (designer, 2026-09-26: bright and happy
+	-- but warm and cosy): at 4 degrees (ClockTime 6.4) it only grazed the roof, the shade's
+	-- light carried the scene and everything read lavender-grey. Its disc still sits in the
+	-- painted glow above the sea (Play capture).
 	SunPath = {
 		{ Blend = 0, GeographicLatitude = 45, ClockTime = 10 },
-		{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 6.4 },
+		{ Blend = 0.5, GeographicLatitude = -30, ClockTime = 7.4 },
 	},
 	-- Day (Spec section 6): the sun high and front-right. Tuned in Studio (2026-09-26) until
 	-- the floor rendered near the art's measured #F1CDBD: Roblox's default noon light (a white
-	-- sun, a strong blue sky fill) washed every warm colour to grey. (tune)
+	-- sun, a strong blue sky fill) washed every warm colour to grey. Then made brighter and
+	-- more saturated, like the top Roblox games (designer, 2026-09-26: it read pastel and
+	-- hazy): a stronger sun, a lighter and cleaner shade, less haze, and colour and contrast
+	-- lifted in ColorCorrection. A stronger sun than 2.6 blew the pale floor out to white. (tune)
 	Day = {
-		Brightness = 2.4,
+		Brightness = 2.6,
 		ExposureCompensation = -0.05,
 		EnvironmentDiffuseScale = 0.45, -- less of the blue sky's fill
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		OutdoorAmbient = "#7D6C62", -- warm shade
-		ColorShift_Top = "#FFDEBE", -- the sun's warm tint on lit faces
+		OutdoorAmbient = "#8C8480", -- a light warm shade (the brown #7D6C62 greyed it)
+		ColorShift_Top = "#FFE4C4", -- the sun's warm tint on lit faces
 		ColorShift_Bottom = "#000000",
 		-- A pale sky-blue haze, so the far distance fades toward the art's pale horizon rather
-		-- than grey (Stage 4 critic). Density 0.15 and Offset 0.2 fade the far city and its
-		-- join with the painted sky while the roof stays crisp (designer, 2026-09-26: "fade away
-		-- into the distance"; tuned in Play, where 0.3 greyed the whole city).
+		-- than grey (Stage 4 critic). Density and Offset 0.2 fade the far city and its join
+		-- with the painted sky while the roof stays crisp (designer, 2026-09-26: "fade away
+		-- into the distance"; tuned in Play, where 0.3 greyed the whole city). 0.08 since the
+		-- brighter look: 0.15 veiled the far tables too.
 		Atmosphere = {
-			Density = 0.15,
+			Density = 0.08,
 			Offset = 0.2,
 			Haze = 0,
 			Glare = 0,
@@ -2993,7 +3001,12 @@ Config.Lighting = {
 			WaterWaveSpeed = 12,
 		},
 		-- Post effects: always enabled (MapLighting.preview), faded by their numbers. (tune)
-		ColorCorrection = { Brightness = 0, Contrast = 0, Saturation = 0, TintColor = "#FFFFFF" },
+		ColorCorrection = {
+			Brightness = 0,
+			Contrast = 0.12,
+			Saturation = 0.2,
+			TintColor = "#FFFFFF",
+		},
 		Bloom = { Intensity = 0, Size = 24, Threshold = 2 },
 		SunRays = { Intensity = 0, Spread = 0.5 },
 		-- The background soft, the rooftop sharp (designer, Checkpoint C): in focus from the
@@ -3028,30 +3041,33 @@ Config.Lighting = {
 		Islands = { Color = "#FFFFFF" },
 	},
 	-- Sunset (Spec section 2's sunset targets: a magenta and purple sky, the sun low over the sea
-	-- right of the lounge, warm lanterns, lit windows; the floor near #EAA1A5). Same keys as Day.
-	-- (tune: Stage 7)
+	-- right of the lounge, warm lanterns, lit windows). Same keys as Day. A golden hour since
+	-- 2026-09-26 (designer: keep it bright and happy while warm and cosy; the lavender dusk read
+	-- washed out and grey): a stronger golden sun a little higher (SunPath), a warm light shade,
+	-- less of the magenta sky's fill, a thinner warm haze, and colour lifted. The sky keeps
+	-- the sunset. Tuned in Play captures. (tune)
 	Sunset = {
-		Brightness = 2.4,
-		ExposureCompensation = 0,
-		EnvironmentDiffuseScale = 0.5,
+		Brightness = 3.4,
+		ExposureCompensation = 0.1,
+		EnvironmentDiffuseScale = 0.25, -- the magenta sky's fill tinted the whole roof pink
 		EnvironmentSpecularScale = 0.6,
 		Ambient = "#000000",
-		-- The shade: a cool lavender, so the floor reads the art's pale tiles in violet shade, not
-		-- one pink wash (Stage 7 critic 1: a warm mauve shade and an orange sun turned everything
-		-- rose). A little bright, so the green felt keeps its colour.
-		OutdoorAmbient = "#8E86A4",
-		ColorShift_Top = "#FFBE8C", -- the low sun's peach on lit faces
+		-- The shade: a light warm tan, so the floor reads peach in the golden light, not rose
+		-- (a mauve #AC94A4 turned it pink) or lavender-grey (the cool #8E86A4 before).
+		OutdoorAmbient = "#B8A090",
+		ColorShift_Top = "#FFCB88", -- the low sun's gold on lit faces
 		ColorShift_Bottom = "#000000",
-		-- A thin rose tint, no haze: in Play (not in Edit's preview) Haze 0.3 and density 0.1
+		-- A thin warm tint, no haze: in Play (not in Edit's preview) Haze 0.3 and density 0.1
 		-- fogged the 3D city, islands and sea into one flat magenta (Studio, 2026-09-26).
-		-- Density alone, 0.15 as by day, keeps the lit windows and fades the far edge (Play).
+		-- Density alone keeps the lit windows and fades the far edge (Play); 0.08 as by day,
+		-- peach rather than the rose #D8BCC8, which veiled the roof grey-pink.
 		Atmosphere = {
-			Density = 0.15,
+			Density = 0.08,
 			Offset = 0.2,
 			Haze = 0,
 			Glare = 0,
-			Color = "#D8BCC8",
-			Decay = "#6A4C9A",
+			Color = "#F6C2A4",
+			Decay = "#8A4C8A",
 		},
 		-- gen_sky.py's sunset faces (textures/sky_sunset_*.png): the day's cloud scene lit by the
 		-- low sun, a glow round it, the purple sea with the sun's path, the far city's lit windows.
@@ -3076,11 +3092,12 @@ Config.Lighting = {
 			WaterWaveSize = 0.25,
 			WaterWaveSpeed = 12,
 		},
+		-- Colour lifted less than by day: 0.25 pushed the felt to neon in the golden light.
 		ColorCorrection = {
-			Brightness = 0,
-			Contrast = 0.05,
-			Saturation = -0.02,
-			TintColor = "#FFF0E2",
+			Brightness = 0.02,
+			Contrast = 0.1,
+			Saturation = 0.15,
+			TintColor = "#FFF4E6",
 		},
 		-- The lanterns and windows bloom a little; more blew the sun out to a white disc.
 		Bloom = { Intensity = 0.3, Size = 20, Threshold = 2.2 },

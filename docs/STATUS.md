@@ -1,6 +1,21 @@
 # Status
 
-**2026-09-26 (latest): after a shot the camera swings to a side view of the whole table (a test).**
+**2026-09-26 (latest): brighter, more saturated lighting; the sunset is a golden hour.**
+
+- **Built (Config.Lighting only):** by day a stronger sun, a lighter and cleaner shade, half the
+  haze, and +20% saturation, +12% contrast. At sunset the sun sits 12 degrees up instead of 4,
+  golden and stronger, with a warm tan shade instead of lavender, less of the magenta sky's
+  fill, a thinner peach haze and +15% saturation; the painted sunset sky is unchanged. The
+  fade's warm midpoint matches. Edit mode was relit with the new day look.
+- **Verified:** lint clean, 355 Lune tests pass; Play captures of the spawn view and a table,
+  day and sunset, before and after, plus the mid-fade and the sun against the sunset sky
+  (its disc sits in the painted glow). Console clean.
+- **Needs a check by hand:** a real phone at low graphics (post effects and haze differ there).
+- **Waiting:** the designer's save to `place/8ball.rbxl` (Edit-mode lighting changed) and publish.
+
+---
+
+**2026-09-26: after a shot the camera swings to a side view of the whole table (a test).**
 
 - **Built:** once the half-second hold ends, the shooter's camera swings round the table (0.9 s,
   eased) to a fixed semi-top-down view from the nearer long side, the table centred and as

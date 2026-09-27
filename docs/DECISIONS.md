@@ -1331,3 +1331,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   chose about 0.9 s for the swing, and a swing back to the aiming view when the balls stop.
   The side view is fitted exactly between the match HUD's bands (the old stepwise HUD fit left
   the table up to 12% small).
+- 2026-09-26: Lighting brighter and more saturated, like the top Roblox games (designer: the
+  game read washed out and hazy, especially at sunset; keep it bright and happy but warm and
+  cosy). Day: sun 2.6, a lighter warm shade, atmosphere 0.08, saturation +0.2, contrast +0.12.
+  Sunset becomes a golden hour: the sun 12 degrees up (ClockTime 7.4, was 6.4 and 4 degrees,
+  which left the roof lit only by the lavender shade), sun 3.4 and golden, a warm tan shade,
+  half the magenta sky fill, a thin peach haze, saturation +0.15 (0.25 turned the felt neon).
+  Tuned from Play captures against the old look.
