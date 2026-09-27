@@ -151,7 +151,7 @@ sees: host, difficulty, abilities, Start; beside the jump button on a phone), `T
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
 animation), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
 `MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
-clock, no network traffic).
+clock, no network traffic), `FirePit` (the fire pit's own effect, lit at sunset).
 
 UI art: `tools/gen_ui_art.py` draws the icons and effect images as SVG from one shared style
 (ink outline, drop lip, gloss) and renders them to PNG with headless Chrome into

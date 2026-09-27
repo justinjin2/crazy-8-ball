@@ -1298,3 +1298,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   lamp over it (`Config.Look.TableLight`: a spotlight on the cloth, no shadows), off by day
   and lit at sunset by the day cycle (`Config.Lighting`'s TableLights), because the tables
   were too dark to play at sunset (designer).
+- 2026-09-26: The fire pit burns only at sunset, with our own effect instead of its static flame
+  mesh or Roblox's stock Fire (designer): cel-shaded flame licks from an 8 x 8 flipbook drawn by
+  `assets/map/gen_fire.py`, embers, a glow, a little smoke and a flickering light, built on each
+  client by `FirePit` and faded in by the day cycle (`Config.Lighting`'s Fire). Few long-lived
+  looping flames rather than many short ones, because Roblox thins particles at low graphics levels.

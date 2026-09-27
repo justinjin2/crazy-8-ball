@@ -22,6 +22,7 @@ local Avatar = require(script.Parent.Avatar)
 local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
 local DayCycle = require(script.Parent.DayCycle)
+local FirePit = require(script.Parent.FirePit)
 local Guideline = require(script.Parent.Guideline)
 local Input = require(script.Parent.Input)
 local MapAmbience = require(script.Parent.MapAmbience)
@@ -627,6 +628,7 @@ local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
 local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
 local dayCycle = DayCycle.new() -- the map's day and sunset light
+local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
@@ -686,6 +688,7 @@ RunService.RenderStepped:Connect(function(dt)
 	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled)
 	mapAmbience:update(os.clock())
 	dayCycle:update(os.clock())
+	firePit:update(os.clock(), dayCycle.blend or 0)
 	-- The sign over the table you walk up to; none while you are in a box or playing.
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")

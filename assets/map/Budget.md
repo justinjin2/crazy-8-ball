@@ -44,7 +44,7 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 14 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows, and the emissive masks for the skyline's and the near city's windows and the table glow) |
+| Unique map textures (1024 exports) | 20 | 18 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows, the emissive masks for the skyline's and the near city's windows and the table glow, and the fire pit's four: flames, ember, glow, smoke) |
 | Skyboxes | 2 (six faces each) | 3 (day, dusk, sunset; gen_sky.py): the brief's allowed in-between sky, because one swap popped (DECISIONS) |
 | Far-card images | 4 | 0 (the far horizon is painted into the skybox faces instead) |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |

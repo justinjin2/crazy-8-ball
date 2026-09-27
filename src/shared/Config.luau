@@ -2759,6 +2759,56 @@ Config.Map = {
 		SeatSize = { 2, 0.2, 2 },
 	},
 
+	-- The fire pit's fire (the client's FirePit module): our own effect, not Roblox's stock Fire
+	-- (designer, 2026-09-26). Cel-shaded flame licks from a flipbook, rising embers, a soft glow,
+	-- a little smoke and a flickering light, over the pit's bed; the static flame mesh is
+	-- hidden. How much of it burns is the day cycle's (Config.Lighting's Fire: none by day, all
+	-- at sunset). Images: assets/map/gen_fire.py (textures/fire_*.png). Colours are hex. (tune)
+	FirePit = {
+		Kind = "FirePit", -- the prop kind: Map.Props.<Kind>_<n>, its meshes <Kind>__Opaque and __Glow
+		BedDrop = 0.5, -- the pit's bed sits this far under its rim
+		Lift = 1.6, -- the flames' centres this far over the bed (a lick is drawn from its sprite's foot)
+		BedRadius = 0.8, -- and spread over a square this wide either way (studs)
+		-- Few long-lived flames, each looping the lick from a random frame: Roblox thins particles
+		-- at low graphics levels, and short licks left the pit near empty (Studio, 2026-09-26).
+		Flames = {
+			Image = "rbxassetid://92028387556905", -- fire_flames.png: an 8 x 8 flipbook of one lick
+			Rate = 5, -- a second, at full fire
+			Lifetime = { 1.4, 2.2 },
+			Framerate = { 28, 40 }, -- flipbook frames a second
+			Size = { 2.4, 3.0 }, -- studs, at their biggest
+			Speed = { 0.05, 0.25 },
+			LightEmission = 0.15, -- mostly its own colours: additive washed out on the pale floor
+		},
+		Embers = {
+			Image = "rbxassetid://140442291947400", -- fire_ember.png
+			Rate = 12,
+			Lifetime = { 1.2, 2.4 },
+			Size = 0.22,
+			Speed = { 3, 6 },
+			Spread = 25, -- degrees off straight up
+			Color = "#FFB347",
+		},
+		Glow = {
+			Image = "rbxassetid://104270723038491", -- fire_glow.png
+			Rate = 3,
+			Lifetime = { 1.0, 1.4 },
+			Size = 7,
+			Transparency = 0.55,
+			Color = "#FF8A3C",
+		},
+		Smoke = {
+			Image = "rbxassetid://89771807005458", -- fire_smoke.png
+			Rate = 1.5,
+			Lifetime = { 2.5, 3.5 },
+			Size = { 1.5, 4.5 },
+			Speed = { 2, 3 },
+			Transparency = 0.8,
+			Color = "#6A5A74",
+		},
+		Light = { Brightness = 2.5, Range = 16, Color = "#FF9A45", Flicker = 0.3, FlickerSpeed = 9 },
+	},
+
 	-- The near world below the roof (assets/map/fbx/Near.fbx, gen_near.py; Stage 4): the
 	-- tower's walls, the streets and neighbour buildings, the promenade, beach and painted
 	-- shallows, palms, trees and one sailboat template. MapBuilder.prepareNear places it by
@@ -2994,6 +3044,7 @@ Config.Lighting = {
 		-- tints the skyline's and the near islands' look (white: as painted).
 		TableGlow = { EmissiveStrength = 0, EmissiveTint = "#EF9054" },
 		TableLights = { Brightness = 0 }, -- the lamps over the tables (Look.TableLight): off by day
+		Fire = { Intensity = 0 }, -- the fire pit's fire (Map.FirePit): out by day
 		Windows = { EmissiveStrength = 0, EmissiveTint = "#D5B59C", Color = "#FFFFFF" },
 		Islands = { Color = "#FFFFFF" },
 	},
@@ -3074,6 +3125,7 @@ Config.Lighting = {
 		TableGlow = { EmissiveStrength = 0.8, EmissiveTint = "#EF9054" },
 		-- The lamps over the tables lit, so a game is easy to see (designer, 2026-09-26). (tune)
 		TableLights = { Brightness = 3 },
+		Fire = { Intensity = 1 }, -- the fire pit burning (designer: only at sunset)
 		-- The city and the near islands toward the art's dusk (blue-violet glass, island
 		-- silhouettes #564175), as the painted far world is.
 		-- The city at sunset (designer, 2026-09-26): its windows lit a warm yellow and its walls
