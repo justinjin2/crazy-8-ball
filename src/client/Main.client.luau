@@ -682,6 +682,8 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		queueMenu:focus()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot and opponentPrompt:isOpen() then
 		opponentPrompt:focus()
+	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot then
+		Progression.focusRank() -- the rank HUD's badge; A opens the roadmap
 	elseif key.KeyCode == Enum.KeyCode.F3 then
 		UI.toggleStatus()
 	end

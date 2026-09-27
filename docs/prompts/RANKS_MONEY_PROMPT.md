@@ -484,15 +484,15 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 3. Money rules and the Economy service, paying per ball, nice shots, match bonus, solo.
 - [x] 4a. 95 rank images uploaded, ids in Config, a few checked in Play.
 - [x] 4b. Cash icons drawn to match the reference, uploaded, the stack is the money icon.
-- [ ] 5a. RankBadge module (shine, sparkles, rays, hover and press).
-- [ ] 5b. Rank HUD top left with XP bar, opening the roadmap.
-- [ ] 5c. Money HUD bottom left (thumbstick checked on phone).
-- [ ] 5d. Nameplates (badge then username) and badges in the match bar.
-- [ ] 6. Flying cash from the pocket into the money HUD.
-- [ ] 7. End-of-match screen for both players (crown, XP bar, money tally).
-- [ ] 8. NEW RANK! popup (division, new tier, rank down).
-- [ ] 9. Rank roadmap screen.
-- [ ] 10. Sounds found, checked and wired.
+- [x] 5a. RankBadge module (shine, sparkles, rays, hover and press).
+- [x] 5b. Rank HUD top left with XP bar, opening the roadmap.
+- [x] 5c. Money HUD bottom left (thumbstick checked on phone).
+- [x] 5d. Nameplates (badge then username) and badges in the match bar.
+- [x] 6. Flying cash from the pocket into the money HUD.
+- [x] 7. End-of-match screen for both players (crown, XP bar, money tally).
+- [x] 8. NEW RANK! popup (division, new tier, rank down).
+- [x] 9. Rank roadmap screen.
+- [x] 10. Sounds found, checked and wired.
 - [ ] 11. Full playthrough and every screen checked on phone, tablet, PC and gamepad.
 - [ ] 12. Second audit and branch-wide bug review; findings fixed.
 - [ ] 13. Polish pass.
@@ -567,4 +567,21 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   a PC-sized viewport, so phone and tablet layouts are checked by building each screen inside a
   phone-sized frame in Play (STUDIO_NOTES' preview method); the thumbstick check needs a hand
   test.
+- **Client screens in Studio (about 06:00).** Three subagents built them; the main agent wired
+  `Progression` into Main and checked each in Play (PC window 1529x758; phone 750x361 by
+  building the screen inside a phone-sized frame): the badge row (all tiers, Reyes' rays, the
+  shine sweep sampled every 3 s on Expert); the rank HUD top left (badge enlarged to 70 px so
+  it stands over the pill like reference 02), hidden in a match and under popups, a click opens
+  the roadmap; the money HUD bottom left ($1,487 -> $1,517 after a $30 combo, settling on the
+  saved value); nameplates (fixed: `TextWrapped = false` had switched TextScaled off, so names
+  drew at 100 px; smaller plate, raised over hats, drawn on top); the portrait badge in the
+  match bar; chips from the pocket (+$20 gold combo) and from the screen edge for an off-screen
+  pocket; the result screen after a real surrender (crown, rays, LEFT, +250 XP, money list) on
+  PC and phone (a demotion case); NEW RANK! for a division, the new tier (Gold V -> PLATINUM!,
+  $1,000 flown in) and the rank-down card, on PC and phone; the roadmap on PC and phone.
+  Sounds: all nine load in the game and CashLand, MoneyTick and RankUp were seen playing.
+  Gamepad: Y selects the rank badge (checked); Studio's virtual A and D-pad do not drive GUI
+  selection without a real controller (GamepadEnabled false), so A to open, the roadmap's
+  D-pad and B, and the popups' A are for a hand check. The thumbstick-vs-money-HUD check needs
+  the phone emulator or a phone: the HUD takes no input (Active false, no buttons).
 

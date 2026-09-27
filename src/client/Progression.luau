@@ -7,6 +7,7 @@
 -- - RankEvent (/xp, /newrank): NEW RANK! or the rank-down card, never during a shot.
 -- - DevNotice: a private line in the chat window (the developer commands).
 -- Nothing here ever sends an amount back: the numbers are already in the save.
+local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 
@@ -110,6 +111,20 @@ end
 --- or the roadmap): Main's B-to-leave waits while one is up.
 function Progression.isBusy(): boolean
 	return started and (result:isOpen() or newRank:isOpen() or roadmap:isOpen())
+end
+
+--- Gamepad: put the selection on the rank HUD's badge (Main's Y when there is nothing else
+--- to focus); A then opens the roadmap. Returns whether it could.
+function Progression.focusRank(): boolean
+	if not started or Progression.isBusy() then
+		return false
+	end
+	local button = rankHud:button()
+	if button and button:IsDescendantOf(game) and button.Visible then
+		GuiService.SelectedObject = button
+		return true
+	end
+	return false
 end
 
 --- Main calls this every frame with where the player is: the rank HUD hides in a match, the
