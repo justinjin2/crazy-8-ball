@@ -1308,3 +1308,15 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   flickering light; the custom flipbook, its images and gen_fire.py are removed.
 - 2026-09-26: Rooftop map, Checkpoint D (the sunset and the day/sunset cycle) approved by the
   designer after the changes above; Stage 8 finishes the map.
+- 2026-09-26: The road to release (designer). The order of work: (1) the pool game itself, its
+  UI and mechanics, fitting and working on phone and console; (2) ranks and EXP; (3) bots, ten
+  of them, one per tier, Bronze easiest to Reyes hardest, each player meeting the bot of their
+  rank; (4) the cue models and textures, money, the shop, inventory, an index, loot boxes and
+  trading. The roadmap is reordered to match; milestones keep their numbers.
+  - Not in the release: abilities, the pro lobby and the global queue. The pro lobby and the
+    global queue follow about one to two weeks after release, since nobody can reach the pro
+    lobby's rank at launch. Abilities are up for debate once the economy, bots, ranks and cues
+    are in: they come only if matches need more fun (the ability gacha goes with them).
+  - Trading moves into the release (it was after it). EXP and an index are new (details Open).
+  - Save data (4.3) moves ahead of ranks, because ranks, EXP and money must persist; the UI pass
+    (4.2) moves into the pool-game stage.

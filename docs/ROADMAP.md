@@ -9,20 +9,46 @@ How to use this file:
   updated; commit and push; save the place file when Edit-mode assets changed.
 - New ideas go in the GDD's parked list (section 18), not into the current milestone.
 - Decisions that change a milestone go in DECISIONS.md with the date.
+- **A milestone's number is its name, not its place.** Code comments and older notes cite the
+  numbers (2.4, 5.1 and so on), so a milestone keeps its number when it moves; the order on
+  this page is the order of work.
 
-Rewritten 2026-09-20. Order follows the designer's priority: the shot, then feel, then
-abilities, then the hub map, then collectibles, then ranks, then economy, then public
-release, then trading. Server-owned tables were pulled forward (1.5) because the server move is needed
-anyway.
+Rewritten 2026-09-20; reordered 2026-09-26 to the designer's road to release (below).
 
 ---
 
-## Phase 0: Setup
+## The road to release (2026-09-26)
+
+The designer's order, one stage at a time:
+
+1. **The pool game on every device.** Finish and polish the match itself, its UI and its
+   mechanics, until it fits and plays well on phone, PC and console.
+2. **Ranks and EXP.** Save data first, then the rating and tiers, EXP and the leaderboards.
+3. **Bots.** Ten bots, one per tier from Bronze (easiest) to Reyes (hardest); each player
+   meets the bot of their rank.
+4. **Cues, economy and trading.** Cue models and textures, money, the shop, inventory, the
+   index, loot boxes and trading.
+5. **First-time flow and release.** The first match, the performance pass, the game page.
+
+**Not in the release:** abilities, the pro lobby and the global queue. The pro lobby and the
+global queue follow about one to two weeks after release (nobody can reach the pro lobby's rank
+at launch anyway). Abilities are up for debate: they come only if, once ranks, bots, cues and
+the economy are in and played, matches need more fun.
+
+---
+
+## Stage 1: The pool game on every device
+
+Finish the match, its UI and its mechanics so it fits and plays well on a phone, PC and a
+console controller. Many boxes here wait only on checks with a real phone, a real controller
+and real two- and four-player matches.
+
+### Phase 0: Setup
 
 - [x] **0.1 Project folder.** Git, Rojo syncing into Studio, StyLua, Selene, luau-lsp.
 - [x] **0.2 AI connected.** Studio MCP connected, rules file written.
 
-## Phase 1: The shot
+### Phase 1: The shot
 
 - [x] **1.1 One ball rolls.** Custom physics: rolling, friction, rail bounces, rest.
 - [x] **1.2 Balls collide and sink.** Ball-ball collisions, six pockets with jaws, rack, break,
@@ -67,7 +93,7 @@ The remaining 1.5 checks stay open.*
 **FRIEND TEST 1.** Hand it to a friend with no explanation. Do they keep shooting? Compare side
 by side with GamePigeon. Fix the feel before moving on.
 
-## Table remake (2026-09-24)
+### Table remake (2026-09-24)
 
 The designer moved the focus to the table. Decisions: DECISIONS.md (2026-09-24), GDD
 sections 5 and 16, ARCHITECTURE section 7.
@@ -79,7 +105,7 @@ sections 5 and 16, ARCHITECTURE section 7.
   bounces off air or starts dropping over cloth. The cloth stays sharp in the close aim view
   on phone, PC and gamepad. The table is within the budget in ARCHITECTURE section 7.
 
-## Jump shots (2026-09-24)
+### Jump shots (2026-09-24)
 
 The designer made jump shots the priority. Decisions: DECISIONS.md (2026-09-24), GDD
 sections 5 and 7, ARCHITECTURE section 3.
@@ -90,7 +116,7 @@ sections 5 and 7, ARCHITECTURE section 3.
   only rarely; object balls never leave the cloth. Done means: jump a ball and fly one off
   in Studio on phone, PC and a real controller; lint, tests and console clean.
 
-## Shooter reach without the rake (2026-09-25)
+### Shooter reach without the rake (2026-09-25)
 
 The designer removed the rake. The cue and the table stay as they are; only the body's pose
 and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
@@ -109,7 +135,7 @@ and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
   from wherever they walked. Done means: checked in Studio with a watcher client; phone
   thumbstick and controller stick move the body; console clean.
 
-## Fixed-mode tables and queue pads (2026-09-26)
+### Fixed-mode tables and queue pads (2026-09-26)
 
 The designer went back to one mode per table, with one rectangular pad each to step onto, and a
 look per mode and lobby. Decisions: DECISIONS.md (2026-09-26), GDD sections 6, 10 and 16.
@@ -122,7 +148,7 @@ look per mode and lobby. Decisions: DECISIONS.md (2026-09-26), GDD sections 6, 1
 - [ ] **Checked on every device.** A real phone and controller, and a real two-player and
   four-player match.
 
-## UI redo (2026-09-25)
+### UI redo (2026-09-25)
 
 The designer asked for every screen in the new style (UI_STYLE.md): white cards with ink
 outlines and a faint pool-ball pattern, candy buttons, glossy icons. Choices: DECISIONS.md
@@ -143,7 +169,7 @@ outlines and a faint pool-ball pattern, candy buttons, glossy icons. Choices: DE
 - [ ] **Checked on every device.** PC, phone-sized screens and gamepad selection in Studio;
   the designer's look; a real phone and controller.
 
-## Authorized multiplayer update (2026-09-22)
+### Authorized multiplayer update (2026-09-22)
 
 The current user request overrides the ordinary milestone order and conflicting match
 rules. See MULTIPLAYER_SPEC.md. No solo, bots, abilities, difficulty, rewards or progression
@@ -157,7 +183,7 @@ are part of this update; the older broader phase boxes below are not completed b
 - [ ] Real full multiplayer matches and physical touch/controller acceptance. Follow
   docs/MULTIPLAYER_TESTING.md; fixtures and emulator screenshots do not replace these.
 
-## Phase 2: A real match
+### Phase 2: A real match
 
 - [ ] **2.1 Rules on the server.** Full 8-ball rules per GDD section 7 (open table after the
   break, 8 on the break re-spotted, fouls, ball in hand anywhere, timeouts, leave = forfeit,
@@ -172,21 +198,111 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 - [ ] **2.3 Pace and presence.** Shot timer, emotes during the opponent's turn, spectators,
   ball X marks and highlights, pocketed-balls HUD. Done means: there is never a moment where a
   player has nothing to do or see.
-- [ ] **2.4 PC opponent.** Bot that picks reasonable shots with a skill knob and human-like
-  delay, behind the queue menu's Play against PC; versus screen. Done means: a solo player
-  steps into a box and gets a fair, beatable match without anyone else in the server.
-*Progress (2026-09-25): the queue menu is built (host name, difficulty, abilities on/off as a
-placeholder, Start; alone, Play solo and Play against PC, which says "Coming soon"). There is
-no automatic start against PC (designer).*
 - [ ] **2.5 Teams.** 2v2 and 3v3: rotating turns, shared groups, per-shooter clock, whole-team
-  forfeit, PC fill for any seat. Done means: four friends finish a 2v2.
+  forfeit (PC fill comes with the bots, 2.4). Done means: four friends finish a 2v2.
 - [ ] **2.6 Juice, pass two.** Turn streaks (x2 on fire, x3 blue fire), trickshot detection
   (bank, combo, multi-ball) with popups, money per ball win or lose, victory screen, loser
   shown as lost, Rematch and Play again. Done means: a lucky bank shot makes you react out loud.
+- [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
+  thumb-friendly and gamepad-navigable; one strings module.
+  Moved here from Phase 4 (2026-09-26): it is part of the pool game's UI.
 
 **FRIEND TEST 2.** Two friends play each other. Do they rematch without being asked?
 
-## Phase 3: Abilities
+---
+
+## Stage 2: Ranks and EXP
+
+- [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
+  Moved ahead of ranks (2026-09-26): ranks, EXP and money must survive leaving.
+- [ ] **6.1 Rating and tiers.** One rating, tiers Bronze to Reyes with divisions, Unranked to
+  Bronze after one game, peak rank, rewards per division, difficulty multipliers, PC ceiling.
+- [ ] **6.6 EXP.** Players earn EXP by playing, separate from the rating. What earns it,
+  what it shows (a level?) and what it unlocks are Open (GDD section 11): ask before building.
+- [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
+  anyway.
+- [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation
+  board, country flags, win streak above the head, match history.
+- [ ] **6.5 Real-match check.** Server-tracked match time, the one-minute mark, forfeit
+  accounting (forfeiter always loses rating; repeat forfeits against the same opponent give
+  the winner nothing), forfeit confirmation warning.
+
+---
+
+## Stage 3: Bots
+
+- [ ] **2.4 Bots (PC opponent).** Ten bots, one per tier: the Bronze bot is the easiest, the
+  Reyes bot the hardest, and a player meets the bot of their rank (GDD section 11). Each picks
+  reasonable shots with a human-like delay, behind the queue menu's Play against PC; versus
+  screen. PC fill for any seat at a 2v2 or 3v3 table (moved here from 2.5). Done means: a solo
+  player of any rank steps onto a 1v1 pad and gets a fair, beatable match against the bot of
+  their rank without anyone else in the server; a beginner can beat the Bronze bot and the
+  Reyes bot is hard for a strong player.
+*Progress (2026-09-25): the queue menu is built (host name, difficulty, abilities on/off as a
+placeholder, Start; alone, Play solo and Play against PC, which says "Coming soon"). There is
+no automatic start against PC (designer).*
+
+---
+
+## Stage 4: Cues, economy and trading
+
+- [ ] **5.1 Item catalog and inventory.** Unified catalog (cues and abilities; the item type
+  leaves room for table skins later), unique IDs with serials, inventory UI, equip.
+- [ ] **5.2 Cues.** Cue model pipeline (one mesh per cue), 30 cues at release, rarities, pocket
+  VFX for rare ones.
+  Done means (5.1 to 5.2): equip a cue, walk to a pad, and play with it (its trail and pocket
+  effect included).
+*Scope note (2026-09-23): first release ships cue skins only. Table skins (the old 5.3) moved
+to after release (Later, at the bottom).*
+- [ ] **5.4 Index.** A collection screen of the game's cues. What it shows for cues you do not
+  own, and whether filling it pays anything, are Open (GDD section 12).
+- [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
+  region direct-purchase catalog.
+- [ ] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
+- [ ] **7.3 Shop.** One menu; quantity-limited Founder's and Beta cues.
+- [ ] **7.5 VIP pass and starter offer.**
+- [ ] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
+  loss and the post-match screen.
+- [ ] **7.7 Trading.** Cues only, never money (GDD section 12); moved into the release from
+  after it. The save layer changes both players' saves together or not at all, so no cue is
+  ever duplicated or lost. Done means: two players swap cues, and a trade broken off at any
+  moment (a player leaves, the server shuts down) leaves both inventories as they were.
+
+---
+
+## Stage 5: First-time flow and release
+
+- [ ] **4.1 The hub map.** The rooftop pool club (GDD section 10): the map, the tables in it,
+  lighting, sittable seats and zone signs.
+  - [x] The rooftop pool club: the map, the tables in it, the day and sunset lighting, sittable
+    seats (2026-09-26; `docs/prompts/ROOFTOP_MAP_PROMPT.md`, all four checkpoints approved).
+  - [ ] Still to do: zone signs. The snack counter is parked (GDD section 18). The pro-lobby
+    door comes with the pro lobby after release (6.3); whether a locked door stands on the
+    roof at release is Open (GDD section 10).
+- [ ] **8.1 First-time playthrough.** Hidden popup, disguised PC that walks in and blunders,
+  ghost break guide, first-win cue box, Unranked to Bronze.
+- [ ] **4.4 Performance pass.** Low-end phone with sixteen busy tables: streaming, LOD, shadow
+  and light budget, no stutter.
+- [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
+- [ ] **8.3 Name, icon, thumbnails, game page.** Final name check.
+- [ ] **8.4 Public release.** Watch where players quit. Everything above must exist.
+
+**RELEASE.** Review what players love and ignore. That decides the order after the first weeks.
+
+---
+
+## After release
+
+### About one to two weeks after release
+
+- [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
+  and Challenger only.
+- [ ] **Global queue.** Cross-server matchmaking: a worldwide 1v1 and 2v2 server.
+
+### Up for debate: abilities
+
+Not in the release. Once ranks, bots, cues and the economy are in and played, the designer
+decides whether matches need them. If they come, this is the plan (GDD section 9):
 
 - [ ] **3.1 Ability framework.** Equip one ability; each ability declares target and firing
   window; cooldown in the user's own turns; server-validated; developer flag that unlocks every
@@ -200,76 +316,14 @@ no automatic start against PC (designer).*
 
 **FRIEND TEST 3.** Do abilities make matches more fun, or just more random? Tune.
 
-## Phase 4: Look, feel and platforms
-
-- [ ] **4.1 The hub map.** To be designed: the designer will choose the map (GDD section 10,
-  Open). Import it, place the tables in it, lighting, sittable seats, snack counter with drink
-  and snack tools and animations, zone signs, pro-lobby door placeholder. Until then the tables
-  stand on the baseplate.
-  - [x] The rooftop pool club: the map, the tables in it, the day and sunset lighting, sittable
-    seats (2026-09-26; `docs/prompts/ROOFTOP_MAP_PROMPT.md`, all four checkpoints approved).
-  - [ ] Still to do: zone signs, the pro-lobby door placeholder. The snack counter is parked
-    (GDD section 18).
-- [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
-  thumb-friendly and gamepad-navigable; one strings module.
-- [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
-- [ ] **4.4 Performance pass.** Low-end phone with sixteen busy tables: streaming, LOD, shadow
-  and light budget, no stutter.
-
-## Phase 5: Collectibles
-
-- [ ] **5.1 Item catalog and inventory.** Unified catalog (cues and abilities; the item type
-  leaves room for table skins later), unique IDs with serials, inventory UI, equip.
-- [ ] **5.2 Cues.** Cue model pipeline (one mesh per cue), 30 cues at release, rarities, pocket
-  VFX for rare ones.
-  Done means (5.1 to 5.2): equip a cue, walk to a pad, and play with it (its trail and pocket
-  effect included).
-*Scope note (2026-09-23): first release ships cue skins only. Table skins (the old 5.3) moved
-to Phase 9.*
-
-## Phase 6: Ranks
-
-- [ ] **6.1 Rating and tiers.** One rating, tiers Bronze to Reyes with divisions, Unranked to
-  Bronze after one game, peak rank, rewards per division, difficulty multipliers, PC ceiling.
-- [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
-  anyway.
-- [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
-  and Challenger only.
-- [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation
-  board, country flags, win streak above the head, match history.
-- [ ] **6.5 Real-match check.** Server-tracked match time, the one-minute mark, forfeit
-  accounting (forfeiter always loses rating; repeat forfeits against the same opponent give
-  the winner nothing), forfeit confirmation warning.
-
-## Phase 7: Economy
-
-- [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
-  region direct-purchase catalog.
-- [ ] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
-- [ ] **7.3 Shop.** One menu; quantity-limited Founder's and Beta cues.
 - [ ] **7.4 Ability gacha.** Robux spins in packs, one free daily spin, keep everything, spin
   credit for duplicates.
-- [ ] **7.5 VIP pass and starter offer.**
-- [ ] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
-  loss and the post-match screen.
 
-## Phase 8: First-time flow and public release
+### Later
 
-- [ ] **8.1 First-time playthrough.** Hidden popup, disguised PC that walks in and blunders,
-  ghost break guide, first-win cue box, Unranked to Bronze.
-- [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
-- [ ] **8.3 Name, icon, thumbnails, game page.** Final name check.
-- [ ] **8.4 Public release.** Watch where players quit. Everything above must exist.
-
-**RELEASE.** Review what players love and ignore. That decides the order below.
-
-## Phase 9: After release
-
-- [ ] Trading (cues, never money; tables too once they exist).
 - [ ] Collectible table skins: table model pipeline with a strict per-table budget, the host's
-  table used for the match, rare ones with VFX, a table loot box and limited tables.
+  table used for the match, rare ones with VFX, a table loot box and limited tables; tradable.
 - [ ] Seasons and themed limited sets.
-- [ ] Cross-server matchmaking; a worldwide 1v1 and 2v2 server.
 - [ ] Private friend-locked tables, party up.
 - [ ] Replay and clip feature; creator outreach.
-- [ ] More abilities, new modes, new table types.
+- [ ] New modes, new table types.

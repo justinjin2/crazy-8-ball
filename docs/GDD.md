@@ -22,6 +22,12 @@ Bronze to Reyes, and the rarest items can be traded. Built for phones first, wit
 The goal is longevity: the respected, premier 8-ball game on Roblox that people come back to,
 not a trend that dies.
 
+**The first release** (designer, 2026-09-26): the pool game on phone, PC and console, ranks
+and EXP, ten bots, cues, the economy and trading. **Not in it:** abilities, the pro lobby and
+the global queue. The pro lobby and the global queue follow about one to two weeks after
+release; abilities come only if matches need more fun once the rest is in (section 9). The
+order of work is in ROADMAP.md.
+
 ## 2. Audience and why Roblox
 
 **Decided**
@@ -58,7 +64,7 @@ Every feature is checked against these. If it serves none, it waits.
 **Decided**
 - Inside a match (seconds): aim, shoot, watch, feedback (sound, popup, money), next turn.
 - Across matches (minutes): play, earn money for every ball plus bonuses, spend money on loot
-  boxes for cues, roll abilities, rank up, trade, repeat.
+  boxes for cues, rank up, trade, repeat (and roll abilities, if they come; section 9).
 - The currency is called **money** everywhere (UI, code, docs). Never "coins".
 
 ## 5. Platforms, controls and camera
@@ -190,22 +196,28 @@ Every feature is checked against these. If it serves none, it waits.
   or in the wrong pocket loses (changed 2026-09-23; it no longer re-racks). No shot clock, money
   per ball, no win bonus, no rank change.
   Teams: teams alternate turns and teammates rotate (A1, B1, A2, B2), teammates share a group,
-  each player uses their own ability, the shot clock is per shooter, a whole team must agree to
-  forfeit, PC can fill any seat, team matches are rated by team average.
+  each player uses their own ability (if abilities come), the shot clock is per shooter, a
+  whole team must agree to forfeit, PC can fill any seat, team matches are rated by team
+  average.
 - Before any two-sided match a short **versus screen** shows each player's avatar, cue and
   rank. Never for Solo.
 - After a match the post-match screen shows **Rematch** and **Leave**. If both sides press
   Rematch within 15 seconds *(tune)* the same match restarts with the same host and settings
   and a fresh coin flip; otherwise the table frees. PC and Solo matches get an instant Play
   again.
-- One **Find another server** button, hidden during a match. Cross-server and worldwide
-  matchmaking are not planned for release (section 18).
+- One **Find another server** button, hidden during a match.
+- **Global queue** (designer, 2026-09-26): cross-server matchmaking, a worldwide 1v1 and 2v2
+  server. Not in the release; it follows about one to two weeks after it.
 - Servers hold about 30 players *(tune)*. Every table seats 1v1, 2v2 or 3v3, decided by who
   is in its box. PC never plays PC.
 
 - **Spectator seating:** the chairs and sofas are sittable, and sitting is free look - the
   player is seated and the camera is left alone. Watching a table through its own camera is
   a separate feature and waits for spectating proper (Roadmap 2.3).
+
+**Open**
+- Abilities are not in the release: whether the queue menu's abilities toggle is hidden until
+  they come.
 
 ## 7. Rules
 
@@ -258,6 +270,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 9. Abilities
 
 **Decided**
+- **Not in the first release** (designer, 2026-09-26). Once ranks, bots, cues and the economy
+  are in and played, the designer decides whether matches need abilities to be more fun; it is
+  up for debate. Everything below is the design if they come.
 - Every player equips **exactly one** ability per match. Abilities are balanced: they add fun
   and moments worth clipping, they do not decide matches by themselves. At the strongest they
   can guarantee one ball goes in or stop the opponent pocketing one ball.
@@ -267,8 +282,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   power: weak abilities return fast, strong ones rarely.
 - Abilities are on by default; the host can turn them off for a match. Abilities-off matches
   still count for rank.
-- **At release every player has one starter ability: Magnet Pocket**, kept free forever. All
-  other abilities come from the ability gacha (section 12). Before release, friend tests may
+- **When abilities launch, every player has one starter ability: Magnet Pocket**, kept free
+  forever. All other abilities come from the ability gacha (section 12). Friend tests may
   unlock every built ability with a developer flag in Config.
 - First three to build, in this order: **Magnet Pocket** (choose a pocket, for one shot it
   gently pulls your balls toward it; a nudge that rescues near misses, never a vacuum),
@@ -278,7 +293,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   framework. Rarities match the item rarities (section 12).
 
 **Open**
-- The full ability list and how many exist at release.
+- Whether abilities come at all (above), the full list and how many exist at their launch.
 - Exact cooldown lengths per ability *(tune)*.
 
 ## 10. The hub and the world
@@ -292,6 +307,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
   and above, where only Difficult and Challenger are available. All its tables have black frames
   (blue felt 1v1, red 2v2, charcoal 3v3; section 16); the rest of its look is decided later (a dim, moody neon room is the candidate).
+  Not in the release (designer, 2026-09-26): nobody can reach Diamond I at launch, so it
+  follows about one to two weeks after release.
 - A player's win streak shows above their head, and their country flag next to their name.
 
 - **The hub map is an open-air rooftop pool club** (designer, 2026-09-26), matching the
@@ -337,6 +354,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     confirmed at the brief's four checkpoints (the last, Checkpoint D, 2026-09-26).
 
 **Open**
+- Whether a locked pro-lobby door (a teaser) stands on the roof at release, or nothing until
+  the pro lobby exists.
 
 ## 11. Progression and ranks
 
@@ -356,13 +375,21 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Difficulty multiplies gains and losses** *(tune, placeholders 1x Classic, 5x Difficult,
   10x Challenger)*. Classic gains shrink to a trickle above Diamond, and PC matches give full
   rating only up to the top of Diamond and a fraction beyond, so Expert and above come only
-  from the harder difficulties against people. PC skill scales with the player's rating.
+  from the harder difficulties against people.
+- **Ten bots, one per tier** (designer, 2026-09-26): the Bronze bot is the easiest and the Reyes
+  bot the hardest, and each player meets the bot of their rank.
+- Players also earn **EXP** by playing, separate from the rating (designer, 2026-09-26).
 - Bronze to Platinum is fast, Diamond is a buffer, and the top ranks are exponentially harder.
   Reyes should be held by a few dozen to a few hundred players depending on population.
 - Rating is saved under a season label ("Season 0"); no resets at launch.
 
 **Open**
 - The rating formula, points per game and division widths *(tune)*: solve on paper, then test.
+- **EXP:** what earns it, what it shows (a level?), what it unlocks or pays, and whether it
+  ever resets.
+- **Bots:** whether the bot follows the current or the peak rank; which bot an Unranked player
+  meets; which bot fills a seat in a 2v2 or 3v3; whether the table's difficulty changes the
+  bot; the bots' names and looks.
 
 ## 12. Economy
 
@@ -394,20 +421,25 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Shop** with high-priced, quantity-limited items that sell out and become limited forever.
   At release: a Founder's cue (about 25 to 50 copies) and a Beta cue (about 500 to 1000
   copies). All economy screens live under one menu.
-- **Ability gacha:** spins cost Robux (packs of 1, 5, 10, 50) and there is one free spin per
-  day. You keep every ability you roll; duplicates give spin credit that only buys more spins.
+- **Ability gacha** (only if abilities come, section 9): spins cost Robux (packs of 1, 5, 10,
+  50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
+  credit that only buys more spins.
 - **VIP** (one-time pass): 2x money, an exclusive cue, other perks. Never better odds.
 - **Starter offer:** a cheap cue for each player's first three days *(tune)*.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. Every cue is a unique object with its own ID
   and a serial number for limited items. Abilities are owned flags. **Cues can be traded,
   including VIP and starter-offer ones. Abilities are account-bound. Money is never traded.**
+  Trading is in the first release (designer, 2026-09-26; it was planned for after).
+- **Index** (designer, 2026-09-26): a collection screen of the game's cues.
 - **Cue models:** every cue is its own small mesh plus a named effect style. Hundreds are
   expected, added as data rows plus assets.
-- **Shop, inventory, save data and the first-time flow exist before the game is public.**
+- **Shop, inventory, the index, trading, save data and the first-time flow exist before the
+  game is public.**
 
 **Open**
 - Money per ball, box prices, drop odds, pack prices *(tune)*: research other games first.
+- What the index shows for cues a player does not own, and whether filling it pays anything.
 - The order of the rarities (where mythic and unique sit), and whether VIP is the top
   loot-box rarity or only for VIP-pass items (the VIP pass above has an exclusive cue).
 
@@ -446,7 +478,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   edge of the player's view a few seconds after they arrive. They always break first. A
   passive, looping ghost animation shows pulling the cue back and moving the ball on the break
   line, and disappears on the first drag. No shot clock. They pocket a few balls, see the
-  sounds and the money, and get to use their starter ability. The PC blunders and pockets the
+  sounds and the money, and (if abilities come) use their starter ability. The PC blunders and pockets the
   8 so they win early. Normal rules stand: if they lose, the same throwing PC repeats until the
   first win.
 - **Stronger ball highlights for learning (2026-09-23):** during the first playthrough and
@@ -468,7 +500,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   in-game reminder ("Come back tomorrow for your free rare box"). The same reminder sits on
   the post-match screen.
 - A funnel is tracked with Roblox's built-in analytics: joined, reached a table, first shot,
-  first pocket, used ability, won, opened box, equipped, second match.
+  first pocket, used ability (if abilities come), won, opened box, equipped, second match.
 
 ## 15. Social
 
@@ -520,7 +552,6 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
   counter that hands out non-alcoholic drinks and snacks the player can drink or eat (a tool
   with a short animation).
 
-- Cross-server and worldwide matchmaking, a global server for 1v1 and 2v2.
 - Private friend-locked tables. Party up with friends.
 - Replay or "clip that" feature. Cinematic replay camera.
 - Trading UI polish, item showcases, serial plaques.
@@ -547,3 +578,7 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Pro lobby look (section 10).
 - Rating formula (section 11).
 - Economy numbers, the rarity order and what VIP rarity means (section 12).
+- The abilities toggle while abilities are out (section 6); whether abilities come (section 9).
+- A pro-lobby teaser door at release (section 10).
+- EXP, and the bots' details (section 11).
+- What the index shows (section 12).

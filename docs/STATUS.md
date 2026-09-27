@@ -1,6 +1,20 @@
 # Status
 
-**2026-09-26 (latest): the rooftop map is finished (all 8 stages; Checkpoint D approved).**
+**2026-09-26 (latest): the road to release is set; the next work is the pool game itself.**
+
+- **Decided (designer):** the order is (1) the pool game, its UI and mechanics on phone, PC and
+  console; (2) ranks and EXP; (3) ten bots, one per tier; (4) cues, money, the shop, inventory,
+  the index, loot boxes and trading; then the first-time flow and release. Abilities, the pro
+  lobby and the global queue are out of the release (the pro lobby and global queue about one
+  to two weeks after it; abilities up for debate). ROADMAP.md is reordered into these stages;
+  the GDD and DECISIONS record it, with EXP, the bots' details and the index as Open.
+- **Next:** Stage 1 of the roadmap. The first unticked box is 1.5 (server-owned tables), which
+  waits on real two-player, phone and gamepad checks.
+- **Waiting:** the designer's save of the rooftop map to `place/8ball.rbxl` and publish.
+
+---
+
+**2026-09-26: the rooftop map is finished (all 8 stages; Checkpoint D approved).**
 
 - **Built:** the open-air rooftop pool club from the concept art. The city on the left, the
   coast and green islands on the right, and a day and sunset cycle that is the same for everyone.
