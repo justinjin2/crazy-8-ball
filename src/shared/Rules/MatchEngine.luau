@@ -845,6 +845,9 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 		assign = if j.assign
 			then { groups = table.clone(j.groups), ball = j.assign.ball, index = j.assign.index }
 			else nil,
+		-- Whether this shot's 8 wins the game: only then does its drop get the pocket burst and
+		-- NICE SHOT! (designer, 2026-09-27: never for an early, wrong-pocket or foul 8).
+		eightWins = j.reason == "LegalEight",
 	}
 	t.pending = { outcome = outcome, judgement = j }
 	Engine.awards(t, j, now)

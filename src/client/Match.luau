@@ -69,6 +69,7 @@ export type Match = typeof(setmetatable(
 			nextEvent: number,
 			capped: boolean,
 			startedAt: number,
+			eightWins: boolean?, -- the server says this shot's 8 wins the game
 		}?,
 		lastShot: Summary?,
 		eventListeners: { (Event, number) -> () },
@@ -299,6 +300,9 @@ function Match.receive(self: Match, msg: any)
 	self.shot = nil
 	self:applyBalls(msg.start)
 	self:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
+	if self.shot then
+		self.shot.eightWins = msg.eightWins == true -- the server's verdict on this shot's 8
+	end
 	if self.seq == msg.seq then
 		self.assign = msg.assign
 		self.downVersion += 1

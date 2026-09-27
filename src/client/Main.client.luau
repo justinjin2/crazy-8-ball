@@ -572,31 +572,23 @@ end, function()
 end)
 
 -- Whether a ball dropping deserves the pocket effect: only a good pocket for whoever is
--- shooting. Never the white, never the other side's balls, and the 8 only once it is theirs
--- to take (judged on the balls as they stood before the shot, which the snapshot still holds
--- while it rolls). An open table rewards any object ball; solo rewards every object ball,
--- since both groups are the player's, and the 8 once all fourteen are down.
+-- shooting. Never the white, never the other side's balls, and the 8 only when it wins the
+-- game: the server says so with the shot (`eightWins`), so an early, wrong-pocket or foul 8
+-- gets no burst and no NICE SHOT! (designer, 2026-09-27). An open table rewards any object
+-- ball; solo rewards every object ball, since both groups are the player's.
 local function rewardsPocket(tableId: number, m: any, ballId: number): boolean
 	if ballId == 0 then
 		return false
+	end
+	if ballId == 8 then
+		return m.shot ~= nil and m.shot.eightWins == true
 	end
 	local s = hub.snapshots[tableId]
 	if not s then
 		return true
 	end
-	local function downBefore(id: number): boolean
-		return s.balls ~= nil and s.balls[id * 4 + 4] == 1
-	end
 	local groups = m:revealedGroups() or s.groups or {}
 	local group = if s.activeTeam then groups[s.activeTeam] else nil
-	if ballId == 8 then
-		for id = 1, 15 do
-			if id ~= 8 and not downBefore(id) and (s.solo or Judge.group(id) == group) then
-				return false
-			end
-		end
-		return s.solo ~= nil or group ~= nil
-	end
 	return s.solo ~= nil or group == nil or Judge.group(ballId) == group
 end
 for id = 1, Placement.tableCount() do
