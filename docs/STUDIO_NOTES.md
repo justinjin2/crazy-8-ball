@@ -224,6 +224,16 @@ Tested with a sand slope and a dark seabed under Terrain water, at Edit quality 
   `TextChannel:SendAsync("/day")` from a test script hangs. Test the commands' work by
   calling `DevCommands.toward("Day")` in the Server datamodel.
 
+## What the lowest graphics levels draw (tested 2026-09-26)
+
+At Edit quality 1, Roblox draws a part only if some point of its bounding box is within about
+300 studs of the camera: long test walls whose nearest point was 283 studs away drew in full out
+to 1,800 studs, and ones whose nearest point was 356 studs or more did not draw at all. So a
+huge slab that touches the roof always draws, and a backdrop chunk draws only if its bounds
+reach near the camera. The rooftop's mid city chunks (1,200-stud cells) that touch the tower
+draw; the outer ring does not. The designer chose to cap the camera's zoom
+(`Config.Hub.CameraMaxZoom`) rather than re-chunk the city.
+
 ## The 3D Importer and scripts right after an import (2026-09-26)
 
 The importer can still be adding the model when the user says "imported". A setup script run

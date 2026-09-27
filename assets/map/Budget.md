@@ -13,7 +13,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Balls, cues, effects (existing) | 20,000 | | | existing |
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
 | Props | 140,000 | 60,959 | 60,959 | 3 |
-| Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 8,809 | 8,809 | 4 |
+| Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 7,729 | 7,729 | 4 |
 | Mid backdrop: skyline and islands | 110,000 | 66,665 | 66,665 | 5, 6 |
 | Far horizon: painted into the day skybox, no geometry | 2,000 | 0 | 0 | 6 |
 | **Everything we ship** | **512,000** | | | |

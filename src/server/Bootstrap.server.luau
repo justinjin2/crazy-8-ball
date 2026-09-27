@@ -39,6 +39,14 @@ local function publish(name: string, class: string, missing: string)
 end
 publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
 
+-- The camera stays near the roof (Config.Hub.CameraMaxZoom): every player who joins, and anyone
+-- already here.
+local Players = game:GetService("Players")
+game:GetService("StarterPlayer").CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
+for _, player in Players:GetPlayers() do
+	player.CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
+end
+
 -- Arrive in front of the tables, facing them.
 local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
 if spawn then

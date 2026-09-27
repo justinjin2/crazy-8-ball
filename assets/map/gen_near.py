@@ -269,8 +269,9 @@ def ground(mesh, cells):
         return cells.get((i, j))
 
     # Streets between cells: a road (with zebra crossings at its ends) where a near block
-    # borders it, plaza paving between two plaza cells, nothing where only gray-box or no
-    # cells border it.
+    # borders it, lawn between park cells (the park is one patch of grass: separate lawns with
+    # paving between them read as odd terraces from the roof; designer, 2026-09-26), plaza
+    # paving between plaza cells, nothing where only gray-box or no cells border it.
     n = max(max(abs(i), abs(j)) for i, j in cells) + 2
     for k in range(-n, n + 1):
         for m in range(-n, n + 1):
@@ -289,6 +290,9 @@ def ground(mesh, cells):
                 if lr is None:
                     continue
                 x0, z0, x1, z1 = lr
+                if all(s in ('park', None) for s in sides):
+                    flat_rect(mesh, x0, z0, x1, z1, road_y, 'n_grass', 0.5)
+                    continue
                 if all(s in ('plaza', 'park', None) for s in sides):
                     flat_rect(mesh, x0, z0, x1, z1, road_y, 'n_plaza', 0.5)
                     continue
@@ -311,6 +315,9 @@ def ground(mesh, cells):
                 continue
             lr = land_rect(k * pitch - hs, m * pitch - hs, k * pitch + hs, m * pitch + hs)
             if lr is None:
+                continue
+            if all(s in ('park', None) for s in round_):
+                flat_rect(mesh, *lr, road_y, 'n_grass', 0.5)
                 continue
             plaza = all(s in ('plaza', 'park', None) for s in round_)
             flat_rect(mesh, *lr, road_y, 'n_plaza' if plaza else 'n_road', 0.5 if plaza else 0.3)
@@ -611,10 +618,14 @@ def build():
                 t = (k + 0.5) * every / seg
                 tree(meshes['Trees'], meshes['Ground'], ax + (bx - ax) * t, az + (bz - az) * t, STREET + P['kerb'], brng)
     # Trees in the open cells, clear of the tower and the promenade: a loose grid of four in
-    # the plaza's, a denser, jittered grid of nine on the park's lawns.
+    # the plaza's. The park is plain lawn (its jittered grid of nine read as dots on terraces;
+    # designer, 2026-09-26): its trees are still drawn from the random source, into a mesh that
+    # is thrown away, so the beach's palms (drawn after) stay where they were.
+    discard = {'Trees': mc.Mesh('discard'), 'Ground': mc.Mesh('discard')}
     for (i, j), kind in sorted(cells.items()):
         if kind not in ('plaza', 'park'):
             continue
+        into = meshes if kind == 'plaza' else discard
         lr = land_rect(*cell_rect(i, j))
         if lr is None:
             continue
@@ -628,7 +639,7 @@ def build():
                     continue
                 if (lr[2] - lr[0]) < 30 or (lr[3] - lr[1]) < 30:
                     continue
-                tree(meshes['Trees'], meshes['Ground'], x, z, STREET, rng)
+                tree(into['Trees'], into['Ground'], x, z, STREET, rng)
     coast(meshes['Coast'], meshes['Shallows'])
     # Palms along the beach in clumps, standing on the sand (which falls from the wall's foot
     # to the waterline).

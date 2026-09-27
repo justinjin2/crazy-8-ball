@@ -1272,3 +1272,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     greyed the whole city in a test.
   - This revisits Checkpoint C's "no detail pass on the backdrop": the designer asked.
 
+- 2026-09-26: The rooftop map's camera zooms out at most 40 studs (`Config.Hub.CameraMaxZoom`;
+  Roblox's is 128), so the camera stays near the roof. At the lowest graphics levels Roblox leaves
+  the outer city undrawn (STUDIO_NOTES), and zoomed far out the camera saw a grey plain; the
+  designer chose the cap over re-chunking the city. The near world's park behind the tower is one
+  patch of lawn: its separate lawns, paving and dotted trees read as odd terraces from the roof.

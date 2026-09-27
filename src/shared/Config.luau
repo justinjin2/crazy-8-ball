@@ -536,6 +536,10 @@ Config.Cue = {
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
 Config.Hub = {
+	-- How far out a player may zoom the camera on the roof (studs; Roblox's own is 128). Far
+	-- out, the camera took in the whole city from above, and at the lowest graphics levels
+	-- Roblox leaves most of it undrawn: a bare grey plain (designer, 2026-09-26). (tune)
+	CameraMaxZoom = 40,
 	-- The rooftop map (assets/map/Spec.md, drawn in assets/map/Plan.png): four rows of four,
 	-- turned sideways like the concept art, long sides to the entrance (+Z), the queue pad in
 	-- front of each (Placement.queuePad). 36 studs apart across (the match fence's 26 plus a
