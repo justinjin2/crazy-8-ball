@@ -2446,7 +2446,10 @@ Config.Multiplayer = {
 	Spawn = { X = 0, Y = 0.1, Z = 76.75, YawDegrees = 0 },
 	CoinSeconds = 2.6, -- shared coin presentation; the host's Start leads straight into it
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
-	PlacementSeconds = 15, -- cue-ball placement window (break and ball in hand)
+	PlacementSeconds = 15, -- cue-ball placement window (ball in hand), then ShotSeconds to aim
+	-- The break: moving the cue ball along the line and shooting share this one clock, and
+	-- running out is a timeout foul like the shot clock's (designer, 2026-09-27). (tune)
+	BreakSeconds = 20,
 	PocketChoiceSeconds = 10, -- called-pocket selection window
 	ShotSeconds = 20, -- aiming deadline
 	FoulSeconds = 1.4, -- foul announcement before incoming turn

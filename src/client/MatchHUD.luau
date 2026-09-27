@@ -18,6 +18,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
+local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 local Copy = Strings.Match
 local M = Config.Multiplayer
 local S = M.Style
@@ -1085,14 +1086,16 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "Foul"
 	-- With ball in hand the shot clock starts when moving time ends (MatchEngine): the move pill
 	-- counts the moving time and the big clock holds at the full shot clock until it runs out
-	-- (designer, 2026-09-27), so the time to move never reads as the time to shoot.
-	local placing = isClock and phase == "Placement"
+	-- (designer, 2026-09-27), so the time to move never reads as the time to shoot. Not on the
+	-- break: moving and shooting share one clock there, the big one.
+	local shotClock = Engine.isShotClock(phase, snapshot.breakShot)
+	local placing = isClock and phase == "Placement" and not shotClock
 	self.movePill.Visible = placing
 	self.popupTop = if placing then self.moveBottom else self.headerBottom
 	if placing then
 		self.moveText.Text = string.format(Copy.MoveClock, math.ceil(remaining))
 	end
-	local danger = isClock and remaining <= 5 and phase == "Aiming"
+	local danger = isClock and remaining <= 5 and shotClock
 	self.clockPill.Visible = isClock
 	self.clock.Text = if not isClock
 		then ""

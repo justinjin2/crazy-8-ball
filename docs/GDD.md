@@ -250,7 +250,10 @@ Every feature is checked against these. If it serves none, it waits.
   in hand. An object ball that flies off goes back on the foot spot (or the nearest free
   spot). The 8 off the table loses the game, except on the break, where it is re-spotted
   (and it is still a foul).
-- **Shot clock** about 20 seconds *(tune)*. Zero = foul with ball in hand. Two timeouts in a
+- **Shot clock** about 20 seconds *(tune)*. Zero = foul with ball in hand. The break has one
+  20 s clock for moving the cue ball along the line and shooting; zero is the same timeout
+  foul (designer, 2026-09-27). Ball in hand after a foul gets 15 s to move the ball first,
+  then the shot clock. Two timeouts in a
   row = automatic forfeit *(tune)*. In its last 5 seconds the shooter hears a clock tick once
   a second (the last two a little higher), until they shoot (designer, 2026-09-26).
 - **Forfeit** button, costs rating, behind a confirmation that warns "you will lose rating".

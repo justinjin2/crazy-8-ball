@@ -1,6 +1,20 @@
 # Status
 
-**2026-09-27 (latest): the break's hint is short and in capitals.**
+**2026-09-27 (latest): the break has one 20 s clock; running out is a foul.**
+
+- **Built:** on the break, moving the cue ball and shooting share one 20 s clock
+  (`Multiplayer.BreakSeconds`), shown on the big clock with no MOVE pill, red and ticking in
+  its last 5 s. Running out is a timeout foul (it counts toward the two-timeout forfeit) and
+  the opponent gets ball in hand anywhere. Ball in hand after a foul is unchanged (15 s MOVE,
+  then 20 s to shoot).
+- **Verified:** lint clean, 358 tests pass (new: the break's one clock and its timeout foul).
+  Studio phone emulator, QA break: one clock, no pill, red under 5 s, then Foul and the
+  opponent's turn with ball in hand. Console clean.
+- **Needs a check by hand:** a real match start (coin flip, then the break), and PC.
+
+---
+
+**2026-09-27: the break's hint is short and in capitals.**
 
 - **Built:** "DRAG BALL ANYWHERE ON LINE" (gamepad: "HOLD LT + LEFT STICK TO SLIDE ON LINE").
 - **Verified:** lint clean, 357 tests pass; Studio phone emulator, QA break: the pill shows it.

@@ -207,6 +207,13 @@ function Engine.shooterHeld(phase: string, solo: any, secondsSinceShot: number?)
 	return Engine.shooterLocked(phase, solo)
 end
 
+--- Whether `phase` runs the shot clock, whose end is a timeout foul: aiming, and the break's
+--- placement (moving along the line and shooting share Multiplayer.BreakSeconds). Ball in hand
+--- elsewhere has its own moving time first (PlacementSeconds), then aiming.
+function Engine.isShotClock(phase: string, breakShot: boolean?): boolean
+	return phase == "Aiming" or (phase == "Placement" and breakShot == true)
+end
+
 -- The call for the 8 comes before ball in hand: the pocket is chosen from the top-down view,
 -- then the ball is placed and shot in the 3D one. Solo has no clock: these wait for the player.
 local function setup(t: any, now: number)
@@ -214,7 +221,8 @@ local function setup(t: any, now: number)
 	if needsCall(t) then
 		phase(t, "PocketChoice", now, if timed then M.PocketChoiceSeconds else nil)
 	elseif t.ballInHand then
-		phase(t, "Placement", now, if timed then M.PlacementSeconds else nil)
+		local seconds = if t.breakShot then M.BreakSeconds else M.PlacementSeconds
+		phase(t, "Placement", now, if timed then seconds else nil)
 	else
 		phase(t, "Aiming", now, if timed then M.ShotSeconds else nil)
 	end
@@ -437,7 +445,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		beginTurn(t, t.activeTeam, now, true)
 	elseif t.phase == "Intro" then
 		setup(t, now)
-	elseif t.phase == "Placement" then
+	elseif t.phase == "Placement" and not t.breakShot then
 		t.ballInHand = false
 		setup(t, now)
 	elseif t.phase == "PocketChoice" then
@@ -451,7 +459,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		end
 		t.calledPocket = best
 		setup(t, now)
-	elseif t.phase == "Aiming" then
+	elseif Engine.isShotClock(t.phase, t.breakShot) then
 		t.timeouts[t.activeTeam] += 1
 		if t.timeouts[t.activeTeam] >= M.TimeoutLimit then
 			finish(t, 3 - t.activeTeam, "Timeouts", now)

@@ -38,16 +38,17 @@ local function playing(size: number, id: number?): any
 	expect(m.phase == "Intro" and m.shooter == 11)
 	return m
 end
+-- On to the shot clock: aiming, or the break's placement (shot from there; its end is a foul).
 local function aim(m: any)
 	while
 		m.phase == "Intro"
-		or m.phase == "Placement"
+		or (m.phase == "Placement" and not m.breakShot)
 		or m.phase == "PocketChoice"
 		or m.phase == "Foul"
 	do
 		expire(m)
 	end
-	expect(m.phase == "Aiming")
+	expect(E.isShotClock(m.phase, m.breakShot))
 end
 local function request(m: any, kind: string, extra: any?): any
 	local action = extra or {}
@@ -279,11 +280,24 @@ function tests.foul_intro_placement_then_aim_without_confirm()
 end
 function tests.setup_deadlines_autocomplete_without_shooting_timeout()
 	local m = playing(1)
+	m.breakShot = false -- ball in hand after a foul, not the break
 	expire(m)
 	expect(m.phase == "Placement")
+	H.near(m.deadline - m.phaseStartedAt, M.PlacementSeconds, 1e-9, "moving time")
 	expire(m)
 	expect(m.phase == "Aiming" and m.timeouts[1] == 0)
 	expect(m.deadline - m.phaseStartedAt == M.ShotSeconds)
+end
+function tests.break_moves_and_shoots_on_one_clock_and_running_out_is_a_timeout_foul()
+	local m = playing(2)
+	expire(m)
+	expect(m.phase == "Placement" and m.breakShot)
+	H.near(m.deadline - m.phaseStartedAt, M.BreakSeconds, 1e-9, "one clock for the break")
+	expect(E.isShotClock(m.phase, m.breakShot))
+	expire(m)
+	expect(m.phase == "Foul" and m.foul.reason == "Timeout" and m.timeouts[1] == 1)
+	expire(m)
+	expect(m.phase == "Intro" and m.activeTeam == 2 and m.ballInHand and not m.breakShot)
 end
 function tests.eligible_ball_in_hand_calls_before_placement()
 	local m = playing(2)
@@ -315,6 +329,7 @@ function tests.eligible_ball_in_hand_calls_before_placement()
 end
 function tests.call_timeout_chooses_pocket_nearest_eight()
 	local m = playing(1)
+	m.breakShot = false -- ball in hand later in the game
 	m.groups = { "solids", "stripes" }
 	for _, ball in m.state.balls do
 		if ball.id >= 1 and ball.id <= 7 then
@@ -333,6 +348,7 @@ function tests.call_timeout_chooses_pocket_nearest_eight()
 end
 function tests.pocket_choice_then_placement_timeouts_chain_without_shooting_timeout()
 	local m = playing(1)
+	m.breakShot = false -- ball in hand later in the game
 	m.groups = { "solids", "stripes" }
 	for _, ball in m.state.balls do
 		if ball.id >= 1 and ball.id <= 7 then
@@ -515,6 +531,7 @@ function tests.moves_after_placement_deadline_rejected_before_advance()
 end
 function tests.late_shot_repeating_locked_spot_is_accepted_moved_spot_is_not()
 	local m = playing(1)
+	m.breakShot = false -- ball in hand after a foul: the break's clock has no aiming after it
 	expire(m)
 	local X = M.BreakLineX
 	expect(action(m, 11, "Place", { x = X, y = 4, seq = 1 }))

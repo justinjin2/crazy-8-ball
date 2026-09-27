@@ -17,6 +17,7 @@ local CueStickBuilder = require(Shared.CueStickBuilder)
 local Simulation = require(Shared.Physics.Simulation)
 local Aim = require(Shared.Physics.Aim)
 local Judge = require(Shared.Rules.ShotJudge)
+local Engine = require(Shared.Rules.MatchEngine)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
 local Effects = require(script.Parent.Effects)
@@ -693,7 +694,12 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled)
 	-- The shot clock's last seconds tick once a second for the shooter, until the shot goes.
-	if snapshot and aimTurn() and snapshot.phase == "Aiming" and snapshot.deadline then
+	if
+		snapshot
+		and aimTurn()
+		and Engine.isShotClock(snapshot.phase, snapshot.breakShot)
+		and snapshot.deadline
+	then
 		local second = math.ceil(snapshot.deadline - workspace:GetServerTimeNow())
 		if tickTurn ~= snapshot.turnId then
 			tickTurn, tickSecond = snapshot.turnId, second -- a turn starts: no tick for it yet

@@ -224,7 +224,7 @@ return {
 		E.advance(t, t.deadline)
 		H.expect(t.phase == "Placement")
 		E.advance(t, t.deadline)
-		H.expect(t.phase == "Aiming")
+		H.expect(t.phase == "Foul" and t.foul.reason == "Timeout", "the break's clock ran out")
 		t.breakShot = false
 		t.groups = { "solids", "stripes" }
 		for _, b in t.state.balls do

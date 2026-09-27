@@ -1388,3 +1388,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: Changed: with ball in hand the big clock holds at the 20 s shot clock (not 35 s
   counting down) and starts only when the MOVE pill reaches 0 (designer).
 - 2026-09-27: The break's hint is short and in capitals: "DRAG BALL ANYWHERE ON LINE" (designer).
+- 2026-09-27: The break gets one 20 s clock (Multiplayer.BreakSeconds) to move the cue ball
+  and shoot, not 15 s to move plus 20 s to aim; running out is a timeout foul that counts
+  toward the two-timeout forfeit, and the opponent gets ball in hand anywhere (designer).
