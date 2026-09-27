@@ -24,6 +24,7 @@ else
 		--definitions="$DEFS" \
 		--sourcemap=sourcemap.json \
 		--base-luaurc=.luaurc \
+		--ignore="src/server/Vendor/**" \
 		src
 fi
 echo "== lint OK"
