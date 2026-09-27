@@ -1,6 +1,19 @@
 # Status
 
-**2026-09-27 (latest): the group popup stays a second longer.**
+**2026-09-27 (latest): ball in hand shows the time to move apart from the time to shoot.**
+
+- **Built:** while the cue ball can be moved, the big clock counts the whole time to shoot (35 s:
+  15 to move, then the 20 s shot clock) and a blue "MOVE 12s" pill with the hand sits under it.
+  When moving time ends the pill goes and the big clock and portrait ring carry on without a
+  jump. The turn and foul popups drop below the pill while it shows.
+- **Verified:** lint clean, 357 tests pass. Studio phone emulator, QA fixture: 35 and MOVE 15s at
+  the start, 21 then 20 then 19 as moving ended, the ring kept draining, YOUR TURN under the
+  pill. Console clean.
+- **Needs a check by hand:** a PC window; a real foul in a match (the fixture skips the foul).
+
+---
+
+**2026-09-27: the group popup stays a second longer.**
 
 - **Built:** YOU ARE SOLIDS / YOU ARE STRIPES now stays up 3.5 s (was 2.5).
 - **Verified:** lint clean, 357 tests pass. In Play (phone emulator, QA fixture) the popup was

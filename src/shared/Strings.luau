@@ -173,5 +173,6 @@ return {
 		PlacementBlocked = "No room there",
 		PocketLabel = "Pocket %d",
 		PlacementHandle = "MOVE",
+		MoveClock = "MOVE %ds", -- under the big clock: seconds left to move the cue ball
 	},
 }

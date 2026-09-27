@@ -19,7 +19,8 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match
-local S = Config.Multiplayer.Style
+local M = Config.Multiplayer
+local S = M.Style
 local K = Config.UI.Kit
 local MatchHUD = {}
 MatchHUD.__index = MatchHUD
@@ -238,6 +239,9 @@ local function barSizes(short: boolean): any
 		leave = if short then S.ShortLeaveSize else S.LeaveSize,
 		clockWidth = if short then S.ShortCenterClockWidth else S.CenterClockWidth,
 		clockText = if short then S.ShortCenterClockTextSize else S.CenterClockTextSize,
+		moveWidth = if short then S.ShortMoveClockWidth else S.MoveClockWidth,
+		moveHeight = if short then S.ShortMoveClockHeight else S.MoveClockHeight,
+		moveText = if short then S.ShortMoveClockTextSize else S.MoveClockTextSize,
 		status = if short then S.ShortOpenLabelSize else S.StatusSize, -- OPEN TABLE
 		gap = if short then S.ShortHeaderGap else S.HeaderGap, -- a phone packs a little tighter
 		ball = if short then S.ShortBallSize else S.BallSize,
@@ -344,6 +348,12 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.clockScale.Parent = self.clockPill
 	self.clockIcon = HudParts.icon(self.clockPill, "Stopwatch")
 	self.clock = text(self.clockPill, "Timer", S.CenterClockTextSize, "")
+	-- With ball in hand: the time left to move the cue ball, in blue like its MOVE ring,
+	-- under the big clock (which then counts the whole time to shoot).
+	self.movePill = HudParts.pill(self.topBar, "MoveClock", tone("Blue"))
+	self.movePill.Visible = false
+	self.moveIcon = HudParts.icon(self.movePill, "Hand")
+	self.moveText = text(self.movePill, "Timer", S.MoveClockTextSize, "")
 	-- Leave: a small red door at the bar's right end, beside the right-hand team.
 	self.leave = candy(self.topBar, "", function()
 		self:openLeave()
@@ -573,6 +583,18 @@ function MatchHUD.layout(self: any)
 	self.clock.Position = UDim2.fromOffset(iconSize + 6, 2)
 	self.clock.Size = UDim2.fromOffset(clockWidth - iconSize - 12, height - 4)
 	HudParts.setTextSize(self.clock, d.clockText)
+	local moveHeight = d.moveHeight
+	self.movePill.AnchorPoint = Vector2.new(0.5, 0)
+	self.movePill.Position = UDim2.fromOffset(clockLeft + clockWidth / 2, height + gap)
+	self.movePill.Size = UDim2.fromOffset(d.moveWidth, moveHeight)
+	local moveIconSize = moveHeight - 6
+	self.moveIcon.Position = UDim2.fromOffset(5, 3)
+	self.moveIcon.Size = UDim2.fromOffset(moveIconSize, moveIconSize)
+	self.moveText.Position = UDim2.fromOffset(moveIconSize + 6, 1)
+	self.moveText.Size = UDim2.fromOffset(d.moveWidth - moveIconSize - 12, moveHeight - 2)
+	HudParts.setTextSize(self.moveText, d.moveText)
+	-- The popups under the bar drop below the move pill while it shows.
+	self.moveBottom = self.headerBottom + (gap + moveHeight) * scale
 	self.leave.Position = UDim2.fromOffset(leaveLeft, (height - d.leave) / 2)
 	self.leave.Size = UDim2.fromOffset(d.leave, d.leave)
 	-- The placement instruction: one thin line centred at the bottom, as wide as its words.
@@ -1061,23 +1083,47 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "Result"
 		and phase ~= "CoinFlip"
 		and phase ~= "Foul"
+	-- With ball in hand the shot clock starts when moving time ends (MatchEngine), so the big
+	-- clock counts both: the time to shoot. The move pill counts the moving time.
+	local placing = isClock and phase == "Placement"
+	local shotDeadline = if placing then deadline + M.ShotSeconds else deadline
+	local shotLeft = if shotDeadline then math.max(0, shotDeadline - now) else 0
+	self.movePill.Visible = placing
+	self.popupTop = if placing then self.moveBottom else self.headerBottom
+	if placing then
+		self.moveText.Text = string.format(Copy.MoveClock, math.ceil(remaining))
+	end
 	local danger = isClock and remaining <= 5 and phase == "Aiming"
 	self.clockPill.Visible = isClock
 	self.clock.Text = if isClock
-		then (if remaining <= 5 and phase == "Aiming"
-			then string.format("%.1f", remaining)
-			else tostring(math.ceil(remaining)))
+		then (if danger then string.format("%.1f", remaining) else tostring(math.ceil(shotLeft)))
 		else ""
 	self.clock.TextColor3 = if danger then tone("Red") else tone("White")
 	-- Under five seconds the clock throbs.
 	self.clockScale.Scale = if danger then 1 + 0.08 * math.abs(math.sin(now * math.pi * 2)) else 1
 	self.leave.Visible = phase ~= "Result"
-	-- The ring drains on every timed part of a turn (placing the cue ball, calling the pocket,
-	-- aiming), each over its own clock; it stays full through the turn's introduction.
+	-- The ring drains with the big clock on every timed part of a turn (calling the pocket,
+	-- moving the cue ball, aiming); it stays full through the turn's introduction. Moving and
+	-- aiming are one span, remembered for the turn, so the ring does not refill between them.
+	local key = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
+	if placing then
+		self.clockSpan = { key = key, start = snapshot.phaseStartedAt, finish = shotDeadline }
+	end
+	local span = self.clockSpan
+	local start, finish = snapshot.phaseStartedAt, shotDeadline
+	if
+		span
+		and span.key == key
+		and phase == "Aiming"
+		and deadline ~= nil
+		and math.abs(span.finish - deadline) < 1
+	then
+		start, finish = span.start, span.finish
+	end
 	local progress = if isClock
 			and phase ~= "Intro"
-			and deadline > snapshot.phaseStartedAt
-		then remaining / (deadline - snapshot.phaseStartedAt)
+			and finish > start
+		then (finish - now) / (finish - start)
 		else 1
 	for _, team in self.teams do
 		for _, portrait in team.portraits do
@@ -1167,7 +1213,7 @@ function MatchHUD.updateTurn(self: any, now: number)
 	local wordWidth = self.turnTitle.TextBounds.X
 	local width = wordWidth + height + gap * 2
 	self.turnGroup.Size = UDim2.fromOffset(width, height)
-	self.turnGroup.Position = UDim2.new(0.5, 0, 0, (self.headerBottom or 0) + gap)
+	self.turnGroup.Position = UDim2.new(0.5, 0, 0, (self.popupTop or self.headerBottom or 0) + gap)
 	self.turnScale.Scale = K.Motion.PopFromScale
 		+ (1 - K.Motion.PopFromScale) * UIAnim.backOut(elapsed / K.Motion.PopSeconds)
 	local fade = 1 - math.clamp(left / S.TurnPopupFadeSeconds, 0, 1)
@@ -1200,7 +1246,7 @@ function MatchHUD.updateFoul(self: any, now: number)
 	local titleHeight = S.FoulTitleSize + gap
 	local reasonHeight = S.FoulReasonSize + gap
 	self.foulGroup.Size = UDim2.fromOffset(width, titleHeight + reasonHeight)
-	self.foulGroup.Position = UDim2.new(0.5, 0, 0, (self.headerBottom or 0) + gap)
+	self.foulGroup.Position = UDim2.new(0.5, 0, 0, (self.popupTop or self.headerBottom or 0) + gap)
 	local elapsed = math.max(0, now - self.foulStart)
 	local pop = K.Motion.PopFromScale
 		+ (1 - K.Motion.PopFromScale) * UIAnim.backOut(elapsed / K.Motion.PopSeconds)

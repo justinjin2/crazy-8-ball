@@ -1382,3 +1382,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   2.5 s popup, "YOU ARE SOLIDS" or "YOU ARE STRIPES", with a solid or striped ball (designer).
 - 2026-09-27: The group popup (YOU ARE SOLIDS / STRIPES) stays up 3.5 s, a second longer
   (designer).
+- 2026-09-27: With ball in hand the big clock shows the time to shoot (15 s to move plus the
+  20 s shot clock, one countdown) and a blue "MOVE 12s" pill under it shows the moving time,
+  so the 15 s to move no longer reads as 15 s to shoot (designer).
