@@ -1,6 +1,19 @@
 # Status
 
-**2026-09-27 (latest): the break has one 20 s clock; running out is a foul.**
+**2026-09-27 (latest): the coin flip says a few words at a time.**
+
+- **Built:** the coin card shows "YOU ARE HEADS" (or TAILS) on the still coin, flips, then "YOU
+  BREAK" or "<NAME> BREAKS" over the landed coin for 1.3 s; 3 s in all (was 2.6). The team
+  line and "wins the flip" are gone and the card is smaller; the flip sound plays as it spins.
+- **Verified:** lint clean, 358 tests pass (the multiplayer tests now follow CoinSeconds).
+  Studio phone emulator, QA coin: YOU ARE HEADS 0.5 s, the flip 1.2 s, YOU BREAK 1.3 s.
+  Console clean.
+- **Needs a check by hand:** the loser's view ("<NAME> BREAKS"; the QA coin always falls to
+  the local player), and PC.
+
+---
+
+**2026-09-27: the break has one 20 s clock; running out is a foul.**
 
 - **Built:** on the break, moving the cue ball and shooting share one 20 s clock
   (`Multiplayer.BreakSeconds`), shown on the big clock with no MOVE pill, red and ticking in

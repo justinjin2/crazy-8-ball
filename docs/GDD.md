@@ -199,7 +199,8 @@ Every feature is checked against these. If it serves none, it waits.
   next to arrive becomes host and the settings stay; they go back to Classic and on when the
   pad empties and after every game.
 - **Start** needs the pad full; the game begins at once, no countdown: straight to the coin
-  flip. **Teams go by arrival**: the first on (the host) is team A, the next team B, and so on
+  flip, about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU
+  BREAK" or "<NAME> BREAKS" for over a second (designer, 2026-09-27). **Teams go by arrival**: the first on (the host) is team A, the next team B, and so on
   alternately. Until the pad is full the menu says how many more are needed. Alone on a **1v1
   table**, Start offers **Play solo** (starts immediately) and **Play against PC** (does
   nothing until bots exist); the 2v2 and 3v3 tables have no solo. There is no automatic

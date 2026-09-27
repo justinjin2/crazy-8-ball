@@ -1391,3 +1391,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: The break gets one 20 s clock (Multiplayer.BreakSeconds) to move the cue ball
   and shoot, not 15 s to move plus 20 s to aim; running out is a timeout foul that counts
   toward the two-timeout forfeit, and the opponent gets ball in hand anywhere (designer).
+- 2026-09-27: The coin flip card shows a few words at a time: YOU ARE HEADS/TAILS on the
+  still coin (0.5 s), the flip (1.2 s), then YOU BREAK or <NAME> BREAKS (1.3 s). CoinSeconds
+  2.6 -> 3; the team line and "wins the flip" are gone (designer).

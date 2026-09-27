@@ -493,7 +493,6 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.coinGlyph = text(self.coin, "Glyph", K.Text.Title, Copy.CoinHeadGlyph, tone("Gold"))
 	self.coinGlyph.Size = UDim2.fromScale(1, 1)
 	self.coinGlyph.ZIndex = 2
-	self.coinOwner = HudParts.note(self.presentation, "Sides", S.NameSize, "")
 	table.insert(
 		self.connections,
 		self.root:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -653,8 +652,6 @@ function MatchHUD.layout(self: any)
 	self.presentationTitle.Size = UDim2.new(1, -gap * 2, 0, K.Text.Title + gap)
 	local coinSize = S.CoinSize
 	self.coin.Position = UDim2.new(0.5, 0, 0, titleY + K.Text.Title + gap * 2 + coinSize / 2)
-	self.coinOwner.Position = UDim2.new(0, gap, 1, -S.ButtonHeight * 1.9)
-	self.coinOwner.Size = UDim2.new(1, -gap * 2, 0, S.NameSize + gap)
 	self.presentationText.Position = UDim2.new(0, gap * 2, 1, -S.ButtonHeight * 1.2 - gap)
 	self.presentationText.Size = UDim2.new(1, -gap * 4, 0, S.ButtonHeight * 1.2)
 end
@@ -1271,34 +1268,38 @@ function MatchHUD.updatePresentation(self: any, now: number)
 		- math.clamp(math.min(elapsed, duration - elapsed) / S.Motion, 0, 1)
 	local coinPhase = phase == "CoinFlip"
 	self.coin.Visible = coinPhase
-	self.coinOwner.Visible = coinPhase
+	self.presentationText.Visible = not coinPhase
 	self.resultIcon.Visible = not coinPhase
 	if coinPhase and snapshot.coin then
 		self.rays.Visible = false
 		local coin = snapshot.coin
-		local progressCoin = math.clamp(elapsed / (duration * 0.7), 0, 1)
+		-- A few words at a time (designer, 2026-09-27): your side on the still coin, the same
+		-- while it spins, then who breaks once it lands, for the rest of the card's time.
+		local seated = Engine.seat(snapshot, self.localUserId) ~= nil
+		local ourSideHeads = coin.headsTeam == self.ours
+		local progressCoin = math.clamp((elapsed - S.CoinHoldSeconds) / S.CoinSpinSeconds, 0, 1)
 		local turn = (1 - (1 - progressCoin) ^ 3) * math.pi * 8
 		local landed = progressCoin >= 1
-		local heads = if landed then coin.winnerTeam == coin.headsTeam else math.cos(turn) >= 0
+		local heads = if landed
+			then coin.winnerTeam == coin.headsTeam
+			elseif elapsed < S.CoinHoldSeconds and seated then ourSideHeads
+			else math.cos(turn) >= 0
 		self.coin.Size =
 			UDim2.fromOffset(S.CoinSize * math.max(0.08, math.abs(math.cos(turn))), S.CoinSize)
 		self.coin.Rotation = math.sin(turn / 2) * 12 * (1 - progressCoin)
 		self.coinGlyph.Text = if heads then Copy.CoinHeadGlyph else Copy.CoinTailGlyph
 		self.presentationTitle.Text = if landed
-			then (if heads then Copy.Heads else Copy.Tails)
+			then (if coin.breaker == self.localUserId
+				then Copy.CoinYouBreak
+				else string.format(
+					Copy.CoinBreaks,
+					string.upper(nameFor(snapshot, coin.breaker))
+				))
+			elseif seated then (if ourSideHeads
+				then Copy.CoinYouAre.Heads
+				else Copy.CoinYouAre.Tails)
 			else Copy.CoinTitle
 		self.presentationTitle.TextColor3 = tone("Gold")
-		self.coinOwner.Text = string.format(
-			Copy.CoinTeams,
-			if coin.headsTeam == self.ours then Copy.YourTeam else Copy.OpponentTeam,
-			if coin.headsTeam ~= self.ours then Copy.YourTeam else Copy.OpponentTeam
-		)
-		self.presentationText.Text = if landed
-			then string.format(
-				Copy.CoinWinner,
-				if coin.winnerTeam == self.ours then Copy.YourTeam else Copy.OpponentTeam
-			) .. "\n" .. string.format(Copy.PlayerBreaking, nameFor(snapshot, coin.breaker))
-			else ""
 	else
 		local result = snapshot.result
 		local win = result and result.winner == self.ours

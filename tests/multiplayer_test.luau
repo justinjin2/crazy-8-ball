@@ -5,8 +5,10 @@ local J = H.require("Rules.ShotJudge")
 local P = H.require("Rules.CuePlacement")
 local Ball = H.require("Physics.Ball")
 local S = H.require("Physics.Simulation")
+local CoinSeconds = H.require("Config").Multiplayer.CoinSeconds
 -- A full pad of n a side, joined A1, B1, A2, B2... (teams go by arrival); the host (11)
--- starts at 5 and the coin falls team A's, so the introduction opens at 7.6.
+-- starts one coin flip before 7.6 and the coin falls team A's, so the introduction opens at
+-- 7.6 whatever the flip's length.
 local function full(n)
 	local t = E.new(n, n)
 	for slot = 1, n do
@@ -14,7 +16,15 @@ local function full(n)
 			H.expect(E.join(t, team * 10 + slot, "Player", "Player", 0))
 		end
 	end
-	H.expect(E.action(t, 11, { kind = "Start", epoch = t.epoch, turnId = t.turnId }, 5, 1))
+	H.expect(
+		E.action(
+			t,
+			11,
+			{ kind = "Start", epoch = t.epoch, turnId = t.turnId },
+			7.6 - CoinSeconds,
+			1
+		)
+	)
 	E.advance(t, 7.6)
 	return t
 end

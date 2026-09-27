@@ -2444,7 +2444,10 @@ Config.Multiplayer = {
 	-- (assets/map/Spec.md). Y is the SpawnLocation's centre: it is the art's entrance mat, a
 	-- 0.2 stud slab lying on the floor (MapBuilder).
 	Spawn = { X = 0, Y = 0.1, Z = 76.75, YawDegrees = 0 },
-	CoinSeconds = 2.6, -- shared coin presentation; the host's Start leads straight into it
+	-- The coin flip; the host's Start leads straight into it. It reads YOU ARE HEADS/TAILS
+	-- (Style.CoinHoldSeconds), spins (Style.CoinSpinSeconds), then holds who breaks for the
+	-- rest, over a second (designer, 2026-09-27: quick, a few words at a time). (tune)
+	CoinSeconds = 3,
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
 	PlacementSeconds = 15, -- cue-ball placement window (ball in hand), then ShotSeconds to aim
 	-- The break: moving the cue ball along the line and shooting share this one clock, and
@@ -2668,7 +2671,9 @@ Config.Multiplayer = {
 		ButtonHeight = 44, -- touch target (at least 44)
 		ResultPanelHeight = 170, -- the result card; its icon sits on the top edge
 		ResultIconSize = 90, -- trophy, sad ball or flag
-		CoinPanelHeight = 235, -- the coin flip card
+		CoinPanelHeight = 150, -- the coin flip card: one title line and the coin
+		CoinHoldSeconds = 0.5, -- YOU ARE HEADS/TAILS on the still coin before it flips
+		CoinSpinSeconds = 1.2, -- the flip; who breaks shows for the rest of CoinSeconds
 		CoinSize = 78, -- the coin
 		DialogIconSize = 52, -- the door or flag over the leave question
 		ModalWidth = 340, -- responsive dialog maximum width

@@ -466,7 +466,8 @@ local function acquireTable(s: any?)
 		elseif s.phase == "Foul" and s.foul and s.foul.by == player.UserId then
 			sound("Foul", M.FoulSound)
 		elseif s.phase == "CoinFlip" then
-			sound("CoinFlip", M.CoinSound)
+			-- As the coin starts to spin, after its YOU ARE HEADS/TAILS moment.
+			task.delay(M.Style.CoinHoldSeconds, sound, "CoinFlip", M.CoinSound)
 		end
 	end
 	refreshAim()
