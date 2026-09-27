@@ -12,6 +12,7 @@ are referenced by id from `Config.Audio` and there is nothing to insert into Stu
 | `Roll` tier 1 | 1 | `ball_rolling_1`, for slow rolling |
 | `Roll` tier 2 | 2 | `ball_rolling_2/3`, for fast rolling |
 | `AimTick` | 1 | still a Roblox library click; a UI sound, not a pool sound |
+| `ClockTick` | 1 | APM's "TICK TOCK 06 120BPM" from Roblox's licensed library; only its first tick plays (`Config.Audio.ClockTick.Region`) |
 
 ## How the mix works
 

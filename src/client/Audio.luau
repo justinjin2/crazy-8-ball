@@ -106,6 +106,7 @@ export type Audio = typeof(setmetatable(
 		granted: { [string]: number },
 		roll: Roll?,
 		pull: Pull?,
+		clock: Sound?, -- the shot clock's tick (Audio.clockTick), made on first use
 	},
 	Audio
 ))
@@ -188,6 +189,7 @@ local function preload(folder: Instance)
 		end
 	end
 	add(Config.Audio.Pull.Id)
+	add(Config.Audio.ClockTick.Id)
 
 	-- A moderated, deleted or wrong id is otherwise completely silent, and looks exactly
 	-- like a logic bug.
@@ -233,6 +235,7 @@ function Audio.new(parent: Instance): Audio
 		granted = {},
 		roll = nil,
 		pull = nil,
+		clock = nil,
 	}, Audio)
 
 	return self
@@ -528,6 +531,29 @@ function Audio.tick(self: Audio, at: Vector3)
 	end
 	self.lastTick = now
 	self:playAt("AimTick", at, Config.Audio.Tick, 0)
+end
+
+--- One tick of the shot clock's last seconds (Config.Audio.ClockTick), `secondsLeft` being
+--- the second it marks. Flat, like the pull: parented to the folder, not an attachment.
+function Audio.clockTick(self: Audio, secondsLeft: number)
+	local C = Config.Audio.ClockTick
+	local tick = self.clock
+	if tick == nil then
+		local made = Instance.new("Sound")
+		made.Name = "ClockTick"
+		made.SoundId = C.Id
+		-- Set once, never toggled (toggling PlaybackRegionsEnabled stutters other streams).
+		made.PlaybackRegionsEnabled = true
+		made.PlaybackRegion = NumberRange.new(C.Region[1], C.Region[2])
+		made.Parent = self.folder
+		self.clock = made
+		tick = made
+	end
+	assert(tick, "made above")
+	tick.Volume = C.Volume
+	tick.PlaybackSpeed = if secondsLeft <= C.FinalSeconds then C.FinalPitch else 1
+	tick:Stop() -- rewinds to the region's start
+	tick:Play()
 end
 
 ---------------------------------------------------------------------------------------------

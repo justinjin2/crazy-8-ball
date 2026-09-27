@@ -242,7 +242,8 @@ Every feature is checked against these. If it serves none, it waits.
   spot). The 8 off the table loses the game, except on the break, where it is re-spotted
   (and it is still a foul).
 - **Shot clock** about 20 seconds *(tune)*. Zero = foul with ball in hand. Two timeouts in a
-  row = automatic forfeit *(tune)*.
+  row = automatic forfeit *(tune)*. In its last 5 seconds the shooter hears a clock tick once
+  a second (the last two a little higher), until they shoot (designer, 2026-09-26).
 - **Forfeit** button, costs rating, behind a confirmation that warns "you will lose rating".
   Leaving or disconnecting mid-match is an immediate forfeit: the opponent gets the win and
   reward (subject to the real-match rules in section 13), the table frees, no PC takes over.

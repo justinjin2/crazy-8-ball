@@ -1346,3 +1346,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-26: Balls pocketed on the break play the bonus sound for the breaker's team
   (designer; the break was physical-only). The break still never assigns groups, and the 8 on
   the break (re-spotted) gives none.
+- 2026-09-26: The shot clock's last 5 seconds tick once a second for the shooter, the last two a
+  little higher, stopping when they shoot (designer: pressure to shoot). The sound is licensed
+  (APM's "TICK TOCK 06 120BPM" in Roblox's library, its first tick only): the store's "clock
+  tick" uploads are players' rips of other games, which the GDD's licensed-audio rule forbids.

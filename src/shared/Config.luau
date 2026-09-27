@@ -1822,6 +1822,22 @@ Config.Audio = {
 		-- event rather than the ball's reward. (tune)
 		LateSeconds = 0.25,
 	},
+	-- The shot clock's last seconds (designer, 2026-09-26): one clock tick a second from
+	-- FromSeconds down to 1, for the shooter only, so they know to shoot now. Flat, not placed
+	-- in the world: it is the clock in your head, like the power bar's stretch. The recording
+	-- is APM's "TICK TOCK 06 120BPM" (Roblox's licensed library, courtesy of APM Music), a
+	-- clock ticking once a second; only its first tick plays (Region, measured in Studio: the
+	-- tick starts at 0.07 s and the next strong one at 1.07 s). Volume x the recording's 0.84
+	-- peak sits just over the bonus sting (0.16 x 0.64 x 0.79). (tune)
+	ClockTick = {
+		Id = "rbxassetid://9043366464",
+		Region = { 0.03, 0.45 }, -- seconds of the recording: its first tick, no tock after it
+		FromSeconds = 5,
+		Volume = 0.14,
+		-- The last seconds tick a little higher, so the pressure climbs.
+		FinalSeconds = 2,
+		FinalPitch = 1.1,
+	},
 	-- The aim tick fires on every step of rotation, so it is the most repeated sound in the
 	-- game by far and has to sit under everything: about 21 dB below a typical ball-on-ball
 	-- contact and below even the QUIETEST audible clack, which is the bar it has to clear.

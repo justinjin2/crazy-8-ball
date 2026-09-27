@@ -63,6 +63,10 @@ local hud: any = nil
 local queueMenu: any = nil
 local targets: any = nil
 local awaitingAt: number? = nil
+-- The shot clock's ticks (Config.Audio.ClockTick): the turn they are for and the second the
+-- clock last showed, so each second ticks once.
+local tickTurn: number? = nil
+local tickSecond = 0
 local currentPull = 0
 local controlled = false
 local lastTurnKey = ""
@@ -686,6 +690,18 @@ RunService.RenderStepped:Connect(function(dt)
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end
 	padEffects:update(dt, queueOpen, hub.mySeat ~= nil or controlled)
+	-- The shot clock's last seconds tick once a second for the shooter, until the shot goes.
+	if snapshot and aimTurn() and snapshot.phase == "Aiming" and snapshot.deadline then
+		local second = math.ceil(snapshot.deadline - workspace:GetServerTimeNow())
+		if tickTurn ~= snapshot.turnId then
+			tickTurn, tickSecond = snapshot.turnId, second -- a turn starts: no tick for it yet
+		elseif second ~= tickSecond then
+			tickSecond = second
+			if second >= 1 and second <= Config.Audio.ClockTick.FromSeconds then
+				audioByTable[snapshot.id]:clockTick(second)
+			end
+		end
+	end
 	mapAmbience:update(os.clock())
 	dayCycle:update(os.clock())
 	firePit:update(os.clock(), dayCycle.blend or 0)

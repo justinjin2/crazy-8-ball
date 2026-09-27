@@ -1,6 +1,16 @@
 # Status
 
-**2026-09-26 (latest): the match HUD shrunk to the minimum; the break plays the bonus sound.**
+**2026-09-26 (latest): the shot clock ticks in its last 5 seconds.**
+
+- **Built:** the shooter hears a clock tick at 5, 4, 3, 2 and 1 seconds left while aiming (the
+  last two a little higher), stopping the moment they shoot. Licensed APM clip, first tick only.
+- **Verified:** lint clean, 356 tests pass. In Play: ticks at 4.99, 3.99, 2.99, 1.99 and 1.00 s
+  before the deadline; a shot fired after the first tick stopped the rest. Console clean.
+- **Needs a check by hand:** how it sounds and how loud (`Config.Audio.ClockTick.Volume`).
+
+---
+
+**2026-09-26: the match HUD shrunk to the minimum; the break plays the bonus sound.**
 
 - **Built:** the top bar is the balls plus a sliver (37 px computer, 30 phone; was 64 and 52),
   everything in it fitted to that height (Leave keeps a 44 px touch area); one row of balls
