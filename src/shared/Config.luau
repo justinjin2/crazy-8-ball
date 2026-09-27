@@ -1512,6 +1512,153 @@ Config.Difficulty = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- Saves (src/server/PlayerData.luau over the vendored ProfileStore; the layout and its checks
+-- are src/shared/Progression/SaveSchema.luau)
+---------------------------------------------------------------------------------------------
+Config.Save = {
+	-- One DataStore for real saves and another for Studio, so testing never touches a real
+	-- player's save. A new name starts everyone fresh: change it only on purpose.
+	StoreName = "PlayerData_v1",
+	StudioStoreName = "PlayerData_Studio_v1",
+	KeyPrefix = "Player_", -- key = KeyPrefix .. UserId
+	-- Hard caps a save can never pass (validate clamps to them). Far above any honest total;
+	-- they only stop a bug from writing a nonsense number.
+	MoneyCap = 1e12,
+	RankXpCap = 1e9,
+	StatCap = 1e9, -- every counter in Stats
+	-- How long the join waits for a session (another server may be letting go of it) before
+	-- kicking with Strings.Save.LoadFailed. Over a minute on purpose: a server that crashed
+	-- still holds the lock, and ProfileStore only takes it over after about 45-50 s (its
+	-- SESSION_STEAL); a shorter wait would kick that player on every rejoin for ten minutes.
+	LoadTimeoutSeconds = 60,
+	-- The most one PlayerData.addMoney call may grant. Far above any honest reward; a bigger
+	-- amount is a bug and is refused.
+	GrantCap = 1e9,
+	-- The most balls (or nice shots) one PlayerData.recordShot call may add.
+	ShotCountCap = 100,
+}
+
+---------------------------------------------------------------------------------------------
+-- Ranks (src/shared/Progression/Ranks.luau; GDD section 11). Every player's rank comes from
+-- one number, their total rank XP (the save's RankXp). Placeholders for testing (designer,
+-- 2026-09-27): every division 1,000 XP, a win +250, so four wins a division. (tune)
+---------------------------------------------------------------------------------------------
+Config.Ranks = {
+	-- Bottom to top. Each has divisions I to V (I the bottom) except the last, which has one.
+	Tiers = {
+		"Bronze",
+		"Silver",
+		"Gold",
+		"Platinum",
+		"Diamond",
+		"Expert",
+		"Veteran",
+		"Master",
+		"Grandmaster",
+		"Reyes",
+	},
+	DivisionsPerTier = 5,
+	-- XP to climb through each division, I to V, per tier. Reyes has no top, so no row.
+	-- All 1,000 for now; widen the high ones later without touching code. (tune)
+	DivisionXp = {
+		Bronze = { 1000, 1000, 1000, 1000, 1000 },
+		Silver = { 1000, 1000, 1000, 1000, 1000 },
+		Gold = { 1000, 1000, 1000, 1000, 1000 },
+		Platinum = { 1000, 1000, 1000, 1000, 1000 },
+		Diamond = { 1000, 1000, 1000, 1000, 1000 },
+		Expert = { 1000, 1000, 1000, 1000, 1000 },
+		Veteran = { 1000, 1000, 1000, 1000, 1000 },
+		Master = { 1000, 1000, 1000, 1000, 1000 },
+		Grandmaster = { 1000, 1000, 1000, 1000, 1000 },
+	},
+	-- Rank XP from a finished match against a person (designer, 2026-09-27). (tune)
+	WinXp = 250,
+	-- What a loss does, per tier: Bronze to Gold still gain a little, Platinum and Diamond
+	-- lose nothing, Expert and up lose XP (never below division I of their tier: once you
+	-- reach a tier you keep it).
+	LossXp = {
+		Bronze = 50,
+		Silver = 50,
+		Gold = 50,
+		Platinum = 0,
+		Diamond = 0,
+		Expert = -150,
+		Veteran = -150,
+		Master = -150,
+		Grandmaster = -150,
+		Reyes = -150,
+	},
+	-- Against PC (bots, not built yet): this share of the win XP; losses as against people.
+	PcWinShare = 0.5,
+	-- GDD: PC matches will give full XP only up to the top of Diamond. Not built: nil = no cap.
+	PcCapTier = nil :: string?,
+	-- A match counts only after this much server-tracked time from the break (GDD section
+	-- 13). Under it, a forfeit or an early 8 pays nobody anything. (tune)
+	RealMatchSeconds = 60,
+	-- Money paid the first time you reach each division (PeakDivision passes it; falling and
+	-- climbing again pays nothing). A tier's division I pays TierFirst; II to V pay Step.
+	-- Bronze I is paid by the first ranked match. (placeholders, tune)
+	Rewards = {
+		Step = {
+			Bronze = 100,
+			Silver = 150,
+			Gold = 200,
+			Platinum = 300,
+			Diamond = 400,
+			Expert = 600,
+			Veteran = 800,
+			Master = 1000,
+			Grandmaster = 1500,
+		},
+		TierFirst = {
+			Bronze = 100,
+			Silver = 500,
+			Gold = 750,
+			Platinum = 1000,
+			Diamond = 1500,
+			Expert = 2500,
+			Veteran = 3500,
+			Master = 5000,
+			Grandmaster = 7500,
+			Reyes = 25000,
+		},
+	},
+	-- Each tier's colour, for the roadmap's bands, the tier strip and the rank-up confetti.
+	Colors = {
+		Unranked = { 156, 163, 175 },
+		Bronze = { 205, 127, 70 },
+		Silver = { 170, 182, 200 },
+		Gold = { 255, 196, 40 },
+		Platinum = { 120, 176, 230 },
+		Diamond = { 60, 214, 230 },
+		Expert = { 232, 64, 72 },
+		Veteran = { 64, 196, 96 },
+		Master = { 158, 92, 230 },
+		Grandmaster = { 60, 56, 70 },
+		Reyes = { 255, 92, 184 },
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- Money (src/shared/Progression/Money.luau, paid by src/server/Economy.luau; GDD section 12).
+-- Placeholders (designer, 2026-09-27). (tune)
+---------------------------------------------------------------------------------------------
+Config.Economy = {
+	BallPay = 10, -- every ball that counts for the shooter
+	-- A nice shot pays this on top of its ball (Rules/NiceShot's kinds).
+	NiceShotPay = { Bank = 15, Kick = 15, Combo = 20, Carom = 20 },
+	WinBonus = 50, -- at the end of a real match
+	LossBonus = 15, -- money even when you lose
+	PcShare = 0.5, -- the match bonus against PC
+	-- Solo pays this share of the normal pay (rounded, at least 1) until SoloDailyCap has been
+	-- earned in solo in a UTC day, then SoloAfterCapPay a ball and nothing for nice shots
+	-- (never zero, GDD section 12).
+	SoloShare = 0.3,
+	SoloDailyCap = 300,
+	SoloAfterCapPay = 1,
+}
+
+---------------------------------------------------------------------------------------------
 -- Guideline
 ---------------------------------------------------------------------------------------------
 Config.Guideline = {
@@ -2341,6 +2488,136 @@ Config.UI = {
 	-- docs/UI_STYLE.md; the designer's choices of 2026-09-25: white panels with a thick ink
 	-- outline, a soft shadow and a faint pool-ball pattern; raised candy buttons in traffic
 	-- colours; glossy cartoon icons. Colours are RGB 0-255.
+	-- Rank badges (assets/ui/ranks, tools/gen_rank_badges.py; uploaded 2026-09-27), keyed by
+	-- file name (Progression/Ranks.badgeKey). Each badge has a white shine mask of its shape
+	-- that the light sweep is clipped to. How they shine: assets/ui/ranks/README.md and Shine.
+	Ranks = {
+		Badges = {
+			unranked = "rbxassetid://85817045223700",
+			bronze_1 = "rbxassetid://122609279357864",
+			bronze_2 = "rbxassetid://98513469427482",
+			bronze_3 = "rbxassetid://104525573584920",
+			bronze_4 = "rbxassetid://73437113993546",
+			bronze_5 = "rbxassetid://102497769305294",
+			silver_1 = "rbxassetid://132013427876026",
+			silver_2 = "rbxassetid://136857414187597",
+			silver_3 = "rbxassetid://111963858575413",
+			silver_4 = "rbxassetid://116771976750056",
+			silver_5 = "rbxassetid://72710335902653",
+			gold_1 = "rbxassetid://103406251248446",
+			gold_2 = "rbxassetid://131967342541214",
+			gold_3 = "rbxassetid://94235005188665",
+			gold_4 = "rbxassetid://109610064722447",
+			gold_5 = "rbxassetid://72528139389162",
+			platinum_1 = "rbxassetid://123563259363618",
+			platinum_2 = "rbxassetid://104769679771147",
+			platinum_3 = "rbxassetid://91292511884342",
+			platinum_4 = "rbxassetid://102686741608316",
+			platinum_5 = "rbxassetid://104395401170387",
+			diamond_1 = "rbxassetid://139623464291124",
+			diamond_2 = "rbxassetid://89410647123532",
+			diamond_3 = "rbxassetid://83576518316835",
+			diamond_4 = "rbxassetid://85394843089261",
+			diamond_5 = "rbxassetid://74377813086184",
+			expert_1 = "rbxassetid://85497393392265",
+			expert_2 = "rbxassetid://112301331501085",
+			expert_3 = "rbxassetid://104613561854749",
+			expert_4 = "rbxassetid://75924298250228",
+			expert_5 = "rbxassetid://140536494582504",
+			veteran_1 = "rbxassetid://117150895477573",
+			veteran_2 = "rbxassetid://134806387656444",
+			veteran_3 = "rbxassetid://137875853719727",
+			veteran_4 = "rbxassetid://114326078662040",
+			veteran_5 = "rbxassetid://119003709445636",
+			master_1 = "rbxassetid://84787243033664",
+			master_2 = "rbxassetid://132325068147761",
+			master_3 = "rbxassetid://74764675181498",
+			master_4 = "rbxassetid://91995598623992",
+			master_5 = "rbxassetid://121857813241897",
+			grandmaster_1 = "rbxassetid://136711422067518",
+			grandmaster_2 = "rbxassetid://129767224344295",
+			grandmaster_3 = "rbxassetid://83397655216067",
+			grandmaster_4 = "rbxassetid://73037426483869",
+			grandmaster_5 = "rbxassetid://110373976238540",
+			reyes = "rbxassetid://85525344487370",
+		},
+		Masks = {
+			unranked = "rbxassetid://86894285513434",
+			bronze_1 = "rbxassetid://85181087151560",
+			bronze_2 = "rbxassetid://122505119016095",
+			bronze_3 = "rbxassetid://71651690464224",
+			bronze_4 = "rbxassetid://119849788464461",
+			bronze_5 = "rbxassetid://138788925666526",
+			silver_1 = "rbxassetid://81284985811206",
+			silver_2 = "rbxassetid://125527280070261",
+			silver_3 = "rbxassetid://87984953107289",
+			silver_4 = "rbxassetid://82827246176778",
+			silver_5 = "rbxassetid://115615794826079",
+			gold_1 = "rbxassetid://78254474255452",
+			gold_2 = "rbxassetid://101782420274587",
+			gold_3 = "rbxassetid://133699009224702",
+			gold_4 = "rbxassetid://135482071212309",
+			gold_5 = "rbxassetid://102100476621010",
+			platinum_1 = "rbxassetid://111825725108333",
+			platinum_2 = "rbxassetid://70725683729166",
+			platinum_3 = "rbxassetid://109189858823297",
+			platinum_4 = "rbxassetid://112184192867110",
+			platinum_5 = "rbxassetid://78565686918078",
+			diamond_1 = "rbxassetid://133556283098698",
+			diamond_2 = "rbxassetid://71937062683469",
+			diamond_3 = "rbxassetid://85854510500360",
+			diamond_4 = "rbxassetid://114219595134971",
+			diamond_5 = "rbxassetid://72823718113554",
+			expert_1 = "rbxassetid://90124480372908",
+			expert_2 = "rbxassetid://75819312890543",
+			expert_3 = "rbxassetid://127776737648930",
+			expert_4 = "rbxassetid://78706850549394",
+			expert_5 = "rbxassetid://108129152305679",
+			veteran_1 = "rbxassetid://125284521284134",
+			veteran_2 = "rbxassetid://84569412963335",
+			veteran_3 = "rbxassetid://73538697701693",
+			veteran_4 = "rbxassetid://81191620254119",
+			veteran_5 = "rbxassetid://108324078388123",
+			master_1 = "rbxassetid://88614016352212",
+			master_2 = "rbxassetid://77712090247966",
+			master_3 = "rbxassetid://79152653883234",
+			master_4 = "rbxassetid://75987876862643",
+			master_5 = "rbxassetid://82957146712087",
+			grandmaster_1 = "rbxassetid://93056769729177",
+			grandmaster_2 = "rbxassetid://139737722919137",
+			grandmaster_3 = "rbxassetid://82057808378194",
+			grandmaster_4 = "rbxassetid://99132613759822",
+			grandmaster_5 = "rbxassetid://106079198114272",
+			reyes = "rbxassetid://72059479928036",
+		},
+		Sparkle = "rbxassetid://93784382803534", -- the white twinkle for Expert and up (128 px)
+		-- The shine per tier band (README): a light sweep every Every seconds taking Across
+		-- seconds; Sparkles twinkles one after another over a SparkleCycle; Reyes also turns
+		-- gold rays behind it once every RaysSeconds. Unranked is still.
+		Shine = {
+			Low = { Every = 4, Across = 0.9, Sparkles = 0, SparkleCycle = 0 }, -- Bronze to Diamond
+			High = { Every = 3, Across = 0.8, Sparkles = 3, SparkleCycle = 1.6 }, -- Expert to Grandmaster
+			Top = { Every = 2.2, Across = 0.7, Sparkles = 5, SparkleCycle = 1.4, RaysSeconds = 14 }, -- Reyes
+		},
+		ShineBandTransparency = 0.35, -- the sweep's brightest point (as UIAnim.shine)
+		ShineRotation = 20, -- the sweep's slant, degrees
+		RaysColor = { 255, 201, 40 }, -- Reyes' rays, #FFC928
+		RaysTransparency = 0.55,
+		RaysScale = 1.7, -- the rays are this many times the badge's size
+		-- Where sparkles twinkle, as fractions of the badge (crown tips, wing tips, corners).
+		SparkleSpots = {
+			{ 0.5, 0.1 },
+			{ 0.18, 0.4 },
+			{ 0.82, 0.4 },
+			{ 0.3, 0.2 },
+			{ 0.7, 0.2 },
+		},
+		SparkleShare = 0.22, -- a sparkle's size as a share of the badge
+		HoverScale = 1.08, -- a badge that reacts to the mouse pops up this much
+		HoverShineEvery = 1.2, -- and sweeps this often while hovered
+		PressScales = { 0.9, 1.1, 1 }, -- the squish and bounce when pressed
+		PressSeconds = 0.28, -- the whole squish and bounce
+	},
 	Kit = {
 		Font = "FredokaOne", -- Enum.Font name; Config is loaded by Lune, which has no Enum
 		Colors = {

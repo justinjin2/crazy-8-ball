@@ -178,4 +178,30 @@ return {
 		NiceShot = "NICE SHOT!", -- over the pocket after a bank, combo, kick or carom
 		MoveClock = "MOVE %ds", -- under the big clock: seconds left to move the cue ball
 	},
+	-- Saves (PlayerData): the kick messages when a save cannot be used.
+	Save = {
+		LoadFailed = "Couldn't load your save. Please rejoin.",
+		SessionEnded = "Your save was opened on another server. Please rejoin.",
+	},
+	-- Ranks: names and the rank's words beside the badge (Progression/Ranks, RankHud, the
+	-- roadmap). A rank is shown as "Gold III", "Reyes" or "Unranked".
+	Ranks = {
+		Unranked = "Unranked",
+		Tiers = {
+			Bronze = "Bronze",
+			Silver = "Silver",
+			Gold = "Gold",
+			Platinum = "Platinum",
+			Diamond = "Diamond",
+			Expert = "Expert",
+			Veteran = "Veteran",
+			Master = "Master",
+			Grandmaster = "Grandmaster",
+			Reyes = "Reyes",
+		},
+		Numerals = { "I", "II", "III", "IV", "V" },
+		Division = "%s %s", -- tier, numeral: "Gold III"
+		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
+		XpOnly = "%s XP", -- Reyes has no top: just the XP past its start
+	},
 }
