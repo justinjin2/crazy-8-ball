@@ -157,14 +157,15 @@ local function buildBarrier(t: any, folder: Instance)
 	part.Parent = folder
 end
 
--- Walls around the whole match area, so participants stay near their table without being
--- teleported: they walk into these like any wall. In the PoolFence collision group, which
+-- Walls around the whole match area and a little room beyond it (Placement.matchWalls), so
+-- participants stay near their table without being teleported: they walk into these like any
+-- wall. In the PoolFence collision group, which
 -- only collides with PoolParticipants, so spectators and people heading for a queue pass
 -- straight through. CanQuery off keeps them out of camera occlusion and raycasts.
 local function buildFence(t: any, folder: Instance)
 	local F = M.Fence
 	local height = M.Barrier.HeightStuds
-	local fx, fy, cx, cy = Placement.matchFence(t.engine.teamSize)
+	local fx, fy, cx, cy = Placement.matchWalls(t.engine.teamSize)
 	local w = F.ThicknessStuds
 	-- The fence takes in the queue pad in front of the table, so it is centred off the table.
 	local base = tableFrame(t.placement, cx, cy, height / 2)
@@ -611,7 +612,7 @@ local function constrain(p: Player, t: any)
 	-- that fell through the floor or ended up well outside its fence (spawned there, clipped
 	-- through); the client owns its character, so moving it every poll would rubber-band.
 	local scale = Config.Table.StudsPerInch
-	local fx, fy, fcx, fcy = Placement.matchFence(t.engine.teamSize)
+	local fx, fy, fcx, fcy = Placement.matchWalls(t.engine.teamSize)
 	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
 	x, y = x * scale, y * scale -- studs along the table's axes
 	local escape = M.Fence.EscapeStuds

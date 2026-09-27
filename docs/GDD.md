@@ -182,7 +182,9 @@ Every feature is checked against these. If it serves none, it waits.
   outlines pulse out of it and a big arrow bobs over it while it has room. Joining is instant: the host menu pops up the moment you step on. Stepping on plays a
   sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
   accept step; anyone may step onto a waiting pad with room, and walking off (or Leave) leaves
-  at once. Everyone else can stand around and watch. The sign over a table (mode, host, count,
+  at once. Everyone else can stand around and watch. Players in a match stay by their table:
+  invisible walls, a few studs beyond its area and its pad, let someone waiting for their turn
+  walk about a little but never reach another table (designer, 2026-09-26). The sign over a table (mode, host, count,
   abilities, difficulty) shows only when you walk right up to it.
 - The first person on is the **host**. Everyone on the pad sees the **queue menu**: the host's
   name, how many are on the pad, the **difficulty** (Classic, Difficult, Challenger; Classic

@@ -1350,3 +1350,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   little higher, stopping when they shoot (designer: pressure to shoot). The sound is licensed
   (APM's "TICK TOCK 06 120BPM" in Roblox's library, its first tick only): the store's "clock
   tick" uploads are players' rips of other games, which the GDD's licensed-audio rule forbids.
+- 2026-09-26: A match's invisible walls stand 3 studs beyond its area on every side
+  (`Config.Multiplayer.Fence.RoomStuds`, `Placement.matchWalls`), so a player waiting for their
+  turn has a little room to walk about (designer). The match area itself (layout, pads, signs)
+  is unchanged; neighbours' walls still stand 2 and 4 studs apart, so nobody reaches another
+  table (a Lune test keeps it so).

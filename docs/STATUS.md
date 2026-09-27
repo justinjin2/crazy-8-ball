@@ -1,6 +1,17 @@
 # Status
 
-**2026-09-26 (latest): the shot clock ticks in its last 5 seconds.**
+**2026-09-26 (latest): a little more room to walk about while waiting in a match.**
+
+- **Built:** the invisible walls round a match stand 3 studs beyond its area on every side
+  (`Fence.RoomStuds`); the area, pads and signs are unchanged.
+- **Verified:** lint clean, 357 tests pass (a new one: neighbours' walls never meet, 2 and 4
+  studs apart). An Edit-mode drawing of old and new walls round four tables. Not yet walked
+  in Play: the designer's two-player test was running on the old code, so it was left alone.
+- **Try by hand:** restart the test and walk about while the other player aims.
+
+---
+
+**2026-09-26: the shot clock ticks in its last 5 seconds.**
 
 - **Built:** the shooter hears a clock tick at 5, 4, 3, 2 and 1 seconds left while aiming (the
   last two a little higher), stopping the moment they shoot. Licensed APM clip, first tick only.

@@ -2461,6 +2461,11 @@ Config.Multiplayer = {
 		HalfLengthStuds = 13,
 		HalfWidthStuds = 8.5,
 		ThicknessStuds = 1, -- wall thickness
+		-- The walls stand this far beyond the match area on every side (Placement.matchWalls),
+		-- so a player waiting for their turn can walk about a little without reaching another
+		-- table (designer, 2026-09-26: a bit more room, but stay by your table). The aisles are
+		-- 10 studs across and 8 deep, so two neighbours' walls still stand 4 and 2 apart. (tune)
+		RoomStuds = 3,
 		EscapeStuds = 2, -- a participant this far outside (clipped through) is put back inside
 	},
 	-- The shooter's root on the server (TableService). While they aim, the anchored root

@@ -336,6 +336,51 @@ return {
 		end
 	end,
 
+	-- The walls a match's players walk into stand Fence.RoomStuds beyond its area, and never
+	-- reach a neighbour's: a player waiting for their turn can wander a little, not away.
+	["match walls give a little room and never meet a neighbour's"] = function()
+		local Config, Placement = setup()
+		local rows = Config.Hub.Tables
+		local w = Config.Multiplayer.Fence.ThicknessStuds
+		local room = Config.Multiplayer.Fence.RoomStuds
+		H.expect(room > 0, "some room beyond the match area")
+		local function rect(row: any): (number, number, number, number)
+			local p = Placement.forTable(row.id)
+			local fx, fy, cx, cy = Placement.matchWalls(row.teamSize)
+			local mx, my, mcx, mcy = Placement.matchFence(row.teamSize)
+			H.near(fx, mx + room, 1e-9, "grown along")
+			H.near(fy, my + room, 1e-9, "grown across")
+			H.expect(cx == mcx and cy == mcy, "same centre")
+			local corners = {}
+			for _, c in
+				{
+					{ cx - fx, cy - fy },
+					{ cx + fx, cy - fy },
+					{ cx + fx, cy + fy },
+					{ cx - fx, cy + fy },
+				}
+			do
+				local wx, _, wz = Placement.fromTableStuds(p, c[1], c[2], 0)
+				table.insert(corners, { wx, wz })
+			end
+			return bounds(corners)
+		end
+		for i = 1, #rows do
+			local ax0, az0, ax1, az1 = rect(rows[i])
+			for j = i + 1, #rows do
+				local bx0, bz0, bx1, bz1 = rect(rows[j])
+				local apart = ax1 + w <= bx0 - w
+					or bx1 + w <= ax0 - w
+					or az1 + w <= bz0 - w
+					or bz1 + w <= az0 - w
+				H.expect(
+					apart,
+					("tables %d and %d have walls that meet"):format(rows[i].id, rows[j].id)
+				)
+			end
+		end
+	end,
+
 	-- The queue pad is a rectangle lying along the table's long side (Queue.PadSide), centred
 	-- on it, beyond the walkway the shooter stands in, and the match fence takes in both:
 	-- whoever starts a game standing on the pad is inside it.

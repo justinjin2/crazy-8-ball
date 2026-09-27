@@ -215,6 +215,15 @@ function Placement.matchFence(teamSize: number): (number, number, number, number
 	return (x1 - x0) / 2, (y1 - y0) / 2, (x0 + x1) / 2, (y0 + y1) / 2
 end
 
+--- The invisible walls round a match (TableService): the match area (matchFence) grown by
+--- Fence.RoomStuds on every side, so a player waiting for their turn has a little room to
+--- walk about. Same centre; half extents (hx, hy) and centre (cx, cy) as matchFence's.
+function Placement.matchWalls(teamSize: number): (number, number, number, number)
+	local hx, hy, cx, cy = Placement.matchFence(teamSize)
+	local room = Config.Multiplayer.Fence.RoomStuds
+	return hx + room, hy + room, cx, cy
+end
+
 --- The table whose match area (matchFence) is nearest the world point (x, z), and how far
 --- outside that area the point is, in studs (0 inside it). The client shows only that
 --- table's sign, and only when a player walks right up to it (TableSign). Ties go to the
