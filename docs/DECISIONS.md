@@ -1338,3 +1338,11 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   which left the roof lit only by the lavender shade), sun 3.4 and golden, a warm tan shade,
   half the magenta sky fill, a thin peach haze, saturation +0.15 (0.25 turned the felt neon).
   Tuned from Play captures against the old look.
+- 2026-09-26: The match HUD as small as possible on every device (designer: it blocked the
+  table): the top bar is the balls plus a sliver (37 px computer, 30 phone; was 64 and 52), the
+  portrait, clock, phase icon and Leave shrink into it (Leave keeps a 44 px touch area), one
+  row of balls shrinks its balls to 16 px before two rows are used, and the ball-in-hand hint
+  is a thin line as wide as its words.
+- 2026-09-26: Balls pocketed on the break play the bonus sound for the breaker's team
+  (designer; the break was physical-only). The break still never assigns groups, and the 8 on
+  the break (re-spotted) gives none.

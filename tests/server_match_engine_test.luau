@@ -789,12 +789,15 @@ function tests.assignment_shot_awards_at_acceptance_not_resolution()
 	expect(#m.feedback == 0, "resolution never grants the assignment bonus again")
 	expect(m.groups[1] == "solids" and m.groups[2] == "stripes")
 end
-function tests.legal_break_pocket_neither_assigns_nor_awards()
+function tests.legal_break_pocket_awards_the_breaker_without_assigning()
 	local m = playing(1)
 	expect(m.breakShot)
-	-- The apex drops on the break: a legal break that keeps the table open.
+	-- The apex drops on the break: a legal break that keeps the table open, and the breaker
+	-- still hears the bonus for it (designer, 2026-09-26).
 	local wire = E.acceptShot(m, 11, sidePocketShot(m, 1), m.phaseStartedAt)
-	expect(wire ~= nil and wire.assign == nil and #m.feedback == 0)
+	expect(wire ~= nil and wire.assign == nil)
+	expect(#m.feedback == 1 and m.feedback[1].team == 1 and m.feedback[1].ball == 1)
+	table.clear(m.feedback)
 	local dropped = false
 	for _, ev in m.pending.outcome.events do
 		dropped = dropped or (ev.type == "pocket" and ev.ball == 1)
@@ -829,8 +832,25 @@ function tests.awards_use_post_assignment_groups_for_both_teams()
 	}, 100)
 	expect(#m.feedback == 1 and m.feedback[1].team == 2 and m.feedback[1].ball == 8)
 end
+function tests.break_drops_pay_the_breaker_but_never_the_eight()
+	local m = playing(1)
+	m.activeTeam = 2
+	expect(m.breakShot)
+	E.awards(m, {
+		groups = {},
+		drops = {
+			{ ball = 3, index = 2, t = 1 },
+			{ ball = 12, index = 4, t = 1.5 },
+			{ ball = 8, index = 6, t = 2 },
+		},
+	}, 0)
+	expect(#m.feedback == 2, "both object balls, not the re-spotted eight")
+	expect(m.feedback[1].team == 2 and m.feedback[1].ball == 3)
+	expect(m.feedback[2].team == 2 and m.feedback[2].ball == 12)
+end
 function tests.open_table_fouls_award_nothing()
 	local m = playing(1)
+	m.breakShot = false -- after the break: the table is still open
 	local contact = { t = 1, type = "ballHit", ball = 0, other = 1, speed = 10 }
 	local function drop(id: number, t: number): any
 		return { t = t, type = "pocket", ball = id, other = 1, speed = 10 }

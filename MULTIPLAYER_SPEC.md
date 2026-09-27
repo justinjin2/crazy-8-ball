@@ -88,8 +88,8 @@ Changed 2026-09-26 (designer): every table plays one mode again, with one rectan
   passes on its own. YOUR TURN plays only at the break.
 - HUD: one panel and a 15-ball row in playing order (first group, other group, the 8),
   wrapping to 8 + 7 on narrow screens, with the open-table row until the first group is
-  known; no clock. Once groups exist every group ball the player pockets plays their
-  bonus; the winning 8 as in matches.
+  known; no clock. Every ball the break drops, and once groups exist every group ball the
+  player pockets, plays their bonus; the winning 8 as in matches.
 
 ## Phase/timing order
 
@@ -168,9 +168,11 @@ target without showing a normal scoring solution. No private aim guides for othe
   even on opponent shots/fouls, and plays in the same frame as the pocket drop at the
   ball, climbing the streak ladder. Ownership comes from the server's judgement at shot
   acceptance, so on the assigning shot the first ball and every later group ball get
-  their owners' bonus at the drop. Break and other open-table shots stay physical-only
-  (the break never assigns). Cue scratch/illegal eight has no bonus; winning eight gives
-  winner bonus. No money awarded. Bound overlapping audio.
+  their owners' bonus at the drop. The break never assigns, but every object ball it drops
+  gives the breaker's team the bonus (designer, 2026-09-26; it was physical-only); the 8 on
+  the break is re-spotted and gives none. Other open-table shots stay physical-only. Cue
+  scratch/illegal eight has no bonus; winning eight gives winner bonus. No money awarded.
+  Bound overlapping audio.
 
 ## Surrender, disconnect, death and reset
 

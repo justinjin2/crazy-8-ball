@@ -310,17 +310,21 @@ end
 
 -- Private bonus stings for the accepted shot, one per owned ball that drops. Decided at
 -- acceptance so each can sound the moment its ball drops in the replay. Owners come from the
--- groups AFTER this shot, so the ball that picks the colors earns one too; a table that stays
--- open (break, foul, early eight) has no groups and awards nothing. Only a winning eight pays.
+-- groups AFTER this shot, so the ball that picks the colors earns one too. The break keeps the
+-- table open, so no ball is anyone's yet: every object ball it drops earns the breaker's team
+-- one (designer, 2026-09-26), foul or not, as an owned ball does. Any other shot that leaves
+-- the table open (a foul, an early eight) awards nothing. Only a winning eight pays.
 -- Solo plays both groups, so once the colors exist every group ball is the solo player's.
 function Engine.awards(t: any, j: any, now: number)
 	local solo = if t.solo and j.groups[t.solo.team] then t.solo.team else nil
+	local breaker = if t.breakShot then t.activeTeam else nil
 	for _, drop in j.drops do -- deduped, chronological, never the cue ball
 		local group = Judge.group(drop.ball)
 		local owner = if group and solo
 			then solo
 			elseif group and group == j.groups[1] then 1
 			elseif group and group == j.groups[2] then 2
+			elseif group and breaker then breaker
 			else nil
 		if drop.ball == 8 and j.reason == "LegalEight" then
 			owner = j.winner
