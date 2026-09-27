@@ -496,7 +496,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 11. Full playthrough and every screen checked on phone, tablet, PC and gamepad.
 - [x] 12. Second audit and branch-wide bug review; findings fixed.
 - [x] 13. Polish pass.
-- [ ] 14. Docs updated and `docs/prompts/RANKS_MONEY_REPORT.md` written; branch pushed.
+- [x] 14. Docs updated and `docs/prompts/RANKS_MONEY_REPORT.md` written; branch pushed.
 
 ## Notes
 
@@ -609,4 +609,11 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   number) and raised above tall hats; flying chips bigger (36 px, text 28); NEW RANK! capped at
   1.35x on big screens (its Continue was huge at 1.75x). Left as is: the result screen's cards
   float over the dimmed game rather than sitting in one panel (like reference 05).
+- **Docs (about 07:10).** STATUS (new top entry), ROADMAP (4.3 ticked, notes under 6.1 and
+  6.6), GDD sections 8, 11 and 12 (tonight's decisions moved to Decided, placeholders marked
+  tune; the separate EXP stays Open), ARCHITECTURE (modules and data flow), UI_STYLE section 8,
+  DECISIONS (dated lines, assumptions tagged), STUDIO_NOTES (TextScaled/TextWrapped coupling,
+  BillboardGui pixel sizes), `assets/audio/README.md`, and the morning report
+  `docs/prompts/RANKS_MONEY_REPORT.md`. Branch pushed. Studio left in Edit mode; nothing was
+  built in Edit mode tonight.
 

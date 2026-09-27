@@ -266,7 +266,8 @@ separately from real multi-client playtests.
 2. *Grant.* Nothing a client sends carries an amount. `ShotService` accepts a shot, then
    `Economy.onShot` reads the server's own judgement (before the shot resolves, so the groups
    are still the pre-shot ones), prices it with `Money.shotPay`, and calls
-   `PlayerData.addMoney` once. When a table's engine first shows the Result phase
+   `PlayerData.addMoney` once (the difficulty multiplier stays 1 while
+   `Config.Economy.UseDifficultyMultiplier` is off). When a table's engine first shows the Result phase
    (`TableService.broadcast`, which every state change goes through), `Ranking.check` settles
    it once per table epoch: `Ranks.applyMatch` per connected player (real match or a costly
    forfeit), `applyRank`, rank-up rewards, the match bonus, stats. A player who disconnects

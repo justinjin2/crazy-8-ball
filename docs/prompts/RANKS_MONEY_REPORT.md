@@ -92,7 +92,11 @@ Written 2026-09-27 at the end of the overnight run. Everything is on the branch
   stuck sessions, errors after a change can't cause a double grant), and I added two of its
   rules: a server shutdown voids running matches (nobody gets a forfeit), and nobody takes a
   seat before their save has loaded. A second fresh subagent audited everything that grants
-  money or XP and reviewed the whole branch: see section 5.
+  money or XP and reviewed the whole branch diff. It found no way for a client to name an
+  amount, no double payment and no crash or leak, and fixed two small timing holes (the
+  one-minute clock no longer starts on a rejected shot; a player leaving in the instant a match
+  ends can't dodge the loss). I also switched off the difficulty money multiplier until the
+  difficulty lock exists (a modified client could have claimed 2x). The rest is in section 5.
 - **Not verified here:** a real phone, a real controller, two real players in one match, a
   real two-server save takeover. See section 6.
 
@@ -126,10 +130,36 @@ Each has a dated line in `docs/DECISIONS.md`.
 17. Gamepad: Y selects the rank badge when nothing else wants Y; A opens the roadmap.
 18. The money HUD never shows more than your saved money (previews only bump the icon).
 19. The sounds were picked by name and length; nobody has heard them yet.
+20. Money ignores the table's difficulty (always 1x) until the difficulty lock is built.
 
 ## 5. Known issues and anything BLOCKED
 
-(Filled in after the second audit.)
+**Nothing is BLOCKED.** Every step in the brief was built; the checks that need a phone, a
+controller or two players are in section 6.
+
+Design questions the second audit raised (your call; nothing changed):
+- **Pot money before the one-minute mark.** Money for each pot is paid as it happens, even in
+  a match that is abandoned before a minute. Two friends' accounts could break, surrender and
+  repeat for about $10 to $30 every 20 seconds with no daily cap. Options: hold pot money until
+  the minute mark, or give short matches a daily cap like solo.
+- **Surrender farming after the mark.** A friend who surrenders after a minute gives the winner
+  +250 XP and $50 every time. GDD section 13's repeat-forfeit rule (Roadmap 6.5) is the fix.
+- **Quitting before the break.** From Expert up, leaving or surrendering during the coin flip
+  still costs 150 XP (the GDD says the forfeiter always loses). Say if a match that never
+  started should cost nothing.
+- **A second device mid-match.** If you open the game on another device mid-match, the first
+  server loses your save before you "leave", so that forfeit can't be charged. Fixable later
+  with a "match in progress" note in the save.
+
+Smaller things:
+- Roblox draws a nameplate's fixed-pixel part much smaller than asked in Studio, so plates are
+  sized in studs (they shrink with distance and fade past 45 studs). Worth a look on a phone.
+- In Team Test, Roblox counts as Studio, so every tester there can use the dev commands and the
+  test store.
+- Pressing B to close the roadmap while standing on a queue pad might also step you off the
+  queue (depends on how Roblox reports that B). Check with a controller.
+- The old win/lose card's pieces (its icon and rays) are still built in MatchHUD but never shown;
+  a later clean-up can remove them.
 
 ## 6. What needs you
 
