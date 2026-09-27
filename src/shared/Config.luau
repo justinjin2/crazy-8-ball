@@ -2752,6 +2752,7 @@ Config.Multiplayer = {
 		-- halfway down, at full size. Shorter (a phone) tucks it into the top right corner at
 		-- QueueCornerScale. (tune)
 		QueueWideMinHeight = 500,
+		QueueWideScale = 1.3, -- the card on a big screen (designer, 2026-09-27: bigger on PC; was 1)
 		QueueCornerScale = 0.85,
 		QueueDotSeconds = 0.4, -- "Waiting for opponent...": each dot lights this long after the last
 		QueueFoldSeconds = 0.3, -- the card folding to "Requested!" and back, about this long

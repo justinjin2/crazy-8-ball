@@ -203,7 +203,8 @@ Every feature is checked against these. If it serves none, it waits.
   "Waiting for opponent..." ("Waiting for players..." on 2v2 and 3v3). It keeps out of the
   way (designer, 2026-09-27): in the very top right corner (beside Roblox's top bar), at 85%,
   on a phone-sized screen, shrinking only to end above the jump button; on the right, halfway
-  down, on a big one (PC, console, tablet). The waiting line's three dots light up one by one
+  down and a bit bigger (1.3x), on a big one (PC, console, tablet), kept above a tablet's jump
+  button. The waiting line's three dots light up one by one
   so the wait looks alive. Public tables play
   Classic with no abilities. If the host leaves, the next to arrive becomes host.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in

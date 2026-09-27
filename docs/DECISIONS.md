@@ -1437,3 +1437,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: The green balls (6 and 14) are a deeper green, RGB 12, 92, 52 (was 20, 130, 70),
   so they stand out on the green cloth: CIEDE2000 against the cloth 31.6 (was 17.2), still
   30.6 from the 8 (designer asked; the shade is Claude's pick).
+- 2026-09-27: The host card is 1.3x on big screens (PC, console, tablet; was 1x) (designer),
+  raised to end above a tablet's jump button.

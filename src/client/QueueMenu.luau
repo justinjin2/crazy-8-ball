@@ -319,7 +319,7 @@ end
 
 -- Size the card to its rows and place it (designer, 2026-09-27: keep it out of the way). A
 -- screen at least QueueWideMinHeight tall (PC, console, tablet) has it on the right, halfway
--- down, at full size. A phone-sized one has it in the very top right corner at
+-- down (raised above a tablet's jump button), at QueueWideScale. A phone-sized one has it in the very top right corner at
 -- QueueCornerScale, shrunk to end above the touch jump button when that shows (and only if
 -- it cannot, just left of it).
 function QueueMenu.layout(self: any)
@@ -334,17 +334,26 @@ function QueueMenu.layout(self: any)
 	local function fit(room: number, most: number): number
 		return math.clamp(room / math.max(natural, 1), S.QueueMenuMinScale, most)
 	end
+	local jump = jumpButton()
 	if size.Y >= S.QueueWideMinHeight then
-		self.scale.Scale = fit(size.Y - 2 * margin, 1)
+		-- Halfway down, raised to end above a touch jump button (a tablet), and shrunk only if
+		-- it cannot fit above it at all.
+		local scale = fit(size.Y - 2 * margin, S.QueueWideScale)
+		local centre = size.Y / 2
+		if jump then
+			local jumpTop = jump.AbsolutePosition.Y - screen.AbsolutePosition.Y
+			scale = math.min(scale, fit(jumpTop - 2 * margin, S.QueueWideScale))
+			centre = math.min(centre, jumpTop - margin - natural * scale / 2)
+		end
+		self.scale.Scale = scale
 		self.root.AnchorPoint = Vector2.new(1, 0.5)
-		self.root.Position = UDim2.new(1, -margin, 0.5, 0)
+		self.root.Position = UDim2.new(1, -margin, 0, centre)
 		return
 	end
 	-- The corner: flush right, and up beside Roblox's top bar, whose right side is free.
 	local top = margin - GuiService:GetGuiInset().Y
 	local most = S.QueueCornerScale
 	local right, scale = margin, fit(size.Y - top - margin, most)
-	local jump = jumpButton()
 	if jump then
 		-- Shrink to end above the jump button; only if it cannot, step left of it instead.
 		local jumpTop = jump.AbsolutePosition.Y - screen.AbsolutePosition.Y

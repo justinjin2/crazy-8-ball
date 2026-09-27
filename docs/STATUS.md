@@ -1,6 +1,16 @@
 # Status
 
-**2026-09-27 (latest): the green balls are deeper green.**
+**2026-09-27 (latest): a bigger host card on big screens.**
+
+- **Built:** `Style.QueueWideScale` 1.3 (was 1) for screens at least 500 px tall; there the
+  card is also raised to end above a touch jump button (a tablet).
+- **Verified:** lint clean, 366 tests pass; Studio tablet emulator (1023 x 768): the card at
+  338 x 325 px on the right, ending at 488 px above the jump button at 500. Console clean.
+- **Needs a check by hand:** a PC window.
+
+---
+
+**2026-09-27: the green balls are deeper green.**
 
 - **Built:** balls 6 and 14 in RGB 12, 92, 52 (was 20, 130, 70): `Config.Balls.Colors[6]`
   (the HUD balls too) and `tools/gen_ball_textures.py`; tex_6 and tex_14 regenerated and
