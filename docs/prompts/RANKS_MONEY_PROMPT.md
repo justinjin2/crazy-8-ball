@@ -493,7 +493,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 8. NEW RANK! popup (division, new tier, rank down).
 - [x] 9. Rank roadmap screen.
 - [x] 10. Sounds found, checked and wired.
-- [ ] 11. Full playthrough and every screen checked on phone, tablet, PC and gamepad.
+- [x] 11. Full playthrough and every screen checked on phone, tablet, PC and gamepad.
 - [ ] 12. Second audit and branch-wide bug review; findings fixed.
 - [ ] 13. Polish pass.
 - [ ] 14. Docs updated and `docs/prompts/RANKS_MONEY_REPORT.md` written; branch pushed.
@@ -584,4 +584,13 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   selection without a real controller (GamepadEnabled false), so A to open, the roadmap's
   D-pad and B, and the popups' A are for a hand check. The thumbstick-vs-money-HUD check needs
   the phone emulator or a phone: the HUD takes no input (Active false, no buttons).
+- **Playthrough (about 06:15).** Solo through the fixture: a combo paid $9 ($3 + $6, the solo
+  rate), the daily solo counter 9, no XP, not counted as a match; ending it showed the solo
+  screen (one card, "Solo games give no XP", $3 + $6 = $9). 1v1 by fixture: flying cash, the
+  portrait badge, a surrender's result screen. Every command, a tier rank-up (Gold V ->
+  Platinum I), a demotion above Diamond and its floor, forfeits before and after the mark (see
+  the server notes). A 2v2 result layout (tablet-ish, both winners crowned). Console clean of
+  our code. Not possible here: a second real client (Studio's multi-client test needs clicks
+  in its Test tab), a real controller, the phone emulator (not scriptable): listed for the
+  designer.
 
