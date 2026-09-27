@@ -14,6 +14,21 @@ file; Codex reads AGENTS.md, which is the same file).
 Read `docs/STUDIO_NOTES.md` when Studio, Rojo, MCP, Lune or Blender misbehave. Read
 `assets/*/Readme.md` only when importing that package. `docs/DECISIONS.md` is the dated log.
 
+## Past decisions are not set in stone
+
+The GDD, the roadmap, `docs/DECISIONS.md`, `docs/UI_STYLE.md` and the briefs in `docs/prompts/`
+record the direction as it was decided at the time. They guide the work; they do not lock it.
+Any past decision can be changed, reworked or dropped when the designer wants, or when
+playtesting shows it does not work.
+
+- A newer request from the designer beats an older decision. Follow it, update the docs that
+  state the old decision, and add a dated line to `docs/DECISIONS.md`; do not push back only
+  because something "was already decided".
+- If a past decision looks wrong for the game now, say so and suggest the change instead of
+  quietly building around it.
+- "Decided" in the GDD means "build to this for now", not "forever". The same goes for the
+  rules in this file: tools follow them strictly, but the designer can change them.
+
 ## Non-negotiable rules
 
 - **Scripts are files.** Edit only under `src/`. Never create or edit scripts through the

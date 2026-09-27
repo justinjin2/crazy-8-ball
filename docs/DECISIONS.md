@@ -1,7 +1,9 @@
 # Decisions
 
 Dated one-liners with the reason. This is the only place that records when something was
-decided; the GDD and roadmap state the result without dates. Newest at the bottom.
+decided; the GDD and roadmap state the result without dates. Newest at the bottom. Each line
+is the call as it was made then, not a permanent rule: a later line can change or reverse it
+(see "Past decisions are not set in stone" in `CLAUDE.md`).
 
 - 2026-09-18: Custom physics instead of Roblox physics. Precision, determinism, and abilities
   need hooks inside the simulation.

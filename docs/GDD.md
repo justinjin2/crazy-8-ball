@@ -7,9 +7,9 @@
 
 
 Working name: **Crazy 8 Ball** (final name check is a release task). Rewritten 2026-09-20 from the
-designer's full idea dump plus the earlier GDD. Every section has **Decided** (build to this) and
-**Open** (not yet decided; do not guess, ask). Numbers marked *(tune)* live in `src/shared/Config.luau`
-and are playtest values, not design decisions. Ideas that are not scheduled live in section 18.
+designer's full idea dump plus the earlier GDD. Every section has **Decided** (build to this for
+now; the designer can change any of it) and **Open** (not yet decided; do not guess, ask). Numbers
+marked *(tune)* live in `src/shared/Config.luau` and are playtest values, not design decisions. Ideas that are not scheduled live in section 18.
 
 ## 1. The pitch
 
