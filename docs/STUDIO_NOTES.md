@@ -234,6 +234,14 @@ reach near the camera. The rooftop's mid city chunks (1,200-stud cells) that tou
 draw; the outer ring does not. (A zoom cap was tried and dropped; the sky's painted ground, grey
 streets and pale blocks, now covers what the low levels leave undrawn.)
 
+## Importing during Play, and particles at low graphics (2026-09-26)
+
+- A 3D import made while Studio is in Play lands in the play session and is lost when Play
+  stops. Stop first, then import (and only then run the prepare functions in Edit).
+- Roblox shows fewer particles at low graphics levels and on phones: an effect built from many
+  short-lived particles thins out to almost nothing. Few long-lived particles hold up better.
+  (The fire pit ended up on Roblox's own Fire, the designer's choice.)
+
 ## The 3D Importer and scripts right after an import (2026-09-26)
 
 The importer can still be adding the model when the user says "imported". A setup script run

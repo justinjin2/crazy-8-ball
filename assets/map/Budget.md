@@ -16,8 +16,8 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 11,525 | 11,599 (with the boats) | 4 |
 | Mid backdrop: skyline and islands | 110,000 | 53,537 | 53,537 | 5, 6 |
 | Far horizon: painted into the day skybox, no geometry | 2,000 | 0 | 0 | 6 |
-| **Everything we ship** | **512,000** | | | |
-| Headroom for avatars | 488,000 or more | | | |
+| **Everything we ship** | **512,000** | **259,919** | **259,993** | 8 |
+| Headroom for avatars | 488,000 or more | about 720,000 (the balls, cues and effects come out of it too) | | |
 
 ## Per-instance caps
 
@@ -50,6 +50,14 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
 | MeshParts, backdrop | about 30 | 25 (the near world: 8 meshes and 3 boats; the mid backdrop: 14 chunks) |
 | PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 9 (the two tall lanterns, the fire pit, the six pergola globes); the tables add their own 16 lamps (Config.Look.TableLight, lit at sunset) and 16 queue-pad lights |
+
+## Stage 8: the final count (2026-09-26)
+
+Everything the map ships: 259,993 triangles in Studio (Blender 259,919; the near world's two
+extra boats are placed in Studio), about half of the brief's 512,000, before the balls, cues
+and effects (20,000 at most). The far horizon, the sunset and dusk skies, the lit windows, the
+table lamps and the fire pit's Fire add no triangles. 14 of 20 images, three skyboxes, 196
+MeshParts (171 rooftop and props, 25 backdrop), 9 map lights plus the tables' own lamps.
 
 ## Stage 2: the architecture (2026-09-26)
 

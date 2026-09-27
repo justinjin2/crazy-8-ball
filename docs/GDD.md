@@ -284,10 +284,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 10. The hub and the world
 
 **Decided**
-- **For now, a plain baseplate**: sixteen tables in a grid of four by four (ten 1v1 at the
-  front, four 2v2, two 3v3 at the back; section 6), the left two columns in the regular
-  lobby's wood looks and the right two in the pro lobby's black looks (section 16), so every
-  combination can be tried; the spawn in front of them (designer, 2026-09-26).
+- **The hub is the rooftop pool club below** (built 2026-09-26; it replaced the plain
+  baseplate): sixteen tables in a grid of four by four (ten 1v1 at the front, four 2v2 and two
+  3v3 at the back; section 6), the spawn in front of them.
 - Chairs and sofas are sittable. No alcohol anywhere. (The snack counter is parked, section
   18.)
 - **Pro lobby:** a separate Roblox place, reached by a teleport door, for Diamond I *(tune)*
@@ -325,11 +324,19 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     art's layout.
   - Calm and clean for kids: bright saturated colours, wide walkways, props in a regular
     rhythm. Everything we ship stays under about 512k triangles, so the whole game stays
-    under 1 million with players in it.
+    under 1 million with players in it (the map came to about 260k).
+  - The city, the mountains and the sea are background: kept soft (haze, depth of field) so
+    the eye goes to the tables. Round the tower a normal city of small blocks and streets;
+    the buildings light tan, grey and glass with windows, lit warm yellow at sunset.
+  - At sunset a lamp over every table keeps the games easy to see, and the fire pit burns
+    (Roblox's own fire; out by day).
+  - Players walk 30% faster on the roof than Roblox's default; the camera zoom is Roblox's own.
+  - The sea moves (gentle waves) and sailboats drift on it.
+
+  - The rooftop's exact dimensions, prop counts and palette are in `assets/map/Spec.md`,
+    confirmed at the brief's four checkpoints (the last, Checkpoint D, 2026-09-26).
 
 **Open**
-- The rooftop's exact dimensions, prop counts and palette: measured in the brief's Stage 0
-  (`assets/map/Spec.md`), confirmed at its checkpoints.
 
 ## 11. Progression and ranks
 

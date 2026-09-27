@@ -477,4 +477,13 @@ One line per stage: date, stage, result, commit.
   - Play: 24 of 24 paths, 7 of 7 edge pushes, a clean console.
   - Critic: palette 4, 4, 5; calm 6, 6, 7. The notes carried forward are in Spec section 9.
   - Waiting: the designer's OK at Checkpoint D.
-
+- 2026-09-26: Checkpoint D approved, after the designer's changes in Play: a normal city round
+  the tower with streets, lighter buildings with windows, no bare grey ground (edge lots, the
+  sky's painted ground as city), a promenade and beach along the city's shore, lit windows and
+  pink-lavender buildings at sunset, a lamp over every table at sunset, the fire pit's Roblox
+  Fire at sunset only, 30% faster walking, a moving sea, /day and /sunset developer commands
+  (DECISIONS).
+- 2026-09-26: Stage 8 done: the final budget (about 260k triangles of the 512k cap), the
+  Readme, STATUS, DECISIONS, GDD section 10, STUDIO_NOTES, ROADMAP 4.1 (the map part ticked;
+  zone signs and the pro-lobby door still to do).
+  - Waiting: the designer's save to `place/8ball.rbxl` and publish.

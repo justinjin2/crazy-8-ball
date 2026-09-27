@@ -78,7 +78,8 @@ changes; re-importing only the one that changed is fine.
      (`Workspace.Map.Near.Boats`; each player's game drifts them, `MapAmbience`), and refills
      the water. **The lighting:** `MapLighting.preview` gives Lighting one of each effect
      and lights the place as Day (0), Sunset (1) or a blend; in Play each player's
-     `DayCycle` runs the cycle.
+     `DayCycle` runs the cycle. The tables' lamps (TableBuilder) and the fire pit's fire
+     (`FirePit`, on each client) are built when the game runs: nothing to import for them.
    - Each removes the gray-box parts it replaces. Any `PROBLEM:` line says what to fix. Both
      are safe to run twice.
 5. Save the place and publish (once per milestone).

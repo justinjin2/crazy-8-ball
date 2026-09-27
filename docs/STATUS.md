@@ -1,5 +1,31 @@
 # Status
 
+**2026-09-26 (latest): the rooftop map is finished (all 8 stages; Checkpoint D approved).**
+
+- **Built:** the open-air rooftop pool club from the concept art. The city on the left, the
+  coast and green islands on the right, and a day and sunset cycle that is the same for everyone.
+  - **At sunset:** lamps over the tables, the fire pit's fire and lit city windows.
+  - **Faster walking:** 30% over Roblox's default.
+  - **Moving sea:** gentle waves with sailboats drifting on it.
+  - **Designer's commands:** `/day` and `/sunset`, which fade the whole server there.
+  - About 260,000 triangles of the 512,000 budget (`assets/map/Budget.md`).
+- **Verified:**
+  - 355 Lune tests pass and lint is clean.
+  - Blender and Studio agree on every count.
+  - In Play: 24 of 24 walking paths, 7 of 7 edge pushes, and a clean console. Day, fade and
+    sunset were captured, and the lowest graphics level too.
+- **Needs a real device (Studio cannot fully fake these):**
+  - **A phone:** the table lamps, lit windows, bloom and haze at sunset; the fire at low
+    graphics; the far view at the lowest graphics level; walking speed with the thumbstick.
+  - **A gamepad or console:** walking and the camera round the roof; `/day` and `/sunset` are
+    chat commands, for the designer only, so no controller path is needed.
+  - **A PC:** the depth-of-field blur on the background (PC-class graphics only) and the full
+    sunset at high graphics.
+- **Waiting:** the designer's save to `place/8ball.rbxl` and publish (once, now).
+- **Next:** ROADMAP 4.1's remaining parts (zone signs, the pro-lobby door), or the next phase.
+
+---
+
 **2026-09-26 (latest): the rooftop city fixed after the designer's look in Play: no warped
 towers, no empty grey ground, a soft far edge.**
 

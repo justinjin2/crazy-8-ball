@@ -1306,3 +1306,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-26 (later): The fire pit uses Roblox's own Fire after all (designer: the custom effect
   above did not suit). Still only at sunset, the static flame mesh still hidden, with the warm
   flickering light; the custom flipbook, its images and gen_fire.py are removed.
+- 2026-09-26: Rooftop map, Checkpoint D (the sunset and the day/sunset cycle) approved by the
+  designer after the changes above; Stage 8 finishes the map.

@@ -206,6 +206,10 @@ no automatic start against PC (designer).*
   Open). Import it, place the tables in it, lighting, sittable seats, snack counter with drink
   and snack tools and animations, zone signs, pro-lobby door placeholder. Until then the tables
   stand on the baseplate.
+  - [x] The rooftop pool club: the map, the tables in it, the day and sunset lighting, sittable
+    seats (2026-09-26; `docs/prompts/ROOFTOP_MAP_PROMPT.md`, all four checkpoints approved).
+  - [ ] Still to do: zone signs, the pro-lobby door placeholder. The snack counter is parked
+    (GDD section 18).
 - [ ] **4.2 UI pass.** Clean consistent HUD, popups, host popup, victory and post-match screens;
   thumb-friendly and gamepad-navigable; one strings module.
 - [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
