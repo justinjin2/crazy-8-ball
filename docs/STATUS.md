@@ -1,6 +1,22 @@
 # Status
 
-**2026-09-26 (latest): brighter, more saturated lighting; the sunset is a golden hour.**
+**2026-09-26 (latest): the match HUD shrunk to the minimum; the break plays the bonus sound.**
+
+- **Built:** the top bar is the balls plus a sliver (37 px computer, 30 phone; was 64 and 52),
+  everything in it fitted to that height (Leave keeps a 44 px touch area); one row of balls
+  shrinks to 16 px before two rows; the ball-in-hand hint is a thin line as wide as its words.
+  Separately, balls pocketed on the break now give the breaker the bonus sound.
+- **Verified:** lint clean, 356 Lune tests pass. Studio's phone emulator (750 wide): slim status
+  card, two ball rows (one row cannot fit there even at 16 px). A break that pocketed the 2
+  granted the breaker the bonus and its sound played at the drop. Console clean.
+- **Needs a check by hand:** the PC layout (Studio was on the phone emulator), a wider phone
+  (it should get one row), and a controller.
+- **Next (designer to confirm):** the aiming camera keeping the table's far end clear of the
+  top bar.
+
+---
+
+**2026-09-26: brighter, more saturated lighting; the sunset is a golden hour.**
 
 - **Built (Config.Lighting only):** by day a stronger sun, a lighter and cleaner shade, half the
   haze, and +20% saturation, +12% contrast. At sunset the sun sits 12 degrees up instead of 4,
