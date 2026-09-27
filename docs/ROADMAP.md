@@ -28,7 +28,8 @@ The designer's order, one stage at a time:
    meets the bot of their rank.
 4. **Cues, economy and trading.** Cue models and textures, money, the shop, inventory, the
    index, loot boxes and trading.
-5. **First-time flow and release.** The first match, the performance pass, the game page.
+5. **The first-time tutorial and funnel, then release.** Once everything else is done: the
+   onboarding first match and the analytics funnel, then the performance pass and the game page.
 
 **Not in the release:** abilities, the pro lobby and the global queue. The pro lobby and the
 global queue follow about one to two weeks after release (nobody can reach the pro lobby's rank
@@ -270,7 +271,7 @@ to after release (Later, at the bottom).*
 
 ---
 
-## Stage 5: First-time flow and release
+## Stage 5: The first-time tutorial, the funnel and release
 
 - [ ] **4.1 The hub map.** The rooftop pool club (GDD section 10): the map, the tables in it,
   lighting, sittable seats and zone signs.
@@ -279,11 +280,11 @@ to after release (Later, at the bottom).*
   - [ ] Still to do: zone signs. The snack counter is parked (GDD section 18). The pro-lobby
     door comes with the pro lobby after release (6.3); whether a locked door stands on the
     roof at release is Open (GDD section 10).
-- [ ] **8.1 First-time playthrough.** Hidden popup, disguised PC that walks in and blunders,
-  ghost break guide, first-win cue box, Unranked to Bronze.
+- [ ] **8.1 First-time playthrough (the tutorial).** Hidden popup, disguised PC that walks in
+  and blunders, ghost break guide, first-win cue box, Unranked to Bronze (GDD section 14).
+- [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
 - [ ] **4.4 Performance pass.** Low-end phone with sixteen busy tables: streaming, LOD, shadow
   and light budget, no stutter.
-- [ ] **8.2 Analytics funnel** with Roblox's built-in analytics.
 - [ ] **8.3 Name, icon, thumbnails, game page.** Final name check.
 - [ ] **8.4 Public release.** Watch where players quit. Everything above must exist.
 

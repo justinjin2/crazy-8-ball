@@ -1320,3 +1320,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   - Trading moves into the release (it was after it). EXP and an index are new (details Open).
   - Save data (4.3) moves ahead of ranks, because ranks, EXP and money must persist; the UI pass
     (4.2) moves into the pool-game stage.
+- 2026-09-26: The first-time tutorial (8.1, the onboarding first match) and the analytics funnel
+  (8.2) are built together once everything else is done, just before the performance pass and
+  the game page (designer).
