@@ -2613,9 +2613,9 @@ Config.Multiplayer = {
 		CenterClockTextSize = 26, -- big (designer: centred and bigger)
 		ShortCenterClockWidth = 76, -- the same on a phone
 		ShortCenterClockTextSize = 21,
-		-- With ball in hand the big clock shows the time to shoot (moving time and the shot
-		-- clock together) and this blue pill under it shows the time left to move the cue
-		-- ball, so the 15 s to move never reads as 15 s to shoot (designer, 2026-09-27). (tune)
+		-- With ball in hand this blue pill under the big clock counts the time left to move the
+		-- cue ball, and the big clock holds at the full shot clock until it ends, so the 15 s
+		-- to move never reads as 15 s to shoot (designer, 2026-09-27). (tune)
 		MoveClockWidth = 108, -- the move pill, centred under the big clock
 		MoveClockHeight = 26,
 		MoveClockTextSize = 18,

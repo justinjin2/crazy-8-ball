@@ -349,7 +349,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.clockIcon = HudParts.icon(self.clockPill, "Stopwatch")
 	self.clock = text(self.clockPill, "Timer", S.CenterClockTextSize, "")
 	-- With ball in hand: the time left to move the cue ball, in blue like its MOVE ring,
-	-- under the big clock (which then counts the whole time to shoot).
+	-- under the big clock (which holds at the full shot clock until it runs out).
 	self.movePill = HudParts.pill(self.topBar, "MoveClock", tone("Blue"))
 	self.movePill.Visible = false
 	self.moveIcon = HudParts.icon(self.movePill, "Hand")
@@ -1083,11 +1083,10 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "Result"
 		and phase ~= "CoinFlip"
 		and phase ~= "Foul"
-	-- With ball in hand the shot clock starts when moving time ends (MatchEngine), so the big
-	-- clock counts both: the time to shoot. The move pill counts the moving time.
+	-- With ball in hand the shot clock starts when moving time ends (MatchEngine): the move pill
+	-- counts the moving time and the big clock holds at the full shot clock until it runs out
+	-- (designer, 2026-09-27), so the time to move never reads as the time to shoot.
 	local placing = isClock and phase == "Placement"
-	local shotDeadline = if placing then deadline + M.ShotSeconds else deadline
-	local shotLeft = if shotDeadline then math.max(0, shotDeadline - now) else 0
 	self.movePill.Visible = placing
 	self.popupTop = if placing then self.moveBottom else self.headerBottom
 	if placing then
@@ -1095,35 +1094,22 @@ function MatchHUD.update(self: any, now: number)
 	end
 	local danger = isClock and remaining <= 5 and phase == "Aiming"
 	self.clockPill.Visible = isClock
-	self.clock.Text = if isClock
-		then (if danger then string.format("%.1f", remaining) else tostring(math.ceil(shotLeft)))
-		else ""
+	self.clock.Text = if not isClock
+		then ""
+		elseif placing then tostring(M.ShotSeconds)
+		elseif danger then string.format("%.1f", remaining)
+		else tostring(math.ceil(remaining))
 	self.clock.TextColor3 = if danger then tone("Red") else tone("White")
 	-- Under five seconds the clock throbs.
 	self.clockScale.Scale = if danger then 1 + 0.08 * math.abs(math.sin(now * math.pi * 2)) else 1
 	self.leave.Visible = phase ~= "Result"
-	-- The ring drains with the big clock on every timed part of a turn (calling the pocket,
-	-- moving the cue ball, aiming); it stays full through the turn's introduction. Moving and
-	-- aiming are one span, remembered for the turn, so the ring does not refill between them.
-	local key = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
-	if placing then
-		self.clockSpan = { key = key, start = snapshot.phaseStartedAt, finish = shotDeadline }
-	end
-	local span = self.clockSpan
-	local start, finish = snapshot.phaseStartedAt, shotDeadline
-	if
-		span
-		and span.key == key
-		and phase == "Aiming"
-		and deadline ~= nil
-		and math.abs(span.finish - deadline) < 1
-	then
-		start, finish = span.start, span.finish
-	end
+	-- The ring drains with the big clock (calling the pocket, aiming), each over its own clock;
+	-- it stays full through the turn's introduction and while the cue ball is being moved.
 	local progress = if isClock
 			and phase ~= "Intro"
-			and finish > start
-		then (finish - now) / (finish - start)
+			and not placing
+			and deadline > snapshot.phaseStartedAt
+		then remaining / (deadline - snapshot.phaseStartedAt)
 		else 1
 	for _, team in self.teams do
 		for _, portrait in team.portraits do

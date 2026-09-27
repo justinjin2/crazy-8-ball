@@ -2,13 +2,13 @@
 
 **2026-09-27 (latest): ball in hand shows the time to move apart from the time to shoot.**
 
-- **Built:** while the cue ball can be moved, the big clock counts the whole time to shoot (35 s:
-  15 to move, then the 20 s shot clock) and a blue "MOVE 12s" pill with the hand sits under it.
-  When moving time ends the pill goes and the big clock and portrait ring carry on without a
-  jump. The turn and foul popups drop below the pill while it shows.
-- **Verified:** lint clean, 357 tests pass. Studio phone emulator, QA fixture: 35 and MOVE 15s at
-  the start, 21 then 20 then 19 as moving ended, the ring kept draining, YOUR TURN under the
-  pill. Console clean.
+- **Built:** while the cue ball can be moved, a blue "MOVE 12s" pill with the hand sits under the
+  big clock and counts the moving time; the big clock holds at 20 (the shot clock) and the
+  portrait ring stays full until the pill reaches 0, then both run. The turn and foul popups
+  drop below the pill while it shows.
+- **Verified:** lint clean, 357 tests pass. Studio phone emulator, QA fixture: 20 held and ring
+  full while MOVE counted 8 to 1, then the pill went and the clock ran 20, 19 with the ring
+  draining; YOUR TURN sat under the pill (checked before the hold change). Console clean.
 - **Needs a check by hand:** a PC window; a real foul in a match (the fixture skips the foul).
 
 ---

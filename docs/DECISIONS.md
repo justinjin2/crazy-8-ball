@@ -1385,3 +1385,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: With ball in hand the big clock shows the time to shoot (15 s to move plus the
   20 s shot clock, one countdown) and a blue "MOVE 12s" pill under it shows the moving time,
   so the 15 s to move no longer reads as 15 s to shoot (designer).
+- 2026-09-27: Changed: with ball in hand the big clock holds at the 20 s shot clock (not 35 s
+  counting down) and starts only when the MOVE pill reaches 0 (designer).
