@@ -1,6 +1,20 @@
 # Status
 
-**2026-09-27 (latest): a popup tells each player their group.**
+**2026-09-27 (latest): the shot clock ring hugs the shooter's portrait and drains.**
+
+- **Built:** the clock round the shooter's portrait is now a rounded ring on the portrait's own
+  outline (it was four square bars sized from the scaled bar, so on a phone it sat off the
+  icon). It starts full and empties back round to twelve o'clock through placing the cue ball, calling the
+  pocket and aiming (it only drained while aiming, and a static green border under it hid the
+  drain); red in the last five seconds of aiming. The border stays ink under the ring.
+- **Verified:** lint clean, 357 tests pass. Studio phone emulator, QA fixture: the ring's
+  halves sit exactly on the portrait at the bar's scale, drain during ball in hand and aiming,
+  red arc with 3 s left, zoomed captures show it round and on the edge. Console clean.
+- **Needs a check by hand:** a PC window (same code, the bar just scales differently).
+
+---
+
+**2026-09-27: a popup tells each player their group.**
 
 - **Built:** when the groups are decided, the turn popup shows "YOU ARE SOLIDS" or "YOU ARE
   STRIPES" in gold with a solid or striped ball, for 2.5 s, as the deciding ball drops.

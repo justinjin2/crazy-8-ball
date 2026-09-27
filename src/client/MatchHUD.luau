@@ -136,14 +136,32 @@ local function makePortrait(parent: Instance): any
 	dotEdge.Color = tone("Ink")
 	dotEdge.Thickness = 2.5
 	dotEdge.Parent = active
-	-- The shot clock runs round the portrait of whoever is shooting, draining as it runs.
-	local perimeter = {}
-	for i = 1, 4 do
-		local edge = frame(imageFrame, "ClockEdge" .. i)
-		edge.BackgroundTransparency = 0
-		edge.BackgroundColor3 = tone("Green")
-		edge.ZIndex = 3
-		table.insert(perimeter, edge)
+	-- The shot clock runs round the portrait of whoever is shooting, draining as it runs: a
+	-- rounded ring on the portrait's own outline, drawn in two clipped halves (left, right). In
+	-- each half a hard-edged gradient on the ring's stroke turns about the centre, so the
+	-- visible part is a wedge from twelve o'clock; drawPerimeter turns it, layout sizes it.
+	local halves = {}
+	for _, side in { "Left", "Right" } do
+		local half = frame(imageFrame, "Clock" .. side)
+		half.ClipsDescendants = true
+		half.ZIndex = 3
+		local ring = frame(half, "Ring")
+		ring.ZIndex = 3
+		corner(ring, S.PortraitCornerPx)
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = tone("Green")
+		stroke.Thickness = S.ActiveEdgePx
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		stroke.Parent = ring
+		local sweep = Instance.new("UIGradient")
+		sweep.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(0.5, 0),
+			NumberSequenceKeypoint.new(0.501, 1),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		sweep.Parent = stroke
+		table.insert(halves, { half = half, ring = ring, stroke = stroke, sweep = sweep })
 	end
 	return {
 		root = root,
@@ -153,7 +171,7 @@ local function makePortrait(parent: Instance): any
 		gone = gone,
 		active = active,
 		border = border,
-		edges = perimeter,
+		halves = halves,
 		userId = nil,
 		occupied = false,
 	}
@@ -522,6 +540,17 @@ function MatchHUD.layout(self: any)
 			portrait.root.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.imageFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.root.Visible = n <= count and portrait.occupied
+			-- The clock ring's halves, with room outside the portrait for the stroke. In the
+			-- bar's own pixels: the bar's UIScale shrinks them with everything else.
+			local ringRoom = S.ActiveEdgePx + 1
+			local halfWidth = portraitSize / 2
+			for side, h in portrait.halves do
+				local left = if side == 1 then -ringRoom else halfWidth
+				h.half.Position = UDim2.fromOffset(left, -ringRoom)
+				h.half.Size = UDim2.fromOffset(halfWidth + ringRoom, portraitSize + ringRoom * 2)
+				h.ring.Position = UDim2.fromOffset(-left, ringRoom)
+				h.ring.Size = UDim2.fromOffset(portraitSize, portraitSize)
+			end
 		end
 		local ballLeft = if i == 1 then portraitsWidth + gap * 2 else gap
 		local ballTop = (height - ballSize) / 2
@@ -906,10 +935,10 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			portrait.active.Visible = seat ~= nil
 				and seat.userId == snapshot.shooter
 				and snapshot.phase ~= "Result"
-			portrait.border.Color = if portrait.active.Visible then tone("Green") else tone("Ink")
-			portrait.border.Thickness = if portrait.active.Visible
-				then S.ActiveEdgePx
-				else K.PanelStrokePx
+			-- The border stays ink: the shooter's green is the clock ring over it, so as the
+			-- ring drains the ink shows through (a green border under it hid the draining).
+			portrait.border.Color = tone("Ink")
+			portrait.border.Thickness = K.PanelStrokePx
 			if seat then
 				portrait.gone.Visible = seat.connected == false
 				portrait.image.ImageTransparency = if seat.connected == false then 0.6 else 0
@@ -993,27 +1022,19 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 	self:update(workspace:GetServerTimeNow())
 end
 
+-- The ring shows the arc from twelve o'clock clockwise to `progress` of the way round. A
+-- gradient turned to R degrees is opaque on the clock angles R - 180 to R, so the right half
+-- (0 to 180) shows up to the arc's end with R in 0..180 and the left half (180 to 360) with
+-- R in 180..360.
 local function drawPerimeter(portrait: any, progress: number, danger: boolean)
-	local size = portrait.imageFrame.AbsoluteSize.X
-	local thickness = S.ActiveEdgePx
-	local remaining = progress * 4
-	for index, edge in portrait.edges do
-		local fraction = math.clamp(remaining - (index - 1), 0, 1)
-		edge.Visible = portrait.active.Visible and fraction > 0
-		edge.BackgroundColor3 = if danger then tone("Red") else tone("Green")
-		if index == 1 then
-			edge.Position = UDim2.fromOffset(-thickness, -thickness)
-			edge.Size = UDim2.fromOffset((size + thickness * 2) * fraction, thickness)
-		elseif index == 2 then
-			edge.Position = UDim2.fromOffset(size, -thickness)
-			edge.Size = UDim2.fromOffset(thickness, (size + thickness * 2) * fraction)
-		elseif index == 3 then
-			edge.Position = UDim2.fromOffset(size - (size + thickness * 2) * fraction, size)
-			edge.Size = UDim2.fromOffset((size + thickness * 2) * fraction, thickness)
-		else
-			edge.Position = UDim2.fromOffset(-thickness, size - (size + thickness * 2) * fraction)
-			edge.Size = UDim2.fromOffset(thickness, (size + thickness * 2) * fraction)
-		end
+	local angle = progress * 360
+	local shown = portrait.active.Visible and progress > 0
+	for side, h in portrait.halves do
+		h.half.Visible = shown
+		h.stroke.Color = if danger then tone("Red") else tone("Green")
+		h.sweep.Rotation = if side == 1
+			then math.clamp(angle, 180, 360)
+			else math.clamp(angle, 0, 180)
 	end
 end
 
@@ -1051,8 +1072,10 @@ function MatchHUD.update(self: any, now: number)
 	-- Under five seconds the clock throbs.
 	self.clockScale.Scale = if danger then 1 + 0.08 * math.abs(math.sin(now * math.pi * 2)) else 1
 	self.leave.Visible = phase ~= "Result"
-	local progress = if phase == "Aiming"
-			and isClock
+	-- The ring drains on every timed part of a turn (placing the cue ball, calling the pocket,
+	-- aiming), each over its own clock; it stays full through the turn's introduction.
+	local progress = if isClock
+			and phase ~= "Intro"
 			and deadline > snapshot.phaseStartedAt
 		then remaining / (deadline - snapshot.phaseStartedAt)
 		else 1
