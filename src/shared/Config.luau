@@ -2232,8 +2232,8 @@ Config.UI = {
 	ZoomHint = {
 		IconPx = 48,
 		ShortIconPx = 36, -- a phone on its side
-		TextSize = 22, -- white, ink-outlined, like the other words over the table
-		ShortTextSize = 18,
+		TextSize = 16, -- white, ink-outlined, like the other words over the table (designer: small)
+		ShortTextSize = 14,
 		PaddingPx = 4, -- between the icon and the word
 		GapPx = 10, -- between the guide and the spin button
 	},
@@ -2376,7 +2376,7 @@ Config.UI = {
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
 			Challenger = "rbxassetid://111544414092808", -- difficulty: no lines
 			Money = "rbxassetid://73979676771161", -- money: a stack of green cash, never coins
-			ScrollZoom = "rbxassetid://97566759407967", -- the zoom guide on a computer: a mouse wheel
+			ScrollZoom = "rbxassetid://109357219235276", -- the zoom guide on a computer: a mouse wheel rolling
 			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
 		},
 		Art = {

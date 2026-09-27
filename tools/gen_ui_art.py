@@ -392,18 +392,38 @@ def double_arrow(x0, y0, x1, y1, head=26, stem=13, colour="url(#blue)"):
     return "".join(parts)
 
 
+def chevron(cx, cy, w, h, up, colour="url(#blue)"):
+    """A fat arrowhead pointing up or down, centred on (cx, cy)."""
+    tip, base = (cy - h / 2, cy + h / 2) if up else (cy + h / 2, cy - h / 2)
+    pts = [(cx, tip), (cx + w / 2, base), (cx - w / 2, base)]
+    d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z"
+    return f'<path d="{d}" fill="{colour}" stroke-linejoin="round"/>'
+
+
 def icon_scroll_zoom():
-    # A white mouse with a blue scroll wheel, and an up-and-down arrow beside it: scroll to zoom.
-    return "".join(
-        [
-            '<rect x="42" y="40" width="112" height="176" rx="56" fill="url(#white)"/>',
-            ink_line([(98, 44), (98, 104)], 5),
-            ink_line([(46, 104), (150, 104)], 5),
-            '<rect x="86" y="58" width="24" height="40" rx="12" fill="url(#blue)"/>',
-            gloss(76, 150, 18, 34, angle=-8, opacity=0.55),
-            double_arrow(200, 42, 200, 214, head=28, stem=11),
-        ]
-    )
+    # A white mouse with a big ridged blue scroll wheel rolling up and down: an arrowhead above
+    # and below the wheel, and motion lines beside it. Scroll to zoom.
+    parts = [
+        '<rect x="58" y="36" width="140" height="196" rx="70" fill="url(#white)"/>',
+        ink_line([(62, 118), (194, 118)], 5),
+        gloss(90, 176, 18, 34, angle=-8, opacity=0.55),
+        # the wheel, big, with ridges across it
+        '<rect x="106" y="58" width="44" height="92" rx="22" fill="url(#blue)"/>',
+    ]
+    for y in (76, 92, 108, 124, 140):
+        parts.append(line([(114, y), (142, y)], "#1F6BD0", 5))
+    parts += [
+        gloss(118, 78, 6, 14, angle=0, opacity=0.6),
+        # the roll: up above the wheel, down below it
+        chevron(128, 26, 44, 26, up=True),
+        chevron(128, 176, 44, 26, up=False),
+        # motion lines either side of the wheel
+        line([(88, 72), (88, 98)], "#3B9BFF", 6),
+        line([(88, 110), (88, 136)], "#3B9BFF", 6),
+        line([(168, 72), (168, 98)], "#3B9BFF", 6),
+        line([(168, 110), (168, 136)], "#3B9BFF", 6),
+    ]
+    return "".join(parts)
 
 
 def icon_pinch_zoom():
