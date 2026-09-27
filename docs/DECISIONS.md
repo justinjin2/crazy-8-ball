@@ -1401,3 +1401,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   spin picker are just popups (ModalDim 0.45 -> 0, spin OverlayTransparency 0.9 -> 1) (designer).
 - 2026-09-27: The zoom guide hides after the player's first zoom and stays hidden for the session; it returns on the next visit (designer).
 - 2026-09-27: NICE SHOT! is a lot smaller: 22 px text (was 40), rays 90 px (was 150) (designer).
+- 2026-09-27: NICE SHOT! text 18 px (was 22), rays 74 px (designer).

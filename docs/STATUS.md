@@ -2,7 +2,7 @@
 
 **2026-09-27 (latest): NICE SHOT! is a lot smaller.**
 
-- **Built:** its word is 22 px (was 40) and the rays behind it 90 px (was 150).
+- **Built:** its word is 18 px (was 40, then 22) and the rays behind it 74 px (was 150).
 - **Verified:** lint clean, 363 tests pass; Studio phone emulator, QA combo: the smaller word
   over the side pocket, readable. Console clean.
 
