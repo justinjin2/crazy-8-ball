@@ -477,12 +477,12 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 1c. PlayerData service: load, kick on failure, named mutations, attributes, leaderstats.
 - [x] 1d. Save layer tested in Studio (section 4, point 4).
 - [ ] 1e. Save layer audited by a fresh subagent; findings fixed.
-- [ ] 2a. Rank tables and XP rules (pure, Config, Lune tests incl. floors and rewards).
-- [ ] 2b. Ranking service wired to match end (once per match, forfeits, one-minute mark).
-- [ ] 2c. Dev commands (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata,
+- [x] 2a. Rank tables and XP rules (pure, Config, Lune tests incl. floors and rewards).
+- [x] 2b. Ranking service wired to match end (once per match, forfeits, one-minute mark).
+- [x] 2c. Dev commands (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata,
   /rankhelp) working in Studio.
-- [ ] 3. Money rules and the Economy service, paying per ball, nice shots, match bonus, solo.
-- [ ] 4a. 95 rank images uploaded, ids in Config, a few checked in Play.
+- [x] 3. Money rules and the Economy service, paying per ball, nice shots, match bonus, solo.
+- [x] 4a. 95 rank images uploaded, ids in Config, a few checked in Play.
 - [ ] 4b. Cash icons drawn to match the reference, uploaded, the stack is the money icon.
 - [ ] 5a. RankBadge module (shine, sparkles, rays, hover and press).
 - [ ] 5b. Rank HUD top left with XP bar, opening the roadmap.
@@ -531,4 +531,17 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   discarded at shutdown (money 1250 instead of 4321, then fine on a clean re-run). That is
   session locking doing its job, but a true two-server takeover cannot be run in Studio: listed
   for the designer.
+- **Ranks and money on the server in Studio (06:20).** Every dev command through the Studio
+  hook `ServerStorage.DevCommandsQA` (Roblox's chat box cannot be typed into by the MCP):
+  /resetdata, /rank gold 3 [520], /rank reyes, /rank unranked, /rank banana (private reply),
+  /xp 250 from Unranked (Bronze I, $100), /xp 5000 (Silver I, $900 = 4 steps + Silver I),
+  /rank master 3 100 then /xp -150 (Master II 950) and /xp -5000 (floor Master I 0), /money,
+  /addmoney (a MoneyGrant with no pocket), /money -5 and /xp abc refused, /newrank, /result
+  win, /rankhelp. The QA fixture (`brokeAgo` added): a combo into the side pocket paid $30
+  ($10 + $20) with the pocket id; the opponent's surrender at 96 s made an Unranked player
+  Bronze I 250 XP with $150 (win $50 + Bronze I $100). Under a minute: the opponent quitting
+  pays nobody; an Expert quitting loses 150 (counted); a Gold quitting gets nothing and is
+  not counted. After a minute: a Gold forfeit is a counted loss with 0 XP (never +50); a win
+  +250 and $50. Rank images: all 95 uploaded, ids in Config.UI.Ranks (render check with the
+  badge module).
 

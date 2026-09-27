@@ -89,6 +89,11 @@ function QA.start(
 			local replay, reason = Engine.acceptShot(t.engine, shooter, data, now)
 			if replay then
 				flush(t) -- grants before the snapshot that carries the replay, as ShotService does
+				-- A real player's QA shot pays money as a real shot does (the flying cash).
+				local player = Players:GetPlayerByUserId(shooter)
+				if player then
+					require(script.Parent.Economy).onShot(t, player)
+				end
 				shotAccepted(t, shooter, data.angle, data.spin, data.elevation) -- and the stance, as it does
 			end
 			broadcast(t)
@@ -131,6 +136,8 @@ function QA.start(
 			e.foul = { by = e.shooter, team = e.activeTeam, reason = "Scratch" }
 			e.nextTeam = 3 - e.activeTeam -- a forced Foul hands the table over when it ends
 			e.result = { winner = data.winner or 1, reason = "LegalEight" }
+			-- data.brokeAgo: the break was taken this many seconds ago (the one-minute mark).
+			e.brokeAt = if type(data.brokeAgo) == "number" then now - data.brokeAgo else nil
 			for _, b in e.state.balls do
 				Ball.stop(b)
 				b.pocketed = data.eligible and b.id >= 1 and b.id <= 7 or false

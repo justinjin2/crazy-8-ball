@@ -1962,6 +1962,23 @@ Config.Audio = {
 	-- whole tone so the first ball of a run is a C and the ladder above reads as C D E F G A B
 	-- C from its own root rather than from a D. It also buys headroom - the top rung now lands
 	-- 10 semitones above the recording instead of 12. (tune)
+	-- The interface's own sounds (src/client/UISound.luau): ranks, money and buttons. Not
+	-- positional, well under the pool sounds. Placeholders from the Creator Store, listed in
+	-- assets/audio/README.md; swap any by changing its id. An empty Id plays nothing.
+	-- Overlap: several may sound at once (a clone per play) instead of restarting.
+	Ui = {
+		CashLand = { Id = "", Volume = 0.3, Overlap = true }, -- a cash chip lands in the money HUD
+		MoneyTick = { Id = "", Volume = 0.12, Overlap = true }, -- the money count ticking up
+		XpTick = { Id = "", Volume = 0.15, Overlap = true }, -- the XP bar filling (pitch rises)
+		XpFull = { Id = "", Volume = 0.3 }, -- the XP bar reaching the top of a division
+		RankUp = { Id = "", Volume = 0.35 }, -- NEW RANK! (about 2 s)
+		NewTier = { Id = "", Volume = 0.4 }, -- a new tier: the bigger fanfare
+		RankDown = { Id = "", Volume = 0.25 }, -- a division lost (soft, low)
+		BadgeHover = { Id = "", Volume = 0.15 }, -- the HUD badge pops under the mouse
+		Click = { Id = "", Volume = 0.25 }, -- a button pressed
+	},
+	XpTickPitch = { From = 0.9, To = 1.5 }, -- the XP tick's pitch across one fill (tune)
+	MoneyTickEvery = 0.06, -- the money count ticks at most this often, seconds
 	Bonus = {
 		MinVolume = 0.16,
 		MaxVolume = 0.16,
@@ -2618,6 +2635,34 @@ Config.UI = {
 		PressScales = { 0.9, 1.1, 1 }, -- the squish and bounce when pressed
 		PressSeconds = 0.28, -- the whole squish and bounce
 	},
+	-- The rank and money screens (src/client/Progression.luau and the modules it owns).
+	-- Pixel sizes are for a computer; phones scale down where noted. (tune)
+	Progress = {
+		-- The rank HUD, top left beside Roblox's buttons (RankHud).
+		RankHud = {},
+		-- The money HUD, bottom left (MoneyHud).
+		MoneyHud = {},
+		-- The flying cash from a pocket to the money HUD (CashFlyer).
+		Cash = {},
+		-- Over every character's head (Nameplates).
+		Nameplate = {},
+		-- The end-of-match screen (ResultScreen).
+		Result = {},
+		-- NEW RANK! and the rank-down card (NewRankPopup).
+		NewRank = {},
+		-- The rank roadmap (Roadmap).
+		Roadmap = {},
+		-- Confetti (UIAnim.confetti).
+		Confetti = {
+			Count = 36, -- pieces in one burst
+			Seconds = 1.6, -- how long a piece falls
+			SizePx = { 6, 12 }, -- smallest and largest piece
+			SpreadPx = 260, -- how far pieces fly out sideways
+			RisePx = 180, -- how high they are thrown before falling
+			FallPx = 420, -- how far they fall
+		},
+		CountUpSeconds = 0.6, -- a number counting to a new value (UIAnim.countUp)
+	},
 	Kit = {
 		Font = "FredokaOne", -- Enum.Font name; Config is loaded by Lune, which has no Enum
 		Colors = {
@@ -2708,7 +2753,11 @@ Config.UI = {
 			Classic = "rbxassetid://77520789288930", -- difficulty: every line
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
 			Challenger = "rbxassetid://111544414092808", -- difficulty: no lines
-			Money = "rbxassetid://73979676771161", -- money: a stack of green cash, never coins
+			-- Money: a stack of green cash, never coins. Three bundles (cash_stack, after the
+			-- designer's reference 04, 2026-09-27; was 73979676771161) everywhere money shows.
+			Money = "rbxassetid://140297726302884",
+			CashStack = "rbxassetid://140297726302884", -- the money HUD's total
+			CashSingle = "rbxassetid://120556642167836", -- one bundle: the flying "+$10" chip
 			ScrollZoom = "rbxassetid://76220420219490", -- the zoom guide on a computer: a mouse wheel rolling
 			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
 		},
@@ -3572,6 +3621,16 @@ Config.Debug = {
 	Commands = {
 		Day = "/day", -- the day/sunset cycle fades to day now (the 1 min fade)
 		Sunset = "/sunset", -- ...or to sunset; it runs on from there
+		-- Ranks and money, acting on the caller only (DevCommands; `/rankhelp` lists them).
+		Rank = "/rank", -- /rank gold 3 [xp] | /rank reyes | /rank unranked: set it (no rewards)
+		Xp = "/xp", -- /xp 250 or /xp -150: through the real rules (floors, rewards, popups)
+		Money = "/money", -- /money 5000: set money
+		AddMoney = "/addmoney", -- /addmoney 100: add it, with the flying cash
+		Result = "/result", -- /result win|lose|draw: preview the result screen (no save change)
+		NewRank = "/newrank", -- /newrank [tier] [division]: preview the NEW RANK! popup
+		ResetData = "/resetdata", -- your own save back to a fresh one
+		RankHelp = "/rankhelp", -- lists these
+		MaxAmount = 1e9, -- the largest /money, /addmoney or /xp amount accepted
 		UserIds = { 544959133 }, -- the designer
 		GroupRank = 255, -- the group's owner
 	},

@@ -173,4 +173,117 @@ function UIAnim.spin(object: GuiObject, degreesPerSecond: number?): Handle
 	}
 end
 
+--- Count a number from `from` to `to` over `seconds` (Config.UI.Progress.CountUpSeconds by
+--- default), easing out, calling `show` with each whole value and `tick` each time it changes
+--- (for a ticking sound). Returns a handle; stop() jumps straight to `to`.
+function UIAnim.countUp(
+	from: number,
+	to: number,
+	show: (number) -> (),
+	seconds: number?,
+	tick: ((number) -> ())?
+): Handle
+	local duration = seconds or Config.UI.Progress.CountUpSeconds
+	local started = os.clock()
+	local last = math.floor(from + 0.5)
+	show(last)
+	local connection: RBXScriptConnection? = nil
+	local function finish()
+		if connection then
+			connection:Disconnect()
+			connection = nil
+		end
+		show(to)
+	end
+	if duration <= 0 or from == to then
+		finish()
+		return { stop = function() end }
+	end
+	connection = RunService.RenderStepped:Connect(function()
+		local t = (os.clock() - started) / duration
+		if t >= 1 then
+			finish()
+			return
+		end
+		local value = math.floor(from + (to - from) * UIAnim.quadOut(t) + 0.5)
+		if value ~= last then
+			last = value
+			show(value)
+			if tick then
+				tick(value)
+			end
+		end
+	end)
+	return {
+		stop = function()
+			if connection then
+				finish()
+			end
+		end,
+	}
+end
+
+--- A burst of confetti from `origin` (a point in `parent`'s pixels): little coloured pieces
+--- thrown up and out, tumbling as they fall and fade (Config.UI.Progress.Confetti).
+--- `colors` defaults to the kit's bright colours; `scale` grows the burst (a new tier).
+function UIAnim.confetti(parent: GuiObject, origin: Vector2, colors: { Color3 }?, scale: number?)
+	local C = Config.UI.Progress.Confetti
+	local k = scale or 1
+	local palette: { Color3 } = {}
+	if colors and #colors > 0 then
+		palette = colors
+	else
+		for _, name in { "Gold", "Green", "Blue", "Red" } do
+			local c = Config.UI.Kit.Colors[name]
+			table.insert(palette, Color3.fromRGB(c[1], c[2], c[3]))
+		end
+	end
+	local random = Random.new()
+	local pieces = {}
+	for i = 1, math.floor(C.Count * k) do
+		local piece = Instance.new("Frame")
+		piece.Name = "Confetti"
+		piece.BorderSizePixel = 0
+		piece.AnchorPoint = Vector2.new(0.5, 0.5)
+		piece.BackgroundColor3 = palette[(i - 1) % #palette + 1]
+		local w = random:NextNumber(C.SizePx[1], C.SizePx[2])
+		piece.Size = UDim2.fromOffset(w, w * random:NextNumber(0.4, 0.8))
+		piece.Position = UDim2.fromOffset(origin.X, origin.Y)
+		piece.ZIndex = 50
+		piece.Parent = parent
+		table.insert(pieces, {
+			frame = piece,
+			vx = random:NextNumber(-1, 1) * C.SpreadPx * k,
+			rise = random:NextNumber(0.5, 1) * C.RisePx * k,
+			spin = random:NextNumber(-720, 720),
+			delay = random:NextNumber(0, 0.12),
+		})
+	end
+	local started = os.clock()
+	local connection: RBXScriptConnection? = nil
+	connection = RunService.RenderStepped:Connect(function()
+		local elapsed = os.clock() - started
+		local alive = false
+		for _, p in pieces do
+			local t = math.clamp((elapsed - p.delay) / C.Seconds, 0, 1)
+			if t < 1 then
+				alive = true
+			end
+			-- Up fast, then down: a throw under gravity, spread out sideways as it goes.
+			local y = -p.rise * 4 * t * (1 - t) + C.FallPx * t * t
+			p.frame.Position = UDim2.fromOffset(origin.X + p.vx * UIAnim.quadOut(t), origin.Y + y)
+			p.frame.Rotation = p.spin * t
+			p.frame.BackgroundTransparency = math.clamp((t - 0.6) / 0.4, 0, 1)
+		end
+		if not alive then
+			if connection then
+				connection:Disconnect()
+			end
+			for _, p in pieces do
+				p.frame:Destroy()
+			end
+		end
+	end)
+end
+
 return UIAnim

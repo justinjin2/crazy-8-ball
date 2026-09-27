@@ -52,6 +52,19 @@ local REMOTES: { [string]: string } = {
 	-- On the shot that picks the colors, `assign` {groups, ball, index} names the ball whose
 	-- drop reveals both teams' groups, before the snapshot catches up at resolution.
 	ShotResult = "RemoteEvent",
+	-- server -> the shooter only: money this shot paid them, for the flying cash
+	-- (CashFlyer). {tableId, epoch, seq, total, grants = {{ball, pocket?, amount, kind, at}}};
+	-- `at` is the server time the ball drops in the replay. Nothing here is ever sent back:
+	-- the money is already in the save (Economy, PlayerData).
+	MoneyGrant = "RemoteEvent",
+	-- server -> each player of a finished match: the result screen's numbers, once
+	-- (Ranking). The client only animates them.
+	MatchSummary = "RemoteEvent",
+	-- server -> one player: a rank change outside a match's result screen (/xp, /newrank):
+	-- {kind = "Up" | "Down", before, after, reward, newTier}.
+	RankEvent = "RemoteEvent",
+	-- server -> one player: a private line for the chat window (the developer commands).
+	DevNotice = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
 	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,
 	-- and never worth blocking the reliable queue behind.

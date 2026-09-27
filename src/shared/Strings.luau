@@ -204,4 +204,50 @@ return {
 		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
 		XpOnly = "%s XP", -- Reyes has no top: just the XP past its start
 	},
+	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
+	Dev = {
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw, /newrank [tier] [1-5], /resetdata",
+		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
+		BadAmount = "Give a whole number, like %s 500.",
+		BadResult = "Try /result win, /result lose or /result draw.",
+		NotLoaded = "Your save is not loaded yet.",
+		RankSet = "Rank set to %s.",
+		MoneySet = "Money set to %s.",
+		Reset = "Your save was reset.",
+	},
+	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
+	Progress = {
+		Winner = "WINNER",
+		Vs = "VS",
+		Draw = "DRAW",
+		SoloGame = "SOLO GAME",
+		Left = "LEFT", -- on the card of a player who left the match
+		NoXpLost = "No XP lost",
+		NoXp = "No XP: match under a minute",
+		SoloNoXp = "Solo games give no XP",
+		XpDelta = "%s XP", -- "+250 XP", "-150 XP"
+		BallsLine = "Balls pocketed x%d",
+		NiceLine = "Nice shots x%d",
+		WinBonus = "Win bonus",
+		LossBonus = "Match bonus",
+		RankReward = "Rank reward",
+		Total = "Total",
+		TapToContinue = "Tap to continue",
+		Continue = "Continue",
+		NewRank = "NEW RANK!",
+		NewTier = "%s!", -- the tier's name, huge: "PLATINUM!"
+		RankDown = "Rank down: %s",
+		RankedTitle = "Ranked",
+		RankedSubtitle = "Win matches, climb the road, earn money at every step.",
+		EarnXp = "Win matches to earn XP",
+		NextReward = "Next: %s, %s", -- "Next: Gold IV, +$200"
+		TopRank = "You are at the top!",
+		You = "YOU",
+		Current = "Current",
+		Next = "Next",
+		-- The roadmap's one line of rules, from Config.Ranks (Ranks.rulesLine).
+		Rules = "Win %s XP. %s: losing still gives %s. %s: no XP lost. %s and up: losing costs %s.",
+		TierRange = "%s to %s", -- "Bronze to Gold"
+		TierPair = "%s and %s", -- "Platinum and Diamond"
+	},
 }

@@ -529,6 +529,150 @@ def icon_money():
     return "".join(parts)
 
 
+# Cash: isometric bundles of green bills, after assets/ui/reference/04-cash-icons.png. The
+# bundle is measured off that picture in its own pixels (the long edge, the short edge and the
+# thickness), and drawn at a scale. Its greens are sampled from it (deeper than PALETTE's).
+CASH_LONG = (278, -142)  # the top face's long edge, left corner to back corner
+CASH_SHORT = (177, 75)  # its short edge, left corner to front corner
+CASH_THICK = 51  # how tall the bundle stands
+CASH_BAND = (0.455, 0.615)  # the paper band, as fractions along the long edge
+# The cash gradients live in the two cash icons, not the shared defs(), so the other icons'
+# SVGs stay as they are. The render page holds every SVG at once, so an id used in both cash
+# icons must mean the same thing in both (these do); anything else gets its own id.
+CASH_DEFS = (
+    "<defs>"
+    '<linearGradient id="cashTop" x1="0" y1="1" x2="1" y2="0">'
+    '<stop offset="0" stop-color="#5DAE4E"/><stop offset="0.45" stop-color="#86DC7B"/>'
+    '<stop offset="1" stop-color="#D2F7CF"/></linearGradient>'
+    '<linearGradient id="cashLeft" x1="0" y1="0" x2="0" y2="1">'
+    '<stop offset="0" stop-color="#447A3D"/><stop offset="1" stop-color="#2A5224"/></linearGradient>'
+    '<linearGradient id="cashRight" x1="0" y1="0" x2="1" y2="1">'
+    '<stop offset="0" stop-color="#346530"/><stop offset="1" stop-color="#1C3D17"/></linearGradient>'
+    '<linearGradient id="cashBand" x1="0" y1="0" x2="0" y2="1">'
+    '<stop offset="0" stop-color="#FCFDEC"/><stop offset="1" stop-color="#E4F1BA"/></linearGradient>'
+    '<linearGradient id="cashBandSide" x1="0" y1="0" x2="0" y2="1">'
+    '<stop offset="0" stop-color="#BFD3A4"/><stop offset="1" stop-color="#97AF80"/></linearGradient>'
+    "</defs>"
+)
+
+
+def cash_points(x, y, s, long=1.0, thick=1.0):
+    """A bundle's corners: (x, y) is the top face's left corner, s the scale; long and thick
+    stretch the long edge and the height (the stack's bundles are not all alike)."""
+    bx, by = CASH_LONG[0] * s * long, CASH_LONG[1] * s * long
+    ax, ay = CASH_SHORT[0] * s, CASH_SHORT[1] * s
+    t = CASH_THICK * s * thick
+    left, back, front = (x, y), (x + bx, y + by), (x + ax, y + ay)
+    right = (x + ax + bx, y + ay + by)
+    return left, back, right, front, t
+
+
+def cash_outline(*bundle):
+    """The bundle's silhouette: the top face and the two sides seen from the front."""
+    left, back, right, front, t = cash_points(*bundle)
+    pts = [left, back, right, (right[0], right[1] + t), (front[0], front[1] + t), (left[0], left[1] + t)]
+    return "M" + " L".join(f"{px:.1f} {py:.1f}" for px, py in pts) + " Z"
+
+
+def cash_bundle(*bundle):
+    """One bundle of bills, drawn in the unit square of each face (a matrix per face)."""
+    left, back, right, front, t = cash_points(*bundle)
+    x, y = left
+    bx, by = back[0] - x, back[1] - y
+    ax, ay = front[0] - x, front[1] - y
+    u0, u1 = CASH_BAND
+    thin = 'vector-effect="non-scaling-stroke" fill="none"'
+
+    def edges(colour):
+        # The bills' edges down a side: a lit rim at the top, then two faint lines.
+        return (
+            f'<path d="M0 0.1 L1 0.1" stroke="#8FD684" stroke-width="2.5" opacity="0.45" {thin}/>'
+            f'<path d="M0 0.42 L1 0.42" stroke="{colour}" stroke-width="2" opacity="0.28" {thin}/>'
+            f'<path d="M0 0.72 L1 0.72" stroke="{colour}" stroke-width="2" opacity="0.2" {thin}/>'
+        )
+
+    # The bill's frame: an inset border with a small round notch in each corner.
+    fu0, fu1, fv0, fv1, du, dv = 0.05, 0.95, 0.11, 0.89, 0.035, 0.085
+    frame = (
+        f"M{fu0 + du} {fv0} L{fu1 - du} {fv0} Q{fu1 - du} {fv0 + dv} {fu1} {fv0 + dv} "
+        f"L{fu1} {fv1 - dv} Q{fu1 - du} {fv1 - dv} {fu1 - du} {fv1} L{fu0 + du} {fv1} "
+        f"Q{fu0 + du} {fv1 - dv} {fu0} {fv1 - dv} L{fu0} {fv0 + dv} Q{fu0 + du} {fv0 + dv} {fu0 + du} {fv0} Z"
+    )
+    frame_line = "#4FA047"
+    parts = [
+        # a dark base under the faces, so no ink shows through the seams between them
+        f'<path d="{cash_outline(*bundle)}" fill="#2A5224"/>',
+        # the short side, front left
+        f'<g transform="matrix({ax:.2f} {ay:.2f} 0 {t:.2f} {x:.2f} {y:.2f})">'
+        '<rect width="1" height="1" fill="url(#cashLeft)"/>' + edges("#77B86C") + "</g>",
+        # the long side, front right, with the band down it
+        f'<g transform="matrix({bx:.2f} {by:.2f} 0 {t:.2f} {front[0]:.2f} {front[1]:.2f})">'
+        '<rect width="1" height="1" fill="url(#cashRight)"/>'
+        + edges("#6AAA60")
+        # the band stands a little proud of the bills and shades them just before it
+        + f'<rect x="{u0 - 0.035}" y="0" width="0.035" height="1" fill="#0E250B" opacity="0.28"/>'
+        + f'<rect x="{u0}" y="0" width="{u1 - u0 + 0.006:.3f}" height="1.02" fill="url(#cashBandSide)"/>'
+        "</g>",
+        # the top bill: frame, oval medallion, and the band across it
+        f'<g transform="matrix({bx:.2f} {by:.2f} {ax:.2f} {ay:.2f} {x:.2f} {y:.2f})">'
+        '<rect width="1" height="1" fill="url(#cashTop)"/>'
+        f'<path d="{frame}" stroke="{frame_line}" stroke-width="2" {thin}/>'
+        f'<ellipse cx="0.5" cy="0.5" rx="0.18" ry="0.29" stroke="{frame_line}" stroke-width="2" {thin}/>'
+        f'<rect x="{u0}" y="-0.035" width="{u1 - u0:.3f}" height="1.035" fill="url(#cashBand)"/>'
+        f'<path d="M{u0} -0.035 L{u0} 1 M{u1} -0.035 L{u1} 1" stroke="#9FBC86" stroke-width="1.5" opacity="0.8" {thin}/>'
+        # the lit fold where the band turns down the side
+        f'<path d="M{u0} 1 L{u1} 1" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7" {thin}/>'
+        "</g>",
+        # soft white highlights: the front corner and a sheen on the back of the top bill
+        line([(front[0], front[1] + t * 0.15), (front[0], front[1] + t * 0.85)], "#FFFFFF", 3, 'opacity="0.4"'),
+        gloss(x + bx * 0.8 + ax * 0.35, y + by * 0.8 + ay * 0.35, bx * 0.27, t * 0.4, angle=-27, opacity=0.45),
+    ]
+    return "".join(parts)
+
+
+def cash_layout(s, bundles):
+    """bundles: (x offset, long, thick) per bundle, top first. Returns each bundle's
+    cash_points arguments, stacked and centred in the icon."""
+    placed, y = [], 0.0
+    for dx, long, thick in bundles:
+        placed.append((dx, y, s, long, thick))
+        y += cash_points(0, 0, s, long, thick)[4]
+    xs, ys = [], []
+    for bundle in placed:
+        left, back, right, front, t = cash_points(*bundle)
+        xs += [left[0], right[0]]
+        ys += [back[1], front[1] + t]
+    ox = 128 - (min(xs) + max(xs)) / 2
+    oy = 126 - (min(ys) + max(ys)) / 2
+    return [(x + ox, y + oy, s, long, thick) for x, y, s, long, thick in placed]
+
+
+def icon_cash_single():
+    """One bundle of bills: the flying +$10 chip."""
+    (bundle,) = cash_layout(0.46, [(0, 1.0, 1.0)])
+    return CASH_DEFS + cash_bundle(*bundle)
+
+
+def icon_cash_stack():
+    """Three bundles stacked a little crooked, the band down each: the money icon."""
+    bundles = cash_layout(0.44, [(0, 1.0, 1.08), (-3, 1.05, 1.08), (-6, 1.04, 1.08)])
+    parts = [CASH_DEFS]
+    # Bottom bundle first. Each bundle above another gets an ink line along its lower edges,
+    # clipped to the bundles below, so the layers read apart (the outer outline is the filter's).
+    for i in range(len(bundles) - 1, -1, -1):
+        below = bundles[i + 1 :]
+        if below:
+            clip = f"cashStackBelow{i}"
+            parts.append(
+                f'<clipPath id="{clip}">' + "".join(f'<path d="{cash_outline(*b)}"/>' for b in below) + "</clipPath>"
+            )
+            left, _, right, front, t = cash_points(*bundles[i])
+            lower = [left, (left[0], left[1] + t), (front[0], front[1] + t), (right[0], right[1] + t), right]
+            parts.append(line(lower, INK, 6, f'clip-path="url(#{clip})"'))
+        parts.append(cash_bundle(*bundles[i]))
+    return "".join(parts)
+
+
 def mini_table(inner):
     """The difficulty pictures: a little green table seen from above."""
     return (
@@ -609,6 +753,8 @@ ICONS = {
     "arrow": icon_arrow,
     "sliders": icon_sliders,
     "money": icon_money,
+    "cash_single": icon_cash_single,
+    "cash_stack": icon_cash_stack,
     "level_classic": icon_level_classic,
     "level_difficult": icon_level_difficult,
     "level_challenger": icon_level_challenger,

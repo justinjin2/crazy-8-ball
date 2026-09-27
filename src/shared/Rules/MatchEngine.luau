@@ -182,11 +182,19 @@ end
 
 local start: (t: any, host: any, now: number, coinWinner: number?) -> ()
 
-local function finish(t: any, winner: number?, reason: string, now: number)
+-- `forfeit` names the team that gave the match up (surrendered or ran out of timeouts), for
+-- the rank and money rules (Ranking). `seconds` is the server-tracked match time from the
+-- break (GDD section 13's one-minute mark); 0 when the break was never taken.
+local function finish(t: any, winner: number?, reason: string, now: number, forfeit: number?)
 	if t.phase == "Result" or t.phase == "Waiting" then
 		return
 	end
-	t.result = { winner = winner, reason = reason }
+	t.result = {
+		winner = winner,
+		reason = reason,
+		forfeit = forfeit,
+		seconds = if t.brokeAt then math.max(0, now - t.brokeAt) else 0,
+	}
 	t.vote = nil
 	t.shot = nil
 	t.pending = nil
@@ -455,7 +463,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 			end
 		end
 		if unanimous then
-			finish(t, 3 - t.vote.team, "Surrender", now)
+			finish(t, 3 - t.vote.team, "Surrender", now, t.vote.team)
 		elseif now >= t.vote.deadline then
 			t.vote = nil
 			t.revision += 1
@@ -495,7 +503,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 	elseif Engine.isShotClock(t.phase, t.breakShot) then
 		t.timeouts[t.activeTeam] += 1
 		if t.timeouts[t.activeTeam] >= M.TimeoutLimit then
-			finish(t, 3 - t.activeTeam, "Timeouts", now)
+			finish(t, 3 - t.activeTeam, "Timeouts", now, t.activeTeam)
 		else
 			foul(t, "Timeout", now)
 		end
@@ -689,7 +697,7 @@ function Engine.action(
 			return true
 		end
 		if t.teamSize == 1 then
-			finish(t, 3 - s.team, "Surrender", now)
+			finish(t, 3 - s.team, "Surrender", now, s.team)
 			return true
 		end
 		if t.vote or now < t.voteNextAt[s.team] then
@@ -790,6 +798,8 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 			end
 		end
 	end
+	-- The match clock for the one-minute mark starts at the break (the first accepted shot).
+	t.brokeAt = t.brokeAt or now
 	local start = Engine.pack(sim.balls)
 	local before = Ball.cloneList(sim.balls)
 	local strike = Simulation.strike(sim, shot)

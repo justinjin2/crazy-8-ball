@@ -17,6 +17,7 @@ local ShotInput = require(Shared.ShotInput)
 local Cue = require(Shared.Physics.Cue)
 local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
+local Ranking = require(script.Parent.Ranking)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
 local Kit = Config.UI.Kit
@@ -310,6 +311,9 @@ local function refresh(t: any)
 end
 
 function Service.broadcast(t: any, player: Player?)
+	-- Every state change comes through here, so a match that has just ended is paid once,
+	-- before its result snapshot goes out (Ranking).
+	Ranking.check(t)
 	local data = Engine.snapshot(t.engine)
 	if player then
 		Net.get("TableState"):FireClient(player, data)
@@ -992,6 +996,14 @@ function Service.start(parent: Instance)
 	Players.PlayerRemoving:Connect(function(p)
 		local id = seatOf[p.UserId]
 		if id then
+			-- A leaver's forfeit loss, while their save is still open (Ranking.departed).
+			local ok, err = pcall(function(): any
+				Ranking.departed(tables[id], p)
+				return nil
+			end)
+			if not ok then
+				warn("[8ball] Ranking.departed failed: " .. tostring(err))
+			end
 			Engine.remove(tables[id].engine, p.UserId, now())
 			Service.broadcast(tables[id])
 		end

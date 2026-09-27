@@ -5,6 +5,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
 local Engine = require(Shared.Rules.MatchEngine)
 local Tables = require(script.Parent.TableService)
+local Economy = require(script.Parent.Economy)
 local Service = {}
 local started = false
 function Service.start()
@@ -32,6 +33,15 @@ function Service.start()
 			-- Grants first, so the owning team already holds its bonus when the replay drops
 			-- the ball and the sting lands with the drop (Audio.grant forgives a late one).
 			Tables.flush(t)
+			-- The money this shot paid, into the save now and to the shooter for the flying
+			-- cash (their replay drops the balls a moment later).
+			local paid, err = pcall(function(): any
+				Economy.onShot(t, player)
+				return nil
+			end)
+			if not paid then
+				warn("[8ball] Economy.onShot failed: " .. tostring(err))
+			end
 			-- The shooter's root goes to the exact spot they shot from before anyone sees the
 			-- shot, so its ShotSpot is there by the time their stroke hands over to idle.
 			Tables.shotAccepted(t, player.UserId, payload.angle, payload.spin, payload.elevation)
