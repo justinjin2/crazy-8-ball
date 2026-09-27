@@ -1,6 +1,24 @@
 # Status
 
-**2026-09-27 (latest): smaller queue GUI that folds after a request.**
+**2026-09-27 (latest): queue GUI polish.**
+
+- **Built:** the sign's player count and difficulty are centred 16 px apart (their text kept
+  at its old drawn size, 22 px: `Sign.InfoTextPx`). The host card sits in the very top right
+  corner, beside Roblox's top bar, at 85% on phones, and shrinks only to clear a showing jump
+  button (no more 120 px gap without one). Its folding parts reach past the column so Play
+  against PC and Play solo are not cut at the sides. "Waiting for opponent" has three dots
+  lighting one by one (`Style.QueueDotSeconds`), the unlit ones drawn clear so the words hold
+  still.
+- **Verified:** lint clean, 366 tests pass. Studio phone emulator: the sign spacing (count
+  22-87 px, difficulty 103-197 px, inside the 14-206 px card); the corner card at 85% with
+  whole buttons, above the jump button; the dots cycling. Another Studio user took the
+  session before the fold was re-checked (the fold logic is unchanged apart from its width).
+- **Needs a check by hand:** Request folds and unfolds; the right-side placement on a big
+  screen; a controller; two players.
+
+---
+
+**2026-09-27: smaller queue GUI that folds after a request.**
 
 - **Built:** the sign over the pad is smaller (fits its rows, 220 px wide) with the mode big;
   no JOIN pill or "Join to play" on an empty pad; the pad's arrow hides while its sign is up.

@@ -201,8 +201,10 @@ Every feature is checked against these. If it serves none, it waits.
 - **No settings and no Start: just play** (designer, 2026-09-27). The first person on is the
   **host** and gets a small card: the game ("Classic 1v1"), how many are on the pad, and
   "Waiting for opponent..." ("Waiting for players..." on 2v2 and 3v3). It keeps out of the
-  way (designer, 2026-09-27): tucked into the top right corner, shrunk, on a phone-sized
-  screen; on the right, halfway down, on a big one (PC, console, tablet). Public tables play
+  way (designer, 2026-09-27): in the very top right corner (beside Roblox's top bar), at 85%,
+  on a phone-sized screen, shrinking only to end above the jump button; on the right, halfway
+  down, on a big one (PC, console, tablet). The waiting line's three dots light up one by one
+  so the wait looks alive. Public tables play
   Classic with no abilities. If the host leaves, the next to arrive becomes host.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,

@@ -2329,6 +2329,11 @@ Config.UI = {
 		WidthPx = 220, -- its width on screen, pixels (the same at any distance); its height fits its rows
 		MarginPx = 14, -- room round the card for its shadow and the pop's overshoot
 		ModeTextPx = 34, -- the big 1v1, 2v2 or 3v3 (designer, 2026-09-27)
+		InfoGapPx = 16, -- between the player count and the difficulty (designer: they touched)
+		-- The count and difficulty words. Their earlier scaled text filled its 28 px row, past
+		-- the kit's 16 px cap (a BillboardGui's scaled text did not take the cap), drawing
+		-- about this big; kept so the sign looks the same (designer, 2026-09-27).
+		InfoTextPx = 22,
 	},
 
 	-- The shared UI kit (src/client/HudParts.luau): the one look every screen is built from.
@@ -2740,16 +2745,17 @@ Config.Multiplayer = {
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueRowGap = 6, -- between the card's rows
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueTouchRight = 120, -- on touch screens without a jump button showing, the card keeps this far from the right edge
 		QueueTitleHeight = 32, -- the difficulty's picture and "Classic 1v1"
 		-- Where the card goes (designer, 2026-09-27: keep it out of the way). A screen at least
 		-- this tall, in GUI pixels, is big (PC, console, tablet): the card sits on the right,
 		-- halfway down, at full size. Shorter (a phone) tucks it into the top right corner at
 		-- QueueCornerScale. (tune)
 		QueueWideMinHeight = 500,
-		QueueCornerScale = 0.72,
+		QueueCornerScale = 0.85,
+		QueueDotSeconds = 0.4, -- "Waiting for opponent...": each dot lights this long after the last
 		QueueFoldSeconds = 0.3, -- the card folding to "Requested!" and back, about this long
-		QueueFoldEdgePx = 3, -- room above and below a folding part for its buttons' outlines
+		QueueFoldEdgePx = 6, -- room above and below a folding part's buttons for their outlines (and a hovered one's grow)
+		QueueFoldSidePx = 10, -- and beside them: the part reaches this far past the card's column
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre.

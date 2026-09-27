@@ -65,18 +65,43 @@ function TableSign.new(playerGui: Instance): any
 	self.host.TextTruncate = Enum.TextTruncate.AtEnd
 	self.host.TextXAlignment = Enum.TextXAlignment.Left
 	self.host.Size = UDim2.new(1, -pad * 2 - rowHeight - 6, 0, rowHeight)
-	-- People n/6 on the left, the difficulty on the right.
-	self.people = HudParts.icon(card, "People")
-	self.people.Size = UDim2.fromOffset(rowHeight, rowHeight)
-	self.count = HudParts.text(card, "Count", K.Text.Body, "")
+	-- People n/6 and the difficulty, side by side and centred, Sign.InfoGapPx apart.
+	local info = HudParts.frame(card, "Info")
+	info.Size = UDim2.new(1, -pad * 2, 0, rowHeight)
+	local infoList = Instance.new("UIListLayout")
+	infoList.FillDirection = Enum.FillDirection.Horizontal
+	infoList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	infoList.VerticalAlignment = Enum.VerticalAlignment.Center
+	infoList.SortOrder = Enum.SortOrder.LayoutOrder
+	infoList.Padding = UDim.new(0, Sign.InfoGapPx)
+	infoList.Parent = info
+	self.info = info
+	-- An icon and its words, sized to the words.
+	local function item(order: number, iconKey: string, iconName: string): (ImageLabel, TextLabel)
+		local group = HudParts.frame(info, iconName .. "Item")
+		group.LayoutOrder = order
+		group.AutomaticSize = Enum.AutomaticSize.X
+		group.Size = UDim2.fromOffset(0, rowHeight)
+		local list = Instance.new("UIListLayout")
+		list.FillDirection = Enum.FillDirection.Horizontal
+		list.VerticalAlignment = Enum.VerticalAlignment.Center
+		list.SortOrder = Enum.SortOrder.LayoutOrder
+		list.Padding = UDim.new(0, 4)
+		list.Parent = group
+		local icon = HudParts.icon(group, iconKey, iconName)
+		icon.LayoutOrder = 1
+		icon.Size = UDim2.fromOffset(rowHeight, rowHeight)
+		local words = HudParts.text(group, "Text", Sign.InfoTextPx, "")
+		words.LayoutOrder = 2
+		words.TextScaled = false
+		words.TextWrapped = false
+		words.AutomaticSize = Enum.AutomaticSize.X
+		words.Size = UDim2.fromOffset(0, rowHeight)
+		return icon, words
+	end
+	self.people, self.count = item(1, "People", "People")
 	self.count.AutoLocalize = false -- only numbers
-	self.count.TextXAlignment = Enum.TextXAlignment.Left
-	self.count.Size = UDim2.new(0.4, -rowHeight, 0, rowHeight)
-	self.level = HudParts.icon(card, "Classic", "LevelIcon")
-	self.level.Size = UDim2.fromOffset(rowHeight, rowHeight)
-	self.levelName = HudParts.text(card, "Level", K.Text.Body, "")
-	self.levelName.TextXAlignment = Enum.TextXAlignment.Left
-	self.levelName.Size = UDim2.new(0.58, -pad - rowHeight - 4, 0, rowHeight)
+	self.level, self.levelName = item(2, "Classic", "LevelIcon")
 	self.rowHeight, self.pad = rowHeight, pad
 	-- The status pill hangs off the bottom edge: waiting, starting, full or playing. An empty
 	-- pad has none: stepping on is the way in (designer, 2026-09-27).
@@ -103,10 +128,7 @@ function TableSign.arrange(self: any, hasHost: boolean, hasPill: boolean)
 		self.host.Position = UDim2.fromOffset(pad + rowHeight + 6, top)
 		top += rowHeight + gap
 	end
-	self.people.Position = UDim2.fromOffset(pad, top)
-	self.count.Position = UDim2.fromOffset(pad + rowHeight + 4, top)
-	self.level.Position = UDim2.new(0.42, 0, 0, top)
-	self.levelName.Position = UDim2.new(0.42, rowHeight + 4, 0, top)
+	self.info.Position = UDim2.fromOffset(pad, top)
 	local height = top + rowHeight + (if hasPill then 16 else 8)
 	self.status.Visible = hasPill
 	self.card.Size = UDim2.new(1, -Sign.MarginPx * 2, 0, height)

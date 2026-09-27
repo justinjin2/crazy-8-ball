@@ -1424,3 +1424,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   nobody joins within 15 s (one request window: the popup, the fold and the re-ask wait are
   all 15 s, was 15 and 20). The pad's arrow hides while its sign is up, so it never covers
   the mode (Claude's call).
+- 2026-09-27 (later): Queue GUI polish (designer): the sign's count and difficulty sit 16 px
+  apart, centred (they touched); the host card goes in the very top right corner beside the
+  top bar at 85% (was 72%, and 120 px in from the edge when no jump button showed), shrinking
+  only to clear a showing jump button; its folding parts no longer clip the buttons' sides;
+  "Waiting for opponent" gets three dots that light up one by one.

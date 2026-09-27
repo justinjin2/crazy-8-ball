@@ -36,14 +36,16 @@ local QueueMenu = {}
 QueueMenu.__index = QueueMenu
 
 -- A part of the card that folds away: a CanvasGroup whose height and fade follow `amount`
--- (0 folded, 1 open), clipping the rows inside as it closes.
+-- (0 folded, 1 open), clipping the rows inside as it closes. It reaches QueueFoldSidePx past
+-- the card's column on both sides (the column centres it) and pads its rows back in, so a
+-- button's outline, and its grow and gold outline when hovered or selected, is never cut.
 local function fold(parent: Instance, name: string, order: number): any
 	local group = Instance.new("CanvasGroup")
 	group.Name = name
 	group.BackgroundTransparency = 1
 	group.BorderSizePixel = 0
 	group.LayoutOrder = order
-	group.Size = UDim2.fromScale(1, 0)
+	group.Size = UDim2.new(1, 2 * S.QueueFoldSidePx, 0, 0)
 	group.Parent = parent
 	local inner = HudParts.frame(group, "Inner")
 	inner.Size = UDim2.fromScale(1, 0)
@@ -52,10 +54,11 @@ local function fold(parent: Instance, name: string, order: number): any
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Padding = UDim.new(0, S.QueueRowGap)
 	list.Parent = inner
-	-- Room above and below for the buttons' outlines and lips, which the group would clip.
 	local edge = Instance.new("UIPadding")
 	edge.PaddingTop = UDim.new(0, S.QueueFoldEdgePx)
 	edge.PaddingBottom = UDim.new(0, S.QueueFoldEdgePx)
+	edge.PaddingLeft = UDim.new(0, S.QueueFoldSidePx)
+	edge.PaddingRight = UDim.new(0, S.QueueFoldSidePx)
 	edge.Parent = inner
 	return { group = group, inner = inner, list = list, amount = 0 }
 end
@@ -107,6 +110,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	local list = Instance.new("UIListLayout")
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Padding = UDim.new(0, S.QueueRowGap)
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center -- the folds reach past both sides
 	list.Parent = content
 	self.list = list
 
@@ -137,6 +141,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	-- Waiting for an opponent or players, or starting in 3.
 	self.statusFold = fold(content, "StatusFold", 2)
 	self.status = HudParts.note(self.statusFold.inner, "Status", K.Text.Body, "")
+	self.status.RichText = true -- the waiting dots (dots)
 	self.status.TextWrapped = false
 	self.status.Size = UDim2.new(1, 0, 0, K.Text.Body + S.QueueMenuLineGap)
 
@@ -300,9 +305,9 @@ end
 
 -- Size the card to its rows and place it (designer, 2026-09-27: keep it out of the way). A
 -- screen at least QueueWideMinHeight tall (PC, console, tablet) has it on the right, halfway
--- down, at full size. A phone-sized one has it tucked into the top right corner at
--- QueueCornerScale, shrunk further if it is short; on a touch screen it keeps clear of the
--- jump button, flush right when it fits above it, else just left of it.
+-- down, at full size. A phone-sized one has it in the very top right corner at
+-- QueueCornerScale, shrunk to end above the touch jump button when that shows (and only if
+-- it cannot, just left of it).
 function QueueMenu.layout(self: any)
 	local screen: any = self.root.Parent
 	if not screen then
@@ -321,24 +326,25 @@ function QueueMenu.layout(self: any)
 		self.root.Position = UDim2.new(1, -margin, 0.5, 0)
 		return
 	end
+	-- The corner: flush right, and up beside Roblox's top bar, whose right side is free.
+	local top = margin - GuiService:GetGuiInset().Y
 	local most = S.QueueCornerScale
-	local right, scale = margin, fit(size.Y - 2 * margin, most)
+	local right, scale = margin, fit(size.Y - top - margin, most)
 	local jump = jumpButton()
 	if jump then
+		-- Shrink to end above the jump button; only if it cannot, step left of it instead.
 		local jumpTop = jump.AbsolutePosition.Y - screen.AbsolutePosition.Y
 		local jumpLeft = jump.AbsolutePosition.X - screen.AbsolutePosition.X
-		local above = fit(jumpTop - 2 * margin, most)
-		if above < scale then
+		local above = (jumpTop - margin - top) / math.max(natural, 1)
+		if above >= S.QueueMenuMinScale then
+			scale = math.min(scale, above)
+		elseif top + natural * scale > jumpTop - margin then
 			right = size.X - jumpLeft + margin
-		else
-			scale = above
 		end
-	elseif UserInputService.TouchEnabled then
-		right = S.QueueTouchRight
 	end
 	self.scale.Scale = scale
 	self.root.AnchorPoint = Vector2.new(1, 0)
-	self.root.Position = UDim2.new(1, -right, 0, margin)
+	self.root.Position = UDim2.new(1, -right, 0, top)
 end
 
 -- Ease a fold toward open (1) or folded (0) over about Style.QueueFoldSeconds; `snap` jumps.
@@ -357,7 +363,17 @@ local function ease(part: any, open: boolean, dt: number, snap: boolean, scale: 
 	local height = part.inner.AbsoluteSize.Y / math.max(scale, 0.01)
 	part.group.Visible = amount > 0
 	part.group.GroupTransparency = 1 - amount
-	part.group.Size = UDim2.new(1, 0, 0, height * amount)
+	part.group.Size = UDim2.new(1, 2 * S.QueueFoldSidePx, 0, height * amount)
+end
+
+-- "..." that lights up one dot at a time, then starts over, so the wait looks alive
+-- (designer, 2026-09-27). The unlit dots are drawn clear, so the words never shift.
+local function dots(now: number): string
+	local lit = math.floor(now / S.QueueDotSeconds) % 4
+	return string.rep(".", lit)
+		.. '<font transparency="1">'
+		.. string.rep(".", 3 - lit)
+		.. "</font>"
 end
 
 --- Redraw from the snapshot. Called every frame while seated; only writes what changed
@@ -384,8 +400,8 @@ function QueueMenu.update(self: any, now: number)
 	self.players.Text = Copy.PlayerCount:format(count, capacity)
 	self.status.Text = if snapshot.startsAt
 		then Copy.StartingIn:format(math.max(1, math.ceil(snapshot.startsAt - now)))
-		elseif teamSize == 1 then Copy.WaitingForOpponent
-		else Copy.WaitingForPlayers
+		elseif teamSize == 1 then Copy.WaitingForOpponent .. dots(now)
+		else Copy.WaitingForPlayers .. dots(now)
 
 	-- Folded while a request stands and the pad still has room: just the game and Requested!
 	local sending = not self:canSend()

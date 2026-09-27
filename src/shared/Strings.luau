@@ -32,8 +32,9 @@ return {
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
 			PlaySolo = "Play solo",
 			PlayPC = "Play against PC",
-			WaitingForOpponent = "Waiting for opponent...", -- a 1v1 pad with room
-			WaitingForPlayers = "Waiting for players...", -- a 2v2 or 3v3 pad with room
+			-- The host's card adds three dots that light up one by one (QueueMenu.dots).
+			WaitingForOpponent = "Waiting for opponent", -- a 1v1 pad with room
+			WaitingForPlayers = "Waiting for players", -- a 2v2 or 3v3 pad with room
 			RequestOpponent = "Request opponent",
 			RequestPlayers = "Request players", -- on the team tables
 			Requested = "Requested!", -- on the button while the host waits to ask again
