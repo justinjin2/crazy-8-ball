@@ -1482,3 +1482,20 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: Interface sounds are placeholders from Roblox's own library and APM Music,
   chosen by name and length without being heard (overnight assumption; list in
   `assets/audio/README.md`).
+- 2026-09-27: The end-of-match screen dims the game behind it (50%) and NEW RANK! too (45%),
+  though match dialogs do not; cards show usernames, like the nameplates (overnight
+  assumption).
+- 2026-09-27: Nameplates are drawn over the world (AlwaysOnTop), like Roblox's own names, so
+  hats and walls never cut them, sized in studs to read like reference 02; your own plate
+  shows too (overnight assumption; `Config.UI.Progress.Nameplate`).
+- 2026-09-27: The rank HUD shows Unranked as an empty bar of Bronze I's 1,000 XP, and Reyes as
+  a full shimmering rainbow bar with just the XP; a jump across divisions fills, flashes and
+  lands on the new rank in one step (overnight assumption).
+- 2026-09-27: The roadmap's next-reward card shows the next reward not yet paid, so after a
+  drop it points past the peak; on a phone the tier strip shows badges without names
+  (overnight assumption).
+- 2026-09-27: Gamepad: Y (when no queue card or join prompt wants it) selects the rank badge;
+  A opens the roadmap; B closes it. A selected badge shows by its hover pop, not a gold ring
+  (overnight assumption).
+- 2026-09-27: The money HUD never shows more than the saved total: a preview's made-up money
+  (/result, /newrank) only bumps the icon (overnight assumption).
