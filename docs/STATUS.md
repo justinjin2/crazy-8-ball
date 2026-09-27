@@ -15,8 +15,9 @@
   shoot (sized from the hole on screen, no caption), so it never covers the jaws; choosing
   keeps the 44 px rings. Verified in Studio on a far side pocket (a small ring in the hole)
   and a near corner (a 53 px ring in the hole), and the six 44 px rings while choosing.
-- **Also built:** every panel's pattern is now faint soft 8 balls of a few sizes, each turned
-  its own way (after the designer's reference), instead of tiny dots; one new tile image
+- **Also built:** every panel's pattern is now faint soft 8 balls (after the designer's
+  reference), one small size on an even staggered grid, turned alike and slightly blurred,
+  instead of tiny dots; one new tile image
   (`tools/gen_ui_art.py pattern`), so every current and future panel has it. Checked on the
   roadmap and the rank and money pills.
 

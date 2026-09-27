@@ -24,9 +24,10 @@ screen, a popup).
   cartoon (2026-09-25).
 - **A soft white-to-pale-blue fade and a soft drop shadow**, so panels look puffy, not flat.
 - **A faint pattern of soft 8 balls** over every panel (designer, 2026-09-27, after a
-  reference; it was tiny flat pool balls): pale-blue shaded balls of a few sizes, each turned
-  its own way with its number disc toward the top left, and a few small bubbles, scattered so
-  the repeat does not show. Faint: felt more than seen. Every panel gets it from the kit's
+  reference; it was tiny flat pool balls): small pale-blue shaded 8 balls, all one size, on
+  an even staggered grid, every number disc toward the top left and turned alike, slightly
+  blurred so they sit in the background like wallpaper (the designer found a scattered mix of
+  sizes too busy and too big). Faint: felt more than seen. Every panel gets it from the kit's
   card (`HudParts.card`), so new screens have it too.
 - **Popups never darken the screen** (designer, 2026-09-27, said for the dialogs and again for
   the rank screens): no dim behind a popup, a dialog, the end-of-match screen or NEW RANK!, because
