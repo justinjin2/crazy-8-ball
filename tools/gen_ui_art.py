@@ -361,6 +361,69 @@ def icon_hand():
     return "".join(parts)
 
 
+def double_arrow(x0, y0, x1, y1, head=26, stem=13, colour="url(#blue)"):
+    """A two-headed arrow from (x0, y0) to (x1, y1): a stem and a triangle at each end."""
+    dx, dy = x1 - x0, y1 - y0
+    length = math.hypot(dx, dy)
+    ux, uy = dx / length, dy / length
+    px, py = -uy, ux  # across the arrow
+    parts = []
+    for (tx, ty, sx, sy) in ((x1, y1, 1, 1), (x0, y0, -1, -1)):
+        bx, by = tx - ux * head * 1.1 * sx, ty - uy * head * 1.1 * sy
+        pts = [
+            (tx, ty),
+            (bx + px * head * 0.85, by + py * head * 0.85),
+            (bx - px * head * 0.85, by - py * head * 0.85),
+        ]
+        d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z"
+        parts.append(f'<path d="{d}" fill="{colour}" stroke-linejoin="round"/>')
+    # The stem as a filled quad, not a stroked line: a gradient on a perfectly straight
+    # vertical line has a zero-width box and draws nothing.
+    a = (x0 + ux * head, y0 + uy * head)
+    b = (x1 - ux * head, y1 - uy * head)
+    quad = [
+        (a[0] + px * stem, a[1] + py * stem),
+        (b[0] + px * stem, b[1] + py * stem),
+        (b[0] - px * stem, b[1] - py * stem),
+        (a[0] - px * stem, a[1] - py * stem),
+    ]
+    d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in quad) + " Z"
+    parts.insert(0, f'<path d="{d}" fill="{colour}"/>')
+    return "".join(parts)
+
+
+def icon_scroll_zoom():
+    # A white mouse with a blue scroll wheel, and an up-and-down arrow beside it: scroll to zoom.
+    return "".join(
+        [
+            '<rect x="42" y="40" width="112" height="176" rx="56" fill="url(#white)"/>',
+            ink_line([(98, 44), (98, 104)], 5),
+            ink_line([(46, 104), (150, 104)], 5),
+            '<rect x="86" y="58" width="24" height="40" rx="12" fill="url(#blue)"/>',
+            gloss(76, 150, 18, 34, angle=-8, opacity=0.55),
+            double_arrow(200, 42, 200, 214, head=28, stem=11),
+        ]
+    )
+
+
+def icon_pinch_zoom():
+    # A white glove, thumb and finger spread, with arrows pointing out: pinch to zoom.
+    return "".join(
+        [
+            # finger up-right and thumb out right, from a palm at the bottom left
+            '<rect x="84" y="46" width="34" height="118" rx="17" fill="url(#white)" transform="rotate(28 101 105)"/>',
+            '<rect x="110" y="118" width="34" height="104" rx="17" fill="url(#white)" transform="rotate(-62 127 170)"/>',
+            '<rect x="30" y="128" width="104" height="96" rx="44" fill="url(#white)"/>',
+            ink_line([(62, 150), (62, 172)], 5),
+            ink_line([(86, 146), (86, 170)], 5),
+            gloss(66, 196, 22, 12, angle=-15, opacity=0.5),
+            # the spread: an arrow out from each fingertip
+            double_arrow(150, 108, 214, 40, head=24, stem=10),
+            double_arrow(176, 150, 226, 202, head=24, stem=10),
+        ]
+    )
+
+
 def icon_target():
     return "".join(
         [
@@ -532,6 +595,8 @@ ICONS = {
     "level_classic": icon_level_classic,
     "level_difficult": icon_level_difficult,
     "level_challenger": icon_level_challenger,
+    "scroll_zoom": icon_scroll_zoom,
+    "pinch_zoom": icon_pinch_zoom,
 }
 
 # ---------------------------------------------------------------------------------------
@@ -701,17 +766,25 @@ def main():
     os.makedirs(icons_dir, exist_ok=True)
     os.makedirs(art_dir, exist_ok=True)
     jobs = []
+    # Names on the command line draw only those icons (and no effect art), so adding an icon
+    # does not rewrite every other image.
+    only = set(sys.argv[1:])
     for name, draw in ICONS.items():
+        if only and name not in only:
+            continue
         text = svg(draw())
         with open(os.path.join(icons_dir, name + ".svg"), "w") as f:
             f.write(text)
         jobs.append((text, 256, os.path.join(icons_dir, name + ".png")))
-    for name, (draw, size) in ART.items():
+    for name, (draw, size) in ([] if only else ART.items()):
         text = draw()
         with open(os.path.join(art_dir, name + ".svg"), "w") as f:
             f.write(text)
         jobs.append((text, size, os.path.join(art_dir, name + ".png")))
     render(jobs)
+    if only:
+        print(f"wrote {len(jobs)} icons under {ROOT}")
+        return
     shadow_png(os.path.join(art_dir, "shadow.png"))
     print(f"wrote {len(ICONS)} icons and {len(ART) + 1} effect images under {ROOT}")
 

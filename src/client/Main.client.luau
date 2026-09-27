@@ -29,6 +29,7 @@ local MapAmbience = require(script.Parent.MapAmbience)
 local Hub = require(script.Parent.Hub)
 local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
+local ZoomHint = require(script.Parent.ZoomHint)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
@@ -49,6 +50,7 @@ local screen = UI.screen()
 local powerCue = PowerCue.new(screen)
 UI.addPlayControl(powerCue.root)
 local spinSelector = SpinSelector.new(screen, input)
+local zoomHint = ZoomHint.new(screen) -- scroll or pinch to zoom, over the spin button
 UI.addPlayControl(spinSelector.root)
 local snapshot: any = nil
 -- What the HUD and highlights draw: `snapshot` as match:view presents it, with balls down
@@ -761,18 +763,7 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	hud:update(now)
 	queueMenu:update(now)
-	-- The power bar starts under the top bar, leaving room for its PULL label above it.
-	local controlsTop = hud:reservedHeight() + M.Style.HeaderGap + Config.UI.PowerLabelSize + 6
-	local available =
-		math.max(M.Style.ButtonHeight, screen.AbsoluteSize.Y - controlsTop - M.Style.ButtonHeight)
-	local height = math.min(Config.UI.PowerBarMaxHeightPx, available)
-	local limit = powerCue.root:FindFirstChildWhichIsA("UISizeConstraint")
-	if limit then
-		limit.MinSize =
-			Vector2.new(Config.UI.PowerBarWidthPx, math.min(Config.UI.PowerBarMinHeightPx, height))
-	end
-	powerCue.root.Position = UDim2.new(1, -Config.UI.PowerBarRightMarginPx, 0, controlsTop)
-	powerCue.root.Size = UDim2.fromOffset(Config.UI.PowerBarWidthPx, height)
+	powerCue:place(hud:reservedHeight()) -- under the top bar on a phone, centred on a big screen
 	local modal = hud:isModal()
 	if modal ~= wasModal then
 		input:setSpinEditing(false)
@@ -813,6 +804,7 @@ RunService.RenderStepped:Connect(function(dt)
 		input:setEnabled(allowed)
 	end
 	UI.setPlayControlsVisible(canShoot() and not modal)
+	zoomHint:setVisible(canShoot() and not modal)
 	input:update(dt)
 	if controlled then
 		-- Top-down only while a pocket is being called for the 8; everything else, placing

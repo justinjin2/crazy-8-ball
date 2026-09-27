@@ -1,6 +1,21 @@
 # Status
 
-**2026-09-26 (latest): a little more room to walk about while waiting in a match.**
+**2026-09-26 (latest): the top bar redone for every screen; bigger centred power bar; zoom guide.**
+
+- **Built:** one-row top bar scaled to fit any width (team, big centred clock, team, Leave at
+  the right; solo: 15 balls and Leave); the status card replaced by a 2 s turn popup; on a
+  computer or tablet the power bar is bigger and centred on the right; a zoom guide (mouse
+  wheel or pinch icon and "Zoom") over the spin button during your turn. Also fixed: the clock
+  could flash the whole server time on the first frame.
+- **Verified:** lint clean, 357 tests pass. Studio's iPad emulator: 1v1, 3v3 and solo each on
+  one row, clock centred, Leave at the right, power bar centred and bigger, zoom guide shown,
+  YOUR TURN popup under the bar, OPPONENT'S TURN text on the other side's turn. Console clean.
+- **Needs a check by hand:** the phone emulator and a real phone (by the numbers a 1v1 fits
+  one row at about 18 px balls on the narrowest emulator phone), a real iPad, and PC.
+
+---
+
+**2026-09-26: a little more room to walk about while waiting in a match.**
 
 - **Built:** the invisible walls round a match stand 3 studs beyond its area on every side
   (`Fence.RoomStuds`); the area, pads and signs are unchanged.

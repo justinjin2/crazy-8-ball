@@ -77,6 +77,9 @@ Every feature is checked against these. If it serves none, it waits.
   right down and release to shoot, click the cue-ball icon to set spin.
 - Mobile: swipe left or right to aim, pinch to zoom, pull the power bar with a thumb, tap the
   cue-ball icon for spin.
+- A small zoom guide sits over the spin button during your turn: a mouse-wheel icon (computer)
+  or a pinching hand (touch) and the word "Zoom" (designer, 2026-09-26; the tutorial explains
+  more). Gamepad guidance comes later.
 - Spin UI: a larger cue-ball button sits at the left middle. Drag anywhere across the white
   selector to choose spin; its full disc represents the available physics range. Keep only
   Center and Done, with light background dimming and no title, hint, box or arrow buttons.

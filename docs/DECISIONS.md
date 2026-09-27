@@ -1355,3 +1355,11 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   turn has a little room to walk about (designer). The match area itself (layout, pads, signs)
   is unchanged; neighbours' walls still stand 2 and 4 studs apart, so nobody reaches another
   table (a Lune test keeps it so).
+- 2026-09-26: The match top bar redone for every resolution (designer): one row always, laid out
+  once and scaled down to fit (a UIScale); the status card is gone, replaced by a 2 s turn popup
+  on turn changes ("YOUR TURN" / "OPPONENT'S TURN" / "ALLY'S TURN"); the shot clock big and
+  centred between the teams, hidden when no clock runs; Leave at the bar's right end on every
+  platform. On a computer or tablet the power bar is bigger and centred on the right (its cue
+  slides 0.55 of the bar there so it stays on screen). A zoom guide over the spin button during
+  your turn: a mouse-wheel or pinch icon and the word "Zoom", no background (designer: not the
+  kit's card style), always shown during your turn.

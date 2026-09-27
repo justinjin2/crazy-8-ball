@@ -33,11 +33,15 @@ PowerCue.__index = PowerCue
 export type PowerCue = typeof(setmetatable(
 	{} :: {
 		root: TextButton,
+		screen: ScreenGui,
 		fill: Frame,
 		text: TextLabel,
 		cue: Frame,
 		styleName: string,
-		pull: number,
+		pull: number?, -- the pull shown, nil when idle (PULL shows instead of a percentage)
+		large: boolean?, -- the large-screen layout (place), nil before the first
+		cueWidth: number, -- the cue's width at the butt, pixels, for this layout
+		travel: number, -- how far the cue slides at full pull, in bar heights
 	},
 	PowerCue
 ))
@@ -52,12 +56,8 @@ local function cueLengthScale(): number
 	return Config.UI.PowerCueLengthScale
 end
 
-local function travelScale(): number
-	return Config.UI.PowerCueTravelScale
-end
-
 --- Build the cue out of slices. Called once; pulling only moves the container.
-local function buildCue(parent: GuiObject, styleName: string): Frame
+local function buildCue(parent: GuiObject, styleName: string, width: number): Frame
 	local U = Config.UI
 	local style = CueArt.styleFor(Config.Cue.Styles, Config.Cue.DefaultStyle, styleName)
 
@@ -65,7 +65,7 @@ local function buildCue(parent: GuiObject, styleName: string): Frame
 	cue.Name = "Cue"
 	cue.AnchorPoint = Vector2.new(0.5, 0)
 	cue.Position = UDim2.fromScale(0.5, 0)
-	cue.Size = UDim2.new(0, U.PowerCueWidthPx, cueLengthScale(), 0)
+	cue.Size = UDim2.new(0, width, cueLengthScale(), 0)
 	cue.BackgroundTransparency = 1
 	-- Above the fill. Equal ZIndex would fall back to creation order, which works today and
 	-- would quietly stop working the moment the fill is rebuilt or reordered.
@@ -79,8 +79,7 @@ local function buildCue(parent: GuiObject, styleName: string): Frame
 		band.AnchorPoint = Vector2.new(0.5, 0)
 		band.Position = UDim2.fromScale(0.5, slice.offset)
 		-- One pixel of overlap, or rounding between bands leaves hairline gaps down the cue.
-		band.Size =
-			UDim2.new(0, math.max(1, math.round(slice.width * U.PowerCueWidthPx)), slice.length, 1)
+		band.Size = UDim2.new(0, math.max(1, math.round(slice.width * width)), slice.length, 1)
 		band.BackgroundColor3 = rgb(slice.color)
 		band.BorderSizePixel = 0
 		band.ZIndex = 2
@@ -103,21 +102,11 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	local bar = Instance.new("TextButton")
 	bar.Name = "PowerBar"
 	bar.Text = ""
-	-- Anchored by its TOP, high on the screen: at full pull the cue hangs a whole bar height
-	-- below, and a centred bar pushes that straight off the bottom edge.
-	bar.AnchorPoint = Vector2.new(1, 0)
-	bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, U.PowerBarTopFraction, 0)
-	-- Height follows the screen so the whole bar, and the whole pull, fits a phone.
-	bar.Size = UDim2.new(0, U.PowerBarWidthPx, U.PowerBarHeightFraction, 0)
+	-- Where it sits and how big it is depend on the screen (PowerCue.place, every frame).
 	bar.BackgroundColor3 = rgb(K.Colors.White)
 	bar.BackgroundTransparency = U.PowerBarTransparency
 	bar.AutoButtonColor = false
 	bar.Parent = screen
-
-	local limit = Instance.new("UISizeConstraint")
-	limit.MinSize = Vector2.new(U.PowerBarWidthPx, U.PowerBarMinHeightPx)
-	limit.MaxSize = Vector2.new(U.PowerBarWidthPx, U.PowerBarMaxHeightPx)
-	limit.Parent = bar
 
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
@@ -145,7 +134,7 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	fillCorner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
 	fillCorner.Parent = fill
 
-	local cue = buildCue(bar, styleName or Config.Cue.DefaultStyle)
+	local cue = buildCue(bar, styleName or Config.Cue.DefaultStyle, U.PowerCueWidthPx)
 
 	local text = HudParts.text(bar, "Percent", U.PowerLabelSize, Strings.Pull)
 	text.TextWrapped = false
@@ -155,22 +144,67 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	text.AnchorPoint = Vector2.new(0.5, 1)
 	text.Position = UDim2.new(0.5, 0, 0, -4)
 
-	return setmetatable({
+	local self = setmetatable({
 		root = bar,
+		screen = screen,
 		fill = fill,
 		text = text,
 		cue = cue,
 		styleName = styleName or Config.Cue.DefaultStyle,
-		pull = 0,
+		pull = nil,
+		large = nil,
+		cueWidth = U.PowerCueWidthPx,
+		travel = U.PowerCueTravelScale,
 	}, PowerCue)
+	return self
+end
+
+--- Size and place the bar for this frame (Main calls it every frame, with the bottom of the
+--- match top bar in pixels). A phone (shorter than Style.ShortHeight) keeps it high on the
+--- right, under the top bar with room for PULL above, so the cue can hang a whole bar height
+--- below it at full pull. A computer or tablet gets a bigger bar centred on the right edge
+--- (designer, 2026-09-26); the cue there slides PowerLargeCueTravelScale of the bar so it
+--- stays on the screen.
+function PowerCue.place(self: PowerCue, headerBottom: number)
+	local U, M = Config.UI, Config.Multiplayer
+	local screenHeight = self.screen.AbsoluteSize.Y
+	local large = screenHeight >= M.Style.ShortHeight
+	local bar = self.root
+	if large ~= self.large then
+		self.large = large
+		self.travel = if large then U.PowerLargeCueTravelScale else U.PowerCueTravelScale
+		HudParts.setTextSize(self.text, if large then U.PowerLargeLabelSize else U.PowerLabelSize)
+		self.cueWidth = if large then U.PowerLargeCueWidthPx else U.PowerCueWidthPx
+		self.cue:Destroy()
+		self.cue = buildCue(bar, self.styleName, self.cueWidth)
+		self:setPull(self.pull)
+	end
+	if large then
+		local height = math.clamp(
+			screenHeight * U.PowerBarLargeHeightFraction,
+			U.PowerBarMinHeightPx,
+			U.PowerBarLargeMaxHeightPx
+		)
+		bar.AnchorPoint = Vector2.new(1, 0.5)
+		bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, 0.5, 0)
+		bar.Size = UDim2.fromOffset(U.PowerBarLargeWidthPx, height)
+	else
+		-- Under the top bar, leaving room for its PULL label above it.
+		local top = headerBottom + M.Style.HeaderGap + U.PowerLabelSize + 6
+		local available = math.max(M.Style.ButtonHeight, screenHeight - top - M.Style.ButtonHeight)
+		local height = math.min(U.PowerBarMaxHeightPx, available)
+		bar.AnchorPoint = Vector2.new(1, 0)
+		bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, 0, top)
+		bar.Size = UDim2.fromOffset(U.PowerBarWidthPx, height)
+	end
 end
 
 --- Show this pull: the cue slides down, the fill charges up behind it, the label follows.
 --- nil means idle, which is the same place as zero.
 function PowerCue.setPull(self: PowerCue, pull: number?)
 	local value = math.clamp(pull or 0, 0, 1)
-	self.pull = value
-	self.cue.Position = UDim2.fromScale(0.5, value * travelScale())
+	self.pull = pull and value
+	self.cue.Position = UDim2.fromScale(0.5, value * self.travel)
 	self.fill.Size = UDim2.fromScale(1, value)
 	-- Green for a soft touch, through yellow, to red at full power.
 	local green, yellow, red = rgb(K.Colors.Green), rgb(K.Colors.Gold), rgb(K.Colors.Red)
@@ -189,7 +223,7 @@ function PowerCue.setStyle(self: PowerCue, styleName: string)
 	end
 	self.styleName = styleName
 	self.cue:Destroy()
-	self.cue = buildCue(self.root, styleName)
+	self.cue = buildCue(self.root, styleName, self.cueWidth)
 	self:setPull(self.pull)
 end
 

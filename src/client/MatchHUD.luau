@@ -77,31 +77,6 @@ local function eligible(snapshot: any, team: number): boolean
 	return true
 end
 
--- The icon beside the status: what is happening now, and whether it is up to you.
-local function phaseIcon(snapshot: any, isShooter: boolean, ours: number): string
-	local phase = snapshot.phase
-	if phase == "Foul" then
-		return "Whistle"
-	elseif phase == "Resolving" then
-		return "Rolling"
-	elseif phase == "CoinFlip" then
-		return "Coin"
-	elseif phase == "Result" then
-		local result = snapshot.result
-		if not result or not result.winner then
-			return "Flag"
-		end
-		return if result.winner == ours then "Trophy" else "Sad"
-	elseif not isShooter then
-		return "Hourglass"
-	elseif phase == "Placement" then
-		return "Hand"
-	elseif phase == "PocketChoice" then
-		return "Target"
-	end
-	return "Cue"
-end
-
 -- A picture and one line side by side, centred: the hint pill and the wrong-target warning.
 local function iconLine(
 	parent: Instance,
@@ -236,18 +211,16 @@ local function layoutOpen(
 	end
 end
 
--- The top bar's sizes: full, or compact on short screens (a phone on its side) so a 3v3 still
--- fits on one line and the table keeps most of the screen.
+-- The top bar's sizes: full, or compact on short screens (a phone on its side), before the
+-- bar is scaled to fit (layout).
 local function barSizes(short: boolean): any
 	return {
 		portrait = if short then S.ShortPortraitSize else S.PortraitSize,
 		header = if short then S.ShortHeaderHeight else S.HeaderHeight,
-		center = if short then S.ShortCenterWidth else S.HeaderCenterWidth,
-		status = if short then S.ShortStatusSize else S.StatusSize,
 		leave = if short then S.ShortLeaveSize else S.LeaveSize,
-		clockWidth = if short then S.ShortClockPillWidth else S.ClockPillWidth,
-		clockHeight = if short then S.ShortClockPillHeight else S.ClockPillHeight,
-		clockText = if short then S.ShortClockTextSize else S.ClockTextSize,
+		clockWidth = if short then S.ShortCenterClockWidth else S.CenterClockWidth,
+		clockText = if short then S.ShortCenterClockTextSize else S.CenterClockTextSize,
+		status = if short then S.ShortOpenLabelSize else S.StatusSize, -- OPEN TABLE
 		gap = if short then S.ShortHeaderGap else S.HeaderGap, -- a phone packs a little tighter
 		ball = if short then S.ShortBallSize else S.BallSize,
 	}
@@ -332,31 +305,44 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			self:layout()
 		end)
 	)
-	self.teams = { makeTeam(self.root, "LocalTeam"), makeTeam(self.root, "OtherTeam") }
+	-- The top bar: both teams, the clock between them and Leave at the right end, in one
+	-- container laid out at its natural size and scaled down to fit the room beside Roblox's
+	-- buttons (layout), so it stays one row on every screen (designer, 2026-09-26).
+	self.topBar = frame(self.root, "TopBar")
+	self.barScale = Instance.new("UIScale")
+	self.barScale.Parent = self.topBar
+	self.teams = { makeTeam(self.topBar, "LocalTeam"), makeTeam(self.topBar, "OtherTeam") }
 	-- Solo: fifteen slots on the local panel in playing order (first group, other group, 8).
 	self.teams[1].soloBalls, self.teams[2].soloBalls = {}, {}
 	for _ = 1, 15 do
 		table.insert(self.teams[1].soloBalls, HudParts.ball(self.teams[1].root))
 	end
 
-	-- The status card: a phase icon, the status and detail lines, the clock and Leave.
-	self.center = HudParts.card(self.root, "MatchStatus")
-	self.centerFill = self.center:FindFirstChild("Fill")
-	self.phaseIcon = HudParts.icon(self.center, "Cue", "PhaseIcon")
-	-- One line: whose turn it is, or what is happening (designer, 2026-09-26).
-	self.status = text(self.center, "Status", S.StatusSize, "")
-	self.status.TextXAlignment = Enum.TextXAlignment.Left
-	self.status.TextWrapped = false
-	self.clockPill = HudParts.pill(self.center, "Clock")
+	-- The shot clock, big, between the two teams; only while a clock runs.
+	self.clockPill = HudParts.pill(self.topBar, "Clock")
 	self.clockScale = Instance.new("UIScale")
 	self.clockScale.Parent = self.clockPill
 	self.clockIcon = HudParts.icon(self.clockPill, "Stopwatch")
-	self.clock = text(self.clockPill, "Timer", S.ClockTextSize, "")
-	-- A small red door: Leave, without taking the status's room.
-	self.leave = candy(self.center, "", function()
+	self.clock = text(self.clockPill, "Timer", S.CenterClockTextSize, "")
+	-- Leave: a small red door at the bar's right end, beside the right-hand team.
+	self.leave = candy(self.topBar, "", function()
 		self:openLeave()
 	end, "Red", "Door")
 	HudParts.setMinHit(self.leave, S.TouchTargetPx)
+
+	-- The turn popup: whose turn it is, for a moment when the turn passes, like the foul
+	-- popup but smaller (it replaced the status card; designer, 2026-09-26).
+	self.turnGroup = frame(self.root, "TurnPopup")
+	self.turnGroup.AnchorPoint = Vector2.new(0.5, 0)
+	self.turnGroup.Visible = false
+	self.turnScale = Instance.new("UIScale")
+	self.turnScale.Parent = self.turnGroup
+	self.turnIcon = HudParts.icon(self.turnGroup, "Cue")
+	self.turnTitle = text(self.turnGroup, "Title", S.TurnPopupTitleSize, "")
+	self.turnTitle.TextWrapped = false
+	self.turnKey = "" -- the turn the popup is for
+	self.turnStart = 0 -- when it pops (after a foul popup, if one is up)
+	self.soloShown = nil -- the solo game whose one turn popup has played
 
 	-- One line of instruction while the cue ball is in hand. There is nothing to confirm:
 	-- the ball stays where it is left, and the shot can be taken at any time.
@@ -489,110 +475,67 @@ function MatchHUD.layout(self: any)
 	local d = barSizes(short)
 	self.bar = d
 	local margin, gap = S.HeaderMargin, d.gap
-	local count = if self.snapshot then self.snapshot.teamSize else 3
-	local portraitSize = d.portrait
+	local snapshot = self.snapshot
+	local solo = snapshot ~= nil and snapshot.solo ~= nil
+	local count = if snapshot and not solo then snapshot.teamSize else 1
+	local portraitSize, ballSize, height = d.portrait, d.ball, d.header
 	local portraitsWidth = portraitSize * count + S.PortraitGap * (count - 1)
-	local availableWidth = width - margin * 2
-	local menuLeft, menuRight = self:menuRoom(width)
-	local besideRoom = math.min(width - menuLeft - menuRight, availableWidth)
-	-- The first arrangement that fits, beside Roblox's buttons or under them: one row of eight
-	-- balls a side, or two rows of four. One row keeps the bar thinnest, so its balls shrink to
-	-- fit (down to BallMinSize) before two rows are used. A phone would rather have two rows
-	-- beside the buttons than one under them (the table keeps the screen); a computer would
-	-- rather have one row of bigger balls. Failing both, the teams sit over the status card.
-	local function widthFor(columns: number, size: number, center: number): number
-		local balls = size * columns + S.BallGap * (columns - 1)
-		return (portraitsWidth + balls + gap * 3) * 2 + center + gap * 2
-	end
-	-- The biggest ball, up to `size`, that fits `columns` a side in `room` (0 if none does).
-	local function fitBall(columns: number, size: number, room: number): number
-		local perTeam = (room - d.center - gap * 2) / 2 - portraitsWidth - gap * 3
-		local fit = math.floor((perTeam - S.BallGap * (columns - 1)) / columns)
-		return if fit >= S.BallMinSize then math.min(size, fit) else 0
-	end
-	local oneRowBeside = { columns = 8, size = d.ball, beside = true, shrink = true }
-	local oneRowUnder = { columns = 8, size = d.ball, beside = false, shrink = true }
-	local twoRowsBeside = { columns = 4, size = S.ShortBallSize, beside = true }
-	local twoRowsUnder = { columns = 4, size = S.ShortBallSize, beside = false }
-	local order: { any } = if short
-		then { oneRowBeside, twoRowsBeside, oneRowUnder, twoRowsUnder }
-		else { oneRowBeside, oneRowUnder, twoRowsBeside, twoRowsUnder }
-	local columns, ballSize, besideMenu = 4, S.ShortBallSize, false
-	for _, option in order do
-		local room = if option.beside then besideRoom else availableWidth
-		local size = if option.shrink
-			then fitBall(option.columns, option.size, room)
-			elseif widthFor(option.columns, option.size, d.center) <= room then option.size
-			else 0
-		if size > 0 then
-			columns, ballSize, besideMenu = option.columns, size, option.beside
-			break
-		end
-	end
+	-- One row always: eight a side, or solo's fifteen in playing order.
+	local columns = if solo then 15 else 8
 	local ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
-	local desiredTeamWidth = portraitsWidth + ballsWidth + gap * 3
-	-- On a short screen the status card takes what room is left, up to ShortCenterMax, so
-	-- its words fit beside Leave.
-	local room = if besideMenu then besideRoom else availableWidth
-	local centerWidth = if short
-		then math.clamp(room - desiredTeamWidth * 2 - gap * 2, d.center, S.ShortCenterMax)
-		else d.center
-	d.center = centerWidth
-	local desiredWidth = desiredTeamWidth * 2 + centerWidth + gap * 2
-	local inline = desiredWidth <= availableWidth
-	local teamWidth = if inline then desiredTeamWidth else (availableWidth - gap) / 2
-	local ballRows = 8 / columns
-	local headerHeight = if inline
-		then math.max(d.header, ballSize * ballRows + S.BallGap * (ballRows - 1) + gap * 2)
-		else portraitSize + gap * 3 + ballSize * ballRows + S.BallGap * (ballRows - 1)
-	besideMenu = besideMenu and inline
-	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
-	local startX = if besideMenu
-		then menuLeft + (besideRoom - desiredWidth) / 2
-		else (width - (if inline then desiredWidth else availableWidth)) / 2
-	self.headerBottom = top + headerHeight + (if inline then 0 else d.header + gap)
+	local teamWidth = portraitsWidth + ballsWidth + gap * 3
+	-- Left to right: our team, the clock, their team, Leave (solo: the one team, then Leave).
+	local clockLeft = teamWidth + gap
+	local otherLeft = clockLeft + d.clockWidth + gap
+	local leaveLeft = if solo then teamWidth + gap else otherLeft + teamWidth + gap
+	local natural = leaveLeft + d.leave
+	-- The auto-fit: laid out at its natural size, then scaled down (never up) to the free room
+	-- beside Roblox's buttons, in Roblox's own top row, so it is one row on every screen.
+	local menuLeft, menuRight = self:menuRoom(width)
+	local room = math.max(1, width - menuLeft - menuRight)
+	local scale = math.min(1, room / natural)
+	self.barScale.Scale = scale
+	self.topBar.Size = UDim2.fromOffset(natural, height)
+	local top = S.HeaderTop - GuiService:GetGuiInset().Y
+	self.topBar.Position = UDim2.fromOffset(menuLeft + (room - natural * scale) / 2, top)
+	self.headerBottom = top + height * scale
 	for i, team in self.teams do
-		local x = startX
-			+ (if i == 1 then 0 else teamWidth + gap + (if inline then centerWidth + gap else 0))
-		team.root.Position = UDim2.fromOffset(x, top)
-		team.root.Size = UDim2.fromOffset(teamWidth, headerHeight)
+		team.root.Position = UDim2.fromOffset(if i == 1 then 0 else otherLeft, 0)
+		team.root.Size = UDim2.fromOffset(teamWidth, height)
+		-- Portraits on the outside edge, centred in the card's height beside the balls.
 		local portraitLeft = if i == 1 then gap else teamWidth - portraitsWidth - gap
 		for n, portrait in team.portraits do
-			-- Centred in the card's height beside the balls, or at its top over them.
 			portrait.root.Position = UDim2.fromOffset(
 				portraitLeft + (n - 1) * (portraitSize + S.PortraitGap),
-				if inline then (headerHeight - portraitSize) / 2 else gap
+				(height - portraitSize) / 2
 			)
 			portrait.root.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.imageFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.root.Visible = n <= count and portrait.occupied
 		end
-		local ballLeft = if inline
-			then (if i == 1 then portraitsWidth + gap * 2 else gap)
-			else (teamWidth - ballsWidth) / 2
-		local ballTop = if inline
-			then (headerHeight - ballSize * ballRows - S.BallGap * (ballRows - 1)) / 2
-			else portraitSize + gap * 2
-		for n, ball in team.balls do
-			local column, row = (n - 1) % columns, math.floor((n - 1) / columns)
-			ball.root.Position = UDim2.fromOffset(
-				ballLeft + column * (ballSize + S.BallGap),
-				ballTop + row * (ballSize + S.BallGap)
-			)
+		local ballLeft = if i == 1 then portraitsWidth + gap * 2 else gap
+		local ballTop = (height - ballSize) / 2
+		local list = if solo and i == 1 then team.soloBalls else team.balls
+		for n, ball in list do
+			ball.root.Position =
+				UDim2.fromOffset(ballLeft + (n - 1) * (ballSize + S.BallGap), ballTop)
 			HudParts.sizeBall(ball, ballSize)
 		end
-		local rowsHeight = ballSize * ballRows + S.BallGap * (ballRows - 1)
-		layoutOpen(team, ballLeft, ballTop, ballsWidth, rowsHeight, ballRows, d)
+		layoutOpen(team, ballLeft, ballTop, ballsWidth, ballSize, 1, d)
 	end
-	self.center.Position = UDim2.fromOffset(
-		if inline then startX + teamWidth + gap else (width - centerWidth) / 2,
-		top + (if inline then 0 else headerHeight + gap)
-	)
-	self.center.Size = UDim2.fromOffset(centerWidth, d.header)
-	if self.snapshot and self.snapshot.solo then
-		self:layoutSolo(width)
-	end
-	self:layoutStatus()
+	-- The clock, centred between the teams; it throbs about its centre in the last seconds.
+	local clockWidth = d.clockWidth
+	self.clockPill.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.clockPill.Position = UDim2.fromOffset(clockLeft + clockWidth / 2, height / 2)
+	self.clockPill.Size = UDim2.fromOffset(clockWidth, height)
+	local iconSize = height - 8
+	self.clockIcon.Position = UDim2.fromOffset(5, 4)
+	self.clockIcon.Size = UDim2.fromOffset(iconSize, iconSize)
+	self.clock.Position = UDim2.fromOffset(iconSize + 6, 2)
+	self.clock.Size = UDim2.fromOffset(clockWidth - iconSize - 12, height - 4)
+	HudParts.setTextSize(self.clock, d.clockText)
+	self.leave.Position = UDim2.fromOffset(leaveLeft, (height - d.leave) / 2)
+	self.leave.Size = UDim2.fromOffset(d.leave, d.leave)
 	-- The placement instruction: one thin line centred at the bottom, as wide as its words.
 	local setupHeight = if short then S.ShortSetupHeight else S.SetupHeight
 	self.setup.Position = UDim2.new(0.5, 0, 1, -margin)
@@ -686,113 +629,6 @@ function MatchHUD.menuRoom(self: any, width: number): (number, number)
 		return math.max(0, left) + S.HeaderGap, math.max(0, right) + S.HeaderGap
 	end
 	return S.HeaderMenuLeft, S.HeaderMenuRight
-end
-
--- Inside the status card: the phase icon on the left, the one-line status, the clock and a
--- small Leave on the right.
-function MatchHUD.layoutStatus(self: any)
-	local d = self.bar
-	local width, height = d.center, d.header
-	local pad = d.gap
-	local iconSize = height - 8 -- 4 of white above and below, like the balls
-	self.phaseIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-	self.phaseIcon.Position = UDim2.fromOffset(pad + iconSize / 2, height / 2)
-	self.phaseIcon.Size = UDim2.fromOffset(iconSize, iconSize)
-	local leaveLeft = width - pad - d.leave
-	self.leave.Position = UDim2.fromOffset(leaveLeft, (height - d.leave) / 2)
-	self.leave.Size = UDim2.fromOffset(d.leave, d.leave)
-	local pillWidth, pillHeight = d.clockWidth, d.clockHeight
-	local pillLeft = leaveLeft - pad / 2 - pillWidth
-	self.clockPill.Position = UDim2.fromOffset(pillLeft, (height - pillHeight) / 2)
-	self.clockPill.Size = UDim2.fromOffset(pillWidth, pillHeight)
-	self.clockIcon.Position = UDim2.fromOffset(3, 2)
-	self.clockIcon.Size = UDim2.fromOffset(pillHeight - 4, pillHeight - 4)
-	self.clock.Position = UDim2.fromOffset(pillHeight - 1, 1)
-	self.clock.Size = UDim2.fromOffset(pillWidth - pillHeight - 4, pillHeight - 2)
-	HudParts.setTextSize(self.clock, d.clockText)
-	local textLeft = pad + iconSize + pad / 2
-	local textRight = (if self.clockPill.Visible then pillLeft else leaveLeft) - pad / 2
-	HudParts.setTextSize(self.status, d.status, S.StatusFloor)
-	self.status.Position = UDim2.fromOffset(textLeft, (height - d.status - 6) / 2)
-	self.status.Size = UDim2.fromOffset(math.max(1, textRight - textLeft), d.status + 6)
-end
-
--- Solo: the player's panel alone, one portrait then fifteen balls in playing order, beside
--- the status panel when it fits and above it otherwise. The row wraps (S.SoloWrapColumns and
--- the rest) when a single line of fifteen does not fit.
-function MatchHUD.layoutSolo(self: any, width: number)
-	local d = self.bar
-	local gap, portraitSize = d.gap, d.portrait
-	local short = self.root.AbsoluteSize.Y < S.ShortHeight
-	local availableWidth = width - S.HeaderMargin * 2
-	local menuLeft, menuRight = self:menuRoom(width)
-	local besideRoom = math.min(width - menuLeft - menuRight, availableWidth)
-	local function teamWidthFor(columns: number, size: number): number
-		return portraitSize + size * columns + S.BallGap * (columns - 1) + gap * 3
-	end
-	-- The first arrangement that fits: beside Roblox's buttons with the status card beside
-	-- it, then under them on one line, then the status under the balls. The row wraps
-	-- (S.SoloWrapColumns) when a single line of fifteen does not fit.
-	local wrap = S.SoloWrapColumns
-	local choice = { columns = wrap, size = S.ShortBallSize, inline = false, beside = false }
-	for _, option in
-		{
-			{ columns = 15, size = d.ball, inline = true, beside = true },
-			{ columns = wrap, size = d.ball, inline = true, beside = true },
-			{ columns = wrap, size = S.ShortBallSize, inline = true, beside = true },
-			{ columns = 15, size = d.ball, inline = true, beside = false },
-			{ columns = 15, size = S.ShortBallSize, inline = true, beside = false },
-			{ columns = wrap, size = d.ball, inline = true, beside = false },
-			{ columns = wrap, size = S.ShortBallSize, inline = true, beside = false },
-			{ columns = 15, size = d.ball, inline = false, beside = false },
-			{ columns = wrap, size = d.ball, inline = false, beside = false },
-		}
-	do
-		local room = if option.beside then besideRoom else availableWidth
-		local beside = if option.inline then gap + d.center else 0
-		if teamWidthFor(option.columns, option.size) + beside <= room then
-			choice = option
-			break
-		end
-	end
-	local columns, ballSize, inline = choice.columns, choice.size, choice.inline
-	local rows = math.ceil(15 / columns)
-	local rowsHeight = ballSize * rows + S.BallGap * (rows - 1)
-	local ballsWidth = ballSize * columns + S.BallGap * (columns - 1)
-	local teamWidth = teamWidthFor(columns, ballSize)
-	-- On a short screen the status card takes what room is left, up to ShortCenterMax.
-	local room = if choice.beside then besideRoom else availableWidth
-	local centerWidth = if short and inline
-		then math.clamp(room - teamWidth - gap, d.center, S.ShortCenterMax)
-		else d.center
-	d.center = centerWidth
-	self.center.Size = UDim2.fromOffset(centerWidth, d.header)
-	local headerHeight = math.max(d.header, rowsHeight + gap * 2)
-	local desiredWidth = teamWidth + (if inline then gap + centerWidth else 0)
-	local besideMenu = choice.beside
-	local top = S.HeaderTop - (if besideMenu then GuiService:GetGuiInset().Y else 0)
-	local startX = if besideMenu
-		then menuLeft + (besideRoom - desiredWidth) / 2
-		else (width - desiredWidth) / 2
-	self.headerBottom = top + headerHeight + (if inline then 0 else d.header + gap)
-	local team = self.teams[1]
-	team.root.Position = UDim2.fromOffset(startX, top)
-	team.root.Size = UDim2.fromOffset(teamWidth, headerHeight)
-	local ballLeft = portraitSize + gap * 2
-	local ballTop = (headerHeight - rowsHeight) / 2
-	for n, ball in team.soloBalls do
-		local column, row = (n - 1) % columns, math.floor((n - 1) / columns)
-		ball.root.Position = UDim2.fromOffset(
-			ballLeft + column * (ballSize + S.BallGap),
-			ballTop + row * (ballSize + S.BallGap)
-		)
-		HudParts.sizeBall(ball, ballSize)
-	end
-	layoutOpen(team, ballLeft, ballTop, ballsWidth, rowsHeight, rows, d)
-	self.center.Position = UDim2.fromOffset(
-		if inline then startX + teamWidth + gap else (width - centerWidth) / 2,
-		top + (if inline then 0 else headerHeight + gap)
-	)
 end
 
 -- The team of whoever is shooting now.
@@ -954,22 +790,31 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 		end
 		self.foulReason.Text = Copy.FoulShort[reason] or ""
 	end
-	-- Your turn: the cue pops and a shine sweeps the status card, once per turn.
+	-- A new turn pops the turn popup: yours, an ally's or the opponent's. It waits for a foul
+	-- popup that is still up. Solo is always your turn, so only its first turn pops.
 	local turnKey = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
 	local phase = snapshot.phase
-	if
-		snapshot.shooter == userId
-		and self.shoneTurn ~= turnKey
-		and (
-			phase == "Intro"
-			or phase == "Placement"
-			or phase == "PocketChoice"
-			or phase == "Aiming"
-		)
-	then
-		self.shoneTurn = turnKey
-		UIAnim.bounce(self.phaseIcon)
-		UIAnim.shine(self.centerFill)
+	local shooting = phase == "Intro"
+		or phase == "Placement"
+		or phase == "PocketChoice"
+		or phase == "Aiming"
+	local soloKey = if snapshot.solo then tostring(snapshot.epoch) else nil
+	if shooting and self.turnKey ~= turnKey and (soloKey == nil or self.soloShown ~= soloKey) then
+		self.turnKey = turnKey
+		self.soloShown = soloKey or self.soloShown
+		local now = workspace:GetServerTimeNow()
+		self.turnStart = math.max(now, self.foulUntil)
+		local Status = Copy.Status
+		local mine = snapshot.shooter == userId or snapshot.solo ~= nil
+		local ally = not mine and self:shooterTeam() == ours
+		self.turnTitle.Text = if mine
+			then Status.YourTurn
+			elseif ally then Status.AllyTurn
+			else Status.TheirTurn
+		self.turnTitle.TextColor3 = if mine then tone("Green") else tone("White")
+		HudParts.setIcon(self.turnIcon, if mine then "Cue" else "Hourglass")
+		self.turnMine = mine
+		self.turnBounced = false
 	end
 	for side, team in self.teams do
 		local teamId = if side == 1 then ours else 3 - ours
@@ -1096,7 +941,9 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 		self:closeModal()
 	end
 	self:layout()
-	self:update(self.lastNow)
+	-- The live server clock, not lastNow: before the first frame lastNow can be a reading from
+	-- before the clock synced (0), which drew the clock as the whole server time.
+	self:update(workspace:GetServerTimeNow())
 end
 
 local function drawPerimeter(portrait: any, progress: number, danger: boolean)
@@ -1147,38 +994,7 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "CoinFlip"
 		and phase ~= "Foul"
 	local danger = isClock and remaining <= 5 and phase == "Aiming"
-	HudParts.setIcon(self.phaseIcon, phaseIcon(snapshot, isShooter, self.ours or 1))
-	-- One line: your turn, theirs (or a teammate's), or what the table is doing.
-	local Status = Copy.Status
-	local teamTurn = not isShooter and self:shooterTeam() == self.ours
-	local line, colour = Status.TheirTurn, "White"
-	if phase == "Foul" then
-		line, colour = Status.Foul, "Red"
-	elseif phase == "Resolving" then
-		line = Status.Rolling
-	elseif phase == "CoinFlip" then
-		line = Status.CoinFlip
-	elseif phase == "Result" then
-		line = Status.Over
-	elseif isShooter or snapshot.solo then
-		line, colour = Status.YourTurn, "Green"
-	elseif teamTurn then
-		line = Status.AllyTurn
-	end
-	self.status.Text = line
-	self.status.TextColor3 = tone(colour)
-	HudParts.setTextTransparency(self.status, 0)
-	if phase == "Intro" then
-		local elapsed = now - snapshot.phaseStartedAt
-		HudParts.setTextTransparency(
-			self.status,
-			1 - math.clamp(math.min(elapsed, remaining) / S.Motion, 0, 1)
-		)
-	end
-	if self.clockPill.Visible ~= isClock then
-		self.clockPill.Visible = isClock
-		self:layoutStatus()
-	end
+	self.clockPill.Visible = isClock
 	self.clock.Text = if isClock
 		then (if remaining <= 5 and phase == "Aiming"
 			then string.format("%.1f", remaining)
@@ -1252,7 +1068,48 @@ function MatchHUD.update(self: any, now: number)
 		)
 	end
 	self:updateFoul(now)
+	self:updateTurn(now)
 	self:updatePresentation(now)
+end
+
+-- The turn popup: pops in when its turn starts (or when a foul popup before it ends), holds,
+-- and fades out. Only while that turn lasts.
+function MatchHUD.updateTurn(self: any, now: number)
+	local snapshot = self.snapshot
+	local key = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
+	local elapsed = now - self.turnStart
+	local left = S.TurnPopupSeconds - elapsed
+	local show = key == self.turnKey
+		and elapsed >= 0
+		and left > 0
+		and snapshot.phase ~= "Result"
+		and not self:isModal()
+	self.turnGroup.Visible = show
+	if not show then
+		return
+	end
+	if self.turnMine and not self.turnBounced then
+		self.turnBounced = true
+		UIAnim.bounce(self.turnIcon) -- your turn: the cue pops (UI_STYLE section 7)
+	end
+	local gap = S.HeaderGap
+	local height = S.TurnPopupTitleSize + gap
+	local wordWidth = self.turnTitle.TextBounds.X
+	local width = wordWidth + height + gap * 2
+	self.turnGroup.Size = UDim2.fromOffset(width, height)
+	self.turnGroup.Position = UDim2.new(0.5, 0, 0, (self.headerBottom or 0) + gap)
+	self.turnScale.Scale = K.Motion.PopFromScale
+		+ (1 - K.Motion.PopFromScale) * UIAnim.backOut(elapsed / K.Motion.PopSeconds)
+	local fade = 1 - math.clamp(left / S.TurnPopupFadeSeconds, 0, 1)
+	HudParts.setTextTransparency(self.turnTitle, fade)
+	self.turnIcon.ImageTransparency = fade
+	-- The icon sits just left of the words, the pair centred.
+	self.turnIcon.AnchorPoint = Vector2.new(0, 0.5)
+	self.turnIcon.Position = UDim2.fromOffset(0, height / 2)
+	self.turnIcon.Size = UDim2.fromOffset(height, height)
+	self.turnTitle.Position = UDim2.fromOffset(height + gap, 0)
+	self.turnTitle.Size = UDim2.new(1, -(height + gap), 1, 0)
+	self.turnTitle.TextXAlignment = Enum.TextXAlignment.Left
 end
 
 -- The foul popup pops in with the server's foul, holds, and fades at the end.

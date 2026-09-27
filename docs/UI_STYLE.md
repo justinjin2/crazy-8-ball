@@ -141,8 +141,8 @@ order; that is Open.
   when their screen closes.
 
 - **How lively** (2026-09-25): panels and popups pop in with a small overshoot and pop out
-  quickly. Only important things shine, bounce or breathe: your turn (the cue pops and a shine
-  sweeps the status card), the win card (the trophy over turning rays), Start once it can be
+  quickly. Only important things shine, bounce or breathe: your turn (the YOUR TURN popup
+  pops in and its cue bounces), the win card (the trophy over turning rays), Start once it can be
   pressed, a ball going down. Later: Rematch, rewards, shop deals.
 - **Rank badges always shine** (designer, 2026-09-26), more as you climb: a light sweep (the
   same band as the shine sweep, clipped to the badge's shine mask) from Bronze to Diamond,
@@ -159,21 +159,30 @@ order; that is Open.
   X when down). Tokens in `Config.UI.Kit`; `src/client/UIAnim.luau` for every animation.
 - **The art:** `tools/gen_ui_art.py` renders the icons (`assets/ui/icons`) and the effect
   images (`assets/ui/art`: the pattern tile, ball gloss and band, rays, 9-slice shadow).
-- **Screens:** the match top bar and status card, the foul popup (no panel, 3 s), the hints,
+- **Screens:** the match top bar, the turn popup, the foul popup (no panel, 3 s), the hints,
   the leave and surrender dialog, the coin and result cards, the host menu, the floor box, the
   table sign (only near its table), the power bar, the spin panel and the pocket targets.
 - **Phones** (2026-09-26): the top bar is compact and sits in Roblox's own top row beside its
   menu, chat and voice buttons (it asks Roblox for that room, ScreenInsets.TopbarSafeInsets),
   so the table keeps the screen. The host menu stays one column on the right, short enough to
   fit, beside the jump button (or above it when that lets it be bigger).
-- **The status card** (2026-09-26): one line ("YOUR TURN", "THEIR TURN", "FOUL!"), the clock,
-  and a small red door for Leave whose touch area is still 44 px. No names under the
-  portraits (a rank badge goes there later).
-- **As small as possible** (designer, 2026-09-26: the bar blocked the table on every device):
-  the top bar is only as tall as the balls plus a sliver of white (37 px on a computer, 30 on
-  a phone; it was 64 and 52), with the portrait, phase icon, clock and Leave fitted inside
-  it. One row of balls keeps it thinnest, so the balls shrink to fit (down to 16 px) before a
-  narrow screen falls back to two rows. The ball-in-hand hint is one thin line, only as wide
-  as its words.
+- **The top bar** (designer, 2026-09-26): one row on every screen. Left to right: our team
+  (portraits, then the balls), the shot clock, their team, and Leave (the red door, touch area
+  still 44 px) at the right end. Only as tall as the balls plus a sliver of white (37 px on a
+  computer, 30 on a phone). It is laid out once at those sizes and scaled down to fit the room
+  beside Roblox's buttons (a UIScale), which is how it fits every resolution. Solo: the one
+  team with its 15 balls, then Leave. The clock is big and centred between the teams, and only
+  shows while a clock runs. No names under the portraits (a rank badge goes there later).
+- **No status card** (designer, 2026-09-26): whose turn it is shows as a small popup under the
+  bar for 2 s when a turn starts ("YOUR TURN" in green with the cue, "OPPONENT'S TURN",
+  "ALLY'S TURN"), like the foul popup but smaller; during the turn, the shooter's green
+  portrait outline and the draining clock edge show it. The ball-in-hand hint is one thin line,
+  only as wide as its words.
+- **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on
+  a computer or tablet bigger and centred on the right edge.
+- **The zoom guide** (designer, 2026-09-26): over the spin button while it is your turn, an
+  icon and the word Zoom with nothing behind them, a deliberate exception to the kit's cards:
+  a mouse wheel with an up-and-down arrow on a computer, a pinching hand on touch. Hidden on a
+  gamepad for now.
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays
   (cash icon and 1x, 1.5x, 2x) under its tile; one short line describing the chosen level.

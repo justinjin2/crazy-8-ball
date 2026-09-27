@@ -2226,23 +2226,38 @@ Config.UI = {
 		-- A raised cue shows its angle under the left toggle, so it is never forgotten.
 		AngleBadgeHeightPx = 20,
 	},
-	-- Power bar on the right edge of the screen. Height is a fraction of the screen, clamped.
+	-- The zoom guide (src/client/ZoomHint.luau): just above the spin button while it is your
+	-- turn, a mouse-wheel or pinching-hand icon and the word Zoom, nothing behind them
+	-- (designer, 2026-09-26). (tune)
+	ZoomHint = {
+		IconPx = 48,
+		ShortIconPx = 36, -- a phone on its side
+		TextSize = 22, -- white, ink-outlined, like the other words over the table
+		ShortTextSize = 18,
+		PaddingPx = 4, -- between the icon and the word
+		GapPx = 10, -- between the guide and the spin button
+	},
 	-- The power bar: a vertical panel on the right that you press and drag down, with the
-	-- fill charging up behind it.
+	-- fill charging up behind it (PowerCue.place, every frame).
 	--
-	-- It sits HIGH rather than centred, because the cue drops a whole bar height below it at
-	-- full pull and a centred bar pushes that off the bottom of the screen. The control
-	-- needs room for the bar AND the cue hanging under it - about 1.97 bar heights all told -
-	-- so the height fraction is set to leave that much below the top margin on any screen.
+	-- On a phone it sits HIGH, just under the top bar, rather than centred, because the cue
+	-- drops a whole bar height below it at full pull and a centred bar pushes that off the
+	-- bottom of the screen; its height is what the screen leaves, up to PowerBarMaxHeightPx.
 	PowerBarWidthPx = 44,
-	PowerBarHeightFraction = 0.4,
 	PowerBarMinHeightPx = 140,
 	PowerBarMaxHeightPx = 250,
 	PowerBarRightMarginPx = 18,
-	-- To the TOP of the bar. The Leave button sits at the top right and runs to 52 px down,
-	-- and the PULL label sits 28 px above the bar, so anything under about 0.13 puts the
-	-- label behind that button. (tune)
-	PowerBarTopFraction = 0.145,
+	-- A computer or tablet (the screen at least Multiplayer.Style.ShortHeight tall) gets a
+	-- bigger bar centred on the right edge (designer, 2026-09-26: it was small and too high).
+	-- Centred, a whole-bar cue travel would leave the screen at full pull, so the cue slides
+	-- PowerLargeCueTravelScale of the bar there: its bottom lands at 0.5 + (0.97 + 0.55 - 0.5)
+	-- x 0.45 = 96% of the screen at full pull. (tune)
+	PowerBarLargeWidthPx = 60,
+	PowerBarLargeHeightFraction = 0.45,
+	PowerBarLargeMaxHeightPx = 480,
+	PowerLargeCueWidthPx = 20,
+	PowerLargeCueTravelScale = 0.55,
+	PowerLargeLabelSize = 20,
 	PowerBarTransparency = 0.15, -- the white track, a little see-through over the table
 	PowerLabelSize = 16, -- PULL and the percentage over the bar
 
@@ -2361,6 +2376,8 @@ Config.UI = {
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only
 			Challenger = "rbxassetid://111544414092808", -- difficulty: no lines
 			Money = "rbxassetid://73979676771161", -- money: a stack of green cash, never coins
+			ScrollZoom = "rbxassetid://97566759407967", -- the zoom guide on a computer: a mouse wheel
+			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
 		},
 		Art = {
 			BallGloss = "rbxassetid://109282983367810", -- shading and shine over a HUD ball
@@ -2566,17 +2583,22 @@ Config.Multiplayer = {
 		HeaderTop = 6, -- minimal spacing at the upper screen edge
 		-- The top bar is as small as it can be: the balls and a sliver of white round them
 		-- (designer, 2026-09-26: it blocked the table on every device; it was 64 on a computer
-		-- and 52 on a phone). The portrait, clock, phase icon and Leave fit inside that height.
+		-- and 52 on a phone). One row, left to right: our team, the clock, their team, Leave;
+		-- laid out at these sizes and scaled down to fit the room beside Roblox's buttons
+		-- (MatchHUD.layout), so it is one row on every screen. No status card: a turn popup
+		-- says whose turn it is (designer, 2026-09-26).
 		HeaderHeight = 37, -- the top bar's cards: BallSize and 5 each side (the ink outline takes 3)
-		HeaderCenterWidth = 280, -- the status card: phase icon, status, clock and Leave
-		ClockTextSize = 20, -- the shot clock in its pill
-		ClockPillWidth = 74, -- the clock pill, pixels
-		ClockPillHeight = 27,
-		ShortClockTextSize = 16, -- the same on a phone
-		ShortClockPillWidth = 58,
-		ShortClockPillHeight = 22,
-		LeaveSize = 27, -- the small red door (Leave) in the status card, square
-		ShortLeaveSize = 22, -- the same on a phone (its touch area is still TouchTargetPx)
+		CenterClockWidth = 94, -- the shot clock between the teams, as tall as the bar
+		CenterClockTextSize = 26, -- big (designer: centred and bigger)
+		ShortCenterClockWidth = 76, -- the same on a phone
+		ShortCenterClockTextSize = 21,
+		LeaveSize = 33, -- the red door (Leave) at the bar's right end, square
+		ShortLeaveSize = 27, -- the same on a phone (its touch area is still TouchTargetPx)
+		-- The turn popup (YOUR TURN, OPPONENT'S TURN, ALLY'S TURN) under the bar when a turn
+		-- starts, like the foul popup but smaller. (tune)
+		TurnPopupTitleSize = 24,
+		TurnPopupSeconds = 2, -- up this long
+		TurnPopupFadeSeconds = 0.35, -- and fades out over its last part
 		TouchTargetPx = 44, -- a small button's touch area is still at least this (UI_STYLE section 5)
 		-- Room for Roblox's own buttons at the top, only when Roblox does not report the free
 		-- part of its top bar (GuiService / ScreenInsets.TopbarSafeInsets; MatchHUD).
@@ -2587,13 +2609,9 @@ Config.Multiplayer = {
 		-- so a 3v3 still fits on one line and the table keeps most of the screen.
 		ShortHeaderHeight = 30, -- the compact bar's cards: ShortBallSize and 5 each side
 		ShortPortraitSize = 22, -- six portraits in landscape, inside the bar
-		ShortCenterWidth = 190, -- the compact status card at its narrowest (a 1v1 fits beside Roblox's buttons on a phone)
-		ShortCenterMax = 250, -- it grows into the room the balls leave, up to this
-		ShortStatusSize = 16, -- its status line
-		StatusFloor = 11, -- a long status shrinks this far in the compact card
+		ShortOpenLabelSize = 16, -- OPEN TABLE on the compact bar
 		ShortHeaderGap = 6, -- the compact bar's spacing (HeaderGap on a computer)
-		ShortBallSize = 20, -- balls in two rows of four, and on short screens
-		BallMinSize = 16, -- one row of eight shrinks its balls this far before two rows are used
+		ShortBallSize = 20, -- balls on short screens (a phone on its side)
 		-- The ball-in-hand hint: one thin line at the bottom, only as wide as its words
 		-- (designer, 2026-09-26: as small as possible; it was 36 and 30 high and always 460 wide).
 		ShortSetupHeight = 24, -- one-line placement instruction on short screens
@@ -2602,7 +2620,6 @@ Config.Multiplayer = {
 		ShortSetupTextSize = 14, -- the same on a phone (the kit's smallest)
 		SetupMaxWidth = 460, -- the ball-in-hand hint pill at its widest
 		MobileBreakpoint = 760, -- stack central status below teams
-		NarrowBreakpoint = 480, -- use two ball rows
 		PortraitSize = 29, -- square avatar beside the ball row, inside the bar (no name under it)
 		PortraitCornerPx = 10, -- the portrait's rounded corners
 		PortraitGap = 6, -- teammate portrait spacing
@@ -2650,7 +2667,6 @@ Config.Multiplayer = {
 		QueueTileTextFloor = 10, -- a tile's name shrinks this far before it spills over the next
 		QueueStartHeight = 46, -- Start, bigger than the rest
 		QueueToggleWidth = 68, -- the abilities ON/OFF button
-		SoloWrapColumns = 8, -- the solo 15-ball row wraps to this many + the rest on narrow screens
 		OwnBallOutlineTransparency = 0.6, -- subtle local group hint (the normal style)
 		-- The STRONG style: a vivid solid outline on the balls to hit and the other group
 		-- washed grey. Off in normal play by the designer's choice (2026-09-23); kept for the

@@ -2,6 +2,8 @@
 -- Player-facing copy. Add new UI wording here so localization has one source.
 return {
 	Pull = "PULL",
+	-- The zoom guide over the spin button while it is your turn, beside its icon (ZoomHint).
+	ZoomHint = "Zoom",
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
 	Match = {
@@ -43,13 +45,10 @@ return {
 		Stripes = "STRIPES",
 		-- The status card's one line (MatchHUD), kept short to fit beside the clock on a phone.
 		Status = {
+			-- The turn popup (MatchHUD) when a turn starts.
 			YourTurn = "YOUR TURN",
-			TheirTurn = "THEIR TURN",
+			TheirTurn = "OPPONENT'S TURN",
 			AllyTurn = "ALLY'S TURN", -- a teammate is shooting
-			Foul = "FOUL!",
-			Rolling = "ROLLING",
-			CoinFlip = "COIN FLIP",
-			Over = "GAME OVER",
 		},
 		Playing = "%s IS PLAYING",
 		ChoosePocket = "CHOOSE POCKET",

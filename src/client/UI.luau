@@ -1,6 +1,6 @@
 --!strict
 -- UI: the shared ScreenGui every screen parents into, and a developer status line. (Leave
--- lives in the match screen's status card, MatchHUD.)
+-- lives at the right end of the match top bar, MatchHUD.)
 --
 -- The power control is NOT here: it is a cue you drag, and it lives in PowerCue.luau. This
 -- module owns the shared ScreenGui that it and everything else parents into.
