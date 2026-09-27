@@ -18,11 +18,13 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
+local RankBadge = require(script.Parent.RankBadge)
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
 local Copy = Strings.Match
 local M = Config.Multiplayer
 local S = M.Style
 local K = Config.UI.Kit
+local RH = Config.UI.Progress.RankHud
 local MatchHUD = {}
 MatchHUD.__index = MatchHUD
 
@@ -118,8 +120,12 @@ local function makePortrait(parent: Instance): any
 	avatar.Size = UDim2.new(1, -4, 1, -4)
 	avatar.Parent = imageFrame
 	corner(avatar, S.PortraitCornerPx - 2)
-	-- No name under the portrait (designer, 2026-09-26; a rank badge goes there later). A player
-	-- who has left gets a red X over a faded picture.
+	-- No name under the portrait (designer, 2026-09-26): the player's rank badge overlaps its
+	-- lower edge instead (watchRank; sized in layout). A player who has left gets a red X over
+	-- a faded picture.
+	local badge = RankBadge.new(root, { size = S.PortraitSize, name = "RankBadge", zIndex = 6 })
+	badge.root.AnchorPoint = Vector2.new(0.5, 0.5)
+	badge.root.Visible = false
 	local gone = HudParts.icon(imageFrame, "X", "Left")
 	gone.AnchorPoint = Vector2.new(0.5, 0.5)
 	gone.Position = UDim2.fromScale(0.5, 0.5)
@@ -174,6 +180,9 @@ local function makePortrait(parent: Instance): any
 		active = active,
 		border = border,
 		halves = halves,
+		badge = badge,
+		rankConnections = {},
+		rankPending = false,
 		userId = nil,
 		occupied = false,
 	}
@@ -301,7 +310,6 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.width = 0
 	self.avatarCache = {}
 	self.shoneTurn = nil -- the turn whose "your turn" shine has played
-	self.shoneResult = nil -- the result whose shine has played
 	-- Which balls were down in the last snapshot, by id, so a ball pops when IT goes down
 	-- rather than when a slot's contents change (the rows remap when colors are revealed).
 	self.downIds = {}
@@ -549,6 +557,11 @@ function MatchHUD.layout(self: any)
 			)
 			portrait.root.Size = UDim2.fromOffset(portraitSize, portraitSize)
 			portrait.imageFrame.Size = UDim2.fromOffset(portraitSize, portraitSize)
+			-- The rank badge, centred on the portrait's lower edge (a little above it), so it
+			-- overlaps the edge rather than growing the bar.
+			local badgeSize = portraitSize * RH.PortraitBadgeShare
+			portrait.badge:setSize(badgeSize)
+			portrait.badge.root.Position = UDim2.new(0.5, 0, 1, -badgeSize * RH.PortraitBadgeRaise)
 			portrait.root.Visible = n <= count and portrait.occupied
 			-- The clock ring's halves, with room outside the portrait for the stroke. In the
 			-- bar's own pixels: the bar's UIScale shrinks them with everything else.
@@ -964,6 +977,7 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 				portrait.image.ImageTransparency = if seat.connected == false then 0.6 else 0
 				if portrait.userId ~= seat.userId then
 					portrait.userId = seat.userId
+					self:watchRank(portrait, seat.userId)
 					portrait.image.Image = ""
 					portrait.fallback.Visible = true
 					local id = seat.userId
@@ -1040,6 +1054,56 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 	-- The live server clock, not lastNow: before the first frame lastNow can be a reading from
 	-- before the clock synced (0), which drew the clock as the whole server time.
 	self:update(workspace:GetServerTimeNow())
+end
+
+-- The small rank badge under a portrait: the seated player's rank from their attributes
+-- (RankTier, RankDivision), kept up to date, so it pops when they rank up as the match ends.
+-- Hidden when there is no such Player (the Studio QA fixture's made-up players).
+function MatchHUD.watchRank(self: any, portrait: any, userId: number)
+	for _, connection in portrait.rankConnections do
+		connection:Disconnect()
+	end
+	table.clear(portrait.rankConnections)
+	local badge = portrait.badge
+	local player = if userId > 0 then Players:GetPlayerByUserId(userId) else nil
+	if not player then
+		badge.root.Visible = false
+		return
+	end
+	local shown: string? = nil
+	local function refresh()
+		local tier = player:GetAttribute("RankTier")
+		local division = player:GetAttribute("RankDivision")
+		if type(tier) ~= "string" then
+			badge.root.Visible = false -- their save is not in yet
+			return
+		end
+		local d = if type(division) == "number" then division else 0
+		local key = tier .. ":" .. d
+		badge:set(tier, d, shown ~= nil and shown ~= key)
+		shown = key
+		badge.root.Visible = true
+	end
+	-- The tier and division change together: one refresh for both.
+	local function changed()
+		if portrait.rankPending then
+			return
+		end
+		portrait.rankPending = true
+		task.defer(function()
+			portrait.rankPending = false
+			if self.alive and portrait.userId == userId then
+				refresh()
+			end
+		end)
+	end
+	for _, attribute in { "RankTier", "RankDivision" } do
+		table.insert(
+			portrait.rankConnections,
+			player:GetAttributeChangedSignal(attribute):Connect(changed)
+		)
+	end
+	refresh()
 end
 
 -- The ring shows the arc from twelve o'clock clockwise to `progress` of the way round. A
@@ -1254,7 +1318,9 @@ end
 function MatchHUD.updatePresentation(self: any, now: number)
 	local snapshot = self.snapshot
 	local phase = snapshot.phase
-	self.overlay.Visible = phase == "CoinFlip" or phase == "Result"
+	-- The coin flip only: the end of a match is the result screen (ResultScreen, from the
+	-- server's MatchSummary), the same screen for every player (designer, 2026-09-27).
+	self.overlay.Visible = phase == "CoinFlip"
 	if not self.overlay.Visible then
 		return
 	end
@@ -1300,30 +1366,6 @@ function MatchHUD.updatePresentation(self: any, now: number)
 				else Copy.CoinYouAre.Tails)
 			else Copy.CoinTitle
 		self.presentationTitle.TextColor3 = tone("Gold")
-	else
-		local result = snapshot.result
-		local win = result and result.winner == self.ours
-		local draw = not result or not result.winner
-		HudParts.setIcon(self.resultIcon, if draw then "Flag" elseif win then "Trophy" else "Sad")
-		self.resultIcon.Rotation = if win then math.sin(elapsed * 3) * 6 else 0
-		self.rays.Visible = win == true
-		self.rays.Rotation = elapsed * K.Motion.RaysDegreesPerSecond
-		self.presentationTitle.Text = if draw then Copy.Draw elseif win then Copy.Win else Copy.Lose
-		self.presentationTitle.TextColor3 = if draw
-			then tone("White")
-			elseif win then tone("Gold")
-			else tone("Red")
-		self.presentationText.Text = if result
-				and snapshot.solo
-				and result.reason == "Surrender"
-			then Copy.SoloEnded
-			elseif result then Copy.ResultReasons[result.reason] or Copy.BackToQueue
-			else Copy.BackToQueue
-		local resultKey = ("%d"):format(snapshot.epoch)
-		if win and self.shoneResult ~= resultKey then
-			self.shoneResult = resultKey
-			UIAnim.shine(self.presentationFill)
-		end
 	end
 end
 
@@ -1333,7 +1375,14 @@ function MatchHUD.destroy(self: any)
 	for _, connection in self.connections do
 		connection:Disconnect()
 	end
-	self.root:Destroy()
+	for _, team in self.teams do
+		for _, portrait in team.portraits do
+			for _, connection in portrait.rankConnections do
+				connection:Disconnect()
+			end
+		end
+	end
+	self.root:Destroy() -- the portraits' rank badges leave the shared clock with it
 	local probe = self.topbarRoom and self.topbarRoom.Parent
 	if probe then
 		probe:Destroy()

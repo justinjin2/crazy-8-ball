@@ -1967,15 +1967,24 @@ Config.Audio = {
 	-- assets/audio/README.md; swap any by changing its id. An empty Id plays nothing.
 	-- Overlap: several may sound at once (a clone per play) instead of restarting.
 	Ui = {
-		CashLand = { Id = "", Volume = 0.3, Overlap = true }, -- a cash chip lands in the money HUD
-		MoneyTick = { Id = "", Volume = 0.12, Overlap = true }, -- the money count ticking up
-		XpTick = { Id = "", Volume = 0.15, Overlap = true }, -- the XP bar filling (pitch rises)
-		XpFull = { Id = "", Volume = 0.3 }, -- the XP bar reaching the top of a division
-		RankUp = { Id = "", Volume = 0.35 }, -- NEW RANK! (about 2 s)
-		NewTier = { Id = "", Volume = 0.4 }, -- a new tier: the bigger fanfare
-		RankDown = { Id = "", Volume = 0.25 }, -- a division lost (soft, low)
-		BadgeHover = { Id = "", Volume = 0.15 }, -- the HUD badge pops under the mouse
-		Click = { Id = "", Volume = 0.25 }, -- a button pressed
+		-- "CoinTransfer_01" (Roblox, 1.7 s): a chip lands in the money HUD.
+		CashLand = { Id = "rbxassetid://127645268874265", Volume = 0.3, Overlap = true },
+		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s), pitched up: the money count ticking.
+		MoneyTick = { Id = "rbxassetid://15675032796", Volume = 0.12, Overlap = true, Pitch = 1.4 },
+		-- "Roblox_UI_Bright_Click" (Roblox, 0.37 s): the XP bar filling (pitch rises, XpTickPitch).
+		XpTick = { Id = "rbxassetid://15675059323", Volume = 0.15, Overlap = true },
+		-- "Roblox_UI_Tonal_Stinger" (Roblox, 1.5 s): the XP bar reaching a division's top.
+		XpFull = { Id = "rbxassetid://15675043410", Volume = 0.3 },
+		-- "Game Show" (APM Music via Roblox, 2.2 s): NEW RANK!
+		RankUp = { Id = "rbxassetid://1844692556", Volume = 0.35 },
+		-- "Glamour Fanfare 4" (APM Music via Roblox, 3.7 s): a new tier, the bigger fanfare.
+		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.4 },
+		-- "Roblox_UI_Cute_Goodbye" (Roblox, 0.3 s), pitched down: a division lost.
+		RankDown = { Id = "rbxassetid://15675081158", Volume = 0.25, Pitch = 0.8 },
+		-- "Roblox_UI_Cute_Pop" (Roblox, 2.7 s with its tail): the HUD badge under the mouse.
+		BadgeHover = { Id = "rbxassetid://15675055424", Volume = 0.15 },
+		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s): a button pressed.
+		Click = { Id = "rbxassetid://15675032796", Volume = 0.25 },
 	},
 	XpTickPitch = { From = 0.9, To = 1.5 }, -- the XP tick's pitch across one fill (tune)
 	MoneyTickEvery = 0.06, -- the money count ticks at most this often, seconds
@@ -2634,24 +2643,323 @@ Config.UI = {
 		HoverShineEvery = 1.2, -- and sweeps this often while hovered
 		PressScales = { 0.9, 1.1, 1 }, -- the squish and bounce when pressed
 		PressSeconds = 0.28, -- the whole squish and bounce
+		-- (src/client/RankBadge.luau) Shine.High (sparkles) from this tier up; the top tier
+		-- (Reyes) gets Shine.Top; below it, Shine.Low.
+		HighShineFrom = "Expert",
+		ShineBandWidth = 0.1, -- the sweep's band reaches this far either side of its middle (as UIAnim.shine)
+		ShineBrightTransparency = 0.1, -- a pop's, press's or hover's brighter sweep
+		RaysCenter = { 0.5, 0.54 }, -- Reyes' rays turn about the 8 ball, as fractions of the badge
+		SparkleMinPx = 28, -- a badge smaller than this on screen skips its sparkles (specks)
+		RaysMinPx = 40, -- and Reyes' rays (they would cover what is round a small badge)
+		BurstScale = 1.35, -- a rank-up's burst: the badge jumps to this size
+		BurstGrowSeconds = 0.12, -- that fast
+		BurstSettleSeconds = 0.45, -- then settles back with an overshoot
+		BurstSparkleShare = 0.3, -- the burst's sparkles, one at every SparkleSpots spot, this big
+		BurstSparkleSeconds = 0.55, -- each twinkle, in and out
+		BurstStaggerSeconds = 0.07, -- one after another by this much
 	},
 	-- The rank and money screens (src/client/Progression.luau and the modules it owns).
 	-- Pixel sizes are for a computer; phones scale down where noted. (tune)
 	Progress = {
-		-- The rank HUD, top left beside Roblox's buttons (RankHud).
-		RankHud = {},
-		-- The money HUD, bottom left (MoneyHud).
-		MoneyHud = {},
-		-- The flying cash from a pocket to the money HUD (CashFlyer).
-		Cash = {},
-		-- Over every character's head (Nameplates).
-		Nameplate = {},
-		-- The end-of-match screen (ResultScreen).
-		Result = {},
-		-- NEW RANK! and the rank-down card (NewRankPopup).
-		NewRank = {},
-		-- The rank roadmap (Roadmap).
-		Roadmap = {},
+		-- The rank HUD, top left beside Roblox's buttons (RankHud; reference 02): the badge,
+		-- bigger than the pill and over its left end, then a white pill with the rank's name over
+		-- the XP bar. Laid out at these sizes (a phone, where it fits Roblox's 58 px top row),
+		-- then scaled by ComputerScale on a computer or tablet, and down if the room is short.
+		RankHud = {
+			BadgePx = 70, -- the badge, square: bigger than the pill, as in reference 02 (its art has margins)
+			PillWidthPx = 196, -- the pill, from under the badge's centre to its right end
+			PillHeightPx = 44, -- as tall as Roblox's own top-bar buttons
+			PadPx = 6, -- inside the pill: after the badge, and at the right end
+			NameTopPx = 3, -- "Gold III", this far down the pill
+			NameTextPx = 18,
+			BarHeightPx = 16, -- the XP bar's track
+			BarBottomPx = 6, -- from the track's bottom to the pill's (the pill's outline takes 3)
+			BarStrokePx = 2, -- the track's ink outline
+			NumbersTextPx = 14, -- "520 / 1,000 XP", on the bar
+			ComputerScale = 1.15, -- a computer or tablet (screen at least Style.ShortHeight tall)
+			TopMinPx = 1, -- never closer than this to the top of the screen
+			FallbackRowPx = 58, -- the top row's height when Roblox does not report it
+			TrackColor = { 214, 222, 235 }, -- the empty bar
+			FillColor = { 255, 201, 40 }, -- the XP, gold
+			FillShade = { 214, 150, 20 }, -- the fill darkens to this along its bottom
+			DrainColor = { 255, 77, 77 }, -- the fill turns red while XP drains
+			-- Reyes has no top: a full bar in the house rainbow (UI_STYLE section 4, VIP) that
+			-- shimmers every ReyesShineEvery seconds.
+			ReyesColors = {
+				{ 255, 77, 77 },
+				{ 255, 159, 28 },
+				{ 255, 225, 77 },
+				{ 61, 214, 107 },
+				{ 59, 155, 255 },
+				{ 162, 89, 255 },
+			},
+			ReyesShineEvery = 2.5,
+			FillSeconds = 0.6, -- the bar filling or draining to a new value (each leg)
+			FlashSeconds = 0.4, -- the flash as the bar crosses into another division
+			TickEvery = 0.07, -- the XP tick sounds at most this often
+			-- The small badge under each portrait in the match bar (MatchHUD): this share of the
+			-- portrait, its centre this share of the badge above the portrait's lower edge, so it
+			-- overlaps the edge rather than growing the bar.
+			PortraitBadgeShare = 0.72,
+			PortraitBadgeRaise = 0.15,
+		},
+		-- The money HUD, bottom left (MoneyHud): the cash stack over the left end of a white
+		-- pill with the total. Purely visual (takes no input), so the touch thumbstick under it
+		-- still works. "Short" sizes are for a phone (screen under Multiplayer.Style.ShortHeight).
+		MoneyHud = {
+			ZIndex = 40, -- over the result screen and NEW RANK!, so their chips land on it
+			MarginPx = 12, -- from the screen's bottom-left corner (a computer)
+			ShortMarginPx = 8, -- on a phone: tight in the corner, clear of the thumbstick
+			PillHeightPx = 32, -- the white pill with the total
+			ShortPillHeightPx = 26,
+			IconSizePx = 50, -- the cash stack, bigger than the pill, over its left end
+			ShortIconSizePx = 40,
+			IconOverPill = 0.55, -- this share of the icon's width sits over the pill
+			TextPx = 20, -- the total ("$1,250")
+			ShortTextPx = 16,
+			TextPadPx = 10, -- room after the number inside the pill
+			-- The shown total only rises when a chip lands. When the saved money changes and no
+			-- chip is on its way, it counts to the true value after this long (long enough for
+			-- a grant or result arriving just after the change to say its chips are coming).
+			SettleDelaySeconds = 1.2,
+			PendingTimeoutSeconds = 20, -- chips said to be coming that never land are forgotten
+			LandCountSeconds = 0.35, -- the count-up when a chip lands
+			SettleCountSeconds = 0.6, -- the count to the true value
+			Sparkles = 4, -- little twinkles round the icon when a chip lands
+			SparkleSizePx = 16,
+			SparkleSpreadPx = 30, -- how far from the icon's centre they pop
+			SparkleSeconds = 0.5, -- one twinkle, in and out
+		},
+		-- The flying cash from a pocket to the money HUD (CashFlyer): a chip (one cash bundle
+		-- and "+$10") pops out at the pocket, hangs, then flies on a curve into the HUD's icon,
+		-- about 1 s in all.
+		Cash = {
+			ZIndex = 45, -- over everything, the money HUD included
+			ChipHeightPx = 30, -- the chip's height (a computer)
+			ShortChipHeightPx = 24, -- on a phone
+			TextPx = 24, -- "+$10"
+			ShortTextPx = 20,
+			IconWidthShare = 1.4, -- the bundle is wide: its box is this many chip heights across
+			PopSeconds = 0.2, -- pops out at the pocket with a small overshoot
+			PopFromScale = 0.3, -- from this size
+			HangSeconds = 0.25, -- then hangs
+			FlySeconds = 0.55, -- then flies into the HUD
+			EndScale = 0.45, -- shrinking to this size as it lands
+			ArcLiftShare = 0.3, -- the curve's control point rises this share of the distance
+			ArcMinLiftPx = 50, -- and at least this far above the start
+			StaggerSeconds = 0.18, -- several pots in one shot follow each other by this much
+			DropLeadSeconds = 0, -- added to the ball's drop time (the replay's; + later) (tune)
+			MaxWaitSeconds = 15, -- a chip never waits longer than this for its drop
+			EdgeMarginPx = 40, -- a pocket off screen starts this far inside the nearest edge
+		},
+		-- Over every character's head (Nameplates; reference 02): the rank badge, then the
+		-- player's name. Its height is SizeStuds studs plus SizePx pixels: near plates grow with
+		-- the world, far ones keep a readable floor. (tune)
+		Nameplate = {
+			UseDisplayName = false, -- false: the username (Player.Name), as the designer asked
+			SizeStuds = 0.5, -- the badge's height in the world... (0.9 was huge up close)
+			SizePx = 14, -- ...plus this many pixels at any distance
+			NameShare = 0.5, -- the name's box, as a share of the badge's height (the badge art has margins)
+			NameSlack = 0.08, -- extra room after the name for its outline
+			GapShare = 0.12, -- between the badge and the name, as a share of the badge
+			OffsetStuds = 3.2, -- the plate's middle, above the head's centre (clear of tall hats)
+			FadeStartStuds = 45, -- from the camera: plates fade out from here...
+			FadeEndStuds = 60, -- ...and are gone from here (the BillboardGui's MaxDistance)
+			ShineDistance = 30, -- only badges this close to the camera shine
+			UpdateSeconds = 0.2, -- the fade, outline and shine pass runs this often, not every frame
+			FadeStep = 0.1, -- the fade moves in steps this big (fewer property writes)
+		},
+		-- The end-of-match screen (ResultScreen): the face-off (a card per player, VS between,
+		-- WINNER and a crown on the winner) and your rewards (the XP bar, the money list and
+		-- its total chip), about 5 to 6 s in all. It is laid out at the natural size below and
+		-- scaled to fit the screen: side by side on a wide screen, the rewards under the
+		-- face-off on a narrow one.
+		Result = {
+			ZIndex = 30, -- over the match HUD; the money HUD and the chips stay over it
+			BackdropTransparency = 0.5, -- the ink dim over the game behind it
+			UseDisplayName = false, -- false: usernames, as over the players' heads
+			MarginPx = 10, -- kept clear round the screen's edge
+			MaxScale = 1.25, -- grows up to this much on a big screen
+			-- Natural sizes, side by side (the stage), in pixels before scaling.
+			FaceWidth = 390, -- the face-off column
+			RewardsWidth = 290, -- the rewards card
+			ColumnGap = 20,
+			Height = 300,
+			StackedFaceHeight = 250, -- stacked (a narrow screen): the face-off's height
+			TitleHeight = 40, -- WINNER, DRAW or SOLO GAME over the cards
+			TitleTextPx = 32,
+			VsWidth = 70, -- the VS column between the sides
+			VsTextPx = 44,
+			PortraitPx = 120, -- a portrait on its own; team portraits share the side
+			PortraitGap = 8, -- between team-mates' portraits
+			NameHeight = 26, -- the name under a portrait
+			NameTextPx = 18,
+			TeamNameTextPx = 14, -- names under the smaller team portraits
+			BadgeShare = 0.42, -- the rank badge on a portrait's outer top corner
+			CrownShare = 0.55, -- the crown's width as a share of the portrait
+			CrownOverlap = 0.35, -- this share of the crown sits over the portrait's top edge
+			RaysShare = 1.9, -- the winner's rays, as a share of the side's width
+			RaysTransparency = 0.35, -- the rays at their brightest
+			CrownDropShare = 1.6, -- the crown drops from this many crown heights up
+			LeftFade = 0.6, -- a player who left: their picture this see-through
+			PaddingPx = 12, -- inside the rewards card
+			XpHeight = 56, -- the XP block: badge, rank name, delta, bar
+			XpBadgePx = 52,
+			XpBarHeight = 20,
+			XpNameTextPx = 20,
+			XpDeltaWidth = 96, -- "+250 XP" (or the "No XP lost" chip) right of the rank's name
+			XpTextPx = 14, -- "520 / 1,000 XP" on the bar
+			LineHeight = 24, -- one money line
+			LineGap = 2,
+			LineTextPx = 16,
+			TotalHeight = 34, -- the Total pill
+			TotalTextPx = 20,
+			ButtonHeight = 44, -- Continue (a touch target)
+			-- Timings, seconds from the screen opening (a tap skips to the end).
+			CrownAt = 0.35, -- the crown starts to drop
+			CrownDropSeconds = 0.45,
+			CrownWobbleDegrees = 6, -- then it rocks gently
+			XpAt = 0.8, -- the XP bar starts
+			XpFillSeconds = 1.1, -- the whole change, shared out over the divisions it crosses
+			XpMinSegmentSeconds = 0.25, -- never quicker than this through one division
+			XpFlashSeconds = 0.35, -- a full bar flashes this long before the next division
+			XpTickEvery = 0.07, -- the rising XP tick
+			MoneyAt = 1.1, -- the money list starts (while the bar fills)
+			LineSeconds = 0.32, -- each line pops and counts up in this
+			TotalSeconds = 0.45, -- then the Total
+			ChipDelaySeconds = 0.15, -- then the total chip flies to the money HUD
+			ContinueDelaySeconds = 0.4, -- then Continue
+			AutoCloseSeconds = 2.5, -- and the screen closes by itself this long after
+			SkipGuardSeconds = 0.35, -- a tap this soon after a skip does not also close
+		},
+		-- NEW RANK! and the rank-down card (NewRankPopup). NEW RANK! is laid out at the natural
+		-- size below and scaled to fit, so the badge is about 40% of the screen's short side.
+		NewRank = {
+			ZIndex = 32, -- over the result screen; the money HUD and the chips stay over it
+			BackdropTransparency = 0.45, -- the ink dim behind NEW RANK!
+			MarginPx = 10,
+			MaxScale = 1.35, -- grows up to this much on a big screen (1.75 made Continue huge)
+			Width = 360, -- natural size
+			Height = 340,
+			TitleTextPx = 40, -- NEW RANK!
+			TierTextPx = 58, -- a new tier's name, huge: PLATINUM!
+			TitleHeight = 54,
+			TitleWidth = 480, -- the title may reach past the popup's sides
+			BadgePx = 150, -- the new badge
+			RaysShare = 2.2, -- the rays behind it, as a share of the badge
+			RaysTransparency = 0.4, -- the rays at their brightest
+			NameTextPx = 26, -- "Gold IV"
+			NameHeight = 34,
+			RewardHeight = 34, -- the reward chip
+			RewardTextPx = 22,
+			ButtonHeight = 44, -- Continue
+			ButtonWidth = 160,
+			Gap = 8,
+			ConfettiScale = 1, -- the burst
+			TierConfettiScale = 1.8, -- a new tier's bigger burst
+			-- Timings, seconds.
+			BurstAt = 0.3, -- the badge bursts and the confetti flies
+			TierHoldSeconds = 0.7, -- a new tier: the old badge shows this long
+			TierSpinSeconds = 0.45, -- then spins away into the new one
+			TierSpinDegrees = 540, -- turning this far
+			TierSpinEndScale = 0.15, -- and shrinking to this size
+			RewardAt = 1.1, -- the reward chip flies to the money HUD (after the badge)
+			ContinueAfterSeconds = 0.3, -- Continue pops this long after the burst
+			AutoCloseSeconds = 4, -- closes by itself
+			MinShowSeconds = 0.6, -- a tap on the backdrop closes it only after this
+			-- The quiet rank-down card, top middle: no dim, no input.
+			DownSeconds = 2.5,
+			DownHeight = 48,
+			DownBadgePx = 40,
+			DownTextPx = 20,
+			DownTopShare = 0.12, -- its top, as a share of the screen's height
+		},
+		-- The rank roadmap (Roadmap). Row sizes given as { a, b } run from a on the smallest
+		-- panel (a phone) to b on a full-size one (DesignHeightPx tall); other pixel sizes
+		-- shrink with the panel down to MinScale. (tune)
+		Roadmap = {
+			DisplayOrderAbove = 10, -- its own ScreenGui sits this far over the HUD's
+			DimTransparency = 0.45, -- the backdrop behind the panel (a tap on it closes)
+			DimSeconds = 0.2, -- the backdrop's fade in and out
+			MaxSizePx = { 1120, 640 }, -- the panel's largest width and height (a computer)
+			MarginPx = 4, -- the least gap between the panel and the screen's edges
+			-- A screen shorter than this below Roblox's top bar is a phone: the panel also takes
+			-- the top bar's row, its title right of Roblox's buttons, so the road keeps its height.
+			ShortScreenPx = 500,
+			TopbarLeftFallbackPx = 212, -- where Roblox's buttons end, when Roblox does not say
+			TouchMinPx = 44, -- the smallest touch target (UI_STYLE section 5)
+			DesignHeightPx = 620, -- rows and text are full size at this panel height
+			MinScale = 0.72, -- and shrink with a shorter panel, never below this share
+			PaddingPx = { 6, 14 }, -- inside the panel
+			GapPx = { 5, 8 }, -- between its rows
+			HeaderPx = { 46, 68 }, -- the title row (on a phone: the top bar row's height)
+			TitleScale = 1.2, -- "Ranked" is this much bigger than the kit's title size
+			SubtitleMinPx = 120, -- a narrower room beside the title drops the subtitle
+			CloseMaxPx = 48, -- the close X's largest size
+			CardsPx = { 52, 96 }, -- the current-rank and next-reward cards
+			CurrentShare = 0.5, -- the current-rank card's share of the row
+			CardBadgeShare = 1.15, -- its badge, as a share of the card's height (pokes out)
+			NextBadgeShare = 0.95, -- the next rank's badge on the next-reward card
+			CashShare = 0.62, -- the cash icon on the next-reward card
+			CardTint = 0.3, -- the current-rank card fades to this much of your tier's colour
+			StripPx = { 44, 72 }, -- the tier strip along the bottom
+			StripNameMinPx = 96, -- a tier button this wide (and StripNameMinHeightPx tall)...
+			StripNameMinHeightPx = 56, -- ...shows its tier's name under the badge
+			WindowInsetPx = 3, -- the road inside its rounded window
+			WindowCornerPx = 14,
+			-- The road. A gate's badge is GateShare of the road's height (at most GateMaxPx, and
+			-- smaller if your picture, the name and the tiny XP bar would not fit); a small stop
+			-- is SmallShare of a gate (never under TouchMinPx).
+			GateShare = 0.66,
+			GateMaxPx = 140,
+			SmallShare = 0.56,
+			AboveShare = 0.75, -- room over a badge's centre for your picture and YOU (of a gate)
+			LabelDrop = 0.33, -- a stop's name or numeral starts this far under its centre
+			MiniBarShare = 0.07, -- the tiny XP bar under your stop (its height, of a gate)
+			GateHalfShare = 0.62, -- the room a gate keeps each side of its centre (of a gate)
+			SmallHalfShare = 0.45, -- and a small stop (of a small stop)
+			BannerShare = 1.15, -- the band of the tier's colour behind a gate (width, of a gate)
+			RoadShare = 0.14, -- the road band's thickness (of a gate)
+			ChipShare = 0.25, -- a reward chip's height (of a gate)
+			ChipMinPx = 22,
+			ChipIconShare = 1.25, -- the cash icon pokes out of its chip this much
+			ChipTextShare = 0.6, -- the amount's size (of the chip's height)
+			PromoChipScale = 1.2, -- a tier's first division pays more: its chip is bigger
+			StopGapPx = 10, -- between a chip and the stops each side of it
+			EdgePx = 28, -- before the start and after Reyes
+			ZoneInsetPx = 5, -- a tier's zone stops this far from the road's top and bottom
+			ZoneCornerPx = 14,
+			HeadShare = 0.3, -- your picture over your stop (of a gate)
+			TagShare = 0.17, -- the YOU and Next tags' height (of a gate)
+			TopShare = 0.32, -- the tags sit this far over a badge's centre (of that badge)
+			CheckShare = 0.3, -- the green check on a reached stop (of its badge)
+			RingShare = 0.92, -- the gold ring round a hovered or selected stop (of its badge)
+			RingPx = 4,
+			HoverScale = 1.08, -- a hovered or selected stop pops up this much
+			PressScale = 0.9, -- a pressed stop squishes to this, then bounces back
+			PressSeconds = 0.28,
+			GlowScale = 1.7, -- the gold rays turning behind your badge (of your badge)
+			GlowTransparency = 0.5,
+			GlowDegreesPerSecond = 20,
+			WheelStepPx = 160, -- one mouse wheel notch moves the road this far
+			DragThresholdPx = 6, -- a mouse press moving further drags the road instead
+			ScrollEaseSeconds = 0.09, -- the road's glide to a stop or a tier (time constant)
+			ChipShineEvery = 3.5, -- the gold chips in view sweep with a shine this often
+			ScrollBarPx = 5,
+			LockedTint = { 150, 158, 175 }, -- a locked stop's badge: tinted grey...
+			LockedTransparency = 0.45, -- ...and see-through
+			LockedTextTransparency = 0.35, -- its name or numeral
+			ClaimedTransparency = 0.4, -- a reward already paid fades, with a check
+			ZoneTransparency = 0.78, -- a reached tier's light zone of its colour
+			LockedZoneTransparency = 0.9,
+			BannerTransparency = 0.3, -- the stronger band behind a reached gate
+			LockedBannerTransparency = 0.65,
+			RoadColor = { 222, 227, 236 }, -- the road still to travel (travelled: Kit Gold)
+			TrackColor = { 240, 245, 252 }, -- the road's window behind the zones
+			NextTagColor = { 110, 122, 145 }, -- the Next tag
+			BarBackColor = { 222, 227, 236 }, -- an XP bar's empty part
+			BarTopColor = { 255, 236, 150 }, -- an XP bar's fill fades from this to Kit Gold
+		},
 		-- Confetti (UIAnim.confetti).
 		Confetti = {
 			Count = 36, -- pieces in one burst

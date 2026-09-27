@@ -39,6 +39,7 @@ local PadEffects = require(script.Parent.PadEffects)
 local QueueMenu = require(script.Parent.QueueMenu)
 local TableSign = require(script.Parent.TableSign)
 local OpponentPrompt = require(script.Parent.OpponentPrompt)
+local Progression = require(script.Parent.Progression)
 local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
@@ -380,6 +381,31 @@ local function action(kind: string, value: any?)
 end
 hud = MatchHUD.new(screen, action)
 queueMenu = QueueMenu.new(screen, action)
+-- Ranks and money: the HUDs, nameplates, flying cash, result screen, NEW RANK! and roadmap.
+Progression.start(screen, {
+	-- Where a table's pocket is on screen, in this ScreenGui's pixels (it keeps clear of
+	-- Roblox's top bar, so the inset comes off). A pocket behind the camera is mirrored back
+	-- so the flying cash starts from the nearest edge on the right side.
+	pocketToScreen = function(tableId: number, pocket: number): Vector2?
+		local m = hub:matchFor(tableId)
+		local camera = workspace.CurrentCamera
+		if not m or not camera then
+			return nil
+		end
+		for _, p in m.state.geometry.pockets do
+			if p.id == pocket then
+				local v =
+					camera:WorldToViewportPoint(TableBuilder.toWorld(m.placement, p.x, p.y, 0))
+				local at = Vector2.new(v.X, v.Y)
+				if v.Z < 0 then
+					at = camera.ViewportSize - at
+				end
+				return at - GuiService:GetGuiInset()
+			end
+		end
+		return nil
+	end,
+})
 -- "<name> needs an opponent...": Join asks the server to stand you on their pad.
 local opponentPrompt = OpponentPrompt.new(screen, function(id: number, epoch: number)
 	Net.get("AnswerRequest"):FireServer(id, epoch)
@@ -645,7 +671,9 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		(
 			key.KeyCode == Enum.KeyCode.L
 			or (key.KeyCode == Enum.KeyCode.ButtonB and not input.enabled)
-		) and snapshot
+		)
+		and snapshot
+		and not Progression.isBusy()
 	then
 		leave()
 	elseif key.KeyCode == Enum.KeyCode.Escape and hud:isModal() then
@@ -803,6 +831,16 @@ RunService.RenderStepped:Connect(function(dt)
 	elseif predictedPad then
 		predictedPad = nil -- the server has seated you; the real snapshot drives the menu
 	end
+	-- Ranks and money: the rank HUD hides while you play, your match's nameplates too, and a
+	-- rank-up popup waits until your shot is over.
+	local inMatch = seated ~= nil and seated.phase ~= "Waiting" and seated.phase ~= "Result"
+	local matchIds = {}
+	if inMatch then
+		for _, s in seated.seats do
+			matchIds[s.userId] = true
+		end
+	end
+	Progression.update({ inMatch = inMatch, shooting = controlled, matchUserIds = matchIds })
 	if not snapshot or not match then
 		return
 	end

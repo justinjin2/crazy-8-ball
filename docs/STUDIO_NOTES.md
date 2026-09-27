@@ -149,6 +149,11 @@ rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
 - A BillboardGui with AlwaysOnTop did not appear in `screen_capture` (2026-09-26); the table
   sign stays AlwaysOnTop = false.
 
+- **`TextScaled` and `TextWrapped` are coupled** (tested 2026-09-27): setting
+  `TextWrapped = false` turns `TextScaled` off, and setting `TextScaled = true` turns
+  `TextWrapped` back on. A kit text (`HudParts.text`, TextScaled) given `TextWrapped = false`
+  then draws at its fixed `TextSize` and no longer shrinks to its box. For text that must
+  scale with its box (the nameplates), leave TextWrapped alone.
 - In a Sibling-ZIndex ScreenGui, ZIndex -1 and 0 draw under default (1) siblings: the kit's
   card shadow and fill rely on it.
 - A TextLabel or TextButton can carry two UIStrokes at once: one Contextual (the text's
