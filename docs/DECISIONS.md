@@ -1378,3 +1378,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   table, because its screen starts below GuiService's inset); on a phone the camera starts one
   zoom step closer and the break opens there too (Camera.View.PhoneZoomNotchesIn and
   PhoneBallInHandZoomNotches).
+- 2026-09-27: When the first legal ball after the break decides the groups, each player gets a
+  2.5 s popup, "YOU ARE SOLIDS" or "YOU ARE STRIPES", with a solid or striped ball (designer).

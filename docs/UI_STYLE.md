@@ -176,7 +176,9 @@ order; that is Open.
   shows while a clock runs. No names under the portraits (a rank badge goes there later).
 - **No status card** (designer, 2026-09-26): whose turn it is shows as a small popup under the
   bar for 2 s when a turn starts ("YOUR TURN" in green with the cue, "OPPONENT'S TURN",
-  "ALLY'S TURN"), like the foul popup but smaller; during the turn, the shooter's green
+  "ALLY'S TURN"), like the foul popup but smaller. The same popup says "YOU ARE SOLIDS" or
+  "YOU ARE STRIPES" in gold, with a solid or striped ball, for 2.5 s when the break's first
+  legal ball decides the groups (2026-09-27); during the turn, the shooter's green
   portrait outline and the draining clock edge show it. The ball-in-hand hint is one thin line,
   only as wide as its words.
 - **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on

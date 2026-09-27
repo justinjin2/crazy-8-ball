@@ -342,6 +342,14 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.turnIcon = HudParts.icon(self.turnGroup, "Cue")
 	self.turnTitle = text(self.turnGroup, "Title", S.TurnPopupTitleSize, "")
 	self.turnTitle.TextWrapped = false
+	-- The same popup says which group you are once the break's first legal ball decides them:
+	-- a solid or striped ball beside the words instead of the icon.
+	self.turnBall = HudParts.ball(self.turnGroup)
+	self.turnBall.root.Visible = false
+	self.turnIsGroup = false -- the popup shows the group, not a turn
+	self.popupSeconds = S.TurnPopupSeconds -- how long the current popup stays up
+	self.groupEpoch = nil -- the match whose group reveal is being watched
+	self.knownGroup = nil -- our group in that match as last seen (nil: not decided yet)
 	self.turnKey = "" -- the turn the popup is for
 	self.turnStart = 0 -- when it pops (after a foul popup, if one is up)
 	self.soloShown = nil -- the solo game whose one turn popup has played
@@ -828,8 +836,32 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			else Status.TheirTurn
 		self.turnTitle.TextColor3 = if mine then tone("Green") else tone("White")
 		HudParts.setIcon(self.turnIcon, if mine then "Cue" else "Hourglass")
+		self.turnIsGroup = false
+		self.popupSeconds = S.TurnPopupSeconds
 		self.turnMine = mine
 		self.turnBounced = false
+	end
+	-- The groups are decided (the replay dropped the ball that picks them): tell each player
+	-- theirs, YOU ARE SOLIDS or YOU ARE STRIPES (designer, 2026-09-27). Only when they become
+	-- known during this match, not for someone arriving after.
+	local myGroup = snapshot.groups and snapshot.groups[ours]
+	if self.groupEpoch ~= snapshot.epoch then
+		self.groupEpoch, self.knownGroup = snapshot.epoch, myGroup
+	elseif myGroup ~= self.knownGroup then
+		self.knownGroup = myGroup
+		if myGroup then
+			local solids = myGroup == "solids"
+			self.turnKey = turnKey
+			self.turnStart = math.max(workspace:GetServerTimeNow(), self.foulUntil)
+			self.popupSeconds = S.GroupPopupSeconds
+			self.turnTitle.Text = if solids then Copy.GroupPopup.Solids else Copy.GroupPopup.Stripes
+			self.turnTitle.TextColor3 = tone("Gold")
+			HudParts.setIcon(self.turnIcon, nil)
+			HudParts.paintBall(self.turnBall, if solids then 1 else 9, false)
+			self.turnIsGroup = true
+			self.turnMine = false
+			self.turnBounced = true
+		end
 	end
 	for side, team in self.teams do
 		local teamId = if side == 1 then ours else 3 - ours
@@ -1093,7 +1125,7 @@ function MatchHUD.updateTurn(self: any, now: number)
 	local snapshot = self.snapshot
 	local key = ("%d:%d"):format(snapshot.epoch, snapshot.turnId)
 	local elapsed = now - self.turnStart
-	local left = S.TurnPopupSeconds - elapsed
+	local left = self.popupSeconds - elapsed
 	local show = key == self.turnKey
 		and elapsed >= 0
 		and left > 0
@@ -1118,6 +1150,10 @@ function MatchHUD.updateTurn(self: any, now: number)
 	local fade = 1 - math.clamp(left / S.TurnPopupFadeSeconds, 0, 1)
 	HudParts.setTextTransparency(self.turnTitle, fade)
 	self.turnIcon.ImageTransparency = fade
+	-- The group's ball, where the icon would be; it goes as the words fade.
+	self.turnBall.root.Visible = self.turnIsGroup and fade < 0.6
+	HudParts.sizeBall(self.turnBall, height)
+	self.turnBall.root.Position = UDim2.fromOffset(0, 0)
 	-- The icon sits just left of the words, the pair centred.
 	self.turnIcon.AnchorPoint = Vector2.new(0, 0.5)
 	self.turnIcon.Position = UDim2.fromOffset(0, height / 2)

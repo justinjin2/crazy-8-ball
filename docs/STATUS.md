@@ -1,6 +1,15 @@
 # Status
 
-**2026-09-27 (latest): bigger Leave icon, clearer zoom guide, bar pinned to the top row, closer phone camera.**
+**2026-09-27 (latest): a popup tells each player their group.**
+
+- **Built:** when the groups are decided, the turn popup shows "YOU ARE SOLIDS" or "YOU ARE
+  STRIPES" in gold with a solid or striped ball, for 2.5 s, as the deciding ball drops.
+- **Verified:** lint clean, 357 tests pass. In Play, an open-table shot that decided the groups
+  showed "YOU ARE SOLIDS" with the ball on the client. Console clean.
+
+---
+
+**2026-09-27: bigger Leave icon, clearer zoom guide, bar pinned to the top row, closer phone camera.**
 
 - **Built:** the Leave door fills its button; the zoom guide lighter and bigger, the mouse wheel
   circled in red; the top bar placed from Roblox's real top row (fixes the iPhone 17 Pro drawing

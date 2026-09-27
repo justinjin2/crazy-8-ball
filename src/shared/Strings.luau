@@ -44,6 +44,11 @@ return {
 		Solids = "SOLIDS",
 		Stripes = "STRIPES",
 		-- The status card's one line (MatchHUD), kept short to fit beside the clock on a phone.
+		-- The popup when the groups are decided (MatchHUD): your group.
+		GroupPopup = {
+			Solids = "YOU ARE SOLIDS",
+			Stripes = "YOU ARE STRIPES",
+		},
 		Status = {
 			-- The turn popup (MatchHUD) when a turn starts.
 			YourTurn = "YOUR TURN",

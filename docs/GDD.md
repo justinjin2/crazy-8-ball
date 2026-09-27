@@ -240,7 +240,8 @@ Every feature is checked against these. If it serves none, it waits.
 **Decided**
 - Standard 8-ball. A coin flip decides who breaks (the first-time player always breaks, see
   section 14). The table stays **open after the break**: the first ball legally sunk after the
-  break decides solids and stripes. Sink your ball, shoot again; miss, the turn passes. Fouls
+  break decides solids and stripes, and each player sees a popup saying which they are
+  ("YOU ARE SOLIDS" / "YOU ARE STRIPES", designer, 2026-09-27). Sink your ball, shoot again; miss, the turn passes. Fouls
   (scratch, wrong group first, no ball hit) give the opponent **ball in hand anywhere**. Clear
   your group then sink the 8 to win. Sinking the 8 early, or scratching on the 8, loses the
   game immediately. The 8 sunk on the break is re-spotted and the same player continues. No

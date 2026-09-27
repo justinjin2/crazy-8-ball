@@ -2620,6 +2620,9 @@ Config.Multiplayer = {
 		TurnPopupTitleSize = 24,
 		TurnPopupSeconds = 2, -- up this long
 		TurnPopupFadeSeconds = 0.35, -- and fades out over its last part
+		-- The same popup says YOU ARE SOLIDS or YOU ARE STRIPES when the groups are decided
+		-- (designer, 2026-09-27), up a little longer. (tune)
+		GroupPopupSeconds = 2.5,
 		TouchTargetPx = 44, -- a small button's touch area is still at least this (UI_STYLE section 5)
 		-- Room for Roblox's own buttons at the top, only when Roblox does not report the free
 		-- part of its top bar (GuiService / ScreenInsets.TopbarSafeInsets; MatchHUD).
