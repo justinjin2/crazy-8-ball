@@ -220,6 +220,7 @@ type Candy = {
 	enabled: boolean,
 	lit: boolean,
 	vertical: boolean,
+	extra: Frame?, -- a tile's small line under its name (an icon and words), if it has one
 	action: () -> (),
 	squish: (boolean) -> (),
 	light: (boolean) -> (),
@@ -267,14 +268,20 @@ local function layoutCandy(button: TextButton, c: Candy)
 	local usable = size.Y - lip
 	local pad = math.max(6, math.floor(usable * 0.18))
 	if c.vertical then
-		-- A tile: the icon big on top, the words under it.
-		local labelHeight = math.floor(usable * 0.3)
-		local iconSize = math.floor(math.min(size.X - pad * 2, usable - labelHeight - pad * 0.8))
+		-- A tile: the icon big on top, the words under it, and its small line under those.
+		local extraHeight = if c.extra then math.floor(usable * K.TileExtraShare) else 0
+		local labelHeight = math.floor(usable * (if c.extra then 0.24 else 0.3))
+		local iconSize =
+			math.floor(math.min(size.X - pad * 2, usable - labelHeight - extraHeight - pad * 0.8))
 		c.icon.AnchorPoint = Vector2.new(0.5, 0)
 		c.icon.Position = UDim2.fromOffset(size.X / 2, math.floor(pad * 0.5))
 		c.icon.Size = UDim2.fromOffset(iconSize, iconSize)
-		c.label.Position = UDim2.fromOffset(4, usable - labelHeight - 2)
+		c.label.Position = UDim2.fromOffset(4, usable - labelHeight - extraHeight - 2)
 		c.label.Size = UDim2.fromOffset(math.max(1, size.X - 8), labelHeight)
+		if c.extra then
+			c.extra.Position = UDim2.fromOffset(4, usable - extraHeight - 1)
+			c.extra.Size = UDim2.fromOffset(math.max(1, size.X - 8), extraHeight)
+		end
 		return
 	end
 	local hasIcon = c.icon.Visible
@@ -420,17 +427,51 @@ function HudParts.candy(
 	return button
 end
 
---- A tall candy tile: a big icon over its name (the difficulty choices).
+--- A tall candy tile: a big icon over its name (the difficulty choices). `extraIcon` and
+--- `extraText` add a small line under the name, an icon before words (the money a difficulty
+--- pays: the cash stack and 1.5x).
 function HudParts.tile(
 	parent: Instance,
 	text: string,
 	action: () -> (),
 	tone: string?,
-	iconKey: string
+	iconKey: string,
+	extraIcon: string?,
+	extraText: string?
 ): TextButton
 	local button = HudParts.candy(parent, text, action, tone, iconKey)
 	local c = candies[button]
 	c.vertical = true
+	if extraIcon or extraText then
+		local extra = HudParts.frame(c.body, "Extra")
+		extra.ZIndex = 2
+		local line = Instance.new("UIListLayout")
+		line.FillDirection = Enum.FillDirection.Horizontal
+		line.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		line.VerticalAlignment = Enum.VerticalAlignment.Center
+		line.SortOrder = Enum.SortOrder.LayoutOrder
+		line.Padding = UDim.new(0, 2)
+		line.Parent = extra
+		if extraIcon then
+			local icon = HudParts.icon(extra, extraIcon, "Icon")
+			icon.ZIndex = 2
+			icon.LayoutOrder = 1
+			icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+			icon.Size = UDim2.fromScale(1, 1)
+		end
+		if extraText then
+			local words = HudParts.text(extra, "Text", K.Text.Min, extraText)
+			words.ZIndex = 2
+			words.LayoutOrder = 2
+			words.AutoLocalize = false -- only a number
+			words.TextScaled = false
+			words.TextSize = K.Text.Min
+			words.TextWrapped = false
+			words.AutomaticSize = Enum.AutomaticSize.X
+			words.Size = UDim2.fromScale(0, 1)
+		end
+		c.extra = extra
+	end
 	layoutCandy(button, c)
 	return button
 end

@@ -10,17 +10,26 @@ return {
 		Mode = "%dv%d", -- a table's mode: 1v1, 2v2, 3v3
 		-- The queue pad (TableService) and the sign floating over its table (TableSign).
 		SoloTitle = "SOLO",
-		StepIn = "Step in to play",
-		PadStepIn = "STEP IN", -- on an empty pad, under its mode
+		StepIn = "Join to play", -- on the sign while nobody is on the pad
+		PadJoin = "JOIN", -- on an empty pad, under its mode, and on the sign
 		PadCount = "%d/%d", -- on a pad with players on it: how many, of how many it holds
 		PadFull = "FULL",
 		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on
 		Waiting = "WAITING",
-		-- The queue menu (QueueMenu), seen by everyone in the box; only the host can use it.
+		Starting = "STARTING %d", -- the sign's pill while a full pad counts down to its game
+		-- The popup everyone free in the server gets when a host requests an opponent
+		-- (OpponentPrompt).
+		Request = {
+			NeedsOpponent = "%s needs an opponent...",
+			Join = "Join",
+			Dismiss = "Dismiss",
+			GamepadHint = "Y · Join",
+		},
+		-- The host's card over the table (QueueMenu); everyone else sees the sign (TableSign).
 		Queue = {
 			HostTitle = "HOST",
 			PlayerCount = "%d/%d", -- in the people pill: how many are on the pad, of how many it holds
-			MoneyMultiplier = "%sx", -- the money a difficulty pays, beside the cash icon: 1x, 1.5x, 2x
+			MoneyMultiplier = "%sx", -- the money a difficulty pays, in its tile by the cash icon: 1x, 1.5x, 2x
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
 			LevelInfo = {
 				Classic = "Easiest! Aim line + ball path",
@@ -34,10 +43,12 @@ return {
 			PlaySolo = "Play solo",
 			PlayPC = "Play against PC",
 			Back = "Back",
-			Leave = "Leave",
-			WaitingForHost = "Waiting for %s to start",
-			NeedMore = "Need %d more players", -- a team table waits for its pad to fill
-			NeedOneMore = "Need 1 more player",
+			-- After Start on a pad that is not full: the card waits for players.
+			WaitingForPlayers = "Waiting for players...",
+			WaitingForOpponent = "Waiting for opponent...", -- alone on a 1v1 table
+			RequestOpponent = "Request opponent",
+			Requested = "Requested!", -- on the button while the host waits to ask again
+			StartingIn = "Starting in %d",
 			GamepadHint = "Y · Menu",
 		},
 		OpenTable = "OPEN TABLE",

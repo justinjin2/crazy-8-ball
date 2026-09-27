@@ -193,11 +193,11 @@ local function buildFence(t: any, folder: Instance)
 	end
 end
 
--- The table's queue pad (Placement.queuePad, designer 2026-09-26): a white rounded
--- rectangle lying along the table's long side toward the entrance, with a glowing rim, the
--- table's mode written big on it and STEP IN or the count under that. Stand anywhere on it
--- to join. The part is invisible and level (turned only about the up axis, so the sign that
--- floats over it, TableSign, rises straight up); everything shows on its top face. The
+-- The table's queue pad (Placement.queuePad, designer 2026-09-26): a see-through rounded
+-- rectangle (tinted glass, 2026-09-27) lying along the table's long side toward the
+-- entrance, with a glowing rim, the table's mode written big on it and JOIN or the count
+-- under that. Stand anywhere on it to join. The part is invisible and level (turned only
+-- about the up axis); everything shows on its top face. The
 -- server keeps its attributes and words current (refresh); PadEffects on each client tints
 -- the rim, pulses outlines out of it and bobs an arrow over it from those attributes.
 local function buildPad(t: any, folder: Instance)
@@ -305,7 +305,7 @@ local function refresh(t: any)
 			then C.PadPlaying
 			elseif count >= capacity then C.PadFull
 			elseif count > 0 then C.PadCount:format(count, capacity)
-			else C.PadStepIn
+			else C.PadJoin
 	)
 end
 
@@ -749,6 +749,57 @@ local function poll(t: any, time: number)
 	releaseMissing(t)
 end
 
+-- Whether table `t`'s host still wants an opponent: alone on a 1v1 table, waiting after
+-- Start, and asked recently enough for the popup to still be up (Queue.RequestShowSeconds).
+local function wantsOpponent(t: any, epoch: any, time: number): boolean
+	local e = t.engine
+	return e.epoch == epoch
+		and e.phase == "Waiting"
+		and e.ready ~= nil
+		and e.teamSize == 1
+		and Engine.count(e) == 1
+		and e.requestedAt ~= nil
+		and time - e.requestedAt <= M.Queue.RequestShowSeconds
+end
+
+-- Ask everyone free in the server (not seated at any table) whether they want to play the
+-- host of table `t` (designer, 2026-09-27).
+local function sendRequest(t: any, host: Player)
+	local e = t.engine
+	local ask = {
+		tableId = e.id,
+		epoch = e.epoch,
+		userId = host.UserId,
+		name = host.DisplayName,
+		at = e.requestedAt,
+	}
+	for _, p in Players:GetPlayers() do
+		if p ~= host and not seatOf[p.UserId] then
+			Net.get("OpponentRequest"):FireClient(p, ask)
+		end
+	end
+end
+
+-- A player answered an ask with Join: if it still stands and they are free, stand them on
+-- the pad, facing the table, and seat them at once (the poll would a moment later).
+local function answerRequest(p: Player, id: any, epoch: any)
+	local t = type(id) == "number" and tables[id]
+	local root = rootOf(p)
+	if not t or not root or seatOf[p.UserId] or not wantsOpponent(t, epoch, now()) then
+		return
+	end
+	local e = t.engine
+	local spot = t.pad.Position + Vector3.new(0, Q.RespawnHeight, 0)
+	local centre = Vector3.new(t.placement.x, spot.Y, t.placement.z)
+	local character = p.Character :: Model
+	character:PivotTo(CFrame.lookAt(spot, centre))
+	t.blocked[p.UserId] = nil
+	if Engine.join(e, p.UserId, p.Name, p.DisplayName, now()) then
+		seatOf[p.UserId] = e.id
+		Service.broadcast(t)
+	end
+end
+
 function Service.start(parent: Instance)
 	if started then
 		return
@@ -828,6 +879,9 @@ function Service.start(parent: Instance)
 		-- The coin for a host's Start is the server's, like the rack seed.
 		local accepted = Engine.action(t.engine, p.UserId, payload, now(), rng:NextInteger(1, 2))
 		releaseMissing(t)
+		if accepted and payload.kind == "RequestOpponent" then
+			sendRequest(t, p)
+		end
 		if accepted or t.engine.revision ~= t.sentRevision then
 			Service.broadcast(t) -- one snapshot per accepted Place (a drag release)
 		elseif not isPlace then
@@ -837,6 +891,11 @@ function Service.start(parent: Instance)
 		-- clear the client's awaiting state while a shot it already fired is in flight.
 		if not accepted and not isPlace then
 			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
+		end
+	end)
+	Net.get("AnswerRequest").OnServerEvent:Connect(function(p, id, epoch)
+		if Service.allow(p, "action") then
+			answerRequest(p, id, epoch)
 		end
 	end)
 	local aimUpdate = Net.get("AimUpdate")

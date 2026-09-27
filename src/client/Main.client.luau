@@ -38,6 +38,7 @@ local MatchTargets = require(script.Parent.MatchTargets)
 local PadEffects = require(script.Parent.PadEffects)
 local QueueMenu = require(script.Parent.QueueMenu)
 local TableSign = require(script.Parent.TableSign)
+local OpponentPrompt = require(script.Parent.OpponentPrompt)
 local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
@@ -379,6 +380,15 @@ local function action(kind: string, value: any?)
 end
 hud = MatchHUD.new(screen, action)
 queueMenu = QueueMenu.new(screen, action)
+-- "<name> needs an opponent...": Join asks the server to stand you on their pad.
+local opponentPrompt = OpponentPrompt.new(screen, function(id: number, epoch: number)
+	Net.get("AnswerRequest"):FireServer(id, epoch)
+end)
+Net.get("OpponentRequest").OnClientEvent:Connect(function(ask: any)
+	if hub.mySeat == nil then
+		opponentPrompt:show(ask)
+	end
+end)
 targets = MatchTargets.new(screen, function(pocket)
 	GuiService.SelectedObject = nil
 	hub:action("Pocket", { pocket = pocket })
@@ -642,6 +652,8 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		hud:closeModal()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and snapshot and snapshot.phase == "Waiting" then
 		queueMenu:focus()
+	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot and opponentPrompt:isOpen() then
+		opponentPrompt:focus()
 	elseif key.KeyCode == Enum.KeyCode.F3 then
 		UI.toggleStatus()
 	end
@@ -728,13 +740,30 @@ RunService.RenderStepped:Connect(function(dt)
 	mapAmbience:update(os.clock())
 	dayCycle:update(os.clock())
 	firePit:update(os.clock(), dayCycle.blend or 0)
-	-- The sign over the table you walk up to; none while you are in a box or playing.
+	-- The sign over the table you walk up to, or over your own while you wait on its pad as a
+	-- guest; none while you host (your own card stands there) or play. Stepping onto an
+	-- empty pad makes you its host before the server says so (predictedPad, below).
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	local seated = hub.mySeat and hub.snapshots[hub.mySeat]
+	local waiting = seated ~= nil and seated.phase == "Waiting"
+	local predictedHost = predictedPad ~= nil
+		and hub.snapshots[predictedPad] ~= nil
+		and hub.snapshots[predictedPad].hostId == nil
+	local hosting = (waiting and seated.hostId == player.UserId) or predictedHost
 	tableSign:update(
 		if rootPart and rootPart:IsA("BasePart") then rootPart.Position else nil,
-		hub.mySeat ~= nil or controlled,
+		controlled or hosting or (hub.mySeat ~= nil and not waiting),
+		if waiting and not hosting then hub.mySeat else nil,
 		zones,
+		function(id: number)
+			return hub.snapshots[id]
+		end,
+		workspace:GetServerTimeNow()
+	)
+	opponentPrompt:update(
+		workspace:GetServerTimeNow(),
+		hub.mySeat ~= nil or controlled,
 		function(id: number)
 			return hub.snapshots[id]
 		end

@@ -80,6 +80,12 @@ function Placement.toWorld(
 		p.z - s * (xIn * p.sin + yIn * p.cos)
 end
 
+--- The point the table's card floats at (TableSign, QueueMenu): over the middle of the
+--- table, `liftStuds` above the cloth. World studs, three numbers like toWorld.
+function Placement.overTable(p: Placement, liftStuds: number): (number, number, number)
+	return Placement.toWorld(p, 0, 0, liftStuds / Config.Table.StudsPerInch)
+end
+
 --- World position (studs) for a point in TABLE STUDS: `xs`, `ys` along the table's length
 --- and width from its centre (physics x and y times StudsPerInch), `heightAboveFloor` above
 --- the floor the table stands on (not the cloth). ShooterStance works in these units, since

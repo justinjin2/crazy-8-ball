@@ -30,6 +30,12 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: please seat me at this table / take me off it.
 	RequestSeat = "RemoteEvent",
 	RequestLeave = "RemoteEvent",
+	-- server -> everyone free (not seated at a table): a host alone on a 1v1 table asks for an
+	-- opponent. {tableId, epoch, userId, name, at}; the client shows OpponentPrompt.
+	OpponentRequest = "RemoteEvent",
+	-- client -> server: I answer that ask with Join. (tableId, epoch); the server checks it
+	-- still stands, then puts the player on the pad and seats them.
+	AnswerRequest = "RemoteEvent",
 	RequestRerack = "RemoteEvent", -- Studio-only developer reset; server advances/broadcasts rack seed
 	-- client -> server: I want to take this shot. Inputs only; the server decides what
 	-- actually happens (ARCHITECTURE.md section 1, never trust the client).

@@ -2325,7 +2325,10 @@ Config.UI = {
 	Sign = {
 		ShowStuds = 6, -- it pops up within this far of the table's match area (tune)
 		HideStuds = 8, -- and goes once you are this far out, so it does not flicker at the edge
-		HeightStuds = 6.5, -- above the queue pad
+		-- The sign and the host's card float over the middle of the table, this far above the
+		-- cloth (designer, 2026-09-27: one card, on the table, not over the pad): the sign
+		-- stands on this point, the host's card is centred on it. (tune)
+		LiftStuds = 2,
 		WidthPx = 280, -- its size on screen, pixels (the same at any distance)
 		HeightPx = 190, -- mode, host, count and abilities, difficulty, and the status pill
 		PillWidthPx = 60, -- the abilities ON/OFF pill
@@ -2387,6 +2390,7 @@ Config.UI = {
 		ButtonStrokePx = 3, -- ink outline
 		ButtonCornerPx = 12,
 		ButtonIconShare = 0.62, -- an icon on a button is this share of its height
+		TileExtraShare = 0.2, -- a tile's small line under its name (the money it pays), share of its height
 		ButtonIconOnlyShare = 0.95, -- an icon with no words (Leave's door) fills most of the button (designer, 2026-09-27)
 		PressedScale = 0.94, -- the squish when pressed
 		SelectedScale = 1.04, -- a gamepad-selected or hovered button grows a little
@@ -2519,6 +2523,14 @@ Config.Multiplayer = {
 		-- Join the moment you are on it (designer, 2026-09-26: "it needs to be instant").
 		DwellSeconds = 0,
 		ExitGraceSeconds = 0.5, -- off it this long before you leave: forgive edge jitter
+		-- The host pressed Start before the pad was full: the game starts by itself this long
+		-- after the pad fills, so someone who walked on by accident can step off (designer,
+		-- 2026-09-27). A pad that is already full at Start begins at once. (tune)
+		ReadyGraceSeconds = 3,
+		-- Request opponent (alone on a 1v1 table, after Start): everyone free in the server
+		-- gets a popup to join (designer, 2026-09-27). (tune)
+		RequestCooldownSeconds = 20, -- the host may ask again after this long
+		RequestShowSeconds = 15, -- the popup goes by itself after this long
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same
@@ -2576,13 +2588,15 @@ Config.Multiplayer = {
 	CoinSound = "rbxassetid://7022812395", -- Creator Store coin flip; preload verified
 	UISoundVolume = 0.35, -- quiet underneath physical impact mix
 	QueueVisual = {
-		-- The queue pad (TableService.buildPad): a white rounded rectangle with a glowing rim,
-		-- the table's mode written big on it and STEP IN or the count under that. The part is
-		-- invisible and all of it is drawn on its top face, so the corners can round.
+		-- The queue pad (TableService.buildPad): a see-through rounded rectangle tinted like its
+		-- glowing rim (designer, 2026-09-27: glass, not a white sheet), the table's mode written
+		-- big on it and JOIN or the count under that. The part is invisible and all of it is
+		-- drawn on its top face, so the corners can round. PadEffects tints the plate with the
+		-- rim: blue with room, green with somebody on, gold when full or playing.
 		PadHeight = 0.12, -- thin floor plate, studs
 		FloorOffset = 0.08, -- avoid z-fighting with the floor, studs
-		PadColor = { 245, 248, 255 }, -- the plate: near white
-		PadTransparency = 0.05,
+		PadColor = { 59, 155, 255 }, -- the plate before PadEffects tints it: the rim's blue
+		PadTransparency = 0.55, -- the floor shows through (tune)
 		PadCornerPx = 36, -- its rounded corners, pixels (at PixelsPerStud)
 		RimPx = 14, -- the glowing rim round it, pixels
 		RimFree = { 59, 155, 255 }, -- house blue while there is room
@@ -2723,23 +2737,31 @@ Config.Multiplayer = {
 		ShortOpenBallSize = 15, -- the same on the two-row (narrow) layout
 		OpenBallMinSize = 12, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
-		-- The queue menu (src/client/QueueMenu.luau), top right while waiting in a box.
+		-- The host's card (src/client/QueueMenu.luau), floating over their table while it waits.
 		QueueMenuWidth = 260, -- pixels, before shrinking to fit
 		QueueMenuPadding = 10, -- inside the card
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueRowGap = 6, -- between the card's rows
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueTouchRight = 120, -- on touch screens without a jump button showing, the card keeps this far from the right edge
 		QueueHostSize = 18, -- the host's name
 		QueueHostRowHeight = 32, -- the crown, HOST and the name
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
-		QueueLevelHeight = 92, -- the difficulty tiles: picture over name
-		QueueMoneyHeight = 22, -- the money each difficulty pays, under its tile
+		QueueLevelHeight = 104, -- the difficulty tiles: picture over name over the money it pays
 		QueueAbilitiesHeight = 40, -- the abilities row and its ON/OFF button
 		QueueTileTextFloor = 10, -- a tile's name shrinks this far before it spills over the next
 		QueueStartHeight = 46, -- Start, bigger than the rest
 		QueueToggleWidth = 68, -- the abilities ON/OFF button
+		QueueSummaryHeight = 30, -- the waiting card's difficulty and abilities row
+		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre.
+		PromptWidth = 330, -- pixels, before shrinking to fit a narrow screen
+		PromptHeight = 96,
+		PromptPadding = 10, -- inside the card
+		PromptFaceSize = 72, -- the host's headshot
+		PromptButtonHeight = 40, -- Join and Dismiss
+		PromptBottom = 16, -- above the screen's bottom edge
+		PromptMinScale = 0.7, -- never shrink it further than this
+		PromptHeadshot = "rbxthumb://type=AvatarHeadShot&id=%d&w=150&h=150", -- the host's face
 		OwnBallOutlineTransparency = 0.6, -- subtle local group hint (the normal style)
 		-- The STRONG style: a vivid solid outline on the balls to hit and the other group
 		-- washed grey. Off in normal play by the designer's choice (2026-09-23); kept for the

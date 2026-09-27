@@ -74,6 +74,10 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   trapped in the viewport); reset it to Default after previews.
 - Mouse and keyboard input tools are flaky (coordinates scale with the device emulator,
   "duplicate button state"); prefer scripted checks.
+- In the phone emulator (750x361) `user_mouse_input` lands a fixed (-62, -20) px from what it
+  is given, and clicks by `instance_path` miss the same way, so they hit the wrong button or
+  nothing (measured 2026-09-27 with a UserInputService.InputBegan log). Click a GUI centre by
+  raw x/y = AbsolutePosition + AbsoluteSize / 2 + (62, 20), and confirm each click by its effect.
 - Simulating the join prompt from a Client script: teleport the character next to the prompt,
   wait half a second, `InputHoldBegin`, wait, `InputHoldEnd`. A hold in the same tick as the
   teleport does not trigger.

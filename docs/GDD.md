@@ -186,27 +186,42 @@ Every feature is checked against these. If it serves none, it waits.
 - **Joining: step onto the table's queue pad.** Each table has one glowing rectangular pad in
   front of it, lying along the long side that faces the entrance (changed 2026-09-26 for the
   rooftop map; a round pad was tried the same day and dropped), longer for bigger modes,
-  holding both teams (2, 4 or 6). Its mode is written big on it with STEP IN or the count;
+  holding both teams (2, 4 or 6). It is see-through glass tinted like its rim (blue with room,
+  green with someone on, gold when full or playing; designer, 2026-09-27). Its mode is written
+  big on it with JOIN or the count;
   outlines pulse out of it and a big arrow bobs over it while it has room. Joining is instant: the host menu pops up the moment you step on. Stepping on plays a
   sound and a VFX and the rim turns green so everyone can see someone is queueing. There is no
   accept step; anyone may step onto a waiting pad with room, and walking off (or Leave) leaves
   at once. Everyone else can stand around and watch. Players in a match stay by their table:
   invisible walls, a few studs beyond its area and its pad, let someone waiting for their turn
-  walk about a little but never reach another table (designer, 2026-09-26). The sign over a table (mode, host, count,
-  abilities, difficulty) shows only when you walk right up to it.
-- The first person on is the **host**. Everyone on the pad sees the **queue menu**: the host's
-  name, how many are on the pad, the **difficulty** (Classic, Difficult, Challenger; Classic
-  preselected) and **abilities** on or off (on by default; the toggle does nothing until
-  abilities exist). Only the host can change them or press **Start**. If the host leaves, the
+  walk about a little but never reach another table (designer, 2026-09-26). **One card per
+  table, floating over the middle of the table** (designer, 2026-09-27): the host sees their
+  menu there; everyone else, guests on the pad included, sees the table's sign there (mode,
+  host, count, abilities, difficulty, and JOIN, WAITING, STARTING 3 or PLAYING). The sign
+  shows when you walk right up to the table, or while you wait on its pad as a guest.
+- The first person on is the **host**. The host's **menu** shows their name, how many are on
+  the pad, the **difficulty** (Classic, Difficult, Challenger; Classic preselected; each tile
+  shows the money it pays under its name) and **abilities** on or off (on by default; the
+  toggle does nothing until abilities exist), and **Start**. There is no Leave button: walking
+  off the pad leaves (designer, 2026-09-27). If the host leaves, the
   next to arrive becomes host and the settings stay; they go back to Classic and on when the
   pad empties and after every game.
-- **Start** needs the pad full; the game begins at once, no countdown: straight to the coin
+- **Start** on a full pad begins the game at once, no countdown: straight to the coin
   flip, about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU
   BREAK" or "<NAME> BREAKS" for over a second (designer, 2026-09-27). **Teams go by arrival**: the first on (the host) is team A, the next team B, and so on
-  alternately. Until the pad is full the menu says how many more are needed. Alone on a **1v1
-  table**, Start offers **Play solo** (starts immediately) and **Play against PC** (does
-  nothing until bots exist); the 2v2 and 3v3 tables have no solo. There is no automatic
-  start against PC.
+  alternately. **Start on a pad that is not full** (designer, 2026-09-27) turns the menu into
+  a waiting card: the settings shown but not changeable, "Waiting for players..." (on a 1v1
+  table alone, "Waiting for opponent..."), and **Back** to the settings. The game then starts
+  by itself once the pad fills, **3 s** *(tune)* after the last one stepped on, so someone who
+  walked on by accident can step off. Alone on a **1v1 table** the waiting card also offers
+  **Request opponent**, **Play against PC** (does nothing until bots exist) and **Play solo**
+  (starts immediately); the 2v2 and 3v3 tables have no solo. There is no automatic start
+  against PC.
+- **Request opponent** (designer, 2026-09-27): everyone in the server who is not at a table
+  gets a small popup at the bottom of the screen, the host's face and "<name> needs an
+  opponent..." with **Join** (stands them on the host's pad, which starts the game after the
+  3 s) and **Dismiss**. It goes by itself after 15 s *(tune)* or as soon as the pad fills or the
+  host leaves. The host can ask again after 20 s *(tune)*.
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.

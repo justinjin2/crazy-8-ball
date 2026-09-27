@@ -27,6 +27,7 @@ PadEffects.__index = PadEffects
 type Pad = {
 	part: BasePart,
 	rim: UIStroke?,
+	plate: Frame?, -- the see-through plate the rim goes round, tinted with it
 	host: Part, -- local, level over the pad: holds the motes, glow, sound, rings and arrow
 	count: number,
 	glow: PointLight,
@@ -57,10 +58,16 @@ local function folderFor(): Folder
 	return folder
 end
 
--- The pad's glowing outline (TableService.buildPad), once it has replicated.
-local function rimOf(part: BasePart): UIStroke?
+-- The pad's plate (TableService.buildPad), once it has replicated.
+local function plateOf(part: BasePart): Frame?
 	local label = part:FindFirstChild("PadLabel")
 	local plate = label and label:FindFirstChild("Plate")
+	return if plate and plate:IsA("Frame") then plate else nil
+end
+
+-- The plate's glowing outline.
+local function rimOf(part: BasePart): UIStroke?
+	local plate = plateOf(part)
 	local rim = plate and plate:FindFirstChild("Rim")
 	return if rim and rim:IsA("UIStroke") then rim else nil
 end
@@ -162,6 +169,7 @@ local function build(part: BasePart): Pad
 	return {
 		part = part,
 		rim = rimOf(part),
+		plate = plateOf(part),
 		host = host,
 		count = if type(count) == "number" then count else 0,
 		glow = glow,
@@ -236,12 +244,18 @@ function PadEffects.update(
 		end
 		pad.count = count
 
-		-- The rim: blue with room, green with somebody on, gold when full or playing.
+		-- The rim and the glass inside it: blue with room, green with somebody on, gold when
+		-- full or playing.
 		local tint =
 			rgb(if not open then Q.RimFull elseif occupied then Kit.Colors.Green else Q.RimFree)
+		local blend = 1 - math.exp(-dt / M.Style.FadeSeconds)
 		pad.rim = pad.rim or rimOf(part)
 		if pad.rim then
-			pad.rim.Color = pad.rim.Color:Lerp(tint, 1 - math.exp(-dt / M.Style.FadeSeconds))
+			pad.rim.Color = pad.rim.Color:Lerp(tint, blend)
+		end
+		pad.plate = pad.plate or plateOf(part)
+		if pad.plate then
+			pad.plate.BackgroundColor3 = pad.plate.BackgroundColor3:Lerp(tint, blend)
 		end
 
 		-- "Step here": rings and the arrow while the pad has room. A ring starts on the rim and

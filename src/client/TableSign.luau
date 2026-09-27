@@ -1,12 +1,14 @@
 --!strict
--- TableSign: the card floating over a table's queue pad. It says the table's mode (1v1, 2v2
--- or 3v3), who hosts, how many are on the pad, whether abilities are on, the chosen
--- difficulty, and whether you can step in.
+-- TableSign: the card floating over the middle of a table (designer, 2026-09-27: one card, on
+-- the table, not over its pad). It says the table's mode (1v1, 2v2 or 3v3), who hosts, how
+-- many are on the pad, whether abilities are on, the chosen difficulty, and whether you can
+-- join, or that the game is about to start.
 --
--- Only one shows, over the table you walk right up to (Config.UI.Sign, measured by
--- Placement.nearestArea), and never while you are on a pad or playing: the host menu or the
--- top bar says it all then. It pops in when you arrive and pops out when you walk away
--- (designer, 2026-09-25: it used to hang over all sixteen tables all the time).
+-- Only one shows: over the table you walk right up to (Config.UI.Sign, measured by
+-- Placement.nearestArea), or over your own while you wait on its pad as a guest. Never while
+-- you host (the host's own card, QueueMenu, stands there instead) or play. It pops in when
+-- you arrive and pops out when you walk away (designer, 2026-09-25: it used to hang over all
+-- sixteen tables all the time).
 --
 -- It is drawn from the table snapshot every client already has, so everyone near a table
 -- reads the same thing; the server only keeps the pad itself (TableService).
@@ -31,13 +33,20 @@ function TableSign.new(playerGui: Instance): any
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "TableSign"
 	gui.Size = UDim2.fromOffset(Sign.WidthPx, Sign.HeightPx)
-	gui.StudsOffsetWorldSpace = Vector3.new(0, Sign.HeightStuds, 0)
 	gui.LightInfluence = 0
+	-- The card stands on the point over the table rather than round it, so the rails never
+	-- hide its status pill (AlwaysOnTop is off: it did not show in Studio captures).
+	gui.SizeOffset = Vector2.new(0, 0.5)
 	gui.ResetOnSpawn = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Enabled = false
 	gui.Parent = playerGui
 	self.gui = gui
+	-- The point over the table the card hangs at, moved to each table in turn.
+	local anchor = Instance.new("Attachment")
+	anchor.Name = "TableSignAnchor"
+	anchor.Parent = workspace.Terrain
+	self.anchor = anchor
 	-- The card leaves room round it for its shadow, the pop's overshoot and the status pill.
 	local card = HudParts.card(gui, "Card")
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -90,7 +99,7 @@ function TableSign.new(playerGui: Instance): any
 	self.levelName.TextXAlignment = Enum.TextXAlignment.Left
 	self.levelName.Position = UDim2.fromOffset(pad + rowHeight + 4, levelTop)
 	self.levelName.Size = UDim2.new(1, -pad * 2 - rowHeight - 4, 0, rowHeight)
-	-- The status pill hangs off the bottom edge: step in, waiting, full or playing.
+	-- The status pill hangs off the bottom edge: join, waiting, starting, full or playing.
 	self.status = HudParts.pill(card, "Status")
 	self.status.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.status.Position = UDim2.fromScale(0.5, 1)
@@ -103,7 +112,7 @@ function TableSign.new(playerGui: Instance): any
 end
 
 -- Write table `id`'s card from its snapshot (nil until it has arrived: an empty pad).
-function TableSign.fill(self: any, id: number, snapshot: any?)
+function TableSign.fill(self: any, id: number, snapshot: any?, now: number)
 	local teamSize = if snapshot then snapshot.teamSize else Placement.teamSizeOf(id) or 1
 	local capacity = teamSize * 2
 	local phase = if snapshot then snapshot.phase else "Waiting"
@@ -133,37 +142,47 @@ function TableSign.fill(self: any, id: number, snapshot: any?)
 	self.abilitiesText.Text = if abilities then Copy.Queue.On else Copy.Queue.Off
 	self.abilities.BackgroundColor3 = if abilities then tone("Green") else tone("Grey")
 	local words, colour
+	local startsAt = snapshot and snapshot.startsAt
 	if not waiting then
 		words, colour = Copy.PadPlaying, "Blue"
+	elseif startsAt then
+		words, colour = Copy.Starting:format(math.max(1, math.ceil(startsAt - now))), "Green"
 	elseif count >= capacity then
 		words, colour = Copy.PadFull, "Red"
 	elseif count > 0 then
 		words, colour = Copy.Waiting, "Gold"
 	else
-		words, colour = Copy.PadStepIn, "Green"
+		words, colour = Copy.PadJoin, "Green"
 	end
 	self.statusText.Text = words
 	self.status.BackgroundColor3 = tone(colour)
 end
 
--- The sign hangs over the table's pad. Its StudsOffsetWorldSpace is measured in the pad's own
--- axes, so it rises straight up only because the pad lies level (TableService.buildPad).
+-- Whether table `id`'s pad has streamed in: the sign waits for it, like the pad's effects.
 local function padPart(zones: Instance, id: number): BasePart?
 	local part = zones:FindFirstChild(("QueuePad_%02d"):format(id))
 	return if part and part:IsA("BasePart") then part else nil
 end
 
 --- Step the sign. `position` is the local character's (nil without one); `busy` is true
---- while the player is on a pad or playing; `snapshotFor` gives a table's latest snapshot.
+--- while the player hosts or plays (no sign at all); `guestOf` is the table whose pad the
+--- player waits on as a guest, whose sign shows wherever they stand on it; `snapshotFor`
+--- gives a table's latest snapshot; `now` is the server's clock, for the countdown.
 function TableSign.update(
 	self: any,
 	position: Vector3?,
 	busy: boolean,
+	guestOf: number?,
 	zones: Instance,
-	snapshotFor: (number) -> any?
+	snapshotFor: (number) -> any?,
+	now: number
 )
 	local target: number? = nil
-	if position and not busy then
+	if busy then
+		target = nil
+	elseif guestOf then
+		target = guestOf
+	elseif position then
 		local id, distance = Placement.nearestArea(position.X, position.Z)
 		local limit = if id == self.id then Sign.HideStuds else Sign.ShowStuds
 		if id and distance <= limit and padPart(zones, id) then
@@ -178,10 +197,13 @@ function TableSign.update(
 			if token ~= self.token then
 				return
 			end
-			if target then
-				self.gui.Adornee = padPart(zones, target)
+			local p = target and Placement.forTable(target)
+			if target and p then
+				local x, y, z = Placement.overTable(p, Sign.LiftStuds)
+				self.anchor.WorldPosition = Vector3.new(x, y, z)
+				self.gui.Adornee = self.anchor
 				self.gui.Enabled = true
-				self:fill(target, snapshotFor(target))
+				self:fill(target, snapshotFor(target), now)
 				UIAnim.popIn(self.card)
 			else
 				self.gui.Enabled = false
@@ -191,7 +213,7 @@ function TableSign.update(
 		UIAnim.popOut(self.card, arrive)
 	end
 	if self.id and self.card.Visible then
-		self:fill(self.id, snapshotFor(self.id))
+		self:fill(self.id, snapshotFor(self.id), now)
 	end
 end
 

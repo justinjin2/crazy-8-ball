@@ -1402,3 +1402,12 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: The zoom guide hides after the player's first zoom and stays hidden for the session; it returns on the next visit (designer).
 - 2026-09-27: NICE SHOT! is a lot smaller: 22 px text (was 40), rays 90 px (was 150) (designer).
 - 2026-09-27: NICE SHOT! text 18 px (was 22), rays 74 px (designer).
+- 2026-09-27: Queue area as one card over the table (designer): the pad says JOIN and is
+  see-through glass tinted with its rim; the host's menu and the sign float over the middle of
+  the table, not the pad; guests on the pad see the sign, not a greyed menu; the money each
+  difficulty pays sits in its tile under the name; no Leave button (walk off). Start on a pad
+  that is not full waits (settings shown, Back) and the game starts by itself 3 s after the pad
+  fills (at once if everyone was already on). Alone on a 1v1 table: Request opponent (a
+  Join/Dismiss popup with the host's face for everyone not at a table; Join teleports them onto
+  the pad), Play against PC, Play solo. Defaults picked by Claude, open to change: Join
+  teleports, the popup lasts 15 s, the host may ask again after 20 s.
