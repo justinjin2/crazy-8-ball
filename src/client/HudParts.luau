@@ -135,6 +135,21 @@ end
 --- faint pool-ball pattern. Returns the (clear) container; put content straight into it. A
 --- card that lays out a list should put the list in a child frame, or the list would take
 --- the shadow and fill as items too.
+-- The faint 8-ball pattern, tiled over `parent` and clipped to its round corners.
+local function pattern(parent: Instance, cornerPx: number)
+	local tiles = Instance.new("ImageLabel")
+	tiles.Name = "Pattern"
+	tiles.BackgroundTransparency = 1
+	tiles.Image = K.PatternImage
+	tiles.ImageColor3 = color(K.PatternColor)
+	tiles.ImageTransparency = K.PatternTransparency
+	tiles.ScaleType = Enum.ScaleType.Tile
+	tiles.TileSize = UDim2.fromOffset(K.PatternTilePx, K.PatternTilePx)
+	tiles.Size = UDim2.fromScale(1, 1)
+	tiles.Parent = parent
+	HudParts.corner(tiles, cornerPx) -- clips the tiles to the round corners
+end
+
 function HudParts.card(parent: Instance, name: string, radius: number?): Frame
 	local cornerPx = radius or K.PanelCornerPx
 	local root = HudParts.frame(parent, name)
@@ -163,18 +178,50 @@ function HudParts.card(parent: Instance, name: string, radius: number?): Frame
 	fade.Rotation = 90
 	fade.Color = ColorSequence.new(color(K.Colors.White), color(K.PanelFade))
 	fade.Parent = fill
-	local pattern = Instance.new("ImageLabel")
-	pattern.Name = "Pattern"
-	pattern.BackgroundTransparency = 1
-	pattern.Image = K.PatternImage
-	pattern.ImageColor3 = color(K.PatternColor)
-	pattern.ImageTransparency = K.PatternTransparency
-	pattern.ScaleType = Enum.ScaleType.Tile
-	pattern.TileSize = UDim2.fromOffset(K.PatternTilePx, K.PatternTilePx)
-	pattern.Size = UDim2.fromScale(1, 1)
-	pattern.Parent = fill
-	HudParts.corner(pattern, cornerPx) -- clips the tiles to the card's round corners
+	pattern(fill, cornerPx)
 	return root
+end
+
+--- A menu's panel (the roadmap, the host menu, later the shop; UI_STYLE section 2): a kit
+--- card whose top is a pale-blue header band for the title and close button, and whose
+--- content sits on a near-white sheet with big rounded top corners and a thin light-blue
+--- edge, the 8-ball pattern on both. Place the sheet's top from the screen's layout with
+--- setSheetTop; content goes straight into the returned card, as with card.
+function HudParts.menuCard(parent: Instance, name: string, radius: number?): Frame
+	local root = HudParts.card(parent, name, radius)
+	local fill = root:FindFirstChild("Fill") :: Frame
+	local band = fill:FindFirstChildOfClass("UIGradient") :: UIGradient
+	band.Color = ColorSequence.new(color(K.HeaderTop), color(K.HeaderBottom))
+	local sheet = HudParts.frame(fill, "Sheet")
+	sheet.BackgroundTransparency = 0
+	sheet.BackgroundColor3 = Color3.new(1, 1, 1)
+	sheet.ZIndex = 2 -- over the band's pattern; still under everything put in the card
+	HudParts.corner(sheet, K.SheetCornerPx)
+	local edge = Instance.new("UIStroke")
+	edge.Color = color(K.SheetEdge)
+	edge.Thickness = K.SheetEdgePx
+	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	edge.Parent = sheet
+	local fade = Instance.new("UIGradient")
+	fade.Rotation = 90
+	fade.Color = ColorSequence.new(color(K.SheetTop), color(K.SheetBottom))
+	fade.Parent = sheet
+	pattern(sheet, K.SheetCornerPx)
+	HudParts.setSheetTop(root, 0)
+	return root
+end
+
+--- Where a menu card's sheet starts, in pixels from the card's top (just under its header);
+--- it runs to the card's bottom, inset by Kit.SheetInsetPx at the sides and bottom.
+function HudParts.setSheetTop(card: Frame, topPx: number)
+	local fill = card:FindFirstChild("Fill")
+	local sheet = fill and fill:FindFirstChild("Sheet") :: Frame?
+	if not sheet then
+		return
+	end
+	local inset = K.SheetInsetPx
+	sheet.Position = UDim2.fromOffset(inset, topPx)
+	sheet.Size = UDim2.new(1, -inset * 2, 1, -topPx - inset)
 end
 
 --- A small rounded tag (a status, a count, the clock): a flat fill with an ink outline.

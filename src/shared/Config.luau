@@ -3020,6 +3020,18 @@ Config.UI = {
 		PanelFade = { 226, 238, 255 }, -- panels fade from white at the top to this pale blue
 		PanelStrokePx = 3, -- the ink outline round every panel
 		PanelCornerPx = 16, -- panel corner radius
+		-- A menu's panel (HudParts.menuCard; the roadmap, the host menu, later the shop), after
+		-- the designer's Ranked reference (2026-09-27): a pale-blue header band for the title,
+		-- and the content on a near-white sheet with big rounded top corners and a thin
+		-- light-blue edge. Colours measured off the reference. (tune)
+		HeaderTop = { 222, 239, 254 }, -- the band at the panel's top...
+		HeaderBottom = { 208, 234, 253 }, -- ...deepening a little toward the sheet
+		SheetTop = { 252, 253, 255 }, -- the sheet, nearly white at its top...
+		SheetBottom = { 236, 244, 253 }, -- ...fading to a pale blue at the bottom
+		SheetEdge = { 176, 216, 250 }, -- its thin edge (light blue, not ink)
+		SheetEdgePx = 2,
+		SheetCornerPx = 22, -- its rounded corners: the header's curve
+		SheetInsetPx = 6, -- in from the panel's outline at the sides and bottom
 		PillCornerPx = 999, -- pills are fully round at the ends
 		-- The shadow under panels: a 9-slice blurred square (tools/gen_ui_art.py shadow.png).
 		ShadowImage = "rbxassetid://73622387505906",

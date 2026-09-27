@@ -20,6 +20,10 @@
   of tiny dots; one new tile image
   (`tools/gen_ui_art.py pattern`), so every current and future panel has it. Checked on the
   roadmap and the rank and money pills.
+- **Also built:** menus after the designer's Ranked reference: a pale-blue header band with
+  the title and close button, the content on a near-white sheet with big rounded top corners
+  and a light-blue edge (`HudParts.menuCard`). On the roadmap and the host menu; the rule for
+  future menus is in UI_STYLE section 2. Checked in Studio on a PC window; console clean.
 
 ---
 

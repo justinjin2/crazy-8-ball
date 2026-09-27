@@ -29,6 +29,13 @@ screen, a popup).
   the repeat does not show (an even grid of small blurred balls was tried and the designer
   preferred this). Faint: felt more than seen. Every panel gets it from the kit's
   card (`HudParts.card`), so new screens have it too.
+- **Menus get a header band and a sheet** (designer, 2026-09-27, after their Ranked
+  reference): a menu is a screen with a title (the roadmap, the host menu, and later the shop,
+  inventory and settings). Its panel's top is a pale-blue band holding the title and the close
+  button; everything else sits on a near-white sheet with big rounded top corners (the curved
+  header) and a thin light-blue edge, inset a little from the panel's outline. The 8-ball
+  pattern shows on both. Built with `HudParts.menuCard` and `HudParts.setSheetTop`; small
+  panels and popups stay plain cards.
 - **Popups never darken the screen** (designer, 2026-09-27, said for the dialogs and again for
   the rank screens): no dim behind a popup, a dialog, the end-of-match screen or NEW RANK!, because
   the dark layer shows where it stops at the screen's edges on different devices. The one

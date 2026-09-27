@@ -771,7 +771,7 @@ function Roadmap.build(self: any)
 	panel.SelectionBehaviorRight = Enum.SelectionBehavior.Stop
 	self.panel = panel
 	catcher(panel, "Floor").ZIndex = 0
-	local card = HudParts.card(panel, "Card")
+	local card = HudParts.menuCard(panel, "Card")
 	card.Size = UDim2.fromScale(1, 1)
 	card.ZIndex = 1
 	self.card = card
@@ -903,6 +903,8 @@ function Roadmap.layout(self: any): boolean
 	self.header.Position = UDim2.fromOffset(pad, pad)
 	self.header.Size = UDim2.fromOffset(iw, headerH)
 	self:layoutHeader(iw, headerH, headLeft, headRight, gap, titleSize, body, short)
+	-- The header band is the title row; everything under it sits on the sheet.
+	HudParts.setSheetTop(self.card, pad + headerH + round(gap / 2))
 
 	-- Bottom up: the two cards, then the tier row takes the rest.
 	local cardsH = spanPx(R.CardsPx, t)

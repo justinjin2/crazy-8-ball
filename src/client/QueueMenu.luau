@@ -100,7 +100,13 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.root = root
 	self.scale = Instance.new("UIScale")
 	self.scale.Parent = root
-	local card = HudParts.card(root, "Card")
+	-- A menu card: the title row ("Classic 1v1" and the count) is its header band, the choices
+	-- sit on the sheet under it.
+	local card = HudParts.menuCard(root, "Card")
+	HudParts.setSheetTop(
+		card,
+		S.QueueMenuPadding + S.QueueTitleHeight + math.floor(S.QueueRowGap / 2)
+	)
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
 	card.Position = UDim2.fromScale(0.5, 0.5)
 	card.Size = UDim2.fromScale(1, 1)

@@ -1535,3 +1535,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   turned alike and slightly blurred; the scattered mix of sizes was too big and busy.
 - 2026-09-27 (designer): back to the scattered 8 balls of a few sizes; the even grid looked
   worse.
+- 2026-09-27 (designer): menus (the roadmap, the host menu, later the shop and the rest) have
+  a pale-blue header band for the title and close button, and their content on a near-white
+  sheet with big rounded top corners and a thin light-blue edge (HudParts.menuCard).
