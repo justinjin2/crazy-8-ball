@@ -495,7 +495,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 10. Sounds found, checked and wired.
 - [x] 11. Full playthrough and every screen checked on phone, tablet, PC and gamepad.
 - [x] 12. Second audit and branch-wide bug review; findings fixed.
-- [ ] 13. Polish pass.
+- [x] 13. Polish pass.
 - [ ] 14. Docs updated and `docs/prompts/RANKS_MONEY_REPORT.md` written; branch pushed.
 
 ## Notes
@@ -603,4 +603,10 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   farming with a second account), surrender farming after the mark (the repeat-forfeit rule,
   6.5), Expert+ charged 150 for quitting before the break, a second-server takeover mid-match
   dodging the forfeit. Re-checked in Studio: $30 pot, $50 win, +250 XP, console clean.
+- **Polish (about 07:00).** From the screenshots: the rank HUD's badge enlarged over the pill
+  (reference 02); nameplates resized three times against captures at 11 and 20 studs until they
+  read like reference 02 (sized in studs: Studio drew the pixel part far smaller than its
+  number) and raised above tall hats; flying chips bigger (36 px, text 28); NEW RANK! capped at
+  1.35x on big screens (its Continue was huge at 1.75x). Left as is: the result screen's cards
+  float over the dimmed game rather than sitting in one panel (like reference 05).
 

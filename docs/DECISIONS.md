@@ -1499,3 +1499,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (overnight assumption).
 - 2026-09-27: The money HUD never shows more than the saved total: a preview's made-up money
   (/result, /newrank) only bumps the icon (overnight assumption).
+- 2026-09-27: Money ignores the table's difficulty multiplier for now
+  (`Config.Economy.UseDifficultyMultiplier = false`): no screen sets a difficulty, but the
+  server still accepts one, so a modified client could claim 2x. Turn it on with the
+  difficulty lock (Roadmap 6.2) (overnight assumption, from the second audit).
