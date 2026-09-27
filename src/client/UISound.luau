@@ -39,14 +39,15 @@ local function soundFor(key: string): Sound?
 	return made
 end
 
---- Play a UI sound by its Config.Audio.Ui key. `pitch` scales its speed (1 = as recorded);
---- `volume` scales its level (1 = the configured volume).
+--- Play a UI sound by its Config.Audio.Ui key. `pitch` scales its speed on top of the clip's
+--- own Pitch (1 = as recorded); `volume` scales its level (1 = the configured volume).
 function UISound.play(key: string, pitch: number?, volume: number?)
 	local sound = soundFor(key)
 	if not sound then
 		return
 	end
 	local clip = Clips[key]
+	pitch = (pitch or 1) * (clip.Pitch or 1)
 	if clip.Overlap then
 		local copy = sound:Clone()
 		copy.PlaybackSpeed = pitch or 1

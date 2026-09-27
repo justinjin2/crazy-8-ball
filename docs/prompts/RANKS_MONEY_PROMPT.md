@@ -483,7 +483,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   /rankhelp) working in Studio.
 - [x] 3. Money rules and the Economy service, paying per ball, nice shots, match bonus, solo.
 - [x] 4a. 95 rank images uploaded, ids in Config, a few checked in Play.
-- [ ] 4b. Cash icons drawn to match the reference, uploaded, the stack is the money icon.
+- [x] 4b. Cash icons drawn to match the reference, uploaded, the stack is the money icon.
 - [ ] 5a. RankBadge module (shine, sparkles, rays, hover and press).
 - [ ] 5b. Rank HUD top left with XP bar, opening the roadmap.
 - [ ] 5c. Money HUD bottom left (thumbstick checked on phone).
@@ -502,9 +502,9 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 
 (Your plans, findings and parked problems go here as you work, newest last.)
 
-- **Setup (04:40).** Studio instance `aaf8c968...` (Crazy 8 Ball), Rojo on 34872 in sync (Config
+- **Setup (about 04:30).** Studio instance `aaf8c968...` (Crazy 8 Ball), Rojo on 34872 in sync (Config
   byte length matches). DataStore probe in Edit: "Studio access to APIs is not allowed". The
-  designer then said they turned API access on; Edit still said no at 04:50, so re-probe from
+  designer then said they turned API access on; Edit still said no at first (the setting had not been saved yet; after the designer saved it the Edit probe succeeded), so re-probe from
   the Server datamodel in Play.
 - **Plan, phases 1 to 3.** Config.Save / Config.Ranks / Config.Economy and Strings.Save /
   Strings.Ranks written first by the main agent so every piece reads the same numbers. Four
@@ -520,7 +520,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - **Plan, phases 4 to 10.** Rank images uploaded by the main agent in batches of four while the
   agents code. Client modules as separate files (RankBadge, RankHud, MoneyHud, Nameplates,
   CashFlyer, ResultScreen, NewRankPopup, Roadmap) built on HudParts/UIAnim, wired from Main.
-- **Save layer in Studio (05:30), API access on, store PlayerData_Studio_v1, state Access.** New
+- **Save layer in Studio (about 04:45), API access on, store PlayerData_Studio_v1, state Access.** New
   player got the template, attributes and leaderstats (Rank "Unranked", Money 0). addMoney,
   applyRank (Gold III), recordMatch, recordShot stick and replicate; every bad input refused
   (0, -5, 1.5, NaN, inf, "100", 2e9, empty reason, PeakDivision 99). 1,000 grants in 6 ms with
@@ -531,7 +531,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   discarded at shutdown (money 1250 instead of 4321, then fine on a clean re-run). That is
   session locking doing its job, but a true two-server takeover cannot be run in Studio: listed
   for the designer.
-- **Ranks and money on the server in Studio (06:20).** Every dev command through the Studio
+- **Ranks and money on the server in Studio (about 04:55).** Every dev command through the Studio
   hook `ServerStorage.DevCommandsQA` (Roblox's chat box cannot be typed into by the MCP):
   /resetdata, /rank gold 3 [520], /rank reyes, /rank unranked, /rank banana (private reply),
   /xp 250 from Unranked (Bronze I, $100), /xp 5000 (Silver I, $900 = 4 steps + Silver I),
@@ -544,7 +544,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   not counted. After a minute: a Gold forfeit is a counted loss with 0 XP (never +50); a win
   +250 and $50. Rank images: all 95 uploaded, ids in Config.UI.Ranks (render check with the
   badge module).
-- **Save-layer audit (fresh subagent, 06:40).** Fixed: a failed migration/Reconcile wrote a
+- **Save-layer audit (fresh subagent, about 05:00).** Fixed: a failed migration/Reconcile wrote a
   half-changed save back (now all on a copy, applied only when every step works); an error
   after the session opened could leave a stuck session (one pcall, every path ends loaded or
   kicked); a mutation could throw after changing the save (replication wrapped). Main agent
@@ -554,4 +554,17 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   end/reload, a settled win ($1,230 + 7 + $50 + $200 Gold III reward = $1,487). Live-only
   checks listed for the report: a real two-server takeover, shutdown ordering, the same account
   on a second device, Team Test's IsStudio.
+- **Cash icons (about 05:00).** A subagent drew `cash_single` and `cash_stack` in
+  `tools/gen_ui_art.py` from the reference's measured proportions and colours, compared side
+  by side at 256/32/24 px (scratchpad `cash_compare.png`), uploaded (single 120556642167836,
+  stack 140297726302884); `Config.UI.Kit.Icons.Money` now points at the stack, plus
+  `CashSingle` and `CashStack`. Seen rendering in Play next to seven badges.
+- **Sounds (about 05:10).** Nine UI sounds chosen from Roblox's own library and APM Music, all
+  loading in this game (IsLoaded, TimeLength checked), ids in `Config.Audio.Ui`, listed in
+  `assets/audio/README.md`. Played through `src/client/UISound.luau`; wiring checked with the
+  screens.
+- **Device emulator.** `StudioDeviceEmulatorService` is not scriptable (nil), and Studio is on
+  a PC-sized viewport, so phone and tablet layouts are checked by building each screen inside a
+  phone-sized frame in Play (STUDIO_NOTES' preview method); the thumbstick check needs a hand
+  test.
 

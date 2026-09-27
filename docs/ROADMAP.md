@@ -219,12 +219,24 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
 
 ## Stage 2: Ranks and EXP
 
-- [ ] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
+- [x] **4.3 Save data.** Session-locked, versioned saves; money and stats persist.
   Moved ahead of ranks (2026-09-26): ranks, EXP and money must survive leaving.
+  Done 2026-09-27 on the branch `ranks-money`: ProfileStore behind `PlayerData`, save layout
+  v1 with migrations and validation (Lune-tested), audited; checked in Studio with API access
+  (persists across play sessions, bad input refused, failed load kicks). A real two-server
+  takeover can only be checked live.
 - [ ] **6.1 Rating and tiers.** One rating, tiers Bronze to Reyes with divisions, Unranked to
   Bronze after one game, peak rank, rewards per division, difficulty multipliers, PC ceiling.
+  Progress 2026-09-27 (branch `ranks-money`): rank XP drives 46 divisions (all 1,000 XP,
+  placeholder), win +250, the tier floors, Unranked to Bronze I after the first match, the
+  peak and one-time money rewards per division, forfeits and the one-minute mark; the rank
+  HUD, nameplates, result screen, NEW RANK! and the roadmap. Placeholder: every number (the
+  real rating formula is still Open). Not built: difficulty multipliers on XP, the PC ceiling
+  (Config hook only), seasons.
 - [ ] **6.6 EXP.** Players earn EXP by playing, separate from the rating. What earns it,
   what it shows (a level?) and what it unlocks are Open (GDD section 11): ask before building.
+  Progress 2026-09-27: nothing of the separate EXP is built. The XP bar shipped tonight is
+  rank XP (the rating itself); the save layout leaves room for an EXP field later.
 - [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
   anyway.
 - [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation

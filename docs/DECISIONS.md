@@ -1439,3 +1439,46 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   30.6 from the 8 (designer asked; the shade is Claude's pick).
 - 2026-09-27: The host card is 1.3x on big screens (PC, console, tablet; was 1x) (designer),
   raised to end above a tablet's jump button.
+- 2026-09-27 (overnight, ranks and money; designer's answers): demotion above Diamond drops
+  divisions but never a tier (Master III can fall to Master I, never to Veteran); placeholder
+  pace 4 wins a division (1,000 XP a division, a win +250); Rank and Money also show in
+  Roblox's player list (leaderstats); work on the branch `ranks-money`.
+- 2026-09-27: Saves use ProfileStore (loleris, vendored at a pinned commit) wrapped by
+  `PlayerData`, the only module that touches DataStores; Studio uses its own store
+  (`PlayerData_Studio_v1`) so tests never touch real saves.
+- 2026-09-27: Running out of shot-clock timeouts counts as a forfeit like a surrender: no
+  consolation XP and no match bonus for the team that timed out (overnight assumption).
+- 2026-09-27: Under the one-minute mark a forfeiter is charged only when the loss costs XP
+  (Expert and up, -150, and the match counts); a lower-tier forfeiter under the mark gets
+  nothing and the match is not counted, so a quick quit never makes an Unranked player
+  Bronze I (overnight assumption).
+- 2026-09-27: A server shutdown (an update, "shut down all servers") voids running matches:
+  nobody is charged a forfeit and nobody is paid the match; the money their pots paid stays
+  (overnight assumption, from the save-layer audit).
+- 2026-09-27: A player cannot take a seat until their save has loaded, so a match result
+  always has somewhere to go (overnight assumption, from the audit).
+- 2026-09-27: Solo pays per ball (30%, then $1 after $300 a UTC day) and has no match bonus
+  and no XP; its end screen shows the pots' money only (overnight assumption).
+- 2026-09-27: Money for a shot is saved the moment the server accepts it; the flying cash is
+  only its animation, timed to the ball dropping in the replay (overnight assumption).
+- 2026-09-27: On an open table only a legal pot pays: an early 8 pays nothing for the other
+  balls it took down; the break pays $10 a ball but no nice-shot bonus (almost every break
+  ball would read as a combo); the 8 pays only when it wins (overnight assumption).
+- 2026-09-27: A solo grant that starts under the $300 daily cap is paid in full even if it
+  crosses it; after the cap a ball pays $1 and nice shots nothing (overnight assumption).
+- 2026-09-27: Money from 10 million is shortened with up to two decimals, cut not rounded
+  ("$12.5M", "$999.99M", "$1.23B") (overnight assumption).
+- 2026-09-27: `/rank` sets the rank, makes the save rated and moves the peak to it, so
+  rewards below it are treated as paid; `/resetdata` clears everything, so rewards can be
+  earned again (overnight assumption).
+- 2026-09-27: A draw gives 0 XP and no bonus; it counts as a match only when real
+  (overnight assumption).
+- 2026-09-27: Tier colours for the roadmap and confetti are in `Config.Ranks.Colors`:
+  Bronze copper, Silver steel, Gold, Platinum pale blue, Diamond cyan, Expert red, Veteran
+  green, Master purple, Grandmaster near-black, Reyes pink (overnight assumption, from the
+  badges and the roadmap reference).
+- 2026-09-27: The money icon is the three-bundle cash stack after reference 04 (it replaces
+  the old Money icon everywhere); the single bundle is the flying "+$10" chip's icon.
+- 2026-09-27: Interface sounds are placeholders from Roblox's own library and APM Music,
+  chosen by name and length without being heard (overnight assumption; list in
+  `assets/audio/README.md`).

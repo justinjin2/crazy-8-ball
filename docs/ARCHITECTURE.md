@@ -236,3 +236,55 @@ Input, Avatar, Audio, Effects and renderer modules retain their separate respons
 RunService:IsStudio(). It drives deterministic fixture identities, phases and snapshots
 for inspection; it is not a bot or public remote. Synthetic fixtures are always reported
 separately from real multi-client playtests.
+
+## Saves, ranks and money (2026-09-27)
+
+**Modules.**
+- Pure, Lune-tested (`src/shared/Progression/`): `SaveSchema` (the save layout, its `Version`,
+  migrations N to N+1, and `validate`, which repairs any bad value to a safe one and reports
+  what it fixed), `Ranks` (46 divisions from one total `RankXp`; match XP, the tier floor,
+  one-time rank-up rewards, the roadmap's list), `Money` (what a shot pays its shooter, the
+  match bonus, the solo daily cap), `Format` (commas, "$1,250", "$12.5M"). `Rules/NiceShot`
+  also names the kind of nice shot (bank, kick, combo, carom) for the bonus.
+- Server: `Vendor/ProfileStore` (loleris, never edited, pinned in `Vendor/README.md`),
+  `PlayerData` (the only module that touches it: session per player, kick on failure,
+  validated named mutations, replication), `Economy` (pays each accepted shot), `Ranking`
+  (settles each finished match once, charges leavers), `DevCommands` (the rank and money chat
+  commands).
+- Client: `Progression` (builds and routes everything below), `RankBadge` (one badge with its
+  shine on a shared clock, used by every screen), `RankHud` (top left), `MoneyHud` (bottom
+  left), `CashFlyer` (the "+$10" chips), `Nameplates`, `ResultScreen`, `NewRankPopup`,
+  `Roadmap`, `UISound`; MatchHUD shows a small badge under each portrait.
+
+**Data flow.**
+1. *Save.* On join `PlayerData` opens the player's session (`Player_<UserId>` in
+   `Config.Save.StoreName`, or the Studio store), adds the user id, then migrates, reconciles
+   and validates a copy and takes it only if every step worked; otherwise it kicks with
+   `Strings.Save.LoadFailed`. ProfileStore autosaves, saves on leave and on shutdown, and its
+   session lock stops two servers from writing one save. No seat is given before the save
+   loads.
+2. *Grant.* Nothing a client sends carries an amount. `ShotService` accepts a shot, then
+   `Economy.onShot` reads the server's own judgement (before the shot resolves, so the groups
+   are still the pre-shot ones), prices it with `Money.shotPay`, and calls
+   `PlayerData.addMoney` once. When a table's engine first shows the Result phase
+   (`TableService.broadcast`, which every state change goes through), `Ranking.check` settles
+   it once per table epoch: `Ranks.applyMatch` per connected player (real match or a costly
+   forfeit), `applyRank`, rank-up rewards, the match bonus, stats. A player who disconnects
+   mid-match is charged in `PlayerRemoving`, before PlayerData ends their session a frame
+   later. The engine's result carries `seconds` (server time since the break,
+   `brokeAt`) and `forfeit` (the team that surrendered or timed out).
+3. *Replicate.* `PlayerData` sets Player attributes (`Money`, `RankXp`, `RatedMatches`,
+   `PeakDivision`, `RankTier`, `RankDivision`, `RankIndex`, `DataLoaded`) and `leaderstats`
+   (`Rank` text, `Money`). Clients only read them.
+4. *Animate.* The shooter alone gets `MoneyGrant` (each grant's pocket and the server time its
+   ball drops); `CashFlyer` pops a chip there and flies it to the money HUD, which only rises
+   when a chip lands and settles on the attribute when nothing is in flight. Every player of a
+   finished match gets `MatchSummary` once; `ResultScreen` animates it, then `NewRankPopup`
+   follows a rank change. `/xp` and `/newrank` send `RankEvent`, held until the player is not
+   shooting.
+
+**Studio test hooks** (created only when `RunService:IsStudio()`, in ServerStorage, never
+reachable by clients): `PlayerDataQA` (read, mutate, end and reload a session, force a failed
+load with the `PlayerDataFailNextLoad` attribute), `DevCommandsQA` (run a chat command as a
+player, since scripts cannot type into Roblox's chat), and `PoolMatchQA`'s `brokeAgo` (set the
+match clock for the one-minute mark).

@@ -308,7 +308,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   pocket), combos (your ball knocks another in), and multi-ball shots ("Double", "Triple").
   Lucky sinks count and get the full celebration.
 - "Nice shot" popup with a dopamine sound, shown on about half of good shots *(tune)*.
-- Victory screen for the winner. The loser is simply shown as having lost. No finisher effect.
+- **One end-of-match screen for both players** (designer, 2026-09-27; replaces the separate
+  win and lose cards): both sides with VS, the winner's picture gets a shining crown, then
+  your XP bar animates up, down or holds and the match's money is pocketed into your total. A
+  rank-up brings a big NEW RANK! popup. No finisher effect.
 - Emotes during the opponent's turn for players and spectators.
 
 ## 9. Abilities
@@ -430,9 +433,29 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Bronze to Platinum is fast, Diamond is a buffer, and the top ranks are exponentially harder.
   Reyes should be held by a few dozen to a few hundred players depending on population.
 - Rating is saved under a season label ("Season 0"); no resets at launch.
+- **Rank XP is the one number** (built 2026-09-27): a player's total rank XP decides their
+  division, each division a width in Config (all 1,000 for now *(tune)*). A win +250
+  *(tune)*, so four wins a division for now. A loss: Bronze to Gold still +50, Platinum and
+  Diamond 0 ("No XP lost"), Expert and up -150 *(tune)*. **Losses can drop divisions but never
+  a tier** (designer, 2026-09-27): once you reach a tier you keep it (Master III can fall to
+  Master I, never to Veteran). A PC win gives half the XP *(tune)*; the PC ceiling near Diamond
+  has a Config hook but is not built. Solo never gives XP. Teams: every player by the same
+  rules.
+- **Forfeits** (built 2026-09-27, the small version of 13): whoever surrenders, leaves or runs
+  out of timeouts gets a loss with 0 XP at best (never the +50; -150 from Expert). The winner
+  is paid only after the one-minute mark; under it the match pays nobody.
+- **Rank-up rewards are money**, paid once per division the first time the peak passes it
+  *(placeholders, tune)*: each step Bronze $100, Silver $150, Gold $200, Platinum $300, Diamond
+  $400, Expert $600, Veteran $800, Master $1,000, Grandmaster $1,500; a new tier's I: Bronze
+  $100 (the first ranked match), Silver $500, Gold $750, Platinum $1,000, Diamond $1,500,
+  Expert $2,500, Veteran $3,500, Master $5,000, Grandmaster $7,500, Reyes $25,000.
+- **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
+  (badge then username), under each portrait in the match bar, and as Rank and Money columns
+  in Roblox's player list (designer, 2026-09-27).
 
 **Open**
 - The rating formula, points per game and division widths *(tune)*: solve on paper, then test.
+  Tonight's XP numbers are placeholders for testing, not the formula.
 - **EXP:** what earns it, what it shows (a level?), what it unlocks or pays, and whether it
   ever resets.
 - **Bots:** whether the bot follows the current or the peak rank; which bot an Unranked player
@@ -484,6 +507,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   expected, added as data rows plus assets.
 - **Shop, inventory, the index, trading, save data and the first-time flow exist before the
   game is public.**
+- **Money per ball** (built 2026-09-27, placeholders *(tune)*): $10 for every ball that counts
+  for the shooter (their group, any ball on a legal pot while the table is open, the break's
+  balls, the 8 when it wins), nothing for the other side's balls or on a foul shot. A nice shot
+  pays extra on top: bank or kick +$15, combo or carom +$20. Match bonus: win +$50, loss +$15
+  (money even when you lose), against PC half; the leaver gets nothing. Solo pays 30% ($3 a
+  ball) until $300 in a UTC day, then $1 a ball. Difficulty multiplies it (every table is
+  Classic today). Each pot flies a "+$10" from the pocket into your total, bottom left.
 
 **Open**
 - Money per ball, box prices, drop odds, pack prices *(tune)*: research other games first.
