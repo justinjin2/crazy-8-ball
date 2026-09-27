@@ -247,6 +247,10 @@ Every feature is checked against these. If it serves none, it waits.
   your group then sink the 8 to win. Sinking the 8 early, or scratching on the 8, loses the
   game immediately. The 8 sunk on the break is re-spotted and the same player continues. No
   calling pockets.
+- **NICE SHOT!** (designer, 2026-09-27): a good pot that was not a plain one (a bank, a
+  combo, a kick or a carom) puts a gold "NICE SHOT!" over the pocket with a sparkle burst.
+  Plain means the cue ball went straight to the ball, touched it first, and it went straight
+  in. Only the shooter's good pots (the ones that get the pocket burst), never on the break.
 - **A ball off the table** (jump shots, decided 2026-09-24, standard rules): a foul with ball
   in hand. An object ball that flies off goes back on the foot spot (or the nearest free
   spot). The 8 off the table loses the game, except on the break, where it is re-spotted

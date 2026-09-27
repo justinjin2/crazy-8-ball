@@ -1394,3 +1394,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: The coin flip card shows a few words at a time: YOU ARE HEADS/TAILS on the
   still coin (0.5 s), the flip (1.2 s), then YOU BREAK or <NAME> BREAKS (1.3 s). CoinSeconds
   2.6 -> 3; the team line and "wins the flip" are gone (designer).
+- 2026-09-27: NICE SHOT! over the pocket for a good pot that was not plain: a bank, combo,
+  kick or carom (Rules/NiceShot); rail hits within 7 in of a pocket are its jaws and do not
+  count; never on the break (designer).

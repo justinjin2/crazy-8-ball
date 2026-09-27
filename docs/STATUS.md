@@ -1,6 +1,20 @@
 # Status
 
-**2026-09-27 (latest): the coin flip says a few words at a time.**
+**2026-09-27 (latest): NICE SHOT! for banks, combos, kicks and caroms.**
+
+- **Built:** a good pot that was not plain gets a gold tilted "NICE SHOT!" just over the pocket
+  (it pops, floats up and fades in 1.5 s, over turning gold rays) and gold sparkles, on top of
+  the pocket burst. The rule is pure (`Rules/NiceShot`); rail hits now carry their spot so the
+  pocket jaws do not count as a bank. Never on the break or for the other side's balls.
+- **Verified:** lint clean, 363 tests pass (new: plain, bank, combo, kick, carom, jaw rattle,
+  and a real-simulation sweep where banked pots read as nice and straight ones do not). Studio
+  phone emulator, QA spots: a combo into the side pocket showed NICE SHOT! over it; a straight
+  pot into the same pocket did not. Console clean.
+- **Needs a check by hand:** a real bank and kick in a match, and how it reads on PC.
+
+---
+
+**2026-09-27: the coin flip says a few words at a time.**
 
 - **Built:** the coin card shows "YOU ARE HEADS" (or TAILS) on the still coin, flips, then "YOU
   BREAK" or "<NAME> BREAKS" over the landed coin for 1.3 s; 3 s in all (was 2.6). The team

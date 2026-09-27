@@ -148,6 +148,17 @@ function QA.start(
 				eight.x, eight.y = 0, e.state.geometry.halfWidth - 5
 				cue.x, cue.y = 0, eight.y - 8
 			end
+			-- data.spots = { [ballId] = { x, y } } in table inches: set up a shot by hand (a
+			-- bank or a combo for NICE SHOT!, say). A ball listed with false goes down instead.
+			for id, spot in data.spots or {} do
+				local b =
+					assert(Simulation.findBall(e.state, tonumber(id) :: number), "no such ball")
+				if spot then
+					b.x, b.y, b.pocketed = spot[1], spot[2], false
+				else
+					b.pocketed = true
+				end
+			end
 			if e.solo then
 				-- Solids first; the solo player's group is whichever of the two is still up.
 				e.solo.first = e.groups[e.solo.team]

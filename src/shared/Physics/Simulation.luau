@@ -54,6 +54,8 @@ export type Event = {
 	ball: number, -- ball id
 	other: number?, -- other ball id for ballHit, pocket id for pocket
 	speed: number, -- impact speed along the contact normal (in/s); land: speed coming down
+	x: number?, -- railHit: where the ball's centre was at the hit (in), to tell a cushion
+	y: number?, -- from the pocket jaws beside it (NiceShot)
 }
 
 export type Frame = {
@@ -1186,12 +1188,15 @@ local function advance(
 					eventType = "railHit"
 				end
 				if events and speed > 0 then
+					local rail = eventType == "railHit"
 					table.insert(events, {
 						t = state.time,
 						type = eventType,
 						ball = hit.a.id,
 						other = other,
 						speed = speed,
+						x = if rail then hit.a.x else nil,
+						y = if rail then hit.a.y else nil,
 					})
 				end
 			end

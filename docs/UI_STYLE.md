@@ -182,7 +182,9 @@ order; that is Open.
   clock ring round the portrait shows it, draining with the clock. With ball in hand a blue
   "MOVE 12s" pill with the hand under the big clock counts the time left to move the cue
   ball; the big clock holds at the full shot clock, and the ring stays full, until it ends. The
-  break has no pill: moving and shooting share the big clock. The ball-in-hand hint is one thin line,
+  break has no pill: moving and shooting share the big clock. NICE SHOT! is gold Fredoka
+  in the world just over the pocket, tilted, over turning gold rays; it pops, floats up and
+  fades in 1.5 s. The ball-in-hand hint is one thin line,
   only as wide as its words.
 - **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on
   a computer or tablet bigger and centred on the right edge.

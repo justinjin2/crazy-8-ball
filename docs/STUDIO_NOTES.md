@@ -53,6 +53,11 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   Frame of 844x390 or 667x375 stands in for a phone), capture, then DELETE the preview:
   anything left in StarterGui is copied into the game at the next Play. MatchHUD and
   QueueMenu take user id 0 when there is no LocalPlayer, for these previews.
+- `screen_capture` does not draw BillboardGuis with `AlwaysOnTop` (2026-09-27: a red
+  AlwaysOnTop probe was missing, the same without it showed), so world labels leave it off.
+  The QA fixture's `spots = { [ballId] = { x, y } }` (inches; false sinks the ball) sets up
+  a shot by hand, e.g. a combo into the +y side pocket: cue {0,6}, 5 {0,13}, 3 {0,19},
+  angle pi/2, power 0.3. Time a capture about 1.1 s after the shot to catch a pocket effect.
 - `user_keyboard_input` can press ButtonY but not ButtonB ("permanently bound to a CoreGUI
   core action").
 - Earlier previews in Edit mode: build the table with

@@ -2132,6 +2132,31 @@ Config.Effects = {
 		GrowPerInch = 0.04, -- the shadow widens a little as the ball rises (fraction per in)
 	},
 	PopupSeconds = 1.1,
+	-- NICE SHOT! (designer, 2026-09-27): a gold word over the pocket and a sparkle burst when
+	-- a good pot was not a plain one: a bank, combo, kick or carom (Rules/NiceShot). (tune)
+	NiceShot = {
+		-- A rail hit this close to a pocket's centre is its jaws or facings (a rattle, or a
+		-- ball running along the cushion into the corner), not a bank or a kick.
+		RailClearInches = 7,
+		-- A drop the replay reaches this late (someone joining mid-roll catches up in one
+		-- frame) gets no popup, so a late joiner is not shown a pile of old ones.
+		FreshSeconds = 0.25,
+		Seconds = 1.5, -- the word's whole life over the pocket
+		FadeSeconds = 0.35, -- it fades over the end of that
+		-- Just over the pocket, clear of the rail: any higher and a close camera puts it
+		-- behind the top bar.
+		HeightStuds = 1.1,
+		RiseStuds = 0.5, -- it floats up this far as it lives
+		SizePx = { 240, 64 }, -- on screen, the same size near or far (a phone reads it)
+		TextSize = 40,
+		TiltDegrees = -6, -- a little jaunty
+		RaysPx = 150, -- the gold rays turning behind the word
+		RaysDegreesPerSecond = 90,
+		SparkleCount = 26, -- gold sparkles thrown out of the pocket, on top of its burst
+		SparkleSpeed = { 3, 6 }, -- studs per second: they stay round the pocket
+		SparkleSeconds = { 0.4, 0.8 },
+		SparkleSize = 0.35, -- studs
+	},
 
 	-- VFX are CUE DATA, not constants. Every cue names a style here, so equipping a rarer
 	-- cue changes the cue ball's trail and the burst when a ball drops - which per GDD

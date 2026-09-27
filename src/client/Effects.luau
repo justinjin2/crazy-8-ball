@@ -17,7 +17,10 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 local Ball = require(Shared:WaitForChild("Physics"):WaitForChild("Ball"))
+local HudParts = require(script.Parent.HudParts)
+local UIAnim = require(script.Parent.UIAnim)
 
 local Effects = {}
 Effects.__index = Effects
@@ -158,6 +161,84 @@ local function bare(name: string, parent: Instance, position: Vector3): Part
 	part.Position = position
 	part.Parent = parent
 	return part
+end
+
+--- NICE SHOT! over the pocket after a bank, combo, kick or carom (Rules/NiceShot): the gold
+--- word pops up over gold rays, floats up and fades, and gold sparkles fly out of the pocket.
+--- It sits on top of the ball's own pocket burst. `at` is the pocket's centre at cloth height.
+function Effects.niceShot(self: Effects, at: Vector3)
+	local C = Config.Effects.NiceShot
+	local K = Config.UI.Kit
+	local gold = HudParts.tone("Gold")
+	local root = bare("NiceShot", self.folder, at)
+
+	local sparkles = Instance.new("ParticleEmitter")
+	sparkles.Name = "GoldSparkles"
+	sparkles.Texture = Effects.styleFor(self.styleName).Pocket.SparkleTexture
+	sparkles.Color = ColorSequence.new(Color3.new(1, 1, 1), gold)
+	sparkles.LightEmission = 1
+	sparkles.LightInfluence = 0
+	sparkles.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, C.SparkleSize),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	sparkles.Lifetime = NumberRange.new(C.SparkleSeconds[1], C.SparkleSeconds[2])
+	sparkles.Speed = NumberRange.new(C.SparkleSpeed[1], C.SparkleSpeed[2])
+	sparkles.SpreadAngle = Vector2.new(60, 60)
+	sparkles.EmissionDirection = Enum.NormalId.Top
+	sparkles.Acceleration = Vector3.new(0, -workspace.Gravity * 0.15, 0)
+	sparkles.Rotation = NumberRange.new(0, 360)
+	sparkles.RotSpeed = NumberRange.new(-180, 180)
+	sparkles.Rate = 0
+	sparkles.Parent = root
+	sparkles:Emit(C.SparkleCount)
+
+	local board = Instance.new("BillboardGui")
+	board.Name = "Words"
+	-- Not AlwaysOnTop: those did not draw in Studio's phone view (2026-09-27); it stands clear
+	-- of the rail instead (HeightStuds).
+	board.AlwaysOnTop = false
+	board.LightInfluence = 0
+	board.Size = UDim2.fromOffset(math.max(C.RaysPx, C.SizePx[1]), math.max(C.RaysPx, C.SizePx[2]))
+	board.StudsOffsetWorldSpace = Vector3.new(0, C.HeightStuds, 0)
+	board.Adornee = root
+	board.Parent = root
+	local rays = Instance.new("ImageLabel")
+	rays.Name = "Rays"
+	rays.BackgroundTransparency = 1
+	rays.Image = K.Art.Rays
+	rays.ImageColor3 = gold
+	rays.AnchorPoint = Vector2.new(0.5, 0.5)
+	rays.Position = UDim2.fromScale(0.5, 0.5)
+	rays.Size = UDim2.fromOffset(C.RaysPx, C.RaysPx)
+	rays.Parent = board
+	local words = HudParts.text(board, "NiceShot", C.TextSize, Strings.Match.NiceShot, gold)
+	words.AnchorPoint = Vector2.new(0.5, 0.5)
+	words.Position = UDim2.fromScale(0.5, 0.5)
+	words.Size = UDim2.fromOffset(C.SizePx[1], C.SizePx[2])
+	words.Rotation = C.TiltDegrees
+	words.ZIndex = 2
+	local scale = Instance.new("UIScale")
+	scale.Parent = words
+
+	local started = os.clock()
+	local step: RBXScriptConnection
+	step = RunService.RenderStepped:Connect(function()
+		local elapsed = os.clock() - started
+		if elapsed >= C.Seconds or not root.Parent then
+			step:Disconnect()
+			return
+		end
+		local pop = math.clamp(elapsed / K.Motion.PopSeconds, 0, 1)
+		scale.Scale = K.Motion.PopFromScale + (1 - K.Motion.PopFromScale) * UIAnim.backOut(pop)
+		local fade = math.clamp((elapsed - (C.Seconds - C.FadeSeconds)) / C.FadeSeconds, 0, 1)
+		HudParts.setTextTransparency(words, fade)
+		rays.ImageTransparency = 0.35 + 0.65 * math.max(fade, 1 - pop)
+		rays.Rotation = elapsed * C.RaysDegreesPerSecond
+		board.StudsOffsetWorldSpace =
+			Vector3.new(0, C.HeightStuds + C.RiseStuds * UIAnim.quadOut(elapsed / C.Seconds), 0)
+	end)
+	Debris:AddItem(root, math.max(C.Seconds, C.SparkleSeconds[2]) + 0.2)
 end
 
 --- The reward when a ball drops: a gust of wind blowing up out of the pocket in the

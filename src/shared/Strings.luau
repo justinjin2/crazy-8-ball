@@ -174,6 +174,7 @@ return {
 		PlacementBlocked = "No room there",
 		PocketLabel = "Pocket %d",
 		PlacementHandle = "MOVE",
+		NiceShot = "NICE SHOT!", -- over the pocket after a bank, combo, kick or carom
 		MoveClock = "MOVE %ds", -- under the big clock: seconds left to move the cue ball
 	},
 }

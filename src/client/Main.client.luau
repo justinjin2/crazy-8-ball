@@ -18,6 +18,7 @@ local Simulation = require(Shared.Physics.Simulation)
 local Aim = require(Shared.Physics.Aim)
 local Judge = require(Shared.Rules.ShotJudge)
 local Engine = require(Shared.Rules.MatchEngine)
+local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
 local Effects = require(script.Parent.Effects)
@@ -568,7 +569,7 @@ for id = 1, Placement.tableCount() do
 	a:attach(m)
 	local e = Effects.new(visuals)
 	effectsByTable[id] = e
-	m:onEvent(function(ev)
+	m:onEvent(function(ev, index)
 		if ev.type == "pocket" then
 			-- The gust rises from the pocket's own centre; the ball's spot is the fallback.
 			local at: Vector3? = nil
@@ -583,6 +584,18 @@ for id = 1, Placement.tableCount() do
 			end
 			if at and rewardsPocket(id, m, ev.ball) then
 				e:pocketBurst(at, ev.ball)
+				-- NICE SHOT! for a good pot that was a bank, combo, kick or carom; never on the
+				-- break, and not for a drop a late joiner's replay only caught up with.
+				local s = hub.snapshots[id]
+				local shot = m.shot
+				if
+					shot
+					and not (s and s.breakShot)
+					and m.state.time - ev.t < Config.Effects.NiceShot.FreshSeconds
+					and NiceShot.isNice(shot.events, ev.ball, index, m.state.geometry.pockets)
+				then
+					e:niceShot(at)
+				end
 			end
 			if snapshot and snapshot.id == id then
 				for _, p in m.state.geometry.pockets do
