@@ -739,7 +739,12 @@ local function poll(t: any, time: number)
 			else
 				constrain(p, t)
 			end
-		elseif inside and not seatOf[p.UserId] and not t.blocked[p.UserId] then
+		elseif
+			inside
+			and not seatOf[p.UserId]
+			and not t.blocked[p.UserId]
+			and p:GetAttribute("DataLoaded") == true -- no seat before the save is open
+		then
 			t.dwell[p.UserId] = t.dwell[p.UserId] or time
 			if time - t.dwell[p.UserId] >= Queue.DwellSeconds then
 				if Engine.join(e, p.UserId, p.Name, p.DisplayName, time) then
@@ -788,7 +793,13 @@ end
 local function answerRequest(p: Player, id: any, epoch: any)
 	local t = type(id) == "number" and tables[id]
 	local root = rootOf(p)
-	if not t or not root or seatOf[p.UserId] or not wantsOpponent(t, epoch, now()) then
+	if
+		not t
+		or not root
+		or seatOf[p.UserId]
+		or p:GetAttribute("DataLoaded") ~= true -- a match's results need the save open
+		or not wantsOpponent(t, epoch, now())
+	then
 		return
 	end
 	local e = t.engine

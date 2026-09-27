@@ -28,6 +28,10 @@ local PlayerData = require(script.Parent.PlayerData)
 local R = Config.Ranks
 local Ranking = {}
 
+-- Set as soon as the server starts shutting down (Ranking.start), in case Roblox removes the
+-- players before ProfileStore's own BindToClose has run.
+local closing = false
+
 -- The results that end a game on the 8 against the shooter: a forfeit under the one-minute
 -- mark (GDD section 13), an ordinary loss after it.
 local EIGHT_LOSSES =
@@ -107,6 +111,11 @@ end
 function Ranking.departed(t: any, player: Player)
 	local e = t.engine
 	if e.solo ~= nil or e.phase == "Waiting" or e.phase == "Result" then
+		return
+	end
+	-- A server shutting down (an update, "shut down all servers") removes everyone: that is
+	-- not a forfeit. The match is void; the money its pots paid stays saved.
+	if closing or PlayerData.isClosing() then
 		return
 	end
 	local key = Economy.matchKey(e)
@@ -234,6 +243,13 @@ local function settle(e: any)
 	departed[key] = nil
 end
 
+--- Watch for the server shutting down (Bootstrap calls this once).
+function Ranking.start()
+	game:BindToClose(function()
+		closing = true
+	end)
+end
+
 --- Settles table `t`'s match the first time its engine shows a result (called from
 --- TableService.broadcast, which every state change goes through). Safe to call any time.
 function Ranking.check(t: any)
@@ -245,6 +261,10 @@ function Ranking.check(t: any)
 		return
 	end
 	settledEpoch[e.id] = e.epoch
+	-- A match ended by the server shutting down (everyone removed) is void.
+	if closing or PlayerData.isClosing() then
+		return
+	end
 	local ok, err = pcall(function(): any
 		settle(e)
 		return nil

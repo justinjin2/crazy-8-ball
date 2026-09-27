@@ -3,7 +3,8 @@
 -- no Roblox APIs, no clocks, no randomness, and nothing that depends on the order a hash
 -- table happens to iterate in (so the same bad save always gets the same fixes, in the same
 -- order). src/server/PlayerData.luau is the only user of this layout on the server; it hands
--- `template()` to ProfileStore, then runs `migrate` and `validate` on every loaded save.
+-- `template()` to ProfileStore, then runs `migrate`, Reconcile and `validate` on a copy of
+-- every loaded save.
 --
 -- ProfileStore's rules for what a save may hold (top of src/server/Vendor/ProfileStore.luau):
 -- only string-keyed maps and gapless arrays, never a table mixing the two, no functions,
@@ -128,11 +129,14 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- `Migrations[n]` turns a version-n save into a version n+1 save (it may change the table in
--- place and return it). `migrate` stamps the new Version after each step.
+-- place and return it). `migrate` stamps the new Version after each step. A migration sees the
+-- save exactly as it was stored: PlayerData migrates a copy first, then runs ProfileStore's
+-- Reconcile (which fills keys the template has and the save lacks), then `validate`. If a step
+-- errors, the save keeps its old Version and PlayerData releases the stored save untouched.
 SaveSchema.Migrations = {} :: { [number]: (data: any) -> any }
 
--- 0 -> 1: a save written before saves had a version (or a blank one). ProfileStore's
--- Reconcile fills any missing keys from the template, so this only stamps the version.
+-- 0 -> 1: a save written before saves had a version (or a blank one). Reconcile, run after
+-- migrating, fills any missing keys from the template, so this only stamps the version.
 SaveSchema.Migrations[0] = function(data: any): any
 	data.Version = 1
 	return data

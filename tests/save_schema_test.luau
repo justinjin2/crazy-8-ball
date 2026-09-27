@@ -298,6 +298,34 @@ return {
 		H.expect(#notes == 1 and notes[1]:sub(1, 14) == "future version", "reported")
 	end,
 
+	["a migration that errors or is missing stops at the old version"] = function()
+		local _, SaveSchema = setup()
+		local real = SaveSchema.Migrations[0]
+		-- A step that changes the save, then errors partway.
+		SaveSchema.Migrations[0] = function(data: any): any
+			data.Money = -1
+			error("disk on fire")
+		end
+		local okBroken, broken, brokenNotes = pcall(SaveSchema.migrate, { Money = 5 })
+		SaveSchema.Migrations[0] = nil
+		local okMissing, missing, missingNotes = pcall(SaveSchema.migrate, { Money = 5 })
+		SaveSchema.Migrations[0] = real
+		H.expect(okBroken and okMissing, "migrate never errors")
+		-- PlayerData tells a failed migration by the version, and then releases the save as it
+		-- was stored (it migrates a copy), so the half-changed table is never written back.
+		H.expect(broken.Version ~= SaveSchema.Version, "a failed step leaves the old version")
+		H.expect(
+			#brokenNotes == 1 and brokenNotes[1]:find("failed", 1, true) ~= nil,
+			table.concat(brokenNotes, "; ")
+		)
+		H.expect(missing.Version ~= SaveSchema.Version, "a missing step leaves the old version")
+		H.expect(missing.Money == 5, "a missing step changes nothing")
+		H.expect(
+			#missingNotes == 1 and missingNotes[1]:find("no migration", 1, true) ~= nil,
+			table.concat(missingNotes, "; ")
+		)
+	end,
+
 	["migrate turns a non-table into a fresh template"] = function()
 		local _, SaveSchema = setup()
 		for _, bad in { nil :: any, 5, "save", true } do

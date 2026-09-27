@@ -13,6 +13,7 @@ local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local DevCommands = require(script.Parent:WaitForChild("DevCommands"))
 local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
+local Ranking = require(script.Parent:WaitForChild("Ranking"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
@@ -22,6 +23,7 @@ Net.build()
 -- Saves next, so each player's save starts loading the moment they arrive (and its
 -- PlayerRemoving is connected before TableService's).
 PlayerData.start()
+Ranking.start() -- a shutdown voids running matches instead of forfeiting everyone
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
 -- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they

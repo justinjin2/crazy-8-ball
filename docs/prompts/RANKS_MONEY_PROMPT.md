@@ -476,7 +476,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 1b. SaveSchema (template, migrations, validate) with Lune tests.
 - [x] 1c. PlayerData service: load, kick on failure, named mutations, attributes, leaderstats.
 - [x] 1d. Save layer tested in Studio (section 4, point 4).
-- [ ] 1e. Save layer audited by a fresh subagent; findings fixed.
+- [x] 1e. Save layer audited by a fresh subagent; findings fixed.
 - [x] 2a. Rank tables and XP rules (pure, Config, Lune tests incl. floors and rewards).
 - [x] 2b. Ranking service wired to match end (once per match, forfeits, one-minute mark).
 - [x] 2c. Dev commands (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata,
@@ -544,4 +544,14 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   not counted. After a minute: a Gold forfeit is a counted loss with 0 XP (never +50); a win
   +250 and $50. Rank images: all 95 uploaded, ids in Config.UI.Ranks (render check with the
   badge module).
+- **Save-layer audit (fresh subagent, 06:40).** Fixed: a failed migration/Reconcile wrote a
+  half-changed save back (now all on a copy, applied only when every step works); an error
+  after the session opened could leave a stuck session (one pcall, every path ends loaded or
+  kicked); a mutation could throw after changing the save (replication wrapped). Main agent
+  added from its requirements: a server shutdown voids running matches instead of forfeiting
+  everyone (Ranking.start binds BindToClose, plus PlayerData.isClosing), and no seat before
+  the save is loaded (TableService poll and request answers). Re-checked in Studio: load,
+  end/reload, a settled win ($1,230 + 7 + $50 + $200 Gold III reward = $1,487). Live-only
+  checks listed for the report: a real two-server takeover, shutdown ordering, the same account
+  on a second device, Team Test's IsStudio.
 

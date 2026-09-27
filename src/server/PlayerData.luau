@@ -9,7 +9,8 @@
 -- The rules:
 -- * Nobody plays on a save that could not be opened: a failed load kicks with
 --   Strings.Save.LoadFailed; a session another server took over kicks with
---   Strings.Save.SessionEnded.
+--   Strings.Save.SessionEnded. A save that cannot be brought up to date (newer code's, or a
+--   migration that failed) is released exactly as it was loaded, never half-changed.
 -- * Nothing is granted before the save loads or after its session ended: every mutation
 --   checks the loaded, active profile, and logs and drops the change otherwise.
 -- * Every mutation checks its inputs first (whole numbers in range, known words) and refuses
@@ -115,12 +116,13 @@ local function liveData(op: string, player: Player): any?
 	return nil
 end
 
-local function frozenCopy(t: { [any]: any }): { [any]: any }
+-- A deep copy of save data (only tables, strings, numbers and booleans), frozen or not.
+local function copyOf(t: { [any]: any }, freeze: boolean): { [any]: any }
 	local copy = {}
 	for key, value in t do
-		copy[key] = if type(value) == "table" then frozenCopy(value) else value
+		copy[key] = if type(value) == "table" then copyOf(value, freeze) else value
 	end
-	return table.freeze(copy)
+	return if freeze then table.freeze(copy) else copy
 end
 
 ---------------------------------------------------------------------------------------------
@@ -179,9 +181,27 @@ local function replicate(player: Player, data: any)
 	end
 end
 
+-- Replicates, logging instead of erroring: by the time this runs the save has already changed
+-- (or loaded), and a display failure must never undo that or reach the caller as an error (a
+-- caller that retried an errored grant would pay it twice). The next change tries again.
+local function show(player: Player, data: any)
+	local ok, err = pcall(function(): any
+		replicate(player, data)
+		return nil
+	end)
+	if not ok then
+		warn(
+			("[8ball] PlayerData: showing the save of %s failed: %s"):format(
+				who(player),
+				tostring(err)
+			)
+		)
+	end
+end
+
 -- After a mutation: replicate, then tell listeners.
 local function commit(player: Player, data: any)
-	replicate(player, data)
+	show(player, data)
 	changedEvent:Fire(player)
 end
 
@@ -236,8 +256,52 @@ local function abandon(player: Player, profile: Profile, why: string)
 	end
 end
 
+-- Brings an opened save up to date and repairs it. Returns nil when it is ready to play on,
+-- or why it cannot be used. Everything happens on a copy, and profile.Data only takes the
+-- result once every step worked: the caller puts the loaded table back on any failure, so a
+-- save that cannot be used is released exactly as it was loaded (a migration that fails
+-- halfway must never write a half-migrated save back). Migrations see the save as it was
+-- stored; Reconcile then fills the fields the template gained that no migration set; validate
+-- repairs the rest. Never yields.
+local function prepare(player: Player, profile: Profile): string?
+	-- A save written by newer code (a server still on the old version during an update) is
+	-- never repaired or played on: Reconcile or validate would add old fields or strip new ones.
+	local claimed = (profile.Data :: any).Version
+	if SaveSchema.isInteger(claimed) and claimed > SaveSchema.Version then
+		return ("future version %d (this code knows up to %d)"):format(claimed, SaveSchema.Version)
+	end
+	local migrated, notes = SaveSchema.migrate(copyOf(profile.Data :: any, false))
+	for _, note in notes do
+		if note:sub(1, #"future version") == "future version" then
+			return note -- newer code's save (caught above too)
+		end
+	end
+	if type(migrated) ~= "table" or migrated.Version ~= SaveSchema.Version then
+		return "could not migrate: " .. table.concat(notes, "; ")
+	end
+	if #notes > 0 then
+		print(
+			("[8ball] PlayerData: save of %d: %s"):format(player.UserId, table.concat(notes, "; "))
+		)
+	end
+	profile.Data = migrated
+	profile:Reconcile()
+	local valid, fixes = SaveSchema.validate(profile.Data)
+	if #fixes > 0 then
+		warn(
+			("[8ball] PlayerData: repaired the save of %d: %s"):format(
+				player.UserId,
+				table.concat(fixes, "; ")
+			)
+		)
+	end
+	profile.Data = valid
+	return nil
+end
+
 -- Opens, updates and repairs a player's save, then replicates it and fires Loaded. Runs in
--- its own thread per player (it yields while the DataStore answers).
+-- its own thread per player (it yields while the DataStore answers). Every way out ends in a
+-- loaded save or a kick; an opened session is never left behind with nobody holding it.
 local function load(player: Player)
 	if loading[player] or profiles[player] then
 		return
@@ -260,54 +324,16 @@ local function load(player: Player)
 	end
 
 	profile:AddUserId(player.UserId) -- GDPR: ties the key to the player for erasure requests
-	-- A save written by newer code (a server still on the old version during an update) is
-	-- released untouched: Reconcile or validate would add old fields to it or strip new ones.
-	local claimed = (profile.Data :: any).Version
-	if SaveSchema.isInteger(claimed) and claimed > SaveSchema.Version then
+	local loaded = profile.Data
+	local ok, why = pcall(prepare, player, profile)
+	if not ok or why ~= nil then
+		profile.Data = loaded -- release it exactly as it was loaded
 		abandon(
 			player,
 			profile,
-			("future version %d (this code knows up to %d)"):format(claimed, SaveSchema.Version)
+			if ok then tostring(why) else "preparing errored: " .. tostring(why)
 		)
 		return
-	end
-	profile:Reconcile()
-	local okMigrate, migrated, notes = pcall(SaveSchema.migrate, profile.Data)
-	if not okMigrate then
-		abandon(player, profile, "migrate errored: " .. tostring(migrated))
-		return
-	end
-	for _, note in notes do
-		if note:sub(1, #"future version") == "future version" then
-			-- Newer code's save (caught above too): never repair or play on it.
-			abandon(player, profile, note)
-			return
-		end
-	end
-	if type(migrated) ~= "table" or migrated.Version ~= SaveSchema.Version then
-		abandon(player, profile, "could not migrate: " .. table.concat(notes, "; "))
-		return
-	end
-	if #notes > 0 then
-		print(
-			("[8ball] PlayerData: save of %d: %s"):format(player.UserId, table.concat(notes, "; "))
-		)
-	end
-	local okValidate, valid, fixes = pcall(SaveSchema.validate, migrated)
-	if not okValidate then
-		abandon(player, profile, "validate errored: " .. tostring(valid))
-		return
-	end
-	if #fixes > 0 then
-		warn(
-			("[8ball] PlayerData: repaired the save of %d: %s"):format(
-				player.UserId,
-				table.concat(fixes, "; ")
-			)
-		)
-	end
-	if profile.Data ~= valid then
-		profile.Data = valid
 	end
 
 	profile.OnSessionEnd:Connect(function()
@@ -325,7 +351,7 @@ local function load(player: Player)
 		end
 	end)
 	profiles[player] = profile
-	replicate(player, profile.Data)
+	show(player, profile.Data)
 	setAttribute(player, ATTR.Loaded, true)
 	loadedEvent:Fire(player)
 end
@@ -426,9 +452,17 @@ end
 function PlayerData.read(player: Player): any?
 	local profile = profiles[player]
 	if profile and profile:IsActive() then
-		return frozenCopy(profile.Data)
+		return copyOf(profile.Data, true)
 	end
 	return nil
+end
+
+--- True once the server has begun shutting down (ProfileStore.IsClosing). From then on (with
+--- DataStore access) every save is released and no change lands, and no save opens any more.
+--- Roblox does not promise whether players are removed before or after this turns true, so a
+--- service must not rely on it alone to tell a shutdown from a player leaving.
+function PlayerData.isClosing(): boolean
+	return ProfileStore.IsClosing
 end
 
 --- The money the player earned in solo on UTC day `day` (0 if another day or not loaded).
