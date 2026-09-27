@@ -1540,3 +1540,37 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27 (designer): menus (the roadmap, the host menu, later the shop and the rest) have
   a pale-blue header band for the title and close button, and their content on a near-white
   sheet with big rounded top corners and a thin light-blue edge (HudParts.menuCard).
+- 2026-09-27 (designer, economy interview): the economy plan is `docs/ECONOMY.md`, with a
+  model that checks its numbers (`tools/economy_model.py`). Anchors: 5-8 minute matches; a
+  typical player plays an hour a day; first Epic after a few hours, first Legendary in 1-2
+  weeks, first Mythic in at least a month, Secrets take months and come mostly from the shop.
+- 2026-09-27 (designer): EXP and rank are two bars: RP (the saved RankXp) can fall from
+  Diamond; EXP fills an account Level that only rises. VIP's 2x EXP can then never buy rank.
+- 2026-09-27 (designer): only the winner of a real match gets a free Standard Case, every win
+  for new players and fewer later (both a new-player allowance and a daily one); solo never.
+- 2026-09-27 (designer): duplicates can be sold back for money; no trade-up.
+- 2026-09-27 (designer): today's deals are the same for everyone, unlimited copies, one per
+  player; at least one Epic, never a guaranteed Legendary, Secrets only when the designer
+  pins one.
+- 2026-09-27 (designer): rarities Common to Mythic plus Secret from cases and the shop; Unique
+  (numbered limited copies) and a new group, **Exclusive** (VIP Cue, rank cues, Starter Cue),
+  never from cases. Rank cues can't be traded, so a Reyes Cue proves Reyes.
+- 2026-09-27 (designer): four money cases (Standard, Rare, Epic, Legendary), each guaranteeing
+  one rarity below its name.
+- 2026-09-27 (designer): VIP is 2x money and 2x EXP. The half-price VIP offer runs 24 hours
+  from the first join plus one 24-hour comeback after 7 days, not 15 minutes: Roblox's own
+  monetization rules call a very short discount window unfair, and a discounted pass would
+  show publicly in the Store tab (research).
+- 2026-09-27 (designer): Grandmaster and Reyes are leaderboard seats; from Veteran up a tier
+  can be lost after a 3-loss shield, Expert is safe for good (this replaces this morning's
+  "never out of a tier"); Difficult unlocks at Gold, Challenger at Diamond; soft seasons later.
+- 2026-09-27 (designer): the first session must feel fast and rewarding, and the release must
+  suit a small game that never reaches thousands of players; numbers can be changed later.
+- 2026-09-27 (Claude's calls, from the model and research; overrule any): every number in
+  ECONOMY.md; Levels pay money, never cases (a case that VIP's EXP can speed up would be a
+  paid random item); a Rookie Boost of 2x EXP for the first 25 matches; the first win's reveal
+  is a Rare Case; streak day 7 an Epic Case and a Legendary Case for four full weeks; secrets
+  from cases at 1 in 1,000 Legendary Cases at best; Reyes seats as the top 10% of eligible
+  players (at most 50) so the top scales down for a small game; PC RP x0.5 at every tier at
+  launch so a lone high player can climb; boosts add rather than multiply; Money Party and
+  Fast Open at launch, a Cue Pass later; the starter pack holds no case.

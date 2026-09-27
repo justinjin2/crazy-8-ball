@@ -1,6 +1,22 @@
 # Status
 
-**2026-09-27 (latest, branch `ranks-money`): rank screen polish.**
+**2026-09-27 (latest, branch `ranks-money`): the economy plan.**
+
+- **Written:** `docs/ECONOMY.md`, every economy and rank number from the designer's interview:
+  money per match and mode, RP for every tier and difficulty, the opponent-gap factor, the
+  Grandmaster/Reyes seats, the account Level (EXP), rarities, the free win case, four money
+  cases with odds, sell-back, today's deals, daily rewards, money packs, VIP and its welcome
+  offer, the starter pack, other Robux products, trading's gates and Roblox's rules.
+- **Checked:** `tools/economy_model.py` simulates players and the rank ladder. At an hour a
+  day: first Epic after about 2 hours of play, first Legendary in 6-10 days, first Mythic in
+  6-8 weeks; Silver in the first hour, Diamond in about 11 hours, Expert players around the top
+  quarter by skill.
+- **Not built yet:** nothing in `src/` changed. The next rank and economy work builds to
+  ECONOMY.md (its section 16 lists the Config and save changes and the order).
+
+---
+
+**2026-09-27 (branch `ranks-money`): rank screen polish.**
 
 - **Built:** the roadmap's line of XP rules is gone (the cards sit at the bottom); its < and >
   arrows carry a one-piece chevron image (four rotated bars left a seam at the tip, and their

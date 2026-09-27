@@ -424,41 +424,45 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   saved: rank-up rewards are granted once per division, difficulty unlocks use the peak.
 - Every match against a person or PC changes rating. Solo never does. Beating a much higher
   rating pays more, a higher-rated player beating a lower one gains little.
-- **Difficulty multiplies gains and losses** *(tune, placeholders 1x Classic, 5x Difficult,
-  10x Challenger)*. Classic gains shrink to a trickle above Diamond, and PC matches give full
-  rating only up to the top of Diamond and a fraction beyond, so Expert and above come only
-  from the harder difficulties against people.
+- **Difficulty multiplies RP** *(tune)*: Classic 1, Difficult 1.25, Challenger 1.5, and
+  Classic fades from Diamond (its wins x0.5) and from Expert (x0.2 both ways), so from Diamond
+  the harder difficulties are the road up. PC matches give half RP at launch (x0.1 from Expert
+  once the global queue exists). All numbers: [ECONOMY.md](ECONOMY.md) section 4.
+- **Difficulty unlocks by peak rank** (designer, 2026-09-27): host Difficult from Gold I,
+  Challenger from Diamond I; guests may join with a warning.
 - **Ten bots, one per tier** (designer, 2026-09-26): the Bronze bot is the easiest and the Reyes
   bot the hardest, and each player meets the bot of their rank.
-- Players also earn **EXP** by playing, separate from the rating (designer, 2026-09-26).
+- **Two bars** (designer, 2026-09-27): **RP** (rank points, the save's `RankXp`) decides the
+  rank and can go down from Diamond; **EXP** fills an account **Level** that only goes up,
+  pays money every level and unlocks trading at Level 10. VIP boosts EXP, never RP.
+  [ECONOMY.md](ECONOMY.md) section 5.
 - Bronze to Platinum is fast, Diamond is a buffer, and the top ranks are exponentially harder.
-  Reyes should be held by a few dozen to a few hundred players depending on population.
-- Rating is saved under a season label ("Season 0"); no resets at launch.
-- **Rank XP is the one number** (built 2026-09-27): a player's total rank XP decides their
-  division, each division a width in Config (all 1,000 for now *(tune)*). A win +250
-  *(tune)*, so four wins a division for now. A loss: Bronze to Gold still +50, Platinum and
-  Diamond 0 ("No XP lost"), Expert and up -150 *(tune)*. **Losses can drop divisions but never
-  a tier** (designer, 2026-09-27): once you reach a tier you keep it (Master III can fall to
-  Master I, never to Veteran). A PC win gives half the XP *(tune)*; the PC ceiling near Diamond
-  has a Config hook but is not built. Solo never gives XP. Teams: every player by the same
-  rules.
+  **Grandmaster and Reyes are leaderboard seats** (designer, 2026-09-27): eligible from Master
+  V; Reyes the top 10% of the eligible (at most 50), Grandmaster the next (at most 500), so
+  the top grows with the player count.
+- Rating is saved under a season label ("Season 0"); no resets at launch. Soft resets later,
+  for Veteran and up only (designer, 2026-09-27; ECONOMY.md section 4.12).
+- **RP is the one number**: total RP decides the division. Divisions widen up the ladder
+  (Bronze 250, Silver 350, Gold 800, Platinum 1,000, Diamond 4,000, Expert 1,500, Veteran and
+  Master 2,000 *(tune)*); a Classic win against an equal opponent is +250. A loss: Bronze to
+  Gold still gain a little (+100/+75/+50), Platinum 0, Diamond lose a little, Expert and up
+  Elo-style. Beating much lower players pays less (an Elo gap factor). Table:
+  ECONOMY.md section 4.2. Solo never gives RP. Teams: every player by the same rules against
+  the other team's average.
+- **Tier floors** (designer, 2026-09-27): Bronze to Expert never fall out of their tier
+  (Expert is safe for good); from Veteran up a tier can be lost after a 3-loss shield (this
+  replaced "never a tier" the same day).
 - **Forfeits** (built 2026-09-27, the small version of 13): whoever surrenders, leaves or runs
-  out of timeouts gets a loss with 0 XP at best (never the +50; -150 from Expert). The winner
-  is paid only after the one-minute mark; under it the match pays nobody.
-- **Rank-up rewards are money**, paid once per division the first time the peak passes it
-  *(placeholders, tune)*: each step Bronze $100, Silver $150, Gold $200, Platinum $300, Diamond
-  $400, Expert $600, Veteran $800, Master $1,000, Grandmaster $1,500; a new tier's I: Bronze
-  $100 (the first ranked match), Silver $500, Gold $750, Platinum $1,000, Diamond $1,500,
-  Expert $2,500, Veteran $3,500, Master $5,000, Grandmaster $7,500, Reyes $25,000.
+  out of timeouts gets a loss with no consolation RP. The winner is paid only after the
+  one-minute mark; under it the match pays nobody.
+- **Rank-up rewards**, once, the first time the peak reaches them: money for each new
+  division; for each new tier money, cases, the tier's cue (Exclusive, never tradable) and the
+  chat tag. ECONOMY.md section 4.9.
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
   in Roblox's player list (designer, 2026-09-27).
 
 **Open**
-- The rating formula, points per game and division widths *(tune)*: solve on paper, then test.
-  Tonight's XP numbers are placeholders for testing, not the formula.
-- **EXP:** what earns it, what it shows (a level?), what it unlocks or pays, and whether it
-  ever resets.
 - **Bots:** whether the bot follows the current or the peak rank; which bot an Unranked player
   meets; which bot fills a seat in a 2v2 or 3v3; whether the table's difficulty changes the
   bot; the bots' names and looks.
@@ -479,10 +483,22 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **First release collectibles are cue skins only (decided 2026-09-23).** There are no table
   skins at release: every table uses the standard model. Table skins are parked in
   section 18 for after release.
-- **A permanent loot box** bought with money, for cues. Goal at release: 30 cues. Rarities
-  for everything: **common, uncommon, rare, epic, legendary, mythic, unique and VIP** (their
-  order is Open; "ultra" is dropped). Colours in `docs/UI_STYLE.md`. Rarer cues have special
-  trail and pocket VFX.
+- **Cases** (designer, 2026-09-27): four permanent cases bought with money (Standard,
+  Rare, Epic, Legendary; each guarantees one rarity below its name, never a guaranteed
+  legendary), and **the winner of every real match gets a free Standard Case** (every win for
+  a new player's first 50 wins, then the first 10 wins a day and every 2nd win after; solo
+  never). Odds and prices: [ECONOMY.md](ECONOMY.md) section 7. Goal at release: 30 cues.
+- **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
+  Secret**, from cases and the shop. Two groups sit outside that ladder and never come from
+  cases: **Unique** (numbered limited copies: Founder's, Beta) and **Exclusive** (the VIP Cue,
+  the Starter Cue, the rank cues Bronze Cue to Reyes Cue, later season cues). "Ultra" is
+  dropped; VIP is an Exclusive cue, not a rarity. Colours in `docs/UI_STYLE.md`. Rarer cues
+  have special trail and pocket VFX.
+- **Duplicates can be sold back** for a little money (designer, 2026-09-27; no trade-up).
+- **Today's deals** (designer, 2026-09-27): six cues, the same for everyone, new every 12
+  hours; at least one Epic, a Legendary about every other day, a Mythic about every 5 days, a
+  Secret only when the designer pins one; unlimited copies, one per player. Prices are about
+  twice the rolling cost. ECONOMY.md section 9.
 - **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
   when a ball is pocketed, so the cue you equip changes how the table looks while you play,
   not just what the stick looks like. The default cue and every common one use the same
@@ -496,8 +512,15 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Ability gacha** (only if abilities come, section 9): spins cost Robux (packs of 1, 5, 10,
   50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
   credit that only buys more spins.
-- **VIP** (one-time pass): 2x money, an exclusive cue, other perks. Never better odds.
-- **Starter offer:** a cheap cue for each player's first three days *(tune)*.
+- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, 2x EXP (never RP), the VIP Cue, a [VIP]
+  tag. Never better odds, never cases. A **welcome offer** at 50% off for 24 hours from the
+  first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's
+  rules call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
+- **Starter Pack:** the Starter Cue and $3,000 for 79 R$, in the first 7 days *(tune)*, with
+  no case inside.
+- **Other Robux products** at launch: money packs 49 to 4,999 R$, Money Party (a server-wide
+  money boost) and Fast Open; later a Cue Pass, gifts, emotes and more. Never anything that
+  helps win, protects rank or changes odds. ECONOMY.md section 11.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. Every cue is a unique object with its own ID
   and a serial number for limited items. Abilities are owned flags. **Cues can be traded,
@@ -508,19 +531,22 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   expected, added as data rows plus assets.
 - **Shop, inventory, the index, trading, save data and the first-time flow exist before the
   game is public.**
-- **Money per ball** (built 2026-09-27, placeholders *(tune)*): $10 for every ball that counts
+- **Money per ball** (built 2026-09-27, kept by the economy plan *(tune)*): $10 for every ball that counts
   for the shooter (their group, any ball on a legal pot while the table is open, the break's
   balls, the 8 when it wins), nothing for the other side's balls or on a foul shot. A nice shot
   pays extra on top: bank or kick +$15, combo or carom +$20. Match bonus: win +$50, loss +$15
   (money even when you lose), against PC half; the leaver gets nothing. Solo pays 30% ($3 a
   ball) until $300 in a UTC day, then $1 a ball. Difficulty multiplies it (every table is
-  Classic today). Each pot flies a "+$10" from the pocket into your total, bottom left.
+  Classic today). Each pot flies a "+$10" from the pocket into your total, bottom left. The
+  rest of the money rules (PC and short-match limits, team pay, the win streak, anti-farm
+  rules, boosts) are in ECONOMY.md section 3.
+- **Trading unlocks at Level 10**; rank cues never trade; players Roblox bars from trading
+  paid items can't trade (ECONOMY.md section 12).
 
 **Open**
-- Money per ball, box prices, drop odds, pack prices *(tune)*: research other games first.
-- What the index shows for cues a player does not own, and whether filling it pays anything.
-- The order of the rarities (where mythic and unique sit), and whether VIP is the top
-  loot-box rarity or only for VIP-pass items (the VIP pass above has an exclusive cue).
+- What the index shows for cues a player does not own, and whether filling it pays anything
+  (suggestion in ECONOMY.md section 17).
+- The Founder's and Beta cues' prices and copies (suggestion in ECONOMY.md section 17).
 
 ## 13. Fair play and security
 
@@ -655,9 +681,8 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Age-rating and DevEx rate verification (section 2).
 - Full ability list (section 9).
 - Pro lobby look (section 10).
-- Rating formula (section 11).
-- Economy numbers, the rarity order and what VIP rarity means (section 12).
+- Founder's and Beta prices (section 12).
 - The abilities toggle while abilities are out (section 6); whether abilities come (section 9).
 - A pro-lobby teaser door at release (section 10).
-- EXP, and the bots' details (section 11).
+- The bots' details (section 11).
 - What the index shows (section 12).

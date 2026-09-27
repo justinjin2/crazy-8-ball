@@ -232,9 +232,12 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
   peak and one-time money rewards per division, forfeits and the one-minute mark; the rank
   HUD, nameplates, result screen, NEW RANK! and the roadmap. Placeholder: every number (the
   real rating formula is still Open). Not built: difficulty multipliers on XP, the PC ceiling
-  (Config hook only), seasons.
-- [ ] **6.6 EXP.** Players earn EXP by playing, separate from the rating. What earns it,
-  what it shows (a level?) and what it unlocks are Open (GDD section 11): ask before building.
+  (Config hook only), seasons. **The real numbers were decided 2026-09-27**: `docs/ECONOMY.md`
+  section 4 (division widths, win and loss by tier and difficulty, the opponent-gap factor, the
+  Veteran+ shield, the Grandmaster and Reyes seats).
+- [ ] **6.6 EXP.** Players earn EXP by playing, separate from the rating: an account Level
+  that only goes up, pays money every level and unlocks trading at Level 10 (decided
+  2026-09-27, `docs/ECONOMY.md` section 5).
   Progress 2026-09-27: nothing of the separate EXP is built. The XP bar shipped tonight is
   rank XP (the rating itself); the save layout leaves room for an EXP field later.
 - [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
@@ -274,6 +277,8 @@ no automatic start against PC (designer).*
 to after release (Later, at the bottom).*
 - [ ] **5.4 Index.** A collection screen of the game's cues. What it shows for cues you do not
   own, and whether filling it pays anything, are Open (GDD section 12).
+*Every number and rule for 7.1 to 7.7 (cases, odds, the shop, packs, VIP, the starter pack,
+daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
   region direct-purchase catalog.
 - [ ] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.

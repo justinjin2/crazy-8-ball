@@ -102,7 +102,11 @@ order; that is Open.
 **Open**
 - Reyes' rank badge uses the VIP rainbow (2026-09-26). If VIP items also look rainbow,
   decide whether the two should differ so a rank is never mistaken for a VIP item.
-- The order of the rarities (where mythic and unique sit) and what VIP means (GDD section 12).
+- The rarity order is decided (2026-09-27, GDD section 12): Common, Uncommon, Rare, Epic,
+  Legendary, Mythic, Secret; Unique (pink) and Exclusive sit outside the ladder, and VIP is an
+  Exclusive cue (it keeps the rainbow). Still open: **Secret's colour** (suggestion: near-black
+  with a slow red-white glitch shimmer, unlike Mythic's pastel one) and how an Exclusive rank
+  cue shows its group (suggestion: its tier's colour with a small crown mark).
 
 ## 5. Buttons
 
