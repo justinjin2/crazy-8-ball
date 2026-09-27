@@ -33,6 +33,8 @@ export type DayCycle = typeof(setmetatable(
 		dirty: boolean,
 		watched: Instance?,
 		watch: RBXScriptConnection?,
+		watchedTables: Instance?,
+		watchTables: RBXScriptConnection?,
 	},
 	DayCycle
 ))
@@ -62,10 +64,13 @@ function DayCycle.new(): DayCycle
 		dirty = true,
 		watched = nil :: Instance?,
 		watch = nil :: RBXScriptConnection?,
+		watchedTables = nil :: Instance?,
+		watchTables = nil :: RBXScriptConnection?,
 	}, DayCycle)
 end
 
--- Finds the map's glow, light and emissive parts again, and watches the map for more.
+-- Finds the map's glow, light and emissive parts and the tables' lamps again, and watches the
+-- map and the tables for more (both stream in).
 function DayCycle.look(self: DayCycle, now: number)
 	self.nextLook = now + C.Look
 	self.dirty = false
@@ -79,6 +84,20 @@ function DayCycle.look(self: DayCycle, now: number)
 		self.watched = map
 		self.watch = if map
 			then map.DescendantAdded:Connect(function(inst)
+				if MapLighting.relevant(inst) then
+					self.dirty = true
+				end
+			end)
+			else nil
+	end
+	local tables = workspace:FindFirstChild(Config.Map.Tables)
+	if tables ~= self.watchedTables then
+		if self.watchTables then
+			self.watchTables:Disconnect()
+		end
+		self.watchedTables = tables
+		self.watchTables = if tables
+			then tables.DescendantAdded:Connect(function(inst)
 				if MapLighting.relevant(inst) then
 					self.dirty = true
 				end

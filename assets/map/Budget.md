@@ -49,7 +49,7 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 | Far-card images | 4 | 0 (the far horizon is painted into the skybox faces instead) |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |
 | MeshParts, backdrop | about 30 | 25 (the near world: 8 meshes and 3 boats; the mid backdrop: 14 chunks) |
-| PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 9 (the two tall lanterns, the fire pit, the six pergola globes) |
+| PointLights, SpotLights, SurfaceLights (Shadows off) | 20 | 9 (the two tall lanterns, the fire pit, the six pergola globes); the tables add their own 16 lamps (Config.Look.TableLight, lit at sunset) and 16 queue-pad lights |
 
 ## Stage 2: the architecture (2026-09-26)
 

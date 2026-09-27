@@ -1294,3 +1294,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   near flat since Stage 4); and every grid cell of land that no block and no near-world ground
   covers (by the promenade, and behind the tower on the city side) is a paved lot with a low
   building (`city_plan.edge_cells`), so no bare grey ground is left in the city (designer).
+- 2026-09-26: The camera's zoom cap is gone (designer: Roblox's own zoom). Every table has a
+  lamp over it (`Config.Look.TableLight`: a spotlight on the cloth, no shadows), off by day
+  and lit at sunset by the day cycle (`Config.Lighting`'s TableLights), because the tables
+  were too dark to play at sunset (designer).

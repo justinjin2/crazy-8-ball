@@ -37,6 +37,7 @@ export type Handles = {
 	glows: { [string]: { BasePart } }, -- Map.Props' <Kind>__Glow meshes, by kind
 	lights: { PointLight },
 	tableGlow: { SurfaceAppearance },
+	tableLights: { SpotLight }, -- the lamps over the tables (Config.Look.TableLight)
 	windows: { SurfaceAppearance }, -- the skyline's and near city's looks (their windows and tint)
 	islands: { SurfaceAppearance }, -- the near islands' looks (their tint)
 	complete: boolean, -- false while the map's props, rooftop or backdrop are yet to stream in
@@ -63,11 +64,15 @@ local function backdropLook(name: string): boolean
 	return false
 end
 
+local TABLE_LAMP = "TableLight" -- Config.Look.TableLight.Name (this module requires nothing)
+
 -- Whether a part is one of the map's glow, light or emissive pieces, so a client re-collects
 -- when one streams in (it would otherwise keep the look it was saved with).
 function MapLighting.relevant(inst: Instance): boolean
 	if inst:IsA("PointLight") then
 		return true
+	elseif inst:IsA("SpotLight") then
+		return inst.Name == TABLE_LAMP
 	elseif inst:IsA("SurfaceAppearance") then
 		local parent = inst.Parent
 		return parent ~= nil and (parent.Name == "TableGlow" or backdropLook(parent.Name))
@@ -87,6 +92,7 @@ function MapLighting.collect(spec: any): Handles
 		glows = {},
 		lights = {},
 		tableGlow = {},
+		tableLights = {},
 		windows = {},
 		islands = {},
 		complete = true,
@@ -113,6 +119,14 @@ function MapLighting.collect(spec: any): Handles
 					h.glows[kind] = h.glows[kind] or {}
 					table.insert(h.glows[kind], d)
 				end
+			end
+		end
+	end
+	local tables = workspace:FindFirstChild(spec.Tables)
+	if tables then
+		for _, d in tables:GetDescendants() do
+			if d:IsA("SpotLight") and d.Name == TABLE_LAMP then
+				table.insert(h.tableLights, d)
 			end
 		end
 	end
@@ -193,6 +207,13 @@ function MapLighting.apply(
 			local colour = Color3.fromHex(hex)
 			for _, part in parts do
 				part.Color = colour
+			end
+		end
+	end
+	for key, v in state.TableLights or {} do
+		if moved("TableLights." .. key, v) then
+			for _, light in h.tableLights do
+				(light :: any)[key] = value(v)
 			end
 		end
 	end

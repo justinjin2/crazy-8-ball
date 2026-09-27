@@ -536,10 +536,6 @@ Config.Cue = {
 -- world -Z, up -> world Y, all turned by the table's yaw. See src/shared/Placement.luau.
 ---------------------------------------------------------------------------------------------
 Config.Hub = {
-	-- How far out a player may zoom the camera on the roof (studs; Roblox's own is 128). Far
-	-- out, the camera took in the whole city from above, and at the lowest graphics levels
-	-- Roblox leaves most of it undrawn: a bare grey plain (designer, 2026-09-26). (tune)
-	CameraMaxZoom = 40,
 	-- How fast a player walks on the roof (studs a second): Roblox's 16 plus 30% (designer,
 	-- 2026-09-26). A seated player's speed is saved and put back by TableService. (tune)
 	WalkSpeed = 20.8,
@@ -786,14 +782,14 @@ Config.TableModel = {
 -- Look (colours are RGB 0-255, materials are Enum.Material names)
 ---------------------------------------------------------------------------------------------
 Config.Look = {
-	-- One shadow-casting spotlight over the table centre so balls get contact shadows.
-	-- Needs Lighting.Technology = ShadowMap or Future in the place (set in Edit mode; it is
-	-- a place property, not a script). (tune in the look pass)
+	-- A lamp over every table (TableBuilder.build): a spotlight down on the cloth, no shadows,
+	-- so a game stays easy to see at sunset (designer, 2026-09-26). Its brightness is the day
+	-- cycle's (Config.Lighting's TableLights: off by day, lit at sunset). (tune)
 	TableLight = {
 		Enabled = true,
+		Name = "TableLight", -- the lamp's part and its SpotLight (MapLighting finds them by it)
 		HeightInches = 70, -- above the cloth
 		Angle = 120, -- cone angle in degrees
-		Brightness = 1.6,
 		RangeStuds = 30,
 		Color = { 255, 244, 225 }, -- warm white
 	},
@@ -2640,6 +2636,7 @@ Config.Multiplayer = {
 ---------------------------------------------------------------------------------------------
 Config.Map = {
 	Name = "Map", -- Workspace model holding the whole map
+	Tables = "Tables", -- Workspace folder of the tables (TableBuilder.FolderName): their lamps
 	CollisionName = "Collision", -- its invisible walls and steps, and the tiled floor
 	-- The architecture from assets/map/fbx/Rooftop.fbx (3D Importer, assets/map/Readme.md);
 	-- MapBuilder.prepareImport puts it back where Blender built it with three anchor cubes
@@ -2996,6 +2993,7 @@ Config.Lighting = {
 		-- (Map.Rooftop.TableGlow) and the skyline's lit windows (Map.Backdrop.Skyline_*). Color
 		-- tints the skyline's and the near islands' look (white: as painted).
 		TableGlow = { EmissiveStrength = 0, EmissiveTint = "#EF9054" },
+		TableLights = { Brightness = 0 }, -- the lamps over the tables (Look.TableLight): off by day
 		Windows = { EmissiveStrength = 0, EmissiveTint = "#D5B59C", Color = "#FFFFFF" },
 		Islands = { Color = "#FFFFFF" },
 	},
@@ -3074,6 +3072,8 @@ Config.Lighting = {
 		Lights = { Brightness = 0.8, Range = 12, Color = "#FFC99A" }, -- small amber pools (critic 2)
 		-- A tight rim at each table's foot (the mask's glow is tighter than the painted pool).
 		TableGlow = { EmissiveStrength = 0.8, EmissiveTint = "#EF9054" },
+		-- The lamps over the tables lit, so a game is easy to see (designer, 2026-09-26). (tune)
+		TableLights = { Brightness = 3 },
 		-- The city and the near islands toward the art's dusk (blue-violet glass, island
 		-- silhouettes #564175), as the painted far world is.
 		-- The city at sunset (designer, 2026-09-26): its windows lit a warm yellow and its walls

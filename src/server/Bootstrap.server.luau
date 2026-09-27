@@ -39,14 +39,11 @@ local function publish(name: string, class: string, missing: string)
 end
 publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
 
--- The camera stays near the roof (Config.Hub.CameraMaxZoom), and players walk at
--- Config.Hub.WalkSpeed: every player who joins, and anyone already here.
+-- Players walk at Config.Hub.WalkSpeed: every player who joins, and anyone already here. (The
+-- camera's zoom is Roblox's own: the designer dropped the cap, 2026-09-26.)
 local Players = game:GetService("Players")
-local StarterPlayer = game:GetService("StarterPlayer")
-StarterPlayer.CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
-StarterPlayer.CharacterWalkSpeed = Config.Hub.WalkSpeed
+game:GetService("StarterPlayer").CharacterWalkSpeed = Config.Hub.WalkSpeed
 for _, player in Players:GetPlayers() do
-	player.CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		humanoid.WalkSpeed = Config.Hub.WalkSpeed

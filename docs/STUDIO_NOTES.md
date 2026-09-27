@@ -231,8 +231,8 @@ At Edit quality 1, Roblox draws a part only if some point of its bounding box is
 to 1,800 studs, and ones whose nearest point was 356 studs or more did not draw at all. So a
 huge slab that touches the roof always draws, and a backdrop chunk draws only if its bounds
 reach near the camera. The rooftop's mid city chunks (1,200-stud cells) that touch the tower
-draw; the outer ring does not. The designer chose to cap the camera's zoom
-(`Config.Hub.CameraMaxZoom`) rather than re-chunk the city.
+draw; the outer ring does not. (A zoom cap was tried and dropped; the sky's painted ground, grey
+streets and pale blocks, now covers what the low levels leave undrawn.)
 
 ## The 3D Importer and scripts right after an import (2026-09-26)
 

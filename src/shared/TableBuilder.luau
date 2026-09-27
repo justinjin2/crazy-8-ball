@@ -19,7 +19,7 @@ local TableBuilder = {}
 export type Placement = Placement.Placement
 
 --- Folder in Workspace that holds every server-built table model.
-TableBuilder.FolderName = "Tables"
+TableBuilder.FolderName = Config.Map.Tables
 
 --- Instance name for table `id`: Table_01 ... Table_12.
 function TableBuilder.modelName(id: number): string
@@ -731,11 +731,43 @@ end
 
 local templateChecked = false
 
+--- The lamp over a table (Config.Look.TableLight): an invisible part over the cloth's centre
+--- with a SpotLight down on it, no shadows, at the day's brightness (the client's DayCycle
+--- lights it by the cycle).
+local function addLamp(model: Model, p: Placement)
+	local L = Config.Look.TableLight
+	if not L.Enabled then
+		return
+	end
+	local holder = Instance.new("Part")
+	holder.Name = L.Name
+	holder.Anchored = true
+	holder.CanCollide = false
+	holder.CanQuery = false
+	holder.CanTouch = false
+	holder.CastShadow = false
+	holder.Transparency = 1
+	holder.Size = Vector3.new(0.2, 0.2, 0.2)
+	holder.CFrame = CFrame.new(TableBuilder.toWorld(p, 0, 0, L.HeightInches))
+	local light = Instance.new("SpotLight")
+	light.Name = L.Name
+	light.Face = Enum.NormalId.Bottom
+	light.Angle = L.Angle
+	light.Range = L.RangeStuds
+	light.Color = color(L.Color)
+	light.Brightness = Config.Lighting.Day.TableLights.Brightness
+	light.Shadows = false
+	light.Parent = holder
+	holder.Parent = model
+end
+
 --- Build the visible table for `id` at placement `p` under `parent`: the imported model when
 --- the place has one (checked once per server, problems go to the output), otherwise the
---- parts-and-solid-modelling build, with one warning saying why. Returns the model.
+--- parts-and-solid-modelling build, with one warning saying why; either way with its lamp.
+--- Returns the model.
 function TableBuilder.build(parent: Instance, p: Placement, id: number): Model
 	local template = TableBuilder.findModelTemplate()
+	local model
 	if template then
 		if not templateChecked then
 			templateChecked = true
@@ -743,14 +775,17 @@ function TableBuilder.build(parent: Instance, p: Placement, id: number): Model
 				warn("[8ball] table template " .. Config.TableModel.Name .. ": " .. problem)
 			end
 		end
-		return TableBuilder.buildFromModel(template, parent, p, id)
-	end
-	warnOnce(
-		("ServerStorage.%s not found; drawing the parts-built table (the old PoolTableModel is not used by this code; import the new table and run TableBuilder.prepareImport)"):format(
-			Config.TableModel.Name
+		model = TableBuilder.buildFromModel(template, parent, p, id)
+	else
+		warnOnce(
+			("ServerStorage.%s not found; drawing the parts-built table (the old PoolTableModel is not used by this code; import the new table and run TableBuilder.prepareImport)"):format(
+				Config.TableModel.Name
+			)
 		)
-	)
-	return TableBuilder.buildFromParts(parent, p, id)
+		model = TableBuilder.buildFromParts(parent, p, id)
+	end
+	addLamp(model, p)
+	return model
 end
 
 --- Build the table from Parts and solid modelling (the pre-model fallback). Everything is
