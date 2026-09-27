@@ -1533,3 +1533,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   panel now and later (it comes from the kit's card).
 - 2026-09-27 (designer): the 8-ball pattern is one small size on an even staggered grid, all
   turned alike and slightly blurred; the scattered mix of sizes was too big and busy.
+- 2026-09-27 (designer): back to the scattered 8 balls of a few sizes; the even grid looked
+  worse.

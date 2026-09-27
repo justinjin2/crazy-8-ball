@@ -922,50 +922,59 @@ ICONS = {
 # ---------------------------------------------------------------------------------------
 
 
-def pattern_ball(cx, cy, r, tilt):
-    """One soft 8 ball for the panel pattern: a gently shaded body, its number disc toward the
-    upper left turned by `tilt` degrees, and a small 8. Pale blues and white, low in contrast,
-    so it stays in the background; Config only sets how faint."""
+def pattern_ball(cx, cy, r, tilt, n):
+    """One soft 8 ball for the panel pattern: a shaded body, its number disc toward the upper
+    left and turned by `tilt` degrees, a small 8 and a shine. In its own pale blues and white,
+    so the disc and shine stay lighter than the ball; Config only sets how faint."""
+    g = f"pb{n}"
     dx, dy = -0.3 * r, -0.28 * r  # the disc sits up and left, as if the ball has rolled
     return (
-        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="url(#patternBall)"/>'
+        f'<radialGradient id="{g}" cx="0.36" cy="0.32" r="0.72">'
+        '<stop offset="0" stop-color="#EEF3FB"/><stop offset="0.6" stop-color="#C8D6EC"/>'
+        '<stop offset="1" stop-color="#9FB4D6"/></radialGradient>'
+        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="url(#{g})"/>'
         f'<g transform="translate({cx + dx:.1f} {cy + dy:.1f}) rotate({tilt})">'
-        f'<ellipse rx="{r * 0.44:.1f}" ry="{r * 0.4:.1f}" fill="#FFFFFF"/>'
+        f'<ellipse rx="{r * 0.42:.1f}" ry="{r * 0.38:.1f}" fill="#F7F8FA"/>'
         # The 8: two small stacked rings.
-        f'<circle cy="{-r * 0.11:.1f}" r="{r * 0.085:.1f}" fill="none" stroke="#9CB1D3" stroke-width="{r * 0.09:.1f}"/>'
-        f'<circle cy="{r * 0.1:.1f}" r="{r * 0.11:.1f}" fill="none" stroke="#9CB1D3" stroke-width="{r * 0.09:.1f}"/>'
+        f'<circle cy="{-r * 0.11:.1f}" r="{r * 0.085:.1f}" fill="none" stroke="#A3B6D6" stroke-width="{r * 0.06:.1f}"/>'
+        f'<circle cy="{r * 0.1:.1f}" r="{r * 0.11:.1f}" fill="none" stroke="#A3B6D6" stroke-width="{r * 0.06:.1f}"/>'
         "</g>"
+        f'<ellipse cx="{cx + r * 0.32:.1f}" cy="{cy + r * 0.42:.1f}" rx="{r * 0.34:.1f}" ry="{r * 0.16:.1f}" '
+        f'fill="#FFFFFF" opacity="0.35" transform="rotate(-35 {cx + r * 0.32:.1f} {cy + r * 0.42:.1f})"/>'
     )
 
 
 def art_pattern():
-    """The panel pattern tile, after the designer's reference (2026-09-27): soft 8 balls of one
-    size on an even staggered grid, all turned the same way, slightly blurred so they sit in
-    the background like wallpaper. Drawn in colour on clear; Config.UI.Kit sets how faint."""
+    """The panel pattern tile, after the designer's reference (2026-09-27): soft 8 balls of a
+    few sizes, each turned its own way, and a few small bubbles, scattered so the repeat does
+    not show. Drawn in colour on clear; Config.UI.Kit sets how faint."""
     size = 512
-    step = size / 4  # four balls across and four rows down per tile
-    r = 29
-    tilt = -18  # every disc turned alike, so the grid reads as one calm pattern
+    balls = [  # x, y, radius, tilt
+        (90, 80, 46, -20),
+        (300, 60, 30, 15),
+        (430, 175, 40, -8),
+        (200, 215, 26, 22),
+        (62, 330, 34, 8),
+        (330, 345, 48, -28),
+        (170, 455, 30, -14),
+        (472, 425, 24, 18),
+    ]
+    bubbles = [(250, 128, 9), (425, 300, 7), (36, 205, 8), (290, 480, 6)]
     parts = []
-    for row in range(4):
-        for col in range(4):
-            x = step / 2 + col * step + (step / 2 if row % 2 else 0)  # odd rows sit half a step over
-            y = step / 2 + row * step
-            # Draw each at every wrap-around position so the tile repeats seamlessly.
-            for dx in (-size, 0, size):
-                for dy in (-size, 0, size):
-                    cx, cy = x + dx, y + dy
-                    if -r - 8 <= cx <= size + r + 8 and -r - 8 <= cy <= size + r + 8:
-                        parts.append(pattern_ball(cx, cy, r, tilt))
+    n = 0
+    for x, y, r, tilt in balls:
+        # Draw each at every wrap-around position so the tile repeats seamlessly.
+        for dx in (-size, 0, size):
+            for dy in (-size, 0, size):
+                cx, cy = x + dx, y + dy
+                if -r <= cx <= size + r and -r <= cy <= size + r:
+                    parts.append(pattern_ball(cx, cy, r, tilt, n))
+                    n += 1
+    for x, y, r in bubbles:
+        parts.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="#C4D3EA"/>')
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
-        f'viewBox="0 0 {size} {size}"><defs>'
-        '<radialGradient id="patternBall" cx="0.38" cy="0.34" r="0.7">'
-        '<stop offset="0" stop-color="#F3F6FC"/><stop offset="0.65" stop-color="#D8E2F1"/>'
-        '<stop offset="1" stop-color="#BACBE4"/></radialGradient>'
-        '<filter id="soft" x="-5%" y="-5%" width="110%" height="110%">'
-        '<feGaussianBlur stdDeviation="1.1"/></filter></defs>'
-        '<g filter="url(#soft)">' + "".join(parts) + "</g></svg>"
+        f'viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
     )
 
 

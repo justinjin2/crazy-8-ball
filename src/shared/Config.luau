@@ -3027,12 +3027,12 @@ Config.UI = {
 		ShadowSpreadPx = 14, -- reaches this far past the panel on every side
 		ShadowDropPx = 6, -- and sits this far lower, as if lit from above
 		ShadowTransparency = 0.72, -- 0.5 read as a dark smear under a small panel (tune)
-		-- The faint pattern over every panel (pattern.png, tiled): soft pale-blue 8 balls of one
-		-- size on an even staggered grid, all turned alike and slightly blurred, so they sit in
-		-- the background (designer, 2026-09-27, after a reference; before that tiny flat pool
-		-- balls, 123651371748115). The image has its own colours.
-		PatternImage = "rbxassetid://128929587897948",
-		PatternTilePx = 380, -- one 512 px tile (four by four balls) shown this big
+		-- The faint pattern over every panel (pattern.png, tiled): soft pale-blue 8 balls of a
+		-- few sizes, each turned its own way, and small bubbles, after the designer's reference
+		-- (2026-09-27; was tiny flat pool balls, 123651371748115; an even grid of small balls,
+		-- 128929587897948, was tried and dropped). The image has its own colours.
+		PatternImage = "rbxassetid://132770883034156",
+		PatternTilePx = 380, -- one 512 px tile of eight balls shown this big
 		PatternColor = { 255, 255, 255 }, -- no tint: the balls are drawn in their pale blues
 		PatternTransparency = 0.7, -- faint, like the reference (tune)
 		-- Text: Fredoka One, white, outlined in ink. Sizes are pixels; nothing goes below Min
