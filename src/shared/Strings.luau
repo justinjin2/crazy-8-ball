@@ -168,8 +168,9 @@ return {
 		CoinTailGlyph = "T",
 		PlacementHint = "Drag the cue ball anywhere · shoot any time",
 		PlacementHintGamepad = "Hold LT + left stick to move the cue ball · shoot any time",
-		BreakPlacement = "Drag the cue ball along the line · shoot any time",
-		BreakPlacementGamepad = "Hold LT + left stick to slide along the line · shoot any time",
+		-- The break's hint: short, in capitals (designer, 2026-09-27).
+		BreakPlacement = "DRAG BALL ANYWHERE ON LINE",
+		BreakPlacementGamepad = "HOLD LT + LEFT STICK TO SLIDE ON LINE",
 		PlacementBlocked = "No room there",
 		PocketLabel = "Pocket %d",
 		PlacementHandle = "MOVE",

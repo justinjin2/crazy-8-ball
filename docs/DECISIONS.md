@@ -1387,3 +1387,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   so the 15 s to move no longer reads as 15 s to shoot (designer).
 - 2026-09-27: Changed: with ball in hand the big clock holds at the 20 s shot clock (not 35 s
   counting down) and starts only when the MOVE pill reaches 0 (designer).
+- 2026-09-27: The break's hint is short and in capitals: "DRAG BALL ANYWHERE ON LINE" (designer).

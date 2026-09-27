@@ -1,6 +1,14 @@
 # Status
 
-**2026-09-27 (latest): ball in hand shows the time to move apart from the time to shoot.**
+**2026-09-27 (latest): the break's hint is short and in capitals.**
+
+- **Built:** "DRAG BALL ANYWHERE ON LINE" (gamepad: "HOLD LT + LEFT STICK TO SLIDE ON LINE").
+- **Verified:** lint clean, 357 tests pass; Studio phone emulator, QA break: the pill shows it.
+  Console clean.
+
+---
+
+**2026-09-27: ball in hand shows the time to move apart from the time to shoot.**
 
 - **Built:** while the cue ball can be moved, a blue "MOVE 12s" pill with the hand sits under the
   big clock and counts the moving time; the big clock holds at 20 (the shot clock) and the
