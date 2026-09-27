@@ -673,6 +673,136 @@ def icon_cash_stack():
     return "".join(parts)
 
 
+# The rank roadmap's reward tiles (designer, 2026-09-27; reference 03): a loot case and a chat
+# tag. Their gradients live in the icons themselves, with ids of their own, like the cash.
+CASE_DEFS = (
+    "<defs>"
+    '<linearGradient id="caseLid" x1="0" y1="0" x2="0.2" y2="1">'
+    '<stop offset="0" stop-color="#F4F9FF"/><stop offset="0.5" stop-color="#C3DCF6"/>'
+    '<stop offset="1" stop-color="#93B6DE"/></linearGradient>'
+    '<linearGradient id="caseFront" x1="0" y1="0" x2="0.25" y2="1">'
+    '<stop offset="0" stop-color="#D9EAFC"/><stop offset="0.5" stop-color="#A6C6EA"/>'
+    '<stop offset="1" stop-color="#7A9DC8"/></linearGradient>'
+    '<linearGradient id="caseSide" x1="0" y1="0" x2="0.3" y2="1">'
+    '<stop offset="0" stop-color="#9DBBDF"/><stop offset="1" stop-color="#5F80AC"/></linearGradient>'
+    '<linearGradient id="caseEnd" x1="0" y1="0" x2="0.3" y2="1">'
+    '<stop offset="0" stop-color="#C9DDF4"/><stop offset="1" stop-color="#86A6D0"/></linearGradient>'
+    '<linearGradient id="caseStrap" x1="0" y1="0" x2="0.3" y2="1">'
+    '<stop offset="0" stop-color="#7E9CC4"/><stop offset="1" stop-color="#48648E"/></linearGradient>'
+    "</defs>"
+)
+
+
+def icon_case():
+    """A chunky closed loot case seen from the front right: a box with a barrel lid, two dark
+    straps over it and a gold latch at the seam. Pale blue steel, not any one tier's colour."""
+    s, ox, oy = 1.08, 128, 132  # scale, and where the drawing's middle lands
+    width, height, lid = 138, 80, 50  # the front face, and how high the lid's barrel rises
+    dx, dy = 44, -28  # the depth, drawn up and to the right
+    # The drawing runs from x 0 (the front's left) to width + dx, and from the barrel's top
+    # (dy / 2 - lid) to the front's bottom (height).
+    mid_x, mid_y = (width + dx) / 2, (height + dy / 2 - lid) / 2
+
+    def p(x, y):
+        return (ox + (x - mid_x) * s, oy + (y - mid_y) * s)
+
+    def path(points, close=True):
+        d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in points)
+        return d + (" Z" if close else "")
+
+    # The lid's end: half an ellipse on the right face's plane, over the body's top edge.
+    def end_curve(shift, steps=14, front_half=False):
+        pts = []
+        last = steps // 2 if front_half else steps
+        for i in range(last + 1):
+            t = math.pi * i / steps  # 0 = the front corner, pi = the back one
+            u = 0.5 - 0.5 * math.cos(t)  # 0..1 front to back
+            x = shift + dx * u
+            y = dy * u - lid * math.sin(t)
+            pts.append(p(x, y))
+        return pts
+
+    front = [p(0, 0), p(width, 0), p(width, height), p(0, height)]
+    side = [p(width, 0), p(width + dx, dy), p(width + dx, dy + height), p(width, height)]
+    # The barrel's face seen from the front: up the left end to its top, along, down the right.
+    left_rise = end_curve(0, front_half=True)
+    right_rise = end_curve(width, front_half=True)
+    barrel = left_rise + right_rise[::-1]
+    lid_end = end_curve(width)
+
+    def strap(at, w=15):
+        # A strap over the barrel and down the front, `at` from the left end.
+        up = end_curve(at, front_half=True)
+        down = end_curve(at + w, front_half=True)[::-1]
+        return path(up + down) + " " + path([p(at, 0), p(at + w, 0), p(at + w, height), p(at, height)])
+
+    rim = 13
+    latch_w, latch_h = 30, 36
+    lx, ly = width / 2 - latch_w / 2, -10
+    base = '" fill="#48648E" stroke="#48648E" stroke-width="3" stroke-linejoin="round"/>'
+    parts = [
+        CASE_DEFS,
+        # a dark base under every face, so no light seams show between them
+        "".join(f'<path d="{path(face)}{base}' for face in (front, side, barrel, lid_end)),
+        f'<path d="{path(side)}" fill="url(#caseSide)"/>',
+        f'<path d="{path(front)}" fill="url(#caseFront)"/>',
+        f'<path d="{path(lid_end)}" fill="url(#caseEnd)"/>',
+        f'<path d="{path(barrel)}" fill="url(#caseLid)"/>',
+        f'<path d="{strap(18)}" fill="url(#caseStrap)"/>',
+        f'<path d="{strap(width - 33)}" fill="url(#caseStrap)"/>',
+        # the lid's darker rim, along its bottom edge, front and end
+        f'<path d="{path([p(0, -rim), p(width, -rim), p(width, 0), p(0, 0)])}" fill="#6F8FBA"/>',
+        line([p(3, -rim + 2.5), p(width - 3, -rim + 2.5)], "#FFFFFF", 2.5, 'opacity="0.45"'),
+        f'<path d="{path([p(width, -rim), p(width + dx, dy - rim), p(width + dx, dy), p(width, 0)])}" fill="#48648E"/>',
+        # the seam between lid and body, and the body's front right edge
+        line([p(0, 0), p(width, 0), p(width + dx, dy)], INK, 5),
+        line([p(width, 0), p(width, height)], INK, 4, 'opacity="0.55"'),
+        line(right_rise, INK, 4, 'opacity="0.55"'),
+        # a lit rim along the barrel's top and the front's top edge
+        line([p(8, -lid + 3), p(width - 8, -lid + 3)], "#FFFFFF", 4, 'opacity="0.7"'),
+        # the latch: a gold plate over the seam with a keyhole
+        f'<rect x="{p(lx, ly)[0]:.1f}" y="{p(lx, ly)[1]:.1f}" width="{latch_w * s:.1f}" '
+        f'height="{latch_h * s:.1f}" rx="{8 * s:.1f}" fill="url(#gold)" stroke="{INK}" stroke-width="5"/>',
+        f'<circle cx="{p(width / 2, ly + 13)[0]:.1f}" cy="{p(width / 2, ly + 13)[1]:.1f}" r="{5 * s:.1f}" fill="{INK}"/>',
+        line([p(width / 2, ly + 15), p(width / 2, ly + 25)], INK, 5),
+        gloss(*p(40, -lid + 14), 26, 8, angle=-4, opacity=0.8),
+        gloss(*p(30, 26), 14, 22, angle=0, opacity=0.35),
+        gloss(*p(lx + 8, ly + 6), 6, 4, opacity=0.8),
+    ]
+    return "".join(parts)
+
+
+CHAT_DEFS = (
+    "<defs>"
+    '<linearGradient id="chatBubble" x1="0" y1="0" x2="0.3" y2="1">'
+    '<stop offset="0" stop-color="#E8F4FF"/><stop offset="0.5" stop-color="#A9D4FF"/>'
+    '<stop offset="1" stop-color="#6FAEF0"/></linearGradient>'
+    "</defs>"
+)
+
+
+def icon_chat_tag():
+    """A rounded speech bubble with two rows of short lines: the chat tag."""
+    x0, x1, y0, y1, r = 28, 228, 42, 178, 46
+    bubble = (
+        f"M{x0 + r} {y0} L{x1 - r} {y0} A{r} {r} 0 0 1 {x1} {y0 + r} L{x1} {y1 - r} "
+        f"A{r} {r} 0 0 1 {x1 - r} {y1} L122 {y1} L64 222 L80 {y1} L{x0 + r} {y1} "
+        f"A{r} {r} 0 0 1 {x0} {y1 - r} L{x0} {y0 + r} A{r} {r} 0 0 1 {x0 + r} {y0} Z"
+    )
+    dash = "#2B74CF"
+    return "".join(
+        [
+            CHAT_DEFS,
+            f'<path d="{bubble}" fill="url(#chatBubble)" stroke="url(#chatBubble)" stroke-width="6" stroke-linejoin="round"/>',
+            line([(72, 92), (104, 92)], dash, 17),
+            line([(128, 92), (184, 92)], dash, 17),
+            line([(72, 130), (140, 130)], dash, 17),
+            line([(164, 130), (184, 130)], dash, 17),
+            gloss(76, 64, 34, 11, angle=-8, opacity=0.9),
+        ]
+    )
+
+
 def mini_table(inner):
     """The difficulty pictures: a little green table seen from above."""
     return (
@@ -755,6 +885,8 @@ ICONS = {
     "money": icon_money,
     "cash_single": icon_cash_single,
     "cash_stack": icon_cash_stack,
+    "case": icon_case,
+    "chat_tag": icon_chat_tag,
     "level_classic": icon_level_classic,
     "level_difficult": icon_level_difficult,
     "level_challenger": icon_level_challenger,

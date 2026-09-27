@@ -6,6 +6,7 @@
 -- - MatchSummary (your match ended): the result screen, then NEW RANK! if you ranked up.
 -- - RankEvent (/xp, /newrank): NEW RANK! or the rank-down card, never during a shot.
 -- - DevNotice: a private line in the chat window (the developer commands).
+-- It also starts ChatTags (the [TIER] tag before names in chat).
 -- Nothing here ever sends an amount back: the numbers are already in the save.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,6 +15,7 @@ local TextChatService = game:GetService("TextChatService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared:WaitForChild("Net"))
 local CashFlyer = require(script.Parent.CashFlyer)
+local ChatTags = require(script.Parent.ChatTags)
 local MoneyHud = require(script.Parent.MoneyHud)
 local Nameplates = require(script.Parent.Nameplates)
 local NewRankPopup = require(script.Parent.NewRankPopup)
@@ -81,6 +83,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 		end
 	end)
 	plates = Nameplates.new()
+	ChatTags.start() -- the [TIER] tag before names in chat
 	Net.get("MoneyGrant").OnClientEvent:Connect(function(payload: any)
 		if valid(payload) and type(payload.grants) == "table" then
 			flyer:onGrant(payload)

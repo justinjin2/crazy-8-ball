@@ -1623,7 +1623,30 @@ Config.Ranks = {
 			Reyes = 25000,
 		},
 	},
-	-- Each tier's colour, for the roadmap's bands, the tier strip and the rank-up confetti.
+	-- The [TIER] tag before a player's name in chat (src/client/ChatTags.luau; designer,
+	-- 2026-09-27): tier only, in capitals, in these colours, which read on Roblox's dark chat
+	-- window (the badge colours below do not all: Grandmaster's is near black). Reyes is the
+	-- house rainbow, letter by letter. Unranked players get no tag.
+	ChatColors = {
+		Bronze = { 232, 150, 92 },
+		Silver = { 205, 214, 228 },
+		Gold = { 255, 205, 60 },
+		Platinum = { 150, 200, 245 },
+		Diamond = { 90, 230, 245 },
+		Expert = { 255, 100, 105 },
+		Veteran = { 100, 222, 125 },
+		Master = { 195, 135, 255 },
+		Grandmaster = { 255, 196, 40 }, -- the badge's gold (its black would vanish)
+	},
+	ChatRainbow = {
+		{ 255, 77, 77 },
+		{ 255, 159, 28 },
+		{ 255, 225, 77 },
+		{ 61, 214, 107 },
+		{ 59, 155, 255 },
+		{ 162, 89, 255 },
+	},
+	-- Each tier's colour, for the roadmap's rank card and the rank-up confetti.
 	Colors = {
 		Unranked = { 156, 163, 175 },
 		Bronze = { 205, 127, 70 },
@@ -2624,12 +2647,14 @@ Config.UI = {
 		-- The shine per tier band (README): a light sweep every Every seconds taking Across
 		-- seconds; Sparkles twinkles one after another over a SparkleCycle; Reyes also turns
 		-- gold rays behind it once every RaysSeconds. Unranked is still.
+		-- Mostly sparkles, with a faint sweep now and then (designer, 2026-09-27: "the shimmer
+		-- needs to be way less"; it was every 2-4 s at 0.35): more sparkles higher up.
 		Shine = {
-			Low = { Every = 4, Across = 0.9, Sparkles = 0, SparkleCycle = 0 }, -- Bronze to Diamond
-			High = { Every = 3, Across = 0.8, Sparkles = 3, SparkleCycle = 1.6 }, -- Expert to Grandmaster
-			Top = { Every = 2.2, Across = 0.7, Sparkles = 5, SparkleCycle = 1.4, RaysSeconds = 14 }, -- Reyes
+			Low = { Every = 9, Across = 1.1, Sparkles = 2, SparkleCycle = 2.6 }, -- Bronze to Diamond
+			High = { Every = 8, Across = 1.0, Sparkles = 3, SparkleCycle = 2.0 }, -- Expert to Grandmaster
+			Top = { Every = 7, Across = 1.0, Sparkles = 5, SparkleCycle = 1.5, RaysSeconds = 14 }, -- Reyes
 		},
-		ShineBandTransparency = 0.35, -- the sweep's brightest point (as UIAnim.shine)
+		ShineBandTransparency = 0.75, -- the idle sweep's brightest point: faint
 		ShineRotation = 20, -- the sweep's slant, degrees
 		RaysColor = { 255, 201, 40 }, -- Reyes' rays, #FFC928
 		RaysTransparency = 0.55,
@@ -2644,14 +2669,14 @@ Config.UI = {
 		},
 		SparkleShare = 0.22, -- a sparkle's size as a share of the badge
 		HoverScale = 1.08, -- a badge that reacts to the mouse pops up this much
-		HoverShineEvery = 1.2, -- and sweeps this often while hovered
+		HoverShineEvery = 6, -- and sweeps this often while hovered (it sparkles as the mouse arrives)
 		PressScales = { 0.9, 1.1, 1 }, -- the squish and bounce when pressed
 		PressSeconds = 0.28, -- the whole squish and bounce
 		-- (src/client/RankBadge.luau) Shine.High (sparkles) from this tier up; the top tier
 		-- (Reyes) gets Shine.Top; below it, Shine.Low.
 		HighShineFrom = "Expert",
 		ShineBandWidth = 0.1, -- the sweep's band reaches this far either side of its middle (as UIAnim.shine)
-		ShineBrightTransparency = 0.1, -- a pop's, press's or hover's brighter sweep
+		ShineBrightTransparency = 0.45, -- a pop's, press's or hover's brighter sweep (was 0.1)
 		RaysCenter = { 0.5, 0.54 }, -- Reyes' rays turn about the 8 ball, as fractions of the badge
 		SparkleMinPx = 28, -- a badge smaller than this on screen skips its sparkles (specks)
 		RaysMinPx = 40, -- and Reyes' rays (they would cover what is round a small badge)
@@ -2671,6 +2696,8 @@ Config.UI = {
 		-- then scaled by ComputerScale on a computer or tablet, and down if the room is short.
 		RankHud = {
 			BadgePx = 70, -- the badge, square: bigger than the pill, as in reference 02 (its art has margins)
+			HoverScale = 1.06, -- the whole HUD grows this much under the mouse or a gamepad selection
+			HoverSeconds = 0.18, -- that fast, with a small overshoot
 			PillWidthPx = 196, -- the pill, from under the badge's centre to its right end
 			PillHeightPx = 44, -- as tall as Roblox's own top-bar buttons
 			PadPx = 6, -- inside the pill: after the badge, and at the right end
@@ -2785,7 +2812,9 @@ Config.UI = {
 		-- face-off on a narrow one.
 		Result = {
 			ZIndex = 30, -- over the match HUD; the money HUD and the chips stay over it
-			BackdropTransparency = 0.5, -- the ink dim over the game behind it
+			-- 1 = clear: popups never darken the screen (designer; UI_STYLE section 2). The clear
+			-- backdrop still takes the tap that speeds the screen up.
+			BackdropTransparency = 1,
 			UseDisplayName = false, -- false: usernames, as over the players' heads
 			MarginPx = 10, -- kept clear round the screen's edge
 			MaxScale = 1.25, -- grows up to this much on a big screen
@@ -2845,7 +2874,7 @@ Config.UI = {
 		-- size below and scaled to fit, so the badge is about 40% of the screen's short side.
 		NewRank = {
 			ZIndex = 32, -- over the result screen; the money HUD and the chips stay over it
-			BackdropTransparency = 0.45, -- the ink dim behind NEW RANK!
+			BackdropTransparency = 1, -- clear: popups never darken the screen (UI_STYLE section 2)
 			MarginPx = 10,
 			MaxScale = 1.35, -- grows up to this much on a big screen (1.75 made Continue huge)
 			Width = 360, -- natural size
@@ -2883,9 +2912,10 @@ Config.UI = {
 			DownTextPx = 20,
 			DownTopShare = 0.12, -- its top, as a share of the screen's height
 		},
-		-- The rank roadmap (Roadmap). Row sizes given as { a, b } run from a on the smallest
-		-- panel (a phone) to b on a full-size one (DesignHeightPx tall); other pixel sizes
-		-- shrink with the panel down to MinScale. (tune)
+		-- The rank roadmap (Roadmap; reference 03, designer 2026-09-27): the header, the ten
+		-- tiers side by side, your rank's card and the chosen tier's rewards card, one line of
+		-- rules. Sizes given as { a, b } run from a on the smallest panel (a phone) to b on a
+		-- full-size one (DesignHeightPx tall); text shrinks with the panel down to MinScale. (tune)
 		Roadmap = {
 			DisplayOrderAbove = 10, -- its own ScreenGui sits this far over the HUD's
 			DimTransparency = 0.45, -- the backdrop behind the panel (a tap on it closes)
@@ -2893,7 +2923,7 @@ Config.UI = {
 			MaxSizePx = { 1120, 640 }, -- the panel's largest width and height (a computer)
 			MarginPx = 4, -- the least gap between the panel and the screen's edges
 			-- A screen shorter than this below Roblox's top bar is a phone: the panel also takes
-			-- the top bar's row, its title right of Roblox's buttons, so the road keeps its height.
+			-- the top bar's row, its title right of Roblox's buttons, so the tiers keep their height.
 			ShortScreenPx = 500,
 			TopbarLeftFallbackPx = 212, -- where Roblox's buttons end, when Roblox does not say
 			TouchMinPx = 44, -- the smallest touch target (UI_STYLE section 5)
@@ -2905,69 +2935,61 @@ Config.UI = {
 			TitleScale = 1.2, -- "Ranked" is this much bigger than the kit's title size
 			SubtitleMinPx = 120, -- a narrower room beside the title drops the subtitle
 			CloseMaxPx = 48, -- the close X's largest size
-			CardsPx = { 52, 96 }, -- the current-rank and next-reward cards
-			CurrentShare = 0.5, -- the current-rank card's share of the row
-			CardBadgeShare = 1.15, -- its badge, as a share of the card's height (pokes out)
-			NextBadgeShare = 0.95, -- the next rank's badge on the next-reward card
-			CashShare = 0.62, -- the cash icon on the next-reward card
-			CardTint = 0.3, -- the current-rank card fades to this much of your tier's colour
-			StripPx = { 44, 72 }, -- the tier strip along the bottom
-			StripNameMinPx = 96, -- a tier button this wide (and StripNameMinHeightPx tall)...
-			StripNameMinHeightPx = 56, -- ...shows its tier's name under the badge
-			WindowInsetPx = 3, -- the road inside its rounded window
-			WindowCornerPx = 14,
-			-- The road. A gate's badge is GateShare of the road's height (at most GateMaxPx, and
-			-- smaller if your picture, the name and the tiny XP bar would not fit); a small stop
-			-- is SmallShare of a gate (never under TouchMinPx).
-			GateShare = 0.66,
-			GateMaxPx = 140,
-			SmallShare = 0.56,
-			AboveShare = 0.75, -- room over a badge's centre for your picture and YOU (of a gate)
-			LabelDrop = 0.33, -- a stop's name or numeral starts this far under its centre
-			MiniBarShare = 0.07, -- the tiny XP bar under your stop (its height, of a gate)
-			GateHalfShare = 0.62, -- the room a gate keeps each side of its centre (of a gate)
-			SmallHalfShare = 0.45, -- and a small stop (of a small stop)
-			BannerShare = 1.15, -- the band of the tier's colour behind a gate (width, of a gate)
-			RoadShare = 0.14, -- the road band's thickness (of a gate)
-			ChipShare = 0.25, -- a reward chip's height (of a gate)
-			ChipMinPx = 22,
-			ChipIconShare = 1.25, -- the cash icon pokes out of its chip this much
-			ChipTextShare = 0.6, -- the amount's size (of the chip's height)
-			PromoChipScale = 1.2, -- a tier's first division pays more: its chip is bigger
-			StopGapPx = 10, -- between a chip and the stops each side of it
-			EdgePx = 28, -- before the start and after Reyes
-			ZoneInsetPx = 5, -- a tier's zone stops this far from the road's top and bottom
-			ZoneCornerPx = 14,
-			HeadShare = 0.3, -- your picture over your stop (of a gate)
-			TagShare = 0.17, -- the YOU and Next tags' height (of a gate)
-			TopShare = 0.32, -- the tags sit this far over a badge's centre (of that badge)
-			CheckShare = 0.3, -- the green check on a reached stop (of its badge)
-			RingShare = 0.92, -- the gold ring round a hovered or selected stop (of its badge)
-			RingPx = 4,
-			HoverScale = 1.08, -- a hovered or selected stop pops up this much
-			PressScale = 0.9, -- a pressed stop squishes to this, then bounces back
+			-- The tier row: the ten tiers side by side between a round < and > button. Yours is
+			-- CurrentScale bigger and CurrentCellScale wider; as many show as fit (VisibleTiers).
+			ArrowPx = { 44, 56 }, -- the round arrow buttons (never under TouchMinPx)
+			ChevronShare = 0.46, -- the white chevron in an arrow (of the button)
+			ChevronInkPx = 2.5, -- the chevron's ink outline
+			BadgeMaxPx = 140, -- a tier's badge at most (the row's height sets it below that)
+			CurrentScale = 1.3, -- your tier's badge and dots are this much bigger...
+			CurrentCellScale = 1.4, -- ...and its place in the row this much wider
+			CellAspect = 1.2, -- a tier's place is at least this many of its badges wide...
+			CellTextPadPx = 12, -- ...and this much wider than its name and its tag
+			VisibleTiers = { 3, 6 }, -- the fewest and most tiers seen at once (as many as fit)
+			TagPx = { 20, 26 }, -- the Current Rank and Next Rank tags' height
+			TagAboveShare = 0.46, -- a tag's bottom sits this far over its badge's centre (of the badge)
+			NameBelowShare = 0.4, -- a tier's name starts this far under its badge's centre (of the badge)
+			DotPx = { 8, 12 }, -- a division dot under the name (yours CurrentScale bigger)
+			DotGapShare = 0.6, -- the gap between two dots (of a dot)
+			DotStrokePx = 1.5, -- a dot's ink outline
+			DotEmptyColor = { 222, 227, 236 }, -- a division not reached (reached: Kit Gold)
+			RingPx = 4, -- the gold outline round the chosen tier
+			RingCornerPx = 16, -- its corners on a full-size panel (a phone's are 3/4 of it)
+			RingFillTransparency = 0.84, -- the chosen tier's pale gold fill
+			FocusRingTransparency = 0.5, -- a hovered or gamepad-focused tier's outline (not chosen)
+			HoverScale = 1.06, -- a hovered or focused tier pops up this much
+			PressScale = 0.92, -- a pressed tier squishes to this, then bounces back
 			PressSeconds = 0.28,
-			GlowScale = 1.7, -- the gold rays turning behind your badge (of your badge)
-			GlowTransparency = 0.5,
+			GlowScale = 1.6, -- the gold rays turning behind your badge (of your badge)
+			GlowTransparency = 0.45,
 			GlowDegreesPerSecond = 20,
-			WheelStepPx = 160, -- one mouse wheel notch moves the road this far
-			DragThresholdPx = 6, -- a mouse press moving further drags the road instead
-			ScrollEaseSeconds = 0.09, -- the road's glide to a stop or a tier (time constant)
-			ChipShineEvery = 3.5, -- the gold chips in view sweep with a shine this often
-			ScrollBarPx = 5,
-			LockedTint = { 150, 158, 175 }, -- a locked stop's badge: tinted grey...
+			WheelStepPx = 160, -- one mouse wheel notch moves the row this far
+			DragThresholdPx = 6, -- a mouse press moving further drags the row instead
+			ScrollEaseSeconds = 0.09, -- the row's glide to a tier (time constant)
+			LockedTint = { 150, 158, 175 }, -- a tier past your next: its badge tinted grey...
 			LockedTransparency = 0.45, -- ...and see-through
-			LockedTextTransparency = 0.35, -- its name or numeral
-			ClaimedTransparency = 0.4, -- a reward already paid fades, with a check
-			ZoneTransparency = 0.78, -- a reached tier's light zone of its colour
-			LockedZoneTransparency = 0.9,
-			BannerTransparency = 0.3, -- the stronger band behind a reached gate
-			LockedBannerTransparency = 0.65,
-			RoadColor = { 222, 227, 236 }, -- the road still to travel (travelled: Kit Gold)
-			TrackColor = { 240, 245, 252 }, -- the road's window behind the zones
-			NextTagColor = { 110, 122, 145 }, -- the Next tag
-			BarBackColor = { 222, 227, 236 }, -- an XP bar's empty part
-			BarTopColor = { 255, 236, 150 }, -- an XP bar's fill fades from this to Kit Gold
+			LockedTextTransparency = 0.35, -- its name and dots
+			NextTagColor = { 110, 122, 145 }, -- the Next Rank tag (Current Rank: Kit Blue)
+			-- The cards under the row: your rank (left) and the chosen tier's rewards (right).
+			CardsPx = { 108, 190 }, -- their height
+			RewardsShare = { 0.53, 0.46 }, -- the rewards card's share of the width (the rest: your rank)
+			CardPadShare = 0.07, -- inside a card (of its height)
+			RankBadgeShare = 0.94, -- your badge on the rank card (of the card's height)
+			CardTint = 0.3, -- the rank card fades to this much of your tier's colour
+			NextRowShare = 0.2, -- the next-division line (of the card's height; at least a text line)
+			NextArrowShare = 0.8, -- its arrow (of the line)
+			NextBadgeShare = 1.3, -- its small badge (of the line; pokes out)
+			ChipIconShare = 1.2, -- the cash on its money chip (of the chip; pokes out)
+			BarBackColor = { 222, 227, 236 }, -- the XP bar's empty part
+			BarTopColor = { 255, 236, 150 }, -- its fill fades from this to Kit Gold
+			TileGapPx = { 4, 8 }, -- between two reward tiles
+			TileCornerPx = { 8, 12 },
+			TileStrokePx = 2, -- a tile's outline...
+			TileEdgeColor = { 178, 196, 224 }, -- ...pale, so the tiles sit quietly in the inked card
+			TileCheckShare = 0.26, -- the green check on a reward you have (of the tile's height)
+			SoonPx = { 18, 22 }, -- the yellow Soon tag on a reward not given yet
+			NudgeScale = 0.94, -- the tiles pop from this size when another tier is chosen
+			NudgeSeconds = 0.25,
 		},
 		-- Confetti (UIAnim.confetti).
 		Confetti = {
@@ -3075,6 +3097,8 @@ Config.UI = {
 			Money = "rbxassetid://140297726302884",
 			CashStack = "rbxassetid://140297726302884", -- the money HUD's total
 			CashSingle = "rbxassetid://120556642167836", -- one bundle: the flying "+$10" chip
+			Case = "rbxassetid://123526196779472", -- a loot case (the roadmap's reward tile; placeholder art)
+			ChatTag = "rbxassetid://108097317615793", -- a speech bubble (the chat-tag reward tile)
 			ScrollZoom = "rbxassetid://76220420219490", -- the zoom guide on a computer: a mouse wheel rolling
 			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
 		},

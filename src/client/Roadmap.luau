@@ -1,28 +1,29 @@
 --!strict
--- Roadmap: the rank roadmap (docs/prompts/RANKS_MONEY_PROMPT.md section 12, reference
--- 03-ranked-roadmap). Pressing the rank HUD's badge opens it: a big white kit panel over a dim
--- backdrop with the trophy, "Ranked", a short subtitle and a red close X; a card with your
--- rank and its XP bar and a card with the next money reward; the road; the ten tiers as jump
--- buttons; and one line of rules.
+-- Roadmap: the ranked screen (docs/prompts/RANKS_MONEY_PROMPT.md section 12, reference
+-- 03-ranked-roadmap; laid out again by the designer 2026-09-27). Pressing the rank HUD opens
+-- it: a big white kit panel over a dim backdrop with the trophy, "Ranked", a short subtitle
+-- and a red close X; the ten tiers side by side; your rank's card and the chosen tier's
+-- rewards card under them; and one line of rules.
 --
--- The road scrolls sideways through every division (Ranks.list(), 46 stops), from a start
--- stop where Unranked players stand to Reyes. Tier changes are the landmarks: each tier's
--- division I is a big gate on a band of the tier's colour, with the tier's name, and
--- divisions II to V are smaller stops after it, inside a light zone of that colour. Between
--- two stops a chip on the road shows the money paid the first time you reach the next one; a
--- tier's first division pays more, so its chip is bigger and gold and shines now and then.
+-- The tier row, Bronze to Reyes: each tier's badge (its division I; yours shows your own
+-- division), its name and a dot per division, gold for those reached. Your tier is bigger and
+-- wider, over turning gold rays, with the shining badge, "Gold III" and a blue Current Rank tag;
+-- the next tier breathes under a grey Next Rank tag; tiers past it are greyed and see-through.
+-- As many tiers show as fit (fewer on a phone). Round < and > buttons at the ends scroll one
+-- tier; it swipes on a touch screen and drags or wheels with a mouse. It opens centred on your
+-- tier (Bronze when Unranked, with no tier yours).
 --
--- States come from the local player's attributes (RankXp, RatedMatches, PeakDivision): the
--- stops you have reached are in full colour with a check; yours glows over turning rays, with
--- your picture and YOU above it and a tiny XP bar under it; the next one breathes under a
--- Next tag; the rest are greyed and see-through. Only your badge shines. The road is gold up
--- to where you are, and rewards already paid are faded with a check.
+-- Tapping a tier (or A on it) chooses it: a gold outline, and the rewards card shows what the
+-- tier gives the first time you reach it: its money, a case and a cue (not given yet: Soon),
+-- and its chat tag, drawn as chat draws it (ChatTags). It opens on your next tier. Rewards you
+-- already have show a check. The rank card shows your badge, rank and XP bar, and an arrow to
+-- your next division with the money it pays (only the first time you reach it).
 --
--- Swipe on a touch screen; drag or turn the wheel with a mouse; on a gamepad the stick or
--- D-pad moves between stops (the road glides to keep the selected one in the middle), down
--- goes to the tier strip, up to the close X, and B closes. Every size comes from the screen:
--- on a phone the panel takes the whole screen, its title in Roblox's top bar row right of
--- Roblox's buttons, so the road keeps its height; on a computer it is capped. Numbers are in
+-- States come from the local player's attributes (RankXp, RatedMatches, PeakDivision); any
+-- change redraws the map. Gamepad: left and right move along the tiers and onto the arrows at
+-- the ends, A chooses, up or down reaches the close X, B closes. Every size comes from the
+-- screen: on a phone the panel takes the whole screen, its title in Roblox's top bar row
+-- right of Roblox's buttons; on a computer it is capped. Numbers are in
 -- Config.UI.Progress.Roadmap, words in Strings.Progress.
 --
 -- It lives in its own ScreenGui just over the HUD's (the rank and money HUDs have theirs), so
@@ -42,6 +43,7 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local Format = require(Progression:WaitForChild("Format"))
 local Ranks = require(Progression:WaitForChild("Ranks"))
+local ChatTags = require(script.Parent.ChatTags)
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local UIAnim = require(script.Parent.UIAnim)
@@ -57,69 +59,102 @@ local color = HudParts.color
 local tone = HudParts.tone
 local WHITE = tone("White")
 local INK = tone("Ink")
+local GOLD = tone("Gold")
 local TIERS: { string } = Config.Ranks.Tiers
 local TOP_TIER = TIERS[#TIERS]
+local PER_TIER: number = Config.Ranks.DivisionsPerTier
 local TIER_COLORS: { [string]: { number } } = Config.Ranks.Colors :: any
+local TIER_FIRST: { [string]: number } = Config.Ranks.Rewards.TierFirst :: any
+local ICONS: { [string]: string } = K.Icons :: any
+-- The case and chat-tag icons (tools/gen_ui_art.py: case, chat_tag); stand-ins from the set
+-- until their ids are in Config.UI.Kit.Icons.
+local CASE_ICON = if ICONS.Case then "Case" else "Trophy"
+local CHAT_ICON = if ICONS.ChatTag then "ChatTag" else "People"
 local QUICK = Config.Multiplayer.Style.QuickMotion
-local CASH = "CashSingle" -- the one bundle, as on the flying "+$10" chips (Config.UI.Kit.Icons)
 local CLOSE_ACTION = "8ballRoadmapClose"
 -- The save's rank as the server replicates it (PlayerData); any change redraws the map.
 local WATCHED = { "RankXp", "RatedMatches", "PeakDivision", "RankIndex" }
 
-type Stop = {
-	index: number, -- 0 is the start (Unranked)
+type Cell = {
+	order: number, -- the tier's place, 1..#TIERS
 	tier: string,
-	division: number,
-	gate: boolean, -- a tier's division I
-	button: TextButton,
-	hover: UIScale, -- hover, selection and press
-	art: Frame, -- the badge's holder (breathes when it is the next stop)
-	image: ImageLabel, -- the still badge (your stop shows the shining RankBadge instead)
-	check: ImageLabel,
-	label: TextLabel, -- the tier's name on a gate, the numeral on a small stop
-	ring: Frame, -- gold, while hovered or selected
-	x: number, -- centre, in the road's canvas pixels
-	size: number,
+	button: TextButton, -- the whole cell: tap, click or A chooses the tier
+	body: Frame, -- everything in it, popped by hover and press
+	hover: UIScale,
+	ring: Frame, -- the gold outline: chosen (solid, with a pale fill), or hovered and focused
+	ringEdge: UIStroke,
+	ringCorner: UICorner,
+	art: Frame, -- the badge's holder (breathes on the next tier)
+	image: ImageLabel, -- the still badge (your tier shows the shining RankBadge instead)
+	name: TextLabel,
+	dotRow: Frame,
+	dots: { Frame },
+	x: number, -- left edge, in the row's canvas pixels
+	w: number,
 	lit: boolean,
 	tween: Tween?,
 }
 
-type Chip = {
-	index: number, -- the stop it leads into
-	amount: number,
-	promo: boolean, -- a tier's first division
-	words: string,
-	pill: Frame,
-	edge: UIStroke?,
-	icon: ImageLabel,
-	paid: ImageLabel,
-	text: TextLabel,
-	x: number,
-	claimed: boolean,
-}
-
-type Zone = {
-	tier: string,
-	first: number, -- its gate's stop
-	last: number,
+type Tile = {
 	frame: Frame,
 	corner: UICorner,
-	banner: Frame,
-	bannerCorner: UICorner,
+	icon: ImageLabel,
+	value: TextLabel,
+	label: TextLabel?, -- the small word under the value (the cue has none: its name may wrap)
+	check: ImageLabel, -- a reward you already have
+	soon: Frame?, -- a reward not given yet
+	soonWords: TextLabel?,
 }
 
-type TierButton = { tier: string, button: TextButton, badge: ImageLabel, name: TextLabel }
+type Tiles = { money: Tile, case: Tile, chat: Tile, cue: Tile }
 
+-- The local player's rank, read from their attributes.
+type State = {
+	rank: Rank,
+	order: number, -- your tier's place, 1..#TIERS (0: Unranked)
+	peak: number, -- the best division ever reached (its money is paid)
+	fraction: number, -- how far into your division
+	xpWords: string, -- "250 / 1,000 XP"
+}
+
+-- The panel's rows, measured from the screen.
 type Geo = {
-	g: number, -- a gate's badge
-	s: number, -- a small stop's badge
-	cy: number, -- the badges' centre line
-	h: number, -- the road's height
-	viewW: number, -- the road's visible width
+	t: number, -- 0 on a phone-sized panel, 1 on a full-size one
+	gap: number,
+	heading: number,
+	body: number,
+	rowW: number,
+	rowH: number,
+	leftW: number,
+	rightW: number,
+	cardsH: number,
+}
+
+-- The rank card's next-division line, measured (Roadmap.measureNext).
+type NextLine = {
+	top: boolean, -- you are at the top: just the words
+	words: string,
+	badgeImage: string,
+	pays: boolean, -- its money is still to be paid (the chip shows)
+	amountWords: string,
+	gapX: number,
+	arrow: number,
+	badge: number,
+	showBadge: boolean,
+	textW: number,
+	chipH: number,
+	chipW: number,
+	cash: number,
+	cashX: number,
+	amountX: number,
+	amountW: number,
+	fits: boolean, -- the words fit on one line
+}
+
+-- The tier row as last laid out.
+type Row = {
+	viewW: number, -- the visible part between the arrows
 	canvasW: number,
-	thick: number, -- the road band
-	labelGate: number,
-	labelSmall: number,
 }
 
 export type Roadmap = {
@@ -138,6 +173,15 @@ Roadmap.__index = Roadmap
 
 local function round(n: number): number
 	return math.floor(n + 0.5)
+end
+
+-- A { phone, full } pair at t (0 a phone-sized panel, 1 a full one).
+local function lerp(pair: { number }, t: number): number
+	return pair[1] + (pair[2] - pair[1]) * t
+end
+
+local function spanPx(pair: { number }, t: number): number
+	return round(lerp(pair, t))
 end
 
 local function textWidth(text: string, size: number): number
@@ -173,6 +217,48 @@ local function readNumber(player: Player?, name: string): number
 	return if type(value) == "number" and value == value then value else 0
 end
 
+-- "Gold IV", "Platinum I", "Reyes".
+local function divisionName(tier: string, division: number): string
+	return Ranks.name({
+		tier = tier,
+		division = division,
+		index = Ranks.indexOf(tier, division) or 0,
+		xpInDivision = 0,
+		width = nil,
+	})
+end
+
+local function readState(player: Player?): State
+	local rated = readNumber(player, "RatedMatches") > 0
+	local rank: Rank = Ranks.fromXp(readNumber(player, "RankXp"), rated)
+	local peak =
+		math.clamp(math.floor(readNumber(player, "PeakDivision")), rank.index, Ranks.count())
+	local fraction = 0
+	local xpWords: string
+	local width = rank.width
+	if rank.index == 0 then
+		xpWords = Strings.Ranks.XpOf:format(Format.xp(0), Format.xp(Ranks.width(1) or 0))
+	elseif width then
+		fraction = math.clamp(rank.xpInDivision / width, 0, 1)
+		xpWords = Strings.Ranks.XpOf:format(Format.xp(rank.xpInDivision), Format.xp(width))
+	else
+		fraction = 1 -- Reyes has no top
+		xpWords = Strings.Ranks.XpOnly:format(Format.xp(rank.xpInDivision))
+	end
+	return {
+		rank = rank,
+		order = Ranks.tierIndex(rank.tier) or 0,
+		peak = peak,
+		fraction = fraction,
+		xpWords = xpWords,
+	}
+end
+
+-- The tier the rewards card opens on: the next one (Bronze when Unranked; Reyes at the top).
+local function defaultTier(state: State): string
+	return TIERS[math.min(state.order + 1, #TIERS)]
+end
+
 -- A clear button that swallows presses: the backdrop (which closes) and the panel's floor
 -- (so a press on the panel's empty parts does not reach the backdrop).
 local function catcher(parent: Instance, name: string): TextButton
@@ -193,6 +279,7 @@ local function makeBar(parent: Instance, name: string): (Frame, Frame)
 	local track = HudParts.frame(parent, name)
 	track.BackgroundTransparency = 0
 	track.BackgroundColor3 = color(R.BarBackColor)
+	track.ZIndex = 2
 	circle(track)
 	stroke(track, INK, 2)
 	local fill = HudParts.frame(track, "Fill")
@@ -202,12 +289,13 @@ local function makeBar(parent: Instance, name: string): (Frame, Frame)
 	circle(fill)
 	local shade = Instance.new("UIGradient")
 	shade.Rotation = 90
-	shade.Color = ColorSequence.new(color(R.BarTopColor), tone("Gold"))
+	shade.Color = ColorSequence.new(color(R.BarTopColor), GOLD)
 	shade.Parent = fill
 	return track, fill
 end
 
--- A small round tag with words (YOU, Next), hung by its bottom middle.
+-- A small round tag with words (Current Rank, Next Rank, Soon), hung by its bottom middle.
+-- Its words keep one line at their set size; the tag is sized from them.
 local function makeTag(
 	parent: Instance,
 	name: string,
@@ -291,34 +379,59 @@ local function rulesText(): string
 	return table.concat(parts, " ")
 end
 
--- Tween a stop's scale back to where it rests (up while lit), from `from` if given.
-local function settleStop(stop: Stop, from: number?, seconds: number)
-	if stop.tween then
-		stop.tween:Cancel()
+-- Tween a cell's scale back to where it rests (up while lit), from `from` if given.
+local function settleCell(cell: Cell, from: number?, seconds: number)
+	if cell.tween then
+		cell.tween:Cancel()
 	end
 	if from then
-		stop.hover.Scale = from
+		cell.hover.Scale = from
 	end
 	local tween = TweenService:Create(
-		stop.hover,
+		cell.hover,
 		TweenInfo.new(seconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{ Scale = if stop.lit then R.HoverScale else 1 }
+		{ Scale = if cell.lit then R.HoverScale else 1 }
 	)
-	stop.tween = tween
+	cell.tween = tween
 	tween:Play()
 end
 
--- A stop under the mouse or a gamepad: the gold ring, a small pop and the hover sound.
-local function lightStop(stop: Stop, on: boolean)
-	if stop.lit == on then
-		return
+-- A white chevron with an ink outline, drawn from four round bars (two ink under two white,
+-- so the outline never crosses the joint): the arrow buttons' glyph.
+local function makeChevron(parent: Instance): Frame
+	local holder = HudParts.frame(parent, "Chevron")
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.ZIndex = 2
+	for i, name in { "InkTop", "InkBottom", "Top", "Bottom" } do
+		local bar = HudParts.frame(holder, name)
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
+		bar.BackgroundTransparency = 0
+		bar.BackgroundColor3 = if i <= 2 then INK else WHITE
+		bar.ZIndex = if i <= 2 then 1 else 2
+		circle(bar)
 	end
-	stop.lit = on
-	stop.ring.Visible = on
-	if on then
-		UISound.play("BadgeHover")
+	return holder
+end
+
+-- Size a chevron `size` px square, pointing right (dir 1) or left (dir -1).
+local function layoutChevron(holder: Frame, size: number, dir: number)
+	holder.Size = UDim2.fromOffset(size, size)
+	local arm = size * 0.66
+	local thick = math.max(3, size * 0.27)
+	local reach = arm * 0.3536 -- half an arm's run across (and down), at 45 degrees
+	local tipX = size / 2 + dir * reach
+	for _, child in holder:GetChildren() do
+		if child:IsA("Frame") then
+			local top = child.Name == "Top" or child.Name == "InkTop"
+			local grow = if string.sub(child.Name, 1, 3) == "Ink" then R.ChevronInkPx * 2 else 0
+			child.Size = UDim2.fromOffset(round(arm + grow), round(thick + grow))
+			child.Position = UDim2.fromOffset(
+				round(tipX - dir * reach),
+				round(size / 2 + (if top then -reach else reach))
+			)
+			child.Rotation = if top then dir * 45 else -dir * 45
+		end
 	end
-	settleStop(stop, nil, QUICK * 2)
 end
 
 --------------------------------------------------------------------------------------------
@@ -337,183 +450,173 @@ function Roadmap.new(screen: ScreenGui): Roadmap
 	self.connections = {} -- for the map's life
 	self.openConnections = {} -- only while open
 	self.bound = false
-	self.geo = nil
-	self.current = -1 -- the stop that holds the shining badge
-	self.lastStop = nil -- the last stop a gamepad was on (the close X leads back to it)
-	self.scrollTarget = nil -- a canvas X the road is gliding to
-	self.holdUntil = 0 -- the road is held on its target until then (the opening pop)
-	self.shineClock = 0
-	self.drag = nil -- a mouse drag of the road
+	self.geo = nil :: Geo?
+	self.row = nil :: Row?
+	self.state = nil :: State?
+	self.selected = nil :: string? -- the tier the rewards card shows
+	self.focusCell = nil -- the last tier a gamepad was on (the close X leads back to it)
+	self.scrollTarget = nil -- a canvas X the row is gliding to
+	self.holdUntil = 0 -- the row is held on its target until then (the opening pop)
+	self.drag = nil -- a mouse drag of the row
 	self.dragMoved = false -- the last press dragged (so its release is not a press)
 	self.refreshQueued = false
+	self.arrowFaded = {} -- per arrow button: faded at the row's end
 	self.pulse = nil
-	self.pulseStop = nil
+	self.pulseCell = nil
 	self.spinner = nil
 	self.stepper = nil
 	self.dimTween = nil
 	self.barTween = nil
+	self.nudgeTween = nil
 	self.previousSelection = nil
 	return self :: Roadmap
 end
 
--- One stop on the road: a selectable button holding the badge, its check, its name or
--- numeral and the gold ring shown while it is hovered or selected.
-local function makeStop(self: any, index: number, tier: string, division: number): Stop
-	local gate = division == 1
+-- One tier in the row: a selectable button holding the badge, the name, the division dots
+-- and the gold ring.
+local function makeCell(self: any, order: number, tier: string): Cell
 	local button = Instance.new("TextButton")
-	button.Name = "Stop" .. index
+	button.Name = tier
 	button.Text = ""
 	button.AutoButtonColor = false
 	button.BackgroundTransparency = 1
 	button.BorderSizePixel = 0
-	button.AnchorPoint = Vector2.new(0.5, 0.5)
 	button.Selectable = true
 	button.SelectionImageObject = self.noBox
-	button.ZIndex = if gate then 2 else 1
+	local body = HudParts.frame(button, "Body")
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.Position = UDim2.fromScale(0.5, 0.5)
+	body.Size = UDim2.fromScale(1, 1)
 	local hover = Instance.new("UIScale")
 	hover.Name = "Hover"
-	hover.Parent = button
-	local art = HudParts.frame(button, "Art")
+	hover.Parent = body
+	local ring = HudParts.frame(body, "Ring")
+	ring.BackgroundColor3 = GOLD
+	ring.ZIndex = 1
+	ring.Visible = false
+	local ringCorner = Instance.new("UICorner")
+	ringCorner.Parent = ring
+	local ringEdge = stroke(ring, GOLD, R.RingPx)
+	local art = HudParts.frame(body, "Art")
 	art.AnchorPoint = Vector2.new(0.5, 0.5)
-	art.Position = UDim2.fromScale(0.5, 0.5)
-	art.Size = UDim2.fromScale(1, 1)
-	art.ZIndex = 1
+	art.ZIndex = 2
 	local image = Instance.new("ImageLabel")
 	image.Name = "Badge"
 	image.BackgroundTransparency = 1
 	image.ScaleType = Enum.ScaleType.Fit
-	image.Image = RankBadge.image(tier, division)
+	image.Image = RankBadge.image(tier, 1)
 	image.Size = UDim2.fromScale(1, 1)
 	image.Parent = art
-	local ring = HudParts.frame(button, "Ring")
-	ring.AnchorPoint = Vector2.new(0.5, 0.5)
-	ring.Position = UDim2.fromScale(0.5, 0.5)
-	ring.Size = UDim2.fromScale(R.RingShare, R.RingShare)
-	ring.ZIndex = 3
-	ring.Visible = false
-	circle(ring)
-	stroke(ring, tone("Gold"), R.RingPx)
-	local check = HudParts.icon(button, "Check", "Check")
-	check.AnchorPoint = Vector2.new(0.5, 0.5)
-	check.Position = UDim2.fromScale(0.8, 0.74)
-	check.Size = UDim2.fromScale(R.CheckShare, R.CheckShare)
-	check.ZIndex = 4
-	check.Visible = false
-	local words = if index == 0
-		then Strings.Ranks.Unranked
-		elseif gate then Ranks.tierName(tier)
-		else Strings.Ranks.Numerals[division] or ""
-	local label = HudParts.text(button, "Name", K.Text.Body, words)
-	label.AnchorPoint = Vector2.new(0.5, 0)
-	label.TextWrapped = false
-	label.ZIndex = 4
-	button.Parent = self.stopLayer
-	local stop: Stop = {
-		index = index,
+	local name = HudParts.text(body, "Name", K.Text.Body, Ranks.tierName(tier))
+	name.AnchorPoint = Vector2.new(0.5, 0)
+	name.ZIndex = 3
+	local dotRow = HudParts.frame(body, "Dots")
+	dotRow.AnchorPoint = Vector2.new(0.5, 0)
+	dotRow.ZIndex = 3
+	local dots: { Frame } = {}
+	for i = 1, if tier == TOP_TIER then 1 else PER_TIER do
+		local dot = HudParts.frame(dotRow, "Dot" .. i)
+		dot.BackgroundTransparency = 0
+		circle(dot)
+		stroke(dot, INK, R.DotStrokePx)
+		table.insert(dots, dot)
+	end
+	button.Parent = self.cellLayer
+	local cell: Cell = {
+		order = order,
 		tier = tier,
-		division = division,
-		gate = gate,
 		button = button,
+		body = body,
 		hover = hover,
+		ring = ring,
+		ringEdge = ringEdge,
+		ringCorner = ringCorner,
 		art = art,
 		image = image,
-		check = check,
-		label = label,
-		ring = ring,
+		name = name,
+		dotRow = dotRow,
+		dots = dots,
 		x = 0,
-		size = 0,
+		w = 0,
 		lit = false,
 		tween = nil,
 	}
 	button.MouseEnter:Connect(function()
 		if UserInputService:GetLastInputType() ~= Enum.UserInputType.Touch then
-			lightStop(stop, true)
+			self:lightCell(cell, true)
 		end
 	end)
 	button.MouseLeave:Connect(function()
-		lightStop(stop, false)
+		self:lightCell(cell, false)
 	end)
 	button.SelectionGained:Connect(function()
-		self.lastStop = stop
+		self.focusCell = cell
 		self.closeButton.NextSelectionDown = button
-		lightStop(stop, true)
-		self:scrollTo(stop.x)
+		self:lightCell(cell, true)
+		self:scrollToCell(cell)
 	end)
 	button.SelectionLost:Connect(function()
-		lightStop(stop, false)
+		self:lightCell(cell, false)
 	end)
 	button.Activated:Connect(function()
 		if not self.dragMoved then
 			UISound.play("Click")
-			self:scrollTo(stop.x)
-			settleStop(stop, R.PressScale, R.PressSeconds)
+			self:choose(tier, true)
+			self:revealCell(cell)
+			settleCell(cell, R.PressScale, R.PressSeconds)
 		end
 	end)
-	return stop
+	return cell
 end
 
--- A reward chip on the road: the cash bundle and the amount, and a check once it is paid.
-local function makeChip(self: any, index: number, amount: number, promo: boolean): Chip
-	local pill =
-		HudParts.pill(self.chipLayer, "Chip" .. index, if promo then tone("Gold") else WHITE)
-	pill.AnchorPoint = Vector2.new(0.5, 0.5)
-	pill.Visible = amount > 0
-	local icon = HudParts.icon(pill, CASH, "Cash")
-	icon.AnchorPoint = Vector2.new(0, 0.5)
-	icon.ZIndex = 2
-	local paid = HudParts.icon(pill, "Check", "Paid")
-	paid.AnchorPoint = Vector2.new(0.5, 0.5)
-	paid.ZIndex = 3
-	paid.Visible = false
-	local words = Format.money(amount)
-	local text = HudParts.text(pill, "Amount", K.Text.Body, words)
-	text.TextWrapped = false
-	text.AutoLocalize = false -- a number
-	text.ZIndex = 2
-	local edge = pill:FindFirstChildOfClass("UIStroke")
-	return {
-		index = index,
-		amount = amount,
-		promo = promo,
-		words = words,
-		pill = pill,
-		edge = edge,
-		icon = icon,
-		paid = paid,
-		text = text,
-		x = 0,
-		claimed = false,
-	}
-end
-
--- A tier's light zone of its colour behind its five stops, and the stronger band behind its
--- gate, fading down from the top.
-local function makeZone(self: any, tier: string, first: number, last: number): Zone
-	local tint = tierColor(tier)
-	local zone = HudParts.frame(self.zoneLayer, tier)
-	zone.BackgroundTransparency = R.ZoneTransparency
-	zone.BackgroundColor3 = tint
+-- One reward tile: a white rounded tile with the icon over the value and a small word, a
+-- check once you have it, and a yellow Soon tag on a reward not given yet.
+local function makeTile(
+	parent: Instance,
+	name: string,
+	iconKey: string,
+	words: string?,
+	soon: boolean
+): Tile
+	local frame = HudParts.frame(parent, name)
+	frame.BackgroundTransparency = 0
+	frame.BackgroundColor3 = WHITE
 	local corner = Instance.new("UICorner")
-	corner.Parent = zone
-	stroke(zone, tint, 2).Transparency = 0.4
-	local banner = HudParts.frame(self.zoneLayer, tier .. "Gate")
-	banner.ZIndex = 2
-	banner.BackgroundTransparency = R.BannerTransparency
-	banner.BackgroundColor3 = tint
-	local bannerCorner = Instance.new("UICorner")
-	bannerCorner.Parent = banner
+	corner.Parent = frame
+	stroke(frame, color(R.TileEdgeColor), R.TileStrokePx)
 	local fade = Instance.new("UIGradient")
 	fade.Rotation = 90
-	fade.Transparency = NumberSequence.new(0, 0.6)
-	fade.Parent = banner
+	fade.Color = ColorSequence.new(WHITE, color(K.PanelFade))
+	fade.Parent = frame
+	local icon = HudParts.icon(frame, iconKey, "Icon")
+	icon.AnchorPoint = Vector2.new(0.5, 0)
+	icon.ZIndex = 2
+	local value = HudParts.text(frame, "Value", K.Text.Body, "")
+	value.ZIndex = 2
+	local label = if words then HudParts.note(frame, "Label", K.Text.Body, words) else nil
+	if label then
+		label.ZIndex = 2
+	end
+	local check = HudParts.icon(frame, "Check", "Check")
+	check.AnchorPoint = Vector2.new(1, 0)
+	check.ZIndex = 3
+	check.Visible = false
+	local tag: Frame?, tagWords: TextLabel? = nil, nil
+	if soon then
+		local made, madeWords = makeTag(frame, "Soon", GOLD, P.Soon)
+		made.AnchorPoint = Vector2.new(1, 0)
+		made.ZIndex = 4
+		tag, tagWords = made, madeWords
+	end
 	return {
-		tier = tier,
-		first = first,
-		last = last,
-		frame = zone,
+		frame = frame,
 		corner = corner,
-		banner = banner,
-		bannerCorner = bannerCorner,
+		icon = icon,
+		value = value,
+		label = label,
+		check = check,
+		soon = tag,
+		soonWords = tagWords,
 	}
 end
 
@@ -537,228 +640,181 @@ function Roadmap.buildHeader(self: any, card: Frame)
 	self.closeButton = close
 end
 
-function Roadmap.buildCards(self: any, card: Frame)
-	-- Your rank: the badge, its name, the XP bar and how to earn more.
-	local current = HudParts.card(card, "CurrentCard")
-	self.currentCard = current
-	local fill = current:FindFirstChild("Fill")
-	self.currentFade = if fill then fill:FindFirstChildOfClass("UIGradient") else nil
-	local holder = HudParts.frame(current, "BadgeHolder")
-	holder.ZIndex = 2
-	self.currentBadgeHolder = holder
-	self.currentBadge = RankBadge.new(holder, {
-		size = 64,
-		interactive = false,
-		shine = false,
-		name = "Badge",
-	})
-	local name = HudParts.text(current, "RankName", K.Text.Heading, "")
-	name.TextWrapped = false
-	name.TextXAlignment = Enum.TextXAlignment.Left
-	self.currentName = name
-	self.currentBar, self.currentFill = makeBar(current, "XpBar")
-	local xp = HudParts.note(current, "Xp", K.Text.Body, "")
-	xp.TextWrapped = false
-	xp.TextXAlignment = Enum.TextXAlignment.Left
-	self.currentXp = xp
-	local earn = HudParts.note(current, "EarnXp", K.Text.Body, P.EarnXp)
-	earn.TextWrapped = false
-	earn.TextXAlignment = Enum.TextXAlignment.Left
-	self.earn = earn
-	-- The next money reward: its rank's badge, "Next: Gold IV, +$200" and the cash.
-	local nextCard = HudParts.card(card, "NextCard")
-	self.nextCard = nextCard
-	local badge = Instance.new("ImageLabel")
-	badge.Name = "NextBadge"
-	badge.BackgroundTransparency = 1
-	badge.ScaleType = Enum.ScaleType.Fit
-	badge.Parent = nextCard
-	self.nextBadge = badge
-	local words = HudParts.text(nextCard, "NextReward", K.Text.Heading, "")
-	words.TextXAlignment = Enum.TextXAlignment.Left
-	self.nextText = words
-	self.nextCash = HudParts.icon(nextCard, CASH, "Cash")
+-- A round blue candy arrow at one end of the tier row: each press scrolls one tier.
+function Roadmap.makeArrow(self: any, parent: Instance, dir: number): (TextButton, Frame)
+	local button = HudParts.candy(parent, "", function()
+		UISound.play("Click")
+		self:stepRow(dir)
+	end, "Blue", nil)
+	button.Name = if dir < 0 then "Back" else "Forward"
+	local parts = HudParts.candyParts(button)
+	local corner = parts.face:FindFirstChildOfClass("UICorner")
+	if corner then
+		corner.CornerRadius = UDim.new(0.5, 0)
+	end
+	return button, makeChevron(parts.body)
 end
 
-function Roadmap.buildRoad(self: any, card: Frame)
-	local window = HudParts.frame(card, "RoadWindow")
-	window.BackgroundTransparency = 0
-	window.BackgroundColor3 = color(R.TrackColor)
-	local corner = Instance.new("UICorner")
-	corner.Parent = window
-	self.windowCorner = corner
-	stroke(window, INK, 2.5)
-	self.window = window
+function Roadmap.buildRow(self: any, card: Frame)
+	local area = HudParts.frame(card, "TierRow")
+	self.rowArea = area
 	local scroll = Instance.new("ScrollingFrame")
-	scroll.Name = "Road"
+	scroll.Name = "Tiers"
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
 	scroll.Selectable = false
 	scroll.ScrollingDirection = Enum.ScrollingDirection.X
 	scroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
-	scroll.ScrollBarThickness = R.ScrollBarPx
-	scroll.ScrollBarImageColor3 = INK
-	scroll.ScrollBarImageTransparency = 0.5
-	scroll.HorizontalScrollBarInset = Enum.ScrollBarInset.None
+	scroll.ScrollBarThickness = 0 -- the arrows show there is more
 	scroll.CanvasSize = UDim2.fromOffset(0, 0)
-	scroll.Parent = window
+	scroll.Parent = area
 	self.scroll = scroll
-	local layers = {}
-	local function layer(name: string, z: number): Frame
-		local object = HudParts.frame(scroll, name)
-		object.ZIndex = z
-		table.insert(layers, object)
-		return object
-	end
-	self.zoneLayer = layer("Zones", 1)
-	self.roadLayer = layer("RoadBand", 2)
-	self.chipLayer = layer("Chips", 3)
-	self.stopLayer = layer("Stops", 4)
-	self.tagLayer = layer("Tags", 5)
-	self.layers = layers
-
-	-- The road: grey still to travel, gold where you have been.
-	local band = HudParts.frame(self.roadLayer, "Band")
-	band.BackgroundTransparency = 0
-	band.BackgroundColor3 = color(R.RoadColor)
-	circle(band)
-	stroke(band, INK, 2.5)
-	self.band = band
-	local travelled = HudParts.frame(band, "Travelled")
-	travelled.BackgroundTransparency = 0
-	travelled.BackgroundColor3 = WHITE
-	circle(travelled)
-	local shade = Instance.new("UIGradient")
-	shade.Rotation = 90
-	shade.Color = ColorSequence.new(color(R.BarTopColor), tone("Gold"))
-	shade.Parent = travelled
-	self.travelled = travelled
-	-- Gold rays turning behind your badge (over the road, under the chips and stops).
+	-- Gold rays turning behind your badge, under every tier.
+	local glowLayer = HudParts.frame(scroll, "Glow")
+	glowLayer.ZIndex = 1
+	self.glowLayer = glowLayer
 	local glow = Instance.new("ImageLabel")
-	glow.Name = "Glow"
+	glow.Name = "Rays"
 	glow.BackgroundTransparency = 1
 	glow.AnchorPoint = Vector2.new(0.5, 0.5)
 	glow.Image = K.Art.Rays
-	glow.ImageColor3 = tone("Gold")
+	glow.ImageColor3 = GOLD
 	glow.ImageTransparency = R.GlowTransparency
-	glow.ZIndex = 2
 	glow.Visible = false
-	glow.Parent = self.roadLayer
+	glow.Parent = glowLayer
 	self.glow = glow
-
-	-- Every stop, the chip leading into it, and each tier's zone.
-	self.stops = {} :: { [number]: Stop }
-	self.chips = {} :: { Chip }
-	self.stops[0] = makeStop(self, 0, "Unranked", 0)
-	local spans: { [string]: { number } } = {}
-	for _, division in Ranks.list() do
-		self.stops[division.index] =
-			makeStop(self, division.index, division.tier, division.division)
-		self.chips[division.index] =
-			makeChip(self, division.index, division.reward, division.division == 1)
-		local span = spans[division.tier]
-		if span then
-			span[2] = division.index
-		else
-			spans[division.tier] = { division.index, division.index }
-		end
+	local cellLayer = HudParts.frame(scroll, "Cells")
+	cellLayer.ZIndex = 2
+	self.cellLayer = cellLayer
+	self.cells = {} :: { Cell }
+	for order, tier in TIERS do
+		table.insert(self.cells, makeCell(self, order, tier))
 	end
-	self.zones = {} :: { Zone }
-	for _, tier in TIERS do
-		local span = spans[tier]
-		if span then
-			table.insert(self.zones, makeZone(self, tier, span[1], span[2]))
-		end
-	end
-
-	-- You: your picture over YOU, above your stop.
-	local you = HudParts.frame(self.tagLayer, "You")
-	you.AnchorPoint = Vector2.new(0.5, 1)
-	self.you = you
-	local head = HudParts.frame(you, "Head")
-	head.AnchorPoint = Vector2.new(0.5, 0)
-	head.Position = UDim2.fromScale(0.5, 0)
-	head.BackgroundTransparency = 0
-	head.BackgroundColor3 = WHITE
-	circle(head)
-	stroke(head, INK, 2.5)
-	self.head = head
-	local picture = Instance.new("ImageLabel")
-	picture.Name = "Picture"
-	picture.BackgroundTransparency = 1
-	picture.ScaleType = Enum.ScaleType.Fit
-	picture.Image = K.Icons.Person
-	picture.Size = UDim2.fromScale(1, 1)
-	circle(picture)
-	picture.Parent = head
-	self.picture = picture
-	self.youTag, self.youWords = makeTag(you, "Tag", tone("Blue"), P.You)
-	self.youTag.Position = UDim2.fromScale(0.5, 1)
-	self.youTag.ZIndex = 2
-	self.nextTag, self.nextWords = makeTag(self.tagLayer, "NextTag", color(R.NextTagColor), P.Next)
-	self.miniTrack, self.miniFill = makeBar(self.tagLayer, "MiniXp")
-	self.miniTrack.AnchorPoint = Vector2.new(0.5, 0)
-	-- The shining badge sits in your stop (refresh moves it).
-	self.roadBadge = RankBadge.new(self.stopLayer, {
-		size = 64,
-		interactive = false,
-		shine = false,
-		name = "YourBadge",
-	})
+	-- The tags (moved into your tier and the next one) and the shining badge in yours.
+	self.currentTag, self.currentTagWords =
+		makeTag(cellLayer, "CurrentTag", tone("Blue"), P.CurrentRank)
+	self.currentTag.ZIndex = 4
+	self.nextTag, self.nextTagWords =
+		makeTag(cellLayer, "NextTag", color(R.NextTagColor), P.NextRank)
+	self.nextTag.ZIndex = 4
+	local badge = RankBadge.new(cellLayer, { size = 64, interactive = false, name = "YourBadge" })
+	badge.root.AnchorPoint = Vector2.new(0.5, 0.5)
+	badge.root.Position = UDim2.fromScale(0.5, 0.5)
+	self.rowBadge = badge
+	self.backArrow, self.backChevron = self:makeArrow(area, -1)
+	self.forwardArrow, self.forwardChevron = self:makeArrow(area, 1)
 end
 
-function Roadmap.buildStrip(self: any, card: Frame)
-	local strip = HudParts.frame(card, "Tiers")
-	self.strip = strip
-	self.tierButtons = {} :: { TierButton }
-	for _, tier in TIERS do
-		local button = HudParts.candy(strip, "", function()
-			self:jumpTo(tier)
-		end, "White", nil)
-		button.Name = tier
-		local parts = HudParts.candyParts(button)
-		local badge = Instance.new("ImageLabel")
-		badge.Name = "Badge"
-		badge.BackgroundTransparency = 1
-		badge.ScaleType = Enum.ScaleType.Fit
-		badge.Image = RankBadge.image(tier, 1)
-		badge.ZIndex = 2
-		badge.Parent = parts.body
-		local name = HudParts.text(parts.body, "TierName", K.Text.Body, Ranks.tierName(tier))
-		name.TextWrapped = false
-		name.ZIndex = 2
-		table.insert(self.tierButtons, { tier = tier, button = button, badge = badge, name = name })
-	end
+function Roadmap.buildRankCard(self: any, card: Frame)
+	local rankCard = HudParts.card(card, "RankCard")
+	self.rankCard = rankCard
+	local fill = rankCard:FindFirstChild("Fill")
+	self.rankFade = if fill then fill:FindFirstChildOfClass("UIGradient") else nil
+	local holder = HudParts.frame(rankCard, "BadgeHolder")
+	holder.ZIndex = 2
+	self.rankBadgeHolder = holder
+	self.rankBadge = RankBadge.new(holder, { size = 64, interactive = false, name = "Badge" })
+	local name = HudParts.text(rankCard, "RankName", K.Text.Heading, "")
+	name.TextXAlignment = Enum.TextXAlignment.Left
+	name.ZIndex = 2
+	self.rankName = name
+	local label = HudParts.note(rankCard, "CurrentRank", K.Text.Body, P.CurrentRank)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.ZIndex = 2
+	self.rankLabel = label
+	self.rankBar, self.rankFill = makeBar(rankCard, "XpBar")
+	local xp = HudParts.note(rankCard, "Xp", K.Text.Body, "")
+	xp.TextXAlignment = Enum.TextXAlignment.Left
+	xp.ZIndex = 2
+	self.rankXp = xp
+	-- The next division: an arrow, its badge, "Next: Gold IV" and the money it pays.
+	local nextRow = HudParts.frame(rankCard, "Next")
+	nextRow.ZIndex = 2
+	self.nextRow = nextRow
+	self.nextArrow = HudParts.icon(nextRow, "Arrow", "Arrow")
+	local nextBadge = Instance.new("ImageLabel")
+	nextBadge.Name = "Badge"
+	nextBadge.BackgroundTransparency = 1
+	nextBadge.ScaleType = Enum.ScaleType.Fit
+	nextBadge.Parent = nextRow
+	self.nextBadge = nextBadge
+	local words = HudParts.text(nextRow, "Words", K.Text.Body, "")
+	words.TextXAlignment = Enum.TextXAlignment.Left
+	self.nextLine = words
+	local chip = HudParts.pill(nextRow, "Chip", WHITE)
+	self.chip = chip
+	local cash = HudParts.icon(chip, "CashSingle", "Cash")
+	cash.AnchorPoint = Vector2.new(0, 0.5)
+	cash.ZIndex = 2
+	self.chipCash = cash
+	local amount = HudParts.text(chip, "Amount", K.Text.Body, "")
+	amount.AutoLocalize = false -- a number
+	amount.ZIndex = 2
+	self.chipAmount = amount
+	local help = HudParts.note(rankCard, "Help", K.Text.Body, P.EarnXp)
+	help.TextXAlignment = Enum.TextXAlignment.Left
+	help.ZIndex = 2
+	self.help = help
 end
 
--- Where a gamepad goes from each control: along the road stop by stop, down to the tier
--- strip, up to the close X; along the strip, and up from a tier to its gate. The panel is a
--- selection group that stops at its edges.
+function Roadmap.buildRewards(self: any, card: Frame)
+	local rewards = HudParts.card(card, "RewardsCard")
+	self.rewardsCard = rewards
+	local title = HudParts.text(rewards, "Title", K.Text.Heading, "")
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	self.rewardsTitle = title
+	local holder = HudParts.frame(rewards, "Tiles")
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.tileHolder = holder
+	local nudge = Instance.new("UIScale")
+	nudge.Name = "Nudge"
+	nudge.Parent = holder
+	self.nudge = nudge
+	local tiles: Tiles = {
+		money = makeTile(holder, "Money", "CashStack", P.RewardMoney, false),
+		case = makeTile(holder, "Case", CASE_ICON, P.RewardCount:format(1), true),
+		chat = makeTile(holder, "ChatTag", CHAT_ICON, P.RewardChatTag, false),
+		cue = makeTile(holder, "Cue", "Cue", nil, true),
+	}
+	tiles.money.value.AutoLocalize = false -- a number
+	-- The tag exactly as chat shows it (RichText colours; Reyes letter by letter).
+	tiles.chat.value.RichText = true
+	tiles.chat.value.AutoLocalize = false
+	tiles.cue.value.TextYAlignment = Enum.TextYAlignment.Top -- it may take two lines
+	self.tiles = tiles
+	self.tileOrder = { tiles.money, tiles.case, tiles.chat, tiles.cue }
+end
+
+-- Where a gamepad goes: along the tiers, onto the arrows at the ends, up or down to the close
+-- X, and from the X back to the tier it came from. The panel is a selection group that stops
+-- at its edges.
 function Roadmap.link(self: any)
-	local count = Ranks.count()
 	local close = self.closeButton
-	for i = 0, count do
-		local stop: Stop = self.stops[i]
-		local button = stop.button
-		button.NextSelectionLeft = if i > 0 then self.stops[i - 1].button else button
-		button.NextSelectionRight = if i < count then self.stops[i + 1].button else button
+	local cells: { Cell } = self.cells
+	local count = #cells
+	for order, cell in cells do
+		local button = cell.button
+		button.NextSelectionLeft = if order > 1 then cells[order - 1].button else self.backArrow
+		button.NextSelectionRight = if order < count
+			then cells[order + 1].button
+			else self.forwardArrow
 		button.NextSelectionUp = close
-		local order = if i == 0 then 1 else Ranks.tierIndex(stop.tier) or 1
-		button.NextSelectionDown = self.tierButtons[order].button
+		button.NextSelectionDown = close
 	end
-	for order, entry in self.tierButtons do
-		local button = entry.button
-		button.NextSelectionLeft = if order > 1 then self.tierButtons[order - 1].button else button
-		button.NextSelectionRight = if order < #self.tierButtons
-			then self.tierButtons[order + 1].button
-			else button
-		button.NextSelectionDown = button
-		button.NextSelectionUp = self.stops[Ranks.indexOf(entry.tier) or 1].button
-	end
+	local back: TextButton = self.backArrow
+	back.NextSelectionLeft = back
+	back.NextSelectionRight = cells[1].button
+	back.NextSelectionUp = close
+	back.NextSelectionDown = close
+	local forward: TextButton = self.forwardArrow
+	forward.NextSelectionLeft = cells[count].button
+	forward.NextSelectionRight = forward
+	forward.NextSelectionUp = close
+	forward.NextSelectionDown = close
 	close.NextSelectionUp = close
 	close.NextSelectionRight = close
 	close.NextSelectionLeft = close
-	close.NextSelectionDown = self.stops[0].button
+	close.NextSelectionDown = cells[1].button
 end
 
 function Roadmap.build(self: any)
@@ -790,7 +846,7 @@ function Roadmap.build(self: any)
 	local root = HudParts.frame(gui, "Root")
 	root.Size = UDim2.fromScale(1, 1)
 	self.root = root
-	-- An empty selection box: stops draw their own gold ring, buttons their gold outline.
+	-- An empty selection box: tiers draw their own gold ring, buttons their gold outline.
 	local noBox = Instance.new("Frame")
 	noBox.BackgroundTransparency = 1
 	self.noBox = noBox
@@ -817,35 +873,15 @@ function Roadmap.build(self: any)
 	card.ZIndex = 1
 	self.card = card
 	self:buildHeader(card)
-	self:buildCards(card)
-	self:buildRoad(card)
-	self:buildStrip(card)
-	local rules = HudParts.note(card, "Rules", K.Text.Body, rulesText())
-	self.rules = rules
+	self:buildRow(card)
+	self:buildRankCard(card)
+	self:buildRewards(card)
+	self.rules = HudParts.note(card, "Rules", K.Text.Body, rulesText())
 	self:link()
 
-	local player = self.player
-	local userId = if player then player.UserId else 0
-	if userId > 0 then
-		local picture = self.picture
-		task.spawn(function()
-			local ok, content, ready = pcall(function()
-				return Players:GetUserThumbnailAsync(
-					userId,
-					Enum.ThumbnailType.HeadShot,
-					Enum.ThumbnailSize.Size150x150
-				)
-			end)
-			if ok and ready and self.alive and picture.Parent then
-				picture.Image = content
-			end
-		end)
-	end
-
 	local function resized()
-		if self.opened then
-			self:layout()
-			self:refresh(false)
+		if self.opened and self:layout() then
+			self:draw(false)
 			self:centre(false)
 		end
 	end
@@ -853,6 +889,12 @@ function Roadmap.build(self: any)
 	for _, property in { "AbsoluteSize", "AbsolutePosition" } do
 		table.insert(self.connections, area:GetPropertyChangedSignal(property):Connect(resized))
 	end
+	table.insert(
+		self.connections,
+		self.scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+			self:updateArrows()
+		end)
+	)
 end
 
 --------------------------------------------------------------------------------------------
@@ -919,205 +961,13 @@ function Roadmap.layoutHeader(
 	end
 end
 
-function Roadmap.layoutCards(
-	self: any,
-	leftW: number,
-	rightW: number,
-	height: number,
-	heading: number,
-	body: number
-)
-	local p = math.max(4, round(height * 0.1))
-	local inset = round(p * 0.5)
-	-- Your rank: the badge poking out of the card's left end, then the words.
-	local badge = round(height * R.CardBadgeShare)
-	self.currentBadgeHolder.Size = UDim2.fromOffset(badge, badge)
-	self.currentBadgeHolder.Position = UDim2.fromOffset(inset, round((height - badge) / 2))
-	self.currentBadge:setSize(badge)
-	local x = inset + badge + inset
-	local columnW = math.max(1, leftW - x - p)
-	local nameH = heading + 4
-	local rowH = body + 2
-	local y = math.max(0, round((height - nameH - rowH * 2) / 2))
-	HudParts.setTextSize(self.currentName, heading)
-	self.currentName.Position = UDim2.fromOffset(x, y)
-	self.currentName.Size = UDim2.fromOffset(columnW, nameH)
-	y += nameH
-	local barW = round(columnW * 0.5)
-	local barH = math.max(8, round(rowH * 0.65))
-	self.currentBar.Position = UDim2.fromOffset(x, y + round((rowH - barH) / 2))
-	self.currentBar.Size = UDim2.fromOffset(barW, barH)
-	HudParts.setTextSize(self.currentXp, body)
-	self.currentXp.Position = UDim2.fromOffset(x + barW + 6, y)
-	self.currentXp.Size = UDim2.fromOffset(math.max(1, columnW - barW - 6), rowH)
-	y += rowH
-	HudParts.setTextSize(self.earn, body)
-	self.earn.Position = UDim2.fromOffset(x, y)
-	self.earn.Size = UDim2.fromOffset(columnW, rowH)
-	-- The next reward: its badge, the words, the cash at the right end.
-	local nextBadge = round(height * R.NextBadgeShare)
-	self.nextBadge.Size = UDim2.fromOffset(nextBadge, nextBadge)
-	self.nextBadge.Position = UDim2.fromOffset(inset, round((height - nextBadge) / 2))
-	local cash = round(height * R.CashShare)
-	self.nextCash.Size = UDim2.fromOffset(cash, cash)
-	self.nextCash.Position = UDim2.fromOffset(rightW - p - cash, round((height - cash) / 2))
-	local textX = inset + nextBadge + inset
-	HudParts.setTextSize(self.nextText, heading)
-	self.nextText.Position = UDim2.fromOffset(textX, inset)
-	self.nextText.Size = UDim2.fromOffset(math.max(1, rightW - textX - cash - p * 2), height - p)
-end
-
-function Roadmap.layoutStrip(self: any, width: number, height: number, gap: number, body: number)
-	local count = #self.tierButtons
-	local cell = (width - gap * (count - 1)) / count
-	local usable = height * (1 - K.ButtonLipShare) -- above the candy's lip
-	-- Wide enough: the badge over the tier's name; a phone: the badge alone.
-	local named = cell >= R.StripNameMinPx and height >= R.StripNameMinHeightPx
-	for order, entry in self.tierButtons do
-		entry.button.Position = UDim2.fromOffset(round((cell + gap) * (order - 1)), 0)
-		entry.button.Size = UDim2.fromOffset(round(cell), height)
-		entry.name.Visible = named
-		if named then
-			local nameH = body + 2
-			local size = math.floor(math.min(usable - nameH - 4, cell - 8))
-			entry.badge.AnchorPoint = Vector2.new(0.5, 0)
-			entry.badge.Position = UDim2.fromOffset(round(cell / 2), 3)
-			entry.badge.Size = UDim2.fromOffset(size, size)
-			HudParts.setTextSize(entry.name, body)
-			entry.name.Position = UDim2.fromOffset(2, 3 + size)
-			entry.name.Size = UDim2.fromOffset(math.max(1, round(cell) - 4), nameH)
-		else
-			local size = math.floor(math.min(usable - 4, cell - 6))
-			entry.badge.AnchorPoint = Vector2.new(0.5, 0.5)
-			entry.badge.Position = UDim2.fromOffset(round(cell / 2), round(usable / 2))
-			entry.badge.Size = UDim2.fromOffset(size, size)
-		end
-	end
-end
-
-function Roadmap.layoutRoad(
-	self: any,
-	viewW: number,
-	height: number,
-	k: number,
-	heading: number,
-	body: number
-)
-	local labelGate = heading + 4
-	local labelSmall = body + 4
-	local function below(size: number): number
-		return size * R.LabelDrop + labelGate + size * R.MiniBarShare + 6
-	end
-	-- A gate as big as the road allows, keeping the tallest column inside it: your picture
-	-- and YOU over a gate, its name and the tiny XP bar under it.
-	local g = math.min(R.GateMaxPx, height * R.GateShare)
-	local least = R.TouchMinPx / R.SmallShare
-	while g > least and g * R.AboveShare + below(g) > height do
-		g -= 1
-	end
-	g = math.floor(g)
-	local s = math.max(R.TouchMinPx, round(g * R.SmallShare))
-	local above = g * R.AboveShare
-	local cy = round(math.max(above, (above + height - below(g)) / 2))
-	local gap = math.max(4, round(R.StopGapPx * k))
-	local edge = round(R.EdgePx * k)
-	local chipH = math.max(R.ChipMinPx, round(g * R.ChipShare))
-	local function half(stop: Stop): number
-		return if stop.gate then g * R.GateHalfShare else stop.size * R.SmallHalfShare
-	end
-
-	-- Walk the road left to right: a stop, the chip leading into the next, the next stop.
-	local count = Ranks.count()
-	local start: Stop = self.stops[0]
-	start.size = s
-	local x = edge + half(start)
-	start.x = x
-	local previousHalf = half(start)
-	for i = 1, count do
-		local stop: Stop = self.stops[i]
-		local chip: Chip = self.chips[i]
-		stop.size = if stop.gate then g else s
-		local ch = if chip.promo then round(chipH * R.PromoChipScale) else chipH
-		local textSize = round(ch * R.ChipTextShare)
-		local icon = round(ch * R.ChipIconShare)
-		local lead = round(ch * 0.15)
-		local textX = lead + icon + round(ch * 0.1)
-		local textW = math.ceil(textWidth(chip.words, textSize))
-		local width = if chip.amount > 0 then textX + textW + round(ch * 0.45) else 0
-		local nextHalf = half(stop)
-		chip.x = x + previousHalf + gap + width / 2
-		x += previousHalf + gap * 2 + width + nextHalf
-		stop.x = x
-		previousHalf = nextHalf
-		chip.pill.Size = UDim2.fromOffset(width, ch)
-		chip.pill.Position = UDim2.fromOffset(round(chip.x), cy)
-		chip.icon.Size = UDim2.fromOffset(icon, icon)
-		chip.icon.Position = UDim2.new(0, lead, 0.5, 0)
-		local paid = round(ch * 0.7)
-		chip.paid.Size = UDim2.fromOffset(paid, paid)
-		chip.paid.Position = UDim2.new(0, lead + round(icon * 0.75), 0.5, round(ch * 0.25))
-		HudParts.setTextSize(chip.text, textSize, textSize)
-		chip.text.Position = UDim2.fromOffset(textX, 0)
-		chip.text.Size = UDim2.fromOffset(textW + 4, ch)
-	end
-	local canvasW = round(x + previousHalf + edge)
-
-	for i = 0, count do
-		local stop: Stop = self.stops[i]
-		stop.button.Size = UDim2.fromOffset(stop.size, stop.size)
-		stop.button.Position = UDim2.fromOffset(round(stop.x), cy)
-		HudParts.setTextSize(stop.label, if stop.gate then heading else body)
-		stop.label.Position = UDim2.new(0.5, 0, 0.5, round(stop.size * R.LabelDrop))
-		stop.label.Size = UDim2.fromOffset(
-			round(math.max(stop.size * 1.5, g * 1.2)),
-			if stop.gate then labelGate else labelSmall
-		)
-	end
-
-	local thick = math.max(8, round(g * R.RoadShare))
-	local startX = self.stops[0].x
-	self.band.Position = UDim2.fromOffset(round(startX), round(cy - thick / 2))
-	self.band.Size = UDim2.fromOffset(round(self.stops[count].x - startX), thick)
-
-	local inset = round(R.ZoneInsetPx * k)
-	local radius = UDim.new(0, round(R.ZoneCornerPx * k))
-	local bannerW = round(g * R.BannerShare)
-	for _, zone: Zone in self.zones do
-		local gate: Stop = self.stops[zone.first]
-		local last: Stop = self.stops[zone.last]
-		local left = gate.x - g * R.GateHalfShare
-		zone.frame.Position = UDim2.fromOffset(round(left), inset)
-		zone.frame.Size = UDim2.fromOffset(round(last.x + half(last) - left), height - 2 * inset)
-		zone.corner.CornerRadius = radius
-		zone.banner.Position = UDim2.fromOffset(round(gate.x - bannerW / 2), inset)
-		zone.banner.Size = UDim2.fromOffset(bannerW, height - 2 * inset)
-		zone.bannerCorner.CornerRadius = radius
-	end
-
-	self.scroll.CanvasSize = UDim2.fromOffset(canvasW, 0)
-	for _, layer: Frame in self.layers do
-		layer.Size = UDim2.fromOffset(canvasW, height)
-	end
-	local geo: Geo = {
-		g = g,
-		s = s,
-		cy = cy,
-		h = height,
-		viewW = viewW,
-		canvasW = canvasW,
-		thick = thick,
-		labelGate = labelGate,
-		labelSmall = labelSmall,
-	}
-	self.geo = geo
-end
-
---- Size and place everything from the screen's size. A phone-sized screen gets the whole
---- screen, the title in Roblox's top bar row; a bigger one a capped panel below the bar.
-function Roadmap.layout(self: any)
+--- Size and place the panel and its rows from the screen's size. A phone-sized screen gets
+--- the whole screen, the title in Roblox's top bar row; a bigger one a capped panel below the
+--- bar. False while the screen has no size yet.
+function Roadmap.layout(self: any): boolean
 	local size: Vector2 = self.root.AbsoluteSize
 	if size.X < 1 or size.Y < 1 then
-		return
+		return false
 	end
 	local barLeft, barRight, barBottom = self:topbar(size)
 	local margin = R.MarginPx
@@ -1134,18 +984,15 @@ function Roadmap.layout(self: any)
 	-- Rows run from their phone size to their full size as the panel grows.
 	local k = math.clamp(h / R.DesignHeightPx, R.MinScale, 1)
 	local t = (k - R.MinScale) / (1 - R.MinScale)
-	local function span(pair: { number }): number
-		return round(pair[1] + (pair[2] - pair[1]) * t)
-	end
-	local pad = span(R.PaddingPx)
-	local gap = span(R.GapPx)
+	local pad = spanPx(R.PaddingPx, t)
+	local gap = spanPx(R.GapPx, t)
 	local iw = w - 2 * pad
 	local titleSize = round(K.Text.Title * R.TitleScale * k)
 	local heading = math.max(K.Text.Min, round(K.Text.Heading * k))
 	local body = math.max(K.Text.Min, round(K.Text.Body * k))
 
 	-- The title row; on a phone it is Roblox's top bar row, right of Roblox's buttons.
-	local headerH, headLeft, headRight = span(R.HeaderPx), 0, 0
+	local headerH, headLeft, headRight = spanPx(R.HeaderPx, t), 0, 0
 	if short then
 		headerH = math.max(R.TouchMinPx, barBottom - top - pad)
 		headLeft = math.max(0, barLeft - left - pad + gap)
@@ -1155,7 +1002,7 @@ function Roadmap.layout(self: any)
 	self.header.Size = UDim2.fromOffset(iw, headerH)
 	self:layoutHeader(iw, headerH, headLeft, headRight, gap, titleSize, body, short)
 
-	-- Bottom up: the rules, the tier strip; top down: the cards; the road takes the rest.
+	-- Bottom up: the rules, then the two cards; the tier row takes the rest.
 	HudParts.setTextSize(self.rules, body)
 	local rulesH = math.ceil(
 		TextService:GetTextSize(self.rules.Text, body, FONT, Vector2.new(iw, 1000)).Y
@@ -1163,215 +1010,604 @@ function Roadmap.layout(self: any)
 	local rulesY = h - pad - rulesH
 	self.rules.Position = UDim2.fromOffset(pad, rulesY)
 	self.rules.Size = UDim2.fromOffset(iw, rulesH)
-	local stripH = math.max(R.TouchMinPx, span(R.StripPx))
-	local stripY = rulesY - math.max(2, round(gap * 0.6)) - stripH
-	self.strip.Position = UDim2.fromOffset(pad, stripY)
-	self.strip.Size = UDim2.fromOffset(iw, stripH)
-	self:layoutStrip(iw, stripH, gap, body)
-
-	local cardsH = span(R.CardsPx)
-	local cardsY = pad + headerH + gap
-	local leftW = round((iw - gap) * R.CurrentShare)
-	self.currentCard.Position = UDim2.fromOffset(pad, cardsY)
-	self.currentCard.Size = UDim2.fromOffset(leftW, cardsH)
-	self.nextCard.Position = UDim2.fromOffset(pad + leftW + gap, cardsY)
-	self.nextCard.Size = UDim2.fromOffset(iw - gap - leftW, cardsH)
-	self:layoutCards(leftW, iw - gap - leftW, cardsH, heading, body)
-
-	local roadY = cardsY + cardsH + gap
-	local roadH = math.max(R.TouchMinPx * 2, stripY - gap - roadY)
-	self.window.Position = UDim2.fromOffset(pad, roadY)
-	self.window.Size = UDim2.fromOffset(iw, roadH)
-	self.windowCorner.CornerRadius = UDim.new(0, round(R.WindowCornerPx * k))
-	local inset = R.WindowInsetPx
-	self.scroll.Position = UDim2.fromOffset(inset, inset)
-	self.scroll.Size = UDim2.fromOffset(iw - 2 * inset, roadH - 2 * inset)
-	self:layoutRoad(iw - 2 * inset, roadH - 2 * inset, k, heading, body)
+	local cardsH = spanPx(R.CardsPx, t)
+	local cardsY = rulesY - math.max(2, round(gap * 0.6)) - cardsH
+	local rightW = round((iw - gap) * lerp(R.RewardsShare, t))
+	local leftW = iw - gap - rightW
+	self.rankCard.Position = UDim2.fromOffset(pad, cardsY)
+	self.rankCard.Size = UDim2.fromOffset(leftW, cardsH)
+	self.rewardsCard.Position = UDim2.fromOffset(pad + leftW + gap, cardsY)
+	self.rewardsCard.Size = UDim2.fromOffset(rightW, cardsH)
+	local rowY = pad + headerH + gap
+	local rowH = math.max(R.TouchMinPx * 2, cardsY - gap - rowY)
+	self.rowArea.Position = UDim2.fromOffset(pad, rowY)
+	self.rowArea.Size = UDim2.fromOffset(iw, rowH)
+	local geo: Geo = {
+		t = t,
+		gap = gap,
+		heading = heading,
+		body = body,
+		rowW = iw,
+		rowH = rowH,
+		leftW = leftW,
+		rightW = rightW,
+		cardsH = cardsH,
+	}
+	self.geo = geo
+	return true
 end
 
---------------------------------------------------------------------------------------------
--- State (from the player's rank attributes)
---------------------------------------------------------------------------------------------
+-- The tier row: as many tiers as fit side by side, yours bigger and wider; each tier's badge,
+-- name and dots; the tags, the rays and your shining badge; the arrows at the ends.
+function Roadmap.layoutRow(self: any)
+	local geo: Geo = self.geo
+	local state: State = self.state
+	local t = geo.t
+	local areaW, h = geo.rowW, geo.rowH
+	local body, heading = geo.body, geo.heading
+	local current = state.order
+	local arrow = math.max(R.TouchMinPx, spanPx(R.ArrowPx, t))
+	local side = arrow + geo.gap
+	local viewW = math.max(1, areaW - 2 * side)
 
--- Breathe the next stop (only one at a time, only while open).
-function Roadmap.setPulse(self: any, stop: Stop?)
-	if self.pulseStop == stop then
-		return
-	end
-	if self.pulse then
-		self.pulse.stop()
-		self.pulse = nil
-	end
-	self.pulseStop = stop
-	if stop then
-		self.pulse = UIAnim.pulse(stop.art)
-	end
-end
+	-- Heights, from the tallest column (yours): its tag, badge, name and dots.
+	local tagH = math.max(K.Text.Min + 6, spanPx(R.TagPx, t))
+	local tagText = math.max(K.Text.Min, round(tagH * 0.7))
+	local nameH, bigNameH = body + 4, heading + 4
+	local dot = spanPx(R.DotPx, t)
+	local bigDot = round(dot * R.CurrentScale)
+	local stack = R.TagAboveShare + R.NameBelowShare
+	local room = h - tagH - bigNameH - bigDot - 8
+	local bc = math.floor(math.clamp(room / stack, R.TouchMinPx, R.BadgeMaxPx * R.CurrentScale))
+	local b = math.floor(bc / R.CurrentScale)
+	local used = tagH + bc * stack + bigNameH + 2 + bigDot
+	local top = math.max(0, round((h - used) / 2))
+	local cy = round(top + tagH + bc * R.TagAboveShare)
 
---- Draw the player's rank on the map: every stop's state, your badge, the tags, the road's
---- gold, the paid rewards, the cards and your tier in the strip. `live` animates a change
---- seen while the map is open (the badge pops, the bars slide, the road glides to you).
-function Roadmap.refresh(self: any, live: boolean)
-	local geo: Geo? = self.geo
-	if not geo then
-		return
+	-- Widths: as many tiers as fit (VisibleTiers), each wide enough for its badge, name and
+	-- tag; yours CurrentCellScale wider.
+	local pad = R.CellTextPadPx
+	local widest = 0
+	for _, tier in TIERS do
+		widest = math.max(widest, textWidth(Ranks.tierName(tier), body))
 	end
-	local player = self.player
-	local rated = readNumber(player, "RatedMatches") > 0
-	local rank: Rank = Ranks.fromXp(readNumber(player, "RankXp"), rated)
-	local current = rank.index
-	local count = Ranks.count()
-	local peak = math.clamp(math.floor(readNumber(player, "PeakDivision")), current, count)
-	local moved = current ~= self.current
-	self.current = current
-	local here: Stop = self.stops[current]
-	local nextStop: Stop? = self.stops[current + 1]
-
-	-- How far into your division you are.
-	local fraction = 0
-	local xpWords: string
-	local width = rank.width
-	if current == 0 then
-		xpWords = Strings.Ranks.XpOf:format(Format.xp(0), Format.xp(Ranks.width(1) or 0))
-	elseif width then
-		fraction = math.clamp(rank.xpInDivision / width, 0, 1)
-		xpWords = Strings.Ranks.XpOf:format(Format.xp(rank.xpInDivision), Format.xp(width))
-	else
-		fraction = 1
-		xpWords = Strings.Ranks.XpOnly:format(Format.xp(rank.xpInDivision))
+	local tagW = textWidth(P.CurrentRank, tagText) + tagH
+	local nextTagW = textWidth(P.NextRank, tagText) + tagH
+	local least = math.max(b * R.CellAspect, widest + pad, nextTagW + pad)
+	local bigLeast = 0
+	if current > 0 then
+		bigLeast = math.max(textWidth(Ranks.name(state.rank), heading) + pad, tagW + pad)
 	end
-
-	-- The stops: reached (a check), yours, the next, locked (grey and see-through).
-	local lockedTint = color(R.LockedTint)
-	for i = 0, count do
-		local stop: Stop = self.stops[i]
-		local locked = i > current + 1
-		stop.image.Visible = i ~= current
-		stop.image.ImageColor3 = if locked then lockedTint else WHITE
-		stop.image.ImageTransparency = if locked then R.LockedTransparency else 0
-		HudParts.setTextTransparency(stop.label, if locked then R.LockedTextTransparency else 0)
-		stop.check.Visible = i <= current and (i > 0 or current > 0)
-		stop.button.ZIndex = if i == current then 3 elseif stop.gate then 2 else 1
-	end
-	local badge = self.roadBadge
-	badge.root.Parent = here.art
-	badge:setSize(here.size)
-	badge.root.AnchorPoint = Vector2.new(0.5, 0.5)
-	badge.root.Position = UDim2.fromScale(0.5, 0.5)
-	badge:set(rank.tier, rank.division, live and moved)
-	local glowSize = round(here.size * R.GlowScale)
-	self.glow.Visible = current > 0 and rank.tier ~= TOP_TIER -- Reyes' badge has its own rays
-	self.glow.Size = UDim2.fromOffset(glowSize, glowSize)
-	self.glow.Position = UDim2.fromOffset(round(here.x), geo.cy)
-	self:setPulse(if self.opened then nextStop else nil)
-
-	-- YOU with your picture over your stop, Next over the next, the tiny XP bar under yours.
-	local tagH = math.max(K.Text.Min + 5, round(geo.g * R.TagShare))
-	local tagText = math.max(K.Text.Min, round(tagH * 0.72))
-	local headSize = round(geo.g * R.HeadShare)
-	HudParts.setTextSize(self.youWords, tagText)
-	local youW = round(textWidth(P.You, tagText) + tagH)
-	self.youTag.Size = UDim2.fromOffset(youW, tagH)
-	self.head.Size = UDim2.fromOffset(headSize, headSize)
-	self.you.Size = UDim2.fromOffset(math.max(youW, headSize), headSize + tagH - 4)
-	self.you.Position = UDim2.fromOffset(round(here.x), round(geo.cy - here.size * R.TopShare))
-	self.nextTag.Visible = nextStop ~= nil
-	if nextStop then
-		HudParts.setTextSize(self.nextWords, tagText)
-		self.nextTag.Size = UDim2.fromOffset(round(textWidth(P.Next, tagText) + tagH), tagH)
-		self.nextTag.Position =
-			UDim2.fromOffset(round(nextStop.x), round(geo.cy - nextStop.size * R.TopShare))
-	end
-	local labelH = if here.gate then geo.labelGate else geo.labelSmall
-	local miniH = math.max(6, round(geo.g * R.MiniBarShare))
-	self.miniTrack.Visible = current > 0
-	self.miniTrack.Size = UDim2.fromOffset(round(here.size * 0.9), miniH)
-	self.miniTrack.Position =
-		UDim2.fromOffset(round(here.x), geo.cy + round(here.size * R.LabelDrop) + labelH + 2)
-	self.miniFill.Size = UDim2.fromScale(fraction, 1)
-
-	-- The road is gold from the start up to where you are between your stop and the next.
-	local startX = self.stops[0].x
-	local progress = if nextStop then here.x + (nextStop.x - here.x) * fraction else here.x
-	local travelled = math.max(0, round(progress - startX))
-	self.travelled.Visible = travelled > 1
-	self.travelled.Size = UDim2.new(0, travelled, 1, 0)
-
-	-- Rewards already paid fade with a check; tiers not reached yet are paler.
-	for _, chip: Chip in self.chips do
-		local claimed = chip.index <= peak
-		chip.claimed = claimed
-		local fade = if claimed then R.ClaimedTransparency else 0
-		chip.paid.Visible = claimed
-		chip.pill.BackgroundTransparency = fade
-		if chip.edge then
-			chip.edge.Transparency = fade
+	local extra = if current > 0 then R.CurrentCellScale - 1 else 0
+	local fewest, most = R.VisibleTiers[1], R.VisibleTiers[2]
+	local shown = fewest
+	for n = most, fewest, -1 do
+		local each = viewW / (n + extra)
+		if each >= least and each * R.CurrentCellScale >= bigLeast then
+			shown = n
+			break
 		end
-		chip.icon.ImageTransparency = fade
-		HudParts.setTextTransparency(chip.text, fade)
 	end
-	for _, zone: Zone in self.zones do
-		local reached = zone.first <= current
-		zone.frame.BackgroundTransparency = if reached
-			then R.ZoneTransparency
-			else R.LockedZoneTransparency
-		zone.banner.BackgroundTransparency = if reached
-			then R.BannerTransparency
-			else R.LockedBannerTransparency
+	local w = viewW / (shown + extra)
+
+	local ringTop = math.max(R.RingPx, top - 3)
+	local ringBottom = math.min(h - R.RingPx, top + round(used) + 3)
+	local ringCorner = UDim.new(0, round(R.RingCornerPx * (0.75 + 0.25 * t)))
+	local x = 0
+	for order, cell: Cell in self.cells do
+		local mine = order == current
+		local cw = if mine then w * R.CurrentCellScale else w
+		local left, right = round(x), round(x + cw)
+		x += cw
+		local width = right - left
+		local mid = round(width / 2)
+		cell.x = left
+		cell.w = width
+		cell.button.Position = UDim2.fromOffset(left, 0)
+		cell.button.Size = UDim2.fromOffset(width, h)
+		cell.button.ZIndex = if mine then 2 else 1
+		local size = if mine then bc else b
+		cell.art.Size = UDim2.fromOffset(size, size)
+		cell.art.Position = UDim2.fromOffset(mid, cy)
+		cell.name.Text = if mine then Ranks.name(state.rank) else Ranks.tierName(cell.tier)
+		HudParts.setTextSize(cell.name, if mine then heading else body)
+		local nh = if mine then bigNameH else nameH
+		local nameY = cy + round(size * R.NameBelowShare)
+		cell.name.Position = UDim2.fromOffset(mid, nameY)
+		cell.name.Size = UDim2.fromOffset(math.max(1, width - 4), nh)
+		local d = if mine then bigDot else dot
+		local spacing = math.max(2, round(d * R.DotGapShare))
+		local count = #cell.dots
+		cell.dotRow.Position = UDim2.fromOffset(mid, nameY + nh + 1)
+		cell.dotRow.Size = UDim2.fromOffset(count * d + (count - 1) * spacing, d)
+		for i, dotFrame in cell.dots do
+			dotFrame.Size = UDim2.fromOffset(d, d)
+			dotFrame.Position = UDim2.fromOffset((i - 1) * (d + spacing), 0)
+		end
+		cell.ring.Position = UDim2.fromOffset(R.RingPx + 1, ringTop)
+		cell.ring.Size =
+			UDim2.fromOffset(math.max(1, width - 2 * (R.RingPx + 1)), ringBottom - ringTop)
+		cell.ringCorner.CornerRadius = ringCorner
 	end
-	for _, entry: TierButton in self.tierButtons do
-		HudParts.setTone(entry.button, if entry.tier == rank.tier then "Yellow" else "White")
+	local canvasW = round(x)
+
+	-- Current Rank over yours, Next Rank over the next; the rays and the shining badge.
+	local here: Cell? = self.cells[current]
+	local nextCell: Cell? = self.cells[current + 1]
+	HudParts.setTextSize(self.currentTagWords, tagText)
+	HudParts.setTextSize(self.nextTagWords, tagText)
+	self.currentTag.Visible = here ~= nil
+	if here then
+		self.currentTag.Parent = here.body
+		self.currentTag.Size = UDim2.fromOffset(round(tagW), tagH)
+		self.currentTag.Position =
+			UDim2.fromOffset(round(here.w / 2), cy - round(bc * R.TagAboveShare))
+	end
+	self.nextTag.Visible = nextCell ~= nil
+	if nextCell then
+		self.nextTag.Parent = nextCell.body
+		self.nextTag.Size = UDim2.fromOffset(round(nextTagW), tagH)
+		self.nextTag.Position =
+			UDim2.fromOffset(round(nextCell.w / 2), cy - round(b * R.TagAboveShare))
+	end
+	local glow = self.glow
+	glow.Visible = here ~= nil and state.rank.tier ~= TOP_TIER -- Reyes' badge has its own rays
+	if here then
+		local glowSize = round(bc * R.GlowScale)
+		glow.Size = UDim2.fromOffset(glowSize, glowSize)
+		glow.Position = UDim2.fromOffset(here.x + round(here.w / 2), cy)
+	end
+	local badge = self.rowBadge
+	badge.root.Visible = here ~= nil
+	if here then
+		badge.root.Parent = here.art
+		badge:setSize(bc)
 	end
 
-	-- The cards: your rank, and the next money still to earn (a division you already reached
-	-- once has paid, so it is the one after your best).
-	self.currentBadge:set(rank.tier, rank.division, live and moved)
-	self.currentName.Text = Ranks.name(rank)
-	self.currentXp.Text = xpWords
+	-- The window the tiers scroll in, between the arrows.
+	self.scroll.Position = UDim2.fromOffset(side, 0)
+	self.scroll.Size = UDim2.fromOffset(viewW, h)
+	self.scroll.CanvasSize = UDim2.fromOffset(canvasW, 0)
+	self.glowLayer.Size = UDim2.fromOffset(canvasW, h)
+	self.cellLayer.Size = UDim2.fromOffset(canvasW, h)
+	-- The arrows, their faces (above the candy's lip) level with the badges.
+	local face = arrow * (1 - K.ButtonLipShare)
+	local chevron = round(arrow * R.ChevronShare)
+	local function placeArrow(button: TextButton, holder: Frame, atX: number, dir: number)
+		button.Size = UDim2.fromOffset(arrow, arrow)
+		button.Position = UDim2.fromOffset(atX, cy - round(face / 2))
+		holder.Position = UDim2.fromOffset(round(arrow / 2), round(face / 2))
+		layoutChevron(holder, chevron, dir)
+	end
+	placeArrow(self.backArrow, self.backChevron, 0, -1)
+	placeArrow(self.forwardArrow, self.forwardChevron, areaW - arrow, 1)
+	local row: Row = { viewW = viewW, canvasW = canvasW }
+	self.row = row
+	local x0 = self:clampCanvas(self.scroll.CanvasPosition.X)
+	self.scroll.CanvasPosition = Vector2.new(x0, 0)
+end
+
+-- Your rank's card: the badge, the name, Current Rank, the XP bar, the next division.
+function Roadmap.drawRankCard(self: any, live: boolean, moved: boolean)
+	local geo: Geo = self.geo
+	local state: State = self.state
+	local rank = state.rank
+	local w, h = geo.leftW, geo.cardsH
+	local body, heading = geo.body, geo.heading
+	local p = math.max(4, round(h * R.CardPadShare))
+	local inset = math.max(3, round(p * 0.6))
+	local badge = round(h * R.RankBadgeShare)
+	self.rankBadgeHolder.Size = UDim2.fromOffset(badge, badge)
+	self.rankBadgeHolder.Position = UDim2.fromOffset(inset, round((h - badge) / 2))
+	self.rankBadge:setSize(badge)
+	self.rankBadge:set(rank.tier, rank.division, live and moved)
+	local x = inset + badge + inset
+	local colW = math.max(1, w - x - p)
+
+	-- The lines that fit, top to bottom; the help line first to go, then Current Rank. The
+	-- next-division line takes two lines when its words do not fit on one.
+	local nameH, labelH, barRowH, helpH = heading + 4, body + 2, body + 4, body + 2
+	local lineH = math.max(body + 8, round(h * R.NextRowShare))
+	local nextLine = self:measureNext(colW, lineH, body)
+	local nextH = if nextLine.fits then lineH else math.max(lineH, body * 2 + 8)
+	local rowGap = math.max(2, round(h * 0.03))
+	local inner = h - 2 * p
+	local lines = nameH + labelH + barRowH + nextH + 3 * rowGap
+	local showLabel = lines <= inner
+	if not showLabel then
+		lines -= labelH + rowGap
+	end
+	local showHelp = showLabel and lines + helpH + rowGap <= inner
+	local total = lines + (if showHelp then helpH + rowGap else 0)
+	local y = p + math.max(0, round((inner - total) / 2))
+
+	HudParts.setTextSize(self.rankName, heading)
+	self.rankName.Text = Ranks.name(rank)
+	self.rankName.Position = UDim2.fromOffset(x, y)
+	self.rankName.Size = UDim2.fromOffset(colW, nameH)
+	y += nameH + rowGap
+	self.rankLabel.Visible = showLabel
+	if showLabel then
+		HudParts.setTextSize(self.rankLabel, body)
+		self.rankLabel.Position = UDim2.fromOffset(x, y)
+		self.rankLabel.Size = UDim2.fromOffset(colW, labelH)
+		y += labelH + rowGap
+	end
+	-- The XP bar, then "250 / 1,000 XP" beside it.
+	self.rankXp.Text = state.xpWords
+	HudParts.setTextSize(self.rankXp, body)
+	local xpW = math.ceil(textWidth(state.xpWords, body)) + 4
+	local barW = math.max(40, colW - xpW - 6)
+	local barH = math.max(8, round(barRowH * 0.62))
+	self.rankBar.Position = UDim2.fromOffset(x, y + round((barRowH - barH) / 2))
+	self.rankBar.Size = UDim2.fromOffset(barW, barH)
+	self.rankXp.Position = UDim2.fromOffset(x + barW + 6, y)
+	self.rankXp.Size = UDim2.fromOffset(math.max(1, colW - barW - 6), barRowH)
+	y += barRowH + rowGap
+	self.nextRow.Position = UDim2.fromOffset(x, y)
+	self.nextRow.Size = UDim2.fromOffset(colW, nextH)
+	self:drawNext(nextLine, colW, nextH, body)
+	y += nextH + rowGap
+	self.help.Visible = showHelp
+	if showHelp then
+		HudParts.setTextSize(self.help, body)
+		self.help.Position = UDim2.fromOffset(x, y)
+		self.help.Size = UDim2.fromOffset(colW, helpH)
+	end
+
 	if self.barTween then
 		self.barTween:Cancel()
 		self.barTween = nil
 	end
-	local fillSize = UDim2.fromScale(fraction, 1)
+	local fillSize = UDim2.fromScale(state.fraction, 1)
 	if live then
 		local tween = TweenService:Create(
-			self.currentFill,
+			self.rankFill,
 			TweenInfo.new(Config.UI.Progress.CountUpSeconds, Enum.EasingStyle.Quad),
 			{ Size = fillSize }
 		)
 		self.barTween = tween
 		tween:Play()
 	else
-		self.currentFill.Size = fillSize
+		self.rankFill.Size = fillSize
 	end
-	if self.currentFade then
-		self.currentFade.Color =
-			ColorSequence.new(WHITE, WHITE:Lerp(tierColor(rank.tier), R.CardTint))
+	if self.rankFade then
+		self.rankFade.Color = ColorSequence.new(WHITE, WHITE:Lerp(tierColor(rank.tier), R.CardTint))
 	end
-	local target = peak + 1
-	if target > count then
-		self.nextBadge.Image = RankBadge.image(TOP_TIER, 1)
-		self.nextText.Text = P.TopRank
-		self.nextCash.Visible = false
-	else
+end
+
+-- The next-division line, measured for a row `width` wide whose one line is `lineH` tall: an
+-- arrow to the division's badge, "Next: Gold IV", and the money it pays (only if you have not
+-- reached it before); at the top, "You are at the top!". The badge is left out first when the
+-- line is too long; `fits` says whether the words then still fit on one line.
+function Roadmap.measureNext(self: any, width: number, lineH: number, body: number): NextLine
+	local state: State = self.state
+	local target = state.rank.index + 1
+	local top = target > Ranks.count()
+	local words = P.TopRank
+	local badgeImage = ""
+	local amount = 0
+	if not top then
 		local tier, division = Ranks.at(target)
-		local name = Ranks.name({
-			tier = tier,
-			division = division,
-			index = target,
-			xpInDivision = 0,
-			width = Ranks.width(target),
-		})
-		self.nextBadge.Image = RankBadge.image(tier, division)
-		self.nextText.Text = P.NextReward:format(name, Format.moneyDelta(Ranks.rewardFor(target)))
-		self.nextCash.Visible = true
+		words = P.NextDivision:format(divisionName(tier, division))
+		badgeImage = RankBadge.image(tier, division)
+		amount = Ranks.rewardFor(target)
+	end
+	local pays = not top and target > state.peak and amount > 0
+	local amountWords = Format.moneyDelta(amount)
+	local gapX = math.max(3, round(lineH * 0.18))
+	local arrow = if top then 0 else round(lineH * R.NextArrowShare)
+	local badge = round(lineH * R.NextBadgeShare)
+	local textW = math.ceil(textWidth(words, body)) + 4
+	local chipH = math.min(lineH, body + 10)
+	local cash = round(chipH * R.ChipIconShare)
+	local cashX = round(chipH * 0.1)
+	local amountX = cashX + cash + 2
+	local amountW = math.ceil(textWidth(amountWords, body)) + 4
+	local chipW = if pays then amountX + amountW + round(chipH * 0.35) else 0
+	local chipRoom = if pays then gapX + chipW else 0
+	local lead = if top then 0 else arrow + gapX
+	local showBadge = not top and lead + badge + gapX + textW + chipRoom <= width
+	local used = lead + (if showBadge then badge + gapX else 0) + textW + chipRoom
+	return {
+		top = top,
+		words = words,
+		badgeImage = badgeImage,
+		pays = pays,
+		amountWords = amountWords,
+		gapX = gapX,
+		arrow = arrow,
+		badge = badge,
+		showBadge = showBadge,
+		textW = textW,
+		chipH = chipH,
+		chipW = chipW,
+		cash = cash,
+		cashX = cashX,
+		amountX = amountX,
+		amountW = amountW,
+		fits = used <= width,
+	}
+end
+
+-- Draw the measured next-division line into its row (`height` is one line, or two when its
+-- words wrap); the arrow, badge and chip stay centred on it.
+function Roadmap.drawNext(self: any, line: NextLine, width: number, height: number, body: number)
+	local words = self.nextLine
+	HudParts.setTextSize(words, body)
+	words.Text = line.words
+	self.nextArrow.Visible = not line.top
+	self.nextBadge.Visible = line.showBadge
+	self.chip.Visible = line.pays
+	local x = 0
+	if not line.top then
+		self.nextArrow.Size = UDim2.fromOffset(line.arrow, line.arrow)
+		self.nextArrow.Position = UDim2.fromOffset(x, round((height - line.arrow) / 2))
+		x += line.arrow + line.gapX
+	end
+	if line.showBadge then
+		self.nextBadge.Image = line.badgeImage
+		self.nextBadge.Size = UDim2.fromOffset(line.badge, line.badge)
+		self.nextBadge.Position = UDim2.fromOffset(x, round((height - line.badge) / 2))
+		x += line.badge + line.gapX
+	end
+	local chipRoom = if line.pays then line.gapX + line.chipW else 0
+	local textRoom = math.max(1, math.min(line.textW, width - x - chipRoom))
+	words.Position = UDim2.fromOffset(x, 0)
+	words.Size = UDim2.fromOffset(textRoom, height)
+	x += textRoom + line.gapX
+	if line.pays then
+		local chipH = line.chipH
+		self.chip.Size = UDim2.fromOffset(line.chipW, chipH)
+		self.chip.Position = UDim2.fromOffset(x, round((height - chipH) / 2))
+		self.chipCash.Size = UDim2.fromOffset(line.cash, line.cash)
+		self.chipCash.Position = UDim2.new(0, line.cashX, 0.5, 0)
+		self.chipAmount.Text = line.amountWords
+		HudParts.setTextSize(self.chipAmount, body)
+		self.chipAmount.Position = UDim2.fromOffset(line.amountX, 0)
+		self.chipAmount.Size = UDim2.fromOffset(line.amountW, chipH)
+	end
+end
+
+-- The chosen tier's rewards: its money, a case, its chat tag and a cue, in tiles as wide as
+-- their words need (equal when they all fit).
+function Roadmap.drawRewards(self: any)
+	local geo: Geo? = self.geo
+	local state: State? = self.state
+	local tier: string? = self.selected
+	if not geo or not state or not tier then
+		return
+	end
+	local w, h = geo.rightW, geo.cardsH
+	local body, heading = geo.body, geo.heading
+	local p = math.max(4, round(h * R.CardPadShare))
+	local titleH = heading + 4
+	local title = self.rewardsTitle
+	HudParts.setTextSize(title, heading)
+	title.Text = P.RewardsFor:format(divisionName(tier, 1))
+	title.Position = UDim2.fromOffset(p + 2, p)
+	title.Size = UDim2.fromOffset(math.max(1, w - 2 * p - 4), titleH)
+	local tilesY = p + titleH + math.max(2, round(p * 0.5))
+	local tilesH = math.max(R.TouchMinPx, h - tilesY - p)
+	local tileGap = spanPx(R.TileGapPx, geo.t)
+	local inner = math.max(4, w - 2 * p - 3 * tileGap)
+	local holder = self.tileHolder
+	holder.Size = UDim2.fromOffset(inner + 3 * tileGap, tilesH)
+	holder.Position =
+		UDim2.fromOffset(p + round((inner + 3 * tileGap) / 2), tilesY + round(tilesH / 2))
+
+	-- The words.
+	local tiles: Tiles = self.tiles
+	local name = Ranks.tierName(tier)
+	local money = Format.moneyDelta(TIER_FIRST[tier] or 0)
+	local plainTag = Strings.Ranks.ChatTag:format(string.upper(name))
+	local cue = P.TierCue:format(name)
+	tiles.money.value.Text = money
+	tiles.case.value.Text = P.RewardCase
+	tiles.chat.value.Text = ChatTags.tagFor(tier) or plainTag
+	tiles.cue.value.Text = cue
+
+	-- Each tile's least width: its words on one line, but the cue's name may take two.
+	local labelSize = math.max(K.Text.Min, body - 2)
+	local tp = math.max(3, round(tilesH * 0.06))
+	local values = { money, P.RewardCase, plainTag, cue }
+	local labels = { P.RewardMoney, P.RewardCount:format(1), P.RewardChatTag, "" }
+	local needs: { number } = {}
+	local total = 0
+	for i, words in values do
+		needs[i] = math.max(textWidth(words, body), textWidth(labels[i], labelSize)) + 2 * tp + 6
+		total += needs[i]
+	end
+	if total > inner then
+		local longest = 0
+		for word in string.gmatch(cue, "%S+") do
+			longest = math.max(longest, textWidth(word, body))
+		end
+		total -= needs[4]
+		needs[4] = longest + 2 * tp + 6
+		total += needs[4]
+	end
+	local biggest = math.max(needs[1], needs[2], needs[3], needs[4])
+	local widths: { number } = {}
+	for i, need in needs do
+		widths[i] = if biggest * 4 <= inner
+			then inner / 4
+			elseif total <= inner then need + (inner - total) / 4
+			else inner * need / total
 	end
 
-	local back: Stop = self.lastStop or here
-	self.closeButton.NextSelectionDown = back.button
-	if live and moved then
-		self:scrollTo(here.x)
+	local valueH, labelH = body + 4, labelSize + 2
+	local iconSize = math.max(16, tilesH - 2 * tp - valueH - labelH)
+	local check = round(tilesH * R.TileCheckShare)
+	local soonH = math.max(K.Text.Min + 4, spanPx(R.SoonPx, geo.t))
+	local soonText = math.max(K.Text.Min, round(soonH * 0.72))
+	local corner = UDim.new(0, spanPx(R.TileCornerPx, geo.t))
+	local x = 0
+	for i, tile: Tile in self.tileOrder do
+		local left, right = round(x), round(x + widths[i])
+		x += widths[i] + tileGap
+		local width = right - left
+		tile.frame.Position = UDim2.fromOffset(left, 0)
+		tile.frame.Size = UDim2.fromOffset(width, tilesH)
+		tile.corner.CornerRadius = corner
+		local icon = math.max(1, math.min(iconSize, width - 2 * tp))
+		tile.icon.Size = UDim2.fromOffset(icon, icon)
+		tile.icon.Position = UDim2.fromOffset(round(width / 2), tp + (iconSize - icon))
+		local textY = tp + iconSize
+		local textW = math.max(1, width - 2 * tp)
+		HudParts.setTextSize(tile.value, body)
+		tile.value.Position = UDim2.fromOffset(tp, textY)
+		local label = tile.label
+		if label then
+			tile.value.Size = UDim2.fromOffset(textW, valueH)
+			HudParts.setTextSize(label, labelSize)
+			label.Position = UDim2.fromOffset(tp, textY + valueH - 1)
+			label.Size = UDim2.fromOffset(textW, labelH)
+		else
+			tile.value.Size = UDim2.fromOffset(textW, valueH + labelH)
+		end
+		tile.check.Size = UDim2.fromOffset(check, check)
+		tile.check.Position = UDim2.fromOffset(width - 2, 2)
+		local soon, soonWords = tile.soon, tile.soonWords
+		if soon and soonWords then
+			HudParts.setTextSize(soonWords, soonText)
+			soon.Size = UDim2.fromOffset(round(textWidth(P.Soon, soonText) + soonH), soonH)
+			soon.Position = UDim2.fromOffset(width - 3, -round(soonH * 0.35))
+		end
 	end
+	-- A check on the rewards given now, for a tier you have reached.
+	local earned = (Ranks.tierIndex(tier) or 0) <= state.order
+	tiles.money.check.Visible = earned
+	tiles.chat.check.Visible = earned
+end
+
+--------------------------------------------------------------------------------------------
+-- State (from the player's rank attributes)
+--------------------------------------------------------------------------------------------
+
+-- Breathe the next tier's badge (only one at a time, only while open).
+function Roadmap.setPulse(self: any, cell: Cell?)
+	if self.pulseCell == cell then
+		return
+	end
+	if self.pulse then
+		self.pulse.stop()
+		self.pulse = nil
+	end
+	self.pulseCell = cell
+	if cell then
+		self.pulse = UIAnim.pulse(cell.art)
+	end
+end
+
+-- A tier's gold outline: solid with a pale fill when chosen, lighter while hovered or focused.
+function Roadmap.paintRing(self: any, cell: Cell)
+	local chosen = self.selected == cell.tier
+	cell.ring.Visible = chosen or cell.lit
+	cell.ring.BackgroundTransparency = if chosen then R.RingFillTransparency else 1
+	cell.ringEdge.Transparency = if chosen then 0 else R.FocusRingTransparency
+end
+
+-- A tier under the mouse or a gamepad: the outline, a small pop and the hover sound.
+function Roadmap.lightCell(self: any, cell: Cell, on: boolean)
+	if cell.lit == on then
+		return
+	end
+	cell.lit = on
+	self:paintRing(cell)
+	if on then
+		UISound.play("BadgeHover")
+	end
+	settleCell(cell, nil, QUICK * 2)
+end
+
+-- Every tier's state: reached, yours, the next, locked past it (grey and see-through), and its
+-- dots, gold for each division reached.
+function Roadmap.paintRow(self: any)
+	local state: State = self.state
+	local current = state.order
+	local lockedTint = color(R.LockedTint)
+	local empty = color(R.DotEmptyColor)
+	for order, cell: Cell in self.cells do
+		local mine = order == current
+		local locked = order > current + 1
+		cell.image.Visible = not mine
+		cell.image.ImageColor3 = if locked then lockedTint else WHITE
+		cell.image.ImageTransparency = if locked then R.LockedTransparency else 0
+		local fade = if locked then R.LockedTextTransparency else 0
+		HudParts.setTextTransparency(cell.name, fade)
+		local filled = if order < current
+			then #cell.dots
+			elseif mine then math.max(1, state.rank.division)
+			else 0
+		for i, dotFrame in cell.dots do
+			dotFrame.BackgroundColor3 = if i <= filled then GOLD else empty
+			dotFrame.BackgroundTransparency = fade
+			local edge = dotFrame:FindFirstChildOfClass("UIStroke")
+			if edge then
+				edge.Transparency = fade
+			end
+		end
+		self:paintRing(cell)
+	end
+	self:setPulse(if self.opened then self.cells[current + 1] else nil)
+end
+
+--- Draw the player's rank on the map: the row, your badge, the tags, your rank's card and the
+--- chosen tier's rewards. `live` animates a change seen while the map is open (the badges pop,
+--- the bar slides, the row glides to your tier). A new tier chooses the next one again.
+function Roadmap.draw(self: any, live: boolean)
+	if not self.geo then
+		return
+	end
+	local state = readState(self.player)
+	local previous: State? = self.state
+	local moved = previous == nil or previous.rank.index ~= state.rank.index
+	local tierMoved = previous == nil or previous.order ~= state.order
+	self.state = state
+	if tierMoved or self.selected == nil then
+		self.selected = defaultTier(state)
+	end
+	self:layoutRow()
+	self:paintRow()
+	self.rowBadge:set(state.rank.tier, state.rank.division, live and moved)
+	self:drawRankCard(live, moved)
+	self:drawRewards()
+	local back: Cell = self.focusCell or self:cellFor(self.selected)
+	self.closeButton.NextSelectionDown = back.button
+	self:updateArrows()
+	if live and tierMoved then
+		self:scrollToCell(self.cells[math.max(1, state.order)])
+	end
+end
+
+-- Choose a tier: the gold outline moves and the rewards card shows it (the tiles pop).
+function Roadmap.choose(self: any, tier: string, nudge: boolean)
+	if self.selected == tier then
+		return
+	end
+	self.selected = tier
+	for _, cell: Cell in self.cells do
+		self:paintRing(cell)
+	end
+	self:drawRewards()
+	if nudge then
+		if self.nudgeTween then
+			self.nudgeTween:Cancel()
+		end
+		self.nudge.Scale = R.NudgeScale
+		local tween = TweenService:Create(
+			self.nudge,
+			TweenInfo.new(R.NudgeSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Scale = 1 }
+		)
+		self.nudgeTween = tween
+		tween:Play()
+	end
+end
+
+function Roadmap.cellFor(self: any, tier: string?): Cell
+	return self.cells[math.max(1, if tier then Ranks.tierIndex(tier) or 1 else 1)]
 end
 
 -- Redraw once after a burst of attribute changes (the server sets several at once).
@@ -1383,7 +1619,7 @@ function Roadmap.queueRefresh(self: any)
 	task.defer(function()
 		self.refreshQueued = false
 		if self.opened and self.alive then
-			self:refresh(true)
+			self:draw(true)
 		end
 	end)
 end
@@ -1393,48 +1629,99 @@ end
 --------------------------------------------------------------------------------------------
 
 function Roadmap.clampCanvas(self: any, x: number): number
-	local geo: Geo? = self.geo
-	if not geo then
+	local row: Row? = self.row
+	if not row then
 		return 0
 	end
-	return math.clamp(x, 0, math.max(0, geo.canvasW - geo.viewW))
+	return math.clamp(x, 0, math.max(0, row.canvasW - row.viewW))
 end
 
--- Glide the road until canvas x `contentX` is in the middle.
-function Roadmap.scrollTo(self: any, contentX: number)
-	local geo: Geo? = self.geo
-	if geo then
-		self.scrollTarget = self:clampCanvas(contentX - geo.viewW / 2)
+-- Glide the row until a tier is in the middle (a gamepad moving along it).
+function Roadmap.scrollToCell(self: any, cell: Cell)
+	local row: Row? = self.row
+	if row then
+		self.scrollTarget = self:clampCanvas(cell.x + cell.w / 2 - row.viewW / 2)
+		self.holdUntil = 0
 	end
 end
 
--- Put your stop in the middle now, and hold it there through the opening pop (the panel's
--- scale is still settling).
-function Roadmap.centre(self: any, hold: boolean)
-	local geo: Geo? = self.geo
-	local here: Stop? = self.stops and self.stops[math.max(self.current, 0)]
-	if not geo or not here then
+-- Glide the row just enough to show a tier whole (a tap on one at the edge).
+function Roadmap.revealCell(self: any, cell: Cell)
+	local row: Row? = self.row
+	if not row then
 		return
 	end
-	local x = self:clampCanvas(here.x - geo.viewW / 2)
+	local left = self.scrollTarget or self.scroll.CanvasPosition.X
+	if cell.x < left then
+		self.scrollTarget = self:clampCanvas(cell.x)
+	elseif cell.x + cell.w > left + row.viewW then
+		self.scrollTarget = self:clampCanvas(cell.x + cell.w - row.viewW)
+	end
+end
+
+-- One tier along (the arrows): the row's left edge glides to the next tier's edge that way.
+function Roadmap.stepRow(self: any, dir: number)
+	if not self.row then
+		return
+	end
+	local left = self.scrollTarget or self.scroll.CanvasPosition.X
+	local target = if dir > 0 then math.huge else 0
+	for _, cell: Cell in self.cells do
+		if dir > 0 and cell.x > left + 1 then
+			target = math.min(target, cell.x)
+		elseif dir < 0 and cell.x < left - 1 then
+			target = math.max(target, cell.x)
+		end
+	end
+	self.scrollTarget = self:clampCanvas(target)
+	self.holdUntil = 0
+end
+
+-- Put your tier in the middle now, and hold it there through the opening pop (the panel's
+-- scale is still settling).
+function Roadmap.centre(self: any, hold: boolean)
+	local row: Row? = self.row
+	local state: State? = self.state
+	if not row or not state then
+		return
+	end
+	local cell: Cell = self.cells[math.max(1, state.order)]
+	local x = self:clampCanvas(cell.x + cell.w / 2 - row.viewW / 2)
 	self.scroll.CanvasPosition = Vector2.new(x, 0)
 	self.scrollTarget = x
 	self.holdUntil = if hold then os.clock() + K.Motion.PopSeconds + 0.1 else 0
+	self:updateArrows()
 end
 
---- Scroll the road to a tier's gate (the tier strip's buttons), with a little bounce.
-function Roadmap.jumpTo(self: any, tier: string)
-	local stop: Stop? = self.stops[Ranks.indexOf(tier) or 1]
-	UISound.play("Click")
-	if stop then
-		self:scrollTo(stop.x)
-		settleStop(stop, R.PressScale, R.PressSeconds)
+-- Fade an arrow at the row's end (it stays pressable and selectable; it just does nothing).
+function Roadmap.fadeArrow(self: any, button: TextButton, chevron: Frame, faded: boolean)
+	if self.arrowFaded[button] == faded then
+		return
+	end
+	self.arrowFaded[button] = faded
+	HudParts.setEnabled(button, true, faded)
+	local fade = if faded then K.DisabledTransparency else 0
+	for _, bar in chevron:GetChildren() do
+		if bar:IsA("Frame") then
+			bar.BackgroundTransparency = fade
+		end
 	end
 end
 
-function Roadmap.overRoad(self: any, position: Vector3): boolean
-	local corner: Vector2 = self.window.AbsolutePosition
-	local size: Vector2 = self.window.AbsoluteSize
+function Roadmap.updateArrows(self: any)
+	local row: Row? = self.row
+	if not row then
+		return
+	end
+	local x = self.scroll.CanvasPosition.X
+	local most = math.max(0, row.canvasW - row.viewW)
+	self:fadeArrow(self.backArrow, self.backChevron, x <= 0.5)
+	self:fadeArrow(self.forwardArrow, self.forwardChevron, x >= most - 0.5)
+end
+
+function Roadmap.overRow(self: any, position: Vector3): boolean
+	local corner: Vector2 = self.scroll.AbsolutePosition
+	local size: Vector2 = self.scroll.AbsoluteSize
 	return position.X >= corner.X
 		and position.X <= corner.X + size.X
 		and position.Y >= corner.Y
@@ -1446,12 +1733,9 @@ function Roadmap.focused(self: any): boolean
 	return selected ~= nil and selected:IsDescendantOf(self.panel)
 end
 
--- Put the gamepad on your stop.
+-- Put the gamepad on the chosen tier.
 function Roadmap.focus(self: any)
-	local here: Stop? = self.stops[math.max(self.current, 0)]
-	if here then
-		GuiService.SelectedObject = here.button
-	end
+	GuiService.SelectedObject = self:cellFor(self.selected).button
 end
 
 function Roadmap.onInputBegan(self: any, input: InputObject)
@@ -1459,11 +1743,13 @@ function Roadmap.onInputBegan(self: any, input: InputObject)
 	if code == Enum.KeyCode.ButtonB or code == Enum.KeyCode.Escape then
 		self:close()
 		return
+	elseif code == Enum.KeyCode.ButtonA then
+		self.dragMoved = false -- an old mouse drag must not swallow a gamepad press
 	end
 	local kind = input.UserInputType
 	if kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch then
 		self.dragMoved = false
-		if self:overRoad(input.Position) then
+		if self:overRow(input.Position) then
 			self.scrollTarget = nil -- a finger or the mouse takes over from a glide
 			if kind == Enum.UserInputType.MouseButton1 then
 				self.drag = { x = input.Position.X, canvas = self.scroll.CanvasPosition.X }
@@ -1475,9 +1761,9 @@ end
 function Roadmap.onInputChanged(self: any, input: InputObject)
 	local kind = input.UserInputType
 	if kind == Enum.UserInputType.MouseWheel then
-		-- The wheel moves the road sideways. Driving it to a target every frame also
-		-- overrides any scrolling Roblox does with the wheel by itself.
-		if self:overRoad(input.Position) then
+		-- The wheel moves the row sideways. Driving it to a target every frame also overrides
+		-- any scrolling Roblox does with the wheel by itself.
+		if self:overRow(input.Position) then
 			local from = self.scrollTarget or self.scroll.CanvasPosition.X
 			self.scrollTarget = self:clampCanvas(from - input.Position.Z * R.WheelStepPx)
 			self.holdUntil = 0
@@ -1497,59 +1783,40 @@ function Roadmap.onInputChanged(self: any, input: InputObject)
 	end
 end
 
--- Every frame while open: the road's glide and the gold chips' occasional shine.
+-- Every frame while open: the row's glide.
 function Roadmap.step(self: any, dt: number)
-	local geo: Geo? = self.geo
-	if not geo then
+	local target = self.scrollTarget
+	if not target then
 		return
 	end
 	local scroll = self.scroll
-	local target = self.scrollTarget
-	if target then
-		local x = scroll.CanvasPosition.X
-		local nextX = target
-		if os.clock() >= self.holdUntil then
-			nextX = x + (target - x) * (1 - math.exp(-dt / R.ScrollEaseSeconds))
-			if math.abs(target - nextX) < 0.5 then
-				nextX = target
-				self.scrollTarget = nil
-			end
-		end
-		scroll.CanvasPosition = Vector2.new(nextX, 0)
-	end
-	self.shineClock += dt
-	if self.shineClock >= R.ChipShineEvery then
-		self.shineClock = 0
-		local left = scroll.CanvasPosition.X
-		for _, chip: Chip in self.chips do
-			if
-				chip.promo
-				and not chip.claimed
-				and chip.pill.Visible
-				and chip.x > left
-				and chip.x < left + geo.viewW
-			then
-				UIAnim.shine(chip.pill)
-			end
+	local x = scroll.CanvasPosition.X
+	local nextX = target
+	if os.clock() >= self.holdUntil then
+		nextX = x + (target - x) * (1 - math.exp(-dt / R.ScrollEaseSeconds))
+		if math.abs(target - nextX) < 0.5 then
+			nextX = target
+			self.scrollTarget = nil
 		end
 	end
+	scroll.CanvasPosition = Vector2.new(nextX, 0)
 end
 
 function Roadmap.startLoops(self: any)
-	self.roadBadge:setShining(true)
-	self.currentBadge:setShining(true)
+	self.rowBadge:setShining(true)
+	self.rankBadge:setShining(true)
 	self.spinner = UIAnim.spin(self.glow, R.GlowDegreesPerSecond)
-	self.shineClock = 0
 	self.stepper = RunService.RenderStepped:Connect(function(dt)
 		self:step(dt)
 	end)
-	self:setPulse(self.stops[self.current + 1])
+	local state: State? = self.state
+	self:setPulse(if state then self.cells[state.order + 1] else nil)
 end
 
 function Roadmap.stopLoops(self: any)
-	if self.roadBadge then
-		self.roadBadge:setShining(false)
-		self.currentBadge:setShining(false)
+	if self.rowBadge then
+		self.rowBadge:setShining(false)
+		self.rankBadge:setShining(false)
 	end
 	if self.spinner then
 		self.spinner.stop()
@@ -1562,6 +1829,11 @@ function Roadmap.stopLoops(self: any)
 	if self.barTween then
 		self.barTween:Cancel()
 		self.barTween = nil
+	end
+	if self.nudgeTween then
+		self.nudgeTween:Cancel()
+		self.nudgeTween = nil
+		self.nudge.Scale = 1
 	end
 	self:setPulse(nil)
 end
@@ -1588,7 +1860,7 @@ function Roadmap.listen(self: any)
 			end
 		end)
 	)
-	-- A gamepad picked up while the map is open lands on your stop.
+	-- A gamepad picked up while the map is open lands on the chosen tier.
 	table.insert(
 		list,
 		UserInputService.LastInputTypeChanged:Connect(function(kind)
@@ -1651,7 +1923,8 @@ end
 -- Public
 --------------------------------------------------------------------------------------------
 
---- Pop the map in, centred on your rank. A gamepad lands on your stop.
+--- Pop the map in, centred on your tier, the rewards card on the next. A gamepad lands on
+--- the chosen tier.
 function Roadmap.open(self: any)
 	if self.opened or not self.alive then
 		return
@@ -1661,11 +1934,13 @@ function Roadmap.open(self: any)
 	end
 	self.opened = true
 	self.gui.Enabled = true
-	self.current = -1
-	self.lastStop = nil
-	self:layout()
-	self:refresh(false)
-	self:centre(true)
+	self.state = nil
+	self.selected = nil
+	self.focusCell = nil
+	if self:layout() then
+		self:draw(false)
+		self:centre(true)
+	end
 	if self.dimTween then
 		self.dimTween:Cancel()
 	end
@@ -1694,11 +1969,11 @@ function Roadmap.close(self: any)
 	self:unlisten()
 	self.drag = nil
 	self.scrollTarget = nil
-	for _, stop: Stop in self.stops do
-		if stop.lit then
-			stop.lit = false
-			stop.ring.Visible = false
-			settleStop(stop, nil, QUICK)
+	for _, cell: Cell in self.cells do
+		if cell.lit then
+			cell.lit = false
+			self:paintRing(cell)
+			settleCell(cell, nil, QUICK)
 		end
 	end
 	self:releaseSelection()
@@ -1735,8 +2010,8 @@ function Roadmap.destroy(self: any)
 	end
 	table.clear(self.connections)
 	if self.built then
-		self.roadBadge:destroy()
-		self.currentBadge:destroy()
+		self.rowBadge:destroy()
+		self.rankBadge:destroy()
 		self.gui:Destroy()
 		self.probe:Destroy()
 	end

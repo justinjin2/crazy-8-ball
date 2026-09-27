@@ -203,6 +203,7 @@ return {
 		Division = "%s %s", -- tier, numeral: "Gold III"
 		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
 		XpOnly = "%s XP", -- Reyes has no top: just the XP past its start
+		ChatTag = "[%s]", -- before a name in chat, the tier in capitals: "[PLATINUM]" (ChatTags)
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
@@ -238,13 +239,19 @@ return {
 		NewTier = "%s!", -- the tier's name, huge: "PLATINUM!"
 		RankDown = "Rank down: %s",
 		RankedTitle = "Ranked",
-		RankedSubtitle = "Win matches, climb the road, earn money at every step.",
+		RankedSubtitle = "Win matches, climb the ranks and earn rewards!",
 		EarnXp = "Win matches to earn XP",
-		NextReward = "Next: %s, %s", -- "Next: Gold IV, +$200"
 		TopRank = "You are at the top!",
-		You = "YOU",
-		Current = "Current",
-		Next = "Next",
+		CurrentRank = "Current Rank", -- the tag over your tier, and under your rank on its card
+		NextRank = "Next Rank", -- the tag over the next tier
+		NextDivision = "Next: %s", -- your next division: "Next: Gold IV"
+		RewardsFor = "Rewards for %s", -- the chosen tier's rewards: "Rewards for Platinum I"
+		RewardMoney = "Money",
+		RewardCase = "Case", -- a general case for every tier for now (designer, 2026-09-27)
+		RewardCount = "x%d", -- how many: "x1"
+		RewardChatTag = "Chat Tag",
+		TierCue = "%s Cue", -- the tier's cue: "Platinum Cue"
+		Soon = "Soon", -- a reward not given yet
 		-- The roadmap's one line of rules, from Config.Ranks (Ranks.rulesLine).
 		Rules = "Win %s XP. %s: losing still gives %s. %s: no XP lost. %s and up: losing costs %s.",
 		TierRange = "%s to %s", -- "Bronze to Gold"

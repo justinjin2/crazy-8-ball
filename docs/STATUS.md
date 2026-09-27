@@ -1,6 +1,25 @@
 # Status
 
-**2026-09-27 (latest, branch `ranks-money`, overnight): saves, ranks and money.**
+**2026-09-27 (latest, branch `ranks-money`): the designer's first changes to the rank screens.**
+
+- **Built:** the whole rank HUD grows on hover and squish-bounces on click; badges sparkle,
+  with only a faint light sweep every 7 to 9 s; the roadmap redone after reference 03 (the ten
+  tiers side by side with arrows, your rank card with an arrow to the next division and its
+  money, "Rewards for <tier>": money, Case, chat tag, Cue); a coloured [TIER] tag before your
+  name in chat; no celebration for an 8 that loses the game; no darkened screen behind the end
+  screen or NEW RANK! (written into UI_STYLE: popups never dim; only the roadmap does).
+- **Verified:** lint clean, 425 tests pass. Studio: the HUD's scale 1 -> 1.06 on hover and
+  0.95 -> 1.17 -> 1.06 on click, then the roadmap opens; the badge sweep visible 15% of the
+  time at a quarter strength with two sparkles on Gold; a real chat message shows
+  "[GOLD] Painicane:" with the tag in gold; the server marks a legal 8 `eightWins = true` and a
+  wrong-pocket 8 false; the roadmap on a PC window and at phone size; the end screen with no
+  dim. Console clean.
+- **Needs a check by hand:** a controller on the roadmap (arrows, A on a tier, B); a phone
+  swipe on the tier row; how the chat tag looks in the real chat window.
+
+---
+
+**2026-09-27 (branch `ranks-money`, overnight): saves, ranks and money.**
 
 - **Built:** saves (ProfileStore behind `PlayerData`, save layout v1 with migrations and
   validation, a separate Studio store); ranks (46 divisions from rank XP, all 1,000 XP for now,

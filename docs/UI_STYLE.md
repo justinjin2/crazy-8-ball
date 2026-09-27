@@ -25,6 +25,10 @@ screen, a popup).
 - **A soft white-to-pale-blue fade and a soft drop shadow**, so panels look puffy, not flat.
 - **A faint pattern of tiny pool balls** (some striped) over every panel, about 8% strong:
   felt more than seen.
+- **Popups never darken the screen** (designer, 2026-09-27, said for the dialogs and again for
+  the rank screens): no dim behind a popup, a dialog, the end-of-match screen or NEW RANK!, because
+  the dark layer shows where it stops at the screen's edges on different devices. The one
+  exception is the Ranked roadmap's slight dim.
 
 ## 3. Text
 
@@ -215,6 +219,15 @@ order; that is Open.
     counting up, the total flying into the HUD. Solo: one card and the money.
   - *NEW RANK!*: the big badge over turning rays, confetti, the name and the reward chip; a new
     tier bursts from the old badge with "PLATINUM!"; a lost division is a small quiet card.
-  - *The roadmap*: a road of all 46 divisions scrolling sideways, each tier's I a big gate on its
-    colour band, reward chips between stops, YOU with your picture, Next pulsing, locked stops
-    greyed; the current-rank and next-reward cards above, the ten tiers below, one line of rules.
+  - *The roadmap* (redesigned after reference 03, designer 2026-09-27): the ten tiers side by
+    side (about five at once, < and > arrows plus swipe), each with its badge, name and five
+    division dots; your tier bigger over turning rays with "Current Rank", the next with "Next
+    Rank", later ones greyed. Below: your rank card (badge, XP bar, an arrow to the next
+    division and its money) and "Rewards for <tier>" (money, a Case, the [TIER] chat tag, the
+    tier's Cue; Case and Cue marked Soon); tapping a tier shows its rewards. One line of rules.
+    Its slight dim is the only dim in the game.
+  - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
+    rainbow, letter by letter); none for Unranked.
+  - *The rank HUD bounces as a whole* (designer, 2026-09-27): badge and pill grow together
+    under the mouse and squish and bounce when pressed. Badges sparkle, with only a faint light
+    sweep now and then.

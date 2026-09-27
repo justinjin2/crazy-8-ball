@@ -2,10 +2,11 @@
 -- RankBadge: the one rank badge every screen shows (the rank HUD, nameplates, the match bar,
 -- the result screen, NEW RANK! and the roadmap). The rank's badge image (Config.UI.Ranks) that
 -- shines as assets/ui/ranks/README.md describes (UI_STYLE section 7), more as you climb:
--- - Bronze to Diamond: a light sweep, the shine band of UIAnim.shine clipped to the badge's
---   own shape (a white shine mask of it with a UIGradient whose Offset crosses from -1 to 1);
--- - Expert to Grandmaster: the sweep plus sparkles twinkling one after another;
--- - Reyes: a quicker sweep, more sparkles and gold rays turning behind it;
+-- - every tier: sparkles twinkling one after another at its bright spots (2 from Bronze to
+--   Diamond, 3 from Expert, 5 for Reyes), and now and then a faint light sweep, the shine band
+--   of UIAnim.shine clipped to the badge's own shape (a white shine mask of it with a
+--   UIGradient whose Offset crosses from -1 to 1) (designer, 2026-09-27: much less shimmer);
+-- - Reyes also turns gold rays behind it;
 -- - Unranked: still.
 --
 -- Every live badge is driven by ONE shared clock: a single RenderStepped connection made when
@@ -14,8 +15,9 @@
 -- leaves the clock by itself. Tiny badges skip the sparkles and rays (specks on screen).
 --
 -- An interactive badge is an ImageButton (selectable, for a gamepad): the mouse or a gamepad
--- selection pops it up with a quicker, brighter sweep; a tap, click or A squishes and bounces it,
--- then runs its action. Hover and press use the badge's own UIScale ("PressScale"); pops and
+-- selection pops it up with a burst of sparkles; a tap, click or A squishes and bounces it,
+-- then runs its action (a badge made with `scale = false` leaves the growing to its screen:
+-- the rank HUD bounces as a whole). Hover and press use the badge's own UIScale ("PressScale"); pops and
 -- bursts use UIAnim's "AnimScale" on an inner frame. So a screen may still UIAnim the root.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -48,6 +50,9 @@ export type Options = {
 	-- Extra: false keeps Reyes' rays off even when big, for a badge beside words (the rank
 	-- HUD's pill, a nameplate's name), which the rays would otherwise cover. Default true.
 	rays: boolean?,
+	-- Extra: false keeps hover and press from scaling the badge (its screen scales a bigger
+	-- whole, as the rank HUD does); the sparkles and sounds still play. Default true.
+	scale: boolean?,
 }
 
 export type Badge = {
@@ -340,6 +345,7 @@ function RankBadge.new(parent: Instance, options: Options): Badge
 	self.alive = true
 	self.shining = options.shine ~= false
 	self.raysAllowed = options.rays ~= false
+	self.scales = options.scale ~= false
 	self.hovered = false
 	self.band = nil
 	self.key = nil
@@ -495,6 +501,16 @@ function Badge.setShining(self: any, on: boolean)
 	end
 end
 
+-- Sparkles pop at every bright spot, one after another, once (a burst, a hover).
+local function sparkleBurst(self: any, now: number)
+	for i = #self.burstSparkles + 1, #SPOTS do
+		local sparkle = makeSparkle(self, "Burst" .. i)
+		sparkle.Position = UDim2.fromScale(SPOTS[i][1], SPOTS[i][2])
+		table.insert(self.burstSparkles, sparkle)
+	end
+	self.burstAt = now
+end
+
 --- A big bright pop (a rank-up): the badge jumps up and settles, sweeps, and sparkles burst
 --- at every bright spot, once.
 function Badge.burst(self: any)
@@ -525,12 +541,7 @@ function Badge.burst(self: any)
 	end)
 	grow:Play()
 	beginSweep(self, now, true)
-	for i = #self.burstSparkles + 1, #SPOTS do
-		local sparkle = makeSparkle(self, "Burst" .. i)
-		sparkle.Position = UDim2.fromScale(SPOTS[i][1], SPOTS[i][2])
-		table.insert(self.burstSparkles, sparkle)
-	end
-	self.burstAt = now
+	sparkleBurst(self, now)
 end
 
 --- The press: a squish and bounce through Config.UI.Ranks.PressScales, a click and a bright
@@ -542,13 +553,13 @@ function Badge.press(self: any)
 	end
 	stopScale(self)
 	local token = self.pressToken
-	local rest = if self.hovered then R.HoverScale else 1
+	local rest = if self.hovered and self.scales then R.HoverScale else 1
 	local scales: { number } = R.PressScales
 	local seconds = R.PressSeconds / #scales
 	local index = 0
 	local function nextStep()
 		index += 1
-		if token ~= self.pressToken or not self.alive or index > #scales then
+		if token ~= self.pressToken or not self.alive or index > #scales or not self.scales then
 			return
 		end
 		local tween = TweenService:Create(
@@ -567,6 +578,7 @@ function Badge.press(self: any)
 	nextStep()
 	UISound.play("Click")
 	beginSweep(self, os.clock(), true)
+	sparkleBurst(self, os.clock())
 	local onPress = self.onPress
 	if onPress then
 		task.spawn(onPress)
@@ -579,10 +591,12 @@ function Badge.hover(self: any, on: boolean)
 		return
 	end
 	self.hovered = on
-	scaleTo(self, if on then R.HoverScale else 1)
+	if self.scales then
+		scaleTo(self, if on then R.HoverScale else 1)
+	end
 	if on then
 		UISound.play("BadgeHover")
-		beginSweep(self, os.clock(), true)
+		sparkleBurst(self, os.clock()) -- sparkles, not a shimmer (designer, 2026-09-27)
 	end
 end
 

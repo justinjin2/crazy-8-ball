@@ -121,7 +121,8 @@ Each has a dated line in `docs/DECISIONS.md`.
 12. Tier colours (roadmap bands, confetti): Bronze copper, Silver steel, Gold, Platinum pale
     blue, Diamond cyan, Expert red, Veteran green, Master purple, Grandmaster near-black, Reyes
     pink.
-13. The end screen and NEW RANK! dim the game behind them; the cards show usernames.
+13. The end screen's cards show usernames. (Its dim and NEW RANK!'s were removed the next
+    day: popups never darken the screen.)
 14. Nameplates are drawn over the world like Roblox's names (hats and walls never cut them);
     your own plate shows too.
 15. The rank HUD: Unranked shows an empty Bronze I bar; Reyes a full shimmering rainbow bar.

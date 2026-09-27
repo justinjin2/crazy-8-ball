@@ -1482,9 +1482,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: Interface sounds are placeholders from Roblox's own library and APM Music,
   chosen by name and length without being heard (overnight assumption; list in
   `assets/audio/README.md`).
-- 2026-09-27: The end-of-match screen dims the game behind it (50%) and NEW RANK! too (45%),
-  though match dialogs do not; cards show usernames, like the nameplates (overnight
-  assumption).
+- 2026-09-27: The end-of-match screen's cards show usernames, like the nameplates (overnight
+  assumption). Its dim (50%) and NEW RANK!'s (45%) were removed the same day: popups never
+  darken the screen (designer, now written in UI_STYLE section 2); only the Ranked roadmap
+  keeps its slight dim.
 - 2026-09-27: Nameplates are drawn over the world (AlwaysOnTop), like Roblox's own names, so
   hats and walls never cut them, sized in studs to read like reference 02; your own plate
   shows too (overnight assumption; `Config.UI.Progress.Nameplate`).
@@ -1503,3 +1504,21 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (`Config.Economy.UseDifficultyMultiplier = false`): no screen sets a difficulty, but the
   server still accepts one, so a modified client could claim 2x. Turn it on with the
   difficulty lock (Roadmap 6.2) (overnight assumption, from the second audit).
+- 2026-09-27 (designer, after trying the overnight build): the whole rank HUD (badge and pill)
+  grows on hover and squish-bounces on click; badges shimmer far less (a faint sweep every 7 to
+  9 s instead of 2 to 4) and sparkle instead, a burst of sparkles on hover and press.
+- 2026-09-27 (designer): the roadmap follows reference 03: the ten tiers side by side with
+  arrows and swipe (no divisions in the row; five dots per tier), no bottom strip; the left card
+  shows your rank with an arrow to the next division and its reward; "Rewards for <tier>" shows
+  money, a Case (x1, soon), the chat tag and a Cue ("Platinum Cue", soon) for every tier,
+  opening on your next tier, and tapping a tier shows its rewards.
+- 2026-09-27 (designer): a chat tag before your name in chat: the tier only, in capitals, in
+  the tier's colour ("[PLATINUM]"); the name keeps Roblox's colour; none for Unranked. The
+  colours are brighter chat versions (`Config.Ranks.ChatColors`; Grandmaster gold, Reyes
+  rainbow).
+- 2026-09-27 (designer): an 8 that loses the game (early, wrong pocket, on a foul) gets no
+  celebration at all: no NICE SHOT!, no pocket burst, no sting. The server marks the shot
+  (`eightWins`).
+- 2026-09-27: The next tier in the roadmap stays in full colour like reference 03; only tiers
+  after it are greyed (Claude's pick).
+

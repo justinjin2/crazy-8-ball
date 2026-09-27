@@ -209,14 +209,28 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	pillButton.ZIndex = 5
 	pillButton.Parent = pill
 
-	-- The badge, over the pill's left end.
+	-- The whole HUD grows under the mouse and squishes and bounces when pressed, badge and pill
+	-- as one (designer, 2026-09-27), about the badge's centre.
+	local bounce = Instance.new("UIScale")
+	bounce.Name = "Bounce"
+	bounce.Parent = body
+	self.bounce = bounce
+	self.bounceToken = 0
+	self.hovers = {} :: { [string]: boolean }
+
+	-- The badge, over the pill's left end. It sparkles on hover and press; the HUD does the
+	-- growing.
 	local badge = RankBadge.new(body, {
 		size = B,
 		interactive = true,
-		onPress = onOpen,
+		onPress = function()
+			self:bounceOnce()
+			onOpen()
+		end,
 		name = "Badge",
 		zIndex = 3,
 		rays = false, -- they would cover the pill's words; Reyes' bar shimmers instead
+		scale = false,
 	})
 	badge.root.Position = UDim2.fromOffset(0, 0)
 	self.badge = badge
@@ -228,13 +242,34 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	local function connect(signal: RBXScriptSignal, handler: (...any) -> ())
 		table.insert(self.connections, signal:Connect(handler))
 	end
+	-- Hovering anywhere on it (the pill, the badge) or a gamepad selection grows the whole HUD.
+	local function hover(source: string, on: boolean)
+		self.hovers[source] = on or nil
+		local any = next(self.hovers) ~= nil
+		badge:hover(any)
+		self:settleScale()
+	end
 	connect(pillButton.MouseEnter, function()
 		if not isTouch() then
-			badge:hover(true)
+			hover("pill", true)
 		end
 	end)
 	connect(pillButton.MouseLeave, function()
-		badge:hover(false)
+		hover("pill", false)
+	end)
+	connect(button.MouseEnter, function()
+		if not isTouch() then
+			hover("badge", true)
+		end
+	end)
+	connect(button.MouseLeave, function()
+		hover("badge", false)
+	end)
+	connect(button.SelectionGained, function()
+		hover("gamepad", true)
+	end)
+	connect(button.SelectionLost, function()
+		hover("gamepad", false)
 	end)
 	connect(pillButton.Activated, function()
 		badge:press()
@@ -498,7 +533,9 @@ function RankHud.refreshVisible(self: any)
 		UIAnim.popIn(self.body)
 	else
 		self:stop()
+		table.clear(self.hovers)
 		self.badge:hover(false)
+		self:settleScale()
 		UIAnim.popOut(self.body)
 	end
 end
@@ -511,6 +548,52 @@ function RankHud.setVisible(self: any, visible: boolean)
 	end
 	self.wanted = visible
 	self:refreshVisible()
+end
+
+-- The whole HUD's resting size: bigger while hovered.
+function RankHud.restScale(self: any): number
+	return if next(self.hovers) ~= nil then H.HoverScale else 1
+end
+
+-- Tween the whole HUD to its resting size (a hover starting or ending).
+function RankHud.settleScale(self: any)
+	self.bounceToken += 1
+	TweenService:Create(
+		self.bounce,
+		TweenInfo.new(H.HoverSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{ Scale = self:restScale() }
+	):Play()
+end
+
+-- The press: the whole HUD squishes and bounces (Config.UI.Ranks.PressScales), then rests.
+function RankHud.bounceOnce(self: any)
+	self.bounceToken += 1
+	local token = self.bounceToken
+	local scales: { number } = Config.UI.Ranks.PressScales
+	local seconds = Config.UI.Ranks.PressSeconds / #scales
+	local index = 0
+	local function nextStep()
+		index += 1
+		if token ~= self.bounceToken or not self.alive then
+			return
+		end
+		local target = if index <= #scales then scales[index] * self:restScale() else nil
+		if target == nil then
+			return
+		end
+		local tween = TweenService:Create(
+			self.bounce,
+			TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Scale = target }
+		)
+		tween.Completed:Connect(function(state)
+			if state == Enum.PlaybackState.Completed then
+				nextStep()
+			end
+		end)
+		tween:Play()
+	end
+	nextStep()
 end
 
 --- The badge's button, for gamepad selection.

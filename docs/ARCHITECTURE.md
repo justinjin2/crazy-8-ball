@@ -254,7 +254,8 @@ separately from real multi-client playtests.
 - Client: `Progression` (builds and routes everything below), `RankBadge` (one badge with its
   shine on a shared clock, used by every screen), `RankHud` (top left), `MoneyHud` (bottom
   left), `CashFlyer` (the "+$10" chips), `Nameplates`, `ResultScreen`, `NewRankPopup`,
-  `Roadmap`, `UISound`; MatchHUD shows a small badge under each portrait.
+  `Roadmap`, `UISound`, `ChatTags` (the [TIER] tag before names in chat, from each speaker's
+  RankTier attribute); MatchHUD shows a small badge under each portrait.
 
 **Data flow.**
 1. *Save.* On join `PlayerData` opens the player's session (`Player_<UserId>` in

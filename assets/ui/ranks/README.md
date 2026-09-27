@@ -3,8 +3,9 @@
 Made by `tools/gen_rank_badges.py`. To change a badge, change the generator and run
 `python3 tools/gen_rank_badges.py`; never edit the PNGs or SVGs by hand.
 
-**Not in the game yet** (designer, 2026-09-26): not uploaded to Roblox and not in Config, so this
-work does not overlap the map work in Studio. Design notes: `docs/UI_STYLE.md` sections 6 and 7.
+**In the game** since 2026-09-27: all 95 images uploaded, ids in `Config.UI.Ranks` (keyed by
+file name), shown by `src/client/RankBadge.luau`. Design notes: `docs/UI_STYLE.md` sections 6
+and 7.
 
 ## Files
 
@@ -28,14 +29,19 @@ ring are the same size in the same place on every one (50% across, 54% down); cr
 above and pips sit in an arc under the ball. So one ImageLabel can switch from any badge to
 any other (for a rank-up animation) without the ball jumping.
 
-## The shine (starting values, for Config when the badges go in)
+## The shine (in the game: `Config.UI.Ranks.Shine`)
+
+Mostly sparkles, with a faint light sweep now and then (designer, 2026-09-27: the first
+version shimmered too much).
 
 | Tiers | Light sweep | Sparkles | Extra |
 |---|---|---|---|
 | Unranked | none | none | |
-| Bronze to Diamond | every 4 s, 0.9 s across | none | |
-| Expert to Grandmaster | every 3 s, 0.8 s across | 3, one after another (1.6 s cycle) | |
-| Reyes | every 2.2 s, 0.7 s across | 5 (1.4 s cycle) | gold rays turning once every 14 s |
+| Bronze to Diamond | every 9 s, faint | 2 (2.6 s cycle) | |
+| Expert to Grandmaster | every 8 s, faint | 3 (2.0 s cycle) | |
+| Reyes | every 7 s, faint | 5 (1.5 s cycle) | gold rays turning once every 14 s |
+
+A badge that reacts to the mouse bursts sparkles when hovered and pressed.
 
 How to build it in Roblox (the same band as `UIAnim.shine`):
 1. The badge is an ImageLabel.
