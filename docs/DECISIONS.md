@@ -1303,3 +1303,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   `assets/map/gen_fire.py`, embers, a glow, a little smoke and a flickering light, built on each
   client by `FirePit` and faded in by the day cycle (`Config.Lighting`'s Fire). Few long-lived
   looping flames rather than many short ones, because Roblox thins particles at low graphics levels.
+- 2026-09-26 (later): The fire pit uses Roblox's own Fire after all (designer: the custom effect
+  above did not suit). Still only at sunset, the static flame mesh still hidden, with the warm
+  flickering light; the custom flipbook, its images and gen_fire.py are removed.
