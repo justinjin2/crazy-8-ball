@@ -68,6 +68,7 @@ CITY = {
     'far_tower_core': 0.75,  # ...and this much more often at a downtown's heart, where they rise
     'far_tower_rise': 280.0,  # this much taller (away from the downtowns a tower barely clears the roof)
     'far_lot_counts': (1, 1, 2),  # lots per far block: fewer, wider towers than the mid city's
+    'edge_min': 20.0,  # an edge cell (edge_cells) narrower than this is left to the street
 }
 
 # The far downtowns: (bearing from straight ahead toward the city (-X) in degrees, distance,
@@ -130,6 +131,68 @@ def block_seed(seed, i, j):
     on Python 3.11 and later). Each block has its own, so changing the coast or the near
     radius re-rolls only the blocks it touches."""
     return seed * 1_000_003 + (i + 1000) * 4099 + (j + 1000)
+
+
+def land_limit(z0, z1):
+    """How far toward the sea (+X) the city's ground runs over a band of Z: to the promenade
+    along the city's bending shore, the back beach's edge or the ocean side's promenade (the
+    nearest of them over the band)."""
+    W = WORLD
+    prom = W['promenade']
+
+    def at(z):
+        if z < W['shore_z']:
+            return city_edge_x(z) - prom
+        if z < land_z() + prom:
+            return W['city_back_x']
+        return land_x() - prom
+
+    zs = [z0, z1] + [z for z in (W['shore_z'], land_z() + prom) if z0 < z < z1]
+    return min(at(z) for z in zs)
+
+
+def near_land_rect(x0, z0, x1, z1):
+    """A rectangle clipped to the ground the near world draws (inside the ocean side's and the
+    back beach's promenades; gen_near); None if nothing is left."""
+    x1 = min(x1, land_x() - WORLD['promenade'])
+    z0 = max(z0, land_z() + WORLD['promenade'])
+    if x1 - x0 < 0.5 or z1 - z0 < 0.5:
+        return None
+    return x0, z0, x1, z1
+
+
+def edge_cells():
+    """The grid cells of land that no block and no near-world ground covers: cut by the
+    promenade so no whole block fits, or behind the tower where the near world's ground stops at
+    the back beach. Each is (i, j, (x0, z0, x1, z1)): its block square clipped to the land, when
+    at least CITY['edge_min'] wide. The skyline builds them as paved lots with low buildings and
+    the sky paints them, so no bare grey ground is left between the city and the promenade
+    (designer, 2026-09-26)."""
+    W = WORLD
+    pitch, half = W['city_pitch'], W['city_block'] / 2
+    taken = {(b['i'], b['j']) for b in city_blocks()}
+    n = int(W['city_reach'] // pitch) + 1
+    out = []
+    for i in range(-n, n + 1):
+        for j in range(-n, n + 1):
+            cx, cz = (i + 0.5) * pitch, (j + 0.5) * pitch
+            d = math.hypot(cx, cz)
+            if (i, j) in taken or d > W['city_reach']:
+                continue
+            x0, x1, z0, z1 = cx - half, cx + half, cz - half, cz + half
+            if d <= W['near_ground']:
+                near = near_land_rect(x0, z0, x1, z1)
+                if near is not None and near[1] <= z0 + 0.5:
+                    continue  # the near world's own ground
+                if near is not None:
+                    z1 = near[1]  # the near world's ground from here on (behind the back promenade)
+            if x1 > -160 and x0 < 160 and z1 > -180 and z0 < 170:
+                continue  # the tower's lot and plaza
+            limit = land_limit(z0, z1)
+            if limit - x0 < CITY['edge_min']:
+                continue
+            out.append((i, j, (x0, z0, min(x1, limit), z1)))
+    return out
 
 
 def city_blocks():

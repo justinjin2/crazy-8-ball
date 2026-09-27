@@ -8,8 +8,8 @@
   "Skyline_0_1": 596,
   "Skyline_m1_0": 5824,
   "Skyline_m1_1": 5546,
-  "Skyline_m1_m1": 5784,
-  "Skyline_m1_m2": 5480,
+  "Skyline_m1_m1": 5874,
+  "Skyline_m1_m2": 5530,
   "Skyline_m2_0": 6057,
   "Skyline_m2_1": 1606,
   "Skyline_m2_m1": 7260,
@@ -17,7 +17,7 @@
  },
  "modules": {
   "islands": 12734,
-  "skyline": 40663
+  "skyline": 40803
  },
- "total_triangles": 53397
+ "total_triangles": 53537
 }

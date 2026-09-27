@@ -66,6 +66,8 @@ P = {
     'penthouse_height': (5.0, 10.0),
     'antenna': 0.2,  # a crowned tower over the roof carries a mast this often (short: the
     'antenna_height': (12.0, 30.0),  # landmarks' spires are the tall ones)
+    'edge_room': 20.0,  # a cell at the land's edge (city_plan.edge_cells) this wide carries a building...
+    'edge_height': (25.0, 70.0),  # ...this tall (low: the waterfront)
 }
 ROAD_Y = STREET  # the streets' surface: over the gray-box land (land_drop under), as the near world's
 
@@ -333,7 +335,27 @@ def build():
                 avoid = {style}
                 building(mesh, rng, lot, style, heights[k])
         pieces.append((mc.cell_name('Skyline', mc.chunk_cell(b['cx'], b['cz'])), mesh))
-    return pieces + streets(blocks)
+    edges = cp.edge_cells()
+    for i, j, rect in edges:
+        pieces.append((mc.cell_name('Skyline', mc.chunk_cell((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2)),
+                       edge_lot(rect, random.Random(cp.block_seed(SKY_SEED + 3, i, j)))))
+    cells = {(b['i'], b['j']) for b in blocks} | {(i, j) for i, j, _ in edges}
+    return pieces + streets(cells)
+
+
+def edge_lot(rect, rng):
+    """A cell at the land's edge (city_plan.edge_cells): its paved top, and a low building on it
+    when there is room (P['edge_height']), so no bare ground is left by the promenade."""
+    x0, z0, x1, z1 = rect
+    mesh = mc.Mesh('edge')
+    mesh.flat(mc.outward_rect(x0, z0, x1, z1), GROUND, 's_paving', up=True, frac=0.5)
+    w, d = x1 - x0 - 8, z1 - z0 - 8
+    if min(w, d) >= P['edge_room']:
+        height = rng.uniform(*P['edge_height'])
+        lot = {'x': (x0 + x1) / 2, 'z': (z0 + z1) / 2, 'w': w, 'd': d, 'podium': height, 'height': height,
+               'shaft': None, 'crown': 0.0}
+        building(mesh, rng, lot, pick_style(rng, lot, set()), height)
+    return mesh
 
 
 # ---------------------------------------------------------------------------------------------
@@ -342,29 +364,18 @@ def build():
 # on land clear of the promenades, and none where the near world draws its own streets.
 # ---------------------------------------------------------------------------------------------
 
-def on_street_land(x, z):
-    """Whether a point is land a street may cover: left of the promenade along the city's
-    bending shore, the back beach and the ocean side."""
-    prom = W['promenade']
-    if z < W['shore_z']:
-        return x <= cp.city_edge_x(z) - prom
-    if z < cp.land_z() + prom:
-        return x <= W['city_back_x']
-    return x <= cp.land_x() - prom
-
-
-def streets(blocks):
-    """[(chunk name, Mesh)]: the roads and crossings round the blocks, in their chunks."""
+def streets(ours):
+    """[(chunk name, Mesh)]: the roads and crossings round the cells `ours` (the blocks and the
+    edge cells), in their chunks, cut short at the promenade (city_plan.land_limit)."""
     pitch, size = W['city_pitch'], W['city_block']
     hs = (pitch - size) / 2  # half a street
-    ours = {(b['i'], b['j']) for b in blocks}
 
     def near_owned(i, j):
         # the near world's ground: the cells round the tower that are not our blocks
         return math.hypot((i + 0.5) * pitch, (j + 0.5) * pitch) <= W['near_ground'] and (i, j) not in ours
 
     roads, crossings = {}, set()
-    for i, j in ours:
+    for i, j in sorted(ours):
         roads[('z', i, j)] = roads[('z', i + 1, j)] = roads[('x', i, j)] = roads[('x', i, j + 1)] = None
         crossings.update({(i, j), (i + 1, j), (i, j + 1), (i + 1, j + 1)})
     meshes = {}
@@ -372,7 +383,8 @@ def streets(blocks):
     def add(x0, z0, x1, z1, strip, along_x, owners):
         if any(near_owned(*c) for c in owners):
             return
-        if not all(on_street_land(x, z) for x in (x0, x1) for z in (z0, z1)):
+        x1 = min(x1, cp.land_limit(z0, z1))
+        if x1 - x0 < 2.0:
             return
         name = mc.cell_name('Skyline', mc.chunk_cell((x0 + x1) / 2, (z0 + z1) / 2))
         mesh = meshes.setdefault(name, mc.Mesh(name))

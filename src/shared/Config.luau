@@ -540,6 +540,9 @@ Config.Hub = {
 	-- out, the camera took in the whole city from above, and at the lowest graphics levels
 	-- Roblox leaves most of it undrawn: a bare grey plain (designer, 2026-09-26). (tune)
 	CameraMaxZoom = 40,
+	-- How fast a player walks on the roof (studs a second): Roblox's 16 plus 30% (designer,
+	-- 2026-09-26). A seated player's speed is saved and put back by TableService. (tune)
+	WalkSpeed = 20.8,
 	-- The rooftop map (assets/map/Spec.md, drawn in assets/map/Plan.png): four rows of four,
 	-- turned sideways like the concept art, long sides to the entrance (+Z), the queue pad in
 	-- front of each (Placement.queuePad). 36 studs apart across (the match fence's 26 plus a
@@ -2878,9 +2881,9 @@ Config.Lighting = {
 	DuskSky = {
 		SkyboxBk = "rbxassetid://133151880175765",
 		SkyboxDn = "rbxassetid://120434251320949",
-		SkyboxFt = "rbxassetid://114785516646616",
+		SkyboxFt = "rbxassetid://86916716496048",
 		SkyboxLf = "rbxassetid://77746871022306",
-		SkyboxRt = "rbxassetid://108771738810184",
+		SkyboxRt = "rbxassetid://138655321584686",
 		SkyboxUp = "rbxassetid://110285038213161",
 	},
 	-- Round each swap (Width of the blend either side), the Atmosphere thickens by Density and
@@ -2940,9 +2943,9 @@ Config.Lighting = {
 		Sky = {
 			SkyboxBk = "rbxassetid://136510513323451",
 			SkyboxDn = "rbxassetid://112654746925961",
-			SkyboxFt = "rbxassetid://133482081430883",
+			SkyboxFt = "rbxassetid://98738080244894",
 			SkyboxLf = "rbxassetid://116034246180095",
-			SkyboxRt = "rbxassetid://87579942061215",
+			SkyboxRt = "rbxassetid://129820624640544",
 			SkyboxUp = "rbxassetid://93123509257023",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
 			MoonAngularSize = 0, -- no moon: a dawn sky can show it near the horizon
@@ -2958,8 +2961,10 @@ Config.Lighting = {
 			WaterColor = "#1B6FBF",
 			WaterTransparency = 0.85,
 			WaterReflectance = 0.05, -- barely any: the sky's clouds smeared white on the water (Stage 4 critics)
-			WaterWaveSize = 0.06, -- calm, no shimmer (Roblox's 0.15)
-			WaterWaveSpeed = 6,
+			-- Visible swell (designer, 2026-09-26: make the water move); the low reflectance keeps
+			-- the sky's clouds from smearing across it. (tune)
+			WaterWaveSize = 0.25,
+			WaterWaveSpeed = 12,
 		},
 		-- Post effects: always enabled (MapLighting.preview), faded by their numbers. (tune)
 		ColorCorrection = { Brightness = 0, Contrast = 0, Saturation = 0, TintColor = "#FFFFFF" },
@@ -3025,9 +3030,9 @@ Config.Lighting = {
 		Sky = {
 			SkyboxBk = "rbxassetid://110051239637159",
 			SkyboxDn = "rbxassetid://88040117694749",
-			SkyboxFt = "rbxassetid://96816539770638",
+			SkyboxFt = "rbxassetid://96378244528009",
 			SkyboxLf = "rbxassetid://94840130578947",
-			SkyboxRt = "rbxassetid://73575224663713",
+			SkyboxRt = "rbxassetid://76832687371860",
 			SkyboxUp = "rbxassetid://139224542954081",
 			SunAngularSize = 5, -- a gold disc on the horizon, not a white blaze (critics 1 and 2)
 			MoonAngularSize = 0,
@@ -3040,8 +3045,8 @@ Config.Lighting = {
 			-- More reflection than by day: the sea picks up the pink sky round the sun, as in
 			-- the art (at 0.05 it was flat indigo). No clouds to smear at this sun angle.
 			WaterReflectance = 0.2,
-			WaterWaveSize = 0.06,
-			WaterWaveSpeed = 6,
+			WaterWaveSize = 0.25,
+			WaterWaveSpeed = 12,
 		},
 		ColorCorrection = {
 			Brightness = 0,

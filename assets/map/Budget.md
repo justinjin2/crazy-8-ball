@@ -14,7 +14,7 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
 | Props | 140,000 | 60,959 | 60,959 | 3 |
 | Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 11,525 | 11,599 (with the boats) | 4 |
-| Mid backdrop: skyline and islands | 110,000 | 53,397 | 53,397 | 5, 6 |
+| Mid backdrop: skyline and islands | 110,000 | 53,537 | 53,537 | 5, 6 |
 | Far horizon: painted into the day skybox, no geometry | 2,000 | 0 | 0 | 6 |
 | **Everything we ship** | **512,000** | | | |
 | Headroom for avatars | 488,000 or more | | | |

@@ -39,12 +39,18 @@ local function publish(name: string, class: string, missing: string)
 end
 publish(Config.Balls.MeshTemplate, "MeshPart", "balls use the decal fallback")
 
--- The camera stays near the roof (Config.Hub.CameraMaxZoom): every player who joins, and anyone
--- already here.
+-- The camera stays near the roof (Config.Hub.CameraMaxZoom), and players walk at
+-- Config.Hub.WalkSpeed: every player who joins, and anyone already here.
 local Players = game:GetService("Players")
-game:GetService("StarterPlayer").CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
+local StarterPlayer = game:GetService("StarterPlayer")
+StarterPlayer.CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
+StarterPlayer.CharacterWalkSpeed = Config.Hub.WalkSpeed
 for _, player in Players:GetPlayers() do
 	player.CameraMaxZoomDistance = Config.Hub.CameraMaxZoom
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.WalkSpeed = Config.Hub.WalkSpeed
+	end
 end
 
 -- Arrive in front of the tables, facing them.

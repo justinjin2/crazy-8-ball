@@ -674,6 +674,8 @@ def far_ground(painted):
             continue
         x0, x1, z0, z1 = b['cx'] - half, b['cx'] + half, b['cz'] - half, b['cz'] + half
         painted.face([(x0, y + 0.8, z1), (x1, y + 0.8, z1), (x1, y + 0.8, z0), (x0, y + 0.8, z0)], [paving] * 4)
+    for _, _, (x0, z0, x1, z1) in cp.edge_cells():
+        painted.face([(x0, y + 0.8, z1), (x1, y + 0.8, z1), (x1, y + 0.8, z0), (x0, y + 0.8, z0)], [paving] * 4)
 
 
 def lit_windows(windows, lot, base, top, colour, rng):

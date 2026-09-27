@@ -297,11 +297,7 @@ def cell_rect(i, j):
 
 def land_rect(x0, z0, x1, z1):
     """A rectangle clipped to the land inside the promenade (None if nothing is left)."""
-    x1 = min(x1, cp.land_x() - W['promenade'])
-    z0 = max(z0, cp.land_z() + W['promenade'])
-    if x1 - x0 < 0.5 or z1 - z0 < 0.5:
-        return None
-    return x0, z0, x1, z1
+    return cp.near_land_rect(x0, z0, x1, z1)
 
 
 def ground(mesh, cells):

@@ -1289,3 +1289,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
     yellow (emissive masks on both sheets; the near city's new).
   - The ground painted in the sky is grey streets and pale blocks, not grey-green, so the lowest
     graphics levels (which do not draw the 3D ground far out) show a city, not a green field.
+- 2026-09-26: Players walk 30% faster on the roof (`Config.Hub.WalkSpeed` 20.8, Roblox's 16);
+  the sea has a visible swell (Terrain waves 0.25 at speed 12, day and sunset; they were kept
+  near flat since Stage 4); and every grid cell of land that no block and no near-world ground
+  covers (by the promenade, and behind the tower on the city side) is a paved lot with a low
+  building (`city_plan.edge_cells`), so no bare grey ground is left in the city (designer).
