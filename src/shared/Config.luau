@@ -2008,8 +2008,10 @@ Config.Audio = {
 		NewTier = { Id = "rbxassetid://1844584807", Volume = 0.4 },
 		-- "Roblox_UI_Cute_Goodbye" (Roblox, 0.3 s), pitched down: a division lost.
 		RankDown = { Id = "rbxassetid://15675081158", Volume = 0.25, Pitch = 0.8 },
-		-- "Roblox_UI_Cute_Pop" (Roblox, 2.7 s with its tail): the HUD badge under the mouse.
-		BadgeHover = { Id = "rbxassetid://15675055424", Volume = 0.15 },
+		-- "RBLX UI Hover 01 (SFX)" (Roblox, 0.2 s, a soft tone near 900 Hz): the mouse or a
+		-- gamepad on a badge or a roadmap tier (designer, 2026-09-27: short and pleasant; was
+		-- "Roblox_UI_Cute_Pop", 2.7 s with its tail). Its 0.23 peak x 0.22 sits just under Click.
+		BadgeHover = { Id = "rbxassetid://10066931761", Volume = 0.22 },
 		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s): a button pressed.
 		Click = { Id = "rbxassetid://15675032796", Volume = 0.25 },
 	},
@@ -2707,7 +2709,9 @@ Config.UI = {
 			BarBottomPx = 6, -- from the track's bottom to the pill's (the pill's outline takes 3)
 			BarStrokePx = 2, -- the track's ink outline
 			NumbersTextPx = 14, -- "520 / 1,000 XP", on the bar
-			ComputerScale = 1.15, -- a computer or tablet (screen at least Style.ShortHeight tall)
+			-- A computer or tablet (screen at least Style.ShortHeight tall): bigger, an easier
+			-- mouse target (designer, 2026-09-27; was 1.15). It hangs below Roblox's top row.
+			ComputerScale = 1.5,
 			TopMinPx = 1, -- never closer than this to the top of the screen
 			FallbackRowPx = 58, -- the top row's height when Roblox does not report it
 			TrackColor = { 214, 222, 235 }, -- the empty bar
@@ -2938,8 +2942,7 @@ Config.UI = {
 			-- The tier row: the ten tiers side by side between a round < and > button. Yours is
 			-- CurrentScale bigger and CurrentCellScale wider; as many show as fit (VisibleTiers).
 			ArrowPx = { 44, 56 }, -- the round arrow buttons (never under TouchMinPx)
-			ChevronShare = 0.46, -- the white chevron in an arrow (of the button)
-			ChevronInkPx = 2.5, -- the chevron's ink outline
+			ChevronShare = 0.75, -- the chevron image, of the button (its glyph fills 0.6 of it across)
 			BadgeMaxPx = 140, -- a tier's badge at most (the row's height sets it below that)
 			CurrentScale = 1.3, -- your tier's badge and dots are this much bigger...
 			CurrentCellScale = 1.4, -- ...and its place in the row this much wider
@@ -3088,6 +3091,10 @@ Config.UI = {
 			Check = "rbxassetid://102199824142465", -- ready, even split
 			X = "rbxassetid://114855661740318", -- a pocketed ball, a wrong target
 			Arrow = "rbxassetid://135119886891841", -- points right; turned for the others
+			-- The roadmap's < and > buttons: one white chevron each, drawn as a single stroke so
+			-- the tip is one clean joint (2026-09-27; four rotated bars left a seam there).
+			ChevronRight = "rbxassetid://83677689417587",
+			ChevronLeft = "rbxassetid://139144449776506",
 			Sliders = "rbxassetid://72906258640929", -- fine controls
 			Classic = "rbxassetid://77520789288930", -- difficulty: every line
 			Difficult = "rbxassetid://96329200527250", -- difficulty: the aim line only

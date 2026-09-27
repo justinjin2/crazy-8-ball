@@ -224,10 +224,14 @@ order; that is Open.
     division dots; your tier bigger over turning rays with "Current Rank", the next with "Next
     Rank", later ones greyed. Below: your rank card (badge, XP bar, an arrow to the next
     division and its money) and "Rewards for <tier>" (money, a Case, the [TIER] chat tag, the
-    tier's Cue; Case and Cue marked Soon); tapping a tier shows its rewards. One line of rules.
-    Its slight dim is the only dim in the game.
+    tier's Cue; Case and Cue marked Soon); tapping a tier shows its rewards. No line of rules
+    under the cards (designer, 2026-09-27). The < and > arrows carry one white chevron image
+    each, drawn as a single stroke. Its slight dim is the only dim in the game.
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
     rainbow, letter by letter); none for Unranked.
   - *The rank HUD bounces as a whole* (designer, 2026-09-27): badge and pill grow together
     under the mouse and squish and bounce when pressed. Badges sparkle, with only a faint light
-    sweep now and then.
+    sweep now and then. On a computer the HUD is 1.5 times its phone size, an easier target
+    (designer, 2026-09-27).
+  - *The hover sound* (designer, 2026-09-27): short and soft, Roblox's own "RBLX UI Hover 01"
+    (0.2 s), on a badge or a roadmap tier.

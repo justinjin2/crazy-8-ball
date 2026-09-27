@@ -501,6 +501,27 @@ def icon_arrow():
     )
 
 
+def chevron_icon(dir):
+    """A white chevron pointing right (dir 1) or left (dir -1), drawn as one stroke so its tip
+    is a single clean joint: the roadmap's arrow buttons. Two images rather than one turned,
+    so the ink lip stays underneath. The invisible square widens the ink filter's box, which
+    is the shape's box without its stroke, so the round ends are not cut off."""
+    x = lambda v: 128 + dir * (v - 128)
+    pts = [(x(96), 52), (x(172), 128), (x(96), 204)]
+    frame = '<rect x="8" y="8" width="240" height="240" fill="none"/>'
+    return frame + line(pts, "url(#white)", 46) + line(
+        [(x(104), 66), (x(150), 112)], "#FFFFFF", 9, 'opacity="0.7"'
+    )
+
+
+def icon_chevron_right():
+    return chevron_icon(1)
+
+
+def icon_chevron_left():
+    return chevron_icon(-1)
+
+
 def icon_sliders():
     parts = []
     for y, x, colour in ((68, 92, "blue"), (128, 166, "green"), (188, 112, "red")):
@@ -881,6 +902,8 @@ ICONS = {
     "check": icon_check,
     "x": icon_x,
     "arrow": icon_arrow,
+    "chevron_right": icon_chevron_right,
+    "chevron_left": icon_chevron_left,
     "sliders": icon_sliders,
     "money": icon_money,
     "cash_single": icon_cash_single,

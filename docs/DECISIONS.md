@@ -1521,4 +1521,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (`eightWins`).
 - 2026-09-27: The next tier in the roadmap stays in full colour like reference 03; only tiers
   after it are greyed (Claude's pick).
-
+- 2026-09-27 (designer): the roadmap loses its line of XP rules under the cards; the rank HUD
+  is bigger on a computer (1.5 times its phone size, was 1.15); the hover sound is Roblox's
+  "RBLX UI Hover 01" (0.2 s) instead of the 2.7 s Cute Pop. The roadmap's arrows get a
+  one-piece chevron image, since four rotated bars left a seam at the tip.

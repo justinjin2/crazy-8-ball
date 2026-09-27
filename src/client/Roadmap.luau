@@ -3,7 +3,7 @@
 -- 03-ranked-roadmap; laid out again by the designer 2026-09-27). Pressing the rank HUD opens
 -- it: a big white kit panel over a dim backdrop with the trophy, "Ranked", a short subtitle
 -- and a red close X; the ten tiers side by side; your rank's card and the chosen tier's
--- rewards card under them; and one line of rules.
+-- rewards card under them (no line of rules under them: designer, 2026-09-27).
 --
 -- The tier row, Bronze to Reyes: each tier's badge (its division I; yours shows your own
 -- division), its name and a dot per division, gold for those reached. Your tier is bigger and
@@ -310,75 +310,6 @@ local function makeTag(
 	return tag, label
 end
 
-local function signed(n: number): string
-	return if n > 0 then "+" .. Format.xp(n) else Format.xp(n)
-end
-
--- One group of tiers in words: "Expert", "Platinum and Diamond", "Bronze to Gold" (three or
--- more in a row), or a list when they are not in a row. Nil for an empty group.
-local function tierWords(tiers: { string }): string?
-	local n = #tiers
-	if n == 0 then
-		return nil
-	end
-	local names: { string } = {}
-	local inRow = true
-	for i, tier in tiers do
-		names[i] = Ranks.tierName(tier)
-		if i > 1 and (Ranks.tierIndex(tier) or 0) ~= (Ranks.tierIndex(tiers[i - 1]) or 0) + 1 then
-			inRow = false
-		end
-	end
-	if n == 1 then
-		return names[1]
-	elseif n == 2 then
-		return P.TierPair:format(names[1], names[2])
-	elseif inRow then
-		return P.TierRange:format(names[1], names[n])
-	end
-	local text = names[1]
-	for i = 2, n do
-		text = P.TierList:format(text, names[i])
-	end
-	return text
-end
-
--- The one line of rules, from Config.Ranks through Ranks.rulesLine: "Win +250 XP. Bronze to
--- Gold: losing still gives +50. Platinum and Diamond: no XP lost. Expert and up: losing costs
--- 150." Stored whole in Strings; if Config leaves a group of tiers empty, that sentence goes.
-local function rulesText(): string
-	local line = Ranks.rulesLine()
-	local win = signed(line.win)
-	local low = tierWords(line.lossTiersLow)
-	local free = tierWords(line.freeTiers)
-	local lose = line.loseTiers
-	local cost = Format.xp(math.abs(line.highLoss))
-	-- "Expert and up" when the tiers that lose XP run in a row up to the top.
-	local upFrom: string? = nil
-	if #lose > 0 and lose[#lose] == TOP_TIER then
-		if (Ranks.tierIndex(lose[1]) or 0) + #lose - 1 == #TIERS then
-			upFrom = Ranks.tierName(lose[1])
-		end
-	end
-	if low and free and upFrom then
-		return P.Rules:format(win, low, signed(line.lowLoss), free, upFrom, cost)
-	end
-	local parts = { P.RulesWin:format(win) }
-	if low then
-		table.insert(parts, P.RulesLow:format(low, signed(line.lowLoss)))
-	end
-	if free then
-		table.insert(parts, P.RulesFree:format(free))
-	end
-	local high = tierWords(lose)
-	if upFrom then
-		table.insert(parts, P.RulesHighUp:format(upFrom, cost))
-	elseif high then
-		table.insert(parts, P.RulesHigh:format(high, cost))
-	end
-	return table.concat(parts, " ")
-end
-
 -- Tween a cell's scale back to where it rests (up while lit), from `from` if given.
 local function settleCell(cell: Cell, from: number?, seconds: number)
 	if cell.tween then
@@ -396,42 +327,14 @@ local function settleCell(cell: Cell, from: number?, seconds: number)
 	tween:Play()
 end
 
--- A white chevron with an ink outline, drawn from four round bars (two ink under two white,
--- so the outline never crosses the joint): the arrow buttons' glyph.
-local function makeChevron(parent: Instance): Frame
-	local holder = HudParts.frame(parent, "Chevron")
-	holder.AnchorPoint = Vector2.new(0.5, 0.5)
-	holder.ZIndex = 2
-	for i, name in { "InkTop", "InkBottom", "Top", "Bottom" } do
-		local bar = HudParts.frame(holder, name)
-		bar.AnchorPoint = Vector2.new(0.5, 0.5)
-		bar.BackgroundTransparency = 0
-		bar.BackgroundColor3 = if i <= 2 then INK else WHITE
-		bar.ZIndex = if i <= 2 then 1 else 2
-		circle(bar)
-	end
-	return holder
-end
-
--- Size a chevron `size` px square, pointing right (dir 1) or left (dir -1).
-local function layoutChevron(holder: Frame, size: number, dir: number)
-	holder.Size = UDim2.fromOffset(size, size)
-	local arm = size * 0.66
-	local thick = math.max(3, size * 0.27)
-	local reach = arm * 0.3536 -- half an arm's run across (and down), at 45 degrees
-	local tipX = size / 2 + dir * reach
-	for _, child in holder:GetChildren() do
-		if child:IsA("Frame") then
-			local top = child.Name == "Top" or child.Name == "InkTop"
-			local grow = if string.sub(child.Name, 1, 3) == "Ink" then R.ChevronInkPx * 2 else 0
-			child.Size = UDim2.fromOffset(round(arm + grow), round(thick + grow))
-			child.Position = UDim2.fromOffset(
-				round(tipX - dir * reach),
-				round(size / 2 + (if top then -reach else reach))
-			)
-			child.Rotation = if top then dir * 45 else -dir * 45
-		end
-	end
+-- The arrow buttons' glyph: a white chevron image with an ink outline, drawn as one stroke
+-- so its tip is a single clean joint (four rotated bars left a seam there, 2026-09-27).
+local function makeChevron(parent: Instance, dir: number): ImageLabel
+	local chevron =
+		HudParts.icon(parent, if dir < 0 then "ChevronLeft" else "ChevronRight", "Chevron")
+	chevron.AnchorPoint = Vector2.new(0.5, 0.5)
+	chevron.ZIndex = 2
+	return chevron
 end
 
 --------------------------------------------------------------------------------------------
@@ -641,7 +544,7 @@ function Roadmap.buildHeader(self: any, card: Frame)
 end
 
 -- A round blue candy arrow at one end of the tier row: each press scrolls one tier.
-function Roadmap.makeArrow(self: any, parent: Instance, dir: number): (TextButton, Frame)
+function Roadmap.makeArrow(self: any, parent: Instance, dir: number): (TextButton, ImageLabel)
 	local button = HudParts.candy(parent, "", function()
 		UISound.play("Click")
 		self:stepRow(dir)
@@ -652,7 +555,7 @@ function Roadmap.makeArrow(self: any, parent: Instance, dir: number): (TextButto
 	if corner then
 		corner.CornerRadius = UDim.new(0.5, 0)
 	end
-	return button, makeChevron(parts.body)
+	return button, makeChevron(parts.body, dir)
 end
 
 function Roadmap.buildRow(self: any, card: Frame)
@@ -876,7 +779,6 @@ function Roadmap.build(self: any)
 	self:buildRow(card)
 	self:buildRankCard(card)
 	self:buildRewards(card)
-	self.rules = HudParts.note(card, "Rules", K.Text.Body, rulesText())
 	self:link()
 
 	local function resized()
@@ -1002,16 +904,9 @@ function Roadmap.layout(self: any): boolean
 	self.header.Size = UDim2.fromOffset(iw, headerH)
 	self:layoutHeader(iw, headerH, headLeft, headRight, gap, titleSize, body, short)
 
-	-- Bottom up: the rules, then the two cards; the tier row takes the rest.
-	HudParts.setTextSize(self.rules, body)
-	local rulesH = math.ceil(
-		TextService:GetTextSize(self.rules.Text, body, FONT, Vector2.new(iw, 1000)).Y
-	) + 2
-	local rulesY = h - pad - rulesH
-	self.rules.Position = UDim2.fromOffset(pad, rulesY)
-	self.rules.Size = UDim2.fromOffset(iw, rulesH)
+	-- Bottom up: the two cards, then the tier row takes the rest.
 	local cardsH = spanPx(R.CardsPx, t)
-	local cardsY = rulesY - math.max(2, round(gap * 0.6)) - cardsH
+	local cardsY = h - pad - cardsH
 	local rightW = round((iw - gap) * lerp(R.RewardsShare, t))
 	local leftW = iw - gap - rightW
 	self.rankCard.Position = UDim2.fromOffset(pad, cardsY)
@@ -1173,14 +1068,14 @@ function Roadmap.layoutRow(self: any)
 	-- The arrows, their faces (above the candy's lip) level with the badges.
 	local face = arrow * (1 - K.ButtonLipShare)
 	local chevron = round(arrow * R.ChevronShare)
-	local function placeArrow(button: TextButton, holder: Frame, atX: number, dir: number)
+	local function placeArrow(button: TextButton, glyph: ImageLabel, atX: number)
 		button.Size = UDim2.fromOffset(arrow, arrow)
 		button.Position = UDim2.fromOffset(atX, cy - round(face / 2))
-		holder.Position = UDim2.fromOffset(round(arrow / 2), round(face / 2))
-		layoutChevron(holder, chevron, dir)
+		glyph.Position = UDim2.fromOffset(round(arrow / 2), round(face / 2))
+		glyph.Size = UDim2.fromOffset(chevron, chevron)
 	end
-	placeArrow(self.backArrow, self.backChevron, 0, -1)
-	placeArrow(self.forwardArrow, self.forwardChevron, areaW - arrow, 1)
+	placeArrow(self.backArrow, self.backChevron, 0)
+	placeArrow(self.forwardArrow, self.forwardChevron, areaW - arrow)
 	local row: Row = { viewW = viewW, canvasW = canvasW }
 	self.row = row
 	local x0 = self:clampCanvas(self.scroll.CanvasPosition.X)
@@ -1694,18 +1589,13 @@ function Roadmap.centre(self: any, hold: boolean)
 end
 
 -- Fade an arrow at the row's end (it stays pressable and selectable; it just does nothing).
-function Roadmap.fadeArrow(self: any, button: TextButton, chevron: Frame, faded: boolean)
+function Roadmap.fadeArrow(self: any, button: TextButton, chevron: ImageLabel, faded: boolean)
 	if self.arrowFaded[button] == faded then
 		return
 	end
 	self.arrowFaded[button] = faded
 	HudParts.setEnabled(button, true, faded)
-	local fade = if faded then K.DisabledTransparency else 0
-	for _, bar in chevron:GetChildren() do
-		if bar:IsA("Frame") then
-			bar.BackgroundTransparency = fade
-		end
-	end
+	chevron.ImageTransparency = if faded then K.DisabledTransparency else 0
 end
 
 function Roadmap.updateArrows(self: any)

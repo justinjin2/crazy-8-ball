@@ -473,7 +473,8 @@ function Ranks.list(): { Division }
 	return list
 end
 
---- The numbers behind the roadmap's one line of rules: the win XP, and the tiers grouped by
+--- The numbers behind the XP rules (the roadmap showed them as a line until the designer
+--- removed it, 2026-09-27; kept for a later help screen): the win XP, and the tiers grouped by
 --- what a loss does (gain a little, nothing, lose XP), in Tier order. lowLoss and highLoss
 --- are the lowest such tier's loss XP, signed (+50 and -150 now).
 function Ranks.rulesLine(): RulesLine

@@ -252,17 +252,5 @@ return {
 		RewardChatTag = "Chat Tag",
 		TierCue = "%s Cue", -- the tier's cue: "Platinum Cue"
 		Soon = "Soon", -- a reward not given yet
-		-- The roadmap's one line of rules, from Config.Ranks (Ranks.rulesLine).
-		Rules = "Win %s XP. %s: losing still gives %s. %s: no XP lost. %s and up: losing costs %s.",
-		TierRange = "%s to %s", -- "Bronze to Gold"
-		TierPair = "%s and %s", -- "Platinum and Diamond"
-		-- The rules line sentence by sentence, used when Config leaves one of its groups of
-		-- tiers empty (Roadmap); otherwise Rules is used whole.
-		RulesWin = "Win %s XP.",
-		RulesLow = "%s: losing still gives %s.",
-		RulesFree = "%s: no XP lost.",
-		RulesHighUp = "%s and up: losing costs %s.",
-		RulesHigh = "%s: losing costs %s.",
-		TierList = "%s, %s", -- tiers not in a row: "Bronze, Gold"
 	},
 }

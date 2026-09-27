@@ -1,6 +1,20 @@
 # Status
 
-**2026-09-27 (latest, branch `ranks-money`): the designer's first changes to the rank screens.**
+**2026-09-27 (latest, branch `ranks-money`): rank screen polish.**
+
+- **Built:** the roadmap's line of XP rules is gone (the cards sit at the bottom); its < and >
+  arrows carry a one-piece chevron image (four rotated bars left a seam at the tip, and their
+  overlap showed when faded); the rank HUD is 1.5 times its phone size on a computer (was
+  1.15); the hover sound is Roblox's "RBLX UI Hover 01", 0.2 s (was a 2.7 s pop).
+- **Verified:** lint clean, 425 tests pass. Studio on a PC window: the HUD 346 x 105 px, the
+  roadmap with no rules line, both chevrons clean at 42 px in a 56 px arrow (the faded one
+  fades as one piece), the new hover sound loaded and playing on a tier. Console clean.
+- **Needs a check by hand:** the roadmap and HUD in the phone emulator; how the new hover
+  sound feels.
+
+---
+
+**2026-09-27 (branch `ranks-money`): the designer's first changes to the rank screens.**
 
 - **Built:** the whole rank HUD grows on hover and squish-bounces on click; badges sparkle,
   with only a faint light sweep every 7 to 9 s; the roadmap redone after reference 03 (the ten
