@@ -1,14 +1,14 @@
 --!strict
--- TableSign: the card floating over the middle of a table (designer, 2026-09-27: one card, on
--- the table, not over its pad). It says the table's mode (1v1, 2v2 or 3v3), who hosts, how
--- many are on the pad, whether abilities are on, the chosen difficulty, and whether you can
--- join, or that the game is about to start.
+-- TableSign: the card floating over a table's queue pad. It says the table's mode (1v1, 2v2
+-- or 3v3), who hosts, how many are on the pad, the difficulty, and whether you can join, or
+-- that the game is about to start. No abilities: they are not in the release (designer,
+-- 2026-09-27).
 --
 -- Only one shows: over the table you walk right up to (Config.UI.Sign, measured by
 -- Placement.nearestArea), or over your own while you wait on its pad as a guest. Never while
--- you host (the host's own card, QueueMenu, stands there instead) or play. It pops in when
--- you arrive and pops out when you walk away (designer, 2026-09-25: it used to hang over all
--- sixteen tables all the time).
+-- you host (your own card, QueueMenu, says it all) or play. It pops in when you arrive and
+-- pops out when you walk away (designer, 2026-09-25: it used to hang over all sixteen tables
+-- all the time).
 --
 -- It is drawn from the table snapshot every client already has, so everyone near a table
 -- reads the same thing; the server only keeps the pad itself (TableService).
@@ -33,20 +33,13 @@ function TableSign.new(playerGui: Instance): any
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "TableSign"
 	gui.Size = UDim2.fromOffset(Sign.WidthPx, Sign.HeightPx)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, Sign.HeightStuds, 0)
 	gui.LightInfluence = 0
-	-- The card stands on the point over the table rather than round it, so the rails never
-	-- hide its status pill (AlwaysOnTop is off: it did not show in Studio captures).
-	gui.SizeOffset = Vector2.new(0, 0.5)
 	gui.ResetOnSpawn = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Enabled = false
 	gui.Parent = playerGui
 	self.gui = gui
-	-- The point over the table the card hangs at, moved to each table in turn.
-	local anchor = Instance.new("Attachment")
-	anchor.Name = "TableSignAnchor"
-	anchor.Parent = workspace.Terrain
-	self.anchor = anchor
 	-- The card leaves room round it for its shadow, the pop's overshoot and the status pill.
 	local card = HudParts.card(gui, "Card")
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -72,7 +65,7 @@ function TableSign.new(playerGui: Instance): any
 	self.host.TextXAlignment = Enum.TextXAlignment.Left
 	self.host.Position = UDim2.fromOffset(pad + rowHeight + 6, 40)
 	self.host.Size = UDim2.new(1, -pad * 2 - rowHeight - 6, 0, rowHeight)
-	-- People n/6 on the left, abilities ON or OFF on the right, then the difficulty.
+	-- People n/6 on the left, the difficulty on the right.
 	local infoTop = 40 + rowHeight + 4
 	self.people = HudParts.icon(card, "People")
 	self.people.Position = UDim2.fromOffset(pad, infoTop)
@@ -82,23 +75,13 @@ function TableSign.new(playerGui: Instance): any
 	self.count.TextXAlignment = Enum.TextXAlignment.Left
 	self.count.Position = UDim2.fromOffset(pad + rowHeight + 4, infoTop)
 	self.count.Size = UDim2.new(0.4, -rowHeight, 0, rowHeight)
-	self.bolt = HudParts.icon(card, "Lightning")
-	self.bolt.Position = UDim2.new(0.46, 0, 0, infoTop)
-	self.bolt.Size = UDim2.fromOffset(rowHeight, rowHeight)
-	self.abilities = HudParts.pill(card, "Abilities")
-	self.abilities.Position = UDim2.new(0.46, rowHeight + 4, 0, infoTop + 2)
-	self.abilities.Size = UDim2.fromOffset(Sign.PillWidthPx, rowHeight - 4)
-	self.abilitiesText = HudParts.text(self.abilities, "Text", K.Text.Min, "")
-	self.abilitiesText.Position = UDim2.fromOffset(4, 1)
-	self.abilitiesText.Size = UDim2.new(1, -8, 1, -2)
-	local levelTop = infoTop + rowHeight + 4
 	self.level = HudParts.icon(card, "Classic", "LevelIcon")
-	self.level.Position = UDim2.fromOffset(pad, levelTop)
+	self.level.Position = UDim2.new(0.42, 0, 0, infoTop)
 	self.level.Size = UDim2.fromOffset(rowHeight, rowHeight)
 	self.levelName = HudParts.text(card, "Level", K.Text.Body, "")
 	self.levelName.TextXAlignment = Enum.TextXAlignment.Left
-	self.levelName.Position = UDim2.fromOffset(pad + rowHeight + 4, levelTop)
-	self.levelName.Size = UDim2.new(1, -pad * 2 - rowHeight - 4, 0, rowHeight)
+	self.levelName.Position = UDim2.new(0.42, rowHeight + 4, 0, infoTop)
+	self.levelName.Size = UDim2.new(0.58, -pad - rowHeight - 4, 0, rowHeight)
 	-- The status pill hangs off the bottom edge: join, waiting, starting, full or playing.
 	self.status = HudParts.pill(card, "Status")
 	self.status.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -137,10 +120,6 @@ function TableSign.fill(self: any, id: number, snapshot: any?, now: number)
 		or Config.Difficulty.Default
 	HudParts.setIcon(self.level, difficulty)
 	self.levelName.Text = Copy.Queue.Levels[difficulty] or ""
-	-- Abilities are on unless the host turned them off (on by default, GDD section 6).
-	local abilities = not (snapshot and snapshot.settings and snapshot.settings.abilities == false)
-	self.abilitiesText.Text = if abilities then Copy.Queue.On else Copy.Queue.Off
-	self.abilities.BackgroundColor3 = if abilities then tone("Green") else tone("Grey")
 	local words, colour
 	local startsAt = snapshot and snapshot.startsAt
 	if not waiting then
@@ -158,7 +137,8 @@ function TableSign.fill(self: any, id: number, snapshot: any?, now: number)
 	self.status.BackgroundColor3 = tone(colour)
 end
 
--- Whether table `id`'s pad has streamed in: the sign waits for it, like the pad's effects.
+-- The sign hangs over the table's pad. Its StudsOffsetWorldSpace is measured in the pad's own
+-- axes, so it rises straight up only because the pad lies level (TableService.buildPad).
 local function padPart(zones: Instance, id: number): BasePart?
 	local part = zones:FindFirstChild(("QueuePad_%02d"):format(id))
 	return if part and part:IsA("BasePart") then part else nil
@@ -197,11 +177,8 @@ function TableSign.update(
 			if token ~= self.token then
 				return
 			end
-			local p = target and Placement.forTable(target)
-			if target and p then
-				local x, y, z = Placement.overTable(p, Sign.LiftStuds)
-				self.anchor.WorldPosition = Vector3.new(x, y, z)
-				self.gui.Adornee = self.anchor
+			if target then
+				self.gui.Adornee = padPart(zones, target)
 				self.gui.Enabled = true
 				self:fill(target, snapshotFor(target), now)
 				UIAnim.popIn(self.card)

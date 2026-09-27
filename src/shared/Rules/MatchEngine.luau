@@ -103,9 +103,9 @@ local function rehost(t: any)
 			t.hostId, s.host = s.userId, true
 		end
 	end
-	-- A new host decides for themselves: the old one's Start does not carry over.
+	-- A new host asks for players themselves: the old one's request does not carry over.
 	if t.hostId ~= old then
-		t.ready, t.requestedAt = nil, nil
+		t.requestedAt = nil
 	end
 end
 
@@ -164,18 +164,14 @@ function Engine.startState(seats: { any }, teamSize: number): (boolean, string?,
 	return false, "Short", missing
 end
 
---- When a table whose host has pressed Start (`t.ready`) begins by itself: once its pad is
---- full, Queue.ReadyGraceSeconds after the last one stepped on, so someone who walked on by
---- accident can step off again (designer, 2026-09-27). Nil while not ready or not full. Start
---- on a pad that is already full begins at once and never waits here.
+--- When a waiting table begins by itself (designer, 2026-09-27: no Start button): once its
+--- pad is full, Queue.ReadyGraceSeconds after the last one stepped on, so someone who walked
+--- on by accident can step off again. Nil while the pad is not full.
 function Engine.startsAt(t: any): number?
-	if t.phase ~= "Waiting" or t.ready == nil then
+	if t.phase ~= "Waiting" or not Engine.startState(t.seats, t.teamSize) then
 		return nil
 	end
-	if not Engine.startState(t.seats, t.teamSize) then
-		return nil
-	end
-	local last = t.ready
+	local last = -math.huge
 	for _, s in t.seats do
 		if s.connected and s.joinedAt > last then
 			last = s.joinedAt
@@ -304,7 +300,6 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 		-- The host's choices outlive the host (the next in takes over), not the box emptying.
 		if Engine.count(t) == 0 then
 			t.settings = defaultSettings()
-			t.ready = nil
 		end
 		phase(t, "Waiting", now, nil)
 		return true
@@ -466,8 +461,8 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 			t.revision += 1
 		end
 	end
-	-- The host pressed Start on a pad that was not full: it starts by itself once full. The
-	-- coin comes from the next rack seed, so this stays deterministic.
+	-- A full pad starts by itself after the join grace. The coin comes from the next rack
+	-- seed, so this stays deterministic.
 	local startsAt = Engine.startsAt(t)
 	if startsAt and now >= startsAt then
 		local host = Engine.seat(t, t.hostId)
@@ -581,7 +576,6 @@ end
 -- 2026-09-25). Two players split by who came first, the host being team A; four or six by
 -- the half each stands in, slots in the order they came. The host's team calls heads.
 function start(t: any, host: any, now: number, coinWinner: number?)
-	t.ready = nil
 	local seats = {}
 	for _, s in t.seats do
 		if s.connected then
@@ -630,7 +624,6 @@ function Engine.action(
 		return false
 	elseif
 		kind == "Start"
-		or kind == "Unready"
 		or kind == "RequestOpponent"
 		or kind == "StartSolo"
 		or kind == "SetDifficulty"
@@ -641,31 +634,20 @@ function Engine.action(
 			return false
 		end
 		if kind == "Start" then
-			-- A full pad starts at once. Otherwise the host is ready: the card waits, and the
-			-- game starts by itself once the pad fills (Engine.startsAt; designer, 2026-09-27).
-			if Engine.startState(t.seats, t.teamSize) then
-				start(t, s, now, coinWinner)
-			elseif t.ready == nil then
-				t.ready = now
-				t.revision += 1
-			else
+			-- A full pad starts by itself (Engine.startsAt); the menu has no Start button
+			-- (designer, 2026-09-27). This skips the join grace on a full pad, for tests and
+			-- developer tools.
+			if not Engine.startState(t.seats, t.teamSize) then
 				return false
 			end
-		elseif kind == "Unready" then
-			-- Back to the settings.
-			if t.ready == nil then
-				return false
-			end
-			t.ready = nil
-			t.revision += 1
+			start(t, s, now, coinWinner)
 		elseif kind == "RequestOpponent" then
-			-- Alone and waiting on a 1v1 table, the host may ask everyone free in the server
-			-- for an opponent (designer, 2026-09-27); the server sends the asks
-			-- (TableService). Not more often than Queue.RequestCooldownSeconds.
+			-- While the pad has room, the host may ask everyone free in the server to join
+			-- (designer, 2026-09-27: an opponent on 1v1, players on the team tables); the
+			-- server sends the asks (TableService). Not more often than
+			-- Queue.RequestCooldownSeconds.
 			if
-				t.ready == nil
-				or t.teamSize ~= 1
-				or Engine.count(t) ~= 1
+				Engine.count(t) >= Engine.capacity(t)
 				or (t.requestedAt and now - t.requestedAt < M.Queue.RequestCooldownSeconds)
 			then
 				return false
@@ -680,12 +662,9 @@ function Engine.action(
 				return false
 			end
 			s.team, s.slot = 1, 1
-			t.ready = nil
 			t.solo = { team = s.team }
 			t.activeTeam, t.breakShot, t.coin = s.team, true, nil
 			beginTurn(t, s.team, now, true)
-		elseif t.ready ~= nil then
-			return false -- the settings are shown, not changed, while the host waits
 		elseif kind == "SetDifficulty" then
 			if type(request.value) ~= "string" or not Config.Difficulty.Levels[request.value] then
 				return false
@@ -920,7 +899,6 @@ function Engine.snapshot(t: any): any
 		shot = t.shot,
 		solo = if t.solo then table.clone(t.solo) else nil,
 		settings = table.clone(t.settings),
-		ready = t.ready ~= nil,
 		requestedAt = t.requestedAt,
 		startsAt = Engine.startsAt(t),
 	}

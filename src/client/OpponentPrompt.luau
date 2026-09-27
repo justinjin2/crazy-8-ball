@@ -1,8 +1,8 @@
 --!strict
--- OpponentPrompt: "<name> needs an opponent..." with Join and Dismiss (designer, 2026-09-27).
--- A host alone on a 1v1 table who pressed Request opponent sends it to everyone free in the
--- server (TableService); Join asks the server to stand you on their pad, which seats you and
--- starts their game after the join grace (MatchEngine.startsAt).
+-- OpponentPrompt: "<name> needs an opponent..." (or players, on the team tables) with Join and
+-- Dismiss (designer, 2026-09-27). A host whose pad has room who pressed Request sends it to
+-- everyone free in the server (TableService); Join asks the server to stand you on their pad,
+-- which seats you, and a full pad starts after the join grace (MatchEngine.startsAt).
 --
 -- One at a time, the newest. It goes by itself after Queue.RequestShowSeconds, when you
 -- dismiss it or join, and as soon as the table's snapshot says the ask no longer stands (the
@@ -91,7 +91,8 @@ function OpponentPrompt.show(self: any, ask: any)
 		return
 	end
 	self.ask = ask
-	self.title.Text = Copy.NeedsOpponent:format(tostring(ask.name))
+	local phrase = if ask.teamSize == 1 then Copy.NeedsOpponent else Copy.NeedsPlayers
+	self.title.Text = phrase:format(tostring(ask.name))
 	self.face.Image = S.PromptHeadshot:format(ask.userId)
 	if self.open then
 		UIAnim.bounce(self.card)
@@ -146,9 +147,8 @@ function OpponentPrompt.update(
 	local stands = s ~= nil
 		and s.epoch == ask.epoch
 		and s.phase == "Waiting"
-		and s.ready == true
 		and s.hostId == ask.userId
-		and #s.seats == 1
+		and #s.seats < s.teamSize * 2
 	local old = type(ask.at) == "number" and now - ask.at > M.Queue.RequestShowSeconds
 	if seated or old or not stands then
 		self:close()

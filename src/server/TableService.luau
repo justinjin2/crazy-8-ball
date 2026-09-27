@@ -749,26 +749,25 @@ local function poll(t: any, time: number)
 	releaseMissing(t)
 end
 
--- Whether table `t`'s host still wants an opponent: alone on a 1v1 table, waiting after
--- Start, and asked recently enough for the popup to still be up (Queue.RequestShowSeconds).
+-- Whether table `t`'s host still wants players: waiting with room on the pad, and asked
+-- recently enough for the popup to still be up (Queue.RequestShowSeconds).
 local function wantsOpponent(t: any, epoch: any, time: number): boolean
 	local e = t.engine
 	return e.epoch == epoch
 		and e.phase == "Waiting"
-		and e.ready ~= nil
-		and e.teamSize == 1
-		and Engine.count(e) == 1
+		and Engine.count(e) < Engine.capacity(e)
 		and e.requestedAt ~= nil
 		and time - e.requestedAt <= M.Queue.RequestShowSeconds
 end
 
--- Ask everyone free in the server (not seated at any table) whether they want to play the
--- host of table `t` (designer, 2026-09-27).
+-- Ask everyone free in the server (not seated at any table) whether they want to play at
+-- the host of table `t`'s table (designer, 2026-09-27).
 local function sendRequest(t: any, host: Player)
 	local e = t.engine
 	local ask = {
 		tableId = e.id,
 		epoch = e.epoch,
+		teamSize = e.teamSize,
 		userId = host.UserId,
 		name = host.DisplayName,
 		at = e.requestedAt,

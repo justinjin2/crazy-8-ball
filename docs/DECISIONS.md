@@ -1411,3 +1411,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   Join/Dismiss popup with the host's face for everyone not at a table; Join teleports them onto
   the pad), Play against PC, Play solo. Defaults picked by Claude, open to change: Join
   teleports, the popup lasts 15 s, the host may ask again after 20 s.
+- 2026-09-27 (later): Simpler still (designer): no settings and no Start. Stepping on shows the
+  host a small card top right ("Classic 1v1", the count, waiting) with Request opponent (Request
+  players on 2v2/3v3), and on 1v1 alone Play against PC and Play solo; a full pad starts by
+  itself 3 s after the last one stepped on. Public tables play Classic with no abilities (no
+  toggle; Difficult and Challenger may become pro-lobby only). The sign is back over the pad,
+  without abilities. Supersedes the card over the table and the Start/Back flow above.

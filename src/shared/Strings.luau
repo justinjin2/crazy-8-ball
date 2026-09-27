@@ -17,38 +17,28 @@ return {
 		PadPlaying = "PLAYING", -- on the pad and the sign while the table's game is on
 		Waiting = "WAITING",
 		Starting = "STARTING %d", -- the sign's pill while a full pad counts down to its game
-		-- The popup everyone free in the server gets when a host requests an opponent
+		-- The popup everyone free in the server gets when a host requests players
 		-- (OpponentPrompt).
 		Request = {
-			NeedsOpponent = "%s needs an opponent...",
+			NeedsOpponent = "%s needs an opponent...", -- a 1v1 table
+			NeedsPlayers = "%s needs players...", -- a 2v2 or 3v3 table
 			Join = "Join",
 			Dismiss = "Dismiss",
 			GamepadHint = "Y · Join",
 		},
-		-- The host's card over the table (QueueMenu); everyone else sees the sign (TableSign).
+		-- The host's card (QueueMenu); everyone else sees the sign over the pad (TableSign).
 		Queue = {
-			HostTitle = "HOST",
+			GameTitle = "%s %s", -- the game on the host's card: difficulty, then mode ("Classic 1v1")
 			PlayerCount = "%d/%d", -- in the people pill: how many are on the pad, of how many it holds
-			MoneyMultiplier = "%sx", -- the money a difficulty pays, in its tile by the cash icon: 1x, 1.5x, 2x
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
-			LevelInfo = {
-				Classic = "Easiest! Aim line + ball path",
-				Difficult = "Harder! Only the aim line",
-				Challenger = "Hardest! No lines at all",
-			},
-			AbilitiesTitle = "ABILITIES",
-			On = "ON",
-			Off = "OFF",
-			Start = "START",
 			PlaySolo = "Play solo",
 			PlayPC = "Play against PC",
-			Back = "Back",
-			-- After Start on a pad that is not full: the card waits for players.
-			WaitingForPlayers = "Waiting for players...",
-			WaitingForOpponent = "Waiting for opponent...", -- alone on a 1v1 table
+			WaitingForOpponent = "Waiting for opponent...", -- a 1v1 pad with room
+			WaitingForPlayers = "Waiting for players...", -- a 2v2 or 3v3 pad with room
 			RequestOpponent = "Request opponent",
+			RequestPlayers = "Request players", -- on the team tables
 			Requested = "Requested!", -- on the button while the host waits to ask again
-			StartingIn = "Starting in %d",
+			StartingIn = "Starting in %d", -- the pad is full: the game starts by itself
 			GamepadHint = "Y · Menu",
 		},
 		OpenTable = "OPEN TABLE",

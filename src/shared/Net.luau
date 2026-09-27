@@ -30,8 +30,8 @@ local REMOTES: { [string]: string } = {
 	-- client -> server: please seat me at this table / take me off it.
 	RequestSeat = "RemoteEvent",
 	RequestLeave = "RemoteEvent",
-	-- server -> everyone free (not seated at a table): a host alone on a 1v1 table asks for an
-	-- opponent. {tableId, epoch, userId, name, at}; the client shows OpponentPrompt.
+	-- server -> everyone free (not seated at a table): a host whose pad has room asks for
+	-- players. {tableId, epoch, teamSize, userId, name, at}; the client shows OpponentPrompt.
 	OpponentRequest = "RemoteEvent",
 	-- client -> server: I answer that ask with Join. (tableId, epoch); the server checks it
 	-- still stands, then puts the player on the pad and seats them.

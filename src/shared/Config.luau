@@ -2325,13 +2325,9 @@ Config.UI = {
 	Sign = {
 		ShowStuds = 6, -- it pops up within this far of the table's match area (tune)
 		HideStuds = 8, -- and goes once you are this far out, so it does not flicker at the edge
-		-- The sign and the host's card float over the middle of the table, this far above the
-		-- cloth (designer, 2026-09-27: one card, on the table, not over the pad): the sign
-		-- stands on this point, the host's card is centred on it. (tune)
-		LiftStuds = 2,
+		HeightStuds = 6.5, -- above the queue pad
 		WidthPx = 280, -- its size on screen, pixels (the same at any distance)
-		HeightPx = 190, -- mode, host, count and abilities, difficulty, and the status pill
-		PillWidthPx = 60, -- the abilities ON/OFF pill
+		HeightPx = 158, -- mode, host, count and difficulty, and the status pill
 	},
 
 	-- The shared UI kit (src/client/HudParts.luau): the one look every screen is built from.
@@ -2390,7 +2386,6 @@ Config.UI = {
 		ButtonStrokePx = 3, -- ink outline
 		ButtonCornerPx = 12,
 		ButtonIconShare = 0.62, -- an icon on a button is this share of its height
-		TileExtraShare = 0.2, -- a tile's small line under its name (the money it pays), share of its height
 		ButtonIconOnlyShare = 0.95, -- an icon with no words (Leave's door) fills most of the button (designer, 2026-09-27)
 		PressedScale = 0.94, -- the squish when pressed
 		SelectedScale = 1.04, -- a gamepad-selected or hovered button grows a little
@@ -2737,22 +2732,16 @@ Config.Multiplayer = {
 		ShortOpenBallSize = 15, -- the same on the two-row (narrow) layout
 		OpenBallMinSize = 12, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
-		-- The host's card (src/client/QueueMenu.luau), floating over their table while it waits.
+		-- The host's card (src/client/QueueMenu.luau), top right while their table waits.
 		QueueMenuWidth = 260, -- pixels, before shrinking to fit
 		QueueMenuPadding = 10, -- inside the card
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueRowGap = 6, -- between the card's rows
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueHostSize = 18, -- the host's name
-		QueueHostRowHeight = 32, -- the crown, HOST and the name
+		QueueTouchRight = 120, -- on touch screens without a jump button showing, the card keeps this far from the right edge
+		QueueTitleHeight = 32, -- the difficulty's picture and "Classic 1v1"
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
-		QueueLevelHeight = 104, -- the difficulty tiles: picture over name over the money it pays
-		QueueAbilitiesHeight = 40, -- the abilities row and its ON/OFF button
-		QueueTileTextFloor = 10, -- a tile's name shrinks this far before it spills over the next
-		QueueStartHeight = 46, -- Start, bigger than the rest
-		QueueToggleWidth = 68, -- the abilities ON/OFF button
-		QueueSummaryHeight = 30, -- the waiting card's difficulty and abilities row
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre.
 		PromptWidth = 330, -- pixels, before shrinking to fit a narrow screen
 		PromptHeight = 96,

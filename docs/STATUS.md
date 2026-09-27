@@ -1,22 +1,21 @@
 # Status
 
-**2026-09-27 (latest): the queue area is one card over the table, with Request opponent.**
+**2026-09-27 (latest): the queue pad just plays: no settings, no Start.**
 
-- **Built:** the pad says JOIN and is see-through glass tinted with its rim. The host's menu
-  floats over the middle of their table (kept on screen), with the money in each difficulty tile
-  and a full-width Start (no Leave: walk off). Everyone else, guests on the pad included, sees
-  the table's sign there. Start on a pad that is not full turns the card to waiting (settings
-  shown, Back); the server starts the game 3 s after the pad fills (`MatchEngine.startsAt`,
-  `Queue.ReadyGraceSeconds`), and the sign counts STARTING 3, 2, 1. Alone on a 1v1 table the
-  waiting card offers Request opponent, Play against PC and Play solo. Request opponent sends
-  everyone not at a table a bottom popup (`OpponentPrompt`: the host's face, "<name> needs an
-  opponent...", Join and Dismiss); Join teleports them onto the pad.
-- **Verified:** lint clean, 367 tests pass (new: waiting and the 3 s grace, a walker stepping
-  off in the grace, Back, the host leaving, solo from waiting, a full pad starting at once,
-  Request opponent's rules and cooldown). Studio phone emulator: JOIN on the glass pad; the
-  sign over the table with its pill; the host card over the table; Start alone, Request
-  opponent (greys to Requested!), Back, Start, Play solo by real clicks; the popup's look.
-  Console clean.
+- **Built:** the pad says JOIN and is see-through glass tinted with its rim. Stepping on gives
+  the host a small card top right: "Classic 1v1" (or 2v2, 3v3), the count, "Waiting for
+  opponent..." (players), and Request opponent (Request players on team tables); alone on 1v1
+  also Play against PC and Play solo. A full pad starts by itself 3 s after the last one stepped
+  on (`MatchEngine.startsAt`, `Queue.ReadyGraceSeconds`), shown as "Starting in 3" on the card
+  and STARTING 3 on the sign. The sign is back over the pad, without abilities; guests on the
+  pad see it too. A request sends everyone not at a table a bottom popup (`OpponentPrompt`:
+  the host's face, "<name> needs an opponent..." or "needs players...", Join and Dismiss); Join
+  teleports them onto the pad. Difficulty tiles, the abilities toggle, Start and Leave are gone.
+- **Verified:** lint clean, 366 tests pass (a full pad starting after the grace, 1v1 and 2v2; a
+  walker stepping off in the grace; requests while the pad has room, their cooldown, and a new
+  host starting fresh; solo only alone on 1v1). Studio phone emulator: the sign over the pad;
+  the 1v1 card; Request opponent (greys to Requested!) and Play solo by real clicks; the 2v2
+  card with Request players; the popup's look (earlier today). Console clean.
 - **Needs a check by hand:** a PC-sized window and a controller (Y focuses the card, and the
   popup's Join); two players: a guest sees the sign, the 3 s countdown, and the popup's Join
   teleporting onto the pad.

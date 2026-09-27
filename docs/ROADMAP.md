@@ -141,9 +141,10 @@ and position change. Decisions: DECISIONS.md (2026-09-25), GDD section 5.
 The designer went back to one mode per table, with one rectangular pad each to step onto, and a
 look per mode and lobby. Decisions: DECISIONS.md (2026-09-26), GDD sections 6, 10 and 16.
 
-*Queue card (2026-09-27): one card over each table (the host's menu or the sign), JOIN on a
-glass pad, Start waits for a full pad with a 3 s grace, and Request opponent for a lone 1v1
-host. Checked in Studio on the phone emulator; PC size, gamepad and two players are open.*
+*Queue card (2026-09-27): JOIN on a glass pad; no settings or Start, a full pad starts by
+itself after 3 s; the host's card offers Request opponent/players, and on 1v1 alone Play
+against PC and Play solo. Checked in Studio on the phone emulator; PC size, gamepad and two
+players are open.*
 
 - [ ] **Tables, pads and looks.** Ten 1v1, four 2v2 and two 3v3 tables (1v1 at the front);
   one glowing rectangular pad per table in front of its long side that joins instantly,
