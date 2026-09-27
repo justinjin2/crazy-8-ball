@@ -110,7 +110,13 @@ end
 --- takes them off the table.
 function Ranking.departed(t: any, player: Player)
 	local e = t.engine
-	if e.solo ~= nil or e.phase == "Waiting" or e.phase == "Result" then
+	if e.phase == "Result" then
+		-- A result no broadcast has paid yet (an AimUpdate's advance can end a match between
+		-- polls): pay it now, while the leaver is still seated, so leaving cannot dodge it.
+		Ranking.check(t)
+		return
+	end
+	if e.solo ~= nil or e.phase == "Waiting" then
 		return
 	end
 	-- A server shutting down (an update, "shut down all servers") removes everyone: that is

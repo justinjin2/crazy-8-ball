@@ -798,8 +798,6 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 			end
 		end
 	end
-	-- The match clock for the one-minute mark starts at the break (the first accepted shot).
-	t.brokeAt = t.brokeAt or now
 	local start = Engine.pack(sim.balls)
 	local before = Ball.cloneList(sim.balls)
 	local strike = Simulation.strike(sim, shot)
@@ -811,6 +809,9 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	if outcome.capped then
 		return nil, "SimulationLimit"
 	end
+	-- The match clock for the one-minute mark starts at the break (the first accepted shot;
+	-- a shot turned down above never starts it).
+	t.brokeAt = t.brokeAt or now
 	-- Casual tables (every table until ranked exists) drop the rail-after-contact rule.
 	local requireRail = if t.ranked then M.RailAfterContact.Ranked else M.RailAfterContact.Casual
 	local j = Judge.resolve(

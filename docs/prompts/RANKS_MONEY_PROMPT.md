@@ -494,7 +494,7 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 - [x] 9. Rank roadmap screen.
 - [x] 10. Sounds found, checked and wired.
 - [x] 11. Full playthrough and every screen checked on phone, tablet, PC and gamepad.
-- [ ] 12. Second audit and branch-wide bug review; findings fixed.
+- [x] 12. Second audit and branch-wide bug review; findings fixed.
 - [ ] 13. Polish pass.
 - [ ] 14. Docs updated and `docs/prompts/RANKS_MONEY_REPORT.md` written; branch pushed.
 
@@ -593,4 +593,14 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
   our code. Not possible here: a second real client (Studio's multi-client test needs clicks
   in its Test tab), a real controller, the phone emulator (not scriptable): listed for the
   designer.
+- **Second audit and branch review (fresh subagent, about 06:50).** Fixed by it: the match
+  clock started even on a shot the simulation turned down (now only on an accepted shot, with a
+  test); a leaver in the tiny gap between a match ending by AimUpdate and the next broadcast
+  skipped their loss (departed now pays an unpaid result first). Fixed by the main agent from
+  its list: the difficulty money multiplier is off (`Config.Economy.UseDifficultyMultiplier`)
+  until the difficulty lock exists, because a modified client could send SetDifficulty for 2x.
+  Left for the designer (report section 5): pot money paid before the one-minute mark (break
+  farming with a second account), surrender farming after the mark (the repeat-forfeit rule,
+  6.5), Expert+ charged 150 for quitting before the break, a second-server takeover mid-match
+  dodging the forfeit. Re-checked in Studio: $30 pot, $50 win, +250 XP, console clean.
 

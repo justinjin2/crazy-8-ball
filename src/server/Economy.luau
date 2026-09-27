@@ -27,9 +27,12 @@ function Economy.matchKey(e: any): string
 	return ("%d:%d"):format(e.id, e.epoch)
 end
 
---- The table's money multiplier (Config.Difficulty.MoneyMultiplier; every table is Classic
---- today, so 1).
+--- The table's money multiplier (Config.Difficulty.MoneyMultiplier), or 1 while
+--- Config.Economy.UseDifficultyMultiplier is off.
 function Economy.multiplier(e: any): number
+	if not Config.Economy.UseDifficultyMultiplier then
+		return 1
+	end
 	local level = if type(e.settings) == "table" then e.settings.difficulty else nil
 	local m = Config.Difficulty.MoneyMultiplier[level or ""]
 	return if type(m) == "number" then m else 1

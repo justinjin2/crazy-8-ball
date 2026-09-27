@@ -44,6 +44,18 @@ return {
 		surrender(t, 11, 85)
 		H.expect(t.result.seconds == 75, "75 s from the break")
 	end,
+	["a shot turned down does not start the match clock"] = function()
+		local t = started()
+		local physics = H.require("Config").Physics
+		local limit = physics.MaxShotSeconds
+		local shot = { epoch = t.epoch, turnId = t.turnId, angle = 0, power = 0.7 }
+		physics.MaxShotSeconds = 0 -- every shot runs out of simulation time
+		local ok, replay, why = pcall(E.acceptShot, t, 11, shot, 8)
+		physics.MaxShotSeconds = limit
+		H.expect(ok and replay == nil and why == "SimulationLimit", tostring(why))
+		H.expect(t.brokeAt == nil, "a rejected break is not the break")
+		H.expect(E.acceptShot(t, 11, shot, 9) ~= nil and t.brokeAt == 9, "the accepted one is")
+	end,
 	["a finished game clears the break time"] = function()
 		local t = started()
 		t.brokeAt = 10

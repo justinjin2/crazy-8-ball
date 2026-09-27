@@ -1656,6 +1656,10 @@ Config.Economy = {
 	SoloShare = 0.3,
 	SoloDailyCap = 300,
 	SoloAfterCapPay = 1,
+	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier). Off until the
+	-- difficulty picker and its lock exist (Roadmap 6.2): the server still accepts a host's
+	-- SetDifficulty, so a modified client could otherwise pick 2x (second audit, 2026-09-27).
+	UseDifficultyMultiplier = false,
 }
 
 ---------------------------------------------------------------------------------------------
