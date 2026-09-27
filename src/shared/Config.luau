@@ -2682,11 +2682,13 @@ Config.Map = {
 		},
 		Props = { Color = "rbxassetid://96571614972736" }, -- props_color.png: the props trim sheet, soft shade baked in
 		Plants = { Color = "rbxassetid://140554243257866" }, -- plants.png: palm fronds, fern fronds, a leafy clump (alpha)
-		Near = { Color = "rbxassetid://125734655757192" }, -- near_color.png: the near world's trim sheet (alpha in its shallows strip)
+		-- near_color.png: the near world's trim sheet (alpha in its shallows strip); near_emissive.png:
+		-- its windows white, so the near city's windows light up at sunset (Lighting's Windows).
+		Near = { Color = "rbxassetid://125734655757192", Emissive = "rbxassetid://91247627901343" },
 		-- skyline_color.png: the mid skyline's sheet (backdrop/skyline_textures.py);
 		-- skyline_emissive.png: a third of its windows white, lit at sunset (Lighting's Windows).
 		Skyline = {
-			Color = "rbxassetid://77744835406237",
+			Color = "rbxassetid://88372511776132",
 			Emissive = "rbxassetid://78621028936301",
 		},
 		Islands = { Color = "rbxassetid://76649656535397" }, -- islands_color.png: the near islands' sheet (backdrop/islands_textures.py)
@@ -2874,11 +2876,11 @@ Config.Lighting = {
 	-- gen_sky.py's dusk faces (textures/sky_dusk_*.png): half way from the day sky to the sunset
 	-- one, the same cloud scene.
 	DuskSky = {
-		SkyboxBk = "rbxassetid://106504357319242",
-		SkyboxDn = "rbxassetid://97874902173328",
-		SkyboxFt = "rbxassetid://109971828828187",
+		SkyboxBk = "rbxassetid://133151880175765",
+		SkyboxDn = "rbxassetid://120434251320949",
+		SkyboxFt = "rbxassetid://114785516646616",
 		SkyboxLf = "rbxassetid://77746871022306",
-		SkyboxRt = "rbxassetid://94889514045388",
+		SkyboxRt = "rbxassetid://108771738810184",
 		SkyboxUp = "rbxassetid://110285038213161",
 	},
 	-- Round each swap (Width of the blend either side), the Atmosphere thickens by Density and
@@ -2936,11 +2938,11 @@ Config.Lighting = {
 		-- Lighting.Sky: assets/map/gen_sky.py's day faces (textures/sky_day_*.png): the art's
 		-- gradient and cumulus clouds, the far city and islands painted on the horizon (Stage 6).
 		Sky = {
-			SkyboxBk = "rbxassetid://83526260541580",
-			SkyboxDn = "rbxassetid://89826709775610",
-			SkyboxFt = "rbxassetid://85312380025917",
+			SkyboxBk = "rbxassetid://136510513323451",
+			SkyboxDn = "rbxassetid://112654746925961",
+			SkyboxFt = "rbxassetid://133482081430883",
 			SkyboxLf = "rbxassetid://116034246180095",
-			SkyboxRt = "rbxassetid://115328556471822",
+			SkyboxRt = "rbxassetid://87579942061215",
 			SkyboxUp = "rbxassetid://93123509257023",
 			SunAngularSize = 12, -- degrees; Roblox's 21 glares over the painted sky (tune)
 			MoonAngularSize = 0, -- no moon: a dawn sky can show it near the horizon
@@ -3021,11 +3023,11 @@ Config.Lighting = {
 		-- gen_sky.py's sunset faces (textures/sky_sunset_*.png): the day's cloud scene lit by the
 		-- low sun, a glow round it, the purple sea with the sun's path, the far city's lit windows.
 		Sky = {
-			SkyboxBk = "rbxassetid://114338672019663",
-			SkyboxDn = "rbxassetid://120543920605295",
-			SkyboxFt = "rbxassetid://126909795157866",
+			SkyboxBk = "rbxassetid://110051239637159",
+			SkyboxDn = "rbxassetid://88040117694749",
+			SkyboxFt = "rbxassetid://96816539770638",
 			SkyboxLf = "rbxassetid://94840130578947",
-			SkyboxRt = "rbxassetid://89589269512843",
+			SkyboxRt = "rbxassetid://73575224663713",
 			SkyboxUp = "rbxassetid://139224542954081",
 			SunAngularSize = 5, -- a gold disc on the horizon, not a white blaze (critics 1 and 2)
 			MoonAngularSize = 0,
@@ -3069,7 +3071,10 @@ Config.Lighting = {
 		TableGlow = { EmissiveStrength = 0.8, EmissiveTint = "#EF9054" },
 		-- The city and the near islands toward the art's dusk (blue-violet glass, island
 		-- silhouettes #564175), as the painted far world is.
-		Windows = { EmissiveStrength = 1.2, EmissiveTint = "#D5B59C", Color = "#7C74B4" }, -- 2.5 read as a busy checker
+		-- The city at sunset (designer, 2026-09-26): its windows lit a warm yellow and its walls
+		-- tinted pink-lavender by the sky (the blue-violet tint turned the brown maroon). The
+		-- mid skyline's and the near world's buildings alike.
+		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#C9A0D2" }, -- 1.6 read all orange
 		Islands = { Color = "#6A5088" }, -- violet silhouettes, as the art's (#673E6D)
 	},
 }

@@ -37,7 +37,7 @@ export type Handles = {
 	glows: { [string]: { BasePart } }, -- Map.Props' <Kind>__Glow meshes, by kind
 	lights: { PointLight },
 	tableGlow: { SurfaceAppearance },
-	windows: { SurfaceAppearance }, -- the skyline chunks' looks (their windows and their tint)
+	windows: { SurfaceAppearance }, -- the skyline's and near city's looks (their windows and tint)
 	islands: { SurfaceAppearance }, -- the near islands' looks (their tint)
 	complete: boolean, -- false while the map's props, rooftop or backdrop are yet to stream in
 }
@@ -50,7 +50,9 @@ local function value(v: any): any
 	return v
 end
 
-local BACKDROP_LOOKS = { "^Skyline_", "^Islands_" } -- the backdrop chunks the cycle tints
+-- The chunks the cycle tints and lights: the mid skyline's and the near world's buildings (their
+-- windows glow at sunset), and the near islands.
+local BACKDROP_LOOKS = { "^Skyline_", "^Islands_", "^Buildings_" }
 
 local function backdropLook(name: string): boolean
 	for _, pattern in BACKDROP_LOOKS do
@@ -99,6 +101,7 @@ function MapLighting.collect(spec: any): Handles
 	local props = map and map:FindFirstChild(spec.Props.Placed)
 	local rooftop = map and map:FindFirstChild(spec.Architecture)
 	local backdrop = map and map:FindFirstChild(spec.Backdrop.Import)
+	local near = map and map:FindFirstChild(spec.Near.Import)
 	h.complete = props ~= nil and rooftop ~= nil and backdrop ~= nil
 	if props then
 		for _, d in props:GetDescendants() do
@@ -117,6 +120,14 @@ function MapLighting.collect(spec: any): Handles
 	local glowLook = glow and glow:FindFirstChildOfClass("SurfaceAppearance")
 	if glowLook then
 		table.insert(h.tableGlow, glowLook)
+	end
+	if near then
+		for _, part in near:GetChildren() do
+			local look = part:FindFirstChildOfClass("SurfaceAppearance")
+			if look and part.Name:match("^Buildings_") then
+				table.insert(h.windows, look)
+			end
+		end
 	end
 	if backdrop then
 		for _, part in backdrop:GetChildren() do

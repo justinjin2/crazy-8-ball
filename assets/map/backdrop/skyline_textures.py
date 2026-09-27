@@ -20,9 +20,11 @@ same variants a little lighter, for crowns, caps and rooftop boxes (skyline.py c
 wall of a building in one zone, so a building keeps one variant all round).
 
 The rest: s_roof (flat roofs: V picks a tone), s_accent (masts and spires: light steel),
-s_paving and s_park (block tops, lawns), s_tree (canopies, the #3E6B3A family: V from the dark
-rim to the lit top, U in TREE_TONES zones of TREE_ZONE studs, one green each). The order keeps
-neighbours alike (distant mip levels blend a strip with the next, and the sheet wraps).
+s_paving (block tops), s_road (a street across V, kerb to kerb: edge lines and a dashed centre)
+and s_crosswalk (zebra stripes along U). The order keeps neighbours alike (distant mip levels
+blend a strip with the next, and the sheet wraps). The canopy trees and lawns are gone: the
+designer read the canopies as black rocks at sunset (2026-09-26), and streets replaced the bare
+ground between the blocks.
 """
 
 import os
@@ -50,8 +52,6 @@ FACADE_TOP = 560.0  # studs over the street at the top of a facade strip
 ZONE = 72.0  # studs: one facade variant along U (no wall in the plan is wider)
 LIGHT = 4  # variants per facade style; zone k + LIGHT is variant k, lighter (crowns and caps)
 ZONES = 2 * LIGHT  # zones per facade strip; its U period is ZONE * ZONES
-TREE_ZONE = 128.0  # studs: one canopy green along U (a canopy's rim is never longer)
-TREE_TONES = 4
 STRIPS = {
     # name: (first row, last row + 1 of a 1024 sheet, studs per image width along U)
     's_roof': (0, 48, 256.0),  # flat roofs, lit: V picks the tone
@@ -61,8 +61,8 @@ STRIPS = {
     's_stone': (400, 624, ZONE * ZONES),  # cream stone: faint floor bands
     's_terracotta': (624, 848, ZONE * ZONES),  # muted terracotta: faint floor bands
     's_paving': (848, 880, 256.0),  # block tops: light warm paving
-    's_park': (880, 928, 256.0),  # block tops, roof gardens and tree lots: lawn, V picks the tone
-    's_tree': (928, 1024, TREE_ZONE * TREE_TONES),  # canopies: dark rim to lit top, a green per zone
+    's_road': (880, 1000, 120.0),  # a street across V (30 studs kerb to kerb): lines along U
+    's_crosswalk': (1000, 1024, 12.0),  # zebra stripes along U
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ SHADE = mc.ALBEDO['shadow']  # the painter's cool shade (#5D719E): every foot da
 FOOT_STUDS = 34.0  # the soft shade at a facade's foot fades out this high over the street
 FOOT_SHADE = 0.28  # ...from this much toward SHADE at the street
 LIFT = 0.1  # masonry walls this much toward white at FACADE_TOP (the lit upper floors)
-BAND = 0.08  # a floor's window band is this much darker than its wall (the review: about 8%)
+BAND = 0.22  # a window is this much darker than its wall (8% read as faint stripes, not windows)
 BAND_TINT = 0.3  # ...and this far toward its style's window hue, at the same lightness
 BAND_SILL, BAND_HEAD = 0.34, 0.86  # the band's foot and top, as fractions of a floor
 BAND_SOFT = 0.12  # its edges soften over this much of a floor (no hard lines to shimmer)
@@ -91,7 +91,8 @@ GLASS = [
     ('#6D8AA6', '#A6B9CA'),  # greyer
 ]
 GLASS_TOP_POWER = 0.85  # the gradient's curve up the tower (under 1: it lightens early)
-MULLION = (8.0, 0.9, 0.02)  # a very faint lighter line: every, studs wide, how much lighter
+MULLION = (6.0, 0.6, 0.07)  # a faint lighter line: every, studs wide, how much lighter (the window cells')
+GLASS_SPANDREL = (1.2, 0.12)  # a faint lighter band at each glass floor's slab: studs tall, how much
 # Masonry variants: (wall, window hue, floor height in studs). Faint horizontal window bands.
 WHITE = [
     ('#F5E8DA', '#8E9AB6', 12.0),  # warm white
@@ -105,23 +106,21 @@ STONE = [
     ('#EDDEC6', '#9C9CAC', 13.0),  # pale limestone
     ('#D9C8B2', '#9092A4', 10.5),  # warm grey stone
 ]
+# Once terracotta; the designer found the brown heavy by day and maroon at sunset (2026-09-26), so a
+# light warm tan and greige that sits with the city's creams and greys.
 TERRACOTTA = [
-    ('#B08A70', '#6E5A56', 11.5),  # muted terracotta (the review: toward #B08A70)
-    ('#A67E66', '#665250', 12.5),  # deeper
-    ('#BA947A', '#76625C', 10.5),  # pinker tan
-    ('#B28868', '#6C5854', 13.0),  # warmer brick
+    ('#CDB6A0', '#7E8698', 11.5),  # light tan
+    ('#C3AC98', '#788094', 12.5),  # greige
+    ('#D4C0AD', '#848CA0', 10.5),  # pale sand
+    ('#C9B4A6', '#7C8496', 13.0),  # warm grey
 ]
 ACCENT = ('#98A6B8', '#E2E8EF')  # masts and spires: steel at the foot, light at the top
 ROOF = ('#CBC6C4', '#DAD8DE')  # the roof tones from frac 0 (warm) to frac 1 (light, cool)
 PAVING = '#D8CEC4'  # lighter and warmer than the grey streets round it
-PARK = ('#4A8240', '#5A9A4A')  # the lawn tones from frac 0 to 1
-TREES = [
-    # (rim, middle, lit top): a canopy's green, one per tree zone along U (the #3E6B3A family)
-    ('#2A4A2A', '#3E6B3A', '#6E955A'),
-    ('#26442A', '#3A6438', '#648C50'),  # deeper
-    ('#30502C', '#46733C', '#7A9E5C'),  # a little yellower
-    ('#284A34', '#3C6A44', '#6A9660'),  # a little bluer
-]
+# The streets: the near world's asphalt (gen_textures.near), a light kerb, white lines.
+ASPHALT = mc.desaturate('#%02X%02X%02X' % tuple(int(round(v)) for v in mc.mix(mc.rgb(mc.hexc('road_day')), mc.rgb('#707078'), 0.5)), 0.8)
+KERB = mc.hexc('step')
+PAINT = '#EDEAE4'
 
 
 def _c(hex_colour):
@@ -190,6 +189,9 @@ def glass_strip(frac, u):
         col = _lerp(np.broadcast_to(foot, (rows, n, 3)), top, np.broadcast_to(t, (rows, n)))
         mull = np.broadcast_to(_band(p[:, sel] + every / 2, every, width, 0.6) * amount, (rows, n))
         col = _lerp(col, _c('#FFFFFF'), mull)
+        tall, lift = GLASS_SPANDREL
+        slab = (1 - _smooth(tall * 0.6, tall, h % GLASS_FLOOR)) * _smooth(GLASS_FLOOR * 0.6, GLASS_FLOOR, h) * lift
+        col = _lerp(col, _c(PALE_STEEL), np.broadcast_to(slab, (rows, n)))
         col = _lerp(col, _c(SHADE), np.broadcast_to(_foot(h) * 1.2, (rows, n)))
         out[:, sel] = col
     return out
@@ -209,11 +211,12 @@ def masonry_strip(variants, frac, u):
         wall, win = _c(wall_hex), band_colour(wall_hex, hue)
         if z >= LIGHT:
             wall, win = lighter(wall), lighter(win)
-        # One soft window band per floor, between its sill and its head; none in the base
-        # course under the first floor.
+        # A row of punched windows per floor, between its sill and its head, in the lit-window
+        # mask's cells (so the sunset lights sit in them); none in the base course under the
+        # first floor. Soft edges, so they do not shimmer far off (designer: more window detail).
         f = (h / floor) % 1.0
         band = _smooth(BAND_SILL - BAND_SOFT, BAND_SILL, f) * (1 - _smooth(BAND_HEAD, BAND_HEAD + BAND_SOFT, f))
-        band = band * _smooth(floor * 0.6, floor, h)
+        band = band * _smooth(floor * 0.6, floor, h) * WINDOW_ACROSS(u[:, sel])
         col = _lerp(np.broadcast_to(wall, (rows, n, 3)), win, np.broadcast_to(band, (rows, n)))
         col = _lerp(col, white, np.broadcast_to(lift, (rows, n)))
         col = _lerp(col, shade, np.broadcast_to(_foot(h), (rows, n)))
@@ -226,16 +229,26 @@ def ramp_strip(lo, hi, frac, u):
     return _lerp(np.broadcast_to(_c(lo), t.shape + (3,)), _c(hi), t)
 
 
-def tree_strip(frac, u):
-    k, _ = _zone_pos(u, TREE_ZONE, TREE_TONES)
+def road_strip(frac, u):
+    """A street across V (frac 0 to 1, kerb to kerb): a light kerb at each edge, a white edge
+    line inside it and a dashed centre line (6 studs of dash every 12 along U), soft edges so
+    they hold up far off."""
     rows = frac.shape[0]
-    out = np.zeros((rows, u.shape[1], 3))
-    for z, (rim, mid, lit) in enumerate(TREES):
-        sel = (k[0] == z)
-        t = np.broadcast_to(frac, (rows, int(sel.sum())))
-        col = _lerp(np.broadcast_to(_c(rim), t.shape + (3,)), _c(mid), _smooth(0.0, 0.45, t))
-        out[:, sel] = _lerp(col, _c(lit), _smooth(0.45, 1.0, t))
-    return out
+    t = np.broadcast_to(frac, (rows, u.shape[1]))
+    uu = np.broadcast_to(u, t.shape)
+    out = np.broadcast_to(_c(ASPHALT), t.shape + (3,)).copy()
+    kerb = 1 - _smooth(0.04, 0.06, np.minimum(t, 1 - t))
+    edge = 1 - _smooth(0.0, 0.02, np.abs(np.minimum(t, 1 - t) - 0.1))
+    dash = (1 - _smooth(0.0, 0.015, np.abs(t - 0.5))) * ((uu % 12.0) < 6.0)
+    out = _lerp(out, _c(PAINT), np.clip(edge + dash, 0, 1) * 0.85)
+    return _lerp(out, _c(KERB), kerb)
+
+
+def crosswalk_strip(frac, u):
+    """Zebra stripes along U (0.75 studs of paint every 1.5) on asphalt."""
+    t = np.broadcast_to(frac, (frac.shape[0], u.shape[1]))
+    stripe = np.broadcast_to(((u % 1.5) < 0.75).astype(float), t.shape)
+    return _lerp(np.broadcast_to(_c(ASPHALT), t.shape + (3,)), _c(PAINT), stripe * 0.9)
 
 
 PAINTERS = {
@@ -246,8 +259,8 @@ PAINTERS = {
     's_stone': lambda f, u: masonry_strip(STONE, f, u),
     's_terracotta': lambda f, u: masonry_strip(TERRACOTTA, f, u),
     's_paving': lambda f, u: ramp_strip(PAVING, PAVING, f, u),
-    's_park': lambda f, u: ramp_strip(PARK[0], PARK[1], f, u),
-    's_tree': tree_strip,
+    's_road': road_strip,
+    's_crosswalk': crosswalk_strip,
 }
 
 
@@ -267,6 +280,13 @@ def draw(rng, size):
         rows_done += r1 - r0
     assert rows_done == size, 'the strips must fill the sheet'
     return np.clip(img, 0.0, 255.0)
+
+
+def WINDOW_ACROSS(u):
+    """1 across a window of the LIT_CELL grid along U (studs), soft at its sides."""
+    p = (u % LIT_CELL) / LIT_CELL
+    side = (1.0 - LIT_ACROSS) / 2
+    return _smooth(side - 0.06, side + 0.06, p) * (1 - _smooth(1 - side - 0.06, 1 - side + 0.06, p))
 
 
 def lit_strip(rng, floors, frac, u):

@@ -79,10 +79,14 @@ C = {
     'rock': hexc('island_rock'),
     'sand': hexc('sand'),
     'street': '#8E9298',  # neutral asphalt grey (the Stage 4 critics found the mauve-grey muddy)
-    # The city's bending shore beyond the near world is a waterfront park, not sand: a sand strip
-    # 1,000 to 2,600 studs out read as a pale slab on the sea from the high view (Stage 6 critic 3).
-    'shore_park': hexc('lawn_day'),
+    # The waterfront along the city's shore (designer, 2026-09-26: the grey land ran straight into
+    # the sea): a paved promenade on the sea wall, as the near world's, then sand.
+    'promenade': '#%02X%02X%02X' % tuple(int(round(v)) for v in mc.mix(mc.rgb(hexc('sand')), mc.rgb(mc.ALBEDO['floor']), 0.5)),
 }
+# Roblox's own textured materials, so the ground is not a flat baseplate from the roof (designer,
+# 2026-09-26): the streets asphalt, the promenade paving, the beach sand.
+GROUND_MATERIALS = {'Land': 'Asphalt', 'Promenade': 'Pavement', 'Beach': 'Sand'}
+SHORE_STEP = 30.0  # the city's bending shore in steps this deep (at 150 its edge read as a staircase)
 
 
 class Lua:
@@ -232,20 +236,28 @@ def build(g, plan):
     land_x, land_z = cp.land_x(), cp.land_z()
     shore_x, shore_z = W['shore_x'], W['shore_z']
     beach_top = SEA_Y + 1.5
-    slab(g, N, 'Land', (-R_, land_z, land_x, R_), STREET_Y - 4, LAND_TOP, C['street'])
+    prom = W['promenade']
+    prom_top = LAND_TOP + 0.3  # just under the near world's own ground where they overlap
+    slab(g, N, 'Land', (-R_, land_z, land_x, NC), STREET_Y - 4, LAND_TOP, C['street'])
+    # The ocean side beyond the near world's coast: the street, a promenade, the beach.
+    slab(g, N, 'Land', (-R_, NC, land_x - prom, R_), STREET_Y - 4, LAND_TOP, C['street'])
+    slab(g, N, 'Promenade', (land_x - prom, NC, land_x, R_), STREET_Y - 4, prom_top, C['promenade'])
     slab(g, N, 'Land', (-R_, shore_z, CITY_BACK_X, land_z), STREET_Y - 4, LAND_TOP, C['street'])
     slab(g, N, 'Beach', (land_x, shore_z, shore_x, NC), SEA_Y - 1, beach_top, C['sand'], group='near')
     slab(g, N, 'Beach', (land_x, NC, shore_x, R_), SEA_Y - 1, beach_top, C['sand'])
     slab(g, N, 'Beach', (CITY_BACK_X, shore_z, land_x, land_z), SEA_Y - 1, beach_top, C['sand'], group='near')
-    # Behind the waterline the city's shore bends in with distance: land and beach in 150-deep steps.
+    # Behind the waterline the city's shore bends in with distance, in SHORE_STEP steps (one slab
+    # where it runs straight): the street, a promenade on the sea wall, then the beach. The near
+    # world's coast stops at city_back_x, so this waterfront is the gray-box's own all the way.
     z = shore_z
     while z > -R_:
-        z0 = max(z - 150.0, -R_)
+        z0 = max(z - SHORE_STEP, -R_)
+        if city_edge_x(z) == city_edge_x(z0) == W['city_edge_max']:
+            z0 = -R_  # straight from here: one slab
         edge = city_edge_x((z + z0) / 2)
-        slab(g, N, 'Land', (-R_, z0, edge, z), STREET_Y - 4, LAND_TOP, C['street'])
-        near = z0 >= -NC
-        slab(g, N, 'Beach', (edge, z0, edge + W['beach'], z), SEA_Y - 1, beach_top, C['sand'] if near else C['shore_park'],
-             group='near' if near else None)
+        slab(g, N, 'Land', (-R_, z0, edge - prom, z), STREET_Y - 4, LAND_TOP, C['street'])
+        slab(g, N, 'Promenade', (edge - prom, z0, edge, z), STREET_Y - 4, prom_top, C['promenade'])
+        slab(g, N, 'Beach', (edge, z0, edge + W['beach'], z), SEA_Y - 1, beach_top, C['sand'])
         z = z0
     # ---- Backdrop: the city on a street grid (seeded per block), and the islands --------------
     B = 'Backdrop'
@@ -263,7 +275,7 @@ def slab(g, folder, name, rect, y0, y1, colour, group=None):
             a, b = x0 + (x1 - x0) * i / nx, x0 + (x1 - x0) * (i + 1) / nx
             c, d = z0 + (z1 - z0) * j / nz, z0 + (z1 - z0) * (j + 1) / nz
             g.part(folder, name, (b - a, y1 - y0, d - c), ((a + b) / 2, (y0 + y1) / 2, (c + d) / 2), colour,
-                   role='visual' if group else None, group=group)
+                   material=GROUND_MATERIALS.get(name, 'SmoothPlastic'), role='visual' if group else None, group=group)
 
 
 def city(g, folder):

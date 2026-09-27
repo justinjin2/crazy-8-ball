@@ -1277,3 +1277,15 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the outer city undrawn (STUDIO_NOTES), and zoomed far out the camera saw a grey plain; the
   designer chose the cap over re-chunking the city. The near world's park behind the tower is one
   patch of lawn: its separate lawns, paving and dotted trees read as odd terraces from the roof.
+- 2026-09-26: The rooftop map's city, from the designer's notes after playing it:
+  - Round the tower, the lawns are gone: small city blocks (low buildings, two to five floors)
+    with streets, lane lines and crossings running up to the tower's plaza, and street trees.
+  - The mid city's canopy trees and lawn blocks are gone (they read as black rocks at sunset);
+    real streets run between its blocks. Its brown facades are a light tan and greige, with
+    punched windows in the texture (no new triangles; the mid city fell from 66,665 to 53,397).
+  - The city's shore has a paved promenade and a beach; the ground uses Roblox's asphalt,
+    pavement and sand materials instead of flat colour; the shore's edge steps every 30 studs.
+  - At sunset every building, near and mid, is tinted pink-lavender and its windows glow warm
+    yellow (emissive masks on both sheets; the near city's new).
+  - The ground painted in the sky is grey streets and pale blocks, not grey-green, so the lowest
+    graphics levels (which do not draw the 3D ground far out) show a city, not a green field.

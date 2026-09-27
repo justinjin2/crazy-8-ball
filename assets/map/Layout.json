@@ -1985,6 +1985,7 @@
   "land_z": -165.0,
   "max_part": 2000.0,
   "near_coast": 1000.0,
+  "near_ground": 520.0,
   "near_radius": 450.0,
   "promenade": 30.0,
   "sea_y": -304.0,

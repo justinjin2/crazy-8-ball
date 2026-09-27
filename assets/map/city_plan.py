@@ -33,6 +33,7 @@ WORLD = {
     'water_depth': 4.0,  # Terrain water, this deep under the surface
     'land_drop': 0.6,  # the gray-box land's top sits this far under the street, under the near ground
     'near_radius': 450.0,  # city blocks with their centre this close belong to the near world (Stage 4)
+    'near_ground': 520.0,  # the near world draws the ground and streets of grid cells this close
     # Beyond the near world a building is at most height_cap_base tall at the near radius, the cap
     # rising height_cap_slope a stud outward, so the city steps up from low blocks near the tower
     # to towers in the middle distance, as in the art (Stage 5 critic: the near ring was a wall).

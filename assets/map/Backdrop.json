@@ -4,20 +4,20 @@
   "IslandShallows_1": 792,
   "Islands_0": 5644,
   "Islands_1": 5506,
-  "Skyline_0_0": 1066,
-  "Skyline_0_1": 706,
-  "Skyline_m1_0": 12178,
-  "Skyline_m1_1": 5982,
-  "Skyline_m1_m1": 10192,
-  "Skyline_m1_m2": 5959,
-  "Skyline_m2_0": 6641,
-  "Skyline_m2_1": 1488,
-  "Skyline_m2_m1": 7770,
-  "Skyline_m2_m2": 1949
+  "Skyline_0_0": 518,
+  "Skyline_0_1": 596,
+  "Skyline_m1_0": 5824,
+  "Skyline_m1_1": 5546,
+  "Skyline_m1_m1": 5784,
+  "Skyline_m1_m2": 5480,
+  "Skyline_m2_0": 6057,
+  "Skyline_m2_1": 1606,
+  "Skyline_m2_m1": 7260,
+  "Skyline_m2_m2": 1992
  },
  "modules": {
   "islands": 12734,
-  "skyline": 53931
+  "skyline": 40663
  },
- "total_triangles": 66665
+ "total_triangles": 53397
 }

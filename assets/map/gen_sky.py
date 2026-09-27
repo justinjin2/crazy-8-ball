@@ -110,7 +110,7 @@ COLOURS = {
         'far_haze': '#B0507E',
         'light_tint_ambient': (0.8, 0.72, 1.0),
         'light_tint_sun': (1.5, 0.85, 0.5),
-        'windows': '#FFD8A8',  # lit windows on the far city (the art's #D5B59C, glowing)
+        'windows': '#FFD47A',  # lit windows on the far city: a warm yellow (designer, 2026-09-26)
     },
 }
 
@@ -509,16 +509,21 @@ FAR_WINDOWS = {
 }
 FAR_COLOURS = {
     # The Stage 5 skyline's facade family, flat (a far tower is a few pixels wide).
-    'glass': '#8AA4C2', 'white': '#EDE3D7', 'stone': '#D8C8B6', 'terracotta': '#B8917A',
-    'roof': '#E4E0DC', 'land': '#9BA592', 'sand': '#F2DCC0',
+    # (terracotta a light tan now, as the mid city's: the brown read heavy; designer, 2026-09-26)
+    'glass': '#8AA4C2', 'white': '#EDE3D7', 'stone': '#D8C8B6', 'terracotta': '#CDB6A0',
+    # The ground: the streets' asphalt grey, not the grey-green it was (at low graphics levels the
+    # 3D ground far out is not drawn and this painting shows; designer, 2026-09-26), with the 3D
+    # city's block tops paved lighter and a promenade and beach along the shore.
+    'roof': '#E4E0DC', 'land': '#8C8E94', 'sand': '#F2DCC0', 'paving': '#CFC6BE', 'promenade': '#E6D2BE',
     'jungle_dark': '#3F6E44', 'jungle': '#4E8550', 'jungle_lit': '#66985A', 'rock': '#8A7F84',
     'island_far': mc.hexc('island_far'), 'hills': mc.hexc('mountain_far'),
 }
 # At sunset the far world is the art's dusk: blue-violet glass, facades in purple shade, island
 # silhouettes (#564175) and hills in purple, the land dark (Spec section 2's sunset targets).
 FAR_COLOURS_SUNSET = {
-    'glass': '#3E4C93', 'white': '#A286B4', 'stone': '#94789E', 'terracotta': '#A06C84',
-    'roof': '#B494C0', 'land': '#56406E', 'sand': '#C08E98',
+    # the facades pinker in the sunset (designer, 2026-09-26: more pinkish-purple on the buildings)
+    'glass': '#3E4C93', 'white': '#C49CBE', 'stone': '#B28CAC', 'terracotta': '#BC90A6',
+    'roof': '#B494C0', 'land': '#5C5470', 'sand': '#C08E98', 'paving': '#8E7E9E', 'promenade': '#A48CA8',
     'jungle_dark': '#3A2C5A', 'jungle': '#4A3A6A', 'jungle_lit': '#5E4A7A', 'rock': '#44365E',
     'island_far': '#564175', 'hills': '#6A5A9E',
 }
@@ -650,10 +655,25 @@ def far_ground(painted):
         beyond = max(0.0, -z1 - W['far_reach'])
         edges.append((z1, cp.city_edge_x(z1) - beyond * FAR['shore_turn']))
         z = z1
+    prom, beach = W['promenade'], W['beach']
+    paving, promenade, sand = (unit(FAR_COLOURS[k]) for k in ('paving', 'promenade', 'sand'))
     for (za, xa), (zb, xb) in zip(edges, edges[1:]):
         if za == zb:
             continue
         painted.face([(-L, y, za), (-L, y, zb), (xb, y, zb), (xa, y, za)], [colour] * 4)
+        # The waterfront, as the 3D gray-box's: a promenade on the sea wall, then the beach.
+        painted.face([(xa - prom, y + 0.4, za), (xb - prom, y + 0.4, zb), (xb, y + 0.4, zb), (xa, y + 0.4, za)],
+                     [promenade] * 4)
+        painted.face([(xa, y - 2.5, za), (xb, y - 2.5, zb), (xb + beach, y - 2.5, zb), (xa + beach, y - 2.5, za)],
+                     [sand] * 4)
+    # The 3D city's block tops, paved lighter than the streets between them, so the ground far out
+    # reads as a city from above where the 3D buildings are not drawn.
+    half = W['city_block'] / 2
+    for b in cp.city_blocks():
+        if b['near']:
+            continue
+        x0, x1, z0, z1 = b['cx'] - half, b['cx'] + half, b['cz'] - half, b['cz'] + half
+        painted.face([(x0, y + 0.8, z1), (x1, y + 0.8, z1), (x1, y + 0.8, z0), (x0, y + 0.8, z0)], [paving] * 4)
 
 
 def lit_windows(windows, lot, base, top, colour, rng):

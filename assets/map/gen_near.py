@@ -52,7 +52,7 @@ P = {
     'canopy_out': 6.0,  # the lobby canopy's depth...
     'canopy_y': 12.0,  # ...and its height over the street
     'crossing': 5.0,  # zebra crossings at each end of a road segment, this long
-    'ground_radius': 520.0,  # plaza and streets for grid cells with their centre this close
+    'ground_radius': W['near_ground'],  # plaza and streets for grid cells with their centre this close
     'wall_drop': 1.4,  # the sea wall: the beach's top sits this far under the promenade
     'under': 12.0,  # the sand runs on under the water this far past the waterline...
     'under_drop': 1.2,  # ...down this far
@@ -62,7 +62,15 @@ P = {
     'shallows_mid_v': 0.45,  # ...(the strip's V there: a faint turquoise)...
     'shallows_far': 600.0,  # ...fading out to clear this far (the strip's V 0.2 is clear)
     'shallows_lift': 0.5,  # over the water's surface (at 0.15 it flickered with the water from the roof)
-    'plaza_margin': 15.0,  # grid cells this close to the tower are its paved plaza; the rest a park
+    'plaza_margin': 15.0,  # grid cells this close to the tower are its paved plaza; the rest small blocks
+    # Small blocks round the tower (the old park; designer, 2026-09-26: a normal city, streets
+    # up to our building, smaller buildings round it): lots per block, drawn evenly...
+    'small_lots': (1, 2, 2, 4),
+    'small_min': 40.0,  # ...a cell narrower than this after the promenade is paving instead
+    'small_floors': (2, 5),  # ...low buildings of this many floors (FACADE_FLOOR_STUDS each)...
+    'small_tall': 0.2,  # ...this share of them with a short shaft...
+    'small_tall_height': (50.0, 70.0),  # ...this tall over the sidewalk
+    'small_glass': 0.3,
     'corner_radius': 80.0,  # the waterline rounds the tower's back-right corner in this wide a curve...
     'corner_segments': 8,  # ...in this many straight pieces
     # Palms along the beach in clumps, as in the art, not an even row (critic 2): a clump every
@@ -204,8 +212,9 @@ def tower(tower_mesh, ground):
 
 def classify():
     """Every grid cell (i, j) in reach: 'near' (a near city block), 'city' (a gray-box block,
-    left as it is), 'plaza' (open, round the tower's foot) or 'park' (open, further out: lawns
-    and trees). Returns (cells, near_blocks)."""
+    left as it is), 'plaza' (open, round the tower's foot), 'small' (a block of small buildings,
+    further out) or 'pave' (open paving where the promenade leaves too little for a building).
+    Returns (cells, near_blocks)."""
     pitch = W['city_pitch']
     blocks = cp.city_blocks()
     by_cell = {(b['i'], b['j']): b for b in blocks}
@@ -220,8 +229,55 @@ def classify():
             if b is not None:
                 cells[(i, j)] = 'near' if b['near'] else 'city'
             elif land_rect(*cell_rect(i, j)) is not None:
-                cells[(i, j)] = 'plaza' if near_tower(cell_rect(i, j)) else 'park'
+                lr = land_rect(*cell_rect(i, j))
+                if near_tower(cell_rect(i, j)):
+                    cells[(i, j)] = 'plaza'
+                elif min(lr[2] - lr[0], lr[3] - lr[1]) < P['small_min']:
+                    cells[(i, j)] = 'pave'
+                else:
+                    cells[(i, j)] = 'small'
     return cells, [b for b in blocks if b['near']]
+
+
+def small_lots(rect, rng):
+    """The low buildings of a small block (the old park round the tower), as city_plan lots."""
+    x0, z0, x1, z1 = rect
+    w, d = x1 - x0, z1 - z0
+    cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
+    count = rng.choice(P['small_lots'])
+    if count == 1:
+        spots = [(cx, cz, w - 8, d - 8)]
+    elif count == 2 and w >= d:
+        spots = [(cx + (k - 0.5) * w / 2, cz, w / 2 - 6, d - 8) for k in range(2)]
+    elif count == 2:
+        spots = [(cx, cz + (k - 0.5) * d / 2, w - 8, d / 2 - 6) for k in range(2)]
+    else:
+        spots = [(cx + ((k % 2) - 0.5) * w / 2, cz + ((k // 2) - 0.5) * d / 2, w / 2 - 6, d / 2 - 6) for k in range(4)]
+    lots = []
+    for x, z, lw, ld in spots:
+        if lw < 10 or ld < 10:
+            continue
+        height = rng.randint(*P['small_floors']) * mc.FACADE_FLOOR_STUDS + rng.uniform(-3.0, 3.0)
+        lot = {'x': x, 'z': z, 'w': lw, 'd': ld, 'podium': height, 'height': height, 'top': P['kerb'],
+               'glass': rng.random() < P['small_glass'], 'shaft': None, 'crown': 0.0}
+        if rng.random() < P['small_tall']:
+            lot['podium'] = rng.uniform(12.0, 20.0)
+            lot['height'] = rng.uniform(*P['small_tall_height'])
+            lot['shaft'] = (lw * rng.uniform(0.6, 0.8), ld * rng.uniform(0.6, 0.8))
+        lots.append(lot)
+    return lots
+
+
+def street_trees(meshes, rect, rng):
+    """Street trees round a block's edge, on its sidewalk."""
+    x0, z0, x1, z1 = rect
+    inset, every = P['tree_inset'], P['tree_every']
+    ring = mc.outward_rect(x0 + inset, z0 + inset, x1 - inset, z1 - inset)
+    for (ax, az), (bx, bz) in zip(ring, ring[1:] + ring[:1]):
+        seg = math.hypot(bx - ax, bz - az)
+        for k in range(int(seg // every)):
+            t = (k + 0.5) * every / seg
+            tree(meshes['Trees'], meshes['Ground'], ax + (bx - ax) * t, az + (bz - az) * t, STREET + P['kerb'], rng)
 
 
 def near_tower(rect):
@@ -256,22 +312,21 @@ def ground(mesh, cells):
     # Cells: the near blocks' raised sidewalks (a slab with kerb sides), the plaza's paving.
     for (i, j), kind in cells.items():
         r = cell_rect(i, j)
-        if kind == 'near':
-            x0, z0, x1, z1 = r
+        if kind in ('near', 'small'):
+            x0, z0, x1, z1 = r if kind == 'near' else land_rect(*r)
             mesh.prism(mc.outward_rect(x0, z0, x1, z1), road_y - 0.2, kerb_y, 'n_cap', top=False)
             flat_rect(mesh, x0, z0, x1, z1, kerb_y, 'n_sidewalk', 0.5)
-        elif kind in ('plaza', 'park'):
+        elif kind in ('plaza', 'pave'):
             lr = land_rect(*r)
             if lr:
-                flat_rect(mesh, *lr, road_y, 'n_plaza' if kind == 'plaza' else 'n_grass', 0.5)
+                flat_rect(mesh, *lr, road_y, 'n_plaza', 0.5)
 
     def kind(i, j):
         return cells.get((i, j))
 
-    # Streets between cells: a road (with zebra crossings at its ends) where a near block
-    # borders it, lawn between park cells (the park is one patch of grass: separate lawns with
-    # paving between them read as odd terraces from the roof; designer, 2026-09-26), plaza
-    # paving between plaza cells, nothing where only gray-box or no cells border it.
+    # Streets between cells: a road (with zebra crossings at its ends) where a block borders
+    # it, so roads run up to the tower's plaza; plaza paving between open cells; nothing where
+    # only gray-box or no cells border it.
     n = max(max(abs(i), abs(j)) for i, j in cells) + 2
     for k in range(-n, n + 1):
         for m in range(-n, n + 1):
@@ -284,16 +339,13 @@ def ground(mesh, cells):
                     sides = (kind(k, m - 1), kind(k, m))
                     x0, x1 = k * pitch + hs, (k + 1) * pitch - hs
                     z0, z1 = m * pitch - hs, m * pitch + hs
-                if not any(s in ('near', 'plaza', 'park') for s in sides):
+                if not any(s in ('near', 'small', 'plaza', 'pave') for s in sides):
                     continue
                 lr = land_rect(x0, z0, x1, z1)
                 if lr is None:
                     continue
                 x0, z0, x1, z1 = lr
-                if all(s in ('park', None) for s in sides):
-                    flat_rect(mesh, x0, z0, x1, z1, road_y, 'n_grass', 0.5)
-                    continue
-                if all(s in ('plaza', 'park', None) for s in sides):
+                if all(s in ('plaza', 'pave', None) for s in sides):
                     flat_rect(mesh, x0, z0, x1, z1, road_y, 'n_plaza', 0.5)
                     continue
                 c = P['crossing']
@@ -307,19 +359,16 @@ def ground(mesh, cells):
                     flat_band(mesh, (x0 + c, zm), (x1 - c, zm), z1 - z0, road_y, 'n_road')
                     for xa, xb in ((x0, x0 + c), (x1 - c, x1)):
                         flat_band(mesh, ((xa + xb) / 2, z0), ((xa + xb) / 2, z1), xb - xa, road_y, 'n_crosswalk')
-    # Crossings (the squares where streets meet): asphalt, or paving when only plaza is round.
+    # Crossings (the squares where streets meet): asphalt, or paving when only open cells are round.
     for k in range(-n, n + 1):
         for m in range(-n, n + 1):
             round_ = [kind(k - 1, m - 1), kind(k, m - 1), kind(k - 1, m), kind(k, m)]
-            if not any(s in ('near', 'plaza', 'park') for s in round_):
+            if not any(s in ('near', 'small', 'plaza', 'pave') for s in round_):
                 continue
             lr = land_rect(k * pitch - hs, m * pitch - hs, k * pitch + hs, m * pitch + hs)
             if lr is None:
                 continue
-            if all(s in ('park', None) for s in round_):
-                flat_rect(mesh, *lr, road_y, 'n_grass', 0.5)
-                continue
-            plaza = all(s in ('plaza', 'park', None) for s in round_)
+            plaza = all(s in ('plaza', 'pave', None) for s in round_)
             flat_rect(mesh, *lr, road_y, 'n_plaza' if plaza else 'n_road', 0.5 if plaza else 0.3)
 
 
@@ -607,32 +656,34 @@ def build():
         brng = random.Random(cp.block_seed(SEED, b['i'], b['j']))
         for lot in b['lots']:
             building(meshes[chunk], lot, brng)
-        # Street trees round the block's edge.
-        x0, z0, x1, z1 = cell_rect(b['i'], b['j'])
-        inset, every = P['tree_inset'], P['tree_every']
-        for (ax, az), (bx, bz) in zip(mc.outward_rect(x0 + inset, z0 + inset, x1 - inset, z1 - inset),
-                                      mc.outward_rect(x0 + inset, z0 + inset, x1 - inset, z1 - inset)[1:] +
-                                      [(x0 + inset, z0 + inset)]):
-            seg = math.hypot(bx - ax, bz - az)
-            for k in range(int(seg // every)):
-                t = (k + 0.5) * every / seg
-                tree(meshes['Trees'], meshes['Ground'], ax + (bx - ax) * t, az + (bz - az) * t, STREET + P['kerb'], brng)
-    # Trees in the open cells, clear of the tower and the promenade: a loose grid of four in
-    # the plaza's. The park is plain lawn (its jittered grid of nine read as dots on terraces;
-    # designer, 2026-09-26): its trees are still drawn from the random source, into a mesh that
-    # is thrown away, so the beach's palms (drawn after) stay where they were.
+        street_trees(meshes, cell_rect(b['i'], b['j']), brng)
+    # The small blocks round the tower, each from its own random source.
+    for (i, j), kind in sorted(cells.items()):
+        if kind != 'small':
+            continue
+        srng = random.Random(cp.block_seed(SEED + 29, i, j))
+        rect = land_rect(*cell_rect(i, j))
+        chunk = 'Buildings_Front' if (rect[1] + rect[3]) / 2 > 220 else 'Buildings_Left'
+        for lot in small_lots(rect, srng):
+            building(meshes[chunk], lot, srng)
+        street_trees(meshes, rect, srng)
+    # Trees in the plaza's cells, clear of the tower and the promenade: a loose grid of four.
+    # The cells round it were a park with a jittered grid of nine trees each; those trees are
+    # still drawn from the random source, into a mesh that is thrown away, so the beach's palms
+    # (drawn after) stay where they were.
     discard = {'Trees': mc.Mesh('discard'), 'Ground': mc.Mesh('discard')}
     for (i, j), kind in sorted(cells.items()):
-        if kind not in ('plaza', 'park'):
+        if kind not in ('plaza', 'small', 'pave'):
             continue
-        into = meshes if kind == 'plaza' else discard
+        was_park = kind != 'plaza'
+        into = discard if was_park else meshes
         lr = land_rect(*cell_rect(i, j))
         if lr is None:
             continue
-        grid = (0.25, 0.75) if kind == 'plaza' else (0.18, 0.5, 0.82)
+        grid = (0.18, 0.5, 0.82) if was_park else (0.25, 0.75)
         for fx in grid:
             for fz in grid:
-                jx, jz = (rng.uniform(-0.06, 0.06), rng.uniform(-0.06, 0.06)) if kind == 'park' else (0.0, 0.0)
+                jx, jz = (rng.uniform(-0.06, 0.06), rng.uniform(-0.06, 0.06)) if was_park else (0.0, 0.0)
                 x = lr[0] + (lr[2] - lr[0]) * (fx + jx)
                 z = lr[1] + (lr[3] - lr[1]) * (fz + jz)
                 if tx0 < x < tx1 and tz0 < z < tz1:

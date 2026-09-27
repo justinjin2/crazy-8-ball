@@ -13,8 +13,8 @@ caps are the brief's (`docs/prompts/ROOFTOP_MAP_PROMPT.md` section 6). The whole
 | Balls, cues, effects (existing) | 20,000 | | | existing |
 | Rooftop architecture: floor, parapet, railing, steps, pergola, tower top | 60,000 | 3,754 | 3,754 | 2 |
 | Props | 140,000 | 60,959 | 60,959 | 3 |
-| Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 7,729 | 7,729 | 4 |
-| Mid backdrop: skyline and islands | 110,000 | 66,665 | 66,665 | 5, 6 |
+| Near surroundings: tower walls, neighbour roofs, streets, promenade, beach, boats | 50,000 | 11,525 | 11,599 (with the boats) | 4 |
+| Mid backdrop: skyline and islands | 110,000 | 53,397 | 53,397 | 5, 6 |
 | Far horizon: painted into the day skybox, no geometry | 2,000 | 0 | 0 | 6 |
 | **Everything we ship** | **512,000** | | | |
 | Headroom for avatars | 488,000 or more | | | |
@@ -44,7 +44,7 @@ group's 140,000. Studio's EditableMesh count matches Blender's.
 
 | Item | Limit | Used |
 |---|---:|---:|
-| Unique map textures (1024 exports) | 20 | 13 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows, and the emissive masks for the skyline's windows and the table glow) |
+| Unique map textures (1024 exports) | 20 | 14 (arch, floor colour, floor normal, foliage, overlays, props, plants, near, skyline, islands, shallows, and the emissive masks for the skyline's and the near city's windows and the table glow) |
 | Skyboxes | 2 (six faces each) | 3 (day, dusk, sunset; gen_sky.py): the brief's allowed in-between sky, because one swap popped (DECISIONS) |
 | Far-card images | 4 | 0 (the far horizon is painted into the skybox faces instead) |
 | MeshParts, rooftop and props | 400 | 171 (architecture 10, props 161) |

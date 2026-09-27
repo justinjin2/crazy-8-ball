@@ -520,6 +520,10 @@ def near(rng):
         return np.array(glass_lo)[None, None, :] + (np.array(glass_hi) - np.array(glass_lo))[None, None, :] * t[..., None] * 0.55
 
     floor_h = mc.FACADE_FLOOR_STUDS
+    # The emissive mask (near_emissive.png, Stage 7): the windows white, so the day cycle lights
+    # the near city's windows warm at sunset (designer, 2026-09-26). The strips are one floor, so
+    # every window of a building glows alike: a lit city, not a scatter.
+    emissive = np.zeros((n, n))
 
     def facade(name, wall_hex, windows):
         r0, r1, v, u = strip(name)
@@ -527,6 +531,7 @@ def near(rng):
         uu = np.broadcast_to(u, (r1 - r0, n))
         col = base(wall_hex, r0, r1)
         mask = windows(uu, hgt)
+        emissive[r0:r1] = np.where(mask, 0.8, 0.0)
         col = np.where(mask[..., None], glass(hgt, 2.0, 9.0), col)
         col = ao(col, v, 0.1, 0.25)  # the slab line at the floor
         img[r0:r1] = col
@@ -540,6 +545,7 @@ def near(rng):
     frame = colour_array(hexmix(mc.hexc('city_facade_day'), '#FFFFFF', 0.3))
     col = np.where((mull | spandrel)[..., None], frame[None, None, :] * np.ones_like(col), col)
     img[r0:r1] = ao(col, v, 0.1, 0.2)
+    emissive[r0:r1] = np.where(mull | spandrel, 0.0, 0.45)  # a curtain wall glows softer
     # Stone, terracotta and white: punched or ribbon windows in the wall.
     facade('n_stone', mc.hexc('city_facade_day'),
            lambda uu, h: ((uu % 5.0) > 1.0) & ((uu % 5.0) < 4.0) & (h > 2.5) & (h < 8.3))
@@ -555,6 +561,7 @@ def near(rng):
     inside = mc.mix(mc.rgb(mc.hexc('lantern_glass')), mc.rgb(mc.hexc('city_glass_day')), 0.55)
     pane = ((uu % 5.0) > 0.9) & (hgt > 0.5) & (hgt < 8.4)
     col = np.where(pane[..., None], np.array(inside)[None, None, :] * np.ones_like(col), col)
+    emissive[r0:r1] = np.where(pane, 1.0, 0.0)  # the lobbies lit brightest
     col = toward_shadow(col, np.broadcast_to(smoothstep(8.0, 9.2, hgt) * 0.35, col.shape[:2]))
     img[r0:r1] = ao(col, v, 0.08, 0.3)
     # Roof: light grey membrane with faint seams every 4 studs; cap: the facade's stone, lit.
@@ -642,6 +649,7 @@ def near(rng):
     r0, r1, v, u = strip('n_wood')
     img[r0:r1] = base(mc.hexc('palm_trunk'), r0, r1, 0.03, 0.02)
     save_rgba(img, alpha, 'near_color.png', bleed=mc.rgb(mc.hexc('water_near')))
+    save_rgb(np.repeat(emissive[..., None] * 255.0, 3, axis=2), 'near_emissive.png')
     # The shallows' own copy: the same layout (so the meshes keep their UVs), every other strip
     # clear. Seen far off at a low angle, Roblox samples a blurred mip level that mixed the
     # opaque strips round the shallows into it, giving the rings a hard edge (Stage 5).
