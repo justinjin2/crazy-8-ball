@@ -50,6 +50,32 @@ return {
 		H.expect(nice(NiceShot, geometry, 3, { hit(0, 5), hit(3, 0), drop(3) }), "carom")
 	end,
 
+	["kind names each nice shot and isNice agrees"] = function()
+		local _, NiceShot, geometry = setup()
+		local x, y = midCushion(geometry)
+		local cases: { { any } } = {
+			{ "plain", nil, { hit(0, 3), drop(3) } },
+			{ "bank", "Bank", { hit(0, 3), rail(3, x, y), drop(3) } },
+			{ "combo", "Combo", { hit(0, 5), hit(5, 3), drop(3) } },
+			{ "kick", "Kick", { rail(0, x, y), hit(0, 3), drop(3) } },
+			{ "carom", "Carom", { hit(0, 5), hit(3, 0), drop(3) } },
+			-- The cue ball met a cushion and a ball on its way: the first of them names it.
+			{ "kick then carom", "Kick", { rail(0, x, y), hit(0, 5), hit(0, 3), drop(3) } },
+			{ "carom then kick", "Carom", { hit(0, 5), rail(0, x, y), hit(0, 3), drop(3) } },
+			-- Another object ball touching it first is a combo whatever the cue ball did.
+			{ "kicked combo", "Combo", { rail(0, x, y), hit(0, 5), hit(5, 3), drop(3) } },
+			-- A combo or kick that then banks is still named by what touched it first.
+			{ "combo off a cushion", "Combo", { hit(0, 5), hit(5, 3), rail(3, x, y), drop(3) } },
+			{ "cue ball", nil, { rail(0, x, y), drop(0) } },
+		}
+		for _, c in cases do
+			local ball = c[3][#c[3]].ball
+			local kind = NiceShot.kind(c[3], ball, #c[3], geometry.pockets)
+			H.expect(kind == c[2], ("%s: %s"):format(c[1], tostring(kind)))
+			H.expect(nice(NiceShot, geometry, ball, c[3]) == (c[2] ~= nil), c[1] .. ": isNice")
+		end
+	end,
+
 	["a rattle in the jaws is not a bank"] = function()
 		local Config, NiceShot, geometry = setup()
 		local p = geometry.pockets[1]

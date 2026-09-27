@@ -30,17 +30,24 @@ local function awayFromPockets(ev: Event, pockets: { Pocket }): boolean
 	return true
 end
 
---- Whether ball `ballId`, dropping at `events[dropIndex]`, was a nice shot.
-function NiceShot.isNice(
+-- Which kind of nice shot a pot was. Pay and effects key off these names (Config.Economy).
+export type Kind = "Bank" | "Kick" | "Combo" | "Carom"
+
+--- Which nice shot ball `ballId`, dropping at `events[dropIndex]`, was: "Combo" (another
+--- object ball knocked it in, touching it first), "Kick" (the cue ball met a cushion before
+--- it), "Carom" (the cue ball met another ball before it), "Bank" (it met a cushion itself
+--- after it was touched), or nil for a plain pot and for the cue ball. When the cue ball met
+--- both a cushion and another ball on its way, the first of the two names it.
+function NiceShot.kind(
 	events: { Event },
 	ballId: number,
 	dropIndex: number,
 	pockets: { Pocket }
-): boolean
+): Kind?
 	if ballId == 0 then
-		return false
+		return nil
 	end
-	local cueDetour = false -- the cue ball met a cushion or another ball before this one
+	local cueDetour: Kind? = nil -- the cue ball met a cushion (Kick) or another ball (Carom)
 	local touched = false
 	for index = 1, math.min(dropIndex, #events) do
 		local ev = events[index]
@@ -52,21 +59,33 @@ function NiceShot.isNice(
 				else nil
 			if partner ~= nil and not touched then
 				touched = true
-				if partner ~= 0 or cueDetour then
-					return true -- a combo, or the cue ball came round to it: a kick or carom
+				if partner ~= 0 then
+					return "Combo"
+				elseif cueDetour ~= nil then
+					return cueDetour -- the cue ball came round to it
 				end
 			elseif partner == nil and not touched and (ev.ball == 0 or other == 0) then
-				cueDetour = true -- the cue ball hit another ball first
+				cueDetour = cueDetour or "Carom" -- the cue ball hit another ball first
 			end
 		elseif ev.type == "railHit" and awayFromPockets(ev, pockets) then
 			if ev.ball == ballId and touched then
-				return true -- a bank
+				return "Bank"
 			elseif ev.ball == 0 and not touched then
-				cueDetour = true
+				cueDetour = cueDetour or "Kick"
 			end
 		end
 	end
-	return false
+	return nil
+end
+
+--- Whether ball `ballId`, dropping at `events[dropIndex]`, was a nice shot (any kind).
+function NiceShot.isNice(
+	events: { Event },
+	ballId: number,
+	dropIndex: number,
+	pockets: { Pocket }
+): boolean
+	return NiceShot.kind(events, ballId, dropIndex, pockets) ~= nil
 end
 
 return NiceShot
