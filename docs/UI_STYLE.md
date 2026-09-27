@@ -192,7 +192,8 @@ order; that is Open.
   small icon and "Zoom In/Out" with nothing behind them, lightly greyed so it reads as a
   control guide rather than a button, but clear (2026-09-27): a deliberate exception to the
   kit's cards. A mouse whose big ridged wheel is circled in red, with arrows up and down, on a
-  computer; a pinching hand on touch. Hidden on a gamepad for now.
+  computer; a pinching hand on touch. Hidden on a gamepad for now. Once the player zooms it
+  stays hidden for the session (2026-09-27).
 - **An icon-only button** (Leave's red door) shows its icon at 95% of the button (designer,
   2026-09-27).
 - **The host menu:** a small red door beside a wide Start; the money each difficulty pays

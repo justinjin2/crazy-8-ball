@@ -503,6 +503,7 @@ input:onShoot(fire)
 input:onZoom(function(factor)
 	if canShoot() and not targets:isDragging() then
 		Camera.zoomBy(factor)
+		zoomHint:dismiss() -- they know how to zoom now
 	end
 end)
 input:onPlaceMove(function(sx, sy, dt)

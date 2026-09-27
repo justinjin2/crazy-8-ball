@@ -1399,3 +1399,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   count; never on the break (designer).
 - 2026-09-27: Nothing darkens the screen: the coin, result and leave/surrender cards and the
   spin picker are just popups (ModalDim 0.45 -> 0, spin OverlayTransparency 0.9 -> 1) (designer).
+- 2026-09-27: The zoom guide hides after the player's first zoom and stays hidden for the session; it returns on the next visit (designer).

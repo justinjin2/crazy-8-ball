@@ -1,6 +1,17 @@
 # Status
 
-**2026-09-27 (latest): no more darkened screens.**
+**2026-09-27 (latest): the zoom guide goes away once you zoom.**
+
+- **Built:** the first zoom (mouse wheel or pinch, on your turn) hides the zoom guide for the
+  rest of the session; it shows again when the player rejoins.
+- **Verified:** lint clean, 363 tests pass; Studio: the guide shows on your turn. The phone
+  emulator takes neither the tool's mouse wheel nor a pinch, so the hide was not triggered there.
+- **Needs a check by hand:** scroll (PC) or pinch (phone) on your turn: the guide goes and does
+  not come back next turn or next match; rejoin and it is back.
+
+---
+
+**2026-09-27: no more darkened screens.**
 
 - **Built:** the coin flip, win/lose, leave/surrender cards and the spin picker pop up over the
   game without darkening it (`Multiplayer.Style.ModalDim` 0, `UI.Spin.OverlayTransparency` 1);

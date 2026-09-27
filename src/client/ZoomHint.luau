@@ -7,6 +7,9 @@
 -- screen shows whichever the player is using. Hidden on a gamepad for now (its guide comes
 -- later).
 --
+-- Gone for the rest of the session once the player zooms (designer, 2026-09-27): that shows
+-- they know how. It comes back only when they rejoin.
+--
 -- Not a kit card on purpose (designer): transparent, just the icon and outlined words, both
 -- greyed out and faint, so it reads as a control guide rather than a button to press.
 
@@ -31,6 +34,7 @@ export type ZoomHint = typeof(setmetatable(
 		words: TextLabel,
 		mode: string, -- "mouse", "touch" or "gamepad"
 		wanted: boolean,
+		dismissed: boolean, -- the player has zoomed this session
 	},
 	ZoomHint
 ))
@@ -81,6 +85,7 @@ function ZoomHint.new(screen: ScreenGui): ZoomHint
 		words = words,
 		mode = "",
 		wanted = false,
+		dismissed = false,
 	}, ZoomHint)
 	-- Both pictures up front, so switching input never shows an empty card.
 	task.spawn(function()
@@ -141,7 +146,13 @@ end
 --- Shown while it is the player's turn to aim (Main); never on a gamepad for now.
 function ZoomHint.setVisible(self: ZoomHint, visible: boolean)
 	self.wanted = visible
-	self.root.Visible = visible and self.mode ~= "gamepad"
+	self.root.Visible = visible and self.mode ~= "gamepad" and not self.dismissed
+end
+
+--- The player zoomed (Main): they know how, so it stays hidden for the rest of the session.
+function ZoomHint.dismiss(self: ZoomHint)
+	self.dismissed = true
+	self.root.Visible = false
 end
 
 return ZoomHint

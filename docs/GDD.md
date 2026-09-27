@@ -79,7 +79,8 @@ Every feature is checked against these. If it serves none, it waits.
   cue-ball icon for spin.
 - A small zoom guide sits over the spin button during your turn: a mouse-wheel icon (computer)
   or a pinching hand (touch) and "Zoom In/Out", greyed out like a control guide (designer,
-  2026-09-26; the tutorial explains more). Gamepad guidance comes later.
+  2026-09-26; the tutorial explains more). Gamepad guidance comes later. The first zoom hides
+  it for the rest of the session; it comes back when the player rejoins (designer, 2026-09-27).
 - Spin UI: a larger cue-ball button sits at the left middle. Drag anywhere across the white
   selector to choose spin; its full disc represents the available physics range. Keep only
   Center and Done, with no background dimming (nothing darkens the screen; designer,
