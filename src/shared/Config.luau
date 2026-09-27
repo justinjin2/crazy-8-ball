@@ -2483,7 +2483,7 @@ Config.Multiplayer = {
 	-- rest, over a second (designer, 2026-09-27: quick, a few words at a time). (tune)
 	CoinSeconds = 3,
 	IntroSeconds = 2, -- new shooter introduction, early shots permitted
-	PlacementSeconds = 15, -- cue-ball placement window (ball in hand), then ShotSeconds to aim
+	PlacementSeconds = 10, -- cue-ball placement window (ball in hand), then ShotSeconds to aim (designer, 2026-09-27: was 15)
 	-- The break: moving the cue ball along the line and shooting share this one clock, and
 	-- running out is a timeout foul like the shot clock's (designer, 2026-09-27). (tune)
 	BreakSeconds = 20,

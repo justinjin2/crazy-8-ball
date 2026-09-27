@@ -1,6 +1,14 @@
 # Status
 
-**2026-09-27 (latest): queue GUI polish.**
+**2026-09-27 (latest): ball in hand after a foul gets 10 s to move the ball (was 15).**
+
+- **Built:** `Multiplayer.PlacementSeconds` 15 -> 10; the shot clock follows as before. The
+  break keeps its own 20 s.
+- **Verified:** lint clean, 366 tests pass (the placement-window tests read the setting).
+
+---
+
+**2026-09-27: queue GUI polish.**
 
 - **Built:** the sign's player count and difficulty are centred 16 px apart (their text kept
   at its old drawn size, 22 px: `Sign.InfoTextPx`). The host card sits in the very top right

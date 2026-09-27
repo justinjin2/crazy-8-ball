@@ -1429,3 +1429,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   top bar at 85% (was 72%, and 120 px in from the edge when no jump button showed), shrinking
   only to clear a showing jump button; its folding parts no longer clip the buttons' sides;
   "Waiting for opponent" gets three dots that light up one by one.
+- 2026-09-27: Ball in hand after a foul: 10 s to move the cue ball (was 15), then the shot
+  clock (designer).
