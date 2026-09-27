@@ -12,11 +12,16 @@ local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local DevCommands = require(script.Parent:WaitForChild("DevCommands"))
+local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 
 -- Remotes first: TableService and every client look them up by name.
 Net.build()
+
+-- Saves next, so each player's save starts loading the moment they arrive (and its
+-- PlayerRemoving is connected before TableService's).
+PlayerData.start()
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
 -- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they

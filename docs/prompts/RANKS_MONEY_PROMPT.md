@@ -468,14 +468,14 @@ layout, and nothing more.
 Tick each box when its step is done and verified and committed (`- [x]`). A step that cannot
 be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 
-- [ ] 0. Setup: branch `ranks-money` created; this brief, `tools/overnight/` and the four new
+- [x] 0. Setup: branch `ranks-money` created; this brief, `tools/overnight/` and the four new
   references (`assets/ui/reference/02` to `05`, left uncommitted on purpose) committed on it
   as the first commit; docs and references read; Studio instance and Rojo sync checked;
   DataStore API probe done; `tools/lint.sh` and `tools/test.sh` green.
-- [ ] 1a. ProfileStore vendored with license and README; lint excludes it; lint green.
-- [ ] 1b. SaveSchema (template, migrations, validate) with Lune tests.
-- [ ] 1c. PlayerData service: load, kick on failure, named mutations, attributes, leaderstats.
-- [ ] 1d. Save layer tested in Studio (section 4, point 4).
+- [x] 1a. ProfileStore vendored with license and README; lint excludes it; lint green.
+- [x] 1b. SaveSchema (template, migrations, validate) with Lune tests.
+- [x] 1c. PlayerData service: load, kick on failure, named mutations, attributes, leaderstats.
+- [x] 1d. Save layer tested in Studio (section 4, point 4).
 - [ ] 1e. Save layer audited by a fresh subagent; findings fixed.
 - [ ] 2a. Rank tables and XP rules (pure, Config, Lune tests incl. floors and rewards).
 - [ ] 2b. Ranking service wired to match end (once per match, forfeits, one-minute mark).
@@ -501,3 +501,34 @@ be done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines he
 ## Notes
 
 (Your plans, findings and parked problems go here as you work, newest last.)
+
+- **Setup (04:40).** Studio instance `aaf8c968...` (Crazy 8 Ball), Rojo on 34872 in sync (Config
+  byte length matches). DataStore probe in Edit: "Studio access to APIs is not allowed". The
+  designer then said they turned API access on; Edit still said no at 04:50, so re-probe from
+  the Server datamodel in Play.
+- **Plan, phases 1 to 3.** Config.Save / Config.Ranks / Config.Economy and Strings.Save /
+  Strings.Ranks written first by the main agent so every piece reads the same numbers. Four
+  subagents in parallel: SaveSchema (pure + tests), Ranks (pure + tests), Money + Format +
+  NiceShot.kind (pure + tests), PlayerData (server wrapper, Studio QA BindableFunction
+  `ServerStorage.PlayerDataQA`, because execute_luau gets its own module copies). Then the main
+  agent writes Ranking + Economy + DevCommands and the hooks in TableService/ShotService:
+  settle a finished match once per `tableId:epoch` when the engine enters Result (checked in
+  `TableService.broadcast`, which every state change goes through), a departure hook for a
+  leaver (applied before PlayerData's deferred EndSession), the engine records `brokeAt` at the
+  first accepted shot for the one-minute mark. Money per shot is computed from `t.pending`
+  right after `acceptShot` (pre-shot groups are still in `t.groups`).
+- **Plan, phases 4 to 10.** Rank images uploaded by the main agent in batches of four while the
+  agents code. Client modules as separate files (RankBadge, RankHud, MoneyHud, Nameplates,
+  CashFlyer, ResultScreen, NewRankPopup, Roadmap) built on HudParts/UIAnim, wired from Main.
+- **Save layer in Studio (05:30), API access on, store PlayerData_Studio_v1, state Access.** New
+  player got the template, attributes and leaderstats (Rank "Unranked", Money 0). addMoney,
+  applyRank (Gold III), recordMatch, recordShot stick and replicate; every bad input refused
+  (0, -5, 1.5, NaN, inf, "100", 2e9, empty reason, PeakDivision 99). 1,000 grants in 6 ms with
+  the GetAsync/UpdateAsync/SetIncrement budgets unchanged. endSession then load: money kept,
+  SessionLoadCount +1. Stop and start Play: money 4321 kept. PlayerDataFailNextLoad: kicked
+  with "Couldn't load your save. Please rejoin.". Caveat: a raw second ProfileStore copy on the
+  SAME server took the key at once (same JobId) and the first module's later writes were
+  discarded at shutdown (money 1250 instead of 4321, then fine on a clean re-run). That is
+  session locking doing its job, but a true two-server takeover cannot be run in Studio: listed
+  for the designer.
+
