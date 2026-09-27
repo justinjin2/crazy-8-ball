@@ -82,7 +82,8 @@ Every feature is checked against these. If it serves none, it waits.
   2026-09-26; the tutorial explains more). Gamepad guidance comes later.
 - Spin UI: a larger cue-ball button sits at the left middle. Drag anywhere across the white
   selector to choose spin; its full disc represents the available physics range. Keep only
-  Center and Done, with light background dimming and no title, hint, box or arrow buttons.
+  Center and Done, with no background dimming (nothing darkens the screen; designer,
+  2026-09-27) and no title, hint, box or arrow buttons.
   Use a broad red marker on the selector and a smaller one on the left toggle. Clicking
   outside closes it and retains the selection. Gamepad stick controls remain.
 - **Cue angle (jump shots, decided 2026-09-24):** a vertical slider beside the white ball in

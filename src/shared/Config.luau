@@ -2246,7 +2246,9 @@ Config.UI = {
 		DotSizePx = 30, -- the strike point on the big ball
 		IconDotSizePx = 14, -- the strike point on the left toggle
 		CornerRadiusPx = 12,
-		OverlayTransparency = 0.9, -- only 10% dimming while spin is selected
+		-- No dimming behind the spin picker: nothing darkens the screen, it is just a popup
+		-- (designer, 2026-09-27). The see-through layer still catches taps outside it.
+		OverlayTransparency = 1,
 		BallColor = { 244, 244, 236 },
 		DotColor = { 220, 75, 70 },
 		-- Cue-angle slider beside the strike ball (jump shots, 2026-09-24). Tap or drag the
@@ -2702,7 +2704,10 @@ Config.Multiplayer = {
 		CoinSize = 78, -- the coin
 		DialogIconSize = 52, -- the door or flag over the leave question
 		ModalWidth = 340, -- responsive dialog maximum width
-		ModalDim = 0.45, -- how much the screen behind a dialog darkens
+		-- How much the screen behind a dialog and the coin and result cards darkens: none,
+		-- they are just popups (designer, 2026-09-27; it was 0.45). The see-through backdrop
+		-- still blocks taps behind a dialog.
+		ModalDim = 0,
 		TargetStroke = 4, -- the coloured ring round a pocket target or the ball in hand
 		TargetInkPx = 2, -- the ink outline just outside it
 		PlacementIconPx = 26, -- the glove on the ball-in-hand ring

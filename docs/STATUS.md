@@ -1,6 +1,16 @@
 # Status
 
-**2026-09-27 (latest): NICE SHOT! for banks, combos, kicks and caroms.**
+**2026-09-27 (latest): no more darkened screens.**
+
+- **Built:** the coin flip, win/lose, leave/surrender cards and the spin picker pop up over the
+  game without darkening it (`Multiplayer.Style.ModalDim` 0, `UI.Spin.OverlayTransparency` 1);
+  a dialog's see-through backdrop still blocks taps behind it.
+- **Verified:** lint clean, 363 tests pass; Studio phone emulator: the coin card and YOU WIN!
+  over the undimmed game. Console clean.
+
+---
+
+**2026-09-27: NICE SHOT! for banks, combos, kicks and caroms.**
 
 - **Built:** a good pot that was not plain gets a gold tilted "NICE SHOT!" just over the pocket
   (it pops, floats up and fades in 1.5 s, over turning gold rays) and gold sparkles, on top of

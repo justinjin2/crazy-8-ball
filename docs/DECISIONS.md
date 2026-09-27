@@ -1397,3 +1397,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27: NICE SHOT! over the pocket for a good pot that was not plain: a bank, combo,
   kick or carom (Rules/NiceShot); rail hits within 7 in of a pocket are its jaws and do not
   count; never on the break (designer).
+- 2026-09-27: Nothing darkens the screen: the coin, result and leave/surrender cards and the
+  spin picker are just popups (ModalDim 0.45 -> 0, spin OverlayTransparency 0.9 -> 1) (designer).

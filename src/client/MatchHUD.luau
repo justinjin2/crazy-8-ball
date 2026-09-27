@@ -414,7 +414,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.invalidLine.text.Text = Copy.InvalidTarget
 	self.invalidLine.text.TextWrapped = false
 
-	-- The leave / surrender question, over a dimmed screen.
+	-- The leave / surrender question; its see-through backdrop blocks taps behind it.
 	self.modal = Instance.new("TextButton")
 	self.modal.Name = "ConfirmationBackdrop"
 	self.modal.Size = UDim2.fromScale(1, 1)
@@ -455,7 +455,7 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		end
 	end, "Blue")
 
-	-- The coin flip and the result: a card over a dimmed screen, faded as one.
+	-- The coin flip and the result: a card popping up over the game (no dimming), faded as one.
 	self.overlay = Instance.new("CanvasGroup")
 	self.overlay.Name = "MatchPresentation"
 	self.overlay.Size = UDim2.fromScale(1, 1)
