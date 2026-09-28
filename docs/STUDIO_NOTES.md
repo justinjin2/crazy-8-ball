@@ -298,6 +298,33 @@ digital triggers, and B leaves the table. The bindings are in `Config.Input.Game
 
 Studio's device emulator has a gamepad mode as a fallback, but a real pad is the honest test.
 
+## The global queue in Studio (2026-09-28)
+
+- **TeleportService does not work in Studio** (no ReserveServer, no TeleportAsync). The code
+  knows: a match found in Studio logs "GQ Studio cannot teleport" and the player gets "Teleports
+  only work in the published game." The real teleport can only be checked in the published
+  game with two accounts (MULTIPLAYER_TESTING.md, Global queue).
+- **MemoryStore works in Studio** with API access, and Roblox keeps Studio's memory stores
+  apart from the live game's, so testing never touches the real queue.
+- `ServerStorage.GlobalQueueQA` (Server datamodel): `Invoke("inject", mode, {userIds}, rating)`
+  posts a search from a pretend other server and keeps it alive; `"status"`, `"read"`,
+  `"record"`, `"clear"`. Join Global Queue with the real player, then inject: they match in
+  about a second.
+- **An arena in Studio**: in Edit mode set `game.ServerStorage:SetAttribute("StudioArena", 1)`
+  (the team size), then Play: the rooftop goes, the placeholder room and one table come, the
+  player is seated and a pretend opponent (-1) fills the other side 1.5 s later.
+  `ServerStorage.ArenaQA`: `Invoke("vote", -1, "Rematch")` votes for the pretend player;
+  PoolMatchQA works on table 1 (its "action" for the pretend player's Surrender). **Clear the
+  attribute after** (`SetAttribute("StudioArena", nil)`): Team Create would save it.
+- The rematch window is 20 s and MCP round trips take seconds: put the whole setup (fixture,
+  concede) in one `execute_luau` and click right after.
+- `user_keyboard_input` sends ButtonA/ButtonY as keyboard input: `GetLastInputType` reads
+  Keyboard and a selected button is NOT pressed by it (the host card's Play solo is not
+  either), and ButtonB is refused. A gamepad's A on a selected button needs a real pad.
+- **A new Rojo mapping** (a new service folder in `default.project.json`, like
+  ReplicatedFirst for `src/first`) is only picked up after `rojo serve` restarts and the
+  plugin reconnects.
+
 ## Lune tests
 
 - `tests/harness.luau` builds a fake `script.Parent` tree from `src/shared` and compiles each

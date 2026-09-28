@@ -70,8 +70,19 @@ function QueueCore.post(store: Store, ticket: Ticket.Value): boolean
 	return ok
 end
 
---- Try to be (or stay) the leader. True while this server holds the lease.
+--- Try to be (or stay) the leader. True while this server holds the lease. A server that
+--- is not the leader only reads the lease and writes it once it has lapsed, so a hundred
+--- servers do not all write one key every few seconds.
 function QueueCore.lease(store: Store, server: string, now: number): boolean
+	local read, current = store.get(G.Maps.Lease, G.LeaseKey)
+	if
+		read
+		and type(current) == "table"
+		and current.server ~= server
+		and (current["until"] or 0) > now
+	then
+		return false
+	end
 	local ok, value = store.update(G.Maps.Lease, G.LeaseKey, function(current: any): (any, any)
 		if
 			type(current) == "table"

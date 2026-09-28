@@ -262,3 +262,24 @@ order; that is Open.
     (designer, 2026-09-27).
   - *The hover sound* (designer, 2026-09-27): short and soft, Roblox's own "RBLX UI Hover 01"
     (0.2 s), on a badge or a roadmap tier.
+
+## 9. The global queue and rematch (2026-09-28)
+
+- **The host card's 4th choice**: a blue **Join Global Queue** with the lightning icon, under
+  Request (a globe icon may replace it later). Greyed with a small ink line "Needs 2 on the
+  pad" on 2v2 and 3v3 until a whole side stands there. While it searches the card folds like
+  a request: "Searching worldwide..." with the lit dots, the button greyed with the time
+  ("Searching 0:07"), and the red Cancel. "Match found!" last.
+- **The teleport screen**: a dark full screen (no card: it stands in for Roblox's loading
+  screen) with MATCH FOUND in the arena's green and one breathing line ("Joining the
+  arena...", or "Back to the lobby..."). It stays through the load and fades out once the
+  arena's table is there.
+- **The status card**: one small white card at the top middle for one line: an arena's
+  "Waiting for players 1/2", a teammate's search time, or for 4 s why a teleport did not happen.
+- **The rematch row**: under both columns of the result screen, in Continue's place; a small
+  status line on the left ("Opponent left", "Searching 0:07") and the seconds left in gold on
+  the right; the buttons share the width: green Rematch ("Waiting 1/2" once pressed), blue
+  Play another (or red Cancel while it searches), red Lobby; on a lobby table green Rematch
+  and red Leave. The series score, your side first, in gold where VS stood. During a
+  rematch a small gold "Series 1-0" pill hangs under the clock (where the blue move pill goes
+  with ball in hand, which wins that spot).

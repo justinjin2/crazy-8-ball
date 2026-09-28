@@ -290,3 +290,66 @@ reachable by clients): `PlayerDataQA` (read, mutate, end and reload a session, f
 load with the `PlayerDataFailNextLoad` attribute), `DevCommandsQA` (run a chat command as a
 player, since scripts cannot type into Roblox's chat), and `PoolMatchQA`'s `brokeAgo` (set the
 match clock for the one-minute mark).
+
+## Global queue and arenas (2026-09-28)
+
+The designer's global queue: a host's **Join Global Queue** looks in every server for a side
+of similar rank; both sides teleport into an **arena**, a reserved server of this same place
+with one table. After each game (lobby tables too) the result screen has a Rematch row and
+the series score.
+
+**Modules.**
+- Pure, Lune-tested (`src/shared/Matchmaking/`): `Matchmaker` (the rank window by wait,
+  `pair` oldest-first to the closest rank, the rating from rank XP), `Ticket` (a search as
+  stored, and the UpdateAsync changes: claim, finalize, revert, cancel, beat, the arena's
+  player list), `QueueCore` (the leader's tick and the owner's moves over an injected store;
+  `tests/queue_core_test.luau` runs many servers on a fake MemoryStore).
+- `Rules/MatchEngine`: the series (`t.series`, counted in `finish`), the rematch vote
+  (`Rematch`/`Decline` actions in Result, `rematchReady`, `rematch()`: a new epoch with the
+  same seats, teams and settings, the other side breaking), `Result` lasting
+  `Multiplayer.RematchSeconds` for a two-sided game, arena tables (`t.fixed`, seats joined
+  with a team, `startFixed`), and the pad's search (`canSearch`, `searchParty`, `setSearch`,
+  `searchFound`; a party member stepping off clears it).
+- `Placement.setLayout`: the arena's one table (`Config.Arena.Table`) replaces the hub's
+  sixteen for every loop, on the server and each client (`PlaceMode` and `ArenaTeamSize`
+  workspace attributes, set before the Tables folder exists).
+- Server: `GlobalQueue` (MemoryStore sorted maps, the leader lease, a pool of reserved
+  servers, one poll-and-beat thread per search, teleports with retries and
+  `TeleportInitFailed`, `sendHome` to the origin server by `ServerInstanceId`), `ArenaService`
+  (detect, clear the rooftop, read the player list, seat on arrival, start, Play another and
+  Lobby, the choosing time), `ArenaBuilder` (the placeholder room or
+  `ServerStorage.ArenaMap`). `TableService` runs the pad's search (`startSearch`,
+  `stopSearch`, `watchSearch`, `searchFound`) and an arena mode (no pad, `seatArena`).
+- Client: `QueueMenu` (the 4th button and the searching fold), `PostMatch` (the row, hosted
+  by `ResultScreen` in Continue's place), `QueueStatus` (the small top card), `TeleportScreen`
+  (set with `SetTeleportGui`), `src/first/Arrival` (ReplicatedFirst: keeps the teleport
+  screen until the arena is ready), `MatchHUD` (the Series pill).
+
+**Data flow.**
+1. *Search.* The host's `GlobalSearch` action: TableService checks `Engine.canSearch`, takes
+   the first whole side, posts a ticket (`GQ_Tickets_v1_<mode>`, sort key = rating) and marks
+   the pad (`search` in the snapshot). The owning server reads its ticket every 0.5 s and
+   marks it alive every 2 s.
+2. *Pair.* The server holding the lease (`GQ_Lease_v1`) scans every mode each second,
+   `Matchmaker.pair`s the fresh waiting tickets and, per pair: takes a reserved server, writes
+   the player list (`GQ_Matches_v1`, keyed by the reserved server id), claims A, claims B
+   (else reverts A), then finalizes both. A cancel wins only while waiting; a claim stuck 5 s
+   (the leader died) is undone by its owner's next beat.
+3. *Teleport.* The owner sees "matched": `searchFound` (the pad will not start locally),
+   `QueueNotice{Found}` (the teleport screen), `PlayerData.handOff` (the save is released
+   now), `TeleportAsync` with the access code. A failure retries three times, then
+   `PlayerData.resume` and the card returns.
+4. *Arena.* `Bootstrap` sees a reserved server (`PrivateServerId`, no owner), sets
+   `PlaceMode`, removes the map, builds the room, reads the list (up to 10 s), sets the layout
+   and starts `TableService` in arena mode. Arrivals are seated on their side once their save
+   is open; everyone in (or 25 s with both sides) starts the game. `Ranking` pays every game
+   as in the lobby (its settle is per epoch, so each rematch is paid once).
+5. *After.* The table's vote handles Rematch; `ArenaAction` handles Play another (a new
+   ticket from the arena, avoiding the last opponent for 10 s) and Lobby (`sendHome`).
+   `ArenaState` tells every client the arrivals, choices, searches and each one's time left.
+
+**Studio.** Teleports and reserved servers do not work in Studio: matching runs against
+Studio's own MemoryStore, then the teleport reports "Studio". `ServerStorage.GlobalQueueQA`
+posts a search from a pretend server; the `StudioArena` attribute (a team size) on
+ServerStorage before Play boots an arena with pretend opponents, driven by
+`ServerStorage.ArenaQA`. Every step logs a `[8ball] GQ` line with its timing.

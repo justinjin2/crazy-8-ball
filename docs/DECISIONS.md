@@ -1605,3 +1605,21 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27 (designer): a red Cancel under "Requested!" takes a request for an opponent back;
   everyone's popup closes and the host's card unfolds at once. A new request waits 3 s after
   the last one (Queue.RerequestSeconds) so Request and Cancel cannot flood popups.
+- 2026-09-28 (designer): the global queue moves into the release and is built now (it was
+  planned for one to two weeks after release). Join Global Queue is the host card's 4th
+  choice on every pad; 1v1 alone, 2v2 needs 2 on the pad, 3v3 needs 3; the first whole side
+  by arrival goes and anyone extra stays. Players stay on the pad while searching (stepping
+  off cancels; a pad that fills plays locally). Closest rank first, anyone after 10 s.
+- 2026-09-28 (designer): the arena is a reserved server of the same place (one file, one
+  publish; Claude's recommendation, chosen by the designer), a placeholder dark room after
+  the reference image until the art exists. After each game: Rematch (all must agree),
+  Play another (the whole team together in 2v2/3v3) and Lobby (back to the server you came
+  from). The series score is counted (1-0, 2-1 ...).
+- 2026-09-28 (designer): rematches alternate who breaks, with no coin flip (the GDD said a
+  fresh coin flip); the rematch window is 20 s (was 15 s in the GDD) so the result screen can
+  be read. Lobby tables get Rematch and the series score too, with Leave.
+- 2026-09-28 (Claude): each server takes turns pairing the queue (a lease in MemoryStore) and
+  keeps two reserved servers ready; a save is let go before a teleport (PlayerData.handOff)
+  and ProfileStore looks again after 1.5 s (was 5 s) when a save is still held, so arriving
+  never waits on the old server. Walking away from a finished lobby game declines the
+  rematch.

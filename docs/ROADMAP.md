@@ -31,10 +31,32 @@ The designer's order, one stage at a time:
 5. **The first-time tutorial and funnel, then release.** Once everything else is done: the
    onboarding first match and the analytics funnel, then the performance pass and the game page.
 
-**Not in the release:** abilities, the pro lobby and the global queue. The pro lobby and the
-global queue follow about one to two weeks after release (nobody can reach the pro lobby's rank
-at launch anyway). Abilities are up for debate: they come only if, once ranks, bots, cues and
-the economy are in and played, matches need more fun.
+**Not in the release:** abilities and the pro lobby. The pro lobby follows about one to two
+weeks after release (nobody can reach the pro lobby's rank at launch anyway). Abilities are up
+for debate: they come only if, once ranks, bots, cues and the economy are in and played,
+matches need more fun. **The global queue was moved in and built first (designer,
+2026-09-28; below).**
+
+---
+
+## Global queue, arena and rematch (2026-09-28)
+
+The designer asked for it now, ahead of the stages below: when nobody in your server wants to
+play, find someone of your rank in any server. Decisions: DECISIONS.md (2026-09-28), GDD
+section 6, ARCHITECTURE "Global queue and arenas".
+
+- [x] **Matchmaking.** Join Global Queue on every pad (1v1 alone, 2v2 with 2, 3v3 with 3), a
+  MemoryStore queue paired by one leader server each second, closest rank first and anyone
+  after 10 s, Cancel, stepping off cancels. Done means: Lune tests (many simulated servers,
+  cancel races, a leader dying) and a real MemoryStore match in Studio. Done 2026-09-28.
+- [x] **The arena and the post-game row.** A reserved server of this place with a placeholder
+  room and one table; Rematch (everyone agrees, alternate breaks), the series score, Play
+  another and Lobby; lobby tables get Rematch and Leave. Done means: in Studio the arena
+  plays, rematches (1-0, 2-0) and each game pays rank XP and money once. Done 2026-09-28.
+- [ ] **Checked live.** Publish, then two accounts: a 1v1 and a 2v2 through the queue; the
+  `GQ` timing lines in the server log (MULTIPLAYER_TESTING.md, Global queue); rematch, Play
+  another, Lobby back to the same server; a real phone and a real controller on the row.
+- [ ] **The arena's art** (replaces the placeholder: a Model named `ArenaMap` in ServerStorage).
 
 ---
 
@@ -321,7 +343,6 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
   and Challenger only.
-- [ ] **Global queue.** Cross-server matchmaking: a worldwide 1v1 and 2v2 server.
 
 ### Up for debate: abilities
 

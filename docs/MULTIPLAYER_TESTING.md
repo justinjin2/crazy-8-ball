@@ -150,3 +150,39 @@ are never client remotes. Stop Play to clear all fixtures and return to the real
 If Edit-mode assets are changed in a future pass, save `place/8ball.rbxl` and publish from
 Studio once that milestone is accepted. This update generates tables and boxes at runtime;
 source files and git are the durable implementation save.
+
+## Global queue (live only, 2026-09-28)
+
+Studio cannot teleport, so this is checked in the published game. You need two Roblox
+accounts (your own and a second one, on two devices, or a friend). Publish first (File >
+Publish to Roblox) so the servers run today's code.
+
+1. **Open the server log.** In the game press F9 (on a phone: the Roblox menu > the "Dev
+   Console" option), then pick **Server** at the top. Every global-queue step prints a line
+   starting with `[8ball] GQ`.
+2. **1v1.** Account A steps onto any 1v1 pad and presses **Join Global Queue**. The card
+   says "Searching worldwide..." with the time. Account B does the same (any server; to be
+   sure it is another server, B can pick a different server from the game's Servers tab).
+   - Within about 2 s both see **MATCH FOUND** and load into the dark arena, together.
+   - In A's lobby log: `search ... posted in N ms`, `paired ... into arena ... in N ms`,
+     `search ... matched in N s`, `teleporting 1 player(s) to arena ...`.
+   - In the arena's log (F9 > Server): `list read in N ms`, `<id> arrived N s after their
+     teleport began` (the whole teleport time), `<id> save open N s after arriving` (should
+     be well under a second: the save was handed over before the teleport),
+     `match started N s after the list`.
+3. **In the arena.** Play a game (or have one player Leave > Yes). Both see the result screen
+   with the rank XP and money as in the lobby, the score "1 - 0" in place of VS, and
+   Rematch, Play another, Lobby with a countdown.
+   - Both press **Rematch**: a new game starts at once, the other player breaking; the pill
+     "Series 1-0" shows under the clock. Finish it: the score is now 2-0 or 1-1.
+   - One presses **Play another**: they search from the arena (Cancel works); the other
+     sees "Opponent left" and can press Play another or Lobby.
+   - **Lobby**: back to the same lobby server you came from (check your friends are there).
+   - Choosing nothing for 20 s: back to the lobby.
+4. **2v2.** Two players on one 2v2 pad (the host presses Join Global Queue; greyed until
+   two stand there), two more on a 2v2 pad elsewhere. Both teams land in one arena on their
+   own sides. Play another needs both teammates; if one picks Lobby both go.
+5. **Things that must never happen:** a player in two matches, money or rank XP paid twice
+   for one game (compare the money HUD before and after), "save failed" kicks, anyone stuck
+   on the teleport screen (it gives up after 20 s), a Cancel that still teleports you unless
+   the card already said Match found.

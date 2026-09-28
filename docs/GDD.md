@@ -24,10 +24,10 @@ The goal is longevity: the respected, premier 8-ball game on Roblox that people 
 not a trend that dies.
 
 **The first release** (designer, 2026-09-26): the pool game on phone, PC and console, ranks
-and EXP, ten bots, cues, the economy and trading. **Not in it:** abilities, the pro lobby and
-the global queue. The pro lobby and the global queue follow about one to two weeks after
-release; abilities come only if matches need more fun once the rest is in (section 9). The
-order of work is in ROADMAP.md.
+and EXP, ten bots, cues, the economy and trading. **Not in it:** abilities and the pro lobby.
+The pro lobby follows about one to two weeks after release; abilities come only if matches
+need more fun once the rest is in (section 9). The global queue was moved into the release
+and built first (designer, 2026-09-28; section 6). The order of work is in ROADMAP.md.
 
 ## 2. Audience and why Roblox
 
@@ -217,9 +217,9 @@ Every feature is checked against these. If it serves none, it waits.
   or "<NAME> BREAKS" for over a second (designer, 2026-09-27). **Teams go by arrival**: the
   first on (the host) is team A, the next team B, and so on alternately.
 - While the pad has room the host's card offers **Request opponent** (**Request players** on
-  2v2 and 3v3). Alone on a **1v1 table** it also offers **Play against PC** (does nothing until
-  bots exist) and **Play solo** (starts immediately); the 2v2 and 3v3 tables have no solo.
-  There is no automatic start against PC.
+  2v2 and 3v3) and **Join Global Queue** (below). Alone on a **1v1 table** it also offers
+  **Play against PC** (does nothing until bots exist) and **Play solo** (starts immediately);
+  the 2v2 and 3v3 tables have no solo. There is no automatic start against PC.
 - **Request opponent / players** (designer, 2026-09-27): everyone in the server who is not at
   a table gets a small popup at the bottom of the screen, the host's face and "<name> needs an
   opponent..." (or "needs players...") with **Join** (stands them on the host's pad) and
@@ -242,13 +242,42 @@ Every feature is checked against these. If it serves none, it waits.
   average.
 - Before any two-sided match a short **versus screen** shows each player's avatar, cue and
   rank. Never for Solo.
-- After a match the post-match screen shows **Rematch** and **Leave**. If both sides press
-  Rematch within 15 seconds *(tune)* the same match restarts with the same host and settings
-  and a fresh coin flip; otherwise the table frees. PC and Solo matches get an instant Play
-  again.
+- **Rematch and the series** (designer, 2026-09-28): after a two-sided match the result screen
+  (rank XP and money, as always) has a row under it: **Rematch** and **Leave** on a lobby
+  table; **Rematch**, **Play another** and **Lobby** in an arena. Everyone in the match must
+  press Rematch within **20 s** *(tune)*; then the same players play again at once, the side
+  that did not break last game breaking (no coin), with the same teams. A running **series
+  score** ("2 - 1", your side first) stands where VS was on the result screen and in a small
+  "Series 2-1" pill under the clock during the next games; each game is paid (rank XP and
+  money) like any other. One player saying no, leaving or walking away from the table (a
+  lobby table), or the time running out, frees the table and ends the series. Rematches are
+  unlimited. Solo keeps its short hold; PC matches get an instant Play again when bots exist.
 - One **Find another server** button, hidden during a match.
-- **Global queue** (designer, 2026-09-26): cross-server matchmaking, a worldwide 1v1 and 2v2
-  server. Not in the release; it follows about one to two weeks after it.
+- **Global queue** (designer, 2026-09-28; it had been planned for after release): the host's
+  4th choice, **Join Global Queue**, looks in every server for a side of similar rank and
+  teleports both into an **arena**.
+  - 1v1 alone; **2v2 needs 2 on the pad and 3v3 needs 3** (a whole side). The first whole
+    side by arrival goes; anyone extra stays and hosts the pad. Greyed with "Needs 2 on the
+    pad" until then.
+  - **Stay on the pad while searching**: the card folds to "Searching worldwide..." with the
+    time and a red Cancel; stepping off cancels. Anyone in the server may still step on: a
+    full pad plays locally and the search stops.
+  - **Rank**: the closest rank first, widening every few seconds, **anyone after 10 s**
+    *(tune)* ("as quick as possible", designer). A new game after an arena match avoids the
+    last opponent for the first 10 s.
+  - **Match found!** shows a full screen that stays through the teleport until the arena is
+    ready. Nothing is kept waiting on the save: it is handed over before the teleport.
+  - **The arena**: a private server of the same place with one table in a dark room with a
+    lit rail (after the designer's reference; a placeholder built from parts until the art is
+    made, then a Model `ServerStorage.ArenaMap`). Players arrive and the game starts as soon
+    as everyone is in (or after 25 s *(tune)* with both sides there; a side that never came
+    and the other searches again at once).
+  - After each game: Rematch (above), **Play another** (a new opponent, straight from the
+    arena; a team goes together once every teammate pressed it, and if a teammate picks
+    Lobby or leaves, the rest go to the lobby too) or **Lobby** (back to the lobby server they
+    came from, or any if that one is full or gone). Choosing nothing in the 20 s goes to
+    the lobby.
+  - Arena matches are rated and paid exactly like lobby matches.
 - Servers hold about 30 players *(tune)*. Every table seats 1v1, 2v2 or 3v3, decided by who
   is in its box. PC never plays PC.
 
@@ -259,6 +288,8 @@ Every feature is checked against these. If it serves none, it waits.
 **Open**
 - Difficult and Challenger may be for pro lobbies only (designer thinking, 2026-09-27); until
   then public tables play Classic. Abilities are not in the release and have no toggle.
+- The arena's real look (a model to replace the placeholder), and whether players in the
+  lobby can watch arena matches.
 
 ## 7. Rules
 
