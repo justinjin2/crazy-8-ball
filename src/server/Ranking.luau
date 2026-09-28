@@ -386,7 +386,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 		end
 	end
 	-- Any loss ends the win streak, counted by XP or not (a quick forfeit included); only a
-	-- real win adds to it (recordMatch).
+	-- real win against people adds to it (recordMatch).
 	if outcome == "Loss" then
 		PlayerData.endStreak(p)
 	end

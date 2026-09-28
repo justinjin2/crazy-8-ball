@@ -104,18 +104,45 @@ return {
 
 	limited_take_next = function()
 		local Counts = load()
-		H.expect(Counts.takeNext(nil, 3, 100, 200) == 1, "the first copy is #1")
-		H.expect(Counts.takeNext(1, 3, 100, 200) == 2, "then #2")
-		local copy, why = Counts.takeNext(3, 3, 100, 200)
-		H.expect(copy == nil and why == "SoldOut", "at the cap")
-		copy, why = Counts.takeNext(0, 3, 200, 200)
-		H.expect(copy == nil and why == "Ended", "at the end time")
-		copy, why = Counts.takeNext(5, 3, 300, 200)
+		-- takeNext(stored, userId, cap, now, endsAt) -> value to store, copy, reason
+		local value, copy, why = Counts.takeNext(nil, 42, 3, 100, 200)
+		H.expect(copy == 1 and why == nil, "the first copy is #1")
+		H.expect(value ~= nil and value.n == 1 and value.by["42"] == 1, "recorded under the id")
+		local second, copy2 = Counts.takeNext(value, 7, 3, 100, 200)
+		H.expect(copy2 == 2 and second.n == 2, "then #2 for the next player")
+		H.expect(second.by["42"] == 1 and second.by["7"] == 2 and size(second.by) == 2, "both kept")
+		H.expect(value.n == 1 and size(value.by) == 1, "the stored value is never changed")
+		-- The same player again (a retry, a rejoin): the same number, nothing written.
+		local again, same, none = Counts.takeNext(second, 42, 3, 100, 200)
+		H.expect(again == nil and same == 1 and none == nil, "the same number, no write")
+		-- The cap and the end, for a new player; never for one who has a number.
+		local full = { n = 3, by = { ["42"] = 1, ["7"] = 2, ["9"] = 3 } }
+		value, copy, why = Counts.takeNext(full, 5, 3, 100, 200)
+		H.expect(value == nil and copy == nil and why == "SoldOut", "at the cap")
+		value, copy, why = Counts.takeNext(full, 9, 3, 100, 200)
+		H.expect(value == nil and copy == 3 and why == nil, "at the cap: still theirs")
+		value, copy, why = Counts.takeNext(nil, 5, 3, 200, 200)
+		H.expect(value == nil and copy == nil and why == "Ended", "at the end time")
+		value, copy, why = Counts.takeNext(full, 5, 3, 300, 200)
 		H.expect(copy == nil and why == "Ended", "ended wins over sold out")
-		H.expect(Counts.takeNext("junk", 3, 100, 200) == 1, "junk reads as none sold")
-		H.expect(Counts.takeNext(-4, 3, 100, 200) == 1, "a negative reads as none sold")
-		H.expect(Counts.takeNext(999999, math.huge, 100, 200) == 1000000, "no cap")
+		value, copy, why = Counts.takeNext(full, 7, 3, 300, 200)
+		H.expect(value == nil and copy == 2 and why == nil, "after the end: still theirs")
+		-- The old shape: a plain count, nobody recorded.
+		value, copy = Counts.takeNext(5, 42, 10, 100, 200)
+		H.expect(copy == 6 and value.n == 6 and value.by["42"] == 6, "an old count goes on")
+		value, copy, why = Counts.takeNext(3, 42, 3, 100, 200)
+		H.expect(copy == nil and why == "SoldOut", "an old count at the cap")
+		H.expect(select(2, Counts.takeNext("junk", 1, 3, 100, 200)) == 1, "junk reads as none")
+		H.expect(select(2, Counts.takeNext(-4, 1, 3, 100, 200)) == 1, "a negative reads as none")
+		H.expect(select(2, Counts.takeNext(999999, 1, math.huge, 100, 200)) == 1000000, "no cap")
+		-- Junk inside a stored table is dropped; the count never falls under a number given.
+		local messy: any = { n = 2, by = { ["42"] = 5, ["7"] = 0, ["8"] = 1.5, [3] = 2 } }
+		value, copy = Counts.takeNext(messy, 1, 10, 100, 200)
+		H.expect(copy == 6 and value.n == 6, "past the biggest number recorded")
+		H.expect(value.by["42"] == 5 and value.by["1"] == 6 and size(value.by) == 2, "junk dropped")
 		H.expect(Counts.sold(7) == 7 and Counts.sold(nil) == 0 and Counts.sold(2.5) == 0, "sold")
+		H.expect(Counts.sold(full) == 3 and Counts.sold(messy) == 5, "sold, the new shape")
+		H.expect(Counts.sold({ n = "x" }) == 0 and Counts.sold({}) == 0, "sold, junk")
 	end,
 
 	firsts_set_only_if_empty = function()

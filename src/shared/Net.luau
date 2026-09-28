@@ -186,7 +186,8 @@ local REMOTES: { [string]: string } = {
 	RewardRequest = "RemoteFunction",
 	-- server -> everyone here (or one player joining during a Money Party): a banner line at
 	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and
-	-- names only; the client words it from Strings.Banner. `name` is a DisplayName.
+	-- names only; the client words it from Strings.Banner. `name` is the player's username
+	-- (player.Name), not their DisplayName.
 	--   { kind = "Unbox", userId, name, cue, rarity } a Mythic or Secret unboxed here
 	--     (Cases.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
 	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)

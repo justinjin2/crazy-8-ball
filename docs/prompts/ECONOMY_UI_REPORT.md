@@ -145,11 +145,17 @@ Each is also a dated line in `docs/DECISIONS.md` tagged "(overnight assumption)"
 - Solo money gets the VIP and Money Party boosts (under the solo limit).
 - If Roblox's PolicyService never answers, the player is treated as restricted (no buying
   cases with money) for that session.
-- Mythic and Secret unboxings are announced 6 s later, so the banner never spoils the reel.
+- Mythic and Secret unboxings are announced 9 s later, so the banner never spoils the reel.
 - Every Reyes (not only the first) is announced in every server. Banners use usernames.
-- A numbered copy taken for a purchase that then fails is skipped, never reused.
-- A Founder's Cue purchase that cannot be delivered is not granted and not swapped for money
-  (Roblox retries it); logged.
+- A numbered copy belongs to the player it was handed to: if their purchase fails, they get
+  the same number next time.
+- A Robux purchase that no longer qualifies when the payment arrives (the VIP offer when
+  already VIP or after its window, a second Starter Pack, a sold-out Founder's Cue) pays money
+  at the first pack's rate instead: VIP offer $5,491, Starter Pack $1,451, Founder's $27,532.
+- Case sales are capped at 50% off. The opponent table for anti-farm keeps 300 accounts a
+  day; past that a new account pays the floor.
+- An open still waiting for the server can be closed after 3 s; the cue then waits in the
+  Inventory with a note.
 - A pass counts once Roblox confirms it; a VIP bought through the welcome offer shows the VIP
   pass as owned. Robux prices are read once per server.
 - Playtime counts every second in the game, AFK included.
@@ -178,6 +184,29 @@ Each is also a dated line in `docs/DECISIONS.md` tagged "(overnight assumption)"
 
 Nothing is BLOCKED.
 
+**What the two reviewers found, and what was fixed.** The security audit found 7 problems
+(none critical; no way to copy items or spend money twice) and the bug review 23 (1 high, 6
+medium, 16 low). Fixed:
+- Robux: a player could open the purchase box for the half-price VIP offer or the Starter
+  Pack themselves after its window, or again. Now the server checks again when the payment
+  arrives; a payment that doesn't qualify gives money (at the first pack's rate) so nobody
+  pays for nothing. The same for a Founder's Cue that sold out or ended while paying.
+- A paid Money Party always adds its 15 minutes; a payment arriving while the save loads
+  waits for it; a pass bought in game works at once.
+- A numbered cue's copy number is kept per player, so leaving mid-purchase can't waste one.
+- Case sales are capped at 50% (above about 61%, buying and selling back made money).
+- Anti-farm: after 50 different opponents in a day it no longer switched off.
+- The case reel closes when a match starts; opening right after selling no longer fails with
+  "One moment..."; menus keep the mouse free in shift lock; Escape in the code box no longer
+  closes Rewards; the gamepad keeps a selected button after the last case, after "Owned" and
+  after NEW RANK!; ROOFTOP works through its last day; the Mythic banner waits for the reel;
+  the Reyes news retries when it can't connect; an Index reward shows a shortcut in Rewards.
+
+**Known, not fixed:**
+- Some layout numbers are still written in the client files instead of `Config.luau`.
+- The Event Case (switched off) drops the normal cues (an assumption, section 4).
+- A first win against a real player plays the Rare Case reel while the Rematch countdown
+  runs underneath; a slow Equip can use up part of the 20 seconds.
 - In a QA run, a shot fired in the same instant as `/vip on` paid without the VIP boost (the
   flag lands a moment later). Harmless for real players.
 - RewardChips (result screen) and RewardsFlyer (Rewards menu) both fly a case to the

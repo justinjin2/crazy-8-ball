@@ -8,9 +8,12 @@
 --   progress bars from the server's playtime today, Claim when due.
 -- - Codes (RewardsCodes): a text box and Redeem; the server's answer under the box.
 -- A tab with something to claim wears a small red "!" and the menu opens on it when opened
--- without a tab. What a claim gave flies out of its button (RewardsFlyer): money into the
--- money HUD, each case to the column's Inventory tile, with the Claim sound. The reminder toast
--- when Roblox's menu opens or the window loses focus starts here too (Reminders.start).
+-- without a tab. An Index row's reward (the Rewards tile's dot counts it, the Inventory's Index
+-- tab claims it) shows as a banner on the Daily tab with Open Index, which closes this menu and
+-- opens the Inventory on its Index tab (ItemState's "Items" snapshot says when). What a claim
+-- gave flies out of its button (RewardsFlyer): money into the money HUD, each case to the
+-- column's Inventory tile, with the Claim sound. The reminder toast when Roblox's menu opens or
+-- the window loses focus starts here too (Reminders.start).
 --
 -- Data: ItemState's "Rewards" snapshot (RewardState, src/shared/Net.luau), redrawn on every
 -- ItemState.Changed.Rewards; claims through ItemState.request("RewardRequest", action, arg)
@@ -18,8 +21,9 @@
 -- request is on its way, and stays off after a claim until the next state arrives (so a quick
 -- second press never asks twice); a refusal shows frame:notice(MenuFrame.reason(reply), "Red").
 --
--- Gamepad: opening lands on the tab's main button (today's Claim, a due gift's Claim, the code
--- box) when there is one, else on the tab; LB and RB switch tabs; B closes (MenuFrame, Menus).
+-- Gamepad: opening lands on the tab's main button (today's Claim, Open Index, a due gift's
+-- Claim, the code box) when there is one, else on the tab; LB and RB switch tabs; B closes
+-- (MenuFrame, Menus).
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -84,6 +88,17 @@ function RewardsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		return inFlight[key] == true or claimedAt[key] == version
 	end
 
+	--- Whether an Index row's reward waits (the Daily tab's banner).
+	function ctx.indexReady(): boolean
+		return ItemState.indexReady()
+	end
+
+	--- The banner's Open Index: this menu closes, the Inventory opens on its Index tab.
+	function ctx.openIndex()
+		UISound.play("Click")
+		Menus.open("Inventory", "Index")
+	end
+
 	-- Draw every page from the latest state.
 	local function render()
 		for _, key in TABS do
@@ -113,11 +128,27 @@ function RewardsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		end
 	end
 
-	-- A claim button that was just switched off hands a gamepad's selection to the page's main
-	-- button, else to its tab.
+	-- Whether `object` and every frame above it in this menu are visible.
+	local function shows(object: GuiObject): boolean
+		local node: Instance? = object
+		while node and node:IsA("GuiObject") do
+			if not node.Visible then
+				return false
+			end
+			node = node.Parent
+		end
+		return true
+	end
+
+	-- A claim button that was just switched off (or the Index banner that just went) hands a
+	-- gamepad's selection to the page's main button, else to its tab.
 	local function keepSelection()
 		local selected = GuiService.SelectedObject
-		if selected and selected:IsDescendantOf(frame.root) and not selected.Selectable then
+		if
+			selected
+			and selected:IsDescendantOf(frame.root)
+			and (not selected.Selectable or not shows(selected))
+		then
 			local page = pages[frame:currentTab()]
 			local target = page and page:primary()
 			if target and target.Selectable then
@@ -250,6 +281,19 @@ function RewardsMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		state = payload
 		version += 1
 		render()
+		refreshDots()
+		if frame:isOpen() then
+			keepSelection()
+		end
+	end)
+	-- The inventory says when an Index row's reward waits: the Daily tab's banner follows.
+	local indexShown = ItemState.indexReady()
+	ItemState.Changed.Items:Connect(function(_items: any)
+		if ItemState.indexReady() == indexShown then
+			return
+		end
+		indexShown = not indexShown
+		pages.Daily:set(state)
 		refreshDots()
 		if frame:isOpen() then
 			keepSelection()

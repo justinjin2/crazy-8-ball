@@ -41,6 +41,9 @@ export type FreeCaseFacts = {
 
 export type BoostFlags = { rookie: boolean, vip: boolean, firstWin: boolean, streak: boolean }
 
+-- Today's anti-farm count against one account (the save's Daily.Opponents entry).
+export type OpponentDay = { Matches: number, Cases: number }
+
 local Settle = {}
 
 local function finite(value: any): boolean
@@ -130,6 +133,29 @@ function Settle.matchNumber(matchesToday: { number }): number
 		most = math.max(most, whole(matches))
 	end
 	return most + 1
+end
+
+--- Today's anti-farm count against one account (ECONOMY 3.6), from the save's per-day table
+--- (Daily.Opponents, `tracked` entries in all): its own `entry` when the table keeps one;
+--- zeros for an account not met today while the table has room; and, once the table is full
+--- (Config.Economy.SameOpponentMaxEntries), the worst count for an account it does not track:
+--- enough matches to put the next one on SameOpponent's last row, and FreeCasesPerOpponent
+--- cases. Meeting many accounts in a day never switches the anti-farm off: a new account then
+--- pays the floor and gives no free case.
+function Settle.opponentDay(entry: OpponentDay?, tracked: number): OpponentDay
+	if entry ~= nil then
+		return { Matches = whole(entry.Matches), Cases = whole(entry.Cases) }
+	elseif whole(tracked) < E.SameOpponentMaxEntries then
+		return { Matches = 0, Cases = 0 }
+	end
+	-- The last row (no UpTo) starts right after the row before it ends: that row's UpTo
+	-- matches already played put the next one on it (0 with one row).
+	local rows: { { UpTo: number? } } = E.SameOpponent :: any
+	local before = rows[#rows - 1]
+	return {
+		Matches = if before ~= nil then whole(before.UpTo) else 0,
+		Cases = E.FreeCasesPerOpponent,
+	}
 end
 
 --- Whether balls potted now pay the short-match rate (ECONOMY 3.6): today's short-match money

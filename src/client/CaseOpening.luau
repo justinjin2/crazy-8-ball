@@ -15,10 +15,15 @@
 -- - The first win's case on the result screen: reveal() draws the same reel inside the result
 --   screen's frame (fitted to it), then the prize card with Equip and Continue.
 -- - A tap or click anywhere, or gamepad A, skips to the result; B or Escape skips, then closes.
+--   While the server answers an open, none of them does anything for WaitCloseSeconds (the case
+--   is being spent); after that they close, and a prize that arrives later shows a line in the
+--   menu under it ("Your cue is in your Inventory."; its NEW tag marks it there).
 --   The dev command /opencase reaches here as a DevNotice table { kind = "OpenCase", caseId,
 --   count? } (string DevNotices are chat lines, Progression's).
 -- The server decides everything: this sends ids and counts and animates the answers. While it
--- is open the left column hides and menus wait (Progression reads isOpen). Every control works
+-- is open the left column hides and menus wait (Progression reads isOpen; a match starting
+-- closes it). On closing, the gamepad goes back to what it was on if that still shows, else the
+-- menu under it chooses (Menus.ensureSelection). Every control works
 -- by touch, mouse and gamepad; laid out at a natural size and scaled to fit (phone first: the
 -- reel and card fit 750 x 361 at full size). Tuning in Config.UI.CaseOpening, words in
 -- Strings.CaseOpening.
@@ -70,6 +75,8 @@ type Session = {
 	hintText: TextLabel,
 	focus: TextButton, -- clear and selectable: a gamepad's A on it skips
 	phase: string, -- "Waiting", "Reel", "Card", "Grid", "Failed", "Closed"
+	waitSince: number, -- os.clock() when the open was sent (the Waiting phase began)
+	closedWaiting: boolean, -- closed before the server answered (a late prize gets a line)
 	caseId: string,
 	count: number, -- 1, or Config.Cases.FastOpenCount
 	heading: string?, -- the title's words, when not the case's name
@@ -100,6 +107,29 @@ end
 
 local function valid(object: GuiObject?): boolean
 	return object ~= nil and object:IsDescendantOf(game)
+end
+
+-- A selection worth going back to: still there, selectable and showing (it, every frame above
+-- it and its ScreenGui). Never a case row's Open that went with the last case, nor an Open 10
+-- hidden once fewer than ten are left.
+local function usable(object: GuiObject?): boolean
+	if object == nil or not valid(object) or not object.Selectable then
+		return false
+	end
+	local node: Instance? = object
+	while node and node:IsA("GuiObject") do
+		if not node.Visible then
+			return false
+		end
+		node = node.Parent
+	end
+	return not (node and node:IsA("LayerCollector") and not node.Enabled)
+end
+
+-- Whether a session waiting for the server has waited long enough that B, Escape or a tap may
+-- close it.
+local function mayCloseWaiting(s: Session): boolean
+	return os.clock() - s.waitSince >= C.WaitCloseSeconds
 end
 
 -- The server's results, checked: known cues only, the rarity from the answer when it is a
@@ -294,6 +324,8 @@ function CaseOpening.newSession(self: any, kind: string, area: GuiObject, caseId
 		hintText = hintText,
 		focus = focus,
 		phase = "Waiting",
+		waitSince = os.clock(),
+		closedWaiting = false,
 		caseId = caseId,
 		count = 1,
 		heading = nil,
@@ -386,25 +418,38 @@ function CaseOpening.titleWords(_self: any, s: Session): string
 	return caseName(s.caseId)
 end
 
--- The hint under the reel: "Opening..." while the server answers, else how to skip.
+-- A gamepad button's picture ("" when Roblox has none).
+local function glyphFor(key: Enum.KeyCode): string
+	local ok, image = pcall(function()
+		return UserInputService:GetImageForKeyCode(key)
+	end)
+	return if ok and type(image) == "string" then image else ""
+end
+
+-- The hint under the reel: "Opening..." while the server answers (how to close, once that is
+-- allowed), else how to skip.
 function CaseOpening.refreshHint(self: any, s: Session)
 	if s.phase == "Closed" then
 		return
 	end
 	local W = words()
 	local text, glyph = W.Opening, ""
-	if s.phase ~= "Waiting" then
-		if CaseOpeningFx.gamepad() then
-			text = W.SkipPad
-			local ok, image = pcall(function()
-				return UserInputService:GetImageForKeyCode(Enum.KeyCode.ButtonA)
-			end)
-			glyph = if ok and type(image) == "string" then image else ""
-		elseif CaseOpeningFx.touch() then
-			text = W.SkipTouch
-		else
-			text = W.SkipMouse
+	if s.phase == "Waiting" then
+		if mayCloseWaiting(s) then
+			if CaseOpeningFx.gamepad() then
+				text, glyph = W.WaitingPad, glyphFor(Enum.KeyCode.ButtonB)
+			elseif CaseOpeningFx.touch() then
+				text = W.WaitingTouch
+			else
+				text = W.WaitingMouse
+			end
 		end
+	elseif CaseOpeningFx.gamepad() then
+		text, glyph = W.SkipPad, glyphFor(Enum.KeyCode.ButtonA)
+	elseif CaseOpeningFx.touch() then
+		text = W.SkipTouch
+	else
+		text = W.SkipMouse
 	end
 	s.hintText.Text = text
 	s.hintGlyph.Image = glyph
@@ -595,21 +640,22 @@ function CaseOpening.unbindInput(self: any)
 	table.clear(self.inputConnections)
 end
 
--- A tap, click or A: skip what is turning (or close a failure).
+-- A tap, click or A: skip what is turning (or close a failure, or a wait that has run long).
 function CaseOpening.tap(self: any, s: Session)
 	local reel, grid = s.reel, s.grid
 	if s.phase == "Reel" and reel then
 		reel:skip()
 	elseif s.phase == "Grid" and grid and grid:isFlipping() then
 		grid:skip()
-	elseif s.phase == "Failed" then
+	elseif s.phase == "Failed" or (s.phase == "Waiting" and mayCloseWaiting(s)) then
 		self:finish(s)
 	end
 end
 
--- B or Escape: skip what is turning, else close.
+-- B or Escape: skip what is turning, else close (not in the first moments of a wait: the case
+-- is being spent and its reel is on its way).
 function CaseOpening.back(self: any, s: Session)
-	if s.dialog then
+	if s.dialog or (s.phase == "Waiting" and not mayCloseWaiting(s)) then
 		return
 	end
 	local grid = s.grid
@@ -642,6 +688,7 @@ function CaseOpening.show(self: any, caseId: string): Session
 		self.saved = selected
 		self.backGui.Enabled = true
 		self.gui.Enabled = true
+		self.backdrop.Modal = true -- frees a mouse that shift-lock (or the camera) holds
 		self:placeArea()
 		if self.backdropTween then
 			self.backdropTween:Cancel()
@@ -693,14 +740,27 @@ function CaseOpening.open(self: any, caseId: string, count: number?)
 		s.reel = CaseOpeningReel.new(s.stage.frame, caseId)
 		s.reel.root.ZIndex = 3
 	end
+	s.waitSince = os.clock()
 	self:setPhase(s, "Waiting")
 	self.token += 1
 	local token = self.token
 	s.token = token
+	-- A slow answer: the hint says how to close once that is allowed.
+	task.delay(C.WaitCloseSeconds, function()
+		if s.phase == "Waiting" and s.token == token then
+			self:refreshHint(s)
+		end
+	end)
 	task.spawn(function()
 		local reply = ItemState.request("ItemRequest", "OpenCase", caseId, n)
 		if self.overlay ~= s or s.token ~= token or s.phase ~= "Waiting" then
-			return -- closed, or opened again, while it was on its way
+			-- Closed, or opened again, while it was on its way. Closed while waiting: the prize
+			-- is in the inventory all the same, so the menu under it says so.
+			if s.closedWaiting and s.token == token and reply.ok == true then
+				local W = words()
+				Menus.notice(if n > 1 then W.LateMany else W.LateOne, "Green")
+			end
+			return
 		end
 		if reply.ok ~= true then
 			self:fail(s, reply)
@@ -1052,9 +1112,17 @@ function CaseOpening.close(self: any)
 	self.opened = false
 	local s: Session? = self.overlay
 	self.overlay = nil
+	self.backdrop.Modal = false
 	local selected = GuiService.SelectedObject
 	if selected == nil or selected:IsDescendantOf(self.gui) then
-		GuiService.SelectedObject = if valid(self.saved) then self.saved else nil
+		if usable(self.saved) then
+			GuiService.SelectedObject = self.saved
+		else
+			-- What it was on is gone or hidden (the last case's row, Open 10 with fewer than
+			-- ten left): the menu under it chooses.
+			GuiService.SelectedObject = nil
+			Menus.ensureSelection()
+		end
 	end
 	self.saved = nil
 	self:unbindInput()
@@ -1091,6 +1159,7 @@ function CaseOpening.close(self: any)
 		session.dialog = nil
 		dialog.cancel()
 	end
+	session.closedWaiting = session.phase == "Waiting"
 	session.phase = "Closed"
 	local view = session.card or session.grid or session.reel
 	if view and view.root.Visible then

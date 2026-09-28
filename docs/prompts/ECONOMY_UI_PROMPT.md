@@ -690,7 +690,7 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 13. Dev commands (`/econhelp` and the list in section 14) working in Studio.
 - [x] 14. Sounds for the reel and reveals found, checked and wired.
 - [x] 15. Full playthrough and every new screen checked on PC, phone sizes and tablet (section 15).
-- [ ] 16. Audit by a fresh subagent and branch-wide bug review; findings fixed.
+- [x] 16. Audit by a fresh subagent and branch-wide bug review; findings fixed.
 - [ ] 17. Polish pass.
 - [ ] 18. Docs updated (ECONOMY additions included) and `docs/prompts/ECONOMY_UI_REPORT.md`
   written; branch pushed.
@@ -775,3 +775,26 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   controller (D-pad up to the Shop, B to close, selection inside the menus), the reminder toast
   (open Roblox's menu), two real players (team pay, the Trade list), a live server (receipts,
   PolicyService, MessagingService).
+- **Audit (step 16, 2026-09-28).** Two fresh agents that wrote none of the code: a security
+  audit of everything that pays (7 findings, none critical, no dupe or double-spend found) and
+  a review of `git diff ranks-money...economy` (1 High, 6 Medium, 16 Low). Fixed by three
+  agents on separate files, then checked here: receipts re-check the VIP offer and the
+  Starter Pack (an ineligible receipt pays money at the first pack's rate instead of nothing),
+  a Founder's receipt that can never be granted pays the same, a Limited copy number is kept
+  per player in the counter (a retry or rejoin gets the same number), a paid Money Party always
+  adds its 15 minutes, receipts wait for the save to load, case sales capped at 50%, a pass
+  bought in game counts at once, anti-farm stays on after 50 opponents a day, the reel closes
+  when a match starts, item requests queue instead of "One moment...", menus are Modal (shift
+  lock), Escape in the code box, gamepad selection after the last case, after Owned and after
+  NEW RANK!, ROOFTOP's last day, the unbox banner after the Mythic reel, the Reyes subscribe
+  retries; the anti-farm table grew to 300 accounts (50 would have floored heavy team
+  players). Checked in Studio: a second Starter Pack paid $1,451 and a second VIP offer
+  $5,491 (logged), five Money Parties queued 74 minutes, `/sale epic 60` refused and 50
+  accepted, the Beta Cue's counter handed the same player #2 twice and a new one #3 and
+  refused past the cap, the reel closed when a solo game started mid-open, the Index line in
+  Rewards opened Inventory > Index; console clean. Also found here: kit text keeps its
+  14 px minimum on screen inside a UIScale (TextScaled or not), so the result screen's boost
+  pills overlapped and its reminder line was cut on phones; both now measure words as drawn
+  (checked at 750 x 361). Listed, not fixed: some layout numbers still sit in the client
+  files instead of Config (review #23); the Event Case rolls the normal pool while it is off
+  (an overnight assumption, not a bug).

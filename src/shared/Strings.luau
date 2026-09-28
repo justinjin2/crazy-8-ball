@@ -637,6 +637,10 @@ return {
 			-- of 4: a Legendary Case on day 28" (the week, the weeks, the prize, the day).
 			WeekLine = "Week %d of %d: %s on day %d",
 			NextIn = "Next reward in %s", -- once today is claimed: "Next reward in 5:12:03"
+			-- A banner over the tiles while an Index row's reward waits (it is claimed in the
+			-- Inventory's Index tab; the button goes there).
+			IndexReady = "An Index reward is ready!",
+			OpenIndex = "Open Index",
 			-- The Playtime tab.
 			GiftTime = "%s / %s", -- played today, of the gift's time: "4:12 / 10:00"
 			PlayedToday = "Played today: %s", -- "Played today: 24:13"
@@ -745,6 +749,13 @@ return {
 		FastTitle = "%s x%s", -- Fast Open's title: the case's name and the count ("Standard Case x10")
 		FirstWin = "First win! %s", -- the result screen's reveal: the case's name ("Rare Case")
 		Opening = "Opening...", -- while the server answers
+		-- The server is slow to answer (Config.UI.CaseOpening.WaitCloseSeconds): it may be closed.
+		WaitingTouch = "Still opening... Tap to close",
+		WaitingMouse = "Still opening... Click to close",
+		WaitingPad = "Close", -- after the gamepad's B button picture
+		-- Closed before the server answered: a line in the menu under it once the prize is in.
+		LateOne = "Your cue is in your Inventory.",
+		LateMany = "Your cues are in your Inventory.", -- Fast Open
 		SkipTouch = "Tap to skip",
 		SkipMouse = "Click to skip",
 		SkipPad = "Skip", -- after the gamepad's A button picture

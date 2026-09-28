@@ -75,6 +75,17 @@ local function rainbow(parent: Instance)
 	gradient.Parent = parent
 end
 
+-- A multiplier's number for "%sx": "2" for a whole one, "1.5" or "1.25" for a tuned fraction
+-- (Format.commas would cut 1.5 down to 1).
+local function times(n: number): string
+	if n == math.floor(n) then
+		return Format.commas(n)
+	end
+	-- Two decimals at most, without trailing zeros.
+	local text = ("%.2f"):format(n):gsub("%.?0+$", "")
+	return text
+end
+
 --- The VIP page inside `page`. `shop` is the ShopMenu.
 function ShopVip.new(shop: any, page: Frame): any
 	local self: any = setmetatable({}, ShopVip)
@@ -105,7 +116,7 @@ function ShopVip.new(shop: any, page: Frame): any
 	local boost = Config.Economy.VipBoost
 	local xp = Config.Ranks.Boosts.Vip
 	local perkLines: { { icon: string, text: string } } = {
-		{ icon = "CashStack", text = COPY.VipMoney:format(Format.commas(1 + boost)) },
+		{ icon = "CashStack", text = COPY.VipMoney:format(times(1 + boost)) },
 		{ icon = "Lightning", text = COPY.VipXp:format(round(xp * 100)) },
 		{ icon = "Cue", text = COPY.VipCue:format(CueThumb.cueName(Config.Shop.VipCue)) },
 		{ icon = "ChatTag", text = COPY.VipTag },
@@ -161,7 +172,7 @@ function ShopVip.buildRow(self: any, key: string): Row
 	elseif key == "MoneyParty" then
 		name.Text = COPY.MoneyParty
 		line.Text = COPY.PartyLine:format(
-			Format.commas(1 + Config.Economy.PartyBoost),
+			times(1 + Config.Economy.PartyBoost),
 			round(Config.Shop.PartySeconds / 60)
 		)
 	else

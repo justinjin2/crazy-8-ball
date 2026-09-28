@@ -12,11 +12,15 @@
 -- one that same selection, never a button inside the menu that just closed.
 --
 -- B is bound at a priority above the table's own B (Leave) and the roadmap's, only while a
--- menu is open, so B closes the menu before anything else hears it.
+-- menu is open, so B closes the menu before anything else hears it. Escape while typing in a
+-- text box (the Rewards menu's code) only ends the typing.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 
 export type Handle = {
 	open: (tab: string?) -> (),
@@ -25,6 +29,12 @@ export type Handle = {
 	-- What the menu draws in (its ScreenGui or root frame): a selection inside it is dropped
 	-- when it closes. Optional (the roadmap puts its own selection back).
 	root: Instance?,
+	-- Optional: put a gamepad's selection somewhere sensible in the menu (the case opening
+	-- over it closed and what was selected before is gone).
+	ensureSelection: (() -> ())?,
+	-- Optional: a short line at the bottom of the menu (news from the case opening that closed
+	-- over it before the server answered).
+	notice: ((text: string, toneName: string?) -> ())?,
 }
 
 local Menus = {}
@@ -143,27 +153,44 @@ local function bind()
 end
 
 local swallowed: InputObject? = nil
+local typingEnded = -math.huge -- os.clock() when a text box last stopped typing
 
 --- A dialog inside a menu answered this Escape press itself: the menu stays open.
 function Menus.swallowEscape(input: InputObject)
 	swallowed = input
 end
 
+-- Whether an Escape pressed at `at` (os.clock()) only ended typing in a text box: one still
+-- has focus, or one let go of it about then (Roblox may release the box before or after this
+-- press is heard).
+local function endedTyping(at: number): boolean
+	return UserInputService:GetFocusedTextBox() ~= nil
+		or math.abs(at - typingEnded) <= Config.UI.Menu.EscapeAfterTypingSeconds
+end
+
 -- Escape closes the open menu (Roblox's own menu may open too; that is Roblox's key). It waits
 -- a moment, so a confirm dialog hearing the same press can keep the menu open (swallowEscape),
--- whichever of the two listeners runs first.
+-- whichever of the two listeners runs first. Escape while typing (a code) keeps it open.
 local function hookEscape()
 	if escapeHooked then
 		return
 	end
 	escapeHooked = true
+	UserInputService.TextBoxFocusReleased:Connect(function()
+		typingEnded = os.clock()
+	end)
 	UserInputService.InputBegan:Connect(function(input: InputObject)
 		if input.KeyCode ~= Enum.KeyCode.Escape or Menus.current() == nil then
 			return
 		end
+		local at = os.clock()
+		local typing = endedTyping(at)
 		task.defer(function()
 			if swallowed == input then
 				swallowed = nil
+				return
+			end
+			if typing or endedTyping(at) then
 				return
 			end
 			Menus.close()
@@ -221,6 +248,27 @@ function Menus.close(name: string?)
 		restoreSelection(handle.root)
 		saved = nil
 		unbind()
+	end
+end
+
+--- Let the open menu put a gamepad's selection somewhere sensible (its handle's
+--- ensureSelection): the case opening over it closed and what was selected before is gone.
+function Menus.ensureSelection()
+	local current = Menus.current()
+	local handle = if current then handles[current] else nil
+	local fn = if handle then handle.ensureSelection else nil
+	if fn then
+		fn()
+	end
+end
+
+--- A short line at the bottom of the open menu (its handle's notice), if one is open.
+function Menus.notice(text: string, toneName: string?)
+	local current = Menus.current()
+	local handle = if current then handles[current] else nil
+	local fn = if handle then handle.notice else nil
+	if fn then
+		fn(text, toneName)
 	end
 end
 

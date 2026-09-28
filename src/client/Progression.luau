@@ -12,8 +12,8 @@
 --
 -- Every full menu (the roadmap too) opens through Menus, one at a time. The left column hides
 -- in a match and under the popups (the result screen, NEW RANK!, the case opening, the
--- teleport screen); a match starting closes any open menu. Nothing here ever sends an amount
--- back: the numbers are already in the save.
+-- teleport screen); a match starting (or its result screen) closes the case opening and any
+-- open menu. Nothing here ever sends an amount back: the numbers are already in the save.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
@@ -130,9 +130,18 @@ local function teleportUp(): boolean
 	return false
 end
 
--- A popup that has the player's attention: menus wait for it, the column hides under it.
+-- A popup that has the player's attention: menus and held rank popups wait for it, the column
+-- hides under it.
 local function popupUp(): boolean
 	return result:isOpen() or newRank:isOpen() or caseOpening:isOpen()
+end
+
+-- Close the case opening (its overlay; the first win's reveal belongs to the result screen)
+-- and then any open menu, in that order, so the gamepad's selection is not handed back to a
+-- button in a menu that is closing.
+local function closeScreens()
+	caseOpening:close()
+	Menus.close()
 end
 
 --- Build every screen and listen to the server. Main calls this once, with the ScreenGui
@@ -206,7 +215,7 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	end)
 	Net.get("MatchSummary").OnClientEvent:Connect(function(summary: any)
 		if valid(summary) and valid(summary.you) and valid(summary.money) then
-			Menus.close() -- the result screen takes the screen from any menu
+			closeScreens() -- the result screen takes the screen from them
 			result:show(summary)
 		end
 	end)
@@ -302,9 +311,9 @@ function Progression.bumpMenu(name: string)
 end
 
 --- Main calls this every frame with where the player is: the rank HUD and the left column
---- hide in a match and under the popups, a match starting closes any open menu, the banner
---- waits during a match, the nameplates of your match's players hide, and held rank popups
---- wait for a quiet moment.
+--- hide in a match and under the popups, a match starting closes the case opening and any open
+--- menu, the banner waits during a match, the nameplates of your match's players hide, and held
+--- rank popups wait for a quiet moment.
 function Progression.update(state: State)
 	if not started then
 		return
@@ -323,11 +332,14 @@ function Progression.update(state: State)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)
 	if state.inMatch and not wasInMatch then
-		Menus.close() -- a full menu would cover the table
+		-- A full menu or the case opening would cover the table (and the overlay would keep
+		-- the gamepad's A and B): a player waiting on a pad may have opened either.
+		closeScreens()
 	end
 	wasInMatch = state.inMatch
 	plates:setHidden(if state.inMatch then state.matchUserIds else NOBODY)
-	if #heldRanks > 0 and not state.shooting and not busy then
+	-- Held rank popups also wait for the case opening's overlay to close.
+	if #heldRanks > 0 and not state.shooting and not popupUp() then
 		-- The menus draw over the HUD screen, so they make way for the popup.
 		Menus.close()
 		newRank:show(table.remove(heldRanks, 1))

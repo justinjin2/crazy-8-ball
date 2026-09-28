@@ -13,8 +13,9 @@
 --   began, being flushed, or still pending), so a cue unboxed here counts at once. Nothing is
 --   published before the first read: a count is never shown made up.
 -- - Limited copies: Counters.takeLimited hands out the next number with one atomic UpdateAsync
---   per call; the sold counts are attributes on ReplicatedStorage.LimitedSold, refreshed after
---   each take and on the read loop.
+--   per call, and remembers which player got it (Counts.takeNext), so a player asking again
+--   gets the same number; the sold counts are attributes on ReplicatedStorage.LimitedSold,
+--   refreshed after each take and on the read loop (none before the first read).
 -- - Firsts: Counters.claimFirst sets a key once (UpdateAsync, set only if empty).
 -- - Every DataStore call is in pcall and nothing here ever blocks gameplay: the loops run in
 --   their own threads, and a background round waits while the DataStore budget is low
@@ -111,7 +112,8 @@ local pending: { [string]: number } = {}
 local haveRead = false
 local published: { [string]: number } = {}
 
--- Limited copies handed out, as far as this server knows (never goes down).
+-- Limited copies handed out, as far as this server knows (never goes down; missing until the
+-- first read or take).
 local sold: { [string]: number } = {}
 local soldPublished: { [string]: number } = {}
 
@@ -265,12 +267,21 @@ end
 -- Limited copies and firsts
 ---------------------------------------------------------------------------------------------
 
---- Takes the next numbered copy of a Limited cue with one atomic UpdateAsync: refuses past
---- `cap` or once `endsAt` (unix) has passed. Yields. Returns the copy number, or nil and a
---- reason: "SoldOut", "Ended" or "Error".
-function Counters.takeLimited(cueId: string, cap: number, endsAt: number): (number?, string?)
+--- Takes player `userId`'s numbered copy of a Limited cue with one atomic UpdateAsync: the
+--- number they were given before if any (a retry or a rejoin after a buy that did not land;
+--- even past the cap or the end), else the next one, refused past `cap` or once `endsAt`
+--- (unix) has passed. Yields. Returns the copy number, or nil and a reason: "SoldOut", "Ended"
+--- or "Error".
+function Counters.takeLimited(
+	cueId: string,
+	userId: number,
+	cap: number,
+	endsAt: number
+): (number?, string?)
 	if
 		Shop.limitedFor(cueId) == nil
+		or type(userId) ~= "number"
+		or userId ~= math.floor(userId)
 		or type(cap) ~= "number"
 		or cap ~= cap
 		or cap < 1
@@ -280,10 +291,8 @@ function Counters.takeLimited(cueId: string, cap: number, endsAt: number): (numb
 		warn(("[8ball] Counters.takeLimited: bad arguments for %s"):format(tostring(cueId)))
 		return nil, "Error"
 	end
+	-- No early "Ended" here: only the stored value knows whether this player already has one.
 	local now = os.time()
-	if now >= endsAt then
-		return nil, "Ended"
-	end
 	local store = storeOf("Limited")
 	if store == nil then
 		return nil, "Error"
@@ -291,29 +300,31 @@ function Counters.takeLimited(cueId: string, cap: number, endsAt: number): (numb
 	-- UpdateAsync may run the transform more than once; the last run is the one written.
 	local copy: number? = nil
 	local reason: string? = nil
+	local count = 0
 	local ok, err = pcall(function(): any
 		return store:UpdateAsync(cueId, function(stored: any): any
-			copy, reason = Counts.takeNext(stored, cap, now, endsAt)
-			return copy
+			local value
+			value, copy, reason = Counts.takeNext(stored, userId, cap, now, endsAt)
+			count = Counts.sold(if value ~= nil then value else stored)
+			return value
 		end)
 	end)
 	if not ok then
 		complain("taking a Limited copy", err)
 		return nil, "Error"
 	end
+	setSold(cueId, count)
 	if copy ~= nil then
-		setSold(cueId, copy)
 		return copy, nil
-	end
-	if reason == "SoldOut" and cap < math.huge then
-		setSold(cueId, cap)
 	end
 	return nil, reason or "Error"
 end
 
---- How many copies of a Limited cue are sold (the last read; 0 before it).
-function Counters.limitedSold(cueId: string): number
-	return sold[cueId] or 0
+--- How many copies of a Limited cue are handed out (the last read or take), or nil before
+--- this server has read it (unknown: callers never treat it as sold out, and the atomic
+--- counter refuses past the cap anyway).
+function Counters.limitedSold(cueId: string): number?
+	return sold[cueId]
 end
 
 -- A firsts key: a short non-empty string (DataStore keys are at most 50 characters).

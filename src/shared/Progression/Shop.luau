@@ -13,6 +13,11 @@
 -- Who changes what: offers, grantFor, packs and the state functions change nothing.
 -- markGrant and recordPurchase change the Shop save table they are given: the server calls
 -- them on the live save inside the ONE mutation that also adds the grant's money and cue.
+--
+-- A receipt is Robux already paid, and any client can prompt any product itself (the ids are
+-- public), so the offer windows and "once only" are checked again at the receipt
+-- (receiptCheck): a receipt that is not for this player now is never refused, it is paid as
+-- plain money instead (fallbackGrant, at the first pack's money per Robux).
 local Config = require(script.Parent.Parent.Config)
 
 local S = Config.Shop
@@ -78,7 +83,7 @@ export type Decision = "Granted" | "NotProcessedYet"
 export type ReceiptDeps = {
 	keyForId: (number) -> string?, -- a developer product id -> its Config.Products key
 	findPlayer: (number) -> any?, -- the Player with this UserId in this server, or nil
-	isLoaded: (any) -> boolean, -- their save is loaded
+	isLoaded: (any) -> boolean, -- their save is loaded (the server waits for one still loading)
 	hasPurchase: (any, string) -> boolean, -- the purchase id is in their save's Purchases
 	grant: (any, string, string) -> boolean, -- grants AND records the id in one save mutation
 	save: (any) -> boolean, -- asks the DataStore to save and waits (with a timeout)
@@ -252,15 +257,92 @@ local function limitedForProduct(key: string): LimitedRow?
 	return nil
 end
 
---- What buying developer product `key` gives this player now, or nil for a pass, an unknown
---- key, or a product that would give nothing (a receipt for it is left NotProcessedYet and
---- logged instead of taking Robux for nothing). It never refuses a real product because an
---- offer's window closed or it was bought before: a receipt is Robux already paid, and the
---- windows only gate the prompt. `_now` is kept for callers; nothing here depends on it yet.
-function Shop.grantFor(key: string, shopSave: ShopSave, _now: number): Grant?
+-- Whether a receipt at `now` still counts as bought inside a window that closes at `endsAt`:
+-- open, or closed less than OfferGraceSeconds ago (a prompt shown just before the end).
+local function inGrace(now: number, endsAt: number): boolean
+	return now < endsAt + S.OfferGraceSeconds
+end
+
+--- Why a receipt for developer product `key` at unix time `now` must not give what the product
+--- gives, or nil when it may. `vipPass` is whether the player owns the VIP game pass. "Owned":
+--- VIP already (the pass or the offer) for the VIP offer, the Starter Pack bought, a Robux
+--- Limited already in Shop.Limited. "Closed": the VIP offer outside both its welcome and its
+--- comeback window, the Starter Pack past its week (FirstJoin unknown: closed); each window
+--- counts OfferGraceSeconds longer here than at the prompt. Every other product: nil. A Robux
+--- Limited's window and cap are the server's Limited counter's.
+function Shop.receiptCheck(key: string, shopSave: ShopSave, now: number, vipPass: boolean): string?
+	local first = whole(shopSave.FirstJoin)
+	if key == VIP_OFFER then
+		if Shop.isVip(vipPass, shopSave) then
+			return "Owned"
+		end
+		local welcomeEnds = first + S.WelcomeSeconds
+		local comebackStarts = first + S.ComebackAfterSeconds
+		local comebackEnds = comebackStarts + S.ComebackSeconds
+		local welcome = first > 0 and inGrace(now, welcomeEnds)
+		local comeback = first > 0 and now >= comebackStarts and inGrace(now, comebackEnds)
+		if not (welcome or comeback) then
+			return "Closed"
+		end
+	elseif key == STARTER_PACK then
+		if shopSave.StarterBought == true then
+			return "Owned"
+		end
+		if not (first > 0 and inGrace(now, first + S.StarterSeconds)) then
+			return "Closed"
+		end
+	else
+		local limited = limitedForProduct(key)
+		local owned = shopSave.Limited
+		if limited ~= nil and type(owned) == "table" and owned[limited.Cue] ~= nil then
+			return "Owned"
+		end
+	end
+	return nil
+end
+
+--- The money a receipt for product `key` pays when it cannot give what the product gives
+--- (receiptCheck, or a Robux Limited sold out or ended): the product's Robux at the first
+--- money pack's money per Robux (PackOrder[1]: $900 for 49 R$), rounded down. 0 for a key
+--- with no Robux price.
+function Shop.fallbackMoney(key: string): number
+	local row = LIST[key]
+	local base = LIST[PACK_ORDER[1]]
+	if row == nil or base == nil or whole(base.Robux) <= 0 then
+		return 0
+	end
+	return math.max(0, whole(row.Robux) * whole(base.Money) // whole(base.Robux))
+end
+
+--- The plain money grant for a receipt that cannot give what product `key` gives: money only
+--- (Shop.fallbackMoney), no cue, no flags, not the first pack's double. nil when it is 0.
+function Shop.fallbackGrant(key: string): Grant?
+	local money = Shop.fallbackMoney(key)
+	if money <= 0 then
+		return nil
+	end
+	return { key = key, money = money }
+end
+
+--- What buying developer product `key` gives this player at unix time `now` (`vipPass`: they
+--- own the VIP game pass), and why it is the money fallback instead (receiptCheck's reason), or
+--- nil for a pass, an unknown key, or a product that would give nothing (a receipt for it is
+--- left NotProcessedYet and logged instead of taking Robux for nothing). A receipt is Robux
+--- already paid, so a product that is not for this player now (an offer closed, the Starter
+--- Pack or VIP had already) is never refused: it becomes Shop.fallbackGrant.
+function Shop.grantFor(
+	key: string,
+	shopSave: ShopSave,
+	now: number,
+	vipPass: boolean
+): (Grant?, string?)
 	local row = LIST[key]
 	if row == nil or row.Kind ~= "Product" then
-		return nil
+		return nil, nil
+	end
+	local notFor = Shop.receiptCheck(key, shopSave, now, vipPass)
+	if notFor ~= nil then
+		return Shop.fallbackGrant(key), notFor
 	end
 	local grant: Grant = { key = key, money = math.max(0, whole(row.Money)) }
 	-- The first money pack ever pays FirstPackMultiplier times its money, once (11.1).
@@ -296,9 +378,9 @@ function Shop.grantFor(key: string, shopSave: ShopSave, _now: number): Grant?
 		and not grant.party
 		and grant.limited == nil
 	then
-		return nil
+		return nil, nil
 	end
-	return grant
+	return grant, nil
 end
 
 --- Sets the Shop save's flags a grant carries (VipOffer, VipCueGiven, FirstPackBought,
@@ -322,16 +404,16 @@ end
 -- Money Party (11.5)
 ---------------------------------------------------------------------------------------------
 
---- When the server's Money Party ends after one more purchase at `now`: PartySeconds more
---- from the later of now and the current end, but never more than PartyMaxSeconds past now,
---- and never earlier than it already ended (a paid purchase never cuts time).
+--- When the server's Money Party ends after one more paid purchase at `now`: its full
+--- PartySeconds more from the later of now and the current end. A receipt is Robux already
+--- paid, so it is never cut short: the PartyMaxSeconds cap is only on the prompt
+--- (canQueueParty), and two buyers at once or a slow prompt may queue a little past it.
 function Shop.partyEndsAt(currentEndsAt: number, now: number): number
-	local from = math.max(now, currentEndsAt)
-	return math.max(currentEndsAt, math.min(from + S.PartySeconds, now + S.PartyMaxSeconds))
+	return math.max(now, currentEndsAt) + S.PartySeconds
 end
 
---- Whether a Money Party bought now would add its full PartySeconds (the queue has room), so
---- the shop can stop offering it when the hour is full.
+--- Whether a Money Party bought now would stay within PartyMaxSeconds queued (the queue has
+--- room for its full PartySeconds), so the shop can stop offering it when the hour is full.
 function Shop.canQueueParty(currentEndsAt: number, now: number): boolean
 	return math.max(now, currentEndsAt) + S.PartySeconds <= now + S.PartyMaxSeconds
 end
@@ -438,9 +520,9 @@ end
 
 --- The ProcessReceipt decision for one receipt ({ PlayerId, ProductId, PurchaseId }):
 --- "Granted" or "NotProcessedYet" (the server maps it to Enum.ProductPurchaseDecision).
---- Unknown product, player not here, save not loaded, grant failed, save failed, or any error
---- thrown by a dep: "NotProcessedYet", and Roblox retries later. A purchase id already in the
---- save is never granted again.
+--- Unknown product, player not here, save not loaded (after the server's wait), grant failed,
+--- save failed, or any error thrown by a dep: "NotProcessedYet", and Roblox retries later. A
+--- purchase id already in the save is never granted again.
 function Shop.processReceipt(deps: ReceiptDeps, receipt: Receipt): Decision
 	local function say(message: string)
 		local log = deps.log

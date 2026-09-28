@@ -236,7 +236,9 @@ local function mirrorSale()
 	ReplicatedStorage:SetAttribute(SALE_ATTR.EndsAt, if current then current.EndsAt else nil)
 end
 
--- A sale's own check: a case sold in the shop, a whole percent 1..99 off, an end in the future.
+-- A sale's own check: a case sold in the shop, a whole percent 1..Config.Cases.MaxSalePercent
+-- off (past it, buying cases and selling back what they drop would make money), an end in the
+-- future.
 local function validSale(caseId: any, percent: any, endsAt: any, now: number): boolean
 	local case = Cases.get(caseId)
 	return case ~= nil
@@ -244,7 +246,7 @@ local function validSale(caseId: any, percent: any, endsAt: any, now: number): b
 		and type(percent) == "number"
 		and percent == math.floor(percent)
 		and percent >= 1
-		and percent <= 99
+		and percent <= Config.Cases.MaxSalePercent
 		and type(endsAt) == "number"
 		and endsAt == endsAt
 		and endsAt > now
@@ -281,7 +283,8 @@ end
 
 --- The /sale dev command: `percent` off case `caseId` until `endsAt` (unix), replacing any
 --- sale; a nil or "" caseId ends the sale. True when done; false (logged) for a case not sold
---- in the shop, a percent that is not a whole 1..99, or an end not in the future.
+--- in the shop, a percent that is not a whole 1..Config.Cases.MaxSalePercent, or an end not in
+--- the future.
 function Items.setSale(caseId: string?, percent: number?, endsAt: number?): boolean
 	if caseId == nil or caseId == "" then
 		applySale(nil)
@@ -432,20 +435,23 @@ function HANDLERS.BuyLimited(player: Player, r: Requests.Request): Reply
 	if why then
 		return refuse(why)
 	end
-	-- The money is checked before a number is taken, and taken only after one is given.
+	-- The money is checked before a number is taken, and taken only after one is given. The
+	-- number is this player's for good (the counter remembers who got it), so a buy that does
+	-- not land (they left while it was taken) gets the same number on a retry or a rejoin.
 	if data.Money < price then
 		return refuse("NotEnoughMoney", { need = price - data.Money, price = price })
 	end
-	local copy, reason = Counters.takeLimited(cueId, row.Cap or Config.Save.CopyNumberCap, endsAt)
+	local copy, reason =
+		Counters.takeLimited(cueId, player.UserId, row.Cap or Config.Save.CopyNumberCap, endsAt)
 	if copy == nil then
 		return refuse(reason or "Error")
 	end
 	if not PlayerData.buyLimited(player, cueId, copy, price) then
 		warn(
-			("[8ball] Items: %s copy #%d is burned: %s's buy failed after the number was taken"):format(
+			("[8ball] Items: %s's buy of %s copy #%d failed after the number was taken; it stays theirs for a retry"):format(
+				who(player),
 				cueId,
-				copy,
-				who(player)
+				copy
 			)
 		)
 		return refuse("Error")
@@ -503,7 +509,8 @@ end
 --   "setRestricted", userId, on        -> as /policy
 --   "sale" / "setSale", caseId?, percent, endsAt
 --   "copies", cueId / "limitedSold", cueId / "flush" / "refresh"
---   "takeLimited", cueId, cap, endsAt  -> copy, reason (a real number in the Studio store)
+--   "takeLimited", cueId, userId, cap, endsAt -> copy, reason (a real number in the Studio
+--                                      store, recorded under that userId)
 --   "claimFirst", key, userId / "first", key
 --   "unbox", userId, cueId / "reyes", userId / "party", endsAt, name
 local function startQA()
@@ -548,7 +555,7 @@ local function startQA()
 		elseif op == "refresh" then
 			return Counters.refresh()
 		elseif op == "takeLimited" then
-			return Counters.takeLimited(a, b, c)
+			return Counters.takeLimited(a, b, c, d)
 		elseif op == "claimFirst" then
 			return Counters.claimFirst(a, b)
 		elseif op == "first" then

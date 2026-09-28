@@ -11,8 +11,8 @@
 --
 -- This module builds the frame (MenuFrame), registers it with Menus and gives the pages what
 -- they share (the `ctx` table): the server's snapshot (ItemState "Items"; every page redraws
--- from ItemState.Changed.Items), requests (ItemState.request("ItemRequest", ...), waiting for
--- one already on its way, a button disabled while its own is out), the money flying out of a
+-- from ItemState.Changed.Items), requests (ItemState.request("ItemRequest", ...), which waits
+-- for one already on its way; a button disabled while its own is out), the money flying out of a
 -- button into the header's cash (the kit's CashFlyer drawn over this menu; the money HUD
 -- under it counts too), notices (a refusal: MenuFrame.reason in red), the confirm dialog, and
 -- the gamepad's selection (a sensible stop when a page opens or a redraw takes the selected
@@ -108,13 +108,9 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 		return node == frame.gui
 	end
 
-	--- Ask the server (ids and counts only). Waits a moment for another ItemRequest of this
-	--- player's to come back first (ItemState would answer Busy). Never errors.
+	--- Ask the server (ids and counts only). Another ItemRequest of this player's on its way
+	--- goes first (ItemState waits for it). Never errors.
 	function ctx.request(action: string, a: any?, b: any?): ItemState.Reply
-		local waited = 0
-		while ItemState.isBusy("ItemRequest") and waited < I.RequestWaitSeconds do
-			waited += task.wait(I.RequestPollSeconds)
-		end
 		return ItemState.request("ItemRequest", action, a, b)
 	end
 
@@ -225,10 +221,15 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 	end
 
 	--- Put a gamepad somewhere sensible when its selection is gone or hidden (a page opened,
-	--- a redraw took the selected button away). Never while a dialog is up.
+	--- a redraw took the selected button away, the case opening over it closed). Never while a
+	--- dialog or the case opening is up.
 	function ctx.ensureSelection()
 		if not frame:isOpen() or #frame.dialogs > 0 or not isGamepad() then
 			return
+		end
+		local opener = deps.caseOpening
+		if opener and opener:isOpen() then
+			return -- its own buttons have the gamepad; this runs again as it closes
 		end
 		local selected = GuiService.SelectedObject
 		if selected ~= nil then
@@ -396,6 +397,8 @@ function InventoryMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return frame:isOpen()
 		end,
 		root = frame.root,
+		ensureSelection = ctx.ensureSelection,
+		notice = ctx.notice,
 	}
 	Menus.register(NAME, handle)
 	return handle

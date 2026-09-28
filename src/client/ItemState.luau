@@ -15,9 +15,11 @@
 -- Every reader here is tolerant: a field that is missing or the wrong type reads as empty.
 --
 -- Requests (RemoteFunctions ItemRequest, StoreRequest, RewardRequest): ItemState.request never
--- errors; a failed or timed-out call answers { ok = false, reason = "Network" }, and a second
--- request on the same remote while one is on its way answers { ok = false, reason = "Busy" }
--- without sending anything (a double tap never buys twice).
+-- errors; a failed or timed-out call answers { ok = false, reason = "Network" }. One request per
+-- remote is on its way at a time: a second one waits for the first to come back, then goes (at
+-- most the request timeout; past that it answers { ok = false, reason = "Busy" } without
+-- sending anything). A double tap never buys twice because each caller keeps its own button
+-- off while its request is out.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -115,13 +117,20 @@ end
 
 --- Ask the server: `remoteName` is "ItemRequest", "StoreRequest" or "RewardRequest", then the
 --- action and its arguments as Net.luau describes them (ids and counts only). Yields until the
---- answer; never errors. The reply always has `ok`, and `reason` whenever ok is false.
+--- answer (after the one already on its way on this remote, if any); never errors. The reply
+--- always has `ok`, and `reason` whenever ok is false.
 function ItemState.request(remoteName: string, action: string, a: any?, b: any?): Reply
 	if not REQUESTS[remoteName] then
 		return failed("Network")
 	end
-	if inFlight[remoteName] then
-		return failed("Busy")
+	-- Another request on this remote is on its way (a Sell, a MarkSeen): wait for it. It
+	-- always comes back within the timeout, so this waits no longer than that.
+	local waited = 0
+	while inFlight[remoteName] do
+		if waited >= Config.UI.Menu.RequestTimeoutSeconds then
+			return failed("Busy")
+		end
+		waited += task.wait(Config.UI.Menu.RequestPollSeconds)
 	end
 	inFlight[remoteName] = true
 	local got, remote = pcall(Net.get, remoteName)
@@ -231,6 +240,26 @@ end
 function ItemState.everOwned(id: string): boolean
 	local items = latest.Items
 	return table.find(list(items and items.seen), id) ~= nil
+end
+
+--- Whether an Index row (a snapshot `rows` entry) is complete with its reward not claimed yet.
+function ItemState.indexRowReady(row: any): boolean
+	return type(row) == "table"
+		and row.complete == true
+		and row.claimed ~= true
+		and type(row.reward) == "table"
+end
+
+--- Whether any Index row can be claimed now (the Inventory's Index tab claims it; the server's
+--- RewardReady, the Rewards tile's dot, counts it too).
+function ItemState.indexReady(): boolean
+	local items = latest.Items
+	for _, row in list(items and items.rows) do
+		if ItemState.indexRowReady(row) then
+			return true
+		end
+	end
+	return false
 end
 
 --------------------------------------------------------------------------------------------

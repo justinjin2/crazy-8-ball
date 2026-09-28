@@ -8,7 +8,11 @@
 --     today's tile with a gold edge and a soft gold glow, its green Claim button breathing
 --     while it can be claimed;
 --   * a line under them: "Week 1 of 4: a Legendary Case on day 28", and once today is claimed
---     "Next reward in 5:12:03" (to the next UTC midnight, the server's resetsAt).
+--     "Next reward in 5:12:03" (to the next UTC midnight, the server's resetsAt);
+--   * while an Index row's reward waits (the Rewards tile's dot counts it, but only the
+--     Inventory's Index tab claims it), a banner over the tiles: "An Index reward is ready!" and
+--     Open Index (ctx.openIndex). On a phone it takes the line under the tiles' room, so the
+--     tiles keep their size; the line comes back once the reward is claimed.
 -- The server decides everything (a missed day starts again at day 1); this only draws its
 -- state. Claim calls ctx.claim("ClaimDaily", nil, "Daily", button) (RewardsMenu).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -43,11 +47,20 @@ type Tile = {
 	big: boolean, -- the last day: spans the rest of its row, rays behind its prize
 }
 
+-- The Index banner over the tiles.
+type Banner = {
+	root: Frame,
+	card: RewardsParts.Card,
+	icon: ImageLabel,
+	words: TextLabel,
+	open: TextButton,
+}
+
 local RewardsDaily = {}
 RewardsDaily.__index = RewardsDaily
 
 --- The Daily tab in `page` (a MenuFrame page). `ctx` is RewardsMenu's: claim(action, arg,
---- key, button) and busy(key).
+--- key, button), busy(key), indexReady() and openIndex().
 function RewardsDaily.new(page: Frame, ctx: any): any
 	local self: any = setmetatable({}, RewardsDaily)
 	self.page = page
@@ -61,7 +74,31 @@ function RewardsDaily.new(page: Frame, ctx: any): any
 	self.footer = RewardsParts.footer(page, "Footer", 3)
 	self.footerH = 0
 	self.dayCount = 0
+	self.banner = self:buildBanner()
 	return self
+end
+
+-- The Index banner (hidden until an Index reward waits): the Index picture, the line and Open
+-- Index, on a white card with today's gold edge.
+function RewardsDaily.buildBanner(self: any): Banner
+	local root = HudParts.frame(self.page, "IndexBanner")
+	root.ZIndex = 3
+	root.Visible = false
+	local card = RewardsParts.card(root, "Card", 3)
+	RewardsParts.setEdge(card, "Gold", R.IndexBannerStrokePx)
+	local icon = HudParts.icon(root, "Index", "Icon")
+	icon.ZIndex = 5
+	local words = HudParts.text(root, "Words", R.IndexBannerTextPx[2], W.IndexReady)
+	words.TextWrapped = false
+	words.TextXAlignment = Enum.TextXAlignment.Left
+	words.ZIndex = 5
+	local open = HudParts.candy(root, W.OpenIndex, function()
+		self.ctx.openIndex()
+	end, "Blue")
+	open.Name = "OpenIndex"
+	open.ZIndex = 6
+	HudParts.setMinHit(open, R.TouchPx)
+	return { root = root, card = card, icon = icon, words = words, open = open }
 end
 
 -- One day's tile (made once, reused as the state changes).
@@ -182,6 +219,7 @@ function RewardsDaily.set(self: any, state: any)
 		self.tiles[index].root.Visible = false
 		self.tiles[index].claimable = false
 	end
+	self.banner.root.Visible = self.ctx.indexReady()
 	self:refreshFooter()
 	self:refreshPulse()
 	if self.geo then
@@ -243,22 +281,28 @@ function RewardsDaily.setActive(self: any, on: boolean)
 	self:refreshPulse()
 end
 
---- Whether today can be claimed (the tab's red dot).
+--- Whether today can be claimed, or the Index banner shows (the tab's red dot; the menu opens
+--- here).
 function RewardsDaily.claimable(self: any): boolean
 	for _, tile in self.tiles do
 		if tile.claimable and tile.root.Visible then
 			return true
 		end
 	end
-	return false
+	return self.banner.root.Visible
 end
 
---- Where a gamepad lands on this tab: today's Claim, while it can be pressed.
+--- Where a gamepad lands on this tab: today's Claim while it can be pressed, else the Index
+--- banner's Open Index.
 function RewardsDaily.primary(self: any): GuiObject?
 	for _, tile in self.tiles do
 		if tile.claimable and tile.root.Visible and tile.claim.Selectable then
 			return tile.claim
 		end
+	end
+	local open = self.banner.open
+	if self.banner.root.Visible and open.Selectable then
+		return open
 	end
 	return nil
 end
@@ -314,15 +358,50 @@ local function layoutTile(tile: Tile, w: number, h: number, t: number)
 	tile.check.Position = UDim2.fromOffset(w - round(pad / 2), round(pad / 2))
 end
 
+-- Lay the Index banner out `w` x `h` pixels at the top of the page: the picture on the left,
+-- Open Index on the right, the line between them.
+local function layoutBanner(banner: Banner, w: number, h: number, t: number)
+	banner.root.Position = UDim2.fromOffset(0, 0)
+	banner.root.Size = UDim2.fromOffset(w, h)
+	local pad = span(R.IndexBannerPadPx, t)
+	local inner = math.max(1, h - 2 * pad)
+	local textPx = span(R.IndexBannerTextPx, t)
+	local buttonText = math.max(K.Text.Min, math.min(textPx, inner - 12))
+	HudParts.setButtonTextSize(banner.open, buttonText)
+	local buttonW =
+		math.min(math.floor(w / 2), HudParts.candyWidth(banner.open, inner, buttonText) + 2 * pad)
+	banner.open.Position = UDim2.fromOffset(w - pad - buttonW, pad)
+	banner.open.Size = UDim2.fromOffset(buttonW, inner)
+	banner.icon.Position = UDim2.fromOffset(2 * pad, pad)
+	banner.icon.Size = UDim2.fromOffset(inner, inner)
+	local x = 2 * pad + inner + 2 * pad
+	HudParts.setTextSize(banner.words, textPx)
+	banner.words.Position = UDim2.fromOffset(x, 0)
+	banner.words.Size = UDim2.fromOffset(math.max(1, w - pad - buttonW - 2 * pad - x), h)
+end
+
 --- Size and place everything from the menu's layout (MenuFrame's onLayout geo).
 function RewardsDaily.layout(self: any, geo: any)
 	self.geo = geo
 	local width, height = geo.content.X, geo.content.Y
 	local t = geo.t
-	local footerH = RewardsParts.layoutFooter(self.footer, width, height, span(R.FooterTextPx, t))
-	self.footerH = footerH
 	local gap = span(R.TileGapPx, t)
-	local gridH = height - (if footerH > 0 then footerH + gap else 0)
+	-- The Index banner on top; on a phone it takes the footer line's room.
+	local bannerH = 0
+	if self.banner.root.Visible then
+		bannerH = span(R.IndexBannerPx, t)
+		layoutBanner(self.banner, width, bannerH, t)
+	end
+	local footerH = 0
+	if bannerH > 0 and geo.short then
+		self.footer.left.Visible = false
+		self.footer.right.Visible = false
+	else
+		footerH = RewardsParts.layoutFooter(self.footer, width, height, span(R.FooterTextPx, t))
+	end
+	self.footerH = footerH
+	local above = if bannerH > 0 then bannerH + gap else 0
+	local gridH = height - above - (if footerH > 0 then footerH + gap else 0)
 	local shown: { Tile } = {}
 	for _, tile in self.tiles do
 		if tile.root.Visible then
@@ -345,7 +424,7 @@ function RewardsDaily.layout(self: any, geo: any)
 		local cells = if index == n then cols - col else 1
 		local x = round(col * (cellW + gap))
 		local w = round(cellW * cells + gap * (cells - 1))
-		local y = top + row * (rowH + gap)
+		local y = above + top + row * (rowH + gap)
 		tile.root.Position = UDim2.fromOffset(x, y)
 		tile.root.Size = UDim2.fromOffset(w, rowH)
 		layoutTile(tile, w, rowH, t)

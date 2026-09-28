@@ -5,19 +5,25 @@
 -- logic) and Progression/ShopView (the ShopState payload and the Buy check).
 --
 -- - ProcessReceipt: one handler, Shop.processReceipt with this server's functions. Player not
---   here or save not loaded: NotProcessedYet. A purchase id already in the save: Granted once
---   its save is written. Otherwise the grant and the id go into the save in ONE PlayerData
---   mutation (applyPurchase), then PlayerData.saveNow waits for a save holding the id, and only
---   then PurchaseGranted. A Robux Limited (the Founder's Cue) takes its copy number from
---   Counters.takeLimited first; sold out, ended, already owned or a counter error leave the
---   receipt NotProcessedYet (logged) rather than acknowledging a purchase that gave nothing;
---   Roblox keeps retrying it.
+--   here: NotProcessedYet. A save still loading (Roblox re-offers receipts on join) is waited
+--   for (PlayerData.waitLoaded, Config.Save.LoadTimeoutSeconds); one handed off for a teleport
+--   is not. A purchase id already in the save: Granted once its save is written. Otherwise the
+--   grant and the id go into the save in ONE PlayerData mutation (applyPurchase), then
+--   PlayerData.saveNow waits for a save holding the id, and only then PurchaseGranted.
+-- - A receipt is Robux already paid and any client can prompt any product itself, so what it
+--   gives is decided again at the receipt (Shop.grantFor): an offer outside its window (plus
+--   Config.Shop.OfferGraceSeconds), VIP or the Starter Pack had already, pays plain money
+--   instead (Shop.fallbackGrant), logged. A Robux Limited (the Founder's Cue) takes this
+--   player's copy number from Counters.takeLimited first (Config.Shop.LimitedReceiptGraceSeconds
+--   past its end); already owned, sold out, ended or not started pay the money fallback too
+--   (logged), while a counter error, a busy retry or a save not loaded leave the receipt
+--   NotProcessedYet for Roblox to retry.
 -- - Game passes (Vip, FastOpen): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
---   is never owned) and PromptGamePassPurchaseFinished (on a live server checked with
---   UserOwnsGamePassAsync before it counts, since the event alone is not proof; in Studio it
---   counts at once, as test purchases never show as owned). VIP = owns the pass OR bought the
---   welcome offer: the player attributes Vip and FastOpen (the money and XP boosts, the chat
---   tag and the case opening read them), and the VIP Cue once (PlayerData.giveVipCue).
+--   is never owned), and PromptGamePassPurchaseFinished with wasPurchased counts the pass for
+--   the session at once (Roblox fires it on the server; UserOwnsGamePassAsync may still answer
+--   false from its cache right after a purchase). VIP = owns the pass OR bought the welcome
+--   offer: the player attributes Vip and FastOpen (the money and XP boosts, the chat tag and
+--   the case opening read them), and the VIP Cue once (PlayerData.giveVipCue).
 -- - The Money Party is this server's: workspace attributes MoneyPartyEndsAt (unix) and
 --   MoneyPartyBuyer (a username), Announce.party on every purchase; cleared when it ends.
 -- - StoreRequest "Buy" (a Config.Products key): checked (ShopView.check), then this server
@@ -57,6 +63,11 @@ local ATTR = {
 local LIMITED_SOLD = "LimitedSold"
 -- A dev grant's purchase id starts with this (never a Roblox receipt's).
 local DEV_PREFIX = "Dev-"
+-- The product whose grant depends on the VIP pass (Shop.receiptCheck).
+local VIP_OFFER = "VipOffer"
+-- Why a Robux Limited's copy could not be taken that may pass on a later try: the receipt stays
+-- NotProcessedYet. Any other reason is for good, and the receipt pays the money fallback.
+local TRANSIENT: { [string]: boolean } = { Busy = true, Error = true, NotLoaded = true }
 
 -- The game pass keys (Kind "Pass"), sorted.
 local PASS_KEYS: { string } = {}
@@ -276,7 +287,8 @@ local function checkPasses(player: Player)
 			end
 			local answer = askPass(player, key)
 			if answer ~= nil then
-				owned[key] = answer
+				-- A purchase counted meanwhile stays counted (Roblox's answer may be cached).
+				owned[key] = answer or owned[key] == true
 				break
 			elseif try == S.PassCheckTries then
 				log(
@@ -296,45 +308,36 @@ local function checkPasses(player: Player)
 	end
 end
 
--- A pass purchase finished in this server: counted once Roblox confirms the ownership (the
--- event alone is not proof on a live server). In Studio a test purchase never shows in
--- UserOwnsGamePassAsync, so there the event counts for the session.
+-- A pass purchase finished in this server: counted for the session at once. Roblox fires
+-- PromptGamePassPurchaseFinished on the server itself (its own game pass guide grants on it),
+-- while UserOwnsGamePassAsync may answer false from its cache for a while after a purchase;
+-- the join check asks again next session.
 local function onPassPurchase(player: Player, passId: number, purchased: boolean)
-	if not purchased then
+	if not purchased or not present(player) then
 		return
 	end
 	local key = Shop.passKeyForId(passId)
 	if key == nil then
 		return
 	end
-	local function count()
-		local owned = passOwned[player] or {}
-		passOwned[player] = owned
-		owned[key] = true
-		mark(player)
-	end
-	if IS_STUDIO then
-		count()
-		return
-	end
-	for try = 1, S.PassCheckTries do
-		if not present(player) then
+	local owned = passOwned[player] or {}
+	passOwned[player] = owned
+	owned[key] = true
+	mark(player)
+end
+
+-- A VIP offer receipt re-offered at join waits for the join's VIP pass answer (a pass owner's
+-- receipt pays the money fallback), up to Config.Shop.ReceiptPassWaitSeconds; after that the
+-- pass counts as not owned, as when the join check fails.
+local function waitVipPassCheck(player: Player)
+	local deadline = os.clock() + S.ReceiptPassWaitSeconds
+	while present(player) and os.clock() < deadline do
+		local owned = passOwned[player]
+		if passChecked[player] or (owned ~= nil and owned.Vip ~= nil) then
 			return
 		end
-		if askPass(player, key) == true then
-			count()
-			return
-		end
-		if try < S.PassCheckTries then
-			task.wait(S.PassRetrySeconds)
-		end
+		task.wait()
 	end
-	log(
-		("pass %s for %d not confirmed by Roblox; checked again on the next join"):format(
-			key,
-			player.UserId
-		)
-	)
 end
 
 ---------------------------------------------------------------------------------------------
@@ -349,8 +352,8 @@ local function setParty(endsAt: number, buyer: string?)
 	markAll()
 end
 
--- One more Money Party purchase by `buyer` (Shop.partyEndsAt: 15 more minutes, at most an hour
--- queued), announced to everyone here. Returns the new end.
+-- One more Money Party purchase by `buyer` (Shop.partyEndsAt: its full 15 more minutes; the
+-- hour cap is only on the prompt), announced to everyone here. Returns the new end.
 local function addParty(buyer: Player): number
 	local now = os.time()
 	local current = if partyEndsAt > now then partyEndsAt else 0
@@ -365,8 +368,12 @@ end
 ---------------------------------------------------------------------------------------------
 
 -- A Robux Limited's copy number for this purchase: one kept from an earlier try in this
--- server, else the next one from the shared counter (yields). nil and a reason when none.
-local function copyFor(cueId: string, purchaseId: string): (number?, string?)
+-- server, else this player's from the shared counter (yields): the number they were given
+-- before (a try in another server), else the next one. A receipt still takes a new one
+-- LimitedReceiptGraceSeconds past the Limited's end (a prompt confirmed just before it). nil
+-- and a reason when none: "Busy", "Error" (try again later), "Unknown", "Closed" (not
+-- started), "Ended", "SoldOut" (for good).
+local function copyFor(cueId: string, userId: number, purchaseId: string): (number?, string?)
 	local kept = pendingCopies[purchaseId]
 	if kept ~= nil then
 		return kept, nil
@@ -385,8 +392,9 @@ local function copyFor(cueId: string, purchaseId: string): (number?, string?)
 	local ok, copy, why = pcall(
 		Counters.takeLimited,
 		cueId,
+		userId,
 		row.Cap or Config.Save.CopyNumberCap,
-		row.StartsAt + row.Seconds
+		row.StartsAt + row.Seconds + S.LimitedReceiptGraceSeconds
 	)
 	takingCopy[purchaseId] = nil
 	if not ok then
@@ -399,37 +407,71 @@ local function copyFor(cueId: string, purchaseId: string): (number?, string?)
 	return copy, nil
 end
 
+local function ownsLimited(data: any, cueId: string): boolean
+	return data.Shop.Limited[cueId] ~= nil or Inventory.owns(data, cueId)
+end
+
 -- Grants developer product `key` to `player` and records `purchaseId`, in one PlayerData
--- mutation (Shop.processReceipt's `grant`). True once granted (now, or by a concurrent try of
--- the same receipt); false and a reason otherwise (the receipt stays NotProcessedYet).
+-- mutation (Shop.processReceipt's `grant`). What it gives is decided now (Shop.grantFor, and
+-- the Limited counter for a Robux Limited); a receipt that cannot give its product pays the
+-- money fallback, logged. True once granted (now, or by a concurrent try of the same
+-- receipt); false and a reason otherwise (the receipt stays NotProcessedYet).
 local function grantProduct(player: Player, key: string, purchaseId: string): (boolean, string?)
+	if key == VIP_OFFER then
+		waitVipPassCheck(player)
+	end
 	local data = PlayerData.read(player)
-	if data == nil then
+	if data == nil or not ready(player) then
 		return false, "NotLoaded"
 	end
-	local grant = Shop.grantFor(key, data.Shop, os.time())
+	local grant, notFor = Shop.grantFor(key, data.Shop, os.time(), owns(player, "Vip"))
 	if grant == nil then
 		return false, "Unknown"
 	end
 	local copy: number? = nil
 	local limited = grant.limited
 	if limited ~= nil then
-		if data.Shop.Limited[limited] ~= nil or Inventory.owns(data, limited) then
-			return false, "Owned"
+		local why: string? = if ownsLimited(data, limited) then "Owned" else nil
+		if why == nil then
+			local number, reason = copyFor(limited, player.UserId, purchaseId)
+			-- The counter yielded: the player may have left, or another try granted it meanwhile.
+			if PlayerData.hasPurchase(player, purchaseId) then
+				pendingCopies[purchaseId] = nil
+				return true, nil
+			end
+			data = PlayerData.read(player)
+			if data == nil or not ready(player) then
+				return false, "NotLoaded"
+			end
+			if number == nil then
+				why = reason or "Error"
+			elseif ownsLimited(data, limited) then
+				why = "Owned" -- another receipt gave it meanwhile (the same number: theirs)
+			else
+				copy = number
+			end
 		end
-		local number, why = copyFor(limited, purchaseId)
-		if number == nil then
-			return false, why
-		end
-		copy = number
-		-- The counter yielded: the player may have left, or another try granted it meanwhile.
-		if PlayerData.hasPurchase(player, purchaseId) then
+		if why ~= nil then
+			if TRANSIENT[why] then
+				return false, why
+			end
 			pendingCopies[purchaseId] = nil
-			return true, nil
+			grant, notFor = Shop.fallbackGrant(key), why
+			if grant == nil then
+				return false, "Unknown"
+			end
 		end
-		if not ready(player) then
-			return false, "NotLoaded"
-		end
+	end
+	if notFor ~= nil then
+		log(
+			("receipt %s: %s is not for %d now (%s); paid as $%d instead"):format(
+				purchaseId,
+				key,
+				player.UserId,
+				notFor,
+				grant.money
+			)
+		)
 	end
 	-- The copies in existence: a granted cue (the Starter Cue, a Limited) counts once it lands.
 	local cueBefore = if grant.cue ~= nil then Inventory.count(data, grant.cue) else 0
@@ -441,7 +483,7 @@ local function grantProduct(player: Player, key: string, purchaseId: string): (b
 	if grant.cue ~= nil and after ~= nil and Inventory.count(after, grant.cue) > cueBefore then
 		Counters.add(grant.cue, 1)
 	end
-	if limited ~= nil then
+	if limited ~= nil and copy ~= nil then
 		Counters.add(limited, 1)
 	end
 	if grant.party then
@@ -475,6 +517,12 @@ local function runReceipt(receipt: Shop.Receipt, key: string?): (Shop.Decision, 
 			return player
 		end,
 		isLoaded = function(player: any): boolean
+			-- Roblox re-offers a receipt as the player joins, while their save is still
+			-- loading: wait for it (Config.Save.LoadTimeoutSeconds, waitLoaded's default), but
+			-- never for a save handed off for a teleport.
+			if not PlayerData.isHandedOff(player) and not PlayerData.isLoaded(player) then
+				PlayerData.waitLoaded(player)
+			end
 			local loaded = ready(player)
 			if not loaded then
 				why = "NotLoaded"
@@ -584,10 +632,11 @@ end
 
 --- Dev (/buy): grants Config.Products key `key` exactly as a receipt would (the same
 --- Shop.processReceipt, grant, record and save), with `purchaseId` or a new fake one, so the
---- same id grants once. A pass key turns that pass on (Store.setPass). Yields until the save.
---- Returns (true) or (false, reason): "Unknown" (no such key), "NotLoaded", "Owned" (a Limited
---- already owned), "SoldOut", "Ended", "Closed", "Busy", "Error" (the Limited counter),
---- "Failed" (the mutation refused), "SaveFailed".
+--- same id grants once. A product that is not for this player now (an offer closed, VIP or the
+--- Starter Pack had, a Limited owned, sold out or ended) pays the money fallback, as a real
+--- receipt does. A pass key turns that pass on (Store.setPass). Yields until the save.
+--- Returns (true) or (false, reason): "Unknown" (no such key), "NotLoaded", "Busy", "Error"
+--- (the Limited counter), "Failed" (the mutation refused), "SaveFailed".
 function Store.grant(player: Player, key: string, purchaseId: string?): (boolean, string?)
 	if typeof(player) ~= "Instance" or not player:IsA("Player") then
 		return false, "BadRequest"

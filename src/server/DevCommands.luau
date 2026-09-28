@@ -481,10 +481,21 @@ local ECON: { string } = {
 }
 
 -- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
--- cue it hands out but the rank tier cues, which a rank-up gives without counting (Ranking).
+-- cue but Classic (case cues, the Exclusive tier cues a rank-up gives (Ranking), the Starter
+-- and VIP cues (Store), the Limited ones).
 local function counted(id: string): boolean
 	local cue = Catalog.get(id)
-	return cue ~= nil and cue.Group ~= "Default" and cue.Tier == nil
+	return cue ~= nil and cue.Group ~= "Default"
+end
+
+-- Takes the copies a save no longer holds out of the counts: every counted cue row of
+-- `snapshot` (PlayerData.snapshot, read before the save was emptied).
+local function uncount(snapshot: Inventory.Snapshot)
+	for _, row in snapshot.cues do
+		if counted(row.id) then
+			Counters.add(row.id, -row.count)
+		end
+	end
 end
 
 -- Gives `copies` of each cue in `ids` (distinct ids; one reward per Config.Save.MaxSmallEntries
@@ -681,11 +692,7 @@ local function clearInventory(player: Player)
 		tell(player, Dev.NotLoaded)
 		return
 	end
-	for _, row in snapshot.cues do
-		if counted(row.id) then
-			Counters.add(row.id, -row.count)
-		end
-	end
+	uncount(snapshot)
 	tell(player, Dev.Cleared)
 end
 
@@ -779,7 +786,8 @@ local function pass(key: string): (Player, { string }) -> ()
 	end
 end
 
--- /sale <case> <percent> <minutes>, or /sale off.
+-- /sale <case> <percent> <minutes>, or /sale off. The percent is at most
+-- Config.Cases.MaxSalePercent (a deeper sale would pay to buy, open and sell back).
 local function sale(player: Player, args: { string })
 	if args[1] == "off" and #args == 1 then
 		Items.setSale(nil)
@@ -787,7 +795,7 @@ local function sale(player: Player, args: { string })
 		return
 	end
 	local caseId = findCase({ args[1] or "" })
-	local percent = wholeIn(args[2], 1, 99)
+	local percent = wholeIn(args[2], 1, Config.Cases.MaxSalePercent)
 	local minutes = wholeIn(args[3], 1, D.MaxSaleMinutes)
 	if caseId == nil or percent == nil or minutes == nil then
 		try(player, "Sale")
@@ -880,7 +888,14 @@ function DevCommands.start()
 	command("Result", D.Result, previewResult)
 	command("NewRank", D.NewRank, previewNewRank)
 	command("ResetData", D.ResetData, function(player)
-		tell(player, if PlayerData.reset(player) then Dev.Reset else Dev.NotLoaded)
+		-- A new player's save holds only Classic: the cues it held leave the counts.
+		local snapshot = PlayerData.snapshot(player)
+		if not snapshot or not PlayerData.reset(player) then
+			tell(player, Dev.NotLoaded)
+			return
+		end
+		uncount(snapshot)
+		tell(player, Dev.Reset)
 	end)
 	command("RankHelp", D.RankHelp, function(player)
 		tell(player, Dev.Help)

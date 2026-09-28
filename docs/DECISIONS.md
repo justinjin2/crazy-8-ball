@@ -1740,3 +1740,25 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   column shows while a case or cue flies to it; the ROOKIE pill hangs under the XP bar's right
   end; VIP names get a rainbow sweep now and then; chat lines for unboxings and Reyes post at
   once, even during a match. Rank cues count in the copies in existence too.
+- 2026-09-28 (overnight assumption, from the audit): a Robux receipt is checked again when it
+  arrives, since a client can open any product's purchase box itself. A VIP offer bought when
+  already VIP or outside its windows, a second Starter Pack, and a Founder's Cue that sold
+  out, ended or is already owned pay money instead, at the first pack's rate (Robux x 900 / 49:
+  VIP offer $5,491, Starter Pack $1,451, Founder's $27,532), logged; nobody pays for nothing.
+  This replaces the earlier line that left an ungrantable Founder's receipt unprocessed. The
+  offer windows and a Limited's end get 10 minutes of grace at receipt time. A paid Money
+  Party always adds its full 15 minutes (the one-hour cap only stops the prompt). A pass
+  bought in game counts at once from the server's purchase event.
+- 2026-09-28 (overnight assumption, from the audit): a Limited copy number belongs to the
+  player it was handed to (the counter remembers who got which), so a retry or a rejoin gets
+  the same number and leaving mid-purchase wastes none. Case sales are capped at 50% off
+  (`Config.Cases.MaxSalePercent`): past about 61%, buying, opening and selling back made money.
+- 2026-09-28 (overnight assumption, from the audit): the anti-farm table of today's opponents
+  keeps 300 accounts (was 50); past that, a new account reads as the worst count (floor pay,
+  no free case), so meeting many accounts never switches anti-farm off.
+- 2026-09-28 (overnight assumption, from the audit): client. An open still waiting for the
+  server can be closed after 3 s ("Still opening... Tap to close"); a cue that lands after that
+  shows "Your cue is in your Inventory." The case reel closes when a match starts. The Rewards
+  "!" for a complete Index row now shows a line in Rewards with an Open Index button (the
+  row is claimed in Inventory > Index). Menus and the reel's backdrop are Modal, so shift
+  lock never traps the cursor. The unbox banner waits 9 s, past the longest reel.

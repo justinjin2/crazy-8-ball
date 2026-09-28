@@ -750,6 +750,7 @@ function MenuFrame.open(self: any, tab: string?)
 	end
 	self.opened = true
 	self.gui.Enabled = true
+	self.dim.Modal = true -- frees a mouse that shift-lock (or the camera) holds
 	self:refreshMoney()
 	self:layout()
 	if self.dimTween then
@@ -781,6 +782,7 @@ function MenuFrame.close(self: any)
 		return
 	end
 	self.opened = false
+	self.dim.Modal = false
 	self:unlisten()
 	local dialogs: { Dialog } = table.clone(self.dialogs)
 	for _, dialog in dialogs do

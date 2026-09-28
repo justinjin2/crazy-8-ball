@@ -92,6 +92,38 @@ return {
 		H.expect(eleventh.Xp == 0 and eleventh.Bonus == 0.25 and eleventh.Balls == 0.5, "11th")
 	end,
 
+	["opponentDay: once the table is full, a new one reads as the worst (3.6)"] = function()
+		local Settle, Cases, Money = load()
+		local full = H.require("Config").Economy.SameOpponentMaxEntries
+		local met = Settle.opponentDay({ Matches = 4, Cases = 1 }, full)
+		H.expect(met.Matches == 4 and met.Cases == 1, "a tracked account: its own entry")
+		local fresh = Settle.opponentDay(nil, full - 1)
+		H.expect(fresh.Matches == 0 and fresh.Cases == 0, "room left: a new account is match 1")
+		for _, tracked in { full, full + 1 } do
+			local worst = Settle.opponentDay(nil, tracked)
+			-- 10 matches already (the 11th row) and 3 cases already.
+			H.expect(worst.Matches == 10 and worst.Cases == 3, ("full at %d"):format(tracked))
+			local row = Money.farmRow(Settle.matchNumber({ worst.Matches }))
+			H.expect(row.Xp == 0 and row.Bonus == 0.25 and row.Balls == 0.5, "it pays the floor")
+			H.expect(not row.FreeCase, "its row drops no case")
+			local ctx = Settle.freeCaseContext(facts({
+				farmAllows = row.FreeCase,
+				losers = { { realMatches = 40, casesToday = worst.Cases } },
+			}))
+			H.expect(Cases.freeCase(ctx) == nil, "no free case")
+			-- Its cases alone stop one too, whatever the row says.
+			local cases = Settle.freeCaseContext(facts({
+				losers = { { realMatches = 40, casesToday = worst.Cases } },
+			}))
+			H.expect(Cases.freeCase(cases) == nil, "3 cases from it already")
+		end
+		-- A team match with one untracked account is played at the floor (the most-played).
+		local team = Settle.matchNumber({ 0, Settle.opponentDay(nil, full).Matches })
+		H.expect(Money.farmRow(team).Xp == 0, "the team match's row is the worst")
+		local odd = Settle.opponentDay({ Matches = -3, Cases = 0.5 }, 0)
+		H.expect(odd.Matches == 0 and odd.Cases == 0, "a bad entry reads as whole numbers")
+	end,
+
 	["shortCapped: $200 of short-match money today, before the one-minute mark (3.6)"] = function()
 		local Settle = load()
 		H.expect(not Settle.shortCapped(199, 10), "under the cap")

@@ -189,7 +189,7 @@ function InventoryCard.layout(card: Card)
 	card.unknown.Size = card.name.Size
 
 	-- The pills: NEW top left; the lock and the count top right; Equipped on the picture's
-	-- bottom, just over the name.
+	-- bottom, a little over the name.
 	local inset = IC.InsetPx
 	local pillH = IC.PillPx
 	card.newPill.Position = UDim2.fromOffset(inset, inset)
@@ -204,7 +204,7 @@ function InventoryCard.layout(card: Card)
 	card.countPill.Position = UDim2.fromOffset(right - countW, inset)
 	card.countPill.Size = UDim2.fromOffset(countW, pillH)
 	local equipW = math.min(w - 2 * inset, InventoryCard.pillWidth(card.equipText.Text, pillH))
-	card.equipPill.Position = UDim2.fromOffset(round(w / 2), nameTop)
+	card.equipPill.Position = UDim2.fromOffset(round(w / 2), nameTop - IC.EquipGapPx)
 	card.equipPill.Size = UDim2.fromOffset(equipW, pillH)
 end
 

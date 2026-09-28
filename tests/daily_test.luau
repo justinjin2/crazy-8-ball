@@ -362,6 +362,19 @@ return {
 		end)
 	end,
 
+	["ROOFTOP works all of 2026-12-31 UTC and stops at 2027-01-01 00:00 UTC"] = function()
+		-- 2027-01-01 00:00:00 UTC as a unix time: midnight, 20819 days after 1970-01-01.
+		local newYear = 1798761600
+		H.expect(newYear == 20819 * SECONDS_PER_DAY, "midnight UTC")
+		local lastMinute = newYear - 60 -- 2026-12-31 23:59 UTC
+		local ok, reward = Daily.redeem({}, "rooftop", lastMinute)
+		H.expect(ok and describe(reward) == "Rare x1", "works at 23:59 on Dec 31")
+		H.expect((Daily.redeem({}, "ROOFTOP", newYear - 1)), "works at 23:59:59")
+		H.expect((Daily.redeem({}, "ROOFTOP", newYear - SECONDS_PER_DAY)), "works at 00:00 Dec 31")
+		local late, why = Daily.redeem({}, "ROOFTOP", newYear)
+		H.expect(not late and why == "Expired", "expired at 00:00 on Jan 1")
+	end,
+
 	["every Config code gives only money and cases"] = function()
 		local known = {}
 		for _, caseId in Config.Cases.Order do

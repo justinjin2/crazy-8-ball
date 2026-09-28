@@ -41,6 +41,7 @@ local Catalog = require(Shared.Progression.Catalog)
 local Cases = require(Shared.Progression.Cases)
 local Inventory = require(Shared.Progression.Inventory)
 local Daily = require(Shared.Progression.Daily)
+local Settle = require(Shared.Progression.Settle)
 local Shop = require(Shared.Progression.Shop)
 local ProfileStore = require(script.Parent.Vendor.ProfileStore)
 
@@ -427,18 +428,24 @@ local function giveReward(data: any, reward: any)
 	end
 end
 
+-- How many accounts a Daily.Opponents table tracks (a count: the order does not matter).
+local function opponentCount(opponents: { [string]: any }): number
+	local n = 0
+	for _ in opponents do
+		n += 1
+	end
+	return n
+end
+
 -- Today's entry for an opponent in Daily.Opponents (Daily already rolled over), made when there
 -- is room; nil when the table is full (Config.Economy.SameOpponentMaxEntries: that account is
--- not tracked for the rest of the day, so the table stays bounded).
+-- not tracked for the rest of the day, so the table stays bounded, and reads as the worst
+-- count, Settle.opponentDay).
 local function opponentEntry(daily: any, key: string): any?
 	local opponents = daily.Opponents
 	local entry = opponents[key]
 	if entry == nil then
-		local n = 0
-		for _ in opponents do
-			n += 1
-		end
-		if n >= Config.Economy.SameOpponentMaxEntries then
+		if opponentCount(opponents) >= Config.Economy.SameOpponentMaxEntries then
 			return nil
 		end
 		entry = { Matches = 0, Cases = 0 }
@@ -916,18 +923,16 @@ function PlayerData.dailyMoney(player: Player, kind: string): number
 	return dailyOf(data, today())[field]
 end
 
---- Today's anti-farm count against one account: { Matches, Cases } (zeros for an account not
---- met today, another day's table, or a save not loaded).
+--- Today's anti-farm count against one account: { Matches, Cases } (Settle.opponentDay: zeros
+--- for an account not met today, another day's table, or a save not loaded; once today's table
+--- is full, the worst count for an account it does not track).
 function PlayerData.opponentToday(player: Player, userId: number): OpponentDay
 	local data = peek(player)
 	if data == nil or not SaveSchema.isInteger(userId) then
 		return { Matches = 0, Cases = 0 }
 	end
-	local entry = dailyOf(data, today()).Opponents[opponentKey(userId)]
-	if entry == nil then
-		return { Matches = 0, Cases = 0 }
-	end
-	return { Matches = entry.Matches, Cases = entry.Cases }
+	local opponents = dailyOf(data, today()).Opponents
+	return Settle.opponentDay(opponents[opponentKey(userId)], opponentCount(opponents))
 end
 
 --- A frozen copy of today's Daily (a fresh one when the save's belongs to another day): Day,
@@ -1195,7 +1200,8 @@ end
 
 --- Counts a finished match. `outcome` "Win" | "Loss" | "Draw"; `opponent` "Player" | "PC"
 --- (vs PC a win or loss counts in PcWins / PcLosses; a draw counts in Draws either way). A win
---- extends the win streak, a loss ends it, a draw leaves it.
+--- against people extends the win streak (a PC win leaves it, as the settle's own count
+--- does), a loss ends it, a draw leaves it. Only real matches come here (Ranking).
 function PlayerData.recordMatch(player: Player, outcome: string, opponent: string): boolean
 	local op = "recordMatch"
 	if not isPlayer(player) then
@@ -1221,7 +1227,8 @@ function PlayerData.recordMatch(player: Player, outcome: string, opponent: strin
 	else
 		bump(if outcome == "Win" then "Wins" else "Losses")
 	end
-	stats.WinStreak = math.min(Ranks.nextStreak(stats.WinStreak, outcome, true), S.StatCap)
+	local counts = opponent == "Player"
+	stats.WinStreak = math.min(Ranks.nextStreak(stats.WinStreak, outcome, counts), S.StatCap)
 	stats.BestWinStreak = math.max(stats.BestWinStreak, stats.WinStreak)
 	commit(player, data, op)
 	return true
@@ -1286,7 +1293,8 @@ end
 --- +1; a win also adds Progress.Wins and today's Daily.Wins; each opponent's
 --- Daily.Opponents[userId].Matches +1 (`opponentUserIds`: the other side's UserIds, empty
 --- against PC; duplicates and the player's own id are skipped; an account new today is not
---- tracked once the table holds Config.Economy.SameOpponentMaxEntries).
+--- tracked once the table holds Config.Economy.SameOpponentMaxEntries, and reads as the worst
+--- count instead, Settle.opponentDay).
 function PlayerData.recordRealMatch(
 	player: Player,
 	won: boolean,
@@ -1355,7 +1363,7 @@ end
 
 --- Counts a free case won from one account today (Daily.Opponents[userId].Cases +1; the
 --- anti-farm limit Config.Economy.FreeCasesPerOpponent). False when the table is full and
---- that account is not tracked today.
+--- that account is not tracked today (it already reads as at the limit, Settle.opponentDay).
 function PlayerData.addOpponentCase(player: Player, opponentUserId: number): boolean
 	local op = "addOpponentCase"
 	if not isPlayer(player) then

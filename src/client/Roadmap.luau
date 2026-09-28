@@ -1853,6 +1853,7 @@ function Roadmap.open(self: any)
 	end
 	self.opened = true
 	self.gui.Enabled = true
+	self.dim.Modal = true -- frees a mouse that shift-lock (or the camera) holds
 	self.state = nil
 	self.selected = nil
 	self.focusCell = nil
@@ -1884,6 +1885,7 @@ function Roadmap.close(self: any)
 		return
 	end
 	self.opened = false
+	self.dim.Modal = false
 	self:stopLoops()
 	self:unlisten()
 	self.drag = nil

@@ -8,6 +8,7 @@
 -- recolour with one value; images are only icons and effects. The ScreenGui uses Sibling
 -- ZIndex, so a card's Shadow (-1) and Fill (0) always draw under whatever is put in it (1+).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
@@ -305,14 +306,18 @@ local function scaleOf(object: Instance): number
 end
 
 -- Place the icon and the words above the lip, the icon to the left of the words.
+-- A candy button's face above its lip, and the room at its ends, for a button `height` tall.
+local function candyRoom(height: number): (number, number)
+	local usable = height - math.floor(height * K.ButtonLipShare + 0.5)
+	return usable, math.max(6, math.floor(usable * 0.18))
+end
+
 local function layoutCandy(button: TextButton, c: Candy)
 	local size = button.AbsoluteSize / scaleOf(button)
 	if size.Y <= 0 then
 		return
 	end
-	local lip = math.floor(size.Y * K.ButtonLipShare + 0.5)
-	local usable = size.Y - lip
-	local pad = math.max(6, math.floor(usable * 0.18))
+	local usable, pad = candyRoom(size.Y)
 	if c.vertical then
 		-- A tile: the icon big on top, the words under it.
 		local labelHeight = math.floor(usable * 0.3)
@@ -550,6 +555,27 @@ function HudParts.setButtonIcon(button: TextButton, key: string?)
 		HudParts.setIcon(c.icon, key)
 		layoutCandy(button, c)
 	end
+end
+
+--- How wide a (non-tile) candy button `height` tall wants to be so its words fit at `textPx`
+--- with its icon: rows of buttons share their width by this, so long words get more room.
+function HudParts.candyWidth(button: TextButton, height: number, textPx: number): number
+	local c = candies[button]
+	if not c then
+		return 0
+	end
+	local usable, pad = candyRoom(height)
+	local width = 2 * pad
+	if c.label.Text ~= "" then
+		width += math.ceil(
+			TextService:GetTextSize(c.label.Text, textPx, FONT, Vector2.new(4000, 400)).X
+		)
+	end
+	if c.icon.Visible then
+		local share = if c.label.Text ~= "" then K.ButtonIconShare else K.ButtonIconOnlyShare
+		width += math.floor(usable * share) + math.floor(pad / 2)
+	end
+	return width
 end
 
 function HudParts.setButtonTextSize(button: TextButton, size: number, floor: number?)

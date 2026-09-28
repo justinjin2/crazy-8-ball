@@ -367,19 +367,38 @@ local function makeBoost(parent: Instance, boost: any): any?
 	text.TextWrapped = false
 	text.Size = UDim2.fromScale(1, 1)
 	text.ZIndex = 2
-	local width = math.ceil(
-		TextService:GetTextSize(words, C.BoostTextPx, FONT, Vector2.new(4000, 200)).X
-			+ C.BoostPadPx * 2
-	)
-	return { root = root, width = width }
+	return { root = root, words = words }
 end
 
--- Lay the boost chips out left to right from (x, y) in rows no wider than `width`. Returns
--- how tall they are.
-local function flowBoosts(boosts: { any }, x: number, y: number, width: number): number
+-- The size, in the screen's natural pixels, that kit text `px` tall is drawn at while the
+-- screen is scaled by `shown` (at most 1). A kit text's UITextSizeConstraint keeps its
+-- minimum on screen even inside a UIScale (TextScaled or not; STUDIO_NOTES), so on a small
+-- screen small words take more of the natural layout than their size says.
+local function drawnPx(px: number, shown: number): number
+	if shown >= 1 then
+		return px
+	end
+	return math.max(px, math.min(px, K.Text.Min) / shown)
+end
+
+-- How wide text `words` is, drawn `px` tall at scale `shown` (natural pixels).
+local function drawnWidth(words: string, px: number, shown: number): number
+	return TextService:GetTextSize(words, drawnPx(px, shown), FONT, Vector2.new(4000, 200)).X
+end
+
+-- Lay the boost chips out left to right from (x, y) in rows no wider than `width`, each as
+-- wide as its words drawn at scale `shown`. Returns how tall they are.
+local function flowBoosts(
+	boosts: { any },
+	x: number,
+	y: number,
+	width: number,
+	shown: number
+): number
 	local left, top, rows = x, y, if #boosts > 0 then 1 else 0
 	for _, boost in boosts do
-		local w = math.min(boost.width, width)
+		local wide = math.ceil(drawnWidth(boost.words, C.BoostTextPx, shown) + C.BoostPadPx * 2)
+		local w = math.min(wide, width)
 		if left > x and left + w > x + width then
 			left = x
 			top += C.BoostHeight + C.BoostGap
@@ -720,7 +739,7 @@ function ResultScreen.layoutCard(_self: any, view: any): number
 		if #view.boosts > 0 then
 			-- Under the bar, from its left end.
 			y += C.BlockGap
-			y += flowBoosts(view.boosts, textLeft, y, inner - textLeft)
+			y += flowBoosts(view.boosts, textLeft, y, inner - textLeft, view.textScale or 1)
 		end
 		y += 10
 	elseif view.note then
@@ -749,18 +768,27 @@ function ResultScreen.layoutCard(_self: any, view: any): number
 	if chip then
 		-- Centred under the Total (never wider than the card: its words shrink).
 		y += C.BlockGap
-		local width = math.min(chip.width, inner)
+		local width = math.min(
+			RewardChips.width(
+				chip.spec,
+				C.CaseChipHeight,
+				drawnPx(C.CaseChipTextPx, view.textScale or 1)
+			),
+			inner
+		)
 		chip.root.Position = UDim2.fromOffset(math.floor((inner - width) / 2), y)
 		chip.root.Size = UDim2.fromOffset(width, C.CaseChipHeight)
 		y += C.CaseChipHeight
 	end
 	local reminder = view.reminder
 	if reminder then
-		-- One line, or two when its words need them.
-		local wide =
-			TextService:GetTextSize(reminder.Text, C.ReminderTextPx, FONT, Vector2.new(4000, 200)).X
-		local lines = if wide > inner then 2 else 1
-		local height = lines * (C.ReminderTextPx + 2) + 2
+		-- One line, or more when its words need them. Kit text never shrinks under the kit's
+		-- minimum on screen, so on a small screen (the whole screen scaled down) the words
+		-- keep their size in a narrower card: measured against the card as it is drawn.
+		local shown = view.textScale or 1
+		local wide = drawnWidth(reminder.Text, C.ReminderTextPx, shown)
+		local lines = math.clamp(math.ceil(wide / inner), 1, C.ReminderMaxLines)
+		local height = math.ceil(lines * (drawnPx(C.ReminderTextPx, shown) + 2)) + 2
 		y += C.BlockGap
 		reminder.TextWrapped = true
 		reminder.Position = UDim2.fromOffset(0, y)
@@ -779,7 +807,7 @@ function ResultScreen.layoutCard(_self: any, view: any): number
 	return height
 end
 
-function ResultScreen.layout(self: any)
+function ResultScreen.layout(self: any, settled: boolean?)
 	local view = self.view
 	local screenSize = self.root.AbsoluteSize
 	if not view or screenSize.X <= 0 or screenSize.Y <= 0 then
@@ -818,7 +846,16 @@ function ResultScreen.layout(self: any)
 		view.host.Position = UDim2.fromOffset(0, 0)
 		view.host.Size = UDim2.fromOffset(columnsWidth, columnsHeight)
 	end
-	view.fit.Scale = math.max(0.1, math.min(C.MaxScale, if stacked then stackScale else wideScale))
+	local scale = math.max(0.1, math.min(C.MaxScale, if stacked then stackScale else wideScale))
+	view.fit.Scale = scale
+	-- Small words are measured as drawn at this scale (drawnPx): once more with it (at most
+	-- once).
+	local textScale = math.min(1, scale)
+	if not settled and textScale ~= (view.textScale or 1) then
+		view.textScale = textScale
+		self:layout(true)
+		return
+	end
 	view.face.Size = UDim2.fromOffset(C.FaceWidth, faceHeight)
 	view.card.Size = UDim2.fromOffset(C.RewardsWidth, cardHeight)
 
@@ -1429,16 +1466,29 @@ function ResultScreen.setChoices(self: any, state: any, now: number)
 		return
 	end
 	view.choices:set(state, now)
-	-- A selection left on a button that just greyed out moves to one that works.
+	-- A selection left on a button that just greyed out moves to one that works; none at all
+	-- (NEW RANK! over the row just closed and let go of it) lands on the row's first button.
 	local selected = GuiService.SelectedObject
-	if view.continueShown and isGamepad() then
-		if selected and selected:IsDescendantOf(view.root) and not selected.Selectable then
+	if view.continueShown and isGamepad() and not self:covered() then
+		local lost = selected == nil
+			or (selected:IsDescendantOf(view.root) and not selected.Selectable)
+		if lost then
 			local first = view.choices:first()
 			if first then
 				GuiService.SelectedObject = first
 			end
 		end
 	end
+end
+
+-- Whether a popup over this screen has the gamepad now (NEW RANK!, the case opening's overlay).
+function ResultScreen.covered(self: any): boolean
+	if self.newRank and self.newRank:isOpen() then
+		return true
+	end
+	local deps = self.deps
+	local caseOpening = if type(deps) == "table" then deps.caseOpening else nil
+	return caseOpening ~= nil and caseOpening:isOpen()
 end
 
 --- The choosing is over (a rematch began, the player is on their way): close the screen.

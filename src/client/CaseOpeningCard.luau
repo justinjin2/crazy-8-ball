@@ -266,6 +266,39 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 	return self
 end
 
+-- The buttons share the row by what their words need ("Open next (4)" with its chest is
+-- wider than "Equip"): each gets its words' width and an equal share of what is left, or all
+-- shrink together when the row is short (the words then shrink to fit, never below the kit's
+-- minimum). Run again whenever a button's words change.
+function Card.layoutButtons(self: any)
+	local inner = D.WidthPx - 2 * D.PadPx
+	local buttons = { self.equip }
+	if self.sell then
+		table.insert(buttons, self.sell)
+	end
+	table.insert(buttons, self.next)
+	local room = inner - D.ButtonGapPx * (#buttons - 1)
+	local wants = {}
+	local total = 0
+	for i, button in buttons do
+		HudParts.setButtonTextSize(button, D.ButtonTextPx)
+		wants[i] = HudParts.candyWidth(button, D.ButtonPx, D.ButtonTextPx)
+		total += wants[i]
+	end
+	local extra = math.max(0, room - total) / #buttons
+	local squeeze = if total > room then room / total else 1
+	local x = 0
+	for i, button in buttons do
+		local width = math.floor(wants[i] * squeeze + extra)
+		if i == #buttons then
+			width = math.floor(inner - x) -- the last one ends flush with the row
+		end
+		button.Position = UDim2.fromOffset(x, 0)
+		button.Size = UDim2.fromOffset(width, D.ButtonPx)
+		x += width + D.ButtonGapPx
+	end
+end
+
 --- The card's size (natural pixels).
 function Card.size(self: any): Vector2
 	return self.natural
@@ -314,20 +347,9 @@ function Card.layout(self: any)
 		y += D.ExistHeightPx + gap
 	end
 	y += D.ButtonsAbovePx
-	-- The buttons share the row.
-	local buttons = { self.equip }
-	if self.sell then
-		table.insert(buttons, self.sell)
-	end
-	table.insert(buttons, self.next)
-	local each = (inner - D.ButtonGapPx * (#buttons - 1)) / #buttons
-	for i, button in buttons do
-		button.Position = UDim2.fromOffset(math.floor((i - 1) * (each + D.ButtonGapPx)), 0)
-		button.Size = UDim2.fromOffset(math.floor(each), D.ButtonPx)
-		HudParts.setButtonTextSize(button, D.ButtonTextPx)
-	end
 	self.row.Position = UDim2.fromOffset(pad, y)
 	self.row.Size = UDim2.fromOffset(inner, D.ButtonPx)
+	self:layoutButtons()
 	y += D.ButtonPx + pad
 	local close: TextButton? = self.closeButton
 	if close then
@@ -429,6 +451,7 @@ function Card.setEquipped(self: any, equipped: boolean)
 	HudParts.setButtonIcon(self.equip, if equipped then "Check" else nil)
 	HudParts.setTone(self.equip, if equipped then "White" else "Blue")
 	HudParts.setEnabled(self.equip, not equipped, false)
+	self:layoutButtons()
 end
 
 function Card.setEquipBusy(self: any, busy: boolean)
@@ -453,6 +476,7 @@ function Card.setSell(self: any, state: string, price: number?)
 		HudParts.setText(sell, string.format(W.Sell, Format.money(price or 0)))
 		HudParts.setEnabled(sell, true)
 	end
+	self:layoutButtons()
 end
 
 --- Open next (with how many cases of this type are left) or Done / Continue.
@@ -469,6 +493,7 @@ function Card.setNext(self: any, remaining: number?)
 		HudParts.setText(self.next, W.Done)
 		HudParts.setButtonIcon(self.next, nil)
 	end
+	self:layoutButtons()
 end
 
 --- The button a gamepad lands on: Equip on the result screen, else Open next / Done.

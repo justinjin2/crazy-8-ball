@@ -15,6 +15,7 @@ local Shop = require(script.Parent.Shop)
 local S = Config.Shop
 local LIST: { [string]: { Kind: string, Id: number, Robux: number } } = Config.Products.List :: any
 local CASE_ORDER: { string } = Config.Cases.Order
+local MAX_SALE: number = Config.Cases.MaxSalePercent
 
 -- A timed sale on one case type (ECONOMY 9.1).
 export type Sale = { case: string, percent: number, endsAt: number }
@@ -48,7 +49,9 @@ export type ProductView = {
 	owned: boolean, -- a pass owned, VIP already (VipOffer), bought (StarterPack, a Limited)
 	canBuy: boolean, -- a "Buy" now would prompt (ShopView.check found nothing against it)
 	reason: string?, -- why not, when canBuy is false (ShopView.check's reason)
-	money: number, -- the money one purchase gives now (a first pack doubled), 0 for none
+	-- The money one purchase gives now (a first pack doubled); 0 for none, and 0 for a product
+	-- that is not for this player now (a receipt for it pays Shop.fallbackMoney instead).
+	money: number,
 }
 
 export type LimitedView = {
@@ -131,10 +134,10 @@ function ShopView.isVip(ctx: Context): boolean
 	return Shop.isVip(ctx.vipPass, ctx.shop)
 end
 
---- The case sale in `raw` if one is really running at `now`: a known case id, a percent
---- strictly between 0 and 100, an end still ahead. Reads { Case, Percent, EndsAt } (Config's
---- spelling) or { case, percent, endsAt }. nil for anything else, so a stale or broken sale
---- is never shown (ECONOMY 9.1: a true countdown or no sale).
+--- The case sale in `raw` if one is really running at `now`: a known case id, a percent above
+--- 0 and at most Config.Cases.MaxSalePercent, an end still ahead. Reads { Case, Percent,
+--- EndsAt } (Config's spelling) or { case, percent, endsAt }. nil for anything else, so a
+--- stale or broken sale is never shown (ECONOMY 9.1: a true countdown or no sale).
 function ShopView.readSale(raw: any, now: number): Sale?
 	if type(raw) ~= "table" then
 		return nil
@@ -145,7 +148,7 @@ function ShopView.readSale(raw: any, now: number): Sale?
 	if type(caseId) ~= "string" or table.find(CASE_ORDER, caseId) == nil then
 		return nil
 	end
-	if type(percent) ~= "number" or not (percent > 0 and percent < 100) then
+	if type(percent) ~= "number" or not (percent > 0 and percent <= MAX_SALE) then
 		return nil
 	end
 	if type(endsAt) ~= "number" or endsAt ~= endsAt or endsAt <= now then
@@ -244,7 +247,10 @@ function ShopView.build(ctx: Context): Payload
 	for _, key in KEYS do
 		local row = LIST[key]
 		local reason = ShopView.check(key, ctx)
-		local grant = if row.Kind == "Product" then Shop.grantFor(key, shop, ctx.now) else nil
+		local grant: Shop.Grant?, notFor: string? = nil, nil
+		if row.Kind == "Product" then
+			grant, notFor = Shop.grantFor(key, shop, ctx.now, ctx.vipPass == true)
+		end
 		local limited = limitedRow(key)
 		local owned = false
 		if key == VIP_PASS or key == VIP_OFFER then
@@ -266,7 +272,7 @@ function ShopView.build(ctx: Context): Payload
 			owned = owned,
 			canBuy = reason == nil,
 			reason = reason,
-			money = if grant ~= nil then grant.money else 0,
+			money = if grant ~= nil and notFor == nil then grant.money else 0,
 		}
 	end
 

@@ -10,6 +10,7 @@
 -- Reyes news goes to every server: fired here at once, then published on the MessagingService
 -- topic Config.Items.AnnounceTopic with this server's id, and every other server's subscriber
 -- fires it for its own players (this server ignores its own message, so nobody sees it twice).
+-- A subscribe that fails is tried again a few times, further apart each time.
 -- The first Reyes ever (Counters.claimFirst) also gets the one-of-one title
 -- (Config.Items.FirstReyesTitle) through PlayerData.addTitle; a first who left before the title
 -- landed gets it on their next join here (a Reyes player without it looks the key up once).
@@ -99,16 +100,29 @@ local function titleIfFirst(player: Player)
 	end
 end
 
---- Subscribes to the cross-server topic (Bootstrap calls this once).
-function Announce.start()
-	task.spawn(function()
+-- Subscribes to the cross-server topic, trying again with longer and longer waits
+-- (Config.Items.AnnounceTries, AnnounceRetrySeconds, AnnounceRetryGrowth); after the last
+-- failure it gives up with one warning. Yields.
+local function subscribe()
+	local pause = I.AnnounceRetrySeconds
+	for attempt = 1, I.AnnounceTries do
 		local ok, err = pcall(function(): any
 			return MessagingService:SubscribeAsync(I.AnnounceTopic, onMessage)
 		end)
-		if not ok then
+		if ok then
+			return
+		elseif attempt == I.AnnounceTries then
 			warn(("[8ball] Announce: cannot hear other servers: %s"):format(tostring(err)))
+			return
 		end
-	end)
+		task.wait(pause)
+		pause *= I.AnnounceRetryGrowth
+	end
+end
+
+--- Subscribes to the cross-server topic (Bootstrap calls this once).
+function Announce.start()
+	task.spawn(subscribe)
 	Players.PlayerAdded:Connect(function(player: Player)
 		local running = party
 		if running and running.endsAt > os.time() then

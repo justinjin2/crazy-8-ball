@@ -19,7 +19,8 @@
 -- refusal's `need` wins while the money is unchanged) and pressing it jumps to the Money tab
 -- with the smallest pack that covers the gap lit (Shop.packForGap). Nothing here ever opens
 -- the Shop by itself (never after a lost match). A bought case offers "Open now"
--- (deps.caseOpening:open). Countdowns tick here from the end times while the menu is open.
+-- (deps.caseOpening:open). Countdowns tick here from the end times while the menu is open. A
+-- gamepad on a button a redraw hides (a Buy turned "Owned") moves to the page's first button.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -59,6 +60,18 @@ local CUE_NAMES: { [string]: string } = Strings.Items.Cues :: any
 
 local ShopMenu = {}
 ShopMenu.__index = ShopMenu
+
+-- Whether `object` and every frame above it are visible.
+local function shows(object: GuiObject): boolean
+	local node: Instance? = object
+	while node and node:IsA("GuiObject") do
+		if not node.Visible then
+			return false
+		end
+		node = node.Parent
+	end
+	return true
+end
 
 --------------------------------------------------------------------------------------------
 -- Keys for the requests in flight and the server's last word on a price
@@ -149,6 +162,14 @@ function ShopMenu.new(screen: ScreenGui, deps: any): Menus.Handle
 			return frame:isOpen()
 		end,
 		root = frame.root,
+		ensureSelection = function()
+			self:ensureSelection()
+		end,
+		notice = function(text: string, toneName: string?)
+			if frame:isOpen() then
+				frame:notice(text, toneName)
+			end
+		end,
 	}
 	Menus.register(NAME, handle)
 	return handle
@@ -210,6 +231,7 @@ function ShopMenu.redraw(self: any)
 		end
 	end
 	self:layout()
+	self:ensureSelection()
 end
 
 function ShopMenu.layout(self: any)
@@ -233,6 +255,44 @@ function ShopMenu.tick(self: any)
 	end
 	if crossed then
 		self:refresh()
+	end
+end
+
+--- Put a gamepad somewhere sensible when its selection is gone or hidden (a Buy that turned
+--- into "Owned", the case opening over the Shop closed) or stays off after its answer (Money
+--- Party full): the page's first button, else its tab. A button only off while its request is
+--- out keeps it. Never while a dialog or the case opening is up.
+function ShopMenu.ensureSelection(self: any)
+	local frame = self.frame
+	if not frame:isOpen() or #frame.dialogs > 0 or not ShopParts.gamepad() then
+		return
+	end
+	local opener = self.deps and self.deps.caseOpening
+	if opener and opener:isOpen() then
+		return -- its own buttons have the gamepad; this runs again as it closes
+	end
+	local selected = GuiService.SelectedObject
+	if selected ~= nil then
+		if selected.Parent == nil then
+			selected = nil
+		elseif not selected:IsDescendantOf(frame.root) then
+			return -- somewhere else on purpose
+		end
+	end
+	if selected ~= nil then
+		if ShopParts.firstSelectable({ selected }) ~= nil then
+			return -- it shows and works
+		end
+		if shows(selected) and next(self.busy) ~= nil then
+			return -- off only while a request is out: it comes back on
+		end
+	end
+	local page = self.byTab[frame:currentTab()]
+	local target = if page then page:first() else nil
+	if target then
+		GuiService.SelectedObject = target
+	else
+		frame:focus()
 	end
 end
 

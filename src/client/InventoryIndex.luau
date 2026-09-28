@@ -27,6 +27,7 @@ local Format = require(Progression:WaitForChild("Format"))
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
+local ItemState = require(script.Parent.ItemState)
 local MenuFrame = require(script.Parent.MenuFrame)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
@@ -216,11 +217,9 @@ local function rowsOf(items: any): { [string]: any }
 	return rows
 end
 
+-- Complete, not claimed yet (the same rule the Rewards menu's Index banner reads).
 local function claimable(row: any): boolean
-	return row ~= nil
-		and row.complete == true
-		and row.claimed ~= true
-		and type(row.reward) == "table"
+	return ItemState.indexRowReady(row)
 end
 
 --- The tab's red dot: "!" while a row can be claimed.

@@ -1786,7 +1786,11 @@ Config.Economy = {
 			FreeCase: boolean,
 		}
 	},
-	SameOpponentMaxEntries = 50, -- the save's per-day opponent table keeps at most this many
+	-- The save's per-day opponent table keeps at most this many accounts; past it, a new
+	-- account reads as the worst count (Settle.opponentDay), so a full table never switches
+	-- anti-farm off. 300 (about 12 KB of save) is far above a real day: a 3v3 meets 3 new
+	-- accounts at most, so even 100 team matches in a day stay inside it.
+	SameOpponentMaxEntries = 300,
 	FreeCasesPerOpponent = 3, -- at most this many free cases a day from beating one account
 	FreeCaseLoserMinMatches = 5, -- the loser must have played this many real matches
 	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier). Off until the
@@ -1857,6 +1861,10 @@ Config.Cases = {
 	-- A real, timed sale on ONE case (9.1): Case = a case id, Percent off, EndsAt = a unix time.
 	-- Nothing is on by default (Case = ""). The /sale dev command sets it for this server only.
 	Sale = { Case = "", Percent = 0, EndsAt = 0 },
+	-- The most a sale may take off (percent). Above about 61% off, buying Legendary Cases 10 for
+	-- 9 and selling back what they drop makes money; tests/shop_test checks every case at this
+	-- percent still costs more than its drops sell for.
+	MaxSalePercent = 50,
 	-- Selling a case cue back (section 8), by rarity. Exclusive and Unique never sell.
 	SellBack = {
 		Common = 15,
@@ -1950,9 +1958,17 @@ Config.Items = {
 	FirstReyesTitle = "FirstReyes", -- the one-of-one title (an id in Strings.Items.Titles; 4.6)
 	-- MessagingService topic for announcements every server shows (the first Reyes).
 	AnnounceTopic = "Announce_v1",
+	-- Subscribing to it is tried this many times: after a failure it waits AnnounceRetrySeconds,
+	-- and each next wait is AnnounceRetryGrowth times longer (5, 10, 20, 40, 80 s: about 2.5
+	-- minutes in all). After the last try this server hears no other server's news.
+	AnnounceTries = 6,
+	AnnounceRetrySeconds = 5,
+	AnnounceRetryGrowth = 2,
 	-- A Mythic or Secret unboxed (ECONOMY 7.4) is announced this long after the server rolled
-	-- it, so the banner never spoils the opener's reel (about 4 s, longer for those rarities).
-	UnboxAnnounceDelaySeconds = 6,
+	-- it, so the banner never spoils the opener's reel: that reel runs Config.UI.CaseOpening
+	-- .Reel's BigSeconds + CentreSeconds + BigSettleHoldSeconds (about 7.7 s) before its card,
+	-- and this is at least a second more (config_test).
+	UnboxAnnounceDelaySeconds = 9,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1981,12 +1997,13 @@ Config.Daily = {
 		{ Minutes = 60, Cases = { Standard = 2 } },
 	} :: { { Minutes: number, Money: number?, Cases: { [string]: number }? } },
 	PlaytimeTickSeconds = 30, -- the server adds playtime this often (and on leave)
-	-- Promo codes (ECONOMY 18): case-insensitive, once per player, optional Expires (unix
-	-- time). Codes give only money or free cases, never anything sold for Robux. Placeholders.
+	-- Promo codes (ECONOMY 18): case-insensitive, once per player, optional Expires (the unix
+	-- time it stops working: midnight UTC after its last day). Codes give only money or free
+	-- cases, never anything sold for Robux. Placeholders.
 	Codes = {
 		WELCOME = { Money = 500, Cases = { Standard = 1 } },
 		["8BALL"] = { Money = 250 },
-		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798675200 }, -- until 2026-12-31
+		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
 	} :: { [string]: { Money: number?, Cases: { [string]: number }?, Expires: number? } },
 	CodeMaxLength = 24,
 	-- The Rewards service's limits (src/server/Rewards.luau; server limits, not ECONOMY.md
@@ -2017,7 +2034,8 @@ Config.Shop = {
 	-- The first money pack a player ever buys pays this many times its money (11.1).
 	FirstPackMultiplier = 2,
 	-- Money Party (11.5): +Config.Economy.PartyBoost money for everyone in the server for
-	-- PartySeconds; buying again adds PartySeconds, up to PartyMaxSeconds queued.
+	-- PartySeconds; buying again adds PartySeconds. The shop offers it only while that stays
+	-- within PartyMaxSeconds queued; a paid receipt always adds its full PartySeconds.
 	PartySeconds = 900,
 	PartyMaxSeconds = 3600,
 	-- Receipts remembered in the save (the last N purchase ids), so a retried receipt is
@@ -2026,12 +2044,23 @@ Config.Shop = {
 	-- How long ProcessReceipt waits for the save to reach the DataStore before giving up
 	-- (NotProcessedYet: Roblox retries it later).
 	ReceiptSaveTimeoutSeconds = 15,
+	-- A receipt is checked again when it arrives (Shop.receiptCheck): the VIP offer and the
+	-- Starter Pack still count as bought in their window this long after it closed (a prompt
+	-- shown just before the end); later, or VIP or the Starter Pack already had, the receipt
+	-- pays plain money (Shop.fallbackMoney) instead.
+	OfferGraceSeconds = 600,
+	-- A Robux Limited's receipt still takes a new copy number this long past the Limited's end
+	-- (a purchase confirmed just before it); later it pays plain money instead.
+	LimitedReceiptGraceSeconds = 600,
+	-- A VIP offer receipt re-offered at join waits at most this long for the join's VIP pass
+	-- check (a pass owner's receipt pays plain money); then the pass counts as not owned.
+	ReceiptPassWaitSeconds = 30,
 	-- The Store service's limits (src/server/Store.luau; server limits, not ECONOMY.md
 	-- numbers). One StoreRequest per player this often ("TooFast"). How often the server looks
 	-- for an offer window (11.3, 11.4), a Limited (9), a case sale (9.1) or the Money Party
 	-- (11.5) opening or closing, and re-sends that player's ShopState. Game pass ownership
 	-- (11.2, 11.5) is asked of Roblox on join up to PassCheckTries times, PassRetrySeconds
-	-- apart (the call can fail); a purchase is checked the same way before it counts.
+	-- apart (the call can fail); a purchase in this server counts at once.
 	RequestCooldownSeconds = 0.5,
 	StateTickSeconds = 1,
 	PassCheckTries = 3,
@@ -3464,8 +3493,9 @@ Config.UI = {
 			CaseAfterSeconds = 0.2, -- it pops this long after the total chip flies
 			CaseFlySeconds = 0.45, -- and its chest flies this long after that
 			-- The reminder under it ("Come back tomorrow for your Rare Case", Reminders): small
-			-- ink text, one line, two when a translation needs them.
+			-- ink text, one line, more when the words need them (a phone, a translation).
 			ReminderTextPx = 14,
+			ReminderMaxLines = 3,
 			-- The first win's Rare Case (ECONOMY 7.1): after the counts, the face-off and the
 			-- card make way for CaseOpening's reel and its card with Equip (a step before the
 			-- buttons); once the player is done with it they come back with Continue.
@@ -4992,6 +5022,11 @@ Config.UI.Menu = {
 	},
 	-- ItemState's requests: a reply not back after this long counts as a network failure.
 	RequestTimeoutSeconds = 15,
+	-- A request waiting for another on the same remote (a Sell, a MarkSeen) looks this often.
+	RequestPollSeconds = 0.05,
+	-- Escape this soon after a text box stopped typing only ended the typing (the Rewards
+	-- menu's code box): the menu stays open.
+	EscapeAfterTypingSeconds = 0.1,
 }
 
 -- The Shop (ShopMenu and its pages ShopCases, ShopOdds, ShopLimited, ShopMoney and ShopVip, with
@@ -5122,6 +5157,10 @@ Config.UI.CaseOpening = {
 	ReelSideMarginPx = 12, -- the reel's room from the stage's sides
 	CardMarginPx = 12, -- the prize card's room in the fit (its glow and shadow)
 	FailCloseSeconds = 2.5, -- an open that did not work: its reason shows this long, then it closes
+	-- While the server answers an open, B, Escape and a tap do nothing for this long (the case
+	-- is being spent, the reel is coming); after it they close, and a prize that arrives later
+	-- shows a line in the menu under it (the cue's NEW tag marks it).
+	WaitCloseSeconds = 3,
 	DialogGraceSeconds = 0.2, -- an Escape just after a confirm dialog took it is ignored
 	CloseBackstopSeconds = 0.3, -- closing: the overlay goes this long after its pop-out at the latest
 	RevealZIndex = 40, -- the reveal's frame over the rest of the result screen's frame
@@ -5321,6 +5360,14 @@ Config.UI.Rewards = {
 	-- A tab's red dot while something on it can be claimed.
 	TabDotPx = 18,
 	TabDotTextPx = 14,
+	-- The Index banner at the top of the Daily tab while an Index row can be claimed (the
+	-- Rewards tile's dot counts it, but only the Inventory's Index tab claims it): its line and
+	-- Open Index. On a phone it takes the room of the line under the tiles, so they keep their
+	-- size.
+	IndexBannerPx = { 36, 48 }, -- the row's height
+	IndexBannerPadPx = { 3, 5 }, -- inside the row, round the picture and the button
+	IndexBannerTextPx = { 16, 20 }, -- "An Index reward is ready!"
+	IndexBannerStrokePx = 3, -- its gold edge
 	-- Rewards flying out of a claim (RewardsFlyer), over the menus: money into the money HUD
 	-- (the CashFlyer's chips), each case to the left column's Inventory tile.
 	Fly = {
@@ -5422,6 +5469,7 @@ Config.UI.Inventory = {
 		PillPadPx = 6, -- room each side of a pill's word
 		LockPx = 20, -- the padlock on Exclusive and Unique cues
 		InsetPx = 3, -- the pills and the lock sit this far inside the card's corners
+		EquipGapPx = 4, -- the Equipped pill's bottom sits this far above the name
 		UnknownTextPx = 26, -- the "?" under a never-owned cue's silhouette in the Index
 	},
 	-- The detail panel (the chosen cue).
@@ -5472,10 +5520,6 @@ Config.UI.Inventory = {
 	TabDotPx = 20,
 	TabDotTextPx = 14,
 	TabDotMax = 9, -- more than this reads "9+"
-	-- A request waits up to this long for another of this player's ItemRequests to come back
-	-- (ItemState answers Busy to a second one on its way, and MarkSeen may be out).
-	RequestWaitSeconds = 3,
-	RequestPollSeconds = 0.05, -- how often it looks while waiting
 	MarkSeenRetrySeconds = 1.5, -- a MarkSeen turned away (Busy, TooFast) is tried once more after this
 }
 

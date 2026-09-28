@@ -190,6 +190,12 @@ rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
   the clipped image itself (the card pattern) or a pre-clipped image (the ball's stripe band).
 - Headless Chrome renders the SVG icons in about a second, but hangs for minutes after the
   screenshot when given `--user-data-dir`; `tools/gen_ui_art.py` leaves it out.
+- **A kit text's minimum is in screen pixels** (tested 2026-09-28): a UITextSizeConstraint's
+  MinTextSize holds on screen even inside a UIScale below 1, and even with TextScaled off
+  (a probe at UIScale 0.5: TextSize 20 drew at 10 px bare, at 14 px with a MinTextSize 14
+  constraint). So a screen laid out at a natural size and scaled down (the result screen on
+  a phone) draws its small words bigger than their boxes: pills overlap and one line wraps.
+  Measure words at the size they are drawn (`drawnPx` in ResultScreen).
 
 ## Sky faces (tested 2026-09-25)
 

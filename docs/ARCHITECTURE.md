@@ -421,11 +421,13 @@ and nothing at all while nothing changed; far under Roblox's per-server
 limits (60 + 10 x players a minute each). The limit is per key: 8 shards take about 8 x 60
 writes a minute in total, so about 480 servers flushing once a minute; past that raise
 `CountsShards`. Counts lag by up to a few minutes and a crash loses at most one flush.
-**Limited copies**: one key per Limited cue in `LimitedCounts_v1`; `UpdateAsync` hands out the
-next number only if under the cap and before the end time (`Counts.takeNext`); the money is
-checked before and taken only after a number is given, and a failure takes nothing (a buy that
-fails after its number was taken is logged: that number is burned). The sold counts are read
-on the copies' loop and after each take. **Firsts**: `Firsts_v1`, one key per first ("Reyes"),
+**Limited copies**: one key per Limited cue in `LimitedCounts_v1`, holding the count and which
+user got which number (`{ n, by = { [userId] = copy } }`, about 20 bytes a buyer); `UpdateAsync`
+hands a player who already has a number that same number again (a retry or a rejoin after a
+failed buy, so leaving mid-purchase wastes none), and anyone else the next number only if
+under the cap and before the end time (`Counts.takeNext`). The money is checked before and
+taken only after a number is given, and a failure takes nothing. The sold counts are read on
+the copies' loop and after each take; `Counters.limitedSold` is nil until the first read. **Firsts**: `Firsts_v1`, one key per first ("Reyes"),
 set only if empty (`Counts.claim`); `Announce` gives the first Reyes the one-of-one title
 through `PlayerData.addTitle` and tells every server over MessagingService
 (`Config.Items.AnnounceTopic`).
@@ -435,14 +437,21 @@ the designer creates them in Creator Hub. `Store` sets `MarketplaceService.Proce
 once: player not here or save not loaded -> NotProcessedYet; the PurchaseId already in the
 save -> PurchaseGranted; else one PlayerData mutation grants and records the id, then the save
 is written (`Profile:Save()` and its `OnAfterSave`, with a timeout) before PurchaseGranted.
-A Robux Limited (the Founder's Cue) takes its copy number from `Counters.takeLimited` first
-(kept for a retry in the same server); sold out, ended, already owned or a counter error
-leave the receipt NotProcessedYet, logged, rather than acknowledging a purchase that gave
-nothing (Roblox keeps retrying it). A Money Party receipt starts or extends this
-server's party (workspace `MoneyPartyEndsAt`, `MoneyPartyBuyer`, `Announce.party`).
+A receipt waits for its player's save to load (`PlayerData.waitLoaded`), and is checked again
+when it arrives (`Shop.receiptCheck`), because a client can open any product's purchase box
+itself: the VIP offer when already VIP or outside its windows, the Starter Pack when bought or
+past its week (each window gets `Config.Shop.OfferGraceSeconds` more here than at the prompt)
+pay money instead (`Shop.fallbackMoney`: the Robux price at the first pack's money per Robux),
+logged, so nobody pays for nothing. A Robux Limited (the Founder's Cue) takes its copy number
+from `Counters.takeLimited` (with `LimitedReceiptGraceSeconds` past its end); sold out, ended,
+not started or already owned pay the same money; a counter error or a busy counter leave the
+receipt NotProcessedYet (Roblox retries it). A Money Party receipt always adds its full 15
+minutes (the one-hour cap only stops the prompt), and starts or extends this server's party
+(workspace `MoneyPartyEndsAt`, `MoneyPartyBuyer`, `Announce.party`).
 VIP = owns the pass or bought the welcome offer. Passes are asked with `UserOwnsGamePassAsync`
-on join (retried) and after `PromptGamePassPurchaseFinished` (the event alone is not proof on
-a live server; in Studio it is trusted, since test purchases never show as owned). The dev
+on join (retried); a pass bought in game counts at once when the server's
+`PromptGamePassPurchaseFinished` says it was purchased (Roblox's own guide), and the next
+join's check confirms it. The dev
 command `/buy` runs the same grant with a fake purchase id (`Store.grant`); `/vip` and
 `/fastopen` fake pass ownership for the session (`Store.setPass`). `StoreRequest` checks a
 Buy with `ShopView.check` before this server prompts it; ShopState is re-sent at

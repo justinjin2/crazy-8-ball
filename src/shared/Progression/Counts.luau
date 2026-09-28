@@ -13,7 +13,13 @@
 --   copies   one key per shard ("shard_3"): { [cueId] = copies added by the servers writing
 --            to it } (a shard's number can be negative: sold on one shard, unboxed on another;
 --            the sum over every shard is the count)
---   Limited  one key per Limited cue: how many numbered copies were handed out
+--   Limited  one key per Limited cue: { n = numbered copies handed out, by = { [UserId as a
+--            string] = the copy number that player was given } }, so a buy that did not land
+--            (the player left while it was saving) gets the same number on a retry instead of
+--            burning a new one. An older value is a plain number (n alone, nobody recorded).
+--            Each buyer adds about 20 characters and a DataStore value holds at most 4 MB, so
+--            a Limited's Cap must stay far under about 200,000 (the Beta Cue's 1,000 is
+--            about 20 KB).
 --   firsts   one key per "first" ("Reyes"): the UserId that got there first
 local Config = require(script.Parent.Parent.Config)
 
@@ -104,23 +110,68 @@ function Counts.sum(shards: { any }): { [string]: number }
 	return totals
 end
 
---- How many numbered copies a stored Limited value says were handed out (0 for nothing or
---- junk).
-function Counts.sold(stored: any): number
-	return if isWhole(stored) and stored > 0 then stored else 0
+-- A stored Limited value (the shape above).
+export type LimitedValue = { n: number, by: { [string]: number } }
+
+-- A stored Limited value read safely: the copies handed out and a fresh copy of who got which
+-- number. An old plain number is the count with nobody recorded; junk entries are dropped and
+-- anything else reads as none. The count is never below the biggest number recorded, so a new
+-- number never repeats one.
+local function readLimited(stored: any): (number, { [string]: number })
+	local by: { [string]: number } = {}
+	local n = 0
+	if isWhole(stored) then
+		n = math.max(0, stored)
+	elseif type(stored) == "table" then
+		if isWhole(stored.n) then
+			n = math.max(0, stored.n)
+		end
+		if type(stored.by) == "table" then
+			for who, copy in stored.by do
+				if isId(who) and isWhole(copy) and copy >= 1 then
+					by[who] = copy
+					n = math.max(n, copy)
+				end
+			end
+		end
+	end
+	return n, by
 end
 
---- The Limited transform: the next copy number (the value to store), or (nil, reason) to write
---- nothing: "Ended" at or past `endsAt` (unix seconds), "SoldOut" once `cap` copies are out.
-function Counts.takeNext(stored: any, cap: number, now: number, endsAt: number): (number?, string?)
+--- How many numbered copies a stored Limited value says were handed out, either shape (0 for
+--- nothing or junk).
+function Counts.sold(stored: any): number
+	local n = readLimited(stored)
+	return n
+end
+
+--- The Limited transform for player `userId`: (the value to store, or nil to write nothing;
+--- their copy number, or nil; the reason when there is none). A player who already has a
+--- number gets that same one again and nothing is written (a retry, or a rejoin after a buy
+--- that did not land), even past the cap or the end: it was handed out before. Otherwise
+--- "Ended" at or past `endsAt` (unix seconds), "SoldOut" once `cap` copies are out, else the
+--- next number, recorded under their id.
+function Counts.takeNext(
+	stored: any,
+	userId: number,
+	cap: number,
+	now: number,
+	endsAt: number
+): (LimitedValue?, number?, string?)
+	local n, by = readLimited(stored)
+	local who = tostring(userId)
+	local mine = by[who]
+	if mine ~= nil then
+		return nil, mine, nil
+	end
 	if not (now < endsAt) then
-		return nil, "Ended"
+		return nil, nil, "Ended"
 	end
-	local sold = Counts.sold(stored)
-	if not (sold < cap) then
-		return nil, "SoldOut"
+	if not (n < cap) then
+		return nil, nil, "SoldOut"
 	end
-	return sold + 1, nil
+	by[who] = n + 1
+	return { n = n + 1, by = by }, n + 1, nil
 end
 
 --- The firsts transform: (the value to store, or nil to write nothing; whether `userId` is the

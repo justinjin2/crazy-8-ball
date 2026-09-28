@@ -449,6 +449,24 @@ return {
 		H.expect(E.FreeCaseLoserMinMatches >= 1, "FreeCaseLoserMinMatches")
 	end,
 
+	["the unbox news never beats the opener's Mythic reel to its card"] = function()
+		local Config = H.require("Config")
+		local I, Reel = Config.Items, Config.UI.CaseOpening.Reel
+		-- A Mythic or Secret reel spins, glides to the middle and holds before its card; the
+		-- banner and chat line come at least a second after that.
+		local reel = Reel.BigSeconds + Reel.CentreSeconds + Reel.BigSettleHoldSeconds
+		H.expect(
+			I.UnboxAnnounceDelaySeconds >= reel + 1,
+			("the unbox news at %g s, the reel's card at %g s"):format(
+				I.UnboxAnnounceDelaySeconds,
+				reel
+			)
+		)
+		-- The cross-server subscribe is tried at least once, and waits a while between tries.
+		H.expect(I.AnnounceTries >= 1 and I.AnnounceTries == math.floor(I.AnnounceTries), "tries")
+		H.expect(I.AnnounceRetrySeconds > 0 and I.AnnounceRetryGrowth >= 1, "waits")
+	end,
+
 	["shared modules cannot see Roblox globals"] = function()
 		local clean = H.evalInModuleEnv([[
 			return game == nil and workspace == nil and Vector3 == nil and CFrame == nil
