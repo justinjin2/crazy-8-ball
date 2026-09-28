@@ -65,6 +65,18 @@ local REMOTES: { [string]: string } = {
 	RankEvent = "RemoteEvent",
 	-- server -> one player: a private line for the chat window (the developer commands).
 	DevNotice = "RemoteEvent",
+	-- The global queue and the arena (designer, 2026-09-28).
+	-- server -> the players of one search: {kind = "Found" | "Teleporting" | "Failed" |
+	-- "Searching" | "Stopped", mode, at?, reason?}. Found shows the teleport screen;
+	-- Failed says why the players are still here (Strings.Queue.Failed[reason]).
+	QueueNotice = "RemoteEvent",
+	-- client -> server (arena only): the post-game choice that is not the table's own vote:
+	-- "Another" (a new opponent), "CancelAnother", "Lobby" (back to the lobby server).
+	ArenaAction = "RemoteEvent",
+	-- server -> everyone in an arena: {mode, teams = {{userId}}, arrived = {userId},
+	-- deadline?, choices = {[userId] = "Another" | "Lobby"}, searching = {[userId] = at},
+	-- notice?}. The arrival card and the post-game row read it.
+	ArenaState = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
 	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,
 	-- and never worth blocking the reliable queue behind.

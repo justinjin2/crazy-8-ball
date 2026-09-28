@@ -363,6 +363,12 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.movePill.Visible = false
 	self.moveIcon = HudParts.icon(self.movePill, "Hand")
 	self.moveText = text(self.movePill, "Timer", S.MoveClockTextSize, "")
+	-- A rematch's series score, your side first ("Series 1-0"), in the same spot while the
+	-- move pill is not there (designer, 2026-09-28).
+	self.seriesPill = HudParts.pill(self.topBar, "Series", tone("Gold"))
+	self.seriesPill.Visible = false
+	self.seriesText = text(self.seriesPill, "Score", S.MoveClockTextSize, "")
+	self.seriesText.AutoLocalize = false
 	-- Leave: a small red door at the bar's right end, beside the right-hand team.
 	self.leave = candy(self.topBar, "", function()
 		self:openLeave()
@@ -606,6 +612,12 @@ function MatchHUD.layout(self: any)
 	self.moveText.Position = UDim2.fromOffset(moveIconSize + 6, 1)
 	self.moveText.Size = UDim2.fromOffset(d.moveWidth - moveIconSize - 12, moveHeight - 2)
 	HudParts.setTextSize(self.moveText, d.moveText)
+	self.seriesPill.AnchorPoint = Vector2.new(0.5, 0)
+	self.seriesPill.Position = self.movePill.Position
+	self.seriesPill.Size = self.movePill.Size
+	self.seriesText.Position = UDim2.fromOffset(6, 1)
+	self.seriesText.Size = UDim2.fromOffset(d.moveWidth - 12, moveHeight - 2)
+	HudParts.setTextSize(self.seriesText, d.moveText)
 	-- The popups under the bar drop below the move pill while it shows.
 	self.moveBottom = self.headerBottom + (gap + moveHeight) * scale
 	self.leave.Position = UDim2.fromOffset(leaveLeft, (height - d.leave) / 2)
@@ -1152,7 +1164,22 @@ function MatchHUD.update(self: any, now: number)
 	local shotClock = Engine.isShotClock(phase, snapshot.breakShot)
 	local placing = isClock and phase == "Placement" and not shotClock
 	self.movePill.Visible = placing
-	self.popupTop = if placing then self.moveBottom else self.headerBottom
+	-- The series from its second game on, while a game is played and the move pill is away.
+	local series = snapshot.series
+	local seriesShown = not placing
+		and type(series) == "table"
+		and (series.games or 0) >= 1
+		and phase ~= "Result"
+		and phase ~= "Waiting"
+		and snapshot.solo == nil
+	self.seriesPill.Visible = seriesShown
+	if seriesShown then
+		local ours = if localTeam(snapshot, self.localUserId) == 2 then 2 else 1
+		local theirs = 3 - ours
+		self.seriesText.Text =
+			Strings.PostMatch.SeriesPill:format(series.wins[ours] or 0, series.wins[theirs] or 0)
+	end
+	self.popupTop = if placing or seriesShown then self.moveBottom else self.headerBottom
 	if placing then
 		self.moveText.Text = string.format(Copy.MoveClock, math.ceil(remaining))
 	end

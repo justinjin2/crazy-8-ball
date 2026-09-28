@@ -243,6 +243,13 @@ local function settle(e: any)
 				reward = reward,
 				total = tally.ballMoney + tally.niceMoney + mine.bonus + reward,
 			},
+			-- The rematch row (designer, 2026-09-28): whether one is on offer, the series so
+			-- far (this game counted), and whether this is an arena (Play another, Lobby).
+			rematch = e.rematch ~= nil,
+			arena = e.fixed == true,
+			series = if e.series and not solo
+				then { wins = table.clone(e.series.wins), games = e.series.games }
+				else nil,
 		})
 	end
 	Economy.clear(key)

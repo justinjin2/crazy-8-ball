@@ -53,6 +53,13 @@ return {
 			CancelRequest = "Cancel", -- under Requested!: takes the request back
 			StartingIn = "Starting in %d", -- the pad is full: the game starts by itself
 			GamepadHint = "Y · Menu",
+			-- The global queue (designer, 2026-09-28): the host's 4th choice, and the card while
+			-- it searches every server for a side of similar rank.
+			GlobalQueue = "Join Global Queue",
+			GlobalNeeds = "Needs %d on the pad", -- under the greyed button on 2v2 and 3v3
+			SearchingWorld = "Searching worldwide", -- the status line, with the dots
+			SearchTime = "Searching %d:%02d", -- on the greyed button: minutes and seconds
+			MatchFound = "Match found!",
 		},
 		OpenTable = "OPEN TABLE",
 		Solids = "SOLIDS",
@@ -192,6 +199,42 @@ return {
 		MoveClock = "MOVE %ds", -- under the big clock: seconds left to move the cue ball
 	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
+	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).
+	GlobalQueue = {
+		FoundTitle = "MATCH FOUND",
+		Joining = "Joining the arena...",
+		ToLobby = "Back to the lobby...",
+		Failed = {
+			Studio = "Teleports only work in the published game.",
+			Teleport = "Couldn't join the match. Try again.",
+			Store = "The global queue isn't answering. Try again.",
+			Party = "Your party changed, so the search stopped.",
+		},
+	},
+	-- The arena's card while players arrive (ArenaStatus).
+	Arena = {
+		WaitingFor = "Waiting for players %d/%d",
+		NoOpponent = "Your opponent couldn't join. Searching again...",
+		NotYours = "That match wasn't yours. Back to the lobby...",
+		Started = "Your match already started. Back to the lobby...",
+	},
+	-- The row under a finished two-sided game (PostMatch, on the result screen).
+	PostMatch = {
+		Rematch = "Rematch",
+		RematchVotes = "Rematch %d/%d", -- how many have pressed it, of everyone
+		RematchWaiting = "Waiting %d/%d", -- after you pressed it
+		Another = "Play another", -- a new opponent from the global queue (arena)
+		Lobby = "Lobby", -- back to the lobby server you came from (arena)
+		Leave = "Leave", -- a lobby table: no rematch, the table frees
+		OpponentLeft = "Opponent left",
+		TeamWaiting = "Team %d/%d", -- Play another in a team game waits for every teammate
+		Series = "SERIES", -- over the score
+		SeriesScore = "%d - %d", -- your side first
+		Countdown = "%d", -- seconds left to choose
+		Searching = "Searching %d:%02d",
+		Cancel = "Cancel",
+		SeriesPill = "Series %d-%d", -- the match bar during a rematch, your side first
+	},
 	Save = {
 		LoadFailed = "Couldn't load your save. Please rejoin.",
 		SessionEnded = "Your save was opened on another server. Please rejoin.",

@@ -18,6 +18,10 @@
 --   B, skips to the end; then Continue (or another tap, or A or B), or it closes by itself.
 --   After it closes, NEW RANK! (or the rank-down card) follows when the match changed your
 --   division.
+-- - After a two-sided game (designer, 2026-09-28) the PostMatch row takes Continue's place,
+--   under both columns: Rematch, and Play another and Lobby in an arena (Leave on a lobby
+--   table), with the series score in place of VS. Then the screen stays until the choice is
+--   made (Main calls endChoices); NEW RANK! comes over it as the row appears.
 --
 -- Money: the pots' money already flew into the HUD during play, so only the match bonus and the
 -- rank reward are new here. They are told to the HUD the moment the screen opens (expect) and
@@ -41,6 +45,7 @@ local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
+local PostMatch = require(script.Parent.PostMatch)
 
 local C = Config.UI.Progress.Result
 local K = Config.UI.Kit
@@ -217,6 +222,7 @@ function ResultScreen.new(screen: ScreenGui, flyer: any, money: any, newRank: an
 	self.newRank = newRank
 	self.queue = {}
 	self.view = nil
+	self.onChoice = nil
 	self.root = frame(screen, "ResultScreen")
 	self.root.Size = UDim2.fromScale(1, 1)
 	self.root.ZIndex = C.ZIndex
@@ -413,9 +419,25 @@ function ResultScreen.build(self: any, view: any)
 	view.title.Visible = false
 	view.vs = nil
 	if not solo then
-		view.vs = HudParts.text(face, "Vs", C.VsTextPx, P.Vs, tone("Gold"))
+		-- A series (designer, 2026-09-28): its score, your side first, where VS stands.
+		local series = summary.series
+		local wins = type(series) == "table" and type(series.wins) == "table" and series.wins
+		local vsText = if wins
+			then Strings.PostMatch.SeriesScore:format(clean(wins[mine]), clean(wins[3 - mine]))
+			else P.Vs
+		view.vs = HudParts.text(face, "Vs", C.VsTextPx, vsText, tone("Gold"))
 		view.vs.TextWrapped = false
+		view.vs.AutoLocalize = wins == false
 		view.vs.ZIndex = 3
+	end
+	-- The choices after a two-sided game, in Continue's place.
+	view.choices = nil
+	if not solo and (summary.rematch == true or summary.arena == true) then
+		view.choices = PostMatch.new(stage, function(kind: string)
+			if self.onChoice and self.view == view and not view.closing then
+				self.onChoice(kind, summary)
+			end
+		end)
 	end
 
 	-- The rewards card.
@@ -580,18 +602,26 @@ function ResultScreen.layout(self: any)
 	local wideWidth = C.FaceWidth + gap + C.RewardsWidth
 	local stackWidth = math.max(C.FaceWidth, C.RewardsWidth)
 	local stackHeight = C.StackedFaceHeight + gap + C.Height
-	local wideScale = math.min(availableX / wideWidth, availableY / C.Height)
-	local stackScale = math.min(availableX / stackWidth, availableY / stackHeight)
+	-- The choices row, when there is one, goes under everything.
+	local extra = if view.choices then C.ChoicesGap + PostMatch.height() else 0
+	local wideScale = math.min(availableX / wideWidth, availableY / (C.Height + extra))
+	local stackScale = math.min(availableX / stackWidth, availableY / (stackHeight + extra))
 	local stacked = stackScale > wideScale
 	local faceHeight = if stacked then C.StackedFaceHeight else C.Height
 	if stacked then
-		view.holder.Size = UDim2.fromOffset(stackWidth, stackHeight)
+		view.holder.Size = UDim2.fromOffset(stackWidth, stackHeight + extra)
 		view.face.Position = UDim2.fromOffset((stackWidth - C.FaceWidth) / 2, 0)
 		view.card.Position = UDim2.fromOffset((stackWidth - C.RewardsWidth) / 2, faceHeight + gap)
 	else
-		view.holder.Size = UDim2.fromOffset(wideWidth, C.Height)
+		view.holder.Size = UDim2.fromOffset(wideWidth, C.Height + extra)
 		view.face.Position = UDim2.fromOffset(0, 0)
 		view.card.Position = UDim2.fromOffset(C.FaceWidth + gap, 0)
+	end
+	if view.choices then
+		local width = if stacked then stackWidth else wideWidth
+		local top = if stacked then stackHeight else C.Height
+		view.choices.root.Position = UDim2.fromOffset(0, top + C.ChoicesGap)
+		view.choices:layout(width)
 	end
 	view.fit.Scale = math.max(0.1, math.min(C.MaxScale, if stacked then stackScale else wideScale))
 	view.face.Size = UDim2.fromOffset(C.FaceWidth, faceHeight)
@@ -701,6 +731,11 @@ local function newMoneyOf(summary: any): number
 	return clean(m.bonus) + clean(m.reward)
 end
 
+-- The screen's clock: seconds since it opened, plus any skip.
+local function clock(view: any): number
+	return os.clock() - view.started + view.offset
+end
+
 --- Show the end of a match: `summary` is the server's MatchSummary (Ranking; the /result
 --- command's preview looks the same). `onDone` runs once the screen has closed (NEW RANK!, if
 --- any, is then on its way). A summary that arrives while one is open waits its turn.
@@ -784,11 +819,6 @@ function ResultScreen.open(self: any, summary: any, onDone: (() -> ())?)
 	end)
 end
 
--- The screen's clock: seconds since it opened, plus any skip.
-local function clock(view: any): number
-	return os.clock() - view.started + view.offset
-end
-
 --- A tap, click, A or B: skip to the end, or once there, continue.
 function ResultScreen.tap(self: any)
 	local view = self.view
@@ -800,7 +830,7 @@ function ResultScreen.tap(self: any)
 		view.offset += view.continueAt - t
 		view.skippedAt = os.clock()
 		self:step(true)
-	elseif os.clock() - view.skippedAt >= C.SkipGuardSeconds then
+	elseif not view.choices and os.clock() - view.skippedAt >= C.SkipGuardSeconds then
 		self:close()
 	end
 end
@@ -1016,12 +1046,23 @@ function ResultScreen.step(self: any, quiet: boolean)
 	self:stepMoney(view, t, quiet)
 	if t >= view.continueAt and not view.continueShown then
 		view.continueShown = true
-		UIAnim.popIn(view.continue)
-		if isGamepad() then
-			GuiService.SelectedObject = view.continue
+		if view.choices then
+			-- The row stays until a choice is made; a new rank shows over it now, not after.
+			-- A and B are Roblox's own again: A presses the selected choice.
+			ContextActionService:UnbindAction(ACTION)
+			local first = view.choices:first()
+			if isGamepad() and first then
+				GuiService.SelectedObject = first
+			end
+			self:showRank(view)
+		else
+			UIAnim.popIn(view.continue)
+			if isGamepad() then
+				GuiService.SelectedObject = view.continue
+			end
 		end
 	end
-	if t >= view.continueAt + C.AutoCloseSeconds then
+	if not view.choices and t >= view.continueAt + C.AutoCloseSeconds then
 		self:close()
 	end
 end
@@ -1085,8 +1126,24 @@ function ResultScreen.finish(self: any, view: any)
 	if not self.alive then
 		return
 	end
+	self:showRank(view)
+	if view.onDone then
+		task.spawn(view.onDone)
+	end
+	local nextOne = table.remove(self.queue, 1)
+	if nextOne then
+		self:open(nextOne.summary, nextOne.onDone)
+	end
+end
+
+-- NEW RANK! (or the rank-down card) when the match moved the player's division, once.
+function ResultScreen.showRank(self: any, view: any)
 	local xp = view.xp
-	if self.newRank and xp and (xp.promoted == true or xp.demoted == true) then
+	if view.rankShown or not self.newRank or not xp then
+		return
+	end
+	if xp.promoted == true or xp.demoted == true then
+		view.rankShown = true
 		self.newRank:show({
 			kind = if xp.promoted then "Up" else "Down",
 			before = xp.before,
@@ -1097,12 +1154,45 @@ function ResultScreen.finish(self: any, view: any)
 			paid = true, -- its reward already came in with this screen's total chip
 		})
 	end
-	if view.onDone then
-		task.spawn(view.onDone)
+end
+
+--- Who presses the choices row's buttons: `fn(kind, summary)` (Main, through Progression).
+function ResultScreen.setChoiceHandler(self: any, fn: ((string, any) -> ())?)
+	self.onChoice = fn
+end
+
+--- The summary whose choices row is up, or nil.
+function ResultScreen.choosing(self: any): any?
+	local view = self.view
+	if view and view.choices and not view.closing then
+		return view.summary
 	end
-	local nextOne = table.remove(self.queue, 1)
-	if nextOne then
-		self:open(nextOne.summary, nextOne.onDone)
+	return nil
+end
+
+--- Draw the choices row's state (PostMatch.State) at server time `now`.
+function ResultScreen.setChoices(self: any, state: any, now: number)
+	local view = self.view
+	if not view or not view.choices or view.closing then
+		return
+	end
+	view.choices:set(state, now)
+	-- A selection left on a button that just greyed out moves to one that works.
+	local selected = GuiService.SelectedObject
+	if view.continueShown and isGamepad() then
+		if selected and selected:IsDescendantOf(view.root) and not selected.Selectable then
+			local first = view.choices:first()
+			if first then
+				GuiService.SelectedObject = first
+			end
+		end
+	end
+end
+
+--- The choosing is over (a rematch began, the player is on their way): close the screen.
+function ResultScreen.endChoices(self: any)
+	if self.view and self.view.choices then
+		self:close()
 	end
 end
 

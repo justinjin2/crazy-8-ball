@@ -115,6 +115,30 @@ function Progression.isBusy(): boolean
 	return started and (result:isOpen() or newRank:isOpen() or roadmap:isOpen())
 end
 
+--- The rematch row on the result screen (designer, 2026-09-28): Main presses its buttons
+--- (`fn(kind, summary)`), asks which summary's row is up, draws its state and ends it.
+function Progression.setChoiceHandler(fn: (string, any) -> ())
+	if started then
+		result:setChoiceHandler(fn)
+	end
+end
+
+function Progression.choosing(): any?
+	return if started then result:choosing() else nil
+end
+
+function Progression.setChoices(state: any, now: number)
+	if started then
+		result:setChoices(state, now)
+	end
+end
+
+function Progression.endChoices()
+	if started then
+		result:endChoices()
+	end
+end
+
 --- Gamepad Y in the hub (Main): open the roadmap, or close it if it is up (designer,
 --- 2026-09-27). It used to put the selection on the rank badge, and a selected button takes
 --- the left stick from walking. Returns whether it did anything.

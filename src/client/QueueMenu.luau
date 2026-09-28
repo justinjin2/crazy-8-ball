@@ -14,6 +14,12 @@
 -- everyone's popup closes and the card unfolds at once; the host may ask again after
 -- Queue.RerequestSeconds.
 --
+-- The global queue (designer, 2026-09-28): Join Global Queue, the 4th choice, searches every
+-- server for a side of similar rank (1v1 alone; 2v2 needs 2 on the pad, 3v3 needs 3, and the
+-- first whole side by arrival goes). The card folds like a request, to "Searching
+-- worldwide..." with the time on the button and the red Cancel; "Match found!" and the
+-- teleport screen follow. Stepping off the pad cancels too.
+--
 -- Every press is a request the server checks (MatchEngine.action). Built from the UI kit
 -- (HudParts): it pops in the moment you step onto an empty pad (Main shows it before the
 -- server has seated you). It keeps small: tucked into the top right corner on a phone-sized
@@ -90,6 +96,8 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.sentAt = -math.huge -- a Play solo on its way to the server
 	self.requestedAt = -math.huge -- this host's last request, before the server's answer
 	self.cancelledAt = -math.huge -- this host's last Cancel: older requests no longer stand
+	self.searchAt = -math.huge -- this host's last Join Global Queue, before the server's answer
+	self.searchCancelledAt = -math.huge -- and their last Cancel of it
 	self.now = 0
 	self.open = false
 	self.away = false -- the host stepped off the pad; the server lets them go shortly
@@ -171,15 +179,40 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			end
 		end
 	)
-	-- While a request stands: take it back, and the card unfolds at once.
+	-- The global queue: every server, by rank (designer, 2026-09-28).
+	self.global = button(
+		content,
+		"GlobalQueue",
+		Copy.GlobalQueue,
+		4,
+		"Blue",
+		"Lightning",
+		function()
+			if self:canSearch() then
+				self.searchAt = self.now
+				self.onAction("GlobalSearch", nil)
+			end
+		end
+	)
+	-- On 2v2 and 3v3, why it is greyed: a whole side must be on the pad.
+	self.needs = HudParts.note(content, "GlobalNeeds", K.Text.Min, "")
+	self.needs.TextWrapped = false
+	self.needs.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
+	self.needs.LayoutOrder = 5
+	-- While a request or a search stands: take it back, and the card unfolds at once.
 	-- No icon: the kit's red X vanished on the red candy.
-	self.cancel = button(content, "CancelRequest", Copy.CancelRequest, 4, "Red", nil, function()
-		if self:requestStands() then
+	self.cancel = button(content, "CancelRequest", Copy.CancelRequest, 6, "Red", nil, function()
+		if self:searching() then
+			if not self:found() then
+				self.searchCancelledAt = self.now
+				self.onAction("CancelSearch", nil)
+			end
+		elseif self:requestStands() then
 			self.cancelledAt = self.now
 			self.onAction("CancelRequest", nil)
 		end
 	end)
-	self.more = fold(content, "More", 5)
+	self.more = fold(content, "More", 7)
 	self.pc = button(self.more.inner, "PlayPC", Copy.PlayPC, 1, "Blue", "Robot", function() end)
 	self.solo = button(self.more.inner, "PlaySolo", Copy.PlaySolo, 2, "Green", "Person", function()
 		if self:canSend() and self:alone() then
@@ -191,7 +224,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.hint = HudParts.note(content, "GamepadHint", K.Text.Min, Copy.GamepadHint)
 	self.hint.TextWrapped = false
 	self.hint.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
-	self.hint.LayoutOrder = 6
+	self.hint.LayoutOrder = 8
 	return self
 end
 
@@ -235,6 +268,40 @@ function QueueMenu.requestStands(self: any): boolean
 	return last > self.cancelledAt and self.now - last < M.Queue.RequestSeconds
 end
 
+--- Whether this pad's global search is on: the server's record, or this card's own press
+--- still on its way (and not cancelled since).
+function QueueMenu.searching(self: any): boolean
+	local snapshot = self.snapshot
+	if not snapshot then
+		return false
+	end
+	local cancelling = self.searchCancelledAt > self.searchAt
+		and self.now - self.searchCancelledAt < M.ActionRetrySeconds
+	if snapshot.search then
+		-- A Cancel on its way hides it, unless the search already found its match.
+		return snapshot.search.found == true or not cancelling
+	end
+	return self.searchAt > self.searchCancelledAt
+		and self.now - self.searchAt < M.ActionRetrySeconds
+end
+
+--- Whether the search found a match (its players are on their way).
+function QueueMenu.found(self: any): boolean
+	local snapshot = self.snapshot
+	return snapshot ~= nil and snapshot.search ~= nil and snapshot.search.found == true
+end
+
+--- Whether Join Global Queue may be pressed: the host, a whole side on the pad with room
+--- left, no search on (MatchEngine.canSearch).
+function QueueMenu.canSearch(self: any): boolean
+	local snapshot = self.snapshot
+	if not snapshot or not self:isHost() or self:searching() then
+		return false
+	end
+	local count = self:count()
+	return count >= snapshot.teamSize and count < snapshot.teamSize * 2
+end
+
 --- Whether a request may be sent: the pad has room, none stands, and none was sent within
 --- Queue.RerequestSeconds (after a Cancel), as the server checks.
 function QueueMenu.canRequest(self: any): boolean
@@ -276,6 +343,7 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 	self.localUserId = userId
 	if not snapshot or not old or old.epoch ~= snapshot.epoch or old.id ~= snapshot.id then
 		self.sentAt, self.requestedAt, self.cancelledAt = -math.huge, -math.huge, -math.huge
+		self.searchAt, self.searchCancelledAt = -math.huge, -math.huge
 	end
 	if not snapshot then
 		self:blur()
@@ -319,7 +387,7 @@ function QueueMenu.focus(self: any)
 	if not self.root.Visible then
 		return
 	end
-	for _, object in { self.request, self.cancel, self.solo, self.pc } do
+	for _, object in { self.request, self.global, self.cancel, self.solo, self.pc } do
 		if self:usable(object) then
 			GuiService.SelectedObject = object
 			return
@@ -450,19 +518,39 @@ function QueueMenu.update(self: any, now: number)
 		Strings.Match.Mode:format(teamSize, teamSize)
 	)
 	self.players.Text = Copy.PlayerCount:format(count, capacity)
+	local searching = self:searching()
+	local found = self:found()
 	self.status.Text = if snapshot.startsAt
 		then Copy.StartingIn:format(math.max(1, math.ceil(snapshot.startsAt - now)))
+		elseif found then Copy.MatchFound
+		elseif searching then Copy.SearchingWorld .. dots(now)
 		elseif teamSize == 1 then Copy.WaitingForOpponent .. dots(now)
 		else Copy.WaitingForPlayers .. dots(now)
 
-	-- Folded while a request stands and the pad still has room: just the game, Requested!
-	-- and Cancel.
+	-- Folded while a request or a search stands and the pad still has room: just the game,
+	-- Requested! (or the search's time) and Cancel.
 	local sending = not self:canSend()
 	local room = count < capacity
 	local stands = self:requestStands()
-	local folded = room and stands
-	self.request.Visible = room and not sending
+	local folded = room and (stands or searching)
+	self.request.Visible = room and not sending and not searching
 	HudParts.setEnabled(self.request, self:canRequest())
+	-- Join Global Queue, or the search's time while it looks.
+	self.global.Visible = room and not sending and not stands
+	HudParts.setEnabled(self.global, self:canSearch())
+	local since = if snapshot.search then snapshot.search.at else self.searchAt
+	local waited = math.max(0, math.floor(now - since))
+	HudParts.setText(
+		self.global,
+		if found
+			then Copy.MatchFound
+			elseif searching then Copy.SearchTime:format(waited // 60, waited % 60)
+			else Copy.GlobalQueue
+	)
+	self.needs.Visible = room and teamSize > 1 and count < teamSize and not searching
+	if self.needs.Visible then
+		self.needs.Text = Copy.GlobalNeeds:format(teamSize)
+	end
 	HudParts.setText(
 		self.request,
 		if stands
@@ -470,12 +558,13 @@ function QueueMenu.update(self: any, now: number)
 			elseif teamSize == 1 then Copy.RequestOpponent
 			else Copy.RequestPlayers
 	)
-	self.cancel.Visible = folded and not sending
+	self.cancel.Visible = folded and not sending and not found
 	local alone = self:alone()
 	self.pc.Visible = alone and not sending
 	self.solo.Visible = alone and not sending
 	local scale = self.scale.Scale
-	ease(self.statusFold, not folded, dt, self.snap, scale)
+	-- The waiting line folds away for a request; a search keeps it, saying it searches.
+	ease(self.statusFold, not folded or searching, dt, self.snap, scale)
 	ease(self.more, alone and not folded and not sending, dt, self.snap, scale)
 	self.snap = false
 

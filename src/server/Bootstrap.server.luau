@@ -2,6 +2,10 @@
 -- Server bootstrap. Builds the tables, wires up the queue pads and the shot authority, and
 -- publishes the assets the client cannot reach on its own. The tables stand on the rooftop
 -- map (Workspace.Map, built in Edit mode; Config.Hub and assets/map/Spec.md).
+--
+-- A global-queue arena (designer, 2026-09-28) is a reserved server of this same place: it is
+-- told apart first thing (ArenaService.detect), takes the rooftop away before any player
+-- arrives, and stands up one table for its match instead of the sixteen.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -16,6 +20,16 @@ local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local Ranking = require(script.Parent:WaitForChild("Ranking"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
+local GlobalQueue = require(script.Parent:WaitForChild("GlobalQueue"))
+local ArenaService = require(script.Parent:WaitForChild("ArenaService"))
+
+-- An arena? Decided before anything is built, and the rooftop gone before anyone arrives.
+local isArena, matchId = ArenaService.detect()
+if isArena then
+	ArenaService.prepare()
+else
+	workspace:SetAttribute(ArenaService.ModeAttribute, "Hub")
+end
 
 -- Remotes first: TableService and every client look them up by name.
 Net.build()
@@ -57,11 +71,33 @@ for _, player in Players:GetPlayers() do
 	end
 end
 
--- Arrive in front of the tables, facing them.
+-- Arrive in front of the tables, facing them (the arena has its own spawn).
 local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
-if spawn then
+if spawn and not isArena then
 	local p = Config.Multiplayer.Spawn
 	spawn.CFrame = CFrame.new(p.X, p.Y, p.Z) * CFrame.Angles(0, math.rad(p.YawDegrees), 0)
+end
+
+-- The arena's one table, once its player list says how many play a side. With no list
+-- there is no match here: everyone who arrives goes back to the lobby.
+local record = nil
+if isArena then
+	record = ArenaService.loadRecord(matchId :: string)
+	if not record then
+		GlobalQueue.start()
+		local function away(p: Player)
+			GlobalQueue.sendHome({ p }, {})
+		end
+		Players.PlayerAdded:Connect(away)
+		for _, p in Players:GetPlayers() do
+			away(p)
+		end
+		return
+	end
+	local row: any = table.clone(Config.Arena.Table)
+	row.teamSize = record.mode
+	Placement.setLayout({ row })
+	workspace:SetAttribute(ArenaService.TeamSizeAttribute, record.mode)
 end
 
 -- Every table lives under one folder, named by id, so sixteen of them can be told apart.
@@ -73,27 +109,29 @@ local tables = Instance.new("Folder")
 tables.Name = TableBuilder.FolderName
 tables.Parent = workspace
 
--- Only the first TableCount of them.
+-- Only the first TableCount of them (the arena: its one).
 local built = 0
-local wanted = Placement.tableCount()
-for _, row in Config.Hub.Tables do
-	if row.id <= wanted then
-		local placement = Placement.forTable(row.id)
-		if placement then
-			TableBuilder.build(tables, placement, row.id)
-			built += 1
-		end
+for _, row in Placement.rows() do
+	local placement = Placement.forTable(row.id)
+	if placement then
+		TableBuilder.build(tables, placement, row.id)
+		built += 1
 	end
 end
 
 -- The queue pads and the seat state behind them, then the shot authority: the client sends
 -- inputs, this decides what actually happened.
-TableService.start(workspace)
+TableService.start(workspace, if isArena then "Arena" else "Hub")
 ShotService.start()
 DevCommands.start() -- /day and /sunset, for the developer only
+GlobalQueue.start() -- every server takes its turn pairing the global queue
+if isArena then
+	ArenaService.start(record)
+end
 
 print(
-	("[8ball] server ready. %d tables with queue pads, %dx%d in, %.2f studs/in"):format(
+	("[8ball] server ready (%s). %d tables, %dx%d in, %.2f studs/in"):format(
+		if isArena then "arena" else "lobby",
 		built,
 		Config.Table.LengthInches,
 		Config.Table.WidthInches,

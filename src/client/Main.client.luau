@@ -41,9 +41,20 @@ local QueueMenu = require(script.Parent.QueueMenu)
 local TableSign = require(script.Parent.TableSign)
 local OpponentPrompt = require(script.Parent.OpponentPrompt)
 local Progression = require(script.Parent.Progression)
+local QueueStatus = require(script.Parent.QueueStatus)
+local TeleportScreen = require(script.Parent.TeleportScreen)
+local Strings = require(Shared.Strings)
 local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
+-- A global-queue arena (designer, 2026-09-28): the server set these before building its one
+-- table, so every loop below sees that table where Config.Arena puts it, and no rooftop.
+local isArena = workspace:GetAttribute(Config.Arena.ModeAttribute) == "Arena"
+if isArena then
+	local row: any = table.clone(Config.Arena.Table)
+	row.teamSize = workspace:GetAttribute(Config.Arena.TeamSizeAttribute) or 1
+	Placement.setLayout({ row })
+end
 local visuals = Instance.new("Folder")
 visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
@@ -418,6 +429,153 @@ Net.get("OpponentRequest").OnClientEvent:Connect(function(ask: any)
 		opponentPrompt:show(ask)
 	end
 end)
+-- The global queue (designer, 2026-09-28): the teleport screen, the small status card, and
+-- the rematch row on the result screen.
+local teleportScreen = TeleportScreen.new()
+local queueStatus = QueueStatus.new(screen)
+local arenaState: any = nil
+Net.get("QueueNotice").OnClientEvent:Connect(function(notice: any)
+	if type(notice) ~= "table" then
+		return
+	end
+	if notice.kind == "Found" or notice.kind == "Home" then
+		teleportScreen:show(notice.kind)
+	elseif notice.kind == "Failed" then
+		teleportScreen:hide()
+		local reason = notice.reason
+		local text = type(reason) == "string"
+			and ((Strings.GlobalQueue.Failed :: any)[reason] or (Strings.Arena :: any)[reason])
+		if type(text) == "string" then
+			queueStatus:flash(text)
+		end
+	elseif notice.kind == "Stopped" then
+		queueStatus:flash(Strings.GlobalQueue.Failed.Party)
+	end
+end)
+Net.get("ArenaState").OnClientEvent:Connect(function(state: any)
+	if type(state) == "table" then
+		arenaState = state
+	end
+end)
+-- The row's buttons. Rematch and Leave are the table's vote; Play another, its Cancel and
+-- Lobby are the arena's own.
+local leftChoiceAt: number? = nil
+Progression.setChoiceHandler(function(kind: string, summary: any)
+	local s = hub.snapshots[summary.tableId]
+	local sameGame = s ~= nil and s.epoch == summary.epoch and s.phase == "Result"
+	if kind == "Rematch" then
+		if sameGame and hub.mySeat == summary.tableId then
+			hub:action("Rematch")
+		end
+	elseif kind == "Leave" then
+		if sameGame and hub.mySeat == summary.tableId then
+			hub:action("Decline")
+		end
+		Progression.endChoices()
+	elseif kind == "Another" or kind == "CancelAnother" or kind == "Lobby" then
+		Net.get("ArenaAction"):FireServer(kind)
+		if kind == "Lobby" then
+			leftChoiceAt = os.clock()
+		end
+	end
+end)
+
+-- What the rematch row shows now, for the summary whose row is up; nil once the choosing
+-- is over (a rematch began, or a lobby table freed).
+local lobbyGoneAt: number? = nil
+local function postMatchState(summary: any, now: number): any?
+	local me = player.UserId
+	local s = hub.snapshots[summary.tableId]
+	if s and s.epoch > summary.epoch and s.phase ~= "Waiting" and hub.mySeat == summary.tableId then
+		return nil -- the rematch has begun
+	end
+	local state: any = { arena = summary.arena == true, rematch = "gone", votes = 0, total = 0 }
+	if s and s.epoch == summary.epoch and s.phase == "Result" and s.rematch then
+		local total = 0
+		for _, seat in s.seats do
+			if seat.connected ~= false and seat.team then
+				total += 1
+			end
+		end
+		state.votes, state.total = #s.rematch.yes, total
+		state.rematch = if s.rematch.declined
+			then "gone"
+			elseif table.find(s.rematch.yes, me) then "voted"
+			else "open"
+		state.deadline = s.deadline
+	end
+	if state.arena then
+		local a = arenaState
+		local key = tostring(me)
+		local mine = a and a.choices and a.choices[key]
+		local since = a and a.searching and a.searching[key]
+		if mine then
+			state.rematch = "off"
+		end
+		state.another = if since then "searching" elseif mine == "Another" then "team" else "ready"
+		state.searchingSince = since
+		if a and a.teams then
+			for _, team in a.teams do
+				if table.find(team, me) then
+					local ready = 0
+					for _, id in team do
+						if a.choices[tostring(id)] == "Another" then
+							ready += 1
+						end
+					end
+					state.teamReady, state.teamSize = ready, #team
+				end
+			end
+		end
+		local by = a and a.decideBy and a.decideBy[key]
+		if by then
+			state.deadline = by
+		end
+		state.leaving = mine == "Lobby"
+			or teleportScreen:isShown()
+			or (leftChoiceAt ~= nil and os.clock() - leftChoiceAt < M.ActionRetrySeconds)
+		return state
+	end
+	-- A lobby table that has moved on: say so a moment, then the row goes.
+	if state.rematch == "gone" then
+		local since = lobbyGoneAt or now
+		lobbyGoneAt = since
+		if now - since > Config.UI.Queue.NoticeSeconds / 2 then
+			return nil
+		end
+	else
+		lobbyGoneAt = nil
+	end
+	return state
+end
+
+-- The status card's standing line: an arena's arrivals, or a teammate's search.
+local function statusLine(now: number): string?
+	if isArena then
+		local a = arenaState
+		if not a or a.begun then
+			return nil
+		end
+		if a.notice == "NoOpponent" then
+			return Strings.Arena.NoOpponent
+		end
+		local total = #(a.teams and a.teams[1] or {}) + #(a.teams and a.teams[2] or {})
+		return Strings.Arena.WaitingFor:format(#(a.arrived or {}), math.max(total, 2))
+	end
+	local s = hub.mySeat and hub.snapshots[hub.mySeat]
+	if s and s.phase == "Waiting" and s.search and s.hostId ~= player.UserId then
+		if not table.find(s.search.users, player.UserId) then
+			return nil
+		end
+		if s.search.found then
+			return Strings.Match.Queue.MatchFound
+		end
+		local waited = math.max(0, math.floor(now - s.search.at))
+		return Strings.Match.Queue.SearchTime:format(waited // 60, waited % 60)
+	end
+	return nil
+end
+
 targets = MatchTargets.new(screen, function(pocket)
 	GuiService.SelectedObject = nil
 	hub:action("Pocket", { pocket = pocket })
@@ -496,7 +654,8 @@ local function acquireTable(s: any?)
 		awaitingAt = nil
 	end
 	refreshView()
-	queueMenu:setSnapshot(s, player.UserId)
+	-- An arena's table has no host card: its players were matched by the global queue.
+	queueMenu:setSnapshot(if isArena then nil else s, player.UserId)
 	targets:setSnapshot(s, placement, match.state.geometry, player.UserId)
 	local key = turnKey .. ":" .. s.phase
 	if key ~= lastPhaseKey then
@@ -685,9 +844,10 @@ UserInputService.InputBegan:Connect(function(key, processed)
 end)
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
-local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
-local dayCycle = DayCycle.new() -- the map's day and sunset light
-local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
+-- The rooftop's life; an arena has its own dark room and light (ArenaBuilder).
+local mapAmbience = if isArena then nil else MapAmbience.new() -- the map's drifting sailboats
+local dayCycle = if isArena then nil else DayCycle.new() -- the map's day and sunset light
+local firePit = if isArena then nil else FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
@@ -817,9 +977,11 @@ RunService.RenderStepped:Connect(function(dt)
 			end
 		end
 	end
-	mapAmbience:update(os.clock())
-	dayCycle:update(os.clock())
-	firePit:update(os.clock(), dayCycle.blend or 0)
+	if mapAmbience and dayCycle and firePit then
+		mapAmbience:update(os.clock())
+		dayCycle:update(os.clock())
+		firePit:update(os.clock(), dayCycle.blend or 0)
+	end
 	-- The sign over the table you walk up to, or over your own while you wait on its pad as a
 	-- guest; none while you host (your own card stands there) or play. Stepping onto an
 	-- empty pad makes you its host before the server says so (predictedPad, below).
@@ -852,6 +1014,24 @@ RunService.RenderStepped:Connect(function(dt)
 			return hub.snapshots[id]
 		end
 	)
+	-- The global queue's screens and the rematch row.
+	do
+		local serverNow = workspace:GetServerTimeNow()
+		local summary = Progression.choosing()
+		if summary then
+			local state = postMatchState(summary, serverNow)
+			if state then
+				Progression.setChoices(state, serverNow)
+			else
+				Progression.endChoices()
+			end
+		else
+			lobbyGoneAt = nil
+		end
+		queueStatus:setLine(statusLine(serverNow))
+		queueStatus:update()
+		teleportScreen:update()
+	end
 	-- Stepping onto a pad pops the host menu this frame (designer, 2026-09-26: "it needs to
 	-- be instant"), before the server, which polls the pads, has seated you: the table's
 	-- snapshot with you added. The server's own arrives a moment later and takes over; if it

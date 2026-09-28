@@ -356,6 +356,43 @@ local function load(player: Player)
 	loadedEvent:Fire(player)
 end
 
+-- Players whose save was let go early for a teleport (PlayerData.handOff), so their
+-- session's end kicks nobody and a failed teleport can load it again (resume).
+local handedOff: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+--- The player is about to teleport (the global queue): end their save's session now, saved
+--- and released, so the server they arrive at opens it at once instead of waiting for this
+--- one to let go (designer, 2026-09-28: "no issues with data"). Nothing can be granted from
+--- here on, and DataLoaded turns false. Only while nothing is owed: the caller teleports
+--- from a pad or after a settled game. True when there was a live save to let go.
+function PlayerData.handOff(player: Player): boolean
+	local profile = profiles[player]
+	if not profile or not profile:IsActive() then
+		return false
+	end
+	handedOff[player] = true
+	quiet[profile] = true
+	profiles[player] = nil
+	profile:EndSession()
+	return true
+end
+
+--- The teleport failed and the player is still here: open their save again.
+function PlayerData.resume(player: Player)
+	if not handedOff[player] then
+		return
+	end
+	handedOff[player] = nil
+	if present(player) then
+		task.spawn(load, player)
+	end
+end
+
+--- Whether the player's save was let go for a teleport that is under way.
+function PlayerData.isHandedOff(player: Player): boolean
+	return handedOff[player] == true
+end
+
 -- A player left. The release waits a moment (task.defer) so other PlayerRemoving handlers,
 -- say one granting the leaver's last match, still find the save active.
 local function release(player: Player)
@@ -781,6 +818,9 @@ function PlayerData.start()
 		return
 	end
 	started = true
+	-- A save still held by a server the player just left is looked at again this soon
+	-- (ProfileStore's public constant; its default is 5 s), so a teleport never waits long.
+	ProfileStore.SetConstant("FIRST_LOAD_REPEAT", S.ConflictRetrySeconds)
 	store = ProfileStore.New(STORE_NAME, SaveSchema.template())
 	ProfileStore.OnError:Connect(function(_message: string, storeName: string, key: string)
 		-- ProfileStore retries on its own and already printed the error; never log save data.

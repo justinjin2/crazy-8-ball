@@ -18,6 +18,7 @@ local Cue = require(Shared.Physics.Cue)
 local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranking = require(script.Parent.Ranking)
+local GlobalQueue = require(script.Parent.GlobalQueue)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
 local Kit = Config.UI.Kit
@@ -36,6 +37,9 @@ local function newSeed(): number
 	return rng:NextInteger(1, Config.Rack.MaxSeed)
 end
 local started = false
+-- An arena server (ArenaService, designer 2026-09-28): one table, no queue pad, players
+-- seated by the global queue's teams.
+local arena = false
 -- The root attribute holding the exact spot (a CFrame) the server put the shooter at for
 -- their shot. Once the root is unanchored the owner's local CFrame wins, so after the stroke
 -- the client writes this spot and nothing else; nil whenever the root is not there.
@@ -291,6 +295,9 @@ end
 -- words under the mode. Attributes and words only change when they differ. The sign over it
 -- is the client's (TableSign), drawn from the snapshot every client already has.
 local function refresh(t: any)
+	if not t.pad then
+		return -- an arena's table has no pad
+	end
 	local e = t.engine
 	local C = Strings.Match
 	local count = Engine.count(e)
@@ -704,11 +711,23 @@ end
 -- Whether a root stands on table `t`'s queue pad, grown by `margin` studs: inside its
 -- rectangle across the floor and on the same floor.
 local function onPad(t: any, root: BasePart, margin: number): boolean
+	if not t.pad then
+		return false
+	end
 	local d = t.pad.CFrame:PointToObjectSpace(root.Position)
 	local half = t.pad.Size / 2
 	return math.abs(d.X) <= half.X + margin
 		and math.abs(d.Z) <= half.Z + margin
 		and math.abs(d.Y) < Q.VerticalTolerance
+end
+
+-- Whether a root stands more than `extra` studs outside table `t`'s match walls.
+local function outsideArea(t: any, root: BasePart, extra: number): boolean
+	local scale = Config.Table.StudsPerInch
+	local fx, fy, fcx, fcy = Placement.matchWalls(t.engine.teamSize)
+	local x, y = Placement.toTable(t.placement, root.Position.X, root.Position.Z)
+	x, y = x * scale, y * scale
+	return math.abs(x - fcx) > fx + extra or math.abs(y - fcy) > fy + extra
 end
 
 local function poll(t: any, time: number)
@@ -728,6 +747,9 @@ local function poll(t: any, time: number)
 		local s = Engine.seat(e, p.UserId)
 		if s then
 			if e.phase == "Waiting" then
+				if arena then
+					continue -- arriving players wait for the rest; there is no pad to leave
+				end
 				if inQueueArea then
 					t.outside[p.UserId] = nil
 				else
@@ -738,9 +760,26 @@ local function poll(t: any, time: number)
 				end
 			else
 				constrain(p, t)
+				-- Walking away from a finished lobby game says no to the rematch.
+				if
+					not arena
+					and e.phase == "Result"
+					and e.rematch
+					and not e.rematch.declined
+					and root
+					and outsideArea(t, root, M.Fence.EscapeStuds)
+				then
+					Engine.action(
+						e,
+						p.UserId,
+						{ kind = "Decline", epoch = e.epoch, turnId = e.turnId },
+						time
+					)
+				end
 			end
 		elseif
-			inside
+			not arena
+			and inside
 			and not seatOf[p.UserId]
 			and not t.blocked[p.UserId]
 			and p:GetAttribute("DataLoaded") == true -- no seat before the save is open
@@ -814,11 +853,264 @@ local function answerRequest(p: Player, id: any, epoch: any)
 	end
 end
 
-function Service.start(parent: Instance)
+---------------------------------------------------------------------------------------------
+-- The global queue from a pad (designer, 2026-09-28)
+---------------------------------------------------------------------------------------------
+local function sameUsers(a: { number }, b: { number }): boolean
+	if #a ~= #b then
+		return false
+	end
+	for i, u in a do
+		if b[i] ~= u then
+			return false
+		end
+	end
+	return true
+end
+
+local function playersOf(users: { number }): { Player }
+	local out = {}
+	for _, id in users do
+		local p = Players:GetPlayerByUserId(id)
+		if p then
+			table.insert(out, p)
+		end
+	end
+	return out
+end
+
+-- The search of table `t` found a match: tell its players, then teleport them. Dropped if
+-- the pad has moved on (its search cancelled, a local game started): the other side's arena
+-- then starts without them or sends its players on.
+local function searchFound(t: any, epoch: number, search: any, match: any)
+	local e = t.engine
+	if t.search ~= search or e.epoch ~= epoch or e.phase ~= "Waiting" or not e.search then
+		warn(("[8ball] GQ table %d moved on; match %s dropped on this side"):format(e.id, match.id))
+		if t.search == search then
+			t.search = nil
+		end
+		return
+	end
+	Engine.searchFound(e, search.ticket.users, now())
+	t.foundAt = now()
+	Service.broadcast(t)
+	local players = playersOf(search.ticket.users)
+	GlobalQueue.notify(players, { kind = "Found", mode = e.teamSize })
+	task.wait(Config.GlobalQueue.FoundLeadSeconds)
+	GlobalQueue.teleport(players, match, function(p: Player, reason: string)
+		GlobalQueue.notify({ p }, { kind = "Failed", reason = reason })
+		if t.search == search then
+			t.search = nil
+		end
+		if e.epoch == epoch and e.phase == "Waiting" and e.search and e.search.found then
+			Engine.clearSearch(e)
+			t.foundAt = nil
+			Service.broadcast(t)
+		end
+	end)
+end
+
+-- The host's Join Global Queue: the first whole side on the pad goes into the global queue.
+-- Yields while the search is posted. True when it went in.
+local function startSearch(t: any, host: Player): boolean
+	local e = t.engine
+	if arena or t.search or t.searchStarting or not Engine.canSearch(e, host.UserId) then
+		return false
+	end
+	local users = Engine.searchParty(e)
+	local players = playersOf(users)
+	if #players ~= #users then
+		return false
+	end
+	for _, p in players do
+		if p:GetAttribute("DataLoaded") ~= true then
+			return false
+		end
+	end
+	local epoch = e.epoch
+	t.searchStarting = true
+	local search, why = GlobalQueue.enqueue({
+		players = players,
+		mode = e.teamSize,
+		home = game.JobId,
+		onFound = function(found: any, match: any)
+			searchFound(t, epoch, found, match)
+		end,
+	})
+	t.searchStarting = false
+	if not search then
+		GlobalQueue.notify(players, { kind = "Failed", reason = "Store" })
+		warn(("[8ball] GQ table %d could not start a search: %s"):format(e.id, tostring(why)))
+		return false
+	end
+	-- The pad may have changed while the search went in.
+	if
+		e.epoch ~= epoch
+		or not Engine.canSearch(e, host.UserId)
+		or not sameUsers(Engine.searchParty(e), users)
+	then
+		task.spawn(GlobalQueue.cancel, search)
+		return false
+	end
+	t.search, t.searchEpoch = search, epoch
+	Engine.setSearch(e, now())
+	GlobalQueue.notify(players, { kind = "Searching", mode = e.teamSize })
+	return true
+end
+
+-- The host's Cancel. Yields. True when the search is out of the queue; a search the queue
+-- already matched stands (its players go), and a store that does not answer keeps it.
+local function stopSearch(t: any, host: Player): boolean
+	local e = t.engine
+	local search = t.search
+	if not search or not GlobalQueue.isWaiting(search) or e.hostId ~= host.UserId then
+		return false
+	end
+	if GlobalQueue.cancel(search) ~= "cancelled" then
+		return false
+	end
+	if t.search == search then
+		t.search = nil
+	end
+	if e.search and not e.search.found then
+		Engine.clearSearch(e)
+	end
+	return true
+end
+
+-- Each poll: a search whose pad no longer backs it (a party member stepped off, the host
+-- left, the pad filled for a local game) is cancelled; a found search whose players have
+-- all gone (teleported) is cleared from the pad.
+local function watchSearch(t: any)
+	local e = t.engine
+	local search = t.search
+	if search and GlobalQueue.isWaiting(search) and not t.searchCancelling then
+		local lost = not e.search or e.phase ~= "Waiting" or e.epoch ~= t.searchEpoch
+		local full = e.phase == "Waiting" and Engine.count(e) >= Engine.capacity(e)
+		if lost or full then
+			t.searchCancelling = true
+			task.spawn(function()
+				local outcome = GlobalQueue.cancel(search)
+				t.searchCancelling = false
+				if outcome == "cancelled" then
+					if t.search == search then
+						t.search = nil
+					end
+					if
+						e.epoch == t.searchEpoch
+						and e.phase == "Waiting"
+						and e.search
+						and not e.search.found
+					then
+						Engine.clearSearch(e)
+						Service.broadcast(t)
+					end
+					if lost then
+						GlobalQueue.notify(playersOf(search.ticket.users), { kind = "Stopped" })
+					end
+				end
+			end)
+		end
+	elseif search and not GlobalQueue.isWaiting(search) and search.state == "done" then
+		t.search = nil
+	end
+	if e.search and e.search.found and e.phase == "Waiting" then
+		local anyone = false
+		for _, id in e.search.users do
+			if Engine.seat(e, id) then
+				anyone = true
+			end
+		end
+		-- Everyone left for the arena, or the teleport never came back (a minute).
+		if not anyone or (t.foundAt and now() - t.foundAt > 60) then
+			Engine.clearSearch(e)
+			t.foundAt = nil
+			if t.search and t.search.state ~= "waiting" then
+				t.search = nil
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- The arena's one table (ArenaService)
+---------------------------------------------------------------------------------------------
+--- The arena's table (the only one), or nil outside an arena.
+function Service.arenaTable(): any?
+	return if arena then tables[1] else nil
+end
+
+--- Seat an arrived player on their side. True when they are seated.
+function Service.seatArena(p: Player, team: number): boolean
+	local t = tables[1]
+	if not arena or not t then
+		return false
+	end
+	if seatOf[p.UserId] then
+		return true
+	end
+	local e = t.engine
+	if Engine.join(e, p.UserId, p.Name, p.DisplayName, now(), team) then
+		seatOf[p.UserId] = e.id
+		Service.broadcast(t)
+		return true
+	end
+	return false
+end
+
+--- Studio: seat a pretend player (no Player object) on `team`, for one-person tests.
+function Service.seatSynthetic(userId: number, name: string, team: number): boolean
+	local t = tables[1]
+	if not arena or not t or not RunService:IsStudio() then
+		return false
+	end
+	local ok = Engine.join(t.engine, userId, name, name, now(), team)
+	if ok then
+		Service.broadcast(t)
+	end
+	return ok
+end
+
+--- Start the arena's game (both sides have someone). True when it started.
+function Service.startArena(): boolean
+	local t = tables[1]
+	if not arena or not t then
+		return false
+	end
+	Service.advance(t, now())
+	if Engine.startFixed(t.engine, now(), rng:NextInteger(1, 2)) then
+		Service.broadcast(t)
+		return true
+	end
+	return false
+end
+
+--- A player's table vote from the arena's own row (Play another and Lobby also say no to
+--- the rematch). True when the engine took it.
+function Service.arenaDecline(p: Player): boolean
+	local t = tables[1]
+	if not arena or not t then
+		return false
+	end
+	local e = t.engine
+	Service.advance(t, now())
+	if
+		Engine.action(e, p.UserId, { kind = "Decline", epoch = e.epoch, turnId = e.turnId }, now())
+	then
+		Service.broadcast(t)
+		return true
+	end
+	return false
+end
+
+--- Build the tables and run them. `mode` "Arena" (ArenaService) stands up the one table of
+--- Placement's layout with no queue pad; anything else is the lobby's sixteen.
+function Service.start(parent: Instance, mode: string?)
 	if started then
 		return
 	end
 	started = true
+	arena = mode == "Arena"
 	-- Participants cannot push one another, while normal floor collision remains intact.
 	pcall(function()
 		PhysicsService:RegisterCollisionGroup(PARTICIPANTS)
@@ -861,8 +1153,11 @@ function Service.start(parent: Instance)
 			blocked = {},
 			sentRevision = 0,
 		}
+		t.engine.fixed = arena or nil
 		tables[id] = t
-		buildPad(t, folder)
+		if not arena then
+			buildPad(t, folder)
+		end
 		buildBarrier(t, folder)
 		buildFence(t, folder)
 		Service.broadcast(t)
@@ -889,6 +1184,19 @@ function Service.start(parent: Instance)
 			return
 		end
 		local t = tables[id]
+		if payload.kind == "GlobalSearch" or payload.kind == "CancelSearch" then
+			if payload.epoch ~= t.engine.epoch then
+				return
+			end
+			local ok = if payload.kind == "GlobalSearch"
+				then startSearch(t, p)
+				else stopSearch(t, p)
+			Service.broadcast(t)
+			if not ok then
+				Net.get("ShotRejected"):FireClient(p, "ActionRejected")
+			end
+			return
+		end
 		Service.advance(t, now())
 		-- The coin for a host's Start is the server's, like the rack seed.
 		local accepted = Engine.action(t.engine, p.UserId, payload, now(), rng:NextInteger(1, 2))
@@ -1087,6 +1395,9 @@ function Service.start(parent: Instance)
 			poll(t, time)
 			Service.advance(t, time)
 			releaseMissing(t)
+			if not arena then
+				watchSearch(t)
+			end
 			Service.flush(t)
 			if e.revision ~= t.sentRevision or snapshots >= M.SnapshotIntervalSeconds then
 				Service.broadcast(t)

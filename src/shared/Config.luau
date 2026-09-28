@@ -2908,6 +2908,20 @@ Config.UI = {
 			ContinueDelaySeconds = 0.4, -- then Continue
 			AutoCloseSeconds = 2.5, -- and the screen closes by itself this long after
 			SkipGuardSeconds = 0.35, -- a tap this soon after a skip does not also close
+			-- After a two-sided game a row under both columns replaces Continue (PostMatch,
+			-- designer 2026-09-28): the series score, Rematch, Play another and Lobby (an arena)
+			-- or Leave (a lobby table), and the seconds left to choose. The screen stays until
+			-- the choice is made.
+			ChoicesHeight = 58, -- the row, under the face-off and the rewards
+			ChoicesGap = 10, -- between the columns and the row
+			ChoiceButtonWidth = 150, -- each choice
+			ChoiceGap = 8, -- between the choices
+			SeriesWidth = 92, -- SERIES over "1 - 0", at the row's left
+			SeriesLabelPx = 14,
+			SeriesScorePx = 28,
+			CountdownWidth = 44, -- the seconds left, at the row's right
+			CountdownPx = 24,
+			ChoiceTextPx = 18,
 		},
 		-- NEW RANK! and the rank-down card (NewRankPopup). NEW RANK! is laid out at the natural
 		-- size below and scaled to fit, so the badge is about 40% of the screen's short side.
@@ -4079,6 +4093,10 @@ Config.GlobalQueue = {
 -- Studs, world axes. The rooftop is removed in an arena server.
 ---------------------------------------------------------------------------------------------
 Config.Arena = {
+	-- The workspace attributes an arena's server sets before anyone arrives, so every client
+	-- knows before it builds anything: the place's mode ("Arena", or "Hub") and the team size.
+	ModeAttribute = "PlaceMode",
+	TeamSizeAttribute = "ArenaTeamSize",
 	-- The one table, at the world origin (Placement.setLayout gives it id 1).
 	Table = { id = 1, X = 0, Y = 0, Z = 0, YawDegrees = 0 },
 	RecordWaitSeconds = 10, -- how long a new arena looks for its player list
@@ -4102,24 +4120,51 @@ Config.Arena = {
 		StripColor = { 40, 220, 150 }, -- the green-teal glow
 		PanelColor = { 18, 40, 34 }, -- the lit boards along the wall's inside
 	},
-	Chairs = { -- two armchairs at the far wall, facing the table (world X, Z, yaw degrees)
-		{ X = -24, Z = -24, Yaw = 30 },
-		{ X = 24, Z = -24, Yaw = -30 },
+	-- Yaw turns a prop about world Y; at 0 its front (a chair's seat, a camera's lens) looks
+	-- toward world -Z, as a CFrame's LookVector does.
+	Chairs = { -- two armchairs at the far wall, turned toward the table (world X, Z, yaw degrees)
+		{ X = -24, Z = -24, Yaw = -150 },
+		{ X = 24, Z = -24, Yaw = 150 },
 	},
 	ChairColor = { 214, 200, 172 },
-	Cameras = { -- two broadcast cameras on tripods, near side
-		{ X = -26, Z = 18, Yaw = 140 },
-		{ X = 12, Z = 22, Yaw = 200 },
+	Cameras = { -- two broadcast cameras on tripods, near side, aimed at the table
+		{ X = -26, Z = 18, Yaw = -55 },
+		{ X = 12, Z = 22, Yaw = 29 },
 	},
-	Spawn = { X = 0, Z = 16, Yaw = 180 }, -- in front of the table, facing it
+	Spawn = { X = 0, Z = 16, Yaw = 0 }, -- in front of the table, facing it (-Z)
 	Lighting = {
 		ClockTime = 0, -- night: no sun
 		Brightness = 0,
-		Ambient = { 40, 42, 44 },
-		OutdoorAmbient = { 30, 32, 34 },
+		Ambient = { 92, 96, 100 }, -- dark, but the players and the carpet still read (was 40: too dark)
+		OutdoorAmbient = { 64, 68, 72 },
 		-- The lamp over the table (a SpotLight pointing down).
 		Lamp = { Height = 16, Brightness = 6, Range = 30, Angle = 70, Color = { 255, 244, 228 } },
 	},
+}
+
+-- The global queue's screens (designer, 2026-09-28): the small card at the top middle
+-- (QueueStatus: an arena's arrivals, a teammate's search, why a teleport did not happen) and
+-- the full screen shown while a teleport is on its way (TeleportScreen). Pixels and seconds.
+Config.UI.Queue = {
+	StatusWidth = 320, -- the card's width before it shrinks to fit a phone
+	StatusHeight = 44,
+	StatusTop = 8, -- below Roblox's top bar
+	StatusTextPx = 18,
+	NoticeSeconds = 4, -- a one-off line (a failed teleport) shows this long
+	ZIndex = 28, -- over the match bar, under the result screen
+	-- The teleport screen: a dark full screen with the title and one line, a pulse of dots.
+	TeleportZIndex = 60,
+	TeleportColor = { 16, 22, 26 },
+	TeleportAccent = { 40, 220, 150 }, -- the arena's green
+	TeleportTitlePx = 48,
+	TeleportLinePx = 22,
+	-- A teleport that has not taken the player away after this long gives the screen back
+	-- (the server also says when one failed).
+	TeleportGiveUpSeconds = 20,
+	-- Arriving from a teleport, the screen stays until the arena's table is ready, at most
+	-- this long, then fades out in FadeSeconds.
+	ArrivalHoldSeconds = 15,
+	FadeSeconds = 0.4,
 }
 
 Config.Debug = {
