@@ -22,6 +22,11 @@ local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
 local GlobalQueue = require(script.Parent:WaitForChild("GlobalQueue"))
 local ArenaService = require(script.Parent:WaitForChild("ArenaService"))
+local Counters = require(script.Parent:WaitForChild("Counters"))
+local Announce = require(script.Parent:WaitForChild("Announce"))
+local Items = require(script.Parent:WaitForChild("Items"))
+local Store = require(script.Parent:WaitForChild("Store"))
+local Rewards = require(script.Parent:WaitForChild("Rewards"))
 
 -- An arena? Decided before anything is built.
 local isArena, matchId = ArenaService.detect()
@@ -38,6 +43,13 @@ Net.build()
 -- PlayerRemoving is connected before TableService's).
 PlayerData.start()
 Ranking.start() -- a shutdown voids running matches instead of forfeiting everyone
+-- The economy's services: the shared counters, the banner, the inventory, the Robux store
+-- (ProcessReceipt is set here, before anyone can buy) and the rewards.
+Counters.start()
+Announce.start()
+Items.start()
+Store.start()
+Rewards.start()
 
 -- Then the imported meshes the clients need (a MeshId is plugin-only, so they live in the
 -- place, in ServerStorage), published to ReplicatedStorage.Assets before anything else so they

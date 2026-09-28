@@ -1,0 +1,199 @@
+--!strict
+-- Settle: the pure choices the server makes when it pays a shot or a finished match
+-- (Progression/Settle; src/server/Economy.luau and Ranking.luau call them). Expected numbers
+-- are written out from docs/ECONOMY.md (3.3, 3.6, 4.4, 4.5, 7.1), not read from Config.
+
+local H = require("./harness")
+
+local function load()
+	return H.require("Progression.Settle"),
+		H.require("Progression.Cases"),
+		H.require("Progression.Money")
+end
+
+-- A winner's free-case facts: an established player's 60th win, 3rd of the day, against one
+-- fresh-today account with plenty of real matches, unless `overrides` says otherwise.
+local function facts(overrides: { [string]: any }?): any
+	local base: { [string]: any } = {
+		real = true,
+		solo = false,
+		won = true,
+		pc = false,
+		winsBefore = 60,
+		winsTodayBefore = 2,
+		firstWinDue = false,
+		farmAllows = true,
+		losers = { { realMatches = 40, casesToday = 0 } },
+	}
+	for key, value in overrides or {} do
+		base[key] = value
+	end
+	return base
+end
+
+return {
+	["opponentKind: solo, PC (marked on the engine) or people"] = function()
+		local Settle = load()
+		H.expect(Settle.opponentKind({ solo = { team = 1 } }) == "Solo", "solo")
+		H.expect(Settle.opponentKind({ pc = true }) == "PC", "pc")
+		H.expect(Settle.opponentKind({}) == "Player", "people")
+		H.expect(Settle.opponentKind({ solo = { team = 1 }, pc = true }) == "Solo", "solo first")
+	end,
+
+	["isReal: one minute of server time from the break (GDD 13)"] = function()
+		local Settle = load()
+		H.expect(not Settle.isReal(59.9), "59.9 s")
+		H.expect(Settle.isReal(60), "60 s")
+		H.expect(Settle.isReal(400), "400 s")
+		H.expect(not Settle.isReal(nil), "nil")
+		H.expect(not Settle.isReal(0 / 0), "NaN")
+	end,
+
+	["forfeitTeam: surrender, the side that emptied, an early 8 under the mark"] = function()
+		local Settle = load()
+		H.expect(Settle.forfeitTeam({ winner = 1, reason = "Surrender", forfeit = 2 }, true) == 2)
+		H.expect(Settle.forfeitTeam({ winner = 2, reason = "EmptyTeam" }, true) == 1, "left")
+		H.expect(Settle.forfeitTeam({ winner = 2, reason = "EarlyEight" }, false) == 1, "early")
+		H.expect(Settle.forfeitTeam({ winner = 2, reason = "EarlyEight" }, true) == nil, "late 8")
+		H.expect(Settle.forfeitTeam({ winner = 1, reason = "LegalEight" }, false) == nil, "legal")
+		H.expect(Settle.forfeitTeam({ reason = "EmptyTeam" }, true) == nil, "nobody won")
+	end,
+
+	["outcome: win, loss, draw"] = function()
+		local Settle = load()
+		H.expect(Settle.outcome(1, 1) == "Win")
+		H.expect(Settle.outcome(2, 1) == "Loss")
+		H.expect(Settle.outcome(1, nil) == "Draw")
+	end,
+
+	["opponentIndex: the other side's average, Unranked as Bronze I (4.4)"] = function()
+		local Settle = load()
+		H.expect(Settle.opponentIndex({}) == nil, "nobody known")
+		H.expect(Settle.opponentIndex({ 0 }) == 1, "Unranked is Bronze I")
+		H.expect(Settle.opponentIndex({ 11 }) == 11, "Gold I")
+		-- Unranked and Gold I: (1 + 11) / 2, not (0 + 11) / 2.
+		H.expect(Settle.opponentIndex({ 0, 11 }) == 6, "Unranked counted before averaging")
+		H.expect(Settle.opponentIndex({ 20, 25, 30 }) == 25, "a 3v3 side")
+	end,
+
+	["matchNumber: this match against the most-played opponent today (3.6)"] = function()
+		local Settle, _, Money = load()
+		H.expect(Settle.matchNumber({}) == 1, "PC or nobody")
+		H.expect(Settle.matchNumber({ 0 }) == 1, "first today")
+		H.expect(Settle.matchNumber({ 4, 7 }) == 8, "the most-played of two")
+		-- Matches 1-5 full; 6-10 half XP and bonus, no free case; 11+ no XP, a quarter of the
+		-- bonus, half the ball pay.
+		local fifth = Money.farmRow(Settle.matchNumber({ 4 }))
+		H.expect(fifth.Xp == 1 and fifth.Bonus == 1 and fifth.Balls == 1 and fifth.FreeCase)
+		local sixth = Money.farmRow(Settle.matchNumber({ 5 }))
+		H.expect(sixth.Xp == 0.5 and sixth.Bonus == 0.5 and sixth.Balls == 1, "6th")
+		H.expect(not sixth.FreeCase, "6th drops no case")
+		local eleventh = Money.farmRow(Settle.matchNumber({ 2, 10 }))
+		H.expect(eleventh.Xp == 0 and eleventh.Bonus == 0.25 and eleventh.Balls == 0.5, "11th")
+	end,
+
+	["shortCapped: $200 of short-match money today, before the one-minute mark (3.6)"] = function()
+		local Settle = load()
+		H.expect(not Settle.shortCapped(199, 10), "under the cap")
+		H.expect(Settle.shortCapped(200, 10), "at the cap, 10 s in")
+		H.expect(Settle.shortCapped(450, nil), "at the cap, before the break")
+		H.expect(not Settle.shortCapped(200, 60), "past the mark pays in full")
+	end,
+
+	["boosts: Rookie for 25 matches, first win of the day, streak from the 3rd (4.3, 4.5)"] = function()
+		local Settle = load()
+		local function flags(overrides: { [string]: any }): any
+			local base: { [string]: any } = {
+				realMatches = 30,
+				vip = false,
+				won = true,
+				firstWinUsed = true,
+				streakAfter = 1,
+				farmXp = 1,
+			}
+			for key, value in overrides do
+				base[key] = value
+			end
+			return Settle.boosts(base)
+		end
+		H.expect(flags({ realMatches = 24 }).rookie, "24 real matches before: still a rookie")
+		H.expect(not flags({ realMatches = 25 }).rookie, "25 before: the boost is over")
+		H.expect(flags({ vip = true }).vip and not flags({}).vip, "VIP")
+		H.expect(flags({ firstWinUsed = false }).firstWin, "today's first win")
+		H.expect(not flags({ firstWinUsed = false, won = false }).firstWin, "a loss keeps it")
+		H.expect(not flags({ firstWinUsed = false, farmXp = 0 }).firstWin, "an 11th match keeps it")
+		H.expect(not flags({ streakAfter = 2 }).streak, "2nd win in a row")
+		H.expect(flags({ streakAfter = 3 }).streak, "3rd win in a row")
+		H.expect(not flags({ streakAfter = 5, won = false }).streak, "never on a loss")
+	end,
+
+	["freeCaseContext: a win against an established account drops by the daily rule (7.1)"] = function()
+		local Settle, Cases = load()
+		H.expect(Cases.freeCase(Settle.freeCaseContext(facts())) == "Standard", "3rd win today")
+		-- 11th win of the day: nothing; 12th: a case (then every 2nd).
+		H.expect(Cases.freeCase(Settle.freeCaseContext(facts({ winsTodayBefore = 10 }))) == nil)
+		H.expect(
+			Cases.freeCase(Settle.freeCaseContext(facts({ winsTodayBefore = 11 }))) == "Standard",
+			"12th win today"
+		)
+		-- The first 50 wins ever: every win, even past 10 today.
+		H.expect(
+			Cases.freeCase(Settle.freeCaseContext(facts({ winsBefore = 49, winsTodayBefore = 30 })))
+				== "Standard",
+			"50th win ever"
+		)
+	end,
+
+	["freeCaseContext: the first win ever is the Rare Case, under the same anti-farm rules"] = function()
+		local Settle, Cases = load()
+		local first = facts({ winsBefore = 0, winsTodayBefore = 0, firstWinDue = true })
+		H.expect(Cases.freeCase(Settle.freeCaseContext(first)) == "Rare", "first win")
+		-- A fresh loser (4 real matches) feeds nothing, not even the first win's case.
+		first.losers = { { realMatches = 4, casesToday = 0 } }
+		H.expect(Cases.freeCase(Settle.freeCaseContext(first)) == nil, "fresh loser")
+		-- An unknown account never allows one.
+		first.losers = { { realMatches = nil, casesToday = 0 } }
+		H.expect(Cases.freeCase(Settle.freeCaseContext(first)) == nil, "unknown loser")
+	end,
+
+	["freeCaseContext: anti-farm (3.6): the 6th match, 3 cases from one account, solo"] = function()
+		local Settle, Cases = load()
+		H.expect(Cases.freeCase(Settle.freeCaseContext(facts({ farmAllows = false }))) == nil)
+		local third = facts({ losers = { { realMatches = 40, casesToday = 3 } } })
+		H.expect(Cases.freeCase(Settle.freeCaseContext(third)) == nil, "3 from this account")
+		local two = facts({ losers = { { realMatches = 40, casesToday = 2 } } })
+		H.expect(Cases.freeCase(Settle.freeCaseContext(two)) == "Standard", "2 so far")
+		H.expect(Cases.freeCase(Settle.freeCaseContext(facts({ solo = true }))) == nil, "solo")
+		H.expect(Cases.freeCase(Settle.freeCaseContext(facts({ real = false }))) == nil, "short")
+		H.expect(Cases.freeCase(Settle.freeCaseContext(facts({ won = false }))) == nil, "loss")
+	end,
+
+	["freeCaseContext: a team's most experienced loser counts; any loser's 3 cases stop it"] = function()
+		local Settle, Cases = load()
+		local ctx = Settle.freeCaseContext(facts({
+			losers = {
+				{ realMatches = 2, casesToday = 0 },
+				{ realMatches = 12, casesToday = 1 },
+			},
+		}))
+		H.expect(ctx.loserRealMatches == 12 and ctx.casesFromOpponentToday == 1)
+		H.expect(Cases.freeCase(ctx) == "Standard", "one established loser is enough")
+		local capped = Settle.freeCaseContext(facts({
+			losers = {
+				{ realMatches = 12, casesToday = 0 },
+				{ realMatches = 12, casesToday = 3 },
+			},
+		}))
+		H.expect(Cases.freeCase(capped) == nil, "one loser already gave 3 today")
+	end,
+
+	["freeCaseContext: a PC win drops under the same daily limits, no account rules"] = function()
+		local Settle, Cases = load()
+		local pc = Settle.freeCaseContext(facts({ pc = true, farmAllows = false, losers = {} }))
+		H.expect(pc.farmAllows and pc.casesFromOpponentToday == 0, "no account to farm")
+		H.expect(pc.loserRealMatches >= 5, "the loser rule is met")
+		H.expect(Cases.freeCase(pc) == "Standard", "PC win")
+		local late = Settle.freeCaseContext(facts({ pc = true, losers = {}, winsTodayBefore = 10 }))
+		H.expect(Cases.freeCase(late) == nil, "the 11th win of the day, PC too")
+	end,
+}

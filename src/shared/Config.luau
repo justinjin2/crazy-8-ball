@@ -1909,28 +1909,50 @@ Config.Index = {
 -- (src/server/Counters.luau). (tune)
 ---------------------------------------------------------------------------------------------
 Config.Items = {
-	-- Each player's item requests (buy, open, sell, equip, claim): a token bucket.
+	-- Each player's item requests (buy, open, sell, equip, claim): a token bucket
+	-- (Progression/Requests). One request of a player's is answered at a time.
 	RateBurst = 6, -- this many at once...
 	RatePerSecond = 3, -- ...refilling this fast
 	MarkSeenMax = 60, -- the most cue ids one MarkSeen may name
+	-- Paid random items (ECONOMY 13): PolicyService is asked on join, this many times this far
+	-- apart; if it never answers, the player is treated as restricted (no cases for money, no
+	-- paid item trading) for the session: the cautious answer. Studio is never restricted.
+	PolicyRetries = 3,
+	PolicyRetrySeconds = 2,
 	-- Copies in existence (ECONOMY 9): each server keeps pending +/- per cue and every
 	-- FlushSeconds (+ up to FlushJitterSeconds, and on shutdown) adds them with one UpdateAsync
-	-- to its own shard key (Shards, picked from the JobId); every ReadSeconds one read of the
-	-- shards sums the totals for the clients.
+	-- to its own shard key (Shards, picked from the JobId); every ReadSeconds (+ up to
+	-- ReadJitterSeconds) one read of the shards sums the totals for the clients. The Limited
+	-- sold counts are read on the same loop.
 	CountsStore = "CueCounts_v1",
 	CountsStudioStore = "CueCounts_Studio_v1",
 	CountsShards = 8,
 	FlushSeconds = 60,
 	FlushJitterSeconds = 15,
 	ReadSeconds = 120,
-	-- Numbered Limited copies: one atomic UpdateAsync counter per Limited cue.
+	ReadJitterSeconds = 20,
+	-- A background flush or read waits for the next round while Roblox's DataStore budget for
+	-- that request type is under this (plus the calls it would make), so the counters never
+	-- take requests the saves need (ECONOMY 9).
+	BudgetFloor = 10,
+	-- On shutdown the last flush waits at most this long for one already under way (Roblox
+	-- gives BindToClose 30 s in all, shared with the saves).
+	CloseWaitSeconds = 10,
+	-- Numbered Limited copies (ECONOMY 9): one atomic UpdateAsync counter per Limited cue.
 	LimitedStore = "LimitedCounts_v1",
 	LimitedStudioStore = "LimitedCounts_Studio_v1",
-	-- The first player ever to reach Reyes (ECONOMY 4.6), set once with UpdateAsync.
+	-- The first player ever to reach Reyes (ECONOMY 4.6), set once with UpdateAsync. A claim
+	-- that fails is tried this many times, this far apart, before it counts as not first.
 	FirstsStore = "Firsts_v1",
 	FirstsStudioStore = "Firsts_Studio_v1",
+	FirstRetries = 3,
+	FirstRetrySeconds = 2,
+	FirstReyesTitle = "FirstReyes", -- the one-of-one title (an id in Strings.Items.Titles; 4.6)
 	-- MessagingService topic for announcements every server shows (the first Reyes).
 	AnnounceTopic = "Announce_v1",
+	-- A Mythic or Secret unboxed (ECONOMY 7.4) is announced this long after the server rolled
+	-- it, so the banner never spoils the opener's reel (about 4 s, longer for those rarities).
+	UnboxAnnounceDelaySeconds = 6,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1967,6 +1989,13 @@ Config.Daily = {
 		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798675200 }, -- until 2026-12-31
 	} :: { [string]: { Money: number?, Cases: { [string]: number }?, Expires: number? } },
 	CodeMaxLength = 24,
+	-- The Rewards service's limits (src/server/Rewards.luau; server limits, not ECONOMY.md
+	-- numbers): one RewardRequest per player this often, one code attempt this often (so codes
+	-- cannot be guessed quickly), and how often the server looks for a new UTC day (section 10:
+	-- the streak and the gifts start over at midnight UTC, and the menu's state is re-sent).
+	RequestCooldownSeconds = 0.5,
+	RedeemCooldownSeconds = 2,
+	DayCheckSeconds = 1,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1997,6 +2026,16 @@ Config.Shop = {
 	-- How long ProcessReceipt waits for the save to reach the DataStore before giving up
 	-- (NotProcessedYet: Roblox retries it later).
 	ReceiptSaveTimeoutSeconds = 15,
+	-- The Store service's limits (src/server/Store.luau; server limits, not ECONOMY.md
+	-- numbers). One StoreRequest per player this often ("TooFast"). How often the server looks
+	-- for an offer window (11.3, 11.4), a Limited (9), a case sale (9.1) or the Money Party
+	-- (11.5) opening or closing, and re-sends that player's ShopState. Game pass ownership
+	-- (11.2, 11.5) is asked of Roblox on join up to PassCheckTries times, PassRetrySeconds
+	-- apart (the call can fail); a purchase is checked the same way before it counts.
+	RequestCooldownSeconds = 0.5,
+	StateTickSeconds = 1,
+	PassCheckTries = 3,
+	PassRetrySeconds = 5,
 	-- The Limited shelf (9): numbered Unique cues, one per player, for a set time. Price in
 	-- money (or Product = a Config.Products key for a Robux one), Cap copies at most.
 	Limited = {

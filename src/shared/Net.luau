@@ -52,16 +52,36 @@ local REMOTES: { [string]: string } = {
 	-- On the shot that picks the colors, `assign` {groups, ball, index} names the ball whose
 	-- drop reveals both teams' groups, before the snapshot catches up at resolution.
 	ShotResult = "RemoteEvent",
-	-- server -> the shooter only: money this shot paid them, for the flying cash
-	-- (CashFlyer). {tableId, epoch, seq, total, grants = {{ball, pocket?, amount, kind, at}}};
-	-- `at` is the server time the ball drops in the replay. Nothing here is ever sent back:
-	-- the money is already in the save (Economy, PlayerData).
+	-- server -> each player a shot paid (the shooter, and every teammate for the team's balls,
+	-- ECONOMY 3.3), their own share only, for the flying cash (CashFlyer). {tableId, epoch,
+	-- seq, total, grants = {{ball, pocket?, amount, kind, at}}}; kind "Ball" or a nice shot's
+	-- kind (the shooter's only); `at` is the server time the ball drops in the replay. Nothing
+	-- here is ever sent back: the money is already in the save (Economy, PlayerData).
 	MoneyGrant = "RemoteEvent",
 	-- server -> each player of a finished match: the result screen's numbers, once
-	-- (Ranking). The client only animates them.
+	-- (Ranking). The client only animates them. {key, tableId, epoch, preview?, solo, winner?,
+	-- reason, short (not real, not solo), teams = {{{userId, name, displayName, tier,
+	-- division, left}}} (team 1, team 2), you = {userId, team, outcome = "Win" | "Loss" |
+	-- "Draw", forfeited},
+	-- xp? (nil: solo, under the one-minute mark, or no save) = {before, after (ranks: tier,
+	--   division, index, xpInDivision, width?), xpBefore, xpAfter, delta (never below 0),
+	--   promoted, newTier, rewards = {{index, money, cases = {[caseId] = count}, cue?}} (every
+	--   division the new peak passed, bottom first), rewardTotal, rewardCases = {[caseId] =
+	--   count}, rewardCues = {cueId}, breakdown = {base, mode, fade, gap, pc, farm, boosts =
+	--   {{kind = "Rookie" | "Vip" | "FirstWin" | "Streak", share}}, boostTotal}},
+	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
+	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
+	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
+	-- freeCase? (a case id put in the inventory), firstWin? = {case, cue, rarity, new} (the
+	-- first win's case, opened at once: its cue is already owned; freeCase is nil then),
+	-- nextReward? (Daily.nextReward: {day, week, reward = {money, cases}, bonus, tomorrow}, the
+	-- reminder line), rookieLeft? (real matches left in the Rookie Boost), rematch, arena,
+	-- series? = {wins = {team 1, team 2}, games}}.
 	MatchSummary = "RemoteEvent",
-	-- server -> one player: a rank change outside a match's result screen (/xp, /newrank):
-	-- {kind = "Up" | "Down", before, after, reward, newTier}.
+	-- server -> one player: a promotion outside a match's result screen (/xp, /newrank). XP is
+	-- never lost, so there is no rank-down. {kind = "Up", preview?, before, after, reward
+	-- (money), newTier, rewards? = {{index, money, cases = {[caseId] = count}, cue?}},
+	-- rewardCases? = {[caseId] = count}, rewardCues? = {cueId}} (the NEW RANK! chips).
 	RankEvent = "RemoteEvent",
 	-- server -> one player: a private line for the chat window (the developer commands).
 	DevNotice = "RemoteEvent",
@@ -79,32 +99,97 @@ local REMOTES: { [string]: string } = {
 	ArenaState = "RemoteEvent",
 	-- The economy (2026-09-28). Every request carries ids and counts only, never an amount of
 	-- money, a price, a rarity or a result: the server prices, rolls and decides everything.
-	-- client -> server, answered: (action, a?, b?) -> reply { ok: boolean, reason: string?, ... }.
-	-- Actions (src/server/Items.luau): "BuyCase" (caseId, count 1 | BulkCount), "OpenCase"
-	-- (caseId, count 1 | FastOpenCount) -> { results = { { cue, rarity, new, duplicate } } },
-	-- "SellCue" (cueId, count) -> { money }, "SellDuplicates" (cueId?) -> { money, sold },
-	-- "EquipCue" (cueId), "MarkSeen" ({ cueId }), "ClaimIndexRow" (rarity) -> { money,
-	-- title }, "BuyLimited" (cueId) -> { copy }.
+	-- client -> server, answered (src/server/Items.luau): (action, a?, b?) -> { ok = true, ... }
+	-- or { ok = false, reason }; it never errors. A missing count is 1. Actions and replies:
+	--   "BuyCase" (caseId, count 1 | Config.Cases.BulkCount) -> { caseId, count, price,
+	--     perCase, onSale } (a failed buy for money adds { need, price })
+	--   "OpenCase" (caseId, count 1 | Config.Cases.FastOpenCount, more than 1 with Fast Open)
+	--     -> { caseId, results = { { cue, rarity, new, duplicate, count } } } (count: copies
+	--     owned once it was added; rolled by the server; a switched-off case still opens)
+	--   "SellCue" (cueId, count) -> { cueId, count, money }
+	--   "SellDuplicates" (cueId? for one cue's, else every case cue's) -> { money, sold = { {
+	--     id, count, money } } } (nothing to sell: money 0, sold {})
+	--   "EquipCue" (cueId) -> { cueId }
+	--   "MarkSeen" ({ cueId } at most Config.Items.MarkSeenMax) -> { cleared }
+	--   "ClaimIndexRow" (rarity) -> { rarity, money, title }
+	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
+	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
+	-- unknown id, count not allowed), "TooFast" (Config.Items.RateBurst / RatePerSecond),
+	-- "Busy" (another request still being answered), "NotLoaded" (the save, or for BuyCase the
+	-- PolicyService answer, is not ready), "Teleporting", "NotSold" (a switched-off case),
+	-- "Restricted" (paid random items), "NotEnoughMoney" (+ need, price), "NoCases",
+	-- "NoFastOpen", "NotOwned", "CantSell" (Exclusive, Unique, Classic), "Equipped" (the last
+	-- copy of the equipped cue), "Claimed", "Incomplete", "NoReward" (Exclusive and Unique
+	-- rows), "NotStarted", "Ended", "SoldOut", "Owned" (a Limited is one per player), "Error".
 	ItemRequest = "RemoteFunction",
-	-- server -> one player: their inventory (Progression/Inventory.snapshot) on load and after
-	-- every change. The server's copy is the truth; the client only draws it.
+	-- server -> one player: their inventory, the Progression/Inventory.snapshot table itself (no
+	-- wrapper): { cues = { { id, count, new, copy? } }, cases = { { id, count } }, equipped,
+	-- seen = { id }, rows = { { rarity, have, total, complete, claimed, reward = { money,
+	-- title }? } }, titles = { id } }. Sent when the save loads and after every change that
+	-- touches it, at most once a frame, and only when it differs from the last one sent. The
+	-- server's copy is the truth; the client only draws it. Copies in existence are not in it:
+	-- they are attributes on ReplicatedStorage.CueCounts (one per cue id, from the first read
+	-- on) and the Limited sold counts on ReplicatedStorage.LimitedSold (src/server/Counters).
 	ItemState = "RemoteEvent",
-	-- server -> one player: the shop's state for them (offers and their end times, VIP and
-	-- Fast Open ownership, paid-random-items restriction, a case sale, Limited shelf rows,
-	-- first pack bought, live Robux prices). Sent on load and when any of it changes.
+	-- server -> one player: the shop's state for them (src/server/Store.luau builds it with
+	-- Progression/ShopView.build). Sent on load and whenever any of it changes: a purchase, a
+	-- pass, the Vip/FastOpen/PaidRandomRestricted attributes, the case sale, the Money Party,
+	-- a Limited count, an offer or Limited window opening or closing on the clock. Times are
+	-- unix seconds on the server's clock (workspace:GetServerTimeNow()). {
+	--   vip (the pass OR the welcome offer), vipPass, vipOffer (bought the offer), fastOpen,
+	--   restricted (paid random items), firstPackBought, starterBought,
+	--   offers = { VipOffer = { open, startsAt, endsAt, kind = "Welcome" | "Comeback" },
+	--     StarterPack = { open, startsAt, endsAt } } (keyed by Config.Products key, read by
+	--     ItemState.offerEndsAt; VipOffer shows the open window, else the comeback still to
+	--     come, else zeros),
+	--   party = { endsAt, buyer? }? (this server's Money Party while it runs),
+	--   sale = { case, percent, endsAt }? (the one case on sale now),
+	--   limited = { { cue, product?, price?, cap?, sold?, startsAt, endsAt, open, soldOut,
+	--     owned, copy?, canBuy } } (Config.Shop.Limited order),
+	--   products = { [Config.Products key] = { kind = "Product" | "Pass", robux (live, else
+	--     Config's), available (Id set; false: "Coming soon"), owned, canBuy, reason? (the
+	--     StoreRequest reason a Buy would get now), money (what one purchase gives now: a first
+	--     pack doubled; 0 for none) } } }
 	ShopState = "RemoteEvent",
-	-- client -> server, answered: "Buy" (a Config.Products key) -> { ok, reason? }: the server
-	-- checks the offer is open and prompts the purchase itself ("ComingSoon" while its Id is 0).
+	-- client -> server, answered: ("Buy", a Config.Products key) -> { ok, reason? }. The server
+	-- checks it (Progression/ShopView.check) and prompts the purchase itself; ok = true means
+	-- the prompt is up, and the grant arrives later through ProcessReceipt (a pass: through
+	-- PromptGamePassPurchaseFinished) and a new ShopState. Reasons: "BadRequest" (not "Buy" or
+	-- not a product key), "TooFast", "NotLoaded", "Owned" (a pass owned, VIP already, the
+	-- Starter Pack or that Limited bought), "Closed" (its offer or Limited window is shut),
+	-- "SoldOut", "PartyFull" (an hour of Money Party already queued), "ComingSoon" (Id 0),
+	-- "Error" (the prompt failed).
 	StoreRequest = "RemoteFunction",
-	-- server -> one player: the rewards menu's state (the login streak, playtime gifts, the
-	-- next streak reward for the reminder, titles). Sent on load and after each change.
+	-- server -> one player: the Rewards menu's state (src/server/Rewards.luau builds it with
+	-- Progression/RewardView.build). Sent on load, after each claim or dev change, when a
+	-- playtime gift becomes ready, and to everyone when the UTC day rolls over. A reward is
+	-- always { money, cases = { { id, count } } } (cases in Config.Cases.Order). {
+	--   today (UTC day number), resetsAt (unix: the next UTC midnight), sentAt (unix),
+	--   weeks (Config.Daily.WeeksForBonus),
+	--   login = { canClaim, claimedToday, day (1..7), week, bonus (day 28), reward },
+	--   days = { { day, reward, bonus, claimed, today } } (this week's seven tiles),
+	--   next = { day, week, reward, bonus, tomorrow } (the reminder: "Come back tomorrow for
+	--     your Rare Case"),
+	--   playtime = { { index, minutes, reward, ready, claimed, progress (0..1) } },
+	--   playSeconds (played today at sentAt; it grows while the player stays),
+	--   titles = { titleId } (sorted), ready (the streak or a gift can be claimed) }
 	RewardState = "RemoteEvent",
-	-- client -> server, answered: "ClaimDaily", "ClaimPlaytime" (index), "Redeem" (code text)
-	-- -> { ok, reason?, money?, cases? }.
+	-- client -> server, answered: ("ClaimDaily"), ("ClaimPlaytime", index 1..#gifts),
+	-- ("Redeem", the typed code text) -> { ok = true, money, cases = { { id, count } } } or
+	-- { ok = false, reason }. Reasons: "BadRequest" (an unknown action, a bad index, text that
+	-- is not a string), "TooFast" (a request every Config.Daily.RequestCooldownSeconds, a code
+	-- every RedeemCooldownSeconds), "NotLoaded", "AlreadyClaimed" (today's streak or that
+	-- gift), "NotReady" (not enough minutes yet), "Unknown" (no such code), "Used" (this code
+	-- already redeemed), "Expired", "Error".
 	RewardRequest = "RemoteFunction",
-	-- server -> everyone (or one player): a banner line at the top middle: { kind = "Unbox" |
-	-- "Party" | "Reyes" | "FirstReyes", userId?, name?, cue?, rarity?, endsAt? }. The client
-	-- words it from Strings.
+	-- server -> everyone here (or one player joining during a Money Party): a banner line at
+	-- the top middle and a system chat line (src/server/Announce.luau). The server sends ids and
+	-- names only; the client words it from Strings.Banner. `name` is a DisplayName.
+	--   { kind = "Unbox", userId, name, cue, rarity } a Mythic or Secret unboxed here
+	--     (Cases.announces), sent Config.Items.UnboxAnnounceDelaySeconds after the roll
+	--   { kind = "Party", endsAt, name? } a Money Party started (endsAt: unix seconds)
+	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every
+	--     server (MessagingService); FirstReyes: the first player ever
 	Banner = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
 	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,

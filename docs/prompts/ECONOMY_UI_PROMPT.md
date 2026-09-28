@@ -659,17 +659,17 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   checked; DataStore access probed; `tools/lint.sh` and `tools/test.sh` green; plan in Notes.
 - [x] 1a. Ranks to ECONOMY.md: ladder, per-tier and mode XP, Classic fade, never lost, gap factor,
   PC, boosts, streak; rewards table with cases and cues; tests.
-- [ ] 1b. Money to ECONOMY.md: PC pay and limit, team pay, streak money, anti-farm, short matches,
+- [x] 1b. Money to ECONOMY.md: PC pay and limit, team pay, streak money, anti-farm, short matches,
   VIP and Money Party stacking; tests; server wired (Economy, Ranking).
 - [x] 2. Save v2: fields, migration 1 -> 2 (division kept, rewards back-filled), validate,
   PlayerData mutations, replication; tests; checked in Studio with an old save.
 - [x] 3a. Catalog (44 cues + Classic), placeholder looks in CueStickBuilder and PowerCue, effect
   styles by rarity, the equipped cue seen by everyone in a match.
-- [ ] 3b. Cases (odds, roll, per-cue odds), selling, duplicates, PolicyService, the inventory
+- [x] 3b. Cases (odds, roll, per-cue odds), selling, duplicates, PolicyService, the inventory
   service and remotes; tests.
-- [ ] 3c. Copies-in-existence counters and the Limited copy counter; Mythic/Secret announcements.
-- [ ] 3d. Free win cases with the limits, and the first win's Rare Case in the match summary.
-- [ ] 4. Rank-up rewards paid for real (money, cases, cue) through Ranking; checked in Studio.
+- [x] 3c. Copies-in-existence counters and the Limited copy counter; Mythic/Secret announcements.
+- [x] 3d. Free win cases with the limits, and the first win's Rare Case in the match summary.
+- [x] 4. Rank-up rewards paid for real (money, cases, cue) through Ranking; checked in Studio.
 - [x] 5a. Icons drawn and compared with the references (column, cases, packs, shop and rewards
   icons, cue thumbnail layers).
 - [x] 5b. Icons uploaded, ids in Config, README; a few checked rendering in Play.
@@ -734,3 +734,18 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   ready); Trade and Inventory frames open, tabs and money pill in the header, close button and
   outside click close them; console clean. Mouse input in the MCP is in GUI space: the top-bar
   inset (58 px) is added, and the capture is 1.256x the 1529x751 viewport.
+- **Wave 2 checked in Studio (2026-09-28).** Items through `ServerStorage.ItemsQA`: Buy 10
+  Standard $1,350 (9 x 150), open 1, open 10 refused without Fast Open then worked with it,
+  sell all duplicates kept one of each ($145), the equipped last copy refused ("Equipped"),
+  Classic unsellable, the 4th fast request "TooFast", restricted refuses buying but opens free
+  cases, a 20% Epic sale ($1,200), "NotEnoughMoney" with `need`, Beta Cue copy #1 then "Owned".
+  Store through `StoreQA`: offers open with real end times (the Shop tile's 23:59 pill), Buy
+  answers "ComingSoon" (Id 0), Pack1 paid $1,800 then $900, the same purchase id granted once,
+  the save waited for (0.47 s), VipOffer set `Vip` and gave the VIP Cue, Money Party set the
+  workspace attributes (15 min). Rewards through `RewardsQA`: daily claim then "AlreadyClaimed",
+  WELCOME once then "Used", a bad code "Unknown", the 10-minute gift "NotReady" then paid.
+  Settle through PoolMatchQA (a fresh save, a real 1v1 win on the 8): 750 XP (Rookie + first
+  win), Bronze I-IV rewards with 2 Standard Cases and the Bronze Cue, the first win's Rare Case
+  rolled as a cue (`firstWin`), money x2 in the party; the second win: Silver I's Rare Case, the
+  Silver Cue and $300, and a free Standard Case. Copies counter flushed and read (attributes on
+  `ReplicatedStorage.CueCounts`), a Mythic unbox banner shown. Team pay needs two real clients.

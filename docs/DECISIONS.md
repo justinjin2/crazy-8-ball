@@ -1678,3 +1678,26 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   8BALL ($250) and ROOFTOP (a Rare Case, until 2026-12-31).
 - 2026-09-28 (overnight assumption): Robux prices show Roblox's own Robux glyph (U+E002) inside
   the price text (it renders in Fredoka One and takes the text's colour), never our own icon.
+- 2026-09-28 (overnight assumption): the match settle. A team's gap uses the other side's
+  average division (Unranked counts as Bronze I); in a team match the most experienced loser
+  must have played 5 real matches for the winner's free case, a loser who already gave 3
+  cases today blocks it, and the case counts against every losing account; today's first-win
+  XP boost is used only by a win that gives XP; the first win's Rare Case is rolled at settle
+  and shown as a reveal instead of a case chip; a player who leaves after the one-minute mark
+  counts a real loss, and the pots of one who leaves before it add to the short-match total;
+  solo pots get the VIP and Money Party boosts (ECONOMY 3.5, "everything earned in play") under
+  the solo cap. PC opponents are recognised when the engine marks them (none exist yet).
+- 2026-09-28 (overnight assumption): items and counters. If PolicyService never answers, that
+  player is treated as restricted for the session (cases already owned still open); a Mythic or
+  Secret unboxing is announced 6 s after the roll so the banner never spoils the opener's reel;
+  every Reyes (the first and later ones) is announced in every server; banners use usernames;
+  copies-in-existence counts show nothing until the first read; a Limited copy number taken
+  for a purchase that then fails is burned (a gap in the numbers), never reused.
+- 2026-09-28 (overnight assumption): Robux. A Founder's Cue receipt that cannot be granted
+  (sold out, ended, already owned, counter down) stays NotProcessedYet and is logged, never
+  swapped for money; a pass bought in game counts once UserOwnsGamePassAsync confirms it (three
+  tries, 5 s apart; Studio trusts the purchase event); a VIP through the welcome offer sees the
+  VIP pass as Owned; Robux prices are read once per server (not per-player regional prices);
+  the Money Party shows the latest buyer's username. Playtime counts every second the save is
+  loaded, AFK included; the code box waits 2 s between tries, and a malformed code answers
+  "That code doesn't exist".

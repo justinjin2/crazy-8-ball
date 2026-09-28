@@ -1,12 +1,14 @@
 --!strict
 -- The shop's rules: money packs, offer windows, VIP, grants, Money Party, the Limited shelf and
--- the once-only receipt handler (Progression/Shop, numbers in Config.Shop and Config.Products).
+-- the once-only receipt handler (Progression/Shop, numbers in Config.Shop and Config.Products),
+-- and the ShopState payload and Buy check built from them (Progression/ShopView).
 -- Expected values are ECONOMY.md section 11's tables, written out here.
 
 local H = require("./harness")
 
 local Config = H.require("Config")
 local Shop = H.require("Progression.Shop")
+local ShopView = H.require("Progression.ShopView")
 
 local DAY = 86400
 local HOUR = 3600
@@ -123,6 +125,74 @@ end
 
 local function receipt(userId: number, productId: number, purchaseId: string): any
 	return { PlayerId = userId, ProductId = productId, PurchaseId = purchaseId }
+end
+
+-- A ShopView context at unix time `now`: a player who joined at JOIN, owns nothing, in a
+-- server with no party, no sale, no Limited counts read and no live prices.
+local function ctxAt(now: number, overrides: { [string]: any }?): any
+	local ctx: { [string]: any } = {
+		now = now,
+		shop = newShop(),
+		vipPass = false,
+		fastOpen = false,
+		restricted = false,
+		partyEndsAt = 0,
+		sold = {},
+		prices = {},
+	}
+	for key, value in overrides or {} do
+		ctx[key] = value
+	end
+	return ctx
+end
+
+-- The soonest start or end of a Limited row after `t`, or nil.
+local function limitedBoundary(t: number): number?
+	local soonest: number? = nil
+	for _, row in Shop.limited() do
+		for _, at in { row.StartsAt, row.StartsAt + row.Seconds } do
+			if at > t and (soonest == nil or at < soonest) then
+				soonest = at
+			end
+		end
+	end
+	return soonest
+end
+
+local function soonest(a: number?, b: number?): number?
+	if a == nil then
+		return b
+	elseif b == nil then
+		return a
+	end
+	return math.min(a, b)
+end
+
+-- What src/client/ItemState.offerEndsAt reads from a ShopState payload: the soonest end of an
+-- open offer keyed by a word it knows (a copy of its rule, so the payload's shape is checked
+-- against the client's reader), and no stray flat field it would mistake for an offer.
+local OFFER_WORDS = { "vip", "welcome", "comeback", "starter" }
+local function isOfferKey(key: string): boolean
+	for _, word in OFFER_WORDS do
+		if string.find(string.lower(key), word, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+local function offerEndsAt(payload: any, now: number): number?
+	local found: number? = nil
+	for key, entry in payload.offers do
+		if isOfferKey(key) and entry.open ~= false and entry.endsAt > now then
+			found = soonest(found, entry.endsAt)
+		end
+	end
+	for key, entry in payload do
+		if key ~= "offers" and isOfferKey(key) then
+			H.expect(type(entry) ~= "table", key .. " is a flat table the client would misread")
+		end
+	end
+	return found
 end
 
 return {
@@ -500,5 +570,282 @@ return {
 		H.expect(not Shop.hasPurchase(old, "x"), "no list yet")
 		Shop.recordPurchase(old, "x")
 		H.expect(Shop.hasPurchase(old, "x"), "list made")
+	end,
+
+	["ShopView.check: why a Buy may not prompt"] = function()
+		local founders = Shop.limitedFor("FoundersCue")
+		H.expect(founders ~= nil and founders.Product == "FoundersCue", "a Robux Limited")
+		local start = founders.StartsAt
+		local now = math.max(JOIN, start) + HOUR
+		local ctx = ctxAt(now)
+		H.expect(ShopView.check("NoSuchProduct", ctx) == "BadRequest", "an unknown key")
+		H.expect(ShopView.check("Pack1", ctx) == "ComingSoon", "Id 0: coming soon")
+		H.expect(ShopView.check("Vip", ctx) == "ComingSoon", "a pass not made yet")
+		H.expect(
+			ShopView.check("Vip", ctxAt(now, { vipPass = true })) == "Owned",
+			"owned beats coming soon (the /vip override)"
+		)
+		withIds({
+			Pack1 = 1,
+			VipOffer = 2,
+			StarterPack = 3,
+			MoneyParty = 4,
+			FoundersCue = 5,
+			Vip = 6,
+			FastOpen = 7,
+		}, function()
+			local joined = ctxAt(JOIN + HOUR)
+			H.expect(ShopView.check("Pack1", joined) == nil, "a money pack always sells")
+			H.expect(ShopView.check("VipOffer", joined) == nil, "the welcome offer, first day")
+			H.expect(
+				ShopView.check("VipOffer", ctxAt(JOIN + 2 * DAY)) == "Closed",
+				"between the windows"
+			)
+			H.expect(
+				ShopView.check("VipOffer", ctxAt(JOIN + 7 * DAY + 5)) == nil,
+				"the comeback window"
+			)
+			H.expect(
+				ShopView.check("VipOffer", ctxAt(JOIN + HOUR, { vipPass = true })) == "Owned",
+				"VIP already"
+			)
+			H.expect(ShopView.check("Vip", joined) == nil, "VIP on sale")
+			H.expect(
+				ShopView.check("Vip", ctxAt(JOIN, { shop = newShop({ VipOffer = true }) }))
+					== "Owned",
+				"VIP through the offer owns the pass's perks"
+			)
+			H.expect(
+				ShopView.check("FastOpen", ctxAt(JOIN, { fastOpen = true })) == "Owned",
+				"Fast Open owned"
+			)
+			H.expect(ShopView.check("FastOpen", joined) == nil, "Fast Open on sale")
+			H.expect(ShopView.check("StarterPack", joined) == nil, "the Starter Pack's week")
+			H.expect(
+				ShopView.check("StarterPack", ctxAt(JOIN + 7 * DAY)) == "Closed",
+				"after 7 days"
+			)
+			H.expect(
+				ShopView.check(
+					"StarterPack",
+					ctxAt(JOIN, { shop = newShop({ StarterBought = true }) })
+				) == "Owned",
+				"once"
+			)
+			H.expect(ShopView.check("MoneyParty", joined) == nil, "no party: room")
+			H.expect(
+				ShopView.check("MoneyParty", ctxAt(JOIN, { partyEndsAt = JOIN + HOUR }))
+					== "PartyFull",
+				"an hour queued"
+			)
+			H.expect(
+				ShopView.check("MoneyParty", ctxAt(JOIN, { partyEndsAt = JOIN + 45 * 60 })) == nil,
+				"room for 15 more minutes"
+			)
+			H.expect(ShopView.check("FoundersCue", ctxAt(now)) == nil, "the Founder's Cue on sale")
+			H.expect(
+				ShopView.check("FoundersCue", ctxAt(start - 1)) == "Closed",
+				"before it starts"
+			)
+			H.expect(
+				ShopView.check("FoundersCue", ctxAt(start + founders.Seconds)) == "Closed",
+				"never again once ended"
+			)
+			H.expect(
+				ShopView.check("FoundersCue", ctxAt(now, { sold = { FoundersCue = founders.Cap } }))
+					== "SoldOut",
+				"sold out at the cap"
+			)
+			H.expect(
+				ShopView.check(
+					"FoundersCue",
+					ctxAt(now, { shop = newShop({ Limited = { FoundersCue = 7 } }) })
+				) == "Owned",
+				"one per player"
+			)
+		end)
+	end,
+
+	["ShopView.build: the ShopState payload"] = function()
+		local sale = ShopView.readSale({ Case = "Epic", Percent = 20, EndsAt = JOIN + DAY }, JOIN)
+		withIds({ Pack2 = 11, Vip = 12 }, function()
+			local now = JOIN + HOUR
+			local p = ShopView.build(ctxAt(now, {
+				prices = { Pack2 = 95 },
+				partyEndsAt = now + 600,
+				partyBuyer = "Painicane",
+				sold = { BetaCue = 412 },
+				shop = newShop({ Limited = { BetaCue = 412 } }),
+				sale = sale,
+			}))
+			for _, key in Config.Products.PackOrder do
+				H.expect(p.products[key] ~= nil, key .. " listed")
+			end
+			for _, key in
+				{ "VipOffer", "StarterPack", "MoneyParty", "FoundersCue", "Vip", "FastOpen" }
+			do
+				H.expect(p.products[key] ~= nil, key .. " listed")
+			end
+			local pack1, pack2 = p.products.Pack1, p.products.Pack2
+			H.expect(pack1.robux == 49 and pack2.robux == 95, "Config's price, else the live one")
+			H.expect(
+				not pack1.available and not pack1.canBuy and pack1.reason == "ComingSoon",
+				"Id 0: coming soon"
+			)
+			H.expect(pack2.available and pack2.canBuy and pack2.reason == nil, "made: on sale")
+			H.expect(pack1.money == 1800 and pack2.money == 3900, "the first pack doubled")
+			H.expect(p.products.StarterPack.money == 3000, "the Starter Pack's $3,000")
+			H.expect(p.products.Vip.kind == "Pass" and p.products.Vip.canBuy, "the VIP pass")
+			H.expect(not p.products.Vip.owned and not p.products.FastOpen.owned, "nothing owned")
+			H.expect(
+				p.products.MoneyParty.canBuy == false
+					and p.products.MoneyParty.reason == "ComingSoon",
+				"the party: room, but not made yet"
+			)
+			local welcome = p.offers.VipOffer
+			H.expect(
+				welcome.open and welcome.endsAt == JOIN + DAY and welcome.kind == "Welcome",
+				"the welcome window"
+			)
+			local starter = p.offers.StarterPack
+			H.expect(starter.open and starter.endsAt == JOIN + 7 * DAY, "the Starter Pack's week")
+			H.expect(
+				p.party ~= nil and p.party.endsAt == now + 600 and p.party.buyer == "Painicane",
+				"the party"
+			)
+			H.expect(p.sale ~= nil and p.sale.case == "Epic" and p.sale.percent == 20, "the sale")
+			local beta = nil
+			for _, row in p.limited do
+				if row.cue == "BetaCue" then
+					beta = row
+				end
+			end
+			H.expect(beta ~= nil and beta.price == 40000 and beta.cap == 1000, "the Beta Cue row")
+			H.expect(
+				beta.owned and beta.copy == 412 and beta.sold == 412 and not beta.canBuy,
+				"Owned #412"
+			)
+			H.expect(#p.limited == #Shop.limited(), "every Limited row, in shelf order")
+			H.expect(
+				not p.vip and not p.vipPass and not p.vipOffer and not p.fastOpen,
+				"no VIP, no Fast Open"
+			)
+			H.expect(not p.firstPackBought and not p.starterBought and not p.restricted, "flags")
+		end)
+	end,
+
+	["ShopView.build: what the Shop tile's timer reads"] = function()
+		H.expect(
+			offerEndsAt(ShopView.build(ctxAt(JOIN + HOUR)), JOIN + HOUR) == JOIN + DAY,
+			"welcome"
+		)
+		H.expect(
+			offerEndsAt(ShopView.build(ctxAt(JOIN + 2 * DAY)), JOIN + 2 * DAY) == JOIN + 7 * DAY,
+			"then the Starter Pack's week"
+		)
+		local comeback = ShopView.build(ctxAt(JOIN + 2 * DAY)).offers.VipOffer
+		H.expect(
+			not comeback.open
+				and comeback.kind == "Comeback"
+				and comeback.startsAt == JOIN + 7 * DAY,
+			"the comeback still to come, closed"
+		)
+		H.expect(
+			offerEndsAt(ShopView.build(ctxAt(JOIN + 7 * DAY + 60)), JOIN + 7 * DAY + 60)
+				== JOIN + 8 * DAY,
+			"the comeback window"
+		)
+		local vip = ctxAt(JOIN + HOUR, { vipPass = true, shop = newShop({ StarterBought = true }) })
+		H.expect(offerEndsAt(ShopView.build(vip), JOIN + HOUR) == nil, "VIP, starter bought: none")
+		local late = ShopView.build(ctxAt(JOIN + 9 * DAY)).offers.VipOffer
+		H.expect(not late.open and late.endsAt == 0, "closed for good")
+		H.expect(ShopView.build(ctxAt(JOIN, { partyEndsAt = JOIN })).party == nil, "an ended party")
+	end,
+
+	["ShopView.nextChange: when a window opens or closes by itself"] = function()
+		local function expected(t: number, extra: number?): number?
+			local offers = Shop.offers(newShop(), t, false)
+			local found: number? = soonest(limitedBoundary(t), extra)
+			for _, at in
+				{
+					offers.welcome.endsAt,
+					offers.comeback.startsAt,
+					offers.comeback.endsAt,
+					offers.starter.endsAt,
+				}
+			do
+				if at > t then
+					found = soonest(found, at)
+				end
+			end
+			return found
+		end
+		for _, t in { JOIN - HOUR, JOIN + HOUR, JOIN + 2 * DAY, JOIN + 7 * DAY + 1, JOIN + 9 * DAY } do
+			H.expect(
+				ShopView.nextChange(ctxAt(t)) == expected(t, nil),
+				("at join %+d s"):format(t - JOIN)
+			)
+		end
+		H.expect(ShopView.nextChange(ctxAt(JOIN + HOUR)) == JOIN + DAY, "the welcome offer ends")
+		-- The party ends, and makes room for another 15 minutes before that.
+		local t = JOIN + 9 * DAY
+		H.expect(
+			ShopView.nextChange(ctxAt(t, { partyEndsAt = t + HOUR })) == expected(t, t + 15 * 60),
+			"an hour queued: room again in 15 minutes"
+		)
+		H.expect(
+			ShopView.nextChange(ctxAt(t, { partyEndsAt = t + 60 })) == expected(t, t + 60),
+			"the party's end"
+		)
+		H.expect(
+			ShopView.nextChange(
+				ctxAt(t, { sale = { case = "Epic", percent = 20, endsAt = t + 30 } })
+			) == t + 30,
+			"the sale's end"
+		)
+		local far = JOIN + 4000 * DAY
+		H.expect(
+			ShopView.nextChange(ctxAt(far)) == limitedBoundary(far),
+			"nothing left but Limiteds"
+		)
+		H.expect(
+			ShopView.nextChange(ctxAt(far, { shop = newShop({ FirstJoin = 0 }) }))
+				== limitedBoundary(far),
+			"an unknown first join has no windows"
+		)
+	end,
+
+	["ShopView.readSale: only a real, running sale"] = function()
+		local now = JOIN
+		local sale = ShopView.readSale({ Case = "Rare", Percent = 25, EndsAt = now + 60 }, now)
+		H.expect(
+			sale ~= nil and sale.case == "Rare" and sale.percent == 25 and sale.endsAt == now + 60,
+			"Config's spelling"
+		)
+		H.expect(
+			ShopView.readSale({ case = "Epic", percent = 10, endsAt = now + 1 }, now) ~= nil,
+			"the payload's spelling"
+		)
+		H.expect(ShopView.readSale(Config.Cases.Sale, now) == nil, "Config's default: no sale")
+		H.expect(
+			ShopView.readSale({ Case = "NoSuchCase", Percent = 25, EndsAt = now + 60 }, now) == nil,
+			"an unknown case"
+		)
+		H.expect(
+			ShopView.readSale({ Case = "Rare", Percent = 0, EndsAt = now + 60 }, now) == nil,
+			"0% off"
+		)
+		H.expect(
+			ShopView.readSale({ Case = "Rare", Percent = 100, EndsAt = now + 60 }, now) == nil,
+			"free is no sale"
+		)
+		H.expect(
+			ShopView.readSale({ Case = "Rare", Percent = 25, EndsAt = now }, now) == nil,
+			"ended"
+		)
+		H.expect(
+			ShopView.readSale(nil, now) == nil and ShopView.readSale("Rare", now) == nil,
+			"not a table"
+		)
 	end,
 }

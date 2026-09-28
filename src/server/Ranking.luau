@@ -1,46 +1,71 @@
 --!strict
 -- Ranking: settles a finished match once for every player in it (rank XP, rank-up rewards,
--- the match bonus, stats; the pure rules are Progression/Ranks and Progression/Money) through
--- PlayerData, then sends each of them the result screen's numbers (MatchSummary). The client
--- only animates what it is sent.
+-- the match and streak bonuses, the winner's free case, stats; the pure rules are
+-- Progression/Ranks, Money, Cases and Settle) through PlayerData, then sends each of them the
+-- result screen's numbers (MatchSummary). The client only animates what it is sent.
 --
 -- - A match is settled once, when its table's engine first shows the Result phase:
 --   TableService.broadcast runs after every state change and calls Ranking.check.
 -- - A player who leaves mid-match (disconnects) gets their forfeit loss at once, from
 --   TableService's PlayerRemoving, while their save is still open (PlayerData ends it a frame
---   later); the settle then skips them.
+--   later); the settle then skips them, and uses what was noted about them as they left (their
+--   rank for the gap, their real matches for the winner's free case).
 -- - Real matches (GDD section 13): only a match that ran Config.Ranks.RealMatchSeconds of
---   server time from the break pays anyone or counts for rank. XP is never lost (ECONOMY
---   4.1). A surrender, running out of timeouts, leaving, and (under the mark) an early 8 are
---   forfeits: a loss with no XP and no money bonus.
--- - Solo never changes rank and has no match bonus; its summary carries the pots' money only.
+--   server time from the break pays a bonus, a free case or XP, and counts as a real match.
+--   XP is never lost (ECONOMY 4.1). A surrender, running out of timeouts, leaving, and (under
+--   the mark) an early 8 are forfeits: a loss with no XP and no money bonus. A match that ends
+--   under the mark adds what its pots paid to the day's short-match total (ECONOMY 3.6).
+-- - Everything a player's "before" counts decide (wins, today's wins, the first win of the
+--   day, the opponents' real matches, the anti-farm row) is read for every player first, then
+--   each player is paid: one player's pay never changes another's rule.
+-- - Solo never changes rank and has no bonus or free case; its summary carries the pots only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Engine = require(Shared.Rules.MatchEngine)
 local Ranks = require(Shared.Progression.Ranks)
 local Money = require(Shared.Progression.Money)
+local Cases = require(Shared.Progression.Cases)
+local Daily = require(Shared.Progression.Daily)
+local Inventory = require(Shared.Progression.Inventory)
+local Settle = require(Shared.Progression.Settle)
 local Economy = require(script.Parent.Economy)
 local PlayerData = require(script.Parent.PlayerData)
+local Counters = require(script.Parent.Counters)
+local Announce = require(script.Parent.Announce)
 
 local R = Config.Ranks
+local E = Config.Economy
+local IS_STUDIO = RunService:IsStudio()
+-- The top division (Reyes): reaching it is announced (ECONOMY 4.6).
+local TOP_INDEX = Ranks.count()
+
 local Ranking = {}
+
+-- What the settle needs about one account at the table, read before any of the match is
+-- paid: its division index (nil: not known) and its real matches (nil: not known, which never
+-- lets a winner's free case drop from it).
+type Facts = { index: number?, realMatches: number? }
 
 -- Set as soon as the server starts shutting down (Ranking.start), in case Roblox removes the
 -- players before ProfileStore's own BindToClose has run.
 local closing = false
 
--- The results that end a game on the 8 against the shooter: a forfeit under the one-minute
--- mark (GDD section 13), an ordinary loss after it.
-local EIGHT_LOSSES =
-	{ EarlyEight = true, WrongPocket = true, FoulEight = true, EightOffTable = true }
-
 -- Table id -> the epoch whose result was settled, so a result is never paid twice.
 local settledEpoch: { [number]: number } = {}
--- Match key -> userIds already settled by leaving.
-local departed: { [string]: { [number]: boolean } } = {}
+-- Match key -> userId -> the facts of a player already settled by leaving.
+local departed: { [string]: { [number]: Facts } } = {}
+
+-- The server's own randomness for the first win's case (Cases.roll takes it as rng(n) ->
+-- 1..n).
+local random = Random.new()
+local function roll(n: number): number
+	return random:NextInteger(1, n)
+end
 
 local function rankOf(player: Player): any
 	local tier = player:GetAttribute("RankTier")
@@ -51,7 +76,7 @@ local function rankOf(player: Player): any
 	}
 end
 
-local function rankSave(data: any): any
+local function rankSave(data: any): Ranks.RankSave
 	return {
 		RankXp = data.RankXp,
 		PeakDivision = data.PeakDivision,
@@ -59,36 +84,73 @@ local function rankSave(data: any): any
 	}
 end
 
--- Applies one match to one player's rank and pays its rank-up rewards. Returns the pure
--- result (nil when the save is not loaded).
-local function applyMatch(player: Player, outcome: string, forfeited: boolean): any?
-	local data = PlayerData.read(player)
-	if not data then
+-- A live player's facts (Facts), read now.
+local function factsOf(player: Player): Facts
+	local progress = PlayerData.progress(player)
+	local index = player:GetAttribute("RankIndex")
+	return {
+		index = if type(index) == "number" then index else 0,
+		realMatches = if progress then progress.RealMatches else nil,
+	}
+end
+
+-- The rank-up rewards of a result in PlayerData's Reward shape (money, cases and the tier
+-- cues added up), or nil when it passed nothing that pays.
+local function rewardOf(result: Ranks.MatchResult): PlayerData.Reward?
+	local cues = table.clone(result.rewardCues)
+	local cases = table.clone(result.rewardCases)
+	if result.rewardTotal <= 0 and #cues == 0 and next(cases) == nil then
 		return nil
 	end
-	local result = Ranks.applyMatch(rankSave(data), {
-		outcome = outcome,
-		opponent = "Player",
-		forfeit = forfeited,
-		mode = "Classic",
-	})
-	if
-		not PlayerData.applyRank(player, {
-			RankXp = result.xpAfter,
-			PeakDivision = result.peakAfter,
-			RatedMatches = result.ratedMatches,
-		})
-	then
+	return { money = result.rewardTotal, cases = cases, cues = cues }
+end
+
+-- Saves a result's rank and pays its rank-up rewards in the same change (PlayerData.applyRank:
+-- a rank-up and its reward can never be split; paid once, since the peak moves with them).
+-- A peak that reaches the top division is announced. False when the save refused it.
+local function applyRank(player: Player, result: Ranks.MatchResult): boolean
+	local ok = PlayerData.applyRank(player, {
+		RankXp = result.xpAfter,
+		PeakDivision = result.peakAfter,
+		RatedMatches = result.ratedMatches,
+	}, rewardOf(result))
+	if not ok then
+		warn(("[8ball] Ranking: the rank change for %s was refused"):format(player.Name))
+		return false
+	end
+	if result.peakBefore < TOP_INDEX and result.peakAfter >= TOP_INDEX then
+		Announce.reyes(player)
+	end
+	return true
+end
+
+-- Applies one match to one player's rank (with its rank-up rewards) and counts it in their
+-- stats. Returns the pure result (nil when the save is not loaded or refused it).
+local function applyMatch(player: Player, data: any, ctx: Ranks.MatchContext): Ranks.MatchResult?
+	local result = Ranks.applyMatch(rankSave(data), ctx)
+	if not applyRank(player, result) then
 		return nil
 	end
-	if result.rewardTotal > 0 then
-		PlayerData.addMoney(player, result.rewardTotal, "RankReward")
-	end
-	PlayerData.recordMatch(player, outcome, "Player")
+	PlayerData.recordMatch(player, ctx.outcome, ctx.opponent)
 	return result
 end
 
---- The XP part of a summary (plain tables, safe for a remote).
+-- The rank-up rows for a remote: { index, money, cases = { [caseId] = count }, cue? }.
+local function rewardRows(rewards: { Ranks.Reward }): { any }
+	local rows = {}
+	for _, reward in rewards do
+		table.insert(rows, {
+			index = reward.index,
+			money = reward.money,
+			cases = table.clone(reward.cases),
+			cue = reward.cue,
+		})
+	end
+	return rows
+end
+
+--- The XP part of a summary (plain tables, safe for a remote): the ranks and XP before and
+--- after, the rank-up rows and their totals, and how the XP was built (a match only).
 function Ranking.xpPart(result: any): any
 	return {
 		before = result.before,
@@ -98,9 +160,62 @@ function Ranking.xpPart(result: any): any
 		delta = result.delta,
 		promoted = result.promoted,
 		newTier = result.newTier,
-		rewards = result.rewards,
+		rewards = rewardRows(result.rewards),
 		rewardTotal = result.rewardTotal,
+		rewardCases = table.clone(result.rewardCases),
+		rewardCues = table.clone(result.rewardCues),
+		breakdown = result.breakdown,
 	}
+end
+
+-- Counts a free case against every losing account (the anti-farm limit of
+-- Config.Economy.FreeCasesPerOpponent).
+local function countAgainst(player: Player, opponentIds: { number })
+	for _, id in opponentIds do
+		PlayerData.addOpponentCase(player, id)
+	end
+end
+
+-- Gives the case the free-case rule picked. The first win's case (`firstWin`) is opened now:
+-- its cue is rolled and given (with the save's first-win flag, in one change), counted as a
+-- copy in existence and announced when its rarity is. Any other goes into the inventory.
+-- `owned` is the save as read before (whether the cue is new). Returns (the case put in the
+-- inventory?, the first win's reveal { case, cue, rarity, new }?).
+local function giveFreeCase(
+	player: Player,
+	caseId: string,
+	firstWin: boolean,
+	owned: any,
+	opponentIds: { number },
+	reason: string
+): (string?, any?)
+	if firstWin then
+		local cue, rarity = Cases.roll(caseId, roll)
+		local new = not Inventory.owns(owned, cue)
+		if not PlayerData.grantReward(player, { cues = { cue }, firstWinCase = true }, reason) then
+			return nil, nil
+		end
+		Counters.add(cue, 1)
+		if Cases.announces(rarity) then
+			Announce.unbox(player, cue)
+		end
+		countAgainst(player, opponentIds)
+		return nil, { case = caseId, cue = cue, rarity = rarity, new = new }
+	end
+	if not PlayerData.grantReward(player, { cases = { [caseId] = 1 } }, reason) then
+		return nil, nil
+	end
+	countAgainst(player, opponentIds)
+	return caseId, nil
+end
+
+-- A short match's pots (ECONOMY 3.6): what they paid this player adds to today's short total.
+local function countShort(player: Player, key: string)
+	local tally = Economy.tally(key, player.UserId)
+	local paid = tally.ballMoney + tally.niceMoney
+	if paid > 0 then
+		PlayerData.addDailyMoney(player, "Short", paid)
+	end
 end
 
 --- A player who is leaving (PlayerRemoving) while seated in a running match: their forfeit
@@ -128,7 +243,8 @@ function Ranking.departed(t: any, player: Player)
 	if gone[player.UserId] then
 		return
 	end
-	gone[player.UserId] = true
+	-- What the rest of the match needs about this account once it is gone, read first.
+	gone[player.UserId] = factsOf(player)
 	-- Leaving is a loss: it ends the win streak whatever the match time (Ranks.nextStreak).
 	PlayerData.endStreak(player)
 	local data = PlayerData.read(player)
@@ -136,20 +252,28 @@ function Ranking.departed(t: any, player: Player)
 		return
 	end
 	local now = workspace:GetServerTimeNow()
-	local real = e.brokeAt ~= nil and now - e.brokeAt >= R.RealMatchSeconds
-	if real then
-		applyMatch(player, "Loss", true)
+	local real = e.brokeAt ~= nil and Settle.isReal(now - e.brokeAt)
+	if not real then
+		countShort(player, key)
+		return
 	end
+	local kind = Settle.opponentKind(e)
+	applyMatch(
+		player,
+		data,
+		{ outcome = "Loss", opponent = kind, forfeit = true, mode = "Classic" }
+	)
+	local seat = Engine.seat(e, player.UserId)
+	local opponents = if seat and type(seat.team) == "number"
+		then Economy.opponentIds(e, seat.team)
+		else {}
+	PlayerData.recordRealMatch(player, false, opponents)
 end
 
 -- Everyone on a team, for the result screen's cards (whoever left is marked).
 local function teamList(e: any, team: number): { any }
 	local list = {}
-	local seats = table.clone(e.seats)
-	table.sort(seats, function(a: any, b: any)
-		return (a.slot or 0) < (b.slot or 0)
-	end)
-	for _, s in seats do
+	for _, s in Economy.seatsInOrder(e) do
 		if s.team == team then
 			local p = Players:GetPlayerByUserId(s.userId)
 			local rank = if p then rankOf(p) else { tier = "Unranked", division = 0 }
@@ -166,99 +290,270 @@ local function teamList(e: any, team: number): { any }
 	return list
 end
 
+-- One finished match, as every player's settle sees it.
+type Match = {
+	e: any,
+	key: string,
+	kind: string, -- Settle.opponentKind: "Player", "PC" or "Solo"
+	solo: boolean,
+	real: boolean,
+	multiplier: number,
+}
+
+-- One player being settled, with everything read before any of the match was paid.
+type Entry = {
+	player: Player,
+	team: number,
+	outcome: string, -- "Win", "Loss" or "Draw"
+	forfeited: boolean,
+	data: any?, -- a frozen copy of the save (nil: not loaded)
+	progress: PlayerData.Progress?,
+	daily: any?, -- today's Daily (PlayerData.dailyState)
+	opponents: { number }, -- the other side's accounts (empty against PC)
+	opponentIndex: number?, -- their average division (Settle.opponentIndex)
+	farm: Money.FarmRow, -- the anti-farm row for this match
+	losers: { Settle.Loser }, -- the other side's accounts, for this player's free case
+}
+
+-- What one player's settle gave them, for the summary.
+type Paid = {
+	xp: any?, -- Ranking.xpPart, or nil when the match did not count for rank
+	bonus: number,
+	streak: number,
+	boost: number,
+	freeCase: string?,
+	firstWin: any?,
+}
+
+-- Settles one player (every "before" count is on `entry`, read before anyone was paid).
+local function settleOne(m: Match, entry: Entry, paid: Paid)
+	local p = entry.player
+	local data, progress, daily = entry.data, entry.progress, entry.daily
+	if m.solo or not data or not progress or not daily then
+		return
+	end
+	local kind, real, outcome = m.kind, m.real, entry.outcome
+	local won = real and outcome == "Win"
+	local farm = entry.farm
+	local boost = Economy.boost(p)
+	paid.boost = boost
+	local myIndex = Ranks.fromXp(data.RankXp, data.RatedMatches > 0).index
+	-- A win against people that counts adds to the streak; any loss ends it (a quick forfeit
+	-- too), so leaving early never protects one.
+	local streakAfter = Ranks.nextStreak(data.Stats.WinStreak, outcome, real and kind == "Player")
+
+	-- Rank XP and the rank-up rewards (ECONOMY 4).
+	if real then
+		local flags = Settle.boosts({
+			realMatches = progress.RealMatches,
+			vip = p:GetAttribute("Vip") == true,
+			won = won,
+			firstWinUsed = daily.FirstWinUsed,
+			streakAfter = streakAfter,
+			farmXp = farm.Xp,
+		})
+		-- Today's first win is used only by a win that gives XP.
+		if flags.firstWin and not PlayerData.useFirstWin(p) then
+			flags.firstWin = false
+		end
+		local result = applyMatch(p, data, {
+			outcome = outcome,
+			opponent = kind,
+			forfeit = entry.forfeited,
+			mode = "Classic",
+			opponentIndex = entry.opponentIndex,
+			boosts = flags,
+			farm = farm.Xp,
+		})
+		if result then
+			paid.xp = Ranking.xpPart(result)
+		end
+	end
+	-- Any loss ends the win streak, counted by XP or not (a quick forfeit included); only a
+	-- real win adds to it (recordMatch).
+	if outcome == "Loss" then
+		PlayerData.endStreak(p)
+	end
+
+	-- The match bonus and the streak bonus (ECONOMY 3.1, 3.2, 3.6, 4.4): earned in play, so
+	-- the boosts apply; against PC they count toward the PC daily total.
+	local pc = kind == "PC"
+	local bonus = Money.matchBonus({
+		outcome = outcome,
+		opponent = kind,
+		real = real,
+		forfeited = entry.forfeited,
+		multiplier = m.multiplier,
+		gap = Ranks.gapFactor(myIndex, entry.opponentIndex),
+		boost = boost,
+		farm = farm.Bonus,
+		pcCapped = pc and PlayerData.dailyMoney(p, "Pc") >= E.PcDailyCap,
+	})
+	if bonus > 0 and PlayerData.addMoney(p, bonus, "MatchBonus", if pc then "Pc" else nil) then
+		paid.bonus = bonus
+	end
+	if won then
+		local streak = Money.streakBonus(streakAfter, kind, m.multiplier, boost, farm.Bonus)
+		if streak > 0 and PlayerData.addMoney(p, streak, "StreakBonus") then
+			paid.streak = streak
+		end
+	end
+	if not real then
+		countShort(p, m.key)
+		return
+	end
+
+	-- The winner's free case (ECONOMY 7.1, 3.6), from the counts before this match.
+	if won then
+		local ctx = Settle.freeCaseContext({
+			real = real,
+			solo = false,
+			won = true,
+			pc = pc,
+			winsBefore = progress.Wins,
+			winsTodayBefore = daily.Wins,
+			firstWinDue = progress.FirstWinCaseDue,
+			farmAllows = farm.FreeCase,
+			losers = entry.losers,
+		})
+		local caseId = Cases.freeCase(ctx)
+		if caseId ~= nil then
+			paid.freeCase, paid.firstWin =
+				giveFreeCase(p, caseId, ctx.firstWinEver, data, entry.opponents, "FreeCase")
+		end
+	end
+	PlayerData.recordRealMatch(p, outcome == "Win", entry.opponents)
+end
+
 local function settle(e: any)
 	local key = Economy.matchKey(e)
 	local result = e.result
-	local solo = e.solo ~= nil
 	local winner: number? = result.winner
-	local real = (result.seconds or 0) >= R.RealMatchSeconds
-	local forfeitTeam: number? = result.forfeit
-	if forfeitTeam == nil and winner ~= nil then
-		if result.reason == "EmptyTeam" or (not real and EIGHT_LOSSES[result.reason]) then
-			forfeitTeam = 3 - winner
-		end
-	end
-	local multiplier = Economy.multiplier(e)
+	local real = Settle.isReal(result.seconds)
+	local forfeitTeam = Settle.forfeitTeam(result, real)
+	local m: Match = {
+		e = e,
+		key = key,
+		kind = Settle.opponentKind(e),
+		solo = e.solo ~= nil,
+		real = real,
+		multiplier = Economy.multiplier(e),
+	}
 	local gone = departed[key] or {}
-	local personal: { [Player]: any } = {}
-	for _, s in e.seats do
+	local seats = Economy.seatsInOrder(e)
+
+	-- Every account's facts first: a leaver's as noted when they left; a Studio fixture seat
+	-- (PoolMatchQA's synthetic players, no Player) stands in for an established account so a
+	-- fixture win can drop a case; in a live server an account nobody knows never allows one.
+	local facts: { [number]: Facts } = {}
+	for _, s in seats do
+		local p = Players:GetPlayerByUserId(s.userId)
+		facts[s.userId] = gone[s.userId]
+			or (if p then factsOf(p) else nil)
+			or { index = nil, realMatches = if IS_STUDIO then E.FreeCaseLoserMinMatches else nil }
+	end
+
+	-- Then each player's own counts, all before anyone is paid.
+	local entries: { Entry } = {}
+	for _, s in seats do
 		local p = Players:GetPlayerByUserId(s.userId)
 		if p and s.connected and not gone[s.userId] and type(s.team) == "number" then
-			local outcome = if winner == nil
-				then "Draw"
-				elseif s.team == winner then "Win"
-				else "Loss"
-			local forfeited = forfeitTeam == s.team
-			local xp, bonus = nil, 0
-			if not solo then
-				local data = PlayerData.read(p)
-				if data and real then
-					local applied = applyMatch(p, outcome, forfeited)
-					if applied then
-						xp = Ranking.xpPart(applied)
-					end
+			local opponents = Economy.opponentIds(e, s.team)
+			local indices: { number } = {}
+			local losers: { Settle.Loser } = {}
+			for _, id in opponents do
+				local f = facts[id]
+				if f.index ~= nil then
+					table.insert(indices, f.index)
 				end
-				-- Any loss ends the win streak, counted by XP or not (a quick forfeit included);
-				-- only a real win adds to it (recordMatch).
-				if outcome == "Loss" then
-					PlayerData.endStreak(p)
-				end
-				bonus = Money.matchBonus({
-					outcome = outcome,
-					opponent = "Player",
-					real = real,
-					forfeited = forfeited,
-					multiplier = multiplier,
+				table.insert(losers, {
+					realMatches = f.realMatches,
+					casesToday = PlayerData.opponentToday(p, id).Cases,
 				})
-				if bonus > 0 and not PlayerData.addMoney(p, bonus, "MatchBonus") then
-					bonus = 0
-				end
 			end
-			personal[p] = {
+			table.insert(entries, {
+				player = p,
 				team = s.team,
-				outcome = outcome,
-				forfeited = forfeited,
-				xp = xp,
-				bonus = bonus,
-				tally = Economy.tally(key, s.userId),
-			}
+				outcome = Settle.outcome(s.team, winner),
+				forfeited = forfeitTeam == s.team,
+				data = PlayerData.read(p),
+				progress = PlayerData.progress(p),
+				daily = PlayerData.dailyState(p),
+				opponents = opponents,
+				opponentIndex = Settle.opponentIndex(indices),
+				farm = Economy.farmRow(p, opponents),
+				losers = losers,
+			})
 		end
 	end
+
+	-- Then pay each player; one player's failure never stops the others' settle.
+	local results: { Paid } = {}
+	for i, entry in entries do
+		local paid: Paid = { xp = nil, bonus = 0, streak = 0, boost = 0 }
+		results[i] = paid
+		local ok, err = pcall(function(): any
+			settleOne(m, entry, paid)
+			return nil
+		end)
+		if not ok then
+			warn(
+				("[8ball] Ranking: settling %s on table %d failed: %s"):format(
+					entry.player.Name,
+					e.id,
+					tostring(err)
+				)
+			)
+		end
+	end
+
 	-- The cards show everyone's rank after the match, so they are read once it is paid.
 	local teams = { teamList(e, 1), teamList(e, 2) }
-	for p, mine in personal do
-		local tally = mine.tally
-		local reward = if mine.xp then mine.xp.rewardTotal else 0
+	local today = Daily.dayOf(os.time())
+	for i, entry in entries do
+		local p = entry.player
+		local paid = results[i]
+		local tally = Economy.tally(key, p.UserId)
+		local reward = if paid.xp then paid.xp.rewardTotal else 0
+		local after = PlayerData.progress(p)
 		Net.get("MatchSummary"):FireClient(p, {
 			key = key,
 			tableId = e.id,
 			epoch = e.epoch,
-			solo = solo,
+			solo = m.solo,
 			winner = winner,
 			reason = result.reason,
-			short = not real and not solo,
+			short = not real and not m.solo,
 			teams = teams,
 			you = {
 				userId = p.UserId,
-				team = mine.team,
-				outcome = mine.outcome,
-				forfeited = mine.forfeited,
+				team = entry.team,
+				outcome = entry.outcome,
+				forfeited = entry.forfeited,
 			},
-			xp = mine.xp,
+			xp = paid.xp,
 			money = {
 				balls = tally.balls,
 				ballMoney = tally.ballMoney,
 				nice = tally.nice,
 				niceMoney = tally.niceMoney,
-				bonus = mine.bonus,
+				bonus = paid.bonus,
+				streak = paid.streak,
 				reward = reward,
-				total = tally.ballMoney + tally.niceMoney + mine.bonus + reward,
+				boost = paid.boost,
+				total = tally.ballMoney + tally.niceMoney + paid.bonus + paid.streak + reward,
 			},
+			freeCase = paid.freeCase,
+			firstWin = paid.firstWin,
+			nextReward = if entry.data then Daily.nextReward(entry.data.Login, today) else nil,
+			rookieLeft = if after
+				then math.max(0, R.Boosts.RookieMatches - after.RealMatches)
+				else nil,
 			-- The rematch row (designer, 2026-09-28): whether one is on offer, the series so
 			-- far (this game counted), and whether this is an arena (Play another, Lobby).
 			rematch = e.rematch ~= nil,
 			arena = e.fixed == true,
-			series = if e.series and not solo
+			series = if e.series and not m.solo
 				then { wins = table.clone(e.series.wins), games = e.series.games }
 				else nil,
 		})
@@ -298,37 +593,76 @@ function Ranking.check(t: any)
 	end
 end
 
+-- A RankEvent for a promotion outside a match (Net's RankEvent comment has the shape).
+local function rankEvent(result: Ranks.MatchResult): any
+	return {
+		kind = "Up",
+		before = result.before,
+		after = result.after,
+		reward = result.rewardTotal,
+		newTier = result.newTier,
+		rewards = rewardRows(result.rewards),
+		rewardCases = table.clone(result.rewardCases),
+		rewardCues = table.clone(result.rewardCues),
+	}
+end
+
 --- The /xp developer command: `delta` XP (a gain; XP is never lost) through the real rules
---- (peak, rewards), with the rank-up popup. Not a match. Returns false when the save is not
---- loaded.
+--- (peak, rank-up rewards with their money, cases and cues, the Reyes announcement), with the
+--- NEW RANK! popup and its reward chips. Not a match. Returns false when the save is not
+--- loaded (or refused the change).
 function Ranking.addXp(player: Player, delta: number): boolean
 	local data = PlayerData.read(player)
 	if not data then
 		return false
 	end
 	local result = Ranks.applyXp(rankSave(data), delta)
-	if
-		not PlayerData.applyRank(player, {
-			RankXp = result.xpAfter,
-			PeakDivision = result.peakAfter,
-			RatedMatches = result.ratedMatches,
-		})
-	then
+	if not applyRank(player, result) then
 		return false
 	end
-	if result.rewardTotal > 0 then
-		PlayerData.addMoney(player, result.rewardTotal, "RankReward")
-	end
 	if result.promoted then
-		Net.get("RankEvent"):FireClient(player, {
-			kind = "Up",
-			before = result.before,
-			after = result.after,
-			reward = result.rewardTotal,
-			newTier = result.newTier,
-		})
+		Net.get("RankEvent"):FireClient(player, rankEvent(result))
 	end
 	return true
+end
+
+--- The /freecase developer command: the free-case rule run as if `player` had just won a real
+--- match against a fresh opponent (an account with enough real matches, met for the first
+--- time today, that has given no case yet). The win is counted like a real one (Progress.Wins,
+--- today's Daily.Wins, Progress.RealMatches), so repeating the command walks the rule (every
+--- win for the first Config.Cases.NewPlayerWins, then DailyWins a day, then every EveryAfter-th
+--- win). Returns (caseId?, cue?): the case put in the inventory (cue nil); or the first win's
+--- case and the cue it was opened into; or nothing when this win drops no case or the save is
+--- not loaded.
+function Ranking.freeCase(player: Player): (string?, string?)
+	local data = PlayerData.read(player)
+	local progress = PlayerData.progress(player)
+	local daily = PlayerData.dailyState(player)
+	if not data or not progress or not daily then
+		return nil, nil
+	end
+	local ctx = Settle.freeCaseContext({
+		real = true,
+		solo = false,
+		won = true,
+		pc = false,
+		winsBefore = progress.Wins,
+		winsTodayBefore = daily.Wins,
+		firstWinDue = progress.FirstWinCaseDue,
+		farmAllows = Money.farmRow(1).FreeCase,
+		losers = { { realMatches = E.FreeCaseLoserMinMatches, casesToday = 0 } },
+	})
+	local caseId = Cases.freeCase(ctx)
+	local caseGiven, firstWin = nil, nil
+	if caseId ~= nil then
+		caseGiven, firstWin =
+			giveFreeCase(player, caseId, ctx.firstWinEver, data, {}, "DevFreeCase")
+	end
+	PlayerData.recordRealMatch(player, true, {})
+	if firstWin then
+		return firstWin.case, firstWin.cue
+	end
+	return caseGiven, nil
 end
 
 return Ranking

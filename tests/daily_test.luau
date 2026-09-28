@@ -1,14 +1,19 @@
 --!strict
 -- Daily rewards: the login streak, playtime gifts and promo codes (Progression/Daily, numbers
--- in Config.Daily). Expected values are ECONOMY.md section 10's table, written out here.
+-- in Config.Daily), and the RewardState payload built from them (Progression/RewardView).
+-- Expected values are ECONOMY.md section 10's table, written out here.
 
 local H = require("./harness")
 
 local Config = H.require("Config")
 local Daily = H.require("Progression.Daily")
+local RewardView = H.require("Progression.RewardView")
 
 -- A UTC day far from zero, so "yesterday" is never day 0.
 local TODAY = 20724
+local SECONDS_PER_DAY = 86400
+-- An hour into TODAY, as a unix time.
+local NOW = TODAY * SECONDS_PER_DAY + 3600
 
 -- ECONOMY 10: the seven streak days.
 local STREAK = {
@@ -415,5 +420,102 @@ return {
 			"ladder order"
 		)
 		H.expect(list[1].count == 3, "count kept")
+	end,
+
+	["RewardView: a new player's first day"] = function()
+		local daily = { Day = TODAY, PlaySeconds = 0, PlaytimeClaimed = {} }
+		local p = RewardView.build(fresh(), daily, {}, NOW)
+		H.expect(p.today == TODAY and p.sentAt == NOW, "today")
+		H.expect(p.resetsAt == (TODAY + 1) * SECONDS_PER_DAY, "resets at the next UTC midnight")
+		H.expect(p.weeks == Config.Daily.WeeksForBonus, "weeks in the cycle")
+		H.expect(p.login.canClaim and not p.login.claimedToday, "today's claim waits")
+		H.expect(p.login.day == 1 and p.login.week == 1 and not p.login.bonus, "day 1, week 1")
+		H.expect(p.login.reward.money == 250 and #p.login.reward.cases == 0, "$250")
+		H.expect(#p.days == 7, "seven tiles")
+		H.expect(p.days[1].today and not p.days[1].claimed, "day 1 glows")
+		H.expect(not p.days[2].today and not p.days[2].claimed, "day 2 later")
+		local day2 = p.days[2].reward.cases
+		H.expect(#day2 == 1 and day2[1].id == "Standard" and day2[1].count == 2, "2 Standard Cases")
+		H.expect(not p.next.tomorrow and p.next.day == 1, "the next claim is today's")
+		H.expect(p.ready and p.playSeconds == 0 and #p.titles == 0, "ready, nothing played")
+	end,
+
+	["RewardView: after the claim, tomorrow's reward is next"] = function()
+		local ok, login = Daily.claimLogin(fresh(), TODAY)
+		H.expect(ok, "claimed")
+		local p = RewardView.build(login, nil, nil, NOW)
+		H.expect(not p.login.canClaim and p.login.claimedToday, "claimed today")
+		H.expect(
+			p.days[1].claimed and p.days[1].today and not p.days[2].claimed,
+			"a check on day 1"
+		)
+		H.expect(p.next.tomorrow and p.next.day == 2, "tomorrow is day 2")
+		H.expect(
+			p.next.reward.cases[1].id == "Standard",
+			"tomorrow's 2 Standard Cases (the reminder)"
+		)
+		H.expect(not p.ready, "nothing to claim")
+		local tomorrow = RewardView.build(login, nil, nil, NOW + SECONDS_PER_DAY)
+		H.expect(tomorrow.today == TODAY + 1 and tomorrow.login.canClaim, "a new day")
+		H.expect(tomorrow.login.day == 2 and tomorrow.days[2].today, "day 2 glows")
+		H.expect(tomorrow.days[1].claimed and not tomorrow.days[2].claimed, "day 1 stays checked")
+		local missed = RewardView.build(login, nil, nil, NOW + 2 * SECONDS_PER_DAY)
+		H.expect(missed.login.day == 1 and not missed.days[1].claimed, "a missed day: day 1 again")
+	end,
+
+	["RewardView: week 4's day 7 carries the Legendary Case"] = function()
+		local weeks = Config.Daily.WeeksForBonus
+		local login = Daily.setStreakDay(fresh(), TODAY, 7, weeks)
+		local p = RewardView.build(login, nil, nil, NOW)
+		H.expect(p.login.day == 7 and p.login.week == weeks and p.login.bonus, "day 28")
+		H.expect(p.days[7].bonus and not p.days[6].bonus, "the bonus tile")
+		local cases = p.days[7].reward.cases
+		H.expect(
+			#cases == 2 and cases[1].id == "Epic" and cases[2].id == "Legendary",
+			"the Epic Case and the Legendary Case, in ladder order"
+		)
+		for day = 1, 6 do
+			H.expect(p.days[day].claimed, ("day %d of the last week checked"):format(day))
+		end
+		local week1 = RewardView.build(Daily.setStreakDay(fresh(), TODAY, 7, 1), nil, nil, NOW)
+		H.expect(not week1.days[7].bonus and #week1.days[7].reward.cases == 1, "no bonus in week 1")
+	end,
+
+	["RewardView: playtime gifts, progress and the ready key"] = function()
+		local daily = { Day = TODAY, PlaySeconds = 11 * 60, PlaytimeClaimed = {} }
+		local p = RewardView.build(fresh(), daily, nil, NOW)
+		H.expect(#p.playtime == #Config.Daily.Playtime, "every gift")
+		H.expect(p.playSeconds == 660, "seconds played today")
+		local first, second = p.playtime[1], p.playtime[2]
+		H.expect(
+			first.index == 1 and first.minutes == 10 and first.ready and first.progress == 1,
+			"10 min ready"
+		)
+		H.expect(first.reward.money == 100, "$100")
+		H.expect(not second.ready and math.abs(second.progress - 11 / 30) < 1e-9, "30 min at 11/30")
+		H.expect(second.reward.cases[1].id == "Standard", "a Standard Case")
+		H.expect(RewardView.readyKey(daily) == "100", "the first gift ready")
+		daily.PlaytimeClaimed["1"] = true
+		H.expect(RewardView.readyKey(daily) == "000", "claimed: none ready")
+		local _, claimedLogin = Daily.claimLogin(fresh(), TODAY)
+		local after = RewardView.build(claimedLogin, daily, nil, NOW)
+		H.expect(after.playtime[1].claimed and not after.playtime[1].ready, "claimed")
+		H.expect(not after.ready, "nothing left to claim")
+		H.expect(RewardView.readyKey(nil) == "000", "no Daily yet")
+		H.expect(RewardView.build(fresh(), nil, nil, NOW).playSeconds == 0, "nothing played")
+	end,
+
+	["RewardView: titles sorted, rewards as lists"] = function()
+		local titles = RewardView.titles({ Rare = true, Common = true, Epic = false, [5] = true })
+		H.expect(
+			#titles == 2 and titles[1] == "Common" and titles[2] == "Rare",
+			"sorted, true only"
+		)
+		H.expect(#RewardView.titles(nil) == 0, "none")
+		local out = RewardView.reward({ money = 500, cases = { Rare = 1, Standard = 2 } })
+		H.expect(out.money == 500 and #out.cases == 2, "money and two case types")
+		H.expect(out.cases[1].id == "Standard" and out.cases[1].count == 2, "Standard first")
+		H.expect(out.cases[2].id == "Rare" and out.cases[2].count == 1, "then Rare")
+		H.expect(RewardView.reward({ money = -5, cases = {} }).money == 0, "never negative")
 	end,
 }

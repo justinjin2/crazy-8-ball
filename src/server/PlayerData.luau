@@ -2095,6 +2095,36 @@ function PlayerData.saveNow(player: Player, timeoutSeconds: number, purchaseId: 
 	return coroutine.yield()
 end
 
+--- Gives a title (an id in Strings.Items.Titles) outside the Index: the first Reyes ever's
+--- one-of-one (Announce, Config.Items.FirstReyesTitle). True when given now, false when already
+--- held (quietly) or refused (logged: an unknown title, or Config.Save.MaxTitleEntries held).
+function PlayerData.addTitle(player: Player, titleId: string): boolean
+	local op = "addTitle"
+	local names: { [string]: string } = Strings.Items.Titles :: any
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(titleId) ~= "string" or names[titleId] == nil then
+		return refuse(op, player, ("%s is not a title"):format(tostring(titleId)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	if data.Titles[titleId] == true then
+		return false
+	end
+	local held = 0
+	for _ in data.Titles do
+		held += 1
+	end
+	if held >= S.MaxTitleEntries then
+		return refuse(op, player, ("already holds %d titles"):format(held))
+	end
+	data.Titles[titleId] = true
+	commit(player, data, op)
+	return true
+end
+
 ---------------------------------------------------------------------------------------------
 -- Dev
 ---------------------------------------------------------------------------------------------

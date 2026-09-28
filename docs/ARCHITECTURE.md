@@ -373,8 +373,12 @@ clients send ids and counts, never an amount, price, rarity or result.
   save: counts, duplicates, selling, equipping, the Index rows, the client snapshot), `Daily`
   (login streak with day 28, playtime gifts, codes), `Shop` (offer windows, VIP, product
   grants, Money Party, the Limited shelf, and `processReceipt`, the once-only receipt logic
-  with its Roblox calls passed in so Lune can test it), plus the rewritten `Ranks` and `Money`
-  and `SaveSchema` v2.
+  with its Roblox calls passed in so Lune can test it), `ShopView` (the ShopState payload,
+  the Buy check with its reasons, when a window next opens or closes) and `RewardView` (the
+  RewardState payload, rewards as lists), `Requests` (the inventory service's
+  token bucket, argument checks, Limited refusals and reply reasons), `Counts` (the counters'
+  shard choice, their UpdateAsync transforms and the shard sums), plus the rewritten `Ranks`
+  and `Money` and `SaveSchema` v2.
 - Server: `PlayerData` (the only writer of saves: named, validated mutations for every item,
   reward and purchase), `Items` (the inventory service: `ItemRequest`, rate limits, buying,
   opening, selling, equipping, the Index claims, PolicyService), `Counters` (copies in
@@ -397,28 +401,50 @@ everyone). The protocol is written next to each remote in `src/shared/Net.luau`.
 
 **Attributes** (server-set, clients read): on the player `EquippedCue` (everyone's stick and
 trail follow it), `Vip`, `FastOpen`, `RookieLeft` (the rank HUD's ROOKIE x2 pill),
-`CasesUnopened` and `RewardReady` (the column's red dots), `PaidRandomRestricted`; on
-`ReplicatedStorage.CueCounts` one attribute per cue id (copies in existence) and on
-`ReplicatedStorage.LimitedSold` one per Limited cue; on `workspace` `MoneyPartyEndsAt` and
-`MoneyPartyBuyer`.
+`CasesUnopened` and `RewardReady` (the column's red dots), `PaidRandomRestricted` and
+`PaidItemTradingAllowed` (PolicyService on join; `Items`); on `ReplicatedStorage.CueCounts`
+one attribute per cue id (copies in existence) and on `ReplicatedStorage.LimitedSold` one per
+Limited cue; on `ReplicatedStorage` `CaseSale`, `CaseSalePercent` and `CaseSaleEndsAt` while a
+case sale runs; on `workspace` `MoneyPartyEndsAt` and `MoneyPartyBuyer`.
 
 **Copies in existence** (`Counters`). Each server keeps pending +/- per cue (up when unboxed
 or bought, down when sold) and every `Config.Items.FlushSeconds` (plus jitter, and on
 BindToClose) adds them with one `UpdateAsync` to its own shard key, `shard_<n>` with n from
 the JobId (`Config.Items.CountsShards` = 8), in `CueCounts_v1` (`CueCounts_Studio_v1` in
-Studio). Every `ReadSeconds` one `GetAsync` per shard sums the totals into the attributes.
-Budget per server: 1 write a minute and 8 reads every 2 minutes, far under Roblox's per-server
+Studio). Every `ReadSeconds` (plus jitter) one `GetAsync` per shard sums the totals into the
+attributes; each is that read's total plus what this server added since (flushed after the
+read began, being flushed, or pending), so an unboxing moves the local number at once. Nothing
+is published before the first read. A background flush or read waits while Roblox's DataStore
+budget is under `Config.Items.BudgetFloor`, so the saves always come first.
+Budget per server: 1 write a minute and 8 reads (plus one per Limited cue) every 2 minutes,
+and nothing at all while nothing changed; far under Roblox's per-server
 limits (60 + 10 x players a minute each). The limit is per key: 8 shards take about 8 x 60
 writes a minute in total, so about 480 servers flushing once a minute; past that raise
 `CountsShards`. Counts lag by up to a few minutes and a crash loses at most one flush.
 **Limited copies**: one key per Limited cue in `LimitedCounts_v1`; `UpdateAsync` hands out the
-next number only if under the cap and before the end time; the money is taken only after a
-number is given, and a failure takes nothing.
+next number only if under the cap and before the end time (`Counts.takeNext`); the money is
+checked before and taken only after a number is given, and a failure takes nothing (a buy that
+fails after its number was taken is logged: that number is burned). The sold counts are read
+on the copies' loop and after each take. **Firsts**: `Firsts_v1`, one key per first ("Reyes"),
+set only if empty (`Counts.claim`); `Announce` gives the first Reyes the one-of-one title
+through `PlayerData.addTitle` and tells every server over MessagingService
+(`Config.Items.AnnounceTopic`).
 
 **Robux.** `Config.Products` lists every developer product and game pass with `Id = 0` until
 the designer creates them in Creator Hub. `Store` sets `MarketplaceService.ProcessReceipt`
 once: player not here or save not loaded -> NotProcessedYet; the PurchaseId already in the
 save -> PurchaseGranted; else one PlayerData mutation grants and records the id, then the save
 is written (`Profile:Save()` and its `OnAfterSave`, with a timeout) before PurchaseGranted.
-VIP = owns the pass or bought the welcome offer. The dev command `/buy` runs the same grant
-with a fake purchase id.
+A Robux Limited (the Founder's Cue) takes its copy number from `Counters.takeLimited` first
+(kept for a retry in the same server); sold out, ended, already owned or a counter error
+leave the receipt NotProcessedYet, logged, rather than acknowledging a purchase that gave
+nothing (Roblox keeps retrying it). A Money Party receipt starts or extends this
+server's party (workspace `MoneyPartyEndsAt`, `MoneyPartyBuyer`, `Announce.party`).
+VIP = owns the pass or bought the welcome offer. Passes are asked with `UserOwnsGamePassAsync`
+on join (retried) and after `PromptGamePassPurchaseFinished` (the event alone is not proof on
+a live server; in Studio it is trusted, since test purchases never show as owned). The dev
+command `/buy` runs the same grant with a fake purchase id (`Store.grant`); `/vip` and
+`/fastopen` fake pass ownership for the session (`Store.setPass`). `StoreRequest` checks a
+Buy with `ShopView.check` before this server prompts it; ShopState is re-sent at
+`ShopView.nextChange` when an offer, a Limited, the sale or the party opens or closes. The
+Studio hooks `ServerStorage.StoreQA` and `RewardsQA` drive both services from `execute_luau`.
