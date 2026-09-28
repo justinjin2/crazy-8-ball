@@ -51,7 +51,7 @@ change as the game grows are listed with their triggers in section 14.
 | Target (designer) | Plan | Model says |
 |---|---|---|
 | First epic after a few hours | Free cases plus money cases | median 2.1 h played (p25 1.2 h, p75 3.4 h) |
-| First legendary in 1-2 weeks (1 h a day) | Case odds, section 7 | median 6-10 days (8.6 h played buying Epic Cases); 5-9 with VIP; 3-4 at 3 h a day |
+| First legendary in 1-2 weeks (1 h a day) | Case odds, section 7 | median 7-10 days (8.5 h played buying Epic Cases); 5-9 with VIP; 3-4 at 3 h a day |
 | First mythic in at least a month | Case odds | median 6-8 weeks at 1 h a day; 2.5-4 weeks at 3 h a day |
 | Secret: months | Case odds of 1 in 400 Legendary Cases at best | a 3 h a day player: median 6-11 months, a quarter within about 3; a 1 h player: 1.3-2.4 years |
 | Lots of duplicates of commons to rares | Free case every win, 90% of it Common/Uncommon | about 5 commons/uncommons and 1.7 rares per hour |
