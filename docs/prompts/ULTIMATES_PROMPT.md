@@ -560,7 +560,7 @@ mention ult spins. Its internal id stays FastOpen, and nothing about the cases c
 Tick each box when its step is done, verified and committed (`- [x]`). A step that can't be done
 becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 
-- [ ] 0. Setup: `git switch -c ultimates` from `economy`, first commit of the uncommitted files,
+- [x] 0. Setup: `git switch -c ultimates` from `economy`, first commit of the uncommitted files,
   docs and references read, Studio and Rojo checked, lint and tests green, plan in Notes.
 - [ ] 1. The fuller ult model (`tools/ult_model.py` reading Config's numbers) meets section 5's
   targets (both players use an ult in 80%+ of matches on every difficulty, run-outs left out;
@@ -617,3 +617,36 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 ## Notes
 
 (Your plans, findings and parked problems go here as you work, newest last.)
+
+- **Setup (2026-09-28).** Branch `ultimates` from `economy` (0a68f1b); the brief, references
+  08-10, `tools/overnight/ultimates.json` and `tools/ult_model.py` are its first commit, pushed.
+  Studio `aaf8c968...` (Crazy 8 Ball) in Edit; Rojo serves this folder on 34872 and is synced
+  (script_grep found "Rarest first"). Lint clean, 631 tests pass. No bots exist yet (ROADMAP
+  2.4), so "the PC opponent" is a pure policy (`Ults/Match.pcShouldActivate`) that the future
+  BotService calls; in Studio the QA fixture's pretend opponent uses it.
+- **Plan.** Main agent first writes `Config.Ults` (every number of sections 4-10: fill, roll
+  odds as parts per million, pity, catalog rows, earn, prices, timings, sound ids) and
+  `Strings.Ults` (catalog names and descriptions), so every agent reads one set of numbers.
+  Agents run in the foreground, each owning named files.
+  - Wave 1 (pure, Lune-tested, in parallel): (a) the fuller model, `tools/ult_model.py` reading
+    `Config.Ults` through a tiny Lune exporter (step 1); (b) `Ults/Catalog`, `Ults/Fill`,
+    `Ults/Roll`, `Ults/Slots` (save functions: spin into the selected slot, lock, select, the
+    daily spin, grants) and SaveSchema v3 with the migration (step 2); (c)
+    `Ults/Effects/Magnet` and its hook in `Simulation.step` (the overrides carry `Effect`,
+    `Targets` and the called pocket for the 8), tuned by a Lune harness (step 6's physics).
+  - Wave 2 (server): (d) `Ults/Match` (pure rules on the engine's table: bars, activation,
+    arming, the clock pause, spending, teams, the PC policy, practice) hooked into
+    MatchEngine, plus `UltService` (remotes, gains sent with their reasons, QA hook); (e) the
+    spin service (`UltSpins`: spins, slots, locks, money packs, Robux through Store, the
+    daily spin, codes, rank/streak/playtime grants, PolicyService, Auto Spin) through
+    PlayerData/Store/Rewards/Ranking; (f) the global queue's Ults On/Off pools and fallback.
+  - Wave 3 (client): (g) `UltHud` + PadGuide line + MatchHUD's opponent icon, NO ULTS pill and
+    the paused clock; (h) `UltCutscene` + `MagnetFx`; (i) `UltScreen` + `UltStage` + the column
+    button + the reminder line; (j) chips on NEW RANK!, the roadmap, the result screen.
+    Main.client wiring is done by the main agent.
+  - Art from `tools/gen_ui_art.py` (column icon, bar badge, cutscene backdrop, aura flipbook,
+    field-line and spark textures), uploaded to the group; sounds from the designer's two ids
+    and Roblox's library. Dev commands after waves 2-3 (one agent owns DevCommands).
+  - Save layout: `Slots` is a gapless array of 3 strings ("" = empty) and `Locked` an array of
+    3 booleans, because ProfileStore takes no arrays with holes (the brief's `{"Magnet", nil,
+    nil}` shape can't be saved).
