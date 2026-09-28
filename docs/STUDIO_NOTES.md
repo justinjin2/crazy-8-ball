@@ -152,7 +152,9 @@ without Studio's import dialogs. It only uses the Python standard library.
   in `ImageLabel.Image`. To get the image ID, run `InsertService:LoadAsset(decalId)` in Edit
   and read the `Decal.Texture` inside. Store it as `imageId` in the manifest entry. The first
   test was `guide_ring.png`: Decal 116046292783231, image 126657412569998, and the image
-  preloaded with Success.
+  preloaded with Success. It was then archived, because Decals can be archived:
+  `POST https://apis.roblox.com/assets/v1/assets/{id}:archive` with body `{}`, and it can be
+  undone with `:restore`.
 - **Models from Blender (tested 2026-09-28)** with a `.glb` exported by headless Blender. The
   model uploaded "ok" and `LoadAsset` worked in the place.
   - **Scale is 1 Blender metre = 1 stud.** A 2 x 0.8 x 1.4 m planter came in at 2 x 0.8 x
