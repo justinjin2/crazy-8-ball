@@ -655,7 +655,7 @@ leaderboards, the tutorial. Leave clean hooks for trading in the save and the in
 Tick each box when its step is done, verified and committed (`- [x]`). A step that cannot be
 done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 
-- [ ] 0. Setup: on branch `economy`; docs and references read; Studio instance and Rojo sync
+- [x] 0. Setup: on branch `economy`; docs and references read; Studio instance and Rojo sync
   checked; DataStore access probed; `tools/lint.sh` and `tools/test.sh` green; plan in Notes.
 - [ ] 1a. Ranks to ECONOMY.md: ladder, per-tier and mode XP, Classic fade, never lost, gap factor,
   PC, boosts, streak; rewards table with cases and cues; tests.
@@ -698,3 +698,33 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 ## Notes
 
 (Your plans, findings and parked problems go here as you work, newest last.)
+
+- **Setup (2026-09-28).** Branch `economy`, clean. Studio `aaf8c968...` (Crazy 8 Ball). Rojo was
+  not running for this folder (an old server for `8ball-reach` on 34873 only): started
+  `rojo serve` on 34872; the plugin showed a WebSocket error until the designer (still awake)
+  reconnected it; a probe line synced. DataStore and MemoryStore reachable from Edit. Lint clean,
+  464 tests pass.
+- **Rounding.** ECONOMY 4.2's table comes from Python's `round` (half to even: 312.5 -> 312,
+  37.5 -> 38), so match XP rounds half to even; money keeps rounding half up.
+- **Plan.** Main agent writes Config (every number from ECONOMY.md) and the catalog data first,
+  so parallel agents read one set of numbers. Wave 1 (pure + Lune tests, parallel): Ranks;
+  Money; SaveSchema v2 + PlayerData mutations; Cases + Inventory; Daily + Shop (offers, party,
+  receipts); icons in gen_ui_art.py. Wave 2 (server): Ranking/Economy (XP context, boosts, free
+  cases, first-win case, team pay, anti-farm); Items (remotes, selling, opening, PolicyService),
+  Counters (copies, Limited, first Reyes) and Announce; Store (Robux, VIP, party) + Rewards
+  service + DevCommands. Wave 3 (client): Menus + MenuFrame + MenuColumn + client item state +
+  cue thumbnails + banner; then Inventory + reel, Shop, Rewards + Trade, and the existing screens
+  (result, NEW RANK!, roadmap, HUD pill, chat, nameplate) + cue looks and effects. Each agent
+  owns named files; Config.luau and Strings.luau are shared, so each agent edits only inside its
+  own named section and re-reads before each edit. Main agent: Studio checks, uploads, sounds,
+  reviews, commits.
+- **Robux icon.** Roblox's U+E002 glyph renders inside Fredoka One text (checked in Studio next to
+  `rbxasset://textures/ui/common/robux*.png`): prices use the glyph in the text, so it takes
+  the text's colour and outline.
+- **Sounds** (checked loading in this game): ReelTick, ReelSettle, ReelBuild, RevealLow/Rare/
+  Epic/Legendary/Mythic, Claim, Banner in `Config.Audio.Ui`, listed in `assets/audio/README.md`.
+- **Assumptions so far** (to DECISIONS at the end): XP rounds half to even; Secret near-black
+  with a red glow, Mythic's solid colour its lilac; placeholder cue names and looks (rank cues'
+  effects by tier); Legendary/Mythic/Secret index rows title only (brief); team same-opponent
+  count = the most-played opponent; the login streak cycles four weeks (day 28 then week 1);
+  the Event Case drops the normal pool while it is off; codes WELCOME, 8BALL, ROOFTOP.
