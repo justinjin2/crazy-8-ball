@@ -629,8 +629,12 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   is a "?" card; a cue counts once ever owned (selling keeps it). Tapping a card shows it on
   the side: its name (even before it is found) and the cue turning in 3D, a black silhouette
   until found, its real look after. Completing a rarity row pays once (Commons $1,000,
-  Uncommons $2,500, Rares $7,500, Epics $25,000, each with a title; Legendary, Mythic and
-  Secret a title only). ECONOMY.md section 18.
+  Uncommons $2,500, Rares $7,500, Epics $25,000; the rows above Epic have no reward). The
+  rows' "Collector" titles are gone (designer, 2026-09-28: they added nothing). ECONOMY.md
+  section 18.
+- **The Cues tab** (designer, 2026-09-28): no rarity filter chips; one sort button turns
+  through Rarest first (the default), Common first, Most copies and Name A-Z. Sorting by
+  rarity puts Exclusive between Epic and Legendary, and Unique on top.
 - **Finder's money** (designer, 2026-09-28): the first time a player gets a cue it pays extra
   money by rarity, once per cue ever (Common $50 up to Secret $50,000; Exclusive $500, Unique
   $1,000; *(tune)*). ECONOMY.md section 18.

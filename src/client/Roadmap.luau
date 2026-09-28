@@ -1443,6 +1443,7 @@ function Roadmap.lightCell(self: any, cell: Cell, on: boolean)
 		UISound.play("BadgeHover")
 	end
 	settleCell(cell, nil, QUICK * 2)
+	UIAnim.sway(cell.body, on, nil, cell.button)
 end
 
 -- Every tier's state: reached, yours, the next, locked past it (grey and see-through), and its

@@ -12,6 +12,7 @@ local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local UIAnim = require(script.Parent.UIAnim)
 local S = Config.Multiplayer.Style
 local K = Config.UI.Kit
 local HudParts = {}
@@ -437,6 +438,7 @@ function HudParts.candy(
 		edge.Color = if c.lit then color(K.Colors.Gold) else INK
 		edge.Thickness = if c.lit then K.SelectedStrokePx else K.ButtonStrokePx
 		squish(false)
+		UIAnim.sway(body, c.lit, nil, button)
 	end
 	c.squish, c.light = squish, light
 	button.InputBegan:Connect(function(input)
@@ -607,6 +609,7 @@ function HudParts.setEnabled(button: TextButton, enabled: boolean, faded: boolea
 		c.edge.Color = INK
 		c.edge.Thickness = K.ButtonStrokePx
 		c.press.Scale = 1
+		UIAnim.sway(c.body, false)
 	end
 end
 

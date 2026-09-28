@@ -164,6 +164,12 @@ order; that is Open.
   quickly. Only important things shine, bounce or breathe: your turn (the YOUR TURN popup
   pops in and its cue bounces), the win card (the trophy over turning rays), Start once it can be
   pressed, a ball going down. Later: Rematch, rewards, shop deals.
+- **Hover sway** (designer, 2026-09-28): anything pressable (candy buttons, menu tiles, cue
+  cards, the column's icons, roadmap stops) rocks gently side to side while the mouse is over
+  it or a gamepad rests on it, a small dance on top of the hover grow: about 3 degrees (a wide
+  button less, its ends move at most 5 px), one rock every 1.4 s, easing in and out. The rank
+  HUD grows as a whole but only its badge shakes, quicker (7 degrees, 0.6 s). Touch has no
+  hover, so a tap never starts it. `UIAnim.sway`, numbers in `Config.UI.Kit.Motion.Sway`.
 - **Rank badges always shine** (designer, 2026-09-26), more as you climb: a light sweep (the
   same band as the shine sweep, clipped to the badge's shine mask) from Bronze to Diamond,
   plus twinkling sparkles from Expert up, plus turning gold rays behind Reyes. Unranked is
@@ -330,6 +336,12 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   rarity, "In your collection" or "Not found yet", "1,284 exist", and for a cue not found
   yet "Find it for +$250" in green with the cash. A tap chooses a card; a controller chooses
   the card it lands on. On a phone the panel is narrower and the cue smaller.
+- **The Cues tab's sort button** (designer, 2026-09-28): the rarity filter chips went; a blue
+  candy button with the sliders icon, "Sort: Rarest first", sits where they were, left of
+  "Sell all duplicates". Each press moves to the next order (Rarest first, Common first,
+  Most copies, Name A-Z, then round), keeps the chosen card and scrolls the grid to its top.
+  It is as wide as its longest words so it never jumps; the order is kept while the player
+  stays in the server. By rarity, Exclusive sits between Epic and Legendary.
 - **Finder's money**: a case prize that is new to the Index reads "NEW! +$250" and that money
   flies from the pill into the money HUD as the card pops (the HUD holds it back during the
   reel so the reel is never given away); Fast Open flies the total from the grid. Any other

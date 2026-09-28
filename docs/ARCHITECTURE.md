@@ -149,7 +149,7 @@ the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone o
 sees: host, difficulty, abilities, Start; beside the jump button on a phone), `TableSign`
 (the one sign over the table the player walks up to, drawn from the snapshots), `HudParts` (the UI kit every screen is built from: cards, pills, kit text, candy
 buttons and tiles, icons, HUD balls; tokens in `Config.UI.Kit`), `UIAnim` (every UI
-animation), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
+animation, including the hover sway every hoverable part calls), `PadEffects` (the queue pads' rim, rings, arrow, glow, motes and join sound),
 `MapAmbience` (the drifting boats), `DayCycle` (runs the day/sunset cycle from the server's
 clock, no network traffic), `FirePit` (the fire pit's fire, Roblox's own, lit at sunset).
 

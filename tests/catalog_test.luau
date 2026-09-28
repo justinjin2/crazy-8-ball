@@ -156,8 +156,10 @@ return {
 			H.expect(type(Strings.Items.Rarities[group]) == "string", "no name for " .. group)
 		end
 		H.expect(
-			Catalog.rarityRank("Exclusive") == 8 and Catalog.rarityRank("Unique") == 9,
-			"groups after the ladder"
+			Catalog.rarityRank("Exclusive") > Catalog.rarityRank("Epic")
+				and Catalog.rarityRank("Exclusive") < Catalog.rarityRank("Legendary")
+				and Catalog.rarityRank("Unique") > Catalog.rarityRank("Secret"),
+			"Exclusive between Epic and Legendary, Unique on top"
 		)
 		H.expect(
 			Catalog.rarityRank("Default") == 0 and Catalog.rarityRank("Nope") == 0,

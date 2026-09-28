@@ -421,7 +421,7 @@ function HANDLERS.ClaimIndexRow(player: Player, r: Requests.Request): Reply
 	if not ok then
 		return refuse(Requests.reasonFrom(result))
 	end
-	return { ok = true, rarity = rarity, money = result.money, title = result.title }
+	return { ok = true, rarity = rarity, money = result.money }
 end
 
 function HANDLERS.BuyLimited(player: Player, r: Requests.Request): Reply

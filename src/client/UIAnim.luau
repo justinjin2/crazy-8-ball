@@ -9,10 +9,12 @@
 --   UIScale named "AnimScale" on the object, kept separate from a candy button's press scale.
 -- - Pure easing curves (backOut, quadOut) for effects a screen drives every frame from the
 --   server clock, so every player sees them at the same moment.
--- Looping effects (pulse, spin) return a handle; stop it when the screen closes.
+-- Looping effects (pulse, spin) return a handle; stop it when the screen closes. The hover
+-- sway (sway) is switched on and off by its caller and stops by itself once off screen.
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local M = Config.UI.Kit.Motion
@@ -158,6 +160,95 @@ function UIAnim.shine(object: GuiObject)
 		sweep:Destroy()
 	end)
 	tween:Play()
+end
+
+-- The objects swaying now (UIAnim.sway), all moved by one RenderStepped loop while any are.
+type Sway = {
+	on: boolean,
+	weight: number, -- 0 still ... 1 the full sway, eased toward on/off
+	clock: number,
+	style: { [string]: number },
+	watch: GuiObject,
+}
+local swaying: { [GuiObject]: Sway } = {}
+local swayLoop: RBXScriptConnection? = nil
+
+-- Shown: it and every GuiObject above it visible, under an enabled ScreenGui.
+local function onScreen(object: GuiObject): boolean
+	local node: Instance? = object
+	while node do
+		if node:IsA("GuiObject") then
+			if not node.Visible then
+				return false
+			end
+		elseif node:IsA("LayerCollector") then
+			return node.Enabled
+		end
+		node = node.Parent
+	end
+	return false
+end
+
+local function stepSway(dt: number)
+	for object, s in swaying do
+		-- A screen closing under the pointer sends no MouseLeave: off screen is off.
+		if s.on and not onScreen(s.watch) then
+			s.on = false
+		end
+		local ease = dt / math.max(s.style.EaseSeconds, 0.01)
+		s.weight = if s.on then math.min(1, s.weight + ease) else math.max(0, s.weight - ease)
+		s.clock += dt
+		if s.weight <= 0 or object.Parent == nil then
+			object.Rotation = 0
+			swaying[object] = nil
+		else
+			local style = s.style
+			-- A wide thing tips less, so its ends never swing more than EdgePx.
+			local half = math.max(1, object.AbsoluteSize.X / 2)
+			local degrees = math.min(style.Degrees, math.deg(math.atan(style.EdgePx / half)))
+			local phase = 2 * math.pi * s.clock / style.Seconds
+			local wiggle = style.WiggleShare
+			local rock = (math.sin(phase) + wiggle * math.sin(2 * phase)) / (1 + wiggle)
+			local k = s.weight * s.weight * (3 - 2 * s.weight) -- eased in and out
+			object.Rotation = degrees * k * rock
+		end
+	end
+	if next(swaying) == nil and swayLoop then
+		swayLoop:Disconnect()
+		swayLoop = nil
+	end
+end
+
+--- The hover sway (Config.UI.Kit.Motion.Sway, or BadgeSway for `style` "Badge"): while `on`,
+--- `object` rocks side to side about its centre with a little wiggle, easing in from still
+--- and back to still once off. It owns `object.Rotation` (keep it 0 otherwise), so sway an
+--- inner frame, not one a layout turns. It stops by itself when `watch` (default `object`)
+--- leaves the screen. Touch has no hover: switching on right after a tap does nothing.
+function UIAnim.sway(object: GuiObject, on: boolean, style: string?, watch: GuiObject?)
+	local s = swaying[object]
+	if not on then
+		if s then
+			s.on = false
+		end
+		return
+	end
+	if UserInputService:GetLastInputType() == Enum.UserInputType.Touch then
+		return
+	end
+	if s then
+		s.on = true
+		return
+	end
+	swaying[object] = {
+		on = true,
+		weight = 0,
+		clock = 0,
+		style = if style == "Badge" then M.BadgeSway else M.Sway,
+		watch = watch or object,
+	}
+	if not swayLoop then
+		swayLoop = RunService.RenderStepped:Connect(stepSway)
+	end
 end
 
 --- Turn an object slowly until stopped: the rays behind the win trophy.

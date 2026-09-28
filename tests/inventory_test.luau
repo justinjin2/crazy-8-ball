@@ -403,17 +403,9 @@ return {
 
 	["Index rows: totals, rewards from Config.Index, complete and claimed once"] = function()
 		local Inventory, Catalog, Config = load()
-		local Strings = H.require("Strings")
-		-- ECONOMY 18: money for the four lower rows, a title for each of the seven.
-		local MONEY = {
-			Common = 1000,
-			Uncommon = 2500,
-			Rare = 7500,
-			Epic = 25000,
-			Legendary = 0,
-			Mythic = 0,
-			Secret = 0,
-		}
+		-- ECONOMY 18: money for the four lower rows; no titles (the designer dropped them,
+		-- 2026-09-28), so the rows above Epic have no reward.
+		local MONEY = { Common = 1000, Uncommon = 2500, Rare = 7500, Epic = 25000 }
 		local TOTALS =
 			{ Common = 7, Uncommon = 6, Rare = 6, Epic = 5, Legendary = 3, Mythic = 2, Secret = 1 }
 		local save = newSave()
@@ -432,14 +424,13 @@ return {
 				row.have == 0 and not row.complete and not row.claimed,
 				row.rarity .. " starts empty"
 			)
-			if MONEY[row.rarity] then
+			if TOTALS[row.rarity] then
 				H.expect(row.total == TOTALS[row.rarity], row.rarity .. " total")
+			end
+			if MONEY[row.rarity] then
 				assert(row.reward, "no reward")
 				H.expect(row.reward.money == MONEY[row.rarity], row.rarity .. " money")
-				H.expect(
-					Strings.Items.Titles[row.reward.title] ~= nil,
-					row.rarity .. " title has no name"
-				)
+				H.expect((row.reward :: any).title == nil, row.rarity .. " has no title")
 				H.expect(
 					(Config.Index.Rows :: any)[row.rarity].Money == MONEY[row.rarity],
 					"Config.Index"
@@ -468,24 +459,21 @@ return {
 		local reward
 		ok, reward = Inventory.claimRow(save, "Common")
 		H.expect(
-			ok and reward.money == 1000 and reward.title == "Common",
-			"the Common row pays $1,000"
+			ok and reward.money == 1000 and (reward :: any).title == nil,
+			"the Common row pays $1,000, no title"
 		)
-		H.expect(save.Index.Rows.Common == true and save.Titles.Common == true, "marked")
+		H.expect(save.Index.Rows.Common == true and next(save.Titles) == nil, "marked")
 		H.expect(save.Money == 0, "money is the caller's to add")
 		ok, why = Inventory.claimRow(save, "Common")
 		H.expect(not ok and why == "Claimed", "only once: " .. tostring(why))
 		H.expect(Inventory.indexRows(save)[1].claimed, "claimed")
 
-		-- A title-only row.
+		-- A complete row with no reward.
 		for _, cue in Catalog.ofRarity("Legendary") do
 			Inventory.addCue(save, cue.Id)
 		end
-		ok, reward = Inventory.claimRow(save, "Legendary")
-		H.expect(
-			ok and reward.money == 0 and reward.title == "Legendary",
-			"Legendary: a title only"
-		)
+		ok, why = Inventory.claimRow(save, "Legendary")
+		H.expect(not ok and why == "NoReward", "Legendary: " .. tostring(why))
 
 		ok, why = Inventory.claimRow(save, "Exclusive")
 		H.expect(not ok and why == "NoReward", "Exclusive: " .. tostring(why))
@@ -528,15 +516,14 @@ return {
 		Inventory.markSeen(save, { "SideSpin" })
 		Inventory.sell(save, "ChalkDust") -- sold: gone from cues, still seen
 		save.Titles.FirstReyes = true
-		save.Titles.Epic = true
-		save.Titles.Common = true
+		save.Titles.Epic = true -- an old Collector title: left out
 		save.Titles.NotATitle = true -- unknown ids are left out
 		save.Inventory.Cues.Bogus = 4 -- stray keys are ignored
 
 		local snap = Inventory.snapshot(save)
 		expectPlain(snap, "snapshot", tablesIn(save, {}))
 		H.expect(
-			ids(snap.cues) == "BetaCue GoldCue Eclipse Masse SideSpin Classic",
+			ids(snap.cues) == "BetaCue Eclipse GoldCue Masse SideSpin Classic",
 			"cues: " .. ids(snap.cues)
 		)
 		H.expect(snap.cues[1].copy == 412 and snap.cues[1].new == true, "BetaCue #412, new")
@@ -549,7 +536,7 @@ return {
 			"seen: " .. ids(snap.seen)
 		)
 		H.expect(
-			table.concat(snap.titles, " ") == "Epic Common FirstReyes",
+			table.concat(snap.titles, " ") == "FirstReyes",
 			"titles: " .. table.concat(snap.titles, " ")
 		)
 		H.expect(#snap.rows == 9, "rows")

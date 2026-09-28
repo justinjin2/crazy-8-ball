@@ -760,10 +760,11 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
   it shows its name and its black 3D silhouette turning (designer, 2026-09-28). A cue counts
   once it has ever been owned (selling it later keeps it in the
   Index). Completing a rarity row pays once: Commons $1,000, Uncommons $2,500, Rares $7,500,
-  Epics $25,000, each with a title ("Common Collector" ...). Legendary, Mythic and Secret rows
-  give a title only (overnight assumption: money there would reward luck more than play).
-  Exclusive and Unique groups are listed with no row reward. Titles are saved and listed in
-  the Index; showing a title over the head is parked.
+  Epics $25,000. Legendary, Mythic and Secret rows have no reward (money there would reward
+  luck more than play), nor do the Exclusive and Unique groups. The rows' "Collector" titles
+  were dropped (designer, 2026-09-28: no substance); old saves keep them, unlisted. The one
+  title left is the first Reyes', listed in the Index; showing a title over the head is
+  parked.
 - **Finder's money** (designer, 2026-09-28): the first time a cue enters a player's Index it
   pays once, by rarity: Common $50, Uncommon $100, Rare $250, Epic $750, Legendary $2,500,
   Mythic $10,000, Secret $50,000, Exclusive $500, Unique $1,000 (`Config.Index.FindMoney`,

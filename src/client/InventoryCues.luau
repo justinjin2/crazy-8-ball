@@ -1,12 +1,14 @@
 --!strict
 -- InventoryCues: the Inventory's Cues tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11).
 --
---   * A strip on top: rarity filter chips (All, Common ... Secret, Exclusive, Unique; the chosen
---     one blue, the others white with the rarity's colour in their word), sliding sideways
---     when they do not all fit, and "Sell all duplicates: $1,234" (the total worked out here
---     from Cases.sellValue for show; the server's reply is the truth), which asks first.
---   * A grid of cue cards (InventoryCard), rarest first as the snapshot sends them, Classic
---     always there and last: the tinted thumbnail, the name, the rarity's dressing, "x3" for
+--   * A strip on top: the sort button ("Sort: Rarest first"; each press moves to the next of
+--     Config.UI.Inventory.SortOrders: rarest first, common first, most copies, name A-Z; the
+--     rarity filter chips it replaced were dropped, designer 2026-09-28), and "Sell all
+--     duplicates: $1,234" (the total worked out here from Cases.sellValue for show; the
+--     server's reply is the truth), which asks first.
+--   * A grid of cue cards (InventoryCard) in the chosen order (rarest first, as the snapshot
+--     sends them, to start; Classic always there): the tinted thumbnail, the name, the
+--     rarity's dressing, "x3" for
 --     copies (a Unique cue's "#412"), a gold NEW until seen, a green Equipped, a padlock on
 --     Exclusive and Unique cues.
 --   * The chosen cue's details: the bigger thumbnail, name, rarity, "1,284 exist" (the
@@ -46,13 +48,9 @@ local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local TOUCH = Config.UI.Menu.Frame.TouchMinPx
 local COPIES_FOLDER = "CueCounts" -- ReplicatedStorage.CueCounts: copies in existence (Counters)
 
--- The chips, left to right: every cue, the ladder, then the groups outside it.
-local FILTERS: { string } = { "All" }
-for _, rarity in Config.Cases.Rarities do
-	table.insert(FILTERS, rarity)
-end
-table.insert(FILTERS, "Exclusive")
-table.insert(FILTERS, "Unique")
+-- The sort button's orders, in its turn; the first is where it starts.
+local SORTS: { string } = I.SortOrders
+local SORT_NAMES: { [string]: string } = WORDS.SortOrders :: any
 
 local InventoryCues = {}
 InventoryCues.__index = InventoryCues
@@ -88,12 +86,39 @@ local function countOf(row: any): number
 	return if type(row.count) == "number" then row.count else 1
 end
 
-local function matches(filter: string, id: string): boolean
-	if filter == "All" then
-		return true
+-- The rows in `sort`'s order. Ties (and "RarestFirst") keep the snapshot's order: rarest
+-- first, then catalog order.
+local function sorted(rows: { any }, sort: string): { any }
+	local keyed = {}
+	for index, row in rows do
+		local cue = Catalog.get(row.id)
+		table.insert(keyed, {
+			row = row,
+			index = index,
+			rank = if cue then Catalog.rarityRank(cue.Rarity) else 0,
+			count = countOf(row),
+			name = string.lower(CueThumb.cueName(row.id)),
+		})
 	end
-	local cue = Catalog.get(id)
-	return cue ~= nil and cue.Rarity == filter
+	table.sort(keyed, function(a, b)
+		if sort == "CommonFirst" and a.rank ~= b.rank then
+			return a.rank < b.rank
+		elseif sort == "MostCopies" and a.count ~= b.count then
+			return a.count > b.count
+		elseif sort == "NameAZ" and a.name ~= b.name then
+			return a.name < b.name
+		end
+		return a.index < b.index
+	end)
+	local out = {}
+	for _, entry in keyed do
+		table.insert(out, entry.row)
+	end
+	return out
+end
+
+local function sortWords(sort: string): string
+	return WORDS.Sort:format(SORT_NAMES[sort] or sort)
 end
 
 -- A cue's count line: "#412" for a Unique copy, "x3" for copies, else nothing.
@@ -110,7 +135,7 @@ function InventoryCues.new(page: Frame, ctx: any): any
 	local self: any = setmetatable({}, InventoryCues)
 	self.page = page
 	self.ctx = ctx
-	self.filter = "All"
+	self.sort = SORTS[1] -- kept while the player is in the server
 	self.chosen = nil :: string?
 	self.cards = {} :: { [string]: InventoryCard.Card }
 	self.rows = {} :: { [string]: any } -- the snapshot's rows by id, for the details
@@ -122,48 +147,15 @@ function InventoryCues.new(page: Frame, ctx: any): any
 	self.stacked = true
 	self.sellAllTotal = 0
 
-	-- The strip: the chips (sliding sideways) and Sell all duplicates.
+	-- The strip: the sort button and Sell all duplicates.
 	local strip = HudParts.frame(page, "Strip")
 	strip.ZIndex = 2
 	self.strip = strip
-	local chipScroll = Instance.new("ScrollingFrame")
-	chipScroll.Name = "Chips"
-	chipScroll.BackgroundTransparency = 1
-	chipScroll.BorderSizePixel = 0
-	chipScroll.ScrollingDirection = Enum.ScrollingDirection.X
-	chipScroll.AutomaticCanvasSize = Enum.AutomaticSize.X
-	chipScroll.CanvasSize = UDim2.new()
-	-- A thin bar under the chips (in the room kept round them) when they do not all fit, so a
-	-- mouse can reach the rest too; touch drags them and a gamepad scrolls to its selection.
-	chipScroll.ScrollBarThickness = I.ChipBarPx
-	chipScroll.ScrollBarImageColor3 = HudParts.color(SC.BarColor)
-	chipScroll.HorizontalScrollBarInset = Enum.ScrollBarInset.None
-	chipScroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
-	chipScroll.Selectable = false
-	chipScroll.ZIndex = 2
-	chipScroll.Parent = strip
-	-- Room round the chips for a hovered chip's grow and gold outline.
-	local chipPad = Instance.new("UIPadding")
-	chipPad.PaddingLeft = UDim.new(0, SC.PadPx / 2)
-	chipPad.PaddingRight = UDim.new(0, SC.PadPx / 2)
-	chipPad.Parent = chipScroll
-	local chipRow = Instance.new("UIListLayout")
-	chipRow.FillDirection = Enum.FillDirection.Horizontal
-	chipRow.VerticalAlignment = Enum.VerticalAlignment.Center
-	chipRow.SortOrder = Enum.SortOrder.LayoutOrder
-	chipRow.Parent = chipScroll
-	self.chipScroll, self.chipRow = chipScroll, chipRow
-	self.chips = {} :: { [string]: TextButton }
-	for index, key in FILTERS do
-		local label = if key == "All" then WORDS.All else CueThumb.rarityName(key)
-		local chip = HudParts.candy(chipScroll, label, function()
-			self:setFilter(key)
-		end, if key == self.filter then "Blue" else "White")
-		chip.Name = "Chip" .. key
-		chip.LayoutOrder = index
-		HudParts.setMinHit(chip, TOUCH)
-		self.chips[key] = chip
-	end
+	self.sortButton = HudParts.candy(strip, sortWords(self.sort), function()
+		self:nextSort()
+	end, "Blue", "Sliders")
+	self.sortButton.Name = "Sort"
+	HudParts.setMinHit(self.sortButton, TOUCH)
 	self.sellAll = HudParts.candy(strip, "", function()
 		self:askSellAll()
 	end, "Yellow", "Sell")
@@ -488,7 +480,7 @@ function InventoryCues.redraw(self: any, items: any)
 		end
 	end
 	local order = {}
-	for index, row in rows do
+	for index, row in sorted(rows, self.sort) do
 		local id: string = row.id
 		local card = self.cards[id]
 		if not card then
@@ -511,18 +503,11 @@ function InventoryCues.redraw(self: any, items: any)
 			new = row.new == true or self.sticky[id] == true,
 			equipped = items.equipped == id,
 		})
-		local show = matches(self.filter, id)
-		made.button.Visible = show
-		if show then
-			table.insert(order, id)
-		end
+		table.insert(order, id)
 	end
 	self.order = order
 	self.empty.Visible = #order == 0
-	if #order == 0 then
-		local name = if self.filter == "All" then "" else CueThumb.rarityName(self.filter)
-		self.empty.Text = WORDS.EmptyFilter:format(name)
-	end
+	self.empty.Text = WORDS.Empty
 
 	-- The chosen cue stays chosen while it is owned; else the first shown.
 	if not self.chosen or not byId[self.chosen] then
@@ -546,43 +531,18 @@ function InventoryCues.redraw(self: any, items: any)
 		if total > 0 then WORDS.SellAll:format(Format.money(total)) else WORDS.NoDuplicates
 	)
 	HudParts.setEnabled(self.sellAll, total > 0 and not ctx.isHeld(self.sellAll))
-	self:refreshChips()
+	HudParts.setText(self.sortButton, sortWords(self.sort))
 	self:refreshDetail()
 	self:arrange()
 end
 
-function InventoryCues.refreshChips(self: any)
-	for key, chip in self.chips do
-		local chosen = key == self.filter
-		HudParts.setTone(chip, if chosen then "Blue" else "White")
-		local parts = HudParts.candyParts(chip)
-		if parts then
-			parts.label.TextColor3 = if chosen or key == "All"
-				then HudParts.tone("White")
-				else CueThumb.accentColor(key)
-		end
-	end
-end
-
---- Show one rarity (or "All").
-function InventoryCues.setFilter(self: any, key: string)
-	if self.filter == key then
-		return
-	end
-	self.filter = key
-	local items = self.ctx.lastItems
-	-- The chosen card stays if it is still shown, else the first of the new filter.
-	if self.chosen and not matches(key, self.chosen) then
-		self.chosen = nil
-		for _, row in ownedRows(items) do
-			if matches(key, row.id) then
-				self.chosen = row.id
-				break
-			end
-		end
-	end
-	self:redraw(items)
-	self.ctx.ensureSelection()
+--- The sort button: the next order, round. The chosen card stays chosen; the grid goes back
+--- to its top so the new order reads from its start.
+function InventoryCues.nextSort(self: any)
+	local index = table.find(SORTS, self.sort) or 0
+	self.sort = SORTS[index % #SORTS + 1]
+	self:redraw(self.ctx.lastItems)
+	self.grid.CanvasPosition = Vector2.zero
 end
 
 --- Show a cue's details. `pressed`: a tap, click or A (a gamepad then moves to the buttons).
@@ -650,9 +610,10 @@ function InventoryCues.arrange(self: any)
 	self.detail.Size = UDim2.fromOffset(detailW, math.max(1, H - detailTop))
 	self.detailSize = Vector2.new(detailW, H - detailTop)
 
-	-- The strip: Sell all at the right, sized to its words (at most a share of the strip);
-	-- the chips slide in the rest. Each is drawn at the strip's height, touch area 44.
-	local textPx = span(I.ChipTextPx)
+	-- The strip: the sort button at the left, as wide as its longest words so it keeps still as
+	-- it turns; Sell all at the right, sized to its words (each at most a share of the strip).
+	-- Both are drawn at the strip's height, touch area 44.
+	local textPx = span(I.StripTextPx)
 	local lip = math.floor(stripH * K.ButtonLipShare + 0.5)
 	local usable = stripH - lip
 	local bpad = math.max(6, math.floor(usable * 0.18))
@@ -660,30 +621,22 @@ function InventoryCues.arrange(self: any)
 	local sellText = if self.sellAllTotal > 0
 		then WORDS.SellAll:format(Format.money(self.sellAllTotal))
 		else WORDS.NoDuplicates
-	local sellW = bpad
-		+ icon
-		+ math.floor(bpad / 2)
-		+ math.ceil(textWidth(sellText, textPx))
-		+ 6
-		+ bpad
-	sellW = math.min(sellW, round(stripW * I.SellAllMaxShare))
+	local function buttonWidth(words: string): number
+		return bpad + icon + math.floor(bpad / 2) + math.ceil(textWidth(words, textPx)) + 6 + bpad
+	end
+	local sellW = math.min(buttonWidth(sellText), round(stripW * I.SellAllMaxShare))
 	self.sellAll.AnchorPoint = Vector2.new(1, 0)
 	self.sellAll.Position = UDim2.fromOffset(stripW, 0)
 	self.sellAll.Size = UDim2.fromOffset(sellW, stripH)
 	HudParts.setButtonTextSize(self.sellAll, textPx)
-	-- The chips' scroller is a little taller than the chips: room for the gold outline.
-	local room = SC.PadPx / 2
-	self.chipScroll.Position = UDim2.fromOffset(0, -room)
-	self.chipScroll.Size = UDim2.fromOffset(math.max(1, stripW - sellW - gap), stripH + 2 * room)
-	self.chipRow.Padding = UDim.new(0, span(I.ChipGapPx))
-	for _, chip in self.chips do
-		local parts = HudParts.candyParts(chip)
-		local words = if parts then parts.label.Text else ""
-		local width =
-			math.max(I.ChipMinWidthPx, math.ceil(textWidth(words, textPx)) + 6 + 2 * I.ChipPadPx)
-		chip.Size = UDim2.fromOffset(width, stripH)
-		HudParts.setButtonTextSize(chip, textPx)
+	local sortW = 0
+	for _, sort in SORTS do
+		sortW = math.max(sortW, buttonWidth(sortWords(sort)))
 	end
+	sortW = math.min(sortW, round(stripW * I.SortMaxShare), math.max(1, stripW - sellW - gap))
+	self.sortButton.Position = UDim2.fromOffset(0, 0)
+	self.sortButton.Size = UDim2.fromOffset(sortW, stripH)
+	HudParts.setButtonTextSize(self.sortButton, textPx)
 	self:arrangeDetail()
 end
 
@@ -692,8 +645,7 @@ end
 --------------------------------------------------------------------------------------------
 
 function InventoryCues.opened(self: any)
-	-- Every open starts on every cue, with the first card chosen.
-	self.filter = "All"
+	-- Every open starts with the first card chosen (the order stays as the player left it).
 	self.chosen = nil
 end
 
@@ -747,7 +699,7 @@ function InventoryCues.markSeen(self: any)
 	end)
 end
 
---- Where a gamepad starts on this page: the chosen card, else the first chip.
+--- Where a gamepad starts on this page: the chosen card, else the sort button.
 function InventoryCues.first(self: any): GuiObject?
 	local card = if self.chosen then self.cards[self.chosen] else nil
 	if card and card.button.Visible then
@@ -757,7 +709,7 @@ function InventoryCues.first(self: any): GuiObject?
 	if firstId and self.cards[firstId] then
 		return self.cards[firstId].button
 	end
-	return self.chips[self.filter]
+	return self.sortButton
 end
 
 --------------------------------------------------------------------------------------------

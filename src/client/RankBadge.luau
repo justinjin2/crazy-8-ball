@@ -384,6 +384,7 @@ function RankBadge.new(parent: Instance, options: Options): Badge
 	self.root = root
 	-- Hover and press scale the outer frame, pops and bursts the inner one (UIAnim).
 	local press = frame(root, "Press", z)
+	self.pressFrame = press
 	local pressScale = Instance.new("UIScale")
 	pressScale.Name = "PressScale"
 	pressScale.Parent = press
@@ -594,6 +595,8 @@ function Badge.hover(self: any, on: boolean)
 	if self.scales then
 		scaleTo(self, if on then R.HoverScale else 1)
 	end
+	-- A little shake, the badge alone (designer, 2026-09-28).
+	UIAnim.sway(self.pressFrame, on, "Badge", self.root)
 	if on then
 		UISound.play("BadgeHover")
 		sparkleBurst(self, os.clock()) -- sparkles, not a shimmer (designer, 2026-09-27)

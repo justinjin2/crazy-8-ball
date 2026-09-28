@@ -313,7 +313,8 @@ to after release (Later, at the bottom).*
   own, and whether filling it pays anything, are Open (GDD section 12).
   Done 2026-09-28 (branch `economy`, overnight; the designer decided both): never-owned cues
   are dark silhouettes with "?", and completing a rarity row pays once (money and a title up
-  to Epic, a title only for Legendary, Mythic and Secret). Checked in Studio.
+  to Epic, a title only for Legendary, Mythic and Secret). Checked in Studio. The titles were
+  dropped on 2026-09-28 (money up to Epic, nothing above).
 *Every number and rule for 7.1 to 7.7 (cases, odds, the shop, packs, VIP, the starter pack,
 daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-

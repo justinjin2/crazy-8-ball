@@ -21,7 +21,7 @@ local Strings = require(script.Parent.Parent.Strings)
 local Catalog = require(script.Parent.Catalog)
 local Cases = require(script.Parent.Cases)
 
-type IndexReward = { Money: number, Title: string }
+type IndexReward = { Money: number }
 local INDEX_ROWS: { [string]: IndexReward } = Config.Index.Rows :: any
 local FIND_MONEY: { [string]: number } = Config.Index.FindMoney :: any
 local TITLE_NAMES: { [string]: string } = Strings.Items.Titles :: any
@@ -40,7 +40,7 @@ export type IndexRow = {
 	total: number, -- cues of it in the catalog (vaulted ones included)
 	complete: boolean,
 	claimed: boolean,
-	reward: { money: number, title: string }?, -- nil for Exclusive and Unique
+	reward: { money: number }?, -- nil for a row with no reward (Legendary up, Exclusive, Unique)
 }
 
 export type Snapshot = {
@@ -59,8 +59,8 @@ local INDEX_GROUPS: { string } = table.clone(Config.Cases.Rarities)
 table.insert(INDEX_GROUPS, "Exclusive")
 table.insert(INDEX_GROUPS, "Unique")
 
--- The catalog rarest first (Unique, Exclusive, Secret ... Common, Classic), catalog order
--- inside a rarity: the snapshot's order.
+-- The catalog rarest first (Unique, Secret ... Legendary, Exclusive, Epic ... Common, Classic),
+-- catalog order inside a rarity: the snapshot's order.
 local RAREST_FIRST: { Catalog.Cue } = {}
 do
 	local position: { [string]: number } = {}
@@ -426,15 +426,15 @@ function Inventory.indexRows(save: any): { IndexRow }
 			total = #cues,
 			complete = #cues > 0 and have == #cues,
 			claimed = claimed[rarity] == true,
-			reward = if reward then { money = reward.Money, title = reward.Title } else nil,
+			reward = if reward then { money = reward.Money } else nil,
 		})
 	end
 	return rows
 end
 
---- Claims a complete row's reward once: marks the row and its title, and returns (true,
---- { money, title }) with the money for the caller to add (0 for a title-only row). Reasons:
---- "Unknown" (not a rarity), "NoReward" (Exclusive, Unique), "Claimed", "Incomplete".
+--- Claims a complete row's reward once: marks the row and returns (true, { money }) with the
+--- money for the caller to add. Reasons: "Unknown" (not a rarity), "NoReward" (a row with no
+--- reward: Legendary, Mythic, Secret, Exclusive, Unique), "Claimed", "Incomplete".
 function Inventory.claimRow(save: any, rarity: any): (boolean, any)
 	if type(rarity) ~= "string" or not table.find(INDEX_GROUPS, rarity) then
 		return false, "Unknown"
@@ -452,13 +452,7 @@ function Inventory.claimRow(save: any, rarity: any): (boolean, any)
 		end
 	end
 	writeMap(save, "Index", "Rows")[rarity] = true
-	local titles = save.Titles
-	if type(titles) ~= "table" then
-		titles = {}
-		save.Titles = titles
-	end
-	titles[reward.Title] = true
-	return true, { money = reward.Money, title = reward.Title }
+	return true, { money = reward.Money }
 end
 
 ---------------------------------------------------------------------------------------------
@@ -473,7 +467,8 @@ end
 ---   equipped  the equipped cue id
 ---   seen      every cue ever owned (Classic left out), catalog order
 ---   rows      Inventory.indexRows
----   titles    earned title ids: Index titles rarest first, then any others by id
+---   titles    earned title ids Strings knows (the first Reyes'), by id; the old Index rows'
+---             "Collector" titles stay in old saves but are no longer listed
 function Inventory.snapshot(save: any): Snapshot
 	local new = readMap(save, "Inventory", "New")
 	local cues = {}
@@ -505,31 +500,13 @@ function Inventory.snapshot(save: any): Snapshot
 	end
 
 	-- Titles: only ids Strings knows (so the list stays small and every one can be shown).
-	local owned = readMap(save, "Titles")
 	local titles = {}
-	local listed: { [string]: boolean } = {}
-	for i = #Config.Cases.Rarities, 1, -1 do
-		local reward = INDEX_ROWS[Config.Cases.Rarities[i]]
-		if reward and owned[reward.Title] == true and not listed[reward.Title] then
-			listed[reward.Title] = true
-			table.insert(titles, reward.Title)
+	for titleId, value in readMap(save, "Titles") do
+		if type(titleId) == "string" and value == true and TITLE_NAMES[titleId] then
+			table.insert(titles, titleId)
 		end
 	end
-	local others = {}
-	for titleId, value in owned do
-		if
-			type(titleId) == "string"
-			and value == true
-			and TITLE_NAMES[titleId]
-			and not listed[titleId]
-		then
-			table.insert(others, titleId)
-		end
-	end
-	table.sort(others)
-	for _, titleId in others do
-		table.insert(titles, titleId)
-	end
+	table.sort(titles)
 
 	return {
 		cues = cues,

@@ -1786,3 +1786,15 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   $10,000, Secret $50,000, Exclusive $500, Unique $1,000. Shown as "NEW! +$250" on a case
   prize (the money flies from it), as a banner for any other source. Open for the trading
   session: whether a cue got by trade pays it (suggestion: no).
+- 2026-09-28 (designer, replaces the overnight "a title for every row"): the Index rows'
+  "Collector" titles are dropped as adding nothing. Rows pay money up to Epic; Legendary,
+  Mythic and Secret rows now pay nothing (this session's call: money there was already ruled
+  out as rewarding luck; the designer can add some). Old saves keep the titles, unlisted.
+- 2026-09-28 (designer): the Cues tab's rarity filter chips are replaced by one sort button
+  (Rarest first as the default, Common first, Most copies; Name A-Z added as useful). The
+  chosen order lasts while the player stays in the server (this session's call).
+- 2026-09-28 (designer): sorting by rarity puts Exclusive between Epic and Legendary (it was
+  above Secret); Unique stays on top. The Index keeps its rows in the same order as before.
+- 2026-09-28 (designer): hovering anything pressable makes it sway gently (a small dance, not
+  fast or slow: about 3 degrees, 1.4 s a rock); on the rank HUD only the badge shakes. Touch
+  has no hover, so taps never start it (this session's call).

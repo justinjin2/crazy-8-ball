@@ -2,11 +2,11 @@
 -- InventoryIndex: the Inventory's Index tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
 -- ECONOMY section 18).
 --
---   * On top, the titles earned (gold pills, from the snapshot's `titles`), or a line saying
---     how to earn one.
---   * Then a card per row: the rarities Common ... Secret, then Exclusive and Unique (no
---     reward for those two). Its header: the rarity's name in its colour, "5 / 7" (cues of it
---     ever owned), the reward (the money and the title, from the snapshot's `rows`) and Claim
+--   * On top, only for a player who holds one, their titles (gold pills, from the snapshot's
+--     `titles`: the first Reyes'). The rows' "Collector" titles are gone (designer, 2026-09-28).
+--   * Then a card per row: the rarities Common ... Secret, then Exclusive and Unique. Its
+--     header: the rarity's name in its colour, "5 / 7" (cues of it ever owned), the reward
+--     money (Common to Epic only, from the snapshot's `rows`) and Claim
 --     once the row is complete (it breathes while it can be claimed; "Claimed" with a check
 --     after). Under it every catalog cue of that rarity as a small card (InventoryCard):
 --     ever-owned cues in colour with their names, never-owned ones as a big "?" in the
@@ -19,8 +19,7 @@
 --     A tap or click on a card chooses it; a gamepad chooses the card it lands on. It turns
 --     only while the tab shows.
 --
--- Claim asks the server (ItemRequest "ClaimIndexRow"); its money flies into the header's cash
--- and the title shows at the top once the snapshot follows.
+-- Claim asks the server (ItemRequest "ClaimIndexRow"); its money flies into the header's cash.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 
@@ -63,8 +62,6 @@ type Section = {
 	money: Frame,
 	moneyIcon: ImageLabel,
 	moneyText: TextLabel,
-	title: Frame,
-	titleText: TextLabel,
 	claim: TextButton,
 	claimed: Frame,
 	claimedIcon: ImageLabel,
@@ -114,18 +111,16 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	local scroll, _ = MenuFrame.scroller(list, { name = "Index" })
 	self.scroll = scroll
 
-	-- The titles earned.
+	-- The titles held (hidden when none).
 	local titles = InventoryCard.box(scroll, "Titles")
 	titles.LayoutOrder = 0
 	titles.ZIndex = 2
+	titles.Visible = false
 	self.titles = titles
 	self.titlesHeading = HudParts.text(titles, "Heading", I.HeaderTextPx[2], WORDS.Titles)
 	self.titlesHeading.TextWrapped = false
 	self.titlesHeading.TextXAlignment = Enum.TextXAlignment.Left
 	self.titlesHeading.ZIndex = 3
-	self.titlesNote = HudParts.note(titles, "None", I.TitleTextPx[2], WORDS.NoTitles)
-	self.titlesNote.TextXAlignment = Enum.TextXAlignment.Left
-	self.titlesNote.ZIndex = 3
 	self.titlePills = {} :: { { pill: Frame, text: TextLabel } }
 
 	self.sections = {} :: { Section }
@@ -212,7 +207,7 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 	progress.TextWrapped = false
 	progress.TextXAlignment = Enum.TextXAlignment.Left
 	progress.ZIndex = 3
-	-- The reward: the money (a white pill, the cash and green words) and the title (gold).
+	-- The reward: the money (a white pill, the cash and green words).
 	local money = HudParts.pill(box, "Money", HudParts.tone("White"))
 	money.ZIndex = 3
 	local moneyIcon = HudParts.icon(money, "CashSingle", "Cash")
@@ -221,9 +216,6 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 	moneyText.AutoLocalize = false -- a number
 	moneyText.TextWrapped = false
 	moneyText.ZIndex = 4
-	local title, titleText = InventoryCard.pill(box, "Title", HudParts.tone("Gold"), "")
-	title.ZIndex = 3
-	titleText.ZIndex = 4
 	local section: Section
 	local claim = HudParts.candy(box, WORDS.Claim, function()
 		self:claim(section)
@@ -269,8 +261,6 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 		money = money,
 		moneyIcon = moneyIcon,
 		moneyText = moneyText,
-		title = title,
-		titleText = titleText,
 		claim = claim,
 		claimed = claimed,
 		claimedIcon = claimedIcon,
@@ -358,13 +348,12 @@ function InventoryIndex.redraw(self: any, items: any)
 		local money = if reward and type(reward.money) == "number" then reward.money else 0
 		section.money.Visible = money > 0
 		section.moneyText.Text = Format.money(money)
-		local title = if reward then titleName(reward.title) else ""
-		section.title.Visible = title ~= ""
-		section.titleText.Text = title
 		section.claimable = claimable(row)
 		section.claim.Visible = section.claimable
 		HudParts.setEnabled(section.claim, not ctx.isHeld(section.claim))
-		section.claimed.Visible = row ~= nil and row.claimed == true
+		-- A row with no reward (Legendary and up) never shows "Claimed", though an old save
+		-- claimed its dropped title.
+		section.claimed.Visible = row ~= nil and row.claimed == true and money > 0
 	end
 
 	-- The titles at the top.
@@ -391,7 +380,7 @@ function InventoryIndex.redraw(self: any, items: any)
 	for i = #names + 1, #self.titlePills do
 		self.titlePills[i].pill.Visible = false
 	end
-	self.titlesNote.Visible = #names == 0
+	self.titles.Visible = #names > 0
 	self:refreshPulses()
 	self:refreshDetail()
 	self:arrange()
@@ -466,12 +455,7 @@ function InventoryIndex.arrange(self: any)
 	local y = pad + headerH
 	local pillH = span(I.TitlePillPx)
 	local pillText = span(I.TitleTextPx)
-	if self.titlesNote.Visible then
-		HudParts.setTextSize(self.titlesNote, pillText)
-		self.titlesNote.Position = UDim2.fromOffset(pad, y)
-		self.titlesNote.Size = UDim2.fromOffset(inner, pillH)
-		y += pillH
-	else
+	do
 		local x = pad
 		for _, entry in self.titlePills do
 			if entry.pill.Visible then
@@ -546,14 +530,6 @@ function InventoryIndex.arrange(self: any)
 			section.moneyText.Position = UDim2.fromOffset(icon - over, 0)
 			section.moneyText.Size = UDim2.fromOffset(words, rewardH)
 			table.insert(chips, { frame = section.money, width = width })
-		end
-		if section.title.Visible then
-			HudParts.setTextSize(section.titleText, rewardText)
-			local width = math.min(
-				inner,
-				InventoryCard.pillWidth(section.titleText.Text, rewardH, rewardText)
-			)
-			table.insert(chips, { frame = section.title, width = width })
 		end
 		local chipsW = 0
 		for i, chip in chips do
@@ -724,10 +700,6 @@ function InventoryIndex.claim(self: any, section: Section)
 			local money = if type(reply.money) == "number" then reply.money else 0
 			if money > 0 then
 				ctx.flyMoney(money, section.claim, "Reward")
-			end
-			local title = titleName(reply.title)
-			if title ~= "" then
-				ctx.notice(WORDS.TitleEarned:format(title), "Green")
 			end
 		else
 			ctx.refuse(reply)

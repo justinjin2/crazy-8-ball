@@ -479,15 +479,8 @@ return {
 			Unique = "Unique",
 			Default = "Default",
 		},
-		-- Index row titles (ECONOMY 18), once a rarity row is complete.
+		-- Titles a player can hold (the Index rows' "Collector" titles were dropped 2026-09-28).
 		Titles = {
-			Common = "Common Collector",
-			Uncommon = "Uncommon Collector",
-			Rare = "Rare Collector",
-			Epic = "Epic Collector",
-			Legendary = "Legendary Collector",
-			Mythic = "Mythic Collector",
-			Secret = "Secret Keeper",
 			FirstReyes = "The First Reyes",
 		},
 	},
@@ -686,7 +679,15 @@ return {
 		-- The Inventory (InventoryMenu and its pages). Rarity and cue names come from Items.
 		Inventory = {
 			-- The Cues tab.
-			All = "All", -- the filter chip for every cue (the others are the rarities' names)
+			-- The sort button over the grid: "Sort: Rarest first"; each press moves to the next
+			-- order (Config.UI.Inventory.SortOrders).
+			Sort = "Sort: %s",
+			SortOrders = {
+				RarestFirst = "Rarest first",
+				CommonFirst = "Common first",
+				MostCopies = "Most copies",
+				NameAZ = "Name A-Z",
+			},
 			New = "NEW", -- the gold pill on a cue until it is seen
 			Equipped = "Equipped", -- the green pill, and the Equip button once it is
 			Equip = "Equip",
@@ -701,7 +702,7 @@ return {
 			SellDuplicates = "Sell duplicates: %s", -- this cue's extra copies
 			SellAll = "Sell all duplicates: %s", -- every cue's extra copies, top of the tab
 			NoDuplicates = "No duplicates",
-			EmptyFilter = "No %s cues yet. Open cases to find some!", -- a rarity's name
+			Empty = "No cues yet. Open cases to find some!",
 			-- The confirm dialogs (red sells, blue keeps).
 			SellYes = "Sell",
 			SellNo = "Keep",
@@ -723,7 +724,6 @@ return {
 			CasesEmpty = "No cases yet! Win matches or visit the Shop to get some.",
 			-- The Index tab.
 			Titles = "Titles",
-			NoTitles = "Complete a row to earn a title!",
 			Progress = "%s / %s", -- cues of the row ever owned: "5 / 7"
 			Claim = "Claim",
 			Claimed = "Claimed",
@@ -732,7 +732,6 @@ return {
 			Found = "In your collection", -- ever owned (selling it keeps it here)
 			NotFound = "Not found yet",
 			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
-			TitleEarned = "Title earned: %s!",
 		},
 	},
 	-- The reminder of the next login-streak reward (Reminders; GDD 14, ECONOMY 10): a toast when

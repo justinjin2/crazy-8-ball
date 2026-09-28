@@ -115,7 +115,7 @@ local REMOTES: { [string]: string } = {
 	--     id, count, money } } } (nothing to sell: money 0, sold {})
 	--   "EquipCue" (cueId) -> { cueId }
 	--   "MarkSeen" ({ cueId } at most Config.Items.MarkSeenMax) -> { cleared }
-	--   "ClaimIndexRow" (rarity) -> { rarity, money, title }
+	--   "ClaimIndexRow" (rarity) -> { rarity, money }
 	--   "BuyLimited" (cueId: a money-priced Limited shelf row) -> { cueId, copy, price }
 	-- Reasons (Progression/Requests.Reasons): "BadRequest" (unknown action, wrong type,
 	-- unknown id, count not allowed), "TooFast" (Config.Items.RateBurst / RatePerSecond),
@@ -128,8 +128,8 @@ local REMOTES: { [string]: string } = {
 	ItemRequest = "RemoteFunction",
 	-- server -> one player: their inventory, the Progression/Inventory.snapshot table itself (no
 	-- wrapper): { cues = { { id, count, new, copy? } }, cases = { { id, count } }, equipped,
-	-- seen = { id }, rows = { { rarity, have, total, complete, claimed, reward = { money,
-	-- title }? } }, titles = { id } }. Sent when the save loads and after every change that
+	-- seen = { id }, rows = { { rarity, have, total, complete, claimed, reward = { money }? } },
+	-- titles = { id } }. Sent when the save loads and after every change that
 	-- touches it, at most once a frame, and only when it differs from the last one sent. The
 	-- server's copy is the truth; the client only draws it. Copies in existence are not in it:
 	-- they are attributes on ReplicatedStorage.CueCounts (one per cue id, from the first read

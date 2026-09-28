@@ -1696,9 +1696,9 @@ function PlayerData.markSeen(player: Player, ids: { string }): number
 	return cleared
 end
 
---- Claims a complete Index row once: marks it and its title, adds its money (earned).
---- Answers (true, { money, title }) or (false, reason): Inventory.claimRow's "Unknown",
---- "NoReward" (Exclusive, Unique), "Claimed", "Incomplete", or "NotLoaded".
+--- Claims a complete Index row once: marks it and adds its money (earned). Answers (true,
+--- { money }) or (false, reason): Inventory.claimRow's "Unknown", "NoReward" (a row with no
+--- reward), "Claimed", "Incomplete", or "NotLoaded".
 function PlayerData.claimIndexRow(player: Player, rarity: string): (boolean, any)
 	local op = "claimIndexRow"
 	if not isPlayer(player) then
@@ -1716,7 +1716,7 @@ function PlayerData.claimIndexRow(player: Player, rarity: string): (boolean, any
 		addMoneyTo(data, result.money, true)
 	end
 	commit(player, data, op)
-	return true, { money = result.money, title = result.title }
+	return true, { money = result.money }
 end
 
 --- Dev (/clearinv): takes every cue but Classic and every case, clears the NEW tags, equips

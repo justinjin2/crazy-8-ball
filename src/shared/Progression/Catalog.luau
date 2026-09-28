@@ -451,9 +451,13 @@ local RARITY_ORDER: { [string]: number } = {}
 for i, rarity in Config.Cases.Rarities do
 	RARITY_ORDER[rarity] = i
 end
--- Outside the ladder: shown after it (Exclusive, then Unique), Classic first of all.
-RARITY_ORDER.Exclusive = #Config.Cases.Rarities + 1
-RARITY_ORDER.Unique = #Config.Cases.Rarities + 2
+-- Outside the ladder: Exclusive halfway between Config.Cases.ExclusiveRanksAbove and the next
+-- rarity up (Epic 4.5 Legendary), Unique above them all, Classic below them all.
+RARITY_ORDER.Exclusive = assert(
+	RARITY_ORDER[Config.Cases.ExclusiveRanksAbove],
+	"Catalog: ExclusiveRanksAbove names no rarity"
+) + 0.5
+RARITY_ORDER.Unique = #Config.Cases.Rarities + 1
 RARITY_ORDER.Default = 0
 
 --- Every cue, in the Index's order (Classic, case cues by rarity, Exclusive, Unique).
@@ -474,8 +478,8 @@ function Catalog.exists(id: any): boolean
 	return Catalog.get(id) ~= nil
 end
 
---- A rarity's (or group's) place for sorting: 1 Common ... 7 Secret, 8 Exclusive, 9
---- Unique, 0 Default; unknown names 0.
+--- A rarity's (or group's) place for sorting: 1 Common ... 7 Secret, 4.5 Exclusive (between
+--- Epic and Legendary), 8 Unique, 0 Default; unknown names 0.
 function Catalog.rarityRank(rarity: string): number
 	return RARITY_ORDER[rarity] or 0
 end

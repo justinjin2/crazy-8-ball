@@ -168,7 +168,8 @@ with a dated line in DECISIONS.md:
   a rarity row pays once: Commons $1,000, Uncommons $2,500, Rares $7,500, Epics $25,000, each
   with a title ("Common Collector" ...); Legendary, Mythic and Secret rows give a title only
   (overnight assumption: money there would reward luck more than play). Titles are saved and
-  listed in the Index; showing a title over the head is parked.
+  listed in the Index; showing a title over the head is parked. *(Changed 2026-09-28: the
+  designer dropped the rows' titles; money up to Epic only, nothing above.)*
 - **No rank-down screen:** XP is never lost, so the "Rank down" card is removed.
 - **The first win's Rare Case** is rolled by the server when the match settles and revealed on
   the result screen with Equip (GDD 14).
@@ -441,7 +442,8 @@ from a local `python3 -m http.server 8765 --bind 127.0.0.1 --directory assets`),
 - **Cues:** a grid of cue cards (the tinted thumbnail, name, a rarity-coloured frame or strip,
   "x3" for copies, a gold "NEW" pill until opened, a green "Equipped" pill, a lock on Exclusive
   and Unique), rarity filter chips (All, Common ... Secret, Exclusive, Unique), sorted rarest
-  first. Selecting one shows a detail panel: the bigger thumbnail, name, rarity, "1,284 exist",
+  first. *(Changed 2026-09-28: the chips became one sort button: Rarest first, Common first,
+  Most copies, Name A-Z; Exclusive sorts between Epic and Legendary.)* Selecting one shows a detail panel: the bigger thumbnail, name, rarity, "1,284 exist",
   and Equip, Sell ($15 ... $75,000; confirm dialog from Epic up; red for sell, blue for keep),
   "Sell duplicates" for that cue; and "Sell all duplicates" at the top of the tab (shows the
   total it pays, with a confirm). Default `Classic` always there.

@@ -1060,6 +1060,7 @@ function MenuFrame.tile(parent: Instance, opts: TileOptions?): Tile
 		edge.Color = if lit then GOLD else color(CARD.EdgeColor)
 		edge.Thickness = if lit then K.SelectedStrokePx else CARD.StrokePx
 		settle()
+		UIAnim.sway(body, lit, nil, button)
 	end
 	if pressable then
 		button.MouseEnter:Connect(function()

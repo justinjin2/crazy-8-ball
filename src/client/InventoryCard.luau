@@ -29,6 +29,7 @@ local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local MenuFrame = require(script.Parent.MenuFrame)
+local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local IC = Config.UI.Inventory.Card
@@ -302,6 +303,7 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 		card.lit = on
 		paintEdge(card)
 		settle(card)
+		UIAnim.sway(body, on, nil, button)
 	end
 	button.MouseEnter:Connect(function()
 		light(true)

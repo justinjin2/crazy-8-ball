@@ -1809,6 +1809,9 @@ Config.Cases = {
 	Order = { "Standard", "Rare", "Epic", "Legendary", "Event" },
 	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
 	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
+	-- When sorting by rarity, Exclusive cues sit just above this rarity (below Legendary;
+	-- designer, 2026-09-28). Unique sits above Secret.
+	ExclusiveRanksAbove = "Epic",
 	-- Odds are whole thousandths of a percent, so each row adds to exactly OddsTotal (a
 	-- load-time assert and tests/cases_test check it). Standard: 64.3% = 64300.
 	OddsTotal = 100000,
@@ -1898,17 +1901,14 @@ Config.Cases = {
 -- pays once. ECONOMY section 18 (2026-09-28). (tune)
 ---------------------------------------------------------------------------------------------
 Config.Index = {
-	-- Money (0 = none) and Title (an id into Strings.Items.Titles), per rarity row. Legendary,
-	-- Mythic and Secret give a title only: money there would reward luck more than play.
-	-- Exclusive and Unique are listed in the Index with no row reward.
+	-- The money a complete rarity row pays once, claimed in the Index. Rows not listed have no
+	-- reward: Legendary, Mythic and Secret (money there would reward luck more than play),
+	-- Exclusive and Unique. The rows' "Collector" titles are gone (designer, 2026-09-28).
 	Rows = {
-		Common = { Money = 1000, Title = "Common" },
-		Uncommon = { Money = 2500, Title = "Uncommon" },
-		Rare = { Money = 7500, Title = "Rare" },
-		Epic = { Money = 25000, Title = "Epic" },
-		Legendary = { Money = 0, Title = "Legendary" },
-		Mythic = { Money = 0, Title = "Mythic" },
-		Secret = { Money = 0, Title = "Secret" },
+		Common = { Money = 1000 },
+		Uncommon = { Money = 2500 },
+		Rare = { Money = 7500 },
+		Epic = { Money = 25000 },
 	},
 	-- The finder's money (designer, 2026-09-28): the first time a player gets a cue (it enters
 	-- their Index), the server pays this much, by the cue's rarity or group; once per cue
@@ -3906,6 +3906,25 @@ Config.UI = {
 			PulseScale = 1.03, -- how big it breathes (a full-width Start stays inside its card)
 			BounceScale = 1.2, -- a pocketed ball's pop
 			RaysDegreesPerSecond = 30, -- the win card's rays
+			-- Hovering anything pressable (or a gamepad resting on it) makes it sway: it rocks
+			-- side to side with a little extra wiggle, a small dance, easing in from still and
+			-- back to still when the pointer leaves (UIAnim.sway; designer, 2026-09-28). Touch
+			-- has no hover, so a tap never starts it. (tune)
+			Sway = {
+				Degrees = 3, -- how far it tips each way at most
+				EdgePx = 5, -- ...but a wide thing tips less: its ends move at most this far
+				Seconds = 1.4, -- one full rock, there and back
+				WiggleShare = 0.3, -- a second rock at twice the speed, this share as big
+				EaseSeconds = 0.25, -- from still to the full sway, and back
+			},
+			-- The rank HUD's badge: a quicker little shake, the badge alone (the HUD grows).
+			BadgeSway = {
+				Degrees = 7,
+				EdgePx = 8,
+				Seconds = 0.6,
+				WiggleShare = 0.3,
+				EaseSeconds = 0.15,
+			},
 		},
 	},
 }
@@ -5449,14 +5468,15 @@ Config.UI.Trade = {
 -- Config.UI.Menu.Frame's. Buttons drawn smaller than 44 px keep a 44 px touch area
 -- (HudParts.setMinHit). (tune)
 Config.UI.Inventory = {
-	-- The Cues tab: a strip (rarity chips, Sell all duplicates) over a grid of cue cards, and
-	-- the chosen cue's detail panel on the right.
-	StripPx = { 36, 44 }, -- the strip's height: the chips and Sell all
-	ChipTextPx = { 14, 16 },
-	ChipGapPx = { 6, 8 }, -- between two chips
-	ChipPadPx = 12, -- room each side of a chip's word
-	ChipMinWidthPx = 52,
-	ChipBarPx = 4, -- the thin scroll bar under the chips when they do not all fit
+	-- The Cues tab: a strip (the sort button, Sell all duplicates) over a grid of cue cards,
+	-- and the chosen cue's detail panel on the right.
+	StripPx = { 36, 44 }, -- the strip's height: the sort button and Sell all
+	StripTextPx = { 14, 16 }, -- their words
+	-- The grid's orders, in the sort button's turn (each press moves to the next, round; the
+	-- first is where it starts). Names in Strings.Menus.Inventory.SortOrders. The rarity
+	-- filter chips were dropped for this (designer, 2026-09-28).
+	SortOrders = { "RarestFirst", "CommonFirst", "MostCopies", "NameAZ" },
+	SortMaxShare = 0.5, -- the sort button takes at most this share of the strip
 	SellAllMaxShare = 0.5, -- Sell all duplicates takes at most this share of the strip
 	GapPx = { 6, 10 }, -- between the strip, the grid and the detail panel
 	DetailShare = 0.34, -- the detail panel's width, of the page's

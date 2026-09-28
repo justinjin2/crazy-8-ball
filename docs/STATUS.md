@@ -1,5 +1,28 @@
 # Status
 
+**2026-09-28 (branch `economy`): the designer's second round of economy changes.**
+
+- **Built:** the Index rows' "Collector" titles are gone (rows pay money up to Epic, nothing
+  above; the titles box shows only for a player who holds a title, the first Reyes'); the
+  Cues tab's rarity filter chips became one sort button (Rarest first by default, Common
+  first, Most copies, Name A-Z); by rarity, Exclusive now sits between Epic and Legendary;
+  everything hoverable sways gently under the mouse or a gamepad's selection (candy buttons,
+  menu tiles, cue cards, the column, roadmap stops), and on the rank HUD only the badge
+  shakes.
+- **Verified:** lint clean, 631 tests pass (updated: rows have no titles, a complete
+  Legendary row has nothing to claim, the snapshot's order with Exclusive below Legendary, old
+  Collector titles left out). In Studio on the PC window: the four sorts give the expected
+  orders and keep the chosen card; the sort button, a cue card and the Shop tile sway (about
+  3 degrees, 1.4 s) and settle when left; a gamepad selection on the sort button sways it;
+  the rank badge shakes (about 6 degrees) while the HUD itself stays level; the menu's close
+  button stops swaying when the menu closes; claiming Uncommon paid $2,500 with no title and
+  no "Title earned" line; the Legendary row shows no "Claimed". The Cues tab at 750 x 361.
+  Console clean.
+- **Needs a check by hand:** a real phone (a tap must not start the sway) and a real
+  controller's A on the sort button (Studio cannot send a gamepad press).
+
+---
+
 **2026-09-28 (branch `economy`): the designer's first economy changes.**
 
 - **Built:** the left column without its blue tiles (bigger icons); VIP in chat as "[VIP]

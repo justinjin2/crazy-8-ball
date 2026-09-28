@@ -8,7 +8,7 @@
 --   "Items"   ItemState    the inventory (Progression/Inventory.snapshot):
 --             { cues = { { id, count, new, copy? } }, cases = { { id, count } }, equipped,
 --               seen = { id... }, rows = { { rarity, have, total, complete, claimed,
---               reward = { money, title }? } }, titles = { id... } }
+--               reward = { money }? } }, titles = { id... } }
 --   "Shop"    ShopState    offers and their end times, VIP and Fast Open, the paid-random-items
 --             restriction, a sale, the Limited shelf, first pack bought, live Robux prices
 --   "Rewards" RewardState  the login streak, playtime gifts, the next streak reward, titles
