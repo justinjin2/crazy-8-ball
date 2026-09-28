@@ -1540,6 +1540,10 @@ Config.Save = {
 	-- still holds the lock, and ProfileStore only takes it over after about 45-50 s (its
 	-- SESSION_STEAL); a shorter wait would kick that player on every rejoin for ten minutes.
 	LoadTimeoutSeconds = 60,
+	-- When a save is still held by the server a player just left (a teleport), ProfileStore asks
+	-- it to let go and looks again after this long (its own default is 5 s). The global queue
+	-- lets go before teleporting (PlayerData.handOff), so this is only the rare slow case.
+	ConflictRetrySeconds = 1.5,
 	-- The most one PlayerData.addMoney call may grant. Far above any honest reward; a bigger
 	-- amount is a bug and is refused.
 	GrantCap = 1e9,
@@ -3213,7 +3217,11 @@ Config.Multiplayer = {
 	PocketChoiceSeconds = 10, -- called-pocket selection window
 	ShotSeconds = 20, -- aiming deadline
 	FoulSeconds = 1.4, -- foul announcement before incoming turn
-	ResultSeconds = 2.8, -- outcome hold before table reuse
+	ResultSeconds = 2.8, -- outcome hold before table reuse (solo; a two-sided game waits RematchSeconds)
+	-- After a two-sided game everyone may press Rematch (designer, 2026-09-28): all of them
+	-- within this long and the same players play again, the other team breaking, and the
+	-- series score goes on; otherwise the table frees. Long enough to read the result screen. (tune)
+	RematchSeconds = 20,
 	PocketSettleSeconds = 1, -- extra settling after a pocket
 	VoteSeconds = 10, -- unanimous surrender window
 	VoteCooldownSeconds = 30, -- prevent surrender prompt spam
@@ -4012,6 +4020,105 @@ Config.Lighting = {
 		-- mid skyline's and the near world's buildings alike.
 		Windows = { EmissiveStrength = 0.9, EmissiveTint = "#FFD27A", Color = "#C9A0D2" }, -- 1.6 read all orange
 		Islands = { Color = "#6A5088" }, -- violet silhouettes, as the art's (#673E6D)
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- The global queue (designer, 2026-09-28): the host's Join Global Queue looks for an opponent
+-- in every server, matched by rank, and both sides teleport into an arena (a reserved server
+-- of this same place, Config.Arena). Pure matching: src/shared/Matchmaking; the Roblox side
+-- (MemoryStore, TeleportService): src/server/GlobalQueue. Times are seconds. (tune)
+---------------------------------------------------------------------------------------------
+Config.GlobalQueue = {
+	-- MemoryStore sorted maps. A new name starts an empty queue: change it only on purpose
+	-- (Roblox keeps Studio's memory stores apart from the live game's by itself).
+	Maps = {
+		Tickets = "GQ_Tickets_v1_", -- one per mode: .. teamSize ("GQ_Tickets_v1_2" is 2v2)
+		Lease = "GQ_Lease_v1", -- which server runs the matching now
+		Matches = "GQ_Matches_v1", -- each arena's players, keyed by its reserved server id
+	},
+	LeaseKey = "leader",
+	-- How far apart two searches may be, in rank divisions, by how long the one that has
+	-- waited longer has searched: the closest rank first, anyone after 10 s (designer,
+	-- 2026-09-28: "as quick as possible ... after 10 seconds pair with anyone"). Within the
+	-- range the closest is always picked. (tune)
+	Window = {
+		{ After = 0, Divisions = 1 },
+		{ After = 3, Divisions = 3 },
+		{ After = 6, Divisions = 6 },
+		{ After = 10, Divisions = math.huge },
+	},
+	-- "Play another" never meets the opponent it just played until it has searched this long
+	-- (after that, anyone rather than no one).
+	AvoidRecentSeconds = 10,
+	MatchTickSeconds = 1, -- the leader pairs everyone searching this often
+	PollSeconds = 0.5, -- each server checks its own searches for a match this often
+	HeartbeatSeconds = 2, -- each server marks its searches alive this often...
+	StaleSeconds = 8, -- ...and one not marked for this long (its server died) is skipped
+	TicketLifeSeconds = 120, -- a search MemoryStore forgets unless marked alive again
+	ClaimTimeoutSeconds = 5, -- a half-made match (the leader died mid-way) is undone after this
+	LeaseSeconds = 6, -- the leader's turn lasts this long unless renewed...
+	LeaseRenewSeconds = 2, -- ...which it (and every other server, trying) does this often
+	MatchRecordSeconds = 900, -- how long an arena's player list is kept
+	PageSize = 200, -- MemoryStore's most per read
+	MaxScan = 1000, -- the most searches one mode reads per tick
+	-- Reserved servers made ahead of time by the leader, so a match does not wait for one.
+	ReservePool = 2,
+	TeleportRetries = 3, -- a failed teleport is tried again this many times...
+	TeleportRetrySeconds = 1, -- ...this far apart, then the players are told and stay
+	-- A failed MemoryStore call is tried again this many times, this far apart.
+	StoreRetries = 3,
+	StoreRetrySeconds = 0.25,
+	-- What a match-found player sees before the teleport starts, so the screen can come up.
+	FoundLeadSeconds = 0.4,
+}
+
+---------------------------------------------------------------------------------------------
+-- The arena (designer, 2026-09-28): one table in a dark room with a lit wall round it, after
+-- the reference image; a placeholder built from parts until the art is made (ArenaBuilder).
+-- Studs, world axes. The rooftop is removed in an arena server.
+---------------------------------------------------------------------------------------------
+Config.Arena = {
+	-- The one table, at the world origin (Placement.setLayout gives it id 1).
+	Table = { id = 1, X = 0, Y = 0, Z = 0, YawDegrees = 0 },
+	RecordWaitSeconds = 10, -- how long a new arena looks for its player list
+	-- Players have this long (from the list's arrival) to come in; then the game starts if
+	-- both sides have someone, or whoever came searches again. (tune)
+	ArrivalSeconds = 25,
+	-- After the rematch countdown, anyone who chose nothing is sent back to the lobby.
+	-- Someone searching for another game from here may wait this long, then goes too.
+	SearchMaxSeconds = 120,
+	-- The placeholder room. Floor and wall sizes are the inside of the wall.
+	Room = {
+		HalfLength = 40, -- along the table (world X)
+		HalfWidth = 30, -- across it (world Z)
+		CornerRadius = 8, -- the rounded corners of the wall
+		WallHeight = 4, -- a low rail you see over, as in the reference
+		WallThickness = 1.5,
+		StripHeight = 0.35, -- the glowing strip along the wall's top edge
+		FloorThickness = 1,
+		FloorColor = { 38, 40, 38 }, -- dark carpet
+		WallColor = { 26, 28, 30 },
+		StripColor = { 40, 220, 150 }, -- the green-teal glow
+		PanelColor = { 18, 40, 34 }, -- the lit boards along the wall's inside
+	},
+	Chairs = { -- two armchairs at the far wall, facing the table (world X, Z, yaw degrees)
+		{ X = -24, Z = -24, Yaw = 30 },
+		{ X = 24, Z = -24, Yaw = -30 },
+	},
+	ChairColor = { 214, 200, 172 },
+	Cameras = { -- two broadcast cameras on tripods, near side
+		{ X = -26, Z = 18, Yaw = 140 },
+		{ X = 12, Z = 22, Yaw = 200 },
+	},
+	Spawn = { X = 0, Z = 16, Yaw = 180 }, -- in front of the table, facing it
+	Lighting = {
+		ClockTime = 0, -- night: no sun
+		Brightness = 0,
+		Ambient = { 40, 42, 44 },
+		OutdoorAmbient = { 30, 32, 34 },
+		-- The lamp over the table (a SpotLight pointing down).
+		Lamp = { Height = 16, Brightness = 6, Range = 30, Angle = 70, Color = { 255, 244, 228 } },
 	},
 }
 
