@@ -1910,6 +1910,21 @@ Config.Index = {
 		Mythic = { Money = 0, Title = "Mythic" },
 		Secret = { Money = 0, Title = "Secret" },
 	},
+	-- The finder's money (designer, 2026-09-28): the first time a player gets a cue (it enters
+	-- their Index), the server pays this much, by the cue's rarity or group; once per cue
+	-- ever (sold and found again pays nothing). Earned money, not boosted by VIP or a party.
+	-- (tune)
+	FindMoney = {
+		Common = 50,
+		Uncommon = 100,
+		Rare = 250,
+		Epic = 750,
+		Legendary = 2500,
+		Mythic = 10000,
+		Secret = 50000,
+		Exclusive = 500, -- rank cues, the VIP and Starter cues
+		Unique = 1000, -- numbered Limited cues
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -3419,11 +3434,10 @@ Config.UI = {
 			-- plate stays where it was and the line sits above it. (tune)
 			StreakShare = 0.7,
 			StreakFrom = 1, -- shown once the streak is at least this
-			-- A VIP's name (the Vip attribute; brief section 13: a subtle shine): a narrow band
-			-- of the house rainbow sweeps across the white name now and then. (tune)
-			VipShineSeconds = 1.3, -- one sweep across the name
-			VipShineEvery = 3.5, -- the pause between sweeps
-			VipBandShare = 0.35, -- the rainbow band's width, as a share of the name
+			-- A VIP's rainbow name (designer, 2026-09-28: calm, the colours moving a little):
+			-- one whole loop of the house rainbow drifts along the name. (tune)
+			VipRainbowCycleSeconds = 8, -- a colour takes this long to travel the whole name
+			VipRainbowStepSeconds = 0.05, -- the colours are moved this often (20 a second)
 		},
 		-- The end-of-match screen (ResultScreen): the face-off (a card per player, VS between,
 		-- WINNER and a crown on the winner) and your rewards (the XP bar, the money list and
@@ -4851,14 +4865,15 @@ Config.UI.Queue = {
 -- a phone on its side (the HUD screen under Multiplayer.Style.ShortHeight, as the rank and money
 -- HUDs). A menu's slight dim is the roadmap's (Config.UI.Progress.Roadmap.Dim*). (tune)
 Config.UI.Menu = {
-	-- The left column (reference 06): one tile each, top to bottom. Keys name the menus
-	-- (Menus.register) and their words (Strings.Menus.Column) and icons (Kit.Icons).
+	-- The left column (reference 06): one tile each, top to bottom, each just its big icon
+	-- with no box behind it (designer, 2026-09-28). Keys name the menus (Menus.register) and
+	-- their words (Strings.Menus.Column) and icons (Kit.Icons).
 	Column = {
 		Order = { "Shop", "Inventory", "Rewards", "Trade" },
-		TilePx = 68, -- a tile, square (a computer or tablet)
-		ShortTilePx = 46, -- on a phone (still a 44 px touch target)
-		GapPx = 8, -- between two tiles
-		ShortGapPx = 6,
+		TilePx = 78, -- a tile's square slot, its touch area (a computer or tablet)
+		ShortTilePx = 52, -- on a phone (at least a 44 px touch target)
+		GapPx = 4, -- between two slots (the icons' own margins space them out)
+		ShortGapPx = 8, -- a phone's words overhang the small slots: room for the next red dot
 		MarginPx = 12, -- from the screen's left edge (the money HUD's margins)
 		ShortMarginPx = 8,
 		-- A phone: the column starts this far under the rank HUD's badge (it hangs below
@@ -4866,11 +4881,9 @@ Config.UI.Menu = {
 		BelowRankPx = 6,
 		AboveMoneyPx = 20, -- and it always ends at least this far above the money HUD
 		MinScale = 0.8, -- a screen too short for it shrinks the column, never below this
-		CornerPx = 16, -- the tile's rounded corners (rounder than a button: reference 06)
-		ShortCornerPx = 12,
-		IconShare = 0.9, -- the glossy icon's size, of the tile
-		IconPokeShare = 0.12, -- its top pokes this share of the tile above the tile's top edge
-		LabelTextPx = 18, -- the word across the tile's bottom edge (white, ink outline)
+		IconShare = 1.08, -- the glossy icon's size, of the slot (its own margins are clear)
+		IconCentreShare = 0.46, -- the icon's middle sits this far down the slot
+		LabelTextPx = 18, -- the word across the icon's lower edge (white, ink outline)
 		ShortLabelTextPx = 14, -- never under the kit's minimum
 		LabelCentreShare = 0.86, -- the word's middle sits this far down the tile
 		-- The word's box may be this many tiles wide, overhanging both sides ("Inventory" is
@@ -5162,6 +5175,9 @@ Config.UI.CaseOpening = {
 	-- shows a line in the menu under it (the cue's NEW tag marks it).
 	WaitCloseSeconds = 3,
 	DialogGraceSeconds = 0.2, -- an Escape just after a confirm dialog took it is ignored
+	-- A cue new to the Index: its finder's money flies from the card's "NEW! +$250" this long
+	-- after the card pops (once the pop has settled, so the pill is where it stays).
+	FoundFlyDelaySeconds = 0.6,
 	CloseBackstopSeconds = 0.3, -- closing: the overlay goes this long after its pop-out at the latest
 	RevealZIndex = 40, -- the reveal's frame over the rest of the result screen's frame
 	-- The moment grows with the rarity (Config.Cases.Rarities names): turning rays behind the
@@ -5470,7 +5486,7 @@ Config.UI.Inventory = {
 		LockPx = 20, -- the padlock on Exclusive and Unique cues
 		InsetPx = 3, -- the pills and the lock sit this far inside the card's corners
 		EquipGapPx = 4, -- the Equipped pill's bottom sits this far above the name
-		UnknownTextPx = 26, -- the "?" under a never-owned cue's silhouette in the Index
+		UnknownShare = 0.62, -- a never-owned cue's "?" in the Index, of the card's picture room
 	},
 	-- The detail panel (the chosen cue).
 	Detail = {
@@ -5499,7 +5515,27 @@ Config.UI.Inventory = {
 	EmptyIconPx = { 64, 110 }, -- the chest over the empty state's line
 	EmptyTextPx = { 16, 20 },
 	EmptyLineMaxPx = 460, -- the empty state's line wraps at this width
-	-- The Index tab: the titles, then a card per rarity row with its cues as small cells.
+	-- The Index's turning 3D cue (CueViewport, in the Index's detail panel; designer,
+	-- 2026-09-28): the game's own cue in a ViewportFrame, thicker so it reads small, turning
+	-- round the upright axis. A cue not found yet is one near-black colour.
+	Viewport = {
+		Thickness = 2.6, -- the stick's diameter times this (a real cue is too thin to read)
+		TiltDegrees = 45, -- the stick's lean from level (tip up and to the right)
+		StartDegrees = 25, -- where the turn starts when a cue is shown
+		SpinDegreesPerSecond = 55, -- about one turn in 6.5 s
+		FieldOfView = 30, -- the camera's (narrow: little perspective stretch)
+		FillShare = 0.86, -- the stick's longer half-extent, of the picture's half-size
+		SilhouetteColor = { 22, 24, 34 }, -- a cue not found yet (near-black, lit a little)
+		Ambient = { 150, 150, 160 }, -- the viewport's light
+		LightColor = { 255, 255, 255 },
+		LightDirection = { -1, -1, -1.5 }, -- from the top left, in front
+	},
+	-- The Index tab: the titles and the rarity rows (a card per row, its cues as small cells)
+	-- on the left, the chosen cue's detail panel on the right (IndexDetail*).
+	IndexDetailShare = 0.34, -- the panel's width, of the page's
+	IndexDetailMinPx = 180,
+	IndexDetailMaxPx = 300,
+	IndexViewShare = 0.5, -- a phone's turning cue at most this share of the page's height
 	CellMinPx = { 84, 100 }, -- an Index cell at least this wide (as many columns as fit)
 	CellAspect = 1.45, -- its height, of its width
 	CellNameLines = 3, -- a narrow cell's name may wrap to this many lines (never under 14 px)

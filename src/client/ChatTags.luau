@@ -2,11 +2,12 @@
 -- ChatTags: the [TIER] tag before a player's name when they chat (designer, 2026-09-27): the
 -- tier only, in capitals ("[PLATINUM]"), in that tier's chat colour (Config.Ranks.ChatColors;
 -- Reyes in the house rainbow, letter by letter); the name and the message keep Roblox's own
--- colours. Unranked players get no tag. A VIP player (brief section 13) gets "[VIP]" after the
--- rank tag, in the house rainbow letter by letter like Reyes. Every client draws them from the
--- speaker's RankTier and Vip attributes, which only the server sets (PlayerData, Store), so
--- nobody can give themselves a tag. They are in chat only: over heads the nameplates already
--- show the badge (and a VIP's shine).
+-- colours. Unranked players get no tag. A VIP player gets "[VIP]" first, in the house rainbow
+-- letter by letter like Reyes, then the rank tag, then their name in Roblox's own colour
+-- (designer, 2026-09-28: "[VIP] [GOLD] Name"; the rainbow name is for over the head only).
+-- Every client draws them from the speaker's RankTier and Vip attributes, which only the
+-- server sets (PlayerData, Store), so nobody can give themselves a tag. Over heads the
+-- nameplates show the badge and a VIP's slowly moving rainbow name.
 --
 -- It also posts the game's own lines in the chat window (system messages, this client only):
 -- the banner's unboxings and Reyes news (Banner) in their colours.
@@ -106,7 +107,7 @@ function ChatTags.system(richText: string)
 	print("[8ball] " .. richText)
 end
 
---- Put each speaker's tags before their name in the chat window: the rank tag, then [VIP].
+--- Put each speaker's tags before their name in the chat window: [VIP], then the rank tag.
 --- Progression calls this once.
 function ChatTags.start()
 	TextChatService.OnIncomingMessage = function(
@@ -121,12 +122,12 @@ function ChatTags.start()
 			return nil
 		end
 		local tags = {}
+		if player:GetAttribute("Vip") == true then
+			table.insert(tags, ChatTags.vipTag())
+		end
 		local rank = ChatTags.tagFor(player:GetAttribute("RankTier"))
 		if rank then
 			table.insert(tags, rank)
-		end
-		if player:GetAttribute("Vip") == true then
-			table.insert(tags, ChatTags.vipTag())
 		end
 		if #tags == 0 then
 			return nil

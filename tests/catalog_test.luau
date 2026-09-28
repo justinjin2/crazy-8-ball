@@ -88,6 +88,8 @@ return {
 		H.expect(rankCues == 10, "ten rank cues")
 		for _, cue in exclusive do
 			H.expect(not cue.Sellable, cue.Id .. " must not sell")
+			-- No Exclusive cue trades, VIP and Starter included (designer, 2026-09-28).
+			H.expect(not cue.Tradable, cue.Id .. " must not trade")
 			H.expect(#cue.Cases == 0, cue.Id .. " must not drop from a case")
 		end
 		for _, cue in unique do

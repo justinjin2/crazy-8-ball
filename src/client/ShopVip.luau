@@ -119,7 +119,7 @@ function ShopVip.new(shop: any, page: Frame): any
 		{ icon = "CashStack", text = COPY.VipMoney:format(times(1 + boost)) },
 		{ icon = "Lightning", text = COPY.VipXp:format(round(xp * 100)) },
 		{ icon = "Cue", text = COPY.VipCue:format(CueThumb.cueName(Config.Shop.VipCue)) },
-		{ icon = "ChatTag", text = COPY.VipTag },
+		{ icon = "ChatTag", text = COPY.VipName },
 		{ icon = "Odds", text = COPY.VipOdds },
 	}
 	self.perks = {} :: { Perk }

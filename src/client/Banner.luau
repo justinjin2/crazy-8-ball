@@ -14,6 +14,9 @@
 -- - An unboxing and the Reyes news also go into the chat window as a system line, in the same
 --   colours (ChatTags.system): at once, even in a match, since chat is not the top of the
 --   screen.
+-- - This player's own finds from the CueFound remote (a cue new to their Index, not from a
+--   case reel, which shows its own): "New in your Index: VIP Cue! +$500", in the cue's rarity
+--   colour, queued like the rest.
 --
 -- In a match everything waits (overnight decision, 2026-09-28): the top of the screen is the
 -- match's (the top bar, the turn popup, the move and series pills under it), so the banner
@@ -28,6 +31,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -137,6 +141,21 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 		)
 	end)
 	task.spawn(function()
+		local ok, remote = pcall(Net.get, "CueFound")
+		if not ok or typeof(remote) ~= "Instance" or not remote:IsA("RemoteEvent") then
+			warn("[8ball] Banner: no CueFound remote")
+			return
+		end
+		table.insert(
+			self.connections,
+			remote.OnClientEvent:Connect(function(finds: any)
+				if type(finds) == "table" then
+					self:onFound(finds)
+				end
+			end)
+		)
+	end)
+	task.spawn(function()
 		while self.alive do
 			self:tick()
 			task.wait(B.TickSeconds)
@@ -179,6 +198,21 @@ function Banner.onBanner(self: any, payload: any)
 		local text = (if kind == "FirstReyes" then COPY.FirstReyes else COPY.Reyes):format(who)
 		self:push({ text = text, rainbow = true, at = os.clock() })
 		ChatTags.system(ChatTags.rainbow(text))
+	end
+end
+
+-- Cues new to this player's Index ({ { cue, money } }, the CueFound remote): a line each.
+function Banner.onFound(self: any, finds: { any })
+	for _, find in finds do
+		local cue = if type(find) == "table" then name(find.cue) else nil
+		if not cue then
+			continue
+		end
+		local money = if type(find.money) == "number" then math.floor(find.money) else 0
+		local text = if money > 0
+			then COPY.Found:format(CueThumb.cueName(cue), Format.money(money))
+			else COPY.FoundNoMoney:format(CueThumb.cueName(cue))
+		self:push({ text = text, color = CueThumb.accentColor(CueThumb.rarityOf(cue)) })
 	end
 end
 

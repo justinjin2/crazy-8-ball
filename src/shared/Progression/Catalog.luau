@@ -9,7 +9,8 @@
 --   Rarity    Common ... Secret for case cues; "Exclusive", "Unique", or "Default" (Classic)
 --   Group     "Case" (drops from cases), "Exclusive" (one special way each), "Unique"
 --             (numbered Limited copies) or "Default"
---   Tradable  may be traded (trading is a later session; the flag is stored now)
+--   Tradable  may be traded (trading is a later session; the flag is stored now): case and
+--             Unique cues yes, Exclusive cues and Classic never
 --   Sellable  may be sold back (case cues only)
 --   Cases     the case ids that drop it (case cues only)
 --   Vaulted   true stops it dropping (ECONOMY 12); it stays in the Index and in saves
@@ -89,7 +90,8 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 		Id = id,
 		Rarity = group,
 		Group = group,
-		Tradable = true, -- VIP, Starter and Unique cues trade (ECONOMY 6)
+		-- Unique cues trade; no Exclusive cue ever does (VIP, Starter; designer, 2026-09-28)
+		Tradable = group == "Unique",
 		Sellable = false,
 		Cases = {},
 		Vaulted = false,

@@ -9,8 +9,10 @@
 -- under it on up to two lines (it wraps rather than shrinks, so a longer translation still
 -- fits). Pills sit over the top corners: a gold NEW top left; top right a padlock on Exclusive
 -- and Unique cues and the count ("x3", or a Unique cue's "#412"); and a green "Equipped" on
--- the picture's bottom, just over the name. A never-owned cue in the Index is its dark silhouette with "?" and
--- no name, no colour and no pills.
+-- the picture's bottom, just over the name. A never-owned cue in the Index is a big "?" in its
+-- rarity's colour where the picture goes (designer, 2026-09-28: the look stays hidden until
+-- the cue is found; the Index's detail panel shows its black 3D shape), no name, no dressing
+-- and no pills.
 --
 -- It behaves like the kit's buttons: hover and gamepad selection give the gold outline and a
 -- small grow, a press squishes it and plays the Click sound. `onSelect` runs when a gamepad
@@ -42,7 +44,7 @@ local EDGE = color(CARD.EdgeColor)
 
 export type Fields = {
 	cueId: string,
-	silhouette: boolean?, -- the Index: never owned (dark shape, "?", no name)
+	silhouette: boolean?, -- the Index: never owned (a big "?", no name)
 	count: string?, -- "x3", "#412", or nil / "" for none
 	new: boolean?, -- the gold NEW pill
 	equipped: boolean?, -- the green Equipped pill
@@ -185,8 +187,11 @@ function InventoryCard.layout(card: Card)
 	local nameBox = math.max(lineH, h - nameTop - bottom)
 	card.name.Position = UDim2.fromOffset(pad, nameTop)
 	card.name.Size = UDim2.fromOffset(math.max(1, w - 2 * pad), nameBox)
-	card.unknown.Position = card.name.Position
-	card.unknown.Size = card.name.Size
+	-- The "?" fills the picture's place (and the name's, which it has none of).
+	local mark = math.max(1, math.min(w - 2 * pad, h - 2 * pad - bottom))
+	card.unknown.Position = UDim2.fromOffset(round(w / 2), round((h - bottom) / 2))
+	card.unknown.Size = UDim2.fromOffset(mark, mark)
+	HudParts.setTextSize(card.unknown, math.max(IC.NameTextPx, round(mark * IC.UnknownShare)))
 
 	-- The pills: NEW top left; the lock and the count top right; Equipped on the picture's
 	-- bottom, a little over the name.
@@ -240,9 +245,9 @@ function InventoryCard.new(parent: Instance, opts: Options): Card
 	name.TextWrapped = true
 	name.TextYAlignment = Enum.TextYAlignment.Top
 	name.ZIndex = 4
-	local unknown = HudParts.text(body, "Unknown", IC.UnknownTextPx, WORDS.Unknown)
+	local unknown = HudParts.text(body, "Unknown", IC.NameTextPx, WORDS.Unknown)
 	unknown.TextWrapped = false
-	unknown.TextYAlignment = Enum.TextYAlignment.Top
+	unknown.AnchorPoint = Vector2.new(0.5, 0.5)
 	unknown.ZIndex = 4
 	unknown.Visible = false
 	local newPill, newText = InventoryCard.pill(body, "New", tone("Gold"), WORDS.New)
@@ -341,9 +346,10 @@ function InventoryCard.set(card: Card, fields: Fields)
 	local id = fields.cueId
 	local silhouette = fields.silhouette == true
 	if id ~= card.cueId or silhouette ~= card.silhouette then
-		CueThumb.set(card.thumb, id, silhouette)
+		CueThumb.set(card.thumb, id, false)
 		card.cueId, card.silhouette = id, silhouette
 	end
+	card.thumb.Visible = not silhouette
 	local row = Catalog.get(id)
 	local rarity = if row then row.Rarity else "Default"
 	local tier = if row and row.Tier then row.Tier else ""
@@ -362,6 +368,7 @@ function InventoryCard.set(card: Card, fields: Fields)
 	card.name.Text = if silhouette then "" else CueThumb.cueName(id)
 	card.name.Visible = not silhouette
 	card.unknown.Visible = silhouette
+	card.unknown.TextColor3 = CueThumb.accentColor(rarity)
 	local count = if silhouette then "" else fields.count or ""
 	card.countText.Text = count
 	card.countPill.Visible = count ~= ""

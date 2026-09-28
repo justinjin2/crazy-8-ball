@@ -66,7 +66,11 @@ export type Opened = {
 	new: boolean, -- never owned before this open (the first of two in one open is the new one)
 	duplicate: boolean, -- more than one copy once it was added
 	count: number, -- copies owned once it was added
+	found: number, -- the finder's money it paid (new to the Index), else 0
 }
+
+--- A cue that entered a player's Index for the first time, and the finder's money it paid.
+export type Find = { cue: string, money: number }
 
 --- PlayerData.progress: the match counts the settle needs.
 export type Progress = {
@@ -133,6 +137,17 @@ PlayerData.Loaded = loadedEvent.Event
 --- the mutation's name ("openCases", "addPlaySeconds"...), so a listener can skip changes it
 --- does not show (addPlaySeconds fires every Config.Daily.PlaytimeTickSeconds).
 PlayerData.Changed = changedEvent.Event
+local foundEvent = Instance.new("BindableEvent")
+--- (player, finds: { Find }) Fires after a mutation that put cues into the player's Index for
+--- the first time (the finder's money already added), except the ones a case reel reveals
+--- (openCases and the first win's case: their answers carry the money). Items tells the
+--- player (the CueFound remote).
+PlayerData.CueFound = foundEvent.Event
+
+-- The mutation under way's first finds, by save table (commit sends and clears them), and the
+-- saves whose finds a reel shows instead.
+local pendingFinds: { [any]: { Find } } = setmetatable({}, { __mode = "k" }) :: any
+local reelFinds: { [any]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
 local store: ProfileStore.ProfileStore<any>? = nil
 local started = false
@@ -312,9 +327,26 @@ local function addCasesTo(data: any, caseId: string, count: number)
 	end
 end
 
--- Gives one copy of a case or Exclusive cue (marked Seen and NEW). An Exclusive cue (a rank,
--- the VIP or the Starter Cue) is one per player: it never sells, so a second copy would be
--- worth nothing, and one already owned is not given again. Returns whether it was given.
+-- A cue just entered the save's Index for the first time: pay its finder's money (earned;
+-- Config.Index.FindMoney) and note it for commit. Returns the money.
+local function payFind(data: any, id: string): number
+	local money = Inventory.findMoney(id)
+	if money > 0 then
+		addMoneyTo(data, money, true)
+	end
+	local finds = pendingFinds[data]
+	if finds == nil then
+		finds = {}
+		pendingFinds[data] = finds
+	end
+	table.insert(finds, { cue = id, money = money })
+	return money
+end
+
+-- Gives one copy of a case or Exclusive cue (marked Seen and NEW; a first find pays its
+-- finder's money). An Exclusive cue (a rank, the VIP or the Starter Cue) is one per player: it
+-- never sells, so a second copy would be worth nothing, and one already owned is not given
+-- again. Returns whether it was given.
 local function giveCue(data: any, id: string): boolean
 	local cue = Catalog.get(id)
 	if cue == nil then
@@ -324,7 +356,19 @@ local function giveCue(data: any, id: string): boolean
 	if (cue.Group == "Exclusive" and have > 0) or have >= S.ItemCountCap then
 		return false
 	end
-	return Inventory.addCue(data, id, 1)
+	local given, first = Inventory.addCue(data, id, 1)
+	if first then
+		payFind(data, id)
+	end
+	return given
+end
+
+-- Gives a Unique cue with its copy number (a first find pays its finder's money).
+local function giveUnique(data: any, id: string, copy: number)
+	local _, first = Inventory.addUnique(data, id, copy)
+	if first then
+		payFind(data, id)
+	end
 end
 
 -- Why `cases` ({ [caseId] = count }) cannot be given, or nil when it can.
@@ -566,10 +610,18 @@ local function show(player: Player, data: any)
 	end
 end
 
--- After a mutation: replicate, then tell listeners which mutation it was.
+-- After a mutation: replicate, then tell listeners which mutation it was, then which cues it
+-- put in the Index for the first time.
 local function commit(player: Player, data: any, op: string)
 	show(player, data)
 	changedEvent:Fire(player, op)
+	local finds = pendingFinds[data]
+	local onReel = reelFinds[data] == true
+	pendingFinds[data] = nil
+	reelFinds[data] = nil
+	if finds and #finds > 0 and not onReel then
+		foundEvent:Fire(player, finds)
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -1110,7 +1162,8 @@ end
 
 --- Gives a reward (see the Reward type): rank-ups, the daily streak, gifts, codes, dev
 --- commands. All of it or nothing: a bad field refuses the whole reward. `reason` says why,
---- for the logs.
+--- for the logs. A cue new to the Index pays its finder's money (CueFound tells the player,
+--- except for the first win's case, which the result screen's reel reveals).
 function PlayerData.grantReward(player: Player, reward: Reward, reason: string): boolean
 	local op = "grantReward"
 	if not isPlayer(player) then
@@ -1131,6 +1184,9 @@ function PlayerData.grantReward(player: Player, reward: Reward, reason: string):
 		return refuse(op, player, blocked)
 	end
 	giveReward(data, reward)
+	if reward.firstWinCase == true then
+		reelFinds[data] = true -- the result screen's reel shows the first win's cue
+	end
 	commit(player, data, op)
 	return true
 end
@@ -1514,10 +1570,15 @@ function PlayerData.openCases(
 	local opened: { Opened } = {}
 	for _, id in cueIds do
 		local new = seen[id] ~= true and not Inventory.owns(data, id)
-		Inventory.addCue(data, id, 1)
+		local _, first = Inventory.addCue(data, id, 1)
+		local found = if first then payFind(data, id) else 0
 		local count = Inventory.count(data, id)
-		table.insert(opened, { cue = id, new = new, duplicate = count > 1, count = count })
+		table.insert(
+			opened,
+			{ cue = id, new = new, duplicate = count > 1, count = count, found = found }
+		)
 	end
+	reelFinds[data] = true -- the reel shows them
 	commit(player, data, op)
 	return true, opened
 end
@@ -1963,7 +2024,7 @@ function PlayerData.applyPurchase(
 		giveCue(data, grant.cue)
 	end
 	if limited ~= nil and copy ~= nil then
-		Inventory.addUnique(data, limited, copy)
+		giveUnique(data, limited, copy)
 		shop.Limited[limited] = copy
 	end
 	Shop.markGrant(shop, grant)
@@ -2006,7 +2067,7 @@ function PlayerData.buyLimited(player: Player, cueId: string, copy: number, pric
 		return refuse(op, player, ("not enough money for %s (copy %d unused)"):format(cueId, copy))
 	end
 	data.Money = plain(data.Money - price)
-	Inventory.addUnique(data, cueId, copy)
+	giveUnique(data, cueId, copy)
 	data.Shop.Limited[cueId] = copy
 	commit(player, data, op)
 	return true

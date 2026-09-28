@@ -9,12 +9,18 @@
 --     ever owned), the reward (the money and the title, from the snapshot's `rows`) and Claim
 --     once the row is complete (it breathes while it can be claimed; "Claimed" with a check
 --     after). Under it every catalog cue of that rarity as a small card (InventoryCard):
---     ever-owned cues in colour with their names, never-owned ones as dark silhouettes with
---     "?" and no name. A cue counts once ever owned (the snapshot's `seen`), sold or not.
+--     ever-owned cues in colour with their names, never-owned ones as a big "?" in the
+--     rarity's colour with no name. A cue counts once ever owned (the snapshot's `seen`), sold
+--     or not.
+--   * On the right, the chosen cue (designer, 2026-09-28): the cue turning in 3D (CueViewport),
+--     in its colours once found, a black silhouette until then; its name (shown even before it
+--     is found), rarity, "In your collection" or "Not found yet", "1,284 exist", and for a cue
+--     not found yet the finder's money it pays ("Find it for +$250", Config.Index.FindMoney).
+--     A tap or click on a card chooses it; a gamepad chooses the card it lands on. It turns
+--     only while the tab shows.
 --
 -- Claim asks the server (ItemRequest "ClaimIndexRow"); its money flies into the header's cash
--- and the title shows at the top once the snapshot follows. Pressing a cue says its name and
--- rarity (a found one) or that it is not found yet.
+-- and the title shows at the top once the snapshot follows.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
 
@@ -24,7 +30,9 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
+local Inventory = require(Progression:WaitForChild("Inventory"))
 local CueThumb = require(script.Parent.CueThumb)
+local CueViewport = require(script.Parent.CueViewport)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
 local ItemState = require(script.Parent.ItemState)
@@ -33,12 +41,14 @@ local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
 local I = Config.UI.Inventory
+local D = I.Detail
 local SC = Config.UI.Menu.Scroll
 local K = Config.UI.Kit
 local WORDS = Strings.Menus.Inventory
 local TITLE_NAMES: { [string]: string } = Strings.Items.Titles :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local TOUCH = Config.UI.Menu.Frame.TouchMinPx
+local COPIES_FOLDER = "CueCounts" -- ReplicatedStorage.CueCounts: copies in existence (Counters)
 
 -- The rows, top to bottom (as Progression/Inventory.indexRows).
 local GROUPS: { string } = table.clone(Config.Cases.Rarities)
@@ -76,6 +86,10 @@ local function textWidth(text: string, size: number): number
 	return TextService:GetTextSize(text, size, FONT, Vector2.new(4000, 400)).X
 end
 
+local function textHeight(text: string, size: number, width: number): number
+	return TextService:GetTextSize(text, size, FONT, Vector2.new(math.max(1, width), 4000)).Y
+end
+
 local function list(value: any): { any }
 	return if type(value) == "table" then value else {}
 end
@@ -91,7 +105,13 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	self.ctx = ctx
 	self.geo = nil :: MenuFrame.Geo?
 	self.showing = false
-	local scroll, _ = MenuFrame.scroller(page, { name = "Index" })
+	self.chosen = nil :: string?
+	self.seen = {} :: { [string]: boolean }
+	-- The rows scroll on the left; the chosen cue's panel sits on the right.
+	local list = HudParts.frame(page, "List")
+	list.ZIndex = 2
+	self.list = list
+	local scroll, _ = MenuFrame.scroller(list, { name = "Index" })
 	self.scroll = scroll
 
 	-- The titles earned.
@@ -112,8 +132,66 @@ function InventoryIndex.new(page: Frame, ctx: any): any
 	for index, rarity in GROUPS do
 		table.insert(self.sections, self:buildSection(rarity, index))
 	end
+	self:buildDetail(page)
 	self.loading = MenuFrame.placeholder(page)
 	return self
+end
+
+-- The chosen cue's panel: the turning cue in a small card, then its words.
+function InventoryIndex.buildDetail(self: any, page: Frame)
+	local box = InventoryCard.box(page, "Detail")
+	box.ZIndex = 2
+	box.Visible = false
+	self.detail = box
+	-- Its contents scroll when a short screen or a long translation needs more room.
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "Scroll"
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.Size = UDim2.fromScale(1, 1)
+	scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+	scroll.ScrollBarThickness = SC.BarPx
+	scroll.ScrollBarImageColor3 = HudParts.color(SC.BarColor)
+	scroll.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
+	scroll.Selectable = false
+	scroll.ZIndex = 2
+	scroll.Parent = box
+	self.detailScroll = scroll
+
+	local artBox = InventoryCard.box(scroll, "ArtBox")
+	artBox.ZIndex = 2
+	artBox.ClipsDescendants = true
+	self.artBox = artBox
+	self.artDressing = nil :: CueThumb.Dressing?
+	self.artKey = ""
+	local view = CueViewport.new(artBox, "Cue")
+	view.frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	view.frame.Position = UDim2.fromScale(0.5, 0.5)
+	view.frame.Size = UDim2.fromScale(1, 1)
+	view.frame.ZIndex = 3
+	self.view = view
+
+	self.nameLabel = HudParts.text(scroll, "Name", D.NameTextPx[2], "")
+	self.nameLabel.ZIndex = 3
+	self.rarityLabel = HudParts.text(scroll, "Rarity", D.RarityTextPx[2], "")
+	self.rarityLabel.TextWrapped = false
+	self.rarityLabel.ZIndex = 3
+	self.stateLabel = HudParts.note(scroll, "State", D.LineTextPx[2], "")
+	self.stateLabel.ZIndex = 3
+	self.existLabel = HudParts.note(scroll, "Exist", D.LineTextPx[2], "")
+	self.existLabel.TextWrapped = false
+	self.existLabel.ZIndex = 3
+	-- A cue not found yet: the cash and "Find it for +$250" in green.
+	local findRow = HudParts.frame(scroll, "FindRow")
+	findRow.ZIndex = 3
+	self.findRow = findRow
+	self.findIcon = HudParts.icon(findRow, "CashSingle", "Cash")
+	self.findIcon.ZIndex = 3
+	self.findLabel = HudParts.text(findRow, "Words", D.LineTextPx[2], "", HudParts.tone("Green"))
+	self.findLabel.AutoLocalize = false -- carries a number (the sentence itself is in Strings)
+	self.findLabel.TextWrapped = false
+	self.findLabel.TextXAlignment = Enum.TextXAlignment.Left
+	self.findLabel.ZIndex = 3
 end
 
 function InventoryIndex.buildSection(self: any, rarity: string, order: number): Section
@@ -175,7 +253,10 @@ function InventoryIndex.buildSection(self: any, rarity: string, order: number): 
 				name = id,
 				lines = I.CellNameLines,
 				onPress = function()
-					self:tell(id)
+					self:choose(id)
+				end,
+				onSelect = function()
+					self:choose(id)
 				end,
 			})
 		)
@@ -237,8 +318,9 @@ function InventoryIndex.redraw(self: any, items: any)
 	local ctx = self.ctx
 	local loaded = type(items) == "table"
 	self.loading.Visible = not loaded
-	self.scroll.Visible = loaded
+	self.list.Visible = loaded
 	if not loaded then
+		self.detail.Visible = false
 		self:stopPulses()
 		return
 	end
@@ -247,6 +329,12 @@ function InventoryIndex.redraw(self: any, items: any)
 		if type(id) == "string" then
 			seen[id] = true
 		end
+	end
+	self.seen = seen
+	-- The chosen cue stays chosen; else the first one.
+	if not self.chosen or not Catalog.get(self.chosen) then
+		local first = self.sections[1]
+		self.chosen = if first then first.ids[1] else nil
 	end
 	local rows = rowsOf(items)
 	for _, section in self.sections do
@@ -258,6 +346,7 @@ function InventoryIndex.redraw(self: any, items: any)
 				have += 1
 			end
 			InventoryCard.set(section.cells[i], { cueId = id, silhouette = not owned })
+			InventoryCard.setChosen(section.cells[i], id == self.chosen)
 		end
 		local total = #section.ids
 		if row then
@@ -304,6 +393,7 @@ function InventoryIndex.redraw(self: any, items: any)
 	end
 	self.titlesNote.Visible = #names == 0
 	self:refreshPulses()
+	self:refreshDetail()
 	self:arrange()
 end
 
@@ -344,7 +434,21 @@ function InventoryIndex.arrange(self: any)
 		return
 	end
 	local span = self.ctx.span
-	local W = math.max(1, geo.content.X - 2 * SC.PadPx - SC.BarPx) -- a card's width
+	-- The list on the left, the chosen cue's panel on the right.
+	local pageW, pageH = geo.content.X, geo.content.Y
+	local pageGap = span(I.GapPx)
+	local detailW =
+		math.clamp(round(pageW * I.IndexDetailShare), I.IndexDetailMinPx, I.IndexDetailMaxPx)
+	detailW = math.min(detailW, math.max(1, round(pageW / 2)))
+	local listW = math.max(1, pageW - detailW - pageGap)
+	self.list.Position = UDim2.fromOffset(0, 0)
+	self.list.Size = UDim2.fromOffset(listW, pageH)
+	self.detail.Position = UDim2.fromOffset(listW + pageGap, 0)
+	self.detail.Size = UDim2.fromOffset(detailW, pageH)
+	self.detailSize = Vector2.new(detailW, pageH)
+	self:arrangeDetail()
+
+	local W = math.max(1, listW - 2 * SC.PadPx - SC.BarPx) -- a card's width
 	local pad = span(I.SectionPadPx)
 	local gap = span(I.CellGapPx)
 	local inner = math.max(1, W - 2 * pad)
@@ -492,23 +596,116 @@ end
 -- Pressing
 --------------------------------------------------------------------------------------------
 
--- A cue pressed: its name and rarity, or that it is not found yet.
-function InventoryIndex.tell(self: any, id: string)
-	local items = self.ctx.lastItems
-	local found = false
-	for _, seenId in list(items and items.seen) do
-		if seenId == id then
-			found = true
-			break
+--- Show a cue in the panel (a tap, click or a gamepad landing on its card).
+function InventoryIndex.choose(self: any, id: string)
+	if self.chosen == id or not Catalog.get(id) then
+		return
+	end
+	self.chosen = id
+	for _, section in self.sections do
+		for i, cellId in section.ids do
+			InventoryCard.setChosen(section.cells[i], cellId == id)
 		end
 	end
-	if found then
-		local cue = Catalog.get(id)
-		local rarity = if cue then CueThumb.rarityName(cue.Rarity) else ""
-		self.ctx.notice(WORDS.CueInfo:format(CueThumb.cueName(id), rarity))
-	else
-		self.ctx.notice(WORDS.NotFound)
+	self:refreshDetail()
+end
+
+-- Copies in existence of a cue (ReplicatedStorage.CueCounts, from the server's counters), or
+-- nil while unknown or not caught up yet (0).
+local function copiesOf(id: string): number?
+	local folder = ReplicatedStorage:FindFirstChild(COPIES_FOLDER)
+	local value = if folder then folder:GetAttribute(id) else nil
+	if type(value) ~= "number" or value ~= value or value < 1 then
+		return nil
 	end
+	return value
+end
+
+-- The chosen cue's panel: the turning cue (its colours once found, else black), the words.
+function InventoryIndex.refreshDetail(self: any)
+	local id: string? = self.chosen
+	local cue = if id then Catalog.get(id) else nil
+	self.detail.Visible = cue ~= nil and self.list.Visible
+	if not id or not cue then
+		return
+	end
+	local found = self.seen[id] == true
+	self.view:set(id, not found)
+	-- A found cue's picture wears its rarity (as on its card); a cue not found yet stays plain.
+	local key = if found then cue.Rarity .. "/" .. (cue.Tier or "") else ""
+	if key ~= self.artKey then
+		if self.artDressing then
+			self.artDressing.destroy()
+			self.artDressing = nil
+		end
+		if found then
+			local tint = if cue.Tier then CueThumb.cueColor(id) else nil
+			self.artDressing = CueThumb.dress(self.artBox, cue.Rarity, tint)
+		end
+		self.artKey = key
+	end
+	self.nameLabel.Text = CueThumb.cueName(id)
+	self.rarityLabel.Text = CueThumb.rarityName(cue.Rarity)
+	self.rarityLabel.TextColor3 = CueThumb.cueColor(id)
+	self.stateLabel.Text = if found then WORDS.Found else WORDS.NotFound
+	local copies = copiesOf(id)
+	self.existLabel.Text = if copies
+		then (if copies == 1 then WORDS.ExistOne else WORDS.Exist):format(Format.commas(copies))
+		else ""
+	self.existLabel.Visible = copies ~= nil
+	local money = if found then 0 else Inventory.findMoney(id)
+	self.findRow.Visible = money > 0
+	self.findLabel.Text = WORDS.FindReward:format(Format.money(money))
+	self:arrangeDetail()
+end
+
+-- Lay the panel out, stacked and centred: the turning cue on top (square, at most
+-- IndexViewShare of the page's height), then the words. Its canvas grows to fit.
+function InventoryIndex.arrangeDetail(self: any)
+	local size = self.detailSize :: Vector2?
+	if not size or size.X <= 0 then
+		return
+	end
+	local span = self.ctx.span
+	local pad, gap = span(D.PadPx), span(D.GapPx)
+	local w = size.X - SC.BarPx
+	local inner = math.max(1, w - 2 * pad)
+	local art = math.max(1, math.min(inner, round(size.Y * I.IndexViewShare)))
+	self.artBox.Position = UDim2.fromOffset(round((w - art) / 2), pad)
+	self.artBox.Size = UDim2.fromOffset(art, art)
+	local y = pad + art + gap
+	local nameSize, raritySize, lineSize =
+		span(D.NameTextPx), span(D.RarityTextPx), span(D.LineTextPx)
+	HudParts.setTextSize(self.nameLabel, nameSize)
+	HudParts.setTextSize(self.rarityLabel, raritySize)
+	HudParts.setTextSize(self.stateLabel, lineSize)
+	HudParts.setTextSize(self.existLabel, lineSize)
+	HudParts.setTextSize(self.findLabel, lineSize)
+	local function place(label: TextLabel, height: number)
+		label.Position = UDim2.fromOffset(pad, y)
+		label.Size = UDim2.fromOffset(inner, height)
+		y += height
+	end
+	place(self.nameLabel, math.ceil(textHeight(self.nameLabel.Text, nameSize, inner - 4)) + 4)
+	place(self.rarityLabel, raritySize + 6)
+	place(self.stateLabel, math.ceil(textHeight(self.stateLabel.Text, lineSize, inner - 4)) + 4)
+	if self.existLabel.Visible then
+		place(self.existLabel, lineSize + 4)
+	end
+	if self.findRow.Visible then
+		local icon = round(lineSize * 1.5)
+		local words = math.ceil(textWidth(self.findLabel.Text, lineSize)) + 6
+		local rowW = math.min(inner, icon + 4 + words)
+		local rowH = math.max(icon, lineSize + 4)
+		self.findRow.Position = UDim2.fromOffset(pad + round((inner - rowW) / 2), y + 2)
+		self.findRow.Size = UDim2.fromOffset(rowW, rowH)
+		self.findIcon.Size = UDim2.fromOffset(icon, icon)
+		self.findIcon.Position = UDim2.fromOffset(0, round((rowH - icon) / 2))
+		self.findLabel.Position = UDim2.fromOffset(icon + 4, 0)
+		self.findLabel.Size = UDim2.fromOffset(math.max(1, rowW - icon - 4), rowH)
+		y += rowH + 2
+	end
+	self.detailScroll.CanvasSize = UDim2.fromOffset(0, y + pad)
 end
 
 function InventoryIndex.claim(self: any, section: Section)
@@ -543,20 +740,26 @@ end
 -- The tab showing
 --------------------------------------------------------------------------------------------
 
-function InventoryIndex.opened(_self: any) end
+function InventoryIndex.opened(self: any)
+	self.chosen = nil -- every open starts on the first cue
+end
 
 function InventoryIndex.shown(self: any)
 	self.showing = true
 	self:refreshPulses()
+	self:refreshDetail() -- the copies in existence may have moved
+	self.view:setSpinning(true)
 end
 
 function InventoryIndex.hidden(self: any)
 	self.showing = false
 	self:stopPulses()
+	self.view:setSpinning(false)
 end
 
 function InventoryIndex.closed(self: any)
 	self:stopPulses()
+	self.view:setSpinning(false)
 end
 
 --- Where a gamepad starts on this page: a Claim that can be pressed, else the first cue.

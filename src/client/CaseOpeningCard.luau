@@ -39,6 +39,7 @@ export type Info = {
 	new: boolean,
 	duplicate: boolean,
 	count: number?, -- copies owned once it was added (the server's answer), if known
+	found: number?, -- the finder's money it paid (new to the Index), if any
 }
 
 export type Options = {
@@ -177,7 +178,8 @@ function Card.new(parent: Instance, info: Info, opts: Options): any
 	end
 	self.rarityPill, self.rarityWords = rarityPill, rarityWords
 	local count = info.count
-	local stateText = W.New
+	local found = if type(info.found) == "number" then info.found else 0
+	local stateText = if found > 0 then string.format(W.NewFound, Format.money(found)) else W.New
 	local stateTone = "Gold"
 	if not info.new then
 		stateTone = "Grey"
@@ -503,6 +505,12 @@ function Card.focusButton(self: any): GuiObject
 		return if equip.Selectable then equip else self.next
 	end
 	return self.next
+end
+
+--- Where the finder's cash chip starts: the NEW! pill's middle (absolute pixels).
+function Card.foundPoint(self: any): Vector2
+	local from: GuiObject = self.statePill or self.root
+	return from.AbsolutePosition + from.AbsoluteSize / 2
 end
 
 --- Where a sale's cash chip starts: the Sell button's middle (absolute pixels), or the card's.

@@ -1,11 +1,12 @@
 --!strict
 -- MenuColumn: the left column (docs/prompts/ECONOMY_UI_PROMPT.md section 5; reference
 -- 06-left-menu-buttons): Shop, Inventory, Rewards and Trade, top to bottom, one tile each. A
--- tile is a rounded-square candy in the house blue with a thick ink outline and lip, its glossy
--- icon big and poking a little past the tile's top edge, and the word (Strings.Menus.Column)
--- in white Fredoka with an ink outline across the tile's bottom edge, real text, never in the
--- image. Hover and gamepad selection give the kit's gold outline and a small grow; a press
--- squishes and bounces it (UIAnim) with the Click sound, and opens its menu (onPress).
+-- tile is just its glossy icon, big, with no box behind it (designer, 2026-09-28: the blue
+-- candy square went so the icons could be bigger), and the word (Strings.Menus.Column) in white
+-- Fredoka with an ink outline across the icon's lower edge, real text, never in the image. It
+-- keeps the kit candy's behaviour with the candy's face hidden: hover and gamepad selection
+-- grow it a little; a press squishes and bounces it (UIAnim) with the Click sound, and opens
+-- its menu (onPress).
 --
 -- Red dots, top right of a tile: Inventory counts unopened cases (the player's CasesUnopened
 -- attribute, "9+" above 9); Rewards shows "!" while RewardReady is true; Shop shows a small
@@ -185,20 +186,24 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	return self
 end
 
--- One tile: the blue candy (no words or icon of its own), then our icon, word, red dot,
--- timer (the Shop) and D-pad glyph on its body.
+-- One tile: a kit candy for its hover, squish and bounce, with its face (the box, outline and
+-- words) hidden; then our icon, word, red dot, timer (the Shop) and D-pad glyph on its body.
 function MenuColumn.buildTile(self: any, parent: Instance, name: string, index: number): Tile
 	local button = HudParts.candy(parent, "", function()
 		self:press(name)
 	end, "Blue", nil)
 	button.Name = name
 	button.LayoutOrder = index
+	-- Each tile draws over the one under it: a word on an icon's lower edge (the "y" of
+	-- Inventory) reaches into the next tile's room, and the next tile's red dot hid it.
+	button.ZIndex = #ORDER - index + 1
 	-- Never a gamepad stop: a selected button would take the left stick from walking.
 	button.Selectable = false
 	local parts = HudParts.candyParts(button)
+	parts.face.Visible = false
 	local body: Frame = parts.body
 	local icon = HudParts.icon(body, name, "Art")
-	icon.AnchorPoint = Vector2.new(0.5, 0)
+	icon.AnchorPoint = Vector2.new(0.5, 0.5)
 	icon.ZIndex = 3
 	local word = HudParts.text(body, "Word", C.LabelTextPx, WORDS[name] or name)
 	word.TextWrapped = false
@@ -311,9 +316,8 @@ function MenuColumn.layout(self: any)
 	local dotPx = if short then C.ShortDotPx else C.DotPx
 	local timerPx = if short then C.ShortTimerPx else C.TimerPx
 	local glyphPx = if short then C.ShortGlyphPx else C.GlyphPx
-	local poke = round(tile * C.IconPokeShare)
 	local count = #ORDER
-	local height = poke + count * tile + (count - 1) * gap
+	local height = count * tile + (count - 1) * gap
 
 	-- The words may be wider than a tile (they overhang both sides): the widest sets the room.
 	local widest = 0
@@ -340,16 +344,11 @@ function MenuColumn.layout(self: any)
 
 	for index, name in ORDER do
 		local t: Tile = self.tiles[name]
-		t.button.Position = UDim2.fromOffset(over, poke + (index - 1) * (tile + gap))
+		t.button.Position = UDim2.fromOffset(over, (index - 1) * (tile + gap))
 		t.button.Size = UDim2.fromOffset(tile, tile)
-		local parts = HudParts.candyParts(t.button)
-		local corner = parts.face:FindFirstChildOfClass("UICorner")
-		if corner then
-			corner.CornerRadius = UDim.new(0, if short then C.ShortCornerPx else C.CornerPx)
-		end
 		local iconSize = round(tile * C.IconShare)
 		t.icon.Size = UDim2.fromOffset(iconSize, iconSize)
-		t.icon.Position = UDim2.fromOffset(round(tile / 2), -poke)
+		t.icon.Position = UDim2.fromOffset(round(tile / 2), round(tile * C.IconCentreShare))
 		HudParts.setTextSize(t.word, textPx)
 		t.word.Size = UDim2.fromOffset(labelW, textPx + 6)
 		t.word.Position = UDim2.fromOffset(round(tile / 2), round(tile * C.LabelCentreShare))

@@ -72,8 +72,9 @@ local REMOTES: { [string]: string } = {
 	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
 	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
 	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
-	-- freeCase? (a case id put in the inventory), firstWin? = {case, cue, rarity, new} (the
-	-- first win's case, opened at once: its cue is already owned; freeCase is nil then),
+	-- freeCase? (a case id put in the inventory), firstWin? = {case, cue, rarity, new, found}
+	-- (the first win's case, opened at once: its cue is already owned; found is the finder's
+	-- money it paid, 0 when the cue was in the Index already; freeCase is nil then),
 	-- nextReward? (Daily.nextReward: {day, week, reward = {money, cases}, bonus, tomorrow}, the
 	-- reminder line), rookieLeft? (real matches left in the Rookie Boost), rematch, arena,
 	-- series? = {wins = {team 1, team 2}, games}}.
@@ -106,8 +107,9 @@ local REMOTES: { [string]: string } = {
 	--   "BuyCase" (caseId, count 1 | Config.Cases.BulkCount) -> { caseId, count, price,
 	--     perCase, onSale } (a failed buy for money adds { need, price })
 	--   "OpenCase" (caseId, count 1 | Config.Cases.FastOpenCount, more than 1 with Fast Open)
-	--     -> { caseId, results = { { cue, rarity, new, duplicate, count } } } (count: copies
-	--     owned once it was added; rolled by the server; a switched-off case still opens)
+	--     -> { caseId, results = { { cue, rarity, new, duplicate, count, found } } } (count:
+	--     copies owned once it was added; found: the finder's money a cue new to the Index
+	--     paid, else 0; rolled by the server; a switched-off case still opens)
 	--   "SellCue" (cueId, count) -> { cueId, count, money }
 	--   "SellDuplicates" (cueId? for one cue's, else every case cue's) -> { money, sold = { {
 	--     id, count, money } } } (nothing to sell: money 0, sold {})
@@ -133,6 +135,12 @@ local REMOTES: { [string]: string } = {
 	-- they are attributes on ReplicatedStorage.CueCounts (one per cue id, from the first read
 	-- on) and the Limited sold counts on ReplicatedStorage.LimitedSold (src/server/Counters).
 	ItemState = "RemoteEvent",
+	-- server -> one player: cues that just entered their Index for the first time, and the
+	-- finder's money each paid (Config.Index.FindMoney, already added): { { cue, money } }.
+	-- Sent for every source but a case reel (OpenCase's reply and MatchSummary.firstWin carry
+	-- theirs): rank-up and reward cues, the VIP and Starter cues, Limited cues (src/server/
+	-- Items.luau, from PlayerData.CueFound). The client shows a banner line.
+	CueFound = "RemoteEvent",
 	-- server -> one player: the shop's state for them (src/server/Store.luau builds it with
 	-- Progression/ShopView.build). Sent on load and whenever any of it changes: a purchase, a
 	-- pass, the Vip/FastOpen/PaidRandomRestricted attributes, the case sale, the Money Party,

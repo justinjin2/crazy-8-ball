@@ -38,6 +38,7 @@ export type Result = {
 	new: boolean,
 	duplicate: boolean,
 	count: number?,
+	found: number?, -- the finder's money it paid (new to the Index), 0 or nil for none
 }
 
 export type Options = {

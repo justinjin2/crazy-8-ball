@@ -1768,3 +1768,21 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   cutscene, acting on the balls to help the user rather than sabotage. Replaces the cooldown
   design (2026-09-20) and the "not in the release" call (2026-09-26). The designer wants a
   trump card that levels the field when someone is down a lot.
+- 2026-09-28 (designer): the left column's blue candy tiles are gone; each button is just its
+  icon, bigger (78 px slots on a computer, 52 on a phone), with its word across the icon's
+  lower edge.
+- 2026-09-28 (designer, replaces the overnight "[VIP] after the rank tag" and "a rainbow sweep
+  now and then"): in chat a VIP's line reads "[VIP] [GOLD] Name": [VIP] first, in the rainbow,
+  then the rank tag, and the name in Roblox's own colour. Over the head a VIP's name is the
+  house rainbow with its colours drifting calmly (one loop in 8 s).
+- 2026-09-28 (designer): Exclusive cues never trade, the VIP and Starter cues included (they
+  were tradable); Unique cues trade.
+- 2026-09-28 (designer): the Index overhaul. A cue never found is a "?" card; tapping any card
+  shows its name and the cue turning in 3D beside the list, black until found, in its real
+  look once found.
+- 2026-09-28 (designer asked for "some extra money" for every new cue; the amounts are this
+  session's call, tune freely): finder's money, paid once per cue the first time it enters
+  the Index: Common $50, Uncommon $100, Rare $250, Epic $750, Legendary $2,500, Mythic
+  $10,000, Secret $50,000, Exclusive $500, Unique $1,000. Shown as "NEW! +$250" on a case
+  prize (the money flies from it), as a banner for any other source. Open for the trading
+  session: whether a cue got by trade pays it (suggestion: no).

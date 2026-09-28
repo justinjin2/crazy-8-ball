@@ -188,6 +188,31 @@ function CueStickBuilder.build(parent: Instance, cueId: string?): Model
 	return model
 end
 
+--- A stick for a picture (the Index's turning cue, CueViewport): as build(), `thickness` times
+--- as thick so it reads at a small size, and never repainted (paint would undo the
+--- thickness). `silhouette` paints every band in that one colour, smooth plastic: the cue's
+--- shape with nothing of its look.
+function CueStickBuilder.display(
+	parent: Instance,
+	cueId: string?,
+	thickness: number,
+	silhouette: Color3?
+): Model
+	local model = CueStickBuilder.build(parent, cueId)
+	local stick = sticks[model]
+	for i, part in stick.parts do
+		if i <= stick.used then
+			part.Size = Vector3.new(part.Size.X, part.Size.Y * thickness, part.Size.Z * thickness)
+			part.CastShadow = false
+			if silhouette then
+				part.Color = silhouette
+				part.Material = Enum.Material.SmoothPlastic
+			end
+		end
+	end
+	return model
+end
+
 --- The tip's CFrame for a shot: `ballPos` is the ball centre (world), `dir` the aim direction
 --- (world, flat), `gapStuds` the distance from the strike point to the tip along the cue,
 --- `spin` the strike offset (ball radii) and `pitchDegrees` the drawn pitch (default the

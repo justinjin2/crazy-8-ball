@@ -362,7 +362,7 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 |---|---|---|---|---|
 | Case rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | cases (and trades) only | yes | yes |
 | **Unique** | numbered Limited cues (Founder's Cue 50, Beta Cue 1,000, and every Limited drop) | the Limited shelf, for a set time | yes | no |
-| **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | VIP and Starter yes; rank and season cues no | no |
+| **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never** (designer, 2026-09-28: VIP and Starter too) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
 the plain wisp trail (Uncommon tinted); Rare adds a coloured trail and small pocket burst; Epic
@@ -583,8 +583,9 @@ cues are in section 9. A player halfway to a $25,000 Limited finishes it with ab
   shots, match bonuses. Not on rewards, sell-back or packs.
 - **+50% XP** (designer, 2026-09-28): a VIP climbs ranks about a third faster. Adds with the
   Rookie Boost and the first win of the day.
-- **The VIP Cue** (Exclusive, rainbow, tradable), a **[VIP]** chat tag after the rank tag and
-  a VIP nameplate shine.
+- **The VIP Cue** (Exclusive, rainbow, never traded), a **[VIP]** chat tag before the rank
+  tag ("[VIP] [GOLD] Name") and a rainbow name over the head, its colours drifting slowly
+  (designer, 2026-09-28).
 - Never better case odds, never more free cases. (A VIP perk that gives cases would
   make VIP a paid random item.)
 - Model: a 1-hour-a-day VIP gets a first Legendary 1-2 days sooner and a first Mythic about
@@ -602,7 +603,7 @@ Managed Pricing and show both prices live so "50% off" stays true.
 
 ### 11.4 Starter Pack (developer product, 79 R$)
 
-For the first 7 days after first join, once: **the Starter Cue** (Exclusive, tradable, its
+For the first 7 days after first join, once: **the Starter Cue** (Exclusive, never traded, its
 own look) **and $3,000**. No case inside, which keeps it outside the paid-random-item rules
 (a bundle with a case in it would count as one).
 
@@ -642,8 +643,9 @@ prompts right after a loss.
 
 - Cues only; **money never trades** (GDD section 12). Up to 8 cues a side; any change restarts
   a 3-second confirm on both sides.
-- **Open to everyone from the start** (designer, 2026-09-27: no level gate). Rank and season
-  cues can't be traded. Alt farming is held back by the free-case rules instead (section 3.6:
+- **Open to everyone from the start** (designer, 2026-09-27: no level gate). No Exclusive cue
+  can be traded (rank, season, VIP and Starter cues; designer, 2026-09-28); case and Unique
+  cues can. Alt farming is held back by the free-case rules instead (section 3.6:
   the loser must have played 5 real matches, at most 3 cases a day from the same account).
 - Players whose `IsPaidItemTradingAllowed` is false can't trade at all (every cue could have
   come from Robux-bought money).
@@ -754,13 +756,25 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
 - **Codes.** Promo codes in the Rewards menu; the list lives in Config (`Config.Daily.Codes`);
   each code once per player, case-insensitive, with an optional expiry. Codes give only money
   or free cases, never anything sold for Robux (a free case is not a paid random item).
-- **Index completion** (closes the Open item in 17). Cues never owned are dark silhouettes with
-  "?" and no name. A cue counts once it has ever been owned (selling it later keeps it in the
+- **Index completion** (closes the Open item in 17). A cue never owned is a "?" card; tapping
+  it shows its name and its black 3D silhouette turning (designer, 2026-09-28). A cue counts
+  once it has ever been owned (selling it later keeps it in the
   Index). Completing a rarity row pays once: Commons $1,000, Uncommons $2,500, Rares $7,500,
   Epics $25,000, each with a title ("Common Collector" ...). Legendary, Mythic and Secret rows
   give a title only (overnight assumption: money there would reward luck more than play).
   Exclusive and Unique groups are listed with no row reward. Titles are saved and listed in
   the Index; showing a title over the head is parked.
+- **Finder's money** (designer, 2026-09-28): the first time a cue enters a player's Index it
+  pays once, by rarity: Common $50, Uncommon $100, Rare $250, Epic $750, Legendary $2,500,
+  Mythic $10,000, Secret $50,000, Exclusive $500, Unique $1,000 (`Config.Index.FindMoney`,
+  *(tune)*: the designer asked for "some extra money" and named no amounts). Selling a cue and
+  finding it again pays nothing (the Index keeps it), so there is no loop. It counts as
+  earned money, not boosted by VIP or a party. About $950 over a new player's first Commons
+  and Uncommons (a bit over an hour of play); all case cues together pay $83,700 over a
+  whole collection, small next to what the rare ones cost to roll (a Mythic find is about 6%
+  of its average roll cost). For the trading session to decide: a cue got by trade enters the
+  Index too; paying for those would let alts pass cues round for money (suggestion: trades
+  pay no finder's money).
 - **No rank-down screen.** XP is never lost, so the "Rank down" card is gone.
 - **The first win's Rare Case** is rolled by the server when the match settles and revealed on
   the result screen with Equip (GDD 14).

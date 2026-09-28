@@ -9,7 +9,10 @@
 --   shimmer or red. Then the prize card (CaseOpeningCard) pops with the sting by rarity, rays
 --   from Epic, confetti from Legendary: name, rarity, NEW! or Duplicate, "1,284 exist", and
 --   Equip (EquipCue), Sell (duplicates only; SellCue 1; a confirm from ConfirmSellFrom up; the
---   money flies into the HUD) and Open next (while cases of that type remain) or Done.
+--   money flies into the HUD) and Open next (while cases of that type remain) or Done. A cue
+--   new to the Index reads "NEW! +$250" and its finder's money flies from that pill into the
+--   HUD as the card pops (Fast Open: all of it from the grid once every card is up); the HUD
+--   waits for it from the server's answer on, so the reel is never given away.
 -- - Fast Open (a count above 1): the grid (CaseOpeningGrid), ten cards flipping over quickly,
 --   rarest last, no reel; then Equip on a chosen card, Done, and Open 10 again while ten remain.
 -- - The first win's case on the result screen: reveal() draws the same reel inside the result
@@ -88,6 +91,7 @@ type Session = {
 	dialog: MenuFrame.Dialog?,
 	dialogUntil: number, -- Escape is ignored until then (a dialog just answered it)
 	sold: boolean,
+	held: number, -- finder's money the money HUD waits for (answered, not flown yet)
 	saved: GuiObject?, -- the reveal's gamepad selection from before it
 	onDone: (() -> ())?,
 	connections: { RBXScriptConnection },
@@ -153,12 +157,16 @@ local function clean(results: any): { Result }
 			else row.Rarity
 		local count = if type(entry.count) == "number" then entry.count else nil
 		local new = entry.new == true
+		local found = if type(entry.found) == "number" and entry.found > 0
+			then math.floor(entry.found)
+			else 0
 		table.insert(list, {
 			cue = row.Id,
 			rarity = rarity,
 			new = new,
 			duplicate = entry.duplicate == true or (not new and (count == nil or count > 1)),
 			count = count,
+			found = found,
 		})
 	end
 	return list
@@ -337,6 +345,7 @@ function CaseOpening.newSession(self: any, kind: string, area: GuiObject, caseId
 		dialog = nil,
 		dialogUntil = 0,
 		sold = false,
+		held = 0,
 		saved = nil,
 		onDone = nil,
 		connections = {},
@@ -373,7 +382,7 @@ function CaseOpening.newSession(self: any, kind: string, area: GuiObject, caseId
 end
 
 -- Take a session's views down (the reel, the card, the grid).
-function CaseOpening.clearViews(_self: any, s: Session)
+function CaseOpening.clearViews(self: any, s: Session)
 	if s.dialog then
 		local dialog = s.dialog
 		s.dialog = nil
@@ -388,6 +397,37 @@ function CaseOpening.clearViews(_self: any, s: Session)
 	end
 	s.result = nil
 	s.sold = false
+	-- Finder's money that never got to fly: the HUD stops waiting and settles.
+	if s.held > 0 then
+		local money = self.deps and self.deps.money
+		if money then
+			money:release(s.held)
+		end
+		s.held = 0
+	end
+end
+
+-- The HUD waits for finder's money the answer paid until its chip flies (flyFound).
+function CaseOpening.holdFound(self: any, s: Session, amount: number)
+	local money = self.deps and self.deps.money
+	if amount > 0 and money then
+		money:expect(amount)
+		s.held += amount
+	end
+end
+
+-- Finder's money flies from `from` (absolute pixels) into the money HUD: the HUD stops waiting
+-- for the held amount here and waits for the chip instead.
+function CaseOpening.flyFound(self: any, s: Session, from: Vector2, amount: number)
+	local money = self.deps and self.deps.money
+	local n = math.min(amount, s.held)
+	if n <= 0 or not money or s.phase == "Closed" then
+		return
+	end
+	s.held -= n
+	money:release(n)
+	local layer: GuiObject = if s.kind == "Reveal" and s.holder then s.holder else self.root
+	CaseOpeningFx.flyCash(layer, from, n, money, s.stage.scale.Scale)
 end
 
 function CaseOpening.destroySession(self: any, s: Session)
@@ -798,6 +838,11 @@ function CaseOpening.playIn(self: any, s: Session, caseId: string, results: any)
 		return
 	end
 	s.caseId = caseId
+	local found = 0
+	for _, result in list do
+		found += result.found or 0
+	end
+	self:holdFound(s, found)
 	if #list == 1 then
 		local result = list[1]
 		s.result = result
@@ -837,6 +882,8 @@ function CaseOpening.playIn(self: any, s: Session, caseId: string, results: any)
 		onFlipped = function()
 			self:refresh(s)
 			self:focus(s)
+			local frame = s.stage.frame
+			self:flyFound(s, frame.AbsolutePosition + frame.AbsoluteSize / 2, s.held)
 		end,
 	})
 	grid.onResize = function()
@@ -861,6 +908,7 @@ function CaseOpening.showCard(self: any, s: Session)
 		new = result.new,
 		duplicate = result.duplicate,
 		count = result.count,
+		found = result.found,
 	}, {
 		reveal = s.kind == "Reveal",
 		onEquip = function()
@@ -887,6 +935,14 @@ function CaseOpening.showCard(self: any, s: Session)
 	end
 	self:setPhase(s, "Card")
 	card:show(s.stage.frame, card:artCentre())
+	local found = result.found or 0
+	if found > 0 then
+		task.delay(C.FoundFlyDelaySeconds, function()
+			if s.card == card then
+				self:flyFound(s, card:foundPoint(), found)
+			end
+		end)
+	end
 end
 
 -- An open that did not work: its reason on a notice, then the overlay closes by itself (a tap
@@ -1054,7 +1110,18 @@ function CaseOpening.reveal(self: any, host: GuiObject, prize: any, opts: any?)
 	s.saved = GuiService.SelectedObject
 	s.heading = string.format(words().FirstWin, caseName(caseId))
 	local new = prize.new ~= false
-	s.result = { cue = row.Id, rarity = rarity, new = new, duplicate = not new, count = nil }
+	local found = if type(prize.found) == "number" and prize.found > 0
+		then math.floor(prize.found)
+		else 0
+	s.result = {
+		cue = row.Id,
+		rarity = rarity,
+		new = new,
+		duplicate = not new,
+		count = nil,
+		found = found,
+	}
+	self:holdFound(s, found)
 	self.revealing = s
 	self:bindInput()
 	-- The result screen closing takes the reveal with it: hand back so nothing waits on it.

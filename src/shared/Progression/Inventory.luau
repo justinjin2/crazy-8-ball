@@ -23,6 +23,7 @@ local Cases = require(script.Parent.Cases)
 
 type IndexReward = { Money: number, Title: string }
 local INDEX_ROWS: { [string]: IndexReward } = Config.Index.Rows :: any
+local FIND_MONEY: { [string]: number } = Config.Index.FindMoney :: any
 local TITLE_NAMES: { [string]: string } = Strings.Items.Titles :: any
 
 export type Duplicate = {
@@ -160,6 +161,28 @@ function Inventory.equipped(save: any): string
 	return if Inventory.owns(save, id) then id else Catalog.Default
 end
 
+-- Ever owned: in Index.Seen, or held now (a save whose Seen was never filled in still counts
+-- what it holds).
+local function everOwned(save: any, id: string): boolean
+	return readMap(save, "Index", "Seen")[id] == true or Inventory.owns(save, id)
+end
+
+--- True when the cue is in the save's Index: owned now or ever (sold ones stay).
+function Inventory.found(save: any, id: any): boolean
+	local cue = Catalog.get(id)
+	return cue ~= nil and everOwned(save, cue.Id)
+end
+
+--- The finder's money for a cue (Config.Index.FindMoney by its rarity or group): paid once,
+--- the first time a player gets it. 0 for Classic and unknown ids.
+function Inventory.findMoney(id: any): number
+	local cue = Catalog.get(id)
+	if cue == nil or cue.Group == "Default" then
+		return 0
+	end
+	return FIND_MONEY[cue.Rarity] or 0
+end
+
 -- Marks a cue ever owned and NEW.
 local function markGot(save: any, id: string)
 	writeMap(save, "Index", "Seen")[id] = true
@@ -168,29 +191,33 @@ end
 
 --- Adds n (default 1) copies of a case or Exclusive cue, marking it in the Index and NEW.
 --- False (and nothing changes) for an unknown id, Classic, a Unique cue (addUnique) or a
---- count that is not a whole number of at least 1.
-function Inventory.addCue(save: any, id: any, n: number?): boolean
+--- count that is not a whole number of at least 1. The second answer is true when the cue is
+--- new to the Index (never owned before): the caller pays its finder's money (findMoney).
+function Inventory.addCue(save: any, id: any, n: number?): (boolean, boolean)
 	local cue = Catalog.get(id)
 	local amount = n or 1
 	if cue == nil or cue.Group == "Default" or cue.Group == "Unique" or not isCount(amount) then
-		return false
+		return false, false
 	end
+	local first = not everOwned(save, cue.Id)
 	local cues = writeMap(save, "Inventory", "Cues")
 	cues[cue.Id] = storedCount(cues, cue.Id) + amount
 	markGot(save, cue.Id)
-	return true
+	return true, first
 end
 
 --- Gives a Unique cue with its copy number. False for anything not Unique, a bad copy
---- number, or a Unique cue already owned (one per player).
-function Inventory.addUnique(save: any, id: any, copy: number): boolean
+--- number, or a Unique cue already owned (one per player). The second answer is true when it
+--- is new to the Index, as addCue's.
+function Inventory.addUnique(save: any, id: any, copy: number): (boolean, boolean)
 	local cue = Catalog.get(id)
 	if cue == nil or cue.Group ~= "Unique" or not isCount(copy) or Inventory.owns(save, cue.Id) then
-		return false
+		return false, false
 	end
+	local first = not everOwned(save, cue.Id)
 	writeMap(save, "Inventory", "Unique")[cue.Id] = copy
 	markGot(save, cue.Id)
-	return true
+	return true, first
 end
 
 --- Takes n (default 1) copies away (a Unique cue: n = 1). Reasons: "Unknown" (not a catalog
@@ -378,12 +405,6 @@ end
 ---------------------------------------------------------------------------------------------
 -- The Index (ECONOMY 18)
 ---------------------------------------------------------------------------------------------
-
--- Ever owned: in Index.Seen, or held now (a save whose Seen was never filled in still counts
--- what it holds).
-local function everOwned(save: any, id: string): boolean
-	return readMap(save, "Index", "Seen")[id] == true or Inventory.owns(save, id)
-end
 
 --- Every Index row: the rarities Common ... Secret, then Exclusive and Unique. A row is
 --- complete when every catalog cue of it has ever been owned (vaulted ones count too).

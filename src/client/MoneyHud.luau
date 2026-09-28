@@ -33,6 +33,7 @@ MoneyHud.__index = MoneyHud
 export type MoneyHud = {
 	iconCenter: (self: MoneyHud) -> Vector2,
 	expect: (self: MoneyHud, amount: number) -> (),
+	release: (self: MoneyHud, amount: number) -> (),
 	land: (self: MoneyHud, amount: number) -> (),
 	destroy: (self: MoneyHud) -> (),
 }
@@ -302,6 +303,17 @@ function MoneyHud.expect(self: any, amount: number)
 	end
 	self.pending += n
 	self.activity = os.clock()
+end
+
+--- A chip said to be coming (expect) will not come after all, or comes as another chip (which
+--- calls expect itself): stop waiting for `amount`. The HUD then settles as usual.
+function MoneyHud.release(self: any, amount: number)
+	local n = clean(amount)
+	if not self.alive or n <= 0 then
+		return
+	end
+	self.pending = math.max(0, self.pending - n)
+	self:scheduleSettle()
 end
 
 --- A chip landed: the icon bumps, a few sparkles pop and the number counts up by `amount`

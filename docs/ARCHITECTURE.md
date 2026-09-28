@@ -392,12 +392,26 @@ clients send ids and counts, never an amount, price, rarity or result.
   `ItemState` (the client's copy of the ItemState, ShopState and RewardState snapshots and the
   request wrappers), `CueThumb` (a cue's tinted thumbnail from the layer images), `Banner`,
   `InventoryMenu`, `CaseOpening` (the reel and Fast Open's grid), `ShopMenu`, `RewardsMenu`,
-  `TradeMenu`.
+  `TradeMenu`, `CueViewport` (the Index's cue turning in 3D: a ViewportFrame holding
+  `CueStickBuilder.display`, a thickened stick, black for a cue not found yet; it turns on
+  RenderStepped only while the Index tab shows).
 
 **Remotes** (`Net`): `ItemRequest`, `StoreRequest`, `RewardRequest` (RemoteFunctions: the
 client asks, the server answers `{ ok, reason?, ... }`), `ItemState`, `ShopState`,
 `RewardState` (a player's snapshots, sent on load and after every change), `Banner` (to
-everyone). The protocol is written next to each remote in `src/shared/Net.luau`.
+everyone), `CueFound` (to one player: cues new to their Index and the finder's money each
+paid, for every source but a case reel). The protocol is written next to each remote in
+`src/shared/Net.luau`.
+
+**Finder's money** (2026-09-28). `Inventory.addCue` and `addUnique` answer a second value,
+true when the cue was never in the save's Index (`Inventory.found`), and
+`Inventory.findMoney(id)` prices it from `Config.Index.FindMoney`. Every PlayerData path that
+gives a cue (`giveCue`, `giveUnique`, `openCases`) pays it in the same mutation and notes it;
+`commit` then fires `PlayerData.CueFound` unless a reel shows it (`openCases`, and a reward
+with `firstWinCase`), and `Items` sends that on as the `CueFound` remote (the client's
+`Banner` words it). A reel's finds ride its answer instead (`OpenCase` results' `found`,
+`MatchSummary.firstWin.found`): `CaseOpening` holds that much of the money HUD back
+(`MoneyHud.expect`) from the answer until the card pops, then `release`s it and flies it.
 
 **Attributes** (server-set, clients read): on the player `EquippedCue` (everyone's stick and
 trail follow it), `Vip`, `FastOpen`, `RookieLeft` (the rank HUD's ROOKIE x2 pill),

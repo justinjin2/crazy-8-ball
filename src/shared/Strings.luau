@@ -261,7 +261,7 @@ return {
 		XpOf = "%s / %s XP", -- the XP bar: "520 / 1,000 XP"
 		XpOnly = "%s XP", -- Reyes has no top: just the XP past its start
 		ChatTag = "[%s]", -- before a name in chat, the tier in capitals: "[PLATINUM]" (ChatTags)
-		VipTag = "[VIP]", -- after the rank tag for a VIP player, in the house rainbow (ChatTags)
+		VipTag = "[VIP]", -- first before a VIP player's name in chat, in the house rainbow (ChatTags)
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
@@ -612,7 +612,7 @@ return {
 			VipMoney = "%sx money in matches", -- "2x money in matches"
 			VipXp = "+%d%% XP", -- "+50% XP"
 			VipCue = "The %s", -- "The VIP Cue"
-			VipTag = "[VIP] chat tag",
+			VipName = "[VIP] chat tag and a rainbow name",
 			VipOdds = "Same case odds as everyone", -- VIP never changes case odds
 			WelcomeOffer = "Welcome offer: %s", -- half-price VIP, its time left
 			WelcomeBack = "Welcome back offer: %s", -- the one comeback window
@@ -727,9 +727,11 @@ return {
 			Progress = "%s / %s", -- cues of the row ever owned: "5 / 7"
 			Claim = "Claim",
 			Claimed = "Claimed",
-			Unknown = "?", -- a cue never owned: its name stays hidden
-			NotFound = "Not found yet. Keep opening cases!",
-			CueInfo = "%s: %s", -- pressing a found cue: "Starfall Cue: Mythic"
+			Unknown = "?", -- a cue never owned, on its Index card (its look stays hidden)
+			-- The chosen cue's panel: its name, rarity, then one of these.
+			Found = "In your collection", -- ever owned (selling it keeps it here)
+			NotFound = "Not found yet",
+			FindReward = "Find it for +%s", -- a cue not found yet: its finder's money ("$250")
 			TitleEarned = "Title earned: %s!",
 		},
 	},
@@ -760,6 +762,7 @@ return {
 		SkipMouse = "Click to skip",
 		SkipPad = "Skip", -- after the gamepad's A button picture
 		New = "NEW!", -- a cue never owned before
+		NewFound = "NEW! +%s", -- a cue never owned before, and its finder's money ("$250")
 		Duplicate = "Duplicate",
 		DuplicateCount = "Duplicate x%s", -- copies owned now ("Duplicate x3")
 		Exist = "%s exist", -- copies in existence ("1,284 exist")
@@ -798,5 +801,9 @@ return {
 		PartyAnon = "Money Party! %sx money for everyone: %s",
 		Reyes = "%s reached Reyes!",
 		FirstReyes = "%s is the first player ever to reach Reyes!",
+		-- A cue new to your Index (not from a case), and its finder's money: the cue's name,
+		-- then "$500".
+		Found = "New in your Index: %s! +%s",
+		FoundNoMoney = "New in your Index: %s!",
 	},
 }

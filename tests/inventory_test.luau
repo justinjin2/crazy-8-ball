@@ -185,6 +185,56 @@ return {
 		)
 	end,
 
+	-- The finder's money (designer, 2026-09-28): addCue and addUnique say when a cue is new to
+	-- the Index, once ever; the amount comes from Config.Index.FindMoney by rarity.
+	["a cue's first find is reported once, even after selling it"] = function()
+		local Inventory, _, Config = load()
+		local save = newSave()
+		local ok, first = Inventory.addCue(save, "ChalkDust")
+		H.expect(ok and first, "the first copy is a find")
+		ok, first = Inventory.addCue(save, "ChalkDust")
+		H.expect(ok and not first, "a second copy is not")
+		H.expect(Inventory.removeCue(save, "ChalkDust", 2), "sold both")
+		H.expect(Inventory.found(save, "ChalkDust"), "still in the Index")
+		ok, first = Inventory.addCue(save, "ChalkDust")
+		H.expect(ok and not first, "found again after selling: no second find")
+		ok, first = Inventory.addCue(save, "Classic")
+		H.expect(not ok and not first, "Classic is never a find")
+		ok, first = Inventory.addUnique(save, "BetaCue", 7)
+		H.expect(ok and first, "a Unique cue's first copy is a find")
+		H.expect(Inventory.removeCue(save, "BetaCue"), "traded away")
+		ok, first = Inventory.addUnique(save, "BetaCue", 9)
+		H.expect(ok and not first, "and back again is not")
+		-- A held cue with no Seen entry (an old save) counts as found already.
+		save.Inventory.Cues.Masse = 1
+		ok, first = Inventory.addCue(save, "Masse")
+		H.expect(ok and not first, "held already")
+		H.expect(Inventory.findMoney("ChalkDust") == Config.Index.FindMoney.Common, "Common pays")
+		H.expect(Inventory.findMoney("Classic") == 0, "Classic pays nothing")
+		H.expect(Inventory.findMoney("Nope") == 0, "unknown pays nothing")
+	end,
+
+	["every cue but Classic has a finder's money, rarer never less"] = function()
+		local Inventory, Catalog, Config = load()
+		local last = 0
+		for _, rarity in Config.Cases.Rarities do
+			local money = Config.Index.FindMoney[rarity]
+			H.expect(
+				type(money) == "number" and money >= last and money % 1 == 0,
+				rarity .. ": a whole amount, at least the rarity below's"
+			)
+			last = money
+		end
+		for _, cue in Catalog.list() do
+			local money = Inventory.findMoney(cue.Id)
+			if cue.Group == "Default" then
+				H.expect(money == 0, "Classic pays nothing")
+			else
+				H.expect(money > 0, cue.Id .. " pays a finder's money")
+			end
+		end
+	end,
+
 	["unopened cases stack per type"] = function()
 		local Inventory = load()
 		local save = newSave()

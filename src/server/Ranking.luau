@@ -196,7 +196,8 @@ end
 -- its cue is rolled and given (with the save's first-win flag, in one change), counted as a
 -- copy in existence and announced when its rarity is. Any other goes into the inventory.
 -- `owned` is the save as read before (whether the cue is new). Returns (the case put in the
--- inventory?, the first win's reveal { case, cue, rarity, new }?).
+-- inventory?, the first win's reveal { case, cue, rarity, new, found }?; `found` is the
+-- finder's money it paid, 0 when it was in the Index already).
 local function giveFreeCase(
 	player: Player,
 	caseId: string,
@@ -208,6 +209,7 @@ local function giveFreeCase(
 	if firstWin then
 		local cue, rarity = Cases.roll(caseId, roll)
 		local new = not Inventory.owns(owned, cue)
+		local found = if Inventory.found(owned, cue) then 0 else Inventory.findMoney(cue)
 		if not PlayerData.grantReward(player, { cues = { cue }, firstWinCase = true }, reason) then
 			return nil, nil
 		end
@@ -216,7 +218,7 @@ local function giveFreeCase(
 			Announce.unbox(player, cue)
 		end
 		countAgainst(player, opponentIds)
-		return nil, { case = caseId, cue = cue, rarity = rarity, new = new }
+		return nil, { case = caseId, cue = cue, rarity = rarity, new = new, found = found }
 	end
 	if not PlayerData.grantReward(player, { cases = { [caseId] = 1 } }, reason) then
 		return nil, nil

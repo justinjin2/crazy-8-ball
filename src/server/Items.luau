@@ -21,6 +21,9 @@
 --   ends, so the Store can send ShopState again.
 -- - Copies in existence move with every open, sale and Limited buy (Counters.add); a Mythic or
 --   Secret unboxed is announced (Announce.unbox).
+-- - CueFound (a RemoteEvent): the cues that just entered a player's Index for the first time
+--   and the finder's money each paid (PlayerData.CueFound: every source but a case reel, whose
+--   answers carry it), so the client can say so.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local PolicyService = game:GetService("PolicyService")
@@ -369,6 +372,7 @@ function HANDLERS.OpenCase(player: Player, r: Requests.Request): Reply
 			new = opened.new,
 			duplicate = opened.duplicate,
 			count = opened.count,
+			found = opened.found,
 		})
 	end
 	return { ok = true, caseId = caseId, results = results }
@@ -613,6 +617,12 @@ function Items.start()
 	PlayerData.Changed:Connect(function(player: Player, op: string)
 		if not QUIET_OPS[op] then
 			dirty[player] = true
+		end
+	end)
+	local found = Net.get("CueFound") :: RemoteEvent
+	PlayerData.CueFound:Connect(function(player: Player, finds: { PlayerData.Find })
+		if player.Parent == Players then
+			found:FireClient(player, finds)
 		end
 	end)
 	RunService.Heartbeat:Connect(flushPushes)

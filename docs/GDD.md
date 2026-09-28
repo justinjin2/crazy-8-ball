@@ -590,7 +590,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
   credit that only buys more spins.
 - **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +50% rank XP, the VIP Cue, a [VIP]
-  tag. Never better odds, never cases. A **welcome offer** at 50% off for 24 hours from the
+  chat tag before the rank tag ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour)
+  and a rainbow name over the head whose colours drift slowly (designer, 2026-09-28). Never
+  better odds, never cases. A **welcome offer** at 50% off for 24 hours from the
   first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's
   rules call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
 - **Starter Pack:** the Starter Cue and $3,000 for 79 R$, in the first 7 days *(tune)*, with
@@ -601,8 +603,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. A cue is saved as a count per catalog id
   (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
-  Unique cues keep their copy number (#412). Abilities are owned flags. **Cues can be traded,
-  including VIP and starter-offer ones. Abilities are account-bound. Money is never traded.**
+  Unique cues keep their copy number (#412). Abilities are owned flags. **Case cues and
+  Unique cues can be traded; Exclusive cues never (VIP, Starter, rank and season cues;
+  designer, 2026-09-28). Abilities are account-bound. Money is never traded.**
   Trading is in the first release (designer, 2026-09-26; it was planned for after).
 - **Index** (designer, 2026-09-26): a collection screen of the game's cues (what it shows:
   the 2026-09-28 line below).
@@ -619,13 +622,18 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Classic today). Each pot flies a "+$10" from the pocket into your total, bottom left. The
   rest of the money rules (PC and short-match limits, team pay, the win streak, anti-farm
   rules, boosts) are in ECONOMY.md section 3.
-- **Trading is open from the start** (no level gate; designer, 2026-09-27); rank cues never
-  trade; players Roblox bars from trading paid items can't trade (ECONOMY.md section 12).
+- **Trading is open from the start** (no level gate; designer, 2026-09-27); Exclusive cues
+  never trade (2026-09-28); players Roblox bars from trading paid items can't trade (ECONOMY.md section 12).
 
-- **The Index** (designer, 2026-09-28): every cue in the catalog by rarity; cues never owned
-  are dark silhouettes with "?" and no name; a cue counts once ever owned (selling keeps it).
-  Completing a rarity row pays once (Commons $1,000, Uncommons $2,500, Rares $7,500, Epics
-  $25,000, each with a title; Legendary, Mythic and Secret a title only). ECONOMY.md section 18.
+- **The Index** (designer, 2026-09-28): every cue in the catalog by rarity; a cue never owned
+  is a "?" card; a cue counts once ever owned (selling keeps it). Tapping a card shows it on
+  the side: its name (even before it is found) and the cue turning in 3D, a black silhouette
+  until found, its real look after. Completing a rarity row pays once (Commons $1,000,
+  Uncommons $2,500, Rares $7,500, Epics $25,000, each with a title; Legendary, Mythic and
+  Secret a title only). ECONOMY.md section 18.
+- **Finder's money** (designer, 2026-09-28): the first time a player gets a cue it pays extra
+  money by rarity, once per cue ever (Common $50 up to Secret $50,000; Exclusive $500, Unique
+  $1,000; *(tune)*). ECONOMY.md section 18.
 - **The menus** (designer, 2026-09-28): four buttons in one column on the left, Shop
   (Cases, Limited, Money, VIP), Inventory (Cues, Cases, Index), Rewards (Daily, Playtime,
   Codes) and Trade (later). Cases open on a spinning reel; Fast Open opens ten at once without

@@ -20,9 +20,10 @@
 -- when it goes up and is gone after a loss. The plate keeps its place over the head: the
 -- BillboardGui is StreakShare taller and lifted by SizeOffset so the new line sits above it.
 --
--- A VIP (the Vip attribute, set by the server; brief section 13) gets a subtle shine: now and
--- then a narrow band of the house rainbow sweeps across their white name (a UIGradient on the
--- name, moved on one shared clock), so VIP reads as the bold rainbow without shouting.
+-- A VIP (the Vip attribute, set by the server) has their name in the house rainbow (a
+-- UIGradient on the white name; designer, 2026-09-28), with the badge kept in front of it. The
+-- colours drift slowly along the name, one loop every VipRainbowCycleSeconds: calm, never a
+-- flash. Only here: in chat a VIP gets the [VIP] tag instead (ChatTags).
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -52,8 +53,7 @@ type Plate = {
 	name: TextLabel,
 	streak: TextLabel, -- "🔥 3" over the name
 	streakShown: number, -- the streak on it (0: none)
-	shine: UIGradient, -- the VIP's rainbow band on the name (enabled for a VIP)
-	vip: boolean,
+	rainbow: UIGradient, -- the VIP's rainbow over the name (enabled for a VIP)
 	key: string?, -- the badge shown ("gold_3")
 	known: boolean, -- that badge came from the player's save (not the Unranked stand-in)
 	pending: boolean,
@@ -82,44 +82,46 @@ local function outlineFor(px: number): number
 	return math.max(K.TextOutlineMinPx, math.floor(px * K.TextOutlineRatio + 0.5))
 end
 
--- The VIP shine's colours along the name: white (the text as it is), then a narrow band of the
--- house rainbow in the middle, then white. Moving the gradient's Offset sweeps the band across.
-local VIP_SHINE: ColorSequence = (function(): ColorSequence
-	local white = Color3.new(1, 1, 1)
-	local half = math.clamp(P.VipBandShare, 0.05, 0.9) / 2
-	local keys = {
-		ColorSequenceKeypoint.new(0, white),
-		ColorSequenceKeypoint.new(0.5 - half - 0.001, white),
-	}
-	for i, c in RAINBOW do
-		local at = 0.5 - half + (2 * half) * (i - 1) / math.max(1, #RAINBOW - 1)
-		table.insert(keys, ColorSequenceKeypoint.new(at, HudParts.color(c)))
-	end
-	table.insert(keys, ColorSequenceKeypoint.new(0.5 + half + 0.001, white))
-	table.insert(keys, ColorSequenceKeypoint.new(1, white))
-	return ColorSequence.new(keys)
-end)()
+-- The house rainbow as a loop (purple runs back into red), its colours evenly spaced round it.
+local LOOP: { Color3 } = {}
+for _, c in RAINBOW do
+	table.insert(LOOP, HudParts.color(c))
+end
 
--- Where the VIP band is now (the gradient's X offset): it crosses the name in VipShineSeconds,
--- then waits off to the side for VipShineEvery. One clock for every plate.
-local function shineOffset(now: number): number
-	local sweep = math.max(0.1, P.VipShineSeconds)
-	local phase = now % (sweep + math.max(0, P.VipShineEvery))
-	if phase >= sweep then
-		return 1
+-- The loop's colour at `u` (0..1 round the loop), blended between its neighbours.
+local function loopColor(u: number): Color3
+	local n = #LOOP
+	local at = (u % 1) * n
+	local i = math.floor(at)
+	return LOOP[i % n + 1]:Lerp(LOOP[(i + 1) % n + 1], at - i)
+end
+
+-- A VIP's name colours, the loop shifted by `phase` (0..1): one whole loop across the name,
+-- the same colour at both ends, so sliding the phase moves the colours with no seam.
+local function rainbowAt(phase: number): ColorSequence
+	local n = #LOOP
+	if n < 2 then
+		return ColorSequence.new(if n == 1 then LOOP[1] else Color3.new(1, 1, 1))
 	end
-	local t = phase / sweep
-	return -1 + 2 * (t * t * (3 - 2 * t))
+	local times: { number } = {}
+	for i = 1, n do
+		local x = ((i - 1) / n - phase) % 1
+		if x > 1e-3 and x < 1 - 1e-3 then
+			table.insert(times, x)
+		end
+	end
+	table.sort(times)
+	local keys = { ColorSequenceKeypoint.new(0, loopColor(phase)) }
+	for _, x in times do
+		table.insert(keys, ColorSequenceKeypoint.new(x, loopColor(x + phase)))
+	end
+	table.insert(keys, ColorSequenceKeypoint.new(1, loopColor(phase)))
+	return ColorSequence.new(keys)
 end
 
 -- Show whether the player is a VIP (their Vip attribute, which only the server sets).
 local function showVip(plate: Plate)
-	local vip = plate.player:GetAttribute("Vip") == true
-	plate.vip = vip
-	plate.shine.Enabled = vip
-	if not vip then
-		plate.shine.Offset = Vector2.new(1, 0)
-	end
+	plate.rainbow.Enabled = plate.player:GetAttribute("Vip") == true
 end
 
 -- Show the player's rank from their attributes; `pop` bounces it if it changed.
@@ -204,6 +206,7 @@ function Nameplates.new(): any
 	self.hidden = {} :: { [number]: boolean }
 	self.connections = {}
 	self.elapsed = 0
+	self.rainbowElapsed = 0
 	self.alive = true
 	local localPlayer = Players.LocalPlayer
 	self.playerGui = if localPlayer then localPlayer:WaitForChild("PlayerGui") else nil
@@ -222,7 +225,7 @@ function Nameplates.new(): any
 	for _, player in Players:GetPlayers() do
 		self:add(player)
 	end
-	-- The fade, outline and shine pass: a few times a second, not every frame.
+	-- The fade and outline pass: a few times a second, not every frame.
 	table.insert(
 		self.connections,
 		RunService.Heartbeat:Connect(function(dt)
@@ -231,7 +234,11 @@ function Nameplates.new(): any
 				self.elapsed = 0
 				self:update()
 			end
-			self:shineVips()
+			self.rainbowElapsed += dt
+			if self.rainbowElapsed >= P.VipRainbowStepSeconds then
+				self.rainbowElapsed = 0
+				self:driftRainbows()
+			end
 		end)
 	)
 	return self
@@ -292,12 +299,11 @@ function Nameplates.add(self: any, player: Player)
 	name.AnchorPoint = Vector2.new(0, 0.5)
 	name.Position = UDim2.fromScale((1 + P.GapShare) / units, 0.5)
 	name.Size = UDim2.fromScale(nameWidth / units, P.NameShare)
-	local shine = Instance.new("UIGradient")
-	shine.Name = "VipShine"
-	shine.Color = VIP_SHINE
-	shine.Offset = Vector2.new(1, 0)
-	shine.Enabled = false
-	shine.Parent = name
+	local rainbow = Instance.new("UIGradient")
+	rainbow.Name = "VipRainbow"
+	rainbow.Color = rainbowAt(0)
+	rainbow.Enabled = false
+	rainbow.Parent = name
 	gui.Parent = self.playerGui
 	local plate: Plate = {
 		player = player,
@@ -306,8 +312,7 @@ function Nameplates.add(self: any, player: Player)
 		name = name,
 		streak = streak,
 		streakShown = 0,
-		shine = shine,
-		vip = false,
+		rainbow = rainbow,
 		key = nil,
 		known = false,
 		pending = false,
@@ -382,6 +387,20 @@ end
 
 -- The throttled pass: for each plate, how far it is from the camera sets its fade, its name's
 -- outline and whether its badge shines.
+-- Slide the VIPs' name colours on one shared clock (only the plates being drawn; a handful).
+function Nameplates.driftRainbows(self: any)
+	local colors: ColorSequence? = nil
+	for _, plate in self.plates do
+		if plate.rainbow.Enabled and plate.gui.Enabled and plate.gui.Adornee and plate.fade < 1 then
+			if not colors then
+				-- Negative: the colours travel from the name's start toward its end.
+				colors = rainbowAt(-os.clock() / math.max(1, P.VipRainbowCycleSeconds))
+			end
+			plate.rainbow.Color = colors :: ColorSequence
+		end
+	end
+end
+
 function Nameplates.update(self: any)
 	local camera = workspace.CurrentCamera
 	if not camera then
@@ -417,17 +436,6 @@ function Nameplates.update(self: any)
 					stroke.Thickness = outline
 				end
 			end
-		end
-	end
-end
-
--- Every frame: sweep the VIP band across the names of the VIPs being drawn (a handful at most).
-function Nameplates.shineVips(self: any)
-	local offset: Vector2? = nil
-	for _, plate in self.plates do
-		if plate.vip and plate.gui.Enabled and plate.gui.Adornee and plate.fade < 1 then
-			offset = offset or Vector2.new(shineOffset(os.clock()), 0)
-			plate.shine.Offset = offset :: Vector2
 		end
 	end
 end

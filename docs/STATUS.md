@@ -1,5 +1,32 @@
 # Status
 
+**2026-09-28 (branch `economy`): the designer's first economy changes.**
+
+- **Built:** the left column without its blue tiles (bigger icons); VIP in chat as "[VIP]
+  [GOLD] Name" (the name in Roblox's colour) and a calmly drifting rainbow name over the
+  head; Exclusive cues never trade (VIP and Starter included), Unique cues do; the Index
+  overhaul ("?" cards for cues not found; a panel with the name and the cue turning in 3D,
+  black until found, real colours after; "Find it for +$250"); finder's money the first time
+  any cue enters the Index (Common $50 to Secret $50,000, Exclusive $500, Unique $1,000),
+  shown as "NEW! +$250" on a case prize with its money flying in, or a banner line for other
+  sources.
+- **Verified:** lint clean, 631 tests pass (new: a first find is reported once, even after
+  selling; every cue but Classic has a finder's money; no Exclusive cue trades). In Studio on
+  the PC window: the column (the "y" of Inventory was clipped by the next tile's red dot;
+  fixed by drawing each tile over the one below); /givecue Masse paid $250 once with its
+  banner, a second copy nothing; a Rare Case reel onto a new Tiki Torch Cue read "NEW! +$100"
+  with the HUD held until the card popped; the Index's "?" cards, the black silhouette
+  turning, a found cue in colour with "2 exist"; a controller's selection on a card switches
+  the panel; the chat prefix read "[VIP] [GOLD] Painicane:"; the overhead rainbow drifting
+  (screenshots). The Index at 750 x 361 (the menu resized) and the column in a 750 x 361
+  frame. Console clean.
+- **Needs a check by hand:** a real phone and controller; the overhead rainbow on another
+  player (Studio's capture would not draw your own plate under a big hat, so it was checked
+  on a copy). The menu's own money pill (and the Cues tab's NEW dot) still update before a
+  reel stops.
+
+---
+
 **2026-09-28 (design only): abilities are back as ultimates, in the release** (GDD section 9,
 ROADMAP "Ultimates"). A comeback bar, used about once a match, activated before the shot. No
 code yet; the designer has more details coming and picks the other seven ults from the

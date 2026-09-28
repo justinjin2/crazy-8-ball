@@ -260,7 +260,8 @@ order; that is Open.
     each, drawn as a single stroke. Its slight dim is the only dim in the game, shared since
     2026-09-28 by the full menus and the case opening (section 10).
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
-    rainbow, letter by letter); none for Unranked.
+    rainbow, letter by letter); none for Unranked. A VIP's rainbow "[VIP]" comes first
+    (section 10).
   - *The rank HUD bounces as a whole* (designer, 2026-09-27): badge and pill grow together
     under the mouse and squish and bounce when pressed. Badges sparkle, with only a faint light
     sweep now and then. On a computer the HUD is 1.5 times its phone size, an easier target
@@ -299,10 +300,13 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
 `Config.UI.Menu`, `Config.UI.Shop`, `Config.UI.Inventory`, `Config.UI.Rewards` and
 `Config.UI.CaseOpening`. Lines marked *(assumption)* are overnight calls, logged in DECISIONS.
 
-- **The left column** (designer; reference 06): four square candy tiles, top to bottom Shop,
-  Inventory, Rewards, Trade, each a glossy icon poking out of its top and the word in white
-  with an ink outline across its bottom edge. 68 px on a computer, 46 px on a phone (under
-  the rank HUD there; centred on the left edge on a big screen), always above the money HUD.
+- **The left column** (designer; reference 06): top to bottom Shop, Inventory, Rewards,
+  Trade, each just its big glossy icon with no box behind it (designer, 2026-09-28: the blue
+  candy tile went so the icons could be bigger) and the word in white with an ink outline
+  across the icon's lower edge. Hover grows it, a press squishes it. 78 px slots on a
+  computer, 52 px on a phone (under the rank HUD there; centred on the left edge on a big
+  screen), always above the money HUD. Each tile draws over the one below, so a word is never
+  under the next tile's red dot.
   A red dot with a count sits top right (unopened cases on Inventory, "9+" past nine; a dot
   on Rewards while something can be claimed); the Shop carries a gold timer pill while an
   offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
@@ -318,6 +322,19 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   shimmer with stars, Secret's dark fill with a breathing red glow *(assumption: UI_STYLE 4's
   suggestion)*. The server's answers show as a short line at the bottom of the panel. Confirm
   dialogs are the kit's dialog card with no dim.
+- **The Index** (designer, 2026-09-28): a cue never found is a card with a big "?" in its
+  rarity's colour (no picture, no name). The chosen cue shows in a panel on the right: the
+  cue turning slowly in 3D (the game's own stick, thickened to read small, tip up and to the
+  right, turning round the upright axis), a near-black silhouette until found and its real
+  colours after (the picture wears the rarity then), its name even before it is found, the
+  rarity, "In your collection" or "Not found yet", "1,284 exist", and for a cue not found
+  yet "Find it for +$250" in green with the cash. A tap chooses a card; a controller chooses
+  the card it lands on. On a phone the panel is narrower and the cue smaller.
+- **Finder's money**: a case prize that is new to the Index reads "NEW! +$250" and that money
+  flies from the pill into the money HUD as the card pops (the HUD holds it back during the
+  reel so the reel is never given away); Fast Open flies the total from the grid. Any other
+  find (a rank-up cue, the VIP or Starter Cue, a Limited cue, a gift) is a banner line
+  "New in your Index: VIP Cue! +$500" in the cue's rarity colour.
 - **The dim** *(assumption)*: a full menu is the same kind of screen as the roadmap, so it
   reuses its slight dim; a tap on the dim closes it; one menu at a time; all close when a
   match starts. The case opening's backdrop is the one darker layer (0.5, and 0.45 over a
@@ -340,8 +357,10 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   *(assumption)*; a product whose id is still 0 keeps its price and adds a small "Soon" tag.
   A real sale shows the struck old price, the new one and its countdown; "Need $X more" on a
   case the player cannot afford jumps to the Money tab.
-- **Chat and names**: "[VIP]" after the rank tag in the house rainbow, letter by letter; a VIP
-  name over the head gets a rainbow sweep now and then *(assumption)*; the top banner (Money
+- **Chat and names** (designer, 2026-09-28): in chat a VIP's line reads "[VIP] [GOLD] Name":
+  [VIP] first in the house rainbow letter by letter, then the rank tag, and the name in
+  Roblox's own colour. Over the head a VIP's name is the house rainbow, its colours drifting
+  slowly along it (one loop in 8 s, calm, never a flash); the badge stays before it. the top banner (Money
   Party, a Mythic or Secret unboxing, Reyes) is one small kit card at the top middle under
   Roblox's bar, with the line in the rarity's colour (Reyes in the rainbow); it waits during a
   match, and an unboxing or Reyes also posts a chat line.
