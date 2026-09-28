@@ -32,6 +32,19 @@ end
 --- Open). Stub: does nothing yet.
 function CaseOpening.open(_self: any, _caseId: string, _count: number?) end
 
+--- Play results the server already sent (a reply's `results`) on the reel (one) or the grid
+--- (several). Stub: does nothing yet.
+function CaseOpening.play(_self: any, _caseId: string, _results: { any }) end
+
+--- The first win's Rare Case reveal inside `host` (the result screen): the same reel, onto
+--- `prize` ({ case, cue, rarity, new }, MatchSummary.firstWin), then its card with Equip.
+--- `opts.onDone` runs when the player is done with it. Stub: calls onDone at once.
+function CaseOpening.reveal(_self: any, _host: GuiObject, _prize: any, opts: any?)
+	if type(opts) == "table" and type(opts.onDone) == "function" then
+		opts.onDone()
+	end
+end
+
 function CaseOpening.close(self: any)
 	self.opened = false
 end
