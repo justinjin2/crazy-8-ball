@@ -39,6 +39,8 @@ change as the game grows are listed with their triggers in section 14.
   lucky quarter within about 3).
 - **No direct buying of case cues**: they come from cases and trading only. A **Limited
   shelf** sells exclusive, numbered cues for a short time, then they are trade-only forever.
+  Deals are only ever on cases (bulk opening, occasional real case sales, timed special
+  cases), never a guaranteed case cue.
 - **Ranks**: Silver in the first hour, Diamond in about 11 hours, then a real wall. Expert and
   up are a skill ladder (Elo-style); Grandmaster and Reyes are leaderboard seats.
 - **Robux**: 49 R$ buys $900 (about 1.2 hours of play), up to 4,999 R$ for $130,000 (+42%).
@@ -479,7 +481,7 @@ also removes cues from the game, which keeps the ones that stay worth more.
 
 ---
 
-## 9. No direct buying of case cues; the Limited shelf
+## 9. No direct buying of case cues; the Limited shelf; case deals
 
 **Case cues are never sold directly** (designer, 2026-09-27, replacing the rotating "today's
 deals" shop). A Common-to-Secret cue comes only from a case or a trade. That keeps every case a
@@ -516,6 +518,33 @@ after a lost match.
 **Copies in existence** (designer, 2026-09-27): every cue, in the inventory, the Index, trades
 and the Limited shelf, shows how many exist in the game ("1,284 exist"). A global counter per
 cue goes up when one is unboxed or bought and down when one is sold back.
+
+### 9.1 Case deals and special cases
+
+Deals are on **cases**, never on a guaranteed case cue (designer, 2026-09-27). Every one is
+still random, with its odds shown.
+
+- **Bulk opening** (always there, so it is a price, not a "sale"): 10 of any case for the
+  price of 9.
+- **Case sales**: now and then a single case type is cheaper for a set time, for example
+  "Epic Cases 20% off this weekend". Rules so they stay real: at most one sale running, never
+  the same case on sale twice in a row, about two weekends a month at most, a true countdown,
+  and the normal price shown struck through. Roblox's rules call an always-on or constantly
+  repeating "sale" fake (section 13).
+- **Special cases**: themed cases for events and seasons (the GDD's limited seasonal box),
+  with their own pool of cues found in no other case. On sale for the event, then retired,
+  after which their cues are trade-only. A retired (vaulted) cue can come back only this way.
+  Starting odds, to be set per event:
+
+| Special case | Price | Rare | Epic | Legendary | Mythic | Secret |
+|---|---|---|---|---|---|---|
+| Event Case (at least Rare) | $2,000 | 72.5 | 22 | 4.6 | 0.8 | 0.1 |
+
+  It pays slightly worse per dollar than the Legendary Case for a Legendary ($43,000 against
+  $25,000), which is fine because its cues exist nowhere else and stop dropping when it
+  retires.
+- A **free** special case can also be a reward (an event's login days or challenges); free
+  ones never count as loot boxes.
 
 ## 10. Daily and playtime rewards
 

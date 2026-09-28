@@ -1595,3 +1595,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   Unique cues for a set time, then never again. Every cue shows how many copies exist.
 - 2026-09-27: with the shop gone, case Secret odds rise (Legendary Case 1 in 400) so a
   dedicated player still gets one in months, not years (Claude's call from the model).
+- 2026-09-27 (designer): deals are only on cases (bulk 10-for-9, occasional genuine case sales,
+  timed special event cases with their own cues), never a guaranteed case cue. The Limited
+  shelf of timed exclusives stays.

@@ -502,7 +502,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   deals" shop the same day): Common to Secret cues come only from cases and trading. A
   **Limited shelf** sells exclusive, numbered Unique cues (never in cases) for a set time,
   sometimes copy-capped, then never again, so they become trade-only. Every cue shows how many
-  copies exist. ECONOMY.md section 9.
+  copies exist. Deals are only on cases (bulk opening, occasional genuine sales, timed
+  special event cases with their own cues), never a guaranteed case cue. ECONOMY.md section 9.
 - **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
   when a ball is pocketed, so the cue you equip changes how the table looks while you play,
   not just what the stick looks like. The default cue and every common one use the same
