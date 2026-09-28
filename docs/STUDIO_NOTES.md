@@ -153,6 +153,15 @@ without Studio's import dialogs. It only uses the Python standard library.
   and read the `Decal.Texture` inside. Store it as `imageId` in the manifest entry. The first
   test was `guide_ring.png`: Decal 116046292783231, image 126657412569998, and the image
   preloaded with Success.
+- **Models from Blender (tested 2026-09-28)** with a `.glb` exported by headless Blender. The
+  model uploaded "ok" and `LoadAsset` worked in the place.
+  - **Scale is 1 Blender metre = 1 stud.** A 2 x 0.8 x 1.4 m planter came in at 2 x 0.8 x
+    1.4 studs, so build in studs or scale on export.
+  - **It splits by material:** one joined object with 3 materials became 3 MeshParts.
+  - **Plain Principled colours are lost:** every part came in as grey Plastic with no texture.
+    Bake colour into image textures, or set Color and Material in Studio after the load.
+  - **Models can't be archived through the API** ("not an archivable asset type"). Remove a
+    test model in Creator Hub by hand.
 - **Check in Studio:** for a model, run `pcall(InsertService.LoadAsset, InsertService, id)` in
   Edit. For an image, preload an ImageLabel with the image ID through
   `ContentProvider:PreloadAsync` and expect `AssetFetchStatus.Success`.
