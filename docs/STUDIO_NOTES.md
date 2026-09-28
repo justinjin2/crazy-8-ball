@@ -114,6 +114,49 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   client got, connect the remote in a Client `execute_luau` and store the payload as JSON in
   a LocalPlayer attribute.
 
+## Uploading assets with Open Cloud (set up 2026-09-28)
+
+`tools/roblox_upload.py` uploads models, images, audio and animations straight to Roblox
+without Studio's import dialogs. It only uses the Python standard library.
+
+- **Owner:** the place is group-owned (`game.CreatorType = Group`, `CreatorId = 675425213`),
+  so every upload uses `--group-id 675425213`. The script requires an owner and has no default.
+  If the owner is wrong, the upload still says "ok", but the game fails to load the asset with
+  "User is not authorized to access Asset". Studio's `upload_image` uploads as user 544959133
+  instead (see SurfaceAppearance facts).
+- **Key:** it's a Creator Hub Open Cloud API key, created with the group selected, with Assets
+  API Read and Write. It's stored in the macOS login Keychain under service `ROBLOX_API_KEY`.
+  To store it, copy the key, then run `security add-generic-password -U -a "$USER" -s
+  ROBLOX_API_KEY -w "$(pbpaste)"`. Don't use the interactive `-w` prompt: it cuts input at
+  128 characters, and Roblox keys are longer, so the result is a 401. The script reads it with `security find-generic-password -s ROBLOX_API_KEY -w`. Never print the key,
+  echo it, log it or write it to a file. To check that it exists, run
+  `security find-generic-password -s ROBLOX_API_KEY >/dev/null 2>&1 && echo True || echo False`.
+- **Run:** `python3 tools/roblox_upload.py --list files.txt --group-id 675425213 --dry-run`,
+  then the same command without `--dry-run`. Other options are `--dir <folder>` (not
+  recursive), `--type Model|Decal|Audio|Animation`, `--limit N`, and `--force-type Animation`
+  for a `.rbxmx` KeyframeSequence.
+- **File types:** `.fbx`, `.glb`, `.gltf` and `.rbxm` upload as Model. `.png`, `.jpg`, `.bmp`
+  and `.tga` upload as Decal. `.mp3`, `.ogg`, `.wav` and `.flac` upload as Audio. `.obj` isn't
+  accepted, so convert it to `.glb` in Blender first. Files over 20 MB are skipped.
+- **Results:** they're written to `tools/upload_manifest.json`, keyed by absolute path. A rerun
+  skips files that already succeeded and picks up "pending" ones, which are still in
+  moderation. Every upload makes a new asset ID, because the API can't overwrite an old asset.
+- **Rules:** ask the designer before any real upload. Never point the script at a big folder
+  like Downloads. Audio has a monthly quota: 100 uploads on an ID-verified account, 10
+  otherwise. Always dry-run first and ask before every audio upload.
+- **Errors:** 401 means the key is wrong or expired, so the designer makes a new one and
+  replaces it in the Keychain with the same `pbpaste` command. A stored length of exactly 128
+  means the key was cut off. 403 means the key lacks Assets Read and Write for
+  that owner, or was made under the user instead of the group.
+- **Images come back as a Decal ID, not an image ID** (tested 2026-09-28). The Decal ID fails
+  in `ImageLabel.Image`. To get the image ID, run `InsertService:LoadAsset(decalId)` in Edit
+  and read the `Decal.Texture` inside. Store it as `imageId` in the manifest entry. The first
+  test was `guide_ring.png`: Decal 116046292783231, image 126657412569998, and the image
+  preloaded with Success.
+- **Check in Studio:** for a model, run `pcall(InsertService.LoadAsset, InsertService, id)` in
+  Edit. For an image, preload an ImageLabel with the image ID through
+  `ContentProvider:PreloadAsync` and expect `AssetFetchStatus.Success`.
+
 ## SurfaceAppearance facts (tested 2026-09-24)
 
 These come from the table remake's de-risk tests. They ran in Edit mode through `execute_luau`:
