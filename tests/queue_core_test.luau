@@ -317,6 +317,26 @@ function tests.a_stuck_claim_is_undone_by_its_owner()
 	expect(store.peek(Core.ticketMap(1), "a").state == "waiting", "the leader died: search on")
 end
 
+function tests.lobby_goes_home_only_to_an_open_server_with_room()
+	local store = fakeStore()
+	expect(Core.markServer(store, "lobbyA", 5, 30, 100))
+	local ok, mark = Core.readServer(store, "lobbyA")
+	expect(ok and mark.players == 5)
+	expect(Ticket.homeOpen(mark, 110, 2, G.ServerStaleSeconds), "open, with room for two")
+	expect(
+		not Ticket.homeOpen(mark, 100 + G.ServerStaleSeconds + 1, 1, G.ServerStaleSeconds),
+		"not marked lately: closed"
+	)
+	expect(not Ticket.homeOpen(mark, 110, 26, G.ServerStaleSeconds), "no room for the group")
+	Core.markServer(store, "lobbyA", 0, 30, 120)
+	local _, empty = Core.readServer(store, "lobbyA")
+	expect(not Ticket.homeOpen(empty, 121, 1, G.ServerStaleSeconds), "empty: Roblox is closing it")
+	Core.dropServer(store, "lobbyA")
+	local _, gone = Core.readServer(store, "lobbyA")
+	expect(not Ticket.homeOpen(gone, 121, 1, G.ServerStaleSeconds), "shut down: no mark")
+	expect(not Ticket.homeOpen(nil, 0, 1, G.ServerStaleSeconds))
+end
+
 function tests.ticket_changes_refuse_the_wrong_state()
 	local t = newTicket("a", { 1 }, 5, 0)
 	expect(Ticket.finalize(t, "m", "c", 1) == nil, "not claimed")

@@ -289,6 +289,33 @@ function QueueCore.forget(store: Store, ticket: Ticket.Value)
 	store.remove(QueueCore.ticketMap(ticket.mode), ticket.id)
 end
 
+--- A lobby server's "still open, with `players` of `max`" mark (every ServerBeatSeconds).
+function QueueCore.markServer(
+	store: Store,
+	server: string,
+	players: number,
+	max: number,
+	now: number
+): boolean
+	return store.set(
+		G.Maps.Servers,
+		server,
+		{ players = players, max = max, beat = now },
+		G.ServerStaleSeconds * 2,
+		nil
+	)
+end
+
+--- A lobby server's last mark (nil when none, or gone).
+function QueueCore.readServer(store: Store, server: string): (boolean, any)
+	return store.get(G.Maps.Servers, server)
+end
+
+--- A lobby server closing takes its mark away.
+function QueueCore.dropServer(store: Store, server: string)
+	store.remove(G.Maps.Servers, server)
+end
+
 --- An arena reads its player list. ok false when the store failed; record nil when absent.
 function QueueCore.readRecord(store: Store, matchId: string): (boolean, any)
 	local ok, record = store.get(G.Maps.Matches, matchId)

@@ -347,6 +347,11 @@ the series score.
 5. *After.* The table's vote handles Rematch; `ArenaAction` handles Play another (a new
    ticket from the arena, avoiding the last opponent for 10 s) and Lobby (`sendHome`).
    `ArenaState` tells every client the arrivals, choices, searches and each one's time left.
+   Every lobby server marks itself open with its player count (`GQ_Servers_v1`, every 10 s
+   and a second after anyone joins or leaves); Lobby targets the home server only while its
+   mark is fresh, not empty and has room (`Ticket.homeOpen`), else any lobby server, and a
+   failed try at home goes to any lobby server at once (a closed server is Roblox's error
+   771, with its own popup on every try).
 
 **Studio.** Teleports and reserved servers do not work in Studio: matching runs against
 Studio's own MemoryStore, then the teleport reports "Studio". `ServerStorage.GlobalQueueQA`

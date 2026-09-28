@@ -33,6 +33,12 @@
   twice as far below Join Global Queue: its fold's outline room added to the gap); checked
   in Studio: all gaps 6 px (7.8 on screen at 1.3), the searching card's too, and the rematch
   row's buttons 8 px apart and centred.
+- **Fixed after the first live test (designer's screenshot):** Lobby showed Roblox's
+  "Teleport Failed ... Server is no longer available (Error Code: 771)". The lobby server
+  both players came from had emptied and shut down, and the code retried it three times.
+  Now every lobby server marks itself open (with its player count) in MemoryStore; Lobby
+  only goes back to the old server while it is open, not empty and has room, and otherwise
+  (or if that one try fails) straight to any lobby server. Lune-tested; needs a live check.
 - **To do before the live test:** restart Rojo and reconnect (the new ReplicatedFirst
   folder), then publish.
 

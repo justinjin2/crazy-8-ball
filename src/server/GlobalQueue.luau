@@ -467,9 +467,12 @@ function GlobalQueue.teleport(players: { Player }, match: Match, failed: (Player
 	teleportGroup(players, options, 1, failed)
 end
 
---- Send players back to the lobby: to `home` (the lobby server they came from) when there is
---- one, or any lobby server if that fails. Groups by home. `failed(player, why)` runs for
---- anyone still here once every try failed (Studio: at once, "Studio").
+--- Send players back to the lobby: to `home` (the lobby server they came from) when it is
+--- still open with room (its "still open" mark, Ticket.homeOpen), else straight to any lobby
+--- server; a failed try at `home` goes to any lobby server at once, never to `home` again (a
+--- teleport to a closed server shows Roblox's error 771 popup each time). Groups by home.
+--- `failed(player, why)` runs for anyone still here once every try failed (Studio: at once,
+--- "Studio").
 function GlobalQueue.sendHome(
 	players: { Player },
 	homes: { [number]: string },
@@ -506,7 +509,15 @@ function GlobalQueue.sendHome(
 		options:SetTeleportData({ gq = { home = true, sentAt = clock(), from = SERVER } })
 		local anywhere = Instance.new("TeleportOptions")
 		anywhere:SetTeleportData({ gq = { home = true, sentAt = clock(), from = SERVER } })
+		local open = false
 		if home ~= "" and home ~= game.JobId then
+			local ok, mark = QueueCore.readServer(store, home)
+			open = ok and Ticket.homeOpen(mark, clock(), #group, G.ServerStaleSeconds)
+			if not open then
+				log(("lobby %s is closed or full; any lobby server instead"):format(home))
+			end
+		end
+		if open then
 			options.ServerInstanceId = home
 		else
 			options = anywhere
@@ -528,7 +539,8 @@ function GlobalQueue.sendHome(
 		if options == anywhere then
 			teleportGroup(group, anywhere, 1, stuck)
 		else
-			teleportGroup(group, options, 1, function(p: Player, _why: string)
+			-- One try at home (starting at the last try: no retries there), then anywhere.
+			teleportGroup(group, options, G.TeleportRetries, function(p: Player, _why: string)
 				teleportGroup({ p }, anywhere, 1, stuck)
 			end, true)
 		end
@@ -669,11 +681,41 @@ function GlobalQueue.notify(players: { Player }, notice: any)
 	end
 end
 
-function GlobalQueue.start()
+--- Start the leader loop and the teleport watch. `lobby`: this is a lobby server, which marks
+--- itself open (with its player count) so arenas can send players back to it.
+function GlobalQueue.start(lobby: boolean)
 	if started then
 		return
 	end
 	started = true
+	if lobby and game.JobId ~= "" then
+		local function mark()
+			QueueCore.markServer(store, SERVER, #Players:GetPlayers(), Players.MaxPlayers, clock())
+		end
+		task.spawn(function()
+			while not PlayerData.isClosing() do
+				mark()
+				task.wait(G.ServerBeatSeconds)
+			end
+		end)
+		-- Someone came or went: marked again a moment later, so a server that just emptied
+		-- (and is closing) is not a way home for long.
+		local soon = false
+		local function markSoon()
+			if not soon then
+				soon = true
+				task.delay(1, function()
+					soon = false
+					mark()
+				end)
+			end
+		end
+		Players.PlayerAdded:Connect(markSoon)
+		Players.PlayerRemoving:Connect(markSoon)
+		game:BindToClose(function()
+			QueueCore.dropServer(store, SERVER)
+		end)
+	end
 	TeleportService.TeleportInitFailed:Connect(
 		function(player: Player, result: Enum.TeleportResult, message: string)
 			local job = pending[player]

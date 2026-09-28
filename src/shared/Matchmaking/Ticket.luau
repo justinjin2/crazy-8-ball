@@ -174,6 +174,19 @@ function Ticket.record(matchId: string, a: Value, b: Value, now: number): any
 	}
 end
 
+--- Whether a lobby server can take `group` players back now, from its last "still open" mark
+--- (QueueCore.markServer): marked within `staleSeconds`, someone still in it (an empty server
+--- is closing), and room for the whole group. Otherwise they go to any lobby server.
+function Ticket.homeOpen(entry: any, now: number, group: number, staleSeconds: number): boolean
+	return type(entry) == "table"
+		and type(entry.beat) == "number"
+		and now - entry.beat <= staleSeconds
+		and type(entry.players) == "number"
+		and entry.players > 0
+		and type(entry.max) == "number"
+		and entry.players + group <= entry.max
+end
+
 --- Whether a stored match record is one this code can read.
 function Ticket.isRecord(record: any): boolean
 	if type(record) ~= "table" or record.v ~= Ticket.Version or type(record.teams) ~= "table" then

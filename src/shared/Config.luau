@@ -4050,6 +4050,10 @@ Config.GlobalQueue = {
 		Tickets = "GQ_Tickets_v1_", -- one per mode: .. teamSize ("GQ_Tickets_v1_2" is 2v2)
 		Lease = "GQ_Lease_v1", -- which server runs the matching now
 		Matches = "GQ_Matches_v1", -- each arena's players, keyed by its reserved server id
+		-- Each lobby server's "still open, with N players", keyed by its JobId, so Lobby only
+		-- sends players back to a server that still exists (Roblox shuts an empty one down,
+		-- and a teleport to it fails with error 771 and Roblox's own popup).
+		Servers = "GQ_Servers_v1",
 	},
 	LeaseKey = "leader",
 	-- How far apart two searches may be, in rank divisions, by how long the one that has
@@ -4086,6 +4090,8 @@ Config.GlobalQueue = {
 	-- A failed MemoryStore call is tried again this many times, this far apart.
 	StoreRetries = 3,
 	StoreRetrySeconds = 0.25,
+	ServerBeatSeconds = 10, -- a lobby server marks itself open this often...
+	ServerStaleSeconds = 25, -- ...and one not marked for this long is taken as closed
 	-- What a match-found player sees before the teleport starts, so the screen can come up.
 	FoundLeadSeconds = 0.4,
 }

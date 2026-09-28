@@ -1631,3 +1631,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   of climbing is unchanged.
 - 2026-09-28 (designer): every UI's buttons are evenly spaced. The host card's rows are now
   stacked by code (QueueMenu.stack), so a fold's outline room no longer doubles a gap.
+- 2026-09-28: Lobby goes back to the server you came from only while it is still open with
+  players and room; otherwise to any lobby server (an emptied server shuts down, and Roblox
+  showed error 771 for it).

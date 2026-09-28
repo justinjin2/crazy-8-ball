@@ -85,7 +85,7 @@ local record = nil
 if isArena then
 	record = ArenaService.loadRecord(matchId :: string)
 	if not record then
-		GlobalQueue.start()
+		GlobalQueue.start(false)
 		local function away(p: Player)
 			ArenaService.evict(p)
 		end
@@ -125,7 +125,7 @@ end
 TableService.start(workspace, if isArena then "Arena" else "Hub")
 ShotService.start()
 DevCommands.start() -- /day and /sunset, for the developer only
-GlobalQueue.start() -- every server takes its turn pairing the global queue
+GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 if isArena then
 	ArenaService.start(record)
 end
