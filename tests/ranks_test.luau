@@ -425,4 +425,20 @@ return {
 				and sameValue(Ranks.rulesLine(), Ranks.rulesLine())
 		)
 	end,
+	["a win streak counts real wins and any loss ends it"] = function()
+		local Ranks = load()
+		local streak = 0
+		streak = Ranks.nextStreak(streak, "Win", true)
+		H.expect(streak == 1, "the first win shows 1")
+		streak = Ranks.nextStreak(streak, "Win", true)
+		streak = Ranks.nextStreak(streak, "Win", true)
+		H.expect(streak == 3, "and keeps going")
+		H.expect(
+			Ranks.nextStreak(streak, "Win", false) == 3,
+			"a win that does not count (a quick forfeit) leaves it"
+		)
+		H.expect(Ranks.nextStreak(streak, "Draw", true) == 3, "a draw leaves it")
+		H.expect(Ranks.nextStreak(streak, "Loss", false) == 0, "a forfeit loss ends it")
+		H.expect(Ranks.nextStreak(streak, "Loss", true) == 0, "any loss ends it")
+	end,
 }

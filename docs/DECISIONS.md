@@ -1634,3 +1634,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28: Lobby goes back to the server you came from only while it is still open with
   players and room; otherwise to any lobby server (an emptied server shuts down, and Roblox
   showed error 771 for it).
+- 2026-09-28 (designer): the win streak shows over the head as "🔥 N" from the first win.
+  Claude's rules (easy to change): real wins against people count (as for rank XP), any loss
+  ends it including a quick surrender or leaving, a draw leaves it, and it is saved.

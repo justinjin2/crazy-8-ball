@@ -276,7 +276,7 @@ separately from real multi-client playtests.
    later. The engine's result carries `seconds` (server time since the break,
    `brokeAt`) and `forfeit` (the team that surrendered or timed out).
 3. *Replicate.* `PlayerData` sets Player attributes (`Money`, `RankXp`, `RatedMatches`,
-   `PeakDivision`, `RankTier`, `RankDivision`, `RankIndex`, `DataLoaded`) and `leaderstats`
+   `PeakDivision`, `RankTier`, `RankDivision`, `RankIndex`, `WinStreak`, `DataLoaded`) and `leaderstats`
    (`Rank` text, `Money`). Clients only read them.
 4. *Animate.* The shooter alone gets `MoneyGrant` (each grant's pocket and the server time its
    ball drops); `CashFlyer` pops a chip there and flies it to the money HUD, which only rises

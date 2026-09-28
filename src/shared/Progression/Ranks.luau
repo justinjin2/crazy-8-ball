@@ -505,4 +505,16 @@ function Ranks.rulesLine(): RulesLine
 	return line
 end
 
+--- A player's win streak after a match (designer, 2026-09-28: shown over their head as
+--- "🔥 3"): a win that counts (a real match against people) adds one, any loss ends it (a
+--- forfeit too, so leaving early never protects a streak), and anything else leaves it.
+function Ranks.nextStreak(streak: number, outcome: string, counts: boolean): number
+	if outcome == "Loss" then
+		return 0
+	elseif outcome == "Win" and counts then
+		return streak + 1
+	end
+	return streak
+end
+
 return Ranks

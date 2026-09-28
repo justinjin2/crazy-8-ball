@@ -131,6 +131,8 @@ function Ranking.departed(t: any, player: Player)
 		return
 	end
 	gone[player.UserId] = true
+	-- Leaving is a loss: it ends the win streak whatever the match time (Ranks.nextStreak).
+	PlayerData.endStreak(player)
 	local data = PlayerData.read(player)
 	if not data then
 		return
@@ -197,6 +199,11 @@ local function settle(e: any)
 					if applied then
 						xp = Ranking.xpPart(applied)
 					end
+				end
+				-- Any loss ends the win streak, counted by XP or not (a quick forfeit included);
+				-- only a real win adds to it (recordMatch).
+				if outcome == "Loss" then
+					PlayerData.endStreak(p)
 				end
 				bonus = Money.matchBonus(outcome, "Player", real, forfeited, multiplier)
 				if bonus > 0 and not PlayerData.addMoney(p, bonus, "MatchBonus") then

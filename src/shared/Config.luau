@@ -2843,6 +2843,11 @@ Config.UI = {
 			ShineDistance = 30, -- only badges this close to the camera shine
 			UpdateSeconds = 0.2, -- the fade, outline and shine pass runs this often, not every frame
 			FadeStep = 0.1, -- the fade moves in steps this big (fewer property writes)
+			-- A win streak (designer, 2026-09-28): "🔥 3" on a line over the badge and name,
+			-- from the first win in a row. The line's height, as a share of the plate's; the
+			-- plate stays where it was and the line sits above it. (tune)
+			StreakShare = 0.7,
+			StreakFrom = 1, -- shown once the streak is at least this
 		},
 		-- The end-of-match screen (ResultScreen): the face-off (a card per player, VS between,
 		-- WINNER and a crown on the winner) and your rewards (the XP bar, the money list and

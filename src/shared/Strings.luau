@@ -275,6 +275,7 @@ return {
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
+		WinStreak = "🔥 %d", -- over a player's name: their wins in a row (Nameplates)
 		Winner = "WINNER",
 		Vs = "VS",
 		Draw = "DRAW",

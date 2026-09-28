@@ -266,6 +266,7 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
   anyway.
 - [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation
   board, country flags, win streak above the head, match history.
+  Progress 2026-09-28: the win streak above the head is built ("🔥 3", Stats.WinStreak).
 - [ ] **6.5 Real-match check.** Server-tracked match time, the one-minute mark, forfeit
   accounting (forfeiter always loses rating; repeat forfeits against the same opponent give
   the winner nothing), forfeit confirmation warning.

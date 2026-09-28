@@ -39,6 +39,11 @@
   Now every lobby server marks itself open (with its player count) in MemoryStore; Lobby
   only goes back to the old server while it is open, not empty and has room, and otherwise
   (or if that one try fails) straight to any lobby server. Lune-tested; needs a live check.
+- **Also (designer): the win streak over the head.** "🔥 3" in gold on a line above the badge
+  and name, from 1, bouncing as it rises; saved (Stats.WinStreak). A real win against people
+  adds one; any loss ends it, a quick surrender or leaving too (before, those kept it). Checked
+  in Studio: shown at 2, a real win made it 3, a quick win left it, a quick surrender cleared
+  it and the line hid; 464 tests pass.
 - **To do before the live test:** restart Rojo and reconnect (the new ReplicatedFirst
   folder), then publish.
 

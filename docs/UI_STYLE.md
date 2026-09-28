@@ -238,7 +238,8 @@ order; that is Open.
   - *The money HUD*, bottom left, always on: the cash stack over a pill with "$1,250" (from 10
     million "$12.5M"). It takes no input, so the thumbstick under it still works.
   - *Nameplates*: the small badge, then the username, over every head, drawn over the world;
-    the players of your match are hidden while you play.
+    the players of your match are hidden while you play. A win streak (2026-09-28) adds a
+    line above them: the fire emoji and the count in gold, from 1, bouncing as it rises.
   - *The flying cash*: "+$10" with the single bundle pops out of the pocket, hangs, and arcs
     into the money HUD, which bumps, sparkles and counts up; nice shots are gold ("+$15").
   - *The end-of-match screen*: the same for every player (reference 05, light): cards with VS,

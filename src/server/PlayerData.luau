@@ -50,6 +50,7 @@ local ATTR = {
 	RankTier = "RankTier", -- "Gold", or "Unranked"
 	RankDivision = "RankDivision", -- 1 = I; 0 for Unranked
 	RankIndex = "RankIndex", -- 0 Unranked, 1 Bronze I ... the top division
+	WinStreak = "WinStreak", -- wins in a row against people (Stats.WinStreak), over the head
 }
 
 local PlayerData = {}
@@ -171,6 +172,7 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.RankTier, rank.tier)
 	setAttribute(player, ATTR.RankDivision, rank.division)
 	setAttribute(player, ATTR.RankIndex, rank.index)
+	setAttribute(player, ATTR.WinStreak, data.Stats.WinStreak)
 	local rankValue, moneyValue = leaderstats(player)
 	local name = Ranks.name(rank)
 	if rankValue.Value ~= name then
@@ -656,12 +658,24 @@ function PlayerData.recordMatch(player: Player, outcome: string, opponent: strin
 	else
 		bump(if outcome == "Win" then "Wins" else "Losses")
 	end
-	if outcome == "Win" then
-		bump("WinStreak")
-		stats.BestWinStreak = math.max(stats.BestWinStreak, stats.WinStreak)
-	elseif outcome == "Loss" then
-		stats.WinStreak = 0
+	stats.WinStreak = math.min(Ranks.nextStreak(stats.WinStreak, outcome, true), S.StatCap)
+	stats.BestWinStreak = math.max(stats.BestWinStreak, stats.WinStreak)
+	commit(player, data)
+	return true
+end
+
+--- Ends the player's win streak: a loss that recordMatch did not count (a forfeit under the
+--- one-minute mark, leaving mid-match), which must still end it (Ranks.nextStreak). Nothing
+--- happens (no save change) when there is no streak.
+function PlayerData.endStreak(player: Player): boolean
+	local data = liveData("endStreak", player)
+	if data == nil then
+		return false
 	end
+	if data.Stats.WinStreak == 0 then
+		return true
+	end
+	data.Stats.WinStreak = Ranks.nextStreak(data.Stats.WinStreak, "Loss", false)
 	commit(player, data)
 	return true
 end

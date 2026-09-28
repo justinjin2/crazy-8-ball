@@ -394,6 +394,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Not in the release (designer, 2026-09-26): nobody can reach Diamond I at launch, so it
   follows about one to two weeks after release.
 - A player's win streak shows above their head, and their country flag next to their name.
+  **Built (designer, 2026-09-28):** "🔥 3" on a line over the rank badge and name, from the
+  first win in a row (it starts at 1), saved across sessions. A real win against people adds
+  one (the one-minute rule, section 13); any loss ends it, a surrender or leaving included, so
+  quitting early never protects a streak; a draw leaves it. It bounces when it goes up.
 
 - **The hub map is an open-air rooftop pool club** (designer, 2026-09-26), matching the
   concept art in `assets/map/reference/`: a city skyline on the left and a tropical coast with

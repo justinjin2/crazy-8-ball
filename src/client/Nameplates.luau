@@ -14,15 +14,22 @@
 -- A player's rank change (their RankTier and RankDivision attributes) pops their badge, so
 -- everyone nearby sees a rank-up. The players in your match are hidden while you play
 -- (setHidden, from Progression).
+--
+-- A win streak (designer, 2026-09-28): "🔥 3" on its own line over the badge and name, from
+-- the first win in a row (the WinStreak attribute, Stats.WinStreak in the save); it bounces
+-- when it goes up and is gone after a loss. The plate keeps its place over the head: the
+-- BillboardGui is StreakShare taller and lifted by SizeOffset so the new line sits above it.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Strings = require(Shared:WaitForChild("Strings"))
 local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
+local UIAnim = require(script.Parent.UIAnim)
 
 local P = Config.UI.Progress.Nameplate
 local K = Config.UI.Kit
@@ -37,6 +44,8 @@ type Plate = {
 	gui: BillboardGui,
 	badge: RankBadge.Badge,
 	name: TextLabel,
+	streak: TextLabel, -- "🔥 3" over the name
+	streakShown: number, -- the streak on it (0: none)
 	key: string?, -- the badge shown ("gold_3")
 	known: boolean, -- that badge came from the player's save (not the Unranked stand-in)
 	pending: boolean,
@@ -81,6 +90,27 @@ local function showRank(plate: Plate, pop: boolean)
 	plate.badge:set(t, d, pop and plate.known)
 	plate.key = key
 	plate.known = known
+end
+
+-- Show the player's win streak from their WinStreak attribute; `pop` bounces it when it
+-- went up.
+local function showStreak(plate: Plate, pop: boolean)
+	local value = plate.player:GetAttribute("WinStreak")
+	local streak = if type(value) == "number" and value >= P.StreakFrom
+		then math.floor(value)
+		else 0
+	if streak == plate.streakShown then
+		return
+	end
+	local rose = streak > plate.streakShown
+	plate.streakShown = streak
+	plate.streak.Visible = streak > 0
+	if streak > 0 then
+		plate.streak.Text = Strings.Progress.WinStreak:format(streak)
+		if pop and rose then
+			UIAnim.bounce(plate.streak)
+		end
+	end
 end
 
 -- Adorn the plate to the character's head and hide Roblox's own name over it.
@@ -181,11 +211,26 @@ function Nameplates.add(self: any, player: Player)
 	local aspect = measured.X / math.max(1, measured.Y) * (1 + P.NameSlack)
 	local nameWidth = aspect * P.NameShare
 	local units = 1 + P.GapShare + nameWidth
-	gui.Size = UDim2.new(units * P.SizeStuds, units * P.SizePx, P.SizeStuds, P.SizePx)
+	-- The streak's line sits over the plate: the gui is that much taller, and lifted by half
+	-- of it (SizeOffset is a share of the size), so the badge and name keep their place.
+	local tall = 1 + P.StreakShare
+	gui.Size = UDim2.new(units * P.SizeStuds, units * P.SizePx, tall * P.SizeStuds, tall * P.SizePx)
+	gui.SizeOffset = Vector2.new(0, P.StreakShare / (2 * tall))
+	local row = HudParts.frame(gui, "Plate")
+	row.AnchorPoint = Vector2.new(0, 1)
+	row.Position = UDim2.fromScale(0, 1)
+	row.Size = UDim2.fromScale(1, 1 / tall)
+	local streak = HudParts.text(gui, "Streak", MEASURE_PX, "", HudParts.tone("Gold"))
+	HudParts.setTextSize(streak, MEASURE_PX, 1) -- scaled to its box at any distance
+	streak.AutoLocalize = false -- a number and the fire
+	streak.AnchorPoint = Vector2.new(0.5, 0)
+	streak.Position = UDim2.fromScale(0.5, 0)
+	streak.Size = UDim2.fromScale(1, P.StreakShare / tall)
+	streak.Visible = false
 	-- No rays behind a Reyes badge here: they would cover the name.
-	local badge = RankBadge.new(gui, { size = 1, name = "Badge", rays = false })
+	local badge = RankBadge.new(row, { size = 1, name = "Badge", rays = false })
 	badge.root.Size = UDim2.fromScale(1 / units, 1)
-	local name = HudParts.text(gui, "Name", MEASURE_PX, words)
+	local name = HudParts.text(row, "Name", MEASURE_PX, words)
 	HudParts.setTextSize(name, MEASURE_PX, 1) -- scaled to its box at any distance
 	local stroke = name:FindFirstChild("Outline")
 	if stroke and stroke:IsA("UIStroke") then
@@ -204,6 +249,8 @@ function Nameplates.add(self: any, player: Player)
 		gui = gui,
 		badge = badge,
 		name = name,
+		streak = streak,
+		streakShown = 0,
 		key = nil,
 		known = false,
 		pending = false,
@@ -214,6 +261,13 @@ function Nameplates.add(self: any, player: Player)
 	}
 	self.plates[player] = plate
 	showRank(plate, false)
+	showStreak(plate, false)
+	table.insert(
+		plate.connections,
+		player:GetAttributeChangedSignal("WinStreak"):Connect(function()
+			showStreak(plate, true)
+		end)
+	)
 	-- RankTier and RankDivision change together: one refresh for both.
 	local function changed()
 		if plate.pending then
@@ -286,15 +340,18 @@ function Nameplates.update(self: any)
 		if fade ~= plate.fade then
 			plate.fade = fade
 			HudParts.setTextTransparency(plate.name, fade)
+			HudParts.setTextTransparency(plate.streak, fade)
 			plate.badge:setTransparency(fade)
 		end
 		local plateHeight = P.SizeStuds * perStud / distance + P.SizePx
 		local outline = outlineFor(plateHeight * P.NameShare * TEXT_SHARE)
 		if outline ~= plate.outline then
 			plate.outline = outline
-			local stroke = plate.name:FindFirstChild("Outline")
-			if stroke and stroke:IsA("UIStroke") then
-				stroke.Thickness = outline
+			for _, label in { plate.name, plate.streak } do
+				local stroke = label:FindFirstChild("Outline")
+				if stroke and stroke:IsA("UIStroke") then
+					stroke.Thickness = outline
+				end
 			end
 		end
 	end
