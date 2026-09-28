@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+<filter id="cueInk" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5.38" result="blur"/>
+  <feComponentTransfer in="blur" result="grown"><feFuncA type="linear" slope="7" intercept="-0.35"/></feComponentTransfer>
+  <feOffset in="grown" dy="4" result="lip"/>
+  <feMerge result="both"><feMergeNode in="lip"/><feMergeNode in="grown"/></feMerge>
+  <feFlood flood-color="#1B2033"/>
+  <feComposite in2="both" operator="in" result="outline"/>
+  <feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter></defs><path d="M217.5 48.0 L209.3 56.8 L201.2 65.5 L193.0 74.2 L184.8 83.0 L176.7 91.7 L168.5 100.4 L160.3 109.2 L152.2 117.9 L144.0 126.6 L135.8 135.4 L120.6 120.2 L129.4 112.0 L138.1 103.8 L146.8 95.7 L155.6 87.5 L164.3 79.3 L173.0 71.2 L181.8 63.0 L190.5 54.8 L199.2 46.7 L208.0 38.5 Z" fill="#FFFFFF"/></svg>

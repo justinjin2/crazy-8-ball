@@ -575,9 +575,14 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Trading is open from the start** (no level gate; designer, 2026-09-27); rank cues never
   trade; players Roblox bars from trading paid items can't trade (ECONOMY.md section 12).
 
-**Open**
-- What the index shows for cues a player does not own, and whether filling it pays anything
-  (suggestion in ECONOMY.md section 17).
+- **The Index** (designer, 2026-09-28): every cue in the catalog by rarity; cues never owned
+  are dark silhouettes with "?" and no name; a cue counts once ever owned (selling keeps it).
+  Completing a rarity row pays once (Commons $1,000, Uncommons $2,500, Rares $7,500, Epics
+  $25,000, each with a title; Legendary, Mythic and Secret a title only). ECONOMY.md section 18.
+- **The menus** (designer, 2026-09-28): four buttons in one column on the left, Shop
+  (Cases, Limited, Money, VIP), Inventory (Cues, Cases, Index), Rewards (Daily, Playtime,
+  Codes) and Trade (later). Cases open on a spinning reel; Fast Open opens ten at once without
+  it. Promo codes give only money or free cases.
 
 ## 13. Fair play and security
 

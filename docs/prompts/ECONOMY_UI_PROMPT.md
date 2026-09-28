@@ -657,22 +657,22 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 
 - [x] 0. Setup: on branch `economy`; docs and references read; Studio instance and Rojo sync
   checked; DataStore access probed; `tools/lint.sh` and `tools/test.sh` green; plan in Notes.
-- [ ] 1a. Ranks to ECONOMY.md: ladder, per-tier and mode XP, Classic fade, never lost, gap factor,
+- [x] 1a. Ranks to ECONOMY.md: ladder, per-tier and mode XP, Classic fade, never lost, gap factor,
   PC, boosts, streak; rewards table with cases and cues; tests.
 - [ ] 1b. Money to ECONOMY.md: PC pay and limit, team pay, streak money, anti-farm, short matches,
   VIP and Money Party stacking; tests; server wired (Economy, Ranking).
-- [ ] 2. Save v2: fields, migration 1 -> 2 (division kept, rewards back-filled), validate,
+- [x] 2. Save v2: fields, migration 1 -> 2 (division kept, rewards back-filled), validate,
   PlayerData mutations, replication; tests; checked in Studio with an old save.
-- [ ] 3a. Catalog (44 cues + Classic), placeholder looks in CueStickBuilder and PowerCue, effect
+- [x] 3a. Catalog (44 cues + Classic), placeholder looks in CueStickBuilder and PowerCue, effect
   styles by rarity, the equipped cue seen by everyone in a match.
 - [ ] 3b. Cases (odds, roll, per-cue odds), selling, duplicates, PolicyService, the inventory
   service and remotes; tests.
 - [ ] 3c. Copies-in-existence counters and the Limited copy counter; Mythic/Secret announcements.
 - [ ] 3d. Free win cases with the limits, and the first win's Rare Case in the match summary.
 - [ ] 4. Rank-up rewards paid for real (money, cases, cue) through Ranking; checked in Studio.
-- [ ] 5a. Icons drawn and compared with the references (column, cases, packs, shop and rewards
+- [x] 5a. Icons drawn and compared with the references (column, cases, packs, shop and rewards
   icons, cue thumbnail layers).
-- [ ] 5b. Icons uploaded, ids in Config, README; a few checked rendering in Play.
+- [x] 5b. Icons uploaded, ids in Config, README; a few checked rendering in Play.
 - [ ] 6. The left column (four buttons, red dots, hidden in a match, gamepad route) and the
   shared `Menus` module (one at a time, close rules, the roadmap moved onto it).
 - [ ] 7a. Inventory: Cues tab (grid, filters, detail, equip, sell, sell all duplicates).
@@ -728,3 +728,9 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   effects by tier); Legendary/Mythic/Secret index rows title only (brief); team same-opponent
   count = the most-played opponent; the login streak cycles four weeks (day 28 then week 1);
   the Event Case drops the normal pool while it is off; codes WELCOME, 8BALL, ROOFTOP.
+- **Wave 1 checked in Studio (2026-09-28).** An old v1 save (Bronze I, 15 matches, $3,869) loaded
+  as v2: Inventory back-filled (BronzeCue, 2 Standard Cases), Equipped Classic, Progress from
+  Stats, RookieLeft 10; the column shows the four icons with the red dots (2 cases, reward
+  ready); Trade and Inventory frames open, tabs and money pill in the header, close button and
+  outside click close them; console clean. Mouse input in the MCP is in GUI space: the top-bar
+  inset (58 px) is added, and the capture is 1.256x the 1529x751 viewport.

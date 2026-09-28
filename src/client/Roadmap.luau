@@ -64,7 +64,8 @@ local TIERS: { string } = Config.Ranks.Tiers
 local TOP_TIER = TIERS[#TIERS]
 local PER_TIER: number = Config.Ranks.DivisionsPerTier
 local TIER_COLORS: { [string]: { number } } = Config.Ranks.Colors :: any
-local TIER_FIRST: { [string]: number } = Config.Ranks.Rewards.TierFirst :: any
+-- Each tier's division I reward row (ECONOMY 4.8): Money, Cases, Cue.
+local TIER_REWARDS: { [string]: { Money: number } } = Config.Ranks.Rewards.Tier :: any
 local ICONS: { [string]: string } = K.Icons :: any
 -- The case and chat-tag icons (tools/gen_ui_art.py: case, chat_tag); stand-ins from the set
 -- until their ids are in Config.UI.Kit.Icons.
@@ -1188,7 +1189,7 @@ function Roadmap.measureNext(self: any, width: number, lineH: number, body: numb
 		local tier, division = Ranks.at(target)
 		words = P.NextDivision:format(divisionName(tier, division))
 		badgeImage = RankBadge.image(tier, division)
-		amount = Ranks.rewardFor(target)
+		amount = Ranks.rewardFor(target).money
 	end
 	local pays = not top and target > state.peak and amount > 0
 	local amountWords = Format.moneyDelta(amount)
@@ -1296,7 +1297,8 @@ function Roadmap.drawRewards(self: any)
 	-- The words.
 	local tiles: Tiles = self.tiles
 	local name = Ranks.tierName(tier)
-	local money = Format.moneyDelta(TIER_FIRST[tier] or 0)
+	local tierRow = TIER_REWARDS[tier]
+	local money = Format.moneyDelta(if tierRow then tierRow.Money else 0)
 	local plainTag = Strings.Ranks.ChatTag:format(string.upper(name))
 	local cue = P.TierCue:format(name)
 	tiles.money.value.Text = money

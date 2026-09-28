@@ -43,11 +43,29 @@ function tests.the_range_widens_to_anyone_after_ten_seconds()
 end
 
 function tests.ratings_count_divisions_and_how_far_into_one()
+	local Ranks = H.require("Progression.Ranks")
 	expect(Matchmaker.rating(0, false) == 1, "unranked counts as Bronze I")
+	expect(Matchmaker.rating(9000, false) == 1, "unrated XP does not count")
 	expect(Matchmaker.rating(0, true) == 1, "Bronze I with no XP")
-	local mid = Matchmaker.rating(500, true)
-	expect(mid > 1 and mid < 2, "half way into Bronze I")
-	expect(Matchmaker.rating(2000, true) >= 3, "two divisions up")
+	-- Division widths grow up the ladder (ECONOMY 4.2): Bronze I is 250 XP, Diamond II 9,500.
+	expect(Matchmaker.rating(125, true) == 1.5, "half way into Bronze I")
+	expect(Matchmaker.rating(500, true) == 3, "Bronze III")
+	local diamond2 = Ranks.toXp("Diamond", 2, 4750)
+	expect(Matchmaker.rating(diamond2, true) == 22.5, "half way into Diamond II")
+	expect(Matchmaker.rating(Ranks.toXp("Reyes", nil, 5e6), true) == 46, "Reyes has no top")
+	local top = Matchmaker.rating(Ranks.toXp("Grandmaster", 5, 1e9), true)
+	expect(top > 45.99 and top < 46, "the top of Grandmaster V stays below Reyes")
+	-- Ratings rise with XP everywhere on the ladder, so they order players sensibly.
+	local last = 0
+	for index = 1, Ranks.count() do
+		for _, share in { 0, 0.25, 0.5, 0.99 } do
+			local width = Ranks.width(index) or 1000
+			local rating = Matchmaker.rating(Ranks.startXp(index) + math.floor(width * share), true)
+			expect(rating >= last, "rating never falls at division " .. index)
+			expect(rating >= index and rating < index + 1, "inside its division " .. index)
+			last = rating
+		end
+	end
 	expect(Matchmaker.teamRating({ 2, 4 }) == 3, "a team averages")
 	expect(Matchmaker.teamRating({}) == 1)
 end

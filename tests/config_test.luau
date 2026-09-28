@@ -331,6 +331,124 @@ return {
 		H.expect(Config.Aim.PullSteps >= 1 and Config.Aim.PullSteps % 1 == 0, "whole pull steps")
 	end,
 
+	-- Config.Ranks (ECONOMY 4): every tier has its rows, and nothing can make XP negative.
+	-- The numbers themselves are checked against ECONOMY's tables in tests/ranks_test.
+	["the rank config is complete and never takes XP away"] = function()
+		local Config = H.require("Config")
+		local R = Config.Ranks
+		local tiers: { string } = R.Tiers
+		local isTier: { [string]: boolean } = {}
+		for _, tier in tiers do
+			isTier[tier] = true
+		end
+		local top = tiers[#tiers]
+		local division: { [string]: { number } } = R.DivisionXp :: any
+		local base: { [string]: { Win: number, Loss: number } } = R.BaseXp :: any
+		local steps: { [string]: number } = R.Rewards.Step :: any
+		local firsts: { [string]: any } = R.Rewards.Tier :: any
+		local caseList: { [string]: any } = Config.Cases.List :: any
+		local cues: { [string]: boolean } = {}
+		for _, tier in tiers do
+			if tier ~= top then
+				local widths = division[tier]
+				H.expect(widths ~= nil and #widths == R.DivisionsPerTier, tier .. " DivisionXp")
+				for _, width in widths do
+					H.expect(width > 0 and width % 1 == 0, tier .. " widths are whole and > 0")
+				end
+				H.expect(type(steps[tier]) == "number" and steps[tier] > 0, tier .. " Step")
+			end
+			local row = base[tier]
+			H.expect(row ~= nil and row.Win > 0, tier .. " BaseXp.Win")
+			H.expect(row.Loss >= 0 and row.Loss <= row.Win, tier .. " a loss never costs XP")
+			local first = firsts[tier]
+			H.expect(first ~= nil and first.Money > 0, tier .. " Rewards.Tier")
+			for id, count in first.Cases or {} do
+				H.expect(caseList[id] ~= nil, ("%s rewards an unknown case %s"):format(tier, id))
+				H.expect(table.find(Config.Cases.Order, id) ~= nil, id .. " is in Cases.Order")
+				H.expect(count >= 1 and count % 1 == 0, tier .. " case counts are whole")
+			end
+			H.expect(
+				type(first.Cue) == "string" and not cues[first.Cue],
+				tier .. " has its own cue"
+			)
+			cues[first.Cue] = true
+		end
+		H.expect(steps[top] == nil, "the top tier has one division, so no steps")
+		for tier, fade in R.ClassicWinFade :: any do
+			H.expect(isTier[tier] and fade > 0 and fade <= 1, "ClassicWinFade " .. tostring(tier))
+		end
+		-- Every difficulty has an XP multiplier; Classic is the plain one.
+		for _, level in Config.Difficulty.Order do
+			H.expect((R.ModeXp :: any)[level] ~= nil, level .. " has a ModeXp")
+		end
+		H.expect(R.ModeXp.Classic == 1, "Classic XP is x1")
+		for level, tier in R.Unlocks :: any do
+			H.expect(table.find(Config.Difficulty.Order, level) ~= nil, "Unlocks: " .. level)
+			H.expect(isTier[tier], "Unlocks " .. level .. ": " .. tostring(tier))
+		end
+		H.expect((R.Unlocks :: any).Classic == nil, "anyone may host Classic")
+		-- The gap: gentle then strict, never above Max, a loss at most LossMax.
+		local G = R.Gap
+		H.expect(isTier[G.StrictFromTier], "Gap.StrictFromTier is a tier")
+		H.expect(G.Scale > 0 and G.StrictScale > 0, "scales")
+		H.expect(G.StrictFloor > 0 and G.StrictFloor <= G.Floor and G.Floor <= 1, "floors")
+		H.expect(G.Max >= 1 and G.LossMax >= 0 and G.LossMax <= G.Max, "Max and LossMax")
+		H.expect(R.PcXp.High > 0 and R.PcXp.High <= R.PcXp.Low and R.PcXp.Low <= 1, "PcXp")
+		local B = R.Boosts
+		for _, key in { "Rookie", "Vip", "FirstWin", "Streak" } do
+			H.expect((B :: any)[key] >= 0, "Boosts." .. key)
+		end
+		H.expect(B.RookieMatches >= 1 and B.RookieMatches % 1 == 0, "RookieMatches")
+		H.expect(B.StreakFrom == Config.Economy.StreakFrom, "one streak for XP and money")
+		-- Rank cues are Exclusive: never traded or sold (ECONOMY 4.8).
+		local ok, Catalog = pcall(H.require, "Progression.Catalog")
+		if ok and type(Catalog) == "table" and Catalog.get then
+			for cue in cues do
+				local row = Catalog.get(cue)
+				H.expect(row ~= nil, "the catalog has " .. cue)
+				H.expect(row.Rarity == "Exclusive", cue .. " is Exclusive")
+				H.expect(row.Tradable ~= true and row.Sellable ~= true, cue .. " stays yours")
+			end
+		end
+	end,
+
+	-- Config.Economy (ECONOMY 3): shares are shares, rows are in order, the caps are sane.
+	["the money config is complete"] = function()
+		local Config = H.require("Config")
+		local E = Config.Economy
+		H.expect(E.BallPay > 0 and E.WinBonus > E.LossBonus and E.LossBonus > 0, "bonuses")
+		H.expect(E.PcWinBonus > E.PcLossBonus and E.PcLossBonus > 0, "PC bonuses")
+		H.expect(E.PcWinBonus < E.WinBonus, "PC pays less than people")
+		for _, kind in { "Bank", "Kick", "Combo", "Carom" } do
+			H.expect((E.NiceShotPay :: any)[kind] > 0, "NiceShotPay." .. kind)
+		end
+		H.expect(E.WinBonusGapFloor > 0 and E.WinBonusGapFloor <= 1, "WinBonusGapFloor")
+		for _, share in { E.SoloShare, E.PcAfterCapShare } do
+			H.expect(share > 0 and share <= 1, "a share is in (0, 1]")
+		end
+		H.expect(E.SoloDailyCap > 0 and E.PcDailyCap > 0 and E.ShortDailyCap > 0, "caps")
+		H.expect(E.SoloAfterCapPay >= 1 and E.ShortAfterCapPay >= 1, "never zero a ball")
+		H.expect(E.VipBoost >= 0 and E.PartyBoost >= 0, "boosts")
+		H.expect(E.StreakBonus > 0 and E.StreakFrom >= 1, "streak")
+		-- The same-opponent rows rise in UpTo; only the last has none; shares are shares.
+		local rows: { any } = E.SameOpponent :: any
+		H.expect(#rows >= 1 and rows[#rows].UpTo == nil, "the last row covers every match after")
+		local last = 0
+		for i, row in rows do
+			if i < #rows then
+				H.expect(type(row.UpTo) == "number" and row.UpTo > last, "UpTo rises")
+				last = row.UpTo
+			end
+			for _, key in { "Xp", "Bonus", "Balls" } do
+				H.expect(row[key] >= 0 and row[key] <= 1, ("row %d %s"):format(i, key))
+			end
+			H.expect(type(row.FreeCase) == "boolean", "row FreeCase")
+		end
+		H.expect(rows[1].Xp == 1 and rows[1].Bonus == 1 and rows[1].Balls == 1, "first row full")
+		H.expect(E.SameOpponentMaxEntries >= 1 and E.FreeCasesPerOpponent >= 1, "limits")
+		H.expect(E.FreeCaseLoserMinMatches >= 1, "FreeCaseLoserMinMatches")
+	end,
+
 	["shared modules cannot see Roblox globals"] = function()
 		local clean = H.evalInModuleEnv([[
 			return game == nil and workspace == nil and Vector3 == nil and CFrame == nil

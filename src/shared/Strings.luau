@@ -311,4 +311,136 @@ return {
 		TierCue = "%s Cue", -- the tier's cue: "Platinum Cue"
 		Soon = "Soon", -- a reward not given yet
 	},
+	-- Cues, cases and rarities by id (Progression/Catalog, Progression/Cases). Placeholder cue
+	-- names (2026-09-28, overnight): pool and rooftop words, replaced when real cues arrive.
+	Items = {
+		Cues = {
+			Classic = "Classic Cue",
+			ChalkDust = "Chalk Dust Cue",
+			CornerPocket = "Corner Pocket Cue",
+			RooftopBreeze = "Rooftop Breeze Cue",
+			RackRunner = "Rack Runner Cue",
+			SideSpin = "Side Spin Cue",
+			FeltGreen = "Felt Green Cue",
+			BankShot = "Bank Shot Cue",
+			Skyline = "Skyline Cue",
+			TikiTorch = "Tiki Torch Cue",
+			PalmShade = "Palm Shade Cue",
+			SunsetRail = "Sunset Rail Cue",
+			KickShot = "Kick Shot Cue",
+			CushionCrusher = "Cushion Crusher Cue",
+			HarborLights = "Harbor Lights Cue",
+			Masse = "Massé Cue",
+			NeonPocket = "Neon Pocket Cue",
+			OceanBreak = "Ocean Break Cue",
+			RailRider = "Rail Rider Cue",
+			Tidewater = "Tidewater Cue",
+			ThunderBreak = "Thunder Break Cue",
+			VioletVortex = "Violet Vortex Cue",
+			Penthouse = "Penthouse Cue",
+			Nightcap = "Nightcap Cue",
+			JumpJet = "Jump Jet Cue",
+			GoldenBreak = "Golden Break Cue",
+			SolarFlare = "Solar Flare Cue",
+			CrownJewel = "Crown Jewel Cue",
+			Starfall = "Starfall Cue",
+			Nebula = "Nebula Cue",
+			Eclipse = "Eclipse Cue",
+			BronzeCue = "Bronze Cue",
+			SilverCue = "Silver Cue",
+			GoldCue = "Gold Cue",
+			PlatinumCue = "Platinum Cue",
+			DiamondCue = "Diamond Cue",
+			ExpertCue = "Expert Cue",
+			VeteranCue = "Veteran Cue",
+			MasterCue = "Master Cue",
+			GrandmasterCue = "Grandmaster Cue",
+			ReyesCue = "Reyes Cue",
+			VipCue = "VIP Cue",
+			StarterCue = "Starter Cue",
+			FoundersCue = "Founder's Cue",
+			BetaCue = "Beta Cue",
+		},
+		Cases = {
+			Standard = "Standard Case",
+			Rare = "Rare Case",
+			Epic = "Epic Case",
+			Legendary = "Legendary Case",
+			Event = "Event Case",
+		},
+		Rarities = {
+			Common = "Common",
+			Uncommon = "Uncommon",
+			Rare = "Rare",
+			Epic = "Epic",
+			Legendary = "Legendary",
+			Mythic = "Mythic",
+			Secret = "Secret",
+			Exclusive = "Exclusive",
+			Unique = "Unique",
+			Default = "Default",
+		},
+		-- Index row titles (ECONOMY 18), once a rarity row is complete.
+		Titles = {
+			Common = "Common Collector",
+			Uncommon = "Uncommon Collector",
+			Rare = "Rare Collector",
+			Epic = "Epic Collector",
+			Legendary = "Legendary Collector",
+			Mythic = "Mythic Collector",
+			Secret = "Secret Keeper",
+			FirstReyes = "The First Reyes",
+		},
+	},
+	-- The left column and the full menus (MenuColumn, MenuFrame and the four menus).
+	Menus = {
+		-- Each column tile's word, across its bottom edge (real text, never in the image).
+		Column = { Shop = "Shop", Inventory = "Inventory", Rewards = "Rewards", Trade = "Trade" },
+		-- Each menu's title in its header band.
+		Titles = { Shop = "Shop", Inventory = "Inventory", Rewards = "Rewards", Trade = "Trade" },
+		-- The tabs under (or beside) each title.
+		Tabs = {
+			Shop = { Cases = "Cases", Limited = "Limited", Money = "Money", Vip = "VIP" },
+			Inventory = { Cues = "Cues", Cases = "Cases", Index = "Index" },
+			Rewards = { Daily = "Daily", Playtime = "Playtime", Codes = "Codes" },
+		},
+		Loading = "Loading...", -- a page whose contents have not arrived
+		-- The confirm dialog's default buttons.
+		Yes = "Yes",
+		No = "No",
+		DotMore = "%d+", -- the red dot over too many to count: "9+"
+		DotReady = "!", -- the red dot on Rewards while something can be claimed
+		-- Time left: "23:59:12", "14:32", "6d 4h".
+		TimeHours = "%d:%02d:%02d",
+		TimeMinutes = "%d:%02d",
+		TimeDays = "%dd %dh",
+		-- A request that did not work, by the reason the client or server gave; the menus add
+		-- their own reasons here. Anything unknown says Default.
+		Reasons = {
+			Network = "Couldn't reach the server. Try again.",
+			Busy = "One moment...",
+			Default = "That didn't work. Try again.",
+		},
+	},
+	-- The banner at the top middle (Banner). Names are players' usernames.
+	Banner = {
+		-- "Painicane unboxed a Mythic Starfall Cue!" (username, the cue's name), by rarity.
+		Unbox = {
+			Common = "%s unboxed a Common %s!",
+			Uncommon = "%s unboxed an Uncommon %s!",
+			Rare = "%s unboxed a Rare %s!",
+			Epic = "%s unboxed an Epic %s!",
+			Legendary = "%s unboxed a Legendary %s!",
+			Mythic = "%s unboxed a Mythic %s!",
+			Secret = "%s unboxed a Secret %s!",
+			Default = "%s unboxed %s!",
+		},
+		PartyStarted = "%s started a Money Party!", -- the buyer's username
+		PartyStartedAnon = "A Money Party started!",
+		-- The countdown while it runs: the multiplier ("2"), the time left, the buyer.
+		Party = "Money Party! %sx money for everyone: %s (from %s)",
+		PartyAnon = "Money Party! %sx money for everyone: %s",
+		Reyes = "%s reached Reyes!",
+		FirstReyes = "%s is the first player ever to reach Reyes!",
+	},
 }

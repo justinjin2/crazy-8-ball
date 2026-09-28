@@ -78,8 +78,13 @@ function Economy.onShot(t: any, player: Player)
 		team = seat.team,
 		winner = j.winner,
 		reason = j.reason,
-		solo = solo,
+		opponent = if solo then "Solo" else "Player",
+		isShooter = true,
 		soloEarnedToday = if solo then PlayerData.soloEarnedToday(player, day) else 0,
+		pcEarnedToday = 0,
+		shortCapped = false,
+		boost = 0,
+		farmBalls = 1,
 		multiplier = Economy.multiplier(e),
 	})
 	if pay.total <= 0 then

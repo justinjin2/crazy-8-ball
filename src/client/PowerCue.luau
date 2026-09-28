@@ -5,10 +5,10 @@
 -- as before, and a top-down cue lies inside the bar and slides down as you pull, so the
 -- control shows the thing it controls.
 --
--- The cue is drawn from Config.Cue.Styles through CueArt, so the cue a player has equipped is
--- the cue they pull back - and a collectible cue is a data row, never new code here
--- (Roadmap 5.2). CueArt does the arithmetic and is Lune-tested; this module only turns its
--- slices into Frames.
+-- The cue is the catalog cue the player has equipped (Catalog.style, drawn through CueArt), so
+-- the cue they pull back is the one on their stick - and a collectible cue is a data row,
+-- never new code here. follow() keeps it on the player's EquippedCue. CueArt does the
+-- arithmetic and is Lune-tested; this module only turns its slices into Frames.
 --
 -- In the UI kit's look (docs/UI_STYLE.md): a white track with an ink outline, and a fill that
 -- runs green to yellow to red as the pull grows.
@@ -24,6 +24,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CueArt = require(Shared:WaitForChild("CueArt"))
+local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
+local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent.HudParts)
 local K = Config.UI.Kit
 
@@ -37,7 +39,7 @@ export type PowerCue = typeof(setmetatable(
 		fill: Frame,
 		text: TextLabel,
 		cue: Frame,
-		styleName: string,
+		cueId: string, -- the catalog cue drawn
 		pull: number?, -- the pull shown, nil when idle (PULL shows instead of a percentage)
 		large: boolean?, -- the large-screen layout (place), nil before the first
 		cueWidth: number, -- the cue's width at the butt, pixels, for this layout
@@ -57,9 +59,9 @@ local function cueLengthScale(): number
 end
 
 --- Build the cue out of slices. Called once; pulling only moves the container.
-local function buildCue(parent: GuiObject, styleName: string, width: number): Frame
+local function buildCue(parent: GuiObject, cueId: string, width: number): Frame
 	local U = Config.UI
-	local style = CueArt.styleFor(Config.Cue.Styles, Config.Cue.DefaultStyle, styleName)
+	local style = Catalog.style(cueId) -- an unknown id draws the default cue
 
 	local cue = Instance.new("Frame")
 	cue.Name = "Cue"
@@ -95,7 +97,8 @@ local function buildCue(parent: GuiObject, styleName: string, width: number): Fr
 	return cue
 end
 
-function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
+--- The power bar, its cue drawn as catalog cue `cueId` (default: the default cue).
+function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	local U = Config.UI
 
 	-- The bar is the drag target, so it is a button rather than a frame.
@@ -134,7 +137,8 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 	fillCorner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
 	fillCorner.Parent = fill
 
-	local cue = buildCue(bar, styleName or Config.Cue.DefaultStyle, U.PowerCueWidthPx)
+	local shown = cueId or Config.Cue.DefaultStyle
+	local cue = buildCue(bar, shown, U.PowerCueWidthPx)
 
 	local text = HudParts.text(bar, "Percent", U.PowerLabelSize, Strings.Pull)
 	text.TextWrapped = false
@@ -150,7 +154,7 @@ function PowerCue.new(screen: ScreenGui, styleName: string?): PowerCue
 		fill = fill,
 		text = text,
 		cue = cue,
-		styleName = styleName or Config.Cue.DefaultStyle,
+		cueId = shown,
 		pull = nil,
 		large = nil,
 		cueWidth = U.PowerCueWidthPx,
@@ -176,7 +180,7 @@ function PowerCue.place(self: PowerCue, headerBottom: number)
 		HudParts.setTextSize(self.text, if large then U.PowerLargeLabelSize else U.PowerLabelSize)
 		self.cueWidth = if large then U.PowerLargeCueWidthPx else U.PowerCueWidthPx
 		self.cue:Destroy()
-		self.cue = buildCue(bar, self.styleName, self.cueWidth)
+		self.cue = buildCue(bar, self.cueId, self.cueWidth)
 		self:setPull(self.pull)
 	end
 	if large then
@@ -221,15 +225,25 @@ function PowerCue.setPull(self: PowerCue, pull: number?)
 		else Strings.Pull
 end
 
---- Rebuild for a different cue. Roadmap 5.2 calls this when a player equips one.
-function PowerCue.setStyle(self: PowerCue, styleName: string)
-	if styleName == self.styleName then
+--- Rebuild for a different catalog cue (nothing happens for the one already drawn).
+function PowerCue.setCue(self: PowerCue, cueId: string)
+	if cueId == self.cueId then
 		return
 	end
-	self.styleName = styleName
+	self.cueId = cueId
 	self.cue:Destroy()
-	self.cue = buildCue(self.root, styleName, self.cueWidth)
+	self.cue = buildCue(self.root, cueId, self.cueWidth)
 	self:setPull(self.pull)
+end
+
+--- Draw `player`'s equipped cue (Config.Cue.EquippedAttribute) from now on, and redraw it
+--- whenever they equip another. Call once.
+function PowerCue.follow(self: PowerCue, player: Player)
+	local function show()
+		self:setCue(CueStickBuilder.equippedCue(player))
+	end
+	player:GetAttributeChangedSignal(Config.Cue.EquippedAttribute):Connect(show)
+	show()
 end
 
 function PowerCue.setVisible(self: PowerCue, visible: boolean)

@@ -61,9 +61,12 @@ visuals.Parent = workspace
 local hub = Hub.new(visuals)
 local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
+-- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
+CueStickBuilder.wear(cueStick, player)
 local avatar = Avatar.new()
 local screen = UI.screen()
 local powerCue = PowerCue.new(screen)
+powerCue:follow(player) -- cue looks: the power bar's cue is the equipped one too
 UI.addPlayControl(powerCue.root)
 local spinSelector = SpinSelector.new(screen, input)
 local zoomHint = ZoomHint.new(screen) -- scroll or pinch to zoom, over the spin button
@@ -824,6 +827,12 @@ UserInputService.InputBegan:Connect(function(key, processed)
 	if processed then
 		return
 	end
+	-- The D-pad in the hub opens the left column's menus (Shop, Inventory, Rewards, Trade);
+	-- never in a match, while a menu is open (its D-pad moves the selection) or while a text
+	-- box has focus (Progression.padRoute). B closing an open menu is Menus' own binding.
+	if Progression.padRoute(key.KeyCode) then
+		return
+	end
 	if
 		(
 			key.KeyCode == Enum.KeyCode.L
@@ -835,7 +844,12 @@ UserInputService.InputBegan:Connect(function(key, processed)
 		leave()
 	elseif key.KeyCode == Enum.KeyCode.Escape and hud:isModal() then
 		hud:closeModal()
-	elseif key.KeyCode == Enum.KeyCode.ButtonY and snapshot and snapshot.phase == "Waiting" then
+	elseif
+		key.KeyCode == Enum.KeyCode.ButtonY
+		and snapshot
+		and snapshot.phase == "Waiting"
+		and not Progression.isBusy()
+	then
 		queueMenu:focus()
 	elseif key.KeyCode == Enum.KeyCode.ButtonY and not snapshot and opponentPrompt:isOpen() then
 		opponentPrompt:focus()
@@ -954,10 +968,17 @@ RunService.RenderStepped:Connect(function(dt)
 		a:updateRoll(m, dt)
 		a:updatePull(dt)
 		local e = effectsByTable[id]
+		-- Cue looks: the trail and pocket bursts are the current shooter's equipped cue's.
+		local s = hub.snapshots[id]
+		e:follow(if s then s.shooter else nil)
 		local part = hub:cueBallPartFor(id)
 		if part and e.boundCue ~= part then
 			e:attachTrail(part)
 			e.boundCue = part
+		elseif part == nil and e.boundCue then
+			-- The renderer went to another table: take this table's trail off its ball.
+			e:detachTrail()
+			e.boundCue = nil
 		end
 		e:updateTrail(m:findCueBall(), m:isBusy())
 	end

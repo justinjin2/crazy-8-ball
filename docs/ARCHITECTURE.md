@@ -358,3 +358,67 @@ Studio's own MemoryStore, then the teleport reports "Studio". `ServerStorage.Glo
 posts a search from a pretend server; the `StudioArena` attribute (a team size) on
 ServerStorage before Play boots an arena with pretend opponents, driven by
 `ServerStorage.ArenaQA`. Every step logs a `[8ball] GQ` line with its timing.
+
+## The economy: items, cases, shop, rewards (2026-09-28)
+
+Built to `docs/ECONOMY.md` (every number) on branch `economy`. The server decides everything;
+clients send ids and counts, never an amount, price, rarity or result.
+
+**Modules.**
+- Pure, Lune-tested (`src/shared/Progression/`): `Catalog` (every cue as a data row: rarity,
+  group, tradable, sellable, which cases drop it, vaulted, its effect style and placeholder
+  look; `Catalog.style` turns a look into CueArt segments), `Cases` (odds as integer thousandths
+  of a percent, `roll(caseId, rng)` with the rng passed in, per-cue odds for the Odds panel,
+  prices with bulk and sale, sell-back, the free-case rule), `Inventory` (functions over the
+  save: counts, duplicates, selling, equipping, the Index rows, the client snapshot), `Daily`
+  (login streak with day 28, playtime gifts, codes), `Shop` (offer windows, VIP, product
+  grants, Money Party, the Limited shelf, and `processReceipt`, the once-only receipt logic
+  with its Roblox calls passed in so Lune can test it), plus the rewritten `Ranks` and `Money`
+  and `SaveSchema` v2.
+- Server: `PlayerData` (the only writer of saves: named, validated mutations for every item,
+  reward and purchase), `Items` (the inventory service: `ItemRequest`, rate limits, buying,
+  opening, selling, equipping, the Index claims, PolicyService), `Counters` (copies in
+  existence, the Limited copy counter, the first Reyes), `Store` (ProcessReceipt, game passes,
+  VIP, the offers, Money Party, Fast Open, `StoreRequest`), `Rewards` (daily streak, playtime,
+  codes, `RewardRequest`), `Announce` (the banner, MessagingService for every-server news),
+  and `Ranking`/`Economy` for match XP, money, free cases and rank-up rewards.
+- Client: `Menus` (one full menu at a time, close rules, the slight dim, the gamepad
+  selection put back), `MenuFrame` (the header band, tabs, sheet and red X every menu uses),
+  `MenuColumn` (the left column: Shop, Inventory, Rewards, Trade with red dots),
+  `ItemState` (the client's copy of the ItemState, ShopState and RewardState snapshots and the
+  request wrappers), `CueThumb` (a cue's tinted thumbnail from the layer images), `Banner`,
+  `InventoryMenu`, `CaseOpening` (the reel and Fast Open's grid), `ShopMenu`, `RewardsMenu`,
+  `TradeMenu`.
+
+**Remotes** (`Net`): `ItemRequest`, `StoreRequest`, `RewardRequest` (RemoteFunctions: the
+client asks, the server answers `{ ok, reason?, ... }`), `ItemState`, `ShopState`,
+`RewardState` (a player's snapshots, sent on load and after every change), `Banner` (to
+everyone). The protocol is written next to each remote in `src/shared/Net.luau`.
+
+**Attributes** (server-set, clients read): on the player `EquippedCue` (everyone's stick and
+trail follow it), `Vip`, `FastOpen`, `RookieLeft` (the rank HUD's ROOKIE x2 pill),
+`CasesUnopened` and `RewardReady` (the column's red dots), `PaidRandomRestricted`; on
+`ReplicatedStorage.CueCounts` one attribute per cue id (copies in existence) and on
+`ReplicatedStorage.LimitedSold` one per Limited cue; on `workspace` `MoneyPartyEndsAt` and
+`MoneyPartyBuyer`.
+
+**Copies in existence** (`Counters`). Each server keeps pending +/- per cue (up when unboxed
+or bought, down when sold) and every `Config.Items.FlushSeconds` (plus jitter, and on
+BindToClose) adds them with one `UpdateAsync` to its own shard key, `shard_<n>` with n from
+the JobId (`Config.Items.CountsShards` = 8), in `CueCounts_v1` (`CueCounts_Studio_v1` in
+Studio). Every `ReadSeconds` one `GetAsync` per shard sums the totals into the attributes.
+Budget per server: 1 write a minute and 8 reads every 2 minutes, far under Roblox's per-server
+limits (60 + 10 x players a minute each). The limit is per key: 8 shards take about 8 x 60
+writes a minute in total, so about 480 servers flushing once a minute; past that raise
+`CountsShards`. Counts lag by up to a few minutes and a crash loses at most one flush.
+**Limited copies**: one key per Limited cue in `LimitedCounts_v1`; `UpdateAsync` hands out the
+next number only if under the cap and before the end time; the money is taken only after a
+number is given, and a failure takes nothing.
+
+**Robux.** `Config.Products` lists every developer product and game pass with `Id = 0` until
+the designer creates them in Creator Hub. `Store` sets `MarketplaceService.ProcessReceipt`
+once: player not here or save not loaded -> NotProcessedYet; the PurchaseId already in the
+save -> PurchaseGranted; else one PlayerData mutation grants and records the id, then the save
+is written (`Profile:Save()` and its `OnAfterSave`, with a timeout) before PurchaseGranted.
+VIP = owns the pass or bought the welcome offer. The dev command `/buy` runs the same grant
+with a fake purchase id.

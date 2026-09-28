@@ -388,7 +388,9 @@ gets a **Standard Case**, as follows:
 - The very first win's case is a **Rare Case** instead, opened on the post-match screen with
   Equip (GDD section 14).
 
-Cases go to the inventory and open whenever the player wants (after a match, or ten at once).
+Cases go to the inventory and open whenever the player wants. Everyone opens them one at a time
+on the reel (tap to skip to the result, then "Open next"); **Fast Open** (11.5) adds Open 10 (a
+grid of ten results) and skips the reel (2026-09-28, section 18).
 
 ### 7.2 The four cases
 
@@ -731,6 +733,39 @@ lower. Each rarity's supply is shared across its cues: at launch 3 Legendaries a
 
 ## 17. Open (the designer's call)
 
-- Whether completing a row in the Index pays (suggestion: all Commons $1,000, Uncommons
-  $2,500, Rares $7,500, Epics $25,000, plus a title).
+- ~~Whether completing a row in the Index pays~~: decided 2026-09-28, section 18.
 - R6 and the 18+ DevEx rate (section 13).
+
+## 18. The menus and how items are kept (2026-09-28)
+
+Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.md`).
+
+- **The left column and its menus.** Four buttons in one column on the left, top to bottom:
+  **Shop** (tabs Cases, Limited, Money, VIP), **Inventory** (Cues, Cases, Index), **Rewards**
+  (Daily, Playtime, Codes) and **Trade** ("Soon": trading is a later session). One menu at a
+  time.
+- **How cues are saved.** A count per cue id for case cues and Exclusive cues (small saves, no
+  inventory limit; a duplicate is a count above 1). Unique cues keep their copy number (#412).
+  Unopened cases stack as a count per case type. No inventory or case limit. The default
+  Classic cue is always owned and never counted, sold or traded.
+- **Opening many cases.** Everyone opens one at a time on the reel (tap to skip to the result,
+  then "Open next"); Fast Open adds Open 10 and skips the reel (7.1, 11.5).
+- **Codes.** Promo codes in the Rewards menu; the list lives in Config (`Config.Daily.Codes`);
+  each code once per player, case-insensitive, with an optional expiry. Codes give only money
+  or free cases, never anything sold for Robux (a free case is not a paid random item).
+- **Index completion** (closes the Open item in 17). Cues never owned are dark silhouettes with
+  "?" and no name. A cue counts once it has ever been owned (selling it later keeps it in the
+  Index). Completing a rarity row pays once: Commons $1,000, Uncommons $2,500, Rares $7,500,
+  Epics $25,000, each with a title ("Common Collector" ...). Legendary, Mythic and Secret rows
+  give a title only (overnight assumption: money there would reward luck more than play).
+  Exclusive and Unique groups are listed with no row reward. Titles are saved and listed in
+  the Index; showing a title over the head is parked.
+- **No rank-down screen.** XP is never lost, so the "Rank down" card is gone.
+- **The first win's Rare Case** is rolled by the server when the match settles and revealed on
+  the result screen with Equip (GDD 14).
+- **Existing test saves** keep the division they show when the save layout changes (1,000-XP
+  divisions mapped to the same fraction of the new ones), and get the cases and cues of the
+  tiers they already reached, once (their money was already paid).
+- **Private servers** (when they come): no XP, no free cases, solo-rate money. The arena is a
+  *reserved* server (`PrivateServerId` set but `PrivateServerOwnerId` 0) and never counts as
+  private.

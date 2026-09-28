@@ -120,3 +120,16 @@ Nobody has listened to them yet: swap any by changing its id in `Config.Audio.Ui
 | RankDown | a division lost (pitched 0.8) | 15675081158 "Roblox_UI_Cute_Goodbye" | 0.3 s |
 | BadgeHover | the rank badge under the mouse | 15675055424 "Roblox_UI_Cute_Pop" | 2.7 s (tail) |
 | Click | a button pressed | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |
+| ReelTick | the case reel: one card passing the marker (pitched 1.7) | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |
+| ReelSettle | the reel settling on the prize | 15675046931 "Roblox_UI_Sweep" | 0.61 s |
+| ReelBuild | the longer build-up before a Mythic or Secret | 15674975792 "Roblox_UI_Whoosh_03" | 1.1 s |
+| RevealLow | a Common or Uncommon revealed | 15675055424 "Roblox_UI_Cute_Pop" | 2.7 s |
+| RevealRare | a Rare revealed | 1846251729 "Fortune Fun Logo" (APM) | 3.1 s |
+| RevealEpic | an Epic revealed | 1848281810 "Everything Works Out - Tag2" (APM) | 3.7 s |
+| RevealLegendary | a Legendary revealed | 9045294353 "Shooting Stars" (APM) | 4.9 s |
+| RevealMythic | a Mythic or Secret revealed | 1839881844 "Spinning Around (b)" (APM) | 5.4 s |
+| Claim | a reward claimed (daily, playtime, index row, code) | 15675043410 "Roblox_UI_Tonal_Stinger" | 1.5 s |
+| Banner | a top banner (Money Party, an unboxing, Reyes) | 15675085146 "Roblox_UI_Indicator" | 3.4 s |
+
+The reel and reveal sounds were added on 2026-09-28 (overnight placeholders, each checked loading
+in this game with `IsLoaded` and `TimeLength`); nobody has listened to them yet.

@@ -1649,3 +1649,32 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   at 55%; the Diamond tier reward is 2 Epic Cases (a Legendary Case there made first
   Legendaries too fast once the Rookie Boost sped up ranks); the anti-alt rule "loser must be
   Level 3" became "loser must have played 5 real matches".
+- 2026-09-28 (designer, interview before the overnight economy build): four buttons in one
+  column on the left, a bit smaller, top to bottom Shop, Inventory, Rewards, Trade; Shop holds
+  Cases, Limited, Money and VIP, Inventory holds Cues, Cases and the Index, Rewards holds Daily,
+  Playtime and Codes; Trade opens a "Soon" frame (trading is a later session). Cases open on a
+  spinning reel (Rivals / CS style). New icons are drawn in code (`tools/gen_ui_art.py`) after
+  references 06 (the column tiles) and 07 (the case chest). The Index shows never-owned cues as
+  dark silhouettes with "?", and completing a rarity row pays once. Written into ECONOMY.md
+  section 18.
+- 2026-09-28 (overnight assumption): match XP rounds half to even, because ECONOMY 4.2's table
+  was printed by Python's round (Difficult Bronze win 312.5 -> 312, Challenger Platinum loss
+  37.5 -> 38); money keeps rounding half up.
+- 2026-09-28 (overnight assumption): the Index's Legendary, Mythic and Secret rows give a title
+  only, no money (money there would reward luck more than play); Exclusive and Unique are
+  listed with no row reward.
+- 2026-09-28 (overnight assumption): Secret's colour is near-black with a red glow (UI_STYLE
+  4's suggestion); Mythic's solid colour (card frames, chips) is its shimmer's lilac #B79CFF,
+  with the pastel shimmer over deep space where there is room.
+- 2026-09-28 (overnight assumption): 30 placeholder case cue names and looks (pool and rooftop
+  words: Chalk Dust ... Starfall, Nebula, Eclipse), ten rank cues in their tier colours (Reyes
+  and VIP in the house rainbow), the Starter, Founder's and Beta cues. Rank cues' trails go by
+  tier (Bronze-Gold Uncommon, Platinum-Diamond Rare, Expert-Master Epic, Grandmaster
+  Legendary, Reyes Mythic).
+- 2026-09-28 (overnight assumption): in a team match the same-opponent count (anti-farm, 3.6)
+  is the most-played opponent's; the login streak runs in cycles of four weeks (the Legendary
+  Case on day 28, then week 1 again); the Event Case, switched off, drops the normal pool
+  until an event gives it its own cues; placeholder codes WELCOME ($500 and a Standard Case),
+  8BALL ($250) and ROOFTOP (a Rare Case, until 2026-12-31).
+- 2026-09-28 (overnight assumption): Robux prices show Roblox's own Robux glyph (U+E002) inside
+  the price text (it renders in Fredoka One and takes the text's colour), never our own icon.

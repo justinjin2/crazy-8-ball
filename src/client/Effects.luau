@@ -1,15 +1,20 @@
 --!strict
 -- Effects: the cue ball's trail and the burst when a ball drops.
 --
--- Both are CUE DATA. Every cue names a style in Config.Effects.Styles, so equipping a rarer
--- cue changes the trail behind the white and the burst in the pocket - which per GDD
--- section 12 is the main reason to want one. Nothing here knows about any particular cue;
--- it takes a style table and builds from it, so Roadmap 5.2 adds rows rather than code.
+-- Both are CUE DATA. Every catalog cue names a style in Config.Effects.Styles (its Effect), so
+-- equipping a rarer cue changes the trail behind the white and the burst in the pocket - which
+-- per GDD section 12 is the main reason to want one. Nothing here knows about any particular
+-- cue; it takes a style table and builds from it, so a new cue or style is a row, not code.
+--
+-- One Effects per table (Main). follow() dresses it in the current shooter's equipped cue
+-- (their Config.Cue.EquippedAttribute), so everyone watching that table sees the shooter's own
+-- trail and bursts, and it changes with the turn or when they equip another cue.
 --
 -- The default style is deliberately understated: a thin white translucent wisp, like wind
 -- off the ball. It is on screen for every shot of every game, so it has to stay quiet, and
 -- keeping it quiet is what leaves the rare cues somewhere to go.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
@@ -19,6 +24,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Ball = require(Shared:WaitForChild("Physics"):WaitForChild("Ball"))
+local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
+local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 
@@ -30,7 +37,15 @@ export type Effects = typeof(setmetatable(
 		folder: Folder,
 		styleName: string,
 		trail: Trail?,
+		core: Trail?, -- the style's Trail.Core, a thinner glowing ribbon inside the trail
+		trailA: Attachment?, -- the trail's two attachments on the ball, this Effects' own
+		trailB: Attachment?,
 		trailTo: BasePart?,
+		-- The shooter whose equipped cue dresses this table (follow), and the listener that
+		-- restyles it when they equip another.
+		followId: number?,
+		followPlayer: Player?,
+		followConnection: RBXScriptConnection?,
 	},
 	Effects
 ))
@@ -39,11 +54,40 @@ local function color(rgb: { number }): Color3
 	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
 end
 
---- The style table the equipped cue asks for, falling back to the default. Roadmap 5.1
---- gives this a real cue id; until then everyone is on the default.
+-- Style name -> the style with its Trail and Pocket filled in from the default's, built once.
+local resolved: { [string]: any } = {}
+
+-- A copy of `base` with every key `over` gives replaced.
+local function overlay(base: any, over: any?): any
+	local out = table.clone(base)
+	if over then
+		for key, value in over do
+			out[key] = value
+		end
+	end
+	return out
+end
+
+--- A style by name, whole: a row lists only what differs from Config.Effects.DefaultStyle, and
+--- the rest of its Trail and Pocket comes from there. An unknown name is the default.
 function Effects.styleFor(name: string?): any
 	local styles = Config.Effects.Styles :: any
-	return styles[name or Config.Effects.DefaultStyle] or styles[Config.Effects.DefaultStyle]
+	local default = Config.Effects.DefaultStyle
+	local key = if name ~= nil and styles[name] ~= nil then name else default
+	local style = resolved[key]
+	if style == nil then
+		local base, row = styles[default], styles[key]
+		style =
+			{ Trail = overlay(base.Trail, row.Trail), Pocket = overlay(base.Pocket, row.Pocket) }
+		resolved[key] = style
+	end
+	return style
+end
+
+--- The effect style a catalog cue brings (its Effect); an unknown id brings the default cue's.
+function Effects.styleOfCue(cueId: string?): string
+	local cue = Catalog.get(cueId) or Catalog.get(Config.Cue.DefaultStyle)
+	return if cue then cue.Effect else Config.Effects.DefaultStyle
 end
 
 function Effects.new(parent: Instance, styleName: string?): Effects
@@ -54,41 +98,104 @@ function Effects.new(parent: Instance, styleName: string?): Effects
 		folder = folder,
 		styleName = styleName or Config.Effects.DefaultStyle,
 		trail = nil,
+		core = nil,
+		trailA = nil,
+		trailB = nil,
 		trailTo = nil,
+		followId = nil,
+		followPlayer = nil,
+		followConnection = nil,
 	}, Effects)
 end
 
---- Hang the trail off a ball. Roblox draws a Trail between two attachments, so the ball
---- gets one at its leading edge and one at its trailing edge and the ribbon spans them.
+--- Switch to another style: the trail is rebuilt in it at once (if there is one), and the
+--- next pocket burst uses it. Nothing happens for the style already in use.
+function Effects.setStyle(self: Effects, name: string)
+	if name == self.styleName then
+		return
+	end
+	self.styleName = name
+	local part = self.trailTo
+	if part then
+		self:detachTrail()
+		self:attachTrail(part)
+	end
+end
+
+--- Dress this table in the equipped cue of `userId` (the shooter), and keep it so while they
+--- shoot: their EquippedCue changing restyles it too. Cheap to call every frame, since nothing
+--- happens while the shooter stays the same. nil (nobody shooting) keeps the last style; a
+--- shooter not in this server (a Studio test opponent) gets the default.
+function Effects.follow(self: Effects, userId: number?)
+	if userId == nil or (userId == self.followId and self.followPlayer ~= nil) then
+		return
+	end
+	if userId ~= self.followId then
+		if self.followConnection then
+			self.followConnection:Disconnect()
+			self.followConnection = nil
+		end
+		self.followId, self.followPlayer = userId, nil
+	end
+	local shooter = Players:GetPlayerByUserId(userId)
+	if shooter == nil then
+		self:setStyle(Config.Effects.DefaultStyle)
+		return
+	end
+	self.followPlayer = shooter
+	local function dress()
+		self:setStyle(Effects.styleOfCue(CueStickBuilder.equippedCue(shooter)))
+	end
+	self.followConnection =
+		shooter:GetAttributeChangedSignal(Config.Cue.EquippedAttribute):Connect(dress)
+	dress()
+end
+
+-- A colour run evenly along a sequence: one colour holds the whole way.
+local function sequence(list: { { number } }): ColorSequence
+	if #list <= 1 then
+		return ColorSequence.new(color(list[1] or { 255, 255, 255 }))
+	end
+	local keys = table.create(#list)
+	for i, rgb in list do
+		table.insert(keys, ColorSequenceKeypoint.new((i - 1) / (#list - 1), color(rgb)))
+	end
+	return ColorSequence.new(keys)
+end
+
+--- Hang the trail off a ball in the current style. Roblox draws a Trail between two
+--- attachments, so the ball gets one each side and the ribbon spans them (Trail.WidthStuds
+--- apart). A style with a Trail.Core adds a thinner glowing ribbon on the same two.
 function Effects.attachTrail(self: Effects, part: BasePart)
 	if self.trailTo == part and self.trail then
 		return
 	end
-	if self.trail then
-		self.trail:Destroy()
-		self.trail = nil
-	end
+	self:detachTrail()
+	-- The ball is remembered even for a style with no trail, so setStyle can put one back.
+	self.trailTo = part
 	local spec = Effects.styleFor(self.styleName).Trail
 	if not spec.Enabled then
 		return
 	end
 
 	-- Across the ball rather than along it, so the ribbon has width to it.
-	local r = part.Size.X / 2
+	local half = spec.WidthStuds / 2
 	local a0 = Instance.new("Attachment")
 	a0.Name = "TrailA"
-	a0.Position = Vector3.new(0, 0, -r * 0.55)
+	a0.Position = Vector3.new(0, 0, -half)
 	a0.Parent = part
 	local a1 = Instance.new("Attachment")
 	a1.Name = "TrailB"
-	a1.Position = Vector3.new(0, 0, r * 0.55)
+	a1.Position = Vector3.new(0, 0, half)
 	a1.Parent = part
 
 	local trail = Instance.new("Trail")
 	trail.Name = "CueTrail"
 	trail.Attachment0 = a0
 	trail.Attachment1 = a1
-	trail.Color = ColorSequence.new(color(spec.Color))
+	trail.Color = if spec.Colors
+		then sequence(spec.Colors)
+		else ColorSequence.new(color(spec.Color))
 	trail.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, spec.NearTransparency),
 		NumberSequenceKeypoint.new(1, spec.FarTransparency),
@@ -101,7 +208,7 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 		NumberSequenceKeypoint.new(0, 1),
 		NumberSequenceKeypoint.new(1, 0), -- tapers to nothing, which is what reads as wind
 	})
-	trail.LightEmission = 0.4
+	trail.LightEmission = spec.LightEmission
 	trail.LightInfluence = 0
 	trail.FaceCamera = true
 	if spec.Texture ~= "" then
@@ -110,8 +217,33 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 	trail.Enabled = false
 	trail.Parent = part
 
+	local coreSpec = spec.Core
+	if coreSpec then
+		local core = Instance.new("Trail")
+		core.Name = "CueTrailCore"
+		core.Attachment0 = a0
+		core.Attachment1 = a1
+		core.Color = ColorSequence.new(color(coreSpec.Color))
+		core.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, coreSpec.NearTransparency),
+			NumberSequenceKeypoint.new(1, spec.FarTransparency),
+		})
+		core.Lifetime = spec.Lifetime
+		core.MinLength = spec.MinLengthStuds
+		core.WidthScale = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, coreSpec.Width),
+			NumberSequenceKeypoint.new(1, 0),
+		})
+		core.LightEmission = coreSpec.LightEmission
+		core.LightInfluence = 0
+		core.FaceCamera = true
+		core.Enabled = false
+		core.Parent = part -- after the trail, so it draws inside it
+		self.core = core
+	end
+
 	self.trail = trail
-	self.trailTo = part
+	self.trailA, self.trailB = a0, a1
 end
 
 --- Keep the trail in step with the ball.
@@ -137,14 +269,31 @@ function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 			trail:Clear()
 		end
 		trail.Enabled = visible
+		local core = self.core
+		if core then
+			if visible then
+				core:Clear()
+			end
+			core.Enabled = visible
+		end
 	end
 end
 
+--- Take the trail (its core and its attachments) off the ball.
 function Effects.detachTrail(self: Effects)
 	if self.trail then
 		self.trail:Destroy()
-		self.trail = nil
 	end
+	if self.core then
+		self.core:Destroy()
+	end
+	if self.trailA then
+		self.trailA:Destroy()
+	end
+	if self.trailB then
+		self.trailB:Destroy()
+	end
+	self.trail, self.core, self.trailA, self.trailB = nil, nil, nil, nil
 	self.trailTo = nil
 end
 
@@ -242,7 +391,8 @@ function Effects.niceShot(self: Effects, at: Vector3)
 end
 
 --- The reward when a ball drops: a gust of wind blowing up out of the pocket in the
---- ball's own colour (the 8 reads black-and-white, a stripe its stripe colour).
+--- ball's own colour (the 8 reads black-and-white, a stripe its stripe colour), or in the
+--- style's own Pocket.Colors, and as big as its Pocket.Scale.
 ---
 --- Four layers, all driven by the cue style so rarer cues can bring their own:
 ---   * ribbons of wind spiralling up and out of the pocket (Trails on moving attachments),
@@ -256,28 +406,58 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 		return
 	end
 	local big = ballId == 8
-	local scale = if big then spec.EightBallScale else 1
+	-- How many particles: more only for the 8. How big the gust is: the 8's and the style's.
+	local more = if big then spec.EightBallScale else 1
+	local scale = more * spec.Scale
+	local glow = spec.LightEmission
 
 	local colors = Config.Balls.Colors
 	local rgb = colors[ballId] or colors[ballId - 8] or { 255, 255, 255 }
-	local shade = color(rgb)
-	-- The core of every layer runs toward white, so dark balls (the 8, maroon 7) still glow.
-	local bright = shade:Lerp(Color3.new(1, 1, 1), spec.CoreWhiten)
-	local tint = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, bright),
-		ColorSequenceKeypoint.new(0.35, shade),
-		ColorSequenceKeypoint.new(1, shade),
-	})
+	local ball = color(rgb)
+	local own = spec.Colors
+	local shade: Color3, bright: Color3, tint: ColorSequence, ribbonTint: ColorSequence
+	if own and #own > 0 then
+		-- The style's own colours, ColorShare of the way from the ball's (1: the style's
+		-- alone); the particles run through them over their life.
+		local share = spec.ColorShare or 1
+		shade = ball:Lerp(color(own[1]), share)
+		bright = shade:Lerp(Color3.new(1, 1, 1), spec.CoreWhiten)
+		local keys = { ColorSequenceKeypoint.new(0, bright) }
+		for i, c in own do
+			local t = if #own == 1 then 0.35 else 0.35 + 0.65 * (i - 1) / (#own - 1)
+			table.insert(keys, ColorSequenceKeypoint.new(t, ball:Lerp(color(c), share)))
+		end
+		if #own == 1 then
+			table.insert(keys, ColorSequenceKeypoint.new(1, shade))
+		end
+		tint = ColorSequence.new(keys)
+		ribbonTint = tint
+	else
+		shade = ball
+		-- The core of every layer runs toward white, so dark balls (the 8, maroon 7) still glow.
+		bright = shade:Lerp(Color3.new(1, 1, 1), spec.CoreWhiten)
+		tint = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, bright),
+			ColorSequenceKeypoint.new(0.35, shade),
+			ColorSequenceKeypoint.new(1, shade),
+		})
+		ribbonTint = ColorSequence.new(bright, shade)
+	end
 
 	local root = bare("PocketBurst", self.folder, at)
-	local lifetime = spec.SwirlSeconds + spec.TrailSeconds + 0.5
+	-- Long enough for the slowest layer: a style may give its sparkles a longer life.
+	local lifetime = math.max(
+		spec.SwirlSeconds + spec.TrailSeconds,
+		spec.SparkleLifetime,
+		spec.StreakLifetime
+	) + 0.5
 
 	-- Streaks: particles stretched along their own motion read as a gust, not dots.
 	local streaks = Instance.new("ParticleEmitter")
 	streaks.Name = "WindStreaks"
 	streaks.Texture = spec.ParticleTexture
 	streaks.Color = tint
-	streaks.LightEmission = 1
+	streaks.LightEmission = glow
 	streaks.LightInfluence = 0
 	streaks.Orientation = Enum.ParticleOrientation.VelocityParallel
 	streaks.Squash = NumberSequence.new(spec.StreakSquash)
@@ -298,14 +478,14 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	streaks.Drag = spec.StreakDrag
 	streaks.Rate = 0
 	streaks.Parent = root
-	streaks:Emit(math.floor(spec.Streaks * scale + 0.5))
+	streaks:Emit(math.floor(spec.Streaks * more + 0.5))
 
 	-- Sparkles: slower motes lifted by the gust and hanging a moment before they go.
 	local motes = Instance.new("ParticleEmitter")
 	motes.Name = "Sparkles"
 	motes.Texture = spec.SparkleTexture
 	motes.Color = tint
-	motes.LightEmission = 1
+	motes.LightEmission = glow
 	motes.LightInfluence = 0
 	motes.Size = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, spec.SparkleSizeStuds * scale),
@@ -313,7 +493,10 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	})
 	motes.Transparency = NumberSequence.new(0, 1)
 	motes.Lifetime = NumberRange.new(spec.SparkleLifetime * 0.6, spec.SparkleLifetime)
-	motes.Speed = NumberRange.new(spec.SparkleSpeedStuds * 0.4, spec.SparkleSpeedStuds)
+	motes.Speed = NumberRange.new(
+		spec.SparkleSpeedStuds * 0.4 * spec.Scale,
+		spec.SparkleSpeedStuds * spec.Scale
+	)
 	motes.SpreadAngle = Vector2.new(spec.SparkleSpreadDegrees, spec.SparkleSpreadDegrees)
 	motes.EmissionDirection = Enum.NormalId.Top
 	motes.Acceleration = Vector3.new(0, -spec.SparkleFallStuds, 0)
@@ -321,7 +504,7 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	motes.RotSpeed = NumberRange.new(-180, 180)
 	motes.Rate = 0
 	motes.Parent = root
-	motes:Emit(math.floor(spec.Sparkles * scale + 0.5))
+	motes:Emit(math.floor(spec.Sparkles * more + 0.5))
 
 	-- Shockwave: the ring outline image, flat on the cloth, racing outward and fading.
 	local ring = bare("Shockwave", self.folder, at + Vector3.new(0, 0.02, 0))
@@ -341,7 +524,7 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 
 	-- Swirl: a few ribbons of wind corkscrewing up out of the pocket, widening as they rise.
 	local riders: { { part: Part, phase: number } } = {}
-	local ribbons = if big then spec.EightBallRibbons else spec.Ribbons
+	local ribbons = if big then spec.EightBallRibbons else spec.Ribbons -- few: they cost a Trail each
 	for n = 1, ribbons do
 		local rider = bare("WindRibbon", self.folder, at)
 		local a0 = Instance.new("Attachment")
@@ -352,7 +535,7 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 		a1.Parent = rider
 		local trail = Instance.new("Trail")
 		trail.Attachment0, trail.Attachment1 = a0, a1
-		trail.Color = ColorSequence.new(bright, shade)
+		trail.Color = ribbonTint
 		trail.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 0.1),
 			NumberSequenceKeypoint.new(1, 1),
@@ -362,7 +545,7 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 			NumberSequenceKeypoint.new(1, 0),
 		})
 		trail.Lifetime = spec.TrailSeconds
-		trail.LightEmission = 1
+		trail.LightEmission = glow
 		trail.LightInfluence = 0
 		trail.FaceCamera = true
 		trail.Parent = rider
@@ -405,6 +588,10 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 end
 
 function Effects.destroy(self: Effects)
+	if self.followConnection then
+		self.followConnection:Disconnect()
+		self.followConnection = nil
+	end
 	self:detachTrail()
 	self.folder:Destroy()
 end

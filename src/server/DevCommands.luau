@@ -158,7 +158,7 @@ local function previewResult(player: Player, args: { string })
 		RankXp = data.RankXp,
 		PeakDivision = data.PeakDivision,
 		RatedMatches = data.RatedMatches,
-	}, outcome, "Player", false)
+	}, { outcome = outcome, opponent = "Player", forfeit = false, mode = "Classic" })
 	local you = {
 		userId = player.UserId,
 		name = player.Name,
@@ -229,7 +229,7 @@ local function previewNewRank(player: Player, args: { string })
 		preview = true,
 		before = before,
 		after = after,
-		reward = Ranks.rewardFor(index),
+		reward = Ranks.rewardFor(index).money,
 		newTier = division == 1 or tier == "Reyes",
 	})
 end
@@ -242,8 +242,9 @@ function DevCommands.start()
 	end
 	command("Rank", D.Rank, setRank)
 	command("Xp", D.Xp, function(player, args)
-		local n = amount(args[1], true)
-		if n == nil then
+		-- XP is never lost (ECONOMY 4.1): only a gain.
+		local n = amount(args[1], false)
+		if n == nil or n < 1 then
 			tell(player, Dev.BadAmount:format(D.Xp))
 		elseif not Ranking.addXp(player, n) then
 			tell(player, Dev.NotLoaded)

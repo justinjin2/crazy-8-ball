@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><defs>
+<filter id="cueInk" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="5.38" result="blur"/>
+  <feComponentTransfer in="blur" result="grown"><feFuncA type="linear" slope="7" intercept="-0.35"/></feComponentTransfer>
+  <feOffset in="grown" dy="4" result="lip"/>
+  <feMerge result="both"><feMergeNode in="lip"/><feMergeNode in="grown"/></feMerge>
+  <feFlood flood-color="#1B2033"/>
+  <feComposite in2="both" operator="in" result="outline"/>
+  <feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter></defs><path d="M137.5 133.6 L136.8 134.4 L136.1 135.1 L135.4 135.8 L134.7 136.6 L134.0 137.3 L133.3 138.1 L132.6 138.8 L131.9 139.6 L131.2 140.3 L130.5 141.1 L114.9 125.5 L115.7 124.8 L116.4 124.1 L117.2 123.4 L117.9 122.7 L118.7 122.0 L119.4 121.3 L120.2 120.6 L120.9 119.9 L121.6 119.2 L122.4 118.5 Z" fill="#FFFFFF"/><path d="M93.0 181.1 L92.5 181.7 L92.0 182.3 L91.4 182.8 L90.9 183.4 L90.4 183.9 L89.9 184.5 L89.4 185.0 L88.8 185.6 L88.3 186.1 L87.8 186.7 L69.3 168.2 L69.9 167.7 L70.4 167.2 L71.0 166.6 L71.5 166.1 L72.1 165.6 L72.6 165.1 L73.2 164.6 L73.7 164.0 L74.3 163.5 L74.9 163.0 Z" fill="#FFFFFF"/></svg>

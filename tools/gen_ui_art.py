@@ -8,12 +8,20 @@ cropped), so nothing but Pillow and the installed Chrome is needed.
 
 Outputs:
   assets/ui/icons/<name>.svg and <name>.png   256 px glossy cartoon icons, no words
+                                              (assets/ui/icons/README.md lists each one)
+  assets/ui/icons/cue_*.svg and .png          the cue thumbnail layers, one canvas, tinted
+                                              in Roblox (see CUE_LAYERS)
   assets/ui/art/<name>.svg and <name>.png     effect images: the panel pattern tile, the ball
                                               gloss and stripe band, the win rays
   assets/ui/art/shadow.png                    9-slice soft shadow (drawn with Pillow)
 
 Upload the PNGs (Studio MCP upload_image, see docs/STUDIO_NOTES.md) and paste the ids into
-Config.UI.Kit.Icons and Config.UI.Kit.Art. Run: python3 tools/gen_ui_art.py
+Config.UI.Kit.Icons and Config.UI.Kit.Art.
+
+Run: python3 tools/gen_ui_art.py                 every image (rewrites them all)
+     python3 tools/gen_ui_art.py shop case_rare  only the images named
+     python3 tools/gen_ui_art.py economy         a group (GROUPS): column, cases, packs,
+                                                 shop_icons, cue_layers, or economy for all five
 """
 import math
 import os
@@ -56,17 +64,7 @@ def defs():
             f'<stop offset="0" stop-color="{light}"/><stop offset="0.45" stop-color="{mid}"/>'
             f'<stop offset="1" stop-color="{dark}"/></linearGradient>'
         )
-    sigma = OUTLINE / 1.3
-    ink_filter = f"""
-<filter id="ink" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-  <feGaussianBlur in="SourceAlpha" stdDeviation="{sigma:.2f}" result="blur"/>
-  <feComponentTransfer in="blur" result="grown"><feFuncA type="linear" slope="7" intercept="-0.35"/></feComponentTransfer>
-  <feOffset in="grown" dy="{LIP}" result="lip"/>
-  <feMerge result="both"><feMergeNode in="lip"/><feMergeNode in="grown"/></feMerge>
-  <feFlood flood-color="{INK}"/>
-  <feComposite in2="both" operator="in" result="outline"/>
-  <feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
-</filter>"""
+    ink_filter = ink_filter_def("ink", OUTLINE, LIP)
     shine = (
         '<radialGradient id="shine" cx="0.5" cy="0.5" r="0.5">'
         '<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.9"/>'
@@ -75,10 +73,33 @@ def defs():
     return "<defs>" + "".join(grads) + shine + ink_filter + "</defs>"
 
 
+def ink_filter_def(fid, outline, lip):
+    """The ink outline: the shape's alpha grown by `outline` px and dropped `lip` px, in ink,
+    under the shape."""
+    sigma = outline / 1.3
+    return f"""
+<filter id="{fid}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="{sigma:.2f}" result="blur"/>
+  <feComponentTransfer in="blur" result="grown"><feFuncA type="linear" slope="7" intercept="-0.35"/></feComponentTransfer>
+  <feOffset in="grown" dy="{lip}" result="lip"/>
+  <feMerge result="both"><feMergeNode in="lip"/><feMergeNode in="grown"/></feMerge>
+  <feFlood flood-color="{INK}"/>
+  <feComposite in2="both" operator="in" result="outline"/>
+  <feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>"""
+
+
 def svg(body):
+    """An icon: body inside the ink group. An icon may return (under, body) or (under, body,
+    over) instead: under is drawn beneath the ink group and over on top of it, neither with
+    the ink outline (a glow; twinkles with a thin edge of their own)."""
+    under = over = ""
+    if isinstance(body, tuple):
+        under, body, *rest = body
+        over = rest[0] if rest else ""
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">'
-        f'{defs()}<g filter="url(#ink)">{body}</g></svg>'
+        f'{defs()}{under}<g filter="url(#ink)">{body}</g>{over}</svg>'
     )
 
 
@@ -703,105 +724,9 @@ def icon_cash_stack():
     return "".join(parts)
 
 
-# The rank roadmap's reward tiles (designer, 2026-09-27; reference 03): a loot case and a chat
-# tag. Their gradients live in the icons themselves, with ids of their own, like the cash.
-CASE_DEFS = (
-    "<defs>"
-    '<linearGradient id="caseLid" x1="0" y1="0" x2="0.2" y2="1">'
-    '<stop offset="0" stop-color="#F4F9FF"/><stop offset="0.5" stop-color="#C3DCF6"/>'
-    '<stop offset="1" stop-color="#93B6DE"/></linearGradient>'
-    '<linearGradient id="caseFront" x1="0" y1="0" x2="0.25" y2="1">'
-    '<stop offset="0" stop-color="#D9EAFC"/><stop offset="0.5" stop-color="#A6C6EA"/>'
-    '<stop offset="1" stop-color="#7A9DC8"/></linearGradient>'
-    '<linearGradient id="caseSide" x1="0" y1="0" x2="0.3" y2="1">'
-    '<stop offset="0" stop-color="#9DBBDF"/><stop offset="1" stop-color="#5F80AC"/></linearGradient>'
-    '<linearGradient id="caseEnd" x1="0" y1="0" x2="0.3" y2="1">'
-    '<stop offset="0" stop-color="#C9DDF4"/><stop offset="1" stop-color="#86A6D0"/></linearGradient>'
-    '<linearGradient id="caseStrap" x1="0" y1="0" x2="0.3" y2="1">'
-    '<stop offset="0" stop-color="#7E9CC4"/><stop offset="1" stop-color="#48648E"/></linearGradient>'
-    "</defs>"
-)
-
-
-def icon_case():
-    """A chunky closed loot case seen from the front right: a box with a barrel lid, two dark
-    straps over it and a gold latch at the seam. Pale blue steel, not any one tier's colour."""
-    s, ox, oy = 1.08, 128, 132  # scale, and where the drawing's middle lands
-    width, height, lid = 138, 80, 50  # the front face, and how high the lid's barrel rises
-    dx, dy = 44, -28  # the depth, drawn up and to the right
-    # The drawing runs from x 0 (the front's left) to width + dx, and from the barrel's top
-    # (dy / 2 - lid) to the front's bottom (height).
-    mid_x, mid_y = (width + dx) / 2, (height + dy / 2 - lid) / 2
-
-    def p(x, y):
-        return (ox + (x - mid_x) * s, oy + (y - mid_y) * s)
-
-    def path(points, close=True):
-        d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in points)
-        return d + (" Z" if close else "")
-
-    # The lid's end: half an ellipse on the right face's plane, over the body's top edge.
-    def end_curve(shift, steps=14, front_half=False):
-        pts = []
-        last = steps // 2 if front_half else steps
-        for i in range(last + 1):
-            t = math.pi * i / steps  # 0 = the front corner, pi = the back one
-            u = 0.5 - 0.5 * math.cos(t)  # 0..1 front to back
-            x = shift + dx * u
-            y = dy * u - lid * math.sin(t)
-            pts.append(p(x, y))
-        return pts
-
-    front = [p(0, 0), p(width, 0), p(width, height), p(0, height)]
-    side = [p(width, 0), p(width + dx, dy), p(width + dx, dy + height), p(width, height)]
-    # The barrel's face seen from the front: up the left end to its top, along, down the right.
-    left_rise = end_curve(0, front_half=True)
-    right_rise = end_curve(width, front_half=True)
-    barrel = left_rise + right_rise[::-1]
-    lid_end = end_curve(width)
-
-    def strap(at, w=15):
-        # A strap over the barrel and down the front, `at` from the left end.
-        up = end_curve(at, front_half=True)
-        down = end_curve(at + w, front_half=True)[::-1]
-        return path(up + down) + " " + path([p(at, 0), p(at + w, 0), p(at + w, height), p(at, height)])
-
-    rim = 13
-    latch_w, latch_h = 30, 36
-    lx, ly = width / 2 - latch_w / 2, -10
-    base = '" fill="#48648E" stroke="#48648E" stroke-width="3" stroke-linejoin="round"/>'
-    parts = [
-        CASE_DEFS,
-        # a dark base under every face, so no light seams show between them
-        "".join(f'<path d="{path(face)}{base}' for face in (front, side, barrel, lid_end)),
-        f'<path d="{path(side)}" fill="url(#caseSide)"/>',
-        f'<path d="{path(front)}" fill="url(#caseFront)"/>',
-        f'<path d="{path(lid_end)}" fill="url(#caseEnd)"/>',
-        f'<path d="{path(barrel)}" fill="url(#caseLid)"/>',
-        f'<path d="{strap(18)}" fill="url(#caseStrap)"/>',
-        f'<path d="{strap(width - 33)}" fill="url(#caseStrap)"/>',
-        # the lid's darker rim, along its bottom edge, front and end
-        f'<path d="{path([p(0, -rim), p(width, -rim), p(width, 0), p(0, 0)])}" fill="#6F8FBA"/>',
-        line([p(3, -rim + 2.5), p(width - 3, -rim + 2.5)], "#FFFFFF", 2.5, 'opacity="0.45"'),
-        f'<path d="{path([p(width, -rim), p(width + dx, dy - rim), p(width + dx, dy), p(width, 0)])}" fill="#48648E"/>',
-        # the seam between lid and body, and the body's front right edge
-        line([p(0, 0), p(width, 0), p(width + dx, dy)], INK, 5),
-        line([p(width, 0), p(width, height)], INK, 4, 'opacity="0.55"'),
-        line(right_rise, INK, 4, 'opacity="0.55"'),
-        # a lit rim along the barrel's top and the front's top edge
-        line([p(8, -lid + 3), p(width - 8, -lid + 3)], "#FFFFFF", 4, 'opacity="0.7"'),
-        # the latch: a gold plate over the seam with a keyhole
-        f'<rect x="{p(lx, ly)[0]:.1f}" y="{p(lx, ly)[1]:.1f}" width="{latch_w * s:.1f}" '
-        f'height="{latch_h * s:.1f}" rx="{8 * s:.1f}" fill="url(#gold)" stroke="{INK}" stroke-width="5"/>',
-        f'<circle cx="{p(width / 2, ly + 13)[0]:.1f}" cy="{p(width / 2, ly + 13)[1]:.1f}" r="{5 * s:.1f}" fill="{INK}"/>',
-        line([p(width / 2, ly + 15), p(width / 2, ly + 25)], INK, 5),
-        gloss(*p(40, -lid + 14), 26, 8, angle=-4, opacity=0.8),
-        gloss(*p(30, 26), 14, 22, angle=0, opacity=0.35),
-        gloss(*p(lx + 8, ly + 6), 6, 4, opacity=0.8),
-    ]
-    return "".join(parts)
-
-
+# The rank roadmap's chat tag reward tile (designer, 2026-09-27; reference 03). Its gradient
+# lives in the icon itself, with an id of its own, like the cash. (The loot case is the
+# chest further down, 2026-09-28.)
 CHAT_DEFS = (
     "<defs>"
     '<linearGradient id="chatBubble" x1="0" y1="0" x2="0.3" y2="1">'
@@ -889,6 +814,1226 @@ def icon_level_challenger():
     return mini_table(object_ball(160, 84) + cue_ball(84, 150)) + eye
 
 
+# ---------------------------------------------------------------------------------------
+# The economy (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md section 10): the left column's
+# buttons, the case chests, the money packs, the shop and rewards pictures, and the cue
+# thumbnail layers. Every gradient these draw has an id starting with the icon's own name,
+# since the render page holds every SVG at once and an id must mean one thing on it.
+# ---------------------------------------------------------------------------------------
+
+
+def poly(points, close=True):
+    d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in points)
+    return d + (" Z" if close else "")
+
+
+def rounded_poly(points, r):
+    """A closed path through points with each corner rounded off by about r px."""
+    n = len(points)
+    d = ""
+    for i in range(n):
+        px, py = points[i - 1]
+        cx, cy = points[i]
+        nx, ny = points[(i + 1) % n]
+        la, lb = math.hypot(cx - px, cy - py), math.hypot(nx - cx, ny - cy)
+        ka, kb = min(r, la / 2) / la, min(r, lb / 2) / lb
+        a = (cx + (px - cx) * ka, cy + (py - cy) * ka)
+        b = (cx + (nx - cx) * kb, cy + (ny - cy) * kb)
+        d += ("M" if i == 0 else "L") + f"{a[0]:.1f} {a[1]:.1f} Q{cx:.1f} {cy:.1f} {b[0]:.1f} {b[1]:.1f} "
+    return d + "Z"
+
+
+def face(points, fill, extra=""):
+    return f'<path d="{poly(points)}" fill="{fill}" {extra}/>'
+
+
+def grad(gid, *colours, x1=0, y1=0, x2=0.35, y2=1):
+    """A light-to-dark linear gradient through the given colours, evenly spaced."""
+    n = len(colours)
+    stops = "".join(f'<stop offset="{i / (n - 1):.2f}" stop-color="{c}"/>' for i, c in enumerate(colours))
+    return f'<linearGradient id="{gid}" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">{stops}</linearGradient>'
+
+
+def inked(d, fill, width=5, extra=""):
+    """A shape with its own ink edge inside an icon, where it sits over another part: the ink
+    drawn twice as wide under the fill, so only its outer half shows."""
+    return (
+        f'<path d="{d}" fill="{INK}" stroke="{INK}" stroke-width="{width * 2}" stroke-linejoin="round" {extra}/>'
+        f'<path d="{d}" fill="{fill}" {extra}/>'
+    )
+
+
+def sparkle(cx, cy, r, fill="#FFFFFF"):
+    """A four-pointed twinkle."""
+    k = r * 0.14
+    d = (
+        f"M{cx:.1f} {cy - r:.1f} Q{cx + k:.1f} {cy - k:.1f} {cx + r:.1f} {cy:.1f} "
+        f"Q{cx + k:.1f} {cy + k:.1f} {cx:.1f} {cy + r:.1f} Q{cx - k:.1f} {cy + k:.1f} {cx - r:.1f} {cy:.1f} "
+        f"Q{cx - k:.1f} {cy - k:.1f} {cx:.1f} {cy - r:.1f} Z"
+    )
+    return f'<path d="{d}" fill="{fill}"/>'
+
+
+def twinkle(cx, cy, r, fill="#FFFFFF"):
+    """A twinkle with a thin ink edge of its own, for drawing outside the ink group."""
+    return sparkle(cx, cy, r, fill).replace("/>", f' stroke="{INK}" stroke-width="3" stroke-linejoin="round"/>')
+
+
+def star_points(cx, cy, r, inner=0.48, n=5, turn=-90):
+    pts = []
+    for i in range(n * 2):
+        rr = r if i % 2 == 0 else r * inner
+        a = math.radians(turn + i * 180 / n)
+        pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
+    return pts
+
+
+# The case chest, after reference 07: seen from the front right, a flat lid, lighter corner
+# caps, a round lock plate on the seam. One drawing, five colours. Each: cap (the corner caps
+# and the lock plate), top, front and side faces, the inset panels, all light to dark, and a
+# deep colour for the lines between parts. The Standard case is kept grey so it never reads
+# as Rare's blue.
+CHESTS = {
+    "standard": {
+        "cap": ("#FFFFFF", "#DCE1E9"),
+        "frame": ("#EFF2F6", "#C2C9D4"),
+        "top": ("#DCE2EA", "#B3BCC9"),
+        "front": ("#AAB4C2", "#8893A4"),
+        "side": ("#87919F", "#666F80"),
+        "deep": "#4B5364",
+    },
+    "rare": {
+        "cap": ("#F2F9FF", "#B8DCFF"),
+        "frame": ("#C8E5FF", "#7FBEFF"),
+        "top": ("#8FCAFF", "#58A9FF"),
+        "front": ("#3E95F5", "#2977DB"),
+        "side": ("#2B73D1", "#1C56AB"),
+        "deep": "#134493",
+    },
+    "epic": {
+        "cap": ("#FBF6FF", "#DDC8FF"),
+        "frame": ("#E5D0FF", "#BD92FF"),
+        "top": ("#CBA7FF", "#AD78FF"),
+        "front": ("#985BF3", "#7C3DDF"),
+        "side": ("#783BD6", "#5C2AB2"),
+        "deep": "#46208A",
+    },
+    "legendary": {
+        "cap": ("#FFFEF5", "#FFEDB0"),
+        "frame": ("#FFF4BE", "#FFD55A"),
+        "top": ("#FFE47E", "#FFC933"),
+        "front": ("#F8B51A", "#DE9600"),
+        "side": ("#D48C00", "#AC6B00"),
+        "deep": "#835000",
+    },
+    "event": {
+        "cap": ("#FFF7FC", "#FFD3EB"),
+        "frame": ("#FFD8EF", "#FF9DD2"),
+        "top": ("#FFAADA", "#FF7EC4"),
+        "front": ("#F553AD", "#DA3892"),
+        "side": ("#CF3E90", "#AA2974"),
+        "deep": "#861A58",
+    },
+}
+
+
+def chest(c, gid, shine=False):
+    """The case chest in the colours c (a CHESTS row). gid names its gradients; shine adds
+    twinkles. A box from the front right: recessed panels, a light metal frame along every
+    edge (posts, the lid's rim, the bottom, two straps over the lid), a blocky cap on each
+    corner, and a round lock plate on the seam."""
+    W, LID, H = 152, 44, 116  # the front's width, the lid's height, the whole height
+    DX, DY = 58, -32  # the depth, drawn up and to the right
+    X0, Y0 = 128 - (W + DX) / 2, 128 - (H + DY) / 2 - 2
+    FB, FU = 12, 0.2  # a frame band's width on the front, and in depth shares
+    CW, CH, CU = 32, 30, 0.32  # a corner cap's width, height and depth share
+    deep = c["deep"]
+
+    def pt(x, y, u):  # x across the front, y down from the lid's top, u into the depth
+        return (X0 + x + DX * u, Y0 + y + DY * u)
+
+    def F(x0, y0, x1, y1):  # a quad on the front face
+        return [pt(x0, y0, 0), pt(x1, y0, 0), pt(x1, y1, 0), pt(x0, y1, 0)]
+
+    def S(u0, y0, u1, y1):  # on the right side
+        return [pt(W, y0, u0), pt(W, y0, u1), pt(W, y1, u1), pt(W, y1, u0)]
+
+    def T(x0, u0, x1, u1):  # on the top
+        return [pt(x0, 0, u0), pt(x1, 0, u0), pt(x1, 0, u1), pt(x0, 0, u1)]
+
+    def url(n):
+        return f"url(#{gid}{n})"
+
+    rim = f'stroke="{deep}" stroke-width="2.5" stroke-linejoin="round"'
+    shade = f'fill="{deep}" opacity="0.28"'
+    front, side, top = F(0, 0, W, H), S(0, 0, 1, H), T(0, 0, W, 1)
+    # the whole chest is clipped to its outline with the corners rounded, so it looks soft
+    hull = [pt(0, 0, 0), pt(0, 0, 1), pt(W, 0, 1), pt(W, H, 1), pt(W, H, 0), pt(0, H, 0)]
+    parts = [
+        "<defs>"
+        + f'<clipPath id="{gid}Hull"><path d="{rounded_poly(hull, 13)}"/></clipPath>'
+        + grad(gid + "Cap", *c["cap"], x2=0.4)
+        + grad(gid + "Frame", *c["frame"], x2=0.3)
+        + grad(gid + "Top", *c["top"], x2=0.3)
+        + grad(gid + "Front", *c["front"], x2=0.2)
+        + grad(gid + "Side", *c["side"])
+        + grad(gid + "Spark", "#FFFFFF", "#FFF3B0")
+        + "</defs>",
+        "".join(face(f, deep, rim) for f in (front, side, top)),
+        face(side, url("Side")),
+        face(front, url("Front")),
+        face(top, url("Top")),
+        # the panels' recess: a shade along their top and left edges
+        face(F(FB, LID, FB + 5, H - FB), deep, 'opacity="0.25"'),
+        face(F(FB, LID, W - FB, LID + 6), deep, 'opacity="0.3"'),
+        face(F(FB, 7, W - FB, 12), deep, 'opacity="0.2"'),
+        face(S(FU, LID, 1 - FU, LID + 6), deep, 'opacity="0.3"'),
+        # the top's plain middle catches the light
+        gloss(*pt(W * 0.42, 0, 0.5), 34, 7, angle=-12, opacity=0.6),
+    ]
+    frame = [
+        F(0, 0, FB, H), F(W - FB, 0, W, H), F(0, H - FB, W, H), F(0, LID - FB, W, LID), F(0, 0, W, 7),
+        T(0, 0, FB + 4, 1), T(W - FB - 4, 0, W, 1),
+    ]
+    frame_side = [S(0, 0, FU, H), S(1 - FU, 0, 1, H), S(0, H - FB, 1, H), S(0, LID - FB, 1, LID), S(0, 0, 1, 7)]
+    parts += [face(f, url("Frame")) for f in frame]
+    parts += [face(f, url("Frame")) + face(f, deep, 'opacity="0.2"') for f in frame_side]
+    parts += [
+        # the seam under the lid's rim, the edges between faces
+        line([pt(0, LID, 0), pt(W, LID, 0), pt(W, LID, 1)], INK, 5),
+        line([pt(W, 3, 0), pt(W, H - 3, 0)], deep, 3, 'opacity="0.7"'),
+        line([pt(3, 0, 0), pt(W, 0, 0), pt(W, 0, 1)], deep, 3, 'opacity="0.55"'),
+        line([pt(4, 2.5, 0), pt(W - 4, 2.5, 0)], "#FFFFFF", 3, 'opacity="0.7"'),
+    ]
+
+    def cap(fronts, tops, sides):
+        out = ""
+        for f in fronts:
+            out += face(f, url("Cap"), rim)
+        for f in tops:
+            out += face(f, url("Cap"), rim)
+        for f in sides:
+            out += face(f, url("Cap"), rim) + face(f, deep, 'opacity="0.22"')
+        return out
+
+    parts += [
+        cap([], [T(0, 1 - CU, CW, 1)], []),
+        cap([], [T(W - CW, 1 - CU, W, 1)], [S(1 - CU, 0, 1, CH)]),
+        cap([], [], [S(1 - CU, H - CH, 1, H)]),
+        cap([F(0, 0, CW, CH)], [T(0, 0, CW, CU)], []),
+        cap([F(W - CW, 0, W, CH)], [T(W - CW, 0, W, CU)], [S(0, 0, CU, CH)]),
+        cap([F(0, H - CH, CW, H)], [], []),
+        cap([F(W - CW, H - CH, W, H)], [], [S(0, H - CH, CU, H)]),
+    ]
+    # the caps' lit bevels
+    for x in (0, W - CW):
+        parts.append(line([pt(x + 4, CH - 5, 0), pt(x + 4, 4, 0), pt(x + CW - 5, 4, 0)], "#FFFFFF", 3, 'opacity="0.85"'))
+        parts.append(line([pt(x + 4, H - 6, 0), pt(x + 4, H - CH + 4, 0), pt(x + CW - 5, H - CH + 4, 0)], "#FFFFFF", 3, 'opacity="0.7"'))
+    xm, ym = W / 2, LID
+    px, py = pt(xm, ym, 0)
+    parts += [
+        f'<rect x="{px - 20:.1f}" y="{py - 25:.1f}" width="40" height="50" rx="14" fill="{url("Cap")}" stroke="{INK}" stroke-width="5"/>',
+        f'<circle cx="{px:.1f}" cy="{py + 1:.1f}" r="10.5" fill="{url("Front")}" stroke="{deep}" stroke-width="5"/>',
+        gloss(px - 8, py - 14, 7, 4, angle=-20, opacity=0.95),
+    ]
+    out = parts[0] + f'<g clip-path="url(#{gid}Hull)">' + "".join(parts[1:]) + "</g>"
+    if shine:
+        out += sparkle(40, 42, 21, url("Spark")) + sparkle(232, 30, 12, url("Spark"))
+    return out
+
+
+def icon_case_standard():
+    return chest(CHESTS["standard"], "caseStd")
+
+
+def icon_case_rare():
+    return chest(CHESTS["rare"], "caseRare")
+
+
+def icon_case_epic():
+    return chest(CHESTS["epic"], "caseEpic")
+
+
+def icon_case_legendary():
+    return chest(CHESTS["legendary"], "caseLeg", shine=True)
+
+
+def icon_case_event():
+    return chest(CHESTS["event"], "caseEvent")
+
+
+def icon_case():
+    """The generic case: the Standard chest (the roadmap's reward tile)."""
+    return chest(CHESTS["standard"], "caseGeneric")
+
+
+# The left column's buttons. They sit on a blue candy tile, so none of them is mostly blue
+# except the trade arrows' one half, and each keeps the full ink outline to read at 46 px.
+
+
+def icon_shop():
+    """A red shopping basket seen a little from above, a white rim and a white handle, after
+    reference 06."""
+    g = "shop"
+    opening = "M54 62 L202 62 Q220 62 224 80 L230 112 L26 112 L32 80 Q36 62 54 62 Z"
+    body = "M28 112 L228 112 L206 204 Q202 218 188 218 L68 218 Q54 218 50 204 Z"
+    handle = "M40 96 C40 0 216 0 216 96"
+    parts = [
+        "<defs>"
+        + grad(g + "Red", "#FF9A9A", "#FF4D4D", "#C9283A", x2=0.3)
+        + grad(g + "In", "#D2323F", "#8E1626", "#5E0B18", x1=0, y1=0, x2=0, y2=1)
+        + grad(g + "Rim", "#FFFFFF", "#F1F4FA", "#C9D3E3")
+        + grad(g + "Handle", "#FFFFFF", "#DCE3EE", "#9EABC0", x1=0, y1=0, x2=1, y2=1)
+        + "</defs>",
+        # the open top: a white rim round the dark inside
+        f'<path d="{opening}" fill="url(#{g}In)" stroke="#F1F4FA" stroke-width="12" stroke-linejoin="round"/>',
+        f'<path d="M50 74 L206 74" stroke="#5E0B18" stroke-width="4" opacity="0.5"/>',
+        # the handle, from side to side over the top
+        f'<path d="{handle}" fill="none" stroke="{INK}" stroke-width="27" stroke-linecap="round"/>',
+        f'<path d="{handle}" fill="none" stroke="url(#{g}Handle)" stroke-width="16" stroke-linecap="round"/>',
+        line([(50, 70), (70, 38)], "#FFFFFF", 5, 'opacity="0.85"'),
+        # the body, with two rows of slots
+        f'<path d="{body}" fill="url(#{g}Red)"/>',
+    ]
+    for y, xs, w in ((140, (60, 100, 140, 180), 26), (176, (72, 108, 144, 180), 22)):
+        for x in xs:
+            cx = x - 6 if y == 140 else x - 4
+            parts.append(
+                f'<rect x="{cx}" y="{y}" width="{w}" height="24" rx="8" fill="#A01B2E"/>'
+                f'<rect x="{cx}" y="{y}" width="{w}" height="8" rx="4" fill="#6E0F1C" opacity="0.6"/>'
+            )
+    parts += [
+        # the front rim, over the body's top edge
+        f'<rect x="18" y="102" width="220" height="28" rx="13" fill="url(#{g}Rim)" stroke="{INK}" stroke-width="4"/>',
+        line([(34, 110), (150, 110)], "#FFFFFF", 4, 'opacity="0.9"'),
+        gloss(60, 170, 8, 26, angle=12, opacity=0.55),
+    ]
+    return zoom("".join(parts), 0.9, dy=4)
+
+
+def icon_inventory():
+    """An orange backpack: a flap with a buckle, a front pocket, side pockets and a handle."""
+    g = "inv"
+    parts = [
+        "<defs>"
+        + grad(g + "Body", "#FFD08A", "#FF9F1C", "#D86E00", x2=0.3)
+        + grad(g + "Flap", "#FFB54D", "#F08A0C", "#B85A00", x2=0.3)
+        + grad(g + "Pocket", "#FFC873", "#FF9B1A", "#D46C00", x2=0.3)
+        + grad(g + "Side", "#E88A1A", "#B25800")
+        + grad(g + "Strap", "#A5602E", "#6E3A16")
+        + "</defs>",
+        # the carry handle
+        f'<path d="M104 58 C104 26 152 26 152 58" fill="none" stroke="url(#{g}Strap)" stroke-width="14" stroke-linecap="round"/>',
+        # side pockets
+        f'<rect x="28" y="130" width="40" height="80" rx="16" fill="url(#{g}Side)"/>',
+        f'<rect x="188" y="130" width="40" height="80" rx="16" fill="url(#{g}Side)"/>',
+        # the body
+        f'<rect x="48" y="46" width="160" height="180" rx="52" fill="url(#{g}Body)"/>',
+        # the flap over the top, with a strap down to a gold buckle
+        f'<path d="M48 104 C48 62 80 46 128 46 C176 46 208 62 208 104 L208 118 C168 136 88 136 48 118 Z" fill="url(#{g}Flap)"/>',
+        f'<path d="M50 118 C88 136 168 136 206 118" fill="none" stroke="{INK}" stroke-width="5" stroke-linecap="round"/>',
+        f'<rect x="116" y="110" width="24" height="44" rx="6" fill="url(#{g}Strap)"/>',
+        f'<rect x="108" y="138" width="40" height="26" rx="8" fill="url(#gold)" stroke="{INK}" stroke-width="5"/>',
+        f'<rect x="122" y="146" width="12" height="10" rx="3" fill="{INK}" opacity="0.8"/>',
+        # the front pocket with its zip
+        f'<rect x="70" y="170" width="116" height="46" rx="18" fill="url(#{g}Pocket)" stroke="{INK}" stroke-width="5"/>',
+        line([(84, 184), (172, 184)], "#B85A00", 5),
+        f'<rect x="160" y="182" width="10" height="20" rx="4" fill="url(#steel)" stroke="{INK}" stroke-width="3"/>',
+        gloss(80, 78, 18, 9, angle=-25, opacity=0.8),
+        gloss(66, 150, 6, 18, angle=0, opacity=0.45),
+    ]
+    return "".join(parts)
+
+
+def gift_box(g, box, x0=40, y0=124, w=128, h=94, lid=34, over=9, dx=46, dy=-32, bow=True):
+    """A gift box from the front right, like the chest: a lid with an overhang, a gold ribbon
+    both ways and a bow on top. box: the front, side and top colour pairs. g names the
+    gradients. Returns the body and the middle of the lid's top (for a bow or a cue)."""
+    x1 = x0 + w
+    lx0, lx1, ly0, ly1 = x0 - over, x1 + over, y0 - lid, y0 + 6
+    xm = (x0 + x1) / 2
+    rw, ru = 13, 0.17  # half the ribbon's width on the front, and on the side in depth shares
+
+    def d(p, u):
+        return (p[0] + dx * u, p[1] + dy * u)
+
+    body_f = [(x0, y0), (x1, y0), (x1, y0 + h), (x0, y0 + h)]
+    body_s = [(x1, y0), d((x1, y0), 1), d((x1, y0 + h), 1), (x1, y0 + h)]
+    lid_f = [(lx0, ly0), (lx1, ly0), (lx1, ly1), (lx0, ly1)]
+    lid_s = [(lx1, ly0), d((lx1, ly0), 1), d((lx1, ly1), 1), (lx1, ly1)]
+    lid_t = [(lx0, ly0), (lx1, ly0), d((lx1, ly0), 1), d((lx0, ly0), 1)]
+
+    def url(n):
+        return f"url(#{g}{n})"
+
+    def band_side(y_top, y_bot, x):
+        return [d((x, y_top), 0.5 - ru), d((x, y_top), 0.5 + ru), d((x, y_bot), 0.5 + ru), d((x, y_bot), 0.5 - ru)]
+
+    parts = [
+        "<defs>"
+        + grad(g + "Front", *box[0], x2=0.2)
+        + grad(g + "Side", *box[1])
+        + grad(g + "Top", *box[2], x2=0.3)
+        + grad(g + "Rib", "#FFF0A0", "#FFD02E", "#E8A200", x2=0.2)
+        + grad(g + "RibSide", "#E8A600", "#B97E00")
+        + grad(g + "RibTop", "#FFF7C4", "#FFD84A", x2=0.4)
+        + "</defs>",
+        face(body_s, url("Side")),
+        face(body_f, url("Front")),
+        face([(xm - rw, y0), (xm + rw, y0), (xm + rw, y0 + h), (xm - rw, y0 + h)], url("Rib")),
+        face(band_side(y0, y0 + h, x1), url("RibSide")),
+        line([(x1, y0 + 4), (x1, y0 + h - 2)], INK, 3, 'opacity="0.4"'),
+        gloss(x0 + 16, y0 + 44, 6, 22, angle=0, opacity=0.45),
+        face(lid_s, url("Side")),
+        face(lid_f, url("Front")),
+        face(lid_t, url("Top")),
+        face([(xm - rw, ly0), (xm + rw, ly0), (xm + rw, ly1), (xm - rw, ly1)], url("Rib")),
+        face(band_side(ly0, ly1, lx1), url("RibSide")),
+        # the ribbon across the top, both ways
+        face([(xm - rw, ly0), (xm + rw, ly0), d((xm + rw, ly0), 1), d((xm - rw, ly0), 1)], url("RibTop")),
+        face([d((lx0, ly0), 0.5 - ru), d((lx1, ly0), 0.5 - ru), d((lx1, ly0), 0.5 + ru), d((lx0, ly0), 0.5 + ru)], url("RibTop")),
+        line([(lx0, ly1), (lx1, ly1), d((lx1, ly1), 1)], INK, 5),
+        line([(lx1, ly0 + 3), (lx1, ly1 - 2)], INK, 3, 'opacity="0.4"'),
+        line([(lx0 + 4, ly0), (lx1, ly0), d((lx1, ly0), 1)], INK, 3, 'opacity="0.3"'),
+        gloss(lx0 + 22, ly0 + 12, 12, 5, angle=-8, opacity=0.8),
+    ]
+    top_mid = d((xm, ly0), 0.5)
+    if bow:
+        parts.append(ribbon_bow(g, *top_mid))
+    return "".join(parts), top_mid
+
+
+def ribbon_bow(g, cx, cy, s=1.0):
+    """A gold bow: two loops, two tails and a knot, centred on (cx, cy)."""
+
+    def P(x, y):
+        return f"{cx + x * s:.1f} {cy + y * s:.1f}"
+
+    loop_l = f"M{P(0, 0)} C{P(-16, -44)} {P(-66, -46)} {P(-60, -12)} C{P(-56, 10)} {P(-22, 8)} {P(0, 0)} Z"
+    loop_r = f"M{P(0, 0)} C{P(16, -44)} {P(66, -46)} {P(60, -12)} C{P(56, 10)} {P(22, 8)} {P(0, 0)} Z"
+    tail_l = f"M{P(-4, 2)} L{P(-30, 34)} L{P(-20, 32)} L{P(-14, 42)} L{P(6, 6)} Z"
+    tail_r = f"M{P(4, 2)} L{P(28, 30)} L{P(18, 30)} L{P(14, 40)} L{P(-6, 6)} Z"
+    hole = 'fill="#C88A00" opacity="0.55"'
+    return "".join(
+        [
+            inked(tail_l, f"url(#{g}Rib)", 3),
+            inked(tail_r, f"url(#{g}Rib)", 3),
+            inked(loop_l, f"url(#{g}Rib)", 3),
+            inked(loop_r, f"url(#{g}Rib)", 3),
+            f'<ellipse cx="{cx - 34 * s:.1f}" cy="{cy - 14 * s:.1f}" rx="{12 * s:.1f}" ry="{7 * s:.1f}" transform="rotate(-20 {cx - 34 * s:.1f} {cy - 14 * s:.1f})" {hole}/>',
+            f'<ellipse cx="{cx + 34 * s:.1f}" cy="{cy - 14 * s:.1f}" rx="{12 * s:.1f}" ry="{7 * s:.1f}" transform="rotate(20 {cx + 34 * s:.1f} {cy - 14 * s:.1f})" {hole}/>',
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{13 * s:.1f}" fill="url(#{g}Rib)" stroke="{INK}" stroke-width="{4 * s:.1f}"/>',
+            gloss(cx - 40 * s, cy - 26 * s, 9 * s, 4 * s, angle=-25, opacity=0.9),
+            gloss(cx - 4 * s, cy - 5 * s, 4 * s, 3 * s, opacity=0.9),
+        ]
+    )
+
+
+PINK_BOX = (("#FF9FD3", "#E9409A"), ("#DC3F92", "#A8246A"), ("#FFC4E4", "#FF86C6"))
+BLUE_BOX = (("#86C6FF", "#2F84E8"), ("#2A74D6", "#1A52A6"), ("#C2E3FF", "#72B8FF"))
+
+
+def icon_rewards():
+    """A pink gift box with a gold ribbon and bow."""
+    body, _ = gift_box("rew", PINK_BOX)
+    return body
+
+
+def fat_arrow(g, x0, x1, cy, colours, head=64, shaft=24, wing=48, depth=14):
+    """A chunky arrow from x0 to x1 (either way) with a darker extrusion under it: colours are
+    the top face's light, mid and dark, then the extrusion's."""
+    sgn = 1 if x1 > x0 else -1
+    hx = x1 - sgn * head
+    pts = [(x0, cy - shaft), (hx, cy - shaft), (hx, cy - wing), (x1, cy), (hx, cy + wing), (hx, cy + shaft), (x0, cy + shaft)]
+    d = poly(pts)
+    round_ = 'stroke-linejoin="round"'
+    parts = ["<defs>" + grad(g, *colours[:3], x2=0.1) + "</defs>"]
+    for k in range(depth, 0, -2):
+        parts.append(
+            f'<path d="{d}" transform="translate(0 {k})" fill="{colours[3]}" stroke="{colours[3]}" stroke-width="12" {round_}/>'
+        )
+    parts += [
+        f'<path d="{d}" fill="url(#{g})" stroke="url(#{g})" stroke-width="12" {round_}/>',
+        f'<path d="{d}" fill="none" stroke="{INK}" stroke-width="4" stroke-opacity="0.35" {round_} transform="translate(0 1)"/>',
+        line([(x0 + sgn * 10, cy - shaft + 8), (hx - sgn * 4, cy - shaft + 8)], "#FFFFFF", 7, 'opacity="0.55"'),
+    ]
+    return "".join(parts)
+
+
+def icon_trade():
+    """Two fat arrows swapping, blue above going right and orange below going left, after
+    reference 06."""
+    blue = ("#9EDBFF", "#3BA4FF", "#1668D6", "#0E4A9E")
+    orange = ("#FFD98A", "#FF9F1C", "#E06A00", "#A04A00")
+    top = fat_arrow("tradeBlue", 30, 226, 88, blue)
+    bottom = fat_arrow("tradeOrange", 226, 30, 168, orange)
+    return zoom(f'<g transform="rotate(-10 128 128)">{top}{bottom}</g>', 0.88, dy=-6)
+
+
+# Money packs: they grow from the cash bundle (reference 04).
+
+
+def zoom(body, k, dx=0.0, dy=0.0):
+    """Scale a drawing by k about the icon's middle and nudge it, inside the ink group (so the
+    outline keeps its width): to give a drawing the same margin as the other icons."""
+    return f'<g transform="translate({128 + dx - 128 * k:.2f} {128 + dy - 128 * k:.2f}) scale({k})">{body}</g>'
+
+
+def fit(body, points, box=(22, 20, 234, 228)):
+    """Scale and move a drawing so the box round `points` fills `box` (x0, y0, x1, y1),
+    centred: for drawings built in their own coordinates."""
+    xs, ys = [p[0] for p in points], [p[1] for p in points]
+    w, h = max(xs) - min(xs), max(ys) - min(ys)
+    k = min((box[2] - box[0]) / w, (box[3] - box[1]) / h)
+    tx = (box[0] + box[2]) / 2 - k * (min(xs) + max(xs)) / 2
+    ty = (box[1] + box[3]) / 2 - k * (min(ys) + max(ys)) / 2
+    return f'<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">{body}</g>'
+
+
+def cash_inked(bundle, width=4.5):
+    """A cash bundle with an ink edge of its own, for piles where bundles overlap."""
+    return cash_bundle(*bundle) + (
+        f'<path d="{cash_outline(*bundle)}" fill="none" stroke="{INK}" stroke-width="{width}" stroke-linejoin="round"/>'
+    )
+
+
+def cash_pile(s, items, centre=(128, 126), thick=1.0):
+    """items: (along the long edge, along the short edge, how high) in bundle units. Returns the
+    bundles' cash_points arguments, back to front, the pile centred on `centre`."""
+    lx, ly = CASH_LONG[0] * s, CASH_LONG[1] * s
+    sx, sy = CASH_SHORT[0] * s, CASH_SHORT[1] * s
+    t = CASH_THICK * s * thick
+    placed = []
+    for a, b, level in sorted(items, key=lambda it: (it[2], it[1], -it[0])):
+        placed.append((a * lx + b * sx, a * ly + b * sy - level * t, s, 1.0, thick))
+    xs, ys = [], []
+    for bundle in placed:
+        left, back, right, front, tt = cash_points(*bundle)
+        xs += [left[0], right[0]]
+        ys += [back[1], front[1] + tt]
+    ox = centre[0] - (min(xs) + max(xs)) / 2
+    oy = centre[1] - (min(ys) + max(ys)) / 2
+    return [(x + ox, y + oy, s_, lo, th) for x, y, s_, lo, th in placed]
+
+
+def icon_pack_1():
+    """One bundle."""
+    (bundle,) = cash_layout(0.47, [(0, 1.0, 1.0)])
+    return CASH_DEFS + cash_bundle(*bundle)
+
+
+def icon_pack_2():
+    """A small stack: three bundles, a little crooked."""
+    bundles = cash_layout(0.44, [(0, 1.0, 1.08), (-4, 1.04, 1.08), (-8, 1.02, 1.08)])
+    return CASH_DEFS + "".join(cash_inked(b) for b in reversed(bundles))
+
+
+def icon_pack_3():
+    """A bigger stack: a tall stack behind and a shorter one in front."""
+    wobble = (0, 0.02, -0.02, 0.01, -0.01)
+    items = [(wobble[i], 0, i) for i in range(5)] + [(0.12 + wobble[i], 1.05, i) for i in range(3)]
+    bundles = cash_pile(0.305, items, centre=(128, 124))
+    return CASH_DEFS + "".join(cash_inked(b) for b in bundles)
+
+
+def icon_pack_4():
+    """An open brown briefcase heaped with cash, drawn on the bundles' own slant."""
+    g = "brief"
+    s = 0.26
+    L = (CASH_LONG[0] * s, CASH_LONG[1] * s)
+    S = (CASH_SHORT[0] * s, CASH_SHORT[1] * s)
+    CL = (L[0] * 1.22, L[1] * 1.22)  # the case's long edge
+    CS = (S[0] * 2.3, S[1] * 2.3)  # its short edge
+    H = 44  # its height
+    LH = 74  # the lid's height
+    A = (0.0, 0.0)  # the rim's left corner
+
+    def add(*ps):
+        return (sum(p[0] for p in ps), sum(p[1] for p in ps))
+
+    def mul(p, k):
+        return (p[0] * k, p[1] * k)
+
+    back, right, front = add(A, CL), add(A, CL, CS), add(A, CS)
+    down = (0, H)
+    up = add(mul(CS, -0.16), (0, -LH))
+
+    def on_lid(a, v):  # a along the hinge (0..1), v up the lid (0..1)
+        return add(A, mul(CL, a), mul(up, v))
+
+    lid = [A, back, add(back, up), add(A, up)]
+    lining = [on_lid(0.08, 0.06), on_lid(0.92, 0.06), on_lid(0.92, 0.88), on_lid(0.08, 0.88)]
+    handle = [on_lid(0.36, 1.0), on_lid(0.36, 1.14), on_lid(0.64, 1.14), on_lid(0.64, 1.0)]
+    inside = [A, back, right, front]
+    parts = [
+        CASH_DEFS,
+        "<defs>"
+        + grad(g + "Out", "#C98A55", "#8A4B22", "#5E3014", x2=0.3)
+        + grad(g + "Lining", "#D9475A", "#9E2536", x2=0.3)
+        + grad(g + "Floor", "#6E1622", "#4A0C16")
+        + "</defs>",
+        line(handle, "#5E3014", 9, 'fill="none"'),
+        face(lid, f"url(#{g}Out)"),
+        face(lining, f"url(#{g}Lining)", f'stroke="#5E0B18" stroke-width="3" stroke-linejoin="round"'),
+        line([on_lid(0.14, 0.55), on_lid(0.86, 0.55)], "#7A1F2B", 3, 'opacity="0.6"'),
+        gloss(*on_lid(0.3, 0.72), 18, 5, angle=-27, opacity=0.45),
+        face(inside, f"url(#{g}Floor)"),
+    ]
+    # the cash: two bundles side by side, heaped with one more on top, above the rim
+    ox, oy = add(A, mul(CL, 0.1), mul(CS, 0.06))
+    t = CASH_THICK * s
+    for a, b, lvl in ((0, 0.0, 0), (0, 1.12, 0), (0.06, 0.56, 1)):
+        x = ox + a * L[0] + b * S[0]
+        y = oy + a * L[1] + b * S[1] - t * 0.95 - lvl * t
+        parts.append(cash_inked((x, y, s, 1.0, 1.0), 4))
+    # the front walls, over the cash's bottom, a light rim and two gold latches
+    fl = [A, front, add(front, down), add(A, down)]
+    fr = [front, right, add(right, down), add(front, down)]
+    parts += [
+        face(fl, f"url(#{g}Out)"),
+        face(fr, f"url(#{g}Out)"),
+        face(fr, "#000000", 'opacity="0.16"'),
+        line([A, front, right], "#D79A68", 7),
+        line([add(A, (0, 4)), add(front, (0, 4)), add(right, (0, 4))], INK, 3, 'opacity="0.5"'),
+        line([front, add(front, down)], INK, 3, 'opacity="0.45"'),
+        line([add(front, (0, H - 8)), add(right, (0, H - 8))], "#5E3014", 4, 'opacity="0.6"'),
+    ]
+    k = CL[1] / CL[0]  # the long edge's slope, so the latches sit on the face
+    for f in (0.26, 0.74):
+        x, y = add(front, mul(CL, f), (0, 10))
+        latch = [(x - 9, y - 9 * k), (x + 9, y + 9 * k), (x + 9, y + 9 * k + 20), (x - 9, y - 9 * k + 20)]
+        parts.append(face(latch, "url(#gold)", f'stroke="{INK}" stroke-width="3.5" stroke-linejoin="round"'))
+    extent = lid + handle + [add(front, down), add(right, down), add(A, down)]
+    return fit("".join(parts), extent, box=(24, 22, 232, 226))
+
+
+def icon_pack_5():
+    """A steel safe with a round vault door, and a stack of cash in front of it."""
+    g = "safe"
+    parts = [
+        CASH_DEFS,
+        "<defs>"
+        + grad(g + "Body", "#E6ECF4", "#A9B5C6", "#6E7B90", x2=0.3)
+        + grad(g + "Door", "#C8D2E0", "#8997AC", "#5A667A", x2=0.4)
+        + grad(g + "Ring", "#7B879B", "#4A5467")
+        + "</defs>",
+        # feet
+        f'<rect x="46" y="186" width="30" height="26" rx="6" fill="#4A5467"/>',
+        f'<rect x="150" y="186" width="30" height="26" rx="6" fill="#4A5467"/>',
+        # the body and the door
+        f'<rect x="28" y="26" width="170" height="170" rx="26" fill="url(#{g}Body)"/>',
+        f'<rect x="28" y="26" width="170" height="170" rx="26" fill="none" stroke="#6E7B90" stroke-width="4" opacity="0.5"/>',
+        f'<circle cx="113" cy="108" r="66" fill="url(#{g}Ring)"/>',
+        f'<circle cx="113" cy="108" r="54" fill="url(#{g}Door)" stroke="{INK}" stroke-width="4"/>',
+    ]
+    for i in range(8):
+        a = math.radians(i * 45 + 22.5)
+        parts.append(f'<circle cx="{113 + 60 * math.cos(a):.1f}" cy="{108 + 60 * math.sin(a):.1f}" r="4" fill="#C9D3E3"/>')
+    # the wheel: three gold spokes and a hub
+    for i in range(3):
+        a = math.radians(i * 60 - 30)
+        x0, y0 = 113 + 36 * math.cos(a), 108 + 36 * math.sin(a)
+        x1, y1 = 113 - 36 * math.cos(a), 108 - 36 * math.sin(a)
+        parts.append(line([(x0, y0), (x1, y1)], INK, 14))
+        parts.append(line([(x0, y0), (x1, y1)], "#FFC928", 8))
+    parts += [
+        f'<circle cx="113" cy="108" r="14" fill="url(#gold)" stroke="{INK}" stroke-width="4"/>',
+        # the hinge
+        f'<rect x="184" y="62" width="14" height="30" rx="5" fill="#6E7B90" stroke="{INK}" stroke-width="3"/>',
+        f'<rect x="184" y="128" width="14" height="30" rx="5" fill="#6E7B90" stroke="{INK}" stroke-width="3"/>',
+        gloss(60, 52, 22, 8, angle=-20, opacity=0.8),
+        gloss(92, 84, 16, 7, angle=-35, opacity=0.6),
+    ]
+    bundles = cash_pile(0.3, [(0, 0, 0), (0.05, 0, 1)], centre=(170, 196))
+    parts += [cash_inked(b) for b in bundles]
+    return zoom("".join(parts), 0.9, dy=-6)
+
+
+GOLD_BAR = (0.8, 0.9, 1.7, 0.16)  # an ingot's long edge, short edge and height (in bundle
+# units: CASH_LONG, CASH_SHORT, CASH_THICK) and how far its top is drawn in from its bottom
+
+
+def gold_bar_corners(x, y, s):
+    lf, sf, hf, k = GOLD_BAR
+    L = (CASH_LONG[0] * s * lf, CASH_LONG[1] * s * lf)
+    S = (CASH_SHORT[0] * s * sf, CASH_SHORT[1] * s * sf)
+    H = CASH_THICK * s * hf
+
+    def at(a, b, h=0.0):
+        return (x + L[0] * a + S[0] * b, y + L[1] * a + S[1] * b - h)
+
+    return at, k, H, L
+
+
+def gold_bar(x, y, s, g):
+    """An ingot on the bundles' slant: (x, y) its bottom's left corner, s the scale."""
+    at, k, H, _ = gold_bar_corners(x, y, s)
+    top = [at(k, k, H), at(1 - k, k, H), at(1 - k, 1 - k, H), at(k, 1 - k, H)]
+    left = [at(0, 0), at(k, k, H), at(k, 1 - k, H), at(0, 1)]
+    frontf = [at(0, 1), at(k, 1 - k, H), at(1 - k, 1 - k, H), at(1, 1)]
+    outline = [at(0, 0), at(k, k, H), at(1 - k, k, H), at(1 - k, 1 - k, H), at(1, 1), at(0, 1)]
+    return "".join(
+        [
+            face(left, f"url(#{g}Left)"),
+            face(frontf, f"url(#{g}Front)"),
+            face(top, f"url(#{g}Top)"),
+            line([at(k, 1 - k, H), at(0, 1)], "#B87800", 2.5, 'opacity="0.7"'),
+            line([at(k + 0.04, k + 0.08, H), at(1 - k - 0.04, k + 0.08, H)], "#FFFFFF", 3, 'opacity="0.7"'),
+            gloss(*at(0.4, 0.5, H), 14, 3.5, angle=-27, opacity=0.8),
+            f'<path d="{poly(outline)}" fill="none" stroke="{INK}" stroke-width="4.5" stroke-linejoin="round"/>',
+        ]
+    )
+
+
+def icon_pack_6():
+    """Three gold bars stacked (two below end to end, one on top) behind a stack of cash."""
+    g = "bars"
+    s = 0.34
+    _, _, H, L = gold_bar_corners(0, 0, s)
+    bars = [(L[0] * a, L[1] * a - H * lvl * 0.92) for a, lvl in ((1.04, 0), (0, 0), (0.52, 1))]
+    parts = [
+        CASH_DEFS,
+        "<defs>"
+        + grad(g + "Top", "#FFF6B8", "#FFD84A", x2=0.5)
+        + grad(g + "Left", "#FFCB2E", "#E09A00")
+        + grad(g + "Front", "#F0AC00", "#B87800")
+        + "</defs>",
+    ]
+    extent = []
+    for x, y in bars:
+        parts.append(gold_bar(x, y, s, g))
+        at = gold_bar_corners(x, y, s)[0]
+        extent += [at(0, 0), at(1, 0, H), at(1, 1), at(0, 1), at(0.5, 0.2, H)]
+    # a stack of cash in front, at the lower left
+    for lvl in range(2):
+        b = (-30 + 3 * lvl, 40 - CASH_THICK * 0.3 * lvl, 0.3, 1.0, 1.0)
+        parts.append(cash_inked(b))
+        left, back, right, front, t = cash_points(*b)
+        extent += [left, back, right, (front[0], front[1] + t), (left[0], left[1] + t)]
+    return fit("".join(parts), extent, box=(24, 36, 232, 220))
+
+
+def icon_pack_7():
+    """A heap of cash, tallest at the back, in a golden glow with twinkles: the biggest pack."""
+    heights = {(0, 0): 4, (-1.04, 0): 2, (0, 1.04): 2, (-1.04, 1.04): 1}
+    items = [(a + 0.03 * (lvl % 2), b, lvl) for (a, b), n in heights.items() for lvl in range(n)]
+    bundles = cash_pile(0.22, items, centre=(128, 136))
+    glow = (
+        "<defs>"
+        '<radialGradient id="pack7Glow" cx="0.5" cy="0.5" r="0.5">'
+        '<stop offset="0" stop-color="#FFF6B0" stop-opacity="0.95"/>'
+        '<stop offset="0.55" stop-color="#FFD84A" stop-opacity="0.55"/>'
+        '<stop offset="1" stop-color="#FFC928" stop-opacity="0"/></radialGradient>'
+        "</defs>"
+        '<circle cx="128" cy="126" r="126" fill="url(#pack7Glow)"/>'
+    )
+    parts = [CASH_DEFS] + [cash_inked(b, 3.5) for b in bundles]
+    over = twinkle(44, 60, 18, "#FFE14D") + twinkle(206, 40, 13, "#FFE14D") + twinkle(226, 142, 10, "#FFE14D")
+    return glow, "".join(parts), over
+
+
+# Shop and rewards pictures.
+
+RAINBOW_GEMS = [  # the house rainbow (UI_STYLE 4's VIP colours): light, mid, dark
+    ("#FF9A9A", "#FF4D4D", "#C4202F"),
+    ("#FFCB7A", "#FF9F1C", "#D06A00"),
+    ("#FFF3A6", "#FFE14D", "#D9AE00"),
+    ("#9AF0B4", "#3DD66B", "#1B9A44"),
+    ("#9ED0FF", "#3B9BFF", "#1A62C8"),
+    ("#D2B0FF", "#A259FF", "#6A26CC"),
+]
+
+
+def icon_vip():
+    """A gold crown set with gems in the house rainbow: bold and saturated, never pastel, so it
+    is never taken for Mythic."""
+    g = "vip"
+    defs = "<defs>" + "".join(grad(f"{g}Gem{i}", *c, x2=0.6) for i, c in enumerate(RAINBOW_GEMS))
+    defs += grad(g + "Gold", "#FFF1A0", "#FFC928", "#DB8E00", x2=0.3) + grad(g + "Band", "#FFD84A", "#E8A200", "#B87200") + "</defs>"
+    body = "M46 184 L28 88 L70 122 L82 70 L108 116 L128 54 L148 116 L174 70 L186 122 L228 88 L210 184 Z"
+    parts = [
+        defs,
+        f'<path d="{body}" fill="url(#{g}Gold)" stroke="url(#{g}Gold)" stroke-width="10" stroke-linejoin="round"/>',
+        f'<path d="M60 150 L196 150" stroke="#DB8E00" stroke-width="5" opacity="0.5"/>',
+        gloss(76, 140, 10, 26, angle=-18, opacity=0.7),
+    ]
+    tips = [(28, 84, 15), (82, 64, 12), (128, 46, 17), (174, 64, 12), (228, 84, 15)]
+    for i, (x, y, r) in enumerate(tips):
+        parts.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="url(#{g}Gem{i})" stroke="{INK}" stroke-width="4.5"/>')
+        parts.append(f'<circle cx="{x - r * 0.35:.1f}" cy="{y - r * 0.35:.1f}" r="{r * 0.28:.1f}" fill="#FFFFFF" opacity="0.9"/>')
+    parts += [
+        f'<rect x="36" y="164" width="184" height="50" rx="14" fill="url(#{g}Band)" stroke="{INK}" stroke-width="4"/>',
+        line([(50, 172), (206, 172)], "#FFF1A0", 4, 'opacity="0.8"'),
+    ]
+    # the band's gems: a big purple one in the middle, a red and a blue either side
+    gem = "M128 170 L148 189 L128 208 L108 189 Z"
+    parts.append(f'<path d="{gem}" fill="url(#{g}Gem5)" stroke="{INK}" stroke-width="4.5" stroke-linejoin="round"/>')
+    parts.append(f'<path d="M128 176 L138 189 L128 189 Z" fill="#FFFFFF" opacity="0.7"/>')
+    for x, i in ((72, 4), (184, 0)):
+        parts.append(f'<ellipse cx="{x}" cy="189" rx="15" ry="12" fill="url(#{g}Gem{i})" stroke="{INK}" stroke-width="4.5"/>')
+        parts.append(f'<circle cx="{x - 5}" cy="185" r="3.5" fill="#FFFFFF" opacity="0.9"/>')
+    for x, i in ((100, 3), (156, 1)):
+        parts.append(f'<circle cx="{x}" cy="189" r="7" fill="url(#{g}Gem{i})" stroke="{INK}" stroke-width="3.5"/>')
+    return zoom("".join(parts), 0.9)
+
+
+def cue_stick(x0, y0, x1, y1, w0, w1, ink=5):
+    """A small wooden cue from the butt (x0, y0) to the tip (x1, y1), half widths w0 and w1,
+    with an ink edge of its own so it reads over other parts."""
+    ux, uy = x1 - x0, y1 - y0
+    length = math.hypot(ux, uy)
+    ux, uy = ux / length, uy / length
+    nx, ny = -uy, ux
+
+    def w(t):
+        return w0 + (w1 - w0) * t
+
+    def quad(t0, t1):
+        a = (x0 + ux * length * t0, y0 + uy * length * t0)
+        b = (x0 + ux * length * t1, y0 + uy * length * t1)
+        return [(a[0] + nx * w(t0), a[1] + ny * w(t0)), (b[0] + nx * w(t1), b[1] + ny * w(t1)),
+                (b[0] - nx * w(t1), b[1] - ny * w(t1)), (a[0] - nx * w(t0), a[1] - ny * w(t0))]
+
+    outline = poly(quad(0, 1))
+    return "".join(
+        [
+            f'<path d="{outline}" fill="{INK}" stroke="{INK}" stroke-width="{ink * 2}" stroke-linejoin="round"/>',
+            f'<circle cx="{x0}" cy="{y0}" r="{w0 + ink}" fill="{INK}"/>',
+            f'<circle cx="{x0}" cy="{y0}" r="{w0}" fill="url(#darkwood)"/>',
+            face(quad(0, 0.32), "url(#darkwood)"),
+            face(quad(0.32, 0.37), "#F4F8FF"),
+            face(quad(0.37, 0.93), "url(#wood)"),
+            face(quad(0.93, 0.975), "#FFFFFF"),
+            face(quad(0.975, 1.0), "#3B9BFF"),
+            line([(x0 + ux * 10 + nx * w0 * 0.4, y0 + uy * 10 + ny * w0 * 0.4),
+                  (x1 - ux * 20 + nx * w1 * 0.4, y1 - uy * 20 + ny * w1 * 0.4)], "#FFFFFF", 2.5, 'opacity="0.55"'),
+        ]
+    )
+
+
+def icon_starter_pack():
+    """A blue gift box with a cue standing out of it."""
+    body, (tx, ty) = gift_box("starter", BLUE_BOX, x0=36, y0=132, w=124, h=88, lid=32, bow=False)
+    cue = cue_stick(tx - 6, ty + 4, 226, 24, 8.5, 4.5)
+    slot = f'<ellipse cx="{tx - 6:.1f}" cy="{ty + 4:.1f}" rx="16" ry="8" fill="{INK}" transform="rotate(-20 {tx - 6:.1f} {ty + 4:.1f})"/>'
+    return zoom(body + slot + cue + ribbon_bow("starter", 62, 96, 0.62), 0.92, dy=6)
+
+
+def mini_bill(cx, cy, w, h, angle, g="party"):
+    """A single flying bill for confetti: green, a paper band, an ink edge of its own."""
+    x, y = cx - w / 2, cy - h / 2
+    return (
+        f'<g transform="rotate({angle} {cx} {cy})">'
+        f'<rect x="{x - 3.5}" y="{y - 3.5}" width="{w + 7}" height="{h + 7}" rx="7" fill="{INK}"/>'
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="url(#{g}Bill)"/>'
+        f'<rect x="{x + 4}" y="{y + 4}" width="{w - 8}" height="{h - 8}" rx="3" fill="none" stroke="#4FA047" stroke-width="2"/>'
+        f'<ellipse cx="{cx}" cy="{cy}" rx="{h * 0.3:.1f}" ry="{h * 0.28:.1f}" fill="none" stroke="#4FA047" stroke-width="2"/>'
+        f'<rect x="{cx + w * 0.12:.1f}" y="{y}" width="{w * 0.16:.1f}" height="{h}" fill="#F4F8DE"/>'
+        "</g>"
+    )
+
+
+def icon_money_party():
+    """A party popper bursting with cash: a striped cone, bills, streamers and dots."""
+    g = "party"
+    tip = (40, 222)
+    mouth = (112, 150)
+    r = 40
+    ax, ay = mouth[0] - tip[0], mouth[1] - tip[1]
+    al = math.hypot(ax, ay)
+    ux, uy = ax / al, ay / al
+    nx, ny = -uy, ux
+    p1 = (mouth[0] + nx * r, mouth[1] + ny * r)
+    p2 = (mouth[0] - nx * r, mouth[1] - ny * r)
+    cone = poly([tip, p1, p2])
+    stripes = []
+    for i, (t0, t1) in enumerate(((0.18, 0.36), (0.54, 0.72))):
+        a0 = (tip[0] + ax * t0, tip[1] + ay * t0)
+        a1 = (tip[0] + ax * t1, tip[1] + ay * t1)
+        stripes.append(face([(a0[0] + nx * r * t0 * 1.2, a0[1] + ny * r * t0 * 1.2), (a1[0] + nx * r * t1 * 1.2, a1[1] + ny * r * t1 * 1.2),
+                             (a1[0] - nx * r * t1 * 1.2, a1[1] - ny * r * t1 * 1.2), (a0[0] - nx * r * t0 * 1.2, a0[1] - ny * r * t0 * 1.2)],
+                            f"url(#{g}Stripe)", f'clip-path="url(#{g}Clip)"'))
+    ang = math.degrees(math.atan2(uy, ux))
+    parts = [
+        "<defs>"
+        + grad(g + "Cone", "#FF9A9A", "#FF4D4D", "#C4202F", x2=0.6)
+        + grad(g + "Stripe", "#FFF3A6", "#FFD02E", "#E0A000", x2=0.6)
+        + grad(g + "Bill", "#D2F7CF", "#86DC7B", "#5DAE4E", x2=0.4)
+        + f'<clipPath id="{g}Clip"><path d="{cone}"/></clipPath>'
+        + "</defs>",
+        # streamers behind the bills
+        f'<path d="M122 120 C126 84 104 70 118 44" fill="none" stroke="#3B9BFF" stroke-width="10" stroke-linecap="round"/>',
+        f'<path d="M142 140 C170 128 176 104 206 102" fill="none" stroke="#FF5CB8" stroke-width="10" stroke-linecap="round"/>',
+        mini_bill(160, 70, 56, 32, -28),
+        mini_bill(206, 150, 52, 30, 18),
+        mini_bill(84, 50, 46, 26, -58),
+        f'<circle cx="222" cy="78" r="9" fill="#FFE14D"/>',
+        f'<circle cx="184" cy="30" r="8" fill="#A259FF"/>',
+        f'<circle cx="46" cy="104" r="8" fill="#3DD66B"/>',
+        f'<circle cx="198" cy="206" r="7" fill="#FF9F1C"/>',
+        # the cone and its mouth
+        f'<path d="{cone}" fill="url(#{g}Cone)" stroke="url(#{g}Cone)" stroke-width="8" stroke-linejoin="round"/>',
+        "".join(stripes),
+        f'<ellipse cx="{mouth[0]}" cy="{mouth[1]}" rx="{r + 5}" ry="15" fill="url(#{g}Stripe)" stroke="{INK}" stroke-width="4.5" transform="rotate({ang + 90:.1f} {mouth[0]} {mouth[1]})"/>',
+        f'<ellipse cx="{mouth[0]}" cy="{mouth[1]}" rx="{r - 6}" ry="9" fill="#5E0B18" transform="rotate({ang + 90:.1f} {mouth[0]} {mouth[1]})"/>',
+        gloss(tip[0] + ax * 0.45 + nx * 14, tip[1] + ay * 0.45 + ny * 14, 22, 5, angle=ang, opacity=0.6),
+    ]
+    return "".join(parts)
+
+
+def icon_fast_open():
+    """A case chest with a big lightning bolt: open a case at once."""
+    chest_art = chest(CHESTS["standard"], "fastChest")
+    bolt = "M178 18 L118 118 L156 118 L128 232 L220 96 L180 96 L204 18 Z"
+    art = "".join(
+        [
+            f'<g transform="translate(6 30) scale(0.8)">{chest_art}</g>',
+            f'<path d="{bolt}" fill="{INK}" stroke="{INK}" stroke-width="18" stroke-linejoin="round"/>',
+            f'<path d="{bolt}" fill="url(#gold)" stroke="url(#gold)" stroke-width="6" stroke-linejoin="round"/>',
+            line([(184, 28), (140, 104)], "#FFFFFF", 6, 'opacity="0.6"'),
+        ]
+    )
+    return zoom(art, 0.9)
+
+
+def icon_limited():
+    """A red ticket with a gold star and a torn-off stub: limited stock."""
+    g = "lim"
+    ticket = (
+        "M44 72 L212 72 A14 14 0 0 1 226 86 L226 112 A16 16 0 0 0 226 144 L226 170 "
+        "A14 14 0 0 1 212 184 L44 184 A14 14 0 0 1 30 170 L30 144 A16 16 0 0 0 30 112 "
+        "L30 86 A14 14 0 0 1 44 72 Z"
+    )
+    star = poly(star_points(104, 130, 40, inner=0.5))
+    parts = [
+        "<defs>" + grad(g + "Red", "#FF9AA8", "#FF4D6A", "#C8203F", x2=0.3) + grad(g + "Star", "#FFF6B0", "#FFD02E", "#E8A200", x2=0.4) + "</defs>",
+        f'<g transform="rotate(-12 128 128)">',
+        f'<path d="{ticket}" fill="url(#{g}Red)"/>',
+        f'<path d="M44 84 L212 84" stroke="#FFFFFF" stroke-width="4" opacity="0.45"/>',
+        f'<path d="M172 84 L172 172" stroke="#FFFFFF" stroke-width="5" stroke-dasharray="9 8" stroke-linecap="round" opacity="0.85"/>',
+        f'<path d="{star}" fill="url(#{g}Star)" stroke="{INK}" stroke-width="5" stroke-linejoin="round"/>',
+        gloss(92, 114, 9, 5, angle=-30, opacity=0.9),
+        # a # on the stub: the ticket's number, without any digit
+        line([(192, 112), (188, 148)], "#FFFFFF", 5),
+        line([(206, 112), (202, 148)], "#FFFFFF", 5),
+        line([(183, 124), (211, 124)], "#FFFFFF", 5),
+        line([(181, 137), (209, 137)], "#FFFFFF", 5),
+        "</g>",
+    ]
+    return "".join(parts)
+
+
+def icon_calendar():
+    """A calendar page: done days ticked green, today a flame for the streak."""
+    g = "cal"
+    parts = [
+        "<defs>" + grad(g + "Head", "#FF9A9A", "#FF4D4D", "#C9283A", x2=0.2) + grad(g + "Flame", "#FFE14D", "#FF9F1C", "#FF4D4D", x1=0, y1=0, x2=0, y2=1) + "</defs>",
+        f'<rect x="30" y="46" width="196" height="180" rx="24" fill="url(#white)"/>',
+        f'<path d="M30 102 L30 70 A24 24 0 0 1 54 46 L202 46 A24 24 0 0 1 226 70 L226 102 Z" fill="url(#{g}Head)"/>',
+        line([(30, 102), (226, 102)], INK, 5),
+        gloss(66, 64, 22, 7, angle=-6, opacity=0.7),
+    ]
+    for x in (82, 174):
+        parts.append(f'<rect x="{x - 9}" y="24" width="18" height="40" rx="9" fill="url(#steel)" stroke="{INK}" stroke-width="4"/>')
+    cells = [(48, 114), (104, 114), (160, 114), (48, 166), (104, 166), (160, 166)]
+    for i, (x, y) in enumerate(cells):
+        if i < 4:
+            parts.append(f'<rect x="{x}" y="{y}" width="48" height="44" rx="11" fill="url(#green)"/>')
+            parts.append(line([(x + 12, y + 23), (x + 21, y + 32), (x + 36, y + 13)], "#FFFFFF", 6))
+        elif i == 4:
+            parts.append(f'<rect x="{x}" y="{y}" width="48" height="44" rx="11" fill="#FFF1C2" stroke="#FF9F1C" stroke-width="4"/>')
+            flame = f"M{x + 24} {y + 5} C{x + 38} {y + 18} {x + 40} {y + 28} {x + 36} {y + 34} C{x + 32} {y + 41} {x + 16} {y + 41} {x + 12} {y + 34} C{x + 8} {y + 26} {x + 14} {y + 20} {x + 18} {y + 24} C{x + 18} {y + 16} {x + 22} {y + 12} {x + 24} {y + 5} Z"
+            parts.append(f'<path d="{flame}" fill="url(#{g}Flame)" stroke="{INK}" stroke-width="3.5" stroke-linejoin="round"/>')
+        else:
+            parts.append(f'<rect x="{x}" y="{y}" width="48" height="44" rx="11" fill="#DCE4F0"/>')
+    return "".join(parts)
+
+
+def icon_code():
+    """A purple code card with a dark slot of hidden letters: promo codes (after reference 06)."""
+    g = "code"
+    parts = [
+        "<defs>" + grad(g + "Card", "#D7B8FF", "#A259FF", "#6E2FD0", x2=0.25) + grad(g + "Slot", "#1F2440", "#34395E") + "</defs>",
+        f'<rect x="22" y="62" width="212" height="132" rx="28" fill="url(#{g}Card)"/>',
+        f'<rect x="42" y="96" width="172" height="66" rx="16" fill="url(#{g}Slot)" stroke="{INK}" stroke-width="4"/>',
+    ]
+    for x in (80, 118, 156):
+        parts.append(sparkle(x, 129, 13, "#FFFFFF"))
+    parts += [
+        f'<rect x="186" y="112" width="7" height="34" rx="3.5" fill="#7FE7FF"/>',
+        line([(50, 76), (140, 76)], "#FFFFFF", 5, 'opacity="0.55"'),
+        gloss(56, 82, 18, 6, angle=-4, opacity=0.8),
+    ]
+    return "".join(parts)
+
+
+def icon_index():
+    """A green book with gold corners, a bookmark and a cue on its cover: the cue index."""
+    g = "idx"
+    parts = [
+        "<defs>" + grad(g + "Cover", "#6FE08E", "#2FA24F", "#1C7A37", x2=0.3) + grad(g + "Pages", "#FFFFFF", "#F2EBD6") + "</defs>",
+        # the bookmark, under the pages
+        f'<path d="M156 206 L180 206 L180 244 L168 234 L156 244 Z" fill="url(#red)"/>',
+        # the pages' edge, to the right and below the cover
+        f'<rect x="58" y="40" width="160" height="186" rx="16" fill="url(#{g}Pages)"/>',
+    ]
+    for y in (76, 108, 140, 172):
+        parts.append(line([(206, y), (214, y + 4)], "#C9B98E", 3))
+    parts += [
+        f'<rect x="36" y="28" width="164" height="186" rx="18" fill="url(#{g}Cover)" stroke="{INK}" stroke-width="4"/>',
+        f'<rect x="36" y="28" width="28" height="186" rx="12" fill="#1C7A37" opacity="0.55"/>',
+        line([(64, 34), (64, 208)], INK, 3, 'opacity="0.4"'),
+        f'<rect x="76" y="44" width="110" height="154" rx="12" fill="none" stroke="#FFD84A" stroke-width="4" opacity="0.9"/>',
+        f'<path d="M168 28 L200 28 L200 60 Z" fill="url(#gold)" stroke="{INK}" stroke-width="3.5" stroke-linejoin="round"/>',
+        f'<path d="M200 182 L200 214 L168 214 Z" fill="url(#gold)" stroke="{INK}" stroke-width="3.5" stroke-linejoin="round"/>',
+        cue_stick(94, 180, 170, 64, 8.5, 4.5, ink=4),
+        f'<circle cx="112" cy="78" r="15" fill="url(#white)" stroke="{INK}" stroke-width="4"/>',
+        gloss(106, 72, 5, 3, opacity=0.9),
+        gloss(84, 56, 16, 6, angle=-10, opacity=0.6),
+    ]
+    return zoom("".join(parts), 0.92, dy=-6)
+
+
+def icon_sell():
+    """A gold price tag on a string, with a bill on it: sell for money."""
+    g = "sell"
+    tag = "M92 70 L206 70 A18 18 0 0 1 224 88 L224 168 A18 18 0 0 1 206 186 L92 186 L38 128 Z"
+    hole = "M78 128 m-13 0 a13 13 0 1 0 26 0 a13 13 0 1 0 -26 0 Z"
+    parts = [
+        "<defs>" + grad(g + "Tag", "#FFF1A0", "#FFC928", "#DB8E00", x2=0.3) + grad(g + "Bill", "#D2F7CF", "#86DC7B", "#5DAE4E", x2=0.4) + "</defs>",
+        f'<g transform="rotate(-32 128 128)">',
+        f'<path d="M78 128 C50 118 32 82 58 56 C74 40 96 46 104 60" fill="none" stroke="#F4F8FF" stroke-width="7" stroke-linecap="round"/>',
+        f'<path d="{tag} {hole}" fill="url(#{g}Tag)" fill-rule="evenodd" stroke="url(#{g}Tag)" stroke-width="8" stroke-linejoin="round"/>',
+        f'<circle cx="78" cy="128" r="13" fill="none" stroke="#B87200" stroke-width="4"/>',
+        f'<rect x="108.5" y="96.5" width="99" height="63" rx="10" fill="{INK}"/>',
+        f'<rect x="112" y="100" width="92" height="56" rx="7" fill="url(#{g}Bill)"/>',
+        f'<rect x="118" y="106" width="80" height="44" rx="5" fill="none" stroke="#4FA047" stroke-width="2.5"/>',
+        f'<ellipse cx="158" cy="128" rx="14" ry="13" fill="none" stroke="#4FA047" stroke-width="2.5"/>',
+        f'<rect x="168" y="100" width="14" height="56" fill="#F4F8DE"/>',
+        gloss(120, 84, 26, 6, angle=0, opacity=0.7),
+        "</g>",
+    ]
+    return "".join(parts)
+
+
+def icon_lock():
+    """A gold padlock with a steel shackle."""
+    g = "lock"
+    parts = [
+        "<defs>" + grad(g + "Shackle", "#F2F5FA", "#AEB8C8", "#6E7B90", x1=0, y1=0, x2=1, y2=0.4) + "</defs>",
+        f'<path d="M82 124 L82 88 C82 30 174 30 174 88 L174 124" fill="none" stroke="url(#{g}Shackle)" stroke-width="28" stroke-linecap="round"/>',
+        line([(74, 92), (82, 58)], "#FFFFFF", 5, 'opacity="0.7"'),
+        f'<rect x="44" y="106" width="168" height="124" rx="30" fill="url(#gold)"/>',
+        line([(66, 120), (190, 120)], "#FFFFFF", 5, 'opacity="0.55"'),
+        f'<circle cx="128" cy="156" r="17" fill="{INK}"/>',
+        f'<path d="M120 162 L136 162 L140 196 L116 196 Z" fill="{INK}" stroke="{INK}" stroke-width="4" stroke-linejoin="round"/>',
+        gloss(74, 150, 9, 24, angle=0, opacity=0.6),
+    ]
+    return "".join(parts)
+
+
+def icon_odds():
+    """A pie chart in the rarity colours with the rarest slice pulled out: the drop odds."""
+    cx, cy, r = 124, 134, 94
+    slices = [("grey", 0.36), ("green", 0.25), ("blue", 0.18), ("purple", 0.12), ("gold", 0.09)]
+    parts = []
+    a0 = -90.0
+    for i, (colour, share) in enumerate(slices):
+        a1 = a0 + share * 360
+        mid = math.radians((a0 + a1) / 2)
+        pull = 20 if i == len(slices) - 1 else 0
+        ox, oy = cx + pull * math.cos(mid), cy + pull * math.sin(mid)
+        rr = r + (6 if pull else 0)
+        x0, y0 = ox + rr * math.cos(math.radians(a0)), oy + rr * math.sin(math.radians(a0))
+        x1, y1 = ox + rr * math.cos(math.radians(a1)), oy + rr * math.sin(math.radians(a1))
+        large = 1 if share > 0.5 else 0
+        d = f"M{ox:.1f} {oy:.1f} L{x0:.1f} {y0:.1f} A{rr} {rr} 0 {large} 1 {x1:.1f} {y1:.1f} Z"
+        parts.append(f'<path d="{d}" fill="url(#{colour})" stroke="{INK}" stroke-width="5" stroke-linejoin="round"/>')
+        a0 = a1
+    parts.append(gloss(88, 84, 30, 13, angle=-35, opacity=0.7))
+    return zoom("".join(parts), 0.94, dy=4)
+
+
+# ---------------------------------------------------------------------------------------
+# Cue thumbnail layers. One chunky cue, butt bottom-left and tip top-right, split into layers
+# that share one canvas and line up exactly. The white layers are tinted in Roblox with a
+# cue's look colours (ImageColor3 multiplies, so white becomes the colour); the outline,
+# rainbow, gloss and silhouette layers are drawn in their own colours, untinted.
+# Draw order, bottom to top: outline, shaft, tip, ring, forearm, accent (or rainbow instead
+# of forearm and accent), wrap, cap, gloss. The ferrule is not tinted: Catalog.style gives
+# every cue the same ferrule colour, so it is painted into the outline layer in that colour.
+# ---------------------------------------------------------------------------------------
+
+CUE_TIP = (222, 34)  # the tip's middle
+CUE_BUTT = (38, 218)  # the butt's middle
+CUE_HALF = 15.0  # half the cue's width at the butt (chunkier than real, to read at 64 px)
+CUE_OUTLINE, CUE_LIP = 7, 4  # a thinner ink than the icons', for so slim a shape
+CUE_TIP_SHARE = 0.42  # the tip's width as a share of the butt's (Catalog.style TipWidth)
+CUE_FERRULE = "#F2EEE2"  # Catalog's FERRULE, 242 238 226
+# Tip to butt, as shares of the length: Catalog.style's proportions, but the small parts (tip,
+# ferrule, joint collar, ring) are drawn longer so they still show at 64 px, taken out of
+# the shaft. The accent band sits in the middle of the forearm.
+CUE_PARTS = [
+    ("tip", 0.025),
+    ("ferrule", 0.03),
+    ("shaft", 0.45),
+    ("joint", 0.03),
+    ("forearm", 0.22),
+    ("ring", 0.02),
+    ("wrap", 0.17),
+    ("cap", 0.055),
+]
+CUE_ACCENT = 0.04
+CUE_RAINBOW = ["#FF4D4D", "#FF9F1C", "#FFE14D", "#3DD66B", "#3B9BFF", "#A259FF"]
+
+
+def cue_spans():
+    spans, s = {}, 0.0
+    for name, share in CUE_PARTS:
+        spans[name] = (s, s + share)
+        s += share
+    f0, f1 = spans["forearm"]
+    mid = (f0 + f1) / 2
+    spans["accent"] = (mid - CUE_ACCENT / 2, mid + CUE_ACCENT / 2)
+    return spans
+
+
+def cue_frame():
+    tx, ty = CUE_TIP
+    bx, by = CUE_BUTT
+    length = math.hypot(bx - tx, by - ty)
+    ax, ay = (bx - tx) / length, (by - ty) / length  # along the cue, tip to butt
+    nx, ny = ay, -ax  # across it, toward the upper left (the lit side)
+    return length, ax, ay, nx, ny
+
+
+def cue_pt(s, k):
+    """The point s along the cue (0 tip, 1 butt) and k across it (+ toward the upper left)."""
+    length, ax, ay, nx, ny = cue_frame()
+    return (CUE_TIP[0] + ax * length * s + nx * k, CUE_TIP[1] + ay * length * s + ny * k)
+
+
+def cue_half(s):
+    return CUE_HALF * (CUE_TIP_SHARE + (1 - CUE_TIP_SHARE) * s)
+
+
+def cue_piece(s0, s1, grow=0.0, k0=None, k1=None):
+    """The cue between s0 and s1 as a path: the tip's end is a round dome, the butt's a flat
+    one. grow lengthens a piece past its ends (in px) so neighbours overlap with no seam.
+    k0/k1 limit it to a strip across the cue, as shares of the half width (-1..1)."""
+    length = cue_frame()[0]
+    g = grow / length
+    a, b = max(0.0, s0 - g), min(1.0, s1 + g)
+    lo, hi = (-1.0 if k0 is None else k0), (1.0 if k1 is None else k1)
+    pts = []
+    steps = 10
+    for i in range(steps + 1):  # the upper-left edge, tip to butt
+        s = a + (b - a) * i / steps
+        pts.append(cue_pt(s, hi * cue_half(s)))
+    if b >= 1.0 and k0 is None and k1 is None:  # the butt's dome
+        for i in range(1, 16):
+            t = math.pi / 2 - math.pi * i / 16
+            pts.append(cue_pt(1.0 + 0.4 * CUE_HALF * math.cos(t) / length, CUE_HALF * math.sin(t)))
+    for i in range(steps, -1, -1):  # the lower-right edge, butt to tip
+        s = a + (b - a) * i / steps
+        pts.append(cue_pt(s, lo * cue_half(s)))
+    if a <= 0.0 and k0 is None and k1 is None:  # the tip's dome
+        r = cue_half(0)
+        for i in range(1, 16):
+            t = -math.pi / 2 + math.pi * i / 16
+            pts.append(cue_pt(-r * math.cos(t) / length, r * math.sin(t)))
+    return poly(pts)
+
+
+def cue_whole():
+    return cue_piece(0.0, 1.0)
+
+
+def cue_layer_svg(body, extra_defs=""):
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">'
+        f"<defs>{ink_filter_def('cueInk', CUE_OUTLINE, CUE_LIP)}{extra_defs}</defs>{body}</svg>"
+    )
+
+
+def cue_white(*names):
+    spans = cue_spans()
+    return cue_layer_svg(
+        "".join(f'<path d="{cue_piece(*spans[n], grow=1.2)}" fill="#FFFFFF"/>' for n in names)
+    )
+
+
+def cue_shadow(gid):
+    """A soft shadow under the cue, down and to the right."""
+    f = (
+        f'<filter id="{gid}" x="-20%" y="-20%" width="140%" height="140%">'
+        '<feGaussianBlur stdDeviation="3"/></filter>'
+    )
+    return f, (
+        f'<path d="{cue_whole()}" fill="#0B1020" opacity="0.2" transform="translate(3 9)" filter="url(#{gid})"/>'
+    )
+
+
+def cue_layer_outline():
+    f, shadow = cue_shadow("cueOutlineShadow")
+    ferrule = cue_piece(*cue_spans()["ferrule"], grow=1.2)
+    return cue_layer_svg(
+        shadow + f'<g filter="url(#cueInk)"><path d="{cue_whole()}" fill="{INK}"/></g>' + f'<path d="{ferrule}" fill="{CUE_FERRULE}"/>',
+        f,
+    )
+
+
+def cue_layer_rainbow():
+    f0, f1 = cue_spans()["forearm"]
+    n = len(CUE_RAINBOW)
+    parts = []
+    for i, colour in enumerate(CUE_RAINBOW):
+        a = f0 + (f1 - f0) * i / n
+        b = f0 + (f1 - f0) * (i + 1) / n
+        parts.append(f'<path d="{cue_piece(a, b, grow=1.2)}" fill="{colour}"/>')
+    return cue_layer_svg("".join(parts))
+
+
+def cue_layer_gloss():
+    """The shading: a shine along the lit side, a shade along the far side, and a thin line
+    between each part (so no seam shows where two tinted layers meet)."""
+    spans = cue_spans()
+    clip = f'<clipPath id="cueGlossClip"><path d="{cue_whole()}"/></clipPath>'
+    parts = [
+        f'<g clip-path="url(#cueGlossClip)">',
+        f'<path d="{cue_piece(0.0, 1.0, k0=-1.2, k1=-0.45)}" fill="#0B1020" opacity="0.22"/>',
+        f'<path d="{cue_piece(0.0, 1.0, k0=-1.2, k1=-0.78)}" fill="#0B1020" opacity="0.14"/>',
+        f'<path d="{cue_piece(0.02, 0.985, k0=0.2, k1=0.62)}" fill="#FFFFFF" opacity="0.38"/>',
+        f'<path d="{cue_piece(0.04, 0.96, k0=0.34, k1=0.5)}" fill="#FFFFFF" opacity="0.55"/>',
+    ]
+    for name in ("tip", "ferrule", "shaft", "joint", "forearm", "ring", "wrap"):
+        s = spans[name][1]
+        h = cue_half(s)
+        parts.append(line([cue_pt(s, -h - 2), cue_pt(s, h + 2)], INK, 2, 'opacity="0.5"'))
+    parts.append("</g>")
+    return cue_layer_svg("".join(parts), clip)
+
+
+def cue_layer_silhouette():
+    f, shadow = cue_shadow("cueSilShadow")
+    return cue_layer_svg(shadow + f'<g filter="url(#cueInk)"><path d="{cue_whole()}" fill="#4A5470"/></g>', f)
+
+
+CUE_LAYERS = {
+    "cue_outline": cue_layer_outline,
+    "cue_shaft": lambda: cue_white("shaft"),
+    "cue_tip": lambda: cue_white("tip"),
+    "cue_ring": lambda: cue_white("joint", "ring"),
+    "cue_forearm": lambda: cue_white("forearm"),
+    "cue_accent": lambda: cue_white("accent"),
+    "cue_rainbow": cue_layer_rainbow,
+    "cue_wrap": lambda: cue_white("wrap"),
+    "cue_cap": lambda: cue_white("cap"),
+    "cue_gloss": cue_layer_gloss,
+    "cue_silhouette": cue_layer_silhouette,
+}
+
+
 ICONS = {
     "cue": icon_cue,
     "hourglass": icon_hourglass,
@@ -926,7 +2071,48 @@ ICONS = {
     "level_challenger": icon_level_challenger,
     "scroll_zoom": icon_scroll_zoom,
     "pinch_zoom": icon_pinch_zoom,
+    # the economy (2026-09-28)
+    "shop": icon_shop,
+    "inventory": icon_inventory,
+    "rewards": icon_rewards,
+    "trade": icon_trade,
+    "case_standard": icon_case_standard,
+    "case_rare": icon_case_rare,
+    "case_epic": icon_case_epic,
+    "case_legendary": icon_case_legendary,
+    "case_event": icon_case_event,
+    "pack_1": icon_pack_1,
+    "pack_2": icon_pack_2,
+    "pack_3": icon_pack_3,
+    "pack_4": icon_pack_4,
+    "pack_5": icon_pack_5,
+    "pack_6": icon_pack_6,
+    "pack_7": icon_pack_7,
+    "vip": icon_vip,
+    "starter_pack": icon_starter_pack,
+    "money_party": icon_money_party,
+    "fast_open": icon_fast_open,
+    "limited": icon_limited,
+    "calendar": icon_calendar,
+    "code": icon_code,
+    "index": icon_index,
+    "sell": icon_sell,
+    "lock": icon_lock,
+    "odds": icon_odds,
 }
+
+# Group names on the command line stand for these icons (python3 tools/gen_ui_art.py economy).
+GROUPS = {
+    "column": ["shop", "inventory", "rewards", "trade"],
+    "cases": ["case", "case_standard", "case_rare", "case_epic", "case_legendary", "case_event"],
+    "packs": [f"pack_{i}" for i in range(1, 8)],
+    "shop_icons": [
+        "vip", "starter_pack", "money_party", "fast_open", "limited", "calendar", "code",
+        "index", "sell", "lock", "odds",
+    ],
+    "cue_layers": list(CUE_LAYERS),
+}
+GROUPS["economy"] = [name for group in list(GROUPS.values()) for name in group]
 
 # ---------------------------------------------------------------------------------------
 # Effect art (no ink outline: these sit inside or behind other shapes)
@@ -1113,11 +2299,22 @@ def main():
     jobs = []
     # Names on the command line draw only those icons or effect images (and no shadow), so
     # adding or redrawing one does not rewrite every other image.
-    only = set(sys.argv[1:])
+    # A group's name (GROUPS) stands for all its icons.
+    only = set()
+    for arg in sys.argv[1:]:
+        only.update(GROUPS.get(arg, [arg]))
     for name, draw in ICONS.items():
         if only and name not in only:
             continue
         text = svg(draw())
+        with open(os.path.join(icons_dir, name + ".svg"), "w") as f:
+            f.write(text)
+        jobs.append((text, 256, os.path.join(icons_dir, name + ".png")))
+    # The cue thumbnail layers: whole SVGs of their own (no shared ink group), 256 px.
+    for name, draw in CUE_LAYERS.items():
+        if only and name not in only:
+            continue
+        text = draw()
         with open(os.path.join(icons_dir, name + ".svg"), "w") as f:
             f.write(text)
         jobs.append((text, 256, os.path.join(icons_dir, name + ".png")))
@@ -1133,7 +2330,7 @@ def main():
         print(f"wrote {len(jobs)} images under {ROOT}")
         return
     shadow_png(os.path.join(art_dir, "shadow.png"))
-    print(f"wrote {len(ICONS)} icons and {len(ART) + 1} effect images under {ROOT}")
+    print(f"wrote {len(ICONS) + len(CUE_LAYERS)} icons and {len(ART) + 1} effect images under {ROOT}")
 
 
 if __name__ == "__main__":

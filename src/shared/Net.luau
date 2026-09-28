@@ -77,6 +77,35 @@ local REMOTES: { [string]: string } = {
 	-- deadline?, choices = {[userId] = "Another" | "Lobby"}, searching = {[userId] = at},
 	-- notice?}. The arrival card and the post-game row read it.
 	ArenaState = "RemoteEvent",
+	-- The economy (2026-09-28). Every request carries ids and counts only, never an amount of
+	-- money, a price, a rarity or a result: the server prices, rolls and decides everything.
+	-- client -> server, answered: (action, a?, b?) -> reply { ok: boolean, reason: string?, ... }.
+	-- Actions (src/server/Items.luau): "BuyCase" (caseId, count 1 | BulkCount), "OpenCase"
+	-- (caseId, count 1 | FastOpenCount) -> { results = { { cue, rarity, new, duplicate } } },
+	-- "SellCue" (cueId, count) -> { money }, "SellDuplicates" (cueId?) -> { money, sold },
+	-- "EquipCue" (cueId), "MarkSeen" ({ cueId }), "ClaimIndexRow" (rarity) -> { money,
+	-- title }, "BuyLimited" (cueId) -> { copy }.
+	ItemRequest = "RemoteFunction",
+	-- server -> one player: their inventory (Progression/Inventory.snapshot) on load and after
+	-- every change. The server's copy is the truth; the client only draws it.
+	ItemState = "RemoteEvent",
+	-- server -> one player: the shop's state for them (offers and their end times, VIP and
+	-- Fast Open ownership, paid-random-items restriction, a case sale, Limited shelf rows,
+	-- first pack bought, live Robux prices). Sent on load and when any of it changes.
+	ShopState = "RemoteEvent",
+	-- client -> server, answered: "Buy" (a Config.Products key) -> { ok, reason? }: the server
+	-- checks the offer is open and prompts the purchase itself ("ComingSoon" while its Id is 0).
+	StoreRequest = "RemoteFunction",
+	-- server -> one player: the rewards menu's state (the login streak, playtime gifts, the
+	-- next streak reward for the reminder, titles). Sent on load and after each change.
+	RewardState = "RemoteEvent",
+	-- client -> server, answered: "ClaimDaily", "ClaimPlaytime" (index), "Redeem" (code text)
+	-- -> { ok, reason?, money?, cases? }.
+	RewardRequest = "RemoteFunction",
+	-- server -> everyone (or one player): a banner line at the top middle: { kind = "Unbox" |
+	-- "Party" | "Reyes" | "FirstReyes", userId?, name?, cue?, rarity?, endsAt? }. The client
+	-- words it from Strings.
+	Banner = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
 	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,
 	-- and never worth blocking the reliable queue behind.

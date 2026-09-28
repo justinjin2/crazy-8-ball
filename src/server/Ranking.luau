@@ -10,9 +10,9 @@
 --   TableService's PlayerRemoving, while their save is still open (PlayerData ends it a frame
 --   later); the settle then skips them.
 -- - Real matches (GDD section 13): only a match that ran Config.Ranks.RealMatchSeconds of
---   server time from the break pays anyone. Under that mark only a forfeiter whose loss costs
---   XP (Expert and up) is charged. A surrender, running out of timeouts, leaving, and (under
---   the mark) an early 8 are forfeits: a loss with no consolation XP and no money bonus.
+--   server time from the break pays anyone or counts for rank. XP is never lost (ECONOMY
+--   4.1). A surrender, running out of timeouts, leaving, and (under the mark) an early 8 are
+--   forfeits: a loss with no XP and no money bonus.
 -- - Solo never changes rank and has no match bonus; its summary carries the pots' money only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -59,12 +59,6 @@ local function rankSave(data: any): any
 	}
 end
 
--- Whether a forfeit loss would cost this player XP (Expert and up).
-local function forfeitCosts(data: any): boolean
-	local rank = Ranks.fromXp(data.RankXp, data.RatedMatches > 0)
-	return Ranks.matchXp(rank, "Loss", "Player", true) < 0
-end
-
 -- Applies one match to one player's rank and pays its rank-up rewards. Returns the pure
 -- result (nil when the save is not loaded).
 local function applyMatch(player: Player, outcome: string, forfeited: boolean): any?
@@ -72,7 +66,12 @@ local function applyMatch(player: Player, outcome: string, forfeited: boolean): 
 	if not data then
 		return nil
 	end
-	local result = Ranks.applyMatch(rankSave(data), outcome, "Player", forfeited)
+	local result = Ranks.applyMatch(rankSave(data), {
+		outcome = outcome,
+		opponent = "Player",
+		forfeit = forfeited,
+		mode = "Classic",
+	})
 	if
 		not PlayerData.applyRank(player, {
 			RankXp = result.xpAfter,
@@ -99,7 +98,6 @@ function Ranking.xpPart(result: any): any
 		delta = result.delta,
 		promoted = result.promoted,
 		newTier = result.newTier,
-		demoted = result.demoted,
 		rewards = result.rewards,
 		rewardTotal = result.rewardTotal,
 	}
@@ -139,7 +137,7 @@ function Ranking.departed(t: any, player: Player)
 	end
 	local now = workspace:GetServerTimeNow()
 	local real = e.brokeAt ~= nil and now - e.brokeAt >= R.RealMatchSeconds
-	if real or forfeitCosts(data) then
+	if real then
 		applyMatch(player, "Loss", true)
 	end
 end
@@ -194,7 +192,7 @@ local function settle(e: any)
 			local xp, bonus = nil, 0
 			if not solo then
 				local data = PlayerData.read(p)
-				if data and (real or (forfeited and forfeitCosts(data))) then
+				if data and real then
 					local applied = applyMatch(p, outcome, forfeited)
 					if applied then
 						xp = Ranking.xpPart(applied)
@@ -205,7 +203,13 @@ local function settle(e: any)
 				if outcome == "Loss" then
 					PlayerData.endStreak(p)
 				end
-				bonus = Money.matchBonus(outcome, "Player", real, forfeited, multiplier)
+				bonus = Money.matchBonus({
+					outcome = outcome,
+					opponent = "Player",
+					real = real,
+					forfeited = forfeited,
+					multiplier = multiplier,
+				})
 				if bonus > 0 and not PlayerData.addMoney(p, bonus, "MatchBonus") then
 					bonus = 0
 				end
@@ -294,8 +298,9 @@ function Ranking.check(t: any)
 	end
 end
 
---- The /xp developer command: `delta` XP through the real rules (floor, peak, rewards), with
---- the rank-up popup. Not a match. Returns false when the save is not loaded.
+--- The /xp developer command: `delta` XP (a gain; XP is never lost) through the real rules
+--- (peak, rewards), with the rank-up popup. Not a match. Returns false when the save is not
+--- loaded.
 function Ranking.addXp(player: Player, delta: number): boolean
 	local data = PlayerData.read(player)
 	if not data then
@@ -314,9 +319,9 @@ function Ranking.addXp(player: Player, delta: number): boolean
 	if result.rewardTotal > 0 then
 		PlayerData.addMoney(player, result.rewardTotal, "RankReward")
 	end
-	if result.promoted or result.demoted then
+	if result.promoted then
 		Net.get("RankEvent"):FireClient(player, {
-			kind = if result.promoted then "Up" else "Down",
+			kind = "Up",
 			before = result.before,
 			after = result.after,
 			reward = result.rewardTotal,

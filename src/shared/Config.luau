@@ -502,33 +502,26 @@ Config.Cue = {
 	-- them whole. (tune)
 	CameraFadeStuds = 1.5,
 
-	-- What a cue LOOKS like, as data. Segments run tip to butt, each a share of the length
-	-- and a colour; the cue tapers linearly from TipWidth to ButtWidth. See CueArt.luau.
+	-- What a cue LOOKS like is catalog data (2026-09-28): each Progression/Catalog row has a
+	-- Look, and Catalog.style turns it into CueArt segments (tip, ferrule, shaft, joint ring,
+	-- forearm with its accent band or rainbow bands, ring, wrap, cap) for the 3D stick
+	-- (CueStickBuilder.paint) and the 2D cue in the power bar (PowerCue). The row's Effect
+	-- names its Config.Effects.Styles row, which gives it its trail and pocket burst.
 	--
-	-- This is catalog data, not constants: a collectible cue is a row here plus a matching
-	-- row in Config.Effects.Styles, which is what gives it its trail and pocket burst. The
-	-- two are keyed by the same name on purpose, so one name picks a cue's whole identity.
-	-- Roadmap 5.1 moves both into the real item catalog; until then everyone is on Classic.
+	-- The cue drawn for a player with none equipped, or an id the catalog does not know: the
+	-- catalog's default cue (Catalog.Default; tests/cue_looks_test checks they agree).
 	DefaultStyle = "Classic",
-	Styles = {
-		Classic = {
-			-- The lengths add to 1 here for readability, but they are normalised anyway, so
-			-- a hand-written row that adds to 0.98 still draws a whole cue.
-			Segments = {
-				{ Length = 0.015, Color = { 34, 44, 74 } }, -- leather tip
-				{ Length = 0.02, Color = { 242, 238, 226 } }, -- ferrule
-				{ Length = 0.48, Color = { 214, 176, 124 } }, -- maple shaft
-				{ Length = 0.025, Color = { 176, 180, 188 } }, -- joint collar
-				{ Length = 0.22, Color = { 86, 46, 34 } }, -- rosewood forearm
-				{ Length = 0.015, Color = { 176, 180, 188 } }, -- ring
-				{ Length = 0.17, Color = { 32, 32, 36 } }, -- linen wrap
-				{ Length = 0.055, Color = { 20, 20, 22 } }, -- butt cap
-			},
-			-- Widths as a share of the widest point, so a style does not care about pixels.
-			TipWidth = 0.42,
-			ButtWidth = 1,
-		},
-	},
+	-- The player attribute the server sets to the catalog id of the cue they have equipped.
+	-- Everyone's copy of that player's stick, the trail and pocket bursts of their shots, and
+	-- their own power-bar cue follow it; nil (not loaded yet) draws DefaultStyle.
+	EquippedAttribute = "EquippedCue",
+	-- The 3D stick is drawn as coloured bands, each inside one piece of Profile (so the shape
+	-- never changes) and one segment of the cue's style. A segment boundary this close to a
+	-- Profile boundary (a share of the length; 0.012 is under a tenth of a stud) moves onto it,
+	-- so a joint ring that nearly meets the shaft's step costs no sliver part of its own. Every
+	-- stick is built with as many parts as the most banded catalog cue needs (a rainbow one:
+	-- 14), and a plainer cue hides the spare ones. (internal)
+	BandSnap = 0.012,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -1535,6 +1528,21 @@ Config.Save = {
 	MoneyCap = 1e12,
 	RankXpCap = 1e9,
 	StatCap = 1e9, -- every counter in Stats
+	-- Save layout v2 (SaveSchema.validate): every map in a save is bounded, so a bug can never
+	-- grow one without limit (a DataStore key holds at most 4 MB). Far above any honest need;
+	-- validate keeps the entries with the smallest keys when a map is over its cap.
+	MaxIdLength = 64, -- the longest key or id a save may hold (cue, case, title, code, user id)
+	MaxCueEntries = 500, -- Inventory.Cues, .Unique, .New, Index.Seen, Shop.Limited
+	MaxCaseEntries = 50, -- Inventory.Cases (one entry per case type)
+	MaxTitleEntries = 200, -- Titles
+	MaxCodeEntries = 500, -- Codes redeemed
+	MaxSmallEntries = 50, -- Index.Rows (rarities) and Daily.PlaytimeClaimed (gift indices)
+	ItemCountCap = 1e6, -- copies of one cue, or unopened cases of one type
+	CopyNumberCap = 1e6, -- a numbered Limited cue's copy number (#412)
+	UnixTimeCap = 1e10, -- Shop.FirstJoin, unix seconds (1e10 is the year 2286)
+	-- A receipt's PurchaseId (Shop.Purchases). Roblox's are about 30-40 characters; a longer
+	-- one is kept up to this, since dropping a real id could grant a retried receipt twice.
+	MaxPurchaseIdLength = 128,
 	-- How long the join waits for a session (another server may be letting go of it) before
 	-- kicking with Strings.Save.LoadFailed. Over a minute on purpose: a server that crashed
 	-- still holds the lock, and ProfileStore only takes it over after about 45-50 s (its
@@ -1549,12 +1557,17 @@ Config.Save = {
 	GrantCap = 1e9,
 	-- The most balls (or nice shots) one PlayerData.recordShot call may add.
 	ShotCountCap = 100,
+	-- PlayerData replicates every loaded save again this often (seconds), with no change to it:
+	-- the RewardReady attribute depends on the clock (a new UTC day makes the daily streak
+	-- claimable), so the red dot lights within this long of midnight.
+	ReplicateRefreshSeconds = 30,
 }
 
 ---------------------------------------------------------------------------------------------
--- Ranks (src/shared/Progression/Ranks.luau; GDD section 11). Every player's rank comes from
--- one number, their total rank XP (the save's RankXp). Placeholders for testing (designer,
--- 2026-09-27): every division 1,000 XP, a win +250, so four wins a division. (tune)
+-- Ranks (src/shared/Progression/Ranks.luau; GDD section 11). Every number is from
+-- docs/ECONOMY.md section 4 (2026-09-28). One number, rank XP (the save's RankXp), is the only
+-- progression, and it is never lost: nobody drops a division or a tier. Change a number here,
+-- in ECONOMY.md and in tools/economy_model.py together. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Ranks = {
 	-- Bottom to top. Each has divisions I to V (I the bottom) except the last, which has one.
@@ -1571,69 +1584,108 @@ Config.Ranks = {
 		"Reyes",
 	},
 	DivisionsPerTier = 5,
-	-- XP to climb through each division, I to V, per tier. Reyes has no top, so no row.
-	-- All 1,000 for now; widen the high ones later without touching code. (tune)
+	-- XP to climb through each division, I to V, per tier (ECONOMY 4.2). Quick and flat to
+	-- Platinum, then about 17% bigger every division from Diamond I. Grandmaster I starts at
+	-- 1,057,500 XP and Reyes at 2,352,500 (tests/ranks_test checks both). Reyes has no top.
 	DivisionXp = {
-		Bronze = { 1000, 1000, 1000, 1000, 1000 },
-		Silver = { 1000, 1000, 1000, 1000, 1000 },
-		Gold = { 1000, 1000, 1000, 1000, 1000 },
-		Platinum = { 1000, 1000, 1000, 1000, 1000 },
-		Diamond = { 1000, 1000, 1000, 1000, 1000 },
-		Expert = { 1000, 1000, 1000, 1000, 1000 },
-		Veteran = { 1000, 1000, 1000, 1000, 1000 },
-		Master = { 1000, 1000, 1000, 1000, 1000 },
-		Grandmaster = { 1000, 1000, 1000, 1000, 1000 },
+		Bronze = { 250, 250, 250, 250, 250 },
+		Silver = { 350, 350, 350, 350, 350 },
+		Gold = { 800, 800, 800, 800, 800 },
+		Platinum = { 1200, 1200, 1200, 1200, 1200 },
+		Diamond = { 8000, 9500, 11000, 13000, 15000 },
+		Expert = { 17500, 20500, 24000, 28000, 33000 },
+		Veteran = { 38000, 45000, 53000, 62000, 72000 },
+		Master = { 85000, 100000, 115000, 135000, 160000 },
+		Grandmaster = { 185000, 215000, 255000, 295000, 345000 },
 	},
-	-- Rank XP from a finished match against a person (designer, 2026-09-27). (tune)
-	WinXp = 250,
-	-- What a loss does, per tier: Bronze to Gold still gain a little, Platinum and Diamond
-	-- lose nothing, Expert and up lose XP (never below division I of their tier: once you
-	-- reach a tier you keep it).
-	LossXp = {
-		Bronze = 50,
-		Silver = 50,
-		Gold = 50,
-		Platinum = 0,
-		Diamond = 0,
-		Expert = -150,
-		Veteran = -150,
-		Master = -150,
-		Grandmaster = -150,
-		Reyes = -150,
+	-- A match's XP against an equal opponent, by YOUR tier, before the mode, fade, gap, PC and
+	-- boosts (ECONOMY 4.2 "How it is built"). A loss gives a little to Platinum and nothing
+	-- from Diamond; never less than 0. Unranked plays by Bronze's row.
+	BaseXp = {
+		Bronze = { Win = 250, Loss = 100 },
+		Silver = { Win = 250, Loss = 75 },
+		Gold = { Win = 250, Loss = 50 },
+		Platinum = { Win = 250, Loss = 25 },
+		Diamond = { Win = 250, Loss = 0 },
+		Expert = { Win = 450, Loss = 0 },
+		Veteran = { Win = 450, Loss = 0 },
+		Master = { Win = 450, Loss = 0 },
+		Grandmaster = { Win = 450, Loss = 0 },
+		Reyes = { Win = 450, Loss = 0 },
 	},
-	-- Against PC (bots, not built yet): this share of the win XP; losses as against people.
-	PcWinShare = 0.5,
-	-- GDD: PC matches will give full XP only up to the top of Diamond. Not built: nil = no cap.
-	PcCapTier = nil :: string?,
+	-- The table's difficulty multiplies XP, wins and losses (ECONOMY 4.2).
+	ModeXp = { Classic = 1, Difficult = 1.25, Challenger = 1.5 },
+	-- Classic's WINS fade up the ladder (ECONOMY 4.2): x0.5 in Diamond, x0.2 from Expert. A
+	-- tier not listed keeps x1. Only Classic fades; losses never do.
+	ClassicWinFade = {
+		Diamond = 0.5,
+		Expert = 0.2,
+		Veteran = 0.2,
+		Master = 0.2,
+		Grandmaster = 0.2,
+		Reyes = 0.2,
+	},
+	-- Beating much lower players pays less (ECONOMY 4.4). gap = your division index minus the
+	-- opponent's (Bronze I = 1 ... Grandmaster V = 45, Reyes 46; an Unranked player counts as
+	-- Bronze I; a team uses the other team's average). E = 1 / (1 + 10^(-gap / scale)), factor
+	-- = 2(1 - E), clamped to [floor, Max]. Gentle while YOU are below StrictFromTier (small
+	-- servers may only have weaker players), strict from it.
+	Gap = {
+		Scale = 12, -- divisions, Bronze to Diamond
+		Floor = 0.3, -- a win there is never worth less than 30%
+		StrictFromTier = "Expert",
+		StrictScale = 8, -- divisions, Expert and up
+		StrictFloor = 0.1,
+		Max = 1.5, -- beating a much stronger player pays at most this
+		LossMax = 1, -- a loss's small XP uses the same factor, capped here
+	},
+	-- Against PC (bots, not built yet; ECONOMY 4.5): XP x Low while YOU are below
+	-- Gap.StrictFromTier, x High from it. The rules take the opponent kind now.
+	PcXp = { Low = 0.75, High = 0.5 },
+	-- XP boosts ADD together, then multiply (ECONOMY 4.5, 4.3): xp = round-half-even(base x
+	-- mode x fade x gap x PC x (1 + boosts)). A new VIP's first win of the day is x3.5.
+	Boosts = {
+		Rookie = 1.0, -- +100% ("ROOKIE x2") for a player's first RookieMatches real matches
+		RookieMatches = 25,
+		Vip = 0.5, -- VIP +50%
+		FirstWin = 1.0, -- the first win of each UTC day (wins only)
+		Streak = 0.25, -- each win from the StreakFrom-th in a row, against people (wins only)
+		StreakFrom = 3,
+	},
 	-- A match counts only after this much server-tracked time from the break (GDD section
 	-- 13). Under it, a forfeit or an early 8 pays nobody anything. (tune)
 	RealMatchSeconds = 60,
-	-- Money paid the first time you reach each division (PeakDivision passes it; falling and
-	-- climbing again pays nothing). A tier's division I pays TierFirst; II to V pay Step.
-	-- Bronze I is paid by the first ranked match. (placeholders, tune)
+	-- Difficulty unlocks by YOUR rank (ECONOMY 4.7): host Difficult from Gold I, Challenger
+	-- from Diamond I. Pure rule (Ranks.canHost); not enforced while every table is Classic.
+	Unlocks = { Difficult = "Gold", Challenger = "Diamond" },
+	-- Rank rewards, paid once, the first time you reach a division (PeakDivision passes it;
+	-- ECONOMY 4.8). Step: the money for each new division II-V of a tier. Tier: reaching a
+	-- tier's division I pays its money, its cases (into the inventory: { [caseId] = count })
+	-- and the tier's cue (an Exclusive catalog id, never tradable or sellable). The chat tag
+	-- comes from the tier itself (ChatTags).
 	Rewards = {
 		Step = {
-			Bronze = 100,
-			Silver = 150,
-			Gold = 200,
-			Platinum = 300,
-			Diamond = 400,
-			Expert = 600,
-			Veteran = 800,
-			Master = 1000,
-			Grandmaster = 1500,
-		},
-		TierFirst = {
-			Bronze = 100,
-			Silver = 500,
-			Gold = 750,
-			Platinum = 1000,
+			Bronze = 50,
+			Silver = 75,
+			Gold = 150,
+			Platinum = 250,
 			Diamond = 1500,
-			Expert = 2500,
-			Veteran = 3500,
-			Master = 5000,
-			Grandmaster = 7500,
-			Reyes = 25000,
+			Expert = 3000,
+			Veteran = 5000,
+			Master = 8000,
+			Grandmaster = 15000,
+		},
+		Tier = {
+			Bronze = { Money = 100, Cases = { Standard = 2 }, Cue = "BronzeCue" },
+			Silver = { Money = 300, Cases = { Rare = 1 }, Cue = "SilverCue" },
+			Gold = { Money = 600, Cases = { Rare = 2 }, Cue = "GoldCue" },
+			Platinum = { Money = 1200, Cases = { Epic = 1 }, Cue = "PlatinumCue" },
+			Diamond = { Money = 3000, Cases = { Epic = 2 }, Cue = "DiamondCue" },
+			Expert = { Money = 10000, Cases = { Legendary = 2 }, Cue = "ExpertCue" },
+			Veteran = { Money = 15000, Cases = { Legendary = 3 }, Cue = "VeteranCue" },
+			Master = { Money = 25000, Cases = { Legendary = 5 }, Cue = "MasterCue" },
+			Grandmaster = { Money = 50000, Cases = { Legendary = 10 }, Cue = "GrandmasterCue" },
+			Reyes = { Money = 150000, Cases = { Legendary = 25 }, Cue = "ReyesCue" },
 		},
 	},
 	-- The [TIER] tag before a player's name in chat (src/client/ChatTags.luau; designer,
@@ -1676,26 +1728,321 @@ Config.Ranks = {
 }
 
 ---------------------------------------------------------------------------------------------
--- Money (src/shared/Progression/Money.luau, paid by src/server/Economy.luau; GDD section 12).
--- Placeholders (designer, 2026-09-27). (tune)
+-- Money (src/shared/Progression/Money.luau, paid by src/server/Economy.luau and Ranking;
+-- GDD section 12). Every number is from docs/ECONOMY.md section 3 (2026-09-28). (tune)
 ---------------------------------------------------------------------------------------------
 Config.Economy = {
-	BallPay = 10, -- every ball that counts for the shooter
-	-- A nice shot pays this on top of its ball (Rules/NiceShot's kinds).
+	BallPay = 10, -- every ball that counts for the shooter's team (3.1)
+	-- A nice shot pays this on top of its ball (Rules/NiceShot's kinds), to the shooter only.
 	NiceShotPay = { Bank = 15, Kick = 15, Combo = 20, Carom = 20 },
-	WinBonus = 50, -- at the end of a real match
-	LossBonus = 15, -- money even when you lose
-	PcShare = 0.5, -- the match bonus against PC
-	-- Solo pays this share of the normal pay (rounded, at least 1) until SoloDailyCap has been
-	-- earned in solo in a UTC day, then SoloAfterCapPay a ball and nothing for nice shots
-	-- (never zero, GDD section 12).
+	-- The match bonus at the end of a real match (3.1, 3.2), by opponent. The leaver gets
+	-- nothing. The win bonus is multiplied by the opponent-gap factor (Config.Ranks.Gap) but
+	-- never below WinBonusGapFloor of it (4.4); the loss bonus is not.
+	WinBonus = 50,
+	LossBonus = 15,
+	PcWinBonus = 25,
+	PcLossBonus = 8,
+	WinBonusGapFloor = 0.5,
+	-- Win streak money (3.1): +StreakBonus on each win from the StreakFrom-th in a row,
+	-- against people only (the same streak as the XP boost and the fire over the head).
+	StreakBonus = 25,
+	StreakFrom = 3,
+	-- Team matches (3.3): every ball a team pots pays EACH teammate BallPay (with each
+	-- player's own solo/short/PC rules); the nice-shot bonus goes only to the shooter.
+	TeamBallPay = true,
+	-- PC (3.2): after PcDailyCap of PC money in a UTC day, PC pays PcAfterCapShare of
+	-- everything (rounded, never below $1 a ball).
+	PcDailyCap = 1000,
+	PcAfterCapShare = 0.5,
+	-- Solo (3.2): this share of the normal pay (rounded, at least 1) until SoloDailyCap has
+	-- been earned in solo in a UTC day, then SoloAfterCapPay a ball and nothing for nice shots.
 	SoloShare = 0.3,
 	SoloDailyCap = 300,
 	SoloAfterCapPay = 1,
+	-- Short matches (3.6): pots are paid live, but money from a match that ends before the
+	-- one-minute mark adds to a daily short-match total; once that total reaches ShortDailyCap
+	-- in a UTC day, balls potted before the one-minute mark pay ShortAfterCapPay each (and no
+	-- nice-shot bonus) until the mark passes.
+	ShortDailyCap = 200,
+	ShortAfterCapPay = 1,
+	-- Boosts (3.5): money = base x difficulty x (1 + VIP + Money Party) on everything earned
+	-- in play (balls, nice shots, match bonuses), never on rewards, sell-back or packs.
+	VipBoost = 1.0,
+	PartyBoost = 1.0,
+	-- Anti-farm (3.6): the same opponent in one UTC day. Each row covers matches up to UpTo
+	-- (the last row has no UpTo: every match after). Xp, Bonus and Balls multiply the match's
+	-- XP, its win/loss bonus and its ball pay; FreeCase says whether the winner's free case
+	-- can drop. In a team match the most-played opponent's count is used.
+	SameOpponent = {
+		{ UpTo = 5, Xp = 1, Bonus = 1, Balls = 1, FreeCase = true },
+		{ UpTo = 10, Xp = 0.5, Bonus = 0.5, Balls = 1, FreeCase = false },
+		{ Xp = 0, Bonus = 0.25, Balls = 0.5, FreeCase = false },
+	} :: {
+		{
+			UpTo: number?,
+			Xp: number,
+			Bonus: number,
+			Balls: number,
+			FreeCase: boolean,
+		}
+	},
+	SameOpponentMaxEntries = 50, -- the save's per-day opponent table keeps at most this many
+	FreeCasesPerOpponent = 3, -- at most this many free cases a day from beating one account
+	FreeCaseLoserMinMatches = 5, -- the loser must have played this many real matches
 	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier). Off until the
 	-- difficulty picker and its lock exist (Roadmap 6.2): the server still accepts a host's
 	-- SetDifficulty, so a modified client could otherwise pick 2x (second audit, 2026-09-27).
+	-- Every table is Classic; the multipliers and Ranks.canHost are coded and tested.
 	UseDifficultyMultiplier = false,
+}
+
+---------------------------------------------------------------------------------------------
+-- Cases (src/shared/Progression/Cases.luau; the server's src/server/Items.luau). Every
+-- number from docs/ECONOMY.md sections 7, 8 and 9 (2026-09-28). (tune)
+---------------------------------------------------------------------------------------------
+Config.Cases = {
+	-- The case ladder, shop order.
+	Order = { "Standard", "Rare", "Epic", "Legendary", "Event" },
+	-- Rarities, bottom to top (GDD section 12). Exclusive and Unique sit outside the ladder.
+	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Secret" },
+	-- Odds are whole thousandths of a percent, so each row adds to exactly OddsTotal (a
+	-- load-time assert and tests/cases_test check it). Standard: 64.3% = 64300.
+	OddsTotal = 100000,
+	List = {
+		Standard = {
+			Price = 150,
+			Enabled = true,
+			Odds = {
+				Common = 64300,
+				Uncommon = 26000,
+				Rare = 8400,
+				Epic = 1000,
+				Legendary = 250,
+				Mythic = 47,
+				Secret = 3,
+			},
+		},
+		Rare = {
+			Price = 500,
+			Enabled = true,
+			Odds = {
+				Uncommon = 62500,
+				Rare = 31000,
+				Epic = 5500,
+				Legendary = 850,
+				Mythic = 140,
+				Secret = 10,
+			},
+		},
+		Epic = {
+			Price = 1500,
+			Enabled = true,
+			Odds = { Rare = 73400, Epic = 22000, Legendary = 4000, Mythic = 560, Secret = 40 },
+		},
+		Legendary = {
+			Price = 5000,
+			Enabled = true,
+			Odds = { Epic = 76500, Legendary = 20000, Mythic = 3250, Secret = 250 },
+		},
+		-- The special Event Case (9.1): switched off until an event gives it its own cues.
+		Event = {
+			Price = 2000,
+			Enabled = false,
+			Odds = { Rare = 72500, Epic = 22000, Legendary = 4600, Mythic = 800, Secret = 100 },
+		},
+	},
+	-- Bulk opening (9.1): BulkCount of any case for the price of BulkPayFor.
+	BulkCount = 10,
+	BulkPayFor = 9,
+	-- A real, timed sale on ONE case (9.1): Case = a case id, Percent off, EndsAt = a unix time.
+	-- Nothing is on by default (Case = ""). The /sale dev command sets it for this server only.
+	Sale = { Case = "", Percent = 0, EndsAt = 0 },
+	-- Selling a case cue back (section 8), by rarity. Exclusive and Unique never sell.
+	SellBack = {
+		Common = 15,
+		Uncommon = 40,
+		Rare = 120,
+		Epic = 600,
+		Legendary = 3000,
+		Mythic = 15000,
+		Secret = 75000,
+	},
+	ConfirmSellFrom = "Epic", -- the client asks "are you sure?" from this rarity up
+	-- The winner's free case (7.1): FreeCase for every win for the first NewPlayerWins wins
+	-- ever, then the first DailyWins wins each UTC day, then every EveryAfter-th win. Real
+	-- matches only (people or PC; never solo), with the anti-farm limits of
+	-- Config.Economy.SameOpponent. The very first win ever gives FirstWinCase instead, rolled
+	-- by the server when the match settles and revealed on the result screen.
+	FreeCase = "Standard",
+	NewPlayerWins = 50,
+	DailyWins = 10,
+	EveryAfter = 2,
+	FirstWinCase = "Rare",
+	-- Unboxing one of these is announced to everyone in the server (7.4).
+	Announce = { Mythic = true, Secret = true },
+	-- How many cases one request may open: one on the reel, or FastOpenCount with Fast Open.
+	FastOpenCount = 10,
+}
+
+---------------------------------------------------------------------------------------------
+-- The Index (src/shared/Progression/Inventory.luau): completing a rarity row (every cue of
+-- that rarity ever owned; selling one later keeps it counted, and a vaulted cue still counts)
+-- pays once. ECONOMY section 18 (2026-09-28). (tune)
+---------------------------------------------------------------------------------------------
+Config.Index = {
+	-- Money (0 = none) and Title (an id into Strings.Items.Titles), per rarity row. Legendary,
+	-- Mythic and Secret give a title only: money there would reward luck more than play.
+	-- Exclusive and Unique are listed in the Index with no row reward.
+	Rows = {
+		Common = { Money = 1000, Title = "Common" },
+		Uncommon = { Money = 2500, Title = "Uncommon" },
+		Rare = { Money = 7500, Title = "Rare" },
+		Epic = { Money = 25000, Title = "Epic" },
+		Legendary = { Money = 0, Title = "Legendary" },
+		Mythic = { Money = 0, Title = "Mythic" },
+		Secret = { Money = 0, Title = "Secret" },
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- The inventory service (src/server/Items.luau) and the global counters
+-- (src/server/Counters.luau). (tune)
+---------------------------------------------------------------------------------------------
+Config.Items = {
+	-- Each player's item requests (buy, open, sell, equip, claim): a token bucket.
+	RateBurst = 6, -- this many at once...
+	RatePerSecond = 3, -- ...refilling this fast
+	MarkSeenMax = 60, -- the most cue ids one MarkSeen may name
+	-- Copies in existence (ECONOMY 9): each server keeps pending +/- per cue and every
+	-- FlushSeconds (+ up to FlushJitterSeconds, and on shutdown) adds them with one UpdateAsync
+	-- to its own shard key (Shards, picked from the JobId); every ReadSeconds one read of the
+	-- shards sums the totals for the clients.
+	CountsStore = "CueCounts_v1",
+	CountsStudioStore = "CueCounts_Studio_v1",
+	CountsShards = 8,
+	FlushSeconds = 60,
+	FlushJitterSeconds = 15,
+	ReadSeconds = 120,
+	-- Numbered Limited copies: one atomic UpdateAsync counter per Limited cue.
+	LimitedStore = "LimitedCounts_v1",
+	LimitedStudioStore = "LimitedCounts_Studio_v1",
+	-- The first player ever to reach Reyes (ECONOMY 4.6), set once with UpdateAsync.
+	FirstsStore = "Firsts_v1",
+	FirstsStudioStore = "Firsts_Studio_v1",
+	-- MessagingService topic for announcements every server shows (the first Reyes).
+	AnnounceTopic = "Announce_v1",
+}
+
+---------------------------------------------------------------------------------------------
+-- Daily and playtime rewards, codes (src/shared/Progression/Daily.luau; the server's
+-- src/server/Rewards.luau). Every number from docs/ECONOMY.md section 10. (tune)
+---------------------------------------------------------------------------------------------
+Config.Daily = {
+	-- The login streak, one claim per UTC day (10). Missing a day starts again at day 1.
+	-- Each day: Money and/or Cases ({ [caseId] = count }).
+	Streak = {
+		{ Money = 250 },
+		{ Cases = { Standard = 2 } },
+		{ Money = 500 },
+		{ Cases = { Rare = 1 } },
+		{ Money = 1000 },
+		{ Cases = { Rare = 2 } },
+		{ Cases = { Epic = 1 } },
+	} :: { { Money: number?, Cases: { [string]: number }? } },
+	-- Four full weeks in a row add WeekBonus on day 28 (the 7th day of the 4th week).
+	WeeksForBonus = 4,
+	WeekBonus = { Cases = { Legendary = 1 } },
+	-- Playtime gifts: minutes played in a UTC day, each claimable once that day.
+	Playtime = {
+		{ Minutes = 10, Money = 100 },
+		{ Minutes = 30, Cases = { Standard = 1 } },
+		{ Minutes = 60, Cases = { Standard = 2 } },
+	} :: { { Minutes: number, Money: number?, Cases: { [string]: number }? } },
+	PlaytimeTickSeconds = 30, -- the server adds playtime this often (and on leave)
+	-- Promo codes (ECONOMY 18): case-insensitive, once per player, optional Expires (unix
+	-- time). Codes give only money or free cases, never anything sold for Robux. Placeholders.
+	Codes = {
+		WELCOME = { Money = 500, Cases = { Standard = 1 } },
+		["8BALL"] = { Money = 250 },
+		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798675200 }, -- until 2026-12-31
+	} :: { [string]: { Money: number?, Cases: { [string]: number }?, Expires: number? } },
+	CodeMaxLength = 24,
+}
+
+---------------------------------------------------------------------------------------------
+-- The shop's timed offers, VIP, Money Party and the Limited shelf (src/shared/Progression/
+-- Shop.luau; src/server/Store.luau). Every number from docs/ECONOMY.md sections 9 and 11.
+---------------------------------------------------------------------------------------------
+Config.Shop = {
+	-- The VIP welcome offer (11.3): half-price VIP for WelcomeSeconds from the first join; if
+	-- not bought, one comeback window of ComebackSeconds opens ComebackAfterSeconds after the
+	-- first join, then never again.
+	WelcomeSeconds = 86400,
+	ComebackAfterSeconds = 7 * 86400,
+	ComebackSeconds = 86400,
+	-- The Starter Pack (11.4): for StarterSeconds after the first join, once.
+	StarterSeconds = 7 * 86400,
+	StarterMoney = 3000,
+	StarterCue = "StarterCue",
+	VipCue = "VipCue", -- given once to every VIP
+	-- The first money pack a player ever buys pays this many times its money (11.1).
+	FirstPackMultiplier = 2,
+	-- Money Party (11.5): +Config.Economy.PartyBoost money for everyone in the server for
+	-- PartySeconds; buying again adds PartySeconds, up to PartyMaxSeconds queued.
+	PartySeconds = 900,
+	PartyMaxSeconds = 3600,
+	-- Receipts remembered in the save (the last N purchase ids), so a retried receipt is
+	-- never granted twice.
+	RecentPurchases = 50,
+	-- How long ProcessReceipt waits for the save to reach the DataStore before giving up
+	-- (NotProcessedYet: Roblox retries it later).
+	ReceiptSaveTimeoutSeconds = 15,
+	-- The Limited shelf (9): numbered Unique cues, one per player, for a set time. Price in
+	-- money (or Product = a Config.Products key for a Robux one), Cap copies at most.
+	Limited = {
+		{ Cue = "BetaCue", Price = 40000, Cap = 1000, StartsAt = 1790553600, Seconds = 30 * 86400 },
+		{
+			Cue = "FoundersCue",
+			Product = "FoundersCue",
+			Cap = 50,
+			StartsAt = 1790553600,
+			Seconds = 30 * 86400,
+		},
+	} :: {
+		{
+			Cue: string,
+			Price: number?,
+			Product: string?,
+			Cap: number?,
+			StartsAt: number,
+			Seconds: number,
+		}
+	},
+}
+
+---------------------------------------------------------------------------------------------
+-- Robux products (ECONOMY 11). The designer makes each in Creator Hub and pastes its id here;
+-- while Id is 0 the shop says "Coming soon" and prompts nothing. Robux is the display
+-- fallback only: the shop shows Roblox's live price once an id exists (11).
+---------------------------------------------------------------------------------------------
+Config.Products = {
+	-- The shop's order of the money packs (11.1).
+	PackOrder = { "Pack1", "Pack2", "Pack3", "Pack4", "Pack5", "Pack6", "Pack7" },
+	List = {
+		Pack1 = { Kind = "Product", Id = 0, Robux = 49, Money = 900, Bonus = 0 }, -- Handful
+		Pack2 = { Kind = "Product", Id = 0, Robux = 99, Money = 1950, Bonus = 7 }, -- Stack
+		Pack3 = { Kind = "Product", Id = 0, Robux = 249, Money = 5250, Bonus = 15 }, -- Bundle
+		Pack4 = { Kind = "Product", Id = 0, Robux = 499, Money = 11000, Bonus = 20 }, -- Briefcase
+		Pack5 = { Kind = "Product", Id = 0, Robux = 999, Money = 23500, Bonus = 28 }, -- Vault
+		Pack6 = { Kind = "Product", Id = 0, Robux = 2499, Money = 62500, Bonus = 36 }, -- Bank
+		Pack7 = { Kind = "Product", Id = 0, Robux = 4999, Money = 130000, Bonus = 42 }, -- Fortune
+		VipOffer = { Kind = "Product", Id = 0, Robux = 299 }, -- VIP at half price (11.3)
+		StarterPack = { Kind = "Product", Id = 0, Robux = 79 }, -- 11.4
+		MoneyParty = { Kind = "Product", Id = 0, Robux = 199 }, -- 11.5
+		FoundersCue = { Kind = "Product", Id = 0, Robux = 1499 }, -- the Limited shelf (9)
+		Vip = { Kind = "Pass", Id = 0, Robux = 599 }, -- 11.2
+		FastOpen = { Kind = "Pass", Id = 0, Robux = 99 }, -- 11.5
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -2027,6 +2374,27 @@ Config.Audio = {
 		BadgeHover = { Id = "rbxassetid://10066931761", Volume = 0.22 },
 		-- "Roblox_UI_Small_Click" (Roblox, 0.13 s): a button pressed.
 		Click = { Id = "rbxassetid://15675032796", Volume = 0.25 },
+		-- The case reel (2026-09-28, overnight placeholders; assets/audio/README.md). All from
+		-- Roblox's own library or APM Music via Roblox; each checked loading in this game.
+		-- "Roblox_UI_Small_Click" (0.13 s), pitched up and quiet: one card passing the marker.
+		ReelTick = { Id = "rbxassetid://15675032796", Volume = 0.1, Overlap = true, Pitch = 1.7 },
+		-- "Roblox_UI_Sweep" (Roblox, 0.61 s): the reel settling on the prize.
+		ReelSettle = { Id = "rbxassetid://15675046931", Volume = 0.3 },
+		-- "Roblox_UI_Whoosh_03" (Roblox, 1.1 s): the longer build-up before a Mythic or Secret.
+		ReelBuild = { Id = "rbxassetid://15674975792", Volume = 0.35 },
+		-- The reveal sting by rarity tier: "Roblox_UI_Cute_Pop" (2.7 s) for Common and
+		-- Uncommon, "Fortune Fun Logo" (APM, 3.1 s) for Rare, "Everything Works Out - Tag2" (APM,
+		-- 3.7 s) for Epic, "Shooting Stars" (APM, 4.9 s) for Legendary, "Spinning Around (b)"
+		-- (APM, 5.4 s) for Mythic and Secret.
+		RevealLow = { Id = "rbxassetid://15675055424", Volume = 0.3 },
+		RevealRare = { Id = "rbxassetid://1846251729", Volume = 0.3 },
+		RevealEpic = { Id = "rbxassetid://1848281810", Volume = 0.32 },
+		RevealLegendary = { Id = "rbxassetid://9045294353", Volume = 0.35 },
+		RevealMythic = { Id = "rbxassetid://1839881844", Volume = 0.38 },
+		-- "Roblox_UI_Tonal_Stinger" (1.5 s): a reward claimed (daily, playtime, index, code).
+		Claim = { Id = "rbxassetid://15675043410", Volume = 0.3 },
+		-- "Roblox_UI_Indicator" (3.4 s), quiet: a banner (Money Party, an announcement).
+		Banner = { Id = "rbxassetid://15675085146", Volume = 0.2 },
 	},
 	XpTickPitch = { From = 0.9, To = 1.5 }, -- the XP tick's pitch across one fill (tune)
 	MoneyTickEvery = 0.06, -- the money count ticks at most this often, seconds
@@ -2376,10 +2744,28 @@ Config.Effects = {
 		SparkleSize = 0.35, -- studs
 	},
 
-	-- VFX are CUE DATA, not constants. Every cue names a style here, so equipping a rarer
-	-- cue changes the cue ball's trail and the burst when a ball drops - which per GDD
-	-- section 12 is the main reason to want one. Roadmap 5.2 adds a row per rare cue; it
-	-- must never need code. Until the catalog exists everyone uses DefaultStyle.
+	-- VFX are CUE DATA, not constants. Every catalog cue (Progression/Catalog) names a style
+	-- here in its Effect, so equipping a rarer cue changes the cue ball's trail and the burst
+	-- when a ball drops - which per GDD section 12 is the main reason to want one. The shooter's
+	-- equipped cue (Config.Cue.EquippedAttribute) picks the style for their shots, and everyone
+	-- at the table sees it. A new style is a row, never code.
+	--
+	-- DefaultStyle is the Classic cue's Effect (tests/cue_looks_test checks it), and what an
+	-- unknown name falls back to. Every other row lists ONLY what differs from it: Effects
+	-- fills in the rest of its Trail and Pocket from DefaultStyle's, key by key.
+	--
+	-- Beyond the default's keys a row may give (all optional):
+	--   Trail.Colors      a list of colours run along the trail from the ball to its tail,
+	--                     in place of the single Trail.Color
+	--   Trail.Core        a thinner second ribbon inside the trail, for a glowing core:
+	--                     { Color, Width (a share of the trail's width), NearTransparency,
+	--                     LightEmission }
+	--   Pocket.Colors     the burst's own colours, in place of the pocketed ball's: the
+	--                     particles run through them over their life, the ring and the flash
+	--                     take the first
+	--   Pocket.ColorShare how far the ball's colour moves toward Pocket.Colors (0..1, default
+	--                     1): below 1 it is a tint and the ball still reads through
+	-- Rarity rows are placeholders (2026-09-28, overnight); real effects later only change rows.
 	DefaultStyle = "Default",
 	Styles = {
 		Default = {
@@ -2393,7 +2779,11 @@ Config.Effects = {
 				NearTransparency = 0.55,
 				FarTransparency = 1,
 				Lifetime = 0.34, -- seconds of tail
-				WidthStuds = 0.34,
+				-- The ribbon's width: how far apart its two attachments sit across the ball.
+				-- 0.21 is the 1.1 ball radii it was always drawn at (this number was not read
+				-- until 2026-09-28, when the rarer styles needed wider trails).
+				WidthStuds = 0.21,
+				LightEmission = 0.4, -- 0 draws the colour as it is (a dark trail), 1 glows
 				-- How far the ball must travel before any ribbon is laid down. This, not a
 				-- speed threshold, is what stops a ball creeping to a stop leaving a
 				-- smear: a Roblox Trail draws nothing at all while its attachments are
@@ -2409,7 +2799,12 @@ Config.Effects = {
 			Pocket = {
 				Enabled = true,
 				EightBallScale = 1.6, -- the 8 gets a bigger gust
+				-- The whole gust's size (its reach, height, speed, ring and flash; not how
+				-- many particles, which stay few so low-end phones keep them). Rarer styles
+				-- bring a bigger one.
+				Scale = 1,
 				CoreWhiten = 0.55, -- how far each layer's core runs toward white (dark balls still glow)
+				LightEmission = 1, -- the particles and ribbons glow; lower lets a dark style read dark
 				ParticleTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built in
 				SparkleTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built in
 				-- Swirling ribbons of wind corkscrewing up out of the pocket.
@@ -2445,6 +2840,104 @@ Config.Effects = {
 				FlashBrightness = 6,
 				FlashRangeStuds = 12,
 				FlashSeconds = 0.35,
+			},
+		},
+		-- One row per rarity (the catalog's case cues name their rarity; rank and special
+		-- cues name the rarity their look matches). Colours from UI_STYLE section 4. (tune)
+		-- Common: the very same plain wisp and gust as Classic (GDD 12).
+		Common = {},
+		-- Uncommon: the wisp, tinted a soft green; the gust stays the ball's own.
+		Uncommon = {
+			Trail = { Color = { 165, 240, 190 } },
+		},
+		-- Rare: a clear blue trail, a touch stronger, and the gust tinted blue half way (the
+		-- pocketed ball still reads through).
+		Rare = {
+			Trail = { Color = { 90, 170, 255 }, NearTransparency = 0.45, LightEmission = 0.6 },
+			Pocket = { Colors = { { 59, 155, 255 } }, ColorShare = 0.5 },
+		},
+		-- Epic: a lilac-to-purple trail that lasts a little longer, and a purple-to-pink gust
+		-- in its own colours.
+		Epic = {
+			Trail = {
+				Colors = { { 205, 160, 255 }, { 162, 89, 255 } },
+				NearTransparency = 0.4,
+				Lifetime = 0.4,
+				WidthStuds = 0.24,
+				LightEmission = 0.7,
+			},
+			Pocket = { Colors = { { 162, 89, 255 }, { 255, 120, 230 } } },
+		},
+		-- Legendary: a brighter, wider gold trail with a white-hot core, and a bigger gold
+		-- gust with a brighter flash.
+		Legendary = {
+			Trail = {
+				Colors = { { 255, 240, 170 }, { 242, 178, 0 } },
+				NearTransparency = 0.3,
+				Lifetime = 0.45,
+				WidthStuds = 0.3,
+				LightEmission = 0.9,
+				Core = {
+					Color = { 255, 255, 235 },
+					Width = 0.35,
+					NearTransparency = 0.2,
+					LightEmission = 1,
+				},
+			},
+			Pocket = {
+				Colors = { { 255, 225, 120 }, { 242, 178, 0 } },
+				Scale = 1.3,
+				FlashBrightness = 8,
+			},
+		},
+		-- Mythic: the pale holographic shimmer (cyan, lilac, pink, white) along the trail, and
+		-- a bigger gust in the same pastels whose sparkles hang longer, like stars.
+		Mythic = {
+			Trail = {
+				Colors = {
+					{ 127, 231, 255 },
+					{ 183, 156, 255 },
+					{ 255, 156, 230 },
+					{ 255, 255, 255 },
+				},
+				NearTransparency = 0.3,
+				Lifetime = 0.5,
+				WidthStuds = 0.28,
+				LightEmission = 0.8,
+			},
+			Pocket = {
+				Colors = {
+					{ 127, 231, 255 },
+					{ 183, 156, 255 },
+					{ 255, 156, 230 },
+					{ 255, 255, 255 },
+				},
+				Scale = 1.3,
+				SparkleLifetime = 1.4,
+				SparkleSizeStuds = 0.45,
+			},
+		},
+		-- Secret: a near-black smoke trail with a red glowing core, and a red-to-black gust
+		-- that reads dark (UI_STYLE 4's open suggestion for Secret).
+		Secret = {
+			Trail = {
+				Color = { 14, 10, 14 },
+				NearTransparency = 0.25,
+				Lifetime = 0.45,
+				WidthStuds = 0.28,
+				LightEmission = 0,
+				Core = {
+					Color = { 255, 40, 50 },
+					Width = 0.35,
+					NearTransparency = 0.05,
+					LightEmission = 1,
+				},
+			},
+			Pocket = {
+				Colors = { { 255, 50, 60 }, { 150, 0, 20 }, { 20, 0, 6 } },
+				CoreWhiten = 0.15,
+				LightEmission = 0.5,
+				Scale = 1.3,
 			},
 		},
 	},
@@ -2543,8 +3036,8 @@ Config.UI = {
 	PowerLabelSize = 16, -- PULL and the percentage over the bar
 
 	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
-	-- drawn from Config.Cue.Styles, so the cue a player has equipped is the cue they pull
-	-- back, and Roadmap 5.2 changes nothing here.
+	-- the player's equipped catalog cue (Catalog.style), so the cue they pull back is the one
+	-- on their stick, and a new cue changes nothing here.
 	PowerCueWidthPx = 15, -- at the butt, the widest point
 	-- The cue nearly fills the bar at rest, and at full pull it slides a whole bar height -
 	-- so it leaves the bar completely and hangs below it, which is what GamePigeon does and
@@ -3175,8 +3668,50 @@ Config.UI = {
 			Money = "rbxassetid://140297726302884",
 			CashStack = "rbxassetid://140297726302884", -- the money HUD's total
 			CashSingle = "rbxassetid://120556642167836", -- one bundle: the flying "+$10" chip
-			Case = "rbxassetid://123526196779472", -- a loot case (the roadmap's reward tile; placeholder art)
+			Case = "rbxassetid://119138673224082", -- a case chest (case_standard; was 123526196779472)
 			ChatTag = "rbxassetid://108097317615793", -- a speech bubble (the chat-tag reward tile)
+			-- The economy (2026-09-28; tools/gen_ui_art.py, assets/ui/icons/README.md). An empty id
+			-- draws nothing until the image is uploaded.
+			Shop = "rbxassetid://107658760787268", -- the left column: a shopping basket
+			Inventory = "rbxassetid://105879289234800", -- a backpack
+			Rewards = "rbxassetid://92894769753979", -- a gift box with a bow
+			Trade = "rbxassetid://98977101809699", -- two arrows swapping
+			CaseStandard = "rbxassetid://119138673224082", -- the case chest after reference 07, in its case's colour
+			CaseRare = "rbxassetid://121070015585025",
+			CaseEpic = "rbxassetid://86949000248568",
+			CaseLegendary = "rbxassetid://115568776906467",
+			CaseEvent = "rbxassetid://102627378767988",
+			Pack1 = "rbxassetid://104093005133758", -- the money packs, smallest to biggest
+			Pack2 = "rbxassetid://107106986765797",
+			Pack3 = "rbxassetid://78352765658351",
+			Pack4 = "rbxassetid://78298939867579",
+			Pack5 = "rbxassetid://79088631223048",
+			Pack6 = "rbxassetid://75989511488683",
+			Pack7 = "rbxassetid://70683561627175",
+			Vip = "rbxassetid://114618538604206", -- a crown with rainbow gems
+			StarterPack = "rbxassetid://112625803604762", -- a gift box with a cue
+			MoneyParty = "rbxassetid://70489851952209", -- a party popper with cash confetti
+			FastOpen = "rbxassetid://119005216671556", -- a chest with a lightning bolt
+			Limited = "rbxassetid://105313592367901", -- a numbered star ticket
+			Calendar = "rbxassetid://81931904688937", -- the daily streak
+			Code = "rbxassetid://139681599835662", -- promo codes
+			Index = "rbxassetid://94908077553080", -- a book with a cue on it
+			Sell = "rbxassetid://106552564585529", -- a price tag
+			Lock = "rbxassetid://106188433501601", -- a padlock (Exclusive and Unique cues, locked things)
+			Odds = "rbxassetid://116548417104330", -- a pie of rarities (the Odds button)
+			-- A cue's thumbnail, drawn from layers that all share one canvas (CueThumb): the
+			-- white layers are tinted with the cue's look colours (ImageColor3).
+			CueOutline = "rbxassetid://79236419588604", -- the ink outline and shadow, untinted, under the rest
+			CueShaft = "rbxassetid://103302145306091",
+			CueTip = "rbxassetid://139935284491020",
+			CueRing = "rbxassetid://83061685733531", -- the joint collar and the ring
+			CueForearm = "rbxassetid://126056531698047",
+			CueAccent = "rbxassetid://91223791753924", -- a band in the middle of the forearm
+			CueRainbow = "rbxassetid://99026288213964", -- the forearm in the house rainbow, untinted (VIP, Reyes)
+			CueWrap = "rbxassetid://115386170032197",
+			CueCap = "rbxassetid://93663666480532",
+			CueGloss = "rbxassetid://80942448683389", -- the shine, untinted, on top
+			CueSilhouette = "rbxassetid://116727821385649", -- the whole cue as one dark shape (the Index's unowned cues)
 			ScrollZoom = "rbxassetid://76220420219490", -- the zoom guide on a computer: a mouse wheel rolling
 			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
 		},
@@ -3185,15 +3720,31 @@ Config.UI = {
 			BallBand = "rbxassetid://118056017631758", -- a stripe's band, clipped round, tinted
 			Rays = "rbxassetid://112352358460844", -- spinning behind the win trophy
 		},
-		-- Rarity colours (UI_STYLE section 4), for the shop and inventory later.
+		-- Rarity colours (UI_STYLE section 4): card frames, strips, reel glows, filter chips.
+		-- Mythic's solid colour is its shimmer's lilac (the UI adds the pastel shimmer over
+		-- deep space); Secret is near-black with red (overnight assumption, 2026-09-28, UI_STYLE
+		-- 4's suggestion); Exclusive is the house blue (its rank cues show their tier).
 		Rarity = {
 			Common = { 156, 163, 175 },
 			Uncommon = { 61, 214, 107 },
 			Rare = { 59, 155, 255 },
 			Epic = { 162, 89, 255 },
 			Legendary = { 242, 178, 0 },
+			Mythic = { 183, 156, 255 },
+			Secret = { 30, 24, 32 },
 			Unique = { 255, 92, 184 },
+			Exclusive = { 59, 155, 255 },
+			Default = { 156, 163, 175 },
 		},
+		-- Mythic's shimmer colours over its deep-space background, and Secret's red glow.
+		MythicShimmer = {
+			{ 127, 231, 255 },
+			{ 183, 156, 255 },
+			{ 255, 156, 230 },
+			{ 255, 255, 255 },
+		},
+		MythicSpace = { 26, 20, 70 },
+		SecretGlow = { 255, 40, 60 },
 		-- src/client/UIAnim.luau. Things pop in with a little overshoot; only important things
 		-- shine or bounce (designer, 2026-09-25).
 		Motion = {
@@ -4159,6 +4710,183 @@ Config.UI.Queue = {
 	FadeSeconds = 0.4,
 }
 
+-- The economy's menus (2026-09-28, docs/prompts/ECONOMY_UI_PROMPT.md sections 5 and 5.1): the
+-- left column (MenuColumn), every full menu's frame (MenuFrame: header band, tabs, sheet, red
+-- X), its confirm dialog, notice line, scrollers and card tiles, the rarity dressing and cue
+-- thumbnails (CueThumb) and the top banner (Banner). Pixels and seconds. "Short" values are for
+-- a phone on its side (the HUD screen under Multiplayer.Style.ShortHeight, as the rank and money
+-- HUDs). A menu's slight dim is the roadmap's (Config.UI.Progress.Roadmap.Dim*). (tune)
+Config.UI.Menu = {
+	-- The left column (reference 06): one tile each, top to bottom. Keys name the menus
+	-- (Menus.register) and their words (Strings.Menus.Column) and icons (Kit.Icons).
+	Column = {
+		Order = { "Shop", "Inventory", "Rewards", "Trade" },
+		TilePx = 68, -- a tile, square (a computer or tablet)
+		ShortTilePx = 46, -- on a phone (still a 44 px touch target)
+		GapPx = 8, -- between two tiles
+		ShortGapPx = 6,
+		MarginPx = 12, -- from the screen's left edge (the money HUD's margins)
+		ShortMarginPx = 8,
+		-- A phone: the column starts this far under the rank HUD's badge (it hangs below
+		-- Roblox's 58 px top row); a big screen centres it on the left edge.
+		BelowRankPx = 6,
+		AboveMoneyPx = 20, -- and it always ends at least this far above the money HUD
+		MinScale = 0.8, -- a screen too short for it shrinks the column, never below this
+		CornerPx = 16, -- the tile's rounded corners (rounder than a button: reference 06)
+		ShortCornerPx = 12,
+		IconShare = 0.9, -- the glossy icon's size, of the tile
+		IconPokeShare = 0.12, -- its top pokes this share of the tile above the tile's top edge
+		LabelTextPx = 18, -- the word across the tile's bottom edge (white, ink outline)
+		ShortLabelTextPx = 14, -- never under the kit's minimum
+		LabelCentreShare = 0.86, -- the word's middle sits this far down the tile
+		-- The word's box may be this many tiles wide, overhanging both sides ("Inventory" is
+		-- wider than a phone's tile at 14 px); the column moves right by the overhang.
+		LabelMaxShare = 1.7,
+		DotPx = 22, -- the red dot's height (it widens for "9+"), top right of the tile
+		ShortDotPx = 20,
+		DotTextPx = 14,
+		DotInsetPx = 4, -- its centre sits this far inside the tile's top-right corner
+		DotMax = 9, -- more unopened cases than this read "9+"
+		TimerPx = 22, -- the Shop's gold timer pill while an offer window is open
+		ShortTimerPx = 20,
+		TimerTextPx = 14,
+		TimerOverTileShare = 0.3, -- this share of the pill sits over the tile, the rest past it
+		DaysFromSeconds = 86400, -- from a day left the timer reads "6d 4h", else "23:59:12"
+		-- Each tile's D-pad direction (UserInputService KeyCode names; Config has no Enum):
+		-- in the hub the D-pad opens that menu (overnight assumption, 2026-09-28).
+		PadKeys = {
+			Shop = "DPadUp",
+			Inventory = "DPadRight",
+			Rewards = "DPadDown",
+			Trade = "DPadLeft",
+		},
+		GlyphPx = 26, -- the D-pad glyph on the tile's top-left corner while a gamepad is in use
+		ShortGlyphPx = 22,
+		GlyphInsetPx = 4, -- its centre sits this far inside the corner
+		ZIndex = 6, -- in the HUD screen: over the world, under the popups
+		TimerRefreshSeconds = 0.5, -- the timer pill's text is refreshed this often
+	},
+	-- Every full menu's frame (MenuFrame), laid out like the roadmap: on a phone the panel takes
+	-- the whole screen with its title in Roblox's top bar row, right of Roblox's buttons; on a
+	-- bigger screen a capped panel is centred under the bar. Sizes given as { a, b } run from a
+	-- on the smallest panel (a phone) to b on a full-size one (DesignHeightPx tall).
+	Frame = {
+		MaxSizePx = { 920, 600 }, -- the panel's largest width and height (a computer)
+		MarginPx = 4, -- the least gap between the panel and the screen's edges
+		-- Shorter than this below Roblox's top bar is a phone: the panel takes the bar's row too.
+		ShortScreenPx = 500,
+		TopbarLeftFallbackPx = 212, -- where Roblox's buttons end, when Roblox does not say
+		TouchMinPx = 44, -- the smallest touch target (UI_STYLE section 5)
+		DesignHeightPx = 600, -- rows and text are full size at this panel height
+		MinScale = 0.72, -- and shrink with a shorter panel, never below this share
+		PaddingPx = { 6, 14 }, -- inside the panel
+		GapPx = { 5, 8 }, -- between its rows
+		HeaderPx = { 46, 64 }, -- the title row (on a phone: the top bar row's height)
+		TitleScale = 1.1, -- the title is this much bigger than the kit's title size
+		IconShare = 1.45, -- the header's icon, of the title's size
+		CloseMaxPx = 48, -- the red X's largest size (its touch area is always 44)
+		TabPx = { 44, 48 }, -- the tab buttons' height (never under TouchMinPx)
+		TabTextPx = { 16, 20 },
+		TabMinWidthPx = 84, -- a tab is at least this wide
+		TabGapPx = { 6, 8 }, -- between two tabs
+		-- A phone: the tabs share the title row when they fit there, which gives the pages
+		-- about 50 px more height; otherwise (and on bigger screens) they get a row under it.
+		TabsBesideTitle = true,
+		ContentPadPx = { 6, 12 }, -- inside the sheet, round the pages
+		MoneyPx = { 32, 38 }, -- the header's money pill (menus that show it)
+		MoneyTextPx = { 16, 20 },
+		MoneyIconShare = 1.25, -- its cash bundle, of the pill's height (pokes out)
+		PlaceholderTextPx = 18, -- the "Loading..." line on an empty page
+	},
+	-- MenuFrame.scroller: a vertical list or grid of cards in a page.
+	Scroll = {
+		BarPx = 6, -- the scroll bar's thickness
+		BarColor = { 150, 190, 235 }, -- light blue, like the sheet's edge but readable
+		PadPx = 8, -- inside it: room for a hovered card's grow and gold outline
+		GapPx = 8, -- between cards
+		GridMinCellPx = 120, -- a grid fits as many columns as keep each card this wide
+		GridAspect = 1.2, -- a grid card's height, of its width
+	},
+	-- MenuFrame.tile: a card like reference 03's reward tiles (icon, name, a count line).
+	Card = {
+		CornerPx = 12,
+		StrokePx = 2, -- its outline...
+		EdgeColor = { 178, 196, 224 }, -- ...pale, as the roadmap's reward tiles
+		PadShare = 0.06, -- inside the card, of its height
+		IconShare = 0.56, -- the icon (or art) box, of the height
+		NameShare = 0.2, -- the name's line
+		CountShare = 0.16, -- the count line ("x3")
+		NameTextPx = 18,
+		CountTextPx = 16,
+		BadgeShare = 0.18, -- a pill in the top-right slot (NEW, Equipped), of the height
+	},
+	-- MenuFrame.confirm: the kit's dialog card, no dim (popups never darken the screen).
+	Confirm = {
+		WidthPx = 360,
+		MarginPx = 12, -- from the parent's edges on a small screen
+		PadPx = 14,
+		GapPx = 10,
+		ButtonPx = 44,
+		TitleTextPx = 22,
+		TextPx = 18,
+		ZIndex = 60, -- over the page and its notices
+	},
+	-- MenuFrame.notice: a short line from the server's answer at the bottom of the panel.
+	Notice = {
+		Seconds = 2.6,
+		HeightPx = 34,
+		TextPx = 16,
+		PadPx = 14, -- room each side of the words
+		BottomPx = 12, -- above the panel's bottom edge
+		MaxWidthPx = 460,
+		ZIndex = 55,
+	},
+	-- The rarity dressing on a card (CueThumb.dress) and the cue thumbnails.
+	Rarity = {
+		StrokePx = 3, -- the rarity-coloured edge inside the card's ink outline
+		StripShare = 0.07, -- a bar across the card's bottom, of its height
+		StripInsetShare = 0.12, -- the bar is inset this share of the width at each end
+		TintTransparency = 0.72, -- the colour wash at the card's bottom (1 = none)
+		TintFromShare = 0.45, -- the wash starts this far down the card
+		-- Mythic: a slow pastel shimmer over deep space with twinkling stars (UI_STYLE 4).
+		ShimmerSeconds = 5, -- one sweep of the shimmer across the card
+		ShimmerTransparency = 0.55,
+		Stars = 5,
+		StarPx = 3,
+		TwinkleSeconds = 1.8,
+		-- Secret: the dark fill with a slow red glow (overnight assumption, UI_STYLE 4's Open).
+		GlowSeconds = 2.4, -- one breath of the glow
+		GlowTransparency = { 0.15, 0.7 }, -- the edge's glow at its brightest and faintest
+		GlowWashTransparency = { 0.45, 0.8 }, -- the red wash at the bottom, brightest and faintest
+	},
+	Thumb = {
+		TipColor = { 34, 44, 74 }, -- a Look with no Tip: the Classic cue's blue tip
+		CapShade = 0.6, -- a Look with no Cap: the wrap darkened to this share
+		-- The silhouette image missing: every layer tinted this dark instead.
+		SilhouetteColor = { 44, 48, 64 },
+	},
+	-- The top-centre banner (Banner): Money Party, unboxings, Reyes.
+	Banner = {
+		TopPx = 6, -- under Roblox's top bar (the HUD screen starts there)
+		HeightPx = 38,
+		ShortHeightPx = 32,
+		TextPx = 20,
+		ShortTextPx = 16,
+		PadPx = 18, -- room each side of the words
+		MaxWidthPx = 620,
+		SideMarginPx = 10, -- never closer to the screen's sides
+		BelowPx = 6, -- the gap under anything it moves below (the rank HUD, the status card)
+		Seconds = 4.5, -- a one-off line shows this long
+		MaxQueued = 6, -- more waiting than this drops the oldest
+		-- A one-off line waiting this long (a match held it back) is dropped: old news.
+		MaxAgeSeconds = 180,
+		TickSeconds = 0.2, -- how often it looks at its queue and the party's countdown
+		ZIndex = 29, -- over the status card (28), under the result screen (30)
+	},
+	-- ItemState's requests: a reply not back after this long counts as a network failure.
+	RequestTimeoutSeconds = 15,
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
@@ -4183,6 +4911,25 @@ Config.Debug = {
 		NewRank = "/newrank", -- /newrank [tier] [division]: preview the NEW RANK! popup
 		ResetData = "/resetdata", -- your own save back to a fresh one
 		RankHelp = "/rankhelp", -- lists these
+		-- The economy (DevCommands; `/econhelp` lists them), acting on the caller only.
+		GiveCue = "/givecue", -- /givecue <id|name> [count]
+		GiveCase = "/givecase", -- /givecase <standard|rare|epic|legendary|event> [count]
+		OpenCase = "/opencase", -- /opencase <type>: opens one on the reel, like the button
+		Inv = "/inv", -- prints your inventory privately
+		ClearInv = "/clearinv", -- empties your cues (but Classic) and cases
+		Dupes = "/dupes", -- 3 copies of 5 random Common and Uncommon cues (selling tests)
+		SetDay = "/setday", -- /setday <1-7>: the login streak's next day
+		NewDay = "/newday", -- as if a new UTC day began (daily claim, playtime, limits)
+		Playtime = "/playtime", -- /playtime <minutes>: set today's minutes played
+		Buy = "/buy", -- /buy <product>: runs the receipt grant with a fake purchase id
+		Vip = "/vip", -- /vip on|off: fake owning the VIP pass
+		FastOpen = "/fastopen", -- /fastopen on|off: fake owning Fast Open
+		Party = "/party", -- starts (or extends) a Money Party
+		Policy = "/policy", -- /policy restricted|normal: fake PolicyService's paid random items
+		Sale = "/sale", -- /sale <case> <percent> <minutes>: a case sale on this server
+		Rookie = "/rookie", -- /rookie <n>: set how many real matches you have played
+		FreeCase = "/freecase", -- as if you won a real match (the free-case rule)
+		EconHelp = "/econhelp", -- lists these
 		MaxAmount = 1e9, -- the largest /money, /addmoney or /xp amount accepted
 		UserIds = { 544959133 }, -- the designer
 		GroupRank = 255, -- the group's owner

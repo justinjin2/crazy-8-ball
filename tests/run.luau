@@ -1,14 +1,24 @@
 --!strict
 -- Test runner. Every tests/*_test.luau returns a table of { [name] = function }.
 -- Usage: lune run tests/run.luau   (or tools/test.sh)
+--        lune run tests/run.luau ranks money   (only files whose name contains a word)
 
 local fs = require("@lune/fs")
 local process = require("@lune/process")
 
+local only = process.args
 local files = {}
 for _, entry in fs.readDir("tests") do
 	if entry:match("_test%.luau$") then
-		table.insert(files, entry)
+		local wanted = #only == 0
+		for _, word in only do
+			if entry:find(word, 1, true) then
+				wanted = true
+			end
+		end
+		if wanted then
+			table.insert(files, entry)
+		end
 	end
 end
 table.sort(files)

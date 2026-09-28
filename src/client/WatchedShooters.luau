@@ -3,7 +3,7 @@
 -- balls are drawn (Hub's pool, Config.Hub.RenderedTables) the player lining up there is
 -- posed in their stance, FULLY VISIBLE, holding their cue (the drawn pitch and the wind-up
 -- off the aim stream), stretching over the rail or up on the table when the ball is out of
--- reach.
+-- reach. The cue is painted as the one THEY have equipped (CueStickBuilder.wear).
 -- When the replay of their shot starts, the stroke plays from the exact angle and cue-ball
 -- spot the server accepted (Hub.shots), and the body then idles at the spot it shot from
 -- (the server's ShotSpot, see ShooterPoser) until the server lets the root go
@@ -311,6 +311,9 @@ local function step(
 	if slot.userId ~= shooterId or slot.character ~= character then
 		drop(slot)
 		slot.userId, slot.character = shooterId, character
+		-- Everyone sees the shooter's own cue: the stick wears their EquippedCue, and repaints
+		-- if they equip another (CueStickBuilder.wear does nothing for the same player).
+		CueStickBuilder.wear(slot.cue, owner)
 	end
 	local poser = slot.poser
 	if poser == nil then
