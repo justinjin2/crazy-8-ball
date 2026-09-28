@@ -689,7 +689,7 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   chips, roadmap tiles real, ROOKIE pill, [VIP] tag, banner, Reyes announcement.
 - [x] 13. Dev commands (`/econhelp` and the list in section 14) working in Studio.
 - [x] 14. Sounds for the reel and reveals found, checked and wired.
-- [ ] 15. Full playthrough and every new screen checked on PC, phone sizes and tablet (section 15).
+- [x] 15. Full playthrough and every new screen checked on PC, phone sizes and tablet (section 15).
 - [ ] 16. Audit by a fresh subagent and branch-wide bug review; findings fixed.
 - [ ] 17. Polish pass.
 - [ ] 18. Docs updated (ECONOMY additions included) and `docs/prompts/ECONOMY_UI_REPORT.md`
@@ -766,3 +766,12 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   through `DevCommandsQA`. Gamepad: D-pad down/right open Rewards/Inventory, RB switches tabs;
   D-pad up and B cannot be sent by the MCP (Roblox core bindings), and the reminder toast needs
   Roblox's menu or a focus loss: all three are on the hand-check list. Console clean.
+- **Playthrough (step 15, 2026-09-28).** On top of the wave checks: a VIP win paid $20 a ball,
+  $100 win bonus and +50% XP (375; with the streak +25%: 438 and $50 streak money) and showed
+  the VIP and STREAK chips; the tablet layout (menu roots at 1024x700) keeps the Cues grid with
+  the detail panel on the right. Seen once in QA only: a shot fired in the same instant as
+  `/vip on` pays without the boost (the attribute lands a frame later), harmless for players.
+  Hand checks left for the designer: a real phone (touch, the keyboard over the code box), a
+  controller (D-pad up to the Shop, B to close, selection inside the menus), the reminder toast
+  (open Roblox's menu), two real players (team pay, the Trade list), a live server (receipts,
+  PolicyService, MessagingService).
