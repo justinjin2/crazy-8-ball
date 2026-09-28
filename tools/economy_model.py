@@ -8,7 +8,7 @@ Every number here mirrors a table in docs/ECONOMY.md. Change a number in both pl
     python3 tools/economy_model.py loot     # days to a player's first Epic/Legendary/Mythic/Secret
     python3 tools/economy_model.py hours    # the same in hours played, with the spread
     python3 tools/economy_model.py supply   # cues entering the game per day at 500 / 2k / 10k CCU
-    python3 tools/economy_model.py ranks    # population simulation of the rank ladder (about a minute)
+    python3 tools/economy_model.py ranks    # a year of players on the rank ladder (a few minutes)
 
 Nothing here runs in the game. It is a calculator so the designer can re-tune with evidence.
 """
@@ -93,82 +93,69 @@ STREAK_MONTH_BONUS = ["Legendary"]
 # Playtime gifts, once per day, by minutes played that day: (minutes, money, [cases]).
 PLAYTIME_GIFTS = [(10, 100, []), (30, 0, ["Standard"]), (60, 0, ["Standard", "Standard"])]
 
-# Account Level (section 8): EXP to go from level L to L+1.
-def exp_to_next(level):
-    return min(100 + 75 * (level - 1), 5000)
-
-
-WIN_EXP, LOSS_EXP, FIRST_WIN_OF_DAY_EXP = 100, 50, 200
-ROOKIE_MATCHES = 25  # a new player's first 25 matches earn +100% EXP (adds to VIP's +100%)
-EXP_MULT = {"Classic": 1.0, "Difficult": 1.25, "Challenger": 1.5}
-
-
-def level_reward(level):
-    """Money and cases for reaching `level` (section 8)."""
-    # Money only, never cases: VIP's 2x EXP speeds levels up, and a free case that a purchase
-    # can speed up would count as a paid random item (Roblox policy, section 10).
-    money = min(50 + 10 * level, 1000)
-    if level % 10 == 0:
-        money += 25 * level  # milestone levels pay extra (and a cosmetic title, not modelled)
-    return money, []
-
-
 # ------------------------------------------------------------------------------------------
-# Ranks (section 3)
+# Rank XP (section 4). One bar, no Levels. XP is never lost; from Diamond a loss gives nothing.
 # ------------------------------------------------------------------------------------------
-TIERS = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Expert", "Veteran", "Master"]
-DIV_WIDTH = {
-    "Bronze": 250,
-    "Silver": 350,
-    "Gold": 800,
-    "Platinum": 1000,
-    "Diamond": 4000,
-    "Expert": 4500,
-    "Veteran": 6000,
-    "Master": 6000,
+TIERS = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Expert", "Veteran", "Master", "Grandmaster"]
+# XP to fill each division, I to V. Flat and quick to Platinum, then about 17% more each
+# division from Diamond I, so the climb keeps getting longer. Reyes starts where Grandmaster V ends.
+DIV_WIDTHS = {
+    "Bronze": [250, 250, 250, 250, 250],
+    "Silver": [350, 350, 350, 350, 350],
+    "Gold": [800, 800, 800, 800, 800],
+    "Platinum": [1200, 1200, 1200, 1200, 1200],
+    "Diamond": [8000, 9500, 11000, 13000, 15000],
+    "Expert": [17500, 20500, 24000, 28000, 33000],
+    "Veteran": [38000, 45000, 53000, 62000, 72000],
+    "Master": [85000, 100000, 115000, 135000, 160000],
+    "Grandmaster": [185000, 215000, 255000, 295000, 345000],
 }
-# RP against an equal opponent in Classic, before the mode multiplier: (win, loss).
-BASE_RP = {
+# XP for a Classic win and loss against an equal opponent, before the mode multiplier.
+BASE_XP = {
     "Bronze": (250, 100),
     "Silver": (250, 75),
     "Gold": (250, 50),
-    "Platinum": (250, 0),
-    "Diamond": (200, -100),
-    "Expert": (450, -345),
-    "Veteran": (450, -345),
-    "Master": (450, -345),
-    "Grandmaster": (450, -345),
+    "Platinum": (250, 25),
+    "Diamond": (250, 0),
+    "Expert": (450, 0),
+    "Veteran": (450, 0),
+    "Master": (450, 0),
+    "Grandmaster": (450, 0),
+    "Reyes": (450, 0),
 }
-MODE_RP_MULT = {"Classic": 1.0, "Difficult": 1.25, "Challenger": 1.5}
-# Classic's diminishing returns: a factor on Classic WINS by tier (Expert and up: on losses too).
-CLASSIC_WIN_FACTOR = {"Diamond": 0.5, "Expert": 0.2, "Veteran": 0.2, "Master": 0.2, "Grandmaster": 0.2}
-CLASSIC_LOSS_FACTOR = {"Expert": 0.2, "Veteran": 0.2, "Master": 0.2, "Grandmaster": 0.2}
-# The opponent-gap factor's logistic scale (divisions) and the lowest a win can fall to. Gentler
-# from Bronze to Diamond, where a small server may only offer weaker opponents; strict from Expert.
+MODE_XP_MULT = {"Classic": 1.0, "Difficult": 1.25, "Challenger": 1.5}
+# Classic fades: its wins are worth this share from Diamond and from Expert.
+CLASSIC_WIN_FACTOR = {"Diamond": 0.5, "Expert": 0.2, "Veteran": 0.2, "Master": 0.2, "Grandmaster": 0.2, "Reyes": 0.2}
+WIN_STREAK_FROM, WIN_STREAK_BONUS = 3, 0.25  # from the 3rd win in a row, each win +25%
+# The opponent-gap factor's logistic scale (divisions) and the least a win can be worth.
 GAP_SCALE_LOW, GAP_FLOOR_LOW = 12.0, 0.3  # Bronze to Diamond
 GAP_SCALE, GAP_FLOOR = 8.0, 0.1  # Expert and up
-# PC RP share: Bronze-Diamond / Expert and up (launch values; Expert+ drops to 0.1 once the
-# global queue exists and the top is busy).
-PC_RP_MULT_LOW, PC_RP_MULT_HIGH = 0.75, 0.5
+# PC XP share: Bronze-Diamond / Expert and up (launch; Expert+ drops to 0.1 once the global
+# queue exists).
+PC_XP_MULT_LOW, PC_XP_MULT_HIGH = 0.75, 0.5
+# XP boosts, which add together: Rookie (first 25 matches), VIP, the first win of the UTC day.
+ROOKIE_MATCHES, ROOKIE_BOOST = 25, 1.0
+VIP_XP_BOOST = 0.5
+FIRST_WIN_OF_DAY_BOOST = 1.0
 
-# Cumulative RP where each division starts. Division index 1 = Bronze I ... 40 = Master V.
+# Where each division starts: DIV_START[i] is division i+1 (1 = Bronze I ... 45 = Grandmaster V);
+# the last entry is where Reyes starts.
 DIV_START = [0]
 for _t in TIERS:
-    for _d in range(5):
-        DIV_START.append(DIV_START[-1] + DIV_WIDTH[_t])
-# Reaching Master V makes a player eligible for the Grandmaster/Reyes leaderboard (section 3.5).
-GM_THRESHOLD = DIV_START[39]
-DIV_START = DIV_START[:40]  # DIV_START[i] is where division i+1 starts
+    for _w in DIV_WIDTHS[_t]:
+        DIV_START.append(DIV_START[-1] + _w)
+REYES_XP = DIV_START[-1]
+DIV_START = DIV_START[:-1]
 
 
-def division_of(rp):
-    """1..40 by RP, 41+ above the top of Master V (one per 6,000 RP, for the gap only)."""
-    if rp >= GM_THRESHOLD + DIV_WIDTH["Master"]:
-        return 41 + int((rp - GM_THRESHOLD - DIV_WIDTH["Master"]) // 6000)
-    lo, hi = 0, 39
+def division_of(xp):
+    """1..45 by XP (Bronze I ... Grandmaster V), 46 = Reyes."""
+    if xp >= REYES_XP:
+        return 46
+    lo, hi = 0, len(DIV_START) - 1
     while lo < hi:
         mid = (lo + hi + 1) // 2
-        if DIV_START[mid] <= rp:
+        if DIV_START[mid] <= xp:
             lo = mid
         else:
             hi = mid - 1
@@ -176,75 +163,61 @@ def division_of(rp):
 
 
 def tier_of_div(div):
-    if div > 40:
-        return "Grandmaster"
+    if div >= 46:
+        return "Reyes"
     return TIERS[(div - 1) // 5]
 
 
-def floor_rp(div):
-    """Where a loss stops (section 3): Bronze to Expert never fall out of their tier.
-    Veteran and up can fall a tier (the 3-loss shield is ignored in the population sim)."""
-    tier_index = (min(div, 40) - 1) // 5
-    tier = TIERS[tier_index]
-    if tier in ("Veteran", "Master") or div > 40:
-        return DIV_START[25]  # Expert I is the lowest a high player can fall
-    return DIV_START[tier_index * 5]
-
-
-def gap_factors(gap, my_div=40):
-    """gap = my division - opponent division. Returns (win factor, gain-on-loss factor, loss factor)."""
+def gap_factor(gap, my_div=45):
+    """gap = my division - opponent division. The share of a win's XP (and of a loss's small gain)."""
     scale, floor = (GAP_SCALE_LOW, GAP_FLOOR_LOW) if my_div <= 25 else (GAP_SCALE, GAP_FLOOR)
     e = 1.0 / (1.0 + 10 ** (-gap / scale))
-    win = min(max(2 * (1 - e), floor), 1.5)
-    return win, min(win, 1.0), min(max(2 * e, 0.5), 1.5)
+    return min(max(2 * (1 - e), floor), 1.5)
 
 
-def rp_change(rp, won, mode, opp_div, vs_pc=False):
-    div = division_of(rp)
+def xp_change(xp, won, mode, opp_div, vs_pc=False, streak=0, boost=0.0):
+    """XP after one match. `streak` counts this win if won; `boost` is the sum of active boosts."""
+    div = division_of(xp)
     tier = tier_of_div(div)
-    w, l = BASE_RP[tier]
-    m = MODE_RP_MULT[mode]
-    win_f, pos_loss_f, neg_loss_f = gap_factors(div - opp_div, div)
+    w, l = BASE_XP[tier]
+    f = gap_factor(div - opp_div, div)
     if won:
-        delta = w * m * win_f
+        delta = w * MODE_XP_MULT[mode] * f
         if mode == "Classic":
             delta *= CLASSIC_WIN_FACTOR.get(tier, 1.0)
+        if streak >= WIN_STREAK_FROM:
+            delta *= 1 + WIN_STREAK_BONUS
     else:
-        if l >= 0:
-            delta = l * m * pos_loss_f
-        else:
-            delta = l * m * neg_loss_f
-            if mode == "Classic":
-                delta *= CLASSIC_LOSS_FACTOR.get(tier, 1.0)
+        delta = l * MODE_XP_MULT[mode] * min(f, 1.0)
     if vs_pc:
-        delta *= PC_RP_MULT_HIGH if div > 25 else PC_RP_MULT_LOW
-    new = rp + delta
-    if delta < 0:
-        new = max(new, floor_rp(div))
-    return new
+        delta *= PC_XP_MULT_HIGH if div > 25 else PC_XP_MULT_LOW
+    return xp + delta * (1 + boost)
 
 
-# Money paid the first time the peak reaches a division (section 3.6).
+# Money paid the first time you reach each division (II to V), and each new tier's reward.
+# The old Level money moved here (designer, 2026-09-28).
 DIV_REWARD = {
     "Bronze": 50,
     "Silver": 75,
     "Gold": 150,
     "Platinum": 250,
-    "Diamond": 600,
-    "Expert": 1500,
-    "Veteran": 2500,
-    "Master": 4000,
+    "Diamond": 1500,
+    "Expert": 3000,
+    "Veteran": 5000,
+    "Master": 8000,
+    "Grandmaster": 15000,
 }
 TIER_REWARD = {  # money, cases (the tier cue and chat tag are not modelled)
     "Bronze": (100, ["Standard", "Standard"]),
     "Silver": (300, ["Rare"]),
     "Gold": (600, ["Rare", "Rare"]),
     "Platinum": (1200, ["Epic"]),
-    "Diamond": (3000, ["Legendary"]),
+    "Diamond": (3000, ["Epic", "Epic"]),
     "Expert": (10000, ["Legendary", "Legendary"]),
     "Veteran": (15000, ["Legendary"] * 3),
     "Master": (25000, ["Legendary"] * 5),
     "Grandmaster": (50000, ["Legendary"] * 10),
+    "Reyes": (150000, ["Legendary"] * 25),
 }
 
 
@@ -282,7 +255,7 @@ def simulate_player(minutes_per_day, days, strategy, vip, win_rate, rng):
     earned = 0.0
     rp = 0.0
     peak_div = 0
-    level, exp = 1, 0
+    streak = 0
     wins_total = 0
     matches_total = 0
     owned_counts = {r: 0 for r in RARITIES}
@@ -318,19 +291,8 @@ def simulate_player(minutes_per_day, days, strategy, vip, win_rate, rng):
                 pay = (LOSER_BALLS * BALL_PAY + LOSER_NICE * NICE_SHOT_PAY + LOSS_BONUS) * mult
             money += pay
             earned += pay
-            # EXP
-            e = (WIN_EXP if won else LOSS_EXP) * EXP_MULT[mode]
-            if won and not first_win_done:
-                e += FIRST_WIN_OF_DAY_EXP
-                first_win_done = True
             matches_total += 1
-            exp += e * (1 + (1 if vip else 0) + (1 if matches_total <= ROOKIE_MATCHES else 0))
-            while exp >= exp_to_next(level):
-                exp -= exp_to_next(level)
-                level += 1
-                m, cs = level_reward(level)
-                money += m
-                pending_cases += cs
+            streak = streak + 1 if won else 0
             # Free case for the winner (section 4.2)
             if won:
                 wins_total += 1
@@ -346,12 +308,17 @@ def simulate_player(minutes_per_day, days, strategy, vip, win_rate, rng):
                 rp = 0.0
                 new_div = 1
             else:
-                rp = rp_change(rp, won, mode, division_of(rp))
+                boost = (ROOKIE_BOOST if matches_total <= ROOKIE_MATCHES else 0) + (VIP_XP_BOOST if vip else 0)
+                if won and not first_win_done:
+                    boost += FIRST_WIN_OF_DAY_BOOST
+                rp = xp_change(rp, won, mode, division_of(rp), streak=streak, boost=boost)
                 new_div = division_of(rp)
-            while peak_div < min(new_div, 41):
+            if won:
+                first_win_done = True
+            while peak_div < new_div:
                 peak_div += 1
                 tier = tier_of_div(peak_div)
-                if (peak_div - 1) % 5 == 0 or peak_div == 41:
+                if (peak_div - 1) % 5 == 0:
                     m, cs = TIER_REWARD[tier]
                     money += m
                     pending_cases += cs
@@ -376,7 +343,7 @@ def simulate_player(minutes_per_day, days, strategy, vip, win_rate, rng):
             while money >= CASES[buy]["price"]:
                 money -= CASES[buy]["price"]
                 gain(open_case(buy, rng))
-    return first, hours, earned, owned_counts, peak_div, level
+    return first, hours, earned, owned_counts, peak_div
 
 
 def loot_report(runs=1500, days=365, seed=7):
@@ -484,107 +451,125 @@ def tables():
         per_match *= MONEY_MULT[mode]
         print(f"  {mode:10s} {60 / cycle:4.1f} matches/h, ${per_match:6.1f}/match, ${per_match * 60 / cycle:7.0f}/h")
     print()
-    print("Rank ladder: matches per division against equal opponents (50% and 60% win rate)\n")
+    print("Rank XP: each tier's divisions, and hours to reach each tier at a win rate\n")
     for tier in TIERS:
-        w, l = BASE_RP[tier]
-        row = []
-        for mode in ("Classic", "Difficult", "Challenger"):
-            m = MODE_RP_MULT[mode]
-            ww = w * m * (CLASSIC_WIN_FACTOR.get(tier, 1.0) if mode == "Classic" else 1.0)
-            ll = l * m * (CLASSIC_LOSS_FACTOR.get(tier, 1.0) if mode == "Classic" and l < 0 else 1.0)
-            for p in (0.5, 0.6):
-                ev = p * ww + (1 - p) * ll
-                row.append(f"{DIV_WIDTH[tier] / ev:6.1f}" if ev > 0 else "   n/a")
-        print(f"  {tier:10s} width {DIV_WIDTH[tier]:5d}  C {row[0]} {row[1]}   D {row[2]} {row[3]}   Ch {row[4]} {row[5]}")
-    print(f"\n  Grandmaster/Reyes leaderboard eligibility at {GM_THRESHOLD:,} RP")
-    print("\nOpponent-gap factors (gap in divisions; + means you are higher)\n")
+        print(f"  {tier:12s} {DIV_WIDTHS[tier]}  total {sum(DIV_WIDTHS[tier]):>9,}")
+    print(f"  Reyes at {REYES_XP:,} XP\n")
+    print(ladder_hours_table())
+    print("\nOpponent-gap factor on a win (gap in divisions; + means you are higher)\n")
     for label, d in (("Bronze to Diamond", 20), ("Expert and up", 30)):
-        print(f"  {label}")
-        for g in (-5, -3, -2, -1, 0, 1, 2, 3, 5, 8, 10, 15):
-            wf, pl, nl = gap_factors(g, d)
-            print(f"    gap {g:+3d}: win x{wf:4.2f}  small-gain loss x{pl:4.2f}  RP-losing loss x{nl:4.2f}")
+        cells = "  ".join(f"{g:+d}: x{gap_factor(g, d):4.2f}" for g in (-5, -3, -1, 0, 1, 3, 5, 8, 10, 15))
+        print(f"  {label:18s} {cells}")
+
+
+MODE_MIX = {
+    "Bronze": {"Classic": 1.0},
+    "Silver": {"Classic": 1.0},
+    "Gold": {"Classic": 0.7, "Difficult": 0.3},
+    "Platinum": {"Classic": 0.5, "Difficult": 0.5},
+}
+HIGH_MIX = {"Challenger": 0.6, "Difficult": 0.3, "Classic": 0.1}
+
+
+def ladder_hours(p):
+    """Hours of play to reach each tier against equal opponents at win rate p (typical mode mix)."""
+    out, h = {}, 0.0
+    for tier in TIERS:
+        out[tier] = h
+        w, l = BASE_XP[tier]
+        ev = mins = 0.0
+        for mode, f in MODE_MIX.get(tier, HIGH_MIX).items():
+            ww = w * MODE_XP_MULT[mode] * (CLASSIC_WIN_FACTOR.get(tier, 1.0) if mode == "Classic" else 1.0)
+            ww *= 1 + WIN_STREAK_BONUS * p * p  # share of wins that are 3rd-or-later in a row
+            ev += f * (p * ww + (1 - p) * l * MODE_XP_MULT[mode])
+            mins += f * (MATCH_MINUTES[mode] + BETWEEN_MATCH_MINUTES)
+        h += sum(DIV_WIDTHS[tier]) / ev * mins / 60
+    out["Reyes"] = h
+    return out
+
+
+def ladder_hours_table():
+    names = TIERS[1:] + ["Reyes"]
+    lines = ["  win rate " + "".join(f"{t[:6]:>8s}" for t in names)]
+    for p in (0.45, 0.5, 0.55, 0.6):
+        hs = ladder_hours(p)
+        lines.append(f"  {int(p * 100):3d}%     " + "".join(f"{hs[t]:7.0f}h" for t in names))
+    return "\n".join(lines)
 
 
 # ------------------------------------------------------------------------------------------
 # Population simulation of the ladder (section 3.9)
 # ------------------------------------------------------------------------------------------
-def rank_sim(days=180, new_per_day=4000, seed=3, report_days=(30, 60, 90, 120, 180)):
+def rank_sim(days=365, new_per_day=2000, seed=3, report_days=(90, 180, 365)):
     rng = np.random.default_rng(seed)
     pyrng = random.Random(seed)
-    # Per player: skill, minutes a day when active, how many days they stay, join day.
-    skill, minutes, life, joined, rp, alive = [], [], [], [], [], []
+    # Per player: skill, minutes a day when active, how many days they stay, join day, XP, streak.
+    skill, minutes, life, joined, xp_list, streak_list = [], [], [], [], [], []
     k_mode = {"Classic": 1.0, "Difficult": 1.3, "Challenger": 1.6}
     results = {}
     for day in range(days):
-        # Arrivals: lifetime in days is heavy-tailed (most leave on day 1, a few stay for months).
+        # Arrivals: lifetime in days is heavy-tailed (most leave on day 1, a few stay for a year+).
         n = new_per_day
         skill += list(rng.normal(0, 1, n))
-        # Minutes per active day: median 25, long tail; players who stay longer tend to play more.
-        lt = np.minimum(rng.pareto(0.9, n) * 2 + 1, 400).astype(int)
+        lt = np.minimum(rng.pareto(0.9, n) * 2 + 1, 800).astype(int)
         life += list(lt)
+        # Minutes per active day: median 25, long tail; players who stay longer tend to play more.
         minutes += list(np.minimum(rng.lognormal(math.log(25), 0.8, n) * (1 + np.log1p(lt) / 3), 360))
         joined += [day] * n
-        rp += [-1.0] * n
+        xp_list += [-1.0] * n
+        streak_list += [0] * n
         sk = np.array(skill)
         age = day - np.array(joined)
         active = (age < np.array(life)) & (rng.random(len(sk)) < 0.7)
         idx = np.nonzero(active)[0]
         mins = np.array(minutes)[idx]
         avg_ccu = mins.sum() / 1440.0  # players online on average today
-        n_matches = (mins / 8.5).astype(int)
-        rps = np.array(rp)
-        # Unranked players' first match: Bronze I.
+        n_matches = (mins / 9.0).astype(int)
+        xps = np.array(xp_list)
+        streaks = np.array(streak_list)
         for r in range(int(n_matches.max()) if len(idx) else 0):
             players = idx[n_matches > r]
             if len(players) < 2:
                 break
-            # Some matches are with whoever is at the next table; the rest are with players near
-            # your rank (the pro lobby, friends, difficulty locks). Diamond and up mostly meet
-            # near-rank players (80%), everyone else half the time.
-            divs = np.array([division_of(max(rps[p], 0)) for p in players], dtype=float)
+            # Half the matches are with whoever is at the next table and half with players near
+            # your rank (the pro lobby, friends, difficulty locks); Diamond and up 80% near-rank.
+            divs = np.array([division_of(max(xps[p], 0)) for p in players], dtype=float)
             wants_near = rng.random(len(players)) < np.where(divs >= 21, 0.8, 0.5)
             near_players = players[wants_near]
             near_players = near_players[np.argsort(divs[wants_near] + rng.normal(0, 2, wants_near.sum()))]
             order = np.concatenate([near_players, rng.permutation(players[~wants_near])])
             for a, b in zip(order[0::2], order[1::2]):
-                ra, rb = rps[a], rps[b]
-                if ra < 0 or rb < 0:  # tutorial/first match
-                    rps[a] = max(ra, 0.0)
-                    rps[b] = max(rb, 0.0)
+                xa, xb = xps[a], xps[b]
+                if xa < 0 or xb < 0:  # the tutorial: Unranked to Bronze I
+                    xps[a] = max(xa, 0.0)
+                    xps[b] = max(xb, 0.0)
                     continue
-                da, db = division_of(ra), division_of(rb)
+                da, db = division_of(xa), division_of(xb)
                 mode = typical_mode(max(da, db), pyrng)
                 p_a = 1 / (1 + math.exp(-k_mode[mode] * (sk[a] - sk[b])))
                 a_won = pyrng.random() < p_a
-                rps[a] = rp_change(ra, a_won, mode, db)
-                rps[b] = rp_change(rb, not a_won, mode, da)
-        rp = list(rps)
+                streaks[a] = streaks[a] + 1 if a_won else 0
+                streaks[b] = 0 if a_won else streaks[b] + 1
+                xps[a] = xp_change(xa, a_won, mode, db, streak=streaks[a])
+                xps[b] = xp_change(xb, not a_won, mode, da, streak=streaks[b])
+        xp_list = list(xps)
+        streak_list = list(streaks)
         if day + 1 in report_days:
-            weekly = (age < np.array(life)) & (age >= 0)
-            weekly_idx = np.nonzero(weekly & (rps >= 0))[0]
-            counts = {}
-            for p in weekly_idx:
-                d = division_of(rps[p])
-                t = "GM-eligible" if d >= 40 else tier_of_div(d)
-                counts[t] = counts.get(t, 0) + 1
-            total = len(weekly_idx)
-            results[day + 1] = (total, counts, sk[weekly_idx], rps[weekly_idx], avg_ccu)
-    order = TIERS + ["GM-eligible"]
-    for d, (total, counts, sks, rpv, avg_ccu) in results.items():
+            alive = (age < np.array(life)) & (xps >= 0)
+            ever = xps >= 0
+            results[day + 1] = (alive, ever, sk, xps, avg_ccu)
+    for d, (alive, ever, sks, xpv, avg_ccu) in results.items():
         peak = avg_ccu * 2  # peak is roughly twice the daily average on Roblox (assumption)
-        print(f"Day {d}: {total:,} ranked players in the population, about {peak:,.0f} peak CCU")
-        print(f"  {'tier':12s} {'players':>8s} {'share':>7s} {'per 1k peak CCU':>16s} {'mean skill':>11s}")
-        divs = np.array([division_of(x) for x in rpv])
-        for t in order:
-            c = counts.get(t, 0)
-            share = c / total * 100 if total else 0
-            if t == "GM-eligible":
-                mask = divs >= 40
-            else:
-                i = TIERS.index(t)
-                mask = (divs > i * 5) & (divs <= i * 5 + 5) & (divs < 40)
-            ms = f"{sks[mask].mean():+.2f}" if mask.sum() else "   -"
-            print(f"  {t:12s} {c:8d} {share:6.2f}% {c / peak * 1000:16.1f} {ms:>11s}")
+        tiers = np.array([tier_of_div(division_of(x)) if x >= 0 else "-" for x in xpv])
+        print(f"Day {d}: {alive.sum():,} ranked players still playing, about {peak:,.0f} peak CCU")
+        print(f"  {'tier':12s} {'playing':>8s} {'share':>7s} {'per 1k CCU':>11s} {'ever reached':>13s} {'mean skill':>11s}")
+        order_ = TIERS + ["Reyes"]
+        for t in order_:
+            here = alive & (tiers == t)
+            at_or_above = ever & np.isin(tiers, order_[order_.index(t):])
+            c = int(here.sum())
+            ms = f"{sks[here].mean():+.2f}" if c else "   -"
+            print(f"  {t:12s} {c:8d} {c / alive.sum() * 100:6.2f}% {c / peak * 1000:11.1f} {int(at_or_above.sum()):13d} {ms:>11s}")
         print()
 
 
@@ -605,7 +590,7 @@ def main():
     elif args.what == "supply":
         supply_per_day()
     else:
-        rank_sim(days=min(args.days, 180))
+        rank_sim(days=args.days)
 
 
 if __name__ == "__main__":

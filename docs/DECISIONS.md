@@ -1637,3 +1637,15 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28 (designer): the win streak shows over the head as "🔥 N" from the first win.
   Claude's rules (easy to change): real wins against people count (as for rank XP), any loss
   ends it including a quick surrender or leaving, a draw leaves it, and it is saved.
+- 2026-09-28 (designer): no account Level or EXP; rank XP is the one progression and the main
+  status flex. XP is never lost: losses give a little to Platinum (+25 there) and 0 from
+  Diamond, so nobody drops a rank (replaces the Elo losses, the Veteran+ shield and demotion).
+  Grandmaster and Reyes are fixed XP amounts, not leaderboard seats; Reyes at 2,352,500 XP.
+  Ranks never reset. VIP gets 2x money and +50% XP. Skill sets the speed: harder modes, a +25%
+  win streak from the 3rd win, and the opponent-gap factor. Level money moved into rank
+  division rewards; the Rookie Boost and first-win-of-day bonus now boost XP.
+- 2026-09-28 (Claude's calls from the model): division sizes from Diamond I (8,000) grow about
+  17% a division so Expert takes about 60 hours at a 50% win rate and Reyes about 1,100 hours
+  at 55%; the Diamond tier reward is 2 Epic Cases (a Legendary Case there made first
+  Legendaries too fast once the Rookie Boost sped up ranks); the anti-alt rule "loser must be
+  Level 3" became "loser must have played 5 real matches".

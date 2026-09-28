@@ -459,45 +459,35 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Rank badges** are drawn (2026-09-26, `assets/ui/ranks/`): 1 to 5 stars show the division
   from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster; crowns from Expert up; Reyes
   and Unranked have one badge each. Look and shine: `docs/UI_STYLE.md` sections 6 and 7.
-- **One visible rating number** drives the rank; bands per division live in Config and widen
-  higher up. Rank follows the number both ways with a floor at Bronze I. A **peak rank** is
-  saved: rank-up rewards are granted once per division, difficulty unlocks use the peak.
-- Every match against a person or PC changes rating. Solo never does. Beating a much higher
-  rating pays more, a higher-rated player beating a lower one gains little.
-- **Difficulty multiplies RP** *(tune)*: Classic 1, Difficult 1.25, Challenger 1.5, and
-  Classic fades from Diamond (its wins x0.5) and from Expert (x0.2 both ways), so from Diamond
-  the harder difficulties are the road up. PC matches give half RP at launch (x0.1 from Expert
-  once the global queue exists). All numbers: [ECONOMY.md](ECONOMY.md) section 4.
-- **Difficulty unlocks by peak rank** (designer, 2026-09-27): host Difficult from Gold I,
+- **One number, rank XP, is the only progression** (designer, 2026-09-28: the separate
+  account Level and EXP are gone). Rank is the game's main way to show status. **XP is never
+  lost**: losses give a little to Platinum (+100/+75/+50/+25) and nothing from Diamond, so
+  nobody ever drops a rank. Division sizes grow up the ladder: flat and quick to Platinum,
+  then about 17% bigger every division from Diamond I (8,000 XP) to Grandmaster V; **Reyes is
+  a fixed 2,352,500 XP** (designer, 2026-09-28; it replaced leaderboard seats). All numbers:
+  [ECONOMY.md](ECONOMY.md) section 4.
+- Every match against a person or PC gives XP. Solo never does. **Skill sets the speed**:
+  harder difficulties pay more (Classic 1, Difficult 1.25, Challenger 1.5; Classic wins fade
+  to x0.5 in Diamond and x0.2 from Expert), a win streak gives +25% from the 3rd win in a
+  row, and beating stronger players pays more and much weaker ones less (an Elo gap factor).
+  PC matches give x0.75 XP to Diamond and x0.5 from Expert at launch. Teams: every player by
+  the same rules against the other team's average.
+- **XP boosts** (add together): the Rookie Boost (+100% for the first 25 matches), the first
+  win of each day (double), VIP (+50%).
+- Targets: Silver in about 30 minutes, Diamond in about 7.5 hours, Expert in about 2 months at
+  an hour a day, Reyes about a year for a 3-hour-a-day grinder; only a few ever reach Reyes.
+- **Difficulty unlocks by rank** (designer, 2026-09-27): host Difficult from Gold I,
   Challenger from Diamond I; guests may join with a warning.
 - **Ten bots, one per tier** (designer, 2026-09-26): the Bronze bot is the easiest and the Reyes
   bot the hardest, and each player meets the bot of their rank.
-- **Two bars** (designer, 2026-09-27): **RP** (rank points, the save's `RankXp`) decides the
-  rank and can go down from Diamond; **EXP** fills an account **Level** that only goes up,
-  pays money every level, with no max level. VIP boosts EXP, never RP.
-  [ECONOMY.md](ECONOMY.md) section 5.
-- Bronze to Platinum is fast, Diamond is a buffer, and the top ranks are exponentially harder.
-  **Grandmaster and Reyes are leaderboard seats** (designer, 2026-09-27): eligible from Master
-  V; Reyes the top 10% of the eligible (at most 50), Grandmaster the next (at most 500), so
-  the top grows with the player count.
-- Rating is saved under a season label ("Season 0"); no resets at launch. Soft resets later,
-  for Veteran and up only (designer, 2026-09-27; ECONOMY.md section 4.12).
-- **RP is the one number**: total RP decides the division. Divisions widen up the ladder
-  (Bronze 250, Silver 350, Gold 800, Platinum 1,000, Diamond 4,000, Expert 4,500, Veteran and
-  Master 6,000 *(tune)*; sizes only grow up the ladder); a Classic win against an equal opponent is +250. A loss: Bronze to
-  Gold still gain a little (+100/+75/+50), Platinum 0, Diamond lose a little, Expert and up
-  Elo-style. Beating much lower players pays less (an Elo gap factor). Table:
-  ECONOMY.md section 4.2. Solo never gives RP. Teams: every player by the same rules against
-  the other team's average.
-- **Tier floors** (designer, 2026-09-27): Bronze to Expert never fall out of their tier
-  (Expert is safe for good); from Veteran up a tier can be lost after a 3-loss shield (this
-  replaced "never a tier" the same day).
+- Rating is saved under a season label ("Season 0"). **Ranks never reset** (designer,
+  2026-09-28); seasons may give rewards for the highest tier reached that season.
 - **Forfeits** (built 2026-09-27, the small version of 13): whoever surrenders, leaves or runs
-  out of timeouts gets a loss with no consolation RP. The winner is paid only after the
-  one-minute mark; under it the match pays nobody.
-- **Rank-up rewards**, once, the first time the peak reaches them: money for each new
-  division; for each new tier money, cases, the tier's cue (Exclusive, never tradable) and the
-  chat tag. ECONOMY.md section 4.9.
+  out of timeouts gets no XP. The winner is paid only after the one-minute mark; under it the
+  match pays nobody.
+- **Rank-up rewards**, once, the first time you reach them: money for each new division (the
+  money Levels used to pay); for each new tier money, cases, the tier's cue (Exclusive, never
+  tradable) and the chat tag. ECONOMY.md section 4.8.
 - **Rank and money show** in the top left rank HUD (badge, name, XP bar), over every head
   (badge then username), under each portrait in the match bar, and as Rank and Money columns
   in Roblox's player list (designer, 2026-09-27).
@@ -554,7 +544,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Ability gacha** (only if abilities come, section 9): spins cost Robux (packs of 1, 5, 10,
   50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
   credit that only buys more spins.
-- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, 2x EXP (never RP), the VIP Cue, a [VIP]
+- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +50% rank XP, the VIP Cue, a [VIP]
   tag. Never better odds, never cases. A **welcome offer** at 50% off for 24 hours from the
   first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's
   rules call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.

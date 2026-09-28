@@ -255,13 +255,10 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
   HUD, nameplates, result screen, NEW RANK! and the roadmap. Placeholder: every number (the
   real rating formula is still Open). Not built: difficulty multipliers on XP, the PC ceiling
   (Config hook only), seasons. **The real numbers were decided 2026-09-27**: `docs/ECONOMY.md`
-  section 4 (division widths, win and loss by tier and difficulty, the opponent-gap factor, the
-  Veteran+ shield, the Grandmaster and Reyes seats).
-- [ ] **6.6 EXP.** Players earn EXP by playing, separate from the rating: an account Level
-  that only goes up, has no max and pays money every level (decided 2026-09-27,
-  `docs/ECONOMY.md` section 5).
-  Progress 2026-09-27: nothing of the separate EXP is built. The XP bar shipped tonight is
-  rank XP (the rating itself); the save layout leaves room for an EXP field later.
+  section 4 (reworked 2026-09-28: XP never lost, growing division sizes, fixed Reyes XP, XP
+  boosts, the win streak and the opponent-gap factor).
+- [x] **6.6 EXP.** Dropped 2026-09-28 (designer): there is no separate account Level or EXP;
+  rank XP is the one progression bar (`docs/ECONOMY.md` sections 4 and 5).
 - [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
   anyway.
 - [ ] **6.4 Leaderboards, flags, win streaks.** Rating board, wins-against-people board, nation

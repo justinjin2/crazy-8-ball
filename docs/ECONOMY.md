@@ -1,4 +1,4 @@
-# Economy: money, EXP, ranks, cases, the Limited shelf and Robux
+# Economy: money, ranks, cases, the Limited shelf and Robux
 
 The one place that says how the game's economy works and every number in it. Written
 2026-09-27 from the designer's anchors and interview, research on Roblox and other games, and a
@@ -24,8 +24,8 @@ change as the game grows are listed with their triggers in section 14.
 
 ## 0. At a glance
 
-- **Two bars.** **RP** (rank points) decide the rank and can go down at the top; **EXP** fills
-  the account **Level**, only ever goes up and pays money every level.
+- **One bar: rank XP.** No Levels. XP is never lost: losses give a little to Platinum and
+  nothing from Diamond, so nobody drops a rank. Rank is the main way to show status.
 - **A match** (1v1 against a person, Classic) pays about **$134 to the winner and $60 to the
   loser**: $10 a ball, $15/$20 nice shots, $50 win / $15 loss. That is about **$730 an hour**.
   Difficult pays 1.5x and Challenger 2x.
@@ -34,17 +34,17 @@ change as the game grows are listed with their triggers in section 14.
 - **Four cases**: Standard $150, Rare $500, Epic $1,500, Legendary $5,000. Each guarantees one
   rarity below its name; a legendary is never guaranteed.
 - **A 1-hour-a-day player** gets a first Epic after about **2 hours** of play, a first
-  Legendary in about **8 days** (6-10 by what they buy), a first Mythic in about **6-8
+  Legendary in about **7 days** (6-10 by what they buy), a first Mythic in about **6-8
   weeks**; a Secret is a lottery a 3-hour-a-day player wins in about 6-11 months (a
   lucky quarter within about 3).
 - **No direct buying of case cues**: they come from cases and trading only. A **Limited
   shelf** sells exclusive, numbered cues for a short time, then they are trade-only forever.
   Deals are only ever on cases (bulk opening, occasional real case sales, timed special
   cases), never a guaranteed case cue.
-- **Ranks**: Silver in the first hour, Diamond in about 11 hours, then a real wall. Expert and
-  up are a skill ladder (Elo-style); Grandmaster and Reyes are leaderboard seats.
+- **Ranks**: Silver in the first half hour, Diamond in about 7.5 hours, Expert in about 2
+  months at an hour a day, Reyes (2,352,500 XP) about a year for a 3-hour-a-day grinder.
 - **Robux**: 49 R$ buys $900 (about 1.2 hours of play), up to 4,999 R$ for $130,000 (+42%).
-  **VIP 599 R$**: 2x money, 2x EXP, the VIP Cue; never odds, never rank.
+  **VIP 599 R$**: 2x money, +50% XP, the VIP Cue; never odds.
 
 ---
 
@@ -52,21 +52,21 @@ change as the game grows are listed with their triggers in section 14.
 
 | Target (designer) | Plan | Model says |
 |---|---|---|
-| First epic after a few hours | Free cases plus money cases | median 2.1 h played (p25 1.2 h, p75 3.4 h) |
-| First legendary in 1-2 weeks (1 h a day) | Case odds, section 7 | median 7-10 days (8.5 h played buying Epic Cases); 5-9 with VIP; 3-4 at 3 h a day |
+| First epic after a few hours | Free cases plus money cases | median 2.0 h played (p25 1.1 h, p75 3.2 h) |
+| First legendary in 1-2 weeks (1 h a day) | Case odds, section 7 | median 6-10 days (7.1 h played buying Epic Cases); 5-6 with VIP; 3-4 at 3 h a day |
 | First mythic in at least a month | Case odds | median 6-8 weeks at 1 h a day; 2.5-4 weeks at 3 h a day |
 | Secret: months | Case odds of 1 in 400 Legendary Cases at best | a 3 h a day player: median 6-11 months, a quarter within about 3; a 1 h player: 1.3-2.4 years |
 | Lots of duplicates of commons to rares | Free case every win, 90% of it Common/Uncommon | about 5 commons/uncommons and 1.7 rares per hour |
 | Case cues keep their value | No direct buying; a Limited shelf of exclusives instead (section 9) | the designer replaced the rotating shop after the research |
-| Unranked to Bronze I after the tutorial, then 1-2 matches a division | Bronze 250 RP a division, a win 250 | Bronze 1.4 matches, Silver 2.2 |
-| Plateau from Gold, 5-6 matches a division | Gold 800 RP, loss still +50 | 5.3 matches |
-| Diamond much harder, Classic fades | Diamond 4,000 RP, Classic win halved, losses cost | 53-64 matches a division in the hard modes; Classic stalls at 50% |
-| From Expert: only Difficult/Challenger climb, skill decides | Elo-style RP, Classic x0.2 | Expert averages the top 25% by skill, Veteran the top 7%, Master the top 1.5% |
-| Losses: gain a little to Gold, 0 in Platinum, lose a little in Diamond, Elo from Expert | Loss table, section 4.2 | as asked |
+| Unranked to Bronze I after the tutorial, then 1-2 matches a division | Bronze 250 XP a division, a win 250 | Bronze about 1.4 matches, Silver about 2 |
+| Plateau from Gold, 5-6 matches a division | Gold 800 XP, loss still +50 | about 5 matches |
+| Diamond much harder, Classic fades | Divisions from 8,000 XP growing 17% each, Classic win halved, losses give 0 | Diamond I to Expert takes about 50 hours |
+| From Expert: only Difficult/Challenger climb, skill speeds you up | Classic x0.2, Challenger x1.5, win streak, opponent gap | a Challenger win is worth 7.5 Classic wins |
+| Losing is never a punishment (changed 2026-09-28) | Losses +100/+75/+50/+25 to Platinum, 0 from Diamond, never negative | nobody ever drops a rank |
 | Less for beating much lower players | Opponent-gap factor, section 4.4 | to Diamond: a tier lower x0.55, never under x0.3; from Expert: a tier lower x0.38, two tiers x0.11 |
-| A few dozen Reyes, a few hundred Grandmasters | Leaderboard seats that grow with the player count | section 4.7 |
-| VIP 2x money, 2x EXP, not overpowered | EXP never touches rank, VIP never touches odds | first legendary 1-2 days sooner, first mythic about 10 days sooner |
-| Onboarding feels fast | Rookie Boost, fast Bronze/Silver, early rewards (section 2) | Level 6 and Silver I in the first hour |
+| Only a few hundred ever reach Reyes | Fixed Reyes at 2,352,500 XP | section 4.10 |
+| VIP 2x money, faster XP, not overpowered | +50% XP only, never odds | a VIP climbs about a third faster |
+| Onboarding feels fast | Rookie Boost, fast Bronze/Silver, early rewards (section 2) | Silver in about 30 minutes |
 
 ---
 
@@ -78,20 +78,21 @@ ordinary 50% win rate after the tutorial:
 | When | What happens |
 |---|---|
 | Join | Day 1 of the login streak: $250 |
-| Match 1 (the tutorial, always a win) | Unranked to **Bronze I** (NEW RANK!, $100, 2 Standard Cases, the Bronze Cue, [BRONZE] tag); the first win's **Rare Case** reveal (in place of that win's Standard Case); **Level 1 to 3**; about $125 |
+| Match 1 (the tutorial, always a win) | Unranked to **Bronze I** (NEW RANK!, $100, 2 Standard Cases, the Bronze Cue, [BRONZE] tag); the first win's **Rare Case** reveal (in place of that win's Standard Case); about $125 |
 | 10 minutes | Playtime gift: $100 |
-| Matches 2-4 | A win is a new Bronze division every time ($50 each); **Level 4, then 5** |
+| Matches 2-4 | With the Rookie Boost a win is worth two Bronze divisions ($50 each) |
 | 30 minutes | Playtime gift: a Standard Case |
-| Around match 8 | **Silver I** (the NEW TIER screen: $300, a Rare Case, the Silver Cue); **Level 6** |
+| Around match 4 (about 30 minutes) | **Silver I** (the NEW TIER screen: $300, a Rare Case, the Silver Cue) |
+| Matches 5-8 | Silver II, III, maybe IV ($75 each) |
 | 60 minutes | Playtime gift: 2 Standard Cases |
 
-By the end of the hour (model, 50% win rate): about **8 cases opened**, two rank tiers, five
-levels, two exclusive cues and about $2,000 of money. About 1 in 6 players already has an
+By the end of the hour (model, 50% win rate): about **8 cases opened**, two rank tiers and
+several divisions, two exclusive cues and about $2,000 of money. About 1 in 6 players already has an
 Epic from free cases alone, and 1 in 3 if they spend that money on an Epic Case. Day 2 opens
 with 2 Standard Cases from the streak and the first-win-of-the-day bonus.
 
-**Rookie Boost:** a new player's first 25 matches earn +100% EXP ("ROOKIE x2" on the EXP bar).
-With VIP it adds up to x3.
+**Rookie Boost:** a new player's first 25 matches earn +100% XP ("ROOKIE x2" on the rank bar).
+With VIP it adds up to x2.5.
 
 ---
 
@@ -120,14 +121,13 @@ Average match: winner about $134 (7.5 balls, half a nice shot, the win), loser a
 | Win / loss bonus | $50 / $15 | **$25 / $8** | none | $50 |
 | Daily limit | none (anti-farm rules, 3.6) | after **$1,000** of PC money in a UTC day, PC pays half (never zero) | after **$300** of solo money in a UTC day, $1 a ball | once |
 | Free case for the winner | every win (section 7.1) | **every win** (same limits) | never | yes, plus the first win's Rare Case |
-| RP | full | x0.75 to Diamond, x0.5 from Expert | none | places you at Bronze I |
-| EXP | full | x0.5 | 20 a game (first 5 games a day) | full |
+| XP | full | x0.75 to Diamond, x0.5 from Expert | none | places you at Bronze I |
 
 ### 3.3 Team matches (2v2, 3v3)
 
 Every ball your team pots pays **each teammate $10**, so an hour of 2v2 or 3v3 earns the same
 as 1v1. The nice-shot bonus goes only to the shooter. The win and loss bonus, the free case
-(each winner), RP and EXP are per player, by the same rules; RP uses the opposing team's
+(each winner) and XP are per player, by the same rules; XP uses the opposing team's
 average rank for the gap (section 4.4).
 
 ### 3.4 Difficulty
@@ -135,8 +135,7 @@ average rank for the gap (section 4.4).
 | | Classic | Difficult | Challenger |
 |---|---|---|---|
 | Money | x1 | **x1.5** | **x2** |
-| EXP | x1 | x1.25 | x1.5 |
-| RP | see section 4.3 | | |
+| XP | see section 4.2 | | |
 | Match length (assumed) | 6.5 min | 7.5 min | 8.5 min |
 | Money an hour | about $730 | about $970 | about $1,160 |
 
@@ -146,145 +145,122 @@ as the audit asked.
 ### 3.5 Boosts and how they stack
 
 Boosts **add**, then difficulty multiplies: money = base x difficulty x (1 + VIP 1.0 +
-Money Party 1.0). EXP = base x difficulty x (1 + VIP 1.0 + Rookie 1.0). So the most is x3
-before difficulty, x6 in Challenger during a Money Party with VIP. Boosts never change RP, case
-odds or free-case counts.
+Money Party 1.0). So the most is x3 before difficulty, x6 in Challenger during a Money Party
+with VIP. XP boosts are in section 4.5. No boost ever changes case odds or free-case counts.
 
 ### 3.6 Anti-farming (alts and friends)
 
-- **Same opponent, same UTC day:** matches 1-5 pay in full; 6-10 pay half the RP and half the
-  win/loss bonus and drop no free case; from 11, no RP, a quarter of the bonus, half the ball
+- **Same opponent, same UTC day:** matches 1-5 pay in full; 6-10 pay half the XP and half the
+  win/loss bonus and drop no free case; from 11, no XP, a quarter of the bonus, half the ball
   pay. At most **3 free cases a day from beating the same account**.
-- **The loser must be Level 3 or higher** for the winner's free case (a fresh alt can't feed
-  cases).
+- **The loser must have played 5 real matches** for the winner's free case (a fresh alt
+  can't feed cases).
 - **Short matches:** pots are still paid live, but money from matches that end before the
   one-minute mark counts toward a **$200 a day** short-match limit (the audit's "break,
   surrender, repeat" hole).
 - Forfeits, leavers and the one-minute mark stay as built (GDD section 13).
-- Private servers, when they come: no RP, no free cases, solo-rate money.
+- Private servers, when they come: no XP, no free cases, solo-rate money.
 
 ---
 
-## 4. Ranks (RP)
+## 4. Ranks (XP)
 
-### 4.1 Two bars
+### 4.1 One bar, never lost
 
-The saved `RankXp` number stays; the screens call it **RP**. It can go down from Diamond.
-**EXP** is new (section 5) and only goes up. VIP boosts EXP and money, never RP.
+Rank is the one progression bar and the game's main way to show status (designer, 2026-09-28:
+Levels are gone). Its number is **XP** (the save's `RankXp`). **XP is never lost**: from
+Bronze to Platinum a loss still gives a little, and from Diamond up a loss gives nothing. So
+nobody ever drops a rank, and losing a match is never a punishment, only a missed step.
+Division sizes grow up the ladder, so the climb keeps getting longer.
 
 ### 4.2 The ladder
 
-Divisions I to V per tier. RP for a win and a loss against an **equal** opponent (the gap
-factor in 4.4 changes these), all rounded to whole numbers:
+XP needed for each division, I to V:
 
-| Tier | RP a division | Classic win / loss | Difficult win / loss | Challenger win / loss |
-|---|---|---|---|---|
-| Bronze | 250 | +250 / **+100** | +312 / +125 | +375 / +150 |
-| Silver | 350 | +250 / **+75** | +312 / +94 | +375 / +112 |
-| Gold | 800 | +250 / **+50** | +312 / +62 | +375 / +75 |
-| Platinum | 1,000 | +250 / **0** | +312 / 0 | +375 / 0 |
-| Diamond | 4,000 | **+100** / -100 | +250 / -125 | +300 / -150 |
-| Expert | 4,500 | **+90 / -69** | +562 / -431 | +675 / -517 |
-| Veteran | 6,000 | +90 / -69 | +562 / -431 | +675 / -517 |
-| Master | 6,000 | +90 / -69 | +562 / -431 | +675 / -517 |
-| Grandmaster, Reyes | leaderboard | +90 / -69 | +562 / -431 | +675 / -517 |
+| Tier | I | II | III | IV | V | Tier total |
+|---|---|---|---|---|---|---|
+| Bronze | 250 | 250 | 250 | 250 | 250 | 1,250 |
+| Silver | 350 | 350 | 350 | 350 | 350 | 1,750 |
+| Gold | 800 | 800 | 800 | 800 | 800 | 4,000 |
+| Platinum | 1,200 | 1,200 | 1,200 | 1,200 | 1,200 | 6,000 |
+| Diamond | 8,000 | 9,500 | 11,000 | 13,000 | 15,000 | 56,500 |
+| Expert | 17,500 | 20,500 | 24,000 | 28,000 | 33,000 | 123,000 |
+| Veteran | 38,000 | 45,000 | 53,000 | 62,000 | 72,000 | 270,000 |
+| Master | 85,000 | 100,000 | 115,000 | 135,000 | 160,000 | 595,000 |
+| Grandmaster | 185,000 | 215,000 | 255,000 | 295,000 | 345,000 | 1,295,000 |
+| **Reyes** | at **2,352,500 XP** in total | | | | | |
 
-Division sizes only ever grow up the ladder (designer, 2026-09-28): the Expert-and-up numbers
-are three times what they were, so each match moves the bar exactly as far as before but the
-numbers keep climbing.
+Quick and flat to Platinum (onboarding), then about 17% bigger every division from Diamond I.
 
-How that is built (for Config): each tier has a base win and loss (Bronze to Platinum 250 and
-+100/+75/+50/0, Diamond 200 / -100, Expert and up 450 / -345), times the mode (Classic 1,
-Difficult 1.25, Challenger 1.5), times Classic's fade (Diamond: Classic wins x0.5; Expert and
-up: Classic wins and losses x0.2).
+XP for a win and a loss against an equal opponent:
 
-**Matches a division against equal opponents** (50% and 60% win rate):
-
-| Tier | Classic | Difficult | Challenger |
+| Tier | Classic win / loss | Difficult win / loss | Challenger win / loss |
 |---|---|---|---|
-| Bronze | 1.4 / 1.3 | 1.1 / 1.1 | 1.0 / 0.9 |
-| Silver | 2.2 / 1.9 | 1.7 / 1.6 | 1.4 / 1.3 |
-| Gold | 5.3 / 4.7 | 4.3 / 3.8 | 3.6 / 3.1 |
-| Platinum | 8.0 / 6.7 | 6.4 / 5.3 | 5.3 / 4.4 |
-| Diamond | never / 200 | 64 / 40 | 53 / 33 |
-| Expert | 429 / 171 | 69 / 27 | 57 / 23 |
-| Veteran, Master | 571 / 227 | 91 / 36 | 76 / 30 |
+| Bronze | +250 / +100 | +312 / +125 | +375 / +150 |
+| Silver | +250 / +75 | +312 / +94 | +375 / +112 |
+| Gold | +250 / +50 | +312 / +62 | +375 / +75 |
+| Platinum | +250 / +25 | +312 / +31 | +375 / +38 |
+| Diamond | **+125** / 0 | +312 / 0 | +375 / 0 |
+| Expert to Reyes | **+90** / 0 | +562 / 0 | +675 / 0 |
 
-Expert and up are Elo-style: an average player there barely moves (about +79 RP a match in
-Challenger, on a 4,500 to 6,000 bar), a better one climbs, and every loss costs. The small upward drift rewards
-dedication; seasons (4.12) trim it later.
+How it is built (for Config): a base win and loss per tier (250 and +100/+75/+50/+25 to
+Platinum, 250 / 0 in Diamond, 450 / 0 from Expert), times the mode (Classic 1, Difficult 1.25,
+Challenger 1.5), times Classic's fade on wins (x0.5 in Diamond, x0.2 from Expert).
 
-### 4.3 Why the harder modes pay more RP
+### 4.3 How skill still counts
 
-Challenger has no guidelines, so skill decides more of the result, and its matches run longer.
-The multipliers (Difficult x1.25, Challenger x1.5) roughly make up for the longer matches
-from Platinum and make the hard modes the fastest road from Diamond. Classic fades exactly
-where the designer asked: at Diamond a Classic win is +100 against a -100 loss, so a 50% player
-stops climbing there, and from Expert Classic barely moves RP either way (so friends can still
-play Classic without risking their rank).
+With no XP loss, time alone would eventually reach the top, so skill decides the speed:
+- **Harder modes pay more.** From Expert a Challenger win is worth 7.5 Classic wins, so the
+  players who can win without guidelines climb far faster.
+- **Win streak**: from the 3rd win in a row, each win gives +25% XP.
+- **Opponent strength** (4.4): beating stronger players pays up to 1.5x, much weaker ones far
+  less.
+- Only wins count from Diamond, so a player who wins twice as often climbs about twice as fast.
 
 ### 4.4 Beating much lower players pays less (smurf protection)
 
-The gap is your division minus the opponent's (Bronze I = 1 ... Master V = 40; a team uses the
-opposing team's average). The factor comes from the Elo expectation. It is **gentler from
-Bronze to Diamond** (scale 12 divisions, a win never under 30%), because in a small server
-the only people around may be weaker, and **strict from Expert up** (scale 8, down to 10%),
-where rank should mean skill:
+The gap is your division minus the opponent's (Bronze I = 1 ... Grandmaster V = 45; a team uses
+the opposing team's average). The factor comes from the Elo expectation. It is **gentler from
+Bronze to Diamond** (scale 12 divisions, a win never under 30%), because in a small server the
+only people around may be weaker, and **strict from Expert up** (scale 8, down to 10%):
 
-| Gap (divisions) | +15 | +10 | +8 | +5 | +3 | +2 | +1 | 0 | -1 | -2 | -3 | -5 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Win x, Bronze to Diamond | 0.30 | 0.30 | 0.35 | 0.55 | 0.72 | 0.81 | 0.90 | 1 | 1.10 | 1.19 | 1.28 | 1.45 |
-| Win x, Expert and up | 0.10 | 0.11 | 0.18 | 0.38 | 0.59 | 0.72 | 0.86 | 1 | 1.14 | 1.28 | 1.41 | 1.50 |
-| RP-losing loss x, Expert and up | 1.50 | 1.50 | 1.50 | 1.50 | 1.41 | 1.28 | 1.14 | 1 | 0.86 | 0.72 | 0.59 | 0.50 |
+| Gap (divisions) | +15 | +10 | +8 | +5 | +3 | +1 | 0 | -1 | -3 | -5 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Win x, Bronze to Diamond | 0.30 | 0.30 | 0.35 | 0.55 | 0.72 | 0.90 | 1 | 1.10 | 1.28 | 1.45 |
+| Win x, Expert and up | 0.10 | 0.11 | 0.18 | 0.38 | 0.59 | 0.86 | 1 | 1.14 | 1.41 | 1.50 |
 
-Formula: E = 1 / (1 + 10^(-gap / scale)); win factor = 2(1 - E), clamped to the floor (0.3
-or 0.1) and 1.5; a loss that costs RP uses 2E, clamped 0.5 to 1.5; a loss that still gains RP
-(Bronze to Gold) uses the win factor, capped at 1. A Gold V who beats a Bronze II gets 30% of
-the win. The win bonus money
-uses the same factor (never under half); ball money is untouched.
+Formula: E = 1 / (1 + 10^(-gap / scale)); factor = 2(1 - E), clamped to the floor (0.3 or
+0.1) and 1.5. The small XP a Bronze-to-Platinum loss gives uses the same factor, capped at 1.
+The win bonus money uses it too (never under half); ball money is untouched.
 
-### 4.5 PC, forfeits
+### 4.5 Boosts, PC and forfeits
 
-- **PC**: every RP change **x0.75 from Bronze to Diamond and x0.5 from Expert** at launch, so
-  a player in a quiet server still climbs against the bot of their rank. Once the global queue
-  exists and the top is busy, Expert and up drops to x0.1 (section 14).
-- **Forfeits**: as built. The forfeiter gets the loss (never the Bronze-Gold consolation RP),
-  the winner is paid only after the one-minute mark.
+- **XP boosts add together**: **Rookie Boost** +100% for a new player's first 25 matches,
+  **VIP** +50%, and the **first win of each UTC day** counts double (+100%). A new VIP
+  player's first win of the day is x3.5.
+- **PC**: XP x0.75 from Bronze to Diamond and x0.5 from Expert at launch, so a player in a
+  quiet server still climbs against the bot of their rank. Once the global queue exists and
+  the top is busy, Expert and up drops to x0.1 (section 14).
+- **Forfeits**: as built. The forfeiter gets no XP at all; the winner is paid only after the
+  one-minute mark.
 
-### 4.6 Losing and demotion
+### 4.6 Grandmaster and Reyes
 
-- **Bronze to Expert: you never fall out of a tier.** Losses can drop you to division I, never
-  below. Expert is safe forever once reached.
-- **Veteran and up can fall a tier**, with a **3-loss shield**: at division I with an empty
-  bar, the next 3 losses that would drop you are absorbed ("Shield 2 left"); the 4th drops you
-  to division V of the tier below with a 75% bar. The shield refills when you reach division
-  III of the tier again. The lowest anyone falls is Expert I.
-- A match that never started (the coin flip) costs nobody RP.
+Fixed XP amounts (designer, 2026-09-28), like every other tier: Grandmaster I at 1,057,500
+XP, **Reyes at 2,352,500 XP**. For a 55% player at 3 hours a day that is about a year of
+play; for an hour-a-day player, several years. The first player ever to reach Reyes is
+announced in every server and gets a one-of-one Unique title; each later Reyes is announced
+too. How many ever get there: 4.10.
 
-### 4.7 Grandmaster and Reyes (leaderboard seats)
+### 4.7 Difficulty unlocks
 
-- **Eligible**: reach **Master V** (108,500 RP).
-- **Seats**: Reyes = the top 10% of eligible players by RP, at most **50**, and each needs at
-  least **120,500 RP** (Master V plus 12,000); Grandmaster = the next eligible players, at most
-  **500**. Everyone else eligible shows Master V with their leaderboard place ("#612").
-  Grandmaster I to V are fifths of the Grandmaster seats by place.
-- The seats scale with the game by themselves: 30 eligible players make 3 Reyes and 27
-  Grandmasters; 5,000 eligible make 50 and 500.
-- **Keep your seat**: at least 10 rated Difficult or Challenger matches in the last 7 days,
-  or you step back to Master V until you play again.
-- A global leaderboard (OrderedDataStore) holds eligible players' RP, refreshed every 10
-  minutes; each server reads the top 600 to set seats.
-- **If nobody is there yet** (likely for the first months of a small launch), the roadmap and
-  leaderboard say "No Reyes yet. Be the first." The first player ever to reach Reyes is
-  announced in every server and gets a one-of-one Unique title.
+By rank: host a **Difficult** table from **Gold I**, **Challenger** from **Diamond I**. Anyone
+may join a harder table as a guest, with a warning and Play anyway. The table's difficulty sets
+its money and XP multipliers for everyone at it.
 
-### 4.8 Difficulty unlocks
+### 4.8 Rank rewards (paid once, the first time you reach it)
 
-By **peak** rank: host a **Difficult** table from **Gold I**, **Challenger** from
-**Diamond I**. Anyone may join a harder table as a guest, with a warning and Play anyway. The
-table's difficulty sets its money, EXP and RP multipliers for everyone at it.
-
-### 4.9 Rank rewards (paid once, the first time your peak reaches it)
+The money that Levels used to pay now comes from ranks.
 
 | Tier | Each new division II-V | Reaching the tier (division I) |
 |---|---|---|
@@ -292,107 +268,91 @@ table's difficulty sets its money, EXP and RP multipliers for everyone at it.
 | Silver | $75 | $300, a Rare Case, the Silver Cue, tag |
 | Gold | $150 | $600, 2 Rare Cases, the Gold Cue, tag |
 | Platinum | $250 | $1,200, an Epic Case, the Platinum Cue, tag |
-| Diamond | $600 | $3,000, a Legendary Case, the Diamond Cue, tag |
-| Expert | $1,500 | $10,000, 2 Legendary Cases, the Expert Cue, tag |
-| Veteran | $2,500 | $15,000, 3 Legendary Cases, the Veteran Cue, tag |
-| Master | $4,000 | $25,000, 5 Legendary Cases, the Master Cue, tag |
-| Grandmaster | $6,000 | $50,000, 10 Legendary Cases, the Grandmaster Cue, tag |
+| Diamond | $1,500 | $3,000, 2 Epic Cases, the Diamond Cue, tag |
+| Expert | $3,000 | $10,000, 2 Legendary Cases, the Expert Cue, tag |
+| Veteran | $5,000 | $15,000, 3 Legendary Cases, the Veteran Cue, tag |
+| Master | $8,000 | $25,000, 5 Legendary Cases, the Master Cue, tag |
+| Grandmaster | $15,000 | $50,000, 10 Legendary Cases, the Grandmaster Cue, tag |
 | Reyes | - | $150,000, 25 Legendary Cases, the Reyes Cue, rainbow tag |
 
 Rank cues are **Exclusive** (section 6) and can't be traded or sold: a Reyes Cue proves Reyes.
 
-### 4.10 How long each tier takes
+### 4.9 How long each tier takes
 
-Hours of play to reach each tier against equal opponents, with a typical mix of modes
-(Classic early, Difficult from Gold, mostly Challenger from Diamond):
+Hours of play against equal opponents, with a typical mix of modes (Classic early, Difficult
+from Gold, mostly Challenger from Diamond), not counting the Rookie Boost:
 
-| Win rate | Silver | Gold | Platinum | Diamond | Expert | Veteran | Master | Master V (eligible) |
-|---|---|---|---|---|---|---|---|---|
-| 50% | 1 h | 2.5 h | 6 h | 11 h | 61 h | 113 h | 183 h | about 240 h |
-| 55% | 1 h | 2.4 h | 5.6 h | 10 h | 48 h | 78 h | 118 h | about 150 h |
-| 60% | 1 h | 2.3 h | 5.3 h | 9.5 h | 40 h | 61 h | 89 h | about 110 h |
+| Win rate | Silver | Gold | Platinum | Diamond | Expert | Veteran | Master | Grandmaster | Reyes |
+|---|---|---|---|---|---|---|---|---|---|
+| 45% | 1 h | 2 h | 6 h | 12 h | 69 h | 139 h | 295 h | 637 h | 1,381 h |
+| 50% | 1 h | 2 h | 6 h | 11 h | 62 h | 124 h | 263 h | 567 h | 1,229 h |
+| 55% | 1 h | 2 h | 5 h | 10 h | 56 h | 112 h | 236 h | 509 h | 1,104 h |
+| 60% | 1 h | 2 h | 5 h | 9 h | 50 h | 102 h | 214 h | 461 h | 999 h |
 
-At an hour a day: Diamond in under two weeks, Expert in 1.5 to 2 months. At 3 hours a day a
-strong player reaches the Grandmaster race in about 5 to 6 weeks. In practice players' win
-rates fall as they climb, which is what stops the average player at Diamond.
+With the Rookie Boost a new player reaches Silver in about **30 minutes** and Diamond in
+about **7.5 hours**. At an hour a day Expert takes about **2 months**. A 3-hour-a-day grinder
+at 55% reaches Reyes in about a **year**.
 
-**A small game** (model, hours of play to reach each tier, and the first 10 hours' money and
-free cases). "Weaker" means every opponent is 5 divisions below you and you win 75%; "mix" is
-half bots, half weaker players:
+**A small game** (model, with the Rookie Boost). "Weaker" means every opponent is 5
+divisions below and you win 75%; "mix" is half bots, half weaker:
 
-| Who they play | Silver | Gold | Platinum | Diamond | Expert | Money an hour | Free cases an hour |
-|---|---|---|---|---|---|---|---|
-| Equal players | 1.1 h | 2.4 h | 5.9 h | 10.9 h | 60 h | $800 | 3.6 |
-| Only bots | 1.3 h | 3.2 h | 7.9 h | 14.7 h | over 80 h | $650 | 3.6 |
-| Only weaker players | 1.1 h | 3.1 h | 7.7 h | 13.7 h | 66 h | $800 | 5.4 |
-| Half bots, half weaker | 1.2 h | 3.1 h | 7.8 h | 14.2 h | 72 h | $720 | 4.4 |
-
-So Diamond takes 11-15 hours of play in every case: **inside a week at about 2 hours a day**,
-about two weeks at an hour a day. Before these three changes (bots x0.5, a PC case every 2nd
-win, the strict gap everywhere) the bot-only and weaker-only players needed 20-22 hours and a
-bot-only player got half the cases.
-
-### 4.11 What the ranks look like after a few months (simulation)
-
-Simulation (`ranks`): 4,000 new players a day, most leaving on day one and a few staying
-for months, each with a hidden skill; half their matches are with whoever is at the next table
-and half near their own rank (80% from Diamond up, the pro lobby). Shares of ranked players,
-and players per 1,000 peak CCU:
-
-| Tier | Day 30 | Day 90 | Day 120 | Per 1k peak CCU (day 120) | Mean skill (day 120) |
+| Who they play | Silver | Gold | Platinum | Diamond | Expert |
 |---|---|---|---|---|---|
-| Bronze | 22.1% | 14.3% | 13.0% | 1,670 | -0.15 |
-| Silver | 17.6% | 12.0% | 10.8% | 1,390 | -0.15 |
-| Gold | 22.3% | 15.9% | 14.5% | 1,860 | -0.11 |
-| Platinum | 15.9% | 12.9% | 11.5% | 1,470 | -0.21 |
-| Diamond | 20.8% | 34.7% | 36.0% | 4,620 | -0.13 |
-| Expert | 1.2% | 8.3% | 10.7% | 1,370 | +0.63 |
-| Veteran | 0.09% | 1.8% | 2.9% | 370 | +1.47 |
-| Master | 0 | 0.22% | 0.52% | 67 | +2.17 |
-| Master V (Grandmaster race) | 0 | 0.03% | 0.11% | 15 | +2.91 |
+| Equal players | 0.5 h | 1.2 h | 2.8 h | 7.5 h | 59 h |
+| Only bots | 0.7 h | 1.6 h | 4.2 h | 11 h | 79 h |
+| Only weaker players | 0.5 h | 1.5 h | 3.4 h | 9.6 h | 67 h |
+| Half bots, half weaker | 0.7 h | 1.5 h | 3.8 h | 10.5 h | 73 h |
 
-So at 5,000 peak CCU after four months, about 70 players would be racing for the seats (a
-few Reyes and the rest Grandmaster), about 330 Masters and 1,800 Veterans; at 500 CCU, about
-30 Masters and a handful in the race. The simulation leaves out the 3-loss shield and
-bots, and its retention and playtime are guesses, so read it for shape, not exact counts.
+### 4.10 What the ranks look like over a year (simulation)
 
-Diamond is the long plateau where most regular players settle; Expert and up are sorted by
-skill (the mean skill column is in standard deviations; +1.5 is about the top 7%).
+Simulation (`ranks`): 2,000 new players a day for a year (about 2,200 peak CCU by the end),
+most leaving on day one and a few staying for a year or more, each with a hidden skill; half
+their matches near their own rank. "Ever" counts everyone who reached the tier or higher,
+including players who later quit.
 
-### 4.12 Seasons (later)
+| Tier | Share of players still playing, day 90 / 180 / 365 | Ever reached by day 365 | Mean skill (day 365) |
+|---|---|---|---|
+| Bronze | 15% / 12% / 10% | 625,000 (everyone ranked) | -0.17 |
+| Silver | 11% / 9% / 8% | 374,000 | -0.12 |
+| Gold | 16% / 13% / 11% | 255,000 | -0.10 |
+| Platinum | 14% / 11% / 9% | 153,000 | -0.14 |
+| Diamond | 34% / 33% / 30% | 99,700 | -0.12 |
+| Expert | 7.6% / 12% / 13% | 24,000 | +0.07 |
+| Veteran | 2.1% / 7.1% / 12% | 10,500 | +0.28 |
+| Master | 0.1% / 1.6% / 6.5% | 3,270 | +0.56 |
+| Grandmaster | 0 / 0.05% / 1.4% | 459 | +1.18 |
+| **Reyes** | 0 / 0 / 0.01% | **4** | +2.44 |
 
-Season 0 has no reset. Later, about every 3 months: Bronze to Expert never reset; Veteran and
-up keep half their RP above Expert I (never below Expert I). A season reward by season peak
-(a season-coloured tier cue, Exclusive, plus cases) makes the reset feel like a prize.
+What this means:
+- **Reyes stays very rare**: 4 players in the first year at about 2,200 CCU (roughly 10 at
+  5,000 CCU, 20 at 10,000). It keeps growing slowly every year, since XP is never lost.
+- **With no XP loss, rank rewards time more than skill** below the very top: Expert and
+  Veteran players are average-to-good (mean skill +0.07 and +0.28), because anyone who keeps
+  playing gets there. Grandmaster (+1.18, about the top 12%) and Reyes (+2.44, about the top
+  1%) still take real skill as well as time.
+- **The high tiers fill up with long-time players.** A year in, about a third of the players
+  still playing are Expert or higher. Measured against everyone who ever played it stays
+  small: Expert 4%, Master 0.5%, Grandmaster 0.07%.
+
+The retention and playtime in the simulation are guesses, so read it for shape, not exact
+counts.
+
+### 4.11 Seasons
+
+**Ranks never reset** (designer, 2026-09-28): your XP is yours forever. Seasons can still
+give a reward for the highest tier reached during that season (a season-coloured tier cue,
+Exclusive, plus cases), without taking anything away.
 
 ---
 
-## 5. Account Level (EXP)
+## 5. No Levels
 
-| EXP source | EXP |
-|---|---|
-| Win / loss (against a person) | 100 / 50 |
-| First win of the UTC day | +200 |
-| PC match | half |
-| Solo game | 20 (first 5 a day) |
-| Difficulty | x1 / x1.25 / x1.5 |
-| Boosts (add) | Rookie +100% (first 25 matches), VIP +100% |
-
-**EXP to the next level** = 100 + 75 x (level - 1), at most 5,000 (from level 66).
-
-| Level | 2 | 5 | 10 | 25 | 50 | 75 | 100 |
-|---|---|---|---|---|---|---|---|
-| Total EXP | 100 | 850 | 3,600 | 23,100 | 93,100 | 207,475 | 332,475 |
-| At 1 h a day, about | the first match | the first hour | day 2-3 | week 4 | month 4 | month 9 | month 14 |
-
-**Rewards**: every level pays **$50 + $10 x level** (at most $1,000); every 10th level also
-pays **$25 x level** and a title. Levels 25, 50, 75 and 100 give a nameplate frame. Levels
-never give cases (section 13: a case a purchase can speed up counts as a paid random item).
-**There is no max level**: 100 is only the last milestone in the table, and every level after
-66 costs a flat 5,000 EXP.
-
-The Level shows as a small "Lv 12" chip with a thin EXP bar next to the rank HUD (exact look:
-UI_STYLE, when it is built).
+The account Level and its EXP are gone (designer, 2026-09-28). What they did moved:
+- **Money every level** now comes from rank divisions (4.8).
+- The **Rookie Boost** and the **first win of the day** now boost rank XP (4.5).
+- **VIP** gives +50% rank XP instead of 2x EXP (11.2).
+- The anti-alt rule "the loser must be Level 3" became "the loser must have played 5 real
+  matches" (3.6).
 
 ---
 
@@ -470,21 +430,21 @@ Median **days** until a player owns their first of each rarity, at a 50% win rat
 
 | Player | Buys | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|
-| Casual, 30 min a day | Epic Cases | 2.9 | 14 | 72 | over 3 years |
-| | Legendary Cases | 4.3 | 10 | 59 | about 2 years |
-| | nothing (saves) | 5.9 | 24 | 140 | over 3 years |
-| Regular, 1 h a day | Epic Cases | 2.1 | 9.1 | 52 | about 21 months |
-| | Legendary Cases | 2.8 | 7.6 | 37 | about 16 months |
-| | Rare Cases | 2.4 | 10 | 63 | about 29 months |
-| | nothing (saves) | 5.8 | 16 | 105 | over 3 years |
-| Regular + VIP | Epic Cases | 1.9 | 6.6 | 40 | about 14 months |
-| | Legendary Cases | 2.0 | 5.7 | 31 | about 10 months |
-| Dedicated, 3 h a day | Epic Cases | 1.2 | 3.9 | 23 | about 11 months |
-| | Legendary Cases | 1.2 | 3.4 | 17 | about 6 months |
-| | nothing (saves) | 2.7 | 11 | 55 | about 32 months |
+| Casual, 30 min a day | Epic Cases | 2.9 | 11 | 72 | over 3 years |
+| | Legendary Cases | 4.0 | 10 | 57 | about 2 years |
+| | nothing (saves) | 5.4 | 24 | 147 | over 3 years |
+| Regular, 1 h a day | Epic Cases | 2.0 | 6.9 | 48 | about 2 years |
+| | Legendary Cases | 2.7 | 6.0 | 36 | about 16 months |
+| | Rare Cases | 2.1 | 10 | 58 | about 30 months |
+| | nothing (saves) | 4.2 | 25 | 102 | over 3 years |
+| Regular + VIP | Epic Cases | 1.6 | 5.6 | 36 | about 17 months |
+| | Legendary Cases | 2.0 | 4.8 | 30 | about 12 months |
+| Dedicated, 3 h a day | Epic Cases | 1.1 | 3.5 | 23 | about 11 months |
+| | Legendary Cases | 1.2 | 3.0 | 18 | about 8 months |
+| | nothing (saves) | 2.0 | 14 | 56 | about 32 months |
 
-In hours played (1 h a day, buying Epic Cases): Epic median 2.1 h (p25 1.2, p75 3.4),
-Legendary 8.5 h (p25 4.2, p75 13.1), Mythic 53 h (p25 25, p75 97), Secret 670 h (p25 268).
+In hours played (1 h a day, buying Epic Cases): Epic median 2.0 h (p25 1.1, p75 3.2),
+Legendary 7.1 h (p25 3.3, p75 17.6), Mythic 51 h (p25 24, p75 99), Secret 720 h (p25 313).
 
 "Buys" is what the player spends money on; "nothing" means they buy no cases (saving for a
 Limited cue), so only free cases count. The model never misses a streak day. Every Secret
@@ -582,7 +542,7 @@ still random, with its odds shown.
 **Four full weeks in a row** add a **Legendary Case** on day 28.
 
 **Playtime gifts** (minutes played in a UTC day): 10 min $100, 30 min a Standard Case, 60 min
-2 Standard Cases. **First win of the day**: +200 EXP. The reminder on menu open and focus loss
+2 Standard Cases. **First win of the day**: double XP. The reminder on menu open and focus loss
 ("Come back tomorrow for your Rare Case") uses the real next streak reward.
 
 ---
@@ -618,10 +578,11 @@ cues are in section 9. A player halfway to a $25,000 Limited finishes it with ab
 
 - **2x money** (+100%, adds with other boosts) on everything earned in play: balls, nice
   shots, match bonuses. Not on rewards, sell-back or packs.
-- **2x EXP** (+100%): faster Levels, never RP.
+- **+50% XP** (designer, 2026-09-28): a VIP climbs ranks about a third faster. Adds with the
+  Rookie Boost and the first win of the day.
 - **The VIP Cue** (Exclusive, rainbow, tradable), a **[VIP]** chat tag after the rank tag and
   a VIP nameplate shine.
-- Never better case odds, never more free cases, never RP. (A VIP perk that gives cases would
+- Never better case odds, never more free cases. (A VIP perk that gives cases would
   make VIP a paid random item.)
 - Model: a 1-hour-a-day VIP gets a first Legendary 1-2 days sooner and a first Mythic about
   10 days sooner. VIP's extra money matches the pass's price in money packs after about 15-20
@@ -647,7 +608,7 @@ own look) **and $3,000**. No case inside, which keeps it outside the paid-random
 | Product | Type | Robux | Why |
 |---|---|---|---|
 | Money packs (7) | developer products | 49 to 4,999 | the core |
-| VIP | game pass | 599 | 2x money and EXP; research median VIP about 400 R$, 2x-money passes 300-600 |
+| VIP | game pass | 599 | 2x money and +50% XP; research median VIP about 400 R$, 2x-money passes 300-600 |
 | VIP welcome offer | developer product | 299 | first join and one comeback |
 | Starter Pack | developer product | 79 | pool competitors sell 39-79 R$ starter packs |
 | **Money Party** | developer product | 199 | +100% money for **everyone in the server for 15 minutes**, the buyer's name announced; buying again adds 15 minutes (up to an hour queued). Social and cheap to build; money only, so not a paid random item |
@@ -657,18 +618,18 @@ own look) **and $3,000**. No case inside, which keeps it outside the paid-random
 
 | Product | Robux | Notes |
 |---|---|---|
-| **Cue Pass** (season pass) | 449 premium, 1,199 premium plus 15 tiers | free and premium tracks of fixed cues, money and titles (no cases on either track); tiers from EXP; comes with seasons |
+| **Cue Pass** (season pass) | 449 premium, 1,199 premium plus 15 tiers | free and premium tracks of fixed cues, money and titles (no cases on either track); tiers from matches played; comes with seasons |
 | Pass tier skips | 59 each, 10 for 499 | pass tiers only, never rank |
 | Gift versions of VIP and the Cue Pass | same as the product | opt gifts out of Managed Pricing; only gift from an equal or pricier region (`GetUsersPriceLevelsAsync`) |
 | Win celebrations and emotes | 99-249 | the avatar is the star (pillar 3); mute option |
-| Private servers | 99 a month | practice with friends: no RP, no free cases, solo-rate money |
+| Private servers | 99 a month | practice with friends: no XP, no free cases, solo-rate money |
 | Trader Pass | 199 | extra trade slots and trade history, if trading takes off |
 | Club (subscription) | $4.99 a month | a monthly Exclusive cue, a daily money stipend, a club tag; clearly different from VIP |
 
 ### 11.7 Never sell
 
 Paid re-rolls or "reveal the next case" (both paid random items), luck boosts, pity
-skips, extra or faster free cases, anything that protects or boosts RP, in-match aids (longer
+skips, extra or faster free cases, anything that protects rank, in-match aids (longer
 guidelines, hints, power or spin upgrades), anything that hurts an opponent, and purchase
 prompts right after a loss.
 
@@ -680,7 +641,7 @@ prompts right after a loss.
   a 3-second confirm on both sides.
 - **Open to everyone from the start** (designer, 2026-09-27: no level gate). Rank and season
   cues can't be traded. Alt farming is held back by the free-case rules instead (section 3.6:
-  the loser must be Level 3, at most 3 cases a day from the same account).
+  the loser must have played 5 real matches, at most 3 cases a day from the same account).
 - Players whose `IsPaidItemTradingAllowed` is false can't trade at all (every cue could have
   come from Robux-bought money).
 - **Retiring cues ("Vaulted")**: each season the designer retires a few case cues; they stop
@@ -695,7 +656,7 @@ prompts right after a loss.
   random item. Odds before purchase, every outcome with its %, totals exactly 100, an "Odds"
   or "Details" button in words, live updates.
 - **Free cases are exempt** only while nothing paid can speed them up or add more. That is
-  why VIP, Money Party and Levels never give cases.
+  why VIP and Money Party never give cases.
 - **`ArePaidRandomItemsRestricted`** (Roblox names Australia, Belgium, the Netherlands, the
   UK and Brazil for under-18s): hide the money cases. Free cases, the Limited shelf (a known cue
   at a fixed price) and everything else stay.
@@ -716,13 +677,12 @@ unchanged at any size; these are the dials to revisit:
 
 | Dial | Launch | Change when |
 |---|---|---|
-| PC RP | x0.75 to Diamond, x0.5 from Expert | the global queue is live and there are 200+ Master and up: Expert and up x0.1 |
-| Diamond division | 4,000 RP | after 60 days, if under 1% of weekly players have reached Expert: 3,000 |
-| Expert to Master divisions | 4,500 / 6,000 / 6,000 | after 90 days, if nobody is eligible for Grandmaster: shrink by a quarter |
-| Reyes and Grandmaster seats | automatic, at most 50 / 500 | raise the caps only if the game passes about 20,000 CCU |
+| PC XP | x0.75 to Diamond, x0.5 from Expert | the global queue is live and there are 200+ Master and up: Expert and up x0.1 |
+| Diamond I size and growth | 8,000 XP, +17% a division | after 60 days, if under 1% of players who stayed a month have reached Expert: 6,000 |
+| Reyes XP | 2,352,500 | if Reyes gets crowded (a few hundred a year), raise it for everyone not yet there |
 | Limited drops | one every 1-2 weeks | faster once the art pipeline allows; add copy caps if values fall |
 | New-player free cases | 50 wins | if D1 retention is weak: 75 |
-| Seasons | none (Season 0) | about 3 months after release, once the top tiers have players |
+| Seasons | ranks never reset | season rewards for the highest tier reached, once seasons start |
 
 **Watch these numbers** (Roblox analytics and our own events): median hours to a first
 Legendary (target 8-14), players' average saved money (rising fast = too much income), the share
@@ -735,13 +695,13 @@ retention for the onboarding.
 
 | Rarity | Per hour played | 500 peak CCU (per day) | 2k peak CCU | 10k peak CCU |
 |---|---|---|---|---|
-| Common | 3.44 | 20,600 | 82,500 | 413,000 |
+| Common | 3.43 | 20,600 | 82,200 | 411,000 |
 | Uncommon | 1.70 | 10,200 | 40,800 | 204,000 |
-| Rare | 1.69 | 10,200 | 40,700 | 203,000 |
-| Epic | 0.47 | 2,800 | 11,300 | 56,500 |
-| Legendary | 0.096 | 580 | 2,300 | 11,600 |
-| Mythic | 0.014 | 81 | 330 | 1,600 |
-| Secret | 0.0013 | 8 | 30 | 150 |
+| Rare | 1.73 | 10,400 | 41,400 | 207,000 |
+| Epic | 0.48 | 2,900 | 11,500 | 57,300 |
+| Legendary | 0.097 | 580 | 2,300 | 11,700 |
+| Mythic | 0.015 | 91 | 370 | 1,800 |
+| Secret | 0.0009 | 6 | 22 | 110 |
 
 (Player-hours a day taken as peak CCU x 0.5 x 24.)
 
@@ -754,18 +714,18 @@ lower. Each rarity's supply is shared across its cues: at launch 3 Legendaries a
 
 - **Config** (`src/shared/Config.luau`): `Config.Ranks` gets the new division widths, the
   per-tier base win and loss, the mode multipliers, Classic's fade, the gap scale, the PC
-  share by tier, the shield, the leaderboard seat rules and the new rewards (money plus cases
+  share by tier, the win streak, the XP boosts and the new rewards (money plus cases
   plus cue). `Config.Economy` gets the PC and short-match limits, team pay, the win streak,
-  the same-opponent table and the boost rules. New: `Config.Level`, `Config.Cases`,
+  the same-opponent table and the boost rules. New: `Config.Cases`,
   `Config.Limited`, `Config.DailyRewards`, `Config.Products`, `Config.Trading`.
-- **Save** (a new version with a migration): level and EXP, rookie matches left, unopened
+- **Save** (a new version with a migration): rookie matches left, win streak, unopened
   cases by type, wins today and lifetime wins (for the free case), streak day and last claim,
   playtime today, same-opponent counters for today, VIP-from-offer, welcome-offer windows,
   starter pack bought, first purchase done, Limited cues bought.
-- **Order** (fits Roadmap stages 2 and 4): the new RP numbers and gap factor (Config and the
-  rank module), then EXP and Levels, then the catalog, inventory and cases (free win case
-  first), sell-back, copies-in-existence counters, the Limited shelf, daily rewards, the Robux products, trading's gates, the
-  Grandmaster/Reyes leaderboard, and the PolicyService checks.
+- **Order** (fits Roadmap stages 2 and 4): the new XP numbers, no-loss rule, boosts and gap
+  factor (Config and the rank module), then the catalog, inventory and cases (free win case
+  first), sell-back, copies-in-existence counters, the Limited shelf, daily rewards, the
+  Robux products, trading's gates, the top-rank announcements, and the PolicyService checks.
 
 ---
 
@@ -773,5 +733,4 @@ lower. Each rarity's supply is shared across its cues: at launch 3 Legendaries a
 
 - Whether completing a row in the Index pays (suggestion: all Commons $1,000, Uncommons
   $2,500, Rares $7,500, Epics $25,000, plus a title).
-- The Level chip's look, and the RP label on the rank HUD.
 - R6 and the 18+ DevEx rate (section 13).
