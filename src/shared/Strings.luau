@@ -11,6 +11,10 @@ return {
 		Zoom = "Zoom", -- the right stick, up and down
 		SpinAngle = "Spin & angle", -- hold L1
 		Shoot = "Shoot", -- R2 or X (A)
+		-- While L1 holds the spin panel open:
+		Spin = "Spin", -- the left stick
+		Angle = "Angle", -- the right stick, up and down: the cue's angle
+		CenterSpin = "Center spin", -- Y (spelt like the spin panel's Center button)
 	},
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },

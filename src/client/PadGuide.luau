@@ -6,6 +6,10 @@
 --   (L-stick) <> Turn   (D-pad) <> Fine aim   (R-stick) ^v Zoom
 --   (L1) Spin & angle   (R2) (X) Shoot
 --
+-- and while L1 holds the spin panel open (designer, 2026-09-27), the spin controls instead:
+--
+--   (L-stick) Spin   (R-stick) ^v Angle   (Y) Center spin
+--
 -- and a Circle beside the Leave door in the top bar. The button pictures are Roblox's own
 -- (UserInputService:GetImageForKeyCode), so they are PlayStation or Xbox glyphs to match the
 -- controller in use; the arrows beside the sticks are the kit's white chevrons (separate
@@ -26,6 +30,7 @@ local P = Config.UI.PadGuide
 local Copy = Strings.PadGuide
 
 type Item = {
+	set: string, -- "aim" (the turn) or "spin" (while L1 holds the spin panel open)
 	row: number,
 	keys: { Enum.KeyCode },
 	arrows: string?, -- "sideways" or "updown"
@@ -34,11 +39,42 @@ type Item = {
 
 -- The strip's contents, in reading order.
 local ITEMS: { Item } = {
-	{ row = 1, keys = { Enum.KeyCode.Thumbstick1 }, arrows = "sideways", words = Copy.Turn },
-	{ row = 1, keys = { Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight }, words = Copy.FineAim },
-	{ row = 1, keys = { Enum.KeyCode.Thumbstick2 }, arrows = "updown", words = Copy.Zoom },
-	{ row = 2, keys = { Enum.KeyCode.ButtonL1 }, words = Copy.SpinAngle },
-	{ row = 2, keys = { Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonA }, words = Copy.Shoot },
+	{
+		set = "aim",
+		row = 1,
+		keys = { Enum.KeyCode.Thumbstick1 },
+		arrows = "sideways",
+		words = Copy.Turn,
+	},
+	{
+		set = "aim",
+		row = 1,
+		keys = { Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight },
+		words = Copy.FineAim,
+	},
+	{
+		set = "aim",
+		row = 1,
+		keys = { Enum.KeyCode.Thumbstick2 },
+		arrows = "updown",
+		words = Copy.Zoom,
+	},
+	{ set = "aim", row = 2, keys = { Enum.KeyCode.ButtonL1 }, words = Copy.SpinAngle },
+	{
+		set = "aim",
+		row = 2,
+		keys = { Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonA },
+		words = Copy.Shoot,
+	},
+	{ set = "spin", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = Copy.Spin },
+	{
+		set = "spin",
+		row = 1,
+		keys = { Enum.KeyCode.Thumbstick2 },
+		arrows = "updown",
+		words = Copy.Angle,
+	},
+	{ set = "spin", row = 1, keys = { Enum.KeyCode.ButtonY }, words = Copy.CenterSpin },
 }
 
 local PadGuide = {}
@@ -95,14 +131,20 @@ function PadGuide.new(screen: ScreenGui): any
 	self.root = root
 	self.rowList = rows
 
-	local rowFrames: { [number]: Frame } = {}
+	local rowFrames: { [string]: Frame } = {}
+	self.rowSets = {} :: { [Frame]: string }
+	self.set = "aim"
 	for index, item in ITEMS do
-		local line = rowFrames[item.row]
-		if not line then
-			line = row(root, "Row" .. item.row, P.ItemGapPx, item.row)
-			rowFrames[item.row] = line
+		local key = item.set .. item.row
+		local line: Frame? = rowFrames[key]
+		if line == nil then
+			local made = row(root, "Row" .. key, P.ItemGapPx, item.row)
+			made.Visible = item.set == self.set
+			rowFrames[key] = made
+			self.rowSets[made] = item.set
+			line = made
 		end
-		local entry = row(line, "Item" .. index, P.PartGapPx, index)
+		local entry = row(line :: Frame, "Item" .. index, P.PartGapPx, index)
 		local order = 0
 		local function nextOrder(): number
 			order += 1
@@ -212,6 +254,17 @@ function PadGuide.apply(self: any)
 	self.root.Visible = self.wanted and gamepad
 	if self.leaveHint then
 		self.leaveHint.Visible = gamepad
+	end
+end
+
+--- Which controls to show: "aim" for the turn, "spin" while L1 holds the spin panel open.
+function PadGuide.setSet(self: any, set: string)
+	if self.set == set then
+		return
+	end
+	self.set = set
+	for line, lineSet in self.rowSets do
+		line.Visible = lineSet == set
 	end
 end
 

@@ -1582,3 +1582,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27 (designer): a match starts ready to play on a gamepad: any leftover selection
   (the host menu's button handed on to the spin toggle) is dropped; only the leave dialog,
   the pocket rings and the result screens keep one.
+- 2026-09-27 (designer): while L1 holds the spin panel open, the controller guide shows the
+  spin controls (left stick Spin, right stick Angle, Y Center spin) instead of the aim ones.

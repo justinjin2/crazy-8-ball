@@ -11,6 +11,8 @@
   Roblox's own glyphs and the kit's white chevrons) and a Circle beside Leave. A game started
   from the host menu with the pad is playable at once: a leftover selection (Roblox handed it
   from the hidden menu to the spin toggle, so Circle was needed first) is dropped in a match.
+  While L1 holds the spin panel open, the guide shows Spin (left stick), Angle (right stick)
+  and Center spin (Y) instead; checked in Studio (screenshot), back to the aim rows on release.
 - **Verified:** lint clean, 425 tests pass. Studio: Play solo selected with Y, the game
   started under it, and the selection was gone a frame later (no frame on the spin toggle).
   Y opens and closes Ranked with nothing
