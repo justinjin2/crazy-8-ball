@@ -15,6 +15,11 @@
   and Center spin (Y) instead; checked in Studio (screenshot), back to the aim rows on release.
   X (Xbox A) is now the only shot button (hold to build power, release to shoot); the R2
   pull is gone and R2 is unbound.
+- **Also built:** a red Cancel under "Requested!" on the host's card: the server drops the
+  request (the CancelRequest action, tested), everyone's popup closes (it now needs the
+  snapshot's requestedAt to match its ask) and the card unfolds to the full choices; a new
+  request waits 3 s. Checked in Studio: Request, then Cancel (screenshots), the server's
+  requestedAt nil. Needs a check with a second player that their popup closes.
 - **Verified:** lint clean, 425 tests pass. Studio: Play solo selected with Y, the game
   started under it, and the selection was gone a frame later (no frame on the spin toggle).
   Y opens and closes Ranked with nothing

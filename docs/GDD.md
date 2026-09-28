@@ -226,7 +226,9 @@ Every feature is checked against these. If it serves none, it waits.
   **Dismiss**, small and low so it never covers the player's legs. It goes by itself after 15 s *(tune)* or as soon as the pad fills or the host
   leaves. While a request stands the host's card folds up (animated) to the game and a greyed
   "Requested!"; if nobody came it unfolds again after the same 15 s, with the full choices and
-  Request ready to press again.
+  Request ready to press again. Under "Requested!" a red **Cancel** (designer, 2026-09-27)
+  takes the request back: everyone's popup goes at once and the card unfolds to the full
+  choices; Request can be pressed again 3 s *(tune)* after the last request.
 - Every match is played on the one standard table model, in one of its looks (section 16).
   Collectible table skins are parked until after release (section 18).
 - **Modes at release: Solo, 1v1, 2v2, 3v3**, each with friends or PC fill.

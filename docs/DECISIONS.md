@@ -1602,3 +1602,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   Expert) and a free case on every win; the opponent-gap factor is gentler from Bronze to
   Diamond (scale 12, never under 30%) and strict from Expert. Before, a player with only bots
   or only weaker opponents needed twice as long to reach Diamond (Claude's call from the model).
+- 2026-09-27 (designer): a red Cancel under "Requested!" takes a request for an opponent back;
+  everyone's popup closes and the host's card unfolds at once. A new request waits 3 s after
+  the last one (Queue.RerequestSeconds) so Request and Cancel cannot flood popups.

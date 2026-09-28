@@ -3256,6 +3256,10 @@ Config.Multiplayer = {
 		-- the popup shows, the host's card stays folded to "Requested!", and the host cannot
 		-- ask again; then the card unfolds if nobody came. (tune)
 		RequestSeconds = 15,
+		-- After a request, the host may ask again no sooner than this, even having cancelled
+		-- it (the Cancel button, designer 2026-09-27), so Request and Cancel cannot flood
+		-- everyone with popups. (tune)
+		RerequestSeconds = 3,
 	},
 	Barrier = { -- invisible wall around each table: nobody can touch or jump onto it
 		-- Beyond the rails. 5.5 in rails + 0.6 and 7 in rails + 0.36 put the wall in the same

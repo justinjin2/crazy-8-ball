@@ -6,7 +6,7 @@
 --
 -- One at a time, the newest. It goes by itself after Queue.RequestSeconds, when you
 -- dismiss it or join, and as soon as the table's snapshot says the ask no longer stands (the
--- pad filled, the host left or played solo), or you sit down anywhere.
+-- pad filled, the host left, played solo or cancelled the request), or you sit down anywhere.
 --
 -- A white card at the bottom centre with the host's headshot, shrunk on narrow screens.
 -- Gamepad: Y puts the selection on Join (Main), so the stick never stops walking by itself.
@@ -151,6 +151,7 @@ function OpponentPrompt.update(
 		and s.epoch == ask.epoch
 		and s.phase == "Waiting"
 		and s.hostId == ask.userId
+		and s.requestedAt == ask.at -- nil once the host cancels it (designer, 2026-09-27)
 		and #s.seats < s.teamSize * 2
 	local old = type(ask.at) == "number" and now - ask.at > M.Queue.RequestSeconds
 	if seated or old or not stands then

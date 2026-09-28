@@ -106,6 +106,7 @@ local function rehost(t: any)
 	-- A new host asks for players themselves: the old one's request does not carry over.
 	if t.hostId ~= old then
 		t.requestedAt = nil
+		t.lastRequestAt = nil
 	end
 end
 
@@ -633,6 +634,7 @@ function Engine.action(
 	elseif
 		kind == "Start"
 		or kind == "RequestOpponent"
+		or kind == "CancelRequest"
 		or kind == "StartSolo"
 		or kind == "SetDifficulty"
 		or kind == "SetAbilities"
@@ -653,14 +655,25 @@ function Engine.action(
 			-- While the pad has room, the host may ask everyone free in the server to join
 			-- (designer, 2026-09-27: an opponent on 1v1, players on the team tables); the
 			-- server sends the asks (TableService). Not more often than
-			-- Queue.RequestSeconds.
+			-- Queue.RequestSeconds while one stands, nor within Queue.RerequestSeconds of the
+			-- last one after a cancel, so Request and Cancel cannot flood everyone with popups.
 			if
 				Engine.count(t) >= Engine.capacity(t)
 				or (t.requestedAt and now - t.requestedAt < M.Queue.RequestSeconds)
+				or (t.lastRequestAt and now - t.lastRequestAt < M.Queue.RerequestSeconds)
 			then
 				return false
 			end
 			t.requestedAt = now
+			t.lastRequestAt = now
+			t.revision += 1
+		elseif kind == "CancelRequest" then
+			-- The host takes a standing request back (designer, 2026-09-27): the snapshot
+			-- loses requestedAt, which closes everyone's popup and refuses a late Join.
+			if not t.requestedAt or now - t.requestedAt >= M.Queue.RequestSeconds then
+				return false
+			end
+			t.requestedAt = nil
 			t.revision += 1
 		elseif kind == "StartSolo" then
 			-- The host alone plays the table by themselves at once: no coin, and nobody can

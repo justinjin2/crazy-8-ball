@@ -8,9 +8,11 @@
 -- against PC (a placeholder until bots exist) and Play solo. Guests on the pad see the sign
 -- over it instead (TableSign). Walking off the pad leaves.
 --
--- Once the host requests, the card folds up to the game and "Requested!" (the waiting line
--- and Play against PC and Play solo slide away) and unfolds again if nobody came within
--- Queue.RequestSeconds (designer, 2026-09-27).
+-- Once the host requests, the card folds up to the game, "Requested!" and a red Cancel (the
+-- waiting line and Play against PC and Play solo slide away) and unfolds again if nobody
+-- came within Queue.RequestSeconds (designer, 2026-09-27). Cancel takes the request back:
+-- everyone's popup closes and the card unfolds at once; the host may ask again after
+-- Queue.RerequestSeconds.
 --
 -- Every press is a request the server checks (MatchEngine.action). Built from the UI kit
 -- (HudParts): it pops in the moment you step onto an empty pad (Main shows it before the
@@ -69,7 +71,7 @@ local function button(
 	text: string,
 	order: number,
 	look: string,
-	icon: string,
+	icon: string?,
 	action: () -> ()
 ): TextButton
 	local object = HudParts.candy(parent, text, action, look, icon)
@@ -87,6 +89,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.localUserId = if Players.LocalPlayer then Players.LocalPlayer.UserId else 0
 	self.sentAt = -math.huge -- a Play solo on its way to the server
 	self.requestedAt = -math.huge -- this host's last request, before the server's answer
+	self.cancelledAt = -math.huge -- this host's last Cancel: older requests no longer stand
 	self.now = 0
 	self.open = false
 	self.away = false -- the host stepped off the pad; the server lets them go shortly
@@ -168,7 +171,15 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			end
 		end
 	)
-	self.more = fold(content, "More", 4)
+	-- While a request stands: take it back, and the card unfolds at once.
+	-- No icon: the kit's red X vanished on the red candy.
+	self.cancel = button(content, "CancelRequest", Copy.CancelRequest, 4, "Red", nil, function()
+		if self:requestStands() then
+			self.cancelledAt = self.now
+			self.onAction("CancelRequest", nil)
+		end
+	end)
+	self.more = fold(content, "More", 5)
 	self.pc = button(self.more.inner, "PlayPC", Copy.PlayPC, 1, "Blue", "Robot", function() end)
 	self.solo = button(self.more.inner, "PlaySolo", Copy.PlaySolo, 2, "Green", "Person", function()
 		if self:canSend() and self:alone() then
@@ -211,15 +222,27 @@ function QueueMenu.canSend(self: any): boolean
 	return self.now - self.sentAt >= M.ActionRetrySeconds
 end
 
---- Whether a request may be sent: the pad has room, and no request within the cooldown (the
---- server's record or this card's own press, whichever is later).
+--- Whether this host's request stands: the pad has room and a request (the server's record
+--- or this card's own press, whichever is later) is under Queue.RequestSeconds old and was
+--- not cancelled since.
+function QueueMenu.requestStands(self: any): boolean
+	local snapshot = self.snapshot
+	if not snapshot or not self:isHost() or self:count() >= snapshot.teamSize * 2 then
+		return false
+	end
+	local server = snapshot.requestedAt or -math.huge
+	local last = math.max(self.requestedAt, server)
+	return last > self.cancelledAt and self.now - last < M.Queue.RequestSeconds
+end
+
+--- Whether a request may be sent: the pad has room, none stands, and none was sent within
+--- Queue.RerequestSeconds (after a Cancel), as the server checks.
 function QueueMenu.canRequest(self: any): boolean
 	local snapshot = self.snapshot
 	if not snapshot or not self:isHost() or self:count() >= snapshot.teamSize * 2 then
 		return false
 	end
-	local last = math.max(self.requestedAt, snapshot.requestedAt or -math.huge)
-	return self.now - last >= M.Queue.RequestSeconds
+	return not self:requestStands() and self.now - self.requestedAt >= M.Queue.RerequestSeconds
 end
 
 -- Show or hide the card, popping it in or out.
@@ -252,7 +275,7 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 	self.snapshot = snapshot
 	self.localUserId = userId
 	if not snapshot or not old or old.epoch ~= snapshot.epoch or old.id ~= snapshot.id then
-		self.sentAt, self.requestedAt = -math.huge, -math.huge
+		self.sentAt, self.requestedAt, self.cancelledAt = -math.huge, -math.huge, -math.huge
 	end
 	if not snapshot then
 		self:blur()
@@ -296,7 +319,7 @@ function QueueMenu.focus(self: any)
 	if not self.root.Visible then
 		return
 	end
-	for _, object in { self.request, self.solo, self.pc } do
+	for _, object in { self.request, self.cancel, self.solo, self.pc } do
 		if self:usable(object) then
 			GuiService.SelectedObject = object
 			return
@@ -432,20 +455,22 @@ function QueueMenu.update(self: any, now: number)
 		elseif teamSize == 1 then Copy.WaitingForOpponent .. dots(now)
 		else Copy.WaitingForPlayers .. dots(now)
 
-	-- Folded while a request stands and the pad still has room: just the game and Requested!
+	-- Folded while a request stands and the pad still has room: just the game, Requested!
+	-- and Cancel.
 	local sending = not self:canSend()
 	local room = count < capacity
-	local canRequest = self:canRequest()
-	local folded = room and not canRequest
+	local stands = self:requestStands()
+	local folded = room and stands
 	self.request.Visible = room and not sending
-	HudParts.setEnabled(self.request, canRequest)
+	HudParts.setEnabled(self.request, self:canRequest())
 	HudParts.setText(
 		self.request,
-		if not canRequest
+		if stands
 			then Copy.Requested
 			elseif teamSize == 1 then Copy.RequestOpponent
 			else Copy.RequestPlayers
 	)
+	self.cancel.Visible = folded and not sending
 	local alone = self:alone()
 	self.pc.Visible = alone and not sending
 	self.solo.Visible = alone and not sending

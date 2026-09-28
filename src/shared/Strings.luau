@@ -50,6 +50,7 @@ return {
 			RequestOpponent = "Request opponent",
 			RequestPlayers = "Request players", -- on the team tables
 			Requested = "Requested!", -- on the button while the host waits to ask again
+			CancelRequest = "Cancel", -- under Requested!: takes the request back
 			StartingIn = "Starting in %d", -- the pad is full: the game starts by itself
 			GamepadHint = "Y · Menu",
 		},

@@ -253,6 +253,22 @@ function tests.request_players_while_the_pad_has_room_with_a_cooldown()
 	expect(E.remove(team, 11, 2) and team.hostId == 12)
 	expect(team.requestedAt == nil, "a new host asks for themselves")
 end
+function tests.the_host_cancels_a_request_and_may_ask_again_after_a_moment()
+	local again = M.Queue.RerequestSeconds
+	local m = E.new(1, 1)
+	expect(E.join(m, 11, "a", "a", 0))
+	expect(not action(m, 11, "CancelRequest", nil, 1), "nothing to cancel yet")
+	expect(action(m, 11, "RequestOpponent", nil, 2))
+	expect(not action(m, 21, "CancelRequest", nil, 3), "only a seated host")
+	expect(action(m, 11, "CancelRequest", nil, 3))
+	expect(E.snapshot(m).requestedAt == nil, "everyone's popup closes")
+	expect(not action(m, 11, "CancelRequest", nil, 3.5), "already cancelled")
+	expect(not action(m, 11, "RequestOpponent", nil, 2 + again - 0.1), "not again at once")
+	expect(action(m, 11, "RequestOpponent", nil, 2 + again))
+	expect(E.snapshot(m).requestedAt == 2 + again)
+	local stale = E.snapshot(m).requestedAt + M.Queue.RequestSeconds
+	expect(not action(m, 11, "CancelRequest", nil, stale), "a lapsed request is already gone")
+end
 function tests.only_the_host_starts_and_teams_alternate_by_arrival()
 	local m = queue(2)
 	expect(not start(m, 1, 21), "only the host")
