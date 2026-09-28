@@ -8,7 +8,7 @@ set -u
 ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 BRIEF="$ROOT/${OVERNIGHT_BRIEF:-docs/prompts/RANKS_MONEY_PROMPT.md}"
 COUNT_FILE="$ROOT/.git/overnight-stop-count"
-MAX=60
+MAX="${OVERNIGHT_MAX:-60}"
 
 cat >/dev/null # the hook's JSON input is not needed
 
