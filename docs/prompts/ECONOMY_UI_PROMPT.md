@@ -692,7 +692,7 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 15. Full playthrough and every new screen checked on PC, phone sizes and tablet (section 15).
 - [x] 16. Audit by a fresh subagent and branch-wide bug review; findings fixed.
 - [x] 17. Polish pass.
-- [ ] 18. Docs updated (ECONOMY additions included) and `docs/prompts/ECONOMY_UI_REPORT.md`
+- [x] 18. Docs updated (ECONOMY additions included) and `docs/prompts/ECONOMY_UI_REPORT.md`
   written; branch pushed.
 
 ## Notes

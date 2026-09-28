@@ -516,8 +516,9 @@ still random, with its odds shown.
 - **Case sales**: now and then a single case type is cheaper for a set time, for example
   "Epic Cases 20% off this weekend". Rules so they stay real: at most one sale running, never
   the same case on sale twice in a row, about two weekends a month at most, a true countdown,
-  and the normal price shown struck through. Roblox's rules call an always-on or constantly
-  repeating "sale" fake (section 13).
+  and the normal price shown struck through, and never more than 50% off (2026-09-28: deeper,
+  buying 10, opening and selling back would make money). Roblox's rules call an always-on or
+  constantly repeating "sale" fake (section 13).
 - **Special cases**: themed cases for events and seasons (the GDD's limited seasonal box),
   with their own pool of cues found in no other case. On sale for the event, then retired,
   after which their cues are trade-only. A retired (vaulted) cue can come back only this way.
@@ -776,5 +777,14 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
   most-played opponent's; a player PolicyService never answers for is treated as restricted
   for the session (cases already owned still open); a Limited copy number taken for a purchase
   that then fails is burned, never reused; a Robux price is read once per server; placeholder
-  codes WELCOME ($500 and a Standard Case), 8BALL ($250) and ROOFTOP (a Rare Case, until
+  codes WELCOME ($500 and a Standard Case), 8BALL ($250) and ROOFTOP (a Rare Case, through
   2026-12-31).
+- **From the overnight audit (2026-09-28, overnight assumptions):** a case sale is at most
+  **50% off** (`Config.Cases.MaxSalePercent`; past about 61% off, buying 10, opening and
+  selling back pays more than it costs). A Robux receipt that no longer qualifies when it
+  arrives (the VIP offer when already VIP or after its window plus 10 minutes, a second
+  Starter Pack, a Founder's Cue sold out, ended or already owned) pays money instead at the
+  first pack's rate, Robux x 900 / 49 (VIP offer $5,491, Starter Pack $1,451, Founder's
+  $27,532). A paid Money Party always adds its full 15 minutes; the one-hour queue only
+  stops the purchase box. The same-opponent table (3.6) keeps 300 accounts a day; past that,
+  a new account counts as the 11th match (floor pay, no free case).
