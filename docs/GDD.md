@@ -437,7 +437,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   bot the hardest, and each player meets the bot of their rank.
 - **Two bars** (designer, 2026-09-27): **RP** (rank points, the save's `RankXp`) decides the
   rank and can go down from Diamond; **EXP** fills an account **Level** that only goes up,
-  pays money every level and unlocks trading at Level 10. VIP boosts EXP, never RP.
+  pays money every level, with no max level. VIP boosts EXP, never RP.
   [ECONOMY.md](ECONOMY.md) section 5.
 - Bronze to Platinum is fast, Diamond is a buffer, and the top ranks are exponentially harder.
   **Grandmaster and Reyes are leaderboard seats** (designer, 2026-09-27): eligible from Master
@@ -543,8 +543,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Classic today). Each pot flies a "+$10" from the pocket into your total, bottom left. The
   rest of the money rules (PC and short-match limits, team pay, the win streak, anti-farm
   rules, boosts) are in ECONOMY.md section 3.
-- **Trading unlocks at Level 10**; rank cues never trade; players Roblox bars from trading
-  paid items can't trade (ECONOMY.md section 12).
+- **Trading is open from the start** (no level gate; designer, 2026-09-27); rank cues never
+  trade; players Roblox bars from trading paid items can't trade (ECONOMY.md section 12).
 
 **Open**
 - What the index shows for cues a player does not own, and whether filling it pays anything

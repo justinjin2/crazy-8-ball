@@ -236,8 +236,8 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
   section 4 (division widths, win and loss by tier and difficulty, the opponent-gap factor, the
   Veteran+ shield, the Grandmaster and Reyes seats).
 - [ ] **6.6 EXP.** Players earn EXP by playing, separate from the rating: an account Level
-  that only goes up, pays money every level and unlocks trading at Level 10 (decided
-  2026-09-27, `docs/ECONOMY.md` section 5).
+  that only goes up, has no max and pays money every level (decided 2026-09-27,
+  `docs/ECONOMY.md` section 5).
   Progress 2026-09-27: nothing of the separate EXP is built. The XP bar shipped tonight is
   rank XP (the rating itself); the save layout leaves room for an EXP field later.
 - [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play

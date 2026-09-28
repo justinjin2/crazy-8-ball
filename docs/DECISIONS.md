@@ -1586,3 +1586,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   spin controls (left stick Spin, right stick Angle, Y Center spin) instead of the aim ones.
 - 2026-09-27 (designer): X (Xbox A) is the only gamepad shot button: hold to build power,
   release to shoot. The analog R2 pull did not work well and is unbound.
+- 2026-09-27 (designer): no level gate on trading (it was Level 10); anyone can trade from the
+  start. Levels have no max (100 was only the last milestone). Alt farming is limited by the
+  free-case rules instead.

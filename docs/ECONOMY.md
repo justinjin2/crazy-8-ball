@@ -161,7 +161,6 @@ odds or free-case counts.
   one-minute mark counts toward a **$200 a day** short-match limit (the audit's "break,
   surrender, repeat" hole).
 - Forfeits, leavers and the one-minute mark stay as built (GDD section 13).
-- **Trading unlocks at Level 10** (about 3 hours of real matches), section 12.
 - Private servers, when they come: no RP, no free cases, solo-rate money.
 
 ---
@@ -363,9 +362,10 @@ up keep half their RP above Expert I (never below Expert I). A season reward by 
 | At 1 h a day, about | the first match | the first hour | day 2-3 | week 4 | month 4 | month 9 | month 14 |
 
 **Rewards**: every level pays **$50 + $10 x level** (at most $1,000); every 10th level also
-pays **$25 x level** and a title. Levels 25, 50, 75 and 100 give a nameplate frame. **Level 10
-unlocks trading.** Levels never give cases (section 13: a case a purchase can speed up counts
-as a paid random item).
+pays **$25 x level** and a title. Levels 25, 50, 75 and 100 give a nameplate frame. Levels
+never give cases (section 13: a case a purchase can speed up counts as a paid random item).
+**There is no max level**: 100 is only the last milestone in the table, and every level after
+66 costs a flat 5,000 EXP.
 
 The Level shows as a small "Lv 12" chip with a thin EXP bar next to the rank HUD (exact look:
 UI_STYLE, when it is built).
@@ -637,7 +637,9 @@ prompts right after a loss.
 
 - Cues only; **money never trades** (GDD section 12). Up to 8 cues a side; any change restarts
   a 3-second confirm on both sides.
-- **Unlocks at Level 10.** Rank and season cues can't be traded.
+- **Open to everyone from the start** (designer, 2026-09-27: no level gate). Rank and season
+  cues can't be traded. Alt farming is held back by the free-case rules instead (section 3.6:
+  the loser must be Level 3, at most 3 cases a day from the same account).
 - Players whose `IsPaidItemTradingAllowed` is false can't trade at all (every cue could have
   come from Robux-bought money).
 - **Retiring cues ("Vaulted")**: each season the designer retires a few case cues; they stop
