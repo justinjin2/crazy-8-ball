@@ -1626,3 +1626,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28 (designer): the arena reuses the rooftop instead of a new map (to save time):
   the same light and day cycle, started at day, with only one table, in the middle, in the
   blue felt on black. The placeholder dark room is gone.
+- 2026-09-28 (designer): division sizes only grow up the ladder, so every Expert-and-up RP
+  number is tripled (Expert 4,500, Veteran and Master 6,000; Challenger +675 / -517); the pace
+  of climbing is unchanged.

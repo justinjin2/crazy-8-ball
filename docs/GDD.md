@@ -479,8 +479,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Rating is saved under a season label ("Season 0"); no resets at launch. Soft resets later,
   for Veteran and up only (designer, 2026-09-27; ECONOMY.md section 4.12).
 - **RP is the one number**: total RP decides the division. Divisions widen up the ladder
-  (Bronze 250, Silver 350, Gold 800, Platinum 1,000, Diamond 4,000, Expert 1,500, Veteran and
-  Master 2,000 *(tune)*); a Classic win against an equal opponent is +250. A loss: Bronze to
+  (Bronze 250, Silver 350, Gold 800, Platinum 1,000, Diamond 4,000, Expert 4,500, Veteran and
+  Master 6,000 *(tune)*; sizes only grow up the ladder); a Classic win against an equal opponent is +250. A loss: Bronze to
   Gold still gain a little (+100/+75/+50), Platinum 0, Diamond lose a little, Expert and up
   Elo-style. Beating much lower players pays less (an Elo gap factor). Table:
   ECONOMY.md section 4.2. Solo never gives RP. Teams: every player by the same rules against

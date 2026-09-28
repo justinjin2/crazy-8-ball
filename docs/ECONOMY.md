@@ -184,13 +184,17 @@ factor in 4.4 changes these), all rounded to whole numbers:
 | Gold | 800 | +250 / **+50** | +312 / +62 | +375 / +75 |
 | Platinum | 1,000 | +250 / **0** | +312 / 0 | +375 / 0 |
 | Diamond | 4,000 | **+100** / -100 | +250 / -125 | +300 / -150 |
-| Expert | 1,500 | **+30 / -23** | +188 / -144 | +225 / -172 |
-| Veteran | 2,000 | +30 / -23 | +188 / -144 | +225 / -172 |
-| Master | 2,000 | +30 / -23 | +188 / -144 | +225 / -172 |
-| Grandmaster, Reyes | leaderboard | +30 / -23 | +188 / -144 | +225 / -172 |
+| Expert | 4,500 | **+90 / -69** | +562 / -431 | +675 / -517 |
+| Veteran | 6,000 | +90 / -69 | +562 / -431 | +675 / -517 |
+| Master | 6,000 | +90 / -69 | +562 / -431 | +675 / -517 |
+| Grandmaster, Reyes | leaderboard | +90 / -69 | +562 / -431 | +675 / -517 |
+
+Division sizes only ever grow up the ladder (designer, 2026-09-28): the Expert-and-up numbers
+are three times what they were, so each match moves the bar exactly as far as before but the
+numbers keep climbing.
 
 How that is built (for Config): each tier has a base win and loss (Bronze to Platinum 250 and
-+100/+75/+50/0, Diamond 200 / -100, Expert and up 150 / -115), times the mode (Classic 1,
++100/+75/+50/0, Diamond 200 / -100, Expert and up 450 / -345), times the mode (Classic 1,
 Difficult 1.25, Challenger 1.5), times Classic's fade (Diamond: Classic wins x0.5; Expert and
 up: Classic wins and losses x0.2).
 
@@ -206,8 +210,8 @@ up: Classic wins and losses x0.2).
 | Expert | 429 / 171 | 69 / 27 | 57 / 23 |
 | Veteran, Master | 571 / 227 | 91 / 36 | 76 / 30 |
 
-Expert and up are Elo-style: an average player there barely moves (about +26 RP a match in
-Challenger), a better one climbs, and every loss costs. The small upward drift rewards
+Expert and up are Elo-style: an average player there barely moves (about +79 RP a match in
+Challenger, on a 4,500 to 6,000 bar), a better one climbs, and every loss costs. The small upward drift rewards
 dedication; seasons (4.12) trim it later.
 
 ### 4.3 Why the harder modes pay more RP
@@ -259,9 +263,9 @@ uses the same factor (never under half); ball money is untouched.
 
 ### 4.7 Grandmaster and Reyes (leaderboard seats)
 
-- **Eligible**: reach **Master V** (57,500 RP).
+- **Eligible**: reach **Master V** (108,500 RP).
 - **Seats**: Reyes = the top 10% of eligible players by RP, at most **50**, and each needs at
-  least **61,500 RP** (Master V plus 4,000); Grandmaster = the next eligible players, at most
+  least **120,500 RP** (Master V plus 12,000); Grandmaster = the next eligible players, at most
   **500**. Everyone else eligible shows Master V with their leaderboard place ("#612").
   Grandmaster I to V are fifths of the Grandmaster seats by place.
 - The seats scale with the game by themselves: 30 eligible players make 3 Reyes and 27
@@ -714,7 +718,7 @@ unchanged at any size; these are the dials to revisit:
 |---|---|---|
 | PC RP | x0.75 to Diamond, x0.5 from Expert | the global queue is live and there are 200+ Master and up: Expert and up x0.1 |
 | Diamond division | 4,000 RP | after 60 days, if under 1% of weekly players have reached Expert: 3,000 |
-| Expert to Master divisions | 1,500 / 2,000 / 2,000 | after 90 days, if nobody is eligible for Grandmaster: shrink by a quarter |
+| Expert to Master divisions | 4,500 / 6,000 / 6,000 | after 90 days, if nobody is eligible for Grandmaster: shrink by a quarter |
 | Reyes and Grandmaster seats | automatic, at most 50 / 500 | raise the caps only if the game passes about 20,000 CCU |
 | Limited drops | one every 1-2 weeks | faster once the art pipeline allows; add copy caps if values fall |
 | New-player free cases | 50 wins | if D1 retention is weak: 75 |

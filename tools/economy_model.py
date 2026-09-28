@@ -123,9 +123,9 @@ DIV_WIDTH = {
     "Gold": 800,
     "Platinum": 1000,
     "Diamond": 4000,
-    "Expert": 1500,
-    "Veteran": 2000,
-    "Master": 2000,
+    "Expert": 4500,
+    "Veteran": 6000,
+    "Master": 6000,
 }
 # RP against an equal opponent in Classic, before the mode multiplier: (win, loss).
 BASE_RP = {
@@ -134,10 +134,10 @@ BASE_RP = {
     "Gold": (250, 50),
     "Platinum": (250, 0),
     "Diamond": (200, -100),
-    "Expert": (150, -115),
-    "Veteran": (150, -115),
-    "Master": (150, -115),
-    "Grandmaster": (150, -115),
+    "Expert": (450, -345),
+    "Veteran": (450, -345),
+    "Master": (450, -345),
+    "Grandmaster": (450, -345),
 }
 MODE_RP_MULT = {"Classic": 1.0, "Difficult": 1.25, "Challenger": 1.5}
 # Classic's diminishing returns: a factor on Classic WINS by tier (Expert and up: on losses too).
@@ -162,9 +162,9 @@ DIV_START = DIV_START[:40]  # DIV_START[i] is where division i+1 starts
 
 
 def division_of(rp):
-    """1..40 by RP, 41+ above the Grandmaster threshold (one per 2,500 RP, for the gap only)."""
+    """1..40 by RP, 41+ above the top of Master V (one per 6,000 RP, for the gap only)."""
     if rp >= GM_THRESHOLD + DIV_WIDTH["Master"]:
-        return 41 + int((rp - GM_THRESHOLD - DIV_WIDTH["Master"]) // 2000)
+        return 41 + int((rp - GM_THRESHOLD - DIV_WIDTH["Master"]) // 6000)
     lo, hi = 0, 39
     while lo < hi:
         mid = (lo + hi + 1) // 2
