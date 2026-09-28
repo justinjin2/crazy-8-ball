@@ -197,6 +197,16 @@ function tests.a_global_search_takes_a_whole_side_from_the_pad()
 	expect(two.search == nil, "a party member off the pad ends it")
 end
 
+function tests.a_searching_pad_neither_plays_solo_nor_requests()
+	local m = E.new(1, 1)
+	E.join(m, 5, "a", "a", 0)
+	E.setSearch(m, 1)
+	expect(not act(m, 5, "StartSolo"), "no solo while searching")
+	expect(not act(m, 5, "RequestOpponent"), "no request while searching")
+	E.clearSearch(m)
+	expect(act(m, 5, "RequestOpponent"), "both again once it stops")
+end
+
 function tests.a_found_search_holds_the_pad_and_a_start_clears_one()
 	local m = E.new(1, 1)
 	E.join(m, 5, "a", "a", 0)

@@ -25,6 +25,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Strings = require(Shared.Strings)
 local Engine = require(Shared.Rules.MatchEngine)
 local ArenaBuilder = require(script.Parent.ArenaBuilder)
 local GlobalQueue = require(script.Parent.GlobalQueue)
@@ -103,9 +104,13 @@ local seated: { [number]: boolean } = {}
 local choice: { [number]: string } = {} -- userId -> "Another" | "Lobby"
 local searchOf: { [number]: any } = {} -- userId -> their GlobalQueue search (shared by a team)
 local searchAt: { [number]: number } = {} -- userId -> when it started (server time)
+local searchMax: { [number]: number } = {} -- userId -> how long that search may run
 local decideBy: { [number]: number } = {} -- userId -> when the choosing time ends
 local arrivalDeadline: number? = nil
 local begun = false -- the first game has started
+-- The arrival time ran out with a side missing: whoever came searches again, and nobody
+-- else is seated or started here any more.
+local closed = false
 local notice: string? = nil -- a line for everyone's card (Strings.Arena key)
 local seenResult = -1 -- the epoch whose result opened the choosing
 local listAt = 0
@@ -167,6 +172,23 @@ local function home(players: { Player })
 	end)
 end
 
+-- Someone this arena cannot seat (not on its list, or it has no list): to the lobby, tried
+-- again a few times, and as a last resort kicked with a line saying to rejoin, so nobody is
+-- ever left in an arena with nothing to do.
+function ArenaService.evict(p: Player, tries: number?)
+	local n = tries or 1
+	GlobalQueue.sendHome({ p }, {}, function(q: Player, why: string)
+		if why == "Studio" or q.Parent ~= Players then
+			return
+		end
+		if n < Config.GlobalQueue.TeleportRetries then
+			task.delay(A.EvictRetrySeconds, ArenaService.evict, q, n + 1)
+		else
+			q:Kick(Strings.Arena.Rejoin)
+		end
+	end)
+end
+
 -- Everyone on `team` still in the server.
 local function teammates(team: number): { Player }
 	local out = {}
@@ -192,7 +214,25 @@ local function clearSearch(players: { Player })
 	for _, p in players do
 		searchOf[p.UserId] = nil
 		searchAt[p.UserId] = nil
+		searchMax[p.UserId] = nil
 	end
+end
+
+-- The teammates of `p` who wait on the team: pressed Play another, or share its search.
+local function waitingMates(p: Player, team: number, search: any?): { Player }
+	local out = {}
+	for _, mate in teammates(team) do
+		if
+			mate ~= p
+			and (
+				(choice[mate.UserId] == "Another" and not searchOf[mate.UserId])
+				or (search ~= nil and searchOf[mate.UserId] == search)
+			)
+		then
+			table.insert(out, mate)
+		end
+	end
+	return out
 end
 
 -- Search again for `players` (one whole side), straight from here. `head` credits seconds of
@@ -235,6 +275,7 @@ local function searchFor(players: { Player }, head: number)
 	for _, p in players do
 		searchOf[p.UserId] = search
 		searchAt[p.UserId] = now()
+		searchMax[p.UserId] = if head > 0 then A.NoShowSearchSeconds else A.SearchMaxSeconds
 		decideBy[p.UserId] = nil
 	end
 	GlobalQueue.notify(players, { kind = "Searching", mode = record.mode })
@@ -242,8 +283,11 @@ local function searchFor(players: { Player }, head: number)
 end
 
 local function begin()
-	if begun then
+	if begun or closed then
 		return
+	end
+	for _ in searchOf do
+		return -- someone here is already searching for another match
 	end
 	if TableService.startArena() then
 		begun = true
@@ -301,9 +345,8 @@ local function arrive(p: Player)
 	end
 	if not team then
 		log(("%d is not on this match's list; sending them to the lobby"):format(p.UserId))
-		notice = nil
 		GlobalQueue.notify({ p }, { kind = "Failed", reason = "NotYours" })
-		GlobalQueue.sendHome({ p }, {})
+		ArenaService.evict(p)
 		return
 	end
 	local joinData: any = p:GetJoinData()
@@ -317,7 +360,8 @@ local function arrive(p: Player)
 		return
 	end
 	log(("%d save open %.2f s after arriving"):format(p.UserId, os.clock() - arrivedAt))
-	if begun then
+	if begun or closed then
+		-- Too late: the game began, or the other side already went looking for a new one.
 		GlobalQueue.notify({ p }, { kind = "Failed", reason = "Started" })
 		home({ p })
 		return
@@ -355,7 +399,9 @@ local function arrivalsDone()
 		begin()
 		return
 	end
-	-- One side never came: whoever did searches again, now, for anyone.
+	-- One side never came: whoever did searches again, now, for anyone. Anyone arriving
+	-- after this goes to the lobby instead of starting a game here.
+	closed = true
 	notice = "NoOpponent"
 	for team = 1, 2 do
 		local side = teammates(team)
@@ -372,35 +418,37 @@ local function arrivalsDone()
 end
 
 -- The post-game choices this server handles (the rematch vote is the table's own).
-local function onAction(p: Player, kind: any)
+local function onAction(p: Player, kind: string)
 	local team = teamOf[p.UserId]
 	if not team or not TableService.allow(p, "action") then
 		return
 	end
 	local t = TableService.arenaTable()
-	if not t or not begun then
+	if not t then
 		return
 	end
 	local e = t.engine
-	-- Only between games: the result is showing, or the table has freed after it.
-	local between = e.phase == "Result" or e.phase == "Waiting"
-	if not between then
+	-- Only between games (the result is showing, or the table has freed after it), or before
+	-- the first game, where Lobby is the way out (Leave) while waiting.
+	local between = begun and (e.phase == "Result" or e.phase == "Waiting")
+	local exits = kind == "Lobby" or kind == "CancelAnother"
+	if not between and not (not begun and exits) then
 		return
 	end
 	if kind == "Lobby" then
-		if searchOf[p.UserId] then
-			GlobalQueue.cancel(searchOf[p.UserId])
+		local search = searchOf[p.UserId]
+		if search and GlobalQueue.cancel(search) == "matched" then
+			return -- the new match stands: its teleport is on its way
 		end
 		TableService.arenaDecline(p)
-		-- A team goes back together: teammates waiting to search go too.
+		-- A team goes back together: teammates waiting on the team (or on its search) go too.
 		local going = { p }
 		if record.mode > 1 then
-			for _, mate in teammates(team) do
-				if mate ~= p and choice[mate.UserId] == "Another" and not searchOf[mate.UserId] then
-					table.insert(going, mate)
-				end
+			for _, mate in waitingMates(p, team, search) do
+				table.insert(going, mate)
 			end
 		end
+		clearSearch(going)
 		home(going)
 	elseif kind == "Another" then
 		if choice[p.UserId] == "Another" then
@@ -444,11 +492,12 @@ end
 -- starts, and send home whoever let the time run out.
 local function watch()
 	local t = TableService.arenaTable()
-	if not t or not begun then
+	if not t or not (begun or closed) then
 		return
 	end
 	local e = t.engine
-	if e.phase == "Result" and e.epoch ~= seenResult then
+	-- (A no-show arena, never begun, has only the time-outs below.)
+	if begun and e.phase == "Result" and e.epoch ~= seenResult then
 		seenResult = e.epoch
 		local by = now() + Config.Multiplayer.RematchSeconds
 		for _, p in allPlayers() do
@@ -457,7 +506,7 @@ local function watch()
 			end
 		end
 		sendState()
-	elseif e.phase ~= "Result" and e.phase ~= "Waiting" and next(decideBy) ~= nil then
+	elseif begun and e.phase ~= "Result" and e.phase ~= "Waiting" and next(decideBy) ~= nil then
 		-- A rematch began: nobody is choosing any more.
 		table.clear(decideBy)
 		table.clear(choice)
@@ -468,10 +517,10 @@ local function watch()
 	for _, p in allPlayers() do
 		local id = p.UserId
 		local by = decideBy[id]
-		local rematching = e.phase ~= "Result" and e.phase ~= "Waiting"
+		local rematching = begun and e.phase ~= "Result" and e.phase ~= "Waiting"
 		if by and time > by and not searchOf[id] and not rematching then
 			table.insert(late, p)
-		elseif searchAt[id] and time - searchAt[id] > A.SearchMaxSeconds then
+		elseif searchAt[id] and time - searchAt[id] > (searchMax[id] or A.SearchMaxSeconds) then
 			local search = searchOf[id]
 			if search and GlobalQueue.cancel(search) == "cancelled" then
 				table.insert(late, p)
@@ -511,21 +560,22 @@ function ArenaService.start(list: any)
 	Players.PlayerRemoving:Connect(function(p: Player)
 		seated[p.UserId] = nil
 		local search = searchOf[p.UserId]
-		if search and GlobalQueue.isWaiting(search) then
+		-- A search that found its match is on its way (a team teleports player by player):
+		-- nothing here to undo.
+		local live = search ~= nil and GlobalQueue.isWaiting(search)
+		if live then
 			-- A team's search goes with any of its players.
 			task.spawn(GlobalQueue.cancel, search)
 		end
-		searchOf[p.UserId], searchAt[p.UserId], decideBy[p.UserId] = nil, nil, nil
-		-- A teammate left while the team waited to search together: the rest go home.
+		searchOf[p.UserId], searchAt[p.UserId], searchMax[p.UserId], decideBy[p.UserId] =
+			nil, nil, nil, nil
+		-- A teammate left while the team waited to search, or searched, together: the rest go
+		-- to the lobby (designer, 2026-09-28).
 		local team = teamOf[p.UserId]
-		if team and record.mode > 1 and begun then
-			local waiting = {}
-			for _, mate in teammates(team) do
-				if mate ~= p and choice[mate.UserId] == "Another" and not searchOf[mate.UserId] then
-					table.insert(waiting, mate)
-				end
-			end
+		if team and record.mode > 1 and (begun or closed) and (live or search == nil) then
+			local waiting = waitingMates(p, team, if live then search else nil)
 			if #waiting > 0 then
+				clearSearch(waiting)
 				home(waiting)
 			end
 		end

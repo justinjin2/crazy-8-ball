@@ -217,6 +217,7 @@ return {
 		NoOpponent = "Your opponent couldn't join. Searching again...",
 		NotYours = "That match wasn't yours. Back to the lobby...",
 		Started = "Your match already started. Back to the lobby...",
+		Rejoin = "We couldn't take you back to the lobby. Please join the game again.",
 	},
 	-- The row under a finished two-sided game (PostMatch, on the result screen).
 	PostMatch = {

@@ -4080,6 +4080,9 @@ Config.GlobalQueue = {
 	ReservePool = 2,
 	TeleportRetries = 3, -- a failed teleport is tried again this many times...
 	TeleportRetrySeconds = 1, -- ...this far apart, then the players are told and stay
+	-- A teleport that has neither taken the player away nor failed after this long is given
+	-- up: the save comes back and the player is told (a hung client).
+	TeleportHangSeconds = 45,
 	-- A failed MemoryStore call is tried again this many times, this far apart.
 	StoreRetries = 3,
 	StoreRetrySeconds = 0.25,
@@ -4106,6 +4109,12 @@ Config.Arena = {
 	-- After the rematch countdown, anyone who chose nothing is sent back to the lobby.
 	-- Someone searching for another game from here may wait this long, then goes too.
 	SearchMaxSeconds = 120,
+	-- A side whose opponent never came searches again for anyone, for this long at most, then
+	-- goes to the lobby (it has no row of buttons, only Leave on a keyboard or pad).
+	NoShowSearchSeconds = 30,
+	-- Someone who cannot be seated here (not on the list) is sent to the lobby, tried again
+	-- this far apart, and kicked with a line to rejoin if every try fails.
+	EvictRetrySeconds = 5,
 	-- The placeholder room. Floor and wall sizes are the inside of the wall.
 	Room = {
 		HalfLength = 40, -- along the table (world X)

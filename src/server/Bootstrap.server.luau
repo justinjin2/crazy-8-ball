@@ -86,7 +86,7 @@ if isArena then
 	if not record then
 		GlobalQueue.start()
 		local function away(p: Player)
-			GlobalQueue.sendHome({ p }, {})
+			ArenaService.evict(p)
 		end
 		Players.PlayerAdded:Connect(away)
 		for _, p in Players:GetPlayers() do

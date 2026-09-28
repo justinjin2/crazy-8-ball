@@ -33,6 +33,9 @@ export type Store = {
 	-- Up to `count` entries in sort-key order after `after` ({key, sortKey}, or nil for the
 	-- first page), each {key, value, sortKey}.
 	range: (map: string, count: number, after: any) -> (boolean, { any }?),
+	-- Waits between retries of a failed call (MemoryStore throttling needs a pause); the
+	-- tests leave it out.
+	pause: ((seconds: number) -> ())?,
 }
 
 --- A reserved server for a new match: its access code and its id, or nil if none could be
@@ -43,13 +46,17 @@ function QueueCore.ticketMap(mode: number): string
 	return G.Maps.Tickets .. tostring(mode)
 end
 
---- Retries a store call a few times: a single failed request must not lose a match.
-local function retry(call: () -> (boolean, any)): (boolean, any)
+--- Retries a store call a few times, StoreRetrySeconds apart when the store can wait: a
+--- single failed request must not lose a match.
+local function retry(call: () -> (boolean, any), pause: ((number) -> ())?): (boolean, any)
 	local ok, value = false, nil
-	for _ = 1, G.StoreRetries do
+	for attempt = 1, G.StoreRetries do
 		ok, value = call()
 		if ok then
 			return ok, value
+		end
+		if pause and attempt < G.StoreRetries then
+			pause(G.StoreRetrySeconds)
 		end
 	end
 	return ok, value
@@ -66,7 +73,7 @@ function QueueCore.post(store: Store, ticket: Ticket.Value): boolean
 			ticket.rating
 		),
 			nil
-	end)
+	end, store.pause)
 	return ok
 end
 
@@ -104,7 +111,7 @@ function QueueCore.scan(store: Store, mode: number, now: number): { Ticket.Value
 	while read < G.MaxScan do
 		local ok, page = retry(function(): (boolean, any)
 			return store.range(QueueCore.ticketMap(mode), G.PageSize, after)
-		end)
+		end, store.pause)
 		if not ok or not page or #page == 0 then
 			break
 		end
@@ -138,17 +145,20 @@ local function change(store: Store, ticket: Ticket.Value, fn: (any) -> any): boo
 			end,
 			G.TicketLifeSeconds
 		)
-	end)
+	end, store.pause)
 	return ok and value ~= nil
 end
 
 --- Make one pair into a match. Answers the match record, or nil (and why) when it could
---- not be made; then neither side has moved and both search on.
+--- not be made; then neither side has moved and both search on. `clock` gives the time for
+--- each claim (a slow tick must not stamp a claim with an old time, or the owner's beat
+--- would undo it as stuck); without it, `now`.
 function QueueCore.makeMatch(
 	store: Store,
 	pair: Matchmaker.Pair,
 	reserve: Reserve,
-	now: number
+	now: number,
+	clock: (() -> number)?
 ): (any?, string?)
 	local a, b = pair.a :: Ticket.Value, pair.b :: Ticket.Value
 	local code, matchId = reserve()
@@ -159,19 +169,24 @@ function QueueCore.makeMatch(
 	local record = Ticket.record(matchId, a, b, now)
 	local wrote = retry(function(): (boolean, any)
 		return store.set(G.Maps.Matches, matchId, record, G.MatchRecordSeconds, nil), nil
-	end)
+	end, store.pause)
 	if not wrote then
 		return nil, "NoRecord"
 	end
-	if not change(store, a, function(v: any): any
-		return Ticket.claim(v, matchId, now)
-	end) then
+	local claimedAt = if clock then clock() else now
+	if
+		not change(store, a, function(v: any): any
+			return Ticket.claim(v, matchId, claimedAt)
+		end)
+	then
 		store.remove(G.Maps.Matches, matchId)
 		return nil, "LostA"
 	end
-	if not change(store, b, function(v: any): any
-		return Ticket.claim(v, matchId, now)
-	end) then
+	if
+		not change(store, b, function(v: any): any
+			return Ticket.claim(v, matchId, claimedAt)
+		end)
+	then
 		change(store, a, function(v: any): any
 			return Ticket.revert(v, matchId)
 		end)
@@ -205,13 +220,18 @@ end
 
 --- The leader's work for one tick: every mode's searches paired and made into matches.
 --- Answers the records made and the pairs that failed (for the logs).
-function QueueCore.leaderTick(store: Store, reserve: Reserve, now: number): ({ any }, { string })
+function QueueCore.leaderTick(
+	store: Store,
+	reserve: Reserve,
+	now: number,
+	clock: (() -> number)?
+): ({ any }, { string })
 	local made, failed = {}, {}
 	for mode = 1, 3 do
 		local tickets = QueueCore.scan(store, mode, now)
 		if #tickets >= 2 then
 			for _, pair in Matchmaker.pair(tickets :: any, now) do
-				local record, why = QueueCore.makeMatch(store, pair, reserve, now)
+				local record, why = QueueCore.makeMatch(store, pair, reserve, now, clock)
 				if record then
 					table.insert(made, record)
 				else
@@ -251,7 +271,7 @@ function QueueCore.cancel(store: Store, ticket: Ticket.Value): string
 			end,
 			G.TicketLifeSeconds
 		)
-	end)
+	end, store.pause)
 	if not ok then
 		return "error"
 	end

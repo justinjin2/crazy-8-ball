@@ -265,6 +265,32 @@ function tests.a_failed_call_is_retried_and_the_match_still_made()
 	expect(store.calls > 12, "and it really did fail along the way: " .. store.calls)
 end
 
+function tests.claims_take_the_time_they_are_made_and_failures_pause()
+	local store = fakeStore()
+	local paused = 0
+	store.pause = function(seconds: number)
+		paused += seconds
+	end
+	Core.post(store, newTicket("a", { 1 }, 5, 0))
+	Core.post(store, newTicket("b", { 2 }, 5, 0, 1, "s2"))
+	-- A slow tick: by the time this pair is claimed the clock reads 7, not the tick's 0.
+	local claims = {}
+	store.beforeUpdate = function(map: string, key: string)
+		local v = store.peek(map, key)
+		if v and v.state == "claimed" then
+			claims[key] = v.claim.at
+		end
+	end
+	store.failNext = 1
+	local made = Core.leaderTick(store, reserver(), 0, function(): number
+		return 7
+	end)
+	store.beforeUpdate = nil
+	expect(#made == 1)
+	expect(claims.a == 7 and claims.b == 7, "claimed at the clock's time")
+	expect(paused == G.StoreRetrySeconds, "a failed call waits before trying again")
+end
+
 function tests.a_dead_servers_search_is_skipped()
 	local store = fakeStore()
 	local a = newTicket("a", { 1 }, 5, 0)

@@ -376,6 +376,9 @@ local function leave()
 		hud:closeModal()
 	elseif GuiService.SelectedObject then
 		GuiService.SelectedObject = nil
+	elseif snapshot and snapshot.phase == "Waiting" and isArena then
+		-- Waiting in an arena (for the opponent, or after a no-show): back to the lobby.
+		Net.get("ArenaAction"):FireServer("Lobby")
 	elseif snapshot and snapshot.phase == "Waiting" then
 		-- Leaving a queue costs nothing (walking out does the same): no question asked.
 		hub:action("LeaveQueue")

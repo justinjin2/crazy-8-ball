@@ -848,6 +848,12 @@ function Engine.action(
 		if t.phase ~= "Waiting" or t.hostId ~= userId then
 			return false
 		end
+		-- While the pad searches worldwide it does not start or ask by other means: a found
+		-- match must find its players still waiting here.
+		local starts = kind == "Start" or kind == "StartSolo" or kind == "RequestOpponent"
+		if t.search and starts then
+			return false
+		end
 		if kind == "Start" then
 			-- A full pad starts by itself (Engine.startsAt); the menu has no Start button
 			-- (designer, 2026-09-27). This skips the join grace on a full pad, for tests and

@@ -43,6 +43,7 @@ export type Search = {
 	ticket: Ticket.Value,
 	players: { Player },
 	state: string, -- "waiting" | "found" | "done"
+	cancelling: boolean?, -- a Cancel is under way (the poll must not post it again)
 	postedAt: number, -- os.clock() when it went in, for the timing lines
 	onFound: (search: any, match: Match) -> (),
 	onEnded: ((search: any, reason: string) -> ())?,
@@ -117,6 +118,9 @@ local store: QueueCore.Store = {
 			failed("remove", err)
 		end
 		return ok
+	end,
+	pause = function(seconds: number)
+		task.wait(seconds)
 	end,
 	range = function(name: string, count: number, after: any): (boolean, { any }?)
 		local ok, items = pcall(function(): any
@@ -227,8 +231,9 @@ local function run(search: Search)
 		if ok and type(value) == "table" and value.state == "matched" and value.match then
 			found(search, value.match)
 			break
-		elseif ok and value == nil then
+		elseif ok and value == nil and not search.cancelling then
 			-- Gone while searching (MemoryStore forgot it after missed marks): put it back.
+			-- Never while a Cancel is removing it, or a ticket nobody owns would come back.
 			log(("search %s vanished; posting it again"):format(search.ticket.id))
 			search.ticket.beat = clock()
 			QueueCore.post(store, search.ticket)
@@ -325,12 +330,14 @@ function GlobalQueue.cancel(search: Search): string
 	end
 	local deadline = os.clock() + G.ClaimTimeoutSeconds + 1
 	local outcome = "error"
+	search.cancelling = true
 	repeat
 		outcome = QueueCore.cancel(store, search.ticket)
 		if outcome == "busy" then
 			task.wait(0.25) -- the leader is finishing a match with it: a moment
 		end
 	until outcome ~= "busy" or os.clock() > deadline or search.state ~= "waiting"
+	search.cancelling = nil
 	if search.state == "found" then
 		return "matched"
 	end
@@ -397,6 +404,21 @@ local function teleportGroup(
 	end
 	if #here == 0 then
 		return
+	end
+	-- A teleport that neither leaves nor reports a failure (the client hung) gives the
+	-- save back after a while, so the player is never left without one.
+	for _, p in here do
+		local job = pending[p]
+		task.delay(G.TeleportHangSeconds, function()
+			if pending[p] == job and p.Parent == Players then
+				warn(
+					("[8ball] GQ teleport of %d never happened; giving the save back"):format(
+						p.UserId
+					)
+				)
+				giveBack(p, "Teleport")
+			end
+		end)
 	end
 	local ok, err = pcall(function(): any
 		return TeleportService:TeleportAsync(game.PlaceId, here, options)
@@ -549,7 +571,7 @@ local function leaderLoop()
 		if leading and now >= nextTick then
 			nextTick = now + G.MatchTickSeconds
 			local t0 = os.clock()
-			local made, failures = QueueCore.leaderTick(store, reserve, clock())
+			local made, failures = QueueCore.leaderTick(store, reserve, clock(), clock)
 			for _, record in made do
 				log(
 					("paired %s vs %s (%dv%d) into arena %s in %.0f ms"):format(
