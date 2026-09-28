@@ -4,7 +4,7 @@
 -- what the controller does:
 --
 --   (L-stick) <> Turn   (D-pad) <> Fine aim   (R-stick) ^v Zoom
---   (L1) Spin & angle   (R2) (X) Shoot
+--   (L1) Spin & angle   (X) Shoot
 --
 -- and while L1 holds the spin panel open (designer, 2026-09-27), the spin controls instead:
 --
@@ -63,7 +63,7 @@ local ITEMS: { Item } = {
 	{
 		set = "aim",
 		row = 2,
-		keys = { Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonA },
+		keys = { Enum.KeyCode.ButtonA },
 		words = Copy.Shoot,
 	},
 	{ set = "spin", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = Copy.Spin },

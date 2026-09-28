@@ -16,9 +16,9 @@
 --                          where the pad's D-pad is not taken by Roblox's own menus
 --   hold L2 + left stick  -> move the cue ball in hand (only while placing is allowed);
 --                          the triggers and A are ignored while L2 is held
---   right trigger       -> power: the trigger is analog, so its position IS the bar.
---                          Release shoots, or cancels below MinPowerToShoot.
---   ButtonA             -> same shot for pads whose triggers are only on/off: hold to ramp
+--   ButtonA (Cross)     -> the shot: hold to ramp the power, release to shoot (or cancel
+--                          below MinPowerToShoot). The only shot button (designer,
+--                          2026-09-27: the analog R2 pull did not work well; R2 is unbound)
 --   moving the left stick (past Gamepad.CancelStickPush from where it was) or pressing the
 --   D-pad left or right during a pull cancels it; the button's release then does nothing
 --   ButtonB             -> leave the table
@@ -74,7 +74,6 @@ export type Input = typeof(setmetatable(
 		stickSpinX: number,
 		stickSpinY: number,
 		spinModifier: boolean,
-		triggerHeld: boolean,
 		buttonPower: number?,
 		pullStickX: number, -- the left stick's X when the pull began (a push away cancels it)
 		nudgeDir: number,
@@ -127,7 +126,6 @@ function Input.new(): Input
 		stickSpinX = 0,
 		stickSpinY = 0,
 		spinModifier = false,
-		triggerHeld = false,
 		buttonPower = nil,
 		pullStickX = 0,
 		nudgeDir = 0,
@@ -276,7 +274,7 @@ function Input.setSpinEditing(self: Input, editing: boolean)
 		return
 	end
 	self.spinEditing = editing
-	if editing and self.power ~= nil and not self.triggerHeld and self.buttonPower == nil then
+	if editing and self.power ~= nil and self.buttonPower == nil then
 		-- PowerCue owns its active pointer. Ignore that old drag through modal close until
 		-- its release arrives, so closing the selector cannot revive the cancelled pull.
 		self.powerSuppressed = true
@@ -292,7 +290,6 @@ function Input.setSpinEditing(self: Input, editing: boolean)
 	self.stickElevation = 0
 	self.elevationAccum = nil
 	self.nudgeDir = 0
-	self.triggerHeld = false
 	self.buttonPower = nil
 	if self.power ~= nil then
 		self.power = nil
@@ -317,10 +314,9 @@ function Input.setEnabled(self: Input, enabled: boolean)
 		self.spinModifier = false
 		self.dragInput = nil
 		-- Drop any gamepad state too, or a stick still held while the shot plays keeps
-		-- turning the aim, and a trigger released afterwards fires a second shot.
+		-- turning the aim, and a button released afterwards fires a second shot.
 		self.stickAim = 0
 		self.stickZoom = 0
-		self.triggerHeld = false
 		self.buttonPower = nil
 		self.nudgeDir = 0
 		endPlace(self)
@@ -470,7 +466,6 @@ local GAMEPAD_ACTION = "8ballGamepad"
 local GAMEPAD_KEYS = {
 	Enum.KeyCode.Thumbstick1,
 	Enum.KeyCode.Thumbstick2,
-	Enum.KeyCode.ButtonR2,
 	Enum.KeyCode.ButtonL2,
 	Enum.KeyCode.ButtonA,
 	Enum.KeyCode.ButtonB,
@@ -518,7 +513,7 @@ function Input.handleGamepad(
 			self.stickPlaceX = if ended then 0 else obj.Position.X
 			self.stickPlaceY = if ended then 0 else obj.Position.Y
 			return sink
-		elseif code == Enum.KeyCode.ButtonR2 or code == Enum.KeyCode.ButtonA then
+		elseif code == Enum.KeyCode.ButtonA then
 			return sink
 		end
 	end
@@ -562,26 +557,8 @@ function Input.handleGamepad(
 		-- Stored, not acted on: Input.update reads it every frame. See the note at the top.
 		self.stickAim = if ended then 0 else obj.Position.X
 		return sink
-	elseif code == Enum.KeyCode.ButtonR2 then
-		-- An analog trigger IS a power bar: its travel is the pull, releasing it shoots.
-		if ended then
-			if self.triggerHeld then
-				self.triggerHeld = false
-				if state == Enum.UserInputState.Cancel then
-					self.power = nil
-				end
-				self:releasePower()
-			end
-		elseif state == Enum.UserInputState.Begin or self.triggerHeld then
-			if not self.triggerHeld then
-				self.pullStickX = self.stickAim
-			end
-			self.triggerHeld = true
-			self:setPower(math.clamp(obj.Position.Z, 0, 1))
-		end
-		return sink
 	elseif code == Enum.KeyCode.ButtonA then
-		-- Fallback for pads whose triggers are only on or off: hold to ramp, release to shoot.
+		-- The shot: hold to ramp the power, release to shoot.
 		if ended then
 			if self.buttonPower ~= nil then
 				self.buttonPower = nil
@@ -701,7 +678,7 @@ function Input.update(self: Input, dt: number)
 	-- Moving the stick during a pull calls the shot off (designer, 2026-09-27), measured
 	-- from where the stick was when the pull began, so aiming and pressing at once is fine.
 	if
-		(self.triggerHeld or self.buttonPower ~= nil)
+		self.buttonPower ~= nil
 		and math.abs(self.stickAim - self.pullStickX) > G.CancelStickPush
 	then
 		self:cancelPull()
@@ -740,13 +717,12 @@ function Input.update(self: Input, dt: number)
 	end
 end
 
---- Call off a gamepad pull (R2 or the A ramp) under way: the power bar empties and the
---- button's release does nothing; a fresh press starts a new pull.
+--- Call off a gamepad pull (the A ramp) under way: the power bar empties and the button's
+--- release does nothing; a fresh press starts a new pull.
 function Input.cancelPull(self: Input)
-	if not self.triggerHeld and self.buttonPower == nil then
+	if self.buttonPower == nil then
 		return
 	end
-	self.triggerHeld = false
 	self.buttonPower = nil
 	if self.power ~= nil then
 		self.power = nil

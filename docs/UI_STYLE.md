@@ -220,7 +220,7 @@ order; that is Open.
 - **The controller guide** (designer, 2026-09-27; `PadGuide`): while it is your turn on a
   gamepad, a faint strip at the bottom left above the money HUD, in the zoom guide's style:
   left stick with left/right chevrons "Turn", the D-pad "Fine aim", right stick with up/down
-  chevrons "Zoom", L1 "Spin & angle", R2 and X "Shoot"; and a Circle just right of Leave. The
+  chevrons "Zoom", L1 "Spin & angle", X "Shoot"; and a Circle just right of Leave. The
   button pictures are Roblox's own, so they match the controller (PlayStation or Xbox); the
   chevrons are the kit's white ones. While L1 holds the spin panel open the strip shows the
   spin controls instead: left stick "Spin", right stick with up/down chevrons "Angle", Y

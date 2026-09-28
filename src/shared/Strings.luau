@@ -10,7 +10,7 @@ return {
 		FineAim = "Fine aim", -- the D-pad, left and right
 		Zoom = "Zoom", -- the right stick, up and down
 		SpinAngle = "Spin & angle", -- hold L1
-		Shoot = "Shoot", -- R2 or X (A)
+		Shoot = "Shoot", -- X (Xbox A)
 		-- While L1 holds the spin panel open:
 		Spin = "Spin", -- the left stick
 		Angle = "Angle", -- the right stick, up and down: the cue's angle

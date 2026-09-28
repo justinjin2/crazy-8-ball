@@ -1584,3 +1584,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the pocket rings and the result screens keep one.
 - 2026-09-27 (designer): while L1 holds the spin panel open, the controller guide shows the
   spin controls (left stick Spin, right stick Angle, Y Center spin) instead of the aim ones.
+- 2026-09-27 (designer): X (Xbox A) is the only gamepad shot button: hold to build power,
+  release to shoot. The analog R2 pull did not work well and is unbound.

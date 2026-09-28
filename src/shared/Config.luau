@@ -1481,11 +1481,11 @@ Config.Input = {
 		-- Zoom is applied as exp(stick * rate * dt), so it is smooth and frame-rate
 		-- independent: a full push takes about e^1 = 2.7x per second.
 		ZoomRatePerSecond = 1.0,
-		-- The right trigger is analog, so its position IS the power (ButtonR2 reports
-		-- 0..1 in Position.Z). ButtonA is the fallback for pads with digital triggers:
-		-- power ramps up while it is held, at this much per second.
+		-- ButtonA (Cross) is the shot: power ramps up while it is held, at this much per
+		-- second, and releasing shoots. (R2 was an analog pull; it did not work well and is
+		-- unbound, designer 2026-09-27.)
 		PowerRampPerSecond = 1.1,
-		-- A pull (R2 or A held) is called off when the left stick moves this far (0-1) from
+		-- A pull (A held) is called off when the left stick moves this far (0-1) from
 		-- where it was as the pull began (designer, 2026-09-27: change your mind by aiming).
 		CancelStickPush = 0.3,
 		-- Y in the hub can leave the selection on the host menu or the opponent prompt, and
