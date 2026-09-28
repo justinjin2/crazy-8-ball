@@ -1,4 +1,4 @@
-# Economy: money, EXP, ranks, cases, the shop and Robux
+# Economy: money, EXP, ranks, cases, the Limited shelf and Robux
 
 The one place that says how the game's economy works and every number in it. Written
 2026-09-27 from the designer's anchors and interview, research on Roblox and other games, and a
@@ -9,7 +9,7 @@ re-run the model to see what it does.
 
 ```bash
 python3 tools/economy_model.py tables   # case odds, money per hour, ranks per division, gap factors
-python3 tools/economy_model.py shop     # the shop's odds and prices, money packs, Robux costs
+python3 tools/economy_model.py shop     # money packs, Limited prices, Robux costs
 python3 tools/economy_model.py loot     # days to a player's first Epic, Legendary, Mythic, Secret
 python3 tools/economy_model.py hours    # the same in hours played, with the spread
 python3 tools/economy_model.py supply   # cues entering the game per day at 500 / 2k / 10k CCU
@@ -35,11 +35,10 @@ change as the game grows are listed with their triggers in section 14.
   rarity below its name; a legendary is never guaranteed.
 - **A 1-hour-a-day player** gets a first Epic after about **2 hours** of play, a first
   Legendary in about **8 days** (6-10 by what they buy), a first Mythic in about **6-8
-  weeks**; a Secret is a lottery from cases and mostly comes from the shop, after months of
-  saving.
-- **Today's deals**: 6 cues, the same for everyone, new every 12 hours; at least two Epics; a
-  Legendary about every 2 days, a Mythic about every 5 days, a Secret only when the designer
-  puts one there. Prices are about 2x what rolling for that rarity costs.
+  weeks**; a Secret is a lottery a 3-hour-a-day player wins in about 6-11 months (a
+  lucky quarter within about 3).
+- **No direct buying of case cues**: they come from cases and trading only. A **Limited
+  shelf** sells exclusive, numbered cues for a short time, then they are trade-only forever.
 - **Ranks**: Silver in the first hour, Diamond in about 11 hours, then a real wall. Expert and
   up are a skill ladder (Elo-style); Grandmaster and Reyes are leaderboard seats.
 - **Robux**: 49 R$ buys $900 (about 1.2 hours of play), up to 4,999 R$ for $130,000 (+42%).
@@ -54,10 +53,9 @@ change as the game grows are listed with their triggers in section 14.
 | First epic after a few hours | Free cases plus money cases | median 2.1 h played (p25 1.2 h, p75 3.4 h) |
 | First legendary in 1-2 weeks (1 h a day) | Case odds, section 7 | median 6-10 days (8.6 h played buying Epic Cases); 5-9 with VIP; 3-4 at 3 h a day |
 | First mythic in at least a month | Case odds | median 6-8 weeks at 1 h a day; 2.5-4 weeks at 3 h a day |
-| Secret: months, mostly from the shop | Case odds of 1 in 1,000 Legendary Cases at best; shop price $1.5M | rolling one is a lottery; saving for the shop takes a VIP Challenger player at 3 h a day about 7 months |
+| Secret: months | Case odds of 1 in 400 Legendary Cases at best | a 3 h a day player: median 6-11 months, a quarter within about 3; a 1 h player: 1.3-2.4 years |
 | Lots of duplicates of commons to rares | Free case every win, 90% of it Common/Uncommon | about 5 commons/uncommons and 1.7 rares per hour |
-| Shop much dearer than rolling | Shop price about 2x the rolling cost | 2.0x to 2.6x (section 9) |
-| Shop: at least one Epic, legendary every other day, mythic in days to a week, secret almost never | Slot odds, section 9 | Legendary every 2.0 days, Mythic every 5.0 days (77% within a week), Secret only by hand |
+| Case cues keep their value | No direct buying; a Limited shelf of exclusives instead (section 9) | the designer replaced the rotating shop after the research |
 | Unranked to Bronze I after the tutorial, then 1-2 matches a division | Bronze 250 RP a division, a win 250 | Bronze 1.4 matches, Silver 2.2 |
 | Plateau from Gold, 5-6 matches a division | Gold 800 RP, loss still +50 | 5.3 matches |
 | Diamond much harder, Classic fades | Diamond 4,000 RP, Classic win halved, losses cost | 53-64 matches a division in the hard modes; Classic stalls at 50% |
@@ -97,7 +95,7 @@ With VIP it adds up to x3.
 
 ## 3. Money
 
-Money is earned by playing and spent on cases and the shop. It never trades between players.
+Money is earned by playing and spent on cases and the Limited shelf. It never trades between players.
 
 ### 3.1 One match (1v1 against a person, Classic)
 
@@ -376,8 +374,8 @@ UI_STYLE, when it is built).
 
 | Group | Rarities | Comes from | Trade | Sell back |
 |---|---|---|---|---|
-| Case rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | cases, the shop | yes | yes |
-| **Unique** | numbered, limited copies (Founder's Cue about 50, Beta Cue about 1,000) | the Limited shelf, once | yes | no |
+| Case rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | cases (and trades) only | yes | yes |
+| **Unique** | numbered Limited cues (Founder's Cue 50, Beta Cue 1,000, and every Limited drop) | the Limited shelf, for a set time | yes | no |
 | **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | VIP and Starter yes; rank and season cues no | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
@@ -412,22 +410,22 @@ Each guarantees at least the rarity below its name. Odds in percent; each row ad
 
 | Case | Price | Common | Uncommon | Rare | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|---|---|---|
-| **Standard** | $150 | 64.3 | 26 | 8.4 | 1 | 0.25 | 0.049 | 0.001 |
-| **Rare** | $500 | - | 62.5 | 31 | 5.5 | 0.85 | 0.145 | 0.005 |
-| **Epic** | $1,500 | - | - | 73.4 | 22 | 4 | 0.585 | 0.015 |
-| **Legendary** | $5,000 | - | - | - | 76.5 | 20 | 3.4 | 0.1 |
+| **Standard** | $150 | 64.3 | 26 | 8.4 | 1 | 0.25 | 0.047 | 0.003 |
+| **Rare** | $500 | - | 62.5 | 31 | 5.5 | 0.85 | 0.14 | 0.01 |
+| **Epic** | $1,500 | - | - | 73.4 | 22 | 4 | 0.56 | 0.04 |
+| **Legendary** | $5,000 | - | - | - | 76.5 | 20 | 3.25 | 0.25 |
 
 The same odds as "1 in":
 
 | Case | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|
-| Standard | 1 in 100 | 1 in 400 | 1 in 2,041 | 1 in 100,000 |
-| Rare | 1 in 18 | 1 in 118 | 1 in 690 | 1 in 20,000 |
-| Epic | 1 in 4.5 | 1 in 25 | 1 in 171 | 1 in 6,667 |
-| Legendary | (76.5%) | 1 in 5 | 1 in 29 | 1 in 1,000 |
+| Standard | 1 in 100 | 1 in 400 | 1 in 2,128 | 1 in 33,333 |
+| Rare | 1 in 18 | 1 in 118 | 1 in 714 | 1 in 10,000 |
+| Epic | 1 in 4.5 | 1 in 25 | 1 in 179 | 1 in 2,500 |
+| Legendary | (76.5%) | 1 in 5 | 1 in 31 | 1 in 400 |
 
 Money it takes on average to roll one of a rarity (the best case for it): Epic $6,536,
-Legendary $25,000, Mythic $147,059. Bigger cases are slightly better value, which rewards
+Legendary $25,000, Mythic $153,846, Secret $2,000,000. Bigger cases are slightly better value, which rewards
 saving up. A case's sell-back value averages about a third of its price, so buying cases to
 sell never pays.
 
@@ -435,7 +433,7 @@ sell never pays.
 
 Every cue of a rarity in a case has an equal share: **cue % = rarity % / cues of that rarity
 in the case**. With the launch catalog, each Legendary in the Legendary Case is 20 / 3 =
-6.667%, each Mythic 3.4 / 2 = 1.7%. The case screen has a button that says **"Odds"** (a word,
+6.667%, each Mythic 3.25 / 2 = 1.625%. The case screen has a button that says **"Odds"** (a word,
 not just an icon), lists every cue with its %, and totals exactly 100%. Retiring a cue
 (section 12) updates the list the moment it happens.
 
@@ -445,26 +443,25 @@ Median **days** until a player owns their first of each rarity, at a 50% win rat
 
 | Player | Buys | Epic | Legendary | Mythic | Secret |
 |---|---|---|---|---|---|
-| Casual, 30 min a day | Epic Cases | 3.2 | 15 | 79 | over 2 years |
-| | Legendary Cases | 4.3 | 10 | 55 | over 2 years |
-| | nothing (saves) | 6.4 | 24 | 140 | over 2 years |
-| Regular, 1 h a day | Epic Cases | 2.3 | 8.4 | 52 | over 2 years |
-| | Legendary Cases | 2.8 | 6.2 | 40 | over 2 years |
-| | Rare Cases | 2.3 | 9.9 | 54 | over 2 years |
-| | nothing (saves) | 5.8 | 19 | 107 | over 2 years |
-| Regular + VIP | Epic Cases | 1.9 | 6.6 | 42 | over 2 years |
-| | Legendary Cases | 2.1 | 5.3 | 29 | over 2 years |
-| Dedicated, 3 h a day | Epic Cases | 1.1 | 3.7 | 21 | over 2 years |
-| | Legendary Cases | 1.2 | 3.2 | 17 | about 19 months |
-| | nothing (saves) | 2.8 | 9.5 | 49 | over 2 years |
+| Casual, 30 min a day | Epic Cases | 2.9 | 14 | 72 | over 3 years |
+| | Legendary Cases | 4.3 | 10 | 59 | about 2 years |
+| | nothing (saves) | 5.9 | 24 | 140 | over 3 years |
+| Regular, 1 h a day | Epic Cases | 2.1 | 9.1 | 52 | about 21 months |
+| | Legendary Cases | 2.8 | 7.6 | 37 | about 16 months |
+| | Rare Cases | 2.4 | 10 | 63 | about 29 months |
+| | nothing (saves) | 5.8 | 16 | 105 | over 3 years |
+| Regular + VIP | Epic Cases | 1.9 | 6.6 | 40 | about 14 months |
+| | Legendary Cases | 2.0 | 5.7 | 31 | about 10 months |
+| Dedicated, 3 h a day | Epic Cases | 1.2 | 3.9 | 23 | about 11 months |
+| | Legendary Cases | 1.2 | 3.4 | 17 | about 6 months |
+| | nothing (saves) | 2.7 | 11 | 55 | about 32 months |
 
 In hours played (1 h a day, buying Epic Cases): Epic median 2.1 h (p25 1.2, p75 3.4),
-Legendary 8.6 h (p25 3.9, p75 13.3), Mythic 52 h (p25 22, p75 97).
+Legendary 8.5 h (p25 4.2, p75 13.1), Mythic 53 h (p25 25, p75 97), Secret 670 h (p25 268).
 
-"Buys" is what the player spends money on; "nothing" means they save for the shop, so only
-free cases count. The model never misses a streak day. Secrets from cases are a lottery on
-purpose: the shop is their real road (section 9), and each one rolled is a server-wide
-moment.
+"Buys" is what the player spends money on; "nothing" means they buy no cases (saving for a
+Limited cue), so only free cases count. The model never misses a streak day. Every Secret
+(and Mythic) unboxed is announced in the server, which makes each one a moment.
 
 ---
 
@@ -477,57 +474,48 @@ tag on extras. Exclusive and Unique cues can't be sold.
 |---|---|---|---|---|---|---|
 | $15 | $40 | $120 | $600 | $3,000 | $15,000 | $75,000 |
 
-About 3-6% of the shop price and a tenth of what rolling costs: a floor, never a profit. Selling
+About a tenth of what rolling costs: a floor, never a profit. Selling
 also removes cues from the game, which keeps the ones that stay worth more.
 
 ---
 
-## 9. Today's deals (the shop)
+## 9. No direct buying of case cues; the Limited shelf
 
-- **Six cues, the same for everyone**, new at **00:00 and 12:00 UTC**. Every server works out
-  the same six from the rotation number (a seeded random pick over the catalog), so no server
-  has to talk to another. The designer can pin any cue into any slot for a rotation (how a
-  Secret gets there).
-- **One of each per player per rotation.** No cue twice in the same rotation. Owned cues
-  show "Owned" but can still be bought (for trading).
-- The countdown to the next rotation is real and never restarts (section 13).
+**Case cues are never sold directly** (designer, 2026-09-27, replacing the rotating "today's
+deals" shop). A Common-to-Secret cue comes only from a case or a trade. That keeps every case a
+chance at something money can't simply buy, and gives trading its purpose: if you want a
+specific cue, you trade for it. The research behind this: items that stay buyable lose their
+trade value (Adopt Me pets still sold for Robux trade at about 1), while items sold for a
+short time and then retired become the most valuable in the game (MM2's limited Robux bundle
+godlies trade at 275-1,750 against 8-23 for godlies from boxes still sold).
 
-| Slot | Odds each rotation |
-|---|---|
-| 1. Spotlight | Epic 65%, **Legendary 25%**, **Mythic 10%** |
-| 2. Epic | Epic 100% |
-| 3. Featured | Rare 60%, Epic 40% |
-| 4. Daily | Uncommon 50%, Rare 50% |
-| 5. Daily | Common 50%, Uncommon 50% |
-| 6. Daily | Common 70%, Uncommon 30% |
-| Secret | never at random; only when the designer pins one |
+**The Limited shelf** (in the one economy menu) sells **Unique** cues: exclusive designs that
+never appear in any case.
+- **For a set time only**, with a real countdown that never restarts: a new Limited cue about
+  every one to two weeks at launch (as fast as cue art allows), and event cues during events.
+  When the time is up it is **never sold again** and becomes trade-only forever.
+- **Numbered** (#1, #2, ...), **one per player**, and optionally **copy-capped** (sold out
+  when the cap is reached, across all servers).
+- **Priced in money** so it is a real saving goal, with the "need $X more" nudge below. A few
+  may be Robux bundles (a Limited cue plus money), like MM2's; a known item for Robux is not a
+  paid random item.
 
-So a Legendary shows up about **every 2 days**, a Mythic about **every 5 days** (77% chance
-within any week), never a guaranteed Legendary, always at least two Epics.
+| Tier | Money | About, in Robux | Copy cap | Saving time (Classic 1 h a day / Challenger 3 h a day) |
+|---|---|---|---|---|
+| Limited | $25,000 | 1,000-1,400 R$ | none | about 5 weeks / about a week |
+| Limited Deluxe | $75,000 | 2,900-4,100 R$ | 5,000 | about 3.5 months / about 3 weeks |
+| Limited Grand | $250,000 | 9,600-13,600 R$ | 500 | about a year / about 2.5 months |
 
-| Rarity | Shop price | Rolling cost for any cue of it | Shop vs rolling |
-|---|---|---|---|
-| Common | $500 | $233 | 2.1x |
-| Uncommon | $1,500 | $577 | 2.6x |
-| Rare | $3,500 | $1,613 | 2.2x |
-| Epic | $15,000 | $6,536 | 2.3x |
-| Legendary | $50,000 | $25,000 | 2.0x |
-| Mythic | $300,000 | $147,059 | 2.0x |
-| Secret | $1,500,000 | (a lottery: $5M) | the shop is the real way |
+At launch the shelf holds the **Founder's Cue** (1,499 R$, 50 numbered copies) and the **Beta
+Cue** ($40,000, 1,000 numbered copies, first 30 days); the designer can change both.
 
-What that means in saving time (match money only, buying nothing else):
+**When a player has part of the price**, the buy button says "Need $X more" and opens the
+money packs with the smallest pack that covers the gap highlighted. Never pop this up right
+after a lost match.
 
-| Shop cue | Classic, 1 h a day | Challenger, 3 h a day | Challenger + VIP, 3 h a day |
-|---|---|---|---|
-| Epic $15,000 | about 3 weeks | about 4 days | about 2 days |
-| Legendary $50,000 | about 2 months | about 2 weeks | about a week |
-| Mythic $300,000 | over a year | about 3 months | about 6 weeks |
-| Secret $1,500,000 | years | over a year | about 7 months |
-
-**When a player has part of the price**, the buy button says "Need $X more" and opens the money packs with the smallest
-pack that covers the gap highlighted. Never pop this up right after a lost match.
-
----
+**Copies in existence** (designer, 2026-09-27): every cue, in the inventory, the Index, trades
+and the Limited shelf, shows how many exist in the game ("1,284 exist"). A global counter per
+cue goes up when one is unboxed or bought and down when one is sold back.
 
 ## 10. Daily and playtime rewards
 
@@ -569,9 +557,8 @@ Anchor: **an hour of Classic play is worth about 40 R$** at the smallest pack.
 It is shown as "First purchase: double money" on the packs, and it is true for every player
 exactly once.
 
-In Robux: a Legendary Case is about 190-270 R$ (Rivals sells a case for 249 R$), a shop Epic
-580-820 R$, a shop Legendary 1,900-2,700 R$, a shop Mythic 11,500-16,000 R$, a Secret
-58,000-82,000 R$. A player halfway to a shop Legendary finishes it with about 1,000 R$.
+In Robux: a Legendary Case is about 190-270 R$ (Rivals sells a case for 249 R$); Limited
+cues are in section 9. A player halfway to a $25,000 Limited finishes it with about 600 R$.
 
 ### 11.2 VIP (game pass, 599 R$)
 
@@ -626,7 +613,7 @@ own look) **and $3,000**. No case inside, which keeps it outside the paid-random
 
 ### 11.7 Never sell
 
-Paid shop refreshes (a paid random item, and it breaks the shared shop), luck boosts, pity
+Paid re-rolls or "reveal the next case" (both paid random items), luck boosts, pity
 skips, extra or faster free cases, anything that protects or boosts RP, in-match aids (longer
 guidelines, hints, power or spin upgrades), anything that hurts an opponent, and purchase
 prompts right after a loss.
@@ -643,7 +630,7 @@ prompts right after a loss.
 - Players whose `IsPaidItemTradingAllowed` is false can't trade at all (every cue could have
   come from Robux-bought money).
 - **Retiring cues ("Vaulted")**: each season the designer retires a few case cues; they stop
-  dropping and can only come back when the designer pins one in the shop. This keeps old cues
+  dropping and can only come back in a special event case the designer makes. This keeps old cues
   worth trading for. The odds screens update at once.
 
 ---
@@ -656,8 +643,8 @@ prompts right after a loss.
 - **Free cases are exempt** only while nothing paid can speed them up or add more. That is
   why VIP, Money Party and Levels never give cases.
 - **`ArePaidRandomItemsRestricted`** (Roblox names Australia, Belgium, the Netherlands, the
-  UK and Brazil for under-18s): hide the money cases. Free cases, the shop (a known cue at a
-  fixed price) and everything else stay.
+  UK and Brazil for under-18s): hide the money cases. Free cases, the Limited shelf (a known cue
+  at a fixed price) and everything else stay.
 - **`IsPaidItemTradingAllowed`** false: no trading.
 - **Discounts must be real**: no always-on "sale", no short pressure windows, no countdown
   that restarts or lies, no "LAST CHANCE, ACT NOW" wording for young players.
@@ -679,7 +666,7 @@ unchanged at any size; these are the dials to revisit:
 | Diamond division | 4,000 RP | after 60 days, if under 1% of weekly players have reached Expert: 3,000 |
 | Expert to Master divisions | 1,500 / 2,000 / 2,000 | after 90 days, if nobody is eligible for Grandmaster: shrink by a quarter |
 | Reyes and Grandmaster seats | automatic, at most 50 / 500 | raise the caps only if the game passes about 20,000 CCU |
-| Mythic every 5 days in the shop | 10% of rotations | if mythics' trade value collapses: 7% |
+| Limited drops | one every 1-2 weeks | faster once the art pipeline allows; add copy caps if values fall |
 | New-player free cases | 50 wins | if D1 retention is weak: 75 |
 | Seasons | none (Season 0) | about 3 months after release, once the top tiers have players |
 
@@ -699,8 +686,8 @@ retention for the onboarding.
 | Rare | 1.69 | 10,200 | 40,700 | 203,000 |
 | Epic | 0.47 | 2,800 | 11,300 | 56,500 |
 | Legendary | 0.096 | 580 | 2,300 | 11,600 |
-| Mythic | 0.014 | 87 | 350 | 1,700 |
-| Secret (cases only) | 0.0004 | 3 | 10 | 51 |
+| Mythic | 0.014 | 81 | 330 | 1,600 |
+| Secret | 0.0013 | 8 | 30 | 150 |
 
 (Player-hours a day taken as peak CCU x 0.5 x 24.)
 
@@ -716,22 +703,20 @@ lower. Each rarity's supply is shared across its cues: at launch 3 Legendaries a
   share by tier, the shield, the leaderboard seat rules and the new rewards (money plus cases
   plus cue). `Config.Economy` gets the PC and short-match limits, team pay, the win streak,
   the same-opponent table and the boost rules. New: `Config.Level`, `Config.Cases`,
-  `Config.Shop`, `Config.DailyRewards`, `Config.Products`, `Config.Trading`.
+  `Config.Limited`, `Config.DailyRewards`, `Config.Products`, `Config.Trading`.
 - **Save** (a new version with a migration): level and EXP, rookie matches left, unopened
   cases by type, wins today and lifetime wins (for the free case), streak day and last claim,
   playtime today, same-opponent counters for today, VIP-from-offer, welcome-offer windows,
-  starter pack bought, first purchase done, shop buys this rotation.
+  starter pack bought, first purchase done, Limited cues bought.
 - **Order** (fits Roadmap stages 2 and 4): the new RP numbers and gap factor (Config and the
   rank module), then EXP and Levels, then the catalog, inventory and cases (free win case
-  first), sell-back, the shop, daily rewards, the Robux products, trading's gates, the
+  first), sell-back, copies-in-existence counters, the Limited shelf, daily rewards, the Robux products, trading's gates, the
   Grandmaster/Reyes leaderboard, and the PolicyService checks.
 
 ---
 
 ## 17. Open (the designer's call)
 
-- The Founder's and Beta cues' price and copies (suggestion: Founder's 1,499 R$ for 50
-  numbered copies; Beta $40,000 for 1,000 numbered copies during the first 30 days).
 - Whether completing a row in the Index pays (suggestion: all Commons $1,000, Uncommons
   $2,500, Rares $7,500, Epics $25,000, plus a title).
 - The Level chip's look, and the RP label on the rank HUD.

@@ -1589,3 +1589,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27 (designer): no level gate on trading (it was Level 10); anyone can trade from the
   start. Levels have no max (100 was only the last milestone). Alt farming is limited by the
   free-case rules instead.
+- 2026-09-27 (designer): no direct buying of case cues; the rotating "today's deals" shop is
+  dropped (research: items that stay buyable lose trade value, while items sold briefly then
+  retired gain it, as with MM2's limited bundles). A Limited shelf sells exclusive, numbered
+  Unique cues for a set time, then never again. Every cue shows how many copies exist.
+- 2026-09-27: with the shop gone, case Secret odds rise (Legendary Case 1 in 400) so a
+  dedicated player still gets one in months, not years (Claude's call from the model).

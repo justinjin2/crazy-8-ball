@@ -282,7 +282,8 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
   region direct-purchase catalog.
 - [ ] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
-- [ ] **7.3 Shop.** One menu; quantity-limited Founder's and Beta cues.
+- [ ] **7.3 Limited shelf.** One economy menu; timed, numbered Limited cues (never in cases),
+  including the Founder's and Beta cues; copies-in-existence counts on every cue.
 - [ ] **7.5 VIP pass and starter offer.**
 - [ ] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
   loss and the post-match screen.

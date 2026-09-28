@@ -498,10 +498,11 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   dropped; VIP is an Exclusive cue, not a rarity. Colours in `docs/UI_STYLE.md`. Rarer cues
   have special trail and pocket VFX.
 - **Duplicates can be sold back** for a little money (designer, 2026-09-27; no trade-up).
-- **Today's deals** (designer, 2026-09-27): six cues, the same for everyone, new every 12
-  hours; at least one Epic, a Legendary about every other day, a Mythic about every 5 days, a
-  Secret only when the designer pins one; unlimited copies, one per player. Prices are about
-  twice the rolling cost. ECONOMY.md section 9.
+- **No direct buying of case cues** (designer, 2026-09-27; it replaced a rotating "today's
+  deals" shop the same day): Common to Secret cues come only from cases and trading. A
+  **Limited shelf** sells exclusive, numbered Unique cues (never in cases) for a set time,
+  sometimes copy-capped, then never again, so they become trade-only. Every cue shows how many
+  copies exist. ECONOMY.md section 9.
 - **A cue carries its own effects.** Every cue defines the cue ball's TRAIL and the burst
   when a ball is pocketed, so the cue you equip changes how the table looks while you play,
   not just what the stick looks like. The default cue and every common one use the same
@@ -509,9 +510,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   replace it with their own trail and their own pocket effect, and that pairing is the main
   reason to want one. Effects are catalog data (a named style), never code per cue.
 - **Limited seasonal boxes** that leave and may or may not return. Season 0 has one, for cues.
-- **Shop** with high-priced, quantity-limited items that sell out and become limited forever.
-  At release: a Founder's cue (about 25 to 50 copies) and a Beta cue (about 500 to 1000
-  copies). All economy screens live under one menu.
+- **The Limited shelf** holds the high-priced, quantity-limited items that sell out and become
+  limited forever. At release: the Founder's Cue (1,499 R$, 50 copies) and the Beta Cue
+  ($40,000, 1,000 copies, first 30 days) *(tune)*. All economy screens live under one menu.
 - **Ability gacha** (only if abilities come, section 9): spins cost Robux (packs of 1, 5, 10,
   50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
   credit that only buys more spins.
@@ -549,7 +550,6 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 **Open**
 - What the index shows for cues a player does not own, and whether filling it pays anything
   (suggestion in ECONOMY.md section 17).
-- The Founder's and Beta cues' prices and copies (suggestion in ECONOMY.md section 17).
 
 ## 13. Fair play and security
 
@@ -684,7 +684,6 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Age-rating and DevEx rate verification (section 2).
 - Full ability list (section 9).
 - Pro lobby look (section 10).
-- Founder's and Beta prices (section 12).
 - The abilities toggle while abilities are out (section 6); whether abilities come (section 9).
 - A pro-lobby teaser door at release (section 10).
 - The bots' details (section 11).

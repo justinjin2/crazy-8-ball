@@ -50,21 +50,21 @@ CASES = {
             "Rare": 8.4,
             "Epic": 1.0,
             "Legendary": 0.25,
-            "Mythic": 0.049,
-            "Secret": 0.001,
+            "Mythic": 0.047,
+            "Secret": 0.003,
         },
     },
     "Rare": {
         "price": 500,
-        "odds": {"Uncommon": 62.5, "Rare": 31.0, "Epic": 5.5, "Legendary": 0.85, "Mythic": 0.145, "Secret": 0.005},
+        "odds": {"Uncommon": 62.5, "Rare": 31.0, "Epic": 5.5, "Legendary": 0.85, "Mythic": 0.14, "Secret": 0.01},
     },
     "Epic": {
         "price": 1500,
-        "odds": {"Rare": 73.4, "Epic": 22.0, "Legendary": 4.0, "Mythic": 0.585, "Secret": 0.015},
+        "odds": {"Rare": 73.4, "Epic": 22.0, "Legendary": 4.0, "Mythic": 0.56, "Secret": 0.04},
     },
     "Legendary": {
         "price": 5000,
-        "odds": {"Epic": 76.5, "Legendary": 20.0, "Mythic": 3.4, "Secret": 0.1},
+        "odds": {"Epic": 76.5, "Legendary": 20.0, "Mythic": 3.25, "Secret": 0.25},
     },
 }
 
@@ -418,41 +418,13 @@ def loot_hours(runs=1500, days=365, seed=11):
 # ------------------------------------------------------------------------------------------
 # Tables for the doc
 # ------------------------------------------------------------------------------------------
-# Today's deals (section 6): six slots, each a list of (rarity, percent). Rotates every 12 hours.
-SHOP_SLOTS = [
-    ("Spotlight", [("Epic", 65.0), ("Legendary", 25.0), ("Mythic", 10.0)]),
-    ("Epic", [("Epic", 100.0)]),
-    ("Featured", [("Rare", 60.0), ("Epic", 40.0)]),
-    ("Daily 1", [("Uncommon", 50.0), ("Rare", 50.0)]),
-    ("Daily 2", [("Common", 50.0), ("Uncommon", 50.0)]),
-    ("Daily 3", [("Common", 70.0), ("Uncommon", 30.0)]),
-]
-SHOP_PRICE = {
-    "Common": 500,
-    "Uncommon": 1500,
-    "Rare": 3500,
-    "Epic": 15000,
-    "Legendary": 50000,
-    "Mythic": 300000,
-    "Secret": 1500000,  # only when the designer places one
-}
+# The Limited shelf (section 9): exclusive cues sold for a set time, then trade-only. Money price.
+LIMITED_TIERS = [("Limited", 25000), ("Limited Deluxe", 75000), ("Limited Grand", 250000)]
 # Money packs for Robux (section 9): (Robux, money).
 PACKS = [(49, 900), (99, 1950), (249, 5250), (499, 11000), (999, 23500), (2499, 62500), (4999, 130000)]
 
 
 def shop_and_packs():
-    print("Today's deals: chance per 12-hour rotation, and how long until one shows up\n")
-    for rarity in ("Legendary", "Mythic"):
-        p = sum(pct for _, slot in SHOP_SLOTS for r, pct in slot if r == rarity) / 100
-        mean_days = 0.5 / p
-        within_week = 1 - (1 - p) ** 14
-        print(f"  {rarity:10s} {p * 100:5.1f}% a rotation, every {mean_days:4.1f} days on average, {within_week * 100:4.0f}% chance within a week")
-    print()
-    best = {r: min(CASES[c]["price"] / (CASES[c]["odds"][r] / 100) for c in CASES if CASES[c]["odds"].get(r)) for r in RARITIES}
-    print("Shop price against the cheapest way to roll ANY cue of that rarity\n")
-    for r in RARITIES:
-        print(f"  {r:10s} shop ${SHOP_PRICE[r]:>9,}  rolling ${best[r]:>11,.0f}  shop is {SHOP_PRICE[r] / best[r]:4.1f}x  sell-back ${SELL[r]:>7,}")
-    print()
     base = PACKS[0][1] / PACKS[0][0]
     print("Money packs\n")
     for rbx, money in PACKS:
@@ -460,8 +432,10 @@ def shop_and_packs():
     print()
     per_rbx = PACKS[-1][1] / PACKS[-1][0]
     print("What things cost in Robux at the best pack rate and at the smallest pack's rate\n")
-    for label, dollars in [("Standard Case", 150), ("Legendary Case", 5000), ("Shop Epic", 15000), ("Shop Legendary", 50000), ("Shop Mythic", 300000), ("Shop Secret", 1500000)]:
-        print(f"  {label:15s} ${dollars:>9,}  ~{dollars / per_rbx:7,.0f} R$ best  ~{dollars / base:7,.0f} R$ smallest")
+    per_hour = {"Classic 1 h/day": 728, "Challenger 3 h/day": 1164 * 3}
+    for label, dollars in [("Standard Case", 150), ("Legendary Case", 5000)] + LIMITED_TIERS:
+        days = "  ".join(f"{k}: {dollars / v:5.0f} days" for k, v in per_hour.items())
+        print(f"  {label:15s} ${dollars:>9,}  ~{dollars / per_rbx:7,.0f} R$ best  ~{dollars / base:7,.0f} R$ smallest  {days}")
 
 
 def supply_per_day(runs=300, days=120, seed=5):
