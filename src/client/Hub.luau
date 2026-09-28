@@ -67,7 +67,7 @@ function Hub.new(parent: Instance): Hub
 
 	-- The pool is built up front so no shot ever waits on sixteen parts being created: a
 	-- renderer and a cue per slot (WatchedShooters).
-	local first = Config.Hub.Tables[1]
+	local first = Placement.rows()[1]
 	local firstPlacement = Placement.forTable(first.id)
 	local pool, cues = {}, {}
 	for i = 1, math.min(Config.Hub.RenderedTables, Placement.tableCount()) do
@@ -99,9 +99,8 @@ function Hub.new(parent: Instance): Hub
 
 	-- Only the tables the server actually builds: a Match for a table with no model would
 	-- draw sixteen balls floating where that table would have been.
-	local wanted = Placement.tableCount()
-	for _, row in Config.Hub.Tables do
-		local p = if row.id <= wanted then Placement.forTable(row.id) else nil
+	for _, row in Placement.rows() do
+		local p = Placement.forTable(row.id)
 		if p then
 			self.matches[row.id] = Match.new(p, nil, Config.Rack.DefaultSeed + row.id)
 			self.seats[row.id] = {}

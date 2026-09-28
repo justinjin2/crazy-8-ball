@@ -116,18 +116,26 @@ function Engine.capacity(t: any): number
 end
 
 --- Step onto the table's pad. Only while the table waits, and only while it has room. The
---- seat has no team or slot until the host starts; nothing starts by itself.
+--- seat has no team or slot until the game starts. An arena's table (`t.fixed`) seats each
+--- player on the `team` the global queue matched them in (designer, 2026-09-28).
 function Engine.join(
 	t: any,
 	userId: number,
 	name: string,
 	displayName: string,
-	now: number
+	now: number,
+	team: number?
 ): boolean
 	if t.phase ~= "Waiting" then
 		return false
 	end
 	if Engine.seat(t, userId) or Engine.count(t) >= Engine.capacity(t) then
+		return false
+	end
+	if t.fixed and team ~= 1 and team ~= 2 then
+		return false
+	end
+	if team and Engine.count(t, team) >= t.teamSize then
 		return false
 	end
 	t.joinOrder += 1
@@ -139,6 +147,7 @@ function Engine.join(
 		order = t.joinOrder,
 		connected = true,
 		host = false,
+		team = team,
 	})
 	rehost(t)
 	t.revision += 1
@@ -169,7 +178,11 @@ end
 --- pad is full, Queue.ReadyGraceSeconds after the last one stepped on, so someone who walked
 --- on by accident can step off again. Nil while the pad is not full.
 function Engine.startsAt(t: any): number?
-	if t.phase ~= "Waiting" or not Engine.startState(t.seats, t.teamSize) then
+	if t.phase ~= "Waiting" or t.fixed or not Engine.startState(t.seats, t.teamSize) then
+		return nil
+	end
+	-- A pad whose search just found a match worldwide: its players are on their way.
+	if t.search and t.search.found then
 		return nil
 	end
 	local last = -math.huge
@@ -182,6 +195,7 @@ function Engine.startsAt(t: any): number?
 end
 
 local start: (t: any, host: any, now: number, coinWinner: number?) -> ()
+local rematch: (t: any, now: number, nextSeed: number?) -> ()
 
 -- `forfeit` names the team that gave the match up (surrendered or ran out of timeouts), for
 -- the rank and money rules (Ranking). `seconds` is the server-tracked match time from the
@@ -199,7 +213,20 @@ local function finish(t: any, winner: number?, reason: string, now: number, forf
 	t.vote = nil
 	t.shot = nil
 	t.pending = nil
-	phase(t, "Result", now, M.ResultSeconds)
+	-- A two-sided game counts in the series and offers a rematch while both sides are still
+	-- here (designer, 2026-09-28); solo keeps its short hold.
+	local rematch = false
+	if not t.solo then
+		local series = t.series or { wins = { 0, 0 }, games = 0 }
+		series.games += 1
+		if winner == 1 or winner == 2 then
+			series.wins[winner] += 1
+		end
+		t.series = series
+		rematch = Engine.count(t, 1) > 0 and Engine.count(t, 2) > 0
+	end
+	t.rematch = if rematch then { yes = {} } else nil
+	phase(t, "Result", now, if rematch then M.RematchSeconds else M.ResultSeconds)
 end
 
 local function needsCall(t: any): boolean
@@ -305,6 +332,11 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 				break
 			end
 		end
+		-- A party member off the pad ends the search (the server cancels it); once a match is
+		-- found it stands and whoever is still in the server goes.
+		if t.search and not t.search.found and table.find(t.search.users, userId) then
+			t.search = nil
+		end
 		rehost(t)
 		-- The host's choices outlive the host (the next in takes over), not the box emptying.
 		if Engine.count(t) == 0 then
@@ -316,6 +348,11 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 	s.connected = false
 	rehost(t)
 	t.revision += 1
+	-- Leaving after a game says no to the rematch, and the table frees.
+	if t.phase == "Result" and t.rematch and not t.rematch.declined then
+		t.rematch.declined = userId
+		t.deadline = now
+	end
 	if Engine.count(t, s.team) == 0 then
 		if t.phase ~= "Resolving" then
 			finish(t, if Engine.count(t, 3 - s.team) > 0 then 3 - s.team else nil, "EmptyTeam", now)
@@ -470,6 +507,11 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 			t.revision += 1
 		end
 	end
+	-- Everyone still here pressed Rematch: the same players again at once.
+	if t.phase == "Result" and Engine.rematchReady(t) then
+		rematch(t, now, nextSeed)
+		return
+	end
 	-- A full pad starts by itself after the join grace. The coin comes from the next rack
 	-- seed, so this stays deterministic.
 	local startsAt = Engine.startsAt(t)
@@ -517,6 +559,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		fresh.epoch = t.epoch + 1
 		fresh.revision = t.revision + 1
 		fresh.phaseStartedAt = now
+		fresh.fixed = t.fixed -- an arena's table stays one; the series ends with the pairing
 		table.clear(t)
 		for _, key in
 			{
@@ -538,6 +581,7 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 				"feedback",
 				"voteNextAt",
 				"state",
+				"fixed",
 			}
 		do
 			t[key] = fresh[key]
@@ -595,14 +639,18 @@ function start(t: any, host: any, now: number, coinWinner: number?)
 		return a.order < b.order
 	end)
 	-- Teams by arrival: the first in (the host) is team A, the next team B, and so on
-	-- alternately (designer, 2026-09-26).
+	-- alternately (designer, 2026-09-26). An arena's teams were set by the global queue.
 	local slots = { 0, 0 }
 	for i, s in seats do
-		local team = (i - 1) % 2 + 1
+		local team = if t.fixed and s.team then s.team else (i - 1) % 2 + 1
 		slots[team] += 1
 		s.team, s.slot = team, slots[team]
 	end
 	local winner = if coinWinner == 2 then 2 else 1
+	t.search = nil
+	t.requestedAt = nil
+	t.series = t.series or { wins = { 0, 0 }, games = 0 }
+	t.series.breaker = winner
 	t.activeTeam, t.breakShot = winner, true
 	t.coin = {
 		headsTeam = host.team,
@@ -610,6 +658,140 @@ function start(t: any, host: any, now: number, coinWinner: number?)
 		breaker = choose(t, winner).userId,
 	}
 	phase(t, "CoinFlip", now, M.CoinSeconds)
+end
+
+--- Whether everyone still at a finished table has pressed Rematch (designer, 2026-09-28):
+--- both sides still here, nobody said no, and every connected player with a team said yes.
+function Engine.rematchReady(t: any): boolean
+	local r = t.rematch
+	if t.phase ~= "Result" or not r or r.declined then
+		return false
+	end
+	if Engine.count(t, 1) == 0 or Engine.count(t, 2) == 0 then
+		return false
+	end
+	for _, s in t.seats do
+		if s.connected and s.team and not r.yes[tostring(s.userId)] then
+			return false
+		end
+	end
+	return true
+end
+
+-- The same players play again: a new game (new epoch, fresh rack, every per-game record
+-- cleared), the same teams and slots, host and settings, and the series goes on. The side
+-- that did not break last game breaks now, with no coin (designer, 2026-09-28).
+function rematch(t: any, now: number, nextSeed: number?)
+	local seats = {}
+	for _, s in t.seats do
+		if s.connected then
+			table.insert(seats, s)
+		end
+	end
+	local keep = {
+		settings = t.settings,
+		joinOrder = t.joinOrder,
+		series = t.series,
+		fixed = t.fixed,
+		epoch = t.epoch,
+		revision = t.revision,
+	}
+	local fresh = Engine.new(t.id, t.teamSize, nextSeed or t.rackSeed + 1)
+	table.clear(t)
+	for key, value in fresh do
+		t[key] = value
+	end
+	t.seats = seats
+	t.settings = keep.settings
+	t.joinOrder = keep.joinOrder
+	t.fixed = keep.fixed
+	t.epoch = keep.epoch + 1
+	t.revision = keep.revision + 1
+	t.phaseStartedAt = now
+	rehost(t)
+	local series = keep.series or { wins = { 0, 0 }, games = 0 }
+	local team = if series.breaker then 3 - series.breaker else 1
+	series.breaker = team
+	t.series = series
+	t.activeTeam, t.breakShot = team, true
+	beginTurn(t, team, now, true)
+end
+
+--- An arena's game starts once both sides have someone seated (everyone arrived, or the
+--- arrival time ran out): the teams are the ones the queue matched, then the coin as usual.
+function Engine.startFixed(t: any, now: number, coinWinner: number?): boolean
+	if not t.fixed or t.phase ~= "Waiting" then
+		return false
+	end
+	if Engine.count(t, 1) == 0 or Engine.count(t, 2) == 0 then
+		return false
+	end
+	local host = Engine.seat(t, t.hostId)
+	if not host then
+		return false
+	end
+	start(t, host, now, coinWinner)
+	return true
+end
+
+--- The players a global search takes from a pad: the first `teamSize` on it by arrival (the
+--- host first). Anyone else stays and hosts the pad (designer, 2026-09-28).
+function Engine.searchParty(t: any): { number }
+	local seats = {}
+	for _, s in t.seats do
+		if s.connected then
+			table.insert(seats, s)
+		end
+	end
+	table.sort(seats, function(a: any, b: any): boolean
+		return a.order < b.order
+	end)
+	local users = {}
+	for i = 1, math.min(t.teamSize, #seats) do
+		table.insert(users, seats[i].userId)
+	end
+	return users
+end
+
+--- Whether the host may start a global search now: waiting, a whole side on the pad (1v1
+--- alone; 2 for 2v2, 3 for 3v3) and room left for the local game, no search yet.
+function Engine.canSearch(t: any, userId: number): boolean
+	local n = Engine.count(t)
+	return t.phase == "Waiting"
+		and not t.fixed
+		and not t.search
+		and t.hostId == userId
+		and n >= t.teamSize
+		and n < Engine.capacity(t)
+end
+
+--- The search began (the server has put it in the queue). Returns its players.
+function Engine.setSearch(t: any, now: number): { number }
+	local users = Engine.searchParty(t)
+	t.search = { at = now, users = users, found = false }
+	t.revision += 1
+	return users
+end
+
+--- The search ended without a match (cancelled, or it failed).
+function Engine.clearSearch(t: any): boolean
+	if not t.search then
+		return false
+	end
+	t.search = nil
+	t.revision += 1
+	return true
+end
+
+--- The search found a match: its players teleport, and the pad does not start while they
+--- go. `users` stands in for a search a party member's step-off already cleared.
+function Engine.searchFound(t: any, users: { number }, now: number)
+	if t.phase ~= "Waiting" then
+		return
+	end
+	t.search = t.search or { at = now, users = table.clone(users), found = true }
+	t.search.found = true
+	t.revision += 1
 end
 
 --- `coinWinner` is the server's coin for a Start (1 or 2), passed in like advance's seed so
@@ -626,6 +808,29 @@ function Engine.action(
 		return false
 	end
 	local kind = request.kind
+	if kind == "Rematch" or kind == "Decline" then
+		-- After a two-sided game (designer, 2026-09-28): everyone must say yes for a rematch;
+		-- one no (or a leaver) frees the table at once.
+		local r = t.rematch
+		if t.phase ~= "Result" or not r or r.declined or not s.team then
+			return false
+		end
+		if kind == "Rematch" then
+			if r.yes[tostring(userId)] then
+				return false
+			end
+			r.yes[tostring(userId)] = true
+		else
+			r.declined = userId
+			t.deadline = now
+		end
+		t.revision += 1
+		return true
+	end
+	-- An arena's table has no queue menu: its players were matched by the global queue.
+	if t.fixed and t.phase == "Waiting" then
+		return false
+	end
 	if kind == "LeaveQueue" then
 		if t.phase == "Waiting" then
 			return Engine.remove(t, userId, now)
@@ -928,7 +1133,30 @@ function Engine.snapshot(t: any): any
 		settings = table.clone(t.settings),
 		requestedAt = t.requestedAt,
 		startsAt = Engine.startsAt(t),
+		fixed = t.fixed,
+		series = if t.series
+			then {
+				wins = table.clone(t.series.wins),
+				games = t.series.games,
+				breaker = t.series.breaker,
+			}
+			else nil,
+		rematch = if t.rematch then Engine.rematchView(t.rematch) else nil,
+		search = if t.search
+			then { at = t.search.at, users = table.clone(t.search.users), found = t.search.found }
+			else nil,
 	}
+end
+
+--- The rematch vote as the snapshot carries it: who said yes (a sorted list) and who said
+--- no, if anyone.
+function Engine.rematchView(r: any): any
+	local yes = {}
+	for id in r.yes do
+		table.insert(yes, tonumber(id))
+	end
+	table.sort(yes)
+	return { yes = yes, declined = r.declined }
 end
 
 return Engine

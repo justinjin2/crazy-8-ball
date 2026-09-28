@@ -490,4 +490,25 @@ return {
 			H.expect(onEdge and math.abs(x) <= 8 + 1e-9 and math.abs(y) <= 4 + 1e-9, "on the edge")
 		end
 	end,
+	["an arena layout stands up its one table, then the hub again"] = function()
+		local Config, Placement = setup()
+		local row = table.clone(Config.Arena.Table)
+		row.teamSize = 2
+		Placement.setLayout({ row })
+		local ok, err = pcall(function()
+			H.expect(Placement.hasLayout() and Placement.tableCount() == 1, "one table")
+			local p = Placement.forTable(1)
+			H.expect(
+				p ~= nil and p.x == row.X and p.z == row.Z,
+				"at the arena's spot, not the hub's"
+			)
+			H.expect(Placement.teamSizeOf(1) == 2 and Placement.forTable(2) == nil)
+			H.expect(#Placement.rows() == 1)
+		end)
+		Placement.setLayout(nil)
+		H.expect(ok, tostring(err))
+		H.expect(not Placement.hasLayout() and Placement.tableCount() == Config.Hub.TableCount)
+		local hub = Placement.forTable(1)
+		H.expect(hub ~= nil and hub.x == Config.Hub.Tables[1].X, "the cache forgot the arena")
+	end,
 }

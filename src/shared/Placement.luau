@@ -41,21 +41,58 @@ function Placement.new(x: number, y: number, z: number, yawDegrees: number): Pla
 	}
 end
 
---- How many tables this build actually stands up (Config.Hub.TableCount). Everything that iterates tables goes through this so the server, the pads and
+-- The tables this server stands up: the hub's (Config.Hub.Tables, the first TableCount of
+-- them), or another list set by setLayout (an arena's one table, Config.Arena). Each row is
+-- { id, X, Y, Z, YawDegrees, teamSize }.
+local layout: { any }? = nil
+local cache: { [number]: Placement } = {}
+
+local function rows(): { any }
+	return layout or Config.Hub.Tables
+end
+
+--- Use `list` instead of the hub's tables (the arena, designer 2026-09-28), or nil for the
+--- hub again. The server and every client set it before building anything, so they agree.
+function Placement.setLayout(list: { any }?)
+	layout = if list then table.clone(list) else nil
+	table.clear(cache)
+end
+
+--- The rows of the tables this build stands up (the first tableCount), in order.
+function Placement.rows(): { any }
+	local out = {}
+	local wanted = Placement.tableCount()
+	for _, row in rows() do
+		if row.id <= wanted then
+			table.insert(out, row)
+		end
+	end
+	return out
+end
+
+--- Whether a layout other than the hub's is in use.
+function Placement.hasLayout(): boolean
+	return layout ~= nil
+end
+
+--- How many tables this build actually stands up (Config.Hub.TableCount, or the layout's
+--- count). Everything that iterates tables goes through this so the server, the pads and
 --- the client cannot disagree about how many there are.
 function Placement.tableCount(): number
+	if layout then
+		return #layout
+	end
 	return math.clamp(Config.Hub.TableCount, 1, #Config.Hub.Tables)
 end
 
 --- The placement for table `id` in Config.Hub.Tables (1-16), or nil if there is no such
 --- table. Results are built once and reused.
-local cache: { [number]: Placement } = {}
 function Placement.forTable(id: number): Placement?
 	local cached = cache[id]
 	if cached then
 		return cached
 	end
-	for _, row in Config.Hub.Tables do
+	for _, row in rows() do
 		if row.id == id then
 			local made = Placement.new(row.X, row.Y, row.Z, row.YawDegrees)
 			cache[id] = made
@@ -178,7 +215,7 @@ end
 
 --- How many players a side table `id` plays (Config.Hub.Tables), or nil for no such table.
 function Placement.teamSizeOf(id: number): number?
-	for _, row in Config.Hub.Tables do
+	for _, row in rows() do
 		if row.id == id then
 			return row.teamSize
 		end
