@@ -29,6 +29,10 @@
   loading screen hand-off (`src/first/Arrival`), Lobby back to the same server, timings
   (MULTIPLAYER_TESTING.md, "Global queue"). A real controller's A on the row (Studio's
   simulated A presses no selected button at all). A real phone.
+- **Also (designer):** every button on the host card is evenly spaced (Play against PC sat
+  twice as far below Join Global Queue: its fold's outline room added to the gap); checked
+  in Studio: all gaps 6 px (7.8 on screen at 1.3), the searching card's too, and the rematch
+  row's buttons 8 px apart and centred.
 - **To do before the live test:** restart Rojo and reconnect (the new ReplicatedFirst
   folder), then publish.
 

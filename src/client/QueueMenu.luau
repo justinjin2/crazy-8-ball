@@ -125,12 +125,9 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	local content = HudParts.frame(card, "Content")
 	content.Position = UDim2.fromOffset(S.QueueMenuPadding, S.QueueMenuPadding)
 	content.Size = UDim2.new(1, -S.QueueMenuPadding * 2, 1, -S.QueueMenuPadding * 2)
-	local list = Instance.new("UIListLayout")
-	list.SortOrder = Enum.SortOrder.LayoutOrder
-	list.Padding = UDim.new(0, S.QueueRowGap)
-	list.HorizontalAlignment = Enum.HorizontalAlignment.Center -- the folds reach past both sides
-	list.Parent = content
-	self.list = list
+	-- The rows are stacked by QueueMenu.stack (not a UIListLayout), so a button fold's room
+	-- for its outlines overlaps the gaps round it and every button is QueueRowGap from the next.
+	self.content = content
 
 	-- The game: the difficulty's picture and "Classic 1v1", and how many are in.
 	local title = HudParts.frame(content, "Title")
@@ -225,7 +222,48 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.hint.TextWrapped = false
 	self.hint.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
 	self.hint.LayoutOrder = 8
+	-- Top to bottom. `overlap`: a fold of buttons, whose outline room sits over the gaps.
+	self.rows = {
+		{ object = title } :: any,
+		{ fold = self.statusFold },
+		{ object = self.request },
+		{ object = self.global },
+		{ object = self.needs },
+		{ object = self.cancel },
+		{ fold = self.more, overlap = true },
+		{ object = self.hint },
+	}
 	return self
+end
+
+--- Stack the card's shown rows from the top, QueueRowGap apart, centred across; answers the
+--- height they take (unscaled). A fold counts by how open it is. A fold of buttons keeps its
+--- QueueFoldEdgePx of room above and below them for their outlines, but that room lies over
+--- the gaps either side instead of adding to them (designer, 2026-09-28: evenly spaced).
+function QueueMenu.stack(self: any): number
+	local y = 0
+	local first = true
+	for _, row in self.rows do
+		local fold = row.fold
+		local object: GuiObject = if fold then fold.group else row.object
+		if not object.Visible then
+			continue
+		end
+		local amount = if fold then fold.amount else 1
+		local height = object.Size.Y.Offset
+		local edge = if row.overlap then S.QueueFoldEdgePx * amount else 0
+		if height - 2 * edge <= 0.5 then
+			continue
+		end
+		if not first then
+			y += S.QueueRowGap * math.min(1, amount)
+		end
+		object.AnchorPoint = Vector2.new(0.5, 0)
+		object.Position = UDim2.new(0.5, 0, 0, y - edge)
+		y += height - 2 * edge
+		first = false
+	end
+	return y
 end
 
 function QueueMenu.isHost(self: any): boolean
@@ -426,7 +464,7 @@ function QueueMenu.layout(self: any)
 	end
 	local size: Vector2 = screen.AbsoluteSize
 	local margin = S.HeaderMargin
-	local natural = self.list.AbsoluteContentSize.Y / self.scale.Scale + 2 * S.QueueMenuPadding
+	local natural = self:stack() + 2 * S.QueueMenuPadding
 	self.root.Size = UDim2.fromOffset(S.QueueMenuWidth, natural)
 	local function fit(room: number, most: number): number
 		return math.clamp(room / math.max(natural, 1), S.QueueMenuMinScale, most)

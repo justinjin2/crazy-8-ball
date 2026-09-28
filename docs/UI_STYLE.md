@@ -265,6 +265,10 @@ order; that is Open.
 
 ## 9. The global queue and rematch (2026-09-28)
 
+- **Even spacing** (designer, 2026-09-28): every button on the host card is the same gap
+  (`Style.QueueRowGap`) from the next, whether or not it sits in a fold; a fold's room for
+  its buttons' outlines lies over the gaps round it (`QueueMenu.stack`) instead of adding
+  to them. Rows of buttons (the rematch row) share one gap and stay centred.
 - **The host card's 4th choice**: a blue **Join Global Queue** with the lightning icon, under
   Request (a globe icon may replace it later). Greyed with a small ink line "Needs 2 on the
   pad" on 2v2 and 3v3 until a whole side stands there. While it searches the card folds like

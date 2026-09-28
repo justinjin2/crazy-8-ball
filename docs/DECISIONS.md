@@ -1629,3 +1629,5 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28 (designer): division sizes only grow up the ladder, so every Expert-and-up RP
   number is tripled (Expert 4,500, Veteran and Master 6,000; Challenger +675 / -517); the pace
   of climbing is unchanged.
+- 2026-09-28 (designer): every UI's buttons are evenly spaced. The host card's rows are now
+  stacked by code (QueueMenu.stack), so a fold's outline room no longer doubles a gap.
