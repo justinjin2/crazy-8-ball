@@ -691,7 +691,7 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 14. Sounds for the reel and reveals found, checked and wired.
 - [x] 15. Full playthrough and every new screen checked on PC, phone sizes and tablet (section 15).
 - [x] 16. Audit by a fresh subagent and branch-wide bug review; findings fixed.
-- [ ] 17. Polish pass.
+- [x] 17. Polish pass.
 - [ ] 18. Docs updated (ECONOMY additions included) and `docs/prompts/ECONOMY_UI_REPORT.md`
   written; branch pushed.
 
@@ -798,3 +798,10 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   (checked at 750 x 361). Listed, not fixed: some layout numbers still sit in the client
   files instead of Config (review #23); the Event Case rolls the normal pool while it is off
   (an overnight assumption, not a bug).
+- **Polish (step 17, 2026-09-28).** From the phone-size screenshots: the prize card's
+  "Open next (4)" ran over its chest icon and out of its button, so the card's buttons now
+  share the row by what their words need (`Card.layoutButtons`, `HudParts.candyWidth`);
+  the Equipped pill sat on the Classic Cue's name (now 4 px above it); the result screen's
+  boost pills and reminder line (above). Looked at again and left: the Index names wrap to
+  three lines (only the scroll hid them), the Shop's Cases cards at 750 x 361, the reel's
+  timing and sounds.

@@ -21,8 +21,8 @@ from the Creator Hub (section 6 below).
    on Rewards means something can be claimed.
 4. **Rewards.** Open it, press **Claim** on Day 1 (the money flies to your total). Look at
    Playtime (gifts at 10, 30 and 60 minutes) and try the code **WELCOME** in Codes.
-5. **Your first win.** Walk onto a 1v1 pad and play a real match against a second player (or
-   use the QA fixture in `docs/STUDIO_NOTES.md`). On your first win the result screen opens a
+5. **Your first win.** Walk onto a 1v1 pad and play a real match against a second player
+   (Studio's Test tab, Clients and Servers, 2 players). On your first win the result screen opens a
    **Rare Case** on the reel, then shows your XP with the ROOKIE and FIRST WIN boosts, then
    NEW RANK! with Bronze I's rewards (money, 2 Standard Cases, the Bronze Cue, [BRONZE]).
    Short of a second player: `/result firstwin` previews the result screen and
@@ -97,13 +97,14 @@ first win's reveal; NEW RANK! shows its rewards; the roadmap shows the real case
 ROOKIE pill under the XP bar; [VIP] in rainbow in chat and a shine on VIP names; the top
 banner.
 
-**Dev commands and tests (phase I).** 17 economy commands (`/econhelp`), 622 Lune tests.
+**Dev commands and tests (phase I).** 17 economy commands (`/econhelp`), 629 Lune tests.
 
 ---
 
 ## 3. What was verified, and how
 
-- **Automatic:** `tools/lint.sh` clean and `tools/test.sh` 622 passed before every commit.
+- **Automatic:** `tools/lint.sh` clean and `tools/test.sh` passing (629 at the end) before every
+  commit.
 - **Studio, with the real save stores:** an old save upgraded; buying, Buy 10, opening, Fast
   Open, selling, and every refusal (not enough money, too fast, the equipped last copy,
   restricted region); fake Robux grants given once per purchase id; daily, codes, playtime;
@@ -115,12 +116,18 @@ banner.
 - **Gamepad in Studio:** D-pad down and right open Rewards and Inventory, RB switches tabs.
 - **Two fresh reviewers** (agents that did not write the code): a security audit of
   everything that pays, and a bug review of the whole branch. What they found and what was
-  fixed: section 5.
+  fixed: section 5. The fixes were checked in Studio: a second Starter Pack paid $1,451 and a
+  second VIP offer $5,491 instead of nothing, five Money Parties queued 74 minutes, a 60%
+  sale was refused and 50% accepted, the Beta Cue's counter gave the same player the same
+  number twice, the reel closed when a game started mid-open, the Index line in Rewards
+  opened the Index, and the result screen fits a phone.
 
 **Not verified (needs you):** a real phone; a controller's D-pad up and B (Studio's tools
-cannot press them) and moving the selection inside the menus; the reminder toast (it shows
-when you open Roblox's menu); two real players (team pay, the Trade list); anything that only
-works in the published game (real Robux receipts, PolicyService, news across servers).
+cannot press them) and moving the selection inside the menus (after opening your last case,
+and after buying VIP, the selection should land on a button); Escape while typing a code
+(it should not close Rewards); the reminder toast (it shows when you open Roblox's menu); two
+real players (team pay, the Trade list); anything that only works in the published game
+(real Robux receipts, PolicyService, news across servers).
 
 ---
 
@@ -156,8 +163,9 @@ Each is also a dated line in `docs/DECISIONS.md` tagged "(overnight assumption)"
   day; past that a new account pays the floor.
 - An open still waiting for the server can be closed after 3 s; the cue then waits in the
   Inventory with a note.
-- A pass counts once Roblox confirms it; a VIP bought through the welcome offer shows the VIP
-  pass as owned. Robux prices are read once per server.
+- A pass bought in game counts at once (Roblox's purchase event on the server), and the next
+  join's check confirms it; a VIP bought through the welcome offer shows the VIP pass as
+  owned. Robux prices are read once per server.
 - Playtime counts every second in the game, AFK included.
 - The code box waits 2 s between tries.
 - Menus reuse the roadmap's slight dim; a tap on the dim closes; one menu at a time; all close
@@ -195,7 +203,8 @@ medium, 16 low). Fixed:
   waits for it; a pass bought in game works at once.
 - A numbered cue's copy number is kept per player, so leaving mid-purchase can't waste one.
 - Case sales are capped at 50% (above about 61%, buying and selling back made money).
-- Anti-farm: after 50 different opponents in a day it no longer switched off.
+- Anti-farm used to switch off after 50 different opponents in a day; the table now keeps
+  300, and any account past that pays the floor.
 - The case reel closes when a match starts; opening right after selling no longer fails with
   "One moment..."; menus keep the mouse free in shift lock; Escape in the code box no longer
   closes Rewards; the gamepad keeps a selected button after the last case, after "Owned" and

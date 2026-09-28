@@ -333,7 +333,9 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   prize card offers Equip, Sell and Open next; X, Done or B close it; a tap outside does
   nothing *(assumption)*. Fast Open's grid of ten flips the cards one by one with the rarest
   last and chosen, with no Sell. The first win's reel plays inside the result screen, before
-  its cards.
+  its cards. While the server has not answered, the stage waits; after 3 s its hint reads
+  "Still opening... Tap to close" and a close is allowed (the cue then waits in the Inventory
+  with a note). The prize card's buttons share their row by what their words need.
 - **Prices**: money with the cash bundle; Robux with Roblox's own Robux glyph inside the text
   *(assumption)*; a product whose id is still 0 keeps its price and adds a small "Soon" tag.
   A real sale shows the struck old price, the new one and its countdown; "Need $X more" on a

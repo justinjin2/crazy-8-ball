@@ -21,16 +21,20 @@
   the ROOKIE pill, the [VIP] rainbow chat tag, banners for Mythic and Secret unboxings, Money
   Party and Reyes. 17 economy dev commands (`/econhelp` lists them). New icons from
   `tools/gen_ui_art.py`.
-- **Verified:** lint clean, 622 tests pass (new: ranks, money, save v2 and its migration, the
-  catalog, cases and odds, the inventory, daily, the shop, settle, requests). In Studio with
+- **Verified:** lint clean, 629 tests pass (new: ranks, money, save v2 and its migration, the
+  catalog, cases and odds, the inventory, daily, the shop and receipts, settle, requests,
+  the Limited counter). In Studio with
   the real DataStores: a v1 save loaded as v2; buying, Buy 10, opening, Fast Open, selling
   duplicates and every refusal through the server; Robux grants once per purchase id (Studio
   QA hooks, not real receipts); daily, codes and playtime; a fresh save's first real win
   (the Rare Case reel, the result chips, NEW RANK! with Bronze's rewards); a VIP win (2x
   money, +50% XP) and a streak win; every new screen on the PC window, at 750 x 361 and
   844 x 390 (phone) and 1024 x 700 (tablet) by resizing each menu inside the Play window.
-  Console clean. A fresh agent audited everything that pays, and a second reviewed the whole
-  branch (findings and fixes in the brief's Notes and the report).
+  Console clean. A fresh agent audited everything that pays (7 findings, none critical) and a
+  second reviewed the whole branch (23); all fixed but two listed ones, and the fixes checked
+  in Studio (receipts that no longer qualify pay money, the Limited counter keeps a player's
+  number, sales capped at 50%, the reel closes when a match starts, the Index line in
+  Rewards, the result screen on a phone). Details in the brief's Notes and the report.
 - **Needs a check by hand:** a real phone (touch, the keyboard over the code box), a
   controller (D-pad up to the Shop and B to close cannot be sent by Studio's tools; selection
   inside the menus), the reminder toast (open Roblox's menu), two real players (team pay, the
