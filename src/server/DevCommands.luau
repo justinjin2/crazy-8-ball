@@ -1,12 +1,17 @@
 --!strict
 -- DevCommands: developer chat commands, checked here on the server (Config.Debug.Commands).
--- The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata,
--- /rankhelp) act on the caller only and answer privately (DevNotice); they work in a live
--- server too, for the same allowed people.
--- /day and /sunset send the day/sunset cycle toward that state for the whole server, through
--- its one-minute fade (LightCycle.offsetToward): the offset goes on a workspace attribute every
--- client's DayCycle reads, and the cycle runs on from there. Anyone not allowed (not in Studio, not listed, not the group's owner) gets
--- nothing, so no player can change everyone's sky.
+-- Anyone not allowed (not in Studio, not listed, not the group's owner) gets nothing, so no
+-- player can change everyone's sky, their own save or the shop.
+-- - /day and /sunset send the day/sunset cycle toward that state for the whole server, through
+--   its one-minute fade (LightCycle.offsetToward): the offset goes on a workspace attribute
+--   every client's DayCycle reads, and the cycle runs on from there.
+-- - The rank and money ones (/rank, /xp, /money, /addmoney, /result, /newrank, /resetdata;
+--   /rankhelp lists them) and the economy ones (/econhelp lists them) act on the caller only
+--   and answer privately (DevNotice). A /sale or a /party is this server's, like the real ones.
+--   They go through the same server APIs as the game (PlayerData, Ranking, Items, Store,
+--   Counters), so they can do nothing the save's own checks refuse. They work in a live server
+--   too, for the same allowed people.
+-- - Arguments are read defensively: a bad one answers a usage line, never an error.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,11 +25,29 @@ local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared.Progression.Format)
 local Ranks = require(Shared.Progression.Ranks)
+local Money = require(Shared.Progression.Money)
+local Cases = require(Shared.Progression.Cases)
+local Catalog = require(Shared.Progression.Catalog)
+local Daily = require(Shared.Progression.Daily)
+local Inventory = require(Shared.Progression.Inventory)
 local PlayerData = require(script.Parent.PlayerData)
 local Ranking = require(script.Parent.Ranking)
+local Items = require(script.Parent.Items)
+local Store = require(script.Parent.Store)
+local Counters = require(script.Parent.Counters)
 
 local D = Config.Debug.Commands
 local C = Config.Lighting.Cycle
+local S = Config.Save
+local E = Config.Economy
+
+-- Read by a key held in a variable (the economy help and usage lines).
+local ALIAS: { [string]: string } = D :: any
+local USAGE: { [string]: string } = Strings.Dev.Usage :: any
+local WHAT: { [string]: string } = Strings.Dev.What :: any
+local CUE_NAMES: { [string]: string } = Strings.Items.Cues :: any
+local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
+local PASS_NAMES: { [string]: string } = Strings.Dev.PassNames :: any
 
 local DevCommands = {}
 
@@ -91,21 +114,32 @@ end
 
 local Dev = Strings.Dev
 
+-- The lines told to a player during a Studio hook call, which the hook hands back.
+local captured: { [Player]: { string } } = {}
+
 -- A private line in the caller's chat window.
 local function tell(player: Player, text: string)
-	Net.get("DevNotice"):FireClient(player, text)
+	local lines = captured[player]
+	if lines then
+		table.insert(lines, text)
+	end
+	if player.Parent == Players then
+		Net.get("DevNotice"):FireClient(player, text)
+	end
 end
 
--- A whole number within the commands' limit, or nil.
-local function amount(word: string?, allowNegative: boolean): number?
+-- A whole number in lo..hi from a typed word, or nil.
+local function wholeIn(word: string?, lo: number, hi: number): number?
 	local n = tonumber(word or "")
-	if n == nil or n ~= n or n % 1 ~= 0 or math.abs(n) > D.MaxAmount then
-		return nil
-	end
-	if n < 0 and not allowNegative then
+	if n == nil or n ~= n or n % 1 ~= 0 or n < lo or n > hi then
 		return nil
 	end
 	return n
+end
+
+-- A whole number within the commands' limit (0..MaxAmount), or nil.
+local function amount(word: string?): number?
+	return wholeIn(word, 0, D.MaxAmount)
 end
 
 -- A rank from the words after /rank or /newrank: (tier, division, index), nil when not one.
@@ -136,7 +170,7 @@ local function setRank(player: Player, args: { string })
 		rank = { RankXp = 0, PeakDivision = 0, RatedMatches = 0 }
 	else
 		local data = PlayerData.read(player) :: any
-		local xp = Ranks.toXp(tier :: string, division, amount(args[3], false) or 0) or 0
+		local xp = Ranks.toXp(tier :: string, division, amount(args[3]) or 0) or 0
 		rank = { RankXp = xp, PeakDivision = index, RatedMatches = math.max(1, data.RatedMatches) }
 	end
 	if PlayerData.applyRank(player, rank) then
@@ -145,20 +179,46 @@ local function setRank(player: Player, args: { string })
 	end
 end
 
--- /result win|lose|draw: the result screen with made-up numbers (the caller against a
--- stand-in opponent), worked out from the caller's real rank but never saved.
+-- The server's own randomness for the previews and /dupes (never for a real roll).
+local random = Random.new()
+local function roll(n: number): number
+	return random:NextInteger(1, n)
+end
+
+-- The stand-in opponent of the /result preview (Roblox's own account, for a real headshot).
+local STAND_IN = { userId = 1, name = "Opponent", tier = "Gold", division = 3 }
+
+local RESULTS: { [string]: string } =
+	{ win = "Win", lose = "Loss", loss = "Loss", draw = "Draw", firstwin = "Win" }
+
+-- /result win|lose|draw|firstwin: the result screen with made-up numbers (the caller against a
+-- stand-in opponent), worked out from the caller's real rank but never saved. A sample: every
+-- boost that can apply is on (Rookie and VIP; First Win and Streak on a win) so every chip
+-- shows, a win brings the free case, and `firstwin` brings the first win's opened case instead.
 local function previewResult(player: Player, args: { string })
-	local outcome = ({ win = "Win", lose = "Loss", loss = "Loss", draw = "Draw" })[args[1] or ""]
+	local word = args[1] or ""
+	local outcome = RESULTS[word]
 	local data = PlayerData.read(player)
-	if outcome == nil or not data then
+	local progress = PlayerData.progress(player)
+	if outcome == nil or not data or not progress then
 		tell(player, if outcome == nil then Dev.BadResult else Dev.NotLoaded)
 		return
 	end
+	local win = outcome == "Win"
+	local firstWin = word == "firstwin"
+	local opponentIndex = Ranks.indexOf(STAND_IN.tier, STAND_IN.division)
 	local xp = Ranks.applyMatch({
 		RankXp = data.RankXp,
 		PeakDivision = data.PeakDivision,
 		RatedMatches = data.RatedMatches,
-	}, { outcome = outcome, opponent = "Player", forfeit = false, mode = "Classic" })
+	}, {
+		outcome = outcome,
+		opponent = "Player",
+		forfeit = false,
+		mode = "Classic",
+		opponentIndex = opponentIndex,
+		boosts = { rookie = true, vip = true, firstWin = win, streak = win },
+	})
 	local you = {
 		userId = player.UserId,
 		name = player.Name,
@@ -168,19 +228,41 @@ local function previewResult(player: Player, args: { string })
 		left = false,
 	}
 	local other = {
-		userId = 1, -- Roblox's own account, for a real headshot
-		name = "Opponent",
-		displayName = "Opponent",
-		tier = "Gold",
-		division = 3,
+		userId = STAND_IN.userId,
+		name = STAND_IN.name,
+		displayName = STAND_IN.name,
+		tier = STAND_IN.tier,
+		division = STAND_IN.division,
 		left = false,
 	}
-	local E = Config.Economy
+	-- The money as the settle would pay it, with the sample's VIP (and a party if one runs).
+	local boost = Money.boost(true, Store.party() ~= nil)
+	local myIndex = Ranks.fromXp(data.RankXp, data.RatedMatches > 0).index
 	local balls, nice = 4, 1
-	local bonus = if outcome == "Win"
-		then E.WinBonus
-		elseif outcome == "Loss" then E.LossBonus
-		else 0
+	local ballMoney = Money.round(balls * E.BallPay * (1 + boost))
+	local niceMoney = Money.round(E.NiceShotPay.Bank * (1 + boost))
+	local bonus = Money.matchBonus({
+		outcome = outcome,
+		opponent = "Player",
+		real = true,
+		forfeited = false,
+		multiplier = 1,
+		gap = Ranks.gapFactor(myIndex, opponentIndex),
+		boost = boost,
+		farm = 1,
+	})
+	local streak = if win then Money.streakBonus(E.StreakFrom, "Player", 1, boost, 1) else 0
+	-- The first win's case, opened at once (a sample roll: nothing is given).
+	local reveal = nil
+	if firstWin then
+		local caseId = Config.Cases.FirstWinCase
+		local ok, cue, rarity = pcall(Cases.roll, caseId, roll)
+		if ok then
+			reveal =
+				{ case = caseId, cue = cue, rarity = rarity, new = not Inventory.owns(data, cue) }
+		end
+	end
+	local reward = xp.rewardTotal
 	Net.get("MatchSummary"):FireClient(player, {
 		key = "preview",
 		tableId = 0,
@@ -195,18 +277,28 @@ local function previewResult(player: Player, args: { string })
 		xp = Ranking.xpPart(xp),
 		money = {
 			balls = balls,
-			ballMoney = balls * E.BallPay,
+			ballMoney = ballMoney,
 			nice = nice,
-			niceMoney = E.NiceShotPay.Bank,
+			niceMoney = niceMoney,
 			bonus = bonus,
-			reward = xp.rewardTotal,
-			total = balls * E.BallPay + E.NiceShotPay.Bank + bonus + xp.rewardTotal,
+			streak = streak,
+			reward = reward,
+			boost = boost,
+			total = ballMoney + niceMoney + bonus + streak + reward,
 		},
+		freeCase = if win and not firstWin then Config.Cases.FreeCase else nil,
+		firstWin = reveal,
+		nextReward = Daily.nextReward(data.Login, Daily.dayOf(os.time())),
+		-- The sample's Rookie Boost: the real count, but at least one match left.
+		rookieLeft = math.max(1, Config.Ranks.Boosts.RookieMatches - progress.RealMatches - 1),
+		rematch = false,
+		arena = false,
 	})
 end
 
--- /newrank [tier] [division]: the NEW RANK! popup for that rank (yours if none given),
--- as if just reached from the division below. Nothing is saved.
+-- /newrank [tier] [division]: the NEW RANK! popup for that rank (yours if none given), as if
+-- just reached from the division below, with that division's reward chips. Nothing is saved
+-- or given. XP is never lost, so there is no rank-down to preview.
 local function previewNewRank(player: Player, args: { string })
 	local index: number?
 	if args[1] then
@@ -224,14 +316,517 @@ local function previewNewRank(player: Player, args: { string })
 	local before = if index > 1
 		then Ranks.fromXp(Ranks.startXp(index - 1), true)
 		else Ranks.fromXp(0, false)
+	-- The rows as Ranking sends them: { index, money, cases, cue? }, and their totals.
+	local rows, total, cases, cues = {}, 0, {}, {}
+	for _, row in Ranks.rewardsBetween(index - 1, index) do
+		total += row.money
+		table.insert(
+			rows,
+			{ index = row.index, money = row.money, cases = table.clone(row.cases), cue = row.cue }
+		)
+		for _, caseId in Config.Cases.Order do
+			local count = row.cases[caseId]
+			if count then
+				cases[caseId] = (cases[caseId] or 0) + count
+			end
+		end
+		if row.cue then
+			table.insert(cues, row.cue)
+		end
+	end
 	Net.get("RankEvent"):FireClient(player, {
 		kind = "Up",
 		preview = true,
 		before = before,
 		after = after,
-		reward = Ranks.rewardFor(index).money,
+		reward = total,
 		newTier = division == 1 or tier == "Reyes",
+		rewards = rows,
+		rewardCases = cases,
+		rewardCues = cues,
 	})
+end
+
+---------------------------------------------------------------------------------------------
+-- The economy commands
+---------------------------------------------------------------------------------------------
+
+-- Lowercase letters and digits only ("Chalk Dust Cue" -> "chalkdustcue"), so ids and names
+-- match however they are typed.
+local function squash(text: string): string
+	return (string.gsub(string.lower(text), "[^%w]", ""))
+end
+
+-- `text` without a trailing `suffix` ("chalkdustcue" -> "chalkdust") when more is left.
+local function trim(text: string, suffix: string): string
+	if #text > #suffix and string.sub(text, -#suffix) == suffix then
+		return string.sub(text, 1, #text - #suffix)
+	end
+	return text
+end
+
+local function cueName(id: string): string
+	return CUE_NAMES[id] or id
+end
+
+local function caseName(id: string): string
+	return CASE_NAMES[id] or id
+end
+
+-- Every cue by its squashed id and name, with and without "cue" at the end (catalog order:
+-- the first cue to claim a key keeps it).
+local cueByKey: { [string]: string } = {}
+for _, cue in Catalog.list() do
+	for _, text in { cue.Id, cueName(cue.Id) } do
+		local key = squash(text)
+		for _, candidate in { key, trim(key, "cue") } do
+			if cueByKey[candidate] == nil then
+				cueByKey[candidate] = cue.Id
+			end
+		end
+	end
+end
+
+-- The cue named by typed words ("chalk dust", "chalkdust", "ChalkDustCue"), or nil.
+local function findCue(words: { string }): string?
+	local key = squash(table.concat(words, ""))
+	if key == "" then
+		return nil
+	end
+	return cueByKey[key] or cueByKey[trim(key, "cue")]
+end
+
+-- The case named by typed words ("rare", "rare case"), or nil.
+local function findCase(words: { string }): string?
+	local key = trim(squash(table.concat(words, "")), "case")
+	for _, id in Config.Cases.Order do
+		if squash(id) == key then
+			return id
+		end
+	end
+	return nil
+end
+
+-- The case ids as they are typed, for the usage lines: "standard|rare|...".
+local CASE_WORDS = string.lower(table.concat(Config.Cases.Order, "|"))
+
+-- Every Config.Products key, sorted (the /buy help and its refusal list them).
+local PRODUCT_KEYS: { string } = {}
+for key in Config.Products.List :: { [string]: any } do
+	table.insert(PRODUCT_KEYS, key)
+end
+table.sort(PRODUCT_KEYS)
+
+local function findProduct(word: string?): string?
+	local key = squash(word or "")
+	for _, product in PRODUCT_KEYS do
+		if squash(product) == key then
+			return product
+		end
+	end
+	return nil
+end
+
+-- A name's words and the count typed after it ("chalk dust 3" -> {"chalk", "dust"}, "3"):
+-- the last of two or more words, when it is a number.
+local function splitCount(args: { string }): ({ string }, string?)
+	local n = #args
+	if n >= 2 and tonumber(args[n]) ~= nil then
+		return table.move(args, 1, n - 1, 1, {}), args[n]
+	end
+	return args, nil
+end
+
+-- What follows each alias in its usage line (Strings.Dev.Usage), and the numbers in its
+-- help line (Strings.Dev.What).
+local USAGE_ARGS: { [string]: { any } } = {
+	GiveCase = { CASE_WORDS },
+	OpenCase = { CASE_WORDS },
+	SetDay = { #Config.Daily.Streak, Config.Daily.WeeksForBonus },
+	Sale = { D.Sale },
+}
+local WHAT_ARGS: { [string]: { any } } = {
+	Dupes = { D.DupeCopies, D.DupeKinds },
+	Buy = { table.concat(PRODUCT_KEYS, ", ") },
+}
+
+local function usage(key: string): string
+	return USAGE[key]:format(ALIAS[key], table.unpack(USAGE_ARGS[key] or {}))
+end
+
+-- Answers a bad argument with the command's usage.
+local function try(player: Player, key: string)
+	tell(player, Dev.Try:format(usage(key)))
+end
+
+-- The /econhelp order.
+local ECON: { string } = {
+	"GiveCue",
+	"GiveCase",
+	"OpenCase",
+	"Inv",
+	"ClearInv",
+	"Dupes",
+	"SetDay",
+	"NewDay",
+	"Playtime",
+	"Buy",
+	"Vip",
+	"FastOpen",
+	"Party",
+	"Policy",
+	"Sale",
+	"Rookie",
+	"FreeCase",
+}
+
+-- Whether a cue's copies in existence are counted (Counters), as the game counts them: every
+-- cue it hands out but the rank tier cues, which a rank-up gives without counting (Ranking).
+local function counted(id: string): boolean
+	local cue = Catalog.get(id)
+	return cue ~= nil and cue.Group ~= "Default" and cue.Tier == nil
+end
+
+-- Gives `copies` of each cue in `ids` (distinct ids; one reward per Config.Save.MaxSmallEntries
+-- copies, a reward's most) and counts what landed as copies in existence. Returns the copies
+-- each cue really got (none for an Exclusive cue already owned), or nil when not loaded.
+local function giveCues(player: Player, ids: { string }, copies: number): { [string]: number }?
+	local before = PlayerData.read(player)
+	if not before then
+		return nil
+	end
+	local list = {}
+	for _, id in ids do
+		for _ = 1, copies do
+			table.insert(list, id)
+		end
+	end
+	for first = 1, #list, S.MaxSmallEntries do
+		local last = math.min(first + S.MaxSmallEntries - 1, #list)
+		local part = table.move(list, first, last, 1, {})
+		if not PlayerData.grantReward(player, { cues = part }, "DevCommand") then
+			break
+		end
+	end
+	local after = PlayerData.read(player)
+	local given: { [string]: number } = {}
+	for _, id in ids do
+		local n = if after then Inventory.count(after, id) - Inventory.count(before, id) else 0
+		given[id] = n
+		if n > 0 and counted(id) then
+			Counters.add(id, n)
+		end
+	end
+	return given
+end
+
+-- Why a Unique cue cannot be given, and how to get one: its Robux product, else the shelf.
+local function uniqueHint(id: string): string
+	for _, row in Config.Shop.Limited do
+		if row.Cue == id and row.Product ~= nil then
+			return Dev.UniqueCueBuy:format(cueName(id), D.Buy, string.lower(row.Product))
+		end
+	end
+	return Dev.UniqueCue:format(cueName(id))
+end
+
+-- /givecue <id|name> [count]
+local function giveCue(player: Player, args: { string })
+	local words, countWord = splitCount(args)
+	local count = if countWord then wholeIn(countWord, 1, D.MaxGive) else 1
+	if #words == 0 or count == nil then
+		try(player, "GiveCue")
+		return
+	end
+	local id = findCue(words)
+	local cue = if id then Catalog.get(id) else nil
+	if id == nil or cue == nil then
+		tell(player, Dev.BadCue:format(table.concat(words, " ")))
+		return
+	elseif cue.Group == "Default" then
+		tell(player, Dev.ClassicCue)
+		return
+	elseif cue.Group == "Unique" then
+		tell(player, uniqueHint(id))
+		return
+	end
+	local given = giveCues(player, { id }, if cue.Group == "Exclusive" then 1 else count)
+	local n = if given then given[id] else 0
+	if given == nil then
+		tell(player, Dev.NotLoaded)
+	elseif n > 0 then
+		tell(player, Dev.GaveCue:format(cueName(id), n))
+	elseif cue.Group == "Exclusive" then
+		tell(player, Dev.ExclusiveOwned:format(cueName(id)))
+	else
+		tell(player, Dev.NotGiven:format(cueName(id)))
+	end
+end
+
+-- /givecase <type> [count]
+local function giveCase(player: Player, args: { string })
+	local words, countWord = splitCount(args)
+	local count = if countWord then wholeIn(countWord, 1, D.MaxGive) else 1
+	if #words == 0 or count == nil then
+		try(player, "GiveCase")
+		return
+	end
+	local caseId = findCase(words)
+	if caseId == nil then
+		tell(player, Dev.BadCase:format(table.concat(words, " "), CASE_WORDS))
+	elseif PlayerData.grantReward(player, { cases = { [caseId] = count } }, "DevCommand") then
+		tell(player, Dev.GaveCase:format(caseName(caseId), count))
+	else
+		tell(player, Dev.NotLoaded)
+	end
+end
+
+-- /opencase <type>: gives one of that case when the player has none, then asks their client
+-- to open one on the reel, exactly as its button does (a table DevNotice: CaseOpening sends
+-- the real OpenCase request, so the server rolls and takes the case as always).
+local function openCase(player: Player, args: { string })
+	local caseId = findCase(args)
+	if #args == 0 or caseId == nil then
+		try(player, "OpenCase")
+		return
+	end
+	local data = PlayerData.read(player)
+	if not data then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	local gave = false
+	if Inventory.caseCount(data, caseId) < 1 then
+		if not PlayerData.grantReward(player, { cases = { [caseId] = 1 } }, "DevCommand") then
+			tell(player, Dev.NotLoaded)
+			return
+		end
+		gave = true
+	end
+	tell(player, Dev.Opening:format(caseName(caseId)))
+	local notice = { kind = "OpenCase", caseId = caseId, count = 1 }
+	task.spawn(function()
+		-- A case just given reaches the client in its ItemState at the next Heartbeat (Items):
+		-- the reel is asked for after that, so the client already holds the case it opens.
+		if gave then
+			RunService.Heartbeat:Wait()
+			RunService.Heartbeat:Wait()
+		end
+		if player.Parent == Players then
+			Net.get("DevNotice"):FireClient(player, notice)
+		end
+	end)
+end
+
+-- Joins entries after `prefix` with ", " into chat lines of at most D.LineChars characters (an
+-- entry longer than that gets a line of its own).
+local function packLines(prefix: string, entries: { string }): { string }
+	local lines = {}
+	local line, empty = prefix, true
+	for _, entry in entries do
+		local joined = if empty then line .. entry else line .. ", " .. entry
+		if not empty and #joined > D.LineChars then
+			table.insert(lines, line)
+			line = entry
+		else
+			line = joined
+		end
+		empty = false
+	end
+	table.insert(lines, line)
+	return lines
+end
+
+-- /inv: the equipped cue, the unopened cases and the cues owned (Classic left out).
+local function showInventory(player: Player)
+	local snapshot = PlayerData.snapshot(player)
+	if not snapshot then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	tell(player, Dev.InvEquipped:format(cueName(snapshot.equipped)))
+	local cases = {}
+	for _, row in snapshot.cases do
+		table.insert(cases, Dev.InvCount:format(caseName(row.id), row.count))
+	end
+	local cues, copies = {}, 0
+	for _, row in snapshot.cues do
+		if row.id ~= Catalog.Default then
+			copies += row.count
+			table.insert(
+				cues,
+				if row.copy
+					then Dev.InvCopy:format(cueName(row.id), row.copy)
+					elseif row.count > 1 then Dev.InvCount:format(cueName(row.id), row.count)
+					else cueName(row.id)
+			)
+		end
+	end
+	local lines: { string } = if #cases > 0
+		then packLines(Dev.InvCases, cases)
+		else { Dev.InvNoCases }
+	local cueLines: { string } = if #cues > 0
+		then packLines(Dev.InvCues:format(#cues, copies), cues)
+		else { Dev.InvNoCues }
+	table.move(cueLines, 1, #cueLines, #lines + 1, lines)
+	for _, line in lines do
+		tell(player, line)
+	end
+end
+
+-- /clearinv: every cue but Classic and every case gone; the copies in existence follow.
+local function clearInventory(player: Player)
+	local snapshot = PlayerData.snapshot(player)
+	if not snapshot or not PlayerData.clearInventory(player) then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	for _, row in snapshot.cues do
+		if counted(row.id) then
+			Counters.add(row.id, -row.count)
+		end
+	end
+	tell(player, Dev.Cleared)
+end
+
+-- /dupes: D.DupeCopies copies of D.DupeKinds different random Common and Uncommon case cues.
+local function giveDupes(player: Player)
+	local pool = {}
+	for _, rarity in { "Common", "Uncommon" } do
+		for _, cue in Catalog.ofRarity(rarity) do
+			if cue.Group == "Case" and not cue.Vaulted then
+				table.insert(pool, cue.Id)
+			end
+		end
+	end
+	local picks = {}
+	while #picks < D.DupeKinds and #pool > 0 do
+		table.insert(picks, table.remove(pool, roll(#pool)) :: string)
+	end
+	if giveCues(player, picks, D.DupeCopies) == nil then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	local names = {}
+	for _, id in picks do
+		table.insert(names, cueName(id))
+	end
+	tell(player, Dev.Dupes:format(D.DupeCopies, table.concat(names, ", ")))
+end
+
+-- /setday <1-7> [week]: the next daily claim (today's) becomes that streak day.
+local function setDay(player: Player, args: { string })
+	local weeks = Config.Daily.WeeksForBonus
+	local n = wholeIn(args[1], 1, #Config.Daily.Streak)
+	local week = if args[2] then wholeIn(args[2], 1, weeks) else nil
+	if n == nil or (args[2] ~= nil and week == nil) then
+		try(player, "SetDay")
+		return
+	end
+	local data = if PlayerData.setStreakDay(player, n, week) then PlayerData.read(player) else nil
+	if not data then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	local state = Daily.loginState(data.Login, Daily.dayOf(os.time()))
+	tell(player, Dev.DaySet:format(state.day, state.week))
+end
+
+-- /buy <product> [purchaseId]: Store.grant yields until the save is written (up to about 15 s),
+-- so from chat it runs in its own thread and answers when it returns; from the Studio hook it
+-- runs in the hook's call, so the answer is among the lines the hook hands back.
+local function buy(player: Player, args: { string })
+	local key = findProduct(args[1])
+	if args[1] == nil then
+		try(player, "Buy")
+		return
+	elseif key == nil then
+		tell(player, Dev.BadProduct:format(args[1], table.concat(PRODUCT_KEYS, ", ")))
+		return
+	end
+	local product: string = key
+	local purchaseId = args[2]
+	tell(player, Dev.Buying:format(product))
+	local function grant()
+		local called, ok, reason = pcall(Store.grant, player, product, purchaseId)
+		if called and ok then
+			tell(player, Dev.Bought:format(product))
+		else
+			tell(player, Dev.BuyFailed:format(product, tostring(if called then reason else ok)))
+		end
+	end
+	if captured[player] then
+		grant()
+	else
+		task.spawn(grant)
+	end
+end
+
+-- /vip on|off and /fastopen on|off: fake owning that game pass for this session.
+local function pass(key: string): (Player, { string }) -> ()
+	return function(player: Player, args: { string })
+		local on = ({ on = true, off = false } :: { [string]: boolean })[args[1] or ""]
+		if on == nil then
+			try(player, key)
+			return
+		end
+		Store.setPass(player, key, on)
+		local name = PASS_NAMES[key] or key
+		tell(player, (if on then Dev.PassOn else Dev.PassOff):format(name))
+		if not on and key == "Vip" and player:GetAttribute("VipOffer") == true then
+			tell(player, Dev.VipOfferStays)
+		end
+	end
+end
+
+-- /sale <case> <percent> <minutes>, or /sale off.
+local function sale(player: Player, args: { string })
+	if args[1] == "off" and #args == 1 then
+		Items.setSale(nil)
+		tell(player, Dev.SaleOff)
+		return
+	end
+	local caseId = findCase({ args[1] or "" })
+	local percent = wholeIn(args[2], 1, 99)
+	local minutes = wholeIn(args[3], 1, D.MaxSaleMinutes)
+	if caseId == nil or percent == nil or minutes == nil then
+		try(player, "Sale")
+		return
+	end
+	local case = Cases.get(caseId)
+	if case and case.Enabled and Items.setSale(caseId, percent, os.time() + minutes * 60) then
+		tell(player, Dev.SaleOn:format(caseName(caseId), percent, minutes))
+	else
+		tell(player, Dev.SaleNotSold:format(caseName(caseId)))
+	end
+end
+
+-- /freecase: the free-case rule run as if the caller had just won a real match (Ranking).
+local function freeCase(player: Player)
+	if not PlayerData.isLoaded(player) then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	local caseId, cue = Ranking.freeCase(player)
+	local progress = PlayerData.progress(player)
+	local daily = PlayerData.dailyState(player)
+	local wins = if progress then progress.Wins else 0
+	local today = if daily then daily.Wins else 0
+	if caseId and cue then
+		tell(player, Dev.FreeCaseFirst:format(caseName(caseId), cueName(cue), today, wins))
+	elseif caseId then
+		tell(player, Dev.FreeCaseGave:format(caseName(caseId), today, wins))
+	else
+		tell(player, Dev.FreeCaseNone:format(today, wins))
+	end
+end
+
+local function econHelp(player: Player)
+	tell(player, Dev.EconHelp)
+	for _, key in ECON do
+		local what = WHAT[key]:format(table.unpack(WHAT_ARGS[key] or {}))
+		tell(player, Dev.HelpLine:format(usage(key), what))
+	end
 end
 
 function DevCommands.start()
@@ -243,15 +838,18 @@ function DevCommands.start()
 	command("Rank", D.Rank, setRank)
 	command("Xp", D.Xp, function(player, args)
 		-- XP is never lost (ECONOMY 4.1): only a gain.
-		local n = amount(args[1], false)
-		if n == nil or n < 1 then
+		local n = amount(args[1])
+		local typed = tonumber(args[1] or "")
+		if typed ~= nil and typed < 0 then
+			tell(player, Dev.XpNeverLost:format(D.Xp))
+		elseif n == nil or n < 1 then
 			tell(player, Dev.BadAmount:format(D.Xp))
 		elseif not Ranking.addXp(player, n) then
 			tell(player, Dev.NotLoaded)
 		end
 	end)
 	command("Money", D.Money, function(player, args)
-		local n = amount(args[1], false)
+		local n = amount(args[1])
 		if n == nil then
 			tell(player, Dev.BadAmount:format(D.Money))
 		elseif PlayerData.setMoney(player, n) then
@@ -261,7 +859,7 @@ function DevCommands.start()
 		end
 	end)
 	command("AddMoney", D.AddMoney, function(player, args)
-		local n = amount(args[1], false)
+		local n = amount(args[1])
 		if n == nil or n < 1 then
 			tell(player, Dev.BadAmount:format(D.AddMoney))
 		elseif PlayerData.addMoney(player, n, "DevCommand") then
@@ -287,17 +885,83 @@ function DevCommands.start()
 	command("RankHelp", D.RankHelp, function(player)
 		tell(player, Dev.Help)
 	end)
-	-- Studio only: tests type a command through ServerStorage.DevCommandsQA
-	-- (Invoke(userId, "/rank gold 3")), since a script cannot type into Roblox's chat box.
+
+	-- The economy.
+	command("GiveCue", D.GiveCue, giveCue)
+	command("GiveCase", D.GiveCase, giveCase)
+	command("OpenCase", D.OpenCase, openCase)
+	command("Inv", D.Inv, showInventory)
+	command("ClearInv", D.ClearInv, clearInventory)
+	command("Dupes", D.Dupes, giveDupes)
+	command("SetDay", D.SetDay, setDay)
+	command("NewDay", D.NewDay, function(player)
+		tell(player, if PlayerData.newDay(player) then Dev.NewDay else Dev.NotLoaded)
+	end)
+	command("Playtime", D.Playtime, function(player, args)
+		local minutes = wholeIn(args[1], 0, 24 * 60)
+		if minutes == nil then
+			try(player, "Playtime")
+		elseif PlayerData.setPlayMinutes(player, minutes) then
+			tell(player, Dev.PlaytimeSet:format(minutes))
+		else
+			tell(player, Dev.NotLoaded)
+		end
+	end)
+	command("Buy", D.Buy, buy)
+	command("Vip", D.Vip, pass("Vip"))
+	command("FastOpen", D.FastOpen, pass("FastOpen"))
+	command("Party", D.Party, function(player)
+		local endsAt = Store.startParty(player)
+		tell(player, Dev.Party:format(math.max(0, math.ceil((endsAt - os.time()) / 60))))
+	end)
+	command("Policy", D.Policy, function(player, args)
+		local on = ({ restricted = true, normal = false } :: { [string]: boolean })[args[1] or ""]
+		if on == nil then
+			try(player, "Policy")
+			return
+		end
+		Items.setRestricted(player, on)
+		tell(player, if on then Dev.PolicyOn else Dev.PolicyOff)
+	end)
+	command("Sale", D.Sale, sale)
+	command("Rookie", D.Rookie, function(player, args)
+		local n = wholeIn(args[1], 0, S.StatCap)
+		if n == nil then
+			try(player, "Rookie")
+		elseif PlayerData.setRealMatches(player, n) then
+			local left = math.max(0, Config.Ranks.Boosts.RookieMatches - n)
+			tell(player, Dev.RookieSet:format(n, left))
+		else
+			tell(player, Dev.NotLoaded)
+		end
+	end)
+	command("FreeCase", D.FreeCase, freeCase)
+	command("EconHelp", D.EconHelp, econHelp)
+
+	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
+	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,
+	-- { the lines told back, in order }), or (false, {}) when that player is not here. Every
+	-- command in `handlers` is reachable. A /buy waits for its grant (up to about 15 s) so its
+	-- answer is in the lines; /opencase's reel request reaches the client a moment later.
 	if RunService:IsStudio() then
 		local hook = Instance.new("BindableFunction")
 		hook.Name = "DevCommandsQA"
 		hook.OnInvoke = function(userId: number, text: string)
 			local player = Players:GetPlayerByUserId(userId)
-			if player then
-				dispatch(player, text)
+			if not player then
+				return false, {}
 			end
-			return player ~= nil
+			local lines = {}
+			captured[player] = lines
+			local ok, err = pcall(function(): any
+				dispatch(player, text)
+				return nil
+			end)
+			captured[player] = nil
+			if not ok then
+				error(err, 0)
+			end
+			return true, lines
 		end
 		hook.Parent = game:GetService("ServerStorage")
 	end

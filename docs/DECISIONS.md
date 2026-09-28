@@ -1701,3 +1701,42 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the Money Party shows the latest buyer's username. Playtime counts every second the save is
   loaded, AFK included; the code box waits 2 s between tries, and a malformed code answers
   "That code doesn't exist".
+- 2026-09-28 (overnight assumption): the menus. A full menu (Shop, Inventory, Rewards, Trade)
+  is the same kind of screen as the roadmap and reuses its slight dim; a tap on the dim closes
+  it; one menu at a time; all close when a match starts. On a phone the panel takes the whole
+  screen with its title in Roblox's top-bar row, and the tabs share that row when they fit. The
+  Shop and Inventory show a money pill in their header, and money earned inside a menu flies to
+  that pill. Gamepad: the column's tiles are never selectable (a selected button would take the
+  stick from walking); in the hub the D-pad opens them (up Shop, right Inventory, down Rewards,
+  left Trade) and each tile shows its D-pad glyph while a gamepad is in use.
+- 2026-09-28 (overnight assumption): the Inventory. The detail panel always shows a cue (the
+  first on open) and each open resets the filter to All; Sell asks first from Epic up, Sell all
+  duplicates always asks; Exclusive, Unique and Classic show a padlock and "Can't be sold";
+  NEW tags clear when the player leaves the Cues tab; the tabs carry their own red dots (new
+  cues, unopened cases, a claimable Index row).
+- 2026-09-28 (overnight assumption): the case opening. The reel is drawn from the true odds (a
+  Standard reel is mostly grey and green); the prize sits at slot 34 of 40 and lands at a random
+  point on its card; 4.2 s spin, 6 s for Mythic and Secret with the build-up starting 1.8 s
+  before the stop; rays from Epic, confetti from Legendary; tapping outside the card does
+  nothing (X, Done, B close it); Fast Open's grid puts the rarest card last and chooses it, and
+  has no Sell. The first win's reveal plays in place of the result screen's cards, then the
+  result and NEW RANK! follow. The backdrop over a menu is dark enough to hide the menu's title.
+- 2026-09-28 (overnight assumption): the Shop. The VIP line reads "Same case odds as everyone";
+  the Standard Case says "Any rarity can drop"; Buy 10 carries a "Pay for 9" sticker; there is
+  no confirm before buying cases with money (buttons fade while a request is out); a Fast Open
+  owner's "Open now" after Buy 10 opens all ten; the Starter Pack stays listed as Owned until
+  its window ends; the first-purchase double shows as a ribbon plus an x2 pill per pack (the
+  amounts stay at their base values); pack names Handful ... Fortune from ECONOMY 11.1.
+- 2026-09-28 (overnight assumption): Rewards and Trade. The seven day tiles are a 4 + 3 grid
+  (day 7 double-wide) so they fit a phone; the reminder names the best part of tomorrow's
+  reward ("your Rare Case and more!") and says "Your daily reward is ready!" while today's is
+  unclaimed; the toast shows at the bottom middle when Roblox's menu opens or the window loses
+  focus, at most once every 2 minutes; a playtime gift shows Claim from the client's estimate;
+  a code's answer shows under the box (above a phone keyboard). Trade lists everyone else in
+  the server with a grey Trade button that says "Trading is coming soon!".
+- 2026-09-28 (overnight assumption): the existing screens. A boost of +100% or more reads as a
+  multiplier ("ROOKIE x2"), a smaller one as a percent ("VIP +50%"); boost colours Rookie
+  green, First win gold, Streak red, VIP rainbow; "+0 XP" is white; NEW RANK! stays 5 s; the
+  column shows while a case or cue flies to it; the ROOKIE pill hangs under the XP bar's right
+  end; VIP names get a rainbow sweep now and then; chat lines for unboxings and Reyes post at
+  once, even during a match. Rank cues count in the copies in existence too.

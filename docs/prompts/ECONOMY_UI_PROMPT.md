@@ -673,22 +673,22 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 5a. Icons drawn and compared with the references (column, cases, packs, shop and rewards
   icons, cue thumbnail layers).
 - [x] 5b. Icons uploaded, ids in Config, README; a few checked rendering in Play.
-- [ ] 6. The left column (four buttons, red dots, hidden in a match, gamepad route) and the
+- [x] 6. The left column (four buttons, red dots, hidden in a match, gamepad route) and the
   shared `Menus` module (one at a time, close rules, the roadmap moved onto it).
-- [ ] 7a. Inventory: Cues tab (grid, filters, detail, equip, sell, sell all duplicates).
-- [ ] 7b. Inventory: Cases tab and the reel opening (plus Fast Open's grid).
-- [ ] 7c. Inventory: Index tab (silhouettes, rows, claims, titles).
-- [ ] 8a. Shop: Cases tab (buy, buy 10, Odds panel, sale display, need-more jump, restricted note).
-- [ ] 8b. Shop: Limited tab (Beta Cue working with copy numbers; Founder's placeholder).
-- [ ] 8c. Shop: Money and VIP tabs with every Robux product as a placeholder.
-- [ ] 9. Robux plumbing: Config.Products, prompts, ProcessReceipt once-only, passes, VIP, offer
+- [x] 7a. Inventory: Cues tab (grid, filters, detail, equip, sell, sell all duplicates).
+- [x] 7b. Inventory: Cases tab and the reel opening (plus Fast Open's grid).
+- [x] 7c. Inventory: Index tab (silhouettes, rows, claims, titles).
+- [x] 8a. Shop: Cases tab (buy, buy 10, Odds panel, sale display, need-more jump, restricted note).
+- [x] 8b. Shop: Limited tab (Beta Cue working with copy numbers; Founder's placeholder).
+- [x] 8c. Shop: Money and VIP tabs with every Robux product as a placeholder.
+- [x] 9. Robux plumbing: Config.Products, prompts, ProcessReceipt once-only, passes, VIP, offer
   windows, Starter Pack, Money Party, Fast Open, `/buy`; receipt tests.
-- [ ] 10. Rewards: Daily streak (with day 28), Playtime gifts, Codes, reminders.
-- [ ] 11. Trade menu frame marked Soon.
-- [ ] 12. Existing screens: result screen (case chip, boosts, first-win reveal), NEW RANK! reward
+- [x] 10. Rewards: Daily streak (with day 28), Playtime gifts, Codes, reminders.
+- [x] 11. Trade menu frame marked Soon.
+- [x] 12. Existing screens: result screen (case chip, boosts, first-win reveal), NEW RANK! reward
   chips, roadmap tiles real, ROOKIE pill, [VIP] tag, banner, Reyes announcement.
-- [ ] 13. Dev commands (`/econhelp` and the list in section 14) working in Studio.
-- [ ] 14. Sounds for the reel and reveals found, checked and wired.
+- [x] 13. Dev commands (`/econhelp` and the list in section 14) working in Studio.
+- [x] 14. Sounds for the reel and reveals found, checked and wired.
 - [ ] 15. Full playthrough and every new screen checked on PC, phone sizes and tablet (section 15).
 - [ ] 16. Audit by a fresh subagent and branch-wide bug review; findings fixed.
 - [ ] 17. Polish pass.
@@ -749,3 +749,20 @@ done becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   rolled as a cue (`firstWin`), money x2 in the party; the second win: Silver I's Rare Case, the
   Silver Cue and $300, and a free Standard Case. Copies counter flushed and read (attributes on
   `ReplicatedStorage.CueCounts`), a Mythic unbox banner shown. Team pay needs two real clients.
+- **Wave 3 checked in Studio (2026-09-28).** PC window (1529x751) and phones by shrinking each
+  menu's `Root` frame to 750x361 and 844x390 inside the Play window (the menus lay out from
+  their root's size, so this is the phone layout; the HUD stays PC-sized). Inventory: Cues grid
+  with NEW, x3, Equipped, lock, filters and the detail panel (Sell $15,000 for the Mythic, Equip);
+  Cases rows, Open on the reel, the prize card (Equip, Sell, Open next), Fast Open's grid of ten;
+  Index silhouettes and row rewards. Shop: four case cards, Odds panel totalling 100%, a 20%
+  Epic sale with struck price and countdown, "Need $X more", Buy then "Open now" on the reel,
+  the restricted note, Limited (Beta Cue 1 of 1,000, Founder's "Coming soon"), Money packs and
+  the VIP tab with Robux prices (a fix: they were hidden behind "Coming soon"). Rewards: daily
+  claim with flying cash and the check, playtime bars, code 8BALL redeemed. Trade: the Soon
+  frame. A fresh save's first real win: the Rare Case reel inside the result screen, then the
+  result card (ROOKIE x2, FIRST WIN x2, the reminder line) and NEW RANK! with money, 2 cases,
+  the Bronze Cue and [BRONZE]. Roadmap tiles show the real case and cue. Chat: [BRONZE] [VIP]
+  rainbow, and the rainbow first-Reyes line; banners for an unbox and Money Party. Dev commands
+  through `DevCommandsQA`. Gamepad: D-pad down/right open Rewards/Inventory, RB switches tabs;
+  D-pad up and B cannot be sent by the MCP (Roblox core bindings), and the reminder toast needs
+  Roblox's menu or a focus loss: all three are on the hand-check list. Console clean.

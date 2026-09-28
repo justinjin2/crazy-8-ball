@@ -83,7 +83,9 @@ local REMOTES: { [string]: string } = {
 	-- (money), newTier, rewards? = {{index, money, cases = {[caseId] = count}, cue?}},
 	-- rewardCases? = {[caseId] = count}, rewardCues? = {cueId}} (the NEW RANK! chips).
 	RankEvent = "RemoteEvent",
-	-- server -> one player: a private line for the chat window (the developer commands).
+	-- server -> one player: a private line for the chat window (the developer commands), or a
+	-- table { kind = "OpenCase", caseId, count } that opens that case on the reel (/opencase;
+	-- CaseOpening listens, the chat handler ignores tables).
 	DevNotice = "RemoteEvent",
 	-- The global queue and the arena (designer, 2026-09-28).
 	-- server -> the players of one search: {kind = "Found" | "Teleporting" | "Failed" |

@@ -8,7 +8,12 @@
 --   They queue and show one at a time for Banner.Seconds each, with the Banner sound.
 -- - The Money Party countdown from the workspace attributes MoneyPartyEndsAt (unix seconds, the
 --   server's clock) and MoneyPartyBuyer (a username): "Money Party! 2x money for everyone:
---   14:32 (from Painicane)", up while the party runs, making way for one-off lines.
+--   14:32 (from Painicane)", up while the party runs. Workspace attributes reach everyone, so
+--   a player who joins during a party sees it too. It takes turns with one-off lines: after
+--   each line the countdown shows for PartyTurnSeconds before the next, so neither is lost.
+-- - An unboxing and the Reyes news also go into the chat window as a system line, in the same
+--   colours (ChatTags.system): at once, even in a match, since chat is not the top of the
+--   screen.
 --
 -- In a match everything waits (overnight decision, 2026-09-28): the top of the screen is the
 -- match's (the top bar, the turn popup, the move and series pills under it), so the banner
@@ -23,6 +28,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
@@ -82,6 +88,7 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 	self.queue = {} :: { Line }
 	self.current = nil :: Line?
 	self.currentUntil = 0
+	self.partyTurnUntil = 0 -- the party's countdown has the banner until then (between lines)
 	self.up = false -- showing (or popping in)
 	self.shownKey = nil :: string? -- "line" or "party": what is up
 	self.fallbackPartyEnds = nil :: number? -- a Party banner's end, until the attribute says
@@ -150,11 +157,10 @@ function Banner.onBanner(self: any, payload: any)
 		local rarity = name(payload.rarity) or CueThumb.rarityOf(cue)
 		local sentences: { [string]: string } = COPY.Unbox :: any
 		local sentence = sentences[rarity] or sentences.Default
-		self:push({
-			text = sentence:format(who, CueThumb.cueName(cue)),
-			color = CueThumb.accentColor(rarity),
-			at = os.clock(),
-		})
+		local text = sentence:format(who, CueThumb.cueName(cue))
+		local tint = CueThumb.accentColor(rarity)
+		self:push({ text = text, color = tint, at = os.clock() })
+		ChatTags.system(ChatTags.paint(text, tint))
 	elseif kind == "Party" then
 		self:push({
 			text = if who then COPY.PartyStarted:format(who) else COPY.PartyStartedAnon,
@@ -170,11 +176,9 @@ function Banner.onBanner(self: any, payload: any)
 		if not who then
 			return
 		end
-		self:push({
-			text = (if kind == "FirstReyes" then COPY.FirstReyes else COPY.Reyes):format(who),
-			rainbow = true,
-			at = os.clock(),
-		})
+		local text = (if kind == "FirstReyes" then COPY.FirstReyes else COPY.Reyes):format(who)
+		self:push({ text = text, rainbow = true, at = os.clock() })
+		ChatTags.system(ChatTags.rainbow(text))
 	end
 end
 
@@ -211,18 +215,25 @@ function Banner.party(self: any, now: number): (number?, string?)
 end
 
 -- What shows now: a one-off line while it lasts, the next one queued, the party, or nothing.
+-- While a party runs, its countdown gets a turn between two lines.
 function Banner.tick(self: any)
 	if self.inMatch then
 		self:hide()
 		return
 	end
 	local clockNow = os.clock()
+	local serverNow = workspace:GetServerTimeNow()
+	local ends, buyer = self:party(serverNow)
 	local current: Line? = self.current
 	if current and clockNow >= self.currentUntil then
 		current = nil
 		self.current = nil
+		if ends and #self.queue > 0 then
+			self.partyTurnUntil = clockNow + B.PartyTurnSeconds
+		end
 	end
-	while not current and #self.queue > 0 do
+	local partyTurn = ends ~= nil and clockNow < self.partyTurnUntil
+	while not current and not partyTurn and #self.queue > 0 do
 		local nextLine = table.remove(self.queue, 1) :: Line
 		if clockNow - nextLine.at <= B.MaxAgeSeconds then
 			current = nextLine
@@ -235,8 +246,6 @@ function Banner.tick(self: any)
 		self:show(current.text, current.color, current.rainbow == true, "line")
 		return
 	end
-	local serverNow = workspace:GetServerTimeNow()
-	local ends, buyer = self:party(serverNow)
 	if ends then
 		local left = clock(ends - serverNow)
 		local text = if buyer

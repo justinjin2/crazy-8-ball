@@ -35,6 +35,7 @@ local Nameplates = require(script.Parent.Nameplates)
 local NewRankPopup = require(script.Parent.NewRankPopup)
 local RankHud = require(script.Parent.RankHud)
 local ResultScreen = require(script.Parent.ResultScreen)
+local RewardChips = require(script.Parent.RewardChips)
 local RewardsMenu = require(script.Parent.RewardsMenu)
 local Roadmap = require(script.Parent.Roadmap)
 local ShopMenu = require(script.Parent.ShopMenu)
@@ -169,6 +170,11 @@ function Progression.start(screen: ScreenGui, hooks: Hooks)
 	-- The economy's screens share one table of the things they fly to and open; a field set
 	-- after a menu is built is still seen by it (they read it when used).
 	local deps: any = { money = money, flyer = flyer, rankHud = rankHud }
+	-- The result screen and NEW RANK! were built before this table: they read it when used
+	-- (the free case and rank rewards fly to deps.column; the first win's reveal is
+	-- deps.caseOpening's).
+	result:setDeps(deps)
+	newRank:setDeps(deps)
 	caseOpening = CaseOpening.new(screen, deps)
 	deps.caseOpening = caseOpening
 	ShopMenu.new(screen, deps)
@@ -306,8 +312,13 @@ function Progression.update(state: State)
 	lastState = state
 	local busy = result:isOpen() or newRank:isOpen()
 	rankHud:setVisible(not state.inMatch and not busy)
+	-- Under the result screen and NEW RANK! the column still shows while a case or cue flies
+	-- into its Inventory tile (RewardChips), so the tile is there to catch it.
 	column:setVisible(
-		not state.inMatch and not busy and not caseOpening:isOpen() and not teleportUp()
+		not state.inMatch
+			and (not busy or RewardChips.catching())
+			and not caseOpening:isOpen()
+			and not teleportUp()
 	)
 	column:setPadRoute(not state.inMatch and not Menus.isOpen())
 	banner:setInMatch(state.inMatch)

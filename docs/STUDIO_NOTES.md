@@ -95,6 +95,24 @@ print(require(game.ReplicatedStorage.Shared.TableBuilder).prepareImport(require(
   `BindToRenderStep` at any priority loses to the game's camera. Disconnect when done.
 - The controller's ButtonA through `user_keyboard_input` fires a shot (hold to ramp the power);
   a mouse drag on the power bar near the top of the screen hits Roblox's CoreGui.
+- In the PC window (no emulator, 2026-09-28) `user_mouse_input` takes GUI coordinates: the
+  top bar's inset (58 px) is added to y, and `screen_capture` returns the viewport scaled up
+  (1920x943 for a 1529x751 viewport). Click a point seen in a capture at
+  (x / scale, y / scale - 58); read `workspace.CurrentCamera.ViewportSize` for the scale.
+- `user_keyboard_input` cannot press Escape either (a CoreGui action); close menus with their
+  close button or a click outside.
+- `script_grep` finds nothing while a Play session runs; check Rojo's sync in Edit, or look
+  for a startup print in the console.
+- The economy's Studio test hooks (ServerStorage BindableFunctions, Studio only):
+  `PlayerDataQA` (every save mutation, `read`, `snapshot`, `reset`), `ItemsQA` (`request`
+  runs an ItemRequest as that player, `setSale`, `setRestricted`, `flush`/`refresh` the
+  copies counter, `unbox`/`reyes`/`party` banners), `StoreQA` (`state`, `grant` a product with
+  a purchase id, `setPass`, `buy`, `receipt`), `RewardsQA` (`state`, `request`, `credit`).
+  A real 1v1 win for the settle: `PoolMatchQA:Invoke("fixture", 1, { phase = "Aiming",
+  finalEight = true, brokeAgo = 120, calledPocket = 2 })`, then `Invoke("shot", 1, { angle =
+  math.pi / 2, power = 0.35, epoch = snap.epoch, turnId = snap.turnId })`. To read what the
+  client got, connect the remote in a Client `execute_luau` and store the payload as JSON in
+  a LocalPlayer attribute.
 
 ## SurfaceAppearance facts (tested 2026-09-24)
 

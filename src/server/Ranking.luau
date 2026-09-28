@@ -109,6 +109,13 @@ end
 -- a rank-up and its reward can never be split; paid once, since the peak moves with them).
 -- A peak that reaches the top division is announced. False when the save refused it.
 local function applyRank(player: Player, result: Ranks.MatchResult): boolean
+	-- The tier cues it gives count in the copies in existence once they land (an Exclusive
+	-- cue already owned is skipped by PlayerData).
+	local before = PlayerData.read(player)
+	local owned: { [string]: number } = {}
+	for _, cue in result.rewardCues do
+		owned[cue] = if before then Inventory.count(before, cue) else 0
+	end
 	local ok = PlayerData.applyRank(player, {
 		RankXp = result.xpAfter,
 		PeakDivision = result.peakAfter,
@@ -117,6 +124,15 @@ local function applyRank(player: Player, result: Ranks.MatchResult): boolean
 	if not ok then
 		warn(("[8ball] Ranking: the rank change for %s was refused"):format(player.Name))
 		return false
+	end
+	local after = PlayerData.read(player)
+	if after then
+		for cue, count in owned do
+			local gained = Inventory.count(after, cue) - count
+			if gained > 0 then
+				Counters.add(cue, gained)
+			end
+		end
 	end
 	if result.peakBefore < TOP_INDEX and result.peakAfter >= TOP_INDEX then
 		Announce.reyes(player)

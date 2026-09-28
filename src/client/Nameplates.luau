@@ -19,6 +19,10 @@
 -- the first win in a row (the WinStreak attribute, Stats.WinStreak in the save); it bounces
 -- when it goes up and is gone after a loss. The plate keeps its place over the head: the
 -- BillboardGui is StreakShare taller and lifted by SizeOffset so the new line sits above it.
+--
+-- A VIP (the Vip attribute, set by the server; brief section 13) gets a subtle shine: now and
+-- then a narrow band of the house rainbow sweeps across their white name (a UIGradient on the
+-- name, moved on one shared clock), so VIP reads as the bold rainbow without shouting.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -33,6 +37,8 @@ local UIAnim = require(script.Parent.UIAnim)
 
 local P = Config.UI.Progress.Nameplate
 local K = Config.UI.Kit
+-- The house rainbow (UI_STYLE 4, VIP), as the rank HUD's Reyes bar.
+local RAINBOW: { { number } } = Config.UI.Progress.RankHud.ReyesColors :: any
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 -- Names are measured at this size to find how wide they are for their height.
 local MEASURE_PX = 100
@@ -46,6 +52,8 @@ type Plate = {
 	name: TextLabel,
 	streak: TextLabel, -- "🔥 3" over the name
 	streakShown: number, -- the streak on it (0: none)
+	shine: UIGradient, -- the VIP's rainbow band on the name (enabled for a VIP)
+	vip: boolean,
 	key: string?, -- the badge shown ("gold_3")
 	known: boolean, -- that badge came from the player's save (not the Unranked stand-in)
 	pending: boolean,
@@ -72,6 +80,46 @@ local function outlineFor(px: number): number
 		return K.TextOutlineThinPx
 	end
 	return math.max(K.TextOutlineMinPx, math.floor(px * K.TextOutlineRatio + 0.5))
+end
+
+-- The VIP shine's colours along the name: white (the text as it is), then a narrow band of the
+-- house rainbow in the middle, then white. Moving the gradient's Offset sweeps the band across.
+local VIP_SHINE: ColorSequence = (function(): ColorSequence
+	local white = Color3.new(1, 1, 1)
+	local half = math.clamp(P.VipBandShare, 0.05, 0.9) / 2
+	local keys = {
+		ColorSequenceKeypoint.new(0, white),
+		ColorSequenceKeypoint.new(0.5 - half - 0.001, white),
+	}
+	for i, c in RAINBOW do
+		local at = 0.5 - half + (2 * half) * (i - 1) / math.max(1, #RAINBOW - 1)
+		table.insert(keys, ColorSequenceKeypoint.new(at, HudParts.color(c)))
+	end
+	table.insert(keys, ColorSequenceKeypoint.new(0.5 + half + 0.001, white))
+	table.insert(keys, ColorSequenceKeypoint.new(1, white))
+	return ColorSequence.new(keys)
+end)()
+
+-- Where the VIP band is now (the gradient's X offset): it crosses the name in VipShineSeconds,
+-- then waits off to the side for VipShineEvery. One clock for every plate.
+local function shineOffset(now: number): number
+	local sweep = math.max(0.1, P.VipShineSeconds)
+	local phase = now % (sweep + math.max(0, P.VipShineEvery))
+	if phase >= sweep then
+		return 1
+	end
+	local t = phase / sweep
+	return -1 + 2 * (t * t * (3 - 2 * t))
+end
+
+-- Show whether the player is a VIP (their Vip attribute, which only the server sets).
+local function showVip(plate: Plate)
+	local vip = plate.player:GetAttribute("Vip") == true
+	plate.vip = vip
+	plate.shine.Enabled = vip
+	if not vip then
+		plate.shine.Offset = Vector2.new(1, 0)
+	end
 end
 
 -- Show the player's rank from their attributes; `pop` bounces it if it changed.
@@ -183,6 +231,7 @@ function Nameplates.new(): any
 				self.elapsed = 0
 				self:update()
 			end
+			self:shineVips()
 		end)
 	)
 	return self
@@ -243,6 +292,12 @@ function Nameplates.add(self: any, player: Player)
 	name.AnchorPoint = Vector2.new(0, 0.5)
 	name.Position = UDim2.fromScale((1 + P.GapShare) / units, 0.5)
 	name.Size = UDim2.fromScale(nameWidth / units, P.NameShare)
+	local shine = Instance.new("UIGradient")
+	shine.Name = "VipShine"
+	shine.Color = VIP_SHINE
+	shine.Offset = Vector2.new(1, 0)
+	shine.Enabled = false
+	shine.Parent = name
 	gui.Parent = self.playerGui
 	local plate: Plate = {
 		player = player,
@@ -251,6 +306,8 @@ function Nameplates.add(self: any, player: Player)
 		name = name,
 		streak = streak,
 		streakShown = 0,
+		shine = shine,
+		vip = false,
 		key = nil,
 		known = false,
 		pending = false,
@@ -262,10 +319,17 @@ function Nameplates.add(self: any, player: Player)
 	self.plates[player] = plate
 	showRank(plate, false)
 	showStreak(plate, false)
+	showVip(plate)
 	table.insert(
 		plate.connections,
 		player:GetAttributeChangedSignal("WinStreak"):Connect(function()
 			showStreak(plate, true)
+		end)
+	)
+	table.insert(
+		plate.connections,
+		player:GetAttributeChangedSignal("Vip"):Connect(function()
+			showVip(plate)
 		end)
 	)
 	-- RankTier and RankDivision change together: one refresh for both.
@@ -353,6 +417,17 @@ function Nameplates.update(self: any)
 					stroke.Thickness = outline
 				end
 			end
+		end
+	end
+end
+
+-- Every frame: sweep the VIP band across the names of the VIPs being drawn (a handful at most).
+function Nameplates.shineVips(self: any)
+	local offset: Vector2? = nil
+	for _, plate in self.plates do
+		if plate.vip and plate.gui.Enabled and plate.gui.Adornee and plate.fade < 1 then
+			offset = offset or Vector2.new(shineOffset(os.clock()), 0)
+			plate.shine.Offset = offset :: Vector2
 		end
 	end
 end

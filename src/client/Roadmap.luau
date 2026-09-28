@@ -14,9 +14,11 @@
 -- tier (Bronze when Unranked, with no tier yours).
 --
 -- Tapping a tier (or A on it) chooses it: a gold outline, and the rewards card shows what the
--- tier gives the first time you reach it: its money, a case and a cue (not given yet: Soon),
--- and its chat tag, drawn as chat draws it (ChatTags). It opens on your next tier. Rewards you
--- already have show a check. The rank card shows your badge, rank and XP bar, and an arrow to
+-- tier gives the first time you reach it (ECONOMY 4.8, Config.Ranks.Rewards.Tier): its money,
+-- its case (that case's own chest, its name and count: "Epic Case" and "x2"), its chat tag,
+-- drawn as chat draws it (ChatTags), and its cue (the cue's thumbnail and name, Catalog.tierCue).
+-- It opens on your next tier. Rewards already earned (the tier's division I at or under your
+-- PeakDivision) show a check. The rank card shows your badge, rank and XP bar, and an arrow to
 -- your next division with the money it pays (only the first time you reach it).
 --
 -- States come from the local player's attributes (RankXp, RatedMatches, PeakDivision); any
@@ -41,11 +43,14 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Progression = Shared:WaitForChild("Progression")
+local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
 local Ranks = require(Progression:WaitForChild("Ranks"))
 local ChatTags = require(script.Parent.ChatTags)
+local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
+local RewardChips = require(script.Parent.RewardChips)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -64,12 +69,13 @@ local TIERS: { string } = Config.Ranks.Tiers
 local TOP_TIER = TIERS[#TIERS]
 local PER_TIER: number = Config.Ranks.DivisionsPerTier
 local TIER_COLORS: { [string]: { number } } = Config.Ranks.Colors :: any
--- Each tier's division I reward row (ECONOMY 4.8): Money, Cases, Cue.
-local TIER_REWARDS: { [string]: { Money: number } } = Config.Ranks.Rewards.Tier :: any
+-- Each tier's division I reward row (ECONOMY 4.8): Money, Cases ({ [caseId] = count }), Cue.
+type TierReward = { Money: number, Cases: { [string]: number }?, Cue: string? }
+local TIER_REWARDS: { [string]: TierReward } = Config.Ranks.Rewards.Tier :: any
+local CASE_ORDER: { string } = Config.Cases.Order
+local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
 local ICONS: { [string]: string } = K.Icons :: any
--- The case and chat-tag icons (tools/gen_ui_art.py: case, chat_tag); stand-ins from the set
--- until their ids are in Config.UI.Kit.Icons.
-local CASE_ICON = if ICONS.Case then "Case" else "Trophy"
+-- The chat-tag icon (tools/gen_ui_art.py: chat_tag); a stand-in from the set without its id.
 local CHAT_ICON = if ICONS.ChatTag then "ChatTag" else "People"
 local QUICK = Config.Multiplayer.Style.QuickMotion
 local CLOSE_ACTION = "8ballRoadmapClose"
@@ -99,12 +105,10 @@ type Cell = {
 type Tile = {
 	frame: Frame,
 	corner: UICorner,
-	icon: ImageLabel,
+	icon: GuiObject, -- the picture: a glossy icon, or the cue tile's CueThumb
 	value: TextLabel,
 	label: TextLabel?, -- the small word under the value (the cue has none: its name may wrap)
 	check: ImageLabel, -- a reward you already have
-	soon: Frame?, -- a reward not given yet
-	soonWords: TextLabel?,
 }
 
 type Tiles = { money: Tile, case: Tile, chat: Tile, cue: Tile }
@@ -295,7 +299,7 @@ local function makeBar(parent: Instance, name: string): (Frame, Frame)
 	return track, fill
 end
 
--- A small round tag with words (Current Rank, Next Rank, Soon), hung by its bottom middle.
+-- A small round tag with words (Current Rank, Next Rank), hung by its bottom middle.
 -- Its words keep one line at their set size; the tag is sized from them.
 local function makeTag(
 	parent: Instance,
@@ -473,14 +477,14 @@ local function makeCell(self: any, order: number, tier: string): Cell
 	return cell
 end
 
--- One reward tile: a white rounded tile with the icon over the value and a small word, a
--- check once you have it, and a yellow Soon tag on a reward not given yet.
+-- One reward tile: a white rounded tile with the picture (an icon, or a cue's thumbnail when
+-- `cue`) over the value and a small word, and a check once you have it.
 local function makeTile(
 	parent: Instance,
 	name: string,
 	iconKey: string,
 	words: string?,
-	soon: boolean
+	cue: boolean
 ): Tile
 	local frame = HudParts.frame(parent, name)
 	frame.BackgroundTransparency = 0
@@ -492,7 +496,10 @@ local function makeTile(
 	fade.Rotation = 90
 	fade.Color = ColorSequence.new(WHITE, color(K.PanelFade))
 	fade.Parent = frame
-	local icon = HudParts.icon(frame, iconKey, "Icon")
+	local icon: GuiObject = if cue
+		then CueThumb.new(frame, Catalog.Default)
+		else HudParts.icon(frame, iconKey, "Icon")
+	icon.Name = "Icon"
 	icon.AnchorPoint = Vector2.new(0.5, 0)
 	icon.ZIndex = 2
 	local value = HudParts.text(frame, "Value", K.Text.Body, "")
@@ -505,13 +512,6 @@ local function makeTile(
 	check.AnchorPoint = Vector2.new(1, 0)
 	check.ZIndex = 3
 	check.Visible = false
-	local tag: Frame?, tagWords: TextLabel? = nil, nil
-	if soon then
-		local made, madeWords = makeTag(frame, "Soon", GOLD, P.Soon)
-		made.AnchorPoint = Vector2.new(1, 0)
-		made.ZIndex = 4
-		tag, tagWords = made, madeWords
-	end
 	return {
 		frame = frame,
 		corner = corner,
@@ -519,8 +519,6 @@ local function makeTile(
 		value = value,
 		label = label,
 		check = check,
-		soon = tag,
-		soonWords = tagWords,
 	}
 end
 
@@ -676,7 +674,7 @@ function Roadmap.buildRewards(self: any, card: Frame)
 	self.nudge = nudge
 	local tiles: Tiles = {
 		money = makeTile(holder, "Money", "CashStack", P.RewardMoney, false),
-		case = makeTile(holder, "Case", CASE_ICON, P.RewardCount:format(1), true),
+		case = makeTile(holder, "Case", RewardChips.caseIcon(nil), nil, false),
 		chat = makeTile(holder, "ChatTag", CHAT_ICON, P.RewardChatTag, false),
 		cue = makeTile(holder, "Cue", "Cue", nil, true),
 	}
@@ -684,7 +682,9 @@ function Roadmap.buildRewards(self: any, card: Frame)
 	-- The tag exactly as chat shows it (RichText colours; Reyes letter by letter).
 	tiles.chat.value.RichText = true
 	tiles.chat.value.AutoLocalize = false
-	tiles.cue.value.TextYAlignment = Enum.TextYAlignment.Top -- it may take two lines
+	-- The case ("Legendary Case x2") and the cue's name may take two lines.
+	tiles.case.value.TextYAlignment = Enum.TextYAlignment.Top
+	tiles.cue.value.TextYAlignment = Enum.TextYAlignment.Top
 	self.tiles = tiles
 	self.tileOrder = { tiles.money, tiles.case, tiles.chat, tiles.cue }
 end
@@ -1267,7 +1267,27 @@ function Roadmap.drawNext(self: any, line: NextLine, width: number, height: numb
 	end
 end
 
--- The chosen tier's rewards: its money, a case, its chat tag and a cue, in tiles as wide as
+-- A tier's case reward: the first case of its row in the shop's order, and how many.
+local function tierCase(row: TierReward?): (string?, number)
+	local cases = if row then row.Cases else nil
+	if type(cases) ~= "table" then
+		return nil, 0
+	end
+	for _, id in CASE_ORDER do
+		local count = cases[id]
+		if type(count) == "number" and count > 0 then
+			return id, count
+		end
+	end
+	for id, count in cases do -- a case not in the order (never, but keep it showing)
+		if type(count) == "number" and count > 0 then
+			return id, count
+		end
+	end
+	return nil, 0
+end
+
+-- The chosen tier's rewards: its money, its case, its chat tag and its cue, in tiles as wide as
 -- their words need (equal when they all fit).
 function Roadmap.drawRewards(self: any)
 	local geo: Geo? = self.geo
@@ -1300,17 +1320,25 @@ function Roadmap.drawRewards(self: any)
 	local tierRow = TIER_REWARDS[tier]
 	local money = Format.moneyDelta(if tierRow then tierRow.Money else 0)
 	local plainTag = Strings.Ranks.ChatTag:format(string.upper(name))
-	local cue = P.TierCue:format(name)
+	local caseId, caseCount = tierCase(tierRow)
+	local caseWords = if caseId
+		then P.RewardCaseCount:format(CASE_NAMES[caseId] or caseId, caseCount)
+		else ""
+	local cueId = (if tierRow then tierRow.Cue else nil) or Catalog.tierCue(tier)
+	local cue = if cueId then CueThumb.cueName(cueId) else P.TierCue:format(name)
 	tiles.money.value.Text = money
-	tiles.case.value.Text = P.RewardCase
+	tiles.case.value.Text = caseWords
+	HudParts.setIcon(tiles.case.icon :: ImageLabel, RewardChips.caseIcon(caseId))
 	tiles.chat.value.Text = ChatTags.tagFor(tier) or plainTag
 	tiles.cue.value.Text = cue
+	CueThumb.set(tiles.cue.icon :: Frame, cueId or Catalog.Default)
 
-	-- Each tile's least width: its words on one line, but the cue's name may take two.
+	-- Each tile's least width: its words on one line, but the case and the cue's name may
+	-- take two (then the longest word sets it).
 	local labelSize = math.max(K.Text.Min, body - 2)
 	local tp = math.max(3, round(tilesH * 0.06))
-	local values = { money, P.RewardCase, plainTag, cue }
-	local labels = { P.RewardMoney, P.RewardCount:format(1), P.RewardChatTag, "" }
+	local values = { money, caseWords, plainTag, cue }
+	local labels = { P.RewardMoney, "", P.RewardChatTag, "" }
 	local needs: { number } = {}
 	local total = 0
 	for i, words in values do
@@ -1318,13 +1346,15 @@ function Roadmap.drawRewards(self: any)
 		total += needs[i]
 	end
 	if total > inner then
-		local longest = 0
-		for word in string.gmatch(cue, "%S+") do
-			longest = math.max(longest, textWidth(word, body))
+		for _, i in { 2, 4 } do
+			local longest = 0
+			for word in string.gmatch(values[i], "%S+") do
+				longest = math.max(longest, textWidth(word, body))
+			end
+			total -= needs[i]
+			needs[i] = longest + 2 * tp + 6
+			total += needs[i]
 		end
-		total -= needs[4]
-		needs[4] = longest + 2 * tp + 6
-		total += needs[4]
 	end
 	local biggest = math.max(needs[1], needs[2], needs[3], needs[4])
 	local widths: { number } = {}
@@ -1338,8 +1368,6 @@ function Roadmap.drawRewards(self: any)
 	local valueH, labelH = body + 4, labelSize + 2
 	local iconSize = math.max(16, tilesH - 2 * tp - valueH - labelH)
 	local check = round(tilesH * R.TileCheckShare)
-	local soonH = math.max(K.Text.Min + 4, spanPx(R.SoonPx, geo.t))
-	local soonText = math.max(K.Text.Min, round(soonH * 0.72))
 	local corner = UDim.new(0, spanPx(R.TileCornerPx, geo.t))
 	local x = 0
 	for i, tile: Tile in self.tileOrder do
@@ -1367,17 +1395,14 @@ function Roadmap.drawRewards(self: any)
 		end
 		tile.check.Size = UDim2.fromOffset(check, check)
 		tile.check.Position = UDim2.fromOffset(width - 2, 2)
-		local soon, soonWords = tile.soon, tile.soonWords
-		if soon and soonWords then
-			HudParts.setTextSize(soonWords, soonText)
-			soon.Size = UDim2.fromOffset(round(textWidth(P.Soon, soonText) + soonH), soonH)
-			soon.Position = UDim2.fromOffset(width - 3, -round(soonH * 0.35))
-		end
 	end
-	-- A check on the rewards given now, for a tier you have reached.
-	local earned = (Ranks.tierIndex(tier) or 0) <= state.order
-	tiles.money.check.Visible = earned
-	tiles.chat.check.Visible = earned
+	-- A check on every reward of a tier already reached: its division I is at or under the
+	-- best division ever reached (PeakDivision), so its rewards were paid.
+	local first = Ranks.indexOf(tier, 1) or math.huge
+	local earned = first <= state.peak
+	for _, tile: Tile in self.tileOrder do
+		tile.check.Visible = earned
+	end
 end
 
 --------------------------------------------------------------------------------------------
