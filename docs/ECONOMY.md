@@ -63,7 +63,7 @@ change as the game grows are listed with their triggers in section 14.
 | Diamond much harder, Classic fades | Diamond 4,000 RP, Classic win halved, losses cost | 53-64 matches a division in the hard modes; Classic stalls at 50% |
 | From Expert: only Difficult/Challenger climb, skill decides | Elo-style RP, Classic x0.2 | Expert averages the top 25% by skill, Veteran the top 7%, Master the top 1.5% |
 | Losses: gain a little to Gold, 0 in Platinum, lose a little in Diamond, Elo from Expert | Loss table, section 4.2 | as asked |
-| Less for beating much lower players | Opponent-gap factor, section 4.4 | 1 division lower x0.86, a tier lower x0.38, two tiers lower x0.11 |
+| Less for beating much lower players | Opponent-gap factor, section 4.4 | to Diamond: a tier lower x0.55, never under x0.3; from Expert: a tier lower x0.38, two tiers x0.11 |
 | A few dozen Reyes, a few hundred Grandmasters | Leaderboard seats that grow with the player count | section 4.7 |
 | VIP 2x money, 2x EXP, not overpowered | EXP never touches rank, VIP never touches odds | first legendary 1-2 days sooner, first mythic about 10 days sooner |
 | Onboarding feels fast | Rookie Boost, fast Bronze/Silver, early rewards (section 2) | Level 6 and Silver I in the first hour |
@@ -119,8 +119,8 @@ Average match: winner about $134 (7.5 balls, half a nice shot, the win), loser a
 | Ball and nice-shot pay | full | full | 30% ($3 a ball) | full |
 | Win / loss bonus | $50 / $15 | **$25 / $8** | none | $50 |
 | Daily limit | none (anti-farm rules, 3.6) | after **$1,000** of PC money in a UTC day, PC pays half (never zero) | after **$300** of solo money in a UTC day, $1 a ball | once |
-| Free case for the winner | every win (section 7.1) | **every 2nd PC win** | never | yes, plus the first win's Rare Case |
-| RP | full | x0.5 | none | places you at Bronze I |
+| Free case for the winner | every win (section 7.1) | **every win** (same limits) | never | yes, plus the first win's Rare Case |
+| RP | full | x0.75 to Diamond, x0.5 from Expert | none | places you at Bronze I |
 | EXP | full | x0.5 | 20 a game (first 5 games a day) | full |
 
 ### 3.3 Team matches (2v2, 3v3)
@@ -222,24 +222,28 @@ play Classic without risking their rank).
 ### 4.4 Beating much lower players pays less (smurf protection)
 
 The gap is your division minus the opponent's (Bronze I = 1 ... Master V = 40; a team uses the
-opposing team's average). The factor comes from the Elo expectation with a scale of 8
-divisions:
+opposing team's average). The factor comes from the Elo expectation. It is **gentler from
+Bronze to Diamond** (scale 12 divisions, a win never under 30%), because in a small server
+the only people around may be weaker, and **strict from Expert up** (scale 8, down to 10%),
+where rank should mean skill:
 
 | Gap (divisions) | +15 | +10 | +8 | +5 | +3 | +2 | +1 | 0 | -1 | -2 | -3 | -5 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Win x | 0.10 | 0.11 | 0.18 | 0.38 | 0.59 | 0.72 | 0.86 | 1 | 1.14 | 1.28 | 1.41 | 1.50 |
-| RP-losing loss x | 1.50 | 1.50 | 1.50 | 1.50 | 1.41 | 1.28 | 1.14 | 1 | 0.86 | 0.72 | 0.59 | 0.50 |
+| Win x, Bronze to Diamond | 0.30 | 0.30 | 0.35 | 0.55 | 0.72 | 0.81 | 0.90 | 1 | 1.10 | 1.19 | 1.28 | 1.45 |
+| Win x, Expert and up | 0.10 | 0.11 | 0.18 | 0.38 | 0.59 | 0.72 | 0.86 | 1 | 1.14 | 1.28 | 1.41 | 1.50 |
+| RP-losing loss x, Expert and up | 1.50 | 1.50 | 1.50 | 1.50 | 1.41 | 1.28 | 1.14 | 1 | 0.86 | 0.72 | 0.59 | 0.50 |
 
-Formula: E = 1 / (1 + 10^(-gap / 8)); win factor = 2(1 - E), clamped 0.1 to 1.5; a loss that
-costs RP uses 2E, clamped 0.5 to 1.5; a loss that still gains RP (Bronze to Gold) uses the win
-factor, capped at 1. A Gold V who beats a Bronze II gets 10% of the win. The win bonus money
+Formula: E = 1 / (1 + 10^(-gap / scale)); win factor = 2(1 - E), clamped to the floor (0.3
+or 0.1) and 1.5; a loss that costs RP uses 2E, clamped 0.5 to 1.5; a loss that still gains RP
+(Bronze to Gold) uses the win factor, capped at 1. A Gold V who beats a Bronze II gets 30% of
+the win. The win bonus money
 uses the same factor (never under half); ball money is untouched.
 
 ### 4.5 PC, forfeits
 
-- **PC**: every RP change x0.5. At launch that holds at every tier, so a lone high player in a
-  quiet server can still climb against the bot of their rank; once the global queue exists and
-  the top is busy, drop it to x0.1 from Expert (section 14).
+- **PC**: every RP change **x0.75 from Bronze to Diamond and x0.5 from Expert** at launch, so
+  a player in a quiet server still climbs against the bot of their rank. Once the global queue
+  exists and the top is busy, Expert and up drops to x0.1 (section 14).
 - **Forfeits**: as built. The forfeiter gets the loss (never the Bronze-Gold consolation RP),
   the winner is paid only after the one-minute mark.
 
@@ -308,6 +312,22 @@ At an hour a day: Diamond in under two weeks, Expert in 1.5 to 2 months. At 3 ho
 strong player reaches the Grandmaster race in about 5 to 6 weeks. In practice players' win
 rates fall as they climb, which is what stops the average player at Diamond.
 
+**A small game** (model, hours of play to reach each tier, and the first 10 hours' money and
+free cases). "Weaker" means every opponent is 5 divisions below you and you win 75%; "mix" is
+half bots, half weaker players:
+
+| Who they play | Silver | Gold | Platinum | Diamond | Expert | Money an hour | Free cases an hour |
+|---|---|---|---|---|---|---|---|
+| Equal players | 1.1 h | 2.4 h | 5.9 h | 10.9 h | 60 h | $800 | 3.6 |
+| Only bots | 1.3 h | 3.2 h | 7.9 h | 14.7 h | over 80 h | $650 | 3.6 |
+| Only weaker players | 1.1 h | 3.1 h | 7.7 h | 13.7 h | 66 h | $800 | 5.4 |
+| Half bots, half weaker | 1.2 h | 3.1 h | 7.8 h | 14.2 h | 72 h | $720 | 4.4 |
+
+So Diamond takes 11-15 hours of play in every case: **inside a week at about 2 hours a day**,
+about two weeks at an hour a day. Before these three changes (bots x0.5, a PC case every 2nd
+win, the strict gap everywhere) the bot-only and weaker-only players needed 20-22 hours and a
+bot-only player got half the cases.
+
 ### 4.11 What the ranks look like after a few months (simulation)
 
 Simulation (`ranks`): 4,000 new players a day, most leaving on day one and a few staying
@@ -317,19 +337,19 @@ and players per 1,000 peak CCU:
 
 | Tier | Day 30 | Day 90 | Day 120 | Per 1k peak CCU (day 120) | Mean skill (day 120) |
 |---|---|---|---|---|---|
-| Bronze | 22.2% | 14.8% | 13.0% | 1,690 | -0.14 |
-| Silver | 17.7% | 11.8% | 10.9% | 1,420 | -0.12 |
-| Gold | 22.5% | 16.1% | 14.7% | 1,910 | -0.12 |
-| Platinum | 16.3% | 13.0% | 12.0% | 1,560 | -0.18 |
-| Diamond | 20.4% | 35.7% | 37.0% | 4,810 | -0.11 |
-| Expert | 0.9% | 7.0% | 9.4% | 1,220 | +0.70 |
-| Veteran | 0.07% | 1.5% | 2.5% | 320 | +1.50 |
-| Master | 0 | 0.16% | 0.46% | 59 | +2.19 |
-| Master V (Grandmaster race) | 0 | 0.02% | 0.06% | 8 | +2.77 |
+| Bronze | 22.1% | 14.3% | 13.0% | 1,670 | -0.15 |
+| Silver | 17.6% | 12.0% | 10.8% | 1,390 | -0.15 |
+| Gold | 22.3% | 15.9% | 14.5% | 1,860 | -0.11 |
+| Platinum | 15.9% | 12.9% | 11.5% | 1,470 | -0.21 |
+| Diamond | 20.8% | 34.7% | 36.0% | 4,620 | -0.13 |
+| Expert | 1.2% | 8.3% | 10.7% | 1,370 | +0.63 |
+| Veteran | 0.09% | 1.8% | 2.9% | 370 | +1.47 |
+| Master | 0 | 0.22% | 0.52% | 67 | +2.17 |
+| Master V (Grandmaster race) | 0 | 0.03% | 0.11% | 15 | +2.91 |
 
-So at 5,000 peak CCU after four months, about 40 players would be racing for the seats (a
-few Reyes and the rest Grandmaster), about 300 Masters and 1,600 Veterans; at 500 CCU, about
-30 Masters and a few players in the race. The simulation leaves out the 3-loss shield and
+So at 5,000 peak CCU after four months, about 70 players would be racing for the seats (a
+few Reyes and the rest Grandmaster), about 330 Masters and 1,800 Veterans; at 500 CCU, about
+30 Masters and a handful in the race. The simulation leaves out the 3-loss shield and
 bots, and its retention and playtime are guesses, so read it for shape, not exact counts.
 
 Diamond is the long plateau where most regular players settle; Expert and up are sorted by
@@ -398,7 +418,8 @@ The winner of every real match (person or PC, over the one-minute mark, not a qu
 gets a **Standard Case**, as follows:
 - **New players**: every win, for their first **50 wins** (about the first week).
 - **After that**: every win for the first **10 wins each UTC day**, then **every 2nd win**.
-- PC wins drop one on every 2nd PC win. Solo never drops cases.
+- PC wins drop one too, under the same limits (a bot of your rank is a real match, not a
+  farm). Solo never drops cases.
 - Anti-farm limits in section 3.6.
 - The very first win's case is a **Rare Case** instead, opened on the post-match screen with
   Equip (GDD section 14).
@@ -691,7 +712,7 @@ unchanged at any size; these are the dials to revisit:
 
 | Dial | Launch | Change when |
 |---|---|---|
-| PC RP at Expert and up | x0.5 | the global queue is live and there are 200+ Master and up: x0.1 |
+| PC RP | x0.75 to Diamond, x0.5 from Expert | the global queue is live and there are 200+ Master and up: Expert and up x0.1 |
 | Diamond division | 4,000 RP | after 60 days, if under 1% of weekly players have reached Expert: 3,000 |
 | Expert to Master divisions | 1,500 / 2,000 / 2,000 | after 90 days, if nobody is eligible for Grandmaster: shrink by a quarter |
 | Reyes and Grandmaster seats | automatic, at most 50 / 500 | raise the caps only if the game passes about 20,000 CCU |

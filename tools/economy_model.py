@@ -143,8 +143,13 @@ MODE_RP_MULT = {"Classic": 1.0, "Difficult": 1.25, "Challenger": 1.5}
 # Classic's diminishing returns: a factor on Classic WINS by tier (Expert and up: on losses too).
 CLASSIC_WIN_FACTOR = {"Diamond": 0.5, "Expert": 0.2, "Veteran": 0.2, "Master": 0.2, "Grandmaster": 0.2}
 CLASSIC_LOSS_FACTOR = {"Expert": 0.2, "Veteran": 0.2, "Master": 0.2, "Grandmaster": 0.2}
-GAP_SCALE = 8.0  # divisions: the logistic's scale for the opponent-gap factor
-PC_RP_MULT_LOW, PC_RP_MULT_HIGH = 0.5, 0.5  # Bronze-Diamond / Expert and up (launch; 0.1 once the global queue exists)
+# The opponent-gap factor's logistic scale (divisions) and the lowest a win can fall to. Gentler
+# from Bronze to Diamond, where a small server may only offer weaker opponents; strict from Expert.
+GAP_SCALE_LOW, GAP_FLOOR_LOW = 12.0, 0.3  # Bronze to Diamond
+GAP_SCALE, GAP_FLOOR = 8.0, 0.1  # Expert and up
+# PC RP share: Bronze-Diamond / Expert and up (launch values; Expert+ drops to 0.1 once the
+# global queue exists and the top is busy).
+PC_RP_MULT_LOW, PC_RP_MULT_HIGH = 0.75, 0.5
 
 # Cumulative RP where each division starts. Division index 1 = Bronze I ... 40 = Master V.
 DIV_START = [0]
@@ -186,10 +191,11 @@ def floor_rp(div):
     return DIV_START[tier_index * 5]
 
 
-def gap_factors(gap):
+def gap_factors(gap, my_div=40):
     """gap = my division - opponent division. Returns (win factor, gain-on-loss factor, loss factor)."""
-    e = 1.0 / (1.0 + 10 ** (-gap / GAP_SCALE))
-    win = min(max(2 * (1 - e), 0.1), 1.5)
+    scale, floor = (GAP_SCALE_LOW, GAP_FLOOR_LOW) if my_div <= 25 else (GAP_SCALE, GAP_FLOOR)
+    e = 1.0 / (1.0 + 10 ** (-gap / scale))
+    win = min(max(2 * (1 - e), floor), 1.5)
     return win, min(win, 1.0), min(max(2 * e, 0.5), 1.5)
 
 
@@ -198,7 +204,7 @@ def rp_change(rp, won, mode, opp_div, vs_pc=False):
     tier = tier_of_div(div)
     w, l = BASE_RP[tier]
     m = MODE_RP_MULT[mode]
-    win_f, pos_loss_f, neg_loss_f = gap_factors(div - opp_div)
+    win_f, pos_loss_f, neg_loss_f = gap_factors(div - opp_div, div)
     if won:
         delta = w * m * win_f
         if mode == "Classic":
@@ -492,9 +498,11 @@ def tables():
         print(f"  {tier:10s} width {DIV_WIDTH[tier]:5d}  C {row[0]} {row[1]}   D {row[2]} {row[3]}   Ch {row[4]} {row[5]}")
     print(f"\n  Grandmaster/Reyes leaderboard eligibility at {GM_THRESHOLD:,} RP")
     print("\nOpponent-gap factors (gap in divisions; + means you are higher)\n")
-    for g in (-5, -3, -2, -1, 0, 1, 2, 3, 5, 8, 10, 15):
-        wf, pl, nl = gap_factors(g)
-        print(f"  gap {g:+3d}: win x{wf:4.2f}  small-gain loss x{pl:4.2f}  RP-losing loss x{nl:4.2f}")
+    for label, d in (("Bronze to Diamond", 20), ("Expert and up", 30)):
+        print(f"  {label}")
+        for g in (-5, -3, -2, -1, 0, 1, 2, 3, 5, 8, 10, 15):
+            wf, pl, nl = gap_factors(g, d)
+            print(f"    gap {g:+3d}: win x{wf:4.2f}  small-gain loss x{pl:4.2f}  RP-losing loss x{nl:4.2f}")
 
 
 # ------------------------------------------------------------------------------------------

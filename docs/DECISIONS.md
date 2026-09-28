@@ -1598,3 +1598,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-27 (designer): deals are only on cases (bulk 10-for-9, occasional genuine case sales,
   timed special event cases with their own cues), never a guaranteed case cue. The Limited
   shelf of timed exclusives stays.
+- 2026-09-27 (designer asked for a small-game check): bots give x0.75 RP to Diamond (x0.5 from
+  Expert) and a free case on every win; the opponent-gap factor is gentler from Bronze to
+  Diamond (scale 12, never under 30%) and strict from Expert. Before, a player with only bots
+  or only weaker opponents needed twice as long to reach Diamond (Claude's call from the model).
