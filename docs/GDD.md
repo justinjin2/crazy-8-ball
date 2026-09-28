@@ -509,7 +509,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   section 11.
 - **Money packs are sold for Robux.** Because of that, every loot box, gacha and trade is a
   paid random item under Roblox policy: odds are shown on every box, and players in regions
-  where paid random items are restricted get a direct-purchase catalog instead of boxes.
+  where paid random items are restricted cannot buy cases with money (free cases still open;
+  the Limited shelf, a known cue at a fixed price, stays; ECONOMY.md section 13).
 - **First release collectibles are cue skins only (decided 2026-09-23).** There are no table
   skins at release: every table uses the standard model. Table skins are parked in
   section 18 for after release.
@@ -554,11 +555,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   money boost) and Fast Open; later a Cue Pass, gifts, emotes and more. Never anything that
   helps win, protects rank or changes odds. ECONOMY.md section 11.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
-  type field leaves room for table skins later. Every cue is a unique object with its own ID
-  and a serial number for limited items. Abilities are owned flags. **Cues can be traded,
+  type field leaves room for table skins later. A cue is saved as a count per catalog id
+  (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
+  Unique cues keep their copy number (#412). Abilities are owned flags. **Cues can be traded,
   including VIP and starter-offer ones. Abilities are account-bound. Money is never traded.**
   Trading is in the first release (designer, 2026-09-26; it was planned for after).
-- **Index** (designer, 2026-09-26): a collection screen of the game's cues.
+- **Index** (designer, 2026-09-26): a collection screen of the game's cues (what it shows:
+  the 2026-09-28 line below).
 - **Cue models:** every cue is its own small mesh plus a named effect style. Hundreds are
   expected, added as data rows plus assets.
 - **Shop, inventory, the index, trading, save data and the first-time flow exist before the
@@ -629,17 +632,21 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Longer guideline lines for learning (2026-09-23):** the tutorial and first playthrough use
   the longer object/cue lines (`Config.Guideline.TutorialStubLengthInches`, 16 in). Normal play
   uses the shorter `StubLengthInches` (8 in) to keep aiming a challenge.
-- **First win:** a free cue box opened right on the post-match screen with a reveal (skewed
-  toward rare, epic or legendary) and an Equip button, plus extra money.
+- **First win:** a free **Rare Case**, rolled by the server when the match settles and opened
+  on the reel inside the post-match screen with an Equip button, plus the first-win and Rookie
+  XP boosts (built 2026-09-28; ECONOMY.md sections 7.1 and 18).
 - Unranked to Bronze after one game. The first opponent shows a much higher rank so the win
   feels earned. PC is labelled "PC" everywhere else; disguised PCs never appear on
   leaderboards and are stored as PC in match records.
-- **Daily 7-day streak:** every day's reward is meaningful (day 1 a box, day 2 a rarer box,
-  day 7 something great). A stay-long-enough playtime reward (for example a cue).
+- **Daily 7-day streak:** every day's reward is meaningful: $250, 2 Standard Cases, $500, a
+  Rare Case, $1,000, 2 Rare Cases, an Epic Case, and a Legendary Case on day 28 of four full
+  weeks (the streak then starts week 1 again). Playtime gifts at 10, 30 and 60 minutes a day.
+  Numbers: ECONOMY.md section 10 (built 2026-09-28, in the Rewards menu).
 - **Reminders:** Roblox cannot put text inside its own leave menu, but the game knows when the
   menu opens (`GuiService.MenuOpened`) and when the window loses focus. Both trigger a subtle
   in-game reminder ("Come back tomorrow for your free rare box"). The same reminder sits on
-  the post-match screen.
+  the post-match screen. Built 2026-09-28: the line names tomorrow's real reward, or says
+  today's is ready while it is unclaimed.
 - A funnel is tracked with Roblox's built-in analytics: joined, reached a table, first shot,
   first pocket, used ability (if abilities come), won, opened box, equipped, second match.
 
@@ -720,4 +727,3 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - The abilities toggle while abilities are out (section 6); whether abilities come (section 9).
 - A pro-lobby teaser door at release (section 10).
 - The bots' details (section 11).
-- What the index shows (section 12).

@@ -1,6 +1,48 @@
 # Status
 
-**2026-09-28 (latest, branch `ranks-money`): the global queue, the arena and rematch.**
+**2026-09-28 (latest, branch `economy`, overnight run): the whole economy.**
+
+- **Built (docs/prompts/ECONOMY_UI_PROMPT.md; the morning report is
+  `docs/prompts/ECONOMY_UI_REPORT.md`):** the real rank and money numbers from `docs/ECONOMY.md`
+  (the ladder, per-tier and mode XP, the Classic fade, XP never lost, the gap factor, PC pay,
+  team pay, the win streak, anti-farm, short matches, Rookie and first-win boosts); save v2
+  with a migration from v1; a catalog of 44 cues plus Classic (placeholder names and looks);
+  four money cases (Standard, Rare, Epic, Legendary) with true-odds rolls, selling and
+  duplicates; free win cases with their limits and the first win's Rare Case revealed on the
+  result screen; rank-up rewards paid for real (money, cases, the tier cue, [TIER]); the
+  copies-in-existence counter on every cue and the numbered Beta Cue (Limited). The left
+  column (Shop, Inventory, Rewards, Trade) with red dots and D-pad shortcuts; Inventory (Cues
+  with filters, detail, Equip and Sell, Cases, Index); cases open on a spinning reel, Fast
+  Open's grid of ten; Shop (Cases with Buy 10 and Odds, Limited, Money packs, VIP); Rewards
+  (a 7-day streak in four-week cycles, playtime gifts, codes, reminders); Trade as a "Soon"
+  frame. Robux ready to switch on: every product and pass in `Config.Products` with id 0
+  ("Coming soon"), receipts granted once, the starter and VIP offers, Money Party. The result
+  screen's boost chips and case chips, NEW RANK!'s rewards, the roadmap's real case and cue,
+  the ROOKIE pill, the [VIP] rainbow chat tag, banners for Mythic and Secret unboxings, Money
+  Party and Reyes. 17 economy dev commands (`/econhelp` lists them). New icons from
+  `tools/gen_ui_art.py`.
+- **Verified:** lint clean, 622 tests pass (new: ranks, money, save v2 and its migration, the
+  catalog, cases and odds, the inventory, daily, the shop, settle, requests). In Studio with
+  the real DataStores: a v1 save loaded as v2; buying, Buy 10, opening, Fast Open, selling
+  duplicates and every refusal through the server; Robux grants once per purchase id (Studio
+  QA hooks, not real receipts); daily, codes and playtime; a fresh save's first real win
+  (the Rare Case reel, the result chips, NEW RANK! with Bronze's rewards); a VIP win (2x
+  money, +50% XP) and a streak win; every new screen on the PC window, at 750 x 361 and
+  844 x 390 (phone) and 1024 x 700 (tablet) by resizing each menu inside the Play window.
+  Console clean. A fresh agent audited everything that pays, and a second reviewed the whole
+  branch (findings and fixes in the brief's Notes and the report).
+- **Needs a check by hand:** a real phone (touch, the keyboard over the code box), a
+  controller (D-pad up to the Shop and B to close cannot be sent by Studio's tools; selection
+  inside the menus), the reminder toast (open Roblox's menu), two real players (team pay, the
+  Trade list), and a live server: real Robux receipts once the ids are in, PolicyService and
+  MessagingService (the Reyes news across servers).
+- **To do (designer):** create the products and passes on the Creator Hub and paste their ids
+  (the report has the click-by-click guide), save and publish the place, then merge
+  `ranks-money` and `economy` into `main` when happy. Next session: trading.
+
+---
+
+**2026-09-28 (branch `ranks-money`): the global queue, the arena and rematch.**
 
 - **Built (designer's request, moved ahead of the roadmap):** Join Global Queue on every
   pad's host card (1v1 alone, 2v2 with 2 on the pad, 3v3 with 3; the first whole side goes).

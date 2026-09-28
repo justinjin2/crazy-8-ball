@@ -257,6 +257,10 @@ play-solo on PC; the phone, gamepad and two-player checks are open.*
   (Config hook only), seasons. **The real numbers were decided 2026-09-27**: `docs/ECONOMY.md`
   section 4 (reworked 2026-09-28: XP never lost, growing division sizes, fixed Reyes XP, XP
   boosts, the win streak and the opponent-gap factor).
+  Progress 2026-09-28 (branch `economy`, overnight): those real numbers are in (the ladder,
+  per-tier and mode XP, the Classic fade, XP never lost, the gap factor, the boosts and the
+  streak) and rank-up rewards pay money, cases, the tier cue and the chat tag for real.
+  Still to do: difficulty multipliers wait for the difficulty picker, the PC ceiling for bots.
 - [x] **6.6 EXP.** Dropped 2026-09-28 (designer): there is no separate account Level or EXP;
   rank XP is the one progression bar (`docs/ECONOMY.md` sections 4 and 5).
 - [ ] **6.2 Difficulty unlocks and warnings.** Host lock by peak rank, guest warning with Play
@@ -287,26 +291,59 @@ no automatic start against PC (designer).*
 
 ## Stage 4: Cues, economy and trading
 
-- [ ] **5.1 Item catalog and inventory.** Unified catalog (cues and abilities; the item type
+- [x] **5.1 Item catalog and inventory.** Unified catalog (cues and abilities; the item type
   leaves room for table skins later), unique IDs with serials, inventory UI, equip.
+  Done 2026-09-28 (branch `economy`, overnight): the catalog of 44 cues plus Classic as data
+  rows (`Progression/Catalog`), counts per cue in save v2 with copy numbers for numbered
+  Limited cues, the Inventory menu (Cues with filters, detail, Equip, Sell, sell all
+  duplicates; Cases; Index), equip replicated to everyone. Checked in Studio on PC and phone
+  sizes. Abilities are not catalog rows yet (they come with 3.x).
 - [ ] **5.2 Cues.** Cue model pipeline (one mesh per cue), 30 cues at release, rarities, pocket
   VFX for rare ones.
   Done means (5.1 to 5.2): equip a cue, walk to a pad, and play with it (its trail and pocket
   effect included).
+  Progress 2026-09-28 (branch `economy`, overnight): the rarities, 30 case cues plus ten rank
+  cues and the Starter, VIP, Founder's and Beta cues, all with placeholder names and looks
+  (colours on the built stick, the 2D power cue and a trail and pocket burst per rarity);
+  equipping one and playing a solo game with it checked in Studio. Still to do: the real cue
+  models (one mesh each) and their final effects.
 *Scope note (2026-09-23): first release ships cue skins only. Table skins (the old 5.3) moved
 to after release (Later, at the bottom).*
-- [ ] **5.4 Index.** A collection screen of the game's cues. What it shows for cues you do not
+- [x] **5.4 Index.** A collection screen of the game's cues. What it shows for cues you do not
   own, and whether filling it pays anything, are Open (GDD section 12).
+  Done 2026-09-28 (branch `economy`, overnight; the designer decided both): never-owned cues
+  are dark silhouettes with "?", and completing a rarity row pays once (money and a title up
+  to Epic, a title only for Legendary, Mythic and Secret). Checked in Studio.
 *Every number and rule for 7.1 to 7.7 (cases, odds, the shop, packs, VIP, the starter pack,
 daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **7.1 Money packs for Robux** and paid-random-item compliance: odds screens, restricted-
   region direct-purchase catalog.
-- [ ] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
+  Progress 2026-09-28 (branch `economy`, overnight): the six packs, the first-purchase double,
+  receipts granted once per purchase id (checked with Studio's QA hook), the Odds panel on
+  every case, and PolicyService's restricted players refused paid random cases (a note in the
+  Shop; free cases still open). Still to do: the product ids from the Creator Hub (id 0 shows
+  "Coming soon"), a live receipt, and a restricted-region direct-purchase shelf if needed.
+- [x] **7.2 Loot boxes.** Permanent cue box; Season 0 limited cue box.
+  Done 2026-09-28 (branch `economy`, overnight) for the money cases: Standard, Rare, Epic and
+  Legendary cases bought with money (Buy 10 for the price of 9, sales), free win cases, the
+  spinning reel and Fast Open's grid, duplicates and selling, Mythic and Secret banners. The
+  Event Case exists switched off; a Season 0 limited case waits for seasons.
 - [ ] **7.3 Limited shelf.** One economy menu; timed, numbered Limited cues (never in cases),
   including the Founder's and Beta cues; copies-in-existence counts on every cue.
+  Progress 2026-09-28 (branch `economy`, overnight): the Shop's Limited tab, the Beta Cue for
+  money with numbered copies ("#1 of 1,000"), the Founder's Cue for Robux (id 0), and "N exist"
+  on every cue from a shared counter. Still to do: a live check of the counters across
+  servers, and the real timed drops.
 - [ ] **7.5 VIP pass and starter offer.**
-- [ ] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
+  Progress 2026-09-28 (branch `economy`, overnight): VIP (2x money, +50% XP, the VIP Cue, the
+  [VIP] rainbow tag and name shine), Fast Open, the Starter Pack and the welcome VIP offer with
+  their timers, the Money Party; all behind product ids that are still 0. Still to do: the ids
+  and a live purchase.
+- [x] **7.6 Retention.** 7-day daily streak, playtime reward, reminders on menu open, focus
   loss and the post-match screen.
+  Done 2026-09-28 (branch `economy`, overnight): the daily streak in four-week cycles (a
+  Legendary Case on day 28), playtime gifts, codes, and the reminder line on the result screen
+  and the toast on Roblox's menu or a focus loss. Checked in Studio but the toast (hand check).
 - [ ] **7.7 Trading.** Cues only, never money (GDD section 12); moved into the release from
   after it. The save layer changes both players' saves together or not at all, so no cue is
   ever duplicated or lost. Done means: two players swap cues, and a trade broken off at any

@@ -769,3 +769,12 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
 - **Private servers** (when they come): no XP, no free cases, solo-rate money. The arena is a
   *reserved* server (`PrivateServerId` set but `PrivateServerOwnerId` 0) and never counts as
   private.
+- **Decided overnight (2026-09-28, overnight assumptions; each is a line in DECISIONS.md and
+  can be overruled):** match XP rounds half to even, as section 4.2's table was printed
+  (312.5 -> 312), and money rounds half up; the login streak runs in cycles of four weeks (the
+  Legendary Case on day 28, then week 1 again); a team's same-opponent count (3.6) is the
+  most-played opponent's; a player PolicyService never answers for is treated as restricted
+  for the session (cases already owned still open); a Limited copy number taken for a purchase
+  that then fails is burned, never reused; a Robux price is read once per server; placeholder
+  codes WELCOME ($500 and a Standard Case), 8BALL ($250) and ROOFTOP (a Rare Case, until
+  2026-12-31).

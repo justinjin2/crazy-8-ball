@@ -117,7 +117,6 @@ Nobody has listened to them yet: swap any by changing its id in `Config.Audio.Ui
 | XpFull | the XP bar reaching a division's top | 15675043410 "Roblox_UI_Tonal_Stinger" | 1.5 s |
 | RankUp | NEW RANK! | 1844692556 "Game Show" (APM Music) | 2.2 s |
 | NewTier | a new tier (bigger fanfare) | 1844584807 "Glamour Fanfare 4" (APM Music) | 3.7 s |
-| RankDown | a division lost (pitched 0.8) | 15675081158 "Roblox_UI_Cute_Goodbye" | 0.3 s |
 | BadgeHover | the rank badge under the mouse | 15675055424 "Roblox_UI_Cute_Pop" | 2.7 s (tail) |
 | Click | a button pressed | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |
 | ReelTick | the case reel: one card passing the marker (pitched 1.7) | 15675032796 "Roblox_UI_Small_Click" | 0.13 s |

@@ -246,15 +246,19 @@ order; that is Open.
     the winner crowned over turning rays with WINNER, then your XP bar and the money list
     counting up, the total flying into the HUD. Solo: one card and the money.
   - *NEW RANK!*: the big badge over turning rays, confetti, the name and the reward chip; a new
-    tier bursts from the old badge with "PLATINUM!"; a lost division is a small quiet card.
+    tier bursts from the old badge with "PLATINUM!". There is no rank-down card: XP is never
+    lost (2026-09-28). The reward chips under the name (2026-09-28): money, each case with its
+    chest, the tier's cue and the [TIER] tag, which fly to the column when it closes.
   - *The roadmap* (redesigned after reference 03, designer 2026-09-27): the ten tiers side by
     side (about five at once, < and > arrows plus swipe), each with its badge, name and five
     division dots; your tier bigger over turning rays with "Current Rank", the next with "Next
     Rank", later ones greyed. Below: your rank card (badge, XP bar, an arrow to the next
-    division and its money) and "Rewards for <tier>" (money, a Case, the [TIER] chat tag, the
-    tier's Cue; Case and Cue marked Soon); tapping a tier shows its rewards. No line of rules
+    division and its money) and "Rewards for <tier>" (money, the real cases with their chests,
+    the [TIER] chat tag, the tier's cue on its thumbnail; 2026-09-28); tapping a tier shows its
+    rewards. No line of rules
     under the cards (designer, 2026-09-27). The < and > arrows carry one white chevron image
-    each, drawn as a single stroke. Its slight dim is the only dim in the game.
+    each, drawn as a single stroke. Its slight dim is the only dim in the game, shared since
+    2026-09-28 by the full menus and the case opening (section 10).
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
     rainbow, letter by letter); none for Unranked.
   - *The rank HUD bounces as a whole* (designer, 2026-09-27): badge and pill grow together
@@ -288,3 +292,54 @@ order; that is Open.
   and red Leave. The series score, your side first, in gold where VS stood. During a
   rematch a small gold "Series 1-0" pill hangs under the clock (where the blue move pill goes
   with ball in hand, which wins that spot).
+
+## 10. The economy: the column, the menus and the reel (2026-09-28, overnight)
+
+Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
+`Config.UI.Menu`, `Config.UI.Shop`, `Config.UI.Inventory`, `Config.UI.Rewards` and
+`Config.UI.CaseOpening`. Lines marked *(assumption)* are overnight calls, logged in DECISIONS.
+
+- **The left column** (designer; reference 06): four square candy tiles, top to bottom Shop,
+  Inventory, Rewards, Trade, each a glossy icon poking out of its top and the word in white
+  with an ink outline across its bottom edge. 68 px on a computer, 46 px on a phone (under
+  the rank HUD there; centred on the left edge on a big screen), always above the money HUD.
+  A red dot with a count sits top right (unopened cases on Inventory, "9+" past nine; a dot
+  on Rewards while something can be claimed); the Shop carries a gold timer pill while an
+  offer window is open. Hidden in a match. On a gamepad the tiles are never selected (a
+  selected button would take the stick from walking): the D-pad opens them in the hub (up
+  Shop, right Inventory, down Rewards, left Trade) and each tile shows its D-pad glyph
+  *(assumption)*.
+- **A full menu** (`MenuFrame`): the roadmap's layout. On a phone the panel takes the whole
+  screen with its title in Roblox's top-bar row (the tabs share that row when they fit); on
+  a computer a panel up to 920 x 600 is centred under the bar. Title with its icon, tabs as
+  candy buttons, a money pill in the Shop's and Inventory's header, the red X. Cards are white
+  with a pale blue edge (the roadmap's reward tiles); a cue card wears its rarity: a coloured
+  edge inside the ink outline, a strip across the bottom and a soft wash, Mythic's slow pastel
+  shimmer with stars, Secret's dark fill with a breathing red glow *(assumption: UI_STYLE 4's
+  suggestion)*. The server's answers show as a short line at the bottom of the panel. Confirm
+  dialogs are the kit's dialog card with no dim.
+- **The dim** *(assumption)*: a full menu is the same kind of screen as the roadmap, so it
+  reuses its slight dim; a tap on the dim closes it; one menu at a time; all close when a
+  match starts. The case opening's backdrop is the one darker layer (0.5, and 0.45 over a
+  menu so the menu's title never reads through the reel's).
+- **The case colours** (reference 07, `tools/gen_ui_art.py` CHESTS): one chest drawing in five
+  colours, Standard grey (never Rare's blue), Rare blue, Epic purple, Legendary gold with a
+  shine, Event pink. Rarity colours stay UI_STYLE 4's.
+- **The reel** (designer: Rivals / CS style): a strip of cue cards drawn from the case's true
+  odds slides under a gold centre marker and eases to a stop on the prize (4.2 s; 6 s for
+  Mythic and Secret with a build-up from 1.8 s before the stop), ticking as cards pass. Then
+  the prize card pops with its rarity sting: turning rays from Epic, confetti from Legendary,
+  the bigger moment (shimmer, red glow) from Mythic. Tap (or A) skips to the result. The
+  prize card offers Equip, Sell and Open next; X, Done or B close it; a tap outside does
+  nothing *(assumption)*. Fast Open's grid of ten flips the cards one by one with the rarest
+  last and chosen, with no Sell. The first win's reel plays inside the result screen, before
+  its cards.
+- **Prices**: money with the cash bundle; Robux with Roblox's own Robux glyph inside the text
+  *(assumption)*; a product whose id is still 0 keeps its price and adds a small "Soon" tag.
+  A real sale shows the struck old price, the new one and its countdown; "Need $X more" on a
+  case the player cannot afford jumps to the Money tab.
+- **Chat and names**: "[VIP]" after the rank tag in the house rainbow, letter by letter; a VIP
+  name over the head gets a rainbow sweep now and then *(assumption)*; the top banner (Money
+  Party, a Mythic or Secret unboxing, Reyes) is one small kit card at the top middle under
+  Roblox's bar, with the line in the rarity's colour (Reyes in the rainbow); it waits during a
+  match, and an unboxing or Reyes also posts a chat line.
