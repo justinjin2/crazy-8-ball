@@ -1762,3 +1762,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   "!" for a complete Index row now shows a line in Rewards with an Open Index button (the
   row is claimed in Inventory > Index). Menus and the reel's backdrop are Modal, so shift
   lock never traps the cursor. The unbox banner waits 9 s, past the longest reel.
+- 2026-09-28: Abilities stay and come in the release, reworked as **ultimates**: one comeback
+  bar filled by the same rules for everyone (little for your own runs, a lot for trickshots and
+  for falling behind), used about once a match, activated before the shot with a short
+  cutscene, acting on the balls to help the user rather than sabotage. Replaces the cooldown
+  design (2026-09-20) and the "not in the release" call (2026-09-26). The designer wants a
+  trump card that levels the field when someone is down a lot.

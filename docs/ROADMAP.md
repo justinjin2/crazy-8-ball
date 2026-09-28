@@ -31,10 +31,10 @@ The designer's order, one stage at a time:
 5. **The first-time tutorial and funnel, then release.** Once everything else is done: the
    onboarding first match and the analytics funnel, then the performance pass and the game page.
 
-**Not in the release:** abilities and the pro lobby. The pro lobby follows about one to two
-weeks after release (nobody can reach the pro lobby's rank at launch anyway). Abilities are up
-for debate: they come only if, once ranks, bots, cues and the economy are in and played,
-matches need more fun. **The global queue was moved in and built first (designer,
+**Not in the release:** the pro lobby. It follows about one to two weeks after release
+(nobody can reach the pro lobby's rank at launch anyway). **Ultimates (the abilities, reworked)
+are in the release** (designer, 2026-09-28; GDD section 9); where they sit in the order is set
+once the designer's further details arrive. **The global queue was moved in and built first (designer,
 2026-09-28; below).**
 
 ---
@@ -379,25 +379,26 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
   and Challenger only.
 
-### Up for debate: abilities
+### Ultimates (in the release; the designer's details are coming)
 
-Not in the release. Once ranks, bots, cues and the economy are in and played, the designer
-decides whether matches need them. If they come, this is the plan (GDD section 9):
+The plan so far (GDD section 9):
 
-- [ ] **3.1 Ability framework.** Equip one ability; each ability declares target and firing
-  window; cooldown in the user's own turns; server-validated; developer flag that unlocks every
-  built ability for tests. Done means: a placeholder ability can be equipped, used, and is
-  greyed out until its cooldown ends.
-- [ ] **3.2 Magnet Pocket** (the starter ability everyone gets).
-- [ ] **3.3 Time Stop.**
-- [ ] **3.4 Super Bounce.**
+- [ ] **3.1 Ult framework.** Equip one ult; the ult bar and its fill rules (your own balls,
+  trickshots, the opponent's balls weighted by how far behind you are, a small per-turn
+  trickle); the full bar shakes; activate before the shot with a short cutscene and an "ULT"
+  mark on the cue ball; server-validated; developer flag that unlocks every built ult for
+  tests. Done means: a placeholder ult fills in a test match, shakes when full, is used before
+  a shot and empties, and a player 4-5 balls behind has a full bar.
+- [ ] **3.2 Magnet** (the starter ult everyone gets).
+- [ ] **3.3 Eagle's Eye.**
+- [ ] **3.4 The rest of the 13** as the designer picks them.
   Done means (3.2 to 3.4): each creates at least one "did you see that" moment in a test match
   and PC matches still feel fair.
 
-**FRIEND TEST 3.** Do abilities make matches more fun, or just more random? Tune.
+**FRIEND TEST 3.** Do ults bring matches back without deciding them? Tune the bar.
 
-- [ ] **7.4 Ability gacha.** Robux spins in packs, one free daily spin, keep everything, spin
-  credit for duplicates.
+- [ ] **7.4 How ults are earned.** Open (GDD section 9): the old plan was a Robux gacha, but
+  nothing that helps win is sold.
 
 ### Later
 

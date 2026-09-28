@@ -1,6 +1,11 @@
 # Status
 
-**2026-09-28 (latest, branch `economy`, overnight run): the whole economy.**
+**2026-09-28 (design only): abilities are back as ultimates, in the release** (GDD section 9,
+ROADMAP "Ultimates"). A comeback bar, used about once a match, activated before the shot. No
+code yet; the designer has more details coming and picks the other seven ults from the
+brainstorm list in section 9's Open.
+
+**2026-09-28 (branch `economy`, overnight run): the whole economy.**
 
 - **Built (docs/prompts/ECONOMY_UI_PROMPT.md; the morning report is
   `docs/prompts/ECONOMY_UI_REPORT.md`):** the real rank and money numbers from `docs/ECONOMY.md`

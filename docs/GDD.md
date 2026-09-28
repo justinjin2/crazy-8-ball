@@ -16,7 +16,8 @@ Ideas that are not scheduled live in section 18.
 
 A 3D, satisfying, chill, competitive and social 8-ball pool game on Roblox. Your own avatar lines
 up and plays every shot in a bright pool hall. It feels as crisp as GamePigeon 8-ball, with a
-twist: every player brings one ability that helps them or sabotages the opponent. Every ball you
+twist: every player brings one ultimate, a comeback trump card that fills up as they fall
+behind or pull off trickshots. Every ball you
 pocket pays money, win or lose. Money opens loot boxes of rare cues, ranks climb from
 Bronze to Reyes, and the rarest items can be traded. Built for phones first, with PC and console.
 
@@ -24,16 +25,16 @@ The goal is longevity: the respected, premier 8-ball game on Roblox that people 
 not a trend that dies.
 
 **The first release** (designer, 2026-09-26): the pool game on phone, PC and console, ranks
-and EXP, ten bots, cues, the economy and trading. **Not in it:** abilities and the pro lobby.
-The pro lobby follows about one to two weeks after release; abilities come only if matches
-need more fun once the rest is in (section 9). The global queue was moved into the release
+and EXP, ten bots, cues, the economy, trading and ultimates (the abilities, reworked; designer,
+2026-09-28; section 9). **Not in it:** the pro lobby, which follows about one to two weeks
+after release. The global queue was moved into the release
 and built first (designer, 2026-09-28; section 6). The order of work is in ROADMAP.md.
 
 ## 2. Audience and why Roblox
 
 **Decided**
 - Three audiences at once: adults who know pool and want a chill, skill-respecting game; pool
-  lovers wanting a fresh 3D take; kids (the platform majority) who come for the abilities and
+  lovers wanting a fresh 3D take; kids (the platform majority) who come for the ultimates and
   the collecting. The appeal for all of them is the same: satisfying sound, visuals and
   gameplay, replayability, the gacha and economy, socialising, and competition.
 - Why Roblox: it is the only platform where the player's own avatar plays the shot (2D pool
@@ -56,7 +57,7 @@ Every feature is checked against these. If it serves none, it waits.
 2. **Always something happening.** Fast turns, constant feedback, a reward for every ball.
    Always give the player something to do.
 3. **Your avatar is the star.** You see yourself line up, shoot and celebrate.
-4. **Skill respected, chaos welcome.** Abilities are balanced, never banned. Skill still wins
+4. **Skill respected, chaos welcome.** Ultimates are balanced comeback tools, never banned. Skill still wins
    over time, and the ranks make that visible.
 5. **Nobody leaves empty-handed.** Losing still pays. Casual players can still get rare things.
 
@@ -65,7 +66,7 @@ Every feature is checked against these. If it serves none, it waits.
 **Decided**
 - Inside a match (seconds): aim, shoot, watch, feedback (sound, popup, money), next turn.
 - Across matches (minutes): play, earn money for every ball plus bonuses, spend money on loot
-  boxes for cues, rank up, trade, repeat (and roll abilities, if they come; section 9).
+  boxes for cues, rank up, trade, repeat (and collect ultimates; section 9).
 - The currency is called **money** everywhere (UI, code, docs). Never "coins".
 
 ## 5. Platforms, controls and camera
@@ -210,7 +211,7 @@ Every feature is checked against these. If it serves none, it waits.
   down and a bit bigger (1.3x), on a big one (PC, console, tablet), kept above a tablet's jump
   button. The waiting line's three dots light up one by one
   so the wait looks alive. Public tables play
-  Classic with no abilities. If the host leaves, the next to arrive becomes host.
+  Classic (whether ults can be turned off: section 9). If the host leaves, the next to arrive becomes host.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
   about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU BREAK"
@@ -237,7 +238,7 @@ Every feature is checked against these. If it serves none, it waits.
   or in the wrong pocket loses (changed 2026-09-23; it no longer re-racks). No shot clock, money
   per ball, no win bonus, no rank change.
   Teams: teams alternate turns and teammates rotate (A1, B1, A2, B2), teammates share a group,
-  each player uses their own ability (if abilities come), the shot clock is per shooter, a
+  each player has their own ult and bar, the shot clock is per shooter, a
   whole team must agree to forfeit, PC can fill any seat, team matches are rated by team
   average.
 - Before any two-sided match a short **versus screen** shows each player's avatar, cue and
@@ -287,7 +288,7 @@ Every feature is checked against these. If it serves none, it waits.
 
 **Open**
 - Difficult and Challenger may be for pro lobbies only (designer thinking, 2026-09-27); until
-  then public tables play Classic. Abilities are not in the release and have no toggle.
+  then public tables play Classic. Whether a table can turn ults off is open (section 9).
 - Whether the arena gets its own map later (the reference image) or keeps the rooftop, and
   whether players in the lobby can watch arena matches.
 
@@ -351,34 +352,77 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   rank-up brings a big NEW RANK! popup. No finisher effect.
 - Emotes during the opponent's turn for players and spectators.
 
-## 9. Abilities
+## 9. Ultimates (abilities)
 
 **Decided**
-- **Not in the first release** (designer, 2026-09-26). Once ranks, bots, cues and the economy
-  are in and played, the designer decides whether matches need abilities to be more fun; it is
-  up for debate. Everything below is the design if they come.
-- Every player equips **exactly one** ability per match. Abilities are balanced: they add fun
-  and moments worth clipping, they do not decide matches by themselves. At the strongest they
-  can guarantee one ball goes in or stop the opponent pocketing one ball.
-- Every ability declares **who it targets** (me or opponent) and **when it may fire** (my turn,
-  opponent's turn, any time). The framework supports all of these from day one.
-- **Cooldowns count in the user's own turns** ("ready in 2 turns"), scaled to the ability's
-  power: weak abilities return fast, strong ones rarely.
-- Abilities are on by default; the host can turn them off for a match. Abilities-off matches
-  still count for rank.
-- **When abilities launch, every player has one starter ability: Magnet Pocket**, kept free
-  forever. All other abilities come from the ability gacha (section 12). Friend tests may
-  unlock every built ability with a developer flag in Config.
-- First three to build, in this order: **Magnet Pocket** (choose a pocket, for one shot it
-  gently pulls your balls toward it; a nudge that rescues near misses, never a vacuum),
-  **Time Stop** (freezes the shot clock for one turn with an original dramatic effect and
-  sound; no copyrighted audio), **Super Bounce** (rainbow cue ball that loses almost no speed
-  off rails for one shot; built into the physics). Every later ability follows the same
-  framework. Rarities match the item rarities (section 12).
+- **Abilities stay, are now called ultimates ("ults"), and come in the release** (designer,
+  2026-09-28; this replaces the 2026-09-26 "not in the release, up for debate" call and the
+  old cooldown design). The designer has more details coming; this is the general shape.
+- **An ult is a comeback trump card**, not a regular ability: its job is to level the playing
+  field so a player who is well behind can catch up. A player normally uses it **once** a
+  match, and **twice** only in rare long matches where nobody pockets for a long time.
+- **One ult bar per player, filled by the same rules for everyone** (never by what they own or
+  paid for), and proportional to what both players make:
+  - **Your own balls** fill a little, and less and less for balls in a row: a player on a run
+    gains little.
+  - **Trickshots** (the nice-shot kinds: Bank, Kick, Combo, Carom) fill a big chunk, and the
+    player sees the bar jump up with the "Nice shot" popup. A normal ball is a small visible tick.
+  - **The opponent's balls** fill yours, more the further behind you are. A player who falls
+    **4-5 balls behind** should have a full bar when the turn comes back to them.
+  - **A small trickle every turn**, so a long match with few pockets can reach a second ult.
+  - Starting numbers to test *(tune)*: a bar of 100; your own ball +5, then +3, +2, +1 for
+    the next balls in the same turn; a trickshot +20; an opponent's ball +5, plus 7 for every
+    ball you are then behind; +2 for each of your turns that ends; the bar empties when used;
+    at most 2 ults a match. Check "about one ult a match" with a small simulation (like
+    `tools/economy_model.py`) before building.
+- **Using it:** a full bar **shakes and glows** to invite the tap. The player activates it on
+  their own turn **before they shoot**; a short **cutscene** plays (the ult's name, the
+  player's avatar, its sound), then a clear "ULT" mark stays on the cue ball and HUD so both
+  players know the next shot is the ult shot. A full bar can be held as long as the player
+  likes: the idea is to spend it on a turn with no clear shot.
+- **Ults act on the balls and help the user.** They almost never sabotage the opponent (no
+  fog, shaky aim or shrunken guidelines).
+- **Rarities** are the item rarities (section 12): Common, Uncommon, Rare, Epic, Legendary,
+  Mythic. Some ults are stronger than others, but higher rarities put the emphasis on cooler
+  visuals and sound, not on power: Magnet is a fully useful ult, just less cool than a Mythic.
+  Planned set: 3 Common and 2 each of Uncommon, Rare, Epic, Legendary and Mythic (13).
+- Every player equips exactly one ult per match. Every player has a starter ult, **Magnet**,
+  free forever (kept from the ability plan). Friend tests may unlock every built ult with a
+  developer flag in Config. The server validates every ult; each one hooks into the custom
+  physics for one shot.
+- **The designer's first six** (2026-09-28):
+  - **Eagle's Eye** (Common): shows the full path of the shot, every bounce included (Classic
+    shows only short lines). An eagle screech.
+  - **Magnet** (Common): a low vibrating magnetic hum; a ball heading for a pocket that is not
+    a direct hit is pulled in (a nudge that rescues near misses, never a vacuum).
+  - **Steel Ball** (Legendary): a "nyo-ho" call on activation; after contact the object ball is
+    guided into the pocket you were trying for, and the cue ball spins to line up your next
+    nearest ball (the 8 when it is next).
+  - **Black Flash** (Legendary): the first ball hit shatters in an immense black flash and is
+    gone from the table, counted as pocketed for whoever owns it.
+  - **Black Hole** (Mythic): whatever the cue ball hits first opens a black hole that sucks in
+    the balls near it, except the opponent's.
+  - **Guangdong Tiger** (Mythic): a giant tiger appears at the first ball hit and swipes the
+    balls around it off the table, except the opponent's.
 
 **Open**
-- Whether abilities come at all (above), the full list and how many exist at their launch.
-- Exact cooldown lengths per ability *(tune)*.
+- The designer's further details (coming). The other seven ults: 1 Common, 2 Uncommon, 2 Rare,
+  2 Epic. Candidates from the 2026-09-28 brainstorm: Anchor, Big Mouth, Safety Net, Rubber
+  Rails (Common); Flash Step, Extra Life, Phantom, Gust (Uncommon); Heat Seeker, Split Shot,
+  Drift, Rewind (Rare); Meteor, Time Stop, Chain Lightning, Wormhole (Epic).
+- The 8-ball and ults: can an ult pocket or destroy the 8 (suggested: only on your own legal
+  8 shot, never early)? Do fouls still count on an ult shot (scratch, wrong ball first)? What
+  Black Flash does when the first ball hit is the opponent's (suggested: a normal foul, no
+  flash). Balls an ult pockets probably fill no bar.
+- How many balls an area ult (Black Hole, Guangdong Tiger) may take at most (suggested 2-3),
+  so a Mythic stays a spectacle rather than a match-ender.
+- Whether the leader's bar fills at all, and the second-ult rule.
+- On or off per table: public tables play with no settings since 2026-09-27 (section 6).
+- How ults are earned. The old plan was an ability gacha with Robux spins (section 12), but
+  ECONOMY.md never sells anything that helps win; since some ults are stronger, they should
+  come from play or money, or all be equal in power.
+- Sounds must be original or licensed (section 8): the "nyo-ho" and screech are recorded or
+  made for the game, never clipped from a show.
 
 ## 10. The hub and the world
 
@@ -542,7 +586,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **The Limited shelf** holds the high-priced, quantity-limited items that sell out and become
   limited forever. At release: the Founder's Cue (1,499 R$, 50 copies) and the Beta Cue
   ($40,000, 1,000 copies, first 30 days) *(tune)*. All economy screens live under one menu.
-- **Ability gacha** (only if abilities come, section 9): spins cost Robux (packs of 1, 5, 10,
+- **Ability gacha** (the old plan for ults; how ults are earned is open, section 9): spins cost Robux (packs of 1, 5, 10,
   50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
   credit that only buys more spins.
 - **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +50% rank XP, the VIP Cue, a [VIP]
@@ -622,7 +666,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   edge of the player's view a few seconds after they arrive. They always break first. A
   passive, looping ghost animation shows pulling the cue back and moving the ball on the break
   line, and disappears on the first drag. No shot clock. They pocket a few balls, see the
-  sounds and the money, and (if abilities come) use their starter ability. The PC blunders and pockets the
+  sounds and the money, and (once their bar fills) try their starter ult. The PC blunders and pockets the
   8 so they win early. Normal rules stand: if they lose, the same throwing PC repeats until the
   first win.
 - **Stronger ball highlights for learning (2026-09-23):** during the first playthrough and
@@ -648,7 +692,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   the post-match screen. Built 2026-09-28: the line names tomorrow's real reward, or says
   today's is ready while it is unclaimed.
 - A funnel is tracked with Roblox's built-in analytics: joined, reached a table, first shot,
-  first pocket, used ability (if abilities come), won, opened box, equipped, second match.
+  first pocket, used ult, won, opened box, equipped, second match.
 
 ## 15. Social
 
@@ -704,8 +748,8 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Replay or "clip that" feature. Cinematic replay camera.
 - Trading UI polish, item showcases, serial plaques.
 - Seasons with themed sets beyond Season 0.
-- More abilities: extended bounce guideline, shrink the opponent's guideline, fog, shaky aim,
-  and anything new. New ideas go here.
+- More ults beyond the planned 13 (section 9). New ideas go here. Sabotage ideas (fog, shaky
+  aim, shrinking the opponent's guideline) are out: ults help the user.
 - Offline play if Roblox ships it.
 - New game modes and table types.
 - **Collectible table skins** (parked 2026-09-23, after release): each a retexture of the one
@@ -722,8 +766,8 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 ## 19. Open questions (collected)
 
 - Age-rating and DevEx rate verification (section 2).
-- Full ability list (section 9).
+- The rest of the ult list, its rules and how ults are earned (section 9).
 - Pro lobby look (section 10).
-- The abilities toggle while abilities are out (section 6); whether abilities come (section 9).
+- Whether a table can turn ults off (sections 6 and 9).
 - A pro-lobby teaser door at release (section 10).
 - The bots' details (section 11).
