@@ -4,8 +4,8 @@
 -- map (Workspace.Map, built in Edit mode; Config.Hub and assets/map/Spec.md).
 --
 -- A global-queue arena (designer, 2026-09-28) is a reserved server of this same place: it is
--- told apart first thing (ArenaService.detect), takes the rooftop away before any player
--- arrives, and stands up one table for its match instead of the sixteen.
+-- told apart first thing (ArenaService.detect), keeps the rooftop and its day cycle (started
+-- at day), and stands up one table for its match, in the middle, instead of the sixteen.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -23,7 +23,7 @@ local TableService = require(script.Parent:WaitForChild("TableService"))
 local GlobalQueue = require(script.Parent:WaitForChild("GlobalQueue"))
 local ArenaService = require(script.Parent:WaitForChild("ArenaService"))
 
--- An arena? Decided before anything is built, and the rooftop gone before anyone arrives.
+-- An arena? Decided before anything is built.
 local isArena, matchId = ArenaService.detect()
 if isArena then
 	ArenaService.prepare()
@@ -71,9 +71,10 @@ for _, player in Players:GetPlayers() do
 	end
 end
 
--- Arrive in front of the tables, facing them (the arena has its own spawn).
+-- Arrive in front of the tables, facing them (in an arena, ArenaService then stands each
+-- player at the table).
 local spawn = workspace:FindFirstChildWhichIsA("SpawnLocation")
-if spawn and not isArena then
+if spawn then
 	local p = Config.Multiplayer.Spawn
 	spawn.CFrame = CFrame.new(p.X, p.Y, p.Z) * CFrame.Angles(0, math.rad(p.YawDegrees), 0)
 end
@@ -114,7 +115,7 @@ local built = 0
 for _, row in Placement.rows() do
 	local placement = Placement.forTable(row.id)
 	if placement then
-		TableBuilder.build(tables, placement, row.id)
+		TableBuilder.build(tables, placement, row.id, if isArena then Config.Arena.Look else nil)
 		built += 1
 	end
 end

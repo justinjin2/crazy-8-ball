@@ -4091,17 +4091,20 @@ Config.GlobalQueue = {
 }
 
 ---------------------------------------------------------------------------------------------
--- The arena (designer, 2026-09-28): one table in a dark room with a lit wall round it, after
--- the reference image; a placeholder built from parts until the art is made (ArenaBuilder).
--- Studs, world axes. The rooftop is removed in an arena server.
+-- The arena (designer, 2026-09-28): the same rooftop, its light and its day cycle, with just
+-- one table, in the middle, for the match the global queue made (a reserved server of this
+-- place). Studs, world axes.
 ---------------------------------------------------------------------------------------------
 Config.Arena = {
 	-- The workspace attributes an arena's server sets before anyone arrives, so every client
 	-- knows before it builds anything: the place's mode ("Arena", or "Hub") and the team size.
 	ModeAttribute = "PlaceMode",
 	TeamSizeAttribute = "ArenaTeamSize",
-	-- The one table, at the world origin (Placement.setLayout gives it id 1).
+	-- The one table (Placement.setLayout gives it id 1): the middle of the rooftop, where the
+	-- four middle tables' aisles cross (clear floor at Y = 0, checked in Studio 2026-09-28).
 	Table = { id = 1, X = 0, Y = 0, Z = 0, YawDegrees = 0 },
+	-- Its look (Config.TableModel.Looks): the blue felt on satin black (designer, 2026-09-28).
+	Look = "Blue",
 	RecordWaitSeconds = 10, -- how long a new arena looks for its player list
 	-- Players have this long (from the list's arrival) to come in; then the game starts if
 	-- both sides have someone, or whoever came searches again. (tune)
@@ -4115,40 +4118,9 @@ Config.Arena = {
 	-- Someone who cannot be seated here (not on the list) is sent to the lobby, tried again
 	-- this far apart, and kicked with a line to rejoin if every try fails.
 	EvictRetrySeconds = 5,
-	-- The placeholder room. Floor and wall sizes are the inside of the wall.
-	Room = {
-		HalfLength = 40, -- along the table (world X)
-		HalfWidth = 30, -- across it (world Z)
-		CornerRadius = 8, -- the rounded corners of the wall
-		WallHeight = 4, -- a low rail you see over, as in the reference
-		WallThickness = 1.5,
-		StripHeight = 0.35, -- the glowing strip along the wall's top edge
-		FloorThickness = 1,
-		FloorColor = { 38, 40, 38 }, -- dark carpet
-		WallColor = { 26, 28, 30 },
-		StripColor = { 40, 220, 150 }, -- the green-teal glow
-		PanelColor = { 18, 40, 34 }, -- the lit boards along the wall's inside
-	},
-	-- Yaw turns a prop about world Y; at 0 its front (a chair's seat, a camera's lens) looks
-	-- toward world -Z, as a CFrame's LookVector does.
-	Chairs = { -- two armchairs at the far wall, turned toward the table (world X, Z, yaw degrees)
-		{ X = -24, Z = -24, Yaw = -150 },
-		{ X = 24, Z = -24, Yaw = 150 },
-	},
-	ChairColor = { 214, 200, 172 },
-	Cameras = { -- two broadcast cameras on tripods, near side, aimed at the table
-		{ X = -26, Z = 18, Yaw = -55 },
-		{ X = 12, Z = 22, Yaw = 29 },
-	},
-	Spawn = { X = 0, Z = 16, Yaw = 0 }, -- in front of the table, facing it (-Z)
-	Lighting = {
-		ClockTime = 0, -- night: no sun
-		Brightness = 0,
-		Ambient = { 92, 96, 100 }, -- dark, but the players and the carpet still read (was 40: too dark)
-		OutdoorAmbient = { 64, 68, 72 },
-		-- The lamp over the table (a SpotLight pointing down).
-		Lamp = { Height = 16, Brightness = 6, Range = 30, Angle = 70, Color = { 255, 244, 228 } },
-	},
+	-- Arriving players stand on the table's pad side, facing it: team 1 to the left of the
+	-- pad's centre, team 2 to the right, this far apart (studs).
+	ArrivalSpacingStuds = 2.5,
 }
 
 -- The global queue's screens (designer, 2026-09-28): the small card at the top middle
@@ -4164,7 +4136,7 @@ Config.UI.Queue = {
 	-- The teleport screen: a dark full screen with the title and one line, a pulse of dots.
 	TeleportZIndex = 60,
 	TeleportColor = { 16, 22, 26 },
-	TeleportAccent = { 40, 220, 150 }, -- the arena's green
+	TeleportAccent = { 40, 220, 150 }, -- MATCH FOUND in a bright green
 	TeleportTitlePx = 48,
 	TeleportLinePx = 22,
 	-- A teleport that has not taken the player away after this long gives the screen back

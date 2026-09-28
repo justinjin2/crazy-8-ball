@@ -77,6 +77,14 @@ function LightCycle.offsetToward(t: number, offset: number, cycle: Cycle, hold: 
 	return (offset + target - s) % period
 end
 
+--- The offset (scaled seconds, added to the scaled clock t) that puts the cycle at the very
+--- start of its day now: an arena opens in daylight with the whole day ahead (designer,
+--- 2026-09-28), then runs on like the lobby.
+function LightCycle.offsetToDayStart(t: number, cycle: Cycle): number
+	local period = LightCycle.period(cycle)
+	return (period - t % period) % period
+end
+
 --- The sun at a blend: GeographicLatitude and ClockTime along the SunPath keyframes (by Blend,
 --- rising), straight between them and held past the ends.
 function LightCycle.sun(blend: number, path: { SunKey }): (number, number)

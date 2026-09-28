@@ -271,7 +271,7 @@ order; that is Open.
   a request: "Searching worldwide..." with the lit dots, the button greyed with the time
   ("Searching 0:07"), and the red Cancel. "Match found!" last.
 - **The teleport screen**: a dark full screen (no card: it stands in for Roblox's loading
-  screen) with MATCH FOUND in the arena's green and one breathing line ("Joining the
+  screen) with MATCH FOUND in bright green and one breathing line ("Joining the
   arena...", or "Back to the lobby..."). It stays through the load and fades out once the
   arena's table is there.
 - **The status card**: one small white card at the top middle for one line: an arena's

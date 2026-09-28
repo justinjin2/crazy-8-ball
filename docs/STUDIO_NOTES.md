@@ -311,8 +311,8 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
   `"record"`, `"clear"`. Join Global Queue with the real player, then inject: they match in
   about a second.
 - **An arena in Studio**: in Edit mode set `game.ServerStorage:SetAttribute("StudioArena", 1)`
-  (the team size), then Play: the rooftop goes, the placeholder room and one table come, the
-  player is seated and a pretend opponent (-1) fills the other side 1.5 s later.
+  (the team size), then Play: the rooftop at day with one blue table in the middle, the
+  player stood at it and seated, and a pretend opponent (-1) fills the other side 1.5 s later.
   `ServerStorage.ArenaQA`: `Invoke("vote", -1, "Rematch")` votes for the pretend player;
   PoolMatchQA works on table 1 (its "action" for the pretend player's Surrender). **Clear the
   attribute after** (`SetAttribute("StudioArena", nil)`): Team Create would save it.

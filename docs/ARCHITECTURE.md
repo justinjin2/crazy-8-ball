@@ -294,8 +294,9 @@ match clock for the one-minute mark).
 ## Global queue and arenas (2026-09-28)
 
 The designer's global queue: a host's **Join Global Queue** looks in every server for a side
-of similar rank; both sides teleport into an **arena**, a reserved server of this same place
-with one table. After each game (lobby tables too) the result screen has a Rematch row and
+of similar rank; both sides teleport into an **arena**, a reserved server of this same place:
+the rooftop with its day cycle (started at day, `LightCycle.offsetToDayStart`) and one table
+in the middle in `Config.Arena.Look` (`TableBuilder.build`'s look). After each game (lobby tables too) the result screen has a Rematch row and
 the series score.
 
 **Modules.**
@@ -316,9 +317,8 @@ the series score.
 - Server: `GlobalQueue` (MemoryStore sorted maps, the leader lease, a pool of reserved
   servers, one poll-and-beat thread per search, teleports with retries and
   `TeleportInitFailed`, `sendHome` to the origin server by `ServerInstanceId`), `ArenaService`
-  (detect, clear the rooftop, read the player list, seat on arrival, start, Play another and
-  Lobby, the choosing time), `ArenaBuilder` (the placeholder room or
-  `ServerStorage.ArenaMap`). `TableService` runs the pad's search (`startSearch`,
+  (detect, start the day, read the player list, stand arrivals at the table and seat them,
+  start, Play another and Lobby, the choosing time). `TableService` runs the pad's search (`startSearch`,
   `stopSearch`, `watchSearch`, `searchFound`) and an arena mode (no pad, `seatArena`).
 - Client: `QueueMenu` (the 4th button and the searching fold), `PostMatch` (the row, hosted
   by `ResultScreen` in Continue's place), `QueueStatus` (the small top card), `TeleportScreen`
@@ -340,8 +340,8 @@ the series score.
    now), `TeleportAsync` with the access code. A failure retries three times, then
    `PlayerData.resume` and the card returns.
 4. *Arena.* `Bootstrap` sees a reserved server (`PrivateServerId`, no owner), sets
-   `PlaceMode`, removes the map, builds the room, reads the list (up to 10 s), sets the layout
-   and starts `TableService` in arena mode. Arrivals are seated on their side once their save
+   `PlaceMode` and the day offset, reads the list (up to 10 s), sets the layout, builds the
+   one blue table and starts `TableService` in arena mode. Arrivals are seated on their side once their save
    is open; everyone in (or 25 s with both sides) starts the game. `Ranking` pays every game
    as in the lobby (its settle is per epoch, so each rematch is paid once).
 5. *After.* The table's vote handles Rematch; `ArenaAction` handles Play another (a new

@@ -1,12 +1,14 @@
 --!strict
 -- ArenaService: a server started for one global-queue match (designer, 2026-09-28). It is a
 -- reserved server of this same place: Bootstrap asks `detect` first, and in an arena it
--- takes the rooftop away (ArenaBuilder) and stands up one table instead of sixteen.
+-- keeps the rooftop, its light and its day cycle (started at day) and stands up one table,
+-- in the middle, in the blue look, instead of sixteen (designer, 2026-09-28).
 --
 -- - The match's player list (who, on which side, and each one's lobby server) was written
 --   by the global queue's leader before anyone was told; the arena reads it by its own
 --   reserved server id. Anyone not on it is sent to the lobby.
--- - Players are seated on their side as their saves open; the game starts the moment
+-- - Arriving players are stood on the table's pad side, facing it (they spawn at the
+--   rooftop's entrance), and seated on their side as their saves open; the game starts the moment
 --   everyone is in, or after Arena.ArrivalSeconds if both sides have someone. A side that
 --   never came: whoever did searches again at once, as if they had waited 10 s.
 -- - After each game (the result screen): Rematch is the table's own vote (MatchEngine); here
@@ -27,7 +29,8 @@ local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Strings = require(Shared.Strings)
 local Engine = require(Shared.Rules.MatchEngine)
-local ArenaBuilder = require(script.Parent.ArenaBuilder)
+local LightCycle = require(Shared.LightCycle)
+local Placement = require(Shared.Placement)
 local GlobalQueue = require(script.Parent.GlobalQueue)
 local PlayerData = require(script.Parent.PlayerData)
 local TableService = require(script.Parent.TableService)
@@ -63,12 +66,13 @@ function ArenaService.detect(): (boolean, string?)
 	return false, nil
 end
 
---- The arena's first step, before anything else is built: tell the clients, take the
---- rooftop away, build the room.
+--- The arena's first step, before anything else is built: tell the clients, and start the
+--- day/sunset cycle at the start of the day, so every match opens in daylight.
 function ArenaService.prepare()
 	workspace:SetAttribute(ArenaService.ModeAttribute, "Arena")
-	ArenaBuilder.clearHub()
-	ArenaBuilder.build()
+	local C = Config.Lighting.Cycle
+	local t = workspace:GetServerTimeNow() * C.Speed
+	workspace:SetAttribute(C.OffsetAttribute, LightCycle.offsetToDayStart(t, C))
 end
 
 --- The match's player list (yields up to Arena.RecordWaitSeconds), or nil.
@@ -327,6 +331,34 @@ local function fillSynthetic()
 	end
 end
 
+-- Stand a player on the table's pad side, facing the table: team 1 left of the pad's centre,
+-- team 2 right, each a little apart (they spawn at the rooftop's entrance, far away).
+local function standAtTable(p: Player, team: number)
+	local character = p.Character or p.CharacterAdded:Wait()
+	local root = character:WaitForChild("HumanoidRootPart", 10)
+	local t = TableService.arenaTable()
+	if not root or not t or p.Parent ~= Players then
+		return
+	end
+	local order = 0
+	for id, side in teamOf do
+		if side == team and id < p.UserId then
+			order += 1
+		end
+	end
+	local cx, cy = Placement.queuePad(record.mode)
+	local along = (if team == 1 then -1 else 1) * (order + 0.5) * A.ArrivalSpacingStuds
+	local x, y, z = Placement.fromTableStuds(
+		t.placement,
+		cx + along,
+		cy,
+		Config.Multiplayer.QueueVisual.RespawnHeight
+	)
+	local spot = Vector3.new(x, y, z)
+	local centre = Vector3.new(t.placement.x, y, t.placement.z)
+	character:PivotTo(CFrame.lookAt(spot, centre))
+end
+
 local function arrive(p: Player)
 	local team: number? = teamOf[p.UserId]
 	if not team and record.studio then
@@ -349,6 +381,7 @@ local function arrive(p: Player)
 		ArenaService.evict(p)
 		return
 	end
+	task.spawn(standAtTable, p, team)
 	local joinData: any = p:GetJoinData()
 	local data: any = joinData and joinData.TeleportData
 	local sentAt = type(data) == "table" and type(data.gq) == "table" and data.gq.sentAt

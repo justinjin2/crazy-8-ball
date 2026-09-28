@@ -1623,3 +1623,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   and ProfileStore looks again after 1.5 s (was 5 s) when a save is still held, so arriving
   never waits on the old server. Walking away from a finished lobby game declines the
   rematch.
+- 2026-09-28 (designer): the arena reuses the rooftop instead of a new map (to save time):
+  the same light and day cycle, started at day, with only one table, in the middle, in the
+  blue felt on black. The placeholder dark room is gone.

@@ -49,14 +49,14 @@ section 6, ARCHITECTURE "Global queue and arenas".
   MemoryStore queue paired by one leader server each second, closest rank first and anyone
   after 10 s, Cancel, stepping off cancels. Done means: Lune tests (many simulated servers,
   cancel races, a leader dying) and a real MemoryStore match in Studio. Done 2026-09-28.
-- [x] **The arena and the post-game row.** A reserved server of this place with a placeholder
-  room and one table; Rematch (everyone agrees, alternate breaks), the series score, Play
+- [x] **The arena and the post-game row.** A reserved server of this place: the rooftop at
+  day with one blue table in the middle; Rematch (everyone agrees, alternate breaks), the series score, Play
   another and Lobby; lobby tables get Rematch and Leave. Done means: in Studio the arena
   plays, rematches (1-0, 2-0) and each game pays rank XP and money once. Done 2026-09-28.
 - [ ] **Checked live.** Publish, then two accounts: a 1v1 and a 2v2 through the queue; the
   `GQ` timing lines in the server log (MULTIPLAYER_TESTING.md, Global queue); rematch, Play
   another, Lobby back to the same server; a real phone and a real controller on the row.
-- [ ] **The arena's art** (replaces the placeholder: a Model named `ArenaMap` in ServerStorage).
+
 
 ---
 

@@ -764,8 +764,8 @@ end
 --- Build the visible table for `id` at placement `p` under `parent`: the imported model when
 --- the place has one (checked once per server, problems go to the output), otherwise the
 --- parts-and-solid-modelling build, with one warning saying why; either way with its lamp.
---- Returns the model.
-function TableBuilder.build(parent: Instance, p: Placement, id: number): Model
+--- `look` overrides the table's own (an arena's table, Config.Arena.Look). Returns the model.
+function TableBuilder.build(parent: Instance, p: Placement, id: number, look: string?): Model
 	local template = TableBuilder.findModelTemplate()
 	local model
 	if template then
@@ -775,7 +775,7 @@ function TableBuilder.build(parent: Instance, p: Placement, id: number): Model
 				warn("[8ball] table template " .. Config.TableModel.Name .. ": " .. problem)
 			end
 		end
-		model = TableBuilder.buildFromModel(template, parent, p, id)
+		model = TableBuilder.buildFromModel(template, parent, p, id, look)
 	else
 		warnOnce(
 			("ServerStorage.%s not found; drawing the parts-built table (the old PoolTableModel is not used by this code; import the new table and run TableBuilder.prepareImport)"):format(

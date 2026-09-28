@@ -267,11 +267,11 @@ Every feature is checked against these. If it serves none, it waits.
     last opponent for the first 10 s.
   - **Match found!** shows a full screen that stays through the teleport until the arena is
     ready. Nothing is kept waiting on the save: it is handed over before the teleport.
-  - **The arena**: a private server of the same place with one table in a dark room with a
-    lit rail (after the designer's reference; a placeholder built from parts until the art is
-    made, then a Model `ServerStorage.ArenaMap`). Players arrive and the game starts as soon
-    as everyone is in (or after 25 s *(tune)* with both sides there; a side that never came
-    and the other searches again at once).
+  - **The arena**: a private server of the same place: the same rooftop, light and day cycle,
+    started at day, with just one table in the middle, blue felt on black (designer,
+    2026-09-28: reuse the map instead of a new one, to save time). Players are stood at the
+    table as they arrive and the game starts as soon as everyone is in (or after 25 s
+    *(tune)* with both sides there; if a side never comes, the other searches again at once).
   - After each game: Rematch (above), **Play another** (a new opponent, straight from the
     arena; a team goes together once every teammate pressed it, and if a teammate picks
     Lobby or leaves, the rest go to the lobby too) or **Lobby** (back to the lobby server they
@@ -288,8 +288,8 @@ Every feature is checked against these. If it serves none, it waits.
 **Open**
 - Difficult and Challenger may be for pro lobbies only (designer thinking, 2026-09-27); until
   then public tables play Classic. Abilities are not in the release and have no toggle.
-- The arena's real look (a model to replace the placeholder), and whether players in the
-  lobby can watch arena matches.
+- Whether the arena gets its own map later (the reference image) or keeps the rooftop, and
+  whether players in the lobby can watch arena matches.
 
 ## 7. Rules
 

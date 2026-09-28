@@ -48,7 +48,7 @@ local M = Config.Multiplayer
 local player = Players.LocalPlayer
 workspace:WaitForChild(TableBuilder.FolderName)
 -- A global-queue arena (designer, 2026-09-28): the server set these before building its one
--- table, so every loop below sees that table where Config.Arena puts it, and no rooftop.
+-- table, so every loop below sees that one table where Config.Arena puts it.
 local isArena = workspace:GetAttribute(Config.Arena.ModeAttribute) == "Arena"
 if isArena then
 	local row: any = table.clone(Config.Arena.Table)
@@ -847,10 +847,9 @@ UserInputService.InputBegan:Connect(function(key, processed)
 end)
 local zones = workspace:WaitForChild("TableZones")
 local padEffects = PadEffects.new(zones)
--- The rooftop's life; an arena has its own dark room and light (ArenaBuilder).
-local mapAmbience = if isArena then nil else MapAmbience.new() -- the map's drifting sailboats
-local dayCycle = if isArena then nil else DayCycle.new() -- the map's day and sunset light
-local firePit = if isArena then nil else FirePit.new() -- the fire pit's fire, lit at sunset
+local mapAmbience = MapAmbience.new() -- the map's drifting sailboats
+local dayCycle = DayCycle.new() -- the map's day and sunset light (an arena starts at day)
+local firePit = FirePit.new() -- the fire pit's fire, lit at sunset
 local tableSign = TableSign.new(player:WaitForChild("PlayerGui"))
 -- A table's box stays lit only while it waits for its host.
 local function queueOpen(id: number): boolean
@@ -980,11 +979,9 @@ RunService.RenderStepped:Connect(function(dt)
 			end
 		end
 	end
-	if mapAmbience and dayCycle and firePit then
-		mapAmbience:update(os.clock())
-		dayCycle:update(os.clock())
-		firePit:update(os.clock(), dayCycle.blend or 0)
-	end
+	mapAmbience:update(os.clock())
+	dayCycle:update(os.clock())
+	firePit:update(os.clock(), dayCycle.blend or 0)
 	-- The sign over the table you walk up to, or over your own while you wait on its pad as a
 	-- guest; none while you host (your own card stands there) or play. Stepping onto an
 	-- empty pad makes you its host before the server says so (predictedPad, below).

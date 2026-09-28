@@ -229,4 +229,15 @@ return {
 		-- The mix leaves Config's own tables alone.
 		H.near(L.Day.Atmosphere.Density, H.require("Config").Lighting.Day.Atmosphere.Density, 0)
 	end,
+	["an arena's offset starts the day now and it runs on from there"] = function()
+		local LC = H.require("LightCycle")
+		local C = H.require("Config").Lighting.Cycle
+		for _, t in { 0, 123.4, 950, 1e9 + 0.5 } do
+			local offset = LC.offsetToDayStart(t, C)
+			H.expect(offset >= 0 and offset < LC.period(C), "one period at most")
+			H.near((t + offset) % LC.period(C), 0, 1e-6, "the day's first second")
+			H.expect(LC.blend(t + offset + C.Day - 1, C) == 0, "a whole day ahead")
+			H.expect(LC.blend(t + offset + C.Day + C.Fade, C) == 1, "then sunset as usual")
+		end
+	end,
 }
