@@ -562,7 +562,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 
 - [x] 0. Setup: `git switch -c ultimates` from `economy`, first commit of the uncommitted files,
   docs and references read, Studio and Rojo checked, lint and tests green, plan in Notes.
-- [ ] 1. The fuller ult model (`tools/ult_model.py` reading Config's numbers) meets section 5's
+- [x] 1. The fuller ult model (`tools/ult_model.py` reading Config's numbers) meets section 5's
   targets (both players use an ult in 80%+ of matches on every difficulty, run-outs left out;
   missing on purpose never pays); final numbers logged.
 - [ ] 2. Catalog of 13 (Config and Strings), save v3 with migration, `Fill` and `Roll` modules
@@ -650,3 +650,43 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   - Save layout: `Slots` is a gapless array of 3 strings ("" = empty) and `Locked` an array of
     3 booleans, because ProfileStore takes no arrays with holes (the brief's `{"Magnet", nil,
     nil}` shape can't be saved).
+- **Contracts between the pieces (main agent, 2026-09-28).**
+  - The engine table gets `t.ults` (`Ults/Match.new()`, fresh every game and rematch). The
+    snapshot carries `ults = { on, bars = { [userId string] = { bar, used, ready } }, armed =
+    { by, id, stage = "Arming" | "Armed", at, readyAt, seq, practice }?, pausedUntil? }`.
+    Clients play the cutscene once per `armed.seq`, only while `now - armed.at <
+    Config.Ults.CutsceneSeconds` (so a late join never plays it).
+  - `UltGain` (server to the bar's owner only): `{ tableId, epoch, seq, gains = { { amount,
+    reason, ball?, at? } }, bar, used, ready }`; `at` is the server time the ball drops in the
+    replay, so pot gains animate on the drop.
+  - `UltActivate` (client to server, no arguments); a refusal comes back on `UltNotice`
+    `{ kind = "Refused", reason }`.
+  - The ult shot: the engine sets `overrides = { Effect, Targets, EightPocket? }` on the shot
+    after the strike (a built ult with an Effect), and `t.shot.ult = { id, by }`; clients replay
+    it through `Simulation.step` exactly as the server did.
+  - The deadline already includes the pause (activation extends it by CutsceneSeconds +
+    ArmDelaySeconds); the HUD shows `deadline - max(now, pausedUntil)`.
+  - The spin screen reads `UltState` (server to one player) and asks through the `UltRequest`
+    RemoteFunction; money and Robux go through the server only.
+- **Sounds (2026-09-28).** ult_activate is silent for 0.72 s (AudioAnalyzer), so it starts
+  there; ult_ready is an 8.2 s jingle, played 3 s then faded (overnight assumption, Config
+  `MaxSeconds`). Magnet: the Pro Sound Effects "Force Field Sci Fi Constant Deep Pulsing Hum"
+  (9125566994), "Electric Zapping loop" (427262367) while pulling, "Metal Impact Heavy Clunking
+  Hits 4" (9116673944) + "Electric Zaps 12" (9114277757) on the drop, "Electric Zaps 6"
+  (9114277402) on arming; all load in this game.
+- **Step 1, the fuller model (2026-09-28).** `tools/ult_model.py` now reads `Config.Ults.Fill`
+  through `tools/export_ult_config.luau` (Lune) and models fouls and ball in hand, safeties and
+  snookers, NICE SHOT! rates (10% of pots), a real break and an open table, easy/normal/hard
+  leaves, and a hold rule (use the ult on a hard leave, when behind, or when either side is on
+  the 8; never on the break). Pot rates assumed: Classic 0.45 / 0.62 / 0.80 (weak, average,
+  strong), Difficult and Challenger 0.30 / 0.45 / 0.60. Today's brief numbers passed only just
+  (worst 81.1% strong Classic, second ults up to 4.2%), so the fill was re-tuned for room:
+  **Own 10, 8, 6, 5 then 3 (was 8, 6, 5, 4 then 2), AfterFirst 0.25 (was 0.3)**; the rest as
+  the brief. Results: both players use an ult in **84.9% (strong Classic, worst) to 95%** of
+  matches, run-outs left out (1-19% of matches); second ults at most 1.8%; 4 opponent balls
+  from level +102 (+133 Classic), 3 +66 (+86), a run of 7 +38 (+49): only a nice-shot run
+  fills it alone. Deliberate missers (taps or safeties) win 25-28% against an honest equal
+  player. Power ladder (fuller model, rough in brackets): a top ult vs Magnet at equal skill
+  wins 62.7% [60%] Classic 60%, 61.0% [56%] Classic 70%, 63.9% [64%] Difficult 45%; a 50%
+  shooter with a top ult vs a 60% shooter with Magnet wins **48.7% [63%]** (34.4% with Magnet
+  each): the skill gap counts for more once fouls and safeties are in.
