@@ -1,6 +1,38 @@
 # Status
 
-**2026-09-27 (latest, branch `ranks-money`): controller pass with a PS5 pad.**
+**2026-09-28 (latest, branch `ranks-money`): the global queue, the arena and rematch.**
+
+- **Built (designer's request, moved ahead of the roadmap):** Join Global Queue on every
+  pad's host card (1v1 alone, 2v2 with 2 on the pad, 3v3 with 3; the first whole side goes).
+  A MemoryStore queue that one server at a time pairs every second, closest rank first and
+  anyone after 10 s; Cancel, and stepping off cancels. "Match found!", a teleport screen, and
+  the players' saves let go before the teleport so the arena opens them at once. The arena is
+  a reserved server of this same place: the rooftop removed, a placeholder dark room with a
+  green-lit rail (after the reference), one table, the matched teams. After every two-sided
+  game (lobby tables too) the result screen has a row: Rematch (all must agree, 20 s, the
+  other side breaks), Play another and Lobby in an arena (Leave on a lobby table), the series
+  score in place of VS and a "Series 1-0" pill during rematches. A code review by a fresh
+  agent found seven edge cases in the arena and queue; all fixed.
+- **Verified:** lint clean, 461 tests pass (new: matchmaking, the queue core with 12
+  simulated servers, a dying leader and cancel races; rematch and series; arena teams; the
+  pad's search). Studio, real MemoryStore: a search posted in 67 ms, matched against a
+  pretend other server in 0.9 s, Studio's "cannot teleport" notice, Cancel removes it.
+  Studio arena (the StudioArena attribute): the room builds, the save opens in about 1 s, the
+  game starts, the result shows the row and 1-0, Rematch starts the next game with the other
+  side breaking and the Series pill, 2-0, Play another matched from the arena in 1.3 to
+  1.7 s, Lobby. Each game of a series paid rank XP (+250) and money (+$50) exactly once in
+  the save. The 2v2 card greyed with "Needs 2 on the pad". The row fits a 750 x 361 phone
+  screen. Console clean. Screenshots taken.
+- **Not checkable in Studio (needs the published game):** the real teleports, the arena
+  loading screen hand-off (`src/first/Arrival`), Lobby back to the same server, timings
+  (MULTIPLAYER_TESTING.md, "Global queue"). A real controller's A on the row (Studio's
+  simulated A presses no selected button at all). A real phone.
+- **To do before the live test:** restart Rojo and reconnect (the new ReplicatedFirst
+  folder), then publish.
+
+---
+
+**2026-09-27 (branch `ranks-money`): controller pass with a PS5 pad.**
 
 - **Built:** Y in the hub opens or closes Ranked (it selected the rank badge, and a selected
   button takes the left stick, so the character froze); a hard stick push that goes nowhere
