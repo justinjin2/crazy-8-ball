@@ -16,6 +16,7 @@ local TableGeometry = H.require("Physics.Table")
 local Simulation = H.require("Physics.Simulation")
 local Judge = H.require("Rules.ShotJudge")
 local Effects = H.require("Ults.Effects")
+local Catalog = H.require("Ults.Catalog")
 
 local geometry = TableGeometry.build({ pocketsOpen = true })
 local R = Config.Balls.RadiusInches
@@ -341,6 +342,14 @@ function tests.slow_moments_add_their_wall_seconds_to_the_outcome()
 		local out = run(s, { Effect = "TestSlow", Targets = {} })
 		check(math.abs((out.extraSeconds or 0) - 0.9) < 1e-12, "0.9 s more for the clients")
 	end)
+end
+
+function tests.every_ult_has_its_uploaded_icon()
+	for _, id in Config.Ults.Order do
+		local icon = Catalog.icon(id)
+		check(icon:match("^rbxassetid://%d+$") ~= nil, id .. " has an icon image id")
+	end
+	check(Catalog.icon("Nope") == "", "an unknown id has none")
 end
 
 return tests

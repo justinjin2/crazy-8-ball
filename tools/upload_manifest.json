@@ -4,6 +4,84 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackFlash.png": {
+    "assetId": "101433545702035",
+    "assetType": "Decal",
+    "imageId": "130953532047846",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackHole.png": {
+    "assetId": "71153985460599",
+    "assetType": "Decal",
+    "imageId": "75754504005260",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/ChainLightning.png": {
+    "assetId": "104177859056531",
+    "assetType": "Decal",
+    "imageId": "124544923626211",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/EaglesEye.png": {
+    "assetId": "139391483217706",
+    "assetType": "Decal",
+    "imageId": "127030984788414",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/Ghost.png": {
+    "assetId": "83538083481586",
+    "assetType": "Decal",
+    "imageId": "103298708355834",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/GuangdongTiger.png": {
+    "assetId": "80709217398273",
+    "assetType": "Decal",
+    "imageId": "115608626042209",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/HeatSeeker.png": {
+    "assetId": "140708335973486",
+    "assetType": "Decal",
+    "imageId": "109084609734062",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/Magnet.png": {
+    "assetId": "93183394785584",
+    "assetType": "Decal",
+    "imageId": "117672288856146",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/Portals.png": {
+    "assetId": "79170866457802",
+    "assetType": "Decal",
+    "imageId": "117852135071427",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/Rewind.png": {
+    "assetId": "70387418112824",
+    "assetType": "Decal",
+    "imageId": "120627614883189",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/SteelBall.png": {
+    "assetId": "140162685982423",
+    "assetType": "Decal",
+    "imageId": "76826199313352",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/SuperBounce.png": {
+    "assetId": "137171541820594",
+    "assetType": "Decal",
+    "imageId": "95265934894642",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/icons/TimeStop.png": {
+    "assetId": "94070027193219",
+    "assetType": "Decal",
+    "imageId": "88800552854518",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
     "assetId": "82997454954024",
     "assetType": "Decal",

@@ -2462,8 +2462,23 @@ Config.Ults.Shared = {
 Config.Ults.Assets = {
 	Models = {} :: { [string]: number },
 	Images = {} :: { [string]: string },
-	-- The 13 icons (Blender renders, 512 px), by ult id; "" until uploaded.
-	Icons = {} :: { [string]: string },
+	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
+	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
+	Icons = {
+		Magnet = "rbxassetid://117672288856146",
+		EaglesEye = "rbxassetid://127030984788414",
+		SuperBounce = "rbxassetid://95265934894642",
+		Ghost = "rbxassetid://103298708355834",
+		HeatSeeker = "rbxassetid://109084609734062",
+		Rewind = "rbxassetid://120627614883189",
+		TimeStop = "rbxassetid://88800552854518",
+		ChainLightning = "rbxassetid://124544923626211",
+		Portals = "rbxassetid://117852135071427",
+		SteelBall = "rbxassetid://76826199313352",
+		BlackFlash = "rbxassetid://130953532047846",
+		BlackHole = "rbxassetid://75754504005260",
+		GuangdongTiger = "rbxassetid://115608626042209",
+	} :: { [string]: string },
 	-- Sound sheets (5.5): each an uploaded audio id with its clips' start and length (s).
 	Sheets = {} :: {
 		[string]: {

@@ -100,6 +100,14 @@ function Catalog.rarityIndex(rarity: any): number
 	return RARITY_INDEX[rarity] or 0
 end
 
+--- The ult's icon image (Config.Ults.Assets.Icons), or "" for an unknown id or one with none.
+function Catalog.icon(id: any): string
+	if not Catalog.exists(id) then
+		return ""
+	end
+	return U.Assets.Icons[id] or ""
+end
+
 --- True when the ult has its effect (Built = true); false for a placeholder or unknown id.
 function Catalog.built(id: any): boolean
 	return Catalog.exists(id) and ROWS[id].Built == true
