@@ -522,6 +522,15 @@ Config.Cue = {
 	-- stick is built with as many parts as the most banded catalog cue needs (a rainbow one:
 	-- 14), and a plainer cue hides the spare ones. (internal)
 	BandSnap = 0.012,
+	-- The shared cue mesh (assets/cue, 2026-09-29): the catalog cues drawn from it instead of
+	-- bands, each by a template ReplicatedStorage[MeshSkinsFolder][id] built in Edit mode (a
+	-- Model whose PrimaryPart is the MeshPart with the skin's SurfaceAppearance, pivot on the
+	-- tip, +Z toward the butt). Every other cue keeps its bands. Without the folder or a
+	-- template the cue falls back to its bands, with one warning. tests/cue_mesh_test checks
+	-- every id is a catalog cue. Only one mesh skin exists today: before adding a second, give
+	-- CueStickBuilder its SurfaceAppearance swap (see the note in paint()).
+	MeshSkins = { "Classic" },
+	MeshSkinsFolder = "CueSkins",
 }
 
 ---------------------------------------------------------------------------------------------

@@ -451,7 +451,7 @@ done becomes `- [x] BLOCKED: <why>`.
 - [x] 4. Classic's maps (4.4) and render; `template/CHATGPT.md` (4.5).
 - [x] 5. Uploads and the Edit-mode `ReplicatedStorage.CueSkins.Classic` (5.1), checked in
   place.
-- [ ] 6. CueStickBuilder's mesh path with Config and tests (5.2); Classic drawn from the mesh
+- [x] 6. CueStickBuilder's mesh path with Config and tests (5.2); Classic drawn from the mesh
   in hand, for watched shooters and in the Index.
 - [ ] 7. BackCue (5.3) on R15, R6, tall and small; the hand/back swap; seated.
 - [ ] 8. Every check in 5.4 captured and passing; lint and tests green.
