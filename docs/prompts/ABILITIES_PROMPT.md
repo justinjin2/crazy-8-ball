@@ -791,7 +791,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 10. Chain Lightning (7.8), look check done.
 - [x] 11. Portals (7.9), look check done.
 - [x] 12. Steel Ball (7.10), look check and art director review done.
-- [ ] 13. Black Flash (7.11), look check and art director review done.
+- [x] 13. Black Flash (7.11), look check and art director review done.
 - [ ] 14. Black Hole (7.12), look check and art director review done.
 - [ ] 15. Guangdong Tiger (7.13), look check and art director review done.
 - [ ] 16. Balance pass: every ability re-measured with the final code; the ladder table (5.3)
@@ -1193,3 +1193,47 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   leftovers after the shot, the cue ball shown again, console clean. Phone framing is checked in
   the playthrough. Superseded uploads to archive: models 117230071734301, 84390532154285,
   85966886940190, 100629865883823; decals 108164652976149, 130156479584094.
+- **Step 13 done (2026-09-29).** Plan: the effect in `after` (the step of the cue ball's first
+  contact), the look off the `flash` and `nudge` events. Rules (Effects/BlackFlash, tests in
+  `ult_blackflash_test`): the first ball the cue ball touches, whoever's, leaves the table
+  through `Ops.remove` (a `removed` event ShotJudge counts as a pot for its owner: the 8 by the 8
+  rules, a win on the legal 8 shot, a loss otherwise; a wrong first ball still a foul); the
+  blast nudges every object ball within 22 in (the closest first, the shattered ball counting
+  toward your cap) toward its closest pocket with a clean line (ChainLightning.pushTarget),
+  rolling 1.5x the way there (at most 40 in) added as natural roll, the opponent's at half,
+  never the 8 or the cue ball; the cue ball rolls straight back 6 in, shortened to stop short of
+  any pocket on its line; the hit-stop is the `slow` event (0.004 s of play over 0.15 s more).
+  Tests: yours shattered counts, theirs counts and is a foul, an early 8 loses, the legal 8
+  wins, nudge factors full/half and never the 8, nothing out of reach moves, the caps, the
+  bounce never scratches (80 tables) and goes straight back, the replay matches the settle.
+  Worth (120 tables, net a use at skills 1/2/3): careful +1.13/+1.26/+1.27, careless
+  +0.90/+1.06/+1.13; radius 14 measured about +0.9, 20 +1.15, 26 +1.27 (skill 2), the share
+  barely matters. Under Legendary 2.2 (the harness counts one shot; the nudged balls pay off on
+  the next): flagged for step 16. The look (BlackFlashFx; Blender `blackflash.py`: BFBolt1..4,
+  fat jagged radiating bolts with one or two forks, and Shard1..12, a Voronoi-cut ball shell
+  with the ball mesh's UVs, 3.9k triangles; the shockwave ring image): armed, small black arcs
+  outlined red flicker out of the cue ball's surface with red sparks, a faint red light and a
+  quiet crackle; the flash, a red screen flash, a pale high-contrast red-grey grade, a shake
+  and an FOV punch, 7 black Neon bolts (2 lifted) tear out of the ball, each a black core in a
+  red Highlight over a 1.35x wider red Neon copy, flickering between the four shapes every
+  0.05 s; the ball shatters into 12 shards wearing its own texture, flying, spinning, falling
+  and fading; the ring spreads on the cloth; a red burst light; a bass impact, a glass shatter
+  and a delayed electric crackle; red and black sparks on each nudged ball. Studio passes (0.2x
+  `/slowmo`): 1, matches: the ring and the red frame; doesn't: the bolts were red scribbles
+  (thin tubes lost inside the outline), the grade washed pink, the armed sparks were specks;
+  more stunning: fat black strokes and a red-and-black frame. 2, matches: black bolts with red
+  rims tearing out, a red-black frame; doesn't: the bolts covered half the table with blob
+  tips, the ring's soft band read orange on the green cloth, no armed crackle; more stunning:
+  tapered tips, a crisp ring, arcs on the armed ball. 3, matches: tapered bolts, crisp ring,
+  armed arcs; doesn't: the bolts twiggy at table distance, the shards specks; more stunning:
+  mass. The art director (4/10): the reference is mass and contrast, huge black strokes with
+  wide red rims on a pale washed frame, while ours were twiggy cracks on a dark maroon frame.
+  Acted on: the grade made pale (tint 255/140/150, contrast 1.7, brightness +0.08), fatter
+  bolts with one or two thick forks, a wide red Neon glow behind each, 2 bolts lifted, the
+  bolts starting at the ball's surface, a bigger red light, shards 1.5x, 2 short armed arcs at
+  the surface. Pass 4: thick black bolts with red rims pop on the pale frame. Critique left:
+  the grade runs on wall time, so under `/slowmo` it ends before the bolts (at normal speed
+  they match); the cloth turns khaki under the grade. Frame time: Studio at its 15 fps cap;
+  at most 56 bolt parts (7 x 4 variants x 2) and 12 shards for 0.7 s. No leftovers after the
+  shot, console clean. Phone framing is checked in the playthrough. Superseded uploads to
+  archive: models 110511377729729, 131385936821483; decal 112993995726160.

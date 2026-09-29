@@ -1,4 +1,15 @@
 {
+  "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/BlackFlash.glb": {
+    "assetId": "75008622077798",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/BlackFlash/textures/shock_ring.png": {
+    "assetId": "137668531197325",
+    "assetType": "Decal",
+    "imageId": "74704280023743",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/ChainLightning/ChainLightning.glb": {
     "assetId": "110751750592714",
     "assetType": "Model",
@@ -133,14 +144,14 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_path.png": {
     "assetId": "95892418217107",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "115232544003418"
+    "imageId": "115232544003418",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_ribbon.png": {
     "assetId": "104561608867251",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "121079900379610"
+    "imageId": "121079900379610",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_sparkle.png": {
     "assetId": "74762707211639",

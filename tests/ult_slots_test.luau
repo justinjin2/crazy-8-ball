@@ -32,12 +32,12 @@ return {
 		H.expect(magnet and magnet.Built and magnet.Effect == "Magnet", "built")
 		H.expect(Catalog.name("EaglesEye") == "Eagle's Eye", "names from Strings")
 		H.expect(#Catalog.description("Magnet") > 0, "descriptions from Strings")
-		H.expect(Catalog.rarity("BlackFlash") == "Legendary", "rarity")
+		H.expect(Catalog.rarity("BlackHole") == "Mythic", "rarity")
 		H.expect(Catalog.rarityIndex("Common") == 1 and Catalog.rarityIndex("Mythic") == 6, "")
 		H.expect(Catalog.rarityIndex("Secret") == 0 and Catalog.rarityIndex(nil) == 0, "unknown")
-		H.expect(Catalog.built("Magnet") and not Catalog.built("BlackFlash"), "built flags")
-		H.expect(Catalog.usable("Magnet") and not Catalog.usable("BlackFlash"), "usable")
-		H.expect(Catalog.usable("BlackFlash", true), "the developer flag")
+		H.expect(Catalog.built("Magnet") and not Catalog.built("BlackHole"), "built flags")
+		H.expect(Catalog.usable("Magnet") and not Catalog.usable("BlackHole"), "usable")
+		H.expect(Catalog.usable("BlackHole", true), "the developer flag")
 		local mythics = Catalog.byRarity("Mythic")
 		H.expect(#mythics == 2 and mythics[1] == "BlackHole", "by rarity, in Order")
 		H.expect(#Catalog.byRarity("Nope") == 0, "unknown rarity")
@@ -236,7 +236,7 @@ return {
 			local expected = Catalog.rarityIndex(Catalog.rarity(id)) >= from
 			H.expect(Slots.needsConfirm(u) == expected, id)
 		end
-		u.Slots[1] = "BlackFlash"
+		u.Slots[1] = "BlackHole"
 		H.expect(Slots.needsConfirm(u), "Replace BLACK FLASH?")
 		u.Slots[1] = "Rewind"
 		H.expect(not Slots.needsConfirm(u), "a Rare: no")

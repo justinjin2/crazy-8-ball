@@ -2264,7 +2264,14 @@ Config.Ults = {
 			Worth = 2.2,
 			MaxBalls = 3,
 		},
-		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3, Area = true },
+		BlackFlash = {
+			Rarity = "Legendary",
+			Built = true,
+			Effect = "BlackFlash",
+			Worth = 2.2,
+			MaxBalls = 3,
+			Area = true,
+		},
 		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.6, MaxBalls = 3, Area = true },
 		GuangdongTiger = {
 			Rarity = "Mythic",
@@ -2466,6 +2473,11 @@ Config.Ults = {
 		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.8, Pitch = 1.2 },
 		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.9 },
 		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.7 },
+		-- Black Flash (public library audio, each checked loading in this game): a deep boom,
+		-- a glass shatter, an electric crackle (its tail, and quietly looped while armed).
+		FlashImpact = { Id = "rbxassetid://9125484367", Volume = 1.4 },
+		FlashShatter = { Id = "rbxassetid://118987440163311", Volume = 1 },
+		FlashCrackle = { Id = "rbxassetid://84986266888002", Volume = 0.8 },
 	},
 }
 
@@ -2576,6 +2588,24 @@ Config.Ults.SteelBall = {
 	AvoidMarginInches = 0.6,
 	GridInches = 1,
 	MaxReplans = 6,
+}
+
+-- Black Flash (docs/prompts/ABILITIES_PROMPT.md 7.11; src/shared/Ults/Effects/BlackFlash).
+Config.Ults.BlackFlash = {
+	-- The blast nudges object balls within this of the shattered ball (inches). (tune)
+	RadiusInches = 22,
+	-- Each nudged ball rolls this share of the way to its pocket (at most NudgeMaxInches):
+	-- under 1 moves it toward the pocket, over 1 can drop a near one. (tune: the balance pass)
+	NudgeShare = 1.5,
+	NudgeMaxInches = 40,
+	-- The cue ball rolls straight back this far (inches), stopping this much clear of any
+	-- pocket on its line. (tune)
+	BounceInches = 6,
+	PocketClearInches = 1,
+	-- The hit-stop at the flash (the look's frozen frame): every replay crawls through this
+	-- much play (seconds) over HitStopSeconds more of wall time; the server waits for it.
+	HitStopShotSeconds = 0.004,
+	HitStopSeconds = 0.15,
 }
 
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
@@ -2754,6 +2784,9 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/steelball.py: SteelShell (the manga steel ball, unit radius)
 		-- and GoldSpiral (a flat spiral ribbon).
 		SteelBall = 83844850418816,
+		-- tools/blender/abilities/blackflash.py: BFBolt1..4 (thick black radiating bolts, unit
+		-- length along X, flat) and Shard1..12 (the ball shell's pieces, the ball mesh's UVs).
+		BlackFlash = 75008622077798,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2794,6 +2827,8 @@ Config.Ults.Assets = {
 		SteelPath = "rbxassetid://115232544003418",
 		SteelBurst = "rbxassetid://140169441770879",
 		SteelSparkle = "rbxassetid://116655548573479",
+		-- Black Flash (blackflash.py): the shockwave ring. (Image inside Decal 112993995726160.)
+		FlashRing = "rbxassetid://74704280023743",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7650,6 +7685,75 @@ Config.UI.SteelBallFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
+-- Black Flash's look (src/client/BlackFlashFx.luau). Studs unless named. (tune)
+Config.UI.BlackFlashFx = {
+	RedColor = { 255, 24, 40 },
+	-- Armed: the cue ball crackles: ArmedSparkRate red sparks a second, a faint red light and a
+	-- quiet crackle loop.
+	ArmedSparkRate = 25,
+	ArmedSparkBallWidths = 1, -- each spark's size at birth
+	-- And ArmedArcs small black arcs (outlined red) flicker out of it: each re-drawn every
+	-- ArmedArcSeconds, shown with ArmedArcChance, ArmedArcBallWidths long (a range), rising up
+	-- to ArmedArcRiseDegrees, ArmedArcThickness times the bolt mesh's width share.
+	ArmedArcs = 2,
+	ArmedArcSeconds = 0.07,
+	ArmedArcChance = 0.6,
+	ArmedArcBallWidths = { 0.6, 1.1 },
+	ArmedArcRiseDegrees = 30,
+	ArmedArcThickness = 2,
+	ArmedLightBrightness = 1.2,
+	ArmedCrackleVolume = 0.25,
+	-- The flash: Bolts black bolts (outlined red by one Highlight) tear out of the ball, each
+	-- BoltBallWidths long (a range), mostly flat and outward, rising up to BoltRiseDegrees;
+	-- flickering between the four variants every SwapSeconds, gone after BoltSeconds (on the
+	-- replay's clock, so /slowmo slows them).
+	Bolts = 7,
+	BoltBallWidths = { 5, 8.5 },
+	BoltThickness = 1.7, -- the bolts drawn this many times thicker than the mesh's own share
+	-- The red rim: a red Neon copy of each bolt, GlowWidth times as wide, GlowBehindStuds
+	-- behind it from the camera, at GlowTransparency.
+	GlowWidth = 1.35,
+	GlowBehindStuds = 0.02,
+	GlowTransparency = 0.15,
+	BoltGrowShare = 0.06, -- the share of BoltSeconds they take to reach full length
+	BoltRiseDegrees = 25,
+	LiftedBolts = 2, -- of the Bolts, this many tear up toward the sky instead
+	LiftedRiseDegrees = { 40, 55 }, -- how steeply they rise (a range)
+	SwapSeconds = 0.05,
+	BoltSeconds = 0.7,
+	-- The shards: burst out at ShardSpeed (studs a second, a range) plus ShardUp, spinning,
+	-- falling with ShardGravity, fading out over the last ShardFadeSeconds of ShardSeconds.
+	ShardSpeed = { 3, 7 },
+	ShardUp = 2.5,
+	ShardSpinDegrees = 720,
+	ShardGravity = 18,
+	ShardSeconds = 1.1,
+	ShardScale = 1.5, -- the shards drawn this much bigger than the ball's own pieces (they read)
+	ShardFadeSeconds = 0.4,
+	-- The shockwave ring on the cloth: grows to RingBallWidths over RingSeconds, fading.
+	RingBallWidths = 22,
+	RingSeconds = 0.45,
+	-- The screen: a red flash, then a pale, high-contrast red-grey grade (the black bolts pop on
+	-- it, as in the reference), a shake and an FOV punch.
+	FlashSeconds = 0.25,
+	Grade = { TintColor = { 255, 140, 150 }, Contrast = 1.7, Saturation = -1, Brightness = 0.08 },
+	GradeIn = 0.02,
+	GradeHold = 0.25,
+	GradeOut = 0.45,
+	ShakeStuds = 0.35,
+	ShakeSeconds = 0.4,
+	FovDegrees = 8,
+	FovSeconds = 0.35,
+	LightBrightness = 6,
+	LightRangeBallWidths = 25,
+	LightSeconds = 0.4,
+	CrackleDelaySeconds = 0.12,
+	-- Each nudged ball: a spurt of red and black sparks.
+	NudgeSparks = 10,
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7666,6 +7770,7 @@ Config.UI.AbilityFx = {
 		ChainLightning = "ChainLightningFx",
 		Portals = "PortalsFx",
 		SteelBall = "SteelBallFx",
+		BlackFlash = "BlackFlashFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.
