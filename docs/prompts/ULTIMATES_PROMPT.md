@@ -604,7 +604,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   the cutscene, the spin screen, auras); ARCHITECTURE (modules, remotes, the physics hook points
   for later ults); DECISIONS (dated lines, assumptions tagged); STUDIO_NOTES (new quirks);
   STATUS (a new top entry: Built, Verified, Needs a check by hand).
-- [ ] 16. The report `docs/prompts/ULTIMATES_REPORT.md`, written for a beginner: what to try
+- [x] 16. The report `docs/prompts/ULTIMATES_REPORT.md`, written for a beginner: what to try
   first step by step (Studio, Play, which chat commands), what was built, what was verified
   and how, every assumption one line each, known issues and BLOCKED items, the Creator Hub
   guide for the new products and passes, the model's numbers (how often both players got an
