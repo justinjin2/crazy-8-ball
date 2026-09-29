@@ -449,7 +449,7 @@ done becomes `- [x] BLOCKED: <why>`.
   `CueTextures.py --skin` working, `renders/template_check.png` proving nothing is stretched,
   mirrored or seamed wrong.
 - [x] 4. Classic's maps (4.4) and render; `template/CHATGPT.md` (4.5).
-- [ ] 5. Uploads and the Edit-mode `ReplicatedStorage.CueSkins.Classic` (5.1), checked in
+- [x] 5. Uploads and the Edit-mode `ReplicatedStorage.CueSkins.Classic` (5.1), checked in
   place.
 - [ ] 6. CueStickBuilder's mesh path with Config and tests (5.2); Classic drawn from the mesh
   in hand, for watched shooters and in the Index.

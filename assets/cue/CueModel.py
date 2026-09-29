@@ -869,11 +869,15 @@ def main():
                   '(tip to butt); the glTF exporter (+Y up) maps Blender (x, y, z) to glTF (x, z, -y), '
                   'so the cue runs along glTF/Roblox local +Z with the tip at z = 0. The UV seam is at '
                   'theta = 0, Blender -Z = Roblox local -Y (down in the hand). theta runs seam -> +X -> +Z '
-                  '(top) -> -X. Studio: the MeshPart is centred on its bounds, so PivotOffset = '
-                  'CFrame.new(0, 0, -length / 2) puts the pivot on the tip with +Z toward the butt.'),
+                  '(top) -> -X. Studio (checked 2026-09-29): Roblox\'s glTF importer turns the model 180 '
+                  'degrees about Y and centres the MeshPart on its bounds, so in the MeshPart the tip '
+                  'is at local +Z = length / 2 and the seam still at -Y; PivotOffset = '
+                  'CFrame.new(0, 0, length / 2) * CFrame.Angles(0, pi, 0) puts the pivot on the tip '
+                  'with +Z toward the butt.'),
         'axes': {'blender_tip_to_butt': [0, -1, 0], 'roblox_tip_to_butt': [0, 0, 1],
                  'blender_seam': [0, 0, -1], 'roblox_seam': [0, -1, 0],
-                 'roblox_pivot_offset': [0, 0, -E.length / 2]},
+                 'roblox_mesh_tip': [0, 0, E.length / 2], 'roblox_pivot_offset': [0, 0, E.length / 2],
+                 'roblox_pivot_turn_degrees_about_y': 180},
         'parameters': P,
         'profile': [{'d': d, 'r': r, 'region': g, 's': sv} for d, r, g, sv in zip(prof.d, prof.r, prof.region, s)],
         'shaft_cuts_studs': cuts,

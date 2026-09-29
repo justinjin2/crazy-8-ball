@@ -1,4 +1,34 @@
 {
+  "/Users/justinjin/Desktop/8ball/assets/cue/Cue.glb": {
+    "assetId": "112855847049580",
+    "assetType": "Model",
+    "status": "ok",
+    "meshId": "113499415983055"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_color.png": {
+    "assetId": "113726250410970",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "105908889801184"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_metalness.png": {
+    "assetId": "109852363568662",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "138757447950095"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_normal.png": {
+    "assetId": "136175165555480",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "114159920269427"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_roughness.png": {
+    "assetId": "114675891803427",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "119517224467514"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
     "assetId": "82997454954024",
     "assetType": "Decal",
