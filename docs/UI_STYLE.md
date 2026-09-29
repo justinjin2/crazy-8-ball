@@ -38,8 +38,11 @@ screen, a popup).
   panels and popups stay plain cards.
 - **Popups never darken the screen** (designer, 2026-09-27, said for the dialogs and again for
   the rank screens): no dim behind a popup, a dialog, the end-of-match screen or NEW RANK!, because
-  the dark layer shows where it stops at the screen's edges on different devices. The one
-  exception is the Ranked roadmap's slight dim.
+  the dark layer shows where it stops at the screen's edges on different devices. The
+  exceptions are the Ranked roadmap's slight dim and NEW RANK!'s dim (designer, 2026-09-28: it
+  sat awkwardly over the match results). That dim is black at 0.5 transparency, fades in and out
+  with the popup, and is two screens plus 400 px big, centred, so it spills past the top bar and
+  a phone's notch and never shows an edge.
 
 ## 3. Text
 
@@ -263,8 +266,8 @@ order; that is Open.
     the [TIER] chat tag, the tier's cue on its thumbnail; 2026-09-28); tapping a tier shows its
     rewards. No line of rules
     under the cards (designer, 2026-09-27). The < and > arrows carry one white chevron image
-    each, drawn as a single stroke. Its slight dim is the only dim in the game, shared since
-    2026-09-28 by the full menus and the case opening (section 10).
+    each, drawn as a single stroke. Its slight dim is shared since 2026-09-28 by the full
+    menus and the case opening (section 10); NEW RANK! has its own (section 2).
   - *Chat tags*: "[PLATINUM]" in the tier's colour before your name in chat (Reyes in the
     rainbow, letter by letter); none for Unranked. A VIP's rainbow "[VIP]" comes first
     (section 10).
@@ -376,3 +379,45 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   Party, a Mythic or Secret unboxing, Reyes) is one small kit card at the top middle under
   Roblox's bar, with the line in the rarity's colour (Reyes in the rainbow); it waits during a
   match, and an unboxing or Reyes also posts a chat line.
+
+## 11. Ultimates: the bar, the cutscene, the spin screen and auras (2026-09-28, overnight)
+
+Built on branch `ultimates` (docs/prompts/ULTIMATES_PROMPT.md). Sizes and timings in
+`Config.UI.Ults`; lines marked *(assumption)* are overnight calls, logged in DECISIONS.
+
+- **The ult bar** (reference 08, placed differently): bottom centre and compact, about 300 x
+  46 px on a computer and 220 x 36 on a phone, above the bottom edge and clear of the money
+  HUD, the controller guide, the spin button, the power bar and Roblox's buttons; never over
+  the middle of the table. It shows only on your own turn and fades to 25% while the cue is
+  pulled back. The 8-ball badge with its blue splash sits on the left end, "ULTIMATE" in
+  outlined white above, a thick ink-outlined pill with a blue fill and a moving shine, the %
+  centred. Each gain flashes the fill's edge, bounces the badge and floats a "+34" (gold beside
+  NICE SHOT! for a nice shot). Gains from the opponent's turn animate when your turn starts.
+  **Ready:** the fill turns gold ("READY! 100%"), the badge's splash turns to flame, sparkles
+  and a soft pulsing glow, a shake every ~2 s, and a white pill above: PRESS [G] TO ACTIVATE
+  (keyboard), TAP TO ACTIVATE (touch: the whole bar is the button) or PRESS [X/Square] TO
+  ACTIVATE (gamepad, Roblox's own glyph), following the last input type. **Armed:** the bar
+  becomes a pill in the ult's rarity colour, "MAGNET: NEXT SHOT"; the opponent sees a small
+  "Opponent's ult: MAGNET" pill. The top bar shows a small ult icon beside each opponent that
+  lights up when their ult is ready.
+- **The cutscene** (reference 10, Jujutsu Shenanigans' domain expansion): about 1.6 s, for
+  everyone in the match. A tilted manga panel (about -8 degrees, 40% of the screen's height,
+  a thick white border with an ink outline) slams in across the middle; inside, a swirling
+  ink backdrop in the ult's rarity colour drifts behind the activating player's avatar (upper
+  body, big, in a ViewportFrame) with a slow push-in; "ULTIMATE" top-left and the ult's name
+  bottom-right in Fredoka One with thick outlines. It shrinks to a thin line and snaps away.
+  No dim.
+- **The spin screen** (reference 09, Untitled Boxing Game): full screen over a dark room
+  stage; the avatar big in the middle in its idle with a rarity aura; top centre "CURRENT
+  ULT:", the name huge in its rarity colour with an ink outline, the description under it;
+  three slot cards on the left (name, rarity strip, EQUIPPED or SELECT, a lock toggle; a slot
+  not owned shows NONE and a green PURCHASE with its R$ price); collapsible rarity bars with
+  their odds on the right, a "Lucky odds" switch, and the code box under them; LUCKY SPINS
+  over the big gold SPIN (FREE SPIN while the daily one is unused) with SPINS LEFT under it;
+  Pity N / 100, the money and the buy row (BUY 1/5/10/50, an R$ / $ toggle, crossed-out
+  original prices in red) bottom right; a red BACK TO MENU bottom left. On a phone the slots
+  are a compact column, the odds open from an "Odds" button and the buy row from "Buy spins".
+- **Auras** (JoJo style, rising flame wisps from a flipbook): Common small and grey,
+  Uncommon green, Rare blue, Epic purple with sparks, Legendary gold with rays, Mythic
+  red-black with crackling arcs *(assumption: the brief's colours for Mythic's aura, not its
+  pastel card shimmer)*. They grow with rarity.

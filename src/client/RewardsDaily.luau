@@ -3,7 +3,9 @@
 -- ECONOMY 10), drawn from the RewardState's `days`, `login`, `weeks` and `resetsAt`:
 --   * the week's seven day tiles, Config.UI.Rewards.Columns to a row (days 1-4, then 5, 6
 --     and day 7 spanning the rest of its row as the week's big prize, over faint gold rays),
---     each with "Day 1", the reward's picture ("x2" for several) and its words;
+--     each with "Day 1", the reward's pictures ("x2" for several cases; day 7's ult spins as
+--     the spin icon with "+2") and its words ("Epic Case + 2 Ult Spins", on two lines when
+--     one is too narrow);
 --   * claimed days faded with a green check, the days still to come a little dimmer, and
 --     today's tile with a gold edge and a soft gold glow, its green Claim button breathing
 --     while it can be claimed;

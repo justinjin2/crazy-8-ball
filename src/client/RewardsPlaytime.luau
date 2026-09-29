@@ -1,9 +1,11 @@
 --!strict
 -- RewardsPlaytime: the Rewards menu's Playtime tab (docs/prompts/ECONOMY_UI_PROMPT.md section
 -- 11, ECONOMY 10): one row per gift of the RewardState's `playtime` (10 min $100, 30 min a
--- Standard Case, 60 min 2 Standard Cases), each with the prize's picture and words, the time
--- played of the time needed ("4:12 / 10:00") over a progress bar, and a button: the time
--- still to play (a stopwatch), a green Claim that breathes once it is due, or a grey Claimed.
+-- Standard Case, 60 min 2 Standard Cases and the day's last gift's ult spin: "2 Standard Cases
+-- + 1 Ult Spin"), each with the prize's pictures and words (on two lines when one is too
+-- narrow), the time played of the time needed ("4:12 / 10:00") over a progress bar, and a
+-- button: the time still to play (a stopwatch), a green Claim that breathes once it is due, or
+-- a grey Claimed.
 -- A line under them: "Played today: 24:13" and "New gifts in 5:12:03".
 --
 -- The time is the server's (`playSeconds` at `sentAt`), ticked on here between two states and
@@ -282,17 +284,25 @@ local function layoutRow(row: Row, w: number, h: number, t: number, buttonText: 
 	local timePx = span(R.GiftTimePx, t)
 	local titleH = titlePx + 6
 	local barH = span(R.BarPx, t)
-	local top = round((h - (titleH + 4 + barH)) / 2)
 	HudParts.setTextSize(row.title, titlePx)
 	HudParts.setTextSize(row.time, timePx)
-	-- The time takes what its widest value needs ("60:00 / 60:00"); the prize the rest.
+	-- The time takes what its widest value needs ("60:00 / 60:00"); the prize the rest, on a
+	-- second line when one is too narrow for it and the row has the height (the last gift's
+	-- "2 Standard Cases + 1 Ult Spin" on a phone); the time stays level with its last line.
 	local widest = W.GiftTime:format(clock(row.need), clock(row.need))
 	local timeW = math.min(round(textW / 2), math.ceil(RewardsParts.textWidth(widest, timePx)) + 8)
+	local titleW = math.max(1, textW - timeW - 6)
+	local twoH = 2 * titlePx + 8
+	local wraps = RewardsParts.textWidth(row.title.Text, titlePx) + 6 > titleW
+		and twoH + 4 + barH <= h - 2 * pad
+	row.title.TextWrapped = wraps
+	local blockH = if wraps then twoH else titleH
+	local top = round((h - (blockH + 4 + barH)) / 2)
 	row.title.Position = UDim2.fromOffset(x, top)
-	row.title.Size = UDim2.fromOffset(math.max(1, textW - timeW - 6), titleH)
-	row.time.Position = UDim2.fromOffset(x + textW - timeW, top)
+	row.title.Size = UDim2.fromOffset(titleW, blockH)
+	row.time.Position = UDim2.fromOffset(x + textW - timeW, top + blockH - titleH)
 	row.time.Size = UDim2.fromOffset(timeW, titleH)
-	row.bar.root.Position = UDim2.fromOffset(x, top + titleH + 4)
+	row.bar.root.Position = UDim2.fromOffset(x, top + blockH + 4)
 	row.bar.root.Size = UDim2.fromOffset(textW, barH)
 end
 

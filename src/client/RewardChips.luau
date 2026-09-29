@@ -5,15 +5,18 @@
 --
 -- A chip is a white kit pill with its picture on the left and its words after it: money (the
 -- single cash bundle and "+$300" in green), a case (its own chest and "x2", or "+1 Standard
--- Case"), a cue (its thumbnail and its name) or a chat tag (the speech bubble and the tag drawn
--- as chat draws it, ChatTags). Chips only draw: money still flies with CashFlyer, which lands it
--- in the money HUD.
+-- Case"), a cue (its thumbnail and its name), a chat tag (the speech bubble and the tag drawn
+-- as chat draws it, ChatTags), or ult spins / Lucky Spins (the gold spin icon or the clover and
+-- "2 Ult Spins"; docs/prompts/ULTIMATES_PROMPT.md section 10). Chips only draw: money still
+-- flies with CashFlyer, which lands it in the money HUD.
 --
--- A case or a cue flies as a copy of its picture: it pops up off the chip, hangs a moment,
--- then arcs into the Inventory tile (MenuColumn.tileCenter, read every frame, so a column
--- still popping in is followed), shrinking, and the tile bounces as it lands. The column hides
--- under the popups, so while anything is on its way (and a moment after) `catching()` is true
--- and Progression shows the column to catch it. With no column the copy just pops away.
+-- A case, a cue or spins fly as a copy of the picture: it pops up off the chip, hangs a moment,
+-- then arcs into a column tile (MenuColumn.tileCenter, read every frame, so a column still
+-- popping in is followed), shrinking, and the tile bounces as it lands: a case or a cue to
+-- Inventory, spins to the Ults button, or to Rewards while the column has none
+-- (RewardChips.tilesFor). The column hides under the popups, so while anything is on its way
+-- (and a moment after) `catching()` is true and Progression shows the column to catch it. With
+-- no column the copy just pops away.
 -- Tuning in Config.UI.Progress.Chips. It also words the XP boosts ("ROOKIE x2") for the
 -- result screen and the rank HUD.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -25,6 +28,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
+local RewardsParts = require(script.Parent.RewardsParts)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -35,7 +39,7 @@ local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 
 --- What a chip shows. `text` is its words (RichText when `rich`, measured by `plain`).
 export type Spec = {
-	kind: string, -- "Money", "Case", "Cue" or "Tag"
+	kind: string, -- "Money", "Case", "Cue", "Tag", "Spins" or "Lucky"
 	text: string,
 	plain: string?, -- the words without markup (a rich tag), for measuring
 	rich: boolean?,
@@ -57,7 +61,8 @@ type Flight = {
 	id: string?,
 	from: GuiObject, -- the picture it copies (its place and size when it pops)
 	deps: any, -- the economy's shared deps: `column`
-	target: string, -- the column tile's name
+	targets: { string }, -- the column tiles it may land on, the first the column has
+	landing: string?, -- the one it is flying to
 	startAt: number, -- os.clock() when it pops
 	layer: Frame,
 	ghost: GuiObject?,
@@ -67,6 +72,18 @@ type Flight = {
 }
 
 local RewardChips = {}
+
+-- The column tiles each kind of picture flies to, the first the column has (MenuColumn's
+-- tile names). Spins go to the Ults button; a column without one yet takes them in Rewards
+-- (RewardsParts.SpinTiles, shared with the Rewards menu's flyer).
+local TILES_ITEM = { "Inventory" }
+local TILES_SPIN: { string } = RewardsParts.SpinTiles
+
+--- The column tiles a chip of `kind` flies to, in order of preference: a case or a cue to
+--- Inventory, ult spins and Lucky Spins to Ults (Rewards when the column has no Ults button).
+function RewardChips.tilesFor(kind: string): { string }
+	return if kind == "Spins" or kind == "Lucky" then TILES_SPIN else TILES_ITEM
+end
 
 -- Flights queued or on their way, the frame loop that moves them, one copy layer per screen,
 -- and until when the column is still wanted after the last landing.
@@ -107,13 +124,24 @@ function RewardChips.caseIcon(caseId: string?): string
 	return if ICONS[key] and ICONS[key] ~= "" then key else "Case"
 end
 
+--- A chip for `count` ult spins ("2 Ult Spins" by the gold spin icon), or nil for none.
+function RewardChips.spinsSpec(count: number): Spec?
+	if type(count) ~= "number" or count ~= count or count < 1 or count == math.huge then
+		return nil
+	end
+	local n = math.floor(count)
+	local words = Strings.Menus.Rewards
+	return { kind = "Spins", text = if n == 1 then words.SpinOne else words.SpinMany:format(n) }
+end
+
 -- The picture's width for a chip `height` tall: the cash bundle is wide, the rest square.
 local function pictureWidth(kind: string, height: number): number
 	local inner = height - 4
 	return math.floor(if kind == "Money" then inner * C.CashWidthShare else inner)
 end
 
--- A picture: the cash bundle, a case's chest, the chat bubble, or a cue's thumbnail.
+-- A picture: the cash bundle, a case's chest, the chat bubble, a cue's thumbnail, the ult spin
+-- icon or the Lucky Spin clover.
 local function makePicture(parent: Instance, kind: string, id: string?): GuiObject
 	if kind == "Cue" then
 		return CueThumb.new(parent, id or "")
@@ -121,6 +149,8 @@ local function makePicture(parent: Instance, kind: string, id: string?): GuiObje
 	local key = if kind == "Money"
 		then "CashSingle"
 		elseif kind == "Case" then RewardChips.caseIcon(id)
+		elseif kind == "Spins" then "UltSpin"
+		elseif kind == "Lucky" then "Lucky"
 		else "ChatTag"
 	return HudParts.icon(parent, key, "Picture")
 end
@@ -237,14 +267,21 @@ local function layerIn(screen: ScreenGui): Frame
 	return layer
 end
 
--- Where a flight lands: its tile's centre now, or nil (no column, or no such tile).
+-- Where a flight lands: the centre now of the first of its tiles the column has (remembered
+-- as its landing), or nil (no column, or none of them).
 local function targetOf(flight: Flight): Vector2?
 	local column = if type(flight.deps) == "table" then flight.deps.column else nil
 	if not column then
 		return nil
 	end
-	local ok, point = pcall(column.tileCenter, column, flight.target)
-	return if ok and typeof(point) == "Vector2" then point else nil
+	for _, name in flight.targets do
+		local ok, point = pcall(column.tileCenter, column, name)
+		if ok and typeof(point) == "Vector2" then
+			flight.landing = name
+			return point
+		end
+	end
+	return nil
 end
 
 -- The copy lands (or gives up): gone, the tile bounces, and the column stays a moment more.
@@ -260,8 +297,8 @@ local function land(flight: Flight, arrived: boolean)
 	holdUntil = math.max(holdUntil, os.clock() + C.HoldSeconds)
 	if arrived then
 		local column = if type(flight.deps) == "table" then flight.deps.column else nil
-		if column then
-			pcall(column.bump, column, flight.target)
+		if column and flight.landing then
+			pcall(column.bump, column, flight.landing)
 		end
 		UISound.play(C.LandSound, C.LandPitch)
 	end
@@ -349,16 +386,24 @@ local function step()
 	end
 end
 
---- Fly a copy of `chip`'s picture (a case or a cue) into the column tile `target`
---- ("Inventory") after `delay` seconds. `screen` is the ScreenGui the copy is drawn in; `deps`
---- the economy's shared table (its `column`, read when the copy flies). The chip itself stays.
-function RewardChips.fly(screen: ScreenGui, chip: Chip, deps: any, target: string, delay: number?)
+--- Fly a copy of `chip`'s picture (a case, a cue or spins) into the column tile `target`
+--- ("Inventory"), or the first of a list of tiles the column has (RewardChips.tilesFor), after
+--- `delay` seconds. `screen` is the ScreenGui the copy is drawn in; `deps` the economy's shared
+--- table (its `column`, read when the copy flies). The chip itself stays.
+function RewardChips.fly(
+	screen: ScreenGui,
+	chip: Chip,
+	deps: any,
+	target: string | { string },
+	delay: number?
+)
 	local flight: Flight = {
 		kind = chip.spec.kind,
 		id = chip.spec.id,
 		from = chip.picture,
 		deps = deps,
-		target = target,
+		targets = if type(target) == "table" then target else { target },
+		landing = nil,
 		startAt = os.clock() + math.max(0, delay or 0),
 		layer = layerIn(screen),
 		ghost = nil,

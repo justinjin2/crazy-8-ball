@@ -2,18 +2,20 @@
 -- Banner: one small strip at the top middle, reused for every banner (docs/prompts/
 -- ECONOMY_UI_PROMPT.md section 13): a kit card with one line of words.
 --
--- - One-off lines from the server's Banner remote ({ kind, name?, cue?, rarity?, endsAt? },
---   src/shared/Net.luau): an unboxing in the rarity's colour ("Painicane unboxed a Mythic
---   Starfall Cue!"), a Money Party starting, someone reaching Reyes (in the house rainbow).
+-- - One-off lines from the server's Banner remote ({ kind, name?, cue?, ult?, rarity?,
+--   endsAt? }, src/shared/Net.luau, src/server/Announce.luau): an unboxing in the rarity's colour
+--   ("Painicane unboxed a Mythic Starfall Cue!"), an ult spin landing a Legendary (this
+--   server) or a Mythic (every server) in the same colours ("Painicane rolled the Legendary ult
+--   Black Flash!"), a Money Party starting, someone reaching Reyes (in the house rainbow).
 --   They queue and show one at a time for Banner.Seconds each, with the Banner sound.
 -- - The Money Party countdown from the workspace attributes MoneyPartyEndsAt (unix seconds, the
 --   server's clock) and MoneyPartyBuyer (a username): "Money Party! 2x money for everyone:
 --   14:32 (from Painicane)", up while the party runs. Workspace attributes reach everyone, so
 --   a player who joins during a party sees it too. It takes turns with one-off lines: after
 --   each line the countdown shows for PartyTurnSeconds before the next, so neither is lost.
--- - An unboxing and the Reyes news also go into the chat window as a system line, in the same
---   colours (ChatTags.system): at once, even in a match, since chat is not the top of the
---   screen.
+-- - An unboxing, an ult roll and the Reyes news also go into the chat window as a system line,
+--   in the same colours (ChatTags.system): at once, even in a match, since chat is not the top
+--   of the screen.
 -- - This player's own finds from the CueFound remote (a cue new to their Index, not from a
 --   case reel, which shows its own): "New in your Index: VIP Cue! +$500", in the cue's rarity
 --   colour, queued like the rest.
@@ -32,6 +34,7 @@ local Config = require(Shared:WaitForChild("Config"))
 local Net = require(Shared:WaitForChild("Net"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
+local UltCatalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local ChatTags = require(script.Parent.ChatTags)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
@@ -177,6 +180,19 @@ function Banner.onBanner(self: any, payload: any)
 		local sentences: { [string]: string } = COPY.Unbox :: any
 		local sentence = sentences[rarity] or sentences.Default
 		local text = sentence:format(who, CueThumb.cueName(cue))
+		local tint = CueThumb.accentColor(rarity)
+		self:push({ text = text, color = tint, at = os.clock() })
+		ChatTags.system(ChatTags.paint(text, tint))
+	elseif kind == "Ult" then
+		-- An ult spin's Legendary or Mythic: worded and coloured as an unboxing is.
+		local ult = name(payload.ult)
+		if not who or not ult or not UltCatalog.exists(ult) then
+			return
+		end
+		local rarity = name(payload.rarity) or UltCatalog.rarity(ult) or "Default"
+		local sentences: { [string]: string } = COPY.Ult :: any
+		local sentence = sentences[rarity] or sentences.Default
+		local text = sentence:format(who, UltCatalog.name(ult))
 		local tint = CueThumb.accentColor(rarity)
 		self:push({ text = text, color = tint, at = os.clock() })
 		ChatTags.system(ChatTags.paint(text, tint))

@@ -3,7 +3,9 @@
 -- (docs/prompts/ECONOMY_UI_PROMPT.md section 11): the money as the kit's cash chip ("+$250",
 -- CashFlyer's look and timing) into the money HUD, which counts up as it lands; each case as
 -- its chest (with "x2") on a curve to the left column's Inventory tile, which bounces
--- (MenuColumn.tileCenter and bump). Everything flies in its own ScreenGui just over the menus,
+-- (MenuColumn.tileCenter and bump); ult spins and Lucky Spins (their icons with "+2") the same
+-- way to the column's Ults button, or the Rewards tile when the column has no Ults button
+-- (RewardsParts.SpinTiles). Everything flies in its own ScreenGui just over the menus,
 -- so it is seen over the open menu's panel (the HUDs sit under it; on a phone the panel covers
 -- them and the chips land where they are). Purely visual: the server already put the reward
 -- in the save.
@@ -97,38 +99,57 @@ function RewardsFlyer.reward(self: any, value: any, from: Vector2)
 			delay = F.AfterMoneySeconds
 		end
 	end
-	for index, entry in reward.cases do
-		self:flyCase(entry, start, delay + (index - 1) * F.StaggerSeconds)
+	-- The cases' chests, then the spins' icons, one after another.
+	local items = RewardsParts.pictures({
+		money = 0,
+		cases = reward.cases,
+		spins = reward.spins,
+		lucky = reward.lucky,
+	})
+	for index, picture in items do
+		local tiles = if picture.label then RewardsParts.SpinTiles else { "Inventory" }
+		self:flyPicture(picture, tiles, start, delay + (index - 1) * F.StaggerSeconds)
 	end
 end
 
--- One case's chest (with "x2") from `from` to the Inventory tile, after `delay` seconds.
-function RewardsFlyer.flyCase(
+-- The first of `tiles` the column has, and its centre now (nil: no column, or none of them).
+local function tileOf(column: any, tiles: { string }): (string?, Vector2?)
+	if not column then
+		return nil, nil
+	end
+	for _, name in tiles do
+		local ok, found = pcall(column.tileCenter, column, name)
+		if ok and finitePoint(found) then
+			return name, found
+		end
+	end
+	return nil, nil
+end
+
+-- One picture (a case's chest with "x2", or a spin icon with "+2") from `from` to the first of
+-- the column's `tiles` it has, after `delay` seconds.
+function RewardsFlyer.flyPicture(
 	self: any,
-	entry: RewardsParts.CaseCount,
+	picture: RewardsParts.Picture,
+	tiles: { string },
 	from: Vector2,
 	delay: number
 )
 	local layer: Frame = self.layer
 	local short = layer.AbsoluteSize.Y < Config.Multiplayer.Style.ShortHeight
 	local size = if short then F.ShortCaseSizePx else F.CaseSizePx
-	local chip = HudParts.frame(layer, "CaseChip")
+	local chip = HudParts.frame(layer, if picture.label then "SpinChip" else "CaseChip")
 	chip.AnchorPoint = Vector2.new(0.5, 0.5)
 	chip.Size = UDim2.fromOffset(size, size)
 	chip.ZIndex = F.ZIndex
 	chip.Visible = false
-	local pictures = RewardsParts.pictures({ money = 0, cases = { entry } })
-	local picture = pictures[1]
-	local icon = HudParts.icon(chip, if picture then picture.key else "Case", "Chest")
+	local icon = HudParts.icon(chip, picture.key, "Picture")
 	icon.Size = UDim2.fromScale(1, 1)
 	icon.ZIndex = F.ZIndex + 1
-	if entry.count > 1 then
-		local count = HudParts.text(
-			chip,
-			"Count",
-			F.CountTextPx,
-			Strings.Menus.Rewards.CaseCount:format(entry.count)
-		)
+	local words = picture.label
+		or (if picture.count > 1 then Strings.Menus.Rewards.CaseCount:format(picture.count) else "")
+	if words ~= "" then
+		local count = HudParts.text(chip, "Count", F.CountTextPx, words)
 		count.AutoLocalize = false
 		count.TextWrapped = false
 		count.AnchorPoint = Vector2.new(1, 1)
@@ -147,6 +168,7 @@ function RewardsFlyer.flyCase(
 	local hangEnd = popEnd + F.HangSeconds
 	local flyEnd = hangEnd + F.FlySeconds
 	local connection: RBXScriptConnection? = nil
+	local landing: string? = nil -- the tile it is flying to
 	local function finish(landed: boolean)
 		if connection then
 			connection:Disconnect()
@@ -154,8 +176,8 @@ function RewardsFlyer.flyCase(
 		end
 		chip:Destroy()
 		local column = deps and deps.column
-		if landed and column then
-			pcall(column.bump, column, "Inventory")
+		if landed and column and landing then
+			pcall(column.bump, column, landing)
 		end
 	end
 	connection = RunService.RenderStepped:Connect(function()
@@ -168,14 +190,8 @@ function RewardsFlyer.flyCase(
 			return
 		end
 		local origin = layer.AbsolutePosition
-		local column = deps and deps.column
-		local target: Vector2? = nil
-		if column then
-			local ok, found = pcall(column.tileCenter, column, "Inventory")
-			if ok and finitePoint(found) then
-				target = found
-			end
-		end
+		local name, target = tileOf(deps and deps.column, tiles)
+		landing = name
 		local point, k
 		if elapsed < popEnd then
 			point = from

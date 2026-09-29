@@ -16,10 +16,13 @@
 -- Tapping a tier (or A on it) chooses it: a gold outline, and the rewards card shows what the
 -- tier gives the first time you reach it (ECONOMY 4.8, Config.Ranks.Rewards.Tier): its money,
 -- its case (that case's own chest, its name and count: "Epic Case" and "x2"), its chat tag,
--- drawn as chat draws it (ChatTags), and its cue (the cue's thumbnail and name, Catalog.tierCue).
--- It opens on your next tier. Rewards already earned (the tier's division I at or under your
--- PeakDivision) show a check. The rank card shows your badge, rank and XP bar, and an arrow to
--- your next division with the money it pays (only the first time you reach it).
+-- drawn as chat draws it (ChatTags), its cue (the cue's thumbnail and name, Catalog.tierCue)
+-- and its ult spins (the gold spin icon and "2 Ult Spins", Ranks.rewardFor; the tile goes when
+-- a tier adds none). It opens on your next tier. Rewards already earned (the tier's division I
+-- at or under your PeakDivision) show a check. The rank card shows your badge, rank and XP bar,
+-- and an arrow to your next division with the money it pays (only the first time you reach
+-- it), and the spin icon with "+2" when it is a new tier's division I that adds spins (left out
+-- when the line has no room: the rewards card shows them too).
 --
 -- States come from the local player's attributes (RankXp, RatedMatches, PeakDivision); any
 -- change redraws the map. Gamepad: left and right move along the tiers and onto the arrows at
@@ -111,7 +114,7 @@ type Tile = {
 	check: ImageLabel, -- a reward you already have
 }
 
-type Tiles = { money: Tile, case: Tile, chat: Tile, cue: Tile }
+type Tiles = { money: Tile, case: Tile, chat: Tile, cue: Tile, spins: Tile }
 
 -- The local player's rank, read from their attributes.
 type State = {
@@ -140,8 +143,14 @@ type NextLine = {
 	top: boolean, -- you are at the top: just the words
 	words: string,
 	badgeImage: string,
-	pays: boolean, -- its money is still to be paid (the chip shows)
+	pays: boolean, -- its money or spins are still to be paid (the chip shows)
+	money: boolean, -- the chip shows the money
 	amountWords: string,
+	spins: boolean, -- the chip shows the spins (a new tier's division I, when they fit)
+	spinWords: string, -- "+2"
+	spinX: number, -- the spin icon's left in the chip
+	spinWordsX: number,
+	spinW: number,
 	gapX: number,
 	arrow: number,
 	badge: number,
@@ -653,6 +662,15 @@ function Roadmap.buildRankCard(self: any, card: Frame)
 	amount.AutoLocalize = false -- a number
 	amount.ZIndex = 2
 	self.chipAmount = amount
+	-- A new tier's ult spins, after the money in the same chip: the spin icon and "+2".
+	local spin = HudParts.icon(chip, "UltSpin", "Spin")
+	spin.AnchorPoint = Vector2.new(0, 0.5)
+	spin.ZIndex = 2
+	self.chipSpin = spin
+	local spinWords = HudParts.text(chip, "Spins", K.Text.Body, "")
+	spinWords.AutoLocalize = false -- a number
+	spinWords.ZIndex = 2
+	self.chipSpins = spinWords
 	local help = HudParts.note(rankCard, "Help", K.Text.Body, P.EarnXp)
 	help.TextXAlignment = Enum.TextXAlignment.Left
 	help.ZIndex = 2
@@ -677,16 +695,20 @@ function Roadmap.buildRewards(self: any, card: Frame)
 		case = makeTile(holder, "Case", RewardChips.caseIcon(nil), nil, false),
 		chat = makeTile(holder, "ChatTag", CHAT_ICON, P.RewardChatTag, false),
 		cue = makeTile(holder, "Cue", "Cue", nil, true),
+		spins = makeTile(holder, "Spins", "UltSpin", nil, false),
 	}
 	tiles.money.value.AutoLocalize = false -- a number
 	-- The tag exactly as chat shows it (RichText colours; Reyes letter by letter).
 	tiles.chat.value.RichText = true
 	tiles.chat.value.AutoLocalize = false
-	-- The case ("Legendary Case x2") and the cue's name may take two lines.
+	-- The case ("Legendary Case x2"), the cue's name and the spins ("2 Ult Spins") may take
+	-- two lines.
 	tiles.case.value.TextYAlignment = Enum.TextYAlignment.Top
 	tiles.cue.value.TextYAlignment = Enum.TextYAlignment.Top
+	tiles.spins.value.TextYAlignment = Enum.TextYAlignment.Top
+	tiles.spins.value.AutoLocalize = false -- worded from Strings with its number
 	self.tiles = tiles
-	self.tileOrder = { tiles.money, tiles.case, tiles.chat, tiles.cue }
+	self.tileOrder = { tiles.money, tiles.case, tiles.chat, tiles.cue, tiles.spins }
 end
 
 -- Where a gamepad goes: along the tiers, onto the arrows at the ends, up or down to the close
@@ -1184,15 +1206,18 @@ function Roadmap.measureNext(self: any, width: number, lineH: number, body: numb
 	local top = target > Ranks.count()
 	local words = P.TopRank
 	local badgeImage = ""
-	local amount = 0
+	local amount, spinCount = 0, 0
 	if not top then
 		local tier, division = Ranks.at(target)
 		words = P.NextDivision:format(divisionName(tier, division))
 		badgeImage = RankBadge.image(tier, division)
-		amount = Ranks.rewardFor(target).money
+		local reward = Ranks.rewardFor(target)
+		amount, spinCount = reward.money, reward.spins
 	end
-	local pays = not top and target > state.peak and amount > 0
+	local unpaid = not top and target > state.peak
+	local money = unpaid and amount > 0
 	local amountWords = Format.moneyDelta(amount)
+	local spinWords = Strings.Menus.Rewards.SpinChip:format(spinCount)
 	local gapX = math.max(3, round(lineH * 0.18))
 	local arrow = if top then 0 else round(lineH * R.NextArrowShare)
 	local badge = round(lineH * R.NextBadgeShare)
@@ -1202,9 +1227,20 @@ function Roadmap.measureNext(self: any, width: number, lineH: number, body: numb
 	local cashX = round(chipH * 0.1)
 	local amountX = cashX + cash + 2
 	local amountW = math.ceil(textWidth(amountWords, body)) + 4
-	local chipW = if pays then amountX + amountW + round(chipH * 0.35) else 0
-	local chipRoom = if pays then gapX + chipW else 0
+	local endPad = round(chipH * 0.35)
 	local lead = if top then 0 else arrow + gapX
+	-- The chip: the money, then the spins. The spins come only when the words beside the chip
+	-- still get about half their width (two lines at most); the rewards card shows them anyway.
+	local moneyW = if money then amountX + amountW else 0
+	local spinX = if money then moneyW + gapX else cashX
+	local spinWordsX = spinX + cash + 2
+	local withSpinsW = spinWordsX + math.ceil(textWidth(spinWords, body)) + 4
+	local spins = unpaid
+		and spinCount > 0
+		and lead + math.ceil(textW / 2) + gapX + withSpinsW + endPad <= width
+	local pays = money or spins
+	local chipW = if spins then withSpinsW + endPad elseif money then moneyW + endPad else 0
+	local chipRoom = if pays then gapX + chipW else 0
 	local showBadge = not top and lead + badge + gapX + textW + chipRoom <= width
 	local used = lead + (if showBadge then badge + gapX else 0) + textW + chipRoom
 	return {
@@ -1212,7 +1248,13 @@ function Roadmap.measureNext(self: any, width: number, lineH: number, body: numb
 		words = words,
 		badgeImage = badgeImage,
 		pays = pays,
+		money = money,
 		amountWords = amountWords,
+		spins = spins,
+		spinWords = spinWords,
+		spinX = spinX,
+		spinWordsX = spinWordsX,
+		spinW = withSpinsW - spinWordsX,
 		gapX = gapX,
 		arrow = arrow,
 		badge = badge,
@@ -1258,12 +1300,22 @@ function Roadmap.drawNext(self: any, line: NextLine, width: number, height: numb
 		local chipH = line.chipH
 		self.chip.Size = UDim2.fromOffset(line.chipW, chipH)
 		self.chip.Position = UDim2.fromOffset(x, round((height - chipH) / 2))
+		self.chipCash.Visible = line.money
+		self.chipAmount.Visible = line.money
 		self.chipCash.Size = UDim2.fromOffset(line.cash, line.cash)
 		self.chipCash.Position = UDim2.new(0, line.cashX, 0.5, 0)
 		self.chipAmount.Text = line.amountWords
 		HudParts.setTextSize(self.chipAmount, body)
 		self.chipAmount.Position = UDim2.fromOffset(line.amountX, 0)
 		self.chipAmount.Size = UDim2.fromOffset(line.amountW, chipH)
+		self.chipSpin.Visible = line.spins
+		self.chipSpins.Visible = line.spins
+		self.chipSpin.Size = UDim2.fromOffset(line.cash, line.cash)
+		self.chipSpin.Position = UDim2.new(0, line.spinX, 0.5, 0)
+		self.chipSpins.Text = line.spinWords
+		HudParts.setTextSize(self.chipSpins, body)
+		self.chipSpins.Position = UDim2.fromOffset(line.spinWordsX, 0)
+		self.chipSpins.Size = UDim2.fromOffset(line.spinW, chipH)
 	end
 end
 
@@ -1287,8 +1339,8 @@ local function tierCase(row: TierReward?): (string?, number)
 	return nil, 0
 end
 
--- The chosen tier's rewards: its money, its case, its chat tag and its cue, in tiles as wide as
--- their words need (equal when they all fit).
+-- The chosen tier's rewards: its money, its case, its chat tag, its cue and its ult spins (when
+-- it adds any), in tiles as wide as their words need (equal when they all fit).
 function Roadmap.drawRewards(self: any)
 	local geo: Geo? = self.geo
 	local state: State? = self.state
@@ -1308,16 +1360,16 @@ function Roadmap.drawRewards(self: any)
 	local tilesY = p + titleH + math.max(2, round(p * 0.5))
 	local tilesH = math.max(R.TouchMinPx, h - tilesY - p)
 	local tileGap = spanPx(R.TileGapPx, geo.t)
-	local inner = math.max(4, w - 2 * p - 3 * tileGap)
-	local holder = self.tileHolder
-	holder.Size = UDim2.fromOffset(inner + 3 * tileGap, tilesH)
-	holder.Position =
-		UDim2.fromOffset(p + round((inner + 3 * tileGap) / 2), tilesY + round(tilesH / 2))
 
 	-- The words.
 	local tiles: Tiles = self.tiles
 	local name = Ranks.tierName(tier)
 	local tierRow = TIER_REWARDS[tier]
+	local first = Ranks.indexOf(tier, 1)
+	local spinCount = if first then Ranks.rewardFor(first).spins else 0
+	local spinWords = if spinCount == 1
+		then Strings.Menus.Rewards.SpinOne
+		else Strings.Menus.Rewards.SpinMany:format(spinCount)
 	local money = Format.moneyDelta(if tierRow then tierRow.Money else 0)
 	local plainTag = Strings.Ranks.ChatTag:format(string.upper(name))
 	local caseId, caseCount = tierCase(tierRow)
@@ -1332,13 +1384,38 @@ function Roadmap.drawRewards(self: any)
 	tiles.chat.value.Text = ChatTags.tagFor(tier) or plainTag
 	tiles.cue.value.Text = cue
 	CueThumb.set(tiles.cue.icon :: Frame, cueId or Catalog.Default)
+	tiles.spins.value.Text = spinWords
+	tiles.spins.frame.Visible = spinCount > 0
 
-	-- Each tile's least width: its words on one line, but the case and the cue's name may
-	-- take two (then the longest word sets it).
+	-- The tiles shown (the spins' only when the tier adds some), sharing the card's width.
+	local shown: { Tile } = {}
+	local values: { string } = {}
+	local labels: { string } = {}
+	local wraps: { boolean } = {} -- words that may take two lines
+	local function add(tile: Tile, value: string, label: string, wrap: boolean)
+		if tile.frame.Visible then
+			table.insert(shown, tile)
+			table.insert(values, value)
+			table.insert(labels, label)
+			table.insert(wraps, wrap)
+		end
+	end
+	add(tiles.money, money, P.RewardMoney, false)
+	add(tiles.case, caseWords, "", true)
+	add(tiles.chat, plainTag, P.RewardChatTag, false)
+	add(tiles.cue, cue, "", true)
+	add(tiles.spins, spinWords, "", true)
+	local count = #shown
+	local gaps = (count - 1) * tileGap
+	local inner = math.max(4, w - 2 * p - gaps)
+	local holder = self.tileHolder
+	holder.Size = UDim2.fromOffset(inner + gaps, tilesH)
+	holder.Position = UDim2.fromOffset(p + round((inner + gaps) / 2), tilesY + round(tilesH / 2))
+
+	-- Each tile's least width: its words on one line, but the case, the cue's name and the
+	-- spins may take two (then the longest word sets it).
 	local labelSize = math.max(K.Text.Min, body - 2)
 	local tp = math.max(3, round(tilesH * 0.06))
-	local values = { money, caseWords, plainTag, cue }
-	local labels = { P.RewardMoney, "", P.RewardChatTag, "" }
 	local needs: { number } = {}
 	local total = 0
 	for i, words in values do
@@ -1346,22 +1423,27 @@ function Roadmap.drawRewards(self: any)
 		total += needs[i]
 	end
 	if total > inner then
-		for _, i in { 2, 4 } do
-			local longest = 0
-			for word in string.gmatch(values[i], "%S+") do
-				longest = math.max(longest, textWidth(word, body))
+		for i, wrap in wraps do
+			if wrap then
+				local longest = 0
+				for word in string.gmatch(values[i], "%S+") do
+					longest = math.max(longest, textWidth(word, body))
+				end
+				total -= needs[i]
+				needs[i] = longest + 2 * tp + 6
+				total += needs[i]
 			end
-			total -= needs[i]
-			needs[i] = longest + 2 * tp + 6
-			total += needs[i]
 		end
 	end
-	local biggest = math.max(needs[1], needs[2], needs[3], needs[4])
+	local biggest = 0
+	for _, need in needs do
+		biggest = math.max(biggest, need)
+	end
 	local widths: { number } = {}
 	for i, need in needs do
-		widths[i] = if biggest * 4 <= inner
-			then inner / 4
-			elseif total <= inner then need + (inner - total) / 4
+		widths[i] = if biggest * count <= inner
+			then inner / count
+			elseif total <= inner then need + (inner - total) / count
 			else inner * need / total
 	end
 
@@ -1370,7 +1452,7 @@ function Roadmap.drawRewards(self: any)
 	local check = round(tilesH * R.TileCheckShare)
 	local corner = UDim.new(0, spanPx(R.TileCornerPx, geo.t))
 	local x = 0
-	for i, tile: Tile in self.tileOrder do
+	for i, tile: Tile in shown do
 		local left, right = round(x), round(x + widths[i])
 		x += widths[i] + tileGap
 		local width = right - left
@@ -1398,8 +1480,7 @@ function Roadmap.drawRewards(self: any)
 	end
 	-- A check on every reward of a tier already reached: its division I is at or under the
 	-- best division ever reached (PeakDivision), so its rewards were paid.
-	local first = Ranks.indexOf(tier, 1) or math.huge
-	local earned = first <= state.peak
+	local earned = (first or math.huge) <= state.peak
 	for _, tile: Tile in self.tileOrder do
 		tile.check.Visible = earned
 	end

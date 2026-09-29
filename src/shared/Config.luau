@@ -3810,7 +3810,13 @@ Config.UI = {
 		-- badge is about 40% of the screen's short side. XP is never lost: no rank-down card.
 		NewRank = {
 			ZIndex = 32, -- over the result screen; the money HUD and the chips stay over it
-			BackdropTransparency = 1, -- clear: popups never darken the screen (UI_STYLE section 2)
+			-- The dim behind it (designer, 2026-09-28: NEW RANK! sat awkwardly over the match
+			-- results): black, fading to this transparency with the popup (0.5: a little dark;
+			-- 1 would be clear again). It is this many screens plus this many pixels big, centred,
+			-- so it spills past Roblox's top bar and a phone's notch and never shows an edge.
+			BackdropTransparency = 0.5,
+			BackdropOverScale = 2,
+			BackdropOverPx = 400,
 			MarginPx = 10,
 			MaxScale = 1.35, -- grows up to this much on a big screen (1.75 made Continue huge)
 			Width = 360, -- natural size

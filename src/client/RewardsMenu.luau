@@ -12,7 +12,8 @@
 -- tab claims it) shows as a banner on the Daily tab with Open Index, which closes this menu and
 -- opens the Inventory on its Index tab (ItemState's "Items" snapshot says when). What a claim
 -- gave flies out of its button (RewardsFlyer): money into the money HUD, each case to the
--- column's Inventory tile, with the Claim sound. The reminder toast when Roblox's menu opens or
+-- column's Inventory tile, ult spins to its Ults button (the Rewards tile without one), with
+-- the Claim sound. The reminder toast when Roblox's menu opens or
 -- the window loses focus starts here too (Reminders.start).
 --
 -- Data: ItemState's "Rewards" snapshot (RewardState, src/shared/Net.luau), redrawn on every

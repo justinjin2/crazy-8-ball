@@ -1,12 +1,15 @@
 --!strict
 -- NewRankPopup: NEW RANK!, one at a time (a second one waits its turn). XP is never lost
 -- (ECONOMY 4.1), so there is no rank-down card.
--- - A big popup with no dim: "NEW RANK!" in big gold kit text, the new badge large (about 40%
+-- - A big popup over a light dim of the whole screen (designer, 2026-09-28: it sat awkwardly
+--   over the match results): "NEW RANK!" in big gold kit text, the new badge large (about 40%
 --   of the screen's short side) with gold rays turning behind it, its shine and a burst,
 --   confetti, the rank's name ("Gold IV"), then every reward as a chip (brief section 9;
 --   RewardChips): the money ("+$300" with the cash), which then flies into the money HUD; each
 --   case (its own chest and "x2") and the tier's cue (its thumbnail and name), whose pictures
---   fly into the left column's Inventory tile; and the tier's chat tag, drawn as chat draws it.
+--   fly into the left column's Inventory tile; a new tier's ult spins ("2 Ult Spins" by the
+--   gold spin icon), whose icon flies to the column's Ults button (Rewards without one); and
+--   the tier's chat tag, drawn as chat draws it.
 --   Chips wider than the popup reach past its sides like the title, or wrap onto a second
 --   row. Then Continue. It closes itself after a few seconds.
 -- - A new tier (Gold V to Platinum I; Unranked to Bronze I counts): the bigger version. The old
@@ -20,6 +23,7 @@
 -- (`preview`, nothing was paid) the chip only shows. The cases and the cue are in the inventory
 -- already too; their pictures always fly (purely a picture: the column's red dot comes from the
 -- save), even in a preview, whose rewards are worked out here when the event does not list them.
+-- The spins likewise: already added by the server; their icon only flies.
 local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -106,8 +110,30 @@ local function previewItems(event: any): ({ [string]: number }, { string })
 	return cases, cues
 end
 
--- The chips for an event: the money, each case in the shop's order, every cue, and the new
--- tier's chat tag.
+-- The ult spins an event's rank-up added: its rewardSpins (RankEvent, the match summary); a
+-- preview's from the divisions it passed (nothing was given; /newrank's rows carry no spins);
+-- else its reward rows' spins added up (a result screen that passes only the rows).
+local function spinsOf(event: any): number
+	if type(event.rewardSpins) == "number" then
+		return clean(event.rewardSpins)
+	end
+	local total = 0
+	if event.preview == true then
+		for _, row in Ranks.rewardsBetween(indexOf(event.before), indexOf(event.after)) do
+			total += clean(row.spins)
+		end
+	elseif type(event.rewards) == "table" then
+		for _, row in event.rewards do
+			if type(row) == "table" then
+				total += clean(row.spins)
+			end
+		end
+	end
+	return total
+end
+
+-- The chips for an event: the money, each case in the shop's order, the ult spins, every
+-- cue, and the new tier's chat tag.
 local function specsOf(event: any, reward: number): { RewardChips.Spec }
 	local specs: { RewardChips.Spec } = {}
 	if reward > 0 then
@@ -127,6 +153,10 @@ local function specsOf(event: any, reward: number): { RewardChips.Spec }
 				table.insert(specs, { kind = "Case", id = id, text = P.RewardCount:format(count) })
 			end
 		end
+	end
+	local spins = RewardChips.spinsSpec(spinsOf(event))
+	if spins then
+		table.insert(specs, spins)
 	end
 	if type(cues) == "table" then
 		for _, id in cues do
@@ -178,8 +208,9 @@ end
 
 --- Show a rank-up: `event` = {kind = "Up", before, after (ranks: tier and division, index),
 --- reward (money), newTier, rewardCases? ({[caseId] = count}), rewardCues? ({cueId}),
---- preview?, paid?} (the server's RankEvent, or the result screen after a match). `onDone`
---- runs once it has closed. One at a time: a second one waits.
+--- rewardSpins? (ult spins; else the `rewards` rows' spins added up), preview?, paid?} (the
+--- server's RankEvent, or the result screen after a match). `onDone` runs once it has closed.
+--- One at a time: a second one waits.
 function NewRankPopup.show(self: any, event: any, onDone: (() -> ())?)
 	if
 		not self.alive
@@ -267,14 +298,23 @@ function NewRankPopup.openUp(self: any, item: any)
 	local root = frame(self.root, "NewRank")
 	root.Size = UDim2.fromScale(1, 1)
 	view.root = root
+	-- The dim behind the popup (designer, 2026-09-28): it fades in to C.BackdropTransparency
+	-- over the result screen (ZIndex 30) and under the popup, while the money HUD (40) and the
+	-- flying chips (45) stay bright over it. It lives in the shared HUD ScreenGui, which keeps
+	-- clear of Roblox's top bar and a notch, so it is far bigger than the screen and centred:
+	-- a ScreenGui never clips, so it spills over the top bar and the safe-area edges at every
+	-- resolution and never shows a cut edge. A tap on it closes the popup, as before.
 	local backdrop = Instance.new("TextButton")
 	backdrop.Name = "Backdrop"
 	backdrop.Text = ""
 	backdrop.AutoButtonColor = false
 	backdrop.BorderSizePixel = 0
-	backdrop.BackgroundColor3 = tone("Ink")
+	backdrop.BackgroundColor3 = Color3.new(0, 0, 0)
 	backdrop.BackgroundTransparency = 1
-	backdrop.Size = UDim2.fromScale(1, 1)
+	backdrop.AnchorPoint = Vector2.new(0.5, 0.5)
+	backdrop.Position = UDim2.fromScale(0.5, 0.5)
+	backdrop.Size =
+		UDim2.new(C.BackdropOverScale, C.BackdropOverPx, C.BackdropOverScale, C.BackdropOverPx)
 	backdrop.Selectable = false
 	backdrop.Active = true
 	backdrop.Modal = true -- frees a locked mouse
@@ -374,10 +414,12 @@ function NewRankPopup.openUp(self: any, item: any)
 	view.height = chipsTop + rowsHeight + C.Gap + C.ButtonHeight
 	view.width = math.max(C.Width, widest)
 	holder.Size = UDim2.fromOffset(C.Width, view.height)
-	-- The cases and the cue fly to Inventory one after another, after the money.
+	-- The cases and the cue fly to Inventory one after another, after the money; the spins
+	-- to the column's Ults button in their turn.
 	local at = view.rewardAt + C.ItemFlyAfter
 	for _, chip in view.chips do
-		if chip.spec.kind == "Case" or chip.spec.kind == "Cue" then
+		local kind = chip.spec.kind
+		if kind == "Case" or kind == "Cue" or kind == "Spins" then
 			table.insert(view.flights, { chip = chip, at = at })
 			at += C.ItemFlyStagger
 		end
@@ -550,11 +592,12 @@ function NewRankPopup.sendChip(self: any, view: any)
 	end
 end
 
--- A case or the cue: its picture flies into the column's Inventory tile; its chip bounces.
+-- A case, the cue or the spins: its picture flies into its column tile (Inventory; the spins
+-- to Ults); its chip bounces.
 function NewRankPopup.flyItem(self: any, _view: any, chip: RewardChips.Chip)
 	chip.root.Visible = true -- a close before its pop still sends it from its place
 	UIAnim.bounce(chip.root)
-	RewardChips.fly(self.screen, chip, self.deps, "Inventory", 0)
+	RewardChips.fly(self.screen, chip, self.deps, RewardChips.tilesFor(chip.spec.kind), 0)
 end
 
 --------------------------------------------------------------------------------------------
@@ -585,7 +628,8 @@ function NewRankPopup.close(self: any)
 		self.money:land(item.reward)
 	end
 	for _, flight in view.flights do
-		RewardChips.fly(self.screen, flight.chip, self.deps, "Inventory", 0)
+		local kind = flight.chip.spec.kind
+		RewardChips.fly(self.screen, flight.chip, self.deps, RewardChips.tilesFor(kind), 0)
 	end
 	view.flights = {}
 	UIAnim.popOut(view.stage)

@@ -1,10 +1,11 @@
 --!strict
 -- RewardsCodes: the Rewards menu's Codes tab (docs/prompts/ECONOMY_UI_PROMPT.md section 11,
 -- ECONOMY 18): "Got a code?", a text box and a green Redeem, the server's answer under them
--- ("Code redeemed: +$500 and a Standard Case" in green, or why not in red: "That code doesn't
--- exist.", "You already used that code.", "That code has expired."), and a short note. Kept
--- high on the page, so a phone's keyboard never covers it; the answer sits right under the box
--- (not in the menu's bottom notice, which the keyboard would hide).
+-- ("Code redeemed: +$500 and a Standard Case", or "Code redeemed: 3 Ult Spins" for ULTS, in
+-- green, or why not in red: "That code doesn't exist.", "You already used that code.", "That
+-- code has expired."), and a short note. Kept high on the page, so a phone's keyboard never
+-- covers it; the answer sits right under the box (not in the menu's bottom notice, which the
+-- keyboard would hide).
 --
 -- The box is Selectable: a gamepad lands on it when the tab opens and A starts typing; Enter
 -- (or the console keyboard's done) redeems, as Redeem does. The client sends the typed text

@@ -1798,3 +1798,39 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28 (designer): hovering anything pressable makes it sway gently (a small dance, not
   fast or slow: about 3 degrees, 1.4 s a rock); on the rank HUD only the badge shakes. Touch
   has no hover, so taps never start it (this session's call).
+- 2026-09-28 (designer, ultimates interview): ults are core gameplay: both players should use
+  their ult in 80%+ of matches (run-outs left out). The bar fills by the same rules for
+  everyone (section 5 of the ultimates brief: own balls +8/+6/+5/+4 then +2, nice shot +20,
+  opponent's ball +8 plus 7 per ball behind, +15 per legal turn end, +6 per opponent turn end,
+  turn-end fill capped at 50, Classic x1.3, x0.3 after the first ult, at most 2).
+- 2026-09-28 (designer): ults are on by default everywhere (public tables, the global queue,
+  arenas, vs PC); solo gets a free Practice ult. This replaces "public tables play Classic
+  with no abilities" (2026-09-27). The global queue alone offers Ults: On / Off (two pools).
+- 2026-09-28 (designer): paid ult spins override ECONOMY 11.7: spins for Robux and money,
+  Lucky Spins for Robux, odds always shown, pity kept, PolicyService-restricted players blocked
+  from paying. Legendary 1 in 150, Mythic 1 in 1,000. Slots UBG style (3; slots 2 and 3 are
+  passes at 59 and 99 R$). Robux prices 15/50/100/449, Lucky 49 and 3 for 129.
+- 2026-09-28 (designer): the power ladder: higher rarities are cooler and stronger (Common
+  about 1/3 of a ball per use up to Legendary/Mythic a guaranteed ball plus 1-2, 3 at most).
+- 2026-09-28 (overnight assumption): a teammate's ball gives +2 of a bar; the opponent's
+  match bar shows a small ult icon that lights when their ult is ready (fair, visible
+  information).
+- 2026-09-28 (overnight assumption): ult_ready (an 8.2 s jingle) plays 3 s then fades over
+  0.8 s so it never talks over the shot (`Config.Ults.Audio.Ready.MaxSeconds`, 0 = whole).
+- 2026-09-28 (overnight assumption): the save keeps the three slots as a gapless array of
+  strings ("" = empty) and the locks as three booleans, because ProfileStore takes no arrays
+  with holes.
+- 2026-09-28 (overnight assumption): Mythic's aura on the spin screen is red-black with
+  crackling arcs (the brief's colours), unlike its pastel card shimmer.
+- 2026-09-28 (overnight assumption): money spins cost $1,750 each with no bulk discount, about
+  2.4 hours of Classic play, so Robux stays the cheap route.
+- 2026-09-28 (overnight assumption, from the fuller model): own-ball fill raised to
+  +10/+8/+6/+5 then +3 and the after-first-ult rate lowered to x0.25, so "both players use
+  an ult" holds with room (worst 85%, was 81%) and second ults stay under 2%. A run of 7 gives
+  +38 (+49 in Classic), still half a bar.
+- 2026-09-28: NEW RANK! now dims the screen behind it (designer: it overlapped the match
+  results awkwardly). Black at 0.5 transparency, fading with the popup. It is two screens plus
+  400 px, centred, so no edge shows on any device. It is the popup's own backdrop inside PoolHud,
+  not a separate ScreenGui, so the money HUD and flying chips stay bright above it.
+- 2026-09-28: The ult cutscene's avatar stands upright in its own window inside the tilted band
+  (a ViewportFrame neither rotates nor clips under a rotated frame), framed to include a hat.

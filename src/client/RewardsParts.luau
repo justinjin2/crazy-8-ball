@@ -1,11 +1,13 @@
 --!strict
 -- RewardsParts: what the Rewards menu's pages (RewardsDaily, RewardsPlaytime, RewardsCodes),
 -- its flying rewards (RewardsFlyer) and the reminders (Reminders) share:
---   * a reward read from either shape the server sends ({ money, cases } with `cases` a list
---     of { id, count } (RewardState, RewardRequest) or a map id -> count (MatchSummary's
---     nextReward, Daily.nextReward)), and its words ("$250", "2 Standard Cases", "+$500 and a
---     Standard Case");
---   * a reward's pictures (the cash stack, each case's chest with "x2"), a white tile card like
+--   * a reward read from either shape the server sends ({ money, cases, spins?, lucky? } with
+--     `cases` a list of { id, count } (RewardState, RewardRequest) or a map id -> count
+--     (MatchSummary's nextReward, Daily.nextReward)), and its words ("$250", "2 Standard
+--     Cases", "Epic Case + 2 Ult Spins", "+$500 and a Standard Case"); `spins` and `lucky` are
+--     ult spins and Lucky Spins (docs/prompts/ULTIMATES_PROMPT.md section 10);
+--   * a reward's pictures (the cash stack, each case's chest with "x2", the ult spin and the
+--     Lucky Spin icons with "+2"), a white tile card like
 --     MenuFrame.tile's, a progress bar, a footer line of two parts, a tab's red dot;
 --   * { phone, full } pairs at a layout's t (Config.UI.Menu.Frame's convention) and times.
 -- Every word is from Strings; every size from Config.UI.Rewards and Config.UI.Kit.
@@ -31,10 +33,15 @@ local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 local color = HudParts.color
 
 export type CaseCount = { id: string, count: number }
-export type Reward = { money: number, cases: { CaseCount } }
+export type Reward = { money: number, cases: { CaseCount }, spins: number, lucky: number }
 
--- One picture of a reward: an icon key and how many ("x2" shows above 1).
-export type Picture = { key: string, count: number }
+-- One picture of a reward: an icon key and how many ("x2" shows above 1), or `label` instead
+-- (an ult spin's "+1", shown at any count).
+export type Picture = { key: string, count: number, label: string? }
+
+-- The left column's tiles that ult spins fly into, the first that exists: the Ults button, else
+-- Rewards (a column without the Ults button yet).
+local SPIN_TILES = { "Ults", "Rewards" }
 
 local RewardsParts = {}
 
@@ -56,6 +63,7 @@ end
 
 RewardsParts.round = round
 RewardsParts.whole = whole
+RewardsParts.SpinTiles = SPIN_TILES
 
 --- A { phone, full } pair at t (0 a phone-sized panel, 1 a full one), in whole pixels.
 function RewardsParts.span(pair: { number }, t: number): number
@@ -80,15 +88,17 @@ end
 -- Rewards and their words
 --------------------------------------------------------------------------------------------
 
---- A reward from anything the server sends: { money, cases } where `cases` is a list of
---- { id, count } (kept in its order) or a map of id -> count (in Config.Cases.Order, then any
---- other ids by name). Anything missing or malformed reads as nothing.
+--- A reward from anything the server sends: { money, cases, spins?, lucky? } where `cases` is a
+--- list of { id, count } (kept in its order) or a map of id -> count (in Config.Cases.Order,
+--- then any other ids by name). Anything missing or malformed reads as nothing.
 function RewardsParts.reward(value: any): Reward
-	local out: Reward = { money = 0, cases = {} }
+	local out: Reward = { money = 0, cases = {}, spins = 0, lucky = 0 }
 	if type(value) ~= "table" then
 		return out
 	end
 	out.money = whole(value.money)
+	out.spins = whole(value.spins)
+	out.lucky = whole(value.lucky)
 	local cases = value.cases
 	if type(cases) ~= "table" then
 		return out
@@ -122,8 +132,35 @@ function RewardsParts.reward(value: any): Reward
 	return out
 end
 
+--- Whether a reward gives nothing at all (no money, cases, ult spins or Lucky Spins).
 function RewardsParts.isEmpty(reward: Reward): boolean
-	return reward.money <= 0 and #reward.cases == 0
+	return reward.money <= 0 and #reward.cases == 0 and reward.spins <= 0 and reward.lucky <= 0
+end
+
+--- Ult spins' words: "1 Ult Spin", "3 Ult Spins" ("" for none).
+function RewardsParts.spinWords(count: number): string
+	if count <= 0 then
+		return ""
+	end
+	return if count == 1 then W.SpinOne else W.SpinMany:format(count)
+end
+
+--- Lucky Spins' words: "1 Lucky Spin", "3 Lucky Spins" ("" for none).
+function RewardsParts.luckyWords(count: number): string
+	if count <= 0 then
+		return ""
+	end
+	return if count == 1 then W.LuckyOne else W.LuckyMany:format(count)
+end
+
+-- A reward's spins and Lucky Spins as parts of its words, after its money and cases.
+local function addSpinParts(parts: { string }, reward: Reward)
+	if reward.spins > 0 then
+		table.insert(parts, RewardsParts.spinWords(reward.spins))
+	end
+	if reward.lucky > 0 then
+		table.insert(parts, RewardsParts.luckyWords(reward.lucky))
+	end
 end
 
 --- A case's name: "Rare Case".
@@ -174,7 +211,8 @@ local function joinPlus(parts: { string }): string
 	return text
 end
 
---- A tile's words: "$250", "Rare Case", "2 Standard Cases", "Epic Case + Legendary Case".
+--- A tile's words: "$250", "Rare Case", "2 Standard Cases", "Epic Case + Legendary Case",
+--- "Epic Case + 2 Ult Spins".
 function RewardsParts.words(reward: Reward): string
 	local parts: { string } = {}
 	if reward.money > 0 then
@@ -183,10 +221,12 @@ function RewardsParts.words(reward: Reward): string
 	for _, entry in reward.cases do
 		table.insert(parts, RewardsParts.caseWords(entry))
 	end
+	addSpinParts(parts, reward)
 	return joinPlus(parts)
 end
 
---- What a claim gave, as a sentence's end: "+$500 and a Standard Case", "2 Standard Cases".
+--- What a claim gave, as a sentence's end: "+$500 and a Standard Case", "2 Standard Cases",
+--- "3 Ult Spins".
 function RewardsParts.summary(reward: Reward): string
 	local parts: { string } = {}
 	if reward.money > 0 then
@@ -195,6 +235,7 @@ function RewardsParts.summary(reward: Reward): string
 	for _, entry in reward.cases do
 		table.insert(parts, RewardsParts.caseInSentence(entry))
 	end
+	addSpinParts(parts, reward)
 	if #parts <= 1 then
 		return parts[1] or ""
 	end
@@ -219,7 +260,8 @@ function RewardsParts.bonusWords(): string
 	return Format.money(bonus.money)
 end
 
---- A reward's pictures: the cash stack for money, then each case's chest.
+--- A reward's pictures: the cash stack for money, then each case's chest, then the ult spin
+--- icon ("+2") and the Lucky Spin icon ("+1").
 function RewardsParts.pictures(reward: Reward): { Picture }
 	local list: { Picture } = {}
 	if reward.money > 0 then
@@ -231,6 +273,18 @@ function RewardsParts.pictures(reward: Reward): { Picture }
 			key = "Case"
 		end
 		table.insert(list, { key = key, count = entry.count })
+	end
+	if reward.spins > 0 then
+		table.insert(
+			list,
+			{ key = "UltSpin", count = reward.spins, label = W.SpinChip:format(reward.spins) }
+		)
+	end
+	if reward.lucky > 0 then
+		table.insert(
+			list,
+			{ key = "Lucky", count = reward.lucky, label = W.SpinChip:format(reward.lucky) }
+		)
 	end
 	return list
 end
@@ -280,8 +334,10 @@ function RewardsParts.setPictures(self: Pictures, reward: Reward)
 		local s = slot(self, index)
 		s.image.Image = ICONS[picture.key] or ""
 		s.image.Visible = true
-		s.count.Text = if picture.count > 1 then W.CaseCount:format(picture.count) else ""
-		s.count.Visible = picture.count > 1
+		local label = picture.label
+			or (if picture.count > 1 then W.CaseCount:format(picture.count) else "")
+		s.count.Text = label
+		s.count.Visible = label ~= ""
 	end
 	for index = #self.pictures + 1, #self.slots do
 		self.slots[index].image.Visible = false
