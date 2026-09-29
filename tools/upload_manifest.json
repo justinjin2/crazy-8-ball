@@ -1,13 +1,17 @@
 {
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
-    "note": "still moderating; re-run to pick it up",
-    "operationId": "e02858a0-48cc-4ddf-9967-92e4220dd1f4",
-    "status": "pending"
+    "assetId": "82997454954024",
+    "assetType": "Decal",
+    "imageId": "90187359321182",
+    "note": "uploaded three times while moderation was slow; the first (op e03030c1) and second may also finish as duplicates",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/field_lines.png": {
-    "note": "still moderating; re-run to pick it up",
-    "operationId": "f2126551-5cc1-44ef-9db9-853b5c63abf0",
-    "status": "pending"
+    "assetId": "126008179443843",
+    "assetType": "Decal",
+    "imageId": "132811450841753",
+    "note": "uploaded twice while moderation was slow; the first may also finish as a duplicate",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/ring_glow.png": {
     "assetId": "100993435112539",
