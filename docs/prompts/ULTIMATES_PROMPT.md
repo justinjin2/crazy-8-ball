@@ -595,7 +595,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 13. Audit by a fresh subagent (everything that grants spins or rolls, attacker and bad
   day: forged remotes, spam, double receipts, racing spins, a shutdown mid-spin, Auto Spin
   abuse) plus a branch-wide bug review of `git diff economy...ultimates`; findings fixed.
-- [ ] 14. Polish: the bar's feel, the cutscene's timing, Magnet's pull feel, the spin
+- [x] 14. Polish: the bar's feel, the cutscene's timing, Magnet's pull feel, the spin
   animation, phone sizes.
 - [ ] 15. Docs: GDD section 9 (the rules of section 4 moved to Decided, the 13 ults, the spin
   screen), section 6 (ults on at public tables and in the queue, the queue's No ults choice), section 12; ECONOMY.md (11.7
@@ -765,3 +765,8 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   on two servers), L5 (/opult live, dev rolls announced), L6 (money spins past the cap). Left:
   L4, every player's exact bar is in the table snapshot (information only; the HUD shows only
   "ready" for others) - a per-player snapshot is a bigger change, noted for later.
+- **Step 14 (polish).** Magnet's pull look lingers 0.5 s (was 0.2, barely visible from the
+  player's camera), its halo and pocket ring a little bigger; the spin stage frames the
+  avatar with its hat (FillShare 0.6, LookUp 0.14); RankHud hidden under the spin screen;
+  the cutscene avatar window (steps 4-6). The bar's feel and the cutscene's timing held up in
+  the playthrough and were left as built. Phone sizes checked at 750x361 and 844x390.

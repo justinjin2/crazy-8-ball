@@ -6123,17 +6123,19 @@ Config.UI.MagnetFx = {
 	-- Flip the sign if Studio shows it flowing the wrong way.
 	BeamTextureSpeed = 2,
 	PullRiseSeconds = 0.08, -- a pull's effects come up this fast...
-	PullFadeSeconds = 0.2, -- ...and let go this fast
+	-- ...and let go this slowly: a pull lasts only while the ball crosses the mouth, so the look
+	-- lingers a moment to be seen (polish, 2026-09-28: 0.2 barely showed from the player's camera)
+	PullFadeSeconds = 0.5,
 	PitchEaseSeconds = 0.25, -- the hum's pitch rising and falling with the strongest pull
 	-- The pulled ball's glow: a PointLight and (with Config.UI.Kit.Art.SoftGlow) a soft halo.
 	GlowRangeStuds = 2.5,
 	GlowBrightness = 3,
-	GlowBallWidths = 3, -- the halo's size
+	GlowBallWidths = 3.5, -- the halo's size
 	GlowTransparency = 0.15,
 	GlowPulseShare = 0.2,
 	GlowPulseSeconds = 0.3,
 	-- The pocket's ring on the cloth (Config.UI.Kit.Art.RingGlow; a beam circle without it).
-	PocketRingScale = 1.7, -- of the pocket's opening
+	PocketRingScale = 2, -- of the pocket's opening
 	PocketPulseSeconds = 0.5,
 	PocketPulseScale = 0.15, -- it breathes this much bigger and smaller
 	PocketPulseFade = 0.35, -- and this much fainter at its biggest
