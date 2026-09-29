@@ -1387,6 +1387,8 @@ function Engine.snapshot(t: any): any
 		ults = Ults.view(t),
 		-- The last Rewind (7.6): clients play the table going back from `at`.
 		rewound = t.rewound,
+		-- This turn's clock is Rewind's short redo clock (the HUD's SECOND CHANCE pill).
+		redoClock = t.redoClock == true,
 	}
 end
 

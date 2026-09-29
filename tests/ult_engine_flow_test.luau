@@ -93,6 +93,28 @@ local function sameBalls(a: { any }, b: { any }): boolean
 	return #a == #b
 end
 
+-- Every field of every ball the same, bit for bit (positions, motion, spin, flags).
+local function identical(a: { any }, b: { any }): (boolean, string?)
+	if #a ~= #b then
+		return false, "ball count"
+	end
+	for i, x in a do
+		local y = b[i]
+		for key, value in x do
+			if y[key] ~= value then
+				return false,
+					("ball %d %s: %s vs %s"):format(x.id, key, tostring(value), tostring(y[key]))
+			end
+		end
+		for key in y do
+			if x[key] == nil then
+				return false, ("ball %d gained %s"):format(y.id, key)
+			end
+		end
+	end
+	return true
+end
+
 ---------------------------------------------------------------------------------------------
 -- Rewind
 ---------------------------------------------------------------------------------------------
@@ -113,6 +135,12 @@ function tests.rewind_restores_the_table_and_gives_a_ten_second_redo()
 		expect(m.phase == "Rewinding" and m.rewound ~= nil, "everyone watches it rewind")
 		expect(E.snapshot(m).rewound ~= nil, "the snapshot says so")
 		expect(sameBalls(m.state.balls, before), "the exact table before the shot")
+		local same, why = identical(m.state.balls, before)
+		expect(same, "bit-identical: " .. tostring(why))
+		expect(
+			m.groups[1] == "solids" and m.groups[2] == "stripes" and m.foul == nil,
+			"groups kept"
+		)
 		expect(m.shooter == 11 and m.ults.armed == nil, "the same shooter; the ability is spent")
 		local at = m.deadline
 		expire(m)
@@ -137,12 +165,25 @@ function tests.rewind_erases_a_scratch_and_keeps_ball_in_hand()
 		local y = m.state.geometry.halfWidth - 6
 		local p = payload(m, math.pi / 2, 0.12)
 		p.cueX, p.cueY = 0, y
+		-- The table as the shot starts from it: the cue ball where it was placed.
+		place(m, 0, 0, y)
+		local before = Ball.cloneList(m.state.balls)
 		local wire = E.acceptShot(m, 11, p, m.phaseStartedAt)
 		expect(wire and wire.rewind == true, "a scratch with none of yours down rewinds")
+		local final = wire.final
+		expect(final[4] == 1, "the cue ball went down")
 		expire(m)
 		expect(m.phase == "Rewinding" and m.foul == nil, "the foul is erased")
+		local same, why = identical(m.state.balls, before)
+		expect(same, "bit-identical after the scratch: " .. tostring(why))
 		expire(m)
 		expect(m.ballInHand == true and m.phase == "Placement", "ball in hand as before")
+		expect(E.snapshot(m).redoClock == true, "the HUD is told it is the redo")
+		-- The usual time to move the cue ball, then the redo's 10 s shot clock.
+		local at = m.deadline
+		expire(m)
+		expect(m.phase == "Aiming", "aiming after the move time")
+		expect(math.abs(m.deadline - at - S.RewindRedoSeconds) < 1e-9, "on the 10 s clock")
 	end)
 end
 

@@ -786,7 +786,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 5. Super Bounce (7.3), look check done.
 - [x] 6. Ghost (7.4), look check done.
 - [x] 7. Heat Seeker (7.5), look check done.
-- [ ] 8. Rewind (7.6), look check done.
+- [x] 8. Rewind (7.6), look check done.
 - [ ] 9. Time Stop (7.7), look check done.
 - [ ] 10. Chain Lightning (7.8), look check done.
 - [ ] 11. Portals (7.9), look check done.
@@ -1006,3 +1006,32 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   CONFIRM, the server took pick = 1); the MCP keyboard tool registers as keyboard, not
   gamepad, and touch can't be emulated, so gamepad (D-pad or stick, A, X) and touch (the same
   pointer path as the mouse) need a hand check (step 17).
+- **Step 8 done (2026-09-29).** The rule was the engine's (step 1); now Built. Tests: the
+  restored table is bit-identical (every field of every ball) after a miss and after a scratch
+  from ball in hand, groups and foul restored, the early 8 rewinds, a dropped ball of yours
+  does not, the redo is a plain shot on a 10 s clock (with ball in hand: the usual move time,
+  then the 10 s shot clock), the snapshot's `redoClock` for the HUD. Worth (per shot, careless):
+  +0.16/+0.19/+0.20 at skills 1/2/3 (redo on 50-82% of uses) vs the Rare 1.0: the harness
+  counts only the shot (not the kept turn or the erased foul), flagged for step 16. Client:
+  `Match` tapes a shot the server marked `rewind` (positions, spin, shown) and, on the
+  Rewinding snapshot, flies the table back through it at 3x (at most 1.7 s, after a 0.25 s
+  lead) with the balls rolling backward, then lands on the server's table; a client without the
+  tape just takes the table. The look (RewindFx; Blender `rewind.py`: the RewindDial mesh and
+  six rendered images, the icon flipbook, grain, scanlines, tearing, the tracking band and the
+  edge split): armed, a backward-turning dial (white band, magenta and green edges, clock ticks)
+  round the cue ball with a cassette clack; in the shot, the dial and a ghost cue ball wait on
+  the start spot; spent, the dial glitches out with a click; the rewind, for everyone at the
+  table, a VHS screen (grade, split edges, scanlines, grain, tearing, a tracking band rolling
+  up, the big glitching rewind icon pulsing), a tape whirr climbing in pitch, the dial spinning
+  fast, white comet streaks on the balls flying back, then a clunk and a flash as the table
+  lands; the HUD hides the clock during it and then shows a pink SECOND CHANCE: 10s pill. Studio
+  passes (the moment stretched by a TEMP Config edit, reverted): 1, balls potted before the shot
+  were drawn in a pile (the tape now takes shown-or-not from the renderer), the clock counted
+  down during the moment, the grade washed the view out and the edge split flooded the sides;
+  2, the grain turned the view to snow (0.8), the edges still flooded (0.62), the streaks were
+  lost under the screen (brighter, full glow). Critique left: the reference is on black and our
+  table stays bright under it; the dial's green edge vanishes on the green cloth. Frame time:
+  Studio unfocused runs at 15 fps; the rewind moment measured 66.6 ms a frame vs 66.7 idle (no
+  visible cost; one 728-triangle dial, at most 16 trails, six screen images). No leftovers
+  after it (no streaks, dial, ghost, screen images or grade). Phone framing (the icon is a share
+  of the screen height; the pill sits in the NO ULTS row) is checked in the playthrough.

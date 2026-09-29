@@ -144,8 +144,17 @@ function tests.rewind_counts_only_the_redo()
 	local ts = straightIn()
 	local plan = V.shots(ts, 1)[1]
 	-- Eight sigma of aim error misses; the redo's draws are all 0 and pot.
-	local missed = V.play(ts, plan, 2, 8, 0, "Rewind", zero)
-	expect(missed.own == 0 and not missed.redone, "a placeholder Rewind does nothing")
+	local row = Catalog.Rewind
+	local was = row.Built
+	row.Built = false
+	local ok, err = pcall(function()
+		local missed = V.play(ts, plan, 2, 8, 0, "Rewind", zero)
+		expect(missed.own == 0 and not missed.redone, "an unbuilt Rewind does nothing")
+	end)
+	row.Built = was
+	if not ok then
+		error(err, 0)
+	end
 	built("Rewind", function()
 		local r = V.play(ts, plan, 2, 8, 0, "Rewind", zero)
 		expect(r.redone, "none of theirs dropped: the table rewinds")

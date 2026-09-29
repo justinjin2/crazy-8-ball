@@ -967,7 +967,7 @@ function AbilityFx.update(self: AbilityFx, dt: number, aim: Aim?, shot: AimShot?
 	for id, fx in self.tables do
 		local m = self.hub.matches[id]
 		local gone = fx.anchor.Parent == nil or (m ~= nil and m.renderer == nil)
-		local busy = m ~= nil and (m.shot ~= nil or armedOf(self.hub.snapshots[id]) ~= nil)
+		local busy = m ~= nil and (m:isBusy() or armedOf(self.hub.snapshots[id]) ~= nil)
 		if busy then
 			fx.keepUntil = math.max(fx.keepUntil, now + F.LingerSeconds)
 		end

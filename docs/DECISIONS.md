@@ -1913,3 +1913,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-29 (assumption): Heat Seeker's direct-aim cut correction is capped at 20 degrees
   (+0.34 balls a use at skill 2); it saturates near +0.38, under the Uncommon 0.5. Left for the
   balance pass (step 16) with Ghost.
+- 2026-09-29 (assumption): Rewind measured +0.16 / +0.19 / +0.20 balls a use at skills 1/2/3
+  (careless) against the Rare 1.0; the harness counts only the shot, so it misses the kept turn
+  and the erased foul. Left for the balance pass (step 16), which decides the whole-turn measure.
+- 2026-09-29 (assumption): Rewind's redo with ball in hand keeps the usual time to move the cue
+  ball; the redo's 10 s is the shot clock after it. The HUD hides the clock during the rewind
+  moment and shows SECOND CHANCE: 10s under it for the redo turn.
+- 2026-09-29 (assumption): Rewind's armed look is a flat backward dial round the cue ball
+  (not in the brief) that stays on the cue ball's start spot through the shot, with a ghost of
+  the cue ball, so everyone sees where the table will come back to. The table flies back at 3x
+  (slower shots) up to 1.7 s, so a long shot rewinds faster. The sounds are library clips (no
+  audio upload used).

@@ -2241,7 +2241,7 @@ Config.Ults = {
 			Worth = 0.5,
 			Pick = "OwnBall",
 		},
-		Rewind = { Rarity = "Rare", Built = false, Worth = 1, Redo = true },
+		Rewind = { Rarity = "Rare", Built = true, Worth = 1, Redo = true },
 		TimeStop = { Rarity = "Rare", Built = false, Effect = "TimeStop", Worth = 1 },
 		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5, Area = true },
 		Portals = { Rarity = "Epic", Built = false, Worth = 1.5, Pick = "Portals" },
@@ -2393,6 +2393,18 @@ Config.Ults = {
 		-- "1000 hz sine tone" (BuilderBillbert, 1 s, peak 64), cut to the look's LockToneSeconds.
 		SeekerBeep = { Id = "rbxassetid://124455167265111", Volume = 0.2 },
 		SeekerLock = { Id = "rbxassetid://126305525792122", Volume = 0.35 },
+		-- Rewind (public library audio, each checked loading in this game and measured with an
+		-- AudioAnalyzer, 2026-09-29): arming, "Eject Cassette SFX" (zImBored, from Pixabay,
+		-- 1.25 s, two clacks peaking 25 at volume 0.5); the rewind, "Tape Rewind" (AppleBraid,
+		-- 3.6 s, a whirr whose loudest pitch climbs from about 750 Hz to 4.6 kHz), sped to fit
+		-- the playback and pitched up further as it goes (Config.UI.RewindFx); the landing,
+		-- "Cassette Play SFX" (WaddelsG, 0.65 s, a sharp clunk, peak 41, with a low tail);
+		-- a try that drops one of yours (the ability spent, no rewind), "cassette click"
+		-- (zKevin, 0.17 s). (tune by ear)
+		RewindArm = { Id = "rbxassetid://124843841489877", Volume = 0.7 },
+		RewindWhirr = { Id = "rbxassetid://7361292522", Volume = 0.9 },
+		RewindClunk = { Id = "rbxassetid://4511695221", Volume = 0.6 },
+		RewindSpent = { Id = "rbxassetid://830440268", Volume = 0.5 },
 	},
 }
 
@@ -2559,6 +2571,9 @@ Config.Ults.Shared = {
 		OutlineTransparency = 0.25,
 	},
 	-- Rewind (7.6): the redo's shot clock, and how long the rewind moment lasts on screen.
+	-- Measured (tools/ult_value.luau, 2026-09-29, balls a use at skills 1/2/3, careless):
+	-- +0.16, +0.19, +0.20 (the redo is taken on 50-82% of uses), counting only the shot, under
+	-- the Rare 1.0; the balance pass (step 16) decides the whole-turn measure.
 	RewindRedoSeconds = 10, -- (tune)
 	RewindSeconds = 2.4, -- the table rewinding for everyone (tune)
 	-- Time Stop (7.7): the freeze comes this long after the cue ball's first contact and lasts
@@ -2583,6 +2598,9 @@ Config.Ults.Assets = {
 		-- ball, facing -Z), GhostWisp (a trailing sheet, its wide root at +X) and Ripple (a
 		-- flat ring).
 		Ghost = 100126316259892,
+		-- tools/blender/abilities/rewind.py: RewindDial (a flat counter-clockwise circular arrow
+		-- with clock ticks, unit radius, magenta-white-green across its band).
+		Rewind = 110978850889818,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2593,6 +2611,17 @@ Config.Ults.Assets = {
 		-- Heat Seeker's exhaust smoke: a 4 x 4 flipbook of a puff swelling and thinning
 		-- (heatseeker.py's smoke_flipbook.png).
 		SeekerSmoke = "rbxassetid://81395420363490", -- (the image inside Decal 126970755165309)
+		-- Rewind's VHS screen (rewind.py, each rendered on a transparent background): the big
+		-- glitching rewind icon (a 4 x 4 flipbook), sparse grain (2 x 2), scanlines, tearing
+		-- bands, one tracking-noise band, and the magenta and green split at the screen's
+		-- edges. (The images inside Decals 71250904849806, 120393885666074, 82791665115124,
+		-- 78629616715158, 92718377745753 and 79151185429591.)
+		RewindIcon = "rbxassetid://79830999355189",
+		RewindStatic = "rbxassetid://114309948120374",
+		RewindScanlines = "rbxassetid://106680197039186",
+		RewindTear = "rbxassetid://77495663973716",
+		RewindTracking = "rbxassetid://80127029771602",
+		RewindFringe = "rbxassetid://73954710228943",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7115,6 +7144,84 @@ Config.UI.HeatSeekerFx = {
 	FreshSeconds = 0.3, -- an impact the replay only caught up with (a late join) gets nothing
 }
 
+-- Rewind's look (src/client/RewindFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.6, reference 02)
+-- and its playback in src/client/Match.luau. Studs unless named. (tune)
+Config.UI.RewindFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The playback: the table flies back through the shot at RewindSpeed times real time,
+	-- faster when that would take over MaxPlaySeconds; it starts LeadSeconds into the rewind
+	-- moment (Config.Ults.Shared.RewindSeconds), once the glitch is up, so the landing's clunk
+	-- comes before the redo's clock.
+	RewindSpeed = 3,
+	MaxPlaySeconds = 1.7,
+	LeadSeconds = 0.25,
+	-- The dial round the armed cue ball: DialBallWidths across (its outer edge), LiftInches
+	-- over the cloth, turning backward (counter-clockwise from above) SpinDegreesPerSecond,
+	-- RewindSpinDegreesPerSecond while the table rewinds; it pops in over PopSeconds. It stays
+	-- on the cue ball's start spot through the shot (the table comes back there), with a
+	-- see-through ghost of the cue ball, GhostTransparency.
+	DialBallWidths = 3.2,
+	LiftInches = 0.12,
+	SpinDegreesPerSecond = 60,
+	RewindSpinDegreesPerSecond = 900,
+	PopSeconds = 0.25,
+	DialTransparency = 0.02, -- a textured MeshPart at 0 ignores its texture's alpha (STUDIO_NOTES)
+	GhostTransparency = 0.7,
+	GhostColor = { 255, 200, 250 },
+	-- A try that drops one of yours: the dial glitches (flickers FlickerHz) and fades over
+	-- SpentSeconds.
+	SpentSeconds = 0.6,
+	FlickerHz = 16,
+	-- The balls' streaks while they fly back: a Trail StreakBallWidths wide, StreakSeconds
+	-- long, white at the ball through magenta to green at its tail.
+	StreakBallWidths = 1,
+	StreakSeconds = 0.3,
+	StreakTransparency = 0.1, -- (look check: 0.25 with half the glow was lost under the screen)
+	StreakColors = { { 255, 255, 255 }, { 255, 40, 235 }, { 60, 255, 90 } },
+	-- The whirr: sped up to last the playback, from WhirrPitchFrom to WhirrPitchTo times that.
+	WhirrPitchFrom = 1,
+	WhirrPitchTo = 1.45,
+	-- The screen (ScreenFx, for everyone at the table): a grade (a little grey, contrast up, a
+	-- pink tint), the edge split jittering, scanlines, grain flickering, tearing bands jumping,
+	-- a tracking band rolling up, and the big icon pulsing in the middle, all in over FadeIn
+	-- and out over FadeOut; a white flash as it starts and as the table lands, a small shake.
+	FadeIn = 0.12,
+	FadeOut = 0.3,
+	-- (Look checks: a brighter grade washed the view out and the white icon did not pop; the
+	-- edge split at 0.15, then 0.45, flooded the screen's sides pink and green; the grain at
+	-- 0.55 turned the whole view to snow.)
+	Grade = {
+		Saturation = -0.2,
+		Contrast = 0.45,
+		Brightness = -0.15,
+		TintColor = { 245, 225, 255 },
+	},
+	FringeTransparency = 0.62,
+	FringeJitter = 0.006,
+	ScanTransparency = 0.45,
+	StaticTransparency = 0.8,
+	StaticFps = 18,
+	TearTransparency = 0.25,
+	TearJitter = 0.05,
+	TearJitterSeconds = 0.07,
+	TrackingTransparency = 0.35,
+	TrackingScroll = 0.8, -- screens a second, upward
+	IconSquare = 0.55, -- the icon's size, a share of the screen's height
+	IconFps = 12,
+	IconTransparency = 0,
+	IconPulseHz = 2.5,
+	IconPulseShare = 0.06,
+	StartFlash = { 255, 255, 255 },
+	StartFlashSeconds = 0.2,
+	LandFlash = { 255, 240, 255 },
+	LandFlashSeconds = 0.3,
+	ShakeStuds = 0.12,
+	ShakeSeconds = 0.4,
+	-- The SECOND CHANCE: 10s pill under the clock (MatchHUD).
+	PillColor = { 255, 150, 240 },
+	FreshSeconds = 0.5, -- a rewind this client only caught up with late gets no screen
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7126,6 +7233,7 @@ Config.UI.AbilityFx = {
 		SuperBounce = "SuperBounceFx",
 		Ghost = "GhostFx",
 		HeatSeeker = "HeatSeekerFx",
+		Rewind = "RewindFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

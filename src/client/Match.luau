@@ -50,6 +50,23 @@ export type Summary = {
 	capped: boolean,
 }
 
+-- Rewind's tape (see Match.tape).
+export type Tape = { seq: number, times: { number }, frames: { { number } } }
+
+-- The table flying back through the tape: `clock` is the shot time shown now, running from
+-- the tape's end down to 0 at `rate` shot seconds a second; then `target` (the server's
+-- packed pre-shot table) is applied.
+export type Rewinding = {
+	seq: number,
+	tape: Tape,
+	clock: number,
+	rate: number,
+	target: { number },
+	frame: number, -- the tape frame at or before `clock`
+}
+
+local TAPE_STRIDE = 7
+
 local Match = {}
 Match.__index = Match
 
@@ -80,7 +97,18 @@ export type Match = typeof(setmetatable(
 			-- of them this replay has already begun.
 			parts: any?,
 			applied: { strike: boolean, resume: boolean },
+			-- Rewind (7.6): the server says this try will be undone, so its frames are kept.
+			rewind: boolean,
+			-- The ult this shot is (the server's tag: its id), and where the cue ball stood as
+			-- it began (inches), for the looks.
+			ult: string?,
+			cueStart: { number }?,
 		}?,
+		-- Rewind's tape: every rendered frame of the last shot that will be undone (shot
+		-- time, then x, y, z, wx, wy, wz and shown (1/0) per ball in state order), and the
+		-- playback back through it while the table rewinds (nil when not rewinding).
+		tape: Tape?,
+		rewinding: Rewinding?,
 		-- The developer's /slowmo: every replay at this rate (1 = normal; Studio only).
 		timeScale: number,
 		-- The developer's /hold: every replay stops at this shot time (nil: plays through).
@@ -208,7 +236,7 @@ function Match.renderState(self: Match)
 end
 
 function Match.isBusy(self: Match): boolean
-	return self.shot ~= nil
+	return self.shot ~= nil or self.rewinding ~= nil
 end
 
 --- Apply the server's rack once per seed. Exact positions avoid recomputing its layout.
@@ -331,6 +359,14 @@ function Match.receive(self: Match, msg: any)
 	self:replay(msg.seq, msg.seed, msg.startedAt, msg.final, msg.checksum, msg.overrides)
 	if self.shot then
 		self.shot.eightWins = msg.eightWins == true -- the server's verdict on this shot's 8
+		-- Rewind: this try will be undone; keep its frames to fly the table back through.
+		self.shot.rewind = msg.rewind == true
+		self.shot.ult = if type(msg.ult) == "table" and type(msg.ult.id) == "string"
+			then msg.ult.id
+			else nil
+		local cue = self:findCueBall()
+		self.shot.cueStart = if cue then { cue.x, cue.y } else nil
+		self.tape = if msg.rewind == true then { seq = msg.seq, times = {}, frames = {} } else nil
 	end
 	if self.seq == msg.seq then
 		self.assign = msg.assign
@@ -383,8 +419,54 @@ function Match.snapshot(self: Match, snapshot: any)
 		self.pendingChecksum = nil
 		self.seq = snapshot.shotSeq
 		self.assign = nil -- the snapshot's own groups now include any assignment
+		-- Rewind (7.6): the table goes back to before the shot. Fly it back through the
+		-- shot's frames first, when this client kept them; the pre-shot table lands at the end.
+		local rewound = snapshot.rewound
+		if snapshot.phase == "Rewinding" and rewound and rewound.seq == self.seq then
+			local playing = self.rewinding
+			if playing and playing.seq == rewound.seq then
+				playing.target = snapshot.balls
+				return
+			end
+			if self:startRewind(snapshot.balls, rewound.at) then
+				return
+			end
+		end
+		self.rewinding = nil
 		self:applyBalls(snapshot.balls)
 	end
+end
+
+--- Start flying the table back through the kept tape to `target` (the packed pre-shot
+--- table), from server time `at`. False when there is nothing to fly back through (this
+--- client never saw the shot, or joined too late to see it undone).
+function Match.startRewind(self: Match, target: { number }, at: number): boolean
+	local tape = self.tape
+	self.tape = nil
+	if tape == nil or tape.seq ~= self.seq or #tape.times < 2 then
+		return false
+	end
+	local F = Config.UI.RewindFx
+	local length = tape.times[#tape.times]
+	-- Rate: RewindSpeed times real time, faster for a long shot so it fits the moment.
+	local seconds = math.min(length / F.RewindSpeed, F.MaxPlaySeconds)
+	local rate = length / math.max(seconds, 1e-3)
+	-- The table holds for the lead (the glitch comes up) before it flies back; a client that
+	-- heard late starts where the playback already is.
+	local since = math.max(workspace:GetServerTimeNow() - at, 0)
+	local clock = length + (F.LeadSeconds - since) * rate
+	if clock <= 0 then
+		return false
+	end
+	self.rewinding = {
+		seq = tape.seq,
+		tape = tape,
+		clock = clock,
+		rate = rate,
+		target = target,
+		frame = #tape.times,
+	}
+	return true
 end
 
 --- Replay the shot the server has just run. `seed` is the cue ball's state immediately
@@ -432,6 +514,7 @@ function Match.replay(
 		finished = false,
 		parts = nil,
 		applied = { strike = false, resume = false },
+		rewind = false,
 	}
 end
 
@@ -545,6 +628,9 @@ end
 function Match.update(self: Match, dt: number): boolean
 	local shot = self.shot
 	if not shot then
+		if self.rewinding then
+			return self:stepRewind(dt)
+		end
 		return false
 	end
 	local P = Config.Physics
@@ -625,6 +711,28 @@ function Match.update(self: Match, dt: number): boolean
 		end
 	end
 
+	local tape = self.tape
+	if shot.rewind and tape and tape.seq == self.seq then
+		local frame = table.create(#self.state.balls * TAPE_STRIDE)
+		local dropDepth = Config.Table.PocketDropDepthInches
+		for _, b in self.state.balls do
+			-- Shown as the renderer shows it (a ball down before the shot, sunk, rolling off
+			-- down the gutter or flown off the table is not).
+			local shown = if renderer
+				then not (renderer.sunk[b.id] or renderer.sinking[b.id] or renderer.flying[b.id])
+				else not b.offTable and not (b.pocketed and b.z <= -dropDepth + 1e-6)
+			table.insert(frame, b.x)
+			table.insert(frame, b.y)
+			table.insert(frame, b.z)
+			table.insert(frame, b.wx)
+			table.insert(frame, b.wy)
+			table.insert(frame, b.wz)
+			table.insert(frame, if shown then 1 else 0)
+		end
+		table.insert(tape.times, self.state.time)
+		table.insert(tape.frames, frame)
+	end
+
 	local events = shot.events
 	while shot.nextEvent <= #events and events[shot.nextEvent].t <= self.state.time do
 		dispatch(self, events[shot.nextEvent], shot.nextEvent)
@@ -640,6 +748,76 @@ function Match.update(self: Match, dt: number): boolean
 		return false
 	end
 	return true
+end
+
+-- A ball drawn at a point of the tape (a Ball-shaped table for BallRenderer.step).
+local tapeBall = { id = 0, x = 0, y = 0, z = 0, wx = 0, wy = 0, wz = 0, pocketed = false }
+
+--- One frame of Rewind's playback: the clock runs back through the tape and every ball is
+--- drawn there (rolling backward: the renderer turns it by its spin over a negative time).
+--- At the start of the tape the server's pre-shot table is applied. True while it runs.
+function Match.stepRewind(self: Match, dt: number): boolean
+	local rw = self.rewinding
+	if rw == nil then
+		return false
+	end
+	local tape = rw.tape
+	local before = math.min(rw.clock, tape.times[#tape.times])
+	rw.clock -= math.min(dt, Config.Debug.MaxPlaybackStepSeconds) * rw.rate
+	if rw.clock <= 0 then
+		self.rewinding = nil
+		self:applyBalls(rw.target)
+		return false
+	end
+	local clock = math.min(rw.clock, tape.times[#tape.times])
+	local i = rw.frame
+	while i > 1 and tape.times[i] > clock do
+		i -= 1
+	end
+	rw.frame = i
+	local renderer = self.renderer
+	if renderer == nil then
+		return true
+	end
+	local j = math.min(i + 1, #tape.times)
+	local t0, t1 = tape.times[i], tape.times[j]
+	local k = if t1 > t0 then math.clamp((clock - t0) / (t1 - t0), 0, 1) else 0
+	local a, b = tape.frames[i], tape.frames[j]
+	local turned = clock - before -- negative: the balls roll backward
+	for n, ball in self.state.balls do
+		local o = (n - 1) * TAPE_STRIDE
+		local shown = a[o + 7] == 1
+		if not shown then
+			renderer:setVisible(ball.id, false)
+			continue
+		end
+		if renderer.sunk[ball.id] or renderer.sinking[ball.id] or renderer.flying[ball.id] then
+			renderer:setVisible(ball.id, true)
+		end
+		tapeBall.id = ball.id
+		tapeBall.x = a[o + 1] + (b[o + 1] - a[o + 1]) * k
+		tapeBall.y = a[o + 2] + (b[o + 2] - a[o + 2]) * k
+		tapeBall.z = a[o + 3] + (b[o + 3] - a[o + 3]) * k
+		tapeBall.wx, tapeBall.wy, tapeBall.wz = a[o + 4], a[o + 5], a[o + 6]
+		renderer:step(tapeBall :: any, turned)
+	end
+	return true
+end
+
+--- The balls' positions on Rewind's playback now, in inches (id -> { x, y, shown }), for
+--- its look's streaks; nil when not rewinding.
+function Match.rewindPositions(self: Match): { [number]: { number } }?
+	local rw = self.rewinding
+	if rw == nil then
+		return nil
+	end
+	local frame = rw.tape.frames[rw.frame]
+	local out = {}
+	for n, ball in self.state.balls do
+		local o = (n - 1) * TAPE_STRIDE
+		out[ball.id] = { frame[o + 1], frame[o + 2], frame[o + 7] }
+	end
+	return out
 end
 
 --- The developer's /slowmo: every replay on this table runs at `scale` (1 = normal).

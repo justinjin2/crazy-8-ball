@@ -181,7 +181,8 @@ function Catalog.validate(): { string }
 					("%s has an unknown rarity %s"):format(id, tostring(row.Rarity))
 				)
 			end
-			if row.Built and type(row.Effect) ~= "string" then
+			-- Rewind needs no physics effect: its redo is the match engine's (row.Redo).
+			if row.Built and type(row.Effect) ~= "string" and not row.Redo then
 				table.insert(problems, id .. " is built but names no Effect")
 			end
 			if type(NAMES[id]) ~= "string" or type(DESCRIPTIONS[id]) ~= "string" then

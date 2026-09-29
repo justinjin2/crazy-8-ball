@@ -566,11 +566,15 @@ the Frozen phase: the shooter's second strike comes through `ShotFired` (`strike
 the deadline resumes it (`resumeFrozen`, then `TableService.onLateShot` pays and sends the
 late result through `ShotService`). Rewind rows (`Redo`) snapshot the table at acceptance; a
 shot with none of the shooter's balls down restores it (`rewindTo`), plays the Rewinding phase
-and gives the redo clock.
+and gives the redo clock (the snapshot's `rewound` and `redoClock`; the wire shot carries
+`rewind = true` from the start, since the server has already judged it).
 
 **Client replay** (`client/Match`). Hides "removed" balls, slows the clock at "slow" events,
 stops at a halt and continues with the server's second-strike parts; `setTimeScale` is the
-`/slowmo` hook.
+`/slowmo` hook. A shot marked `rewind` is taped as it replays (every ball's position, spin and
+shown-or-not each frame); the Rewinding snapshot then flies the table back through the tape
+(`startRewind`, `stepRewind`, busy meanwhile) and lands on the server's pre-shot table. A
+client with no tape (it joined late) just takes the snapshot's table.
 
 **Looks** (client). `AbilityFx` is the registry (`Config.UI.AbilityFx.Looks`) and the kit
 handed to each look's `start(hub, parent, kit)`: a per-table anchor that lingers and releases,

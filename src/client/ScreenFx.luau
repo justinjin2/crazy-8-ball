@@ -72,6 +72,11 @@ export type OverlaySpec = {
 	scroll: { number }?,
 	jitter: number?,
 	jitterSeconds: number?,
+	-- A centred square this share of the screen's height instead of the whole screen (a big
+	-- icon), pulsing in size by `pulseShare` at `pulseHz`.
+	square: number?,
+	pulseHz: number?,
+	pulseShare: number?,
 }
 
 export type Handle = {
@@ -434,6 +439,16 @@ function ScreenFx.overlay(tableId: number, imageId: string, spec: OverlaySpec?):
 	image.Active = false
 	image.Size = UDim2.fromScale(1, 1)
 	image.Parent = holder
+	local square = o.square
+	local pulse: UIScale? = nil
+	if square then
+		image.AnchorPoint = Vector2.new(0.5, 0.5)
+		image.Size = UDim2.fromScale(square, square)
+		image.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		local scale = Instance.new("UIScale")
+		scale.Parent = image
+		pulse = scale
+	end
 	local scroll = o.scroll
 	if scroll then
 		-- Twice the screen, tiled one screen per tile: sliding it by up to one screen loops.
@@ -476,6 +491,12 @@ function ScreenFx.overlay(tableId: number, imageId: string, spec: OverlaySpec?):
 		if scroll then
 			sx = -((t * scroll[1]) % 1)
 			sy = -((t * scroll[2]) % 1)
+		end
+		if square then
+			sx, sy = 0.5, 0.5
+			if pulse then
+				pulse.Scale = 1 + (o.pulseShare or 0) * math.sin(t * (o.pulseHz or 0) * 2 * math.pi)
+			end
 		end
 		image.Position = UDim2.fromScale(sx + jump.X, sy + jump.Y)
 	end

@@ -7,14 +7,14 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/HeatSeeker/HeatSeeker.glb": {
     "assetId": "130162252552172",
     "assetType": "Model",
-    "status": "ok",
-    "replaces": "81275063362861"
+    "replaces": "81275063362861",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/HeatSeeker/textures/smoke_flipbook.png": {
     "assetId": "126970755165309",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "81395420363490"
+    "imageId": "81395420363490",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Magnet/MagnetField.glb": {
     "assetId": "96715013262604",
@@ -31,6 +31,47 @@
     "assetId": "82187472592157",
     "assetType": "Decal",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/Rewind.glb": {
+    "assetId": "110978850889818",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/fringe.png": {
+    "assetId": "79151185429591",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "73954710228943"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/icon_flipbook.png": {
+    "assetId": "71250904849806",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "79830999355189"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/scanlines.png": {
+    "assetId": "82791665115124",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "106680197039186"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/static.png": {
+    "assetId": "120393885666074",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "114309948120374"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/tear.png": {
+    "assetId": "78629616715158",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "77495663973716"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/tracking.png": {
+    "assetId": "92718377745753",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "80127029771602"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SuperBounce/SuperBounce.glb": {
     "assetId": "75004032615944",

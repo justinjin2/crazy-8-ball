@@ -30,6 +30,7 @@ local MatchHUD = {}
 MatchHUD.__index = MatchHUD
 
 local tone = HudParts.tone
+local RF = Config.UI.RewindFx
 local frame = HudParts.frame
 local corner = HudParts.corner
 local text = HudParts.text
@@ -471,6 +472,17 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		text(self.noUltsPill, "Words", Config.UI.Ults.NoUltsTextPx, Strings.Ults.Hud.NoUlts)
 	self.noUltsText.TextWrapped = false
 	self.noUlts = false
+	-- Rewind's redo (ABILITIES_PROMPT 7.6): a pink SECOND CHANCE: 10s pill in the same row
+	-- while the redo's turn lasts (snapshot.redoClock). Never in a No ults match.
+	self.redoPill = HudParts.pill(self.topBar, "SecondChance", HudParts.color(RF.PillColor))
+	self.redoPill.Visible = false
+	self.redoText = text(
+		self.redoPill,
+		"Words",
+		Config.UI.Ults.NoUltsTextPx,
+		Copy.SecondChance:format(Config.Ults.Shared.RewindRedoSeconds)
+	)
+	self.redoText.TextWrapped = false
 	self.ultReserve = 0 -- the ult HUD's room at the bottom (setUltReserve)
 	-- Leave: a small red door at the bar's right end, beside the right-hand team.
 	self.leave = candy(self.topBar, "", function()
@@ -741,6 +753,18 @@ function MatchHUD.layout(self: any)
 	self.noUltsPill.Size = UDim2.fromOffset(noUltsWidth, moveHeight)
 	self.noUltsText.Position = UDim2.fromOffset(0, 1)
 	self.noUltsText.Size = UDim2.fromOffset(noUltsWidth, moveHeight - 2)
+	local redoWidth = TextService:GetTextSize(
+		self.redoText.Text,
+		noUltsText,
+		self.redoText.Font,
+		Vector2.new(1000, 100)
+	).X + Config.UI.Ults.NoUltsPadPx * 2
+	HudParts.setTextSize(self.redoText, noUltsText)
+	self.redoPill.AnchorPoint = Vector2.new(0.5, 0)
+	self.redoPill.Size = UDim2.fromOffset(redoWidth, moveHeight)
+	self.redoText.Position = UDim2.fromOffset(0, 1)
+	self.redoText.Size = UDim2.fromOffset(redoWidth, moveHeight - 2)
+	self.redoWidth = redoWidth
 	self.noUltsRow = {
 		centre = clockLeft + clockWidth / 2,
 		top = height + gap,
@@ -1316,6 +1340,7 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "Result"
 		and phase ~= "CoinFlip"
 		and phase ~= "Foul"
+		and phase ~= "Rewinding" -- Rewind's moment: its redo clock comes after
 	-- With ball in hand the shot clock starts when moving time ends (MatchEngine): the move pill
 	-- counts the moving time and the big clock holds at the full shot clock until it runs out
 	-- (designer, 2026-09-27), so the time to move never reads as the time to shoot. Not on the
@@ -1348,9 +1373,20 @@ function MatchHUD.update(self: any, now: number)
 			else row.centre
 		self.noUltsPill.Position = UDim2.fromOffset(x, row.top)
 	end
+	local redo = snapshot.redoClock == true
+		and (phase == "Intro" or phase == "Placement" or phase == "Aiming")
+	self.redoPill.Visible = redo
+	if row and redo then
+		local besideOne = placing or seriesShown
+		local x = if besideOne
+			then row.centre + row.beside / 2 + row.gap + self.redoWidth / 2
+			else row.centre
+		self.redoPill.Position = UDim2.fromOffset(x, row.top)
+	end
 	self.popupTop = if placing
 			or seriesShown
 			or self.noUltsPill.Visible
+			or redo
 		then self.moveBottom
 		else self.headerBottom
 	if placing then
