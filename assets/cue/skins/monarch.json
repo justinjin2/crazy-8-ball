@@ -1,0 +1,45 @@
+{
+  "id": "monarch",
+  "name": "Monarch",
+  "tier": "Common",
+  "catalog_id": "MonarchCue",
+  "concept": "C2",
+  "palette": [
+    "#15110E",
+    "#F1EAD8",
+    "#D8B98B",
+    "#BFC3C7"
+  ],
+  "painter": "procedural",
+  "note": "Dark black-wood forearm with four long curly-maple points edged in ivory and silver, four short ivory points between them, alternating silver and ivory rings, a black leather wrap and a steel teardrop butt cap. Look from: Predator BLAK5.",
+  "panels": {
+    "shaft_tile": "skins/monarch/shaft_tile.png",
+    "shaft_top": "skins/monarch/shaft_top.png",
+    "forearm": "skins/monarch/forearm.png",
+    "butt": "skins/monarch/butt.png",
+    "cap_end": "skins/monarch/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "ebony": "#15110E",
+    "ivory": "#F1EAD8",
+    "maple": "#D8B98B",
+    "metal": "#BFC3C7",
+    "wrap": "#0A0A0B"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Trail": {
+      "Style": "Default"
+    }
+  }
+}

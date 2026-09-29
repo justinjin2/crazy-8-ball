@@ -1,0 +1,42 @@
+{
+  "id": "cherry",
+  "name": "Cherry",
+  "tier": "Common",
+  "catalog_id": "CherryCue",
+  "concept": "C1",
+  "palette": [
+    "#9B111E",
+    "#1A1A1A",
+    "#C8CCD0",
+    "#1E1E1E"
+  ],
+  "painter": "procedural",
+  "note": "Satin ruby-red maple butt, black Irish-linen wrap, stainless-steel rings, collar and butt cap, and a black carbon shaft. A pro player's cue. Look from: Cuetec's Ruby Red pro cue.",
+  "panels": {
+    "shaft_tile": "skins/cherry/shaft_tile.png",
+    "shaft_top": "skins/cherry/shaft_top.png",
+    "forearm": "skins/cherry/forearm.png",
+    "butt": "skins/cherry/butt.png",
+    "cap_end": "skins/cherry/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "wrap": "#101012"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Trail": {
+      "Style": "Default"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "heritage",
+  "name": "Heritage",
+  "tier": "Common",
+  "catalog_id": "HeritageCue",
+  "concept": "C2",
+  "palette": [
+    "#D9A864",
+    "#1A1410",
+    "#2E6B3A",
+    "#D9772B",
+    "#EDE8E0"
+  ],
+  "painter": "procedural",
+  "note": "The most famous cue design ever: honey birdseye maple with four long black points, each lined with thin black, maple, green and orange veneers, with pearl diamonds in the points and a white linen wrap flecked with green. Look from: the classic Balabushka 4-point.",
+  "panels": {
+    "shaft_tile": "skins/heritage/shaft_tile.png",
+    "shaft_top": "skins/heritage/shaft_top.png",
+    "forearm": "skins/heritage/forearm.png",
+    "butt": "skins/heritage/butt.png",
+    "cap_end": "skins/heritage/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "black": "#1A1410",
+    "maple": "#F2DDA6",
+    "green": "#1F7A45",
+    "orange": "#D9772B",
+    "ivory": "#EDE8E0",
+    "metal": "#C8CCD0",
+    "wrap": "#E6E3DA"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Trail": {
+      "Style": "Default"
+    }
+  }
+}

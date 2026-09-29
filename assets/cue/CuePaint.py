@@ -242,18 +242,45 @@ def matte(c, m, color, rough=0.55, grain=0.05, seed=23):
     c.add_height(m, 0.00001 * v)
 
 
-def leather(c, m, color, rough=0.62, depth=0.00016, scale=1.0, seed=29, sheen=0.0):
-    """Pebbled leather: cells of soft bumps with fine creases between them."""
+def worley(c, freq, seed=0, jitter=0.9):
+    """Cellular noise on the cue's 3D point: (F1, F2, cell id 0..1), distances in cell widths.
+    F2 - F1 is 0 on the border between two cells (a crease), F1 is 0 at a cell's centre."""
+    X, Y, Z = c.x * freq, c.d * freq, c.z * freq
+    ix, iy, iz = np.floor(X).astype(np.int64), np.floor(Y).astype(np.int64), np.floor(Z).astype(np.int64)
+    f1 = np.full(X.shape, 9.0)
+    f2 = np.full(X.shape, 9.0)
+    cid = np.zeros(X.shape)
+    for dz in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                jx, jy, jz = ix + dx, iy + dy, iz + dz
+                px = jx + 0.5 + jitter * (cc._hash3(jx, jy, jz, seed) - 0.5)
+                py = jy + 0.5 + jitter * (cc._hash3(jx, jy, jz, seed + 1) - 0.5)
+                pz = jz + 0.5 + jitter * (cc._hash3(jx, jy, jz, seed + 2) - 0.5)
+                dist = np.sqrt((X - px) ** 2 + (Y - py) ** 2 + (Z - pz) ** 2)
+                closer = dist < f1
+                f2 = np.where(closer, f1, np.minimum(f2, dist))
+                cid = np.where(closer, cc._hash3(jx, jy, jz, seed + 3), cid)
+                f1 = np.where(closer, dist, f1)
+    return f1, f2, cid
+
+
+def leather(c, m, color, rough=0.62, depth=0.00016, scale=1.0, seed=29, sheen=0.0, contrast=1.0):
+    """Pebbled leather: rounded pebbles of uneven size (cellular noise at two scales) parted by
+    fine creases, a little tone change from pebble to pebble."""
     f = 170 / scale
-    a = cc.noise3(c.x * f, c.d * f, c.z * f, seed)
-    b = cc.noise3(c.x * f * 2.1, c.d * f * 2.1, c.z * f * 2.1, seed + 1)
-    cell = np.abs(a - 0.5) * 2
-    crease = np.clip(1 - np.abs(a - 0.5) / 0.08, 0, 1) * 0.6 + np.clip(1 - np.abs(b - 0.5) / 0.06, 0, 1) * 0.4
-    h = depth * (0.6 * cell + 0.4 * b - 0.8 * crease)
+    f1, f2, cid = worley(c, f, seed)
+    g1, g2, _ = worley(c, f * 2.3, seed + 5)
+    crease = np.clip(1 - (f2 - f1) / 0.16, 0, 1) ** 1.5
+    fine = np.clip(1 - (g2 - g1) / 0.12, 0, 1) ** 2 * 0.45
+    dome = np.clip(1 - f1 * 1.1, 0, 1) ** 0.5
+    grain = cc.noise3(c.x * f * 6, c.d * f * 6, c.z * f * 6, seed + 9)
+    creases = np.maximum(crease, fine)
+    h = depth * (0.7 * dome - 0.9 * creases + 0.1 * grain)
     base = rgb(color)
-    tone = 0.92 + 0.12 * cell - 0.14 * crease
-    col = base * tone[..., None] + sheen * 30 * cell[..., None]
-    c.put(m, col, rough=rough + 0.1 * crease - 0.06 * cell, metal=0.0)
+    tone = 0.95 + contrast * (0.06 * (cid - 0.5) + 0.05 * dome - 0.16 * creases + 0.03 * (grain - 0.5))
+    col = base * tone[..., None] + sheen * 30 * dome[..., None]
+    c.put(m, col, rough=rough + 0.08 * creases - 0.06 * dome, metal=0.0)
     c.add_height(m, h - h[m].mean() if m.any() else h)
 
 
@@ -273,6 +300,23 @@ def linen(c, m, color, rough=0.78, fleck=None, fleck_amount=0.0, seed=31):
     c.add_height(m, 0.0004 * ridge * (0.7 + 0.6 * slub))
 
 
+def fleck_wrap(c, m, color, fleck, rough=0.7, seed=33, amount=0.22, size=1.0):
+    """An off-white wrap with a soft grey mottle and irregular coloured flecks (Heritage's
+    green-flecked wrap): fine pebble relief, flecks of uneven size scattered all over."""
+    mott = fbm(c, 60, 60, octaves=3, seed=seed)
+    f1, f2, _ = worley(c, 120, seed + 1)
+    crease = np.clip(1 - (f2 - f1) / 0.14, 0, 1)
+    base = rgb(color) * (0.86 + 0.2 * mott - 0.12 * crease)[..., None]
+    g1, _, gid = worley(c, 55 / size, seed + 2, jitter=1.0)
+    wob = fbm(c, 400 / size, 400 / size, octaves=2, seed=seed + 3)
+    r = (0.12 + 0.2 * np.mod(gid * 7.3, 1)) * (0.7 + 0.6 * wob)
+    fl = np.clip((r - g1) / 0.03, 0, 1) * (gid < amount)
+    fcol = rgb(fleck) * (0.8 + 0.35 * np.mod(gid * 13.1, 1))[..., None]
+    col = mix(base, fcol, fl)
+    c.put(m, col, rough=rough - 0.1 * fl, metal=0.0)
+    c.add_height(m, 0.0002 * (1 - crease) + 0.00008 * fl)
+
+
 def sport_grip(c, m, color, rough=0.7, seed=37, pitch=0.035):
     """A rubbery sport grip: a fine diamond knurl pressed into the surface."""
     around = c.theta / (2 * math.pi) * 18
@@ -285,26 +329,29 @@ def sport_grip(c, m, color, rough=0.7, seed=37, pitch=0.035):
     c.add_height(m, 0.00035 * (h - 0.5))
 
 
-def carbon(c, m, dark='#1E1E1E', light='#3A3A3A', rough=0.12, tow=0.018, seed=41, tint=None):
-    """2x2 twill carbon weave under a clear coat: tows at +-45 degrees on the surface."""
+def carbon_weave(c, m, dark='#1E1E1E', light='#3A3A3A', rough=0.12, tow=0.018, seed=41, tint=None):
+    """2x2 twill carbon weave under a clear coat: tows run along and round the cue, each over two
+    and under two, stepping one per row, so the weave reads as diagonal stair-step stripes. The
+    tows running along the cue catch the light (silver), the others stay black: carbon's
+    anisotropic sheen."""
+    n_round = max(4, int(round(float(np.mean(2 * math.pi * c.r)) / tow / 4)) * 4)
     a = c.d / tow
-    b = c.around_top / tow if hasattr(c, 'around_top') else c.theta * c.r / tow
-    # a twill in (along, around): tows alternate over two, under two
-    p = np.floor(a + b)
-    q = np.floor(a - b)
-    fa = np.mod(a + b, 1)
-    fb = np.mod(a - b, 1)
-    over = np.mod(p + np.floor(q / 2), 2) < 1  # which direction is on top here
-    f = np.where(over, fa, fb)
-    sheen = np.sin(math.pi * f) ** 0.8  # each tow is a rounded bundle
-    fibres = cc.noise3(c.x * 3000, c.d * 3000, c.z * 3000, seed)
+    b = c.theta / (2 * math.pi) * n_round  # a whole number of tows round the cue: no seam
+    i, j = np.floor(a), np.floor(b)
+    warp = np.mod(i + j, 4) < 2  # the along-the-cue tow is on top
+    fa, fb = np.mod(a, 1), np.mod(b, 1)
+    across = np.where(warp, fb, fa)
+    along = np.where(warp, fa, fb)
+    bundle = np.sin(math.pi * across) ** 0.6
+    ends = np.clip(np.minimum(along, 1 - along) / 0.08, 0, 1)  # a tow dives under at its ends
+    fibres = cc.noise3(c.x * 2500, c.d * 2500, c.z * 2500, seed)
+    t = np.where(warp, 0.45 + 0.55 * bundle, 0.04 + 0.2 * bundle) * (0.55 + 0.45 * ends) * (0.9 + 0.2 * fibres)
     lo, hi = rgb(dark), rgb(light)
-    t = np.where(over, 0.25 + 0.75 * sheen, 0.1 + 0.55 * sheen) * (0.9 + 0.2 * fibres)
     col = mix(np.broadcast_to(lo, c.col.shape), np.broadcast_to(hi, c.col.shape), np.clip(t, 0, 1))
     if tint is not None:
         col = col * rgb(tint) / 255.0 * 1.8
-    c.put(m, col, rough=rough, metal=0.15)
-    c.add_height(m, 0.00006 * (sheen - 0.5))
+    c.put(m, col, rough=np.where(warp, rough, rough + 0.08), metal=0.15)
+    c.add_height(m, 0.00005 * (bundle * ends - 0.5))
 
 
 def wood(c, m, kind, light, dark, rough=0.3, seed=51, stain=None, figure=1.0):
@@ -319,15 +366,39 @@ def wood(c, m, kind, light, dark, rough=0.3, seed=51, stain=None, figure=1.0):
         col = L * shade[..., None]
         if kind == 'curly':
             # tiger stripes: bands across the grain that ripple round the cue
-            ph = c.d * 38 + 0.8 * np.sin(c.theta * 3 + c.d * 5) + 2.0 * fbm(c, 8, 3, octaves=2, seed=seed + 2)
-            stripe = (0.5 + 0.5 * np.sin(2 * math.pi * ph)) ** 3
-            col = mix(col, col * 0.62, stripe * 0.9 * figure)
+            # curl: bands across the grain whose spacing, width and strength wander (the figure
+            # of real curly maple is patchy and rippled, never a regular wave)
+            ph = (c.d * 30 + 3.0 * fbm(c, 6, 3, octaves=2, seed=seed + 2)
+                  + 0.7 * fbm(c, 40, 10, octaves=2, seed=seed + 9))
+            stripe = (0.5 + 0.5 * np.sin(2 * math.pi * ph)) ** 2.2
+            patch = np.clip(0.3 + 1.2 * (fbm(c, 5, 5, octaves=2, seed=seed + 10) - 0.35), 0.15, 1)
+            broken = np.clip(0.6 + 0.8 * (fbm(c, 70, 4, octaves=2, seed=seed + 11) - 0.5), 0, 1)
+            col = mix(col, col * 0.6, stripe * figure * patch * broken)
+            col = col * (1 + 0.1 * (1 - stripe) * patch)[..., None]  # the chatoyant shimmer
         if kind == 'birdseye':
-            e = cc.noise3(c.x * 520, c.d * 520, c.z * 520, seed + 3)
-            eyes = np.clip((e - 0.8) * 9, 0, 1)
-            col = mix(col, col * 0.55, eyes * figure)
+            # little round "eyes" (dark centres with a pale ring), scattered unevenly in drifts,
+            # plus a soft flame across the grain: the look of honey birdseye maple
+            wob = fbm(c, 500, 500, octaves=2, seed=seed + 6)
+            f1, _, cid = worley(c, 95, seed + 3, jitter=1.0)
+            f1 = f1 * (0.75 + 0.5 * wob)
+            drift = fbm(c, 18, 9, octaves=2, seed=seed + 4)
+            keep = (cid < 0.35 + 0.6 * drift) * figure
+            radius = 0.18 + 0.2 * np.mod(cid * 5.7, 1)
+            eye = np.clip(1 - f1 / radius, 0, 1) ** 0.7 * keep
+            ring_ = np.clip(1 - np.abs(f1 - radius * 1.5) / (radius * 0.5), 0, 1) * keep
+            flame = (0.5 + 0.5 * np.sin(2 * math.pi * (c.d * 16 + 2.5 * fbm(c, 10, 4, octaves=2, seed=seed + 5)))) ** 2
+            col = col * (1 - 0.04 * flame * figure)[..., None]
+            col = mix(col, mix(col, np.broadcast_to(Dk, col.shape), 0.75), eye * 0.8)
+            col = col * (1 + 0.07 * ring_)[..., None]
+            # the bigger mottle you see from arm's length: soft irregular darker patches
+            b1, _, bid = worley(c, 30, seed + 7, jitter=1.0)
+            bw = fbm(c, 160, 160, octaves=3, seed=seed + 8)
+            blotch = np.clip((0.36 + 0.12 * bid - b1 * (0.7 + 0.6 * bw)) / 0.16, 0, 1) * (bid < 0.7) * figure
+            col = col * (1 - 0.16 * blotch)[..., None]
+            height = -0.00002 * lines - 0.00003 * eye
         col = mix(col, np.broadcast_to(Dk, col.shape), lines * 0.25)
-        height = -0.00002 * lines
+        if kind != 'birdseye':
+            height = -0.00002 * lines
     else:
         freq = 55 if kind == 'rosewood' else 90
         g = fbm(c, freq, 1.6, octaves=4, seed=seed + 1, warp=(warp * 5, 0, warp * 5))
@@ -472,6 +543,126 @@ def drips(c, top_width, count, max_len, seed=5, width=0.012, centre=math.pi):
             bulb = ((along - at) ** 2 + (around - (band_edge + ln)) ** 2) < (w * 1.35) ** 2
             cov = np.maximum(cov, (body | (bulb & on_side)).astype(np.float64))
     return cov
+
+
+def inlay_points(c, m, n, d_base, d_tip, width, fill, veneers=(), phase=math.pi, curve=1.0):
+    """n inlaid points (see points()) painted inside mask m: fill(c, mask) paints the point's body,
+    then each veneer (colour, thickness in studs, [roughness, metal]) lines its edge from the
+    outside in, like the layered veneers of a real cue's points. Returns the point coverage."""
+    cov, edge = points(c, n, d_base, d_tip, width, phase=phase, curve=curve)
+    e = np.where(edge > -1, edge * c.r, -1)  # studs inside the edge
+    inside = cov * m
+    if inside.any():
+        fill(c, inside > 0.5)
+        acc = 0.0
+        px = 2 * math.pi * float(np.mean(c.r)) / c.h
+        for v in veneers:
+            colour, t = v[0], v[1]
+            rough = v[2] if len(v) > 2 else 0.25
+            mt = v[3] if len(v) > 3 else 0.0
+            lo = smooth(acc - px * 0.6, acc + px * 0.6, e)
+            hi = 1 - smooth(acc + t - px * 0.6, acc + t + px * 0.6, e)
+            band_ = np.clip(lo * hi, 0, 1) * inside
+            if mt > 0:
+                metal(c, band_ > 0.5, colour, rough=rough, brushed=False)
+            else:
+                c.put(band_, rgb(colour), rough=rough, metal=0.0)
+            c.add_height(band_, -0.00006)
+            acc += t
+        # a hairline groove round the whole inlay
+        rim = np.exp(-(e / (px * 0.8)) ** 2) * (edge > -1) * m
+        c.add_height(rim, -0.00012)
+    return cov
+
+
+def inlay_diamond(c, m, d_centre, theta_centre, half_len, half_wid, colour, kind='pearl', border=None,
+                  border_w=0.004, glow=0.0):
+    """A diamond inlay (pearl, stone or metal), optionally with a metal border."""
+    outer = diamond(c, d_centre, theta_centre, half_len + (border_w if border else 0), half_wid + (border_w if border else 0)) * m
+    inner = diamond(c, d_centre, theta_centre, half_len, half_wid) * m
+    if border:
+        metal(c, (outer - inner) > 0.5, border, rough=0.14, brushed=False)
+    if kind == 'pearl':
+        pearl(c, inner > 0.5, colour, rough=0.15)
+        c.put(inner, None)
+    elif kind == 'gem':
+        # a faceted stone: brighter toward one facet, glossy
+        along = c.d - d_centre
+        around = np.mod(c.theta - theta_centre + math.pi, 2 * math.pi) - math.pi
+        facet = np.where(along * around > 0, 1.25, 0.8) * np.where(along > 0, 1.0, 0.85)
+        col = rgb(colour) * facet[..., None]
+        sparkle = np.clip((noise(c, 900, 900, seed=7) - 0.8) * 5, 0, 1)
+        col = col + (255 - col) * (sparkle * 0.6)[..., None]
+        c.put(inner, col, rough=0.05, metal=0.1, glow=inner * glow)
+    else:
+        metal(c, inner > 0.5, colour, rough=0.12, brushed=False)
+    c.add_height(inner, 0.00008)
+    return outer
+
+
+def inlay_lozenge(c, m, d0, d1, theta, half_w, fill, veneers=(), curve=1.0):
+    """A long double-ended point (widest in the middle, sharp at d0 and d1), centred at angle
+    theta, half_w studs wide at the middle; fill(c, mask) paints the body and veneers line the
+    edge from the outside in, as inlay_points."""
+    mid, half_len = (d0 + d1) / 2, (d1 - d0) / 2
+    t = np.clip(1 - np.abs(c.d - mid) / half_len, 0, 1) ** curve
+    around = angle_diff(c.theta, theta) * c.r
+    e = half_w * t - around
+    px = 2 * math.pi * float(np.mean(c.r)) / c.h
+    inside = np.clip(e / px + 0.5, 0, 1) * (t > 0) * m
+    if not inside.any():
+        return inside
+    fill(c, inside > 0.5)
+    acc = 0.0
+    for v in veneers:
+        colour, th = v[0], v[1]
+        band_ = np.clip(smooth(acc - px * 0.6, acc + px * 0.6, e) * (1 - smooth(acc + th - px * 0.6, acc + th + px * 0.6, e)), 0, 1) * inside
+        if len(v) > 3 and v[3] > 0:
+            metal(c, band_ > 0.5, colour, rough=v[2], brushed=False)
+        else:
+            c.put(band_, rgb(colour), rough=v[2] if len(v) > 2 else 0.2, metal=0.0)
+        acc += th
+    c.add_height(np.exp(-(e / (px * 0.8)) ** 2) * (t > 0) * m, -0.00012)
+    return inside
+
+
+def ivory(c, m, color='#F1EAD8', rough=0.16, seed=65):
+    """Ivory-coloured inlay (a resin ivory): warm, faintly grained, glossy."""
+    g = fbm(c, 40, 400, octaves=3, seed=seed)
+    c.put(m, rgb(color) * (0.95 + 0.07 * g)[..., None], rough=rough, metal=0.0)
+
+
+def teardrop(c, d_round, d_tip, theta_centre, radius):
+    """A teardrop inlay: round end at d_round, point at d_tip (studs)."""
+    along = c.d - d_round
+    around = angle_diff(c.theta, theta_centre) * c.r
+    circle = np.hypot(along, around) < radius
+    span = d_tip - d_round
+    t = np.clip(along / span, 0, 1)
+    tri = (along * np.sign(span) > 0) & (np.abs(along) <= abs(span)) & (around < radius * (1 - t) ** 1.2)
+    return (circle | tri).astype(np.float64)
+
+
+def ring_lines(c, m, lines):
+    """Thin rings round the cue: [(d0, d1, colour, kind)] with kind 'metal', 'pearl' or 'paint'."""
+    for d0, d1, colour, kind in lines:
+        b_ = band(c, d0, d1, soft=0.0008) * m
+        if not b_.any():
+            continue
+        if kind == 'metal':
+            metal(c, b_ > 0.5, colour, rough=0.14, brushed=True)
+        elif kind == 'pearl':
+            pearl(c, b_ > 0.5, colour, rough=0.18)
+        else:
+            c.put(b_, rgb(colour), rough=0.2, metal=0.0)
+        c.add_height(b_, -0.00005)
+
+
+def butt_cap_band(k, colour, d0=6.9, rough=0.1):
+    """A polished metal butt-cap band at the end of the sleeve, before the bumper."""
+    for c, m in k.zone('cap'):
+        metal(c, band(c, d0, 7.2) * m > 0.5, colour, rough=rough, brushed=True)
+    seam_edges(k, [d0])
 
 
 # ---------------------------------------------------------------------------------------------
@@ -773,6 +964,210 @@ def void(k):
     line = band(f, mid - 0.0025, mid + 0.0025, soft=0.001)
     f.put(line > 0.01, f.col * 0.35, rough=0.4)
 
+
+@recipe
+def arctic(k):
+    """Gloss pearl white with one frosted ice-blue stripe along the top of the forearm (tapering to
+    a point toward the joint, a thin chrome edge), a pearl-white sleeve, chrome collar, ring and
+    butt-cap band, white pebbled leather wrap; a silver-white shaft."""
+    s = k.skin['colours']
+    chrome, ice = s['metal'], rgb(s['ice'])
+    k.paint(['shaft'], wood, 'maple', '#E2E5E8', '#A9AEB4', rough=0.16, seed=102, stain=s['shaft'])
+    for c, m in k.zone('forearm', 'cap'):
+        pearl(c, m, s['body'], rough=0.08, fire=0.25)
+    for c, m in k.zone('forearm'):
+        # a wide ice-blue wedge: full width at the ring, a sharp point 0.12 studs after the
+        # collar, lined with a silver edge and a pinstripe on each side (the concept's close-up)
+        t = np.clip((c.d - (F0 + 0.12)) / (F1 - F0 - 0.12), 0, 1)
+        width = 0.07 * (0.62 + 0.38 * t) * np.clip(t / 0.2, 0, 1) ** 0.75
+        on = m & (c.d > F0 + 0.1)
+        st = stripe_along(c, math.pi, width) * on
+        frost = fbm(c, 300, 60, octaves=3, seed=101)
+        across = angle_diff(c.theta, math.pi) * c.r / np.maximum(width, 1e-4)
+        shade = 1.08 - 0.22 * across ** 2 + 0.08 * (frost - 0.5)
+        c.put(st, ice * shade[..., None], rough=0.18, metal=0.0, glow=st * 0.1)
+        for off, w_ in ((0.0, 0.003), (0.009, 0.0014)):
+            line = np.clip(stripe_along(c, math.pi, width + off + w_) - stripe_along(c, math.pi, width + off), 0, 1) * on
+            metal(c, line > 0.35, chrome, rough=0.08, brushed=False)
+            c.add_height(line, -0.0001)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.55, depth=0.0009, scale=2.8, contrast=1.4)
+    standard_hardware(k, joint=chrome, ring=chrome, joint_rough=0.08, ring_rough=0.08, end='#141414')
+    butt_cap_band(k, chrome)
+    seam_edges(k, [F1])
+    cap_face_metal(k.c['cap_end'], chrome, rough=0.14)
+
+
+@recipe
+def cherry(k):
+    """Satin ruby-red maple (a bloodwood-like grain) on the forearm and sleeve, a black pebbled wrap
+    (the concept's), stainless collar, ring and butt-cap band, and a black carbon shaft."""
+    s = k.skin['colours']
+    steel = s['metal']
+    k.paint(['shaft'], carbon_weave, '#08080A', '#3E4046', rough=0.12, tow=0.01)
+    for c, m in k.zone('forearm', 'cap'):
+        wood(c, m, 'rosewood', '#B01624', '#4A060C', rough=0.22, seed=111)
+        c.put(m, None)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    standard_hardware(k, joint=steel, ring=steel, joint_rough=0.12, ring_rough=0.12, end='#141414')
+    butt_cap_band(k, steel)
+    seam_edges(k, [F1, C0])
+    cap_face_metal(k.c['cap_end'], steel, rough=0.2)
+
+
+@recipe
+def carbon(k):
+    """Carbon fibre from tip to butt: the twill weave under a glossy clear coat, a black pebbled
+    leather wrap, stainless collar, ring and butt-cap band."""
+    s = k.skin['colours']
+    steel = s['metal']
+    k.paint(['shaft'], carbon_weave, s['dark'], s['light'], rough=0.1, tow=0.012)
+    k.paint(['forearm', 'cap'], carbon_weave, s['dark'], s['light'], rough=0.07, tow=0.02)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    standard_hardware(k, joint=steel, ring=steel, joint_rough=0.1, ring_rough=0.1, end='#141414')
+    butt_cap_band(k, steel)
+    seam_edges(k, [F1, C0])
+    cap_face_metal(k.c['cap_end'], steel, rough=0.2)
+
+
+@recipe
+def heritage(k):
+    """The classic four-point: honey birdseye maple; four black points, wide at the collar and
+    tapering toward the wrap, each lined with maple, orange and green veneers, a pearl diamond
+    in the black of each; an off-white wrap flecked with green; black rings with green, ivory
+    and orange lines; the sleeve repeats the points; a birdseye shaft; steel collar."""
+    s = k.skin['colours']
+    black, maple, green, orange, ivory = s['black'], s['maple'], s['green'], s['orange'], s['ivory']
+    honey = ('#E6B26C', '#8E5A22')
+    k.paint(['shaft'], wood, 'birdseye', '#EBC68A', '#9A6A30', rough=0.2, seed=121, figure=0.9)
+    ebony = lambda cc_, mm: wood(cc_, mm, 'ebony', '#1E1812', '#0A0806', rough=0.14, seed=123)
+    # the points are centred 45 degrees off the top, so one faces a camera above and to the side
+    ph = math.pi / 4
+    veneers = [(maple, 0.005), (orange, 0.012), (black, 0.002), (green, 0.009), (black, 0.002)]
+    for c, m in k.zone('forearm'):
+        wood(c, m, 'birdseye', honey[0], honey[1], rough=0.16, seed=122, figure=1.0)
+        inlay_points(c, m, 4, F0, F0 + 0.88 * (F1 - F0), 1.65, ebony, veneers, phase=ph, curve=1.0)
+        for i in range(4):
+            inlay_diamond(c, m, F0 + 0.24, ph + i * math.pi / 2, 0.1, 0.03, ivory, 'pearl')
+    for c, m in k.zone('cap'):
+        wood(c, m, 'birdseye', honey[0], honey[1], rough=0.16, seed=124, figure=1.0)
+        inlay_points(c, m, 4, C0 + 0.03, 6.93, 1.5, ebony,
+                     [(maple, 0.004), (orange, 0.009), (black, 0.0015), (green, 0.007)], phase=ph, curve=1.1)
+        for i in range(4):
+            inlay_diamond(c, m, C0 + 0.13, ph + i * math.pi / 2, 0.06, 0.022, ivory, 'pearl')
+        ring_lines(c, m, [(C0, C0 + 0.03, black, 'paint'), (C0 + 0.006, C0 + 0.011, orange, 'paint'),
+                          (C0 + 0.017, C0 + 0.022, orange, 'paint'), (6.935, 7.1, black, 'paint')])
+    for c, m in k.zone('wrap'):
+        fleck_wrap(c, m, s['wrap'], green, amount=0.85, size=2.2)
+    k.paint(['joint'], metal, s['metal'], rough=0.12)
+    for c, m in k.zone('ring'):
+        ring_lines(c, m, [(5.32, 5.43, black, 'paint'), (5.334, 5.346, green, 'paint'), (5.356, 5.362, ivory, 'pearl'),
+                          (5.372, 5.384, green, 'paint'), (5.396, 5.404, orange, 'paint')])
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    f = k.c['forearm']
+    mid = (J0 + J1) / 2
+    line = band(f, mid - 0.0025, mid + 0.0025, soft=0.001)
+    f.put(line > 0.01, f.col * 0.35, rough=0.4)
+    seam_edges(k, [F1, C0, W0, W1])
+
+
+@recipe
+def monarch(k):
+    """Black ebony: on each quarter a long double-ended curly-maple lozenge edged in ivory, with
+    a small ivory diamond before it, and long ivory points running in from both ends between
+    them; short ivory-edged maple points on the shaft before the steel collar; thick ivory rings
+    with a black and a silver line; a black pebbled leather wrap; a black sleeve with maple
+    lozenges, ivory diamonds and steel teardrops; a chrome butt cap; an ebony shaft."""
+    s = k.skin['colours']
+    ebony_c, iv, maple, silver = s['ebony'], s['ivory'], s['maple'], s['metal']
+    ph = math.pi / 4  # the lozenges face a camera above and to the side, like Heritage's points
+    ebony = lambda cc_, mm, sd=132: wood(cc_, mm, 'ebony', '#221B15', '#0A0806', rough=0.12, seed=sd)
+    curly = lambda cc_, mm: wood(cc_, mm, 'curly', '#DDB887', '#8A6236', rough=0.14, seed=133, figure=0.9)
+    ivo = lambda cc_, mm: ivory(cc_, mm, iv)
+    k.paint(['shaft'], wood, 'ebony', '#2A221C', '#0E0B09', rough=0.16, seed=131)
+    for c, m in k.zone('shaft'):
+        # short ivory-edged maple points on the shaft, pointing to the tip from the collar
+        inlay_points(c, m, 4, J0, J0 - 0.32, 0.5, curly, [(iv, 0.005)], phase=ph)
+        inlay_points(c, m, 4, J0, J0 - 0.2, 0.34, ivo, [], phase=ph + math.pi / 4)
+    for c, m in k.zone('forearm'):
+        ebony(c, m)
+        for i in range(4):
+            a = ph + i * math.pi / 2
+            inlay_lozenge(c, m, F0 + 0.36, F1 - 0.06, a, 0.055, curly, [(iv, 0.011)], curve=1.0)
+            inlay_diamond(c, m, F0 + 0.2, a, 0.075, 0.022, iv, 'pearl')
+        inlay_points(c, m, 4, F0, F0 + 0.75, 0.42, ivo, [], phase=ph + math.pi / 4, curve=1.0)
+        inlay_points(c, m, 4, F1, F1 - 0.75, 0.42, ivo, [], phase=ph + math.pi / 4, curve=1.0)
+    for c, m in k.zone('cap'):
+        ebony(c, m, 134)
+        for i in range(4):
+            a = ph + i * math.pi / 2
+            b = a + math.pi / 4
+            td = teardrop(c, 6.89, 6.74, a, 0.042) * m
+            metal(c, td > 0.5, silver, rough=0.08, brushed=False)
+            rim = (teardrop(c, 6.89, 6.735, a, 0.047) * m - td) > 0.5
+            ivory(c, rim, iv)
+            c.add_height(td, 0.00008)
+            inlay_diamond(c, m, 6.68, a, 0.035, 0.016, iv, 'pearl')
+            inlay_lozenge(c, m, 6.645, 6.95, b, 0.04, curly, [(iv, 0.006)])
+        ring_lines(c, m, [(C0, C0 + 0.012, iv, 'paint'), (C0 + 0.012, C0 + 0.016, ebony_c, 'paint'),
+                          (C0 + 0.016, C0 + 0.022, iv, 'paint')])
+    butt_cap_band(k, silver, d0=6.965, rough=0.07)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.42, depth=0.001, scale=4.2, contrast=3.0, sheen=0.7)
+    k.paint(['joint'], metal, silver, rough=0.1)
+    for c, m in k.zone('ring'):
+        ring_lines(c, m, [(5.32, 5.43, ebony_c, 'paint'), (5.332, 5.36, iv, 'paint'), (5.366, 5.374, silver, 'metal'),
+                          (5.38, 5.408, iv, 'paint')])
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    f = k.c['forearm']
+    mid = (J0 + J1) / 2
+    line = band(f, mid - 0.0025, mid + 0.0025, soft=0.001)
+    f.put(line > 0.01, f.col * 0.35, rough=0.4)
+    seam_edges(k, [F1, C0, W0, W1, J0])
+
+
+@recipe
+def cobalt(k):
+    """Curly maple stained deep Prussian blue under a gloss finish (shaft and forearm); on each
+    quarter a double-ended lozenge outlined silver / navy / silver round a navy field and a large
+    faceted blue gem, slim silver-outlined lozenges between them; a smooth smoke-grey leather
+    handle (no wrap); a black sleeve with silver and blue V points meeting at a blue gem; thin
+    silver rings; steel collar."""
+    s = k.skin['colours']
+    blue, grey, silver, gem, navy = s['blue'], s['grey'], s['metal'], s['gem'], s['navy']
+    ph = math.pi / 4
+    stained = lambda sd: (lambda cc_, mm: wood(cc_, mm, 'curly', '#D8B98B', '#8A6A3A', rough=0.1, seed=sd, stain=blue, figure=1.0))
+    k.paint(['shaft'], wood, 'curly', '#D8B98B', '#8A6A3A', rough=0.12, seed=141, stain=blue, figure=0.9)
+    trim = [(silver, 0.006, 0.1, 1.0), (navy, 0.011), (silver, 0.004, 0.1, 1.0)]
+    for c, m in k.zone('forearm'):
+        stained(142)(c, m)
+        for i in range(4):
+            a = ph + i * math.pi / 2
+            inlay_lozenge(c, m, F0 + 0.2, F1 - 0.04, a, 0.06, stained(143), trim)
+            field = diamond(c, F0 + 0.62, a, 0.2, 0.045) * m
+            c.put(field, rgb(navy) * (0.9 + 0.2 * fbm(c, 200, 200, octaves=2, seed=144))[..., None], rough=0.1, metal=0.0)
+            inlay_diamond(c, m, F0 + 0.62, a, 0.12, 0.03, gem, 'gem', border=silver, glow=0.2)
+            inlay_lozenge(c, m, F0 + 0.55, F1 - 0.02, a + math.pi / 4, 0.022, stained(145), [(silver, 0.003, 0.1, 1.0)])
+    for c, m in k.zone('cap'):
+        gloss(c, m, '#0C0D10', rough=0.07, flake=0.15)
+        inlay_points(c, m, 4, 6.985, C0 + 0.05, 1.5, lambda cc_, mm: gloss(cc_, mm, '#0C0D10', rough=0.07),
+                     [(silver, 0.003, 0.1, 1.0), (blue, 0.008, 0.12), (silver, 0.002, 0.1, 1.0)], phase=ph)
+        for i in range(4):
+            inlay_diamond(c, m, 6.86, ph + i * math.pi / 2, 0.06, 0.028, gem, 'gem', border=silver, glow=0.2)
+        ring_lines(c, m, [(C0, C0 + 0.008, silver, 'metal')])
+    for c, m in k.zone('wrap'):
+        leather(c, m, grey, rough=0.5, depth=0.00025, scale=5.0, contrast=0.6, sheen=0.2)
+    k.paint(['joint'], metal, silver, rough=0.1)
+    for c, m in k.zone('ring'):
+        gloss(c, m, '#0C0D10', rough=0.08)
+        ring_lines(c, m, [(5.40, 5.412, silver, 'metal')])
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    f = k.c['forearm']
+    mid = (J0 + J1) / 2
+    line = band(f, mid - 0.0025, mid + 0.0025, soft=0.001)
+    f.put(line > 0.01, f.col * 0.35, rough=0.4)
+    seam_edges(k, [F1, W0, W1])
 
 # ---------------------------------------------------------------------------------------------
 # OpenAI panels

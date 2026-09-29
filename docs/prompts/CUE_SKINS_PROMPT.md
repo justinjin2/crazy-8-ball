@@ -355,12 +355,12 @@ and you ask the designer about it.
   frames); `assets/cue/CueVfx.py` (sprite and flipbook maker, the Blender particle, trail,
   beam and pocket preview from a skin's `vfx` block); `assets/cue/CuePreview.py` (the sheet,
   the clip with the avatar, table and ball, and the tier sheets); the review file started.
-- [ ] 2. **Pilot, then ask the designer (the only approval stop):** one Common (Midnight),
+- [x] 2. **Pilot, then ask the designer (the only approval stop):** one Common (Midnight),
   one Rare (Honeycomb) and one Epic (Void) finished end to end with sheets and clips. Show the
   designer the three sheets and clips, and wait for their OK or changes before the rest. The
   whole look of the set is decided here. After this, make everything else without stopping
   for approval.
-- [ ] 3. Commons (6 more): C1, C2.
+- [x] 3. Commons (6 more): C1, C2.
 - [ ] 4. Uncommons (9): U1-U3, glowing rings.
 - [ ] 5. Rares (9 more): R1-R3, every one with its own aura.
 - [ ] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
@@ -390,8 +390,6 @@ and you ask the designer about it.
   Branch pushed.
 
 ## Notes
-
-WAITING FOR DESIGNER: the pilot check, round 2 (Honeycomb and Void redone with auras round the whole cue): OK, or changes?
 
 - **2026-09-29, setup.** Worktree `~/Desktop/8ball-skins`, branch `cue-skins`, pushed. Blender
   5.2.2 LTS runs headless (EEVEE ~0.4 s a 720p frame; its built-in FFMPEG writes the clips, the
@@ -430,4 +428,16 @@ WAITING FOR DESIGNER: the pilot check, round 2 (Honeycomb and Void redone with a
   prominent and round the entire cue, tip to butt, for every Rare and up, using emissive glow too.
   Done: a halo Beam round the whole outline (Rare+), a streaming energy Beam (Epic+), emitters
   spanning the whole cue, stronger pulsing emissive. Logged in DECISIONS.
+- **2026-09-29, pilot approved (round 2).** Designer: "looks a lot better now yes, continue".
+  Direction for the rest of the run: Roblox has emissive masks, so **no compromise on surface
+  detail, as close to the concept images as possible**; and **auras must not all be the same
+  halo**: each rarer cue gets its own kind of effect (flame, energy, lightning, orbiting
+  pieces, and so on) from whatever Roblox tools fit; ask the designer if an outside tool is
+  needed.
+- **2026-09-29, Commons.** New shared painters for concept-matching detail: `worley` (cellular
+  noise) behind a real pebbled leather, a 2/2 twill carbon weave with anisotropic tows, a
+  birdseye with eyes and blotches, a patchy curly figure, `fleck_wrap`, `inlay_points` with
+  layered veneers, `inlay_lozenge`, `inlay_diamond` (pearl, faceted gem, metal), `teardrop`,
+  `ring_lines`, `ivory`. Inlays face a camera 45 degrees off the top (one point faces you in
+  the sheets and on the back). Midnight re-rendered with the new leather.
 
