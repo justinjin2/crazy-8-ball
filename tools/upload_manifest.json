@@ -10,6 +10,17 @@
     "imageId": "74704280023743",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/BlackHole/BlackHole.glb": {
+    "assetId": "86337602765410",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/BlackHole/textures/pop_ring.png": {
+    "assetId": "82080128940075",
+    "assetType": "Decal",
+    "imageId": "121232364344408",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/ChainLightning/ChainLightning.glb": {
     "assetId": "110751750592714",
     "assetType": "Model",

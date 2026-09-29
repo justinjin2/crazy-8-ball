@@ -32,12 +32,12 @@ return {
 		H.expect(magnet and magnet.Built and magnet.Effect == "Magnet", "built")
 		H.expect(Catalog.name("EaglesEye") == "Eagle's Eye", "names from Strings")
 		H.expect(#Catalog.description("Magnet") > 0, "descriptions from Strings")
-		H.expect(Catalog.rarity("BlackHole") == "Mythic", "rarity")
+		H.expect(Catalog.rarity("GuangdongTiger") == "Mythic", "rarity")
 		H.expect(Catalog.rarityIndex("Common") == 1 and Catalog.rarityIndex("Mythic") == 6, "")
 		H.expect(Catalog.rarityIndex("Secret") == 0 and Catalog.rarityIndex(nil) == 0, "unknown")
-		H.expect(Catalog.built("Magnet") and not Catalog.built("BlackHole"), "built flags")
-		H.expect(Catalog.usable("Magnet") and not Catalog.usable("BlackHole"), "usable")
-		H.expect(Catalog.usable("BlackHole", true), "the developer flag")
+		H.expect(Catalog.built("Magnet") and not Catalog.built("GuangdongTiger"), "built flags")
+		H.expect(Catalog.usable("Magnet") and not Catalog.usable("GuangdongTiger"), "usable")
+		H.expect(Catalog.usable("GuangdongTiger", true), "the developer flag")
 		local mythics = Catalog.byRarity("Mythic")
 		H.expect(#mythics == 2 and mythics[1] == "BlackHole", "by rarity, in Order")
 		H.expect(#Catalog.byRarity("Nope") == 0, "unknown rarity")
@@ -118,13 +118,13 @@ return {
 		H.expect(Slots.equipped(u, NONE) == "Magnet", "a fresh save")
 		u.Slots[1] = ""
 		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "an empty slot")
-		u.Slots[1] = "BlackHole"
+		u.Slots[1] = "GuangdongTiger"
 		H.expect(Slots.equipped(u, NONE) == "Magnet", "unbuilt without the flag")
-		H.expect(Slots.equipped(u, NONE, true) == "BlackHole", "the flag equips placeholders")
-		u.Slots[2] = "BlackHole"
+		H.expect(Slots.equipped(u, NONE, true) == "GuangdongTiger", "the flag equips placeholders")
+		u.Slots[2] = "GuangdongTiger"
 		H.expect(Slots.select(u, 2, ALL), "select 2")
 		H.expect(Slots.equipped(u, NONE, true) == "Magnet", "the pass is gone")
-		H.expect(Slots.equipped(u, ALL, true) == "BlackHole", "with the pass")
+		H.expect(Slots.equipped(u, ALL, true) == "GuangdongTiger", "with the pass")
 		u.Slots[2] = "Nope"
 		H.expect(Slots.equipped(u, ALL, true) == "Magnet", "an unknown id")
 		for _, broken in { nil :: any, 5, {}, { Slots = {}, Locked = {}, Selected = 9 } } do

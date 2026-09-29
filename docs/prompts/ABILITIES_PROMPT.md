@@ -792,7 +792,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 11. Portals (7.9), look check done.
 - [x] 12. Steel Ball (7.10), look check and art director review done.
 - [x] 13. Black Flash (7.11), look check and art director review done.
-- [ ] 14. Black Hole (7.12), look check and art director review done.
+- [x] 14. Black Hole (7.12), look check and art director review done.
 - [ ] 15. Guangdong Tiger (7.13), look check and art director review done.
 - [ ] 16. Balance pass: every ability re-measured with the final code; the ladder table (5.3)
   holds for the careful shooter (each rarity at or a little above the one below), and the
@@ -1238,3 +1238,55 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   at most 56 bolt parts (7 x 4 variants x 2) and 12 shards for 0.7 s. No leftovers after the
   shot, console clean. Phone framing is checked in the playthrough. Superseded uploads to
   archive: models 110511377729729, 131385936821483; decal 112993995726160.
+- **Step 14 done (2026-09-29).** Plan: the effect in `step` (the drag) and `after` (the
+  opening, the catch, the swallow), the look off the `open`, `pull` and `swallow` events. Rules
+  (Effects/BlackHole, tests in `ult_blackhole_test`): at the cue ball's first contact a hole
+  opens at the middle of the two centres (a wrong first ball still a foul, the hole opens
+  anyway); for 2.5 s it catches every object ball on the cloth within 20 in (the cap) and the
+  opponent's within 10 in, the closest first, at most 3 and 2; never the cue ball, the 8 only
+  on the legal 8 shot. A caught ball is ghosted (out of every contact) and each step sent at the
+  hole at 2 + 12 x t in/s (at most 60, never past it) with 0.6 of that sideways (the spiral),
+  dropped when the swirl would leave the cloth or cross a pocket; within 0.5 in it is removed
+  (`Ops.remove`, counted as a pot for its owner); still out after 6 s it goes anyway. The cue
+  ball is pushed 6 in straight away (Black Flash's bounce, made shared: short of pockets).
+  Tests: yours in the reach and theirs in the half are swallowed and counted, not the 10
+  outside the half, the 8, the far 3 or the cue ball; a wrong first ball fouls and the hole
+  opens; an early 8 hit first is never pulled; the legal 8 is swallowed and wins; the caps
+  closest first; every caught ball swallowed and no scratch from the push (80 tables); the
+  replay matches the settle. Worth (120 tables, net a use at skills 1/2/3): careful
+  +1.02/+1.15/+1.20, careless +0.77/+0.91/+0.99 (about 1.5 of yours a use, 0.3 of theirs
+  gifted): under Mythic 2.6 because the harness counts one shot and few of your balls sit
+  within 20 in of a first contact; flagged for step 16. The look (BlackHoleFx; Blender
+  `blackhole.py`: BHHorizon, a black sphere; BHPhoton, a white-hot torus; BHLens, a camera-facing
+  annulus of lensed arcs; BHDisk, the accretion disk annulus; BHVortex, the cloth disc; 3.5k
+  triangles; images disk, lens, vortex and pop ring): armed, a small dark vortex turns under the
+  cue ball; the hole, a pinprick swells with a light flash, a pale screen flash and a shake into
+  a flat-black horizon 3 ball widths across sitting on the cloth, a thick photon ring and the
+  lensed arcs turned to the camera (drawn a little toward it, over the disk), the white-gold
+  disk with a blue-white inner edge tilted 14 degrees and spinning, and under it the blue
+  vortex as wide as the reach with a smaller faster layer flowing inward; a drone and an
+  orange light; each caught ball drawn by a copy that rises into the disk's plane, stretches
+  up to 3.2x toward the hole, spins faster, shrinks inside 1.6 horizon radii and leaves a
+  streak, with a rising whoosh; each swallow flares the photon ring and swells the horizon 8%;
+  the close collapses it with the vortex over 0.5 s and pops (a ring on the cloth, a flash, a
+  grade punch, a shake, a hollow pop). Studio passes (0.1 to 0.3x `/slowmo`): 1, matches: the
+  vortex exactly as reference 08, balls stretching in; doesn't: the hole tiny (1.4 ball widths)
+  and the pulled balls clumped over it, the drag too fast to watch; more stunning: a bigger hole,
+  a slower drag. 2, matches: the full hole, black horizon, hot disk, vortex; doesn't: the tilted
+  disk's far half cut flat by the cloth (it sat at a ball's height), the photon ring and lens
+  hidden by the disk from the top camera; more stunning: the hole on the cloth, the rings in
+  front. 3, matches: the whole disk, a thin photon ring, balls pulled from all round rising into
+  the disk; doesn't: the glossy horizon read as an 8 ball, the setup's balls too close to watch
+  travel (spread out); more stunning: Gargantua's lensed arcs. The art director (6/10): the
+  vortex is right, but from above the disk read as a fried egg round a small dot, no lensed arc,
+  the horizon too small for a phone, the vortex static, the pulled balls pale. Acted on:
+  camera-facing lensed arcs (one side brighter), the disk cut to 2.6 radii and repainted
+  white-gold with a blue-white inner edge, the horizon 3 ball widths and flat Neon black with an
+  8% pulse per swallow, a photon ring 2.4x thicker, a second vortex layer flowing inward, the
+  vortex rim fading in blue, a longer collapse with a grade punch, a longer streak. Pass 4: a
+  black shadow ringed by bright white-gold arcs over a flowing blue vortex; the pop plays at
+  normal speed (the hole lives about 2.2 s). Critique left: the disk reads faint over the dark
+  vortex; the streaks are short under `/slowmo` (they fade on wall time). Frame time: Studio at
+  its 15 fps cap; 6 hole parts and a copy per pulled ball. No leftovers, no ball left hidden,
+  console clean. Phone framing is checked in the playthrough. Superseded upload to archive:
+  model 132811966269359.

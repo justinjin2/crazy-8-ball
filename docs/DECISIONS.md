@@ -1977,3 +1977,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   shatter, an electric crackle), no upload. The art director's review was acted on: a pale
   high-contrast grade instead of a dark red one, fat bolts with a wide red Neon rim behind the
   Highlight outline, bigger shards, short arcs on the armed cue ball.
+- 2026-09-29 (assumption): Black Hole opens at the middle of the cue ball and the first ball
+  hit, catches for 2.5 s within 20 in (the cap; the opponent's within 10 in), drags each
+  caught ball straight in with a 0.6 sideways swirl (dropped near a cushion or pocket) through
+  every other ball (ghosted), and swallows it within 0.5 in; the cue ball is pushed 6 in away.
+  Its worth (about +1.15) is under Mythic 2.6 because the harness counts one shot: flagged for
+  the balance pass.
+- 2026-09-29 (assumption): Black Hole's sounds are library clips (a hollow rumble drone, an
+  orchestral suck swell, Time Stop's reversed whoosh, Portals' pop pitched down), no upload.
+  The art director's review was acted on (lensed arcs, a smaller white-gold disk, a bigger flat
+  horizon, a flowing second vortex layer, a punchier close). Its description no longer says
+  "(not your opponent's)": the opponent's balls within half the reach go too (5.7).

@@ -2272,7 +2272,14 @@ Config.Ults = {
 			MaxBalls = 3,
 			Area = true,
 		},
-		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.6, MaxBalls = 3, Area = true },
+		BlackHole = {
+			Rarity = "Mythic",
+			Built = true,
+			Effect = "BlackHole",
+			Worth = 2.6,
+			MaxBalls = 3,
+			Area = true,
+		},
 		GuangdongTiger = {
 			Rarity = "Mythic",
 			Built = false,
@@ -2478,6 +2485,15 @@ Config.Ults = {
 		FlashImpact = { Id = "rbxassetid://9125484367", Volume = 1.4 },
 		FlashShatter = { Id = "rbxassetid://118987440163311", Volume = 1 },
 		FlashCrackle = { Id = "rbxassetid://84986266888002", Volume = 0.8 },
+		-- Black Hole (public library audio, each checked loading in this game, 2026-09-29):
+		-- while open, "Hollow Rumble 1" (Pro Sound Effects, a deep steady drone, looped);
+		-- opening, "Tutti Suck" (APM, 2.9 s, an orchestral swell to a suck-out); each ball
+		-- caught, Time Stop's reversed whoosh (a rising whoosh); the collapse, Portals' pop
+		-- pitched far down (hollow). (tune by ear)
+		HoleDrone = { Id = "rbxassetid://9112795463", Volume = 1.2 },
+		HoleOpen = { Id = "rbxassetid://9039693523", Volume = 0.8 },
+		HolePull = { Id = "rbxassetid://9118158113", Volume = 0.6, Pitch = 1.1 },
+		HolePop = { Id = "rbxassetid://140323850218372", Volume = 3, Pitch = 0.45 },
 	},
 }
 
@@ -2607,6 +2623,28 @@ Config.Ults.BlackFlash = {
 	-- much play (seconds) over HitStopSeconds more of wall time; the server waits for it.
 	HitStopShotSeconds = 0.004,
 	HitStopSeconds = 0.15,
+}
+
+-- Black Hole (docs/prompts/ABILITIES_PROMPT.md 7.12; src/shared/Ults/Effects/BlackHole).
+Config.Ults.BlackHole = {
+	-- It catches the shooter's balls within this of the hole (inches; the opponent's within
+	-- Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the table. (tune)
+	RadiusInches = 20,
+	-- It keeps catching balls that come in reach for this long after it opens (seconds).
+	OpenSeconds = 2.5,
+	-- A caught ball is dragged straight at the hole at StartSpeed + PullAccel x the time since
+	-- it was caught (inches a second, a second squared), at most MaxSpeed, with Swirl of that
+	-- speed sideways (the spiral). (tune: the look)
+	StartSpeed = 2,
+	PullAccel = 12,
+	MaxSpeed = 60,
+	Swirl = 0.6,
+	-- Swallowed within this of the hole (inches); any caught ball still out this long after
+	-- it opened goes anyway (seconds).
+	SwallowInches = 0.5,
+	GiveUpSeconds = 6,
+	-- The cue ball is pushed this far straight away from the hole (inches), short of pockets.
+	PushInches = 6,
 }
 
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
@@ -2788,6 +2826,7 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/blackflash.py: BFBolt1..4 (thick black radiating bolts, unit
 		-- length along X, flat) and Shard1..12 (the ball shell's pieces, the ball mesh's UVs).
 		BlackFlash = 75008622077798,
+		BlackHole = 86337602765410,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2830,6 +2869,7 @@ Config.Ults.Assets = {
 		SteelSparkle = "rbxassetid://116655548573479",
 		-- Black Flash (blackflash.py): the shockwave ring. (Image inside Decal 112993995726160.)
 		FlashRing = "rbxassetid://74704280023743",
+		HolePop = "rbxassetid://121232364344408",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -3117,22 +3157,23 @@ Config.Ults.Setups = {
 			[15] = false,
 		},
 	},
-	-- A cluster near the middle: the 1, 2 and 3 with the 9 and 10 close in, the 11 and 12 a
-	-- little further out (outside the opponent's half reach).
+	-- Spread round the middle: the 1 in front, the 2 and 3 about 14 in from where the hole
+	-- opens, the 9 and 10 about 8 in (inside the opponent's half reach), the 11 and 12 just
+	-- outside it.
 	BlackHole = {
 		Cue = { -20, 0 },
 		Groups = "solids",
 		Spots = {
 			[1] = { 5, 0 },
-			[2] = { 8.5, 3.5 },
-			[3] = { 8.5, -3.5 },
+			[2] = { 14, 9 },
+			[3] = { 16, -8 },
 			[4] = { -30, 15 },
 			[5] = false,
 			[6] = false,
 			[7] = false,
 			[8] = { 30, -15 },
-			[9] = { 3, 4.5 },
-			[10] = { 3, -4.5 },
+			[9] = { 0, 7 },
+			[10] = { 8, -7 },
 			[11] = { 14, 0 },
 			[12] = { -2, 12 },
 			[13] = false,
@@ -7755,6 +7796,99 @@ Config.UI.BlackFlashFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
+-- Black Hole's look (src/client/BlackHoleFx.luau). Studs unless named; the hole's pieces are
+-- sized from the horizon's radius. (tune)
+Config.UI.BlackHoleFx = {
+	-- Armed: a small dark vortex this many ball widths across turns under the cue ball.
+	ArmedVortexBallWidths = 2.6,
+	ArmedSpinDegrees = 120,
+	ArmedTransparency = 0.1,
+	-- Opening: a pinprick for PinprickSeconds, then it swells to full over OpenSeconds,
+	-- overshooting to OpenOvershoot; a light flash (FlashColor, FlashBrightness, over
+	-- FlashRangeBallWidths, FlashSeconds), a pale blue screen flash and a small shake.
+	PinprickSeconds = 0.08,
+	OpenSeconds = 0.45,
+	OpenOvershoot = 1.25,
+	FlashColor = { 190, 220, 255 },
+	FlashBrightness = 8,
+	FlashRangeBallWidths = 18,
+	FlashSeconds = 0.35,
+	ScreenFlashColor = { 200, 225, 255 },
+	ScreenFlashSeconds = 0.18,
+	OpenShakeStuds = 0.12,
+	OpenShakeSeconds = 0.3,
+	-- The hole: the horizon's size in ball widths across; the photon ring (PhotonColor)
+	-- flares FlareScale times over FlareSeconds on each swallow; the lensed light at
+	-- LensTransparency.
+	HorizonBallWidths = 3,
+	-- The horizon sits on the cloth, HoverInches clear; the photon ring and the lensed light
+	-- are drawn RingForwardShare of its radius toward the camera (in front of the disk).
+	HoverInches = 0.1,
+	RingForwardShare = 0.6,
+	PhotonColor = { 255, 244, 225 },
+	FlareScale = 1.35,
+	FlareSeconds = 0.3,
+	SwallowPulse = 0.08, -- and the horizon swells this share with it
+	LensTransparency = 0.05,
+	-- The accretion disk: tilted DiskTiltDegrees toward the camera, spinning DiskSpinDegrees a
+	-- second, at DiskTransparency.
+	DiskTiltDegrees = 14,
+	DiskSpinDegrees = 160,
+	DiskTransparency = 0.15,
+	-- The vortex on the cloth: as wide as the reach, VortexLiftInches above the cloth, grown
+	-- VortexGrowShare times faster than the hole, turning VortexSpinDegrees a second.
+	VortexLiftInches = 0.04,
+	VortexGrowShare = 1.6,
+	VortexSpinDegrees = 45,
+	VortexTransparency = 0.05,
+	-- Over it a second layer InnerShare as wide turns InnerSpinDegrees a second and flows
+	-- inward: shrinking by FlowShrink and fading over FlowSeconds, round and round.
+	InnerShare = 0.65,
+	InnerSpinDegrees = 120,
+	InnerTransparency = 0.35,
+	FlowSeconds = 1.2,
+	FlowShrink = 0.15,
+	-- The light at the hole (LightColor, LightBrightness over LightRangeBallWidths).
+	LightColor = { 255, 170, 90 },
+	LightBrightness = 3,
+	LightRangeBallWidths = 14,
+	-- Each pulled ball: drawn stretched toward the hole up to 1 + Stretch times long as it
+	-- nears, spinning SpinDegrees a second (1 + SpinBoost times near the hole), shrinking
+	-- inside ShrinkHorizons horizon radii (down to MinScale), gone GoneSeconds after the
+	-- swallow; a streak StreakBallWidths wide lasting StreakSeconds.
+	Stretch = 2.2,
+	-- It rises into the disk's plane as it nears: all the way by 1 / RiseShare of the trip.
+	RiseShare = 1.5,
+	SpinDegrees = 360,
+	SpinBoost = 4,
+	ShrinkHorizons = 1.6,
+	MinScale = 0.05,
+	GoneSeconds = 0.12,
+	StreakBallWidths = 0.5,
+	StreakSeconds = 0.4,
+	StreakTransparency = 0.25,
+	StreakColor = { 120, 190, 255 },
+	-- The close: once no caught ball is left, the hole open MinOpenSeconds and CloseDelaySeconds
+	-- after the last swallow (or the replay over), it swells a little and collapses over
+	-- CollapseSeconds, then pops: a ring (PopRingBallWidths across over PopRingSeconds), a
+	-- PopColor light flash, a shake.
+	MinOpenSeconds = 1.2,
+	CloseDelaySeconds = 0.35,
+	CollapseSeconds = 0.5,
+	PopRingBallWidths = 14,
+	PopRingSeconds = 0.45,
+	PopColor = { 220, 235, 255 },
+	PopShakeStuds = 0.15,
+	PopShakeSeconds = 0.25,
+	-- And a short colour punch (ScreenFx.grade: in, hold, out seconds).
+	PopGrade = { Saturation = -0.6, Contrast = 0.3 },
+	PopGradeIn = 0.02,
+	PopGradeHold = 0.1,
+	PopGradeOut = 0.2,
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7772,6 +7906,7 @@ Config.UI.AbilityFx = {
 		Portals = "PortalsFx",
 		SteelBall = "SteelBallFx",
 		BlackFlash = "BlackFlashFx",
+		BlackHole = "BlackHoleFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

@@ -552,6 +552,9 @@ An effect that must not miss a fast ball records the positions in `step` and tes
 centre's path in `after` (Portals: a pass through a portal's inner circle teleports the ball).
 The steering abilities share `Ults/Effects/PathPlan` (A* over the cloth round balls and
 pockets, pulled tight): Heat Seeker's cue ball, Steel Ball's cue ball and guided balls.
+An effect that drags balls sets their velocity in `step` every fixed step and ghosts them
+(Black Hole); a ball it catches at rest is given its first velocity in `after` at once, or
+the shot would settle before the drag begins.
 `Simulation.Ops`: `remove` (the ball
 leaves the table with a "removed" event that `ShotJudge` counts as a pot), `teleport`, `halt`
 (the settle stops with `outcome.halted`, keeping overrides and fx) and `emit` (an "ult" event

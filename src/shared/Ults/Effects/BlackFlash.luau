@@ -137,9 +137,9 @@ local function blast(state: any, events: { any }, ops: any, x: number, y: number
 	end
 end
 
--- The cue ball rolls straight back from (x, y), BounceInches, stopping short of any pocket on
--- its line.
-local function bounce(state: any, cue: any, x: number, y: number)
+-- The cue ball rolls straight away from (x, y), `inches`, stopping PocketClearInches short of
+-- any pocket on its line (Black Hole's push too).
+function BlackFlash.bounce(state: any, cue: any, x: number, y: number, inches: number)
 	local C = Config.Ults.BlackFlash
 	local dx, dy = cue.x - x, cue.y - y
 	local l = math.sqrt(dx * dx + dy * dy)
@@ -147,7 +147,7 @@ local function bounce(state: any, cue: any, x: number, y: number)
 		return
 	end
 	local hx, hy = dx / l, dy / l
-	local roll = C.BounceInches
+	local roll = inches
 	for _, p in state.geometry.pockets do
 		local px, py = p.x - cue.x, p.y - cue.y
 		local t = px * hx + py * hy
@@ -189,7 +189,7 @@ function BlackFlash.after(state: any, _dt: number, events: { any }, ops: any)
 		local mine = contains(state.overrides and state.overrides.Targets, id)
 		blast(state, events, ops, x, y, if mine then 1 else 0)
 		if not cue.pocketed then
-			bounce(state, cue, x, y)
+			BlackFlash.bounce(state, cue, x, y, C.BounceInches)
 		end
 		return
 	end
