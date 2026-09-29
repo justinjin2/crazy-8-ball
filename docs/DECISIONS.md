@@ -1945,3 +1945,12 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   ball and a deep blue pool on the cloth under each glowing ball (the reference's blue ground,
   so the white arcs read on the green cloth); jump bolts stutter on three times. The sounds are
   library clips (no audio upload used).
+- 2026-09-29 (assumption): Portals' worth measures +0.3 to +0.4, far under Epic; the rule
+  helps only the one shot and the harness counts one shot, so it is flagged for the balance
+  pass (step 16) with a suggestion to keep the portals open for the whole turn. The harness's
+  Portals planner redirects the object ball (A just past it on its line, B short of a pocket's
+  mouth on the same heading).
+- 2026-09-29 (assumption): a ball comes out of the exit portal's centre (not offset by where it
+  crossed the entry), so every trip is the same; the pick ring shows at 1.3 ball widths (was 1)
+  so the portals read as holes a ball fits through; each portal has a soft glow on the cloth.
+  The sounds are library clips (no audio upload used).

@@ -78,7 +78,7 @@ type Glow = {
 	pool: Part?,
 	poolDecal: Decal?,
 	arcs: { Bolt },
-	arcSeeds: { { number } }, -- per arc: angle, tilt, chord offset (re-drawn every swap)
+	arcSeeds: { any }, -- per arc: angle, tilt, 1 when it shows (re-drawn every swap)
 	arcSwapAt: number,
 	arcsOn: boolean, -- the charged ball's (and the armed cue ball's) small bolts
 }
@@ -555,7 +555,7 @@ local function stepGlow(
 			glow.arcSeeds[k] = {
 				self.rng:NextNumber() * math.pi * 2,
 				(self.rng:NextNumber() - 0.5) * math.pi * 0.8,
-				self.rng:NextNumber() < share,
+				if self.rng:NextNumber() < share then 1 else 0,
 			} :: any
 		end
 	end
@@ -570,7 +570,7 @@ local function stepGlow(
 			glow.arcs[k] = made
 		end
 		local seed = glow.arcSeeds[k] :: any
-		if seed == nil or not seed[3] then
+		if seed == nil or seed[3] == 0 then
 			hideBolt(arc :: Bolt)
 			continue
 		end
@@ -622,7 +622,8 @@ function ChainLightningFx.start(hub: any, _parent: Instance, kit: any): ChainLig
 	end)
 	task.spawn(function()
 		local list: { Instance } = {}
-		for _, clip in { A.ChainThunder, A.ChainZap, A.ChainHum, A.ChainArm } do
+		local clips: { { Id: string } } = { A.ChainThunder, A.ChainZap, A.ChainHum, A.ChainArm }
+		for _, clip in clips do
 			local sound = Instance.new("Sound")
 			sound.SoundId = clip.Id
 			table.insert(list, sound)
@@ -736,13 +737,13 @@ function ChainLightningFx.update(self: ChainLightningFx, dt: number)
 					glow.arcSeeds[k] = {
 						self.rng:NextNumber() * math.pi * 2,
 						(self.rng:NextNumber() - 0.5) * math.pi * 0.8,
-						self.rng:NextNumber() < F.ArmedArcChance * live.look,
+						if self.rng:NextNumber() < F.ArmedArcChance * live.look then 1 else 0,
 					} :: any
 				end
 			end
 			local bw = ballWidth()
 			for k = 1, F.Arcs do
-				local arc = glow.arcs[k]
+				local arc: Bolt? = glow.arcs[k]
 				if arc == nil then
 					arc = newBolt(self, live)
 					if arc == nil then
@@ -751,7 +752,7 @@ function ChainLightningFx.update(self: ChainLightningFx, dt: number)
 					glow.arcs[k] = arc
 				end
 				local seed = glow.arcSeeds[k] :: any
-				if seed and seed[3] then
+				if seed and seed[3] == 1 then
 					local dir = CFrame.Angles(0, seed[1], 0) * CFrame.Angles(seed[2], 0, 0)
 					local half = bw * F.ArcBallWidths * 0.4
 					local out = dir.LookVector * bw * 0.45

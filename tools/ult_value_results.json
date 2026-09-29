@@ -10,7 +10,7 @@
     "measuredAt": "2026-09-29",
     "rarity": "Epic",
     "samples": 120,
-    "seconds": 118.28792820847593,
+    "seconds": 118.28792820847592,
     "seed": 1,
     "skills": [
       {
@@ -72,7 +72,7 @@
           "potWithout": 0.25833333333333336,
           "redoneShare": 0,
           "worth": 1.1,
-          "worthSE": 0.10344215829169855
+          "worthSE": 0.10344215829169856
         },
         "careless": {
           "eightBackfire": 0,
@@ -106,14 +106,14 @@
           "netSE": 0.09435205840027946,
           "oppBackfire": 0,
           "oppGifted": -0.016666666666666666,
-          "oppSE": 0.011735491270876315,
+          "oppSE": 0.011735491270876317,
           "ownWith": 1.2916666666666667,
           "ownWithout": 0.18333333333333332,
           "potWith": 0.7666666666666667,
           "potWithout": 0.18333333333333332,
           "redoneShare": 0,
           "worth": 1.1083333333333334,
-          "worthSE": 0.09378131285348311
+          "worthSE": 0.09378131285348312
         },
         "careless": {
           "eightBackfire": 0,
@@ -125,7 +125,7 @@
           "oppBackfire": 0.025,
           "oppGifted": 0.016666666666666666,
           "oppSE": 0.016666666666666666,
-          "ownWith": 1.0583333333333333,
+          "ownWith": 1.0583333333333331,
           "ownWithout": 0.18333333333333332,
           "potWith": 0.7,
           "potWithout": 0.18333333333333332,
@@ -708,6 +708,148 @@
     "target": 0.33,
     "topK": 3,
     "ult": "Magnet"
+  },
+  "Portals": {
+    "built": true,
+    "carefulSamples": 3,
+    "families": [
+      "fresh",
+      "mid",
+      "late"
+    ],
+    "measuredAt": "2026-09-29",
+    "rarity": "Epic",
+    "samples": 120,
+    "seconds": 167.0419568750076,
+    "seed": 1,
+    "skills": [
+      {
+        "angleDeg": 0.4,
+        "careful": {
+          "eightBackfire": 0,
+          "foulBackfire": 0.041666666666666664,
+          "haltedShare": 0,
+          "n": 120,
+          "net": 0.30833333333333335,
+          "netSE": 0.052654778291598966,
+          "oppBackfire": 0.008333333333333333,
+          "oppGifted": -0.008333333333333333,
+          "oppSE": 0.01447413095330452,
+          "ownWith": 0.8,
+          "ownWithout": 0.5,
+          "potWith": 0.8,
+          "potWithout": 0.5,
+          "redoneShare": 0,
+          "worth": 0.3,
+          "worthSE": 0.04821752764284784
+        },
+        "careless": {
+          "eightBackfire": 0,
+          "foulBackfire": 0.016666666666666666,
+          "haltedShare": 0,
+          "n": 120,
+          "net": 0.2916666666666667,
+          "netSE": 0.05075871595662061,
+          "oppBackfire": 0,
+          "oppGifted": -0.016666666666666666,
+          "oppSE": 0.011735491270876315,
+          "ownWith": 0.775,
+          "ownWithout": 0.5,
+          "potWith": 0.775,
+          "potWithout": 0.5,
+          "redoneShare": 0,
+          "worth": 0.275,
+          "worthSE": 0.04874115591686398
+        },
+        "powerNoise": 0.05,
+        "skill": 1
+      },
+      {
+        "angleDeg": 0.9,
+        "careful": {
+          "eightBackfire": 0,
+          "foulBackfire": 0.03333333333333333,
+          "haltedShare": 0,
+          "n": 120,
+          "net": 0.43333333333333335,
+          "netSE": 0.049836333439760135,
+          "oppBackfire": 0.008333333333333333,
+          "oppGifted": 0,
+          "oppSE": 0.011834526708278772,
+          "ownWith": 0.7,
+          "ownWithout": 0.26666666666666666,
+          "potWith": 0.6916666666666667,
+          "potWithout": 0.25833333333333336,
+          "redoneShare": 0,
+          "worth": 0.43333333333333335,
+          "worthSE": 0.05122222323491941
+        },
+        "careless": {
+          "eightBackfire": 0,
+          "foulBackfire": 0.041666666666666664,
+          "haltedShare": 0,
+          "n": 120,
+          "net": 0.375,
+          "netSE": 0.04743047395866899,
+          "oppBackfire": 0.008333333333333333,
+          "oppGifted": 0,
+          "oppSE": 0.011834526708278772,
+          "ownWith": 0.6416666666666667,
+          "ownWithout": 0.26666666666666666,
+          "potWith": 0.625,
+          "potWithout": 0.25833333333333336,
+          "redoneShare": 0,
+          "worth": 0.375,
+          "worthSE": 0.04888461805469018
+        },
+        "powerNoise": 0.1,
+        "skill": 2
+      },
+      {
+        "angleDeg": 1.6,
+        "careful": {
+          "eightBackfire": 0.008333333333333333,
+          "foulBackfire": 0.05,
+          "haltedShare": 0,
+          "n": 120,
+          "net": 0.3,
+          "netSE": 0.04521966305901525,
+          "oppBackfire": 0.008333333333333333,
+          "oppGifted": 0.008333333333333333,
+          "oppSE": 0.008333333333333333,
+          "ownWith": 0.49166666666666664,
+          "ownWithout": 0.18333333333333332,
+          "potWith": 0.49166666666666664,
+          "potWithout": 0.18333333333333332,
+          "redoneShare": 0,
+          "worth": 0.30833333333333335,
+          "worthSE": 0.04395667801920045
+        },
+        "careless": {
+          "eightBackfire": 0.008333333333333333,
+          "foulBackfire": 0.03333333333333333,
+          "haltedShare": 0,
+          "n": 120,
+          "net": 0.26666666666666666,
+          "netSE": 0.0438569953494662,
+          "oppBackfire": 0.008333333333333333,
+          "oppGifted": 0,
+          "oppSE": 0.011834526708278772,
+          "ownWith": 0.45,
+          "ownWithout": 0.18333333333333332,
+          "potWith": 0.45,
+          "potWithout": 0.18333333333333332,
+          "redoneShare": 0,
+          "worth": 0.26666666666666666,
+          "worthSE": 0.04223008428447825
+        },
+        "powerNoise": 0.15,
+        "skill": 3
+      }
+    ],
+    "target": 1.5,
+    "topK": 3,
+    "ult": "Portals"
   },
   "Rewind": {
     "built": true,

@@ -789,7 +789,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 8. Rewind (7.6), look check done.
 - [x] 9. Time Stop (7.7), look check done.
 - [x] 10. Chain Lightning (7.8), look check done.
-- [ ] 11. Portals (7.9), look check done.
+- [x] 11. Portals (7.9), look check done.
 - [ ] 12. Steel Ball (7.10), look check and art director review done.
 - [ ] 13. Black Flash (7.11), look check and art director review done.
 - [ ] 14. Black Hole (7.12), look check and art director review done.
@@ -1102,3 +1102,41 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   triangles; arcs on every struck ball had put 26 meshes up, so the small arcs are the charged
   ball's only). No leftovers after the shot. Phone framing is checked in the playthrough. The
   first model upload (116394570082854, full-detail shells) is superseded by 110751750592714.
+- **Step 11 done (2026-09-29).** Plan: the effect in `step`/`after` (each ball's centre path
+  through the fixed step tested against both portals' inner circles, then `Ops.teleport` to the
+  other centre), the look off its `enter` and `exit` events and the pick (UltPick hands the
+  spots as they are placed). Rules (Effects/Portals, tests in `ult_portals_test`): any ball on
+  the cloth (the cue ball, yours, theirs, the 8; not dropping or in the air) whose centre passes
+  within 1.2 in of a portal's centre comes out of the other one's centre with the same velocity
+  and spin; a ball it lands on is struck at once (teleport resolves the overlap as a contact);
+  after coming out a ball cannot go into either portal until it has left the exit circle and
+  0.3 s have passed, so a loop through both slows and ends. Tests: same motion out of B, a fast
+  ball cannot skip a portal, a ball passing outside the circle is untouched, a loop ends and
+  keeps the cooldown, a ball on the exit is struck, the cue ball through a portal into a pocket
+  (a scratch), no pick no portals, the replay matches the settle. Worth (120 tables, net a use at
+  skills 1/2/3): careful +0.31/+0.43/+0.30, careless +0.29/+0.38/+0.27, far under the Epic band
+  (1 to 2). The planner puts A on the object ball's line just past it and B the same heading
+  short of a pocket's mouth (the redirect), so a use turns a hard pot into an easy one about a
+  third of the time; the portals only ever help the one shot and the pick costs no skill, so no
+  tuning of the rules reaches 1.5. Flagged for step 16 with a design suggestion (the portals
+  stay open for the player's whole turn, or two pots through them). The look (PortalsFx;
+  Blender `portals.py`: PortalRim a ragged flattened torus drawn as Neon, PortalCore a thin
+  inner ring, PortalDisc for the swirl, 3.2k triangles; images: the swirl (dark middle, pale
+  spiral arms, cloudy grain), the sparkle streaks, the burst ring): while placing, each portal
+  follows the pick with its rim, core, swirl spinning (A cyan one way, B violet the other), two
+  sparkle layers streaming in faster, a soft halo glow on the cloth and a light, red while the
+  pair is not allowed; it opens with a spiral-in and a rising tone and closes with a collapse;
+  a humming warble between them while open. A ball going in: a copy of it shrinks, spins and
+  sinks into the middle, a flash above, a deep whoosh, the portal pulses; coming out: the burst
+  ring grows and fades, sparks, a pop. Studio passes (0.1x `/slowmo`): 1, the rim was chunky,
+  the swirl showed a moire from the default camera, the portals were barely wider than a ball
+  and the entry flash washed the whole disc white (a finer torus, cloud grain in place of the
+  noise, the ring at 1.3 ball widths, a halo on the cloth, a softer flash higher up); 2, the
+  sink and the burst ring read from the default camera, but the violet disc still looked pale
+  under its own light (the disc tinted darker, 120/125/150). Critique left: the violet portal
+  reads lighter than the cyan one; the sparks are small from the default camera; the rim's
+  tearing is only visible close up. Frame time: 16.6 ms a frame with both portals up vs 16.6
+  idle (16 instances); during the shot Studio sat at its 15 fps cap for a plain shot too, so no
+  comparison there. No leftovers after the shot. Placing by touch and gamepad and phone framing
+  are checked in the playthrough (step 17). Lint now also fixes three type errors in
+  ChainLightningFx (a newer luau-lsp: the arc seeds hold 1/0 in place of a boolean).

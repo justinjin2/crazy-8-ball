@@ -32,6 +32,7 @@ local Effects: { [string]: Effect } = {
 	Ghost = require(script.Ghost) :: any,
 	HeatSeeker = require(script.HeatSeeker) :: any,
 	Magnet = require(script.Magnet) :: any,
+	Portals = require(script.Portals) :: any,
 	SuperBounce = require(script.SuperBounce) :: any,
 	TimeStop = require(script.TimeStop) :: any,
 }

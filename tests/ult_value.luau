@@ -50,6 +50,7 @@ local Arming = H.require("Ults.Arming")
 local Catalog = H.require("Ults.Catalog")
 local Match = H.require("Ults.Match")
 local TimeStop = H.require("Ults.Effects.TimeStop")
+local Magnet = H.require("Ults.Effects.Magnet")
 
 local V = {}
 
@@ -811,11 +812,41 @@ V.planners.OwnBall = function(ts: TableState, plan: Plan, _careful: boolean): { 
 	return if pick then { withPick(plan, pick, request) } else {}
 end
 
--- Portals: A on the cue ball's path to its contact, B on the same line a short way before
--- the ghost ball, so the cue ball comes out close to its target on the same heading (a
--- shorter shot). The careful shooter also tries a pair parked out of the way.
+-- Portals. First the shortcut for the object ball: A a little way ahead of it on its wanted
+-- heading, B the same heading a little way short of its pocket's mouth, so it comes out
+-- already lined up and close (its aim error then only counts over the two short stretches).
+-- Then the cue ball's shortcut: A on its path to the contact, B on the same line a short way
+-- before the ghost ball (a shorter shot). The careful shooter also tries a pair parked out of
+-- the way.
 V.planners.Portals = function(ts: TableState, plan: Plan, careful: boolean): { Plan }
 	local out = {}
+	local want = if careful then V.PICKS_PER_SHOT else 1
+	local object = findBall(ts.balls, plan.ball)
+	local pocket = nil
+	for _, p in geometry.pockets do
+		if p.id == plan.pocket then
+			pocket = p
+		end
+	end
+	if object and pocket and not plan.safe then
+		local ux, uy = math.cos(plan.phi), math.sin(plan.phi)
+		local mx, my = Magnet.mouthPoint(geometry, pocket)
+		for _, pair in { { 4.5, 7 }, { 6, 10 }, { 4.5, 12 } } do
+			local request = {
+				ax = object.x + ux * pair[1],
+				ay = object.y + uy * pair[1],
+				bx = mx - ux * pair[2],
+				by = my - uy * pair[2],
+			}
+			local pick = Arming.pick("Portals", request, geometry, ts.groups, 1, ts.balls)
+			if pick then
+				table.insert(out, withPick(plan, pick, request))
+				if #out >= want then
+					return out
+				end
+			end
+		end
+	end
 	local cue = findBall(ts.balls, 0)
 	local dx, dy = math.cos(plan.angle), math.sin(plan.angle)
 	local gap = Config.Ults.Shared.Pick.PortalMinGapInches

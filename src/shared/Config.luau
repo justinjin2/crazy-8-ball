@@ -2250,7 +2250,13 @@ Config.Ults = {
 			Worth = 1.5,
 			Area = true,
 		},
-		Portals = { Rarity = "Epic", Built = false, Worth = 1.5, Pick = "Portals" },
+		Portals = {
+			Rarity = "Epic",
+			Built = true,
+			Effect = "Portals",
+			Worth = 1.5,
+			Pick = "Portals",
+		},
 		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3 },
 		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3, Area = true },
 		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.6, MaxBalls = 3, Area = true },
@@ -2435,6 +2441,17 @@ Config.Ults = {
 		ChainZap = { Id = "rbxassetid://97096310054904", Volume = 0.5 },
 		ChainHum = { Id = "rbxassetid://124666497875357", Volume = 1.6 },
 		ChainArm = { Id = "rbxassetid://9114277402", Volume = 1.2, StartOffset = 0.15 },
+		-- Portals (public library audio, each checked loading in this game and measured with an
+		-- AudioAnalyzer, 2026-09-29): while open, "Metallic Glow Constant Deep Ticking Bassy Hum"
+		-- (Pro Sound Effects, 18.5 s, a steady surging hum, looped); a ball going in, "swish
+		-- teleport tp flashstep sfx" (Axellatic, 1.9 s, peak at 0.2 s), pitched down; coming out,
+		-- "Pop Sound Effect" (Siegegeddon, 0.2 s); opening, "teleport" (Joshua00924, 1 s);
+		-- closing, the swish pitched further down. (tune by ear)
+		PortalHum = { Id = "rbxassetid://9125674114", Volume = 1.6 },
+		PortalEnter = { Id = "rbxassetid://108156925383225", Volume = 0.9, Pitch = 0.8 },
+		PortalExit = { Id = "rbxassetid://140323850218372", Volume = 2.5 },
+		PortalOpen = { Id = "rbxassetid://135640489101126", Volume = 0.7, Pitch = 1.1 },
+		PortalClose = { Id = "rbxassetid://108156925383225", Volume = 0.6, Pitch = 0.6 },
 	},
 }
 
@@ -2508,6 +2525,17 @@ Config.Ults.ChainLightning = {
 	PushReachShare = 3,
 	PushMaxInches = 60,
 	ClearanceInches = 0.1,
+}
+
+-- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
+-- may be placed is Config.Ults.Shared.Pick.
+Config.Ults.Portals = {
+	-- A ball goes in when its centre passes within this of a portal's centre (the drawn ring is
+	-- a ball width across the middle of it). (tune)
+	InnerRadiusInches = 1.2,
+	-- After coming out, a ball cannot go into a portal again until it has left the exit's inner
+	-- circle and this long has passed. (tune)
+	CooldownSeconds = 0.3,
 }
 
 -- Eagle's Eye (docs/prompts/ABILITIES_PROMPT.md 7.2; src/shared/Ults/Predict.luau): the aim's
@@ -2669,6 +2697,9 @@ Config.Ults.Assets = {
 		-- jagged bolt with forks along X, flat in XZ, its box centred on the bolt's middle; the
 		-- glow on every other point). Replaces 116394570082854 (the glow on every point).
 		ChainLightning = 110751750592714,
+		-- tools/blender/abilities/portals.py: PortalRim (a ragged torus of unit radius, flat),
+		-- PortalCore (the thin inner ring) and PortalDisc (a flat unit disc with the swirl).
+		Portals = 134871963661060,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2699,6 +2730,11 @@ Config.Ults.Assets = {
 		ChainCrackle = "rbxassetid://132435040693570",
 		ChainGlow = "rbxassetid://107241054746462",
 		ChainSpark = "rbxassetid://77146187473853",
+		-- Portals (portals.py): the swirl, the sparkle streaks and the exit's burst ring. (The
+		-- images inside Decals 101107225209328, 106363579778020, 128288450574948.)
+		PortalSwirl = "rbxassetid://85317008061907",
+		PortalSparkles = "rbxassetid://110779778163475",
+		PortalBurst = "rbxassetid://136798614538270",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7439,6 +7475,59 @@ Config.UI.ChainLightningFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no screen
 }
 
+-- Portals' look (src/client/PortalsFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.9, reference 05).
+-- Studs unless named; each portal is drawn at Config.UI.UltPick.PortalRingBallWidths (its
+-- radius) so it matches the pick view's ring. (tune)
+Config.UI.PortalsFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- A is the entry's cyan, B the violet-blue (the pick view's colours); each turns its own way.
+	RimSpinDegrees = 25, -- a second
+	SwirlSpinDegrees = 70,
+	CoreTransparency = 0.1,
+	RimTransparency = 0,
+	DiscTransparency = 0.02, -- the swirl's own alpha shows only below 1 (MeshPart textures)
+	DiscTint = { 120, 125, 150 }, -- (look check 2: at white the portal's light washed the dark middle out)
+	LiftInches = 0.05, -- above the cloth
+	-- The sparkles stream in: two sparkle layers each shrink from SparkleFrom to SparkleTo of
+	-- the portal over SparkleSeconds, fading, half a cycle apart, turning faster than the swirl.
+	SparkleFrom = 1.1,
+	SparkleTo = 0.35,
+	SparkleSeconds = 1.2,
+	SparkleSpinDegrees = 160,
+	SparkleTransparency = 0.1,
+	-- The soft light on the cloth round each portal, and a glow of the portal's colour on the
+	-- cloth under it (HaloScale x the portal across, pulsing HaloPulse either side of
+	-- HaloTransparency at HaloHz). (Look check 1: without it the rims read thin and faint.)
+	LightBrightness = 1.6,
+	LightRangeBallWidths = 3,
+	HaloScale = 2.4,
+	HaloTransparency = 0.3,
+	HaloPulse = 0.1,
+	HaloHz = 1.5,
+	-- Opening (a spiral in: from nothing, turning OpenTurns extra) and closing (collapsing back
+	-- the same way) once the balls stop.
+	OpenSeconds = 0.45,
+	OpenTurns = 1,
+	CloseSeconds = 0.35,
+	-- A ball going in: a copy of it shrinks and sinks into the portal over SinkSeconds with a
+	-- flash; the portal swells to Pulse for PulseSeconds. Coming out: the burst ring grows from
+	-- 1 to BurstTo of the portal over BurstSeconds, fading, with Sparks sparks.
+	-- (Look check 1: a flash of 5 on the cloth washed the swirl white.)
+	SinkSeconds = 0.22,
+	FlashBrightness = 2.5,
+	FlashSeconds = 0.3,
+	Pulse = 1.3,
+	PulseSeconds = 0.25,
+	BurstTo = 3.2,
+	BurstSeconds = 0.35,
+	BurstTransparency = 0.05,
+	Sparks = 12,
+	-- While placing, a pair the server would refuse turns the rims to the pick view's
+	-- PortalBlockedColor.
+	HumVolume = 1,
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7453,6 +7542,7 @@ Config.UI.AbilityFx = {
 		Rewind = "RewindFx",
 		TimeStop = "TimeStopFx",
 		ChainLightning = "ChainLightningFx",
+		Portals = "PortalsFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.
@@ -7876,7 +7966,7 @@ Config.UI.UltPick = {
 	PortalColorA = { 64, 224, 255 }, -- cyan (entry)
 	PortalColorB = { 128, 104, 255 }, -- violet-blue
 	PortalBlockedColor = { 255, 64, 64 }, -- a spot the server would refuse
-	PortalRingBallWidths = 1, -- the ring's radius on the cloth, in ball widths
+	PortalRingBallWidths = 1.3, -- the ring's radius on the cloth, in ball widths (Portals' look check: 1 read small)
 	PortalStrokePx = 4,
 	PortalFillTransparency = 0.72,
 	PortalLetterPx = { 16, 20 },

@@ -548,6 +548,8 @@ with that step's events) and `finish(state, events, ops)` (at rest). Scratch liv
 at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
 moves before the first contact), or schedule by shot time in `fx` (Chain Lightning's jumps,
 one every `LinkSeconds` after the charge, each target chosen from the positions at that step).
+An effect that must not miss a fast ball records the positions in `step` and tests each
+centre's path in `after` (Portals: a pass through a portal's inner circle teleports the ball).
 `Simulation.Ops`: `remove` (the ball
 leaves the table with a "removed" event that `ShotJudge` counts as a pot), `teleport`, `halt`
 (the settle stops with `outcome.halted`, keeping overrides and fx) and `emit` (an "ult" event

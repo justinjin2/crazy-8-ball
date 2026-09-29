@@ -55,6 +55,29 @@
     "assetType": "Decal",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/Portals.glb": {
+    "assetId": "134871963661060",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/textures/burst_ring.png": {
+    "assetId": "128288450574948",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "136798614538270"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/textures/sparkles.png": {
+    "assetId": "106363579778020",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "110779778163475"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/textures/swirl.png": {
+    "assetId": "101107225209328",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "85317008061907"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/Rewind.glb": {
     "assetId": "110978850889818",
     "assetType": "Model",
