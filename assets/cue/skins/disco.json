@@ -1,0 +1,654 @@
+{
+  "id": "disco",
+  "name": "Disco",
+  "tier": "Epic",
+  "catalog_id": "DiscoCue",
+  "concept": "E3",
+  "palette": [
+    "#C0C4CC",
+    "#FF3D9A",
+    "#3DE0FF",
+    "#FFE13D"
+  ],
+  "painter": "procedural",
+  "note": "A mirror ball on a cue: small square mirror tiles from the shaft to the sleeve (smaller on the shaft), clumps of them lit pink, cyan, yellow and blue; a black wrap full of multicolour glitter; a mirror-tiled glowing ring; a silver collar.",
+  "panels": {
+    "shaft_tile": "skins/disco/shaft_tile.png",
+    "shaft_top": "skins/disco/shaft_top.png",
+    "forearm": "skins/disco/forearm.png",
+    "butt": "skins/disco/butt.png",
+    "cap_end": "skins/disco/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0E0E12",
+    "metal": "#C0C4CC",
+    "spots": [
+      "#FF3D9A",
+      "#3DE0FF",
+      "#FFE13D",
+      "#5A6EFF"
+    ]
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#FFFFFF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.0,
+        "Max": 2.2,
+        "Period": 0.5,
+        "Shape": "beat"
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams + emissive",
+      "Note": "Coloured light specks sweep across the mirrors: camera-facing Beams as wide as the cue lie just in front of it with a clear texture of soft pink, cyan, yellow and blue spots that sweep along the cue (the sleeve's the other way); the lit tiles pulse to a 120 bpm beat (EmissiveStrength 1.0 to 2.2, beat shape, 0.5 s).",
+      "Beams": [
+        {
+          "Name": "SpotSweepShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/disco/spots_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.7,
+          "TextureSpeed": 0.6,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.25
+            ],
+            [
+              0.96,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "SpotSweepForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/disco/spots_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.7,
+          "TextureSpeed": 0.6,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.25
+            ],
+            [
+              0.9131578947368422,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "SpotSweepSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/disco/spots_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.7,
+          "TextureSpeed": -0.6,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.25
+            ],
+            [
+              0.88,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Spots of coloured light spin round the stick: four coloured light spots (Orbiters with a glowing head and a short trail, pink, cyan, yellow, blue) circle the cue quickly while drifting up and down it; white glints flash off the mirror tiles; tiny coloured light specks turn in the air round it; two coloured lights on the beat.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "MirrorGlints",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.2,
+            0.4
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.25
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0.05
+        },
+        {
+          "Name": "LightSpecks",
+          "Texture": "vfx/disco/confetti_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookStartRandom": true,
+          "FlipbookFramerate": 0,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.8,
+            1.2
+          ],
+          "Speed": [
+            0.03,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.2,
+              0.09
+            ],
+            [
+              0.8,
+              0.09
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -180,
+            180
+          ],
+          "Transparency": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Spot1",
+          "FromStuds": 0.6,
+          "ToStuds": 6.8,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.22,
+          "Wobble": 0.03,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 0.4,
+            "WidthStuds": 0.08,
+            "Color": "#FF3D9A",
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.32,
+            "Color": "#FF3D9A",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Spot2",
+          "FromStuds": 0.6,
+          "ToStuds": 6.8,
+          "TravelSeconds": 3.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.22,
+          "Wobble": 0.03,
+          "Phase": 90,
+          "Delay": 0.3,
+          "Trail": {
+            "Lifetime": 0.4,
+            "WidthStuds": 0.08,
+            "Color": "#3DE0FF",
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.32,
+            "Color": "#3DE0FF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Spot3",
+          "FromStuds": 0.6,
+          "ToStuds": 6.8,
+          "TravelSeconds": 3.4000000000000004,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.22,
+          "Wobble": 0.03,
+          "Phase": 180,
+          "Delay": 0.6,
+          "Trail": {
+            "Lifetime": 0.4,
+            "WidthStuds": 0.08,
+            "Color": "#FFE13D",
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.32,
+            "Color": "#FFE13D",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Spot4",
+          "FromStuds": 0.6,
+          "ToStuds": 6.8,
+          "TravelSeconds": 3.8000000000000003,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.22,
+          "Wobble": 0.03,
+          "Phase": 270,
+          "Delay": 0.8999999999999999,
+          "Trail": {
+            "Lifetime": 0.4,
+            "WidthStuds": 0.08,
+            "Color": "#5A6EFF",
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.32,
+            "Color": "#5A6EFF",
+            "LightEmission": 1
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.4,
+          "Color": "#FF3D9A",
+          "Brightness": 0.7,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.4,
+            "Max": 1.1,
+            "Period": 0.5,
+            "Shape": "beat"
+          }
+        },
+        {
+          "AtStuds": 6.2,
+          "Color": "#3DE0FF",
+          "Brightness": 0.7,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.4,
+            "Max": 1.1,
+            "Period": 0.5,
+            "Shape": "beat",
+            "Phase": 0.5
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          150,
+          220
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            61,
+            154
+          ],
+          [
+            61,
+            224,
+            255
+          ],
+          [
+            255,
+            225,
+            61
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted pink (Config.Effects style row); plan.json lists no Disco trail."
+    },
+    "Pocket": {
+      "Note": "Confetti and disco light rays: the default gust tinted pink, cyan and yellow, 40 pieces of confetti (random coloured rectangles) thrown up tumbling and fluttering down, a spray of coloured light rays, a pink ring and a white flash. About 1.5 s.",
+      "Layers": [
+        {
+          "Name": "Confetti",
+          "Texture": "vfx/disco/confetti_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookStartRandom": true,
+          "FlipbookFramerate": 0,
+          "Burst": 40,
+          "Lifetime": [
+            1.2,
+            1.5
+          ],
+          "Speed": [
+            5,
+            9
+          ],
+          "SpreadAngle": [
+            45,
+            45
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -8,
+            0
+          ],
+          "Drag": 2,
+          "Size": 0.14,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -400,
+            400
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.3,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Rays",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 14,
+          "Lifetime": [
+            0.3,
+            0.45
+          ],
+          "Speed": [
+            9,
+            13
+          ],
+          "SpreadAngle": [
+            75,
+            75
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 4,
+          "Size": [
+            [
+              0,
+              0.16
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "Squash": -3.0,
+          "Orientation": "VelocityParallel",
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FF3D9A"
+            ],
+            [
+              0.33,
+              "#FFE13D"
+            ],
+            [
+              0.66,
+              "#3DE0FF"
+            ],
+            [
+              1,
+              "#5A6EFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FF3D9A",
+          "Start": 0.5,
+          "End": 4.2,
+          "Seconds": 0.45
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          240,
+          250
+        ]
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
+      "Beams": 3,
+      "Lights": 2,
+      "Orbiters": 4
+    }
+  }
+}

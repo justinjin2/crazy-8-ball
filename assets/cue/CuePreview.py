@@ -442,6 +442,10 @@ def blender_main(args):
             if spec.get('Flicker'):
                 b = b * vfx.wave(clock[0], spec['Flicker'])
             lo.data.energy = b * LIGHT_W
+            if spec.get('Hue'):  # a script turning the light's Color round the hue wheel (Chroma)
+                import colorsys
+                h = (clock[0] / spec['Hue'].get('Period', 4.0)) % 1.0
+                lo.data.color = colorsys.hsv_to_rgb(h, spec['Hue'].get('Saturation', 0.8), 1.0)
 
     def hide_lights():
         for spec, lo in aura_lights:
@@ -488,7 +492,8 @@ def blender_main(args):
             cue_nodes['tint'].inputs['B'].default_value = tuple(lin) + (1.0,)
         if frame_images:
             secs = frames_spec.get('FrameSeconds', 0.25)
-            k = int(t / secs) % len(frame_images)
+            order = frames_spec.get('Order') or list(range(len(frame_images)))  # a script's swap order
+            k = order[int(t / secs) % len(order)] % len(frame_images)
             for key, im in frame_images[k].items():
                 node = cue_nodes['tex'].get(key)
                 if node is not None:

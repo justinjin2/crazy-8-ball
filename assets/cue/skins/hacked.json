@@ -1,0 +1,385 @@
+{
+  "id": "hacked",
+  "name": "Hacked",
+  "tier": "Epic",
+  "catalog_id": "HackedCue",
+  "concept": "E3",
+  "palette": [
+    "#05080A",
+    "#2BFF5A",
+    "#0F7A2A",
+    "#C8CCD0"
+  ],
+  "painter": "procedural",
+  "note": "A hacker terminal: glossy black with glowing green 8-bit code (blocky 0s, 1s and pixel glyphs) sparse along the shaft and packed on the forearm and sleeve, a black snakeskin wrap, a glowing green ring, a silver collar.",
+  "panels": {
+    "shaft_tile": "skins/hacked/shaft_tile.png",
+    "shaft_top": "skins/hacked/shaft_top.png",
+    "forearm": "skins/hacked/forearm.png",
+    "butt": "skins/hacked/butt.png",
+    "cap_end": "skins/hacked/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#080A08",
+    "black": "#05080A",
+    "code": "#2BFF5A",
+    "dim": "#0F7A2A",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.7,
+    "EmissiveTint": "#90FFA8",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.2,
+        "Max": 2.0,
+        "Period": 1.2,
+        "Shape": "flicker"
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams + emissive",
+      "Note": "The green code scrolls along the cue: camera-facing Beams as wide as the cue lie just in front of it with a clear texture of rows of green pixel glyphs (with a brighter data pulse) that scroll along the cue toward the butt; the code's glow flickers like a bad signal (EmissiveStrength 1.2 to 2.0, flicker shape).",
+      "Beams": [
+        {
+          "Name": "CodeScrollShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/hacked/code_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.5,
+          "TextureSpeed": 0.5,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.3
+            ],
+            [
+              0.96,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "CodeScrollForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/hacked/code_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.5,
+          "TextureSpeed": 0.5,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.3
+            ],
+            [
+              0.9131578947368422,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "CodeScrollSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/hacked/code_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.5,
+          "TextureSpeed": 0.5,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.3
+            ],
+            [
+              0.88,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Green binary digits rain down round the stick, matrix-style: pixel glyphs (a 16-glyph flipbook, random start, flicking between glyphs as they fall) appear in a box above the cue and fall past it; now and then a glitch (offset green bars and scanlines) flashes on the surface; a green light flickers with the code.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "DigitRain",
+          "Texture": "vfx/hacked/digits_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookStartRandom": true,
+          "FlipbookFramerate": [
+            3,
+            7
+          ],
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.9,
+            "Shape": "Box",
+            "ShapeStyle": "Volume",
+            "Up": 0.35
+          },
+          "Rate": 24,
+          "Lifetime": [
+            1.0,
+            1.4
+          ],
+          "Speed": 0,
+          "Acceleration": [
+            0,
+            -1.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.12,
+              0.03
+            ],
+            [
+              1,
+              0.12,
+              0.03
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "LockedToPart": false
+        },
+        {
+          "Name": "Glitch",
+          "Texture": "vfx/hacked/glitch.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.08,
+            0.16
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.22,
+              0.08
+            ],
+            [
+              1,
+              0.22,
+              0.08
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0.05
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 5.0,
+          "Color": "#2BFF5A",
+          "Brightness": 0.7,
+          "Range": 7,
+          "Flicker": {
+            "Min": 0.6,
+            "Max": 1.1,
+            "Period": 1.2,
+            "Shape": "flicker"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            210,
+            255,
+            220
+          ],
+          [
+            43,
+            255,
+            90
+          ],
+          [
+            15,
+            122,
+            42
+          ]
+        ],
+        "NearTransparency": 0.05,
+        "Lifetime": 0.5,
+        "WidthStuds": 0.26,
+        "LightEmission": 0.9,
+        "Texture": "vfx/hacked/trail_data.png",
+        "TextureMode": "Stretch",
+        "TextureLength": 1,
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0.8
+          ]
+        ]
+      }
+    },
+    "Trail": {
+      "Note": "A green pixel data trail that breaks into falling digits: a band of square pixel blocks, solid at the ball and breaking up along the trail, and green glyphs shed by the ball that drop and fade.",
+      "Emitters": [
+        {
+          "Name": "Digits",
+          "Texture": "vfx/hacked/digits_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookStartRandom": true,
+          "FlipbookFramerate": 0,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 18,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.1,
+            0.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            -2,
+            0
+          ],
+          "Drag": 1,
+          "Size": 0.1,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp"
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (plan.json lists no Hacked finisher)."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 27,
+      "Back": 13.5,
+      "Beams": 3,
+      "BallTrail": 18,
+      "Lights": 1
+    }
+  }
+}

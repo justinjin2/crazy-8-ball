@@ -1753,6 +1753,358 @@ SKIN_SPRITES['hacked'] = {'code_strip.png': sprite_code_strip, 'digits_4x4.png':
                           'glitch.png': sprite_glitch, 'trail_data.png': sprite_trail_data}
 
 
+# --- sprites for the Legendaries --------------------------------------------------------------
+
+def _hue(h, sat=1.0, val=1.0):
+    """Hue array 0..1 -> RGB 0..255 (a smooth rainbow)."""
+    h = np.mod(h, 1.0)
+    rgb = np.stack([np.clip(np.abs(np.mod(h * 6 + k, 6) - 3) - 1, 0, 1) for k in (0, 4, 2)], -1)
+    return (1 - sat + sat * rgb) * val * 255
+
+
+def sprite_spectrum_flow(w=1024, h=128, seed=111):
+    """A rainbow flowing along the cue, for an overlay beam: broad smooth spectral bands along u
+    (two full rainbows per tile) with brighter silky streaks, fading at the silhouette (colour
+    baked)."""
+    U, V = _uv(w, h)
+    wob = (_per(U, V, 3, 1, seed, 2) - 0.5) * 0.12
+    col = _hue(U * 2 + V * 0.25 + wob, 0.85)
+    streak = 1 - np.abs(2 * _per(U, V, 5, 22, seed + 1, 2) - 1)
+    a = (0.45 + 0.55 * streak ** 6) * _overlay_fade(V)
+    col = col + (255 - col) * (streak ** 10 * 0.6)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def shard_frame(i, n, frames=16):
+    """A crystal shard turning over in 3D (its width swings with the turn, the lit facet swaps
+    sides), its colour running round the rainbow as it turns; a white edge glint (colour baked)."""
+    k = i / frames
+    turn = math.cos(2 * math.pi * k)
+    x, y = _grid(n)
+    wdt = 0.08 + 0.34 * abs(turn)
+    ax, ay = np.abs(x) / wdt, np.abs(y) / 0.9
+    kk = ax + ay
+    shape = np.clip((1 - kk) / 0.05, 0, 1)
+    lit = np.where((x > 0) == (turn > 0), 1.0, 0.6)
+    hue = k + y * 0.15
+    col = _hue(hue, 0.7) * lit[..., None]
+    col = col + (255 - col) * np.clip(np.exp(-(x / 0.02) ** 2) * 0.5 + np.exp(-((1 - kk) / 0.07) ** 2) * 0.8, 0, 1)[..., None]
+    glow = np.clip(1 - np.hypot(x, y * 0.6), 0, 1) ** 3 * 0.35
+    a = np.clip(shape + glow, 0, 1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_shard_sheet():
+    return flipbook(lambda i, n: shard_frame(i, n), 4, 1024)
+
+
+def sprite_trail_rainbow(w=512, h=128, seed=113):
+    """A rainbow ribbon trail: the spectrum across its width in fine silky streaks, a white-hot
+    middle line, soft edges; tiles along u (colour baked)."""
+    U, V = _uv(w, h)
+    streak = 1 - np.abs(2 * _per(U, V, 4, 26, seed, 3) - 1)
+    col = _hue(V * 0.9 + (_per(U, V, 3, 1, seed + 1, 2) - 0.5) * 0.15, 0.9)
+    mid = np.exp(-((V - 0.5) / 0.05) ** 2)
+    col = col + (255 - col) * np.clip(mid * 0.8 + streak ** 12 * 0.5, 0, 1)[..., None]
+    a = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 0.6 * (0.55 + 0.45 * streak ** 3)
+    return np.concatenate([np.clip(col, 0, 255), np.clip(a + mid * 0.3, 0, 1)[..., None] * 255], -1)
+
+
+def sprite_ring_rainbow(n=256, width=0.06):
+    """A shockwave ring with the rainbow running round it and a white inner edge (colour baked)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x) / (2 * math.pi)
+    a = np.exp(-((r - 0.84) / width) ** 2) + 0.4 * np.exp(-((r - 0.84) / (width * 3)) ** 2)
+    col = _hue(th, 0.9)
+    col = col + (255 - col) * np.exp(-((r - 0.8) / 0.02) ** 2)[..., None] * 0.8
+    return np.concatenate([np.clip(col, 0, 255), np.clip(a, 0, 1)[..., None] * 255], -1)
+
+
+SKIN_SPRITES['chroma'] = {'spectrum_flow.png': sprite_spectrum_flow, 'shard_4x4.png': sprite_shard_sheet,
+                          'trail_rainbow.png': sprite_trail_rainbow, 'ring_rainbow.png': sprite_ring_rainbow}
+
+
+def _bolt_path(rs, n_seg, x0, y0, x1, y1, jag):
+    """A jagged lightning path from (x0, y0) to (x1, y1) by midpoint displacement."""
+    pts = [(x0, y0), (x1, y1)]
+    amp = jag
+    for _ in range(n_seg):
+        out = [pts[0]]
+        for (ax, ay), (bx, by) in zip(pts[:-1], pts[1:]):
+            mx, my = (ax + bx) / 2, (ay + by) / 2
+            dx, dy = bx - ax, by - ay
+            L = math.hypot(dx, dy) + 1e-9
+            off = rs.uniform(-1, 1) * amp
+            out += [(mx - dy / L * off, my + dx / L * off), (bx, by)]
+        pts = out
+        amp *= 0.55
+    return pts
+
+
+def _draw_path(x, y, pts, width, glow_w):
+    """Distance field of a polyline -> (core, glow)."""
+    d = np.full(x.shape, 9.0)
+    for (ax, ay), (bx, by) in zip(pts[:-1], pts[1:]):
+        vx, vy = bx - ax, by - ay
+        t = np.clip(((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy + 1e-12), 0, 1)
+        d = np.minimum(d, np.hypot(x - ax - t * vx, y - ay - t * vy))
+    return np.exp(-(d / width) ** 2), np.exp(-(d / glow_w) ** 2)
+
+
+def bolt_frame(i, n, seed=121):
+    """A lightning bolt striking straight down with a few branches, white-hot core, blue glow
+    (colour baked); each frame a different bolt (FlipbookStartRandom or a fast loop)."""
+    rs = np.random.RandomState(seed + i * 7)
+    x, y = _grid(n)
+    main = _bolt_path(rs, 7, rs.uniform(-0.15, 0.15), -0.98, rs.uniform(-0.1, 0.1), 0.98, 0.35)
+    core, glow = _draw_path(x, y, main, 0.012, 0.09)
+    for _ in range(3):
+        k = rs.randint(len(main) // 5, len(main) * 3 // 4)
+        bx, by = main[k]
+        br = _bolt_path(rs, 5, bx, by, bx + rs.uniform(-0.6, 0.6), by + rs.uniform(0.25, 0.6), 0.15)
+        c2, g2 = _draw_path(x, y, br, 0.007, 0.05)
+        core, glow = np.maximum(core, c2 * 0.8), np.maximum(glow, g2 * 0.7)
+    a = np.clip(core + glow * 0.6, 0, 1)
+    col = np.zeros(x.shape + (3,)) + np.array([90.0, 180, 255])
+    col = col + (255 - col) * np.clip(core * 1.2, 0, 1)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_bolt_sheet():
+    return flipbook(lambda i, n: bolt_frame(i, n), 2, 1024)
+
+
+def spark_ball_frame(i, n, frames=16, seed=131):
+    """A crackling ball of static: a few short jagged arcs from the centre that change every frame
+    over a soft blue glow (colour baked); loop it."""
+    rs = np.random.RandomState(seed + i)
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    core = np.zeros(x.shape)
+    glow = np.exp(-(r / 0.3) ** 2) * 0.5
+    for _ in range(4):
+        ang = rs.uniform(0, 2 * math.pi)
+        L = rs.uniform(0.5, 0.9)
+        p = _bolt_path(rs, 5, 0, 0, math.cos(ang) * L, math.sin(ang) * L, 0.18)
+        c, g = _draw_path(x, y, p, 0.02, 0.08)
+        core, glow = np.maximum(core, c), np.maximum(glow, g * 0.6)
+    a = np.clip(core + glow, 0, 1)
+    col = np.zeros(x.shape + (3,)) + np.array([80.0, 170, 255])
+    col = col + (255 - col) * np.clip(core + np.exp(-(r / 0.08) ** 2), 0, 1)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_spark_ball_sheet():
+    return flipbook(lambda i, n: spark_ball_frame(i, n), 4, 1024)
+
+
+def sprite_trail_electric(w=512, h=128, seed=133):
+    """A jagged electric ribbon for a ball trail: two or three lightning lines zig-zagging along
+    u inside a soft blue sheath (colour baked). Tiles along u."""
+    rs = np.random.RandomState(seed)
+    U, V = _uv(w, h)
+    xx, yy = U * 4, V  # aspect: u runs 4x the width
+    core = np.zeros(U.shape)
+    glow = np.zeros(U.shape)
+    for k in range(3):
+        y0 = rs.uniform(0.35, 0.65)
+        p = _bolt_path(rs, 7, 0, y0, 4, y0, 0.3)
+        p = [(px, min(max(py, 0.12), 0.88)) for px, py in p]
+        c, g = _draw_path(xx, yy, p, 0.012, 0.06)
+        core, glow = np.maximum(core, c * (1 - 0.3 * k)), np.maximum(glow, g)
+    sheath = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 1.5 * 0.35
+    a = np.clip(core + glow * 0.5 + sheath, 0, 1)
+    col = np.zeros(U.shape + (3,)) + np.array([60.0, 160, 255])
+    col = col + (255 - col) * np.clip(core, 0, 1)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_current_strip(w=1024, h=128, seed=135):
+    """Electricity flowing through the veins, for an overlay beam: bright pulses running along a
+    few jagged threads inside the cue's outline, dark between them (colour baked), tiling along u."""
+    rs = np.random.RandomState(seed)
+    U, V = _uv(w, h)
+    xx, yy = U * 8, V
+    a = np.zeros(U.shape)
+    for k in range(4):
+        y0 = rs.uniform(0.3, 0.7)
+        p = _bolt_path(rs, 8, 0, y0, 8, y0, 0.25)
+        p = [(px, min(max(py, 0.2), 0.8)) for px, py in p]
+        c, g = _draw_path(xx, yy, p, 0.01, 0.04)
+        pulse = np.clip(np.cos(2 * math.pi * (U * rs.randint(2, 5) + rs.random_sample())) * 0.5 + 0.5, 0, 1) ** 6
+        a = np.maximum(a, (c + g * 0.5) * pulse)
+    a = np.clip(a, 0, 1) * _overlay_fade(V)
+    col = np.zeros(U.shape + (3,)) + np.array([90.0, 190, 255])
+    col = col + (255 - col) * np.clip(a * 1.3 - 0.4, 0, 1)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_rock_chip(n=64, seed=137):
+    """A dark rock chip (pocket debris), with a blue rim light (colour baked)."""
+    rs = np.random.RandomState(seed)
+    x, y = _grid(n)
+    th = np.arctan2(y, x)
+    corners = rs.uniform(0.55, 0.9, 7)
+    k = (th + math.pi) / (2 * math.pi) * 7
+    i0 = np.floor(k).astype(int) % 7
+    f = k - np.floor(k)
+    R = corners[i0] * (1 - f) + corners[(i0 + 1) % 7] * f
+    r = np.hypot(x, y)
+    shape = np.clip((R - r) / 0.05, 0, 1)
+    rim = np.exp(-((R - r) / 0.08) ** 2) * (y < 0)
+    col = np.zeros(x.shape + (3,)) + 40 + 30 * (x * 0.5 - y * 0.5)[..., None]
+    col = col + np.array([80.0, 170, 255]) * rim[..., None]
+    return np.concatenate([np.clip(col, 0, 255), shape[..., None] * 255], -1)
+
+
+SKIN_SPRITES['thunderstrike'] = {'bolt_2x2.png': sprite_bolt_sheet, 'spark_ball_4x4.png': sprite_spark_ball_sheet,
+                                 'trail_electric.png': sprite_trail_electric, 'current_strip.png': sprite_current_strip,
+                                 'rock_chip.png': sprite_rock_chip}
+
+
+def _fire_colour(t):
+    """0 (cool edge) .. 1 (white-hot core) -> deep red, orange, gold, pale yellow."""
+    keys = np.array([[140, 10, 20], [230, 60, 20], [255, 130, 30], [255, 200, 60], [255, 245, 190]], np.float64)
+    t = np.clip(t, 0, 1) * (len(keys) - 1)
+    i = np.minimum(np.floor(t).astype(int), len(keys) - 2)
+    f = (t - i)[..., None]
+    return keys[i] * (1 - f) + keys[i + 1] * f
+
+
+def wing_frame(i, n, frames=16, seed=141):
+    """A wing of flame spreading to the right of the frame's centre (its root at the centre, so a
+    particle there opens it off the handle), made of long curved flame feathers fanning out,
+    flickering; a mirrored twin makes the other wing. Colour baked."""
+    k = i / frames
+    x, y = _grid(n)
+    # wing space: root at the centre, spreading right and up
+    r = np.hypot(x, y)
+    th = np.arctan2(-y, x)  # 0 = right, + = up
+    a = np.zeros(x.shape)
+    heat = np.zeros(x.shape)
+    rs = np.random.RandomState(seed)
+    for f in range(9):
+        ang0 = -0.35 + f * 0.16  # feathers fan from slightly down to up
+        L = 0.55 + 0.4 * math.sin(f / 8 * math.pi) + 0.05 * math.sin(2 * math.pi * (k + f * 0.13))
+        curve = 0.25 + 0.05 * f
+        # a feather: along its length the angle bends back, it tapers to a flame tip
+        t = np.clip(r / L, 0, 1.2)
+        axis = ang0 + curve * t ** 2
+        width = 0.075 * np.clip(1 - t, 0, 1) ** 0.6 * (0.6 + 0.4 * np.sin(math.pi * np.clip(t * 1.4, 0, 1))) + 0.004
+        d = np.abs((th - axis) * r)
+        flick = cc.fbm(x * 6 + f, y * 6 - k * 4, np.full_like(x, k * 3 + f), 3, seed + f)
+        body = np.clip((width * (0.8 + 0.6 * flick) - d) / 0.012, 0, 1) * (t < 1.0) * (r > 0.03)
+        a = np.maximum(a, body * (0.75 + 0.25 * flick))
+        heat = np.maximum(heat, body * np.clip(1 - t, 0, 1) ** 0.8 * (0.6 + 0.5 * flick))
+    root = np.exp(-(r / 0.12) ** 2)
+    a = np.clip(a + root * 0.8, 0, 1) * (x > -0.05)
+    col = _fire_colour(heat * 1.1 + root * 0.8)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_wing_sheet():
+    return flipbook(lambda i, n: wing_frame(i, n), 4, 1024)
+
+
+def sprite_wing_sheet_mirrored():
+    return flipbook(lambda i, n: wing_frame(i, n)[:, ::-1], 4, 1024)
+
+
+def feather_frame(i, n, frames=16):
+    """A burning feather: a curved vane on a shaft, gold at the quill to crimson at the tip,
+    its edge on fire; over the frames it curls and burns away from the tip into embers."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    # feather axis: from (-0.1, 0.8) up to (0.1, -0.8), curving
+    t = (0.8 - y) / 1.6
+    ax = -0.1 + 0.2 * t + 0.15 * np.sin(t * math.pi) * (1 + k)
+    burn = 1 - k * 0.9  # how much of the feather is left (from the quill)
+    wv = 0.22 * np.sin(np.clip(t, 0, 1) * math.pi) ** 0.7 * (t < burn)
+    d = np.abs(x - ax)
+    barbs = 0.8 + 0.2 * np.sin((y + d * 1.5) * 60)
+    vane = np.clip((wv - d) / 0.02, 0, 1) * (t > 0.02) * barbs
+    shaft = np.clip((0.012 - d) / 0.006, 0, 1) * (t > 0) * (t < burn + 0.05)
+    edge = np.exp(-((wv - d) / 0.03) ** 2) * (t < burn) + np.exp(-((t - burn) / 0.05) ** 2) * (d < wv + 0.05)
+    a = np.clip(vane + shaft + edge * 0.8, 0, 1)
+    col = _fire_colour(0.35 + 0.5 * (1 - t) + edge * 0.4)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_feather_sheet():
+    return flipbook(lambda i, n: feather_frame(i, n), 4, 1024)
+
+
+def sprite_trail_feathers(w=512, h=128, seed=143):
+    """A fiery feather trail: flame feathers laid along the trail, overlapping like a tail, over a
+    flame ribbon, hot at the middle (colour baked). Tiles along u."""
+    U, V = _uv(w, h)
+    xx, yy = U * 4, (V - 0.5) * 1.0
+    a = np.zeros(U.shape)
+    heat = np.zeros(U.shape)
+    for j in range(10):
+        cx = (j + 0.5) / 10 * 4
+        side = 1 if j % 2 else -1
+        dx = np.mod(xx - cx + 2, 4) - 2
+        t = np.clip(dx / 0.9 + 0.5, 0, 1)
+        ay = side * 0.15 * t
+        wv = 0.16 * np.sin(t * math.pi) ** 0.8
+        d = np.abs(yy - ay)
+        f = np.clip((wv - d) / 0.02, 0, 1) * (np.abs(dx) < 0.45)
+        a = np.maximum(a, f)
+        heat = np.maximum(heat, f * (1 - np.abs(t - 0.4)))
+    ribbon = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 1.4
+    flick = _per(U, V, 12, 4, seed, 3)
+    a = np.clip(a * 0.9 + ribbon * (0.4 + 0.5 * flick), 0, 1)
+    col = _fire_colour(heat * 0.8 + ribbon * 0.7)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def firebird_frame(i, n, frames=16, seed=147):
+    """A flame bird rising with its wings spread (the pocket finisher): a body of fire, a head, two
+    wings of flame feathers that sweep up then down over the frames, a flame tail below (colour
+    baked; play OneShot)."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    a = np.zeros(x.shape)
+    heat = np.zeros(x.shape)
+    flap = math.sin(k * 2 * math.pi * 1.2) * 0.35
+    for side in (-1, 1):
+        for f in range(7):
+            ang = 0.15 + f * 0.13 + flap
+            L = 0.55 + 0.25 * math.sin(f / 6 * math.pi)
+            dx, dy = x * side, -(y + 0.05)
+            r = np.hypot(dx, dy)
+            th = np.arctan2(dy, dx)
+            t = np.clip(r / L, 0, 1.2)
+            axis = ang - 0.35 * t ** 2
+            width = 0.07 * np.clip(1 - t, 0, 1) ** 0.6 + 0.004
+            dd = np.abs((th - axis) * r)
+            flick = cc.fbm(x * 5 + f, y * 5 + k * 3, np.full_like(x, k * 2 + f * side), 3, seed + f)
+            body = np.clip((width * (0.8 + 0.6 * flick) - dd) / 0.012, 0, 1) * (t < 1) * (dx > 0)
+            a = np.maximum(a, body)
+            heat = np.maximum(heat, body * np.clip(1 - t, 0, 1))
+    bodyd = np.hypot(x / 0.1, (y - 0.05) / 0.28)
+    head = np.hypot(x / 0.07, (y + 0.3) / 0.07)
+    tail_t = np.clip((y - 0.2) / 0.7, 0, 1)
+    tail = np.clip((0.12 * (1 - tail_t) + 0.08 * np.sin(tail_t * 9 + k * 8) * tail_t - np.abs(x - 0.1 * np.sin(tail_t * 5))) / 0.02, 0, 1) * (y > 0.2)
+    core = np.clip(1 - bodyd, 0, 1) + np.clip(1 - head, 0, 1)
+    a = np.clip(a + np.clip(core * 3, 0, 1) + tail, 0, 1)
+    heat = np.maximum(heat, np.clip(core * 1.2, 0, 1)) + tail * 0.5
+    col = _fire_colour(heat)
+    fade = 1 - max(0.0, (k - 0.7) / 0.3)
+    return np.concatenate([col, (a * fade)[..., None] * 255], -1)
+
+
+def sprite_firebird_sheet():
+    return flipbook(lambda i, n: firebird_frame(i, n), 4, 1024)
+
+
+SKIN_SPRITES['phoenix'] = {'wing_r_4x4.png': sprite_wing_sheet, 'wing_l_4x4.png': sprite_wing_sheet_mirrored,
+                           'feather_4x4.png': sprite_feather_sheet, 'trail_feathers.png': sprite_trail_feathers,
+                           'firebird_4x4.png': sprite_firebird_sheet}
+
+
 def make_sprites(which=None):
     if which is None:
         for name, fn in SHARED_SPRITES.items():

@@ -487,6 +487,19 @@ def main():
         col, rough, metal, height, glow = panel_skin(atlas, skin, base_dir)
     os.makedirs(TEXTURES, exist_ok=True)
     maps = write_maps(atlas, os.path.join(TEXTURES, skin_id), col, rough, metal, height, glow)
+    # moving-material frames: skin "frames": {"Count": n, "Keys": [...]}; frame f's panels are
+    # in skins/<id>_f<f>/ (CuePaint.py); only the maps named in Keys are kept (the rest match
+    # frame 0, so they are not uploaded twice)
+    frames = skin.get('frames') or {}
+    for f in range(1, int(frames.get('Count', 1))):
+        fskin = dict(skin)
+        fskin['panels'] = {k: v.replace('skins/%s/' % skin_id, 'skins/%s_f%d/' % (skin_id, f))
+                           for k, v in skin.get('panels', {}).items()}
+        fcol, frough, fmetal, fheight, fglow = panel_skin(atlas, fskin, base_dir)
+        fmaps = write_maps(atlas, os.path.join(TEXTURES, '%s_f%d' % (skin_id, f)), fcol, frough, fmetal, fheight, fglow)
+        for key, path in fmaps.items():
+            if key not in frames.get('Keys', ['color', 'normal', 'roughness', 'metalness', 'emissive']):
+                os.remove(path)
     if '--no-render' in args:
         cc.log(TAG, 'OK', skin_id, '(no render)')
         return

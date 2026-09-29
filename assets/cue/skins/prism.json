@@ -1,0 +1,625 @@
+{
+  "id": "prism",
+  "name": "Prism",
+  "tier": "Epic",
+  "catalog_id": "PrismCue",
+  "concept": "E2",
+  "palette": [
+    "#F5FBFF",
+    "#BDE6FF",
+    "#FF9ACD",
+    "#9AFFE0"
+  ],
+  "painter": "procedural",
+  "note": "A clear faceted crystal cue: a shaft of cut crystal facets throwing rainbow fire, silver lattices holding diamond-cut gems on the forearm and sleeve, a pearly white snakeskin wrap, silver collar and rings.",
+  "panels": {
+    "shaft_tile": "skins/prism/shaft_tile.png",
+    "shaft_top": "skins/prism/shaft_top.png",
+    "forearm": "skins/prism/forearm.png",
+    "butt": "skins/prism/butt.png",
+    "cap_end": "skins/prism/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101214",
+    "clear": "#F5FBFF",
+    "ice": "#A8D4F8",
+    "deep": "#3A5AB0",
+    "pink": "#FF9ACD",
+    "mint": "#9AFFE0",
+    "metal": "#D4D8DE"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.5,
+    "EmissiveTint": "#FFFFFF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.1,
+        "Max": 1.9,
+        "Period": 2.2
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams + emissive",
+      "Note": "Rainbow light streaks travel through the crystal: camera-facing Beams as wide as the cue lie just in front of it with a clear texture of short slanted spectral bars that race along the cue (TextureSpeed), over the painted facets whose fire and edges pulse in the emissive mask.",
+      "Beams": [
+        {
+          "Name": "RainbowRunShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/prism/rainbow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.8,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.2
+            ],
+            [
+              0.96,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "RainbowRunForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/prism/rainbow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.8,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.2
+            ],
+            [
+              0.9131578947368422,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "RainbowRunSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/prism/rainbow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.8,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.2
+            ],
+            [
+              0.88,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Prism flashes and rainbow glints: four-point glints blink all over the crystal in rainbow colours, small faceted shards float and turn round the stick, and two rainbow refraction streaks (Orbiters with a spectrum Trail and a white glint head) spiral up and down the cue opposite each other; a cool white light.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "PrismGlints",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.24,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.3,
+            0.55
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.28
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FF9ACD"
+            ],
+            [
+              0.33,
+              "#FFF1A0"
+            ],
+            [
+              0.66,
+              "#9AFFE0"
+            ],
+            [
+              1,
+              "#BDE6FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0.05
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/prism/crystal.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 7.0,
+            "Width": 0.8,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 9,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.2,
+              0.16,
+              0.04
+            ],
+            [
+              0.8,
+              0.16,
+              0.04
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -60,
+            60
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Refraction1",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.55,
+          "Radius": 0.19,
+          "Wobble": 0.02,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 0.35,
+            "WidthStuds": 0.07,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/prism/trail_spectrum.png"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.14,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Refraction2",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.55,
+          "Radius": 0.19,
+          "Wobble": 0.02,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 0.35,
+            "WidthStuds": 0.07,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/prism/trail_spectrum.png"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.14,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.6,
+          "Color": "#DDF0FF",
+          "Brightness": 0.6,
+          "Range": 6
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          210,
+          235,
+          255
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            189,
+            230,
+            255
+          ],
+          [
+            255,
+            154,
+            205
+          ],
+          [
+            154,
+            255,
+            224
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted pale ice (Config.Effects style row); plan.json lists no Prism trail."
+    },
+    "Pocket": {
+      "Note": "A burst of glittering crystal shards that scatter rainbow light: the default gust tinted ice, pink and mint, 24 crystal shards thrown up spinning and falling back, rainbow glints, a spray of spectral rays, a white ring and a cool white flash. About 1.2 s.",
+      "Layers": [
+        {
+          "Name": "Shards",
+          "Texture": "vfx/prism/crystal.png",
+          "Burst": 24,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            5,
+            9
+          ],
+          "SpreadAngle": [
+            45,
+            45
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -12,
+            0
+          ],
+          "Drag": 1,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.15
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -400,
+            400
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.5,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Glints",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 16,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.3,
+            0.6
+          ],
+          "Speed": [
+            2,
+            6
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FF9ACD"
+            ],
+            [
+              0.5,
+              "#9AFFE0"
+            ],
+            [
+              1,
+              "#BDE6FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Rays",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 12,
+          "Lifetime": [
+            0.25,
+            0.4
+          ],
+          "Speed": [
+            8,
+            12
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 4,
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Squash": -2.8,
+          "Orientation": "VelocityParallel",
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FF9ACD"
+            ],
+            [
+              0.33,
+              "#FFF1A0"
+            ],
+            [
+              0.66,
+              "#9AFFE0"
+            ],
+            [
+              1,
+              "#9AB8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#E8F6FF",
+          "Start": 0.5,
+          "End": 4.2,
+          "Seconds": 0.45
+        }
+      ],
+      "Flash": {
+        "Color": [
+          220,
+          240,
+          255
+        ]
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 21,
+      "Back": 10.5,
+      "Beams": 3,
+      "Lights": 1,
+      "Orbiters": 2
+    }
+  }
+}

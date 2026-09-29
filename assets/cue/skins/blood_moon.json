@@ -1,0 +1,625 @@
+{
+  "id": "blood_moon",
+  "name": "Blood Moon",
+  "tier": "Epic",
+  "catalog_id": "BloodMoonCue",
+  "concept": "E2",
+  "palette": [
+    "#1A0508",
+    "#B3121F",
+    "#FF4A4A"
+  ],
+  "painter": "procedural",
+  "note": "Deep crimson and black lacquer with slow red mist drifting inside: crimson smoke through the shaft and forearm, a black snakeskin wrap with thin glowing red lines curving through it, glowing red rings, and a red full moon among red clouds on each side of the sleeve; a silver collar. No blood, just mood.",
+  "panels": {
+    "shaft_tile": "skins/blood_moon/shaft_tile.png",
+    "shaft_top": "skins/blood_moon/shaft_top.png",
+    "forearm": "skins/blood_moon/forearm.png",
+    "butt": "skins/blood_moon/butt.png",
+    "cap_end": "skins/blood_moon/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0406",
+    "black": "#0C0306",
+    "crimson": "#B3121F",
+    "bright": "#FF4A4A",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#FF6A6A",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.1,
+        "Max": 2.0,
+        "Period": 5.0
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams + emissive",
+      "Note": "The red mist drifts: camera-facing Beams as wide as the cue lie just in front of it with a clear texture of soft red smoke and curling filaments that scrolls slowly along the cue, over the painted mist; the glow swells and fades slowly (EmissiveStrength 1.1 to 2.0 over 5 s).",
+      "Beams": [
+        {
+          "Name": "MistDriftShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/blood_moon/mist_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.4,
+          "TextureSpeed": 0.07,
+          "Color": "#FF3A48",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.45
+            ],
+            [
+              0.96,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "MistDriftForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/blood_moon/mist_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.4,
+          "TextureSpeed": 0.07,
+          "Color": "#FF3A48",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.45
+            ],
+            [
+              0.9131578947368422,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "MistDriftSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/blood_moon/mist_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.4,
+          "TextureSpeed": 0.07,
+          "Color": "#FF3A48",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.45
+            ],
+            [
+              0.88,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Crimson mist rises off the whole cue like Bloodlit (red smoke billowing up and darkening as it thins), red motes drift up through it, two red energy tendrils curl round the cue from tip to butt (curved Beams whose bend a script turns round the cue, Twist), a red glow breathes over the moon on the sleeve, and a red light glows on the table.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "CrimsonMist",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            1.5,
+            2.2
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "Acceleration": [
+            0,
+            0.45,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.45
+            ],
+            [
+              1,
+              1.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.62
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#E0202E"
+            ],
+            [
+              1,
+              "#6A0612"
+            ]
+          ],
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "LockedToPart": false
+        },
+        {
+          "Name": "RedMotes",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "Acceleration": [
+            0,
+            0.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FF4A4A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "MoonGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 6.8
+          },
+          "Rate": 0.8,
+          "Lifetime": 3,
+          "Speed": 0,
+          "Size": 0.55,
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.7,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FF3040",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "TendrilA",
+          "FromStuds": 0.2,
+          "ToStuds": 7.1,
+          "Width0": 0.14,
+          "Width1": 0.28,
+          "Segments": 32,
+          "Brightness": 1.4,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.8,
+          "TextureSpeed": 0.3,
+          "Curve0": [
+            0.2,
+            0.05
+          ],
+          "Curve1": [
+            -0.18,
+            -0.05
+          ],
+          "Twist": 38,
+          "Color": [
+            [
+              0,
+              "#FF6A6A"
+            ],
+            [
+              1,
+              "#B3121F"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.2
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        },
+        {
+          "Name": "TendrilB",
+          "FromStuds": 0.2,
+          "ToStuds": 7.1,
+          "Width0": 0.14,
+          "Width1": 0.28,
+          "Segments": 32,
+          "Brightness": 1.4,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.8,
+          "TextureSpeed": 0.3,
+          "Curve0": [
+            -0.16,
+            0.1
+          ],
+          "Curve1": [
+            0.2,
+            -0.08
+          ],
+          "Twist": -30,
+          "Color": [
+            [
+              0,
+              "#FF4A4A"
+            ],
+            [
+              1,
+              "#8A0A14"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.2
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 6.2,
+          "Color": "#FF2A3A",
+          "Brightness": 0.8,
+          "Range": 7,
+          "Flicker": {
+            "Min": 0.7,
+            "Max": 1.0,
+            "Period": 5.0
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          230,
+          40,
+          50
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            179,
+            18,
+            31
+          ],
+          [
+            255,
+            74,
+            74
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted crimson (Config.Effects style row); plan.json lists no Blood Moon trail."
+    },
+    "Pocket": {
+      "Note": "A crimson moon ring pulses out: the default gust tinted crimson, a red moon rising out of the pocket and fading, three crimson rings pulsing out one after another like a heartbeat, a puff of red mist and a red flash. About 1.4 s.",
+      "Layers": [
+        {
+          "Name": "Moon",
+          "Texture": "vfx/blood_moon/moon.png",
+          "Burst": 1,
+          "Lifetime": 1.3,
+          "Speed": 1.1,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "EmissionDirection": "Top",
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.25,
+              1.4
+            ],
+            [
+              1,
+              1.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0
+            ],
+            [
+              0.65,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.6,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Mist",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Burst": 8,
+          "Lifetime": [
+            0.9,
+            1.3
+          ],
+          "Speed": [
+            1,
+            2.2
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#E0202E"
+            ],
+            [
+              1,
+              "#5A0510"
+            ]
+          ],
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Rotation": [
+            0,
+            360
+          ]
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FF3040",
+          "Start": 0.8,
+          "End": 4.0,
+          "Seconds": 0.5,
+          "Delay": 0.0
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#D01828",
+          "Start": 0.8,
+          "End": 4.6,
+          "Seconds": 0.55,
+          "Delay": 0.28
+        },
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#A01020",
+          "Start": 0.8,
+          "End": 5.2,
+          "Seconds": 0.6,
+          "Delay": 0.56
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          40,
+          50
+        ]
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 18.8,
+      "Back": 9.4,
+      "Beams": 5,
+      "Lights": 1
+    }
+  }
+}

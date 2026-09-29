@@ -363,7 +363,7 @@ and you ask the designer about it.
 - [x] 3. Commons (6 more): C1, C2.
 - [x] 4. Uncommons (9): U1-U3, glowing rings.
 - [x] 5. Rares (9 more): R1-R3, every one with its own aura.
-- [ ] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
+- [x] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
 - [ ] 7. Legendaries (7): L1-L7, base cue, every one with a trail and a pocket finisher, at
   section 8.1's Legendary effort within section 8.2's caps.
 - [ ] 8. Mythics (3): M1-M3, with the custom pieces (list any piece to generate as
@@ -450,3 +450,11 @@ and you ask the designer about it.
   PointLights with a scripted flicker. Rare sprites (flame, snowflake, bubble, ghost, leaf,
   blossom, petal, sprinkle, candy stripe) are drawn by script. Blaze's flame sheet is now
   shared (`vfx/_shared/fire_4x4.png`).
+
+- **2026-09-29, Epics.** The moving material is a set of camera-facing overlay Beams laid
+  over each painted section (shaft, forearm, sleeve; never over the metal collar), each
+  with a mostly clear texture that scrolls (TextureSpeed) and an EmissiveStrength pulse on the
+  SurfaceAppearance. Centrepieces (Blood Moon's moons, Shooting Star's star) face the camera
+  with a second one on the far side. Shooting Star uses two OpenAI panels (forearm and
+  butt). Pocket finishers tint the default gust (`Style.Pocket.Colors`) and add their own sprites.
+  `tools/crop_concepts.py` can now join several boxes into one reference crop (the close-ups).
