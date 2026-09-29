@@ -826,3 +826,49 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   voice would be better, a merge and a publish), and ideas for later. Branch pushed.
 
 ## Notes
+
+- **Step 0, setup (2026-09-29).** Branch `abilities` made from `ultimates` (c34de47), never from
+  `cue-mesh`; the brief, the ten references, `tools/overnight/abilities.json` and the attended
+  `keep_going.sh` are its first commit, pushed (`origin/abilities`). Lint clean, 735 Lune tests
+  pass. Keychain key: True. Studio `Crazy 8 Ball (placeId: 107430170196919)` answers (Edit).
+  Rojo was not running: started (`rojo serve`, port 34872), but Studio still holds the
+  cue-mesh scripts (`BackCue` is in it), so the plugin needs Connect clicked (the designer)
+  before any Studio check. Blender MCP: not connected ("Could not connect to Blender"), so the
+  generator statuses could not be read yet; headless Blender 5.2 exists. No sox or ffmpeg;
+  Python 3 with numpy 2.0.2 (no scipy): sounds are synthesised with numpy + the `wave` module.
+  Both access questions are asked together once step 1's code is written.
+- **Plan (the whole run).**
+  - Step 1, the framework, in pure code first (Lune-tested), then the Roblox side:
+    - `Simulation`: effects get a per-shot scratch table `state.fx` (fresh at strike and at a
+      client's replay start; never inside `overrides`, which the replay copies shallowly), an
+      `after(state, dt, events, ops)` hook run after each fixed step with that step's events
+      (contact hooks: the cue ball's first contact, deterministic), `ops` = the generic moves
+      only the Simulation can make safely: `remove` (a ball leaves play at this step, counted
+      as pocketed: `removed` event, stops colliding), `teleport` (with overlap resolved as a
+      contact), `halt` (end this part of the shot here: Time Stop) and a `finish(state)` hook
+      at rest (Ghost un-overlapping the cue). Per-ball collision filter
+      (`overrides.PhaseCue`: the cue ball ignores these ids, in the pair search and in
+      Cluster), cue-only material (`overrides.Cue` = restitutions and frictions, with a time
+      cap). `Overrides` carries `Targets` (yours, full strength), `OppTargets` (the
+      opponent's, x `Config.Ults.OpponentFactor`), `Pick` (a ball id or two portal spots).
+    - `ShotJudge`: `removed` events count exactly as pots for their owner; a removed 8 follows
+      the 8 rules (legal 8 shot = a win whatever the pocket).
+    - `Ults/Match`: per-owner targets (5.7), the picks (`UltPick` action, validated), Rewind's
+      snapshot and restore, Time Stop's `Frozen` phase with the second strike and its server
+      timeout (MatchEngine), the shared caps helper.
+    - Client: `AbilityFx` (the shared base: anchors, cleanup, sound sheets through `SoundSheet`,
+      the table-wide `ScreenFx`, the reach preview ring), the pick view (`UltPick`: top-down,
+      tap/click/gamepad), replay halts and resumes (`Match`), rewind playback (frames kept
+      during the replay), `/slowmo` and `/abilitysetup`.
+    - `AbilityAssets` (server loads uploaded models once, into ReplicatedStorage).
+    - The value harness `tests/ult_value.luau` + `tools/ult_value.sh` (careful and careless
+      model shooters at three skills) and `tools/ult_model.py` reading the measured worths.
+    - Subagents (foreground) write the separable parts with named files: the harness; the
+      client sound-sheet/screen-fx/assets modules; the pick view. I own Simulation, Judge,
+      MatchEngine and Ults/Match (the determinism-critical core).
+  - Step 2: Blender pilot (one VFX mesh .glb with baked texture -> upload -> LoadAsset ->
+    texture check), then the 13 icons (one scene, one camera and light rig, Freestyle outline,
+    rarity rim light, 512 px transparent), uploaded, wired into every icon spot.
+  - Steps 3-15: one ability at a time (physics + test + harness worth, then Blender meshes and
+    flipbooks, then the Fx module, sounds, Studio look check x2 passes), committed each.
+  - Steps 16-21 as listed.
