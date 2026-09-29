@@ -29,6 +29,8 @@ local Collision = require(script.Parent.Collision)
 local Cue = require(script.Parent.Cue)
 local Flight = require(script.Parent.Flight)
 local TableGeometry = require(script.Parent.Table)
+-- Ult effects are pure Luau like this module and never require it back (see their registry).
+local UltEffects = require(script.Parent.Parent.Ults.Effects)
 
 type Ball = Ball.Ball
 type Geometry = TableGeometry.Geometry
@@ -36,9 +38,21 @@ type Shot = Cue.Shot
 
 local Simulation = {}
 
+-- Per-shot, server-authorized changes to the physics. Only the server ever sets these: a
+-- material copied at the strike (Config.Physics.ShotMaterials), and an ult's effect, which
+-- the server writes after Simulation.strike and before settle. They travel with the replay,
+-- and every client sets them on its state before stepping, so both run the same shot.
 export type Overrides = {
 	RailRestitution: number?,
 	RailFriction: number?,
+	-- An ult's effect module in src/shared/Ults/Effects (e.g. "Magnet"), stepped at the start
+	-- of every fixed step (Simulation.step). An unknown name does nothing.
+	Effect: string?,
+	-- The ball ids the effect may act on, decided by the server's rules. Never the cue ball.
+	Targets: { number }?,
+	-- The 8 may only be pulled toward this pocket id (the called pocket, on the shooter's legal
+	-- 8 shot). Without it the 8 is never acted on, even when listed in Targets.
+	EightPocket: number?,
 }
 
 export type State = {
@@ -1230,7 +1244,17 @@ end
 --- SoftContactMaxSeconds past the step, and the next step simply starts from there. The
 --- server's settle and a client's frame-by-frame replay both call this with the same fixed
 --- step from the same strike, so they overrun at exactly the same places.
+---
+--- An ult's effect (state.overrides.Effect, see Overrides) runs first: a velocity change at
+--- the start of the step, before anything moves. Every normal shot has no effect and skips it.
 function Simulation.step(state: State, dt: number, events: { Event }?)
+	local overrides = state.overrides
+	if overrides and overrides.Effect then
+		local effect = UltEffects[overrides.Effect]
+		if effect then
+			effect.step(state, dt)
+		end
+	end
 	advance(state, dt, events, nil, true)
 end
 
@@ -1282,9 +1306,26 @@ function Simulation.strike(state: State, shot: Shot): Event
 	end
 	state.time = 0
 	local material = if shot.ability then Config.Physics.ShotMaterials[shot.ability] else nil
-	state.overrides = if material then table.clone(material) else nil
+	state.overrides = if material then table.clone(material) :: Overrides else nil
 	local speed = Cue.strike(cueBall, shot)
 	return { t = 0, type = "cueStrike", ball = 0, speed = speed }
+end
+
+--- Arm an ult's effect on a struck state for the rest of this shot: call it after strike (which
+--- resets the overrides to the shot's material) and before settle or the first step. Keeps any
+--- material already copied. Server only: the rules decide `targets` (never the cue ball) and
+--- `eightPocket` (the called pocket, only on the shooter's legal 8 shot).
+function Simulation.armEffect(
+	state: State,
+	effect: string,
+	targets: { number },
+	eightPocket: number?
+)
+	local overrides: Overrides = if state.overrides then table.clone(state.overrides) else {}
+	overrides.Effect = effect
+	overrides.Targets = table.clone(targets)
+	overrides.EightPocket = eightPocket
+	state.overrides = overrides
 end
 
 --- The id of the first ball the cue ball touched, if any.

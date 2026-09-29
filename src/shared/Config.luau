@@ -2013,13 +2013,23 @@ Config.Daily = {
 	} :: { { Minutes: number, Money: number?, Cases: { [string]: number }? } },
 	PlaytimeTickSeconds = 30, -- the server adds playtime this often (and on leave)
 	-- Promo codes (ECONOMY 18): case-insensitive, once per player, optional Expires (the unix
-	-- time it stops working: midnight UTC after its last day). Codes give only money or free
-	-- cases, never anything sold for Robux. Placeholders.
+	-- time it stops working: midnight UTC after its last day). Codes give money, free cases,
+	-- ult spins and Lucky Spins (the designer, 2026-09-28, the ultimates brief 9.3). Placeholders.
 	Codes = {
 		WELCOME = { Money = 500, Cases = { Standard = 1 } },
 		["8BALL"] = { Money = 250 },
 		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
-	} :: { [string]: { Money: number?, Cases: { [string]: number }?, Expires: number? } },
+		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ult spins.
+		ULTS = { Spins = 3 },
+	} :: {
+		[string]: {
+			Money: number?,
+			Cases: { [string]: number }?,
+			Spins: number?, -- ult spins (the designer, 2026-09-28: codes give spins)
+			LuckySpins: number?, -- Lucky Spins
+			Expires: number?,
+		},
+	},
 	CodeMaxLength = 24,
 	-- The Rewards service's limits (src/server/Rewards.luau; server limits, not ECONOMY.md
 	-- numbers): one RewardRequest per player this often, one code attempt this often (so codes
@@ -2124,7 +2134,20 @@ Config.Products = {
 		MoneyParty = { Kind = "Product", Id = 0, Robux = 199 }, -- 11.5
 		FoundersCue = { Kind = "Product", Id = 0, Robux = 1499 }, -- the Limited shelf (9)
 		Vip = { Kind = "Pass", Id = 0, Robux = 599 }, -- 11.2
-		FastOpen = { Kind = "Pass", Id = 0, Robux = 99 }, -- 11.5
+		FastOpen = { Kind = "Pass", Id = 0, Robux = 99 }, -- 11.5 (also Skip and Auto Spin for ult spins)
+		-- Ult spins (ECONOMY 11.8; the spin screen's R$ buy row). Spins / Lucky: what one
+		-- purchase adds; Was: the original price shown crossed out (a real bulk saving against
+		-- Spin1 or Lucky1, never an always-on fake sale). Paid random items: refused at the prompt
+		-- where PolicyService restricts them (a receipt that arrives anyway still grants).
+		Spin1 = { Kind = "Product", Id = 0, Robux = 15, Spins = 1 }, -- 1 spin
+		Spin5 = { Kind = "Product", Id = 0, Robux = 50, Was = 75, Spins = 5 }, -- 5 spins
+		Spin10 = { Kind = "Product", Id = 0, Robux = 100, Was = 150, Spins = 10 }, -- 10 spins
+		Spin50 = { Kind = "Product", Id = 0, Robux = 449, Was = 750, Spins = 50 }, -- 50 spins
+		Lucky1 = { Kind = "Product", Id = 0, Robux = 49, Lucky = 1 }, -- 1 Lucky Spin (no Commons)
+		Lucky3 = { Kind = "Product", Id = 0, Robux = 129, Was = 147, Lucky = 3 }, -- 3 Lucky Spins
+		-- Ult slots 2 and 3 (Config.Ults.SlotPasses): owning the pass makes the slot usable.
+		UltSlot2 = { Kind = "Pass", Id = 0, Robux = 59 },
+		UltSlot3 = { Kind = "Pass", Id = 0, Robux = 99 },
 	},
 }
 
@@ -2331,33 +2354,39 @@ Config.Ults = {
 	},
 }
 
--- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball
--- moving toward a pocket inside its capture zone has its velocity (and spin) turned toward
--- the pocket centre, never sped up. Tuned by tests/ult_magnet_test.luau against the brief's
--- targets; every number (tune).
+-- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball moving
+-- toward a pocket inside its capture zone whose straight path would miss the opening (a jaw,
+-- a facing or the cushion beside the mouth first) has its velocity and spin turned just
+-- enough to clear it, never sped up. A path already going in is left alone. Tuned by
+-- tests/ult_magnet_test.luau against the brief's targets; every number (tune).
 Config.Ults.Magnet = {
 	-- The capture zone: a circle this many ball diameters in radius around the middle of each
 	-- pocket's mouth. Nothing outside it is pulled. (tune)
 	CaptureBallWidths = 3,
-	-- How hard the path bends at the mouth itself: radians of turn per inch the ball rolls.
-	-- Per inch rather than per second, so a slow and a firm ball bend the same way. (tune)
-	MaxBend = 0.15,
-	-- How the pull grows toward the mouth: bend = MaxBend * closeness ^ Power, closeness
-	-- 0 at the zone's edge and 1 at the mouth. Higher keeps the pull near the pocket. (tune)
-	Power = 2,
+	-- How hard the path can bend at a corner mouth itself: radians of turn per inch the ball
+	-- rolls. Per inch rather than per second, so a slow and a firm ball bend alike. (tune)
+	MaxBend = 0.3,
+	-- The same at a side mouth: its jaws are straighter and its window narrower, so it needs
+	-- about twice the bend for the same rescue rates. (tune)
+	SideMaxBend = 0.6,
+	-- How the pull grows toward the mouth: bend = MaxBend * closeness ^ Power, closeness 0 at
+	-- the zone's edge and 1 at the mouth. Higher keeps the pull near the pocket. (tune)
+	Power = 1,
 	-- Above this speed (in/s) the pull fades as (FadeSpeed / speed) ^ FadePower, so a hard hit
 	-- ball is barely bent. (tune)
 	FadeSpeed = 150,
 	FadePower = 1,
+	-- The most one fixed step (1/240 s) may turn a ball, as the sine of the angle (0.1 = about
+	-- 6 degrees), so a fast ball near the mouth is never snapped round. (tune)
+	MaxStepTurn = 0.1,
+	-- The path is traced with a ball this much fatter (inches), so a ball it steers clears the
+	-- jaws with room to spare and one only just going in is nudged to the middle. (tune)
+	ClearanceInches = 0.1,
 	-- Below this speed (in/s) a ball is not pulled at all: a stopping ball stays put. (tune)
 	MinSpeed = 1,
 	-- "Moving toward the pocket": the cosine of the angle between the velocity and the
 	-- direction to the pocket centre must be above this (0 = anywhere in front). (tune)
 	MinApproachCos = 0,
-	-- A ball whose straight path already crosses the mouth within this many ball diameters
-	-- of its middle is on line and left alone, so a pot that was going in is never changed.
-	-- Kept inside the narrowest pot window the harness finds (about 0.3 diameters). (tune)
-	OnLineBallWidths = 0.25,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -4094,11 +4123,25 @@ Config.UI = {
 			CueSilhouette = "rbxassetid://116727821385649", -- the whole cue as one dark shape (the Index's unowned cues)
 			ScrollZoom = "rbxassetid://76220420219490", -- the zoom guide on a computer: a mouse wheel rolling
 			PinchZoom = "rbxassetid://115866473257495", -- the zoom guide on touch: a pinching hand
+			-- Ultimates (uploaded to the group 2026-09-28).
+			Ults = "rbxassetid://116359776498638", -- the left column's 5th button: the 8-ball with a lightning splash
+			UltBadge = "rbxassetid://132970855167502", -- the ult bar's badge: the 8-ball with a blue splash (ball right of centre)
+			UltBadgeGold = "rbxassetid://74974990816876", -- the same badge with a gold flame, for the ready bar
+			Lucky = "rbxassetid://97997677415172", -- a four-leaf clover: LUCKY SPINS
+			UltSpin = "rbxassetid://76372169720993", -- a gold spin arrow round a bolt: SPIN and the spins count
 		},
 		Art = {
 			BallGloss = "rbxassetid://109282983367810", -- shading and shine over a HUD ball
 			BallBand = "rbxassetid://118056017631758", -- a stripe's band, clipped round, tinted
 			Rays = "rbxassetid://112352358460844", -- spinning behind the win trophy
+			-- Ultimates (tools/gen_ui_art.py `ults`, uploaded to the group 2026-09-28): white art
+			-- tinted in Roblox.
+			UltBackdrop = "rbxassetid://121308269711722", -- the cutscene's swirl, 1024 square; the 3:1 strip is rows 341-683
+			AuraFlame = "", -- the aura's flipbook, Grid4x4, 16 frames, OneShot
+			FieldLines = "", -- Magnet's beam, 512 x 128, tiles left to right (Wrap)
+			RingGlow = "rbxassetid://121133273572178", -- a soft ring: the pocket's pulse and the N/S rings round the cue ball
+			Spark = "rbxassetid://131919576694289", -- a 4-point sparkle for bursts
+			SoftGlow = "rbxassetid://121163827465552", -- a round soft glow (the ball's glow, the bar's ready glow)
 		},
 		-- Rarity colours (UI_STYLE section 4): card frames, strips, reel glows, filter chips.
 		-- Mythic's solid colour is its shimmer's lilac (the UI adds the pastel shimmer over
@@ -5710,6 +5753,114 @@ Config.UI.Trade = {
 	Thumbnail = "Size150x150", -- Enum.ThumbnailSize name (Config is loaded by Lune: no Enum)
 }
 
+-- The ult bar in a match (UltHud and UltBar; docs/prompts/ULTIMATES_PROMPT.md 5 and 7.1,
+-- UI_STYLE section 11), the opponent's ult icon and the NO ULTS pills (MatchHUD, the result
+-- screen). Pixels and seconds. Pairs { a, b } are { a phone on its side, a computer or tablet }
+-- (the HUD screen under or over Multiplayer.Style.ShortHeight). (tune)
+Config.UI.Ults = {
+	ZIndex = 30, -- over the match HUD's lines, under the result screen and the money HUD
+	-- The bar: bottom centre, the badge's ball at its left end, the pill to its right.
+	WidthPx = { 220, 300 }, -- from the ball's left edge to the pill's right end
+	MaxWidthShare = 0.4, -- never wider than this share of the screen
+	PillPx = { 22, 28 }, -- the pill's height
+	PillStrokePx = 3, -- its ink outline (the kit's button outline)
+	BallPx = { 34, 42 }, -- the badge's 8 ball, bigger than the pill, over its left end
+	PillFromBallShare = 0.45, -- the pill starts this share of the ball in from its left edge
+	LabelPx = { 14, 16 }, -- ULTIMATE over the pill
+	PercentPx = { 14, 18 }, -- the % in the pill ("READY! 100%" too)
+	GapPx = { 4, 6 }, -- between the pill and ULTIMATE or the prompt over it
+	BottomMarginPx = { 8, 12 }, -- the bar's lowest point this far above the screen's bottom
+	CanvasPadPx = { 18, 24 }, -- room round the bar for sparkles (the fade's canvas)
+	ReserveGapPx = 6, -- MatchHUD's bottom lines (ball in hand, wrong ball) sit this far above it
+	-- Where the 8 ball sits in the badge art (UltBadge, 256 px): its centre and radius, as
+	-- shares of the image, so the art's ball lands on the bar's ball spot.
+	BadgeBall = { X = 148 / 256, Y = 152 / 256, Radius = 70 / 256 },
+	-- The drawn badge while the art is "" (still uploading): the HUD 8 ball on a round splash.
+	SplashShare = 1.3, -- the splash's size, of the ball
+	SplashOffsetShare = 0.14, -- ...moved up and left by this share of the ball
+	SplashBlue = { 90, 190, 255 },
+	SplashGold = { 255, 196, 40 },
+	-- Colours: the empty track, the blue fill, the gold ready fill (top to bottom).
+	TrackColor = { 150, 158, 172 },
+	TrackFade = { { 172, 180, 194 }, { 128, 137, 152 } },
+	FillBlue = { { 140, 222, 255 }, { 36, 158, 250 } },
+	FillGold = { { 255, 236, 120 }, { 255, 184, 20 } },
+	GlossTransparency = 0.55, -- the white gloss over the fill's top half
+	-- The moving shine: a white band along the fill, then a pause.
+	ShineSeconds = 1.4,
+	ShinePauseSeconds = 1.6,
+	ShineDegrees = 20,
+	ShineTransparency = 0.45,
+	-- A gain: the % counts up, the fill's edge flashes, "+34" floats up (gold for a nice shot).
+	CountSeconds = 0.6,
+	FlashSeconds = 0.4,
+	FlashWidthPx = { 6, 8 },
+	FloatTextPx = { 18, 22 },
+	FloatRisePx = { 22, 30 },
+	FloatSeconds = 1.0,
+	FloatFadeFrom = 0.6, -- it fades over the last part of its rise (share of FloatSeconds)
+	GainStaggerSeconds = 0.35, -- between two gains of one shot (a ball, then its nice shot)
+	-- Your turn: the bar slides up, then the gains stored in the opponent's turn animate as one.
+	SlideSeconds = 0.35,
+	SlidePx = { 50, 70 },
+	HideSeconds = 0.18, -- sliding away when the turn passes
+	StoredDelaySeconds = 0.15, -- after the slide, before the stored gains count up
+	-- A change of the server's bar with no gain (the Studio QA hook) counts to it after this
+	-- long: long enough for a gain sent with the snapshot to arrive and animate instead.
+	SettleDelaySeconds = 0.35,
+	-- While the cue is pulled back the whole HUD fades to 25% opacity.
+	PullTransparency = 0.75,
+	PullFadeSeconds = 0.15,
+	-- Ready: a gold glow breathing behind the pill, sparkles, a shake every ~2 s.
+	ReadyGlow = { 255, 208, 60 },
+	GlowReachShare = 0.22, -- how far past the pill the glow reaches, of the pill's height
+	GlowTransparency = { 0.45, 0.85 }, -- at its brightest, and its faintest
+	GlowPulseSeconds = 1.2,
+	SparkleColor = { 255, 244, 190 },
+	SparkleEverySeconds = 0.28,
+	SparkleSeconds = 0.7,
+	SparklePx = { 12, 16 },
+	SparkleReachPx = { 8, 12 }, -- how far off the pill they pop
+	ShakeEverySeconds = 2,
+	ShakeFirstSeconds = 0.6, -- the first shake comes this soon after it turns ready
+	ShakeSeconds = 0.45,
+	ShakeWobbles = 3, -- side to side this many times in one shake
+	ShakeDegrees = 4,
+	ShakePx = 3,
+	-- The prompt over the ready bar: PRESS [G] TO ACTIVATE, TAP TO ACTIVATE, PRESS [X] ...
+	PromptPx = { 22, 26 },
+	PromptTextPx = { 14, 16 },
+	KeycapShare = 0.78, -- the keycap or the controller glyph, of the prompt's height
+	KeycapCornerPx = 5,
+	PromptDimTransparency = 0.4, -- greyed while a press waits for the server
+	KeyboardKey = "G", -- Enum.KeyCode names (Config is loaded by Lune: no Enum)
+	GamepadKey = "ButtonX", -- free in a match (Input binds A, B, Y, L1, L2, the sticks, D-pad)
+	PendingSeconds = 3, -- a press not answered in this long may be sent again
+	-- Your armed ult: a pill in its rarity colour, "MAGNET: NEXT SHOT"; the opponent's is smaller.
+	ArmedPx = { 26, 32 },
+	ArmedTextPx = { 14, 18 },
+	OpponentPx = { 22, 26 },
+	OpponentTextPx = { 14, 16 },
+	NoteTextPx = 14, -- "Coming soon" over a placeholder's pill
+	-- Solo: the Practice ult button in the bar's place.
+	PracticeTone = "Blue", -- a Config.UI.Kit.Buttons name
+	PracticeWidthPx = { 150, 180 },
+	PracticeHeightPx = { 36, 44 }, -- a phone's keeps a 44 px touch area (HudParts.setMinHit)
+	PracticeTextPx = { 14, 18 },
+	-- A refusal (UltNotice), for a moment over the bar.
+	NoticeTextPx = { 14, 18 },
+	NoticeSeconds = 2.2,
+	NoticeFadeSeconds = 0.4,
+	-- The top bar (MatchHUD): a small ult icon on each opponent's portrait, lit when ready.
+	OpponentIconShare = 0.6, -- of the portrait's size
+	OpponentDimTransparency = 0.55, -- not ready: faded
+	-- The NO ULTS pill: under the top bar's clock, and on the result screen under VS.
+	NoUltsTextPx = 14,
+	NoUltsPadPx = 8, -- room at each end of its words
+	NoUltsColor = { 120, 128, 144 },
+	ResultNoUltsHeightPx = 24,
+}
+
 -- The Inventory (InventoryMenu and its pages InventoryCues, InventoryCases, InventoryIndex and
 -- the cue card InventoryCard; docs/prompts/ECONOMY_UI_PROMPT.md section 11). Pixels and
 -- seconds. Pairs { a, b } run from a on a phone-sized panel to b on a full-size one, like
@@ -5825,6 +5976,173 @@ Config.UI.Inventory = {
 	TabDotTextPx = 14,
 	TabDotMax = 9, -- more than this reads "9+"
 	MarkSeenRetrySeconds = 1.5, -- a MarkSeen turned away (Busy, TooFast) is tried once more after this
+}
+
+-- The ult cutscene (src/client/UltCutscene.luau; ULTIMATES_PROMPT 7.2, reference 10): a tilted
+-- manga panel for everyone in the match, Config.Ults.CutsceneSeconds long. Shares are of the
+-- screen (or of the panel where it says so), so it fits every screen from a 750 x 361 phone to
+-- 1920 x 1080. Times are seconds from the activation (armed.at). (tune)
+Config.UI.UltCutscene = {
+	DisplayOrderAbove = 8, -- its ScreenGui sits this far over the HUD's (the menus sit at +10)
+	-- Who sees it: the table's players, and anyone standing this close to its centre (studs).
+	SpectateRadiusStuds = 40,
+	-- The arming callback still fires for a client that hears of the activation this late
+	-- after readyAt (a slow snapshot); later than that, the armed look just appears.
+	ArmGraceSeconds = 0.3,
+	-- The panel: a band HeightShare of the screen tall, WidthShare of its width plus its own
+	-- height wide (so its ends never show), tilted, centred at CenterYShare.
+	HeightShare = 0.4,
+	WidthShare = 1.35,
+	TiltDegrees = -8, -- rising to the right, like reference 10
+	CenterYShare = 0.5,
+	BorderShare = 0.05, -- the thick white border, of the panel's height...
+	BorderMinPx = 5, -- ...at least this
+	InkShare = 0.015, -- the ink outline round it, of the panel's height...
+	InkMinPx = 3, -- ...at least this
+	InnerInkShare = 0.5, -- the thinner ink line round the picture, of the outer one
+	InnerColor = { 14, 16, 26 }, -- behind the backdrop (and the whole picture while its art is "")
+	-- The backdrop (Config.UI.Kit.Art.UltBackdrop, a 1024 square white swirl on near-black),
+	-- tinted in the ult's rarity colour lightened by BackdropWhiteShare, cropped from the 3:1
+	-- strip (rows StripRows) round the calm eye (EyePx), which sits behind the avatar.
+	ArtSizePx = 1024,
+	StripRows = { 341, 683 },
+	EyePx = { 420, 512 },
+	BackdropWhiteShare = 0.2,
+	BackdropCropWidthPx = 900, -- the crop's width in art pixels (less than 1024 leaves room to drift)
+	BackdropDriftPxPerSecond = 60, -- art pixels a second, sliding right
+	BackdropZoomShare = 0.08, -- the crop closes in this much over the push-in
+	-- Speed lines behind the avatar, racing right to left.
+	SpeedLines = 7,
+	SpeedLineHeightShare = { 0.006, 0.016 }, -- thickness, of the picture's height
+	SpeedLineLengthShare = { 0.15, 0.4 }, -- length, of the screen's width
+	SpeedLineScreensPerSecond = 2.4, -- speed, in screen widths a second
+	SpeedLineStaggerSeconds = 0.9, -- they set off spread over this
+	SpeedLineTransparency = 0.35,
+	-- The avatar: a clone of the activator's character in its rest pose, upper body (waist to
+	-- the top of the head) filling FrameMargin of the picture's height, at AvatarScreenX across
+	-- the screen, turned AvatarYawDegrees toward the words. A pretend player is an ink silhouette.
+	AvatarScreenX = 0.4,
+	AvatarYawDegrees = 20,
+	FieldOfView = 30,
+	FrameMargin = 1.1,
+	FocusUpShare = 0.06, -- the camera aims this share of the upper body above its middle
+	Ambient = { 150, 150, 170 },
+	LightColor = { 255, 244, 228 },
+	LightDirection = { -0.5, -1, 0.7 }, -- from the front left, above
+	SilhouetteColor = { 27, 32, 51 }, -- the ink
+	-- The words: "ULTIMATE" over the top edge at the left, the ult's name over the bottom edge
+	-- at the right, Fredoka One, white, thick ink outlines. EdgeAnchor is how much of a word
+	-- sits outside the panel's edge.
+	TitleHeightShare = 0.2, -- of the panel's height
+	TitleWidthShare = 0.4, -- its box, of the screen's width (the words shrink to fit)
+	TitleInsetShare = 0.06, -- in from the screen's left edge
+	NameHeightShare = 0.22,
+	NameWidthShare = 0.55,
+	NameInsetShare = 0.06, -- in from the screen's right edge
+	EdgeAnchor = 0.6,
+	TextMinPx = 22,
+	OutlineShare = 0.12, -- a big word's outline, of its size (thicker than the kit's tenth)
+	OutlineMinPx = 3,
+	-- The timeline. 0 to SlamSeconds: the panel slams in from the right along its tilt, a little
+	-- large, overshooting as it lands; the words pop in after TextDelaySeconds. PushStart to
+	-- PushEnd: the camera eases in to PushInScale of its distance. From ShrinkStart: the band
+	-- squeezes to a LineHeightPx line, then the line snaps shut over SnapSeconds. The end is
+	-- never later than Config.Ults.CutsceneSeconds.
+	SlamSeconds = 0.2,
+	SlamFromScale = 1.12,
+	SlideFromShare = 0.6, -- of the screen's width
+	TextDelaySeconds = 0.06,
+	TextPopSeconds = 0.25,
+	TextFromScale = 1.6,
+	PushStartSeconds = 0.15,
+	PushEndSeconds = 1.2,
+	PushInScale = 0.8,
+	ShrinkStartSeconds = 1.2,
+	ShrinkSeconds = 0.28,
+	SnapSeconds = 0.12,
+	LineHeightPx = 4,
+}
+
+-- Magnet's look and sound (src/client/MagnetFx.luau; ULTIMATES_PROMPT 7.3). Studs unless named;
+-- the ball's radius is Config.Balls.RenderRadiusInches (about 0.19 studs). (tune)
+Config.UI.MagnetFx = {
+	NorthColor = { 255, 70, 80 }, -- the red N ring
+	SouthColor = { 70, 150, 255 }, -- the blue S ring
+	FieldColor = { 160, 210, 255 }, -- the faint arcs round the armed cue ball
+	GlowColor = { 70, 160, 255 }, -- the pull: beams, the pocket ring, the ball's glow
+	SparkColor = { 190, 230, 255 },
+	BeamSegments = 12, -- a Beam's smoothness
+	-- Armed: two rings round the cue ball, tilted RingTiltDegrees from flat and precessing
+	-- opposite ways (one turn every RingTurnSeconds), each with a bead running round it.
+	RingRadiusBalls = 1.8, -- in ball radii
+	RingWidthStuds = 0.025,
+	RingTiltDegrees = 62,
+	RingTurnSeconds = 2.6,
+	RingTransparency = 0.1,
+	BeadStuds = 0.07,
+	BeadSeconds = 0.9, -- one lap
+	-- The arming snap: the rings (and arcs) start this many times wider and snap in.
+	SnapSeconds = 0.35,
+	SnapFromScale = 2.6,
+	LookFadeSeconds = 0.25, -- the rings fade in at readyAt and out as the shot starts
+	-- The field arcs: a dipole across the ball turning once every ArcTurnSeconds, a line
+	-- leaving each pole ArcSpreadDegrees off the axis and looping ArcReachStuds out, one line
+	-- per angle round the axis (0 = flat to one side, 90 = straight over the top).
+	ArcAngles = { 25, 90, 155 },
+	ArcSpreadDegrees = 55,
+	ArcReachStuds = 0.45,
+	ArcWidthStuds = 0.03,
+	ArcTurnSeconds = 5,
+	ArcTransparency = { 0.55, 0.95 }, -- each flicker picks between these (faint)
+	ArcFlickerSeconds = 0.07,
+	ArcTextureLengthStuds = 0.35, -- Config.UI.Kit.Art.FieldLines along the arcs
+	ArcTextureSpeed = 1,
+	-- A pull: two curved beams from the ball to the pocket (a bright one and a fainter one
+	-- bowing the other way), thin at the ball and wider at the pocket.
+	BeamWidthStuds = { 0.05, 0.14 },
+	BeamTransparency = 0.1,
+	SecondBeamTransparency = 0.6,
+	BeamBowShare = 0.3, -- how far each bows, of the ball-to-pocket distance
+	SecondBeamBowScale = 0.6,
+	BeamBowSide = 0.8, -- the bow's direction: this much sideways...
+	BeamBowUp = 0.6, -- ...and this much up off the cloth
+	BeamTextureLengthStuds = 0.8,
+	-- The field lines' flow: positive runs from the ball (the beam's start) toward the pocket.
+	-- Flip the sign if Studio shows it flowing the wrong way.
+	BeamTextureSpeed = 2,
+	PullRiseSeconds = 0.08, -- a pull's effects come up this fast...
+	PullFadeSeconds = 0.2, -- ...and let go this fast
+	PitchEaseSeconds = 0.25, -- the hum's pitch rising and falling with the strongest pull
+	-- The pulled ball's glow: a PointLight and (with Config.UI.Kit.Art.SoftGlow) a soft halo.
+	GlowRangeStuds = 2.5,
+	GlowBrightness = 3,
+	GlowBallWidths = 3, -- the halo's size
+	GlowTransparency = 0.15,
+	GlowPulseShare = 0.2,
+	GlowPulseSeconds = 0.3,
+	-- The pocket's ring on the cloth (Config.UI.Kit.Art.RingGlow; a beam circle without it).
+	PocketRingScale = 1.7, -- of the pocket's opening
+	PocketPulseSeconds = 0.5,
+	PocketPulseScale = 0.15, -- it breathes this much bigger and smaller
+	PocketPulseFade = 0.35, -- and this much fainter at its biggest
+	PocketTransparency = 0.05,
+	PocketLiftInches = 0.1, -- above the cloth
+	PocketPixelsPerStud = 200,
+	PocketBrightness = 2,
+	PocketRingWidthStuds = 0.05,
+	-- The drop: the clunk-zap and a burst of sparks. Few, long-lived sparks hold up at low
+	-- graphics (STUDIO_NOTES).
+	SparkCount = 14,
+	ArmSparkCount = 8, -- at the arming snap, round the cue ball
+	SparkLifetime = { 0.45, 0.8 },
+	SparkSpeed = { 4, 9 },
+	SparkSpreadDegrees = 70,
+	SparkSizeStuds = 0.14,
+	SparkGravity = 20,
+	SparkDrag = 3,
+	DropSoundSeconds = 1.5, -- the drop's sounds are cleared after this
+	FreshSeconds = 0.3, -- a drop the replay only caught up with (a late join) gets nothing
+	EndFadeSeconds = 0.5, -- everything fades this long after the balls stop
 }
 
 Config.Debug = {

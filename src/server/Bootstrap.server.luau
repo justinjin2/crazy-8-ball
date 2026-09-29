@@ -20,6 +20,7 @@ local PlayerData = require(script.Parent:WaitForChild("PlayerData"))
 local Ranking = require(script.Parent:WaitForChild("Ranking"))
 local ShotService = require(script.Parent:WaitForChild("ShotService"))
 local TableService = require(script.Parent:WaitForChild("TableService"))
+local UltService = require(script.Parent:WaitForChild("UltService"))
 local GlobalQueue = require(script.Parent:WaitForChild("GlobalQueue"))
 local ArenaService = require(script.Parent:WaitForChild("ArenaService"))
 local Counters = require(script.Parent:WaitForChild("Counters"))
@@ -136,6 +137,7 @@ end
 -- inputs, this decides what actually happened.
 TableService.start(workspace, if isArena then "Arena" else "Hub")
 ShotService.start()
+UltService.start() -- ults in a match: activation, the bar gains, the Studio UltQA hook
 DevCommands.start() -- /day and /sunset, for the developer only
 GlobalQueue.start(not isArena) -- every server takes its turn pairing the global queue
 if isArena then

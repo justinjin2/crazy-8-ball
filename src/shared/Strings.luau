@@ -15,6 +15,7 @@ return {
 		Spin = "Spin", -- the left stick
 		Angle = "Angle", -- the right stick, up and down: the cue's angle
 		CenterSpin = "Center spin", -- Y (spelt like the spin panel's Center button)
+		Ult = "Ult", -- X (Xbox X, PlayStation Square) while your ult bar is ready
 	},
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
@@ -624,7 +625,7 @@ return {
 			PartyOnBy = "Party on! %s left, from %s", -- the time left, the buyer's username
 			PartyFull = "Full for now", -- an hour of Money Party already queued
 			FastOpen = "Fast Open",
-			FastOpenLine = "Open %d cases at once, no reel",
+			FastOpenLine = "Open %d cases at once, no reel. Skip ult spins and Auto Spin",
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
 		-- Case names come from Items.Cases; money is "$250" (Progression/Format).
@@ -651,7 +652,7 @@ return {
 			Redeem = "Redeem",
 			Redeemed = "Code redeemed: %s", -- "Code redeemed: +$500 and a Standard Case"
 			NoCode = "Type a code first.",
-			CodeNote = "Codes give free money and cases. Each code works once.",
+			CodeNote = "Codes give free money, cases and ult spins. Each code works once.",
 			-- A reward's words. A few cases: "2 Standard Cases"; one, in a sentence: "a Rare
 			-- Case" (a case missing here says CaseManyOther / its plain name).
 			CaseMany = {
@@ -670,6 +671,12 @@ return {
 				Event = "an Event Case",
 			},
 			CaseCount = "x%d", -- on a case's picture: "x2"
+			-- A reward's ult spins (a reward's `spins` and `lucky`): in a sentence or a chip.
+			SpinOne = "1 Ult Spin",
+			SpinMany = "%d Ult Spins",
+			LuckyOne = "1 Lucky Spin",
+			LuckyMany = "%d Lucky Spins",
+			SpinChip = "+%d", -- on the spin icon of a tile, NEW RANK! or a roadmap tile: "+2"
 			Plus = "%s + %s", -- two parts of one tile's reward: "Epic Case + Legendary Case"
 			And = "%s and %s", -- the last two parts of what a claim gave
 			List = "%s, %s", -- the parts before them
@@ -811,6 +818,13 @@ return {
 		-- then "$500".
 		Found = "New in your Index: %s! +%s",
 		FoundNoMoney = "New in your Index: %s!",
+		-- An ult spin landing a Legendary (this server) or a Mythic (every server): the
+		-- username, then the ult's name (in its rarity colour).
+		Ult = {
+			Legendary = "%s rolled the Legendary ult %s!",
+			Mythic = "%s rolled the Mythic ult %s!",
+			Default = "%s rolled %s!",
+		},
 	},
 	-- Ultimates (docs/prompts/ULTIMATES_PROMPT.md): the catalog's names and one-line
 	-- descriptions (placeholder text; each ult's own session rewrites its line), rarity words.
@@ -854,5 +868,74 @@ return {
 			Mythic = "Mythic",
 		},
 		ComingSoon = "Coming soon", -- a placeholder ult (no effect yet)
+		-- The activation cutscene (UltCutscene): this over the panel's top edge, the ult's name
+		-- (Names above) over its bottom edge.
+		Cutscene = {
+			Title = "ULTIMATE",
+		},
+		-- The ult bar in a match (UltHud, UltBar), and the NO ULTS pills (MatchHUD, the result
+		-- screen).
+		Hud = {
+			Title = "ULTIMATE", -- over the bar
+			Percent = "%d%%", -- in the bar: "34%"
+			Ready = "READY! %d%%", -- the full bar: "READY! 100%"
+			Gain = "+%d", -- a gain floating up from the bar: "+34"
+			-- The prompt over the ready bar. %s is where the key or the controller button's
+			-- picture goes (keep it when translating).
+			PressKey = "PRESS %s TO ACTIVATE",
+			Tap = "TAP TO ACTIVATE", -- on touch, where the whole bar is the button
+			Armed = "%s: NEXT SHOT", -- your armed ult, its name in upper case: "MAGNET: NEXT SHOT"
+			OpponentArmed = "Opponent's ult: %s", -- theirs: "Opponent's ult: MAGNET"
+			Practice = "Practice ult", -- solo's button that arms your ult for free
+			NoUlts = "NO ULTS", -- a No ults queue match, on the match bar and the result screen
+			-- Why a press did nothing (UltNotice's reason, from Ults/Match.check and UltService).
+			Refused = {
+				NotReady = "Your ult isn't full yet",
+				Break = "No ults on the break",
+				NotYourTurn = "Only on your turn, before you shoot",
+				Moving = "Wait for the balls to stop",
+				Armed = "Your ult is already armed",
+				Used = "No more ults this game",
+				Off = "Ults are off at this table",
+				TooFast = "Slow down a little!",
+				Busy = "One moment...",
+				Default = "You can't use your ult right now",
+			},
+		},
+		-- The spin service's answers (UltRequest and UltAuto; the codes are listed in Net.luau
+		-- and Ults/SpinView.Reasons). Anything unknown says Strings.Menus.Reasons.Default.
+		Spins = {
+			Reasons = {
+				BadRequest = "That didn't work. Try again.",
+				TooFast = "Slow down a little!",
+				Busy = "One moment...",
+				NotLoaded = "Your save is still loading...",
+				Teleporting = "You're on your way to a match.",
+				NotLive = "Ult spins are coming soon!",
+				NotOwned = "Buy this slot first.",
+				Locked = "Slot locked",
+				NoSpins = "No spins left.",
+				NoLucky = "No Lucky Spins left.",
+				Confirm = "Replace %s?", -- the ult's name, upper case in its rarity colour
+				AutoRunning = "Stop Auto Spin first.",
+				NoFastOpen = "Auto Spin needs Fast Open.",
+				Restricted = "Buying spins isn't available where you live. Free spins still work.",
+				NotEnoughMoney = "Not enough money.",
+				Owned = "You already own this slot.",
+				ComingSoon = "Coming soon!",
+				Error = "Something went wrong. Try again soon.",
+			},
+			-- Why Auto Spin stopped (UltAuto's reason); the others use Reasons above.
+			AutoStops = {
+				Reached = "Auto Spin: got %s!", -- the ult's name
+				Stopped = "Auto Spin stopped.",
+				Closing = "Auto Spin stopped: the server is restarting.",
+				Confirm = "Auto Spin stopped before replacing %s.", -- the ult's name
+				Locked = "Auto Spin stopped: the slot is locked.",
+				NoSpins = "Auto Spin stopped: no spins left.",
+				NoLucky = "Auto Spin stopped: no Lucky Spins left.",
+			},
+			Bought = "+%d spins!", -- money spins bought: "+5 spins!"
+		},
 	},
 }

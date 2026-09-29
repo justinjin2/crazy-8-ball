@@ -202,6 +202,24 @@ local REMOTES: { [string]: string } = {
 	--   { kind = "Reyes" | "FirstReyes", userId, name } a player reached Reyes, in every
 	--     server (MessagingService); FirstReyes: the first player ever
 	Banner = "RemoteEvent",
+	-- Ults in a match (src/server/UltService.luau, Ults/Match; the table's snapshot carries
+	-- `ults` = { on, bars = { [tostring(userId)] = { bar, used, ready } }, armed = { by, id,
+	-- stage = "Arming" | "Armed", at, readyAt, seq, practice }?, pausedUntil? }).
+	-- client -> server: activate my equipped ult now. No arguments: the server picks the ult
+	-- (the save's selected slot) and checks the turn, the phase, the bar and the rules; in solo
+	-- it arms the free Practice ult. Success shows in the next TableState (armed).
+	UltActivate = "RemoteEvent",
+	-- server -> the bar's owner only: what one shot (or a timeout) filled. { tableId, epoch,
+	-- seq (this game's gain message counter), gains = { { amount, reason = "Own" | "Nice" |
+	-- "Opponent" | "Teammate" | "Turn" | "OpponentTurn", ball?, at } }, bar, used, ready (the
+	-- bar after them) }. `at` is the server time the ball drops in the replay (a turn end's is
+	-- the time it was judged), so each gain animates on its drop. The client only animates.
+	UltGain = "RemoteEvent",
+	-- server -> one player: { kind = "Refused", reason } for an UltActivate turned down.
+	-- Reasons: "Off" (ults are off at this table), "NotYourTurn", "Moving" (the balls are
+	-- rolling), "Break", "NotReady" (the bar is not full), "Used" (both ults of the match used),
+	-- "Armed" (one is armed already), "NoTable" (not seated at a table).
+	UltNotice = "RemoteEvent",
 	-- The aim stream, and the only unreliable pair here: a few low-value updates a second,
 	-- and losing one just means a remote cue turns a frame later. Never worth a retransmit,
 	-- and never worth blocking the reliable queue behind.
@@ -217,6 +235,24 @@ local REMOTES: { [string]: string } = {
 	-- and .read);
 	-- the cue spot is the server's own and the pull is snapped again on the way through.
 	AimBroadcast = "UnreliableRemoteEvent",
+	-- The ult spin screen (src/server/UltSpins.luau; Ults/SpinView). client -> server,
+	-- answered: (kind, args) -> { ok, reason?, ... }. A remote never carries an amount, price,
+	-- rarity, ult id to grant or a result. Kinds: "Spin" { lucky, confirm? } -> { ok, id,
+	-- rarity, replaced, wasPity, used = "Free" | "Spin" | "Lucky", slot, pity, state } (the
+	-- server rolled and saved before this answer; refused "Confirm" adds current, rarity);
+	-- "Select" { slot }, "Lock" { slot, locked } -> { ok, state }; "BuySpins" { pack (1, 5, 10,
+	-- 50), currency = "Money" } -> { ok, pack, price, state } (NotEnoughMoney adds need,
+	-- price); "BuyProduct" { product } -> { ok } once the Robux prompt is up; "AutoStart" {
+	-- stopAt ("Rare" | "Epic" | "Legendary"), lucky } -> { ok, state }; "AutoStop" -> { ok }.
+	-- Reasons: SpinView.Reasons (worded in Strings.Ults.Spins.Reasons).
+	UltRequest = "RemoteFunction",
+	-- server -> one player: the spin screen's snapshot (SpinView.state; its fields are written
+	-- in SpinView.Payload), on load and after every change it shows.
+	UltState = "RemoteEvent",
+	-- server -> one player: Auto Spin (Fast Open). Each spin: { kind = "Spin", n, id, rarity,
+	-- replaced, wasPity, used, slot, pity, state }; the end: { kind = "Stop", reason, n, id? }
+	-- (reason: SpinView.AutoStops or a SpinView reason; id: the ult it stopped on or before).
+	UltAuto = "RemoteEvent",
 }
 
 -- Values per table in an AimBroadcast batch.

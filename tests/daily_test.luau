@@ -375,7 +375,7 @@ return {
 		H.expect(not late and why == "Expired", "expired at 00:00 on Jan 1")
 	end,
 
-	["every Config code gives only money and cases"] = function()
+	["every Config code gives only money, cases and ult spins"] = function()
 		local known = {}
 		for _, caseId in Config.Cases.Order do
 			known[caseId] = true
@@ -394,11 +394,18 @@ return {
 			)
 			for field, value in row do
 				H.expect(
-					field == "Money" or field == "Cases" or field == "Expires",
-					("%s has %s: codes give only money and cases"):format(code, field)
+					field == "Money"
+						or field == "Cases"
+						or field == "Spins"
+						or field == "LuckySpins"
+						or field == "Expires",
+					("%s has %s: codes give only money, cases and ult spins"):format(code, field)
 				)
-				if field == "Money" then
-					H.expect(value > 0 and value == math.floor(value), code .. " money is whole")
+				if field == "Money" or field == "Spins" or field == "LuckySpins" then
+					H.expect(
+						value > 0 and value == math.floor(value),
+						("%s %s is whole"):format(code, field)
+					)
 				elseif field == "Cases" then
 					for caseId, count in value do
 						H.expect(
@@ -416,11 +423,14 @@ return {
 			H.expect(ok, code .. " redeems before it expires")
 			for field in reward :: any do
 				H.expect(
-					field == "money" or field == "cases",
-					code .. " reward has only money and cases"
+					field == "money" or field == "cases" or field == "spins" or field == "lucky",
+					code .. " reward has only money, cases and spins"
 				)
 			end
-			H.expect(describe(reward) ~= "nothing", code .. " gives something")
+			local gives = describe(reward) ~= "nothing"
+				or (reward :: any).spins > 0
+				or (reward :: any).lucky > 0
+			H.expect(gives, code .. " gives something")
 		end
 	end,
 

@@ -13,6 +13,10 @@
 --   (PlayerData.addPlaySeconds), and the rest when they leave.
 -- - RewardState goes to each player on load, after every change it shows, when a playtime
 --   gift becomes ready, and to everyone when the UTC day rolls over.
+-- - Rewards carry ult spins too (docs/prompts/ULTIMATES_PROMPT.md section 10): day 7 of every
+--   streak week, the day's last playtime gift and codes (Daily's rewards: `spins`, `lucky`).
+--   A new UTC day also re-shows every save (PlayerData.refreshAll: the UltFreeSpin attribute)
+--   and tells UltSpins (the spin screen's FREE SPIN). Rewards.start starts UltSpins.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -49,6 +53,8 @@ local dirty: { [Player]: boolean } = {}
 local flushQueued = false
 -- The UTC day the last states were built on.
 local currentDay = Daily.dayOf(os.time())
+-- The ult spin service, once started (required in Rewards.start: it requires Store and Items).
+local UltSpinsModule: any = nil
 
 local function log(message: string)
 	warn("[8ball] Rewards: " .. message)
@@ -195,6 +201,11 @@ local function dayLoop()
 			for _, player in Players:GetPlayers() do
 				mark(player)
 			end
+			safely("re-showing the saves", PlayerData.refreshAll)
+			local ultSpins = UltSpinsModule
+			if ultSpins ~= nil then
+				safely("the ult spins' new day", ultSpins.dayChanged)
+			end
 		end
 	end
 end
@@ -209,7 +220,7 @@ end
 
 local function claimed(reward: Daily.Reward): Reply
 	local out = RewardView.reward(reward)
-	return { ok = true, money = out.money, cases = out.cases }
+	return { ok = true, money = out.money, cases = out.cases, spins = out.spins, lucky = out.lucky }
 end
 
 -- PlayerData's answers as the remote's reason codes.
@@ -362,6 +373,10 @@ function Rewards.start()
 	task.spawn(playtimeLoop)
 	task.spawn(dayLoop)
 	startQA()
+	-- The ult spin service rides on this start (Bootstrap starts Items and Store before it).
+	local ultSpins = require(script.Parent.UltSpins) :: any
+	UltSpinsModule = ultSpins
+	ultSpins.start()
 end
 
 return Rewards

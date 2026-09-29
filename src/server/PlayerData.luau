@@ -43,6 +43,9 @@ local Inventory = require(Shared.Progression.Inventory)
 local Daily = require(Shared.Progression.Daily)
 local Settle = require(Shared.Progression.Settle)
 local Shop = require(Shared.Progression.Shop)
+local UltCatalog = require(Shared.Ults.Catalog)
+local UltSlots = require(Shared.Ults.Slots)
+local SpinView = require(Shared.Ults.SpinView)
 local ProfileStore = require(script.Parent.Vendor.ProfileStore)
 
 type Profile = ProfileStore.Profile<any>
@@ -52,12 +55,15 @@ type Profile = ProfileStore.Profile<any>
 --- Stats.MoneyEarned). `cases` is { [caseId] = count }. `cues` are catalog ids given one copy
 --- each (never Classic or a Unique cue; an Exclusive cue already owned is skipped: one per
 --- player). `firstWinCase` marks the first win's Rare Case as given, in the same change
---- (refused when it was given before; see PlayerData.progress).
+--- (refused when it was given before; see PlayerData.progress). `spins` and `lucky` add ult
+--- spins and Lucky Spins (Ults.Spins, Ults.LuckySpins; capped at Config.Ults.Earn.MaxSpins).
 export type Reward = {
 	money: number?,
 	cases: { [string]: number }?,
 	cues: { string }?,
 	firstWinCase: boolean?,
+	spins: number?,
+	lucky: number?,
 }
 
 --- One cue out of openCases, in the order given.
@@ -110,6 +116,15 @@ local ATTR = {
 	-- row's reward (a red dot). Also refreshed on a timer: a new UTC day changes it.
 	RewardReady = "RewardReady",
 	VipOffer = "VipOffer", -- bought VIP through the welcome offer (Store adds the pass: Vip)
+	-- The ults (docs/prompts/ULTIMATES_PROMPT.md sections 8-10).
+	UltSpins = "UltSpins", -- normal ult spins held
+	UltLucky = "UltLucky", -- Lucky Spins held
+	-- True while today's (UTC) free spin is unused: the Ults button's red dot and the leave
+	-- reminder. A new UTC day turns it on (PlayerData.refreshAll on the Rewards day tick).
+	UltFreeSpin = "UltFreeSpin",
+	-- The ult played in matches (the selected slot's when owned and usable, else Magnet), with
+	-- the slot passes and developer flag UltSpins last handed in (PlayerData.setUltAccess).
+	UltEquipped = "UltEquipped",
 }
 
 -- The day's money totals Daily keeps, by the word callers use (Config.Economy's daily caps).
@@ -158,6 +173,10 @@ local loading: { [Player]: boolean } = {} -- joins whose session is being opened
 local quiet: { [Profile]: boolean } = {}
 -- Players whose PlayerRemoving has fired (weak, so a gone Player can be collected).
 local gone: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+-- What UltSpins last said each player may play with: the ult slot passes owned and the
+-- developer flag (weak keys). Read by the UltEquipped attribute and equippedUlt.
+type UltAccess = { passes: { [string]: boolean }, devAll: boolean }
+local ultAccess: { [Player]: UltAccess } = setmetatable({}, { __mode = "k" }) :: any
 
 ---------------------------------------------------------------------------------------------
 -- Helpers
@@ -412,8 +431,40 @@ local function badGiftCues(cues: any): string?
 	return nil
 end
 
-local REWARD_FIELDS: { [any]: boolean } =
-	{ money = true, cases = true, cues = true, firstWinCase = true }
+local REWARD_FIELDS: { [any]: boolean } = {
+	money = true,
+	cases = true,
+	cues = true,
+	firstWinCase = true,
+	spins = true,
+	lucky = true,
+}
+
+-- Why `n` cannot be a count of spins given (a whole number in 0..Config.Ults.Earn.MaxSpins),
+-- or nil. `name` names it in the reason.
+local function badSpinCount(n: any, name: string): string?
+	if n ~= nil and not intIn(n, 0, Config.Ults.Earn.MaxSpins) then
+		return ("%s %s is not a whole number in 0..%d"):format(
+			name,
+			tostring(n),
+			Config.Ults.Earn.MaxSpins
+		)
+	end
+	return nil
+end
+
+-- Adds ult spins and Lucky Spins to a save (capped at Earn.MaxSpins; 0 or nil adds nothing).
+local function addSpinsTo(data: any, spins: number?, lucky: number?)
+	if type(data.Ults) ~= "table" then
+		return
+	end
+	if spins ~= nil and spins > 0 then
+		UltSlots.addSpins(data.Ults, spins)
+	end
+	if lucky ~= nil and lucky > 0 then
+		UltSlots.addLucky(data.Ults, lucky)
+	end
+end
 
 -- Why a Reward cannot be given, or nil when it can. An unknown field is refused, so a caller
 -- passing another shape (say Ranks.rewardFor's single `cue`) never loses part of it quietly.
@@ -434,7 +485,10 @@ local function badReward(reward: any): string?
 	elseif reward.firstWinCase ~= nil and type(reward.firstWinCase) ~= "boolean" then
 		return "firstWinCase is not true or false"
 	end
-	return badCases(reward.cases) or badGiftCues(reward.cues)
+	return badSpinCount(reward.spins, "spins")
+		or badSpinCount(reward.lucky, "lucky")
+		or badCases(reward.cases)
+		or badGiftCues(reward.cues)
 end
 
 -- Why a checked reward cannot go to this save, or nil: the first win's case is given once.
@@ -445,8 +499,8 @@ local function blockedReward(data: any, reward: any): string?
 	return nil
 end
 
--- Applies a checked, unblocked reward (also a Daily.Reward: { money, cases }): the first-win
--- flag, money (earned), cases in shop order, cues in the order given.
+-- Applies a checked, unblocked reward (also a Daily.Reward: { money, cases, spins, lucky }):
+-- the first-win flag, money (earned), cases in shop order, cues in the order given, ult spins.
 local function giveReward(data: any, reward: any)
 	if reward.firstWinCase == true then
 		data.Flags[FIRST_WIN_FLAG] = true
@@ -470,6 +524,7 @@ local function giveReward(data: any, reward: any)
 			giveCue(data, id)
 		end
 	end
+	addSpinsTo(data, reward.spins, reward.lucky)
 end
 
 -- How many accounts a Daily.Opponents table tracks (a count: the order does not matter).
@@ -582,6 +637,22 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.CasesUnopened, casesUnopened(data))
 	setAttribute(player, ATTR.RewardReady, rewardReady(data, today()))
 	setAttribute(player, ATTR.VipOffer, data.Shop.VipOffer == true)
+	local ults = data.Ults
+	if type(ults) == "table" then
+		local access = ultAccess[player]
+		setAttribute(player, ATTR.UltSpins, ults.Spins)
+		setAttribute(player, ATTR.UltLucky, ults.LuckySpins)
+		setAttribute(player, ATTR.UltFreeSpin, UltSlots.freeSpinReady(ults, today()))
+		setAttribute(
+			player,
+			ATTR.UltEquipped,
+			UltSlots.equipped(
+				ults,
+				if access then access.passes else nil,
+				(access ~= nil and access.devAll) or Config.Ults.DevAllUlts
+			)
+		)
+	end
 	local rankValue, moneyValue = leaderstats(player)
 	local name = Ranks.name(rank)
 	if rankValue.Value ~= name then
@@ -1705,6 +1776,360 @@ function PlayerData.setQueueUlts(player: Player, on: boolean): boolean
 	return true
 end
 
+---------------------------------------------------------------------------------------------
+-- The ults: slots, spins, the daily free spin (the UltSpins service; docs/prompts/
+-- ULTIMATES_PROMPT.md sections 8-10). The rules are Ults/Slots and Ults/SpinView.
+---------------------------------------------------------------------------------------------
+
+-- Why `passes` is not a table of slot pass ownership ({ [passKey] = boolean }), or nil.
+local function badPasses(passes: any): string?
+	if passes == nil then
+		return nil
+	elseif type(passes) ~= "table" then
+		return "passes is not a table"
+	end
+	for key, value in passes do
+		if type(key) ~= "string" or type(value) ~= "boolean" then
+			return "passes is not { [passKey] = boolean }"
+		end
+	end
+	return nil
+end
+
+-- A plain copy of { [passKey] = boolean } (the caller checked it).
+local function passesCopy(passes: any): { [string]: boolean }
+	local out: { [string]: boolean } = {}
+	if type(passes) == "table" then
+		for key, value in passes do
+			out[key] = value == true
+		end
+	end
+	return out
+end
+
+-- The live save's Ults for a mutation, or nil (logged: a save always has them from v3).
+local function liveUlts(op: string, player: Player): (any?, any?)
+	local data = liveData(op, player)
+	if data == nil then
+		return nil, nil
+	end
+	if type(data.Ults) ~= "table" then
+		refuse(op, player, "the save has no Ults")
+		return nil, nil
+	end
+	return data, data.Ults
+end
+
+--- A plain (unfrozen) copy of the save's Ults (Slots, Selected, Locked, Spins, LuckySpins,
+--- Pity, FreeSpinDay, SpinsDone, QueueUlts), or nil when not loaded.
+function PlayerData.ults(player: Player): any?
+	local data = if isPlayer(player) then peek(player) else nil
+	if data == nil or type(data.Ults) ~= "table" then
+		return nil
+	end
+	return copyOf(data.Ults, false)
+end
+
+--- The ult this player plays in matches: the selected slot's when that slot is owned and the
+--- ult usable, else Config.Ults.Default (Magnet; also when not loaded). `passes` ({ UltSlot2 =
+--- true, ... }) and `devAll` default to what UltSpins last handed in (setUltAccess); devAll is
+--- also on while Config.Ults.DevAllUlts is.
+function PlayerData.equippedUlt(
+	player: Player,
+	passes: { [string]: boolean }?,
+	devAll: boolean?
+): string
+	local data = if isPlayer(player) then peek(player) else nil
+	if data == nil or type(data.Ults) ~= "table" then
+		return Config.Ults.Default
+	end
+	local access = ultAccess[player]
+	local owned = if passes ~= nil then passes elseif access then access.passes else nil
+	local dev = if devAll ~= nil then devAll else (access ~= nil and access.devAll)
+	return UltSlots.equipped(data.Ults, owned, dev == true or Config.Ults.DevAllUlts)
+end
+
+--- UltSpins hands in what the player may play with: the slot passes owned ({ UltSlot2 = true,
+--- ... }) and the developer flag. Kept for the session (UltEquipped and equippedUlt read it);
+--- changes no save. False on bad arguments.
+function PlayerData.setUltAccess(
+	player: Player,
+	passes: { [string]: boolean },
+	devAll: boolean
+): boolean
+	local op = "setUltAccess"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(passes) ~= "table" then
+		return refuse(op, player, "passes is not a table")
+	elseif type(devAll) ~= "boolean" then
+		return refuse(op, player, "devAll is not a boolean")
+	end
+	local why = badPasses(passes)
+	if why ~= nil then
+		return refuse(op, player, why)
+	end
+	ultAccess[player] = { passes = passesCopy(passes), devAll = devAll }
+	local data = peek(player)
+	if data ~= nil and present(player) then
+		show(player, data)
+	end
+	return true
+end
+
+--- One ult spin, all in ONE change (SpinView.spin on the live save): checks the selected slot
+--- may be spun (owned, not locked) and a spin is held (`lucky`: a Lucky Spin; else the daily
+--- free spin first, then a spin), asks first when it would replace an Epic or better unless
+--- `confirm`, rolls with `rng` ([0, 1), the server's Random) and pity, uses the spin, puts the
+--- result in the selected slot and sets pity and SpinsDone. `passes` are the slot passes owned,
+--- `devAll` the developer flag. Answers (true, SpinView.SpinResult) or (false, reason,
+--- current?): Slots.canSpin's "NotOwned", "Locked", "NoSpins", "NoLucky"; "Confirm" with the
+--- ult it would replace; "NotLoaded"; "Invalid" (bad arguments, logged); "Error" (the roll
+--- failed: nothing changed).
+function PlayerData.ultSpin(
+	player: Player,
+	lucky: boolean,
+	confirm: boolean?,
+	passes: { [string]: boolean }?,
+	devAll: boolean?,
+	rng: () -> number
+): (boolean, any, string?)
+	local op = "ultSpin"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	elseif type(lucky) ~= "boolean" then
+		return refuseInvalid(op, player, "lucky is not a boolean")
+	elseif confirm ~= nil and type(confirm) ~= "boolean" then
+		return refuseInvalid(op, player, "confirm is not a boolean")
+	elseif devAll ~= nil and type(devAll) ~= "boolean" then
+		return refuseInvalid(op, player, "devAll is not a boolean")
+	elseif type(rng) ~= "function" then
+		return refuseInvalid(op, player, "rng is not a function")
+	end
+	local why = badPasses(passes)
+	if why ~= nil then
+		return refuseInvalid(op, player, why)
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false, "NotLoaded"
+	end
+	-- SpinView.spin rolls before it changes anything, so an error leaves the save as it was.
+	local ok, result, reason, current = pcall(SpinView.spin, ults, {
+		lucky = lucky,
+		confirm = confirm,
+		day = today(),
+		passes = passes,
+		devAll = devAll == true or Config.Ults.DevAllUlts,
+		rng = rng,
+	})
+	if not ok then
+		warn(("[8ball] PlayerData: %s failed for %s: %s"):format(op, who(player), tostring(result)))
+		return false, "Error"
+	end
+	if result == nil then
+		return false, reason or "Error", current
+	end
+	commit(player, data, op)
+	return true, result
+end
+
+--- Selects ult slot `slot` (the one spun into and played with; Slots.select). `passes` are the
+--- slot passes owned. Answers (true) or (false, "BadSlot" | "NotOwned" | "NotLoaded").
+function PlayerData.ultSelect(
+	player: Player,
+	slot: number,
+	passes: { [string]: boolean }?
+): (boolean, string?)
+	local op = "ultSelect"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	end
+	local why = badPasses(passes)
+	if why ~= nil then
+		return refuseInvalid(op, player, why)
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false, "NotLoaded"
+	end
+	if ults.Selected == slot and UltSlots.owns(slot, passes) then
+		return true, nil
+	end
+	local ok, reason = UltSlots.select(ults, slot, passes)
+	if not ok then
+		return false, reason
+	end
+	commit(player, data, op)
+	return true, nil
+end
+
+--- Locks or unlocks ult slot `slot` (a locked slot is never spun; Slots.setLock). Answers
+--- (true) or (false, "BadSlot" | "BadValue" | "NotOwned" | "NotLoaded").
+function PlayerData.ultLock(
+	player: Player,
+	slot: number,
+	locked: boolean,
+	passes: { [string]: boolean }?
+): (boolean, string?)
+	local op = "ultLock"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	end
+	local why = badPasses(passes)
+	if why ~= nil then
+		return refuseInvalid(op, player, why)
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false, "NotLoaded"
+	end
+	local ok, reason = UltSlots.setLock(ults, slot, locked, passes)
+	if not ok then
+		return false, reason
+	end
+	commit(player, data, op)
+	return true, nil
+end
+
+--- Buys `count` ult spins (a whole number, 1..Config.Ults.Earn.MaxSpins) for `price` money
+--- (0..MoneyCap; the caller prices it, SpinView.moneyPrice) in ONE change: takes the money and
+--- adds the spins (capped at MaxSpins). Answers (true) or (false, "NotEnoughMoney" |
+--- "NotLoaded" | "Invalid").
+function PlayerData.buyUltSpins(player: Player, count: number, price: number): (boolean, string?)
+	local op = "buyUltSpins"
+	if not isPlayer(player) then
+		return refuseInvalid(op, player, "not a player")
+	elseif not intIn(count, 1, Config.Ults.Earn.MaxSpins) then
+		return refuseInvalid(
+			op,
+			player,
+			("count %s is not a whole number in 1..%d"):format(
+				tostring(count),
+				Config.Ults.Earn.MaxSpins
+			)
+		)
+	elseif not intIn(price, 0, S.MoneyCap) then
+		return refuseInvalid(
+			op,
+			player,
+			("price %s is not a whole number in 0..%d"):format(tostring(price), S.MoneyCap)
+		)
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false, "NotLoaded"
+	end
+	if data.Money < price then
+		return false, "NotEnoughMoney"
+	end
+	data.Money = plain(data.Money - price)
+	UltSlots.addSpins(ults, count)
+	commit(player, data, op)
+	return true, nil
+end
+
+-- A grant or dev mutation that sets or adds one ult count through a Slots function.
+local function ultCount(
+	op: string,
+	player: Player,
+	n: any,
+	fn: (any, any) -> (boolean, string?)
+): boolean
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false
+	end
+	local ok, reason = fn(ults, n)
+	if not ok then
+		return refuse(op, player, ("%s (n = %s)"):format(tostring(reason), tostring(n)))
+	end
+	commit(player, data, op)
+	return true
+end
+
+--- Adds `n` ult spins (a whole number >= 1; capped at Config.Ults.Earn.MaxSpins). `reason`
+--- says why, for the logs (not saved). Rewards, rank-ups and receipts give spins inside their
+--- own mutation (grantReward, applyRank, applyPurchase); this is for everything else.
+function PlayerData.addUltSpins(player: Player, n: number, reason: string): boolean
+	if not isReason(reason) then
+		return refuse("addUltSpins", player, "no reason given")
+	end
+	return ultCount("addUltSpins", player, n, UltSlots.addSpins)
+end
+
+--- Adds `n` Lucky Spins (a whole number >= 1; capped). `reason` as addUltSpins.
+function PlayerData.addUltLucky(player: Player, n: number, reason: string): boolean
+	if not isReason(reason) then
+		return refuse("addUltLucky", player, "no reason given")
+	end
+	return ultCount("addUltLucky", player, n, UltSlots.addLucky)
+end
+
+--- Dev (/spins N): sets the spins held to `n` (0..MaxSpins).
+function PlayerData.setUltSpins(player: Player, n: number): boolean
+	return ultCount("setUltSpins", player, n, UltSlots.setSpins)
+end
+
+--- Dev (/lucky N): sets the Lucky Spins held to `n` (0..MaxSpins).
+function PlayerData.setUltLucky(player: Player, n: number): boolean
+	return ultCount("setUltLucky", player, n, UltSlots.setLucky)
+end
+
+--- Dev (/pity N): sets pity to `n` (0..Config.Ults.Roll.PityAt - 1; 99 makes the next spin
+--- the pity spin).
+function PlayerData.setUltPity(player: Player, n: number): boolean
+	return ultCount("setUltPity", player, n, UltSlots.setPity)
+end
+
+--- Today's daily free spin: `ready` true makes it unused again (dev /freespin), false marks it
+--- used (FreeSpinDay = today). A spin uses it by itself (ultSpin); this is for tests and dev.
+function PlayerData.setFreeSpin(player: Player, ready: boolean): boolean
+	local op = "setFreeSpin"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(ready) ~= "boolean" then
+		return refuse(op, player, "ready is not a boolean")
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false
+	end
+	ults.FreeSpinDay = if ready then 0 else today()
+	commit(player, data, op)
+	return true
+end
+
+--- Dev (/ult <id>): puts catalog ult `id` in the selected slot (no spin used or counted).
+function PlayerData.setUlt(player: Player, id: string): boolean
+	local op = "setUlt"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif not UltCatalog.exists(id) then
+		return refuse(op, player, ("%s is not an ult"):format(tostring(id)))
+	end
+	local data, ults = liveUlts(op, player)
+	if data == nil or ults == nil then
+		return false
+	end
+	ults.Slots[ults.Selected] = id
+	commit(player, data, op)
+	return true
+end
+
+--- Shows every loaded save again with no change (a new UTC day turns UltFreeSpin and
+--- RewardReady on). The Rewards service calls it when the day rolls over.
+function PlayerData.refreshAll()
+	for player, profile in profiles do
+		if profile:IsActive() and present(player) then
+			show(player, profile.Data)
+		end
+	end
+end
+
 --- Clears the NEW tag of each cue id in `ids` (an array of at most Config.Items.MarkSeenMax).
 --- Returns how many were cleared (0 changes nothing and fires nothing).
 function PlayerData.markSeen(player: Player, ids: { string }): number
@@ -1963,6 +2388,8 @@ local GRANT_FIELDS: { [any]: boolean } = {
 	limited = true,
 	firstPack = true,
 	starterBought = true,
+	spins = true,
+	lucky = true,
 }
 local GRANT_FLAGS = { "vip", "vipCue", "party", "firstPack", "starterBought" }
 
@@ -1990,6 +2417,11 @@ local function badGrant(grant: any, copy: any): string?
 			return ("grant.%s is not true or false"):format(flag)
 		end
 	end
+	local spinsWhy = badSpinCount(grant.spins, "grant.spins")
+		or badSpinCount(grant.lucky, "grant.lucky")
+	if spinsWhy ~= nil then
+		return spinsWhy
+	end
 	if grant.cue ~= nil then
 		local cue = Catalog.get(grant.cue)
 		if cue == nil or cue.Group == "Default" or cue.Group == "Unique" then
@@ -2014,7 +2446,8 @@ end
 
 --- Records a developer product purchase and applies its grant (Shop.grantFor) in ONE change,
 --- so a receipt is never granted without its id recorded, nor recorded without its grant:
---- Shop.recordPurchase, the grant's money (bought: not MoneyEarned), its cue (the VIP Cue only
+--- Shop.recordPurchase, the grant's money (bought: not MoneyEarned), its ult spins and Lucky
+--- Spins (grant.spins, grant.lucky), its cue (the VIP Cue only
 --- while Shop.VipCueGiven is false; an Exclusive cue already owned is not given twice), its
 --- Limited cue with copy number `copy` (required with grant.limited: the caller's Limited
 --- counter handed it out; refused, logged, when the player already owns that cue, so the
@@ -2060,6 +2493,7 @@ function PlayerData.applyPurchase(
 		giveUnique(data, limited, copy)
 		shop.Limited[limited] = copy
 	end
+	addSpinsTo(data, grant.spins, grant.lucky)
 	Shop.markGrant(shop, grant)
 	commit(player, data, op)
 	return true
@@ -2392,6 +2826,50 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	end,
 	reset = function(p)
 		return PlayerData.reset(p)
+	end,
+	ults = function(p)
+		return PlayerData.ults(p)
+	end,
+	equippedUlt = function(p, a, b)
+		return PlayerData.equippedUlt(p, a, b)
+	end,
+	-- QA only: one spin with a fresh Random (as UltSpins rolls): ("ultSpin", id, lucky,
+	-- confirm?, passes?, devAll?).
+	ultSpin = function(p, a, b, c, d)
+		local rng = Random.new()
+		return PlayerData.ultSpin(p, a, b, c, d, function(): number
+			return rng:NextNumber()
+		end)
+	end,
+	ultSelect = function(p, a, b)
+		return PlayerData.ultSelect(p, a, b)
+	end,
+	ultLock = function(p, a, b, c)
+		return PlayerData.ultLock(p, a, b, c)
+	end,
+	buyUltSpins = function(p, a, b)
+		return PlayerData.buyUltSpins(p, a, b)
+	end,
+	addUltSpins = function(p, a, b)
+		return PlayerData.addUltSpins(p, a, b or "QA")
+	end,
+	addUltLucky = function(p, a, b)
+		return PlayerData.addUltLucky(p, a, b or "QA")
+	end,
+	setUltSpins = function(p, a)
+		return PlayerData.setUltSpins(p, a)
+	end,
+	setUltLucky = function(p, a)
+		return PlayerData.setUltLucky(p, a)
+	end,
+	setUltPity = function(p, a)
+		return PlayerData.setUltPity(p, a)
+	end,
+	setFreeSpin = function(p, a)
+		return PlayerData.setFreeSpin(p, a)
+	end,
+	setUlt = function(p, a)
+		return PlayerData.setUlt(p, a)
 	end,
 }
 

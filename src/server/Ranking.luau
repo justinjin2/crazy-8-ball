@@ -94,15 +94,20 @@ local function factsOf(player: Player): Facts
 	}
 end
 
--- The rank-up rewards of a result in PlayerData's Reward shape (money, cases and the tier
--- cues added up), or nil when it passed nothing that pays.
+-- The rank-up rewards of a result in PlayerData's Reward shape (money, cases, the tier cues
+-- and the new tiers' ult spins added up), or nil when it passed nothing that pays.
 local function rewardOf(result: Ranks.MatchResult): PlayerData.Reward?
 	local cues = table.clone(result.rewardCues)
 	local cases = table.clone(result.rewardCases)
-	if result.rewardTotal <= 0 and #cues == 0 and next(cases) == nil then
+	local spins = result.rewardSpins
+	if result.rewardTotal <= 0 and #cues == 0 and next(cases) == nil and spins <= 0 then
 		return nil
 	end
-	return { money = result.rewardTotal, cases = cases, cues = cues }
+	local reward: PlayerData.Reward = { money = result.rewardTotal, cases = cases, cues = cues }
+	if spins > 0 then
+		reward.spins = spins
+	end
+	return reward
 end
 
 -- Saves a result's rank and pays its rank-up rewards in the same change (PlayerData.applyRank:
@@ -151,7 +156,8 @@ local function applyMatch(player: Player, data: any, ctx: Ranks.MatchContext): R
 	return result
 end
 
--- The rank-up rows for a remote: { index, money, cases = { [caseId] = count }, cue? }.
+-- The rank-up rows for a remote: { index, money, cases = { [caseId] = count }, cue?, spins }
+-- (spins: the ult spins a new tier adds, 0 for none).
 local function rewardRows(rewards: { Ranks.Reward }): { any }
 	local rows = {}
 	for _, reward in rewards do
@@ -160,6 +166,7 @@ local function rewardRows(rewards: { Ranks.Reward }): { any }
 			money = reward.money,
 			cases = table.clone(reward.cases),
 			cue = reward.cue,
+			spins = reward.spins,
 		})
 	end
 	return rows
@@ -180,6 +187,7 @@ function Ranking.xpPart(result: any): any
 		rewardTotal = result.rewardTotal,
 		rewardCases = table.clone(result.rewardCases),
 		rewardCues = table.clone(result.rewardCues),
+		rewardSpins = result.rewardSpins,
 		breakdown = result.breakdown,
 	}
 end
@@ -622,6 +630,7 @@ local function rankEvent(result: Ranks.MatchResult): any
 		rewards = rewardRows(result.rewards),
 		rewardCases = table.clone(result.rewardCases),
 		rewardCues = table.clone(result.rewardCues),
+		rewardSpins = result.rewardSpins,
 	}
 end
 

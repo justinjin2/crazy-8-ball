@@ -10,6 +10,7 @@ local Simulation = require(script.Parent.Parent.Physics.Simulation)
 local ShotInput = require(script.Parent.Parent.ShotInput)
 local Judge = require(script.Parent.ShotJudge)
 local Placement = require(script.Parent.CuePlacement)
+local Ults = require(script.Parent.Parent.Ults.Match)
 local M = Config.Multiplayer
 local Engine = {}
 
@@ -58,6 +59,10 @@ function Engine.new(id: number, teamSize: number, seed: number?): any
 		feedback = {},
 		voteNextAt = { 0, 0 },
 		state = Simulation.newState(geometry, Rack.newGame(geometry, seed)),
+		-- The ult bars and the armed ult (Ults/Match), fresh every game, and the gains waiting
+		-- to go to each bar's owner (UltService), like feedback.
+		ults = Ults.new(),
+		ultFeed = {},
 	}
 	return t
 end
@@ -213,6 +218,7 @@ local function finish(t: any, winner: number?, reason: string, now: number, forf
 	t.vote = nil
 	t.shot = nil
 	t.pending = nil
+	Ults.clearArmed(t) -- an ult armed when the game ended is spent
 	-- A two-sided game counts in the series and offers a rematch while both sides are still
 	-- here (designer, 2026-09-28); solo keeps its short hold.
 	local rematch = false
@@ -300,6 +306,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.ballInHand = hand
 	t.placeSeq = 0 -- the shooter's placement counter; never part of the snapshot
 	t.foul = nil
+	Ults.clearArmed(t) -- an armed ult never outlives its shooter's turn
 	if hand then
 		local x, y = Placement.fallback(t.state, 0, t.breakShot)
 		Placement.set(t.state, 0, x, y)
@@ -312,6 +319,9 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 end
 
 local function foul(t: any, reason: string, now: number)
+	-- Any foul ends the turn: its run, and an armed ult is spent (a timeout, a death, a
+	-- departure; a judged foul's shot already spent it).
+	Ults.onTurnLost(t)
 	t.foul = { by = t.shooter, team = t.activeTeam, reason = reason }
 	-- Solo has nobody to hand the table to: the fouler takes ball in hand themselves.
 	t.nextTeam = if t.solo then t.activeTeam else 3 - t.activeTeam
@@ -493,6 +503,8 @@ end
 --- `nextSeed` is the server's randomness (the next game's rack), passed in so this stays
 --- deterministic; tests may omit it.
 function Engine.advance(t: any, now: number, nextSeed: number?)
+	-- An arming ult becomes armed (the shot clock's pause ends).
+	Ults.tick(t, now)
 	if t.vote then
 		local unanimous = true
 		for _, s in t.seats do
@@ -544,6 +556,8 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		t.calledPocket = best
 		setup(t, now)
 	elseif Engine.isShotClock(t.phase, t.breakShot) then
+		-- The other side's turn-end fill; an armed ult is spent (it was pressed).
+		Ults.onTimeout(t, now)
 		t.timeouts[t.activeTeam] += 1
 		if t.timeouts[t.activeTeam] >= M.TimeoutLimit then
 			finish(t, 3 - t.activeTeam, "Timeouts", now, t.activeTeam)
@@ -582,6 +596,8 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 				"voteNextAt",
 				"state",
 				"fixed",
+				"ults",
+				"ultFeed",
 			}
 		do
 			t[key] = fresh[key]
@@ -647,6 +663,8 @@ function start(t: any, host: any, now: number, coinWinner: number?)
 		s.team, s.slot = team, slots[team]
 	end
 	local winner = if coinWinner == 2 then 2 else 1
+	-- Every game's bars start at 0.
+	t.ults, t.ultFeed = Ults.new(), {}
 	t.search = nil
 	t.requestedAt = nil
 	t.series = t.series or { wins = { 0, 0 }, games = 0 }
@@ -895,6 +913,7 @@ function Engine.action(
 			end
 			s.team, s.slot = 1, 1
 			t.solo = { team = s.team }
+			t.ults, t.ultFeed = Ults.new(), {}
 			t.activeTeam, t.breakShot, t.coin = s.team, true, nil
 			beginTurn(t, s.team, now, true)
 		elseif kind == "SetDifficulty" then
@@ -988,6 +1007,11 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	if t.phase ~= "Intro" and t.phase ~= "Placement" and t.phase ~= "Aiming" then
 		return nil, "WrongPhase"
 	end
+	-- An ult still in its cutscene: the shot waits until it is armed.
+	Ults.tick(t, now)
+	if Ults.arming(t) then
+		return nil, "UltArming"
+	end
 	if t.deadline and now >= t.deadline then
 		return nil, "Expired"
 	end
@@ -1025,6 +1049,12 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	local start = Engine.pack(sim.balls)
 	local before = Ball.cloneList(sim.balls)
 	local strike = Simulation.strike(sim, shot)
+	-- The shooter's armed ult: its effect steps with the physics for this whole shot (a
+	-- placeholder has none), and the replay carries it in overrides.
+	local ult = Ults.shotOverrides(t, before)
+	if ult then
+		Simulation.armEffect(sim, ult.Effect, ult.Targets, ult.EightPocket)
+	end
 	local cue = Simulation.findBall(sim, 0)
 	assert(cue, "Missing cue ball")
 	local seed = ShotInput.quantiseSeed(cue)
@@ -1072,9 +1102,13 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 		-- Whether this shot's 8 wins the game: only then does its drop get the pocket burst and
 		-- NICE SHOT! (designer, 2026-09-27: never for an early, wrong-pocket or foul 8).
 		eightWins = j.reason == "LegalEight",
+		-- The ult this shot is: { id, by, practice }, or nil.
+		ult = Ults.shotTag(t),
 	}
 	t.pending = { outcome = outcome, judgement = j }
 	Engine.awards(t, j, now)
+	-- The ult bars fill (and an armed ult is spent) while groups are still the shot's own.
+	Ults.onShot(t, j, before, now, outcome.events)
 	local pocketed = false
 	local settle = outcome.duration
 	for _, ev in outcome.events do
@@ -1151,6 +1185,7 @@ function Engine.snapshot(t: any): any
 		search = if t.search
 			then { at = t.search.at, users = table.clone(t.search.users), found = t.search.found }
 			else nil,
+		ults = Ults.view(t),
 	}
 end
 

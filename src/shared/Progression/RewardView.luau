@@ -14,8 +14,14 @@ local D = Config.Daily
 local DAYS = #D.Streak
 local SECONDS_PER_DAY = 86400
 
--- A reward as remotes carry it: money, and the cases as a list in Config.Cases.Order.
-export type RewardOut = { money: number, cases: { Daily.CaseCount } }
+-- A reward as remotes carry it: money, the cases as a list in Config.Cases.Order, and the ult
+-- spins and Lucky Spins it adds (0 for none: the client draws a spins chip when above 0).
+export type RewardOut = {
+	money: number,
+	cases: { Daily.CaseCount },
+	spins: number,
+	lucky: number,
+}
 
 export type LoginView = {
 	canClaim: boolean,
@@ -76,10 +82,17 @@ local function num(x: any): number
 	return x
 end
 
---- A Daily.Reward as a remote carries it: { money, cases = { { id, count } } } with the cases
---- in Config.Cases.Order (a list, so the client shows and flies them in a fixed order).
+--- A Daily.Reward as a remote carries it: { money, cases = { { id, count } }, spins, lucky }
+--- with the cases in Config.Cases.Order (a list, so the client shows and flies them in a fixed
+--- order); spins and lucky are 0 when the reward adds none.
 function RewardView.reward(reward: Daily.Reward): RewardOut
-	return { money = math.max(0, math.floor(num(reward.money))), cases = Daily.caseList(reward) }
+	local raw: any = reward
+	return {
+		money = math.max(0, math.floor(num(raw.money))),
+		cases = Daily.caseList(reward),
+		spins = math.max(0, math.floor(num(raw.spins))),
+		lucky = math.max(0, math.floor(num(raw.lucky))),
+	}
 end
 
 --- The save's Titles ({ [titleId] = true }) as a sorted list.

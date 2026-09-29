@@ -1,1 +1,57 @@
-{}
+{
+  "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
+    "note": "still moderating; re-run to pick it up",
+    "operationId": "e02858a0-48cc-4ddf-9967-92e4220dd1f4",
+    "status": "pending"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/art/field_lines.png": {
+    "note": "still moderating; re-run to pick it up",
+    "operationId": "f2126551-5cc1-44ef-9db9-853b5c63abf0",
+    "status": "pending"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/art/ring_glow.png": {
+    "assetId": "100993435112539",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/art/soft_glow.png": {
+    "assetId": "109949034902778",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/art/spark.png": {
+    "assetId": "121833848983877",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/art/ult_backdrop.png": {
+    "assetId": "98881182064534",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/lucky.png": {
+    "assetId": "71752745751886",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/ult_badge.png": {
+    "assetId": "129539443325735",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/ult_badge_gold.png": {
+    "assetId": "99530249381002",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/ult_spin.png": {
+    "assetId": "83339327565913",
+    "assetType": "Decal",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/ui/icons/ults.png": {
+    "assetId": "134987873534606",
+    "assetType": "Decal",
+    "status": "ok"
+  }
+}

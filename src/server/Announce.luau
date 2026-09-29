@@ -1,13 +1,16 @@
 --!strict
 -- Announce: the top banner and system chat lines everyone sees (Net "Banner"): a Mythic or
--- Secret unboxed, a Money Party, a player reaching Reyes (the first ever in every server).
+-- Secret unboxed, a Money Party, a player reaching Reyes (the first ever in every server), an ult
+-- spin landing a Legendary (this server) or a Mythic (every server).
 --
 -- The server sends ids and names only; the client words each line from Strings.Banner
 -- (src/client/Banner.luau) and adds the chat line. Payloads: { kind = "Unbox", userId, name,
 -- cue, rarity }, { kind = "Party", endsAt, name }, { kind = "Reyes" | "FirstReyes", userId,
--- name }. `name` is the player's username (Strings.Banner words it).
+-- name }, { kind = "Ult", userId, name, ult, rarity }. `name` is the player's username
+-- (Strings.Banner words it).
 --
--- Reyes news goes to every server: fired here at once, then published on the MessagingService
+-- Reyes news and Mythic ult rolls (Config.Ults.Roll.AnnounceAll) go to every server: fired here
+-- at once, then published on the MessagingService
 -- topic Config.Items.AnnounceTopic with this server's id, and every other server's subscriber
 -- fires it for its own players (this server ignores its own message, so nobody sees it twice).
 -- A subscribe that fails is tried again a few times, further apart each time.
@@ -24,6 +27,7 @@ local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Catalog = require(Shared.Progression.Catalog)
 local Cases = require(Shared.Progression.Cases)
+local UltCatalog = require(Shared.Ults.Catalog)
 local Counters = require(script.Parent.Counters)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -66,7 +70,7 @@ local function fire(payload: { [string]: any }, only: Player?)
 	end
 end
 
--- A Reyes message from another server, checked before it is shown here.
+-- A Reyes or ult-roll message from another server, checked before it is shown here.
 local function onMessage(message: any)
 	local data = if type(message) == "table" then message.Data else nil
 	if type(data) ~= "table" or data.from == SERVER then
@@ -74,7 +78,7 @@ local function onMessage(message: any)
 	end
 	local kind, userId, name = data.kind, data.userId, data.name
 	if
-		(kind ~= "Reyes" and kind ~= "FirstReyes")
+		(kind ~= "Reyes" and kind ~= "FirstReyes" and kind ~= "Ult")
 		or type(userId) ~= "number"
 		or type(name) ~= "string"
 		or name == ""
@@ -82,7 +86,33 @@ local function onMessage(message: any)
 	then
 		return
 	end
+	if kind == "Ult" then
+		local ult = data.ult
+		if not UltCatalog.exists(ult) or UltCatalog.rarity(ult) ~= data.rarity then
+			return
+		end
+		fire({ kind = kind, userId = userId, name = name, ult = ult, rarity = data.rarity })
+		return
+	end
 	fire({ kind = kind, userId = userId, name = name })
+end
+
+-- Publishes a message to every other server (this one already showed it). Yields; logs a
+-- failure.
+local function publish(payload: { [string]: any }, what: string)
+	local message = table.clone(payload)
+	message.from = SERVER
+	local ok, err = pcall(function()
+		MessagingService:PublishAsync(I.AnnounceTopic, message)
+	end)
+	if not ok then
+		warn(
+			("[8ball] Announce: the %s news did not reach other servers: %s"):format(
+				what,
+				tostring(err)
+			)
+		)
+	end
 end
 
 -- The title of the first Reyes, for a first whose title never landed (they left at once).
@@ -168,17 +198,36 @@ function Announce.reyes(player: Player)
 		local payload =
 			{ kind = if first then "FirstReyes" else "Reyes", userId = userId, name = name }
 		fire(payload)
-		local message = table.clone(payload)
-		message.from = SERVER
-		local ok, err = pcall(function()
-			MessagingService:PublishAsync(I.AnnounceTopic, message)
-		end)
-		if not ok then
-			warn(
-				("[8ball] Announce: the Reyes news did not reach other servers: %s"):format(
-					tostring(err)
-				)
-			)
+		publish(payload, "Reyes")
+	end)
+end
+
+--- `player` rolled ult `ultId` on the spin screen: a rarity in Config.Ults.Roll.AnnounceServer
+--- (Legendary) is a banner for everyone in this server; one in AnnounceAll (Mythic) for everyone
+--- in every server (MessagingService, like Reyes). Sent Config.Items.UnboxAnnounceDelaySeconds
+--- later so the spinner's own reveal lands first. Others: nothing. Never yields.
+function Announce.ult(player: Player, ultId: string)
+	local rarity = UltCatalog.rarity(ultId)
+	if not isPlayer(player) or rarity == nil then
+		return
+	end
+	local roll = Config.Ults.Roll
+	local everywhere = (roll.AnnounceAll :: any)[rarity] == true
+	local here = everywhere or (roll.AnnounceServer :: any)[rarity] == true
+	if not here then
+		return
+	end
+	local payload = {
+		kind = "Ult",
+		userId = player.UserId,
+		name = player.Name,
+		ult = ultId,
+		rarity = rarity,
+	}
+	task.delay(I.UnboxAnnounceDelaySeconds, function()
+		fire(payload)
+		if everywhere then
+			publish(payload, "ult roll")
 		end
 	end)
 end

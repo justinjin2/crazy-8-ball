@@ -30,6 +30,7 @@ local tables: { [number]: any } = {}
 local seatOf: { [number]: number } = {}
 local buckets: { [string]: any } = {}
 local characterSaved: { [number]: any } = {}
+local flushHooks: { (any) -> () } = {} -- Service.onFlush
 local rng = Random.new()
 -- Every game opens on its own rack: the seed only moves each ball a hair, but a break is
 -- sensitive to exactly that, so two games never play out the same. The seed travels in the
@@ -355,6 +356,16 @@ function Service.flush(t: any)
 		end
 	end
 	table.clear(t.engine.feedback)
+	-- Then whatever else rides with a shot's feedback (UltService's bar gains).
+	for _, hook in flushHooks do
+		hook(t)
+	end
+end
+
+--- Adds `hook(t)` to every flush (after a shot is accepted, and after each advance), for a
+--- service this one cannot require (UltService requires this module).
+function Service.onFlush(hook: (any) -> ())
+	table.insert(flushHooks, hook)
 end
 
 -- Hand a held root back to the player where it stands. An anchored part keeps whatever

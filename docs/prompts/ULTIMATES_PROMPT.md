@@ -567,7 +567,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   missing on purpose never pays); final numbers logged.
 - [x] 2. Catalog of 13 (Config and Strings), save v3 with migration, `Fill` and `Roll` modules
   with tests.
-- [ ] 3. Server: bars filled from real match events, activation and arming, the rules in
+- [x] 3. Server: bars filled from real match events, activation and arming, the rules in
   section 4 (fouls, the 8, the cap, the clock pause, teams, the PC opponent, solo practice, the
   global queue's Ults On / Off pools and fallback),
   placeholder ults; tests.
@@ -698,3 +698,23 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   in slot 1; migration from v2; validate repairs it). 36 new tests (fill, roll with a million
   seeded rolls, slots, save). A choice: on an ult shot its user gets nothing from any ball
   pocketed (section 4), opponent's balls included; the turn end still counts.
+- **Step 3 (2026-09-28).** `Ults/Match` (pure rules on the engine's table) hooked into
+  MatchEngine (new game, turn changes, timeouts, the ult shot's overrides via
+  `Simulation.armEffect`, `t.shot.ult`, the snapshot's `ults`), `UltService` (UltActivate,
+  UltGain grouped per shot per player through a `TableService.onFlush` hook, UltNotice,
+  `ServerStorage.UltQA`), the spin service `UltSpins` + `Ults/SpinView` (UltRequest, UltState,
+  UltAuto; PlayerData mutations and attributes UltSpins, UltLucky, UltFreeSpin, UltEquipped;
+  `Store.ownsPass`; the spin products and slot passes; codes, day 7, playtime and rank-up
+  spins), and the global queue's pools (committed earlier). Checked in Studio (real save,
+  migrated 2 -> 3, 3 starter spins, free spin ready, Magnet equipped): activation refused with
+  a bar under 100 ("NotReady"); a full bar arms Magnet ("Arming", readyAt +2.6 s) and the
+  deadline moved from 60.0 to 62.6 s with pausedUntil set; the opponent potting a stripe with
+  me 4 behind gave +47 (36 x 1.3); the PC policy held on an easy level shot and used it with no
+  easy shot; solo practice armed for free with no bar. A real Magnet shot on the server (cue
+  30,5, ball 1 at 40,15 into the corner, power 0.3): misses by 1.4-3.2 degrees of aim went out
+  plain and in with Magnet, 4-5 degrees stayed out, direct pots unchanged; no replay-drift
+  warning (clients replayed the Magnet shots exactly). Console clean. Magnet's harness (Lune):
+  87.8% of 0.25-1 width misses drop, 28.4% of 1-2 widths, 0% past 2.5, 100% of rattles, 100%
+  of direct pots unchanged. **Magnet's value: about +41 points of pot chance for an average
+  player (0.41 ball), above the ladder's +30%; the 7.3 targets can't be met below about +38**
+  (asked the designer; kept the 7.3 targets meanwhile).

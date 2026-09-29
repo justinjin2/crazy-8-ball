@@ -55,6 +55,8 @@ export type Grant = {
 	limited: string?, -- a Limited cue id to number and give (a Robux Limited)
 	firstPack: boolean?, -- this pack paid FirstPackMultiplier (sets Shop.FirstPackBought)
 	starterBought: boolean?, -- sets Shop.StarterBought
+	spins: number?, -- ult spins to add (Spin1..Spin50; the save's Ults.Spins)
+	lucky: number?, -- Lucky Spins to add (Lucky1, Lucky3; Ults.LuckySpins)
 }
 
 export type LimitedRow = {
@@ -90,7 +92,16 @@ export type ReceiptDeps = {
 	log: ((string) -> ())?,
 }
 
-type ProductRow = { Kind: string, Id: number, Robux: number, Money: number?, Bonus: number? }
+type ProductRow = {
+	Kind: string,
+	Id: number,
+	Robux: number,
+	Money: number?,
+	Bonus: number?,
+	Was: number?, -- the original price shown crossed out (ult spin packs)
+	Spins: number?, -- ult spins one purchase adds
+	Lucky: number?, -- Lucky Spins one purchase adds
+}
 
 local LIST: { [string]: ProductRow } = P.List :: any
 local PACK_ORDER: { string } = P.PackOrder
@@ -371,12 +382,24 @@ function Shop.grantFor(
 	if limited ~= nil then
 		grant.limited = limited.Cue
 	end
+	-- Ult spins and Lucky Spins (ECONOMY 11.8). A spin pack bought where paid random items are
+	-- restricted is refused at the prompt; a receipt that arrives anyway is Robux paid, and
+	-- grants.
+	local spins, lucky = whole(row.Spins), whole(row.Lucky)
+	if spins > 0 then
+		grant.spins = spins
+	end
+	if lucky > 0 then
+		grant.lucky = lucky
+	end
 	if
 		grant.money <= 0
 		and grant.cue == nil
 		and not grant.vip
 		and not grant.party
 		and grant.limited == nil
+		and grant.spins == nil
+		and grant.lucky == nil
 	then
 		return nil, nil
 	end

@@ -18,7 +18,7 @@
 --   past its end); already owned, sold out, ended or not started pay the money fallback too
 --   (logged), while a counter error, a busy retry or a save not loaded leave the receipt
 --   NotProcessedYet for Roblox to retry.
--- - Game passes (Vip, FastOpen): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
+-- - Game passes (Vip, FastOpen, the ult slots UltSlot2 and UltSlot3): UserOwnsGamePassAsync on join (pcall, retried, cached; Id 0
 --   is never owned), and PromptGamePassPurchaseFinished with wasPurchased counts the pass for
 --   the session at once (Roblox fires it on the server; UserOwnsGamePassAsync may still answer
 --   false from its cache right after a purchase). VIP = owns the pass OR bought the welcome
@@ -30,6 +30,11 @@
 --   prompts the purchase itself. ShopState goes to each player on load and whenever any of it
 --   changes (a purchase, a pass, the restriction, the sale, the party, a Limited count, an
 --   offer window opening or closing on the clock).
+-- - The ult spin service (UltSpins) reads passes through Store.ownsPass, hears changes on
+--   Store.PassChanged, prompts its Robux products through Store.prompt (the same check as a
+--   Buy: ShopView.check, which refuses spin packs where paid random items are restricted) and
+--   shows live prices from Store.price. Spin pack receipts grant through the same
+--   ProcessReceipt (Shop.grantFor's spins and lucky).
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -81,6 +86,11 @@ table.sort(PASS_KEYS)
 export type Reply = { ok: boolean, reason: string? }
 
 local Store = {}
+
+local passEvent = Instance.new("BindableEvent")
+--- (player) Fires when a player's game pass ownership may have changed: the join check
+--- finished, a pass was bought in this server, or /buy, /vip, /fastopen faked one.
+Store.PassChanged = passEvent.Event
 
 local started = false
 local shopState: RemoteEvent? = nil
@@ -166,6 +176,17 @@ local function limitedSold(): { [string]: number }
 	return sold
 end
 
+-- The passes other than Vip and FastOpen (the ult slots) this player owns, by key.
+local function otherPasses(player: Player): { [string]: boolean }
+	local out: { [string]: boolean } = {}
+	for _, key in PASS_KEYS do
+		if key ~= "Vip" and key ~= "FastOpen" then
+			out[key] = owns(player, key)
+		end
+	end
+	return out
+end
+
 -- Everything ShopView needs for this player now; nil while the save is not loaded.
 local function context(player: Player, now: number): ShopView.Context?
 	local data = PlayerData.read(player)
@@ -173,6 +194,7 @@ local function context(player: Player, now: number): ShopView.Context?
 		return nil
 	end
 	return {
+		passes = otherPasses(player),
 		now = now,
 		shop = data.Shop,
 		vipPass = owns(player, "Vip"),
@@ -305,6 +327,7 @@ local function checkPasses(player: Player)
 	if present(player) then
 		passChecked[player] = true
 		mark(player)
+		passEvent:Fire(player)
 	end
 end
 
@@ -324,6 +347,7 @@ local function onPassPurchase(player: Player, passId: number, purchased: boolean
 	passOwned[player] = owned
 	owned[key] = true
 	mark(player)
+	passEvent:Fire(player)
 end
 
 -- A VIP offer receipt re-offered at join waits for the join's VIP pass answer (a pass owner's
@@ -676,7 +700,61 @@ function Store.setPass(player: Player, passKey: string, on: boolean): boolean
 	fake[passKey] = on == true
 	passChecked[player] = true
 	mark(player)
+	passEvent:Fire(player)
 	return true
+end
+
+--- Whether the player owns game pass `name` (a Config.Products key of Kind "Pass": "Vip",
+--- "FastOpen", "UltSlot2", "UltSlot3"): Roblox's join answer, a purchase in this server, or the
+--- dev override (Store.setPass). "Vip" is the pass alone (VIP also comes from the welcome
+--- offer: the Vip attribute). False for anything else and while the join check is running.
+function Store.ownsPass(player: Player, name: string): boolean
+	if typeof(player) ~= "Instance" or not player:IsA("Player") or type(name) ~= "string" then
+		return false
+	end
+	local row = LIST[name]
+	if row == nil or row.Kind ~= "Pass" then
+		return false
+	end
+	return owns(player, name)
+end
+
+--- The live Robux price of Config.Products key `key` (read once at start), or nil (Config's
+--- fallback price applies: an id of 0, or Roblox did not answer).
+function Store.price(key: string): number?
+	return prices[key]
+end
+
+--- Every live Robux price known, by product key (a new table).
+function Store.prices(): { [string]: number }
+	return table.clone(prices)
+end
+
+--- Prompts the purchase of Config.Products key `key` for this player after the same check a
+--- StoreRequest "Buy" gets (ShopView.check: "Owned", "Restricted" for a spin pack where paid
+--- random items are restricted, "ComingSoon" for id 0...). The grant comes later through
+--- ProcessReceipt (a pass: PromptGamePassPurchaseFinished). Returns (true) once the prompt is
+--- up, or (false, reason): "BadRequest", "NotLoaded", ShopView.check's reasons, "Error".
+function Store.prompt(player: Player, key: string): (boolean, string?)
+	if typeof(player) ~= "Instance" or not player:IsA("Player") then
+		return false, "BadRequest"
+	elseif type(key) ~= "string" or LIST[key] == nil then
+		return false, "BadRequest"
+	elseif not ready(player) then
+		return false, "NotLoaded"
+	end
+	local ctx = context(player, os.time())
+	if ctx == nil then
+		return false, "NotLoaded"
+	end
+	local reason = ShopView.check(key, ctx)
+	if reason ~= nil then
+		return false, reason
+	end
+	if not prompt(player, key) then
+		return false, "Error"
+	end
+	return true, nil
 end
 
 --- Dev (/party): starts or extends this server's Money Party as if `player` bought one.

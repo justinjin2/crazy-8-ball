@@ -73,6 +73,19 @@ local QUIET_OPS: { [string]: boolean } = {
 	useFirstWin = true,
 	addOpponentCase = true,
 	setRealMatches = true,
+	-- The ults (UltSpins): none touches the inventory.
+	ultSpin = true,
+	ultSelect = true,
+	ultLock = true,
+	buyUltSpins = true,
+	addUltSpins = true,
+	addUltLucky = true,
+	setUltSpins = true,
+	setUltLucky = true,
+	setUltPity = true,
+	setFreeSpin = true,
+	setUlt = true,
+	setQueueUlts = true,
 }
 
 export type Reply = { [string]: any }

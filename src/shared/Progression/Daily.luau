@@ -12,16 +12,25 @@
 --     save.Codes), so the mark and the reward can never drift apart. Call them on the live
 --     save inside the mutation, never on a read-only copy.
 --
--- A reward is always { money = n, cases = { [caseId] = count } } (money 0 and cases empty when
--- there is none); Daily.caseList lists its cases in Config.Cases.Order.
+-- A reward is always { money = n, cases = { [caseId] = count }, spins = n, lucky = n } (0 and
+-- empty when there is none); Daily.caseList lists its cases in Config.Cases.Order. `spins` and
+-- `lucky` are ult spins and Lucky Spins (docs/prompts/ULTIMATES_PROMPT.md section 10): day 7 of
+-- every streak week adds Config.Ults.Earn.StreakDay7 spins, the day's last playtime gift
+-- Earn.PlaytimeLast, and a code its Spins and LuckySpins.
 local Config = require(script.Parent.Parent.Config)
 
 local D = Config.Daily
+local EARN = Config.Ults.Earn
 local CASE_ORDER: { string } = Config.Cases.Order
 
 local SECONDS_PER_DAY = 86400
 
-export type Reward = { money: number, cases: { [string]: number } }
+export type Reward = {
+	money: number,
+	cases: { [string]: number },
+	spins: number, -- ult spins
+	lucky: number, -- Lucky Spins
+}
 
 -- The save's login streak (SaveSchema v2): the last claimed UTC day (0 none), the streak day
 -- that claim was (1..7, 0 none) and its week of the cycle (1..WeeksForBonus, 0 none).
@@ -55,10 +64,13 @@ export type Gift = {
 
 export type CaseCount = { id: string, count: number }
 
--- A Config reward row: Money and/or Cases, plus Minutes (playtime) or Expires (codes).
+-- A Config reward row: Money, Cases, Spins and/or LuckySpins, plus Minutes (playtime) or
+-- Expires (codes).
 type RewardRow = {
 	Money: number?,
 	Cases: { [string]: number }?,
+	Spins: number?,
+	LuckySpins: number?,
 	Minutes: number?,
 	Expires: number?,
 }
@@ -94,14 +106,16 @@ local function whole(x: any): number
 	return math.floor(num(x))
 end
 
--- A new reward from a Config row. Only Money and Cases are read, so a reward can never carry
--- anything else (codes must never give what is sold for Robux, ECONOMY 18).
+-- A new reward from a Config row. Only Money, Cases, Spins and LuckySpins are read, so a
+-- reward can never carry anything else.
 local function rewardOf(row: RewardRow?): Reward
-	local reward: Reward = { money = 0, cases = {} }
+	local reward: Reward = { money = 0, cases = {}, spins = 0, lucky = 0 }
 	if row == nil then
 		return reward
 	end
 	reward.money = math.max(0, whole(row.Money))
+	reward.spins = math.max(0, whole(row.Spins))
+	reward.lucky = math.max(0, whole(row.LuckySpins))
 	local cases = row.Cases
 	if cases ~= nil then
 		for _, caseId in CASE_ORDER do
@@ -115,7 +129,12 @@ local function rewardOf(row: RewardRow?): Reward
 end
 
 local function merge(a: Reward, b: Reward): Reward
-	local out: Reward = { money = a.money + b.money, cases = {} }
+	local out: Reward = {
+		money = a.money + b.money,
+		cases = {},
+		spins = a.spins + b.spins,
+		lucky = a.lucky + b.lucky,
+	}
 	for _, caseId in CASE_ORDER do
 		local count = (a.cases[caseId] or 0) + (b.cases[caseId] or 0)
 		if count > 0 then
@@ -178,11 +197,15 @@ end
 
 --- What streak day `day` of week `week` gives (the seven tiles show these), and whether it
 --- includes the week bonus: WeekBonus is added on the last day of the last week (day 28).
+--- The last day of every week also adds Config.Ults.Earn.StreakDay7 ult spins.
 function Daily.streakReward(day: number, week: number): (Reward, boolean)
 	local bonus = day == DAYS and week == WEEKS
 	local reward = rewardOf(STREAK[day])
 	if bonus then
 		reward = merge(reward, rewardOf(WEEK_BONUS))
+	end
+	if day == DAYS then
+		reward.spins += math.max(0, whole(EARN.StreakDay7))
 	end
 	return reward, bonus
 end
@@ -278,7 +301,8 @@ local function claimedMap(daily: any): { [string]: boolean }
 end
 
 --- Every playtime gift in Config order with its progress, from the day's save
---- (Daily.PlaySeconds and Daily.PlaytimeClaimed).
+--- (Daily.PlaySeconds and Daily.PlaytimeClaimed). The day's last gift also adds
+--- Config.Ults.Earn.PlaytimeLast ult spins.
 function Daily.playtimeState(daily: any): { Gift }
 	local seconds = math.max(0, num(if type(daily) == "table" then daily.PlaySeconds else 0))
 	local claimed = claimedMap(daily)
@@ -287,10 +311,14 @@ function Daily.playtimeState(daily: any): { Gift }
 		local minutes = math.max(0, whole(row.Minutes))
 		local need = minutes * 60
 		local done = claimed[tostring(index)] == true
+		local reward = rewardOf(row)
+		if index == #PLAYTIME then
+			reward.spins += math.max(0, whole(EARN.PlaytimeLast))
+		end
 		table.insert(list, {
 			index = index,
 			minutes = minutes,
-			reward = rewardOf(row),
+			reward = reward,
 			ready = seconds >= need and not done,
 			claimed = done,
 			progress = if need <= 0 then 1 else math.min(1, seconds / need),

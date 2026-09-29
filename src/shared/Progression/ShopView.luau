@@ -32,6 +32,8 @@ export type Context = {
 	sale: Sale?, -- the case sale running now (ShopView.readSale), or nil
 	sold: { [string]: number }, -- Limited cue id -> copies sold (missing: unknown)
 	prices: { [string]: number }, -- product key -> live Robux price (missing: Config's)
+	-- Other game passes owned (the ult slots UltSlot2, UltSlot3), by product key; nil: none.
+	passes: { [string]: boolean }?,
 }
 
 -- One timed offer as the client reads it (ItemState.offerEndsAt reads `open` and `endsAt`).
@@ -93,6 +95,16 @@ local VIP_OFFER = "VipOffer"
 local STARTER_PACK = "StarterPack"
 local MONEY_PARTY = "MoneyParty"
 
+-- The ult spin products (ECONOMY 11.8): paid random items, refused where PolicyService
+-- restricts them (ECONOMY 11.7, 13).
+local SPIN_PRODUCTS: { [string]: boolean } = {}
+for _, key in Config.Ults.Earn.RobuxPacks do
+	SPIN_PRODUCTS[key] = true
+end
+for _, key in Config.Ults.Earn.LuckyPacks do
+	SPIN_PRODUCTS[key] = true
+end
+
 -- Every product key, sorted, so building the payload always walks the same order.
 local KEYS: { string } = {}
 for key in LIST do
@@ -118,6 +130,17 @@ local function limitedRow(key: string): Shop.LimitedRow?
 		end
 	end
 	return nil
+end
+
+-- Whether a pass other than Vip and FastOpen (an ult slot) is owned.
+local function otherPassOwned(ctx: Context, key: string): boolean
+	local passes = ctx.passes
+	return type(passes) == "table" and passes[key] == true
+end
+
+--- Whether product `key` is an ult spin pack (spins or Lucky Spins: a paid random item).
+function ShopView.isSpinProduct(key: string): boolean
+	return SPIN_PRODUCTS[key] == true
 end
 
 local function limitedOwned(ctx: Context, cueId: string): boolean
@@ -161,7 +184,8 @@ end
 --- (not a Config.Products key), "Owned" (a pass owned; VIP already, for the welcome offer; the
 --- Starter Pack or a Limited bought), "Closed" (its offer or Limited window is not open),
 --- "SoldOut" (a Limited at its cap), "PartyFull" (the Money Party already has an hour queued),
---- "ComingSoon" (its Id is still 0). Money packs are always on sale.
+--- "Restricted" (an ult spin pack where paid random items are restricted), "ComingSoon" (its
+--- Id is still 0). Money packs are always on sale.
 function ShopView.check(key: string, ctx: Context): string?
 	local row = LIST[key]
 	if row == nil then
@@ -194,6 +218,14 @@ function ShopView.check(key: string, ctx: Context): string?
 	elseif key == MONEY_PARTY then
 		if not Shop.canQueueParty(ctx.partyEndsAt, ctx.now) then
 			return "PartyFull"
+		end
+	elseif SPIN_PRODUCTS[key] then
+		if ctx.restricted then
+			return "Restricted"
+		end
+	elseif row.Kind == "Pass" then
+		if otherPassOwned(ctx, key) then
+			return "Owned"
 		end
 	end
 	local limited = limitedRow(key)
@@ -261,6 +293,8 @@ function ShopView.build(ctx: Context): Payload
 			owned = shop.StarterBought == true
 		elseif limited ~= nil then
 			owned = limitedOwned(ctx, limited.Cue)
+		elseif row.Kind == "Pass" then
+			owned = otherPassOwned(ctx, key)
 		end
 		local price = ctx.prices[key]
 		products[key] = {
