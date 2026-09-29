@@ -941,7 +941,7 @@ return {
 			SteelBall = "The ball you hit is guided in, and the cue ball lines up your next.",
 			BlackFlash = "The first ball you hit shatters in a black flash, counted as pocketed.",
 			BlackHole = "A black hole opens at your first hit and swallows the balls near it, counted as pocketed.",
-			GuangdongTiger = "A giant tiger swipes the balls near your first hit off the table (not your opponent's).",
+			GuangdongTiger = "A giant tiger swipes the balls near your first hit off the table, counted as pocketed.",
 		},
 		Rarities = {
 			Common = "Common",

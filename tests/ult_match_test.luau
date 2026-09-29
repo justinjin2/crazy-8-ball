@@ -8,6 +8,18 @@ local Match = H.require("Ults.Match")
 local Config = H.require("Config")
 local Sim = H.require("Physics.Simulation")
 local U = Config.Ults
+
+-- Every ult is built now: a placeholder test turns one back into a placeholder for its run.
+local function asPlaceholder(catalog: any, id: string, run: () -> ())
+	local row = catalog[id]
+	local built, effect = row.Built, row.Effect
+	row.Built, row.Effect = false, nil
+	local ok, err = pcall(run)
+	row.Built, row.Effect = built, effect
+	if not ok then
+		error(err, 0)
+	end
+end
 local expect = H.expect
 local tests = {}
 
@@ -486,16 +498,18 @@ function tests.the_snapshot_carries_the_ults_contract()
 end
 
 function tests.a_placeholder_arms_and_does_nothing()
-	local m = midGame(1)
-	full(m, 11)
-	armNow(m, 11, "GuangdongTiger")
-	expect(m.ults.armed.id == "GuangdongTiger")
-	local wire = play(m, potShot(m, 3))
-	expect(wire.ult ~= nil and wire.ult.id == "GuangdongTiger")
-	expect(wire.overrides == nil or wire.overrides.Effect == nil, "no effect")
-	expect(m.ults.armed == nil and bar(m, 11).used == 1)
+	asPlaceholder(U.Catalog, "GuangdongTiger", function()
+		local m = midGame(1)
+		full(m, 11)
+		armNow(m, 11, "GuangdongTiger")
+		expect(m.ults.armed.id == "GuangdongTiger")
+		local wire = play(m, potShot(m, 3))
+		expect(wire.ult ~= nil and wire.ult.id == "GuangdongTiger")
+		expect(wire.overrides == nil or wire.overrides.Effect == nil, "no effect")
+		expect(m.ults.armed == nil and bar(m, 11).used == 1)
+	end)
 	-- An unknown id plays as the default.
-	m = midGame(1)
+	local m = midGame(1)
 	full(m, 11)
 	expect(Match.activate(m, 11, "NoSuchUlt", m.phaseStartedAt))
 	expect(m.ults.armed.id == U.Default)

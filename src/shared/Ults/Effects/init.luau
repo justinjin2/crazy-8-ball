@@ -32,6 +32,7 @@ local Effects: { [string]: Effect } = {
 	ChainLightning = require(script.ChainLightning) :: any,
 	EaglesEye = require(script.EaglesEye) :: any,
 	Ghost = require(script.Ghost) :: any,
+	GuangdongTiger = require(script.GuangdongTiger) :: any,
 	HeatSeeker = require(script.HeatSeeker) :: any,
 	Magnet = require(script.Magnet) :: any,
 	Portals = require(script.Portals) :: any,

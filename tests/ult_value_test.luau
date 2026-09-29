@@ -16,6 +16,18 @@ local tests = {}
 
 local Catalog = Config.Ults.Catalog
 
+-- Every ult is built now: a placeholder test turns one back into a placeholder for its run.
+local function asPlaceholder(catalog: any, id: string, run: () -> ())
+	local row = catalog[id]
+	local built, effect = row.Built, row.Effect
+	row.Built, row.Effect = false, nil
+	local ok, err = pcall(run)
+	row.Built, row.Effect = built, effect
+	if not ok then
+		error(err, 0)
+	end
+end
+
 -- Switch a catalog row to Built for the body only.
 local function built(id: string, body: () -> ())
 	local row = Catalog[id]
@@ -128,16 +140,22 @@ function tests.magnet_measures_positive_for_the_careless_shooter()
 end
 
 function tests.a_placeholder_measures_exactly_zero()
-	expect(Catalog.GuangdongTiger.Built == false, "Guangdong Tiger is still a placeholder")
-	local report =
-		V.measure("GuangdongTiger", { samples = 5, skills = { 2 }, topK = 3, simulateInert = true })
-	for _, name in { "careful", "careless" } do
-		local st = (report.skills[1] :: any)[name] :: V.Stat
-		expect(st.n == 5)
-		expect(st.worth == 0 and st.oppGifted == 0 and st.net == 0, name .. ": worth exactly 0")
-		expect(st.ownWith == st.ownWithout and st.potWith == st.potWithout, name .. ": identical")
-		expect(st.foulBackfire == 0 and st.oppBackfire == 0 and st.eightBackfire == 0)
-	end
+	asPlaceholder(Catalog, "GuangdongTiger", function()
+		local report = V.measure(
+			"GuangdongTiger",
+			{ samples = 5, skills = { 2 }, topK = 3, simulateInert = true }
+		)
+		for _, name in { "careful", "careless" } do
+			local st = (report.skills[1] :: any)[name] :: V.Stat
+			expect(st.n == 5)
+			expect(st.worth == 0 and st.oppGifted == 0 and st.net == 0, name .. ": worth exactly 0")
+			expect(
+				st.ownWith == st.ownWithout and st.potWith == st.potWithout,
+				name .. ": identical"
+			)
+			expect(st.foulBackfire == 0 and st.oppBackfire == 0 and st.eightBackfire == 0)
+		end
+	end)
 end
 
 function tests.rewind_counts_only_the_redo()

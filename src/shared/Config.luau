@@ -2282,7 +2282,8 @@ Config.Ults = {
 		},
 		GuangdongTiger = {
 			Rarity = "Mythic",
-			Built = false,
+			Built = true,
+			Effect = "GuangdongTiger",
 			Worth = 2.6,
 			MaxBalls = 3,
 			Area = true,
@@ -2645,6 +2646,18 @@ Config.Ults.BlackHole = {
 	GiveUpSeconds = 6,
 	-- The cue ball is pushed this far straight away from the hole (inches), short of pockets.
 	PushInches = 6,
+}
+
+-- Guangdong Tiger (docs/prompts/ABILITIES_PROMPT.md 7.13; src/shared/Ults/Effects/GuangdongTiger).
+Config.Ults.GuangdongTiger = {
+	-- The swipe cuts the shooter's balls within this of the first contact (inches; the
+	-- opponent's within Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the
+	-- table. (tune)
+	RadiusInches = 20,
+	-- The moment slows for the swipe: this much play (seconds) over this much more wall time
+	-- (about 0.3 s at quarter speed).
+	SlowShotSeconds = 0.075,
+	SlowSeconds = 0.225,
 }
 
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they

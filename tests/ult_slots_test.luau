@@ -10,6 +10,18 @@ local function load(): (any, any, any)
 	return H.require("Ults.Slots"), H.require("Config"), H.require("Ults.Catalog")
 end
 
+-- Every ult is built now: a placeholder test turns one back into a placeholder for its run.
+local function asPlaceholder(catalog: any, id: string, run: () -> ())
+	local row = catalog[id]
+	local built, effect = row.Built, row.Effect
+	row.Built, row.Effect = false, nil
+	local ok, err = pcall(run)
+	row.Built, row.Effect = built, effect
+	if not ok then
+		error(err, 0)
+	end
+end
+
 local ALL = { UltSlot2 = true, UltSlot3 = true }
 local NONE = {}
 local DAY = 20725
@@ -35,9 +47,12 @@ return {
 		H.expect(Catalog.rarity("GuangdongTiger") == "Mythic", "rarity")
 		H.expect(Catalog.rarityIndex("Common") == 1 and Catalog.rarityIndex("Mythic") == 6, "")
 		H.expect(Catalog.rarityIndex("Secret") == 0 and Catalog.rarityIndex(nil) == 0, "unknown")
-		H.expect(Catalog.built("Magnet") and not Catalog.built("GuangdongTiger"), "built flags")
-		H.expect(Catalog.usable("Magnet") and not Catalog.usable("GuangdongTiger"), "usable")
-		H.expect(Catalog.usable("GuangdongTiger", true), "the developer flag")
+		asPlaceholder(Config.Ults.Catalog, "GuangdongTiger", function()
+			H.expect(Catalog.built("Magnet") and not Catalog.built("GuangdongTiger"), "built flags")
+			H.expect(Catalog.usable("Magnet") and not Catalog.usable("GuangdongTiger"), "usable")
+			H.expect(Catalog.usable("GuangdongTiger", true), "the developer flag")
+		end)
+		H.expect(Catalog.built("GuangdongTiger"), "built again after")
 		local mythics = Catalog.byRarity("Mythic")
 		H.expect(#mythics == 2 and mythics[1] == "BlackHole", "by rarity, in Order")
 		H.expect(#Catalog.byRarity("Nope") == 0, "unknown rarity")
@@ -118,13 +133,18 @@ return {
 		H.expect(Slots.equipped(u, NONE) == "Magnet", "a fresh save")
 		u.Slots[1] = ""
 		H.expect(Slots.equipped(u, NONE) == Config.Ults.Default, "an empty slot")
-		u.Slots[1] = "GuangdongTiger"
-		H.expect(Slots.equipped(u, NONE) == "Magnet", "unbuilt without the flag")
-		H.expect(Slots.equipped(u, NONE, true) == "GuangdongTiger", "the flag equips placeholders")
-		u.Slots[2] = "GuangdongTiger"
-		H.expect(Slots.select(u, 2, ALL), "select 2")
-		H.expect(Slots.equipped(u, NONE, true) == "Magnet", "the pass is gone")
-		H.expect(Slots.equipped(u, ALL, true) == "GuangdongTiger", "with the pass")
+		asPlaceholder(Config.Ults.Catalog, "GuangdongTiger", function()
+			u.Slots[1] = "GuangdongTiger"
+			H.expect(Slots.equipped(u, NONE) == "Magnet", "unbuilt without the flag")
+			H.expect(
+				Slots.equipped(u, NONE, true) == "GuangdongTiger",
+				"the flag equips placeholders"
+			)
+			u.Slots[2] = "GuangdongTiger"
+			H.expect(Slots.select(u, 2, ALL), "select 2")
+			H.expect(Slots.equipped(u, NONE, true) == "Magnet", "the pass is gone")
+			H.expect(Slots.equipped(u, ALL, true) == "GuangdongTiger", "with the pass")
+		end)
 		u.Slots[2] = "Nope"
 		H.expect(Slots.equipped(u, ALL, true) == "Magnet", "an unknown id")
 		for _, broken in { nil :: any, 5, {}, { Slots = {}, Locked = {}, Selected = 9 } } do
