@@ -1847,3 +1847,16 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (ECONOMY 11.7's table); the day's last playtime gift adds its spin to the gift rather than
   replacing it; an ult icon also shows beside a teammate on your own side; a difficulty the
   fill table does not list gets x1.
+- 2026-09-28 (overnight assumption): The spin screen: gamepad X opens Ults in the hub (the
+  D-pad's four directions are taken; X is the ult button in a match); Robux is the default buy
+  mode, the R$/$ choice kept for the session; the free-spin reminder only in the leave toast,
+  and only while the screen is live; while open the HUD, RankHud, touch controls and walking
+  are put away and come back exactly as they were; closing stops a running Auto Spin; each
+  slot card is one button (select or buy) with its own lock button; the code box sits in the
+  odds column under the pity note; the room sits at (0, 3000, 40000) only while open; the
+  Mythic name shimmers pastel while its aura is red-black; the Auto Spin "Use Lucky Spins"
+  switch shows only for a player who holds some and is not restricted.
+- 2026-09-28: A Lucky Spin never lands a Common (audit): its odds only move to Uncommon or
+  better, and while no such ult is built Lucky Spins and their products are refused
+  ("LuckyClosed"). Solo Practice ult shots pay no money and count no stats. Lobby tables can
+  no longer turn ults off (SetAbilities refused); only the No-ults arena plays without.

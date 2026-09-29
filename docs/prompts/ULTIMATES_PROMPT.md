@@ -578,21 +578,21 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   the 1 s wait and the arming.
 - [x] 6. Magnet: the physics hook meets section 7.3's harness targets; its armed look and
   sound, pull beams, pocket ring and drop effects; checked in a real match in Studio.
-- [ ] 7. The Ults button on the left column (icon, red dot, gamepad route).
-- [ ] 8. The spin screen: stage, clone, idle, aura by rarity, the layout of 9.3, the spin
+- [x] 7. The Ults button on the left column (icon, red dot, gamepad route).
+- [x] 8. The spin screen: stage, clone, idle, aura by rarity, the layout of 9.3, the spin
   animation, slots, locks and replace confirmation, odds dropdowns, pity, the code box.
-- [ ] 9. Buying: money spins, the Robux products and passes as placeholders, PolicyService
+- [x] 9. Buying: money spins, the Robux products and passes as placeholders, PolicyService
   hiding, Fast Open's Skip and Auto Spin.
-- [ ] 10. Getting spins: starter, the daily free spin and the leave reminder, rank-up spins
+- [x] 10. Getting spins: starter, the daily free spin and the leave reminder, rank-up spins
   (NEW RANK! and roadmap chips), streak day 7, the playtime gift, codes.
 - [x] 11. Dev commands (`/ulthelp`) working in Studio.
-- [ ] 12. Full playthrough in Studio: a match vs the QA opponent where the opponent pockets 4
+- [x] 12. Full playthrough in Studio: a match vs the QA opponent where the opponent pockets 4
   and your bar rises to 100% on your turn with ult_ready, the shake, G, the cutscene, Magnet
   rescuing a near miss; the PC using its ult; solo practice; the spin screen end to end (free
   spin, spins, Lucky, pity via `/pity 99`, locks, replace confirmation, codes, `/buy`
   products, money spins, Auto Spin); every new screen on PC, 750 x 361, 844 x 390 and tablet;
   console clean.
-- [ ] 13. Audit by a fresh subagent (everything that grants spins or rolls, attacker and bad
+- [x] 13. Audit by a fresh subagent (everything that grants spins or rolls, attacker and bad
   day: forged remotes, spam, double receipts, racing spins, a shutdown mid-spin, Auto Spin
   abuse) plus a branch-wide bug review of `git diff economy...ultimates`; findings fixed.
 - [ ] 14. Polish: the bar's feel, the cutscene's timing, Magnet's pull feel, the spin
@@ -748,3 +748,20 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   - Console clean.
   Still to do: the spin screen end to end (its agent is still building it), and the global
   queue pools (covered by queue_core, matchmaker and ults_choice tests).
+- **Steps 7-10 and 12's spin half (46fbe8e).** In Studio: the Ults tile with its red dot; the
+  free spin; with `/ultsall on` the pity spin (pity 99) landed Portals (Epic) with PITY! and
+  pity back to 0; Replace?/Keep; lock -> SLOT LOCKED; $ mode BUY 1 took $1,750 for +1 spin;
+  code ULTS +3; a Lucky Spin landed Heat Seeker (Uncommon), Lucky 3 -> 2; `/buy spin10`,
+  `lucky3`, `ultslot2` granted (slot 2 turned SELECT); Auto Spin (Fast Open) stopped on Time
+  Stop (Rare); BACK TO MENU gave the camera, HUD and walking back. Layouts at 750x361,
+  844x390 and 1133x744 through the Studio-only `PreviewSize` attribute. Console clean. Fixed on
+  the way: RankHud drew over the screen (now put away with PoolHud), the avatar framed tighter
+  than its hat (FillShare 0.6). Not checkable here: gamepad buttons (Studio's VirtualInput
+  refuses them) and a real phone.
+- **Step 13 (38d30a7).** A fresh read-only auditor found no critical or high issues, 3 medium
+  and 6 low. Fixed: M1 (shop Buy of spin packs before PolicyService answers / while hidden),
+  M2 (solo Practice paid money), M3 (a Lucky Spin could land a Common), L1 (/ultsall never
+  played placeholders), L2 (lobby hosts could turn ults off), L3 (free spin across midnight
+  on two servers), L5 (/opult live, dev rolls announced), L6 (money spins past the cap). Left:
+  L4, every player's exact bar is in the table snapshot (information only; the HUD shows only
+  "ready" for others) - a per-player snapshot is a bigger change, noted for later.
