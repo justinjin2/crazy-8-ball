@@ -454,7 +454,7 @@ done becomes `- [x] BLOCKED: <why>`.
 - [x] 6. CueStickBuilder's mesh path with Config and tests (5.2); Classic drawn from the mesh
   in hand, for watched shooters and in the Index.
 - [x] 7. BackCue (5.3) on R15, R6, tall and small; the hand/back swap; seated.
-- [ ] 8. Every check in 5.4 captured and passing; lint and tests green.
+- [x] 8. Every check in 5.4 captured and passing; lint and tests green.
 - [ ] 9. Docs and the report (section 6); branch pushed.
 
 ## Notes
