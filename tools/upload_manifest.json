@@ -1,7 +1,18 @@
 {
   "/Users/justinjin/Desktop/8ball/assets/abilities/Magnet/MagnetField.glb": {
+    "assetId": "96715013262604",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Magnet/MagnetField.glb#pilot": {
     "assetId": "87739568467897",
     "assetType": "Model",
+    "note": "the pilot (faces not yet recalculated); superseded by the step 3 upload",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/Magnet/textures/FieldBeam.png": {
+    "assetId": "82187472592157",
+    "assetType": "Decal",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackFlash.png": {

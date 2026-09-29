@@ -717,6 +717,96 @@ return {
 		)
 	end,
 
+	["the opponent's near miss is pulled at OpponentFactor, never the 8 or the cue ball"] = function()
+		local factor = Config.Ults.Shared.OpponentFactor
+		local mine = Simulation.newState(geometry, { nearMissBall(9) })
+		mine.overrides = { Effect = "Magnet", Targets = {}, OppTargets = { 9 } }
+		local theirs = Simulation.newState(geometry, { nearMissBall(9) })
+		theirs.overrides = { Effect = "Magnet", Targets = { 9 }, OppTargets = {} }
+		H.expect(Magnet.factor(mine, 9) == factor, "listed as the opponent's: OpponentFactor")
+		H.expect(Magnet.factor(theirs, 9) == 1, "listed as yours: full strength")
+		-- Step both until the ball enters the pull zone: the same spot, half the strength.
+		local compared = false
+		for _ = 1, 240 * 2 do
+			local a, b = Magnet.activePulls(mine), Magnet.activePulls(theirs)
+			if #b > 0 then
+				H.expect(#a == 1, "the opponent's ball is pulled too")
+				H.expect(
+					math.abs(a[1].strength - factor * b[1].strength) < 1e-12,
+					("half as hard: %.4f vs %.4f"):format(a[1].strength, b[1].strength)
+				)
+				H.expect(a[1].factor == factor and b[1].factor == 1, "the pull carries its factor")
+				compared = true
+				break
+			end
+			Simulation.step(mine, DT, nil)
+			Simulation.step(theirs, DT, nil)
+		end
+		H.expect(compared, "the ball reached the zone")
+		-- Over the whole roll it bends less than your own ball would.
+		local plain = run({ nearMissBall(9) }, nil).balls[1]
+		local half = run({ nearMissBall(9) }, mine.overrides).balls[1]
+		H.expect(
+			Simulation.checksum({ half }) ~= Simulation.checksum({ plain }),
+			"the opponent's ball is moved"
+		)
+		local eight = { nearMissBall(8) }
+		local still = Simulation.checksum(run(eight, nil).balls)
+		H.expect(
+			Simulation.checksum(
+				run(
+					eight,
+					{ Effect = "Magnet", Targets = {}, OppTargets = { 8 }, EightPocket = CORNER }
+				).balls
+			) == still,
+			"the 8 is never pulled as the opponent's, even with a pocket called"
+		)
+		local cue = { nearMissBall(0) }
+		H.expect(
+			Simulation.checksum(
+				run(cue, { Effect = "Magnet", Targets = {}, OppTargets = { 0 } }).balls
+			) == Simulation.checksum(run(cue, nil).balls),
+			"never the cue ball"
+		)
+	end,
+
+	["an opponent's wide miss drops less often than your own"] = function()
+		-- Wide misses at the corner (the near ones drop either way), as yours and as theirs.
+		local own, opp, total = 0, 0, 0
+		for _, degrees in { 0, 15, 30 } do
+			for _, widths in { 2.5, 3, 3.5, 4, 4.5, 5, 6 } do
+				for _, side in { -1, 1 } do
+					local pocket = geometry.pockets[CORNER]
+					local ax, ay, ux, uy = frame(pocket)
+					local dx, dy = rotate(ax, ay, degrees * side)
+					local mx, my = Magnet.mouthPoint(geometry, pocket)
+					local sOff = side * (1.1 + widths * D)
+					local x, y = mx + ux * sOff - dx * 24, my + uy * sOff - dy * 24
+					if
+						math.abs(x) > geometry.halfLength - 3 * R
+						or math.abs(y) > geometry.halfWidth - 3 * R
+					then
+						continue
+					end
+					local b = Ball.new(9, x, y)
+					rolling(b, dx * 60, dy * 60)
+					total += 1
+					local a = run({ b }, { Effect = "Magnet", Targets = { 9 }, OppTargets = {} })
+					local c = run({ b }, { Effect = "Magnet", Targets = {}, OppTargets = { 9 } })
+					if a.balls[1].pocketed then
+						own += 1
+					end
+					if c.balls[1].pocketed then
+						opp += 1
+					end
+				end
+			end
+		end
+		H.expect(total >= 12, "enough misses measured")
+		H.expect(opp < own, ("theirs drop %d of %d, yours %d"):format(opp, total, own))
+		H.expect(opp > 0, "but the half pull still turns some in")
+	end,
+
 	["determinism: the same shot twice, and the client's replay, give one checksum"] = function()
 		-- A cue ball driving an object ball (3) into a wide miss at the top-right corner, with
 		-- spin, another listed ball (5) and an unlisted one (12) elsewhere on the table.

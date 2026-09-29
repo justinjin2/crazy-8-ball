@@ -19,9 +19,11 @@
 -- Balls below MinSpeed (at rest) are never touched: it is not a vacuum on still balls, and a
 -- ball is magnetised only once it moves. Balls heading away from every pocket are left alone.
 --
--- Which balls: overrides.Targets, decided by the server's rules (the shooter's group; the 8
--- only on their legal 8 shot). The cue ball is never pulled, even if listed, and the 8 only
--- toward overrides.EightPocket (never at all without one).
+-- Which balls (the skill rule, docs/prompts/ABILITIES_PROMPT.md 5.7): overrides.Targets at
+-- full strength (the shooter's group; the 8 only on their legal 8 shot) and
+-- overrides.OppTargets (the opponent's group) at Config.Ults.Shared.OpponentFactor, both
+-- decided by the server's rules. The cue ball is never pulled, even if listed; the 8 never
+-- as the opponent's, and as yours only toward overrides.EightPocket.
 --
 -- Only arithmetic and square roots (IEEE-exact everywhere), no trig and no pow (powers are
 -- multiplied out), balls, pockets and table pieces walked in array order, and no state kept
@@ -46,6 +48,7 @@ export type State = {
 	overrides: {
 		Effect: string?,
 		Targets: { number }?,
+		OppTargets: { number }?,
 		EightPocket: number?,
 	}?,
 }
@@ -53,7 +56,8 @@ export type State = {
 export type Pull = {
 	ball: number, -- ball id
 	pocket: number, -- pocket id
-	strength: number, -- 0-1: closeness to the mouth ^ Power (what the effects draw)
+	strength: number, -- 0-1: closeness to the mouth ^ Power, x the owner's factor (drawn)
+	factor: number, -- 1 for the shooter's ball, OpponentFactor for the opponent's
 	steering: boolean, -- true while its velocity is actually being changed (turned or re-sped)
 	braking: boolean, -- true while it is being slowed toward CaptureSpeed
 }
@@ -176,36 +180,52 @@ local function trace(
 	return if side >= 0 then 1 else -1
 end
 
--- The set of ball ids the effect may act on, or nil when it has none.
-local function targetSet(state: State): ({ [number]: boolean }?, number?)
+-- The ball ids the effect may act on, each with its strength factor (1 for the shooter's,
+-- OpponentFactor for the opponent's), or nil when it has none.
+local function targetSet(state: State): ({ [number]: number }?, number?)
 	local overrides = state.overrides
 	if overrides == nil or overrides.Targets == nil then
 		return nil, nil
 	end
-	local set: { [number]: boolean } = {}
+	local set: { [number]: number } = {}
+	if overrides.OppTargets then
+		local factor = Config.Ults.Shared.OpponentFactor
+		for _, id in overrides.OppTargets do
+			if id ~= 0 and id ~= EIGHT then -- never the cue ball, never the 8 as theirs
+				set[id] = factor
+			end
+		end
+	end
 	for _, id in overrides.Targets do
 		if id ~= 0 then -- never the cue ball
-			set[id] = true
+			set[id] = 1
 		end
 	end
 	return set, overrides.EightPocket
 end
 
---- Whether Magnet may act on this ball this shot: listed in overrides.Targets, not the cue
---- ball, and the 8 only when a pocket is called for it. MagnetFx can mark a ball magnetised
---- the first time it moves while this is true.
+--- Whether Magnet may act on this ball this shot: listed in overrides.Targets or OppTargets,
+--- not the cue ball, and the 8 only as the shooter's with a pocket called for it. MagnetFx
+--- can mark a ball magnetised the first time it moves while this is true.
 function Magnet.isTarget(state: State, ballId: number): boolean
+	return Magnet.factor(state, ballId) > 0
+end
+
+--- The strength this ball is pulled at this shot: 1 for the shooter's, OpponentFactor for the
+--- opponent's, 0 when it is not pulled at all.
+function Magnet.factor(state: State, ballId: number): number
 	local set, eightPocket = targetSet(state)
-	if set == nil or not set[ballId] then
-		return false
+	local factor = if set then set[ballId] else nil
+	if factor == nil or (ballId == EIGHT and eightPocket == nil) then
+		return 0
 	end
-	return ballId ~= EIGHT or eightPocket ~= nil
+	return factor
 end
 
 type Zone = {
 	pocket: Pocket,
 	closeness: number, -- 0 at the zone's edge, 1 at (or past) the mouth
-	strength: number, -- closeness ^ Power
+	strength: number, -- closeness ^ Power x the owner's factor
 	mx: number, -- the mouth middle
 	my: number,
 	ux: number, -- the mouth direction (across the pocket's axis)
@@ -214,7 +234,7 @@ type Zone = {
 
 -- The pocket whose pull zone holds this ball, if it is on the cloth, moving, and heading
 -- roughly toward that pocket (the closest mouth wins; ties keep the first pocket).
-local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?): Zone?
+local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?, factor: number): Zone?
 	-- On the cloth and in play only: not in the air, not over or into a pocket.
 	if b.pocketed or b.tip ~= nil or b.z ~= 0 or b.vz ~= 0 then
 		return nil
@@ -259,7 +279,7 @@ local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?): Zone?
 			best = {
 				pocket = pocket,
 				closeness = closeness,
-				strength = power(closeness, M.Power),
+				strength = power(closeness, M.Power) * factor,
 				mx = mx,
 				my = my,
 				ux = -ay,
@@ -343,8 +363,9 @@ function Magnet.activePulls(state: State): { Pull }
 	end
 	local dt = Config.Physics.FixedStep
 	for _, b in state.balls do
-		if set[b.id] then
-			local zone = zoneOf(state.geometry, b, eightPocket)
+		local factor = set[b.id]
+		if factor then
+			local zone = zoneOf(state.geometry, b, eightPocket, factor)
 			if zone and zone.strength > 0 then
 				local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
 				local after = newSpeed(zone, speed, dt)
@@ -353,6 +374,7 @@ function Magnet.activePulls(state: State): { Pull }
 					ball = b.id,
 					pocket = zone.pocket.id,
 					strength = zone.strength,
+					factor = factor,
 					steering = turn ~= 0 or after ~= speed,
 					braking = after < speed,
 				})
@@ -370,10 +392,11 @@ function Magnet.step(state: State, dt: number)
 		return
 	end
 	for _, b in state.balls do
-		if not set[b.id] then
+		local factor = set[b.id]
+		if factor == nil then
 			continue
 		end
-		local zone = zoneOf(state.geometry, b, eightPocket)
+		local zone = zoneOf(state.geometry, b, eightPocket, factor)
 		if zone == nil or zone.strength <= 0 then
 			continue
 		end

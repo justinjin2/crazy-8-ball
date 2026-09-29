@@ -13,6 +13,11 @@ set is one material:
   FieldRing   a flat ring of eight arrows chasing round a circle: the drop's shockwave.
   Chevron     one arrowhead, for the arrows that flow along the pocket-to-ball field lines
               (moved along the curve in Luau).
+  PoleCaps    a ball's red N cap (+x) and blue S cap (-x): a shell of unit radius (the ball's
+              radius at runtime, a hair over it), open round the middle so the number shows.
+
+Plus FieldBeam.png, the tile a Beam scrolls along the pocket-to-ball field lines: a white
+line with one filled arrowhead pointing along +U (tinted blue by Beam.Color).
 
 All in studs at unit size (the runtime scales them). Run headless or through the MCP.
 """
@@ -32,28 +37,61 @@ import common  # noqa: E402
 
 OUT = common.asset_dir("Magnet")
 
-# The reference's blue (#7BA3D6) and a lighter core for a little roundness.
+# The reference's blue (#7BA3D6) and a lighter core for a little roundness; the poles' red and
+# blue (the armed rings' colours).
 BLUE = np.array([0x7B, 0xA3, 0xD6]) / 255.0
 LIGHT = np.array([0xB8, 0xD2, 0xF2]) / 255.0
 DARK = np.array([0x55, 0x80, 0xBE]) / 255.0
+POLE_N = np.array([0xF0, 0x45, 0x3A]) / 255.0
+POLE_S = np.array([0x3C, 0x82, 0xE6]) / 255.0
+
+# The texture's rows by v (0 at the bottom): the field lines' gradient in FIELD_V, the N cap
+# in N_V, the S cap in S_V (bands apart, so filtering never bleeds one into another).
+FIELD_V = (0.3, 0.98)
+N_V = 0.19
+S_V = 0.06
 
 TUBE = 0.035  # tube radius at unit size (the loops span 2 between the poles)
 SIDES = 8
 
 
 def field_texture():
-    """64 x 64: across v (around the tube) dark edge -> light core -> dark edge; the arrows
-    use the middle column."""
+    """64 x 64. The field lines' band (FIELD_V, around the tube): dark edge -> light core ->
+    dark edge; below it the N cap's red and the S cap's blue, each lit a little from above."""
     h = w = 64
     img = np.zeros((h, w, 4))
     for row in range(h):
-        t = row / (h - 1)
-        core = math.exp(-((t - 0.35) ** 2) / 0.02)  # the light catches the upper side
-        edge = min(t, 1 - t) * 2
-        col = DARK + (BLUE - DARK) * min(1, edge * 1.6) + (LIGHT - BLUE) * core
+        v = 1 - (row + 0.5) / h
+        if v >= 0.25:
+            t = min(max((v - FIELD_V[0]) / (FIELD_V[1] - FIELD_V[0]), 0), 1)
+            core = math.exp(-((t - 0.35) ** 2) / 0.02)  # the light catches the upper side
+            edge = min(t, 1 - t) * 2
+            col = DARK + (BLUE - DARK) * min(1, edge * 1.6) + (LIGHT - BLUE) * core
+        elif v >= 0.125:
+            col = POLE_N
+        else:
+            col = POLE_S
         img[row, :, :3] = np.clip(col, 0, 1)
         img[row, :, 3] = 1
     return common.image_from_array("MagnetField", img, os.path.join(OUT, "textures", "field.png"))
+
+
+def beam_texture():
+    """256 x 64, the pocket lines' Beam tile: a white line along the middle and one filled
+    arrowhead pointing +U, clear elsewhere, drawn 4x oversampled for smooth edges."""
+    w, h, k = 256, 64, 4
+    ys, xs = np.mgrid[0:h * k, 0:w * k]
+    x = (xs + 0.5) / k / w  # 0..1 along U
+    y = ((ys + 0.5) / k - h / 2) / (h / 2)  # -1..1 across
+    line = np.abs(y) < 0.13
+    tip, back, half = 0.72, 0.44, 0.78
+    head = (x <= tip) & (x >= back) & (np.abs(y) <= half * (tip - x) / (tip - back))
+    mask = (line | head).astype(np.float64)
+    alpha = mask.reshape(h, k, w, k).mean(axis=(1, 3))
+    img = np.ones((h, w, 4))
+    img[:, :, 3] = alpha
+    path = os.path.join(OUT, "textures", "FieldBeam.png")
+    return common.image_from_array("FieldBeam", img, path)
 
 
 def tube(bm, uv, points, radius):
@@ -84,14 +122,15 @@ def tube(bm, uv, points, radius):
             k2 = (k + 1) % SIDES
             f = bm.faces.new((rings[i][k], rings[i][k2], rings[i + 1][k2], rings[i + 1][k]))
             for loop, (li, lk) in zip(f.loops, ((i, k), (i, k + 1), (i + 1, k + 1), (i + 1, k))):
-                loop[uv].uv = (length[li] / total, lk / SIDES)
+                v = FIELD_V[0] + (FIELD_V[1] - FIELD_V[0]) * lk / SIDES
+                loop[uv].uv = (length[li] / total, v)
     # Round caps: a fan at each end.
     for ring, p in ((rings[0], points[0]), (rings[-1], points[-1])):
         c = bm.verts.new(p)
         for k in range(SIDES):
             f = bm.faces.new((ring[k], ring[(k + 1) % SIDES], c))
             for loop in f.loops:
-                loop[uv].uv = (0.5, 0.5)
+                loop[uv].uv = (0.5, (FIELD_V[0] + FIELD_V[1]) / 2)
 
 
 def arrow(bm, uv, tip, direction, size, flip_normal=Vector((0, 0, 1))):
@@ -110,7 +149,7 @@ def arrow(bm, uv, tip, direction, size, flip_normal=Vector((0, 0, 1))):
     for vs in faces:
         f = bm.faces.new(vs)
         for loop in f.loops:
-            loop[uv].uv = (0.5, 0.45)
+            loop[uv].uv = (0.5, FIELD_V[0] + (FIELD_V[1] - FIELD_V[0]) * 0.4)
 
 
 def loop_points(height, steps=40):
@@ -124,6 +163,32 @@ def loop_points(height, steps=40):
         y = math.sin(a) * height
         pts.append(Vector((x, y, 0)))
     return pts
+
+
+def pole_caps(bm, uv, open_x=0.3, rings=12, segs=32):
+    """Two spherical caps of unit radius about the x axis: N (+x, red) and S (-x, blue), each
+    from its pole to |x| = open_x."""
+    top = math.acos(open_x)
+    for sign, v in ((1, N_V), (-1, S_V)):
+        pole = bm.verts.new((sign, 0, 0))
+        prev = None
+        for j in range(1, rings + 1):
+            th = top * j / rings
+            ring = [bm.verts.new((sign * math.cos(th), math.sin(th) * math.cos(2 * math.pi * i / segs),
+                                  math.sin(th) * math.sin(2 * math.pi * i / segs)))
+                    for i in range(segs)]
+            faces = []
+            if prev is None:
+                for i in range(segs):
+                    faces.append(bm.faces.new((pole, ring[i], ring[(i + 1) % segs])))
+            else:
+                for i in range(segs):
+                    i2 = (i + 1) % segs
+                    faces.append(bm.faces.new((prev[i], ring[i], ring[i2], prev[i2])))
+            for f in faces:
+                for loop in f.loops:
+                    loop[uv].uv = (0.5, v)
+            prev = ring
 
 
 def new_object(name, bm, mat):
@@ -191,9 +256,17 @@ def build():
     arrow(bm, uv, Vector((0.5, 0, 0)), Vector((1, 0, 0)), 1.0)
     objects.append(new_object("Chevron", bm, mat))
 
+    # PoleCaps: the ball's N and S caps.
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    pole_caps(bm, uv)
+    objects.append(new_object("PoleCaps", bm, mat))
+
+    beam_texture()
+
     # Lay them out apart for the preview render (the export keeps each at its own origin).
     offsets = {"FieldArcs": (-2.2, 0.8), "FieldFlares": (1.0, 0.8), "FieldRing": (-1.6, -1.8),
-               "Chevron": (1.6, -1.8)}
+               "Chevron": (1.6, -1.8), "PoleCaps": (0.0, -1.8)}
     for obj in objects:
         ox, oy = offsets[obj.name]
         obj.location = (ox, oy, 0)
