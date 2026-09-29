@@ -579,6 +579,9 @@ local function settle(e: any)
 			-- far (this game counted), and whether this is an arena (Play another, Lobby).
 			rematch = e.rematch ~= nil,
 			arena = e.fixed == true,
+			-- A No-ults global queue match (the table's ult switch off): the result screen's pill.
+			noUlts = (type(e.settings) == "table" and e.settings.abilities == false and not m.solo)
+				or nil,
 			series = if e.series and not m.solo
 				then { wins = table.clone(e.series.wins), games = e.series.games }
 				else nil,

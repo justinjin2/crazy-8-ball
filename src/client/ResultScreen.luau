@@ -517,6 +517,20 @@ function ResultScreen.build(self: any, view: any)
 		view.vs.AutoLocalize = wins == false
 		view.vs.ZIndex = 3
 	end
+	-- A No ults queue match (the server's summary.noUlts): a small grey NO ULTS pill under VS.
+	view.noUlts = nil
+	if not solo and summary.noUlts == true then
+		local U = Config.UI.Ults
+		local pill = HudParts.pill(face, "NoUlts", HudParts.color(U.NoUltsColor))
+		pill.AnchorPoint = Vector2.new(0.5, 0)
+		pill.ZIndex = 3
+		local words = HudParts.text(pill, "Words", U.NoUltsTextPx, Strings.Ults.Hud.NoUlts)
+		words.TextWrapped = false
+		words.Size = UDim2.new(1, -U.NoUltsPadPx, 1, -2)
+		words.Position = UDim2.fromOffset(U.NoUltsPadPx / 2, 1)
+		words.ZIndex = 4
+		view.noUlts = pill
+	end
 	-- The choices after a two-sided game, in Continue's place.
 	view.choices = nil
 	if not solo and (summary.rematch == true or summary.arena == true) then
@@ -896,6 +910,18 @@ function ResultScreen.layout(self: any, settled: boolean?)
 		view.vs.AnchorPoint = Vector2.new(0.5, 0.5)
 		view.vs.Position = UDim2.fromOffset(sideWidth + C.VsWidth / 2, portraitTop + size / 2)
 		view.vs.Size = UDim2.fromOffset(C.VsWidth, C.VsTextPx + 8)
+	end
+	if view.noUlts then
+		local U = Config.UI.Ults
+		local words = TextService:GetTextSize(
+			Strings.Ults.Hud.NoUlts,
+			U.NoUltsTextPx,
+			(Enum.Font :: any)[K.Font],
+			Vector2.new(1000, 100)
+		).X
+		view.noUlts.Position =
+			UDim2.fromOffset(sideWidth + C.VsWidth / 2, portraitTop + size / 2 + C.VsTextPx / 2 + 6)
+		view.noUlts.Size = UDim2.fromOffset(words + U.NoUltsPadPx * 2, U.ResultNoUltsHeightPx)
 	end
 end
 

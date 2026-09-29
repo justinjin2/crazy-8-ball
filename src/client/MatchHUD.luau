@@ -132,6 +132,19 @@ local function makePortrait(parent: Instance): any
 	gone.Size = UDim2.fromScale(0.7, 0.7)
 	gone.ZIndex = 5
 	gone.Visible = false
+	-- An opponent's ult (UI_STYLE 11): a small badge on the portrait's inner top corner, lit
+	-- (the gold badge) while their bar is ready and faded otherwise. The art, or the kit's HUD
+	-- 8 ball while the art is "" (still uploading).
+	local ult = frame(root, "Ult")
+	ult.AnchorPoint = Vector2.new(0.5, 0.5)
+	ult.ZIndex = 7
+	ult.Visible = false
+	local ultArt = HudParts.icon(ult, "UltBadge", "Art")
+	ultArt.Size = UDim2.fromScale(1, 1)
+	ultArt.ZIndex = 7
+	local ultBall = HudParts.ball(ult)
+	ultBall.root.Size = UDim2.fromScale(1, 1)
+	ultBall.root.ZIndex = 7
 	local active = frame(imageFrame, "ActiveMarker")
 	active.AnchorPoint = Vector2.new(0.5, 0.5)
 	active.Position = UDim2.new(1, -2, 1, -2)
@@ -181,11 +194,59 @@ local function makePortrait(parent: Instance): any
 		border = border,
 		halves = halves,
 		badge = badge,
+		ult = ult,
+		ultArt = ultArt,
+		ultBall = ultBall,
+		ultLit = nil,
 		rankConnections = {},
 		rankPending = false,
 		userId = nil,
 		occupied = false,
 	}
+end
+
+-- Light an opponent's ult icon (ready) or fade it; `shown` false hides it.
+local function paintUlt(portrait: any, shown: boolean, lit: boolean)
+	portrait.ult.Visible = shown
+	if not shown or portrait.ultLit == lit then
+		return
+	end
+	portrait.ultLit = lit
+	local art = if lit then K.Icons.UltBadgeGold else K.Icons.UltBadge
+	if art == "" then
+		art = K.Icons.UltBadge
+	end
+	local fade = if lit then 0 else Config.UI.Ults.OpponentDimTransparency
+	portrait.ultArt.Image = art
+	portrait.ultArt.Visible = art ~= ""
+	portrait.ultArt.ImageTransparency = fade
+	portrait.ultArt.ImageColor3 = if lit then Color3.new(1, 1, 1) else tone("Grey")
+	local ball = portrait.ultBall
+	ball.root.Visible = art == ""
+	HudParts.paintBall(ball, 8, false)
+	ball.sphere.BackgroundTransparency = fade
+	ball.disc.BackgroundTransparency = fade
+	ball.number.TextTransparency = fade
+	ball.ring.Color = if lit then tone("Gold") else tone("Ink")
+	ball.ring.Thickness = if lit then K.Ball.StrokePx + 1 else K.Ball.StrokePx
+	ball.ring.Transparency = fade
+	if lit then
+		UIAnim.bounce(portrait.ult)
+	end
+end
+
+--- The shot clock's time left, in seconds: `deadline - max(now, pausedUntil)`. While an ult is
+--- being activated (its cutscene and arming) the clock stands still; the server has already
+--- moved the deadline on by that pause (Ults/Match). Main's last-seconds tick uses it too.
+function MatchHUD.clockLeft(snapshot: any, now: number): number
+	local deadline = snapshot and snapshot.deadline
+	if type(deadline) ~= "number" then
+		return 0
+	end
+	local ults = snapshot.ults
+	local paused = if type(ults) == "table" then ults.pausedUntil else nil
+	local from = if type(paused) == "number" and paused > now then paused else now
+	return math.max(0, deadline - from)
 end
 
 -- The OPEN TABLE label over a team's ball area, with the balls already down beside it.
@@ -369,6 +430,16 @@ function MatchHUD.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.seriesPill.Visible = false
 	self.seriesText = text(self.seriesPill, "Score", S.MoveClockTextSize, "")
 	self.seriesText.AutoLocalize = false
+	-- A No ults match (the global queue's Ults Off, settings.abilities false): a small grey NO
+	-- ULTS pill in the same row, beside the move or series pill when one shows.
+	self.noUltsPill =
+		HudParts.pill(self.topBar, "NoUlts", HudParts.color(Config.UI.Ults.NoUltsColor))
+	self.noUltsPill.Visible = false
+	self.noUltsText =
+		text(self.noUltsPill, "Words", Config.UI.Ults.NoUltsTextPx, Strings.Ults.Hud.NoUlts)
+	self.noUltsText.TextWrapped = false
+	self.noUlts = false
+	self.ultReserve = 0 -- the ult HUD's room at the bottom (setUltReserve)
 	-- Leave: a small red door at the bar's right end, beside the right-hand team.
 	self.leave = candy(self.topBar, "", function()
 		self:openLeave()
@@ -568,6 +639,12 @@ function MatchHUD.layout(self: any)
 			local badgeSize = portraitSize * RH.PortraitBadgeShare
 			portrait.badge:setSize(badgeSize)
 			portrait.badge.root.Position = UDim2.new(0.5, 0, 1, -badgeSize * RH.PortraitBadgeRaise)
+			-- The ult icon on the top corner facing the balls (their team's left one).
+			local ultSize = math.floor(portraitSize * Config.UI.Ults.OpponentIconShare)
+			portrait.ult.Size = UDim2.fromOffset(ultSize, ultSize)
+			portrait.ult.Position =
+				UDim2.fromOffset(if i == 1 then portraitSize else 0, math.floor(ultSize * 0.3))
+			HudParts.sizeBall(portrait.ultBall, ultSize)
 			portrait.root.Visible = n <= count and portrait.occupied
 			-- The clock ring's halves, with room outside the portrait for the stroke. In the
 			-- bar's own pixels: the bar's UIScale shrinks them with everything else.
@@ -618,13 +695,35 @@ function MatchHUD.layout(self: any)
 	self.seriesText.Position = UDim2.fromOffset(6, 1)
 	self.seriesText.Size = UDim2.fromOffset(d.moveWidth - 12, moveHeight - 2)
 	HudParts.setTextSize(self.seriesText, d.moveText)
+	-- NO ULTS: as tall as the move pill, as wide as its words; laid out in update, where it
+	-- knows whether it sits alone or beside the move or series pill.
+	local noUltsText = Config.UI.Ults.NoUltsTextPx
+	HudParts.setTextSize(self.noUltsText, noUltsText)
+	local noUltsWidth = TextService:GetTextSize(
+		self.noUltsText.Text,
+		noUltsText,
+		self.noUltsText.Font,
+		Vector2.new(1000, 100)
+	).X + Config.UI.Ults.NoUltsPadPx * 2
+	self.noUltsPill.AnchorPoint = Vector2.new(0.5, 0)
+	self.noUltsPill.Size = UDim2.fromOffset(noUltsWidth, moveHeight)
+	self.noUltsText.Position = UDim2.fromOffset(0, 1)
+	self.noUltsText.Size = UDim2.fromOffset(noUltsWidth, moveHeight - 2)
+	self.noUltsRow = {
+		centre = clockLeft + clockWidth / 2,
+		top = height + gap,
+		width = noUltsWidth,
+		beside = d.moveWidth,
+		gap = gap,
+	}
 	-- The popups under the bar drop below the move pill while it shows.
 	self.moveBottom = self.headerBottom + (gap + moveHeight) * scale
 	self.leave.Position = UDim2.fromOffset(leaveLeft, (height - d.leave) / 2)
 	self.leave.Size = UDim2.fromOffset(d.leave, d.leave)
 	-- The placement instruction: one thin line centred at the bottom, as wide as its words.
 	local setupHeight = if short then S.ShortSetupHeight else S.SetupHeight
-	self.setup.Position = UDim2.new(0.5, 0, 1, -margin)
+	-- Over the ult bar while it shows (setUltReserve).
+	self.setup.Position = UDim2.new(0.5, 0, 1, -(margin + self.ultReserve))
 	self.setupHeight = setupHeight
 	self.setupTextSize = if short then S.ShortSetupTextSize else S.SetupTextSize
 	layoutIconLine(self.setupLine, setupHeight)
@@ -745,7 +844,18 @@ end
 
 function MatchHUD.reservedBottom(self: any): number
 	local bottom = if self.setup.Visible then self.setupHeight or S.SetupHeight else 0
-	return bottom + S.HeaderMargin
+	return bottom + S.HeaderMargin + self.ultReserve
+end
+
+--- The ult HUD's room at the bottom of the screen (UltHud.reservedBottom, 0 while it is
+--- hidden): the ball-in-hand hint and the wrong-ball line sit above it.
+function MatchHUD.setUltReserve(self: any, px: number)
+	px = math.max(0, math.floor(px + 0.5))
+	if px == self.ultReserve then
+		return
+	end
+	self.ultReserve = px
+	self.setup.Position = UDim2.new(0.5, 0, 1, -(S.HeaderMargin + px))
 end
 
 function MatchHUD.voteKey(self: any): string?
@@ -865,6 +975,13 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 	end
 	local ours = localTeam(snapshot, userId)
 	self.ours = ours
+	-- Ults (absent on an old snapshot: off): each opponent's icon, and NO ULTS for a No ults
+	-- queue match.
+	local ults = snapshot.ults
+	local ultsOn = type(ults) == "table" and ults.on == true and type(ults.bars) == "table"
+	self.noUlts = type(snapshot.settings) == "table"
+		and snapshot.settings.abilities == false
+		and snapshot.solo == nil
 	local previous = if old and old.epoch == snapshot.epoch then self.downIds else nil
 	local downIds = {}
 	for id = 1, 15 do
@@ -980,6 +1097,14 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			portrait.active.Visible = seat ~= nil
 				and seat.userId == snapshot.shooter
 				and snapshot.phase ~= "Result"
+			-- Their ult: shown on the other side's portraits while ults are on, lit when ready.
+			local ultBar = seat ~= nil and side == 2 and ultsOn and ults.bars[tostring(seat.userId)]
+				or nil
+			paintUlt(
+				portrait,
+				type(ultBar) == "table",
+				type(ultBar) == "table" and ultBar.ready == true
+			)
 			-- The border stays ink: the shooter's green is the clock ring over it, so as the
 			-- ring drains the ink shows through (a green border under it hid the draining).
 			portrait.border.Color = tone("Ink")
@@ -1150,7 +1275,8 @@ function MatchHUD.update(self: any, now: number)
 	local phase = snapshot.phase
 	local isShooter = snapshot.shooter == self.localUserId
 	local deadline = snapshot.deadline
-	local remaining = if deadline then math.max(0, deadline - now) else 0
+	-- Held while an ult is activated (the cutscene and its arming): MatchHUD.clockLeft.
+	local remaining = MatchHUD.clockLeft(snapshot, now)
 	local isClock = deadline ~= nil
 		and snapshot.solo == nil -- solo has no clock; the Intro and Foul pass unshown
 		and phase ~= "Resolving"
@@ -1179,7 +1305,21 @@ function MatchHUD.update(self: any, now: number)
 		self.seriesText.Text =
 			Strings.PostMatch.SeriesPill:format(series.wins[ours] or 0, series.wins[theirs] or 0)
 	end
-	self.popupTop = if placing or seriesShown then self.moveBottom else self.headerBottom
+	-- NO ULTS: centred under the clock, or just right of the move or series pill.
+	local row = self.noUltsRow
+	self.noUltsPill.Visible = self.noUlts and phase ~= "Result"
+	if row then
+		local besideOne = placing or seriesShown
+		local x = if besideOne
+			then row.centre + row.beside / 2 + row.gap + row.width / 2
+			else row.centre
+		self.noUltsPill.Position = UDim2.fromOffset(x, row.top)
+	end
+	self.popupTop = if placing
+			or seriesShown
+			or self.noUltsPill.Visible
+		then self.moveBottom
+		else self.headerBottom
 	if placing then
 		self.moveText.Text = string.format(Copy.MoveClock, math.ceil(remaining))
 	end
@@ -1196,11 +1336,24 @@ function MatchHUD.update(self: any, now: number)
 	self.leave.Visible = phase ~= "Result"
 	-- The ring drains with the big clock (calling the pocket, aiming), each over its own clock;
 	-- it stays full through the turn's introduction and while the cue ball is being moved.
+	-- An ult activated in this phase moved the deadline on by its pause: the ring's full length
+	-- leaves that out, so the ring holds through the pause and then drains as before.
+	local armed = type(snapshot.ults) == "table" and snapshot.ults.armed or nil
+	local pause = 0
+	if
+		type(armed) == "table"
+		and type(armed.at) == "number"
+		and type(armed.readyAt) == "number"
+		and armed.at >= snapshot.phaseStartedAt
+	then
+		pause = math.max(0, armed.readyAt - armed.at)
+	end
+	local full = if deadline then deadline - snapshot.phaseStartedAt - pause else 0
 	local progress = if isClock
 			and phase ~= "Intro"
 			and not placing
-			and deadline > snapshot.phaseStartedAt
-		then remaining / (deadline - snapshot.phaseStartedAt)
+			and full > 0
+		then remaining / full
 		else 1
 	for _, team in self.teams do
 		for _, portrait in team.portraits do

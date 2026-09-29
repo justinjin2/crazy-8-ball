@@ -33,6 +33,9 @@ local PowerCue = require(script.Parent.PowerCue)
 local SpinSelector = require(script.Parent.SpinSelector)
 local ZoomHint = require(script.Parent.ZoomHint)
 local PadGuide = require(script.Parent.PadGuide)
+local UltHud = require(script.Parent.UltHud)
+local UltCutscene = require(script.Parent.UltCutscene)
+local MagnetFx = require(script.Parent.MagnetFx)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
 local MatchTargets = require(script.Parent.MatchTargets)
@@ -59,6 +62,12 @@ local visuals = Instance.new("Folder")
 visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
 local hub = Hub.new(visuals)
+-- Ultimates: the activation cutscene everyone at the table sees, then Magnet's look and sound.
+local magnetFx = MagnetFx.start(hub, visuals)
+local ultCutscene = UltCutscene.start(hub)
+ultCutscene:onArming(function(tableId, armed)
+	magnetFx:arming(tableId, armed)
+end)
 local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
@@ -71,6 +80,18 @@ UI.addPlayControl(powerCue.root)
 local spinSelector = SpinSelector.new(screen, input)
 local zoomHint = ZoomHint.new(screen) -- scroll or pinch to zoom, over the spin button
 local padGuide = PadGuide.new(screen) -- the controller guide, bottom left, on a gamepad
+-- The ult bar, bottom centre on your turn (or solo's Practice ult); a press sends UltActivate.
+local ultHud = UltHud.new(screen, function()
+	Net.get("UltActivate"):FireServer()
+end)
+task.spawn(function()
+	Net.get("UltGain").OnClientEvent:Connect(function(payload: any)
+		ultHud:onGain(payload)
+	end)
+	Net.get("UltNotice").OnClientEvent:Connect(function(notice: any)
+		ultHud:onNotice(notice)
+	end)
+end)
 UI.addPlayControl(spinSelector.root)
 local snapshot: any = nil
 -- What the HUD and highlights draw: `snapshot` as match:view presents it, with balls down
@@ -170,6 +191,10 @@ local function canShoot(): boolean
 		return false
 	end
 	if callPending() then
+		return false
+	end
+	-- An ult still in its cutscene: the server would refuse the shot until it is armed.
+	if UltHud.arming(snapshot, workspace:GetServerTimeNow()) then
 		return false
 	end
 	return true
@@ -618,6 +643,7 @@ local function acquireTable(s: any?)
 		end
 		targets:clear()
 		hud:setSnapshot(nil, player.UserId)
+		ultHud:setSnapshot(nil, player.UserId)
 		queueMenu:setSnapshot(nil, player.UserId)
 		hudView, viewVersion = nil, -1
 		clearHighlights()
@@ -660,6 +686,7 @@ local function acquireTable(s: any?)
 		awaitingAt = nil
 	end
 	refreshView()
+	ultHud:setSnapshot(s, player.UserId)
 	-- An arena's table has no host card: its players were matched by the global queue.
 	queueMenu:setSnapshot(if isArena then nil else s, player.UserId)
 	targets:setSnapshot(s, placement, match.state.geometry, player.UserId)
@@ -962,6 +989,7 @@ local function dropStrayMatchSelection()
 end
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
+	magnetFx:update(dt)
 	for id = 1, Placement.tableCount() do
 		local a = audioByTable[id]
 		local m = assert(hub:matchFor(id))
@@ -990,7 +1018,8 @@ RunService.RenderStepped:Connect(function(dt)
 		and Engine.isShotClock(snapshot.phase, snapshot.breakShot)
 		and snapshot.deadline
 	then
-		local second = math.ceil(snapshot.deadline - workspace:GetServerTimeNow())
+		-- Held while an ult is activated, as the HUD's clock (MatchHUD.clockLeft).
+		local second = math.ceil(MatchHUD.clockLeft(snapshot, workspace:GetServerTimeNow()))
 		if tickTurn ~= snapshot.turnId then
 			tickTurn, tickSecond = snapshot.turnId, second -- a turn starts: no tick for it yet
 		elseif second ~= tickSecond then
@@ -1094,6 +1123,11 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 	end
 	Progression.update({ inMatch = inMatch, shooting = controlled, matchUserIds = matchIds })
+	-- The ult bar: it fades while the cue is pulled back, the bottom lines sit above it, and the
+	-- controller guide lists "Ult" while it offers its press.
+	ultHud:update(dt, currentPull > 0)
+	hud:setUltReserve(ultHud:reservedBottom())
+	padGuide:setUlt(ultHud:promptShown())
 	if not snapshot or not match then
 		return
 	end

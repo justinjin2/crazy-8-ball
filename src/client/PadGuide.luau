@@ -4,7 +4,7 @@
 -- what the controller does:
 --
 --   (L-stick) <> Turn   (D-pad) <> Fine aim   (R-stick) ^v Zoom
---   (L1) Spin & angle   (X) Shoot
+--   (L1) Spin & angle   (X) Shoot   (Square) Ult     <- "Ult" only while the ult bar is ready
 --
 -- and while L1 holds the spin panel open (designer, 2026-09-27), the spin controls instead:
 --
@@ -35,6 +35,7 @@ type Item = {
 	keys: { Enum.KeyCode },
 	arrows: string?, -- "sideways" or "updown"
 	words: string,
+	ult: boolean?, -- shown only while the ult bar offers its press (setUlt)
 }
 
 -- The strip's contents, in reading order.
@@ -65,6 +66,14 @@ local ITEMS: { Item } = {
 		row = 2,
 		keys = { Enum.KeyCode.ButtonA },
 		words = Copy.Shoot,
+	},
+	-- The ult (UltHud binds this button only while its bar is ready; Config.UI.Ults.GamepadKey).
+	{
+		set = "aim",
+		row = 2,
+		keys = { (Enum.KeyCode :: any)[Config.UI.Ults.GamepadKey] },
+		words = Copy.Ult,
+		ult = true,
 	},
 	{ set = "spin", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = Copy.Spin },
 	{
@@ -119,6 +128,8 @@ function PadGuide.new(screen: ScreenGui): any
 	self.words = {} :: { TextLabel }
 	self.stacks = {} :: { Frame }
 	self.leaveHint = nil :: ImageLabel?
+	self.ultShown = false
+	self.ultItems = {} :: { Frame }
 
 	local root = HudParts.frame(screen, "PadGuide")
 	root.AnchorPoint = Vector2.new(0, 1)
@@ -145,6 +156,10 @@ function PadGuide.new(screen: ScreenGui): any
 			line = made
 		end
 		local entry = row(line :: Frame, "Item" .. index, P.PartGapPx, index)
+		if item.ult then
+			entry.Visible = false
+			table.insert(self.ultItems, entry)
+		end
 		local order = 0
 		local function nextOrder(): number
 			order += 1
@@ -275,6 +290,17 @@ function PadGuide.setVisible(self: any, visible: boolean)
 	end
 	self.wanted = visible
 	self:apply()
+end
+
+--- Show "Ult" in the strip while the ult bar offers its press (Main, from UltHud).
+function PadGuide.setUlt(self: any, shown: boolean)
+	if self.ultShown == shown then
+		return
+	end
+	self.ultShown = shown
+	for _, entry in self.ultItems do
+		entry.Visible = shown
+	end
 end
 
 --- Put the Circle (Xbox: B) just right of the Leave button, shown on a gamepad only.

@@ -4137,8 +4137,8 @@ Config.UI = {
 			-- Ultimates (tools/gen_ui_art.py `ults`, uploaded to the group 2026-09-28): white art
 			-- tinted in Roblox.
 			UltBackdrop = "rbxassetid://121308269711722", -- the cutscene's swirl, 1024 square; the 3:1 strip is rows 341-683
-			AuraFlame = "", -- the aura's flipbook, Grid4x4, 16 frames, OneShot
-			FieldLines = "", -- Magnet's beam, 512 x 128, tiles left to right (Wrap)
+			AuraFlame = "rbxassetid://90187359321182", -- the aura's flipbook, Grid4x4, 16 frames, OneShot
+			FieldLines = "rbxassetid://132811450841753", -- Magnet's beam, 512 x 128, tiles left to right (Wrap)
 			RingGlow = "rbxassetid://121133273572178", -- a soft ring: the pocket's pulse and the N/S rings round the cue ball
 			Spark = "rbxassetid://131919576694289", -- a 4-point sparkle for bursts
 			SoftGlow = "rbxassetid://121163827465552", -- a round soft glow (the ball's glow, the bar's ready glow)
@@ -6021,11 +6021,17 @@ Config.UI.UltCutscene = {
 	-- The avatar: a clone of the activator's character in its rest pose, upper body (waist to
 	-- the top of the head) filling FrameMargin of the picture's height, at AvatarScreenX across
 	-- the screen, turned AvatarYawDegrees toward the words. A pretend player is an ink silhouette.
+	-- A ViewportFrame neither rotates nor clips under a tilted frame, so the avatar stands in its
+	-- own upright window, AvatarWindowShare of the picture's height wide and as tall as fits
+	-- inside the tilted band there. Upper body = waist to the top of the head or its hat, the hat
+	-- counted up to HatMaxHeads head heights above the head.
 	AvatarScreenX = 0.4,
+	AvatarWindowShare = 1.6,
+	HatMaxHeads = 2.5,
 	AvatarYawDegrees = 20,
 	FieldOfView = 30,
 	FrameMargin = 1.1,
-	FocusUpShare = 0.06, -- the camera aims this share of the upper body above its middle
+	FocusUpShare = -0.04, -- the window's bottom sits this share of the upper body above the waist (-: below)
 	Ambient = { 150, 150, 170 },
 	LightColor = { 255, 244, 228 },
 	LightDirection = { -0.5, -1, 0.7 }, -- from the front left, above
