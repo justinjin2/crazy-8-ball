@@ -1,0 +1,306 @@
+{
+  "id": "sakura",
+  "name": "Sakura",
+  "tier": "Rare",
+  "catalog_id": "SakuraCue",
+  "concept": "R3",
+  "palette": [
+    "#141014",
+    "#FF9CC7",
+    "#D4AF37",
+    "#FFD6E7"
+  ],
+  "painter": "mix",
+  "note": "Black lacquer painted with pink cherry-blossom branches outlined in gold, and a pink silk wrap.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Glossy black lacquer (#141014) painted with cherry-blossom branches: thin brown branches outlined in gold (#D4AF37) winding along the panel, with pink five-petal sakura blossoms (#FF9CC7 with pale #FFD6E7 centres and gold stamens) and small buds on them, three or four blossoms on the middle row. The two thin strips at the far left are the joint collar: paint them plain flat gold (#D4AF37).",
+      "roll_deg": 45
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): plain gold (#D4AF37). The wrap (from the ring to the next zone line): plain flat soft pink (#F2A7C3). The butt sleeve (between the two zone lines on the right): black lacquer with a gold-outlined cherry branch and three pink blossoms on the middle row. The very thin strip at the far right: plain black.",
+      "roll_deg": 45
+    },
+    "shaft_tile": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Glossy black lacquer (#141014) with one thin gold-outlined (#D4AF37) cherry branch running along the whole length, small pink blossoms (#FF9CC7) and buds spaced along it, and a few falling petals.",
+      "roll_deg": 0,
+      "size": "1536x768"
+    },
+    "shaft_top": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Glossy black lacquer (#141014) with a thin gold-outlined (#D4AF37) cherry branch running along the length, blossoms (#FF9CC7, pale #FFD6E7 centres) growing more numerous toward the right edge.",
+      "roll_deg": 0
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/sakura/shaft_tile.png",
+    "shaft_top": "skins/sakura/shaft_top.png",
+    "forearm": "skins/sakura/forearm.png",
+    "butt": "skins/sakura/butt.png",
+    "cap_end": "skins/sakura/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "gold": "#D4AF37",
+    "pink": "#FF9CC7",
+    "wrap": "#F0A6C2"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.2,
+    "EmissiveTint": "#FFC0DC"
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Soft pink cherry petals drift off and spin down turning over (a 4-frame tumbling flipbook), a pink silk ribbon of light loops slowly round the cue tip to butt and back (a Trail flown by a script: an Orbiter), and pink glow motes float.",
+      "BackRateScale": 0.5,
+      "Orbiters": [
+        {
+          "Name": "SilkRibbon",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.7,
+          "Radius": 0.3,
+          "Wobble": 0.12,
+          "WobbleHz": 0.7,
+          "Phase": 40,
+          "Trail": {
+            "Lifetime": 1.6,
+            "WidthStuds": 0.11,
+            "Color": [
+              [
+                0,
+                "#FFD6E7"
+              ],
+              [
+                1,
+                "#FF6FAE"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0.25
+              ],
+              [
+                0.7,
+                0.5
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                0.5,
+                0.8
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/wisp_strip.png",
+            "TextureMode": "Wrap",
+            "TextureLength": 1.0
+          }
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "Petals",
+          "Texture": "vfx/sakura/petal_2x2.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 11,
+          "Lifetime": [
+            2.0,
+            3.0
+          ],
+          "Speed": [
+            0.2,
+            0.6
+          ],
+          "Size": [
+            [
+              0,
+              0.09
+            ],
+            [
+              1,
+              0.11
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "FlipbookLayout": "Grid2x2",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            4,
+            8
+          ],
+          "FlipbookStartRandom": true,
+          "Acceleration": [
+            0,
+            -0.5,
+            0
+          ],
+          "Drag": 1.1,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -120,
+            120
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        },
+        {
+          "Name": "PinkMotes",
+          "Texture": "vfx/_shared/glow_core.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.34,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.0,
+            1.6
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FF9CC7",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            0.2,
+            0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          150,
+          200
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 17,
+      "Back": 8.5,
+      "Beams": 0,
+      "Orbiters": 1
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (Rares add none)."
+    }
+  }
+}

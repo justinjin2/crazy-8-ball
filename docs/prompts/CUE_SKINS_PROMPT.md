@@ -362,7 +362,7 @@ and you ask the designer about it.
   for approval.
 - [x] 3. Commons (6 more): C1, C2.
 - [x] 4. Uncommons (9): U1-U3, glowing rings.
-- [ ] 5. Rares (9 more): R1-R3, every one with its own aura.
+- [x] 5. Rares (9 more): R1-R3, every one with its own aura.
 - [ ] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
 - [ ] 7. Legendaries (7): L1-L7, base cue, every one with a trail and a pocket finisher, at
   section 8.1's Legendary effort within section 8.2's caps.
@@ -441,3 +441,12 @@ and you ask the designer about it.
   `ring_lines`, `ivory`. Inlays face a camera 45 degrees off the top (one point faces you in
   the sheets and on the back). Midnight re-rendered with the new leather.
 
+- **2026-09-29, Uncommons and Rares.** Each Uncommon keeps one glowing ring; OpenAI takes turn
+  their centrepiece 45 degrees round the cue (`roll_deg`) to face the camera. Every Rare has
+  its own kind of aura, built from new preview pieces that map straight onto Roblox: Orbiters
+  (an attachment pair a script flies on a helix, carrying a Trail and an optional glowing
+  head), Arcs (lightning as chains of short Beams re-jittered by a script), curved Beams
+  (CurveSize and the attachments' Axis, turned round the cue by a script: Twist) and
+  PointLights with a scripted flicker. Rare sprites (flame, snowflake, bubble, ghost, leaf,
+  blossom, petal, sprinkle, candy stripe) are drawn by script. Blaze's flame sheet is now
+  shared (`vfx/_shared/fire_4x4.png`).

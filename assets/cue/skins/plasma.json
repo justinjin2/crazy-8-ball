@@ -1,0 +1,278 @@
+{
+  "id": "plasma",
+  "name": "Plasma",
+  "tier": "Rare",
+  "catalog_id": "PlasmaCue",
+  "concept": "R2",
+  "palette": [
+    "#2A2B33",
+    "#A45CFF",
+    "#E6CCFF"
+  ],
+  "painter": "procedural",
+  "note": "Dark gunmetal with glowing violet plasma veins pulsing through cracks.",
+  "panels": {
+    "shaft_tile": "skins/plasma/shaft_tile.png",
+    "shaft_top": "skins/plasma/shaft_top.png",
+    "forearm": "skins/plasma/forearm.png",
+    "butt": "skins/plasma/butt.png",
+    "cap_end": "skins/plasma/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "gunmetal": "#2A2B33",
+    "violet": "#A45CFF",
+    "pale": "#E6CCFF",
+    "glow": "#C08AFF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 2.0,
+    "EmissiveTint": "#D0A8FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.2,
+        "Max": 2.4,
+        "Period": 1.6
+      }
+    }
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Violet lightning arcs crackle over the whole cue: short jagged arcs jump between points on the handle and the shaft, re-struck every tenth of a second (chains of short Beams whose attachments a script re-jitters: Arcs); violet sparks spit off; a violet light flickers with them.",
+      "BackRateScale": 0.5,
+      "Arcs": [
+        {
+          "Name": "HandleArcs",
+          "Count": 4,
+          "FromStuds": 3.6,
+          "ToStuds": 7.0,
+          "Length": [
+            0.25,
+            0.75
+          ],
+          "Around": 120,
+          "Radius": 0.165,
+          "Segments": 7,
+          "Jitter": 0.108,
+          "Interval": 0.1,
+          "Duty": 0.6,
+          "WidthStuds": 0.09,
+          "Color": "#C99BFF",
+          "LightEmission": 1,
+          "Brightness": 3,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        },
+        {
+          "Name": "ShaftArcs",
+          "Count": 3,
+          "FromStuds": 0.4,
+          "ToStuds": 3.6,
+          "Length": [
+            0.35,
+            1.0
+          ],
+          "Around": 90,
+          "Radius": 0.12,
+          "Segments": 8,
+          "Jitter": 0.126,
+          "Interval": 0.13,
+          "Duty": 0.55,
+          "WidthStuds": 0.072,
+          "Color": "#B98AFF",
+          "LightEmission": 1,
+          "Brightness": 3,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        },
+        {
+          "Name": "FarArcs",
+          "Count": 2,
+          "FromStuds": 1.0,
+          "ToStuds": 7.0,
+          "Length": [
+            0.8,
+            1.6
+          ],
+          "Around": 200,
+          "Radius": 0.33,
+          "Segments": 10,
+          "Jitter": 0.216,
+          "Interval": 0.2,
+          "Duty": 0.45,
+          "WidthStuds": 0.063,
+          "Color": "#E6CCFF",
+          "LightEmission": 1,
+          "Brightness": 3,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "PlasmaSparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.26,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.2,
+            0.5
+          ],
+          "Speed": [
+            1.5,
+            3.0
+          ],
+          "Size": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0.02
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#F2E6FF"
+            ],
+            [
+              1,
+              "#8A3AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4
+        },
+        {
+          "Name": "PlasmaHaze",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.5,
+              0.45
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.75
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#8A3AFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0,
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 5.0,
+          "Color": "#A45CFF",
+          "Brightness": 1.0,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.3,
+            "Max": 1.2,
+            "Period": 0.25,
+            "Shape": "flicker"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          170,
+          100,
+          255
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 16,
+      "Back": 8,
+      "Beams": 0,
+      "Arcs": 6,
+      "Lights": 1
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (Rares add none)."
+    }
+  }
+}

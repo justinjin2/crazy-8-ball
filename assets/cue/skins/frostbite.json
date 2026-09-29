@@ -1,0 +1,337 @@
+{
+  "id": "frostbite",
+  "name": "Frostbite",
+  "tier": "Rare",
+  "catalog_id": "FrostbiteCue",
+  "concept": "R2",
+  "palette": [
+    "#DDF3FF",
+    "#8FD3F4",
+    "#C9CDD4"
+  ],
+  "painter": "mix",
+  "note": "Frosted ice-crystal glass in pale blue, with frost feathers frozen inside and silver rings.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Frosted ice-crystal glass in pale blue (#DDF3FF, #8FD3F4, deeper #4A90C0 in the depths): translucent-looking ice with white frost feathers and fern-like frost patterns frozen inside, fine white crack lines running through it, and two delicate white snowflakes on the middle row. The two thin strips at the far left are the joint collar: paint them plain flat silver (#C9CDD4).",
+      "roll_deg": 45
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): plain silver (#C9CDD4). The wrap (from the ring to the next zone line): frosted pale grey-white textured leather (#B8C4CC to #DDE6EC) with a soft crackled-ice grain. The butt sleeve (between the two zone lines on the right): sharp faceted ice shards and crystal planes in pale blue and white (#DDF3FF, #8FD3F4) like a cracked glacier, bright white edges, a star-like burst of shards on the middle row. The very thin strip at the far right: plain black.",
+      "roll_deg": 45
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/frostbite/shaft_tile.png",
+    "shaft_top": "skins/frostbite/shaft_top.png",
+    "forearm": "skins/frostbite/forearm.png",
+    "butt": "skins/frostbite/butt.png",
+    "cap_end": "skins/frostbite/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C9CDD4",
+    "ice": "#8FC8EC",
+    "frost": "#E6F6FF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 0.8,
+    "EmissiveTint": "#D8F2FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 0.6,
+        "Max": 1.0,
+        "Period": 4.0
+      }
+    }
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Cold mist rolls off the cue and sinks (it falls, where smoke would rise); six-armed snowflakes drift down turning; an icy stream of frost curls slowly round the cue from tip to butt (a curved Beam whose curve a script turns); frost glints twinkle.",
+      "BackRateScale": 0.5,
+      "Beams": [
+        {
+          "Name": "FrostStream",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.6,
+          "Segments": 24,
+          "Curve0": [
+            0.22,
+            0.1
+          ],
+          "Curve1": [
+            -0.2,
+            -0.12
+          ],
+          "Twist": 35,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.5,
+          "TextureSpeed": 0.25,
+          "Color": [
+            [
+              0,
+              "#CFEFFF"
+            ],
+            [
+              1,
+              "#7FC8F0"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.2
+            ],
+            [
+              0.9,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Brightness": 2
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "ColdMist",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.24,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 7,
+          "Lifetime": [
+            1.6,
+            2.2
+          ],
+          "Speed": [
+            0.08,
+            0.25
+          ],
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              1.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.6
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#A8DCFF",
+          "LightEmission": 0.7,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Acceleration": [
+            0,
+            -0.5,
+            0
+          ],
+          "Drag": 0.6,
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ]
+        },
+        {
+          "Name": "Snowflakes",
+          "Texture": "vfx/frostbite/snowflake.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.6,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            1.6,
+            2.4
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0.13
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            -0.45,
+            0
+          ],
+          "Drag": 0.8,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -70,
+            70
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        },
+        {
+          "Name": "FrostGlints",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ]
+          ],
+          "Color": "#E6F7FF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          150,
+          215,
+          255
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 18,
+      "Back": 9,
+      "Beams": 1
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (Rares add none)."
+    }
+  }
+}

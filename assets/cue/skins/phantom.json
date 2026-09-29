@@ -1,0 +1,392 @@
+{
+  "id": "phantom",
+  "name": "Phantom",
+  "tier": "Rare",
+  "catalog_id": "PhantomCue",
+  "concept": "R3",
+  "palette": [
+    "#E8FFFB",
+    "#8FE8DA",
+    "#3C5A66"
+  ],
+  "painter": "mix",
+  "note": "A pale ghostly white-teal with a see-through look, with faint spirit wisps swirling inside. Spooky but cute.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "The whole panel, from the top edge to the bottom edge, is a pale ghostly see-through glass: milky white-teal (#E8FFFB, #8FE8DA) over deep teal-grey depths (#3C5A66, #1E3440), with faint glowing spirit wisps swirling inside it in long curling strands everywhere (there are no plain bands or stripes of flat colour), tiny sparkles, and one small cute friendly cartoon ghost (mint white, two dark oval eyes, a wavy hem) on the middle row, about 110 pixels tall. The two thin strips at the far left are the joint collar: paint them plain flat silver (#B8BCC2).",
+      "roll_deg": 45,
+      "take": 2
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): plain pale silver (#C8D0D0). The wrap (from the ring to the next zone line): pale grey-white pebbled leather (#D8E4E4 to #B8C8C8). The butt sleeve (between the two zone lines on the right): the same ghostly teal glass with curling glowing spirit wisps and one small cute cartoon ghost on the middle row. The very thin strip at the far right: plain black.",
+      "roll_deg": 45
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/phantom/shaft_tile.png",
+    "shaft_top": "skins/phantom/shaft_top.png",
+    "forearm": "skins/phantom/forearm.png",
+    "butt": "skins/phantom/butt.png",
+    "cap_end": "skins/phantom/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "deep": "#3C5A66",
+    "milk": "#D8F4EE",
+    "wisp": "#B8FFF0",
+    "wrap": "#D2DEDE"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.5,
+    "EmissiveTint": "#C8FFF4",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 0.9,
+        "Max": 1.7,
+        "Period": 3.2
+      }
+    }
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Small friendly cartoon ghosts rise off the cue, wobbling (a 4-frame flipbook), and fade; two teal spirit wisps curl round the cue in opposite directions (curved Beams a script turns); faint teal ghost-smoke drifts up.",
+      "BackRateScale": 0.5,
+      "Beams": [
+        {
+          "Name": "SpiritWispA",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.55,
+          "Segments": 24,
+          "Curve0": [
+            0.26,
+            0.0
+          ],
+          "Curve1": [
+            -0.22,
+            0.1
+          ],
+          "Twist": 55,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.2,
+          "TextureSpeed": 0.35,
+          "Color": "#9FF5E6",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.2
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Brightness": 2
+        },
+        {
+          "Name": "SpiritWispB",
+          "FromStuds": 0.4,
+          "ToStuds": 7.0,
+          "Width0": 0.25,
+          "Width1": 0.45,
+          "Segments": 24,
+          "Curve0": [
+            -0.2,
+            0.12
+          ],
+          "Curve1": [
+            0.24,
+            0.0
+          ],
+          "Twist": -45,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.8,
+          "TextureSpeed": -0.3,
+          "Color": "#D8FFF8",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.2
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Brightness": 2
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "Ghosts",
+          "Texture": "vfx/phantom/ghost_2x2.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.8,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 1.3,
+          "Lifetime": [
+            2.4,
+            3.2
+          ],
+          "Speed": [
+            0.15,
+            0.3
+          ],
+          "Size": [
+            [
+              0,
+              0.18
+            ],
+            [
+              0.2,
+              0.45
+            ],
+            [
+              1,
+              0.48
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.1
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.35,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "FlipbookLayout": "Grid2x2",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            3,
+            5
+          ],
+          "FlipbookStartRandom": true,
+          "Orientation": "FacingCameraWorldUp",
+          "Acceleration": [
+            0,
+            0.35,
+            0
+          ],
+          "Drag": 0.6,
+          "Rotation": [
+            -10,
+            10
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top"
+        },
+        {
+          "Name": "GhostSmoke",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.1,
+            0.25
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.75
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#8FE8DA",
+          "LightEmission": 0.7,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Drag": 0.6,
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Rotation": [
+            0,
+            360
+          ]
+        },
+        {
+          "Name": "SpiritMotes",
+          "Texture": "vfx/_shared/glow_core.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.0,
+            1.6
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#C8FFF4",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          110,
+          230,
+          210
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 11.3,
+      "Back": 5.65,
+      "Beams": 2
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (Rares add none)."
+    }
+  }
+}

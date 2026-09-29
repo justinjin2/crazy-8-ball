@@ -1190,6 +1190,7 @@ SHARED_SPRITES = {
     'smoke_4x4.png': sprite_smoke_sheet,
     'neon_strip.png': lambda: sprite_strip(256, 64, 0.08, 0.3, 0.5),
     'bolt_strip.png': lambda: sprite_strip(256, 64, 0.05, 0.22, 0.4, seed=5, flicker=0.5),
+    'fire_4x4.png': lambda: sprite_fire_sheet(),
 }
 
 # A skin's own sprites: SKIN_SPRITES[id] = {file name: function}; filled in below per skin.
@@ -1288,13 +1289,468 @@ SKIN_SPRITES['void'] = {'shard.png': sprite_shard, 'swirl.png': lambda: sprite_s
                         'trail_smoke.png': sprite_trail_smoke}
 
 
-SKIN_SPRITES['blaze'] = {'fire_4x4.png': sprite_fire_sheet}
 SKIN_SPRITES['frostbite'] = {'snowflake.png': sprite_snowflake}
 SKIN_SPRITES['tidal'] = {'bubble.png': sprite_bubble}
 SKIN_SPRITES['phantom'] = {'ghost_2x2.png': sprite_ghost_sheet}
 SKIN_SPRITES['nature'] = {'leaf_2x2.png': sprite_leaf_sheet, 'blossom.png': sprite_blossom}
 SKIN_SPRITES['sakura'] = {'petal_2x2.png': sprite_petal_sheet}
 SKIN_SPRITES['candy'] = {'sprinkles_4x4.png': sprite_sprinkle_sheet, 'stripe_strip.png': sprite_stripe_strip}
+
+
+# --- sprites for the Epic auras and moving materials (drawn by script) ----------------------
+
+def _uv(w, h):
+    u = (np.arange(w) + 0.5) / w
+    v = (np.arange(h) + 0.5) / h
+    return np.meshgrid(u, v)
+
+
+def _per(U, V, fu, fv, seed, octaves=3, z=0.0):
+    """fbm that tiles along u (u on a circle), fu cycles round, fv per unit v."""
+    R = fu / (2 * math.pi)
+    return cc.fbm(np.cos(2 * math.pi * U) * R, np.sin(2 * math.pi * U) * R + V * fv, np.full_like(U, z), octaves, seed)
+
+
+def _dots(w, h, pts, radius_px, soft=1.0):
+    """A field of round dots (u tiles): pts is [(u, v, radius scale, brightness)]."""
+    U, V = _uv(w, h)
+    a = np.zeros((h, w))
+    for (pu, pv, rs, br) in pts:
+        du = (np.mod(U - pu + 0.5, 1) - 0.5) * w
+        dv = (V - pv) * h
+        r = np.hypot(du, dv) / (radius_px * rs)
+        a = np.maximum(a, np.clip(1 - r, 0, 1) ** soft * br)
+    return a
+
+
+def _overlay_fade(V, lo=0.12, hi=0.88):
+    """Across an overlay beam as wide as the cue: fade out at the silhouette so nothing shows past
+    the cue's outline."""
+    return np.clip((V - lo * 0.4) / (lo * 0.6), 0, 1) * np.clip(((1 - V) - (1 - hi) * 0.4) / ((1 - hi) * 0.6), 0, 1)
+
+
+def sprite_star5(n=128, inner=0.4, gold=(255, 200, 60), core=(255, 250, 220)):
+    """A little gold five-point star with a soft glow and a white-hot centre (colour baked)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(x, -y)
+    k = np.mod(th / (2 * math.pi / 5), 1)
+    tri = np.abs(k - 0.5) * 2  # 1 at a point, 0 between
+    R = 0.8 * (inner + (1 - inner) * tri ** 3)  # concave sides: sharp points
+    star = np.clip((R - r) / 0.04, 0, 1)
+    glow = np.clip(1 - r, 0, 1) ** 2.5 * 0.45
+    shade = np.clip(1 - r / 0.8, 0, 1)
+    col = np.array(gold, np.float64) + (np.array(core, np.float64) - np.array(gold, np.float64)) * (shade ** 1.5)[..., None]
+    a = np.clip(star + glow * (1 - star), 0, 1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_starfield_strip(w=1024, h=128, seed=31, count=90):
+    """Drifting stars for an overlay beam: pin-point white and gold stars (a few with a small
+    four-point flare) inside the cue's outline, tiling along u. Colour baked."""
+    rs = np.random.RandomState(seed)
+    U, V = _uv(w, h)
+    a = np.zeros((h, w))
+    gold = np.zeros((h, w))
+    for i in range(count):
+        pu, pv = rs.random_sample(), 0.2 + 0.6 * rs.random_sample()
+        big = rs.random_sample() < 0.15
+        rad = (2.6 if big else 1.2 + rs.random_sample()) 
+        du = (np.mod(U - pu + 0.5, 1) - 0.5) * w
+        dv = (V - pv) * h
+        rr = np.hypot(du, dv)
+        d = np.exp(-(rr / rad) ** 2)
+        if big:
+            d = d + 0.7 * np.exp(-(du / 9) ** 2 - (dv / 0.8) ** 2) + 0.7 * np.exp(-(dv / 9) ** 2 - (du / 0.8) ** 2)
+        d = d * (0.5 + 0.5 * rs.random_sample())
+        a = np.maximum(a, d)
+        if rs.random_sample() < 0.4:
+            gold = np.maximum(gold, d)
+    a = np.clip(a, 0, 1) * _overlay_fade(V)
+    col = np.zeros((h, w, 3)) + np.array([235.0, 240, 255])
+    col = col + (np.array([255.0, 214, 106]) - col) * np.clip(gold * 1.5, 0, 1)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_lava_flow_strip(w=1024, h=128, seed=41):
+    """Molten heat moving through the rock, for an overlay beam: soft hot patches and a few
+    bright wandering veins, tiling along u, orange to yellow (colour baked)."""
+    U, V = _uv(w, h)
+    blob = _per(U, V, 6, 3, seed, 4)
+    vein = 1 - np.abs(2 * _per(U, V, 10, 5, seed + 1, 4) - 1)
+    a = np.clip((blob - 0.5) * 2.2, 0, 1) * 0.6 + np.clip((vein - 0.9) * 10, 0, 1) * np.clip((blob - 0.35) * 3, 0, 1)
+    a = np.clip(a, 0, 1) * _overlay_fade(V, 0.15, 0.85)
+    hot = np.clip(a * 1.5 - 0.4, 0, 1)
+    col = np.stack([np.full_like(a, 255.0), 90 + 150 * hot, 10 + 80 * hot ** 2], -1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_trail_lava(w=512, h=128, seed=43):
+    """A molten ribbon for a ball trail: a hot yellow core, cracked crust breaking up toward the
+    edges, tiling along u; colour baked (the Trail's Color multiplies it)."""
+    U, V = _uv(w, h)
+    across = 1 - np.abs(V * 2 - 1)
+    vein = 1 - np.abs(2 * _per(U, V, 12, 4, seed, 4) - 1)
+    crust = np.clip((vein - 0.75) * 4, 0, 1)
+    a = np.clip(across * 1.6 - 0.1, 0, 1) ** 1.2 * (0.55 + 0.45 * crust)
+    core = np.clip(across * 2 - 1.2, 0, 1)
+    col = np.stack([np.full_like(a, 255.0), np.clip(110 + 140 * core + 60 * crust, 0, 255), np.clip(20 + 160 * core ** 2, 0, 255)], -1)
+    return np.concatenate([col, np.clip(a, 0, 1)[..., None] * 255], -1)
+
+
+def sprite_bubble_strip(w=512, h=128, seed=51, count=46):
+    """Bubbles rising through goo, for an overlay beam: small ring bubbles with a glint, tiling
+    along u (white; tint with Color)."""
+    rs = np.random.RandomState(seed)
+    U, V = _uv(w, h)
+    a = np.zeros((h, w))
+    for i in range(count):
+        pu, pv = rs.random_sample(), 0.22 + 0.56 * rs.random_sample()
+        rad = 2.5 + 7 * rs.random_sample() ** 2
+        du = (np.mod(U - pu + 0.5, 1) - 0.5) * w
+        dv = (V - pv) * h
+        rr = np.hypot(du, dv) / rad
+        ring = np.exp(-((rr - 0.85) / 0.18) ** 2) + np.clip(1 - rr, 0, 1) * 0.15
+        glint = np.exp(-(((du + rad * 0.35) / (rad * 0.2)) ** 2 + ((dv + rad * 0.35) / (rad * 0.2)) ** 2))
+        a = np.maximum(a, np.clip(ring + glint, 0, 1))
+    a = a * _overlay_fade(V)
+    return _rgba(a)
+
+
+def bubble_pop_frame(i, n, frames=16):
+    """A green bubble that swells, wobbles, then pops into a spray ring (OneShot flipbook): frames
+    0-12 the bubble, 13-15 the pop. White; tint with Color."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x)
+    if i < 13:
+        k = i / 12
+        rad = 0.55 + 0.25 * k
+        wob = 1 + 0.04 * np.sin(th * 3 + i * 0.9)
+        rr = r / (rad * wob)
+        rim = np.exp(-((rr - 0.9) / 0.1) ** 2)
+        body = np.clip(1 - rr, 0, 1) * 0.22
+        glint = np.exp(-(((x + 0.28 * rad * 1.3) / 0.12) ** 2 + ((y + 0.3 * rad * 1.3) / 0.09) ** 2))
+        a = np.clip(rim * 0.95 + body + glint, 0, 1) * (rr < 1.15)
+        return _rgba(a, core=np.clip(glint, 0, 1))
+    k = (i - 12) / 3
+    ring_r = 0.8 + 0.2 * k
+    spikes = np.clip(np.cos(th * 10) * 0.5 + 0.5, 0, 1) ** 3
+    a = np.exp(-((r - ring_r) / (0.05 + 0.05 * k)) ** 2) * (0.4 + 0.6 * spikes) * (1 - 0.6 * k)
+    drops = 0
+    for j in range(8):
+        ang = j * math.pi / 4 + 0.2
+        cx, cy = math.cos(ang) * (ring_r + 0.1 * k), math.sin(ang) * (ring_r + 0.1 * k)
+        drops = drops + np.exp(-(((x - cx) ** 2 + (y - cy) ** 2) / (0.05 ** 2)))
+    a = np.clip(a + drops * (1 - 0.5 * k), 0, 1)
+    return _rgba(a)
+
+
+def sprite_bubble_pop_sheet():
+    return flipbook(lambda i, n: bubble_pop_frame(i, n), 4, 1024)
+
+
+def sprite_trail_goo(w=512, h=128, seed=53):
+    """A dripping goo ribbon for a ball trail: a thick glossy band whose edges bulge into blobs
+    and drips, a lighter core; white-green, tint with Color. Tiles along u."""
+    U, V = _uv(w, h)
+    edge = 0.62 + 0.22 * (_per(U, V * 0, 9, 0, seed, 3) - 0.5) * 2
+    drip = np.clip((_per(U, V * 0, 20, 0, seed + 1, 2) - 0.62) * 5, 0, 1)
+    half = np.abs(V * 2 - 1)
+    lim = edge + drip * 0.35
+    a = np.clip((lim - half) / 0.06, 0, 1)
+    core = np.clip(1 - half / 0.35, 0, 1)
+    a = np.clip(a * (0.7 + 0.3 * core), 0, 1)
+    return _rgba(a, core=core * 0.5)
+
+
+def sprite_mist_strip(w=1024, h=128, seed=61):
+    """Red mist drifting inside the lacquer, for an overlay beam: soft clouds with thin curling
+    filaments, tiling along u (white; tint with Color)."""
+    U, V = _uv(w, h)
+    w0 = _per(U, V, 4, 2, seed, 3)
+    cloud = _per(U + (w0 - 0.5) * 0.08, V, 7, 4, seed + 1, 5)
+    fil = 1 - np.abs(2 * _per(U + (w0 - 0.5) * 0.1, V, 9, 5, seed + 2, 4) - 1)
+    a = np.clip((cloud - 0.45) * 2.2, 0, 1) * 0.7 + np.clip((fil - 0.86) * 7, 0, 1) * 0.8
+    a = np.clip(a, 0, 1) * _overlay_fade(V)
+    return _rgba(a, core=np.clip((fil - 0.9) * 8, 0, 1) * 0.4)
+
+
+def sprite_moon(n=256, seed=63, red=(200, 30, 40), bright=(255, 110, 100)):
+    """A red full moon with darker maria, craters, a bright limb and a soft red glow (colour baked)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    R = 0.62
+    disc = np.clip((R - r) / 0.012, 0, 1)
+    maria = cc.fbm(x * 2.5, y * 2.5, np.zeros_like(x), 4, seed)
+    crat = cc.fbm(x * 9, y * 9, np.ones_like(x), 3, seed + 1)
+    shade = np.clip(0.7 - (maria - 0.45) * 1.2 - np.clip(crat - 0.6, 0, 1) * 1.2, 0.2, 1)
+    col = np.array(red, np.float64) + (np.array(bright, np.float64) - np.array(red, np.float64)) * shade[..., None]
+    limb = np.clip((r / R - 0.8) / 0.2, 0, 1) * (r < R)
+    col = col + (255 - col) * (limb * 0.3)[..., None]
+    glow = np.clip(1 - (r - R) / (1 - R), 0, 1) ** 2 * (r >= R) * 0.6
+    a = np.clip(disc + glow, 0, 1)
+    col = np.where((r >= R)[..., None], np.array(red, np.float64) + 30, col)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_rainbow_strip(w=1024, h=128, seed=71, count=14):
+    """Rainbow light streaks travelling through crystal, for an overlay beam: short slanted
+    spectral bars (red to violet across each bar) at random places, tiling along u (colour baked)."""
+    rs = np.random.RandomState(seed)
+    U, V = _uv(w, h)
+    a = np.zeros((h, w))
+    hue = np.zeros((h, w))
+    for i in range(count):
+        pu, pv = rs.random_sample(), 0.3 + 0.4 * rs.random_sample()
+        L = 0.25 + 0.35 * rs.random_sample()  # of the beam's width, along v
+        wd = 18 + 30 * rs.random_sample()  # px across
+        slant = 0.6 + 0.8 * rs.random_sample()
+        du = (np.mod(U - pu + 0.5, 1) - 0.5) * w - (V - pv) * h * slant
+        dv = (V - pv) / L
+        inside = np.clip(1 - np.abs(dv) * 2, 0, 1) ** 0.6 * np.clip(1 - np.abs(du) / wd, 0, 1)
+        hh = np.clip(du / (2 * wd) + 0.5, 0, 1)
+        take = inside > a
+        hue = np.where(take, hh, hue)
+        a = np.maximum(a, inside * (0.6 + 0.4 * rs.random_sample()))
+    a = a * _overlay_fade(V)
+    col = np.stack([0.5 + 0.5 * np.cos(2 * math.pi * (hue * 0.8 + k / 3)) for k in range(3)], -1) * 255
+    col = col * 0.8 + 50
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_crystal(n=128):
+    """A small faceted crystal shard: a long diamond cut into lit and dark facets, a white edge and
+    a faint rainbow fringe (colour baked, pale ice)."""
+    x, y = _grid(n)
+    ax, ay = np.abs(x) / 0.42, np.abs(y) / 0.9
+    k = ax + ay
+    shape = np.clip((1 - k) / 0.04, 0, 1)
+    facet = np.where(x > 0, np.where(y > 0, 1.0, 0.7), np.where(y > 0, 0.5, 0.85))
+    mid = np.exp(-(x / 0.02) ** 2) * 0.4
+    col = np.zeros(x.shape + (3,)) + np.array([205.0, 232, 255]) * facet[..., None]
+    col = col + (255 - col) * np.clip(mid + np.exp(-((1 - k) / 0.08) ** 2) * 0.7, 0, 1)[..., None]
+    fringe = np.exp(-((k - 1.05) / 0.06) ** 2)
+    hue = np.mod(np.arctan2(y, x) / (2 * math.pi) + 0.5, 1)
+    rb = np.stack([0.5 + 0.5 * np.cos(2 * math.pi * (hue + q / 3)) for q in range(3)], -1) * 255
+    col = np.where((k > 1)[..., None], rb, col)
+    a = np.clip(shape + fringe * 0.5, 0, 1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_trail_spectrum(w=256, h=64):
+    """A rainbow ribbon: the spectrum across its width, soft edges (colour baked)."""
+    U, V = _uv(w, h)
+    col = np.stack([0.5 + 0.5 * np.cos(2 * math.pi * (V * 0.85 + q / 3)) for q in range(3)], -1) * 255
+    col = col * 0.75 + 64
+    a = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 0.8
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def _aurora_colour(t):
+    """0..1 -> green, teal, blue, violet."""
+    keys = np.array([[43, 240, 176], [40, 220, 220], [61, 184, 255], [122, 92, 255]], np.float64)
+    t = np.clip(t, 0, 1) * (len(keys) - 1)
+    i = np.minimum(np.floor(t).astype(int), len(keys) - 2)
+    f = (t - i)[..., None]
+    return keys[i] * (1 - f) + keys[i + 1] * f
+
+
+def sprite_aurora_strip(w=1024, h=128, seed=81):
+    """Aurora ribbons flowing inside the cue, for an overlay beam: wavy bands winding along u with
+    fine curtain streaks, green to violet (colour baked), tiling along u."""
+    U, V = _uv(w, h)
+    w0 = _per(U, V, 3, 1, seed, 3)
+    ph = V * 1.5 + (w0 - 0.5) * 2.2 + U * 2
+    band = np.exp(-((np.mod(ph, 1) - 0.5) / 0.14) ** 2)
+    streak = 1 - np.abs(2 * _per(U, V, 90, 0.5, seed + 1, 2) - 1)
+    a = band * (0.45 + 0.55 * streak ** 2) * np.clip(_per(U, V, 4, 1, seed + 2, 2) * 1.6 - 0.2, 0, 1)
+    a = np.clip(a, 0, 1) * _overlay_fade(V)
+    col = _aurora_colour(_per(U, V, 2, 0.5, seed + 3, 2) * 1.6 - 0.3)
+    col = col + (255 - col) * np.clip(a - 0.6, 0, 1)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_curtain_strip(w=512, h=128, seed=83):
+    """An aurora curtain for a curved beam: fine vertical rays (across v) bright at one long edge
+    and fading to the other, rippling along u; white, tint with Color. Tiles along u."""
+    U, V = _uv(w, h)
+    rays = 1 - np.abs(2 * _per(U, V * 0, 70, 0, seed, 2) - 1)
+    rays = 0.35 + 0.65 * rays ** 3
+    body = np.clip(1 - V, 0, 1) ** 1.6 * np.clip(V / 0.08, 0, 1)
+    edge = np.exp(-((V - 0.1) / 0.05) ** 2)
+    a = np.clip(body * rays + edge * 0.6, 0, 1) * (0.6 + 0.4 * _per(U, V * 0, 5, 0, seed + 1, 2))
+    return _rgba(a, core=edge * 0.5)
+
+
+def sprite_trail_aurora(w=512, h=128, seed=85):
+    """An aurora ribbon trail: bands of green, teal and violet across its width with fine
+    streaks along it, soft edges; colour baked. Tiles along u."""
+    U, V = _uv(w, h)
+    streak = 1 - np.abs(2 * _per(U, V, 40, 6, seed, 3) - 1)
+    a = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 0.7 * (0.55 + 0.45 * streak ** 2)
+    col = _aurora_colour(V + (_per(U, V, 4, 1, seed + 1, 2) - 0.5) * 0.4)
+    col = col + (255 - col) * (np.clip(streak - 0.85, 0, 1) * 3)[..., None]
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+DISCO_COLOURS = [(255, 61, 154), (61, 224, 255), (255, 225, 61), (90, 110, 255), (255, 255, 255)]
+
+
+def sprite_spots_strip(w=1024, h=128, seed=91, count=26):
+    """Coloured spotlight specks sweeping over mirror tiles, for an overlay beam: soft round spots
+    of pink, cyan, yellow and blue with a hot centre, tiling along u (colour baked)."""
+    rs = np.random.RandomState(seed)
+    U, V = _uv(w, h)
+    a = np.zeros((h, w))
+    col = np.zeros((h, w, 3))
+    for i in range(count):
+        pu, pv = rs.random_sample(), 0.25 + 0.5 * rs.random_sample()
+        rad = 8 + 12 * rs.random_sample()
+        du = (np.mod(U - pu + 0.5, 1) - 0.5) * w
+        dv = (V - pv) * h
+        d = np.exp(-(np.hypot(du, dv) / rad) ** 2)
+        c = np.array(DISCO_COLOURS[i % 4], np.float64)
+        take = d > a
+        col = np.where(take[..., None], c + (255 - c) * (d ** 3 * 0.6)[..., None], col)
+        a = np.maximum(a, d)
+    a = a * _overlay_fade(V)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def confetti_frame(i, n):
+    """One confetti piece (a small rectangle or square, a colour and a tilt per frame): random
+    frame per particle with FlipbookStartRandom and framerate 0."""
+    x, y = _grid(n)
+    ang = (i * 53.0) % 180 * math.pi / 180
+    ca, sa = math.cos(ang), math.sin(ang)
+    al = x * ca + y * sa
+    ac = -x * sa + y * ca
+    L = 0.7 if i % 3 else 0.45
+    shape = np.clip((L - np.abs(al)) / 0.05, 0, 1) * np.clip((0.35 - np.abs(ac)) / 0.05, 0, 1)
+    c = np.array(DISCO_COLOURS[i % len(DISCO_COLOURS)], np.float64)
+    shade = 0.8 + 0.2 * np.sign(ac)
+    col = np.zeros(x.shape + (3,)) + c * shade[..., None]
+    return np.concatenate([np.clip(col, 0, 255), shape[..., None] * 255], -1)
+
+
+def sprite_confetti_sheet():
+    return flipbook(lambda i, n: confetti_frame(i, n), 4, 512, pad=4)
+
+
+def _glyph_img(key, px_w, px_h):
+    """A 3x5 pixel glyph (CuePaint.GLYPHS) as a px_w x px_h mask with a 1-pixel gap."""
+    rows = HACK_GLYPHS[key]
+    m = np.zeros((px_h, px_w))
+    cw, ch = px_w / 4.0, px_h / 6.0
+    for r in range(5):
+        for c in range(3):
+            if rows[r][c] == '1':
+                y0, y1 = int(round((r + 0.5) * ch)), int(round((r + 1.5) * ch))
+                x0, x1 = int(round((c + 0.5) * cw)), int(round((c + 1.5) * cw))
+                m[y0:y1 - 1, x0:x1 - 1] = 1
+    return m
+
+
+HACK_GLYPHS = {
+    '0': ['111', '101', '101', '101', '111'], '1': ['010', '110', '010', '010', '111'],
+    'a': ['111', '100', '111', '001', '111'], 'b': ['101', '111', '101', '111', '101'],
+    'c': ['110', '001', '011', '100', '011'], 'd': ['111', '010', '111', '010', '111'],
+    'e': ['100', '111', '101', '111', '001'],
+}
+
+
+def digit_frame(i, n):
+    """A green pixel glyph (mostly 0 and 1) with a soft glow: pick a random frame per particle
+    (FlipbookStartRandom); a framerate > 0 makes it flicker between glyphs as it falls."""
+    keys = ['0', '1', '0', '1', '1', '0', 'a', '1', '0', 'b', '1', '0', 'c', '1', 'd', 'e']
+    g = _glyph_img(keys[i], n, n)
+    # a soft glow round the pixels (a small box blur)
+    glow = g.copy()
+    for _ in range(3):
+        glow = (glow + np.roll(glow, 3, 0) + np.roll(glow, -3, 0) + np.roll(glow, 3, 1) + np.roll(glow, -3, 1)) / 5
+    a = np.clip(g + glow * 0.8, 0, 1)
+    col = np.zeros((n, n, 3)) + np.array([43.0, 255, 90])
+    col = col + (255 - col) * (g * 0.35)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_digits_sheet():
+    return flipbook(lambda i, n: digit_frame(i, n), 4, 512, pad=6)
+
+
+def sprite_code_strip(w=1024, h=128, seed=101):
+    """Green code scrolling along the cue, for an overlay beam: rows of pixel glyphs along u, runs
+    of them brighter (a data pulse), tiling along u (colour baked)."""
+    rs = np.random.RandomState(seed)
+    gw, gh = 16, 22
+    cols, rows = w // gw, 4
+    a = np.zeros((h, w))
+    keys = ['0', '1', '0', '1', 'a', 'b', 'c', 'd', 'e']
+    y0 = (h - rows * gh) // 2
+    for r in range(rows):
+        run = rs.random_sample(cols) < 0.7
+        for c in range(cols):
+            if not run[c] or rs.random_sample() < 0.2:
+                continue
+            key = keys[rs.randint(0, 4) if rs.random_sample() < 0.85 else rs.randint(4, len(keys))]
+            g = _glyph_img(key, gw, gh) * (0.4 + 0.6 * rs.random_sample())
+            a[y0 + r * gh:y0 + (r + 1) * gh, c * gw:(c + 1) * gw] = g
+    U, V = _uv(w, h)
+    pulse = np.clip(np.cos(2 * math.pi * (U * 3)) * 0.5 + 0.5, 0, 1) ** 4
+    a = np.clip(a * (0.55 + 0.6 * pulse), 0, 1) * _overlay_fade(V)
+    col = np.zeros((h, w, 3)) + np.array([43.0, 255, 90])
+    col = col + (255 - col) * (pulse * 0.4)[..., None]
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_glitch(w=128, h=64, seed=103):
+    """A glitch: a few offset horizontal bars and scanlines, green-white (colour baked)."""
+    rs = np.random.RandomState(seed)
+    a = np.zeros((h, w))
+    for _ in range(6):
+        y0 = rs.randint(0, h - 6)
+        hh = rs.randint(2, 7)
+        x0 = rs.randint(0, w // 3)
+        x1 = rs.randint(w // 2, w)
+        a[y0:y0 + hh, x0:x1] = 0.5 + 0.5 * rs.random_sample()
+    scan = (np.arange(h) % 3 == 0)[:, None] * 0.25
+    a = np.clip(a - scan, 0, 1)
+    col = np.zeros((h, w, 3)) + np.array([120.0, 255, 150])
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_trail_data(w=512, h=64, seed=105):
+    """A pixel data trail: a band of square pixel blocks, full near the ball and breaking up along
+    the trail (the texture runs Stretch: u = 0 at the ball), green (colour baked)."""
+    rs = np.random.RandomState(seed)
+    cell = 8
+    cols, rows = w // cell, h // cell
+    a = np.zeros((h, w))
+    for c in range(cols):
+        keep = 1 - c / cols
+        for r in range(rows):
+            centre = 1 - abs((r + 0.5) / rows * 2 - 1)
+            if rs.random_sample() < keep * (0.4 + 0.7 * centre):
+                a[r * cell + 1:(r + 1) * cell - 1, c * cell + 1:(c + 1) * cell - 1] = 0.5 + 0.5 * rs.random_sample()
+    col = np.zeros((h, w, 3)) + np.array([43.0, 255, 90])
+    col = col + (255 - col) * (a > 0.9)[..., None] * 0.5
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['shooting_star'] = {'starfield_strip.png': sprite_starfield_strip, 'star5.png': sprite_star5}
+SKIN_SPRITES['magma'] = {'lava_flow_strip.png': sprite_lava_flow_strip, 'trail_lava.png': sprite_trail_lava,
+                         'lava_drip.png': lambda: sprite_drop(128, (255, 205, 80), (230, 70, 10))}
+SKIN_SPRITES['toxic'] = {'bubble_strip.png': sprite_bubble_strip, 'bubble_pop_4x4.png': sprite_bubble_pop_sheet,
+                         'trail_goo.png': sprite_trail_goo, 'goo_drop.png': lambda: sprite_drop(128, (200, 255, 90), (70, 190, 20))}
+SKIN_SPRITES['blood_moon'] = {'mist_strip.png': sprite_mist_strip, 'moon.png': sprite_moon}
+SKIN_SPRITES['prism'] = {'rainbow_strip.png': sprite_rainbow_strip, 'crystal.png': sprite_crystal,
+                         'trail_spectrum.png': sprite_trail_spectrum}
+SKIN_SPRITES['aurora'] = {'aurora_strip.png': sprite_aurora_strip, 'curtain_strip.png': sprite_curtain_strip,
+                          'trail_aurora.png': sprite_trail_aurora}
+SKIN_SPRITES['disco'] = {'spots_strip.png': sprite_spots_strip, 'confetti_4x4.png': sprite_confetti_sheet}
+SKIN_SPRITES['hacked'] = {'code_strip.png': sprite_code_strip, 'digits_4x4.png': sprite_digits_sheet,
+                          'glitch.png': sprite_glitch, 'trail_data.png': sprite_trail_data}
 
 
 def make_sprites(which=None):

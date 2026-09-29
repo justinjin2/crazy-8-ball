@@ -1822,7 +1822,7 @@ def frostbite(k):
         f1, f2, _ = worley(c, 22, 172)
         crack = np.clip(1 - (f2 - f1) / 0.05, 0, 1) ** 2 * np.clip((fbm(c, 8, 8, seed=173) - 0.35) * 3, 0, 1) * m
         c.put(crack, np.array([245.0, 252, 255]), glow=crack * 0.35)
-    ai_finish(k, ['forearm', 'butt'], rough=0.06, glow=(0.7, 0.95, 1.5), collar=s['metal'])
+    ai_finish(k, ['forearm', 'butt'], rough=0.06, glow=(0.86, 1.0, 2.0), collar=s['metal'])
     b = k.c['butt']
     b.put(b.zone('wrap'), None, rough=0.6, glow=0.0)
     for c, m in k.zone('ring'):
@@ -1899,6 +1899,671 @@ def sakura(k):
     c = k.c['cap_end']
     rubber(c, c.inside | True, '#101010')
     joint_seam(k)
+
+
+# ---------------------------------------------------------------------------------------------
+# Epics: shared painters
+# ---------------------------------------------------------------------------------------------
+
+FACE = math.pi * 5 / 4  # the side a camera above and to the side sees (sheets, the back): inlays centre here
+
+
+def around_of(c, theta0):
+    """Signed arc length (studs) round the cue from the angle theta0."""
+    return (np.mod(c.theta - theta0 + math.pi, 2 * math.pi) - math.pi) * c.r
+
+
+def scales(c, m, color, size=0.028, rough=0.45, depth=0.0005, seed=0, sheen=0.25, edge_col=None):
+    """Snakeskin: rows of overlapping rounded scales round the cue (a whole number per row), each
+    row offset by half a scale and lying over the row before it (toward the tip), every scale
+    domed with a darker free edge and a soft sheen on its crown; a little tone change per scale."""
+    n_round = max(8, int(round(float(np.mean(2 * math.pi * c.r)) / size)))
+    a = c.d / (size * 0.62)
+    b = c.theta / (2 * math.pi) * n_round
+    i0 = np.floor(a)
+    R = 0.72
+    best_row = np.full(a.shape, -1e9)
+    best_dist = np.ones(a.shape)
+    best_id = np.zeros(a.shape)
+    for di in (0, -1, 1):
+        row = i0 + di
+        off = 0.5 * np.mod(row, 2)
+        j = np.floor(b - off + 0.5)
+        for dj in (-1, 0, 1):
+            jj = j + dj
+            du = (a - (row + 0.5)) / 1.0
+            dv = (b - (jj + off))
+            dist = np.hypot(du * 1.15, dv) / R
+            cover = (dist < 1) & (row > best_row)
+            best_row = np.where(cover, row, best_row)
+            best_dist = np.where(cover, dist, best_dist)
+            best_id = np.where(cover, cc._hash3(row.astype(np.int64), np.mod(jj, n_round).astype(np.int64),
+                                                 np.zeros_like(row, np.int64), seed), best_id)
+    dome = np.sqrt(np.clip(1 - best_dist ** 2, 0, 1))
+    rim = np.clip((best_dist - 0.78) / 0.22, 0, 1)
+    base = rgb(color)
+    tone = 0.82 + 0.12 * (best_id - 0.5) + 0.22 * dome - 0.45 * rim
+    col = base[None, None] * tone[..., None] + sheen * 40 * (dome ** 4)[..., None]
+    if edge_col is not None:
+        col = mix(col, np.broadcast_to(rgb(edge_col), col.shape), rim * 0.6)
+    c.put(m, col, rough=rough + 0.15 * rim - 0.1 * dome, metal=0.0)
+    h = depth * (dome - 0.6 * rim)
+    c.add_height(m, h - h[m].mean() if np.any(m) else h)
+
+
+def ridged(c, fx, fd, seed=0, octaves=3, warp=None):
+    """Ridged noise (1 on the ridge lines): thin wandering filaments."""
+    n = fbm(c, fx, fd, octaves=octaves, seed=seed, warp=warp)
+    return 1 - np.abs(2 * n - 1)
+
+
+def starfield(c, m, density=0.86, gold=None, seed=0, glow=0.9, freq=1400):
+    """Tiny stars: white (and gold) pin points, a few bigger, glowing."""
+    st = np.clip((cc.noise3(c.x * freq, c.d * freq, c.z * freq, seed) - density) * 14, 0, 1)
+    big = np.clip((cc.noise3(c.x * freq * 0.45, c.d * freq * 0.45, c.z * freq * 0.45, seed + 1) - (density + 0.06)) * 10, 0, 1)
+    st = np.clip(st + big, 0, 1) * m
+    col = np.broadcast_to(np.array([240.0, 244, 255]), c.col.shape)
+    if gold is not None:
+        pick = np.clip((fbm(c, 300, 300, octaves=1, seed=seed + 2) - 0.5) * 8, 0, 1)
+        col = mix(col, np.broadcast_to(rgb(gold), c.col.shape), pick)
+    c.put(st, col, glow=st * glow)
+    return st
+
+
+def lava_rock(c, m, freq, s, seed=0, live=0.85, width=0.09, halo=0.45, dome=0.0009):
+    """Black volcanic rock split into domed, pitted plates by molten cracks: the cracks glow
+    yellow-white at the core, orange, then red at the edge, with a hot halo on the rock beside
+    them; some cracks have cooled dark."""
+    wob = (fbm(c, freq * 2, freq * 2, octaves=2, seed=seed + 1) - 0.5) * 0.55 / freq
+    view = type('V', (), {})()
+    view.x, view.d, view.z = c.x + wob, c.d + wob, c.z - wob
+    f1, f2, cid = worley(view, freq, seed, jitter=0.95)
+    edge = f2 - f1
+    alive = np.clip((fbm(c, freq * 0.7, freq * 0.7, octaves=2, seed=seed + 2) - (1 - live)) * 4, 0, 1)
+    w = width * (0.55 + 0.9 * fbm(c, freq * 3, freq * 3, octaves=2, seed=seed + 3))
+    core = np.clip(1 - edge / w, 0, 1)
+    hot = core ** 1.3 * alive
+    hal = np.exp(-(edge / (w * 2.6)) ** 2) * alive * halo
+    domed = np.clip(edge / 0.35, 0, 1) ** 0.6
+    g1, _, _ = worley(c, freq * 7, seed + 7)
+    pit = np.clip(1 - g1 / 0.32, 0, 1) ** 2 * (fbm(c, freq * 2, freq * 2, octaves=2, seed=seed + 8) > 0.45)
+    grain = fbm(c, freq * 14, freq * 14, octaves=3, seed=seed + 9)
+    rock = rgb(s['rock']) * (0.75 + 0.35 * cid + 0.5 * (grain - 0.5) + 0.25 * domed - 0.35 * pit)[..., None]
+    rock = rock + np.array([6.0, 3, 1]) * (domed ** 6)[..., None] * 3
+    lo, mid, hi = rgb(s['red']), rgb(s['lava']), rgb(s['hot'])
+    lava = mix(np.broadcast_to(lo, c.col.shape), np.broadcast_to(mid, c.col.shape), np.clip(core * 2.2, 0, 1))
+    lava = mix(lava, np.broadcast_to(hi, c.col.shape), np.clip(core * 2.2 - 1.1, 0, 1))
+    col = mix(rock, np.broadcast_to(mid * 0.8, c.col.shape), hal * 0.55)
+    col = mix(col, lava, np.clip(hot * 1.6, 0, 1))
+    dark = np.clip(1 - edge / (w * 0.8), 0, 1) * (1 - alive)
+    col = col * (1 - 0.75 * dark)[..., None]
+    c.put(m, col, rough=np.clip(0.78 - 0.2 * domed + 0.1 * pit - 0.4 * hot, 0.2, 1), metal=0.0,
+          glow=np.clip(hot * 1.2 + hal * 0.5, 0, 1))
+    c.add_height(m, dome * domed - 0.0002 * pit - 0.0004 * np.clip(1 - edge / 0.1, 0, 1))
+
+
+def goo_glass(c, m, s, seed=0, big=16, small=42, glow=0.75, warp_amt=1.0):
+    """Acid-green radioactive goo seen through glass: a swirling bright-to-deep green body lit
+    from inside, full of round bubbles (a bright rim, a clear middle, a glint), glossy."""
+    sw = fbm(c, 9, 4, octaves=3, seed=seed)
+    flow = fbm(c, 22, 8, octaves=3, seed=seed + 1, warp=((sw - 0.5) * 3 * warp_amt, (sw - 0.5) * 2, (sw - 0.5) * 3))
+    deep, acid, lime = rgb(s['deep']), rgb(s['acid']), rgb(s['lime'])
+    body = mix(np.broadcast_to(deep, c.col.shape), np.broadcast_to(acid, c.col.shape), np.clip(flow * 1.5 - 0.15, 0, 1)[..., None] * np.ones(3))
+    body = mix(body, np.broadcast_to(lime, c.col.shape), np.clip(flow * 2 - 1.2, 0, 1))
+    g = np.clip(0.35 + flow * 0.8, 0, 1)
+    c.put(m, body, rough=0.04, metal=0.0, glow=g * glow * m)
+    total = np.zeros(c.d.shape)
+    for freq, cover, sd in ((big, 0.35, seed + 3), (small, 0.5, seed + 5)):
+        f1, _, cid = worley(c, freq, sd, jitter=0.8)
+        rad = 0.2 + 0.22 * np.mod(cid * 7.7, 1)
+        dd = f1 / rad
+        on = (cid < cover) * m
+        inside = np.clip((1 - dd) * 12, 0, 1) * on
+        rim = np.exp(-((dd - 0.88) / 0.1) ** 2) * on
+        glint = np.exp(-((dd - 0.5) / 0.12) ** 2) * np.clip(-np.cos(c.theta - math.pi) * 0 + 1, 0, 1) * on * 0.0
+        bub = mix(body, np.broadcast_to(lime * 0.55 + 90, c.col.shape), 0.35)
+        c.put(inside, bub, glow=inside * glow * 0.6)
+        c.put(rim, np.broadcast_to(np.array([235.0, 255, 190]), c.col.shape), glow=rim * glow)
+        total = np.clip(total + inside, 0, 1)
+    return total
+
+
+def hazard(c, m, yellow, black='#0C0C0C', pitch=0.075, slant=1.0):
+    """Black-and-yellow hazard stripes slanting round the cue (studs pitch), glossy paint."""
+    f = np.mod((c.d + around_of(c, math.pi) * slant) / pitch, 1)
+    y = smooth(0.02, 0.06, f) * (1 - smooth(0.48, 0.52, f))
+    col = mix(np.broadcast_to(rgb(black), c.col.shape), np.broadcast_to(rgb(yellow), c.col.shape), y)
+    c.put(m, col, rough=0.1, metal=0.0, glow=0.0)
+    c.add_height(m, 0.00006 * y)
+    return y
+
+
+def red_mist(c, m, s, seed=0, amount=1.0, fd=None):
+    """Crimson smoke drifting in black lacquer: soft clouds with bright curling filaments."""
+    fd = fd or 5
+    w0 = fbm(c, 6, fd * 0.5, octaves=3, seed=seed)
+    warp = ((w0 - 0.5) * 2.5, (w0 - 0.5) * 1.5, (w0 - 0.5) * 2.5)
+    cloud = fbm(c, 8, fd, octaves=5, seed=seed + 1, warp=warp)
+    fil = ridged(c, 10, fd * 1.3, seed=seed + 2, octaves=4, warp=warp) ** 6
+    cl = np.clip((cloud - 0.42) * 2.4, 0, 1) * amount
+    fl = np.clip(fil * 1.4 * (0.3 + cl), 0, 1) * amount
+    dark, red, bright = rgb(s['black']), rgb(s['crimson']), rgb(s['bright'])
+    col = mix(np.broadcast_to(dark, c.col.shape), np.broadcast_to(red * 0.55, c.col.shape), cl)
+    col = mix(col, np.broadcast_to(bright, c.col.shape), fl)
+    c.put(m, col, rough=0.08, metal=0.0, glow=np.clip(fl * 0.9 + cl * 0.2, 0, 1) * m)
+
+
+def moon(c, m, d0, theta0, radius, s, seed=0):
+    """A red full moon: a disc with darker maria and small craters, brighter at the limb, with a
+    soft red glow round it."""
+    along = c.d - d0
+    around = around_of(c, theta0)
+    rr = np.hypot(along, around) / radius
+    disc = np.clip((1 - rr) * radius / 0.002, 0, 1) * m
+    view = type('V', (), {})()
+    view.x, view.d, view.z = along / radius, around / radius + 3, np.zeros_like(along)
+    maria = cc.fbm(view.x * 2.2, view.d * 2.2, view.z, 4, seed)
+    f1, _, cid = worley(view, 5, seed + 1)
+    crater = np.exp(-((f1 - 0.25) / 0.06) ** 2) * (cid < 0.5) * 0.6
+    red, bright = rgb(s['crimson']), rgb(s['bright'])
+    col = mix(np.broadcast_to(red * 0.85, c.col.shape), np.broadcast_to(bright, c.col.shape), np.clip(0.65 - maria * 0.6 + crater * 0.3, 0, 1))
+    col = col * (1 - 0.35 * np.clip(maria - 0.45, 0, 1) * 2)[..., None]
+    limb = np.clip((rr - 0.8) / 0.2, 0, 1) * (rr < 1)
+    col = col + (255 - col) * (limb * 0.25)[..., None]
+    c.put(disc, col, rough=0.3, glow=disc * (0.75 + 0.25 * limb))
+    halo = np.exp(-((rr - 1.0) / 0.25) ** 2) * (rr > 1) * m
+    c.put(halo * 0.6, np.broadcast_to(red, c.col.shape), glow=halo * 0.55)
+    c.add_height(disc, 0.0002 - 0.0001 * crater)
+
+
+def crystal_facets(c, m, s, size=0.03, seed=0, glow=0.35):
+    """Cut crystal: a triangle lattice of flat facets wrapped round the cue, each facet a
+    different pale brightness (what it reflects) with a faint rainbow fire, bright facet edges."""
+    n_round = max(6, int(round(float(np.mean(2 * math.pi * c.r)) / size)))
+    b = c.theta / (2 * math.pi) * n_round
+    a = c.d / (size * 0.866)
+    i = np.floor(a)
+    fb = b + 0.5 * np.mod(i, 2)
+    j = np.floor(fb)
+    fa, fbb = a - i, fb - j
+    upper = (fbb > fa * 0.5) & (fbb < 1 - fa * 0.5)
+    tri = np.where(upper, 0, np.where(fbb <= fa * 0.5, 1, 2))
+    fid = cc._hash3(i.astype(np.int64), np.mod(j, n_round).astype(np.int64), tri.astype(np.int64), seed)
+    # distance to the facet's edges (lattice units)
+    e1 = np.abs(fbb - fa * 0.5)
+    e2 = np.abs(1 - fbb - fa * 0.5)
+    e3 = np.minimum(fa, 1 - fa)
+    edge = np.minimum(np.minimum(e1, e2), e3)
+    edge_line = np.clip(1 - edge / 0.05, 0, 1)
+    pale = rgb(s['clear'])
+    ice = rgb(s['ice'])
+    bright = 0.55 + 0.45 * fid
+    col = mix(np.broadcast_to(ice, c.col.shape), np.broadcast_to(pale, c.col.shape), np.clip(fid * 1.4 - 0.2, 0, 1)) * bright[..., None] + 30
+    hue = np.mod(fid * 5.3, 1)
+    rainbow = np.stack([0.5 + 0.5 * np.cos(2 * math.pi * (hue + k / 3)) for k in range(3)], -1) * 255
+    fire = np.clip((np.mod(fid * 11.7, 1) - 0.55) * 2.5, 0, 1)
+    col = mix(col, rainbow * 0.5 + col * 0.5, fire * 0.7)
+    col = col + (255 - col) * (edge_line * 0.75)[..., None]
+    col = np.clip(col, 0, 255)
+    spark = np.clip((fid - 0.93) * 14, 0, 1) * np.clip(1 - edge / 0.25, 0, 1)
+    c.put(m, col, rough=0.03, metal=0.15, glow=np.clip(edge_line * 0.6 + fire * 0.35 + spark, 0, 1) * glow * m)
+    c.add_height(m, 0.00012 * (np.clip(edge / 0.3, 0, 1) - 0.5))
+
+
+def gem_lattice(c, m, s, d0, d1, n=4, phase=FACE, seed=0, frame=None, glow=0.5):
+    """Silver bars crossing round the cue in two helices, leaving diamond windows between them;
+    each window holds a faceted gem (facets fanning from its centre, a star glint in the middle,
+    rainbow fire on some facets)."""
+    L = d1 - d0
+    u = (c.d - d0) / L  # 0..1 along the section
+    v = (c.theta - phase) / (2 * math.pi) * n  # windows round the cue
+    # two helices, each turning once round per window over the section: diamonds in between
+    p1 = u + v
+    p2 = u - v
+    e1 = np.abs(np.mod(p1 + 0.5, 1) - 0.5)
+    e2 = np.abs(np.mod(p2 + 0.5, 1) - 0.5)
+    bar_w = 0.045
+    bar = np.clip(1 - np.minimum(e1, e2) / bar_w, 0, 1)
+    barm = smooth(0.25, 0.45, bar) * m
+    # the window's local coords: centre where p1 and p2 are both whole + 0.5
+    cp1 = np.floor(p1) + 0.5
+    cp2 = np.floor(p2) + 0.5
+    lx = p1 - cp1  # -0.5..0.5
+    ly = p2 - cp2
+    ang = np.arctan2(ly, lx)
+    rad = np.maximum(np.abs(lx), np.abs(ly)) * 2  # 0 centre, 1 at the bars
+    facet = np.floor((ang + math.pi) / (2 * math.pi) * 8)
+    wid = cc._hash3(cp1.astype(np.int64) * 7, cp2.astype(np.int64) * 13, facet.astype(np.int64), seed)
+    ring2 = rad > 0.55
+    fid = np.where(ring2, np.mod(wid * 3.1 + 0.37, 1), wid)
+    pale, ice = rgb(s['clear']), rgb(s['ice'])
+    col = mix(np.broadcast_to(ice * 0.8, c.col.shape), np.broadcast_to(pale, c.col.shape), fid)
+    hue = np.mod(fid * 4.1, 1)
+    rainbow = np.stack([0.5 + 0.5 * np.cos(2 * math.pi * (hue + k / 3)) for k in range(3)], -1) * 255
+    fire = np.clip((np.mod(fid * 9.3, 1) - 0.5) * 2.2, 0, 1)
+    col = mix(col, rainbow * 0.55 + col * 0.45, fire * 0.8)
+    fe = np.abs(np.mod((ang + math.pi) / (2 * math.pi) * 8, 1) - 0.5)
+    edge = np.clip(1 - (0.5 - fe) * rad * 10, 0, 1) + np.exp(-((rad - 0.55) / 0.03) ** 2)
+    col = col + (255 - col) * (np.clip(edge, 0, 1) * 0.6)[..., None]
+    starg = np.exp(-(rad / 0.12) ** 2) + 0.7 * np.exp(-((np.abs(lx) + 0.0) / 0.012) ** 2) * np.exp(-(rad / 0.5) ** 2) \
+        + 0.7 * np.exp(-((np.abs(ly)) / 0.012) ** 2) * np.exp(-(rad / 0.5) ** 2)
+    col = col + (255 - col) * np.clip(starg, 0, 1)[..., None]
+    win = m * (1 - barm)
+    c.put(win, np.clip(col, 0, 255), rough=0.02, metal=0.1,
+          glow=np.clip(fire * 0.5 + np.clip(edge, 0, 1) * 0.35 + np.clip(starg, 0, 1), 0, 1) * glow * win)
+    c.add_height(win, 0.0003 * (1 - rad))
+    metal(c, barm > 0.5, frame or s['metal'], rough=0.1, brushed=False)
+    c.put(barm, None, glow=0.0)
+    c.add_height(barm, 0.0005 * barm)
+
+
+def aurora_ribbons(c, m, s, seed=0, freq=1.0, glow=0.9, density=1.0):
+    """Aurora ribbons flowing along the cue in the dark: warped bands winding diagonally round
+    it, green to teal to violet along their length, with fine bright curtain streaks inside, and
+    faint stars behind."""
+    w0 = fbm(c, 5 * freq, 1.2 * freq, octaves=3, seed=seed)
+    w1 = fbm(c, 7 * freq, 2.0 * freq, octaves=3, seed=seed + 1)
+    ph = c.d * 1.3 * freq + c.theta / (2 * math.pi) * 2 + (w0 - 0.5) * 2.4
+    band1 = np.exp(-((np.mod(ph, 1) - 0.5) / (0.11 + 0.08 * w1)) ** 2)
+    ph2 = c.d * 0.9 * freq - c.theta / (2 * math.pi) + (w1 - 0.5) * 2.0 + 0.3
+    band2 = np.exp(-((np.mod(ph2, 1) - 0.5) / (0.08 + 0.06 * w0)) ** 2) * 0.8
+    bands = np.clip(band1 + band2, 0, 1)
+    streak = ridged(c, 60 * freq, 6 * freq, seed=seed + 2, octaves=2) ** 3
+    inten = np.clip(bands * (0.55 + 0.6 * streak) * (0.4 + 0.9 * fbm(c, 4, 3, octaves=2, seed=seed + 3)), 0, 1) * density
+    hue = fbm(c, 3, 1.1, octaves=2, seed=seed + 4)
+    green, teal, violet, blue = rgb(s['green']), rgb(s['teal']), rgb(s['violet']), rgb(s['blue'])
+    t = np.clip((hue - 0.3) * 2.5, 0, 1)
+    col_a = mix(np.broadcast_to(green, c.col.shape), np.broadcast_to(blue, c.col.shape), np.clip(t * 2, 0, 1))
+    col_b = mix(col_a, np.broadcast_to(violet, c.col.shape), np.clip(t * 2 - 1, 0, 1))
+    base = rgb(s['night'])
+    col = mix(np.broadcast_to(base, c.col.shape), col_b, np.clip(inten * 1.3, 0, 1))
+    core = np.clip(inten * 1.6 - 1.0, 0, 1)
+    col = col + (255 - col) * (core * 0.5)[..., None]
+    c.put(m, col, rough=0.07, metal=0.0, glow=np.clip(inten * glow, 0, 1) * m)
+    starfield(c, m * (inten < 0.2), density=0.88, seed=seed + 5, glow=0.6)
+
+
+def mirror_tiles(c, m, s, size=0.03, seed=0, lit=0.35, glow=0.9):
+    """A mirror ball: small square mirror tiles in rows round the cue (a whole number per row),
+    each a slightly different silver (each catches a different reflection), parted by dark grout;
+    clumps of tiles lit by coloured spotlights glow pink, cyan, yellow or blue."""
+    n_round = max(8, int(round(float(np.mean(2 * math.pi * c.r)) / size)))
+    a = c.d / size
+    b = c.theta / (2 * math.pi) * n_round
+    i, j = np.floor(a), np.floor(b)
+    ii, jj = i.astype(np.int64), np.mod(j, n_round).astype(np.int64)
+    h1 = cc._hash3(ii, jj, np.zeros_like(ii), seed)
+    h2 = cc._hash3(ii, jj, np.ones_like(ii), seed + 1)
+    fa, fb = a - i, b - j
+    edge = np.minimum(np.minimum(fa, 1 - fa), np.minimum(fb, 1 - fb))
+    grout = 1 - smooth(0.03, 0.08, edge)
+    # a tilt: each tile is brighter toward one corner (a flat mirror at its own angle)
+    tilt = (fa - 0.5) * (h2 - 0.5) * 0.6 + (fb - 0.5) * (np.mod(h2 * 7, 1) - 0.5) * 0.6
+    silver = (70 + 185 * np.clip(h1 ** 1.4 + tilt, 0, 1))
+    col = np.stack([silver * 0.97, silver * 0.99, silver], -1)
+    # coloured spot clumps (the clump field is sampled per tile)
+    ang = (j + 0.5) / n_round * 2 * math.pi
+    rr = float(np.mean(c.r))
+    fld = cc.fbm(rr * np.sin(ang) * 14, (i + 0.5) * size * 14, -rr * np.cos(ang) * 14, 3, seed + 2)
+    on = np.clip((fld - (1 - lit)) * 6, 0, 1) * (h1 > 0.25)
+    pal = np.array([rgb(x) for x in s['spots']])
+    pick = np.minimum((cc.fbm(rr * np.sin(ang) * 6, (i + 0.5) * size * 6, -rr * np.cos(ang) * 6, 2, seed + 3) * 1.6 * len(pal)).astype(int) % len(pal), len(pal) - 1)
+    spot = pal[pick]
+    spot_col = spot + (255 - spot) * (0.25 + 0.4 * h1)[..., None]
+    col = mix(col, spot_col, on)
+    col = col * (1 - 0.85 * grout)[..., None]
+    c.put(m, col, rough=0.04 + 0.4 * grout, metal=(1 - on * 0.8) * (1 - grout),
+          glow=on * (0.55 + 0.45 * h1) * glow * (1 - grout) * m)
+    c.add_height(m, 0.00018 * (1 - grout) + 0.00006 * tilt)
+    return on
+
+
+GLYPHS = {  # 3 x 5 pixel glyphs, rows top to bottom
+    '0': ['111', '101', '101', '101', '111'],
+    '1': ['010', '110', '010', '010', '111'],
+    'a': ['111', '100', '111', '001', '111'],
+    'b': ['101', '111', '101', '111', '101'],
+    'c': ['110', '001', '011', '100', '011'],
+    'd': ['111', '010', '111', '010', '111'],
+    'e': ['100', '111', '101', '111', '001'],
+}
+
+
+def code_glyphs(c, m, s, cell_along=0.026, cell_round=0.036, density=0.75, seed=0, glow=1.0, columns=False):
+    """Glowing green 8-bit code: blocky 3x5 pixel glyphs (mostly 0 and 1, some odd symbols)
+    set upright in rows along the cue (a whole number of rows round it), some cells empty in
+    runs, each glyph its own brightness with a few white-hot ones, on glossy black."""
+    n_round = max(4, int(round(float(np.mean(2 * math.pi * c.r)) / cell_round)))
+    a = c.d / cell_along
+    b = c.theta / (2 * math.pi) * n_round
+    i, j = np.floor(a), np.floor(b)
+    ii, jj = i.astype(np.int64), np.mod(j, n_round).astype(np.int64)
+    h1 = cc._hash3(ii, jj, np.zeros_like(ii), seed)
+    h2 = cc._hash3(ii, jj, np.ones_like(ii), seed + 1)
+    h3 = cc._hash3(ii // 5, jj, np.zeros_like(ii), seed + 2)  # runs along a row
+    on = (h1 < density) & (h3 < 0.8)
+    keys = list(GLYPHS)
+    weights = np.array([0.38, 0.38, 0.05, 0.05, 0.05, 0.05, 0.04])
+    cum = np.cumsum(weights)
+    gi = np.searchsorted(cum, h2 * cum[-1])
+    # pixel inside the cell: 3 wide along (with a 1-pixel gap), 5 tall round (with a gap)
+    fa, fb = a - i, b - j
+    px = np.floor(fa * 4.0)
+    py = np.floor((1 - fb) * 6.4) - 0.7  # 0..4 are the glyph rows (top first)
+    py = np.floor((1 - fb) * 6.0 - 0.5)
+    lit = np.zeros(a.shape, bool)
+    for g, key in enumerate(keys):
+        rows = GLYPHS[key]
+        bits = np.array([[r[k] == '1' for k in range(3)] for r in rows])
+        sel = (gi == g)
+        inside = sel & (px >= 0) & (px < 3) & (py >= 0) & (py < 5)
+        pyc, pxc = np.clip(py, 0, 4).astype(int), np.clip(px, 0, 2).astype(int)
+        lit |= inside & bits[pyc, pxc]
+    lit = lit & on & (m > 0)
+    # soft pixel edges (a pixel glows a little past itself)
+    sa, sb = np.mod(fa * 4.0, 1), np.mod((1 - fb) * 6.0 - 0.5, 1)
+    pedge = np.minimum(np.minimum(sa, 1 - sa), np.minimum(sb, 1 - sb))
+    shape = lit * (0.75 + 0.25 * smooth(0.0, 0.2, pedge))
+    br = 0.35 + 0.65 * np.mod(h1 * 13.3 + h2 * 3.1, 1) ** 0.7
+    head = (np.mod(h2 * 29.7, 1) > 0.94)
+    col = mix(np.broadcast_to(rgb(s['dim']), c.col.shape), np.broadcast_to(rgb(s['code']), c.col.shape), np.clip(br * 1.3, 0, 1))
+    col = mix(col, np.broadcast_to(np.array([215.0, 255, 220]), c.col.shape), head * 0.8)
+    c.put(shape, col, rough=0.12, glow=shape * np.clip(br + head, 0, 1) * glow)
+    c.add_height(shape, 0.00005)
+    return shape
+
+
+# ---------------------------------------------------------------------------------------------
+# Epic recipes
+# ---------------------------------------------------------------------------------------------
+
+@recipe
+def shooting_star(k):
+    """Midnight navy with a drifting starfield: a starry navy shaft with gold swooshes before the
+    joint; the forearm and sleeve (OpenAI) each with a gold four-point star and gold arcs; a navy
+    snakeskin wrap, gold ring lines, a silver collar. Stars and gold glow softly."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        gloss(c, m, s['navy'], rough=0.08, flake=0.35, flake_color='#3A4A9A')
+        neb = np.clip((fbm(c, 5, 1.4, octaves=4, seed=201) - 0.5) * 2.2, 0, 1) * smooth(0.5, 3.4, c.d)
+        c.put(neb * 0.5 * m, np.broadcast_to(rgb('#2A3C8C'), c.col.shape), glow=neb * 0.15 * m)
+        starfield(c, m, density=0.83 - 0.03 * smooth(0.5, 3.5, c.d), gold=s['gold'], seed=202, glow=0.9)
+        # two gold swooshes sweeping into the joint
+        for ph, amp in ((FACE, 0.9), (FACE - math.pi, 0.9)):
+            t = np.clip((c.d - 2.85) / 0.75, 0, 1)
+            centre = ph + amp * (1 - t) ** 1.6 - 0.2
+            dist = angle_diff(c.theta, centre) * c.r
+            wdt = 0.0012 + 0.0045 * t ** 1.5
+            line = (1 - smooth(wdt, wdt + 0.0012, dist)) * (c.d > 2.85) * m
+            c.put(line, rgb(s['gold']), rough=0.2, metal=1.0, glow=line * 0.5)
+            c.add_height(line, 0.00008)
+    for panel in ('forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.08, height=0.00012)
+        c = k.c[panel]
+        g = hue_mask(img, s['gold'], tol=80, min_sat=0.3)
+        c.put(g, None, rough=0.18, metal=1.0)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(g * 0.55 + glow_from(img, 0.8, 1.0, 1.5) * 0.8, 0, 1))
+        c.add_height(g, 0.00015)
+    f = k.c['forearm']
+    metal(f, f.zone('joint'), s['metal'], rough=0.12)
+    f.put(f.zone('joint'), None, glow=0.0)
+    for c, m in k.zone('wrap'):
+        scales(c, m, s['wrap'], size=0.03, rough=0.4, depth=0.0006, seed=203, sheen=0.35)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('ring'):
+        gloss(c, m, s['navy'], rough=0.1)
+        ring_lines(c, m, [(5.33, 5.345, s['gold'], 'metal'), (5.4, 5.415, s['gold'], 'metal')])
+        c.put(m, None, glow=0.0)
+    end_band(k, d0=6.97)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0A0C14')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def magma(k):
+    """Black volcanic rock with molten lava in its cracks, cue-long: domed, pitted rock plates
+    split by glowing yellow-orange cracks (smaller toward the tip), a rocky wrap with only a few
+    live cracks, a glowing red ring between red bands, a silver collar."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        freq = 15 - 3 * smooth(0.5, 3.5, c.d)
+        lava_rock(c, m * (c.d < 1.6), 16, s, seed=211, live=0.75, width=0.07, dome=0.0005)
+        lava_rock(c, m * (c.d >= 1.6), 12, s, seed=212, live=0.85, width=0.08, dome=0.0007)
+    for c, m in k.zone('forearm', 'cap'):
+        lava_rock(c, m, 8, s, seed=213, live=0.9, width=0.1, halo=0.5, dome=0.0011)
+    for c, m in k.zone('wrap'):
+        lava_rock(c, m, 16, s, seed=214, live=0.35, width=0.06, halo=0.35, dome=0.0009)
+    k.paint(['joint'], metal, s['metal'], rough=0.14)
+    for c, m in k.zone('ring'):
+        gloss(c, m, '#1A0A06', rough=0.2)
+        c.put(m, None, glow=0.0)
+    glow_ring(k, s['lava'], d0=5.35, d1=5.395)
+    for c, m in k.zone('ring'):
+        ring_lines(c, m, [(5.325, 5.34, s['red'], 'paint'), (5.405, 5.42, s['red'], 'paint')])
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#100C0A')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0])
+
+
+@recipe
+def toxic(k):
+    """Acid-green radioactive goo bubbling in a glass shaft; black-and-yellow hazard stripes
+    slanting over the forearm's front half before the goo shows through; a black snakeskin wrap
+    crossed by two yellow hazard bands; a glowing yellow ring; the sleeve a goo-filled glass
+    window between black rims; a silver collar."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        goo_glass(c, m, s, seed=221, big=20, small=48, glow=0.8)
+    for c, m in k.zone('forearm'):
+        goo_glass(c, m, s, seed=222, big=14, small=36, glow=0.8)
+        # hazard panel from the collar, cut on a slant into the goo, with a black edge
+        cut = F0 + 0.62 + 0.12 * np.sin(c.theta * 1.0)
+        hz = (c.d < cut) * m
+        hazard(c, hz, s['yellow'], pitch=0.09)
+        edge = band(c, 0, 1) * (np.abs(c.d - cut) < 0.012) * m
+        c.put(edge, rgb('#0A0A0A'), rough=0.1, glow=0.0)
+    for c, m in k.zone('wrap'):
+        scales(c, m, '#141614', size=0.026, rough=0.35, depth=0.0006, seed=223, sheen=0.3)
+        for d_mid in (5.7, 6.3):
+            f = np.mod((c.d - d_mid + around_of(c, math.pi) * 1.2) / 0.5 + 0.5, 1) - 0.5
+            st = (np.abs(f) < 0.07) * (np.abs(c.d - d_mid) < 0.16) * m
+            c.put(st, rgb(s['yellow']), rough=0.12, glow=0.0)
+            c.add_height(st, 0.0002)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('cap'):
+        goo_glass(c, m, s, seed=224, big=11, small=30, glow=0.85)
+        for a0, a1 in ((C0, C0 + 0.03), (6.935, 7.2)):
+            b_ = band(c, a0, a1) * m > 0.5
+            gloss(c, b_, '#0C0C0C', rough=0.08)
+            c.put(b_, None, glow=0.0)
+    k.paint(['joint'], metal, s['metal'], rough=0.12)
+    for c, m in k.zone('ring'):
+        gloss(c, m, '#0C0C0C', rough=0.1)
+        c.put(m, None, glow=0.0)
+    glow_ring(k, s['yellow'], base=None, d0=5.345, d1=5.4)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0E100C')
+    rr = c.r / c.face_radius
+    ringm = np.exp(-((rr - 0.62) / 0.05) ** 2)
+    c.put(ringm, np.broadcast_to(rgb(s['acid']), c.col.shape), glow=ringm)
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0 + 0.03, 6.935])
+
+
+@recipe
+def blood_moon(k):
+    """Deep crimson and black lacquer with red mist drifting inside: crimson smoke through a
+    black shaft (thickening to the joint) and the forearm; a black snakeskin wrap with thin
+    glowing red lines curving through it; glowing red rings; the sleeve black with red clouds
+    and a red full moon facing each side; a silver collar."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        gloss(c, m, s['black'], rough=0.08)
+        amt = 0.25 + 0.75 * smooth(0.4, 3.4, c.d)
+        red_mist(c, m, s, seed=231, amount=1.0, fd=2.5)
+        c.col = mix(np.broadcast_to(rgb(s['black']), c.col.shape), c.col, amt)
+        c.glow = c.glow * amt
+    for c, m in k.zone('forearm'):
+        red_mist(c, m, s, seed=232, fd=4)
+    for c, m in k.zone('cap'):
+        red_mist(c, m, s, seed=233, fd=5, amount=0.8)
+        for th in (FACE, FACE - math.pi):
+            moon(c, m, 6.8, th, 0.085, s, seed=234)
+    for c, m in k.zone('wrap'):
+        scales(c, m, '#120A0C', size=0.026, rough=0.35, depth=0.0006, seed=235, sheen=0.3)
+        for n, (amp, ph, fr) in enumerate(((0.9, 0.0, 1.3), (0.7, 2.0, 1.0), (1.1, 4.1, 0.8))):
+            centre = FACE + amp * np.sin(2 * math.pi * fr * (c.d - W0) / (W1 - W0) + ph)
+            dist = angle_diff(c.theta, centre) * c.r
+            line = (1 - smooth(0.0018, 0.0035, dist)) * m
+            c.put(line, rgb(s['bright']), rough=0.2, glow=line * 0.85)
+        c.put(m * (c.glow < 0.01), None, glow=0.0)
+    k.paint(['joint'], metal, s['metal'], rough=0.12)
+    for c, m in k.zone('ring'):
+        gloss(c, m, s['black'], rough=0.1)
+        c.put(m, None, glow=0.0)
+    glow_ring(k, s['crimson'], d0=5.345, d1=5.4)
+    for c, m in k.zone('cap'):
+        ln = band(c, C0, C0 + 0.012) * m
+        c.put(ln, rgb(s['bright']), glow=ln)
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0406')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def prism(k):
+    """A clear faceted crystal cue: a shaft of cut crystal facets with rainbow fire; the forearm
+    and sleeve silver lattices holding diamond-cut gems; a pearly white snakeskin wrap; silver
+    collar and rings. Facet edges and fire glint in the glow mask."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        crystal_facets(c, m, s, size=0.028, seed=241, glow=0.4)
+    for c, m in k.zone('forearm'):
+        gem_lattice(c, m, s, F0, F1, n=4, seed=242, glow=0.55)
+    for c, m in k.zone('cap'):
+        mm = m * (c.d < 6.95)
+        gem_lattice(c, mm > 0.5, s, C0, 6.95, n=4, seed=243, glow=0.55)
+    for c, m in k.zone('wrap'):
+        scales(c, m, '#E6EAF0', size=0.026, rough=0.3, depth=0.0005, seed=244, sheen=0.5, edge_col='#B8C4D4')
+        c.put(m, None, glow=0.0)
+    k.paint(['joint'], metal, s['metal'], rough=0.08)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.08)
+        ring_lines(c, m, [(5.335, 5.345, '#2A2E34', 'paint'), (5.4, 5.41, '#2A2E34', 'paint')])
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('cap'):
+        metal(c, band(c, 6.95, 7.2) * m > 0.5, s['metal'], rough=0.1)
+        c.put(band(c, 6.95, 7.2) * m, None, glow=0.0)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101214')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, 6.95])
+
+
+@recipe
+def aurora(k):
+    """A dark night-sky cue with green, teal and violet aurora ribbons flowing along it from the
+    shaft through the forearm and sleeve, a black snakeskin wrap, an iridescent glowing ring, a
+    silver collar. The ribbons glow."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        gloss(c, m, s['night'], rough=0.07)
+        aurora_ribbons(c, m, s, seed=251, freq=0.8, glow=0.85, density=0.5 + 0.5 * smooth(0.3, 2.5, c.d))
+    for c, m in k.zone('forearm', 'cap'):
+        aurora_ribbons(c, m, s, seed=252, freq=1.2, glow=0.9)
+    for c, m in k.zone('wrap'):
+        scales(c, m, '#0E1116', size=0.026, rough=0.35, depth=0.0006, seed=253, sheen=0.3)
+        c.put(m, None, glow=0.0)
+    k.paint(['joint'], metal, s['metal'], rough=0.1)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.1)
+        c.put(m, None, glow=0.0)
+        rim = band(c, 5.34, 5.405) * m
+        hue = np.mod(c.theta / (2 * math.pi) * 2, 1)
+        pal = [rgb(s['green']), rgb(s['teal']), rgb(s['violet']), rgb(s['blue'])]
+        idx = (hue * 4).astype(int) % 4
+        fr = np.mod(hue * 4, 1)[..., None]
+        col = np.array(pal)[idx] * (1 - fr) + np.array(pal)[(idx + 1) % 4] * fr
+        col = col + (255 - col) * 0.3
+        c.put(rim, col, rough=0.15, metal=0.0, glow=rim)
+    end_band(k, d0=6.97)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0A0E14')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def disco(k):
+    """A mirror ball on a cue: small square mirror tiles from the shaft to the sleeve (smaller on
+    the shaft), clumps of them lit pink, cyan, yellow and blue; a black wrap full of multicolour
+    glitter; a mirrored glowing ring; a silver collar."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        mirror_tiles(c, m, s, size=0.022, seed=261, lit=0.28)
+    for c, m in k.zone('forearm'):
+        mirror_tiles(c, m, s, size=0.034, seed=262, lit=0.4)
+    for c, m in k.zone('cap'):
+        mm = (c.d < 6.95) & m
+        mirror_tiles(c, mm, s, size=0.034, seed=263, lit=0.5)
+    for c, m in k.zone('wrap'):
+        leather(c, m, '#0C0C12', rough=0.45, depth=0.0005, scale=1.6, contrast=1.2)
+        pal = [rgb(x) for x in s['spots']] + [np.array([235.0, 235, 245])]
+        for i, pc in enumerate(pal):
+            gl = np.clip((cc.noise3(c.x * 1500, c.d * 1500, c.z * 1500, 264 + i) - 0.84) * 9, 0, 1) * m
+            c.put(gl, pc, rough=0.1, metal=0.6, glow=gl * 0.45)
+    k.paint(['joint'], metal, s['metal'], rough=0.08)
+    for c, m in k.zone('ring'):
+        mirror_tiles(c, m, s, size=0.02, seed=265, lit=0.8)
+        ring_lines(c, m, [(5.32, 5.332, s['metal'], 'metal'), (5.413, 5.425, s['metal'], 'metal')])
+    for c, m in k.zone('cap'):
+        bb = band(c, 6.95, 7.2) * m > 0.5
+        gloss(c, bb, '#0C0C10', rough=0.1)
+        c.put(bb, None, glow=0.0)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0E0E12')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, 6.95])
+
+
+@recipe
+def hacked(k):
+    """A hacker terminal: glossy black with glowing green 8-bit code (blocky 0s, 1s and pixel
+    glyphs) sparse along the shaft and packed on the forearm and sleeve; a black snakeskin wrap;
+    a glowing green ring; a silver collar."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        gloss(c, m, s['black'], rough=0.06)
+        dens = 0.18 + 0.45 * smooth(0.4, 3.3, c.d)
+        code_glyphs(c, m * (c.d > 0.35), s, cell_along=0.02, cell_round=0.028, density=0.45, seed=271)
+        c.col = mix(np.broadcast_to(rgb(s['black']), c.col.shape), c.col, np.clip(dens * 1.6, 0, 1))
+        c.glow = c.glow * np.clip(dens * 1.6, 0, 1)
+    for c, m in k.zone('forearm'):
+        gloss(c, m, s['black'], rough=0.06)
+        code_glyphs(c, m, s, cell_along=0.026, cell_round=0.034, density=0.8, seed=272)
+    for c, m in k.zone('cap'):
+        mm = (c.d < 6.95) & m
+        gloss(c, mm, s['black'], rough=0.06)
+        code_glyphs(c, mm, s, cell_along=0.026, cell_round=0.034, density=0.85, seed=273)
+    for c, m in k.zone('wrap'):
+        scales(c, m, '#0E1210', size=0.026, rough=0.35, depth=0.0006, seed=274, sheen=0.3)
+        c.put(m, None, glow=0.0)
+    k.paint(['joint'], metal, s['metal'], rough=0.1)
+    for c, m in k.zone('ring'):
+        gloss(c, m, '#08120A', rough=0.1)
+        c.put(m, None, glow=0.0)
+    glow_ring(k, s['code'], d0=5.335, d1=5.41)
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#080A08')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
 
 
 # ---------------------------------------------------------------------------------------------
