@@ -443,7 +443,7 @@ done becomes `- [x] BLOCKED: <why>`.
   only), docs read, Studio and Rojo checked, lint and tests green, plan in Notes.
 - [x] 1. `tools/export_cue_shape.luau` and `assets/cue/Shape.json`, with a Lune test that
   it's current.
-- [ ] 2. `CueModel.py`: the mesh (3.2, 3.3), UVs (3.4), every validation in 3.6 passing,
+- [x] 2. `CueModel.py`: the mesh (3.2, 3.3), UVs (3.4), every validation in 3.6 passing,
   `Cue.glb`, `renders/checkpoint_mesh.png` looked at and fixed.
 - [ ] 3. The paint kit (4.1-4.3): the panels, input, guide and test images, `sheet.png`,
   `CueTextures.py --skin` working, `renders/template_check.png` proving nothing is stretched,
