@@ -2019,8 +2019,9 @@ Config.Daily = {
 		WELCOME = { Money = 500, Cases = { Standard = 1 } },
 		["8BALL"] = { Money = 250 },
 		ROOFTOP = { Cases = { Rare = 1 }, Expires = 1798761600 }, -- through 2026-12-31 (UTC)
-		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ult spins.
-		ULTS = { Spins = 3 },
+		-- The spin screen's code box (Config.Ults.CodeBanner.ActiveCode names it): 3 ability
+		-- spins. Was ULTS until players' "ults" became "abilities" (2026-09-28, pre-release).
+		ABILITIES = { Spins = 3 },
 	} :: {
 		[string]: {
 			Money: number?,
@@ -2310,7 +2311,7 @@ Config.Ults = {
 	},
 	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
 	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
-	CodeBanner = { ActiveCode = "ULTS", NextGoalLikes = 100 },
+	CodeBanner = { ActiveCode = "ABILITIES", NextGoalLikes = 100 },
 	-- Fast Open's Auto Spin (section 9.6): one spin this often, server-checked.
 	AutoSpinSeconds = 0.4,
 	AutoStopChoices = { "Rare", "Epic", "Legendary" },
@@ -2354,39 +2355,50 @@ Config.Ults = {
 	},
 }
 
--- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball moving
--- toward a pocket inside its capture zone whose straight path would miss the opening (a jaw,
--- a facing or the cushion beside the mouth first) has its velocity and spin turned just
--- enough to clear it, never sped up. A path already going in is left alone. Tuned by
--- tests/ult_magnet_test.luau against the brief's targets; every number (tune).
+-- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
+-- has been hit (it is moving) and is heading roughly toward a pocket inside that pocket's pull
+-- zone has its heading turned toward an aim point just inside the mouth and its speed blended
+-- toward CaptureSpeed, both harder the closer it gets: a fast ball is visibly caught and
+-- eased in, a creeping one pulled over the lip. A ball at rest is never moved. Tuned by
+-- tests/ult_magnet_test.luau (buffed 2026-09-28); every number (tune).
 Config.Ults.Magnet = {
-	-- The capture zone: a circle this many ball diameters in radius around the middle of each
-	-- pocket's mouth. Nothing outside it is pulled. (tune)
-	CaptureBallWidths = 3,
-	-- How hard the path can bend at a corner mouth itself: radians of turn per inch the ball
-	-- rolls. Per inch rather than per second, so a slow and a firm ball bend alike. (tune)
-	MaxBend = 0.3,
-	-- The same at a side mouth: its jaws are straighter and its window narrower, so it needs
-	-- about twice the bend for the same rescue rates. (tune)
-	SideMaxBend = 0.6,
-	-- How the pull grows toward the mouth: bend = MaxBend * closeness ^ Power, closeness 0 at
-	-- the zone's edge and 1 at the mouth. Higher keeps the pull near the pocket. (tune)
-	Power = 1,
-	-- Above this speed (in/s) the pull fades as (FadeSpeed / speed) ^ FadePower, so a hard hit
-	-- ball is barely bent. (tune)
-	FadeSpeed = 150,
-	FadePower = 1,
+	-- The pull zone: a circle this many ball diameters in radius around the middle of each
+	-- pocket's mouth. Nothing outside it is pulled. Was 3 before the buff. (tune)
+	ZoneBallWidths = 7.5,
+	-- How the pull grows toward the mouth: strength = closeness ^ Power, closeness 0 at the
+	-- zone's edge and 1 at the mouth (and past it). Scales both the turn and the speed blend.
+	-- A whole number (it is multiplied out, never pow()). Higher keeps the pull near the
+	-- pocket and makes the curve sharper at the end. (tune)
+	Power = 2,
+	-- How hard the path can bend at a corner mouth: radians of turn per inch rolled at full
+	-- strength. Per inch rather than per second, so a slow and a firm ball curve alike. (tune)
+	CornerBend = 0.3,
+	-- The same at a side mouth: its window is narrower to angled balls, so it needs about
+	-- twice the bend for the same rescue rates. (tune)
+	SideBend = 0.6,
 	-- The most one fixed step (1/240 s) may turn a ball, as the sine of the angle (0.1 = about
 	-- 6 degrees), so a fast ball near the mouth is never snapped round. (tune)
 	MaxStepTurn = 0.1,
-	-- The path is traced with a ball this much fatter (inches), so a ball it steers clears the
-	-- jaws with room to spare and one only just going in is nudged to the middle. (tune)
+	-- The path is traced with a ball this much fatter (inches): a path counts as going in, and
+	-- is left on its line, only when it clears the jaws with this to spare. (tune)
 	ClearanceInches = 0.1,
-	-- Below this speed (in/s) a ball is not pulled at all: a stopping ball stays put. (tune)
+	-- The speed a pulled ball is blended toward (in/s): slow enough to drop through any jaw,
+	-- fast enough to be seen creeping in. (tune)
+	CaptureSpeed = 18,
+	-- Braking of a faster ball: the share of its extra speed over CaptureSpeed taken off per
+	-- inch rolled at full strength. Per inch, so a hard hit ball is caught over the same
+	-- stretch as a soft one. (tune)
+	BrakePerInch = 0.4,
+	-- Pulling a slower ball up: the share of its missing speed added per second at full
+	-- strength. Against rolling friction (about 4 in/s^2) this pulls in a ball that would
+	-- have stopped within about 4 widths of the mouth; one dying further out stops about
+	-- where it would have (6 widths out: 0.1 of a width nearer). (tune)
+	CreepPerSecond = 1,
+	-- Below this speed (in/s) a ball is not pulled at all: a ball at rest stays put. (tune)
 	MinSpeed = 1,
-	-- "Moving toward the pocket": the cosine of the angle between the velocity and the
-	-- direction to the pocket centre must be above this (0 = anywhere in front). (tune)
-	MinApproachCos = 0,
+	-- "Heading roughly toward the pocket": the cosine of the angle between the velocity and
+	-- the direction to the pocket centre must be above this (0.5 = within 60 degrees). (tune)
+	MinApproachCos = 0.5,
 }
 
 ---------------------------------------------------------------------------------------------
@@ -6006,7 +6018,14 @@ Config.UI.UltCutscene = {
 	InkShare = 0.015, -- the ink outline round it, of the panel's height...
 	InkMinPx = 3, -- ...at least this
 	InnerInkShare = 0.5, -- the thinner ink line round the picture, of the outer one
-	InnerColor = { 14, 16, 26 }, -- behind the backdrop (and the whole picture while its art is "")
+	-- The picture is the kit's white with the rarity colour round it (the designer, 2026-09-28:
+	-- no dark swirl): a line RarityEdgeShare of the outer ink thick in the ult's rarity colour,
+	-- and a soft glow of it behind the avatar, lightened by GlowWhiteShare toward white.
+	InnerColor = { 255, 255, 255 },
+	RarityEdgeShare = 2.2,
+	GlowWhiteShare = 0.72,
+	BackdropArt = false, -- true brings back the dark swirl art below
+	AvatarFadeShare = 0.35, -- the bottom of the avatar's window fading into the glow
 	-- The backdrop (Config.UI.Kit.Art.UltBackdrop, a 1024 square white swirl on near-black),
 	-- tinted in the ult's rarity colour lightened by BackdropWhiteShare, cropped from the 3:1
 	-- strip (rows StripRows) round the calm eye (EyePx), which sits behind the avatar.
@@ -6024,6 +6043,7 @@ Config.UI.UltCutscene = {
 	SpeedLineScreensPerSecond = 2.4, -- speed, in screen widths a second
 	SpeedLineStaggerSeconds = 0.9, -- they set off spread over this
 	SpeedLineTransparency = 0.35,
+	SpeedLineWhiteShare = 0.35, -- in the rarity colour, lightened this much (white on the swirl)
 	-- The avatar: a clone of the activator's character in its rest pose, upper body (waist to
 	-- the top of the head) filling FrameMargin of the picture's height, at AvatarScreenX across
 	-- the screen, turned AvatarYawDegrees toward the words. A pretend player is an ink silhouette.
@@ -6157,6 +6177,31 @@ Config.UI.MagnetFx = {
 	DropSoundSeconds = 1.5, -- the drop's sounds are cleared after this
 	FreshSeconds = 0.3, -- a drop the replay only caught up with (a late join) gets nothing
 	EndFadeSeconds = 0.5, -- everything fades this long after the balls stop
+	-- Charged (the designer, 2026-09-28: "once it hits a ball that ball should have some magnet
+	-- effect"): the moment one of the shooter's balls is hit on a Magnet shot (it starts
+	-- moving) it charges with a zap and a spark burst, and small red and blue rings circle it
+	-- for the rest of the shot (snapping in from ChargeSnapFromScale wide), with a faint glow.
+	ChargeMinSpeed = 0.5, -- in/s: moving at all means it has been hit
+	ChargeRingRadiusBalls = 1.7, -- in ball radii
+	ChargeRingWidthStuds = 0.03,
+	ChargeRingTransparency = 0.2,
+	ChargeTurnSeconds = 1.4,
+	ChargeSnapFromScale = 3,
+	ChargeSparkCount = 10,
+	ChargeZapShare = 0.5, -- of MagnetZap's volume
+	ChargeGlowBrightness = 1.2,
+	ChargeGlowRangeStuds = 1.6,
+	-- The pull, drawn as a flow: bright dust streaming off the ball into the pocket (reaching
+	-- it as it fades) and, round the pocket, a vortex of motes drawn in to its centre.
+	DustRate = 60, -- a second, at full pull
+	DustLifetime = 0.35,
+	DustSizeStuds = 0.08,
+	DustSpreadDegrees = 12,
+	VortexRate = 90, -- a second, at full pull
+	VortexLifetime = 0.5,
+	VortexScale = 3.2, -- the vortex's width, of the pocket's opening
+	VortexHeightShare = 0.3, -- its height, of its width (motes come in low over the cloth)
+	VortexSizeStuds = 0.09,
 }
 
 -- The ult spin screen (UltScreen and its parts UltSlots, UltOdds, UltBuy, UltFast,
@@ -6211,6 +6256,11 @@ Config.UI.UltScreen = {
 		CodeBoxPx = 40,
 		RedeemWidthPx = 110,
 		CodeNoteTextPx = 16,
+		-- The code box on its own (the designer, 2026-09-28): centred in the room between the
+		-- slot cards and SPIN, at most CodeCardWidthPx wide; with less than CodeCardMinWidthPx
+		-- there it goes back under the odds.
+		CodeCardWidthPx = 400,
+		CodeCardMinWidthPx = 250,
 		-- Bottom centre: LUCKY SPINS, SPIN, SPINS LEFT.
 		LuckyWidthPx = 300,
 		LuckyHeightPx = 42,
@@ -6334,25 +6384,20 @@ Config.UI.UltScreen = {
 		AutoStingFrom = "Rare", -- Auto Spin: only this rarity and up plays its sting (the rest tick)
 		HintTextPx = { 14, 18 }, -- "Tap to skip" under the name (phone, computer)
 	},
-	-- The hidden stage (UltStage, section 9.2): a dark room far from the map, built only while
-	-- the screen is open, the camera cut there. Studs unless named.
+	-- The stage (UltStage, section 9.2): the avatar where the player stands, the real world
+	-- behind it (the designer, 2026-09-28), the camera cut there. Studs unless named.
 	Stage = {
-		Origin = { 0, 3000, 40000 }, -- the room's floor centre: far above and away from the map
-		RoomWidth = 48,
-		RoomDepth = 40,
-		RoomHeight = 28,
-		WallColor = { 12, 14, 24 },
-		FloorColor = { 20, 22, 34 },
-		FloorReflectance = 0.12,
-		-- The swirling backdrop behind the avatar: the cutscene's swirl art, scrolling slowly.
-		BackdropDistance = 9, -- behind the avatar
-		BackdropColor = { 10, 12, 22 },
-		SwirlColor = { 70, 88, 150 },
-		SwirlTransparency = 0.55,
-		SwirlTileStuds = { 34, 24 }, -- the two layers' tile sizes
-		SwirlSpeed = { 1.1, -0.7 }, -- studs a second, the two layers opposite ways
-		TintTransparency = 0.82, -- a third layer in the aura's colour, faint
-		FloorGlowStuds = 9, -- the soft glow on the floor under the avatar, in the aura's colour
+		-- Every player's character and name plate is hidden while the screen is open (this
+		-- client only), checked again this often for anyone who respawns or joins.
+		HidePlayers = true,
+		HideRefreshSeconds = 0.5,
+		GroundSearchStuds = 6, -- how far below the feet to look for the ground
+		-- The camera's side: the player's camera's side first, then this many directions round;
+		-- the first with ClearanceStuds of room past the camera, clear of the world, wins.
+		ViewTries = 12,
+		ClearanceStuds = 1.5,
+		MinCameraStuds = 5, -- boxed in on every side: never closer than this
+		FloorGlowStuds = 9, -- the soft glow on the ground under the avatar, in the aura's colour
 		FloorGlowTransparency = 0.35,
 		-- The camera: straight at the avatar, which fills FillShare of the view's height and sits
 		-- a little low (LookUpShare of its height), under the title.
@@ -6361,16 +6406,18 @@ Config.UI.UltScreen = {
 		LookUpShare = 0.14,
 		SwayStuds = 0.12, -- the camera drifts this much, slowly, so the stage feels alive
 		SwaySeconds = 7,
+		-- Two small lights on the avatar (in its frame: x right, y up, z toward the camera),
+		-- gentle: the world's own light does most of it.
 		KeyLight = {
 			Offset = { 5, 9, 9 },
-			Brightness = 3,
+			Brightness = 1.2,
 			Range = 28,
 			Angle = 70,
 			Color = { 255, 244, 230 },
 		},
 		FillLight = {
 			Offset = { -4, 4, 7 },
-			Brightness = 0.8,
+			Brightness = 0.4,
 			Range = 18,
 			Color = { 170, 190, 255 },
 		},
@@ -6493,18 +6540,30 @@ Config.Debug = {
 		Rookie = "/rookie", -- /rookie <n>: set how many real matches you have played
 		FreeCase = "/freecase", -- as if you won a real match (the free-case rule)
 		EconHelp = "/econhelp", -- lists these
-		-- Ultimates, acting on the caller only (`/ulthelp` lists them).
-		UltBar = "/ultbar", -- /ultbar <0-100>: your bar at your table
-		UltFull = "/ultfull", -- fills your bar
-		UltArm = "/ultarm", -- fills your bar and arms your equipped ult at once (no cutscene wait)
-		Spins = "/spins", -- /spins <n>: set the Ult Spins you hold
+		-- Ultimates, acting on the caller only (`/abilityhelp` lists them). Players call ults
+		-- "abilities" (2026-09-28), so each command's name says ability; its old ult name in
+		-- OldAliases still works (its TextChatCommand's second alias).
+		UltBar = "/abilitybar", -- /abilitybar <0-100>: your bar at your table
+		UltFull = "/abilityfull", -- fills your bar
+		UltArm = "/abilityarm", -- fills your bar, arms your equipped ult at once (no cutscene wait)
+		Spins = "/spins", -- /spins <n>: set the Ability Spins you hold
 		Lucky = "/lucky", -- /lucky <n>: set the Lucky Spins you hold
 		Pity = "/pity", -- /pity <n>: set pity (99: the next spin is the pity spin)
 		FreeSpin = "/freespin", -- today's free spin becomes unused again
-		Ult = "/ult", -- /ult <id|name>: any ult into your selected slot (no spin used)
-		UltsAll = "/ultsall", -- /ultsall on|off: every ult rolls and plays for you this session
-		OpUlt = "/opult", -- fills the bars of the other side at your table (the QA opponent's)
-		UltHelp = "/ulthelp", -- lists these
+		Ult = "/ability", -- /ability <id|name>: any ult into your selected slot (no spin used)
+		UltsAll = "/abilitiesall", -- /abilitiesall on|off: every ult rolls and plays for you (session)
+		OpUlt = "/opability", -- fills the bars of the other side at your table (the QA opponent's)
+		UltHelp = "/abilityhelp", -- lists these
+		-- The ult commands' old names, by command: each still runs its command.
+		OldAliases = {
+			UltBar = "/ultbar",
+			UltFull = "/ultfull",
+			UltArm = "/ultarm",
+			Ult = "/ult",
+			UltsAll = "/ultsall",
+			OpUlt = "/opult",
+			UltHelp = "/ulthelp",
+		},
 		MaxAmount = 1e9, -- the largest /money, /addmoney or /xp amount accepted
 		MaxGive = 100, -- the most copies one /givecue, or cases one /givecase, gives
 		DupeKinds = 5, -- /dupes: how many different cues...

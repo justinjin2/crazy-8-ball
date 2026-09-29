@@ -637,7 +637,9 @@ pity skips for cases, extra or faster free cases, anything that protects rank, i
 (longer guidelines, hints, power or spin upgrades), anything that hurts an opponent, and
 purchase prompts right after a loss.
 
-**The exception: ult spins** (designer, 2026-09-28, the ultimates interview). Normal spins
+**The exception: ult spins** (players see "Ability Spins": ults are called Abilities
+everywhere players look since 2026-09-28, while code and these docs keep "ult"; designer,
+2026-09-28, the ultimates interview). Normal spins
 are sold for Robux and money, and **Lucky Spins** (a luck boost: no Commons) for Robux. They
 are paid random items, so: the odds are always shown on the spin screen (the true current
 odds), pity is kept (the 100th spin without an Epic or better is Epic+), and players in
@@ -646,6 +648,9 @@ and $ buy buttons and Lucky Spins are hidden, with the case shop's note); their 
 still work. The ult bar itself is never bought: it fills by the same rules for everyone.
 
 ### 11.8 Ult spins (2026-09-28)
+
+Players see these as **Ability Spins** on the **Abilities** screen (the designer,
+2026-09-28); in code they stay ult spins (`Config.Ults`, the `Ults` save field).
 
 Numbers in `Config.Ults` (Roll, Earn) and `Config.Products`; all *(tune)*.
 
@@ -667,10 +672,10 @@ Legendary 24.1%, Mythic 3.6%); any Epic+ resets it. About 6.2% of 100-spin stret
 it.
 
 **Getting spins:** 3 starter spins (new and existing saves); 1 free spin a UTC day (not
-stacked; the SPIN button reads FREE SPIN and uses it first; the Ults button has a red dot and
+stacked; the SPIN button reads FREE SPIN and uses it first; the Abilities button has a red dot and
 the leave reminder mentions it); rank-ups (+1 per new tier up to Gold, +2 Platinum and
 Diamond, +3 above); +2 on day 7 of the login streak; +1 on the day's last playtime gift;
-codes (the spin screen's code box, starting with ULTS for 3 spins); Fast Open (99 R$) adds
+codes (the spin screen's code box, starting with ABILITIES for 3 spins); Fast Open (99 R$) adds
 Skip and Auto Spin.
 
 **Prices:**
@@ -815,7 +820,7 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
   then "Open next"); Fast Open adds Open 10 and skips the reel (7.1, 11.5).
 - **Codes.** Promo codes in the Rewards menu; the list lives in Config (`Config.Daily.Codes`);
   each code once per player, case-insensitive, with an optional expiry. Codes give only money,
-  free cases or free ult spins and Lucky Spins (ULTS: 3 spins, 11.7), never a cue, pass or
+  free cases or free ult spins and Lucky Spins (ABILITIES: 3 spins, 11.7), never a cue, pass or
   boost sold for Robux. A free case or free spin is not a paid random item, so a restricted
   player may redeem it (2026-09-28).
 - **Index completion** (closes the Open item in 17). A cue never owned is a "?" card; tapping
@@ -855,7 +860,8 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
   for the session (cases already owned still open); a Limited copy number taken for a purchase
   that then fails is burned, never reused; a Robux price is read once per server; placeholder
   codes WELCOME ($500 and a Standard Case), 8BALL ($250), ROOFTOP (a Rare Case, through
-  2026-12-31) and ULTS (3 ult spins, 2026-09-28; shown on the spin screen's code banner).
+  2026-12-31) and ABILITIES (3 ult spins, 2026-09-28, first named ULTS; shown on the spin
+  screen's code banner).
 - **From the overnight audit (2026-09-28, overnight assumptions):** a case sale is at most
   **50% off** (`Config.Cases.MaxSalePercent`; past about 61% off, buying 10, opening and
   selling back pays more than it costs). A Robux receipt that no longer qualifies when it

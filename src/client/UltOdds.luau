@@ -5,7 +5,7 @@
 -- with each one's share, or "Soon" for a placeholder that cannot be rolled yet. The shares are
 -- the true current odds from UltState (built ults only, empty rarities passing theirs down),
 -- written as the case Odds panel writes them. Under the bars a line on pity, then the code box
--- ("USE CODE ULTS FOR FREE SPINS", "NEXT CODE AT 100 LIKES", a text box and Redeem through the
+-- ("USE CODE ABILITIES FOR FREE SPINS", "NEXT CODE AT 100 LIKES", a text box and Redeem through the
 -- Rewards service's codes). Everything sits in one scroller: on a computer it is the screen's
 -- right column over the dark stage; on a phone the screen puts it in its Odds popup.
 local GuiService = game:GetService("GuiService")
@@ -304,7 +304,7 @@ function UltOdds.buildCode(self: any, parent: Instance)
 		end
 		hint.Visible = input.Text == ""
 		if input.Text ~= "" and answer.Visible then
-			answer.Visible = false
+			self:showAnswer("", "Green")
 		end
 	end)
 end
@@ -312,7 +312,12 @@ end
 function UltOdds.showAnswer(self: any, text: string, toneName: string)
 	self.answer.Text = text
 	self.answer.TextColor3 = HudParts.tone(toneName)
-	self.answer.Visible = text ~= ""
+	local shown = text ~= ""
+	local changed = self.answer.Visible ~= shown
+	self.answer.Visible = shown
+	if changed then
+		self.hooks.relayout() -- the card grows to hold the answer, and shrinks back
+	end
 end
 
 --- Send the typed code (nothing typed: a reminder to type one).
@@ -471,10 +476,23 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 	self.pityNote.Size = UDim2.fromOffset(inner, pityH)
 	y += pityH + gap
 
-	-- The code box card.
+	-- The code box card, unless the screen has taken it out to sit on its own.
+	if self.codeCard.Parent == self.scroll then
+		local cardH = self:layoutCode(g, inner)
+		self.codeCard.Position = UDim2.fromOffset(x, y)
+		y += cardH + 6
+	end
+	self.scroll.CanvasSize = UDim2.fromOffset(0, y)
+	return y
+end
+
+--- Lay out the code box card `width` wide (in the odds column, or on its own where the screen
+--- puts it) and return its height; the caller places it.
+function UltOdds.layoutCode(self: any, g: Parts.Geo, width: number): number
+	local noteText = g.text("CodeNoteTextPx")
 	local pad = g.px("GapPx")
 	local codeText = g.text("CodeTextPx")
-	local cardInner = inner - 2 * pad
+	local cardInner = width - 2 * pad
 	local cy = pad
 	HudParts.setTextSize(self.codeLine, codeText)
 	local lineH = wrapHeight(self.codeLine.Text, codeText, cardInner, 2)
@@ -501,16 +519,17 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 	self.redeemButton.Position = UDim2.fromOffset(pad + boxW + pad, cy)
 	self.redeemButton.Size = UDim2.fromOffset(redeemW, boxH)
 	HudParts.setButtonTextSize(self.redeemButton, g.text("CodeTextPx"))
-	cy += boxH + 4
-	HudParts.setTextSize(self.answer, noteText)
-	self.answer.Position = UDim2.fromOffset(pad, cy)
-	self.answer.Size = UDim2.fromOffset(cardInner, 2 * (noteText + 4))
-	cy += 2 * (noteText + 4) + pad
-	self.codeCard.Position = UDim2.fromOffset(x, y)
-	self.codeCard.Size = UDim2.fromOffset(inner, cy)
-	y += cy + 6
-	self.scroll.CanvasSize = UDim2.fromOffset(0, y)
-	return y
+	cy += boxH + pad
+	-- The answer under the box only while there is one (no empty space under the box).
+	if self.answer.Visible then
+		HudParts.setTextSize(self.answer, noteText)
+		local answerH = wrapHeight(self.answer.Text, noteText, cardInner, 2)
+		self.answer.Position = UDim2.fromOffset(pad, cy - pad + 4)
+		self.answer.Size = UDim2.fromOffset(cardInner, answerH)
+		cy += answerH + 4
+	end
+	self.codeCard.Size = UDim2.fromOffset(width, cy)
+	return cy
 end
 
 --- The gamepad's way in: the Lucky odds switch.

@@ -15,7 +15,7 @@ return {
 		Spin = "Spin", -- the left stick
 		Angle = "Angle", -- the right stick, up and down: the cue's angle
 		CenterSpin = "Center spin", -- Y (spelt like the spin panel's Center button)
-		Ult = "Ult", -- X (Xbox X, PlayStation Square) while your ult bar is ready
+		Ult = "Ability", -- X (Xbox X, PlayStation Square) while your ability bar is ready
 	},
 	PowerPercent = "%d%%",
 	Spin = { Center = "Center", Done = "Done", Degrees = "%d°" },
@@ -211,11 +211,11 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 		},
-		-- The host card's Ults: On / Off toggle, and the No-ults search's offer after
+		-- The host card's Abilities: On / Off toggle, and the abilities-off search's offer after
 		-- Config.GlobalQueue.NoUltsFallbackSeconds (QueueMenu).
-		UltsOn = "Ults: On",
-		UltsOff = "Ults: Off",
-		NoUltsFallback = "Nobody's in No ults right now. Search with ults on?",
+		UltsOn = "Abilities: On",
+		UltsOff = "Abilities: Off",
+		NoUltsFallback = "Nobody's searching with abilities off. Search with them on?",
 		FallbackYes = "Yes",
 		FallbackNo = "No",
 	},
@@ -273,7 +273,7 @@ return {
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
-		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ult commands: /ulthelp",
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp",
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
@@ -334,16 +334,16 @@ return {
 			Sale = "a case sale in this server",
 			Rookie = "sets your real matches played (the Rookie Boost)",
 			FreeCase = "the free-case rule, as if you won a real match",
-			UltBar = "sets your ult bar at your table",
-			UltFull = "fills your ult bar",
-			UltArm = "fills your bar and arms your equipped ult at once (practice in solo)",
-			Spins = "sets the Ult Spins you hold",
+			UltBar = "sets your ability bar at your table",
+			UltFull = "fills your ability bar",
+			UltArm = "fills your bar and arms your equipped ability at once (practice in solo)",
+			Spins = "sets the Ability Spins you hold",
 			Lucky = "sets the Lucky Spins you hold",
 			Pity = "sets pity (%d: the next spin is the pity spin)",
 			FreeSpin = "today's free spin is ready again",
-			Ult = "puts any ult in your selected slot (no spin used)",
-			UltsAll = "every ult (placeholders too) rolls and plays for you this session",
-			OpUlt = "fills the other side's ult bars at your table (the QA opponent's)",
+			Ult = "puts any ability in your selected slot (no spin used)",
+			UltsAll = "every ability (placeholders too) rolls and plays for you this session",
+			OpUlt = "fills the other side's ability bars at your table (the QA opponent's)",
 		},
 		BadCue = 'No cue called "%s". Use an id (ChalkDust) or a name (chalk dust).',
 		BadCase = 'No case called "%s". Cases: %s.',
@@ -385,31 +385,31 @@ return {
 		FreeCaseGave = "This win gave a %s (win %d today, %d ever).",
 		FreeCaseFirst = "Your first win's %s opened into the %s (win %d today, %d ever).",
 		FreeCaseNone = "No case this win (win %d today, %d ever).",
-		-- The ult commands (/ulthelp).
-		UltHelp = "Ult commands (they act on you only):",
-		UltBarSet = "Your ult bar is %d%%.",
+		-- The ability commands (/abilityhelp; the old /ulthelp still works).
+		UltHelp = "Ability commands (they act on you only):",
+		UltBarSet = "Your ability bar is %d%%.",
 		UltArmed = "%s armed for your next shot.",
 		UltNotDone = "Not done: %s.",
 		UltReasons = {
 			NoTable = "you are not in a game at a table",
-			Off = "ults are off at your table",
+			Off = "abilities are off at your table",
 			NotReady = "your bar is not full",
-			Used = "you have used your ults this game",
+			Used = "you have used your abilities this game",
 			NotYourTurn = "it is not your turn",
 			Moving = "the balls are still moving",
 			Break = "not on the break",
-			Armed = "an ult is already armed",
+			Armed = "an ability is already armed",
 		},
-		SpinsSet = "You hold %d Ult Spins.",
+		SpinsSet = "You hold %d Ability Spins.",
 		LuckySet = "You hold %d Lucky Spins.",
 		PitySet = "Pity is %d (the %dth spin without an Epic or better is one).",
 		FreeSpinReady = "Today's free spin is ready again.",
 		UltSet = "%s is in your selected slot.",
-		BadUlt = 'No ult called "%s". Ults: %s.',
-		UltsAllOn = "Every ult rolls and plays for you this session.",
-		UltsAllOff = "Only the built ults roll and play for you again.",
+		BadUlt = 'No ability called "%s". Abilities: %s.',
+		UltsAllOn = "Every ability rolls and plays for you this session.",
+		UltsAllOff = "Only the built abilities roll and play for you again.",
 		OpUlt = "Filled %d bar(s) on the other side.",
-		OpUltNone = "No bar filled (no table, ults off, or nobody on the other side).",
+		OpUltNone = "No bar filled (no table, abilities off, or nobody on the other side).",
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
@@ -670,7 +670,7 @@ return {
 			PartyOnBy = "Party on! %s left, from %s", -- the time left, the buyer's username
 			PartyFull = "Full for now", -- an hour of Money Party already queued
 			FastOpen = "Fast Open",
-			FastOpenLine = "Open %d cases at once, no reel. Skip ult spins and Auto Spin",
+			FastOpenLine = "Open %d cases at once, no reel. Skip ability spins and Auto Spin",
 		},
 		-- The Rewards (RewardsMenu and its pages RewardsDaily, RewardsPlaytime, RewardsCodes).
 		-- Case names come from Items.Cases; money is "$250" (Progression/Format).
@@ -697,7 +697,7 @@ return {
 			Redeem = "Redeem",
 			Redeemed = "Code redeemed: %s", -- "Code redeemed: +$500 and a Standard Case"
 			NoCode = "Type a code first.",
-			CodeNote = "Codes give free money, cases and ult spins. Each code works once.",
+			CodeNote = "Codes give free money, cases and ability spins. Each code works once.",
 			-- A reward's words. A few cases: "2 Standard Cases"; one, in a sentence: "a Rare
 			-- Case" (a case missing here says CaseManyOther / its plain name).
 			CaseMany = {
@@ -716,9 +716,9 @@ return {
 				Event = "an Event Case",
 			},
 			CaseCount = "x%d", -- on a case's picture: "x2"
-			-- A reward's ult spins (a reward's `spins` and `lucky`): in a sentence or a chip.
-			SpinOne = "1 Ult Spin",
-			SpinMany = "%d Ult Spins",
+			-- A reward's ability spins (a reward's `spins` and `lucky`): in a sentence or a chip.
+			SpinOne = "1 Ability Spin",
+			SpinMany = "%d Ability Spins",
 			LuckyOne = "1 Lucky Spin",
 			LuckyMany = "%d Lucky Spins",
 			SpinChip = "+%d", -- on the spin icon of a tile, NEW RANK! or a roadmap tile: "+2"
@@ -863,16 +863,18 @@ return {
 		-- then "$500".
 		Found = "New in your Index: %s! +%s",
 		FoundNoMoney = "New in your Index: %s!",
-		-- An ult spin landing a Legendary (this server) or a Mythic (every server): the
-		-- username, then the ult's name (in its rarity colour).
+		-- An ability spin landing a Legendary (this server) or a Mythic (every server): the
+		-- username, then the ability's name (in its rarity colour).
 		Ult = {
-			Legendary = "%s rolled the Legendary ult %s!",
-			Mythic = "%s rolled the Mythic ult %s!",
+			Legendary = "%s rolled the Legendary ability %s!",
+			Mythic = "%s rolled the Mythic ability %s!",
 			Default = "%s rolled %s!",
 		},
 	},
 	-- Ultimates (docs/prompts/ULTIMATES_PROMPT.md): the catalog's names and one-line
 	-- descriptions (placeholder text; each ult's own session rewrites its line), rarity words.
+	-- Players call them Abilities (designer, 2026-09-28: "Ult doesn't look right"), so every
+	-- line here says ability / ABILITY; the keys and the code keep the name Ult.
 	Ults = {
 		Names = {
 			Magnet = "Magnet",
@@ -912,16 +914,16 @@ return {
 			Legendary = "Legendary",
 			Mythic = "Mythic",
 		},
-		ComingSoon = "Coming soon", -- a placeholder ult (no effect yet)
+		ComingSoon = "Coming soon", -- a placeholder ability (no effect yet)
 		-- The activation cutscene (UltCutscene): this over the panel's top edge, the ult's name
 		-- (Names above) over its bottom edge.
 		Cutscene = {
-			Title = "ULTIMATE",
+			Title = "ABILITY",
 		},
-		-- The ult bar in a match (UltHud, UltBar), and the NO ULTS pills (MatchHUD, the result
+		-- The ability bar in a match (UltHud, UltBar), and the NO ABILITIES pills (MatchHUD, the result
 		-- screen).
 		Hud = {
-			Title = "ULTIMATE", -- over the bar
+			Title = "ABILITY", -- over the bar
 			Percent = "%d%%", -- in the bar: "34%"
 			Ready = "READY! %d%%", -- the full bar: "READY! 100%"
 			Gain = "+%d", -- a gain floating up from the bar: "+34"
@@ -929,22 +931,22 @@ return {
 			-- picture goes (keep it when translating).
 			PressKey = "PRESS %s TO ACTIVATE",
 			Tap = "TAP TO ACTIVATE", -- on touch, where the whole bar is the button
-			Armed = "%s: NEXT SHOT", -- your armed ult, its name in upper case: "MAGNET: NEXT SHOT"
-			OpponentArmed = "Opponent's ult: %s", -- theirs: "Opponent's ult: MAGNET"
-			Practice = "Practice ult", -- solo's button that arms your ult for free
-			NoUlts = "NO ULTS", -- a No ults queue match, on the match bar and the result screen
+			Armed = "%s: NEXT SHOT", -- your armed ability, its name in upper case: "MAGNET: NEXT SHOT"
+			OpponentArmed = "Opponent's ability: %s", -- theirs: "Opponent's ability: MAGNET"
+			Practice = "Practice ability", -- solo's button that arms your ability for free
+			NoUlts = "NO ABILITIES", -- an abilities-off queue match, on the match bar and the result screen
 			-- Why a press did nothing (UltNotice's reason, from Ults/Match.check and UltService).
 			Refused = {
-				NotReady = "Your ult isn't full yet",
-				Break = "No ults on the break",
+				NotReady = "Your ability bar isn't full yet",
+				Break = "No abilities on the break",
 				NotYourTurn = "Only on your turn, before you shoot",
 				Moving = "Wait for the balls to stop",
-				Armed = "Your ult is already armed",
-				Used = "No more ults this game",
-				Off = "Ults are off at this table",
+				Armed = "Your ability is already armed",
+				Used = "No more abilities this game",
+				Off = "Abilities are off at this table",
 				TooFast = "Slow down a little!",
 				Busy = "One moment...",
-				Default = "You can't use your ult right now",
+				Default = "You can't use your ability right now",
 			},
 		},
 		-- The spin service's answers (UltRequest and UltAuto; the codes are listed in Net.luau
@@ -956,13 +958,13 @@ return {
 				Busy = "One moment...",
 				NotLoaded = "Your save is still loading...",
 				Teleporting = "You're on your way to a match.",
-				NotLive = "Ult spins are coming soon!",
+				NotLive = "Ability spins are coming soon!",
 				NotOwned = "Buy this slot first.",
 				Locked = "Slot locked",
 				NoSpins = "No spins left.",
 				NoLucky = "No Lucky Spins left.",
-				LuckyClosed = "Lucky Spins open once rarer ults are in the game.",
-				Confirm = "Replace %s?", -- the ult's name, upper case in its rarity colour
+				LuckyClosed = "Lucky Spins open once rarer abilities are in the game.",
+				Confirm = "Replace %s?", -- the ability's name, upper case in its rarity colour
 				AutoRunning = "Stop Auto Spin first.",
 				NoFastOpen = "Auto Spin needs Fast Open.",
 				Restricted = "Buying spins isn't available where you live. Free spins still work.",
@@ -974,23 +976,23 @@ return {
 			},
 			-- Why Auto Spin stopped (UltAuto's reason); the others use Reasons above.
 			AutoStops = {
-				Reached = "Auto Spin: got %s!", -- the ult's name
+				Reached = "Auto Spin: got %s!", -- the ability's name
 				Stopped = "Auto Spin stopped.",
 				Closing = "Auto Spin stopped: the server is restarting.",
-				Confirm = "Auto Spin stopped before replacing %s.", -- the ult's name
+				Confirm = "Auto Spin stopped before replacing %s.", -- the ability's name
 				Locked = "Auto Spin stopped: the slot is locked.",
 				NoSpins = "Auto Spin stopped: no spins left.",
 				NoLucky = "Auto Spin stopped: no Lucky Spins left.",
 			},
 			Bought = "+%d spins!", -- money spins bought: "+5 spins!"
 		},
-		-- The spin screen (UltScreen and its parts; reference 09). Ult and rarity names come from
+		-- The spin screen (UltScreen and its parts; reference 09). Ability and rarity names come from
 		-- Names and Rarities above; money is "$1,750" (Progression/Format); a Robux price is
 		-- Strings.Menus.Shop.Robux.
 		Screen = {
-			Column = "Ults", -- the left column's tile
-			Current = "CURRENT ULT:",
-			DescriptionSoon = "%s (Coming soon)", -- a placeholder ult's description
+			Column = "Abilities", -- the left column's tile
+			Current = "CURRENT ABILITY:",
+			DescriptionSoon = "%s (Coming soon)", -- a placeholder ability's description
 			-- The slot cards.
 			None = "NONE", -- an empty slot, or one not bought yet
 			Equipped = "EQUIPPED",
@@ -1007,7 +1009,7 @@ return {
 			-- The odds.
 			Odds = "Odds", -- the phone's button and the popup's title
 			OddsBar = "%s %s", -- a rarity bar: "Common 55%"
-			OddsSoon = "Soon", -- a placeholder ult in a bar's list (it can't be rolled yet)
+			OddsSoon = "Soon", -- a placeholder ability in a bar's list (it can't be rolled yet)
 			LuckyOdds = "Lucky odds", -- the switch that shows a Lucky Spin's odds
 			PityNote = "Spin %d without an Epic or better is always Epic or better.",
 			-- The code box. %s is the code, or the likes, drawn in gold (keep it when translating).
@@ -1023,7 +1025,7 @@ return {
 			BoughtOne = "+1 spin!", -- money spins bought (more: Spins.Bought)
 			Prompted = "Finish the purchase in the Roblox window.",
 			-- Replacing an Epic or better (the title is Spins.Reasons.Confirm: "Replace BLACK FLASH?").
-			ReplaceText = "Your %s will be replaced by a new ult.", -- the ult's name
+			ReplaceText = "Your %s will be replaced by a new ability.", -- the ability's name
 			ReplaceYes = "Replace",
 			ReplaceNo = "Keep",
 			PityHit = "PITY!", -- over the name when the pity spin landed

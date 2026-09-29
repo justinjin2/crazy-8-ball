@@ -883,6 +883,7 @@ function UltScreen.layout(self: any)
 		-- The odds in their popup.
 		local body = self.oddsPopup.body
 		self.odds.scroll.Parent = body
+		self.odds.codeCard.Parent = self.odds.scroll
 		local bodyH = math.max(120, H - 2 * m - g.px("PopupClosePx") - 3 * (gap + 4) - 8)
 		self.odds.scroll.Position = UDim2.fromOffset(0, 0)
 		self.odds.scroll.Size = UDim2.fromOffset(popupW, bodyH)
@@ -918,6 +919,13 @@ function UltScreen.layout(self: any)
 		local statusH = self.buy:layoutStatus(g, statusW)
 		local statusY = rowsY - gap - statusH
 		self.buy.status.Position = UDim2.fromOffset(W_ - m - statusW, statusY)
+		-- The code box on its own between the slot cards and SPIN when there is room (placed
+		-- once the slots are), else under the odds.
+		local stackLeft = cx - math.floor(math.max(spinW, luckyW) / 2)
+		local codeRoomLeft = m + g.px("SlotWidthPx") + 2 * gap
+		local codeRoom = stackLeft - 2 * gap - codeRoomLeft
+		local codeOwn = codeRoom >= g.px("CodeCardMinWidthPx")
+		self.odds.codeCard.Parent = if codeOwn then self.content else self.odds.scroll
 		-- The odds column from the top right down to the buy area.
 		local oddsTop = if g.freeRight >= W_ - m then m else topRow + m
 		self.odds.scroll.Parent = self.content
@@ -950,6 +958,26 @@ function UltScreen.layout(self: any)
 		then slotsTop
 		else math.max(slotsTop, math.floor(slotsTop + (slotsBottom - slotsTop - slotsH) / 2))
 	self.slots:layout(g, m, slotsY)
+
+	-- The code box on its own: centred left to right between the slot cards and the SPIN
+	-- stack, and top to bottom between the third card's top and SPIN's bottom (above Fast
+	-- Open when that sits in the same gap).
+	local card: Frame = self.odds.codeCard
+	if card.Parent == self.content then
+		local left = m + g.px("SlotWidthPx") + 2 * gap
+		local right = cx - math.floor(math.max(spinW, luckyW) / 2) - 2 * gap
+		local cardW = math.min(g.px("CodeCardWidthPx"), right - left)
+		local cardH = self.odds:layoutCode(g, cardW)
+		local top = slotsY + (count - 1) * (g.px("SlotHeightPx") + g.px("SlotGapPx"))
+		local bottom = spinY + spinH
+		local fast = self.fast.holder
+		if fast.Visible and fast.Position.X.Offset > m then
+			bottom = math.min(bottom, fast.Position.Y.Offset - gap)
+		end
+		local cardY = math.floor(top + (bottom - top - cardH) / 2)
+		cardY = math.clamp(cardY, topRow + m, math.max(topRow + m, bottom - cardH))
+		card.Position = UDim2.fromOffset(math.floor(left + (right - left - cardW) / 2), cardY)
+	end
 end
 
 --------------------------------------------------------------------------------------------

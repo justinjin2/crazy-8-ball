@@ -294,9 +294,9 @@ return {
 		local codes = {}
 		local row = Config.Daily.Codes[U.CodeBanner.ActiveCode]
 		H.expect(row ~= nil and row.Spins == 3, "the banner's code gives 3 spins")
-		local ok, reward = Daily.redeem(codes, "  ults ", DAY * 86400)
+		local ok, reward = Daily.redeem(codes, "  abilities ", DAY * 86400)
 		H.expect(ok and (reward :: any).spins == 3 and (reward :: any).lucky == 0, "3 spins")
-		local again, why = Daily.redeem(codes, "ULTS", DAY * 86400)
+		local again, why = Daily.redeem(codes, "ABILITIES", DAY * 86400)
 		H.expect(not again and why == "Used", "once per player")
 		local out = RewardView.reward(reward :: any)
 		H.expect(out.spins == 3 and out.lucky == 0 and out.money == 0, "the reply's chip")
@@ -472,7 +472,7 @@ return {
 		end
 		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 1750 and #p.moneyPacks == 4, "money")
-		H.expect(p.code.active == "ULTS" and p.code.nextGoalLikes == 100, "the code box")
+		H.expect(p.code.active == "ABILITIES" and p.code.nextGoalLikes == 100, "the code box")
 		H.expect(not p.auto.running and p.auto.count == 0 and #p.autoStopChoices == 3, "auto")
 		for _, key in SpinView.productKeys() do
 			local product = p.products[key]

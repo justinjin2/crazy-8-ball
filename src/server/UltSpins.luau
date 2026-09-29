@@ -607,7 +607,7 @@ local STATE_OPS: { [string]: boolean } = {
 	applyRank = true, -- rank-up spins
 	claimDaily = true, -- day 7's spins
 	claimPlaytime = true, -- the last gift's spin
-	redeemCode = true, -- ULTS
+	redeemCode = true, -- ABILITIES
 	newDay = true,
 	reset = true,
 }

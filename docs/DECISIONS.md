@@ -1860,3 +1860,24 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   better, and while no such ult is built Lucky Spins and their products are refused
   ("LuckyClosed"). Solo Practice ult shots pay no money and count no stats. Lobby tables can
   no longer turn ults off (SetAbilities refused); only the No-ults arena plays without.
+- 2026-09-28: Ults are called Abilities everywhere players see them (the designer: 'Ult doesn't
+  look right'); code names keep 'Ult'; the promo code is ABILITIES.
+- 2026-09-28: The spin screen's backdrop is the real world where the player stands (the
+  designer): the avatar clone stands in place, the camera looks from the player's own camera
+  side (the next clear side round if a wall is in the way), and every player's character and
+  name plate is hidden on that client while it is open. The dark room and its swirl are gone.
+- 2026-09-28: The code box sits on its own, centred between the third slot card and SPIN (the
+  designer); with no room there (narrow screens) it goes back under the odds, and on a phone it
+  stays in the Odds popup (overnight assumption: the phone layout has no free space for it).
+- 2026-09-28: The cutscene panel is the kit's white with a thick line in the ability's rarity
+  colour, a soft glow of it and speed lines in it (the designer: no dark background); the
+  avatar's bust fades out at the bottom so it never ends in a hard line.
+- 2026-09-28: Magnet buffed (the designer: a way bigger radius, the ball visibly slowed and
+  pulled in, a magnet look on each ball it hits). The zone is 7.5 ball widths round each mouth
+  (was 3); inside it a moving ball heading within 60 degrees of the pocket is braked or pulled
+  toward 18 in/s and curved in by the exact jaw trace (a clean pot is never turned). Measured:
+  misses within 2 widths 100% (was 88% / 28%), 2.5-4 widths 97% (was 0%), direct pots 100%,
+  about +0.46 of a ball per use for an average shooter (+0.6 or more for weaker aim), well
+  over the ladder's Common target (1/3); the designer's call. Each of the shooter's balls
+  charges when hit (a zap, sparks, red and blue rings); the pull streams dust into the pocket
+  and draws a vortex of motes into it.

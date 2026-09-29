@@ -1,25 +1,32 @@
 --!strict
--- Magnet (the first ult, docs/prompts/ULTIMATES_PROMPT.md 7.3): for the whole shot, each
--- allowed ball moving toward a pocket inside that pocket's capture zone is steered in.
+-- Magnet (the first ult, docs/prompts/ULTIMATES_PROMPT.md 7.3; buffed 2026-09-28): for the
+-- whole shot, each allowed ball that has been hit (it is moving: object balls start the shot
+-- at rest) is magnetised. Inside a pocket's big pull zone and heading roughly toward that
+-- pocket, it is pulled in so you can see it working, harder the closer it gets
+-- (closeness ^ Power):
 --
--- It STEERS rather than pushes, and only as much as it must. At the start of each fixed step
--- the ball's straight path is traced (the same exact contact tests the simulation uses): if
--- it already drops cleanly into the opening, with a little room to spare, it is left alone,
--- so a pot that was going in never changes. If it would hit a jaw, a facing or the cushion
--- beside the mouth first, its velocity is turned away from that side, just far enough to
--- clear it or as far as this step's pull allows, and its spin (wx, wy) turns with it about
--- the vertical so a rolling ball stays rolling. Nothing ever gains speed or energy, and a
--- ball that is not moving is never touched, so a slow ball that stops short of the mouth
--- stays where it stops. The pull grows as the ball nears the mouth (closeness ^ Power) and
--- fades with speed above FadeSpeed, so it rescues near misses and jaw rattles but is never a
--- vacuum.
+-- * Its path bends in. At the start of each fixed step its straight path is traced (the same
+--   exact contact tests the simulation uses, with a ball a little fatter): if it already
+--   drops cleanly into the opening it is not turned, so a pot that was going in stays on
+--   its line. If it would hit a jaw, a facing or a cushion first, or pass the opening, its
+--   heading turns away from that side by this step's allowance (bend per inch rolled, so
+--   the curve tightens toward the mouth instead of snapping), or just far enough to clear.
+-- * Its speed is blended toward CaptureSpeed: a fast ball is braked hard near the pocket, as
+--   if caught, and eased in; a slow ball creeping toward the pocket is pulled up to that
+--   creep speed so it does not die at the lip. Spin (wx, wy) turns and scales with the
+--   velocity, so a rolling ball stays rolling.
+--
+-- Balls below MinSpeed (at rest) are never touched: it is not a vacuum on still balls, and a
+-- ball is magnetised only once it moves. Balls heading away from every pocket are left alone.
 --
 -- Which balls: overrides.Targets, decided by the server's rules (the shooter's group; the 8
 -- only on their legal 8 shot). The cue ball is never pulled, even if listed, and the 8 only
 -- toward overrides.EightPocket (never at all without one).
 --
--- Only arithmetic and square roots (IEEE-exact everywhere), no trig, so every device turns
--- the ball by exactly the same bits. Pure Luau: must never require Physics/Simulation.
+-- Only arithmetic and square roots (IEEE-exact everywhere), no trig and no pow (powers are
+-- multiplied out), balls, pockets and table pieces walked in array order, and no state kept
+-- between steps: the server and every client's replay step it to identical bits. Pure Luau:
+-- must never require Physics/Simulation.
 
 local Config = require(script.Parent.Parent.Parent.Config)
 local Ball = require(script.Parent.Parent.Parent.Physics.Ball)
@@ -46,8 +53,9 @@ export type State = {
 export type Pull = {
 	ball: number, -- ball id
 	pocket: number, -- pocket id
-	strength: number, -- 0-1: closeness to the mouth, faded by speed (what the effects draw)
-	steering: boolean, -- true while it is actually being turned (false: already on line)
+	strength: number, -- 0-1: closeness to the mouth ^ Power (what the effects draw)
+	steering: boolean, -- true while its velocity is actually being changed (turned or re-sped)
+	braking: boolean, -- true while it is being slowed toward CaptureSpeed
 }
 
 local Magnet = {}
@@ -57,7 +65,7 @@ local EIGHT = 8
 local SEARCH_STEPS = 8
 
 --- The middle of a pocket's mouth: between the two cushion noses for a corner, on the cushion
---- line for a side. The capture zone is a circle around it.
+--- line for a side. The pull zone is a circle around it.
 function Magnet.mouthPoint(geometry: Geometry, pocket: Pocket): (number, number)
 	local hl, hw = geometry.halfLength, geometry.halfWidth
 	local sy = if pocket.y > 0 then 1 else -1
@@ -69,9 +77,18 @@ function Magnet.mouthPoint(geometry: Geometry, pocket: Pocket): (number, number)
 	return sx * (hl - half), sy * (hw - half)
 end
 
--- The cushion faces and jaw points around each pocket's mouth (every rail ends at a mouth, so
--- an end near it finds the rails beside it too), per geometry. Built in the geometry's own
--- array order, so the traces are the same everywhere.
+-- x ^ n for a whole n >= 0, multiplied out (pow() is not bit-identical on every device).
+local function power(x: number, n: number): number
+	local out = 1
+	for _ = 1, n do
+		out *= x
+	end
+	return out
+end
+
+-- The cushion faces and jaw points a ball in a pocket's pull zone could meet on its way in:
+-- every piece with an end within the zone (plus a margin), per geometry. Built in the
+-- geometry's own array order, so the traces are the same everywhere.
 type Near = { segments: { Segment }, points: { Point } }
 local nearCache: { [Geometry]: { [number]: Near } } = setmetatable({} :: any, { __mode = "k" })
 
@@ -86,7 +103,7 @@ local function nearMouth(geometry: Geometry, pocket: Pocket): Near
 		return near
 	end
 	local mx, my = Magnet.mouthPoint(geometry, pocket)
-	local reach = (Config.Ults.Magnet.CaptureBallWidths + 2) * 2 * Config.Balls.RadiusInches
+	local reach = (Config.Ults.Magnet.ZoneBallWidths + 2) * 2 * Config.Balls.RadiusInches
 	local function close(x: number, y: number): boolean
 		return (x - mx) * (x - mx) + (y - my) * (y - my) < reach * reach
 	end
@@ -159,15 +176,6 @@ local function trace(
 	return if side >= 0 then 1 else -1
 end
 
---- 0-1 speed factor: 1 up to FadeSpeed, then falling as (FadeSpeed / speed) ^ FadePower.
-local function speedFactor(speed: number): number
-	local M = Config.Ults.Magnet
-	if speed <= M.FadeSpeed then
-		return 1
-	end
-	return (M.FadeSpeed / speed) ^ M.FadePower
-end
-
 -- The set of ball ids the effect may act on, or nil when it has none.
 local function targetSet(state: State): ({ [number]: boolean }?, number?)
 	local overrides = state.overrides
@@ -183,20 +191,32 @@ local function targetSet(state: State): ({ [number]: boolean }?, number?)
 	return set, overrides.EightPocket
 end
 
+--- Whether Magnet may act on this ball this shot: listed in overrides.Targets, not the cue
+--- ball, and the 8 only when a pocket is called for it. MagnetFx can mark a ball magnetised
+--- the first time it moves while this is true.
+function Magnet.isTarget(state: State, ballId: number): boolean
+	local set, eightPocket = targetSet(state)
+	if set == nil or not set[ballId] then
+		return false
+	end
+	return ballId ~= EIGHT or eightPocket ~= nil
+end
+
 type Zone = {
 	pocket: Pocket,
-	strength: number,
-	mx: number,
+	closeness: number, -- 0 at the zone's edge, 1 at (or past) the mouth
+	strength: number, -- closeness ^ Power
+	mx: number, -- the mouth middle
 	my: number,
-	ux: number,
+	ux: number, -- the mouth direction (across the pocket's axis)
 	uy: number,
 }
 
--- The pocket whose capture zone holds this ball, if it is on the cloth and moving toward it
--- (the nearest mouth wins), and how strongly it pulls (0-1).
+-- The pocket whose pull zone holds this ball, if it is on the cloth, moving, and heading
+-- roughly toward that pocket (the closest mouth wins; ties keep the first pocket).
 local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?): Zone?
 	-- On the cloth and in play only: not in the air, not over or into a pocket.
-	if b.pocketed or b.z ~= 0 or b.vz ~= 0 then
+	if b.pocketed or b.tip ~= nil or b.z ~= 0 or b.vz ~= 0 then
 		return nil
 	end
 	if b.id == EIGHT and eightPocket == nil then
@@ -207,9 +227,8 @@ local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?): Zone?
 	if speed < M.MinSpeed then
 		return nil
 	end
-	local zoneRadius = M.CaptureBallWidths * 2 * Config.Balls.RadiusInches
+	local zoneRadius = M.ZoneBallWidths * 2 * Config.Balls.RadiusInches
 	local best: Zone? = nil
-	local bestCloseness = 0
 	for _, pocket in geometry.pockets do
 		if b.id == EIGHT and pocket.id ~= eightPocket then
 			continue
@@ -220,7 +239,8 @@ local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?): Zone?
 		if mouthDist >= zoneRadius then
 			continue
 		end
-		-- Moving toward the pocket: the velocity has a real component toward its centre.
+		-- Heading roughly toward the pocket: inside the approach cone around the line to its
+		-- centre.
 		local cx, cy = pocket.x - b.x, pocket.y - b.y
 		local centreDist = math.sqrt(cx * cx + cy * cy)
 		if
@@ -229,24 +249,23 @@ local function zoneOf(geometry: Geometry, b: Ball, eightPocket: number?): Zone?
 		then
 			continue
 		end
-		local closeness = 1 - mouthDist / zoneRadius
-		if closeness > bestCloseness then
-			-- The mouth direction: across the pocket's axis (mouth middle to opening centre).
-			local ax, ay = pocket.x - mx, pocket.y - my
-			local axisLength = math.sqrt(ax * ax + ay * ay)
-			bestCloseness = closeness
+		-- The pocket's axis (mouth middle to opening centre); past the mouth line counts as
+		-- right at the mouth.
+		local ax, ay = pocket.x - mx, pocket.y - my
+		local axisLength = math.sqrt(ax * ax + ay * ay)
+		ax, ay = ax / axisLength, ay / axisLength
+		local closeness = if dmx * ax + dmy * ay > 0 then 1 else 1 - mouthDist / zoneRadius
+		if best == nil or closeness > best.closeness then
 			best = {
 				pocket = pocket,
-				strength = 0,
+				closeness = closeness,
+				strength = power(closeness, M.Power),
 				mx = mx,
 				my = my,
-				ux = -ay / axisLength,
-				uy = ax / axisLength,
+				ux = -ay,
+				uy = ax,
 			}
 		end
-	end
-	if best then
-		best.strength = bestCloseness ^ M.Power * speedFactor(speed)
 	end
 	return best
 end
@@ -257,14 +276,15 @@ local function turned(hx: number, hy: number, s: number): (number, number)
 	return c * hx - s * hy, s * hx + c * hy
 end
 
--- How far to turn one ball this step, as the sine of the angle (signed), or 0 when it is on
--- line. `limit` is this step's allowance.
+-- How far to turn one ball this step, as the sine of the angle (signed), or 0 when its path
+-- already drops cleanly. `limit` is this step's allowance: all of it while the path still
+-- goes wrong on the same side, less when that would swing it past a clean line.
 local function turnFor(geometry: Geometry, b: Ball, zone: Zone, limit: number): number
 	local M = Config.Ults.Magnet
 	local near = nearMouth(geometry, zone.pocket)
 	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
 	local hx, hy = b.vx / speed, b.vy / speed
-	-- Traced a little fatter than the ball, so "on line" leaves room to spare.
+	-- Traced a little fatter than the ball, so "clean" leaves room to spare.
 	local r = Config.Balls.RadiusInches + M.ClearanceInches
 	local function side(s: number): number
 		local tx, ty = turned(hx, hy, s)
@@ -293,24 +313,48 @@ local function turnFor(geometry: Geometry, b: Ball, zone: Zone, limit: number): 
 	return direction * hi
 end
 
---- Which allowed balls are inside a capture zone and moving toward its pocket right now, how
---- strongly they are pulled (0-1), and whether each is actually being turned. MagnetFx calls
---- this on its replay state every frame for the beam and the pocket ring.
+-- This step's turn allowance (the sine of the angle): the path bends per inch rolled, so a
+-- slow and a fast ball follow the same curve, capped so one step never swings it far.
+local function allowance(zone: Zone, speed: number, dt: number): number
+	local M = Config.Ults.Magnet
+	local bend = if zone.pocket.x == 0 then M.SideBend else M.CornerBend
+	return math.min(bend * zone.strength * speed * dt, M.MaxStepTurn)
+end
+
+-- The speed this step leaves a ball at: braked toward CaptureSpeed per inch rolled when
+-- faster (so however hard it was hit it is caught over the same stretch), pulled up to it
+-- per second when slower.
+local function newSpeed(zone: Zone, speed: number, dt: number): number
+	local M = Config.Ults.Magnet
+	local rate = if speed > M.CaptureSpeed
+		then M.BrakePerInch * speed * dt
+		else M.CreepPerSecond * dt
+	return speed + (M.CaptureSpeed - speed) * math.min(1, rate * zone.strength)
+end
+
+--- Which allowed balls are inside a pull zone and heading toward its pocket right now, how
+--- strongly they are pulled (0-1), whether each is actually being turned or re-sped, and
+--- whether it is being braked. MagnetFx calls this on its replay state every frame.
 function Magnet.activePulls(state: State): { Pull }
 	local pulls: { Pull } = {}
 	local set, eightPocket = targetSet(state)
 	if set == nil then
 		return pulls
 	end
+	local dt = Config.Physics.FixedStep
 	for _, b in state.balls do
 		if set[b.id] then
 			local zone = zoneOf(state.geometry, b, eightPocket)
 			if zone and zone.strength > 0 then
+				local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+				local after = newSpeed(zone, speed, dt)
+				local turn = turnFor(state.geometry, b, zone, allowance(zone, speed, dt))
 				table.insert(pulls, {
 					ball = b.id,
 					pocket = zone.pocket.id,
 					strength = zone.strength,
-					steering = turnFor(state.geometry, b, zone, 1e-3) ~= 0,
+					steering = turn ~= 0 or after ~= speed,
+					braking = after < speed,
 				})
 			end
 		end
@@ -318,14 +362,13 @@ function Magnet.activePulls(state: State): { Pull }
 	return pulls
 end
 
---- Turn every pulled ball for one fixed step of `dt` seconds. Called by Simulation.step before
---- the step is advanced, on the server and on every client's replay alike.
+--- Pull every magnetised ball for one fixed step of `dt` seconds. Called by Simulation.step
+--- before the step is advanced, on the server and on every client's replay alike.
 function Magnet.step(state: State, dt: number)
 	local set, eightPocket = targetSet(state)
 	if set == nil then
 		return
 	end
-	local M = Config.Ults.Magnet
 	for _, b in state.balls do
 		if not set[b.id] then
 			continue
@@ -334,16 +377,12 @@ function Magnet.step(state: State, dt: number)
 		if zone == nil or zone.strength <= 0 then
 			continue
 		end
-		-- This step's allowance: the path bends per inch travelled, so a slow and a firm ball
-		-- curve alike (before the speed fade), capped so one step never swings it far.
 		local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
-		local bend = if zone.pocket.x == 0 then M.SideMaxBend else M.MaxBend
-		local limit = math.min(bend * zone.strength * speed * dt, M.MaxStepTurn)
-		local s = turnFor(state.geometry, b, zone, limit)
-		if s == 0 then
-			continue
-		end
-		local c = math.sqrt(1 - s * s)
+		local s = turnFor(state.geometry, b, zone, allowance(zone, speed, dt))
+		local scale = newSpeed(zone, speed, dt) / speed
+		-- Turn by the angle whose sine is s and scale by `scale`, velocity and spin alike.
+		local c = math.sqrt(1 - s * s) * scale
+		s *= scale
 		b.vx, b.vy = c * b.vx - s * b.vy, s * b.vx + c * b.vy
 		b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
 	end

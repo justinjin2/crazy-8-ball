@@ -1,20 +1,27 @@
 --!strict
--- UltStage: the spin screen's hidden stage (docs/prompts/ULTIMATES_PROMPT.md section 9.2).
--- ViewportFrames draw no particles, so the avatar and its aura stand in a real room built at
--- runtime far above and away from the map (Config.UI.UltScreen.Stage.Origin): a dark room with
--- a soft key light and a cool fill, a slowly swirling dark backdrop (the cutscene's swirl art,
--- two layers scrolling opposite ways and a faint third in the aura's colour) and a soft glow on
--- the floor. It exists only while the screen is open (parented to nil otherwise), so nothing on
--- the map ever sees it. Everything is client-side, anchored and non-colliding.
---
--- Opening cuts the camera there (Scriptable, driven every frame, with a slow drift) and closing
--- puts it back exactly as it was (its type, subject, field of view, CFrame and focus), unless
--- the match camera has taken it meanwhile (Camera.isLocked), which then keeps it.
+-- UltStage: the spin screen's stage (docs/prompts/ULTIMATES_PROMPT.md section 9.2). The
+-- backdrop is the real world where the player stands (the designer, 2026-09-28): the avatar
+-- is shown in place, in its idle and its rarity aura, and the camera looks at it from the
+-- clearest side, so the lobby (or wherever they are) is the background.
 --
 -- The avatar is a client clone of the player's character (Archivable set for the clone and put
 -- back; scripts, sounds and name tags removed; the root anchored, the rest held by its joints)
--- facing the camera and playing the character's own idle (from its Animate script, else
--- Roblox's default R15 or R6 idle). The aura is UltAura.
+-- standing on the ground where the character stands, facing the camera and playing the
+-- character's own idle (from its Animate script, else Roblox's default R15 or R6 idle). The
+-- real character, every other player's character and every name plate over them are hidden
+-- on this client only (LocalTransparencyModifier and Enabled, kept up every HideRefreshSeconds
+-- for anyone who respawns or joins) and all put back on close. The aura is UltAura, with a
+-- soft glow on the ground under it and two small lights on the avatar.
+--
+-- The camera's side: where the player's camera already is first (so the background is what
+-- they were looking at), then turning further round each way
+-- (ViewTries directions), the first whose line from the avatar to the camera is clear of the
+-- world; boxed in on every side, the one with the most room, pulled in to fit.
+--
+-- Opening cuts the camera there (Scriptable, driven every frame, with a slow drift) and closing
+-- puts it back exactly as it was (its type, subject, field of view, CFrame and focus), unless
+-- the match camera has taken it meanwhile (Camera.isLocked), which then keeps it. Everything
+-- built is client-side, anchored and non-colliding, and removed on close.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -47,55 +54,23 @@ local function rgb(values: { number }): Color3
 	return Color3.fromRGB(values[1], values[2], values[3])
 end
 
-local function origin(): Vector3
-	local o: { number } = ST.Origin
-	return Vector3.new(o[1], o[2], o[3])
-end
-
--- An anchored, non-colliding room part.
-local function block(
-	parent: Instance,
-	name: string,
-	size: Vector3,
-	cframe: CFrame,
-	colour: Color3
-): Part
+-- An anchored, invisible, non-colliding holder part.
+local function holder(parent: Instance, name: string, size: Vector3, cframe: CFrame): Part
 	local part = Instance.new("Part")
 	part.Name = name
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanQuery = false
 	part.CanTouch = false
-	part.Material = Enum.Material.SmoothPlastic
-	part.Color = colour
+	part.CastShadow = false
+	part.Transparency = 1
 	part.Size = size
 	part.CFrame = cframe
-	part.TopSurface = Enum.SurfaceType.Smooth
-	part.BottomSurface = Enum.SurfaceType.Smooth
 	part.Parent = parent
 	return part
 end
 
-local function swirl(
-	parent: Instance,
-	name: string,
-	tile: number,
-	colour: Color3,
-	fade: number
-): Texture
-	local texture = Instance.new("Texture")
-	texture.Name = name
-	texture.Texture = K.Art.UltBackdrop
-	texture.Face = Enum.NormalId.Back -- the wall's side facing the camera (+Z)
-	texture.StudsPerTileU = tile
-	texture.StudsPerTileV = tile
-	texture.Color3 = colour
-	texture.Transparency = fade
-	texture.Parent = parent
-	return texture
-end
-
---- The stage, not built until first opened.
+--- The stage, not built until opened.
 function UltStage.new(): any
 	local self: any = setmetatable({}, UltStage)
 	self.opened = false
@@ -108,114 +83,136 @@ function UltStage.new(): any
 	self.rarity = "Common"
 	self.clock = 0
 	self.focus = Vector3.zero
+	self.facing = Vector3.new(0, 0, 1) -- from the avatar toward the camera, flat
 	self.distance = 12
 	self.bounceTween = nil :: Tween?
+	self.hidden = {} :: { [Instance]: number } -- part or decal: its LocalTransparencyModifier
+	self.hiddenGuis = {} :: { [LayerCollector]: boolean } -- plate: its Enabled
+	self.hideClock = 0
 	return self
 end
 
--- The room, built once and kept (parented to nil while closed).
-function UltStage.build(self: any): Model
-	local existing = self.model
-	if existing then
-		return existing
+-- A ray that sees only the world: never a character, nor the stage itself.
+local function worldParams(self: any): RaycastParams
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local skip: { Instance } = {}
+	for _, player in Players:GetPlayers() do
+		if player.Character then
+			table.insert(skip, player.Character)
+		end
 	end
-	local o = origin()
-	local model = Instance.new("Model")
-	model.Name = "UltStage"
-	local w, d, h = ST.RoomWidth, ST.RoomDepth, ST.RoomHeight
-	local wall = rgb(ST.WallColor)
-	local floor = block(
-		model,
-		"Floor",
-		Vector3.new(w, 1, d),
-		CFrame.new(o - Vector3.new(0, 0.5, 0)),
-		rgb(ST.FloorColor)
-	)
-	floor.Reflectance = ST.FloorReflectance
-	block(model, "Ceiling", Vector3.new(w, 1, d), CFrame.new(o + Vector3.new(0, h + 0.5, 0)), wall)
-	block(
-		model,
-		"Left",
-		Vector3.new(1, h, d),
-		CFrame.new(o + Vector3.new(-w / 2 - 0.5, h / 2, 0)),
-		wall
-	)
-	block(
-		model,
-		"Right",
-		Vector3.new(1, h, d),
-		CFrame.new(o + Vector3.new(w / 2 + 0.5, h / 2, 0)),
-		wall
-	)
-	block(
-		model,
-		"Front",
-		Vector3.new(w, h, 1),
-		CFrame.new(o + Vector3.new(0, h / 2, d / 2 + 0.5)),
-		wall
-	)
-	-- The backdrop: the wall behind the avatar, with the swirl on the side facing the camera.
-	local back = block(
-		model,
-		"Backdrop",
-		Vector3.new(w, h, 1),
-		CFrame.new(o + Vector3.new(0, h / 2, -ST.BackdropDistance - 0.5)),
-		rgb(ST.BackdropColor)
-	)
-	local tiles: { number } = ST.SwirlTileStuds
-	self.swirlA = swirl(back, "SwirlA", tiles[1], rgb(ST.SwirlColor), ST.SwirlTransparency)
-	self.swirlB = swirl(back, "SwirlB", tiles[2], rgb(ST.SwirlColor), ST.SwirlTransparency)
-	self.tint = swirl(back, "Tint", tiles[1] * 1.5, rgb(RARITY.Common), ST.TintTransparency)
-	-- The glow on the floor under the avatar.
-	local glowPart = block(
-		model,
-		"FloorGlow",
-		Vector3.new(ST.FloorGlowStuds, 0.05, ST.FloorGlowStuds),
-		CFrame.new(o + Vector3.new(0, 0.03, 0)),
-		wall
-	)
-	glowPart.Transparency = 1
-	glowPart.CastShadow = false
-	local glow = Instance.new("Decal")
-	glow.Name = "Glow"
-	glow.Face = Enum.NormalId.Top
-	glow.Texture = K.Art.SoftGlow
-	glow.Transparency = ST.FloorGlowTransparency
-	glow.Parent = glowPart
-	self.floorGlow = glow
-	-- The lights: a soft warm key from the front right, a cool fill from the front left.
-	local keyCfg = ST.KeyLight
-	local keyAt = o + Vector3.new(keyCfg.Offset[1], keyCfg.Offset[2], keyCfg.Offset[3])
-	local keyPart = block(
-		model,
-		"KeyLight",
-		Vector3.new(0.2, 0.2, 0.2),
-		CFrame.lookAt(keyAt, o + Vector3.new(0, 3, 0)),
-		wall
-	)
-	keyPart.Transparency = 1
-	keyPart.CastShadow = false
-	local key = Instance.new("SpotLight")
-	key.Face = Enum.NormalId.Front
-	key.Brightness = keyCfg.Brightness
-	key.Range = keyCfg.Range
-	key.Angle = keyCfg.Angle
-	key.Color = rgb(keyCfg.Color)
-	key.Shadows = true
-	key.Parent = keyPart
-	local fillCfg = ST.FillLight
-	local fillAt = o + Vector3.new(fillCfg.Offset[1], fillCfg.Offset[2], fillCfg.Offset[3])
-	local fillPart = block(model, "FillLight", Vector3.new(0.2, 0.2, 0.2), CFrame.new(fillAt), wall)
-	fillPart.Transparency = 1
-	fillPart.CastShadow = false
-	local fill = Instance.new("PointLight")
-	fill.Brightness = fillCfg.Brightness
-	fill.Range = fillCfg.Range
-	fill.Color = rgb(fillCfg.Color)
-	fill.Shadows = false
-	fill.Parent = fillPart
-	self.model = model
-	return model
+	if self.model then
+		table.insert(skip, self.model)
+	end
+	params.FilterDescendantsInstances = skip
+	params.IgnoreWater = true
+	return params
+end
+
+-- Where the character stands: the ground under its root (or its feet by its size), and its
+-- flat facing.
+local function standing(self: any, root: BasePart, humanoid: Humanoid?): (Vector3, Vector3)
+	local at = root.Position
+	local drop = root.Size.Y / 2 + (if humanoid then humanoid.HipHeight else 2) + 0.5
+	local hit =
+		workspace:Raycast(at, Vector3.new(0, -(drop + ST.GroundSearchStuds), 0), worldParams(self))
+	local ground = if hit then hit.Position.Y else at.Y - drop + 0.5
+	local look = root.CFrame.LookVector
+	local flat = Vector3.new(look.X, 0, look.Z)
+	if flat.Magnitude < 1e-3 then
+		flat = Vector3.new(0, 0, -1)
+	end
+	return Vector3.new(at.X, ground, at.Z), flat.Unit
+end
+
+-- The side the camera looks from, and how far it can stand: the facing first, then turning
+-- further round each way; the first clear line wins, else the one with the most room.
+function UltStage.pickView(
+	self: any,
+	focus: Vector3,
+	facing: Vector3,
+	want: number
+): (Vector3, number)
+	local params = worldParams(self)
+	local tries: number = ST.ViewTries
+	local reach = want + ST.ClearanceStuds
+	local bestDir, bestRoom = facing, -1
+	for i = 0, tries - 1 do
+		-- 0, +1, -1, +2, -2, ... steps of a full turn / tries.
+		local k = math.ceil(i / 2) * (if i % 2 == 1 then 1 else -1)
+		local angle = k * (math.pi * 2 / tries)
+		local dir = (CFrame.fromAxisAngle(Vector3.yAxis, angle) :: CFrame):VectorToWorldSpace(
+			facing
+		)
+		local offset = dir * reach + Vector3.new(0, 0, 0)
+		local hit = workspace:Raycast(focus, offset, params)
+		if hit == nil then
+			return dir, want
+		end
+		local room = (hit.Position - focus).Magnitude
+		if room > bestRoom then
+			bestDir, bestRoom = dir, room
+		end
+	end
+	return bestDir, math.max(ST.MinCameraStuds, bestRoom - ST.ClearanceStuds)
+end
+
+-- Hide one character (parts and decals) on this client, remembering what to put back.
+local function hideCharacter(self: any, character: Model)
+	for _, d in character:GetDescendants() do
+		if d:IsA("BasePart") or d:IsA("Decal") then
+			local item = d :: any
+			if self.hidden[item] == nil then
+				self.hidden[item] = item.LocalTransparencyModifier
+			end
+			item.LocalTransparencyModifier = 1
+		end
+	end
+end
+
+-- Every player's character (the clone stands in for this one) and every plate over them.
+function UltStage.hidePlayers(self: any)
+	local characters: { Model } = {}
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		if character then
+			table.insert(characters, character)
+			hideCharacter(self, character)
+		end
+	end
+	local playerGui = Players.LocalPlayer and Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return
+	end
+	for _, gui in playerGui:GetChildren() do
+		if gui:IsA("BillboardGui") and gui.Adornee then
+			for _, character in characters do
+				if gui.Adornee:IsDescendantOf(character) then
+					if self.hiddenGuis[gui] == nil then
+						self.hiddenGuis[gui] = gui.Enabled
+					end
+					gui.Enabled = false
+					break
+				end
+			end
+		end
+	end
+end
+
+function UltStage.showPlayers(self: any)
+	for d, was in self.hidden do
+		if d.Parent then
+			(d :: any).LocalTransparencyModifier = was
+		end
+	end
+	for gui, was in self.hiddenGuis do
+		if gui.Parent then
+			gui.Enabled = was
+		end
+	end
+	self.hidden = {}
+	self.hiddenGuis = {}
 end
 
 -- The idle animation's id from a character's Animate script, or nil.
@@ -236,9 +233,14 @@ local function idleFrom(character: Instance): string?
 	return if best then best.AnimationId else nil
 end
 
--- A clone of the player's character standing on the floor facing the camera, playing its
+-- A clone of the player's character standing on `ground`, facing `facing` (flat), playing its
 -- idle; nil when there is no character to copy.
-function UltStage.cloneAvatar(self: any, parent: Instance): (Model?, number)
+function UltStage.cloneAvatar(
+	self: any,
+	parent: Instance,
+	ground: Vector3,
+	facing: Vector3
+): (Model?, number)
 	local player = Players.LocalPlayer
 	local character = player and player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -260,6 +262,8 @@ function UltStage.cloneAvatar(self: any, parent: Instance): (Model?, number)
 	for _, d in model:GetDescendants() do
 		if d:IsA("BaseScript") or d:IsA("ModuleScript") or STRIP[d.ClassName] then
 			d:Destroy()
+		elseif d:IsA("Decal") then
+			d.LocalTransparencyModifier = 0
 		elseif d:IsA("BasePart") then
 			d.Anchored = false
 			d.CanCollide = false
@@ -275,7 +279,7 @@ function UltStage.cloneAvatar(self: any, parent: Instance): (Model?, number)
 	end
 	copyRoot.Anchored = true
 	model.PrimaryPart = copyRoot
-	local floorY = origin().Y
+	local floorY = ground.Y
 	local rootY = floorY + copyRoot.Size.Y / 2 + 2
 	if humanoid then
 		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
@@ -292,8 +296,8 @@ function UltStage.cloneAvatar(self: any, parent: Instance): (Model?, number)
 			idleId = idleId or ST.IdleR15
 		end
 	end
-	local at = Vector3.new(origin().X, rootY, origin().Z)
-	model:PivotTo(CFrame.lookAt(at, at + Vector3.new(0, 0, 1)))
+	local at = Vector3.new(ground.X, rootY, ground.Z)
+	model:PivotTo(CFrame.lookAt(at, at + facing))
 	model.Parent = parent
 	local head = model:FindFirstChild("Head")
 	local height = if head and head:IsA("BasePart")
@@ -322,29 +326,72 @@ function UltStage.cloneAvatar(self: any, parent: Instance): (Model?, number)
 	return model, math.max(2, height)
 end
 
--- Where the camera stands and looks for an avatar `height` studs tall.
-function UltStage.frame(self: any, height: number)
-	local o = origin()
-	self.focus = o + Vector3.new(0, height * (0.5 + ST.LookUpShare), 0)
+-- Where the camera looks for an avatar `height` studs tall standing on `ground`, and how far
+-- back it would like to stand.
+function UltStage.frame(self: any, ground: Vector3, height: number): number
+	self.focus = ground + Vector3.new(0, height * (0.5 + ST.LookUpShare), 0)
 	local half = math.tan(math.rad(ST.FieldOfView) / 2)
-	self.distance = (height / ST.FillShare) / 2 / half
+	return (height / ST.FillShare) / 2 / half
 end
 
---- Build the room (once), put the avatar and its aura in it, and cut the camera there.
+-- The glow on the ground and the two lights, placed for the camera's side: offsets are in the
+-- avatar's frame (x right, y up, z toward the camera).
+function UltStage.dress(self: any, model: Model, ground: Vector3, toward: Vector3)
+	local frame = CFrame.lookAt(ground, ground - toward) -- +Z toward the camera
+	local glowPart = holder(
+		model,
+		"FloorGlow",
+		Vector3.new(ST.FloorGlowStuds, 0.05, ST.FloorGlowStuds),
+		frame * CFrame.new(0, 0.03, 0)
+	)
+	local glow = Instance.new("Decal")
+	glow.Name = "Glow"
+	glow.Face = Enum.NormalId.Top
+	glow.Texture = K.Art.SoftGlow
+	glow.Transparency = ST.FloorGlowTransparency
+	glow.Parent = glowPart
+	self.floorGlow = glow
+	local keyCfg = ST.KeyLight
+	local keyAt = frame * Vector3.new(keyCfg.Offset[1], keyCfg.Offset[2], keyCfg.Offset[3])
+	local keyPart = holder(
+		model,
+		"KeyLight",
+		Vector3.new(0.2, 0.2, 0.2),
+		CFrame.lookAt(keyAt, ground + Vector3.new(0, 3, 0))
+	)
+	local key = Instance.new("SpotLight")
+	key.Face = Enum.NormalId.Front
+	key.Brightness = keyCfg.Brightness
+	key.Range = keyCfg.Range
+	key.Angle = keyCfg.Angle
+	key.Color = rgb(keyCfg.Color)
+	key.Shadows = false
+	key.Parent = keyPart
+	local fillCfg = ST.FillLight
+	local fillAt = frame * Vector3.new(fillCfg.Offset[1], fillCfg.Offset[2], fillCfg.Offset[3])
+	local fillPart = holder(model, "FillLight", Vector3.new(0.2, 0.2, 0.2), CFrame.new(fillAt))
+	local fill = Instance.new("PointLight")
+	fill.Brightness = fillCfg.Brightness
+	fill.Range = fillCfg.Range
+	fill.Color = rgb(fillCfg.Color)
+	fill.Shadows = false
+	fill.Parent = fillPart
+end
+
+--- Stand the avatar where the player is, hide the players, and cut the camera to it. Without a
+--- character (still loading) the screen opens over the world as the camera sees it.
 function UltStage.open(self: any, rarity: string?)
 	if self.opened then
 		return
 	end
 	self.opened = true
-	local model = self:build()
+	local model = Instance.new("Model")
+	model.Name = "UltStage"
 	model.Parent = workspace
-	local avatar, height = self:cloneAvatar(model)
-	self.avatar = avatar
-	self:frame(height)
-	local o = origin()
-	self.aura = UltAura.new(model, CFrame.new(o), height)
-	self.aura:set(rarity or self.rarity, false)
-	self:setRarity(rarity or self.rarity, false)
+	self.model = model
+	local player = Players.LocalPlayer
+	local character = player and player.Character
+	local realRoot = character and character:FindFirstChild("HumanoidRootPart")
 	local cam = workspace.CurrentCamera
 	self.saved = {
 		kind = cam.CameraType,
@@ -353,8 +400,42 @@ function UltStage.open(self: any, rarity: string?)
 		focus = cam.Focus,
 		fov = cam.FieldOfView,
 	}
+	self.hidden = {}
+	self.hiddenGuis = {}
+	if ST.HidePlayers then
+		self:hidePlayers()
+	end
+	if character and realRoot and realRoot:IsA("BasePart") then
+		local ground, facing = standing(self, realRoot, character:FindFirstChildOfClass("Humanoid"))
+		-- The camera's own side first, so the background is what the player was looking at.
+		local look = cam.CFrame.LookVector
+		local back = Vector3.new(-look.X, 0, -look.Z)
+		if back.Magnitude > 1e-3 then
+			facing = back.Unit
+		end
+		local avatar, height = self:cloneAvatar(model, ground, facing)
+		self.avatar = avatar
+		local want = self:frame(ground, height)
+		local toward, distance = self:pickView(self.focus, facing, want)
+		self.facing = toward
+		self.distance = distance
+		if avatar and self.root then
+			local at = self.root.Position
+			avatar:PivotTo(CFrame.lookAt(at, at + toward))
+			self.rootCFrame = self.root.CFrame
+		end
+		self:dress(model, ground, toward)
+		self.aura = UltAura.new(model, CFrame.lookAt(ground, ground - toward), height)
+		self.aura:set(rarity or self.rarity, false)
+	else
+		self.focus = cam.Focus.Position
+		self.facing = -cam.CFrame.LookVector
+		self.distance = (cam.CFrame.Position - self.focus).Magnitude
+	end
+	self:setRarity(rarity or self.rarity, false)
 	cam.CameraType = Enum.CameraType.Scriptable
 	self.clock = 0
+	self.hideClock = 0
 	RunService:BindToRenderStep(
 		RENDER_NAME,
 		Enum.RenderPriority.Camera.Value + 2,
@@ -365,33 +446,39 @@ function UltStage.open(self: any, rarity: string?)
 	self:step(0)
 end
 
--- Every frame while open: the camera (with its slow drift) and the swirl.
+-- Every frame while open: the camera (with its slow drift), and the players kept hidden.
 function UltStage.step(self: any, dt: number)
 	self.clock += dt
+	self.hideClock += dt
+	if ST.HidePlayers then
+		-- The camera scripts set the character's own transparency every frame; this runs after
+		-- them. A full pass now and then catches anyone who respawned or joined.
+		if self.hideClock >= ST.HideRefreshSeconds then
+			self.hideClock = 0
+			self:hidePlayers()
+		else
+			for d in self.hidden do
+				(d :: any).LocalTransparencyModifier = 1
+			end
+		end
+	end
 	local cam = workspace.CurrentCamera
 	if cam.CameraType ~= Enum.CameraType.Scriptable then
 		cam.CameraType = Enum.CameraType.Scriptable
 	end
 	local phase = self.clock / ST.SwaySeconds * math.pi * 2
-	local drift = Vector3.new(math.sin(phase), math.sin(phase * 0.7) * 0.5, 0) * ST.SwayStuds
+	local toward: Vector3 = self.facing
+	local right = toward:Cross(Vector3.yAxis)
+	local drift = (right * math.sin(phase) + Vector3.yAxis * math.sin(phase * 0.7) * 0.5)
+		* ST.SwayStuds
 	local focus: Vector3 = self.focus
-	local eye = focus + Vector3.new(0, 0, self.distance) + drift
+	local eye = focus + toward * self.distance + drift
 	cam.FieldOfView = ST.FieldOfView
 	cam.CFrame = CFrame.lookAt(eye, focus)
 	cam.Focus = CFrame.new(focus)
-	local speed: { number } = ST.SwirlSpeed
-	local tiles: { number } = ST.SwirlTileStuds
-	if self.swirlA then
-		self.swirlA.OffsetStudsU = (self.clock * speed[1]) % tiles[1]
-		self.swirlA.OffsetStudsV = (self.clock * speed[1] * 0.4) % tiles[1]
-	end
-	if self.swirlB then
-		self.swirlB.OffsetStudsU = (self.clock * speed[2]) % tiles[2]
-		self.swirlB.OffsetStudsV = (self.clock * speed[2] * -0.3) % tiles[2]
-	end
 end
 
---- Light the aura (and the floor glow and the backdrop's tint) in a rarity's colour; `burst`
+--- Light the aura (and the glow on the ground) in a rarity's colour; `burst`
 --- for a spin landing.
 function UltStage.setRarity(self: any, rarity: string?, burst: boolean?)
 	local key = if rarity and TIERS[rarity] then rarity else "Common"
@@ -407,9 +494,6 @@ function UltStage.setRarity(self: any, rarity: string?, burst: boolean?)
 	local colour = if tier.Color then rgb(tier.Color) else rgb(RARITY[key] or RARITY.Default)
 	if self.floorGlow then
 		self.floorGlow.Color3 = colour
-	end
-	if self.tint then
-		self.tint.Color3 = colour
 	end
 end
 
@@ -437,7 +521,7 @@ function UltStage.isOpen(self: any): boolean
 	return self.opened
 end
 
---- Put the camera back exactly as it was and take the room away.
+--- Put the camera back exactly as it was, take the stage away and show the players again.
 function UltStage.close(self: any)
 	if not self.opened then
 		return
@@ -471,9 +555,12 @@ function UltStage.close(self: any)
 		self.avatar = nil
 	end
 	self.root = nil
+	self.floorGlow = nil
 	if self.model then
-		self.model.Parent = nil
+		self.model:Destroy()
+		self.model = nil
 	end
+	self:showPlayers()
 end
 
 return UltStage

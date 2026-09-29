@@ -12,10 +12,11 @@
 -- it tells its onArming listeners, so the ult's own effect (MagnetFx) can play its arming.
 --
 -- The panel: a white, ink-outlined band tilted TiltDegrees across the middle, HeightShare of
--- the screen tall and wider than the screen. Inside, the backdrop art (a white swirl on black,
--- tinted in the ult's rarity colour, cropped round its calm eye and drifting), a few speed
--- lines, and the activating player's avatar: a client clone of their character, re-posed to
--- its rest pose (the table's shooter is bent over the cue), in a ViewportFrame with a slow
+-- the screen tall and wider than the screen. Inside, the kit's white with a thick line in the
+-- ult's rarity colour round it and a soft glow of that colour behind the avatar (the designer,
+-- 2026-09-28; BackdropArt brings back the old dark swirl), a few speed lines in that colour,
+-- and the activating player's avatar: a client clone of their character, re-posed to its rest
+-- pose (the table's shooter is bent over the cue), in a ViewportFrame with a slow
 -- push-in. "ULTIMATE" sits over the top edge at the left, the ult's name over the bottom edge
 -- at the right. It slams in, holds, shrinks to a thin line and snaps away.
 --
@@ -181,7 +182,7 @@ local function preload()
 	if sound then
 		table.insert(list, sound)
 	end
-	if K.Art.UltBackdrop ~= "" then
+	if C.BackdropArt and K.Art.UltBackdrop ~= "" then
 		table.insert(list, K.Art.UltBackdrop)
 	end
 	task.spawn(function()
@@ -436,8 +437,10 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	inner.ZIndex = 1
 	inner.Parent = panel
 	local innerEdge = Instance.new("UIStroke")
-	innerEdge.Color = rgb(K.Colors.Ink)
-	innerEdge.Thickness = math.max(1, math.floor(ink * C.InnerInkShare + 0.5))
+	innerEdge.Color = if C.BackdropArt then rgb(K.Colors.Ink) else tint
+	innerEdge.Thickness = if C.BackdropArt
+		then math.max(1, math.floor(ink * C.InnerInkShare + 0.5))
+		else math.max(2, math.floor(ink * C.RarityEdgeShare + 0.5))
 	innerEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	innerEdge.Parent = inner
 
@@ -445,7 +448,7 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	local eyeShare = 0.5 + (C.AvatarScreenX - 0.5) * W / innerW
 	local cropW = math.min(C.BackdropCropWidthPx, C.ArtSizePx)
 	local backdrop: ImageLabel? = nil
-	if K.Art.UltBackdrop ~= "" then
+	if C.BackdropArt and K.Art.UltBackdrop ~= "" then
 		local image = Instance.new("ImageLabel")
 		image.Name = "Backdrop"
 		image.BackgroundTransparency = 1
@@ -458,14 +461,17 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 		image.Parent = inner
 		backdrop = image
 	else
-		-- No art yet: the rarity colour glowing out of the dark round the avatar.
+		-- The kit's white, with a soft glow of the rarity colour behind the avatar.
 		local glow = Instance.new("UIGradient")
 		local mid = clamp01(eyeShare)
-		local dark = rgb(C.InnerColor)
+		local base = rgb(C.InnerColor)
 		glow.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, dark),
-			ColorSequenceKeypoint.new(math.clamp(mid, 0.01, 0.99), tint),
-			ColorSequenceKeypoint.new(1, dark),
+			ColorSequenceKeypoint.new(0, base),
+			ColorSequenceKeypoint.new(
+				math.clamp(mid, 0.01, 0.99),
+				tint:Lerp(Color3.new(1, 1, 1), C.GlowWhiteShare)
+			),
+			ColorSequenceKeypoint.new(1, base),
 		})
 		glow.Parent = inner
 	end
@@ -477,7 +483,9 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	for i = 1, C.SpeedLines do
 		local frame = Instance.new("Frame")
 		frame.Name = "Speed" .. i
-		frame.BackgroundColor3 = Color3.new(1, 1, 1)
+		frame.BackgroundColor3 = if C.BackdropArt
+			then Color3.new(1, 1, 1)
+			else tint:Lerp(Color3.new(1, 1, 1), C.SpeedLineWhiteShare)
 		frame.BackgroundTransparency = C.SpeedLineTransparency
 		frame.BorderSizePixel = 0
 		frame.Active = false
@@ -531,6 +539,18 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 		Vector3.new(C.LightDirection[1], C.LightDirection[2], C.LightDirection[3])
 	viewport.Active = false
 	viewport.Parent = window
+	if not C.BackdropArt then
+		-- On the white picture the bust would end in a hard line: its bottom fades out.
+		local fadeFrom = 1 - C.AvatarFadeShare
+		local ramp = Instance.new("UIGradient")
+		ramp.Rotation = 90
+		ramp.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(fadeFrom, 0),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		ramp.Parent = viewport
+	end
 	local viewCamera = Instance.new("Camera")
 	viewCamera.FieldOfView = C.FieldOfView
 	viewCamera.Parent = viewport

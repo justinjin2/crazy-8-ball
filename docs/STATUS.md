@@ -3,6 +3,13 @@
 **2026-09-28 (branch `ultimates`, overnight): Ultimates, with Magnet and the spin screen.**
 Report: `docs/prompts/ULTIMATES_REPORT.md`.
 
+- **Later the same day (the designer's feedback):** ults are called **Abilities** everywhere
+  players see them (code ABILITIES; code names keep "Ult"); the spin screen stands the avatar
+  in the real world where the player is (other players hidden), with the code box between the
+  slots and SPIN; the cutscene panel is white with the rarity colour; **Magnet is buffed**
+  (7.5-ball zone, braking and pull-in, charge rings on hit balls, dust and a pocket vortex),
+  now about +0.46 of a ball per use, over the Common target: the designer's call.
+
 - **Built:**
   - The ult bar: fills from your own balls, NICE SHOT, the opponent's balls (more the further
     behind you are) and turn ends. It shows on your turn; press G, tap it or gamepad X.
@@ -10,9 +17,9 @@ Report: `docs/prompts/ULTIMATES_REPORT.md`.
     paused). Two ults a match at most.
   - **Magnet**, the first real ult: it pulls your near misses into the pocket.
   - The solo Practice ult; the PC policy for future bots.
-  - The global queue's Ults On / Off pools with the 30 s fallback; NO ULTS pills.
+  - The global queue's Ults On / Off pools with the 30 s fallback; NO ABILITIES pills.
   - The spin screen (Ults tile): 3 slots, locks, true odds, pity at 100, Lucky Spins
-    (never Common), money and Robux buys, the ULTS code, the daily free spin, Auto Spin with
+    (never Common), money and Robux buys, the ABILITIES code, the daily free spin, Auto Spin with
     Fast Open, the avatar with a rarity aura.
   - Spins on every reward screen; the other 12 ults as placeholders; `/ulthelp`; NEW RANK!
     now dims the screen.

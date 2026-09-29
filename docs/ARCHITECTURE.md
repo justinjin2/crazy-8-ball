@@ -509,9 +509,9 @@ price, rarity, ult id to grant or a result.
   `Announce` (the Legendary and Mythic banner), `GlobalQueue` (the Ults On and Off pools).
 - Client: `UltHud` and `UltBar` (the bar, its gains, READY and the press prompt, the armed
   pills, Practice), `UltCutscene` (the manga panel everyone at the table sees), `MagnetFx`
-  (Magnet's armed look, pull beams, pocket ring and sounds), `MatchHUD` (the opponent's ult
-  icon, the NO ULTS pill, the clock held while an ult arms), `PadGuide` (the Ult line),
-  `ResultScreen` (NO ULTS), the reward screens' spin chips, and the spin screen (UltScreen,
+  (Magnet's armed look, each hit ball's charge rings, the pull's beams, dust, pocket ring and vortex, and its sounds), `MatchHUD` (the opponent's ult
+  icon, the NO ABILITIES pill, the clock held while an ult arms), `PadGuide` (the Ability line),
+  `ResultScreen` (NO ABILITIES), the reward screens' spin chips, and the spin screen (UltScreen,
   UltStage and their parts; see below).
 
 **The physics hook.** A shot's `state.overrides` may carry `Effect`, `Targets` and

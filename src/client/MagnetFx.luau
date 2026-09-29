@@ -15,8 +15,11 @@
 -- Magnet.activePulls on the replay's own state says which balls are in a capture zone. Each
 -- such pocket gets a pulsing ring on the cloth; a curved field-line beam runs from the pocket
 -- to the ball, flowing toward the pocket; the ball glows blue and crackles; the hum rises in
--- pitch. A pulled ball's drop gets a clunk-zap and a burst of sparks at the pocket. The rings
--- fade as the shot starts and everything fades when it ends.
+-- pitch; bright dust streams off the ball into the pocket and a vortex of motes is drawn into
+-- the pocket's centre. A pulled ball's drop gets a clunk-zap and a burst of sparks at the
+-- pocket. Each of the shooter's balls charges the moment it is hit (it starts moving): a zap,
+-- a spark burst, and small red and blue rings circling it for the rest of the shot. The armed
+-- rings fade as the shot starts and everything fades when it ends.
 --
 -- Only tables whose balls are drawn get anything (Hub's renderer pool); a table that stops
 -- being drawn loses its effects at once. Everything hangs off one invisible anchored part per
@@ -84,8 +87,18 @@ type Ring = { atts: { Attachment }, beams: { Beam }, bead: Part? }
 
 type Arc = { a0: Attachment, a1: Attachment, beam: Beam, alpha: number, nextFlicker: number }
 
+type ChargeFx = {
+	at: Attachment,
+	rings: { Ring },
+	light: PointLight,
+	since: number, -- os.clock() it charged (the snap)
+	level: number,
+}
+
 type PullFx = {
 	ballAt: Attachment,
+	dustAt: Attachment, -- faces the pocket: the dust flows along it
+	dust: ParticleEmitter,
 	ends: { Attachment }, -- the pocket end of each beam (its own axis, for its own bow)
 	starts: { Attachment }, -- the ball end of each beam
 	beams: { Beam },
@@ -101,6 +114,8 @@ type PocketFx = {
 	plate: Part?,
 	image: ImageLabel?,
 	ring: Ring?, -- the no-art fallback: a beam circle
+	vortexPart: Part, -- its shape is the vortex the motes are drawn in from
+	vortex: ParticleEmitter,
 	level: number,
 	target: number,
 	started: number,
@@ -119,6 +134,7 @@ type TableFx = {
 	pulls: { [number]: PullFx },
 	pockets: { [number]: PocketFx },
 	pulled: { [number]: boolean }, -- balls pulled on this shot
+	charged: { [number]: ChargeFx }, -- balls charged on this shot
 	shotSeq: number?,
 	shot: number, -- 0-1: the ult shot's effects, fading out once it ends
 	pitchMix: number,
@@ -281,6 +297,29 @@ local function textureBeam(beam: Beam, length: number, speed: number)
 	end
 end
 
+-- Bright motes in the pull's colour, shrinking away over `lifetime`; off until given a rate.
+local function newMotes(parent: Instance, size: number, lifetime: number): ParticleEmitter
+	local motes = Instance.new("ParticleEmitter")
+	motes.Texture = if ART.Spark ~= "" then ART.Spark else FALLBACK_SPARK
+	motes.Color = ColorSequence.new(rgb(F.SparkColor), rgb(F.GlowColor))
+	motes.LightEmission = 1
+	motes.LightInfluence = 0
+	motes.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, size),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	motes.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.6),
+		NumberSequenceKeypoint.new(0.2, 0),
+		NumberSequenceKeypoint.new(1, 0.3),
+	})
+	motes.Lifetime = NumberRange.new(lifetime)
+	motes.Rotation = NumberRange.new(0, 360)
+	motes.Rate = 0
+	motes.Parent = parent
+	return motes
+end
+
 local function create(self: MagnetFx, id: number): TableFx
 	local anchor = Instance.new("Part")
 	anchor.Name = ("MagnetFx_%02d"):format(id)
@@ -350,6 +389,7 @@ local function create(self: MagnetFx, id: number): TableFx
 		pulls = {},
 		pockets = {},
 		pulled = {},
+		charged = {},
 		shotSeq = nil,
 		shot = 0,
 		pitchMix = 0,
@@ -381,6 +421,10 @@ local function newPull(fx: TableFx, ball: number): PullFx
 		textureBeam(beam, F.BeamTextureLengthStuds, F.BeamTextureSpeed)
 		beams[i] = beam
 	end
+	local dustAt = newAttachment(anchor, "Dust" .. ball)
+	local dust = newMotes(dustAt, F.DustSizeStuds, F.DustLifetime)
+	dust.EmissionDirection = Enum.NormalId.Front
+	dust.SpreadAngle = Vector2.new(F.DustSpreadDegrees, F.DustSpreadDegrees)
 	local light = Instance.new("PointLight")
 	light.Color = rgb(F.GlowColor)
 	light.Range = F.GlowRangeStuds
@@ -412,6 +456,8 @@ local function newPull(fx: TableFx, ball: number): PullFx
 	end
 	local pull: PullFx = {
 		ballAt = ballAt,
+		dustAt = dustAt,
+		dust = dust,
 		ends = ends,
 		starts = starts,
 		beams = beams,
@@ -428,6 +474,7 @@ end
 
 local function dropPull(pull: PullFx)
 	pull.ballAt:Destroy()
+	pull.dustAt:Destroy()
 	for i = 1, #pull.beams do
 		pull.beams[i]:Destroy()
 		pull.starts[i]:Destroy()
@@ -436,8 +483,31 @@ local function dropPull(pull: PullFx)
 end
 
 local function newPocket(fx: TableFx, pocket: number): PocketFx
-	local p: PocketFx =
-		{ plate = nil, image = nil, ring = nil, level = 0, target = 0, started = os.clock() }
+	-- The vortex: motes born on a squat sphere round the pocket, drawn in to its centre.
+	local vortexPart = Instance.new("Part")
+	vortexPart.Name = "Vortex" .. pocket
+	vortexPart.Anchored = true
+	vortexPart.CanCollide = false
+	vortexPart.CanQuery = false
+	vortexPart.CanTouch = false
+	vortexPart.CastShadow = false
+	vortexPart.Transparency = 1
+	vortexPart.Size = Vector3.one * 0.2
+	vortexPart.Parent = fx.anchor
+	local vortex = newMotes(vortexPart, F.VortexSizeStuds, F.VortexLifetime)
+	vortex.Shape = Enum.ParticleEmitterShape.Sphere
+	vortex.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	vortex.ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward
+	local p: PocketFx = {
+		plate = nil,
+		image = nil,
+		ring = nil,
+		vortexPart = vortexPart,
+		vortex = vortex,
+		level = 0,
+		target = 0,
+		started = os.clock(),
+	}
 	if ART.RingGlow ~= "" then
 		local plate = Instance.new("Part")
 		plate.Name = "PocketRing" .. pocket
@@ -480,6 +550,7 @@ local function newPocket(fx: TableFx, pocket: number): PocketFx
 end
 
 local function dropPocket(p: PocketFx)
+	p.vortexPart:Destroy()
 	if p.plate then
 		p.plate:Destroy()
 	end
@@ -648,6 +719,10 @@ local function stepPulls(fx: TableFx, m: any, magnetShot: boolean, dt: number, t
 			local base = if i == 1 then F.BeamTransparency else F.SecondBeamTransparency
 			beam.Transparency = NumberSequence.new(1 - (1 - base) * pull.level)
 		end
+		-- The dust leaves the ball toward the pocket, fast enough to reach it as it fades.
+		pull.dustAt.CFrame = CFrame.lookAt(from, to)
+		pull.dust.Speed = NumberRange.new((to - from).Magnitude / F.DustLifetime)
+		pull.dust.Rate = F.DustRate * pull.level
 		pull.light.Brightness = F.GlowBrightness * pull.level
 		if pull.glow then
 			local flicker = 1 + F.GlowPulseShare * math.sin(TAU * t / F.GlowPulseSeconds)
@@ -673,6 +748,11 @@ local function stepPulls(fx: TableFx, m: any, magnetShot: boolean, dt: number, t
 		local at = TableBuilder.toWorld(m.placement, pocket.x, pocket.y, F.PocketLiftInches)
 		local alpha = 1
 			- (1 - F.PocketTransparency) * p.level * (1 - F.PocketPulseFade * (wave + 1) / 2)
+		local vortexW = TableBuilder.studs(pocket.radius * 2) * F.VortexScale
+		p.vortexPart.Size = Vector3.new(vortexW, vortexW * F.VortexHeightShare, vortexW)
+		p.vortexPart.CFrame = CFrame.new(at)
+		p.vortex.Speed = NumberRange.new(vortexW / 2 / F.VortexLifetime)
+		p.vortex.Rate = F.VortexRate * p.level
 		if p.plate and p.image then
 			p.plate.Size = Vector3.new(d, 0.02, d)
 			p.plate.CFrame = CFrame.new(at)
@@ -682,6 +762,105 @@ local function stepPulls(fx: TableFx, m: any, magnetShot: boolean, dt: number, t
 		end
 	end
 	return strongest
+end
+
+local function dropCharge(c: ChargeFx)
+	c.at:Destroy()
+	for _, ring in c.rings do
+		for k = 1, 4 do
+			ring.beams[k]:Destroy()
+			ring.atts[k]:Destroy()
+		end
+	end
+end
+
+-- The balls the shot may pull (overrides.Targets; the 8 only with a called pocket).
+local function isTarget(state: any, id: number): boolean
+	local o = state.overrides
+	if id == 0 or o == nil or o.Targets == nil then
+		return false
+	end
+	if id == 8 and o.EightPocket == nil then
+		return false
+	end
+	return table.find(o.Targets, id) ~= nil
+end
+
+-- Charge each of the shooter's balls the moment it is hit, and keep its rings circling it.
+local function stepCharges(fx: TableFx, m: any, magnetShot: boolean, dt: number, t: number)
+	if magnetShot then
+		for _, b in m.state.balls do
+			if
+				fx.charged[b.id] == nil
+				and not b.pocketed
+				and isTarget(m.state, b.id)
+				and b.vx * b.vx + b.vy * b.vy > F.ChargeMinSpeed * F.ChargeMinSpeed
+			then
+				local at = newAttachment(fx.anchor, "Charged" .. b.id)
+				local center = ballWorld(m, b)
+				at.CFrame = CFrame.new(center)
+				local light = Instance.new("PointLight")
+				light.Color = rgb(F.GlowColor)
+				light.Range = F.ChargeGlowRangeStuds
+				light.Brightness = 0
+				light.Shadows = false
+				light.Parent = at
+				local rings = {
+					newRing(
+						fx.anchor,
+						"ChargeN" .. b.id,
+						rgb(F.NorthColor),
+						F.ChargeRingWidthStuds,
+						false
+					),
+					newRing(
+						fx.anchor,
+						"ChargeS" .. b.id,
+						rgb(F.SouthColor),
+						F.ChargeRingWidthStuds,
+						false
+					),
+				}
+				fx.charged[b.id] = { at = at, rings = rings, light = light, since = t, level = 1 }
+				local zap = newSound(at, A.MagnetZap, false)
+				if zap then
+					zap.Volume = A.MagnetZap.Volume * F.ChargeZapShare
+					fire(zap)
+				end
+				fx.sparkAt.CFrame = CFrame.new(center)
+				fx.sparks:Emit(F.ChargeSparkCount)
+				fx.keepUntil = math.max(fx.keepUntil, t + F.SparkLifetime[2])
+			end
+		end
+	end
+	local ballR = TableBuilder.studs(Config.Balls.RenderRadiusInches)
+	local tilt = math.rad(F.RingTiltDegrees)
+	for id, c in fx.charged do
+		local b = ballOf(m, id)
+		local target = if b and not b.pocketed then fx.shot else 0
+		c.level = approach(c.level, target, dt, F.PullFadeSeconds)
+		if c.level <= 0.005 or b == nil then
+			dropCharge(c)
+			fx.charged[id] = nil
+			continue
+		end
+		local center = ballWorld(m, b)
+		c.at.CFrame = CFrame.new(center)
+		c.light.Brightness = F.ChargeGlowBrightness * c.level
+		local u = (t - c.since) / F.SnapSeconds
+		local scale = if u < 1 then lerp(F.ChargeSnapFromScale, 1, UIAnim.backOut(u)) else 1
+		local alpha = 1 - (1 - F.ChargeRingTransparency) * c.level
+		for i, ring in c.rings do
+			local sign = if i == 1 then 1 else -1
+			local phi = sign * TAU * t / F.ChargeTurnSeconds + (i - 1) * math.pi
+			local normal = Vector3.new(
+				math.sin(tilt) * math.cos(phi),
+				math.cos(tilt),
+				math.sin(tilt) * math.sin(phi)
+			)
+			placeRing(ring, center, normal, ballR * F.ChargeRingRadiusBalls * scale, 0, alpha)
+		end
+	end
 end
 
 --- A pocket event at table `id`: a pulled ball's drop gets the clunk-zap and the sparks.
@@ -808,11 +987,16 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 		if magnetShot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
 			table.clear(live.pulled)
+			for id, c in live.charged do
+				dropCharge(c)
+				live.charged[id] = nil
+			end
 		end
 		live.look = approach(live.look, if wantLook then 1 else 0, dt, F.LookFadeSeconds)
 		live.shot = approach(live.shot, if magnetShot then 1 else 0, dt, F.EndFadeSeconds)
 		stepLook(self, live, m, t)
 		local strongest = stepPulls(live, m, magnetShot, dt, t)
+		stepCharges(live, m, magnetShot, dt, t)
 		live.pitchMix = approach(live.pitchMix, strongest, dt, F.PitchEaseSeconds)
 		local hum = live.hum
 		if hum then
@@ -826,6 +1010,7 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 			and live.shot <= 0.001
 			and next(live.pulls) == nil
 			and next(live.pockets) == nil
+			and next(live.charged) == nil
 			and t >= live.keepUntil
 		then
 			destroy(self, id)

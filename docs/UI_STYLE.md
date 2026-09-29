@@ -380,16 +380,22 @@ Built on the branch `economy` (docs/prompts/ECONOMY_UI_PROMPT.md). Sizes in
   Roblox's bar, with the line in the rarity's colour (Reyes in the rainbow); it waits during a
   match, and an unboxing or Reyes also posts a chat line.
 
-## 11. Ultimates: the bar, the cutscene, the spin screen and auras (2026-09-28, overnight)
+## 11. Abilities: the bar, the cutscene, the spin screen and auras (2026-09-28, overnight)
 
 Built on branch `ultimates` (docs/prompts/ULTIMATES_PROMPT.md). Sizes and timings in
 `Config.UI.Ults`; lines marked *(assumption)* are overnight calls, logged in DECISIONS.
+
+**Players see "Ability" / "Abilities"** (ABILITY in the all-caps spots) on every screen, never
+"Ult" or "Ultimate" (the designer, 2026-09-28: "Ult doesn't look right"). In code, Config and
+these notes they are still called ults (UltHud, UltScreen, `Strings.Ults`); the words come from
+`Strings.Ults` and friends, so the change is text only. The quoted labels below are the ones
+players read.
 
 - **The ult bar** (reference 08, placed differently): bottom centre and compact, about 300 x
   46 px on a computer and 220 x 36 on a phone, above the bottom edge and clear of the money
   HUD, the controller guide, the spin button, the power bar and Roblox's buttons; never over
   the middle of the table. It shows only on your own turn and fades to 25% while the cue is
-  pulled back. The 8-ball badge with its blue splash sits on the left end, "ULTIMATE" in
+  pulled back. The 8-ball badge with its blue splash sits on the left end, "ABILITY" in
   outlined white above, a thick ink-outlined pill with a blue fill and a moving shine, the %
   centred. Each gain flashes the fill's edge, bounces the badge and floats a "+34" (gold beside
   NICE SHOT! for a nice shot). Gains from the opponent's turn animate when your turn starts.
@@ -398,21 +404,26 @@ Built on branch `ultimates` (docs/prompts/ULTIMATES_PROMPT.md). Sizes and timing
   (keyboard), TAP TO ACTIVATE (touch: the whole bar is the button) or PRESS [X/Square] TO
   ACTIVATE (gamepad, Roblox's own glyph), following the last input type. **Armed:** the bar
   becomes a pill in the ult's rarity colour, "MAGNET: NEXT SHOT"; the opponent sees a small
-  "Opponent's ult: MAGNET" pill. The top bar shows a small ult icon beside each opponent that
+  "Opponent's ability: MAGNET" pill. The top bar shows a small ult icon beside each opponent that
   lights up when their ult is ready.
 - **The cutscene** (reference 10, Jujutsu Shenanigans' domain expansion): about 1.6 s, for
   everyone in the match. A tilted manga panel (about -8 degrees, 40% of the screen's height,
-  a thick white border with an ink outline) slams in across the middle; inside, a swirling
-  ink backdrop in the ult's rarity colour drifts behind the activating player's avatar (upper
-  body, big, in a ViewportFrame) with a slow push-in; "ULTIMATE" top-left and the ult's name
+  a thick white border with an ink outline) slams in across the middle; inside, the kit's
+  white with a thick line in the ability's rarity colour round it, a soft glow of that colour
+  and speed lines in it behind the activating player's avatar (upper body, big, in a
+  ViewportFrame, its bottom fading out) with a slow push-in (the designer, 2026-09-28: no dark
+  swirl); "ABILITY" top-left and the ult's name
   bottom-right in Fredoka One with thick outlines. It shrinks to a thin line and snaps away.
   No dim.
-- **The spin screen** (reference 09, Untitled Boxing Game): full screen over a dark room
-  stage; the avatar big in the middle in its idle with a rarity aura; top centre "CURRENT
-  ULT:", the name huge in its rarity colour with an ink outline, the description under it;
+- **The spin screen** (reference 09, Untitled Boxing Game): full screen over the real world
+  where the player stands (every player and name plate hidden meanwhile; the designer,
+  2026-09-28); the avatar big in the middle in its idle with a rarity aura; top centre "CURRENT
+  ABILITY:", the name huge in its rarity colour with an ink outline, the description under it;
   three slot cards on the left (name, rarity strip, EQUIPPED or SELECT, a lock toggle; a slot
   not owned shows NONE and a green PURCHASE with its R$ price); collapsible rarity bars with
-  their odds on the right, a "Lucky odds" switch, and the code box under them; LUCKY SPINS
+  their odds on the right, a "Lucky odds" switch; the code box on its own, centred between the
+  slot cards and SPIN (under the odds when there is no room there, and in the Odds popup on a
+  phone); LUCKY SPINS
   over the big gold SPIN (FREE SPIN while the daily one is unused) with SPINS LEFT under it;
   Pity N / 100, the money and the buy row (BUY 1/5/10/50, an R$ / $ toggle, crossed-out
   original prices in red) bottom right; a red BACK TO MENU bottom left. On a phone the slots

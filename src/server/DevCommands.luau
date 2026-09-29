@@ -53,6 +53,8 @@ local CUE_NAMES: { [string]: string } = Strings.Items.Cues :: any
 local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
 local PASS_NAMES: { [string]: string } = Strings.Dev.PassNames :: any
 local ULT_REASONS: { [string]: string } = Strings.Dev.UltReasons :: any
+-- A command's old name that still runs it (the ult commands' names before "abilities").
+local OLD_ALIASES: { [string]: string } = D.OldAliases :: any
 
 local DevCommands = {}
 
@@ -107,6 +109,11 @@ local function command(name: string, alias: string, run: (Player, { string }) ->
 	local cmd = Instance.new("TextChatCommand")
 	cmd.Name = "Dev" .. name
 	cmd.PrimaryAlias = alias
+	local old = OLD_ALIASES[name]
+	if old then
+		handlers[old] = run
+		cmd.SecondaryAlias = old
+	end
 	cmd.AutocompleteVisible = false -- not offered to players
 	cmd.Triggered:Connect(function(source: TextSource, text: string)
 		local player = Players:GetPlayerByUserId(source.UserId)
@@ -839,7 +846,7 @@ local function freeCase(player: Player)
 	end
 end
 
--- The /ulthelp order.
+-- The /abilityhelp order.
 local ULTS: { string } = {
 	"UltBar",
 	"UltFull",

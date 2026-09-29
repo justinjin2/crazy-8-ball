@@ -352,23 +352,28 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   rank-up brings a big NEW RANK! popup. No finisher effect.
 - Emotes during the opponent's turn for players and spectators.
 
-## 9. Ultimates (abilities)
+## 9. Abilities (ults in code)
 
 **Decided** (designer, 2026-09-28, after the ultimates interview; built on branch
 `ultimates`, `docs/prompts/ULTIMATES_PROMPT.md`)
-- **Abilities are called ultimates ("ults") and are core gameplay, in the release.** An ult is
+- **Players see them as "Abilities" everywhere** (the designer, 2026-09-28: "Ult doesn't look
+  right"): every button, label, notice and reward says Ability / Abilities (ABILITY in the
+  all-caps spots). **In code and in these docs they are still called ults** (UltService,
+  `Config.Ults`, the `Ults` save field, the Ult remotes), and the words "ult" / "ultimate"
+  below mean the same thing. The promo code is **ABILITIES**.
+- **Abilities (ults) are core gameplay, in the release.** An ult is
   a comeback trump card: its job is to level the field. **Both players should get to use
   their ult in 80%+ of matches**, leaving out the rare run-out (a player who pockets all 7
   and the 8 in one turn). A second ult only comes in long, slow matches.
 - **Ults are on by default everywhere**: public tables, the global queue and arenas, and vs
   PC (this replaces "public tables play Classic with no abilities", 2026-09-27). Solo gets a
-  free **Practice ult** button instead of a bar. **The global queue's Join card has an Ults:
-  On / Off toggle** (On by default, remembered in the save) for ranked players who want pure
-  skill; players are only matched with others on the same setting (two pools in one queue),
-  rank XP and money are the same either way, and the arena, series and rematch keep it. If a
-  No-ults search finds nobody in 30 s the card offers "Nobody's in No ults right now. Search
-  with ults on?" (Yes keeps the search time). A "NO ULTS" pill shows on the match bar and the
-  result screen. Lobby tables and vs PC always have ults on.
+  free **Practice ability** button instead of a bar. **The global queue's Join card has an
+  Abilities: On / Off toggle** (On by default, remembered in the save) for ranked players who
+  want pure skill; players are only matched with others on the same setting (two pools in one
+  queue), rank XP and money are the same either way, and the arena, series and rematch keep
+  it. If a No-ults search finds nobody in 30 s the card offers "Nobody's searching with
+  abilities off. Search with them on?" (Yes keeps the search time). A "NO ABILITIES" pill
+  shows on the match bar and the result screen. Lobby tables and vs PC always have ults on.
 - **One bar per player, 0-100, filled by the same rules for everyone** (never by what they
   own), starting at 0 each game (rematches too). The numbers (`Config.Ults.Fill`, checked by
   `tools/ult_model.py`): your own balls in one turn +10, +8, +6, +5, then +3 each; a nice shot
@@ -396,9 +401,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   fine); never on the break. Once pressed it can't be cancelled; if the shot clock runs out
   while armed the ult is spent. **Both players see a 1.6 s manga-strip cutscene** (the
   activating player's avatar in a tilted panel over a swirling backdrop in the ult's rarity
-  colour, "ULTIMATE" and the ult's name, the ult_activate sound), then about a second later
+  colour, "ABILITY" and the ult's name, the ult_activate sound), then about a second later
   the ult's own arming effect and an armed pill ("MAGNET: NEXT SHOT"; the opponent sees
-  "Opponent's ult: MAGNET"). The shot clock pauses from activation until armed, for both
+  "Opponent's ability: MAGNET"). The shot clock pauses from activation until armed, for both
   sides.
 - **Fouls still count on an ult shot.** An ult never pockets, moves or destroys the 8 unless
   it is your legal 8 shot, and never acts on the opponent's balls. Ults act on the balls and
@@ -425,7 +430,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   jaw rattles, never a vacuum, never the cue ball or the opponent's balls. A beam, a pulsing
   pocket ring and a clunk-zap show it. The aim line doesn't show it.
 - **Getting ults: the spin screen** (Untitled Boxing Game style; the left column's 5th
-  button, **Ults**, with a red dot when the daily free spin is ready). Three slots (slot 1
+  button, **Abilities**, with a red dot when the daily free spin is ready). Three slots (slot 1
   free, slots 2 and 3 game passes); a spin rolls into the selected slot and replaces its ult;
   a locked slot can't be spun; the selected slot is the one equipped; replacing an Epic+ asks
   first. The avatar stands in the middle in its idle with a JoJo-style aura in the rarity's
@@ -608,10 +613,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **The Limited shelf** holds the high-priced, quantity-limited items that sell out and become
   limited forever. At release: the Founder's Cue (1,499 R$, 50 copies) and the Beta Cue
   ($40,000, 1,000 copies, first 30 days) *(tune)*. All economy screens live under one menu.
-- **Ult spins** (designer, 2026-09-28, section 9): the spin screen gives ults; spins come from
-  play (starter, daily, rank-ups, streak day 7, playtime, codes), Robux packs and money, with
-  true odds, pity and Lucky Spins (ECONOMY.md 11.8). Ults are kept in 3 slots; a spin replaces
-  the selected slot's ult.
+- **Ult spins** ("Ability Spins" to players; designer, 2026-09-28, section 9): the spin
+  screen gives ults; spins come from play (starter, daily, rank-ups, streak day 7, playtime,
+  codes), Robux packs and money, with true odds, pity and Lucky Spins (ECONOMY.md 11.8). Ults
+  are kept in 3 slots; a spin replaces the selected slot's ult.
 - **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +50% rank XP, the VIP Cue, a [VIP]
   chat tag before the rank tag ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour)
   and a rainbow name over the head whose colours drift slowly (designer, 2026-09-28). Never
