@@ -2369,6 +2369,12 @@ Config.Ults = {
 		-- Eagle's Eye arming: "Eagle Screech 1" (public library audio, 1.8 s, checked loading in
 		-- this game), 3D at the cue ball, at the Magnet arm's level. (tune by ear)
 		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.45 },
+		-- Super Bounce (public library audio, each checked loading in this game, 2026-09-29):
+		-- arming, "Cartoon Spring Bounce Sound" (MysteryMilo, 1.3 s, a long boing-oing, peak
+		-- 0.54); every bounce, "SS_rubberduck_variety_spring_02" (Roblox, 1.3 s but a quick
+		-- 0.3 s spring, peak 0.48), pitched up per bounce (Config.UI.SuperBounceFx).
+		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.55 },
+		BounceHit = { Id = "rbxassetid://111237552536869", Volume = 0.45 },
 	},
 }
 
@@ -6828,6 +6834,73 @@ Config.UI.EaglesEyeFx = {
 	ScreechSeconds = 2.5,
 }
 
+-- Super Bounce's look (src/client/SuperBounceFx.luau; ABILITIES_PROMPT 7.3): the rainbow shell
+-- on the cue ball, a rainbow ribbon, a boing ring and a squash at every bounce. Studs unless
+-- named; the bounce itself is Config.Ults.SuperBounce. (tune)
+Config.UI.SuperBounceFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The shell: this many times the drawn cue ball's width, turning this fast (its bands roll
+	-- round the ball), popping on over PopSeconds with a PopOvershoot spring, fading in and out.
+	ShellScale = 1.06,
+	TurnDegreesPerSecond = 220,
+	PopSeconds = 0.35,
+	PopOvershoot = 2.2,
+	FadeInSeconds = 0.12,
+	FadeOutSeconds = 0.5,
+	-- A hit squashes it along the hit by this share (and bulges it half that across), springing
+	-- back over SquashSeconds.
+	SquashShare = 0.3,
+	SquashSeconds = 0.22,
+	-- The boing ring at a hit: this many ball widths across, growing from RingFromScale to
+	-- RingToScale while it fades over RingSeconds, turning RingSpinDegrees.
+	RingBallWidths = 2.6, -- (1.6 was a speck from the replay camera: the look check)
+	RingFromScale = 0.45,
+	RingToScale = 1.3,
+	RingSeconds = 0.35,
+	RingSpinDegrees = 40,
+	-- A hit's ring faces out of the hit tilted this share of the way to straight up, so the
+	-- overhead replay camera sees it face on and not as an edge (0: standing on the cushion).
+	RingTiltShare = 0.55,
+	RingTransparency = 0,
+	FloorRingLiftInches = 0.1, -- the arming ring, flat on the cloth under the cue ball
+	-- A hit's sparkles: SparkCount at full weight (Config.UI.Kit.Art.Spark, the rainbow), thrown
+	-- every way and slowed by SparkDrag.
+	SparkCount = 9,
+	SparkSizeStuds = 0.12,
+	SparkLifetime = { 0.3, 0.55 },
+	SparkSpeed = { 3, 6 },
+	SparkDrag = 4,
+	SparkLightEmission = 0.3,
+	-- A hit's weight (ring opacity, boing volume): its speed over FullSpeed (in/s), at least
+	-- MinWeight.
+	FullSpeed = 60,
+	MinWeight = 0.35,
+	-- The boings: each pitched PitchStep higher than the last of the shot, up to PitchMax; never
+	-- two within BoingGapSeconds; each holder let go after BoingHoldSeconds.
+	PitchStep = 0.05,
+	PitchMax = 1.6,
+	BoingGapSeconds = 0.06,
+	BoingHoldSeconds = 2,
+	FreshSeconds = 0.3, -- a hit the replay only caught up with (a late join) gets nothing
+	-- The ribbon: a camera-facing Trail across the cue ball (TrailBallWidths of it), fading over
+	-- TrailSeconds and narrowing to TrailTailWidth, while the cue ball moves faster than
+	-- TrailMinSpeed (in/s). The house rainbow (superbounce.py's RAINBOW).
+	TrailBallWidths = 1,
+	TrailSeconds = 0.45,
+	TrailTailWidth = 0.3,
+	TrailTransparency = 0,
+	TrailLightEmission = 0, -- any glow washed the rainbow to pale yellow (the look check)
+	TrailMinSpeed = 3,
+	TrailColors = {
+		{ 255, 77, 77 },
+		{ 255, 159, 28 },
+		{ 255, 225, 77 },
+		{ 61, 214, 107 },
+		{ 59, 155, 255 },
+		{ 162, 89, 255 },
+	},
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -6836,6 +6909,7 @@ Config.UI.AbilityFx = {
 	Looks = {
 		Magnet = "MagnetFx",
 		EaglesEye = "EaglesEyeFx",
+		SuperBounce = "SuperBounceFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.
