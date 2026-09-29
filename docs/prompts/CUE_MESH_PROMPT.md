@@ -448,7 +448,7 @@ done becomes `- [x] BLOCKED: <why>`.
 - [x] 3. The paint kit (4.1-4.3): the panels, input, guide and test images, `sheet.png`,
   `CueTextures.py --skin` working, `renders/template_check.png` proving nothing is stretched,
   mirrored or seamed wrong.
-- [ ] 4. Classic's maps (4.4) and render; `template/CHATGPT.md` (4.5).
+- [x] 4. Classic's maps (4.4) and render; `template/CHATGPT.md` (4.5).
 - [ ] 5. Uploads and the Edit-mode `ReplicatedStorage.CueSkins.Classic` (5.1), checked in
   place.
 - [ ] 6. CueStickBuilder's mesh path with Config and tests (5.2); Classic drawn from the mesh
