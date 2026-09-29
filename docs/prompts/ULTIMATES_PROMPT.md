@@ -585,7 +585,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   hiding, Fast Open's Skip and Auto Spin.
 - [ ] 10. Getting spins: starter, the daily free spin and the leave reminder, rank-up spins
   (NEW RANK! and roadmap chips), streak day 7, the playtime gift, codes.
-- [ ] 11. Dev commands (`/ulthelp`) working in Studio.
+- [x] 11. Dev commands (`/ulthelp`) working in Studio.
 - [ ] 12. Full playthrough in Studio: a match vs the QA opponent where the opponent pockets 4
   and your bar rises to 100% on your turn with ult_ready, the shake, G, the cutscene, Magnet
   rescuing a near miss; the PC using its ult; solo practice; the spin screen end to end (free
@@ -732,3 +732,8 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   Also: a QA shot fired before the ult armed simply had no effect (correct).
   Left for step 12's playthrough: the cutscene seen from a second real client (the QA opponent
   is synthetic), and the gamepad glyph.
+- **Step 11 (bbb34f3).** All ten ult commands checked in Studio through DevCommandsQA; /ult takes
+  an id or a name in any case ("black flash").
+- **NEW RANK! dim (designer's request, 2026-09-28, be90ab3).** Uses the popup's own backdrop
+  inside PoolHud: black at 0.5, two screens plus 400 px, so it covers the top bar and a notch.
+  Checked in Studio: 3458x1800 on a 1529x758 screen.
