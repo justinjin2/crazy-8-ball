@@ -2022,6 +2022,8 @@ function PlayerData.buyUltSpins(player: Player, count: number, price: number): (
 	end
 	if data.Money < price then
 		return false, "NotEnoughMoney"
+	elseif ults.Spins + count > Config.Ults.Earn.MaxSpins then
+		return false, "TooMany" -- the money would buy spins the cap throws away
 	end
 	data.Money = plain(data.Money - price)
 	UltSlots.addSpins(ults, count)

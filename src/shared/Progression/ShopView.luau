@@ -27,6 +27,10 @@ export type Context = {
 	vipPass: boolean, -- owns the VIP game pass (or the /vip dev override)
 	fastOpen: boolean, -- owns the Fast Open game pass (or /fastopen)
 	restricted: boolean, -- the PaidRandomRestricted attribute (PolicyService)
+	-- false while PolicyService has not answered for this player (nil counts as answered)
+	policyKnown: boolean?,
+	-- false while the ult spin screen is closed to this player (Config.Ults.ScreenLive)
+	spinsLive: boolean?,
 	partyEndsAt: number, -- this server's Money Party end, unix (0: none)
 	partyBuyer: string?, -- the last buyer's username
 	sale: Sale?, -- the case sale running now (ShopView.readSale), or nil
@@ -184,8 +188,9 @@ end
 --- (not a Config.Products key), "Owned" (a pass owned; VIP already, for the welcome offer; the
 --- Starter Pack or a Limited bought), "Closed" (its offer or Limited window is not open),
 --- "SoldOut" (a Limited at its cap), "PartyFull" (the Money Party already has an hour queued),
---- "Restricted" (an ult spin pack where paid random items are restricted), "ComingSoon" (its
---- Id is still 0). Money packs are always on sale.
+--- "Restricted" (an ult spin pack where paid random items are restricted), "NotLoaded" (a spin
+--- pack before PolicyService has answered), "ComingSoon" (its Id is still 0, or a spin pack
+--- while the spin screen is closed). Money packs are always on sale.
 function ShopView.check(key: string, ctx: Context): string?
 	local row = LIST[key]
 	if row == nil then
@@ -220,8 +225,12 @@ function ShopView.check(key: string, ctx: Context): string?
 			return "PartyFull"
 		end
 	elseif SPIN_PRODUCTS[key] then
-		if ctx.restricted then
+		if ctx.policyKnown == false then
+			return "NotLoaded"
+		elseif ctx.restricted then
 			return "Restricted"
+		elseif ctx.spinsLive == false then
+			return "ComingSoon"
 		end
 	elseif row.Kind == "Pass" then
 		if otherPassOwned(ctx, key) then

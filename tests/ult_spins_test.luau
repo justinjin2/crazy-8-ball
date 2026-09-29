@@ -159,10 +159,17 @@ return {
 		H.expect((SpinView.spin(u, opts({ day = DAY + 4 })) :: any).used == "Free", "one")
 		local _, again = SpinView.spin(u, opts({ day = DAY + 4 }))
 		H.expect(again == "NoSpins", "missed days are missed")
-		-- A Lucky Spin never uses the free spin.
+		-- A Lucky Spin never uses the free spin (the flag on: with only Magnet built a Lucky
+		-- Spin has nothing to land, and is refused).
 		local v = Slots.fresh()
 		Slots.addLucky(v, 1)
-		H.expect((SpinView.spin(v, opts({ lucky = true })) :: any).used == "Lucky", "Lucky")
+		local _, closed = SpinView.spin(v, opts({ lucky = true }))
+		H.expect(closed == "LuckyClosed", "Lucky closed while only Commons are built")
+		H.expect(v.LuckySpins == 1, "nothing taken")
+		H.expect(
+			(SpinView.spin(v, opts({ lucky = true, devAll = true })) :: any).used == "Lucky",
+			"Lucky"
+		)
 		H.expect(Slots.freeSpinReady(v, DAY), "the free spin is still there")
 	end,
 
@@ -454,12 +461,14 @@ return {
 		H.expect(p.pity == 0 and p.pityAt == 100 and p.freeSpinReady and p.spinsDone == 0, "")
 		H.expect(p.canSpin and not p.canLucky and p.luckyReason == "NoLucky", "the buttons")
 		H.expect(not p.needsConfirm, "Magnet needs no confirm")
-		for _, odds in { p.odds.normal, p.odds.lucky, p.odds.pity } do
+		for name, odds in { normal = p.odds.normal, lucky = p.odds.lucky, pity = p.odds.pity } do
 			local total = 0
 			for _, row in odds.rarities do
 				total += row.ppm
 			end
-			H.expect(total == Roll.TOTAL, "odds add to 100%")
+			-- Only Magnet is built, so Lucky (no Commons) has nothing to land yet.
+			local want = if name == "lucky" then 0 else Roll.TOTAL
+			H.expect(total == want, name .. ": odds add up")
 		end
 		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")
 		H.expect(p.moneyPerSpin == 1750 and #p.moneyPacks == 4, "money")

@@ -38,6 +38,7 @@ local Daily = require(Shared.Progression.Daily)
 local Requests = require(Shared.Progression.Requests)
 local UltCatalog = require(Shared.Ults.Catalog)
 local SpinView = require(Shared.Ults.SpinView)
+local Roll = require(Shared.Ults.Roll)
 local PlayerData = require(script.Parent.PlayerData)
 local Store = require(script.Parent.Store)
 local Items = require(script.Parent.Items)
@@ -240,7 +241,10 @@ local function spinOnce(player: Player, lucky: boolean, confirm: boolean): (bool
 	if not ok then
 		return false, reasonFrom(result), current
 	end
-	Announce.ult(player, result.id)
+	-- A placeholder rolled with the developer flag is never news.
+	if UltCatalog.built(result.id) then
+		Announce.ult(player, result.id)
+	end
 	return true, result, nil
 end
 
@@ -414,6 +418,10 @@ function HANDLERS.BuyProduct(player: Player, r: SpinView.Request): Reply
 			return refuse("NotLoaded")
 		elseif restricted then
 			return refuse("Restricted")
+		end
+		local row = (Config.Products.List :: any)[product]
+		if row and row.Lucky and not Roll.available("Lucky", devAllOf(player)) then
+			return refuse("LuckyClosed")
 		end
 	end
 	local ok, reason = Store.prompt(player, product)

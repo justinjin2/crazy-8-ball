@@ -141,9 +141,11 @@ function Slots.setLock(ults: any, slot: any, locked: any, passes: Passes?): (boo
 end
 
 --- True when the daily free spin of UTC day `day` is unused (it never stacks: an unused day is
---- simply missed). False for a day that is not a whole number >= 0.
+--- simply missed). False for a day that is not a whole number >= 0. A FreeSpinDay after `day`
+--- (stamped by a server whose clock ran ahead) counts as used, so two servers either side of
+--- midnight cannot give it twice.
 function Slots.freeSpinReady(ults: any, day: any): boolean
-	return isUlts(ults) and isWhole(day) and day >= 0 and ults.FreeSpinDay ~= day
+	return isUlts(ults) and isWhole(day) and day >= 0 and ults.FreeSpinDay < day
 end
 
 --- Whether a spin may be made now: `lucky` true for a Lucky Spin, false for a normal one

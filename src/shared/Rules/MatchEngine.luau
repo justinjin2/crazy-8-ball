@@ -923,11 +923,9 @@ function Engine.action(
 			t.settings.difficulty = request.value
 			t.revision += 1
 		else
-			if type(request.value) ~= "boolean" then
-				return false
-			end
-			t.settings.abilities = request.value
-			t.revision += 1
+			-- SetAbilities: lobby tables always play with ults on (GDD section 9, 2026-09-28);
+			-- only the global queue's No-ults arena turns them off, from its server record.
+			return false
 		end
 		return true
 	end

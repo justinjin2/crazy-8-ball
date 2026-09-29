@@ -52,11 +52,13 @@ SpinView.Reasons = table.freeze({
 	"Locked", -- the selected slot is locked
 	"NoSpins", -- no free spin today and no spins left
 	"NoLucky", -- no Lucky Spins left
+	"LuckyClosed", -- no Uncommon or better ult is in the game yet, so a Lucky Spin has nothing to land
 	"Confirm", -- the spin would replace an Epic or better: the reply adds `current`, `rarity`
 	"AutoRunning", -- Spin or Select while Auto Spin runs (AutoStop first)
 	"NoFastOpen", -- AutoStart needs the Fast Open pass
 	"Restricted", -- paid random items are restricted here: no buying spins or Lucky Spins
 	"NotEnoughMoney", -- BuySpins: the reply adds `need` and `price`
+	"TooMany", -- BuySpins: the spins would pass Config.Ults.Earn.MaxSpins
 	"Owned", -- BuyProduct: that slot pass is owned already
 	"ComingSoon", -- BuyProduct: the product's id is still 0
 	"Error", -- anything else (logged on the server): try again
@@ -262,6 +264,9 @@ function SpinView.spin(ults: any, opts: SpinOptions): (SpinResult?, string?, str
 	local ok, why = Slots.canSpin(ults, opts.lucky, opts.day, opts.passes)
 	if not ok then
 		return nil, why, nil
+	end
+	if opts.lucky and not Roll.available("Lucky", opts.devAll) then
+		return nil, "LuckyClosed", nil
 	end
 	if Slots.needsConfirm(ults) and opts.confirm ~= true then
 		return nil, "Confirm", Slots.selectedUlt(ults)

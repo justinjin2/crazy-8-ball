@@ -9,7 +9,9 @@
 -- (Roll.TOTAL). Config.Ults.Roll gives each rarity's share. The pool is the built ults (all 13
 -- with the developer flag `devAll`); a rarity with no ult in the pool passes its whole share
 -- down to the next rarity below that has one (or, with none below, up to the nearest above), so
--- the Odds panel shows what a spin really does. A rarity's share is split evenly between its
+-- the Odds panel shows what a spin really does. A Lucky Spin never passes a share below its
+-- lowest rarity with a share of its own (Uncommon): "no Commons" holds whatever is built, and
+-- with no Uncommon or better ult in the pool a Lucky Spin cannot be made (Roll.available). A rarity's share is split evenly between its
 -- ults; the ppm left over by the split goes one each to its first ults in Order.
 --
 -- Pity: every spin (free, paid, normal or Lucky) adds 1; the Config.Ults.Roll.PityAt-th spin
@@ -210,7 +212,15 @@ local function kindTable(kind: any, devAll: boolean?): Odds
 	local hit = cache[key]
 	if hit == nil then
 		local by = poolByRarity(devAll)
-		hit = { odds = build(scale(moveShares(base, by, 1)), by), pity = false }
+		-- Shares move no lower than the table's lowest rarity with a share (Lucky: Uncommon).
+		local from = 1
+		for index, rarity in U.Rarities do
+			if (base[rarity] or 0) > 0 then
+				from = index
+				break
+			end
+		end
+		hit = { odds = build(scale(moveShares(base, by, from)), by), pity = false }
 		cache[key] = hit
 	end
 	return hit.odds
@@ -260,6 +270,17 @@ function Roll.odds(kind: any, devAll: boolean?): Odds
 	return copy(kindTable(kind, devAll))
 end
 
+--- Whether a "Normal" or "Lucky" spin can be made at all: false when no ult in the pool can
+--- come up (a Lucky Spin while no Uncommon or better ult is built). Roll.roll errors then.
+function Roll.available(kind: any, devAll: boolean?): boolean
+	for _, row in kindTable(kind, devAll).ults do
+		if row.ppm > 0 then
+			return true
+		end
+	end
+	return false
+end
+
 --- The pity spin's odds: Epic+ only, in the normal table's proportions (Epic 72.3%, Legendary
 --- 24.1%, Mythic 3.6%), shares of empty Epic+ rarities moved as in `Roll.odds`. With no Epic+
 --- ult in the pool it is the normal odds. A new table.
@@ -299,7 +320,11 @@ function Roll.roll(
 	else
 		odds = kindTable(kind, devAll)
 	end
-	assert(#odds.ults > 0, "Roll.roll: the pool is empty")
+	local any = false
+	for _, row in odds.ults do
+		any = any or row.ppm > 0
+	end
+	assert(any, "Roll.roll: nothing can come up (an empty pool, or a Lucky Spin with no Uncommon+)")
 	local r = rng()
 	assert(type(r) == "number" and r >= 0 and r < 1, "Roll.roll: rng out of range")
 	local pick = math.floor(r * Roll.TOTAL) + 1 -- 1..TOTAL

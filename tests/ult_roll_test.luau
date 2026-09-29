@@ -76,6 +76,12 @@ return {
 			}
 			for name, odds in tables do
 				local label = ("%s (flag %s)"):format(name, tostring(devAll))
+				if name == "Lucky" and not devAll then
+					-- Only Magnet (Common) is built: a Lucky Spin has nothing it may land.
+					H.expect(not Roll.available("Lucky", false), "Lucky closed")
+					H.expect(sum(odds.rarities) == 0 and sum(odds.ults) == 0, "Lucky: no odds")
+					continue
+				end
 				H.expect(sum(odds.rarities) == 1000000, label .. ": rarities add to 1,000,000")
 				H.expect(sum(odds.ults) == 1000000, label .. ": ults add to 1,000,000")
 				H.expect(#odds.rarities == #Config.Ults.Rarities, label .. ": every rarity listed")
@@ -209,11 +215,14 @@ return {
 		local pool = Roll.pool(false)
 		H.expect(#pool == 1 and pool[1] == "Magnet", "today: only Magnet is built")
 		H.expect(#Roll.pool(true) == #Config.Ults.Order, "the flag: all 13")
-		for _, kind in { "Normal", "Lucky" } do
-			local odds = Roll.odds(kind, false)
-			H.expect(#odds.ults == 1 and ultPpm(odds, "Magnet") == 1000000, kind .. ": 100% Magnet")
-			H.expect(rarityPpm(odds, "Common") == 1000000, "every share moved down to Common")
-		end
+		local odds = Roll.odds("Normal", false)
+		H.expect(#odds.ults == 1 and ultPpm(odds, "Magnet") == 1000000, "Normal: 100% Magnet")
+		H.expect(rarityPpm(odds, "Common") == 1000000, "every share moved down to Common")
+		-- Lucky never lands a Common, so with only Magnet built it is closed (audit M3).
+		H.expect(Roll.available("Normal", false) and not Roll.available("Lucky", false), "closed")
+		H.expect(sum(Roll.odds("Lucky", false).ults) == 0, "Lucky: nothing to land")
+		local ok = pcall(Roll.roll, "Lucky", 0, Roll.seeded(1), false)
+		H.expect(not ok, "a closed Lucky Spin never hands out a Common")
 		local pity = Roll.pityOdds(false)
 		H.expect(ultPpm(pity, "Magnet") == 1000000, "no Epic+ built: the normal odds")
 		local id, _, newPity, wasPity = Roll.roll("Normal", 99, Roll.seeded(3), false)
@@ -230,9 +239,10 @@ return {
 			)
 			H.expect(rarityPpm(odds, "Uncommon") == 0 and rarityPpm(odds, "Mythic") == 0, "empty")
 			H.expect(ultPpm(odds, "Ghost") == nil, "not in the pool")
-			-- Lucky: Common has no share to give; Uncommon's moves down to Magnet.
+			-- Lucky: Uncommon's share moves up to Rewind, never down to a Common.
 			local lucky = Roll.odds("Lucky", false)
-			H.expect(ultPpm(lucky, "Magnet") == Config.Ults.Roll.Lucky.Uncommon, "Uncommon's")
+			H.expect((ultPpm(lucky, "Magnet") or 0) == 0, "no Commons from a Lucky Spin")
+			H.expect(ultPpm(lucky, "Rewind") == 1000000, "every Lucky share to the only Rare")
 		end)
 		-- Nothing below: a share moves up to the nearest rarity that has an ult.
 		withBuilt(Config, { Magnet = false, Rewind = true }, function()

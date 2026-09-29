@@ -961,11 +961,13 @@ return {
 				Locked = "Slot locked",
 				NoSpins = "No spins left.",
 				NoLucky = "No Lucky Spins left.",
+				LuckyClosed = "Lucky Spins open once rarer ults are in the game.",
 				Confirm = "Replace %s?", -- the ult's name, upper case in its rarity colour
 				AutoRunning = "Stop Auto Spin first.",
 				NoFastOpen = "Auto Spin needs Fast Open.",
 				Restricted = "Buying spins isn't available where you live. Free spins still work.",
 				NotEnoughMoney = "Not enough money.",
+				TooMany = "You hold the most spins allowed.",
 				Owned = "You already own this slot.",
 				ComingSoon = "Coming soon!",
 				Error = "Something went wrong. Try again soon.",

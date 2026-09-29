@@ -40,8 +40,9 @@ local Store = require(script.Parent.Store)
 local Tables = require(script.Parent.TableService)
 
 local U = Config.Ults
--- The player attribute `/ultsall on` sets: roll and equip placeholder ults (the dev flag).
-local ULTS_ALL = "UltsAll"
+-- The player attribute `/ultsall on` sets (UltSpins.setDevAll): roll and play placeholder ults
+-- (the developer flag).
+local ULTS_ALL = "UltDevAll"
 
 local UltService = {}
 local started = false

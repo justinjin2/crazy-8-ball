@@ -1102,6 +1102,11 @@ function DevCommands.start()
 		tell(player, if on then Dev.UltsAllOn else Dev.UltsAllOff)
 	end)
 	command("OpUlt", D.OpUlt, function(player)
+		-- It fills other players' bars, so only in Studio (the QA opponent), never live.
+		if not RunService:IsStudio() then
+			tell(player, Dev.OpUltNone)
+			return
+		end
 		local n = UltService.fillOpponent(player)
 		tell(player, if n > 0 then Dev.OpUlt:format(n) else Dev.OpUltNone)
 	end)

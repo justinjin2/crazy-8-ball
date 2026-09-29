@@ -117,6 +117,12 @@ end
 -- false), records it in their tally and sends them their MoneyGrant.
 local function payOne(e: any, player: Player, team: number, isShooter: boolean, now: number)
 	local pending, shot = e.pending, e.shot
+	-- A solo Practice ult shot is free and unlimited, so it pays nothing and counts nothing
+	-- (ULTIMATES_PROMPT section 4).
+	local ult = if type(shot) == "table" then shot.ult else nil
+	if type(ult) == "table" and ult.practice == true then
+		return
+	end
 	local j = pending.judgement
 	local kind = Settle.opponentKind(e)
 	local sinceBreak = if type(e.brokeAt) == "number" then now - e.brokeAt else nil

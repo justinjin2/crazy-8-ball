@@ -292,10 +292,10 @@ function tests.the_host_sets_difficulty_and_abilities_before_the_game()
 	expect(not action(m, 11, "SetAbilities", { value = "no" }), "only on or off")
 	local revision = m.revision
 	expect(action(m, 11, "SetDifficulty", { value = "Difficult" }))
-	expect(action(m, 11, "SetAbilities", { value = false }))
-	expect(m.revision == revision + 2, "each change is broadcast")
+	expect(not action(m, 11, "SetAbilities", { value = false }), "lobby tables keep ults on")
+	expect(m.revision == revision + 1, "each change is broadcast")
 	s = E.snapshot(m).settings
-	expect(s.difficulty == "Difficult" and s.abilities == false)
+	expect(s.difficulty == "Difficult" and s.abilities == true)
 	expect(s ~= m.settings, "the snapshot has a copy")
 	expect(start(m))
 	expect(not action(m, 11, "SetDifficulty", { value = "Classic" }), "fixed once the game starts")

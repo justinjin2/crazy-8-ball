@@ -200,6 +200,9 @@ local function context(player: Player, now: number): ShopView.Context?
 		vipPass = owns(player, "Vip"),
 		fastOpen = owns(player, "FastOpen"),
 		restricted = player:GetAttribute(ATTR.Restricted) == true,
+		policyKnown = player:GetAttribute(ATTR.Restricted) ~= nil,
+		-- UltSpins' isLive, read here without requiring it (it requires Store).
+		spinsLive = Config.Ults.ScreenLive or IS_STUDIO or player:GetAttribute("UltDevAll") == true,
 		partyEndsAt = partyEndsAt,
 		partyBuyer = partyBuyer,
 		sale = currentSale(now),
