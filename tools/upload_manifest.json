@@ -63,20 +63,20 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/textures/burst_ring.png": {
     "assetId": "128288450574948",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "136798614538270"
+    "imageId": "136798614538270",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/textures/sparkles.png": {
     "assetId": "106363579778020",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "110779778163475"
+    "imageId": "110779778163475",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Portals/textures/swirl.png": {
     "assetId": "101107225209328",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "85317008061907"
+    "imageId": "85317008061907",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/Rewind.glb": {
     "assetId": "110978850889818",
@@ -117,6 +117,35 @@
     "assetId": "92718377745753",
     "assetType": "Decal",
     "imageId": "80127029771602",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/SteelBall.glb": {
+    "assetId": "83844850418816",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_burst.png": {
+    "assetId": "74393921524104",
+    "assetType": "Decal",
+    "imageId": "140169441770879",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_path.png": {
+    "assetId": "95892418217107",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "115232544003418"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_ribbon.png": {
+    "assetId": "104561608867251",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "121079900379610"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/SteelBall/textures/gold_sparkle.png": {
+    "assetId": "74762707211639",
+    "assetType": "Decal",
+    "imageId": "116655548573479",
     "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SuperBounce/SuperBounce.glb": {

@@ -1954,3 +1954,18 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   crossed the entry), so every trip is the same; the pick ring shows at 1.3 ball widths (was 1)
   so the portals read as holes a ball fits through; each portal has a soft glow on the cloth.
   The sounds are library clips (no audio upload used).
+- 2026-09-29 (assumption): Steel Ball guides the legal 8 into its called pocket when it is the
+  first ball hit (the 8 counts as yours on that shot, as for Chain Lightning); a follow-up 8 is
+  only ever lined up. Follow-ups are the first ball's group; the first ball's pocket passes over
+  one another ball blocks the way into.
+- 2026-09-29 (assumption): Steel Ball's "close" is a clean line with the opening within 36 in;
+  a lined-up ball stops 8 in short. Its worth measures +1.0 to +1.2 (Legendary target 2.2): the
+  harness counts one shot, so the line-up's value is unmeasured. Flagged for the balance pass,
+  with the option of guiding every next ball in (about +2).
+- 2026-09-29 (assumption): the guidance never scratches: the cue ball stops dead behind a
+  lined-up ball and wherever the guidance gives up, and turns straight onto its path near a
+  pocket.
+- 2026-09-29 (assumption): the steel ball's black outline is a Highlight (an inverted-hull mesh
+  draws solid in Roblox); the "nyo-ho" is a library two-note whistle call until a recorded one
+  exists. The art director's review was acted on (darker shell with bold ink, two orange-gold
+  ribbons, a looping path, the burst on the pot only).

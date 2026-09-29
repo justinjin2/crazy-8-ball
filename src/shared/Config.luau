@@ -2257,7 +2257,13 @@ Config.Ults = {
 			Worth = 1.5,
 			Pick = "Portals",
 		},
-		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3 },
+		SteelBall = {
+			Rarity = "Legendary",
+			Built = true,
+			Effect = "SteelBall",
+			Worth = 2.2,
+			MaxBalls = 3,
+		},
 		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3, Area = true },
 		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.6, MaxBalls = 3, Area = true },
 		GuangdongTiger = {
@@ -2452,6 +2458,14 @@ Config.Ults = {
 		PortalExit = { Id = "rbxassetid://140323850218372", Volume = 2.5 },
 		PortalOpen = { Id = "rbxassetid://135640489101126", Volume = 0.7, Pitch = 1.1 },
 		PortalClose = { Id = "rbxassetid://108156925383225", Volume = 0.6, Pitch = 0.6 },
+		-- Steel Ball (public library audio, each checked loading in this game): the "nyo-ho"
+		-- stand-in is a playful two-note whistle call (the brief's fallback; a recorded call is
+		-- the designer's), a spinning-top loop for the whirr, a heavy metal hit for each
+		-- contact, a twinkle for each guided pot.
+		SteelCall = { Id = "rbxassetid://9126216804", Volume = 1 },
+		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.8, Pitch = 1.2 },
+		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.9 },
+		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.7 },
 	},
 }
 
@@ -2525,6 +2539,43 @@ Config.Ults.ChainLightning = {
 	PushReachShare = 3,
 	PushMaxInches = 60,
 	ClearanceInches = 0.1,
+}
+
+-- Steel Ball (docs/prompts/ABILITIES_PROMPT.md 7.10; src/shared/Ults/Effects/SteelBall).
+Config.Ults.SteelBall = {
+	-- A guided ball reaches its pocket's centre at this speed (in/s): set every step from the
+	-- distance still to go, so a soft hit is sped up and a hard one slowed. (tune)
+	ArriveSpeed = 30,
+	GuideMaxSpeed = 150, -- never faster while guided (in/s), so it steers clean round a ball
+	-- A guided ball's heading turns on a curve no tighter than this (inches).
+	GuideTurnRadiusInches = 3,
+	GuideSeconds = 8, -- a guided ball is let go after this long (boxed in)
+	-- A guided ball with no clean line in heads for a point this far in front of the opening,
+	-- on the pocket's axis, then straight in (inches).
+	EntryInches = 4,
+	-- A line counts as clean with a ball this much fatter (inches), as Chain Lightning's.
+	ClearanceInches = 0.1,
+	-- The cue ball's next ball is guided in when its pocket has a clean line and the opening is
+	-- within this (inches); farther, it is lined up instead. (tune: the balance pass)
+	CloseInches = 36,
+	-- A lined-up ball stops this far short of its pocket's opening (inches). (tune)
+	LineUpInches = 8,
+	-- The cue ball's curve to the next ball: no tighter than this radius (inches), between
+	-- these speeds (in/s), straight in over the last ApproachInches behind the ghost-ball spot.
+	CueTurnRadiusInches = 4,
+	CueMinSpeed = 45,
+	CueMaxSpeed = 100,
+	ApproachInches = 4,
+	CueSeconds = 6, -- the cue ball's trip gives up after this long (and the cue ball stops)
+	-- The trip is planned again when its ball has moved this far (inches) since.
+	ReplanMoveInches = 0.5,
+	-- A waypoint counts as reached within this (inches): steering moves on to the next.
+	WaypointInches = 0.5,
+	-- Paths: balls and pockets passed this far clear (inches beyond touching), on a grid this
+	-- fine (inches), planned again at most this many times when knocked off.
+	AvoidMarginInches = 0.6,
+	GridInches = 1,
+	MaxReplans = 6,
 }
 
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
@@ -2700,6 +2751,9 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/portals.py: PortalRim (a ragged torus of unit radius, flat),
 		-- PortalCore (the thin inner ring) and PortalDisc (a flat unit disc with the swirl).
 		Portals = 134871963661060,
+		-- tools/blender/abilities/steelball.py: SteelShell (the manga steel ball, unit radius)
+		-- and GoldSpiral (a flat spiral ribbon).
+		SteelBall = 83844850418816,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2735,6 +2789,11 @@ Config.Ults.Assets = {
 		PortalSwirl = "rbxassetid://85317008061907",
 		PortalSparkles = "rbxassetid://110779778163475",
 		PortalBurst = "rbxassetid://136798614538270",
+		-- Steel Ball (steelball.py): the golden path on the cloth, the pot's burst ring and the
+		-- sparkle. (Images inside Decals 95892418217107, 74393921524104, 74762707211639.)
+		SteelPath = "rbxassetid://115232544003418",
+		SteelBurst = "rbxassetid://140169441770879",
+		SteelSparkle = "rbxassetid://116655548573479",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7528,6 +7587,69 @@ Config.UI.PortalsFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
+-- Steel Ball's look (src/client/SteelBallFx.luau). Studs unless named. (tune)
+Config.UI.SteelBallFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	FadeInSeconds = 0.2,
+	FadeOutSeconds = 0.5,
+	ShellScale = 1, -- the shell over the drawn cue ball
+	OutlineColor = { 0, 0, 0 }, -- the heavy manga outline (a Highlight round the shell)
+	-- The spin: this slowly (degrees a second) while armed; rolling, SpinBoost times its
+	-- natural roll (it spins hard).
+	IdleSpinDegrees = 90,
+	SpinBoost = 2.5,
+	-- The golden spirals round it: how many, their size (x the modelled one, whose outer end is
+	-- 2.3 ball radii out), their turn (degrees a second, SpiralMovingBoost times more rolling),
+	-- their tilt either way (degrees), and their spring out at the arming.
+	Spirals = 2, -- (art director: 3 thin ones read as atom orbits)
+	SpiralScale = 1.3, -- (look check 1: at 0.75 they were hairlines from the replay camera)
+	SpiralSpinDegrees = 540,
+	SpiralMovingBoost = 1.5,
+	SpiralTiltDegrees = 35,
+	SpiralTransparency = 0.02, -- the ribbon's own alpha shows only below 1 (MeshPart textures)
+	PopSeconds = 0.5,
+	PopOvershoot = 1.8,
+	-- Gold: the light, the trail and the flashes.
+	GoldColor = { 255, 190, 60 },
+	TrailColor = { 255, 245, 200 },
+	LightColor = { 255, 200, 90 },
+	LightBrightness = 3,
+	LightRangeBallWidths = 4,
+	TrailSeconds = 0.25,
+	TrailBallWidths = 0.6, -- the trail's width at the ball
+	TrailTransparency = 0.25,
+	RollingInchesPerSecond = 4, -- slower than this it is not rolling (no trail, no whirr)
+	MovingFadeSeconds = 0.25,
+	WhirrFullInchesPerSecond = 100, -- the whirr is loudest and highest from this fast
+	FlashBrightness = 3,
+	FlashSeconds = 0.35,
+	SparkleBallWidths = 0.9,
+	ArmSparks = 16,
+	SteelSparks = 8,
+	PotSparks = 20,
+	ShakeStuds = 0.15,
+	ShakeSeconds = 0.25,
+	-- A guided ball's golden path on the cloth: this wide (ball widths), fading in and out over
+	-- these, scrolling toward the pocket, gone after PathMaxSeconds at most.
+	PathBallWidths = 1.3, -- (look check 1: at 0.9 the curls were too small to read)
+	PathLiftInches = 0.06,
+	PathTransparency = 0,
+	PathInSeconds = 0.25,
+	PathOutSeconds = 0.4,
+	PathScrollStuds = 1.5,
+	PathMaxSeconds = 6,
+	-- A guided pot's burst ring at the pocket: grows to BurstBallWidths across over
+	-- BurstSeconds, fading. (Art director: at the first contact too it stole the pot's moment;
+	-- the contact now only sparkles.)
+	BurstBallWidths = 9,
+	BurstSeconds = 0.35,
+	BurstTransparency = 0,
+	-- Clanks: no closer together than this; full volume from this contact speed (in/s).
+	ClankGapSeconds = 0.08,
+	ClankFullSpeed = 120,
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7543,6 +7665,7 @@ Config.UI.AbilityFx = {
 		TimeStop = "TimeStopFx",
 		ChainLightning = "ChainLightningFx",
 		Portals = "PortalsFx",
+		SteelBall = "SteelBallFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

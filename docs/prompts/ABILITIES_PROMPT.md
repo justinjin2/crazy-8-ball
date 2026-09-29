@@ -790,7 +790,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 9. Time Stop (7.7), look check done.
 - [x] 10. Chain Lightning (7.8), look check done.
 - [x] 11. Portals (7.9), look check done.
-- [ ] 12. Steel Ball (7.10), look check and art director review done.
+- [x] 12. Steel Ball (7.10), look check and art director review done.
 - [ ] 13. Black Flash (7.11), look check and art director review done.
 - [ ] 14. Black Hole (7.12), look check and art director review done.
 - [ ] 15. Guangdong Tiger (7.13), look check and art director review done.
@@ -1140,3 +1140,56 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   comparison there. No leftovers after the shot. Placing by touch and gamepad and phone framing
   are checked in the playthrough (step 17). Lint now also fixes three type errors in
   ChainLightningFx (a newer luau-lsp: the arc seeds hold 1/0 in place of a boolean).
+- **Step 12 done (2026-09-29).** Plan: the effect in `step` (steering) and `after` (the
+  contacts), Heat Seeker's A* moved into a shared `Ults/Effects/PathPlan` (Heat Seeker's tests
+  unchanged), the look off the `steel`, `guide` and `curve` events and the replay's
+  `state.fx.steel` paths. Rules (Effects/SteelBall, tests in `ult_steelball_test`): the first
+  ball hit, if yours (the legal 8 into its called pocket), is guided into the pocket whose mouth
+  is nearest its heading, passing over a pocket another ball blocks the way into: steered every
+  step straight at the pocket's centre when that line drops clean, else along an A* path to a
+  point 4 in out on the pocket's axis and in, its speed set to arrive at 30 in/s (at most 150),
+  always rolling. The cue ball then curves (radius 4 in, 45 to 100 in/s) to your nearest next
+  ball of the same group, along an A* path to a point 4 in behind the ghost-ball spot and
+  straight in; at the contact that ball is guided in when its pocket has a clean line within
+  36 in, else rolled to stop 8 in short of it, lined up, and the cue ball stops dead behind it;
+  after a guided pot the cue ball goes on to the next, 3 balls at most; with your group gone the
+  8 is lined up, never potted. The cue ball stops wherever the guidance gives up (6 s, no way
+  round, no ball left), and near a pocket it turns straight onto its path, so the guidance
+  never scratches. Tests: your first ball always in and no scratch (60 tables), the opponent's
+  first ball guides nothing, a near next ball guided in, a far one lined up with the cue ball
+  behind it (cos > 0.97), the 8 lined up not potted, the legal 8 into its called pocket, never
+  more than 3, the replay matches the settle. A 400-table check: 336 of 336 first balls yours
+  went in, no scratches, the 8 and lined-up balls never dropped. Worth (120 tables, net a use at
+  skills 1/2/3): careful +1.00/+1.11/+1.18, careless +0.78/+0.95/+1.02, above the Epics measured
+  and well under Legendary 2.2: the harness counts one shot, so a line-up (the next shot made
+  easy) is worth nothing to it; guiding every next ball in (no line-ups) would reach about 2.
+  CloseInches 24 measured +0.9, 36 +1.0, 60 +1.5 (skill 2, 40 tables). Flagged for step 16. The
+  look (SteelBallFx; Blender `steelball.py`: SteelShell, a UV sphere with the raised hexagon and
+  round panels and carved grooves, 7.7k triangles, and its halftone manga texture: emerald,
+  cream flats, coarse halftone, a solid ink crescent, heavy ink lines on the panels, grooves and
+  swirls; GoldSpiral, a two-sided golden-ratio spiral ribbon, orange-gold with a brown edge;
+  images: the looping gold path, the burst ring, the sparkle): armed, the cue ball becomes the
+  steel ball turning slowly with a black Highlight outline, two gold spirals spinning round it
+  and a warm light, springing out at the arming with sparkles and the whistle call; the shot,
+  it spins hard as it rolls with a gold trail and a whirr, a clank on each contact, sparkles and
+  a small shake at the first ball, a looping gold path laid on the cloth ahead of every guided
+  ball (to its pocket, or to where a lined-up ball stops), scrolling; each guided pot a gold
+  burst ring, sparkles and a twinkle at the pocket. Studio passes (0.2x `/slowmo`): 1, the
+  inverted-hull outline drew solid black (Roblox ignores the flipped winding: a Highlight
+  instead), the spirals' faces pointed down (culled from above: two-sided now) and were
+  hairlines, the shell read dark, the path curls tiny (the spirals 1.3x, a brighter texture, a
+  wider path, a stronger light); 2, the steel ball, spirals and path read, but the curls were
+  sparse and the trail faint. The art director (a fresh subagent on the renders and captures):
+  the lime shell vanished into the felt and its fine detail was lost at 20 to 55 px; the three
+  pale ribbons read as atom orbits; the path read as hooks on a string; the burst belonged on
+  the pot, not the contact. Acted on: the shell repainted (emerald, cream, deep shadow, a solid
+  ink crescent, the hexagon 45% bigger, ink lines twice as thick, halftone twice as coarse), two
+  wider orange-gold ribbons with a brown edge spinning at 540 degrees a second, a continuous
+  looping path with a brown edge, the burst only on the pot (1.5x), sparkles at the contact.
+  Pass 3: the ball reads against the felt, the rings read gold, the pot bursts. Critique left:
+  the pot burst ring reads pale on the bright cloth; the path's loops wobble at the top camera;
+  the whistle call is a stand-in for a recorded "nyo-ho" (What needs you). Frame time: Studio sat
+  at its 15 fps cap with the look on and off (65.6 vs 65.2 ms); about 8k triangles on screen. No
+  leftovers after the shot, the cue ball shown again, console clean. Phone framing is checked in
+  the playthrough. Superseded uploads to archive: models 117230071734301, 84390532154285,
+  85966886940190, 100629865883823; decals 108164652976149, 130156479584094.

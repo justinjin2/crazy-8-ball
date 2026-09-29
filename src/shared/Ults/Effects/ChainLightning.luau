@@ -99,9 +99,9 @@ local function allowed(state: any, b: any, pocket: any): boolean
 	return b.id ~= EIGHT or pocket.id == state.overrides.EightPocket
 end
 
--- Whether a ball of radius `r` rolling from (x, y) along the unit (hx, hy) drops into `pocket`
--- before touching any cushion, jaw or other ball.
-local function clearInto(
+--- Whether a ball of radius `r` rolling from (x, y) along the unit (hx, hy) drops into `pocket`
+--- before touching any cushion, jaw or other ball (Steel Ball uses it too).
+function ChainLightning.clearInto(
 	state: any,
 	b: any,
 	pocket: any,
@@ -179,7 +179,7 @@ function ChainLightning.pushTarget(state: any, b: any): (any, number, number, nu
 			local ax, ay = dx - hy * off, dy + hx * off
 			local al = math.sqrt(ax * ax + ay * ay)
 			local tx, ty = ax / al, ay / al
-			if clearInto(state, b, pocket, tx, ty, r) then
+			if ChainLightning.clearInto(state, b, pocket, tx, ty, r) then
 				found, fx, fy, fd = true, tx, ty, al
 				break
 			end
