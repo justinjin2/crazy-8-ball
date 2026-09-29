@@ -1885,3 +1885,12 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   halved), and the ability's own effect arms 0.1 s after it (was 1.0 s): the designer found
   the wait from pressing to seeing the effect too long. The shot clock pause is now 0.9 s.
 - 2026-09-29 (assumption): the opponent's equipped ability icon shows on their top-bar badge before they use it (the brief lists the opponent's ready icon); easy to hide if the designer prefers.
+- 2026-09-29 (assumption): Magnet's field lines draw in a deeper flat blue (45,115,240) than the
+  reference's #7BA3D6: the reference's blue washed out to near white on the lit green cloth.
+  Same hue, just deeper; the designer may want it lighter.
+- 2026-09-29 (assumption): Magnet's drop shockwave spreads at rail-top height, not on the cloth:
+  a ring centred on a pocket is mostly behind the rails at cloth height.
+- 2026-09-29 (assumption): Eagle's Eye's harness aim aid is 0.15 degrees (an armed shooter's aim
+  error shrinks to at most that); it lands Eagle's Eye at +0.38 to +0.43 balls per use at skill
+  2, on the Common row, so the path is drawn in full (no MaxRails).
+

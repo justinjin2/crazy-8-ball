@@ -29,6 +29,7 @@ export type Effect = {
 local Effects: { [string]: Effect } = {
 	EaglesEye = require(script.EaglesEye) :: any,
 	Magnet = require(script.Magnet) :: any,
+	SuperBounce = require(script.SuperBounce) :: any,
 	TimeStop = require(script.TimeStop) :: any,
 }
 

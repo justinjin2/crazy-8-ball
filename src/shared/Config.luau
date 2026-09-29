@@ -2231,8 +2231,8 @@ Config.Ults = {
 	},
 	Catalog = {
 		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.33, Area = true },
-		EaglesEye = { Rarity = "Common", Built = false, Worth = 0.33 },
-		SuperBounce = { Rarity = "Common", Built = false, Worth = 0.33 },
+		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.33 },
+		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
 		Ghost = { Rarity = "Uncommon", Built = false, Worth = 0.5 },
 		HeatSeeker = { Rarity = "Uncommon", Built = false, Worth = 0.5, Pick = "OwnBall" },
 		Rewind = { Rarity = "Rare", Built = false, Worth = 1, Redo = true },
@@ -2366,6 +2366,9 @@ Config.Ults = {
 		-- Arming: "Electric Zaps 6" (Pro Sound Effects, 2.1 s, starts at 0.16 s) as the rings
 		-- snap onto the cue ball.
 		MagnetArm = { Id = "rbxassetid://9114277402", Volume = 0.45, StartOffset = 0.14 },
+		-- Eagle's Eye arming: "Eagle Screech 1" (public library audio, 1.8 s, checked loading in
+		-- this game), 3D at the cue ball, at the Magnet arm's level. (tune by ear)
+		EagleScreech = { Id = "rbxassetid://133423182233493", Volume = 0.45 },
 	},
 }
 
@@ -2378,6 +2381,21 @@ Config.Ults.EaglesEye = {
 	-- Each drawn path stops at this many cushion bounces (nil: every bounce to rest). The
 	-- harness's lever if the worth comes out far over the Common row. (tune)
 	MaxRails = nil :: number?,
+}
+
+-- Super Bounce (docs/prompts/ABILITIES_PROMPT.md 7.3; Arming.extras): the cue ball's own
+-- material for the shot's first Seconds, then normal friction returns. Tuned 2026-09-29: a
+-- medium shot (power 0.5) alone touches 6-10 cushions; on real tables (the harness's states)
+-- the median is 4 (a quarter reach 6), the cue ball giving its speed to the balls it hits.
+Config.Ults.SuperBounce = {
+	RailRestitution = 1.0, -- no speed lost off a cushion (normal 0.85) (tune)
+	RailFriction = 0, -- nor along it (normal 0.2) (tune)
+	BallRestitution = 1.0, -- a perfectly springy hit on a ball (normal 0.95) (tune)
+	-- Sliding and rolling losses: after each cushion the ball slides, and normal sliding
+	-- friction would turn much of its speed into roll; tiny values keep it going. (tune)
+	SlidingFriction = 0.005, -- normal 0.20
+	RollingFriction = 0.0004, -- normal 0.010
+	Seconds = 8, -- the cap: shot seconds with the material (tune)
 }
 
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
@@ -2475,6 +2493,9 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/magnet.py: FieldArcs, FieldFlares, FieldRing, Chevron and
 		-- PoleCaps, one shared texture (MeshPart.TextureID), unit size (scaled at runtime).
 		MagnetField = 96715013262604,
+		-- tools/blender/abilities/superbounce.py: RainbowShell (a shell a little over the ball,
+		-- its rainbow texture scrolled at runtime) and BoingRing (the hit's star-burst ring).
+		SuperBounce = 75004032615944,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
@@ -6552,29 +6573,66 @@ Config.UI.UltCutscene = {
 	LineHeightPx = 4,
 }
 
--- Magnet's look and sound (src/client/MagnetFx.luau; ULTIMATES_PROMPT 7.3). Studs unless named;
--- the ball's radius is Config.Balls.RenderRadiusInches (about 0.19 studs). (tune)
+-- Magnet's look and sound (src/client/MagnetFx.luau; ABILITIES_PROMPT 7.1). Studs unless named;
+-- the ball's radius is Config.Balls.RenderRadiusInches (about 0.19 studs). The field-line
+-- meshes are Config.Ults.Assets.Models.MagnetField (their colours are baked in the texture:
+-- only their transparency is set here). (tune)
 Config.UI.MagnetFx = {
 	NorthColor = { 255, 70, 80 }, -- the red N ring
 	SouthColor = { 70, 150, 255 }, -- the blue S ring
-	FieldColor = { 160, 210, 255 }, -- the faint arcs round the armed cue ball
-	GlowColor = { 70, 160, 255 }, -- the pull: beams, the pocket ring, the ball's glow
+	FieldColor = { 160, 210, 255 }, -- the fallback's faint arcs round the armed cue ball
+	GlowColor = { 70, 160, 255 }, -- the pull: the ball's glow, the vortex, the fallback ring
 	SparkColor = { 190, 230, 255 },
 	BeamSegments = 12, -- a Beam's smoothness
-	-- Armed: two rings round the cue ball, tilted RingTiltDegrees from flat and precessing
-	-- opposite ways (one turn every RingTurnSeconds), each with a bead running round it.
+	-- The opponent's balls are pulled at Config.Ults.Shared.OpponentFactor: their caps, burst,
+	-- lines, pocket fan and shockwave keep this share of their opacity (and their charge's zap
+	-- and sparks this share of theirs), so theirs reads weaker.
+	OpponentOpacityShare = 0.5,
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The field-line meshes lie this far over the cloth (their underside).
+	MeshLiftInches = 0.08,
+	-- These pieces drop their baked texture for this flat colour: the reference's pale blue
+	-- (#7BA3D6) washed out to near white on the lit green cloth, so a deeper, saturated blue of
+	-- the same hue (the look check, 2026-09-29). PoleCaps keeps its red and blue texture.
+	FlatPieces = { "FieldArcs", "FieldFlares", "FieldRing", "Chevron" },
+	FieldMeshColor = { 45, 115, 240 },
+	-- Armed: the cue ball as a dipole. Its N (red cap) turns after the shooter's aim (the aim
+	-- stream) with this time constant; with no aim heard it turns once every ArcTurnSeconds.
+	PoleEaseSeconds = 0.12,
+	CapsRadiusBalls = 1.04, -- the red and blue caps, a hair over the ball (in ball radii)
+	CapsTransparency = 0,
+	CapsTurnSeconds = 0.1, -- a charged ball's N easing round to where it rolls
+	-- The arcs flat round it (three nested loops each side, N to S): scaled so the inner loops
+	-- pass this many ball radii from its centre (the outer ones reach about 2.7x as far).
+	ArcsInnerRadiusBalls = 1.35,
+	ArcsTransparency = 0.15,
+	-- Chevrons flowing along every loop toward S: this many per loop, one lap each this long,
+	-- each loop's this share of a lap behind the last (so they don't march in step), each
+	-- this long (of the arcs' scale; the mesh's own arrowheads are 0.16), fading in and out
+	-- over this share of the loop at each foot.
+	ChevronsPerLoop = 2,
+	ChevronLapSeconds = 1.2,
+	ChevronStagger = 0.37,
+	ChevronShare = 0.16,
+	ChevronFadeShare = 0.15,
+	ChevronTransparency = 0.05,
+	-- The old orbit rings, kept round the armed cue ball but faint (the arcs are the hero):
+	-- tilted RingTiltDegrees from flat and precessing opposite ways (one turn every
+	-- RingTurnSeconds), each with a bead running round it.
 	RingRadiusBalls = 1.8, -- in ball radii
-	RingWidthStuds = 0.025,
+	RingWidthStuds = 0.018,
 	RingTiltDegrees = 62,
 	RingTurnSeconds = 2.6,
-	RingTransparency = 0.1,
-	BeadStuds = 0.07,
+	RingTransparency = 0.55,
+	BeadStuds = 0.05,
 	BeadSeconds = 0.9, -- one lap
-	-- The arming snap: the rings (and arcs) start this many times wider and snap in.
+	-- The arming snap: the rings (and fallback arcs) start this many times wider and snap in;
+	-- the arcs and caps start this small and pop out to size.
 	SnapSeconds = 0.35,
 	SnapFromScale = 2.6,
-	LookFadeSeconds = 0.25, -- the rings fade in at readyAt and out as the shot starts
-	-- The field arcs: a dipole across the ball turning once every ArcTurnSeconds, a line
+	MeshSnapFromScale = 0.2,
+	LookFadeSeconds = 0.25, -- the armed look fades in at readyAt and out as the shot starts
+	-- The fallback field (no model yet): a dipole across the ball (N along the aim), a line
 	-- leaving each pole ArcSpreadDegrees off the axis and looping ArcReachStuds out, one line
 	-- per angle round the axis (0 = flat to one side, 90 = straight over the top).
 	ArcAngles = { 25, 90, 155 },
@@ -6586,19 +6644,52 @@ Config.UI.MagnetFx = {
 	ArcFlickerSeconds = 0.07,
 	ArcTextureLengthStuds = 0.35, -- Config.UI.Kit.Art.FieldLines along the arcs
 	ArcTextureSpeed = 1,
-	-- A pull: two curved beams from the ball to the pocket (a bright one and a fainter one
-	-- bowing the other way), thin at the ball and wider at the pocket.
-	BeamWidthStuds = { 0.05, 0.14 },
-	BeamTransparency = 0.1,
-	SecondBeamTransparency = 0.6,
-	BeamBowShare = 0.3, -- how far each bows, of the ball-to-pocket distance
-	SecondBeamBowScale = 0.6,
-	BeamBowSide = 0.8, -- the bow's direction: this much sideways...
-	BeamBowUp = 0.6, -- ...and this much up off the cloth
-	BeamTextureLengthStuds = 0.8,
-	-- The field lines' flow: positive runs from the ball (the beam's start) toward the pocket.
+	-- A pull: three field lines on the cloth from the ball to the pocket (one straight, two
+	-- bowing out either side), Beams tiled with Config.Ults.Assets.Images.MagnetFieldBeam in
+	-- the reference's blue (#7BA3D6). Their opacity is LineMinShare at the weakest pull,
+	-- rising to full at the strongest.
+	LineColor = { 45, 115, 240 }, -- FieldMeshColor, deeper than the reference for the cloth
+	LineWidthStuds = 0.22, -- flat on the cloth, seen at a low angle: wide enough to read
+	LineTextureLengthStuds = 0.88, -- one arrow this often (4x the width: the tile is 4:1)
+	-- The arrows' flow: positive runs from the ball (the beam's start) toward the pocket.
 	-- Flip the sign if Studio shows it flowing the wrong way.
-	BeamTextureSpeed = 2,
+	LineTextureSpeed = 1.5,
+	LineLightEmission = 0, -- any glow washes the blue out to white on the lit cloth
+	LineTransparency = 0, -- the straight line
+	SideLineTransparency = 0.15, -- the two bowing out
+	LineBowShare = 0.3, -- how far the side lines bow, of the ball-to-pocket distance
+	LineMinShare = 0.6, -- (0.35 left the lines nearly invisible on a light pull: the look check)
+	LineLiftInches = 0.1, -- over the cloth
+	-- false: the lines lie flat on the cloth like the reference's diagram (each end's
+	-- attachment faces up). true: they face the camera (switch if Studio shows the flat ones
+	-- standing on edge or too thin from the shooter's camera).
+	LinesFaceCamera = false,
+	-- The drop: the lines' ball end snaps into the pocket over this long...
+	SnapInSeconds = 0.12,
+	-- ...and a FieldRing shockwave spreads from the pocket, from this to this many pocket
+	-- radii over WaveSeconds, fading, turning WaveSpinDegrees as it goes. It rides this high
+	-- over the cloth: at the cloth the rails hid most of a ring centred on a pocket (the look
+	-- check, 2026-09-29), so it spreads just over the rail tops (RailTopInches 2.08).
+	WaveSeconds = 0.55,
+	WaveLiftInches = 2.3,
+	WaveFromRadii = 0.6,
+	WaveToRadii = 4.5,
+	WaveTransparency = 0.05,
+	WaveSpinDegrees = 50,
+	-- The pocket's fan of flared lines (FieldFlares) at the middle of its mouth, fanning out
+	-- over the table: scaled to this many pocket radii (its lines run from about 0.15 to 1.4
+	-- of that out of the mouth), breathing with PocketPulseScale.
+	PocketFlareScale = 1.6,
+	PocketFlareTransparency = 0.1,
+	-- A charging ball's burst: the arcs and a fan out of each pole, flat on the cloth, growing
+	-- from BurstFromScale to BurstToScale of the ball-fitted size (ArcsInnerRadiusBalls) over
+	-- BurstSeconds while fading; the fans' lines start this far out (of the arcs' scale; the
+	-- inner loops' feet are at about 0.78).
+	BurstSeconds = 0.35,
+	BurstFromScale = 0.4,
+	BurstToScale = 2.2,
+	BurstTransparency = 0.05,
+	BurstFlareStart = 0.8,
 	PullRiseSeconds = 0.08, -- a pull's effects come up this fast...
 	-- ...and let go this slowly: a pull lasts only while the ball crosses the mouth, so the look
 	-- lingers a moment to be seen (polish, 2026-09-28: 0.2 barely showed from the player's camera)
@@ -6611,7 +6702,8 @@ Config.UI.MagnetFx = {
 	GlowTransparency = 0.15,
 	GlowPulseShare = 0.2,
 	GlowPulseSeconds = 0.3,
-	-- The pocket's ring on the cloth (Config.UI.Kit.Art.RingGlow; a beam circle without it).
+	-- The fallback pocket ring on the cloth (Config.UI.Kit.Art.RingGlow; a beam circle without
+	-- it), when the model has not arrived.
 	PocketRingScale = 2, -- of the pocket's opening
 	PocketPulseSeconds = 0.5,
 	PocketPulseScale = 0.15, -- it breathes this much bigger and smaller
@@ -6635,9 +6727,10 @@ Config.UI.MagnetFx = {
 	FreshSeconds = 0.3, -- a drop the replay only caught up with (a late join) gets nothing
 	EndFadeSeconds = 0.5, -- everything fades this long after the balls stop
 	-- Charged (the designer, 2026-09-28: "once it hits a ball that ball should have some magnet
-	-- effect"): the moment one of the shooter's balls is hit on a Magnet shot (it starts
-	-- moving) it charges with a zap and a spark burst, and small red and blue rings circle it
-	-- for the rest of the shot (snapping in from ChargeSnapFromScale wide), with a faint glow.
+	-- effect"): the moment a ball Magnet may pull is hit on a Magnet shot (it starts moving) it
+	-- charges with a zap, a spark burst and the field-line burst, and wears the caps for the
+	-- rest of the shot, with a faint glow. Without the model, small red and blue rings circle
+	-- it instead (snapping in from ChargeSnapFromScale wide).
 	ChargeMinSpeed = 0.5, -- in/s: moving at all means it has been hit
 	ChargeRingRadiusBalls = 1.7, -- in ball radii
 	ChargeRingWidthStuds = 0.03,
@@ -6661,6 +6754,80 @@ Config.UI.MagnetFx = {
 	VortexSizeStuds = 0.09,
 }
 
+-- Eagle's Eye's look (src/client/EaglesEyeFx.luau; ABILITIES_PROMPT 7.2): the aim's full path
+-- in the guideline's style, tinted gold, seen only by the aiming player. Studs unless named;
+-- the path's maths is Config.Ults.EaglesEye. (tune)
+Config.UI.EaglesEyeFx = {
+	-- Neon lifts a colour a long way and not evenly: (255, 205, 70) drew lemon yellow and
+	-- (235, 110, 10) orange (the look check, 2026-09-29). These draw gold on the cloth.
+	CueColor = { 252, 155, 18 }, -- the cue ball's track
+	ObjectColor = { 242, 125, 12 }, -- the first object ball's track: a deeper gold
+	RingColor = { 255, 205, 90 }, -- the bounce rings
+	PocketColor = { 255, 175, 30 }, -- the glowing pocket (ring and light)
+	-- The strips: flat thin Neon on the cloth, a little thinner than the guideline's centre
+	-- line (0.07) and just under it (Config.Guideline.HeightAboveClothInches 0.15, the reach
+	-- preview 0.12), so the white aim line always draws over the gold.
+	StripWidthStuds = 0.055,
+	ThicknessStuds = 0.005,
+	LiftInches = 0.09,
+	StripTransparency = 0.2,
+	-- A track's points closer than this to a straight line are merged (inches): a straight run
+	-- between cushions is one strip, a spin curve a few.
+	SimplifyInches = 0.04,
+	MaxStripsPerTrack = 80, -- a safety cap on the pool (a long curving shot)
+	-- The cushion bounce rings (the guideline's ring image), in ball widths.
+	RingBallWidths = 0.7,
+	RingTransparency = 0.15,
+	MaxRingsPerTrack = 12,
+	-- The glowing pocket: Kit.Art.RingGlow this many times the pocket's opening, a PointLight
+	-- over it, breathing PocketPulseShare fainter once every PocketPulseSeconds.
+	PocketRingScale = 1.8,
+	PocketLiftInches = 0.08,
+	PocketPixelsPerStud = 200,
+	PocketBrightness = 2,
+	PocketTransparency = 0.1,
+	PocketLightBrightness = 2,
+	PocketLightRangeStuds = 2.5,
+	PocketPulseShare = 0.35,
+	PocketPulseSeconds = 0.8,
+	-- The prediction. It re-runs only when the rounded aim changes: the angle to AngleStep
+	-- radians (about 0.01 degrees), the power to PowerStep, each spin axis to SpinStep, a ball
+	-- moved by BallKeyInches. Each frame runs at most StepsPerFrame fixed steps (240 a second
+	-- of play), ChunkSteps at a time, stopping early once BudgetMs of the frame is spent. A
+	-- step cost about 15 microseconds in Lune on a Mac (2026-09-29; an average shot is about
+	-- 1,400 steps), so a desktop draws a new path in about 4 frames and a phone, several times
+	-- slower, in about a third of a second, never spending more than the budget a frame.
+	AngleStep = 0.0002,
+	PowerStep = 0.002,
+	SpinStep = 0.01,
+	BallKeyInches = 0.01,
+	StepsPerFrame = 400,
+	ChunkSteps = 25,
+	BudgetMs = 3,
+	-- Before the player pulls, the path is drawn at their last shot's power at this table, or
+	-- this with none yet (0..1, as the power bar).
+	DefaultPower = 0.5,
+	-- The golden vignette: each screen edge fades from VignetteTransparency (at the edge) to
+	-- clear over VignetteDepth of the screen, reaching VignetteKneeTransparency (of the
+	-- gradient) VignetteKneeShare of the way in. Faint: it must never hide the table. Its
+	-- ScreenGui sits VignetteBelowHud under the HUD's so the buttons stay crisp.
+	VignetteColor = { 255, 190, 60 },
+	VignetteTransparency = 0.62, -- (0.8 could not be seen at all: the look check)
+	VignetteDepth = 0.16,
+	VignetteKneeShare = 0.35,
+	VignetteKneeTransparency = 0.7,
+	VignetteBelowHud = 1,
+	VignetteFadeInSeconds = 0.3,
+	VignetteFadeOutSeconds = 0.25,
+	-- The arming moment: a gold light burst at the cue ball, with the screech
+	-- (Config.Ults.Audio.EagleScreech; its holder is let go after ScreechSeconds).
+	ArmColor = { 255, 210, 90 },
+	ArmLightRangeStuds = 5,
+	ArmLightBrightness = 6,
+	ArmSeconds = 0.6,
+	ScreechSeconds = 2.5,
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -6668,6 +6835,7 @@ Config.UI.AbilityFx = {
 	-- one is skipped with a warning.
 	Looks = {
 		Magnet = "MagnetFx",
+		EaglesEye = "EaglesEyeFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.
@@ -7176,6 +7344,12 @@ Config.Debug = {
 		SlowmoMin = 0.05, -- the slowest rate accepted (Match.setTimeScale's floor)
 		SlowmoMax = 4, -- the fastest rate accepted (Match.setTimeScale's ceiling)
 		SlowmoAttribute = "ReplaySlowmo_",
+		-- /hold <seconds>: every replay at your table stops at that shot time and stays there
+		-- (a still frame of any moment to capture), until /hold alone releases it. It rides on
+		-- the workspace attribute HoldAttribute followed by the table id, like /slowmo.
+		Hold = "/hold",
+		HoldMax = 40, -- the latest shot time accepted, seconds (Config.Physics.MaxShotSeconds)
+		HoldAttribute = "ReplayHold_",
 		-- /abilitysetup <id|name>: your table racked in Config.Ults.Setups' layout for it, the
 		-- ability in your selected slot and armed, your turn to aim (vs the QA opponent).
 		AbilitySetup = "/abilitysetup",

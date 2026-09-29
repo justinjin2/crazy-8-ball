@@ -83,6 +83,8 @@ export type Match = typeof(setmetatable(
 		}?,
 		-- The developer's /slowmo: every replay at this rate (1 = normal; Studio only).
 		timeScale: number,
+		-- The developer's /hold: every replay stops at this shot time (nil: plays through).
+		holdAt: number?,
 		lastShot: Summary?,
 		eventListeners: { (Event, number) -> () },
 		-- The sequence number of the shot being replayed, and where the server says the
@@ -144,6 +146,7 @@ function Match.new(
 		assign = nil,
 		cueHold = nil,
 		timeScale = 1,
+		holdAt = nil,
 	}, Match)
 	resync(self)
 	self:renderState()
@@ -364,9 +367,17 @@ function Match.snapshot(self: Match, snapshot: any)
 	self.rackSeed, self.rackConfirmed = snapshot.rackSeed, true
 	if snapshot.shot then
 		self:receive(snapshot.shot)
-	elseif snapshot.shotSeq >= self.seq then
+	elseif
+		snapshot.shotSeq >= self.seq
+		and not (
+			self.shot ~= nil
+			and snapshot.shotSeq == self.seq
+			and (self.holdAt ~= nil or self.timeScale ~= 1)
+		)
+	then
 		-- The server's next phase always wins over a slow client's replay; no player's
-		-- clock depends on a spectator completing an animation.
+		-- clock depends on a spectator completing an animation. Only the developer's /hold
+		-- or /slowmo (Studio) lets the same shot's replay play on, to its own final spots.
 		self.shot = nil
 		self.pendingFinal = nil
 		self.pendingChecksum = nil
@@ -561,6 +572,9 @@ function Match.update(self: Match, dt: number): boolean
 		end
 	end
 	shot.elapsed += math.min(dt, Config.Debug.MaxPlaybackStepSeconds) * rate
+	if self.holdAt then
+		shot.elapsed = math.min(shot.elapsed, self.holdAt)
+	end
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
 	local timeBefore = self.state.time
 	local frameSteps = 0
@@ -631,6 +645,12 @@ end
 --- The developer's /slowmo: every replay on this table runs at `scale` (1 = normal).
 function Match.setTimeScale(self: Match, scale: number)
 	self.timeScale = math.clamp(scale, 0.05, 4)
+end
+
+--- The developer's /hold: every replay on this table stops at shot time `at` (nil: plays
+--- through).
+function Match.setHold(self: Match, at: number?)
+	self.holdAt = at
 end
 
 --- True while the shot being replayed is halted mid-way (Time Stop's freeze).

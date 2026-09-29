@@ -317,6 +317,7 @@ return {
 			OpUlt = "%s",
 			-- The look check's tools (Studio only).
 			Slowmo = "%s <%s-%s>, or %s",
+			Hold = "%s <0-%s>, or %s",
 			AbilitySetup = "%s <id|name>",
 		},
 		What = {
@@ -349,6 +350,7 @@ return {
 			OpUlt = "fills the other side's ability bars at your table (the QA opponent's)",
 			-- The look check's tools (Studio only).
 			Slowmo = "Studio only: every shot replay at your table at that rate, for everyone (1 or nothing: normal)",
+			Hold = "Studio only: every shot replay at your table stops at that many seconds in and stays (nothing: let go)",
 			AbilitySetup = "Studio only: racks your table to show that ability off, puts it in your slot and arms it, your turn",
 		},
 		BadCue = 'No cue called "%s". Use an id (ChalkDust) or a name (chalk dust).',
@@ -420,6 +422,8 @@ return {
 		StudioOnly = "%s works in Studio only.",
 		SlowmoSet = "Replays at table %d play at x%s.",
 		SlowmoOff = "Replays at table %d play at normal speed.",
+		HoldSet = "Replays at table %d stop at %s s.",
+		HoldOff = "Replays at table %d play through again.",
 		NoSetup = "No layout for %s yet (Config.Ults.Setups).",
 		SetupFailed = "The layout could not be set: %s",
 		SetupDone = "Table %d set up for %s: %s",

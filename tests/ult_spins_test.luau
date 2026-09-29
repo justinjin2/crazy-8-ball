@@ -515,7 +515,13 @@ return {
 			H.expect(row.ppm > 0, row.id)
 		end
 		H.expect(flagged == 13, "all 13 in the pool with the flag")
-		H.expect(#p.odds.normal.ults == 1, "only Magnet without it")
+		local built = 0
+		for _, id in Config.Ults.Order do
+			if Config.Ults.Catalog[id].Built then
+				built += 1
+			end
+		end
+		H.expect(#p.odds.normal.ults == built, "only the built ults without it")
 		-- A broken save still gives a payload.
 		local broken = SpinView.state(ctx({ ults = 5 }))
 		H.expect(broken.slots[1] == "Magnet" and broken.selected == 1, "fresh values")

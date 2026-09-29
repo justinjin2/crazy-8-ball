@@ -12,6 +12,12 @@
 --   look:clear()                  drop everything at once
 --   look:reach(tableId, armed) -> (own, opp)?   its reach for the preview, in inches
 --   look:zones(tableId, armed, match) -> { Zone }?   fixed zones instead (Magnet's pockets)
+--   look:aiming(tableId, armed, shot?, match)   the local shooter's aim (Eagle's Eye's path):
+--       called every frame for the local player's own seated table (hub.mySeat) while its
+--       snapshot has an ult armed by the local player whose look this is; `shot` is the input
+--       the guideline traces (AimShot), nil while they are not aiming. Called once more with
+--       nil when that stops (the ult no longer armed, another seat, another ult), so a look
+--       can hide.
 --
 -- The kit (the third argument of start; a table of plain functions, called with a dot) holds
 -- what every look needs: a per-table anchor (an invisible anchored part at the origin, so an
@@ -34,6 +40,7 @@
 -- Only the shooter sees it: it is their aiming aid, drawn from their own guideline, and the
 -- opponent never has one.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -69,6 +76,17 @@ export type Zone = { x: number, y: number, r: number, oppR: number? }
 
 -- The aim's predicted first contact (Guideline:contact()), in inches.
 export type Aim = { x: number, y: number }
+
+-- The shot the local shooter's guideline traces (Main's refreshAim), for look:aiming. `power`
+-- is the raw pull (below Config.Input.MinPowerToShoot: not pulling yet); `lastPower` is the
+-- power of their last shot fired at this table this session, if any.
+export type AimShot = {
+	angle: number,
+	power: number,
+	spin: { x: number, y: number },
+	elevation: number,
+	lastPower: number?,
+}
 
 type Props = { [string]: any }
 
@@ -111,6 +129,9 @@ export type Kit = {
 
 type LookEntry = { id: string, name: string, look: any }
 
+-- The look last given look:aiming, and what it was given (for its closing nil).
+type AimingTarget = { entry: LookEntry, tableId: number, armed: Armed, match: any }
+
 type TableFx = {
 	anchor: Part,
 	keepUntil: number, -- os.clock()
@@ -152,6 +173,7 @@ export type AbilityFx = typeof(setmetatable(
 		eventLists: { [any]: { (any, number) -> () } },
 		bursts: { Burst },
 		burstPart: Part?,
+		aiming: AimingTarget?,
 	},
 	AbilityFx
 ))
@@ -567,6 +589,29 @@ local function stepPreview(self: AbilityFx, aim: Aim?)
 	end
 end
 
+-- look:aiming for the local player's own table while their ult is armed (see the header); the
+-- look it went to last frame gets a closing nil when that stops.
+local function stepAiming(self: AbilityFx, shot: AimShot?)
+	local seat = self.hub.mySeat
+	local now: AimingTarget? = nil
+	if seat then
+		local armed = armedOf(self.hub.snapshots[seat])
+		local m = self.hub:matchFor(seat)
+		local entry = armed and self.lookById[armed.id]
+		if armed and entry and m and armed.by == Players.LocalPlayer.UserId then
+			now = { entry = entry, tableId = seat, armed = armed, match = m }
+		end
+	end
+	local last = self.aiming
+	if last and (now == nil or now.entry ~= last.entry or now.tableId ~= last.tableId) then
+		call(last.entry, "aiming", last.tableId, last.armed, nil, last.match)
+	end
+	self.aiming = now
+	if now then
+		call(now.entry, "aiming", now.tableId, now.armed, shot, now.match)
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -- The kit
 ---------------------------------------------------------------------------------------------
@@ -837,7 +882,7 @@ end
 
 --- Start every look in Config.UI.AbilityFx.Looks for the tables `hub` (src/client/Hub.luau)
 --- holds, drawing under `parent`, with `cutscene`'s arming moments forwarded to them. Call
---- update(dt, aim) every frame after hub:update(dt).
+--- update(dt, aim, shot) every frame after hub:update(dt).
 function AbilityFx.start(hub: any, parent: Instance, cutscene: any): AbilityFx
 	local self = setmetatable({
 		hub = hub,
@@ -852,6 +897,7 @@ function AbilityFx.start(hub: any, parent: Instance, cutscene: any): AbilityFx
 		eventLists = {},
 		bursts = {},
 		burstPart = nil,
+		aiming = nil,
 	}, AbilityFx)
 	self.kit = makeKit(self)
 	ScreenFx.bind(hub)
@@ -908,8 +954,9 @@ function AbilityFx.start(hub: any, parent: Instance, cutscene: any): AbilityFx
 end
 
 --- Every frame, after hub:update(dt) has stepped the replays. `aim` is the local shooter's
---- predicted first contact (Guideline:contact()), nil while they are not aiming.
-function AbilityFx.update(self: AbilityFx, dt: number, aim: Aim?)
+--- predicted first contact (Guideline:contact()) and `shot` the input their guideline traces
+--- (AimShot), both nil while they are not aiming.
+function AbilityFx.update(self: AbilityFx, dt: number, aim: Aim?, shot: AimShot?)
 	for _, entry in self.looks do
 		call(entry, "update", dt)
 	end
@@ -941,10 +988,12 @@ function AbilityFx.update(self: AbilityFx, dt: number, aim: Aim?)
 	end
 
 	stepPreview(self, aim)
+	stepAiming(self, shot)
 end
 
 --- Remove every effect at once: every look's, every table's, the screen's and the sounds.
 function AbilityFx.clear(self: AbilityFx)
+	self.aiming = nil
 	for _, entry in self.looks do
 		call(entry, "clear")
 	end

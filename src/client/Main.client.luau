@@ -77,6 +77,17 @@ for id = 1, Placement.tableCount() do
 	end
 	workspace:GetAttributeChangedSignal(attribute):Connect(applySlowmo)
 	applySlowmo()
+	-- The developer's /hold: the replay stops at that shot time (Config.Debug.Commands.Hold).
+	local holdAttribute = Config.Debug.Commands.HoldAttribute .. id
+	local function applyHold()
+		local m = hub:matchFor(id)
+		local at = workspace:GetAttribute(holdAttribute)
+		if m then
+			m:setHold(if type(at) == "number" then at else nil)
+		end
+	end
+	workspace:GetAttributeChangedSignal(holdAttribute):Connect(applyHold)
+	applyHold()
 end
 -- Ultimates: the activation cutscene everyone at the table sees, then every ability's look
 -- and sound (Config.UI.AbilityFx.Looks: Magnet's is MagnetFx), armed at each activation's
@@ -131,6 +142,11 @@ local awaitingAt: number? = nil
 local tickTurn: number? = nil
 local tickSecond = 0
 local currentPull = 0
+-- The shot the guideline traces while the local player aims (AbilityFx.AimShot, for an armed
+-- ability's look: Eagle's Eye's path), nil while it is hidden; and the power of their last shot
+-- fired at each table this session.
+local aimShot: AbilityFx.AimShot? = nil
+local lastFiredPower: { [number]: number } = {}
 local controlled = false
 local lastTurnKey = ""
 local lastPhaseKey = ""
@@ -230,6 +246,7 @@ local function refreshAim()
 	local allowed = canShoot() and not targets:isDragging()
 	spinSelector:setEnabled(allowed)
 	if not guideline or not allowed then
+		aimShot = nil
 		if guideline then
 			guideline:hide()
 		end
@@ -241,12 +258,22 @@ local function refreshAim()
 		end
 		return
 	end
+	local spin = input:getSpin()
+	local elevation = input:getElevation()
 	local trace = Aim.trace(match.state, {
 		angle = input.angle,
 		power = math.max(currentPull, Config.Input.MinPowerToShoot),
-		spin = input:getSpin(),
-		elevation = input:getElevation(),
+		spin = spin,
+		elevation = elevation,
 	})
+	-- The raw pull, not the clamped one: below MinPowerToShoot means not pulling yet.
+	aimShot = {
+		angle = input.angle,
+		power = currentPull,
+		spin = spin,
+		elevation = elevation,
+		lastPower = lastFiredPower[snapshot.id],
+	}
 	-- On the break any ball is a fair first target (ShotJudge); afterwards only the shooter's
 	-- group, or the 8 once it is theirs.
 	local invalid = trace.objectId ~= nil
@@ -415,6 +442,7 @@ local function fire(power: number, windUp: number?)
 	-- pull to 0, so not from currentPull), and before awaitingAt: once that is set canShoot()
 	-- is false, and the stroke has to keep the cue drawn through it.
 	avatar:strike(windUp or power, x, y)
+	lastFiredPower[snapshot.id] = power
 	hub:fire(snapshot.id, input.angle, power, input:getSpin(), input:getElevation(), x, y)
 	targets:shotFired()
 	awaitingAt = workspace:GetServerTimeNow()
@@ -1018,9 +1046,9 @@ local function dropStrayMatchSelection()
 end
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
-	-- The reach preview rides on the guideline's first contact (last frame's; nil unless the
-	-- player is aiming).
-	abilityFx:update(dt, if guideline then guideline:contact() else nil)
+	-- The reach preview rides on the guideline's first contact, an armed look's aim hook on the
+	-- shot it traces (last frame's; nil unless the player is aiming).
+	abilityFx:update(dt, if guideline then guideline:contact() else nil, aimShot)
 	for id = 1, Placement.tableCount() do
 		local a = audioByTable[id]
 		local m = assert(hub:matchFor(id))

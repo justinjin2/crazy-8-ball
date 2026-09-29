@@ -781,8 +781,8 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 2. The Blender pipeline pilot (one model through Blender, upload, runtime load, textures
   checked, STUDIO_NOTES updated), then **all 13 icons** (6.3), uploaded and wired into the
   cutscene, slot cards, current ability, odds rows, armed and opponent pills.
-- [ ] 3. Magnet rework (7.1), look check done.
-- [ ] 4. Eagle's Eye (7.2), look check done.
+- [x] 3. Magnet rework (7.1), look check done.
+- [x] 4. Eagle's Eye (7.2), look check done.
 - [ ] 5. Super Bounce (7.3), look check done.
 - [ ] 6. Ghost (7.4), look check done.
 - [ ] 7. Heat Seeker (7.5), look check done.
@@ -906,3 +906,36 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   gamepad framing of these spots: in the playthrough (step 17). (assumption) the opponent's
   equipped ability shows on their top-bar badge before they use it, as the brief lists it; the
   designer may prefer it hidden.
+- **Step 3 done (2026-09-29).** Physics (the skill rule: the opponent's balls at
+  OpponentFactor, never the 8 or the cue ball) and tests in bd59b03. The look (MagnetFx, an
+  agent's rework on the uploaded MagnetField meshes): armed dipole (nested field-line loops N
+  to S with chevrons flowing, red and blue caps turning with the aim, the old rings faint), a
+  charged ball's burst and caps, the pull (field-line Beams from the ball into the pocket with
+  arrows flowing in, the pocket's flared lines and vortex), the drop (lines snap in, clunk-zap,
+  a FieldRing shockwave). New look-check tool: `/hold <seconds>` stops every replay at the
+  caller's table at that shot time (`ReplayHold_<id>`; with /hold or /slowmo on, the next
+  turn's snapshot no longer cuts the replay short). Polish pass 1: the baked #7BA3D6 washed
+  out to near white on the lit cloth, so the all-blue pieces drop the texture for a flat
+  deeper blue (`FlatPieces`, `FieldMeshColor` 45,115,240), the lines the same blue with no
+  LightEmission. Pass 2: the pull lines were near invisible on a light pull (wider 0.22,
+  LineMinShare 0.6); the shockwave was hidden by the rails (a ring centred on the pocket at
+  cloth height), now spread at rail-top height (WaveLiftInches 2.3) out to 4.5 pocket radii.
+  Critique left: the pull is short (it acts only in the mouth) so from the overhead replay
+  camera it is a small blue flash at the pocket; the shooter's close camera reads it well.
+  Worth (careful/careless, skill 2): +0.54/+0.56 vs 0.33: over the Common row, kept for step
+  16 (the brief keeps the 2026-09-28 buff). Phone and gamepad: no input of its own, world-space
+  look; framing checked in the playthrough (step 17).
+- **Step 4 done (2026-09-29).** `Ults/Predict` (bit-exact with the settle: 225 shots in
+  tests/ult_predict_test), the empty `EaglesEye` effect, the harness aim aid (an armed Eagle's
+  Eye shooter aims within 0.15 deg: `V.AIM_AIDS`), and `EaglesEyeFx` by an agent: gold path
+  strips under the white guideline (cue ball and first object ball, through every cushion),
+  bounce rings, the reached pocket glowing, a faint gold vignette, the screech and a gold
+  light burst on arming; the prediction runs split over frames (at most 400 steps and 3 ms a
+  frame). Studio (PC): the set-up bank shows the 1 off the top rail into the corner, the
+  pocket glowing; turning the aim redraws it at once (a thin cut: the 1 round three cushions,
+  the cue ball off two rails into the 8). Pass 1: Neon turned the configured gold lemon yellow
+  (Neon lifts colours unevenly): now 252,155,18 and 242,125,12, which draw gold; the vignette
+  at 0.8 could not be seen: 0.62. Pass 2: strips 0.055 wide so they read beside the white line.
+  Worth (careful/careless): skill 1 +0.14/+0.21, skill 2 +0.38/+0.43, skill 3 +0.48/+0.51 vs
+  0.33: on the Common row at skill 2, so MaxRails stays off. Phone smoothness (the frame
+  budget) is checked in the playthrough (step 17).

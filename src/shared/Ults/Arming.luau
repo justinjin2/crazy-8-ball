@@ -142,6 +142,19 @@ end
 -- Each ability's own overrides, from Config (filled as each ability is built).
 local EXTRAS: { [string]: (ctx: Context) -> { [string]: any } } = {}
 
+-- Super Bounce (7.3): the cue ball's own bouncy material until the cap.
+EXTRAS.SuperBounce = function(_ctx: Context): { [string]: any }
+	local SB = Config.Ults.SuperBounce
+	return {
+		CueRailRestitution = SB.RailRestitution,
+		CueRailFriction = SB.RailFriction,
+		CueBallRestitution = SB.BallRestitution,
+		CueSlidingFriction = SB.SlidingFriction,
+		CueRollingFriction = SB.RollingFriction,
+		CueUntil = SB.Seconds,
+	}
+end
+
 --- The ability's own extra overrides for this shot (none for most).
 function Arming.extras(effect: string, ctx: Context): { [string]: any }
 	local build = EXTRAS[effect]

@@ -468,6 +468,7 @@ local USAGE_ARGS: { [string]: { any } } = {
 	Lucky = { U.Earn.MaxSpins },
 	Pity = { U.Roll.PityAt - 1 },
 	Slowmo = { D.SlowmoMin, D.SlowmoMax, D.Slowmo },
+	Hold = { D.HoldMax, D.Hold },
 }
 local WHAT_ARGS: { [string]: { any } } = {
 	Dupes = { D.DupeCopies, D.DupeKinds },
@@ -867,6 +868,7 @@ local ULTS: { string } = {
 	"UltsAll",
 	"OpUlt",
 	"Slowmo",
+	"Hold",
 	"AbilitySetup",
 }
 
@@ -975,6 +977,23 @@ local function slowmo(player: Player, args: { string })
 		player,
 		if scale == 1 then Dev.SlowmoOff:format(id) else Dev.SlowmoSet:format(id, tostring(scale))
 	)
+end
+
+-- /hold <seconds>: every replay at the caller's table stops at that shot time and stays (a
+-- workspace attribute each client's Main hands to that table's Match.setHold); /hold alone
+-- lets go.
+local function hold(player: Player, args: { string })
+	if not inStudio(player, D.Hold) then
+		return
+	end
+	local at = if args[1] then tonumber(args[1]) else nil
+	if args[1] and (at == nil or at ~= at or at < 0 or at > D.HoldMax) then
+		try(player, "Hold")
+		return
+	end
+	local id = nearTable(player)
+	workspace:SetAttribute(D.HoldAttribute .. id, at)
+	tell(player, if at then Dev.HoldSet:format(id, tostring(at)) else Dev.HoldOff:format(id))
 end
 
 -- /abilitysetup <id|name>: the caller's table racked in the ult's Config.Ults.Setups layout
@@ -1251,6 +1270,7 @@ function DevCommands.start()
 		tell(player, if n > 0 then Dev.OpUlt:format(n) else Dev.OpUltNone)
 	end)
 	command("Slowmo", D.Slowmo, slowmo)
+	command("Hold", D.Hold, hold)
 	command("AbilitySetup", D.AbilitySetup, abilitySetup)
 	command("UltHelp", D.UltHelp, ultHelp)
 
