@@ -6157,6 +6157,294 @@ Config.UI.MagnetFx = {
 	EndFadeSeconds = 0.5, -- everything fades this long after the balls stop
 }
 
+-- The ult spin screen (UltScreen and its parts UltSlots, UltOdds, UltBuy, UltFast,
+-- UltSpinAnim, UltScreenParts; the stage UltStage and its aura UltAura; reference 09,
+-- docs/prompts/ULTIMATES_PROMPT.md section 9). Full: a computer or tablet, laid out for a
+-- DesignPx screen and scaled by the real one (ScaleMin..ScaleMax); Short: a phone on its side
+-- (a screen under Multiplayer.Style.ShortHeight), laid out for 750 x 361. Text never goes
+-- under the kit's minimum. (tune)
+Config.UI.UltScreen = {
+	DisplayOrderAbove = 10, -- its ScreenGui sits this far over the HUD's (with the menus)
+	-- Other HUD ScreenGuis put away while the screen is open (PoolHud always is), by name.
+	HideGuis = { "RankHud" },
+	-- A popup on the screen (Odds, Buy spins, Auto Spin): its B over ContextActionPriority.High,
+	-- above Menus' own B (+20), so B closes the popup first.
+	PopupPriorityAbove = 30,
+	-- The left column's 5th tile (MenuColumn), after the others. In the hub gamepad X opens it
+	-- (overnight assumption: the D-pad's four directions are taken, and X is the ult button in a
+	-- match, so X means "ult" everywhere).
+	Column = { Name = "Ults", PadKey = "ButtonX" },
+	TouchPx = 44, -- the smallest touch area (UI_STYLE 5)
+	Full = {
+		DesignPx = { 1280, 720 },
+		ScaleMin = 0.75,
+		ScaleMax = 1.5,
+		MarginPx = 16, -- from the screen's edges
+		GapPx = 10, -- between things in a group
+		-- Top centre: "CURRENT ULT:", the name huge in its rarity colour, the description.
+		TitleTopPx = 6,
+		CurrentTextPx = 20,
+		NameTextPx = 64,
+		NameOutlinePx = 6, -- the name's thick ink outline
+		DescTextPx = 18,
+		DescWidthPx = 600,
+		-- Left: the three slot cards.
+		SlotWidthPx = 190,
+		SlotHeightPx = 112,
+		SlotGapPx = 10,
+		SlotNameTextPx = 22,
+		SlotPillHeightPx = 30, -- EQUIPPED, SELECT or PURCHASE
+		SlotPillTextPx = 18,
+		SlotStripPx = 6, -- the rarity strip under the name
+		LockPx = 30, -- the lock toggle, top right
+		-- Right: the odds (the Lucky odds switch, the rarity bars and their lists) and the code box.
+		OddsWidthPx = 320,
+		SwitchHeightPx = 34,
+		BarHeightPx = 38,
+		BarGapPx = 8,
+		BarTextPx = 20,
+		RowHeightPx = 28, -- one ult in an opened bar's list
+		RowTextPx = 16,
+		CodeTextPx = 18,
+		CodeBoxPx = 40,
+		RedeemWidthPx = 110,
+		CodeNoteTextPx = 16,
+		-- Bottom centre: LUCKY SPINS, SPIN, SPINS LEFT.
+		LuckyWidthPx = 300,
+		LuckyHeightPx = 42,
+		LuckyTextPx = 20,
+		SpinWidthPx = 300,
+		SpinHeightPx = 84,
+		SpinTextPx = 44,
+		SpinsLeftTextPx = 22,
+		-- Bottom left: BACK TO MENU.
+		BackWidthPx = 230,
+		BackHeightPx = 50,
+		BackTextPx = 22,
+		-- Bottom right: Pity, the money, the buy row.
+		PityTextPx = 20,
+		MoneyHeightPx = 34,
+		MoneyTextPx = 22,
+		BuyWidthPx = 88,
+		BuyHeightPx = 46,
+		BuyTextPx = 18,
+		PriceTextPx = 16, -- the price over each buy button (and the crossed-out one over it)
+		ToggleWidthPx = 58, -- each half of the R$ / $ toggle
+		ToggleHeightPx = 34,
+		-- Fast Open's Skip and Auto Spin, between BACK TO MENU and SPIN.
+		FastWidthPx = 180,
+		FastHeightPx = 40,
+		FastTextPx = 18,
+		-- A popup (Auto Spin here; Odds and Buy spins on a phone).
+		PopupWidthPx = 440,
+		PopupTitleTextPx = 22,
+		PopupCloseInsetPx = 22, -- the red X's middle this far in from the card's corner
+		PopupClosePx = 36,
+		-- The buttons that open the Odds and Buy spins popups (phones only).
+		OpenWidthPx = 150,
+		OpenHeightPx = 40,
+		OpenTextPx = 18,
+	},
+	Short = {
+		DesignPx = { 750, 361 },
+		ScaleMin = 1,
+		ScaleMax = 1.25,
+		MarginPx = 8,
+		GapPx = 6,
+		TitleTopPx = 4,
+		CurrentTextPx = 14,
+		NameTextPx = 32,
+		NameOutlinePx = 3,
+		DescTextPx = 14,
+		DescWidthPx = 380,
+		SlotWidthPx = 124,
+		SlotHeightPx = 58,
+		SlotGapPx = 6,
+		SlotNameTextPx = 16,
+		SlotPillHeightPx = 18,
+		SlotPillTextPx = 14,
+		SlotStripPx = 4,
+		LockPx = 22,
+		OddsWidthPx = 380,
+		SwitchHeightPx = 30,
+		BarHeightPx = 32,
+		BarGapPx = 6,
+		BarTextPx = 16,
+		RowHeightPx = 26,
+		RowTextPx = 14,
+		CodeTextPx = 16,
+		CodeBoxPx = 36,
+		RedeemWidthPx = 90,
+		CodeNoteTextPx = 14,
+		LuckyWidthPx = 200,
+		LuckyHeightPx = 30,
+		LuckyTextPx = 16,
+		SpinWidthPx = 200,
+		SpinHeightPx = 54,
+		SpinTextPx = 30,
+		SpinsLeftTextPx = 16,
+		BackWidthPx = 150,
+		BackHeightPx = 36,
+		BackTextPx = 16,
+		PityTextPx = 16,
+		MoneyHeightPx = 26,
+		MoneyTextPx = 16,
+		BuyWidthPx = 84,
+		BuyHeightPx = 40,
+		BuyTextPx = 16,
+		PriceTextPx = 14,
+		ToggleWidthPx = 56,
+		ToggleHeightPx = 32,
+		FastWidthPx = 116,
+		FastHeightPx = 34,
+		FastTextPx = 16,
+		PopupWidthPx = 420,
+		PopupTitleTextPx = 18,
+		PopupCloseInsetPx = 18,
+		PopupClosePx = 30,
+		OpenWidthPx = 116,
+		OpenHeightPx = 36,
+		OpenTextPx = 16,
+	},
+	-- LUCKY SPINS' green-to-teal gradient, left to right, over the green candy.
+	LuckyFrom = { 61, 214, 107 },
+	LuckyTo = { 30, 196, 196 },
+	LuckyTintTransparency = 0.15, -- the teal end's tint (the green end shows the candy)
+	-- The description on the dark stage: the kit's soft white (ink text would vanish there).
+	DescColor = { 214, 226, 245 },
+	PlaceholderTransparency = 0.25, -- a placeholder ult's name in a list ("Soon")
+	LockOffTransparency = 0.6, -- the lock toggle while the slot is unlocked
+	MythicShimmerSeconds = 2.4, -- Mythic's name and bar shimmer drifts once through its pastels
+	-- The spin (section 9.4): the name at the top cycles through ult names, fast then slowing,
+	-- ticking once per name, and lands on the result with its rarity sting.
+	Spin = {
+		Seconds = 2.5, -- the cycling, start to landing
+		BuildFrom = "Epic", -- this rarity and up: a longer build-up before landing...
+		BuildSeconds = 1.0, -- ...this much longer, with the reel's build-up whoosh
+		FirstStepSeconds = 0.05, -- the first names change this fast...
+		LastStepSeconds = 0.34, -- ...slowing to this just before landing
+		StepPower = 2.4, -- how the steps slow: (t / Seconds) ^ StepPower (higher: a longer crawl at the end)
+		FlashFrom = "Epic", -- this rarity and up: a screen flash on landing
+		FlashTransparency = 0.2, -- the flash at its brightest
+		FlashSeconds = 0.5, -- its fade
+		ConfettiFrom = "Legendary", -- this rarity and up: confetti from the name
+		ConfettiScale = 1.3,
+		AutoStingFrom = "Rare", -- Auto Spin: only this rarity and up plays its sting (the rest tick)
+		HintTextPx = { 14, 18 }, -- "Tap to skip" under the name (phone, computer)
+	},
+	-- The hidden stage (UltStage, section 9.2): a dark room far from the map, built only while
+	-- the screen is open, the camera cut there. Studs unless named.
+	Stage = {
+		Origin = { 0, 3000, 40000 }, -- the room's floor centre: far above and away from the map
+		RoomWidth = 48,
+		RoomDepth = 40,
+		RoomHeight = 28,
+		WallColor = { 12, 14, 24 },
+		FloorColor = { 20, 22, 34 },
+		FloorReflectance = 0.12,
+		-- The swirling backdrop behind the avatar: the cutscene's swirl art, scrolling slowly.
+		BackdropDistance = 9, -- behind the avatar
+		BackdropColor = { 10, 12, 22 },
+		SwirlColor = { 70, 88, 150 },
+		SwirlTransparency = 0.55,
+		SwirlTileStuds = { 34, 24 }, -- the two layers' tile sizes
+		SwirlSpeed = { 1.1, -0.7 }, -- studs a second, the two layers opposite ways
+		TintTransparency = 0.82, -- a third layer in the aura's colour, faint
+		FloorGlowStuds = 9, -- the soft glow on the floor under the avatar, in the aura's colour
+		FloorGlowTransparency = 0.35,
+		-- The camera: straight at the avatar, which fills FillShare of the view's height and sits
+		-- a little low (LookUpShare of its height), under the title.
+		FieldOfView = 34,
+		FillShare = 0.6,
+		LookUpShare = 0.14,
+		SwayStuds = 0.12, -- the camera drifts this much, slowly, so the stage feels alive
+		SwaySeconds = 7,
+		KeyLight = {
+			Offset = { 5, 9, 9 },
+			Brightness = 3,
+			Range = 28,
+			Angle = 70,
+			Color = { 255, 244, 230 },
+		},
+		FillLight = {
+			Offset = { -4, 4, 7 },
+			Brightness = 0.8,
+			Range = 18,
+			Color = { 170, 190, 255 },
+		},
+		BounceStuds = 0.9, -- the avatar's hop as a spin lands
+		BounceSeconds = 0.16, -- up (and the same back down)
+		-- The idle when the character's Animate script names none (Roblox's defaults).
+		IdleR15 = "rbxassetid://507766666",
+		IdleR6 = "rbxassetid://180435571",
+	},
+	-- The aura (UltAura; JoJo style): the AuraFlame flipbook rising from the feet and round the
+	-- body in the equipped ult's rarity colour (Kit.Rarity, unless Color), growing with rarity.
+	Aura = {
+		Tiers = {
+			Common = { Scale = 0.7, Rate = 10, Transparency = 0.35, Light = 0.6 },
+			Uncommon = { Scale = 0.85, Rate = 14, Transparency = 0.25, Light = 1 },
+			Rare = { Scale = 1, Rate = 18, Transparency = 0.2, Light = 1.4 },
+			Epic = { Scale = 1.15, Rate = 22, Transparency = 0.15, Light = 1.8, Sparks = 14 },
+			Legendary = {
+				Scale = 1.3,
+				Rate = 26,
+				Transparency = 0.1,
+				Light = 2.2,
+				Sparks = 18,
+				Rays = true,
+			},
+			-- Red and black with crackling arcs (the brief's colours, not the card's pastel shimmer).
+			Mythic = {
+				Scale = 1.45,
+				Rate = 30,
+				Transparency = 0.1,
+				Light = 2.6,
+				Sparks = 22,
+				Arcs = true,
+				Color = { 255, 40, 60 },
+				Dark = { 24, 0, 6 }, -- black flames behind the red
+			},
+		},
+		LifetimeSeconds = { 0.7, 1.15 },
+		RiseSpeed = { 1.5, 3 }, -- studs a second, times the tier's Scale
+		RiseAcceleration = 5, -- upward, times Scale
+		SizeStuds = 1.5, -- a flame at its biggest, times Scale
+		LightEmission = 1,
+		Brightness = 2,
+		FeetWidth = 3.2, -- the patch the feet flames rise from, times Scale
+		BodyWidth = 2.6, -- the box round the body the wisps rise from
+		BodyDepth = 1.6,
+		BackZOffset = -1, -- the flames drawn behind the avatar
+		FrontZOffset = 0.6, -- a thinner layer in front
+		FrontShare = 0.35, -- the front layer's rate, of the back's
+		FrontTransparencyAdd = 0.3, -- and it is this much fainter
+		SparkSpeed = { 4, 9 },
+		SparkLifetimeSeconds = { 0.35, 0.7 },
+		SparkSizeStuds = 0.35,
+		RaysSizeStuds = 11,
+		RaysRotSpeed = 18,
+		RaysLifetimeSeconds = 5,
+		RaysRate = 0.5,
+		RaysTransparency = 0.55,
+		ArcCount = 3, -- crackling arcs at once
+		ArcPoints = 5, -- each a zig-zag of this many points
+		ArcEverySeconds = 0.09, -- they jump this often
+		ArcWidthStuds = 0.09,
+		ArcJitterStuds = 0.45,
+		ArcColor = { 255, 110, 130 },
+		LightRange = 11, -- the aura's own glow on the avatar
+		-- A spin landing: the aura bursts into the new colour.
+		BurstCount = 40,
+		BurstSpeed = { 10, 18 },
+		BoostSeconds = 0.6, -- the flames run hotter this long
+		BoostRate = 3, -- times the tier's rate
+		BoostLight = 3, -- times the tier's light
+	},
+	-- The leave reminder's button (Reminders, while the free spin is unused).
+	Reminder = { ButtonWidthPx = { 84, 110 }, GapPx = 8, ButtonTextPx = { 14, 18 } },
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,

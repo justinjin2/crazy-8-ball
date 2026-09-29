@@ -11,6 +11,12 @@
 -- most once per Config.UI.Rewards.Toast.CooldownSeconds, stays while Roblox's menu is open
 -- or the window is away, and leaves LingerSeconds after the player is back (at least
 -- ShowSeconds in all), so a player who changes their mind about leaving still sees it.
+--
+-- Its top-priority line (docs/prompts/ULTIMATES_PROMPT.md section 10): while today's free ult
+-- spin is unused (the UltFreeSpin attribute) and the spin screen is live for this player, the
+-- toast says "Your FREE SPIN is ready!" with a gold SPIN button at its right end that opens the
+-- Ults screen (Menus "Ults"); gamepad X in the hub opens it too (MenuColumn). That line is the
+-- toast's only; the result screen keeps the login reward's.
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -20,14 +26,19 @@ local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared:WaitForChild("Progression"):WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
+local Menus = require(script.Parent.Menus)
 local RewardsParts = require(script.Parent.RewardsParts)
 local UIAnim = require(script.Parent.UIAnim)
+local UISound = require(script.Parent.UISound)
+local UltSpinState = require(script.Parent.UltSpinState)
 
 local T = Config.UI.Rewards.Toast
 local K = Config.UI.Kit
 local S = Strings.Reminders
 local DAYS = #Config.Daily.Streak
 local DIM = Config.UI.Progress.Roadmap -- a menu's ScreenGui sits DisplayOrderAbove the HUD's
+local ULT = Config.UI.UltScreen
+local ULT_WORDS = Strings.Ults.Screen
 
 local Reminders = {}
 
@@ -73,6 +84,14 @@ function Reminders.line(nextReward: any): string?
 	return S.Money:format(Format.money(reward.money))
 end
 
+--- Whether the toast leads with the free ult spin: today's is unused and the spin screen is
+--- open to this player.
+function Reminders.freeSpin(): boolean
+	return UltSpinState.isLive()
+		and UltSpinState.freeSpinReady()
+		and Menus.isRegistered(ULT.Column.Name)
+end
+
 --------------------------------------------------------------------------------------------
 -- The toast
 --------------------------------------------------------------------------------------------
@@ -106,6 +125,20 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 	local words = HudParts.text(root, "Line", T.TextPx, "")
 	words.TextWrapped = false
 	words.ZIndex = 3
+	UltSpinState.start()
+	local hide: () -> ()
+	-- The free spin's button: opens the Ults screen (the toast then goes).
+	local spinButton = HudParts.candy(root, ULT_WORDS.ReminderButton, function()
+		UISound.play("Click")
+		if Menus.open(ULT.Column.Name) then
+			hide()
+		end
+	end, "Yellow", "UltSpin")
+	spinButton.Name = "Spin"
+	spinButton.ZIndex = 4
+	spinButton.Selectable = false -- a gamepad uses X (MenuColumn), never a toast's button
+	spinButton.Visible = false
+	HudParts.setMinHit(spinButton, ULT.TouchPx)
 
 	local shownAt = 0
 	local lastShown = -math.huge
@@ -124,11 +157,26 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 		local iconPx = math.floor(height * T.IconShare + 0.5)
 		local over = math.floor(iconPx * 0.3 + 0.5) -- the gift pokes out past the left end
 		HudParts.setTextSize(words, textPx)
+		local R = ULT.Reminder
+		local buttonW = if spinButton.Visible
+			then (if short then R.ButtonWidthPx[1] else R.ButtonWidthPx[2])
+			else 0
+		local buttonRoom = if spinButton.Visible then buttonW + R.GapPx else 0
 		local room = math.min(T.MaxWidthPx, size.X - 2 * T.SideMarginPx)
 			- (iconPx - over)
 			- 2 * T.PadPx
+			- buttonRoom
 		local textW = math.min(room, math.ceil(RewardsParts.textWidth(words.Text, textPx)) + 6)
-		local width = (iconPx - over) + T.PadPx + textW + T.PadPx
+		local width = (iconPx - over) + T.PadPx + textW + buttonRoom + T.PadPx
+		if spinButton.Visible then
+			local buttonH = math.max(1, height - 8)
+			spinButton.Position = UDim2.fromOffset(width - T.PadPx / 2 - buttonW, 4)
+			spinButton.Size = UDim2.fromOffset(buttonW, buttonH)
+			HudParts.setButtonTextSize(
+				spinButton,
+				if short then R.ButtonTextPx[1] else R.ButtonTextPx[2]
+			)
+		end
 		local bottom = if short then T.ShortBottomPx else T.BottomPx
 		root.Size = UDim2.fromOffset(width, height)
 		root.Position = UDim2.new(0.5, math.floor(over / 2), 1, -bottom)
@@ -138,7 +186,7 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 		words.Size = UDim2.fromOffset(textW + T.PadPx / 2, height)
 	end
 
-	local function hide()
+	hide = function()
 		if root.Visible then
 			UIAnim.popOut(root)
 		end
@@ -171,11 +219,19 @@ function Reminders.start(screen: ScreenGui, source: () -> any?)
 		if now - lastShown < T.CooldownSeconds then
 			return
 		end
-		local ok, upcoming = pcall(source)
-		local line = if ok then Reminders.line(upcoming) else nil
+		-- The free ult spin first; else the login reward's line.
+		local free = Reminders.freeSpin()
+		local line: string? = nil
+		if free then
+			line = ULT_WORDS.Reminder
+		else
+			local ok, upcoming = pcall(source)
+			line = if ok then Reminders.line(upcoming) else nil
+		end
 		if not line then
 			return
 		end
+		spinButton.Visible = free
 		lastShown, shownAt = now, now
 		words.Text = line
 		layout()

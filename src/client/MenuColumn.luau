@@ -1,6 +1,7 @@
 --!strict
 -- MenuColumn: the left column (docs/prompts/ECONOMY_UI_PROMPT.md section 5; reference
--- 06-left-menu-buttons): Shop, Inventory, Rewards and Trade, top to bottom, one tile each. A
+-- 06-left-menu-buttons): Shop, Inventory, Rewards, Trade and Ults, top to bottom, one tile
+-- each (Ults: docs/prompts/ULTIMATES_PROMPT.md section 9.1, the spin screen UltScreen). A
 -- tile is just its glossy icon, big, with no box behind it (designer, 2026-09-28: the blue
 -- candy square went so the icons could be bigger), and the word (Strings.Menus.Column) in white
 -- Fredoka with an ink outline across the icon's lower edge, real text, never in the image. It
@@ -11,7 +12,11 @@
 -- Red dots, top right of a tile: Inventory counts unopened cases (the player's CasesUnopened
 -- attribute, "9+" above 9); Rewards shows "!" while RewardReady is true; Shop shows a small
 -- gold timer pill ("23:59:12", "6d 4h") while the VIP welcome offer or the Starter Pack window
--- is open (ItemState.offerEndsAt; nothing while unknown); Trade shows nothing.
+-- is open (ItemState.offerEndsAt; nothing while unknown); Trade shows nothing; Ults shows "!"
+-- while today's free ult spin is unused (the UltFreeSpin attribute).
+--
+-- The Ults tile shows only while the spin screen is live for this player (UltState.live:
+-- Config.Ults.ScreenLive, Studio, or the developer flag); the column closes up without it.
 --
 -- Where: on a phone it starts just under the rank HUD's badge (which hangs below Roblox's 58 px
 -- top row) and ends well above the money HUD; on a bigger screen it is centred on the left
@@ -22,7 +27,10 @@
 -- Gamepad (overnight assumption, 2026-09-28): a selected GUI button takes the left stick from
 -- walking, so the tiles are never selectable; in the hub the D-pad opens them instead (up Shop,
 -- right Inventory, down Rewards, left Trade: Progression.padRoute), and while a gamepad is the
--- last input each tile shows its D-pad glyph (Roblox's own, so it matches the controller).
+-- last input each tile shows its D-pad glyph (Roblox's own, so it matches the controller). The
+-- D-pad's four directions are taken, so Ults is gamepad X (Config.UI.UltScreen.Column.PadKey;
+-- overnight assumption, 2026-09-28: X is the ult button in a match, so X means "ult"
+-- everywhere). The column listens for it itself, only while the D-pad route is live.
 --
 -- Hidden until the save loads, in a match, and while the result screen, NEW RANK!, the case
 -- opening or the teleport screen is up (Progression.update calls setVisible every frame).
@@ -39,16 +47,32 @@ local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
+local UltSpinState = require(script.Parent.UltSpinState)
 
 local C = Config.UI.Menu.Column
 local S = Config.Multiplayer.Style
 local K = Config.UI.Kit
 local RANK = Config.UI.Progress.RankHud
 local MONEY = Config.UI.Progress.MoneyHud
-local WORDS: { [string]: string } = Strings.Menus.Column :: any
+local WORDS: { [string]: string } = table.clone(Strings.Menus.Column :: any)
 local COPY = Strings.Menus
-local ORDER: { string } = C.Order
-local PAD_KEYS: { [string]: string } = C.PadKeys :: any
+local ULTS = Config.UI.UltScreen.Column.Name -- the spin screen's tile ("Ults"), last
+local ORDER: { string } = table.clone(C.Order)
+if not table.find(ORDER, ULTS) then
+	table.insert(ORDER, ULTS)
+end
+local PAD_KEYS: { [string]: string } = table.clone(C.PadKeys :: any)
+PAD_KEYS[ULTS] = PAD_KEYS[ULTS] or Config.UI.UltScreen.Column.PadKey
+WORDS[ULTS] = WORDS[ULTS] or Strings.Ults.Screen.Column
+local ULT_KEY: Enum.KeyCode? = nil
+do
+	local ok, code = pcall(function()
+		return (Enum.KeyCode :: any)[Config.UI.UltScreen.Column.PadKey]
+	end)
+	if ok and typeof(code) == "EnumItem" then
+		ULT_KEY = code :: Enum.KeyCode
+	end
+end
 local FONT: Enum.Font = (Enum.Font :: any)[K.Font]
 
 type Tile = {
@@ -155,6 +179,9 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 		connect(player:GetAttributeChangedSignal("RewardReady"), function()
 			self:refreshDots()
 		end)
+		connect(player:GetAttributeChangedSignal("UltFreeSpin"), function()
+			self:refreshDots()
+		end)
 		connect(player:GetAttributeChangedSignal("DataLoaded"), function()
 			self.loaded = player:GetAttribute("DataLoaded") == true
 			self:refreshVisible()
@@ -169,6 +196,23 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 	connect(ItemState.Changed.Shop, function()
 		self:refreshTimer()
 	end)
+	-- The Ults tile follows whether the spin screen is live; gamepad X opens it in the hub.
+	UltSpinState.start()
+	connect(UltSpinState.Changed, function()
+		self:refreshUlts()
+	end)
+	connect(UserInputService.InputBegan, function(input: InputObject, processed: boolean)
+		if processed or ULT_KEY == nil or input.KeyCode ~= ULT_KEY then
+			return
+		end
+		if not self.routeLive or not self.showing or not self:ultsShown() then
+			return
+		end
+		if UserInputService:GetFocusedTextBox() ~= nil then
+			return
+		end
+		self:press(ULTS)
+	end)
 	-- The Shop's timer counts down while the column shows.
 	task.spawn(function()
 		while self.alive do
@@ -178,12 +222,46 @@ function MenuColumn.new(screen: ScreenGui, opts: Options): any
 			end
 		end
 	end)
+	self:refreshUlts()
 	self:layout()
 	self:refreshDots()
 	self:refreshTimer()
 	self:refreshGlyphs()
 	self:refreshVisible()
 	return self
+end
+
+--- Whether the Ults tile shows (the spin screen is live for this player).
+function MenuColumn.ultsShown(self: any): boolean
+	local t: Tile? = self.tiles[ULTS]
+	return t ~= nil and t.button.Visible
+end
+
+--- Show the Ults tile only while the spin screen is live for this player; the column closes up
+--- round it.
+function MenuColumn.refreshUlts(self: any)
+	local t: Tile? = self.tiles[ULTS]
+	if not t then
+		return
+	end
+	local live = UltSpinState.isLive()
+	if t.button.Visible ~= live then
+		t.button.Visible = live
+		self:queueLayout()
+		self:refreshDots()
+	end
+end
+
+-- The tiles showing, in their order.
+function MenuColumn.shownOrder(self: any): { string }
+	local list: { string } = {}
+	for _, name in ORDER do
+		local t: Tile? = self.tiles[name]
+		if t and t.button.Visible then
+			table.insert(list, name)
+		end
+	end
+	return list
 end
 
 -- One tile: a kit candy for its hover, squish and bounce, with its face (the box, outline and
@@ -316,12 +394,13 @@ function MenuColumn.layout(self: any)
 	local dotPx = if short then C.ShortDotPx else C.DotPx
 	local timerPx = if short then C.ShortTimerPx else C.TimerPx
 	local glyphPx = if short then C.ShortGlyphPx else C.GlyphPx
-	local count = #ORDER
+	local tiles = self:shownOrder()
+	local count = #tiles
 	local height = count * tile + (count - 1) * gap
 
 	-- The words may be wider than a tile (they overhang both sides): the widest sets the room.
 	local widest = 0
-	for _, name in ORDER do
+	for _, name in tiles do
 		local words = WORDS[name] or name
 		widest =
 			math.max(widest, TextService:GetTextSize(words, textPx, FONT, Vector2.new(2000, 200)).X)
@@ -342,7 +421,7 @@ function MenuColumn.layout(self: any)
 	self.root.Position = UDim2.fromOffset(margin, round(top))
 	self.root.Size = UDim2.fromOffset(width, height)
 
-	for index, name in ORDER do
+	for index, name in tiles do
 		local t: Tile = self.tiles[name]
 		t.button.Position = UDim2.fromOffset(over, (index - 1) * (tile + gap))
 		t.button.Size = UDim2.fromOffset(tile, tile)
@@ -404,7 +483,8 @@ local function setDot(self: any, t: Tile, text: string?)
 	end
 end
 
---- Read the red dots again: unopened cases on Inventory, "!" on Rewards.
+--- Read the red dots again: unopened cases on Inventory, "!" on Rewards, "!" on Ults while
+--- today's free ult spin is unused.
 function MenuColumn.refreshDots(self: any)
 	local player = Players.LocalPlayer
 	local cases = if player then player:GetAttribute("CasesUnopened") else nil
@@ -417,6 +497,11 @@ function MenuColumn.refreshDots(self: any)
 	setDot(self, self.tiles.Inventory, casesText)
 	local ready = if player then player:GetAttribute("RewardReady") == true else false
 	setDot(self, self.tiles.Rewards, if ready then COPY.DotReady else nil)
+	local ults: Tile? = self.tiles[ULTS]
+	if ults then
+		local free = UltSpinState.freeSpinReady() and UltSpinState.isLive()
+		setDot(self, ults, if free then COPY.DotReady else nil)
+	end
 end
 
 --- The Shop's timer pill: the time left in an open offer window, hidden when none is open.

@@ -984,5 +984,60 @@ return {
 			},
 			Bought = "+%d spins!", -- money spins bought: "+5 spins!"
 		},
+		-- The spin screen (UltScreen and its parts; reference 09). Ult and rarity names come from
+		-- Names and Rarities above; money is "$1,750" (Progression/Format); a Robux price is
+		-- Strings.Menus.Shop.Robux.
+		Screen = {
+			Column = "Ults", -- the left column's tile
+			Current = "CURRENT ULT:",
+			DescriptionSoon = "%s (Coming soon)", -- a placeholder ult's description
+			-- The slot cards.
+			None = "NONE", -- an empty slot, or one not bought yet
+			Equipped = "EQUIPPED",
+			Select = "SELECT",
+			Purchase = "PURCHASE %s", -- the R$ price: "PURCHASE \u{E002}59"
+			Soon = "Soon", -- a slot pass or spin pack whose product is not made yet
+			-- The bottom centre.
+			Spin = "SPIN",
+			FreeSpin = "FREE SPIN", -- while today's free spin is unused
+			SlotLocked = "SLOT LOCKED", -- SPIN greyed while the selected slot is locked
+			SpinsLeft = "SPINS LEFT: %s",
+			LuckySpins = "LUCKY SPINS: %s",
+			Back = "BACK TO MENU",
+			-- The odds.
+			Odds = "Odds", -- the phone's button and the popup's title
+			OddsBar = "%s %s", -- a rarity bar: "Common 55%"
+			OddsSoon = "Soon", -- a placeholder ult in a bar's list (it can't be rolled yet)
+			LuckyOdds = "Lucky odds", -- the switch that shows a Lucky Spin's odds
+			PityNote = "Spin %d without an Epic or better is always Epic or better.",
+			-- The code box. %s is the code, or the likes, drawn in gold (keep it when translating).
+			CodeLine = "USE CODE %s FOR FREE SPINS",
+			NextCode = "NEXT CODE AT %s LIKES",
+			-- The bottom right.
+			Pity = "Pity: %s / %s",
+			BuySpins = "Buy spins", -- the phone's button and the popup's title
+			Buy = "BUY %d",
+			BuyLucky = "BUY LUCKY %d",
+			Robux = "R$", -- the R$ / $ toggle's halves
+			Money = "$",
+			BoughtOne = "+1 spin!", -- money spins bought (more: Spins.Bought)
+			Prompted = "Finish the purchase in the Roblox window.",
+			-- Replacing an Epic or better (the title is Spins.Reasons.Confirm: "Replace BLACK FLASH?").
+			ReplaceText = "Your %s will be replaced by a new ult.", -- the ult's name
+			ReplaceYes = "Replace",
+			ReplaceNo = "Keep",
+			PityHit = "PITY!", -- over the name when the pity spin landed
+			-- Fast Open (section 9.6).
+			Skip = "Skip",
+			AutoSpin = "AUTO SPIN",
+			AutoStop = "STOP (%d)", -- Auto Spin running: spins made so far
+			AutoTitle = "Auto Spin",
+			AutoText = "Spin until you get:",
+			AutoStopAt = "%s+", -- a rarity: "Epic+"
+			AutoLucky = "Use Lucky Spins",
+			-- The leave reminder (Reminders), its top line while today's free spin is unused.
+			Reminder = "Your FREE SPIN is ready!",
+			ReminderButton = "SPIN",
+		},
 	},
 }
