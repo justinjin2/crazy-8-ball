@@ -38,6 +38,11 @@ import cue_common as cc  # noqa: E402
 TAG = 'CUE textures'
 TEXTURES = os.path.join(HERE, 'textures')
 
+# Companion maps a painted panel may bring (same size, greyscale): relief (16-bit, centred on
+# 0.5, spanning HEIGHT_RANGE_STUDS), roughness, metalness and the emissive mask.
+COMPANIONS = ('height', 'rough', 'metal', 'glow')
+HEIGHT_RANGE_STUDS = 0.002
+
 TEXTURE = {
     'size': 1024,
     'dilate_px': 8,  # at least; the whole atlas is filled from the nearest strip
@@ -285,6 +290,7 @@ def paint_panels(atlas, skin, base_dir):
     repeats = tile_opts.get('repeats') or natural
     name, px, py = panel_lookup(atlas, repeats)
     col = np.zeros((atlas.n, 3))
+    extra = {}
     panels = skin.get('panels', {})
     fallback = skin.get('fallback', {})
     for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt', 'cap_end'):
@@ -295,8 +301,16 @@ def paint_panels(atlas, skin, base_dir):
         full = os.path.join(base_dir, path) if path else None
         if full and os.path.isfile(full):
             img = load_panel(full)
-            col[m] = sample(img, px[m], py[m], wrap_x=(panel == 'shaft_tile'), wrap_y=(panel != 'cap_end'))
+            wx, wy = panel == 'shaft_tile', panel != 'cap_end'
+            col[m] = sample(img, px[m], py[m], wrap_x=wx, wrap_y=wy)
             cc.log(TAG, 'panel', panel, os.path.relpath(full, HERE), img.shape[1], 'x', img.shape[0])
+            # companion maps next to the panel (CuePaint.py): <panel>_height/_rough/_metal/_glow
+            stem = os.path.splitext(full)[0]
+            for key in COMPANIONS:
+                cpath = '%s_%s.png' % (stem, key)
+                if os.path.isfile(cpath):
+                    grey = cc.read_image(cpath)[:, :, :1].astype(np.float64)
+                    extra.setdefault(key, {})[panel] = (m, sample(grey, px[m], py[m], wx, wy)[:, 0])
         else:
             if path:
                 cc.log(TAG, 'panel', panel, 'missing:', path, '- flat colour')
@@ -314,7 +328,7 @@ def paint_panels(atlas, skin, base_dir):
     for region, key, default in (('tip', 'tip', '#222C4A'), ('ferrule', 'ferrule', '#F2EEE2'),
                                  ('bumper', 'bumper', '#121212')):
         col[atlas.in_region(region)] = np.array(cc.hex_rgb(colours.get(key, default)), np.float64)
-    return col, name
+    return col, name, extra
 
 
 def key_mask(col, keys):
@@ -329,8 +343,34 @@ def key_mask(col, keys):
     return out
 
 
+def plain_parts(atlas, skin, col, rough, metal, height):
+    """The tip, ferrule and bumper in the skin's colours, with Classic's real-material detail
+    (chalky tip, ivory ferrule, rubber bumper)."""
+    X, D, Z = atlas.x, atlas.d, atlas.z
+    colours = skin.get('colours', {})
+
+    def c(key, default):
+        return np.array(cc.hex_rgb(colours.get(key, default)), np.float64)
+    m = atlas.in_region('tip')
+    speck = cc.fbm(X[m] * 900, D[m] * 900, Z[m] * 900, 3, seed=3)
+    dust = np.clip((cc.noise3(X[m] * 2600, D[m] * 2600, Z[m] * 2600, seed=4) - 0.72) * 4, 0, 1)
+    tip = c('tip', '#222C4A')
+    col[m] = tip * (0.9 + 0.2 * speck)[:, None] + (np.array([150, 170, 210]) - tip) * (0.35 * dust)[:, None]
+    rough[m], metal[m] = 0.92, 0.0
+    height[m] = 0.00004 * speck
+    m = atlas.in_region('ferrule')
+    mott = cc.fbm(X[m] * 200, D[m] * 60, Z[m] * 200, 3, seed=5)
+    col[m] = c('ferrule', '#F2EEE2') * (0.97 + 0.04 * mott)[:, None]
+    rough[m], metal[m] = 0.3, 0.0
+    m = atlas.in_region('bumper')
+    grain = cc.fbm(X[m] * 1500, D[m] * 1500, Z[m] * 1500, 2, seed=21)
+    col[m] = c('bumper', '#121212') * (0.92 + 0.16 * grain)[:, None]
+    rough[m], metal[m] = 0.86, 0.0
+    height[m] = 0.00002 * grain
+
+
 def panel_skin(atlas, skin, base_dir):
-    col, _ = paint_panels(atlas, skin, base_dir)
+    col, _, extra = paint_panels(atlas, skin, base_dir)
     rough_by = skin.get('roughness', {})
     rough = np.zeros(atlas.n)
     defaults = {'tip': 0.9, 'ferrule': 0.3, 'shaft': 0.35, 'joint': 0.3, 'forearm': 0.3, 'ring': 0.3,
@@ -340,8 +380,21 @@ def panel_skin(atlas, skin, base_dir):
     metal = key_mask(col, skin.get('metal'))
     rough = rough * (1 - metal) + float(skin.get('metal_roughness', 0.18)) * metal
     glow = key_mask(col, skin.get('glow'))
-    wh, _, _ = wrap_height(atlas)
-    return col, rough, metal, wh, (glow if skin.get('glow') else None)
+    height = np.zeros(atlas.n)
+    for panel, (m, v) in extra.get('rough', {}).items():
+        rough[m] = v
+    for panel, (m, v) in extra.get('metal', {}).items():
+        metal[m] = np.maximum(metal[m], v)
+    for panel, (m, v) in extra.get('glow', {}).items():
+        glow[m] = np.maximum(glow[m], v)
+    for panel, (m, v) in extra.get('height', {}).items():
+        height[m] = (v - 0.5) * HEIGHT_RANGE_STUDS
+    if skin.get('wrap_relief', 'linen') == 'linen' and 'butt' not in extra.get('height', {}):
+        wh, _, _ = wrap_height(atlas)
+        height = height + wh
+    plain_parts(atlas, skin, col, rough, metal, height)
+    has_glow = bool(skin.get('glow')) or bool(extra.get('glow'))
+    return col, rough, metal, height, (glow if has_glow else None)
 
 
 def areas_skin(atlas):
@@ -392,8 +445,10 @@ def write_maps(atlas, out_prefix, col, rough, metal, height, glow):
     cc.write_png(paths['metalness'], np.round(np.repeat(mt[:, :, None], 3, axis=2)))
     emissive = out_prefix + '_emissive.png'
     if glow is not None:
-        em = cc.dilate(atlas.full(np.clip(col, 0, 255) * glow[:, None], 0.0), mask, minimum)
-        cc.write_png(emissive, np.round(em))
+        # a greyscale mask: Roblox lights the colour map by it (times EmissiveTint and
+        # EmissiveStrength)
+        em = cc.dilate(atlas.full(np.clip(glow, 0, 1) * 255.0, 0.0), mask, minimum)
+        cc.write_png(emissive, np.round(np.repeat(em[:, :, None], 3, axis=2)))
         paths['emissive'] = emissive
     elif os.path.isfile(emissive):
         os.remove(emissive)
@@ -432,6 +487,9 @@ def main():
         col, rough, metal, height, glow = panel_skin(atlas, skin, base_dir)
     os.makedirs(TEXTURES, exist_ok=True)
     maps = write_maps(atlas, os.path.join(TEXTURES, skin_id), col, rough, metal, height, glow)
+    if '--no-render' in args:
+        cc.log(TAG, 'OK', skin_id, '(no render)')
+        return
     out = None
     if skin_id == '_test':
         out = os.path.join(CueRender.RENDERS, 'template_check.png')

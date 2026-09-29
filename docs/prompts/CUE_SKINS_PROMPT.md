@@ -351,7 +351,7 @@ and you ask the designer about it.
   Starter Cue trades). Docs read. Blender
   runs headless. OpenAI key checked (True/False only) and `tools/openai_image.py` working (one
   test panel). Concept sheets found listed in Notes. Plan in Notes.
-- [ ] 1. Tooling: `CueTextures.py` extended (emissive, tint-ready bases, moving-material
+- [x] 1. Tooling: `CueTextures.py` extended (emissive, tint-ready bases, moving-material
   frames); `assets/cue/CueVfx.py` (sprite and flipbook maker, the Blender particle, trail,
   beam and pocket preview from a skin's `vfx` block); `assets/cue/CuePreview.py` (the sheet,
   the clip with the avatar, table and ball, and the tier sheets); the review file started.
@@ -391,6 +391,8 @@ and you ask the designer about it.
 
 ## Notes
 
+WAITING FOR DESIGNER: the pilot check (Midnight, Honeycomb, Void sheets and clips): OK, or changes?
+
 - **2026-09-29, setup.** Worktree `~/Desktop/8ball-skins`, branch `cue-skins`, pushed. Blender
   5.2.2 LTS runs headless (EEVEE ~0.4 s a 720p frame; its built-in FFMPEG writes the clips, the
   Mac has no ffmpeg). OpenAI key: True. `tools/openai_image.py` works; model
@@ -415,4 +417,13 @@ and you ask the designer about it.
   3. `assets/cue/CuePreview.py`: in Blender, the stills and the clip (EEVEE, a dark Roblox-like
      scene, a blocky avatar, the real table and ball); in plain Python, the labelled sheet and the
      tier sheets. `tools/cue_skin.py <id>` runs the whole chain for one skin.
+- **2026-09-29, tooling done.** `CuePaint.py` (painters + OpenAI runner with zone snapping, seam
+  and palette fixes), `CueTextures.py` (companion maps, greyscale emissive mask, `--no-render`),
+  `CueVfx.py` (sprites; ParticleEmitter/Trail/Beam simulators; the pocket burst ported from
+  `Effects.pocketBurst`), `CuePreview.py` (EEVEE stills and clip, PIL sheets and tier sheets),
+  `tools/cue_skin.py` (the chain). A skin takes about 10 s to paint and map, 5 s for stills and
+  about 1 minute for its clip. Moving-material frames (Legendary+) come with the first Legendary.
+- **Pilot built:** Midnight (procedural), Honeycomb (procedural + an OpenAI bee flipbook), Void
+  (OpenAI forearm and butt + procedural shaft; spinning-swirl moving material). Spend so far
+  about $0.14.
 

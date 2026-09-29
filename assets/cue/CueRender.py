@@ -195,7 +195,8 @@ def maps_material(maps):
         links.new(uv.outputs['UV'], node.inputs['Vector'])
         return node
 
-    links.new(tex(maps['color'], True).outputs['Color'], bsdf.inputs['Base Color'])
+    colour = tex(maps['color'], True)
+    links.new(colour.outputs['Color'], bsdf.inputs['Base Color'])
     links.new(tex(maps['roughness'], False).outputs['Color'], bsdf.inputs['Roughness'])
     links.new(tex(maps['metalness'], False).outputs['Color'], bsdf.inputs['Metallic'])
     nm = nodes.new('ShaderNodeNormalMap')
@@ -204,8 +205,15 @@ def maps_material(maps):
     links.new(tex(maps['normal'], False).outputs['Color'], nm.inputs['Color'])
     links.new(nm.outputs['Normal'], bsdf.inputs['Normal'])
     if maps.get('emissive'):
-        em = tex(maps['emissive'], True)
-        links.new(em.outputs['Color'], bsdf.inputs['Emission Color'])
+        # the emissive map is a mask: the colour map glows where it is white (as in Roblox)
+        em = tex(maps['emissive'], False)
+        lit = nodes.new('ShaderNodeMix')
+        lit.data_type = 'RGBA'
+        lit.blend_type = 'MULTIPLY'
+        lit.inputs['Factor'].default_value = 1.0
+        links.new(colour.outputs['Color'], lit.inputs['A'])
+        links.new(em.outputs['Color'], lit.inputs['B'])
+        links.new(lit.outputs['Result'], bsdf.inputs['Emission Color'])
         bsdf.inputs['Emission Strength'].default_value = 2.0
     return mat
 

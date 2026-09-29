@@ -1,0 +1,25 @@
+{
+  "id": "midnight",
+  "name": "Midnight",
+  "tier": "Common",
+  "catalog_id": "MidnightCue",
+  "concept": "C1",
+  "palette": ["#0E0E10", "#6B6E73", "#C8CCD0"],
+  "painter": "procedural",
+  "note": "Metallic gloss black with one matte grey stripe along the top of the forearm and sleeve (tapering to a point toward the joint), chrome collar, ring and butt cap, smooth black leather wrap. Look from the Predator P3 Black; no logos.",
+  "panels": {
+    "shaft_tile": "skins/midnight/shaft_tile.png",
+    "shaft_top": "skins/midnight/shaft_top.png",
+    "forearm": "skins/midnight/forearm.png",
+    "butt": "skins/midnight/butt.png",
+    "cap_end": "skins/midnight/cap_end.png"
+  },
+  "colours": {"tip": "#1E2438", "ferrule": "#EFEDE6", "bumper": "#101010",
+              "body": "#0E0E10", "stripe": "#B4B8C0", "metal": "#C8CCD0", "wrap": "#141416"},
+  "shaft_tile": {"repeats": 1, "fade": 0},
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {"Trail": {"Style": "Default"}}
+}

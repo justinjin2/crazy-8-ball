@@ -1,0 +1,355 @@
+{
+  "id": "honeycomb",
+  "name": "Honeycomb",
+  "tier": "Rare",
+  "catalog_id": "HoneycombCue",
+  "concept": "R1",
+  "palette": [
+    "#F2A516",
+    "#5A3A0A",
+    "#FFD66B",
+    "#1A1208"
+  ],
+  "painter": "procedural",
+  "note": "Warm amber: a glossy honeycomb with glowing cells on the forearm and sleeve, golden honey running down from the top of the forearm, a dark brown grip wound with amber bee stripes, gold ring, silver collar.",
+  "panels": {
+    "shaft_tile": "skins/honeycomb/shaft_tile.png",
+    "shaft_top": "skins/honeycomb/shaft_top.png",
+    "forearm": "skins/honeycomb/forearm.png",
+    "butt": "skins/honeycomb/butt.png",
+    "cap_end": "skins/honeycomb/cap_end.png"
+  },
+  "colours": {
+    "tip": "#2A1A0C",
+    "ferrule": "#F2EEE2",
+    "bumper": "#120C06",
+    "amber": "#F2A516",
+    "wall": "#5A3A0A",
+    "honey": "#FFB838",
+    "dark": "#2A1408",
+    "gold": "#D9A93A",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 0.9,
+    "EmissiveTint": "#FFA030",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 0.75,
+        "Max": 1.1,
+        "Period": 3.0
+      }
+    }
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Tiny cartoon bees buzz round the handle (flipbook wings) and drift in slow wandering arcs; glowing honey drops fall off the forearm and fade; a warm honey glow breathes round the handle. Roblox particles fly straight, so the concept's 'lazy loops' are slow drifting arcs that turn with the cue.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Bees",
+          "Texture": "vfx/honeycomb/bee_2x2.png",
+          "FlipbookLayout": "Grid2x2",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            18,
+            24
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.9,
+            "ToStuds": 6.8,
+            "Width": 0.55,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 1.6,
+          "Lifetime": [
+            2.5,
+            3.5
+          ],
+          "Speed": [
+            0.25,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 0.8,
+          "Acceleration": [
+            0,
+            0.12,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.12,
+              0.34
+            ],
+            [
+              0.88,
+              0.34
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "Rotation": [
+            -15,
+            15
+          ],
+          "RotSpeed": [
+            -25,
+            25
+          ],
+          "Orientation": "FacingCameraWorldUp",
+          "LockedToPart": true,
+          "ZOffset": 0
+        },
+        {
+          "Name": "HoneyDrops",
+          "Texture": "vfx/honeycomb/honey_drop.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.95,
+            "ToStuds": 5.25,
+            "Width": 0.14,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            0,
+            0.1
+          ],
+          "EmissionDirection": "Bottom",
+          "SpreadAngle": [
+            10,
+            10
+          ],
+          "Acceleration": [
+            0,
+            -5,
+            0
+          ],
+          "Drag": 0,
+          "Size": [
+            [
+              0,
+              0.04
+            ],
+            [
+              0.2,
+              0.11
+            ],
+            [
+              1,
+              0.09
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE08A"
+            ],
+            [
+              1,
+              "#FFA41E"
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "LockedToPart": false,
+          "ZOffset": 0
+        },
+        {
+          "Name": "HoneyGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.8,
+            "ToStuds": 6.9,
+            "Width": 0.2,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 2.5,
+          "Lifetime": [
+            1.5,
+            2.0
+          ],
+          "Speed": [
+            0,
+            0.05
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.5,
+              0.7
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.4,
+              0.62
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FF9A20",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0
+        },
+        {
+          "Name": "Glints",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.8,
+            "ToStuds": 6.9,
+            "Width": 0.3,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FFD27A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Rotation": [
+            0,
+            90
+          ],
+          "LockedToPart": true,
+          "ZOffset": 0
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          190,
+          70
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted amber (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (Rares add none)."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 11.1,
+      "Back": 5.6
+    }
+  }
+}
