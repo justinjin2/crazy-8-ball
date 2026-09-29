@@ -471,3 +471,64 @@ command `/buy` runs the same grant with a fake purchase id (`Store.grant`); `/vi
 Buy with `ShopView.check` before this server prompts it; ShopState is re-sent at
 `ShopView.nextChange` when an offer, a Limited, the sale or the party opens or closes. The
 Studio hooks `ServerStorage.StoreQA` and `RewardsQA` drive both services from `execute_luau`.
+
+## Ultimates (2026-09-28)
+
+Built to `docs/GDD.md` section 9 and `docs/ECONOMY.md` 11.7-11.8 on branch `ultimates`: a bar
+that fills in a match, one press arms your equipped ult for your next shot, and a spin screen
+rolls ults into three slots. The server decides everything; a remote never carries an amount,
+price, rarity, ult id to grant or a result.
+
+**Modules.**
+- Pure, Lune-tested (`src/shared/Ults/`): `Catalog` (the 13 rows of `Config.Ults.Catalog`:
+  rarity, `Built`, `Effect`; `usable` hides placeholders unless the developer flag is on),
+  `Fill` (what a shot or a timeout adds to a bar: own balls by run length, NICE SHOT, the
+  opponent's balls scaled by how far behind you are, turn and teammate gains, the difficulty
+  and after-first-ult multipliers, the per-turn cap), `Roll` (odds in parts per million,
+  Normal and Lucky, pity at `PityAt` from `PityFrom`, the rng passed in), `Slots` (functions
+  over the save's `Ults` table: take and place a spin's result, locks, select, the
+  confirm-replace rule, the daily free spin, counts), `Match` (the rules on the engine's
+  table: bars, `check`/`activate`, the arming wait with the clock paused, `shotOverrides`,
+  spending, teams, practice in solo, the PC policy `pcShouldActivate`, `view` for the
+  snapshot, the dev hooks), `SpinView` (the UltState payload and the request reasons) and
+  `Effects/Magnet` (the pull, stepped by the physics).
+- `Rules/MatchEngine` calls `Ults/Match` at a new game, each turn's start, a foul, a timeout,
+  the clock tick, `acceptShot` (refuses "UltArming" during the wait; arms the effect; tags
+  `t.shot.ult`) and a shot's resolution; the snapshot carries `ults = Match.view(t)`.
+- `SaveSchema` v3: `Ults = { Slots, Selected, Locked, Spins, LuckySpins, Pity, FreeSpinDay,
+  SpinsDone, QueueUlts }`, migrated from v2 with Magnet in slot 1 and 3 starter spins.
+- Server: `UltService` (UltActivate, the gains after each flushed shot through
+  `TableService.onFlush`, UltNotice, the dev and QA hooks), `UltSpins` (UltRequest, UltState,
+  UltAuto; spins, locks, money packs, Robux through `Store`, the daily free spin, Auto Spin,
+  the developer flag; started from `Rewards.start()`), `PlayerData` (every ult mutation:
+  `ultSpin`, `ultSelect`, `ultLock`, `buyUltSpins`, `addUltSpins`, `addUltLucky`, the dev
+  setters), `Store` (the Spin and Lucky products, the UltSlot2/3 passes). Spins also come
+  from rewards: a reward row carries `spins` and `lucky` (`Progression/Daily`: streak day 7,
+  the day's last playtime gift, codes; `Progression/Ranks`: rank-up spins), paid in the
+  same PlayerData mutation as its money and cases. `Ranking` passes them on to the popups;
+  `Announce` (the Legendary and Mythic banner), `GlobalQueue` (the Ults On and Off pools).
+- Client: `UltHud` and `UltBar` (the bar, its gains, READY and the press prompt, the armed
+  pills, Practice), `UltCutscene` (the manga panel everyone at the table sees), `MagnetFx`
+  (Magnet's armed look, pull beams, pocket ring and sounds), `MatchHUD` (the opponent's ult
+  icon, the NO ULTS pill, the clock held while an ult arms), `PadGuide` (the Ult line),
+  `ResultScreen` (NO ULTS), the reward screens' spin chips, and the spin screen (UltScreen,
+  UltStage and their parts; see below).
+
+**The physics hook.** A shot's `state.overrides` may carry `Effect`, `Targets` and
+`EightPocket`. `MatchEngine.acceptShot` calls `Simulation.armEffect` right after
+`Simulation.strike`, with the targets the rules chose (the shooter's own group's balls, or
+only the 8 with the called pocket on their legal 8 shot; never the cue ball or the
+opponent's). `Simulation.step` runs `Effects[Effect].step` before `advance` every fixed step,
+so the effect is as deterministic as the rest; the replay carries the overrides and every
+client steps the same pull. A new ult with physics is one `Effects/<Id>.luau` plus its
+catalog row's `Effect`.
+
+**Remotes** (`Net`): `UltActivate` (no arguments), `UltGain`, `UltNotice` for the match;
+`UltRequest` (RemoteFunction: Spin, Select, Lock, BuySpins, BuyProduct, AutoStart, AutoStop),
+`UltState` and `UltAuto` for the spin screen. The protocol is written next to each.
+
+**Attributes** (server-set): on the player `UltSpins`, `UltLucky`, `UltFreeSpin` (the column's
+red dot), `UltEquipped` (the equipped ult id), `UltDevAll` (the developer flag).
+
+**Studio.** `ServerStorage.UltQA` (state, setBar, full, arm, activate, pcTurn) and
+`UltSpinsQA` drive both services; the ult dev commands (`/ulthelp`) go through the same APIs.

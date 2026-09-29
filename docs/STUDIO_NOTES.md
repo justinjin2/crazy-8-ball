@@ -164,6 +164,11 @@ without Studio's import dialogs. It only uses the Python standard library.
     Bake colour into image textures, or set Color and Material in Studio after the load.
   - **Models can't be archived through the API** ("not an archivable asset type"). Remove a
     test model in Creator Hub by hand.
+- **A rerun uploads "pending" files again** (seen 2026-09-28): an upload still in moderation
+  is recorded as pending, and the next run uploads it anew rather than polling it, so one
+  image became three assets (aura_flame) and another two (field_lines). Poll a pending one
+  instead: `roblox_upload.call(OPERATION_URL.format(operationId), key)` until `done`, then
+  write its id into the manifest by hand. Note the duplicates in the manifest.
 - **Check in Studio:** for a model, run `pcall(InsertService.LoadAsset, InsertService, id)` in
   Edit. For an image, preload an ImageLabel with the image ID through
   `ContentProvider:PreloadAsync` and expect `AssetFetchStatus.Success`.
@@ -232,6 +237,15 @@ rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
   `{0.75 studs + 18 px}` drew at about the size of its 0.75 studs alone at 20 studs, and its
   AbsoluteSize did not match what was drawn. Size world labels in studs and check them in a
   capture (with AlwaysOnTop off), not from AbsoluteSize.
+- **A ViewportFrame under a rotated frame is neither rotated nor clipped** (tested 2026-09-28):
+  in the ult cutscene's -8 degree panel, the avatar drew upright and spilled past the tilted
+  edges (ClipsDescendants does not clip rotated frames either). Keep a viewport in an upright
+  frame and fit it inside the tilted shape by hand (UltCutscene's avatar window).
+- **Catching a short animation in `screen_capture`**: the capture lands a second or two after
+  it is called, so fire the event from the same `execute_luau` call (the arm, the shot) and
+  call `screen_capture` in the same batch; a `task.delay` in the server call nudges it later.
+  A RenderStepped watcher in the Client datamodel that logs when named instances appear
+  (`MagnetFx_*`, `PocketRing*`) proves an effect ran even when a capture misses it.
 - In a Sibling-ZIndex ScreenGui, ZIndex -1 and 0 draw under default (1) siblings: the kit's
   card shadow and fill rely on it.
 - A TextLabel or TextButton can carry two UIStrokes at once: one Contextual (the text's
