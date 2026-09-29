@@ -1884,3 +1884,38 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28: The cutscene is half as long, 0.8 s (was 1.6 s; every step of its timeline
   halved), and the ability's own effect arms 0.1 s after it (was 1.0 s): the designer found
   the wait from pressing to seeing the effect too long. The shot clock pause is now 0.9 s.
+- 2026-09-29: One shared cue mesh for every cue skin (brief `docs/prompts/CUE_MESH_PROMPT.md`):
+  a lathe of the drawn cue's own outline, 32 around, 3,456 triangles, one 1024 atlas; Classic
+  is its first skin, drawn from the mesh in hand, for watched shooters, in the Index and on the
+  back; the other 47 cues keep their bands. A skin is five paint-kit panels turned into four
+  maps by `assets/cue/CueTextures.py`, never code.
+- 2026-09-29: BackCue built (the designer's ask of 2026-09-28): everyone's equipped cue on
+  their back, hidden in the same frame it is in their hands.
+- 2026-09-29 (assumption): the UVs are conformal strips (u along the cue by the integral of
+  ds/r, v round it), cut per zone, with the tip dome and the butt's end face as discs. The
+  "no stretch" rule is measured area-weighted per strip (at most 1.05; worst 1.029), with the
+  worst single face reported (1.105, limit 1.15): a lathe's steep tapers cannot be exactly
+  unstretched face by face within the triangle budget.
+- 2026-09-29 (assumption): the handle gets about 1.56 times the shaft's texel density (567
+  against 363 px per stud) and 78% of the atlas, since the handle is what players look at.
+- 2026-09-29 (assumption): the tip's dome uses a nickel radius ratio (0.4175/0.256 of the
+  tip's radius); the bumper is 0.0875 studs round and 0.035 long, a skin colour; `cap_end` is
+  the bumper's flat end face (about 87 px across in the atlas: enough for a badge, not text).
+- 2026-09-29 (assumption): tip, ferrule and bumper are plain skin colours, not panels.
+- 2026-09-29 (assumption): Classic's maps are drawn straight into the atlas with numpy in
+  Blender's Python (the same 3D lookup as the panels), not a Cycles bake: exact, no lighting
+  in the colour map, deterministic. The linen wrap's thread pitch (0.011 studs) is stylised to
+  read at play distance.
+- 2026-09-29 (assumption): `CueTemplate.py` runs on the Mac's own Python 3 with Pillow, since
+  Blender's Python has no Pillow; nothing else in the package needs it.
+- 2026-09-29 (assumption): a skin template is a Model in `ReplicatedStorage.CueSkins` named by
+  the catalog id, with PrimaryPart `Cue` and its pivot at the tip. The swap between two mesh
+  skins is left as a note in `CueStickBuilder.paintStick` plus a test guard, since there is only
+  one mesh skin. A silhouette (the Index's cue not found yet) always uses the bands.
+- 2026-09-29 (assumption): BackCue welds its own pooled sticks and repaints them only while
+  detached, instead of `CueStickBuilder.wear()` (which repaints in place and would move a
+  welded body). Its numbers, all in `Config.Cue.Back` (tune): tilt 36 degrees, 0.3 studs off
+  the back, crossing 4.3 studs from the tip, the butt at least 0.8 studs off the floor (small
+  bodies slide it up), +30 degrees while seated, only within 90 studs of the camera, a pool of
+  12, refreshed every 0.3 s. Seated on the lobby's loungers and sofas the backrest hides the
+  middle of the stick; the tip still shows over the shoulder and the butt clears the seat.

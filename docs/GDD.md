@@ -767,6 +767,16 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   - Until the hub map, the baseplate shows every combination (section 10). The cloth is a fine
   repeating texture tinted per look, lightly played: a faint break line, a rack patch, chalk
   near the pockets and a spot sticker.
+- **Cues (2026-09-29):** every cue skin is one shared, detailed cue mesh (tip, ferrule,
+  shaft, silver joint, forearm, ring, wrap, sleeve, rubber bumper) with its own pictures on
+  it, painted from a five-panel paint kit (ChatGPT per `assets/cue/template/CHATGPT.md`).
+  Classic, the default cue, is the first: maple shaft, rosewood forearm, black linen wrap,
+  silver rings, glossy black sleeve. Cues without a skin keep their coloured-band look until
+  they get one; a new skin is data and pictures, never code.
+- **The cue on the back (designer, 2026-09-28):** every player carries their equipped cue on
+  their back, diagonal with the tip over the left shoulder, on any body (R15, R6, tall,
+  small). It disappears the moment the cue is in their hands and comes back when they put it
+  down; sitting down it tilts a little further so it clears the seat.
 - UI: clean, thumb-friendly, icons before words. All text lives in one strings module; Roblox
   automatic translation is switched on at release; no hand translation before then.
 - **UI style (`docs/UI_STYLE.md`):** cartoony and bubbly, white panels, Fredoka One for all
