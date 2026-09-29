@@ -9,6 +9,11 @@
 -- matched. Every server polls its own tickets and teleports its players when one is
 -- matched. A claim is invisible to the owners, so a pair that cannot be finished (one side
 -- cancelled first) is undone without anyone moving.
+--
+-- Two pools, Ults On and Off (designer, 2026-09-28), share each mode's map and the one
+-- leader: each ticket names its pool, Matchmaker.pair never mixes them, and each claim names
+-- the pool the pair was made in, so a search that moved pool (switchPool) after the leader
+-- read it is let go like a cancelled one.
 local Config = require(script.Parent.Parent.Config)
 local Matchmaker = require(script.Parent.Matchmaker)
 local Ticket = require(script.Parent.Ticket)
@@ -161,6 +166,10 @@ function QueueCore.makeMatch(
 	clock: (() -> number)?
 ): (any?, string?)
 	local a, b = pair.a :: Ticket.Value, pair.b :: Ticket.Value
+	local ults = Ticket.pool(a)
+	if Ticket.pool(b) ~= ults then
+		return nil, "Pools" -- never from Matchmaker.pair; refused all the same
+	end
 	local code, matchId = reserve()
 	if not code or not matchId then
 		return nil, "NoServer"
@@ -176,7 +185,7 @@ function QueueCore.makeMatch(
 	local claimedAt = if clock then clock() else now
 	if
 		not change(store, a, function(v: any): any
-			return Ticket.claim(v, matchId, claimedAt)
+			return Ticket.claim(v, matchId, claimedAt, ults)
 		end)
 	then
 		store.remove(G.Maps.Matches, matchId)
@@ -184,7 +193,7 @@ function QueueCore.makeMatch(
 	end
 	if
 		not change(store, b, function(v: any): any
-			return Ticket.claim(v, matchId, claimedAt)
+			return Ticket.claim(v, matchId, claimedAt, ults)
 		end)
 	then
 		change(store, a, function(v: any): any
@@ -280,6 +289,34 @@ function QueueCore.cancel(store: Store, ticket: Ticket.Value): string
 	end
 	if outcome == "cancelled" then
 		store.remove(QueueCore.ticketMap(ticket.mode), ticket.id)
+	end
+	return outcome
+end
+
+--- The owner moves its search to pool `ults` (the No-ults fallback's Yes): its search time
+--- (`at`) and its place in the queue stay. "switched" (the local `ticket` now names that pool
+--- too, so a re-post keeps it), "matched" (too late: the match stands, teleport), "busy" (the
+--- leader is finishing a match with it: ask again in a moment), "gone" (cancelled or
+--- forgotten) or "error" (the store did not answer).
+function QueueCore.switchPool(store: Store, ticket: Ticket.Value, ults: boolean): string
+	local outcome = "error"
+	local ok = retry(function(): (boolean, any)
+		return store.update(
+			QueueCore.ticketMap(ticket.mode),
+			ticket.id,
+			function(current: any, sortKey: any): (any, any)
+				local new, what = Ticket.switchPool(current, ults)
+				outcome = what
+				return new, if new then sortKey else nil
+			end,
+			G.TicketLifeSeconds
+		)
+	end, store.pause)
+	if not ok then
+		return "error"
+	end
+	if outcome == "switched" then
+		ticket.ults = ults
 	end
 	return outcome
 end

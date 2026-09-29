@@ -1672,6 +1672,39 @@ function PlayerData.equipCue(player: Player, cueId: string): boolean
 	return true
 end
 
+--- The global queue's Ults: On / Off choice (Ults.QueueUlts, save v3): true (ults on, the
+--- default) when the save is not loaded or holds no choice.
+function PlayerData.queueUlts(player: Player): boolean
+	local data = if isPlayer(player) then peek(player) else nil
+	local ults = if data ~= nil then data.Ults else nil
+	return not (type(ults) == "table" and ults.QueueUlts == false)
+end
+
+--- Sets the global queue's Ults choice and shows it to the client (the player attribute
+--- Config.GlobalQueue.UltsAttribute). False when `on` is not a boolean, or the save is not
+--- loaded or has no Ults yet.
+function PlayerData.setQueueUlts(player: Player, on: boolean): boolean
+	local op = "setQueueUlts"
+	if not isPlayer(player) then
+		return refuse(op, player, "not a player")
+	elseif type(on) ~= "boolean" then
+		return refuse(op, player, ("%s is not a boolean"):format(tostring(on)))
+	end
+	local data = liveData(op, player)
+	if data == nil then
+		return false
+	end
+	if type(data.Ults) ~= "table" then
+		return refuse(op, player, "the save has no Ults")
+	end
+	if data.Ults.QueueUlts ~= on then
+		data.Ults.QueueUlts = on
+		commit(player, data, op)
+	end
+	setAttribute(player, Config.GlobalQueue.UltsAttribute, on)
+	return true
+end
+
 --- Clears the NEW tag of each cue id in `ids` (an array of at most Config.Items.MarkSeenMax).
 --- Returns how many were cleared (0 changes nothing and fires nothing).
 function PlayerData.markSeen(player: Player, ids: { string }): number

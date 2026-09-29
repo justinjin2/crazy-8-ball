@@ -19,6 +19,7 @@ local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranking = require(script.Parent.Ranking)
 local GlobalQueue = require(script.Parent.GlobalQueue)
+local UltsChoice = require(Shared.Matchmaking.UltsChoice)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
 local Kit = Config.UI.Kit
@@ -933,6 +934,7 @@ local function startSearch(t: any, host: Player): boolean
 		players = players,
 		mode = e.teamSize,
 		home = game.JobId,
+		ults = GlobalQueue.ultsChoice(host), -- the host's Ults: On / Off picks the pool
 		onFound = function(found: any, match: any)
 			searchFound(t, epoch, found, match)
 		end,
@@ -976,6 +978,37 @@ local function stopSearch(t: any, host: Player): boolean
 		Engine.clearSearch(e)
 	end
 	return true
+end
+
+-- The global queue's Ults: On / Off (designer, 2026-09-28), both server-checked
+-- (UltsChoice): the host's toggle (SetQueueUlts, a boolean `value`, saved), and the No-ults
+-- search's fallback Yes (SearchWithUlts), which moves the running search to the ults-on
+-- pool, keeping its time. The fallback's No is the card's own: the search just goes on.
+-- Yields. True when it was done.
+local function queueUltsAction(t: any, p: Player, payload: any): boolean
+	local e = t.engine
+	if payload.kind == "SetQueueUlts" then
+		if t.search or t.searchStarting or not UltsChoice.canSet(e, p.UserId, payload.value) then
+			return false
+		end
+		return GlobalQueue.setUltsChoice(p, payload.value)
+	end
+	local search = t.search
+	if
+		not search
+		or not GlobalQueue.isWaiting(search)
+		or t.searchCancelling
+		or not UltsChoice.canFallback(
+			e,
+			p.UserId,
+			search.ticket.ults,
+			now(),
+			Config.GlobalQueue.FallbackSlackSeconds
+		)
+	then
+		return false
+	end
+	return GlobalQueue.switchPool(search, true) == "switched"
 end
 
 -- Each poll: a search whose pad no longer backs it (a party member stepped off, the host
@@ -1184,6 +1217,12 @@ function Service.start(parent: Instance, mode: string?)
 			return
 		end
 		local t = tables[id]
+		if payload.kind == "SetQueueUlts" or payload.kind == "SearchWithUlts" then
+			if payload.epoch ~= t.engine.epoch or not queueUltsAction(t, p, payload) then
+				Net.get("ShotRejected"):FireClient(p, "ActionRejected")
+			end
+			return
+		end
 		if payload.kind == "GlobalSearch" or payload.kind == "CancelSearch" then
 			if payload.epoch ~= t.engine.epoch then
 				return

@@ -14,6 +14,10 @@
 --   MemoryStore for real, then the teleport reports "Studio" so the screens can be checked.
 --   ServerStorage.GlobalQueueQA (Studio only) posts a search from a pretend other server.
 -- - Every step prints a "[8ball] GQ" line with its timing, for the live check.
+-- - Ults: On / Off (designer, 2026-09-28): each search is posted in its pool (the host's saved
+--   choice, PlayerData.queueUlts) and only meets its own; `switchPool` moves a waiting one
+--   to the other pool, keeping its time (the No-ults fallback's Yes). The choice and the
+--   running search's pool reach the client as player attributes (Config.GlobalQueue).
 local HttpService = game:GetService("HttpService")
 local MemoryStoreService = game:GetService("MemoryStoreService")
 local Players = game:GetService("Players")
@@ -267,6 +271,7 @@ function GlobalQueue.enqueue(
 		home: string?,
 		avoid: { number }?,
 		head: number?, -- seconds of searching to credit it with (a search that is starting again)
+		ults: boolean?, -- its pool: false for No ults; ults on otherwise
 		onFound: (search: any, match: Match) -> (),
 		onEnded: ((search: any, reason: string) -> ())?,
 	}
@@ -290,6 +295,7 @@ function GlobalQueue.enqueue(
 		server = SERVER,
 		home = opts.home or "",
 		avoid = opts.avoid,
+		ults = opts.ults,
 	})
 	ticket.beat = now
 	local started = os.clock()
@@ -305,12 +311,16 @@ function GlobalQueue.enqueue(
 		onEnded = opts.onEnded,
 	}
 	searches[ticket.id] = search
+	for _, p in opts.players do
+		p:SetAttribute(G.SearchUltsAttribute, Ticket.pool(ticket))
+	end
 	log(
-		("search %s posted in %.0f ms: %dv%d, rating %.2f, players %s"):format(
+		("search %s posted in %.0f ms: %dv%d, %s, rating %.2f, players %s"):format(
 			ticket.id,
 			(os.clock() - started) * 1000,
 			opts.mode,
 			opts.mode,
+			if Ticket.pool(ticket) then "ults on" else "no ults",
 			rating,
 			table.concat(users, ",")
 		)
@@ -353,6 +363,54 @@ function GlobalQueue.cancel(search: Search): string
 		return "matched"
 	end
 	return if outcome == "busy" then "error" else outcome
+end
+
+--- Move a waiting search to pool `ults` (the No-ults fallback's Yes), keeping its search
+--- time. Yields. Answers "switched", "matched" (too late: the match stands and onFound runs),
+--- "gone" (cancelled) or "error" (the store did not answer, or the leader held it too long).
+function GlobalQueue.switchPool(search: Search, ults: boolean): string
+	if search.state ~= "waiting" then
+		return if search.state == "found" then "matched" else "gone"
+	elseif search.cancelling then
+		return "gone"
+	end
+	local deadline = os.clock() + G.ClaimTimeoutSeconds + 1
+	local outcome = "error"
+	repeat
+		outcome = QueueCore.switchPool(store, search.ticket, ults)
+		if outcome == "busy" then
+			task.wait(0.25) -- the leader is finishing a match with it: a moment
+		end
+	until outcome ~= "busy" or os.clock() > deadline or search.state ~= "waiting"
+	local state: string = search.state -- it may have moved on while this waited
+	if state == "found" or outcome == "matched" then
+		return "matched" -- the poll reads the match and calls onFound
+	end
+	if outcome == "switched" then
+		for _, p in search.players do
+			if p.Parent == Players then
+				p:SetAttribute(G.SearchUltsAttribute, ults)
+			end
+		end
+		log(
+			("search %s moved to the %s pool after %.1f s"):format(
+				search.ticket.id,
+				if ults then "ults on" else "no ults",
+				clock() - search.ticket.at
+			)
+		)
+	end
+	return if outcome == "busy" then "error" else outcome
+end
+
+--- The host's saved Ults choice for the global queue (true: ults on).
+function GlobalQueue.ultsChoice(player: Player): boolean
+	return PlayerData.queueUlts(player)
+end
+
+--- Save the host's Ults choice (the card's toggle; the caller checks who and when).
+function GlobalQueue.setUltsChoice(player: Player, on: boolean): boolean
+	return PlayerData.setQueueUlts(player, on)
 end
 
 --- Whether a search is still looking.
@@ -616,9 +674,10 @@ local function startQA()
 	local qa = Instance.new("BindableFunction")
 	qa.Name = "GlobalQueueQA"
 	local fakes: { [string]: Ticket.Value } = {}
-	qa.OnInvoke = function(op: string, a: any, b: any, c: any): any
+	qa.OnInvoke = function(op: string, a: any, b: any, c: any, d: any): any
 		if op == "inject" then
-			-- (mode, users, rating): a search from "qa-remote", kept alive until matched.
+			-- (mode, users, rating, ults): a search from "qa-remote", kept alive until matched.
+			-- `ults` false puts it in the No-ults pool.
 			counter += 1
 			local ticket = Ticket.new({
 				id = ("qa-remote:%d"):format(counter),
@@ -628,6 +687,7 @@ local function startQA()
 				at = clock(),
 				server = "qa-remote",
 				home = "",
+				ults = d ~= false,
 			})
 			fakes[ticket.id] = ticket
 			QueueCore.post(store, ticket)
@@ -651,13 +711,23 @@ local function startQA()
 			-- (mode, ticketId): the stored ticket.
 			local _, value = store.get(QueueCore.ticketMap(a), b)
 			return value
+		elseif op == "switch" then
+			-- (ticketId, ults): move one of this server's own searches (its ticket id, from
+			-- "status") to a pool, as the fallback's Yes does.
+			local search = searches[a]
+			return if search then GlobalQueue.switchPool(search, b ~= false) else "gone"
 		elseif op == "record" then
 			local _, record = QueueCore.readRecord(store, a)
 			return record
 		elseif op == "status" then
 			local mine = {}
 			for id, s in searches do
-				table.insert(mine, { id = id, state = s.state, users = s.ticket.users })
+				table.insert(mine, {
+					id = id,
+					state = s.state,
+					users = s.ticket.users,
+					ults = Ticket.pool(s.ticket),
+				})
 			end
 			return { server = SERVER, leading = leading, searches = mine, pool = #pool }
 		elseif op == "clear" then
@@ -754,6 +824,23 @@ function GlobalQueue.start(lobby: boolean)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		pending[player] = nil
 	end)
+	-- The host card's toggle shows the saved Ults choice, once the save is open (and again
+	-- after a teleport that failed gives it back).
+	local function showUlts(player: Player)
+		if player:GetAttribute("DataLoaded") == true then
+			player:SetAttribute(G.UltsAttribute, PlayerData.queueUlts(player))
+		end
+	end
+	local function watchUlts(player: Player)
+		player:GetAttributeChangedSignal("DataLoaded"):Connect(function()
+			showUlts(player)
+		end)
+		showUlts(player)
+	end
+	Players.PlayerAdded:Connect(watchUlts)
+	for _, player in Players:GetPlayers() do
+		watchUlts(player)
+	end
 	task.spawn(leaderLoop)
 	startQA()
 end

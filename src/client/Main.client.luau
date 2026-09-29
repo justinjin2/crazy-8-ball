@@ -392,7 +392,7 @@ end
 local function action(kind: string, value: any?)
 	if kind == "Vote" then
 		hub:action(kind, { yes = value })
-	elseif kind == "SetDifficulty" or kind == "SetAbilities" then
+	elseif kind == "SetDifficulty" or kind == "SetAbilities" or kind == "SetQueueUlts" then
 		hub:action(kind, { value = value })
 	else
 		hub:action(kind)

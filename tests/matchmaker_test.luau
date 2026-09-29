@@ -165,4 +165,23 @@ function tests.pairing_is_the_same_in_any_order()
 	expect(table.concat(names(Matchmaker.pair(reversed, 30)), ",") == first)
 end
 
+function tests.the_ults_pools_never_meet()
+	local off = ticket("a1", 5, 0)
+	off.ults = false
+	local on = ticket("a2", 5, 0)
+	on.ults = true
+	expect(#Matchmaker.pair({ off, on }, 100) == 0, "No ults never meets ults on, even at 100 s")
+	local old = ticket("a3", 5, 0) -- a ticket from before the choice: ults on
+	local pairs = Matchmaker.pair({ off, on, old }, 100)
+	expect(#pairs == 1 and names(pairs)[1] == "a2+a3", "missing means ults on")
+	local off2 = ticket("a4", 40, 1)
+	off2.ults = false
+	pairs = Matchmaker.pair({ off, on, old, off2 }, 100)
+	table.sort(pairs, function(x: any, y: any): boolean
+		return x.a.id < y.a.id
+	end)
+	expect(#pairs == 2, "one pair per pool")
+	expect(names(pairs)[1] == "a1+a4" and names(pairs)[2] == "a2+a3", "each with its own pool")
+end
+
 return tests

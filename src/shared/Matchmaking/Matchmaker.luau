@@ -8,6 +8,8 @@
 -- the average. Two tickets of the same mode may meet when their ranks are within the range
 -- of whichever has searched longer (Config.GlobalQueue.Window): the closest rank first,
 -- anyone after 10 s. The oldest search is served first, with the closest rank in range.
+-- Each ticket names its pool, Ults On or Off (designer, 2026-09-28): two pools share the one
+-- queue, and a search only ever meets one of its own pool.
 local Config = require(script.Parent.Parent.Config)
 local Ranks = require(script.Parent.Parent.Progression.Ranks)
 
@@ -21,6 +23,7 @@ export type Candidate = {
 	rating: number,
 	at: number, -- when it started searching (the servers' shared clock, seconds)
 	avoid: { number }?, -- players it should not meet while young (the last opponent)
+	ults: boolean?, -- its pool: false for No ults; true or missing for ults on
 }
 
 export type Pair = {
@@ -71,6 +74,11 @@ local function older(a: Candidate, b: Candidate): boolean
 	return a.id < b.id
 end
 
+--- A search's pool: ults on unless it says exactly false (a ticket from before the choice).
+function Matchmaker.pool(c: any): boolean
+	return c.ults ~= false
+end
+
 local function shares(a: Candidate, b: Candidate): boolean
 	for _, u in a.users do
 		if table.find(b.users, u) then
@@ -95,7 +103,8 @@ local function avoids(from: Candidate, other: Candidate, now: number): boolean
 end
 
 --- The pairs to make now, from every waiting ticket. Each ticket is in at most one pair and
---- no player is in two. Deterministic for any input order.
+--- no player is in two, and both of a pair share a mode and a pool. Deterministic for any
+--- input order.
 function Matchmaker.pair(tickets: { Candidate }, now: number): { Pair }
 	local order = table.clone(tickets)
 	table.sort(order, older)
@@ -124,6 +133,7 @@ function Matchmaker.pair(tickets: { Candidate }, now: number): { Pair }
 			if
 				b ~= a
 				and b.mode == a.mode
+				and Matchmaker.pool(b) == Matchmaker.pool(a)
 				and free(b)
 				and not shares(a, b)
 				and not avoids(a, b, now)

@@ -10,6 +10,12 @@
 -- cancelled first) never sends anyone anywhere: the claim is undone (revert) and the ticket
 -- searches on. Cancel works only while waiting: once claimed the match is a moment away,
 -- and the Cancel is answered "busy" and tried again, ending as cancelled or matched.
+--
+-- Pools (designer, 2026-09-28): each ticket names its pool, Ults On or Off (`ults`), and only
+-- meets its own. A waiting ticket may move to the other pool (the No-ults fallback's Yes),
+-- keeping its search time; like Cancel it works only while waiting, and a claim checks the
+-- pool the leader paired it in, so a ticket that moved between the leader's read and its
+-- claim is never claimed into the old pool's match.
 local Ticket = {}
 
 Ticket.Version = 1
@@ -25,22 +31,26 @@ export type Value = {
 	server: string, -- the server that owns it and will teleport its players
 	home: string, -- the lobby server its players return to ("" for any)
 	avoid: { number }?,
+	ults: boolean?, -- its pool: false for No ults; true (or missing, an older ticket) for on
 	state: string, -- "waiting" | "claimed" | "matched" | "cancelled"
 	claim: { match: string, at: number }?,
 	match: { id: string, code: string, team: number }?,
 }
 
 --- A new waiting ticket.
-function Ticket.new(fields: {
-	id: string,
-	mode: number,
-	users: { number },
-	rating: number,
-	at: number,
-	server: string,
-	home: string?,
-	avoid: { number }?,
-}): Value
+function Ticket.new(
+	fields: {
+		id: string,
+		mode: number,
+		users: { number },
+		rating: number,
+		at: number,
+		server: string,
+		home: string?,
+		avoid: { number }?,
+		ults: boolean?, -- the pool; ults on unless false
+	}
+): Value
 	return {
 		v = Ticket.Version,
 		id = fields.id,
@@ -52,6 +62,7 @@ function Ticket.new(fields: {
 		server = fields.server,
 		home = fields.home or "",
 		avoid = if fields.avoid then table.clone(fields.avoid) else nil,
+		ults = fields.ults ~= false,
 		state = "waiting",
 	}
 end
@@ -64,9 +75,18 @@ local function isValue(value: any): boolean
 	return type(value) == "table" and value.v == Ticket.Version and type(value.state) == "string"
 end
 
---- The leader takes a waiting ticket for match `matchId`.
-function Ticket.claim(value: any, matchId: string, now: number): Value?
+--- A ticket's (or a match record's) pool: ults on unless it says exactly false.
+function Ticket.pool(value: any): boolean
+	return type(value) ~= "table" or value.ults ~= false
+end
+
+--- The leader takes a waiting ticket for match `matchId`. `ults`, the pool it was paired in:
+--- a ticket that has since moved to the other pool is not taken.
+function Ticket.claim(value: any, matchId: string, now: number, ults: boolean?): Value?
 	if not isValue(value) or value.state ~= "waiting" then
+		return nil
+	end
+	if ults ~= nil and Ticket.pool(value) ~= ults then
 		return nil
 	end
 	local new = copy(value)
@@ -126,6 +146,29 @@ function Ticket.cancel(value: any): (Value?, string)
 	return nil, "cancelled"
 end
 
+--- The owner moves its search to pool `ults` (the No-ults fallback's Yes), keeping `at`, its
+--- search time. Returns the new value (or nil) and what happened: "switched" (it is in that
+--- pool now, or already was), "busy" (claimed: try again in a moment), "matched" (too late,
+--- the match stands) or "gone".
+function Ticket.switchPool(value: any, ults: boolean): (Value?, string)
+	if not isValue(value) then
+		return nil, "gone"
+	end
+	if value.state == "waiting" then
+		if Ticket.pool(value) == ults then
+			return nil, "switched"
+		end
+		local new = copy(value)
+		new.ults = ults
+		return new, "switched"
+	elseif value.state == "claimed" then
+		return nil, "busy"
+	elseif value.state == "matched" then
+		return nil, "matched"
+	end
+	return nil, "gone"
+end
+
 --- The owner's "still here". Also undoes a claim older than `claimTimeout` (the leader died
 --- between claiming and finishing), so the ticket searches on.
 function Ticket.beat(value: any, now: number, claimTimeout: number): Value?
@@ -170,6 +213,7 @@ function Ticket.record(matchId: string, a: Value, b: Value, now: number): any
 		teams = { table.clone(a.users), table.clone(b.users) },
 		homes = homes,
 		tickets = { a.id, b.id },
+		ults = Ticket.pool(a), -- the arena's table plays with ults on or off (settings.abilities)
 		at = now,
 	}
 end
@@ -193,6 +237,9 @@ function Ticket.isRecord(record: any): boolean
 		return false
 	end
 	if type(record.mode) ~= "number" or type(record.homes) ~= "table" then
+		return false
+	end
+	if record.ults ~= nil and type(record.ults) ~= "boolean" then
 		return false
 	end
 	for team = 1, 2 do

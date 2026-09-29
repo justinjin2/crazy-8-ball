@@ -149,7 +149,8 @@ local function newTicket(
 	rating: number,
 	at: number,
 	mode: number?,
-	server: string?
+	server: string?,
+	ults: boolean?
 ): any
 	return Ticket.new({
 		id = id,
@@ -159,6 +160,7 @@ local function newTicket(
 		at = at,
 		server = server or "s1",
 		home = "home-" .. (server or "s1"),
+		ults = ults,
 	})
 end
 
@@ -508,6 +510,279 @@ function tests.two_close_searches_meet_within_two_ticks()
 		told ~= nil and told - 0.3 <= G.MatchTickSeconds + G.PollSeconds + 0.05,
 		"told after " .. tostring(told)
 	)
+end
+
+---------------------------------------------------------------------------------------------
+-- Ults: On / Off (designer, 2026-09-28): two pools in the one queue, and the No-ults
+-- fallback that moves a search to the ults-on pool, keeping its time.
+---------------------------------------------------------------------------------------------
+
+function tests.the_pools_never_mix_and_the_record_names_the_pool()
+	local store = fakeStore()
+	local off = newTicket("off", { 1 }, 5, 0, 1, "s1", false)
+	local on = newTicket("on", { 2 }, 5, 0, 1, "s2", true)
+	Core.post(store, off)
+	Core.post(store, on)
+	store.now = 60
+	Core.beat(store, off, 60)
+	Core.beat(store, on, 60)
+	expect(#Core.leaderTick(store, reserver(), 60) == 0, "a minute apart in pools, never met")
+	local off2 = newTicket("off2", { 3 }, 30, 59, 1, "s3", false)
+	Core.post(store, off2)
+	local made = Core.leaderTick(store, reserver(), 60)
+	expect(#made == 1, "No ults meets No ults")
+	expect(made[1].ults == false, "the arena's list says No ults")
+	expect(made[1].tickets[1] == "off" and made[1].tickets[2] == "off2")
+	local _, von = Core.read(store, on)
+	expect(von.state == "waiting" and von.ults == true, "ults on searches on")
+	expect(Ticket.isRecord(made[1]), "a list with a pool is readable")
+	local legacy = table.clone(made[1])
+	legacy.ults = nil
+	expect(Ticket.isRecord(legacy) and Ticket.pool(legacy), "a list without one is ults on")
+	legacy.ults = "no"
+	expect(not Ticket.isRecord(legacy), "a broken pool is refused")
+end
+
+function tests.a_no_ults_search_switched_keeps_its_time_and_then_pairs()
+	local store = fakeStore()
+	local off = newTicket("off", { 1 }, 5, 0, 1, "s1", false)
+	local on = newTicket("on", { 2 }, 30, 25, 1, "s2", true)
+	Core.post(store, off)
+	Core.post(store, on)
+	store.now = G.NoUltsFallbackSeconds
+	Core.beat(store, off, store.now)
+	Core.beat(store, on, store.now)
+	expect(#Core.leaderTick(store, reserver(), store.now) == 0, "nobody in No ults")
+	expect(Core.switchPool(store, off, true) == "switched", "Yes: to the ults-on pool")
+	expect(off.ults == true, "the owner's copy names the new pool (a re-post keeps it)")
+	local stored = store.peek(Core.ticketMap(1), "off")
+	expect(stored.at == 0, "its search time is kept")
+	expect(stored.ults == true and stored.state == "waiting")
+	expect(Core.switchPool(store, off, true) == "switched", "a second Yes changes nothing")
+	local made = Core.leaderTick(store, reserver(), store.now)
+	expect(#made == 1 and made[1].ults == true, "then it meets ults on")
+	expect(made[1].tickets[1] == "off", "and, searching longest, is the older side")
+	expect(Core.switchPool(store, off, false) == "matched", "too late to move once matched")
+	Core.forget(store, off)
+	expect(Core.switchPool(store, off, false) == "gone")
+	local gone = newTicket("x", { 9 }, 5, 0, 1, "s1", false)
+	Core.post(store, gone)
+	expect(Core.cancel(store, gone) == "cancelled")
+	expect(Core.switchPool(store, gone, true) == "gone", "a cancelled search does not move")
+	store.failNext = G.StoreRetries
+	expect(Core.switchPool(store, on, false) == "error", "the store not answering")
+end
+
+function tests.a_switch_while_claimed_is_busy_then_the_old_pools_match_stands()
+	local store = fakeStore()
+	local a = newTicket("a", { 1 }, 5, 0, 1, "s1", false)
+	local b = newTicket("b", { 2 }, 5, 0, 1, "s2", false)
+	Core.post(store, a)
+	Core.post(store, b)
+	local answers = {}
+	store.beforeUpdate = function(map: string, key: string)
+		local v = store.peek(map, key)
+		if key == "a" and v and v.state == "claimed" then
+			table.insert(answers, Core.switchPool(store, a, true))
+		end
+	end
+	local made = Core.leaderTick(store, reserver(), 0)
+	store.beforeUpdate = nil
+	expect(#made == 1 and made[1].ults == false, "the No-ults match stands")
+	expect(answers[1] == "busy", "mid-way the switch is told to wait")
+	expect(a.ults == false, "the owner's copy did not move")
+	expect(Core.switchPool(store, a, true) == "matched", "then too late: teleport")
+end
+
+function tests.a_switch_just_before_the_claim_wins_and_nobody_moves()
+	-- The leader read both in the No-ults pool; a's Yes lands before a's claim.
+	local store = fakeStore()
+	local a = newTicket("a", { 1 }, 5, 0, 1, "s1", false)
+	local b = newTicket("b", { 2 }, 5, 0, 1, "s2", false)
+	Core.post(store, a)
+	Core.post(store, b)
+	local switched = nil
+	store.beforeUpdate = function(map: string, key: string)
+		local v = store.peek(map, key)
+		if key == "a" and v and v.state == "waiting" and switched == nil then
+			switched = Core.switchPool(store, a, true)
+		end
+	end
+	local made, failed = Core.leaderTick(store, reserver(), 0)
+	store.beforeUpdate = nil
+	expect(switched == "switched", "the switch wins")
+	expect(#made == 0 and #failed == 1 and failed[1]:find("LostA") ~= nil, "no match")
+	local va = store.peek(Core.ticketMap(1), "a")
+	local vb = store.peek(Core.ticketMap(1), "b")
+	expect(va.state == "waiting" and va.ults == true and va.at == 0, "a searches in its new pool")
+	expect(vb.state == "waiting" and vb.ults == false, "b was never claimed")
+	expect(store.peek(G.Maps.Matches, "arena1") == nil, "the half-made list is removed")
+end
+
+function tests.a_switch_after_the_other_side_was_claimed_undoes_it()
+	-- b is the older search (team 1), so it is claimed first; a moves before its own claim.
+	local store = fakeStore()
+	local b = newTicket("b", { 2 }, 5, 0, 1, "s2", false)
+	local a = newTicket("a", { 1 }, 5, 1, 1, "s1", false)
+	Core.post(store, a)
+	Core.post(store, b)
+	local switched = nil
+	store.beforeUpdate = function(map: string, key: string)
+		local v = store.peek(map, key)
+		local vb = store.peek(map, "b")
+		if key == "a" and v and v.state == "waiting" and vb.state == "claimed" then
+			switched = switched or Core.switchPool(store, a, true)
+		end
+	end
+	local made, failed = Core.leaderTick(store, reserver(), 2)
+	store.beforeUpdate = nil
+	expect(switched == "switched")
+	expect(#made == 0 and failed[1]:find("LostB") ~= nil, "the pair falls through")
+	local vb = store.peek(Core.ticketMap(1), "b")
+	expect(vb.state == "waiting" and vb.claim == nil, "b's claim is undone: it searches on")
+	expect(store.peek(Core.ticketMap(1), "a").ults == true)
+end
+
+function tests.ticket_pool_moves_only_while_waiting()
+	local t = newTicket("a", { 1 }, 5, 0, 1, "s1", false)
+	expect(t.ults == false and not Ticket.pool(t))
+	expect(Ticket.pool(newTicket("b", { 2 }, 5, 0)), "ults on by default")
+	local moved, what = Ticket.switchPool(t, true)
+	expect(what == "switched" and moved and moved.ults == true and moved.at == t.at)
+	expect(t.ults == false, "the value it was given is left as it was")
+	local same, again = Ticket.switchPool(moved, true)
+	expect(same == nil and again == "switched", "already there: nothing to write")
+	local claimed = Ticket.claim(t, "m", 0, false)
+	expect(claimed ~= nil, "claimed in its own pool")
+	expect(Ticket.claim(t, "m", 0, true) == nil, "never in the other pool")
+	expect(Ticket.claim(moved, "m", 0, false) == nil, "a ticket that moved is not taken")
+	expect(select(2, Ticket.switchPool(claimed, true)) == "busy")
+	local matched = Ticket.finalize(claimed, "m", "c", 1)
+	expect(select(2, Ticket.switchPool(matched, true)) == "matched")
+	local cancelled = Ticket.cancel(t)
+	expect(select(2, Ticket.switchPool(cancelled, true)) == "gone")
+	expect(select(2, Ticket.switchPool(nil, true)) == "gone")
+	local legacy = table.clone(newTicket("c", { 3 }, 5, 0))
+	legacy.ults = nil
+	expect(Ticket.pool(legacy) and Ticket.claim(legacy, "m", 0, true) ~= nil, "older tickets: on")
+end
+
+-- Many servers, both pools busy, searches moving pool now and then, for two minutes.
+function tests.many_servers_with_both_pools_never_mix_them()
+	local store = fakeStore()
+	local seed = 777
+	local function rand(): number
+		seed = (seed * 1103515245 + 12345) % 2147483648
+		return seed / 2147483648
+	end
+	local reserve = reserver()
+	local servers = {}
+	for i = 1, 10 do
+		table.insert(servers, { id = "s" .. i, tickets = {}, phase = (i % 4) * 0.5 })
+	end
+	local nextUser, nextTicket = 1, 1
+	local matchedUsers: { [number]: string } = {}
+	local poolOf: { [string]: boolean } = {} -- each ticket's pool as its owner last set it
+	local movedAt: { [string]: number } = {}
+	local records: { [string]: any } = {}
+	local told: { [string]: string } = {}
+	local onMatches, offMatches = 0, 0
+	local dt = 0.25
+	local t = 0
+	local lastLeaderTick = -math.huge
+	while t < 120 do
+		store.now = t
+		for _, s in servers do
+			local k = math.floor((t + s.phase) / dt + 0.5)
+			if k % math.floor(G.LeaseRenewSeconds / dt) == 0 then
+				s.leader = Core.lease(store, s.id, t)
+			end
+			if s.leader and t - lastLeaderTick >= G.MatchTickSeconds - 1e-9 then
+				lastLeaderTick = t
+				for _, r in Core.leaderTick(store, reserve, t) do
+					records[r.id] = r
+				end
+			end
+			if t < 100 and rand() < 0.05 then
+				local mode = 1 + math.floor(rand() * 2)
+				local users = {}
+				for _ = 1, mode do
+					table.insert(users, nextUser)
+					nextUser += 1
+				end
+				local ults = rand() < 0.5
+				local ticket = newTicket(
+					"t" .. nextTicket,
+					users,
+					1 + math.floor(rand() * 46),
+					t,
+					mode,
+					s.id,
+					ults
+				)
+				nextTicket += 1
+				Core.post(store, ticket)
+				poolOf[ticket.id] = ults
+				table.insert(s.tickets, ticket)
+			end
+			for i = #s.tickets, 1, -1 do
+				local ticket = s.tickets[i]
+				if k % math.floor(G.PollSeconds / dt) == 0 then
+					local _, value = Core.read(store, ticket)
+					if value and value.state == "matched" then
+						told[ticket.id] = value.match.id
+						for _, u in ticket.users do
+							expect(matchedUsers[u] == nil, "player " .. u .. " matched twice")
+							matchedUsers[u] = value.match.id
+						end
+						Core.forget(store, ticket)
+						table.remove(s.tickets, i)
+						continue
+					end
+				end
+				if k % math.floor(G.HeartbeatSeconds / dt) == 0 then
+					Core.beat(store, ticket, t)
+				end
+				-- A No-ults host says Yes to the fallback now and then (the store's clock
+				-- stands in for the 30 s here, so the switches land among busy claims).
+				if ticket.ults == false and rand() < 0.01 then
+					local what = Core.switchPool(store, ticket, true)
+					if what == "switched" then
+						poolOf[ticket.id] = true
+						movedAt[ticket.id] = t
+						local stored = store.peek(Core.ticketMap(ticket.mode), ticket.id)
+						expect(stored.at == ticket.at, "a switch keeps the search time")
+					else
+						expect(what == "busy" or what == "matched", "switch said " .. what)
+					end
+				end
+			end
+		end
+		t += dt
+	end
+	local made = 0
+	for id, r in records do
+		made += 1
+		local a, b = r.tickets[1], r.tickets[2]
+		expect(poolOf[a] == poolOf[b], ("match %s mixed %s and %s"):format(id, a, b))
+		expect(r.ults == poolOf[a], "match " .. id .. " names the wrong pool")
+		if r.ults then
+			onMatches += 1
+		else
+			offMatches += 1
+		end
+		expect(told[a] == id and told[b] == id, "both sides of " .. id .. " told")
+	end
+	local moved = 0
+	for _ in movedAt do
+		moved += 1
+	end
+	expect(made >= 20, "plenty of matches: " .. made)
+	expect(
+		onMatches >= 5 and offMatches >= 5,
+		("both pools busy: %d, %d"):format(onMatches, offMatches)
+	)
+	expect(moved >= 3, "searches moved pool along the way: " .. moved)
 end
 
 return tests

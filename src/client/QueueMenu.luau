@@ -20,6 +20,13 @@
 -- worldwide..." with the time on the button and the red Cancel; "Match found!" and the
 -- teleport screen follow. Stepping off the pad cancels too.
 --
+-- Ults: On / Off (designer, 2026-09-28): a toggle under Join Global Queue, the host's saved
+-- choice (the QueueUlts attribute); a search only meets searches on the same setting. A
+-- No-ults search that has found nobody in NoUltsFallbackSeconds offers "Nobody's in No ults
+-- right now. Search with ults on?": Yes moves the search to the ults-on pool, keeping its
+-- time (the server checks it, UltsChoice); No keeps waiting and hides the offer for this
+-- search.
+--
 -- Every press is a request the server checks (MatchEngine.action). Built from the UI kit
 -- (HudParts): it pops in the moment you step onto an empty pad (Main shows it before the
 -- server has seated you). It keeps small: tucked into the top right corner on a phone-sized
@@ -34,9 +41,12 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
+local UltsChoice = require(Shared:WaitForChild("Matchmaking"):WaitForChild("UltsChoice"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match.Queue
+local GQ = Strings.GlobalQueue
+local G = Config.GlobalQueue
 local M = Config.Multiplayer
 local S = M.Style
 local K = Config.UI.Kit
@@ -98,6 +108,10 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.cancelledAt = -math.huge -- this host's last Cancel: older requests no longer stand
 	self.searchAt = -math.huge -- this host's last Join Global Queue, before the server's answer
 	self.searchCancelledAt = -math.huge -- and their last Cancel of it
+	self.ultsSent = nil :: { value: boolean, at: number }? -- a toggle on its way to the server
+	self.fallbackSentAt = -math.huge -- the fallback's Yes on its way
+	self.fallbackDismissed = nil :: number? -- the search (its start) whose offer got a No
+	self.ultsShown = true -- what the toggle reads now (it is built reading On)
 	self.now = 0
 	self.open = false
 	self.away = false -- the host stepped off the pad; the server lets them go shortly
@@ -191,14 +205,48 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			end
 		end
 	)
+	-- Ults: On / Off for the global queue (designer, 2026-09-28), the host's saved choice.
+	self.ults = button(content, "QueueUlts", GQ.UltsOn, 5, "Green", "Check", function()
+		if self:canSetUlts() then
+			local value = not self:ultsChoice()
+			self.ultsSent = { value = value, at = self.now }
+			self.onAction("SetQueueUlts", value)
+		end
+	end)
 	-- On 2v2 and 3v3, why it is greyed: a whole side must be on the pad.
 	self.needs = HudParts.note(content, "GlobalNeeds", K.Text.Min, "")
 	self.needs.TextWrapped = false
 	self.needs.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
-	self.needs.LayoutOrder = 5
+	self.needs.LayoutOrder = 6
+	-- A No-ults search with nobody found yet: "Search with ults on?", Yes and No side by side.
+	self.fallback = fold(content, "Fallback", 7)
+	self.fallbackLine = HudParts.note(self.fallback.inner, "Line", K.Text.Body, GQ.NoUltsFallback)
+	self.fallbackLine.LayoutOrder = 1
+	self.fallbackLine.Size =
+		UDim2.new(1, 0, 0, S.QueueFallbackLines * (K.Text.Body + S.QueueMenuLineGap))
+	local answers = HudParts.frame(self.fallback.inner, "Answers")
+	answers.LayoutOrder = 2
+	answers.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
+	local half = math.ceil(S.QueueRowGap / 2)
+	self.fallbackYes = button(answers, "Yes", GQ.FallbackYes, 1, "Green", nil, function()
+		if self:fallbackOpen() then
+			self.fallbackSentAt = self.now
+			self.onAction("SearchWithUlts", nil)
+		end
+	end)
+	self.fallbackYes.Size = UDim2.new(0.5, -half, 1, 0)
+	self.fallbackNo = button(answers, "No", GQ.FallbackNo, 2, "Red", nil, function()
+		local snapshot = self.snapshot
+		if self:fallbackOpen() and snapshot and snapshot.search then
+			self.fallbackDismissed = snapshot.search.at
+		end
+	end)
+	self.fallbackNo.AnchorPoint = Vector2.new(1, 0)
+	self.fallbackNo.Position = UDim2.fromScale(1, 0)
+	self.fallbackNo.Size = UDim2.new(0.5, -half, 1, 0)
 	-- While a request or a search stands: take it back, and the card unfolds at once.
 	-- No icon: the kit's red X vanished on the red candy.
-	self.cancel = button(content, "CancelRequest", Copy.CancelRequest, 6, "Red", nil, function()
+	self.cancel = button(content, "CancelRequest", Copy.CancelRequest, 8, "Red", nil, function()
 		if self:searching() then
 			if not self:found() then
 				self.searchCancelledAt = self.now
@@ -209,7 +257,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			self.onAction("CancelRequest", nil)
 		end
 	end)
-	self.more = fold(content, "More", 7)
+	self.more = fold(content, "More", 9)
 	self.pc = button(self.more.inner, "PlayPC", Copy.PlayPC, 1, "Blue", "Robot", function() end)
 	self.solo = button(self.more.inner, "PlaySolo", Copy.PlaySolo, 2, "Green", "Person", function()
 		if self:canSend() and self:alone() then
@@ -221,14 +269,16 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.hint = HudParts.note(content, "GamepadHint", K.Text.Min, Copy.GamepadHint)
 	self.hint.TextWrapped = false
 	self.hint.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
-	self.hint.LayoutOrder = 8
+	self.hint.LayoutOrder = 10
 	-- Top to bottom. `overlap`: a fold of buttons, whose outline room sits over the gaps.
 	self.rows = {
 		{ object = title } :: any,
 		{ fold = self.statusFold },
 		{ object = self.request },
 		{ object = self.global },
+		{ object = self.ults },
 		{ object = self.needs },
+		{ fold = self.fallback, overlap = true },
 		{ object = self.cancel },
 		{ fold = self.more, overlap = true },
 		{ object = self.hint },
@@ -340,6 +390,45 @@ function QueueMenu.canSearch(self: any): boolean
 	return count >= snapshot.teamSize and count < snapshot.teamSize * 2
 end
 
+--- The Ults choice the toggle shows: one on its way to the server, else the saved one (the
+--- player attribute; on until it arrives).
+function QueueMenu.ultsChoice(self: any): boolean
+	local sent = self.ultsSent
+	if sent and self.now - sent.at < M.ActionRetrySeconds then
+		return sent.value
+	end
+	local player = Players.LocalPlayer
+	return UltsChoice.pool(player and player:GetAttribute(G.UltsAttribute))
+end
+
+--- Whether the toggle may be pressed: the host, the pad waiting with no search on (and none
+--- on its way), as the server checks (UltsChoice.canSet).
+function QueueMenu.canSetUlts(self: any): boolean
+	local snapshot = self.snapshot
+	return snapshot ~= nil
+		and not self:searching()
+		and UltsChoice.canSet(snapshot, self.localUserId, true)
+end
+
+--- Whether the No-ults fallback's offer shows: the host's search in the No-ults pool (the
+--- QueueSearchUlts attribute) has found nobody in NoUltsFallbackSeconds, it was not
+--- answered No, and no Yes is on its way.
+function QueueMenu.fallbackOpen(self: any): boolean
+	local snapshot = self.snapshot
+	if not snapshot or not snapshot.search or not self:searching() then
+		return false
+	end
+	if self.fallbackDismissed == snapshot.search.at then
+		return false
+	end
+	if self.now - self.fallbackSentAt < M.ActionRetrySeconds then
+		return false
+	end
+	local player = Players.LocalPlayer
+	local searchUlts = player and player:GetAttribute(G.SearchUltsAttribute)
+	return UltsChoice.canFallback(snapshot, self.localUserId, searchUlts, self.now)
+end
+
 --- Whether a request may be sent: the pad has room, none stands, and none was sent within
 --- Queue.RerequestSeconds (after a Cancel), as the server checks.
 function QueueMenu.canRequest(self: any): boolean
@@ -382,6 +471,7 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 	if not snapshot or not old or old.epoch ~= snapshot.epoch or old.id ~= snapshot.id then
 		self.sentAt, self.requestedAt, self.cancelledAt = -math.huge, -math.huge, -math.huge
 		self.searchAt, self.searchCancelledAt = -math.huge, -math.huge
+		self.ultsSent, self.fallbackSentAt, self.fallbackDismissed = nil, -math.huge, nil
 	end
 	if not snapshot then
 		self:blur()
@@ -425,7 +515,18 @@ function QueueMenu.focus(self: any)
 	if not self.root.Visible then
 		return
 	end
-	for _, object in { self.request, self.global, self.cancel, self.solo, self.pc } do
+	for _, object in
+		{
+			self.request,
+			self.global,
+			self.ults,
+			self.fallbackYes,
+			self.fallbackNo,
+			self.cancel,
+			self.solo,
+			self.pc,
+		}
+	do
 		if self:usable(object) then
 			GuiService.SelectedObject = object
 			return
@@ -585,6 +686,16 @@ function QueueMenu.update(self: any, now: number)
 			elseif searching then Copy.SearchTime:format(waited // 60, waited % 60)
 			else Copy.GlobalQueue
 	)
+	-- The Ults toggle under it, while it can start a search (hidden while one runs).
+	local ultsOn = self:ultsChoice()
+	self.ults.Visible = self.global.Visible and not searching
+	HudParts.setEnabled(self.ults, self:canSetUlts())
+	if self.ultsShown ~= ultsOn then
+		self.ultsShown = ultsOn
+		HudParts.setText(self.ults, if ultsOn then GQ.UltsOn else GQ.UltsOff)
+		HudParts.setTone(self.ults, if ultsOn then "Green" else "Grey")
+		HudParts.setButtonIcon(self.ults, if ultsOn then "Check" else "X")
+	end
 	self.needs.Visible = room and teamSize > 1 and count < teamSize and not searching
 	if self.needs.Visible then
 		self.needs.Text = Copy.GlobalNeeds:format(teamSize)
@@ -604,6 +715,7 @@ function QueueMenu.update(self: any, now: number)
 	-- The waiting line folds away for a request; a search keeps it, saying it searches.
 	ease(self.statusFold, not folded or searching, dt, self.snap, scale)
 	ease(self.more, alone and not folded and not sending, dt, self.snap, scale)
+	ease(self.fallback, room and not found and self:fallbackOpen(), dt, self.snap, scale)
 	self.snap = false
 
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1

@@ -16,9 +16,13 @@
 --   from the arena; a team goes together once every teammate pressed it) and Lobby (back to
 --   the lobby server they came from). A teammate going to the lobby takes the team with
 --   them. Anyone who has chosen nothing when the rematch time is up goes to the lobby.
+-- - Ults: On / Off (designer, 2026-09-28): the list names the pool the match was made in, and
+--   the table plays with it (`settings.abilities`, false for a No-ults match, which the
+--   rematch keeps); Play another and a no-show's new search stay in that pool.
 -- - Studio: the ServerStorage attribute StudioArena (a team size) set before Play makes the
 --   server an arena with no list: real players fill the sides in turn and pretend players
---   (negative ids) fill the rest a moment later. ServerStorage.ArenaQA drives them.
+--   (negative ids) fill the rest a moment later. ServerStorage.ArenaQA drives them. Setting
+--   StudioArenaUlts to false as well makes it a No-ults match.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -38,6 +42,7 @@ local TableService = require(script.Parent.TableService)
 local A = Config.Arena
 local IS_STUDIO = RunService:IsStudio()
 local STUDIO_ATTRIBUTE = "StudioArena"
+local STUDIO_ULTS_ATTRIBUTE = "StudioArenaUlts" -- false: the Studio arena plays with no ults
 local ArenaService = {}
 
 -- The place's mode, for every client (Main reads it before building anything).
@@ -80,7 +85,15 @@ function ArenaService.loadRecord(matchId: string): any?
 	if matchId == "studio-arena" then
 		local size =
 			math.clamp(math.floor(ServerStorage:GetAttribute(STUDIO_ATTRIBUTE) :: number), 1, 3)
-		return { v = 1, id = matchId, mode = size, teams = { {}, {} }, homes = {}, studio = true }
+		return {
+			v = 1,
+			id = matchId,
+			mode = size,
+			teams = { {}, {} },
+			homes = {},
+			ults = ServerStorage:GetAttribute(STUDIO_ULTS_ATTRIBUTE) ~= false,
+			studio = true,
+		}
 	end
 	local started = os.clock()
 	local record = GlobalQueue.readRecord(matchId, A.RecordWaitSeconds)
@@ -118,6 +131,27 @@ local closed = false
 local notice: string? = nil -- a line for everyone's card (Strings.Arena key)
 local seenResult = -1 -- the epoch whose result opened the choosing
 local listAt = 0
+
+-- The match's pool: ults on unless its list says exactly false (Ticket.pool).
+local function ultsOn(): boolean
+	return record == nil or record.ults ~= false
+end
+
+-- The table plays in the match's pool (settings.abilities). Set when the arena starts and
+-- again just before the first game (a seat emptying while it waits resets the settings);
+-- the rematch keeps them (MatchEngine).
+local function applyUlts()
+	local t = TableService.arenaTable()
+	if not t or t.engine.phase ~= "Waiting" then
+		return
+	end
+	local e = t.engine
+	if e.settings.abilities ~= ultsOn() then
+		e.settings.abilities = ultsOn()
+		e.revision += 1
+		TableService.broadcast(t)
+	end
+end
 
 local function allPlayers(): { Player }
 	return Players:GetPlayers()
@@ -249,6 +283,7 @@ local function searchFor(players: { Player }, head: number)
 		home = homeOf[players[1].UserId] or "",
 		avoid = if head > 0 then nil else opponentsOf(team),
 		head = head,
+		ults = ultsOn(), -- the arena's pool: Play another keeps the setting
 		onFound = function(found: any, match: any)
 			local here = {}
 			for _, p in found.players do
@@ -293,6 +328,7 @@ local function begin()
 	for _ in searchOf do
 		return -- someone here is already searching for another match
 	end
+	applyUlts()
 	if TableService.startArena() then
 		begun = true
 		notice = nil
@@ -580,6 +616,8 @@ function ArenaService.start(list: any)
 			homeOf[n] = where
 		end
 	end
+	applyUlts()
+	log(("the match plays with %s"):format(if ultsOn() then "ults on" else "no ults"))
 	arrivalDeadline = now() + A.ArrivalSeconds
 	task.delay(A.ArrivalSeconds, arrivalsDone)
 	Net.get("ArenaAction").OnServerEvent:Connect(onAction)
@@ -643,6 +681,7 @@ function ArenaService.start(list: any)
 					series = t and t.engine.series,
 					choice = choice,
 					notice = notice,
+					abilities = t and t.engine.settings.abilities,
 				}
 			elseif op == "vote" and t then
 				-- (userId, "Rematch" | "Decline") for a pretend player.
