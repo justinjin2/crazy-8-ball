@@ -1,7 +1,8 @@
 --!strict
 -- UltSlots: the three slot cards on the left of the ult spin screen (docs/prompts/
 -- ULTIMATES_PROMPT.md sections 8 and 9.3; reference 09). Each is a white kit card: the ult's
--- name (white, ink outline), a strip in its rarity colour, and along the bottom EQUIPPED (green,
+-- icon top left (ABILITIES_PROMPT 5.1), its name (white, ink outline) and a strip in its rarity
+-- colour to the icon's right, and along the bottom EQUIPPED (green,
 -- the selected slot: the one played in matches) or SELECT (blue); a lock toggle top right (a
 -- locked slot cannot be spun into). A slot not owned yet reads NONE with a green PURCHASE and
 -- its R$ price (and a small "Soon" while the pass's id is 0). The whole card is the button:
@@ -39,6 +40,7 @@ type Card = {
 	button: TextButton,
 	body: Frame, -- everything drawn: it grows when hovered or selected
 	edge: UIStroke,
+	icon: ImageLabel, -- the ult's icon (hidden on an empty or unowned slot)
 	name: TextLabel,
 	strip: Frame,
 	pill: Frame,
@@ -109,6 +111,9 @@ function UltSlots.build(self: any, parent: Instance, slot: number): Card
 	cardFrame.Size = UDim2.fromScale(1, 1)
 	local fill = cardFrame:FindFirstChild("Fill") :: Frame
 	local edge = fill:FindFirstChild("Edge") :: UIStroke
+	local icon = HudParts.icon(body, "", "UltIcon")
+	icon.Visible = false
+	icon.ZIndex = 3
 	local name = HudParts.text(body, "Name", C.Full.SlotNameTextPx, W.None)
 	name.ZIndex = 3
 	local strip = HudParts.frame(body, "Strip")
@@ -158,6 +163,7 @@ function UltSlots.build(self: any, parent: Instance, slot: number): Card
 		button = button,
 		body = body,
 		edge = edge,
+		icon = icon,
 		name = name,
 		strip = strip,
 		pill = pill,
@@ -253,6 +259,8 @@ function UltSlots.draw(self: any, state: any)
 		card.selected = card.owned and state.selected == slot
 		card.locked = locked[slot] == true
 		card.name.Text = if card.owned and has then string.upper(Catalog.name(id)) else W.None
+		card.icon.Image = if card.owned and has then Catalog.icon(id) else ""
+		card.icon.Visible = card.icon.Image ~= ""
 		local rarity = if card.owned and has then Catalog.rarity(id) else nil
 		card.strip.Visible = rarity ~= nil
 		if rarity then
@@ -281,7 +289,8 @@ function UltSlots.draw(self: any, state: any)
 	end
 end
 
---- Size and place the column at (x, y) for the layout `g`; returns its size.
+--- Size and place the column at (x, y) for the layout `g`; returns its size. Lay out again
+--- after draw: a card with an icon moves its name and strip right of it.
 function UltSlots.layout(self: any, g: Parts.Geo, x: number, y: number): Vector2
 	local w, h = g.px("SlotWidthPx"), g.px("SlotHeightPx")
 	local gap = g.px("SlotGapPx")
@@ -291,6 +300,7 @@ function UltSlots.layout(self: any, g: Parts.Geo, x: number, y: number): Vector2
 	local pillH = g.px("SlotPillHeightPx")
 	local pillText = g.text("SlotPillTextPx")
 	local stripH = g.px("SlotStripPx")
+	local iconWant = g.px("SlotIconPx")
 	local count = #self.cards
 	self.holder.Position = UDim2.fromOffset(x, y)
 	self.holder.Size = UDim2.fromOffset(w, count * h + (count - 1) * gap)
@@ -310,12 +320,19 @@ function UltSlots.layout(self: any, g: Parts.Geo, x: number, y: number): Vector2
 		card.soon.Size = UDim2.fromOffset(soonW, soonH)
 		card.soon.Position = UDim2.fromOffset(w - pad + 4, pillY)
 		local stripY = pillY - math.max(2, math.floor(pad / 2)) - stripH
-		card.strip.Position = UDim2.fromOffset(pad * 2, stripY)
-		card.strip.Size = UDim2.fromOffset(w - 4 * pad, stripH)
+		-- The icon top left, from the card's top down to just over the pill (the name's row and
+		-- the strip's); the name and the strip move right of it.
+		local iconPx = if card.icon.Visible then math.min(iconWant, pillY - pad - 2) else 0
+		card.icon.Position = UDim2.fromOffset(pad, pad)
+		card.icon.Size = UDim2.fromOffset(iconPx, iconPx)
+		local left = if iconPx > 0 then pad + iconPx + math.max(2, math.floor(pad / 2)) else pad
+		local stripLeft = if iconPx > 0 then left else pad * 2
+		card.strip.Position = UDim2.fromOffset(stripLeft, stripY)
+		card.strip.Size = UDim2.fromOffset(math.max(1, w - 2 * pad - stripLeft), stripH)
 		HudParts.setTextSize(card.name, nameText)
-		card.name.Position = UDim2.fromOffset(pad, pad)
+		card.name.Position = UDim2.fromOffset(left, pad)
 		card.name.Size =
-			UDim2.fromOffset(math.max(1, w - 2 * pad - lockPx), math.max(1, stripY - pad - 2))
+			UDim2.fromOffset(math.max(1, w - left - pad - lockPx), math.max(1, stripY - pad - 2))
 	end
 	return Vector2.new(w, count * h + (count - 1) * gap)
 end

@@ -27,6 +27,7 @@ export type Effect = {
 }
 
 local Effects: { [string]: Effect } = {
+	EaglesEye = require(script.EaglesEye) :: any,
 	Magnet = require(script.Magnet) :: any,
 	TimeStop = require(script.TimeStop) :: any,
 }

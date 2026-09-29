@@ -6,7 +6,8 @@
 --   endsAt? }, src/shared/Net.luau, src/server/Announce.luau): an unboxing in the rarity's colour
 --   ("Painicane unboxed a Mythic Starfall Cue!"), an ult spin landing a Legendary (this
 --   server) or a Mythic (every server) in the same colours ("Painicane rolled the Legendary ult
---   Black Flash!"), a Money Party starting, someone reaching Reyes (in the house rainbow).
+--   Black Flash!", the ult's icon at the line's left end), a Money Party starting, someone
+--   reaching Reyes (in the house rainbow).
 --   They queue and show one at a time for Banner.Seconds each, with the Banner sound.
 -- - The Money Party countdown from the workspace attributes MoneyPartyEndsAt (unix seconds, the
 --   server's clock) and MoneyPartyBuyer (a username): "Money Party! 2x money for everyone:
@@ -54,6 +55,7 @@ type Line = {
 	text: string,
 	color: Color3?, -- the words' colour (white when nil)
 	rainbow: boolean?, -- the words in the house rainbow
+	icon: string?, -- an image at the line's left end (an ult roll's icon)
 	at: number, -- when it arrived (os.clock), to drop it once stale
 }
 
@@ -117,6 +119,11 @@ function Banner.new(screen: ScreenGui, opts: Options?): any
 	words.Size = UDim2.new(1, -B.PadPx, 1, 0)
 	words.ZIndex = 2
 	self.words = words
+	local icon = HudParts.icon(card, "", "Icon")
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.Visible = false
+	icon.ZIndex = 2
+	self.icon = icon
 	local rainbow = Instance.new("UIGradient")
 	local keys = {}
 	for i, c in RAINBOW do
@@ -194,7 +201,7 @@ function Banner.onBanner(self: any, payload: any)
 		local sentence = sentences[rarity] or sentences.Default
 		local text = sentence:format(who, UltCatalog.name(ult))
 		local tint = CueThumb.accentColor(rarity)
-		self:push({ text = text, color = tint, at = os.clock() })
+		self:push({ text = text, color = tint, icon = UltCatalog.icon(ult), at = os.clock() })
 		ChatTags.system(ChatTags.paint(text, tint))
 	elseif kind == "Party" then
 		self:push({
@@ -235,10 +242,21 @@ end
 --- Queue a one-off line (the server's banners come through here; a screen may add its own).
 function Banner.push(
 	self: any,
-	line: { text: string, color: Color3?, rainbow: boolean?, at: number? }
+	line: {
+		text: string,
+		color: Color3?,
+		rainbow: boolean?,
+		icon: string?,
+		at: number?,
+	}
 )
-	local queued: Line =
-		{ text = line.text, color = line.color, rainbow = line.rainbow, at = line.at or os.clock() }
+	local queued: Line = {
+		text = line.text,
+		color = line.color,
+		rainbow = line.rainbow,
+		icon = line.icon,
+		at = line.at or os.clock(),
+	}
 	table.insert(self.queue, queued)
 	while #self.queue > B.MaxQueued do
 		table.remove(self.queue, 1) -- the oldest goes first
@@ -293,7 +311,7 @@ function Banner.tick(self: any)
 		end
 	end
 	if current then
-		self:show(current.text, current.color, current.rainbow == true, "line")
+		self:show(current.text, current.color, current.rainbow == true, "line", current.icon)
 		return
 	end
 	if ends then
@@ -307,11 +325,21 @@ function Banner.tick(self: any)
 	self:hide()
 end
 
--- Put words up (popping in, with the sound, when it was hidden or a new line starts).
-function Banner.show(self: any, text: string, tint: Color3?, rainbow: boolean, key: string)
+-- Put words up (popping in, with the sound, when it was hidden or a new line starts), with
+-- `icon` at the left end when given.
+function Banner.show(
+	self: any,
+	text: string,
+	tint: Color3?,
+	rainbow: boolean,
+	key: string,
+	icon: string?
+)
 	local words: TextLabel = self.words
-	local changed = words.Text ~= text
+	local image = icon or ""
+	local changed = words.Text ~= text or self.icon.Image ~= image
 	words.Text = text
+	self.icon.Image = image
 	words.TextColor3 = if rainbow then Color3.new(1, 1, 1) else (tint or Color3.new(1, 1, 1))
 	self.rainbow.Enabled = rainbow
 	if changed or self.shownKey ~= key then
@@ -351,8 +379,20 @@ function Banner.layout(self: any)
 	local textPx = if short then B.ShortTextPx else B.TextPx
 	HudParts.setTextSize(self.words, textPx)
 	local wordsW = TextService:GetTextSize(self.words.Text, textPx, FONT, Vector2.new(4000, 200)).X
-	local width =
-		math.min(B.MaxWidthPx, size.X - 2 * B.SideMarginPx, math.ceil(wordsW) + 2 * B.PadPx)
+	-- An icon sits PadPx in from the left end, the words IconGapPx after it.
+	local icon: ImageLabel = self.icon
+	local iconPx = if icon.Image ~= "" then (if short then B.ShortIconPx else B.IconPx) else 0
+	local iconRoom = if iconPx > 0 then iconPx + B.IconGapPx else 0
+	icon.Visible = iconPx > 0
+	icon.Size = UDim2.fromOffset(iconPx, iconPx)
+	icon.Position = UDim2.new(0, B.PadPx, 0.5, 0)
+	self.words.Position = UDim2.fromOffset(B.PadPx / 2 + iconRoom, 0)
+	self.words.Size = UDim2.new(1, -B.PadPx - iconRoom, 1, 0)
+	local width = math.min(
+		B.MaxWidthPx,
+		size.X - 2 * B.SideMarginPx,
+		math.ceil(wordsW) + 2 * B.PadPx + iconRoom
+	)
 	local origin = screen.AbsolutePosition
 	local left = (size.X - width) / 2
 	local top = B.TopPx

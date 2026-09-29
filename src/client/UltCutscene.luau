@@ -18,7 +18,8 @@
 -- and the activating player's avatar: a client clone of their character, re-posed to its rest
 -- pose (the table's shooter is bent over the cue), in a ViewportFrame with a slow
 -- push-in. "ULTIMATE" sits over the top edge at the left, the ult's name over the bottom edge
--- at the right. It slams in, holds, shrinks to a thin line and snaps away.
+-- at the right, and the ult's icon stamps in beside the avatar (ABILITIES_PROMPT 5.1) with a
+-- burst of its rarity colour. It slams in, holds, shrinks to a thin line and snaps away.
 --
 -- It never takes input: its own ScreenGui, nothing Active or Modal, no dim (UI_STYLE 2). The
 -- game has no reduced-motion or mute setting yet, so it always plays in full.
@@ -92,6 +93,10 @@ type Play = {
 	name: TextLabel,
 	titleScale: UIScale,
 	nameScale: UIScale,
+	icon: ImageLabel?, -- the ult's icon, stamped in beside the avatar (nil when it has none)
+	iconScale: UIScale?,
+	glow: ImageLabel?, -- the burst of rarity colour behind it
+	iconPx: number,
 	words: Frame, -- a clear twin of the panel over the avatar, holding the words
 	wordsScale: UIScale,
 	window: Frame, -- the avatar's upright window inside the band (clips the viewport)
@@ -184,6 +189,17 @@ local function preload()
 	end
 	if C.BackdropArt and K.Art.UltBackdrop ~= "" then
 		table.insert(list, K.Art.UltBackdrop)
+	end
+	-- Every ult's icon (the cutscene, the armed pills, the spin screen and the top bar all
+	-- show them) and the glow behind the stamp.
+	for _, id in Catalog.list() do
+		local icon = Catalog.icon(id)
+		if icon ~= "" then
+			table.insert(list, icon)
+		end
+	end
+	if K.Art.SoftGlow ~= "" then
+		table.insert(list, K.Art.SoftGlow)
 	end
 	task.spawn(function()
 		pcall(function()
@@ -595,6 +611,47 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	local nameScale = Instance.new("UIScale")
 	nameScale.Parent = name
 
+	-- The icon beside the avatar, on the words' twin so it rides the band's tilt and squeeze;
+	-- render stamps it in and bursts the glow.
+	local iconPx = math.floor(innerH * C.IconShare)
+	local iconX = panelW / 2 + windowX + windowW * C.IconFromAvatarShare
+	local image = Catalog.icon(armed.id)
+	local icon: ImageLabel? = nil
+	local iconScale: UIScale? = nil
+	local glow: ImageLabel? = nil
+	if image ~= "" then
+		local stamp = Instance.new("ImageLabel")
+		stamp.Name = "Icon"
+		stamp.AnchorPoint = Vector2.new(0.5, 0.5)
+		stamp.Position = UDim2.new(0, iconX, C.IconYShare, 0)
+		stamp.Size = UDim2.fromOffset(iconPx, iconPx)
+		stamp.BackgroundTransparency = 1
+		stamp.ScaleType = Enum.ScaleType.Fit
+		stamp.Image = image
+		stamp.Active = false
+		stamp.Visible = false
+		stamp.ZIndex = 4
+		stamp.Parent = words
+		local scale = Instance.new("UIScale")
+		scale.Parent = stamp
+		icon, iconScale = stamp, scale
+		if K.Art.SoftGlow ~= "" then
+			local burst = Instance.new("ImageLabel")
+			burst.Name = "IconGlow"
+			burst.AnchorPoint = Vector2.new(0.5, 0.5)
+			burst.Position = stamp.Position
+			burst.BackgroundTransparency = 1
+			burst.ScaleType = Enum.ScaleType.Fit
+			burst.Image = K.Art.SoftGlow
+			burst.ImageColor3 = tint:Lerp(Color3.new(1, 1, 1), C.IconGlowWhiteShare)
+			burst.Active = false
+			burst.Visible = false
+			burst.ZIndex = 3
+			burst.Parent = words
+			glow = burst
+		end
+	end
+
 	return {
 		tableId = tableId,
 		mine = mine,
@@ -609,6 +666,10 @@ local function build(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 		name = name,
 		titleScale = titleScale,
 		nameScale = nameScale,
+		icon = icon,
+		iconScale = iconScale,
+		glow = glow,
+		iconPx = iconPx,
 		words = words,
 		wordsScale = wordsScale,
 		window = window,
@@ -729,7 +790,33 @@ local function render(play: Play, t: number)
 	play.window.Size = UDim2.fromOffset(windowW, math.max(windowH, 0))
 	play.windowScale.Scale = scale
 	play.window.Visible = play.inner.Visible and windowH > 1 and windowW > 1
+
+	-- The icon stamps in as the slam lands (large, overshooting to rest), with a burst of the
+	-- rarity colour behind it, then squeezes and fades with the words as the band shrinks.
+	local icon, iconScale = play.icon, play.iconScale
+	if icon and iconScale then
+		local k = (t - C.IconDelaySeconds) / C.IconPopSeconds
+		local squeeze = height / play.panelH
+		icon.Visible = k >= 0 and fade < 1 and play.inner.Visible
+		iconScale.Scale = math.max(0.01, lerp(C.IconFromScale, 1, UIAnim.backOut(k)) * squeeze)
+		icon.ImageTransparency = fade
+	end
+	local glow = play.glow
+	if glow then
+		local g = (t - C.IconDelaySeconds) / C.IconGlowSeconds
+		glow.Visible = g >= 0 and g < 1 and play.inner.Visible
+		local size = play.iconPx
+			* lerp(C.IconGlowFromScale, C.IconGlowToScale, UIAnim.quadOut(g))
+			* height
+			/ play.panelH
+		glow.Size = UDim2.fromOffset(size, size)
+		glow.ImageTransparency = lerp(C.IconGlowTransparency, 1, clamp01(g))
+	end
 end
+
+-- Studio look checks only: the panel held still at this many seconds in (the player's
+-- UltCutscenePreview attribute, "<ultId>@<seconds>"), so a screen capture can catch it.
+local holdAt: number? = nil
 
 local function begin(tableId: number, mine: boolean, armed: Armed, elapsed: number)
 	local previous = current
@@ -754,8 +841,8 @@ local function begin(tableId: number, mine: boolean, armed: Armed, elapsed: numb
 	local total = length()
 	render(play, os.clock() - play.started)
 	play.connection = RunService.RenderStepped:Connect(function()
-		local t = os.clock() - play.started
-		if t >= total then
+		local t = holdAt or os.clock() - play.started
+		if t >= total and holdAt == nil then
 			stop(play)
 			return
 		end
@@ -840,6 +927,26 @@ function UltCutscene.start(hub: any): UltCutscene
 	hub:onSnapshot(function(snapshot)
 		onSnapshot(self, snapshot)
 	end)
+	if RunService:IsStudio() then
+		-- Look checks: set the player's UltCutscenePreview attribute to "<ultId>@<seconds>" to
+		-- play that ult's panel held at that moment ("<ultId>" plays it through); "" ends it.
+		player:GetAttributeChangedSignal("UltCutscenePreview"):Connect(function()
+			local value = player:GetAttribute("UltCutscenePreview")
+			local id, at = nil, nil
+			if type(value) == "string" then
+				id, at = value:match("^(%w+)@?([%d%.]*)$")
+			end
+			if id then
+				holdAt = tonumber(at)
+				UltCutscene.preview(id)
+			else
+				holdAt = nil
+				if current then
+					stop(current)
+				end
+			end
+		end)
+	end
 	return self
 end
 

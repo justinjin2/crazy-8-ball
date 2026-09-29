@@ -16,8 +16,10 @@
 -- - Solo: no bar; a small "Practice ult" candy button in its place (UltActivate; the server
 --   arms it for free), not on the break.
 -- - Your ult armed: a pill in its rarity colour, "MAGNET: NEXT SHOT" (+ "Coming soon" for a
---   placeholder). While it is still arming the cutscene plays (UltCutscene) and this hides.
--- - The opponent's ult armed: a small "Opponent's ult: MAGNET" pill in their rarity colour.
+--   placeholder), the ult's icon on its left end. While it is still arming the cutscene plays
+--   (UltCutscene) and this hides.
+-- - The opponent's ult armed: a small "Opponent's ult: MAGNET" pill in their rarity colour,
+--   with its icon too. A pill wider than the bar widens the fade's canvas, so it is never cut.
 --
 -- Gains (UltGain, to the bar's owner only): each is queued with its `at` (the server time its
 -- ball drops in the replay). While the bar shows, a ball's gain animates at its `at`: the %
@@ -121,7 +123,8 @@ local function rarityColor(ultId: string): Color3
 	return HudParts.color(K.Rarity[rarity] or K.Rarity.Default)
 end
 
--- A pill of one line of words in a colour, with a small note over it (the armed pills).
+-- A pill of one line of words in a colour, with the ult's icon on its left end and a small
+-- note over it (the armed pills).
 local function wordPill(parent: Instance, name: string): any
 	local pill = HudParts.pill(parent, name)
 	pill.AnchorPoint = Vector2.new(0.5, 1)
@@ -140,7 +143,15 @@ local function wordPill(parent: Instance, name: string): any
 	note.AnchorPoint = Vector2.new(0.5, 1)
 	note.Visible = false
 	note.ZIndex = 3
-	return { root = pill, words = words, note = note, ult = "" }
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.BackgroundTransparency = 1
+	icon.ScaleType = Enum.ScaleType.Fit
+	icon.Visible = false
+	icon.ZIndex = 4
+	icon.Parent = pill
+	return { root = pill, words = words, note = note, icon = icon, ult = "", reach = 0 }
 end
 
 --- The HUD, built into `screen` (UI.screen()). `activate` sends UltActivate.
@@ -179,6 +190,7 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	self.reserve = 0
 	self.margin = 0 -- set by layout, with the canvas's room
 	self.canvasPad = 0
+	self.canvasPadX = 0 -- the canvas's room at each side: the pad, or more for a long pill
 	self.canvasAbove = 0
 
 	-- The slot: bottom centre, the bar's size; the canvas fades everything in it as one.
@@ -270,19 +282,25 @@ function UltHud.layout(self: any)
 	local pad = if short then U.CanvasPadPx[1] else U.CanvasPadPx[2]
 	local above = s.prompt + s.gap + s.floatRise + s.float + pad
 	self.canvasPad, self.canvasAbove = pad, above
-	self.canvas.Position = UDim2.fromOffset(-pad, -above)
-	self.canvas.Size = UDim2.fromOffset(s.width + pad * 2, g.height + above + pad)
-	self.content.Position = UDim2.fromOffset(pad, above)
-	self.content.Size = UDim2.fromOffset(s.width, g.height)
+	self.screenWidth = size.X
 	-- The armed pills sit on the pill's line, centred on the bar.
 	local armedHeight = if short then U.ArmedPx[1] else U.ArmedPx[2]
 	local armedText = if short then U.ArmedTextPx[1] else U.ArmedTextPx[2]
 	local opponentHeight = if short then U.OpponentPx[1] else U.OpponentPx[2]
 	local opponentText = if short then U.OpponentTextPx[1] else U.OpponentTextPx[2]
-	self.armedSizes = { height = armedHeight, text = armedText }
-	self.opponentSizes = { height = opponentHeight, text = opponentText }
-	self:fitPill(self.armed, armedHeight, armedText)
-	self:fitPill(self.opponent, opponentHeight, opponentText)
+	self.armedSizes = {
+		height = armedHeight,
+		text = armedText,
+		icon = if short then U.ArmedIconPx[1] else U.ArmedIconPx[2],
+	}
+	self.opponentSizes = {
+		height = opponentHeight,
+		text = opponentText,
+		icon = if short then U.OpponentIconPx[1] else U.OpponentIconPx[2],
+	}
+	self:fitPill(self.armed, self.armedSizes)
+	self:fitPill(self.opponent, self.opponentSizes)
+	self:fitCanvas()
 	local practiceWidth = if short then U.PracticeWidthPx[1] else U.PracticeWidthPx[2]
 	local practiceHeight = if short then U.PracticeHeightPx[1] else U.PracticeHeightPx[2]
 	self.practice.Position = UDim2.fromOffset(s.width / 2, g.height)
@@ -300,25 +318,58 @@ function UltHud.layout(self: any)
 	self:refreshPrompt()
 end
 
--- A word pill as wide as its words, on the bar's pill line.
-function UltHud.fitPill(self: any, p: any, height: number, textPx: number)
+-- A word pill as wide as its icon and words (never wider than ArmedMaxWidthShare of the
+-- screen: the words shrink), on the bar's pill line. The icon hangs past the pill's left end,
+-- so the pill sits a little right to keep the two centred on the bar.
+function UltHud.fitPill(self: any, p: any, sizes: any)
 	local g = self.geo
 	if not g then
 		return
 	end
+	local height, textPx = sizes.height, sizes.text
 	HudParts.setTextSize(p.words, textPx)
 	local words =
 		TextService:GetTextSize(p.words.Text, textPx, p.words.Font, Vector2.new(2000, 200)).X
 	local pad = math.floor(height * 0.6)
-	local width = math.ceil(words) + pad * 2
+	local shown = p.icon.Image ~= ""
+	local iconPx = if shown then sizes.icon else 0
+	local out = math.floor(iconPx * U.IconOutShare)
+	local left = if shown then iconPx - out + U.IconGapPx else pad
+	local most = math.floor((self.screenWidth or 0) * U.ArmedMaxWidthShare) - out
+	local width = math.max(left + pad + 1, math.min(math.ceil(words) + left + pad, most))
+	p.icon.Visible = shown
+	p.icon.Size = UDim2.fromOffset(iconPx, iconPx)
+	p.icon.Position = UDim2.new(0, -out, 0.5, 0)
 	p.root.Size = UDim2.fromOffset(width, height)
-	p.root.Position =
-		UDim2.fromOffset(self.bar.sizes.width / 2, g.pillTop + (self.bar.sizes.pill + height) / 2)
-	p.words.Position = UDim2.fromOffset(pad, 1)
-	p.words.Size = UDim2.fromOffset(math.max(1, width - pad * 2), height - 2)
+	p.root.Position = UDim2.fromOffset(
+		self.bar.sizes.width / 2 + out / 2,
+		g.pillTop + (self.bar.sizes.pill + height) / 2
+	)
+	-- How far it reaches from the bar's middle, icon included (fitCanvas makes room).
+	p.reach = math.ceil((width + out) / 2)
+	p.words.Position = UDim2.fromOffset(left, 1)
+	p.words.Size = UDim2.fromOffset(math.max(1, width - left - pad), height - 2)
 	HudParts.setTextSize(p.note, U.NoteTextPx)
 	p.note.Position = UDim2.new(0.5, 0, 0, -2)
 	p.note.Size = UDim2.fromOffset(width + 40, U.NoteTextPx + 4)
+end
+
+-- The fade's canvas round the bar: CanvasPadPx each side, or wider when an armed pill reaches
+-- past that (a CanvasGroup cuts off whatever sits outside it).
+function UltHud.fitCanvas(self: any)
+	local g = self.geo
+	if not g then
+		return
+	end
+	local width = self.bar.sizes.width
+	local reach = math.max(self.armed.reach, self.opponent.reach) - math.floor(width / 2)
+	local padX = math.max(self.canvasPad, reach + 4)
+	self.canvasPadX = padX
+	self.canvas.Position = UDim2.fromOffset(-padX, -self.canvasAbove)
+	self.canvas.Size =
+		UDim2.fromOffset(width + padX * 2, g.height + self.canvasAbove + self.canvasPad)
+	self.content.Position = UDim2.fromOffset(padX, self.canvasAbove)
+	self.content.Size = UDim2.fromOffset(width, g.height)
 end
 
 --------------------------------------------------------------------------------------------
@@ -569,18 +620,26 @@ function UltHud.fillArmed(self: any)
 	local id = if type(armed.id) == "string" then armed.id else Config.Ults.Default
 	local name = string.upper(Catalog.name(id))
 	local tint = rarityColor(id)
+	local changed = false
 	for _, p in { self.armed, self.opponent } do
 		if p.ult ~= id then
 			p.ult = id
+			changed = true
 			p.root.BackgroundColor3 = tint
 			p.words.Text = if p == self.armed
 				then Copy.Armed:format(name)
 				else Copy.OpponentArmed:format(name)
+			p.icon.Image = Catalog.icon(id)
 			p.note.Text = Strings.Ults.ComingSoon
 			p.note.Visible = not Catalog.built(id)
 			local sizes = if p == self.armed then self.armedSizes else self.opponentSizes
-			self:fitPill(p, sizes.height, sizes.text)
+			if sizes then
+				self:fitPill(p, sizes)
+			end
 		end
+	end
+	if changed then
+		self:fitCanvas()
 	end
 end
 
@@ -696,7 +755,7 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 	local visible = self.visibleAlpha > 0
 	self.canvas.Visible = visible
 	if visible then
-		self.canvas.Position = UDim2.fromOffset(-self.canvasPad, -self.canvasAbove + offset)
+		self.canvas.Position = UDim2.fromOffset(-self.canvasPadX, -self.canvasAbove + offset)
 		self.canvas.GroupTransparency = 1 - alpha * (1 - self.pullAlpha * U.PullTransparency)
 	end
 

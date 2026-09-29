@@ -2,7 +2,8 @@
 -- UltOdds: the odds and the code box of the ult spin screen (docs/prompts/ULTIMATES_PROMPT.md
 -- sections 8 and 9.3; reference 09). A "Lucky odds" switch, then one collapsible bar per rarity
 -- in its colour ("Common 55%" and a chevron; Mythic shimmers). Opening a bar lists its ults
--- with each one's share, or "Soon" for a placeholder that cannot be rolled yet. The shares are
+-- (each with its icon) with each one's share, or "Soon" for a placeholder that cannot be rolled
+-- yet (its name and icon faded). The shares are
 -- the true current odds from UltState (built ults only, empty rarities passing theirs down),
 -- written as the case Odds panel writes them. Under the bars a line on pity, then the code box
 -- ("USE CODE ABILITIES FOR FREE SPINS", "NEXT CODE AT 100 LIKES", a text box and Redeem through the
@@ -39,7 +40,7 @@ export type Hooks = {
 	relayout: () -> (),
 }
 
-type Row = { frame: Frame, name: TextLabel, share: TextLabel }
+type Row = { frame: Frame, icon: ImageLabel, name: TextLabel, share: TextLabel }
 type Bar = {
 	rarity: string,
 	button: TextButton,
@@ -168,6 +169,11 @@ function UltOdds.buildBar(self: any, parent: Instance, rarity: string, index: nu
 	for _, id in Catalog.byRarity(rarity) do
 		local row = HudParts.frame(list, "Row" .. id)
 		row.ZIndex = 3
+		local icon = HudParts.icon(row, "", "Icon")
+		icon.Image = Catalog.icon(id)
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		icon.Position = UDim2.fromScale(0, 0.5)
+		icon.ZIndex = 4
 		local name = HudParts.note(row, "Name", C.Full.RowTextPx, Catalog.name(id))
 		name.TextWrapped = false
 		name.TextXAlignment = Enum.TextXAlignment.Left
@@ -178,7 +184,7 @@ function UltOdds.buildBar(self: any, parent: Instance, rarity: string, index: nu
 		share.TextWrapped = false
 		share.TextXAlignment = Enum.TextXAlignment.Right
 		share.ZIndex = 4
-		table.insert(bar.rows, { frame = row, name = name, share = share })
+		table.insert(bar.rows, { frame = row, icon = icon, name = name, share = share })
 	end
 	local function light(on: boolean)
 		bar.lit = on
@@ -383,10 +389,12 @@ function UltOdds.draw(self: any, state: any)
 				row.share.Text = Parts.percent(ppm)
 				row.share.TextColor3 = INK
 				row.name.TextTransparency = 0
+				row.icon.ImageTransparency = 0
 			else
 				row.share.Text = W.OddsSoon
 				row.share.TextColor3 = HudParts.color(K.Buttons.Yellow.Lip)
 				row.name.TextTransparency = C.PlaceholderTransparency
+				row.icon.ImageTransparency = C.PlaceholderTransparency
 			end
 		end
 	end
@@ -422,6 +430,7 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 	local barText = g.text("BarTextPx")
 	local rowH = g.px("RowHeightPx")
 	local rowText = g.text("RowTextPx")
+	local rowIcon = math.min(g.px("RowIconPx"), rowH)
 	local inner = width - 8 -- room for the scroll bar and the outlines
 	local x = 3
 	local y = 3
@@ -458,7 +467,13 @@ function UltOdds.layout(self: any, g: Parts.Geo, width: number, onWhite: boolean
 				local shareW = math.ceil(Parts.textWidth(row.share.Text, rowText)) + 8
 				row.share.Position = UDim2.new(1, -shareW, 0, 0)
 				row.share.Size = UDim2.fromOffset(shareW, rowH)
-				row.name.Size = UDim2.new(1, -shareW - 4, 1, 0)
+				-- The icon at the left, the name after it.
+				local iconPx = if row.icon.Image ~= "" then rowIcon else 0
+				local nameLeft = if iconPx > 0 then iconPx + 4 else 0
+				row.icon.Visible = iconPx > 0
+				row.icon.Size = UDim2.fromOffset(iconPx, iconPx)
+				row.name.Position = UDim2.fromOffset(nameLeft, 0)
+				row.name.Size = UDim2.new(1, -shareW - 4 - nameLeft, 1, 0)
 			end
 			bar.list.Visible = true
 			y += listH + 8

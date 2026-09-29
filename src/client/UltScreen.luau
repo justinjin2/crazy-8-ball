@@ -8,7 +8,8 @@
 -- are put away, and all come back as they were when it closes.
 --
 -- Layout on a computer (Config.UI.UltScreen.Full, section 9.3): top centre "CURRENT ULT:", the
--- equipped ult's name huge in its rarity colour with a thick ink outline, its description; left
+-- equipped ult's icon and its name huge in its rarity colour with a thick ink outline (the two
+-- centred together; the spin's cycling names bring their icons too), its description; left
 -- the three slot cards (UltSlots); right the odds bars and the code box (UltOdds); bottom
 -- centre LUCKY SPINS, the big gold SPIN (FREE SPIN while today's free spin is unused, SLOT
 -- LOCKED greyed while the selected slot is locked) and SPINS LEFT; bottom right pity, the money
@@ -278,6 +279,13 @@ function UltScreen.buildTitle(self: any, parent: Instance)
 	name.TextWrapped = false
 	name.ZIndex = 5
 	name.AnchorPoint = Vector2.new(0.5, 0)
+	-- The ult's icon left of the name (placeName centres the two together).
+	local icon = HudParts.icon(parent, "", "UltIcon")
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.Visible = false
+	icon.ZIndex = 5
+	self.nameIcon = icon
+	self.nameRow = nil :: any -- set by layout: where the name's row is and how wide it may be
 	local desc =
 		HudParts.text(parent, "Description", C.Full.DescTextPx, "", HudParts.color(C.DescColor))
 	desc.ZIndex = 5
@@ -468,9 +476,35 @@ function UltScreen.showName(self: any, id: string, pop: boolean)
 	local label: TextLabel = self.nameLabel
 	label.Text = string.upper(Catalog.name(id))
 	Parts.paint(label, Catalog.rarity(id))
+	self.nameIcon.Image = Catalog.icon(id)
+	self:placeName()
 	if pop then
 		UIAnim.bounce(label)
+		UIAnim.bounce(self.nameIcon)
 	end
+end
+
+-- The icon and the name side by side, centred together on the name's row (from layout): the
+-- name keeps its size and only shrinks when the two would be wider than the row.
+function UltScreen.placeName(self: any)
+	local row = self.nameRow
+	if not row then
+		return
+	end
+	local label: TextLabel = self.nameLabel
+	local icon: ImageLabel = self.nameIcon
+	local shown = icon.Image ~= ""
+	local iconPx = if shown then row.icon else 0
+	local gap = if shown then row.gap else 0
+	local room = math.max(1, row.width - iconPx - gap)
+	local textW = math.ceil(Parts.textWidth(label.Text, row.text)) + 2 * row.outline + 4
+	local nameW = math.min(textW, room)
+	local left = row.x - math.floor((iconPx + gap + nameW) / 2)
+	icon.Visible = shown
+	icon.Size = UDim2.fromOffset(iconPx, iconPx)
+	icon.Position = UDim2.fromOffset(left, row.y + math.floor(row.height / 2))
+	label.Position = UDim2.fromOffset(left + iconPx + gap + math.floor(nameW / 2), row.y)
+	label.Size = UDim2.fromOffset(nameW, row.height)
 end
 
 function UltScreen.draw(self: any, state: any)
@@ -652,6 +686,7 @@ function UltScreen.select(self: any, slot: number)
 			self:notice(Parts.reason(reply), "Red")
 		elseif self.opened then
 			UIAnim.bounce(self.nameLabel)
+			UIAnim.bounce(self.nameIcon)
 		end
 	end)
 end
@@ -856,8 +891,17 @@ function UltScreen.layout(self: any)
 	Parts.setOutline(self.nameLabel, g.px("NameOutlinePx"))
 	local nameH = nameText + 8
 	local nameW = if y < topRow then math.min(titleRoom, rowRoom) else titleRoom
-	self.nameLabel.Position = UDim2.fromOffset(cx, y)
-	self.nameLabel.Size = UDim2.fromOffset(nameW, nameH)
+	self.nameRow = {
+		x = cx,
+		y = y,
+		width = nameW,
+		height = nameH,
+		text = nameText,
+		outline = g.px("NameOutlinePx"),
+		icon = math.min(g.px("NameIconPx"), nameH + 2 * gap),
+		gap = gap,
+	}
+	self:placeName()
 	y += nameH
 	local descText = g.text("DescTextPx")
 	local descW = math.min(g.px("DescWidthPx"), titleRoom)

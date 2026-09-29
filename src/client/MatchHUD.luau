@@ -20,6 +20,7 @@ local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local RankBadge = require(script.Parent.RankBadge)
 local Engine = require(Shared:WaitForChild("Rules"):WaitForChild("MatchEngine"))
+local UltCatalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local Copy = Strings.Match
 local M = Config.Multiplayer
 local S = M.Style
@@ -132,13 +133,24 @@ local function makePortrait(parent: Instance): any
 	gone.Size = UDim2.fromScale(0.7, 0.7)
 	gone.ZIndex = 5
 	gone.Visible = false
-	-- An opponent's ult (UI_STYLE 11): a small badge on the portrait's inner top corner, lit
-	-- (the gold badge) while their bar is ready and faded otherwise. The art, or the kit's HUD
-	-- 8 ball while the art is "" (still uploading).
+	-- An opponent's ult (UI_STYLE 11): the icon of the ability they have equipped on the
+	-- portrait's inner top corner, greyed and faded until their bar is ready, then in full
+	-- colour on a soft gold glow. With no icon, the ult badge (gold when ready), or the kit's
+	-- HUD 8 ball while that art is "" too.
 	local ult = frame(root, "Ult")
 	ult.AnchorPoint = Vector2.new(0.5, 0.5)
 	ult.ZIndex = 7
 	ult.Visible = false
+	local ultGlow = HudParts.icon(ult, "", "Glow")
+	ultGlow.Image = K.Art.SoftGlow
+	ultGlow.ImageColor3 = tone("Gold")
+	ultGlow.ImageTransparency = Config.UI.Ults.OpponentGlowTransparency
+	ultGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+	ultGlow.Position = UDim2.fromScale(0.5, 0.5)
+	ultGlow.Size =
+		UDim2.fromScale(Config.UI.Ults.OpponentGlowShare, Config.UI.Ults.OpponentGlowShare)
+	ultGlow.ZIndex = 6
+	ultGlow.Visible = false
 	local ultArt = HudParts.icon(ult, "UltBadge", "Art")
 	ultArt.Size = UDim2.fromScale(1, 1)
 	ultArt.ZIndex = 7
@@ -196,8 +208,10 @@ local function makePortrait(parent: Instance): any
 		badge = badge,
 		ult = ult,
 		ultArt = ultArt,
+		ultGlow = ultGlow,
 		ultBall = ultBall,
 		ultLit = nil,
+		ultIcon = nil, -- the icon shown (the opponent's equipped ult's), "" for the badge
 		rankConnections = {},
 		rankPending = false,
 		userId = nil,
@@ -205,22 +219,40 @@ local function makePortrait(parent: Instance): any
 	}
 end
 
--- Light an opponent's ult icon (ready) or fade it; `shown` false hides it.
-local function paintUlt(portrait: any, shown: boolean, lit: boolean)
+-- The icon of the ult `userId` plays with: their UltEquipped attribute (the server keeps it
+-- to the ult it would arm), a pretend player's the default; "" when it has none.
+local function ultIconOf(userId: number?): string
+	local who = if userId then Players:GetPlayerByUserId(userId) else nil
+	local equipped = if who then who:GetAttribute("UltEquipped") else nil
+	local id = if type(equipped) == "string" and UltCatalog.exists(equipped)
+		then equipped
+		else Config.Ults.Default
+	return UltCatalog.icon(id)
+end
+
+-- Light an opponent's ult icon (ready) or fade it; `shown` false hides it. `icon` is their
+-- ult's icon ("" falls back to the badge).
+local function paintUlt(portrait: any, shown: boolean, lit: boolean, icon: string)
 	portrait.ult.Visible = shown
-	if not shown or portrait.ultLit == lit then
+	if not shown or (portrait.ultLit == lit and portrait.ultIcon == icon) then
 		return
 	end
+	local becameLit = lit and portrait.ultLit ~= lit
 	portrait.ultLit = lit
+	portrait.ultIcon = icon
 	local art = if lit then K.Icons.UltBadgeGold else K.Icons.UltBadge
 	if art == "" then
 		art = K.Icons.UltBadge
+	end
+	if icon ~= "" then
+		art = icon
 	end
 	local fade = if lit then 0 else Config.UI.Ults.OpponentDimTransparency
 	portrait.ultArt.Image = art
 	portrait.ultArt.Visible = art ~= ""
 	portrait.ultArt.ImageTransparency = fade
 	portrait.ultArt.ImageColor3 = if lit then Color3.new(1, 1, 1) else tone("Grey")
+	portrait.ultGlow.Visible = lit and icon ~= "" and portrait.ultGlow.Image ~= ""
 	local ball = portrait.ultBall
 	ball.root.Visible = art == ""
 	HudParts.paintBall(ball, 8, false)
@@ -230,7 +262,7 @@ local function paintUlt(portrait: any, shown: boolean, lit: boolean)
 	ball.ring.Color = if lit then tone("Gold") else tone("Ink")
 	ball.ring.Thickness = if lit then K.Ball.StrokePx + 1 else K.Ball.StrokePx
 	ball.ring.Transparency = fade
-	if lit then
+	if becameLit then
 		UIAnim.bounce(portrait.ult)
 	end
 end
@@ -1103,7 +1135,8 @@ function MatchHUD.setSnapshot(self: any, snapshot: any?, userId: number)
 			paintUlt(
 				portrait,
 				type(ultBar) == "table",
-				type(ultBar) == "table" and ultBar.ready == true
+				type(ultBar) == "table" and ultBar.ready == true,
+				if type(ultBar) == "table" then ultIconOf(seat.userId) else ""
 			)
 			-- The border stays ink: the shooter's green is the clock ring over it, so as the
 			-- ring drains the ink shows through (a green border under it hid the draining).

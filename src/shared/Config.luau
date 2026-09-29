@@ -2369,6 +2369,17 @@ Config.Ults = {
 	},
 }
 
+-- Eagle's Eye (docs/prompts/ABILITIES_PROMPT.md 7.2; src/shared/Ults/Predict.luau): the aim's
+-- full path, the cue ball's and the first object ball's, from the real simulation.
+Config.Ults.EaglesEye = {
+	-- The drawn path keeps a point every this many fixed steps (240 Hz) between bounces: 6 is
+	-- 40 points a second of travel, smooth enough for the curves spin and throw make.
+	SampleSteps = 6,
+	-- Each drawn path stops at this many cushion bounces (nil: every bounce to rest). The
+	-- harness's lever if the worth comes out far over the Common row. (tune)
+	MaxRails = nil :: number?,
+}
+
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
 -- has been hit (it is moving) and is heading roughly toward a pocket inside that pocket's pull
 -- zone has its heading turned toward an aim point just inside the mouth and its speed blended
@@ -2460,8 +2471,15 @@ Config.Ults.Shared = {
 -- into ReplicatedStorage.AbilityAssets). Each row: an asset id (0 while not uploaded), and
 -- the image ids its look needs. Filled as each ability is built.
 Config.Ults.Assets = {
-	Models = {} :: { [string]: number },
-	Images = {} :: { [string]: string },
+	Models = {
+		-- tools/blender/abilities/magnet.py: FieldArcs, FieldFlares, FieldRing, Chevron and
+		-- PoleCaps, one shared texture (MeshPart.TextureID), unit size (scaled at runtime).
+		MagnetField = 96715013262604,
+	} :: { [string]: number },
+	Images = {
+		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
+		MagnetFieldBeam = "rbxassetid://138868230682274",
+	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
 	Icons = {
@@ -5747,6 +5765,11 @@ Config.UI.Menu = {
 		TextPx = 20,
 		ShortTextPx = 16,
 		PadPx = 18, -- room each side of the words
+		-- An ability roll's line: the ability's icon at the left end, PadPx in, IconGapPx
+		-- before the words.
+		IconPx = 30,
+		ShortIconPx = 26,
+		IconGapPx = 6,
 		MaxWidthPx = 620,
 		SideMarginPx = 10, -- never closer to the screen's sides
 		BelowPx = 6, -- the gap under anything it moves below (the rank HUD, the status card)
@@ -6258,6 +6281,16 @@ Config.UI.Ults = {
 	ArmedTextPx = { 14, 18 },
 	OpponentPx = { 22, 26 },
 	OpponentTextPx = { 14, 16 },
+	-- Each armed pill's ability icon (Config.Ults.Assets.Icons) on its left end, bigger than the
+	-- pill like the bar's badge ball, hanging IconOutShare of itself past the pill's left end;
+	-- the words start IconGapPx after it.
+	ArmedIconPx = { 34, 42 },
+	OpponentIconPx = { 30, 34 },
+	IconOutShare = 0.2,
+	IconGapPx = 2,
+	-- A long pill ("Opponent's ability: GUANGDONG TIGER" on a phone) is never wider than this
+	-- share of the screen; the fade's canvas widens to hold it, so it is never cut off.
+	ArmedMaxWidthShare = 0.8,
 	NoteTextPx = 14, -- "Coming soon" over a placeholder's pill
 	-- Solo: the Practice ult button in the bar's place.
 	PracticeTone = "Blue", -- a Config.UI.Kit.Buttons name
@@ -6268,9 +6301,14 @@ Config.UI.Ults = {
 	NoticeTextPx = { 14, 18 },
 	NoticeSeconds = 2.2,
 	NoticeFadeSeconds = 0.4,
-	-- The top bar (MatchHUD): a small ult icon on each opponent's portrait, lit when ready.
+	-- The top bar (MatchHUD): a small ult icon on each opponent's portrait, lit when ready: the
+	-- ability they have equipped (their UltEquipped attribute; a pretend player's is
+	-- Config.Ults.Default), greyed and faded until ready, then in full colour on a soft gold
+	-- glow (Kit.Art.SoftGlow, OpponentGlowShare of the icon, at OpponentGlowTransparency).
 	OpponentIconShare = 0.6, -- of the portrait's size
 	OpponentDimTransparency = 0.55, -- not ready: faded
+	OpponentGlowShare = 1.6,
+	OpponentGlowTransparency = 0.3,
 	-- The NO ULTS pill: under the top bar's clock, and on the result screen under VS.
 	NoUltsTextPx = 14,
 	NoUltsPadPx = 8, -- room at each end of its words
@@ -6474,6 +6512,26 @@ Config.UI.UltCutscene = {
 	TextMinPx = 22,
 	OutlineShare = 0.12, -- a big word's outline, of its size (thicker than the kit's tenth)
 	OutlineMinPx = 3,
+	-- The ability's icon (Config.Ults.Assets.Icons; ABILITIES_PROMPT 5.1), stamped into the band
+	-- beside the avatar, tilted with it: its centre IconFromAvatarShare of the avatar window's
+	-- width right of the avatar's centre, IconYShare down the band, IconShare of the picture's
+	-- height big (clear of "ABILITY" top left and the name bottom right). At IconDelaySeconds
+	-- (the slam landing) it pops from IconFromScale to 1 over IconPopSeconds with a burst of
+	-- the rarity colour behind it (Kit.Art.SoftGlow growing from IconGlowFromScale to
+	-- IconGlowToScale of the icon over IconGlowSeconds, fading out from IconGlowTransparency,
+	-- lightened IconGlowWhiteShare toward white), then stays until the band squeezes, fading
+	-- with the words. It adds no time: the panel still ends by Config.Ults.CutsceneSeconds.
+	IconShare = 0.72,
+	IconFromAvatarShare = 0.55,
+	IconYShare = 0.47, -- a little above the middle, clear of the name on the bottom edge
+	IconDelaySeconds = 0.1,
+	IconPopSeconds = 0.16,
+	IconFromScale = 1.3,
+	IconGlowSeconds = 0.35,
+	IconGlowFromScale = 0.8,
+	IconGlowToScale = 2.1,
+	IconGlowTransparency = 0.1,
+	IconGlowWhiteShare = 0.15,
 	-- The timeline. 0 to SlamSeconds: the panel slams in from the right along its tilt, a little
 	-- large, overshooting as it lands; the words pop in after TextDelaySeconds. PushStart to
 	-- PushEnd: the camera eases in to PushInScale of its distance. From ShrinkStart: the band
@@ -6722,6 +6780,7 @@ Config.UI.UltScreen = {
 		CurrentTextPx = 20,
 		NameTextPx = 64,
 		NameOutlinePx = 6, -- the name's thick ink outline
+		NameIconPx = 72, -- the ability's icon left of the name, as tall as the name's row
 		DescTextPx = 18,
 		DescWidthPx = 600,
 		-- Left: the three slot cards.
@@ -6732,6 +6791,9 @@ Config.UI.UltScreen = {
 		SlotPillHeightPx = 30, -- EQUIPPED, SELECT or PURCHASE
 		SlotPillTextPx = 18,
 		SlotStripPx = 6, -- the rarity strip under the name
+		-- The slot's ability icon, top left, the name and the strip to its right (at most down to
+		-- the pill: it shrinks to fit a short card).
+		SlotIconPx = 58,
 		LockPx = 30, -- the lock toggle, top right
 		-- Right: the odds (the Lucky odds switch, the rarity bars and their lists) and the code box.
 		OddsWidthPx = 320,
@@ -6741,6 +6803,7 @@ Config.UI.UltScreen = {
 		BarTextPx = 20,
 		RowHeightPx = 28, -- one ult in an opened bar's list
 		RowTextPx = 16,
+		RowIconPx = 26, -- its ability icon, left of the name
 		CodeTextPx = 18,
 		CodeBoxPx = 40,
 		RedeemWidthPx = 110,
@@ -6796,6 +6859,7 @@ Config.UI.UltScreen = {
 		CurrentTextPx = 14,
 		NameTextPx = 32,
 		NameOutlinePx = 3,
+		NameIconPx = 40,
 		DescTextPx = 14,
 		DescWidthPx = 380,
 		SlotWidthPx = 124,
@@ -6805,6 +6869,7 @@ Config.UI.UltScreen = {
 		SlotPillHeightPx = 18,
 		SlotPillTextPx = 14,
 		SlotStripPx = 4,
+		SlotIconPx = 30,
 		LockPx = 22,
 		OddsWidthPx = 380,
 		SwitchHeightPx = 30,
@@ -6813,6 +6878,7 @@ Config.UI.UltScreen = {
 		BarTextPx = 16,
 		RowHeightPx = 26,
 		RowTextPx = 14,
+		RowIconPx = 24,
 		CodeTextPx = 16,
 		CodeBoxPx = 36,
 		RedeemWidthPx = 90,

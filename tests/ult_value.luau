@@ -70,6 +70,11 @@ V.SKILLS = {
 	{ angleDeg = 0.9, power = 0.10 },
 	{ angleDeg = 1.6, power = 0.15 },
 }
+-- Aim aids: an armed ult that shows the shot's outcome while aiming (Eagle's Eye's full path)
+-- lets the shooter nudge the aim until the drawn path pots, so only the input's own
+-- precision is left of the aim noise: this sigma (degrees) at every skill. Power noise stays
+-- (the pull is released by hand).
+V.AIM_AIDS = { EaglesEye = 0.15 } :: { [string]: number }
 -- The careful shooter: how many of its best pots it considers, how many noise draws it
 -- judges each by, and how many picks per shot for a pick ability.
 V.TOP_K = 3
@@ -853,7 +858,9 @@ local function shoot(
 ): Result
 	local before = Ball.cloneList(ts.balls)
 	local sim = Simulation.newState(geometry, Ball.cloneList(ts.balls))
-	local events = { Simulation.strike(sim, V.noisy(plan, skill, z1, z2)) }
+	local aid = if ultId and not V.inert(ultId) then V.AIM_AIDS[ultId] else nil
+	local zAim = if aid then z1 * math.min(1, aid / V.SKILLS[skill].angleDeg) else z1
+	local events = { Simulation.strike(sim, V.noisy(plan, skill, zAim, z2)) }
 	if ultId then
 		local o = Match.shotOverrides(fakeTable(ts, ultId, plan.pick, plan.called), before)
 		if o then
