@@ -1834,3 +1834,16 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   not a separate ScreenGui, so the money HUD and flying chips stay bright above it.
 - 2026-09-28: The ult cutscene's avatar stands upright in its own window inside the tilted band
   (a ViewportFrame neither rotates nor clips under a rotated frame), framed to include a hat.
+- 2026-09-28 (overnight assumption): In a No-ults global search, the 30 s offer's Yes moves
+  only this search into the Ults On pool (it keeps its waiting time); the saved toggle stays
+  Off. No hides the offer for the rest of that search. The Ults toggle is hidden, and refused
+  by the server, while a search runs. The server takes a Yes up to 1 s early (clock drift).
+  "Play another" from an arena stays in the arena's pool.
+- 2026-09-28 (overnight assumption): A restricted player (PolicyService: no paid random items)
+  cannot buy spins with Robux or money, but can use spins and Lucky Spins they already hold or
+  get free (starter, daily, rank-ups, codes). While the spin screen is hidden
+  (`Config.Ults.ScreenLive = false`), spin requests answer NotLive.
+- 2026-09-28 (overnight assumption): Rank-up spins are paid on reaching a tier's division I
+  (ECONOMY 11.7's table); the day's last playtime gift adds its spin to the gift rather than
+  replacing it; an ult icon also shows beside a teammate on your own side; a difficulty the
+  fill table does not list gets x1.
