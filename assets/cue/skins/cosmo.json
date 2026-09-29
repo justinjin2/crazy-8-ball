@@ -1,0 +1,90 @@
+{
+  "id": "cosmo",
+  "name": "Cosmo",
+  "tier": "Uncommon",
+  "catalog_id": "CosmoCue",
+  "concept": "U3",
+  "palette": [
+    "#0A0A12",
+    "#2B3FFF",
+    "#8A2BE2",
+    "#E040A0"
+  ],
+  "painter": "mix",
+  "note": "Gloss metallic black with one shimmering galaxy stripe of deep blue, violet and magenta inlaid along the butt. Look from: Predator P3 Galaxy.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "The forearm is glossy metallic black deep space (#0A0A12) with a shimmering galaxy stripe: a flowing river of nebula clouds in deep blue (#2B3FFF), violet (#8A2BE2) and magenta (#E040A0) that sweeps in a long S-curve along the middle row from left to right, glowing brighter in its core, with hundreds of tiny white and pale blue star specks and a few four-pointed sparkles. Near the left third, a small glassy violet planet orb about 60 pixels across. A thin violet line and a thin blue line curl through the space in elegant swirls. The two thin strips at the far left are the joint collar: paint them plain flat silver grey (#9A9EA6).",
+      "roll_deg": 45
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): flat bright violet (#A45BFF). The wrap (from the ring to the next zone line): plain flat black (#101012). The butt sleeve (between the two zone lines on the right): glossy black deep space with a bright spiral galaxy on the middle row, about 220 pixels across: glowing magenta-white core (#E040A0) with spiral arms of violet (#8A2BE2) and blue (#2B3FFF) dust and tiny white stars all around. The very thin strip at the far right: plain black.",
+      "roll_deg": 45
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/cosmo/shaft_tile.png",
+    "shaft_top": "skins/cosmo/shaft_top.png",
+    "forearm": "skins/cosmo/forearm.png",
+    "butt": "skins/cosmo/butt.png",
+    "cap_end": "skins/cosmo/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "space": "#0A0A12",
+    "blue": "#2B3FFF",
+    "violet": "#8A2BE2",
+    "magenta": "#E040A0",
+    "metal": "#C8CCD0",
+    "wrap": "#101012",
+    "glow": "#9A4BFF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#9A4BFF"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "violet glowing ring"
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          160,
+          90,
+          255
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

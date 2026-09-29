@@ -361,7 +361,7 @@ and you ask the designer about it.
   whole look of the set is decided here. After this, make everything else without stopping
   for approval.
 - [x] 3. Commons (6 more): C1, C2.
-- [ ] 4. Uncommons (9): U1-U3, glowing rings.
+- [x] 4. Uncommons (9): U1-U3, glowing rings.
 - [ ] 5. Rares (9 more): R1-R3, every one with its own aura.
 - [ ] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
 - [ ] 7. Legendaries (7): L1-L7, base cue, every one with a trail and a pocket finisher, at

@@ -1,0 +1,71 @@
+{
+  "id": "splice",
+  "name": "Splice",
+  "tier": "Uncommon",
+  "catalog_id": "SpliceCue",
+  "concept": "U2",
+  "palette": [
+    "#15110E",
+    "#2E86DE",
+    "#9FE8FF",
+    "#F1EAD8"
+  ],
+  "painter": "procedural",
+  "note": "Black wood with sixteen long spliced points (eight on the forearm, eight on the sleeve), each layered with bright blue and sky-blue veneers edged in ivory. Look from: Predator True Splice 16.",
+  "panels": {
+    "shaft_tile": "skins/splice/shaft_tile.png",
+    "shaft_top": "skins/splice/shaft_top.png",
+    "forearm": "skins/splice/forearm.png",
+    "butt": "skins/splice/butt.png",
+    "cap_end": "skins/splice/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "blue": "#2E86DE",
+    "sky": "#9FE8FF",
+    "ivory": "#F1EAD8",
+    "wrap": "#0E0E10",
+    "glow": "#5AA8FF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#4A9CFF"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "blue glowing ring"
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          80,
+          160,
+          255
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

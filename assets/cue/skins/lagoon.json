@@ -1,0 +1,70 @@
+{
+  "id": "lagoon",
+  "name": "Lagoon",
+  "tier": "Uncommon",
+  "catalog_id": "LagoonCue",
+  "concept": "U2",
+  "palette": [
+    "#0B0B0B",
+    "#1FC8C8",
+    "#FFFFFF"
+  ],
+  "painter": "procedural",
+  "note": "Gloss black with six bold turquoise-and-white graphic points sweeping up the forearm, and matching turquoise rings. Look from: Viking's graphic cues.",
+  "panels": {
+    "shaft_tile": "skins/lagoon/shaft_tile.png",
+    "shaft_top": "skins/lagoon/shaft_top.png",
+    "forearm": "skins/lagoon/forearm.png",
+    "butt": "skins/lagoon/butt.png",
+    "cap_end": "skins/lagoon/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "teal": "#1FC8C8",
+    "white": "#F4F8F8",
+    "black": "#0B0B0B",
+    "wrap": "#0E0E10",
+    "glow": "#5AF0F0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#3AE8E8"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "turquoise glowing ring"
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          60,
+          230,
+          230
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

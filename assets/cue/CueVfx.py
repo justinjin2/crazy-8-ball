@@ -446,28 +446,53 @@ class Beam:
         self.zoffset = float(spec.get('ZOffset', 0))
         self.face = bool(spec.get('FaceCamera', True))
         self.pulse = spec.get('Pulse')  # a script tweening Transparency: alpha x wave(t)
+        # a curved beam: Bezier control points at 1/3 and 2/3 of the way, pushed off the line by
+        # Curve0 / Curve1 = [up, side] studs (in Roblox: each attachment's Axis and CurveSize);
+        # Twist turns both offsets round the cue at degrees a second (a script)
+        self.curve0 = spec.get('Curve0')
+        self.curve1 = spec.get('Curve1')
+        self.twist = float(spec.get('Twist', 0))
         tex = spec.get('Texture', 'vfx/_shared/glow_soft.png')
         self.texture = tex if os.path.isabs(tex) else os.path.join(texture_root, tex)
+
+    def points(self, t, k):
+        """Local points along the beam at fractions k (Bezier when curved)."""
+        a0, a1 = self.a0, self.a1
+        if not (self.curve0 or self.curve1):
+            return a0[None] * (1 - k[:, None]) + a1[None] * k[:, None]
+        ang = math.radians(self.twist * t)
+
+        def off(c):
+            if not c:
+                return np.zeros(3)
+            up, side = c[0], c[1]
+            ca, sa = math.cos(ang), math.sin(ang)
+            up, side = up * ca - side * sa, up * sa + side * ca
+            return np.array([-side, 0.0, up])  # cue_point axes: x = -side, z = up
+        c1 = a0 + (a1 - a0) / 3 + off(self.curve0)
+        c2 = a0 + (a1 - a0) * 2 / 3 + off(self.curve1)
+        kk = k[:, None]
+        return ((1 - kk) ** 3 * a0 + 3 * (1 - kk) ** 2 * kk * c1 + 3 * (1 - kk) * kk ** 2 * c2 + kk ** 3 * a1)
 
     def quads(self, t, host_m, cam_m, pulse=1.0):
         R, T = host_m[:3, :3], host_m[:3, 3]
         n = self.segments
         k = np.linspace(0, 1, n + 1)
-        P = (self.a0[None] * (1 - k[:, None]) + self.a1[None] * k[:, None]) @ R.T + T
+        P = self.points(t, k) @ R.T + T
         cam = cam_m[:3, 3]
         view = cam[None] - P
         view /= np.maximum(np.linalg.norm(view, axis=1, keepdims=True), 1e-6)
         P = P + view * self.zoffset
-        tang = (self.a1 - self.a0) @ R.T
-        tang = tang / np.linalg.norm(tang)
+        tang = np.gradient(P, axis=0)
+        tang = tang / np.maximum(np.linalg.norm(tang, axis=1, keepdims=True), 1e-6)
         if self.face:
-            side = np.cross(tang[None], view)
+            side = np.cross(tang, view)
         else:
             side = np.repeat((np.array([1.0, 0, 0]) @ R.T)[None], n + 1, 0)
         side /= np.maximum(np.linalg.norm(side, axis=1, keepdims=True), 1e-6)
         w = (self.w0 * (1 - k) + self.w1 * k) / 2
         L, Rr = P - side * w[:, None], P + side * w[:, None]
-        length = np.linalg.norm(self.a1 - self.a0)
+        length = float(np.linalg.norm(np.diff(self.points(t, k), axis=0), axis=1).sum())
         if self.mode == 'Stretch':
             u = k.copy()
         else:
@@ -483,6 +508,192 @@ class Beam:
         rgba_pt = np.concatenate([col, alpha[:, None]], 1)
         rgba = np.stack([rgba_pt[:-1], rgba_pt[:-1], rgba_pt[1:], rgba_pt[1:]], 1)
         return corners, uv, rgba
+
+
+# =============================================================================================
+# Scripted pieces: orbiters (a Trail on an attachment pair a script flies round the cue) and
+# arcs (lightning: chains of short Beams whose attachments a script re-jitters). Each behaves
+# like an Emitter in the preview loops: step(dt, host_m), quads(host_m, cam_m), texture, le.
+# =============================================================================================
+
+class Orbiter:
+    """An attachment pair flown by a script along a helix round the cue: along the cue from
+    FromStuds to ToStuds in TravelSeconds (Loop 'wrap' starts again at FromStuds, 'pingpong' comes
+    back), TurnsPerSecond round it at Radius studs (plus Wobble studs in and out), starting at
+    Phase degrees and Delay seconds. It carries a Roblox Trail (the spec's Trail keys: Lifetime,
+    WidthStuds = the attachments' spacing, Color, Transparency, WidthScale, LightEmission,
+    Texture). The trail is laid in the world, so it streams behind as the cue moves."""
+
+    extension = 'REPEAT'
+
+    def __init__(self, spec, texture_root=HERE):
+        self.spec = spec
+        tr = dict(spec.get('Trail') or {})
+        tr.setdefault('MinLength', 0.02)
+        self.trail = Trail(tr, texture_root)
+        self.texture, self.le, self.brightness = self.trail.texture, self.trail.le, self.trail.brightness
+        self.t = -float(spec.get('Delay', 0.0))
+        self.last_u = None
+
+    def local(self, t):
+        s = self.spec
+        a0, a1 = float(s.get('FromStuds', 0.3)), float(s.get('ToStuds', 6.9))
+        T = float(s.get('TravelSeconds', 1.5))
+        u = (t / T) if T > 0 else 0.0
+        if s.get('Loop', 'wrap') == 'pingpong':
+            f = u % 2.0
+            f = f if f <= 1 else 2 - f
+        else:
+            f = u % 1.0
+        d = a0 + (a1 - a0) * f
+        ang = math.radians(float(s.get('Phase', 0))) + 2 * math.pi * float(s.get('TurnsPerSecond', 1.0)) * t
+        rad = float(s.get('Radius', 0.2)) + float(s.get('Wobble', 0.0)) * math.sin(2 * math.pi * t * float(s.get('WobbleHz', 1.3)))
+        return np.array([rad * math.sin(ang), -d, -rad * math.cos(ang)]), u
+
+    def step(self, dt, host_m, emitting=True):
+        self.t += dt
+        if self.t < 0:
+            return
+        loc, u = self.local(self.t)
+        if self.spec.get('Loop', 'wrap') != 'pingpong' and self.last_u is not None and int(u) != int(self.last_u):
+            self.trail.pts = []  # wrapped back to the start: the attachment jumps, the trail breaks
+        self.last_u = u
+        R, T = host_m[:3, :3], host_m[:3, 3]
+        self.pos = loc @ R.T + T
+        self.trail.step(self.t, self.pos)
+
+    def quads(self, host_m, cam_m):
+        if self.t < 0:
+            return None
+        return self.trail.quads(self.t, cam_m)
+
+
+class OrbiterHead:
+    """A glowing sprite riding an orbiter (in Roblox a ParticleEmitter with Rate 0 would not do:
+    it is a small camera-facing BillboardGui or a Beam dot on the same attachment)."""
+
+    extension = 'CLIP'
+
+    def __init__(self, orbiter, spec, texture_root=HERE):
+        self.o = orbiter
+        self.size = float(spec.get('Size', 0.3))
+        self.color = hexf(spec.get('Color', '#FFFFFF'))
+        self.alpha = 1 - float(spec.get('Transparency', 0.0))
+        tex = spec.get('Texture', 'vfx/_shared/glow_core.png')
+        self.texture = tex if os.path.isabs(tex) else os.path.join(texture_root, tex)
+        self.le = float(spec.get('LightEmission', 1))
+        self.brightness = float(spec.get('Brightness', 1))
+
+    def step(self, dt, host_m, emitting=True):
+        pass
+
+    def quads(self, host_m, cam_m):
+        if self.o.t < 0 or not hasattr(self.o, 'pos'):
+            return None
+        p = self.o.pos
+        r, u = cam_m[:3, 0] * self.size / 2, cam_m[:3, 1] * self.size / 2
+        corners = np.array([[p - r - u, p + r - u, p + r + u, p - r + u]])
+        uv = np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], np.float64)
+        rgba = np.array([list(self.color) + [self.alpha]])
+        return corners, uv, rgba
+
+
+class Arcs:
+    """Lightning arcs crackling over the cue: Count arcs, each a chain of Segments short Beams on
+    Segments + 1 attachments. Every Interval seconds a script picks each arc a new start (FromStuds
+    to ToStuds, any angle), a length (Length [min, max] studs along the cue), a turn round the cue
+    (Around degrees) and a fresh jag (Jitter studs off the surface at Radius); the arc shows for
+    Duty of the interval (the flicker). Drawn camera-facing, WidthStuds wide, Texture across."""
+
+    extension = 'CLIP'
+
+    def __init__(self, spec, seed=0, texture_root=HERE):
+        self.spec = spec
+        self.rs = np.random.RandomState(seed)
+        self.t = 0.0
+        self.slot = None
+        self.paths = []
+        tex = spec.get('Texture', 'vfx/_shared/bolt_strip.png')
+        self.texture = tex if os.path.isabs(tex) else os.path.join(texture_root, tex)
+        self.le = float(spec.get('LightEmission', 1))
+        self.brightness = float(spec.get('Brightness', 1))
+        self.color = hexf(spec.get('Color', '#C9A0FF'))
+
+    def repick(self):
+        s, rs = self.spec, self.rs
+        n = int(s.get('Count', 3))
+        seg = int(s.get('Segments', 6))
+        a0, a1 = float(s.get('FromStuds', 3.6)), float(s.get('ToStuds', 6.9))
+        lmin, lmax = s.get('Length', [0.25, 0.7])
+        around = math.radians(float(s.get('Around', 90)))
+        rad = float(s.get('Radius', 0.12))
+        jit = float(s.get('Jitter', 0.05))
+        self.paths = []
+        for _ in range(n):
+            L = lmin + (lmax - lmin) * rs.random_sample()
+            d0 = a0 + (a1 - a0 - L) * rs.random_sample()
+            th0 = rs.random_sample() * 2 * math.pi
+            th1 = th0 + (rs.random_sample() * 2 - 1) * around
+            k = np.linspace(0, 1, seg + 1)
+            d = d0 + L * k
+            th = th0 + (th1 - th0) * k
+            # the arc bows out from the surface in the middle and jags
+            r = rad + jit * (np.sin(math.pi * k) * (0.6 + 0.8 * rs.random_sample()))
+            jag = (rs.random_sample((seg + 1, 3)) * 2 - 1) * jit
+            jag[0] = jag[-1] = 0
+            pts = np.stack([r * np.sin(th), -d, -r * np.cos(th)], -1) + jag
+            self.paths.append(pts)
+
+    def step(self, dt, host_m, emitting=True):
+        self.t += dt
+        slot = int(self.t / float(self.spec.get('Interval', 0.12)))
+        if slot != self.slot:
+            self.slot = slot
+            self.repick()
+
+    def quads(self, host_m, cam_m):
+        s = self.spec
+        iv = float(s.get('Interval', 0.12))
+        if (self.t % iv) / iv > float(s.get('Duty', 0.6)):
+            return None
+        R, T = host_m[:3, :3], host_m[:3, 3]
+        cam = cam_m[:3, 3]
+        w = float(s.get('WidthStuds', 0.05)) / 2
+        alpha = 1 - float(s.get('Transparency', 0.0))
+        C, U, A = [], [], []
+        for pts in self.paths:
+            P = pts @ R.T + T
+            tang = np.gradient(P, axis=0)
+            tang /= np.maximum(np.linalg.norm(tang, axis=1, keepdims=True), 1e-6)
+            view = cam[None] - P
+            view /= np.maximum(np.linalg.norm(view, axis=1, keepdims=True), 1e-6)
+            side = np.cross(tang, view)
+            side /= np.maximum(np.linalg.norm(side, axis=1, keepdims=True), 1e-6)
+            taper = np.sin(np.linspace(0.15, math.pi - 0.15, len(P)))
+            L, Rr = P - side * (w * taper)[:, None], P + side * (w * taper)[:, None]
+            n = len(P) - 1
+            k = np.linspace(0, 1, n + 1)
+            C.append(np.stack([L[:-1], Rr[:-1], Rr[1:], L[1:]], 1))
+            U.append(np.stack([np.stack([k[:-1], np.zeros(n)], -1), np.stack([k[:-1], np.ones(n)], -1),
+                               np.stack([k[1:], np.ones(n)], -1), np.stack([k[1:], np.zeros(n)], -1)], 1))
+            A.append(np.repeat(np.array([list(self.color) + [alpha]])[None], n, 0).repeat(4, 1).reshape(n, 4, 4))
+        if not C:
+            return None
+        return np.concatenate(C), np.concatenate(U), np.concatenate(A)
+
+
+def make_pieces(aura, seed=1, rate_scale=1.0, texture_root=HERE):
+    """The scripted pieces of an aura block: Orbiters (with optional Head) and Arcs. On the back
+    (rate_scale < 1) arcs keep their count; orbiters are the same (they cost no particles)."""
+    out = []
+    for i, spec in enumerate(aura.get('Orbiters') or []):
+        o = Orbiter(spec, texture_root)
+        out.append(o)
+        if spec.get('Head'):
+            out.append(OrbiterHead(o, spec['Head'], texture_root))
+    for i, spec in enumerate(aura.get('Arcs') or []):
+        out.append(Arcs(spec, seed=seed + 101 * i, texture_root=texture_root))
+    return out
 
 
 def wave(t, spec):
@@ -736,6 +947,235 @@ def sprite_wisp_strip(w=1024, h=256, seed=13, lanes=9):
     return _rgba(a, core=core)
 
 
+# --- sprites for the Rare auras (all drawn by script: deterministic, no cost) -----------------
+
+def sprite_strip(w=256, h=64, core_w=0.07, glow_w=0.3, glow=0.45, seed=0, flicker=0.0):
+    """A glowing line along u: a hot core and a soft glow across v (neon tubes, lightning).
+    flicker > 0 breaks the core's brightness along u (periodic)."""
+    u = (np.arange(w) + 0.5) / w
+    v = (np.arange(h) + 0.5) / h
+    U, Vv = np.meshgrid(u, v)
+    a = np.exp(-((Vv - 0.5) / core_w) ** 2) + glow * np.exp(-((Vv - 0.5) / glow_w) ** 2)
+    if flicker:
+        ang = U * 2 * math.pi
+        f = cc.fbm(np.cos(ang) * 3, np.sin(ang) * 3, np.zeros_like(U), 3, seed)
+        a = a * (1 - flicker + flicker * 1.6 * f)
+    core = np.exp(-((Vv - 0.5) / (core_w * 0.6)) ** 2)
+    return _rgba(np.clip(a, 0, 1), core=core * 0.6)
+
+
+def fire_frame(i, n, frames=16, seed=21):
+    """One frame of a flame licking upward: a teardrop with a rounded base whose upper part is
+    torn into tongues by rising noise; white-yellow at the core, orange, red at the ragged tips.
+    Tall and hot early, shorter and redder as it dies (a OneShot flipbook). Colour baked."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    v = (0.92 - y) / 1.84  # 0 at the base, 1 at the top of the frame
+    t = k * 2.2
+    rise = cc.fbm(x * 2.5 + 3, (y + t * 1.6) * 2.5, np.full_like(x, t * 0.5), 3, seed) - 0.5
+    xs = x + rise * 0.7 * np.clip(v, 0, 1) ** 1.1
+    h = 0.98 - 0.3 * k
+    rb = 0.2
+    base = np.sqrt(np.clip(rb ** 2 - (rb - v) ** 2, 0, None)) / rb * 0.42
+    body = 0.42 * np.clip(1 - (v - rb) / (h - rb), 0, 1) ** 1.25
+    w = np.where(v < rb, base, body) * (1.0 - 0.2 * k)
+    d = (w - np.abs(xs)) / 0.05
+    shape = np.clip(d, 0, 1) * (v > -0.02)
+    tongues = cc.fbm(xs * 3.5 + 7, (y + t * 2.4) * 3.2, np.full_like(x, t), 3, seed + 5)
+    cut = np.clip((tongues - 0.12 - 0.5 * np.clip(v - 0.35, 0, 1)) * 2.2, 0, 1)
+    blend = np.clip((v - 0.12) / 0.4, 0, 1) ** 1.5
+    dens = shape * (1 - blend + blend * cut)
+    core = np.clip(1 - np.abs(xs) / np.maximum(w * 0.55, 1e-3), 0, 1) * np.clip(1 - v / (h * 0.75), 0, 1) * (1 - 0.6 * k)
+    col = np.stack([np.full_like(x, 255.0),
+                    np.clip(90 + 150 * core + 40 * (1 - v) - 60 * k, 30, 255),
+                    np.clip(20 + 190 * core ** 1.6 - 40 * k, 0, 255)], -1)
+    a = np.clip(dens * (1.0 - 0.35 * k) * (0.85 + 0.15 * core), 0, 1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_fire_sheet():
+    return flipbook(lambda i, n: fire_frame(i, n), 4, 1024)
+
+
+def sprite_snowflake(n=128):
+    """A six-armed snowflake with side branches and a soft glow."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x)
+    a = np.zeros_like(x)
+    for arm in range(6):
+        ang = arm * math.pi / 3
+        ca, sa = math.cos(ang), math.sin(ang)
+        along = x * ca + y * sa
+        across = -x * sa + y * ca
+        seg = np.where((along > 0) & (along < 0.85), np.abs(across), np.hypot(np.minimum(along, 0) + np.maximum(along - 0.85, 0), across))
+        a = np.maximum(a, np.exp(-(seg / 0.045) ** 2))
+        for at, ln in ((0.45, 0.28), (0.65, 0.2)):
+            for sgn in (1, -1):
+                bx, by = at * ca, at * sa
+                ba = ang + sgn * math.pi / 4
+                cb, sb = math.cos(ba), math.sin(ba)
+                px, py = x - bx, y - by
+                al = px * cb + py * sb
+                ac = -px * sb + py * cb
+                d = np.where((al > 0) & (al < ln), np.abs(ac), 9)
+                a = np.maximum(a, np.exp(-(d / 0.035) ** 2))
+    a = np.maximum(a, np.exp(-(r / 0.12) ** 2))
+    a = np.clip(a + 0.25 * np.clip(1 - r, 0, 1) ** 3, 0, 1)
+    return _rgba(a, (225, 240, 255), core=a * 0.5)
+
+
+def sprite_bubble(n=128):
+    """A soap bubble: a thin bright rim, a faint body, a highlight and a small second glint."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    rim = np.exp(-((r - 0.86) / 0.06) ** 2)
+    body = np.clip(1 - r / 0.9, 0, 1) * 0.1 + np.clip((r - 0.55) / 0.35, 0, 1) * 0.25 * (r < 0.92)
+    hi = np.exp(-(((x + 0.35) / 0.18) ** 2 + ((y + 0.38) / 0.12) ** 2))
+    hi2 = np.exp(-(((x - 0.4) / 0.07) ** 2 + ((y - 0.42) / 0.07) ** 2)) * 0.6
+    a = np.clip(rim * 0.9 + body + hi + hi2, 0, 1)
+    return _rgba(a, core=np.clip(hi + hi2, 0, 1))
+
+
+def ghost_frame(i, n, frames=4):
+    """A small friendly cartoon ghost: round head, a wavy hem that ripples frame to frame, two
+    big dark eyes and a little round mouth, a soft glow round it. Colour baked (mint white)."""
+    x, y = _grid(n)
+    ph = i / frames * 2 * math.pi
+    tilt = 0.08 * math.sin(ph)
+    xr = x * math.cos(tilt) - y * math.sin(tilt)
+    yr = x * math.sin(tilt) + y * math.cos(tilt)
+    head = np.hypot(xr, (yr + 0.15) * 1.02) < 0.5
+    hem = 0.58 + 0.09 * np.sin(xr * 10 + ph * 2)
+    body = (np.abs(xr) < 0.5 - 0.06 * np.clip(yr, 0, 1)) & (yr > -0.15) & (yr < hem)
+    shape = (head | body).astype(np.float64)
+    # soften the edge and add a halo
+    from_edge = shape
+    glow = np.clip(1 - np.hypot(x, y + 0.05) / 0.95, 0, 1) ** 2 * 0.35
+    col = np.zeros(x.shape + (3,)) + np.array([232.0, 255, 250])
+    shade = np.clip(0.9 + 0.1 * (-yr), 0.8, 1.0)
+    col = col * shade[..., None]
+    eyes = ((((xr - 0.17) / 0.075) ** 2 + ((yr + 0.2) / 0.11) ** 2) < 1) | ((((xr + 0.17) / 0.075) ** 2 + ((yr + 0.2) / 0.11) ** 2) < 1)
+    mouth = (((xr / 0.06) ** 2 + ((yr - 0.02) / 0.05) ** 2) < 1)
+    dark = (eyes | mouth) & (shape > 0)
+    col[dark] = np.array([40.0, 70, 82])
+    glint = ((((xr - 0.14) / 0.025) ** 2 + ((yr + 0.24) / 0.03) ** 2) < 1) | ((((xr + 0.2) / 0.025) ** 2 + ((yr + 0.24) / 0.03) ** 2) < 1)
+    col[glint] = 255
+    a = np.clip(shape * 0.92 + glow * (1 - shape), 0, 1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_ghost_sheet():
+    return flipbook(lambda i, n: ghost_frame(i, n), 2, 512, pad=4)
+
+
+def leaf_frame(i, n, frames=4, light=(168, 224, 107), dark=(46, 140, 64)):
+    """A leaf tumbling: the almond blade squashes across as it turns (the back side darker), with
+    a pale midrib and veins. Colour baked."""
+    x, y = _grid(n)
+    ang = i / frames * 2 * math.pi
+    sq = math.cos(ang)
+    back = sq < 0
+    k = max(abs(sq), 0.12)
+    # the leaf lies along the diagonal
+    a_ = x * 0.707 + y * 0.707
+    b_ = (-x * 0.707 + y * 0.707) / k
+    v = (a_ + 0.85) / 1.7
+    half = 0.36 * np.sin(math.pi * np.clip(v, 0, 1)) ** 0.8
+    blade = (np.abs(b_) < half) & (v > 0) & (v < 1)
+    stem = (np.abs(b_) < 0.025 / k) & (v > -0.12) & (v <= 0.02)
+    mid = np.exp(-(b_ * k / 0.02) ** 2)
+    veins = np.exp(-(((np.abs(b_) * k) - (v - 0.1) * 0.5 + np.round(v * 6) / 6 * 0.0) % 0.14 / 0.02) ** 2) * 0
+    t = np.clip(0.3 + 0.7 * v, 0, 1)
+    col = np.array(dark, np.float64) + (np.array(light, np.float64) - np.array(dark, np.float64)) * t[..., None] * (0.6 if back else 1.0)
+    col = col * (0.75 if back else 1.0)
+    col = col + (255 - col) * (mid * 0.35)[..., None]
+    shape = (blade | stem).astype(np.float64)
+    return np.concatenate([col, shape[..., None] * 255], -1)
+
+
+def sprite_leaf_sheet():
+    return flipbook(lambda i, n: leaf_frame(i, n), 2, 256, pad=4)
+
+
+def sprite_blossom(n=128):
+    """A small white five-petal flower with a golden centre."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x)
+    edge_r = 0.42 + 0.48 * np.abs(np.cos(2.5 * th)) ** 0.7
+    petal = r < edge_r
+    centre = r < 0.2
+    col = np.zeros(x.shape + (3,)) + np.array([255.0, 255, 250])
+    col = col * (0.88 + 0.12 * np.clip(r, 0, 1))[..., None]
+    col[centre] = np.array([255.0, 205, 60])
+    a = np.clip((edge_r - r) / 0.04, 0, 1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def petal_frame(i, n, frames=4, base=(255, 156, 199), tip=(255, 222, 236)):
+    """A cherry-blossom petal tumbling: a rounded petal with a notch at its outer end, pink
+    deepening to the base; it squashes across as it turns. Colour baked."""
+    x, y = _grid(n)
+    ang = i / frames * 2 * math.pi
+    k = max(abs(math.cos(ang)), 0.15)
+    a_ = x * 0.8 + y * 0.6
+    b_ = (-x * 0.6 + y * 0.8) / k
+    v = (a_ + 0.8) / 1.55
+    half = 0.42 * np.sin(math.pi * np.clip(v, 0, 1) ** 0.75) ** 0.7
+    notch = (v > 0.86) & (np.abs(b_) < (v - 0.86) * 1.3)
+    shape = ((np.abs(b_) < half) & (v > 0) & (v < 1) & ~notch).astype(np.float64)
+    t = np.clip(v, 0, 1)
+    col = np.array(base, np.float64) + (np.array(tip, np.float64) - np.array(base, np.float64)) * t[..., None]
+    if math.cos(ang) < 0:
+        col = col * 0.88
+    return np.concatenate([col, shape[..., None] * 255], -1)
+
+
+def sprite_petal_sheet():
+    return flipbook(lambda i, n: petal_frame(i, n), 2, 256, pad=4)
+
+
+SPRINKLE_COLOURS = [(255, 90, 160), (255, 220, 60), (80, 170, 255), (110, 220, 120), (255, 140, 50),
+                    (170, 110, 255), (255, 255, 255), (255, 70, 70)]
+
+
+def sprinkle_frame(i, n):
+    """One rainbow sprinkle (a rounded capsule) in its own colour and angle: pick a random frame
+    per particle with FlipbookStartRandom and a framerate of 0."""
+    x, y = _grid(n)
+    ang = (i * 67.0) % 180 * math.pi / 180
+    ca, sa = math.cos(ang), math.sin(ang)
+    al = x * ca + y * sa
+    ac = -x * sa + y * ca
+    d = np.hypot(np.clip(np.abs(al) - 0.42, 0, None), ac)
+    shape = np.clip((0.2 - d) / 0.03, 0, 1)
+    col = np.zeros(x.shape + (3,)) + np.array(SPRINKLE_COLOURS[i % len(SPRINKLE_COLOURS)], np.float64)
+    hi = np.exp(-((ac + 0.07) / 0.05) ** 2) * (np.abs(al) < 0.4)
+    col = col + (255 - col) * (hi * 0.55)[..., None]
+    return np.concatenate([col, shape[..., None] * 255], -1)
+
+
+def sprite_sprinkle_sheet():
+    return flipbook(lambda i, n: sprinkle_frame(i, n), 4, 512, pad=4)
+
+
+
+def sprite_stripe_strip(w=256, h=64, red=(224, 32, 46), white=(250, 248, 244)):
+    """A candy-stripe ribbon: red and white bands slanting across, periodic along u, with soft
+    long edges. Colour baked (the Trail's colour stays white)."""
+    u = (np.arange(w) + 0.5) / w
+    v = (np.arange(h) + 0.5) / h
+    U, Vv = np.meshgrid(u, v)
+    f = np.mod(U * 2 + Vv * 0.6, 1.0)
+    band = np.clip((np.abs(f - 0.5) - 0.23) / 0.03, 0, 1)
+    col = np.array(red, np.float64) * (1 - band[..., None]) + np.array(white, np.float64) * band[..., None]
+    shade = 0.8 + 0.2 * np.sin(math.pi * Vv)
+    col = col * shade[..., None]
+    a = np.clip(np.minimum(Vv, 1 - Vv) / 0.12, 0, 1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
 SHARED_SPRITES = {
     'halo_strip.png': sprite_halo_strip,
     'wisp_strip.png': sprite_wisp_strip,
@@ -748,6 +1188,8 @@ SHARED_SPRITES = {
     'spark.png': sprite_spark,
     'streak.png': sprite_streak,
     'smoke_4x4.png': sprite_smoke_sheet,
+    'neon_strip.png': lambda: sprite_strip(256, 64, 0.08, 0.3, 0.5),
+    'bolt_strip.png': lambda: sprite_strip(256, 64, 0.05, 0.22, 0.4, seed=5, flicker=0.5),
 }
 
 # A skin's own sprites: SKIN_SPRITES[id] = {file name: function}; filled in below per skin.
@@ -844,6 +1286,15 @@ def sprite_shard(n=128, seed=11, rim=(185, 138, 240)):
 
 SKIN_SPRITES['void'] = {'shard.png': sprite_shard, 'swirl.png': lambda: sprite_swirl(512, 3, 1.7, 3, 0.16), 'accretion.png': sprite_accretion,
                         'trail_smoke.png': sprite_trail_smoke}
+
+
+SKIN_SPRITES['blaze'] = {'fire_4x4.png': sprite_fire_sheet}
+SKIN_SPRITES['frostbite'] = {'snowflake.png': sprite_snowflake}
+SKIN_SPRITES['tidal'] = {'bubble.png': sprite_bubble}
+SKIN_SPRITES['phantom'] = {'ghost_2x2.png': sprite_ghost_sheet}
+SKIN_SPRITES['nature'] = {'leaf_2x2.png': sprite_leaf_sheet, 'blossom.png': sprite_blossom}
+SKIN_SPRITES['sakura'] = {'petal_2x2.png': sprite_petal_sheet}
+SKIN_SPRITES['candy'] = {'sprinkles_4x4.png': sprite_sprinkle_sheet, 'stripe_strip.png': sprite_stripe_strip}
 
 
 def make_sprites(which=None):

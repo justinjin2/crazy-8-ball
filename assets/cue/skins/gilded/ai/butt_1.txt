@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the butt: the thin strip at the far left is the ring, then the wrap (the handle grip), then the butt sleeve, then a thin rounded end at the far right of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1376 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Left thin strip (the ring): flat bright gold (#FFC23A). The wrap (from the ring to the next zone line): plain flat black (#101012). The butt sleeve (between the two zone lines on the right): black piano lacquer (#0D0D0D) with a large mother-of-pearl four-pointed diamond on the middle row (about 150 pixels tall, iridescent pearl white #EDE8E0 with a thin gold border), framed by symmetrical curling gold art-deco scrolls (#D4AF37) on both sides. The very thin strip at the far right: plain black.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #0D0D0D #D4AF37 #EDE8E0.
+No text, no letters, no numbers, no logos, no symbols with words.

@@ -1,0 +1,69 @@
+{
+  "id": "gummy",
+  "name": "Gummy",
+  "tier": "Uncommon",
+  "catalog_id": "GummyCue",
+  "concept": "U1",
+  "palette": [
+    "#FF7FB6",
+    "#8FD3FF",
+    "#C9CED4"
+  ],
+  "painter": "procedural",
+  "note": "Soft pastel blobs of pink and light blue, like gummy candy, over see-through silver carbon fiber, with colored joint rings and no wrap. Look from: Poison Candy.",
+  "panels": {
+    "shaft_tile": "skins/gummy/shaft_tile.png",
+    "shaft_top": "skins/gummy/shaft_top.png",
+    "forearm": "skins/gummy/forearm.png",
+    "butt": "skins/gummy/butt.png",
+    "cap_end": "skins/gummy/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "pink": "#FF7FB6",
+    "blue": "#8FD3FF",
+    "silver": "#C9CED4",
+    "glow": "#FF8CC8"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#FF7FC0"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "pink glowing ring"
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          130,
+          190
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

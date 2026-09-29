@@ -409,13 +409,43 @@ def blender_main(args):
     style_row = V.get('Style') or {}
     style = vfx.merged_style(style_row)
 
+    aura_spec = V.get('Aura') or {}
+
     def make_aura(rate_scale=1.0, seed=1):
         ems = []
         for i, spec in enumerate(aura_specs + (moving.get('Emitters') or [])):
             ems.append(vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale))
+        # the scripted pieces (orbiters, arcs) ride along like emitters
+        ems += vfx.make_pieces(aura_spec, seed=seed, rate_scale=rate_scale)
+        ems += vfx.make_pieces(moving, seed=seed + 7, rate_scale=rate_scale)
         return ems
 
-    aura_spec = V.get('Aura') or {}
+    # PointLights on the cue (Aura.Lights): a Blender point light each, placed and flickered per
+    # frame (Roblox Brightness x LIGHT_W watts; Range is Roblox's falloff, noted for the import)
+    LIGHT_W = 14.0
+    aura_lights = []
+    for i, spec in enumerate(aura_spec.get('Lights') or []):
+        ld = bpy.data.lights.new('AuraLight%d' % i, 'POINT')
+        ld.color = tuple(vfx.hexf(spec.get('Color', '#FFFFFF')))
+        ld.shadow_soft_size = 0.15
+        lo = bpy.data.objects.new('AuraLight%d' % i, ld)
+        scene.collection.objects.link(lo)
+        lo.location = (0, 0, -50)
+        aura_lights.append((spec, lo))
+    clock = [0.0]
+
+    def update_lights(host_m):
+        for spec, lo in aura_lights:
+            p = vfx.cue_point(spec.get('AtStuds', 5.0), spec.get('Up', 0.0), spec.get('Side', 0.0))
+            lo.location = tuple(host_m[:3, :3] @ p + host_m[:3, 3])
+            b = spec.get('Brightness', 1.0)
+            if spec.get('Flicker'):
+                b = b * vfx.wave(clock[0], spec['Flicker'])
+            lo.data.energy = b * LIGHT_W
+
+    def hide_lights():
+        for spec, lo in aura_lights:
+            lo.location = (0, 0, -50)
     beams = [vfx.Beam(b) for b in (aura_spec.get('Beams') or []) + (moving.get('Beams') or [])]
 
     def emitter_key(prefix, i, em):
@@ -423,16 +453,22 @@ def blender_main(args):
 
     def draw_emitters(prefix, ems, host_m, cam_m):
         for i, em in enumerate(ems):
-            ob = fx_object(emitter_key(prefix, i, em), em.texture, em.le, em.brightness)
+            ob = fx_object(emitter_key(prefix, i, em), em.texture, em.le, em.brightness,
+                           extension=getattr(em, 'extension', 'CLIP'))
             fill(ob, em.quads(host_m, cam_m))
+        if prefix == 'Aura':
+            update_lights(host_m)
 
     def clear_prefix(prefix):
         for k, ob in fx_objs.items():
             if k.startswith(prefix):
                 ob.data.clear_geometry()
+        if prefix == 'Aura':
+            hide_lights()
 
     def set_surface(t):
         """Runtime pulses on the SurfaceAppearance (EmissiveStrength, Color) and frame swaps."""
+        clock[0] = t
         pulses = (surface.get('Pulse') or {})
         es = surface.get('EmissiveStrength', 1.0)
         if 'EmissiveStrength' in pulses:
@@ -508,6 +544,7 @@ def blender_main(args):
         set_surface(aura_t or 1.0)
         for ob in fx_objs.values():
             ob.data.clear_geometry()
+        hide_lights()
         if aura_t is not None:
             ems = make_aura()
             host = cue_m()
@@ -686,6 +723,7 @@ def blender_main(args):
                 t += dt
             for k in list(fx_objs):
                 fx_objs[k].data.clear_geometry()
+            hide_lights()
             av['root'].location = (0, 0, -50)
             cue.location = (0, 0, -50)
 

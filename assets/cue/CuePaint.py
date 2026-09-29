@@ -435,7 +435,7 @@ def angle_diff(a, b):
     return np.abs(np.mod(a - b + math.pi, 2 * math.pi) - math.pi)
 
 
-def points(c, n, d_base, d_tip, width_base, phase=0.0, curve=1.0, soft_px=1.2):
+def points(c, n, d_base, d_tip, width_base, phase=0.0, curve=1.0, soft_px=1.2, sweep=0.0, wave=None):
     """n pointed inlays round the cue (a classic cue's points): each is widest (width_base, as a
     fraction of 360/n degrees) at d_base and comes to a sharp point at d_tip. Returns a 0..1
     coverage map and, per pixel, the distance inside the edge in radians (for veneers)."""
@@ -448,9 +448,14 @@ def points(c, n, d_base, d_tip, width_base, phase=0.0, curve=1.0, soft_px=1.2):
         inside_d = (c.d >= d_base) & (c.d <= d_tip)
     half = width_base * span / 2 * t ** curve
     centres = phase + span * np.arange(n)
+    # sweep bends each point sideways toward its tip (radians at the tip); wave = (amplitude
+    # radians, cycles per stud) ripples it like a flame
+    theta = c.theta - sweep * (1 - t) ** 2
+    if wave is not None:
+        theta = theta - wave[0] * np.sin(2 * math.pi * wave[1] * c.d) * (1 - t)
     best = np.full(c.d.shape, 1e9)
     for a in centres:
-        best = np.minimum(best, angle_diff(c.theta, a))
+        best = np.minimum(best, angle_diff(theta, a))
     edge = half - best  # >0 inside, radians
     px = 2 * math.pi / c.h  # one panel pixel in radians
     cov = np.clip(edge / (soft_px * px) + 0.5, 0, 1) * inside_d
@@ -545,11 +550,11 @@ def drips(c, top_width, count, max_len, seed=5, width=0.012, centre=math.pi):
     return cov
 
 
-def inlay_points(c, m, n, d_base, d_tip, width, fill, veneers=(), phase=math.pi, curve=1.0):
+def inlay_points(c, m, n, d_base, d_tip, width, fill, veneers=(), phase=math.pi, curve=1.0, sweep=0.0, wave=None):
     """n inlaid points (see points()) painted inside mask m: fill(c, mask) paints the point's body,
     then each veneer (colour, thickness in studs, [roughness, metal]) lines its edge from the
     outside in, like the layered veneers of a real cue's points. Returns the point coverage."""
-    cov, edge = points(c, n, d_base, d_tip, width, phase=phase, curve=curve)
+    cov, edge = points(c, n, d_base, d_tip, width, phase=phase, curve=curve, sweep=sweep, wave=wave)
     e = np.where(edge > -1, edge * c.r, -1)  # studs inside the edge
     inside = cov * m
     if inside.any():
@@ -663,6 +668,101 @@ def butt_cap_band(k, colour, d0=6.9, rough=0.1):
     for c, m in k.zone('cap'):
         metal(c, band(c, d0, 7.2) * m > 0.5, colour, rough=rough, brushed=True)
     seam_edges(k, [d0])
+
+
+def glow_ring(k, colour, base=None, d0=5.378, d1=5.418, base_kind='metal'):
+    """The Uncommon glowing ring: a bright emissive band in the ring zone (the glow mask carries
+    it), on a metal or gloss base."""
+    for c, m in k.zone('ring'):
+        if base:
+            if base_kind == 'metal':
+                metal(c, m, base, rough=0.1, brushed=True)
+            else:
+                gloss(c, m, base, rough=0.1)
+        c.put(m, None, glow=0.0)
+        line = band(c, d0, d1, soft=0.0012) * m
+        c.put(line, rgb(colour), rough=0.25, metal=0.0, glow=line)
+        c.add_height(line, 0.00005)
+
+
+def ai_base(k, panel, rough=0.2, height=0.0003, blur=1):
+    """An OpenAI panel as the colour, with flat roughness, no metal, no glow and a relief from its
+    brightness; recipes then set roughness, metal and glow per part."""
+    img = ai_panel(k, panel)
+    c = k.c[panel]
+    ones = np.ones((c.h, c.w), bool)
+    c.put(ones, None, rough=rough, metal=0.0, glow=0.0)
+    if height:
+        c.add_height(ones, height_from(img, height, blur=blur))
+    return img
+
+
+def hue_mask(img, target, tol=40.0, min_sat=0.25):
+    """Where an image is close to a colour (in RGB distance, softly), and saturated enough."""
+    t = rgb(target)
+    dist = np.sqrt(((img - t) ** 2).sum(-1))
+    mx, mn = img.max(-1), img.min(-1)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    return np.clip(1 - (dist - tol) / tol, 0, 1) * (sat > min_sat)
+
+
+def gummy_blobs(c, m, colours, freq=10.0, cover=0.5, seed=0):
+    """Soft jelly-candy blobs in several colours: rounded drops round jittered points (cellular
+    noise), their outlines warped so neighbours melt into each other, deeper and more saturated
+    at the rim with a light inner rim and a clear middle, glossy and domed. freq is drops per
+    stud; cover 0..1 how many cells carry a drop. Returns the total blob coverage."""
+    warp = (fbm(c, freq * 1.3, freq * 1.3, octaves=2, seed=seed + 1) - 0.5) * 0.9 / freq
+    view = type('V', (), {})()
+    view.x, view.d, view.z = c.x + warp, c.d + warp * 0.7, c.z - warp
+    f1, _, cid = worley(view, freq, seed + 2, jitter=0.85)
+    radius = 0.5 + 0.24 * np.mod(cid * 9.1, 1)
+    inside = radius - f1  # cell widths inside the drop's edge
+    px = 1.0 / (freq * 2 * math.pi * float(np.mean(c.r)) / c.h)
+    cov = np.clip(inside * freq / (1.4 / px) + 0.5, 0, 1) * m * (cid < cover)
+    total = np.zeros(c.d.shape)
+    pick = np.minimum((np.mod(cid * 37.7, 1) * len(colours)).astype(int), len(colours) - 1)
+    depth = np.clip(inside / 0.22, 0, 1)
+    for i, col in enumerate(colours):
+        cm = cov * (pick == i)
+        if not cm.any():
+            continue
+        base = rgb(col)
+        rim = base * 0.8
+        core = base + (255 - base) * 0.3
+        shade = mix(np.broadcast_to(rim, c.col.shape), np.broadcast_to(core, c.col.shape), depth ** 0.7)
+        hi = np.exp(-((inside - 0.05) / 0.02) ** 2)  # the light inner rim of a jelly drop
+        shade = shade + (255 - shade) * (0.35 * hi)[..., None]
+        c.put(cm, shade, rough=0.05, metal=0.0)
+        total = total + cm
+    c.add_height(cov, 0.0008 * depth ** 0.5)
+    return np.clip(total, 0, 1)
+
+
+def pixel_blocks(c, m, colours, size=0.022, density=0.5, seed=0, clump=6.0, glow=0.0, aspect=1.0):
+    """8-bit pixel blocks on a grid that wraps the cue (a whole number of cells round it): each
+    cell picks a colour or stays empty by a hash, clumped by a smooth field so the pixels form
+    blobs and steps like an old game screen. Blocks are slightly raised with a dark bevel."""
+    n_round = max(8, int(round(float(np.mean(2 * math.pi * c.r)) / size)))
+    a = c.d / (size * aspect)  # aspect > 1: dashes along the cue
+    b = c.theta / (2 * math.pi) * n_round
+    i, j = np.floor(a), np.floor(b)
+    h1 = cc._hash3(i.astype(np.int64), j.astype(np.int64), np.zeros_like(i, np.int64), seed)
+    h2 = cc._hash3(i.astype(np.int64), j.astype(np.int64), np.ones_like(i, np.int64), seed + 1)
+    # the clump field sampled at the cell centre (so a whole cell shares it)
+    ang = (j + 0.5) / n_round * 2 * math.pi
+    rr = float(np.mean(c.r))
+    field = cc.fbm(rr * np.sin(ang) * clump, (i + 0.5) * size * aspect * clump, -rr * np.cos(ang) * clump, 3, seed + 2)
+    on = (h1 < density * np.clip((field - 0.3) * 2.2, 0, 1.4)) * m
+    idx = np.minimum((h2 * len(colours)).astype(int), len(colours) - 1)
+    pal = np.array([rgb(x) for x in colours])
+    col = pal[idx]
+    fa, fb = np.mod(a, 1), np.mod(b, 1)
+    edge = np.minimum(np.minimum(fa, 1 - fa) * aspect, np.minimum(fb, 1 - fb))
+    bevel = np.clip(edge / 0.12, 0, 1)
+    col = col * (0.72 + 0.28 * bevel)[..., None]
+    c.put(on, col, rough=0.12, metal=0.0, glow=on * glow if glow else None)
+    c.add_height(on, 0.00012 * bevel)
+    return on
 
 
 # ---------------------------------------------------------------------------------------------
@@ -1169,6 +1269,638 @@ def cobalt(k):
     f.put(line > 0.01, f.col * 0.35, rough=0.4)
     seam_edges(k, [F1, W0, W1])
 
+# --- Uncommons ------------------------------------------------------------------------------
+
+def end_band(k, colour='#0C0C0E', d0=6.93, rough=0.14):
+    """A black butt cap at the end of the sleeve (the concepts' big black end)."""
+    for c, m in k.zone('cap'):
+        gloss(c, band(c, d0, 7.2) * m > 0.5, colour, rough=rough)
+    seam_edges(k, [d0])
+
+
+def joint_seam(k):
+    f = k.c['forearm']
+    mid = (J0 + J1) / 2
+    line = band(f, mid - 0.0025, mid + 0.0025, soft=0.001)
+    f.put(line > 0.01, f.col * 0.35, rough=0.4)
+    f.add_height(line, -0.0003)
+
+
+@recipe
+def gummy(k):
+    """Pastel jelly-candy blobs of pink and light blue over see-through silver carbon from the
+    shaft to the butt (no wrap), a chrome collar with a pink line, a glowing pink ring, a black
+    sleeve with pink and blue blobs behind a pink line."""
+    s = k.skin['colours']
+    pink, blue, silver = s['pink'], s['blue'], s['silver']
+    k.paint(['shaft'], carbon_weave, '#80858C', silver, rough=0.08, tow=0.008)
+    k.paint(['forearm', 'wrap'], carbon_weave, '#80858C', silver, rough=0.08, tow=0.012)
+    for c, m in k.zone('shaft'):
+        gummy_blobs(c, m * smooth(0.4, 1.6, c.d), [pink, blue], freq=9.0, cover=0.7, seed=151)
+    for c, m in k.zone('forearm', 'wrap'):
+        gummy_blobs(c, m, [pink, blue], freq=5.2, cover=0.9, seed=152)
+    for c, m in k.zone('cap'):
+        gloss(c, m, '#0E0E12', rough=0.08)
+        gummy_blobs(c, m, [pink, blue], freq=6.0, cover=0.85, seed=153)
+        ring_lines(c, m, [(C0, C0 + 0.02, pink, 'paint')])
+    end_band(k, d0=6.95)
+    k.paint(['joint'], metal, s['metal'], rough=0.1)
+    for c, m in k.zone('forearm'):
+        ring_lines(c, m, [(J1 - 0.02, J1, pink, 'paint')])
+    glow_ring(k, s['glow'], base='#0E0E12', base_kind='gloss', d0=5.34, d1=5.405)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W1, C0])
+
+
+def racing_shaft(k, body, stripe, seed=0, sweep=1.1, n=3, length=2.4, width=0.2, outline=None):
+    """A gloss shaft with a few long thin racing slashes spiralling from the joint to sharp
+    points toward the tip (optionally outlined in the body colour's bright tone)."""
+    for c, m in k.zone('shaft'):
+        gloss(c, m, body, rough=0.1, flake=0.2)
+        for w_, ln, ph, sw in ((width, length, 0.0, sweep), (width * 0.55, length * 0.62, math.pi / n, sweep * 0.8)):
+            cov, edge = points(c, n, J0, J0 - ln, w_, phase=ph + 0.4 * seed, curve=1.7, sweep=sw)
+            c.put(cov * m, rgb(stripe), rough=0.1, metal=0.0)
+            if outline:
+                e = np.where(edge > -1, edge * c.r, -1)
+                line = np.clip(1 - np.abs(e - 0.0035) / 0.0015, 0, 1) * m * (e > 0)
+                c.put(line, rgb(outline), rough=0.1)
+
+
+def finish_ai_racing(k, s, main, snake_dark=True):
+    """Flare and Hornet: OpenAI shaft end, forearm and butt; the paint glossy, the snakeskin grip
+    matte with relief, the joint strips carbon; the glowing ring in the ring zone."""
+    img = ai_base(k, 'shaft_top', rough=0.1, height=0.0001)
+    t = k.c['shaft_top']
+    t.put(np.ones((t.h, t.w), bool), None, rough=0.1)
+    img = ai_base(k, 'forearm', rough=0.12, height=0.0005)
+    f = k.c['forearm']
+    paint_m = hue_mask(img, main, tol=90, min_sat=0.35)
+    f.put(np.ones((f.h, f.w), bool), None, rough=0.36 - 0.24 * paint_m)
+    f.col = f.col * (0.55 + 0.45 * paint_m)[..., None]  # the black and the scales: deep black
+    joint = f.zone('joint')
+    carbon_weave(f, joint, '#141414', '#3A3A3A', rough=0.1, tow=0.012)
+    for c, m in k.zone('joint'):
+        ring_lines(c, m, [(J1 - 0.018, J1 - 0.004, main, 'paint')])
+    img = ai_base(k, 'butt', rough=0.45, height=0.0009)
+    b = k.c['butt']
+    paint_m = hue_mask(img, main, tol=90, min_sat=0.35)
+    lum = luma(img)
+    b.put(np.ones((b.h, b.w), bool), None, rough=0.5 - 0.2 * np.clip(lum * 3, 0, 1) - 0.25 * paint_m)
+    b.col = b.col * (0.55 + 0.45 * paint_m)[..., None]
+    b.put(b.zone('cap'), None, rough=0.14 + 0.3 * (1 - paint_m))
+    glow_ring(k, s['glow'], base='#121212', base_kind='gloss', d0=5.35, d1=5.4)
+    for c, m in k.zone('cap'):
+        ring_lines(c, m, [(C0 + 0.004, C0 + 0.016, main, 'paint')])
+    end_band(k, d0=6.97)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0])
+
+
+@recipe
+def flare(k):
+    """Electric orange gloss with black racing slashes (OpenAI forearm), a black carbon collar
+    with an orange line, a glowing orange ring, a black snakeskin sport grip, a black sleeve
+    with an orange chevron; an orange shaft with black slashes reaching from the joint."""
+    s = k.skin['colours']
+    racing_shaft(k, s['orange'], s['black'], seed=1)
+    finish_ai_racing(k, s, s['orange'])
+
+
+@recipe
+def hornet(k):
+    """Black and yellow racing-jersey graphics over black hex carbon (OpenAI forearm), a black
+    carbon collar with a yellow line, a glowing yellow ring, a black snakeskin sport grip, a black
+    sleeve with a yellow chevron; a black shaft with yellow slashes reaching from the joint."""
+    s = k.skin['colours']
+    racing_shaft(k, s['black'], s['yellow'], seed=2, width=0.24)
+    finish_ai_racing(k, s, s['yellow'])
+
+
+@recipe
+def venom(k):
+    """Deep black with six long neon-green carbon-fibre points rippling up the forearm like
+    flames (running over the joint onto the shaft), a chrome band and a glowing green ring at
+    the wrap, black pebbled leather, a chrome ring, a carbon sleeve with green streaks, a black
+    end cap."""
+    s = k.skin['colours']
+    green, black = s['green'], s['black']
+    green_carbon = lambda cc_, mm: carbon_weave(cc_, mm, '#2FD012', green, rough=0.08, tow=0.006)
+    dark_green = lambda cc_, mm: carbon_weave(cc_, mm, '#135E08', '#27A011', rough=0.08, tow=0.006)
+    for c, m in k.zone('shaft', 'joint', 'forearm'):
+        gloss(c, m, black, rough=0.08, flake=0.25, flake_color='#1C2A1C')
+        inlay_points(c, m, 6, F1, 2.7, 0.26, dark_green, [], phase=math.pi / 6, curve=2.2, sweep=0.7, wave=(0.12, 1.6))
+        inlay_points(c, m, 6, F1, 3.2, 0.3, green_carbon, [], phase=0.0, curve=2.0, sweep=0.6, wave=(0.1, 1.3))
+        inlay_points(c, m, 6, F1, 4.3, 0.16, green_carbon, [], phase=math.pi / 12, curve=1.6, sweep=0.5, wave=(0.08, 2.0))
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.08)
+    glow_ring(k, s['glow'], d0=5.382, d1=5.418)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    for c, m in k.zone('cap'):
+        carbon_weave(c, m, '#0A0A0A', '#3A3A3E', rough=0.08, tow=0.016)
+        inlay_points(c, m, 6, C0 + 0.03, 6.93, 0.3, lambda cc_, mm: gloss(cc_, mm, green, rough=0.1), [], phase=0.3,
+                     curve=1.3, sweep=0.9)
+        ring_lines(c, m, [(C0, C0 + 0.025, s['metal'], 'metal')])
+    end_band(k, d0=6.93)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0])
+
+
+@recipe
+def lagoon(k):
+    """Gloss black with six bold turquoise points edged in white sweeping up the forearm (over
+    the joint onto the shaft), white chevrons at their base, a chrome band and a glowing
+    turquoise ring at the wrap, black pebbled leather, two turquoise rings, a black sleeve with
+    turquoise and white swept points meeting in the middle, a black end cap."""
+    s = k.skin['colours']
+    teal, white, black = s['teal'], s['white'], s['black']
+    tealfill = lambda cc_, mm: gloss(cc_, mm, teal, rough=0.08)
+    blackfill = lambda cc_, mm: gloss(cc_, mm, black, rough=0.06)
+    ph = math.pi / 4
+    for c, m in k.zone('shaft', 'joint', 'forearm'):
+        gloss(c, m, black, rough=0.06, flake=0.15)
+        # long turquoise points edged white, sweeping from the ring toward the tip
+        inlay_points(c, m, 4, F1, 3.0, 0.5, tealfill, [(white, 0.007)], phase=ph + math.pi / 4, curve=1.8, sweep=0.35)
+        # the layered arrowheads at the ring: white arms, turquoise arms, a black centre
+        inlay_points(c, m, 4, F1, F1 - 0.6, 0.72, blackfill, [(white, 0.017), (teal, 0.011)], phase=ph, curve=1.1)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.08)
+    glow_ring(k, s['glow'], d0=5.382, d1=5.418)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    for c, m in k.zone('cap'):
+        gloss(c, m, black, rough=0.06)
+        # swept wings from the wrap end toward the butt, and a turquoise arrow back from the end
+        inlay_points(c, m, 4, C0 + 0.045, 6.92, 0.95, blackfill, [(white, 0.004), (teal, 0.012)], phase=ph + math.pi / 4,
+                     curve=1.5, sweep=0.35)
+        inlay_points(c, m, 4, 6.92, C0 + 0.12, 0.55, tealfill, [(white, 0.004)], phase=ph, curve=1.4)
+        ring_lines(c, m, [(C0 + 0.004, C0 + 0.014, teal, 'paint'), (C0 + 0.022, C0 + 0.032, teal, 'paint'),
+                          (6.922, 6.932, teal, 'paint')])
+    end_band(k, d0=6.94)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0])
+
+
+@recipe
+def splice(k):
+    """Black wood with eight long spliced points on the forearm (over the joint onto the shaft),
+    each layered ivory, bright blue, sky blue and ivory round a black core; a chrome band and a
+    glowing blue ring; black pebbled leather; an ivory ring; a black-wood sleeve with nested
+    ivory and blue lozenges (the other eight points, meeting from both ends); a black end cap."""
+    s = k.skin['colours']
+    blue, sky, iv = s['blue'], s['sky'], s['ivory']
+    blackwood = lambda sd: (lambda cc_, mm: wood(cc_, mm, 'rosewood', '#3A2A20', '#0E0907', rough=0.14, seed=sd))
+    ph = math.pi / 4
+    for c, m in k.zone('shaft', 'joint', 'forearm'):
+        blackwood(161)(c, m)
+        # eight points: four long ones joined at the ring into nested ivory and blue V's, and four
+        # shorter ones between them
+        inlay_points(c, m, 4, F1, 3.9, 0.7, blackwood(163), [(blue, 0.008), (iv, 0.005)], phase=ph + math.pi / 4, curve=1.2)
+        for tip, w_, ven in ((2.6, 0.95, [(blue, 0.01), (sky, 0.004), (iv, 0.004)]),
+                             (4.05, 0.8, [(iv, 0.013), (blue, 0.011), (sky, 0.004)]),
+                             (4.5, 0.55, [(iv, 0.006), (blue, 0.009)])):
+            inlay_points(c, m, 4, F1 + 0.01, tip, w_, blackwood(162), ven, phase=ph, curve=1.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.08)
+    glow_ring(k, s['glow'], d0=5.382, d1=5.418)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    for c, m in k.zone('cap'):
+        blackwood(164)(c, m)
+        for i in range(4):
+            a = ph + i * math.pi / 2
+            inlay_lozenge(c, m, C0 + 0.03, 6.92, a, 0.1, lambda cc_, mm: gloss(cc_, mm, blue, rough=0.08),
+                          [(iv, 0.006), (blue, 0.012), (sky, 0.006), (iv, 0.005), ('#0E0907', 0.008), (iv, 0.004)])
+            inlay_lozenge(c, m, C0 + 0.1, 6.85, a + math.pi / 4, 0.035, blackwood(165), [(iv, 0.004), (blue, 0.007)])
+        ring_lines(c, m, [(C0, C0 + 0.02, '#CDB892', 'paint')])
+    end_band(k, d0=6.94)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0])
+
+
+@recipe
+def cosmo(k):
+    """Gloss metallic black space: a shimmering galaxy stripe of blue, violet and magenta and a
+    glassy planet on the forearm, a spiral galaxy on the sleeve (both OpenAI); a star-dusted
+    navy shaft with a faint nebula stream; a stepped chrome collar; a glowing violet ring; black
+    pebbled leather."""
+    s = k.skin['colours']
+    blue, violet, magenta = rgb(s['blue']), rgb(s['violet']), rgb(s['magenta'])
+    for c, m in k.zone('shaft'):
+        gloss(c, m, s['space'], rough=0.08, flake=0.35, flake_color='#3A3A6A')
+        warp = fbm(c, 4, 0.8, octaves=3, seed=171)
+        stream = np.exp(-((angle_diff(c.theta, math.pi - 0.7 + 0.6 * np.sin(c.d * 2.2 + warp * 3)) * c.r) / 0.02) ** 2)
+        stream = stream * smooth(0.5, 2.8, c.d) * (0.5 + 0.8 * fbm(c, 40, 6, octaves=3, seed=172))
+        hue = fbm(c, 3, 1.2, octaves=2, seed=173)
+        scol = mix(np.broadcast_to(blue, c.col.shape), np.broadcast_to(violet, c.col.shape), np.clip(hue * 1.6 - 0.3, 0, 1))
+        scol = mix(scol, np.broadcast_to(magenta, c.col.shape), np.clip(hue * 2 - 1.1, 0, 1))
+        c.put(np.clip(stream * 1.3, 0, 1) * m, scol, rough=0.08)
+        stars = np.clip((cc.noise3(c.x * 1400, c.d * 1400, c.z * 1400, 174) - 0.86) * 12, 0, 1)
+        c.put(m * stars, np.broadcast_to([235.0, 235, 255], c.col.shape))
+    img = ai_base(k, 'forearm', rough=0.08, height=0.00015)
+    f = k.c['forearm']
+    metal(f, f.zone('joint'), s['metal'], rough=0.1)
+    f.put(f.zone('joint'), None, glow=0.0)
+    band2 = band(f, J0 + 0.06, J0 + 0.064, soft=0.001) * f.zone('joint')
+    f.add_height(band2, -0.0003)
+    img = ai_base(k, 'butt', rough=0.08, height=0.00015)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    glow_ring(k, s['glow'], base='#0A0A12', base_kind='gloss', d0=5.345, d1=5.4)
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def gilded(k):
+    """Black piano lacquer inlaid with swirling gold art-deco vines and mother-of-pearl
+    marquises and diamonds (OpenAI forearm and sleeve; the gold is real metal in the maps, the
+    pearl glossy); a natural maple shaft with slim gold-edged black points and pearl diamonds
+    before the collar; a stepped chrome collar; a glowing gold ring; black pebbled leather."""
+    s = k.skin['colours']
+    gold, pearl_c = s['gold'], s['pearl']
+    k.paint(['shaft'], wood, 'maple', '#E8C890', '#9A6E3A', rough=0.16, seed=181)
+    for c, m in k.zone('shaft'):
+        inlay_points(c, m, 4, J0, J0 - 1.2, 0.5, lambda cc_, mm: gloss(cc_, mm, '#0D0D0D', rough=0.06),
+                     [(gold, 0.004, 0.2, 1.0)], phase=math.pi / 4, curve=1.4)
+        for i in range(4):
+            inlay_diamond(c, m, J0 - 0.2, math.pi / 4 + i * math.pi / 2, 0.07, 0.016, pearl_c, 'pearl', border=gold, border_w=0.002)
+    for panel in ('forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.07, height=0.0002)
+        c = k.c[panel]
+        g = hue_mask(img, gold, tol=70, min_sat=0.3)
+        lum = luma(img)
+        pearl_m = np.clip((lum - 0.72) / 0.1, 0, 1) * (1 - g)
+        c.put(g, None, rough=0.22, metal=1.0)
+        c.put(pearl_m, None, rough=0.1, metal=0.0)
+        c.add_height(g, 0.0002)
+    f = k.c['forearm']
+    metal(f, f.zone('joint'), s['metal'], rough=0.1)
+    k.paint(['wrap'], leather, s['wrap'], rough=0.46, depth=0.001, scale=2.4, contrast=2.2, sheen=0.55)
+    glow_ring(k, s['glow'], base='#0D0D0D', base_kind='gloss', d0=5.345, d1=5.4)
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def pixel(k):
+    """A retro arcade 8-bit pattern: magenta, cyan and yellow pixel blocks clumped over a deep
+    purple-black gloss (dense on the forearm and sleeve, thinning out down the shaft), a black
+    pixel-grid wrap with a few coloured pixels, a stepped chrome collar, a glowing cyan ring."""
+    s = k.skin['colours']
+    cols = [s['magenta'], s['cyan'], s['yellow']]
+    deep = s['deep']
+    for c, m in k.zone('shaft'):
+        gloss(c, m, deep, rough=0.08, flake=0.2, flake_color='#3A2A6A')
+        pixel_blocks(c, m * smooth(0.3, 3.3, c.d), cols, size=0.018, density=0.5, seed=191, clump=5, aspect=3.5)
+    for c, m in k.zone('forearm', 'cap'):
+        gloss(c, m, deep, rough=0.08)
+        pixel_blocks(c, m, ['#2A1A55', '#3A2470'], size=0.036, density=0.9, seed=192, clump=9)
+        pixel_blocks(c, m, cols, size=0.036, density=0.9, seed=193, clump=6)
+    for c, m in k.zone('wrap'):
+        # a black pixel-grid grip: little raised square studs
+        n_round = max(8, int(round(float(np.mean(2 * math.pi * c.r)) / 0.026)))
+        a, b = c.d / 0.026, c.theta / (2 * math.pi) * n_round
+        fa, fb = np.mod(a, 1), np.mod(b, 1)
+        stud = np.clip(np.minimum(np.minimum(fa, 1 - fa), np.minimum(fb, 1 - fb)) / 0.15, 0, 1)
+        c.put(m, rgb('#101012') * (0.5 + 0.5 * stud)[..., None], rough=0.5, metal=0.0)
+        c.add_height(m, 0.0003 * stud)
+        pixel_blocks(c, m, cols, size=0.026, density=0.14, seed=194, clump=4)
+    k.paint(['joint'], metal, s['metal'], rough=0.1)
+    glow_ring(k, s['glow'], base='#120A26', base_kind='gloss', d0=5.345, d1=5.4)
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+# --- Rares ----------------------------------------------------------------------------------
+
+def crosshatch(c, m, color, pitch=0.02, rough=0.55, depth=0.0005):
+    """A knurled crosshatch grip: grooves winding both ways round the cue, leaving little raised
+    diamonds (Plasma's and Blaze's black grips)."""
+    n_round = max(8, int(round(float(np.mean(2 * math.pi * c.r)) / pitch)))
+    a = c.d / pitch
+    b = c.theta / (2 * math.pi) * n_round
+    g1 = np.abs(np.mod(a + b, 1) - 0.5) * 2
+    g2 = np.abs(np.mod(a - b, 1) - 0.5) * 2
+    bump = np.clip(np.minimum(g1, g2) / 0.35, 0, 1) ** 0.7
+    fine = fbm(c, 900, 900, octaves=2, seed=77)
+    col = rgb(color) * (0.55 + 0.45 * bump + 0.08 * (fine - 0.5))[..., None]
+    c.put(m, col, rough=rough - 0.15 * bump, metal=0.0)
+    c.add_height(m, depth * (bump - 0.5))
+
+
+def crack_plates(c, m, freq, plate, crack_lo, crack_hi, seed=0, width=0.07, live=0.75, metal_=0.0,
+                 rough=0.4, grain=None, halo=0.35):
+    """Plates split by glowing cracks (cellular noise): each plate a slightly different tone
+    (with a wood grain if grain), raised; the cracks between them glow crack_hi at the core to
+    crack_lo at the edge, with a warm halo bleeding onto the plates; some cracks stay dark."""
+    wob = (fbm(c, freq * 2, freq * 2, octaves=2, seed=seed + 1) - 0.5) * 0.5 / freq
+    view = type('V', (), {})()
+    view.x, view.d, view.z = c.x + wob, c.d + wob, c.z - wob
+    f1, f2, cid = worley(view, freq, seed, jitter=0.95)
+    edge = f2 - f1
+    alive = np.clip((fbm(c, freq * 0.8, freq * 0.8, octaves=2, seed=seed + 2) - (1 - live)) * 4, 0, 1)
+    w = width * (0.6 + 0.8 * fbm(c, freq * 3, freq * 3, octaves=2, seed=seed + 3))
+    core = np.clip(1 - edge / w, 0, 1)
+    glow = core ** 1.5 * alive
+    hal = np.exp(-(edge / (w * 3.5)) ** 2) * alive * halo
+    base = rgb(plate) * (0.8 + 0.4 * cid)[..., None]
+    if grain is not None:
+        g = fbm(c, 30, 300, octaves=3, seed=seed + 4)
+        base = base * (0.85 + 0.3 * g)[..., None]
+    lo, hi = rgb(crack_lo), rgb(crack_hi)
+    ccol = mix(np.broadcast_to(lo, c.col.shape), np.broadcast_to(hi, c.col.shape), core ** 2)
+    col = mix(base, np.broadcast_to(lo, c.col.shape), hal * 0.6)
+    col = mix(col, ccol, np.clip(glow * 1.3, 0, 1))
+    dark_crack = np.clip(1 - edge / (w * 0.8), 0, 1) * (1 - alive)
+    col = col * (1 - 0.7 * dark_crack)[..., None]
+    c.put(m, col, rough=rough + 0.3 * glow, metal=metal_ * (1 - glow), glow=np.clip(glow + hal * 0.35, 0, 1))
+    c.add_height(m, 0.0006 * np.clip(edge / 0.25, 0, 1) - 0.0003)
+
+
+def caustics(c, m, deep, light, freq=18, seed=0, glow=0.25):
+    """Sea water: deep colour with bright wavy caustic lines (the edges of warped cells)."""
+    wob = (fbm(c, freq * 0.7, freq * 0.7, octaves=3, seed=seed + 1) - 0.5) * 1.2 / freq
+    view = type('V', (), {})()
+    view.x, view.d, view.z = c.x + wob, c.d + wob * 0.6, c.z - wob
+    f1, f2, _ = worley(view, freq, seed)
+    line = np.clip(1 - (f2 - f1) / 0.12, 0, 1) ** 2
+    depth = fbm(c, 4, 3, octaves=3, seed=seed + 2)
+    col = mix(np.broadcast_to(rgb(deep), c.col.shape), np.broadcast_to(rgb(light), c.col.shape), np.clip(depth * 0.6 - 0.1, 0, 1))
+    col = col + (255 - col) * (line * 0.55)[..., None]
+    c.put(m, col, rough=0.06, metal=0.0, glow=line * glow)
+
+
+def shagreen(c, m, color, freq=150, seed=0):
+    """Stingray shagreen: tightly packed small round glassy beads (Tidal's sea-foam wrap)."""
+    f1, f2, cid = worley(c, freq, seed, jitter=0.6)
+    bead = np.clip(1 - f1 / 0.46, 0, 1) ** 0.6
+    col = rgb(color) * (0.7 + 0.35 * bead + 0.06 * (cid - 0.5))[..., None]
+    c.put(m, col, rough=0.5 - 0.3 * bead, metal=0.0)
+    c.add_height(m, 0.00045 * bead - 0.0002)
+
+
+@recipe
+def candy(k):
+    """A red-and-white candy-cane spiral with a sugar-glitter shine from the tip to the ring, a
+    steel collar, green / white / red rings, a white sugar-grain wrap, a red sleeve with a
+    peppermint pinwheel (red, white and mint) facing each side, a black end."""
+    s = k.skin['colours']
+    red, white, mint = s['red'], s['white'], s['mint']
+
+    def cane(c, m):
+        st = spiral(c, 1.15, n=3, duty=0.5, soft=0.015)
+        sparkle = np.clip((noise(c, 1600, 1600, seed=141) - 0.78) * 7, 0, 1)
+        col = mix(np.broadcast_to(rgb(white), c.col.shape), np.broadcast_to(rgb(red), c.col.shape), st)
+        col = col + (255 - col) * (sparkle * 0.7)[..., None]
+        c.put(m, col, rough=0.08 + 0.05 * st, metal=0.0, glow=sparkle * 0.25 * m)
+        c.add_height(m, 0.00006 * st)
+    for c, m in k.zone('shaft', 'forearm'):
+        cane(c, m)
+    k.paint(['joint'], metal, s['metal'], rough=0.1)
+    for c, m in k.zone('ring'):
+        gloss(c, m, white, rough=0.1)
+        ring_lines(c, m, [(5.325, 5.35, mint, 'paint'), (5.36, 5.375, red, 'paint'), (5.385, 5.41, mint, 'paint')])
+    k.paint(['wrap'], leather, s['wrap'], rough=0.62, depth=0.0006, scale=1.5, contrast=1.3)
+    for c, m in k.zone('cap'):
+        gloss(c, m, red, rough=0.08, flake=0.4, flake_color='#FFFFFF')
+        for i, a in enumerate((math.pi * 3 / 4, math.pi * 7 / 4)):
+            along = c.d - 6.8
+            around = (np.mod(c.theta - a + math.pi, 2 * math.pi) - math.pi) * c.r
+            rr = np.hypot(along, around)
+            R = 0.13
+            ang = np.arctan2(around, along) + rr / R * 2.2
+            sector = np.mod(np.floor(ang / (2 * math.pi / 10)), 2)
+            edge = np.abs(np.mod(ang / (2 * math.pi / 10), 1) - 0.5)
+            inside = np.clip((R - rr) / 0.004, 0, 1) * m
+            col = np.where(sector[..., None] > 0.5, rgb(red), rgb(white))
+            col = mix(col, np.broadcast_to(rgb(mint), col.shape), np.clip((edge - 0.44) / 0.06, 0, 1) * 0.8)
+            col = col * (1 - 0.18 * (rr / R) ** 2)[..., None]
+            c.put(inside, col, rough=0.06)
+            c.add_height(inside, 0.00025 * np.clip(1 - rr / R, 0, 1))
+        ring_lines(c, m, [(C0, C0 + 0.012, mint, 'paint'), (C0 + 0.016, C0 + 0.024, white, 'paint')])
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, C0])
+
+
+@recipe
+def plasma(k):
+    """Dark gunmetal plates split by glowing violet plasma cracks on the forearm and sleeve, thin
+    violet veins through a dark blue-grey shaft, a steel collar, a glowing violet ring, a black
+    crosshatch grip, a black end."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        metal(c, m, '#3A3C48', rough=0.32, brushed=False)
+        c.col = c.col * 0.7
+        f1, f2, _ = worley(c, 9, 151)
+        vein = np.clip(1 - (f2 - f1) / 0.035, 0, 1) ** 2 * smooth(0.6, 2.8, c.d) * np.clip((fbm(c, 6, 6, seed=152) - 0.35) * 3, 0, 1) * m
+        c.put(vein, rgb(s['violet']) * 1.1, rough=0.4, metal=0.0, glow=vein)
+    for c, m in k.zone('forearm', 'cap'):
+        crack_plates(c, m, 7, s['gunmetal'], s['violet'], s['pale'], seed=153, metal_=0.55, rough=0.35, live=0.72, width=0.045)
+        # finer branching veins inside the plates, like lightning frozen in the metal
+        f1, f2, _ = worley(c, 19, 154)
+        br = np.clip(1 - (f2 - f1) / 0.05, 0, 1) ** 2 * np.clip((fbm(c, 9, 9, seed=155) - 0.5) * 4, 0, 1) * m
+        c.put(br, rgb(s['violet']), glow=br * 0.8)
+    k.paint(['joint'], metal, s['metal'], rough=0.12)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.12)
+    glow_ring(k, s['glow'], d0=5.35, d1=5.39)
+    k.paint(['wrap'], crosshatch, '#16161A', pitch=0.022)
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def blaze(k):
+    """Charcoal wood like a log in a campfire: charred plates split by glowing orange ember cracks
+    on the forearm and sleeve, dark brown wood with a few faint ember cracks warming toward the
+    joint on the shaft, a steel collar, a glowing orange ring, a black crosshatch grip."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        wood(c, m, 'rosewood', '#5A3A28', '#1E120C', rough=0.4, seed=161)
+        f1, f2, _ = worley(c, 11, 162)
+        vein = np.clip(1 - (f2 - f1) / 0.04, 0, 1) ** 2 * smooth(1.4, 3.5, c.d) * np.clip((fbm(c, 6, 6, seed=163) - 0.4) * 3, 0, 1) * m
+        c.put(vein, rgb(s['ember']), rough=0.5, glow=vein)
+    for c, m in k.zone('forearm', 'cap'):
+        crack_plates(c, m, 6.5, s['charcoal'], s['ember'], s['hot'], seed=164, rough=0.72, grain=True, live=0.85, halo=0.32, width=0.075)
+    k.paint(['joint'], metal, s['metal'], rough=0.14)
+    for c, m in k.zone('ring'):
+        metal(c, m, '#3A3A3E', rough=0.2)
+    glow_ring(k, s['glow'], d0=5.345, d1=5.4)
+    k.paint(['wrap'], crosshatch, '#141212', pitch=0.022)
+    end_band(k, d0=6.96)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+def ai_finish(k, panels, rough=0.12, glow=None, height=0.0002, wrap=None, collar=None, ring_glow=None):
+    """The common finish of an OpenAI Rare: each panel as colour with roughness, a relief and a
+    glow mask from its bright parts (glow = (lo, hi, gamma) of brightness), a crisp metal
+    collar, the wrap replaced by a procedural material (wrap = fn(c, m)), a glowing ring."""
+    for panel in panels:
+        img = ai_base(k, panel, rough=rough, height=height)
+        if glow:
+            c = k.c[panel]
+            c.put(np.ones((c.h, c.w), bool), None, glow=glow_from(img, *glow))
+    if collar:
+        f = k.c['forearm']
+        metal(f, f.zone('joint'), collar, rough=0.1)
+        f.put(f.zone('joint'), None, glow=0.0)
+    if wrap:
+        for c, m in k.zone('wrap'):
+            wrap(c, m)
+            c.put(m, None, glow=0.0)
+    if ring_glow:
+        glow_ring(k, ring_glow[0], base=ring_glow[1], d0=5.35, d1=5.395)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+
+
+@recipe
+def neon(k):
+    """Glossy black with neon tubes (OpenAI forearm and butt: pink circuit lines, cyan diagonals,
+    a crosshatch grip crossed by neon bands, a cyan chevron sleeve); a black shaft with a hot-pink
+    neon tube along it that jogs sideways before the joint; neon parts glow in the mask."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        gloss(c, m, '#0C0C10', rough=0.07)
+        centre = math.pi * 3 / 4 + 0.35 * smooth(3.0, 3.12, c.d)
+        tube = stripe_along(c, centre, 0.006) * smooth(0.5, 0.7, c.d) * m
+        halo = stripe_along(c, centre, 0.016, soft=0.012) * smooth(0.5, 0.7, c.d) * m
+        c.put(halo, rgb(s['pink']) * 0.55, glow=halo * 0.4)
+        c.put(tube, mix(np.broadcast_to(rgb(s['pink']), c.col.shape), np.broadcast_to(np.array([255.0, 220, 245]), c.col.shape), 0.5),
+              rough=0.1, glow=tube)
+    ai_finish(k, ['forearm', 'butt'], rough=0.08, glow=(0.45, 0.8, 1.2), collar=s['metal'])
+    b = k.c['butt']
+    b.put(b.zone('wrap'), None, rough=0.55)
+    end_band(k, d0=6.97)
+
+
+@recipe
+def nature(k):
+    """A living-wood cue (all OpenAI): light wood wrapped in spiralling vines with leaves and white
+    flowers from the shaft to the sleeve, a moss wrap, green and yellow rings, a steel collar."""
+    s = k.skin['colours']
+    ai_finish(k, ['shaft_tile', 'shaft_top', 'forearm', 'butt'], rough=0.45, height=0.0005, collar=s['metal'])
+    b = k.c['butt']
+    b.put(b.zone('wrap'), None, rough=0.8)
+    end_band(k, d0=6.97)
+
+
+@recipe
+def frostbite(k):
+    """Frosted ice-crystal glass (OpenAI forearm and sleeve: frost feathers, cracks, snowflakes,
+    glacier shards; a frosted grey-white wrap); a pale icy shaft with a fine crack network that
+    glows faintly; silver collar and ring; the frost glows softly in the mask."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        caustics(c, m, s['ice'], s['frost'], freq=14, seed=171, glow=0.2)
+        f1, f2, _ = worley(c, 22, 172)
+        crack = np.clip(1 - (f2 - f1) / 0.05, 0, 1) ** 2 * np.clip((fbm(c, 8, 8, seed=173) - 0.35) * 3, 0, 1) * m
+        c.put(crack, np.array([245.0, 252, 255]), glow=crack * 0.35)
+    ai_finish(k, ['forearm', 'butt'], rough=0.06, glow=(0.7, 0.95, 1.5), collar=s['metal'])
+    b = k.c['butt']
+    b.put(b.zone('wrap'), None, rough=0.6, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.1)
+        c.put(m, None, glow=0.0)
+    end_band(k, d0=6.97)
+
+
+@recipe
+def phantom(k):
+    """Ghostly see-through teal glass with spirit wisps and small cartoon ghosts (OpenAI forearm
+    and sleeve), a pale pebbled wrap, a milky white-teal shaft with faint glowing wisps swirling
+    in it, silver collar; the wisps and ghosts glow softly."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        warp = fbm(c, 5, 1.2, octaves=3, seed=181)
+        wisp = np.abs(np.mod(warp * 5 + c.theta / (2 * math.pi) * 2 + c.d * 0.4, 1.0) - 0.5)
+        wisp = (1 - smooth(0.0, 0.08, wisp)) * (0.3 + 0.7 * fbm(c, 20, 4, octaves=2, seed=182))
+        base = mix(np.broadcast_to(rgb(s['deep']), c.col.shape), np.broadcast_to(rgb(s['milk']), c.col.shape),
+                   np.clip(0.55 + 0.4 * fbm(c, 6, 2, octaves=2, seed=183), 0, 1))
+        c.put(m, base, rough=0.06, metal=0.0)
+        c.put(wisp * m, np.broadcast_to(rgb(s['wisp']), c.col.shape), glow=wisp * 0.6 * m)
+    ai_finish(k, ['forearm', 'butt'], rough=0.06, glow=(0.62, 0.95, 1.3), collar=s['metal'],
+              wrap=lambda c, m: leather(c, m, s['wrap'], rough=0.55, depth=0.0008, scale=2.2, contrast=1.3))
+    end_band(k, d0=6.97)
+
+
+@recipe
+def tidal(k):
+    """Deep ocean blue water with teal caustics (OpenAI forearm with a pearl and a silver wave
+    line; sleeve with a breaking wave), a sea-foam stingray-bead wrap, a deep-blue-to-teal
+    caustic shaft, silver collar; the caustics glow faintly."""
+    s = k.skin['colours']
+    for c, m in k.zone('shaft'):
+        caustics(c, m, s['deep'], s['teal'], freq=16, seed=191, glow=0.25)
+        c.col = mix(c.col, c.col * np.array([0.7, 1.05, 1.1]), smooth(0.5, 3.5, c.d)[..., None] * 0.6)
+    ai_finish(k, ['forearm', 'butt'], rough=0.06, glow=(0.72, 0.95, 1.5), collar=s['metal'],
+              wrap=lambda c, m: shagreen(c, m, s['foam'], seed=192))
+    for panel in ('forearm', 'butt'):
+        # the white pearl and wave line get a pearl's soft iridescent lustre
+        c = k.c[panel]
+        white = np.clip((luma(c.col) - 0.85) / 0.08, 0, 1) * ~c.zone('joint') * ~c.zone('wrap', 'ring')
+        keep = c.glow.copy()
+        pearl(c, white > 0.5, '#F2F7F7', rough=0.12, fire=0.45)
+        c.glow = keep
+    end_band(k, d0=6.97)
+
+
+@recipe
+def sakura(k):
+    """Black lacquer painted with gold-outlined cherry branches and pink blossoms from the shaft to
+    the sleeve (OpenAI), the gold real metal in the maps, a pink pebbled silk-leather wrap, gold
+    collar and rings; the blossoms glow very softly."""
+    s = k.skin['colours']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.07, height=0.00015)
+        c = k.c[panel]
+        g = hue_mask(img, s['gold'], tol=70, min_sat=0.3)
+        pink = hue_mask(img, s['pink'], tol=70, min_sat=0.2)
+        c.put(g, None, rough=0.22, metal=1.0)
+        c.put(np.ones((c.h, c.w), bool), None, glow=pink * 0.3)
+        c.add_height(g + pink, 0.00012)
+    f = k.c['forearm']
+    metal(f, f.zone('joint'), s['gold'], rough=0.15)
+    for c, m in k.zone('wrap'):
+        leather(c, m, s['wrap'], rough=0.5, depth=0.0007, scale=2.0, contrast=1.2, sheen=0.3)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['gold'], rough=0.15)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('cap'):
+        ring_lines(c, m, [(C0, C0 + 0.02, s['gold'], 'metal')])
+    end_band(k, d0=6.97)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+
+
 # ---------------------------------------------------------------------------------------------
 # OpenAI panels
 # ---------------------------------------------------------------------------------------------
@@ -1301,6 +2033,10 @@ def ai_panel(k, panel, mask=None, take=None):
     take = take or spec.get('take', 1)
     path = os.path.join(SKINS, k.skin['id'], 'ai', '%s_%d.png' % (panel, take))
     img = fix_panel(load_rgb(path), panel, spec)
+    if spec.get('roll_deg'):
+        # turn the painting round the cue (rows are angles), e.g. so the middle-row centrepiece
+        # faces a camera above and to the side like the inlays
+        img = np.roll(img, int(round(spec['roll_deg'] / 360.0 * img.shape[0])), axis=0)
     c = k.c[panel]
     c.put(np.ones((c.h, c.w), bool) if mask is None else mask, img)
     return img
