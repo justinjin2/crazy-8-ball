@@ -546,7 +546,9 @@ with that step's events) and `finish(state, events, ops)` (at rest). Scratch liv
 `BallMaterial`: cushion restitution and friction, ball restitution, cloth frictions, until
 `Until`) gives an object ball its own material (Super Bounce's caught ball). An effect may plan once
 at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
-moves before the first contact). `Simulation.Ops`: `remove` (the ball
+moves before the first contact), or schedule by shot time in `fx` (Chain Lightning's jumps,
+one every `LinkSeconds` after the charge, each target chosen from the positions at that step).
+`Simulation.Ops`: `remove` (the ball
 leaves the table with a "removed" event that `ShotJudge` counts as a pot), `teleport`, `halt`
 (the settle stops with `outcome.halted`, keeping overrides and fx) and `emit` (an "ult" event
 with a kind; kind "slow" adds `value` wall seconds at shot time `x`, summed into
@@ -588,7 +590,8 @@ in reach in red). `ScreenFx` holds the table-wide screen effects (grade, overlay
 shake, FOV punch, invert) for players at or near the table; `SoundSheet` plays clips cut from
 the uploaded sound sheets; `AbilityModels` clones the models `server/AbilityAssets` loads once
 per server through InsertService into `ReplicatedStorage.AbilityAssets` (ids in
-`Config.Ults.Assets`). `UltPick` is the top-down pick view (`PickMath` is its pure maths).
+`Config.Ults.Assets`). A look times its effects on a clock advanced by `dt x match.timeScale`
+when they should slow with `/slowmo` (ChainLightningFx's bolts and glows). `UltPick` is the top-down pick view (`PickMath` is its pure maths).
 
 **Tools.** `/slowmo <scale>` and `/abilitysetup <id|name>` (Config.Ults.Setups) for the look
 checks; `tests/ult_value.luau` plus `tools/ult_value.luau` measure an ability's worth with

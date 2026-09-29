@@ -27,6 +27,7 @@ export type Effect = {
 }
 
 local Effects: { [string]: Effect } = {
+	ChainLightning = require(script.ChainLightning) :: any,
 	EaglesEye = require(script.EaglesEye) :: any,
 	Ghost = require(script.Ghost) :: any,
 	HeatSeeker = require(script.HeatSeeker) :: any,

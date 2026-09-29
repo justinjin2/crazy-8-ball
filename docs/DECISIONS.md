@@ -1935,3 +1935,13 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   clock face on the cloth whose hand sweeps once round the 5 s; the big bubble is a plain
   ForceField lens (its pattern only while small). The sounds are library clips (no audio
   upload used).
+- 2026-09-29 (assumption): Chain Lightning's numbers go past the brief's starting ones (15
+  degrees of steer, not 8; 4 jumps, not 3; a 20 in reach, the cap; a push that rolls 3x the
+  distance to the pocket): the brief's measured about +0.6 net a use, these +1.1, the bottom of
+  the Epic band. The chain hops from ball to ball (each jump's reach from the last ball struck),
+  a push aims at the closest pocket with a clear line in, and the charged ball's own count does
+  not use up one of the 3-of-yours cap. The balance pass (step 16) decides.
+- 2026-09-29 (assumption): Chain Lightning's look adds a bolt striking down onto the charged
+  ball and a deep blue pool on the cloth under each glowing ball (the reference's blue ground,
+  so the white arcs read on the green cloth); jump bolts stutter on three times. The sounds are
+  library clips (no audio upload used).

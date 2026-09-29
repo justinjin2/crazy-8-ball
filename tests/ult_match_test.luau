@@ -488,10 +488,10 @@ end
 function tests.a_placeholder_arms_and_does_nothing()
 	local m = midGame(1)
 	full(m, 11)
-	armNow(m, 11, "ChainLightning")
-	expect(m.ults.armed.id == "ChainLightning")
+	armNow(m, 11, "SteelBall")
+	expect(m.ults.armed.id == "SteelBall")
 	local wire = play(m, potShot(m, 3))
-	expect(wire.ult ~= nil and wire.ult.id == "ChainLightning")
+	expect(wire.ult ~= nil and wire.ult.id == "SteelBall")
 	expect(wire.overrides == nil or wire.overrides.Effect == nil, "no effect")
 	expect(m.ults.armed == nil and bar(m, 11).used == 1)
 	-- An unknown id plays as the default.

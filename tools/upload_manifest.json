@@ -1,4 +1,27 @@
 {
+  "/Users/justinjin/Desktop/8ball/assets/abilities/ChainLightning/ChainLightning.glb": {
+    "assetId": "110751750592714",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/ChainLightning/textures/crackle_flipbook.png": {
+    "assetId": "100855703223608",
+    "assetType": "Decal",
+    "imageId": "132435040693570",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/ChainLightning/textures/glow.png": {
+    "assetId": "94198140772777",
+    "assetType": "Decal",
+    "imageId": "107241054746462",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/ChainLightning/textures/spark.png": {
+    "assetId": "115799752256848",
+    "assetType": "Decal",
+    "imageId": "77146187473853",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Ghost/Ghost.glb": {
     "assetId": "100126316259892",
     "assetType": "Model",
@@ -86,14 +109,14 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/TimeStop/textures/lens_edge.png": {
     "assetId": "76685822924680",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "113700118006901"
+    "imageId": "113700118006901",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/TimeStop/textures/warp_ring.png": {
     "assetId": "126594807194835",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "113854329541350"
+    "imageId": "113854329541350",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackFlash.png": {
     "assetId": "101433545702035",

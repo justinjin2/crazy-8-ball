@@ -2243,7 +2243,13 @@ Config.Ults = {
 		},
 		Rewind = { Rarity = "Rare", Built = true, Worth = 1, Redo = true },
 		TimeStop = { Rarity = "Rare", Built = true, Effect = "TimeStop", Worth = 1 },
-		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5, Area = true },
+		ChainLightning = {
+			Rarity = "Epic",
+			Built = true,
+			Effect = "ChainLightning",
+			Worth = 1.5,
+			Area = true,
+		},
 		Portals = { Rarity = "Epic", Built = false, Worth = 1.5, Pick = "Portals" },
 		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3 },
 		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3, Area = true },
@@ -2419,6 +2425,16 @@ Config.Ults = {
 		TimeTick = { Id = "rbxassetid://8140501675", Volume = 1.2, StartOffset = 0.22 },
 		TimeResume = { Id = "rbxassetid://9118158113", Volume = 0.7 },
 		TimeTickTock = { Id = "rbxassetid://98448773080489", Volume = 2 },
+		-- Chain Lightning (public library audio, each checked loading in this game and measured
+		-- with an AudioAnalyzer, 2026-09-29): the charge, "thunder crack" (DundeiEh, 3.5 s, a crack
+		-- at 0.2 s then a rolling tail); each jump, "Quick Electric Zap" (ConeExpierence, 0.9 s,
+		-- loud from the start); while balls glow and while armed, "energy buzz" (mastermilosz,
+		-- 7.4 s, a steady quiet hum, looped); arming, "Electric Zaps 6 (SFX)" (Pro Sound
+		-- Effects, a zap at 0.2-0.35 s). (tune by ear)
+		ChainThunder = { Id = "rbxassetid://72827145254925", Volume = 1.4, StartOffset = 0.12 },
+		ChainZap = { Id = "rbxassetid://97096310054904", Volume = 0.5 },
+		ChainHum = { Id = "rbxassetid://124666497875357", Volume = 1.6 },
+		ChainArm = { Id = "rbxassetid://9114277402", Volume = 1.2, StartOffset = 0.15 },
 	},
 }
 
@@ -2463,6 +2479,35 @@ Config.Ults.HeatSeeker = {
 	-- +0.39 (it saturates: the misses left are not the cut's). Under the Uncommon 0.5: the
 	-- balance step's.
 	CutCorrectionTan = 0.364,
+}
+
+-- Chain Lightning (docs/prompts/ABILITIES_PROMPT.md 7.8; src/shared/Ults/Effects/ChainLightning).
+-- Measured (tools/ult_value.luau, 2026-09-29, 120 tables, net balls a use at skills 1/2/3):
+-- careful +1.08 / +1.08 / +1.13, careless +0.88 / +0.79 / +0.86 (the skill the rule adds
+-- +0.2 to +0.3): the bottom of the Epic band (1 to 2). The brief's numbers (8 degrees, 3
+-- jumps, a short push) measured +0.6: the chain reaches few of your balls on a real spread
+-- (about 0.7 a use), so the steer and the push carry most of it; the balance step (16) decides.
+Config.Ults.ChainLightning = {
+	-- The charged ball (the first ball hit, if yours): its heading turns toward its best
+	-- pocket by at most this angle, as its tangent (0.2679 is 15 degrees; 8 measured +0.6,
+	-- 12 +0.94, 18 +1.0), and its speed is multiplied by Boost. (tune)
+	SteerTan = 0.2679,
+	Boost = 1.25,
+	-- The chain: up to Links jumps, each to the nearest ball within ReachInches (centre to
+	-- centre) of the last one struck, LinkSeconds apart. The reach is at the cap
+	-- (Config.Ults.Shared.MaxReachShare of the table; 12 in reached a ball on a third of the
+	-- jumps). Four jumps so a chain through two of theirs can still reach two of yours. (tune)
+	Links = 4,
+	ReachInches = 20,
+	LinkSeconds = 0.08,
+	-- The push on each struck ball: toward its closest pocket with a clear line in (traced
+	-- with a ball ClearanceInches fatter), fast enough to roll PushReachShare of the way to
+	-- the opening's centre, at most PushMaxInches (a ball with an open pocket within about
+	-- 20 in drops, 63% of your struck balls did); the opponent's at OpponentFactor of that
+	-- speed, which rolls a quarter as far. (tune)
+	PushReachShare = 3,
+	PushMaxInches = 60,
+	ClearanceInches = 0.1,
 }
 
 -- Eagle's Eye (docs/prompts/ABILITIES_PROMPT.md 7.2; src/shared/Ults/Predict.luau): the aim's
@@ -2620,6 +2665,10 @@ Config.Ults.Assets = {
 		-- (a needle from its hub along +Z; the part's centre sits 0.365 of a unit up the
 		-- needle from the hub).
 		TimeStop = 113214769332073,
+		-- tools/blender/abilities/chainlightning.py: Bolt1..Bolt4 Core and Glow (a unit-long
+		-- jagged bolt with forks along X, flat in XZ, its box centred on the bolt's middle; the
+		-- glow on every other point). Replaces 116394570082854 (the glow on every point).
+		ChainLightning = 110751750592714,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2645,6 +2694,11 @@ Config.Ults.Assets = {
 		-- (The images inside Decals 126594807194835 and 76685822924680.)
 		TimeWarpRing = "rbxassetid://113854329541350",
 		TimeLensEdge = "rbxassetid://113700118006901",
+		-- Chain Lightning (chainlightning.py): the crackle flipbook (4 x 4), the round glow and the
+		-- spark. (The images inside Decals 100855703223608, 94198140772777, 115799752256848.)
+		ChainCrackle = "rbxassetid://132435040693570",
+		ChainGlow = "rbxassetid://107241054746462",
+		ChainSpark = "rbxassetid://77146187473853",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7316,6 +7370,75 @@ Config.UI.TimeStopFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no screen
 }
 
+-- Chain Lightning's look (src/client/ChainLightningFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.8,
+-- reference 04). Studs unless named. (tune)
+Config.UI.ChainLightningFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The bolts (the model's Bolt meshes): a white-hot Neon core in a see-through cyan Neon
+	-- shell, rolled to face the camera, swapping to another variant every SwapSeconds. Across
+	-- the jags a bolt is scaled by sqrt(length x WidthRefStuds), so a short one is not a
+	-- hairline and a long one not a rope. Each jump's bolt lasts BoltSeconds, shown in pulses
+	-- (start and end as shares of it, each fading over its second half). The opponent's bolts
+	-- are OppWidth as wide and fainter. (Look check 2: one 0.4 s flash was over before the balls
+	-- parted, so the chain did not read as a chain.)
+	-- (Look check 1: at 2 studs and a cyan shell the bolts were hairlines from the shot camera,
+	-- lost on the green cloth.)
+	CoreColor = { 235, 248, 255 },
+	GlowColor = { 50, 140, 255 },
+	CoreTransparency = 0,
+	GlowTransparency = 0.2,
+	WidthRefStuds = 4.5,
+	SwapSeconds = 0.05,
+	BoltSeconds = 0.8,
+	BoltPulses = { { 0, 0.35 }, { 0.45, 0.62 }, { 0.75, 0.88 } },
+	OppWidth = 0.6,
+	OppCoreTransparency = 0.35,
+	OppGlowTransparency = 0.6,
+	-- The charge: a bolt strikes down from StrikeHeightStuds above onto the charged ball for
+	-- StrikeSeconds, a blue light flares over the cloth, the view shakes, and a blue glow
+	-- spreads on the cloth round the ball (FlashBallWidths across) and fades.
+	StrikeHeightStuds = 4,
+	StrikeSeconds = 0.25,
+	FlashBallWidths = 14,
+	FlashTransparency = 0.35,
+	FlashSeconds = 0.5,
+	BurstRangeStuds = 8,
+	BurstBrightness = 4,
+	BurstSeconds = 0.45,
+	ShakeStuds = 0.1,
+	ShakeSeconds = 0.25,
+	-- A charged or struck ball glows for GlowSeconds (or until it drops): crackling arcs (the
+	-- flipbook, CrackleRate a second, CrackleBallWidths across, each CrackleLife long), a
+	-- flickering blue light, and sparks when it is struck (Sparks of them); the charged ball
+	-- (and the armed cue ball) also has Arcs small bolt cores jumping round it (ArcBallWidths
+	-- long). (A frame-time check: arcs on every struck ball put 26 bolt meshes, about 26k
+	-- triangles, on screen at once.) The opponent's at OppWidth of the size.
+	-- Under a glowing ball a deep blue glow on the cloth (PoolBallWidths across, PoolTransparency
+	-- at full), so the white arcs read against blue as in the reference, not on green.
+	PoolBallWidths = 5,
+	PoolColor = { 30, 90, 255 },
+	PoolTransparency = 0.15,
+	GlowSeconds = 1.3,
+	CrackleRate = 30,
+	CrackleBallWidths = 1.7,
+	CrackleLife = { 0.06, 0.12 },
+	Arcs = 1,
+	ArcBallWidths = 1.1,
+	LightColor = { 110, 200, 255 },
+	LightBrightness = 2.5,
+	LightRangeBallWidths = 6,
+	Sparks = 14,
+	SparkBallWidths = 0.5,
+	SparkSpeed = { 3, 7 },
+	-- Armed: the cue ball crackles softly (ArmedRate) with an arc now and then (ArmedArcChance a
+	-- swap), and hums quietly (ArmedHumVolume of the hum).
+	ArmedRate = 10,
+	ArmedArcChance = 0.3,
+	ArmedHumVolume = 0.35,
+	PopSeconds = 0.25,
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no screen
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7329,6 +7452,7 @@ Config.UI.AbilityFx = {
 		HeatSeeker = "HeatSeekerFx",
 		Rewind = "RewindFx",
 		TimeStop = "TimeStopFx",
+		ChainLightning = "ChainLightningFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

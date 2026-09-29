@@ -788,7 +788,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 7. Heat Seeker (7.5), look check done.
 - [x] 8. Rewind (7.6), look check done.
 - [x] 9. Time Stop (7.7), look check done.
-- [ ] 10. Chain Lightning (7.8), look check done.
+- [x] 10. Chain Lightning (7.8), look check done.
 - [ ] 11. Portals (7.9), look check done.
 - [ ] 12. Steel Ball (7.10), look check and art director review done.
 - [ ] 13. Black Flash (7.11), look check and art director review done.
@@ -1065,3 +1065,40 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   need a hand check (step 17). Frame time: 66.7 ms a frame frozen vs 66.7 idle (Studio
   unfocused, 15 fps). No leftovers after the resume (bubble, clock, ghosts, trail, screen
   images, grade).
+- **Step 10 done (2026-09-29).** Plan: the effect in `after` (the charge at the cue ball's
+  first contact, then a jump every LinkSeconds, nearest ball in reach, whoever's), the look off
+  its `charge` and `link` events, the bolts as Blender meshes rolled to face the camera.
+  Rules (Effects/ChainLightning, tests in `ult_chainlightning_test`): the first ball hit, if
+  yours (the 8 only on the legal 8, toward the called pocket), turns toward its best pocket by
+  at most 15 degrees and is sped up x1.25; then up to 4 jumps within 20 in (the cap), each to
+  the nearest ball not yet struck, never the cue ball or the 8 (unless your legal 8), at most 2
+  of theirs (then it jumps over them), 3 of yours; each struck ball rolls toward its closest
+  pocket with a clear line in (aimed at the opening or beside it; else the closest pocket),
+  fast enough to roll 3x the distance (at most 60 in), theirs at half the speed. Tests: no
+  lightning off their ball or the 8, the charge's turn and boost, never the 8 or cue ball and at
+  most 2 of theirs, the legal 8 to its pocket, half the push (speed ratio 0.5), a ball near an
+  open pocket drops, the replay matches the settle. Worth (120 tables, net a use at skills
+  1/2/3): careful +1.08/+1.08/+1.13, careless +0.88/+0.79/+0.86 (the rule's skill +0.2 to
+  +0.3), the bottom of the Epic band; the brief's first numbers (8 degrees, 3 jumps, a short
+  push, 12 in) measured about +0.6, the chain reaching about 0.7 of your balls a use. Flagged for
+  step 16. The look (ChainLightningFx; Blender `chainlightning.py`: four branching bolt
+  variants, each a white core and a cyan shell on every other point, 6.1k triangles in all,
+  and three rendered images, the crackle flipbook, the round glow and the spark): armed, the
+  cue ball crackles softly with an arc now and then and a quiet hum, a zap as it arms, and the
+  reach ring (20 in, the opponent's balls inside outlined red); the charge, a bolt strikes down
+  onto the charged ball (following it), a thunder crack, a blue flare and glow on the cloth, a
+  small shake, sparks; each jump, a bolt from ball to ball flickering between the variants and
+  stuttering on three times as the balls part, a zap, sparks and a light; every struck ball
+  crackles (the flipbook) over a deep blue pool on the cloth with a flickering light, a hum
+  while any glows; the opponent's balls get thinner, fainter bolts and smaller sparks. Studio
+  passes (0.1x `/slowmo`; the look's lifetimes now follow the replay's time scale): 1, the bolts
+  were hairlines from the shot camera and cyan was lost on the green cloth (thicker, bluer, the
+  deep blue pools under glowing balls, as the reference's blue ground); 2, each jump's bolt was
+  over before the balls parted so it did not read as a chain, and the strike landed where the
+  ball had been (three pulses over 0.8 s, the strike follows the ball). Critique left: the
+  green cloth still dominates the reference's deep blue; the forks are below a pixel from the
+  top camera; the strike from above reads as a streak from overhead. Frame time: 16.6 ms a frame
+  during the chain vs 16.7 idle; at most 5 bolt cores and 4 shells on screen (about 7k
+  triangles; arcs on every struck ball had put 26 meshes up, so the small arcs are the charged
+  ball's only). No leftovers after the shot. Phone framing is checked in the playthrough. The
+  first model upload (116394570082854, full-detail shells) is superseded by 110751750592714.
