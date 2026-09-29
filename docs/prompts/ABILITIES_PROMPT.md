@@ -768,7 +768,7 @@ at half strength (section 5.7).
 Tick each box when its step is done, verified and committed (`- [x]`). A step that can't be done
 becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 
-- [ ] 0. Setup: `git switch -c abilities` from `ultimates`, first commit of this brief, the
+- [x] 0. Setup: `git switch -c abilities` from `ultimates`, first commit of this brief, the
   references, `tools/overnight/abilities.json` and `tools/overnight/keep_going.sh`; docs and code read; Studio, Rojo, Blender
   MCP (`get_addon_status`, generator statuses) and the Keychain key (True/False only) checked;
   lint and tests green; plan in Notes.
@@ -872,3 +872,11 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   - Steps 3-15: one ability at a time (physics + test + harness worth, then Blender meshes and
     flipbooks, then the Fx module, sounds, Studio look check x2 passes), committed each.
   - Steps 16-21 as listed.
+- **Access (2026-09-29, after asking).** The designer reconnected Rojo: Studio has this branch's
+  code (`script_grep` found "PickRequired" and the pick agent's new `PickMath`). Blender MCP is
+  up (addon 1.7, protocol 11, Blender 5.2.2 LTS, no premium generators). Generator and library
+  statuses: Hyper3D Rodin, Hunyuan3D, Sketchfab, Poly Haven and Poly Pizza all disabled in the
+  addon's panel; Tripo needs Premium. So models are hand-modelled by script (bpy, live or
+  headless); the tiger (step 15) is where a generator or a CC-BY Sketchfab model would help:
+  ask then. The designer's note: Studio had offered an auto-recovery file (declined), which is
+  why cue-mesh scripts were loaded; that branch's Edit-mode content is not this run's concern.
