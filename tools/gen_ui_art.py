@@ -21,7 +21,8 @@ Config.UI.Kit.Icons and Config.UI.Kit.Art.
 Run: python3 tools/gen_ui_art.py                 every image (rewrites them all)
      python3 tools/gen_ui_art.py shop case_rare  only the images named
      python3 tools/gen_ui_art.py economy         a group (GROUPS): column, cases, packs,
-                                                 shop_icons, cue_layers, or economy for all five
+                                                 shop_icons, cue_layers, or economy for all five;
+                                                 ults for the ultimates' icons and effect art
 """
 import math
 import os
@@ -2034,6 +2035,277 @@ CUE_LAYERS = {
 }
 
 
+# ---------------------------------------------------------------------------------------
+# Ultimates (2026-09-28, docs/prompts/ULTIMATES_PROMPT.md): the column's Ults button, the ult
+# bar's badge (reference 08), the spin screen's LUCKY SPINS and SPIN symbols. Their effect
+# images (the cutscene backdrop, the aura flipbook, Magnet's beam, ring, spark and glow) are
+# with the effect art below.
+# ---------------------------------------------------------------------------------------
+
+
+def polar_path(cx, cy, radius, n=240, sy=1.0):
+    """A closed outline round (cx, cy): radius(a) gives the distance at angle a (radians, 0 to
+    the right, going clockwise on screen). radius may return (r, dx, dy) to push a point, as a
+    flame's tips lean up. sy squashes it vertically."""
+    pts = []
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        r = radius(a)
+        dx = dy = 0.0
+        if isinstance(r, tuple):
+            r, dx, dy = r
+        pts.append((cx + r * math.cos(a) + dx, cy + r * math.sin(a) * sy + dy))
+    return poly(pts)
+
+
+def peak(x, width, power=1.6):
+    """A pointed bump: 1 at x = 0 falling to 0 at |x| = width (x in radians, wrapped)."""
+    x = (x + math.pi) % (2 * math.pi) - math.pi
+    return max(0.0, 1 - abs(x) / width) ** power
+
+
+def ult_ball(g, cx, cy, r, rim="#7FE7FF"):
+    """The black 8 ball: a glossy body lit from the upper left, a thin rim of coloured light on
+    its lower right (the splash's glow), the white number disc with an 8 (two stacked rings,
+    like the pattern's balls) and a big shine."""
+    d = r * 0.47  # the disc's radius
+    dx, dy = cx - r * 0.06, cy - r * 0.08
+    parts = [
+        "<defs>"
+        f'<radialGradient id="{g}Ball" cx="0.36" cy="0.3" r="0.78">'
+        '<stop offset="0" stop-color="#626A84"/><stop offset="0.3" stop-color="#2A3044"/>'
+        '<stop offset="0.75" stop-color="#10131D"/><stop offset="1" stop-color="#05060B"/></radialGradient>'
+        + grad(g + "Disc", "#FFFFFF", "#F4F7FC", "#CFD8E6", x2=0.3)
+        + "</defs>",
+        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="url(#{g}Ball)"/>',
+    ]
+    # the rim light: a thin crescent of coloured light on the lower-right edge, between the
+    # ball's edge and the same circle nudged up and left (through the two points they cross)
+    o = r * 0.07
+    h = math.sqrt(r * r - o * o / 2)
+    mx, my = cx - o / 2, cy - o / 2
+    p1 = (mx + h / math.sqrt(2), my - h / math.sqrt(2))  # upper right
+    p2 = (mx - h / math.sqrt(2), my + h / math.sqrt(2))  # lower left
+    parts.append(
+        f'<path d="M{p1[0]:.1f} {p1[1]:.1f} A{r} {r} 0 1 1 {p2[0]:.1f} {p2[1]:.1f} '
+        f'A{r} {r} 0 0 0 {p1[0]:.1f} {p1[1]:.1f} Z" fill="{rim}" opacity="0.5"/>'
+    )
+    parts += [
+        f'<circle cx="{dx:.1f}" cy="{dy:.1f}" r="{d:.1f}" fill="url(#{g}Disc)"/>',
+        f'<ellipse cx="{dx:.1f}" cy="{dy - d * 0.25:.1f}" rx="{d * 0.24:.1f}" ry="{d * 0.21:.1f}" '
+        f'fill="none" stroke="{INK}" stroke-width="{d * 0.16:.1f}"/>',
+        f'<ellipse cx="{dx:.1f}" cy="{dy + d * 0.23:.1f}" rx="{d * 0.29:.1f}" ry="{d * 0.25:.1f}" '
+        f'fill="none" stroke="{INK}" stroke-width="{d * 0.16:.1f}"/>',
+        gloss(cx - r * 0.5, cy - r * 0.52, r * 0.3, r * 0.14, angle=-42, opacity=0.95),
+        gloss(cx + r * 0.46, cy + r * 0.5, r * 0.12, r * 0.06, angle=-42, opacity=0.4),
+    ]
+    return "".join(parts)
+
+
+def icon_ults():
+    """The column's Ults button: the black 8 ball in front of a jagged burst of electric
+    energy, cyan and blue outside and gold inside, flaring toward the upper right where a gold
+    lightning bolt strikes past it. Big and simple, like the column's other icons, so it reads
+    at 52 px."""
+    g = "ults"
+    bx, by = 128, 128  # the burst's middle
+
+    def burst(spikes, base, width):
+        # spikes: (angle in degrees, length); straight-sided points of uneven length
+        def f(a):
+            return base + max(k * peak(a - math.radians(t), width, 1.0) for t, k in spikes)
+
+        return f
+
+    outer = burst(
+        [(-150, 34), (-118, 50), (-86, 38), (-58, 54), (-30, 40), (-2, 46), (24, 32), (52, 40),
+         (82, 30), (112, 40), (140, 28), (170, 42), (196, 30)],
+        78, 0.36,
+    )
+    inner = burst(
+        [(-134, 26), (-102, 34), (-72, 44), (-44, 36), (-16, 48), (10, 30), (38, 34), (68, 24),
+         (98, 30), (128, 22), (156, 30), (184, 24)],
+        70, 0.3,
+    )
+    bolt = "M190 14 L146 92 L172 92 L140 170 L222 74 L192 74 L214 14 Z"
+    parts = [
+        "<defs>"
+        + grad(g + "Cyan", "#E6FDFF", "#6FE9FF", "#2F9BFF", "#1F5FD0", x1=0.2, y1=0, x2=0.6, y2=1)
+        + grad(g + "Gold", "#FFFBD6", "#FFE45C", "#FFB21C", x2=0.4)
+        + grad(g + "Bolt", "#FFF7C4", "#FFD84A", "#F29A00", x2=0.3)
+        + "</defs>",
+        f'<path d="{polar_path(bx, by, outer, n=720)}" fill="url(#{g}Cyan)" stroke="url(#{g}Cyan)" stroke-width="3" stroke-linejoin="round"/>',
+        f'<path d="{polar_path(bx, by, inner, n=720)}" fill="url(#{g}Gold)"/>',
+        ult_ball(g, 116, 142, 74, rim="#3FB8FF"),
+        inked(bolt, f"url(#{g}Bolt)", 4.5, 'stroke-linejoin="round"'),
+        line([(196, 26), (164, 84)], "#FFFFFF", 5, 'opacity="0.7"'),
+    ]
+    return zoom("".join(parts), 0.88, dx=-4, dy=-2)
+
+
+def ult_badge(g, splash_back, splash_front, drops, rim):
+    """The ult bar's badge (reference 08): the 8 ball on the right, a splash behind it
+    reaching up and left, and drops flying off its top left. The bar's pill starts under the
+    ball's right half."""
+    art = "".join([splash_back, splash_front, drops, ult_ball(g, 146, 146, 80, rim=rim)])
+    return zoom(art, 0.88, dx=4, dy=8)
+
+
+def icon_ult_badge():
+    """The badge with its blue paint splash: a lumpy cloud behind the ball, lighter lumps on
+    top, and three drops flying off to the upper left."""
+    g = "ultBadge"
+    cx, cy = 124, 124
+
+    def cloud(a):
+        # round lumps all round, one big lobe reaching to the upper left
+        lumps = 0.07 * math.cos(7 * a + 0.4) + 0.04 * math.cos(11 * a + 1.3)
+        lobe = 0.2 * peak(a - math.radians(-135), 1.3, 1.2)
+        return 86 * (1 + lumps + lobe)
+
+    def cap(a):
+        lumps = 0.08 * math.cos(6 * a + 1.1) + 0.04 * math.cos(9 * a)
+        return 58 * (1 + lumps + 0.18 * peak(a - math.radians(-130), 1.2, 1.2))
+
+    back = (
+        "<defs>"
+        + grad(g + "Splash", "#D8F4FF", "#7ACDFF", "#3B9BFF", "#2A74D6", x2=0.4)
+        + grad(g + "Cap", "#FFFFFF", "#CFF0FF", x2=0.4)
+        + "</defs>"
+        + f'<path d="{polar_path(cx, cy, cloud)}" fill="url(#{g}Splash)"/>'
+    )
+    front = f'<path d="{polar_path(cx - 22, cy - 22, cap)}" fill="url(#{g}Cap)" opacity="0.75"/>'
+    drops = "".join(
+        f'<circle cx="{x}" cy="{y}" r="{r}" fill="url(#{g}Splash)"/>' + gloss(x - r * 0.3, y - r * 0.3, r * 0.45, r * 0.3, opacity=0.95)
+        for x, y, r in ((34, 30, 13), (70, 16, 9), (18, 70, 8))
+    )
+    return ult_badge(g, back, front, drops, "#5FC4FF")
+
+
+def icon_ult_badge_gold():
+    """The ready badge: the same ball with a gold and orange flame bursting up behind it, and
+    embers flying off its top left."""
+    g = "ultBadgeGold"
+    cx, cy = 132, 142
+    tongues = [  # angle (degrees), length
+        (-178, 0.22), (-152, 0.4), (-126, 0.56), (-100, 0.48), (-76, 0.54), (-50, 0.4), (-22, 0.24),
+    ]
+
+    def flame(scale, lean):
+        def f(a):
+            reach = sum(k * peak(a - math.radians(t), 0.4, 1.7) for t, k in tongues)
+            lumps = 0.04 * math.cos(9 * a)
+            r = 84 * scale * (1 + lumps)
+            out = r * reach
+            # the tips lean up and curl a little clockwise, like fire in a draught
+            return (r + out * 0.55, out * lean, -out * 0.75)
+
+        return f
+
+    back = (
+        "<defs>"
+        + grad(g + "Outer", "#FFE27A", "#FFB21C", "#FF7A00", "#E05500", x1=0, y1=0, x2=0.2, y2=1)
+        + grad(g + "Inner", "#FFFFFF", "#FFF4B0", "#FFD84A", x2=0.3)
+        + "</defs>"
+        + f'<path d="{polar_path(cx, cy, flame(1.0, 0.25))}" fill="url(#{g}Outer)"/>'
+    )
+    front = f'<path d="{polar_path(cx - 6, cy + 4, flame(0.74, 0.2))}" fill="url(#{g}Inner)" opacity="0.9"/>'
+    drops = "".join(
+        f'<path d="M{x} {y - r * 1.6} Q{x + r} {y - r * 0.2} {x} {y + r} Q{x - r} {y - r * 0.2} {x} {y - r * 1.6} Z" '
+        f'fill="url(#{g}Outer)" transform="rotate(-30 {x} {y})"/>'
+        for x, y, r in ((32, 44, 11), (64, 18, 8), (16, 90, 7))
+    )
+    return ult_badge(g, back, front, drops, "#FFB21C")
+
+
+def icon_lucky():
+    """A four-leaf clover, green to teal, on a short stem, with a twinkle: LUCKY SPINS."""
+    g = "lucky"
+    cx, cy = 124, 112
+    tilt = math.radians(-12)
+
+    def heart(turn, L=92, w=50):
+        # a heart with its tip at the clover's middle and its lobes outward
+        pts = [
+            (0, 0), (-w * 0.25, -L * 0.3), (-w, -L * 0.42), (-w * 0.98, -L * 0.76),
+            (-w * 0.94, -L * 1.08), (-w * 0.22, -L * 1.12), (0, -L * 0.84),
+            (w * 0.22, -L * 1.12), (w * 0.94, -L * 1.08), (w * 0.98, -L * 0.76),
+            (w, -L * 0.42), (w * 0.25, -L * 0.3), (0, 0),
+        ]
+        c, s = math.cos(turn + tilt), math.sin(turn + tilt)
+        q = [(cx + x * c - y * s, cy + x * s + y * c) for x, y in pts]
+        f = lambda p: f"{p[0]:.1f} {p[1]:.1f}"  # noqa: E731
+        d = f"M{f(q[0])} C{f(q[1])} {f(q[2])} {f(q[3])} C{f(q[4])} {f(q[5])} {f(q[6])} C{f(q[7])} {f(q[8])} {f(q[9])} C{f(q[10])} {f(q[11])} {f(q[12])} Z"
+        vein = [(cx + x * c - y * s, cy + x * s + y * c) for x, y in ((0, -12), (0, -L * 0.74))]
+        lobe = (cx + (-w * 0.45) * c - (-L * 0.8) * s, cy + (-w * 0.45) * s + (-L * 0.8) * c)
+        return d, vein, lobe
+
+    parts = [
+        "<defs>"
+        + grad(g + "Leaf", "#C8FFD2", "#48E07A", "#16BFA0", "#0B8C82", x1=0, y1=0, x2=0.5, y2=1)
+        + grad(g + "Stem", "#3DD66B", "#15A585", x2=1, y2=0.3)
+        + "</defs>",
+        f'<path d="M{cx} {cy} C{cx + 18} {cy + 50} {cx + 42} {cy + 90} {cx + 86} {cy + 116}" fill="none" '
+        f'stroke="url(#{g}Stem)" stroke-width="20" stroke-linecap="round"/>',
+    ]
+    for turn in (0, math.pi / 2, math.pi, 3 * math.pi / 2):
+        d, vein, lobe = heart(turn)
+        parts.append(inked(d, f"url(#{g}Leaf)", 3.5))
+        parts.append(line(vein, "#0B8C82", 5, 'opacity="0.45"'))
+        parts.append(gloss(lobe[0], lobe[1], 13, 8, angle=math.degrees(turn + tilt) - 30, opacity=0.8))
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="10" fill="#1FB98C" stroke="{INK}" stroke-width="3.5"/>')
+    over = twinkle(214, 42, 26, "#FFFBD6") + twinkle(40, 206, 13, "#FFFFFF")
+    return "", zoom("".join(parts), 0.94, dx=-2, dy=0), over
+
+
+def icon_ult_spin():
+    """The SPIN symbol: a thick gold arrow going round clockwise, and a small lightning bolt in
+    its middle."""
+    g = "ultSpin"
+    cx, cy, r, w = 128, 132, 82, 30
+    a0, a1 = math.radians(-58), math.radians(222)  # the arc's start and end (the arrow's head)
+    p0 = (cx + r * math.cos(a0), cy + r * math.sin(a0))
+    p1 = (cx + r * math.cos(a1), cy + r * math.sin(a1))
+    arc = f"M{p0[0]:.1f} {p0[1]:.1f} A{r} {r} 0 1 1 {p1[0]:.1f} {p1[1]:.1f}"
+    # the head at the arc's end, pointing along the way round (clockwise: the tangent is
+    # (-sin a, cos a))
+    tx, ty = -math.sin(a1), math.cos(a1)
+    nx, ny = math.cos(a1), math.sin(a1)
+    tip = (p1[0] + tx * 50, p1[1] + ty * 50)
+    head = [
+        tip,
+        (p1[0] + nx * 40 - tx * 4, p1[1] + ny * 40 - ty * 4),
+        (p1[0] - nx * 40 - tx * 4, p1[1] - ny * 40 - ty * 4),
+    ]
+    bolt = "M142 70 L96 138 L124 138 L108 196 L162 118 L134 118 L154 70 Z"
+    hi_r = r + w * 0.22
+    h0, h1 = math.radians(150), math.radians(215)
+    hi = (
+        f'<path d="M{cx + hi_r * math.cos(h0):.1f} {cy + hi_r * math.sin(h0):.1f} '
+        f'A{hi_r} {hi_r} 0 0 1 {cx + hi_r * math.cos(h1):.1f} {cy + hi_r * math.sin(h1):.1f}" '
+        'fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.7"/>'
+    )
+    hi2_0, hi2_1 = math.radians(-50), math.radians(-5)
+    hi2 = (
+        f'<path d="M{cx + hi_r * math.cos(hi2_0):.1f} {cy + hi_r * math.sin(hi2_0):.1f} '
+        f'A{hi_r} {hi_r} 0 0 1 {cx + hi_r * math.cos(hi2_1):.1f} {cy + hi_r * math.sin(hi2_1):.1f}" '
+        'fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.55"/>'
+    )
+    parts = [
+        "<defs>"
+        + grad(g + "Gold", "#FFF1A0", "#FFC928", "#DB8E00", x2=0.3)
+        + grad(g + "Bolt", "#FFFBD6", "#FFE45C", "#F2A200", x2=0.3)
+        + "</defs>",
+        f'<path d="{arc}" fill="none" stroke="url(#{g}Gold)" stroke-width="{w}" stroke-linecap="round"/>',
+        f'<path d="{poly(head)}" fill="url(#{g}Gold)" stroke="url(#{g}Gold)" stroke-width="8" stroke-linejoin="round"/>',
+        hi,
+        hi2,
+        f'<path d="{bolt}" fill="url(#{g}Bolt)" stroke="url(#{g}Bolt)" stroke-width="5" stroke-linejoin="round"/>',
+        line([(144, 80), (118, 122)], "#FFFFFF", 4, 'opacity="0.7"'),
+    ]
+    return zoom("".join(parts), 0.96, dy=-4)
+
+
 ICONS = {
     "cue": icon_cue,
     "hourglass": icon_hourglass,
@@ -2099,6 +2371,12 @@ ICONS = {
     "sell": icon_sell,
     "lock": icon_lock,
     "odds": icon_odds,
+    # the ultimates (2026-09-28)
+    "ults": icon_ults,
+    "ult_badge": icon_ult_badge,
+    "ult_badge_gold": icon_ult_badge_gold,
+    "lucky": icon_lucky,
+    "ult_spin": icon_ult_spin,
 }
 
 # Group names on the command line stand for these icons (python3 tools/gen_ui_art.py economy).
@@ -2113,6 +2391,11 @@ GROUPS = {
     "cue_layers": list(CUE_LAYERS),
 }
 GROUPS["economy"] = [name for group in list(GROUPS.values()) for name in group]
+# The ultimates' icons and effect images (not part of "economy").
+GROUPS["ults"] = [
+    "ults", "ult_badge", "ult_badge_gold", "lucky", "ult_spin",
+    "ult_backdrop", "aura_flame", "field_lines", "ring_glow", "spark", "soft_glow",
+]
 
 # ---------------------------------------------------------------------------------------
 # Effect art (no ink outline: these sit inside or behind other shapes)
@@ -2222,11 +2505,290 @@ def art_rays():
     )
 
 
+def art_svg(w, h, body, extra_defs=""):
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">'
+        f"<defs>{extra_defs}</defs>{body}</svg>"
+    )
+
+
+def blur_def(fid, sigma):
+    return (
+        f'<filter id="{fid}" x="-50%" y="-50%" width="200%" height="200%">'
+        f'<feGaussianBlur stdDeviation="{sigma}"/></filter>'
+    )
+
+
+def brush_stroke(points, width, taper=(0.25, 0.45)):
+    """A brush stroke along points: widest in the middle, tapering to a point at both ends
+    (taper: the share of the length each end takes to reach full width)."""
+    n = len(points)
+    left, right = [], []
+    for i, (x, y) in enumerate(points):
+        s = i / (n - 1)
+        k = min(1.0, s / taper[0], (1 - s) / taper[1])
+        hw = width / 2 * math.sin(k * math.pi / 2)
+        ax, ay = points[max(i - 1, 0)]
+        bx, by = points[min(i + 1, n - 1)]
+        tx, ty = bx - ax, by - ay
+        length = math.hypot(tx, ty) or 1.0
+        nx, ny = -ty / length, tx / length
+        left.append((x + nx * hw, y + ny * hw))
+        right.append((x - nx * hw, y - ny * hw))
+    return poly(left + right[::-1])
+
+
+def ink_splash(rng, cx, cy, r, fill, drops=5, turn=0.0):
+    """A white ink splash: an uneven blob stretched along `turn` (radians), with a few ragged
+    lumps and drops thrown off it."""
+    k = [(rng.uniform(0.06, 0.12), f, rng.uniform(0, 6.3)) for f in (2, 3)]
+    k += [(rng.uniform(0.05, 0.1), rng.randint(4, 6), rng.uniform(0, 6.3))]
+    k += [(rng.uniform(0.03, 0.07), rng.randint(8, 12), rng.uniform(0, 6.3))]
+    stretch = rng.uniform(1.25, 1.6)
+
+    def f(a):
+        rr = r * (1 + sum(amp * math.cos(freq * a + ph) for amp, freq, ph in k))
+        # stretched along the turn, like paint thrown by the swirl
+        along = (stretch - 1) * rr * math.cos(a - turn)
+        return rr, along * math.cos(turn), along * math.sin(turn)
+
+    out = f'<path d="{polar_path(cx, cy, f, n=160)}" fill="{fill}"/>'
+    for _ in range(drops):
+        a = turn + rng.choice((0, math.pi)) + rng.uniform(-0.6, 0.6)
+        d = r * rng.uniform(1.5, 2.4)
+        out += f'<circle cx="{cx + d * math.cos(a):.1f}" cy="{cy + d * math.sin(a):.1f}" r="{r * rng.uniform(0.07, 0.2):.1f}" fill="{fill}"/>'
+    return out
+
+
+def art_ult_backdrop():
+    """The cutscene's manga panel backdrop (reference 10's swirling domain, as ink): a vortex of
+    brush strokes round a calm dark eye left of the middle (the avatar stands in front of it),
+    speed lines rushing outward and white ink splashes. White and greys on near-black, so
+    ImageColor3 tints it per rarity (white takes the colour, black stays black). The panel
+    shows a wide strip (about 3:1) across the middle, and it drifts, so the whole square is
+    filled."""
+    import random
+
+    size = 1024
+    rng = random.Random(8)
+    ex, ey = 420, 512  # the eye
+    parts = []
+    # the depth: a soft grey haze round the eye, dark in the corners
+    defs = (
+        f'<radialGradient id="ubdHaze" cx="{ex / size:.3f}" cy="{ey / size:.3f}" r="0.62">'
+        '<stop offset="0" stop-color="#1A1B22"/><stop offset="0.16" stop-color="#2C2E38"/>'
+        '<stop offset="0.36" stop-color="#4A4D5A"/><stop offset="0.7" stop-color="#1C1D24"/>'
+        '<stop offset="1" stop-color="#08090D"/></radialGradient>'
+        f'<radialGradient id="ubdEye" cx="{ex / size:.3f}" cy="{ey / size:.3f}" r="0.2">'
+        '<stop offset="0" stop-color="#050608" stop-opacity="0.85"/>'
+        '<stop offset="0.55" stop-color="#050608" stop-opacity="0.55"/>'
+        '<stop offset="1" stop-color="#050608" stop-opacity="0"/></radialGradient>'
+        # the speed lines fade in away from the eye
+        f'<radialGradient id="ubdFade" cx="{ex / size:.3f}" cy="{ey / size:.3f}" r="0.75">'
+        '<stop offset="0.3" stop-color="#FFFFFF" stop-opacity="0"/>'
+        '<stop offset="0.55" stop-color="#FFFFFF" stop-opacity="1"/></radialGradient>'
+        f'<mask id="ubdMask"><rect width="{size}" height="{size}" fill="url(#ubdFade)"/></mask>'
+        + blur_def("ubdSoft", 6)
+        + blur_def("ubdSofter", 14)
+    )
+    parts.append(f'<rect width="{size}" height="{size}" fill="url(#ubdHaze)"/>')
+
+    def spiral(r0, a0, sweep, k=0.32, steps=40):
+        # a log spiral going clockwise and outward from radius r0 at angle a0
+        pts = []
+        for i in range(steps):
+            t = i / (steps - 1)
+            a = a0 + sweep * t
+            r = r0 * math.exp(k * sweep * t)
+            pts.append((ex + r * math.cos(a), ey + r * math.sin(a) * 0.86))
+        return pts
+
+    # back layer: wide soft grey swirls
+    back = []
+    for _ in range(26):
+        r0 = rng.uniform(130, 420)
+        pts = spiral(r0, rng.uniform(0, 2 * math.pi), rng.uniform(1.4, 2.6))
+        grey = rng.choice(["#6C7080", "#80848F", "#9A9DA8", "#5A5E6C"])
+        back.append(f'<path d="{brush_stroke(pts, rng.uniform(26, 70))}" fill="{grey}" opacity="{rng.uniform(0.35, 0.7):.2f}"/>')
+    parts.append(f'<g filter="url(#ubdSofter)">{"".join(back)}</g>')
+    # speed lines: thin wedges from far out toward the eye
+    lines_ = []
+    for _ in range(110):
+        a = rng.uniform(0, 2 * math.pi)
+        r_in, r_out = rng.uniform(240, 420), 900
+        w = rng.uniform(2, 9)
+        c, s = math.cos(a), math.sin(a)
+        pts = [
+            (ex + r_in * c, ey + r_in * s),
+            (ex + r_out * c - s * w, ey + r_out * s + c * w),
+            (ex + r_out * c + s * w, ey + r_out * s - c * w),
+        ]
+        lines_.append(f'<path d="{poly(pts)}" fill="#FFFFFF" opacity="{rng.uniform(0.25, 0.8):.2f}"/>')
+    parts.append(f'<g mask="url(#ubdMask)">{"".join(lines_)}</g>')
+    # middle layer: lighter swirls, a little soft
+    mid = []
+    for _ in range(40):
+        r0 = rng.uniform(120, 520)
+        pts = spiral(r0, rng.uniform(0, 2 * math.pi), rng.uniform(0.9, 2.0))
+        grey = rng.choice(["#B8BBC4", "#D0D2D9", "#A4A7B2"])
+        mid.append(f'<path d="{brush_stroke(pts, rng.uniform(10, 30) * (0.6 + r0 / 500))}" fill="{grey}" opacity="{rng.uniform(0.5, 0.9):.2f}"/>')
+    parts.append(f'<g filter="url(#ubdSoft)">{"".join(mid)}</g>')
+    # front layer: crisp white ink strokes, the manga lines
+    front = []
+    for _ in range(46):
+        r0 = rng.uniform(135, 560)
+        pts = spiral(r0, rng.uniform(0, 2 * math.pi), rng.uniform(0.6, 1.6))
+        front.append(
+            f'<path d="{brush_stroke(pts, rng.uniform(3, 12) * (0.6 + r0 / 400), taper=(0.15, 0.6))}" fill="#FFFFFF" opacity="{rng.uniform(0.75, 1):.2f}"/>'
+        )
+    parts.append("".join(front))
+    # the calm eye: darkened so the avatar stands out
+    parts.append(f'<rect width="{size}" height="{size}" fill="url(#ubdEye)"/>')
+    # white ink splashes, kept off the eye (none in the avatar's third)
+    splashes = [
+        (830, 560, 50), (955, 420, 34), (690, 372, 26), (128, 640, 48), (70, 380, 28),
+        (900, 700, 24), (640, 700, 30), (300, 230, 40), (720, 180, 34), (520, 840, 44),
+        (180, 860, 30), (980, 900, 36), (60, 120, 30), (860, 90, 26), (150, 470, 18),
+        (760, 470, 16),
+    ]
+    for x, y, r in splashes:
+        # each splash stretches along the swirl (square to the line from the eye)
+        turn = math.atan2(y - ey, x - ex) + math.pi / 2
+        parts.append(ink_splash(rng, x, y, r, "#FFFFFF", turn=turn))
+    return art_svg(size, size, "".join(parts), defs)
+
+
+def art_aura_flame():
+    """The aura's flipbook (ParticleEmitter FlipbookLayout Grid4x4, 16 frames of 256 px, left
+    to right then top to bottom): one flame wisp, white with soft edges (the emitter's Color
+    tints it), growing from a small flicker to a tall curling tongue, then lifting off, thinning
+    and fading out."""
+    size, cell = 1024, 256
+    defs = blur_def("afBody", 7) + blur_def("afCore", 3.5)
+    frames = []
+    for i in range(16):
+        t = i / 15
+        grow = min(1.0, t / 0.6)
+        ease = 1 - (1 - grow) ** 2
+        lift = max(0.0, (t - 0.6) / 0.4)  # 0 until frame 9, then 0 to 1
+        base = 234 - 120 * lift  # it lifts off as it dies, burning away from the bottom
+        h = 46 + 154 * ease - 120 * lift + 24 * lift  # the tongue's height (its tip stays in)
+        wid = (30 + 12 * ease) * (1 - 0.55 * lift)  # half the width at the widest
+        curl = 6 + 26 * ease + 18 * lift  # how far the tip bends
+        alpha = 1.0 - lift**1.3
+        phase = 0.8 * t
+
+        def axis(s):
+            x = 128 + curl * math.sin(math.pi * s * 1.15 + phase) * s - 4 * math.sin(phase * 3) * (1 - s)
+            return x, base - s * h
+
+        def half(s):
+            body = (1 - s) ** 1.25 * min(1.0, (s + 0.06) / 0.3) ** 0.5
+            return wid * body * (1 - 0.35 * lift * (1 - s))
+
+        def outline(scale):
+            n = 36
+            left, right = [], []
+            for j in range(n + 1):
+                s = j / n
+                x, y = axis(s)
+                x2, y2 = axis(min(1.0, s + 0.01))
+                tx, ty = x2 - x, y2 - y
+                length = math.hypot(tx, ty) or 1.0
+                nx, ny = -ty / length, tx / length
+                hw = half(s) * scale
+                left.append((x + nx * hw, y + ny * hw))
+                right.append((x - nx * hw, y - ny * hw))
+            return poly(left + right[::-1])
+
+        x0, y0 = (i % 4) * cell, (i // 4) * cell
+        # the round foot of the tongue
+        fx, fy = axis(0.04)
+        foot_r = wid * 0.62 * (1 - 0.6 * lift)
+        frames.append(
+            f'<svg x="{x0}" y="{y0}" width="{cell}" height="{cell}" viewBox="0 0 {cell} {cell}" overflow="hidden">'
+            f'<g opacity="{alpha:.3f}">'
+            f'<g filter="url(#afBody)" opacity="0.6"><path d="{outline(1.0)}" fill="#FFFFFF"/>'
+            f'<circle cx="{fx:.1f}" cy="{fy:.1f}" r="{foot_r:.1f}" fill="#FFFFFF"/></g>'
+            f'<g filter="url(#afCore)" opacity="0.95"><path d="{outline(0.48)}" fill="#FFFFFF"/></g>'
+            "</g></svg>"
+        )
+    return art_svg(size, size, "".join(frames), defs)
+
+
+def art_field_lines():
+    """Magnet's beam texture, 512 x 128: four thin wavy field lines with a soft glow, white on
+    clear. Every wave has a whole number of periods across the width, so it tiles left to
+    right (the Beam repeats it along its length; U runs along the beam)."""
+    w, h = 512, 128
+    glow, core = [], []
+    for i, yc in enumerate((37, 55, 73, 91)):
+        # the same two waves on every line, each a little behind the one above, so they stay
+        # parallel and never cross
+        ph = 0.35 * i
+
+        def y(x):
+            u = 2 * math.pi * x / w
+            return yc + 8 * math.sin(2 * u + ph) + 3 * math.sin(3 * u + 1.7 + ph * 1.5)
+
+        pts = [(x, y(x)) for x in range(-64, w + 65, 4)]
+        glow.append(line(pts, "#FFFFFF", 9, 'opacity="0.55"'))
+        core.append(line(pts, "#FFFFFF", 2.6))
+    defs = blur_def("flGlow", 3.5)
+    return art_svg(w, h, f'<g filter="url(#flGlow)">{"".join(glow)}</g>' + "".join(core), defs)
+
+
+def art_ring_glow():
+    """A soft white ring, clear in the middle: a bright line at 72% of the radius with a glow
+    fading inward and outward. Tinted red or blue in Roblox."""
+    stops = [(0, 0), (0.48, 0), (0.58, 0.12), (0.65, 0.4), (0.7, 0.9), (0.72, 1), (0.74, 0.9),
+             (0.79, 0.4), (0.87, 0.12), (0.97, 0)]
+    grad_ = "".join(f'<stop offset="{o}" stop-color="#FFFFFF" stop-opacity="{a}"/>' for o, a in stops)
+    defs = f'<radialGradient id="rgRing" cx="0.5" cy="0.5" r="0.5">{grad_}</radialGradient>'
+    return art_svg(256, 256, '<rect width="256" height="256" fill="url(#rgRing)"/>', defs)
+
+
+def art_spark():
+    """A small four-pointed sparkle, white, with a soft glow round it: particle bursts."""
+    defs = (
+        '<radialGradient id="spkGlow" cx="0.5" cy="0.5" r="0.5">'
+        '<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.75"/>'
+        '<stop offset="0.3" stop-color="#FFFFFF" stop-opacity="0.3"/>'
+        '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>'
+        + blur_def("spkBlur", 3)
+    )
+    body = (
+        '<circle cx="64" cy="64" r="60" fill="url(#spkGlow)"/>'
+        f'<g filter="url(#spkBlur)" opacity="0.8">{sparkle(64, 64, 50)}</g>'
+        + sparkle(64, 64, 46)
+        + '<circle cx="64" cy="64" r="7" fill="#FFFFFF"/>'
+    )
+    return art_svg(128, 128, body, defs)
+
+
+def art_soft_glow():
+    """A round soft glow: bright in the middle, falling smoothly to clear at the edge."""
+    stops = "".join(
+        f'<stop offset="{x:.2f}" stop-color="#FFFFFF" stop-opacity="{(1 - x * x) ** 2.2:.3f}"/>'
+        for x in [i / 10 for i in range(11)]
+    )
+    defs = f'<radialGradient id="sgGlow" cx="0.5" cy="0.5" r="0.5">{stops}</radialGradient>'
+    return art_svg(256, 256, '<rect width="256" height="256" fill="url(#sgGlow)"/>', defs)
+
+
+# name: (draw, size); size is one number for a square or (width, height).
 ART = {
     "pattern": (art_pattern, 512),
     "ball_gloss": (art_gloss, 256),
     "ball_band": (art_band, 256),
     "rays": (art_rays, 512),
+    # the ultimates (2026-09-28)
+    "ult_backdrop": (art_ult_backdrop, 1024),
+    "aura_flame": (art_aura_flame, 1024),
+    "field_lines": (art_field_lines, (512, 128)),
+    "ring_glow": (art_ring_glow, 256),
+    "spark": (art_spark, 128),
+    "soft_glow": (art_soft_glow, 256),
 }
 
 
@@ -2249,17 +2811,19 @@ def shadow_png(path):
 
 
 def render(jobs):
-    """jobs: list of (svg_text, size, png_path). One Chrome screenshot of a grid, cropped."""
-    cell = max(size for _, size, _ in jobs)
+    """jobs: list of (svg_text, size, png_path); size is one number for a square or (width,
+    height). One Chrome screenshot of a grid, cropped."""
+    jobs = [(text, size if isinstance(size, tuple) else (size, size), path) for text, size, path in jobs]
+    cell = max(max(size) for _, size, _ in jobs)
     columns = 6
     rows = math.ceil(len(jobs) / columns)
     html = [
         "<html><body style='margin:0;background:transparent'>",
     ]
-    for i, (text, size, _) in enumerate(jobs):
+    for i, (text, (w, h), _) in enumerate(jobs):
         x, y = (i % columns) * cell, (i // columns) * cell
         html.append(
-            f"<div style='position:absolute;left:{x}px;top:{y}px;width:{size}px;height:{size}px'>{text}</div>"
+            f"<div style='position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px'>{text}</div>"
         )
     html.append("</body></html>")
     with tempfile.TemporaryDirectory() as tmp:
@@ -2283,10 +2847,10 @@ def render(jobs):
             capture_output=True,
         )
         sheet = Image.open(shot).convert("RGBA")
-    for i, (_, size, path) in enumerate(jobs):
+    for i, (_, (w, h), path) in enumerate(jobs):
         x, y = (i % columns) * cell * RENDER_SCALE, (i // columns) * cell * RENDER_SCALE
-        crop = sheet.crop((x, y, x + size * RENDER_SCALE, y + size * RENDER_SCALE))
-        crop.resize((size, size), Image.LANCZOS).save(path)
+        crop = sheet.crop((x, y, x + w * RENDER_SCALE, y + h * RENDER_SCALE))
+        crop.resize((w, h), Image.LANCZOS).save(path)
 
 
 def main():
