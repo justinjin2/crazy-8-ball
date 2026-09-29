@@ -252,7 +252,7 @@ function tests.the_clock_pauses_for_the_cutscene_and_resumes()
 	expect(view.pausedUntil == now + PAUSE and view.armed.stage == "Arming")
 	expect(view.armed.at == now and view.armed.readyAt == now + PAUSE and view.armed.seq == 1)
 	-- A shot during the cutscene is refused, and changes nothing.
-	local wire, why = shoot(m, potShot(m, 3), now + 1)
+	local wire, why = shoot(m, potShot(m, 3), now + PAUSE / 2)
 	expect(wire == nil and why == "UltArming" and m.phase == "Aiming")
 	-- The old deadline passes during the pause: no timeout.
 	E.advance(m, deadline + 0.01)

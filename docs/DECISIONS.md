@@ -1881,3 +1881,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   over the ladder's Common target (1/3); the designer's call. Each of the shooter's balls
   charges when hit (a zap, sparks, red and blue rings); the pull streams dust into the pocket
   and draws a vortex of motes into it.
+- 2026-09-28: The cutscene is half as long, 0.8 s (was 1.6 s; every step of its timeline
+  halved), and the ability's own effect arms 0.1 s after it (was 1.0 s): the designer found
+  the wait from pressing to seeing the effect too long. The shot clock pause is now 0.9 s.

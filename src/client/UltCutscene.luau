@@ -1,5 +1,5 @@
 --!strict
--- UltCutscene: the ~1.6 s manga panel an ult's activation plays for everyone in the match
+-- UltCutscene: the ~0.8 s manga panel an ult's activation plays for everyone in the match
 -- (docs/prompts/ULTIMATES_PROMPT.md 7.2, reference 10, UI_STYLE 11). Numbers in
 -- Config.UI.UltCutscene; words in Strings.Ults.Cutscene and Strings.Ults.Names.
 --

@@ -406,7 +406,7 @@ players read.
   becomes a pill in the ult's rarity colour, "MAGNET: NEXT SHOT"; the opponent sees a small
   "Opponent's ability: MAGNET" pill. The top bar shows a small ult icon beside each opponent that
   lights up when their ult is ready.
-- **The cutscene** (reference 10, Jujutsu Shenanigans' domain expansion): about 1.6 s, for
+- **The cutscene** (reference 10, Jujutsu Shenanigans' domain expansion): about 0.8 s, for
   everyone in the match. A tilted manga panel (about -8 degrees, 40% of the screen's height,
   a thick white border with an ink outline) slams in across the middle; inside, the kit's
   white with a thick line in the ability's rarity colour round it, a soft glow of that colour

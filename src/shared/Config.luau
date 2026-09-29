@@ -2196,8 +2196,10 @@ Config.Ults = {
 	},
 	-- Activation and arming (section 4 and 7.2). The shot clock pauses from activation until
 	-- the ult is armed, for both sides: the cutscene, then the wait, then the arming effect.
-	CutsceneSeconds = 1.6,
-	ArmDelaySeconds = 1.0,
+	-- The designer, 2026-09-28: the cutscene half as long (was 1.6 s) and the effect straight
+	-- after it (the wait was 1.0 s).
+	CutsceneSeconds = 0.8,
+	ArmDelaySeconds = 0.1,
 	-- Slots (section 8): slot 1 free, slots 2 and 3 are game passes (Config.Products UltSlot2,
 	-- UltSlot3). The selected slot is the one equipped in matches.
 	Slots = 3,
@@ -6041,7 +6043,7 @@ Config.UI.UltCutscene = {
 	SpeedLineHeightShare = { 0.006, 0.016 }, -- thickness, of the picture's height
 	SpeedLineLengthShare = { 0.15, 0.4 }, -- length, of the screen's width
 	SpeedLineScreensPerSecond = 2.4, -- speed, in screen widths a second
-	SpeedLineStaggerSeconds = 0.9, -- they set off spread over this
+	SpeedLineStaggerSeconds = 0.45, -- they set off spread over this
 	SpeedLineTransparency = 0.35,
 	SpeedLineWhiteShare = 0.35, -- in the rarity colour, lightened this much (white on the swirl)
 	-- The avatar: a clone of the activator's character in its rest pose, upper body (waist to
@@ -6080,18 +6082,18 @@ Config.UI.UltCutscene = {
 	-- PushEnd: the camera eases in to PushInScale of its distance. From ShrinkStart: the band
 	-- squeezes to a LineHeightPx line, then the line snaps shut over SnapSeconds. The end is
 	-- never later than Config.Ults.CutsceneSeconds.
-	SlamSeconds = 0.2,
+	SlamSeconds = 0.12,
 	SlamFromScale = 1.12,
 	SlideFromShare = 0.6, -- of the screen's width
-	TextDelaySeconds = 0.06,
-	TextPopSeconds = 0.25,
+	TextDelaySeconds = 0.03,
+	TextPopSeconds = 0.14,
 	TextFromScale = 1.6,
-	PushStartSeconds = 0.15,
-	PushEndSeconds = 1.2,
+	PushStartSeconds = 0.08,
+	PushEndSeconds = 0.6,
 	PushInScale = 0.8,
-	ShrinkStartSeconds = 1.2,
-	ShrinkSeconds = 0.28,
-	SnapSeconds = 0.12,
+	ShrinkStartSeconds = 0.58,
+	ShrinkSeconds = 0.14,
+	SnapSeconds = 0.07,
 	LineHeightPx = 4,
 }
 

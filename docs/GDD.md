@@ -399,10 +399,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   is ready.
 - **Using it:** on your own turn, before the shot, with the balls at rest (ball in hand is
   fine); never on the break. Once pressed it can't be cancelled; if the shot clock runs out
-  while armed the ult is spent. **Both players see a 1.6 s manga-strip cutscene** (the
+  while armed the ult is spent. **Both players see a 0.8 s manga-strip cutscene** (the
   activating player's avatar in a tilted panel over a swirling backdrop in the ult's rarity
-  colour, "ABILITY" and the ult's name, the ult_activate sound), then about a second later
-  the ult's own arming effect and an armed pill ("MAGNET: NEXT SHOT"; the opponent sees
+  colour, "ABILITY" and the ult's name, the ult_activate sound), then straight after it (0.1 s;
+  the designer, 2026-09-28) the ult's own arming effect and an armed pill ("MAGNET: NEXT SHOT"; the opponent sees
   "Opponent's ability: MAGNET"). The shot clock pauses from activation until armed, for both
   sides.
 - **Fouls still count on an ult shot.** An ult never pockets, moves or destroys the 8 unless
