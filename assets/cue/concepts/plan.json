@@ -1,0 +1,1083 @@
+[
+ {
+  "id": "classic",
+  "name": "Classic",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#D6B07C",
+   "#562E22",
+   "#202024",
+   "#B0B4BC"
+  ],
+  "look": "Maple shaft, rosewood forearm, black Irish-linen wrap, silver rings, blue tip. The default cue.",
+  "vfx": {},
+  "note": "Already built."
+ },
+ {
+  "id": "midnight",
+  "name": "Midnight",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#0E0E10",
+   "#6B6E73",
+   "#C8CCD0"
+  ],
+  "look": "Metallic gloss black with one matte grey stripe running the full length of the butt, a chrome collar and butt cap, and a smooth black leather wrap. Sleek and modern.",
+  "vfx": {},
+  "note": "Look from: Predator P3 Black."
+ },
+ {
+  "id": "arctic",
+  "name": "Arctic",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#F4F6F8",
+   "#9FD3EE",
+   "#C8CCD0"
+  ],
+  "look": "Gloss pearl white with one frosted ice-blue stripe running the full length of the butt, chrome collar and butt cap, and a white leather wrap.",
+  "vfx": {},
+  "note": "Look from: the Predator P3 stripe layout, in white."
+ },
+ {
+  "id": "cherry",
+  "name": "Cherry",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#9B111E",
+   "#1A1A1A",
+   "#C8CCD0",
+   "#1E1E1E"
+  ],
+  "look": "Satin ruby-red maple butt, black Irish-linen wrap, stainless-steel rings, collar and butt cap, and a black carbon shaft. A pro player's cue.",
+  "vfx": {},
+  "note": "Look from: Cuetec's Ruby Red pro cue."
+ },
+ {
+  "id": "carbon",
+  "name": "Carbon",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#1E1E1E",
+   "#3A3A3A",
+   "#C8CCD0"
+  ],
+  "look": "Carbon fiber from tip to butt, with the checker weave showing under a glossy clear coat, and stainless rings and butt cap. Today's most wanted real-world look.",
+  "vfx": {},
+  "note": "Look from: Cuetec Cynergy Raw and Predator REVO."
+ },
+ {
+  "id": "heritage",
+  "name": "Heritage",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#D9A864",
+   "#1A1410",
+   "#2E6B3A",
+   "#D9772B",
+   "#EDE8E0"
+  ],
+  "look": "The most famous cue design ever: honey birdseye maple with four long black points, each lined with thin black, maple, green and orange veneers, with pearl diamonds in the points and a white linen wrap flecked with green.",
+  "vfx": {},
+  "note": "Look from: the classic Balabushka 4-point."
+ },
+ {
+  "id": "monarch",
+  "name": "Monarch",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#15110E",
+   "#F1EAD8",
+   "#D8B98B",
+   "#BFC3C7"
+  ],
+  "look": "Dark black-wood forearm with four long curly-maple points edged in ivory and silver, four short ivory points between them, alternating silver and ivory rings, a black leather wrap and a steel teardrop butt cap.",
+  "vfx": {},
+  "note": "Look from: Predator BLAK5."
+ },
+ {
+  "id": "cobalt",
+  "name": "Cobalt",
+  "tier": "Common",
+  "group": "common",
+  "palette": [
+   "#1C3F6E",
+   "#6B7078",
+   "#9FD3FF"
+  ],
+  "look": "Curly maple stained deep Prussian blue under a gloss finish, a smoke-grey handle with no wrap, and small shimmering blue diamond inlays.",
+  "vfx": {},
+  "note": "Look from: Lucasi's stained cues."
+ },
+ {
+  "id": "gummy",
+  "name": "Gummy",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#FF7FB6",
+   "#8FD3FF",
+   "#C9CED4"
+  ],
+  "look": "Soft pastel blobs of pink and light blue, like gummy candy, over see-through silver carbon fiber, with colored joint rings and no wrap.",
+  "vfx": {
+   "Ring": "pink glowing ring",
+   "Trail": "wisp tinted pink"
+  },
+  "note": "Look from: Poison Candy."
+ },
+ {
+  "id": "flare",
+  "name": "Flare",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#FF5A12",
+   "#1C1C1C",
+   "#3A3A3A"
+  ],
+  "look": "Electric orange gloss paint with a black carbon collar and butt cap, and a black textured sport grip. Loud and sporty.",
+  "vfx": {
+   "Ring": "orange glowing ring",
+   "Trail": "wisp tinted orange"
+  },
+  "note": "Look from: Predator P3 Flare and BK Rush."
+ },
+ {
+  "id": "hornet",
+  "name": "Hornet",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#FFD21A",
+   "#111111",
+   "#6B6B6B"
+  ],
+  "look": "Bold black-and-yellow geometric two-tone graphics wrapping the forearm, with a black sport grip. Reads like a racing jersey.",
+  "vfx": {
+   "Ring": "yellow glowing ring",
+   "Trail": "wisp tinted yellow"
+  },
+  "note": "Look from: Poison VX graphics."
+ },
+ {
+  "id": "venom",
+  "name": "Venom",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#0A0A0A",
+   "#39FF14",
+   "#2A2A2C"
+  ],
+  "look": "Deep black with six long neon-green carbon-fiber points reaching up the forearm, and carbon striping on the sleeve.",
+  "vfx": {
+   "Ring": "green glowing ring",
+   "Trail": "wisp tinted green"
+  },
+  "note": "Look from: Poison Maelith."
+ },
+ {
+  "id": "lagoon",
+  "name": "Lagoon",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#0B0B0B",
+   "#1FC8C8",
+   "#FFFFFF"
+  ],
+  "look": "Gloss black with six bold turquoise-and-white graphic points sweeping up the forearm, and matching turquoise rings.",
+  "vfx": {
+   "Ring": "turquoise glowing ring",
+   "Trail": "wisp tinted turquoise"
+  },
+  "note": "Look from: Viking's graphic cues."
+ },
+ {
+  "id": "splice",
+  "name": "Splice",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#15110E",
+   "#2E86DE",
+   "#9FE8FF",
+   "#F1EAD8"
+  ],
+  "look": "Black wood with sixteen long spliced points (eight on the forearm, eight on the sleeve), each layered with bright blue and sky-blue veneers edged in ivory.",
+  "vfx": {
+   "Ring": "blue glowing ring",
+   "Trail": "wisp tinted blue"
+  },
+  "note": "Look from: Predator True Splice 16."
+ },
+ {
+  "id": "cosmo",
+  "name": "Cosmo",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#0A0A12",
+   "#2B3FFF",
+   "#8A2BE2",
+   "#E040A0"
+  ],
+  "look": "Gloss metallic black with one shimmering galaxy stripe of deep blue, violet and magenta inlaid along the butt.",
+  "vfx": {
+   "Ring": "violet glowing ring",
+   "Trail": "wisp tinted violet"
+  },
+  "note": "Look from: Predator P3 Galaxy."
+ },
+ {
+  "id": "gilded",
+  "name": "Gilded",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#0D0D0D",
+   "#D4AF37",
+   "#EDE8E0"
+  ],
+  "look": "A black lacquer forearm used as a canvas: swirling art-deco vines inlaid in gold and mother-of-pearl, with gold rings. Flashy, like a jewellery box.",
+  "vfx": {
+   "Ring": "gold glowing ring",
+   "Trail": "wisp tinted gold"
+  },
+  "note": "Look from: Meucci's inlaid art cues."
+ },
+ {
+  "id": "pixel",
+  "name": "Pixel",
+  "tier": "Uncommon",
+  "group": "uncommon",
+  "palette": [
+   "#FF2BD6",
+   "#1FE0FF",
+   "#FFE11F",
+   "#1A1033"
+  ],
+  "look": "A retro arcade 8-bit pattern of magenta, cyan and yellow pixel blocks, like an old game cabinet. For the younger crowd.",
+  "vfx": {
+   "Ring": "cyan glowing ring",
+   "Trail": "wisp tinted cyan"
+  },
+  "note": ""
+ },
+ {
+  "id": "honeycomb",
+  "name": "Honeycomb",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#F2A516",
+   "#5A3A0A",
+   "#FFD66B",
+   "#1A1208"
+  ],
+  "look": "Warm amber with a glossy honeycomb pattern across the forearm, glowing honey dripping down between the cells, and a dark brown wrap striped like a bee.",
+  "vfx": {
+   "Aura": "tiny cartoon bees buzz in lazy loops around the stick, and drops of glowing honey drip off and fade",
+   "Trail": "wisp tinted amber"
+  },
+  "note": ""
+ },
+ {
+  "id": "neon",
+  "name": "Neon",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#0C0C10",
+   "#FF2BD6",
+   "#19E6FF"
+  ],
+  "look": "Glossy black with bright neon-tube lines in hot pink and electric cyan running along it like a sign.",
+  "vfx": {
+   "Aura": "a humming neon glow with tiny sparks popping off the tubes, and a subtle flicker",
+   "Trail": "wisp tinted pink"
+  },
+  "note": ""
+ },
+ {
+  "id": "nature",
+  "name": "Nature",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#6B4A2B",
+   "#3FA34D",
+   "#A8E06B",
+   "#FFFFFF"
+  ],
+  "look": "A living-wood cue: green vines spiral up the forearm with little leaves and white flowers budding, and a moss-green wrap.",
+  "vfx": {
+   "Aura": "small green leaves drift off and flutter down, with the odd pollen sparkle",
+   "Trail": "wisp tinted leaf green"
+  },
+  "note": ""
+ },
+ {
+  "id": "candy",
+  "name": "Candy",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#E0202E",
+   "#FFFFFF",
+   "#6FD6A0"
+  ],
+  "look": "A red-and-white candy-cane spiral with a glossy sugar shine and a peppermint-swirl butt cap.",
+  "vfx": {
+   "Aura": "rainbow sprinkles and sugar sparkles fall off the cue",
+   "Trail": "wisp tinted red"
+  },
+  "note": ""
+ },
+ {
+  "id": "frostbite",
+  "name": "Frostbite",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#DDF3FF",
+   "#8FD3F4",
+   "#C9CDD4"
+  ],
+  "look": "Frosted ice-crystal glass in pale blue, with frost feathers frozen inside and silver rings.",
+  "vfx": {
+   "Aura": "cold mist rolls off the cue and tiny snowflakes fall",
+   "Trail": "wisp tinted ice blue"
+  },
+  "note": ""
+ },
+ {
+  "id": "plasma",
+  "name": "Plasma",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#2A2B33",
+   "#A45CFF",
+   "#E6CCFF"
+  ],
+  "look": "Dark gunmetal with glowing violet plasma veins pulsing through cracks.",
+  "vfx": {
+   "Aura": "violet sparks and small plasma arcs crackle between the rings",
+   "Trail": "wisp tinted violet"
+  },
+  "note": ""
+ },
+ {
+  "id": "blaze",
+  "name": "Blaze",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#2B2522",
+   "#FF7A1A",
+   "#FFC24D"
+  ],
+  "look": "Charcoal wood with glowing orange ember cracks, like a log in a campfire.",
+  "vfx": {
+   "Aura": "embers and sparks rise off the cue and drift upward",
+   "Trail": "wisp tinted orange"
+  },
+  "note": ""
+ },
+ {
+  "id": "phantom",
+  "name": "Phantom",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#E8FFFB",
+   "#8FE8DA",
+   "#3C5A66"
+  ],
+  "look": "A pale ghostly white-teal with a see-through look, with faint spirit wisps swirling inside. Spooky but cute.",
+  "vfx": {
+   "Aura": "small friendly cartoon ghost wisps float up and fade",
+   "Trail": "wisp tinted teal"
+  },
+  "note": ""
+ },
+ {
+  "id": "tidal",
+  "name": "Tidal",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#0A3D7A",
+   "#1CA7B8",
+   "#F2F7F7"
+  ],
+  "look": "Deep ocean blue fading to teal, with a pearl inlay and a sea-foam wrap.",
+  "vfx": {
+   "Aura": "bubbles wobble up off the cue and pop",
+   "Trail": "wisp tinted teal"
+  },
+  "note": ""
+ },
+ {
+  "id": "sakura",
+  "name": "Sakura",
+  "tier": "Rare",
+  "group": "rare",
+  "palette": [
+   "#141014",
+   "#FF9CC7",
+   "#D4AF37",
+   "#FFD6E7"
+  ],
+  "look": "Black lacquer painted with pink cherry-blossom branches outlined in gold, and a pink silk wrap.",
+  "vfx": {
+   "Aura": "soft pink petals drift off and spin down",
+   "Trail": "wisp tinted pink"
+  },
+  "note": ""
+ },
+ {
+  "id": "void",
+  "name": "Void",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#050508",
+   "#5B1FA8",
+   "#B98AF0"
+  ],
+  "look": "Matte black that seems to swallow light, with a violet glow along its edges. A black-hole swirl turns slowly on the forearm.",
+  "vfx": {
+   "Moving": "the black-hole swirl turns",
+   "Aura": "dark purple motes are pulled INTO the cue",
+   "Trail": "purple-black smoke that bends as it follows the ball"
+  },
+  "note": ""
+ },
+ {
+  "id": "shooting_star",
+  "name": "Shooting Star",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#0B1440",
+   "#FFD76A",
+   "#FFFFFF"
+  ],
+  "look": "Midnight navy with gold star inlays and a starfield drifting along the cue.",
+  "vfx": {
+   "Moving": "the starfield drifts",
+   "Aura": "tiny shooting stars streak along the stick",
+   "Pocket": "a burst of little gold five-point stars"
+  },
+  "note": ""
+ },
+ {
+  "id": "magma",
+  "name": "Magma",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#1A1412",
+   "#FF5A0A",
+   "#FFC23D"
+  ],
+  "look": "Black volcanic rock with molten lava flowing slowly through its cracks.",
+  "vfx": {
+   "Moving": "the lava flows",
+   "Aura": "embers and heat haze with glowing lava drips",
+   "Trail": "a trail of embers",
+   "Pocket": "a lava splash"
+  },
+  "note": ""
+ },
+ {
+  "id": "toxic",
+  "name": "Toxic",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#0F140A",
+   "#7CFF2B",
+   "#E6FF3D"
+  ],
+  "look": "Acid-green radioactive goo bubbling inside a glass-look shaft, with black-and-yellow hazard bands.",
+  "vfx": {
+   "Moving": "the goo bubbles and rises",
+   "Aura": "green bubbles rise and pop, with a faint green glow",
+   "Trail": "a dripping green goo trail"
+  },
+  "note": ""
+ },
+ {
+  "id": "blood_moon",
+  "name": "Blood Moon",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#1A0508",
+   "#B3121F",
+   "#FF4A4A"
+  ],
+  "look": "Deep crimson and black lacquer with a red moon on the butt and slow red mist drifting inside. No blood, just mood.",
+  "vfx": {
+   "Moving": "the red mist drifts",
+   "Aura": "crimson mist rises off the cue, like Grow a Garden's Bloodlit",
+   "Pocket": "a crimson moon ring pulses out"
+  },
+  "note": ""
+ },
+ {
+  "id": "prism",
+  "name": "Prism",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#F5FBFF",
+   "#BDE6FF",
+   "#FF9ACD",
+   "#9AFFE0"
+  ],
+  "look": "A clear faceted crystal cue with sharp prism edges set in thin silver, catching light and splitting it into rainbow streaks inside the glass.",
+  "vfx": {
+   "Moving": "rainbow light streaks travel through the crystal facets",
+   "Aura": "prism flashes and little rainbow refraction glints dance around the stick",
+   "Pocket": "a burst of glittering crystal shards that scatter rainbow light"
+  },
+  "note": ""
+ },
+ {
+  "id": "aurora",
+  "name": "Aurora",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#0A1624",
+   "#2BF0B0",
+   "#7A5CFF",
+   "#3DB8FF"
+  ],
+  "look": "A dark cue with green, teal and violet aurora ribbons flowing along it.",
+  "vfx": {
+   "Moving": "the aurora ribbons flow",
+   "Aura": "soft floating light motes",
+   "Trail": "an aurora ribbon trail"
+  },
+  "note": ""
+ },
+ {
+  "id": "disco",
+  "name": "Disco",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#C0C4CC",
+   "#FF3D9A",
+   "#3DE0FF",
+   "#FFE13D"
+  ],
+  "look": "Mirror-ball facets all along a silver cue.",
+  "vfx": {
+   "Moving": "colored light specks sweep across the mirrors",
+   "Aura": "spots of colored light spin around",
+   "Pocket": "confetti and disco light rays"
+  },
+  "note": ""
+ },
+ {
+  "id": "hacked",
+  "name": "Hacked",
+  "tier": "Epic",
+  "group": "epic",
+  "palette": [
+   "#05080A",
+   "#2BFF5A",
+   "#0F7A2A",
+   "#C8CCD0"
+  ],
+  "look": "Glossy black with glowing green 8-bit code (blocky binary digits and pixel glyphs) running along the shaft and filling the forearm and sleeve, with a green glowing ring and a black textured wrap. A hacker-terminal look.",
+  "vfx": {
+   "Moving": "the green code scrolls along the cue",
+   "Aura": "green binary digits rain down around the stick, matrix-style, with the odd glitch flicker",
+   "Trail": "a green pixel data trail that breaks into falling digits"
+  },
+  "note": ""
+ },
+ {
+  "id": "chroma",
+  "name": "Chroma",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#FF3D3D",
+   "#FFD23D",
+   "#3DFF8A",
+   "#3D8AFF",
+   "#B03DFF"
+  ],
+  "look": "Mirror chrome whose whole color cycles smoothly through the rainbow, MM2 Chroma style. The biggest value signal across Roblox.",
+  "vfx": {
+   "Moving": "the whole cue cycles through the rainbow",
+   "Aura": "rainbow sparkles and floating rainbow shards orbiting the stick",
+   "Trail": "a rainbow ribbon",
+   "Pocket": "a rainbow shockwave ring that bursts into sparkles"
+  },
+  "note": ""
+ },
+ {
+  "id": "thunderstrike",
+  "name": "Thunderstrike",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#3A4250",
+   "#3DB8FF",
+   "#FFFFFF"
+  ],
+  "look": "Storm-grey steel with glowing blue lightning veins that pulse brighter at random.",
+  "vfx": {
+   "Moving": "electricity flows through the veins",
+   "Aura": "lightning arcs crawl up and down the cue, with a bright crack flash now and then and a small storm cloud of static at the butt",
+   "Trail": "a jagged electric trail",
+   "Pocket": "a lightning bolt strikes down into the pocket with a flash"
+  },
+  "note": ""
+ },
+ {
+  "id": "phoenix",
+  "name": "Phoenix",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#B3121F",
+   "#FF7A1A",
+   "#FFD23D"
+  ],
+  "look": "A crimson-to-gold gradient engraved with flame feathers.",
+  "vfx": {
+   "Moving": "fire glows and shifts through the feather engraving",
+   "Aura": "wings of flame made of particles flare out from the handle and fold back, with burning feathers peeling off",
+   "Trail": "a fiery feather trail",
+   "Pocket": "a flame bird flares up out of the pocket"
+  },
+  "note": ""
+ },
+ {
+  "id": "kraken",
+  "name": "Kraken",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#062B3A",
+   "#3A1F6B",
+   "#2BF0D0"
+  ],
+  "look": "Deep-sea teal and abyss purple, with dark tentacles painted wrapping the handle, dotted with glowing bioluminescent spots.",
+  "vfx": {
+   "Moving": "the bioluminescent spots pulse in waves",
+   "Aura": "glowing bubbles and bioluminescent specks, with a see-through ghostly tentacle curling around the cue now and then",
+   "Trail": "an inky water trail with bubbles",
+   "Pocket": "a water splash, an ink cloud and a tentacle flick"
+  },
+  "note": ""
+ },
+ {
+  "id": "seraph",
+  "name": "Seraph",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#FAFAF5",
+   "#D4AF37",
+   "#FFF3C4"
+  ],
+  "look": "White marble with gold filigree.",
+  "vfx": {
+   "Moving": "gold light runs along the filigree",
+   "Aura": "a glowing halo of light floats above the butt, with white feathers drifting down through golden light motes",
+   "Trail": "a golden light ribbon",
+   "Pocket": "a beam of heavenly light shines down into the pocket, with feathers"
+  },
+  "note": ""
+ },
+ {
+  "id": "infernal",
+  "name": "Infernal",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#0A0A0C",
+   "#E0201A",
+   "#FF8A1F"
+  ],
+  "look": "Obsidian black with red-hot cracks and a cartoon horned skull emblem painted on the butt (no gore).",
+  "vfx": {
+   "Moving": "magma pulses through the cracks",
+   "Aura": "dark red hellfire licks up the handle, with ember sparks",
+   "Trail": "a black-and-red fire trail",
+   "Pocket": "a hellfire eruption with a skull-shaped puff of smoke"
+  },
+  "note": ""
+ },
+ {
+  "id": "clockwork",
+  "name": "Clockwork",
+  "tier": "Legendary",
+  "group": "legendary",
+  "palette": [
+   "#B5873A",
+   "#8C4A2F",
+   "#E8D9B0"
+  ],
+  "look": "Brass and copper with a glass-look forearm full of gears.",
+  "vfx": {
+   "Moving": "the gears visibly turn",
+   "Aura": "little steam puffs and tiny cogs dropping off",
+   "Trail": "brass sparks and steam",
+   "Pocket": "cogs pop out and spin away with a burst of steam"
+  },
+  "note": ""
+ },
+ {
+  "id": "celestial_dragon",
+  "name": "Celestial Dragon",
+  "tier": "Mythic",
+  "group": "mythic",
+  "palette": [
+   "#FAFAF5",
+   "#D4AF37",
+   "#4FA8FF",
+   "#C9E6FF"
+  ],
+  "look": "A pearl-white and gold cue, wrapped from butt to shaft by a see-through starlight dragon made of blue energy. The gold-horned dragon's head rests at the butt, and a glowing star gem sits in the cap. From your concept sheet.",
+  "vfx": {
+   "Moving": "energy flows through the dragon's body, and it shimmers with star dust",
+   "Aura": "drifting star dust and soft blue light",
+   "Trail": "a comet of starlight with a dragon-tail swish",
+   "Pocket": "a starburst as a spectral dragon head flashes out and roars"
+  },
+  "note": ""
+ },
+ {
+  "id": "kitsune",
+  "name": "Kitsune",
+  "tier": "Mythic",
+  "group": "mythic",
+  "palette": [
+   "#FAF7F2",
+   "#C8102E",
+   "#D4AF37",
+   "#C77DFF"
+  ],
+  "look": "White porcelain with crimson lacquer and gold. Butt piece: a spirit-fox mask, with nine see-through tails of violet-pink foxfire flowing off the handle. Anime-inspired, with no named characters.",
+  "vfx": {
+   "Moving": "the nine tails sway and flicker",
+   "Aura": "foxfire orbs circle the cue",
+   "Trail": "a violet foxfire trail",
+   "Pocket": "nine foxfire orbs burst out and swirl up"
+  },
+  "note": ""
+ },
+ {
+  "id": "apex",
+  "name": "Apex",
+  "tier": "Mythic",
+  "group": "mythic",
+  "palette": [
+   "#2E3238",
+   "#FF7A1A",
+   "#19E6FF"
+  ],
+  "look": "A gunmetal mech cue with orange armor panels and cyan light strips. Butt piece: a robotic claw arm that flexes and clicks, with thruster vents that flare. It absorbs your Robotic Arm idea.",
+  "vfx": {
+   "Moving": "the claw flexes and the vents flare",
+   "Aura": "holographic HUD rings scan up and down the cue",
+   "Trail": "jet exhaust with a cyan afterimage",
+   "Pocket": "a targeting reticle locks on, then a blast of energy"
+  },
+  "note": ""
+ },
+ {
+  "id": "eclipse",
+  "name": "Eclipse",
+  "tier": "Secret",
+  "group": "secret",
+  "palette": [
+   "#050505",
+   "#FFB300",
+   "#FFF1B0",
+   "#C9CDD4"
+  ],
+  "look": "Black obsidian with a molten-gold corona line along the cue. Butt piece: a floating total eclipse, a black sphere ringed by a blazing gold corona, with a tiny silver moon orbiting it. The most expensive-looking thing in the game.",
+  "vfx": {
+   "Moving": "the corona blazes and flares",
+   "Aura": "solar flares lick off the corona while the air around the cue darkens slightly, with gold sparks",
+   "Trail": "half gold, half black light",
+   "Pocket": "a dark ring pulses out as the pocket is eclipsed, then a gold corona flare bursts"
+  },
+  "note": ""
+ },
+ {
+  "id": "starter_cue",
+  "name": "Starter Cue",
+  "tier": "Exclusive",
+  "group": "exclusive",
+  "palette": [
+   "#E6D7B9",
+   "#3B9BFF",
+   "#FFC928",
+   "#FFFFFF"
+  ],
+  "look": "A friendly rookie cue: cream maple, a sky-blue forearm, a sunny yellow wrap and a little 8-ball emblem on the butt cap. The existing colors, now on the real mesh.",
+  "vfx": {
+   "Ring": "blue glowing ring",
+   "Trail": "wisp tinted blue"
+  },
+  "note": "From the 79 R$ Starter Pack, first 7 days only. Tradable (designer, 2026-09-29), never sold back."
+ },
+ {
+  "id": "vip_cue",
+  "name": "VIP Cue",
+  "tier": "Exclusive",
+  "group": "exclusive",
+  "palette": [
+   "#0E0E12",
+   "#D4AF37",
+   "#FF3D3D",
+   "#3D8AFF"
+  ],
+  "look": "Black and gold, with a gold crown emblem on the butt and one ring that cycles rainbow (your VIP rainbow). It sits below Chroma, so buying VIP never beats a real Legendary.",
+  "vfx": {
+   "Aura": "gold glitter with a rainbow shimmer",
+   "Trail": "a gold wisp with a rainbow edge",
+   "Pocket": "a small gold crown pops up"
+  },
+  "note": "Cosmetic only, never trades."
+ },
+ {
+  "id": "bronze_cue",
+  "name": "Bronze Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#B06A3B",
+   "#6B3A1E"
+  ],
+  "look": "Brushed bronze trophy metal, with the Bronze badge on the butt.",
+  "vfx": {
+   "Aura": "none"
+  },
+  "note": ""
+ },
+ {
+  "id": "silver_cue",
+  "name": "Silver Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#C9CDD4",
+   "#7A7F88"
+  ],
+  "look": "Polished silver.",
+  "vfx": {
+   "Aura": "a faint shine sweeps along the metal"
+  },
+  "note": ""
+ },
+ {
+  "id": "gold_cue",
+  "name": "Gold Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#D4AF37",
+   "#8A6A12"
+  ],
+  "look": "Polished gold.",
+  "vfx": {
+   "Aura": "the shine sweep plus a few gold sparkles"
+  },
+  "note": ""
+ },
+ {
+  "id": "platinum_cue",
+  "name": "Platinum Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#E6ECF2",
+   "#8FB8D8"
+  ],
+  "look": "Ice-white platinum.",
+  "vfx": {
+   "Aura": "a shimmer with sparkles"
+  },
+  "note": ""
+ },
+ {
+  "id": "diamond_cue",
+  "name": "Diamond Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#BDE6FF",
+   "#3D8AFF"
+  ],
+  "look": "Platinum set with blue diamond inlays.",
+  "vfx": {
+   "Aura": "diamond sparkles and a soft glow"
+  },
+  "note": ""
+ },
+ {
+  "id": "expert_cue",
+  "name": "Expert Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#E84048",
+   "#FFC83C"
+  ],
+  "look": "Ruby red with gold.",
+  "vfx": {
+   "Aura": "red energy rising",
+   "Trail": "wisp tinted red"
+  },
+  "note": ""
+ },
+ {
+  "id": "veteran_cue",
+  "name": "Veteran Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#40C460",
+   "#FFC83C"
+  ],
+  "look": "Emerald green with gold.",
+  "vfx": {
+   "Aura": "green spirit flame",
+   "Trail": "wisp tinted green"
+  },
+  "note": ""
+ },
+ {
+  "id": "master_cue",
+  "name": "Master Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#9E5CE6",
+   "#FFC83C"
+  ],
+  "look": "Amethyst purple with gold.",
+  "vfx": {
+   "Aura": "purple flame",
+   "Trail": "its own purple trail"
+  },
+  "note": ""
+ },
+ {
+  "id": "grandmaster_cue",
+  "name": "Grandmaster Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#3C3846",
+   "#FFC428",
+   "#141218"
+  ],
+  "look": "Black with gold veins, matching the badge's black feathers.",
+  "vfx": {
+   "Aura": "a dark aura with gold embers",
+   "Trail": "a gold-and-black trail",
+   "Pocket": "a gold burst"
+  },
+  "note": ""
+ },
+ {
+  "id": "reyes_cue",
+  "name": "Reyes Cue",
+  "tier": "Rank (Exclusive)",
+  "group": "rank",
+  "palette": [
+   "#FFFFFF",
+   "#FF3D3D",
+   "#3DFF8A",
+   "#3D8AFF",
+   "#FFD23D"
+  ],
+  "look": "White gold with rainbow cycling, and the turning gold rays of the Reyes badge behind the emblem. The ultimate proof of skill.",
+  "vfx": {
+   "Moving": "the rainbow cycles and the rays turn",
+   "Aura": "rainbow light and gold rays",
+   "Trail": "a rainbow trail",
+   "Pocket": "a rainbow crown burst"
+  },
+  "note": ""
+ },
+ {
+  "id": "founders_cue",
+  "name": "Founder's Cue",
+  "tier": "Unique",
+  "group": "unique",
+  "palette": [
+   "#1A1A1F",
+   "#E8A0B4",
+   "#D4AF37"
+  ],
+  "look": "Rose gold and black, with a founder's crest (a gold 8-ball crest) at the butt. The serial number shows in the UI, not on the texture.",
+  "vfx": {
+   "Aura": "slow rose-gold stardust",
+   "Trail": "a rose-gold wisp",
+   "Pocket": "a rose-gold crest flash"
+  },
+  "note": "50 copies."
+ },
+ {
+  "id": "beta_cue",
+  "name": "Beta Cue",
+  "tier": "Unique",
+  "group": "unique",
+  "palette": [
+   "#0B1E3A",
+   "#FFFFFF",
+   "#FF5CB8"
+  ],
+  "look": "A prototype: dark blueprint blue covered in glowing white blueprint lines, with parts shown as wireframe, as if the cue is still being designed. Pink accents.",
+  "vfx": {
+   "Moving": "blueprint lines draw themselves along the cue",
+   "Aura": "hologram scan lines",
+   "Trail": "a wireframe line trail"
+  },
+  "note": "1,000 copies."
+ },
+ {
+  "id": "grand_opening",
+  "name": "Grand Opening",
+  "tier": "Unique",
+  "group": "unique",
+  "palette": [
+   "#0B1440",
+   "#FFD23D",
+   "#FF3D9A",
+   "#3DE0FF"
+  ],
+  "look": "A celebration cue: navy lacquer painted with firework bursts, and gold rings.",
+  "vfx": {
+   "Aura": "sparkler fizz",
+   "Trail": "a sparkler trail",
+   "Pocket": "a fireworks show over the pocket"
+  },
+  "note": "An event prize for later, designed now."
+ }
+]

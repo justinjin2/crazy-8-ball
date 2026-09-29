@@ -362,7 +362,7 @@ The account Level and its EXP are gone (designer, 2026-09-28). What they did mov
 |---|---|---|---|---|
 | Case rarities | Common, Uncommon, Rare, Epic, Legendary, Mythic, Secret | cases (and trades) only | yes | yes |
 | **Unique** | numbered Limited cues (Founder's Cue 50, Beta Cue 1,000, and every Limited drop) | the Limited shelf, for a set time | yes | no |
-| **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never** (designer, 2026-09-28: VIP and Starter too) | no |
+| **Exclusive** | the VIP Cue, the Starter Cue, the ten rank cues (Bronze Cue ... Reyes Cue), later season cues | one special way each | **never**, except the Starter Cue (designer: VIP never, 2026-09-28; the Starter Cue trades, 2026-09-29) | no |
 
 What rarity looks like (GDD section 12, UI_STYLE section 4 colours): Common and Uncommon keep
 the plain wisp trail (Uncommon tinted); Rare adds a coloured trail and small pocket burst; Epic
@@ -603,8 +603,8 @@ Managed Pricing and show both prices live so "50% off" stays true.
 
 ### 11.4 Starter Pack (developer product, 79 R$)
 
-For the first 7 days after first join, once: **the Starter Cue** (Exclusive, never traded, its
-own look) **and $3,000**. No case inside, which keeps it outside the paid-random-item rules
+For the first 7 days after first join, once: **the Starter Cue** (Exclusive, its own look; tradable, designer 2026-09-29, the one
+Exclusive that trades) **and $3,000**. No case inside, which keeps it outside the paid-random-item rules
 (a bundle with a case in it would count as one).
 
 ### 11.5 At launch
@@ -709,8 +709,8 @@ Magnet: at equal skill it wins **62.7%** (Classic, 60% shooters), **61.0%** (Cla
 - Cues only; **money never trades** (GDD section 12). Up to 8 cues a side; any change restarts
   a 3-second confirm on both sides.
 - **Open to everyone from the start** (designer, 2026-09-27: no level gate). No Exclusive cue
-  can be traded (rank, season, VIP and Starter cues; designer, 2026-09-28); case and Unique
-  cues can. Alt farming is held back by the free-case rules instead (section 3.6:
+  can be traded (rank, season and VIP cues; designer, 2026-09-28) except the Starter Cue
+  (designer, 2026-09-29); case and Unique cues can. Alt farming is held back by the free-case rules instead (section 3.6:
   the loser must have played 5 real matches, at most 3 cases a day from the same account).
 - Players whose `IsPaidItemTradingAllowed` is false can't trade at all (every cue could have
   come from Robux-bought money).

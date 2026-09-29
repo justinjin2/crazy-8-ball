@@ -1919,3 +1919,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   bodies slide it up), +30 degrees while seated, only within 90 studs of the camera, a pool of
   12, refreshed every 0.3 s. Seated on the lobby's loungers and sofas the backrest hides the
   middle of the stick; the tip still shows over the shoulder and the butt clears the seat.
+- 2026-09-29: **The Starter Cue can be traded** (designer). It is the one Exclusive cue that trades; VIP, rank and season cues still never trade, and it still can't be sold back. ECONOMY sections 6, 11.4 and 12 updated. The code (`Catalog.luau` Tradable, `tests/catalog_test.luau`'s "no Exclusive cue trades" check) changes in the cue import session, which replaces the catalog anyway.
