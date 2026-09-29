@@ -33,8 +33,7 @@ The designer's order, one stage at a time:
 
 **Not in the release:** the pro lobby. It follows about one to two weeks after release
 (nobody can reach the pro lobby's rank at launch anyway). **Ultimates (the abilities, reworked)
-are in the release** (designer, 2026-09-28; GDD section 9); where they sit in the order is set
-once the designer's further details arrive. **The global queue was moved in and built first (designer,
+are in the release** (designer, 2026-09-28; GDD section 9), built on branch `ultimates` (below). **The global queue was moved in and built first (designer,
 2026-09-28; below).**
 
 ---
@@ -380,26 +379,37 @@ daily rewards, trading's gates, Roblox policy): `docs/ECONOMY.md`.*
 - [ ] **6.3 Pro lobby.** Separate place with a teleport door, Diamond I and above, Difficult
   and Challenger only.
 
-### Ultimates (in the release; the designer's details are coming)
+### Ultimates (in the release; built on branch `ultimates`, 2026-09-28)
 
-The plan so far (GDD section 9):
+The rules, the 13 ults and the spin screen: GDD section 9; every number: ECONOMY 11.7-11.8.
 
-- [ ] **3.1 Ult framework.** Equip one ult; the ult bar and its fill rules (your own balls,
+- [x] **3.1 Ult framework.** Equip one ult; the ult bar and its fill rules (your own balls,
   trickshots, the opponent's balls weighted by how far behind you are, a small per-turn
   trickle); the full bar shakes; activate before the shot with a short cutscene and an "ULT"
   mark on the cue ball; server-validated; developer flag that unlocks every built ult for
   tests. Done means: a placeholder ult fills in a test match, shakes when full, is used before
   a shot and empties, and a player 4-5 balls behind has a full bar.
-- [ ] **3.2 Magnet** (the starter ult everyone gets).
+  Done 2026-09-28 (branch `ultimates`, overnight): the bar (G, a tap or ButtonX), two ults a
+  match, the 1.6 s manga cutscene for everyone at the table, then a 1 s arming wait with the
+  clock paused; the fill model checked (a player 4 behind fills from level, both players use
+  an ult in 85% of games at worst); Ults On and Off pools in the global queue; `/ulthelp`.
+  Checked in Studio on PC and phone sizes.
+- [x] **3.2 Magnet** (the starter ult everyone gets). Done 2026-09-28: a near miss within about
+  one ball width of a pocket drops (88% of the closest misses, none past 2.5 widths); only
+  your own balls, never the cue ball; its armed rings, pull beams, pocket ring and sounds.
 - [ ] **3.3 Eagle's Eye.**
-- [ ] **3.4 The rest of the 13** as the designer picks them.
+- [ ] **3.4 The rest of the 13** as the designer picks them (catalog rows exist, as
+  placeholders that neither roll nor play until built).
   Done means (3.2 to 3.4): each creates at least one "did you see that" moment in a test match
   and PC matches still feel fair.
 
 **FRIEND TEST 3.** Do ults bring matches back without deciding them? Tune the bar.
 
-- [ ] **7.4 How ults are earned.** Open (GDD section 9): the old plan was a Robux gacha, but
-  nothing that helps win is sold.
+- [ ] **7.4 How ults are earned.** Decided 2026-09-28 (GDD section 9): a spin screen rolls a
+  random ult into one of three slots (odds, pity at 100, Lucky Spins), with spins earned
+  (starter, daily free spin, rank-ups, streak day 7, playtime, codes) or bought for money
+  ($1,750) or Robux. Progress: the server, saves, rewards and chips are built and checked; the
+  spin screen itself is in progress.
 
 ### Later
 

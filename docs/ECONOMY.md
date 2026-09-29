@@ -632,10 +632,70 @@ own look) **and $3,000**. No case inside, which keeps it outside the paid-random
 
 ### 11.7 Never sell
 
-Paid re-rolls or "reveal the next case" (both paid random items), luck boosts, pity
-skips, extra or faster free cases, anything that protects rank, in-match aids (longer
-guidelines, hints, power or spin upgrades), anything that hurts an opponent, and purchase
-prompts right after a loss.
+Paid re-rolls or "reveal the next case" for cases (both paid random items), luck boosts or
+pity skips for cases, extra or faster free cases, anything that protects rank, in-match aids
+(longer guidelines, hints, power or spin upgrades), anything that hurts an opponent, and
+purchase prompts right after a loss.
+
+**The exception: ult spins** (designer, 2026-09-28, the ultimates interview). Normal spins
+are sold for Robux and money, and **Lucky Spins** (a luck boost: no Commons) for Robux. They
+are paid random items, so: the odds are always shown on the spin screen (the true current
+odds), pity is kept (the 100th spin without an Epic or better is Epic+), and players in
+regions where PolicyService restricts paid random items can't pay for spins at all (the R$
+and $ buy buttons and Lucky Spins are hidden, with the case shop's note); their free spins
+still work. The ult bar itself is never bought: it fills by the same rules for everyone.
+
+### 11.8 Ult spins (2026-09-28)
+
+Numbers in `Config.Ults` (Roll, Earn) and `Config.Products`; all *(tune)*.
+
+**Odds** (each rarity's share split evenly between its ults; a rarity with no built ult passes
+its share down to the next one below that has one, and the Odds panel shows the true odds, so
+today's live pool is 100% Magnet and the screen stays hidden live):
+
+| Rarity | Normal spin | Lucky Spin |
+|---|---|---|
+| Common | 55% | 0% |
+| Uncommon | 30% | 63.1667% |
+| Rare | 12.2333% | 25% |
+| Epic | 2% | 8% |
+| Legendary | 0.6667% (1 in 150) | 3.3333% (1 in 30) |
+| Mythic | 0.1% (1 in 1,000) | 0.5% (1 in 200) |
+
+**Pity:** every spin adds 1; the 100th without an Epic or better is Epic+ (Epic 72.3%,
+Legendary 24.1%, Mythic 3.6%); any Epic+ resets it. About 6.2% of 100-spin stretches reach
+it.
+
+**Getting spins:** 3 starter spins (new and existing saves); 1 free spin a UTC day (not
+stacked; the SPIN button reads FREE SPIN and uses it first; the Ults button has a red dot and
+the leave reminder mentions it); rank-ups (+1 per new tier up to Gold, +2 Platinum and
+Diamond, +3 above); +2 on day 7 of the login streak; +1 on the day's last playtime gift;
+codes (the spin screen's code box, starting with ULTS for 3 spins); Fast Open (99 R$) adds
+Skip and Auto Spin.
+
+**Prices:**
+
+| Product | Robux | Was |
+|---|---|---|
+| 1 spin | 15 | |
+| 5 spins | 50 | 75 |
+| 10 spins | 100 | 150 |
+| 50 spins | 449 | 750 |
+| 1 Lucky Spin | 49 | |
+| 3 Lucky Spins | 129 | 147 |
+| Slot 2 (game pass) | 59 | |
+| Slot 3 (game pass) | 99 | |
+
+With money: **$1,750 a spin** (1, 5, 10 or 50; no bulk discount): about 2.4 hours of
+Classic play a spin (an hour is worth about $735, 11.1's anchor), so money spins are a slow
+trickle for savers and Robux the cheap route ("way more expensive", the designer).
+
+**How strong the top ults may be** (the power ladder, GDD section 9, from
+`tools/ult_model.py`; revisit after playtests). A top ult (2-3 sure balls, at most 3) against
+Magnet: at equal skill it wins **62.7%** (Classic, 60% shooters), **61.0%** (Classic, 70%) and
+**63.9%** (Difficult, 45%); a 50% shooter with it against a 60% shooter with Magnet wins
+**48.7%** (34.4% with Magnet each). The levers if it needs toning down: balls per use, the
+3-ball cap, the Legendary and Mythic odds, or top ults filling slower (none applied).
 
 ---
 
@@ -754,8 +814,10 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
 - **Opening many cases.** Everyone opens one at a time on the reel (tap to skip to the result,
   then "Open next"); Fast Open adds Open 10 and skips the reel (7.1, 11.5).
 - **Codes.** Promo codes in the Rewards menu; the list lives in Config (`Config.Daily.Codes`);
-  each code once per player, case-insensitive, with an optional expiry. Codes give only money
-  or free cases, never anything sold for Robux (a free case is not a paid random item).
+  each code once per player, case-insensitive, with an optional expiry. Codes give only money,
+  free cases or free ult spins and Lucky Spins (ULTS: 3 spins, 11.7), never a cue, pass or
+  boost sold for Robux. A free case or free spin is not a paid random item, so a restricted
+  player may redeem it (2026-09-28).
 - **Index completion** (closes the Open item in 17). A cue never owned is a "?" card; tapping
   it shows its name and its black 3D silhouette turning (designer, 2026-09-28). A cue counts
   once it has ever been owned (selling it later keeps it in the
@@ -792,8 +854,8 @@ Added with the designer for the economy build (`docs/prompts/ECONOMY_UI_PROMPT.m
   most-played opponent's; a player PolicyService never answers for is treated as restricted
   for the session (cases already owned still open); a Limited copy number taken for a purchase
   that then fails is burned, never reused; a Robux price is read once per server; placeholder
-  codes WELCOME ($500 and a Standard Case), 8BALL ($250) and ROOFTOP (a Rare Case, through
-  2026-12-31).
+  codes WELCOME ($500 and a Standard Case), 8BALL ($250), ROOFTOP (a Rare Case, through
+  2026-12-31) and ULTS (3 ult spins, 2026-09-28; shown on the spin screen's code banner).
 - **From the overnight audit (2026-09-28, overnight assumptions):** a case sale is at most
   **50% off** (`Config.Cases.MaxSalePercent`; past about 61% off, buying 10, opening and
   selling back pays more than it costs). A Robux receipt that no longer qualifies when it
