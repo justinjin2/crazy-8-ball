@@ -2230,19 +2230,25 @@ Config.Ults = {
 		"GuangdongTiger",
 	},
 	Catalog = {
-		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.33 },
+		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.33, Area = true },
 		EaglesEye = { Rarity = "Common", Built = false, Worth = 0.33 },
 		SuperBounce = { Rarity = "Common", Built = false, Worth = 0.33 },
 		Ghost = { Rarity = "Uncommon", Built = false, Worth = 0.5 },
-		HeatSeeker = { Rarity = "Uncommon", Built = false, Worth = 0.5 },
-		Rewind = { Rarity = "Rare", Built = false, Worth = 1 },
-		TimeStop = { Rarity = "Rare", Built = false, Worth = 1 },
-		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5 },
-		Portals = { Rarity = "Epic", Built = false, Worth = 1.5 },
-		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.5, MaxBalls = 3 },
-		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.5, MaxBalls = 3 },
-		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.5, MaxBalls = 3 },
-		GuangdongTiger = { Rarity = "Mythic", Built = false, Worth = 2.5, MaxBalls = 3 },
+		HeatSeeker = { Rarity = "Uncommon", Built = false, Worth = 0.5, Pick = "OwnBall" },
+		Rewind = { Rarity = "Rare", Built = false, Worth = 1, Redo = true },
+		TimeStop = { Rarity = "Rare", Built = false, Effect = "TimeStop", Worth = 1 },
+		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5, Area = true },
+		Portals = { Rarity = "Epic", Built = false, Worth = 1.5, Pick = "Portals" },
+		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3 },
+		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3, Area = true },
+		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.6, MaxBalls = 3, Area = true },
+		GuangdongTiger = {
+			Rarity = "Mythic",
+			Built = false,
+			Worth = 2.6,
+			MaxBalls = 3,
+			Area = true,
+		},
 	} :: {
 		[string]: {
 			Rarity: string,
@@ -2250,6 +2256,12 @@ Config.Ults = {
 			Effect: string?,
 			Worth: number,
 			MaxBalls: number?,
+			-- "OwnBall" (Heat Seeker) or "Portals": the aim-phase pick it needs first.
+			Pick: string?,
+			-- An area ability (5.7): the opponent's balls too, at OpponentFactor.
+			Area: boolean?,
+			-- Rewind (7.6): a shot that drops none of the shooter's balls is undone and redone.
+			Redo: boolean?,
 		},
 	},
 	-- Rolls (section 8), in parts per million so each table adds to exactly 1,000,000. Each
@@ -2401,6 +2413,67 @@ Config.Ults.Magnet = {
 	-- "Heading roughly toward the pocket": the cosine of the angle between the velocity and
 	-- the direction to the pocket centre must be above this (0.5 = within 60 degrees). (tune)
 	MinApproachCos = 0.5,
+}
+
+-- What every ability shares (docs/prompts/ABILITIES_PROMPT.md 5; the framework, step 1).
+Config.Ults.Shared = {
+	-- The skill rule (5.7): the area abilities (Magnet, Chain Lightning, Black Flash's blast,
+	-- Black Hole, the Tiger) act on the opponent's balls too, at this share of the pull or push,
+	-- and within this share of the reach for the ones that remove balls. (tune)
+	OpponentFactor = 0.5,
+	-- Caps per use: at most this many of your balls and of the opponent's; when more are in
+	-- range the closest go first. (tune)
+	MaxOwnPerUse = 3,
+	MaxOppPerUse = 2,
+	-- No capture or push radius is ever more than this share of the table's playing length
+	-- (100 in: 20 in), however the harness tunes it (5.3: "not half the table").
+	MaxReachShare = 0.2,
+	-- Aim-phase picks (Heat Seeker's ball, Portals' two spots), checked by the server.
+	Pick = {
+		-- A portal's centre must be at least this far from every cushion line and every ball
+		-- centre (in ball diameters), from every pocket's opening edge, and this far from the
+		-- other portal (inches). (tune)
+		PortalClearBallWidths = 1,
+		PortalMinGapInches = 12,
+	},
+	-- The reach preview while an area ability is armed and the player aims (5.7): a soft ring
+	-- on the cloth at full reach, a dashed inner ring at the opponent's reach, a small red
+	-- outline on each opponent ball inside it.
+	Preview = {
+		RingTransparency = 0.55,
+		InnerRingTransparency = 0.6,
+		ColorOwn = { 120, 220, 255 },
+		ColorOpp = { 255, 90, 90 },
+		OutlineTransparency = 0.25,
+	},
+	-- Rewind (7.6): the redo's shot clock, and how long the rewind moment lasts on screen.
+	RewindRedoSeconds = 10, -- (tune)
+	RewindSeconds = 2.4, -- the table rewinding for everyone (tune)
+	-- Time Stop (7.7): the freeze comes this long after the cue ball's first contact and lasts
+	-- this long; a second strike's part resumes this long after it freezes. (tune)
+	FreezeAfterSeconds = 1,
+	FrozenSeconds = 5,
+	ResumeAfterStrikeSeconds = 0.75,
+}
+
+-- Uploaded ability assets (AbilityAssets loads the models once per server, on the server,
+-- into ReplicatedStorage.AbilityAssets). Each row: an asset id (0 while not uploaded), and
+-- the image ids its look needs. Filled as each ability is built.
+Config.Ults.Assets = {
+	Models = {} :: { [string]: number },
+	Images = {} :: { [string]: string },
+	-- The 13 icons (Blender renders, 512 px), by ult id; "" until uploaded.
+	Icons = {} :: { [string]: string },
+	-- Sound sheets (5.5): each an uploaded audio id with its clips' start and length (s).
+	Sheets = {} :: {
+		[string]: {
+			Id: string,
+			Volume: number,
+			Clips: { [string]: { Start: number, Length: number, Volume: number? } },
+		},
+	},
+	LoadRetries = 3,
+	LoadRetrySeconds = 2,
 }
 
 ---------------------------------------------------------------------------------------------

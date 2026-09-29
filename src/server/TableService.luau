@@ -31,6 +31,7 @@ local seatOf: { [number]: number } = {}
 local buckets: { [string]: any } = {}
 local characterSaved: { [number]: any } = {}
 local flushHooks: { (any) -> () } = {} -- Service.onFlush
+local lateShotHooks: { (any) -> () } = {} -- Service.onLateShot
 local rng = Random.new()
 -- Every game opens on its own rack: the seed only moves each ball a hair, but a break is
 -- sensitive to exactly that, so two games never play out the same. The seed travels in the
@@ -76,6 +77,24 @@ end
 function Service.advance(t: any, timestamp: number)
 	-- Every remote and heartbeat supplies the server-owned rack seed for the next game.
 	Engine.advance(t.engine, timestamp, newSeed())
+	-- A shot the clock finished judging (Time Stop's resume) is paid and sent now, like an
+	-- accepted one (ShotService's hook).
+	if Engine.takeLateShot(t.engine) then
+		for _, hook in lateShotHooks do
+			local ok, err = pcall(function()
+				hook(t)
+			end)
+			if not ok then
+				warn("[8ball] late shot hook failed: " .. tostring(err))
+			end
+		end
+	end
+end
+
+--- Adds `hook(t)` for a shot judged by the clock rather than by ShotFired (a Time Stop shot's
+--- resume): it pays and sends the shot as ShotService does for an accepted one.
+function Service.onLateShot(hook: (any) -> ())
+	table.insert(lateShotHooks, hook)
 end
 function Service.tableOf(p: Player): number?
 	return seatOf[p.UserId]

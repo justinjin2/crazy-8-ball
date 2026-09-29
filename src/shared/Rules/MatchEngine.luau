@@ -11,7 +11,12 @@ local ShotInput = require(script.Parent.Parent.ShotInput)
 local Judge = require(script.Parent.ShotJudge)
 local Placement = require(script.Parent.CuePlacement)
 local Ults = require(script.Parent.Parent.Ults.Match)
+local Arming = require(script.Parent.Parent.Ults.Arming)
+local Catalog = require(script.Parent.Parent.Ults.Catalog)
+local TimeStop = require(script.Parent.Parent.Ults.Effects.TimeStop)
+local Cue = require(script.Parent.Parent.Physics.Cue)
 local M = Config.Multiplayer
+local S = Config.Ults.Shared
 local Engine = {}
 
 -- A table's queue settings, as the host last left them. Fresh for every new box and game.
@@ -201,6 +206,9 @@ end
 
 local start: (t: any, host: any, now: number, coinWinner: number?) -> ()
 local rematch: (t: any, now: number, nextSeed: number?) -> ()
+local finalizeShot: (t: any, before: { any }, outcome: any, now: number, from: number, redo: any?) -> ()
+local strikeFrozen: (t: any, userId: number, payload: any, now: number) -> (any?, string?)
+local resumeFrozen: (t: any, now: number) -> ()
 
 -- `forfeit` names the team that gave the match up (surrendered or ran out of timeouts), for
 -- the rank and money rules (Ranking). `seconds` is the server-tracked match time from the
@@ -257,6 +265,8 @@ function Engine.shooterLocked(phase: string, solo: any): boolean
 		or phase == "PocketChoice"
 		or phase == "Aiming"
 		or phase == "Resolving"
+		or phase == "Frozen"
+		or phase == "Rewinding"
 		or (phase == "Foul" and solo ~= nil and solo ~= false)
 end
 
@@ -289,7 +299,9 @@ local function setup(t: any, now: number)
 		local seconds = if t.breakShot then M.BreakSeconds else M.PlacementSeconds
 		phase(t, "Placement", now, if timed then seconds else nil)
 	else
-		phase(t, "Aiming", now, if timed then M.ShotSeconds else nil)
+		-- Rewind's redo has its own short clock (Shared.RewindRedoSeconds).
+		local seconds = if t.redoClock then S.RewindRedoSeconds else M.ShotSeconds
+		phase(t, "Aiming", now, if timed then seconds else nil)
 	end
 end
 
@@ -306,6 +318,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.ballInHand = hand
 	t.placeSeq = 0 -- the shooter's placement counter; never part of the snapshot
 	t.foul = nil
+	t.redoClock = nil
 	Ults.clearArmed(t) -- an armed ult never outlives its shooter's turn
 	if hand then
 		local x, y = Placement.fallback(t.state, 0, t.breakShot)
@@ -429,9 +442,33 @@ function Engine.awards(t: any, j: any, now: number)
 	end
 end
 
+-- Rewind (7.6): the table goes back to exactly before the shot (every ball, ball in hand,
+-- groups, the call) for everyone to watch rewind, then the same shooter shoots again on a
+-- RewindRedoSeconds clock. The redo is a plain shot.
+local function rewindTo(t: any, redo: any, now: number)
+	t.state.balls = Ball.cloneList(redo.balls)
+	t.state.time = 0
+	t.state.overrides = nil
+	t.state.fx = nil
+	t.pending = nil
+	t.shot = nil
+	t.groups = table.clone(redo.groups)
+	t.calledPocket = redo.calledPocket
+	t.ballInHand = redo.ballInHand
+	t.breakShot = redo.breakShot
+	t.foul = nil
+	t.redoClock = true
+	t.rewound = { at = now, seq = t.shotSeq }
+	phase(t, "Rewinding", now, S.RewindSeconds)
+end
+
 local function resolve(t: any, now: number)
 	local pending = t.pending
 	if not pending then
+		return
+	end
+	if pending.redo then
+		rewindTo(t, pending.redo, now)
 		return
 	end
 	t.state.balls = Ball.cloneList(pending.outcome.finalBalls)
@@ -539,7 +576,8 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 	end
 	if t.phase == "CoinFlip" then
 		beginTurn(t, t.activeTeam, now, true)
-	elseif t.phase == "Intro" then
+	elseif t.phase == "Intro" or t.phase == "Rewinding" then
+		-- After the introduction, or after Rewind's table went back (its redo clock is set).
 		setup(t, now)
 	elseif t.phase == "Placement" and not t.breakShot then
 		t.ballInHand = false
@@ -566,6 +604,8 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 		end
 	elseif t.phase == "Resolving" then
 		resolve(t, now)
+	elseif t.phase == "Frozen" then
+		resumeFrozen(t, now)
 	elseif t.phase == "Foul" then
 		beginTurn(t, t.nextTeam, now, true, t.solo ~= nil)
 	elseif t.phase == "Result" then
@@ -988,11 +1028,95 @@ function Engine.action(
 		end
 		t.calledPocket = request.pocket
 		setup(t, now)
+	elseif kind == "UltPick" then
+		-- The armed ult's aim-phase pick (Heat Seeker's ball, Portals' spots), checked there.
+		return (Ults.pick(t, userId, request))
 	else
 		return false
 	end
 	t.revision += 1
 	return true
+end
+
+-- Judges a settled shot and moves the table to Resolving: the verdict, the replay's final
+-- positions, the pocket stings and the ult bars; or, for Rewind (`redo`) when none of the
+-- shooter's balls dropped, the rewind instead (no stings, no fill, the table goes back at
+-- resolution). `from` is the shot time the clients' replay resumes from now (0, or Time
+-- Stop's resume), so the times handed on are measured from it.
+function finalizeShot(t: any, before: { any }, outcome: any, now: number, from: number, redo: any?)
+	-- Casual tables (every table until ranked exists) drop the rail-after-contact rule.
+	local requireRail = if t.ranked then M.RailAfterContact.Ranked else M.RailAfterContact.Casual
+	local j = Judge.resolve(
+		before,
+		outcome,
+		t.groups,
+		t.activeTeam,
+		t.breakShot,
+		t.calledPocket,
+		requireRail
+	)
+	local shot = t.shot
+	shot.final = Engine.pack(outcome.finalBalls)
+	shot.checksum = Simulation.checksum(outcome.finalBalls)
+	-- Only on the shot that picks the colors. t.groups still changes at resolution; clients
+	-- reveal both teams' groups when their replay drops this ball.
+	shot.assign = if j.assign
+		then { groups = table.clone(j.groups), ball = j.assign.ball, index = j.assign.index }
+		else nil
+	-- Whether this shot's 8 wins the game: only then does its drop get the pocket burst and
+	-- NICE SHOT! (designer, 2026-09-27: never for an early, wrong-pocket or foul 8).
+	shot.eightWins = j.reason == "LegalEight"
+	local base = now - from
+	local rewind = false
+	if redo then
+		rewind = j.winner ~= t.activeTeam
+		for _, d in j.drops do
+			if table.find(redo.own, d.ball) then
+				rewind = false
+			end
+		end
+	end
+	if rewind then
+		-- Nothing of this try counts: no stings, no fill, no groups, no win or loss.
+		shot.rewind = true
+		shot.eightWins = false
+		shot.assign = nil
+		t.pending = { outcome = outcome, judgement = j, redo = redo }
+		Ults.onShot(t, j, before, base, outcome.events, true)
+	else
+		t.pending = { outcome = outcome, judgement = j }
+		Engine.awards(t, j, base)
+		-- The ult bars fill (and an armed ult is spent) while groups are still the shot's own.
+		Ults.onShot(t, j, before, base, outcome.events)
+	end
+	local pocketed = false
+	local settle = outcome.duration - from
+	local extra = 0
+	for _, ev in outcome.events do
+		if ev.t < from then
+			continue
+		end
+		if ev.type == "pocket" or ev.type == "removed" then
+			pocketed = true
+		elseif ev.type == "ult" and ev.kind == "slow" and ev.value then
+			extra += ev.value
+		elseif ev.type == "offTable" then
+			-- Everyone watches it drop to the floor and roll before the foul is called.
+			local ball = Simulation.findBall({ balls = outcome.finalBalls } :: any, ev.ball)
+			if ball then
+				local E = Config.Effects
+				settle = math.max(
+					settle,
+					ev.t
+						- from
+						+ Flight.floorTime(ball.z, ball.vz)
+						+ E.FlyOffRollSeconds
+						+ E.FlyOffFadeSeconds
+				)
+			end
+		end
+	end
+	phase(t, "Resolving", now, settle + extra + (if pocketed then M.PocketSettleSeconds else 0))
 end
 
 function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (any?, string?)
@@ -1001,6 +1125,9 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	end
 	if payload.epoch ~= t.epoch or payload.turnId ~= t.turnId then
 		return nil, "StaleTurn"
+	end
+	if t.phase == "Frozen" then
+		return strikeFrozen(t, userId, payload, now)
 	end
 	if t.phase ~= "Intro" and t.phase ~= "Placement" and t.phase ~= "Aiming" then
 		return nil, "WrongPhase"
@@ -1015,6 +1142,10 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	end
 	if needsCall(t) then
 		return nil, "CallRequired"
+	end
+	-- A pick ult (Heat Seeker's ball, Portals' spots) waits for its pick.
+	if Ults.pickNeeded(t) then
+		return nil, "PickRequired"
 	end
 	local shot, why = ShotInput.validate(payload, nil)
 	if not shot then
@@ -1051,7 +1182,7 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	-- placeholder has none), and the replay carries it in overrides.
 	local ult = Ults.shotOverrides(t, before)
 	if ult then
-		Simulation.armEffect(sim, ult.Effect, ult.Targets, ult.EightPocket)
+		Simulation.armEffect(sim, ult.Effect, ult.Targets, ult.EightPocket, ult.extra)
 	end
 	local cue = Simulation.findBall(sim, 0)
 	assert(cue, "Missing cue ball")
@@ -1064,21 +1195,27 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	-- The match clock for the one-minute mark starts at the break (the first accepted shot;
 	-- a shot turned down above never starts it).
 	t.brokeAt = t.brokeAt or now
-	-- Casual tables (every table until ranked exists) drop the rail-after-contact rule.
-	local requireRail = if t.ranked then M.RailAfterContact.Ranked else M.RailAfterContact.Casual
-	local j = Judge.resolve(
-		before,
-		outcome,
-		t.groups,
-		t.activeTeam,
-		t.breakShot,
-		t.calledPocket,
-		requireRail
-	)
+	local tag = Ults.shotTag(t)
+	-- Rewind (7.6): the exact table before this shot, to go back to if none of the shooter's
+	-- balls drop.
+	local row = if tag then Catalog.get(tag.id) else nil
+	local redo = nil
+	if row and row.Built and row.Redo then
+		local own = Arming.targets(t.groups, t.activeTeam, t.calledPocket, before)
+		redo = {
+			balls = Ball.cloneList(before),
+			ballInHand = t.ballInHand,
+			groups = table.clone(t.groups),
+			calledPocket = t.calledPocket,
+			breakShot = t.breakShot,
+			own = own,
+		}
+	end
 	t.state.balls = before
 	t.shotSeq += 1
 	t.timeouts[t.activeTeam] = 0
 	t.ballInHand = false
+	t.redoClock = nil
 	t.shot = {
 		tableId = t.id,
 		epoch = t.epoch,
@@ -1089,46 +1226,110 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 		seed = seed,
 		start = start,
 		duration = outcome.duration,
-		final = Engine.pack(outcome.finalBalls),
-		checksum = Simulation.checksum(outcome.finalBalls),
 		overrides = outcome.overrides,
-		-- Only on the shot that picks the colors. t.groups still changes at resolution;
-		-- clients reveal both teams' groups when their replay drops this ball.
-		assign = if j.assign
-			then { groups = table.clone(j.groups), ball = j.assign.ball, index = j.assign.index }
-			else nil,
-		-- Whether this shot's 8 wins the game: only then does its drop get the pocket burst and
-		-- NICE SHOT! (designer, 2026-09-27: never for an early, wrong-pocket or foul 8).
-		eightWins = j.reason == "LegalEight",
 		-- The ult this shot is: { id, by, practice }, or nil.
-		ult = Ults.shotTag(t),
+		ult = tag,
 	}
-	t.pending = { outcome = outcome, judgement = j }
-	Engine.awards(t, j, now)
-	-- The ult bars fill (and an armed ult is spent) while groups are still the shot's own.
-	Ults.onShot(t, j, before, now, outcome.events)
-	local pocketed = false
-	local settle = outcome.duration
-	for _, ev in outcome.events do
-		if ev.type == "pocket" then
-			pocketed = true
-		elseif ev.type == "offTable" then
-			-- Everyone watches it drop to the floor and roll before the foul is called.
-			local ball = Simulation.findBall({ balls = outcome.finalBalls } :: any, ev.ball)
-			if ball then
-				local E = Config.Effects
-				settle = math.max(
-					settle,
-					ev.t
-						+ Flight.floorTime(ball.z, ball.vz)
-						+ E.FlyOffRollSeconds
-						+ E.FlyOffFadeSeconds
-				)
-			end
+	if outcome.halted then
+		-- Time Stop's freeze (7.7): everyone replays up to it; the shooter may strike the cue
+		-- ball once more while it lasts (Engine.acceptShot in the Frozen phase), then the shot
+		-- settles on and is judged as one.
+		local extra = outcome.extraSeconds or 0
+		t.shot.halted = true
+		t.shot.parts = {}
+		t.pending = {
+			frozen = {
+				sim = sim,
+				before = before,
+				events = outcome.events,
+				freezeAt = now + outcome.duration + extra,
+				struck = false,
+			},
+		}
+		phase(t, "Frozen", now, outcome.duration + extra + S.FrozenSeconds)
+		return t.shot, nil
+	end
+	finalizeShot(t, before, outcome, now, 0, redo)
+	return t.shot, nil
+end
+
+-- The shooter's second strike in stopped time (Time Stop, 7.7), through the same ShotFired
+-- as any shot: only while frozen, once, after the replay has reached the freeze. The cue ball
+-- alone moves until it touches something (Ults/Effects/TimeStop), then time resumes
+-- Shared.ResumeAfterStrikeSeconds after that part ends.
+function strikeFrozen(t: any, userId: number, payload: any, now: number): (any?, string?)
+	local frozen = t.pending and t.pending.frozen
+	if userId ~= t.shooter then
+		return nil, "NotShooter"
+	elseif not frozen or frozen.struck then
+		return nil, "NotFrozen"
+	end
+	if now < frozen.freezeAt then
+		return nil, "NotFrozenYet"
+	end
+	if t.deadline and now >= t.deadline then
+		return nil, "Expired"
+	end
+	local shot, why = ShotInput.validate(payload, nil)
+	if not shot then
+		return nil, why
+	end
+	local sim = frozen.sim
+	local cue = Simulation.findBall(sim, 0)
+	if cue == nil or cue.pocketed then
+		return nil, "NoCueBall"
+	end
+	local from = sim.time
+	-- Strike a copy of the cue ball for its seed, exactly as a first strike is struck.
+	local probe = Ball.clone(cue)
+	Cue.strike(probe, shot)
+	local seed = ShotInput.quantiseSeed(probe)
+	TimeStop.beginStrike(sim, seed)
+	table.insert(
+		frozen.events,
+		{ t = sim.time, type = "cueStrike", ball = 0, speed = math.sqrt(seed.vx ^ 2 + seed.vy ^ 2) }
+	)
+	local part = Simulation.settle(sim, frozen.events)
+	if part.capped then
+		return nil, "SimulationLimit"
+	end
+	frozen.struck = true
+	local length = sim.time - from
+	t.shot.parts = t.shot.parts or {}
+	t.shot.parts.strike = { seed = seed, startedAt = now, duration = length }
+	phase(t, "Frozen", now, length + S.ResumeAfterStrikeSeconds)
+	return t.shot, nil
+end
+
+-- Time resumes (the deadline of the freeze, or of the second strike's part): every stored
+-- motion comes back and the shot settles to rest, then it is judged as one shot.
+function resumeFrozen(t: any, now: number)
+	local frozen = t.pending.frozen
+	local sim = frozen.sim
+	local from = sim.time
+	TimeStop.resume(sim)
+	t.shot.parts = t.shot.parts or {}
+	t.shot.parts.resume = { startedAt = now, at = from }
+	local outcome = Simulation.settle(sim, frozen.events)
+	if outcome.capped then
+		-- Nothing can be judged: every ball stops where it is and the turn passes as a foul.
+		for _, b in sim.balls do
+			Ball.stop(b)
 		end
 	end
-	phase(t, "Resolving", now, settle + (if pocketed then M.PocketSettleSeconds else 0))
-	return t.shot, nil
+	outcome.overrides = t.shot.overrides
+	t.shot.duration = outcome.duration
+	finalizeShot(t, frozen.before, outcome, now, from, nil)
+	-- The server's adapter pays and sends this shot now (Engine.takeLateShot).
+	t.lateShot = t.shotSeq
+end
+
+--- A shot judged by the clock rather than by ShotFired (a Time Stop shot's resume): its seq
+--- once, then nil, so the server's adapter pays it and sends it on.
+function Engine.takeLateShot(t: any): number?
+	local seq = t.lateShot
+	t.lateShot = nil
+	return seq
 end
 
 function Engine.snapshot(t: any): any
@@ -1184,6 +1385,8 @@ function Engine.snapshot(t: any): any
 			then { at = t.search.at, users = table.clone(t.search.users), found = t.search.found }
 			else nil,
 		ults = Ults.view(t),
+		-- The last Rewind (7.6): clients play the table going back from `at`.
+		rewound = t.rewound,
 	}
 end
 

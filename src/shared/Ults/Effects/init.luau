@@ -28,6 +28,7 @@ export type Effect = {
 
 local Effects: { [string]: Effect } = {
 	Magnet = require(script.Magnet) :: any,
+	TimeStop = require(script.TimeStop) :: any,
 }
 
 return Effects

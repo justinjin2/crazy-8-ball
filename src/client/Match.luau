@@ -34,6 +34,8 @@ local Rack = require(Physics:WaitForChild("Rack"))
 local Simulation = require(Physics:WaitForChild("Simulation"))
 local TableGeometry = require(Physics:WaitForChild("Table"))
 local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
+local TimeStop =
+	require(Shared:WaitForChild("Ults"):WaitForChild("Effects"):WaitForChild("TimeStop"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
 
 type Shot = Cue.Shot
@@ -74,6 +76,10 @@ export type Match = typeof(setmetatable(
 			-- `from` for `length` shot seconds the replay runs at `scale`).
 			slows: { { from: number, length: number, scale: number } },
 			finished: boolean, -- the effect's finish hook has run (at rest)
+			-- Time Stop's later parts as the server sends them (`parts` of the shot), and which
+			-- of them this replay has already begun.
+			parts: any?,
+			applied: { strike: boolean, resume: boolean },
 		}?,
 		-- The developer's /slowmo: every replay at this rate (1 = normal; Studio only).
 		timeScale: number,
@@ -297,6 +303,19 @@ function Match.applyBalls(self: Match, packed: { number })
 end
 
 function Match.receive(self: Match, msg: any)
+	-- The same shot again with more of it (Time Stop: the second strike, the resume, and the
+	-- final positions once it is judged).
+	if msg.epoch == self.epoch and msg.seq == self.seq and self.shot and msg.parts then
+		self.shot.parts = msg.parts
+		if msg.final then
+			self.pendingFinal = msg.final
+			self.pendingChecksum = msg.checksum
+			self.shot.eightWins = msg.eightWins == true
+			self.assign = msg.assign
+			self.downVersion += 1
+		end
+		return
+	end
 	if msg.epoch < self.epoch or (msg.epoch == self.epoch and msg.seq <= self.seq) then
 		return
 	end
@@ -400,6 +419,8 @@ function Match.replay(
 		startedAt = startedAt,
 		slows = {},
 		finished = false,
+		parts = nil,
+		applied = { strike = false, resume = false },
 	}
 end
 
@@ -517,9 +538,18 @@ function Match.update(self: Match, dt: number): boolean
 	end
 	local P = Config.Physics
 	-- A halted shot (Time Stop's freeze) waits here, every ball holding its motion, until the
-	-- shot's next part is handed in (Match.continue).
+	-- server sends the shot's next part: the second strike, then the resume.
 	if self.state.halted then
-		return true
+		local parts, applied = shot.parts, shot.applied
+		if parts and parts.strike and not applied.strike and TimeStop.isFrozen(self.state) then
+			applied.strike = true
+			TimeStop.beginStrike(self.state, parts.strike.seed)
+		elseif parts and parts.resume and not applied.resume then
+			applied.resume = true
+			TimeStop.resume(self.state)
+		else
+			return true
+		end
 	end
 	-- Never simulate more than a short slice per frame: a hitch must not fast-forward the
 	-- shot, and one frame must never be asked to do unbounded work. The replay runs slower

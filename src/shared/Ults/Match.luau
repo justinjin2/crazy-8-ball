@@ -35,6 +35,7 @@
 local Config = require(script.Parent.Parent.Config)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local NiceShot = require(script.Parent.Parent.Rules.NiceShot)
+local Arming = require(script.Parent.Arming)
 local Catalog = require(script.Parent.Catalog)
 local Fill = require(script.Parent.Fill)
 
@@ -50,6 +51,9 @@ export type Armed = {
 	readyAt: number, -- server time it becomes Armed
 	seq: number, -- the game's ult counter: clients play the cutscene once per seq
 	practice: boolean, -- solo's free Practice ult: pays nothing, counts nothing
+	-- The aim-phase pick, once made and checked (Arming.pick): { ballId } or the two portal
+	-- spots { ax, ay, bx, by }. Nil until then (a pick ult's shot waits for it).
+	pick: { number }?,
 }
 
 export type State = {
@@ -71,7 +75,12 @@ export type FeedEntry = {
 	seq: number, -- the message it goes out in (one per shot or timeout)
 }
 
-export type Overrides = { Effect: string, Targets: { number }, EightPocket: number? }
+export type Overrides = {
+	Effect: string,
+	Targets: { number },
+	EightPocket: number?,
+	extra: { [string]: any }, -- everything else for Simulation.armEffect (OppTargets, Pick ...)
+}
 
 -- The phases in which the shooter may activate: before their shot, balls at rest.
 local BEFORE_SHOT: { [string]: boolean } =
@@ -271,10 +280,11 @@ local function shotArmed(t: any): Armed?
 end
 
 --- The physics overrides for the shooter's ult shot, or nil (no ult armed for this shot, or a
---- placeholder with no Effect). `before` is the table just before the strike. Targets are the
---- shooter's own group's balls still on the table; on the shooter's legal 8 shot (their group
---- cleared, a pocket called) only the 8, with EightPocket = the called pocket; on an open table
---- every ball but the 8. Never the cue ball, never the opponent's balls.
+--- placeholder with no Effect). `before` is the table just before the strike (Arming.targets,
+--- 5.7): Targets are the shooter's balls still on the table (every ball but the 8 on an open
+--- table; on the legal 8 shot the 8 too, with EightPocket = the called pocket), and
+--- `extra.OppTargets` the opponent's. Never the cue ball. `extra` also carries the pick and
+--- the ability's own overrides (Arming.extras).
 function Match.shotOverrides(t: any, before: { any }): Overrides?
 	local armed = shotArmed(t)
 	if armed == nil then
@@ -284,28 +294,73 @@ function Match.shotOverrides(t: any, before: { any }): Overrides?
 	if ult == nil or not ult.Built or type(ult.Effect) ~= "string" then
 		return nil
 	end
-	local group = if type(t.groups) == "table" then t.groups[t.activeTeam] else nil
-	local targets: { number } = {}
-	local eightPocket: number? = nil
-	if group ~= nil and Judge.eligible(before, group) then
-		if t.calledPocket ~= nil then
-			for _, b in before do
-				if b.id == 8 and not b.pocketed then
-					table.insert(targets, 8)
-				end
-			end
-			eightPocket = if #targets > 0 then t.calledPocket else nil
-		end
-	else
-		for _, b in before do
-			local g = Judge.group(b.id)
-			if not b.pocketed and g ~= nil and (group == nil or g == group) then
-				table.insert(targets, b.id)
-			end
-		end
+	local groups = if type(t.groups) == "table" then t.groups else nil
+	local own, opp, eightPocket, legalEight =
+		Arming.targets(groups, t.activeTeam, t.calledPocket, before)
+	local extra = Arming.extras(ult.Effect :: string, {
+		own = own,
+		opp = opp,
+		eightPocket = eightPocket,
+		legalEight = legalEight,
+		open = groups == nil or groups[t.activeTeam] == nil,
+		pick = armed.pick,
+		balls = before,
+	})
+	extra.OppTargets = opp
+	if armed.pick then
+		extra.Pick = table.clone(armed.pick)
 	end
-	table.sort(targets)
-	return { Effect = ult.Effect :: string, Targets = targets, EightPocket = eightPocket }
+	return {
+		Effect = ult.Effect :: string,
+		Targets = own,
+		EightPocket = eightPocket,
+		extra = extra,
+	}
+end
+
+--- The pick the armed ult still needs before its shot ("OwnBall", "Portals"), or nil: none
+--- needed, or already made. A shot is refused ("PickRequired") while one is owed.
+function Match.pickNeeded(t: any): string?
+	local armed = shotArmed(t)
+	if armed == nil or armed.pick ~= nil then
+		return nil
+	end
+	local ult = Catalog.get(armed.id)
+	if ult == nil or not ult.Built then
+		return nil
+	end
+	return ult.Pick
+end
+
+--- The shooter's pick for their armed ult (the UltPick table action), checked by
+--- Arming.pick. A pick may be changed until the shot. Returns ok, or false and why.
+function Match.pick(t: any, userId: number, request: any): (boolean, string?)
+	local armed = stateOf(t).armed
+	if armed == nil or armed.by ~= userId or t.shooter ~= userId then
+		return false, "NotArmed"
+	elseif armed.stage ~= "Armed" then
+		return false, "Arming"
+	elseif not BEFORE_SHOT[t.phase] then
+		return false, "NotYourTurn"
+	end
+	local ult = Catalog.get(armed.id)
+	if ult == nil or not ult.Built or ult.Pick == nil then
+		return false, "NoPick"
+	end
+	local pick, why = Arming.pick(
+		ult.Pick :: string,
+		request,
+		t.state.geometry,
+		t.groups,
+		t.activeTeam,
+		t.state.balls
+	)
+	if pick == nil then
+		return false, why
+	end
+	armed.pick = pick
+	t.revision += 1
+	return true, nil
 end
 
 --- What the replay carries about this shot's ult: { id, by, practice }, or nil.
@@ -379,12 +434,20 @@ end
 --- t.ultFeed. `events` are the shot's ordered events (default t.pending.outcome.events), read
 --- for NICE SHOT! (the shooter's own pots, never on the break). Does nothing more when ults are
 --- off or in solo.
-function Match.onShot(t: any, j: any, before: { any }, now: number, events: { any }?)
+function Match.onShot(
+	t: any,
+	j: any,
+	before: { any },
+	now: number,
+	events: { any }?,
+	rewound: boolean?
+)
 	local ults = stateOf(t)
 	local armed = shotArmed(t)
 	local ultShot = armed ~= nil and not armed.practice
 	Match.clearArmed(t)
-	if not Match.enabled(t) then
+	-- A rewound shot (Rewind, 7.6) never happened: it fills nothing for anyone.
+	if not Match.enabled(t) or rewound then
 		return
 	end
 	local list: { any } = events
@@ -488,6 +551,7 @@ function Match.view(t: any): any
 				readyAt = armed.readyAt,
 				seq = armed.seq,
 				practice = armed.practice,
+				pick = if armed.pick then table.clone(armed.pick) else nil,
 			}
 			else nil,
 		pausedUntil = ults.pausedUntil,

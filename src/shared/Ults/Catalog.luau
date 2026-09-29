@@ -13,7 +13,16 @@ local Strings = require(script.Parent.Parent.Strings)
 
 local U = Config.Ults
 
-type Row = { Rarity: string, Built: boolean, Effect: string?, Worth: number, MaxBalls: number? }
+type Row = {
+	Rarity: string,
+	Built: boolean,
+	Effect: string?,
+	Worth: number,
+	MaxBalls: number?,
+	Pick: string?,
+	Area: boolean?,
+	Redo: boolean?,
+}
 local ROWS: { [string]: Row } = U.Catalog :: any
 local NAMES: { [string]: string } = Strings.Ults.Names :: any
 local DESCRIPTIONS: { [string]: string } = Strings.Ults.Descriptions :: any
@@ -25,6 +34,13 @@ export type Ult = {
 	Effect: string?, -- the module in src/shared/Ults/Effects for a built ult
 	Worth: number, -- the power ladder's target, in balls per use
 	MaxBalls: number?, -- the most balls one use may take (the top rarities)
+	-- The aim-phase pick it needs before the shot: "OwnBall" (Heat Seeker) or "Portals".
+	Pick: string?,
+	-- An area ability (the skill rule, ABILITIES_PROMPT 5.7): it also acts on the opponent's
+	-- balls, at Config.Ults.Shared.OpponentFactor, and shows its reach while aiming.
+	Area: boolean?,
+	-- Rewind (7.6): a shot that drops none of the shooter's balls is undone for one redo.
+	Redo: boolean?,
 }
 
 local Catalog = {}
@@ -61,6 +77,9 @@ function Catalog.get(id: any): Ult?
 		Effect = row.Effect,
 		Worth = row.Worth,
 		MaxBalls = row.MaxBalls,
+		Pick = row.Pick,
+		Area = row.Area == true,
+		Redo = row.Redo == true,
 	}
 end
 
