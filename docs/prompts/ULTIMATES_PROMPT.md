@@ -571,12 +571,12 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   section 4 (fouls, the 8, the cap, the clock pause, teams, the PC opponent, solo practice, the
   global queue's Ults On / Off pools and fallback),
   placeholder ults; tests.
-- [ ] 4. The HUD bar (reference 08): position, fill animation, stored gains shown on your turn,
+- [x] 4. The HUD bar (reference 08): position, fill animation, stored gains shown on your turn,
   ult_ready, the ready shake and glow, PRESS G / TAP / gamepad glyph, the armed pill, the
   opponent's icon, the controller guide line; checked on PC, phone and tablet.
-- [ ] 5. The cutscene (reference 10) with ult_activate trimmed, seen by both players, then
+- [x] 5. The cutscene (reference 10) with ult_activate trimmed, seen by both players, then
   the 1 s wait and the arming.
-- [ ] 6. Magnet: the physics hook meets section 7.3's harness targets; its armed look and
+- [x] 6. Magnet: the physics hook meets section 7.3's harness targets; its armed look and
   sound, pull beams, pocket ring and drop effects; checked in a real match in Studio.
 - [ ] 7. The Ults button on the left column (icon, red dot, gamepad route).
 - [ ] 8. The spin screen: stage, clone, idle, aura by rarity, the layout of 9.3, the spin
@@ -718,3 +718,17 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   of direct pots unchanged. **Magnet's value: about +41 points of pot chance for an average
   player (0.41 ball), above the ladder's +30%; the 7.3 targets can't be met below about +38**
   (asked the designer; kept the 7.3 targets meanwhile).
+- **Steps 4-6 (2026-09-28, 6077d4d).** Checked in Studio on PC:
+  - The bar at 62%, then READY with "PRESS [G] TO ACTIVATE"; G starts the cutscene.
+  - The armed pill "MAGNET: NEXT SHOT" and MagnetFx's rings and hum on the cue ball.
+  - A 2° near-miss with Magnet: the replay carries `Effect = Magnet`, Targets 1-7. The client
+    made the pull's beams, PocketRing3 and the pull sound, and the ball dropped glowing.
+  - UltHud built into 750x361 and 844x390 frames (filling, ready, armed): all readable, the
+    pill centred. A tablet uses the same full-size layout as PC.
+  Found and fixed: the cutscene avatar drew upright and unclipped over the tilted band, because
+  a ViewportFrame neither rotates nor clips under a rotated frame. It now has its own upright
+  window inside the band (`AvatarWindowShare`), framed to the hat (`HatMaxHeads`); the words
+  sit on a clear twin of the panel above it.
+  Also: a QA shot fired before the ult armed simply had no effect (correct).
+  Left for step 12's playthrough: the cutscene seen from a second real client (the QA opponent
+  is synthetic), and the gamepad glyph.
