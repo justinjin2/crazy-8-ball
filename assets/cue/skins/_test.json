@@ -1,0 +1,17 @@
+{
+  "id": "_test",
+  "name": "Template check",
+  "note": "The synthetic _test panels (CueTemplate.py), to prove the mapping. Its render is renders/template_check.png.",
+  "panels": {
+    "shaft_tile": "template/shaft_tile_test.png",
+    "shaft_top": "template/shaft_top_test.png",
+    "forearm": "template/forearm_test.png",
+    "butt": "template/butt_test.png",
+    "cap_end": "template/cap_end_test.png"
+  },
+  "colours": { "tip": "#5A5A5A", "ferrule": "#C8C8C8", "bumper": "#282828" },
+  "shaft_tile": { "repeats": null, "fade": 0 },
+  "metal": [],
+  "glow": [],
+  "roughness": { "shaft": 0.5, "forearm": 0.5, "wrap": 0.5, "cap": 0.5, "ring": 0.5, "joint": 0.5 }
+}

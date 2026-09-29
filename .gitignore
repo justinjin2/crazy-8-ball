@@ -37,3 +37,4 @@ src/server/MapData/GrayBox.json
 
 # Cue package: preview renders are rebuilt by assets/cue/CueRender.py
 assets/cue/renders/
+assets/cue/textures/_*

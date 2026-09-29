@@ -32,6 +32,14 @@ REGIONS = ['tip', 'ferrule', 'shaft', 'joint', 'forearm', 'ring', 'wrap', 'cap',
 REGION_ZONE = {'bumper': 'cap', 'end': 'cap'}
 
 
+# Each paint-kit panel's colour in renders/areas.png and template/sheet.png (and in the test
+# panels' checkers), plus the plain-colour parts.
+AREA_COLOURS = {'shaft_tile': [70, 130, 230], 'shaft_top': [60, 190, 120], 'forearm': [240, 150, 40],
+                'butt': [170, 90, 220], 'cap_end': [230, 60, 70], 'tip': [90, 90, 90],
+                'ferrule': [200, 200, 200], 'bumper': [40, 40, 40]}
+PANELS = ['shaft_tile', 'shaft_top', 'forearm', 'butt', 'cap_end']
+
+
 def zone_of(region):
     return REGION_ZONE.get(region, region)
 

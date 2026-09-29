@@ -281,8 +281,8 @@ def render_mesh():
 
 def skin_views():
     """Four sides of the whole cue (top, the side, the seam side below, the far side) and
-    close-ups: the tip, the joint, the butt end, the seam from below, the shaft_top/forearm
-    join and the forearm/butt join."""
+    close-ups: the tip, the joint, the butt, the seam from below, the shaft_top/forearm join,
+    the forearm/butt join, the end face from behind, the tip from in front, the handle."""
     # The top and below views keep the tip on the left; the far side is seen upright, so its
     # tip is on the right, as when walking round the cue.
     views = []
@@ -294,7 +294,10 @@ def skin_views():
     close = [('tip', TIP), ('joint', JOINT), ('butt', BUTT),
              ('seam', dict(loc=(-0.25, -3.1, -0.75), target=(0.0, -3.7, 0.0), lens=50)),
              ('join_forearm', dict(loc=(-0.9, -3.0, 0.55), target=(0.0, -3.9, 0.0), lens=50)),
-             ('join_butt', dict(loc=(-0.9, -4.6, 0.55), target=(0.0, -5.4, 0.0), lens=50))]
+             ('join_butt', dict(loc=(-0.9, -4.6, 0.55), target=(0.0, -5.4, 0.0), lens=50)),
+             ('end', dict(loc=(0.0, -7.6, 0.0), target=(0.0, -7.0, 0.0), lens=85)),
+             ('tip_front', dict(loc=(0.0, 0.42, 0.0), target=(0.0, 0.0, 0.0), lens=85)),
+             ('handle', HANDLE_34)]
     return views, close
 
 
@@ -311,11 +314,28 @@ def render_skin(skin_id, maps=None, out=None):
     sides, close = skin_views()
     strips = [render_frame(scene, (tw * 3 + 12, 200), view, work, name) for name, view in sides]
     frames = [render_frame(scene, (tw, th), v, work, n) for n, v in close]
-    sheet = compose([[s] for s in strips] + [frames[:3], frames[3:]])
+    sheet = compose([[s] for s in strips] + [frames[:3], frames[3:6], frames[6:]])
     out = out or os.path.join(RENDERS, '%s.png' % skin_id)
     cc.write_png(out, sheet)
     cc.log(TAG, 'wrote', out)
     return out
+
+
+def render_areas(maps):
+    """renders/areas.png: the cue side-on and from above, painted with each panel's area colour
+    (CueTextures --areas), for template/sheet.png."""
+    tw, th = RENDER['tile']
+    scene, obj = setup((tw, th))
+    obj.data.materials.clear()
+    obj.data.materials.append(maps_material(maps))
+    work = tempfile.mkdtemp(prefix='cue_render_')
+    sides, _ = skin_views()
+    strips = [render_frame(scene, (tw * 3 + 12, 200), view, work, name)
+              for name, view in sides if name in ('top', 'side')]
+    frames = [render_frame(scene, (tw, th), v, work, n) for n, v in (('handle', HANDLE_34), ('butt', BUTT))]
+    out = os.path.join(RENDERS, 'areas.png')
+    cc.write_png(out, compose([[s] for s in strips] + [frames]))
+    cc.log(TAG, 'wrote', out)
 
 
 def main():
