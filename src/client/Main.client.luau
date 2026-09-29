@@ -21,6 +21,7 @@ local Engine = require(Shared.Rules.MatchEngine)
 local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
+local BackCue = require(script.Parent.BackCue)
 local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
 local DayCycle = require(script.Parent.DayCycle)
@@ -73,6 +74,8 @@ local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
 CueStickBuilder.wear(cueStick, player)
+-- Everyone's cue on their back, hidden while it is in their hands (updated after the frame).
+local backCue = BackCue.new(visuals)
 local avatar = Avatar.new()
 local screen = UI.screen()
 local powerCue = PowerCue.new(screen)
@@ -991,7 +994,7 @@ local function dropStrayMatchSelection()
 	end
 	GuiService.SelectedObject = nil
 end
-RunService.RenderStepped:Connect(function(dt)
+local function renderFrame(dt: number)
 	local busy = hub:update(dt)
 	magnetFx:update(dt)
 	for id = 1, Placement.tableCount() do
@@ -1302,5 +1305,11 @@ RunService.RenderStepped:Connect(function(dt)
 		hub:reportAim(snapshot.id, input.angle, pull, input:getElevation(), seq, px, py)
 	end
 	lastBusy = busy
+end
+RunService.RenderStepped:Connect(function(dt)
+	renderFrame(dt)
+	-- The back cues last, once every hand cue of this frame is drawn: a cue is never on a back
+	-- and in the hands at once, nor missing from both.
+	backCue:update(dt, cueStick:GetAttribute("Visible") == true, hub.watched:holding())
 end)
 print("[8ball] multiplayer client ready")

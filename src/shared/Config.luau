@@ -531,6 +531,34 @@ Config.Cue = {
 	-- CueStickBuilder its SurfaceAppearance swap (see the note in paint()).
 	MeshSkins = { "Classic" },
 	MeshSkinsFolder = "CueSkins",
+	-- The cue on every player's back (BackCue, designer 2026-09-28): their equipped cue, welded
+	-- to BodyBackAttachment (R15 UpperTorso, R6 Torso), diagonal with the tip over the LEFT
+	-- shoulder and the butt toward the right hip, the seam toward the body. Shown always,
+	-- except while that player's cue is in their hands.
+	Back = {
+		-- The tilt from upright (degrees), tip toward the left shoulder. (tune)
+		TiltDegrees = 36,
+		-- The cue's axis sits this far behind the attachment (studs), off the back and over
+		-- common back accessories. (tune)
+		OutStuds = 0.3,
+		-- Where along the cue (studs from the tip) it crosses the attachment: more than half the
+		-- cue rises over the shoulder. (tune)
+		GripFromTipStuds = 4.3,
+		-- The butt stays at least this high above the floor (studs): on a small body the cue
+		-- slides up instead of stabbing the ground. (tune)
+		MinButtHeightStuds = 0.8,
+		-- Sitting on a seat, the cue tilts this much further so its butt clears the seat cushion
+		-- (checked on the lobby's loungers and sofas: their backrests hide the middle of the
+		-- stick, the tip still shows over the shoulder). (tune)
+		SeatedExtraTiltDegrees = 30,
+		-- Only characters this close to the camera carry one (studs), from a pool of this many
+		-- sticks built up front; who is near is looked at this often (seconds). (tune)
+		MaxDistanceStuds = 90,
+		PoolSize = 12,
+		RefreshSeconds = 0.3,
+		-- The camera this close to your own head is first person: your back cue hides. (internal)
+		FirstPersonStuds = 1.0,
+	},
 }
 
 ---------------------------------------------------------------------------------------------

@@ -218,6 +218,16 @@ function CueStickBuilder.paint(model: Model, cueId: string?)
 	paintStick(model, id, false)
 end
 
+--- Lay the stick's parts out again from the model's pivot, as its current cue: for a stick whose
+--- parts were moved some other way (BackCue welds them to a body, and sets the pivot back
+--- before letting go). Creates nothing.
+function CueStickBuilder.relayout(model: Model)
+	local id = model:GetAttribute("CueId")
+	if sticks[model] and type(id) == "string" then
+		paintStick(model, id, false)
+	end
+end
+
 --- Paint the stick as `player`'s equipped cue and keep it so, repainting whenever their
 --- EquippedCue changes, until it is handed to someone else. Calling it again for the same
 --- player does nothing; nil paints the default cue and stops listening.
