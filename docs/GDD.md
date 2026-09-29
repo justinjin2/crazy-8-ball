@@ -211,7 +211,7 @@ Every feature is checked against these. If it serves none, it waits.
   down and a bit bigger (1.3x), on a big one (PC, console, tablet), kept above a tablet's jump
   button. The waiting line's three dots light up one by one
   so the wait looks alive. Public tables play
-  Classic (whether ults can be turned off: section 9). If the host leaves, the next to arrive becomes host.
+  Classic with ults on (designer, 2026-09-28; the global queue alone offers No ults, section 9). If the host leaves, the next to arrive becomes host.
 - **A full pad starts by itself**, **3 s** *(tune)* after the last one stepped on ("Starting in
   3"), so someone who walked on by accident can step off. Then straight to the coin flip,
   about 3 s and a few words at a time: "YOU ARE HEADS" (or TAILS), the flip, then "YOU BREAK"
@@ -288,7 +288,7 @@ Every feature is checked against these. If it serves none, it waits.
 
 **Open**
 - Difficult and Challenger may be for pro lobbies only (designer thinking, 2026-09-27); until
-  then public tables play Classic. Whether a table can turn ults off is open (section 9).
+  then public tables play Classic, with ults on (section 9).
 - Whether the arena gets its own map later (the reference image) or keeps the rooftop, and
   whether players in the lobby can watch arena matches.
 
@@ -354,75 +354,97 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 ## 9. Ultimates (abilities)
 
-**Decided**
-- **Abilities stay, are now called ultimates ("ults"), and come in the release** (designer,
-  2026-09-28; this replaces the 2026-09-26 "not in the release, up for debate" call and the
-  old cooldown design). The designer has more details coming; this is the general shape.
-- **An ult is a comeback trump card**, not a regular ability: its job is to level the playing
-  field so a player who is well behind can catch up. A player normally uses it **once** a
-  match, and **twice** only in rare long matches where nobody pockets for a long time.
-- **One ult bar per player, filled by the same rules for everyone** (never by what they own or
-  paid for), and proportional to what both players make:
-  - **Your own balls** fill a little, and less and less for balls in a row: a player on a run
-    gains little.
-  - **Trickshots** (the nice-shot kinds: Bank, Kick, Combo, Carom) fill a big chunk, and the
-    player sees the bar jump up with the "Nice shot" popup. A normal ball is a small visible tick.
-  - **The opponent's balls** fill yours, more the further behind you are. A player who falls
-    **4-5 balls behind** should have a full bar when the turn comes back to them.
-  - **A small trickle every turn**, so a long match with few pockets can reach a second ult.
-  - Starting numbers to test *(tune)*: a bar of 100; your own ball +5, then +3, +2, +1 for
-    the next balls in the same turn; a trickshot +20; an opponent's ball +5, plus 7 for every
-    ball you are then behind; +2 for each of your turns that ends; the bar empties when used;
-    at most 2 ults a match. Check "about one ult a match" with a small simulation (like
-    `tools/economy_model.py`) before building.
-- **Using it:** a full bar **shakes and glows** to invite the tap. The player activates it on
-  their own turn **before they shoot**; a short **cutscene** plays (the ult's name, the
-  player's avatar, its sound), then a clear "ULT" mark stays on the cue ball and HUD so both
-  players know the next shot is the ult shot. A full bar can be held as long as the player
-  likes: the idea is to spend it on a turn with no clear shot.
-- **Ults act on the balls and help the user.** They almost never sabotage the opponent (no
-  fog, shaky aim or shrunken guidelines).
-- **Rarities** are the item rarities (section 12): Common, Uncommon, Rare, Epic, Legendary,
-  Mythic. Some ults are stronger than others, but higher rarities put the emphasis on cooler
-  visuals and sound, not on power: Magnet is a fully useful ult, just less cool than a Mythic.
-  Planned set: 3 Common and 2 each of Uncommon, Rare, Epic, Legendary and Mythic (13).
-- Every player equips exactly one ult per match. Every player has a starter ult, **Magnet**,
-  free forever (kept from the ability plan). Friend tests may unlock every built ult with a
-  developer flag in Config. The server validates every ult; each one hooks into the custom
-  physics for one shot.
-- **The designer's first six** (2026-09-28):
-  - **Eagle's Eye** (Common): shows the full path of the shot, every bounce included (Classic
-    shows only short lines). An eagle screech.
-  - **Magnet** (Common): a low vibrating magnetic hum; a ball heading for a pocket that is not
-    a direct hit is pulled in (a nudge that rescues near misses, never a vacuum).
-  - **Steel Ball** (Legendary): a "nyo-ho" call on activation; after contact the object ball is
-    guided into the pocket you were trying for, and the cue ball spins to line up your next
-    nearest ball (the 8 when it is next).
-  - **Black Flash** (Legendary): the first ball hit shatters in an immense black flash and is
-    gone from the table, counted as pocketed for whoever owns it.
-  - **Black Hole** (Mythic): whatever the cue ball hits first opens a black hole that sucks in
-    the balls near it, except the opponent's.
-  - **Guangdong Tiger** (Mythic): a giant tiger appears at the first ball hit and swipes the
-    balls around it off the table, except the opponent's.
+**Decided** (designer, 2026-09-28, after the ultimates interview; built on branch
+`ultimates`, `docs/prompts/ULTIMATES_PROMPT.md`)
+- **Abilities are called ultimates ("ults") and are core gameplay, in the release.** An ult is
+  a comeback trump card: its job is to level the field. **Both players should get to use
+  their ult in 80%+ of matches**, leaving out the rare run-out (a player who pockets all 7
+  and the 8 in one turn). A second ult only comes in long, slow matches.
+- **Ults are on by default everywhere**: public tables, the global queue and arenas, and vs
+  PC (this replaces "public tables play Classic with no abilities", 2026-09-27). Solo gets a
+  free **Practice ult** button instead of a bar. **The global queue's Join card has an Ults:
+  On / Off toggle** (On by default, remembered in the save) for ranked players who want pure
+  skill; players are only matched with others on the same setting (two pools in one queue),
+  rank XP and money are the same either way, and the arena, series and rematch keep it. If a
+  No-ults search finds nobody in 30 s the card offers "Nobody's in No ults right now. Search
+  with ults on?" (Yes keeps the search time). A "NO ULTS" pill shows on the match bar and the
+  result screen. Lobby tables and vs PC always have ults on.
+- **One bar per player, 0-100, filled by the same rules for everyone** (never by what they
+  own), starting at 0 each game (rematches too). The numbers (`Config.Ults.Fill`, checked by
+  `tools/ult_model.py`): your own balls in one turn +10, +8, +6, +5, then +3 each; a nice shot
+  (bank, kick, combo, carom) +20 on top; an opponent's ball +8 plus 7 for every ball you are
+  behind after it; each of your turns that ends on a legal shot +15; each of the opponent's
+  turns that ends +6; turn-end fill gives at most 50 of a bar in total; a teammate's ball +2.
+  Every gain x1.3 in Classic (x1.0 Difficult and Challenger; the 50 cap doesn't scale). After
+  your first ult everything fills at x0.25 (the turn cap counts again from 0); at most **2
+  ults a match**. "Behind" = your side's balls left minus the other's (a side on the 8 counts
+  0; on an open table, compare the balls each side pocketed); balls on the break count as
+  normal balls. **Balls pocketed on an ult shot fill nothing for its user** (they fill the
+  opponent's bar as usual).
+- **No farming:** turn-end fill needs a legal shot and gives at most 50, so missing on
+  purpose can never fill a bar by itself; in the model a deliberate misser loses to an honest
+  equal player.
+- **The bar shows only on your turn**, bottom centre and compact, never over the middle of
+  the table; it fades to 25% while you pull the cue back. Gains made during the opponent's
+  turn are stored and animate when your turn starts (the bar slides up, counts, a floating
+  "+34", and ult_ready once if it crosses 100). A full bar turns gold, sparkles, glows and
+  shakes every ~2 s; the prompt reads PRESS [G] TO ACTIVATE (PC), TAP TO ACTIVATE (touch: the
+  whole bar is the button), or PRESS [X/Square glyph] TO ACTIVATE (gamepad ButtonX). The
+  opponent's match bar shows a small ult icon beside the user that lights up when their ult
+  is ready.
+- **Using it:** on your own turn, before the shot, with the balls at rest (ball in hand is
+  fine); never on the break. Once pressed it can't be cancelled; if the shot clock runs out
+  while armed the ult is spent. **Both players see a 1.6 s manga-strip cutscene** (the
+  activating player's avatar in a tilted panel over a swirling backdrop in the ult's rarity
+  colour, "ULTIMATE" and the ult's name, the ult_activate sound), then about a second later
+  the ult's own arming effect and an armed pill ("MAGNET: NEXT SHOT"; the opponent sees
+  "Opponent's ult: MAGNET"). The shot clock pauses from activation until armed, for both
+  sides.
+- **Fouls still count on an ult shot.** An ult never pockets, moves or destroys the 8 unless
+  it is your legal 8 shot, and never acts on the opponent's balls. Ults act on the balls and
+  help the user; they never sabotage the opponent.
+- **Teams:** each player has their own bar; "behind" compares sides.
+- **The PC opponent** has Magnet; it activates when its bar is full and it is behind, or when
+  its shot finder sees no easy shot (a policy in `Ults/Match`, for the bots when they exist).
+- **Rarities and power** (designer, 2026-09-28): higher rarities are cooler *and* stronger.
+  The power ladder, per use: Common about 1/3 of a ball, Uncommon about 1/2, Rare about 1,
+  Epic 1 to 2, Legendary and Mythic a guaranteed ball plus 1-2 more (3 balls at most, never
+  the 8 before your legal 8 shot, never the opponent's balls). Each ult's own session builds
+  to its row and measures it. The model's win rates for a top ult are in ECONOMY.md 11.8.
+- **The catalog of 13** (`Config.Ults.Catalog`, names and lines in `Strings.Ults`): Common
+  **Magnet** (built; everyone starts with it, free forever), Eagle's Eye, Super Bounce;
+  Uncommon Ghost, Heat Seeker; Rare Rewind, Time Stop; Epic Chain Lightning, Portals;
+  Legendary Steel Ball, Black Flash; Mythic Black Hole, Guangdong Tiger. The other 12 are
+  placeholder rows (their cutscene plays with their own name, then "Coming soon"); they can
+  only be rolled or equipped with the developer flag, so live players only ever roll built
+  ults. Each gets its own session and brief.
+- **Magnet:** a low vibrating hum and two orbiting N/S rings on the cue ball while armed. For
+  the whole shot, each of your balls (the 8 only on your legal 8 shot, toward the called
+  pocket; on an open table any ball but the 8) moving toward a pocket and passing within a
+  capture zone of its mouth is steered toward the pocket's centre: it rescues near misses and
+  jaw rattles, never a vacuum, never the cue ball or the opponent's balls. A beam, a pulsing
+  pocket ring and a clunk-zap show it. The aim line doesn't show it.
+- **Getting ults: the spin screen** (Untitled Boxing Game style; the left column's 5th
+  button, **Ults**, with a red dot when the daily free spin is ready). Three slots (slot 1
+  free, slots 2 and 3 game passes); a spin rolls into the selected slot and replaces its ult;
+  a locked slot can't be spun; the selected slot is the one equipped; replacing an Epic+ asks
+  first. The avatar stands in the middle in its idle with a JoJo-style aura in the rarity's
+  colour. True odds are always shown (Common 55%, Uncommon 30%, Rare 12.2333%, Epic 2%,
+  Legendary 1 in 150, Mythic 1 in 1,000; a rarity with no built ult passes its share down),
+  with **pity**: the 100th spin without an Epic or better is Epic+, and any Epic+ resets it.
+  **Lucky Spins** (Robux only) never roll Common. Spins come from 3 starter spins, a free spin
+  every day, rank-up rewards, day 7 of the login streak, the day's last playtime gift, codes,
+  Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). Fast Open covers ult
+  spins too (Skip and Auto Spin). Paid spins are paid random items: odds shown, and blocked
+  where PolicyService restricts them (ECONOMY.md 11.7-11.8). The live screen stays hidden
+  (`Config.Ults.ScreenLive`) until more ults than Magnet are built.
+- Sounds must be original or licensed (section 8): never clip a show's "nyo-ho" or time-stop
+  sound. The designer's ult_activate and ult_ready are uploaded to the group.
 
 **Open**
-- The designer's further details (coming). The other seven ults: 1 Common, 2 Uncommon, 2 Rare,
-  2 Epic. Candidates from the 2026-09-28 brainstorm: Anchor, Big Mouth, Safety Net, Rubber
-  Rails (Common); Flash Step, Extra Life, Phantom, Gust (Uncommon); Heat Seeker, Split Shot,
-  Drift, Rewind (Rare); Meteor, Time Stop, Chain Lightning, Wormhole (Epic).
-- The 8-ball and ults: can an ult pocket or destroy the 8 (suggested: only on your own legal
-  8 shot, never early)? Do fouls still count on an ult shot (scratch, wrong ball first)? What
-  Black Flash does when the first ball hit is the opponent's (suggested: a normal foul, no
-  flash). Balls an ult pockets probably fill no bar.
-- How many balls an area ult (Black Hole, Guangdong Tiger) may take at most (suggested 2-3),
-  so a Mythic stays a spectacle rather than a match-ender.
-- Whether the leader's bar fills at all, and the second-ult rule.
-- On or off per table: public tables play with no settings since 2026-09-27 (section 6).
-- How ults are earned. The old plan was an ability gacha with Robux spins (section 12), but
-  ECONOMY.md never sells anything that helps win; since some ults are stronger, they should
-  come from play or money, or all be equal in power.
-- Sounds must be original or licensed (section 8): the "nyo-ho" and screech are recorded or
-  made for the game, never clipped from a show.
+- The designer's brief for each later ult (Eagle's Eye next), and whether any of the top ults
+  needs toning down after playtests (the levers: balls per use, the 3-ball cap, the Legendary
+  and Mythic odds, or top ults filling slower).
 
 ## 10. The hub and the world
 
@@ -586,9 +608,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **The Limited shelf** holds the high-priced, quantity-limited items that sell out and become
   limited forever. At release: the Founder's Cue (1,499 R$, 50 copies) and the Beta Cue
   ($40,000, 1,000 copies, first 30 days) *(tune)*. All economy screens live under one menu.
-- **Ability gacha** (the old plan for ults; how ults are earned is open, section 9): spins cost Robux (packs of 1, 5, 10,
-  50) and there is one free spin per day. You keep every ability you roll; duplicates give spin
-  credit that only buys more spins.
+- **Ult spins** (designer, 2026-09-28, section 9): the spin screen gives ults; spins come from
+  play (starter, daily, rank-ups, streak day 7, playtime, codes), Robux packs and money, with
+  true odds, pity and Lucky Spins (ECONOMY.md 11.8). Ults are kept in 3 slots; a spin replaces
+  the selected slot's ult.
 - **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +50% rank XP, the VIP Cue, a [VIP]
   chat tag before the rank tag ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour)
   and a rainbow name over the head whose colours drift slowly (designer, 2026-09-28). Never
@@ -599,13 +622,15 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   no case inside.
 - **Other Robux products** at launch: money packs 49 to 4,999 R$, Money Party (a server-wide
   money boost) and Fast Open; later a Cue Pass, gifts, emotes and more. Never anything that
-  helps win, protects rank or changes odds. ECONOMY.md section 11.
+  protects rank or changes case odds; the one exception is ult spins and Lucky Spins (the
+  designer's choice, 2026-09-28: a luck boost for ult rolls, odds always shown, pity kept).
+  ECONOMY.md section 11.
 - **Items:** one catalog for cues and abilities (stable id, type, rarity, model, effect); the
   type field leaves room for table skins later. A cue is saved as a count per catalog id
   (2026-09-28, ECONOMY.md section 18: small saves, a duplicate is a count above 1); numbered
   Unique cues keep their copy number (#412). Abilities are owned flags. **Case cues and
   Unique cues can be traded; Exclusive cues never (VIP, Starter, rank and season cues;
-  designer, 2026-09-28). Abilities are account-bound. Money is never traded.**
+  designer, 2026-09-28). Ults are account-bound (never traded). Money is never traded.**
   Trading is in the first release (designer, 2026-09-26; it was planned for after).
 - **Index** (designer, 2026-09-26): a collection screen of the game's cues (what it shows:
   the 2026-09-28 line below).
@@ -780,6 +805,5 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Age-rating and DevEx rate verification (section 2).
 - The rest of the ult list, its rules and how ults are earned (section 9).
 - Pro lobby look (section 10).
-- Whether a table can turn ults off (sections 6 and 9).
 - A pro-lobby teaser door at release (section 10).
 - The bots' details (section 11).
