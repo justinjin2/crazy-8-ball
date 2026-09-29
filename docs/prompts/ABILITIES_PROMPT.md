@@ -778,7 +778,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   shared value harness (5.3, with the careful and careless shooters) and `ult_model.py`
   reading measured worths, the skill rule's shared pieces (5.7: `OpponentFactor`, per-owner
   caps, the reach preview ring), `/slowmo` and `/abilitysetup`; tests; ARCHITECTURE updated.
-- [ ] 2. The Blender pipeline pilot (one model through Blender, upload, runtime load, textures
+- [x] 2. The Blender pipeline pilot (one model through Blender, upload, runtime load, textures
   checked, STUDIO_NOTES updated), then **all 13 icons** (6.3), uploaded and wired into the
   cutscene, slot cards, current ability, odds rows, armed and opponent pills.
 - [ ] 3. Magnet rework (7.1), look check done.
@@ -894,3 +894,15 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   abilities that use it. Harness baseline: Magnet +0.58 balls per use at skill 2 (careless),
   vs its Common target 0.33: the rework (step 3) retunes it. The harness counts only the
   ability's shot, so Rewind and Time Stop need a whole-turn measure (step 16 decides).
+- **Step 2 done (2026-09-29).** The pilot (Magnet's field meshes; glb textures arrive as
+  TextureID, faces need recalculating: STUDIO_NOTES) and the 13 icons by script
+  (`tools/blender/abilities/icons.py`: one rig, framed by their on-screen extent so each
+  fills the frame alike, glows clamped inside it, ink outline, rarity rim), uploaded (ids in
+  `Config.Ults.Assets.Icons`, a test checks all 13) and wired by an agent into the cutscene
+  (stamp 1.3x -> 1x with a rarity glow), slot cards, CURRENT ABILITY, odds rows, the armed and
+  opponent pills, the top bar's opponent badge and the Legendary/Mythic banner. Studio (PC):
+  the tiger in the held cutscene (`UltCutscenePreview` attribute "<id>@<seconds>", Studio
+  only), Magnet's slot card, current ability, odds rows and armed pill all show. Phone and
+  gamepad framing of these spots: in the playthrough (step 17). (assumption) the opponent's
+  equipped ability shows on their top-bar badge before they use it, as the brief lists it; the
+  designer may prefer it hidden.

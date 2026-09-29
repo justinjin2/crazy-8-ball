@@ -1884,3 +1884,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-28: The cutscene is half as long, 0.8 s (was 1.6 s; every step of its timeline
   halved), and the ability's own effect arms 0.1 s after it (was 1.0 s): the designer found
   the wait from pressing to seeing the effect too long. The shot clock pause is now 0.9 s.
+- 2026-09-29 (assumption): the opponent's equipped ability icon shows on their top-bar badge before they use it (the brief lists the opponent's ready icon); easy to hide if the designer prefers.
