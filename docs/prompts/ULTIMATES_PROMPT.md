@@ -737,3 +737,14 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - **NEW RANK! dim (designer's request, 2026-09-28, be90ab3).** Uses the popup's own backdrop
   inside PoolHud: black at 0.5, two screens plus 400 px, so it covers the top bar and a notch.
   Checked in Studio: 3458x1800 on a 1529x758 screen.
+- **Step 12, match half (2026-09-28).** In Studio vs the QA opponent (Classic, x1.3):
+  - The opponent potted four of its own balls with real shots: my bar went 20, 49, 87, 100
+    (+8 plus 7 per ball behind, x1.3, clamped).
+  - On my turn the stored gains played out ("+100", READY 100%, PRESS [G]); G started the
+    cutscene, then the armed pill.
+  - PC policy: with its bar full it held while level with an easy shot, and activated once 3
+    behind. Its cutscene shows the ink silhouette, and I see "Opponent's ult: MAGNET".
+  - Solo: the Practice ult button; G armed Magnet for free (`practice = true`, no bar).
+  - Console clean.
+  Still to do: the spin screen end to end (its agent is still building it), and the global
+  queue pools (covered by queue_core, matchmaker and ults_choice tests).
