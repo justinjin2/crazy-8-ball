@@ -1,5 +1,40 @@
 # Status
 
+**2026-09-28 (branch `ultimates`, overnight): Ultimates, with Magnet and the spin screen.**
+Report: `docs/prompts/ULTIMATES_REPORT.md`.
+
+- **Built:**
+  - The ult bar: fills from your own balls, NICE SHOT, the opponent's balls (more the further
+    behind you are) and turn ends. It shows on your turn; press G, tap it or gamepad X.
+  - The 1.6 s manga cutscene for everyone at the table, then a 1 s arming wait (clock
+    paused). Two ults a match at most.
+  - **Magnet**, the first real ult: it pulls your near misses into the pocket.
+  - The solo Practice ult; the PC policy for future bots.
+  - The global queue's Ults On / Off pools with the 30 s fallback; NO ULTS pills.
+  - The spin screen (Ults tile): 3 slots, locks, true odds, pity at 100, Lucky Spins
+    (never Common), money and Robux buys, the ULTS code, the daily free spin, Auto Spin with
+    Fast Open, the avatar with a rarity aura.
+  - Spins on every reward screen; the other 12 ults as placeholders; `/ulthelp`; NEW RANK!
+    now dims the screen.
+- **Verified:**
+  - Lint clean, 729 Lune tests pass.
+  - `tools/ult_model.py`: both players use an ult in 85-95% of matches; missing on purpose
+    loses.
+  - Magnet's harness: +0.41 ball per use, against the Common target of 0.30. That call is
+    the designer's.
+  - In Studio: the full match loop vs the QA opponent (bar 20/49/87/100 from four opponent
+    balls, G, cutscene, Magnet dropping a 2 degree miss), the PC policy, solo practice, every
+    spin-screen path, the queue pools, phone and tablet sizes. Console clean.
+  - A fresh security audit: no critical or high issues; 3 medium and 5 of 6 low fixed.
+- **Needs a check by hand:**
+  - A real phone (tap the bar, the spin screen) and a real controller (X to activate, X
+    opens Ults, B closes).
+  - Two real players (the cutscene on both screens).
+  - The Creator Hub ids for Spin1/5/10/50, Lucky1/3, UltSlot2/3.
+  - `Config.Ults.ScreenLive = true` when more ults exist; a place save and publish.
+
+---
+
 **2026-09-28 (branch `economy`): the designer's second round of economy changes.**
 
 - **Built:** the Index rows' "Collector" titles are gone (rows pay money up to Epic, nothing

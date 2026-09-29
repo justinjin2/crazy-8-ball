@@ -597,7 +597,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   abuse) plus a branch-wide bug review of `git diff economy...ultimates`; findings fixed.
 - [x] 14. Polish: the bar's feel, the cutscene's timing, Magnet's pull feel, the spin
   animation, phone sizes.
-- [ ] 15. Docs: GDD section 9 (the rules of section 4 moved to Decided, the 13 ults, the spin
+- [x] 15. Docs: GDD section 9 (the rules of section 4 moved to Decided, the 13 ults, the spin
   screen), section 6 (ults on at public tables and in the queue, the queue's No ults choice), section 12; ECONOMY.md (11.7
   rewritten, spins, prices, odds, pity, earn sources, the supply model if it touches money);
   ROADMAP (3.1 and 3.2 ticked where true, 3.3 onward listing the other 12); UI_STYLE (the bar,
