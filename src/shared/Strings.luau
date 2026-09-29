@@ -431,7 +431,7 @@ return {
 		SetupNotes = {
 			Magnet = "hit the 1 full: it runs about 1.5 ball widths wide of the top-right corner and the pull brings it in. The 9 by the bottom-right corner feels half the pull.",
 			EaglesEye = "the 9 and 10 block the 1's straight pots: aim the 1 up into the top rail and follow the gold path of the bank.",
-			SuperBounce = "open table: drive the cue ball firmly into a rail and count the bounces.",
+			SuperBounce = "shoot straight up at the 1: it just misses the top-left corner, catches the bounce and boings off the jaw into it, while the cue ball keeps bouncing.",
 			Ghost = "shoot straight through the 9 and 10: the cue ball passes them and pots the 1 in the top-right corner.",
 			HeatSeeker = "pick the 1 (walled in by the 9 and 10), then shoot any way: the cue ball curves round to it.",
 			Rewind = "a thin cut of the 1 into the top-right corner from the bottom rail: miss it and the table rewinds.",
@@ -927,7 +927,7 @@ return {
 		Descriptions = {
 			Magnet = "Your next shot's balls are pulled into pockets they nearly miss.",
 			EaglesEye = "See the full path of your shot, every bounce included.",
-			SuperBounce = "The cue ball turns rainbow and keeps bouncing off every rail.",
+			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
 			Ghost = "Your cue ball phases through every ball that isn't yours.",
 			HeatSeeker = "Tap one of your balls: the cue ball curves to hit it.",
 			Rewind = "Miss, and the table rewinds for one more 10 s shot.",

@@ -2402,6 +2402,22 @@ Config.Ults.SuperBounce = {
 	SlidingFriction = 0.005, -- normal 0.20
 	RollingFriction = 0.0004, -- normal 0.010
 	Seconds = 8, -- the cap: shot seconds with the material (tune)
+	-- The first ball of yours the cue ball hits catches the bounce (never the 8; the designer,
+	-- 2026-09-29, after the cue ball alone measured about +0.05 balls a use): this material
+	-- from the hit for Seconds, and a cushion hit within JawReachInches of a pocket's rim
+	-- boings it into that pocket (Effects/SuperBounce). Tuned with the harness (2026-09-29,
+	-- skill 2, net balls a use): the material alone added +0.03 to +0.10 even at 30 s (a ball
+	-- bouncing at random almost never finds a pocket); jaws 2/4/6/8 in +0.10/+0.20/+0.26/+0.28
+	-- with the springier cloth; these cloth losses +0.34 to +0.39. (tune)
+	Caught = {
+		RailRestitution = 1.0, -- normal 0.85
+		RailFriction = 0.03, -- normal 0.2
+		BallRestitution = nil :: number?,
+		SlidingFriction = 0.04, -- normal 0.20
+		RollingFriction = 0.0017, -- normal 0.010
+		Seconds = 8,
+		JawReachInches = 6 :: number?,
+	},
 }
 
 -- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball that
@@ -2591,12 +2607,13 @@ Config.Ults.Setups = {
 			[15] = false,
 		},
 	},
-	-- Open cloth: room to bounce.
+	-- The 1 straight below the top-left corner's jaw: driven up, it misses the corner and the
+	-- caught bounce boings it off the jaw into it. Open cloth elsewhere: room to bounce.
 	SuperBounce = {
-		Cue = { -25, 0 },
+		Cue = { -47.3, -1.1 },
 		Groups = "open",
 		Spots = {
-			[1] = { 30, 10 },
+			[1] = { -47.3, 11.9 },
 			[2] = { 35, -12 },
 			[3] = false,
 			[4] = false,
@@ -6881,6 +6898,7 @@ Config.UI.SuperBounceFx = {
 	PitchMax = 1.6,
 	BoingGapSeconds = 0.06,
 	BoingHoldSeconds = 2,
+	JawPitch = 0.3, -- the caught ball's jaw boing, this much higher (a jaw sends it in)
 	FreshSeconds = 0.3, -- a hit the replay only caught up with (a late join) gets nothing
 	-- The ribbon: a camera-facing Trail across the cue ball (TrailBallWidths of it), fading over
 	-- TrailSeconds and narrowing to TrailTailWidth, while the cue ball moves faster than

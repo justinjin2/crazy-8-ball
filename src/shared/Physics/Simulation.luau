@@ -77,6 +77,17 @@ export type Overrides = {
 	Params: { [string]: number }?,
 }
 
+-- A ball's own material from an effect (State.fx.material), until `Until` seconds of shot
+-- time; each nil keeps the normal value.
+export type BallMaterial = {
+	RailRestitution: number?,
+	RailFriction: number?,
+	BallRestitution: number?,
+	SlidingFriction: number?,
+	RollingFriction: number?,
+	Until: number,
+}
+
 export type State = {
 	geometry: Geometry,
 	balls: { Ball },
@@ -84,7 +95,9 @@ export type State = {
 	overrides: Overrides?, -- copied server-authorized material for this shot only
 	-- The armed effect's own per-shot scratch (Ults/Effects): made fresh at every strike and
 	-- replay start, never part of `overrides` (the replay copies those), stepped identically
-	-- everywhere. `ghost` in it (ball id -> true) takes a ball out of every contact.
+	-- everywhere. `ghost` in it (ball id -> true) takes a ball out of every contact;
+	-- `material` in it (ball id -> BallMaterial) gives an object ball its own material for a
+	-- while (Super Bounce's caught ball), as the Cue* overrides do the cue ball.
 	fx: any?,
 	-- Set by an effect's `halt` (Time Stop's freeze): this part of the shot ends at the end of
 	-- the current step, with every ball keeping its motion. Cleared by whoever continues it.
@@ -1161,6 +1174,7 @@ local function advance(
 			(phase :: any)[id] = true
 		end
 	end
+	local materials: { [number]: BallMaterial }? = if state.fx then state.fx.material else nil
 	-- Soft contact never takes a ghost ball in (it is out of every contact).
 	local clusterSkip = skip
 	if ghost then
@@ -1189,22 +1203,32 @@ local function advance(
 		local hit = findEarliestHit(state, window, skip, anyAir, ghost, phase)
 		local advanceBy = if hit then hit.t else window
 
-		-- The cue ball's own cloth frictions, while its material lasts.
+		-- The cue ball's own cloth frictions, while its material lasts; an effect's ball
+		-- material (State.fx.material) likewise.
 		local cueSliding, cueRolling = nil, nil
 		if overrides and state.time < (overrides.CueUntil or 0) then
 			cueSliding, cueRolling = overrides.CueSlidingFriction, overrides.CueRollingFriction
 		end
 		for _, b in state.balls do
 			if skip == nil or not skip[b] then
-				if b.id == 0 and (cueSliding or cueRolling) then
+				local sliding, rolling = nil, nil
+				if b.id == 0 then
+					sliding, rolling = cueSliding, cueRolling
+				elseif materials then
+					local mat = materials[b.id]
+					if mat and state.time < mat.Until then
+						sliding, rolling = mat.SlidingFriction, mat.RollingFriction
+					end
+				end
+				if sliding or rolling then
 					integrateBall(
 						b,
 						advanceBy,
 						state.geometry,
 						events,
 						state.time + advanceBy,
-						cueSliding,
-						cueRolling
+						sliding,
+						rolling
 					)
 				else
 					integrateBall(b, advanceBy, state.geometry, events, state.time + advanceBy)
@@ -1307,6 +1331,14 @@ local function advance(
 					local e = if cueMat and (hit.a.id == 0 or b.id == 0)
 						then (overrides :: Overrides).CueBallRestitution
 						else nil
+					if e == nil and materials then
+						local ma, mb = materials[hit.a.id], materials[b.id]
+						if ma and state.time < ma.Until and ma.BallRestitution then
+							e = ma.BallRestitution
+						elseif mb and state.time < mb.Until and mb.BallRestitution then
+							e = mb.BallRestitution
+						end
+					end
 					speed = resolveBalls(hit.a, b, e)
 					eventType = "ballHit"
 					other = b.id
@@ -1323,6 +1355,12 @@ local function advance(
 						local m = overrides :: Overrides
 						e = if m.CueRailRestitution ~= nil then m.CueRailRestitution else e
 						mu = if m.CueRailFriction ~= nil then m.CueRailFriction else mu
+					elseif materials then
+						local mat = materials[hit.a.id]
+						if mat and state.time < mat.Until then
+							e = if mat.RailRestitution ~= nil then mat.RailRestitution else e
+							mu = if mat.RailFriction ~= nil then mat.RailFriction else mu
+						end
 					end
 					speed = resolveRail(hit.a, hit.nx, hit.ny, e, mu)
 					eventType = "railHit"

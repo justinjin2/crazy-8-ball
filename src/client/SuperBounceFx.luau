@@ -12,7 +12,11 @@
 --     stays on, a rainbow ribbon trails the cue ball, and at every cushion and ball it hits a
 --     star-burst ring pops and fades at the contact, the shell squashes along the hit and
 --     springs back, and a boing plays there, pitched up a little more with every bounce.
---   * After it: the shell and the trail fade out.
+--   * The caught ball (the first of the shooter's balls the cue ball hits: an `ult` event
+--     "caught"): a ring and a boing as it catches the bounce, its own rainbow ribbon while its
+--     bouncy material lasts, a ring and a boing at each of its cushion and ball hits, and a big
+--     boing (pitched up JawPitch) when a pocket's jaw sends it in (an `ult` event "jaw").
+--   * After it: the shell and the trails fade out.
 -- Everyone at the table sees and hears it. Each table's parts hang off its AbilityFx anchor and
 -- go with it (kit.onRelease) or with clear(). Without the model (not loaded yet, or failed) the
 -- cue ball keeps a rainbow trail and the rings are skipped: the sounds still play.
@@ -60,12 +64,16 @@ end
 
 type Ring = { part: MeshPart, started: number, at: CFrame, size: Vector3, weight: number }
 
+-- A camera-facing rainbow Trail across a ball (two attachments under the anchor).
+type Ribbon = { trail: Trail, top: Attachment, bottom: Attachment }
+
 type TableFx = {
 	anchor: BasePart,
 	shell: MeshPart?,
-	trail: Trail,
-	top: Attachment,
-	bottom: Attachment,
+	cueRibbon: Ribbon,
+	caughtRibbon: Ribbon,
+	caught: number?, -- this shot's caught ball
+	caughtUntil: number, -- shot time its bouncy material ends
 	rings: { Ring },
 	spare: { MeshPart },
 	look: number, -- the shell's opacity, 0..1
@@ -151,13 +159,11 @@ local function rainbow(): ColorSequence
 	return ColorSequence.new(keys)
 end
 
-local function create(self: SuperBounceFx, id: number): TableFx
-	local kit = self.kit
-	local anchor = kit.anchor(id)
-	local top = kit.attachment(id, "BounceTrailTop")
-	local bottom = kit.attachment(id, "BounceTrailBottom")
+local function newRibbon(kit: any, id: number, anchor: BasePart, name: string): Ribbon
+	local top = kit.attachment(id, name .. "Top")
+	local bottom = kit.attachment(id, name .. "Bottom")
 	local trail = Instance.new("Trail")
-	trail.Name = "BounceTrail"
+	trail.Name = name
 	trail.Attachment0 = top
 	trail.Attachment1 = bottom
 	trail.Color = rainbow()
@@ -170,12 +176,35 @@ local function create(self: SuperBounceFx, id: number): TableFx
 	trail.WidthScale = NumberSequence.new(1, F.TrailTailWidth)
 	trail.Enabled = false
 	trail.Parent = anchor
+	return { trail = trail, top = top, bottom = bottom }
+end
+
+-- Put a ribbon across a drawn ball, trailing only when `on`.
+local function placeRibbon(ribbon: Ribbon, part: BasePart?, on: boolean)
+	if part and on then
+		local h = part.Size.Y * F.TrailBallWidths * 0.5
+		ribbon.top.WorldPosition = part.Position + Vector3.yAxis * h
+		ribbon.bottom.WorldPosition = part.Position - Vector3.yAxis * h
+	end
+	ribbon.trail.Enabled = on and part ~= nil
+end
+
+local function dropRibbon(ribbon: Ribbon)
+	ribbon.trail:Destroy()
+	ribbon.top:Destroy()
+	ribbon.bottom:Destroy()
+end
+
+local function create(self: SuperBounceFx, id: number): TableFx
+	local kit = self.kit
+	local anchor = kit.anchor(id)
 	local fx: TableFx = {
 		anchor = anchor,
 		shell = nil,
-		trail = trail,
-		top = top,
-		bottom = bottom,
+		cueRibbon = newRibbon(kit, id, anchor, "BounceTrail"),
+		caughtRibbon = newRibbon(kit, id, anchor, "CaughtTrail"),
+		caught = nil,
+		caughtUntil = 0,
 		rings = {},
 		spare = {},
 		look = 0,
@@ -235,8 +264,16 @@ local function stepRings(fx: TableFx, t: number)
 	end
 end
 
--- A boing at `at`, pitched up with the shot's bounce count; `weight` scales its volume.
-local function boing(self: SuperBounceFx, id: number, fx: TableFx, at: Vector3, weight: number)
+-- A boing at `at`, pitched up with the shot's bounce count (and `extraPitch`); `weight`
+-- scales its volume.
+local function boing(
+	self: SuperBounceFx,
+	id: number,
+	fx: TableFx,
+	at: Vector3,
+	weight: number,
+	extraPitch: number?
+)
 	local t = os.clock()
 	if t - fx.lastBoing < F.BoingGapSeconds then
 		return
@@ -244,7 +281,7 @@ local function boing(self: SuperBounceFx, id: number, fx: TableFx, at: Vector3, 
 	fx.lastBoing = t
 	local kit = self.kit
 	local holder = kit.attachment(id, "Boing", at)
-	local pitch = math.min(1 + F.PitchStep * fx.bounces, F.PitchMax)
+	local pitch = math.min(1 + F.PitchStep * fx.bounces, F.PitchMax) + (extraPitch or 0)
 	kit.sound.library(A.BounceHit, holder, { pitch = pitch, volume = weight })
 	-- A pinch of rainbow sparkles thrown out of the hit.
 	local sparks = kit.particles(holder, {
@@ -276,53 +313,83 @@ local function railNormal(m: any, x: number, y: number): (number, number)
 	return 0, if y > 0 then -1 else 1
 end
 
--- A cushion or ball hit by the cue ball on its bouncy stretch: the ring, the squash, the boing.
+-- The shot's events: the cue ball's and the caught ball's cushion and ball hits while they
+-- are bouncy (the ring, the boing, and for the cue ball the squash), the catch and the jaws.
 local function onHit(self: SuperBounceFx, id: number, m: any, ev: any)
-	if ev.type ~= "railHit" and ev.type ~= "ballHit" then
-		return
-	end
-	if ev.ball ~= 0 and ev.other ~= 0 then
-		return
-	end
-	local o = m.state.overrides
-	if not self.kit.isShotOf(m, EFFECT) or ev.t >= ((o and o.CueUntil) or 0) then
-		return
-	end
-	if m.state.time - ev.t > F.FreshSeconds then
-		return -- a late join's catch-up: nothing
+	if not self.kit.isShotOf(m, EFFECT) or m.state.time - ev.t > F.FreshSeconds then
+		return -- another shot, or a late join's catch-up: nothing
 	end
 	local fx = self.tables[id]
-	local cue = m:findCueBall()
-	if fx == nil or cue == nil or m.renderer == nil then
+	if fx == nil or m.renderer == nil then
 		return
 	end
 	local kit = self.kit
 	local R = Config.Balls.RenderRadiusInches
+	if ev.type == "ult" and (ev.kind == "caught" or ev.kind == "jaw") then
+		local b = kit.ballOf(m, ev.ball)
+		if b == nil then
+			return
+		end
+		if ev.kind == "caught" then
+			fx.caught = ev.ball
+			fx.caughtUntil = ev.t + Config.Ults.SuperBounce.Caught.Seconds
+			local at = kit.ballWorld(m, b)
+			popRing(self, fx, at, Vector3.yAxis, 1)
+			boing(self, id, fx, at, 1)
+		else
+			local at = kit.tableWorld(m, ev.x or b.x, ev.y or b.y, R)
+			popRing(self, fx, at, Vector3.yAxis, 1)
+			fx.lastBoing = -math.huge -- the jaw's boing is never skipped
+			boing(self, id, fx, at, 1, F.JawPitch)
+		end
+		return
+	end
+	if ev.type ~= "railHit" and ev.type ~= "ballHit" then
+		return
+	end
+	-- Whose bounce: the cue ball's (until CueUntil) or the caught ball's (until caughtUntil).
+	local o = m.state.overrides
+	local who: number? = nil
+	if (ev.ball == 0 or ev.other == 0) and ev.t < ((o and o.CueUntil) or 0) then
+		who = 0
+	elseif
+		fx.caught
+		and (ev.ball == fx.caught or ev.other == fx.caught)
+		and ev.t < fx.caughtUntil
+	then
+		who = fx.caught
+	end
+	local me = if who then kit.ballOf(m, who) else nil
+	if who == nil or me == nil then
+		return
+	end
 	local weight = math.clamp(ev.speed / F.FullSpeed, F.MinWeight, 1)
 	local nx, ny, cx, cy
 	if ev.type == "railHit" then
-		cx, cy = ev.x or cue.x, ev.y or cue.y
+		cx, cy = ev.x or me.x, ev.y or me.y
 		nx, ny = railNormal(m, cx, cy)
 		cx, cy = cx - nx * R, cy - ny * R -- the cushion's face
 	else
-		local other = kit.ballOf(m, if ev.ball == 0 then ev.other else ev.ball)
+		local other = kit.ballOf(m, if ev.ball == who then ev.other else ev.ball)
 		if other == nil then
 			return
 		end
-		local dx, dy = other.x - cue.x, other.y - cue.y
+		local dx, dy = other.x - me.x, other.y - me.y
 		local len = math.sqrt(dx * dx + dy * dy)
 		if len < 1e-6 then
 			return
 		end
 		nx, ny = -dx / len, -dy / len
-		cx, cy = cue.x - nx * R, cue.y - ny * R -- between the two
+		cx, cy = me.x - nx * R, me.y - ny * R -- between the two
 	end
 	local at = kit.tableWorld(m, cx, cy, R)
 	local ahead = kit.tableWorld(m, cx + nx, cy + ny, R)
 	local normal = (ahead - at).Unit
 	popRing(self, fx, at, normal:Lerp(Vector3.yAxis, F.RingTiltShare).Unit, weight)
-	fx.axis = normal
-	fx.squashAt = os.clock()
+	if who == 0 then
+		fx.axis = normal
+		fx.squashAt = os.clock()
+	end
 	boing(self, id, fx, at, weight)
 end
 
@@ -380,9 +447,8 @@ local function destroy(self: SuperBounceFx, id: number)
 	for _, part in fx.spare do
 		part:Destroy()
 	end
-	fx.trail:Destroy()
-	fx.top:Destroy()
-	fx.bottom:Destroy()
+	dropRibbon(fx.cueRibbon)
+	dropRibbon(fx.caughtRibbon)
 end
 
 --- Start the look for the tables `hub` holds; `kit` is AbilityFx's.
@@ -488,27 +554,35 @@ function SuperBounceFx.update(self: SuperBounceFx, dt: number)
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
 			live.bounces = 0
+			live.caught = nil
+			live.caughtUntil = 0
 		end
 		local want = if wantArmed or bouncy then 1 else 0
 		live.look =
 			approach(live.look, want, dt, if want > 0 then F.FadeInSeconds else F.FadeOutSeconds)
 		placeShell(self, live, id, dt, t)
-		-- The ribbon: across the cue ball, facing the camera, only while it bounces and moves.
-		local part = kit.ballPart(id, 0)
-		local moving = cue ~= nil
-			and cue.vx * cue.vx + cue.vy * cue.vy > F.TrailMinSpeed * F.TrailMinSpeed
-		if part and bouncy then
-			local h = part.Size.Y * F.TrailBallWidths * 0.5
-			live.top.WorldPosition = part.Position + Vector3.yAxis * h
-			live.bottom.WorldPosition = part.Position - Vector3.yAxis * h
-		end
-		live.trail.Enabled = bouncy and moving and part ~= nil
+		-- The ribbons: across the cue ball and the caught ball, facing the camera, only while
+		-- each is bouncy and moving.
+		local min2 = F.TrailMinSpeed * F.TrailMinSpeed
+		local moving = cue ~= nil and cue.vx * cue.vx + cue.vy * cue.vy > min2
+		placeRibbon(live.cueRibbon, kit.ballPart(id, 0), bouncy and moving)
+		local caught = if shot and live.caught then kit.ballOf(m, live.caught) else nil
+		local caughtOn = caught ~= nil
+			and not caught.pocketed
+			and m.state.time < live.caughtUntil
+			and caught.vx * caught.vx + caught.vy * caught.vy > min2
+		placeRibbon(
+			live.caughtRibbon,
+			if caught then kit.ballPart(id, caught.id) else nil,
+			caughtOn
+		)
 		stepRings(live, t)
 		if
 			want == 0
 			and live.look <= 0.001
 			and #live.rings == 0
-			and not live.trail.Enabled
+			and not live.cueRibbon.trail.Enabled
+			and not live.caughtRibbon.trail.Enabled
 			and t - live.lastBoing > F.TrailSeconds
 		then
 			destroy(self, id)

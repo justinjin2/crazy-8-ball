@@ -783,7 +783,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   cutscene, slot cards, current ability, odds rows, armed and opponent pills.
 - [x] 3. Magnet rework (7.1), look check done.
 - [x] 4. Eagle's Eye (7.2), look check done.
-- [ ] 5. Super Bounce (7.3), look check done.
+- [x] 5. Super Bounce (7.3), look check done.
 - [ ] 6. Ghost (7.4), look check done.
 - [ ] 7. Heat Seeker (7.5), look check done.
 - [ ] 8. Rewind (7.6), look check done.
@@ -939,3 +939,21 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   Worth (careful/careless): skill 1 +0.14/+0.21, skill 2 +0.38/+0.43, skill 3 +0.48/+0.51 vs
   0.33: on the Common row at skill 2, so MaxRails stays off. Phone smoothness (the frame
   budget) is checked in the playthrough (step 17).
+- **Step 5 done (2026-09-29).** Physics: the cue ball's own material for 8 s (Cue* overrides;
+  a medium shot alone touches about 10 rails; no tunnelling at the new speeds). Measured alone
+  it was worth +0.03/+0.06 at skill 2 (random knocks help both sides alike, 8-12% scratches),
+  so I asked; the designer chose "the first ball of yours it hits catches the bounce". A
+  generic `state.fx.material` (per-ball material, ARCHITECTURE) carries it; the caught ball
+  alone added only +0.03 to +0.10 even bouncing for 30 s (a randomly bouncing ball almost
+  never finds a pocket here), so a cushion hit within `Caught.JawReachInches` (6) of a pocket
+  boings it in (assumption, DECISIONS). Tuned by sweeps (jaws 2/4/6/8/10, the cloth losses):
+  final +0.27, +0.37/+0.39, +0.28/+0.32 at skills 1/2/3 vs 0.33. Tests: the catch, never the
+  8 or the opponent's, the jaw, the replay bit-exact with the settle. The look (SuperBounceFx
+  on the uploaded RainbowShell and BoingRing): the shell turning on the cue ball (pop-on with a
+  boing), a rainbow trail, and at each bounce a star ring, rainbow sparkles, a squash and a
+  boing pitched up per bounce; the caught ball gets its own trail and rings, and a higher boing
+  at the jaw. Studio passes: 1, rings were specks at 1.6 ball widths and edge-on to the replay
+  camera (2.6, tilted up); 2, the trail's glow washed the rainbow to pale yellow (no
+  LightEmission). The setup now shows the jaw (the 1 below the top-left corner). Sounds are
+  library boings (checked loading, measured). Phone and gamepad: no input of its own; framing
+  in the playthrough.

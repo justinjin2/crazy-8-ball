@@ -1893,4 +1893,11 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-29 (assumption): Eagle's Eye's harness aim aid is 0.15 degrees (an armed shooter's aim
   error shrinks to at most that); it lands Eagle's Eye at +0.38 to +0.43 balls per use at skill
   2, on the Common row, so the path is drawn in full (no MaxRails).
+- 2026-09-29: Super Bounce: the first ball of yours the cue ball hits catches the bounce too
+  (never the 8 or the opponent's): springier cushions and lower cloth losses for 8 s, and a
+  cushion hit within 6 in of a pocket's rim boings it into that pocket. The designer chose it
+  after the cue ball alone measured about +0.05 balls a use (the random knocks help both sides
+  alike). (assumption) the jaw boing: a ball bouncing at random for even 30 s almost never
+  found a pocket in our physics, so without it the catch added only +0.03 to +0.10. Measured
+  +0.27 / +0.37 to +0.39 / +0.28 to +0.32 at skills 1 / 2 / 3 against the Common 0.33.
 
