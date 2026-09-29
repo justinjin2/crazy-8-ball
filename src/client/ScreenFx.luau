@@ -77,6 +77,11 @@ export type OverlaySpec = {
 	square: number?,
 	pulseHz: number?,
 	pulseShare: number?,
+	-- The square grows (or shrinks) from `growFrom` to `growTo` times its size over
+	-- `growSeconds`, easing out, then holds there (Time Stop's warp ring).
+	growFrom: number?,
+	growTo: number?,
+	growSeconds: number?,
 }
 
 export type Handle = {
@@ -495,7 +500,13 @@ function ScreenFx.overlay(tableId: number, imageId: string, spec: OverlaySpec?):
 		if square then
 			sx, sy = 0.5, 0.5
 			if pulse then
-				pulse.Scale = 1 + (o.pulseShare or 0) * math.sin(t * (o.pulseHz or 0) * 2 * math.pi)
+				local size = 1 + (o.pulseShare or 0) * math.sin(t * (o.pulseHz or 0) * 2 * math.pi)
+				local from, to = o.growFrom, o.growTo
+				if from and to then
+					local u = math.clamp(t / math.max(o.growSeconds or 0, 1e-3), 0, 1)
+					size *= from + (to - from) * (1 - (1 - u) * (1 - u))
+				end
+				pulse.Scale = size
 			end
 		end
 		image.Position = UDim2.fromScale(sx + jump.X, sy + jump.Y)

@@ -200,6 +200,8 @@ return {
 		MoveClock = "MOVE %ds", -- under the big clock: seconds left to move the cue ball
 		-- Rewind's redo turn, under the big clock: its shot clock in seconds.
 		SecondChance = "SECOND CHANCE: %ds",
+		-- Time Stop's stopped time, the shooter's instruction line.
+		TimeStopHint = "TIME STOPPED · STRIKE THE CUE BALL AGAIN",
 	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
 	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).

@@ -18,6 +18,7 @@ local Simulation = require(Shared.Physics.Simulation)
 local Aim = require(Shared.Physics.Aim)
 local Judge = require(Shared.Rules.ShotJudge)
 local Engine = require(Shared.Rules.MatchEngine)
+local TimeStop = require(Shared.Ults.Effects.TimeStop)
 local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
@@ -216,7 +217,27 @@ local function callPending(): boolean
 end
 -- The shot is this player's to take and not taken yet: their turn in an aiming phase, no shot
 -- sent, the balls still. (A modal or a pocket still to call can hold it up: canShoot.)
+-- Time Stop (7.7): the shooter's second strike in stopped time. Their replay has reached the
+-- freeze, it is still frozen, and no strike has gone from them yet: they aim and shoot the cue
+-- ball from where it stopped, any ball a fair target.
+local function frozenTurn(): boolean
+	if not shooter() or awaitingAt or not match or snapshot.phase ~= "Frozen" then
+		return false
+	end
+	if not match:isHalted() or not TimeStop.isFrozen(match.state) then
+		return false
+	end
+	local cue = match:findCueBall()
+	if cue == nil or cue.pocketed then
+		return false -- frozen dropping into a pocket: the server takes no strike ("NoCueBall")
+	end
+	local shot = match.shot
+	return not (shot and shot.parts and shot.parts.strike)
+end
 local function aimTurn(): boolean
+	if frozenTurn() then
+		return true
+	end
 	if not shooter() or awaitingAt or not match or match:isBusy() then
 		return false
 	end
@@ -278,6 +299,7 @@ local function refreshAim()
 	-- group, or the 8 once it is theirs.
 	local invalid = trace.objectId ~= nil
 		and not snapshot.breakShot
+		and not frozenTurn()
 		and not Judge.legalTarget(
 			match.state.balls,
 			snapshot.groups[snapshot.activeTeam],
@@ -1045,7 +1067,8 @@ local function dropStrayMatchSelection()
 	GuiService.SelectedObject = nil
 end
 RunService.RenderStepped:Connect(function(dt)
-	local busy = hub:update(dt)
+	-- A shot halted for Time Stop's second strike aims like a turn, not like a replay.
+	local busy = hub:update(dt) and not frozenTurn()
 	-- The reach preview rides on the guideline's first contact, an armed look's aim hook on the
 	-- shot it traces (last frame's; nil unless the player is aiming).
 	abilityFx:update(dt, if guideline then guideline:contact() else nil, aimShot)
@@ -1329,6 +1352,7 @@ RunService.RenderStepped:Connect(function(dt)
 	targets:update(dt, workspace.CurrentCamera)
 	ultPick:update(dt, workspace.CurrentCamera)
 	hud:setPlacing(targets:canPlace(), targets:isBlocked())
+	hud:setFrozenAim(frozenTurn())
 	if guideline then
 		guideline:update(dt)
 	end
@@ -1343,8 +1367,9 @@ RunService.RenderStepped:Connect(function(dt)
 	-- A let-go goes at once, even where canShoot() has just turned false (a modal opening
 	-- mid-pull drops the power), or the watchers' cue would stay drawn back.
 	local aimPhase = shooter()
-		and awaitingAt == nil
-		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
+			and awaitingAt == nil
+			and (phase == "Aiming" or phase == "Intro" or phase == "Placement")
+		or frozenTurn()
 	local letGo = lastPull ~= nil and lastPull > 0 and pull == 0
 	if
 		seq

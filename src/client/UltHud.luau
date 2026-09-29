@@ -584,6 +584,10 @@ function UltHud.wantedMode(self: any, now: number): string
 	if not s or type(ults) ~= "table" or s.phase == "Result" then
 		return "none"
 	end
+	-- Time Stop's shot is still running (its ult spent at the resume): not "next shot".
+	if s.phase == "Frozen" then
+		return "none"
+	end
 	local armed = ults.armed
 	if type(armed) == "table" then
 		if armed.stage ~= "Armed" and UltHud.arming(s, now) then

@@ -787,7 +787,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 6. Ghost (7.4), look check done.
 - [x] 7. Heat Seeker (7.5), look check done.
 - [x] 8. Rewind (7.6), look check done.
-- [ ] 9. Time Stop (7.7), look check done.
+- [x] 9. Time Stop (7.7), look check done.
 - [ ] 10. Chain Lightning (7.8), look check done.
 - [ ] 11. Portals (7.9), look check done.
 - [ ] 12. Steel Ball (7.10), look check and art director review done.
@@ -1035,3 +1035,33 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   visible cost; one 728-triangle dial, at most 16 trails, six screen images). No leftovers
   after it (no streaks, dial, ghost, screen images or grade). Phone framing (the icon is a share
   of the screen height; the pill sits in the NO ULTS row) is checked in the playthrough.
+- **Step 9 done (2026-09-29).** The rule and the Frozen phase were the engine's (step 1); now
+  Built, with a test that a strike after the 5 s is refused (Expired) and a stale turn id too.
+  Worth (per shot; froze on 92-98% of uses): careful/careless +0.37/+0.28, +0.28/+0.28,
+  +0.17/+0.13 at skills 1/2/3 vs the Rare 1.0: the harness's second strike is a plain planner
+  shot from the frozen spot and it counts only the shot, flagged for step 16. Client: `Main`'s
+  frozen turn gives the shooter the normal aim, pull and spin on the frozen cue ball (the hint
+  pill TIME STOPPED · STRIKE THE CUE BALL AGAIN, no clock, no ability pill); the server's QA
+  shot and the economy wait for the whole shot's judgement. The look (TimeStopFx; Blender
+  `timestop.py`: the TimeBubble sphere, the ClockFace ring of 60 ticks, the ClockHand needle,
+  and two rendered images, the warp ring and the lens edge): armed, a violet ForceField bubble
+  rides the cue ball and swells a little at the first contact with a rising swell; on the
+  freeze, for everyone at the table, the bubble bursts out past the camera, a negative flash,
+  a shake, the warp ring grows from the middle past the edges, a deep boom, then the world goes
+  cold grey-violet with a glowing lens edge, the clock face lies on the cloth round the cue
+  ball with its hand sweeping once round the 5 s, a tick each second, and every moving ball
+  shows three fading afterimages; the second strike leaves a violet trail and a tick-tock; on
+  the resume the bubble collapses back into the cue ball with a second negative flash, a
+  whoosh, the grade snaps back and the tick-tock plays. Studio passes (the burst stretched to
+  3 s by a TEMP Config edit, reverted): 1, the armed bubble barely showed (opaque ForceField,
+  1.9 ball widths), the grade left the cloth plainly green, not cold violet (-0.92 saturation,
+  a violet tint), the clock hand turned about its middle (centred on its hub); 2, blown up
+  across the table the bubble's warp pattern turned to blocky purple bars (the bubble drops the
+  pattern past 4 ball widths, a clear ForceField lens), and the warp ring read soft (sharper
+  ramp, re-rendered). Critique left: the lens edge also tints the HUD; from inside, the big
+  bubble reads only as the lens edge, not the refracting sphere of the reference; the clock
+  face's ticks are thick at a low camera. The frozen strike was taken through the QA path (the
+  server resumed and resolved, no drift warning); the gamepad and touch aim in stopped time
+  need a hand check (step 17). Frame time: 66.7 ms a frame frozen vs 66.7 idle (Studio
+  unfocused, 15 fps). No leftovers after the resume (bubble, clock, ghosts, trail, screen
+  images, grade).

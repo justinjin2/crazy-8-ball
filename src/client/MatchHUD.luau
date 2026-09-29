@@ -992,6 +992,16 @@ end
 
 --- Whether the local shooter may move the cue ball now, and whether it could not follow the
 --- pointer. The instruction follows it.
+--- Whether the local shooter may strike the cue ball again in Time Stop's stopped time (Main's
+--- frozenTurn). The instruction line says so.
+function MatchHUD.setFrozenAim(self: any, frozen: boolean)
+	if frozen == (self.frozenAim == true) then
+		return
+	end
+	self.frozenAim = frozen
+	self:layout()
+end
+
 function MatchHUD.setPlacing(self: any, placing: boolean, blocked: boolean)
 	self.placingBlocked = placing and blocked
 	if placing == self.placing then
@@ -1341,6 +1351,7 @@ function MatchHUD.update(self: any, now: number)
 		and phase ~= "CoinFlip"
 		and phase ~= "Foul"
 		and phase ~= "Rewinding" -- Rewind's moment: its redo clock comes after
+		and phase ~= "Frozen" -- Time Stop: the clock face on the cloth counts the 5 s
 	-- With ball in hand the shot clock starts when moving time ends (MatchEngine): the move pill
 	-- counts the moving time and the big clock holds at the full shot clock until it runs out
 	-- (designer, 2026-09-27), so the time to move never reads as the time to shoot. Not on the
@@ -1442,14 +1453,15 @@ function MatchHUD.update(self: any, now: number)
 			end
 		end
 	end
-	local placementVisible = isShooter and self.placing
+	local placementVisible = isShooter and (self.placing or self.frozenAim == true)
 	if self.setup.Visible ~= placementVisible then
 		self.setup.Visible = placementVisible
 		self:layout()
 	end
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1
-	local hint = if self.placingBlocked
-		then Copy.PlacementBlocked
+	local hint = if self.frozenAim
+		then Copy.TimeStopHint
+		elseif self.placingBlocked then Copy.PlacementBlocked
 		elseif snapshot.breakShot then (if gamepad
 			then Copy.BreakPlacementGamepad
 			else Copy.BreakPlacement)
@@ -1459,7 +1471,9 @@ function MatchHUD.update(self: any, now: number)
 		self.setupLabel.Text = hint
 		self:fitSetup()
 	end
-	self.setupLabel.TextColor3 = if self.placingBlocked then tone("Red") else tone("White")
+	self.setupLabel.TextColor3 = if self.placingBlocked and not self.frozenAim
+		then tone("Red")
+		else tone("White")
 	self.invalid.Visible = self.invalidTarget
 		and isShooter
 		and (phase == "Aiming" or phase == "Intro" or phase == "Placement")

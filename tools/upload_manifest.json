@@ -40,43 +40,60 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/fringe.png": {
     "assetId": "79151185429591",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "73954710228943"
+    "imageId": "73954710228943",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/icon_flipbook.png": {
     "assetId": "71250904849806",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "79830999355189"
+    "imageId": "79830999355189",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/scanlines.png": {
     "assetId": "82791665115124",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "106680197039186"
+    "imageId": "106680197039186",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/static.png": {
     "assetId": "120393885666074",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "114309948120374"
+    "imageId": "114309948120374",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/tear.png": {
     "assetId": "78629616715158",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "77495663973716"
+    "imageId": "77495663973716",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Rewind/textures/tracking.png": {
     "assetId": "92718377745753",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "80127029771602"
+    "imageId": "80127029771602",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/SuperBounce/SuperBounce.glb": {
     "assetId": "75004032615944",
     "assetType": "Model",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/TimeStop/TimeStop.glb": {
+    "assetId": "113214769332073",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/TimeStop/textures/lens_edge.png": {
+    "assetId": "76685822924680",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "113700118006901"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/TimeStop/textures/warp_ring.png": {
+    "assetId": "126594807194835",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "113854329541350"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackFlash.png": {
     "assetId": "101433545702035",

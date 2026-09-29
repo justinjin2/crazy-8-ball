@@ -300,6 +300,20 @@ function tests.time_stop_without_a_strike_resumes_at_the_timeout()
 	end)
 end
 
+function tests.time_stop_refuses_a_strike_after_its_five_seconds()
+	built("TimeStop", function()
+		local m = midGame()
+		armNow(m, "TimeStop")
+		frozenShot(m)
+		local late, why = E.acceptShot(m, 11, payload(m, math.pi / 2, 0.3), m.deadline + 0.01)
+		expect(late == nil and why == "Expired", "the server holds the 5 s: " .. tostring(why))
+		local stale = payload(m, math.pi / 2, 0.3)
+		stale.turnId += 1
+		local forged = E.acceptShot(m, 11, stale, m.pending.frozen.freezeAt + 0.5)
+		expect(forged == nil, "a stale turn is refused")
+	end)
+end
+
 function tests.time_stop_with_no_contact_is_a_plain_shot()
 	built("TimeStop", function()
 		local m = midGame()

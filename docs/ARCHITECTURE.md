@@ -574,7 +574,11 @@ stops at a halt and continues with the server's second-strike parts; `setTimeSca
 `/slowmo` hook. A shot marked `rewind` is taped as it replays (every ball's position, spin and
 shown-or-not each frame); the Rewinding snapshot then flies the table back through the tape
 (`startRewind`, `stepRewind`, busy meanwhile) and lands on the server's pre-shot table. A
-client with no tape (it joined late) just takes the snapshot's table.
+client with no tape (it joined late) just takes the snapshot's table. In the Frozen phase
+`Main` gives the shooter a frozen turn (`frozenTurn`: the replay halted in stopped time, the
+cue ball on the table, no second strike yet): the normal aim, pull and spin controls, sent as
+an ordinary shot that the server takes as `strikeFrozen`. The server streams no aims in
+Frozen, so watchers see the struck cue ball but not the cue before it.
 
 **Looks** (client). `AbilityFx` is the registry (`Config.UI.AbilityFx.Looks`) and the kit
 handed to each look's `start(hub, parent, kit)`: a per-table anchor that lingers and releases,

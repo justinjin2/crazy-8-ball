@@ -1924,3 +1924,14 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the cue ball, so everyone sees where the table will come back to. The table flies back at 3x
   (slower shots) up to 1.7 s, so a long shot rewinds faster. The sounds are library clips (no
   audio upload used).
+- 2026-09-29 (assumption): Time Stop ships at the measured worth (+0.13 to +0.37 per shot)
+  under the Rare 1.0 band; like Rewind, the harness counts only the shot and plays the second
+  strike as a plain shot from the frozen spot, so the balance pass (step 16) decides.
+- 2026-09-29 (assumption): in stopped time the shooter aims with the normal controls and a
+  hint pill (TIME STOPPED · STRIKE THE CUE BALL AGAIN); the shot clock and ability pill are
+  hidden. The server streams no aims in Frozen, so watchers see the struck cue ball but not
+  the cue before it.
+- 2026-09-29 (assumption): Time Stop's look adds an armed violet bubble on the cue ball and a
+  clock face on the cloth whose hand sweeps once round the 5 s; the big bubble is a plain
+  ForceField lens (its pattern only while small). The sounds are library clips (no audio
+  upload used).

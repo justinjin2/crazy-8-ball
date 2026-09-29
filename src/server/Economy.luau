@@ -201,7 +201,8 @@ end
 function Economy.onShot(t: any, player: Player)
 	local e = t.engine
 	local pending, shot = e.pending, e.shot
-	if not pending or not shot or shot.shooter ~= player.UserId then
+	-- Not judged yet (Time Stop's frozen shot is judged, and paid, at its resume).
+	if not pending or not pending.judgement or not shot or shot.shooter ~= player.UserId then
 		return
 	end
 	local seat = Engine.seat(e, player.UserId)

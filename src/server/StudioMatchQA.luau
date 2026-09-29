@@ -94,9 +94,10 @@ function QA.start(
 			local replay, reason = Engine.acceptShot(t.engine, shooter, data, now)
 			if replay then
 				flush(t) -- grants before the snapshot that carries the replay, as ShotService does
-				-- A real player's QA shot pays money as a real shot does (the flying cash).
+				-- A real player's QA shot pays money as a real shot does (the flying cash), once
+				-- judged (a Time Stop shot is judged at its resume, and paid then).
 				local player = Players:GetPlayerByUserId(shooter)
-				if player then
+				if player and t.engine.pending and t.engine.pending.judgement then
 					require(script.Parent.Economy).onShot(t, player)
 				end
 				shotAccepted(t, shooter, data.angle, data.spin, data.elevation) -- and the stance, as it does

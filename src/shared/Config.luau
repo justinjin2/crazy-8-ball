@@ -2242,7 +2242,7 @@ Config.Ults = {
 			Pick = "OwnBall",
 		},
 		Rewind = { Rarity = "Rare", Built = true, Worth = 1, Redo = true },
-		TimeStop = { Rarity = "Rare", Built = false, Effect = "TimeStop", Worth = 1 },
+		TimeStop = { Rarity = "Rare", Built = true, Effect = "TimeStop", Worth = 1 },
 		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5, Area = true },
 		Portals = { Rarity = "Epic", Built = false, Worth = 1.5, Pick = "Portals" },
 		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.2, MaxBalls = 3 },
@@ -2405,6 +2405,20 @@ Config.Ults = {
 		RewindWhirr = { Id = "rbxassetid://7361292522", Volume = 0.9 },
 		RewindClunk = { Id = "rbxassetid://4511695221", Volume = 0.6 },
 		RewindSpent = { Id = "rbxassetid://830440268", Volume = 0.5 },
+		-- Time Stop (public library audio, each checked loading in this game and measured with
+		-- an AudioAnalyzer, 2026-09-29): from the first contact, "504_Reverse_Cymbal"
+		-- (kyleamida, 1.41 s, rising to peak 37 at 1.2 s), sped up so it peaks on the freeze
+		-- (Config.UI.TimeStopFx); on the freeze, "Boom Impact Deep Distant Thumping Hits 1"
+		-- (Pro Sound Effects, 2.9 s, a 90-140 Hz boom, peak 29); each second while frozen, the
+		-- first of "Clock Ticking [2 Ticks]" (heiroftheeternalname, a tick at 0.3 s, peak 12);
+		-- the resume, "Reversed Whoosh Backwards Hissing Burst 2" (Pro Sound Effects, 1.3 s,
+		-- peak 21 at 0.3 s) into "Clock Tick Tock - ULTRAKILL" (ImJustDou, 0.5 s, quiet), which
+		-- also plays as it arms. (tune by ear)
+		TimeSwell = { Id = "rbxassetid://119247066943033", Volume = 0.7 },
+		TimeBoom = { Id = "rbxassetid://9125402735", Volume = 0.9 },
+		TimeTick = { Id = "rbxassetid://8140501675", Volume = 1.2, StartOffset = 0.22 },
+		TimeResume = { Id = "rbxassetid://9118158113", Volume = 0.7 },
+		TimeTickTock = { Id = "rbxassetid://98448773080489", Volume = 2 },
 	},
 }
 
@@ -2601,6 +2615,11 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/rewind.py: RewindDial (a flat counter-clockwise circular arrow
 		-- with clock ticks, unit radius, magenta-white-green across its band).
 		Rewind = 110978850889818,
+		-- tools/blender/abilities/timestop.py: TimeBubble (a unit sphere with the warp pattern,
+		-- drawn as ForceField), ClockFace (a flat ring of 60 ticks, unit radius) and ClockHand
+		-- (a needle from its hub along +Z; the part's centre sits 0.365 of a unit up the
+		-- needle from the hub).
+		TimeStop = 113214769332073,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2622,6 +2641,10 @@ Config.Ults.Assets = {
 		RewindTear = "rbxassetid://77495663973716",
 		RewindTracking = "rbxassetid://80127029771602",
 		RewindFringe = "rbxassetid://73954710228943",
+		-- Time Stop's screen (timestop.py): the freeze's warp ring and stopped time's lens edge.
+		-- (The images inside Decals 126594807194835 and 76685822924680.)
+		TimeWarpRing = "rbxassetid://113854329541350",
+		TimeLensEdge = "rbxassetid://113700118006901",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7222,6 +7245,77 @@ Config.UI.RewindFx = {
 	FreshSeconds = 0.5, -- a rewind this client only caught up with late gets no screen
 }
 
+-- Time Stop's look (src/client/TimeStopFx.luau; docs/prompts/ABILITIES_PROMPT.md 7.7, reference
+-- 03). Studs unless named. (tune)
+Config.UI.TimeStopFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The bubble (ForceField, BubbleColor): BubbleBallWidths across on the armed cue ball,
+	-- turning SpinDegreesPerSecond; from the first contact it swells to SwellBallWidths as the
+	-- freeze nears; on the freeze it bursts out to BurstStuds over BurstSeconds and fades; on the
+	-- resume it comes back that big and collapses onto the cue ball over CollapseSeconds.
+	-- (Look check 1: a paler, smaller bubble all but vanished round the armed cue ball.)
+	BubbleColor = { 175, 130, 255 },
+	BubbleTransparency = 0,
+	BubbleBallWidths = 1.9,
+	SwellBallWidths = 2.4,
+	SpinDegreesPerSecond = 40,
+	BurstStuds = 60,
+	PatternMaxBallWidths = 4, -- bigger than this the bubble drops its warp pattern (look check 2)
+	BurstSeconds = 0.5,
+	CollapseSeconds = 0.4,
+	PopSeconds = 0.25,
+	-- The clock face on the cloth round the frozen cue ball: ClockBallWidths across, LiftInches
+	-- up, ClockTransparency at full; its hand sweeps once round in the stopped time
+	-- (Config.Ults.Shared.FrozenSeconds). The hand's centre sits HandCentreShare of its length
+	-- up the needle from its hub (the model's bounding box).
+	ClockBallWidths = 9,
+	LiftInches = 0.1,
+	ClockTransparency = 0.25,
+	ClockFadeSeconds = 0.3,
+	HandCentreShare = 0.365 / 0.97,
+	-- Frozen balls' afterimages: Ghosts copies behind each ball moving faster than
+	-- GhostMinSpeed (in/s), spaced GhostSpacingSeconds of its motion apart (at most
+	-- GhostMaxBallWidths), each more see-through (GhostTransparency).
+	Ghosts = 3,
+	GhostMinSpeed = 8,
+	GhostSpacingSeconds = 0.035,
+	GhostMaxBallWidths = 1.2,
+	GhostTransparency = { 0.55, 0.72, 0.86 },
+	-- The second strike in stopped time: the cue ball's violet trail.
+	TrailColor = { 190, 160, 255 },
+	TrailSeconds = 0.35,
+	-- The screen (ScreenFx, for everyone at the table): the negative flash on the freeze and on
+	-- the resume, the warp ring growing from the middle past the edges, then while frozen a
+	-- cold grade and the lens edge.
+	InvertSeconds = 0.18,
+	RingSquare = 0.5, -- the ring's size at 1x, a share of the screen height
+	RingGrowFrom = 0.1,
+	RingGrowTo = 4,
+	RingSeconds = 0.55,
+	RingTransparency = 0.05,
+	-- (Look check 1: at -0.75 the cloth stayed plainly green, not the reference's cold violet.)
+	Grade = {
+		Saturation = -0.92,
+		Contrast = 0.3,
+		Brightness = -0.05,
+		TintColor = { 195, 170, 255 },
+	},
+	GradeFadeIn = 0.2,
+	GradeFadeOut = 0.15,
+	LensTransparency = 0.18,
+	LensFadeIn = 0.35,
+	LensFadeOut = 0.2,
+	ShakeStuds = 0.15,
+	ShakeSeconds = 0.35,
+	-- The sounds: the swell sped up by SwellPitch so its peak (1.2 s in) lands on the freeze
+	-- (Shared.FreezeAfterSeconds after the first contact); a tick every TickSeconds frozen;
+	-- the tick-tock ResumeTickDelay after the resume whoosh.
+	SwellPitch = 1.2,
+	TickSeconds = 1,
+	ResumeTickDelay = 0.3,
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no screen
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7234,6 +7328,7 @@ Config.UI.AbilityFx = {
 		Ghost = "GhostFx",
 		HeatSeeker = "HeatSeekerFx",
 		Rewind = "RewindFx",
+		TimeStop = "TimeStopFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.
