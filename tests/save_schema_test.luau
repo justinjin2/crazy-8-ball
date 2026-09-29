@@ -37,6 +37,7 @@ local MAP_KEYS = {
 	"Codes",
 	"Settings",
 	"Flags",
+	"Ults",
 }
 
 local function isInt(x: any): boolean
@@ -193,6 +194,34 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 			end
 		end
 	end
+
+	local ults = save.Ults
+	local UltCatalog = H.require("Ults.Catalog")
+	local slots = Config.Ults.Slots
+	H.expect(isGaplessArray(ults.Slots) and #ults.Slots == slots, "Ults.Slots has every slot")
+	for i = 1, slots do
+		local id = ults.Slots[i]
+		H.expect(id == "" or UltCatalog.exists(id), "Ults.Slots holds ult ids or empty")
+	end
+	H.expect(isGaplessArray(ults.Locked) and #ults.Locked == slots, "Ults.Locked has every slot")
+	for i = 1, slots do
+		H.expect(type(ults.Locked[i]) == "boolean", "Ults.Locked holds booleans")
+	end
+	H.expect(isInt(ults.Selected) and ults.Selected >= 1 and ults.Selected <= slots, "Selected")
+	inRange(ults.Spins, Config.Ults.Earn.MaxSpins, "Ults.Spins")
+	inRange(ults.LuckySpins, Config.Ults.Earn.MaxSpins, "Ults.LuckySpins")
+	inRange(ults.Pity, Config.Ults.Roll.PityAt - 1, "Ults.Pity")
+	inRange(ults.FreeSpinDay, S.StatCap, "Ults.FreeSpinDay")
+	inRange(ults.SpinsDone, S.StatCap, "Ults.SpinsDone")
+	H.expect(type(ults.QueueUlts) == "boolean", "Ults.QueueUlts must be a boolean")
+end
+
+-- A version-2 save as the economy's code wrote it (no Ults).
+local function v2Save(SaveSchema: any): any
+	local save = SaveSchema.template()
+	save.Version = 2
+	save.Ults = nil
+	return save
 end
 
 -- A tiny deterministic generator (Numerical Recipes LCG), so the fuzz is the same every run.
@@ -291,6 +320,7 @@ local FIELDS = {
 	"Codes",
 	"Settings",
 	"Flags",
+	"Ults",
 }
 
 -- Sub-fields the fuzz breaks, by table.
@@ -311,9 +341,20 @@ local SUB_FIELDS: { [string]: { string } } = {
 	},
 	Login = { "LastDay", "StreakDay", "Week" },
 	Shop = { "FirstJoin", "VipOffer", "Purchases", "Limited" },
+	Ults = {
+		"Slots",
+		"Selected",
+		"Locked",
+		"Spins",
+		"LuckySpins",
+		"Pity",
+		"FreeSpinDay",
+		"SpinsDone",
+		"QueueUlts",
+	},
 }
 local SUB_TABLES =
-	{ "Stats", "Progress", "Inventory", "Index", "Equipped", "Daily", "Login", "Shop" }
+	{ "Stats", "Progress", "Inventory", "Index", "Equipped", "Daily", "Login", "Shop", "Ults" }
 
 -- ProfileStore's Reconcile (src/server/Vendor/ProfileStore.luau ReconcileTable), which
 -- PlayerData runs between migrate and validate: fill missing string keys from the template.
@@ -414,7 +455,7 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 2, "version 2")
+		H.expect(SaveSchema.Version == 3, "version 3")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
 		H.expect(t.RatedMatches == 0, "starts unranked")
@@ -448,6 +489,14 @@ return {
 		H.expect(type(s.Purchases) == "table" and #s.Purchases == 0, "no receipts")
 		H.expect(next(s.Limited) == nil and size(s) == 7, "shop fields")
 		H.expect(next(t.Settings) == nil and next(t.Flags) == nil, "empty maps")
+		local Config = H.require("Config")
+		local u = t.Ults
+		H.expect(u.Slots[1] == Config.Ults.Default and u.Slots[1] == "Magnet", "Magnet in slot 1")
+		H.expect(#u.Slots == 3 and u.Slots[2] == "" and u.Slots[3] == "", "slots 2, 3 empty")
+		H.expect(#u.Locked == 3 and not u.Locked[1] and not u.Locked[2] and not u.Locked[3], "")
+		H.expect(u.Selected == 1 and u.Spins == Config.Ults.Earn.Starter, "starter spins")
+		H.expect(u.LuckySpins == 0 and u.Pity == 0 and u.FreeSpinDay == 0, "nothing else")
+		H.expect(u.SpinsDone == 0 and u.QueueUlts == true and size(u) == 9, "ults fields")
 	end,
 
 	["template copies are independent"] = function()
@@ -579,7 +628,10 @@ return {
 			H.expect(out.Version == SaveSchema.Version, "now current, from " .. tostring(version))
 			H.expect(out.Money == 12, "data kept")
 			H.expect(
-				#notes == 2 and notes[1] == "migrated 0 -> 1" and notes[2] == "migrated 1 -> 2",
+				#notes == 3
+					and notes[1] == "migrated 0 -> 1"
+					and notes[2] == "migrated 1 -> 2"
+					and notes[3] == "migrated 2 -> 3",
 				table.concat(notes, "; ")
 			)
 		end
@@ -1300,6 +1352,126 @@ return {
 			H.expect(type(out) == "table" and #fixes == 1, "non-table save becomes a template")
 			assertClean(Config, SaveSchema, out)
 		end
+	end,
+
+	["migration 2 -> 3 adds the ults: Magnet in slot 1 and the starter spins"] = function()
+		local Config, SaveSchema = setup()
+		local save = v2Save(SaveSchema)
+		save.Money = 777
+		save.RankXp = 4321
+		save.Inventory.Cues.GoldCue = 2
+		save.Equipped.Cue = "GoldCue"
+		save.Codes.WELCOME = true
+		save.Settings.Volume = 0.5
+		local before = SaveSchema.template()
+		local out, notes = SaveSchema.migrate(save)
+		H.expect(#notes == 1 and notes[1] == "migrated 2 -> 3", table.concat(notes, "; "))
+		H.expect(out == save and out.Version == 3, "migrated in place to version 3")
+		local u = out.Ults
+		H.expect(u.Slots[1] == "Magnet" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
+		H.expect(u.Spins == Config.Ults.Earn.Starter and u.Spins == 3, "the 3 starter spins")
+		H.expect(u.Selected == 1 and u.LuckySpins == 0 and u.Pity == 0, "fresh")
+		H.expect(u.QueueUlts == true and u.FreeSpinDay == 0 and u.SpinsDone == 0, "fresh")
+		-- Everything else untouched.
+		H.expect(out.Money == 777 and out.RankXp == 4321, "numbers kept")
+		H.expect(out.Inventory.Cues.GoldCue == 2 and out.Equipped.Cue == "GoldCue", "items kept")
+		H.expect(out.Codes.WELCOME == true and out.Settings.Volume == 0.5, "maps kept")
+		for key in before do
+			H.expect(out[key] ~= nil, key .. " present")
+		end
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean without Reconcile: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+	end,
+
+	["migration 2 -> 3 replaces anything a version-2 save held under Ults"] = function()
+		local Config, SaveSchema = setup()
+		for _, junk in { 5, "x", { Slots = { "BlackHole" }, Spins = 99999 } :: any } do
+			local save = v2Save(SaveSchema)
+			save.Ults = junk
+			local out = SaveSchema.migrate(save)
+			H.expect(out.Ults.Slots[1] == "Magnet" and out.Ults.Spins == 3, "fresh ults")
+			assertClean(Config, SaveSchema, out)
+		end
+	end,
+
+	["a fresh template round-trips through migrate, Reconcile and validate"] = function()
+		local Config, SaveSchema = setup()
+		local t = SaveSchema.template()
+		local out, notes = SaveSchema.migrate(t)
+		H.expect(out == t and #notes == 0, "a current save needs no migration")
+		reconcile(out, SaveSchema.template())
+		local _, fixes = SaveSchema.validate(out)
+		H.expect(#fixes == 0, "clean: " .. table.concat(fixes, "; "))
+		assertClean(Config, SaveSchema, out)
+		local fresh = SaveSchema.template()
+		for i = 1, 3 do
+			H.expect(out.Ults.Slots[i] == fresh.Ults.Slots[i], "slot " .. i)
+			H.expect(out.Ults.Locked[i] == fresh.Ults.Locked[i], "lock " .. i)
+		end
+		-- Reconcile fills a v3 save that lost its Ults (or a field of it) from the template.
+		local lost = SaveSchema.template()
+		lost.Ults = nil
+		reconcile(lost, SaveSchema.template())
+		H.expect(lost.Ults.Slots[1] == "Magnet" and lost.Ults.Spins == 3, "refilled")
+		local _, again = SaveSchema.validate(lost)
+		H.expect(#again == 0, "clean after Reconcile")
+	end,
+
+	["validate repairs damaged ults"] = function()
+		local Config, SaveSchema = setup()
+		local save = SaveSchema.template()
+		local slots: any = { "Ghost", "NotAnUlt", 5 }
+		slots[4] = "BlackHole"
+		slots.x = "Magnet"
+		save.Ults.Slots = slots
+		save.Ults.Locked = { true, "yes" } -- too short, and a non-boolean
+		save.Ults.Selected = 4
+		save.Ults.Spins = -5
+		save.Ults.LuckySpins = Config.Ults.Earn.MaxSpins + 10
+		save.Ults.Pity = Config.Ults.Roll.PityAt
+		save.Ults.FreeSpinDay = 20000.5
+		save.Ults.SpinsDone = NAN
+		save.Ults.QueueUlts = "on"
+		local out, fixes = SaveSchema.validate(save)
+		local u = out.Ults
+		H.expect(u.Slots[1] == "Ghost" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
+		H.expect(#u.Slots == 3 and u.Slots.x == nil and u.Slots[4] == nil, "exactly 3")
+		H.expect(u.Locked[1] == true and u.Locked[2] == false and u.Locked[3] == false, "locks")
+		H.expect(#u.Locked == 3, "3 locks")
+		H.expect(u.Selected == 1, "a bad selection goes back to slot 1")
+		H.expect(u.Spins == 0, "no negative spins")
+		H.expect(u.LuckySpins == Config.Ults.Earn.MaxSpins, "clamped to the cap")
+		H.expect(u.Pity == Config.Ults.Roll.PityAt - 1, "pity below PityAt")
+		H.expect(u.FreeSpinDay == 20000 and u.SpinsDone == 0, "whole numbers")
+		H.expect(u.QueueUlts == true, "a broken choice goes back to the default (on)")
+		-- Slots: extra keys, repaired entries; Locked: repaired; Selected; 6 numbers/flags.
+		H.expect(#fixes == 10, ("%d fixes: %s"):format(#fixes, table.concat(fixes, "; ")))
+		assertClean(Config, SaveSchema, out)
+		local _, again = SaveSchema.validate(out)
+		H.expect(#again == 0, "a repaired save is clean")
+
+		-- A missing or wrong-typed Ults table is rebuilt as a new player's.
+		for _, bad in { 5, "x", true } do
+			local broken = SaveSchema.template()
+			broken.Ults = bad
+			local fixed, notes = SaveSchema.validate(broken)
+			H.expect(#notes == 1 and fixed.Ults.Slots[1] == "Magnet", "rebuilt")
+			assertClean(Config, SaveSchema, fixed)
+		end
+		-- Wrong-typed arrays inside it are rebuilt too; valid ids in every slot are kept.
+		local arrays = SaveSchema.template()
+		arrays.Ults.Slots = "Magnet"
+		arrays.Ults.Locked = 1
+		arrays.Ults.Selected = "2"
+		local fixedArrays = SaveSchema.validate(arrays)
+		H.expect(fixedArrays.Ults.Slots[1] == "Magnet" and #fixedArrays.Ults.Locked == 3, "")
+		H.expect(fixedArrays.Ults.Selected == 1, "a string is not a slot")
+		local full = SaveSchema.template()
+		full.Ults.Slots = { "BlackHole", "Magnet", "GuangdongTiger" }
+		full.Ults.Selected = 3
+		local _, none = SaveSchema.validate(full)
+		H.expect(#none == 0, "every catalog id is kept, built or not")
 	end,
 
 	["fuzz: validate never errors and always leaves a clean save"] = function()

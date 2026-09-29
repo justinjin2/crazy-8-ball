@@ -15,13 +15,15 @@
 -- new one, and update `template()` and `validate`. Never edit an old migration once shipped.
 local Config = require(script.Parent.Parent.Config)
 local Catalog = require(script.Parent.Catalog)
+local UltCatalog = require(script.Parent.Parent.Ults.Catalog)
+local UltSlots = require(script.Parent.Parent.Ults.Slots)
 
 local SaveCfg = Config.Save
 local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 2
+SaveSchema.Version = 3
 
 -- The most playtime one UTC day can hold (Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -55,6 +57,7 @@ local MAP_KEYS = {
 	"Codes",
 	"Settings",
 	"Flags",
+	"Ults",
 }
 
 -- Shop's true/false fields, in the order fixes are reported.
@@ -141,6 +144,9 @@ function SaveSchema.template(): any
 		Codes = {}, -- [CODE] = true: promo codes redeemed
 		Settings = {},
 		Flags = {},
+		-- The ults (v3; Ults/Slots.fresh): the default ult in slot 1, the starter spins. Slots
+		-- and Locked are gapless arrays of Config.Ults.Slots ("" = an empty slot).
+		Ults = UltSlots.fresh(),
 	}
 end
 
@@ -403,6 +409,15 @@ SaveSchema.Migrations[1] = function(data: any): any
 			data[key] = fresh[key]
 		end
 	end
+	return data
+end
+
+-- 2 -> 3: the ults (docs/prompts/ULTIMATES_PROMPT.md section 11). Adds `Ults` as a new
+-- save's (Ults/Slots.fresh): the default ult (Magnet) in slot 1 and Config.Ults.Earn.Starter
+-- spins, the same starter spins a new player gets. Everything else is untouched. A version-2
+-- save has no Ults, so anything found there is replaced.
+SaveSchema.Migrations[2] = function(data: any): any
+	data.Ults = UltSlots.fresh()
 	return data
 end
 
@@ -756,6 +771,94 @@ local function dropNonFinite(t: { [any]: any }, where: string, fixes: { string }
 	end
 end
 
+-- Make `parent[key]` an array of exactly `n` values, each run through `clean` (which returns
+-- the value to keep and whether it changed): missing entries are filled, entries past `n` and
+-- keys that are not 1..n dropped. A non-table is rebuilt from `fresh`.
+local function fixFixedArray(
+	parent: { [any]: any },
+	key: string,
+	path: string,
+	n: number,
+	clean: Cleaner,
+	fresh: { any },
+	fixes: { string }
+)
+	local t = ensureTable(parent, key, path, fresh, fixes)
+	if t == fresh then
+		return
+	end
+	local extra = 0
+	for index in t do
+		if not (SaveSchema.isInteger(index) and index >= 1 and index <= n) then
+			extra += 1
+		end
+	end
+	local values = {}
+	local repaired = 0
+	for i = 1, n do
+		local value, changed = clean(t[i])
+		values[i] = value
+		if changed then
+			repaired += 1
+		end
+	end
+	if extra == 0 and repaired == 0 then
+		return
+	end
+	table.clear(t)
+	for i = 1, n do
+		t[i] = values[i]
+	end
+	if extra > 0 then
+		table.insert(fixes, ("%s: dropped %d key(s) outside 1..%d"):format(path, extra, n))
+	end
+	if repaired > 0 then
+		table.insert(fixes, ("%s: repaired %s"):format(path, entries(repaired)))
+	end
+end
+
+-- A cleaner for an ult slot: a catalog ult id or "" (empty); anything else becomes "".
+local function ultSlot(value: any): (any, boolean)
+	if value == "" or UltCatalog.exists(value) then
+		return value, false
+	end
+	return "", true
+end
+
+-- A cleaner for a slot lock: true or false; anything else becomes false.
+local function lockFlag(value: any): (any, boolean)
+	if type(value) == "boolean" then
+		return value, false
+	end
+	return false, true
+end
+
+-- The ults (v3): Slots and Locked exactly Config.Ults.Slots long, Selected a slot, every count
+-- a whole number in its range, QueueUlts a boolean (true when broken: the default). Called
+-- after the top-level tables are made tables.
+local function fixUlts(ults: { [any]: any }, fixes: { string })
+	local fresh = UltSlots.fresh()
+	local n = Config.Ults.Slots
+	fixFixedArray(ults, "Slots", "Ults.Slots", n, ultSlot, fresh.Slots, fixes)
+	fixFixedArray(ults, "Locked", "Ults.Locked", n, lockFlag, fresh.Locked, fixes)
+	local selected = ults.Selected
+	if not (SaveSchema.isInteger(selected) and selected >= 1 and selected <= n) then
+		table.insert(fixes, ("Ults.Selected was %s: set to 1"):format(describe(selected)))
+		ults.Selected = 1
+	end
+	local maxSpins = Config.Ults.Earn.MaxSpins
+	fixInteger(ults, "Spins", "Ults.Spins", maxSpins, fixes)
+	fixInteger(ults, "LuckySpins", "Ults.LuckySpins", maxSpins, fixes)
+	fixInteger(ults, "Pity", "Ults.Pity", Config.Ults.Roll.PityAt - 1, fixes)
+	-- A UTC day number, bounded like Daily.Day.
+	fixInteger(ults, "FreeSpinDay", "Ults.FreeSpinDay", SaveCfg.StatCap, fixes)
+	fixInteger(ults, "SpinsDone", "Ults.SpinsDone", SaveCfg.StatCap, fixes)
+	if type(ults.QueueUlts) ~= "boolean" then
+		table.insert(fixes, ("Ults.QueueUlts was %s: set to true"):format(describe(ults.QueueUlts)))
+		ults.QueueUlts = true
+	end
+end
+
 --- Repair a save in place so every field holds a safe value. Returns the same table (or a
 --- fresh template if `data` was not a table) and the fixes it made, empty when the save was
 --- clean. Unknown string keys at the top level and in the fixed-field tables are left alone
@@ -887,6 +990,8 @@ function SaveSchema.validate(data: any): (any, { string })
 
 	dropNonFinite(data.Settings, "Settings", fixes)
 	dropNonFinite(data.Flags, "Flags", fixes)
+
+	fixUlts(data.Ults, fixes)
 
 	return data, fixes
 end

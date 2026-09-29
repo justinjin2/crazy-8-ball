@@ -565,7 +565,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 1. The fuller ult model (`tools/ult_model.py` reading Config's numbers) meets section 5's
   targets (both players use an ult in 80%+ of matches on every difficulty, run-outs left out;
   missing on purpose never pays); final numbers logged.
-- [ ] 2. Catalog of 13 (Config and Strings), save v3 with migration, `Fill` and `Roll` modules
+- [x] 2. Catalog of 13 (Config and Strings), save v3 with migration, `Fill` and `Roll` modules
   with tests.
 - [ ] 3. Server: bars filled from real match events, activation and arming, the rules in
   section 4 (fouls, the 8, the cap, the clock pause, teams, the PC opponent, solo practice, the
@@ -690,3 +690,11 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   wins 62.7% [60%] Classic 60%, 61.0% [56%] Classic 70%, 63.9% [64%] Difficult 45%; a 50%
   shooter with a top ult vs a 60% shooter with Magnet wins **48.7% [63%]** (34.4% with Magnet
   each): the skill gap counts for more once fouls and safeties are in.
+- **Step 2 (2026-09-28).** `Ults/Catalog`, `Ults/Fill` (events in, gains with reasons out,
+  per-player bars `{ bar, used, turnFill }`, `Fill.shot(ctx)` and `Fill.timeout`), `Ults/Roll`
+  (true odds in ppm with shares moving down, pity, Lucky, a xorshift `Roll.seeded` for tests),
+  `Ults/Slots` (pure save functions: select, lock, the daily free spin used first, spend,
+  place, confirm for Epic+, counts capped) and save v3 (`Ults` with 3 starter spins and Magnet
+  in slot 1; migration from v2; validate repairs it). 36 new tests (fill, roll with a million
+  seeded rolls, slots, save). A choice: on an ult shot its user gets nothing from any ball
+  pocketed (section 4), opponent's balls included; the turn end still counts.

@@ -210,6 +210,13 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 		},
+		-- The host card's Ults: On / Off toggle, and the No-ults search's offer after
+		-- Config.GlobalQueue.NoUltsFallbackSeconds (QueueMenu).
+		UltsOn = "Ults: On",
+		UltsOff = "Ults: Off",
+		NoUltsFallback = "Nobody's in No ults right now. Search with ults on?",
+		FallbackYes = "Yes",
+		FallbackNo = "No",
 	},
 	-- The arena's card while players arrive (ArenaStatus).
 	Arena = {
@@ -804,5 +811,48 @@ return {
 		-- then "$500".
 		Found = "New in your Index: %s! +%s",
 		FoundNoMoney = "New in your Index: %s!",
+	},
+	-- Ultimates (docs/prompts/ULTIMATES_PROMPT.md): the catalog's names and one-line
+	-- descriptions (placeholder text; each ult's own session rewrites its line), rarity words.
+	Ults = {
+		Names = {
+			Magnet = "Magnet",
+			EaglesEye = "Eagle's Eye",
+			SuperBounce = "Super Bounce",
+			Ghost = "Ghost",
+			HeatSeeker = "Heat Seeker",
+			Rewind = "Rewind",
+			TimeStop = "Time Stop",
+			ChainLightning = "Chain Lightning",
+			Portals = "Portals",
+			SteelBall = "Steel Ball",
+			BlackFlash = "Black Flash",
+			BlackHole = "Black Hole",
+			GuangdongTiger = "Guangdong Tiger",
+		},
+		Descriptions = {
+			Magnet = "Your next shot's balls are pulled into pockets they nearly miss.",
+			EaglesEye = "See the full path of your shot, every bounce included.",
+			SuperBounce = "The cue ball turns rainbow and keeps bouncing off every rail.",
+			Ghost = "Your cue ball phases through every ball that isn't yours.",
+			HeatSeeker = "Tap one of your balls: the cue ball curves to hit it.",
+			Rewind = "Miss, and the table rewinds for one more 10 s shot.",
+			TimeStop = "Time freezes for 5 s after contact: take another shot.",
+			ChainLightning = "The ball you hit is charged, and lightning nudges your balls toward pockets.",
+			Portals = "Place two portals; balls that enter one fly out of the other.",
+			SteelBall = "The ball you hit is guided in, and the cue ball lines up your next.",
+			BlackFlash = "The first ball you hit shatters in a black flash, counted as pocketed.",
+			BlackHole = "A black hole swallows the balls near your first hit (not your opponent's).",
+			GuangdongTiger = "A giant tiger swipes the balls near your first hit off the table (not your opponent's).",
+		},
+		Rarities = {
+			Common = "Common",
+			Uncommon = "Uncommon",
+			Rare = "Rare",
+			Epic = "Epic",
+			Legendary = "Legendary",
+			Mythic = "Mythic",
+		},
+		ComingSoon = "Coming soon", -- a placeholder ult (no effect yet)
 	},
 }

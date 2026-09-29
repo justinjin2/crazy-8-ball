@@ -2129,6 +2129,238 @@ Config.Products = {
 }
 
 ---------------------------------------------------------------------------------------------
+-- Ultimates (docs/prompts/ULTIMATES_PROMPT.md; GDD section 9). The rules, the bar, the catalog
+-- of 13, the spin odds, pity, slots and where spins come from. Pure modules in
+-- src/shared/Ults read these; the server (UltService, UltSpins) and the screens do too.
+-- Numbers marked (tune) are starting values.
+---------------------------------------------------------------------------------------------
+Config.Ults = {
+	-- Ults are on by default everywhere (designer, 2026-09-28): public tables, the global
+	-- queue (which offers No ults) and vs PC. A table's settings.abilities is its switch.
+	Enabled = true,
+	-- The spin screen for live players. Off until more ults than Magnet are built (today's live
+	-- roll pool is 100% Magnet); Studio always shows it.
+	ScreenLive = false,
+	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
+	-- `/ultsall on` turns it on for one player for the session.
+	DevAllUlts = false,
+	Default = "Magnet", -- everyone's starter ult, free forever; an empty or unusable slot plays as it
+	BarMax = 100, -- a full bar
+	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
+	-- Solo gets no bar: a small "Practice ult" button arms the equipped ult for free.
+	PracticeInSolo = true,
+	-- The bar's fill (section 5, all (tune); tools/ult_model.py reads these through
+	-- tools/export_ult_config.luau). Balls pocketed on an ult shot fill nothing for its user.
+	Fill = {
+		-- Your own balls in one turn: the 1st, 2nd, 3rd, 4th... (the brief's 8, 6, 5, 4 and 2
+		-- raised by tools/ult_model.py so the goal holds with room: the strong Classic case was
+		-- 81%, now 85%; a run of 7 gives +38, x1.3 = +49, still half a bar).
+		Own = { 10, 8, 6, 5 },
+		OwnAfter = 3, -- ...then this for each ball after
+		Nice = 20, -- a nice shot (bank, kick, combo, carom), on top of the ball
+		OppBase = 8, -- an opponent's ball...
+		OppPerBehind = 7, -- ...plus this for every ball you are behind after it
+		TurnLegal = 15, -- each of your turns that ends on a legal shot (no foul, no timeout)
+		OppTurn = 6, -- each of the opponent's turns that ends
+		TurnCap = 50, -- turn-end fill (the two rows above) in total, per bar (never scaled)
+		Teammate = 2, -- a teammate's ball (overnight assumption)
+		-- Every gain times the table's difficulty (Classic's easy aiming makes short matches).
+		Difficulty = { Classic = 1.3, Difficult = 1.0, Challenger = 1.0 },
+		-- After your first ult everything x this, and the turn cap counts again (0.3 in the brief;
+		-- 0.25 keeps second ults under 2% with the higher own-ball fill).
+		AfterFirst = 0.25,
+	},
+	-- Activation and arming (section 4 and 7.2). The shot clock pauses from activation until
+	-- the ult is armed, for both sides: the cutscene, then the wait, then the arming effect.
+	CutsceneSeconds = 1.6,
+	ArmDelaySeconds = 1.0,
+	-- Slots (section 8): slot 1 free, slots 2 and 3 are game passes (Config.Products UltSlot2,
+	-- UltSlot3). The selected slot is the one equipped in matches.
+	Slots = 3,
+	SlotPasses = { "", "UltSlot2", "UltSlot3" }, -- "" = free
+	-- Replacing an ult of this rarity or rarer asks "Replace BLACK FLASH?" first.
+	ConfirmReplaceFrom = "Epic",
+	-- The rarity ladder, lowest first (the item rarities, GDD section 12).
+	Rarities = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic" },
+	-- The catalog of 13 (section 6). Names and descriptions are in Strings.Ults.Names and
+	-- .Descriptions; colours are the item rarity colours (Config.UI.Kit.Rarity). Built = false
+	-- is a placeholder: its cutscene plays with its own name, then nothing ("Coming soon"). It
+	-- can only be rolled or equipped with the developer flag. Effect is the module in
+	-- src/shared/Ults/Effects that hooks the physics for one shot. Worth = the power ladder's
+	-- target, in balls per use, measured by each ult's harness (section 6).
+	Order = {
+		"Magnet",
+		"EaglesEye",
+		"SuperBounce",
+		"Ghost",
+		"HeatSeeker",
+		"Rewind",
+		"TimeStop",
+		"ChainLightning",
+		"Portals",
+		"SteelBall",
+		"BlackFlash",
+		"BlackHole",
+		"GuangdongTiger",
+	},
+	Catalog = {
+		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.33 },
+		EaglesEye = { Rarity = "Common", Built = false, Worth = 0.33 },
+		SuperBounce = { Rarity = "Common", Built = false, Worth = 0.33 },
+		Ghost = { Rarity = "Uncommon", Built = false, Worth = 0.5 },
+		HeatSeeker = { Rarity = "Uncommon", Built = false, Worth = 0.5 },
+		Rewind = { Rarity = "Rare", Built = false, Worth = 1 },
+		TimeStop = { Rarity = "Rare", Built = false, Worth = 1 },
+		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5 },
+		Portals = { Rarity = "Epic", Built = false, Worth = 1.5 },
+		SteelBall = { Rarity = "Legendary", Built = false, Worth = 2.5, MaxBalls = 3 },
+		BlackFlash = { Rarity = "Legendary", Built = false, Worth = 2.5, MaxBalls = 3 },
+		BlackHole = { Rarity = "Mythic", Built = false, Worth = 2.5, MaxBalls = 3 },
+		GuangdongTiger = { Rarity = "Mythic", Built = false, Worth = 2.5, MaxBalls = 3 },
+	} :: {
+		[string]: {
+			Rarity: string,
+			Built: boolean,
+			Effect: string?,
+			Worth: number,
+			MaxBalls: number?,
+		},
+	},
+	-- Rolls (section 8), in parts per million so each table adds to exactly 1,000,000. Each
+	-- rarity's share is split evenly between its ults in the pool. A rarity with no ult in the
+	-- pool passes its share down to the next rarity below that has one (the Odds panel shows
+	-- the true current odds).
+	Roll = {
+		Normal = {
+			Common = 550000, -- 55%
+			Uncommon = 300000, -- 30%
+			Rare = 122333, -- 12.2333%
+			Epic = 20000, -- 2%
+			Legendary = 6667, -- 0.6667%, 1 in 150 (tune)
+			Mythic = 1000, -- 0.1%, 1 in 1,000 (tune)
+		},
+		-- A Lucky Spin never rolls Common (Robux only).
+		Lucky = {
+			Common = 0,
+			Uncommon = 631667, -- 63.1667%
+			Rare = 250000, -- 25%
+			Epic = 80000, -- 8%
+			Legendary = 33333, -- 3.3333%, 1 in 30
+			Mythic = 5000, -- 0.5%, 1 in 200
+		},
+		-- Pity: every spin adds 1; the PityAt-th spin without an Epic or better is Epic+ (split
+		-- in the normal table's proportions: Epic 72.3%, Legendary 24.1%, Mythic 3.6%), and any
+		-- Epic+ resets it to 0.
+		PityAt = 100,
+		PityFrom = "Epic",
+		-- Mythic rolls use the server announcement (like Mythic unboxings); Legendary gets a banner
+		-- in this server only.
+		AnnounceAll = { Mythic = true },
+		AnnounceServer = { Legendary = true },
+	},
+	-- Where spins come from (section 10, (tune)).
+	Earn = {
+		Starter = 3, -- a fresh save, and the migration for existing saves
+		DailyFree = 1, -- one free spin a UTC day (Rewards > Daily's reset); never stacks
+		-- Reaching each tier (division I) adds spins: +1 up to Gold, +2 Platinum and Diamond, +3 above.
+		RankUp = {
+			Bronze = 1,
+			Silver = 1,
+			Gold = 1,
+			Platinum = 2,
+			Diamond = 2,
+			Expert = 3,
+			Veteran = 3,
+			Master = 3,
+			Grandmaster = 3,
+			Reyes = 3,
+		},
+		StreakDay7 = 2, -- day 7 of the login streak (each week of the cycle), on top of its reward
+		PlaytimeLast = 1, -- the day's last playtime gift adds this many spins
+		-- Money spins: this much each, no bulk discount ("way more expensive" than Robux).
+		MoneyPerSpin = 1750,
+		MoneyPacks = { 1, 5, 10, 50 }, -- BUY 1, 5, 10, 50 in $ mode
+		-- Robux packs: the developer products in Config.Products (Spin1..Spin50, Lucky1, Lucky3).
+		RobuxPacks = { "Spin1", "Spin5", "Spin10", "Spin50" },
+		LuckyPacks = { "Lucky1", "Lucky3" },
+		MaxSpins = 100000, -- the save's cap on held spins (and Lucky Spins)
+	},
+	-- The code box on the spin screen (section 9.3): the designer edits these two in one place.
+	-- The code itself is a row in Config.Daily.Codes (Spins = 3).
+	CodeBanner = { ActiveCode = "ULTS", NextGoalLikes = 100 },
+	-- Fast Open's Auto Spin (section 9.6): one spin this often, server-checked.
+	AutoSpinSeconds = 0.4,
+	AutoStopChoices = { "Rare", "Epic", "Legendary" },
+	-- The PC opponent (section 4): it activates when its bar is full and it is behind, or when
+	-- its shot finder sees no easy shot.
+	Pc = { WhenBehind = true, WhenNoEasyShot = true },
+	-- The spin service's request limits (not design numbers).
+	RequestCooldownSeconds = 0.25,
+	RequestBurst = 6,
+	-- Sounds (section 7). The designer's two, uploaded to the group; ult_activate starts after
+	-- its silent lead (StartOffset, measured in Studio).
+	Audio = {
+		-- ult_activate (1.67 s): silent until 0.74 s (measured with an AudioAnalyzer, 2026-09-28),
+		-- so it starts at 0.72 and its hit lands with the panel's slam.
+		Activate = { Id = "rbxassetid://97016460180199", Volume = 0.6, StartOffset = 0.72 },
+		-- ult_ready (8.2 s, a steady jingle from 0.15 s): the bar reaching 100%. It plays for
+		-- MaxSeconds then fades over FadeSeconds so it never talks over the shot (overnight
+		-- assumption; MaxSeconds 0 plays it whole).
+		Ready = {
+			Id = "rbxassetid://140675130154393",
+			Volume = 0.45,
+			StartOffset = 0.12,
+			MaxSeconds = 3,
+			FadeSeconds = 0.8,
+		},
+		-- Magnet (public library audio, each checked loading in this game, 2026-09-28):
+		-- "Force Field Sci Fi Constant Deep Pulsing Hum" (Pro Sound Effects, 27 s): the low
+		-- magnetic hum looping at the armed cue ball (3D, quiet); it rises in pitch while a
+		-- ball is pulled.
+		MagnetHum = { Id = "rbxassetid://9125566994", Volume = 0.35, Pitch = 0.9, PullPitch = 1.35 },
+		-- "Electric Zapping loop" (FastFoxVita, 0.98 s loop, loud): crackle while a ball is in
+		-- a capture zone, at the ball.
+		MagnetPull = { Id = "rbxassetid://427262367", Volume = 0.12 },
+		-- The drop: "Metal Impact Heavy Clunking Hits 4" (Pro Sound Effects, 0.87 s) with
+		-- "Electric Zaps 12" (Pro Sound Effects, 0.97 s) on top: the clunk-zap at the pocket.
+		MagnetClunk = { Id = "rbxassetid://9116673944", Volume = 0.3 },
+		MagnetZap = { Id = "rbxassetid://9114277757", Volume = 0.55 },
+		-- Arming: "Electric Zaps 6" (Pro Sound Effects, 2.1 s, starts at 0.16 s) as the rings
+		-- snap onto the cue ball.
+		MagnetArm = { Id = "rbxassetid://9114277402", Volume = 0.45, StartOffset = 0.14 },
+	},
+}
+
+-- Magnet's physics (section 7.3; src/shared/Ults/Effects/Magnet.luau). Each allowed ball
+-- moving toward a pocket inside its capture zone has its velocity (and spin) turned toward
+-- the pocket centre, never sped up. Tuned by tests/ult_magnet_test.luau against the brief's
+-- targets; every number (tune).
+Config.Ults.Magnet = {
+	-- The capture zone: a circle this many ball diameters in radius around the middle of each
+	-- pocket's mouth. Nothing outside it is pulled. (tune)
+	CaptureBallWidths = 3,
+	-- How hard the path bends at the mouth itself: radians of turn per inch the ball rolls.
+	-- Per inch rather than per second, so a slow and a firm ball bend the same way. (tune)
+	MaxBend = 0.15,
+	-- How the pull grows toward the mouth: bend = MaxBend * closeness ^ Power, closeness
+	-- 0 at the zone's edge and 1 at the mouth. Higher keeps the pull near the pocket. (tune)
+	Power = 2,
+	-- Above this speed (in/s) the pull fades as (FadeSpeed / speed) ^ FadePower, so a hard hit
+	-- ball is barely bent. (tune)
+	FadeSpeed = 150,
+	FadePower = 1,
+	-- Below this speed (in/s) a ball is not pulled at all: a stopping ball stays put. (tune)
+	MinSpeed = 1,
+	-- "Moving toward the pocket": the cosine of the angle between the velocity and the
+	-- direction to the pocket centre must be above this (0 = anywhere in front). (tune)
+	MinApproachCos = 0,
+	-- A ball whose straight path already crosses the mouth within this many ball diameters
+	-- of its middle is on line and left alone, so a pot that was going in is never changed.
+	-- Kept inside the narrowest pot window the harness finds (about 0.3 diameters). (tune)
+	OnLineBallWidths = 0.25,
+}
+
+---------------------------------------------------------------------------------------------
 -- Guideline
 ---------------------------------------------------------------------------------------------
 Config.Guideline = {
@@ -4231,6 +4463,9 @@ Config.Multiplayer = {
 		QueueFoldSidePx = 10, -- and beside them: the part reaches this far past the card's column
 		QueueCountWidth = 72, -- the people n/6 pill
 		QueuePillHeight = 26, -- the count and team-split pills
+		-- The No-ults fallback's line on the searching card ("Nobody's in No ults right now.
+		-- Search with ults on?"): this many lines of Body text, over Yes and No side by side.
+		QueueFallbackLines = 2,
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre, kept
 		-- small and low so it clears the player's legs (designer, 2026-09-27: was 330 x 96).
 		PromptWidth = 250, -- pixels, before shrinking to fit a narrow screen
@@ -4817,6 +5052,19 @@ Config.GlobalQueue = {
 	ServerStaleSeconds = 25, -- ...and one not marked for this long is taken as closed
 	-- What a match-found player sees before the teleport starts, so the screen can come up.
 	FoundLeadSeconds = 0.4,
+	-- The Ults: On / Off choice (designer, 2026-09-28): a search only meets searches on the
+	-- same setting, two pools in the one queue (each ticket names its pool). A No-ults
+	-- search that has found nobody after this long is offered the ults-on pool ("Search
+	-- with ults on?"), keeping its search time. (tune)
+	NoUltsFallbackSeconds = 30,
+	-- The server takes the offer's Yes this much sooner than the card shows it (the
+	-- client's estimate of the server clock may run a little ahead).
+	FallbackSlackSeconds = 1,
+	-- Player attributes the server sets (clients only read them): the saved choice the
+	-- host's toggle shows (Ults.QueueUlts), and the pool of the search their pad runs (read
+	-- only while it searches).
+	UltsAttribute = "QueueUlts",
+	SearchUltsAttribute = "QueueSearchUlts",
 }
 
 ---------------------------------------------------------------------------------------------
