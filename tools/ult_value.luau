@@ -10,6 +10,7 @@
 --   lune run tools/ult_value.luau Magnet --quick          # about 10 seconds, rough numbers
 --   lune run tools/ult_value.luau all --samples 60 --skill 2
 --   lune run tools/ult_value.luau Magnet --seed 7 --no-write
+--   lune run tools/ult_value.luau Ghost --useful --no-write   # only where it changes the shot
 
 local DateTime = require("@lune/datetime")
 local fs = require("@lune/fs")
@@ -32,6 +33,7 @@ local function usage(message: string?)
 	end
 	print("usage: lune run tools/ult_value.luau <UltId|all> [--samples N] [--skill 1|2|3|all]")
 	print("       [--quick] [--seed N] [--careful-only|--careless-only] [--no-write]")
+	print("       [--useful]  only the tables where the ability changes the best shot")
 	print("ults: " .. table.concat(Config.Ults.Order, ", "))
 	process.exit(1)
 end
@@ -43,6 +45,7 @@ local skills = { 1, 2, 3 }
 local seed = 1
 local shooters = { "careful", "careless" }
 local write = true
+local useful = false
 local i = 1
 while i <= #args do
 	local a = args[i]
@@ -71,6 +74,8 @@ while i <= #args do
 		shooters = { "careful" }
 	elseif a == "--careless-only" then
 		shooters = { "careless" }
+	elseif a == "--useful" then
+		useful = true
 	elseif a == "--no-write" then
 		write = false
 	elseif a:sub(1, 2) == "--" then
@@ -118,6 +123,7 @@ for _, id in ults do
 		shooters = shooters,
 		measuredAt = measuredAt,
 		cache = cache,
+		useful = useful,
 		progress = function(done: number, total: number)
 			if done % 10 == 0 or done == total then
 				stdio.write(("\r  %s: %d / %d states"):format(id, done, total))

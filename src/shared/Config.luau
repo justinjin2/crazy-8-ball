@@ -2233,7 +2233,7 @@ Config.Ults = {
 		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.33, Area = true },
 		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.33 },
 		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
-		Ghost = { Rarity = "Uncommon", Built = false, Worth = 0.5 },
+		Ghost = { Rarity = "Uncommon", Built = true, Effect = "Ghost", Worth = 0.5 },
 		HeatSeeker = { Rarity = "Uncommon", Built = false, Worth = 0.5, Pick = "OwnBall" },
 		Rewind = { Rarity = "Rare", Built = false, Worth = 1, Redo = true },
 		TimeStop = { Rarity = "Rare", Built = false, Effect = "TimeStop", Worth = 1 },
@@ -2375,7 +2375,25 @@ Config.Ults = {
 		-- 0.3 s spring, peak 0.48), pitched up per bounce (Config.UI.SuperBounceFx).
 		BounceArm = { Id = "rbxassetid://6075441854", Volume = 0.55 },
 		BounceHit = { Id = "rbxassetid://111237552536869", Volume = 0.45 },
+		-- Ghost (public library audio, each checked loading in this game, 2026-09-29): arming,
+		-- "Dream Weirdness Constant 6" (Pro Sound Effects, Ghosts, 3.3 s of reverberant wails,
+		-- quiet: peak 36 at volume 0.5, in from 0.9 s), started at 0.6; each ball the cue ball
+		-- passes through, "Fast Pass By Airy Whooshes Windy 2" (Pro Sound Effects, 1.2 s, peak
+		-- at 0.5 s), started at 0.25 so the rush lands on the ball. (tune by ear)
+		GhostWail = { Id = "rbxassetid://9114170094", Volume = 0.9, StartOffset = 0.6 },
+		GhostWhoosh = { Id = "rbxassetid://9114373663", Volume = 0.4, StartOffset = 0.25 },
 	},
+}
+
+-- Ghost (docs/prompts/ABILITIES_PROMPT.md 7.4; Ults/Effects/Ghost, Arming.extras): the cue
+-- ball passes through the opponent's balls and the 8 (unless it is your legal 8) for the shot.
+-- Measured (tools/ult_value.luau, 2026-09-29, net balls a use at skills 1/2/3): about 0 on
+-- every table (an open pot is nearly always there), +0.25 / +0.12 / +0.03 on the tables where
+-- it changes the best shot (--useful, 118 of 960). Under the Uncommon row: the balance step's.
+Config.Ults.Ghost = {
+	-- A cue ball that comes to rest inside a ball it passed through is moved off it at rest,
+	-- to just clear of it (this gap, inches), the nearest free spot on the cloth first.
+	ClearGapInches = 0.05,
 }
 
 -- Eagle's Eye (docs/prompts/ABILITIES_PROMPT.md 7.2; src/shared/Ults/Predict.luau): the aim's
@@ -2518,6 +2536,10 @@ Config.Ults.Assets = {
 		-- tools/blender/abilities/superbounce.py: RainbowShell (a shell a little over the ball,
 		-- its rainbow texture scrolled at runtime) and BoingRing (the hit's star-burst ring).
 		SuperBounce = 75004032615944,
+		-- tools/blender/abilities/ghost.py: LittleGhost (the ghost that circles the armed cue
+		-- ball, facing -Z), GhostWisp (a trailing sheet, its wide root at +X) and Ripple (a
+		-- flat ring).
+		Ghost = 100126316259892,
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
@@ -6919,6 +6941,68 @@ Config.UI.SuperBounceFx = {
 	},
 }
 
+-- Ghost's look (src/client/GhostFx.luau; ABILITIES_PROMPT 7.4): a see-through cue ball with a
+-- cold glow, a little ghost circling it, wisps trailing it, and a flicker and a ripple on each
+-- ball it passes through. Sizes in drawn ball widths unless named. (tune)
+Config.UI.GhostFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	FadeInSeconds = 0.2,
+	FadeOutSeconds = 0.6,
+	-- The cue ball: this see-through (LocalTransparencyModifier, 0 solid), inside a Neon glow
+	-- GlowScale times its width at GlowTransparency, with a cold point light.
+	CueSeeThrough = 0.45,
+	GlowColor = { 120, 180, 255 }, -- (190, 222, 255) read green-white on the cloth
+	GlowScale = 1.22,
+	GlowTransparency = 0.1,
+	GlowMaterial = "ForceField", -- a cold shimmer; Neon read teal over the green cloth
+	LightColor = { 175, 212, 255 },
+	LightBrightness = 3,
+	LightRangeBallWidths = 6,
+	-- The little ghost: GhostHeight ball widths tall, circling the cue ball's centre at
+	-- OrbitRadius, LiftShare of a ball width above it, bobbing Bob widths at BobHz, facing
+	-- the way it flies. It pops out of the ball over PopSeconds with a PopOvershoot spring.
+	GhostHeight = 1.15,
+	GhostTransparency = 0.18, -- a little see-through: it crosses the aim view (0.25 showed the far eye)
+	OrbitRadius = 1.45,
+	OrbitDegreesPerSecond = 140,
+	LiftShare = 0.85,
+	Bob = 0.12,
+	BobHz = 1.4,
+	PopSeconds = 0.5,
+	PopOvershoot = 1.8,
+	-- The wisps: WispCount sheets WispLength long and WispWidth wide trailing the moving cue
+	-- ball (faster than WispMinSpeed in/s), fanned WispSpreadDegrees apart, each rippling
+	-- WispWaveDegrees round its length at WispWaveHz; they grow in and out over WispGrowSeconds.
+	WispCount = 3,
+	WispLength = 3.6,
+	WispWidth = 1.7,
+	WispSpreadDegrees = 16,
+	WispWaveDegrees = 18,
+	WispWaveHz = 2.4,
+	-- Above 0: at 0 Roblox draws the mesh opaque and ignores its texture's alpha fade (the
+	-- look check: solid grey ribbons).
+	WispTransparency = 0.02,
+	WispMinSpeed = 3,
+	WispGrowSeconds = 0.25,
+	-- A soft pale Trail under the wisps, across the cue ball, TrailSeconds long.
+	TrailColor = { 215, 235, 255 },
+	TrailSeconds = 0.35,
+	TrailTransparency = 0.55,
+	-- A ball the cue ball passes through: it flickers for FlickerSeconds (up to FlickerDepth
+	-- see-through, FlickerHz), a ripple spreads round it on the cloth (RippleFrom to RippleTo
+	-- ball widths over RippleSeconds, from RippleTransparency), and a whoosh plays there.
+	FlickerSeconds = 0.55,
+	FlickerHz = 16,
+	FlickerDepth = 0.75,
+	RippleFrom = 0.8,
+	RippleTo = 3.4,
+	RippleSeconds = 0.9, -- (0.6 was gone before the replay camera settled)
+	RippleTransparency = 0.1,
+	RippleLiftInches = 0.1,
+	SoundHoldSeconds = 3, -- each sound's holder is let go after this long
+	FreshSeconds = 0.3, -- a replay frame jumping further than this (a late join) draws no passes
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -6928,6 +7012,7 @@ Config.UI.AbilityFx = {
 		Magnet = "MagnetFx",
 		EaglesEye = "EaglesEyeFx",
 		SuperBounce = "SuperBounceFx",
+		Ghost = "GhostFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

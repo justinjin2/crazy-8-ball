@@ -178,6 +178,9 @@ without Studio's import dialogs. It only uses the Python standard library.
   - **Axes:** Blender +X arrives as Roblox -X, Blender +Y as Roblox +Z and Blender +Z (up) as
     Roblox +Y: the importer's half turn about the up axis on top of glTF's Y-up. A model
     lying in Blender's XY plane arrives flat. Place and turn loaded parts with CFrames in Luau.
+  - **Texture alpha needs Transparency above 0** (2026-09-29, Ghost's wisps): a MeshPart at
+    Transparency 0 draws opaque and ignores its TextureID's alpha (soft fades came out as solid
+    grey sheets); at 0.02 the alpha fade shows.
 - **A rerun uploads "pending" files again** (seen 2026-09-28): an upload still in moderation
   is recorded as pending, and the next run uploads it anew rather than polling it, so one
   image became three assets (aura_flame) and another two (field_lines). Poll a pending one
@@ -258,6 +261,9 @@ rooftop floor uses that (MapBuilder, Config.Map.Floor) instead of a mesh.
 - **Catching a short animation in `screen_capture`**: the capture lands a second or two after
   it is called, so fire the event from the same `execute_luau` call (the arm, the shot) and
   call `screen_capture` in the same batch; a `task.delay` in the server call nudges it later.
+  To hold the camera on a spot for a look check, set a CFrame from the Client datamodel both on
+  `Camera:GetPropertyChangedSignal("CFrame")` and on `RunService.Heartbeat` (the aim camera
+  beat a RenderStep binding); disconnect both and set CameraType back to Custom after.
   A RenderStepped watcher in the Client datamodel that logs when named instances appear
   (`MagnetFx_*`, `PocketRing*`) proves an effect ran even when a capture misses it.
 - In a Sibling-ZIndex ScreenGui, ZIndex -1 and 0 draw under default (1) siblings: the kit's

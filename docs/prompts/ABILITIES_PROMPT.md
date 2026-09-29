@@ -784,7 +784,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 3. Magnet rework (7.1), look check done.
 - [x] 4. Eagle's Eye (7.2), look check done.
 - [x] 5. Super Bounce (7.3), look check done.
-- [ ] 6. Ghost (7.4), look check done.
+- [x] 6. Ghost (7.4), look check done.
 - [ ] 7. Heat Seeker (7.5), look check done.
 - [ ] 8. Rewind (7.6), look check done.
 - [ ] 9. Time Stop (7.7), look check done.
@@ -957,3 +957,23 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   LightEmission). The setup now shows the jaw (the 1 below the top-left corner). Sounds are
   library boings (checked loading, measured). Phone and gamepad: no input of its own; framing
   in the playthrough.
+- **Step 6 done (2026-09-29).** Physics: `Arming.extras` gives Ghost `PhaseCue` (the
+  opponent's balls and the 8 unless it is your legal 8; on an open table only the 8), and a
+  `finish` hook moves a cue ball resting inside a phased ball off it (straight away, else the
+  first free of 8 headings round it; `Config.Ults.Ghost.ClearGapInches`). Tests: no contact
+  ever with a phased ball over 120 random shots, never at rest inside one, a blocked pot goes
+  through the 9 with no foul, replay bit-exact with the settle. Worth: about 0 measured on
+  every table (the harness nearly always finds an open pot), so the harness gained a phased
+  shot planner (phased balls do not block the shooter's lines) and `--useful` (only tables
+  where Ghost changes the best shot, 118 of 960): +0.25 / +0.11 / +0.02 net at skills 1/2/3
+  (careful), under the Uncommon 0.5: flagged for step 16 (assumption, DECISIONS). The look
+  (GhostFx on the uploaded LittleGhost, GhostWisp and Ripple): the cue ball 45% see-through
+  (LocalTransparencyModifier, so BallRenderer's Transparency is untouched) in a ForceField
+  bubble with a cold light; the little ghost pops out with a wail and circles it; wisps and a
+  pale trail stream behind the moving cue ball; each ball passed through (checked along the
+  cue ball's path each frame) flickers, ripples and whooshes. Studio passes: 1, the Neon glow
+  read teal on the cloth (ForceField, cold blue) and the wisps drew as solid grey ribbons (a
+  MeshPart at Transparency 0 ignores its texture's alpha: 0.02); 2, the opaque ghost blocked
+  the aim view (0.18 see-through, floated higher), the ripple faded before the replay camera
+  settled (0.9 s), and the wisps ran backwards (Blender +X arrives as Roblox -X). Sounds are
+  library Pro Sound Effects clips (checked loading, measured).

@@ -27,6 +27,23 @@ local ALL = { UltSlot2 = true, UltSlot3 = true }
 local NONE = {}
 
 -- Spin options for a normal spin today with no passes (fields overridden by `extra`).
+-- Run `body` with only the Common ults built (as before any Uncommon or better was), then
+-- put the flags back.
+local function onlyCommons(body: () -> ())
+	local was = {}
+	for id, row in U.Catalog do
+		was[id] = row.Built
+		row.Built = row.Built and row.Rarity == "Common"
+	end
+	local ok, err = pcall(body)
+	for id, value in was do
+		U.Catalog[id].Built = value
+	end
+	if not ok then
+		error(err, 0)
+	end
+end
+
 local function opts(extra: { [string]: any }?): any
 	local o: { [string]: any } = {
 		lucky = false,
@@ -159,12 +176,14 @@ return {
 		H.expect((SpinView.spin(u, opts({ day = DAY + 4 })) :: any).used == "Free", "one")
 		local _, again = SpinView.spin(u, opts({ day = DAY + 4 }))
 		H.expect(again == "NoSpins", "missed days are missed")
-		-- A Lucky Spin never uses the free spin (the flag on: with only Magnet built a Lucky
+		-- A Lucky Spin never uses the free spin (the flag on: with only Commons built a Lucky
 		-- Spin has nothing to land, and is refused).
 		local v = Slots.fresh()
 		Slots.addLucky(v, 1)
-		local _, closed = SpinView.spin(v, opts({ lucky = true }))
-		H.expect(closed == "LuckyClosed", "Lucky closed while only Commons are built")
+		onlyCommons(function()
+			local _, closed = SpinView.spin(v, opts({ lucky = true }))
+			H.expect(closed == "LuckyClosed", "Lucky closed while only Commons are built")
+		end)
 		H.expect(v.LuckySpins == 1, "nothing taken")
 		H.expect(
 			(SpinView.spin(v, opts({ lucky = true, devAll = true })) :: any).used == "Lucky",
@@ -466,8 +485,10 @@ return {
 			for _, row in odds.rarities do
 				total += row.ppm
 			end
-			-- Only Magnet is built, so Lucky (no Commons) has nothing to land yet.
-			local want = if name == "lucky" then 0 else Roll.TOTAL
+			-- While only Commons are built, Lucky (no Commons) has nothing to land.
+			local want = if name == "lucky" and not Roll.available("Lucky", false)
+				then 0
+				else Roll.TOTAL
 			H.expect(total == want, name .. ": odds add up")
 		end
 		H.expect(p.live and not p.restricted and not p.fastOpen and not p.devAll, "flags")

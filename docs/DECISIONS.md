@@ -1900,4 +1900,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   alike). (assumption) the jaw boing: a ball bouncing at random for even 30 s almost never
   found a pocket in our physics, so without it the catch added only +0.03 to +0.10. Measured
   +0.27 / +0.37 to +0.39 / +0.28 to +0.32 at skills 1 / 2 / 3 against the Common 0.33.
-
+- 2026-09-29 (assumption): Ghost's worth is measured on the tables where it changes the
+  shooter's best shot (`tools/ult_value.luau --useful`), since a player reaches for it only
+  then; on every table it measures about 0 because an open pot is nearly always there. On
+  useful tables it is +0.25 / +0.11 / +0.02 balls a use at skills 1 / 2 / 3, under the
+  Uncommon 0.5; left as built for the balance pass (step 16), which can buff it or move it
+  down a row.

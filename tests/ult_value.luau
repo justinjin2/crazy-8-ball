@@ -20,7 +20,9 @@
 --   tries its TOP_K pots (and the planner's picks) with CAREFUL_SAMPLES noise draws each and
 --   plays the one with the best expected net (own balls minus the opponent's); its baseline
 --   without the ability is its best shot by the same search without it. Both are then played
---   with the same noise draw with and without the ability.
+--   with the same noise draw with and without the ability. With a phasing ability armed
+--   (Ghost: V.phased) both shooters choose from the shots it opens up too (a cue-ball path
+--   blocked only by balls it passes through is open).
 -- * Worth = mean own balls pocketed or removed with, minus without (the 8 counts as yours
 --   only as a legal 8 win); opp gifted the same for the opponent's balls; net = worth - opp.
 --   Plus backfires (a foul, an 8 loss, an opponent's ball potted: with but not without).
@@ -443,7 +445,15 @@ end
 
 --- Every geometrically possible pot for the shooter, best score first (not calibrated).
 --- Score: the aim error (radians) the shot forgives, w * 2R * cos(cut) / (dc * dobj).
-function V.candidates(ts: TableState, balls: { any }?, cueX: number?, cueY: number?): { Plan }
+-- `phase` (ball id -> true): balls the cue ball passes through (Ghost), which then block
+-- only the object ball's run to the pocket, never the cue ball's path to its contact.
+function V.candidates(
+	ts: TableState,
+	balls: { any }?,
+	cueX: number?,
+	cueY: number?,
+	phase: { [number]: boolean }?
+): { Plan }
 	local list = balls or ts.balls
 	local cue = findBall(list, 0)
 	local cx, cy = cueX or cue.x, cueY or cue.y
@@ -482,10 +492,9 @@ function V.candidates(ts: TableState, balls: { any }?, cueX: number?, cueY: numb
 				if b.pocketed or b.id == 0 or b.id == id then
 					continue
 				end
-				if
-					segmentDistance(b.x, b.y, cx, cy, gx, gy) < D - 1e-6
-					or segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6
-				then
+				local cueBlocked = not (phase and phase[b.id])
+					and segmentDistance(b.x, b.y, cx, cy, gx, gy) < D - 1e-6
+				if cueBlocked or segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6 then
 					blocked = true
 					break
 				end
@@ -674,11 +683,18 @@ function V.safePlan(ts: TableState, balls: { any }?): Plan
 end
 
 --- The shooter's shots, best first: up to `k` calibrated pots, or the safe hit alone.
-function V.shots(ts: TableState, k: number, balls: { any }?, cueX: number?, cueY: number?): { Plan }
+function V.shots(
+	ts: TableState,
+	k: number,
+	balls: { any }?,
+	cueX: number?,
+	cueY: number?,
+	phase: { [number]: boolean }?
+): { Plan }
 	local list = balls or ts.balls
 	local out = {}
 	local tried = 0
-	for _, plan in V.candidates(ts, list, cueX, cueY) do
+	for _, plan in V.candidates(ts, list, cueX, cueY, phase) do
 		if #out >= k or tried >= 3 * k then
 			break
 		end
@@ -701,6 +717,53 @@ function V.noisy(plan: Plan, skill: number, z1: number, z2: number): Cue.Shot
 		angle = plan.angle + math.rad(s.angleDeg) * z1,
 		power = V.powerForSpeed(speed, 1),
 	}
+end
+
+---------------------------------------------------------------------------------------------
+-- Phasing: the balls an armed ability lets the cue ball pass through (Ghost's PhaseCue, from
+-- Arming.extras exactly as the server arms it), so the shooter sees a shot blocked only by
+-- them as open. The legal 8 counts as the shooter's whether or not a pocket is called yet.
+---------------------------------------------------------------------------------------------
+
+function V.phased(ultId: string, ts: TableState): { [number]: boolean }?
+	local row = Catalog.get(ultId)
+	if row == nil or not row.Built or type(row.Effect) ~= "string" then
+		return nil
+	end
+	local own, opp, eightPocket, legalEight = Arming.targets(ts.groups, 1, 1, ts.balls)
+	local extra = Arming.extras(row.Effect :: string, {
+		own = own,
+		opp = opp,
+		eightPocket = eightPocket,
+		legalEight = legalEight,
+		open = ts.groups == nil,
+		pick = nil,
+		balls = ts.balls,
+	})
+	if extra.PhaseCue == nil then
+		return nil
+	end
+	local set = {}
+	for _, id in extra.PhaseCue do
+		set[id] = true
+	end
+	return set
+end
+
+--- Whether a player would reach for `ultId` on this table: always, except for a phasing
+--- ability (Ghost), which is worth using only when it opens a better pot than any open one
+--- (the shooter's best-scored shot changes, or there was only a safety).
+function V.useful(ultId: string, ts: TableState): boolean
+	local phase = V.phased(ultId, ts)
+	if phase == nil then
+		return true
+	end
+	local plain = V.candidates(ts)[1]
+	local opened = V.candidates(ts, nil, nil, nil, phase)[1]
+	if opened == nil then
+		return false
+	end
+	return plain == nil or plain.ball ~= opened.ball or plain.pocket ~= opened.pocket
 end
 
 ---------------------------------------------------------------------------------------------
@@ -1118,6 +1181,11 @@ export type Options = {
 	-- their outcomes do not depend on the ability, so they are played once.
 	cache: { [string]: any }?,
 	progress: ((done: number, total: number) -> ())?,
+	-- Only the tables where a player would reach for it (V.useful): for a situational ability
+	-- (Ghost) the worth of a use when it is used, not of a use on any table. Draws up to
+	-- `usefulPool` times `samples` tables to find `samples` such.
+	useful: boolean?,
+	usefulPool: number?,
 }
 
 export type SkillReport = {
@@ -1136,6 +1204,7 @@ export type Report = {
 	measuredAt: string,
 	seed: number,
 	samples: number,
+	useful: boolean?, -- only the tables where the ability changes the best shot (V.useful)
 	families: { string },
 	topK: number,
 	carefulSamples: number,
@@ -1190,12 +1259,42 @@ function V.measure(ultId: string, options: Options?): Report
 		accs[s] = { careful = newAcc(), careless = newAcc() }
 	end
 	local states = V.states(samples, seed, families)
+	local filtered = opts.useful == true and not inert
+	if filtered then
+		local pool = V.states(samples * (opts.usefulPool or 8), seed, families)
+		states = {}
+		for _, ts in pool do
+			if V.useful(ultId, ts) then
+				table.insert(states, ts)
+				if #states >= samples then
+					break
+				end
+			end
+		end
+	end
 	for i, ts in states do
-		local base = ("%d:%d:%s:%d"):format(seed, i, ts.family, topK)
+		local base = ("%d:%d:%s:%d%s"):format(
+			seed,
+			i,
+			ts.family,
+			topK,
+			if filtered then ":" .. ultId .. "?" else ""
+		)
 		local plans: { Plan } = cache[base .. ":plans"]
 		if plans == nil then
 			plans = V.shots(ts, topK)
 			cache[base .. ":plans"] = plans
+		end
+		-- With a phasing ability armed the shooter also sees the shots it opens up.
+		local phase = if inert then nil else V.phased(ultId, ts)
+		local ultPlans, tag = plans, ""
+		if phase then
+			tag = ":" .. ultId
+			ultPlans = cache[base .. tag .. ":plans"]
+			if ultPlans == nil then
+				ultPlans = V.shots(ts, topK, nil, nil, nil, phase)
+				cache[base .. tag .. ":plans"] = ultPlans
+			end
 		end
 		for _, s in skills do
 			local zr = V.rng(V.seedOf(seed, i, s, 7))
@@ -1219,9 +1318,9 @@ function V.measure(ultId: string, options: Options?): Report
 			if wantCareless then
 				local plan = plans[1]
 				local without = plain(plan, ("%s:%d:plain1"):format(base, s))
-				local chosen = plan
+				local chosen = ultPlans[1]
 				if planner then
-					chosen = planner(ts, plan, false)[1] or plan
+					chosen = planner(ts, chosen, false)[1] or chosen
 				end
 				add(accs[s].careless, withUlt(chosen, without), without)
 			end
@@ -1251,13 +1350,13 @@ function V.measure(ultId: string, options: Options?): Report
 					end
 					local extraSeed = V.seedOf(seed, i, s, 10)
 					local best, bestValue = nil, -math.huge
-					for k, plan in plans do
+					for k, plan in ultPlans do
 						local variants = if planner then planner(ts, plan, true) else { plan }
 						for vi = 1, math.min(#variants, V.PICKS_PER_SHOT + 1) do
 							local gain = 0
 							for j, z in zs do
 								local draws = V.seedOf(extraSeed, k, j)
-								local key = ("%s:%d:%d:eval%d:%d"):format(base, s, m, k, j)
+								local key = ("%s%s:%d:%d:eval%d:%d"):format(base, tag, s, m, k, j)
 								local off: Result? = cache[key]
 								if off == nil then
 									off = V.play(ts, plan, s, z[1], z[2], nil, drawer(draws))
@@ -1300,7 +1399,8 @@ function V.measure(ultId: string, options: Options?): Report
 		target = row.Worth,
 		measuredAt = opts.measuredAt or "unknown",
 		seed = seed,
-		samples = samples,
+		samples = #states,
+		useful = if filtered then true else nil,
 		families = table.clone(families),
 		topK = topK,
 		carefulSamples = m,
@@ -1312,12 +1412,13 @@ end
 --- The report as a few lines of text.
 function V.format(report: Report): string
 	local lines = {
-		("%s (%s, %s; ladder target %.2f): %d states (%s), seed %d, %.1f s"):format(
+		("%s (%s, %s; ladder target %.2f): %d %sstates (%s), seed %d, %.1f s"):format(
 			report.ult,
 			report.rarity,
 			if report.built then "built" else "NOT BUILT: measures 0",
 			report.target,
 			report.samples,
+			if report.useful then "useful " else "",
 			table.concat(report.families, "/"),
 			report.seed,
 			report.seconds

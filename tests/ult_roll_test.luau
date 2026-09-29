@@ -76,8 +76,8 @@ return {
 			}
 			for name, odds in tables do
 				local label = ("%s (flag %s)"):format(name, tostring(devAll))
-				if name == "Lucky" and not devAll then
-					-- Only Magnet (Common) is built: a Lucky Spin has nothing it may land.
+				if name == "Lucky" and not devAll and not Roll.available("Lucky", false) then
+					-- Only Commons are built: a Lucky Spin has nothing it may land.
 					H.expect(not Roll.available("Lucky", false), "Lucky closed")
 					H.expect(sum(odds.rarities) == 0 and sum(odds.ults) == 0, "Lucky: no odds")
 					continue

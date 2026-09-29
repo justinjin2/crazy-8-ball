@@ -128,9 +128,9 @@ function tests.magnet_measures_positive_for_the_careless_shooter()
 end
 
 function tests.a_placeholder_measures_exactly_zero()
-	expect(Catalog.Ghost.Built == false, "Ghost is still a placeholder")
+	expect(Catalog.ChainLightning.Built == false, "Chain Lightning is still a placeholder")
 	local report =
-		V.measure("Ghost", { samples = 5, skills = { 2 }, topK = 3, simulateInert = true })
+		V.measure("ChainLightning", { samples = 5, skills = { 2 }, topK = 3, simulateInert = true })
 	for _, name in { "careful", "careless" } do
 		local st = (report.skills[1] :: any)[name] :: V.Stat
 		expect(st.n == 5)
