@@ -164,6 +164,20 @@ without Studio's import dialogs. It only uses the Python standard library.
     Bake colour into image textures, or set Color and Material in Studio after the load.
   - **Models can't be archived through the API** ("not an archivable asset type"). Remove a
     test model in Creator Hub by hand.
+- **A `.glb` brings its image texture through (tested 2026-09-29, the ability pilot).** A
+  headless-Blender `.glb` with one Principled material whose Base Colour is a packed PNG
+  uploaded through Open Cloud as a Model; `LoadAsset` gave one MeshPart per object, each with
+  `TextureID` set to a new image asset the upload made (one texture shared by every part),
+  and the colours showed once the image loaded (`ContentProvider:PreloadAsync` -> Success; the
+  first capture was grey only because it had not loaded yet). No SurfaceAppearance is made,
+  and the part's `Color` does not tint a TextureID. So bake colour into the image, keep one
+  material per look, and preload the TextureID before the moment it shows.
+  - **Face direction matters:** Roblox draws only the front of a face. Faces built by script
+    in the wrong winding showed from one side only (the pilot's arrowheads looked hollow).
+    Run `bmesh.ops.recalc_face_normals` (or Mesh > Normals > Recalculate Outside) before export.
+  - **Axes:** Blender +X arrives as Roblox -X, Blender +Y as Roblox +Z and Blender +Z (up) as
+    Roblox +Y: the importer's half turn about the up axis on top of glTF's Y-up. A model
+    lying in Blender's XY plane arrives flat. Place and turn loaded parts with CFrames in Luau.
 - **A rerun uploads "pending" files again** (seen 2026-09-28): an upload still in moderation
   is recorded as pending, and the next run uploads it anew rather than polling it, so one
   image became three assets (aura_flame) and another two (field_lines). Poll a pending one
