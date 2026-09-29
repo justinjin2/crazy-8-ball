@@ -315,6 +315,9 @@ return {
 			Ult = "%s <id|name>",
 			UltsAll = "%s on|off",
 			OpUlt = "%s",
+			-- The look check's tools (Studio only).
+			Slowmo = "%s <%s-%s>, or %s",
+			AbilitySetup = "%s <id|name>",
 		},
 		What = {
 			GiveCue = "copies of a cue, by id or name (not Classic or a Unique cue)",
@@ -344,6 +347,9 @@ return {
 			Ult = "puts any ability in your selected slot (no spin used)",
 			UltsAll = "every ability (placeholders too) rolls and plays for you this session",
 			OpUlt = "fills the other side's ability bars at your table (the QA opponent's)",
+			-- The look check's tools (Studio only).
+			Slowmo = "Studio only: every shot replay at your table at that rate, for everyone (1 or nothing: normal)",
+			AbilitySetup = "Studio only: racks your table to show that ability off, puts it in your slot and arms it, your turn",
 		},
 		BadCue = 'No cue called "%s". Use an id (ChalkDust) or a name (chalk dust).',
 		BadCase = 'No case called "%s". Cases: %s.',
@@ -410,6 +416,29 @@ return {
 		UltsAllOff = "Only the built abilities roll and play for you again.",
 		OpUlt = "Filled %d bar(s) on the other side.",
 		OpUltNone = "No bar filled (no table, abilities off, or nobody on the other side).",
+		-- The look check's tools (/slowmo, /abilitysetup; Studio only).
+		StudioOnly = "%s works in Studio only.",
+		SlowmoSet = "Replays at table %d play at x%s.",
+		SlowmoOff = "Replays at table %d play at normal speed.",
+		NoSetup = "No layout for %s yet (Config.Ults.Setups).",
+		SetupFailed = "The layout could not be set: %s",
+		SetupDone = "Table %d set up for %s: %s",
+		-- What to shoot in each /abilitysetup layout, by ult id (Config.Ults.Setups).
+		SetupNotes = {
+			Magnet = "hit the 1 full: it runs about 1.5 ball widths wide of the top-right corner and the pull brings it in. The 9 by the bottom-right corner feels half the pull.",
+			EaglesEye = "the 9 and 10 block the 1's straight pots: aim the 1 up into the top rail and follow the gold path of the bank.",
+			SuperBounce = "open table: drive the cue ball firmly into a rail and count the bounces.",
+			Ghost = "shoot straight through the 9 and 10: the cue ball passes them and pots the 1 in the top-right corner.",
+			HeatSeeker = "pick the 1 (walled in by the 9 and 10), then shoot any way: the cue ball curves round to it.",
+			Rewind = "a thin cut of the 1 into the top-right corner from the bottom rail: miss it and the table rewinds.",
+			TimeStop = "pot the 1 in the top side pocket; when time stops, strike the cue ball again at the 2 or 3 by a bottom corner.",
+			ChainLightning = "pot the 1 in the top-right corner: the chain jumps to the 2, 3 and 4 (and wastes a link on the 9).",
+			Portals = "put portal A in front of the cue ball and B lined up with the 1 by the top-right corner, then shoot into A.",
+			SteelBall = "hit the 1 toward the bottom-right corner: it's guided in, then the cue ball curves to the 2.",
+			BlackFlash = "hit the 1: it shatters and the blast nudges the 2, 3 and 4 (the 9 and 10 half as hard).",
+			BlackHole = "hit the 1 in the middle cluster: the hole takes the 1, 2 and 3 and the 9 and 10 inside half its reach (not the 11 or 12).",
+			GuangdongTiger = "hit the 1 in the cluster: the tiger cuts the 1, 2 and 3 and the 9 and 10 inside half its reach (not the 11).",
+		},
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
@@ -1040,6 +1069,34 @@ return {
 			-- The leave reminder (Reminders), its top line while today's free spin is unused.
 			Reminder = "Your FREE SPIN is ready!",
 			ReminderButton = "SPIN",
+		},
+		-- The aim-phase pick view (UltPick): Heat Seeker's ball, Portals' two spots, chosen in
+		-- the top-down view before the shot. The title pill follows the last input (touch,
+		-- mouse or gamepad).
+		Pick = {
+			OwnBallTouch = "TAP ONE OF YOUR BALLS",
+			OwnBallMouse = "CLICK ONE OF YOUR BALLS",
+			OwnBallPad = "PICK ONE OF YOUR BALLS",
+			PortalA = "PLACE PORTAL A",
+			PortalB = "PLACE PORTAL B",
+			Adjust = "DRAG TO ADJUST, THEN CONFIRM", -- both placed (touch and mouse)
+			AdjustPad = "MOVE TO ADJUST, THEN CONFIRM", -- both placed (gamepad)
+			Blocked = "KEEP CLEAR OF BALLS, RAILS AND POCKETS", -- a portal on a refused spot
+			TooClose = "MOVE THE PORTALS APART",
+			Confirm = "CONFIRM",
+			Reset = "RESET",
+			LetterA = "A", -- on the portals' rings
+			LetterB = "B",
+			-- The controller guide's words while picking (PadGuide).
+			Pad = {
+				Move = "Move", -- the left stick
+				NextBall = "Next ball", -- the D-pad
+				Pick = "Pick", -- A (PlayStation Cross)
+				Place = "Place",
+				Switch = "Switch portal", -- Y (PlayStation Triangle)
+				Reset = "Reset", -- L1
+				Confirm = "Confirm", -- X (PlayStation Square)
+			},
 		},
 	},
 }

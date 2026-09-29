@@ -176,15 +176,17 @@ function UltService.fill(player: Player): (boolean, string?)
 end
 
 --- Dev (/ultarm): fills the player's bar and arms their equipped ult at once (the cutscene
---- wait skipped; practice in solo). Returns ok and a Match reason, or "NoTable".
-function UltService.arm(player: Player): (boolean, string?)
+--- wait skipped; practice in solo). `ultId` arms that ult instead (/abilitysetup: a
+--- placeholder too). Returns ok and a Match reason, or "NoTable".
+function UltService.arm(player: Player, ultId: string?): (boolean, string?)
 	local t = tableOfPlayer(player)
 	if not t then
 		return false, "NoTable"
 	end
 	local time = now()
 	Tables.advance(t, time)
-	local ok, reason = Match.devArm(t.engine, player.UserId, UltService.equipped(player), time)
+	local id = ultId or UltService.equipped(player)
+	local ok, reason = Match.devArm(t.engine, player.UserId, id, time)
 	Tables.broadcast(t)
 	return ok, reason
 end

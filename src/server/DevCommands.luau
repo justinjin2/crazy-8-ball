@@ -11,17 +11,23 @@
 --   They go through the same server APIs as the game (PlayerData, Ranking, Items, Store,
 --   Counters), so they can do nothing the save's own checks refuse. They work in a live server
 --   too, for the same allowed people.
+-- - The look check's tools (Studio only; /abilityhelp lists them): /slowmo <scale> sets the
+--   replay rate at the caller's table for everyone (a workspace attribute the clients read),
+--   and /abilitysetup <id|name> racks it in Config.Ults.Setups' layout through the QA
+--   fixture, with that ability in the caller's slot and armed.
 -- - Arguments are read defensively: a bad one answers a usage line, never an error.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
 local TextChatService = game:GetService("TextChatService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local LightCycle = require(Shared:WaitForChild("LightCycle"))
 local Net = require(Shared:WaitForChild("Net"))
+local Placement = require(Shared:WaitForChild("Placement"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Format = require(Shared.Progression.Format)
 local Ranks = require(Shared.Progression.Ranks)
@@ -37,6 +43,7 @@ local Store = require(script.Parent.Store)
 local Counters = require(script.Parent.Counters)
 local UltService = require(script.Parent.UltService)
 local UltSpins = require(script.Parent.UltSpins)
+local Tables = require(script.Parent.TableService)
 local UltCatalog = require(Shared.Ults.Catalog)
 
 local D = Config.Debug.Commands
@@ -460,6 +467,7 @@ local USAGE_ARGS: { [string]: { any } } = {
 	Spins = { U.Earn.MaxSpins },
 	Lucky = { U.Earn.MaxSpins },
 	Pity = { U.Roll.PityAt - 1 },
+	Slowmo = { D.SlowmoMin, D.SlowmoMax, D.Slowmo },
 }
 local WHAT_ARGS: { [string]: { any } } = {
 	Dupes = { D.DupeCopies, D.DupeKinds },
@@ -858,6 +866,8 @@ local ULTS: { string } = {
 	"Ult",
 	"UltsAll",
 	"OpUlt",
+	"Slowmo",
+	"AbilitySetup",
 }
 
 -- An ult by id or name, any case or spacing ("blackflash", "black flash"), or nil.
@@ -905,6 +915,129 @@ local function ultHelp(player: Player)
 	for _, key in ULTS do
 		local what = WHAT[key]:format(table.unpack(WHAT_ARGS[key] or {}))
 		tell(player, Dev.HelpLine:format(usage(key), what))
+	end
+end
+
+---------------------------------------------------------------------------------------------
+-- The look check's tools (Studio only; docs/prompts/ABILITIES_PROMPT.md 5.6)
+---------------------------------------------------------------------------------------------
+
+local SETUP_NOTES: { [string]: string } = Dev.SetupNotes :: any
+
+-- The table the look-check tools act on: the one the player is in the game at, else the one
+-- nearest their character (table 1 without a character).
+local function nearTable(player: Player): number
+	local seated = Tables.tableOf(player)
+	if seated then
+		return seated
+	end
+	local character = player.Character
+	local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
+	local best, bestDistance = 1, math.huge
+	if root and root:IsA("BasePart") then
+		for id = 1, Placement.tableCount() do
+			local p = Placement.forTable(id)
+			if p then
+				local distance = (Vector3.new(p.x, p.y, p.z) - root.Position).Magnitude
+				if distance < bestDistance then
+					best, bestDistance = id, distance
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- Whether this is Studio; answers the caller when it is not.
+local function inStudio(player: Player, alias: string): boolean
+	if RunService:IsStudio() then
+		return true
+	end
+	tell(player, Dev.StudioOnly:format(alias))
+	return false
+end
+
+-- /slowmo <scale>: every replay at the caller's table plays at that rate for everyone there
+-- (a workspace attribute each client's Main hands to that table's Match.setTimeScale);
+-- /slowmo or /slowmo 1 clears it.
+local function slowmo(player: Player, args: { string })
+	if not inStudio(player, D.Slowmo) then
+		return
+	end
+	local scale = tonumber(args[1] or "1")
+	if scale == nil or scale ~= scale or scale < D.SlowmoMin or scale > D.SlowmoMax then
+		try(player, "Slowmo")
+		return
+	end
+	local id = nearTable(player)
+	workspace:SetAttribute(D.SlowmoAttribute .. id, if scale == 1 then nil else scale)
+	tell(
+		player,
+		if scale == 1 then Dev.SlowmoOff:format(id) else Dev.SlowmoSet:format(id, tostring(scale))
+	)
+end
+
+-- /abilitysetup <id|name>: the caller's table racked in the ult's Config.Ults.Setups layout
+-- through the QA fixture (ServerStorage.PoolMatchQA: a new game vs the QA opponent, the
+-- caller's turn in Aiming), the ult put in their selected slot and armed at once.
+local function abilitySetup(player: Player, args: { string })
+	if not inStudio(player, D.AbilitySetup) then
+		return
+	end
+	if #args == 0 then
+		try(player, "AbilitySetup")
+		return
+	end
+	local id = findUlt(args)
+	if id == nil then
+		tell(
+			player,
+			Dev.BadUlt:format(table.concat(args, " "), table.concat(UltCatalog.list(), ", "))
+		)
+		return
+	end
+	local name = UltCatalog.name(id)
+	local setup = U.Setups[id]
+	if setup == nil then
+		tell(player, Dev.NoSetup:format(name))
+		return
+	end
+	if not PlayerData.setUlt(player, id) then
+		tell(player, Dev.NotLoaded)
+		return
+	end
+	local hook = ServerStorage:FindFirstChild("PoolMatchQA")
+	if not (hook and hook:IsA("BindableFunction")) then
+		tell(player, Dev.SetupFailed:format("no PoolMatchQA"))
+		return
+	end
+	-- String keys: a table crossing a BindableFunction keeps them (the fixture reads tonumber).
+	local spots: { [string]: { number } | false } = {
+		["0"] = { setup.Cue[1], setup.Cue[2] },
+	}
+	for ball, spot in setup.Spots do
+		local at: { number }? = if spot then spot :: any else nil
+		spots[tostring(ball)] = if at then { at[1], at[2] } else false
+	end
+	local tableId = nearTable(player)
+	local ok, err = pcall(function()
+		hook:Invoke("fixture", tableId, {
+			phase = "Aiming",
+			userId = player.UserId,
+			spots = spots,
+			open = setup.Groups == "open",
+			groups = setup.Groups,
+			seconds = D.SetupClockSeconds,
+		})
+	end)
+	if not ok then
+		tell(player, Dev.SetupFailed:format(tostring(err)))
+		return
+	end
+	tell(player, Dev.SetupDone:format(tableId, name, SETUP_NOTES[id] or ""))
+	local armed, reason = UltService.arm(player, id)
+	if not armed then
+		ultAnswer(player, false, reason, "")
 	end
 end
 
@@ -1117,6 +1250,8 @@ function DevCommands.start()
 		local n = UltService.fillOpponent(player)
 		tell(player, if n > 0 then Dev.OpUlt:format(n) else Dev.OpUltNone)
 	end)
+	command("Slowmo", D.Slowmo, slowmo)
+	command("AbilitySetup", D.AbilitySetup, abilitySetup)
 	command("UltHelp", D.UltHelp, ultHelp)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script

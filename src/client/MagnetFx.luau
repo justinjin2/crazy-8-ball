@@ -39,10 +39,11 @@ local F = Config.UI.MagnetFx
 local A = Config.Ults.Audio
 local ART = Config.UI.Kit.Art
 
--- Magnet.activePulls, if the module is there (guarded so a missing or broken physics module
--- only costs the pull visuals, never the client).
+-- Magnet.activePulls and mouthPoint, if the module is there (guarded so a missing or broken
+-- physics module only costs the pull visuals and the preview's zones, never the client).
 type Pull = { ball: number, pocket: number, strength: number }
 local activePulls: ((any) -> { Pull })? = nil
+local mouthPoint: ((any, any) -> (number, number))? = nil
 do
 	local ok, found = pcall(function()
 		local ults = Shared:FindFirstChild("Ults")
@@ -52,6 +53,9 @@ do
 	end)
 	if ok and type(found) == "table" and type(found.activePulls) == "function" then
 		activePulls = found.activePulls
+	end
+	if ok and type(found) == "table" and type(found.mouthPoint) == "function" then
+		mouthPoint = found.mouthPoint
 	end
 end
 
@@ -889,7 +893,8 @@ end
 
 --- Start drawing Magnet for every table `hub` (src/client/Hub.luau) holds, under `parent`.
 --- Call update(dt) every frame after hub:update(dt), and arming() at each arming moment.
-function MagnetFx.start(hub: any, parent: Instance): MagnetFx
+--- AbilityFx starts it and passes its kit third; Magnet builds its own parts and ignores it.
+function MagnetFx.start(hub: any, parent: Instance, _kit: any?): MagnetFx
 	local self = setmetatable({
 		hub = hub,
 		parent = parent,
@@ -1016,6 +1021,24 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 			destroy(self, id)
 		end
 	end
+end
+
+--- The reach preview's zones while Magnet is armed and its shooter aims (ABILITIES_PROMPT
+--- 5.7, drawn by AbilityFx): each pocket's pull zone, ZoneBallWidths ball diameters round the
+--- middle of its mouth (Effects/Magnet's own rule). The opponent's balls feel it at half the
+--- pull in the same zone, so their red ring uses the same radius.
+function MagnetFx.zones(_self: MagnetFx, _tableId: number, _armed: any, m: any): { any }?
+	local point = mouthPoint
+	if point == nil then
+		return nil
+	end
+	local r = Config.Ults.Magnet.ZoneBallWidths * 2 * Config.Balls.RadiusInches
+	local zones = {}
+	for _, pocket in m.state.geometry.pockets do
+		local x, y = point(m.state.geometry, pocket)
+		table.insert(zones, { x = x, y = y, r = r })
+	end
+	return zones
 end
 
 --- Remove every effect at once.

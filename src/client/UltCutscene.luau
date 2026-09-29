@@ -9,7 +9,7 @@
 -- minus `armed.at` under Config.Ults.CutsceneSeconds), so a late join never plays it and a
 -- repeated snapshot never plays it twice. A client that hears late starts part-way in, on the
 -- server's clock. At `armed.readyAt` (the arming moment, about 1 s after the panel has gone)
--- it tells its onArming listeners, so the ult's own effect (MagnetFx) can play its arming.
+-- it tells its onArming listeners, so the ult's own look (through AbilityFx) can play its arming.
 --
 -- The panel: a white, ink-outlined band tilted TiltDegrees across the middle, HeightShare of
 -- the screen tall and wider than the screen. Inside, the kit's white with a thick line in the
@@ -32,10 +32,10 @@ local ContentProvider = game:GetService("ContentProvider")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local Placement = require(Shared:WaitForChild("Placement"))
 local Catalog = require(Shared:WaitForChild("Ults"):WaitForChild("Catalog"))
 local HudParts = require(script.Parent:WaitForChild("HudParts"))
 local UIAnim = require(script.Parent:WaitForChild("UIAnim"))
+local ScreenFx = require(script.Parent:WaitForChild("ScreenFx"))
 
 local C = Config.UI.UltCutscene
 local U = Config.Ults
@@ -767,33 +767,10 @@ end
 -- Watching the tables
 ---------------------------------------------------------------------------------------------
 
--- In the match: seated at the table, or standing close enough to watch it.
+-- In the match: seated at the table, or standing close enough to watch it (ScreenFx.involved,
+-- the one rule the table-wide screen effects use too).
 local function involved(self: UltCutscene, snapshot: any): boolean
-	if self.hub.mySeat == snapshot.id then
-		return true
-	end
-	for _, seat in (snapshot.seats or {}) :: { any } do
-		if seat.userId == player.UserId then
-			return true
-		end
-	end
-	local p = Placement.forTable(snapshot.id)
-	if p == nil then
-		return false
-	end
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	local at: Vector3? = nil
-	if root and root:IsA("BasePart") then
-		at = root.Position
-	elseif workspace.CurrentCamera then
-		at = workspace.CurrentCamera.Focus.Position
-	end
-	if at == nil then
-		return false
-	end
-	local dx, dz = at.X - p.x, at.Z - p.z
-	return dx * dx + dz * dz <= C.SpectateRadiusStuds * C.SpectateRadiusStuds
+	return ScreenFx.involved(self.hub, snapshot.id, snapshot)
 end
 
 local function armedOf(snapshot: any): Armed?

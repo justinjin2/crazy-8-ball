@@ -10,6 +10,10 @@
 --
 --   (L-stick) Spin   (R-stick) ^v Angle   (Y) Center spin
 --
+-- and while an ability's pick is owed (UltPick), its controls: (L-stick) Move, (D-pad) Next
+-- ball, (A) Pick, (X) Confirm for a ball; (L-stick) Move, (A) Place, (Y) Switch portal, (L1)
+-- Reset, (X) Confirm for portals;
+--
 -- and a Circle beside the Leave door in the top bar. The button pictures are Roblox's own
 -- (UserInputService:GetImageForKeyCode), so they are PlayStation or Xbox glyphs to match the
 -- controller in use; the arrows beside the sticks are the kit's white chevrons (separate
@@ -28,9 +32,12 @@ local HudParts = require(script.Parent.HudParts)
 
 local P = Config.UI.PadGuide
 local Copy = Strings.PadGuide
+local PickCopy = Strings.Ults.Pick.Pad
 
 type Item = {
-	set: string, -- "aim" (the turn) or "spin" (while L1 holds the spin panel open)
+	-- "aim" (the turn), "spin" (while L1 holds the spin panel open), "pickBall" or
+	-- "pickPortals" (UltPick.padSet)
+	set: string,
 	row: number,
 	keys: { Enum.KeyCode },
 	arrows: string?, -- "sideways" or "updown"
@@ -84,6 +91,22 @@ local ITEMS: { Item } = {
 		words = Copy.Angle,
 	},
 	{ set = "spin", row = 1, keys = { Enum.KeyCode.ButtonY }, words = Copy.CenterSpin },
+	-- The ability pick view (UltPick): Heat Seeker's ball ...
+	{ set = "pickBall", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = PickCopy.Move },
+	{
+		set = "pickBall",
+		row = 1,
+		keys = { Enum.KeyCode.DPadLeft, Enum.KeyCode.DPadRight },
+		words = PickCopy.NextBall,
+	},
+	{ set = "pickBall", row = 2, keys = { Enum.KeyCode.ButtonA }, words = PickCopy.Pick },
+	{ set = "pickBall", row = 2, keys = { Enum.KeyCode.ButtonX }, words = PickCopy.Confirm },
+	-- ... and Portals' two spots.
+	{ set = "pickPortals", row = 1, keys = { Enum.KeyCode.Thumbstick1 }, words = PickCopy.Move },
+	{ set = "pickPortals", row = 1, keys = { Enum.KeyCode.ButtonA }, words = PickCopy.Place },
+	{ set = "pickPortals", row = 1, keys = { Enum.KeyCode.ButtonY }, words = PickCopy.Switch },
+	{ set = "pickPortals", row = 2, keys = { Enum.KeyCode.ButtonL1 }, words = PickCopy.Reset },
+	{ set = "pickPortals", row = 2, keys = { Enum.KeyCode.ButtonX }, words = PickCopy.Confirm },
 }
 
 local PadGuide = {}
@@ -272,7 +295,8 @@ function PadGuide.apply(self: any)
 	end
 end
 
---- Which controls to show: "aim" for the turn, "spin" while L1 holds the spin panel open.
+--- Which controls to show: "aim" for the turn, "spin" while L1 holds the spin panel open,
+--- "pickBall" or "pickPortals" while an ability's pick is owed.
 function PadGuide.setSet(self: any, set: string)
 	if self.set == set then
 		return

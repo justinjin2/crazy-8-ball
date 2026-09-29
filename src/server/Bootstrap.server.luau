@@ -28,6 +28,7 @@ local Announce = require(script.Parent:WaitForChild("Announce"))
 local Items = require(script.Parent:WaitForChild("Items"))
 local Store = require(script.Parent:WaitForChild("Store"))
 local Rewards = require(script.Parent:WaitForChild("Rewards"))
+local AbilityAssets = require(script.Parent:WaitForChild("AbilityAssets"))
 
 -- An arena? Decided before anything is built.
 local isArena, matchId = ArenaService.detect()
@@ -143,6 +144,9 @@ GlobalQueue.start(not isArena) -- every server takes its turn pairing the global
 if isArena then
 	ArenaService.start(record)
 end
+-- The abilities' uploaded models, loaded in the background into ReplicatedStorage for the
+-- clients (a failed one is warned about; its look falls back).
+AbilityAssets.start()
 
 print(
 	("[8ball] server ready (%s). %d tables, %dx%d in, %.2f studs/in"):format(

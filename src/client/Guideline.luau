@@ -38,6 +38,9 @@ export type Guideline = typeof(setmetatable(
 		crosses: { Strip },
 		landings: { Part },
 		scroll: number,
+		-- The ghost ball's centre (inches) while a ball or cushion contact is shown, for the
+		-- abilities' reach preview (AbilityFx); nil while hidden.
+		aimContact: { x: number, y: number }?,
 	},
 	Guideline
 ))
@@ -121,6 +124,7 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 		crosses = { makeStrip("InvalidA", folder, false), makeStrip("InvalidB", folder, false) },
 		landings = landings,
 		scroll = 0,
+		aimContact = nil,
 	}, Guideline)
 	return self
 end
@@ -177,6 +181,16 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level:
 	if trace.contact == "none" then
 		self:hide()
 		return
+	end
+	if trace.contact == "off" then
+		self.aimContact = nil
+	else
+		local contact = self.aimContact
+		if contact then
+			contact.x, contact.y = trace.ghostX, trace.ghostY
+		else
+			self.aimContact = { x = trace.ghostX, y = trace.ghostY }
+		end
 	end
 	local D = Config.Difficulty
 	local draws = D.Levels[level or D.Default] or D.Levels[D.Default]
@@ -327,7 +341,14 @@ function Guideline.destroy(self: Guideline)
 	self.folder:Destroy()
 end
 
+--- Where the cue ball's centre is at the first contact shown (inches), or nil while hidden or
+--- flying off the table. AbilityFx draws the reach preview there.
+function Guideline.contact(self: Guideline): { x: number, y: number }?
+	return self.aimContact
+end
+
 function Guideline.hide(self: Guideline)
+	self.aimContact = nil
 	for _, cross in self.crosses do
 		hideStrip(cross)
 	end

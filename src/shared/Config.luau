@@ -2474,6 +2474,315 @@ Config.Ults.Assets = {
 	},
 	LoadRetries = 3,
 	LoadRetrySeconds = 2,
+	-- The ReplicatedStorage folder the loaded models go in (src/client/AbilityModels.luau).
+	FolderName = "AbilityAssets",
+}
+
+-- The developer's `/abilitysetup <id>` layouts (Studio only; DevCommands; the look check,
+-- docs/prompts/ABILITIES_PROMPT.md 5.6): per ult, a rack that shows it off. Table inches: x
+-- from -50 (head) to +50 (foot), y from -25 to +25. Cue = the cue ball's spot; Spots = every
+-- object ball 1-15, a spot { x, y } or false (pocketed); Groups = the caller's group:
+-- "solids" (1-7), "stripes" (9-15) or "open" (no groups yet). Strings.Dev.SetupNotes says
+-- what to shoot. tests/ult_setups_test.luau keeps every ball on the cloth, clear of the
+-- others and of the pockets.
+Config.Ults.Setups = {
+	-- The 1 lined up to run about 1.5 ball widths wide of the top-right corner: the pull
+	-- brings it in. The 9 waits by the bottom-right corner (half the pull).
+	Magnet = {
+		Cue = { 10, 5 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 28.3, 15 },
+			[2] = { -30, -10 },
+			[3] = { -20, 18 },
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 0, -12 },
+			[9] = { 40, -15 },
+			[10] = { -35, 12 },
+			[11] = false,
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1's straight pots are blocked by the 9 and 10: a bank off the top rail.
+	EaglesEye = {
+		Cue = { -13.8, -20 },
+		Groups = "solids",
+		Spots = {
+			[1] = { -12, -8 },
+			[2] = { 25, 10 },
+			[3] = { 35, -15 },
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 20, -5 },
+			[9] = { -6, -16.5 },
+			[10] = { -30, -16 },
+			[11] = { 10, -18 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- Open cloth: room to bounce.
+	SuperBounce = {
+		Cue = { -25, 0 },
+		Groups = "open",
+		Spots = {
+			[1] = { 30, 10 },
+			[2] = { 35, -12 },
+			[3] = false,
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 40, 0 },
+			[9] = { 20, -18 },
+			[10] = { -35, 15 },
+			[11] = false,
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 9 and 10 sit on the straight line from the cue ball through the 1 to the top-right
+	-- corner.
+	Ghost = {
+		Cue = { -20, -10 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 20, 10 },
+			[2] = { -35, 15 },
+			[3] = false,
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 0, -15 },
+			[9] = { -7, -3.5 },
+			[10] = { 4, 2 },
+			[11] = { 30, -10 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1 hidden behind a wall of the 9 and 10 (too narrow a gap for the cue ball).
+	HeatSeeker = {
+		Cue = { -20, 0 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 30, 14 },
+			[2] = { -35, -15 },
+			[3] = false,
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 0, -12 },
+			[9] = { 20, 12.5 },
+			[10] = { 20, 9.6 },
+			[11] = { 35, -15 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- A thin cut (about 70 degrees) of the 1 into the top-right corner from the bottom rail.
+	Rewind = {
+		Cue = { 42, -17.4 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 38, 18 },
+			[2] = { -20, 15 },
+			[3] = false,
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 10, -18 },
+			[9] = { 0, 10 },
+			[10] = { 20, -10 },
+			[11] = { 30, 5 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1 into the top side pocket; the 2 and 3 by the bottom corners for the second strike.
+	TimeStop = {
+		Cue = { -13.7, 2.1 },
+		Groups = "solids",
+		Spots = {
+			[1] = { -6, 15 },
+			[2] = { 40, -18 },
+			[3] = { -35, -18 },
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 10, -8 },
+			[9] = { 25, 10 },
+			[10] = { -38, 12 },
+			[11] = false,
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1 lined up for the top-right corner, the 2, 3 and 4 and one of theirs (the 9)
+	-- within about 10 in of it.
+	ChainLightning = {
+		Cue = { -2.4, -4.9 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 15, 5 },
+			[2] = { 19, -4 },
+			[3] = { 13, 12 },
+			[4] = { 9, -3 },
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { -30, 15 },
+			[9] = { 23, 2 },
+			[10] = { -35, -15 },
+			[11] = { 40, -18 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1 by the top-right corner, far from the cue ball, with the middle clear.
+	Portals = {
+		Cue = { -35, 0 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 40, 18 },
+			[2] = { -10, -18 },
+			[3] = false,
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 25, -12 },
+			[9] = { 10, -18 },
+			[10] = { -20, 18 },
+			[11] = false,
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1 near the bottom-right corner, the 2 nearby for the curve after it, the 3 by the
+	-- top-right corner.
+	SteelBall = {
+		Cue = { 10, -8 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 40, -18 },
+			[2] = { 30, -5 },
+			[3] = { 35, 18 },
+			[4] = false,
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { -30, 10 },
+			[9] = { 20, 10 },
+			[10] = { -20, -10 },
+			[11] = false,
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- The 1 ringed by the 2, 3 and 4 and two of theirs (the 9 and 10) for the blast.
+	BlackFlash = {
+		Cue = { -15, 0 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 15, 0 },
+			[2] = { 21, 4 },
+			[3] = { 20, -6 },
+			[4] = { 10, 6 },
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { -30, 15 },
+			[9] = { 12, -6 },
+			[10] = { 24, -1 },
+			[11] = { -35, -15 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- A cluster near the middle: the 1, 2 and 3 with the 9 and 10 close in, the 11 and 12 a
+	-- little further out (outside the opponent's half reach).
+	BlackHole = {
+		Cue = { -20, 0 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 5, 0 },
+			[2] = { 8.5, 3.5 },
+			[3] = { 8.5, -3.5 },
+			[4] = { -30, 15 },
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 30, -15 },
+			[9] = { 3, 4.5 },
+			[10] = { 3, -4.5 },
+			[11] = { 14, 0 },
+			[12] = { -2, 12 },
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+	-- A cluster like Black Hole's, a little up the table.
+	GuangdongTiger = {
+		Cue = { -15, 6 },
+		Groups = "solids",
+		Spots = {
+			[1] = { 12, 6 },
+			[2] = { 16, 9.5 },
+			[3] = { 16.5, 2 },
+			[4] = { -35, -15 },
+			[5] = false,
+			[6] = false,
+			[7] = false,
+			[8] = { 30, -15 },
+			[9] = { 9, 10.5 },
+			[10] = { 8.5, 1.5 },
+			[11] = { 24, 6 },
+			[12] = false,
+			[13] = false,
+			[14] = false,
+			[15] = false,
+		},
+	},
+} :: {
+	[string]: {
+		Cue: { number },
+		Groups: string,
+		Spots: { [number]: { number } | false },
+	},
 }
 
 ---------------------------------------------------------------------------------------------
@@ -6279,6 +6588,96 @@ Config.UI.MagnetFx = {
 	VortexSizeStuds = 0.09,
 }
 
+-- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
+-- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
+Config.UI.AbilityFx = {
+	-- Each ability's client look module (ult id -> a ModuleScript next to AbilityFx). A missing
+	-- one is skipped with a warning.
+	Looks = {
+		Magnet = "MagnetFx",
+	} :: { [string]: string },
+	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
+	-- payoff can fade out); kit.keep holds them longer.
+	LingerSeconds = 1.5,
+	-- The kit's defaults: beams, sparks, lights.
+	BeamWidthStuds = 0.06,
+	BeamSegments = 10,
+	SparkTexture = "", -- "" = Roblox's own sparkle
+	ParticleSizeStuds = 0.1,
+	ParticleLifetime = { 0.3, 0.6 }, -- seconds, min and max
+	ParticleSpeed = { 2, 6 }, -- studs a second, min and max
+	LightBrightness = 2,
+	LightRangeStuds = 4,
+	BurstRiseShare = 0.15, -- a burst light reaches its peak this share of the way in
+	-- How long AbilityModels.get waits for the server to finish loading a model.
+	ModelWaitSeconds = 5,
+	-- The reach preview's full radius for an area ability whose look gives none (inches); the
+	-- opponent's is this times Config.Ults.Shared.OpponentFactor.
+	PreviewDefaultReachInches = 12,
+	-- How the preview is drawn (its colours and transparencies: Config.Ults.Shared.Preview).
+	Preview = {
+		LiftInches = 0.12, -- over the cloth, just under the guideline (0.15)
+		RingWidthStuds = 0.05, -- the soft outer ring
+		InnerWidthStuds = 0.035, -- the dashed inner ring
+		RingSegments = 24, -- arcs in a solid ring (fine enough to cut at the cushions)
+		DashSegments = 20, -- dashes in the inner ring...
+		DashShare = 0.55, -- ...each this share of its piece
+		DashTurnSeconds = 12, -- the dashes creep round once in this long
+		BeamSegments = 6, -- each arc's smoothness
+		LightEmission = 0.6,
+		ZoneTransparency = 0.72, -- Magnet's pocket zones: fainter than a reach ring
+		OutlineBallWidths = 1.35, -- the red ring round an opponent ball in reach
+	},
+	-- SoundSheet (src/client/SoundSheet.luau).
+	SoundSheet = {
+		-- A one-shot counts as done this close to its end (seconds): the region's end is
+		-- reached in frame steps.
+		EndEpsilonSeconds = 0.03,
+		-- A sheet clip is destroyed by its length plus this, whatever it reports (it may be
+		-- waiting on the file).
+		LoadGraceSeconds = 3,
+		-- A library clip (its length unknown until loaded) is destroyed by this at the latest.
+		LibraryMaxSeconds = 12,
+	},
+}
+
+-- Table-wide screen effects (src/client/ScreenFx.luau; ABILITIES_PROMPT 5.2), seen by the
+-- table's players and spectators only. (tune)
+Config.UI.ScreenFx = {
+	-- Its ScreenGui sits this far over the HUD's: under the cutscene (+8) and the menus (+10).
+	DisplayOrderAbove = 6,
+	-- A flash starts this see-through and clears; it peaks this share of the way in.
+	FlashTransparency = 0.15,
+	FlashRiseShare = 0.08,
+	-- An overlay's default see-through at full weight, and its default fades (seconds).
+	OverlayTransparency = 0.2,
+	OverlayFadeSeconds = 0.15,
+	SheetPx = 1024, -- a flipbook sheet's size in pixels when the spec gives none
+	JitterSeconds = 0.06, -- a glitch overlay jumps this often
+	-- The shake: noise this many cycles a second, and this much roll per stud of shake.
+	ShakeFrequency = 18,
+	ShakeRollDegreesPerStud = 4,
+	FovRiseShare = 0.2, -- an FOV punch peaks this share of the way in
+	FovMin = 20, -- the punch never takes the field of view outside these (degrees)
+	FovMax = 110,
+	-- Our camera offset is taken back off only if the camera still sits where we left it
+	-- (within these), so a camera moved by something else is never yanked back.
+	PoseEpsilonStuds = 0.001,
+	PoseEpsilonDot = 1e-6,
+	-- The inversion (Roblox cannot truly invert the 3D view): grey, contrast high, brightness
+	-- up and a cold tint over a white flash reads as a blown-out negative.
+	Invert = {
+		Saturation = -1,
+		Contrast = 1.2,
+		Brightness = 0.35,
+		TintColor = { 200, 225, 255 },
+		FadeInSeconds = 0.05,
+		FadeOutSeconds = 0.25,
+		FlashColor = { 255, 255, 255 },
+		FlashSeconds = 0.3,
+	},
+}
+
 -- The ult spin screen (UltScreen and its parts UltSlots, UltOdds, UltBuy, UltFast,
 -- UltSpinAnim, UltScreenParts; the stage UltStage and its aura UltAura; reference 09,
 -- docs/prompts/ULTIMATES_PROMPT.md section 9). Full: a computer or tablet, laid out for a
@@ -6569,6 +6968,65 @@ Config.UI.UltScreen = {
 	Reminder = { ButtonWidthPx = { 84, 110 }, GapPx = 8, ButtonTextPx = { 14, 18 } },
 }
 
+-- The aim-phase pick view (src/client/UltPick.luau; ABILITIES_PROMPT 5.2, 7.5, 7.9): the
+-- shooter's top-down view while Heat Seeker's ball or Portals' two spots are owed. Pixels and
+-- seconds; pairs { a, b } are a phone on its side (a screen shorter than
+-- Multiplayer.Style.ShortHeight), then a bigger screen. The rings are placeholders until each
+-- ability's look module draws its own (UltPick.onPicked / onPortals). (tune)
+Config.UI.UltPick = {
+	ZIndex = 25, -- over the pocket targets and the match HUD's lines, under the ability bar
+	-- The title pill at the top: "TAP ONE OF YOUR BALLS", "PLACE PORTAL A" ... in the
+	-- ability's rarity colour.
+	TitlePx = { 34, 42 }, -- its height
+	TitleTextPx = { 18, 24 },
+	TitlePadPx = { 14, 20 }, -- room at each end of its words
+	TitleGapPx = 8, -- under the top bar
+	-- CONFIRM (green) and, for Portals, RESET (blue): stacked on the right edge, where the
+	-- power bar sits while aiming (it is hidden meanwhile).
+	ButtonWidthPx = { 124, 170 },
+	ButtonHeightPx = { 44, 52 }, -- never under 44: the touch target
+	ButtonTextPx = { 18, 20 },
+	ButtonGapPx = 10,
+	EdgeMarginPx = { 12, 24 }, -- from the screen's right edge
+	-- The rings on the cloth, drawn on screen over the balls and the portal spots.
+	HitPx = 44, -- the touch target round a ball or a portal, whatever its drawn size
+	BallRingShare = 1.55, -- a pickable ball's ring, of the ball's size on screen
+	MinRingPx = 26, -- never drawn smaller than this
+	RingStrokePx = 3,
+	RingInkPx = 2, -- the ink just outside the colour, so it reads on bright cloth
+	RingColor = { 255, 255, 255 }, -- a ball you may pick, pulsing
+	HoverColor = { 255, 204, 40 }, -- under the mouse or the gamepad's cursor
+	PulseSeconds = 1.2, -- one breath of the pickable rings
+	PulseGrow = 0.12, -- they grow by this share at the top of the breath
+	PulseTransparency = 0.45, -- ...and fade to this at the bottom
+	-- The lock-on placeholder on the picked ball (the real reticle is Heat Seeker's look).
+	LockColor = { 255, 56, 56 },
+	LockShare = 2.1, -- its size, of the ball's size on screen
+	LockStrokePx = 4,
+	LockDegreesPerSecond = 90, -- it turns slowly
+	LockPopSeconds = 0.25, -- it closes in from LockPopGrow times its size when a ball is picked
+	LockPopGrow = 1.8,
+	-- The portals' placeholder rings: a flat disc with a coloured rim and its letter.
+	PortalColorA = { 64, 224, 255 }, -- cyan (entry)
+	PortalColorB = { 128, 104, 255 }, -- violet-blue
+	PortalBlockedColor = { 255, 64, 64 }, -- a spot the server would refuse
+	PortalRingBallWidths = 1, -- the ring's radius on the cloth, in ball widths
+	PortalStrokePx = 4,
+	PortalFillTransparency = 0.72,
+	PortalLetterPx = { 16, 20 },
+	PreviewTransparency = 0.45, -- a portal the gamepad is still moving, not yet placed
+	-- Gamepad: the left stick moves a cursor (Heat Seeker) or the active portal.
+	CursorInchesPerSecond = 40, -- at a full push, in table inches
+	StickDeadZone = 0.2,
+	StickCurve = 1.6, -- a small push moves finely
+	CursorPx = 30, -- the cursor's ring (shown on a gamepad only)
+	NavAcrossWeight = 2, -- D-pad: sideways distance counts this many times (as the pocket rings)
+	PortalStartX = -25, -- portal A starts here on a gamepad (inches along the length, centre line)
+	PartnerGapShare = 1.5, -- portal B starts at least this share of the minimum gap from A
+	-- A CONFIRM the server has not answered in this long shows the view again.
+	PendingSeconds = 3,
+}
+
 Config.Debug = {
 	-- Test keys in play mode: B = rack and break (until rules handle new games).
 	TestKeysEnabled = true,
@@ -6629,6 +7087,18 @@ Config.Debug = {
 		UltsAll = "/abilitiesall", -- /abilitiesall on|off: every ult rolls and plays for you (session)
 		OpUlt = "/opability", -- fills the bars of the other side at your table (the QA opponent's)
 		UltHelp = "/abilityhelp", -- lists these
+		-- The look check's tools (Studio only, ABILITIES_PROMPT 5.6; also in /abilityhelp).
+		-- /slowmo <scale>: every replay at your table plays at that rate for everyone watching
+		-- (/slowmo or /slowmo 1: normal). It goes on the workspace attribute SlowmoAttribute
+		-- followed by the table id, which every client reads (Main).
+		Slowmo = "/slowmo",
+		SlowmoMin = 0.05, -- the slowest rate accepted (Match.setTimeScale's floor)
+		SlowmoMax = 4, -- the fastest rate accepted (Match.setTimeScale's ceiling)
+		SlowmoAttribute = "ReplaySlowmo_",
+		-- /abilitysetup <id|name>: your table racked in Config.Ults.Setups' layout for it, the
+		-- ability in your selected slot and armed, your turn to aim (vs the QA opponent).
+		AbilitySetup = "/abilitysetup",
+		SetupClockSeconds = 120, -- the set-up turn's shot clock: time to line up a capture
 		-- The ult commands' old names, by command: each still runs its command.
 		OldAliases = {
 			UltBar = "/ultbar",

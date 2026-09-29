@@ -35,6 +35,12 @@ yet to measure real pot rates):
   - Ults: Magnet (Common) adds MAGNET_BOOST to the ult shot's pot chance (the power ladder's
     "about 1/3 of a ball"). The top ult (Legendary/Mythic) pockets 2 or 3 of your balls for sure
     (3 at most, never the 8 before your legal 8 shot; on the 8 shot it pockets the 8).
+  - The rarity table: an ult worth W balls per use (measured by the value harness,
+    tools/ult_value.luau) pockets floor(W) of your balls for sure and adds W - floor(W) to the
+    shot's pot chance (on the 8 shot it adds W to the 8's pot chance). Each rarity's best
+    measured ult plays one worth Magnet's measured worth, at equal skill. The worths come from
+    tools/ult_value_results.json (the careful shooter's net worth at skill 2, the average
+    player) when it has the ult, else Config.Ults.Catalog[id].Worth for a built ult.
   - Goal 2 cheaters: a "tapper" makes a legal tap every shot until the bar is full; a
     "safety farmer" plays a safety every shot until the bar is full. Then each uses the ult at
     once and plays honestly from there.
@@ -45,6 +51,7 @@ dropped on their own break count as the same turn).
 
 Run (from anywhere; needs lune on the PATH):
     python3 tools/ult_model.py                       # every check with Config's numbers
+    python3 tools/ult_model.py --results other.json  # the rarity table from another harness run
     python3 tools/ult_model.py --fill TurnLegal=18 --fill Difficulty.Classic=1.5
     python3 tools/ult_model.py --fill Own=8,6,5,4 --n 2000 --seed 7
 Python standard library only; seeded, so the same inputs print the same numbers.
@@ -112,6 +119,75 @@ def load_config():
     return json.loads(out)
 
 
+def load_results(path):
+    """The value harness's measurements (tools/ult_value.luau), or {} when there are none."""
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def measured_worths(cfg, results):
+    """Each ult's worth per use for the rarity table: {id: (worth, careless, source)}. A
+    harness result for a built ult wins (the careful shooter's net at skill 2, the average
+    player; the careless one alongside); else a built ult's Config.Ults.Catalog Worth.
+    Placeholders are left out."""
+    out = {}
+    for uid in cfg.get("Order", []):
+        row = cfg.get("Catalog", {}).get(uid, {})
+        rep = results.get(uid)
+        if rep and rep.get("built"):
+            skills = {s["skill"]: s for s in rep.get("skills", [])}
+            s = skills.get(2) or next(iter(skills.values()), None)
+            careful = s.get("careful") if s else None
+            careless = s.get("careless") if s else None
+            main = careful or careless
+            if main:
+                out[uid] = (main["net"], careless["net"] if careless else None,
+                            f"harness {rep.get('measuredAt', 'unknown')}, "
+                            f"{rep.get('samples')} states, skill {s['skill']}")
+                continue
+        if row.get("Built"):
+            out[uid] = (float(row["Worth"]), None, "Config Worth")
+    return out
+
+
+def rarity_table(cfg, results, n, seed):
+    """Each rarity's best measured ult against Magnet at equal skill."""
+    worths = measured_worths(cfg, results)
+    magnet = worths.get("Magnet", (MAGNET_BOOST, None, "MAGNET_BOOST"))[0]
+    print(f"\nRarity table: each rarity's best measured ult vs Magnet (worth {magnet:+.2f}) "
+          "at equal skill")
+    print("  (worth = extra own balls per use, net of the opponent's; careless in [])")
+    setups = [("Classic", 0.60), ("Classic", 0.70), ("Difficult", 0.45)]
+    print("  " + " " * 44 + "".join(f"{d[:4]} {p:.2f}  " for d, p in setups))
+    for k, rarity in enumerate(cfg.get("Rarities", [])):
+        ids = [u for u in cfg.get("Order", [])
+               if cfg["Catalog"].get(u, {}).get("Rarity") == rarity and u in worths]
+        if not ids:
+            targets = [cfg["Catalog"][u]["Worth"] for u in cfg.get("Order", [])
+                       if cfg["Catalog"].get(u, {}).get("Rarity") == rarity]
+            target = max(targets) if targets else 0.0
+            label = f"{rarity:9s} (nothing measured; target {target:.2f})"
+            best, worth, careless = None, float(target), None
+        else:
+            best = max(ids, key=lambda u: worths[u][0])
+            worth, careless, _ = worths[best]
+            extra = f" [{careless:+.2f}]" if careless is not None else ""
+            label = f"{rarity:9s} {best} {worth:+.2f}{extra}"
+        cells = []
+        for j, (diff, p) in enumerate(setups):
+            games = run_many(cfg, diff, p, p, n, seed + 400 + 10 * k + j,
+                             ults=(float(max(worth, 0.0)), float(magnet)))
+            cells.append(f"{win_rate(games):6.1%}    ")
+        print(f"  {label:44s}" + "".join(cells))
+    for uid, (worth, careless, source) in worths.items():
+        extra = f", careless {careless:+.3f}" if careless is not None else ""
+        print(f"    {uid}: {worth:+.3f}{extra} ({source})")
+
+
 def apply_override(cfg, text):
     """--fill Key=Value on Config.Ults.Fill. Dotted keys reach inside (Difficulty.Classic=1.5),
     commas make a list (Own=8,6,5,4)."""
@@ -136,7 +212,7 @@ def apply_override(cfg, text):
 class Player:
     def __init__(self, p, ult, cheat):
         self.p = p
-        self.ult = ult          # "Magnet" or "Top"
+        self.ult = ult          # "Magnet", "Top", or a float: an ult worth that many balls
         self.cheat = cheat      # None, "tap" or "safety"
         self.bar = 0.0
         self.used = 0
@@ -291,6 +367,8 @@ class Match:
             if rng.random() < POT_SCRATCH:
                 return "foul", "bih", run
             return None, "open", run
+        if ult and isinstance(P.ult, float):
+            return self.worth_shot(s, q, run, left, P.ult)
         if ult:
             q = min(MAX_POT, q + MAGNET_BOOST)
         if rng.random() < q:
@@ -312,6 +390,28 @@ class Match:
         if rng.random() < foul:
             return "foul", "bih", run
         return "legal", "open", run
+
+    def worth_shot(self, s, q, run, left, worth):
+        """The ult shot of an ult worth `worth` balls a use: floor(worth) of your balls for
+        sure, and the rest of it on the pot chance of the shot itself (never the 8 early)."""
+        rng = self.rng
+        sure, extra = int(worth), worth - int(worth)
+        if left == 0:  # the 8: the whole worth goes on its pot chance
+            if rng.random() < min(MAX_POT, q + worth):
+                return ("lose" if rng.random() < POT_SCRATCH else "win"), None, run
+            return "legal", "open", run
+        n = sure + (1 if rng.random() < min(MAX_POT, q + extra) else 0)
+        if n == 0:
+            if rng.random() < foul_share(self.pl[s].p):
+                return "foul", "bih", run
+            return "legal", "open", run
+        if left is None:
+            self.pick_group(s)
+            left = self.balls_left(s)
+        run = self.pocket(s, min(n, left), run, False, True)
+        if rng.random() < POT_SCRATCH:
+            return "foul", "bih", run
+        return None, "open", run
 
     def safety(self, s, run):
         rng, p = self.rng, self.pl[s].p
@@ -402,6 +502,8 @@ def main():
                          "Difficulty.Classic=1.5, Own=8,6,5,4")
     ap.add_argument("--n", type=int, default=10000, help="matches per row (default 10000)")
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--results", default=os.path.join(ROOT, "tools", "ult_value_results.json"),
+                    help="the value harness's results (tools/ult_value.luau)")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -473,6 +575,8 @@ def main():
         games = run_many(cfg, diff, p, p, n, seed + 220 + k, ults=("Magnet", "Magnet"))
         print(f"  {diff:9s} {p:.2f} vs {p:.2f}, both Magnet: {win_rate(games):5.1%} "
               f"(a fair coin, as a control)")
+
+    rarity_table(cfg, load_results(args.results), n, seed)
 
     nice = pot_stats(cfg, n // 4, seed + 300)
     print(f"\nNICE SHOT! share of pots (average players, both tables): {nice:.1%}")

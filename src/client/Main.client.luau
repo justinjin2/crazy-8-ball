@@ -34,8 +34,9 @@ local SpinSelector = require(script.Parent.SpinSelector)
 local ZoomHint = require(script.Parent.ZoomHint)
 local PadGuide = require(script.Parent.PadGuide)
 local UltHud = require(script.Parent.UltHud)
+local UltPick = require(script.Parent.UltPick)
 local UltCutscene = require(script.Parent.UltCutscene)
-local MagnetFx = require(script.Parent.MagnetFx)
+local AbilityFx = require(script.Parent.AbilityFx)
 local UltScreen = require(script.Parent.UltScreen)
 local UI = require(script.Parent.UI)
 local MatchHUD = require(script.Parent.MatchHUD)
@@ -63,12 +64,25 @@ local visuals = Instance.new("Folder")
 visuals.Name = "ClientVisuals"
 visuals.Parent = workspace
 local hub = Hub.new(visuals)
--- Ultimates: the activation cutscene everyone at the table sees, then Magnet's look and sound.
-local magnetFx = MagnetFx.start(hub, visuals)
+-- The developer's /slowmo (Studio only, DevCommands): each table's replay rate rides on a
+-- workspace attribute (Config.Debug.Commands.SlowmoAttribute .. the table id); none is 1.
+for id = 1, Placement.tableCount() do
+	local attribute = Config.Debug.Commands.SlowmoAttribute .. id
+	local function applySlowmo()
+		local m = hub:matchFor(id)
+		local scale = workspace:GetAttribute(attribute)
+		if m then
+			m:setTimeScale(if type(scale) == "number" then scale else 1)
+		end
+	end
+	workspace:GetAttributeChangedSignal(attribute):Connect(applySlowmo)
+	applySlowmo()
+end
+-- Ultimates: the activation cutscene everyone at the table sees, then every ability's look
+-- and sound (Config.UI.AbilityFx.Looks: Magnet's is MagnetFx), armed at each activation's
+-- arming moment.
 local ultCutscene = UltCutscene.start(hub)
-ultCutscene:onArming(function(tableId, armed)
-	magnetFx:arming(tableId, armed)
-end)
+local abilityFx = AbilityFx.start(hub, visuals, ultCutscene)
 local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
@@ -92,6 +106,11 @@ task.spawn(function()
 	Net.get("UltNotice").OnClientEvent:Connect(function(notice: any)
 		ultHud:onNotice(notice)
 	end)
+end)
+-- An ability's aim-phase pick (Heat Seeker's ball, Portals' spots): the top-down pick view
+-- sends the UltPick table action; the shot waits for it (canShoot).
+local ultPick = UltPick.new(screen, function(data)
+	hub:action("UltPick", data)
 end)
 UI.addPlayControl(spinSelector.root)
 local snapshot: any = nil
@@ -196,6 +215,10 @@ local function canShoot(): boolean
 	end
 	-- An ult still in its cutscene: the server would refuse the shot until it is armed.
 	if UltHud.arming(snapshot, workspace:GetServerTimeNow()) then
+		return false
+	end
+	-- An ability's pick still owed: the server would refuse the shot ("PickRequired").
+	if ultPick:blocking() then
 		return false
 	end
 	return true
@@ -648,6 +671,7 @@ local function acquireTable(s: any?)
 		targets:clear()
 		hud:setSnapshot(nil, player.UserId)
 		ultHud:setSnapshot(nil, player.UserId)
+		ultPick:setSnapshot(nil, nil, nil, player.UserId)
 		queueMenu:setSnapshot(nil, player.UserId)
 		hudView, viewVersion = nil, -1
 		clearHighlights()
@@ -691,6 +715,7 @@ local function acquireTable(s: any?)
 	end
 	refreshView()
 	ultHud:setSnapshot(s, player.UserId)
+	ultPick:setSnapshot(s, match, placement, player.UserId)
 	-- An arena's table has no host card: its players were matched by the global queue.
 	queueMenu:setSnapshot(if isArena then nil else s, player.UserId)
 	targets:setSnapshot(s, placement, match.state.geometry, player.UserId)
@@ -993,7 +1018,9 @@ local function dropStrayMatchSelection()
 end
 RunService.RenderStepped:Connect(function(dt)
 	local busy = hub:update(dt)
-	magnetFx:update(dt)
+	-- The reach preview rides on the guideline's first contact (last frame's; nil unless the
+	-- player is aiming).
+	abilityFx:update(dt, if guideline then guideline:contact() else nil)
 	for id = 1, Placement.tableCount() do
 		local a = audioByTable[id]
 		local m = assert(hub:matchFor(id))
@@ -1155,7 +1182,13 @@ RunService.RenderStepped:Connect(function(dt)
 		end
 		wasModal = modal
 	end
-	targets:setEnabled(not modal and awaitingAt == nil and not match:isBusy())
+	-- An ability's pick owed (UltPick): top-down, the ball in hand held still meanwhile.
+	local picking = ultPick:setActive(
+		aimTurn() and not callPending() and not UltHud.arming(snapshot, now),
+		not modal,
+		hud:reservedHeight()
+	)
+	targets:setEnabled(not modal and awaitingAt == nil and not match:isBusy() and not picking)
 	input:setPlaceAllowed(targets:canPlace())
 	local phase = snapshot.phase
 	-- Only the shooter's camera is taken. The coin flip is a HUD overlay watched with the
@@ -1188,18 +1221,21 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 	UI.setPlayControlsVisible(canShoot() and not modal)
 	zoomHint:setVisible(canShoot() and not modal)
-	padGuide:setVisible(canShoot() and not modal)
-	padGuide:setSet(if input.spinEditing then "spin" else "aim")
+	padGuide:setVisible((canShoot() or picking) and not modal)
+	padGuide:setSet(ultPick:padSet() or (if input.spinEditing then "spin" else "aim"))
 	freeStickFromMenu()
 	dropStrayMatchSelection()
 	input:update(dt)
 	if controlled then
-		-- Top-down only while a pocket is being called for the 8; everything else, placing
-		-- the cue ball included, plays in the 3D view.
-		local overhead = phase == "PocketChoice" or (phase == "Intro" and callPending())
+		-- Top-down only while a pocket is being called for the 8 or an ability's pick is owed;
+		-- everything else, placing the cue ball included, plays in the 3D view.
+		local overhead = phase == "PocketChoice" or (phase == "Intro" and callPending()) or picking
+		local header = if picking
+			then ultPick:reserveTop()
+			else hud:reservedHeight() + M.Style.TargetSize / 2
 		Camera.setMode(
 			overhead,
-			hud:reservedHeight() + GuiService:GetGuiInset().Y + M.Style.TargetSize / 2,
+			header + GuiService:GetGuiInset().Y,
 			hud:reservedBottom() + M.Style.TargetSize / 2
 		)
 		if busy and not lastBusy then
@@ -1263,6 +1299,7 @@ RunService.RenderStepped:Connect(function(dt)
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 	end
 	targets:update(dt, workspace.CurrentCamera)
+	ultPick:update(dt, workspace.CurrentCamera)
 	hud:setPlacing(targets:canPlace(), targets:isBlocked())
 	if guideline then
 		guideline:update(dt)

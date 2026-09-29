@@ -34,7 +34,12 @@ function QA.start(
 			local previousEpoch = t.engine.epoch
 			t.engine = Engine.new(id, t.engine.teamSize)
 			t.engine.epoch = previousEpoch + 1
-			local real = assert(Players:GetPlayers()[1], "QA requires a running client")
+			-- data.userId: the real player to seat (DevCommands' /abilitysetup: its caller);
+			-- otherwise the first player here.
+			local chosen = if data and type(data.userId) == "number"
+				then Players:GetPlayerByUserId(data.userId)
+				else Players:GetPlayers()[1]
+			local real = assert(chosen, "QA requires a running client")
 			if not (data and data.spectator) then
 				for _, other in tables do
 					if other ~= t then
@@ -126,7 +131,11 @@ function QA.start(
 			end
 			e.breakShot = data.breakShot == true
 			e.ballInHand = e.phase == "Placement"
-			e.groups = if data.open then {} else { "solids", "stripes" }
+			-- data.groups = "stripes": the first team plays stripes (solids otherwise).
+			e.groups = if data.open
+				then {}
+				elseif data.groups == "stripes" then { "stripes", "solids" }
+				else { "solids", "stripes" }
 			e.shot, e.pending = nil, nil
 			e.turnId += 1
 			e.placeSeq = 0 -- a new turn, so the client's placement counter starts again

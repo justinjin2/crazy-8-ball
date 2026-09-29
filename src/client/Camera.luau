@@ -10,8 +10,9 @@
 --
 -- Every turn starts in the HOME VIEW (Config.Camera.View.ZoomDefault, the pre-multiplayer
 -- framing, untouched by the match HUD), and the camera always comes back to it: after every
--- shot and after the pocket call. The one exception is calling a pocket for the 8, which
--- looks straight down on the whole table (setMode) so every pocket can be picked.
+-- shot and after the pocket call. The one exception is calling a pocket for the 8 (and an
+-- ability's aim-phase pick, UltPick), which looks straight down on the whole table (setMode)
+-- so every pocket, ball or spot can be picked.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -529,7 +530,9 @@ local function viewFor(
 	return cf, whole
 end
 
---- `overhead` is the top-down view, used only while a pocket is being called for the 8.
+--- `overhead` is the top-down view, used only while a pocket is being called for the 8 or
+--- an ability's aim-phase pick is owed (UltPick: Heat Seeker's ball, Portals' spots; its
+--- title pill counts in `headerPixels`). Leaving it goes back to the home view.
 --- `headerPixels` and `bottomPixels` are how much of the screen the match HUD covers above
 --- and below; the top-down view and the whole-table end of the zoom keep the table clear of
 --- them, and a ball rolling under the header counts as off screen for the shot's pull-out.
