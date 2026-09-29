@@ -645,6 +645,13 @@ local function destroy(self: BlackFlashFx, id: number)
 	fx.sparkAt:Destroy()
 end
 
+--- The reach for the preview (inches): the blast's, the same for both players' balls (the
+--- opponent's get half the nudge, not half the reach).
+function BlackFlashFx.reach(_self: BlackFlashFx, _tableId: number, _armed: any): (number, number)
+	local reach = Config.Ults.BlackFlash.RadiusInches -- under the cap (its test)
+	return reach, reach
+end
+
 --- Every frame, after the hub has stepped the replays.
 function BlackFlashFx.update(self: BlackFlashFx, dt: number)
 	local now = workspace:GetServerTimeNow()

@@ -2592,8 +2592,9 @@ Config.Ults.SteelBall = {
 
 -- Black Flash (docs/prompts/ABILITIES_PROMPT.md 7.11; src/shared/Ults/Effects/BlackFlash).
 Config.Ults.BlackFlash = {
-	-- The blast nudges object balls within this of the shattered ball (inches). (tune)
-	RadiusInches = 22,
+	-- The blast nudges object balls within this of the shattered ball (inches), at most
+	-- Config.Ults.Shared.MaxReachShare of the table. (tune)
+	RadiusInches = 20,
 	-- Each nudged ball rolls this share of the way to its pocket (at most NudgeMaxInches):
 	-- under 1 moves it toward the pocket, over 1 can drop a near one. (tune: the balance pass)
 	NudgeShare = 1.5,

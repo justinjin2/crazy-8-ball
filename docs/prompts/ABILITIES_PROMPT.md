@@ -1198,7 +1198,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   `ult_blackflash_test`): the first ball the cue ball touches, whoever's, leaves the table
   through `Ops.remove` (a `removed` event ShotJudge counts as a pot for its owner: the 8 by the 8
   rules, a win on the legal 8 shot, a loss otherwise; a wrong first ball still a foul); the
-  blast nudges every object ball within 22 in (the closest first, the shattered ball counting
+  blast nudges every object ball within 20 in (the cap, a fifth of the table; the closest first, the shattered ball counting
   toward your cap) toward its closest pocket with a clean line (ChainLightning.pushTarget),
   rolling 1.5x the way there (at most 40 in) added as natural roll, the opponent's at half,
   never the 8 or the cue ball; the cue ball rolls straight back 6 in, shortened to stop short of
@@ -1206,9 +1206,10 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   Tests: yours shattered counts, theirs counts and is a foul, an early 8 loses, the legal 8
   wins, nudge factors full/half and never the 8, nothing out of reach moves, the caps, the
   bounce never scratches (80 tables) and goes straight back, the replay matches the settle.
-  Worth (120 tables, net a use at skills 1/2/3): careful +1.13/+1.26/+1.27, careless
-  +0.90/+1.06/+1.13; radius 14 measured about +0.9, 20 +1.15, 26 +1.27 (skill 2), the share
-  barely matters. Under Legendary 2.2 (the harness counts one shot; the nudged balls pay off on
+  Worth (120 tables, net a use at skills 1/2/3): careful +1.04/+1.18/+1.18, careless
+  +0.81/+0.97/+1.03; radius 14 measured about +0.9, 20 +1.15, 26 +1.27 (skill 2), the share
+  barely matters; first built at 22 in, cut to the 20 in cap (a test now holds it) and given
+  the aim preview's reach ring. Under Legendary 2.2 (the harness counts one shot; the nudged balls pay off on
   the next): flagged for step 16. The look (BlackFlashFx; Blender `blackflash.py`: BFBolt1..4,
   fat jagged radiating bolts with one or two forks, and Shard1..12, a Voronoi-cut ball shell
   with the ball mesh's UVs, 3.9k triangles; the shockwave ring image): armed, small black arcs

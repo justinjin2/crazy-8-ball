@@ -81,7 +81,8 @@ end
 local function blast(state: any, events: { any }, ops: any, x: number, y: number, ownUsed: number)
 	local C = Config.Ults.BlackFlash
 	local S = Config.Ults.Shared
-	local reach2 = C.RadiusInches * C.RadiusInches
+	local reach = math.min(C.RadiusInches, S.MaxReachShare * 2 * state.geometry.halfLength)
+	local reach2 = reach * reach
 	local list: { { ball: any, d2: number, factor: number } } = {}
 	for _, b in state.balls do
 		if not onCloth(b) then

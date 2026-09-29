@@ -1969,8 +1969,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   draws solid in Roblox); the "nyo-ho" is a library two-note whistle call until a recorded one
   exists. The art director's review was acted on (darker shell with bold ink, two orange-gold
   ribbons, a looping path, the burst on the pot only).
-- 2026-09-29 (assumption): Black Flash's blast reaches 22 in and rolls a ball 1.5x the way to
-  its pocket (at most 40 in); its worth (about +1.25) is under Legendary 2.2 because the harness
+- 2026-09-29 (assumption): Black Flash's blast reaches 20 in (the reach cap) and rolls a ball
+  1.5x the way to its pocket (at most 40 in); its worth (about +1.2) is under Legendary 2.2 because the harness
   counts one shot, flagged for the balance pass. The cue ball bounces back 6 in, cut short
   before any pocket on its line. The hit-stop reuses the replay's `slow` event (0.15 s).
 - 2026-09-29 (assumption): Black Flash's sounds are library clips (a bass impact, a glass

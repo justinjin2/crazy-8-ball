@@ -141,6 +141,11 @@ function tests.the_blast_nudges_yours_full_theirs_half_never_the_8()
 	check(b8.vx == 0 and b8.vy == 0, "the 8 not moved")
 end
 
+function tests.the_reach_is_capped()
+	local S = Config.Ults.Shared
+	check(C.RadiusInches <= S.MaxReachShare * 2 * geometry.halfLength + 1e-9, "reach capped")
+end
+
 function tests.nothing_out_of_reach_moves()
 	local balls = table_({ { 0, -20, 0 }, { 1, -10, 0 }, { 2, -10 + C.RadiusInches + 3, 12 } })
 	local sim = armed(balls, { 1, 2 }, {})
