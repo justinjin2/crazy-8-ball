@@ -11,8 +11,8 @@
 --     RESET under it.
 --   * OwnBall: every ball the server would accept (Ults/Arming.pick) gets a pulsing ring; the
 --     mouse or the gamepad's cursor lights one gold; a tap, a click or A picks it and a red
---     lock-on bracket closes on it (a placeholder: Heat Seeker's look draws the real reticle
---     through onPicked). A tap on another ball changes it.
+--     lock-on bracket closes on it (a placeholder, hidden while a look module listens through
+--     onPicked: Heat Seeker's draws the real reticle). A tap on another ball changes it.
 --   * Portals: a tap or click puts portal A, then B; press on one and drag to move it. On a
 --     gamepad the left stick moves the active portal, A places it (then B starts mirrored
 --     across the table), Y switches which one moves, L1 resets. A spot the server would
@@ -1073,7 +1073,8 @@ function UltPick.update(self: any, dt: number, camera: Camera?)
 				self.lock.Position = UDim2.fromOffset(at.X - offset.X, at.Y - offset.Y)
 				self.lock.Size = UDim2.fromOffset(size, size)
 				self.lock.Rotation = (self.clock * P.LockDegreesPerSecond) % 360
-				lockShown = inFront
+				-- A look module listening (Heat Seeker's) draws the real reticle instead.
+				lockShown = inFront and #pickedListeners == 0
 			end
 		end
 	end

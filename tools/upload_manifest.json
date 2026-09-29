@@ -4,6 +4,18 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/HeatSeeker/HeatSeeker.glb": {
+    "assetId": "130162252552172",
+    "assetType": "Model",
+    "status": "ok",
+    "replaces": "81275063362861"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/HeatSeeker/textures/smoke_flipbook.png": {
+    "assetId": "126970755165309",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "81395420363490"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/Magnet/MagnetField.glb": {
     "assetId": "96715013262604",
     "assetType": "Model",

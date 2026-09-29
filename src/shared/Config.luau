@@ -2234,7 +2234,13 @@ Config.Ults = {
 		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.33 },
 		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
 		Ghost = { Rarity = "Uncommon", Built = true, Effect = "Ghost", Worth = 0.5 },
-		HeatSeeker = { Rarity = "Uncommon", Built = false, Worth = 0.5, Pick = "OwnBall" },
+		HeatSeeker = {
+			Rarity = "Uncommon",
+			Built = true,
+			Effect = "HeatSeeker",
+			Worth = 0.5,
+			Pick = "OwnBall",
+		},
 		Rewind = { Rarity = "Rare", Built = false, Worth = 1, Redo = true },
 		TimeStop = { Rarity = "Rare", Built = false, Effect = "TimeStop", Worth = 1 },
 		ChainLightning = { Rarity = "Epic", Built = false, Worth = 1.5, Area = true },
@@ -2382,6 +2388,11 @@ Config.Ults = {
 		-- at 0.5 s), started at 0.25 so the rush lands on the ball. (tune by ear)
 		GhostWail = { Id = "rbxassetid://9114170094", Volume = 0.9, StartOffset = 0.6 },
 		GhostWhoosh = { Id = "rbxassetid://9114373663", Volume = 0.4, StartOffset = 0.25 },
+		-- Heat Seeker (public library audio, checked loading in this game, 2026-09-29): each
+		-- lock-on beep, "shortbeep" (maybealian, 0.13 s, loud: peak 284 at volume 0.5); the lock,
+		-- "1000 hz sine tone" (BuilderBillbert, 1 s, peak 64), cut to the look's LockToneSeconds.
+		SeekerBeep = { Id = "rbxassetid://124455167265111", Volume = 0.2 },
+		SeekerLock = { Id = "rbxassetid://126305525792122", Volume = 0.35 },
 	},
 }
 
@@ -2394,6 +2405,38 @@ Config.Ults.Ghost = {
 	-- A cue ball that comes to rest inside a ball it passed through is moved off it at rest,
 	-- to just clear of it (this gap, inches), the nearest free spot on the cloth first.
 	ClearGapInches = 0.05,
+}
+
+-- Heat Seeker (docs/prompts/ABILITIES_PROMPT.md 7.5; Ults/Effects/HeatSeeker): the cue ball
+-- homes on the shooter's locked ball (overrides.Pick) until its first contact. (tune)
+Config.Ults.HeatSeeker = {
+	-- The heading turns toward its path on a curve no tighter than this radius (inches) at any
+	-- speed, like a missile: a fast shot turns as sharply as a slow one, so it can dodge a
+	-- ball just ahead. Random tables and aims reach the locked ball 84% of the time at 6, 90%
+	-- at 4.5, 92% at 3, 95% at 2 and 96% at 1.5 (the misses: aimed straight into a ball or
+	-- pocket right beside the cue ball, or boxed in); 2 still reads as a curve.
+	TurnRadiusInches = 2,
+	-- The missile's thrust: while homing, the cue ball never drops below this speed (in/s), so
+	-- a soft shot aimed away still arrives.
+	MinSpeed = 35,
+	-- ...and never goes faster than this (in/s) while homing, so it can steer round a ball
+	-- next to the target (a full-power 450 in/s moved 1.9 in a step and ran into them). Plenty
+	-- for any pot; normal physics from the first contact.
+	MaxSpeed = 160,
+	MaxSeconds = 6, -- homing stops after this long (a cue ball boxed in rolls on as normal)
+	-- Balls and pockets on the way are passed this far clear (inches beyond touching).
+	AvoidMarginInches = 0.6,
+	-- The path is planned on a grid of the cloth this fine (inches: 100 x 50 cells), once at
+	-- the strike and again (up to MaxReplans times) when a cushion knocks it off the path.
+	GridInches = 1,
+	MaxReplans = 6,
+	-- A direct aim's cut is turned toward the best pocket by at most this angle, as its tangent
+	-- (0.364 is 20 degrees): it improves a bad cut, never guarantees the pot. Measured
+	-- (tools/ult_value.luau, 2026-09-29, net balls a use at skills 1/2/3): 10 degrees +0.28 /
+	-- +0.23 / +0.18, 15 +0.32 / +0.31 / +0.31, 20 +0.34 / +0.34 / +0.32, 27 +0.35 / +0.38 /
+	-- +0.39 (it saturates: the misses left are not the cut's). Under the Uncommon 0.5: the
+	-- balance step's.
+	CutCorrectionTan = 0.364,
 }
 
 -- Eagle's Eye (docs/prompts/ABILITIES_PROMPT.md 7.2; src/shared/Ults/Predict.luau): the aim's
@@ -2540,10 +2583,16 @@ Config.Ults.Assets = {
 		-- ball, facing -Z), GhostWisp (a trailing sheet, its wide root at +X) and Ripple (a
 		-- flat ring).
 		Ghost = 100126316259892,
+		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
+		-- its tip at -X) and SmokeRing (flat).
+		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
 	} :: { [string]: number },
 	Images = {
 		-- The pocket-to-ball field lines' Beam tile: a white line and one arrowhead along +U.
 		MagnetFieldBeam = "rbxassetid://138868230682274",
+		-- Heat Seeker's exhaust smoke: a 4 x 4 flipbook of a puff swelling and thinning
+		-- (heatseeker.py's smoke_flipbook.png).
+		SeekerSmoke = "rbxassetid://81395420363490", -- (the image inside Decal 126970755165309)
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7003,6 +7052,69 @@ Config.UI.GhostFx = {
 	FreshSeconds = 0.3, -- a replay frame jumping further than this (a late join) draws no passes
 }
 
+-- Heat Seeker's look (src/client/HeatSeekerFx.luau; ABILITIES_PROMPT 7.5): the red lock-on
+-- reticle, the blinking dot on the cue ball, the missile's exhaust and smoke, the impact's
+-- flash and smoke ring, and the beeps. Sizes in drawn ball widths unless named. (tune)
+Config.UI.HeatSeekerFx = {
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	-- The reticle: flat over the locked ball, closing from LockFrom to LockTo ball widths across
+	-- over LockSeconds as the pick lands (then the solid tone), spinning SpinDegreesPerSecond,
+	-- LiftInches above the cloth; it pulses PulseShare in size at PulseHz while it waits.
+	LockFrom = 4.4,
+	LockTo = 2.5, -- (1.7 hid under the pick view's ring from overhead: the look check)
+	LockSeconds = 0.7,
+	SpinDegreesPerSecond = 90,
+	LockSpinDegreesPerSecond = 420, -- as it closes in
+	LiftInches = 0.15,
+	PulseShare = 0.06,
+	PulseHz = 1.5,
+	FadeSeconds = 0.25,
+	-- The beeps: while it closes in, from BeepSlowSeconds apart to BeepFastSeconds; in flight,
+	-- the gap shrinks with the distance left (FarInches or more: slow), and each beep is
+	-- pitched up a little as it closes. The lock tone plays LockToneSeconds.
+	BeepSlowSeconds = 0.2,
+	BeepFastSeconds = 0.05,
+	FarInches = 60,
+	BeepPitchRise = 0.35,
+	LockToneSeconds = 0.45,
+	-- The red dot on the cue ball's top: DotBallWidths across, blinking at BlinkHz armed and
+	-- FlightBlinkHz in flight.
+	DotColor = { 255, 40, 40 },
+	DotBallWidths = 0.22,
+	BlinkHz = 2.5,
+	FlightBlinkHz = 9,
+	-- The exhaust: the flame FlameLength long and FlameWidth wide behind the moving cue ball,
+	-- flickering FlickerShare at FlickerHz, sized by speed (full at FullSpeed in/s); smoke
+	-- puffs (the flipbook) at SmokeRate a second at full speed, SmokeSize studs, SmokeSeconds.
+	FlameLength = 3.4,
+	FlameWidth = 0.85,
+	FlickerShare = 0.18,
+	FlickerHz = 18,
+	FullSpeed = 120,
+	MinSpeed = 4, -- slower than this (in/s): no exhaust
+	SmokeRate = 70,
+	SmokeSize = { 0.25, 0.7 },
+	SmokeSeconds = { 0.45, 0.8 },
+	SmokeTransparency = 0.25,
+	SmokeColor = { 175, 172, 168 }, -- grey: white puffs read as a glow under the flame's light
+	FlameLightColor = { 255, 150, 60 },
+	FlameLightBrightness = 2,
+	FlameLightRangeBallWidths = 5,
+	-- The impact: an orange flash (a light and a Neon ball growing to FlashBallWidths over
+	-- FlashSeconds) and the smoke ring spreading from RingFrom to RingTo ball widths over
+	-- RingSeconds.
+	FlashColor = { 255, 170, 70 },
+	FlashBallWidths = 2.2,
+	FlashSeconds = 0.18,
+	FlashBrightness = 6,
+	RingFrom = 0.8,
+	RingTo = 3.2,
+	RingSeconds = 0.7,
+	RingTransparency = 0.2,
+	HoldSeconds = 2, -- each sound's and flash's holder is let go after this long
+	FreshSeconds = 0.3, -- an impact the replay only caught up with (a late join) gets nothing
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7013,6 +7125,7 @@ Config.UI.AbilityFx = {
 		EaglesEye = "EaglesEyeFx",
 		SuperBounce = "SuperBounceFx",
 		Ghost = "GhostFx",
+		HeatSeeker = "HeatSeekerFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

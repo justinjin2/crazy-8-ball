@@ -785,7 +785,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 4. Eagle's Eye (7.2), look check done.
 - [x] 5. Super Bounce (7.3), look check done.
 - [x] 6. Ghost (7.4), look check done.
-- [ ] 7. Heat Seeker (7.5), look check done.
+- [x] 7. Heat Seeker (7.5), look check done.
 - [ ] 8. Rewind (7.6), look check done.
 - [ ] 9. Time Stop (7.7), look check done.
 - [ ] 10. Chain Lightning (7.8), look check done.
@@ -977,3 +977,32 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   the aim view (0.18 see-through, floated higher), the ripple faded before the replay camera
   settled (0.9 s), and the wisps ran backwards (Blender +X arrives as Roblox -X). Sounds are
   library Pro Sound Effects clips (checked loading, measured).
+- **Step 7 done (2026-09-29).** Physics (`Effects/HeatSeeker`): at the strike, a direct aim
+  (the straight line meets the locked ball first) gets its cut turned toward the best pocket
+  by at most `CutCorrectionTan` (20 degrees); any other aim homes on the ball's centre. Nothing
+  moves before the first contact, so it plans once: A* over a 1-inch grid of the cloth (other
+  balls and pockets blocked to a margin, shrunk so neither the cue ball's spot nor the aim
+  point is shut in), pulled tight into straight legs; each step it steers at the farthest
+  waypoint in sight on a 2-inch minimum turn radius (turn = heading plus that step's tangent,
+  renormalised: no trig), replanning when a cushion knocks it off the path, spin turned with
+  the velocity, speed held between 35 and 160 in/s until the first contact. Local tangent
+  dodging (tried first) reached the ball on 84-87% of random tables and aims; the planner with
+  the tighter turn reaches 95% (the misses: aimed straight into a ball or pocket right beside
+  the cue ball, or boxed in). Tests: 48 headings all arrive, the wall of the setup is gone
+  round, a direct aim's cut improves by at most the cap and is never made perfect, no pick no
+  homing, 90%+ on random tables, replay bit-exact. Worth: 10 degrees +0.28/+0.23/+0.18, 20
+  degrees +0.34/+0.34/+0.32 at skills 1/2/3 (it saturates: 27 degrees only +0.38), under the
+  Uncommon 0.5: flagged for step 16 with Ghost. The look (HeatSeekerFx on the uploaded
+  Reticle, ExhaustFlame and SmokeRing, and a smoke flipbook image): a blinking red dot on the
+  cue ball from arming; the red reticle closes in spinning on the shooter's tap (UltPick's
+  onPicked, now hiding its 2D placeholder bracket while a look listens) then for everyone on
+  the snapshot's pick, with beeps quickening to a solid lock tone; in flight a flickering
+  flame and warm light behind the cue ball, smoke puffs along the curve and beeps quickening
+  with the distance left; at the first contact an orange flash and a smoke ring. Studio
+  passes: 1, the reticle at 1.7 ball widths hid under the pick view's ring from overhead
+  (2.5), the flame read pale yellow and stubby (hotter ramp, longer and thinner, re-uploaded),
+  the smoke texture failed (the Decal id: the image id inside it now); 2, white puffs glowed
+  under the flame's light (grey, fully lit). The pick was checked with the mouse (click, then
+  CONFIRM, the server took pick = 1); the MCP keyboard tool registers as keyboard, not
+  gamepad, and touch can't be emulated, so gamepad (D-pad or stick, A, X) and touch (the same
+  pointer path as the mouse) need a hand check (step 17).

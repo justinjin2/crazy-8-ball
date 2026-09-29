@@ -544,7 +544,9 @@ with that step's events) and `finish(state, events, ops)` (at rest). Scratch liv
 `state.fx` (reset at each strike and arming; array order, never hash order);
 `state.fx.ghost[id]` takes a ball out of every contact; `state.fx.material[id]` (a
 `BallMaterial`: cushion restitution and friction, ball restitution, cloth frictions, until
-`Until`) gives an object ball its own material (Super Bounce's caught ball). `Simulation.Ops`: `remove` (the ball
+`Until`) gives an object ball its own material (Super Bounce's caught ball). An effect may plan once
+at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
+moves before the first contact). `Simulation.Ops`: `remove` (the ball
 leaves the table with a "removed" event that `ShotJudge` counts as a pot), `teleport`, `halt`
 (the settle stops with `outcome.halted`, keeping overrides and fx) and `emit` (an "ult" event
 with a kind; kind "slow" adds `value` wall seconds at shot time `x`, summed into

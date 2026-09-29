@@ -929,7 +929,7 @@ return {
 			EaglesEye = "See the full path of your shot, every bounce included.",
 			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
 			Ghost = "Your cue ball phases through every ball that isn't yours.",
-			HeatSeeker = "Tap one of your balls: the cue ball curves to hit it.",
+			HeatSeeker = "Lock on to one of your balls: the cue ball curves round to hit it, and aimed straight at it, it cuts truer.",
 			Rewind = "Miss, and the table rewinds for one more 10 s shot.",
 			TimeStop = "Time freezes for 5 s after contact: take another shot.",
 			ChainLightning = "The ball you hit is charged, and lightning nudges your balls toward pockets.",

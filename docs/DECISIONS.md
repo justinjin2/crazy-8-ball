@@ -1906,3 +1906,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   useful tables it is +0.25 / +0.11 / +0.02 balls a use at skills 1 / 2 / 3, under the
   Uncommon 0.5; left as built for the balance pass (step 16), which can buff it or move it
   down a row.
+- 2026-09-29 (assumption): Heat Seeker plans its path (A* on a 1-inch grid, once at the strike)
+  and flies it like a missile: a 2-inch minimum turn radius at any speed and a 35 to 160 in/s
+  speed band until its first contact (a full-power shot is slowed to cruise). A fixed turn
+  rate and local dodging reached the locked ball too rarely (84-87%); this reaches 95%.
+- 2026-09-29 (assumption): Heat Seeker's direct-aim cut correction is capped at 20 degrees
+  (+0.34 balls a use at skill 2); it saturates near +0.38, under the Uncommon 0.5. Left for the
+  balance pass (step 16) with Ghost.
