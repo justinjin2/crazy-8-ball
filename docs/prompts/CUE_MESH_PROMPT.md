@@ -439,9 +439,9 @@ Keep it to one page.
 Tick each box when its step is done, verified and committed (`- [x]`). A step that can't be
 done becomes `- [x] BLOCKED: <why>`.
 
-- [ ] 0. Setup: `git switch -c cue-mesh` from `ultimates`, the first commit (this brief
+- [x] 0. Setup: `git switch -c cue-mesh` from `ultimates`, the first commit (this brief
   only), docs read, Studio and Rojo checked, lint and tests green, plan in Notes.
-- [ ] 1. `tools/export_cue_shape.luau` and `assets/cue/Shape.json`, with a Lune test that
+- [x] 1. `tools/export_cue_shape.luau` and `assets/cue/Shape.json`, with a Lune test that
   it's current.
 - [ ] 2. `CueModel.py`: the mesh (3.2, 3.3), UVs (3.4), every validation in 3.6 passing,
   `Cue.glb`, `renders/checkpoint_mesh.png` looked at and fixed.
@@ -458,3 +458,18 @@ done becomes `- [x] BLOCKED: <why>`.
 - [ ] 9. Docs and the report (section 6); branch pushed.
 
 ## Notes
+
+Plan (2026-09-29):
+- Step 1: `tests/cue_shape_export.luau` builds Shape.json from Config + CueShape + Catalog.style
+  (shared by the tool and the stale test, like the table's Geometry.json).
+- Step 2: a lathe. One profile polyline (d, r) from the tip dome to the bumper, 32 around;
+  rings only at profile kinks and where chord tolerance asks. Each zone is its own UV strip
+  (cut at zone rings; seam at -Y). Validation per 3.6; glb via the glTF exporter (+Y up, so
+  Blender -Y becomes Roblox +Z: the tip at the origin, the cue along Blender -Y).
+- Step 3/4: panels are rectangles in (d, angle) space; CueTextures builds each atlas strip
+  pixel by sampling its panel (numpy, no bake for panels), then Classic is procedural in the
+  same (d, angle) space, so the "bake" is exact and has no lighting. Metalness/roughness from
+  zone tables.
+- Steps 5-8: upload, Edit-mode template, CueStickBuilder mesh slot, BackCue, checks.
+- Studio sync checked at step 0 (Rojo 34872 connected; script_grep's line numbers run 32 low,
+  the source itself matches the disk).
