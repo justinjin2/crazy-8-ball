@@ -35,11 +35,15 @@ local Ranking = require(script.Parent.Ranking)
 local Items = require(script.Parent.Items)
 local Store = require(script.Parent.Store)
 local Counters = require(script.Parent.Counters)
+local UltService = require(script.Parent.UltService)
+local UltSpins = require(script.Parent.UltSpins)
+local UltCatalog = require(Shared.Ults.Catalog)
 
 local D = Config.Debug.Commands
 local C = Config.Lighting.Cycle
 local S = Config.Save
 local E = Config.Economy
+local U = Config.Ults
 
 -- Read by a key held in a variable (the economy help and usage lines).
 local ALIAS: { [string]: string } = D :: any
@@ -48,6 +52,7 @@ local WHAT: { [string]: string } = Strings.Dev.What :: any
 local CUE_NAMES: { [string]: string } = Strings.Items.Cues :: any
 local CASE_NAMES: { [string]: string } = Strings.Items.Cases :: any
 local PASS_NAMES: { [string]: string } = Strings.Dev.PassNames :: any
+local ULT_REASONS: { [string]: string } = Strings.Dev.UltReasons :: any
 
 local DevCommands = {}
 
@@ -444,10 +449,15 @@ local USAGE_ARGS: { [string]: { any } } = {
 	OpenCase = { CASE_WORDS },
 	SetDay = { #Config.Daily.Streak, Config.Daily.WeeksForBonus },
 	Sale = { D.Sale },
+	UltBar = { U.BarMax },
+	Spins = { U.Earn.MaxSpins },
+	Lucky = { U.Earn.MaxSpins },
+	Pity = { U.Roll.PityAt - 1 },
 }
 local WHAT_ARGS: { [string]: { any } } = {
 	Dupes = { D.DupeCopies, D.DupeKinds },
 	Buy = { table.concat(PRODUCT_KEYS, ", ") },
+	Pity = { U.Roll.PityAt - 1 },
 }
 
 local function usage(key: string): string
@@ -829,6 +839,68 @@ local function freeCase(player: Player)
 	end
 end
 
+-- The /ulthelp order.
+local ULTS: { string } = {
+	"UltBar",
+	"UltFull",
+	"UltArm",
+	"Spins",
+	"Lucky",
+	"Pity",
+	"FreeSpin",
+	"Ult",
+	"UltsAll",
+	"OpUlt",
+}
+
+-- An ult by id or name, any case or spacing ("blackflash", "black flash"), or nil.
+local function findUlt(words: { string }): string?
+	local typed = squash(table.concat(words, ""))
+	for _, id in UltCatalog.list() do
+		if squash(id) == typed or squash(UltCatalog.name(id)) == typed then
+			return id
+		end
+	end
+	return nil
+end
+
+-- A bar or arming answer: done, or why not.
+local function ultAnswer(player: Player, ok: boolean, reason: string?, done: string)
+	if ok then
+		tell(player, done)
+	else
+		local why = ULT_REASONS[reason or ""] or tostring(reason)
+		tell(player, Dev.UltNotDone:format(why))
+	end
+end
+
+-- /spins, /lucky and /pity: a whole number in 0..hi, set through `set`.
+local function ultCount(
+	key: string,
+	hi: number,
+	set: (Player, number) -> boolean,
+	answer: (number) -> string
+): (Player, { string }) -> ()
+	return function(player, args)
+		local n = wholeIn(args[1], 0, hi)
+		if n == nil then
+			try(player, key)
+		elseif set(player, n) then
+			tell(player, answer(n))
+		else
+			tell(player, Dev.NotLoaded)
+		end
+	end
+end
+
+local function ultHelp(player: Player)
+	tell(player, Dev.UltHelp)
+	for _, key in ULTS do
+		local what = WHAT[key]:format(table.unpack(WHAT_ARGS[key] or {}))
+		tell(player, Dev.HelpLine:format(usage(key), what))
+	end
+end
+
 local function econHelp(player: Player)
 	tell(player, Dev.EconHelp)
 	for _, key in ECON do
@@ -952,6 +1024,88 @@ function DevCommands.start()
 	end)
 	command("FreeCase", D.FreeCase, freeCase)
 	command("EconHelp", D.EconHelp, econHelp)
+
+	-- Ultimates.
+	command("UltBar", D.UltBar, function(player, args)
+		local n = wholeIn(args[1], 0, U.BarMax)
+		if n == nil then
+			try(player, "UltBar")
+			return
+		end
+		local ok, reason = UltService.setBar(player, n)
+		ultAnswer(player, ok, reason, Dev.UltBarSet:format(n))
+	end)
+	command("UltFull", D.UltFull, function(player)
+		local ok, reason = UltService.fill(player)
+		ultAnswer(player, ok, reason, Dev.UltBarSet:format(U.BarMax))
+	end)
+	command("UltArm", D.UltArm, function(player)
+		local ok, reason = UltService.arm(player)
+		ultAnswer(
+			player,
+			ok,
+			reason,
+			Dev.UltArmed:format(UltCatalog.name(UltService.equipped(player)))
+		)
+	end)
+	command(
+		"Spins",
+		D.Spins,
+		ultCount("Spins", U.Earn.MaxSpins, PlayerData.setUltSpins, function(n)
+			return Dev.SpinsSet:format(n)
+		end)
+	)
+	command(
+		"Lucky",
+		D.Lucky,
+		ultCount("Lucky", U.Earn.MaxSpins, PlayerData.setUltLucky, function(n)
+			return Dev.LuckySet:format(n)
+		end)
+	)
+	command(
+		"Pity",
+		D.Pity,
+		ultCount("Pity", U.Roll.PityAt - 1, PlayerData.setUltPity, function(n)
+			return Dev.PitySet:format(n, U.Roll.PityAt)
+		end)
+	)
+	command("FreeSpin", D.FreeSpin, function(player)
+		tell(
+			player,
+			if PlayerData.setFreeSpin(player, true) then Dev.FreeSpinReady else Dev.NotLoaded
+		)
+	end)
+	command("Ult", D.Ult, function(player, args)
+		if #args == 0 then
+			try(player, "Ult")
+			return
+		end
+		local id = findUlt(args)
+		if id == nil then
+			tell(
+				player,
+				Dev.BadUlt:format(table.concat(args, " "), table.concat(UltCatalog.list(), ", "))
+			)
+		elseif PlayerData.setUlt(player, id) then
+			tell(player, Dev.UltSet:format(UltCatalog.name(id)))
+		else
+			tell(player, Dev.NotLoaded)
+		end
+	end)
+	command("UltsAll", D.UltsAll, function(player, args)
+		local on = ({ on = true, off = false } :: { [string]: boolean })[args[1] or ""]
+		if on == nil then
+			try(player, "UltsAll")
+			return
+		end
+		UltSpins.setDevAll(player, on)
+		tell(player, if on then Dev.UltsAllOn else Dev.UltsAllOff)
+	end)
+	command("OpUlt", D.OpUlt, function(player)
+		local n = UltService.fillOpponent(player)
+		tell(player, if n > 0 then Dev.OpUlt:format(n) else Dev.OpUltNone)
+	end)
+	command("UltHelp", D.UltHelp, ultHelp)
 
 	-- Studio only: tests type a command through ServerStorage.DevCommandsQA, since a script
 	-- cannot type into Roblox's chat box: Invoke(userId, "/givecue chalk dust 3") -> (true,
