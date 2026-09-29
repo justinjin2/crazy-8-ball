@@ -38,20 +38,75 @@
   "metal": [],
   "glow": [],
   "surface": {
-    "EmissiveStrength": 0.9,
+    "EmissiveStrength": 1.5,
     "EmissiveTint": "#FFA030",
     "Pulse": {
       "EmissiveStrength": {
-        "Min": 0.75,
-        "Max": 1.1,
+        "Min": 1.2,
+        "Max": 1.9,
         "Period": 3.0
       }
     }
   },
   "vfx": {
     "Aura": {
-      "Note": "Tiny cartoon bees buzz round the handle (flipbook wings) and drift in slow wandering arcs; glowing honey drops fall off the forearm and fade; a warm honey glow breathes round the handle. Roblox particles fly straight, so the concept's 'lazy loops' are slow drifting arcs that turn with the cue.",
+      "Note": "A warm honey halo glows round the whole cue, tip to butt (a camera-facing Beam wider than the cue, breathing slowly); tiny cartoon bees buzz all along it in slow wandering arcs; glowing honey drops fall off the handle; warm glow puffs and gold glints drift up along the whole length.",
       "BackRateScale": 0.5,
+      "Beams": [
+        {
+          "Name": "HoneyHalo",
+          "FromStuds": 0.0,
+          "ToStuds": 7.2,
+          "Width0": 0.32,
+          "Width1": 0.78,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "TextureLength": 1,
+          "TextureSpeed": 0,
+          "Color": [
+            [
+              0,
+              "#FFB840"
+            ],
+            [
+              1,
+              "#FF8A10"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.7
+            ],
+            [
+              0.35,
+              0.5
+            ],
+            [
+              0.9,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0,
+          "Pulse": {
+            "Min": 0.75,
+            "Max": 1.0,
+            "Period": 3.0
+          }
+        }
+      ],
       "Emitters": [
         {
           "Name": "Bees",
@@ -65,16 +120,16 @@
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.9,
-            "ToStuds": 6.8,
-            "Width": 0.55,
+            "FromStuds": 0.6,
+            "ToStuds": 7.0,
+            "Width": 0.75,
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 1.6,
+          "Rate": 3,
           "Lifetime": [
-            2.5,
-            3.5
+            3,
+            4
           ],
           "Speed": [
             0.25,
@@ -96,12 +151,12 @@
               0
             ],
             [
-              0.12,
-              0.34
+              0.1,
+              0.36
             ],
             [
-              0.88,
-              0.34
+              0.9,
+              0.36
             ],
             [
               1,
@@ -114,11 +169,11 @@
               1
             ],
             [
-              0.1,
+              0.08,
               0
             ],
             [
-              0.85,
+              0.88,
               0
             ],
             [
@@ -127,7 +182,7 @@
             ]
           ],
           "Color": "#FFFFFF",
-          "LightEmission": 0.15,
+          "LightEmission": 0.2,
           "LightInfluence": 0,
           "Rotation": [
             -15,
@@ -146,16 +201,16 @@
           "Texture": "vfx/honeycomb/honey_drop.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.95,
-            "ToStuds": 5.25,
+            "FromStuds": 3.9,
+            "ToStuds": 7.0,
             "Width": 0.14,
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 3,
+          "Rate": 4,
           "Lifetime": [
-            0.7,
-            1.0
+            0.8,
+            1.1
           ],
           "Speed": [
             0,
@@ -171,29 +226,28 @@
             -5,
             0
           ],
-          "Drag": 0,
           "Size": [
             [
               0,
-              0.04
+              0.05
             ],
             [
               0.2,
-              0.11
+              0.12
             ],
             [
               1,
-              0.09
+              0.1
             ]
           ],
           "Transparency": [
             [
               0,
-              0.2
+              0.1
             ],
             [
-              0.7,
-              0.1
+              0.75,
+              0.05
             ],
             [
               1,
@@ -203,11 +257,11 @@
           "Color": [
             [
               0,
-              "#FFE08A"
+              "#FFFFFF"
             ],
             [
               1,
-              "#FFA41E"
+              "#FFE6B0"
             ]
           ],
           "LightEmission": 0.8,
@@ -221,37 +275,42 @@
           "Texture": "vfx/_shared/glow_soft.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.8,
-            "ToStuds": 6.9,
-            "Width": 0.2,
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 2.5,
+          "Rate": 4,
           "Lifetime": [
-            1.5,
-            2.0
+            2.0,
+            2.6
           ],
           "Speed": [
-            0,
-            0.05
+            0.05,
+            0.12
           ],
           "SpreadAngle": [
             180,
             180
           ],
+          "Acceleration": [
+            0,
+            0.1,
+            0
+          ],
           "Size": [
             [
               0,
-              0.35
+              0.5
             ],
             [
               0.5,
-              0.7
+              0.95
             ],
             [
               1,
-              0.5
+              0.7
             ]
           ],
           "Transparency": [
@@ -261,7 +320,7 @@
             ],
             [
               0.4,
-              0.62
+              0.55
             ],
             [
               1,
@@ -279,20 +338,20 @@
           "Texture": "vfx/_shared/star4.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.8,
-            "ToStuds": 6.9,
-            "Width": 0.3,
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.45,
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 4,
+          "Rate": 7,
           "Lifetime": [
-            0.5,
-            0.9
+            0.8,
+            1.3
           ],
           "Speed": [
-            0.05,
-            0.2
+            0.1,
+            0.3
           ],
           "SpreadAngle": [
             180,
@@ -300,7 +359,7 @@
           ],
           "Acceleration": [
             0,
-            0.3,
+            0.35,
             0
           ],
           "Size": [
@@ -310,7 +369,7 @@
             ],
             [
               0.3,
-              0.12
+              0.2
             ],
             [
               1,
@@ -348,8 +407,9 @@
       "Note": "The default gust in the ball's colour (Rares add none)."
     },
     "Budget": {
-      "ParticlesPerSecond": 11.1,
-      "Back": 5.6
+      "ParticlesPerSecond": 18,
+      "Back": 9,
+      "Beams": 1
     }
   }
 }

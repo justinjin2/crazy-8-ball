@@ -52,12 +52,12 @@
   "metal": [],
   "glow": [],
   "surface": {
-    "EmissiveStrength": 1.2,
+    "EmissiveStrength": 1.7,
     "EmissiveTint": "#C9A0FF",
     "Pulse": {
       "EmissiveStrength": {
-        "Min": 0.9,
-        "Max": 1.5,
+        "Min": 1.3,
+        "Max": 2.1,
         "Period": 4.0
       }
     }
@@ -161,7 +161,7 @@
       ]
     },
     "Aura": {
-      "Note": "Dark purple motes are pulled INTO the cue from all round the handle (a cylinder-surface emitter with ShapeInOut Inward), dark matter smoke is drawn in with them (LightEmission 0 so it darkens), and a faint violet glow breathes round the handle.",
+      "Note": "A violet halo glows round the whole cue, tip to butt (a camera-facing Beam wider than the cue), and violet energy wisps stream along it toward the black hole at the butt (a second Beam with TextureSpeed); violet motes and black rock shards are pulled INTO the cue all along its length (cylinder-surface emitters, ShapeInOut Inward); dark-matter smoke is drawn in with them; a violet haze breathes round it.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -169,14 +169,14 @@
           "Texture": "vfx/_shared/spark.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.7,
+            "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 1.1,
+            "Width": 1.2,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface",
             "ShapeInOut": "Inward"
           },
-          "Rate": 19,
+          "Rate": 17,
           "Lifetime": 0.9,
           "Speed": [
             0.5,
@@ -185,11 +185,11 @@
           "Size": [
             [
               0,
-              0.06
+              0.08
             ],
             [
               0.3,
-              0.16
+              0.22
             ],
             [
               1,
@@ -247,9 +247,9 @@
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.8,
-            "ToStuds": 6.9,
-            "Width": 0.8,
+            "FromStuds": 0.5,
+            "ToStuds": 7.0,
+            "Width": 0.9,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface",
             "ShapeInOut": "Inward"
@@ -315,13 +315,13 @@
           "Texture": "vfx/_shared/glow_soft.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.8,
-            "ToStuds": 6.9,
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
             "Width": 0.2,
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 5,
+          "Rate": 4,
           "Lifetime": [
             1.5,
             2.0
@@ -369,9 +369,9 @@
           "Texture": "vfx/void/shard.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.9,
-            "ToStuds": 6.9,
-            "Width": 1.3,
+            "FromStuds": 0.6,
+            "ToStuds": 7.0,
+            "Width": 1.4,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface",
             "ShapeInOut": "Inward"
@@ -389,7 +389,7 @@
             ],
             [
               0.2,
-              0.09
+              0.11
             ],
             [
               1,
@@ -426,6 +426,109 @@
             200
           ],
           "LockedToPart": true,
+          "ZOffset": 0
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "VoidHalo",
+          "FromStuds": 0.0,
+          "ToStuds": 7.2,
+          "Width0": 0.34,
+          "Width1": 0.85,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "TextureLength": 1,
+          "TextureSpeed": 0,
+          "Color": [
+            [
+              0,
+              "#9A5CF0"
+            ],
+            [
+              1,
+              "#6A28D8"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.6
+            ],
+            [
+              0.4,
+              0.4
+            ],
+            [
+              0.9,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0,
+          "Pulse": {
+            "Min": 0.7,
+            "Max": 1.0,
+            "Period": 4.0
+          }
+        },
+        {
+          "Name": "VoidStream",
+          "FromStuds": 0.0,
+          "ToStuds": 7.2,
+          "Width0": 0.4,
+          "Width1": 1.0,
+          "Segments": 24,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": [
+            [
+              0,
+              "#D2B0FF"
+            ],
+            [
+              0.6,
+              "#A070F0"
+            ],
+            [
+              1,
+              "#7A36E0"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.35
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "FaceCamera": true,
           "ZOffset": 0
         }
       ]
@@ -552,9 +655,10 @@
       "Note": "The default gust in the ball's colour (plan.json lists no Void finisher)."
     },
     "Budget": {
-      "ParticlesPerSecond": 34.4,
-      "Back": 17.7,
-      "BallTrail": 22
+      "ParticlesPerSecond": 31.4,
+      "Back": 15.7,
+      "BallTrail": 22,
+      "Beams": 2
     }
   }
 }

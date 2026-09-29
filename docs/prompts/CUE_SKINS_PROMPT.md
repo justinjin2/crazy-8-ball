@@ -391,7 +391,7 @@ and you ask the designer about it.
 
 ## Notes
 
-WAITING FOR DESIGNER: the pilot check (Midnight, Honeycomb, Void sheets and clips): OK, or changes?
+WAITING FOR DESIGNER: the pilot check, round 2 (Honeycomb and Void redone with auras round the whole cue): OK, or changes?
 
 - **2026-09-29, setup.** Worktree `~/Desktop/8ball-skins`, branch `cue-skins`, pushed. Blender
   5.2.2 LTS runs headless (EEVEE ~0.4 s a 720p frame; its built-in FFMPEG writes the clips, the
@@ -426,4 +426,8 @@ WAITING FOR DESIGNER: the pilot check (Midnight, Honeycomb, Void sheets and clip
 - **Pilot built:** Midnight (procedural), Honeycomb (procedural + an OpenAI bee flipbook), Void
   (OpenAI forearm and butt + procedural shaft; spinning-swirl moving material). Spend so far
   about $0.14.
+- **Pilot round 1 feedback (designer):** not enough aura on the Rare and the Epic; make it more
+  prominent and round the entire cue, tip to butt, for every Rare and up, using emissive glow too.
+  Done: a halo Beam round the whole outline (Rare+), a streaming energy Beam (Epic+), emitters
+  spanning the whole cue, stronger pulsing emissive. Logged in DECISIONS.
 

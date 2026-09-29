@@ -445,6 +445,7 @@ class Beam:
         self.mode = spec.get('TextureMode', 'Wrap')
         self.zoffset = float(spec.get('ZOffset', 0))
         self.face = bool(spec.get('FaceCamera', True))
+        self.pulse = spec.get('Pulse')  # a script tweening Transparency: alpha x wave(t)
         tex = spec.get('Texture', 'vfx/_shared/glow_soft.png')
         self.texture = tex if os.path.isabs(tex) else os.path.join(texture_root, tex)
 
@@ -473,6 +474,8 @@ class Beam:
             u = k * length / self.tex_len
         u = u - t * self.speed  # Roblox scrolls the texture along the beam
         col = self.color(k)
+        if self.pulse:
+            pulse = pulse * wave(t, self.pulse)
         alpha = (1 - np.clip(self.transp(k), 0, 1)) * pulse
         corners = np.stack([L[:-1], Rr[:-1], Rr[1:], L[1:]], 1)
         uv = np.stack([np.stack([u[:-1], np.zeros(n)], -1), np.stack([u[:-1], np.ones(n)], -1),
@@ -700,7 +703,42 @@ def save_rgba(path, arr):
     print('CUE vfx wrote', os.path.relpath(path, HERE))
 
 
+def sprite_halo_strip(w=64, h=256):
+    """A beam texture for a halo round the whole cue: v runs across the beam; bright in the middle
+    (hidden inside the cue) falling off softly to both edges, so a camera-facing beam wider than
+    the cue shows as a glow round its outline."""
+    v = (np.arange(h) + 0.5) / h * 2 - 1
+    a = np.exp(-(v / 0.42) ** 2) * 0.85 + np.clip(1 - np.abs(v), 0, 1) ** 2 * 0.15
+    a = np.repeat(a[:, None], w, 1)
+    return _rgba(np.clip(a, 0, 1))
+
+
+def sprite_wisp_strip(w=1024, h=256, seed=13, lanes=9):
+    """A scrolling energy beam texture: long flowing strands along u that swell, thin and break,
+    tiling seamlessly along u (for TextureSpeed), soft across v."""
+    rs = np.random.RandomState(seed)
+    u = (np.arange(w) + 0.5) / w
+    v = (np.arange(h) + 0.5) / h * 2 - 1
+
+    def per(freq, sd, z=0.0):  # fbm periodic in u
+        R = freq / (2 * math.pi)
+        return cc.fbm(np.cos(2 * math.pi * u) * R, np.sin(2 * math.pi * u) * R, np.full_like(u, z), 3, sd)
+    a = np.zeros((h, w))
+    for k in range(lanes):
+        vk = rs.uniform(-0.6, 0.6)
+        off = 0.35 * (per(3, seed + 3 * k) - 0.5)
+        thick = 0.025 + 0.06 * per(5, seed + 3 * k + 1, 2.0)
+        inten = np.clip((per(4, seed + 3 * k + 2, 4.0) - 0.38) * 3.0, 0, 1)
+        a += np.exp(-((v[:, None] - vk - off[None]) / thick[None]) ** 2) * inten[None] * rs.uniform(0.6, 1.0)
+    across = np.clip(1 - np.abs(v), 0, 1)[:, None] ** 0.7
+    a = np.clip(a * across, 0, 1)
+    core = np.clip(a - 0.6, 0, 1) * 1.5
+    return _rgba(a, core=core)
+
+
 SHARED_SPRITES = {
+    'halo_strip.png': sprite_halo_strip,
+    'wisp_strip.png': sprite_wisp_strip,
     'glow_soft.png': sprite_glow_soft,
     'glow_core.png': sprite_glow_core,
     'star4.png': sprite_star4,
@@ -716,7 +754,7 @@ SHARED_SPRITES = {
 SKIN_SPRITES = {}
 
 
-def sprite_drop(n=128, body=(250, 170, 40), deep=(200, 96, 10)):
+def sprite_drop(n=128, body=(255, 215, 110), deep=(240, 150, 30)):
     """A glossy falling drop (honey, goo, lava): a round bulb below with a short tail above and a
     white highlight; upright (use FacingCameraWorldUp)."""
     x, y = _grid(n)

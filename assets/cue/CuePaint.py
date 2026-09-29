@@ -637,6 +637,8 @@ def honeycomb(k):
         vein = (1 - smooth(0.0, 0.05, vein)) * smooth(0.9, 3.0, c.d) * m
         vcol = np.broadcast_to(np.array([255.0, 190, 60]), c.col.shape)
         c.put(vein * 0.95, vcol, glow=vein)
+        # a faint warm glow through the whole amber shaft, so the tip end glows too
+        c.put(m, None, glow=np.maximum(c.glow, 0.12 * m))
     # the honeycomb (forearm and sleeve): dark glossy cells, glowing gold walls
     for c, m in k.zone('forearm', 'cap'):
         edge, cid, dx, dy = hex_cells(c, 7)

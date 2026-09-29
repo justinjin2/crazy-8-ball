@@ -42,7 +42,7 @@ PREVIEW = {
     'background': (0.0085, 0.0095, 0.0125),  # linear: about #16181D, the concept sheets' charcoal
     'floor': (0.006, 0.0065, 0.008),
     'env_strength': 0.55,
-    'bloom': (0.85, 0.45, 0.55),  # threshold, strength, size (Blender Glare: Bloom)
+    'bloom': (0.8, 0.6, 0.6),  # threshold, strength, size (Blender Glare: Bloom)
     'back': {'tilt_deg': 36.0, 'out': 0.3, 'grip_from_tip': 4.3},  # Config.Cue.Back
     'segments': {'turn': 3.2, 'back': 2.2, 'shot': 2.4, 'pocket': 2.0},  # seconds
     'common_turn': 4.0,
@@ -415,7 +415,8 @@ def blender_main(args):
             ems.append(vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale))
         return ems
 
-    beams = [vfx.Beam(b) for b in (moving.get('Beams') or [])]
+    aura_spec = V.get('Aura') or {}
+    beams = [vfx.Beam(b) for b in (aura_spec.get('Beams') or []) + (moving.get('Beams') or [])]
 
     def emitter_key(prefix, i, em):
         return '%s%d' % (prefix, i)
@@ -527,7 +528,7 @@ def blender_main(args):
             still(name, dict(loc=(x, -6 * math.cos(e), 6 * math.sin(e)), target=(x, 0, 0), ortho=width), horiz)
         diag = ((-2.6, 0, -1.5), (math.radians(-26), 0, math.pi / 2))
         still('threeq', dict(loc=(-0.2, -2.9, 1.3), target=(2.2, 0, 0.15), lens=40), horiz)
-        still('aura', dict(loc=(1.9, -5.2, 0.9), target=(1.9, 0, 0.3), lens=38), diag, aura_t=PREVIEW['prewarm'])
+        still('aura', dict(loc=(0.55, -8.6, 0.9), target=(0.55, 0, 0.05), lens=38), diag, aura_t=PREVIEW['prewarm'])
         print('CUE preview stills done', skin_id)
 
     # ---- clip -----------------------------------------------------------------------------------
