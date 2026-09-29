@@ -8,7 +8,11 @@ bottom, which is the source of truth for where you are.
 - **Keep moving.** Make reasonable calls yourself from the plan, the designer's past decisions
   (`docs/DECISIONS.md`) and the style, and log each call in `docs/DECISIONS.md` tagged
   `(assumption)`.
-- **Ask the designer** (a plain question in chat, then wait) only when you truly need them:
+- **Ask the designer** only when you truly need them. To ask and wait, add a line starting
+  `WAITING FOR DESIGNER: <question>` at the very top of Notes, ask in chat, then stop. The
+  Stop hook (`tools/overnight/cue_skins.json`) lets you stop only while that line is there;
+  otherwise it sends you back to work while Progress boxes are unticked. Delete the line as
+  soon as the designer answers. Ask for:
   - access to something (a key, a login, the Blender window)
   - a missing concept image
   - a design choice the plan doesn't answer and a wrong guess would waste real work
@@ -340,8 +344,9 @@ design.
 Tick each box when it's done and committed. A blocked step becomes `- [x] BLOCKED: <why>`,
 and you ask the designer about it.
 
-- [ ] 0. Setup: in `~/Desktop/8ball-skins` (branch `cue-skins`), commit this brief,
-  `CUE_SKINS_CHATGPT.md`, `concepts/plan.json`, `concepts/_attach/`, the concept sheets
+- [x] 0. Setup: in `~/Desktop/8ball-skins` (branch `cue-skins`), commit this brief,
+  `CUE_SKINS_CHATGPT.md`, `concepts/plan.json`, `concepts/_attach/`, `tools/overnight/cue_skins.json`,
+  `tools/overnight/skins_keep_going.sh`, the concept sheets
   already there, and the designer's `docs/ECONOMY.md` and `docs/DECISIONS.md` edits (the
   Starter Cue trades). Docs read. Blender
   runs headless. OpenAI key checked (True/False only) and `tools/openai_image.py` working (one
@@ -385,3 +390,29 @@ and you ask the designer about it.
   Branch pushed.
 
 ## Notes
+
+- **2026-09-29, setup.** Worktree `~/Desktop/8ball-skins`, branch `cue-skins`, pushed. Blender
+  5.2.2 LTS runs headless (EEVEE ~0.4 s a 720p frame; its built-in FFMPEG writes the clips, the
+  Mac has no ffmpeg). OpenAI key: True. `tools/openai_image.py` works; model
+  **gpt-image-2.5-sunburst** (the newest on the key: gpt-image-2.5-flare/-sunburst, dated
+  2026-09-08; Sunburst holds precise edits). One test panel (Honeycomb forearm, 1536x512 edit):
+  about $0.03.
+- **Concept sheets found (25 of 26):** C1, C2, U1, U2, U3, R1, R2, R3, E1, E2, E3, L1-L7, M1, M2,
+  M3, S1, X1, K1, K2. **Missing: Q1** (Founder's Cue, Beta Cue, Grand Opening): asked for when
+  the run reaches it.
+- **Plan.**
+  1. Painters write the five panels per skin (plus optional same-size greyscale companions:
+     `<panel>_height`, `_rough`, `_metal`, `_glow`): `assets/cue/CuePaint.py` (Mac Python,
+     numpy + Pillow) holds the procedural painters and the OpenAI panel runner with drift checks
+     (exact size, seam blend, palette snap). `CueTextures.py` maps every channel onto the atlas.
+  2. `assets/cue/CueVfx.py`: the sprite/flipbook maker (numpy, plus OpenAI transparent sprites
+     for illustrated ones), and a Blender preview built from Roblox's own pieces: a
+     deterministic ParticleEmitter simulator (Rate, Lifetime, Speed, SpreadAngle, Acceleration,
+     Drag, sequences, LightEmission as additive blend, Rotation/RotSpeed, LockedToPart, ZOffset,
+     flipbooks), Trails (camera-facing ribbons with Lifetime/WidthScale/sequences), Beams
+     (FaceCamera ribbons with ZOffset and scrolling TextureSpeed) and the pocket burst exactly as
+     `Effects.pocketBurst` builds it today plus extra layers.
+  3. `assets/cue/CuePreview.py`: in Blender, the stills and the clip (EEVEE, a dark Roblox-like
+     scene, a blocky avatar, the real table and ball); in plain Python, the labelled sheet and the
+     tier sheets. `tools/cue_skin.py <id>` runs the whole chain for one skin.
+

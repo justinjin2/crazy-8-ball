@@ -1,0 +1,12 @@
+{
+  "_note": "Boxes [x0, y0, x1, y1] in each sheet's pixels; tools/crop_concepts.py cuts them to cues/<id>/.",
+  "C1": {
+    "midnight": {"full": [28, 34, 1508, 100], "closeup": [688, 112, 1502, 206]}
+  },
+  "R1": {
+    "honeycomb": {"full": [12, 34, 1062, 92], "closeup": [196, 100, 952, 184], "vfx": [1080, 0, 1536, 128], "trail": [1168, 124, 1338, 226], "pocket": [1344, 124, 1522, 226]}
+  },
+  "E1": {
+    "void": {"full": [24, 68, 1002, 122], "closeup": [76, 158, 946, 270], "vfx": [1014, 0, 1536, 308], "trail": [1258, 178, 1482, 284]}
+  }
+}
