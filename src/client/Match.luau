@@ -70,7 +70,13 @@ export type Match = typeof(setmetatable(
 			capped: boolean,
 			startedAt: number,
 			eightWins: boolean?, -- the server says this shot's 8 wins the game
+			-- The effect's slow-motion moments seen so far (an `ult` event of kind "slow": from
+			-- `from` for `length` shot seconds the replay runs at `scale`).
+			slows: { { from: number, length: number, scale: number } },
+			finished: boolean, -- the effect's finish hook has run (at rest)
 		}?,
+		-- The developer's /slowmo: every replay at this rate (1 = normal; Studio only).
+		timeScale: number,
 		lastShot: Summary?,
 		eventListeners: { (Event, number) -> () },
 		-- The sequence number of the shot being replayed, and where the server says the
@@ -131,6 +137,7 @@ function Match.new(
 		downVersion = 0,
 		assign = nil,
 		cueHold = nil,
+		timeScale = 1,
 	}, Match)
 	resync(self)
 	self:renderState()
@@ -375,6 +382,8 @@ function Match.replay(
 	cue.wx, cue.wy, cue.wz = seed.wx, seed.wy, seed.wz
 	self.state.time = 0
 	self.state.overrides = if overrides then table.clone(overrides) else nil
+	self.state.fx = nil
+	self.state.halted = nil
 	self.seq = seq
 	self.pendingFinal = final
 	self.pendingChecksum = checksum
@@ -389,12 +398,16 @@ function Match.replay(
 		nextEvent = 1,
 		capped = false,
 		startedAt = startedAt,
+		slows = {},
+		finished = false,
 	}
 end
 
 --- Settle onto the server's final positions. Called when the replay stops moving.
 function Match.reconcile(self: Match)
 	self.state.overrides = nil
+	self.state.fx = nil
+	self.state.halted = nil
 	local final = self.pendingFinal
 	self.pendingFinal = nil
 	if final == nil then
@@ -455,6 +468,22 @@ local function dispatch(self: Match, ev: Event, index: number)
 		-- Out of play, but not pocketed: the server puts it back (or it is the cue ball, in
 		-- hand). Only the drawn cue's clearance needs to know the table changed.
 		self.downVersion += 1
+	elseif ev.type == "removed" and not self.sunk[ev.ball] then
+		-- An ult took it out of play (counted as pocketed): its own look draws where it went.
+		self.sunk[ev.ball] = true
+		self.downVersion += 1
+		if self.renderer then
+			self.renderer:setVisible(ev.ball, false)
+		end
+	elseif ev.type == "ult" and ev.kind == "slow" and self.shot then
+		local length, extra = ev.x or 0, ev.value or 0
+		if length > 0 and extra > 0 then
+			table.insert(self.shot.slows, {
+				from = ev.t,
+				length = length,
+				scale = length / (length + extra),
+			})
+		end
 	end
 	for _, listener in self.eventListeners do
 		listener(ev, index)
@@ -487,9 +516,21 @@ function Match.update(self: Match, dt: number): boolean
 		return false
 	end
 	local P = Config.Physics
+	-- A halted shot (Time Stop's freeze) waits here, every ball holding its motion, until the
+	-- shot's next part is handed in (Match.continue).
+	if self.state.halted then
+		return true
+	end
 	-- Never simulate more than a short slice per frame: a hitch must not fast-forward the
-	-- shot, and one frame must never be asked to do unbounded work.
-	shot.elapsed += math.min(dt, Config.Debug.MaxPlaybackStepSeconds)
+	-- shot, and one frame must never be asked to do unbounded work. The replay runs slower
+	-- inside an effect's slow-motion moment, and at the developer's /slowmo rate.
+	local rate = self.timeScale
+	for _, slow in shot.slows do
+		if self.state.time >= slow.from and self.state.time < slow.from + slow.length then
+			rate *= slow.scale
+		end
+	end
+	shot.elapsed += math.min(dt, Config.Debug.MaxPlaybackStepSeconds) * rate
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
 	local timeBefore = self.state.time
 	local frameSteps = 0
@@ -511,6 +552,14 @@ function Match.update(self: Match, dt: number): boolean
 		end
 		Simulation.step(self.state, P.FixedStep, shot.events)
 		shot.steps += 1
+		if self.state.halted then
+			break
+		end
+	end
+	-- At rest: the effect's finish hook, once, before the final positions are compared.
+	if not shot.capped and not shot.finished and Simulation.isAtRest(self.state) then
+		shot.finished = true
+		Simulation.finishShot(self.state, shot.events)
 	end
 
 	local renderer = self.renderer
@@ -538,12 +587,25 @@ function Match.update(self: Match, dt: number): boolean
 		shot.nextEvent += 1
 	end
 
+	if self.state.halted then
+		return true
+	end
 	if shot.capped or Simulation.isAtRest(self.state) then
 		finish(self, shot)
 		self:reconcile()
 		return false
 	end
 	return true
+end
+
+--- The developer's /slowmo: every replay on this table runs at `scale` (1 = normal).
+function Match.setTimeScale(self: Match, scale: number)
+	self.timeScale = math.clamp(scale, 0.05, 4)
+end
+
+--- True while the shot being replayed is halted mid-way (Time Stop's freeze).
+function Match.isHalted(self: Match): boolean
+	return self.shot ~= nil and self.state.halted == true
 end
 
 --- Speed of the cue ball right now, for the debug readout.

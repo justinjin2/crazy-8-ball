@@ -53,6 +53,28 @@ export type Overrides = {
 	-- The 8 may only be pulled toward this pocket id (the called pocket, on the shooter's legal
 	-- 8 shot). Without it the 8 is never acted on, even when listed in Targets.
 	EightPocket: number?,
+	-- The opponent's balls the effect may act on, at Config.Ults.OpponentFactor of the
+	-- strength or reach (the skill rule, docs/prompts/ABILITIES_PROMPT.md 5.7). Never the 8 or
+	-- the cue ball.
+	OppTargets: { number }?,
+	-- The shooter's aim-phase pick, validated by the server: a ball id (Heat Seeker) or two
+	-- spots on the cloth (Portals: { ax, ay, bx, by } in inches).
+	Pick: { number }?,
+	-- The cue ball passes through these ball ids this shot (Ghost): no contact either way, in
+	-- the pair search and in soft contact.
+	PhaseCue: { number }?,
+	-- The cue ball's own material this shot (Super Bounce), until `CueUntil` seconds of shot
+	-- time: its cushion restitution and friction, its restitution against balls, and its
+	-- cloth frictions (each nil keeps the normal value).
+	CueRailRestitution: number?,
+	CueRailFriction: number?,
+	CueBallRestitution: number?,
+	CueSlidingFriction: number?,
+	CueRollingFriction: number?,
+	CueUntil: number?,
+	-- Numbers the server's rules chose for the effect (for example the shooter's side, or
+	-- whether the 8 is theirs), read-only for the effect.
+	Params: { [string]: number }?,
 }
 
 export type State = {
@@ -60,16 +82,27 @@ export type State = {
 	balls: { Ball },
 	time: number,
 	overrides: Overrides?, -- copied server-authorized material for this shot only
+	-- The armed effect's own per-shot scratch (Ults/Effects): made fresh at every strike and
+	-- replay start, never part of `overrides` (the replay copies those), stepped identically
+	-- everywhere. `ghost` in it (ball id -> true) takes a ball out of every contact.
+	fx: any?,
+	-- Set by an effect's `halt` (Time Stop's freeze): this part of the shot ends at the end of
+	-- the current step, with every ball keeping its motion. Cleared by whoever continues it.
+	halted: boolean?,
 }
 
 export type Event = {
 	t: number,
-	type: "cueStrike" | "railHit" | "ballHit" | "pocket" | "land" | "offTable",
+	type: "cueStrike" | "railHit" | "ballHit" | "pocket" | "land" | "offTable" | "removed" | "ult",
 	ball: number, -- ball id
 	other: number?, -- other ball id for ballHit, pocket id for pocket
 	speed: number, -- impact speed along the contact normal (in/s); land: speed coming down
 	x: number?, -- railHit: where the ball's centre was at the hit (in), to tell a cushion
-	y: number?, -- from the pocket jaws beside it (NiceShot)
+	y: number?, -- from the pocket jaws beside it (NiceShot); removed / ult: where it happened
+	-- removed: how an ult took the ball out of play ("shatter", "swallow", "cut"); it counts
+	-- as pocketed (ShotJudge). ult: what the effect did, for the client's look (its own names).
+	kind: string?,
+	value: number?, -- ult: a number the look needs (a strength, a duration)
 }
 
 export type Frame = {
@@ -88,6 +121,10 @@ export type ShotOutcome = {
 	steps: number,
 	capped: boolean, -- true if MaxShotSeconds stopped the shot early
 	overrides: Overrides?, -- retained for replay after the state's copy is cleared
+	halted: boolean?, -- an effect halted the shot here (Time Stop); it is not at rest
+	-- Wall seconds the clients' replay runs longer than the shot, for the effect's slow-motion
+	-- moments (an `ult` event of kind "slow"): the server waits this much more to resolve.
+	extraSeconds: number?,
 }
 
 export type ShotResult = ShotOutcome & { frames: { Frame } }
@@ -100,12 +137,27 @@ function Simulation.newState(geometry: Geometry, balls: { Ball }): State
 	return { geometry = geometry, balls = balls, time = 0 }
 end
 
+-- A plain deep copy (effect scratch tables are plain data: numbers, strings, booleans and
+-- tables of them).
+local function deepCopy(value: any): any
+	if type(value) ~= "table" then
+		return value
+	end
+	local out = {}
+	for k, v in value do
+		out[k] = deepCopy(v)
+	end
+	return out
+end
+
 function Simulation.cloneState(state: State): State
 	return {
 		geometry = state.geometry,
 		balls = Ball.cloneList(state.balls),
 		time = state.time,
-		overrides = if state.overrides then table.clone(state.overrides) else nil,
+		overrides = if state.overrides then deepCopy(state.overrides) else nil,
+		fx = if state.fx then deepCopy(state.fx) else nil,
+		halted = state.halted,
 	}
 end
 
@@ -269,12 +321,16 @@ local function leaveTable(b: Ball, events: { Event }?, time: number)
 	end
 end
 
+-- `sliding` and `rolling`, when given, replace the cloth frictions for this ball (a per-shot
+-- cue material, Overrides.CueSlidingFriction / CueRollingFriction).
 local function integrateBall(
 	b: Ball,
 	h: number,
 	geometry: Geometry,
 	events: { Event }?,
-	time: number
+	time: number,
+	sliding: number?,
+	rolling: number?
 )
 	if b.pocketed then
 		local pocket = if b.pocket then geometry.pockets[b.pocket] else nil
@@ -308,12 +364,14 @@ local function integrateBall(
 		if events then
 			table.insert(events, { t = landedAt, type = "land", ball = b.id, speed = down })
 		end
-		integrateBall(b, h - flown, geometry, events, time)
+		integrateBall(b, h - flown, geometry, events, time, sliding, rolling)
 		return
 	end
 	local P = Config.Physics
 	local R = Config.Balls.RadiusInches
 	local g = P.Gravity
+	local slideMu = sliding or P.SlidingFriction
+	local rollMu = rolling or P.RollingFriction
 
 	local remaining = h
 
@@ -326,10 +384,10 @@ local function integrateBall(
 		-- Sliding. u shrinks linearly at 3.5 * mu * g along a fixed direction, so the
 		-- motion over the slide interval is exact constant-acceleration kinematics.
 		local uhx, uhy = ux / u, uy / u
-		local slideTime = u / (3.5 * P.SlidingFriction * g)
+		local slideTime = if slideMu > 0 then u / (3.5 * slideMu * g) else math.huge
 		local dt = math.min(slideTime, remaining)
-		local a = -P.SlidingFriction * g
-		local alpha = 2.5 * P.SlidingFriction * g / R
+		local a = -slideMu * g
+		local alpha = 2.5 * slideMu * g / R
 
 		b.x += b.vx * dt + 0.5 * a * uhx * dt * dt
 		b.y += b.vy * dt + 0.5 * a * uhy * dt * dt
@@ -350,8 +408,8 @@ local function integrateBall(
 		-- Rolling. Rolling resistance slows the ball along its direction of travel.
 		local v = math.sqrt(b.vx * b.vx + b.vy * b.vy)
 		if v > 0 then
-			local decel = P.RollingFriction * g
-			local stopTime = v / decel
+			local decel = rollMu * g
+			local stopTime = if decel > 0 then v / decel else math.huge
 			local dt = math.min(stopTime, remaining)
 			local dhx, dhy = b.vx / v, b.vy / v
 			b.x += b.vx * dt - 0.5 * decel * dhx * dt * dt
@@ -469,9 +527,9 @@ end
 -- The same contact when a ball is in the air: the normal runs centre to centre in 3-D and
 -- the friction impulse keeps its vertical part. A ball coming down on top of another pushes
 -- it into the slate, which holds it, and is itself thrown back up.
-local function resolveBalls3D(a: Ball, b: Ball): number
+local function resolveBalls3D(a: Ball, b: Ball, restitution: number?): number
 	local R = Config.Balls.RadiusInches
-	local e = Config.Physics.BallRestitution
+	local e = restitution or Config.Physics.BallRestitution
 	local aDown, bDown = not Flight.isAirborne(a), not Flight.isAirborne(b)
 	local nx, ny, nz = b.x - a.x, b.y - a.y, b.z - a.z
 	local len = math.sqrt(nx * nx + ny * ny + nz * nz)
@@ -577,11 +635,12 @@ end
 -- Equal-mass contact with restitution, throw and spin transfer (TP A.14 / pooltool).
 -- Keep vertical contact slip for the angular impulse, then discard vertical translation:
 -- balls stay on the cloth, but rolling into another ball can give it backspin.
-local function resolveBalls(a: Ball, b: Ball): number
+-- `restitution`, when given, replaces the ball-ball restitution (a per-shot cue material).
+local function resolveBalls(a: Ball, b: Ball, restitution: number?): number
 	if a.z > 0 or a.vz > 0 or b.z > 0 or b.vz > 0 then -- either in the air
-		return resolveBalls3D(a, b)
+		return resolveBalls3D(a, b, restitution)
 	end
-	local e = Config.Physics.BallRestitution
+	local e = restitution or Config.Physics.BallRestitution
 	local nx, ny = b.x - a.x, b.y - a.y
 	local len = math.sqrt(nx * nx + ny * ny)
 	if len < 1e-12 then
@@ -812,11 +871,15 @@ type Hit = {
 }
 
 -- `skip`, when given, holds balls that sit this search out entirely (see Simulation.step).
+-- `ghost` (ball id -> true) takes balls out of every contact while they still move (an
+-- effect dragging them); `phase` (ball id -> true) are the balls the cue ball passes through.
 local function findEarliestHit(
 	state: State,
 	maxT: number,
 	skip: { [Ball]: boolean }?,
-	anyAir: boolean
+	anyAir: boolean,
+	ghost: { [number]: boolean }?,
+	phase: { [number]: boolean }?
 ): Hit?
 	local R = Config.Balls.RadiusInches
 	local geometry = state.geometry
@@ -826,7 +889,7 @@ local function findEarliestHit(
 
 	local clear = Config.Table.CushionHeightInches
 	for i, a in balls do
-		if a.pocketed or (skip and skip[a]) then
+		if a.pocketed or (skip and skip[a]) or (ghost and ghost[a.id]) then
 			continue
 		end
 		local flying = anyAir and Flight.isAirborne(a)
@@ -856,7 +919,10 @@ local function findEarliestHit(
 		end
 		for j = i + 1, #balls do
 			local b = balls[j]
-			if b.pocketed or (skip and skip[b]) then
+			if b.pocketed or (skip and skip[b]) or (ghost and ghost[b.id]) then
+				continue
+			end
+			if phase and ((a.id == 0 and phase[b.id]) or (b.id == 0 and phase[a.id])) then
 				continue
 			end
 			if not moving and b.vx == 0 and b.vy == 0 and not anyAir then
@@ -1083,6 +1149,29 @@ local function advance(
 	-- Zero-time hits per ball this step. A ball wedged between two surfaces would bounce
 	-- between them forever at t = 0; after a few dozen such hits it is stopped instead.
 	local instantHits: { [Ball]: number } = {}
+	-- An ult's per-shot contact filters and cue material (Overrides, State.fx).
+	local overrides = state.overrides
+	local ghost: { [number]: boolean }? = if state.fx and next(state.fx.ghost or {}) ~= nil
+		then state.fx.ghost
+		else nil
+	local phase: { [number]: boolean }? = nil
+	if overrides and overrides.PhaseCue and #overrides.PhaseCue > 0 then
+		phase = {}
+		for _, id in overrides.PhaseCue do
+			(phase :: any)[id] = true
+		end
+	end
+	-- Soft contact never takes a ghost ball in (it is out of every contact).
+	local clusterSkip = skip
+	if ghost then
+		local set: { [Ball]: boolean } = if skip then table.clone(skip) else {}
+		for _, b in state.balls do
+			if ghost[b.id] then
+				set[b] = true
+			end
+		end
+		clusterSkip = set
+	end
 
 	while remaining > 1e-9 and iterations < P.MaxEventsPerStep do
 		iterations += 1
@@ -1097,12 +1186,29 @@ local function advance(
 				break
 			end
 		end
-		local hit = findEarliestHit(state, window, skip, anyAir)
+		local hit = findEarliestHit(state, window, skip, anyAir, ghost, phase)
 		local advanceBy = if hit then hit.t else window
 
+		-- The cue ball's own cloth frictions, while its material lasts.
+		local cueSliding, cueRolling = nil, nil
+		if overrides and state.time < (overrides.CueUntil or 0) then
+			cueSliding, cueRolling = overrides.CueSlidingFriction, overrides.CueRollingFriction
+		end
 		for _, b in state.balls do
 			if skip == nil or not skip[b] then
-				integrateBall(b, advanceBy, state.geometry, events, state.time + advanceBy)
+				if b.id == 0 and (cueSliding or cueRolling) then
+					integrateBall(
+						b,
+						advanceBy,
+						state.geometry,
+						events,
+						state.time + advanceBy,
+						cueSliding,
+						cueRolling
+					)
+				else
+					integrateBall(b, advanceBy, state.geometry, events, state.time + advanceBy)
+				end
 			end
 		end
 		state.time += advanceBy
@@ -1127,9 +1233,19 @@ local function advance(
 				and b
 				and not (Flight.isAirborne(hit.a) and Flight.isAirborne(b))
 				and (flyer == nil or math.abs(hit.a.z - b.z) <= P.SoftContactMaxHopInches)
-				and Cluster.touchesAnother(state.balls, hit.a, b, skip)
+				and Cluster.touchesAnother(state.balls, hit.a, b, clusterSkip)
 			then
-				soft = Cluster.gather(state.balls, hit.a, b, state.geometry, skip, flyer)
+				soft = Cluster.gather(state.balls, hit.a, b, state.geometry, clusterSkip, flyer)
+			end
+			-- While the cue ball passes through balls (Ghost), its contacts are always pairwise:
+			-- a soft group could otherwise take in a ball it is passing through.
+			if soft and phase then
+				for _, m in soft do
+					if m.id == 0 then
+						soft = nil
+						break
+					end
+				end
 			end
 			if soft and b then
 				local lift = if flyer
@@ -1185,8 +1301,13 @@ local function advance(
 				local speed: number
 				local eventType: "railHit" | "ballHit"
 				local other: number? = nil
+				-- The cue ball's own material, while it lasts (Overrides.Cue*).
+				local cueMat = overrides ~= nil and state.time < (overrides.CueUntil or 0)
 				if hit.kind == "ball" and b then
-					speed = resolveBalls(hit.a, b)
+					local e = if cueMat and (hit.a.id == 0 or b.id == 0)
+						then (overrides :: Overrides).CueBallRestitution
+						else nil
+					speed = resolveBalls(hit.a, b, e)
 					eventType = "ballHit"
 					other = b.id
 				else
@@ -1198,6 +1319,11 @@ local function advance(
 					local mu = if material and material.RailFriction ~= nil
 						then material.RailFriction
 						else P.RailFriction
+					if cueMat and hit.a.id == 0 then
+						local m = overrides :: Overrides
+						e = if m.CueRailRestitution ~= nil then m.CueRailRestitution else e
+						mu = if m.CueRailFriction ~= nil then m.CueRailFriction else mu
+					end
 					speed = resolveRail(hit.a, hit.nx, hit.ny, e, mu)
 					eventType = "railHit"
 				end
@@ -1237,6 +1363,110 @@ local function advance(
 	return remaining
 end
 
+---------------------------------------------------------------------------------------------
+-- Ult effect operations
+---------------------------------------------------------------------------------------------
+
+-- What an effect may do to the table beyond changing velocities, done here so it stays
+-- consistent with the rest of the physics. Each appends its event to `events`, the current
+-- step's list, which the effect was handed.
+local Ops = {}
+
+--- Take `b` out of play now, counted as pocketed (ShotJudge): it stops where it is, stops
+--- colliding, and a `removed` event of `kind` says how ("shatter", "swallow", "cut").
+function Ops.remove(state: State, events: { Event }, b: Ball, kind: string)
+	if b.pocketed then
+		return
+	end
+	local x, y = b.x, b.y
+	b.pocketed = true
+	b.falling = false
+	b.offTable = false
+	b.pocket = nil
+	b.tip = nil
+	b.z = 0
+	Ball.stop(b)
+	table.insert(events, {
+		t = state.time,
+		type = "removed",
+		ball = b.id,
+		speed = 0,
+		x = x,
+		y = y,
+		kind = kind,
+	})
+end
+
+--- Move `b` to (x, y) with its motion unchanged (Portals). A ball it lands on is struck at
+--- once, as a contact (pushed apart, then the normal ball-ball impulse), in array order.
+function Ops.teleport(state: State, events: { Event }, b: Ball, x: number, y: number)
+	b.x, b.y = x, y
+	local R = Config.Balls.RadiusInches
+	for _, o in state.balls do
+		if o == b or o.pocketed then
+			continue
+		end
+		local dx, dy = o.x - b.x, o.y - b.y
+		if dx * dx + dy * dy < 4 * R * R then
+			local dist = math.sqrt(dx * dx + dy * dy)
+			local nx, ny =
+				if dist > 1e-9 then dx / dist else 1, if dist > 1e-9 then dy / dist else 0
+			pushOut({ kind = "ball", t = 0, a = b, b = o, nx = nx, ny = ny })
+			local speed = resolveBalls(b, o)
+			if speed > 0 then
+				table.insert(events, {
+					t = state.time,
+					type = "ballHit",
+					ball = b.id,
+					other = o.id,
+					speed = speed,
+				})
+			end
+		end
+	end
+end
+
+--- End this part of the shot at the end of the current step (Time Stop's freeze): every ball
+--- keeps its motion, and whoever continues the shot clears `halted` and settles it on.
+function Ops.halt(state: State)
+	state.halted = true
+end
+
+--- An `ult` event for the client's look: `kind` names it, the rest is what the look needs.
+function Ops.emit(
+	state: State,
+	events: { Event },
+	kind: string,
+	ball: number,
+	other: number?,
+	x: number?,
+	y: number?,
+	value: number?
+)
+	table.insert(events, {
+		t = state.time,
+		type = "ult",
+		ball = ball,
+		other = other,
+		speed = 0,
+		x = x,
+		y = y,
+		kind = kind,
+		value = value,
+	})
+end
+
+Simulation.Ops = Ops
+
+-- The effect armed for this shot, if any.
+local function effectOf(state: State): any
+	local overrides = state.overrides
+	if overrides and overrides.Effect then
+		return UltEffects[overrides.Effect]
+	end
+	return nil
+end
+
 --- Advance the simulation by one fixed step, appending any contact events.
 ---
 --- A soft cluster contact (see Cluster) is resolved atomically, so a step in which one
@@ -1245,17 +1475,47 @@ end
 --- server's settle and a client's frame-by-frame replay both call this with the same fixed
 --- step from the same strike, so they overrun at exactly the same places.
 ---
---- An ult's effect (state.overrides.Effect, see Overrides) runs first: a velocity change at
---- the start of the step, before anything moves. Every normal shot has no effect and skips it.
+--- An ult's effect (state.overrides.Effect, see Overrides) hooks in twice: `step` first (a
+--- velocity change at the start of the step, before anything moves), then `after` with the
+--- step's own events (the contacts it just made: the cue ball's first hit, a rail) and Ops.
+--- Every normal shot has no effect and skips both.
 function Simulation.step(state: State, dt: number, events: { Event }?)
-	local overrides = state.overrides
-	if overrides and overrides.Effect then
-		local effect = UltEffects[overrides.Effect]
-		if effect then
-			effect.step(state, dt)
-		end
+	local effect = effectOf(state)
+	if effect == nil then
+		advance(state, dt, events, nil, true)
+		return
 	end
-	advance(state, dt, events, nil, true)
+	if state.fx == nil then
+		state.fx = {}
+	end
+	if effect.step then
+		effect.step(state, dt)
+	end
+	if effect.after then
+		local mine: { Event } = {}
+		advance(state, dt, mine, nil, true)
+		effect.after(state, dt, mine, Ops)
+		if events then
+			for _, ev in mine do
+				table.insert(events, ev)
+			end
+		end
+	else
+		advance(state, dt, events, nil, true)
+	end
+end
+
+--- The shot has come to rest: the effect's `finish` (Ghost moves the cue ball off a ball it
+--- stopped inside). The server's settle and a client's replay both call it once, at rest,
+--- before the final positions are compared.
+function Simulation.finishShot(state: State, events: { Event }?)
+	local effect = effectOf(state)
+	if effect and effect.finish then
+		if state.fx == nil then
+			state.fx = {}
+		end
+		effect.finish(state, events or {}, Ops)
+	end
 end
 
 ---------------------------------------------------------------------------------------------
@@ -1307,6 +1567,8 @@ function Simulation.strike(state: State, shot: Shot): Event
 	state.time = 0
 	local material = if shot.ability then Config.Physics.ShotMaterials[shot.ability] else nil
 	state.overrides = if material then table.clone(material) :: Overrides else nil
+	state.fx = nil
+	state.halted = nil
 	local speed = Cue.strike(cueBall, shot)
 	return { t = 0, type = "cueStrike", ball = 0, speed = speed }
 end
@@ -1319,13 +1581,22 @@ function Simulation.armEffect(
 	state: State,
 	effect: string,
 	targets: { number },
-	eightPocket: number?
+	eightPocket: number?,
+	extra: Overrides?
 )
 	local overrides: Overrides = if state.overrides then table.clone(state.overrides) else {}
+	-- Anything else the rules decided for this effect (OppTargets, Pick, PhaseCue, the cue's
+	-- material, Params), copied so the caller's tables are never shared with the replay.
+	if extra then
+		for key, value in extra :: any do
+			(overrides :: any)[key] = deepCopy(value)
+		end
+	end
 	overrides.Effect = effect
 	overrides.Targets = table.clone(targets)
 	overrides.EightPocket = eightPocket
 	state.overrides = overrides
+	state.fx = nil
 end
 
 --- The id of the first ball the cue ball touched, if any.
@@ -1368,6 +1639,7 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 	local steps = 0
 	local maxSteps = math.floor(P.MaxShotSeconds / P.FixedStep)
 	local capped = false
+	sim.halted = nil
 	while not Simulation.isAtRest(sim) do
 		if steps >= maxSteps then
 			capped = true
@@ -1383,6 +1655,34 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 			table.insert(frames, captureFrame(sim))
 		end
 		steps += 1
+		if sim.halted then
+			break
+		end
+	end
+
+	local extra = 0
+	for _, ev in events do
+		if ev.type == "ult" and ev.kind == "slow" and ev.value then
+			extra += ev.value
+		end
+	end
+	if sim.halted and not capped then
+		-- Paused mid-shot (Time Stop): the state keeps its motion, overrides and scratch for
+		-- whoever continues it.
+		return {
+			events = events,
+			finalBalls = Ball.cloneList(sim.balls),
+			firstContact = Simulation.firstContact(events),
+			duration = sim.time,
+			steps = steps,
+			capped = false,
+			overrides = overrides,
+			halted = true,
+			extraSeconds = extra,
+		}
+	end
+	if not capped then
+		Simulation.finishShot(sim, events)
 	end
 
 	-- All translation, sliding and pocket animation has finished. Do not carry residual
@@ -1391,6 +1691,8 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 		b.wz = 0
 	end
 	sim.overrides = nil
+	sim.fx = nil
+	sim.halted = nil
 
 	return {
 		events = events,
@@ -1400,6 +1702,7 @@ local function settleInto(sim: State, events: { Event }, frames: { Frame }?): Sh
 		steps = steps,
 		capped = capped,
 		overrides = overrides,
+		extraSeconds = extra,
 	}
 end
 

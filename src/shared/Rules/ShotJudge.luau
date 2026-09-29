@@ -126,6 +126,9 @@ function Judge.resolve(
 		return if at == bt then a < b else at < bt
 	end)
 	local scratch, eight, eightPocket = false, false, nil
+	-- The 8 taken out of play by an ult (a `removed` event: Black Flash, Black Hole, the Tiger)
+	-- follows the 8's rules like a pot, and on a legal 8 shot it counts as the called pocket.
+	local eightRemoved = false
 	-- Balls that flew off the table (jump shots): a foul whoever it is. Object balls are
 	-- respotted; the 8 loses the game, or on the break is respotted.
 	local off: { [number]: boolean } = {}
@@ -156,9 +159,16 @@ function Judge.resolve(
 			if ev.ball ~= 0 then
 				rails[ev.ball] = true
 			end
-		elseif ev.type == "pocket" and not seenPockets[ev.ball] and not down[ev.ball] then
+		elseif
+			(ev.type == "pocket" or ev.type == "removed")
+			and not seenPockets[ev.ball]
+			and not down[ev.ball]
+		then
 			seenPockets[ev.ball] = true
-			if ev.other ~= nil then
+			if ev.type == "removed" and ev.ball == 8 then
+				eightRemoved = true
+			end
+			if ev.type == "pocket" and ev.other ~= nil then
 				table.insert(pocketDetails, { ball = ev.ball, pocket = ev.other })
 			end
 			if contacted then
@@ -214,7 +224,7 @@ function Judge.resolve(
 			winner, reason = 3 - team, "FoulEight"
 		elseif not Judge.eligible(before, groups[team]) then
 			winner, reason = 3 - team, "EarlyEight"
-		elseif eightPocket ~= called then
+		elseif eightPocket ~= called and not eightRemoved then
 			winner, reason = 3 - team, "WrongPocket"
 		else
 			winner, reason = team, "LegalEight"
