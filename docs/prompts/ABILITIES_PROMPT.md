@@ -772,7 +772,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   references, `tools/overnight/abilities.json` and `tools/overnight/keep_going.sh`; docs and code read; Studio, Rojo, Blender
   MCP (`get_addon_status`, generator statuses) and the Keychain key (True/False only) checked;
   lint and tests green; plan in Notes.
-- [ ] 1. Framework (5.2): pick view, contact hooks, removal counted as pots, collision filters,
+- [x] 1. Framework (5.2): pick view, contact hooks, removal counted as pots, collision filters,
   material overrides, teleports, the Time Stop pause and second input, snapshot and restore,
   table-wide screen effects, the sound-sheet player, `AbilityAssets` runtime loading, the
   shared value harness (5.3, with the careful and careless shooters) and `ult_model.py`
@@ -880,3 +880,17 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   headless); the tiger (step 15) is where a generator or a CC-BY Sketchfab model would help:
   ask then. The designer's note: Studio had offered an auto-recovery file (declined), which is
   why cue-mesh scripts were loaded; that branch's Edit-mode content is not this run's concern.
+- **Step 1 done (2026-09-29).** Core by me; the look kit (`AbilityFx`, `ScreenFx`, `SoundSheet`,
+  `AbilityModels`, `server/AbilityAssets`, `FxMath`), the pick view (`UltPick`, `PickMath`),
+  the dev setups (`/slowmo`, `/abilitysetup`, `Config.Ults.Setups` for all 13) and the value
+  harness (`tests/ult_value.luau`, `tools/ult_value.luau` runner instead of a .sh) by agents,
+  reviewed. Studio (PC): `/abilitysetup Magnet` racks and arms; `/slowmo 0.5` replays at half
+  rate; the Magnet shot pots the 1 with the pull and the vortex; the reach preview's pocket
+  zones show while aiming. The pick view with Heat Seeker switched on for the test only (Built
+  plus a stand-in Effect, reverted): server refuses "PickRequired", the top-down view opens
+  with rings on the shooter's balls, a click locks the 1 (red bracket), CONFIRM sends it, the
+  camera returns and the shot is accepted with pick = {1}; console clean. Phone and gamepad
+  checks of the pick view come with Heat Seeker (step 7) and Portals (step 11), the first
+  abilities that use it. Harness baseline: Magnet +0.58 balls per use at skill 2 (careless),
+  vs its Common target 0.33: the rework (step 3) retunes it. The harness counts only the
+  ability's shot, so Rewind and Time Stop need a whole-turn measure (step 16 decides).

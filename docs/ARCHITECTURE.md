@@ -532,3 +532,53 @@ red dot), `UltEquipped` (the equipped ult id), `UltDevAll` (the developer flag).
 
 **Studio.** `ServerStorage.UltQA` (state, setBar, full, arm, activate, pcTurn) and
 `UltSpinsQA` drive both services; the ult dev commands (`/ulthelp`) go through the same APIs.
+
+## Ability framework (2026-09-29)
+
+What every ability plugs into (docs/prompts/ABILITIES_PROMPT.md 5.2). "Ult" in code,
+"Ability" on screen.
+
+**Physics hooks** (`Physics/Simulation`, pure). An armed effect (`Ults/Effects/<Name>`) may
+define `step(state, dt)` (before each fixed step), `after(state, dt, events, ops)` (after it,
+with that step's events) and `finish(state, events, ops)` (at rest). Scratch lives in
+`state.fx` (reset at each strike and arming; array order, never hash order);
+`state.fx.ghost[id]` takes a ball out of every contact. `Simulation.Ops`: `remove` (the ball
+leaves the table with a "removed" event that `ShotJudge` counts as a pot), `teleport`, `halt`
+(the settle stops with `outcome.halted`, keeping overrides and fx) and `emit` (an "ult" event
+with a kind; kind "slow" adds `value` wall seconds at shot time `x`, summed into
+`outcome.extraSeconds`). The overrides carry `Targets` and `OppTargets` (whose balls, 5.7),
+`EightPocket`, `Pick`, `PhaseCue` (the cue ball passes through balls), the cue ball's material
+(`CueRailRestitution`, `CueRailFriction`, `CueBallRestitution`, `CueSlidingFriction`,
+`CueRollingFriction`, until `CueUntil`) and `Params`.
+
+**Arming** (`Ults/Arming`, pure). `targets` (the shooter's and opponent's balls, the legal 8),
+`pick` (validates a client's aim-phase pick: "OwnBall" or "Portals"), `extras` (each
+ability's own overrides from Config). The shared skill rule numbers are
+`Config.Ults.Shared` (`OpponentFactor`, per-owner caps, reach share).
+
+**The engine** (`Rules/MatchEngine`). Refuses "PickRequired" until an armed pick ability has
+one (the `UltPick` table action). A halted outcome from Time Stop's effect puts the table in
+the Frozen phase: the shooter's second strike comes through `ShotFired` (`strikeFrozen`), or
+the deadline resumes it (`resumeFrozen`, then `TableService.onLateShot` pays and sends the
+late result through `ShotService`). Rewind rows (`Redo`) snapshot the table at acceptance; a
+shot with none of the shooter's balls down restores it (`rewindTo`), plays the Rewinding phase
+and gives the redo clock.
+
+**Client replay** (`client/Match`). Hides "removed" balls, slows the clock at "slow" events,
+stops at a halt and continues with the server's second-strike parts; `setTimeScale` is the
+`/slowmo` hook.
+
+**Looks** (client). `AbilityFx` is the registry (`Config.UI.AbilityFx.Looks`) and the kit
+handed to each look's `start(hub, parent, kit)`: a per-table anchor that lingers and releases,
+parts, beams, particles, lights, timers, ball and pocket positions, the event feed, and the
+reach preview ring (drawn on the ghost ball while aiming, cut at the cushions, opponent balls
+in reach in red). `ScreenFx` holds the table-wide screen effects (grade, overlay, flash,
+shake, FOV punch, invert) for players at or near the table; `SoundSheet` plays clips cut from
+the uploaded sound sheets; `AbilityModels` clones the models `server/AbilityAssets` loads once
+per server through InsertService into `ReplicatedStorage.AbilityAssets` (ids in
+`Config.Ults.Assets`). `UltPick` is the top-down pick view (`PickMath` is its pure maths).
+
+**Tools.** `/slowmo <scale>` and `/abilitysetup <id|name>` (Config.Ults.Setups) for the look
+checks; `tests/ult_value.luau` plus `tools/ult_value.luau` measure an ability's worth with
+the careful and careless shooters into `tools/ult_value_results.json`, which
+`tools/ult_model.py` reads. The Blender scripts are `tools/blender/abilities/`.
