@@ -162,84 +162,6 @@
       "BackRateScale": 0.5,
       "Emitters": [
         {
-          "Name": "CrimsonMist",
-          "Texture": "vfx/_shared/smoke_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 0.2,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 10,
-          "Lifetime": [
-            1.5,
-            2.2
-          ],
-          "Speed": [
-            0.1,
-            0.3
-          ],
-          "EmissionDirection": "Top",
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "Acceleration": [
-            0,
-            0.45,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.45
-            ],
-            [
-              1,
-              1.5
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.25,
-              0.62
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#E0202E"
-            ],
-            [
-              1,
-              "#6A0612"
-            ]
-          ],
-          "LightEmission": 0.6,
-          "LightInfluence": 0,
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -20,
-            20
-          ],
-          "LockedToPart": false
-        },
-        {
           "Name": "RedMotes",
           "Texture": "vfx/_shared/spark.png",
           "Host": {
@@ -250,7 +172,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 8,
+          "Rate": 10,
           "Lifetime": [
             1.2,
             1.8
@@ -322,6 +244,97 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "BloodFlame",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 7.0,
+            "Width": 0.14,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 18,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.35,
+              0.9
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.2,
+              0.0
+            ],
+            [
+              0.6,
+              0.35
+            ],
+            [
+              0.9,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -12,
+            12
+          ],
+          "Color": [
+            [
+              0,
+              "#FFB0B0"
+            ],
+            [
+              0.35,
+              "#FF3040"
+            ],
+            [
+              1,
+              "#A00818"
+            ]
+          ],
+          "Brightness": 1.5,
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Beams": [
@@ -441,6 +454,28 @@
             "Max": 1.0,
             "Period": 5.0
           }
+        }
+      ],
+      "Arcs": [
+        {
+          "Name": "BloodArcs",
+          "Count": 4,
+          "Segments": 18,
+          "FromStuds": 0.5,
+          "ToStuds": 7.0,
+          "Length": [
+            0.8,
+            1.8
+          ],
+          "Around": 240,
+          "Radius": 0.16,
+          "Jitter": 0.08,
+          "Interval": 0.12,
+          "Duty": 0.6,
+          "WidthStuds": 0.14,
+          "Color": "#FF2A3A",
+          "Brightness": 2.2,
+          "Texture": "vfx/_shared/bolt_strip.png"
         }
       ]
     },
@@ -686,10 +721,11 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 18.8,
-      "Back": 9.4,
+      "ParticlesPerSecond": 28.8,
+      "Back": 14.4,
       "Beams": 5,
-      "Lights": 1
+      "Lights": 1,
+      "Arcs": 4
     }
   }
 }

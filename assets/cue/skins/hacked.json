@@ -181,10 +181,10 @@
             "ShapeStyle": "Volume",
             "Up": 0.35
           },
-          "Rate": 24,
+          "Rate": 28,
           "Lifetime": [
-            1.0,
-            1.4
+            1.3,
+            1.8
           ],
           "Speed": 0,
           "Acceleration": [
@@ -195,13 +195,13 @@
           "Size": [
             [
               0,
-              0.12,
-              0.03
+              0.192,
+              0.048
             ],
             [
               1,
-              0.12,
-              0.03
+              0.192,
+              0.048
             ]
           ],
           "Transparency": [
@@ -239,7 +239,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 3,
+          "Rate": 4,
           "Lifetime": [
             0.08,
             0.16
@@ -276,6 +276,140 @@
             "Max": 1.1,
             "Period": 1.2,
             "Shape": "flicker"
+          }
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "DataStream1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.8,
+          "Radius": 0.28,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.16,
+            "Color": "#6BFF8A",
+            "Brightness": 1.8,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/hacked/trail_data.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "DataStream2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.9,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.7,
+          "Radius": 0.36000000000000004,
+          "Phase": 120,
+          "Delay": 0.7,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.16,
+            "Color": "#6BFF8A",
+            "Brightness": 1.8,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/hacked/trail_data.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "DataStream3",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.8,
+          "Radius": 0.44000000000000006,
+          "Phase": 240,
+          "Delay": 1.4,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.16,
+            "Color": "#6BFF8A",
+            "Brightness": 1.8,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/hacked/trail_data.png",
+            "TextureMode": "Stretch"
           }
         }
       ]
@@ -429,11 +563,12 @@
       "Note": "The default gust in the ball's colour (plan.json lists no Hacked finisher)."
     },
     "Budget": {
-      "ParticlesPerSecond": 27,
-      "Back": 13.5,
+      "ParticlesPerSecond": 32,
+      "Back": 16.0,
       "Beams": 3,
       "BallTrail": 18,
-      "Lights": 1
+      "Lights": 1,
+      "Orbiters": 3
     }
   }
 }

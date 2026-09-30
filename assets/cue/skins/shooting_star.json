@@ -202,15 +202,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.5,
-              0.2
+              0.3
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0,
@@ -386,8 +386,8 @@
           "Phase": 0,
           "Delay": 0.0,
           "Trail": {
-            "Lifetime": 0.75,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
             "Color": [
               [
                 0,
@@ -426,11 +426,12 @@
                 0.15
               ]
             ],
-            "LightEmission": 1
+            "LightEmission": 1,
+            "Brightness": 2.0
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.28,
+            "Size": 0.36,
             "Color": "#FFF4D0",
             "LightEmission": 1
           }
@@ -447,8 +448,8 @@
           "Phase": 130,
           "Delay": 0.5,
           "Trail": {
-            "Lifetime": 0.75,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
             "Color": [
               [
                 0,
@@ -487,11 +488,12 @@
                 0.15
               ]
             ],
-            "LightEmission": 1
+            "LightEmission": 1,
+            "Brightness": 2.0
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.28,
+            "Size": 0.36,
             "Color": "#FFF4D0",
             "LightEmission": 1
           }
@@ -508,8 +510,8 @@
           "Phase": 250,
           "Delay": 1.0,
           "Trail": {
-            "Lifetime": 0.75,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
             "Color": [
               [
                 0,
@@ -548,11 +550,12 @@
                 0.15
               ]
             ],
-            "LightEmission": 1
+            "LightEmission": 1,
+            "Brightness": 2.0
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.28,
+            "Size": 0.36,
             "Color": "#FFF4D0",
             "LightEmission": 1
           }
@@ -569,8 +572,8 @@
           "Phase": 60,
           "Delay": 1.5,
           "Trail": {
-            "Lifetime": 0.75,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
             "Color": [
               [
                 0,
@@ -609,11 +612,12 @@
                 0.15
               ]
             ],
-            "LightEmission": 1
+            "LightEmission": 1,
+            "Brightness": 2.0
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.28,
+            "Size": 0.36,
             "Color": "#FFF4D0",
             "LightEmission": 1
           }
@@ -630,8 +634,8 @@
           "Phase": 190,
           "Delay": 0.25,
           "Trail": {
-            "Lifetime": 0.75,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
             "Color": [
               [
                 0,
@@ -670,11 +674,12 @@
                 0.15
               ]
             ],
-            "LightEmission": 1
+            "LightEmission": 1,
+            "Brightness": 2.0
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.28,
+            "Size": 0.36,
             "Color": "#FFF4D0",
             "LightEmission": 1
           }
@@ -685,8 +690,8 @@
           "Name": "StarStreamA",
           "FromStuds": 0.1,
           "ToStuds": 6.95,
-          "Width0": 0.05,
-          "Width1": 0.12,
+          "Width0": 0.08,
+          "Width1": 0.2,
           "Segments": 32,
           "Texture": "vfx/_shared/wisp_strip.png",
           "TextureMode": "Wrap",
@@ -736,8 +741,8 @@
           "Name": "StarStreamB",
           "FromStuds": 0.1,
           "ToStuds": 6.95,
-          "Width0": 0.05,
-          "Width1": 0.12,
+          "Width0": 0.08,
+          "Width1": 0.2,
           "Segments": 32,
           "Texture": "vfx/_shared/wisp_strip.png",
           "TextureMode": "Wrap",

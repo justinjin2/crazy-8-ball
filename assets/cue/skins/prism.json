@@ -175,7 +175,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 12,
+          "Rate": 14,
           "Lifetime": [
             0.3,
             0.55
@@ -184,15 +184,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.28
+              0.392
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0,
@@ -234,7 +234,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 9,
+          "Rate": 12,
           "Lifetime": [
             1.2,
             1.8
@@ -250,21 +250,21 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.2,
-              0.16,
-              0.04
+              0.28,
+              0.07
             ],
             [
               0.8,
-              0.16,
-              0.04
+              0.28,
+              0.07
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -289,6 +289,83 @@
           "LightEmission": 0.5,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "PrismHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.8
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#E8F4FF"
+            ],
+            [
+              1,
+              "#C8B8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Orbiters": [
@@ -299,13 +376,13 @@
           "TravelSeconds": 2.4,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.55,
-          "Radius": 0.19,
+          "Radius": 0.3,
           "Wobble": 0.02,
           "Phase": 0,
           "Delay": 0.0,
           "Trail": {
-            "Lifetime": 0.35,
-            "WidthStuds": 0.07,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.14,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -328,11 +405,12 @@
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/prism/trail_spectrum.png"
+            "Texture": "vfx/prism/trail_spectrum.png",
+            "Brightness": 1.8
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.14,
+            "Size": 0.26,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -344,13 +422,13 @@
           "TravelSeconds": 2.4,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.55,
-          "Radius": 0.19,
+          "Radius": 0.36,
           "Wobble": 0.02,
           "Phase": 180,
           "Delay": 1.2,
           "Trail": {
-            "Lifetime": 0.35,
-            "WidthStuds": 0.07,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.14,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -373,11 +451,104 @@
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/prism/trail_spectrum.png"
+            "Texture": "vfx/prism/trail_spectrum.png",
+            "Brightness": 1.8
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.14,
+            "Size": 0.26,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Refraction3",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.64,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.5,
+          "Radius": 0.26,
+          "Wobble": 0.02,
+          "Phase": 45,
+          "Delay": 0.4,
+          "Trail": {
+            "Lifetime": 0.8,
+            "WidthStuds": 0.14,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/prism/trail_spectrum.png",
+            "Brightness": 1.8
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.26,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Refraction4",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.88,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.55,
+          "Radius": 0.42,
+          "Wobble": 0.02,
+          "Phase": 142,
+          "Delay": 0.9,
+          "Trail": {
+            "Lifetime": 0.8,
+            "WidthStuds": 0.14,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/prism/trail_spectrum.png",
+            "Brightness": 1.8
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.26,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -685,11 +856,11 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 21,
-      "Back": 10.5,
+      "ParticlesPerSecond": 31,
+      "Back": 15.5,
       "Beams": 3,
       "Lights": 1,
-      "Orbiters": 2
+      "Orbiters": 4
     }
   }
 }

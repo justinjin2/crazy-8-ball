@@ -185,11 +185,11 @@
           "Size": [
             [
               0,
-              0.08
+              0.112
             ],
             [
               0.3,
-              0.22
+              0.308
             ],
             [
               1,
@@ -266,11 +266,11 @@
           "Size": [
             [
               0,
-              0.75
+              0.975
             ],
             [
               1,
-              0.2
+              0.26
             ]
           ],
           "Transparency": [
@@ -385,15 +385,15 @@
           "Size": [
             [
               0,
-              0.02
+              0.036
             ],
             [
               0.2,
-              0.11
+              0.198
             ],
             [
               1,
-              0.02
+              0.036
             ]
           ],
           "Transparency": [
@@ -530,6 +530,100 @@
           "LightInfluence": 0,
           "FaceCamera": true,
           "ZOffset": 0
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "VoidRibbon1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.3,
+          "Wobble": 0.05,
+          "WobbleHz": 0.8,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.22,
+            "Color": "#C8A0FF",
+            "Brightness": 1.6,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 0.8,
+            "Texture": "vfx/void/trail_smoke.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "VoidRibbon2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.8,
+          "Radius": 0.38,
+          "Wobble": 0.05,
+          "WobbleHz": 0.8,
+          "Phase": 180,
+          "Delay": 0.9,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.22,
+            "Color": "#C8A0FF",
+            "Brightness": 1.6,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 0.8,
+            "Texture": "vfx/void/trail_smoke.png",
+            "TextureMode": "Stretch"
+          }
         }
       ]
     },
@@ -699,10 +793,11 @@
       "Note": "The default gust in the ball's colour (plan.json lists no Void finisher)."
     },
     "Budget": {
-      "ParticlesPerSecond": 31.4,
-      "Back": 15.7,
+      "ParticlesPerSecond": 30,
+      "Back": 15.0,
       "BallTrail": 22,
-      "Beams": 2
+      "Beams": 2,
+      "Orbiters": 2
     }
   }
 }

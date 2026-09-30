@@ -175,7 +175,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 14,
+          "Rate": 16,
           "Lifetime": [
             1.5,
             2.5
@@ -196,19 +196,19 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.3,
-              0.07
+              0.126
             ],
             [
               0.7,
-              0.06
+              0.108
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -250,7 +250,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 5,
+          "Rate": 7,
           "Lifetime": [
             0.4,
             0.7
@@ -275,6 +275,83 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "AuroraVeil",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#2BF0B0"
+            ],
+            [
+              1,
+              "#7A5CFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Orbiters": [
@@ -285,13 +362,13 @@
           "TravelSeconds": 2.6,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.7,
-          "Radius": 0.17,
+          "Radius": 0.3,
           "Wobble": 0.03,
           "Phase": 0,
           "Delay": 0.0,
           "Trail": {
-            "Lifetime": 1.1,
-            "WidthStuds": 0.13,
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -323,7 +400,8 @@
             ],
             "LightEmission": 1,
             "Texture": "vfx/aurora/trail_aurora.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
           }
         },
         {
@@ -333,13 +411,13 @@
           "TravelSeconds": 3.0,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.6,
-          "Radius": 0.21,
+          "Radius": 0.38,
           "Wobble": 0.03,
           "Phase": 120,
           "Delay": 0.9,
           "Trail": {
-            "Lifetime": 1.1,
-            "WidthStuds": 0.13,
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
             "Color": "#E0F0FF",
             "Transparency": [
               [
@@ -371,7 +449,8 @@
             ],
             "LightEmission": 1,
             "Texture": "vfx/aurora/trail_aurora.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
           }
         },
         {
@@ -381,13 +460,13 @@
           "TravelSeconds": 2.2,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.85,
-          "Radius": 0.14,
+          "Radius": 0.26,
           "Wobble": 0.03,
           "Phase": 240,
           "Delay": 1.7,
           "Trail": {
-            "Lifetime": 1.1,
-            "WidthStuds": 0.13,
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
             "Color": "#F0E8FF",
             "Transparency": [
               [
@@ -419,7 +498,57 @@
             ],
             "LightEmission": 1,
             "Texture": "vfx/aurora/trail_aurora.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
+          }
+        },
+        {
+          "Name": "Ribbon4",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.86,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.63,
+          "Radius": 0.44,
+          "Wobble": 0.03,
+          "Phase": 45,
+          "Delay": 0.4,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                0.6
+              ],
+              [
+                0.3,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/aurora/trail_aurora.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
           }
         }
       ],
@@ -595,12 +724,12 @@
       "Note": "The default gust in the ball's colour (plan.json lists no Aurora finisher)."
     },
     "Budget": {
-      "ParticlesPerSecond": 19,
-      "Back": 9.5,
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
       "Beams": 3,
       "BallTrail": 12,
       "Lights": 1,
-      "Orbiters": 3
+      "Orbiters": 4
     }
   }
 }

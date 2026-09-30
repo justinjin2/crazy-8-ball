@@ -173,7 +173,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 12,
+          "Rate": 10,
           "Lifetime": [
             1.0,
             1.6
@@ -260,15 +260,15 @@
           "Size": [
             [
               0,
-              0.03
+              0.042
             ],
             [
               0.25,
-              0.11
+              0.154
             ],
             [
               1,
-              0.09
+              0.126
             ]
           ],
           "Transparency": [
@@ -293,7 +293,7 @@
         },
         {
           "Name": "Licks",
-          "Texture": "vfx/_shared/fire_8x8.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -304,10 +304,10 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 9,
+          "Rate": 16,
           "Lifetime": [
-            0.5,
-            0.7
+            0.6,
+            0.9
           ],
           "Speed": [
             0.2,
@@ -326,40 +326,62 @@
           "Size": [
             [
               0,
-              0.35
+              0.45
             ],
             [
-              0.3,
-              0.75
+              0.35,
+              1.1
             ],
             [
               1,
-              0.4
+              0.3
             ]
           ],
           "Transparency": [
             [
               0,
-              0.6
+              0.3
             ],
             [
-              0.15,
-              0.1
+              0.2,
+              0.0
             ],
             [
-              0.8,
-              0.25
+              0.6,
+              0.35
+            ],
+            [
+              0.85,
+              1
             ],
             [
               1,
               1
             ]
           ],
-          "Color": "#FFFFFF",
-          "LightEmission": 1,
+          "Color": [
+            [
+              0,
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
+            ],
+            [
+              1,
+              "#D0280E"
+            ]
+          ],
+          "LightEmission": 0.6,
           "LightInfluence": 0,
           "Orientation": "FacingCameraWorldUp",
-          "LockedToPart": false
+          "LockedToPart": false,
+          "Brightness": 1.5
         },
         {
           "Name": "Smoke",
@@ -374,7 +396,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 4,
+          "Rate": 3,
           "Lifetime": [
             1.4,
             2.0
@@ -877,8 +899,8 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 30,
-      "Back": 15.0,
+      "ParticlesPerSecond": 34,
+      "Back": 17.0,
       "Beams": 3,
       "BallTrail": 24,
       "Lights": 2

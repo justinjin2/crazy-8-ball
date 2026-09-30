@@ -177,7 +177,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 12,
+          "Rate": 14,
           "Lifetime": [
             0.2,
             0.4
@@ -186,15 +186,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.5,
-              0.25
+              0.375
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0,
@@ -222,7 +222,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 16,
+          "Rate": 20,
           "Lifetime": [
             0.8,
             1.2
@@ -238,19 +238,19 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.2,
-              0.09
+              0.162
             ],
             [
               0.8,
-              0.09
+              0.162
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -276,13 +276,13 @@
           "TravelSeconds": 2.6,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.9,
-          "Radius": 0.22,
+          "Radius": 0.32,
           "Wobble": 0.03,
           "Phase": 0,
           "Delay": 0.0,
           "Trail": {
-            "Lifetime": 0.4,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.16,
             "Color": "#FF3D9A",
             "Transparency": [
               [
@@ -308,7 +308,7 @@
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.32,
+            "Size": 0.45,
             "Color": "#FF3D9A",
             "LightEmission": 1
           }
@@ -320,13 +320,13 @@
           "TravelSeconds": 3.0,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.9,
-          "Radius": 0.22,
+          "Radius": 0.28,
           "Wobble": 0.03,
           "Phase": 90,
           "Delay": 0.3,
           "Trail": {
-            "Lifetime": 0.4,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.16,
             "Color": "#3DE0FF",
             "Transparency": [
               [
@@ -352,7 +352,7 @@
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.32,
+            "Size": 0.45,
             "Color": "#3DE0FF",
             "LightEmission": 1
           }
@@ -364,13 +364,13 @@
           "TravelSeconds": 3.4000000000000004,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.9,
-          "Radius": 0.22,
+          "Radius": 0.36,
           "Wobble": 0.03,
           "Phase": 180,
           "Delay": 0.6,
           "Trail": {
-            "Lifetime": 0.4,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.16,
             "Color": "#FFE13D",
             "Transparency": [
               [
@@ -396,7 +396,7 @@
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.32,
+            "Size": 0.45,
             "Color": "#FFE13D",
             "LightEmission": 1
           }
@@ -408,13 +408,13 @@
           "TravelSeconds": 3.8000000000000003,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.9,
-          "Radius": 0.22,
+          "Radius": 0.3,
           "Wobble": 0.03,
           "Phase": 270,
           "Delay": 0.8999999999999999,
           "Trail": {
-            "Lifetime": 0.4,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.16,
             "Color": "#5A6EFF",
             "Transparency": [
               [
@@ -440,7 +440,7 @@
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.32,
+            "Size": 0.45,
             "Color": "#5A6EFF",
             "LightEmission": 1
           }
@@ -714,8 +714,8 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 28,
-      "Back": 14.0,
+      "ParticlesPerSecond": 34,
+      "Back": 17.0,
       "Beams": 3,
       "Lights": 2,
       "Orbiters": 4

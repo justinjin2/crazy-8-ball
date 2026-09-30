@@ -175,7 +175,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 12,
+          "Rate": 14,
           "Lifetime": [
             1.0,
             1.6
@@ -198,17 +198,17 @@
           "Size": [
             [
               0,
-              0.06
+              0.096
             ],
             [
               0.6,
-              0.2,
-              0.05
+              0.32,
+              0.08
             ],
             [
               1,
-              0.23,
-              0.05
+              0.368,
+              0.08
             ]
           ],
           "Transparency": [
@@ -256,15 +256,15 @@
           "Size": [
             [
               0,
-              0.02
+              0.028
             ],
             [
               0.3,
-              0.07
+              0.098
             ],
             [
               1,
-              0.06
+              0.084
             ]
           ],
           "Transparency": [
@@ -298,7 +298,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 6,
+          "Rate": 7,
           "Lifetime": [
             1.2,
             1.8
@@ -315,11 +315,11 @@
           "Size": [
             [
               0,
-              0.1
+              0.2
             ],
             [
               1,
-              0.3
+              0.6
             ]
           ],
           "Transparency": [
@@ -337,6 +337,83 @@
             ]
           ],
           "Color": "#7CFF2B",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "ToxicHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#9BFF3A"
+            ],
+            [
+              1,
+              "#2E8A10"
+            ]
+          ],
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false
@@ -543,8 +620,8 @@
       "Note": "The default gust in the ball's colour (plan.json lists no Toxic finisher)."
     },
     "Budget": {
-      "ParticlesPerSecond": 23,
-      "Back": 11.5,
+      "ParticlesPerSecond": 31,
+      "Back": 15.5,
       "Beams": 4,
       "BallTrail": 14,
       "Lights": 1
