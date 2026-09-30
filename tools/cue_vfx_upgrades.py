@@ -158,7 +158,42 @@ def apex(d):
     v['Budget']['BallTrail'] = sum(x.get('Rate', 0) for x in T)
 
 
-UPGRADES = {'eclipse': eclipse, 'apex': apex}
+def kitsune(d):
+    v = d['vfx']
+    a = v['Aura']
+    E = a['Emitters']
+    # foxfire is violet: the white flame sheet takes the tint (the orange fire sheet turned it red)
+    w = named(E, 'Wisps')
+    w.update({'Texture': 'vfx/_shared/energy_flame_8x8.png', 'Size': [[0, 0.3], [0.4, 0.6], [1, 0.15]],
+              'Color': [[0, '#FFD0F6'], [0.5, '#D070FF'], [1, '#7A30E0']], 'Brightness': 1.5})
+    named(v['Pocket']['Layers'], 'Column').update({'Texture': 'vfx/_shared/energy_flame_8x8.png',
+                                                    'Color': [[0, '#FFD0F6'], [0.5, '#D070FF'], [1, '#7A30E0']]})
+    # kitsunebi: violet foxfire licking up all along the cue, and a faint violet haze round it
+    put(E, {'Name': 'Foxfire', 'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8',
+            'FlipbookMode': 'OneShot', 'Host': cyl(0.4, 6.6, 0.2), 'Rate': 10, 'Lifetime': [0.6, 0.9],
+            'Speed': [0.3, 0.6], 'SpreadAngle': [25, 25], 'EmissionDirection': 'Top', 'Acceleration': [0, 1.4, 0],
+            'Size': [[0, 0.25], [0.35, 0.5], [1, 0.15]], 'Transparency': [[0, 0.35], [0.3, 0.1], [1, 1]],
+            'Color': [[0, '#FFD0F6'], [0.5, '#C860FF'], [1, '#6A28D0']], 'LightEmission': 1, 'LightInfluence': 0,
+            'Brightness': 1.5, 'LockedToPart': False})
+    put(E, {'Name': 'Haze', 'Texture': 'vfx/_shared/smoke_8x8.png', 'FlipbookLayout': 'Grid8x8',
+            'FlipbookMode': 'OneShot', 'Host': cyl(0.5, 7.3, 0.3), 'Rate': 5, 'Lifetime': [1.4, 2.0],
+            'Speed': [0.05, 0.15], 'SpreadAngle': [180, 180], 'Acceleration': [0, 0.15, 0],
+            'Size': [[0, 0.5], [1, 1.1]], 'Rotation': [0, 360], 'RotSpeed': [-20, 20],
+            'Transparency': [[0, 1], [0.3, 0.72], [1, 1]], 'Color': [[0, '#E080FF'], [1, '#7A30E0']],
+            'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': False})
+    # the foxfire orbs: bigger, with longer, wider trails
+    for o in a['Orbiters']:
+        o['Head']['Size'] = 0.46
+        o['Trail'].update({'Lifetime': 0.85, 'WidthStuds': 0.12, 'Brightness': 2.6,
+                           'Transparency': [[0, 0], [0.6, 0.3], [1, 1]], 'WidthScale': [[0, 1], [1, 0.3]]})
+    a['Note'] = ('Layered: nine foxfire tails wave off the mask (above); violet foxfire licks up all along the cue '
+                 'and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small '
+                 'fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); '
+                 'foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet '
+                 'glow round the cue (a halo Beam) and a violet light at the mask.')
+
+
+UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune}
 
 
 def budget(d):

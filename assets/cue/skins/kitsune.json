@@ -548,7 +548,7 @@
       ]
     },
     "Aura": {
-      "Note": "Layered: nine foxfire tails wave off the mask (above); three foxfire orbs, each a glowing orb with a small fox-mask face (made for Kitsune), circle the cue up and down it trailing violet fire (Orbiters with a Head); foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet glow round the cue (a halo Beam) and a violet light at the mask.",
+      "Note": "Layered: nine foxfire tails wave off the mask (above); violet foxfire licks up all along the cue and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet glow round the cue (a halo Beam) and a violet light at the mask.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -639,7 +639,7 @@
         },
         {
           "Name": "Wisps",
-          "Texture": "vfx/_shared/fire_8x8.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -672,15 +672,15 @@
           "Size": [
             [
               0,
-              0.2
+              0.3
             ],
             [
               0.4,
-              0.4
+              0.6
             ],
             [
               1,
-              0.1
+              0.15
             ]
           ],
           "Transparency": [
@@ -700,16 +700,21 @@
           "Color": [
             [
               0,
-              "#FFB0F0"
+              "#FFD0F6"
+            ],
+            [
+              0.5,
+              "#D070FF"
             ],
             [
               1,
-              "#A050FF"
+              "#7A30E0"
             ]
           ],
           "LightEmission": 1,
           "LightInfluence": 0,
-          "LockedToPart": true
+          "LockedToPart": true,
+          "Brightness": 1.5
         },
         {
           "Name": "Sparkles",
@@ -772,6 +777,162 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "Foxfire",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 6.6,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.25
+            ],
+            [
+              0.35,
+              0.5
+            ],
+            [
+              1,
+              0.15
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.3,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFD0F6"
+            ],
+            [
+              0.5,
+              "#C860FF"
+            ],
+            [
+              1,
+              "#6A28D0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 1.5,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Haze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.3,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#E080FF"
+            ],
+            [
+              1,
+              "#7A30E0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Orbiters": [
@@ -789,18 +950,18 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.85,
+            "WidthStuds": 0.12,
             "Color": "#FF9AE8",
-            "Brightness": 2,
+            "Brightness": 2.6,
             "Transparency": [
               [
                 0,
-                0.1
+                0
               ],
               [
                 0.6,
-                0.4
+                0.3
               ],
               [
                 1,
@@ -814,7 +975,7 @@
               ],
               [
                 1,
-                0.2
+                0.3
               ]
             ],
             "LightEmission": 1,
@@ -823,7 +984,7 @@
           },
           "Head": {
             "Texture": "vfx/kitsune/foxfire_orb.png",
-            "Size": 0.34,
+            "Size": 0.46,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -842,18 +1003,18 @@
           "Phase": 120,
           "Delay": 1.0,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.85,
+            "WidthStuds": 0.12,
             "Color": "#FF9AE8",
-            "Brightness": 2,
+            "Brightness": 2.6,
             "Transparency": [
               [
                 0,
-                0.1
+                0
               ],
               [
                 0.6,
-                0.4
+                0.3
               ],
               [
                 1,
@@ -867,7 +1028,7 @@
               ],
               [
                 1,
-                0.2
+                0.3
               ]
             ],
             "LightEmission": 1,
@@ -876,7 +1037,7 @@
           },
           "Head": {
             "Texture": "vfx/kitsune/foxfire_orb.png",
-            "Size": 0.34,
+            "Size": 0.46,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -895,18 +1056,18 @@
           "Phase": 240,
           "Delay": 2.0,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.08,
+            "Lifetime": 0.85,
+            "WidthStuds": 0.12,
             "Color": "#FF9AE8",
-            "Brightness": 2,
+            "Brightness": 2.6,
             "Transparency": [
               [
                 0,
-                0.1
+                0
               ],
               [
                 0.6,
-                0.4
+                0.3
               ],
               [
                 1,
@@ -920,7 +1081,7 @@
               ],
               [
                 1,
-                0.2
+                0.3
               ]
             ],
             "LightEmission": 1,
@@ -929,7 +1090,7 @@
           },
           "Head": {
             "Texture": "vfx/kitsune/foxfire_orb.png",
-            "Size": 0.34,
+            "Size": 0.46,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -1017,7 +1178,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.6,
+        "Lifetime": 1.2,
         "WidthStuds": 0.5,
         "LightEmission": 1,
         "Texture": "vfx/kitsune/trail_foxfire.png",
@@ -1033,8 +1194,12 @@
             1.2
           ],
           [
+            0.6,
+            0.8
+          ],
+          [
             1,
-            0.3
+            0.5
           ]
         ],
         "Core": {
@@ -1043,10 +1208,54 @@
             220,
             250
           ],
-          "Width": 0.1,
-          "NearTransparency": 0.15,
-          "LightEmission": 1
-        }
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 3.0
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.4
       },
       "Pocket": {
         "Colors": [
@@ -1219,7 +1428,7 @@
       "Layers": [
         {
           "Name": "Column",
-          "Texture": "vfx/_shared/fire_8x8.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
@@ -1272,11 +1481,15 @@
           "Color": [
             [
               0,
-              "#FFC0F0"
+              "#FFD0F6"
+            ],
+            [
+              0.5,
+              "#D070FF"
             ],
             [
               1,
-              "#9040FF"
+              "#7A30E0"
             ]
           ],
           "LightEmission": 1,
@@ -1536,8 +1749,8 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 37,
-      "Back": 18.5,
+      "ParticlesPerSecond": 52,
+      "Back": 26.0,
       "BallTrail": 22,
       "Beams": 10,
       "Lights": 1,
