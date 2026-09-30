@@ -184,6 +184,10 @@ class Emitter:
         tex = spec.get('Texture', 'vfx/_shared/glow_soft.png')
         self.texture = tex if os.path.isabs(tex) else os.path.join(texture_root, tex)
         self.host = spec.get('Host', {'Kind': 'Attachment', 'AtStuds': 5.5})
+        # a host on a moving piece joint (Host.Joint): the preview sets joint_m() -> the joint's
+        # 4x4 in the cue frame now, so the emitter rides the joint (in Roblox: an emitter
+        # parented to that joint's MeshPart)
+        self.joint_m = None
         self.carry = 0.0
         self.p = {k: np.zeros((0, 3)) for k in ('pos', 'vel')}
         for k in ('age', 'life', 'rot', 'rots', 'rnd', 'fb0', 'fbr'):
@@ -198,6 +202,12 @@ class Emitter:
         if kind == 'Attachment':
             base = cue_point(h.get('AtStuds', 0.0), h.get('Up', 0.0), h.get('Side', 0.0))
             pos = np.repeat(base[None], n, 0)
+        elif kind == 'Segment':
+            # along a line between two cue points (From/To: [AtStuds, Up, Side]), within Radius
+            a = cue_point(*h['From'])
+            b = cue_point(*h['To'])
+            u = rs.random_sample(n)[:, None]
+            pos = a[None] + (b - a)[None] * u + (rs.random_sample((n, 3)) - 0.5) * 2 * float(h.get('Radius', 0.0))
         elif kind == 'Part':
             a0, a1 = h.get('FromStuds', 3.8), h.get('ToStuds', 6.9)
             wdt = h.get('Width', 0.3)
@@ -264,6 +274,8 @@ class Emitter:
             self.p[key] = np.concatenate([self.p[key], val])
 
     def step(self, dt, host_m, emitting=True):
+        if self.joint_m is not None:
+            host_m = host_m @ self.joint_m()
         p = self.p
         if len(p['age']):
             acc = self.acc
@@ -295,6 +307,8 @@ class Emitter:
         t = np.clip(p['age'] / p['life'], 0, 1)
         pos = p['pos']
         vel = p['vel']
+        if self.joint_m is not None:
+            host_m = host_m @ self.joint_m()
         if self.locked:
             R, T = host_m[:3, :3], host_m[:3, 3]
             pos = pos @ R.T + T
@@ -2206,7 +2220,7 @@ def sprite_flame_flow_strip(w=1024, h=128, seed=149):
     return np.concatenate([col, a[..., None] * 255], -1)
 
 
-SKIN_SPRITES['phoenix'] = {'wing_r_4x4.png': sprite_wing_sheet, 'wing_l_4x4.png': sprite_wing_sheet_mirrored,
+SKIN_SPRITES['phoenix'] = {  # the wings are a 3D piece now (CuePiecesLegendary.phoenix)
                            'feather_4x4.png': sprite_feather_sheet, 'trail_feathers.png': sprite_trail_feathers,
                            'firebird_4x4.png': sprite_firebird_sheet, 'flame_flow_strip.png': sprite_flame_flow_strip}
 

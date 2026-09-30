@@ -1,5 +1,5 @@
-"""Mythic and Secret pieces: scripted modelling of the custom 3D piece a cue carries (the dragon
-head, the fox mask and tails, the claw arm, the eclipse), built in headless Blender.
+"""Custom 3D pieces: scripted modelling of the moving 3D piece a cue carries (the dragon head,
+the fox mask and tails, the claw arm, the eclipse, the phoenix wings), built in headless Blender.
 
     Blender -b --factory-startup --python-exit-code 1 --python assets/cue/CuePieces.py -- <id>
 
@@ -475,6 +475,7 @@ def build(pid):
     import cue_common as cc
     cc.clear_scene('CuePieces')
     import CuePiecesMythic  # noqa: F401  (registers the builders on the imported CuePieces module)
+    import CuePiecesLegendary  # noqa: F401
     import CuePieces
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)
@@ -552,6 +553,7 @@ def render_sprite(name):
     import cue_common as cc
     from mathutils import Matrix, Vector
     import CuePiecesMythic  # noqa: F401
+    import CuePiecesLegendary  # noqa: F401
     import CuePieces
     spec = CuePieces.SPRITES[name]
     cc.clear_scene('Sprite')

@@ -216,7 +216,31 @@ def celestial_dragon(d):
                  'glow round the cue (a halo Beam, breathing) and a blue light at the head.')
 
 
-UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon}
+def phoenix(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the wings are a 3D piece now (CuePiecesLegendary.phoenix), not flat flipbook sprites
+    d['piece'] = 'phoenix'
+    a['Emitters'] = [e for e in a['Emitters'] if e['Name'] not in ('WingRight', 'WingLeft')]
+    # fire licks off each wing's leading edge and its primaries, riding the wing as it beats
+    # (Segment hosts on the piece's joints: in Roblox, emitters parented to the wing parts)
+    for side, sname in ((1, 'Right'), (-1, 'Left')):
+        for jname, a0, a1, rate in (('Wing', [4.4, 0.06, 0.07 * side], [4.838, 0.476, 1.164 * side], 4),
+                                    ('Primaries', [4.838, 0.476, 1.164 * side], [5.258, 0.875, 2.215 * side], 4)):
+            put(a['Emitters'], {
+                'Name': jname + 'Fire' + sname, 'Texture': 'vfx/_shared/fire_8x8.png', 'FlipbookLayout': 'Grid8x8',
+                'FlipbookMode': 'OneShot', 'Host': {'Kind': 'Segment', 'Joint': jname + sname, 'From': a0, 'To': a1,
+                                                    'Radius': 0.05},
+                'Rate': rate, 'Lifetime': [0.4, 0.6], 'Speed': [0.1, 0.3], 'SpreadAngle': [30, 30],
+                'EmissionDirection': 'Top', 'Acceleration': [0, 2.0, 0], 'Size': [[0, 0.3], [0.4, 0.55], [1, 0.15]],
+                'Transparency': [[0, 0.4], [0.3, 0.1], [1, 1]], 'Color': '#FFFFFF', 'LightEmission': 1,
+                'LightInfluence': 0, 'LockedToPart': False})
+    pj = json.load(open(os.path.join(ROOT, 'assets', 'cue', 'pieces', 'phoenix', 'piece.json')))
+    v['Budget']['PieceTriangles'] = pj['Triangles']
+
+
+UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
+            'phoenix': phoenix}
 
 
 def budget(d):

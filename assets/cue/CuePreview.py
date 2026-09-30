@@ -175,13 +175,15 @@ def blender_main(args):
     cue.data.materials.clear()
     cue.data.materials.append(mat)
     piece_anim = None
-    if skin.get('piece'):  # a Mythic or Secret's 3D piece (CuePieces.py), parented to the cue
-        import CuePieces
+    import CuePieces
+    if skin.get('piece'):  # a cue's 3D piece (CuePieces.py), parented to the cue
         piece_anim = CuePieces.attach(bpy, skin['piece'], cue)
     # how far past the butt the piece reaches (studs), so the side stills frame all of it
     reach = 0.0
+    piece_joints = None
     if skin.get('piece'):
         pj = json.load(open(os.path.join(HERE, 'pieces', skin['piece'], 'piece.json')))
+        piece_joints = pj['Joints']
         reach = max(0.0, max(3.5 - (p_['Offset'][2] - p_['Size'][2] / 2) for p_ in pj['Parts']) - 7.0)
     frames_spec = (V.get('Moving') or {}).get('Frames')
     frame_images = []
@@ -427,7 +429,11 @@ def blender_main(args):
     def make_aura(rate_scale=1.0, seed=1):
         ems = []
         for i, spec in enumerate(aura_specs + (moving.get('Emitters') or [])):
-            ems.append(vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale))
+            em = vfx.Emitter(spec, seed=seed + 31 * i, rate_scale=rate_scale)
+            jname = (spec.get('Host') or {}).get('Joint')
+            if jname and piece_joints:
+                em.joint_m = (lambda j: lambda: CuePieces.joint_matrix(piece_joints, j, clock[0]))(jname)
+            ems.append(em)
         # the scripted pieces (orbiters, arcs) ride along like emitters
         ems += vfx.make_pieces(aura_spec, seed=seed, rate_scale=rate_scale)
         ems += vfx.make_pieces(moving, seed=seed + 7, rate_scale=rate_scale)
