@@ -2,7 +2,7 @@
   "id": "eclipse",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 30472,
+  "Triangles": 37640,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -463,6 +463,86 @@
         0.13
       ],
       "Triangles": 288
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB84A",
+      "Transparency": 0.2,
+      "Reflectance": 0.0,
+      "Name": "GreatOrbit1_OrbitLine",
+      "File": "pieces/eclipse/GreatOrbit1_OrbitLine.obj",
+      "Joint": "GreatOrbit1",
+      "Offset": [
+        -0.0002,
+        -0.0002,
+        -0.7004
+      ],
+      "Size": [
+        2.2286,
+        2.4541,
+        6.7588
+      ],
+      "Triangles": 1536
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "GreatOrbit1_OrbitGlow",
+      "File": "pieces/eclipse/GreatOrbit1_OrbitGlow.obj",
+      "Joint": "GreatOrbit1",
+      "Offset": [
+        0.0003,
+        -0.0004,
+        -0.6997
+      ],
+      "Size": [
+        2.2704,
+        2.4946,
+        6.8008
+      ],
+      "Triangles": 2048
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB84A",
+      "Transparency": 0.2,
+      "Reflectance": 0.0,
+      "Name": "GreatOrbit2_OrbitLine",
+      "File": "pieces/eclipse/GreatOrbit2_OrbitLine.obj",
+      "Joint": "GreatOrbit2",
+      "Offset": [
+        0.0001,
+        -0.0001,
+        -1.1005
+      ],
+      "Size": [
+        2.0115,
+        1.5941,
+        6.0834
+      ],
+      "Triangles": 1536
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB300",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "GreatOrbit2_OrbitGlow",
+      "File": "pieces/eclipse/GreatOrbit2_OrbitGlow.obj",
+      "Joint": "GreatOrbit2",
+      "Offset": [
+        0.0003,
+        0.0006,
+        -1.099
+      ],
+      "Size": [
+        2.0524,
+        1.6355,
+        6.1246
+      ],
+      "Triangles": 2048
     },
     {
       "Material": "SmoothPlastic",
@@ -1004,6 +1084,56 @@
             -0.6885161995887756
           ],
           "Rate": -105.0
+        }
+      ]
+    },
+    "GreatOrbit1": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -4.199999809265137,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -0.7
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 7.0,
+          "Phase": 90
+        }
+      ]
+    },
+    "GreatOrbit2": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        -4.599999904632568,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -1.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -5.0,
+          "Phase": 180
         }
       ]
     },

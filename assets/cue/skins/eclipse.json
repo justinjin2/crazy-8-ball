@@ -88,7 +88,7 @@
       "Note": "The corona blazes and flares: overlapping corona particles (own texture: a white-hot ring sized to the sphere's outline, ragged gold streamers; ZOffset 0.3, the sphere's radius, so the ring draws in front of the outline from every side) turning slowly, and solar prominences looping up off the rim and snapping (own 16-frame flipbook, placed anywhere round it by a random Rotation); the molten gold's emissive swells 1.8-3.0 over 2.4 s."
     },
     "Aura": {
-      "Note": "Space round a glowing eclipse (designer, 2026-09-30): past the butt a big black eclipse sphere in its blazing corona, solar flares licking off it, in front of a spiral galaxy turning slowly (a large camera-facing sprite made for Eclipse); four gold orbital rings circle the cue, tilted every way like an atom's orbits, each precessing with a glowing planet running round it, and an asteroid belt of dark rocks orbits the cue, tumbling (3D, the piece); three gold orbit trails with small eclipses at their heads loop along the cue (Orbiters); dark nebula clouds drift round it (alpha-blended), stars twinkle, gold star dust glitters, obsidian chips drift; a gold glow along the cue and a warm gold light at the eclipse.",
+      "Note": "Space round a glowing eclipse (designer, 2026-09-30): behind the cue's back half a giant eclipse about half the cue across, a black disc in a razor-thin white-gold ring with fiery wisps churning off it, a spiral galaxy turning slowly behind it; two huge gold orbits sweep round the cue and the eclipse, the cue running through them (3D, the piece); past the butt a small black eclipse sphere in its blazing corona, solar flares licking off it; four gold orbital rings circle the cue, tilted every way like an atom's orbits, each precessing with a glowing planet running round it, and an asteroid belt of dark rocks orbits the cue, tumbling (3D, the piece); three gold orbit trails with small eclipses at their heads loop along the cue (Orbiters); dark nebula clouds drift round it (alpha-blended), stars twinkle, gold star dust glitters, obsidian chips drift; a gold glow along the cue and a warm gold light at the eclipse.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -227,7 +227,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 18,
+          "Rate": 16,
           "Lifetime": [
             0.5,
             0.9
@@ -408,19 +408,19 @@
           "Texture": "vfx/eclipse/galaxy.png",
           "Host": {
             "Kind": "Attachment",
-            "AtStuds": 7.56
+            "AtStuds": 4.6
           },
-          "Rate": 1.2,
-          "Lifetime": 2.5,
+          "Rate": 0.5,
+          "Lifetime": 5,
           "Speed": 0,
           "Size": [
             [
               0,
-              3.8
+              8.0
             ],
             [
               1,
-              4.2
+              8.4
             ]
           ],
           "Rotation": [
@@ -428,8 +428,8 @@
             360
           ],
           "RotSpeed": [
-            14,
-            14
+            6,
+            6
           ],
           "Transparency": [
             [
@@ -437,12 +437,12 @@
               1
             ],
             [
-              0.3,
-              0.1
+              0.2,
+              0.3
             ],
             [
-              0.7,
-              0.1
+              0.8,
+              0.3
             ],
             [
               1,
@@ -450,11 +450,11 @@
             ]
           ],
           "Color": "#FFFFFF",
-          "Brightness": 1.5,
+          "Brightness": 1.3,
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true,
-          "ZOffset": -0.8
+          "ZOffset": -2.4
         },
         {
           "Name": "Nebula",
@@ -582,6 +582,138 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "GiantEclipse",
+          "Texture": "vfx/eclipse/giant_eclipse.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.6
+          },
+          "Rate": 0.5,
+          "Lifetime": 5,
+          "Speed": 0,
+          "Size": 4.5,
+          "Rotation": [
+            0,
+            0
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": -1.6
+        },
+        {
+          "Name": "GiantRing",
+          "Texture": "vfx/eclipse/giant_corona.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.6
+          },
+          "Rate": 0.5,
+          "Lifetime": 5,
+          "Speed": 0,
+          "Size": 7.2,
+          "Rotation": [
+            0,
+            0
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "Brightness": 0.9,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": -1.5
+        },
+        {
+          "Name": "GiantWisps",
+          "Texture": "vfx/eclipse/giant_wisps.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.6
+          },
+          "Rate": 0.9,
+          "Lifetime": 4,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              7.2
+            ],
+            [
+              1,
+              7.92
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -6,
+            6
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.25
+            ],
+            [
+              0.7,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "Brightness": 1.6,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": -1.5
         }
       ],
       "Orbiters": [
@@ -1529,13 +1661,13 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 58.7,
-      "Back": 29.4,
+      "ParticlesPerSecond": 57.9,
+      "Back": 28.9,
       "BallTrail": 31,
       "Beams": 1,
       "Lights": 1,
       "Orbiters": 3,
-      "PieceTriangles": 30472
+      "PieceTriangles": 37640
     }
   }
 }

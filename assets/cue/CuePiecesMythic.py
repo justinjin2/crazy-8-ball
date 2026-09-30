@@ -911,6 +911,20 @@ def eclipse(k):
             bm = bmesh.new()
             bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=10, radius=r_, matrix=Matrix.Translation(p0))
             k.add(bead_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
+    # two huge sweeping loops (designer, 2026-09-30, the concept's long gold orbits round the giant
+    # eclipse): ellipses nearly along the cue, the cue running through them, turning slowly round it
+    for n, (u0, A, B, tip, roll, prec) in enumerate(((4.2, 3.5, 1.35, 16, 55, 7.0), (4.6, 3.1, 1.1, -12, -65, -5.0)), 1):
+        c = Vector((0, -u0, 0))
+        d = Matrix.Rotation(math.radians(tip), 3, 'X') @ Vector((0, 1, 0))
+        m = Matrix.Rotation(math.radians(roll), 3, d) @ (Matrix.Rotation(math.radians(tip), 3, 'X') @ Vector((0, 0, 1)))
+        loop = [c + d * A * math.cos(2 * math.pi * i / 128) + m * B * math.sin(2 * math.pi * i / 128) for i in range(129)]
+        j = 'GreatOrbit%d' % n
+        k.joint(j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': 90 * n}])
+        for mat, tube, segs in (('OrbitLine', 0.009, 6), ('OrbitGlow', 0.03, 8)):
+            bm = bmesh.new()
+            sweep(bm, loop, [tube] * len(loop), segs=segs, cap=False)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+            k.add(j, k.mesh_object('EclipseGreat%s%d' % (mat, n), bm, [mat]))
     rnd = random.Random(23)
     for n in range(1, 11):
         a_ = 0.9 + 6.0 * (n - 0.5) / 10 + rnd.uniform(-0.25, 0.25)

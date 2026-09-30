@@ -88,6 +88,35 @@ def eclipse(d):
         'Rate': 10, 'Lifetime': [0.8, 1.6], 'Speed': 0, 'Size': [[0, 0], [0.5, 0.14, 0.06], [1, 0]],
         'Rotation': [0, 45], 'Transparency': 0, 'Color': [[0, '#FFFFFF'], [1, '#FFE3A0']], 'LightEmission': 1,
         'LightInfluence': 0, 'LockedToPart': True})
+    # designer, 2026-09-30: a giant eclipse behind the cue's back half, its ring like the concept's
+    # (a black disc about half the cue long, a razor-thin white-gold rim, fiery wisps licking off
+    # it). Camera-facing, so it is a disc from every side; ZOffset puts it behind
+    # the cue and the 3D orbits, and the galaxy behind it. The disc and ring never turn and their
+    # fades overlap exactly (a new one every 2 s fading in over 1 s as the oldest fades out), so
+    # they hold steady; the wisps turn and cross-fade so the corona's flames churn.
+    G = {'Kind': 'Attachment', 'AtStuds': 4.6}
+    RG = 1.8                                        # the giant disc's radius, studs
+    steady = [[0, 1], [0.2, 0], [0.8, 0], [1, 1]]
+    put(a['Emitters'], {
+        'Name': 'GiantEclipse', 'Texture': 'vfx/eclipse/giant_eclipse.png', 'Host': G, 'Rate': 0.5,
+        'Lifetime': 5, 'Speed': 0, 'Size': round(2 * RG / 0.8, 3), 'Rotation': [0, 0], 'Transparency': steady,
+        'Color': '#FFFFFF', 'LightEmission': 0, 'LightInfluence': 0, 'LockedToPart': True, 'ZOffset': -1.6})
+    put(a['Emitters'], {
+        'Name': 'GiantRing', 'Texture': 'vfx/eclipse/giant_corona.png', 'Host': G, 'Rate': 0.5,
+        'Lifetime': 5, 'Speed': 0, 'Size': round(2 * RG / 0.5, 3), 'Rotation': [0, 0], 'Transparency': steady,
+        'Color': '#FFFFFF', 'Brightness': 0.9, 'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': True,
+        'ZOffset': -1.5})
+    put(a['Emitters'], {
+        'Name': 'GiantWisps', 'Texture': 'vfx/eclipse/giant_wisps.png', 'Host': G, 'Rate': 0.9,
+        'Lifetime': 4, 'Speed': 0, 'Size': [[0, round(2 * RG / 0.5, 3)], [1, round(2.2 * RG / 0.5, 3)]],
+        'Rotation': [0, 360], 'RotSpeed': [-6, 6], 'Transparency': [[0, 1], [0.3, 0.25], [0.7, 0.25], [1, 1]],
+        'Color': '#FFFFFF', 'Brightness': 1.6, 'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': True,
+        'ZOffset': -1.5})
+    # (giant solar flares on its rim read as thick white tubes at that size: the wisps carry the flames)
+    a['Emitters'] = [e for e in a['Emitters'] if e['Name'] != 'GiantFlares']
+    gx = named(a['Emitters'], 'Galaxy')              # the galaxy now turns behind the giant eclipse
+    gx.update({'Host': dict(G), 'Rate': 0.5, 'Lifetime': 5, 'Size': [[0, 8.0], [1, 8.4]], 'RotSpeed': [6, 6],
+               'Transparency': [[0, 1], [0.2, 0.3], [0.8, 0.3], [1, 1]], 'Brightness': 1.3, 'ZOffset': -2.4})
     # the orbit loops round the cue: brighter, longer trails, like the concept's gold loops
     for o in a['Orbiters']:
         o['Radius'] = 0.38
@@ -135,10 +164,13 @@ def eclipse(d):
                            'light streaks burst out radially, obsidian shards and gold sparks blast out, a gold ring '
                            'spreads; a gold flash. The default gust is tinted gold.')
     g = named(a['Emitters'], 'GoldSparks')
-    g['Rate'] = 18
-    a['Note'] = ('Space round a glowing eclipse (designer, 2026-09-30): past the butt a big black eclipse sphere '
-                 'in its blazing corona, solar flares licking off it, in front of a spiral galaxy turning slowly '
-                 '(a large camera-facing sprite made for Eclipse); four gold orbital rings circle the cue, tilted '
+    g['Rate'] = 16                  # 18 until the giant eclipse needed the room
+    a['Note'] = ('Space round a glowing eclipse (designer, 2026-09-30): behind the cue\'s back half a giant '
+                 'eclipse about half the cue across, a black disc in a razor-thin white-gold ring with fiery '
+                 'wisps churning off it, a spiral galaxy turning slowly behind it; two huge gold orbits sweep '
+                 'round the cue and the eclipse, the cue running through them (3D, the piece); past the butt a '
+                 'small black eclipse sphere in its blazing corona, solar flares licking off it; four gold '
+                 'orbital rings circle the cue, tilted '
                  'every way like an atom\'s orbits, each precessing with a glowing planet running round it, and '
                  'an asteroid belt of dark rocks orbits the cue, tumbling (3D, the piece); three gold orbit '
                  'trails with small eclipses at their heads loop along the cue (Orbiters); dark nebula clouds '

@@ -2915,6 +2915,53 @@ def sprite_mini_eclipse(n=128):
     return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
 
 
+def sprite_giant_eclipse(n=1024, r0=0.8, seed=441):
+    """The giant eclipse behind the cue's back half (designer, 2026-09-30, the concept's aura): a
+    black disc (edge at r0) with a faint bronze mottling, the corona's light bleeding just inside
+    its rim (alpha-blended so the disc stays black over whatever is behind it)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    disc = np.clip((r0 - r) / 0.006, 0, 1)
+    mott = cc.fbm(x * 3 + 7, y * 3, r * 1.5, 5, seed)
+    body = np.zeros(r.shape + (3,)) + np.array([7, 6, 5.0]) + np.array([34, 22, 10.0]) * np.clip(mott - 0.45, 0, 1)[..., None]
+    limb = np.exp(-((r0 - r) / 0.025) ** 2) * disc
+    c = body * (1 - limb[..., None]) + _corona_col(0.55 + 0.4 * limb) * limb[..., None]
+    return np.concatenate([np.clip(c, 0, 255), disc[..., None] * 255], -1)
+
+
+def sprite_giant_corona(n=1024, r0=0.5, seed=451, wisps_only=False):
+    """The giant eclipse's ring (additive, clear inside so the black disc shows): a razor-thin
+    white-hot rim at r0, a gold glow, and fiery streamers and curling wisps licking outward, longer
+    in places, as in the concept. wisps_only: the streamers alone, for a second slowly turning
+    layer that makes the flames churn."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x)
+    cs, sn = np.cos(th), np.sin(th)
+    fine = cc.fbm(cs * 9 + 3, sn * 9, r * 5, 5, seed)            # thin filaments
+    broad = cc.fbm(cs * 2.2 + 11, sn * 2.2, r * 0.8, 3, seed + 1)  # where the corona reaches far
+    curl = cc.fbm(x * 6 + 1, y * 6, np.zeros_like(r), 4, seed + 2)
+    reach = 0.06 + 0.32 * np.clip(broad - 0.35, 0, 1) ** 1.3 * 2.4
+    out = (r >= r0) * np.clip(1 - (r - r0) / np.maximum(reach, 1e-3), 0, 1) ** 1.4
+    fil = out * np.clip(fine * 1.9 - 0.55, 0, 1) * (0.6 + 0.8 * curl)
+    ring = np.exp(-((r - r0) / 0.006) ** 2)
+    glow = np.exp(-((r - r0) / 0.035) ** 2) * (r >= r0 - 0.01)
+    halo = (r >= r0) * np.exp(-(r - r0) / 0.16) * 0.35
+    inner = np.clip(1 - (r0 - r) / 0.012, 0, 1) * (r < r0)
+    if wisps_only:
+        heat = np.clip(fil * 0.9, 0, 1)
+        a = np.clip(fil * 1.2, 0, 1)
+    else:
+        heat = np.clip(ring * 1.2 + glow * 0.7 + fil * 0.5 + halo * 0.4 + inner * 0.6, 0, 1)
+        a = np.clip(ring + glow * 0.85 + fil * 0.9 + halo + out * 0.25 + inner * 0.5, 0, 1)
+    a = a * np.clip((0.99 - r) / 0.08, 0, 1)
+    return np.concatenate([_corona_col(heat), a[..., None] * 255], -1)
+
+
+def sprite_giant_wisps():
+    return sprite_giant_corona(seed=461, wisps_only=True)
+
+
 def sprite_trail_eclipse(w=512, h=128, seed=431):
     """Half gold, half black light (u = 0 at the ball): the upper half molten gold light with
     bright streaks, the lower half black smoke with a gold edge, split by a white-gold seam
@@ -2960,7 +3007,9 @@ def sprite_gold_column(w=256, h=256):
 
 SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'galaxy.png': sprite_galaxy, 'flare_8x8.png': sprite_flare_sheet8, 'obsidian.png': sprite_obsidian,
                            'mini_eclipse.png': sprite_mini_eclipse, 'trail_eclipse.png': sprite_trail_eclipse,
-                           'dark_ring.png': sprite_dark_ring, 'gold_column.png': sprite_gold_column}
+                           'dark_ring.png': sprite_dark_ring, 'gold_column.png': sprite_gold_column,
+                           'giant_eclipse.png': sprite_giant_eclipse, 'giant_corona.png': sprite_giant_corona,
+                           'giant_wisps.png': sprite_giant_wisps}
 
 
 def sprite_vip_diamond(n=128):
