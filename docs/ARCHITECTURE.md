@@ -508,7 +508,7 @@ price, rarity, ult id to grant or a result.
   same PlayerData mutation as its money and cases. `Ranking` passes them on to the popups;
   `Announce` (the Legendary and Mythic banner), `GlobalQueue` (the Ults On and Off pools).
 - Client: `UltHud` and `UltBar` (the bar, its gains, READY and the press prompt, the armed
-  pills, Practice), `UltCutscene` (the manga panel everyone at the table sees), `MagnetFx`
+  pills; solo's bar is always full), `UltCutscene` (the manga panel everyone at the table sees), `MagnetFx`
   (Magnet's armed look, each hit ball's charge rings, the pull's beams, dust, pocket ring and vortex, and its sounds), `MatchHUD` (the opponent's ult
   icon, the NO ABILITIES pill, the clock held while an ult arms), `PadGuide` (the Ability line),
   `ResultScreen` (NO ABILITIES), the reward screens' spin chips, and the spin screen (UltScreen,

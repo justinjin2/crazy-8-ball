@@ -2033,3 +2033,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-29: the spin screen is live for everyone (`Config.Ults.ScreenLive = true`) with all
   13 abilities built; Chain Lightning, Steel Ball and Black Flash's one-line descriptions now
   say what they do (the brief's "ready for launch").
+- 2026-09-30 (designer): solo practice uses the real ability bar and controls (G, a tap on the
+  bar, gamepad X), always full and ready, instead of the small "Practice ability" button.
+  Balls pocketed with a practice ability pay no money, now including the redos a practice
+  Rewind gives; real matches still pay for ability pots (the designer chose solo only).

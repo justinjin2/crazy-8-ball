@@ -1,5 +1,12 @@
 # Status
 
+**2026-09-30: solo practice uses the real ability bar.** In solo the match's bar shows,
+always full and ready: G, a tap on the bar or gamepad X arms the equipped ability for free.
+Practice shots pay no money, now including a practice Rewind's redos (they used to pay).
+Checked in Studio: the bar and PRESS G prompt, G, gamepad X and a click all arm it, a plain
+solo pot paid $6 and the same pot with the practice ability paid $0; 878 Lune tests pass.
+Still by hand: a real phone's tap and a real controller.
+
 **2026-09-29 (branch `abilities`): all 13 abilities built, measured and live on the branch.**
 Report: `docs/prompts/ABILITIES_REPORT.md`. Brief and notes: `docs/prompts/ABILITIES_PROMPT.md`.
 

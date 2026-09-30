@@ -118,9 +118,11 @@ end
 local function payOne(e: any, player: Player, team: number, isShooter: boolean, now: number)
 	local pending, shot = e.pending, e.shot
 	-- A solo Practice ult shot is free and unlimited, so it pays nothing and counts nothing
-	-- (ULTIMATES_PROMPT section 4).
+	-- (ULTIMATES_PROMPT section 4), nor do the redos a practice Rewind gives (shot.practice).
 	local ult = if type(shot) == "table" then shot.ult else nil
-	if type(ult) == "table" and ult.practice == true then
+	if type(shot) == "table" and shot.practice == true then
+		return
+	elseif type(ult) == "table" and ult.practice == true then
 		return
 	end
 	local j = pending.judgement

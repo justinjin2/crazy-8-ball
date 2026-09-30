@@ -367,8 +367,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   their ult in 80%+ of matches**, leaving out the rare run-out (a player who pockets all 7
   and the 8 in one turn). A second ult only comes in long, slow matches.
 - **Ults are on by default everywhere**: public tables, the global queue and arenas, and vs
-  PC (this replaces "public tables play Classic with no abilities", 2026-09-27). Solo gets a
-  free **Practice ability** button instead of a bar. **The global queue's Join card has an
+  PC (this replaces "public tables play Classic with no abilities", 2026-09-27). Solo shows
+  the **real ability bar, always full**: G, a tap on the bar or gamepad X arms your equipped
+  ability for free, as often as you like; those shots (and a practice Rewind's redos) pay
+  no money (2026-09-30). **The global queue's Join card has an
   Abilities: On / Off toggle** (On by default, remembered in the save) for ranked players who
   want pure skill; players are only matched with others on the same setting (two pools in one
   queue), rank XP and money are the same either way, and the arena, series and rematch keep

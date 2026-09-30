@@ -107,7 +107,7 @@ UI.addPlayControl(powerCue.root)
 local spinSelector = SpinSelector.new(screen, input)
 local zoomHint = ZoomHint.new(screen) -- scroll or pinch to zoom, over the spin button
 local padGuide = PadGuide.new(screen) -- the controller guide, bottom left, on a gamepad
--- The ult bar, bottom centre on your turn (or solo's Practice ult); a press sends UltActivate.
+-- The ult bar, bottom centre on your turn (always full in solo); a press sends UltActivate.
 local ultHud = UltHud.new(screen, function()
 	Net.get("UltActivate"):FireServer()
 end)

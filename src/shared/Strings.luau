@@ -970,7 +970,6 @@ return {
 			Tap = "TAP TO ACTIVATE", -- on touch, where the whole bar is the button
 			Armed = "%s: NEXT SHOT", -- your armed ability, its name in upper case: "MAGNET: NEXT SHOT"
 			OpponentArmed = "Opponent's ability: %s", -- theirs: "Opponent's ability: MAGNET"
-			Practice = "Practice ability", -- solo's button that arms your ability for free
 			NoUlts = "NO ABILITIES", -- an abilities-off queue match, on the match bar and the result screen
 			-- Why a press did nothing (UltNotice's reason, from Ults/Match.check and UltService).
 			Refused = {

@@ -322,6 +322,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.foul = nil
 	t.redoClock = nil
 	t.redosLeft = nil
+	t.redoPractice = nil
 	Ults.clearArmed(t) -- an armed ult never outlives its shooter's turn
 	Ults.turnBegan(t, team == before) -- a kept Turn ult (Portals) only while its shooter keeps it
 	if hand then
@@ -467,6 +468,7 @@ local function rewindTo(t: any, redo: any, now: number)
 	t.foul = nil
 	t.redoClock = true
 	t.redosLeft = redo.left - 1
+	t.redoPractice = redo.practice
 	t.rewound = { at = now, seq = t.shotSeq }
 	phase(t, "Rewinding", now, S.RewindSeconds)
 end
@@ -1213,6 +1215,10 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	-- a shot turned down above never starts it).
 	t.brokeAt = t.brokeAt or now
 	local tag = Ults.shotTag(t)
+	-- Solo's free Practice ult pays nothing: its own shot, and the redos a practice Rewind
+	-- gives (plain shots with no ult tag).
+	local practice = (tag ~= nil and tag.practice == true)
+		or (t.redoClock == true and t.redoPractice == true)
 	-- Rewind (7.6): the exact table before this shot, to go back to if none of the shooter's
 	-- balls drop: the Rewind shot itself, then each redo while redos are left.
 	local row = if tag then Catalog.get(tag.id) else nil
@@ -1233,6 +1239,7 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 			breakShot = t.breakShot,
 			own = own,
 			left = left,
+			practice = practice,
 		}
 	end
 	t.state.balls = before
@@ -1240,6 +1247,7 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	t.timeouts[t.activeTeam] = 0
 	t.ballInHand = false
 	t.redoClock = nil
+	t.redoPractice = nil
 	t.shot = {
 		tableId = t.id,
 		epoch = t.epoch,
@@ -1253,6 +1261,8 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 		overrides = outcome.overrides,
 		-- The ult this shot is: { id, by, practice }, or nil.
 		ult = tag,
+		-- A practice shot (see `practice` above): Economy pays it nothing.
+		practice = if practice then true else nil,
 	}
 	if outcome.halted then
 		-- Time Stop's freeze (7.7): everyone replays up to it; the shooter may strike the cue

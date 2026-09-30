@@ -13,8 +13,9 @@
 -- - The bar: only on your own turn, before and during your shot (Intro, PocketChoice,
 --   Placement, Aiming, Resolving), at a table with ults on. It slides up when your turn
 --   starts. On the break it shows as usual but never offers the press.
--- - Solo: no bar; a small "Practice ult" candy button in its place (UltActivate; the server
---   arms it for free), not on the break.
+-- - Solo: the same bar, always full and ready (the designer, 2026-09-30: practise with the
+--   real controls). The server has no bar in solo: a press arms the equipped ult for free
+--   (Match.practice), as often as the shooter likes.
 -- - Your ult armed: a pill in its rarity colour, "MAGNET: NEXT SHOT" (+ "Coming soon" for a
 --   placeholder), the ult's icon on its left end. While it is still arming the cutscene plays
 --   (UltCutscene) and this hides.
@@ -31,8 +32,7 @@
 --
 -- Ready: the gold bar (UltBar) and the prompt for the last input used (PRESS [G], TAP, PRESS
 -- [X / Square]). G and ButtonX are bound (ContextActionService) only while it is offered, and
--- a click or tap on the bar presses it too (solo's Practice button answers the same keys). A
--- press sends UltActivate once, then waits for the snapshot to change or a refusal
+-- a click or tap on the bar presses it too. A press sends UltActivate once, then waits for the snapshot to change or a refusal
 -- (UltNotice) before it can be sent again.
 local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -171,7 +171,7 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	self.shown = 0 -- the % on screen (mid-count included)
 	self.count = nil :: any -- { from, to, startedAt }
 	self.nextGainAt = 0 -- os.clock(): the stagger between two gains
-	self.mode = "none" -- "bar", "armed", "opponent", "practice" or "none"
+	self.mode = "none" -- "bar", "armed", "opponent" or "none"
 	self.shownSince = 0 -- os.clock() the slide up began
 	self.shownAtServer = 0 -- server time the current piece appeared: gains before it are stored
 	self.slideDone = false -- up and settled: gains may animate, the press may be offered
@@ -181,7 +181,7 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	self.pullAlpha = 0 -- 0 ... 1 faded while pulling
 	self.readyKey = nil :: string? -- the fill whose ult_ready has played
 	self.promptOn = false -- the ready bar offers its press
-	self.pressable = false -- ...or solo's Practice button shows: G and ButtonX are bound
+	self.pressable = false -- G and ButtonX are bound
 	self.bound = false
 	self.pending = nil :: any -- a press on its way: { at, key }
 	self.noticeUntil = 0
@@ -210,12 +210,6 @@ function UltHud.new(screen: ScreenGui, activate: () -> ()): any
 	self.bar = UltBar.new(content)
 	self.armed = wordPill(content, "Armed")
 	self.opponent = wordPill(content, "OpponentArmed")
-	self.practice = HudParts.candy(content, Copy.Practice, function()
-		self:press()
-	end, U.PracticeTone)
-	self.practice.AnchorPoint = Vector2.new(0.5, 1)
-	self.practice.Visible = false
-	HudParts.setMinHit(self.practice, Config.Multiplayer.Style.TouchTargetPx)
 
 	-- The whole bar is the button while it is offered (touch, and a click too).
 	local hit = Instance.new("TextButton")
@@ -301,15 +295,6 @@ function UltHud.layout(self: any)
 	self:fitPill(self.armed, self.armedSizes)
 	self:fitPill(self.opponent, self.opponentSizes)
 	self:fitCanvas()
-	local practiceWidth = if short then U.PracticeWidthPx[1] else U.PracticeWidthPx[2]
-	local practiceHeight = if short then U.PracticeHeightPx[1] else U.PracticeHeightPx[2]
-	self.practice.Position = UDim2.fromOffset(s.width / 2, g.height)
-	self.practice.Size = UDim2.fromOffset(practiceWidth, practiceHeight)
-	HudParts.setButtonTextSize(
-		self.practice,
-		if short then U.PracticeTextPx[1] else U.PracticeTextPx[2]
-	)
-	self.practiceHeight = practiceHeight
 	-- The press area: the bar and the prompt over it.
 	self.hit.Position = UDim2.fromOffset(0, g.promptTop)
 	self.hit.Size = UDim2.fromOffset(s.width, g.height - g.promptTop)
@@ -376,8 +361,12 @@ end
 -- Data
 --------------------------------------------------------------------------------------------
 
--- The local player's bar in a snapshot's ults, or nil.
+-- The local player's bar in a snapshot's ults, or nil. Solo's is always full and ready: the
+-- server keeps no bar there and arms the practice ult for free.
 local function myBar(snapshot: any, userId: number): any?
+	if snapshot and snapshot.solo ~= nil and Config.Ults.PracticeInSolo then
+		return { bar = Config.Ults.BarMax, used = 0, ready = true }
+	end
 	local ults = snapshot and snapshot.ults
 	local bars = type(ults) == "table" and ults.bars or nil
 	local bar = type(bars) == "table" and bars[tostring(userId)] or nil
@@ -517,8 +506,7 @@ end
 --------------------------------------------------------------------------------------------
 
 function UltHud.press(self: any)
-	local offered = self.promptOn or (self.mode == "practice" and self.slideDone)
-	if not offered or self.pending ~= nil or self.pulling then
+	if not self.promptOn or self.pending ~= nil or self.pulling then
 		return
 	end
 	self.pending = { at = os.clock(), key = self:pressKey(self.snapshot) }
@@ -561,8 +549,7 @@ function UltHud.refreshPrompt(self: any)
 	self.bar:setPrompt(mode, if mode == "pad" then padGlyph() else nil, self.pending ~= nil)
 end
 
---- Whether the controller guide should list "Ult": the ready bar's press, or solo's Practice
---- button, is offered now.
+--- Whether the controller guide should list "Ult": the ready bar's press is offered now.
 function UltHud.promptShown(self: any): boolean
 	return self.pressable == true
 end
@@ -602,14 +589,9 @@ function UltHud.wantedMode(self: any, now: number): string
 		end
 	end
 	local shooting = s.shooter == self.userId and TURN_PHASES[s.phase] == true
-	if s.solo ~= nil then
-		local offered = Config.Ults.PracticeInSolo
-			and shooting
-			and PRESS_PHASES[s.phase] == true
-			and not s.breakShot
-		return if offered then "practice" else "none"
-	end
-	if ults.on ~= true or not shooting then
+	-- Solo has ults "off" on the server (no bars), but shows the full bar for practice.
+	local on = ults.on == true or (s.solo ~= nil and Config.Ults.PracticeInSolo)
+	if not on or not shooting then
 		return "none"
 	end
 	return "bar"
@@ -718,14 +700,13 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 				self.slideDone = false
 				self.nextGainAt = clock + U.SlideSeconds + U.StoredDelaySeconds
 			end
-			for _, part in { self.bar.root, self.armed.root, self.opponent.root, self.practice } do
+			for _, part in { self.bar.root, self.armed.root, self.opponent.root } do
 				part.Visible = false
 			end
 			local shown = if mode == "bar"
 				then self.bar.root
 				elseif mode == "armed" then self.armed.root
-				elseif mode == "opponent" then self.opponent.root
-				else self.practice
+				else self.opponent.root
 			if was == "none" then
 				shown.Visible = true
 			else
@@ -826,10 +807,7 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 		self:refreshPrompt()
 	end
 	self.hit.Visible = offer and not pulling
-	-- Solo's Practice button answers the same keys, so a controller can press it too.
-	local practice = mode == "practice" and self.slideDone
-	HudParts.setEnabled(self.practice, self.pending == nil)
-	self.pressable = offer or practice
+	self.pressable = offer
 	self:bind(self.pressable and not pulling)
 	-- Room kept above it for MatchHUD's bottom lines.
 	local g = self.geo
@@ -839,8 +817,6 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 		reserve = self.margin + g.height - top + U.ReserveGapPx
 	elseif (mode == "armed" or mode == "opponent") and g then
 		reserve = self.margin + g.height + U.ReserveGapPx
-	elseif mode == "practice" then
-		reserve = self.margin + (self.practiceHeight or 0) + U.ReserveGapPx
 	end
 	self.reserve = reserve
 	-- Effects while the bar shows.

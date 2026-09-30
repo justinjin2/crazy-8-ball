@@ -166,6 +166,44 @@ function tests.rewind_restores_the_table_and_gives_a_ten_second_redo()
 	end)
 end
 
+function tests.a_practice_rewind_and_its_redos_pay_nothing()
+	-- Solo's free Practice ult pays nothing (Economy reads shot.practice): the Rewind shot and
+	-- every redo it gives, which carry no ult tag of their own. A real Rewind's redos pay.
+	built("Rewind", function()
+		local s = E.new(2, 1)
+		expect(E.join(s, 11, "s", "s", 0))
+		expect(E.action(s, 11, { kind = "StartSolo", epoch = s.epoch, turnId = s.turnId }, 0))
+		s.breakShot, s.ballInHand = false, false
+		expire(s)
+		expect(s.phase == "Aiming" and s.shooter == 11)
+		expect(Match.practice(s, 11, "Rewind", s.phaseStartedAt))
+		E.advance(s, s.phaseStartedAt + PAUSE)
+		local wire = E.acceptShot(s, 11, missShot(s), s.phaseStartedAt + PAUSE)
+		expect(wire and wire.rewind == true and wire.practice == true, "the practice Rewind")
+		for i = 1, S.RewindRedos do
+			expire(s)
+			expect(s.phase == "Rewinding", "rewinding " .. i)
+			expire(s)
+			expect(s.phase == "Aiming" and s.shooter == 11, "redo " .. i)
+			local redo = E.acceptShot(s, 11, missShot(s), s.phaseStartedAt)
+			expect(redo and redo.ult == nil and redo.practice == true, "a practice redo")
+		end
+		expire(s)
+		expect(s.phase == "Aiming" and s.redoPractice == nil, "the redos are over")
+		local plain = E.acceptShot(s, 11, potShot(s, 2), s.phaseStartedAt)
+		expect(plain and plain.practice == nil, "a plain solo shot pays as usual")
+
+		local m = midGame()
+		armNow(m, "Rewind")
+		wire = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
+		expect(wire and wire.rewind == true and wire.practice == nil, "a real Rewind")
+		expire(m)
+		expire(m)
+		local redo = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
+		expect(redo and redo.practice == nil, "a real redo is no practice")
+	end)
+end
+
 function tests.a_shooter_who_leaves_mid_rewind_ends_the_game_not_the_redo()
 	-- The audit (2026-09-29): leaving while the rewound shot resolves used to rewind and hand
 	-- the departed shooter a redo clock; the game ends at the resolve instead.

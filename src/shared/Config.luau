@@ -2171,7 +2171,8 @@ Config.Ults = {
 	Default = "Magnet", -- everyone's starter ult, free forever; an empty or unusable slot plays as it
 	BarMax = 100, -- a full bar
 	MaxPerMatch = 2, -- at most this many ults a match; after the second the bar stays empty
-	-- Solo gets no bar: a small "Practice ult" button arms the equipped ult for free.
+	-- Solo shows the real bar, always full and ready: a press arms the equipped ult for free,
+	-- any number of times, and a practice shot (or a practice Rewind's redo) pays no money.
 	PracticeInSolo = true,
 	-- The bar's fill (section 5, all (tune); tools/ult_model.py reads these through
 	-- tools/export_ult_config.luau). Balls pocketed on an ult shot fill nothing for its user.
@@ -6790,11 +6791,6 @@ Config.UI.Ults = {
 	-- share of the screen; the fade's canvas widens to hold it, so it is never cut off.
 	ArmedMaxWidthShare = 0.8,
 	NoteTextPx = 14, -- "Coming soon" over a placeholder's pill
-	-- Solo: the Practice ult button in the bar's place.
-	PracticeTone = "Blue", -- a Config.UI.Kit.Buttons name
-	PracticeWidthPx = { 150, 180 },
-	PracticeHeightPx = { 36, 44 }, -- a phone's keeps a 44 px touch area (HudParts.setMinHit)
-	PracticeTextPx = { 14, 18 },
 	-- A refusal (UltNotice), for a moment over the bar.
 	NoticeTextPx = { 14, 18 },
 	NoticeSeconds = 2.2,
