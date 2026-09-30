@@ -2689,9 +2689,10 @@ Config.Ults.BlackFlash = {
 	-- Config.Ults.Shared.MaxReachShare of the table. (tune)
 	RadiusInches = 20,
 	-- Each nudged ball rolls this share of the way to its pocket (at most NudgeMaxInches):
-	-- under 1 moves it toward the pocket, over 1 can drop a near one. (tune: the balance pass)
-	NudgeShare = 1.5,
-	NudgeMaxInches = 40,
+	-- under 1 moves it toward the pocket, over 1 can drop a near one. The designer halved the
+	-- push (2026-09-30: was 1.5 and 40). (tune)
+	NudgeShare = 0.75,
+	NudgeMaxInches = 20,
 	-- The cue ball rolls straight back this far (inches), stopping this much clear of any
 	-- pocket on its line. (tune)
 	BounceInches = 6,
@@ -7640,13 +7641,17 @@ Config.UI.BlackFlashFx = {
 	BoltSeconds = 0.7,
 	-- The shards: burst out at ShardSpeed (studs a second, a range) plus ShardUp, spinning,
 	-- falling with ShardGravity, fading out over the last ShardFadeSeconds of ShardSeconds.
+	-- On the cloth each bounce keeps ShardBounceSpinShare of its spin, and a shard lying there
+	-- slides to a stop (ShardSlideFriction, a share of its speed lost a second).
 	ShardSpeed = { 3, 7 },
 	ShardUp = 2.5,
 	ShardSpinDegrees = 720,
 	ShardGravity = 18,
-	ShardSeconds = 1.1,
+	ShardSeconds = 6.1, -- the designer (2026-09-30): 5 s longer on the table (was 1.1)
 	ShardScale = 1.5, -- the shards drawn this much bigger than the ball's own pieces (they read)
 	ShardFadeSeconds = 0.4,
+	ShardBounceSpinShare = 0.4,
+	ShardSlideFriction = 4,
 	-- The shockwave ring on the cloth: grows to RingBallWidths over RingSeconds, fading.
 	RingBallWidths = 22,
 	RingSeconds = 0.45,

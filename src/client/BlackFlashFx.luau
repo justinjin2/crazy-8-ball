@@ -472,6 +472,13 @@ local function stepShards(fx: TableFx, dt: number)
 		if pos.Y < s.floor then
 			pos = Vector3.new(pos.X, s.floor, pos.Z)
 			s.vel = Vector3.new(s.vel.X * 0.5, -s.vel.Y * 0.3, s.vel.Z * 0.5)
+			s.spin *= F.ShardBounceSpinShare
+		end
+		if pos.Y <= s.floor + 0.01 then
+			-- Lying on the cloth: it slides to a stop.
+			local keepShare = math.max(0, 1 - F.ShardSlideFriction * dt)
+			s.vel = Vector3.new(s.vel.X * keepShare, s.vel.Y, s.vel.Z * keepShare)
+			s.spin *= keepShare
 		end
 		s.part.CFrame = CFrame.new(pos)
 			* CFrame.fromAxisAngle(s.axis, s.spin * dt)
@@ -701,6 +708,9 @@ function BlackFlashFx.update(self: BlackFlashFx, dt: number)
 		drawArcs(self, live, if crackling then part else nil)
 		stepBolts(self, live)
 		stepShards(live, dt * (if type(m.timeScale) == "number" then m.timeScale else 1))
+		if #live.shards > 0 then
+			kit.anchor(id) -- the shards lie on the table past the shot: keep the anchor for them
+		end
 		stepRings(live)
 		if
 			not wantArmed

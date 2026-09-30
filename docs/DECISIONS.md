@@ -2084,3 +2084,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   the local shooter's Legendary or Mythic ability is armed, the power bar wears its skin
   (Config.UI.PowerSkins): Black Flash lightning, Steel Ball green with the steel ball, Black
   Hole deep space with the hole, Guangdong Tiger tiger skin.
+- 2026-09-30 (designer): Black Flash's blast pushes balls half as far (NudgeShare 1.5 -> 0.75,
+  NudgeMaxInches 40 -> 20); its measured worth fell to 0.51 / 0.68 / 0.77 net (was 1.29 / 1.47
+  / 1.58), under the Epic mean, flagged for the designer. The shattered ball's pieces stay on
+  the cloth 5 s longer (ShardSeconds 6.1) and settle there.

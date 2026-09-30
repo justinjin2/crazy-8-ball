@@ -1,5 +1,9 @@
 # Status
 
+**2026-09-30: Black Flash's push halved, its shards stay 5 s longer.** The blast nudges balls
+half as far (worth now 0.51 / 0.68 / 0.77 net, below the Epics); the pieces lie on the cloth
+about 6 s and settle instead of spinning. 877 Lune tests pass; checked in Studio.
+
 **2026-09-30: new ability sounds, themed power bars, Black Flash's 3x launch.** Black Flash's
 hit, Steel Ball's activation and first hit, and Time Stop's freeze play the designer's own
 clips. While a Legendary or Mythic is armed, the power bar wears its skin (Black Flash
