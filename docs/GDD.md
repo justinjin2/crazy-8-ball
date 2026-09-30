@@ -860,6 +860,11 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 - Seasons with themed sets beyond Season 0.
 - More ults beyond the planned 13 (section 9). New ideas go here. Sabotage ideas (fog, shaky
   aim, shrinking the opponent's guideline) are out: ults help the user.
+- **After the 13 abilities** (parked 2026-09-29, ABILITIES_REPORT section 9): a generated or
+  downloaded detailed tiger model for Guangdong Tiger; Portals made stronger if playtests find
+  it weak (a free pot through the kept portals, or a move to Rare); the PC opponent and bots
+  using abilities beyond Magnet, with a picker for Heat Seeker and Portals; a looping "how it
+  works" clip per ability on the spin screen; sound sheets per rarity.
 - Offline play if Roblox ships it.
 - New game modes and table types.
 - **Collectible table skins** (parked 2026-09-23, after release): each a retexture of the one

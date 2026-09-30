@@ -817,7 +817,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   lessons, animation uploads, sound sheets); ECONOMY 11.8 (the measured ladder and win rates);
   DECISIONS (dated lines, assumptions tagged); `assets/abilities/CREDITS.md`; STATUS (a new top
   entry: Built, Verified, Needs a check by hand).
-- [ ] 21. The report `docs/prompts/ABILITIES_REPORT.md`, written for a beginner: what to try
+- [x] 21. The report `docs/prompts/ABILITIES_REPORT.md`, written for a beginner: what to try
   first step by step (Rojo, Play, the dev commands, `/abilitysetup <id>` and `/slowmo` for each
   ability), what each ability does and looks like now, the balance table (target vs measured
   worth, win rates), every assumption one line each, every uploaded id (models, images,
@@ -1469,3 +1469,9 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   (the audit's assumptions, the launch). `assets/abilities/CREDITS.md` (every library sound
   with its uploader; models and images made here). STATUS (a new top entry). This brief's 5.3
   limits.
+- **Step 21 done (2026-09-29).** `docs/prompts/ABILITIES_REPORT.md`: what to try first, each
+  ability now, the balance table and win rates, the 28 assumptions, every uploaded id and the
+  superseded ones to archive, credits, known issues (none BLOCKED), what needs the designer,
+  ideas for later (also parked in GDD 18). Three `/abilitysetup` chat hints brought up to the
+  final rules (Rewind twice, Time Stop three strikes, Chain Lightning three jumps, Black Hole
+  and the Tiger one of theirs). Branch pushed.
