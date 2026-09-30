@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the upper end of the shaft; its right edge meets the joint collar of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1536 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Brushed steel grey (#8C949E) sci-fi armour plating with fine panel seams, angular orange stripes (#FF7A1A) and thin glowing cyan light lines (#19E6FF), growing denser and bolder toward the right edge where dark gunmetal plates begin. No text, no logos.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #2E3238 #FF7A1A #19E6FF.
+No text, no letters, no numbers, no logos, no symbols with words.

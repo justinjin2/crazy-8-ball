@@ -310,13 +310,20 @@ class Emitter:
         sq = self.squash(t)
         half_w = size / 2 * np.power(2.0, sq * 0.5)
         half_h = size / 2 * np.power(2.0, -sq * 0.5)
-        if self.orient in ('VelocityParallel', 'VelocityPerpendicular'):
+        if self.orient == 'VelocityPerpendicular':
+            # the quad lies across the direction of travel, facing along it (a ring round the
+            # cue when it moves along the cue); Rotation turns it about the velocity
+            v = vel / np.maximum(np.linalg.norm(vel, axis=1, keepdims=True), 1e-6)
+            ref = np.where(np.abs(v[:, 2:3]) < 0.9, np.array([[0.0, 0.0, 1.0]]), np.array([[1.0, 0.0, 0.0]]))
+            right = np.cross(ref, v)
+            right /= np.maximum(np.linalg.norm(right, axis=1, keepdims=True), 1e-6)
+            up = np.cross(v, right)
+            ang = np.radians(p['rot'])
+        elif self.orient == 'VelocityParallel':
             v = vel / np.maximum(np.linalg.norm(vel, axis=1, keepdims=True), 1e-6)
             up = v - view * (v * view).sum(1, keepdims=True)
             up /= np.maximum(np.linalg.norm(up, axis=1, keepdims=True), 1e-6)
             right = np.cross(up, view)
-            if self.orient == 'VelocityPerpendicular':
-                up, right = right, -up
             ang = np.zeros(n)
         else:
             right = np.repeat(cam_right[None], n, 0)
@@ -442,7 +449,11 @@ class Beam:
     def __init__(self, spec, texture_root=HERE):
         self.spec = spec
         self.a0 = cue_point(spec.get('FromStuds', 3.8), spec.get('Up', 0.0), spec.get('Side', 0.0))
-        self.a1 = cue_point(spec.get('ToStuds', 5.3), spec.get('Up', 0.0), spec.get('Side', 0.0))
+        # the far attachment may sit off the axis (Up1 / Side1: a tail flowing off the butt)
+        self.a1 = cue_point(spec.get('ToStuds', 5.3), spec.get('Up1', spec.get('Up', 0.0)), spec.get('Side1', spec.get('Side', 0.0)))
+        # Sway (a script): the far attachment swings by [Up, Side] studs on a sine of Period s
+        # (Phase degrees), and the curve follows a quarter period late, so the beam waves
+        self.sway = spec.get('Sway')
         self.w0 = float(spec.get('Width0', 0.18))
         self.w1 = float(spec.get('Width1', self.w0))
         self.segments = int(spec.get('Segments', 10))
@@ -468,7 +479,17 @@ class Beam:
     def points(self, t, k):
         """Local points along the beam at fractions k (Bezier when curved)."""
         a0, a1 = self.a0, self.a1
-        if not (self.curve0 or self.curve1):
+        c0, c1_ = self.curve0, self.curve1
+        if self.sway:
+            sw = self.sway
+            per, ph = float(sw.get('Period', 2.0)), math.radians(float(sw.get('Phase', 0.0)))
+            s_end = math.sin(2 * math.pi * t / per + ph)
+            s_mid = math.sin(2 * math.pi * t / per + ph - math.pi / 2)
+            su, ss = float(sw.get('Up', 0.0)), float(sw.get('Side', 0.0))
+            a1 = a1 + np.array([ss * s_end, 0.0, su * s_end])
+            c0 = [(c0 or [0, 0])[0] + su * 0.35 * s_mid, (c0 or [0, 0])[1] - ss * 0.35 * s_mid]
+            c1_ = [(c1_ or [0, 0])[0] + su * 0.6 * s_mid, (c1_ or [0, 0])[1] - ss * 0.6 * s_mid]
+        if not (c0 or c1_):
             return a0[None] * (1 - k[:, None]) + a1[None] * k[:, None]
         ang = math.radians(self.twist * t)
 
@@ -479,8 +500,8 @@ class Beam:
             ca, sa = math.cos(ang), math.sin(ang)
             up, side = up * ca - side * sa, up * sa + side * ca
             return np.array([-side, 0.0, up])  # cue_point axes: x = -side, z = up
-        c1 = a0 + (a1 - a0) / 3 + off(self.curve0)
-        c2 = a0 + (a1 - a0) * 2 / 3 + off(self.curve1)
+        c1 = a0 + (a1 - a0) / 3 + off(c0)
+        c2 = a0 + (a1 - a0) * 2 / 3 + off(c1_)
         kk = k[:, None]
         return ((1 - kk) ** 3 * a0 + 3 * (1 - kk) ** 2 * kk * c1 + 3 * (1 - kk) * kk ** 2 * c2 + kk ** 3 * a1)
 
@@ -2483,6 +2504,93 @@ def sprite_trail_starlight(w=512, h=128, seed=191):
 SKIN_SPRITES['celestial_dragon'] = {'trail_starlight.png': sprite_trail_starlight}
 
 
+def _foxfire(t):
+    """0 (edge) .. 1 (core) -> deep violet, magenta-pink, pale pink, white."""
+    keys = np.array([[90, 30, 190], [199, 125, 255], [255, 120, 220], [255, 200, 240], [255, 250, 255]], np.float64)
+    t = np.clip(t, 0, 1) * (len(keys) - 1)
+    i = np.minimum(np.floor(t).astype(int), len(keys) - 2)
+    f = (t - i)[..., None]
+    return keys[i] * (1 - f) + keys[i + 1] * f
+
+
+def sprite_foxtail(w=512, h=256, seed=201):
+    """One foxfire tail for a Beam stretched from the butt (u = 0) to its tip (u = 1): narrow at the
+    root, full through the middle, a pointed flame tip; made of long flowing flame strands (thin,
+    bright, pink-white at their hearts) over a faint violet veil, with clear gaps between them so
+    nine tails stacked additively stay violet and see-through, not white (colour baked)."""
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    rs = np.random.RandomState(seed)
+    prof = np.sin(math.pi * np.clip(U, 0, 1) ** 1.3) ** 0.7        # widest near 0.6, pointed tip
+    halfw = 0.04 + 0.78 * prof
+    lick = cc.fbm(U * 6, V * 3, np.zeros_like(U), 4, seed) - 0.5
+    edge = halfw * (1 + 0.7 * lick) - np.abs(y)
+    veil = np.clip(edge / 0.25, 0, 1)
+    strands = np.zeros_like(U)
+    heat = np.zeros_like(U)
+    for k in range(13):
+        c = rs.uniform(-0.85, 0.85)
+        amp, f, ph = rs.uniform(0.06, 0.2), rs.uniform(0.6, 1.4), rs.uniform(0, 2 * math.pi)
+        yk = (c + amp * np.sin(2 * math.pi * f * U + ph)) * halfw
+        wk = rs.uniform(0.018, 0.045) * (0.4 + prof)
+        u0, u1 = rs.uniform(0.0, 0.35), rs.uniform(0.65, 1.0)
+        span = np.clip((U - u0) / 0.12, 0, 1) * np.clip((u1 - U) / 0.15, 0, 1)
+        line = np.exp(-((y - yk) / wk) ** 2) * span
+        strands = np.maximum(strands, line * (1 - 0.5 * abs(c)))
+        heat = np.maximum(heat, line * (1 - abs(c)))
+    core = np.exp(-(y / np.maximum(halfw * 0.18, 1e-3)) ** 2) * prof
+    inside = np.clip(edge / 0.06 + 0.3, 0, 1)
+    a = np.clip(veil * 0.16 + strands * 0.75 * inside + core * 0.3, 0, 1) * np.clip(U / 0.06, 0, 1) * np.clip((1 - U) / 0.2, 0, 1) ** 1.5
+    col = _foxfire(0.15 + 0.35 * strands + 0.45 * heat + 0.35 * core)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_foxfire_orb(n=256):
+    """A foxfire orb: a glowing violet-pink sphere of fire with a hot core, soft flame fringe and a
+    small white fox-mask face (ears, eyes, a red forehead mark) inside (colour baked)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x)
+    fringe = 0.6 + 0.03 * np.sin(th * 7) + 0.02 * np.sin(th * 13 + 1)
+    ball = np.clip((fringe - r) / 0.16, 0, 1)
+    glow = np.exp(-(r / 0.55) ** 2) * 0.6
+    # the mask: a rounded face with two pointed ears, pointing down to a snout
+    fx, fy = x / 0.3, (y + 0.02) / 0.3
+    face = (np.hypot(fx * 1.05, fy * 0.95 + 0.1) < 0.72) | ((np.abs(fx) < 0.35 - 0.25 * np.clip(fy - 0.3, 0, 1)) & (fy > 0.2) & (fy < 1.0))
+    ears = np.zeros_like(x, bool)
+    for side in (-1, 1):
+        ex, ey = fx - side * 0.5, fy + 0.75
+        ears |= (ey > -0.5) & (ey < 0.25) & (np.abs(ex) < (ey + 0.5) * 0.45)
+    mask = (face | ears).astype(np.float64)
+    eyes = np.zeros_like(x)
+    for side in (-1, 1):
+        eyes = np.maximum(eyes, np.clip(1 - np.hypot((fx - side * 0.32) / 0.2, (fy - 0.02) / 0.08), 0, 1))
+    mark = np.clip(1 - np.hypot(fx / 0.08, (fy + 0.35) / 0.14), 0, 1)
+    a = np.clip(ball * 0.85 + glow + mask * 0.9, 0, 1)
+    col = _foxfire(np.clip(0.35 + 0.5 * (1 - r / 0.7), 0, 1))
+    col = col * (1 - mask[..., None]) + np.array([255.0, 250, 252]) * mask[..., None]
+    col = col * (1 - np.clip(eyes * mask * 3, 0, 1)[..., None]) + np.array([199.0, 125, 255]) * np.clip(eyes * mask * 3, 0, 1)[..., None]
+    col = col * (1 - np.clip(mark * 3, 0, 1)[..., None]) + np.array([220.0, 30, 60]) * np.clip(mark * 3, 0, 1)[..., None]
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_trail_foxfire(w=512, h=128, seed=203):
+    """A violet foxfire trail: licking flame streaks in violet and pink round a hot pink-white core,
+    with soft wisps at the edges (colour baked)."""
+    U, V = _uv(w, h)
+    across = 1 - np.abs(V * 2 - 1)
+    st = 1 - np.abs(2 * _per(U, V, 5, 16, seed, 3) - 1)
+    lick = np.clip((_per(U, V, 6, 4, seed + 1, 4) - 0.4) * 2.5, 0, 1)
+    a = np.clip(across * 1.6 - 0.2, 0, 1) ** 1.1 * (0.45 + 0.4 * st) * (0.6 + 0.4 * lick)
+    core = np.clip(across * 2 - 1.1, 0, 1)
+    col = _foxfire(core * 0.75 + st * 0.2 + 0.1)
+    return np.concatenate([np.clip(col, 0, 255), np.clip(a + core * 0.3, 0, 1)[..., None] * 255], -1)
+
+
+SKIN_SPRITES['kitsune'] = {'foxtail.png': sprite_foxtail, 'foxfire_orb.png': sprite_foxfire_orb,
+                           'trail_foxfire.png': sprite_trail_foxfire, 'petal_2x2.png': sprite_petal_sheet}
+
+
 def make_sprites(which=None):
     if which is None:
         for name, fn in SHARED_SPRITES.items():
@@ -2490,6 +2598,151 @@ def make_sprites(which=None):
         return
     for name, fn in SKIN_SPRITES.get(which, {}).items():
         save_rgba(os.path.join(VFX, which, name), fn())
+
+
+APEX_CYAN = np.array([25, 230, 255], np.float64)
+APEX_ORANGE = np.array([255, 122, 26], np.float64)
+
+
+def _polar(n):
+    x, y = _grid(n)
+    return np.hypot(x, y), np.degrees(np.arctan2(y, x)) % 360
+
+
+def _band(r, r0, w):
+    return np.exp(-((r - r0) / w) ** 2)
+
+
+def _on(th, start, length):
+    """1 inside the arc [start, start + length] degrees (soft 1-degree edges)."""
+    d = (th - start) % 360
+    return np.clip(np.minimum(d, length - d) / 1.0 + 0.5, 0, 1) * (d <= length + 1)
+
+
+def _hud(a, core, colour):
+    c = np.zeros(a.shape + (3,)) + colour
+    c = c + (255 - c) * np.clip(core, 0, 1)[..., None]
+    return np.concatenate([c, np.clip(a, 0, 1)[..., None] * 255], -1)
+
+
+def sprite_hud_ring(n=512):
+    """A holographic HUD ring (cyan) to slide along the cue facing along it: a main ring broken
+    into six segments, a tick scale outside it, a dashed inner ring and three heavier bracket
+    arcs; a soft glow; clear in the middle where the cue passes."""
+    r, th = _polar(n)
+    seg = sum(_on(th, 60 * k + 4, 52) for k in range(6))
+    main = _band(r, 0.8, 0.012) * seg
+    tick_ang = np.abs(((th + 2.5) % 5) - 2.5)
+    long_t = np.abs(((th + 15) % 30) - 15) < 0.8
+    ticks = (tick_ang < 0.5) * ((r > 0.84) & (r < 0.88)) + long_t * ((r > 0.84) & (r < 0.92))
+    dash = (np.abs(((th + 5) % 10) - 5) < 2.6) * _band(r, 0.64, 0.008)
+    brackets = sum(_on(th, 120 * k + 20, 34) for k in range(3)) * _band(r, 0.95, 0.018)
+    glow = _band(r, 0.8, 0.08) * 0.25
+    a = main + ticks * 0.8 + dash * 0.7 + brackets + glow
+    return _hud(a, main * 0.6 + brackets * 0.3, APEX_CYAN)
+
+
+def sprite_hud_ring_orange(n=512):
+    """The orange partner ring: three thick arcs with notched ends, a fine dashed outer ring and
+    two inner arcs, so rings of both colours read as a layered targeting display."""
+    r, th = _polar(n)
+    arcs = sum(_on(th, 120 * k + 75, 50) for k in range(3)) * (np.abs(r - 0.78) < 0.03)
+    notch = sum(_on(th, 120 * k + 130, 6) for k in range(3)) * (np.abs(r - 0.78) < 0.02)
+    outer = (np.abs(((th + 2) % 4) - 2) < 0.9) * _band(r, 0.93, 0.008)
+    inner = (_on(th, 10, 100) + _on(th, 190, 100)) * _band(r, 0.66, 0.01)
+    glow = _band(r, 0.78, 0.09) * 0.22
+    a = arcs * 0.95 + notch + outer * 0.6 + inner * 0.8 + glow
+    return _hud(a, arcs * 0.35 + notch * 0.6, APEX_ORANGE)
+
+
+def reticle_frame(i, n, frames=16):
+    """The pocket finisher's lock-on: four bracket arcs close in and turn while a crosshair and
+    tick ring draw on (cyan), they lock (frames 9-11: the brackets go orange, a white flash ring
+    and a hot centre), then the reticle swells and fades."""
+    k = i / (frames - 1)
+    r, th = _polar(n)
+    lock = np.clip((k - 0.55) / 0.12, 0, 1)
+    fade = np.clip((k - 0.72) / 0.28, 0, 1)
+    scale = 1 + 0.12 * fade
+    r = r / scale
+    rb = 0.95 - 0.4 * np.clip(k / 0.55, 0, 1) ** 0.7
+    spin = 90 * (1 - np.clip(k / 0.55, 0, 1))
+    brackets = sum(_on(th, 90 * q + 25 + spin, 40) for q in range(4)) * _band(r, rb, 0.02)
+    x, y = _grid(n)
+    x, y = x / scale, y / scale
+    draw = np.clip(k / 0.4, 0, 1)
+    cross = ((np.abs(x) < 0.008) & (np.abs(y) > 0.18) & (np.abs(y) < 0.18 + 0.72 * draw)) | \
+            ((np.abs(y) < 0.008) & (np.abs(x) > 0.18) & (np.abs(x) < 0.18 + 0.72 * draw))
+    ticks = (np.abs(((th + 5) % 10) - 5) < 0.8) * ((r > 0.7) & (r < 0.75)) * (th < 360 * draw)
+    inner = _band(r, 0.3, 0.01)
+    dot = np.exp(-(r / (0.05 + 0.05 * lock)) ** 2)
+    flash = _band(r, 0.3 + 0.42 * lock, 0.025 + 0.03 * lock) * lock * (1 - fade)
+    a = (brackets + cross * 0.85 + ticks * 0.7 + inner * 0.8 + dot * (0.6 + 0.4 * lock) + flash) * (1 - fade)
+    c = np.zeros(r.shape + (3,)) + APEX_CYAN
+    c = c * (1 - brackets[..., None] * lock) + APEX_ORANGE * (brackets[..., None] * lock)
+    c = c + (255 - c) * np.clip(dot * 0.8 + flash, 0, 1)[..., None]
+    return np.concatenate([np.clip(c, 0, 255), np.clip(a, 0, 1)[..., None] * 255], -1)
+
+
+def sprite_reticle_sheet():
+    return flipbook(lambda i, n: reticle_frame(i, n), 4, 1024)
+
+
+def sprite_trail_jet(w=512, h=128, seed=301):
+    """A jet-exhaust trail (u = 0 at the ball): a white-hot cyan core line with shock diamonds
+    near the ball, a cyan glow, and orange exhaust flame that widens and breaks up with age."""
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    core = np.exp(-(y / 0.07) ** 2)
+    diamonds = 0.6 + 0.4 * np.cos(U * 2 * math.pi * 9) ** 2 * np.clip(1 - U / 0.45, 0, 1)
+    glow = np.exp(-(y / 0.26) ** 2)
+    turb = cc.fbm(U * 10, V * 4, np.zeros_like(U), 4, seed)
+    width = 0.3 + 0.55 * U
+    flame = np.clip((width * (0.7 + 0.6 * turb) - np.abs(y)) / 0.15, 0, 1) * np.clip(0.4 + turb, 0, 1)
+    a = np.clip(core * diamonds + glow * 0.45 + flame * 0.8, 0, 1)
+    cy = np.clip(core * diamonds + glow * 0.8, 0, 1)
+    hot = np.clip(1 - np.abs(y) / np.maximum(width * 0.7, 1e-3), 0, 1) * flame
+    c = (APEX_ORANGE + (np.array([255, 200, 90.0]) - APEX_ORANGE) * hot[..., None]) * (1 - cy)[..., None] + APEX_CYAN * cy[..., None]
+    c = c + (255 - c) * np.clip(core * diamonds * 0.85, 0, 1)[..., None]
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_jet_flame(n=128):
+    """A thruster flame pointing up (VelocityParallel): a white-hot base, orange body, a
+    pointed flickering tip (white; tint with Color)."""
+    x, y = _grid(n)
+    t = (1 - y) / 2                      # 0 at the bottom (the nozzle) .. 1 at the top
+    halfw = 0.32 * (1 - t) ** 0.8 + 0.02
+    body = np.clip((halfw - np.abs(x)) / 0.1, 0, 1) * np.clip((1 - t) / 0.2, 0, 1) * np.clip(t / 0.05, 0, 1)
+    hot = np.clip((halfw * 0.45 - np.abs(x)) / 0.05, 0, 1) * np.clip(1 - t / 0.5, 0, 1)
+    c = APEX_ORANGE + (255 - APEX_ORANGE) * np.clip(hot, 0, 1)[..., None]
+    return np.concatenate([np.clip(c, 0, 255), np.clip(body * 0.85 + hot * 0.15, 0, 1)[..., None] * 255], -1)
+
+
+def sprite_blast_shard(n=128):
+    """A long angular energy shard: a bright core and a hard faceted edge (white; tint with
+    Color)."""
+    x, y = _grid(n)
+    d = np.abs(x) / 0.22 + np.abs(y) / 0.95
+    body = np.clip((1 - d) / 0.08, 0, 1)
+    core = np.clip((0.5 - d) / 0.25, 0, 1)
+    edge = np.clip(1 - np.abs(d - 0.93) / 0.05, 0, 1)
+    return _rgba(np.clip(body * 0.55 + edge * 0.5 + core, 0, 1), core=core * 0.8)
+
+
+def sprite_afterimage_ring(n=256):
+    """A C-shaped ring slice of hard light (white; tint with Color): the ball trail's afterimage
+    rings, open on one side."""
+    r, th = _polar(n)
+    arc = _on(th, 40, 280)
+    a = (_band(r, 0.68, 0.045) + _band(r, 0.68, 0.1) * 0.3) * arc
+    return _rgba(np.clip(a, 0, 1), core=_band(r, 0.68, 0.018) * arc)
+
+
+SKIN_SPRITES['apex'] = {'hud_ring.png': sprite_hud_ring, 'hud_ring_orange.png': sprite_hud_ring_orange,
+                        'reticle_4x4.png': sprite_reticle_sheet, 'trail_jet.png': sprite_trail_jet,
+                        'jet_flame.png': sprite_jet_flame, 'blast_shard.png': sprite_blast_shard,
+                        'afterimage_ring.png': sprite_afterimage_ring}
 
 
 def main():

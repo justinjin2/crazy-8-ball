@@ -178,6 +178,11 @@ def blender_main(args):
     if skin.get('piece'):  # a Mythic or Secret's 3D piece (CuePieces.py), parented to the cue
         import CuePieces
         piece_anim = CuePieces.attach(bpy, skin['piece'], cue)
+    # how far past the butt the piece reaches (studs), so the side stills frame all of it
+    reach = 0.0
+    if skin.get('piece'):
+        pj = json.load(open(os.path.join(HERE, 'pieces', skin['piece'], 'piece.json')))
+        reach = max(0.0, max(3.5 - (p_['Offset'][2] - p_['Size'][2] / 2) for p_ in pj['Parts']) - 7.0)
     frames_spec = (V.get('Moving') or {}).get('Frames')
     frame_images = []
     if frames_spec:
@@ -570,9 +575,10 @@ def blender_main(args):
     if '--stills' in args:
         horiz = ((-3.5, 0, 0), (0, 0, math.pi / 2))  # tip at the left, butt +X, top +Z
         e = math.radians(50)
-        still('full', dict(loc=(0, -20 * math.cos(e), 20 * math.sin(e)), target=(0, 0, 0), ortho=7.2), horiz)
-        # close-ups: (centre x = d - 3.5, width in studs seen)
-        for name, x, width in (('joint', 0.35, 1.15), ('forearm', 1.05, 1.9), ('butt', 2.75, 1.7)):
+        cx = reach / 2
+        still('full', dict(loc=(cx, -20 * math.cos(e), 20 * math.sin(e)), target=(cx, 0, 0), ortho=7.2 + reach), horiz)
+        # close-ups: (centre x = d - 3.5, width in studs seen); the butt widens to take in a piece
+        for name, x, width in (('joint', 0.35, 1.15), ('forearm', 1.05, 1.9), ('butt', 2.75 + reach / 2, 1.7 + reach)):
             still(name, dict(loc=(x, -6 * math.cos(e), 6 * math.sin(e)), target=(x, 0, 0), ortho=width), horiz)
         diag = ((-2.6, 0, -1.5), (math.radians(-26), 0, math.pi / 2))
         still('threeq', dict(loc=(-0.2, -2.9, 1.3), target=(2.2, 0, 0.15), lens=40), horiz)

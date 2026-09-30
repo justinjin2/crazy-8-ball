@@ -1,0 +1,1120 @@
+{
+  "id": "apex",
+  "name": "Apex",
+  "tier": "Mythic",
+  "catalog_id": "ApexCue",
+  "concept": "M3",
+  "palette": [
+    "#2E3238",
+    "#FF7A1A",
+    "#19E6FF"
+  ],
+  "painter": "mix",
+  "note": "A gunmetal mech cue with orange armour and cyan light: OpenAI panels on the whole cue (a brushed steel shaft with angular orange stripes and cyan light lines, a black carbon forearm of angular orange armour plates and cyan circuit strips, a black hex-scale grip, a gunmetal sleeve), a gunmetal joint with two glowing cyan bands, a glowing cyan ring. The 3D piece (pieces/apex): a robotic claw arm on the butt: a gunmetal housing with orange armour plates, cyan light slots and amber lights, three thruster vents, a cyan lens core in a turning notched bezel, and three two-jointed claws (orange armour, steel talons with cyan edges) that flex open and snap shut.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Brushed steel grey (#8C949E) sci-fi armour plating with fine panel seams, crossed by long angular orange stripes (#FF7A1A) that step and bend at sharp angles, and thin glowing cyan light lines (#19E6FF) running beside them. Clean, hard-surface, mechanical. No text, no logos, no other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "Brushed steel grey (#8C949E) sci-fi armour plating with fine panel seams, angular orange stripes (#FF7A1A) and thin glowing cyan light lines (#19E6FF), growing denser and bolder toward the right edge where dark gunmetal plates begin. No text, no logos."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "prompt": "Black carbon-fibre mech armour (#1A1C20) covered in angular, bevelled orange armour plates (#FF7A1A) shaped like chevrons and hexagon halves, with dark gunmetal panels (#3A3F47) between them and glowing cyan circuit strips (#19E6FF) that run along and turn at right angles. Hard-surface sci-fi. No text, no logos. The two thin strips at the far left are the joint collar: paint them plain dark gunmetal (#3A3F47) with one thin glowing cyan line."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "zones_px": [
+        54,
+        776,
+        1350
+      ],
+      "prompt": "Left thin strip (the ring): glowing cyan (#19E6FF). The wrap (from the ring to the next zone line): a black grip of small raised hexagonal scales (#141518) like armoured rubber. The butt sleeve (between the two zone lines on the right): dark gunmetal mech plating (#3A3F47) with an orange armour band (#FF7A1A) and a thin glowing cyan line (#19E6FF). The very thin strip at the far right: plain dark gunmetal. No text, no logos."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/apex/shaft_tile.png",
+    "shaft_top": "skins/apex/shaft_top.png",
+    "forearm": "skins/apex/forearm.png",
+    "butt": "skins/apex/butt.png",
+    "cap_end": "skins/apex/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1A2A3A",
+    "ferrule": "#D8DDE3",
+    "bumper": "#16181C",
+    "gunmetal": "#3A3F47",
+    "cyan": "#19E6FF",
+    "orange": "#FF7A1A",
+    "metal": "#9AA3AE"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "piece": "apex",
+  "surface": {
+    "EmissiveStrength": 2.2,
+    "EmissiveTint": "#BFF8FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.6,
+        "Max": 2.6,
+        "Period": 1.6
+      }
+    }
+  },
+  "vfx": {
+    "Piece": {
+      "Note": "pieces/apex: MeshParts by joint (Housing, Rotor, Claw1-3, Talon1-3) and material (Gunmetal Metal, Dark SmoothPlastic, Armour SmoothPlastic orange, Steel Metal, Cyan Neon, Lens Neon, Amber Neon); piece.json has each part's Offset and every joint's pivot and motion. Motion: each claw flexes open and snaps shut every 3 s (a snap wave: quick close, slow open; 12 degrees at the knuckle, 9 more at the talon, a little late); the notched bezel round the lens turns (50 degrees a second)."
+    },
+    "Moving": {
+      "Kind": "Piece + emitters + emissive",
+      "Note": "The claw flexes and clicks (piece motion); three thrusters flare back along the cue from the vents (orange jet flames, VelocityParallel, 6 a second each); the vent light flickers; the cyan strips' emissive pulses 1.6-2.6 every 1.6 s."
+    },
+    "Aura": {
+      "Note": "Holographic HUD rings scan the cue: cyan segmented rings with tick scales slide from the tip to the butt and orange arc rings from the butt to the tip (ParticleEmitters with VelocityPerpendicular, so each ring lies round the cue facing along it, turning as it goes); scan pulses flash open at random places along it; cyan data motes glitter round the whole cue, orange embers round the butt; two circuit-trace runners (Orbiters) race along the cue; a cyan glow round the cue; lights at the lens and the vents.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "HudRingsCyan",
+          "Texture": "vfx/apex/hud_ring.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 0.3
+          },
+          "EmissionDirection": "Back",
+          "Rate": 0.8,
+          "Lifetime": 2.5,
+          "Speed": 2.6,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.1,
+              1.2
+            ],
+            [
+              0.9,
+              1.2
+            ],
+            [
+              1,
+              1.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.05
+            ],
+            [
+              0.88,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            30,
+            60
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "HudRingsOrange",
+          "Texture": "vfx/apex/hud_ring_orange.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 6.6
+          },
+          "EmissionDirection": "Front",
+          "Rate": 0.6,
+          "Lifetime": 2.9,
+          "Speed": 2.2,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.8
+            ],
+            [
+              0.1,
+              1.5
+            ],
+            [
+              0.9,
+              1.5
+            ],
+            [
+              1,
+              1.8
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.1
+            ],
+            [
+              0.88,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -50,
+            -25
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "ScanPulses",
+          "Texture": "vfx/apex/hud_ring.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 6.5,
+            "Width": 0.01,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "EmissionDirection": "Back",
+          "Rate": 1.2,
+          "Lifetime": 1.1,
+          "Speed": 0.25,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Orientation": "VelocityPerpendicular",
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              2.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.2,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "DataMotes",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.3,
+            "Width": 0.34,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.07
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": [
+            [
+              0,
+              "#19E6FF"
+            ],
+            [
+              1,
+              "#BFF8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.8,
+            "ToStuds": 7.2,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": "#FF7A1A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Thruster1",
+          "Texture": "vfx/apex/jet_flame.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.05,
+            "Up": 0.07,
+            "Side": -0.121
+          },
+          "EmissionDirection": "Front",
+          "Rate": 6,
+          "Lifetime": [
+            0.14,
+            0.24
+          ],
+          "Speed": [
+            2.5,
+            3.5
+          ],
+          "SpreadAngle": [
+            14,
+            14
+          ],
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              0.3,
+              0.22
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Thruster2",
+          "Texture": "vfx/apex/jet_flame.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.05,
+            "Up": -0.14,
+            "Side": -0.0
+          },
+          "EmissionDirection": "Front",
+          "Rate": 6,
+          "Lifetime": [
+            0.14,
+            0.24
+          ],
+          "Speed": [
+            2.5,
+            3.5
+          ],
+          "SpreadAngle": [
+            14,
+            14
+          ],
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              0.3,
+              0.22
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Thruster3",
+          "Texture": "vfx/apex/jet_flame.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.05,
+            "Up": 0.07,
+            "Side": 0.121
+          },
+          "EmissionDirection": "Front",
+          "Rate": 6,
+          "Lifetime": [
+            0.14,
+            0.24
+          ],
+          "Speed": [
+            2.5,
+            3.5
+          ],
+          "SpreadAngle": [
+            14,
+            14
+          ],
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              0.3,
+              0.22
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Trace1",
+          "FromStuds": 0.4,
+          "ToStuds": 6.8,
+          "TravelSeconds": 1.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.35,
+          "Radius": 0.03,
+          "RadiusFromSurface": true,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 0.3,
+            "WidthStuds": 0.035,
+            "Color": "#19E6FF",
+            "Brightness": 2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Trace2",
+          "FromStuds": 0.4,
+          "ToStuds": 6.8,
+          "TravelSeconds": 2.3,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.3,
+          "Radius": 0.03,
+          "RadiusFromSurface": true,
+          "Phase": 180,
+          "Delay": 0.9,
+          "Trail": {
+            "Lifetime": 0.3,
+            "WidthStuds": 0.035,
+            "Color": "#FF7A1A",
+            "Brightness": 2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "CyanGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.24,
+          "Width1": 0.4,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#19E6FF"
+            ],
+            [
+              0.75,
+              "#19E6FF"
+            ],
+            [
+              1,
+              "#FF7A1A"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.65
+            ],
+            [
+              0.9,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 1.6
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 7.35,
+          "Color": "#19E6FF",
+          "Brightness": 1.6,
+          "Range": 8
+        },
+        {
+          "AtStuds": 7.0,
+          "Color": "#FF7A1A",
+          "Brightness": 1.0,
+          "Range": 5,
+          "Flicker": {
+            "Min": 0.6,
+            "Max": 1.2,
+            "Period": 0.2,
+            "Shape": "flicker"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            122,
+            26
+          ],
+          [
+            25,
+            230,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 0.45,
+        "WidthStuds": 0.42,
+        "LightEmission": 1,
+        "Texture": "vfx/apex/trail_jet.png",
+        "TextureMode": "Stretch",
+        "WidthScale": [
+          [
+            0,
+            0.6
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            1.4
+          ]
+        ],
+        "Core": {
+          "Color": [
+            200,
+            250,
+            255
+          ],
+          "Width": 0.07,
+          "NearTransparency": 0.0,
+          "LightEmission": 1
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            25,
+            230,
+            255
+          ],
+          [
+            255,
+            122,
+            26
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "Jet exhaust with a cyan afterimage: a white-hot cyan core with shock diamonds inside orange exhaust flame that widens and breaks up (own texture); cyan and orange afterimage rings (C-shaped arcs) drop off behind the ball and fade; orange sparks.",
+      "Emitters": [
+        {
+          "Name": "RingsCyan",
+          "Texture": "vfx/apex/afterimage_ring.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 6,
+          "Lifetime": 0.35,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.25
+            ],
+            [
+              1,
+              0.45
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#19E6FF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "RingsOrange",
+          "Texture": "vfx/apex/afterimage_ring.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 5,
+          "Lifetime": 0.3,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Transparency": [
+            [
+              0,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FF7A1A",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.2,
+            0.45
+          ],
+          "Speed": [
+            0.5,
+            1.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.07
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFD08A"
+            ],
+            [
+              1,
+              "#FF7A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a targeting reticle appears above the pocket, its brackets closing in and turning while a crosshair draws on (0 s), locks (the brackets go orange, a white flash ring: 0.55 s) and fades (a 16-frame flipbook made for Apex, 2.6 studs); then the blast (0.6 s): a column of cyan energy jets up, orange and cyan energy shards burst outward, a cyan HUD ring spreads, sparks fall; a cyan flash. The default gust is tinted cyan and orange.",
+      "Layers": [
+        {
+          "Name": "Reticle",
+          "Texture": "vfx/apex/reticle_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.0,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Lifetime": 1.0,
+          "Speed": 0,
+          "Size": 2.6,
+          "Transparency": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp"
+        },
+        {
+          "Name": "Column",
+          "Texture": "vfx/apex/jet_flame.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.3
+          },
+          "Burst": 10,
+          "Delay": 0.6,
+          "Lifetime": [
+            0.3,
+            0.45
+          ],
+          "Speed": [
+            9,
+            14
+          ],
+          "SpreadAngle": [
+            6,
+            6
+          ],
+          "EmissionDirection": "Top",
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.8
+            ],
+            [
+              0.4,
+              1.4
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#9FF4FF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "ShardsOrange",
+          "Texture": "vfx/apex/blast_shard.png",
+          "Burst": 12,
+          "Delay": 0.6,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            6,
+            11
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FF7A1A",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "ShardsCyan",
+          "Texture": "vfx/apex/blast_shard.png",
+          "Burst": 12,
+          "Delay": 0.62,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            6,
+            11
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.45
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#19E6FF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 24,
+          "Delay": 0.65,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            3,
+            8
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Acceleration": [
+            0,
+            -6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FF7A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/apex/hud_ring.png",
+          "Color": "#FFFFFF",
+          "Start": 0.5,
+          "End": 5.0,
+          "Seconds": 0.5,
+          "Delay": 0.6
+        }
+      ],
+      "Flash": {
+        "Color": [
+          150,
+          240,
+          255
+        ],
+        "Brightness": 12,
+        "Seconds": 0.35
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 39.6,
+      "Back": 19.8,
+      "BallTrail": 25,
+      "Beams": 1,
+      "Lights": 2,
+      "Orbiters": 2,
+      "PieceTriangles": 9408
+    }
+  }
+}

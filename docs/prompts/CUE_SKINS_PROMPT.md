@@ -366,7 +366,7 @@ and you ask the designer about it.
 - [x] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
 - [x] 7. Legendaries (7): L1-L7, base cue, every one with a trail and a pocket finisher, at
   section 8.1's Legendary effort within section 8.2's caps.
-- [ ] 8. Mythics (3): M1-M3, with the custom pieces (list any piece to generate as
+- [x] 8. Mythics (3): M1-M3, with the custom pieces (list any piece to generate as
   section 1 says, without waiting), at section 8.1's effort.
 - [ ] 9. Secret: Eclipse (S1).
 - [ ] 10. Starter and VIP (X1).
@@ -467,3 +467,16 @@ and you ask the designer about it.
   Clockwork's turning gears. The big set pieces (wings, firebird, tentacle, smoke skull, light
   column, bolts) are flipbooks drawn by script. The painter now trims letterboxed OpenAI
   takes by itself and takes hand-measured zone lines (`zones_px`) when the search misses.
+
+- **2026-09-29, Mythics.** Each Mythic has a scripted 3D piece (`assets/cue/CuePieces.py` is the
+  kit and exporter, `CuePiecesMythic.py` the pieces): modelled in headless Blender (metaball
+  sculpts, swept tubes, bevelled plates), exported as one OBJ per joint and material in the
+  Roblox cue frame plus `pieces/<id>/piece.json` (each part's Roblox material, colour and
+  offset; each joint's pivot and motion: Hinge, Sway, Spin, Bob with sine, snap or pulse
+  waves). Celestial Dragon: a dragon head with a roaring jaw and a see-through energy body
+  coiling the cue. Kitsune: a porcelain fox mask with twitching ears and nine foxfire-tail
+  Beams that sway (new Beam keys `Up1`/`Side1` and `Sway`). Apex: a claw arm with two-jointed
+  claws that snap, a turning bezel and thruster flames. Pocket set pieces are flipbooks
+  rendered from the 3D pieces with a spectral material (`--sprite`, `--sheet-sprite`). The
+  preview now draws `VelocityPerpendicular` particles lying across their direction of travel,
+  as Roblox does (Apex's HUD rings).

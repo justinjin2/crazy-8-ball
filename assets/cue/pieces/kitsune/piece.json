@@ -1,0 +1,387 @@
+{
+  "id": "kitsune",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 8926,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FAF7F2",
+      "Transparency": 0.0,
+      "Reflectance": 0.2,
+      "Name": "Mask_Porcelain",
+      "File": "pieces/kitsune/Mask_Porcelain.obj",
+      "Joint": "Mask",
+      "Offset": [
+        -0.0,
+        0.0501,
+        -3.6842
+      ],
+      "Size": [
+        0.3112,
+        0.3003,
+        0.6888
+      ],
+      "Triangles": 4302
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#C8102E",
+      "Transparency": 0.0,
+      "Reflectance": 0.1,
+      "Name": "Mask_Crimson",
+      "File": "pieces/kitsune/Mask_Crimson.obj",
+      "Joint": "Mask",
+      "Offset": [
+        -0.0001,
+        0.0643,
+        -3.6752
+      ],
+      "Size": [
+        0.3059,
+        0.2836,
+        0.2968
+      ],
+      "Triangles": 868
+    },
+    {
+      "Material": "Foil",
+      "Color": "#D4AF37",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mask_Gold",
+      "File": "pieces/kitsune/Mask_Gold.obj",
+      "Joint": "Mask",
+      "Offset": [
+        0.0,
+        0.0469,
+        -3.5246
+      ],
+      "Size": [
+        0.232,
+        0.3257,
+        0.3732
+      ],
+      "Triangles": 1556
+    },
+    {
+      "Material": "Neon",
+      "Color": "#A63CFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mask_Eye",
+      "File": "pieces/kitsune/Mask_Eye.obj",
+      "Joint": "Mask",
+      "Offset": [
+        -0.0017,
+        0.067,
+        -3.785
+      ],
+      "Size": [
+        0.1683,
+        0.036,
+        0.0673
+      ],
+      "Triangles": 576
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#141216",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mask_Nose",
+      "File": "pieces/kitsune/Mask_Nose.obj",
+      "Joint": "Mask",
+      "Offset": [
+        0.0,
+        0.025,
+        -4.025
+      ],
+      "Size": [
+        0.048,
+        0.032,
+        0.036
+      ],
+      "Triangles": 168
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFDF6",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mask_Fang",
+      "File": "pieces/kitsune/Mask_Fang.obj",
+      "Joint": "Mask",
+      "Offset": [
+        0.0,
+        -0.0339,
+        -3.885
+      ],
+      "Size": [
+        0.08,
+        0.031,
+        0.0857
+      ],
+      "Triangles": 56
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FAF7F2",
+      "Transparency": 0.0,
+      "Reflectance": 0.2,
+      "Name": "EarR_Porcelain",
+      "File": "pieces/kitsune/EarR_Porcelain.obj",
+      "Joint": "EarR",
+      "Offset": [
+        -0.0869,
+        0.2123,
+        -3.5511
+      ],
+      "Size": [
+        0.1275,
+        0.2255,
+        0.0725
+      ],
+      "Triangles": 30
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#C8102E",
+      "Transparency": 0.0,
+      "Reflectance": 0.1,
+      "Name": "EarR_Crimson",
+      "File": "pieces/kitsune/EarR_Crimson.obj",
+      "Joint": "EarR",
+      "Offset": [
+        -0.0948,
+        0.2067,
+        -3.5633
+      ],
+      "Size": [
+        0.0907,
+        0.1715,
+        0.0505
+      ],
+      "Triangles": 30
+    },
+    {
+      "Material": "Foil",
+      "Color": "#D4AF37",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "EarR_Gold",
+      "File": "pieces/kitsune/EarR_Gold.obj",
+      "Joint": "EarR",
+      "Offset": [
+        -0.0907,
+        0.2179,
+        -3.5425
+      ],
+      "Size": [
+        0.1188,
+        0.1907,
+        0.0487
+      ],
+      "Triangles": 216
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FAF7F2",
+      "Transparency": 0.0,
+      "Reflectance": 0.2,
+      "Name": "EarL_Porcelain",
+      "File": "pieces/kitsune/EarL_Porcelain.obj",
+      "Joint": "EarL",
+      "Offset": [
+        0.0869,
+        0.2123,
+        -3.5511
+      ],
+      "Size": [
+        0.1275,
+        0.2255,
+        0.0725
+      ],
+      "Triangles": 30
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#C8102E",
+      "Transparency": 0.0,
+      "Reflectance": 0.1,
+      "Name": "EarL_Crimson",
+      "File": "pieces/kitsune/EarL_Crimson.obj",
+      "Joint": "EarL",
+      "Offset": [
+        0.0948,
+        0.2067,
+        -3.5633
+      ],
+      "Size": [
+        0.0907,
+        0.1715,
+        0.0505
+      ],
+      "Triangles": 30
+    },
+    {
+      "Material": "Foil",
+      "Color": "#D4AF37",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "EarL_Gold",
+      "File": "pieces/kitsune/EarL_Gold.obj",
+      "Joint": "EarL",
+      "Offset": [
+        0.0907,
+        0.2179,
+        -3.5425
+      ],
+      "Size": [
+        0.1188,
+        0.1907,
+        0.0487
+      ],
+      "Triangles": 216
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#3A0A12",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Jaw_Mouth",
+      "File": "pieces/kitsune/Jaw_Mouth.obj",
+      "Joint": "Jaw",
+      "Offset": [
+        0.0001,
+        -0.0438,
+        -3.7744
+      ],
+      "Size": [
+        0.1194,
+        0.068,
+        0.3481
+      ],
+      "Triangles": 848
+    }
+  ],
+  "Joints": {
+    "Mask": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -6.95,
+        0.02
+      ],
+      "PivotRoblox": [
+        0,
+        0.02,
+        -3.45
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 4.4
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 2.0,
+          "Period": 3.1,
+          "Phase": 70
+        }
+      ]
+    },
+    "EarR": {
+      "Parent": "Mask",
+      "Pivot": [
+        0.085,
+        -7.06,
+        0.15
+      ],
+      "PivotRoblox": [
+        -0.085,
+        0.15,
+        -3.56
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 12.0,
+          "Period": 3.3,
+          "Phase": 0,
+          "Shape": "pulse"
+        }
+      ]
+    },
+    "EarL": {
+      "Parent": "Mask",
+      "Pivot": [
+        -0.085,
+        -7.06,
+        0.15
+      ],
+      "PivotRoblox": [
+        0.085,
+        0.15,
+        -3.56
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": -12.0,
+          "Period": 3.3,
+          "Phase": 140,
+          "Shape": "pulse"
+        }
+      ]
+    },
+    "Jaw": {
+      "Parent": "Mask",
+      "Pivot": [
+        0,
+        -7.14,
+        -0.030000000000000002
+      ],
+      "PivotRoblox": [
+        0,
+        -0.03,
+        -3.64
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Base": 4.0,
+          "Amp": 6.0,
+          "Period": 5.0,
+          "Shape": "pulse",
+          "Phase": 200
+        }
+      ]
+    }
+  }
+}

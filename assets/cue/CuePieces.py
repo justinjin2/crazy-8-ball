@@ -1,0 +1,681 @@
+"""Mythic and Secret pieces: scripted modelling of the custom 3D piece a cue carries (the dragon
+head, the fox mask and tails, the claw arm, the eclipse), built in headless Blender.
+
+    Blender -b --factory-startup --python-exit-code 1 --python assets/cue/CuePieces.py -- <id>
+
+writes assets/cue/pieces/<id>/:
+  <Joint>_<Material>.obj   one mesh per moving joint and per material (a Roblox MeshPart each)
+  piece.json               every part: its file, Roblox Material, Color, Transparency,
+                           Reflectance, its joint; every joint: its parent, pivot and motion
+  preview.png              a quick look at the piece on the cue's butt
+
+The Roblox side is mechanical:
+  * Each OBJ is a MeshPart (Roblox recentres a mesh on its bounding box: the part's Offset in
+    piece.json is where that centre sits, in the cue's own frame: X = -Side, Y = Up,
+    Z = 3.5 - AtStuds, the cue MeshPart's frame).
+  * Material, Color, Transparency, Reflectance are plain MeshPart properties (Neon glows,
+    ForceField is the see-through energy look); no SurfaceAppearance needed.
+  * A joint is a set of parts moving together: a LocalScript sets every part's CFrame each frame
+    to cue.CFrame * jointCFrame(t) * restOffset, where jointCFrame(t) is the joint's parent
+    chain of motions (see `joint_matrix`): Hinge (a sine swing about an axis through the
+    pivot), Spin (a steady turn), Bob (a sine slide), Sway (a swing that travels down a chain
+    of joints, for tails). The preview plays the same maths.
+
+Modelling is by script only (no AI generators here): bmesh solids and sweeps, and metaball
+sculpts turned to meshes for organic heads, then bevelled/smoothed; materials are assigned to
+faces by region functions, so one sculpt can carry gold horns and pearl scales.
+"""
+import json
+import math
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+PIECES_DIR = os.path.join(HERE, 'pieces')
+
+# Roblox materials as the preview draws them (Blender Principled settings); Roblox's own look:
+# Metal is a rough brushed metal, Foil a bright one, Neon glows its Color (and ignores light),
+# Glass is clear and glossy, ForceField a see-through glowing shimmer.
+ROBLOX_LOOK = {
+    'SmoothPlastic': {'metal': 0.0, 'rough': 0.32},
+    'Plastic': {'metal': 0.0, 'rough': 0.5},
+    'Marble': {'metal': 0.0, 'rough': 0.22},
+    'Metal': {'metal': 1.0, 'rough': 0.3},
+    'Foil': {'metal': 1.0, 'rough': 0.14},
+    'DiamondPlate': {'metal': 1.0, 'rough': 0.35},
+    'Glass': {'metal': 0.0, 'rough': 0.05, 'glass': True},
+    'Neon': {'neon': 2.4},
+    'ForceField': {'neon': 1.3, 'field': True},
+}
+
+BUILDERS = {}
+
+
+def piece(fn):
+    BUILDERS[fn.__name__] = fn
+    return fn
+
+
+def hexrgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+
+def srgb_to_lin(c):
+    return tuple(x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c)
+
+
+# =============================================================================================
+# Motion (pure maths, shared by the preview and described for the Roblox script)
+# =============================================================================================
+
+def _wave(t, m):
+    period = float(m.get('Period', 2.0))
+    ph = math.radians(float(m.get('Phase', 0.0)))
+    x = 2 * math.pi * t / period + ph
+    shape = m.get('Shape', 'sine')
+    if shape == 'snap':  # quick close, slow open (a claw clicking): a sharpened sine
+        s = math.sin(x)
+        return math.copysign(abs(s) ** 0.35, s)
+    if shape == 'pulse':  # rest most of the time, a quick swing once a period
+        u = (x / (2 * math.pi)) % 1.0
+        return math.sin(math.pi * min(u / 0.3, 1.0)) if u < 0.3 else 0.0
+    return math.sin(x)
+
+
+def _rot(axis, ang):
+    import numpy as np
+    a = np.asarray(axis, float)
+    a = a / (np.linalg.norm(a) + 1e-12)
+    x, y, z = a
+    c, s = math.cos(ang), math.sin(ang)
+    C = 1 - c
+    R = np.array([[c + x * x * C, x * y * C - z * s, x * z * C + y * s],
+                  [y * x * C + z * s, c + y * y * C, y * z * C - x * s],
+                  [z * x * C - y * s, z * y * C + x * s, c + z * z * C]])
+    M = np.eye(4)
+    M[:3, :3] = R
+    return M
+
+
+def motion_matrix(motions, t):
+    """One joint's own motion at time t, about its pivot (a 4x4 in the cue's Blender frame,
+    applied as T(pivot) @ M @ T(-pivot) by joint_matrix)."""
+    import numpy as np
+    M = np.eye(4)
+    for m in motions or []:
+        kind = m.get('Kind')
+        if kind == 'Hinge' or kind == 'Sway':
+            ang = math.radians(float(m.get('Base', 0.0)) + float(m.get('Amp', 10.0)) * _wave(t, m))
+            M = M @ _rot(m.get('Axis', (1, 0, 0)), ang)
+        elif kind == 'Spin':
+            M = M @ _rot(m.get('Axis', (0, 1, 0)), math.radians(float(m.get('Rate', 90.0)) * t + float(m.get('Phase', 0.0))))
+        elif kind == 'Bob':
+            d = np.asarray(m.get('Dir', (0, 0, 1)), float) * float(m.get('Amp', 0.02)) * _wave(t, m)
+            T = np.eye(4)
+            T[:3, 3] = d
+            M = M @ T
+    return M
+
+
+def joint_matrix(joints, name, t):
+    """A joint's full transform in the cue frame: its parent's, then its own motion about its
+    pivot (pivots are in the cue frame at rest)."""
+    import numpy as np
+    j = joints[name]
+    P = np.eye(4)
+    P[:3, 3] = j.get('Pivot', (0, 0, 0))
+    Pi = np.eye(4)
+    Pi[:3, 3] = -np.asarray(j.get('Pivot', (0, 0, 0)), float)
+    own = P @ motion_matrix(j.get('Motion'), t) @ Pi
+    parent = j.get('Parent')
+    return (joint_matrix(joints, parent, t) if parent else np.eye(4)) @ own
+
+
+# =============================================================================================
+# The modelling kit (inside Blender)
+# =============================================================================================
+
+class Kit:
+    """Holds the joints and materials of one piece while it is modelled."""
+
+    def __init__(self, bpy, pid):
+        self.bpy = bpy
+        self.pid = pid
+        self.joints = {}   # name -> {'Parent', 'Pivot', 'Motion', 'objects': [...]}
+        self.mats = {}     # name -> roblox spec
+
+    # ---- materials ----------------------------------------------------------------------------
+    def material(self, name, Material='SmoothPlastic', Color='#FFFFFF', Transparency=0.0, Reflectance=0.0):
+        self.mats[name] = {'Material': Material, 'Color': Color, 'Transparency': Transparency, 'Reflectance': Reflectance}
+        return name
+
+    def blender_mat(self, name):
+        bpy = self.bpy
+        key = 'PM_%s_%s' % (self.pid, name)
+        if key in bpy.data.materials:
+            return bpy.data.materials[key]
+        return make_blender_material(bpy, key, self.mats[name])
+
+    # ---- joints ---------------------------------------------------------------------------------
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None):
+        self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': []}
+        return name
+
+    def add(self, joint, ob):
+        self.joints[joint]['objects'].append(ob)
+        return ob
+
+    # ---- mesh from bmesh ------------------------------------------------------------------------
+    def mesh_object(self, name, bm, mats, smooth=True):
+        bpy = self.bpy
+        me = bpy.data.meshes.new(name)
+        bm.to_mesh(me)
+        bm.free()
+        ob = bpy.data.objects.new(name, me)
+        bpy.context.scene.collection.objects.link(ob)
+        for m in mats:
+            ob.data.materials.append(self.blender_mat(m))
+        if smooth:
+            for p in me.polygons:
+                p.use_smooth = True
+        return ob
+
+
+def make_blender_material(bpy, key, spec):
+    look = ROBLOX_LOOK.get(spec['Material'], ROBLOX_LOOK['SmoothPlastic'])
+    mat = bpy.data.materials.new(key)
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    bsdf = next(n for n in nodes if n.type == 'BSDF_PRINCIPLED')
+    col = srgb_to_lin(hexrgb(spec['Color']))
+    alpha = 1.0 - float(spec.get('Transparency', 0.0))
+    bsdf.inputs['Base Color'].default_value = col + (1.0,)
+    if 'neon' in look:
+        bsdf.inputs['Base Color'].default_value = (0, 0, 0, 1)
+        bsdf.inputs['Emission Color'].default_value = col + (1.0,)
+        bsdf.inputs['Emission Strength'].default_value = look['neon']
+        bsdf.inputs['Roughness'].default_value = 1.0
+    else:
+        bsdf.inputs['Metallic'].default_value = look['metal']
+        rough = look['rough'] * (1 - 0.8 * float(spec.get('Reflectance', 0.0)))
+        bsdf.inputs['Roughness'].default_value = rough
+    if look.get('glass'):
+        alpha = min(alpha, 0.35)
+    if look.get('field'):
+        # ForceField: brightest at the silhouette (a fresnel shimmer), clear face-on
+        lw = nodes.new('ShaderNodeLayerWeight')
+        lw.inputs['Blend'].default_value = 0.45
+        mul = nodes.new('ShaderNodeMath')
+        mul.operation = 'MULTIPLY'
+        mul.inputs[1].default_value = alpha
+        mat.node_tree.links.new(lw.outputs['Facing'], mul.inputs[0])
+        add = nodes.new('ShaderNodeMath')
+        add.operation = 'ADD'
+        add.inputs[1].default_value = 0.12 * alpha
+        mat.node_tree.links.new(mul.outputs[0], add.inputs[0])
+        mat.node_tree.links.new(add.outputs[0], bsdf.inputs['Alpha'])
+        alpha = None
+    if alpha is not None:
+        bsdf.inputs['Alpha'].default_value = alpha
+    if alpha is None or alpha < 0.999:
+        try:
+            mat.surface_render_method = 'BLENDED'
+        except Exception:
+            mat.blend_method = 'BLEND'
+        try:
+            mat.use_transparency_overlap = True
+        except Exception:
+            pass
+    return mat
+
+
+# ---- shape helpers -------------------------------------------------------------------------------
+
+def frame_along(p0, p1, up_hint=(0, 0, 1)):
+    from mathutils import Vector
+    t = (Vector(p1) - Vector(p0)).normalized()
+    u = Vector(up_hint)
+    if abs(t.dot(u)) > 0.95:
+        u = Vector((1, 0, 0))
+    n = (u - t * t.dot(u)).normalized()
+    b = t.cross(n)
+    return t, n, b
+
+
+def sweep(bm, path, radii, segs=12, cap=True, profile=None, twist=0.0):
+    """A tube along a polyline `path` (points) with a radius per point (or (rx, ry) per point),
+    parallel-transported frames, capped. profile(angle) -> radius scale (e.g. a flattened or
+    ridged section). Returns the new faces."""
+    from mathutils import Vector
+    import bmesh  # noqa: F401
+    pts = [Vector(p) for p in path]
+    n = len(pts)
+    tangents = []
+    for i in range(n):
+        a = pts[max(i - 1, 0)]
+        b = pts[min(i + 1, n - 1)]
+        tangents.append((b - a).normalized())
+    _, nrm, _ = frame_along(pts[0], pts[1])
+    rings = []
+    faces = []
+    for i in range(n):
+        t = tangents[i]
+        nrm = (nrm - t * t.dot(nrm)).normalized()
+        bin_ = t.cross(nrm)
+        r = radii[i]
+        rx, ry = (r, r) if not isinstance(r, (tuple, list)) else r
+        ring = []
+        for k in range(segs):
+            ang = 2 * math.pi * k / segs + twist * i
+            sc = profile(ang) if profile else 1.0
+            v = pts[i] + (nrm * math.cos(ang) * rx + bin_ * math.sin(ang) * ry) * sc
+            ring.append(bm.verts.new(v))
+        rings.append(ring)
+    for i in range(n - 1):
+        a, b = rings[i], rings[i + 1]
+        for k in range(segs):
+            faces.append(bm.faces.new((a[k], a[(k + 1) % segs], b[(k + 1) % segs], b[k])))
+    if cap:
+        for ring, rev in ((rings[0], True), (rings[-1], False)):
+            c = sum((v.co for v in ring), Vector()) / len(ring)
+            cv = bm.verts.new(c)
+            for k in range(segs):
+                q = (ring[k], ring[(k + 1) % segs], cv)
+                faces.append(bm.faces.new(q[::-1] if rev else q))
+    return faces
+
+
+MB_REACH = 0.574  # a metaball's surface sits at radius x size x this (stiffness 2, threshold 0.6)
+
+
+def metaball_mesh(bpy, name, blobs, resolution=0.01, blend=1.6):
+    """A metaball sculpt turned into a mesh. blobs: [(centre, (hx, hy, hz), rot_quat or None,
+    negative)], each an ellipsoid with those half-extents along the cue frame's X, Y, Z (before
+    rot). Neighbours melt together smoothly; `blend` widens each blob's reach (the surface still
+    lands on its half-extents when alone) so they merge more. Returns the mesh object."""
+    mb = bpy.data.metaballs.new(name + '_mb')
+    mb.resolution = resolution
+    mb.render_resolution = resolution
+    mb.threshold = 0.6
+    for b in blobs:
+        co, half = b[0], b[1]
+        rot = b[2] if len(b) > 2 else None
+        neg = b[3] if len(b) > 3 else False
+        R = max(half) * blend
+        el = mb.elements.new(type='ELLIPSOID')
+        el.co = co
+        el.stiffness = 2.0
+        el.radius = R
+        # reach scales with the radius, so shrink the size to land on the half-extents
+        el.size_x, el.size_y, el.size_z = (h / (R * MB_REACH) for h in half)
+        if rot is not None:
+            el.rotation = rot
+        if neg:
+            el.use_negative = True
+    ob = bpy.data.objects.new(name + '_mbo', mb)
+    bpy.context.scene.collection.objects.link(ob)
+    dg = bpy.context.evaluated_depsgraph_get()
+    me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+    bpy.data.objects.remove(ob)
+    bpy.data.metaballs.remove(mb)
+    out = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(out)
+    for p in me.polygons:
+        p.use_smooth = True
+    return out
+
+
+def assign_by_region(ob, fn):
+    """Set each face's material index from fn(centre (x, y, z), normal) -> index."""
+    for p in ob.data.polygons:
+        p.material_index = fn(tuple(p.center), tuple(p.normal))
+
+
+def apply_modifier(bpy, ob, kind, **props):
+    mod = ob.modifiers.new(kind, kind)
+    for k, v in props.items():
+        setattr(mod, k, v)
+    bpy.context.view_layer.objects.active = ob
+    with bpy.context.temp_override(object=ob, active_object=ob):
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+
+
+# =============================================================================================
+# Export and the spec
+# =============================================================================================
+
+def export(kit):
+    """Split every joint's objects by material into one OBJ per (joint, material) and write
+    piece.json. Mesh files are in the Roblox cue frame (see the module docstring)."""
+    import bmesh
+    import numpy as np
+    bpy = kit.bpy
+    out = os.path.join(PIECES_DIR, kit.pid)
+    os.makedirs(out, exist_ok=True)
+    for f in os.listdir(out):
+        if f.endswith('.obj'):
+            os.remove(os.path.join(out, f))
+    parts = []
+    tris_total = 0
+    for jname, j in kit.joints.items():
+        by_mat = {}
+        for ob in j['objects']:
+            me = ob.data
+            for mi, slot in enumerate(ob.material_slots):
+                mname = slot.material.name.split('PM_%s_' % kit.pid, 1)[-1]
+                bm = bmesh.new()
+                bm.from_mesh(me)
+                bm.transform(ob.matrix_world)
+                bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index != mi], context='FACES')
+                if not bm.faces:
+                    bm.free()
+                    continue
+                by_mat.setdefault(mname, []).append(bm)
+        for mname, bms in by_mat.items():
+            verts, faces = [], []
+            for bm in bms:
+                bmesh.ops.triangulate(bm, faces=bm.faces[:])
+                bm.verts.ensure_lookup_table()
+                base = len(verts)
+                verts += [tuple(v.co) for v in bm.verts]
+                faces += [[base + v.index for v in f.verts] for f in bm.faces]
+                bm.free()
+            V = np.array(verts)
+            # Blender cue frame (side, -at, up) -> Roblox cue frame (-side, up, 3.5 - at)
+            R = np.stack([-V[:, 0], V[:, 2], 3.5 + V[:, 1]], 1)
+            lo, hi = R.min(0), R.max(0)
+            centre = (lo + hi) / 2
+            fname = '%s_%s.obj' % (jname, mname)
+            with open(os.path.join(out, fname), 'w') as fh:
+                fh.write('# %s %s: Roblox cue frame, recentred on its bounding box\n' % (kit.pid, fname))
+                for v in R - centre:
+                    fh.write('v %.5f %.5f %.5f\n' % tuple(v))
+                for f in faces:
+                    fh.write('f %s\n' % ' '.join(str(i + 1) for i in f))
+            tris_total += len(faces)
+            spec = dict(kit.mats[mname])
+            spec.update({'Name': '%s_%s' % (jname, mname), 'File': 'pieces/%s/%s' % (kit.pid, fname), 'Joint': jname,
+                         'Offset': [round(float(x), 4) for x in centre], 'Size': [round(float(x), 4) for x in hi - lo],
+                         'Triangles': len(faces)})
+            parts.append(spec)
+    joints = {}
+    for jname, j in kit.joints.items():
+        p = j['Pivot']
+        joints[jname] = {'Parent': j['Parent'], 'Pivot': p, 'PivotRoblox': [round(-p[0], 4), round(p[2], 4), round(3.5 + p[1], 4)],
+                         'Motion': j['Motion']}
+    spec = {'id': kit.pid, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
+                                   'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
+            'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
+    with open(os.path.join(out, 'piece.json'), 'w') as fh:
+        json.dump(spec, fh, indent=2)
+        fh.write('\n')
+    print('CUE pieces wrote %s: %d parts, %d triangles' % (kit.pid, len(parts), tris_total))
+    return spec
+
+
+# =============================================================================================
+# The preview side: load a built piece onto the cue and move it
+# =============================================================================================
+
+def attach(bpy, pid, cue_obj):
+    """Import pieces/<pid>/ onto cue_obj (parented, so it follows the cue). Returns
+    animate(t), which sets every joint's transform for time t."""
+    import numpy as np
+    from mathutils import Matrix
+    path = os.path.join(PIECES_DIR, pid, 'piece.json')
+    if not os.path.isfile(path):
+        return None
+    spec = json.load(open(path))
+    joints = spec['Joints']
+    empties = {}
+    for jname in joints:
+        e = bpy.data.objects.new('PJ_' + jname, None)
+        bpy.context.scene.collection.objects.link(e)
+        e.parent = cue_obj
+        empties[jname] = e
+    for part in spec['Parts']:
+        V, F = [], []
+        for line in open(os.path.join(HERE, part['File'])):
+            if line.startswith('v '):
+                V.append([float(x) for x in line.split()[1:4]])
+            elif line.startswith('f '):
+                F.append([int(x.split('/')[0]) - 1 for x in line.split()[1:]])
+        R = np.array(V) + np.array(part['Offset'])
+        B = np.stack([-R[:, 0], R[:, 2] - 3.5, R[:, 1]], 1)  # back to the Blender cue frame
+        me = bpy.data.meshes.new(part['Name'])
+        me.from_pydata(B.tolist(), [], F)
+        me.update()
+        for p in me.polygons:
+            p.use_smooth = True
+        try:
+            me.set_sharp_from_angle(angle=math.radians(40))
+        except Exception:
+            pass
+        ob = bpy.data.objects.new('P_' + part['Name'], me)
+        bpy.context.scene.collection.objects.link(ob)
+        ob.data.materials.append(make_blender_material(bpy, 'PMv_%s_%s' % (pid, part['Name']), part))
+        ob.parent = empties[part['Joint']]
+    def animate(t):
+        for jname, e in empties.items():
+            e.matrix_parent_inverse = Matrix.Identity(4)
+            e.matrix_basis = Matrix(joint_matrix(joints, jname, t).tolist())
+    animate(0.0)
+    return animate
+
+
+# =============================================================================================
+# Pieces
+# =============================================================================================
+
+def build(pid):
+    import bpy
+    import cue_common as cc
+    cc.clear_scene('CuePieces')
+    import CuePiecesMythic  # noqa: F401  (registers the builders on the imported CuePieces module)
+    import CuePieces
+    kit = CuePieces.Kit(bpy, pid)
+    CuePieces.BUILDERS[pid](kit)
+    spec = CuePieces.export(kit)
+    preview(pid)
+    return spec
+
+
+def preview(pid, t_list=(0.0, 1.3)):
+    """pieces/<pid>/preview.png: the plain cue with the exported piece (as the preview loads it),
+    from the side and from above-behind, at a couple of moments."""
+    import bpy
+    import cue_common as cc
+    from mathutils import Vector
+    cc.clear_scene('PiecePreview')
+    scene = bpy.context.scene
+    scene.render.engine = 'BLENDER_EEVEE'
+    scene.view_settings.view_transform = 'Standard'
+    world = bpy.data.worlds.new('W')
+    world.use_nodes = True
+    bg = next(n for n in world.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs[0].default_value = (0.02, 0.022, 0.03, 1)
+    bg.inputs[1].default_value = 1.0
+    scene.world = world
+    cue = cc.load_cue_object()
+    m = bpy.data.materials.new('plain')
+    m.use_nodes = True
+    b = next(n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+    b.inputs['Base Color'].default_value = (0.5, 0.5, 0.55, 1)
+    cue.data.materials.clear()
+    cue.data.materials.append(m)
+    for loc, e in (((3, -4, 6), 2.5), ((-4, -9, 3), 2.0), ((2, -10, -3), 1.0)):
+        ld = bpy.data.lights.new('L', 'AREA')
+        ld.energy = 300 * e
+        ld.size = 4
+        lo = bpy.data.objects.new('L', ld)
+        lo.location = loc
+        scene.collection.objects.link(lo)
+        lo.rotation_euler = (Vector((0, -6.5, 0)) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+    animate = attach(bpy, pid, cue)
+    cam_d = bpy.data.cameras.new('C')
+    cam = bpy.data.objects.new('C', cam_d)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    scene.render.resolution_x, scene.render.resolution_y = 800, 500
+    tiles = []
+    out = os.path.join(PIECES_DIR, pid)
+    views = (((1.6, -6.3, 0.35), (0, -6.95, 0.05), 45), ((-0.9, -8.6, 0.9), (0, -6.9, 0.05), 45), ((2.8, -3.5, 1.6), (0, -4.6, 0), 30))
+    for vi, (loc, tgt, lens) in enumerate(views):
+        for ti, t in enumerate(t_list if vi == 0 else t_list[:1]):
+            animate(t)
+            cam.location = loc
+            cam.rotation_euler = (Vector(tgt) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
+            cam_d.lens = lens
+            path = os.path.join(out, '_v%d_%d.png' % (vi, ti))
+            scene.render.filepath = path
+            bpy.ops.render.render(write_still=True)
+            tiles.append(path)
+    try:  # Blender's own Python has no PIL: then `python3 CuePieces.py --sheet <id>` stitches them
+        stitch(pid)
+    except ImportError:
+        pass
+    print('CUE pieces preview', os.path.join(out, 'preview.png'))
+
+
+SPRITES = {}  # sprite name -> spec (registered by the builders' module): a flipbook rendered from a piece
+
+
+def render_sprite(name):
+    """Render a flipbook from a built piece (Blender side): only spec['joints'] are kept, every
+    material becomes a spectral glow (spec['colour'] at the rim fading to clear face-on, plus a
+    faint fill), the film is transparent; spec['pose'](i, frames) -> {joint: 4x4 list} poses
+    each frame; frames land in vfx/<skin>/_frames_<name>/ for `--sheet-sprite` to join."""
+    import bpy
+    import cue_common as cc
+    from mathutils import Matrix, Vector
+    import CuePiecesMythic  # noqa: F401
+    import CuePieces
+    spec = CuePieces.SPRITES[name]
+    cc.clear_scene('Sprite')
+    scene = bpy.context.scene
+    scene.render.engine = 'BLENDER_EEVEE'
+    scene.view_settings.view_transform = 'Standard'
+    scene.render.film_transparent = True
+    scene.render.image_settings.color_mode = 'RGBA'
+    root = bpy.data.objects.new('Root', None)
+    scene.collection.objects.link(root)
+    attach(bpy, spec['piece'], root)
+    keep = set(spec['joints'])
+    col = srgb_to_lin(hexrgb(spec['colour']))
+    glow = bpy.data.materials.new('Spectral')
+    glow.use_nodes = True
+    nt = glow.node_tree
+    for nd in list(nt.nodes):
+        nt.nodes.remove(nd)
+    outn = nt.nodes.new('ShaderNodeOutputMaterial')
+    em = nt.nodes.new('ShaderNodeEmission')
+    em.inputs['Color'].default_value = col + (1,)
+    em.inputs['Strength'].default_value = 2.0
+    tr = nt.nodes.new('ShaderNodeBsdfTransparent')
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = spec.get('rim', 0.35)
+    ramp = nt.nodes.new('ShaderNodeMath')
+    ramp.operation = 'MULTIPLY_ADD'
+    ramp.inputs[1].default_value = 0.8
+    ramp.inputs[2].default_value = spec.get('fill', 0.3)
+    nt.links.new(lw.outputs['Facing'], ramp.inputs[0])
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(ramp.outputs[0], mix.inputs['Fac'])
+    nt.links.new(tr.outputs[0], mix.inputs[1])
+    nt.links.new(em.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], outn.inputs['Surface'])
+    try:
+        glow.surface_render_method = 'BLENDED'
+    except Exception:
+        glow.blend_method = 'BLEND'
+    joints_obj = {}
+    for ob in list(bpy.data.objects):
+        if ob.name.startswith('PJ_'):
+            joints_obj[ob.name[3:]] = ob
+        if ob.name.startswith('P_'):
+            if (ob.parent is not None and ob.parent.name[3:] not in keep) or any(d in ob.name for d in spec.get('drop', ())):
+                bpy.data.objects.remove(ob)
+            else:
+                ob.data.materials.clear()
+                ob.data.materials.append(glow)
+    cam_d = bpy.data.cameras.new('C')
+    cam = bpy.data.objects.new('C', cam_d)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    cam_d.type = 'ORTHO'
+    cam_d.ortho_scale = spec['ortho']
+    loc, tgt = Vector(spec['cam'][0]), Vector(spec['cam'][1])
+    cam.location = loc
+    cam.rotation_euler = (tgt - loc).to_track_quat('-Z', 'Y').to_euler()
+    n = spec.get('frames', 16)
+    px = spec.get('px', 240)
+    scene.render.resolution_x = scene.render.resolution_y = px
+    out = os.path.join(HERE, 'vfx', spec['skin'], '_frames_' + name)
+    os.makedirs(out, exist_ok=True)
+    for i in range(n):
+        poses = spec['pose'](i, n)
+        for jn, e in joints_obj.items():
+            e.matrix_parent_inverse = Matrix.Identity(4)
+            e.matrix_basis = Matrix(poses.get(jn, Matrix.Identity(4)))
+        scene.render.filepath = os.path.join(out, '%02d.png' % i)
+        bpy.ops.render.render(write_still=True)
+    print('CUE pieces sprite frames', out)
+
+
+def sheet_sprite(name, skin, frames=16, grid=4, size=1024, pad=8, fade=None):
+    """Join vfx/<skin>/_frames_<name>/NN.png into vfx/<skin>/<name>_4x4.png (a 1024 sheet with
+    padding, as CueVfx.flipbook lays them), with an optional per-frame alpha fade."""
+    from PIL import Image
+    src = os.path.join(HERE, 'vfx', skin, '_frames_' + name)
+    cell = size // grid
+    sheet = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    for i in range(frames):
+        im = Image.open(os.path.join(src, '%02d.png' % i)).convert('RGBA').resize((cell - 2 * pad, cell - 2 * pad), Image.LANCZOS)
+        if fade:
+            a = im.getchannel('A').point(lambda v, f=fade(i, frames): int(v * f))
+            im.putalpha(a)
+        r, c = divmod(i, grid)
+        sheet.paste(im, (c * cell + pad, r * cell + pad))
+    path = os.path.join(HERE, 'vfx', skin, '%s_4x4.png' % name)
+    sheet.save(path, optimize=True)
+    import shutil
+    shutil.rmtree(src)
+    print('CUE pieces sheet', path)
+
+
+def stitch(pid):
+    """Join the preview tiles (_v*_*.png) into preview.png and remove them."""
+    from PIL import Image
+    out = os.path.join(PIECES_DIR, pid)
+    tiles = sorted(f for f in os.listdir(out) if f.startswith('_v') and f.endswith('.png'))
+    ims = [Image.open(os.path.join(out, f)) for f in tiles]
+    w, h = ims[0].size
+    sheet = Image.new('RGB', (w * 2, h * ((len(ims) + 1) // 2)))
+    for i, im in enumerate(ims):
+        sheet.paste(im, ((i % 2) * w, (i // 2) * h))
+    sheet.save(os.path.join(out, 'preview.png'))
+    for f in tiles:
+        os.remove(os.path.join(out, f))
+
+
+def main():
+    if '--sprite' in sys.argv:  # Blender side
+        render_sprite(sys.argv[sys.argv.index('--sprite') + 1])
+        return
+    if '--sheet-sprite' in sys.argv:  # system python: name skin
+        i = sys.argv.index('--sheet-sprite')
+        sheet_sprite(sys.argv[i + 1], sys.argv[i + 2])
+        return
+    if '--sheet' in sys.argv:
+        stitch(sys.argv[sys.argv.index('--sheet') + 1])
+        return
+    argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
+    for pid in argv:
+        build(pid)
+
+
+if __name__ == '__main__':
+    main()

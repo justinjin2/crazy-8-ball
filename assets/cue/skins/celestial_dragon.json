@@ -1,0 +1,963 @@
+{
+  "id": "celestial_dragon",
+  "name": "Celestial Dragon",
+  "tier": "Mythic",
+  "catalog_id": "CelestialDragonCue",
+  "concept": "M1",
+  "palette": [
+    "#FAFAF5",
+    "#D4AF37",
+    "#4FA8FF",
+    "#C9E6FF"
+  ],
+  "painter": "mix",
+  "note": "Pearl white and gold, wrapped by a see-through starlight dragon: OpenAI panels on the whole cue (pearl white with gold lattice straps crossing round dark sapphire diamonds, a pale maple tip end, a dark navy snakeskin grip), gold collar and rings, a gold cap end with a glowing eight-point star gem. The 3D piece (pieces/celestial_dragon): a pearl dragon head with gold horns and lips, fangs and glowing eyes resting past the butt, a mane of blue energy, and its see-through energy body (two ForceField ribbons with Neon cores) coiling round the cue to the shaft.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "take": 2,
+      "prompt": "Lustrous pearl white (#FAFAF5) with a soft iridescent pearly sheen and faint swirls, covered edge to edge (from the very top to the very bottom of the image, no plain bands) by an even lattice of thin polished gold straps (#D4AF37) crossing in long X shapes, two rows of diamonds high, each diamond cell holding a small dark sapphire-navy diamond inlay (#1A2450) with a gold edge. No glow, no energy, no other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "Lustrous pearl white (#FAFAF5) with a soft pearly sheen, crossed by thin polished gold straps (#D4AF37) forming long X shapes that frame dark sapphire-navy diamond inlays (#1A2450), the lattice growing a little bolder toward the right edge. No glow, no energy, no other shapes."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "zones_px": [
+        79,
+        161
+      ],
+      "prompt": "Lustrous pearl white (#FAFAF5) with a pearly sheen, crossed by bold polished gold straps (#D4AF37) forming large X shapes and chevrons along the forearm, each framing a dark sapphire-navy diamond inlay (#1A2450) with a gold edge; the right end finishes with a gold band. No glow, no blue energy, no dragon. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "zones_px": [
+        73,
+        739,
+        1319
+      ],
+      "prompt": "Left thin strip (the ring): plain polished gold (#D4AF37). The wrap (from the ring to the next zone line): a dark navy snakeskin grip (#141A30), small overlapping glossy scales. The butt sleeve (between the two zone lines on the right): lustrous pearl white with bold polished gold X straps framing dark sapphire-navy diamond inlays, and gold bands at both ends. The very thin strip at the far right: plain gold. No glow, no blue energy, no dragon."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/celestial_dragon/shaft_tile.png",
+    "shaft_top": "skins/celestial_dragon/shaft_top.png",
+    "forearm": "skins/celestial_dragon/forearm.png",
+    "butt": "skins/celestial_dragon/butt.png",
+    "cap_end": "skins/celestial_dragon/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101830",
+    "gold": "#D4AF37",
+    "metal": "#D4AF37"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "piece": "celestial_dragon",
+  "surface": {
+    "EmissiveStrength": 1.8,
+    "EmissiveTint": "#C9E6FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.4,
+        "Max": 2.2,
+        "Period": 2.6
+      }
+    }
+  },
+  "vfx": {
+    "Piece": {
+      "Note": "pieces/celestial_dragon: MeshParts by joint (Head, Jaw, Body) and material (Pearl SmoothPlastic, Gold Foil, Fang, Eye Neon, Mane Neon 0.3, Energy ForceField, Core Neon 0.55); see piece.json for each part's Offset and every joint's pivot and motion. Motion (a LocalScript, every frame): the head breathes (a 3 degree nod every 3.2 s) and slowly looks round (4 degrees, 5.1 s); the jaw snaps open in a roar once every 4 s (8 to 26 degrees, a quick pulse); the body is still (the flow runs along it).",
+      "Triangles": 20536
+    },
+    "Moving": {
+      "Kind": "Piece + Orbiters + emissive",
+      "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
+    },
+    "Aura": {
+      "Note": "Layered: energy flowing along the coils of the dragon body (the Orbiters above); drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; small energy wisps rising off the head; a soft blue glow round the cue (a halo Beam, breathing) and a blue light at the head.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "StarDust",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.3,
+            "Width": 0.55,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 22,
+          "Lifetime": [
+            0.8,
+            1.4
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.22,
+              0.06
+            ],
+            [
+              0.6,
+              0.08
+            ],
+            [
+              0.8,
+              0.18
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "RotSpeed": [
+            -40,
+            40
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.4,
+              "#C9E6FF"
+            ],
+            [
+              1,
+              "#4FA8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "BlueLight",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.3,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            1.0,
+            1.8
+          ],
+          "Speed": [
+            0.02,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.26
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.15,
+          "Color": [
+            [
+              0,
+              "#8CCBFF"
+            ],
+            [
+              1,
+              "#4F7AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Wisps",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 6.6,
+            "ToStuds": 7.4,
+            "Width": 0.25,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Squash": -0.8,
+          "Transparency": 0.1,
+          "Color": "#C9E6FF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Flow1",
+          "FromStuds": 6.95,
+          "ToStuds": 0.6,
+          "TravelSeconds": 2.4,
+          "Loop": "wrap",
+          "TurnsPerSecond": -1.3333333333333335,
+          "Radius": 0.045,
+          "RadiusFromSurface": true,
+          "Wobble": 0.02,
+          "WobbleHz": 0.597,
+          "Phase": 180,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 0.45,
+            "WidthStuds": 0.05,
+            "Color": "#C9E6FF",
+            "Brightness": 2.5,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.14,
+            "Color": "#E6F4FF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Flow2",
+          "FromStuds": 6.95,
+          "ToStuds": 0.6,
+          "TravelSeconds": 2.4,
+          "Loop": "wrap",
+          "TurnsPerSecond": -1.3333333333333335,
+          "Radius": 0.045,
+          "RadiusFromSurface": true,
+          "Wobble": 0.02,
+          "WobbleHz": 0.597,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 0.45,
+            "WidthStuds": 0.05,
+            "Color": "#C9E6FF",
+            "Brightness": 2.5,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.14,
+            "Color": "#E6F4FF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Flow3",
+          "FromStuds": 6.95,
+          "ToStuds": 0.6,
+          "TravelSeconds": 2.4,
+          "Loop": "wrap",
+          "TurnsPerSecond": -1.3333333333333335,
+          "Radius": 0.045,
+          "RadiusFromSurface": true,
+          "Wobble": 0.02,
+          "WobbleHz": 0.597,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 0.45,
+            "WidthStuds": 0.05,
+            "Color": "#C9E6FF",
+            "Brightness": 2.5,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.14,
+            "Color": "#E6F4FF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Flow4",
+          "FromStuds": 6.95,
+          "ToStuds": 0.6,
+          "TravelSeconds": 2.4,
+          "Loop": "wrap",
+          "TurnsPerSecond": -1.3333333333333335,
+          "Radius": 0.045,
+          "RadiusFromSurface": true,
+          "Wobble": 0.02,
+          "WobbleHz": 0.597,
+          "Phase": 0,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 0.45,
+            "WidthStuds": 0.05,
+            "Color": "#C9E6FF",
+            "Brightness": 2.5,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/glow_core.png",
+            "Size": 0.14,
+            "Color": "#E6F4FF",
+            "LightEmission": 1
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "StarGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.3,
+          "Width0": 0.3,
+          "Width1": 0.65,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#8CCBFF"
+            ],
+            [
+              1,
+              "#4F7AFF"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.55
+            ],
+            [
+              0.9,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 2.6
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 7.2,
+          "Color": "#6FB8FF",
+          "Brightness": 1.5,
+          "Range": 9,
+          "Flicker": {
+            "Min": 0.8,
+            "Max": 1.15,
+            "Period": 2.6
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            201,
+            230,
+            255
+          ],
+          [
+            79,
+            168,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 0.65,
+        "WidthStuds": 0.5,
+        "LightEmission": 1,
+        "Texture": "vfx/celestial_dragon/trail_starlight.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.5,
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.3,
+            1.15
+          ],
+          [
+            0.65,
+            0.45
+          ],
+          [
+            0.85,
+            0.9
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "Core": {
+          "Color": [
+            230,
+            244,
+            255
+          ],
+          "Width": 0.12,
+          "NearTransparency": 0.1,
+          "LightEmission": 1
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            140,
+            203,
+            255
+          ],
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A comet of starlight with a dragon-tail swish: a ribbon of silky blue-white streaks and star points (own texture, wrapping) whose width swells, narrows and flares again before the end like a dragon's tail fin, round a white core; stars and blue motes stream off the ball.",
+      "Emitters": [
+        {
+          "Name": "Stars",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.4,
+            0.8
+          ],
+          "Speed": [
+            0.3,
+            0.9
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.18,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.4,
+              "#C9E6FF"
+            ],
+            [
+              1,
+              "#4FA8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": [
+            0.2,
+            0.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.2,
+          "Color": "#8CCBFF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a white-blue flash and a starburst of rays and four-point stars out of the pocket (0 s); a spectral dragon head rises out of it, lunging up with its jaw dropping open in a roar, then pulls back and fades (a 16-frame flipbook rendered from the 3D head with a spectral glow material, 4.6 studs, 0.1 s); a blue shockwave ring (0.05 s); star dust lingers and drifts up (0.5-1.5 s). The default gust is tinted blue and white.",
+      "Layers": [
+        {
+          "Name": "Rays",
+          "Texture": "vfx/_shared/streak.png",
+          "Burst": 26,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            7,
+            12
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Size": [
+            [
+              0,
+              0.35
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Squash": -2.2,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.4,
+              "#C9E6FF"
+            ],
+            [
+              1,
+              "#4FA8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Stars",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 24,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            3,
+            7
+          ],
+          "SpreadAngle": [
+            80,
+            80
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.5,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.2,
+              0.4,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "RotSpeed": [
+            -120,
+            120
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.4,
+              "#C9E6FF"
+            ],
+            [
+              1,
+              "#4FA8FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Dragon",
+          "Texture": "vfx/celestial_dragon/dragon_roar_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.0,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.1,
+          "Lifetime": 1.2,
+          "Speed": 0.8,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "EmissionDirection": "Top",
+          "Size": [
+            [
+              0,
+              3.6
+            ],
+            [
+              0.4,
+              4.6
+            ],
+            [
+              1,
+              4.8
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.1,
+              0
+            ],
+            [
+              0.8,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 1.6
+        },
+        {
+          "Name": "Dust",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.4
+          },
+          "Burst": 26,
+          "Delay": 0.5,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            0.3,
+            1.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.8,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": "#C9E6FF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#6FB8FF",
+          "Start": 0.4,
+          "End": 5.0,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          200,
+          230,
+          255
+        ],
+        "Brightness": 13,
+        "Seconds": 0.35
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 46,
+      "Back": 23.0,
+      "BallTrail": 28,
+      "Beams": 1,
+      "Lights": 1,
+      "Orbiters": 4,
+      "PieceTriangles": 20536
+    }
+  }
+}

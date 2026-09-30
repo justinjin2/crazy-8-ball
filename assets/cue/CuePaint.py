@@ -3109,6 +3109,91 @@ def celestial_dragon(k):
     seam_edges(k, [F1, W0, W1, 6.93])
 
 
+@recipe
+def kitsune(k):
+    """White porcelain with crimson lacquer and gold (M2): OpenAI panels on the whole cue (a
+    porcelain shaft wound with a crimson ribbon edged in gold and small pink blossoms, a
+    porcelain-and-crimson forearm of flowing swirls with gold filigree and blossoms, a black grip
+    with a crimson crosshatch, a black lacquer sleeve with thin crimson lines), gold collar and
+    rings, a black end. The blossoms glow faintly pink. The fox mask is the 3D piece
+    (pieces/kitsune); the nine foxfire tails are Beams."""
+    s = k.skin['colours']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.14, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        gold = np.clip((sat - 0.3) * 4, 0, 1) * (r > b + 50) * (g > b + 20) * np.clip((L - 0.35) * 3, 0, 1)
+        pink = np.clip((r - g - 40) / 60.0, 0, 1) * (b > g + 10) * np.clip((L - 0.45) * 4, 0, 1)
+        crimson = np.clip((r - g - 90) / 60.0, 0, 1) * (b < g + 30) * (L < 0.45)
+        c.put(gold > 0.4, None, rough=0.24, metal=0.9)
+        c.add_height(gold, 0.0004)
+        c.put(crimson > 0.5, None, rough=0.08, metal=0.1)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(pink * 0.55 + gold * 0.08, 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.0)
+        mid = band(c, (J0 + J1) / 2 - 0.025, (J0 + J1) / 2 + 0.025) * m
+        gloss(c, mid > 0.5, '#101014', rough=0.12)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.45, metal=0.0, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.0)
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0C0E')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def apex(k):
+    """Gunmetal mech with orange armour and cyan light (M3): OpenAI panels on the whole cue (a
+    brushed steel shaft with angular orange stripes and cyan light lines, a black carbon forearm
+    of angular orange armour plates and glowing cyan circuit strips, a black hex-scale grip, a
+    gunmetal sleeve), a gunmetal joint with a glowing cyan band, a glowing cyan ring. The cyan
+    glows strongly, the orange a little. The claw arm is the 3D piece (pieces/apex)."""
+    s = k.skin['colours']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.3, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        orange = np.clip((sat - 0.45) * 4, 0, 1) * (r > g + 50) * (g > b + 15) * np.clip((L - 0.25) * 3, 0, 1)
+        cyan = np.clip((np.minimum(g, b) - r - 50) / 60.0, 0, 1) * np.clip((L - 0.35) * 3, 0, 1)
+        steel = (sat < 0.18) * np.clip((L - 0.25) * 3, 0, 1)
+        c.put(steel > 0.5, None, rough=0.28, metal=0.85)
+        c.put(orange > 0.4, None, rough=0.22, metal=0.1)
+        c.add_height(orange, 0.0004)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(cyan * 0.95 + orange * 0.12, 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['gunmetal'], rough=0.3)
+        c.put(m, None, glow=0.0)
+        for d in (J0 + 0.035, J1 - 0.035):
+            line = band(c, d - 0.008, d + 0.008) * m
+            c.put(line > 0.5, np.broadcast_to(rgb(s['cyan']), c.col.shape), rough=0.2, metal=0.0, glow=1.0)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.55, metal=0.0, glow=0.0)
+    for c, m in k.zone('ring'):
+        c.put(m, np.broadcast_to(rgb(s['cyan']), c.col.shape), rough=0.2, metal=0.0, glow=1.0)
+    end_band(k, colour=s['gunmetal'], d0=6.9, rough=0.3)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#16181C')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
 def chevron_plates(c, m, s, d0, d1, n_round=2, count=3, phase=FACE, slant=1.0, seed=0):
     """Angular armour plates: raised silver shards slanting across the section like claw slashes,
     each a long sharp-ended parallelogram with a bevelled edge and a brushed face; count along it,
