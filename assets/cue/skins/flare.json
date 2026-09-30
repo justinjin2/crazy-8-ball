@@ -74,8 +74,78 @@
           110,
           30
         ],
-        "NearTransparency": 0.45,
-        "LightEmission": 0.6
+        "NearTransparency": 0.0,
+        "LightEmission": 0.2,
+        "Lifetime": 0.8,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 1.6,
+        "Core": {
+          "Color": [
+            255,
+            139,
+            75
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.2,
+          "Brightness": 2.2
+        }
       }
     },
     "Trail": {

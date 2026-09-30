@@ -299,8 +299,8 @@
             42
           ]
         ],
-        "NearTransparency": 0.05,
-        "Lifetime": 0.5,
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
         "WidthStuds": 0.26,
         "LightEmission": 0.9,
         "Texture": "vfx/hacked/trail_data.png",
@@ -315,7 +315,61 @@
             1,
             0.8
           ]
-        ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            219,
+            255,
+            227
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
       }
     },
     "Trail": {

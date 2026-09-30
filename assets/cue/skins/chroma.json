@@ -690,7 +690,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.7,
+        "Lifetime": 1.1,
         "WidthStuds": 0.42,
         "LightEmission": 1,
         "Texture": "vfx/chroma/trail_rainbow.png",
@@ -715,10 +715,54 @@
             255,
             255
           ],
-          "Width": 0.07,
-          "NearTransparency": 0.3,
-          "LightEmission": 1
-        }
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.6,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.2
       },
       "Pocket": {
         "Colors": [

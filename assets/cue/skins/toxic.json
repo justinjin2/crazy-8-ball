@@ -413,8 +413,8 @@
             10
           ]
         ],
-        "NearTransparency": 0.1,
-        "Lifetime": 0.55,
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
         "WidthStuds": 0.28,
         "LightEmission": 0.7,
         "Texture": "vfx/toxic/trail_goo.png",
@@ -431,7 +431,7 @@
           ],
           [
             1,
-            0.4
+            0.5
           ]
         ],
         "Core": {
@@ -441,9 +441,53 @@
             160
           ],
           "Width": 0.3,
-          "NearTransparency": 0.3,
-          "LightEmission": 1
-        }
+          "NearTransparency": 0.0,
+          "LightEmission": 0.6,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.0
       }
     },
     "Trail": {

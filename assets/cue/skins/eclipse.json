@@ -793,7 +793,7 @@
         "NearTransparency": 0.0,
         "Lifetime": 1.2,
         "WidthStuds": 0.44,
-        "LightEmission": 0.3,
+        "LightEmission": 0.2,
         "Texture": "vfx/eclipse/trail_eclipse.png",
         "TextureMode": "Stretch",
         "WidthScale": [
@@ -818,7 +818,7 @@
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,
-          "LightEmission": 1,
+          "LightEmission": 0.2,
           "Transparency": [
             [
               0,
@@ -847,7 +847,7 @@
               0.4
             ]
           ],
-          "Brightness": 3.0
+          "Brightness": 2.2
         },
         "Transparency": [
           [

@@ -721,7 +721,7 @@
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,
-          "LightEmission": 1,
+          "LightEmission": 0.6,
           "Transparency": [
             [
               0,
@@ -750,7 +750,7 @@
               0.4
             ]
           ],
-          "Brightness": 3.0
+          "Brightness": 2.2
         },
         "Transparency": [
           [

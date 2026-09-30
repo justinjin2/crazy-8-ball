@@ -552,8 +552,8 @@
             40
           ]
         ],
-        "NearTransparency": 0.15,
-        "Lifetime": 0.6,
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
         "WidthStuds": 0.36,
         "LightEmission": 0.35,
         "Texture": "vfx/void/trail_smoke.png",
@@ -578,9 +578,53 @@
             255
           ],
           "Width": 0.3,
-          "NearTransparency": 0.3,
-          "LightEmission": 1
-        }
+          "NearTransparency": 0.0,
+          "LightEmission": 0.6,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.0
       }
     },
     "Trail": {

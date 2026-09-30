@@ -12,8 +12,10 @@ What it sets, by tier:
   * Brightness (Roblox Trail.Brightness) so the glow reads on the felt; dark trails (Eclipse,
     Kraken, Void ...) keep their low LightEmission body so the black still shows, and get their
     brightness from the core.
-  * A bright Core ribbon down the middle of every trail (a wider, fully glowing line of the
-    trail's lightest colour).
+  * A bright Core ribbon down the middle of every trail: the trail's lightest colour, only a
+    little whiter, half blended. Fully additive light on the blue felt turns orange and red to
+    pink and white (Roblox adds LightEmission light the same way), so the core stays half
+    blended and plain trails' bodies too; their Brightness above 1 is what makes them glow.
 """
 import json
 import os
@@ -23,12 +25,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKINS = os.path.join(ROOT, 'assets', 'cue', 'skins')
 
 LIFETIME = {'Secret': 1.2, 'Mythic': 1.2, 'Legendary': 1.1, 'Epic': 1.0, 'Exclusive': 1.0, 'Rank': 1.0,
-            'Rare': 0.9}
+            'Rare': 0.9, 'Uncommon': 0.8}
 BRIGHTNESS = {'Secret': 2.4, 'Mythic': 2.4, 'Legendary': 2.2, 'Epic': 2.0, 'Exclusive': 2.0, 'Rank': 2.0,
-              'Rare': 1.8}
-CORE_BRIGHTNESS = 3.0
+              'Rare': 1.8, 'Uncommon': 1.6}
+CORE_BRIGHTNESS = 2.2
+CORE_LE = 0.6              # half blended: an additive core turns warm colours pink over the blue felt
+CORE_LIGHTEN = 0.2         # toward white: more and the core loses the trail's hue
+PLAIN_LE = 0.5             # untextured trails: blended enough that their colour covers the felt
+WARM_LE = 0.2              # warm trails (red, orange, gold): nearly all blended, see warmth()
+WARM_RB = 80               # warm: red the strongest channel of the seen colour, above blue by this
 CORE_WIDTH = 0.2           # of the trail's width
-DARK_LE = 0.6              # below this the trail body is a dark trail (black must read)
+# dark trails: a black body that must read as black (their brightness comes from the core); named
+# rather than judged from LightEmission, which the warm cap below lowers
+DARK = {'eclipse', 'infernal', 'kraken', 'void', 'grandmaster_cue'}
 
 
 def lighten(rgb, k):
@@ -47,6 +56,33 @@ def trail_colours(tr):
     return [c if isinstance(c, list) else hex_rgb(c)]
 
 
+def seen_colour(tr):
+    """The trail's colour as seen: its tint times its texture's average colour (weighted by
+    alpha; the shared soft wisp is white)."""
+    cols = trail_colours(tr)
+    tint = [sum(c[i] for c in cols) / len(cols) for i in range(3)]
+    tex = tr.get('Texture')
+    if not tex:
+        return tint
+    from PIL import Image
+    im = Image.open(os.path.join(ROOT, 'assets', 'cue', tex)).convert('RGBA')
+    px = im.resize((64, 64)).getdata()
+    w = sum(a for _, _, _, a in px) or 1
+    mean = [sum(p[i] * p[3] for p in px) / w for i in range(3)]
+    return [tint[i] * mean[i] / 255 for i in range(3)]
+
+
+def is_warm_rgb(rgb):
+    r, g, b = rgb
+    return r >= g and r - b > WARM_RB
+
+
+def warm(tr):
+    """Warm trails keep their colour only nearly fully blended: Roblox keeps the felt behind a
+    trail at 1 - alpha * (1 - LightEmission), so added red over the blue felt reads pink."""
+    return is_warm_rgb(seen_colour(tr))
+
+
 def apply(skin):
     tier = skin.get('tier')
     style = (skin.get('vfx') or {}).get('Style')
@@ -58,9 +94,12 @@ def apply(skin):
     if not textured:
         # the shared soft wisp, tinted: wider and solid instead of the old half-transparent line
         tr['WidthStuds'] = max(float(tr.get('WidthStuds', 0.21)), 0.3)
-        tr['LightEmission'] = 1
+        tr['LightEmission'] = PLAIN_LE
+    is_warm = warm(tr)
+    if is_warm:
+        tr['LightEmission'] = min(float(tr.get('LightEmission', 0.4)), WARM_LE)
     le = float(tr.get('LightEmission', 0.4))
-    dark = le < DARK_LE
+    dark = skin.get('id') in DARK
     tr['NearTransparency'] = 0.0
     tr['Transparency'] = [[0, 0.0], [0.55, 0.12], [1, 1]] if not dark else [[0, 0.0], [0.6, 0.1], [1, 1]]
     ws = tr.get('WidthScale') or [[0, 1], [1, 0.35]]
@@ -71,12 +110,12 @@ def apply(skin):
     cols = trail_colours(tr)
     light = max(cols, key=sum)
     core = dict(tr.get('Core') or {})
-    core['Color'] = core.get('Color') or lighten(light, 0.45)
+    core['Color'] = core.get('Color') or lighten(light, CORE_LIGHTEN)
     core['Width'] = max(float(core.get('Width', 0)), CORE_WIDTH)
     core['NearTransparency'] = 0.0
     core['Transparency'] = [[0, 0.0], [0.5, 0.15], [1, 1]]
     core['WidthScale'] = [[0, 1], [0.6, 0.75], [1, 0.4]]
-    core['LightEmission'] = 1
+    core['LightEmission'] = WARM_LE if is_warm or is_warm_rgb(core['Color']) else CORE_LE
     core['Brightness'] = CORE_BRIGHTNESS
     tr['Core'] = core
     return True

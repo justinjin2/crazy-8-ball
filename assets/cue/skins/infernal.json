@@ -750,7 +750,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.6,
+        "Lifetime": 1.1,
         "WidthStuds": 0.55,
         "LightEmission": 0.4,
         "Texture": "vfx/infernal/trail_hellfire.png",
@@ -776,10 +776,54 @@
             90,
             40
           ],
-          "Width": 0.12,
-          "NearTransparency": 0.15,
-          "LightEmission": 1
-        }
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.2,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.0
       },
       "Pocket": {
         "Colors": [

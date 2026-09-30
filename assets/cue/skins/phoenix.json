@@ -832,7 +832,7 @@
         "NearTransparency": 0.0,
         "Lifetime": 1.1,
         "WidthStuds": 0.55,
-        "LightEmission": 1,
+        "LightEmission": 0.2,
         "Texture": "vfx/phoenix/trail_feathers.png",
         "TextureMode": "Stretch",
         "WidthScale": [
@@ -857,7 +857,7 @@
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,
-          "LightEmission": 1,
+          "LightEmission": 0.2,
           "Transparency": [
             [
               0,
@@ -886,7 +886,7 @@
               0.4
             ]
           ],
-          "Brightness": 3.0
+          "Brightness": 2.2
         },
         "Transparency": [
           [
