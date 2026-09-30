@@ -219,7 +219,9 @@ order; that is Open.
   fades in 1.5 s. The ball-in-hand hint is one thin line,
   only as wide as its words.
 - **The power bar** (designer, 2026-09-26): on a phone high on the right under the top bar; on
-  a computer or tablet bigger and centred on the right edge.
+  a computer or tablet bigger and centred on the right edge. The fill runs green to yellow to
+  red as you pull, and at 100% turns the house rainbow, its bands drifting down the bar
+  (designer, 2026-09-30).
 - **The zoom guide** (designer, 2026-09-26): over the spin button while it is your turn, a
   small icon and "Zoom In/Out" with nothing behind them, lightly greyed so it reads as a
   control guide rather than a button, but clear (2026-09-27): a deliberate exception to the

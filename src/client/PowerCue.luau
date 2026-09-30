@@ -11,13 +11,15 @@
 -- arithmetic and is Lune-tested; this module only turns its slices into Frames.
 --
 -- In the UI kit's look (docs/UI_STYLE.md): a white track with an ink outline, and a fill that
--- runs green to yellow to red as the pull grows.
+-- runs green to yellow to red as the pull grows, and turns the house rainbow at 100%, its
+-- bands drifting down the bar while the pull stays there.
 --
 -- A Frame cannot be a trapezoid, so the taper is built from thin bands stacked tip to butt.
 -- Every position and size is in SCALE rather than pixels, so the whole control is resolution
 -- independent and the pull reads the same on a phone and a monitor.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -37,6 +39,8 @@ export type PowerCue = typeof(setmetatable(
 		root: TextButton,
 		screen: ScreenGui,
 		fill: Frame,
+		rainbow: UIGradient, -- the fill's rainbow at 100%, off below it
+		rainbowStep: RBXScriptConnection?, -- drifts the rainbow while it shows
 		text: TextLabel,
 		cue: Frame,
 		cueId: string, -- the catalog cue drawn
@@ -50,6 +54,23 @@ export type PowerCue = typeof(setmetatable(
 
 local function rgb(c: { number }): Color3
 	return Color3.fromRGB(c[1], c[2], c[3])
+end
+
+-- The house rainbow along the bar, shifted by `phase` (0..1, one whole loop) and wrapping, so
+-- the bands drift without a seam. Sampled at evenly spaced keypoints (ColorSequence keypoints
+-- must start at 0 and end at 1, so the loop cannot simply be offset).
+local KEYPOINTS = 13
+local function rainbowAt(phase: number): ColorSequence
+	local colors = Config.Ranks.ChatRainbow
+	local n = #colors
+	local points = {}
+	for i = 0, KEYPOINTS - 1 do
+		local t = ((i / (KEYPOINTS - 1)) - phase) % 1 * n
+		local a = math.floor(t)
+		local from, to = rgb(colors[a % n + 1]), rgb(colors[(a + 1) % n + 1])
+		table.insert(points, ColorSequenceKeypoint.new(i / (KEYPOINTS - 1), from:Lerp(to, t - a)))
+	end
+	return ColorSequence.new(points)
 end
 
 -- The cue nearly fills the bar at rest and slides a whole bar height at full pull, so it
@@ -136,6 +157,13 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	local fillCorner = Instance.new("UICorner")
 	fillCorner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
 	fillCorner.Parent = fill
+	-- The rainbow at 100%: top to bottom along the fill, off until the pull gets there.
+	local rainbow = Instance.new("UIGradient")
+	rainbow.Name = "Rainbow"
+	rainbow.Rotation = 90
+	rainbow.Color = rainbowAt(0)
+	rainbow.Enabled = false
+	rainbow.Parent = fill
 
 	local shown = cueId or Config.Cue.DefaultStyle
 	local cue = buildCue(bar, shown, U.PowerCueWidthPx)
@@ -152,6 +180,8 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 		root = bar,
 		screen = screen,
 		fill = fill,
+		rainbow = rainbow,
+		rainbowStep = nil,
 		text = text,
 		cue = cue,
 		cueId = shown,
@@ -215,14 +245,37 @@ function PowerCue.setPull(self: PowerCue, pull: number?)
 	self.pull = pull and value
 	self.cue.Position = UDim2.fromScale(0.5, value * self.travel)
 	self.fill.Size = UDim2.fromScale(1, value)
-	-- Green for a soft touch, through yellow, to red at full power.
+	-- Green for a soft touch, through yellow, to red near full power; at 100% (as the label
+	-- rounds it) the house rainbow, drifting down the bar.
+	local percent = math.floor(value * 100 + 0.5)
+	local full = pull ~= nil and percent >= 100
 	local green, yellow, red = rgb(K.Colors.Green), rgb(K.Colors.Gold), rgb(K.Colors.Red)
-	self.fill.BackgroundColor3 = if value < 0.5
-		then green:Lerp(yellow, value * 2)
+	self.fill.BackgroundColor3 = if full
+		then Color3.new(1, 1, 1) -- the gradient tints white, so the rainbow shows true
+		elseif value < 0.5 then green:Lerp(yellow, value * 2)
 		else yellow:Lerp(red, (value - 0.5) * 2)
-	self.text.Text = if pull
-		then Strings.PowerPercent:format(math.floor(value * 100 + 0.5))
-		else Strings.Pull
+	self:showRainbow(full)
+	self.text.Text = if pull then Strings.PowerPercent:format(percent) else Strings.Pull
+end
+
+-- The rainbow on or off; while on, its bands drift down the bar every frame.
+function PowerCue.showRainbow(self: PowerCue, on: boolean)
+	if on == self.rainbow.Enabled then
+		return
+	end
+	self.rainbow.Enabled = on
+	if self.rainbowStep then
+		self.rainbowStep:Disconnect()
+		self.rainbowStep = nil
+	end
+	if on then
+		local started = os.clock()
+		local cycle = math.max(Config.UI.PowerFullRainbowCycleSeconds, 0.05)
+		self.rainbow.Color = rainbowAt(0)
+		self.rainbowStep = RunService.RenderStepped:Connect(function()
+			self.rainbow.Color = rainbowAt((os.clock() - started) / cycle % 1)
+		end)
+	end
 end
 
 --- Rebuild for a different catalog cue (nothing happens for the one already drawn).

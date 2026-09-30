@@ -4312,6 +4312,10 @@ Config.UI = {
 	PowerLargeLabelSize = 20,
 	PowerBarTransparency = 0.15, -- the white track, a little see-through over the table
 	PowerLabelSize = 16, -- PULL and the percentage over the bar
+	-- At 100% (the label's own rounding) the fill turns the house rainbow
+	-- (Config.Ranks.ChatRainbow), its bands drifting down the bar, to show the pull is at its
+	-- maximum (designer, 2026-09-30). One colour takes this long to travel the bar. (tune)
+	PowerFullRainbowCycleSeconds = 1.2,
 
 	-- ...and a top-down cue lying INSIDE that bar, which slides down as you pull. The cue is
 	-- the player's equipped catalog cue (Catalog.style), so the cue they pull back is the one
