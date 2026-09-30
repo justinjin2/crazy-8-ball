@@ -2073,3 +2073,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-30 (designer, with a close-up reference): the Eagle's Eye icon is "hunter eyes": one
   hooded human eye with a detailed sparkling green iris (an amber ring round the pupil) and a
   low heavy brow drawn hair by hair, replacing the cat's eye made earlier the same day.
+- 2026-09-30 (designer, with a bald eagle close-up): the Eagle's Eye icon goes back to an
+  eagle, but only its eye: a glistening pale-gold iris with fine fibres and a big black pupil
+  in a yellow ring, a black brow line cutting across its top for the hunter's glare. It
+  replaces the hunter-eyes icon made earlier the same day.
