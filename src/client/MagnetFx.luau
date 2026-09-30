@@ -7,7 +7,8 @@
 -- FieldArcs, FieldFlares, FieldRing, Chevron and PoleCaps, cloned per table from a pool); the
 -- pocket lines are Beams tiled with Config.Ults.Assets.Images.MagnetFieldBeam.
 --
--- Armed (from `armed.readyAt` while a table's snapshot has Magnet armed, until the shot goes):
+-- Armed (from `armed.readyAt` while a table's snapshot has Magnet armed, and through the shot
+-- until the cue ball's first hit):
 -- a low hum loops at the cue ball (3D, quiet). The cue ball becomes a little dipole: red N and
 -- blue S caps on it, N along the shooter's aim (the aim stream every client hears, eased; a
 -- slow turn when none is heard), and the field arcs lying flat on the cloth round it, three
@@ -18,9 +19,11 @@
 -- with a zap and a few sparks. Everyone near the table sees it: it reads only the table's
 -- snapshot and aim stream.
 --
--- The ult shot (the replay carries overrides.Effect == "Magnet"): each ball Magnet may pull
--- (Magnet.factor: the shooter's at 1, the opponent's at OpponentFactor) charges the moment it
--- starts moving: a zap, a spark burst, and a burst of field lines out of it (the arcs and a
+-- The ult shot (the replay carries overrides.Effect == "Magnet"): the cue ball keeps its armed
+-- look while it rolls, and at its first hit hands the magnet on (2026-09-30): field lines run
+-- from it into the ball it hit, arrows flowing in, sparks fly at the contact, and its own look
+-- goes. That ball, the only one Magnet pulls (Magnet.factor: the shooter's at 1, the
+-- opponent's at OpponentFactor), charges the moment it starts moving: a zap, a spark burst, and a burst of field lines out of it (the arcs and a
 -- fan of flared lines out of each pole, flat on the cloth, growing and fading), and it takes
 -- on red and blue caps for the rest of the shot, N toward where it is rolling. Each frame,
 -- Magnet.activePulls on the replay's own state says which balls are in a capture zone: three
@@ -66,6 +69,7 @@ type Pull = { ball: number, pocket: number, strength: number, factor: number? }
 local activePulls: ((any) -> { Pull })? = nil
 local mouthPoint: ((any, any) -> (number, number))? = nil
 local factorOf: ((any, number) -> number)? = nil
+local firstHitOf: ((any) -> number?)? = nil
 do
 	local ok, found = pcall(function()
 		local ults = Shared:FindFirstChild("Ults")
@@ -81,6 +85,9 @@ do
 	end
 	if ok and type(found) == "table" and type(found.factor) == "function" then
 		factorOf = found.factor
+	end
+	if ok and type(found) == "table" and type(found.firstHit) == "function" then
+		firstHitOf = found.firstHit
 	end
 end
 
@@ -185,6 +192,16 @@ type Burst = {
 	factor: number,
 }
 
+-- The hand-off: field lines from the cue ball into the ball it hit first, for a moment.
+type Handoff = {
+	starts: { Attachment }, -- the cue ball end of each line
+	ends: { Attachment }, -- the hit ball end
+	beams: { Beam }, -- the straight line, then the two bowing out either side
+	ball: number, -- the ball it hit
+	started: number, -- os.clock()
+	factor: number,
+}
+
 -- The drop's shockwave: a ring of chasing arrows spreading over the cloth from the pocket.
 type Wave = { part: MeshPart, at: Vector3, radius: number, started: number, factor: number }
 
@@ -242,6 +259,8 @@ type TableFx = {
 	charged: { [number]: ChargeFx }, -- balls charged on this shot
 	bursts: { Burst },
 	waves: { Wave },
+	handoff: Handoff?,
+	handoffSeq: number?, -- the shot whose hand-off has been shown
 	shotSeq: number?,
 	shot: number, -- 0-1: the ult shot's effects, fading out once it ends
 	pitchMix: number,
@@ -642,6 +661,8 @@ local function create(self: MagnetFx, id: number): TableFx
 		charged = {},
 		bursts = {},
 		waves = {},
+		handoff = nil,
+		handoffSeq = nil,
 		shotSeq = nil,
 		shot = 0,
 		pitchMix = 0,
@@ -1473,6 +1494,75 @@ local function stepCharges(
 	end
 end
 
+-- The cue ball's first hit, when Magnet may pull that ball: lines from the cue ball into it and
+-- sparks at the contact (its charge, from stepCharges, gives the zap and the burst).
+local function spawnHandoff(fx: TableFx, m: any, ball: number, factor: number, t: number)
+	local cue, b = m:findCueBall(), ballOf(m, ball)
+	if cue == nil or b == nil then
+		return
+	end
+	local starts, ends, beams = {}, {}, {}
+	for i = 1, 3 do
+		starts[i] = newAttachment(fx.anchor, ("Handoff%d_Cue"):format(i))
+		ends[i] = newAttachment(fx.anchor, ("Handoff%d_Ball"):format(i))
+		beams[i] = newLine(fx.anchor, starts[i], ends[i])
+	end
+	fx.handoff =
+		{ starts = starts, ends = ends, beams = beams, ball = ball, started = t, factor = factor }
+	fx.sparkAt.CFrame = CFrame.new(ballWorld(m, cue):Lerp(ballWorld(m, b), 0.5))
+	fx.sparks:Emit(math.max(1, math.round(F.HandoffSparkCount * weight(factor))))
+	fx.keepUntil = math.max(fx.keepUntil, t + F.SparkLifetime[2])
+end
+
+local function dropHandoff(fx: TableFx)
+	local h = fx.handoff
+	if h == nil then
+		return
+	end
+	fx.handoff = nil
+	for i = 1, #h.beams do
+		h.beams[i]:Destroy()
+		h.starts[i]:Destroy()
+		h.ends[i]:Destroy()
+	end
+end
+
+-- The hand-off's lines follow both balls, bright at once and fading over HandoffSeconds.
+local function stepHandoff(fx: TableFx, m: any, t: number)
+	local h = fx.handoff
+	if h == nil then
+		return
+	end
+	local u = (t - h.started) / F.HandoffSeconds
+	local cue, b = m:findCueBall(), ballOf(m, h.ball)
+	if u >= 1 or cue == nil or b == nil then
+		dropHandoff(fx)
+		return
+	end
+	local from = TableBuilder.toWorld(m.placement, cue.x, cue.y, F.LineLiftInches)
+	local to = TableBuilder.toWorld(m.placement, b.x, b.y, F.LineLiftInches)
+	local flat = Vector3.new(to.X - from.X, 0, to.Z - from.Z)
+	local dist = flat.Magnitude
+	local dir = if dist > 1e-4 then flat / dist else Vector3.xAxis
+	local side = dir:Cross(Vector3.yAxis)
+	local opacity = (1 - u * u) * weight(h.factor)
+	for i, beam in h.beams do
+		if i == 1 then
+			h.starts[i].CFrame = lineFrame(from, dir)
+			h.ends[i].CFrame = lineFrame(to, dir)
+			beam.CurveSize0, beam.CurveSize1 = 0, 0
+		else
+			local sign = if i == 2 then 1 else -1
+			h.starts[i].CFrame = lineFrame(from, side * sign)
+			h.ends[i].CFrame = lineFrame(to, -side * sign)
+			beam.CurveSize0 = dist * F.LineBowShare
+			beam.CurveSize1 = dist * F.LineBowShare
+		end
+		local base = if i == 1 then F.LineTransparency else F.SideLineTransparency
+		beam.Transparency = NumberSequence.new(1 - (1 - base) * opacity)
+	end
+end
+
 --- A pocket event at table `id`: a pulled ball's drop snaps its lines in, gets the clunk-zap
 --- and the sparks, and sends the shockwave out.
 local function onPocket(self: MagnetFx, id: number, m: any, ev: any)
@@ -1598,14 +1688,19 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 		if magnetShot and armed then
 			self.consumed[id] = armed.at -- this shot spends it: the armed look never returns
 		end
-		local wantLook = armed ~= nil
-			and self.consumed[id] ~= armed.at
-			and not m:isBusy()
-			and (
-				armed.stage == "Armed"
-				or now >= (armed.readyAt or math.huge)
-				or (fx ~= nil and fx.snapFor == armed.at)
-			)
+		-- The first ball the cue ball hit on this Magnet shot (nil until it hits one).
+		local first: number? = nil
+		if magnetShot and firstHitOf then
+			local ok, hit = pcall(firstHitOf :: any, m.state)
+			first = if ok and type(hit) == "number" then hit else nil
+		end
+		-- The armed look rides the rolling cue ball until that first hit.
+		local carrying = magnetShot and first == nil
+		local wantLook = carrying
+			or armed ~= nil
+				and self.consumed[id] ~= armed.at
+				and not m:isBusy()
+				and (armed.stage == "Armed" or now >= (armed.readyAt or math.huge) or (fx ~= nil and fx.snapFor == armed.at))
 		if fx == nil then
 			if not (wantLook or magnetShot) then
 				continue
@@ -1615,19 +1710,31 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 		local live = fx :: TableFx
 		if magnetShot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
+			dropHandoff(live)
 			table.clear(live.pulled)
 			for ball, c in live.charged do
 				dropCharge(live, c)
 				live.charged[ball] = nil
 			end
 		end
-		live.look = approach(live.look, if wantLook then 1 else 0, dt, F.LookFadeSeconds)
+		if magnetShot and first ~= nil and live.handoffSeq ~= m.seq then
+			live.handoffSeq = m.seq
+			local factor = factorFor(m.state, first)
+			if factor > 0 then
+				spawnHandoff(live, m, first, factor, t)
+			end
+		end
+		local lookFade = if magnetShot and first ~= nil
+			then F.HandoffLookFadeSeconds
+			else F.LookFadeSeconds
+		live.look = approach(live.look, if wantLook then 1 else 0, dt, lookFade)
 		live.shot = approach(live.shot, if magnetShot then 1 else 0, dt, F.EndFadeSeconds)
 		stepLook(self, live, id, m, snapshot, dt, t)
 		local strongest = stepPulls(self, live, m, magnetShot, dt, t)
 		stepCharges(self, live, m, magnetShot, dt, t)
 		stepBursts(self, live, m, t)
 		stepWaves(self, live, t)
+		stepHandoff(live, m, t)
 		live.pitchMix = approach(live.pitchMix, strongest, dt, F.PitchEaseSeconds)
 		local hum = live.hum
 		if hum then
@@ -1644,6 +1751,7 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 			and next(live.charged) == nil
 			and #live.bursts == 0
 			and #live.waves == 0
+			and live.handoff == nil
 			and t >= live.keepUntil
 		then
 			destroy(self, id)

@@ -250,7 +250,7 @@ separately from real multi-client playtests.
   `PlayerData` (the only module that touches it: session per player, kick on failure,
   validated named mutations, replication), `Economy` (pays each accepted shot), `Ranking`
   (settles each finished match once, charges leavers), `DevCommands` (the rank and money chat
-  commands).
+  commands; the giving ones designer-only, aimed at any player in the server by name).
 - Client: `Progression` (builds and routes everything below), `RankBadge` (one badge with its
   shine on a shared clock, used by every screen), `RankHud` (top left), `MoneyHud` (bottom
   left), `CashFlyer` (the "+$10" chips), `Nameplates`, `ResultScreen`, `NewRankPopup`,
@@ -618,8 +618,11 @@ when they should slow with `/slowmo` (ChainLightningFx's bolts and glows). `UltP
 
 **Tools.** `/slowmo <scale>`, `/hold <seconds>` (stops every replay at the caller's table at
 that shot time, `workspace` attribute `ReplayHold_<tableId>`) for the look checks;
-`/abilitysetup <id|name>` puts that ability in the caller's slot (the designer's account only,
-`Config.Debug.Commands.UserIds`, live too); Studio-only QA handles in ServerStorage
+`/abilitysetup <id|name> [player]` puts that ability in the caller's slot, or a named player's
+(the designer's account only, `Config.Debug.Commands.UserIds`, live too). Every command in
+`Config.Debug.Commands.Gives` is designer-only and takes a trailing player name (username or
+display name, optional "@"); `DevCommands` runs it on that player and sends the replies to the
+designer; Studio-only QA handles in ServerStorage
 (`PoolMatchQA`: snapshot, shot, action, fixture; `UltQA`: arm) for the playthrough; `tests/ult_value.luau` plus `tools/ult_value.luau` measure an ability's worth with
 the careful and careless shooters into `tools/ult_value_results.json` (`--set Block.Key=n`
 tries a tune without writing), which `tools/ult_model.py` reads. A `Turn` ability is measured

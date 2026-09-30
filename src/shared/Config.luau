@@ -6812,7 +6812,14 @@ Config.UI.MagnetFx = {
 	SnapSeconds = 0.35,
 	SnapFromScale = 2.6,
 	MeshSnapFromScale = 0.2,
-	LookFadeSeconds = 0.25, -- the armed look fades in at readyAt and out as the shot starts
+	LookFadeSeconds = 0.25, -- the armed look fades in at readyAt (and out if the shot ends first)
+	-- The hand-off (2026-09-30): the armed look rides the rolling cue ball until its first hit,
+	-- then field lines run from the cue ball into the ball it hit for HandoffSeconds, arrows
+	-- flowing into it, while the cue ball's look goes in HandoffLookFadeSeconds and the hit
+	-- ball charges (the burst and caps below). (tune)
+	HandoffSeconds = 0.45,
+	HandoffLookFadeSeconds = 0.12,
+	HandoffSparkCount = 14, -- sparks at the contact
 	-- The fallback field (no model yet): a dipole across the ball (N along the aim), a line
 	-- leaving each pole ArcSpreadDegrees off the axis and looping ArcReachStuds out, one line
 	-- per angle round the axis (0 = flat to one side, 90 = straight over the top).
@@ -8315,7 +8322,23 @@ Config.Debug = {
 	Commands = {
 		Day = "/day", -- the day/sunset cycle fades to day now (the 1 min fade)
 		Sunset = "/sunset", -- ...or to sunset; it runs on from there
-		-- Ranks and money, acting on the caller only (DevCommands; `/rankhelp` lists them).
+		-- The commands that give things (by name): only the accounts in UserIds may use them,
+		-- and the last word may name a player in the server to give it to instead
+		-- (/givecue chalk dust 3 bob, /money 5000 @bob, /abilitysetup black hole bob).
+		Gives = {
+			"Rank",
+			"Xp",
+			"Money",
+			"AddMoney",
+			"GiveCue",
+			"GiveCase",
+			"Spins",
+			"Lucky",
+			"Ult",
+			"AbilitySetup",
+		},
+		-- Ranks and money, acting on the caller (or a named player: Gives) (DevCommands;
+		-- `/rankhelp` lists them).
 		Rank = "/rank", -- /rank gold 3 [xp] | /rank reyes | /rank unranked: set it (no rewards)
 		Xp = "/xp", -- /xp 250: a gain through the real rules (peak, rewards, popups); never a loss
 		Money = "/money", -- /money 5000: set money

@@ -15,6 +15,10 @@
 --   replay rate at the caller's table for everyone (a workspace attribute the clients read).
 --   /abilitysetup <id|name> puts that ability in the caller's selected slot: the designer's
 --   own account only (Config.Debug.Commands.UserIds), in Studio and live.
+-- - The giving commands (Config.Debug.Commands.Gives: rank, XP, money, cues, cases, spins,
+--   abilities) are the designer's account only (UserIds), and their last word may be a
+--   player's username (or display name) in this server, "@" optional: it acts on that player
+--   instead, and the answers come back to the designer with the name in front.
 -- - Arguments are read defensively: a bad one answers a usage line, never an error.
 
 local Players = game:GetService("Players")
@@ -82,6 +86,33 @@ end
 -- Every command by its alias, for the Studio test hook (DevCommands.start).
 local handlers: { [string]: (Player, { string }) -> () } = {}
 
+-- The commands that give things (Config.Debug.Commands.Gives), by alias: the designer's own
+-- account only, and they may name someone else in this server as the last word.
+local gives: { [string]: boolean? } = {}
+
+-- A player given something by someone else's command -> that caller, while it runs: the
+-- command's answers go to the caller (tell), never to the one given it.
+local givenBy: { [Player]: Player } = {}
+
+local function isDesigner(userId: number): boolean
+	return table.find(D.UserIds, userId) ~= nil
+end
+
+-- The player in this server whose username (or else display name) is `name`, any case.
+local function playerNamed(name: string): Player?
+	for _, p in Players:GetPlayers() do
+		if string.lower(p.Name) == name then
+			return p
+		end
+	end
+	for _, p in Players:GetPlayers() do
+		if string.lower(p.DisplayName) == name then
+			return p
+		end
+	end
+	return nil
+end
+
 -- Runs the command typed in `text` for `player`, if they may use it (`fromScript`: the Studio
 -- test hook, a server script rather than a player, may run it for any test player).
 local function dispatch(player: Player, text: string, fromScript: boolean?)
@@ -89,8 +120,13 @@ local function dispatch(player: Player, text: string, fromScript: boolean?)
 		return
 	end
 	local words = string.split(string.lower(text or ""), " ")
-	local run = handlers[words[1] or ""]
+	local alias = words[1] or ""
+	local run = handlers[alias]
 	if not run then
+		return
+	end
+	-- Giving: the designer only (2026-09-30), whoever else may use the other commands.
+	if gives[alias] and not fromScript and not isDesigner(player.UserId) then
 		return
 	end
 	local args = {}
@@ -99,18 +135,46 @@ local function dispatch(player: Player, text: string, fromScript: boolean?)
 			table.insert(args, words[i])
 		end
 	end
-	run(player, args)
+	-- A giving command's last word may name its receiver: a player in this server ("@" optional).
+	local target = player
+	local last = args[#args]
+	if gives[alias] and last then
+		local name = string.gsub(last, "^@", "")
+		local found = playerNamed(name)
+		if found then
+			target = found
+			table.remove(args)
+		elseif string.sub(last, 1, 1) == "@" then
+			Net.get("DevNotice"):FireClient(player, Strings.Dev.NoPlayer:format(name))
+			return
+		end
+	end
+	if target == player then
+		run(player, args)
+		return
+	end
+	givenBy[target] = player
+	local ok, err = pcall(function()
+		run(target, args)
+	end)
+	givenBy[target] = nil
+	if not ok then
+		error(err, 0)
+	end
 end
 
 -- `run` gets the caller and the words typed after the alias.
 local function command(name: string, alias: string, run: (Player, { string }) -> ())
 	handlers[alias] = run
+	local giving = table.find(D.Gives, name) ~= nil
+	gives[alias] = if giving then true else nil
 	local cmd = Instance.new("TextChatCommand")
 	cmd.Name = "Dev" .. name
 	cmd.PrimaryAlias = alias
 	local old = OLD_ALIASES[name]
 	if old then
 		handlers[old] = run
+		gives[old] = if giving then true else nil
 		cmd.SecondaryAlias = old
 	end
 	cmd.AutocompleteVisible = false -- not offered to players
@@ -128,8 +192,13 @@ local Dev = Strings.Dev
 -- The lines told to a player during a Studio hook call, which the hook hands back.
 local captured: { [Player]: { string } } = {}
 
--- A private line in the caller's chat window.
+-- A private line in the caller's chat window. While a command gives something to someone else
+-- (givenBy), its lines go to the giver instead, with the receiver's name.
 local function tell(player: Player, text: string)
+	local giver = givenBy[player]
+	if giver then
+		player, text = giver, Dev.ForPlayer:format(player.Name, text)
+	end
 	local lines = captured[player]
 	if lines then
 		table.insert(lines, text)
@@ -986,13 +1055,10 @@ local function hold(player: Player, args: { string })
 	tell(player, if at then Dev.HoldSet:format(id, tostring(at)) else Dev.HoldOff:format(id))
 end
 
--- /abilitysetup <id|name>: puts that ability in the caller's selected slot, nothing more (no
--- table, no match: the designer, 2026-09-30). The designer's own account only
--- (Config.Debug.Commands.UserIds), in Studio and live alike; anyone else gets nothing.
+-- /abilitysetup <id|name> [player]: puts that ability in the selected slot, nothing more (no
+-- table, no match: the designer, 2026-09-30). A giving command (Config.Debug.Commands.Gives):
+-- the designer's own account only, in Studio and live alike, checked in dispatch.
 local function abilitySetup(player: Player, args: { string })
-	if table.find(D.UserIds, player.UserId) == nil then
-		return
-	end
 	if #args == 0 then
 		try(player, "AbilitySetup")
 		return

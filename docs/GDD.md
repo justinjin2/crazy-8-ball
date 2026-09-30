@@ -454,8 +454,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     since 2026-09-30), is steered toward the pocket's centre; it rescues near misses and jaw
     rattles, never a vacuum. Only that one ball (2026-09-30: a cluster by a pocket let one shot
     pull about five in). A
-    blue field-line dipole on the armed cue ball, field lines pulling into the pocket, a
-    shockwave on the drop.
+    blue field-line dipole on the armed cue ball that rides it until the first hit, where it
+    passes to the hit ball in a flash of lines and sparks (2026-09-30); field lines pulling
+    into the pocket, a shockwave on the drop.
   - **Eagle's Eye** (Common, 0.34): the full path of the shot while aiming, the cue ball's and
     the first object ball's, through every cushion, bounce rings and the reached pocket
     glowing (gold strips under the white guideline). Nothing changes the physics.

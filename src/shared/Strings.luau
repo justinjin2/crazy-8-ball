@@ -277,7 +277,7 @@ return {
 	},
 	-- The developer chat commands' private replies (DevCommands; shown only to the caller).
 	Dev = {
-		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp",
+		Help = "Rank and money commands: /rank <tier> [1-5] [xp], /rank unranked, /xp <amount>, /money <amount>, /addmoney <amount>, /result win|lose|draw|firstwin, /newrank [tier] [1-5], /resetdata. Economy commands: /econhelp. Ability commands: /abilityhelp. Put a player's username last to give it to them instead (/rank, /xp, /money, /addmoney, /givecue, /givecase, /spins, /lucky, /ability, /abilitysetup).",
 		BadRank = "Try /rank gold 3, /rank reyes or /rank unranked.",
 		BadAmount = "Give a whole number, like %s 500.",
 		XpNeverLost = "XP is never lost: give a gain, like %s 250.",
@@ -288,12 +288,12 @@ return {
 		Reset = "Your save was reset.",
 		-- The economy commands (/econhelp). Usage: the alias first (%s), then what follows it;
 		-- What: one line on what it does. A bad argument answers Try with the usage.
-		EconHelp = "Economy commands (they act on you only):",
+		EconHelp = "Economy commands (they act on you; [player]: a username in this server, to give it to them):",
 		HelpLine = "%s: %s",
 		Try = "Try %s.",
 		Usage = {
-			GiveCue = "%s <id|name> [count]",
-			GiveCase = "%s <%s> [count]", -- the case ids
+			GiveCue = "%s <id|name> [count] [player]",
+			GiveCase = "%s <%s> [count] [player]", -- the case ids
 			OpenCase = "%s <%s>",
 			Inv = "%s",
 			ClearInv = "%s",
@@ -312,17 +312,17 @@ return {
 			UltBar = "%s <0-%d>",
 			UltFull = "%s",
 			UltArm = "%s",
-			Spins = "%s <0-%d>",
-			Lucky = "%s <0-%d>",
+			Spins = "%s <0-%d> [player]",
+			Lucky = "%s <0-%d> [player]",
 			Pity = "%s <0-%d>",
 			FreeSpin = "%s",
-			Ult = "%s <id|name>",
+			Ult = "%s <id|name> [player]",
 			UltsAll = "%s on|off",
 			OpUlt = "%s",
 			-- The look check's tools (Studio only).
 			Slowmo = "%s <%s-%s>, or %s",
 			Hold = "%s <0-%s>, or %s",
-			AbilitySetup = "%s <id|name>",
+			AbilitySetup = "%s <id|name> [player]",
 		},
 		What = {
 			GiveCue = "copies of a cue, by id or name (not Classic or a Unique cue)",
@@ -355,7 +355,7 @@ return {
 			-- The look check's tools (Studio only).
 			Slowmo = "Studio only: every shot replay at your table at that rate, for everyone (1 or nothing: normal)",
 			Hold = "Studio only: every shot replay at your table stops at that many seconds in and stays (nothing: let go)",
-			AbilitySetup = "puts that ability in your selected slot (your account only)",
+			AbilitySetup = "puts that ability in your selected slot, or a named player's (your account only)",
 		},
 		BadCue = 'No cue called "%s". Use an id (ChalkDust) or a name (chalk dust).',
 		BadCase = 'No case called "%s". Cases: %s.',
@@ -418,6 +418,9 @@ return {
 		FreeSpinReady = "Today's free spin is ready again.",
 		UltSet = "%s is in your selected slot.",
 		BadUlt = 'No ability called "%s". Abilities: %s.',
+		-- A giving command for someone else (the last word their username): its answers.
+		ForPlayer = "[%s] %s",
+		NoPlayer = "No one called %s is in this server.",
 		UltsAllOn = "Every ability rolls and plays for you this session.",
 		UltsAllOff = "Only the built abilities roll and play for you again.",
 		OpUlt = "Filled %d bar(s) on the other side.",

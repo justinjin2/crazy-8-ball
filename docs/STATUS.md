@@ -1,5 +1,13 @@
 # Status
 
+**2026-09-30: Magnet hand-off; the designer gives to named players.** Magnet's armed look now
+rides the rolling cue ball and jumps to the first ball hit (lines and sparks). The giving
+commands (`/abilitysetup`, `/givecue`, `/givecase`, `/money`, `/rank` and the rest in
+`Config.Debug.Commands.Gives`) take an optional player name at the end (`/money 5000 Bob` or
+`@Bob`) and work for the designer's account alone. 876 Lune tests pass; checked in Studio
+(the hand-off spawns at contact and fades; commands aimed at yourself by name). Giving to a
+second player is not yet tried: it needs two players.
+
 **2026-09-30: ability review started (one at a time), Magnet first.** Solo practice works on
 the break too; `/abilitysetup <id>` just switches your ability (your account only, live too).
 Magnet pulls only the first ball the cue ball hits, zone and lines 30% smaller; worth 0.35 a
@@ -33,7 +41,7 @@ Report: `docs/prompts/ABILITIES_REPORT.md`. Brief and notes: `docs/prompts/ABILI
     (armed, the shot, the payoff), sounds from the Roblox library, screen effects for the table.
   - 3D icons for all 13 in every spot (cutscene, slots, odds, pills, badges, banners).
   - The top-down pick view (Heat Seeker's ball, Portals' two spots) for touch, mouse and pad.
-  - Dev tools: `/abilitysetup <id>` (switches your ability; designer only), `/slowmo <scale>`,
+  - Dev tools: `/abilitysetup <id> [player]` (switches an ability; designer only), `/slowmo <scale>`,
     `/hold <seconds>`.
   - The spin screen is live (`Config.Ults.ScreenLive = true`): every ability can be rolled.
 - **Verified:**

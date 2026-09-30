@@ -2057,3 +2057,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (a cluster by a pocket let one shot pull about five in), and its pocket zone, field lines
   and aiming rings are 30% smaller (5.25 ball widths, was 7.5). Measured worth 0.35 a use
   (was 0.48 on the new physics), level with the other Commons.
+- 2026-09-30: Magnet's armed look rides the rolling cue ball and passes to the first ball hit
+  (lines and sparks at contact), so the player sees which ball got the pull. The giving
+  commands (ability, cues, cases, spins, money, rank, xp) are the designer's alone and take a
+  player name to give to someone else in the server (designer request).
