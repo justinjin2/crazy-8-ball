@@ -235,3 +235,145 @@ def infernal(k):
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 2.5, 'Period': 3.6}])
     k.model('Skull', 'HornedSkull', 'infernal_skull', place, target_tris=19500, emissive=_magma,
             emissive_tint='#FF6A2A', emissive_strength=3.0, cut_below=0.3)
+
+
+def _gear(bm, r, teeth, thick, spokes=5, tooth_scale=1.0):
+    """One gear in its own frame (the XY plane, the axle along Z): a toothed rim (trapezoid teeth
+    `tooth` deep round radius r; tooth_scale grows the depth cap for big gears), spokes to a
+    hub. Returns (rim_faces, hub_faces)."""
+    import bmesh
+    from mathutils import Matrix
+    tooth = min(0.045 * tooth_scale, r * 0.2)
+    r_root, r_in = r - tooth, (r - tooth) * 0.74
+    # the outline: per tooth, root, rise, tip, tip, fall (so teeth have flat tops)
+    pts = []
+    for i in range(teeth):
+        a0 = 2 * math.pi * i / teeth
+        step = 2 * math.pi / teeth
+        for f, rr in ((0.0, r_root), (0.22, r_root), (0.34, r), (0.62, r), (0.74, r_root)):
+            pts.append((a0 + f * step, rr))
+    h = thick / 2
+    top_o = [bm.verts.new((rr * math.cos(a), rr * math.sin(a), h)) for a, rr in pts]
+    bot_o = [bm.verts.new((rr * math.cos(a), rr * math.sin(a), -h)) for a, rr in pts]
+    top_i = [bm.verts.new((r_in * math.cos(a), r_in * math.sin(a), h)) for a, _ in pts]
+    bot_i = [bm.verts.new((r_in * math.cos(a), r_in * math.sin(a), -h)) for a, _ in pts]
+    rim = []
+    n = len(pts)
+    for i in range(n):
+        j = (i + 1) % n
+        rim.append(bm.faces.new((top_o[i], top_o[j], top_i[j], top_i[i])))
+        rim.append(bm.faces.new((bot_o[j], bot_o[i], bot_i[i], bot_i[j])))
+        rim.append(bm.faces.new((bot_o[i], bot_o[j], top_o[j], top_o[i])))
+        rim.append(bm.faces.new((top_i[i], top_i[j], bot_i[j], bot_i[i])))
+    # spokes: flat bars from the hub to the rim
+    w = max(r * 0.12, 0.012)
+    for s in range(spokes):
+        a = 2 * math.pi * (s + 0.5) / spokes
+        mid = (r_in + r * 0.2) / 2
+        length = r_in - r * 0.2 + 0.01
+        M = (Matrix.Rotation(a, 4, 'Z') @ Matrix.Translation((mid, 0, 0))
+             @ Matrix.Diagonal((length, w, thick * 0.7, 1)))
+        res = bmesh.ops.create_cube(bm, size=1.0, matrix=M)
+        rim += list({f for v in res['verts'] for f in v.link_faces})
+    before = set(bm.faces)
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=16, radius1=r * 0.22, radius2=r * 0.22,
+                          depth=thick * 1.5)
+    hub = [f for f in bm.faces if f not in before]
+    return rim, hub
+
+
+def _glow_ring(bm, r, thick, segs=40):
+    """A thin glowing ring inlaid in both faces of a gear of radius r (just proud of the rim, on
+    its inner half), so the gear reads as lit brass even in dim light."""
+    tooth_root = r - min(0.045 * max(1.0, r / 0.3), r * 0.2)
+    r0, r1 = tooth_root * 0.78, tooth_root * 0.88
+    for z in (thick / 2 + 0.002, -thick / 2 - 0.002):
+        a_ = [bm.verts.new((r0 * math.cos(2 * math.pi * i / segs), r0 * math.sin(2 * math.pi * i / segs), z))
+              for i in range(segs)]
+        b_ = [bm.verts.new((r1 * math.cos(2 * math.pi * i / segs), r1 * math.sin(2 * math.pi * i / segs), z))
+              for i in range(segs)]
+        for i in range(segs):
+            j = (i + 1) % segs
+            f = bm.faces.new((a_[i], a_[j], b_[j], b_[i]) if z > 0 else (b_[i], b_[j], a_[j], a_[i]))
+            f.smooth = False
+
+
+@piece
+def clockwork(k):
+    """Brass and copper gears on the cue, turning (the concept's clockwork, which the flat cog
+    sprites could only hint at): a meshing pair on top of the forearm and another on its side, a
+    cluster of three round the butt, small single gears along the shaft. Each gear stands just off
+    the cue on a dark axle pin, its face to the outside; meshing gears turn opposite ways at
+    speeds set by their sizes, so their teeth roll together. Hubs and a ring inlaid in each
+    face glow amber."""
+    import bmesh
+    from mathutils import Matrix, Vector
+    import cue_common as cc
+    from CuePieces import apply_modifier
+    env = cc.Envelope(cc.load_shape()[0])
+    k.material('Brass', 'Foil', '#EDBE58')
+    k.material('Copper', 'Foil', '#DE8A4E')
+    k.material('Pin', 'Metal', '#3A2A1C')
+    k.material('Glow', 'Neon', '#FFB040')
+    MODULE = 0.024            # studs of radius per tooth: meshing gears share it
+    BASE_RATE = 70.0          # degrees a second for a gear of radius 0.2
+
+    def frame(at, theta):
+        n = Vector((math.sin(theta), 0, math.cos(theta)))          # out from the cue: the axle
+        t = Vector((math.cos(theta), 0, -math.sin(theta)))          # round the cue
+        return n, t
+
+    count = [0]
+
+    def gear(at, theta, r, rate_sign, mat, phase=0.0, standoff=0.035, spokes=5):
+        count[0] += 1
+        name = 'Gear%d' % count[0]
+        n, t = frame(at, theta)
+        rc = float(env(at))
+        centre = n * (rc + standoff) + Vector((0, -at, 0))
+        teeth = max(8, round(r / MODULE))
+        rate = rate_sign * BASE_RATE * 0.2 / r
+        k.joint(name, pivot=tuple(centre), motion=[
+            {'Kind': 'Spin', 'Axis': tuple(n), 'Rate': rate, 'Phase': phase}])
+        bm_g, bm_h = bmesh.new(), bmesh.new()
+        rim, _ = _gear(bm_g, r, teeth, 0.028, spokes=spokes)
+        bmesh.ops.create_cone(bm_h, cap_ends=True, segments=16, radius1=r * 0.13, radius2=r * 0.13, depth=0.05)
+        _glow_ring(bm_h, r, 0.028)
+        # the gear's frame: X round the cue, Y along it (toward the tip), Z the axle
+        R = Matrix((t, Vector((0, 1, 0)), n)).transposed().to_4x4()
+        M = Matrix.Translation(centre) @ R
+        bmesh.ops.transform(bm_g, matrix=M, verts=bm_g.verts)
+        bmesh.ops.transform(bm_h, matrix=M, verts=bm_h.verts)
+        ob = k.add(name, k.mesh_object(name + mat, bm_g, [mat], smooth=False))
+        # machined edges: a small bevel so the brass catches highlights on every tooth
+        apply_modifier(k.bpy, ob, 'BEVEL', width=0.0035, segments=1, limit_method='ANGLE',
+                       harden_normals=False)
+        k.add(name, k.mesh_object(name + 'Hub', bm_h, ['Glow'], smooth=False))
+        # the axle pin from the cue's surface to the gear (does not turn)
+        bm_p = bmesh.new()
+        bmesh.ops.create_cone(bm_p, cap_ends=True, segments=10, radius1=0.018, radius2=0.018,
+                              depth=standoff + 0.02)
+        Mp = Matrix.Translation(n * (rc + standoff / 2 - 0.01) + Vector((0, -at, 0))) @ R
+        bmesh.ops.transform(bm_p, matrix=Mp, verts=bm_p.verts)
+        if 'Pins' not in k.joints:
+            k.joint('Pins')
+        k.add('Pins', k.mesh_object('Pin%d' % count[0], bm_p, ['Pin']))
+        return teeth
+
+    def pair(at, theta, r1, r2, toward_tip, m1, m2, sign=1, spokes=(5, 4)):
+        """Two meshing gears side by side along the cue: the second rolls against the first."""
+        t1 = gear(at, theta, r1, sign, m1, spokes=spokes[0])
+        pitch = (r1 - min(0.045, r1 * 0.2) / 2) + (r2 - min(0.045, r2 * 0.2) / 2)
+        at2 = at - pitch if toward_tip else at + pitch
+        t2 = max(8, round(r2 / MODULE))
+        gear(at2, theta, r2, -sign, m2, phase=180.0 / t2, spokes=spokes[1])
+
+    # the forearm (the glass section): a pair on top, another on the far side
+    pair(4.55, math.radians(-15), 0.27, 0.16, True, 'Brass', 'Copper')
+    pair(4.9, math.radians(115), 0.2, 0.13, False, 'Copper', 'Brass', sign=-1)
+    # the butt: a big gear with a small one rolling on it toward the tip, one more underneath
+    pair(6.5, math.radians(25), 0.25, 0.14, True, 'Brass', 'Copper')
+    gear(6.55, math.radians(200), 0.22, 1, 'Brass', spokes=6)
+    # small gears along the shaft
+    gear(1.7, math.radians(50), 0.11, 1, 'Brass', standoff=0.03, spokes=4)
+    gear(2.9, math.radians(-70), 0.13, -1, 'Copper', standoff=0.03, spokes=4)

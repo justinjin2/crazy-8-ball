@@ -1,0 +1,629 @@
+{
+  "id": "clockwork",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 12712,
+  "Parts": [
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear1_Brass",
+      "File": "pieces/clockwork/Gear1_Brass.obj",
+      "Joint": "Gear1",
+      "Offset": [
+        0.0354,
+        0.1217,
+        -1.0502
+      ],
+      "Size": [
+        0.5206,
+        0.1631,
+        0.5379
+      ],
+      "Triangles": 1400
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear1_Glow",
+      "File": "pieces/clockwork/Gear1_Glow.obj",
+      "Joint": "Gear1",
+      "Offset": [
+        0.0328,
+        0.1223,
+        -1.05
+      ],
+      "Size": [
+        0.3908,
+        0.1334,
+        0.396
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Metal",
+      "Color": "#3A2A1C",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Pins_Pin",
+      "File": "pieces/clockwork/Pins_Pin.obj",
+      "Joint": "Pins",
+      "Offset": [
+        -0.0119,
+        -0.0016,
+        -0.625
+      ],
+      "Size": [
+        0.2311,
+        0.2623,
+        4.886
+      ],
+      "Triangles": 324
+    },
+    {
+      "Material": "Foil",
+      "Color": "#DE8A4E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear2_Copper",
+      "File": "pieces/clockwork/Gear2_Copper.obj",
+      "Joint": "Gear2",
+      "Offset": [
+        0.0318,
+        0.1188,
+        -0.6585
+      ],
+      "Size": [
+        0.3011,
+        0.1047,
+        0.3061
+      ],
+      "Triangles": 1068
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear2_Glow",
+      "File": "pieces/clockwork/Gear2_Glow.obj",
+      "Joint": "Gear2",
+      "Offset": [
+        0.0318,
+        0.1188,
+        -0.6585
+      ],
+      "Size": [
+        0.2259,
+        0.0892,
+        0.2253
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#DE8A4E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear3_Copper",
+      "File": "pieces/clockwork/Gear3_Copper.obj",
+      "Joint": "Gear3",
+      "Offset": [
+        -0.1177,
+        -0.0549,
+        -1.4
+      ],
+      "Size": [
+        0.1847,
+        0.3562,
+        0.3832
+      ],
+      "Triangles": 1112
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear3_Glow",
+      "File": "pieces/clockwork/Gear3_Glow.obj",
+      "Joint": "Gear3",
+      "Offset": [
+        -0.1177,
+        -0.0549,
+        -1.4
+      ],
+      "Size": [
+        0.148,
+        0.2687,
+        0.2816
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear4_Brass",
+      "File": "pieces/clockwork/Gear4_Brass.obj",
+      "Joint": "Gear4",
+      "Offset": [
+        -0.1202,
+        -0.056,
+        -1.697
+      ],
+      "Size": [
+        0.1277,
+        0.2338,
+        0.2482
+      ],
+      "Triangles": 1068
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear4_Glow",
+      "File": "pieces/clockwork/Gear4_Glow.obj",
+      "Joint": "Gear4",
+      "Offset": [
+        -0.1202,
+        -0.056,
+        -1.697
+      ],
+      "Size": [
+        0.1064,
+        0.1794,
+        0.183
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear5_Brass",
+      "File": "pieces/clockwork/Gear5_Brass.obj",
+      "Joint": "Gear5",
+      "Offset": [
+        -0.0571,
+        0.1224,
+        -3.0
+      ],
+      "Size": [
+        0.4498,
+        0.2282,
+        0.4985
+      ],
+      "Triangles": 1304
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear5_Glow",
+      "File": "pieces/clockwork/Gear5_Glow.obj",
+      "Joint": "Gear5",
+      "Offset": [
+        -0.0571,
+        0.1224,
+        -3.0
+      ],
+      "Size": [
+        0.3405,
+        0.1815,
+        0.3608
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#DE8A4E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear6_Copper",
+      "File": "pieces/clockwork/Gear6_Copper.obj",
+      "Joint": "Gear6",
+      "Offset": [
+        -0.0571,
+        0.1224,
+        -2.6465
+      ],
+      "Size": [
+        0.2513,
+        0.1358,
+        0.2675
+      ],
+      "Triangles": 1068
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear6_Glow",
+      "File": "pieces/clockwork/Gear6_Glow.obj",
+      "Joint": "Gear6",
+      "Offset": [
+        -0.0571,
+        0.1224,
+        -2.6465
+      ],
+      "Size": [
+        0.1922,
+        0.1123,
+        0.1971
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear7_Brass",
+      "File": "pieces/clockwork/Gear7_Brass.obj",
+      "Joint": "Gear7",
+      "Offset": [
+        0.0431,
+        -0.1278,
+        -3.0497
+      ],
+      "Size": [
+        0.413,
+        0.1714,
+        0.4374
+      ],
+      "Triangles": 1252
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear7_Glow",
+      "File": "pieces/clockwork/Gear7_Glow.obj",
+      "Joint": "Gear7",
+      "Offset": [
+        0.0462,
+        -0.1269,
+        -3.05
+      ],
+      "Size": [
+        0.302,
+        0.136,
+        0.3098
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear8_Brass",
+      "File": "pieces/clockwork/Gear8_Brass.obj",
+      "Joint": "Gear8",
+      "Offset": [
+        -0.0704,
+        0.0591,
+        1.8
+      ],
+      "Size": [
+        0.1522,
+        0.1741,
+        0.2096
+      ],
+      "Triangles": 1068
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear8_Glow",
+      "File": "pieces/clockwork/Gear8_Glow.obj",
+      "Joint": "Gear8",
+      "Offset": [
+        -0.0704,
+        0.0591,
+        1.8
+      ],
+      "Size": [
+        0.1241,
+        0.1392,
+        0.1549
+      ],
+      "Triangles": 220
+    },
+    {
+      "Material": "Foil",
+      "Color": "#DE8A4E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear9_Copper",
+      "File": "pieces/clockwork/Gear9_Copper.obj",
+      "Joint": "Gear9",
+      "Offset": [
+        0.0978,
+        0.0356,
+        0.6
+      ],
+      "Size": [
+        0.1091,
+        0.2404,
+        0.2482
+      ],
+      "Triangles": 1068
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Gear9_Glow",
+      "File": "pieces/clockwork/Gear9_Glow.obj",
+      "Joint": "Gear9",
+      "Offset": [
+        0.0978,
+        0.0356,
+        0.6
+      ],
+      "Size": [
+        0.0927,
+        0.1829,
+        0.183
+      ],
+      "Triangles": 220
+    }
+  ],
+  "Joints": {
+    "Gear1": {
+      "Parent": null,
+      "Pivot": [
+        -0.03276817873120308,
+        -4.550000190734863,
+        0.12229251116514206
+      ],
+      "PivotRoblox": [
+        0.0328,
+        0.1223,
+        -1.05
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.258819043636322,
+            0.0,
+            0.9659258127212524
+          ],
+          "Rate": 51.85185185185185,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "Pins": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        3.5
+      ],
+      "Motion": []
+    },
+    "Gear2": {
+      "Parent": null,
+      "Pivot": [
+        -0.031833574175834656,
+        -4.1585001945495605,
+        0.11880450695753098
+      ],
+      "PivotRoblox": [
+        0.0318,
+        0.1188,
+        -0.6585
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.258819043636322,
+            0.0,
+            0.9659258127212524
+          ],
+          "Rate": -87.5,
+          "Phase": 22.5
+        }
+      ]
+    },
+    "Gear3": {
+      "Parent": null,
+      "Pivot": [
+        0.11767028272151947,
+        -4.900000095367432,
+        -0.05487055331468582
+      ],
+      "PivotRoblox": [
+        -0.1177,
+        -0.0549,
+        -1.4
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.9063078165054321,
+            0.0,
+            -0.4226182699203491
+          ],
+          "Rate": -70.0,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "Gear4": {
+      "Parent": null,
+      "Pivot": [
+        0.1201530173420906,
+        -5.197000026702881,
+        -0.056028272956609726
+      ],
+      "PivotRoblox": [
+        -0.1202,
+        -0.056,
+        -1.697
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.9063078165054321,
+            0.0,
+            -0.4226182699203491
+          ],
+          "Rate": 107.6923076923077,
+          "Phase": 22.5
+        }
+      ]
+    },
+    "Gear5": {
+      "Parent": null,
+      "Pivot": [
+        0.057053469121456146,
+        -6.5,
+        0.12235155701637268
+      ],
+      "PivotRoblox": [
+        -0.0571,
+        0.1224,
+        -3.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.4226182699203491,
+            0.0,
+            0.9063078165054321
+          ],
+          "Rate": 56.0,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "Gear6": {
+      "Parent": null,
+      "Pivot": [
+        0.057053469121456146,
+        -6.146500110626221,
+        0.12235155701637268
+      ],
+      "PivotRoblox": [
+        -0.0571,
+        0.1224,
+        -2.6465
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.4226182699203491,
+            0.0,
+            0.9063078165054321
+          ],
+          "Rate": -99.99999999999999,
+          "Phase": 22.5
+        }
+      ]
+    },
+    "Gear7": {
+      "Parent": null,
+      "Pivot": [
+        -0.046172723174095154,
+        -6.550000190734863,
+        -0.12685850262641907
+      ],
+      "PivotRoblox": [
+        0.0462,
+        -0.1269,
+        -3.05
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.3420201539993286,
+            0.0,
+            -0.9396926164627075
+          ],
+          "Rate": 63.63636363636363,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "Gear8": {
+      "Parent": null,
+      "Pivot": [
+        0.07044751197099686,
+        -1.7000000476837158,
+        0.05911248177289963
+      ],
+      "PivotRoblox": [
+        -0.0704,
+        0.0591,
+        1.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.7660444378852844,
+            0.0,
+            0.6427876353263855
+          ],
+          "Rate": 127.27272727272727,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "Gear9": {
+      "Parent": null,
+      "Pivot": [
+        -0.09782468527555466,
+        -2.9000000953674316,
+        0.03560527414083481
+      ],
+      "PivotRoblox": [
+        0.0978,
+        0.0356,
+        0.6
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            -0.9396926164627075,
+            0.0,
+            0.3420201539993286
+          ],
+          "Rate": -107.6923076923077,
+          "Phase": 0.0
+        }
+      ]
+    }
+  }
+}

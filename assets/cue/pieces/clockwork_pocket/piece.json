@@ -1,0 +1,205 @@
+{
+  "id": "clockwork_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 4568,
+  "Parts": [
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Big_Brass",
+      "File": "pieces/clockwork_pocket/Big_Brass.obj",
+      "Joint": "Big",
+      "Offset": [
+        0.0069,
+        1.3506,
+        0.0
+      ],
+      "Size": [
+        1.8827,
+        1.8943,
+        0.135
+      ],
+      "Triangles": 1636
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Big_Glow",
+      "File": "pieces/clockwork_pocket/Big_Glow.obj",
+      "Joint": "Big",
+      "Offset": [
+        0.0,
+        1.35,
+        0.0
+      ],
+      "Size": [
+        1.4212,
+        1.4212,
+        0.16
+      ],
+      "Triangles": 236
+    },
+    {
+      "Material": "Foil",
+      "Color": "#DE8A4E",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mid_Copper",
+      "File": "pieces/clockwork_pocket/Mid_Copper.obj",
+      "Joint": "Mid",
+      "Offset": [
+        1.0725,
+        2.2499,
+        0.0
+      ],
+      "Size": [
+        1.1101,
+        1.1101,
+        0.135
+      ],
+      "Triangles": 1112
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mid_Glow",
+      "File": "pieces/clockwork_pocket/Mid_Glow.obj",
+      "Joint": "Mid",
+      "Offset": [
+        1.0725,
+        2.2499,
+        0.0
+      ],
+      "Size": [
+        0.8677,
+        0.8677,
+        0.16
+      ],
+      "Triangles": 236
+    },
+    {
+      "Material": "Foil",
+      "Color": "#EDBE58",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Small_Brass",
+      "File": "pieces/clockwork_pocket/Small_Brass.obj",
+      "Joint": "Small",
+      "Offset": [
+        -1.1803,
+        1.7796,
+        0.0
+      ],
+      "Size": [
+        0.8014,
+        0.8014,
+        0.135
+      ],
+      "Triangles": 1112
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFB040",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Small_Glow",
+      "File": "pieces/clockwork_pocket/Small_Glow.obj",
+      "Joint": "Small",
+      "Offset": [
+        -1.1803,
+        1.7796,
+        0.0
+      ],
+      "Size": [
+        0.6283,
+        0.6283,
+        0.16
+      ],
+      "Triangles": 236
+    }
+  ],
+  "Joints": {
+    "Big": {
+      "Parent": null,
+      "Pivot": [
+        0.0,
+        0,
+        1.35
+      ],
+      "PivotRoblox": [
+        -0.0,
+        1.35,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 57.89473684210527,
+          "Phase": 0.0
+        }
+      ]
+    },
+    "Mid": {
+      "Parent": null,
+      "Pivot": [
+        -1.072462220366569,
+        0,
+        2.249902653561155
+      ],
+      "PivotRoblox": [
+        1.0725,
+        2.2499,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -94.82758620689656,
+          "Phase": 22.5
+        }
+      ]
+    },
+    "Small": {
+      "Parent": null,
+      "Pivot": [
+        1.180253931707101,
+        0,
+        1.77957730001704
+      ],
+      "PivotRoblox": [
+        -1.1803,
+        1.7796,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -130.95238095238096,
+          "Phase": 22.5
+        }
+      ]
+    }
+  }
+}

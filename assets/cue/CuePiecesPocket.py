@@ -149,3 +149,46 @@ def infernal_pocket(k):
         {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 3.0, 'Period': 2.2, 'Phase': 40}])
     k.model('Skull', 'PocketSkull', 'infernal_skull', _stand(2.6), target_tris=19500, emissive=_magma_glow,
             emissive_tint='#FF7A3A', emissive_strength=3.0, cut_below=0.3)
+
+
+@piece
+def clockwork_pocket(k):
+    """The Clockwork's pocket finisher: three big meshing gears (brass, copper, brass) rise out of
+    the pocket standing face-on to the camera, turning together, their hubs and inlaid rings glowing amber."""
+    import bmesh
+    from mathutils import Matrix
+    from CuePieces import apply_modifier
+    from CuePiecesLegendary import _gear, _glow_ring
+    k.frame = 'pocket'
+    k.material('Brass', 'Foil', '#EDBE58')
+    k.material('Copper', 'Foil', '#DE8A4E')
+    k.material('Glow', 'Neon', '#FFB040')
+    MODULE = 0.075            # studs of radius per tooth, shared so the teeth mesh
+    gears = [('Big', 0.95, 'Brass', 1, 6), ('Mid', 0.58, 'Copper', -1, 5), ('Small', 0.42, 'Brass', -1, 5)]
+    big_r = 0.95
+
+    def pitch(r):
+        return r - min(0.045 * 3.2, r * 0.2) / 2
+
+    # the big gear 1.35 studs up; the mid one meshes on its upper left, the small on its right
+    centres = {'Big': (0.0, 1.35)}
+    for name, r, ang in (('Mid', 0.58, math.radians(140)), ('Small', 0.42, math.radians(20))):
+        d = pitch(big_r) + pitch(r)
+        centres[name] = (d * math.cos(ang), 1.35 + d * math.sin(ang))
+    for name, r, mat, sign, spokes in gears:
+        cx, cz = centres[name]
+        teeth = max(8, round(r / MODULE))
+        rate = sign * 110.0 * 0.5 / r
+        phase = 0.0 if name == 'Big' else 180.0 / teeth
+        k.joint(name, pivot=(cx, 0, cz), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate, 'Phase': phase}])
+        bm_g, bm_h = bmesh.new(), bmesh.new()
+        _gear(bm_g, r, teeth, 0.09, spokes=spokes, tooth_scale=3.2)
+        bmesh.ops.create_cone(bm_h, cap_ends=True, segments=20, radius1=r * 0.13, radius2=r * 0.13, depth=0.16)
+        _glow_ring(bm_h, r, 0.09)
+        # the gear's face to the camera (-Y): its axle along Y
+        M = Matrix.Translation((cx, 0, cz)) @ Matrix.Rotation(math.pi / 2, 4, 'X')
+        bmesh.ops.transform(bm_g, matrix=M, verts=bm_g.verts)
+        bmesh.ops.transform(bm_h, matrix=M, verts=bm_h.verts)
+        ob = k.add(name, k.mesh_object(name + mat, bm_g, [mat], smooth=False))
+        apply_modifier(k.bpy, ob, 'BEVEL', width=0.012, segments=1, limit_method='ANGLE')
+        k.add(name, k.mesh_object(name + 'Hub', bm_h, ['Glow'], smooth=False))

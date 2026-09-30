@@ -281,9 +281,7 @@ def infernal(d):
     for o in a.get('Orbiters') or []:
         o['Trail'].update({'Lifetime': 0.8, 'WidthStuds': 0.28, 'WidthScale': [[0, 1], [0.6, 0.7], [1, 0.3]],
                            'Transparency': [[0, 0], [0.6, 0.15], [1, 1]]})
-    # pocket: the eruption kept from turning pink over the felt; the skull rises clear of the
-    # default swirl ribbons (they crossed in front of it)
-    v['Pocket']['KeepRibbons'] = False
+    # pocket: the eruption kept from turning pink over the felt
     P = v['Pocket']['Layers']
     e = named(P, 'Eruption')
     # (the orange fire sheet, not the flame tongues: at this size and speed they streak to ribbons)
@@ -303,6 +301,27 @@ def infernal(d):
                  'Beam, flickering) and a flickering red light. The horned skull on the butt is a 3D piece.')
 
 
+def clockwork(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the gears are a 3D piece now (CuePiecesLegendary.clockwork): meshing brass and copper gears
+    # turning on the forearm, the butt and the shaft, in place of the flat floating cog sprites
+    d['piece'] = 'clockwork'
+    a['Emitters'] = [e for e in a['Emitters'] if e['Name'] != 'BigCogs']
+    named(a['Emitters'], 'Steam')['Rate'] = 10
+    for o in a.get('Orbiters') or []:
+        o['Trail'].update({'Lifetime': 1.1, 'WidthStuds': 0.08})
+    a['Note'] = ('Layered: brass and copper gears turn on the cue, meshing pairs rolling together (a 3D '
+                 'piece: a pair on top of the forearm and one on its side, a cluster round the butt, small '
+                 'gears on the shaft, hubs glowing amber); glowing brass loops spiral round the cue (three '
+                 'Orbiters with bright amber trails); tiny cogs drop off and fall; steam puffs rise from the '
+                 'handle; brass sparks spit; a warm amber glow round the cue (a halo Beam) and an amber light.')
+    # pocket: three big meshing gears rise out of the pocket turning (a 3D piece) among the burst
+    # of small cogs; the flat big-cog layer goes
+    P = v['Pocket']['Layers']
+    P[:] = [x for x in P if x['Name'] != 'BigCogs']
+
+
 def pocket_piece(d, piece_id, drop_layer, **timing):
     """The pocket finisher's creature as a rising 3D piece (CuePiecesPocket) in place of its flat
     flipbook layer."""
@@ -311,6 +330,8 @@ def pocket_piece(d, piece_id, drop_layer, **timing):
     spec = {'Piece': piece_id, 'Delay': 0.1, 'Seconds': 1.35}
     spec.update(timing)
     P['Piece'] = spec
+    # the default swirl ribbons would cross in front of the creature
+    P['KeepRibbons'] = False
     pj = json.load(open(os.path.join(ROOT, 'assets', 'cue', 'pieces', piece_id, 'piece.json')))
     d['vfx']['Budget']['PocketPieceTriangles'] = pj['Triangles']
 
@@ -329,6 +350,10 @@ POCKET = {
         'Delay': 0.15, 'Seconds': 1.3,
         'Rise': [[0, -2.4], [0.3, 0.5], [1, 1.1]], 'Scale': [[0, 0.75], [0.3, 1.0], [1, 1.05]],
         'Spin': [[0, 0], [1, 0]], 'Transparency': [[0, 0], [0.65, 0], [1, 1]]}),
+    'clockwork': ('clockwork_pocket', 'BigCogs', {
+        'Delay': 0.05, 'Seconds': 1.3,
+        'Rise': [[0, -3.0], [0.3, -0.2], [1, 0.3]], 'Scale': [[0, 0.7], [0.3, 1.0], [1, 1.05]],
+        'Spin': [[0, 0], [1, 0]], 'Transparency': [[0, 0], [0.7, 0], [1, 1]]}),
     'kraken': ('kraken_pocket', 'Tentacle', {
         'Rise': [[0, -3.3], [0.3, -0.35], [1, -0.2]], 'Scale': [[0, 0.8], [0.3, 1.0], [1, 1.0]],
         'Spin': [[0, 0], [1, 25]], 'Transparency': [[0, 0], [0.75, 0], [1, 1]]}),
@@ -336,7 +361,8 @@ POCKET = {
 
 
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
-            'phoenix': phoenix, 'kraken': kraken, 'infernal': infernal}
+            'phoenix': phoenix, 'kraken': kraken, 'infernal': infernal,
+            'clockwork': clockwork}
 
 
 def budget(d):

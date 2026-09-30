@@ -1743,7 +1743,8 @@
             1
           ]
         ]
-      }
+      },
+      "KeepRibbons": false
     },
     "Budget": {
       "ParticlesPerSecond": 52,

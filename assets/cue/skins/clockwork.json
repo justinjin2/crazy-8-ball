@@ -106,7 +106,7 @@
       }
     },
     "Aura": {
-      "Note": "Layered: glowing brass loops spiral round the cue (three Orbiters with bright amber trails and glowing heads, the concept's swirls); brass cogs float beside it, spinning, fading in and out (a cog sprite made for Clockwork); tiny cogs drop off and fall; little puffs of steam rise from the handle; brass sparks spit; a warm amber glow round the cue (a halo Beam) and an amber light.",
+      "Note": "Layered: brass and copper gears turn on the cue, meshing pairs rolling together (a 3D piece: a pair on top of the forearm and one on its side, a cluster round the butt, small gears on the shaft, hubs glowing amber); glowing brass loops spiral round the cue (three Orbiters with bright amber trails); tiny cogs drop off and fall; steam puffs rise from the handle; brass sparks spit; a warm amber glow round the cue (a halo Beam) and an amber light.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -122,7 +122,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 8,
+          "Rate": 10,
           "Lifetime": [
             1.0,
             1.5
@@ -251,74 +251,6 @@
           "LockedToPart": false
         },
         {
-          "Name": "BigCogs",
-          "Texture": "vfx/clockwork/cog.png",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.5,
-            "ToStuds": 7.0,
-            "Width": 1.0,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
-          },
-          "Rate": 4,
-          "Lifetime": [
-            1.6,
-            2.2
-          ],
-          "Speed": 0,
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.15,
-              0.55,
-              0.15
-            ],
-            [
-              0.85,
-              0.55,
-              0.15
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -60,
-            60
-          ],
-          "Transparency": [
-            [
-              0,
-              1
-            ],
-            [
-              0.15,
-              0.1
-            ],
-            [
-              0.85,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.4,
-          "LightInfluence": 0,
-          "LockedToPart": true
-        },
-        {
           "Name": "Sparks",
           "Texture": "vfx/_shared/spark.png",
           "Host": {
@@ -394,8 +326,8 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.9,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.08,
             "Color": "#FFB84A",
             "Brightness": 3,
             "Transparency": [
@@ -446,8 +378,8 @@
           "Phase": 150,
           "Delay": 0.9,
           "Trail": {
-            "Lifetime": 0.9,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.08,
             "Color": "#FFB84A",
             "Brightness": 3,
             "Transparency": [
@@ -498,8 +430,8 @@
           "Phase": 260,
           "Delay": 1.7,
           "Trail": {
-            "Lifetime": 0.9,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.08,
             "Color": "#FFB84A",
             "Brightness": 3,
             "Transparency": [
@@ -1016,67 +948,6 @@
           "Brightness": 1.3
         },
         {
-          "Name": "BigCogs",
-          "Texture": "vfx/clockwork/cog.png",
-          "Burst": 3,
-          "Delay": 0.1,
-          "Lifetime": [
-            1.1,
-            1.3
-          ],
-          "Speed": [
-            3,
-            5
-          ],
-          "SpreadAngle": [
-            25,
-            25
-          ],
-          "EmissionDirection": "Top",
-          "Drag": 1.5,
-          "Acceleration": [
-            0,
-            -4,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.9
-            ],
-            [
-              1,
-              1.1
-            ]
-          ],
-          "Rotation": [
-            0,
-            360
-          ],
-          "RotSpeed": [
-            -120,
-            120
-          ],
-          "Transparency": [
-            [
-              0,
-              0
-            ],
-            [
-              0.8,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.4,
-          "LightInfluence": 0,
-          "Brightness": 1.3
-        },
-        {
           "Name": "Sparks",
           "Texture": "vfx/_shared/spark.png",
           "Burst": 36,
@@ -1203,15 +1074,76 @@
         ],
         "Brightness": 10,
         "Seconds": 0.35
-      }
+      },
+      "Piece": {
+        "Piece": "clockwork_pocket",
+        "Delay": 0.05,
+        "Seconds": 1.3,
+        "Rise": [
+          [
+            0,
+            -3.0
+          ],
+          [
+            0.3,
+            -0.2
+          ],
+          [
+            1,
+            0.3
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            1.05
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0
+          ],
+          [
+            0.7,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "KeepRibbons": false
     },
     "Budget": {
-      "ParticlesPerSecond": 30,
-      "Back": 15.0,
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
       "BallTrail": 30,
       "Beams": 1,
       "Lights": 1,
-      "Orbiters": 3
+      "Orbiters": 3,
+      "PieceTriangles": 12712,
+      "PocketPieceTriangles": 4568
     }
-  }
+  },
+  "piece": "clockwork"
 }
