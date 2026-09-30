@@ -377,3 +377,30 @@ def clockwork(k):
     # small gears along the shaft
     gear(1.7, math.radians(50), 0.11, 1, 'Brass', standoff=0.03, spokes=4)
     gear(2.9, math.radians(-70), 0.13, -1, 'Copper', standoff=0.03, spokes=4)
+
+
+@piece
+def seraph(k):
+    """The Seraph's halo: a ring of golden light floating just beyond the butt, round the cue's
+    axis and tipped a little toward the top, a glowing gold core in a soft shimmering sheath. It
+    bobs gently along the cue and sways (the two orbiter trails that drew it were a thin, broken
+    ring from most angles)."""
+    import bmesh
+    from mathutils import Matrix, Vector
+    from CuePieces import sweep
+    k.material('HaloCore', 'Neon', '#FFE08A')
+    k.material('HaloGlow', 'ForceField', '#FFD76A')
+    AT, R = 7.34, 0.27
+    k.joint('Halo', pivot=(0, -AT, 0), motion=[
+        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.04, 'Period': 2.6},
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 6.0, 'Period': 3.4, 'Phase': 30},
+        {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 4.0, 'Period': 4.1, 'Phase': 110}])
+    n = 48
+    ring = [Vector((R * math.sin(2 * math.pi * i / n), 0, R * math.cos(2 * math.pi * i / n))) for i in range(n + 1)]
+    M = Matrix.Translation((0, -AT, 0)) @ Matrix.Rotation(math.radians(-14), 4, 'X')
+    for name, mat, r, segs in (('Core', 'HaloCore', 0.022, 12), ('Glow', 'HaloGlow', 0.05, 14)):
+        bm = bmesh.new()
+        sweep(bm, ring, [r] * len(ring), segs=segs, cap=False)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+        bmesh.ops.transform(bm, matrix=M, verts=bm.verts)
+        k.add('Halo', k.mesh_object('Halo' + name, bm, [mat]))

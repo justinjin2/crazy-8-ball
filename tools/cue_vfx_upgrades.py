@@ -357,6 +357,37 @@ def thunderstrike(d):
                  'light, and a second one that cracks bright twice every 1.7 s.')
 
 
+def seraph(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the halo is a 3D ring of gold light now (CuePiecesLegendary.seraph), not two orbiter trails
+    d['piece'] = 'seraph'
+    a['Orbiters'] = [o for o in a['Orbiters'] if not o['Name'].startswith('Halo')]
+    for o in a['Orbiters']:
+        o['Trail'].update({'Lifetime': 1.1, 'WidthStuds': 0.2})
+    # more feathers, tumbling smoothly (64 frames: they live three seconds)
+    f = named(a['Emitters'], 'Feathers')
+    f.update({'Texture': 'vfx/seraph/feather_white_8x8.png', 'FlipbookLayout': 'Grid8x8', 'Rate': 9,
+              'FlipbookFramerate': [16, 24]})
+    # the concept's golden light round the cue
+    put(a['Emitters'], {
+        'Name': 'GoldenLight', 'Texture': 'vfx/_shared/smoke_8x8.png', 'FlipbookLayout': 'Grid8x8',
+        'FlipbookMode': 'OneShot', 'Host': cyl(0.5, 7.2, 0.35), 'Rate': 5, 'Lifetime': [1.4, 2.0],
+        'Speed': [0.05, 0.15], 'SpreadAngle': [180, 180], 'Acceleration': [0, 0.15, 0],
+        'Size': [[0, 0.5], [1, 1.1]], 'Rotation': [0, 360], 'RotSpeed': [-20, 20],
+        'Transparency': [[0, 1], [0.3, 0.72], [1, 1]], 'Color': [[0, '#FFF0C0'], [1, '#FFC860']],
+        'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': False})
+    pf = named(v['Pocket']['Layers'], 'Feathers')
+    pf.update({'Texture': 'vfx/seraph/feather_white_8x8.png', 'FlipbookLayout': 'Grid8x8', 'Burst': 16,
+               'FlipbookFramerate': 36})
+    a['Note'] = ('Layered: a halo of golden light floats just beyond the butt (a 3D ring: a glowing gold core in '
+                 'a shimmering sheath, bobbing and swaying, over a soft breathing glow); three ribbons of golden '
+                 'light wind round the cue (Orbiters with a gold strand trail made for Seraph) in a haze of '
+                 'golden light; soft white feathers drift down, tumbling as they fall (a 64-frame feather '
+                 'flipbook made for Seraph); gold motes rise and sparkles glint; a warm glow round the cue (a '
+                 'halo Beam) and a warm light.')
+
+
 def pocket_piece(d, piece_id, drop_layer, **timing):
     """The pocket finisher's creature as a rising 3D piece (CuePiecesPocket) in place of its flat
     flipbook layer."""
@@ -397,7 +428,8 @@ POCKET = {
 
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
             'phoenix': phoenix, 'kraken': kraken, 'infernal': infernal,
-            'clockwork': clockwork, 'thunderstrike': thunderstrike}
+            'clockwork': clockwork, 'thunderstrike': thunderstrike,
+            'seraph': seraph}
 
 
 def budget(d):

@@ -232,7 +232,7 @@
       }
     },
     "Aura": {
-      "Note": "Layered: a glowing halo of light floats just beyond the butt (two Orbiters circling on the spot, their gold trails lasting one turn, so together they draw a true ring round the cue's axis, over a soft breathing glow); three ribbons of golden light wind round the cue (Orbiters with a gold strand trail made for Seraph); soft white feathers drift down, tumbling as they fall (a 16-frame feather flipbook made for Seraph); gold motes rise and sparkles glint; a warm glow round the cue (a halo Beam) and a warm light.",
+      "Note": "Layered: a halo of golden light floats just beyond the butt (a 3D ring: a glowing gold core in a shimmering sheath, bobbing and swaying, over a soft breathing glow); three ribbons of golden light wind round the cue (Orbiters with a gold strand trail made for Seraph) in a haze of golden light; soft white feathers drift down, tumbling as they fall (a 64-frame feather flipbook made for Seraph); gold motes rise and sparkles glint; a warm glow round the cue (a halo Beam) and a warm light.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -284,12 +284,12 @@
         },
         {
           "Name": "Feathers",
-          "Texture": "vfx/seraph/feather_white_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/seraph/feather_white_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "Loop",
           "FlipbookFramerate": [
-            6,
-            10
+            16,
+            24
           ],
           "FlipbookStartRandom": true,
           "Host": {
@@ -300,7 +300,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 6,
+          "Rate": 9,
           "Lifetime": [
             2.6,
             3.2
@@ -482,77 +482,86 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "GoldenLight",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.2,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF0C0"
+            ],
+            [
+              1,
+              "#FFC860"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Orbiters": [
-        {
-          "Name": "Halo1",
-          "FromStuds": 7.32,
-          "ToStuds": 7.32,
-          "TravelSeconds": 10,
-          "Loop": "pingpong",
-          "TurnsPerSecond": 0.8,
-          "Radius": 0.26,
-          "Phase": 0,
-          "Delay": 0,
-          "Trail": {
-            "Lifetime": 1.2,
-            "WidthStuds": 0.055,
-            "Color": "#FFE08A",
-            "Brightness": 2,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.8,
-                0.1
-              ],
-              [
-                1,
-                0.6
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/_shared/trail_soft.png",
-            "TextureMode": "Stretch"
-          }
-        },
-        {
-          "Name": "Halo2",
-          "FromStuds": 7.32,
-          "ToStuds": 7.32,
-          "TravelSeconds": 10,
-          "Loop": "pingpong",
-          "TurnsPerSecond": 0.8,
-          "Radius": 0.26,
-          "Phase": 180,
-          "Delay": 0,
-          "Trail": {
-            "Lifetime": 1.2,
-            "WidthStuds": 0.055,
-            "Color": "#FFE08A",
-            "Brightness": 2,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.8,
-                0.1
-              ],
-              [
-                1,
-                0.6
-              ]
-            ],
-            "LightEmission": 1,
-            "Texture": "vfx/_shared/trail_soft.png",
-            "TextureMode": "Stretch"
-          }
-        },
         {
           "Name": "Ribbon1",
           "FromStuds": 0.3,
@@ -566,8 +575,8 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.9,
-            "WidthStuds": 0.16,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.2,
             "Color": "#FFE8A0",
             "Transparency": [
               [
@@ -612,8 +621,8 @@
           "Phase": 120,
           "Delay": 0.8,
           "Trail": {
-            "Lifetime": 0.9,
-            "WidthStuds": 0.16,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.2,
             "Color": "#FFE8A0",
             "Transparency": [
               [
@@ -658,8 +667,8 @@
           "Phase": 240,
           "Delay": 1.6,
           "Trail": {
-            "Lifetime": 0.9,
-            "WidthStuds": 0.16,
+            "Lifetime": 1.1,
+            "WidthStuds": 0.2,
             "Color": "#FFE8A0",
             "Transparency": [
               [
@@ -1163,10 +1172,10 @@
         },
         {
           "Name": "Feathers",
-          "Texture": "vfx/seraph/feather_white_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/seraph/feather_white_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "Loop",
-          "FlipbookFramerate": 9,
+          "FlipbookFramerate": 36,
           "FlipbookStartRandom": true,
           "Host": {
             "Kind": "Point",
@@ -1177,7 +1186,7 @@
             ],
             "Size": 2.6
           },
-          "Burst": 9,
+          "Burst": 16,
           "Delay": 0.2,
           "Lifetime": [
             1.1,
@@ -1262,12 +1271,14 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 38,
-      "Back": 19.0,
+      "ParticlesPerSecond": 46,
+      "Back": 23.0,
       "BallTrail": 25,
       "Beams": 5,
       "Lights": 1,
-      "Orbiters": 5
+      "Orbiters": 3,
+      "PieceTriangles": 2496
     }
-  }
+  },
+  "piece": "seraph"
 }

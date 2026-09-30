@@ -1,0 +1,97 @@
+{
+  "id": "seraph",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 2496,
+  "Parts": [
+    {
+      "Material": "Neon",
+      "Color": "#FFE08A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Halo_HaloCore",
+      "File": "pieces/seraph/Halo_HaloCore.obj",
+      "Joint": "Halo",
+      "Offset": [
+        0.0,
+        -0.0,
+        -3.84
+      ],
+      "Size": [
+        0.584,
+        0.5666,
+        0.1733
+      ],
+      "Triangles": 1152
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFD76A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Halo_HaloGlow",
+      "File": "pieces/seraph/Halo_HaloGlow.obj",
+      "Joint": "Halo",
+      "Offset": [
+        0.0,
+        -0.0,
+        -3.84
+      ],
+      "Size": [
+        0.64,
+        0.6218,
+        0.2306
+      ],
+      "Triangles": 1344
+    }
+  ],
+  "Joints": {
+    "Halo": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -7.34,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.84
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.04,
+          "Period": 2.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 6.0,
+          "Period": 3.4,
+          "Phase": 30
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 4.0,
+          "Period": 4.1,
+          "Phase": 110
+        }
+      ]
+    }
+  }
+}

@@ -2354,6 +2354,12 @@ def sprite_white_feather_sheet():
     return flipbook(lambda i, n: white_feather_frame(i, n), 4, 1024)
 
 
+def sprite_white_feather_sheet8():
+    """The tumbling feather over 64 frames: feathers live about three seconds, so 16 frames
+    turned in visible steps."""
+    return flipbook8(white_feather_frame)
+
+
 def sprite_trail_light(w=512, h=128, seed=171):
     """A golden light ribbon for a ball trail: many fine silky strands of warm gold light woven
     along it, brightest through the middle, with tiny sparkles (colour baked)."""
@@ -2405,7 +2411,8 @@ def sprite_glint_strip(w=1024, h=128, seed=175):
     return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
 
 
-SKIN_SPRITES['seraph'] = {'feather_white_4x4.png': sprite_white_feather_sheet, 'trail_light.png': sprite_trail_light,
+SKIN_SPRITES['seraph'] = {'feather_white_4x4.png': sprite_white_feather_sheet,
+                          'feather_white_8x8.png': sprite_white_feather_sheet8, 'trail_light.png': sprite_trail_light,
                           'light_shaft.png': sprite_light_shaft, 'glint_strip.png': sprite_glint_strip}
 
 
