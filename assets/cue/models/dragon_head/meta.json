@@ -1,0 +1,23 @@
+{
+  "name": "dragon_head",
+  "endpoint": "image-to-3d",
+  "task_id": "01a0f359-212e-7384-bcac-2b43c6a0ae52",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "Pearl white dragon scales with a soft iridescent sheen, polished gold horns, gold brow crest and gold collar ring, glowing icy blue eyes, white and pale blue flowing mane and whiskers, white fangs, dark red mouth.",
+    "images": [
+      "assets/cue/models/refs/dragon_head.png"
+    ]
+  },
+  "finished_at": 1790789255802,
+  "task_error": null
+}

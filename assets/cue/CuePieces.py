@@ -148,9 +148,107 @@ class Kit:
         self.mats = {}     # name -> roblox spec
 
     # ---- materials ----------------------------------------------------------------------------
-    def material(self, name, Material='SmoothPlastic', Color='#FFFFFF', Transparency=0.0, Reflectance=0.0):
+    def material(self, name, Material='SmoothPlastic', Color='#FFFFFF', Transparency=0.0, Reflectance=0.0,
+                 SurfaceAppearance=None):
         self.mats[name] = {'Material': Material, 'Color': Color, 'Transparency': Transparency, 'Reflectance': Reflectance}
+        if SurfaceAppearance:
+            self.mats[name]['SurfaceAppearance'] = SurfaceAppearance
         return name
+
+    def model(self, joint, name, model, place, target_tris=14000, emissive=None, emissive_tint='#FFFFFF',
+              emissive_strength=1.0, texture_px=1024, cut_below=None):
+        """A generated model (assets/cue/models/<model>/, tools/meshy_generate.py) as one textured
+        part on `joint`: imported, placed by place(obs) -> 4x4 Matrix (the caller measures the model
+        and returns where it goes in the cue frame), reduced to target_tris (a collapse decimate,
+        which keeps the UVs so its own maps still fit), its maps copied into pieces/<pid>/ at
+        texture_px (Roblox's SurfaceAppearance limit is 1024) and worn as a SurfaceAppearance.
+        emissive(rgb float array HxWx3) -> mask HxW in 0..1 makes the EmissiveMask from the colour
+        map (the eyes, a gem). cut_below (0..1) removes everything below that fraction of the
+        model's own height and closes the hole (a bust's collar and lower neck). Returns the object."""
+        import numpy as np
+        bpy = self.bpy
+        src = os.path.join(HERE, 'models', model)
+        # the full download if it is here, else the committed copy (CueModels.compact)
+        glb = os.path.join(src, 'model.glb')
+        if not os.path.isfile(glb):
+            glb = os.path.join(src, 'source.glb')
+        before = set(bpy.data.objects)
+        bpy.ops.import_scene.gltf(filepath=glb)
+        obs = [o for o in bpy.data.objects if o not in before and o.type == 'MESH']
+        for o in [o for o in bpy.data.objects if o not in before and o.type != 'MESH']:
+            for c in o.children:
+                mw = c.matrix_world.copy()
+                c.parent = None
+                c.matrix_world = mw
+            bpy.data.objects.remove(o)
+        bpy.ops.object.select_all(action='DESELECT')
+        for o in obs:
+            o.select_set(True)
+        bpy.context.view_layer.objects.active = obs[0]
+        if len(obs) > 1:
+            bpy.ops.object.join()
+        ob = bpy.context.view_layer.objects.active
+        ob.name = name
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        if cut_below is not None:
+            import bmesh
+            tris = sum(len(p.vertices) - 2 for p in ob.data.polygons)
+            if tris > target_tris * 4:
+                apply_modifier(bpy, ob, 'DECIMATE', decimate_type='COLLAPSE', ratio=target_tris * 4 / tris,
+                               use_collapse_triangulate=True)
+            zs = [v.co.z for v in ob.data.vertices]
+            z_cut = min(zs) + cut_below * (max(zs) - min(zs))
+            bm = bmesh.new()
+            bm.from_mesh(ob.data)
+            res = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-5,
+                                         plane_co=(0, 0, z_cut), plane_no=(0, 0, 1), clear_inner=True)
+            cut_edges = [e for e in res['geom_cut'] if isinstance(e, bmesh.types.BMEdge) and e.is_boundary]
+            bmesh.ops.holes_fill(bm, edges=cut_edges, sides=0)
+            bm.to_mesh(ob.data)
+            bm.free()
+        ob.matrix_world = place(ob) @ ob.matrix_world
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        tris = sum(len(p.vertices) - 2 for p in ob.data.polygons)
+        if tris > target_tris:
+            apply_modifier(bpy, ob, 'DECIMATE', decimate_type='COLLAPSE', ratio=target_tris / tris,
+                           use_collapse_triangulate=True)
+        out = os.path.join(PIECES_DIR, self.pid)
+        os.makedirs(out, exist_ok=True)
+        sa = {}
+        for key, fname in (('ColorMap', 'base_color'), ('NormalMap', 'normal'), ('RoughnessMap', 'roughness'),
+                           ('MetalnessMap', 'metallic')):
+            path = os.path.join(src, fname + '.png')
+            if not os.path.isfile(path):
+                path = os.path.join(src, 'maps', fname + '.png')
+            if not os.path.isfile(path):
+                continue
+            img = bpy.data.images.load(path)
+            if img.size[0] > texture_px:
+                img.scale(texture_px, texture_px)
+            rel = 'pieces/%s/%s_%s.png' % (self.pid, name, fname)
+            img.filepath_raw = os.path.join(HERE, rel)
+            img.file_format = 'PNG'
+            img.save()
+            sa[key] = rel
+            if key == 'ColorMap' and emissive is not None:
+                w, h = img.size
+                px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[..., :3]
+                mask = np.clip(emissive(px), 0, 1)
+                em = bpy.data.images.new(name + '_emissive', w, h, alpha=False)
+                em.pixels.foreach_set(np.concatenate([np.repeat(mask[..., None], 3, -1),
+                                                      np.ones((h, w, 1), np.float32)], -1).ravel())
+                rel_e = 'pieces/%s/%s_emissive.png' % (self.pid, name)
+                em.filepath_raw = os.path.join(HERE, rel_e)
+                em.file_format = 'PNG'
+                em.save()
+                sa.update({'EmissiveMask': rel_e, 'EmissiveTint': emissive_tint, 'EmissiveStrength': emissive_strength})
+        self.material(name, 'SmoothPlastic', '#FFFFFF', SurfaceAppearance=sa)
+        ob.data.materials.clear()
+        ob.data.materials.append(self.blender_mat(name))
+        for poly in ob.data.polygons:
+            poly.material_index = 0
+        self.add(joint, ob)
+        return ob
 
     def blender_mat(self, name):
         bpy = self.bpy
@@ -184,7 +282,49 @@ class Kit:
         return ob
 
 
+def make_textured_material(bpy, key, sa):
+    """A SurfaceAppearance as Blender draws it: ColorMap, NormalMap (OpenGL, as Roblox), RoughnessMap,
+    MetalnessMap, and EmissiveMask x EmissiveTint x EmissiveStrength (paths from assets/cue)."""
+    mat = bpy.data.materials.new(key)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+
+    def tex(path, colour=False):
+        img = bpy.data.images.load(os.path.join(HERE, path), check_existing=True)
+        if not colour:
+            img.colorspace_settings.name = 'Non-Color'
+        node = nt.nodes.new('ShaderNodeTexImage')
+        node.image = img
+        return node
+    if sa.get('ColorMap'):
+        nt.links.new(tex(sa['ColorMap'], True).outputs['Color'], bsdf.inputs['Base Color'])
+    if sa.get('RoughnessMap'):
+        nt.links.new(tex(sa['RoughnessMap']).outputs['Color'], bsdf.inputs['Roughness'])
+    else:
+        bsdf.inputs['Roughness'].default_value = 0.5
+    if sa.get('MetalnessMap'):
+        nt.links.new(tex(sa['MetalnessMap']).outputs['Color'], bsdf.inputs['Metallic'])
+    if sa.get('NormalMap'):
+        nm = nt.nodes.new('ShaderNodeNormalMap')
+        nt.links.new(tex(sa['NormalMap']).outputs['Color'], nm.inputs['Color'])
+        nt.links.new(nm.outputs['Normal'], bsdf.inputs['Normal'])
+    if sa.get('EmissiveMask'):
+        mask = tex(sa['EmissiveMask'])
+        mix = nt.nodes.new('ShaderNodeMix')
+        mix.data_type = 'RGBA'
+        mix.blend_type = 'MULTIPLY'
+        mix.inputs['Factor'].default_value = 1.0
+        nt.links.new(mask.outputs['Color'], mix.inputs['A'])
+        mix.inputs['B'].default_value = srgb_to_lin(hexrgb(sa.get('EmissiveTint', '#FFFFFF'))) + (1.0,)
+        nt.links.new(mix.outputs['Result'], bsdf.inputs['Emission Color'])
+        bsdf.inputs['Emission Strength'].default_value = 2.4 * float(sa.get('EmissiveStrength', 1.0))
+    return mat
+
+
 def make_blender_material(bpy, key, spec):
+    if spec.get('SurfaceAppearance'):
+        return make_textured_material(bpy, key, spec['SurfaceAppearance'])
     look = ROBLOX_LOOK.get(spec['Material'], ROBLOX_LOOK['SmoothPlastic'])
     mat = bpy.data.materials.new(key)
     mat.use_nodes = True
@@ -375,13 +515,19 @@ def export(kit):
                     continue
                 by_mat.setdefault(mname, []).append(bm)
         for mname, bms in by_mat.items():
-            verts, faces = [], []
+            textured = bool(kit.mats[mname].get('SurfaceAppearance'))
+            verts, faces, uvs, fuv = [], [], [], []
             for bm in bms:
                 bmesh.ops.triangulate(bm, faces=bm.faces[:])
                 bm.verts.ensure_lookup_table()
                 base = len(verts)
                 verts += [tuple(v.co) for v in bm.verts]
                 faces += [[base + v.index for v in f.verts] for f in bm.faces]
+                uvl = bm.loops.layers.uv.active if textured else None
+                if uvl is not None:
+                    for f in bm.faces:
+                        fuv.append([len(uvs) + i for i in range(len(f.loops))])
+                        uvs += [tuple(lp[uvl].uv) for lp in f.loops]
                 bm.free()
             V = np.array(verts)
             # Blender cue frame (side, -at, up) -> Roblox cue frame (-side, up, 3.5 - at)
@@ -393,8 +539,14 @@ def export(kit):
                 fh.write('# %s %s: Roblox cue frame, recentred on its bounding box\n' % (kit.pid, fname))
                 for v in R - centre:
                     fh.write('v %.5f %.5f %.5f\n' % tuple(v))
-                for f in faces:
-                    fh.write('f %s\n' % ' '.join(str(i + 1) for i in f))
+                if fuv:
+                    for uv in uvs:
+                        fh.write('vt %.5f %.5f\n' % uv)
+                    for f, t in zip(faces, fuv):
+                        fh.write('f %s\n' % ' '.join('%d/%d' % (i + 1, j + 1) for i, j in zip(f, t)))
+                else:
+                    for f in faces:
+                        fh.write('f %s\n' % ' '.join(str(i + 1) for i in f))
             tris_total += len(faces)
             spec = dict(kit.mats[mname])
             spec.update({'Name': '%s_%s' % (jname, mname), 'File': 'pieces/%s/%s' % (kit.pid, fname), 'Joint': jname,
@@ -437,17 +589,25 @@ def attach(bpy, pid, cue_obj):
         e.parent = cue_obj
         empties[jname] = e
     for part in spec['Parts']:
-        V, F = [], []
+        V, F, VT, FT = [], [], [], []
         for line in open(os.path.join(HERE, part['File'])):
             if line.startswith('v '):
                 V.append([float(x) for x in line.split()[1:4]])
+            elif line.startswith('vt '):
+                VT.append([float(x) for x in line.split()[1:3]])
             elif line.startswith('f '):
                 F.append([int(x.split('/')[0]) - 1 for x in line.split()[1:]])
+                if '/' in line:
+                    FT.append([int(x.split('/')[1]) - 1 for x in line.split()[1:]])
         R = np.array(V) + np.array(part['Offset'])
         B = np.stack([-R[:, 0], R[:, 2] - 3.5, R[:, 1]], 1)  # back to the Blender cue frame
         me = bpy.data.meshes.new(part['Name'])
         me.from_pydata(B.tolist(), [], F)
         me.update()
+        if VT and FT:
+            uvl = me.uv_layers.new(name='UVMap')
+            flat = [VT[i] for f in FT for i in f]
+            uvl.data.foreach_set('uv', [c for uv in flat for c in uv])
         for p in me.polygons:
             p.use_smooth = True
         try:

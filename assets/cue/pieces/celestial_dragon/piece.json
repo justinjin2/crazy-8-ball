@@ -1,167 +1,36 @@
 {
   "id": "celestial_dragon",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 20536,
+  "Triangles": 29740,
   "Parts": [
     {
       "Material": "SmoothPlastic",
-      "Color": "#F2EFE8",
+      "Color": "#FFFFFF",
       "Transparency": 0.0,
-      "Reflectance": 0.15,
-      "Name": "Head_Pearl",
-      "File": "pieces/celestial_dragon/Head_Pearl.obj",
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/celestial_dragon/DragonHead_base_color.png",
+        "EmissiveMask": "pieces/celestial_dragon/DragonHead_emissive.png",
+        "EmissiveTint": "#7FC8FF",
+        "EmissiveStrength": 3.0,
+        "NormalMap": "pieces/celestial_dragon/DragonHead_normal.png",
+        "RoughnessMap": "pieces/celestial_dragon/DragonHead_roughness.png",
+        "MetalnessMap": "pieces/celestial_dragon/DragonHead_metallic.png"
+      },
+      "Name": "Head_DragonHead",
+      "File": "pieces/celestial_dragon/Head_DragonHead.obj",
       "Joint": "Head",
       "Offset": [
-        -0.0001,
-        0.095,
-        -3.6773
+        -0.0003,
+        0.1647,
+        -3.6506
       ],
       "Size": [
-        0.2738,
-        0.2705,
-        0.8355
+        0.5076,
+        0.5334,
+        0.7814
       ],
-      "Triangles": 3574
-    },
-    {
-      "Material": "Foil",
-      "Color": "#D4AF37",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Head_Gold",
-      "File": "pieces/celestial_dragon/Head_Gold.obj",
-      "Joint": "Head",
-      "Offset": [
-        0.0,
-        0.2232,
-        -3.6052
-      ],
-      "Size": [
-        0.4838,
-        0.4004,
-        0.8712
-      ],
-      "Triangles": 1504
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FFFDF6",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Head_Fang",
-      "File": "pieces/celestial_dragon/Head_Fang.obj",
-      "Joint": "Head",
-      "Offset": [
-        0.0,
-        -0.0074,
-        -3.9051
-      ],
-      "Size": [
-        0.116,
-        0.0711,
-        0.2038
-      ],
-      "Triangles": 112
-    },
-    {
-      "Material": "Neon",
-      "Color": "#7FC8FF",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Head_Eye",
-      "File": "pieces/celestial_dragon/Head_Eye.obj",
-      "Joint": "Head",
-      "Offset": [
-        -0.0,
-        0.125,
-        -3.865
-      ],
-      "Size": [
-        0.204,
-        0.0384,
-        0.06
-      ],
-      "Triangles": 576
-    },
-    {
-      "Material": "Neon",
-      "Color": "#9ED0FF",
-      "Transparency": 0.3,
-      "Reflectance": 0.0,
-      "Name": "Head_Mane",
-      "File": "pieces/celestial_dragon/Head_Mane.obj",
-      "Joint": "Head",
-      "Offset": [
-        0.0,
-        0.0971,
-        -3.6045
-      ],
-      "Size": [
-        0.5023,
-        0.5386,
-        0.8397
-      ],
-      "Triangles": 2848
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#F2EFE8",
-      "Transparency": 0.0,
-      "Reflectance": 0.15,
-      "Name": "Jaw_Pearl",
-      "File": "pieces/celestial_dragon/Jaw_Pearl.obj",
-      "Joint": "Jaw",
-      "Offset": [
-        -0.0001,
-        0.0001,
-        -3.7942
-      ],
-      "Size": [
-        0.1799,
-        0.1099,
-        0.4288
-      ],
-      "Triangles": 1214
-    },
-    {
-      "Material": "Foil",
-      "Color": "#D4AF37",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Jaw_Gold",
-      "File": "pieces/celestial_dragon/Jaw_Gold.obj",
-      "Joint": "Jaw",
-      "Offset": [
-        0.0,
-        -0.002,
-        -3.82
-      ],
-      "Size": [
-        0.1319,
-        0.026,
-        0.3613
-      ],
-      "Triangles": 384
-    },
-    {
-      "Material": "SmoothPlastic",
-      "Color": "#FFFDF6",
-      "Transparency": 0.0,
-      "Reflectance": 0.0,
-      "Name": "Jaw_Fang",
-      "File": "pieces/celestial_dragon/Jaw_Fang.obj",
-      "Joint": "Jaw",
-      "Offset": [
-        0.0,
-        -0.0014,
-        -3.86
-      ],
-      "Size": [
-        0.1,
-        0.0412,
-        0.1796
-      ],
-      "Triangles": 84
+      "Triangles": 19500
     },
     {
       "Material": "ForceField",
@@ -209,13 +78,13 @@
       "Parent": null,
       "Pivot": [
         0,
-        -7.02,
+        -7.0,
         0.05
       ],
       "PivotRoblox": [
         0,
         0.05,
-        -3.52
+        -3.5
       ],
       "Motion": [
         {
@@ -238,33 +107,6 @@
           "Amp": 4.0,
           "Period": 5.1,
           "Phase": 40
-        }
-      ]
-    },
-    "Jaw": {
-      "Parent": "Head",
-      "Pivot": [
-        0,
-        -7.119999999999999,
-        0.020000000000000004
-      ],
-      "PivotRoblox": [
-        0,
-        0.02,
-        -3.62
-      ],
-      "Motion": [
-        {
-          "Kind": "Hinge",
-          "Axis": [
-            1,
-            0,
-            0
-          ],
-          "Base": 8.0,
-          "Amp": 18.0,
-          "Period": 4.0,
-          "Shape": "pulse"
         }
       ]
     },

@@ -1,0 +1,23 @@
+{
+  "name": "pocket_dragon",
+  "endpoint": "image-to-3d",
+  "task_id": "01a0f35b-3cde-71cf-b2c0-b499b75999af",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "Pearl white dragon scales with a soft sheen, gold horns, gold brow crest and gold ridge lines along the body, glowing icy blue eyes, white and pale blue flowing mane and whiskers, white fangs and claws.",
+    "images": [
+      "assets/cue/models/refs/pocket_dragon.png"
+    ]
+  },
+  "finished_at": 1790789391422,
+  "task_error": null
+}

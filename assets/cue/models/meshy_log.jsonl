@@ -1,0 +1,5 @@
+{"time": "2026-09-30 13:26", "name": "fox_mask", "task_id": "01a0f359-2162-711f-965c-ebba0cdb1bfa", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
+{"time": "2026-09-30 13:27", "name": "dragon_head", "task_id": "01a0f359-212e-7384-bcac-2b43c6a0ae52", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
+{"time": "2026-09-30 13:29", "name": "pocket_firebird", "task_id": "01a0f35b-3cd4-72b3-804a-f3a35a1a9354", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
+{"time": "2026-09-30 13:30", "name": "pocket_dragon", "task_id": "01a0f35b-3cde-71cf-b2c0-b499b75999af", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}
+{"time": "2026-09-30 13:30", "name": "pocket_fox", "task_id": "01a0f35b-3cd5-7408-a3f7-519e1af504f6", "endpoint": "image-to-3d", "status": "SUCCEEDED", "credits": 35}

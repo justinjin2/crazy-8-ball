@@ -186,7 +186,14 @@ def kitsune(d):
         o['Head']['Size'] = 0.46
         o['Trail'].update({'Lifetime': 0.85, 'WidthStuds': 0.12, 'Brightness': 2.6,
                            'Transparency': [[0, 0], [0.6, 0.3], [1, 1]], 'WidthScale': [[0, 1], [1, 0.3]]})
-    a['Note'] = ('Layered: nine foxfire tails wave off the mask (above); violet foxfire licks up all along the cue '
+    # the mask is a generated model reaching 0.57 studs past the butt: the nine tails now stream
+    # back from its collar along the handle (fanned round it), leaving its face clear
+    for b in v['Moving']['Beams']:
+        if b['Name'].startswith('Tail') and b['ToStuds'] > b['FromStuds']:   # not yet turned
+            reach = b['ToStuds'] - b['FromStuds']            # 0.56-1.13 out past the butt before
+            b['FromStuds'] = 6.9
+            b['ToStuds'] = round(6.9 - 0.55 - 0.6 * reach, 3)
+    a['Note'] = ('Layered: nine foxfire tails stream back from the mask along the handle (above); violet foxfire licks up all along the cue '
                  'and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small '
                  'fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); '
                  'foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet '
@@ -267,6 +274,9 @@ def budget(d):
         b['Orbiters'] = len(a['Orbiters'])
     if a.get('Arcs'):
         b['Arcs'] = sum(x.get('Count', 3) for x in a['Arcs'])
+    if d.get('piece'):
+        pj = json.load(open(os.path.join(ROOT, 'assets', 'cue', 'pieces', d['piece'], 'piece.json')))
+        b['PieceTriangles'] = pj['Triangles']
 
 
 def main():

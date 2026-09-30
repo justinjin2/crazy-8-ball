@@ -1,0 +1,23 @@
+{
+  "name": "pocket_fox",
+  "endpoint": "image-to-3d",
+  "task_id": "01a0f35b-3cd5-7408-a3f7-519e1af504f6",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "White fox fur with soft pink and violet tints toward the tail tips, a white porcelain fox mask with crimson markings, gold trim, a crimson forehead gem and violet eyes.",
+    "images": [
+      "assets/cue/models/refs/pocket_fox.png"
+    ]
+  },
+  "finished_at": 1790789402014,
+  "task_error": null
+}

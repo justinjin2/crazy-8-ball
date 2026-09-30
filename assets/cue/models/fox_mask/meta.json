@@ -1,0 +1,23 @@
+{
+  "name": "fox_mask",
+  "endpoint": "image-to-3d",
+  "task_id": "01a0f359-2162-711f-965c-ebba0cdb1bfa",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "Glossy white porcelain kitsune fox mask with crimson red flame markings, thin polished gold trim, a crimson gem in a gold frame on the forehead, crimson inner ears, glowing violet eyes, black nose, white fangs, a gold collar ring at the back.",
+    "images": [
+      "assets/cue/models/refs/fox_mask.png"
+    ]
+  },
+  "finished_at": 1790789195516,
+  "task_error": null
+}

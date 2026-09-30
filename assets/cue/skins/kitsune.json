@@ -88,8 +88,8 @@
       "Beams": [
         {
           "Name": "Tail1",
-          "FromStuds": 6.92,
-          "ToStuds": 8.05,
+          "FromStuds": 6.9,
+          "ToStuds": 5.672,
           "Up": 0.03,
           "Up1": -0.693,
           "Side1": -0.4,
@@ -139,8 +139,8 @@
         },
         {
           "Name": "Tail2",
-          "FromStuds": 6.92,
-          "ToStuds": 7.936,
+          "FromStuds": 6.9,
+          "ToStuds": 5.74,
           "Up": 0.03,
           "Up1": -0.39,
           "Side1": -0.941,
@@ -190,8 +190,8 @@
         },
         {
           "Name": "Tail3",
-          "FromStuds": 6.92,
-          "ToStuds": 7.682,
+          "FromStuds": 6.9,
+          "ToStuds": 5.893,
           "Up": 0.03,
           "Up1": 0.193,
           "Side1": -0.718,
@@ -241,8 +241,8 @@
         },
         {
           "Name": "Tail4",
-          "FromStuds": 6.92,
-          "ToStuds": 7.479,
+          "FromStuds": 6.9,
+          "ToStuds": 6.015,
           "Up": 0.03,
           "Up1": 0.473,
           "Side1": -0.363,
@@ -292,8 +292,8 @@
         },
         {
           "Name": "Tail5",
-          "FromStuds": 6.92,
-          "ToStuds": 7.481,
+          "FromStuds": 6.9,
+          "ToStuds": 6.013,
           "Up": 0.03,
           "Up1": 0.909,
           "Side1": 0.0,
@@ -343,8 +343,8 @@
         },
         {
           "Name": "Tail6",
-          "FromStuds": 6.92,
-          "ToStuds": 7.687,
+          "FromStuds": 6.9,
+          "ToStuds": 5.89,
           "Up": 0.03,
           "Up1": 0.774,
           "Side1": 0.594,
@@ -394,8 +394,8 @@
         },
         {
           "Name": "Tail7",
-          "FromStuds": 6.92,
-          "ToStuds": 7.94,
+          "FromStuds": 6.9,
+          "ToStuds": 5.738,
           "Up": 0.03,
           "Up1": 0.167,
           "Side1": 0.624,
@@ -445,8 +445,8 @@
         },
         {
           "Name": "Tail8",
-          "FromStuds": 6.92,
-          "ToStuds": 8.05,
+          "FromStuds": 6.9,
+          "ToStuds": 5.672,
           "Up": 0.03,
           "Up1": -0.254,
           "Side1": 0.613,
@@ -496,8 +496,8 @@
         },
         {
           "Name": "Tail9",
-          "FromStuds": 6.92,
-          "ToStuds": 7.933,
+          "FromStuds": 6.9,
+          "ToStuds": 5.742,
           "Up": 0.03,
           "Up1": -0.857,
           "Side1": 0.495,
@@ -548,7 +548,7 @@
       ]
     },
     "Aura": {
-      "Note": "Layered: nine foxfire tails wave off the mask (above); violet foxfire licks up all along the cue and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet glow round the cue (a halo Beam) and a violet light at the mask.",
+      "Note": "Layered: nine foxfire tails stream back from the mask along the handle (above); violet foxfire licks up all along the cue and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet glow round the cue (a halo Beam) and a violet light at the mask.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -1755,7 +1755,7 @@
       "Beams": 10,
       "Lights": 1,
       "Orbiters": 3,
-      "PieceTriangles": 8926
+      "PieceTriangles": 14000
     }
   }
 }

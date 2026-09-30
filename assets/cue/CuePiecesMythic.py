@@ -17,8 +17,77 @@ def _butt(at):
 # Celestial Dragon (M1)
 # =============================================================================================
 
+def _icy_eyes(px):
+    """The glowing icy blue of the dragon's eyes (the mane is a paler, greyer blue)."""
+    import numpy as np
+    h, s_, v = _hsv(px)
+    return (np.clip((s_ - 0.45) / 0.15, 0, 1) * np.clip((v - 0.55) / 0.2, 0, 1)
+            * ((h > 0.53) & (h < 0.7)))
+
+
 @piece
 def celestial_dragon(k):
+    """A pearl-white celestial dragon's head on the butt end, looking out past it, its mane
+    sweeping back over the butt: a generated model (Meshy, from a clean render of the concept;
+    assets/cue/models/dragon_head) with its own colour, normal, roughness and metal maps: pearl
+    scales, gold horns and brow crest, white-and-blue mane and whiskers, fangs, glowing icy blue
+    eyes (an emissive mask from the colour map). The bust's collar and lower neck are cut away.
+    The head nods and looks round slowly. Its see-through energy body coils round the cue from
+    the head to the shaft."""
+    import numpy as np
+    from mathutils import Matrix
+    bpy = k.bpy
+    k.material('Energy', 'ForceField', '#6FB8FF', Transparency=0.35)
+    k.material('Core', 'Neon', '#A8D8FF', Transparency=0.55)
+    U0 = 7.0
+
+    def place(ob):
+        V = np.array([v.co[:] for v in ob.data.vertices])
+        lo, hi = V.min(0), V.max(0)
+        s = 0.78 / (hi[1] - lo[1])                  # 0.78 studs from the snout to the back of the mane
+        # the face looks out past the butt (-Y); the back of the mane overlaps the butt by 0.24;
+        # the jaw's underside sits a little below the cue's axis
+        return (Matrix.Translation((0, -(U0 - 0.24), -0.1)) @ Matrix.Scale(s, 4)
+                @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -hi[1], -lo[2])))
+
+    k.joint('Head', pivot=(0, -U0, 0.05), motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 3.0, 'Period': 3.2},             # breathing nod
+        {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 4.0, 'Period': 5.1, 'Phase': 40}])  # a slow look round
+    k.joint('Body', pivot=(0, 0, 0))
+    k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=19500, emissive=_icy_eyes,
+            emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3)
+    _dragon_body(k)
+
+
+def _dragon_body(k):
+    """The energy body: two flat ribbons coiling round the cue from the neck to the shaft, and a
+    thin glowing core in each (the cue's radius from its profile)."""
+    import bmesh
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    bm_e, bm_c = bmesh.new(), bmesh.new()
+    for ph in (0.0, math.pi):
+        path, radii, core = [], [], []
+        n = 160
+        for i in range(n):
+            t = i / (n - 1)
+            at = 6.95 - 6.35 * t
+            rr = float(env(at)) + 0.045 + 0.02 * math.sin(t * 9)
+            ang = ph + 2 * math.pi * 3.2 * t
+            path.append((rr * math.sin(ang), -at, rr * math.cos(ang)))
+            w = 0.058 * (1 - t) ** 0.6 + 0.01
+            radii.append((w, w * 0.35))
+            core.append(0.011 * (1 - t) + 0.0025)
+        sweep(bm_e, path, radii, segs=10)
+        sweep(bm_c, path, core, segs=6)
+    k.add('Body', k.mesh_object('DragonBody', bm_e, ['Energy']))
+    k.add('Body', k.mesh_object('DragonCore', bm_c, ['Core']))
+
+
+@piece
+def celestial_dragon_scripted(k):
+    """(The first, scripted head: kept to render the pocket's roaring-dragon flipbook until the
+    pocket dragon is a 3D piece.)"""
     """A pearl-white dragon head with gold horns resting past the butt end, glowing blue eyes, an
     open jaw that snaps wider now and then (a roar), gold-edged lips and white fangs, a mane of
     blue energy flames sweeping back; its see-through energy body (two ForceField ribbons with
@@ -208,7 +277,7 @@ def _dragon_roar(i, n):
     return {'Head': head.tolist(), 'Jaw': jaw_m.tolist()}
 
 
-P.SPRITES['dragon_roar'] = {'piece': 'celestial_dragon', 'skin': 'celestial_dragon', 'joints': ['Head', 'Jaw'],
+P.SPRITES['dragon_roar'] = {'piece': 'celestial_dragon_scripted', 'skin': 'celestial_dragon', 'joints': ['Head', 'Jaw'],
                             'colour': '#8CCBFF', 'rim': 0.3, 'fill': 0.4, 'ortho': 1.4,
                             'cam': ((1.7, -7.4, 0.55), (0, -7.02, 0.33)), 'pose': _dragon_roar}
 
@@ -256,9 +325,57 @@ def _basis_matrix(origin, z_dir, y_hint, scale=(1, 1, 1)):
     return Matrix.Translation(Vector(origin)) @ R @ Matrix.Diagonal(tuple(scale) + (1.0,))
 
 
+def _hsv(px):
+    """HSV (0..1) of an HxWx3 float RGB array."""
+    import numpy as np
+    mx, mn = px.max(-1), px.min(-1)
+    d = mx - mn + 1e-6
+    r, g, b = px[..., 0], px[..., 1], px[..., 2]
+    h = np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) / 6.0
+    return h % 1.0, d / (mx + 1e-6), mx
+
+
+def _violet_eyes(px):
+    """The glowing violet of the fox mask's eyes."""
+    import numpy as np
+    h, s_, v = _hsv(px)
+    return (np.clip((s_ - 0.3) / 0.2, 0, 1) * np.clip((v - 0.35) / 0.2, 0, 1)
+            * ((h > 0.72) & (h < 0.93)))
+
+
 @piece
 def kitsune(k):
-    """A white porcelain spirit-fox mask on the butt end, looking out past it: tall pointed ears
+    """The white porcelain spirit-fox mask on the butt end, looking out past it: a generated model
+    (Meshy, from a clean render of the concept; assets/cue/models/fox_mask) with its own colour,
+    normal, roughness and metal maps: crimson flame markings, gold trim, a crimson forehead gem,
+    crimson inner ears, a crimson neck sleeve ending in an engraved gold collar that fits over the
+    butt, and violet eyes that glow (an emissive mask picked from the colour map). The whole mask
+    tilts slowly. (Its nine foxfire tails are Beams in the skin's VFX.)"""
+    import numpy as np
+    from mathutils import Matrix
+    U0 = 7.0
+
+    def place(ob):
+        V = np.array([v.co[:] for v in ob.data.vertices])
+        ymin, ymax = V[:, 1].min(), V[:, 1].max()
+        ring = V[V[:, 1] > ymax - 0.04 * (ymax - ymin)]     # the collar at the back of the neck
+        cx = (ring[:, 0].max() + ring[:, 0].min()) / 2
+        cz = (ring[:, 2].max() + ring[:, 2].min()) / 2
+        s = 0.23 / max(np.ptp(ring[:, 0]), np.ptp(ring[:, 2]))  # the collar just wider than the butt
+        # the face looks out past the butt (-Y); the collar sleeves 0.05 studs over the butt end
+        return Matrix.Translation((0, -(U0 - 0.05), 0)) @ Matrix.Scale(s, 4) @ Matrix.Translation((-cx, -ymax, -cz))
+
+    k.joint('Mask', pivot=(0, -U0, 0), motion=[
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 3.0, 'Period': 4.4},             # a slow head tilt
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 2.0, 'Period': 3.1, 'Phase': 70}])
+    k.model('Mask', 'FoxMask', 'fox_mask', place, target_tris=14000, emissive=_violet_eyes,
+            emissive_tint='#C070FF', emissive_strength=3.0)
+
+
+@piece
+def kitsune_scripted(k):
+    """(The first, scripted mask: kept to render the pocket's fox-spirit flipbook until the pocket
+    fox is a 3D piece.) A white porcelain spirit-fox mask on the butt end, looking out past it: tall pointed ears
     with crimson insides that twitch now and then, violet foxfire eyes, crimson flame markings
     on the brow and cheeks, a gold-framed crimson gem on the forehead, a black nose, a small jaw
     with fangs, gold rims where it meets the cue. (Its nine foxfire tails are Beams in the skin's
@@ -415,7 +532,7 @@ def _fox_rise(i, n):
     return out
 
 
-P.SPRITES['fox_spirit'] = {'piece': 'kitsune', 'skin': 'kitsune', 'joints': ['Mask', 'EarL', 'EarR', 'Jaw'],
+P.SPRITES['fox_spirit'] = {'piece': 'kitsune_scripted', 'skin': 'kitsune', 'joints': ['Mask', 'EarL', 'EarR', 'Jaw'],
                            'colour': '#D08CFF', 'rim': 0.25, 'fill': 0.22, 'ortho': 0.88,
                            'cam': ((1.0, -8.1, 0.45), (0, -7.22, 0.2)), 'pose': _fox_rise, 'drop': ('Mask_Gold',)}
 

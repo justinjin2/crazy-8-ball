@@ -1,0 +1,8 @@
+# The full Meshy downloads stay local: they are large (25-75 MB each). The committed copy of each
+# model is source.glb (reduced to 150k triangles) and maps/ at 1024 px (CueModels.py compact).
+*/model.glb
+*/base_color.png
+*/normal.png
+*/roughness.png
+*/metallic.png
+*/emission.png
