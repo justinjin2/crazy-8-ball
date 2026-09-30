@@ -410,6 +410,9 @@ local function ensureVignette(self: EaglesEyeFx): ScreenGui
 	screen.Name = "EaglesEyeVignette"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = true
+	-- To the very edge of a phone's screen, not the safe area's (the step 17 playthrough: the
+	-- default inset drew the vignette's edge as a hard line inside the screen).
+	screen.ScreenInsets = Enum.ScreenInsets.None
 	screen.Enabled = false
 	local hud = playerGui:FindFirstChild("PoolHud")
 	local base = if hud and hud:IsA("ScreenGui") then hud.DisplayOrder else 0

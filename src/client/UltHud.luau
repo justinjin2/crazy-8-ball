@@ -701,6 +701,11 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 	self.pulling = pulling
 	local s = self.snapshot
 	local mode = self:wantedMode(serverNow)
+	-- The pill's words follow the armed ult every frame (a cheap check: fillArmed only writes
+	-- when the ult changed), so one armed straight after another never keeps the old name.
+	if mode == "armed" or mode == "opponent" then
+		self:fillArmed()
+	end
 	if mode ~= self.mode then
 		local was = self.mode
 		self.mode = mode
@@ -712,9 +717,6 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 				self.shownSince = clock
 				self.slideDone = false
 				self.nextGainAt = clock + U.SlideSeconds + U.StoredDelaySeconds
-			end
-			if mode == "armed" or mode == "opponent" then
-				self:fillArmed()
 			end
 			for _, part in { self.bar.root, self.armed.root, self.opponent.root, self.practice } do
 				part.Visible = false

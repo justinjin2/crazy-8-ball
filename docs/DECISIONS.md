@@ -2016,3 +2016,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   1.09-1.21). Worth in the catalog is now the measured value (the careful shooter's mean over
   three skills); the ladder is judged on each rarity's mean (0.37, 0.44, 0.50, 0.69, 1.15,
   1.31), with Magnet over Heat Seeker the one other inversion left.
+- 2026-09-29 (assumption): full-screen ability effects (ScreenFx's layers, Eagle's Eye's
+  vignette) draw to the very edge of a phone's screen (`ScreenInsets.None`), not the safe area:
+  the default inset drew the vignette's edge as a hard box inside the screen. The ult cutscene's
+  ScreenGui has the same default; it belongs to the ultimates work and is only flagged here.

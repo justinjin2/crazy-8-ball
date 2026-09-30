@@ -798,7 +798,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   holds for the careful shooter (each rarity at or a little above the one below), and the
   careless value is reported for the five 5.7 abilities; `ult_model.py`'s win rates per rarity
   against Magnet; tuned where off; Worth and comments in Config.
-- [ ] 17. Full playthrough in Studio: every ability in a real match vs the QA opponent
+- [x] 17. Full playthrough in Studio: every ability in a real match vs the QA opponent
   (activate, cutscene with its icon, armed look, shot, payoff), including each one's edge cases
   (Ghost with no own ball hit, Rewind after a scratch, Time Stop with no second strike, Portals
   swallowing the 8, Black Flash on the opponent's ball and on the 8, Black Hole next to an
@@ -1389,3 +1389,33 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   Ghost's little ghost flew to the ball it hit and circled it toward the pocket. Tests: the
   carried phase and the pull, the exit steer, the kept portals, the redos, the strikes. The
   docs sweep (GDD 9, ECONOMY 11.8, 5.3's "3 balls at most") is step 20's.
+- **Step 17 done (2026-09-29).** Every ability in a real match against the QA opponent through
+  `/abilitysetup` (the real arming path): all 13 cutscenes showed the right name and icon (a
+  client watcher read the cutscene's Icon image and words each time), each shot carried its
+  effect, and 12 of the 13 set-up shots dropped one of yours and kept the table (Super Bounce's
+  planned shot missed: its power was passed unconverted). Edge cases, each by a hand-built
+  fixture and the dev arm: Ghost hitting none of yours, a no-contact foul; Rewind after a
+  scratch, the scratch erased and the same shooter aiming again; Rewind twice and then a plain
+  third try that passed the turn; Time Stop with no strike, resumed at its 5 s and judged, and
+  with three strikes (a fourth refused); Portals swallowing the 8, a wrong-first-ball foul and
+  the 8 back out of B; Portals kept for the next shot and closed by a miss; Black Flash on
+  their 9, the 9 counted theirs and the foul; Black Flash on the 8, the game lost (FoulEight);
+  Black Hole beside their cluster, your 1 and only the nearest one of theirs (the cap of 1).
+  The opponent's side: the QA opponent, armed with the Tiger, cut its three stripes while the
+  local player watched from the pad, the tiger leaping in beside the cluster (held on
+  `/hold`). Fixed: the armed pill kept the old ability's name when one was armed straight after
+  another (UltHud now refills it every frame; a cheap check). Phone (the Studio emulator,
+  750x361, touch): the armed pill, the Tiger from the watching camera, Time Stop's frozen aim
+  with its hint pill and clock face, Rewind's VHS moment and the redo's SECOND CHANCE pill with
+  the full-path guide, the pick views (TAP ONE OF YOUR BALLS; the portals with CONFIRM and
+  RESET) all fit. Fixed: full-screen effect layers stopped at the phone's safe area, so Eagle's
+  Eye's vignette drew a hard box inside the screen (EaglesEyeFx and ScreenFx now use
+  `ScreenInsets.None`; the cutscene's own ScreenGui, the ultimates work's, has the same default
+  and is flagged). Touch: Heat Seeker's ball and Portals' two spots were picked by taps and
+  CONFIRM, the server holding the picks. Gamepad could not be driven: the MCP tool sends pad
+  buttons as keyboard input with no pad connected, so the pad's pick (D-pad or stick, A, X, Y,
+  L1) and the frozen strike stay a hand check. Frame time: Studio's unfocused cap, 66.7 ms mean
+  and 69.8 ms at most over 600 frames including the Tiger (no spikes past the cap). Console:
+  no script errors or drift warnings; only Roblox's own MemoryStore hiccups (the queue logs
+  them). Seen in passing, not ability work: the daily-reward reminder toast (shown when the
+  window loses focus, which Studio does constantly) sits over the ability pill on a phone.

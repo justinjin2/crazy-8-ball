@@ -197,6 +197,9 @@ local function ensureGui(): ScreenGui
 	screen.Name = "AbilityScreenFx"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = true -- the whole screen, Roblox's top bar included
+	-- ...and a phone's notch and rounded corners: a screen effect is not confined to the safe
+	-- area (the default inset drew its edge as a hard line inside a phone's screen).
+	screen.ScreenInsets = Enum.ScreenInsets.None
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	local playerGui = player:WaitForChild("PlayerGui")
 	local hud = playerGui:FindFirstChild("PoolHud")
