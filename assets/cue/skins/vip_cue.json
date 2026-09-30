@@ -90,7 +90,7 @@
       "Note": "One white glowing ring; a script turns SurfaceAppearance.EmissiveTint round the hue wheel every 3 s, so the ring (and the holographic gems, which glow a little) cycle the VIP rainbow while the rest does not glow."
     },
     "Aura": {
-      "Note": "Gold glitter with a rainbow shimmer: gold four-point sparkles all along the cue, soft rainbow motes shifting colour as they fade, a few gold crystal diamonds (own sprite) floating round the handle; two gold loops with a rainbow edge circle the cue (Orbiters); a soft gold glow.",
+      "Note": "Gold glitter with a rainbow shimmer: gold four-point sparkles all along the cue, soft rainbow motes shifting colour as they fade, a few gold crystal diamonds (own sprite) floating round the handle; two gold loops with a rainbow edge circle the cue (Orbiters); a soft gold glow. Upgraded 2026-09-30: the gold loops wider with longer tails, bigger glitter, shimmer and diamonds, a wider glow.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -120,16 +120,16 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.14,
-              0.05
+              0.189,
+              0.068
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -178,15 +178,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.3,
-              0.2
+              0.28
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0.35,
@@ -247,19 +247,19 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.2,
-              0.16
+              0.24
             ],
             [
               0.8,
-              0.16
+              0.24
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0,
@@ -278,15 +278,15 @@
           "TravelSeconds": 3.0,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.6,
-          "Radius": 0.2,
+          "Radius": 0.26,
           "RadiusFromSurface": true,
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.3,
+            "WidthStuds": 0.1,
             "Color": "#FFFFFF",
-            "Brightness": 1.6,
+            "Brightness": 2.0,
             "Transparency": [
               [
                 0,
@@ -313,15 +313,15 @@
           "TravelSeconds": 2.6,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.7,
-          "Radius": 0.2,
+          "Radius": 0.32,
           "RadiusFromSurface": true,
           "Phase": 180,
           "Delay": 1.2,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.06,
+            "Lifetime": 1.3,
+            "WidthStuds": 0.1,
             "Color": "#FFFFFF",
-            "Brightness": 1.6,
+            "Brightness": 2.0,
             "Transparency": [
               [
                 0,
@@ -347,8 +347,8 @@
           "Name": "GoldGlow",
           "FromStuds": 0.0,
           "ToStuds": 7.0,
-          "Width0": 0.2,
-          "Width1": 0.32,
+          "Width0": 0.3,
+          "Width1": 0.55,
           "Segments": 16,
           "Texture": "vfx/_shared/halo_strip.png",
           "TextureMode": "Stretch",
@@ -432,8 +432,8 @@
         "Core": {
           "Color": [
             255,
-            255,
-            255
+            214,
+            110
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,

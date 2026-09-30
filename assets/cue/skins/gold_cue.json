@@ -156,7 +156,7 @@
       ]
     },
     "Aura": {
-      "Note": "A few gold sparkles along the cue.",
+      "Note": "A few gold sparkles along the cue. Upgraded 2026-09-30: sparkles bigger and more of them, a faint gold haze and a gold glow round the cue, a gold trail.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -170,7 +170,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 6,
+          "Rate": 8,
           "Lifetime": [
             0.5,
             0.9
@@ -186,16 +186,16 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.12,
-              0.036
+              0.192,
+              0.058
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -216,21 +216,212 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "GoldHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.82
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE08A"
+            ],
+            [
+              1,
+              "#FFB020"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "Glow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.26,
+          "Width1": 0.46,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#FFC040",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.72
+            ],
+            [
+              0.9,
+              0.67
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
         }
       ]
     },
     "Trail": {
-      "Note": "The shared white wisp."
+      "Note": "The wisp tinted gold, with a bright core."
     },
     "Pocket": {
       "Note": "The default gust in the ball's colour."
     },
     "Budget": {
-      "ParticlesPerSecond": 6,
-      "Back": 3.0,
+      "ParticlesPerSecond": 12,
+      "Back": 6.0,
       "BallTrail": 0,
-      "Beams": 4,
+      "Beams": 5,
       "Lights": 0
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          196,
+          70
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.2,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            255,
+            208,
+            107
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.2,
+          "Brightness": 2.2
+        }
+      }
     }
   }
 }

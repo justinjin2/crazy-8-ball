@@ -70,7 +70,7 @@
   "surface": {},
   "vfx": {
     "Aura": {
-      "Note": "Small green leaves drift off and tumble down (a 4-frame tumbling flipbook), the odd white blossom falls turning, pollen sparkles float up, and a soft green vine of light winds round the cue and slowly turns (a curved Beam whose curve a script rotates).",
+      "Note": "Small green leaves drift off and tumble down (a 4-frame tumbling flipbook), the odd white blossom falls turning, pollen sparkles float up, and a soft green vine of light winds round the cue and slowly turns (a curved Beam whose curve a script rotates). Upgraded 2026-09-30: two glowing green vines twine round the cue, leaves and blossoms bigger and more of them.",
       "BackRateScale": 0.5,
       "Beams": [
         {
@@ -178,7 +178,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 6,
+          "Rate": 8,
           "Lifetime": [
             2.0,
             3.0
@@ -190,11 +190,11 @@
           "Size": [
             [
               0,
-              0.2
+              0.32
             ],
             [
               1,
-              0.22
+              0.352
             ]
           ],
           "Transparency": [
@@ -257,7 +257,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 1.5,
+          "Rate": 3,
           "Lifetime": [
             2.0,
             3.0
@@ -269,11 +269,11 @@
           "Size": [
             [
               0,
-              0.14
+              0.252
             ],
             [
               1,
-              0.15
+              0.27
             ]
           ],
           "Transparency": [
@@ -378,6 +378,126 @@
             180
           ]
         }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Vine1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.55,
+          "Radius": 0.2,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
+            "Color": [
+              [
+                0,
+                "#E8FFB0"
+              ],
+              [
+                0.5,
+                "#5FD84A"
+              ],
+              [
+                1,
+                "#1E7A2A"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Vine2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.5,
+          "Radius": 0.24,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#E8FFB0"
+              ],
+              [
+                0.5,
+                "#5FD84A"
+              ],
+              [
+                1,
+                "#1E7A2A"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
       ]
     },
     "Style": {
@@ -459,18 +579,34 @@
           "LightEmission": 0.6,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            120,
+            220,
+            90
+          ],
+          [
+            147,
+            227,
+            123
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 15.5,
-      "Back": 7.75,
-      "Beams": 2
+      "ParticlesPerSecond": 19,
+      "Back": 9.5,
+      "Beams": 2,
+      "Orbiters": 2
     },
     "Trail": {
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

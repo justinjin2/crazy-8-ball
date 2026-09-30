@@ -5,8 +5,13 @@ The cue-skins run (brief: `CUE_SKINS_PROMPT.md`, branch `cue-skins`, worktree
 spec, with renders and a clip to review. **Nothing is imported into Roblox yet**: the import is
 a later session, and the second half of this report is written for it.
 
-**Status: 58 of the 61 new skins are built.** The three Unique cues (Founder's Cue, Beta Cue,
-Grand Opening) are waiting for their concept sheet, `assets/cue/concepts/Q1.png`.
+**Status: 58 of the 61 new skins are built,** and the designer's upgrade pass (2026-09-30:
+brighter, longer trails; bigger, denser auras; the creatures as rigged 3D holograms; Eclipse as
+space) is done for every tier from Rare up, the Rank cues and the VIP Cue. The three Unique cues
+(Founder's Cue, Beta Cue, Grand Opening) are waiting for their concept sheet,
+`assets/cue/concepts/Q1.png`, and the designer will come back to them.
+
+**The import is the next session:** its brief is `docs/prompts/CUE_SKINS_IMPORT_PROMPT.md`.
 
 ---
 
@@ -37,13 +42,13 @@ by script), **AI** (OpenAI panels painted from the concept crops) or **mix** (bo
 |---|---|---|---|
 | Common (7) | Midnight, Arctic, Cherry, Carbon, Heritage, Monarch, Cobalt | proc | surface only; the shared white wisp |
 | Uncommon (9) | Gummy, Flare, Hornet, Venom, Lagoon, Splice, Cosmo, Gilded, Pixel | proc / mix | one glowing ring; the wisp tinted |
-| Rare (10) | Honeycomb, Neon, Plasma, Blaze, Frostbite, Nature, Candy, Phantom, Tidal, Sakura | proc / mix | its own aura (11-20 particles/s); the wisp tinted |
+| Rare (10) | Honeycomb, Neon, Plasma, Blaze, Frostbite, Nature, Candy, Phantom, Tidal, Sakura | proc / mix | its own aura (14-20 particles/s, most with ribbons of light winding round the cue); the wisp tinted with a bright core; the pocket gust in its colours |
 | Epic (9) | Void, Shooting Star, Magma, Toxic, Blood Moon, Prism, Aurora, Disco, Hacked | proc / mix | a moving material (overlay Beams and emissive pulses), an aura (19-31/s), a trail or pocket where plan.json lists one |
-| Legendary (7) | Chroma, Thunderstrike, Phoenix, Kraken, Seraph, Infernal, Clockwork | mix (Clockwork proc) | SurfaceAppearance frames, a layered aura (30-51/s) with sprites made for it, its own trail and a staged pocket finisher |
-| Mythic (3) | Celestial Dragon, Kitsune, Apex | mix + a scripted 3D piece | all of the above plus a moving 3D piece on the butt |
-| Secret (1) | Eclipse | mix + a scripted 3D piece | a floating eclipse with a particle corona |
+| Legendary (7) | Chroma, Thunderstrike, Phoenix, Kraken, Seraph, Infernal, Clockwork | mix (Clockwork proc) | SurfaceAppearance frames, a layered aura (28-57/s) with sprites made for it, 3D pieces (wings, tentacles, halo, crystals, skull, gears), its own trail and a staged pocket finisher (3D creatures rising for Phoenix, Kraken, Infernal, Clockwork) |
+| Mythic (3) | Celestial Dragon, Kitsune, Apex | mix + a 3D piece (generated or scripted) | all of the above plus a moving 3D piece on the butt; the dragon and fox (on the cue and rising from the pocket) are rigged, animated holograms |
+| Secret (1) | Eclipse | mix + a scripted 3D piece | space: a giant eclipse behind the cue's back half, a galaxy, gold orbits with planets, an asteroid belt, a small eclipse on the butt |
 | Exclusive (2) | Starter Cue, VIP Cue | mix | Starter: blue ring and wisp. VIP: a rainbow-cycling ring, gold aura, own trail, a crown finisher |
-| Rank (10) | Bronze, Silver, Gold, Platinum, Diamond, Expert, Veteran, Master, Grandmaster, Reyes | proc (one shared trophy design) | climbing from no VFX (Bronze) to a shine sweep, sparkles, flames, own trails and finishers (Grandmaster, Reyes) |
+| Rank (10) | Bronze, Silver, Gold, Platinum, Diamond, Expert, Veteran, Master, Grandmaster, Reyes | proc (one shared trophy design) | climbing from no VFX (Bronze) to a shine sweep, sparkles, ribbons, flames, own trails and finishers (Grandmaster, Reyes); tinted trails from Gold up |
 | Unique (3) | Founder's Cue, Beta Cue, Grand Opening | - | **not built: waiting for `Q1.png`** |
 
 The details of each skin (every VFX piece and number, and where it differs from its concept)
@@ -53,32 +58,39 @@ are in its review row and in `assets/cue/skins/<id>.json`.
 
 - **Model:** `gpt-image-2.5-sunburst` (the newest image model on the key; it keeps precise
   edits), used through the edits endpoint with the panel layout and the concept crops.
-- **Spend:** about **$2.79** for 81 images (the log is
-  `assets/cue/concepts/openai_log.jsonl`). That is far below the $25 note and $150 stop.
+- **Spend:** about **$3.25** for 88 images (the log is
+  `assets/cue/concepts/openai_log.jsonl`; the last 7 were reference images for the 3D
+  generator). That is far below the $25 note and $150 stop.
 - The chosen panels are committed in `assets/cue/skins/<id>/ai/`, so a repaint never pays
   again. `take: n` in a skin's `ai` block picks which take is used.
 
-## 4. 3D parts to generate
+## 4. 3D pieces and the generator
 
-The AI 3D generators (Rodin, Hunyuan3D, Tripo) only work through the Blender MCP, which this run
-could not use. Every piece is therefore modelled by script (`assets/cue/CuePiecesMythic.py`),
-and each one is complete and moves. These would still look better as a generated model, in
-this order:
+**Meshy** (its API, `tools/meshy_generate.py`, key in the Keychain as `MESHY_API_KEY`) made 7
+models from reference images: the Celestial Dragon head, the Kitsune mask, the Infernal skull,
+and the pocket dragon, fox, firebird and skull. **245 credits** in all (35 each; the log is
+`assets/cue/models/meshy_log.jsonl`). The full downloads stay local; `CueModels.py compact`
+commits a reduced `source.glb` and 1024 px maps per model.
 
-1. **The Celestial Dragon's head** (`pieces/celestial_dragon`, joints Head and Jaw): the
-   scripted head is smooth metaball sculpting, so the scales, brow ridges and teeth are simpler
-   than the concept's. Keep the energy body (the two coiling ribbons): it is right as it is.
-2. **The Kitsune mask** (`pieces/kitsune`, joints Mask, EarL, EarR, Jaw): a generated
-   porcelain mask would have crisper carved markings; the crimson markings are strips laid on
-   the sculpt today.
-3. **The Apex claw arm** (`pieces/apex`): the scripted version is clean hard-surface work
-   (bevelled plates and blades). A generated one could add panel detail, but this is the
-   lowest priority.
+| Piece | Triangles | Made by | Moves |
+|---|---|---|---|
+| celestial_dragon | 37.7k | Meshy head (rigged hologram) + scripted energy body | jaw roars, mane streams, head looks round |
+| celestial_dragon_pocket | 27.5k | Meshy (rigged hologram) | sways, nods, roars, claws |
+| kitsune | 22.0k | Meshy mask (rigged hologram) | ears twitch, jaw opens; the tails are Beams |
+| kitsune_pocket | 27.5k | Meshy (rigged hologram) | head tilts, nine tails sway |
+| phoenix | 7.4k | scripted | two flame wings beat |
+| phoenix_pocket | 27.5k | Meshy (rigged hologram) | wings beat, head and tail move |
+| infernal | 19.5k | Meshy skull (solid obsidian ornament) | still |
+| infernal_pocket | 27.5k | Meshy (rigged hologram) | jaw snaps |
+| kraken / kraken_pocket | 10.8k / 6.3k | scripted | tentacles wave and curl |
+| clockwork / clockwork_pocket | 12.7k / 4.6k | scripted | every gear turns, meshing |
+| seraph | 2.5k | scripted | the halo bobs and sways |
+| chroma | 0.2k | scripted | crystals orbit |
+| apex | 9.4k | scripted | claws flex, rotor spins |
+| eclipse | 37.6k | scripted | the sphere floats, rings precess, planets and asteroids orbit |
 
-Eclipse's piece (a sphere, rings and a moon) needs no generator.
-
-For a replacement, keep the joint layout: split the model by moving part (the jaw, the ears, the
-claws), put each part's pivot where `piece.json` says, and reuse the motion lists as they are.
+"Rigged hologram": a skinned mesh (bones follow the joints) drawn as see-through tinted light
+with scanlines and a ForceField shell (report 6.3).
 
 ## 5. Particle budgets
 
@@ -87,17 +99,17 @@ Legendary and up). A cue worn on a back runs at `BackRateScale` = **0.5** (every
 
 | Tier | Highest aura rate | Notes |
 |---|---|---|
-| Rare | 20/s (Blaze) | Honeycomb, Frostbite and Candy 18 |
-| Epic | 31.4/s (Void) | Magma 30 |
-| Legendary | 51/s (Infernal) | Chroma 44; the others 30-41 |
-| Mythic | 46/s (Celestial Dragon) | Apex 39.6, Kitsune 37 |
-| Secret | 40.5/s (Eclipse) | |
+| Rare | 20/s (Blaze, Candy, Plasma, Sakura) | the lowest 14 (Phantom) |
+| Epic | 34/s (Magma, Disco) | the lowest 28 |
+| Legendary | 57/s (Infernal) | Phoenix 54; the lowest 28 |
+| Mythic | 52/s (Kitsune) | Celestial Dragon 48, Apex 46.8 |
+| Secret | 57.9/s (Eclipse) | |
 | Exclusive | 27/s (VIP) | the Starter has none |
-| Rank | 29.6/s (Reyes) | Bronze and Silver have none |
+| Rank | 29.6/s (Reyes) | Gold 12, Platinum 16, Diamond 17; Bronze and Silver have none |
 
 Orbiters, Arcs, Beams and Lights are not particles and are listed separately in each skin's
 `Budget` (at most 5 Orbiters, 10 Beams, 2 Lights on one cue). Ball-trail emitters run only while
-a ball rolls (up to 32/s: Chroma, Thunderstrike).
+a ball rolls (up to 36/s on a Legendary).
 
 ---
 
@@ -129,6 +141,17 @@ default). The keys `Trail.Color`, `Trail.Colors`, `Trail.Core`, `Trail.NearTrans
 - `vfx.Trail.Emitters`: small emitters on the ball while it rolls.
 - `vfx.Pocket.Layers`, `Rings`, `Flash`: a skin's own pocket layers (emitters with Delay for
   staging), extra rings and a flash, added on top of the default burst (which the row tints).
+- `Trail.Brightness` and `Trail.Transparency` (a curve), and `Trail.Core`: a second, narrower
+  Trail on the ball with its own `Color`, `Width` (of the trail's), `NearTransparency`,
+  `Transparency`, `WidthScale`, `LightEmission` and `Brightness` (every trail from Uncommon up).
+  Warm trails keep `LightEmission` low (about 0.2): Roblox keeps the felt behind a trail at
+  1 - alpha x (1 - LightEmission), so additive red over blue felt reads pink.
+- `vfx.Pocket.Piece` (6 skins): a 3D creature rises out of the pocket: `Piece` (a folder in
+  `pieces/`), `Delay`, `Seconds`, and curves over its life for `Rise` (studs), `Scale`, `Spin`
+  (degrees) and `Transparency`; its joints move as on the cue. `KeepRibbons: false` hides the
+  default swirl ribbons that would cross it.
+- `Style.Pocket.Colors` with `ColorShare` 0.7 on every Rare: the default gust mostly in the
+  skin's colours.
 
 The Effects module needs those extra keys read; the row format stays data only.
 
@@ -149,8 +172,9 @@ generic cue-VFX script can build everything from the skin data:
 - **Attachments** along the cue: `AtStuds` from the tip (the butt is 7), `Up` and `Side` in
   studs. The Roblox MeshPart frame is Position = (-Side, Up, 3.5 - AtStuds).
 - **ParticleEmitters** with every property named as Roblox names it. `Host` says where: an
-  `Attachment`, or a `Part` (an invisible cylinder along the cue, `FromStuds`/`ToStuds`/`Width`,
-  surface or volume) for emitters that cover the whole cue.
+  `Attachment`, a `Part` (an invisible cylinder along the cue, `FromStuds`/`ToStuds`/`Width`,
+  surface or volume) for emitters that cover the whole cue, a `Point`, or a `Segment` (a thin
+  cylinder `From`-`To` riding a piece's `Joint`, Phoenix's wing edges).
 - **Beams:** straight or curved (`Curve0`/`Curve1` give each Attachment's Axis and
   CurveSize); `Twist` turns the curve round the cue; the far end may sit off the axis
   (`Up1`/`Side1`) and `Sway` swings it (the curve lags a quarter period); `Pulse` tweens
@@ -162,7 +186,7 @@ generic cue-VFX script can build everything from the skin data:
 - **Arcs** (Plasma, Thunderstrike): lightning as chains of short Beams whose Attachments a
   script re-jitters every 0.09-0.2 s.
 - **PointLights**, with an optional `Flicker` (a wave on Brightness) and `Hue` (Chroma).
-- **Pieces** (Mythic, Secret): `pieces/<id>/*.obj` become MeshParts welded to the cue, one per
+- **Pieces** (Legendary and up): `pieces/<id>/*.obj` become MeshParts welded to the cue, one per
   joint and material, each placed by its `Offset` in the Roblox cue frame, with the Roblox
   Material, Color, Transparency and Reflectance from `piece.json`. A small script animates each
   joint from its `Motion` list (Hinge, Sway, Spin, Bob with sine, snap or pulse waves) about its
@@ -186,9 +210,11 @@ generic cue-VFX script can build everything from the skin data:
 - **Surface maps:** 76 map sets in `assets/cue/textures/` (colour, normal, roughness,
   metalness, emissive where it glows; Legendary frames add up to 3 more sets each). They are
   rebuilt from the skin files, not committed.
-- **VFX textures:** 110 PNGs in `assets/cue/vfx/` (`_shared/` plus one folder per skin and
+- **VFX textures:** 119 PNGs in `assets/cue/vfx/` (`_shared/` plus one folder per skin and
   `rank/`).
-- **Piece meshes:** 58 OBJs in `assets/cue/pieces/` (four pieces).
+- **Pieces:** 16 folders in `assets/cue/pieces/`: 197 OBJs, 6 skinned GLBs and 23 maps
+  (the generated models' spirit colour, emissive and normal maps). `preview.png` in each is
+  for review only.
 
 `tools/roblox_upload.py` and `tools/upload_manifest.json` already handle uploads; add these
 paths to the manifest.
@@ -199,7 +225,8 @@ paths to the manifest.
   list in 6.3), the Starter Cue now tradable.
 - **ECONOMY:** the case contents by tier (the new ids), the Starter trading rule.
 - **STATUS:** the cue skins built and waiting for review and import.
-- **DECISIONS:** the run's assumptions are already logged (2026-09-29, "(assumption)").
+- **DECISIONS:** the run's assumptions and the designer's choices are already logged
+  (2026-09-29 and 2026-09-30).
 
 ## 7. Known issues
 
@@ -212,7 +239,9 @@ paths to the manifest.
 - **Flat OpenAI takes:** a few panels came out flatter or more graphic than their concept (the
   VIP most). The metal is set in the maps, so it still shines. A new take (`--force-ai --ai
   <panel>`) costs about $0.03.
-- **Particle-only set pieces:** wings, tentacles, the fox spirit, the dragon roar and the
-  eclipse corona are camera-facing flipbooks. They turn to face the camera, as Roblox particles
-  do.
+- **Camera-facing set pieces:** the eclipse coronas, Eclipse's giant eclipse and galaxy, and
+  the flame and feather flipbooks turn to face the camera, as Roblox particles do (right for an
+  eclipse, which is round from every side). The wings, tentacles, halo and creatures are 3D.
+- **Hologram look in Roblox:** it is baked into the maps (see-through colour, glowing lines),
+  so it should carry over, but check the transparency sorting against the aura in Studio.
 - Per-skin differences from the concepts are listed in the review file.

@@ -41,7 +41,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Rainbow sprinkles tumble off the cue and fall (one 16-sprinkle sheet, a random sprinkle per particle, held still), sugar sparkles twinkle along it, and a red-and-white candy-stripe ribbon spirals round the cue tip to butt (a striped Trail flown by a script: an Orbiter).",
+      "Note": "Rainbow sprinkles tumble off the cue and fall (one 16-sprinkle sheet, a random sprinkle per particle, held still), sugar sparkles twinkle along it, and a red-and-white candy-stripe ribbon spirals round the cue tip to butt (a striped Trail flown by a script: an Orbiter). Upgraded 2026-09-30: two candy-stripe ribbons winding round the cue (wider, longer), sprinkles and sugar sparkles bigger, a faint pink sugar haze.",
       "BackRateScale": 0.5,
       "Orbiters": [
         {
@@ -51,11 +51,11 @@
           "TravelSeconds": 1.6,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.2,
-          "Radius": 0.2,
+          "Radius": 0.22,
           "Phase": 0,
           "Trail": {
-            "Lifetime": 1.4,
-            "WidthStuds": 0.09,
+            "Lifetime": 1.6,
+            "WidthStuds": 0.13,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -86,6 +86,50 @@
             "TextureMode": "Wrap",
             "TextureLength": 0.2
           }
+        },
+        {
+          "Name": "CandyRibbon2",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 1.76,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -1.08,
+          "Radius": 0.3,
+          "Phase": 180,
+          "Trail": {
+            "Lifetime": 1.6,
+            "WidthStuds": 0.13,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.7,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.6
+              ]
+            ],
+            "LightEmission": 0.25,
+            "Texture": "vfx/candy/stripe_strip.png",
+            "TextureMode": "Wrap",
+            "TextureLength": 0.2
+          },
+          "Delay": 0.9
         }
       ],
       "Emitters": [
@@ -112,11 +156,11 @@
           "Size": [
             [
               0,
-              0.13
+              0.221
             ],
             [
               1,
-              0.13
+              0.221
             ]
           ],
           "Transparency": [
@@ -184,15 +228,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.5,
-              0.1
+              0.16
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -206,6 +250,83 @@
           "LightInfluence": 0,
           "LockedToPart": true,
           "ZOffset": 0
+        },
+        {
+          "Name": "SugarHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 2,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.8
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFB8D0"
+            ],
+            [
+              1,
+              "#FFFFFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ]
     },
@@ -288,19 +409,34 @@
           "LightEmission": 0.2,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            235,
+            40,
+            50
+          ],
+          [
+            239,
+            83,
+            91
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 18,
-      "Back": 9,
+      "ParticlesPerSecond": 20,
+      "Back": 10.0,
       "Beams": 0,
-      "Orbiters": 1
+      "Orbiters": 2
     },
     "Trail": {
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

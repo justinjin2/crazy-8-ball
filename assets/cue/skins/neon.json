@@ -65,7 +65,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Four neon tubes (two hot pink, two electric cyan) fly round the cue in a double helix from tip to butt and back, each a Trail on an attachment pair a script flies (Orbiters); tiny sparks pop off the tubes; the painted tubes flicker like a sign.",
+      "Note": "Four neon tubes (two hot pink, two electric cyan) fly round the cue in a double helix from tip to butt and back, each a Trail on an attachment pair a script flies (Orbiters); tiny sparks pop off the tubes; the painted tubes flicker like a sign. Upgraded 2026-09-30: the neon tubes thicker with longer glowing tails and bigger heads, bigger sparks, a pink-and-cyan haze.",
       "BackRateScale": 0.5,
       "Orbiters": [
         {
@@ -79,8 +79,8 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 1.15,
-            "WidthStuds": 0.045,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.075,
             "Color": "#FF2BD6",
             "Transparency": [
               [
@@ -107,12 +107,12 @@
               ]
             ],
             "LightEmission": 1,
-            "Brightness": 2,
+            "Brightness": 2.4,
             "Texture": "vfx/_shared/neon_strip.png",
             "TextureMode": "Stretch"
           },
           "Head": {
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#FF2BD6",
             "Texture": "vfx/_shared/glow_core.png",
             "LightEmission": 1
@@ -129,8 +129,8 @@
           "Phase": 180,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 1.15,
-            "WidthStuds": 0.045,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.075,
             "Color": "#19E6FF",
             "Transparency": [
               [
@@ -157,12 +157,12 @@
               ]
             ],
             "LightEmission": 1,
-            "Brightness": 2,
+            "Brightness": 2.4,
             "Texture": "vfx/_shared/neon_strip.png",
             "TextureMode": "Stretch"
           },
           "Head": {
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#19E6FF",
             "Texture": "vfx/_shared/glow_core.png",
             "LightEmission": 1
@@ -179,8 +179,8 @@
           "Phase": 90,
           "Delay": 0.7,
           "Trail": {
-            "Lifetime": 1.15,
-            "WidthStuds": 0.045,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.075,
             "Color": "#FF2BD6",
             "Transparency": [
               [
@@ -207,12 +207,12 @@
               ]
             ],
             "LightEmission": 1,
-            "Brightness": 2,
+            "Brightness": 2.4,
             "Texture": "vfx/_shared/neon_strip.png",
             "TextureMode": "Stretch"
           },
           "Head": {
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#FF2BD6",
             "Texture": "vfx/_shared/glow_core.png",
             "LightEmission": 1
@@ -229,8 +229,8 @@
           "Phase": 270,
           "Delay": 0.7,
           "Trail": {
-            "Lifetime": 1.15,
-            "WidthStuds": 0.045,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.075,
             "Color": "#19E6FF",
             "Transparency": [
               [
@@ -257,12 +257,12 @@
               ]
             ],
             "LightEmission": 1,
-            "Brightness": 2,
+            "Brightness": 2.4,
             "Texture": "vfx/_shared/neon_strip.png",
             "TextureMode": "Stretch"
           },
           "Head": {
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#19E6FF",
             "Texture": "vfx/_shared/glow_core.png",
             "LightEmission": 1
@@ -281,7 +281,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 6,
+          "Rate": 7,
           "Lifetime": [
             0.25,
             0.45
@@ -293,11 +293,11 @@
           "Size": [
             [
               0,
-              0.07
+              0.105
             ],
             [
               1,
-              0.02
+              0.03
             ]
           ],
           "Transparency": [
@@ -337,7 +337,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 6,
+          "Rate": 7,
           "Lifetime": [
             0.25,
             0.45
@@ -349,11 +349,11 @@
           "Size": [
             [
               0,
-              0.07
+              0.105
             ],
             [
               1,
-              0.02
+              0.03
             ]
           ],
           "Transparency": [
@@ -381,6 +381,83 @@
             -2,
             0
           ]
+        },
+        {
+          "Name": "NeonHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.8
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FF2BD6"
+            ],
+            [
+              1,
+              "#2BF0FF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Lights": [
@@ -477,11 +554,26 @@
           "LightEmission": 0.6,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            60,
+            220
+          ],
+          [
+            255,
+            99,
+            227
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 12,
-      "Back": 6,
+      "ParticlesPerSecond": 19,
+      "Back": 9.5,
       "Beams": 0,
       "Orbiters": 4,
       "Lights": 1
@@ -490,7 +582,7 @@
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

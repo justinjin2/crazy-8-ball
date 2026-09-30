@@ -76,7 +76,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Soft pink cherry petals drift off and spin down turning over (a 4-frame tumbling flipbook), a pink silk ribbon of light loops slowly round the cue tip to butt and back (a Trail flown by a script: an Orbiter), and pink glow motes float.",
+      "Note": "Soft pink cherry petals drift off and spin down turning over (a 4-frame tumbling flipbook), a pink silk ribbon of light loops slowly round the cue tip to butt and back (a Trail flown by a script: an Orbiter), and pink glow motes float. Upgraded 2026-09-30: two glowing silk ribbons now, wider and longer, petals nearly twice as big, a faint blossom haze.",
       "BackRateScale": 0.5,
       "Orbiters": [
         {
@@ -91,8 +91,8 @@
           "WobbleHz": 0.7,
           "Phase": 40,
           "Trail": {
-            "Lifetime": 1.6,
-            "WidthStuds": 0.11,
+            "Lifetime": 1.8,
+            "WidthStuds": 0.14,
             "Color": [
               [
                 0,
@@ -132,10 +132,69 @@
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/_shared/wisp_strip.png",
-            "TextureMode": "Wrap",
-            "TextureLength": 1.0
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
           }
+        },
+        {
+          "Name": "SilkRibbon2",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.86,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.63,
+          "Radius": 0.36,
+          "Wobble": 0.12,
+          "WobbleHz": 0.7,
+          "Phase": 180,
+          "Trail": {
+            "Lifetime": 1.8,
+            "WidthStuds": 0.14,
+            "Color": [
+              [
+                0,
+                "#FFD6E7"
+              ],
+              [
+                1,
+                "#FF6FAE"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0.25
+              ],
+              [
+                0.7,
+                0.5
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                0.5,
+                0.8
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
+          },
+          "Delay": 1.0
         }
       ],
       "Emitters": [
@@ -150,7 +209,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 11,
+          "Rate": 12,
           "Lifetime": [
             2.0,
             3.0
@@ -162,11 +221,11 @@
           "Size": [
             [
               0,
-              0.09
+              0.162
             ],
             [
               1,
-              0.11
+              0.198
             ]
           ],
           "Transparency": [
@@ -241,15 +300,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.3,
-              0.06
+              0.09
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -276,6 +335,83 @@
             180,
             180
           ]
+        },
+        {
+          "Name": "BlossomHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 2,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.82
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFC8DE"
+            ],
+            [
+              1,
+              "#FF7AB8"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ]
     },
@@ -358,19 +494,34 @@
           "LightEmission": 0.6,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            150,
+            200
+          ],
+          [
+            255,
+            171,
+            211
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 17,
-      "Back": 8.5,
+      "ParticlesPerSecond": 20,
+      "Back": 10.0,
       "Beams": 0,
-      "Orbiters": 1
+      "Orbiters": 2
     },
     "Trail": {
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

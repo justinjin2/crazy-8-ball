@@ -167,7 +167,7 @@
       "Note": "an ice-blue glowing line in the platinum ring"
     },
     "Aura": {
-      "Note": "A shimmer with sparkles: ice-white sparkles and soft pale-blue motes along the cue.",
+      "Note": "A shimmer with sparkles: ice-white sparkles and soft pale-blue motes along the cue. Upgraded 2026-09-30: bigger sparkles and shimmer, an ice-white ribbon winding round the cue, an ice-white trail.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -197,16 +197,16 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.12,
-              0.036
+              0.18,
+              0.054
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -255,15 +255,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.22
+              0.308
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0.5,
@@ -272,10 +272,71 @@
           "LightInfluence": 0,
           "LockedToPart": true
         }
+      ],
+      "Orbiters": [
+        {
+          "Name": "PlatinumRibbon",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.8,
+          "Radius": 0.26,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.11,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.5,
+                "#D8ECFF"
+              ],
+              [
+                1,
+                "#8FB8E8"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
       ]
     },
     "Trail": {
-      "Note": "The shared white wisp."
+      "Note": "The wisp tinted ice-white, with a bright core."
     },
     "Pocket": {
       "Note": "The default gust in the ball's colour."
@@ -285,7 +346,89 @@
       "Back": 8.0,
       "BallTrail": 0,
       "Beams": 4,
-      "Lights": 0
+      "Lights": 0,
+      "Orbiters": 1
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          200,
+          225,
+          255
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.5,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            211,
+            231,
+            255
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      }
     }
   }
 }

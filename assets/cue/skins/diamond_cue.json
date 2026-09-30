@@ -66,7 +66,7 @@
       "Note": "a blue glowing line in the ring"
     },
     "Aura": {
-      "Note": "Diamond sparkles and a soft glow: blue-white sparkles, small blue crystals floating round the handle, a soft blue glow.",
+      "Note": "Diamond sparkles and a soft glow: blue-white sparkles, small blue crystals floating round the handle, a soft blue glow. Upgraded 2026-09-30: bigger sparkles and crystals, two diamond-blue ribbons winding round the cue, a wider glow, a diamond-blue trail.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -96,16 +96,16 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.14,
-              0.042
+              0.196,
+              0.059
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -154,19 +154,19 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.2,
-              0.13
+              0.221
             ],
             [
               0.8,
-              0.13
+              0.221
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -185,8 +185,8 @@
           "Name": "Glow",
           "FromStuds": 0.0,
           "ToStuds": 7.0,
-          "Width0": 0.2,
-          "Width1": 0.34,
+          "Width0": 0.3,
+          "Width1": 0.55,
           "Segments": 16,
           "Texture": "vfx/_shared/halo_strip.png",
           "TextureMode": "Stretch",
@@ -212,10 +212,130 @@
           "LightEmission": 1,
           "FaceCamera": true
         }
+      ],
+      "Orbiters": [
+        {
+          "Name": "DiamondRibbon1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.24,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.5,
+                "#8FD8FF"
+              ],
+              [
+                1,
+                "#2A7AE0"
+              ]
+            ],
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "DiamondRibbon2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.9,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.8,
+          "Radius": 0.3,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.08,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.5,
+                "#8FD8FF"
+              ],
+              [
+                1,
+                "#2A7AE0"
+              ]
+            ],
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
       ]
     },
     "Trail": {
-      "Note": "The shared white wisp."
+      "Note": "The wisp tinted diamond blue, with a bright core."
     },
     "Pocket": {
       "Note": "The default gust in the ball's colour."
@@ -225,7 +345,89 @@
       "Back": 8.5,
       "BallTrail": 0,
       "Beams": 1,
-      "Lights": 0
+      "Lights": 0,
+      "Orbiters": 2
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          110,
+          190,
+          255
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.5,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            139,
+            203,
+            255
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      }
     }
   }
 }

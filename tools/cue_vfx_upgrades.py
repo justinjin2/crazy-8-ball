@@ -653,6 +653,332 @@ def pocket_piece(d, piece_id, drop_layer, **timing):
     d['vfx']['Budget']['PocketPieceTriangles'] = pj['Triangles']
 
 
+# ---- Rares (at most 20 particles a second; Orbiters, Beams and Arcs are not particles) ----------
+
+def ribbon(name, colors, radius, width=0.1, life=1.4, turns=0.8, travel=2.6, phase=0, delay=0.0,
+           wobble=0.05, le=1, bright=2.2, texture='vfx/_shared/trail_soft.png'):
+    """An Orbiter carrying a soft ribbon of light round the cue, tip to butt and back: the soft
+    band, fully additive (the thin wisp texture read as grey threads)."""
+    return {'Name': name, 'FromStuds': 0.3, 'ToStuds': 7.0, 'TravelSeconds': travel, 'Loop': 'pingpong',
+            'TurnsPerSecond': turns, 'Radius': radius, 'Wobble': wobble, 'WobbleHz': 0.9, 'Phase': phase,
+            'Delay': delay,
+            'Trail': {'Lifetime': life, 'WidthStuds': width, 'Color': colors, 'Brightness': bright,
+                      'Transparency': [[0, 0.05], [0.6, 0.3], [1, 1]], 'WidthScale': [[0, 1], [1, 0.35]],
+                      'LightEmission': le, 'Texture': texture, 'TextureMode': 'Stretch'}}
+
+
+def soft_band(a):
+    """An aura's ribbons on the soft glowing band, fully additive (the thin wisp texture read as
+    faint grey threads)."""
+    for o in a.get('Orbiters') or []:
+        o['Trail'].update({'Texture': 'vfx/_shared/trail_soft.png', 'TextureMode': 'Stretch', 'LightEmission': 1})
+        o['Trail'].pop('TextureLength', None)
+
+
+def rare_pocket(d):
+    """(assumption) Rares add no pocket layers, but the default gust is tinted in the skin's own
+    colours (the trail and its core) for most of its particles instead of the potted ball's."""
+    t = d['vfx']['Style']['Trail']
+    cols = [list(c) for c in (t.get('Colors') or [t['Color']])]
+    if t.get('Core', {}).get('Color'):
+        cols.append(list(t['Core']['Color']))
+    d['vfx']['Style']['Pocket'] = {'Colors': cols, 'ColorShare': 0.7}
+    d['vfx']['Pocket']['Note'] = ("The default gust, most of it in the skin's own colours (Rares add no layers).")
+
+
+def upgraded(a, text):
+    """Append the pass's note to the aura's Note (once)."""
+    a['Note'] = a['Note'].split(' Upgraded 2026-09-30:')[0] + ' Upgraded 2026-09-30: ' + text
+
+
+def blaze(d):
+    a = d['vfx']['Aura']
+    f = named(a['Emitters'], 'Flames')
+    grow(f, [[0, 0.5], [0.3, 1.1], [1, 0.6]], 1.4)
+    f['Lifetime'] = [0.75, 1.05]                       # longer-lived, so the tongues overlap into a blaze
+    grow(named(a['Emitters'], 'Embers'), [[0, 0.05], [1, 0.02]], 1.8)
+    named(a['Beams'], 'HeatGlow').update({'Width0': 0.45, 'Width1': 0.95})
+    upgraded(a, 'the flame tongues 40% bigger and longer-lived so they run together, bigger embers, a wider heat glow.')
+    rare_pocket(d)
+
+
+def candy(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'Sprinkles'), [[0, 0.13], [1, 0.13]], 1.7)
+    grow(named(a['Emitters'], 'Sugar'), [[0, 0], [0.5, 0.1], [1, 0]], 1.6)
+    if len(a['Orbiters']) < 2:
+        extra_orbiters(a, 1, [0.3], phase0=180, delay0=0.9)
+    ribbons(a, 0.13, 1.6, radius=[0.22, 0.3])
+    put(a['Emitters'], haze('SugarHaze', 0.3, 7.0, ['#FFB8D0', '#FFFFFF'], rate=2, fade=0.8))
+    upgraded(a, 'two candy-stripe ribbons winding round the cue (wider, longer), sprinkles and sugar sparkles '
+                'bigger, a faint pink sugar haze.')
+    rare_pocket(d)
+
+
+def frostbite(d):
+    a = d['vfx']['Aura']
+    s_ = named(a['Emitters'], 'Snowflakes')
+    grow(s_, [[0, 0.1], [1, 0.13]], 1.8)
+    s_['Rate'] = 9
+    grow(named(a['Emitters'], 'FrostGlints'), [[0, 0], [0.5, 0.12], [1, 0]], 1.6)
+    named(a['Emitters'], 'ColdMist')['Rate'] = 6
+    ice = [[0, '#FFFFFF'], [0.45, '#9EE6FF'], [1, '#3A8BD8']]
+    a['Orbiters'] = [ribbon('FrostRibbon1', ice, 0.26, width=0.16, turns=0.7, travel=2.8, le=1, bright=2.4),
+                     ribbon('FrostRibbon2', ice, 0.32, width=0.13, turns=-0.6, travel=3.2, phase=180, delay=1.0,
+                            le=1, bright=2.4)]
+    upgraded(a, 'two icy ribbons of frost wind round the cue, snowflakes nearly twice the size, bigger glints.')
+    rare_pocket(d)
+
+
+def honeycomb(d):
+    a = d['vfx']['Aura']
+    b = named(a['Emitters'], 'Bees')
+    grow(b, [[0, 0], [0.1, 0.36], [0.9, 0.36], [1, 0]], 1.35)
+    b['Rate'] = 4
+    grow(named(a['Emitters'], 'HoneyDrops'), [[0, 0.05], [0.2, 0.12], [1, 0.1]], 1.4)
+    named(a['Emitters'], 'Glints')['Rate'] = 6
+    a['Orbiters'] = [ribbon('HoneyRibbon', [[0, '#FFF8D0'], [0.5, '#FFD050'], [1, '#FFA020']], 0.3,
+                            width=0.14, turns=0.6, travel=3.0, le=1, bright=2.4)]
+    upgraded(a, 'a ribbon of golden honey light winds round the cue, bigger bees (four a second) and honey drops.')
+    rare_pocket(d)
+
+
+def nature(d):
+    a = d['vfx']['Aura']
+    lv = named(a['Emitters'], 'Leaves')
+    grow(lv, [[0, 0.2], [1, 0.22]], 1.6)
+    lv['Rate'] = 8
+    bl = named(a['Emitters'], 'Blossoms')
+    grow(bl, [[0, 0.14], [1, 0.15]], 1.8)
+    bl['Rate'] = 3
+    vine = [[0, '#E8FFB0'], [0.5, '#5FD84A'], [1, '#1E7A2A']]
+    a['Orbiters'] = [ribbon('Vine1', vine, 0.2, width=0.12, turns=0.55, travel=3.2, bright=2.4),
+                     ribbon('Vine2', vine, 0.24, width=0.1, turns=0.5, travel=3.6, phase=180, delay=1.2,
+                            bright=2.4)]
+    upgraded(a, 'two glowing green vines twine round the cue, leaves and blossoms bigger and more of them.')
+    rare_pocket(d)
+
+
+def neon(d):
+    a = d['vfx']['Aura']
+    ribbons(a, 0.075, 1.4, head=0.22, bright=2.4)
+    for n in ('PinkSparks', 'CyanSparks'):
+        e = named(a['Emitters'], n)
+        grow(e, [[0, 0.07], [1, 0.02]], 1.5)
+        e['Rate'] = 7
+    put(a['Emitters'], haze('NeonHaze', 0.3, 7.0, ['#FF2BD6', '#2BF0FF'], rate=5, fade=0.8))
+    upgraded(a, 'the neon tubes thicker with longer glowing tails and bigger heads, bigger sparks, a pink-and-cyan haze.')
+    rare_pocket(d)
+
+
+def phantom(d):
+    a = d['vfx']['Aura']
+    g = named(a['Emitters'], 'Ghosts')
+    grow(g, [[0, 0.18], [0.2, 0.45], [1, 0.48]], 1.35)
+    g['Rate'] = 2
+    sm = named(a['Emitters'], 'GhostSmoke')
+    grow(sm, [[0, 0.2], [1, 0.6]], 1.4)
+    sm['Rate'] = 5
+    mo = named(a['Emitters'], 'SpiritMotes')
+    grow(mo, [[0, 0], [0.3, 0.05], [1, 0]], 1.6)
+    mo['Rate'] = 7
+    spirit = [[0, '#FFFFFF'], [0.5, '#9FF5E6'], [1, '#4FB8C8']]
+    a['Orbiters'] = [ribbon('SpiritTrail1', spirit, 0.3, width=0.2, life=1.6, turns=0.5, travel=3.4, wobble=0.1,
+                            bright=2.4),
+                     ribbon('SpiritTrail2', spirit, 0.36, width=0.16, life=1.6, turns=-0.45, travel=3.8,
+                            phase=180, delay=1.4, wobble=0.1, bright=2.4)]
+    upgraded(a, 'two pale spirit trails drift round the cue, the ghosts a third bigger and more of them, more smoke '
+                'and motes.')
+    rare_pocket(d)
+
+
+def plasma(d):
+    a = d['vfx']['Aura']
+    # the arcs sat inside the cue (Radius 0.12) and read as bent wire (7-10 segments): off the
+    # surface, finely jagged, a little wider (the Arc standard, see Thunderstrike)
+    arcs = {x['Name']: x for x in a['Arcs']}
+    arcs['HandleArcs'].update({'Radius': 0.18, 'Segments': 18, 'Jitter': 0.075, 'WidthStuds': 0.12, 'Count': 5})
+    arcs['ShaftArcs'].update({'Radius': 0.16, 'Segments': 20, 'Jitter': 0.07, 'WidthStuds': 0.1, 'Count': 4})
+    arcs['FarArcs'].update({'Radius': 0.34, 'Segments': 24, 'Jitter': 0.09, 'WidthStuds': 0.1})
+    # at Brightness 3 the pale violet blew out to white: saturated violet at the standard 2.3
+    for x, col in (('HandleArcs', '#A868FF'), ('ShaftArcs', '#9A58FF'), ('FarArcs', '#C090FF')):
+        arcs[x].update({'Color': col, 'Brightness': 2.3})
+    grow(named(a['Emitters'], 'PlasmaSparks'), [[0, 0.08], [1, 0.02]], 1.4)
+    hz = named(a['Emitters'], 'PlasmaHaze')
+    grow(hz, [[0, 0.2], [0.5, 0.45], [1, 0.3]], 1.5)
+    put(a['Emitters'], haze('PlasmaVeil', 0.3, 7.0, ['#C99BFF', '#6A3AFF'], rate=4, fade=0.8))
+    upgraded(a, 'more arcs, standing off the cue, finely jagged and wider, bigger sparks and glow, a violet veil.')
+    rare_pocket(d)
+
+
+def sakura(d):
+    a = d['vfx']['Aura']
+    p = named(a['Emitters'], 'Petals')
+    grow(p, [[0, 0.09], [1, 0.11]], 1.8)
+    p['Rate'] = 12
+    grow(named(a['Emitters'], 'PinkMotes'), [[0, 0], [0.3, 0.06], [1, 0]], 1.5)
+    if len(a['Orbiters']) < 2:
+        extra_orbiters(a, 1, [0.36], phase0=180, delay0=1.0)
+    ribbons(a, 0.14, 1.8, radius=[0.3, 0.36], bright=1.8)
+    soft_band(a)                                       # the silk read dim
+    put(a['Emitters'], haze('BlossomHaze', 0.3, 7.0, ['#FFC8DE', '#FF7AB8'], rate=2, fade=0.82))
+    upgraded(a, 'two glowing silk ribbons now, wider and longer, petals nearly twice as big, a faint blossom haze.')
+    rare_pocket(d)
+
+
+def tidal(d):
+    a = d['vfx']['Aura']
+    b = named(a['Emitters'], 'Bubbles')
+    grow(b, [[0, 0.04], [0.85, 0.1], [0.92, 0.14], [1, 0.02]], 1.5)
+    b['Rate'] = 10
+    grow(named(a['Emitters'], 'Droplets'), [[0, 0.04], [1, 0.03]], 1.6)
+    if len(a['Orbiters']) < 3:
+        extra_orbiters(a, 1, [0.32], phase0=240, delay0=1.1)
+    ribbons(a, 0.17, 1.5, radius=[0.24, 0.28, 0.32], bright=2.2)
+    soft_band(a)                                       # the water read grey
+    put(a['Emitters'], haze('SeaHaze', 0.3, 7.0, ['#7FF0FF', '#1A6AD8'], rate=4, fade=0.8))
+    upgraded(a, 'three wider water ribbons swirl round the cue, bigger bubbles and droplets, a sea-blue haze.')
+    rare_pocket(d)
+
+
+# ---- Rank cues and VIP (the VFX climb with the rank: Gold to Diamond at most 20 a second like a
+# Rare, Veteran and up at most 35 like an Epic; Bronze and Silver keep none) ----------------------
+
+def own_trail(d, rgb, note):
+    """(assumption) Gold, Platinum and Diamond had the shared white wisp: the wisp tinted in their
+    metal, as a Rare's (tools/cue_trail_pass.py then gives it the Rank length, brightness and core)."""
+    st = d['vfx'].setdefault('Style', {})
+    if 'Trail' not in st:
+        st['Trail'] = {'Color': rgb, 'NearTransparency': 0.0, 'LightEmission': 0.5, 'Lifetime': 1.0,
+                       'WidthStuds': 0.3, 'Transparency': [[0, 0.0], [0.55, 0.12], [1, 1]],
+                       'WidthScale': [[0, 1], [0.6, 0.85], [1, 0.5]]}
+    d['vfx']['Trail']['Note'] = note
+
+
+def wider_glow(a, name='Glow', w0=0.3, w1=0.55):
+    for b in a.get('Beams') or []:
+        if b['Name'] == name:
+            b.update({'Width0': w0, 'Width1': w1})
+
+
+def runners(a, width=0.09, life=1.0, radius=0.14):
+    """The rank runners (Orbiters) were hair-thin (0.04) and short-lived: wider, longer, further out."""
+    for o in a.get('Orbiters') or []:
+        o['Radius'] = radius
+        o['Trail'].update({'WidthStuds': width, 'Lifetime': life})
+
+
+def gold_cue(d):
+    a = d['vfx']['Aura']
+    s_ = named(a['Emitters'], 'Sparkles')
+    grow(s_, [[0, 0], [0.4, 0.12, 0.036], [1, 0]], 1.6)
+    s_['Rate'] = 8
+    put(a['Emitters'], haze('GoldHaze', 0.3, 7.0, ['#FFE08A', '#FFB020'], rate=4, fade=0.82))
+    a['Beams'] = [{'Name': 'Glow', 'FromStuds': 0.0, 'ToStuds': 7.0, 'Width0': 0.26, 'Width1': 0.46, 'Segments': 16,
+                   'Texture': 'vfx/_shared/halo_strip.png', 'TextureMode': 'Stretch', 'Color': '#FFC040',
+                   'Transparency': [[0, 1], [0.06, 0.72], [0.9, 0.67], [1, 1]], 'LightEmission': 1, 'FaceCamera': True}]
+    own_trail(d, [255, 196, 70], 'The wisp tinted gold, with a bright core.')
+    d['vfx']['Budget']['Beams'] = 5                  # the four shine beams and the new glow
+    upgraded(a, 'sparkles bigger and more of them, a faint gold haze and a gold glow round the cue, a gold trail.')
+
+
+def platinum_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'Sparkles'), [[0, 0], [0.4, 0.12, 0.036], [1, 0]], 1.5)
+    grow(named(a['Emitters'], 'Shimmer'), [[0, 0], [0.4, 0.22], [1, 0]], 1.4)
+    a['Orbiters'] = [ribbon('PlatinumRibbon', [[0, '#FFFFFF'], [0.5, '#D8ECFF'], [1, '#8FB8E8']], 0.26,
+                            width=0.11, turns=0.8, travel=2.6, bright=2.4)]
+    own_trail(d, [200, 225, 255], 'The wisp tinted ice-white, with a bright core.')
+    upgraded(a, 'bigger sparkles and shimmer, an ice-white ribbon winding round the cue, an ice-white trail.')
+
+
+def diamond_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'Sparkles'), [[0, 0], [0.4, 0.14, 0.042], [1, 0]], 1.4)
+    grow(named(a['Emitters'], 'Crystals'), [[0, 0], [0.2, 0.13], [0.8, 0.13], [1, 0]], 1.7)
+    wider_glow(a)
+    ice = [[0, '#FFFFFF'], [0.5, '#8FD8FF'], [1, '#2A7AE0']]
+    a['Orbiters'] = [ribbon('DiamondRibbon1', ice, 0.24, width=0.1, turns=0.9, travel=2.4, bright=2.0),
+                     ribbon('DiamondRibbon2', ice, 0.3, width=0.08, turns=-0.8, travel=2.9, phase=180, delay=1.0,
+                            bright=2.0)]
+    own_trail(d, [110, 190, 255], 'The wisp tinted diamond blue, with a bright core.')
+    upgraded(a, 'bigger sparkles and crystals, two diamond-blue ribbons winding round the cue, a wider glow, a '
+                'diamond-blue trail.')
+
+
+def veteran_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'SpiritFlame'), [[0, 0.4], [0.35, 0.8], [1, 0.24]], 1.3)
+    grow(named(a['Emitters'], 'Leaves'), [[0, 0], [0.2, 0.12], [0.8, 0.12], [1, 0]], 1.6)
+    runners(a)
+    wider_glow(a)
+    upgraded(a, 'flames a third bigger, the spirit runners wide enough to see with longer tails, bigger leaves, a '
+                'wider glow.')
+
+
+def expert_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'RedEnergy'), [[0, 0.4], [0.35, 0.8], [1, 0.24]], 1.3)
+    grow(named(a['Emitters'], 'Sparks'), [[0, 0.06], [1, 0]], 1.6)
+    runners(a)
+    wider_glow(a)
+    upgraded(a, 'flames a third bigger, the red runners wide enough to see with longer tails, bigger sparks, a '
+                'wider glow.')
+    # the trail's light red read pink over the blue felt: a deeper red (the trail pass then
+    # derives the core from it)
+    d['vfx']['Style']['Trail']['Color'] = [235, 40, 30]
+    d['vfx']['Style']['Trail'].setdefault('Core', {})['Color'] = [245, 95, 75]
+
+
+def master_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'PurpleFlame'), [[0, 0.4], [0.35, 0.8], [1, 0.24]], 1.3)
+    grow(named(a['Emitters'], 'Amethysts'), [[0, 0], [0.2, 0.13], [0.8, 0.13], [1, 0]], 1.7)
+    grow(named(a['Emitters'], 'Sparkles'), [[0, 0], [0.4, 0.12, 0.036], [1, 0]], 1.5)
+    runners(a, width=0.1, life=1.1, radius=0.16)
+    wider_glow(a)
+    upgraded(a, 'flames a third bigger, the violet runners wide with long tails, bigger amethysts and sparkles, a '
+                'wider glow.')
+    # a textured trail's core had the white tint and drowned the texture's colour: its own colour
+    d['vfx']['Style']['Trail']['Core']['Color'] = [205, 150, 255]
+
+
+def grandmaster_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'DarkAura'), [[0, 0.3], [1, 0.9]], 1.35)
+    grow(named(a['Emitters'], 'GoldEmbers'), [[0, 0.07], [1, 0]], 1.6)
+    grow(named(a['Emitters'], 'Sparkles'), [[0, 0], [0.4, 0.12, 0.036], [1, 0]], 1.5)
+    gold = [[0, '#FFF6D0'], [0.5, '#FFC030'], [1, '#B07000']]
+    a['Orbiters'] = [ribbon('GoldRibbon1', gold, 0.26, width=0.11, turns=0.7, travel=2.8, bright=2.0, le=0.6),
+                     ribbon('GoldRibbon2', gold, 0.32, width=0.09, turns=-0.6, travel=3.3, phase=180, delay=1.2,
+                            bright=2.0, le=0.6)]
+    wider_glow(a)
+    upgraded(a, 'two gold ribbons wind through the dark aura, bigger smoke, embers and sparkles, a wider glow.')
+    # a textured trail's core had the white tint and drowned the texture's colour: its own colour
+    d['vfx']['Style']['Trail']['Core']['Color'] = [255, 196, 70]
+
+
+def reyes_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'RainbowLight'), [[0, 0], [0.3, 0.36], [1, 0]], 1.3)
+    grow(named(a['Emitters'], 'Sparkles'), [[0, 0], [0.4, 0.16, 0.048], [1, 0]], 1.4)
+    ribbons(a, 0.12, 1.4, radius=[0.24, 0.3, 0.36], bright=2.0)
+    wider_glow(a)
+    upgraded(a, 'the rainbow ribbons wider and longer and further out, bigger rainbow light and sparkles, a wider glow.')
+
+
+def vip_cue(d):
+    a = d['vfx']['Aura']
+    grow(named(a['Emitters'], 'GoldGlitter'), [[0, 0], [0.4, 0.14, 0.05], [1, 0]], 1.35)
+    grow(named(a['Emitters'], 'RainbowShimmer'), [[0, 0], [0.3, 0.2], [1, 0]], 1.4)
+    grow(named(a['Emitters'], 'Diamonds'), [[0, 0], [0.2, 0.16], [0.8, 0.16], [1, 0]], 1.5)
+    ribbons(a, 0.1, 1.3, radius=[0.26, 0.32], bright=2.0)
+    wider_glow(a, 'GoldGlow')
+    upgraded(a, 'the gold loops wider with longer tails, bigger glitter, shimmer and diamonds, a wider glow.')
+    # a textured trail's core had the white tint and drowned the texture's colour: its own colour
+    d['vfx']['Style']['Trail']['Core']['Color'] = [255, 214, 110]
+
+
 POCKET = {
     'celestial_dragon': ('celestial_dragon_pocket', 'Dragon', {
         'Rise': [[0, -3.2], [0.35, -0.25], [1, 0.1]], 'Scale': [[0, 0.7], [0.35, 1.0], [1, 1.05]],
@@ -682,7 +1008,12 @@ UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dra
             'clockwork': clockwork, 'thunderstrike': thunderstrike,
             'seraph': seraph, 'chroma': chroma,
             'aurora': aurora, 'blood_moon': blood_moon, 'disco': disco, 'hacked': hacked, 'magma': magma,
-            'prism': prism, 'shooting_star': shooting_star, 'toxic': toxic, 'void': void}
+            'prism': prism, 'shooting_star': shooting_star, 'toxic': toxic, 'void': void,
+            'blaze': blaze, 'candy': candy, 'frostbite': frostbite, 'honeycomb': honeycomb, 'nature': nature,
+            'neon': neon, 'phantom': phantom, 'plasma': plasma, 'sakura': sakura, 'tidal': tidal,
+            'gold_cue': gold_cue, 'platinum_cue': platinum_cue, 'diamond_cue': diamond_cue,
+            'veteran_cue': veteran_cue, 'expert_cue': expert_cue, 'master_cue': master_cue,
+            'grandmaster_cue': grandmaster_cue, 'reyes_cue': reyes_cue, 'vip_cue': vip_cue}
 
 
 def budget(d):

@@ -64,7 +64,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Cold mist rolls off the cue and sinks (it falls, where smoke would rise); six-armed snowflakes drift down turning; an icy stream of frost curls slowly round the cue from tip to butt (a curved Beam whose curve a script turns); frost glints twinkle.",
+      "Note": "Cold mist rolls off the cue and sinks (it falls, where smoke would rise); six-armed snowflakes drift down turning; an icy stream of frost curls slowly round the cue from tip to butt (a curved Beam whose curve a script turns); frost glints twinkle. Upgraded 2026-09-30: two icy ribbons of frost wind round the cue, snowflakes nearly twice the size, bigger glints.",
       "BackRateScale": 0.5,
       "Beams": [
         {
@@ -132,7 +132,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 7,
+          "Rate": 6,
           "Lifetime": [
             1.6,
             2.2
@@ -202,7 +202,7 @@
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 8,
+          "Rate": 9,
           "Lifetime": [
             1.6,
             2.4
@@ -214,11 +214,11 @@
           "Size": [
             [
               0,
-              0.1
+              0.18
             ],
             [
               1,
-              0.13
+              0.234
             ]
           ],
           "Transparency": [
@@ -286,15 +286,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.5,
-              0.12
+              0.192
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -308,6 +308,126 @@
           "LightInfluence": 0,
           "LockedToPart": true,
           "ZOffset": 0
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "FrostRibbon1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.7,
+          "Radius": 0.26,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.16,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.45,
+                "#9EE6FF"
+              ],
+              [
+                1,
+                "#3A8BD8"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "FrostRibbon2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.6,
+          "Radius": 0.32,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.13,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.45,
+                "#9EE6FF"
+              ],
+              [
+                1,
+                "#3A8BD8"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
         }
       ]
     },
@@ -390,18 +510,34 @@
           "LightEmission": 0.6,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            150,
+            215,
+            255
+          ],
+          [
+            171,
+            223,
+            255
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
       "ParticlesPerSecond": 18,
-      "Back": 9,
-      "Beams": 1
+      "Back": 9.0,
+      "Beams": 1,
+      "Orbiters": 2
     },
     "Trail": {
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

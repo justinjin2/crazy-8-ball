@@ -49,7 +49,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Fire runs the whole cue: big flame tongues lick up off it (a hand-drawn 16-frame flame flipbook, upright, additive, dying from white-yellow to red) over a flickering orange heat glow (a camera-facing Beam round the cue's outline), embers and sparks rise and drift, and a warm firelight flickers on the table.",
+      "Note": "Fire runs the whole cue: big flame tongues lick up off it (a hand-drawn 16-frame flame flipbook, upright, additive, dying from white-yellow to red) over a flickering orange heat glow (a camera-facing Beam round the cue's outline), embers and sparks rise and drift, and a warm firelight flickers on the table. Upgraded 2026-09-30: the flame tongues 40% bigger and longer-lived so they run together, bigger embers, a wider heat glow.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -65,8 +65,8 @@
           },
           "Rate": 14,
           "Lifetime": [
-            0.6,
-            0.9
+            0.75,
+            1.05
           ],
           "Speed": [
             0.3,
@@ -75,15 +75,15 @@
           "Size": [
             [
               0,
-              0.5
+              0.7
             ],
             [
               0.3,
-              1.1
+              1.54
             ],
             [
               1,
-              0.6
+              0.84
             ]
           ],
           "Transparency": [
@@ -152,11 +152,11 @@
           "Size": [
             [
               0,
-              0.05
+              0.09
             ],
             [
               1,
-              0.02
+              0.036
             ]
           ],
           "Transparency": [
@@ -223,8 +223,8 @@
           "Name": "HeatGlow",
           "FromStuds": 0.2,
           "ToStuds": 7.1,
-          "Width0": 0.35,
-          "Width1": 0.7,
+          "Width0": 0.45,
+          "Width1": 0.95,
           "Segments": 16,
           "Texture": "vfx/_shared/halo_strip.png",
           "TextureMode": "Stretch",
@@ -346,11 +346,26 @@
           "LightEmission": 0.2,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            120,
+            30
+          ],
+          [
+            255,
+            147,
+            75
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
       "ParticlesPerSecond": 20,
-      "Back": 10,
+      "Back": 10.0,
       "Beams": 1,
       "Lights": 1
     },
@@ -358,7 +373,7 @@
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

@@ -50,7 +50,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "A warm honey halo glows round the whole cue, tip to butt (a camera-facing Beam wider than the cue, breathing slowly); tiny cartoon bees buzz all along it in slow wandering arcs; glowing honey drops fall off the handle; warm glow puffs and gold glints drift up along the whole length.",
+      "Note": "A warm honey halo glows round the whole cue, tip to butt (a camera-facing Beam wider than the cue, breathing slowly); tiny cartoon bees buzz all along it in slow wandering arcs; glowing honey drops fall off the handle; warm glow puffs and gold glints drift up along the whole length. Upgraded 2026-09-30: a ribbon of golden honey light winds round the cue, bigger bees (four a second) and honey drops.",
       "BackRateScale": 0.5,
       "Beams": [
         {
@@ -126,7 +126,7 @@
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 3,
+          "Rate": 4,
           "Lifetime": [
             3,
             4
@@ -148,19 +148,19 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.1,
-              0.36
+              0.486
             ],
             [
               0.9,
-              0.36
+              0.486
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -229,15 +229,15 @@
           "Size": [
             [
               0,
-              0.05
+              0.07
             ],
             [
               0.2,
-              0.12
+              0.168
             ],
             [
               1,
-              0.1
+              0.14
             ]
           ],
           "Transparency": [
@@ -344,7 +344,7 @@
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 7,
+          "Rate": 6,
           "Lifetime": [
             0.8,
             1.3
@@ -386,6 +386,67 @@
           ],
           "LockedToPart": true,
           "ZOffset": 0
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "HoneyRibbon",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.6,
+          "Radius": 0.3,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.14,
+            "Color": [
+              [
+                0,
+                "#FFF8D0"
+              ],
+              [
+                0.5,
+                "#FFD050"
+              ],
+              [
+                1,
+                "#FFA020"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
         }
       ]
     },
@@ -468,18 +529,34 @@
           "LightEmission": 0.2,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            190,
+            70
+          ],
+          [
+            255,
+            203,
+            107
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Trail": {
       "Note": "The white wisp tinted amber (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     },
     "Budget": {
       "ParticlesPerSecond": 18,
-      "Back": 9,
-      "Beams": 1
+      "Back": 9.0,
+      "Beams": 1,
+      "Orbiters": 1
     }
   }
 }

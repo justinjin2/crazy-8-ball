@@ -70,7 +70,7 @@
       "Note": "The rainbow cycles (a script turns EmissiveTint round the hue wheel every 4 s: the glowing white chevron lines, gems and ring cycle, the gold does not) and gold rays turn behind the badge (a rays sprite made for Reyes, turning 30 degrees a second, just past the butt)."
     },
     "Aura": {
-      "Note": "Rainbow light and gold rays: rainbow motes shifting colour, white-gold sparkles, vertical gold light rays rising (the thin gold column sprite), the turning badge rays, and now and then a rainbow-gemmed crown shimmering above the handle (own sprite, as the concept); three rainbow loops circling the cue (Orbiters, rainbow trail texture).",
+      "Note": "Rainbow light and gold rays: rainbow motes shifting colour, white-gold sparkles, vertical gold light rays rising (the thin gold column sprite), the turning badge rays, and now and then a rainbow-gemmed crown shimmering above the handle (own sprite, as the concept); three rainbow loops circling the cue (Orbiters, rainbow trail texture). Upgraded 2026-09-30: the rainbow ribbons wider and longer and further out, bigger rainbow light and sparkles, a wider glow.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -100,15 +100,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.3,
-              0.36
+              0.468
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0.25,
@@ -169,16 +169,16 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.16,
-              0.048
+              0.224,
+              0.067
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -347,15 +347,15 @@
           "TravelSeconds": 2.8,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.6,
-          "Radius": 0.22,
+          "Radius": 0.24,
           "RadiusFromSurface": true,
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.07,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
             "Color": "#FFFFFF",
-            "Brightness": 1.6,
+            "Brightness": 2.0,
             "Transparency": [
               [
                 0,
@@ -382,15 +382,15 @@
           "TravelSeconds": 3.2,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.55,
-          "Radius": 0.22,
+          "Radius": 0.3,
           "RadiusFromSurface": true,
           "Phase": 180,
           "Delay": 1.1,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.07,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
             "Color": "#FFFFFF",
-            "Brightness": 1.6,
+            "Brightness": 2.0,
             "Transparency": [
               [
                 0,
@@ -417,15 +417,15 @@
           "TravelSeconds": 3.6,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.45,
-          "Radius": 0.22,
+          "Radius": 0.36,
           "RadiusFromSurface": true,
           "Phase": 90,
           "Delay": 2.0,
           "Trail": {
-            "Lifetime": 0.5,
-            "WidthStuds": 0.07,
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
             "Color": "#FFFFFF",
-            "Brightness": 1.6,
+            "Brightness": 2.0,
             "Transparency": [
               [
                 0,
@@ -451,8 +451,8 @@
           "Name": "Glow",
           "FromStuds": 0.0,
           "ToStuds": 7.0,
-          "Width0": 0.2,
-          "Width1": 0.34,
+          "Width0": 0.3,
+          "Width1": 0.55,
           "Segments": 16,
           "Texture": "vfx/_shared/halo_strip.png",
           "TextureMode": "Stretch",

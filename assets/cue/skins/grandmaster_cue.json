@@ -56,7 +56,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "A dark aura with gold embers: dark smoke rising round the cue (alpha-blended), gold embers and sparkles rising through it, a gold glow.",
+      "Note": "A dark aura with gold embers: dark smoke rising round the cue (alpha-blended), gold embers and sparkles rising through it, a gold glow. Upgraded 2026-09-30: two gold ribbons wind through the dark aura, bigger smoke, embers and sparkles, a wider glow.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -89,11 +89,11 @@
           "Size": [
             [
               0,
-              0.3
+              0.405
             ],
             [
               1,
-              0.9
+              1.215
             ]
           ],
           "Transparency": [
@@ -156,11 +156,11 @@
           "Size": [
             [
               0,
-              0.07
+              0.112
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0,
@@ -205,16 +205,16 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.4,
-              0.12,
-              0.036
+              0.18,
+              0.054
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Rotation": [
@@ -233,8 +233,8 @@
           "Name": "Glow",
           "FromStuds": 0.0,
           "ToStuds": 7.0,
-          "Width0": 0.2,
-          "Width1": 0.34,
+          "Width0": 0.3,
+          "Width1": 0.55,
           "Segments": 16,
           "Texture": "vfx/_shared/halo_strip.png",
           "TextureMode": "Stretch",
@@ -259,6 +259,126 @@
           ],
           "LightEmission": 1,
           "FaceCamera": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "GoldRibbon1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.7,
+          "Radius": 0.26,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.11,
+            "Color": [
+              [
+                0,
+                "#FFF6D0"
+              ],
+              [
+                0.5,
+                "#FFC030"
+              ],
+              [
+                1,
+                "#B07000"
+              ]
+            ],
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 0.6,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "GoldRibbon2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.3,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.6,
+          "Radius": 0.32,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.09,
+            "Color": [
+              [
+                0,
+                "#FFF6D0"
+              ],
+              [
+                0.5,
+                "#FFC030"
+              ],
+              [
+                1,
+                "#B07000"
+              ]
+            ],
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 0.6,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
         }
       ]
     },
@@ -314,8 +434,8 @@
         "Core": {
           "Color": [
             255,
-            255,
-            255
+            196,
+            70
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,
@@ -347,7 +467,7 @@
               0.4
             ]
           ],
-          "LightEmission": 0.6,
+          "LightEmission": 0.2,
           "Brightness": 2.2
         }
       },
@@ -527,7 +647,8 @@
       "Back": 14.0,
       "BallTrail": 12,
       "Beams": 1,
-      "Lights": 0
+      "Lights": 0,
+      "Orbiters": 2
     }
   }
 }

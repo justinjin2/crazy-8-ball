@@ -67,7 +67,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Small friendly cartoon ghosts rise off the cue, wobbling (a 4-frame flipbook), and fade; two teal spirit wisps curl round the cue in opposite directions (curved Beams a script turns); faint teal ghost-smoke drifts up.",
+      "Note": "Small friendly cartoon ghosts rise off the cue, wobbling (a 4-frame flipbook), and fade; two teal spirit wisps curl round the cue in opposite directions (curved Beams a script turns); faint teal ghost-smoke drifts up. Upgraded 2026-09-30: two pale spirit trails drift round the cue, the ghosts a third bigger and more of them, more smoke and motes.",
       "BackRateScale": 0.5,
       "Beams": [
         {
@@ -169,7 +169,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 1.3,
+          "Rate": 2,
           "Lifetime": [
             2.4,
             3.2
@@ -181,15 +181,15 @@
           "Size": [
             [
               0,
-              0.18
+              0.243
             ],
             [
               0.2,
-              0.45
+              0.608
             ],
             [
               1,
-              0.48
+              0.648
             ]
           ],
           "Transparency": [
@@ -250,7 +250,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 4,
+          "Rate": 5,
           "Lifetime": [
             1.4,
             2.0
@@ -262,11 +262,11 @@
           "Size": [
             [
               0,
-              0.2
+              0.28
             ],
             [
               1,
-              0.6
+              0.84
             ]
           ],
           "Transparency": [
@@ -316,7 +316,7 @@
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
-          "Rate": 6,
+          "Rate": 7,
           "Lifetime": [
             1.0,
             1.6
@@ -328,15 +328,15 @@
           "Size": [
             [
               0,
-              0
+              0.0
             ],
             [
               0.3,
-              0.05
+              0.08
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": [
@@ -363,6 +363,126 @@
             180,
             180
           ]
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "SpiritTrail1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.5,
+          "Radius": 0.3,
+          "Wobble": 0.1,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.6,
+            "WidthStuds": 0.2,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.5,
+                "#9FF5E6"
+              ],
+              [
+                1,
+                "#4FB8C8"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "SpiritTrail2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.45,
+          "Radius": 0.36,
+          "Wobble": 0.1,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.4,
+          "Trail": {
+            "Lifetime": 1.6,
+            "WidthStuds": 0.16,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.5,
+                "#9FF5E6"
+              ],
+              [
+                1,
+                "#4FB8C8"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
         }
       ]
     },
@@ -445,18 +565,34 @@
           "LightEmission": 0.6,
           "Brightness": 2.2
         }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            110,
+            230,
+            210
+          ],
+          [
+            139,
+            235,
+            219
+          ]
+        ],
+        "ColorShare": 0.7
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 11.3,
-      "Back": 5.65,
-      "Beams": 2
+      "ParticlesPerSecond": 14,
+      "Back": 7.0,
+      "Beams": 2,
+      "Orbiters": 2
     },
     "Trail": {
       "Note": "The white wisp tinted (Config.Effects style row)."
     },
     "Pocket": {
-      "Note": "The default gust in the ball's colour (Rares add none)."
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
   }
 }

@@ -55,7 +55,7 @@
   },
   "vfx": {
     "Aura": {
-      "Note": "Red energy rising: red flames licking up along the cue, two red energy runners winding round it (Orbiters), red sparks rising, a red glow.",
+      "Note": "Red energy rising: red flames licking up along the cue, two red energy runners winding round it (Orbiters), red sparks rising, a red glow. Upgraded 2026-09-30: flames a third bigger, the red runners wide enough to see with longer tails, bigger sparks, a wider glow.",
       "Orbiters": [
         {
           "Name": "Energy1",
@@ -64,15 +64,15 @@
           "TravelSeconds": 2.2,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.1,
-          "Radius": 0.08,
+          "Radius": 0.14,
           "RadiusFromSurface": true,
           "Wobble": 0.05,
           "WobbleHz": 1.4,
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.45,
-            "WidthStuds": 0.04,
+            "Lifetime": 1.0,
+            "WidthStuds": 0.09,
             "Color": "#FF4040",
             "Brightness": 2.2,
             "Transparency": [
@@ -101,15 +101,15 @@
           "TravelSeconds": 2.7,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.9,
-          "Radius": 0.08,
+          "Radius": 0.14,
           "RadiusFromSurface": true,
           "Wobble": 0.05,
           "WobbleHz": 1.4,
           "Phase": 180,
           "Delay": 1.0,
           "Trail": {
-            "Lifetime": 0.45,
-            "WidthStuds": 0.04,
+            "Lifetime": 1.0,
+            "WidthStuds": 0.09,
             "Color": "#FF4040",
             "Brightness": 2.2,
             "Transparency": [
@@ -169,15 +169,15 @@
           "Size": [
             [
               0,
-              0.4
+              0.52
             ],
             [
               0.35,
-              0.8
+              1.04
             ],
             [
               1,
-              0.24
+              0.312
             ]
           ],
           "Transparency": [
@@ -245,11 +245,11 @@
           "Size": [
             [
               0,
-              0.06
+              0.096
             ],
             [
               1,
-              0
+              0.0
             ]
           ],
           "Transparency": 0,
@@ -264,8 +264,8 @@
           "Name": "Glow",
           "FromStuds": 0.0,
           "ToStuds": 7.0,
-          "Width0": 0.2,
-          "Width1": 0.34,
+          "Width0": 0.3,
+          "Width1": 0.55,
           "Segments": 16,
           "Texture": "vfx/_shared/halo_strip.png",
           "TextureMode": "Stretch",
@@ -296,9 +296,9 @@
     "Style": {
       "Trail": {
         "Color": [
-          255,
-          80,
-          80
+          235,
+          40,
+          30
         ],
         "NearTransparency": 0.0,
         "LightEmission": 0.2,
@@ -335,9 +335,9 @@
         "Brightness": 2.0,
         "Core": {
           "Color": [
-            255,
-            115,
-            115
+            245,
+            95,
+            75
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,
@@ -385,7 +385,8 @@
       "Back": 14.0,
       "BallTrail": 0,
       "Beams": 1,
-      "Lights": 0
+      "Lights": 0,
+      "Orbiters": 2
     }
   }
 }
