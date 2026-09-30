@@ -362,43 +362,6 @@
           "LockedToPart": true
         },
         {
-          "Name": "GhostTentacle",
-          "Texture": "vfx/kraken/tentacle_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 2.5,
-            "ToStuds": 6.8,
-            "Width": 0.1,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Surface"
-          },
-          "Rate": 0.7,
-          "Lifetime": 2.2,
-          "Speed": 0,
-          "Size": [
-            [
-              0,
-              2.6
-            ],
-            [
-              1,
-              2.9
-            ]
-          ],
-          "Transparency": 0.55,
-          "Rotation": [
-            -70,
-            70
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.9,
-          "LightInfluence": 0,
-          "LockedToPart": true,
-          "ZOffset": -0.3
-        },
-        {
           "Name": "Ink",
           "Texture": "vfx/_shared/smoke_8x8.png",
           "FlipbookLayout": "Grid8x8",
@@ -556,7 +519,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.6,
+        "Lifetime": 1.1,
         "WidthStuds": 0.5,
         "LightEmission": 0.35,
         "Texture": "vfx/kraken/trail_ink.png",
@@ -582,10 +545,54 @@
             240,
             208
           ],
-          "Width": 0.1,
-          "NearTransparency": 0.2,
-          "LightEmission": 1
-        }
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 3.0
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.0
       },
       "Pocket": {
         "Colors": [
@@ -989,11 +996,13 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 34.7,
-      "Back": 17.4,
+      "ParticlesPerSecond": 34,
+      "Back": 17.0,
       "BallTrail": 19,
       "Beams": 5,
-      "Lights": 1
+      "Lights": 1,
+      "PieceTriangles": 10832
     }
-  }
+  },
+  "piece": "kraken"
 }

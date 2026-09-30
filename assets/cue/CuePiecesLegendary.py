@@ -120,3 +120,76 @@ def phoenix(k):
             bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
         k.add(wing, k.mesh_object('Phoenix' + wing, bm_arm, names))
         k.add(tipj, k.mesh_object('Phoenix' + tipj, bm_tip, names))
+
+
+@piece
+def kraken(k):
+    """Four spectral tentacles wrap the forearm and butt and peel off into curls: see-through
+    violet energy (ForceField) over a dim violet core, a row of glowing cyan suckers down each.
+    Each tentacle is a chain of four segments hinged one after another, so a slow wave runs down
+    it from the root to the curling tip."""
+    import bmesh
+    from mathutils import Vector
+    import cue_common as cc
+    from CuePieces import sweep
+    k.material('Ink', 'ForceField', '#8A4CFF', Transparency=0.0)
+    k.material('Core', 'Neon', '#3C1C96', Transparency=0.45)
+    k.material('Sucker', 'Neon', '#2EF2FF', Transparency=0.0)
+    env = cc.Envelope(cc.load_shape()[0])
+    CUTS = [0.0, 0.3, 0.55, 0.78, 1.0]
+
+    def path_fn(a0, th0, span, turns, reach):
+        def P(s):
+            at = a0 - span * s
+            ang = th0 + 2 * math.pi * turns * s + 2.2 * max(0.0, s - 0.72) ** 1.5
+            rr = float(env(at)) + 0.012 + reach * s ** 2.2
+            return Vector((rr * math.sin(ang), -at, rr * math.cos(ang)))
+        return P
+
+    def width(s):
+        return 0.066 * (1 - s) ** 0.75 + 0.008
+
+    tentacles = [(4.3, 20, 1.9, 1.05, 0.34, 0), (5.1, 110, 2.1, -0.95, 0.4, 70),
+                 (5.9, 200, 1.7, 1.2, 0.3, 140), (6.6, 290, 1.5, -1.1, 0.36, 210)]
+    for ti, (a0, th0, span, turns, reach, ph0) in enumerate(tentacles, 1):
+        P = path_fn(a0, math.radians(th0), span, turns, reach)
+        parent = None
+        for si in range(4):
+            s0, s1 = CUTS[si], CUTS[si + 1]
+            name = 'Tentacle%d_%d' % (ti, si + 1)
+            piv = P(s0)
+            tang = (P(s0 + 0.01) - piv).normalized()
+            out = Vector((piv.x, 0, piv.z)).normalized()
+            bend = tang.cross(out).normalized()          # bends the tentacle toward / away from the cue
+            k.joint(name, pivot=tuple(piv), parent=parent, motion=[
+                {'Kind': 'Hinge', 'Axis': tuple(bend), 'Amp': 3.0 if si == 0 else 8.0 + 2 * si,
+                 'Period': 3.4, 'Phase': ph0 + si * 50}])
+            parent = name
+            # the segment's tube, starting a little inside the last one so no gap opens as it bends
+            n = 14
+            lo = max(0.0, s0 - 0.03)
+            ss = [lo + (s1 - lo) * i / (n - 1) for i in range(n)]
+            pts = [P(s) for s in ss]
+            bm_i, bm_c, bm_s = bmesh.new(), bmesh.new(), bmesh.new()
+            sweep(bm_i, pts, [width(s) for s in ss], segs=12, cap=True)
+            sweep(bm_c, pts, [width(s) * 0.5 for s in ss], segs=8, cap=True)
+            # suckers on the side away from the cue's axis line of sight: a glowing disc each
+            m = 4 if si < 3 else 2
+            for j in range(m):
+                s = s0 + (s1 - s0) * (j + 0.5) / m
+                if s > 0.92:
+                    continue
+                c = P(s)
+                t_ = (P(min(s + 0.01, 1.0)) - c).normalized()
+                o_ = Vector((c.x, 0, c.z)).normalized()
+                side = t_.cross(o_).normalized()
+                w = width(s)
+                centre = c + side * (w * 0.92)
+                r = w * 0.52
+                mat = side.to_track_quat('Z', 'Y').to_matrix().to_4x4()
+                mat.translation = centre
+                bmesh.ops.create_cone(bm_s, cap_ends=True, segments=10, radius1=r, radius2=r * 0.8, depth=w * 0.25,
+                                      matrix=mat)
+            k.add(name, k.mesh_object(name + 'Ink', bm_i, ['Ink']))
+            k.add(name, k.mesh_object(name + 'Core', bm_c, ['Core']))
+            k.add(name, k.mesh_object(name + 'Suckers', bm_s, ['Sucker'], smooth=False))

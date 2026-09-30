@@ -239,8 +239,18 @@ def phoenix(d):
     v['Budget']['PieceTriangles'] = pj['Triangles']
 
 
+def kraken(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the tentacles are a 3D piece now (CuePiecesLegendary.kraken), not a flat flipbook
+    d['piece'] = 'kraken'
+    a['Emitters'] = [e for e in a['Emitters'] if e['Name'] != 'GhostTentacle']
+    pj = json.load(open(os.path.join(ROOT, 'assets', 'cue', 'pieces', 'kraken', 'piece.json')))
+    v['Budget']['PieceTriangles'] = pj['Triangles']
+
+
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
-            'phoenix': phoenix}
+            'phoenix': phoenix, 'kraken': kraken}
 
 
 def budget(d):
