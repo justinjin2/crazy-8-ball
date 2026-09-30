@@ -205,6 +205,11 @@ function Economy.onShot(t: any, player: Player)
 	if not pending or not pending.judgement or not shot or shot.shooter ~= player.UserId then
 		return
 	end
+	-- A shot Rewind undoes pays nothing and counts nothing: its balls come back (the audit,
+	-- 2026-09-29: solo redos potting the other group's balls were paid again and again).
+	if shot.rewind == true then
+		return
+	end
 	local seat = Engine.seat(e, player.UserId)
 	if not seat or type(seat.team) ~= "number" then
 		return

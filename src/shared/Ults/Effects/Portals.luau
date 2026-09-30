@@ -11,7 +11,8 @@
 -- * Only balls on the cloth: not dropping into a pocket, not in the air.
 -- * A ball that came out of a portal cannot go into either portal again until its centre has
 --   left that exit's inner circle and CooldownSeconds have passed (so a ball never bounces
---   straight back, and a loop through both slows and ends).
+--   straight back, and a loop through both slows and ends). A ball resting on a portal at the
+--   strike (the kept portals of a later shot) is treated the same: in only once it has left.
 -- * One of the shooter's balls coming out (overrides.Targets: the 8 only on the legal 8 shot,
 --   toward the called pocket; never the cue ball or the opponent's) is turned toward the pocket
 --   mouth nearest its heading, ahead of it, by at most Config.Ults.Portals.ExitSteerTan: a
@@ -48,6 +49,29 @@ function Portals.step(state: any, _dt: number)
 	if from == nil then
 		from = {}
 		fx.from = from
+		-- A ball already resting on a portal at the strike (a kept portal on a later shot of the
+		-- turn, where the last shot left it) goes in only once it has left that circle and come
+		-- back, as if it had just come out of it (the audit, 2026-09-29).
+		local a, b = Portals.spots(state)
+		if a ~= nil and b ~= nil then
+			local P = Config.Ults.Portals
+			local r = P.InnerRadiusInches
+			local locks: { [number]: Lock } = {}
+			for _, ball in state.balls do
+				if ball.pocketed then
+					continue
+				end
+				for k, spot in { a :: { number }, b :: { number } } do
+					local dx, dy = ball.x - spot[1], ball.y - spot[2]
+					if dx * dx + dy * dy < r * r then
+						locks[ball.id] =
+							{ portal = k, at = state.time - P.CooldownSeconds, out = false }
+						break
+					end
+				end
+			end
+			fx.locks = locks
+		end
 	end
 	for i, b in state.balls do
 		from[2 * i - 1] = b.x
@@ -167,8 +191,10 @@ function Portals.after(state: any, _dt: number, events: { any }, ops: any)
 				local exit = spots[lock.portal]
 				local ex, ey = ball.x - exit[1], ball.y - exit[2]
 				lock.out = ex * ex + ey * ey >= r * r
+				-- The step it leaves still starts inside the circle: free from the next one.
+				continue
 			end
-			if not lock.out or state.time < lock.at + P.CooldownSeconds then
+			if state.time < lock.at + P.CooldownSeconds then
 				continue
 			end
 			locks[ball.id] = nil

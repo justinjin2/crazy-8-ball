@@ -1460,18 +1460,25 @@ function Service.start(parent: Instance, mode: string?)
 		for id = 1, Placement.tableCount() do
 			local t = tables[id]
 			local e = t.engine
-			local time = now()
-			poll(t, time)
-			Service.advance(t, time)
-			releaseMissing(t)
-			if not arena then
-				watchSearch(t)
-			end
-			Service.flush(t)
-			if e.revision ~= t.sentRevision or snapshots >= M.SnapshotIntervalSeconds then
-				Service.broadcast(t)
-			else
-				refresh(t)
+			-- Each table on its own guard: one table's error (a Time Stop resume settles and
+			-- judges in here) never stops the tables after it.
+			local ok, err = pcall(function()
+				local time = now()
+				poll(t, time)
+				Service.advance(t, time)
+				releaseMissing(t)
+				if not arena then
+					watchSearch(t)
+				end
+				Service.flush(t)
+				if e.revision ~= t.sentRevision or snapshots >= M.SnapshotIntervalSeconds then
+					Service.broadcast(t)
+				else
+					refresh(t)
+				end
+			end)
+			if not ok then
+				warn(("[8ball] table %d failed its poll: %s"):format(id, tostring(err)))
 			end
 		end
 		if snapshots >= M.SnapshotIntervalSeconds then

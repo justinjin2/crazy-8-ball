@@ -391,6 +391,8 @@ function Engine.remove(t: any, userId: number, now: number): boolean
 			or t.phase == "Placement"
 			or t.phase == "PocketChoice"
 			or t.phase == "Aiming"
+			-- Rewind's table is already back: the redo would be theirs.
+			or t.phase == "Rewinding"
 		)
 	then
 		foul(t, "Departure", now)
@@ -406,6 +408,7 @@ function Engine.death(t: any, userId: number, now: number)
 			or t.phase == "Placement"
 			or t.phase == "PocketChoice"
 			or t.phase == "Aiming"
+			or t.phase == "Rewinding"
 		)
 	then
 		foul(t, "Reset", now)
@@ -473,7 +476,11 @@ local function resolve(t: any, now: number)
 	if not pending then
 		return
 	end
-	if pending.redo then
+	-- No rewind once a side has emptied (its shooter left mid-shot): the game ends below.
+	local emptied = if t.solo
+		then Engine.count(t, t.solo.team) == 0
+		else Engine.count(t, 1) == 0 or Engine.count(t, 2) == 0
+	if pending.redo and not emptied then
 		rewindTo(t, pending.redo, now)
 		return
 	end
@@ -582,6 +589,10 @@ function Engine.advance(t: any, now: number, nextSeed: number?)
 	end
 	if t.phase == "CoinFlip" then
 		beginTurn(t, t.activeTeam, now, true)
+	elseif t.phase == "Rewinding" and not (Engine.seat(t, t.shooter) or {} :: any).connected then
+		-- Rewind's shooter left while the shot resolved (a team game goes on): the redo is
+		-- nobody's, so the turn passes as a departure.
+		foul(t, "Departure", now)
 	elseif t.phase == "Intro" or t.phase == "Rewinding" then
 		-- After the introduction, or after Rewind's table went back (its redo clock is set).
 		setup(t, now)

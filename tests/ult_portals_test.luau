@@ -118,6 +118,24 @@ function tests.a_ball_passing_outside_the_inner_circle_is_untouched()
 	check(#ultEvents(events, "enter") == 0, "not in")
 end
 
+function tests.a_ball_resting_on_a_portal_goes_in_only_after_leaving_it()
+	-- The kept portals of a later shot: the 3 rests on B (20, 0), where the last shot left it,
+	-- and is sent off along +x. It rolls out of B's circle without going into A (-20, 0).
+	local balls = table_({ { 0, -40, -20 }, { 3, 20, 0 } })
+	rolling(balls[2], 20, 0)
+	local sim = armed(balls, { -20, 0, 20, 0 })
+	local events = run(sim)
+	check(#ultEvents(events, "enter") == 0, "not swallowed off its resting spot")
+	local b = assert(Simulation.findBall(sim, 3), "the 3")
+	check(b.x > 20 + P.InnerRadiusInches, ("rolled off B: %.2f"):format(b.x))
+	-- The same leaving the other way (A off its line).
+	local back = table_({ { 0, -40, -20 }, { 3, 20, 0 } })
+	rolling(back[2], -20, 0)
+	local sim2 = armed(back, { -20, 20, 20, 0 })
+	local ev2 = run(sim2)
+	check(#ultEvents(ev2, "enter") == 0, "leaving B the other way does not go in either")
+end
+
 function tests.a_loop_through_both_portals_ends()
 	-- A at (0, 0), B at (-20, 0), the ball rolling +x: out of B it runs back into A, round and
 	-- round until friction stops it.

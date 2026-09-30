@@ -166,6 +166,29 @@ function tests.rewind_restores_the_table_and_gives_a_ten_second_redo()
 	end)
 end
 
+function tests.a_shooter_who_leaves_mid_rewind_ends_the_game_not_the_redo()
+	-- The audit (2026-09-29): leaving while the rewound shot resolves used to rewind and hand
+	-- the departed shooter a redo clock; the game ends at the resolve instead.
+	built("Rewind", function()
+		local m = midGame()
+		armNow(m, "Rewind")
+		local wire = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
+		expect(wire and wire.rewind == true, "a rewinding try")
+		expect(m.phase == "Resolving")
+		E.remove(m, 11, m.phaseStartedAt + 0.1)
+		expire(m)
+		expect(m.phase == "Result", "the game ended, got " .. tostring(m.phase))
+		-- And leaving during the rewind itself ends it too.
+		local m2 = midGame()
+		armNow(m2, "Rewind")
+		E.acceptShot(m2, 11, missShot(m2), m2.phaseStartedAt)
+		expire(m2)
+		expect(m2.phase == "Rewinding")
+		E.remove(m2, 11, m2.phaseStartedAt + 0.1)
+		expect(m2.phase == "Result", "ended, got " .. tostring(m2.phase))
+	end)
+end
+
 function tests.rewind_erases_a_scratch_and_keeps_ball_in_hand()
 	built("Rewind", function()
 		local m = midGame()
