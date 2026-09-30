@@ -2991,7 +2991,7 @@ Config.Ults.Assets = {
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
 	Icons = {
 		Magnet = "rbxassetid://117672288856146",
-		EaglesEye = "rbxassetid://127030984788414",
+		EaglesEye = "rbxassetid://74728958266759", -- a hunter's eye since 2026-09-30 (was an eagle)
 		SuperBounce = "rbxassetid://95265934894642",
 		Ghost = "rbxassetid://103298708355834",
 		HeatSeeker = "rbxassetid://109084609734062",
@@ -6973,9 +6973,6 @@ Config.UI.EaglesEyeFx = {
 	StepsPerFrame = 400,
 	ChunkSteps = 25,
 	BudgetMs = 3,
-	-- Before the player pulls, the path is drawn at their last shot's power at this table, or
-	-- this with none yet (0..1, as the power bar).
-	DefaultPower = 0.5,
 	-- The golden vignette: each screen edge fades from VignetteTransparency (at the edge) to
 	-- clear over VignetteDepth of the screen, reaching VignetteKneeTransparency (of the
 	-- gradient) VignetteKneeShare of the way in. Faint: it must never hide the table. Its

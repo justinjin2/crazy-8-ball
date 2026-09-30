@@ -45,9 +45,9 @@ RARITY_OF = {
     "Ghost": "Uncommon",
     "HeatSeeker": "Uncommon",
     "Rewind": "Rare",
-    "TimeStop": "Rare",
+    "TimeStop": "Epic",  # 2026-09-30: Time Stop and Portals swapped rarities
     "ChainLightning": "Epic",
-    "Portals": "Epic",
+    "Portals": "Rare",
     "SteelBall": "Legendary",
     "BlackFlash": "Legendary",
     "BlackHole": "Mythic",
@@ -610,80 +610,89 @@ def magnet():
     return objs
 
 
-def eagle():
-    """An eagle's head facing right (+x): white head with a swept-back crest, a heavy angry
-    brow, a big hooked yellow beak, a glowing golden eye, a ruff of brown feathers below."""
-    white = mat("EagleWhite", "F7F4EE", rough=0.45, coat=0.3)
-    shade = mat("EagleShade", "C9C1B3", rough=0.45, coat=0.3)
-    brown = mat("EagleBrown", "7A4520", rough=0.5, coat=0.3)
-    beak_m = mat("EagleBeak", "FFC21A", rough=0.25)
-    gold = mat("EagleEye", "FFC21A", rough=0.1, emit=1.6, emit_color="FFB000")
-    black = mat("EagleBlack", "111111", rough=0.2)
-    RX, RY, RZ = 0.62, 0.5, 0.52
-    objs = [prim("uv_sphere", "Head", white, segments=48, ring_count=24, radius=1.0,
-                 scale=(RX, RY, RZ))]
-    # The crest: white feather points swept back off the back of the head.
-    for k, (z, length) in enumerate(((0.28, 0.42), (0.06, 0.48), (-0.16, 0.4))):
-        tip = prim("cone", "Crest", white, radius1=0.17, radius2=0.0, depth=length,
-                   vertices=20, scale=(1, 0.75, 1))
-        d = Vector((-1, 0, -0.25 - 0.18 * k)).normalized()
-        point_along(tip, d)
-        tip.location = Vector((-RX + 0.1, 0, z)) + d * (length / 2)
-        objs.append(tip)
-    # The body under the head, and a collar of white feather points over it.
-    objs.append(prim("uv_sphere", "Body", brown, location=(-0.22, 0.05, -0.72),
-                     segments=32, ring_count=16, radius=1.0, scale=(0.6, 0.5, 0.4)))
-    for k in range(11):
-        a = 2 * math.pi * k / 11
-        d = Vector((math.cos(a) * 0.55, math.sin(a) * 0.55, -1)).normalized()
-        f = prim("cone", "Collar", white, radius1=0.12, radius2=0.0, depth=0.34, vertices=16)
-        point_along(f, d)
-        f.location = Vector((-0.08 + math.cos(a) * 0.42, math.sin(a) * 0.36, -0.36)) + d * 0.1
-        objs.append(f)
+def hunter_eye():
+    """A hunter's eye (the designer, 2026-09-30: was an eagle's head): a big cat's almond eye,
+    the iris glowing amber to gold round a vertical slit pupil, a heavy tawny brow slanting
+    down over its inner corner in a squint, a dark liner flicking out past the outer corner
+    and a cheetah's tear mark running down from the inner one."""
+    fur = mat("HunterFur", "E08A2E", rough=0.5, coat=0.3)
+    dark = mat("HunterDark", "1E1510", rough=0.4, coat=0.3)
+    amber = mat("HunterIris", "D95F00", rough=0.12, coat=0.8, emit=0.5, emit_color="E06A00")
+    gold = mat("HunterIrisInner", "FFC21A", rough=0.12, emit=1.3, emit_color="FFB000")
+    core = mat("HunterIrisCore", "FFE680", rough=0.12, emit=1.8, emit_color="FFD84A")
+    black = mat("HunterPupil", "080808", rough=0.15, coat=0.8)
+    shine = mat("HunterGlint", "FFFFFF", rough=0.1, emit=3.0)
 
-    # The beak: upper hook and lower mandible, lofted from rings along x.
-    def beak_part(name, x0, top, bottom, width, length, drop, z):
-        bm = bmesh.new()
-        rings = []
-        steps = 16
-        for i in range(steps + 1):
-            t = i / steps
-            x = x0 + t * length
-            zc = z - drop * t ** 2.2
-            w = width * (1 - t) ** 0.8 + 0.012
-            ht, hb = top * (1 - t * 0.8), bottom * (1 - t * 0.6)
-            ring = []
-            for k in range(14):
-                a = 2 * math.pi * k / 14
-                s = math.sin(a)
-                ring.append(bm.verts.new((x, math.cos(a) * w, zc + s * (ht if s > 0 else hb))))
-            rings.append(ring)
-        for i in range(steps):
-            for k in range(14):
-                bm.faces.new((rings[i][k], rings[i][(k + 1) % 14], rings[i + 1][(k + 1) % 14],
-                              rings[i + 1][k]))
-        tip = bm.verts.new((x0 + length + 0.015, 0, z - drop - 0.05))
-        for k in range(14):
-            bm.faces.new((rings[-1][k], rings[-1][(k + 1) % 14], tip))
-        bm.faces.new(list(reversed(rings[0])))
-        return from_bmesh(name, bm, beak_m)
-    objs.append(beak_part("BeakTop", 0.38, 0.24, 0.07, 0.2, 0.72, 0.46, 0.0))
-    objs.append(beak_part("BeakLow", 0.4, 0.04, 0.1, 0.15, 0.4, 0.1, -0.2))
+    TILT = 0.12  # the outer corner (right) sits a little higher than the inner one
 
-    ex, ez = 0.3, 0.12
-    ey = surface_y(ex, ez, RX, RY, RZ)
-    eye = prim("uv_sphere", "Eye", gold, location=(ex, ey + 0.02, ez), radius=0.13,
-               segments=24, ring_count=12, scale=(1.3, 0.5, 0.8))
-    pupil = prim("uv_sphere", "Pupil", black, location=(ex + 0.05, ey - 0.03, ez - 0.005),
-                 radius=0.05, segments=16, ring_count=8, scale=(0.75, 0.5, 1.1))
-    eye["no_outline"] = True
+    def almond(a, b, sx=1.0, sy=1.0, n=40):
+        pts = []
+        for k in range(n + 1):  # the lower lid, inner corner to outer
+            x = -1 + 2 * k / n
+            pts.append((x * sx, (-b * (1 - x * x) ** 0.9 + TILT * x) * sy))
+        for k in range(n - 1, 0, -1):  # the upper lid back
+            x = -1 + 2 * k / n
+            pts.append((x * sx, (a * (1 - x * x) ** 0.7 + TILT * x) * sy))
+        return pts
+
+    def stroke(p0, p1, p2, width, taper_start=0.0, n=32):
+        """A stroke along a quadratic curve, `width` thick, pointed at the end (and at the
+        start too when taper_start > 0)."""
+        top, bottom = [], []
+        for k in range(n + 1):
+            t = k / n
+            p = [(1 - t) ** 2 * p0[i] + 2 * t * (1 - t) * p1[i] + t * t * p2[i] for i in (0, 1)]
+            d = [2 * (1 - t) * (p1[i] - p0[i]) + 2 * t * (p2[i] - p1[i]) for i in (0, 1)]
+            ln = math.hypot(d[0], d[1]) or 1.0
+            nx, ny = -d[1] / ln, d[0] / ln
+            w = width * (1 - t) ** 0.8
+            if taper_start > 0:
+                w *= min(1.0, t / taper_start) ** 0.6
+            w = w / 2 + 0.008
+            top.append((p[0] + nx * w, p[1] + ny * w))
+            bottom.append((p[0] - nx * w, p[1] - ny * w))
+        return top + list(reversed(bottom))
+
+    objs = []
+    # The liner round the eye, its flick past the outer corner and the tear mark.
+    objs.append(slab("Rim", almond(0.62, 0.5, 1.14, 1.16), 0.22, dark, bevel=0.03,
+                     at=(0, 0, 0)))
+    objs.append(slab("Flick", stroke((0.95, 0.18), (1.3, 0.3), (1.62, 0.52), 0.26), 0.2,
+                     dark, bevel=0.02, at=(0, 0, 0)))
+    objs.append(slab("Tear", stroke((-1.02, -0.2), (-1.12, -0.72), (-0.86, -1.18), 0.28),
+                     0.2, dark, bevel=0.02, at=(0, 0, 0)))
+    # Each layer sits clear of the one behind it (bevels included): no z-fighting stripes.
+    iris = slab("Iris", almond(0.62, 0.5, 0.98, 0.95), 0.08, amber, bevel=0.03,
+                at=(0, -0.08, 0))
+    iris["no_outline"] = True
+    objs.append(iris)
+    for name, sx, sy, m, y in (("IrisInner", 0.7, 0.68, gold, -0.19),
+                               ("IrisCore", 0.42, 0.45, core, -0.24)):
+        ring = slab(name, almond(0.62, 0.5, sx, sy), 0.02, m, bevel=0.01, at=(0, y, 0))
+        ring["no_outline"] = True
+        objs.append(ring)
+    slit = []
+    for k in range(41):
+        y = -1 + 2 * k / 40
+        slit.append((0.1 * (1 - y * y) ** 0.9, y * 0.47))
+    for k in range(39, 0, -1):
+        y = -1 + 2 * k / 40
+        slit.append((-0.1 * (1 - y * y) ** 0.9, y * 0.47))
+    pupil = slab("Pupil", slit, 0.03, black, bevel=0.012, at=(0.04, -0.285, 0))
     pupil["no_outline"] = True
-    brow = prim("uv_sphere", "Brow", shade, location=(ex - 0.03, ey + 0.01, ez + 0.13),
-                radius=1.0, segments=24, ring_count=12, scale=(0.24, 0.07, 0.045),
-                rotation=(0, 0.45, 0))
-    brow["outline_scale"] = 0.6
-    objs += [eye, pupil, brow,
-             glow("EyeGlow", (ex, ey - 0.1, ez), 0.3, "FFB000", strength=1.0, power=2.5)]
+    objs.append(pupil)
+    glint = prim("uv_sphere", "Glint", shine, location=(-0.3, -0.31, 0.2), radius=0.075,
+                 segments=16, ring_count=8, scale=(1.0, 0.4, 1.0))
+    glint["no_outline"] = True
+    objs.append(glint)
+    # The brow: a heavy tawny crescent, low over the inner corner (the squint), rising out
+    # past the outer one; in front of the eye so it cuts off the top of the iris there.
+    objs.append(slab("Brow", stroke((-1.3, 0.1), (-0.15, 0.92), (1.5, 0.96), 0.48,
+                                    taper_start=0.18), 0.24, fur, bevel=0.07,
+                     at=(0, -0.42, 0)))
+    transform(objs, Matrix.Rotation(math.radians(CAM_AZIMUTH * 0.7), 4, "Z")
+              @ Matrix.Rotation(math.radians(-8), 4, "X"))
+    objs.append(glow("HunterGlow", (0, 0.2, 0.05), 1.3, "FFB000", strength=0.9, power=1.8))
     return objs
 
 
@@ -1265,7 +1274,7 @@ def tiger():
 
 BUILDERS = {
     "Magnet": magnet,
-    "EaglesEye": eagle,
+    "EaglesEye": hunter_eye,
     "SuperBounce": super_bounce,
     "Ghost": ghost,
     "HeatSeeker": heat_seeker,

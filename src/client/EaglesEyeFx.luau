@@ -14,8 +14,9 @@
 --   * a faint golden vignette at the screen's edges, under the HUD.
 -- Only the aiming player sees any of it: nothing here reaches another client.
 --
--- The power: the live pull while they pull (Config.Input.MinPowerToShoot or more), otherwise
--- their last shot's at this table (AimShot.lastPower), else DefaultPower.
+-- The path waits for the pull (the designer, 2026-09-30): nothing is drawn until they start to
+-- pull the cue back (Config.Input.MinPowerToShoot or more), then it follows the live pull.
+-- The vignette shows from the moment they aim.
 --
 -- A prediction runs only when the input changes (angle, power and spin rounded to Config
 -- steps, the elevation, and the balls' positions), spread over frames: at most StepsPerFrame
@@ -601,7 +602,8 @@ function EaglesEyeFx.aiming(self: EaglesEyeFx, tableId: number, _armed: any, sho
 	local minPower = Config.Input.MinPowerToShoot
 	local power = shot.power
 	if type(power) ~= "number" or power < minPower then
-		power = shot.lastPower or F.DefaultPower
+		hide(live) -- not pulling yet
+		return
 	end
 	power = math.clamp(power, minPower, 1)
 	local spin = shot.spin or { x = 0, y = 0 }

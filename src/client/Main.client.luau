@@ -147,10 +147,8 @@ local tickTurn: number? = nil
 local tickSecond = 0
 local currentPull = 0
 -- The shot the guideline traces while the local player aims (AbilityFx.AimShot, for an armed
--- ability's look: Eagle's Eye's path), nil while it is hidden; and the power of their last shot
--- fired at each table this session.
+-- ability's look: Eagle's Eye's path), nil while it is hidden.
 local aimShot: AbilityFx.AimShot? = nil
-local lastFiredPower: { [number]: number } = {}
 local controlled = false
 local lastTurnKey = ""
 local lastPhaseKey = ""
@@ -299,7 +297,6 @@ local function refreshAim()
 		power = currentPull,
 		spin = spin,
 		elevation = elevation,
-		lastPower = lastFiredPower[snapshot.id],
 	}
 	-- On the break any ball is a fair first target (ShotJudge); afterwards only the shooter's
 	-- group, or the 8 once it is theirs.
@@ -470,7 +467,6 @@ local function fire(power: number, windUp: number?)
 	-- pull to 0, so not from currentPull), and before awaitingAt: once that is set canShoot()
 	-- is false, and the stroke has to keep the cue drawn through it.
 	avatar:strike(windUp or power, x, y)
-	lastFiredPower[snapshot.id] = power
 	hub:fire(snapshot.id, input.angle, power, input:getSpin(), input:getElevation(), x, y)
 	targets:shotFired()
 	awaitingAt = workspace:GetServerTimeNow()

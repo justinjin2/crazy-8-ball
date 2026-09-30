@@ -78,14 +78,12 @@ export type Zone = { x: number, y: number, r: number, oppR: number? }
 export type Aim = { x: number, y: number }
 
 -- The shot the local shooter's guideline traces (Main's refreshAim), for look:aiming. `power`
--- is the raw pull (below Config.Input.MinPowerToShoot: not pulling yet); `lastPower` is the
--- power of their last shot fired at this table this session, if any.
+-- is the raw pull (below Config.Input.MinPowerToShoot: not pulling yet).
 export type AimShot = {
 	angle: number,
 	power: number,
 	spin: { x: number, y: number },
 	elevation: number,
-	lastPower: number?,
 }
 
 type Props = { [string]: any }

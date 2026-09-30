@@ -145,7 +145,7 @@ library clips; the tiger is animated in code).
 | Black Hole | 86337602765410 |
 | Guangdong Tiger | 119880658779603 |
 
-**Icons** (image ids): Magnet 117672288856146, Eagle's Eye 127030984788414, Super Bounce
+**Icons** (image ids): Magnet 117672288856146, Eagle's Eye 74728958266759 (a hunter's eye since 2026-09-30), Super Bounce
 95265934894642, Ghost 103298708355834, Heat Seeker 109084609734062, Rewind 120627614883189,
 Time Stop 88800552854518, Chain Lightning 124544923626211, Portals 117852135071427, Steel Ball
 76826199313352, Black Flash 130953532047846, Black Hole 75754504005260, Guangdong Tiger

@@ -2067,3 +2067,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-30 (designer): Magnet no longer draws on the balls: the red and blue pole caps and
   the red and blue rings circling the armed cue ball and the hit ball are gone. The blue field
   round the ball, the hand-off, the charge burst, the pull lines and the pocket effects stay.
+- 2026-09-30 (designer): Eagle's Eye shows its gold path only once the player starts pulling
+  the cue back (it used to show while aiming, at the last shot's power), and its icon is a
+  hunter's eye (a big cat's amber slit-pupil eye with a heavy brow) instead of an eagle.
