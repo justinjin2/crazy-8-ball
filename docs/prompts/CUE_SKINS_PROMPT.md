@@ -391,6 +391,8 @@ and you ask the designer about it.
 
 ## Notes
 
+WAITING FOR DESIGNER: the concept sheet `assets/cue/concepts/Q1.png` (Founder's Cue, Beta Cue, Grand Opening) is missing. Please add it, or say "build Q1 from plan.json" and I will design all three from plan.json's text alone. Steps 1-11 are done and pushed (58 of 61 skins).
+
 - **2026-09-29, setup.** Worktree `~/Desktop/8ball-skins`, branch `cue-skins`, pushed. Blender
   5.2.2 LTS runs headless (EEVEE ~0.4 s a 720p frame; its built-in FFMPEG writes the clips, the
   Mac has no ffmpeg). OpenAI key: True. `tools/openai_image.py` works; model
