@@ -1343,7 +1343,8 @@ function resumeFrozen(t: any, now: number)
 	t.shot.parts.resume = { startedAt = now, at = from }
 	local outcome = Simulation.settle(sim, frozen.events)
 	if outcome.capped then
-		-- Nothing can be judged: every ball stops where it is and the turn passes as a foul.
+		-- Past the step cap (all but unreachable: each part has its own): every ball stops where
+		-- it is and the shot is judged as the balls lie.
 		for _, b in sim.balls do
 			Ball.stop(b)
 		end

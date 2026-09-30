@@ -41,6 +41,12 @@ return {
 		H.expect(not nice(NiceShot, geometry, 0, { rail(0, x, y), drop(0) }), "never the cue ball")
 	end,
 
+	["a ball an ability removes is never a nice shot"] = function()
+		local _, NiceShot, geometry = setup()
+		local removed = { t = 0, type = "removed", ball = 3, speed = 0 }
+		H.expect(not nice(NiceShot, geometry, 3, { hit(0, 5), hit(5, 3), removed }), "no combo")
+	end,
+
 	["banks combos kicks and caroms are nice shots"] = function()
 		local _, NiceShot, geometry = setup()
 		local x, y = midCushion(geometry)

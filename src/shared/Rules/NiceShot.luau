@@ -47,6 +47,12 @@ function NiceShot.kind(
 	if ballId == 0 then
 		return nil
 	end
+	-- A ball an ability took off the table (Black Flash, Black Hole, the Tiger: a "removed"
+	-- event) counts as pocketed but was no shot of the player's: never a nice shot.
+	local drop = events[dropIndex]
+	if drop ~= nil and drop.type == "removed" then
+		return nil
+	end
 	local cueDetour: Kind? = nil -- the cue ball met a cushion (Kick) or another ball (Carom)
 	local touched = false
 	for index = 1, math.min(dropIndex, #events) do

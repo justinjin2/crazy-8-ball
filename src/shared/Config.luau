@@ -8211,6 +8211,9 @@ Config.UI.ScreenFx = {
 	OverlayFadeSeconds = 0.15,
 	SheetPx = 1024, -- a flipbook sheet's size in pixels when the spec gives none
 	JitterSeconds = 0.06, -- a glitch overlay jumps this often
+	-- Running effects are dropped this often once their table no longer involves the player
+	-- (seat left, walked out of range; Time Stop's grade has no end of its own).
+	InvolvedCheckSeconds = 0.5,
 	-- The shake: noise this many cycles a second, and this much roll per stud of shake.
 	ShakeFrequency = 18,
 	ShakeRollDegreesPerStud = 4,

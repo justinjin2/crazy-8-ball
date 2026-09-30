@@ -138,6 +138,9 @@ local hud: any = nil
 local queueMenu: any = nil
 local targets: any = nil
 local awaitingAt: number? = nil
+-- Time Stop: how many strikes the server had taken when this player sent one in stopped time
+-- (nil otherwise); a reply with more clears awaitingAt, as a new turn does for a normal shot.
+local strikesAtSend: number? = nil
 -- The shot clock's ticks (Config.Audio.ClockTick): the turn they are for and the second the
 -- clock last showed, so each second ticks once.
 local tickTurn: number? = nil
@@ -471,6 +474,8 @@ local function fire(power: number, windUp: number?)
 	hub:fire(snapshot.id, input.angle, power, input:getSpin(), input:getElevation(), x, y)
 	targets:shotFired()
 	awaitingAt = workspace:GetServerTimeNow()
+	local strikes = match and match.shot and match.shot.parts and match.shot.parts.strikes
+	strikesAtSend = if snapshot.phase == "Frozen" then (if strikes then #strikes else 0) else nil
 	input:setEnabled(false)
 	input:resetSpin()
 	input:resetElevation()
@@ -1221,6 +1226,14 @@ RunService.RenderStepped:Connect(function(dt)
 		refreshView()
 	end
 	local now = workspace:GetServerTimeNow()
+	-- A strike in stopped time has no new turn to answer it: its part arriving does (else the
+	-- shooter waited out ActionRetrySeconds of their FrozenSeconds; the audit).
+	if awaitingAt and strikesAtSend then
+		local sent = match.shot and match.shot.parts and match.shot.parts.strikes
+		if (sent and #sent > strikesAtSend) or snapshot.phase ~= "Frozen" then
+			awaitingAt, strikesAtSend = nil, nil
+		end
+	end
 	if awaitingAt and now - awaitingAt >= M.ActionRetrySeconds then
 		awaitingAt = nil
 		Net.get("SnapshotRequest"):FireServer()

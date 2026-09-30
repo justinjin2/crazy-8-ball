@@ -642,9 +642,11 @@ function Match.update(self: Match, dt: number): boolean
 		if strikes and applied.strikes < #strikes and TimeStop.isFrozen(self.state) then
 			applied.strikes += 1
 			TimeStop.beginStrike(self.state, strikes[applied.strikes].seed)
+			shot.steps = 0 -- each part has its own step cap, as the server's settle does
 		elseif parts and parts.resume and not applied.resume then
 			applied.resume = true
 			TimeStop.resume(self.state)
+			shot.steps = 0
 		else
 			return true
 		end

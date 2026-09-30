@@ -296,8 +296,9 @@ local function armedOf(snapshot: any?): any?
 end
 
 -- Drop the view's own picks (a new ability use, the turn over), telling the look modules.
-local function clearPicks(self: any)
-	local tableId = self.snapshot and self.snapshot.id or 0
+-- `tableId`: the table the picks were made at (default the current one).
+local function clearPicks(self: any, madeAt: number?)
+	local tableId: number = madeAt or (self.snapshot and self.snapshot.id or 0)
 	if self.ball ~= nil then
 		self.ball = nil
 		for _, fn in pickedListeners do
@@ -324,6 +325,9 @@ function UltPick.setSnapshot(
 	placement: any?,
 	userId: number
 )
+	-- The picks being dropped belong to the table they were made at, not the new one (the
+	-- audit: its looks kept the old spots).
+	local oldId = if self.snapshot then self.snapshot.id else nil
 	self.snapshot, self.match, self.placement, self.userId = snapshot, match, placement, userId
 	local armed = armedOf(snapshot)
 	local key = if snapshot
@@ -337,7 +341,7 @@ function UltPick.setSnapshot(
 		)
 		else ""
 	if key ~= self.key then
-		clearPicks(self)
+		clearPicks(self, oldId)
 		self.key = key
 		self.pending = nil
 		-- A pick already made (a rejoin, a resync) stands; otherwise one is owed.

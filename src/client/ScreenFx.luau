@@ -296,8 +296,27 @@ local function weightOf(e: Entry, now: number): (number, boolean)
 		FxMath.envelopeDone(t, e.fadeIn, e.hold, e.fadeOut)
 end
 
+local nextInvolvedCheck = 0
+
 local function step()
 	local now = os.clock()
+	-- A table the player has left (their seat, or out of watching range) takes its effects
+	-- with it.
+	if now >= nextInvolvedCheck then
+		nextInvolvedCheck = now + S.InvolvedCheckSeconds
+		local gone: { number } = {}
+		for _, e in entries do
+			if not table.find(gone, e.tableId) and not seen(e.tableId) then
+				table.insert(gone, e.tableId)
+			end
+		end
+		for _, id in gone do
+			ScreenFx.clear(id)
+		end
+		if #entries == 0 then
+			return
+		end
+	end
 	for i = #entries, 1, -1 do
 		local e = entries[i]
 		local w, done = weightOf(e, now)

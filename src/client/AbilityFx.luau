@@ -985,7 +985,12 @@ function AbilityFx.update(self: AbilityFx, dt: number, aim: Aim?, shot: AimShot?
 	for id, fx in self.tables do
 		local m = self.hub.matches[id]
 		local gone = fx.anchor.Parent == nil or (m ~= nil and m.renderer == nil)
-		local busy = m ~= nil and (m:isBusy() or armedOf(self.hub.snapshots[id]) ~= nil)
+		-- Kept Portals (a Turn ability, ults.kept) stay up between the turn's shots too: let
+		-- go, they would open again with their sound every LingerSeconds (the audit).
+		local snap = self.hub.snapshots[id]
+		local ults = if type(snap) == "table" then snap.ults else nil
+		local kept = type(ults) == "table" and ults.kept ~= nil
+		local busy = m ~= nil and (m:isBusy() or armedOf(snap) ~= nil or kept)
 		if busy then
 			fx.keepUntil = math.max(fx.keepUntil, now + F.LingerSeconds)
 		end
