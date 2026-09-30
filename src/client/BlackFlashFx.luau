@@ -554,11 +554,7 @@ local function flash(self: BlackFlashFx, id: number, fx: TableFx, m: any, ev: an
 	screen.grade(id, F.Grade, F.GradeIn, F.GradeHold, F.GradeOut)
 	screen.shake(id, F.ShakeStuds, F.ShakeSeconds)
 	screen.fovPunch(id, F.FovDegrees, F.FovSeconds)
-	playAt(self, id, A.FlashImpact, at)
-	playAt(self, id, A.FlashShatter, at)
-	kit.later(id, F.CrackleDelaySeconds, function()
-		playAt(self, id, A.FlashCrackle, at)
-	end)
+	playAt(self, id, A.FlashHit, at)
 end
 
 --- Start the look for the tables `hub` holds; `kit` is AbilityFx's.
@@ -599,7 +595,7 @@ function BlackFlashFx.start(hub: any, _parent: Instance, kit: any): BlackFlashFx
 	end)
 	task.spawn(function()
 		local list: { Instance } = {}
-		for _, clip in { A.FlashImpact, A.FlashShatter, A.FlashCrackle } do
+		for _, clip in { A.FlashHit, A.FlashCrackle } :: { any } do
 			local sound = Instance.new("Sound")
 			sound.SoundId = clip.Id
 			table.insert(list, sound)

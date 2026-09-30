@@ -2077,3 +2077,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   eagle, but only its eye: a glistening pale-gold iris with fine fibres and a big black pupil
   in a yellow ring, a black brow line cutting across its top for the hunter's glare. It
   replaces the hunter-eyes icon made earlier the same day.
+- 2026-09-30 (designer): new clips for Black Flash's hit (only the first of the file's three
+  hits plays), Steel Ball's activation and first hit (later contacts keep the short clank), and
+  Time Stop's freeze (the swell before it stays). Black Flash launches the cue ball at 3x the
+  power bar's speed (Config.Ults.BlackFlash.LaunchSpeedScale; spin scaled, the hop not). While
+  the local shooter's Legendary or Mythic ability is armed, the power bar wears its skin
+  (Config.UI.PowerSkins): Black Flash lightning, Steel Ball green with the steel ball, Black
+  Hole deep space with the hole, Guangdong Tiger tiger skin.

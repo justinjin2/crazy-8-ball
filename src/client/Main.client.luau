@@ -209,6 +209,15 @@ end
 local function shooter(): boolean
 	return snapshot ~= nil and snapshot.shooter == player.UserId
 end
+-- The ability the local shooter has armed (arming or armed), for the power bar's skin.
+local function ownArmedUlt(): string?
+	if not shooter() then
+		return nil
+	end
+	local ults = (snapshot :: any).ults
+	local armed = if type(ults) == "table" then ults.armed else nil
+	return if type(armed) == "table" and type(armed.id) == "string" then armed.id else nil
+end
 -- True while the shooter still owes a pocket call for the 8.
 local function callPending(): boolean
 	return snapshot ~= nil
@@ -1237,6 +1246,7 @@ RunService.RenderStepped:Connect(function(dt)
 	hud:update(now)
 	queueMenu:update(now)
 	powerCue:place(hud:reservedHeight()) -- under the top bar on a phone, centred on a big screen
+	powerCue:setSkin(ownArmedUlt()) -- a Legendary or Mythic ability dresses the bar
 	local modal = hud:isModal()
 	if modal ~= wasModal then
 		input:setSpinEditing(false)

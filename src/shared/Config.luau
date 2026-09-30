@@ -2481,7 +2481,9 @@ Config.Ults = {
 		-- peak 21 at 0.3 s) into "Clock Tick Tock - ULTRAKILL" (ImJustDou, 0.5 s, quiet), which
 		-- also plays as it arms. (tune by ear)
 		TimeSwell = { Id = "rbxassetid://119247066943033", Volume = 0.7 },
-		TimeBoom = { Id = "rbxassetid://9125402735", Volume = 0.9 },
+		-- The freeze: the designer's own clip (2026-09-30, 3.1 s, a hit at the start fading
+		-- out, peak 0.74 at volume 1; was "Boom Impact Deep Distant Thumping Hits 1").
+		TimeBoom = { Id = "rbxassetid://136772163363348", Volume = 0.9 },
 		TimeTick = { Id = "rbxassetid://8140501675", Volume = 1.2, StartOffset = 0.22 },
 		TimeResume = { Id = "rbxassetid://9118158113", Volume = 0.7 },
 		TimeTickTock = { Id = "rbxassetid://98448773080489", Volume = 2 },
@@ -2510,14 +2512,23 @@ Config.Ults = {
 		-- stand-in is a playful two-note whistle call (the brief's fallback; a recorded call is
 		-- the designer's), a spinning-top loop for the whirr, a heavy metal hit for each
 		-- contact, a twinkle for each guided pot.
-		SteelCall = { Id = "rbxassetid://9126216804", Volume = 1 },
+		-- The activation and the cue ball's first hit: the designer's own clip (2026-09-30,
+		-- 3.8 s, loud throughout, peak 1.0 at volume 1; was a two-note whistle call). Later
+		-- contacts keep the short clank.
+		SteelCall = { Id = "rbxassetid://88567420275306", Volume = 0.8 },
 		SteelWhirr = { Id = "rbxassetid://122309511753634", Volume = 0.8, Pitch = 1.2 },
 		SteelClank = { Id = "rbxassetid://117478490073055", Volume = 0.9 },
 		SteelPot = { Id = "rbxassetid://135385970610304", Volume = 0.7 },
-		-- Black Flash (public library audio, each checked loading in this game): a deep boom,
-		-- a glass shatter, an electric crackle (its tail, and quietly looped while armed).
-		FlashImpact = { Id = "rbxassetid://9125484367", Volume = 1.4 },
-		FlashShatter = { Id = "rbxassetid://118987440163311", Volume = 1 },
+		-- Black Flash: the cue ball's first hit plays the designer's own clip (2026-09-30; was a
+		-- boom, a glass shatter and a crackle tail). The file holds three hits (about 0.4 s,
+		-- 2.8 s and 6.5 s in, peak 0.66 at volume 1): only the first plays. An electric
+		-- crackle (public library audio) loops quietly while armed.
+		FlashHit = {
+			Id = "rbxassetid://78697555368113",
+			Volume = 1.6,
+			StartOffset = 0.2,
+			Length = 2.35,
+		},
 		FlashCrackle = { Id = "rbxassetid://84986266888002", Volume = 0.8 },
 		-- Black Hole (public library audio, each checked loading in this game, 2026-09-29):
 		-- while open, "Hollow Rumble 1" (Pro Sound Effects, a deep steady drone, looped);
@@ -2664,6 +2675,9 @@ Config.Ults.SteelBall = {
 
 -- Black Flash (docs/prompts/ABILITIES_PROMPT.md 7.11; src/shared/Ults/Effects/BlackFlash).
 Config.Ults.BlackFlash = {
+	-- The launch (the designer, 2026-09-30): the cue ball leaves at this many times the
+	-- power bar's speed, its spin scaled the same (a full-power shot about 75 mph). (tune)
+	LaunchSpeedScale = 3,
 	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
 	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
 	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours: +1.11 /
@@ -6758,6 +6772,69 @@ Config.UI.UltCutscene = {
 -- the ball's radius is Config.Balls.RenderRadiusInches (about 0.19 studs). The field-line
 -- meshes are Config.Ults.Assets.Models.MagnetField (their colours are baked in the texture:
 -- only their transparency is set here). (tune)
+-- The power bar dressed for an armed Legendary or Mythic ability (the designer, 2026-09-30;
+-- src/client/PowerCue.luau, art from tools/gen_power_skins.py): while the local shooter's own
+-- armed ability has a row here, the fill wears it instead of green-to-red and the rainbow;
+-- the cue in the bar, the label and the controls stay as they are. A row (every part
+-- optional, a data row per ability, no code):
+--   Fill = { top, bottom }: the fill's colours, top to bottom.
+--   Tile = { Image, Px, DriftPxPerSecond }: an image tiled Px square over the fill, drifting
+--     down the bar (faster with the pull: MinShare of the drift at no pull, all of it at full).
+--   Flipbook = { Image, Cols, Rows, FramePx = { w, h }, Fps, MinFps, MinShare }: frames over
+--     the whole bar (the fill shows them as it grows), from MinFps to Fps and from MinShare
+--     of full opacity to all of it as the pull grows.
+--   Emblem = { Image, WidthShare, SpinDegPerSecond, MinSpinDegPerSecond }: an image riding
+--     the fill's leading (bottom) edge, WidthShare of the bar wide, turning faster with the
+--     pull.
+--   Glow = the colour the bar's outline turns as the pull grows (all of it at 100%).
+-- (tune by eye)
+Config.UI.PowerSkinMinShare = 0.3 -- a Tile's drift and a Flipbook's opacity floor at no pull
+Config.UI.PowerSkins = {
+	-- Black lightning with a red glow, crackling harder and faster as you pull.
+	BlackFlash = {
+		Fill = { { 12, 0, 0 }, { 70, 0, 8 } },
+		Flipbook = {
+			Image = "rbxassetid://105408795030918",
+			Cols = 4,
+			Rows = 4,
+			FramePx = { 128, 256 },
+			Fps = 24,
+			MinFps = 6,
+			MinShare = 0.35,
+		},
+		Glow = { 255, 40, 50 },
+	},
+	-- Green, with the steel ball riding the fill's edge, spinning faster as you pull.
+	SteelBall = {
+		Fill = { { 90, 225, 120 }, { 20, 130, 60 } },
+		Emblem = {
+			Image = "rbxassetid://85376916012292",
+			WidthShare = 0.95,
+			SpinDegPerSecond = 1080,
+			MinSpinDegPerSecond = 90,
+		},
+		Glow = { 140, 255, 170 },
+	},
+	-- Deep space drifting down the bar, the black hole turning at the fill's edge.
+	BlackHole = {
+		Fill = { { 255, 255, 255 }, { 255, 255, 255 } },
+		Tile = { Image = "rbxassetid://86393046488401", Px = 64, DriftPxPerSecond = 30 },
+		Emblem = {
+			Image = "rbxassetid://109042133398887",
+			WidthShare = 1.35,
+			SpinDegPerSecond = 540,
+			MinSpinDegPerSecond = 45,
+		},
+		Glow = { 190, 110, 255 },
+	},
+	-- Tiger skin, drifting slowly.
+	GuangdongTiger = {
+		Fill = { { 255, 255, 255 }, { 255, 255, 255 } },
+		Tile = { Image = "rbxassetid://91211346868786", Px = 72, DriftPxPerSecond = 20 },
+		Glow = { 255, 150, 40 },
+	},
+} :: { [string]: any }
+
 Config.UI.MagnetFx = {
 	FieldColor = { 160, 210, 255 }, -- the fallback's faint arcs round the armed cue ball
 	GlowColor = { 70, 160, 255 }, -- the pull: the ball's glow, the vortex, the fallback ring
@@ -7587,7 +7664,6 @@ Config.UI.BlackFlashFx = {
 	LightBrightness = 6,
 	LightRangeBallWidths = 25,
 	LightSeconds = 0.4,
-	CrackleDelaySeconds = 0.12,
 	-- Each nudged ball: a spurt of red and black sparks.
 	NudgeSparks = 10,
 	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often

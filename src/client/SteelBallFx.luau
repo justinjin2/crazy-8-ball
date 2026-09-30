@@ -91,6 +91,7 @@ type TableFx = {
 	popAt: number, -- os.clock() the spirals sprang out
 	clock: number, -- the replay's own time here (slows with /slowmo)
 	lastClank: number,
+	hitYet: boolean, -- the cue ball has hit a ball this shot (the first plays SteelCall)
 	shotSeq: number,
 	guided: { [number]: boolean }, -- balls guided this shot (a pot of one bursts)
 }
@@ -226,6 +227,7 @@ local function create(self: SteelBallFx, id: number): TableFx
 		popAt = -math.huge,
 		clock = 0,
 		lastClank = -math.huge,
+		hitYet = false,
 		shotSeq = -1,
 		guided = {},
 	}
@@ -449,7 +451,13 @@ local function onEvent(self: SteelBallFx, id: number, fx: TableFx, m: any, ev: a
 	local quiet = m.state.time - ev.t > F.FreshSeconds
 	if ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
 		local cue = kit.ballOf(m, 0)
-		if cue and not quiet and fx.clock - fx.lastClank > F.ClankGapSeconds then
+		local first = not fx.hitYet
+		fx.hitYet = true
+		if cue and not quiet and first then
+			-- The first hit: the activation's clip again (the designer, 2026-09-30).
+			fx.lastClank = fx.clock
+			playAt(self, id, A.SteelCall, kit.ballWorld(m, cue))
+		elseif cue and not quiet and fx.clock - fx.lastClank > F.ClankGapSeconds then
 			fx.lastClank = fx.clock
 			playAt(self, id, A.SteelClank, kit.ballWorld(m, cue), {
 				volume = math.clamp(0.5 + (ev.speed or 0) / F.ClankFullSpeed, 0.5, 1.4),
@@ -684,6 +692,7 @@ function SteelBallFx.update(self: SteelBallFx, dt: number)
 		live.clock += dt * (if type(m.timeScale) == "number" then m.timeScale else 1)
 		if shot and live.shotSeq ~= m.seq then
 			live.shotSeq = m.seq
+			live.hitYet = false
 			table.clear(live.guided)
 		end
 		live.look = approach(

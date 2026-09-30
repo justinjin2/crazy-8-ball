@@ -224,8 +224,8 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/EaglesEye.png": {
     "assetId": "92034419745465",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "81255543534825"
+    "imageId": "81255543534825",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/Ghost.png": {
     "assetId": "83538083481586",
@@ -280,6 +280,36 @@
     "assetType": "Decal",
     "imageId": "88800552854518",
     "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/powerskins/BlackHole.png": {
+    "assetId": "73335943631680",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "109042133398887"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/powerskins/FlashBolts.png": {
+    "assetId": "83877021929581",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "105408795030918"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/powerskins/SpaceTile.png": {
+    "assetId": "70947649052670",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "86393046488401"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/powerskins/SteelBall.png": {
+    "assetId": "113258226223350",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "85376916012292"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/powerskins/TigerSkin.png": {
+    "assetId": "134480366137446",
+    "assetType": "Decal",
+    "status": "ok",
+    "imageId": "91211346868786"
   },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
     "assetId": "82997454954024",

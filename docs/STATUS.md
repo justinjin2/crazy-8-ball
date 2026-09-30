@@ -1,5 +1,13 @@
 # Status
 
+**2026-09-30: new ability sounds, themed power bars, Black Flash's 3x launch.** Black Flash's
+hit, Steel Ball's activation and first hit, and Time Stop's freeze play the designer's own
+clips. While a Legendary or Mythic is armed, the power bar wears its skin (Black Flash
+lightning, Steel Ball green with the spinning steel ball, Black Hole deep space, Guangdong
+Tiger tiger skin). Black Flash launches the cue ball at 3x speed (worth barely moved: 1.29 /
+1.47 / 1.58 net). 877 Lune tests pass; each skin screenshotted in Studio mid-pull, each sound
+caught playing at its moment, console clean.
+
 **2026-09-30: Eagle's Eye waits for the pull; new icon.** The gold path shows only once the
 cue is pulled back (checked in Studio: none while aiming, the path at 52%). The icon is the
 eagle's eye alone: a glistening pale-gold iris in a yellow ring under a black brow line

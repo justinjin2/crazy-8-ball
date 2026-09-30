@@ -81,6 +81,24 @@ function tests.your_ball_shattered_counts_as_your_pot()
 	check(#ultEvents(outcome.events, "flash") == 1, "one flash")
 end
 
+function tests.the_cue_ball_launches_at_three_times_the_speed()
+	-- The designer, 2026-09-30: after the first step the cue ball moves LaunchSpeedScale times
+	-- as fast as the same shot without the ability (friction over one step is far smaller).
+	local balls = table_({ { 0, -40, 0 }, { 3, 40, 20 } })
+	local plain = Simulation.newState(geometry, Ball.cloneList(balls))
+	roll(plain, 0, 60, 0)
+	Simulation.step(plain, DT, {})
+	local sim = armed(balls, { 3 }, {})
+	roll(sim, 0, 60, 0)
+	Simulation.step(sim, DT, {})
+	local slow = Simulation.findBall(plain, 0).vx
+	local fast = Simulation.findBall(sim, 0).vx
+	check(math.abs(fast / slow - C.LaunchSpeedScale) < 0.02, ("launch x%.3f"):format(fast / slow))
+	-- Only once: the next step does not multiply again.
+	Simulation.step(sim, DT, {})
+	check(Simulation.findBall(sim, 0).vx <= fast, "not boosted twice")
+end
+
 function tests.the_opponents_ball_shattered_counts_for_them_and_is_a_foul()
 	local balls = table_({ { 0, -20, 0 }, { 9, -10, 0 }, { 3, 30, 15 }, { 8, 30, -15 } })
 	local sim = armed(balls, { 3 }, { 9 })

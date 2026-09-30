@@ -148,8 +148,9 @@ function SoundSheet.play(sheet: string, clip: string, parent: Instance?, options
 	return sound
 end
 
---- Play a plain Config clip { Id, Volume, StartOffset?, Pitch? } the same way (a library
---- fallback): 2D or 3D, one-shot or looped, the Sound returned. Nothing for an Id of "".
+--- Play a plain Config clip { Id, Volume, StartOffset?, Pitch?, Length? } the same way (a
+--- library fallback): 2D or 3D, one-shot or looped, the Sound returned. Nothing for an Id of
+--- "". With Length only that much plays from StartOffset (one part of a longer file).
 function SoundSheet.library(clip: any, parent: Instance?, options: Options?): Sound?
 	if type(clip) ~= "table" or type(clip.Id) ~= "string" or clip.Id == "" then
 		return nil
@@ -157,14 +158,24 @@ function SoundSheet.library(clip: any, parent: Instance?, options: Options?): So
 	local o: Options = options or {}
 	local pitch = math.max((clip.Pitch or 1) * (o.pitch or 1), 0.01)
 	local sound = newSound(clip.Id, (clip.Volume or 1) * (o.volume or 1), parent, pitch)
+	local start = clip.StartOffset or 0
+	local regionEnd: number? = nil
+	if type(clip.Length) == "number" and clip.Length > 0 then
+		regionEnd = start + clip.Length
+		sound.PlaybackRegionsEnabled = true
+		sound.PlaybackRegion = NumberRange.new(start, start + clip.Length)
+		if o.looped then
+			sound.LoopRegion = sound.PlaybackRegion
+		end
+	end
 	sound.Looped = o.looped == true
-	sound.TimePosition = clip.StartOffset or 0
+	sound.TimePosition = start
 	sound:Play()
 	if not o.looped then
 		local now = os.clock()
 		track({
 			sound = sound,
-			regionEnd = nil,
+			regionEnd = regionEnd,
 			started = now,
 			capAt = now + S.LibraryMaxSeconds,
 			heard = false,

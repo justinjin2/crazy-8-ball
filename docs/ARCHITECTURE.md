@@ -512,8 +512,10 @@ price, rarity, ult id to grant or a result.
   pills; solo's bar is always full), `UltCutscene` (the manga panel everyone at the table sees), `MagnetFx`
   (Magnet's armed look, each hit ball's charge rings, the pull's beams, dust, pocket ring and vortex, and its sounds), `MatchHUD` (the opponent's ult
   icon, the NO ABILITIES pill, the clock held while an ult arms), `PadGuide` (the Ability line),
-  `ResultScreen` (NO ABILITIES), the reward screens' spin chips, and the spin screen (UltScreen,
-  UltStage and their parts; see below).
+  `ResultScreen` (NO ABILITIES), the reward screens' spin chips, the spin screen (UltScreen,
+  UltStage and their parts; see below), and `PowerCue`'s ability skins (Main passes the local
+  shooter's armed ult to `setSkin`; `Config.UI.PowerSkins` rows for the Legendaries and
+  Mythics: fill colours, a drifting tile, a flipbook, an emblem at the fill's edge, a glow).
 
 **The physics hook.** A shot's `state.overrides` may carry `Effect`, `Targets` and
 `EightPocket`. `MatchEngine.acceptShot` calls `Simulation.armEffect` right after

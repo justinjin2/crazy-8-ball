@@ -3,6 +3,9 @@
 -- whoever's it is, is destroyed in a black flash, and the blast nudges the balls round it
 -- toward their pockets.
 --
+-- * The launch (the designer, 2026-09-30): on the shot's first step the cue ball's speed and
+--   spin are multiplied by Config.Ults.BlackFlash.LaunchSpeedScale (not its hop), so it rockets to its first
+--   ball (impact times are exact, so nothing is skipped however fast it goes).
 -- * The flash: the step of the cue ball's first contact, that ball leaves the table
 --   (Simulation.Ops.remove, a `removed` event that ShotJudge counts exactly as a pot for its
 --   owner: the 8 by the 8's rules, a win on the legal 8 shot, a loss otherwise). A wrong first
@@ -161,6 +164,22 @@ function BlackFlash.bounce(state: any, cue: any, x: number, y: number, inches: n
 	cue.vx, cue.vy = hx * speed, hy * speed
 	cue.wx, cue.wy = -cue.vy / R, cue.vx / R
 	cue.wz = 0
+end
+
+function BlackFlash.step(state: any, _dt: number)
+	local fx = state.fx
+	if fx.launched then
+		return
+	end
+	fx.launched = true
+	local cue = findBall(state, 0)
+	if cue == nil or cue.pocketed then
+		return
+	end
+	local k = Config.Ults.BlackFlash.LaunchSpeedScale
+	-- Along the cloth only: a hard stroke's little hop (vz) stays as it is.
+	cue.vx, cue.vy = cue.vx * k, cue.vy * k
+	cue.wx, cue.wy, cue.wz = cue.wx * k, cue.wy * k, cue.wz * k
 end
 
 function BlackFlash.after(state: any, _dt: number, events: { any }, ops: any)

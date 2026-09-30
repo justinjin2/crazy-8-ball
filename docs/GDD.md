@@ -481,7 +481,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     VHS rewind.
   - **Time Stop** (Epic since 2026-09-30, was Rare; 0.47): at the cue ball's first contact time freezes; the shooter
     strikes the cue ball up to three more times in stopped time (5 s for each, then it resumes
-    by itself); the stored motion of every ball plays out when time resumes.
+    by itself); the stored motion of every ball plays out when time resumes. The freeze plays
+    the designer's own clip (2026-09-30).
   - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best
     pocket (up to 15 degrees, x1.25 speed); then lightning jumps three times, each to the
     nearest ball within 20 in, pushing each struck ball toward its closest pocket with a clear
@@ -493,17 +494,26 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
     it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
     (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your
-    group gone the 8 is lined up, never potted. It never scratches.
+    group gone the 8 is lined up, never potted. It never scratches. The designer's own clip
+    plays on activation and on the cue ball's first hit (2026-09-30).
   - **Black Flash** (Legendary, 1.21): the first ball hit, whoever's, shatters and counts as
     pocketed for its owner; the blast nudges the balls within 20 in toward their pockets (4 of
     yours, 2 of theirs at half, never the 8); the cue ball bounces straight back, never into a
-    pocket.
+    pocket. The cue ball launches at 3x the power bar's speed (2026-09-30; its worth barely
+    moved: 1.29 / 1.47 / 1.58 net at skills 1/2/3), and the hit plays the designer's own clip.
   - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
     spirals in the balls within 20 in (the opponent's within 10 in), at most 4 of yours and 1 of
     theirs, each swallowed and counted as pocketed for its owner; the cue ball is pushed away.
   - **Guangdong Tiger** (Mythic, 1.30): at the first contact a giant tiger leaps in and cuts
     the balls within 20 in (the opponent's within 10 in) off the table at once, at most 4 of
     yours and 1 of theirs, counted as pocketed for their owners; the moment slows to watch it.
+- **The power bar in the ability's colours** (2026-09-30): while your own Legendary or Mythic
+  ability is armed, the power bar's fill wears it, stronger as you pull (`Config.UI.PowerSkins`,
+  art from `tools/gen_power_skins.py`): Black Flash, black and red lightning crackling harder;
+  Steel Ball, green with the steel ball riding the fill's edge, spinning faster; Black Hole,
+  deep space drifting with the black hole turning at the edge; Guangdong Tiger, tiger skin.
+  The outline glows in the ability's colour. Lower tiers keep the green-to-red bar and its
+  rainbow.
 - **Getting ults: the spin screen** (Untitled Boxing Game style; the left column's 5th
   button, **Abilities**, with a red dot when the daily free spin is ready). Three slots (slot 1
   free, slots 2 and 3 game passes); a spin rolls into the selected slot and replaces its ult;

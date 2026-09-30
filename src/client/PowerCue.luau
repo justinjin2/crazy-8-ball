@@ -14,6 +14,13 @@
 -- runs green to yellow to red as the pull grows, then fades into the house rainbow from
 -- Config.UI.PowerRainbowFromPower to all rainbow at 100%, its bands drifting down the bar.
 --
+-- While the local shooter's own Legendary or Mythic ability is armed, the fill wears that
+-- ability's skin instead (Config.UI.PowerSkins, the designer 2026-09-30): its colours, a tiled
+-- texture drifting down the bar, a flipbook crackling harder as the pull grows, an emblem
+-- riding the fill's edge and spinning faster, and the outline glowing in its colour. Each
+-- skin is a data row plus images; setSkin() builds the layers and one RenderStepped step
+-- animates them while it shows.
+--
 -- A Frame cannot be a trapezoid, so the taper is built from thin bands stacked tip to butt.
 -- Every position and size is in SCALE rather than pixels, so the whole control is resolution
 -- independent and the pull reads the same on a phone and a monitor.
@@ -43,6 +50,15 @@ export type PowerCue = typeof(setmetatable(
 		rainbowStep: RBXScriptConnection?, -- drifts the rainbow while it shows
 		rainbowBase: Color3, -- the green-to-red colour the rainbow fades from
 		rainbowBlend: number, -- 0 (the base colour) ... 1 (all rainbow)
+		stroke: UIStroke, -- the ink outline (a skin's glow tints it)
+		skinId: string?, -- the armed ability whose skin shows (Config.UI.PowerSkins), if any
+		skinParts: { Instance }, -- the skin's layers, destroyed when it goes
+		skinTile: ImageLabel?,
+		skinFlip: ImageLabel?,
+		skinEmblem: ImageLabel?,
+		skinStep: RBXScriptConnection?,
+		tileY: number, -- the tile's drift, 0..Px
+		flipT: number, -- the flipbook's frame clock
 		text: TextLabel,
 		cue: Frame,
 		cueId: string, -- the catalog cue drawn
@@ -157,6 +173,7 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	fill.BorderSizePixel = 0
 	fill.Size = UDim2.fromScale(1, 0)
 	fill.ZIndex = 1
+	fill.ClipsDescendants = true -- a skin's layers show only where the fill has charged
 	fill.Parent = bar
 	local fillCorner = Instance.new("UICorner")
 	fillCorner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
@@ -188,6 +205,15 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 		rainbowStep = nil,
 		rainbowBase = Color3.new(1, 1, 1),
 		rainbowBlend = 0,
+		stroke = stroke,
+		skinId = nil,
+		skinParts = {},
+		skinTile = nil,
+		skinFlip = nil,
+		skinEmblem = nil,
+		skinStep = nil,
+		tileY = 0,
+		flipT = 0,
 		text = text,
 		cue = cue,
 		cueId = shown,
@@ -271,6 +297,19 @@ end
 -- bands drifting down the bar every frame while it shows.
 function PowerCue.showRainbow(self: PowerCue, base: Color3, blend: number)
 	self.rainbowBase, self.rainbowBlend = base, blend
+	local skin = self.skinId and Config.UI.PowerSkins[self.skinId]
+	if skin then
+		-- A skin's own colours replace green-to-red and the rainbow.
+		if self.rainbowStep then
+			self.rainbowStep:Disconnect()
+			self.rainbowStep = nil
+		end
+		local fill = skin.Fill or { K.Colors.White, K.Colors.White }
+		self.fill.BackgroundColor3 = Color3.new(1, 1, 1)
+		self.rainbow.Color = ColorSequence.new(rgb(fill[1]), rgb(fill[2]))
+		self.rainbow.Enabled = true
+		return
+	end
 	local on = blend > 0
 	self.fill.BackgroundColor3 = if on then Color3.new(1, 1, 1) else base
 	if on == self.rainbow.Enabled then
@@ -291,6 +330,110 @@ function PowerCue.showRainbow(self: PowerCue, base: Color3, blend: number)
 		paint()
 		self.rainbowStep = RunService.RenderStepped:Connect(paint)
 	end
+end
+
+local function skinImage(parent: Instance, name: string, image: string, z: number): ImageLabel
+	local label = Instance.new("ImageLabel")
+	label.Name = name
+	label.BackgroundTransparency = 1
+	label.BorderSizePixel = 0
+	label.Image = image
+	label.ZIndex = z
+	label.Parent = parent
+	return label
+end
+
+-- Every frame while a skin shows: the tile drifts, the flipbook turns its frames, the emblem
+-- rides the fill's edge and spins, the outline glows; all faster or stronger with the pull.
+function PowerCue.stepSkin(self: PowerCue, dt: number)
+	local skin = self.skinId and Config.UI.PowerSkins[self.skinId]
+	if skin == nil then
+		return
+	end
+	local pull = self.pull or 0
+	local floor = Config.UI.PowerSkinMinShare
+	local barHeight = self.root.AbsoluteSize.Y
+	local tile, t = self.skinTile, skin.Tile
+	if tile and t then
+		local px = t.Px
+		self.tileY = (self.tileY + t.DriftPxPerSecond * (floor + (1 - floor) * pull) * dt) % px
+		tile.Size = UDim2.new(1, 0, 0, barHeight + px)
+		tile.Position = UDim2.fromOffset(0, self.tileY - px)
+	end
+	local flip, f = self.skinFlip, skin.Flipbook
+	if flip and f then
+		self.flipT += dt * (f.MinFps + (f.Fps - f.MinFps) * pull)
+		local frame = math.floor(self.flipT) % (f.Cols * f.Rows)
+		local w, h = f.FramePx[1], f.FramePx[2]
+		flip.ImageRectOffset = Vector2.new((frame % f.Cols) * w, math.floor(frame / f.Cols) * h)
+		flip.Size = UDim2.new(1, 0, 0, barHeight)
+		flip.ImageTransparency = 1 - (f.MinShare + (1 - f.MinShare) * pull)
+	end
+	local emblem, e = self.skinEmblem, skin.Emblem
+	if emblem and e then
+		local spin = e.MinSpinDegPerSecond + (e.SpinDegPerSecond - e.MinSpinDegPerSecond) * pull
+		emblem.Rotation = (emblem.Rotation + spin * dt) % 360
+		emblem.Position = UDim2.fromScale(0.5, pull)
+		emblem.Visible = self.pull ~= nil and pull >= Config.Input.MinPowerToShoot
+	end
+	if skin.Glow then
+		-- A hint of the colour while armed, all of it at full pull.
+		local k = floor + (1 - floor) * pull ^ 1.5
+		self.stroke.Color = rgb(K.Colors.Ink):Lerp(rgb(skin.Glow), k)
+	end
+end
+
+--- Dress the bar for armed ability `id` (a Config.UI.PowerSkins row), or nil (or an ability
+--- with no row) for the plain bar. Nothing happens when it is already showing that.
+function PowerCue.setSkin(self: PowerCue, id: string?)
+	local skin = if id then Config.UI.PowerSkins[id] else nil
+	local want = if skin then id else nil
+	if want == self.skinId then
+		return
+	end
+	for _, part in self.skinParts do
+		part:Destroy()
+	end
+	table.clear(self.skinParts)
+	self.skinTile, self.skinFlip, self.skinEmblem = nil, nil, nil
+	if self.skinStep then
+		self.skinStep:Disconnect()
+		self.skinStep = nil
+	end
+	self.stroke.Color = rgb(K.Colors.Ink)
+	self.rainbow.Enabled = false
+	self.skinId = want
+	if skin then
+		if skin.Tile then
+			local tile = skinImage(self.fill, "SkinTile", skin.Tile.Image, 1)
+			tile.ScaleType = Enum.ScaleType.Tile
+			tile.TileSize = UDim2.fromOffset(skin.Tile.Px, skin.Tile.Px)
+			self.skinTile = tile
+			table.insert(self.skinParts, tile)
+		end
+		if skin.Flipbook then
+			local f = skin.Flipbook
+			local flip = skinImage(self.fill, "SkinFlipbook", f.Image, 1)
+			flip.ImageRectSize = Vector2.new(f.FramePx[1], f.FramePx[2])
+			self.skinFlip = flip
+			table.insert(self.skinParts, flip)
+		end
+		if skin.Emblem then
+			-- Over the cue: it rides the fill's edge, where the cue's tip is.
+			local emblem = skinImage(self.root, "SkinEmblem", skin.Emblem.Image, 3)
+			emblem.AnchorPoint = Vector2.new(0.5, 0.5)
+			emblem.SizeConstraint = Enum.SizeConstraint.RelativeXX
+			emblem.Size = UDim2.fromScale(skin.Emblem.WidthShare, skin.Emblem.WidthShare)
+			emblem.Visible = false
+			self.skinEmblem = emblem
+			table.insert(self.skinParts, emblem)
+		end
+		self.skinStep = RunService.RenderStepped:Connect(function(dt: number)
+			self:stepSkin(dt)
+		end)
+		self:stepSkin(0)
+	end
+	self:setPull(self.pull)
 end
 
 --- Rebuild for a different catalog cue (nothing happens for the one already drawn).
