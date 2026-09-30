@@ -135,7 +135,30 @@ def eclipse(d):
                  'at the eclipse.')
 
 
-UPGRADES = {'eclipse': eclipse}
+def apex(d):
+    v = d['vfx']
+    a = v['Aura']
+    E = a['Emitters']
+    # more and bigger HUD rings (the concept has five or six along the cue at once; there were two)
+    c = named(E, 'HudRingsCyan')
+    c.update({'Rate': 1.6, 'Size': [[0, 0.7], [0.1, 1.45], [0.9, 1.45], [1, 1.8]], 'Brightness': 1.6})
+    o = named(E, 'HudRingsOrange')
+    o.update({'Rate': 1.2, 'Size': [[0, 0.9], [0.1, 1.7], [0.9, 1.7], [1, 2.1]], 'Brightness': 1.6})
+    named(E, 'ScanPulses')['Rate'] = 2.0
+    em = named(E, 'Embers')          # orange embers from the forearm back, twice as many
+    em['Rate'] = 10
+    em['Host']['FromStuds'] = 2.0
+    # the circuit-trace runners: thick enough to read from the player's distance
+    for r in a['Orbiters']:
+        r['Trail'].update({'WidthStuds': 0.045, 'Lifetime': 0.6, 'Brightness': 3})
+    # the ball trail's afterimage rings: bigger and longer-lived so a row of them hangs behind the ball
+    T = v['Trail']['Emitters']
+    named(T, 'RingsCyan').update({'Rate': 8, 'Lifetime': 0.7, 'Size': [[0, 0.35], [1, 0.75]]})
+    named(T, 'RingsOrange').update({'Rate': 6, 'Lifetime': 0.6, 'Size': [[0, 0.4], [1, 0.8]]})
+    v['Budget']['BallTrail'] = sum(x.get('Rate', 0) for x in T)
+
+
+UPGRADES = {'eclipse': eclipse, 'apex': apex}
 
 
 def budget(d):

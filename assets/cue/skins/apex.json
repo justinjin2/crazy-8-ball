@@ -104,7 +104,7 @@
             "AtStuds": 0.3
           },
           "EmissionDirection": "Back",
-          "Rate": 0.8,
+          "Rate": 1.6,
           "Lifetime": 2.5,
           "Speed": 2.6,
           "SpreadAngle": [
@@ -115,19 +115,19 @@
           "Size": [
             [
               0,
-              0.6
+              0.7
             ],
             [
               0.1,
-              1.2
+              1.45
             ],
             [
               0.9,
-              1.2
+              1.45
             ],
             [
               1,
-              1.5
+              1.8
             ]
           ],
           "Transparency": [
@@ -159,7 +159,8 @@
           "Color": "#FFFFFF",
           "LightEmission": 1,
           "LightInfluence": 0,
-          "LockedToPart": true
+          "LockedToPart": true,
+          "Brightness": 1.6
         },
         {
           "Name": "HudRingsOrange",
@@ -169,7 +170,7 @@
             "AtStuds": 6.6
           },
           "EmissionDirection": "Front",
-          "Rate": 0.6,
+          "Rate": 1.2,
           "Lifetime": 2.9,
           "Speed": 2.2,
           "SpreadAngle": [
@@ -180,19 +181,19 @@
           "Size": [
             [
               0,
-              0.8
+              0.9
             ],
             [
               0.1,
-              1.5
+              1.7
             ],
             [
               0.9,
-              1.5
+              1.7
             ],
             [
               1,
-              1.8
+              2.1
             ]
           ],
           "Transparency": [
@@ -224,7 +225,8 @@
           "Color": "#FFFFFF",
           "LightEmission": 1,
           "LightInfluence": 0,
-          "LockedToPart": true
+          "LockedToPart": true,
+          "Brightness": 1.6
         },
         {
           "Name": "ScanPulses",
@@ -238,7 +240,7 @@
             "ShapeStyle": "Volume"
           },
           "EmissionDirection": "Back",
-          "Rate": 1.2,
+          "Rate": 2.0,
           "Lifetime": 1.1,
           "Speed": 0.25,
           "SpreadAngle": [
@@ -341,13 +343,13 @@
           "Texture": "vfx/_shared/spark.png",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.8,
+            "FromStuds": 2.0,
             "ToStuds": 7.2,
             "Width": 0.3,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 5,
+          "Rate": 10,
           "Lifetime": [
             0.5,
             0.9
@@ -554,10 +556,10 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.3,
-            "WidthStuds": 0.035,
+            "Lifetime": 0.6,
+            "WidthStuds": 0.045,
             "Color": "#19E6FF",
-            "Brightness": 2,
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
@@ -585,10 +587,10 @@
           "Phase": 180,
           "Delay": 0.9,
           "Trail": {
-            "Lifetime": 0.3,
-            "WidthStuds": 0.035,
+            "Lifetime": 0.6,
+            "WidthStuds": 0.045,
             "Color": "#FF7A1A",
-            "Brightness": 2,
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
@@ -692,7 +694,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.45,
+        "Lifetime": 1.2,
         "WidthStuds": 0.42,
         "LightEmission": 1,
         "Texture": "vfx/apex/trail_jet.png",
@@ -717,10 +719,54 @@
             250,
             255
           ],
-          "Width": 0.07,
+          "Width": 0.2,
           "NearTransparency": 0.0,
-          "LightEmission": 1
-        }
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 3.0
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.4
       },
       "Pocket": {
         "Colors": [
@@ -747,17 +793,17 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 6,
-          "Lifetime": 0.35,
+          "Rate": 8,
+          "Lifetime": 0.7,
           "Speed": 0,
           "Size": [
             [
               0,
-              0.25
+              0.35
             ],
             [
               1,
-              0.45
+              0.75
             ]
           ],
           "Rotation": [
@@ -784,17 +830,17 @@
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 5,
-          "Lifetime": 0.3,
+          "Rate": 6,
+          "Lifetime": 0.6,
           "Speed": 0,
           "Size": [
             [
               0,
-              0.3
+              0.4
             ],
             [
               1,
-              0.5
+              0.8
             ]
           ],
           "Rotation": [
@@ -1108,9 +1154,9 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 39.6,
-      "Back": 19.8,
-      "BallTrail": 25,
+      "ParticlesPerSecond": 46.8,
+      "Back": 23.4,
+      "BallTrail": 28,
       "Beams": 1,
       "Lights": 2,
       "Orbiters": 2,
