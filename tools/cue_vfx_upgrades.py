@@ -322,6 +322,41 @@ def clockwork(d):
     P[:] = [x for x in P if x['Name'] != 'BigCogs']
 
 
+def thunderstrike(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the arcs sat at the cue's own surface (radius 0.1, hidden inside it) and were hair-thin with
+    # no brightness, so they read as faint grey zigzags: out off the surface, thicker, longer,
+    # brighter and more of them, the leaps bowing well clear of the cue; finely jagged (many short
+    # segments: few long ones read as bent wire) and wide enough that the strip's blue glow shows
+    put(a['Arcs'], {'Name': 'Crawl', 'Count': 5, 'Segments': 20, 'FromStuds': 0.3, 'ToStuds': 7.0,
+                    'Length': [0.8, 1.8], 'Around': 220, 'Radius': 0.15, 'Jitter': 0.06, 'Interval': 0.09,
+                    'Duty': 0.75, 'WidthStuds': 0.16, 'Color': '#5AAEFF', 'Brightness': 2.2,
+                    'Texture': 'vfx/_shared/bolt_strip.png'})
+    put(a['Arcs'], {'Name': 'Leap', 'Count': 3, 'Segments': 26, 'FromStuds': 0.8, 'ToStuds': 7.0,
+                    'Length': [1.6, 3.2], 'Around': 300, 'Radius': 0.2, 'Jitter': 0.11, 'Interval': 0.14,
+                    'Duty': 0.55, 'WidthStuds': 0.2, 'Color': '#7AC0FF', 'Brightness': 2.4,
+                    'Texture': 'vfx/_shared/bolt_strip.png'})
+    # the concept's blue electric haze round the whole cue
+    put(a['Emitters'], {
+        'Name': 'StormHaze', 'Texture': 'vfx/_shared/smoke_8x8.png', 'FlipbookLayout': 'Grid8x8',
+        'FlipbookMode': 'OneShot', 'Host': cyl(0.3, 7.0, 0.35), 'Rate': 6, 'Lifetime': [1.0, 1.5],
+        'Speed': [0.05, 0.15], 'SpreadAngle': [180, 180], 'Size': [[0, 0.4], [1, 0.9]], 'Rotation': [0, 360],
+        'RotSpeed': [-25, 25], 'Transparency': [[0, 1], [0.3, 0.7], [1, 1]],
+        'Color': [[0, '#4A9AFF'], [1, '#1A3AA0']], 'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': False})
+    # the trail: a wider electric sheath, more crackling static round the ball
+    v['Style']['Trail']['WidthStuds'] = 0.5
+    st = named(v['Trail']['Emitters'], 'Static')
+    st.update({'Rate': 10, 'Size': 0.5})
+    v['Budget']['BallTrail'] = sum(x.get('Rate', 0) for x in v['Trail']['Emitters'])
+    a['Note'] = ('Layered: a flickering blue glow round the cue as the core (a halo Beam) inside a haze of blue '
+                 'electric mist; lightning arcs crawl up and down the whole cue just off its surface, re-struck '
+                 'every 0.09 s, and big arcs leap well clear of it (Arcs: chains of short Beams a script '
+                 're-jitters); a small storm cloud of static churns round the butt (dark cloud puffs with '
+                 'crackling static balls inside); blue sparks spit off and charge motes hang in the air; a blue '
+                 'light, and a second one that cracks bright twice every 1.7 s.')
+
+
 def pocket_piece(d, piece_id, drop_layer, **timing):
     """The pocket finisher's creature as a rising 3D piece (CuePiecesPocket) in place of its flat
     flipbook layer."""
@@ -362,7 +397,7 @@ POCKET = {
 
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
             'phoenix': phoenix, 'kraken': kraken, 'infernal': infernal,
-            'clockwork': clockwork}
+            'clockwork': clockwork, 'thunderstrike': thunderstrike}
 
 
 def budget(d):
