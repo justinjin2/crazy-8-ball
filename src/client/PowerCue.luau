@@ -11,8 +11,8 @@
 -- arithmetic and is Lune-tested; this module only turns its slices into Frames.
 --
 -- In the UI kit's look (docs/UI_STYLE.md): a white track with an ink outline, and a fill that
--- runs green to yellow to red as the pull grows, and turns the house rainbow at 100%, its
--- bands drifting down the bar while the pull stays there.
+-- runs green to yellow to red as the pull grows, then fades into the house rainbow from
+-- Config.UI.PowerRainbowFromPower to all rainbow at 100%, its bands drifting down the bar.
 --
 -- A Frame cannot be a trapezoid, so the taper is built from thin bands stacked tip to butt.
 -- Every position and size is in SCALE rather than pixels, so the whole control is resolution
@@ -39,8 +39,10 @@ export type PowerCue = typeof(setmetatable(
 		root: TextButton,
 		screen: ScreenGui,
 		fill: Frame,
-		rainbow: UIGradient, -- the fill's rainbow at 100%, off below it
+		rainbow: UIGradient, -- the fill's rainbow near full pull, off below it
 		rainbowStep: RBXScriptConnection?, -- drifts the rainbow while it shows
+		rainbowBase: Color3, -- the green-to-red colour the rainbow fades from
+		rainbowBlend: number, -- 0 (the base colour) ... 1 (all rainbow)
 		text: TextLabel,
 		cue: Frame,
 		cueId: string, -- the catalog cue drawn
@@ -57,10 +59,11 @@ local function rgb(c: { number }): Color3
 end
 
 -- The house rainbow along the bar, shifted by `phase` (0..1, one whole loop) and wrapping, so
--- the bands drift without a seam. Sampled at evenly spaced keypoints (ColorSequence keypoints
--- must start at 0 and end at 1, so the loop cannot simply be offset).
+-- the bands drift without a seam, mixed `blend` of the way from `base` (0: all base, 1: all
+-- rainbow). Sampled at evenly spaced keypoints (ColorSequence keypoints must start at 0 and
+-- end at 1, so the loop cannot simply be offset).
 local KEYPOINTS = 13
-local function rainbowAt(phase: number): ColorSequence
+local function rainbowAt(phase: number, base: Color3, blend: number): ColorSequence
 	local colors = Config.Ranks.ChatRainbow
 	local n = #colors
 	local points = {}
@@ -68,7 +71,8 @@ local function rainbowAt(phase: number): ColorSequence
 		local t = ((i / (KEYPOINTS - 1)) - phase) % 1 * n
 		local a = math.floor(t)
 		local from, to = rgb(colors[a % n + 1]), rgb(colors[(a + 1) % n + 1])
-		table.insert(points, ColorSequenceKeypoint.new(i / (KEYPOINTS - 1), from:Lerp(to, t - a)))
+		local color = base:Lerp(from:Lerp(to, t - a), blend)
+		table.insert(points, ColorSequenceKeypoint.new(i / (KEYPOINTS - 1), color))
 	end
 	return ColorSequence.new(points)
 end
@@ -157,11 +161,11 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	local fillCorner = Instance.new("UICorner")
 	fillCorner.CornerRadius = UDim.new(0, K.ButtonCornerPx)
 	fillCorner.Parent = fill
-	-- The rainbow at 100%: top to bottom along the fill, off until the pull gets there.
+	-- The rainbow near full pull: top to bottom along the fill, off until the pull gets there.
 	local rainbow = Instance.new("UIGradient")
 	rainbow.Name = "Rainbow"
 	rainbow.Rotation = 90
-	rainbow.Color = rainbowAt(0)
+	rainbow.Color = rainbowAt(0, Color3.new(1, 1, 1), 1)
 	rainbow.Enabled = false
 	rainbow.Parent = fill
 
@@ -182,6 +186,8 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 		fill = fill,
 		rainbow = rainbow,
 		rainbowStep = nil,
+		rainbowBase = Color3.new(1, 1, 1),
+		rainbowBlend = 0,
 		text = text,
 		cue = cue,
 		cueId = shown,
@@ -245,23 +251,30 @@ function PowerCue.setPull(self: PowerCue, pull: number?)
 	self.pull = pull and value
 	self.cue.Position = UDim2.fromScale(0.5, value * self.travel)
 	self.fill.Size = UDim2.fromScale(1, value)
-	-- Green for a soft touch, through yellow, to red near full power; at 100% (as the label
-	-- rounds it) the house rainbow, drifting down the bar.
+	-- Green for a soft touch, through yellow, to red near full power; from
+	-- PowerRainbowFromPower it fades into the house rainbow, all rainbow at 100% (as the
+	-- label rounds it), drifting down the bar.
 	local percent = math.floor(value * 100 + 0.5)
-	local full = pull ~= nil and percent >= 100
 	local green, yellow, red = rgb(K.Colors.Green), rgb(K.Colors.Gold), rgb(K.Colors.Red)
-	self.fill.BackgroundColor3 = if full
-		then Color3.new(1, 1, 1) -- the gradient tints white, so the rainbow shows true
-		elseif value < 0.5 then green:Lerp(yellow, value * 2)
+	local base = if value < 0.5
+		then green:Lerp(yellow, value * 2)
 		else yellow:Lerp(red, (value - 0.5) * 2)
-	self:showRainbow(full)
+	local from = math.clamp(Config.UI.PowerRainbowFromPower, 0, 0.99)
+	local k = math.clamp((value - from) / (1 - from), 0, 1)
+	local blend = if pull == nil then 0 elseif percent >= 100 then 1 else k * k * (3 - 2 * k)
+	self:showRainbow(base, blend)
 	self.text.Text = if pull then Strings.PowerPercent:format(percent) else Strings.Pull
 end
 
--- The rainbow on or off; while on, its bands drift down the bar every frame.
-function PowerCue.showRainbow(self: PowerCue, on: boolean)
+-- The fill's colour: `base` alone at blend 0, else the gradient mixing it `blend` of the way
+-- into the rainbow (the fill turns white under it, as a gradient tints its background), its
+-- bands drifting down the bar every frame while it shows.
+function PowerCue.showRainbow(self: PowerCue, base: Color3, blend: number)
+	self.rainbowBase, self.rainbowBlend = base, blend
+	local on = blend > 0
+	self.fill.BackgroundColor3 = if on then Color3.new(1, 1, 1) else base
 	if on == self.rainbow.Enabled then
-		return
+		return -- the running step picks up the new base and blend
 	end
 	self.rainbow.Enabled = on
 	if self.rainbowStep then
@@ -271,10 +284,12 @@ function PowerCue.showRainbow(self: PowerCue, on: boolean)
 	if on then
 		local started = os.clock()
 		local cycle = math.max(Config.UI.PowerFullRainbowCycleSeconds, 0.05)
-		self.rainbow.Color = rainbowAt(0)
-		self.rainbowStep = RunService.RenderStepped:Connect(function()
-			self.rainbow.Color = rainbowAt((os.clock() - started) / cycle % 1)
-		end)
+		local function paint()
+			local phase = (os.clock() - started) / cycle % 1
+			self.rainbow.Color = rainbowAt(phase, self.rainbowBase, self.rainbowBlend)
+		end
+		paint()
+		self.rainbowStep = RunService.RenderStepped:Connect(paint)
 	end
 end
 
