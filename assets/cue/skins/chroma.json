@@ -1,0 +1,1168 @@
+{
+  "id": "chroma",
+  "name": "Chroma",
+  "tier": "Legendary",
+  "catalog_id": "ChromaCue",
+  "concept": "L1",
+  "palette": [
+    "#FF3D3D",
+    "#FFD23D",
+    "#3DFF8A",
+    "#3D8AFF",
+    "#B03DFF"
+  ],
+  "painter": "mix",
+  "note": "Rainbow chrome that flows through the rainbow (MM2 Chroma style): a polished shaft running once through the rainbow from tip to joint with silky highlights, OpenAI forearm and sleeve of liquid rainbow-chrome ribbons twisting with glowing edges, a dark knurled grip with a rainbow sheen, silver collar and ring, a black end. Four colour frames, each a quarter further round the hue wheel, swapped by a script.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "prompt": "Liquid mirror chrome in vivid rainbow colours (red, orange, yellow, green, cyan, blue, violet, magenta): smooth glossy ribbons of polished chrome twist diagonally along the whole forearm like flowing liquid metal, each ribbon shading through the rainbow, with bright glowing white-hot edges where they fold over and deep dark reflections between them. The two thin strips at the far left are the joint collar: paint them plain polished silver (#D8DCE2)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "zones_px": [
+        52,
+        862,
+        1336
+      ],
+      "prompt": "Left thin strip (the ring): plain polished silver (#D8DCE2). The wrap (from the ring to the next zone line): a dark navy knurled grip (#12162A), a fine diamond crosshatch texture with an iridescent rainbow sheen (blue and violet at the ends, green, yellow and red toward the middle), dark between the knurls. The butt sleeve (between the two zone lines on the right): liquid mirror chrome in vivid rainbow colours, smooth glossy ribbons twisting diagonally with glowing white-hot edges and dark reflections. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/chroma/shaft_tile.png",
+    "shaft_top": "skins/chroma/shaft_top.png",
+    "forearm": "skins/chroma/forearm.png",
+    "butt": "skins/chroma/butt.png",
+    "cap_end": "skins/chroma/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0C0E",
+    "metal": "#D8DCE2"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "frames": {
+    "Count": 4,
+    "Keys": [
+      "color",
+      "emissive"
+    ]
+  },
+  "surface": {
+    "EmissiveStrength": 2.0,
+    "EmissiveTint": "#FFFFFF",
+    "Color": "#FFFFFF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.6,
+        "Max": 2.4,
+        "Period": 2.0
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Frames + Beams",
+      "Note": "The colours flow: four SurfaceAppearance frames (ColorMap and EmissiveMap), each turned a quarter further round the hue wheel, are swapped in order every 0.25 s, so the rainbow bands step along the cue and the ribbons change colour (silver and black stay put); the emissive pulses 1.6-2.4; on top, overlay Beams carry two full rainbows that flow smoothly along the shaft and forearm, blending the steps (none on the grip or sleeve, which keep their painted detail).",
+      "Frames": {
+        "Keys": [
+          "color",
+          "emissive"
+        ],
+        "FrameSeconds": 0.25,
+        "Order": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "Maps": [
+          {
+            "color": "textures/chroma_color.png",
+            "emissive": "textures/chroma_emissive.png"
+          },
+          {
+            "color": "textures/chroma_f1_color.png",
+            "emissive": "textures/chroma_f1_emissive.png"
+          },
+          {
+            "color": "textures/chroma_f2_color.png",
+            "emissive": "textures/chroma_f2_emissive.png"
+          },
+          {
+            "color": "textures/chroma_f3_color.png",
+            "emissive": "textures/chroma_f3_emissive.png"
+          }
+        ]
+      },
+      "Beams": [
+        {
+          "Name": "SpectrumFlowShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/chroma/spectrum_flow.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.4,
+          "TextureSpeed": 0.3,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.55
+            ],
+            [
+              0.96,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "SpectrumFlowForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/chroma/spectrum_flow.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.4,
+          "TextureSpeed": 0.3,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.55
+            ],
+            [
+              0.9131578947368422,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Layered: a soft rainbow glow round the whole cue (a halo Beam graded red at the tip to violet at the butt, breathing) as the core; four rainbow ribbons loop round the stick (Orbiters with a rainbow-textured Trail and a white star head, up and down it at different speeds, the concept's loops); crystal shards orbit and turn over, changing colour as they turn (a 16-frame shard flipbook made for Chroma); rainbow sparkles and glitter dust fill the air; a light whose colour cycles with the cue.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "RainbowSparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 20,
+          "Lifetime": [
+            0.4,
+            0.8
+          ],
+          "Speed": [
+            0.02,
+            0.1
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.35,
+              0.2,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/chroma/shard_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            10,
+            16
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 1.0,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.15,
+              0.2,
+              0.05
+            ],
+            [
+              0.85,
+              0.2,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            -30,
+            30
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GlitterDust",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.7,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.8,
+            1.4
+          ],
+          "Speed": [
+            0.02,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": [
+            [
+              0,
+              "#3DD8FF"
+            ],
+            [
+              0.33,
+              "#B03DFF"
+            ],
+            [
+              0.66,
+              "#FF3D3D"
+            ],
+            [
+              1,
+              "#FFD23D"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Loop1",
+          "FromStuds": 0.3,
+          "ToStuds": 6.9,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 1.1,
+          "Radius": 0.28,
+          "Wobble": 0.08,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 0.6,
+            "WidthStuds": 0.07,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/chroma/trail_rainbow.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.22,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Loop2",
+          "FromStuds": 0.3,
+          "ToStuds": 6.9,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.9,
+          "Radius": 0.34,
+          "Wobble": 0.08,
+          "WobbleHz": 0.9,
+          "Phase": 90,
+          "Delay": 0.6,
+          "Trail": {
+            "Lifetime": 0.6,
+            "WidthStuds": 0.07,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/chroma/trail_rainbow.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.22,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Loop3",
+          "FromStuds": 0.3,
+          "ToStuds": 6.9,
+          "TravelSeconds": 2.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 1.3,
+          "Radius": 0.22,
+          "Wobble": 0.08,
+          "WobbleHz": 0.9,
+          "Phase": 200,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 0.6,
+            "WidthStuds": 0.07,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/chroma/trail_rainbow.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.22,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "Loop4",
+          "FromStuds": 0.3,
+          "ToStuds": 6.9,
+          "TravelSeconds": 3.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -1.0,
+          "Radius": 0.4,
+          "Wobble": 0.08,
+          "WobbleHz": 0.9,
+          "Phase": 300,
+          "Delay": 1.8,
+          "Trail": {
+            "Lifetime": 0.6,
+            "WidthStuds": 0.07,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.2
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/chroma/trail_rainbow.png",
+            "TextureMode": "Stretch"
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.22,
+            "Color": "#FFFFFF",
+            "LightEmission": 1
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "PrismGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.6,
+          "Segments": 24,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.55
+            ],
+            [
+              0.9,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.75,
+            "Max": 1.0,
+            "Period": 2.0
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.8,
+          "Color": "#FFFFFF",
+          "Brightness": 1.0,
+          "Range": 8,
+          "Hue": {
+            "Period": 4.0,
+            "Saturation": 0.8
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            230,
+            230,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 0.7,
+        "WidthStuds": 0.42,
+        "LightEmission": 1,
+        "Texture": "vfx/chroma/trail_rainbow.png",
+        "TextureMode": "Stretch",
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.3,
+            1.1
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Core": {
+          "Color": [
+            255,
+            255,
+            255
+          ],
+          "Width": 0.07,
+          "NearTransparency": 0.3,
+          "LightEmission": 1
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            61,
+            61
+          ],
+          [
+            255,
+            210,
+            61
+          ],
+          [
+            61,
+            255,
+            138
+          ],
+          [
+            61,
+            138,
+            255
+          ],
+          [
+            176,
+            61,
+            255
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A rainbow ribbon: a wide Trail with the spectrum across it in silky streaks and a white-hot middle, widening then thinning, over a white core; the ball sheds rainbow sparkles and little turning shards.",
+      "Emitters": [
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 24,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": [
+            0.2,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.18
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/chroma/shard_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.3,
+            0.9
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.16
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0.8,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.4 s: a white flash (0 s); a rainbow shockwave ring bursts out across the cloth (0.05 s) with a second, smaller one (0.2 s); rainbow light rays shoot up (0.05 s); it bursts into rainbow sparkles and turning crystal shards (0.1 s), and rainbow glitter lingers and settles (0.3-1.4 s). The default gust is tinted through the rainbow.",
+      "Layers": [
+        {
+          "Name": "Rays",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 20,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.3,
+            0.45
+          ],
+          "Speed": [
+            11,
+            15
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 4,
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "Squash": -3.2,
+          "Orientation": "VelocityParallel",
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Shards",
+          "Texture": "vfx/chroma/shard_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 16,
+          "FlipbookStartRandom": true,
+          "Burst": 18,
+          "Delay": 0.1,
+          "Lifetime": [
+            0.9,
+            1.2
+          ],
+          "Speed": [
+            5,
+            9
+          ],
+          "SpreadAngle": [
+            45,
+            45
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -10,
+            0
+          ],
+          "Drag": 1,
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Rotation": [
+            -40,
+            40
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.8,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 30,
+          "Delay": 0.1,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            2,
+            7
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Size": [
+            [
+              0,
+              0.45
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Glitter",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Burst": 40,
+          "Delay": 0.3,
+          "Lifetime": [
+            0.9,
+            1.1
+          ],
+          "Speed": [
+            0.5,
+            2.5
+          ],
+          "SpreadAngle": [
+            80,
+            80
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -1.2,
+            0
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/chroma/ring_rainbow.png",
+          "Color": "#FFFFFF",
+          "Start": 0.4,
+          "End": 5.5,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        },
+        {
+          "Texture": "vfx/chroma/ring_rainbow.png",
+          "Color": "#FFFFFF",
+          "Start": 0.3,
+          "End": 3.2,
+          "Seconds": 0.45,
+          "Delay": 0.2
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          255,
+          255
+        ],
+        "Seconds": 0.3
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 44,
+      "Back": 22.0,
+      "BallTrail": 32,
+      "Beams": 5,
+      "Lights": 1,
+      "Orbiters": 4
+    }
+  }
+}

@@ -364,7 +364,7 @@ and you ask the designer about it.
 - [x] 4. Uncommons (9): U1-U3, glowing rings.
 - [x] 5. Rares (9 more): R1-R3, every one with its own aura.
 - [x] 6. Epics (8 more): E1-E3, moving materials, with trails and pockets where listed.
-- [ ] 7. Legendaries (7): L1-L7, base cue, every one with a trail and a pocket finisher, at
+- [x] 7. Legendaries (7): L1-L7, base cue, every one with a trail and a pocket finisher, at
   section 8.1's Legendary effort within section 8.2's caps.
 - [ ] 8. Mythics (3): M1-M3, with the custom pieces (list any piece to generate as
   section 1 says, without waiting), at section 8.1's effort.
@@ -458,3 +458,12 @@ and you ask the designer about it.
   with a second one on the far side. Shooting Star uses two OpenAI panels (forearm and
   butt). Pocket finishers tint the default gust (`Style.Pocket.Colors`) and add their own sprites.
   `tools/crop_concepts.py` can now join several boxes into one reference crop (the close-ups).
+
+- **2026-09-29, Legendaries.** Most Legendaries paint OpenAI panels on the whole cue; Clockwork is
+  procedural (its gears must turn frame by frame). The moving material adds up to 4
+  SurfaceAppearance frames swapped by a script (skin `"frames"`, preview `vfx.Moving.Frames` with
+  Maps, FrameSeconds and Order): emissive-only for a glow that travels (Thunderstrike, Phoenix,
+  Kraken, Seraph, Infernal), colour + emissive for Chroma's hue steps, every map for
+  Clockwork's turning gears. The big set pieces (wings, firebird, tentacle, smoke skull, light
+  column, bolts) are flipbooks drawn by script. The painter now trims letterboxed OpenAI
+  takes by itself and takes hand-measured zone lines (`zones_px`) when the search misses.

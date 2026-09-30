@@ -697,6 +697,20 @@ def ai_base(k, panel, rough=0.2, height=0.0003, blur=1):
     return img
 
 
+def match_top_to_tile(k, fade=0.35):
+    """OpenAI shaft tops often start brighter or darker than the tile they continue: scale the
+    shaft top's columns so its left edge matches the tile's average colour, easing back to the
+    painting by `fade` of its width (hides the seam where the two panels meet)."""
+    t, c = k.c['shaft_tile'], k.c['shaft_top']
+    tile_mean = t.col.reshape(-1, 3).mean(0)
+    left = c.col[:, :max(4, c.w // 40)].reshape(-1, 3).mean(0)
+    gain0 = tile_mean / np.maximum(left, 1.0)
+    x = np.arange(c.w) / c.w
+    wgt = np.clip(1 - x / fade, 0, 1) ** 1.5
+    gain = 1 + (gain0[None, :] - 1) * wgt[:, None]
+    c.col = np.clip(c.col * gain[None, :, :], 0, 255)
+
+
 def hue_mask(img, target, tol=40.0, min_sat=0.25):
     """Where an image is close to a colour (in RGB distance, softly), and saturated enough."""
     t = rgb(target)
@@ -2596,38 +2610,92 @@ def liquid_chrome(c, m, seed=0, twist=1.1, bands=2, warp=0.9, glow=0.9, line_w=0
     c.add_height(m, 0.00025 * (fold - 0.5) + 0.0001 * np.clip(edge, 0, 1))
 
 
+def hue_turn(img, turns):
+    """Turn an image's colours round the hue wheel (turns: 0..1); greys stay grey."""
+    x = img / 255.0
+    mx, mn = x.max(-1), x.min(-1)
+    dl = mx - mn
+    safe = np.maximum(dl, 1e-6)
+    r, g, b = x[..., 0], x[..., 1], x[..., 2]
+    h = np.where(mx == r, np.mod((g - b) / safe, 6), np.where(mx == g, (b - r) / safe + 2, (r - g) / safe + 4)) / 6.0
+    h = np.mod(h + turns, 1.0)
+    sat = np.where(mx > 0, dl / np.maximum(mx, 1e-6), 0)
+    return hsv_rgb(h, sat, mx) * 255.0
+
+
+def hsv_rgb(h, s, v):
+    """Vectorised HSV (0..1 each) to RGB (0..1), last axis 3."""
+    i = np.floor(h * 6.0)
+    f = h * 6.0 - i
+    p, q, t = v * (1 - s), v * (1 - s * f), v * (1 - s * (1 - f))
+    i = np.mod(i, 6).astype(int)
+    r = np.choose(i, [v, q, p, p, t, v])
+    g = np.choose(i, [t, v, v, q, p, p])
+    b = np.choose(i, [p, p, t, v, v, q])
+    return np.stack([r, g, b], -1)
+
+
+def rainbow_chrome(c, m, cycles=1.0, start=0.0, seed=0, glow=0.5):
+    """Polished rainbow chrome: the hue runs through the rainbow along the cue (cycles over the
+    section), long silky highlight streaks run along it (white-hot where they peak), darker
+    reflections between; satin metal so it never renders black."""
+    d0 = float(c.d[m].min()) if np.any(m) else 0.0
+    d1 = float(c.d[m].max()) if np.any(m) else 1.0
+    t = (c.d - d0) / max(d1 - d0, 1e-6)
+    streak = fbm(c, 55.0, 0.9, octaves=3, seed=seed)
+    fine = fbm(c, 140.0, 2.2, octaves=2, seed=seed + 1)
+    h = np.mod(start + t * cycles + (streak - 0.5) * 0.12, 1.0)
+    hi = np.clip((streak - 0.56) * 5.0, 0, 1) ** 1.5
+    lo = np.clip((0.42 - streak) * 4.0, 0, 1)
+    v = np.clip(0.72 + 0.28 * hi - 0.35 * lo + (fine - 0.5) * 0.25, 0.15, 1)
+    sat = np.clip(0.9 - 0.75 * hi ** 2, 0, 1)
+    col = hsv_rgb(h, sat, v) * 255.0
+    c.put(m, col, rough=np.clip(0.16 - 0.08 * hi, 0.06, 1), metal=0.55,
+          glow=np.clip(glow * (0.6 + 0.4 * v) + 0.5 * hi, 0, 1) * m)
+    c.add_height(m, 0.00015 * (streak - 0.5))
+
+
 @recipe
 def chroma(k):
-    """Mirror chrome whose whole colour cycles through the rainbow (the SurfaceAppearance Color is
-    turned round the hue wheel by a script; the maps are neutral): liquid-chrome ribbons twisting
-    along the forearm and sleeve with glowing edges, a smooth chrome shaft with long glowing twist
-    lines, a snakeskin wrap with a bright sheen, chrome collar and rings, a black end."""
+    """Rainbow chrome, drawn to L1: a polished shaft whose colour runs once through the rainbow
+    from the tip to the joint with long silky highlights (procedural), and OpenAI forearm and
+    butt panels (liquid rainbow-chrome ribbons twisting with glowing edges, a dark knurled grip
+    with a rainbow sheen, a black end). Four frames, each turned a quarter further round the
+    hue wheel, swapped by a script so the colours flow (silver and black stay put)."""
     s = k.skin['colours']
     for c, m in k.zone('shaft'):
-        liquid_chrome(c, m, seed=301, twist=0.55, bands=2, warp=0.6, glow=0.85, line_w=0.014, base=0.7)
-    for c, m in k.zone('forearm'):
-        liquid_chrome(c, m, seed=302, twist=1.1, bands=2, warp=0.9, glow=0.95)
-    for c, m in k.zone('cap'):
-        mm = (c.d < 6.95) & m
-        liquid_chrome(c, mm, seed=303, twist=1.4, bands=2, warp=0.8, glow=0.95)
-        gloss(c, band(c, 6.95, 7.2) * m > 0.5, '#0C0C0E', rough=0.1)
-        c.put(band(c, 6.95, 7.2) * m, None, glow=0.0)
-    for c, m in k.zone('wrap'):
-        scales(c, m, '#3A3C44', size=0.028, rough=0.2, depth=0.0007, seed=304, sheen=1.4, edge_col='#101014')
-        c.put(m, None, metal=0.35, glow=np.clip((luma(c.col) - 0.3) * 1.2, 0, 0.5) * m)
-    k.paint(['joint'], metal, s['metal'], rough=0.12)
-    for c, m in k.zone('ring'):
-        metal(c, m, s['metal'], rough=0.12)
+        rainbow_chrome(c, m, cycles=1.0, start=0.0, seed=301, glow=0.55)
+    for panel in ('forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.12, height=0.0003)
+        c = k.c[panel]
+        L = luma(img)
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        colourful = np.clip((sat - 0.25) * 3, 0, 1) * np.clip((L - 0.12) * 3, 0, 1)
+        hot = np.clip((L - 0.8) * 5, 0, 1)
+        c.put(np.ones((c.h, c.w), bool), None, metal=np.clip(0.2 + 0.4 * colourful, 0, 1),
+              glow=np.clip(colourful * 0.5 + hot * 0.7, 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['metal'], rough=0.14)
         c.put(m, None, glow=0.0)
-        line = band(c, 5.36, 5.385) * m
-        c.put(line, np.broadcast_to(np.array([250.0, 250, 250]), c.col.shape), metal=0.0, glow=line)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.14)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('wrap'):
+        c.col = np.where(m[..., None] if m.ndim == 2 else m, c.col * 0.72, c.col)
+        c.put(m, None, rough=0.35, metal=0.3)
+        c.glow = np.where(m, c.glow * 0.45, c.glow)
+    for c, m in k.zone('cap'):
+        mm = band(c, 6.95, 7.2) * m > 0.5
+        gloss(c, mm, '#0C0C0E', rough=0.1)
+        c.put(mm, None, glow=0.0)
     c = k.c['cap_end']
     rubber(c, c.inside | True, '#0C0C0E')
-    rr = c.r / c.face_radius
-    ringm = np.exp(-((rr - 0.62) / 0.05) ** 2)
-    c.put(ringm, np.broadcast_to(np.array([250.0, 250, 250]), c.col.shape), glow=ringm)
     joint_seam(k)
     seam_edges(k, [F1, W0, W1, 6.95])
+    if k.frame:
+        for c in k.c.values():
+            c.col = hue_turn(c.col, 0.25 * k.frame)
 
 
 def lightning_veins(c, m, s, seed=0, freq=5.0, width=0.022, density=1.0, flare=None, glow=1.0, along=0.7):
@@ -2653,6 +2721,392 @@ def lightning_veins(c, m, s, seed=0, freq=5.0, width=0.022, density=1.0, flare=N
     c.used['glow'] = True
     c.add_height(core * m, -0.00012)
     return core
+
+
+@recipe
+def phoenix(k):
+    """Crimson to gold, engraved with flame feathers (L3): OpenAI panels on the whole cue (a
+    glowing amber-gold shaft with flame wisps turning crimson toward the joint, a crimson
+    forearm and sleeve with gold flame feathers sweeping along, a black snakeskin grip with red
+    flame feathers glowing through), a silver collar edged in gold, gold rings, a black end.
+    The fire glows from the painting's hot colours; frames 1-3 each shift the heat to a
+    different part of the feathers (frame 0 is even), so the fire seems to move."""
+    s = k.skin['colours']
+    fr = k.frame
+
+    def heat(c):
+        if fr == 0:
+            return np.full(c.d.shape, 0.75)
+        return 0.35 + 0.9 * np.clip((fbm(c, 2.2, 1.6, octaves=2, seed=500 + 13 * fr) - 0.38) * 3.5, 0, 1)
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.18, height=0.0003)
+        c = k.c[panel]
+        if panel in ('shaft_tile', 'shaft_top'):
+            # the takes came out crimson; the concept's shaft is amber-gold with orange wisps:
+            # redraw it on a gold fire ramp by brightness, keeping every wisp (the shaft top
+            # fades back to its own crimson toward the joint)
+            L0 = luma(img)
+            if panel == 'shaft_top':  # the take brightens toward its left edge: level it to the tile
+                L0 = L0 - np.convolve(L0.mean(0), np.ones(61) / 61, mode='same')[None, :] + 0.37
+            ramp = np.array([[214, 110, 30], [240, 150, 50], [255, 190, 80], [255, 222, 130], [255, 244, 205]], np.float64)
+            t = np.clip((L0 - 0.2) / 0.55, 0, 1) * (len(ramp) - 1)
+            i = np.minimum(np.floor(t).astype(int), len(ramp) - 2)
+            f = (t - i)[..., None]
+            gold = ramp[i] * (1 - f) + ramp[i + 1] * f
+            wgt = np.ones((c.h, c.w)) if panel == 'shaft_tile' else np.clip(1 - (np.arange(c.w)[None, :] / c.w - 0.15) / 0.45, 0, 1) * np.ones((c.h, 1))
+            img = mix(img, gold, wgt[..., None])
+            c.put(np.ones((c.h, c.w), bool), img)
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        warm = np.clip((r - b - 60) / 80.0, 0, 1)
+        fire = np.clip((L - 0.3) * 2.2, 0, 1) * warm * np.clip((g - 40) / 90.0, 0, 1)  # orange, gold, yellow
+        white = np.clip((L - 0.85) * 6, 0, 1)
+        c.put(np.ones((c.h, c.w), bool), None, rough=np.clip(0.2 - 0.08 * fire, 0.08, 1), metal=0.15,
+              glow=np.clip((fire * 0.8 + white * 0.6) * heat(c), 0, 1))
+    f = k.c['forearm']
+    for c, m in k.zone('joint'):
+        metal(c, m, s['metal'], rough=0.16)
+        edge = (band(c, J0, J0 + 0.018) + band(c, J1 - 0.018, J1)) * m
+        metal(c, edge > 0.5, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.4, metal=0.05)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('cap'):
+        g = band(c, 6.9, 6.95) * m
+        metal(c, g > 0.5, s['gold'], rough=0.2)
+        c.put(g > 0.5, None, glow=0.0)
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0C0E')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def kraken(k):
+    """Deep-sea teal and abyss purple (L4): OpenAI panels on the whole cue (a teal water shaft
+    with rippling caustic light and bubbles turning to purple ink toward the joint, dark
+    tentacles with glowing teal suckers curling round the forearm and sleeve, a black pebbled
+    grip with one tentacle curling in), a silver collar, a silver ring with a purple line, a
+    black end. The suckers and the rims glow; frames 1-3 each carry a bright wave at a different
+    place along the cue, so the spots pulse in waves (frame 0 is even)."""
+    s = k.skin['colours']
+    fr = k.frame
+
+    def wave(c):
+        if fr == 0:
+            return np.full(c.d.shape, 0.6)
+        ph = c.d / 1.8 - fr / 3.0
+        return 0.3 + 0.9 * np.clip(np.cos(2 * math.pi * ph), 0, 1) ** 2
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.15, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        teal = np.clip((g - r - 60) / 80.0, 0, 1) * np.clip((L - 0.35) * 3, 0, 1)
+        purple = np.clip((b - g - 30) / 60.0, 0, 1) * np.clip((r - g) / 40.0, 0, 1) * np.clip((L - 0.2) * 3, 0, 1)
+        c.put(np.ones((c.h, c.w), bool), None, rough=np.clip(0.18 - 0.08 * teal, 0.06, 1), metal=0.1,
+              glow=np.clip((teal * 0.95 + purple * 0.3) * wave(c), 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['metal'], rough=0.16)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.55, metal=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.16)
+        c.put(m, None, glow=0.0)
+    glow_ring(k, s['ink'], d0=5.36, d1=5.39)
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0C0E')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def seraph(k):
+    """White marble with gold filigree (L5): OpenAI panels on the whole cue (a pale maple shaft
+    turning to white marble wrapped in thin gold ribbons, a marble forearm covered in gold
+    scrollwork round a glowing four-point gold star, a white woven grip, a marble sleeve with a
+    burst of golden feathers round a star), a gold collar and rings, a black end with a gold
+    line. The gold glows; the four frames are four phases of a band of light running along the
+    cue, so gold light seems to run along the filigree."""
+    s = k.skin['colours']
+    fr = k.frame
+    run = lambda c: 0.35 + 0.85 * np.clip(np.cos(2 * math.pi * (c.d / 2.4 - fr / 4.0)), 0, 1) ** 3
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.14, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        gold = np.clip((sat - 0.25) * 4, 0, 1) * (r > b + 40) * np.clip((L - 0.3) * 3, 0, 1)
+        hot = np.clip((L - 0.88) * 8, 0, 1) * (r >= b)
+        c.put(gold > 0.4, None, rough=0.28, metal=0.55)
+        c.add_height(gold, 0.0003)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip((gold * 0.55 + hot * 0.5) * run(c), 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['gold'], rough=0.25)
+        c.put(m, None, glow=0.0)
+        for d0 in (J0 + 0.025, J1 - 0.035):
+            line = band(c, d0, d0 + 0.01) * m
+            gloss(c, line > 0.5, '#101014', rough=0.15)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.5, metal=0.0, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['gold'], rough=0.25)
+        c.put(m, None, glow=0.0)
+    end_band(k, d0=6.95)
+    for c, m in k.zone('cap'):
+        line = band(c, 6.965, 6.98) * m
+        metal(c, line > 0.5, s['gold'], rough=0.25)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0C0E')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+@recipe
+def infernal(k):
+    """Obsidian black with red-hot cracks (L6): OpenAI panels on the whole cue (glowing magma
+    cracks through glossy black obsidian along the shaft, silver thorn blades curving over the
+    forearm, a black scaled grip with red heat between the scales, a cartoon horned skull emblem
+    on the sleeve with glowing eyes, no gore), a silver collar edged with glowing red rings, a
+    black end with a red ring. The cracks glow; frames 1-3 each pulse the magma in a different
+    part of the cue (frame 0 is even)."""
+    s = k.skin['colours']
+    fr = k.frame
+
+    def pulse(c):
+        if fr == 0:
+            return np.full(c.d.shape, 0.7)
+        return 0.4 + 0.8 * np.clip((fbm(c, 1.8, 1.3, octaves=2, seed=600 + 11 * fr) - 0.4) * 3.2, 0, 1)
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.12, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        hot = np.clip((r - b - 70) / 70.0, 0, 1) * np.clip((L - 0.12) * 4, 0, 1) * (sat > 0.45)
+        silver = np.clip((L - 0.45) * 4, 0, 1) * (sat < 0.18)
+        c.put(silver > 0.4, None, rough=0.22, metal=0.6)
+        c.add_height(silver, 0.0004)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(hot * (0.45 + 0.6 * np.clip(L * 1.5, 0, 1)) * pulse(c), 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['metal'], rough=0.18)
+        c.put(m, None, glow=0.0)
+        for d0 in (J0 + 0.012, J1 - 0.024):  # the concept's glowing red rings edging the collar
+            line = band(c, d0, d0 + 0.012, soft=0.001) * m
+            c.put(line, rgb(s['hot']), rough=0.25, metal=0.0, glow=line)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['metal'], rough=0.18)
+        c.put(m, None, glow=0.0)
+    glow_ring(k, s['hot'], d0=5.35, d1=5.39)
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0C0E')
+    rr = c.r / c.face_radius
+    ringm = np.exp(-((rr - 0.7) / 0.05) ** 2)
+    c.put(ringm, np.broadcast_to(rgb(s['hot']), c.col.shape), glow=ringm)
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+def gear(c, m, d0, th0, R, teeth, angle, colour, dark='#3A2410', glow=0.18):
+    """A brass gear lying on the cue's surface, centred d0 studs along and at angle th0 round it,
+    radius R studs to the tooth tips: square-ish teeth, a rim, five spokes, a hub with a hole,
+    bevelled (height) and shaded, satin metal, a faint warm glow on its edges. angle turns it
+    (radians). Returns its coverage."""
+    u = c.d - d0
+    v = (np.mod(c.theta - th0 + math.pi, 2 * math.pi) - math.pi) * c.r
+    rho = np.hypot(u, v)
+    phi = np.arctan2(v, u) - angle
+    tooth = np.clip(np.cos(teeth * phi) * 2.2, -1, 1)
+    r_edge = R * (0.86 + 0.14 * (tooth * 0.5 + 0.5))
+    outer = np.clip((r_edge - rho) / 0.0025, 0, 1)
+    ring = np.clip((rho - R * 0.6) / 0.0025, 0, 1)
+    spokes = np.clip((np.cos(5 * phi) - 0.82) / 0.05, 0, 1) * (rho < R * 0.62)
+    hub = np.clip((R * 0.26 - rho) / 0.0025, 0, 1)
+    hole = np.clip((R * 0.09 - rho) / 0.002, 0, 1)
+    body = np.clip(outer * np.maximum(np.maximum(ring, spokes), hub) - hole, 0, 1) * m
+    edge = np.clip(1 - np.abs(r_edge - rho) / 0.004, 0, 1) + np.clip(1 - np.abs(rho - R * 0.6) / 0.003, 0, 1) * 0.6
+    light = 0.75 + 0.35 * np.clip(-(u + v) / max(R, 1e-3), -1, 1)
+    base = rgb(colour) * light[..., None]
+    col = mix(base, rgb(dark), np.clip(hole + (1 - ring) * (1 - hub) * spokes * 0.15, 0, 1))
+    c.put(body, col, rough=0.3, metal=0.7)
+    c.add_height(body, 0.0005 + 0.0002 * hub)
+    c.glow = np.maximum(c.glow, np.clip(edge * body * glow, 0, 1))
+    c.used['glow'] = True
+    return body
+
+
+def gear_chain(c, m, d_start, th0, specs, frame, pitch=0.034, colours=('#C8963E', '#B06A3A', '#D8AE5A')):
+    """A chain of meshing gears on the cue's surface starting at (d_start, th0): specs is
+    [(teeth, heading_deg)], each gear placed touching the one before in that heading (0 = along
+    the cue, 90 = round it), alternate gears turning opposite ways. Radii follow the teeth (the
+    same pitch), so every gear moves the same distance at its teeth; frame n turns each a
+    quarter of its own tooth, so after four frames the teeth line up again (a seamless loop)."""
+    pos_u, pos_v = d_start, 0.0
+    prevR = None
+    for i, (teeth, head) in enumerate(specs):
+        R = teeth * pitch / (2 * math.pi)
+        if prevR is not None:
+            dist = (prevR + R) * 0.9
+            pos_u += dist * math.cos(math.radians(head))
+            pos_v += dist * math.sin(math.radians(head))
+        rr = float(np.mean(c.r[m])) if np.any(m) else 0.08
+        th = th0 + pos_v / rr
+        direction = 1 if i % 2 == 0 else -1
+        ang = direction * (frame * (2 * math.pi / teeth) / 4.0) + (math.pi / teeth if i % 2 else 0.0)
+        gear(c, m, pos_u, th, R, teeth, ang, colours[i % len(colours)])
+        prevR = R
+
+
+@recipe
+def clockwork(k):
+    """Brass and copper with a glass-look forearm full of gears (L7): a light maple shaft wound
+    with copper and brass ribbons, a brass collar, a dark smoked-glass forearm (lit amber from
+    inside, faint mechanism in its depths) with chains of meshing brass and copper gears on both
+    faces under a twisting brass ribbon, a quilted brown leather grip, engraved brass rings, a
+    glass sleeve with more gears, a black end. Frames 1-3 turn every gear a quarter tooth
+    further (all maps), so the gears visibly turn."""
+    s = k.skin['colours']
+    fr = k.frame
+    for c, m in k.zone('shaft'):
+        wood(c, m, 'maple', '#E4B878', '#B07A40', rough=0.22, seed=701)
+        ph = np.mod(c.theta / (2 * math.pi) + c.d * 0.55, 1.0)
+        for off, colour, w in ((0.0, s['copper'], 0.16), (0.5, s['brass'], 0.09)):
+            dd = np.abs(np.mod(ph - off + 0.5, 1.0) - 0.5)
+            rib = np.clip((w / 2 - dd) / 0.01, 0, 1) * m * np.clip((c.d - 0.6) / 0.8, 0, 1)
+            edge = np.clip(1 - np.abs(dd - w / 2) / 0.008, 0, 1) * rib
+            c.put(rib, rgb(colour) * (0.9 + 0.2 * np.clip(1 - dd / (w / 2), 0, 1))[..., None], rough=0.25, metal=0.6)
+            c.add_height(rib, 0.0002)
+            c.glow = np.maximum(c.glow, edge * 0.3)
+            c.used['glow'] = True
+
+    def glass(c, m, seed):
+        deep = fbm(c, 9, 7, octaves=3, seed=seed)
+        col = mix(np.broadcast_to(rgb('#140C08'), c.col.shape), np.broadcast_to(rgb('#4A2A14'), c.col.shape), np.clip((deep - 0.4) * 2, 0, 1))
+        c.put(m, col, rough=0.05, metal=0.0, glow=np.clip((deep - 0.45) * 0.8, 0, 0.25) * m)
+    for c, m in k.zone('forearm'):
+        glass(c, m, 702)
+        # three zigzag gear trains round the cue, each running the whole forearm
+        trains = ([(14, 0), (9, -35), (12, 30), (8, -25), (13, 30), (10, -35), (15, 25), (9, -30), (12, 35), (8, -25), (11, 30)],
+                  [(10, 0), (13, 30), (8, -30), (12, 25), (9, -35), (14, 30), (10, -25), (12, 35), (8, -30), (13, 25), (9, -30)],
+                  [(12, 0), (8, 35), (14, -30), (9, 25), (11, -35), (8, 30), (13, -25), (10, 30), (12, -35), (9, 25), (11, -30)])
+        for n_, face in enumerate((FACE, FACE - 2 * math.pi / 3, FACE + 2 * math.pi / 3)):
+            gear_chain(c, m, 3.9 + 0.05 * n_, face, trains[n_] + [(10, 30), (13, -30)], fr, pitch=0.043)
+        ph = np.mod(c.theta / (2 * math.pi) - c.d * 0.8, 1.0)
+        dd = np.abs(np.mod(ph + 0.5, 1.0) - 0.5)
+        rib = np.clip((0.05 - dd) / 0.008, 0, 1) * m
+        c.put(rib, rgb(s['brass']) * (0.85 + 0.3 * np.clip(1 - dd / 0.05, 0, 1))[..., None], rough=0.22, metal=0.65)
+        c.add_height(rib, 0.0006)
+        c.glow = np.maximum(c.glow, np.clip(1 - np.abs(dd - 0.05) / 0.006, 0, 1) * rib * 0.35)
+    for c, m in k.zone('joint'):
+        metal(c, m, s['brass'], rough=0.22)
+        c.put(m, None, glow=0.0)
+        for d0 in (J0 + 0.03, J1 - 0.04):
+            line = band(c, d0, d0 + 0.012) * m
+            gloss(c, line > 0.5, '#1A100A', rough=0.2)
+    for c, m in k.zone('wrap'):
+        crosshatch(c, m, '#4A2418', pitch=0.03, rough=0.5)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['brass'], rough=0.22)
+        c.put(m, None, glow=0.0)
+        dots = (np.cos(c.theta * 24) > 0.6) * band(c, 5.36, 5.39) * m
+        c.put(dots > 0.5, rgb('#6A4A1A'), rough=0.4)
+    for c, m in k.zone('cap'):
+        mm = (band(c, W1, 6.95) * m) > 0.5
+        glass(c, mm, 703)
+        for face in (FACE, FACE - math.pi):
+            gear_chain(c, mm, W1 + 0.1, face, [(11, 0), (8, 30), (12, -30)], fr)
+        for d0, d1 in ((W1, W1 + 0.035), (6.915, 6.95)):
+            rim = band(c, d0, d1) * m
+            metal(c, rim > 0.5, s['brass'], rough=0.22)
+            c.put(rim > 0.5, None, glow=0.0)
+    end_band(k, d0=6.95)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0C0C0E')
+    rr = c.r / c.face_radius
+    ringm = np.exp(-((rr - 0.8) / 0.05) ** 2)
+    c.put(ringm, np.broadcast_to(rgb(s['brass']), c.col.shape), rough=0.25, metal=0.6)
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+def star_gem(c, colour, points=8, r_out=0.62, r_in=0.26, rim=0.8):
+    """On the cap end: an N-point star gem glowing at the centre of the face, inside a gold rim
+    ring (c is the cap_end canvas)."""
+    rr = c.r / c.face_radius
+    ang = np.arctan2(c.z, c.x)
+    k = np.cos(points * ang / 2.0) ** 2
+    edge = r_in + (r_out - r_in) * k ** 3
+    star = np.clip((edge - rr) / 0.03, 0, 1)
+    core = np.exp(-(rr / 0.2) ** 2)
+    col = mix(np.broadcast_to(rgb(colour), c.col.shape), np.broadcast_to(np.array([255.0, 255, 255]), c.col.shape), np.clip(core + (1 - rr / np.maximum(edge, 1e-3)) * 0.5, 0, 1))
+    c.put(star, col, rough=0.1, metal=0.0, glow=np.clip(star * (0.7 + 0.3 * core), 0, 1))
+    ring = np.exp(-((rr - rim) / 0.06) ** 2)
+    c.put(ring, np.broadcast_to(rgb('#D4AF37'), c.col.shape), rough=0.2, metal=1.0, glow=0.0)
+
+
+@recipe
+def celestial_dragon(k):
+    """Pearl white and gold (M1): OpenAI panels on the whole cue (pearl white with gold lattice
+    straps crossing in X's round dark sapphire diamonds, a pale maple tip end, a dark navy
+    snakeskin grip), gold collar and rings, a gold cap end holding a glowing eight-point star
+    gem. The dragon itself (head and energy body) is the 3D piece (pieces/celestial_dragon)."""
+    s = k.skin['colours']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.16, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        gold = np.clip((sat - 0.3) * 4, 0, 1) * (r > b + 50) * np.clip((L - 0.3) * 3, 0, 1)
+        blue = np.clip((b - r - 20) / 60.0, 0, 1) * np.clip((L - 0.15) * 3, 0, 1)
+        pearl = np.clip((L - 0.7) * 5, 0, 1) * (sat < 0.15)
+        c.put(gold > 0.4, None, rough=0.24, metal=0.9)
+        c.add_height(gold, 0.0004)
+        c.put(pearl > 0.5, None, rough=0.12, metal=0.15)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(gold * 0.12 + blue * 0.45, 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.0)
+        mid = band(c, (J0 + J1) / 2 - 0.02, (J0 + J1) / 2 + 0.02) * m
+        metal(c, mid > 0.5, '#2A2E36', rough=0.25)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.45, metal=0.0, glow=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.0)
+    for c, m in k.zone('cap'):
+        g = band(c, 6.93, 7.2) * m
+        metal(c, g > 0.5, s['gold'], rough=0.2)
+        c.put(g > 0.5, None, glow=0.0)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101830')
+    star_gem(c, '#6FB8FF')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, 6.93])
 
 
 def chevron_plates(c, m, s, d0, d1, n_round=2, count=3, phase=FACE, slant=1.0, seed=0):
@@ -2685,11 +3139,11 @@ def chevron_plates(c, m, s, d0, d1, n_round=2, count=3, phase=FACE, slant=1.0, s
 
 @recipe
 def thunderstrike(k):
-    """Storm-grey steel with glowing blue lightning veins: OpenAI forearm and sleeve (lightning
-    branching over dark steel between raised silver angular armour shards), a procedural steel
-    shaft with long branching veins running along it, a black crosshatch grip with blue veins
-    breaking through, a glowing blue ring, a silver collar. Frames 1-3 flare a different part of
-    the veins (the random pulse); frame 0 is the calm one."""
+    """Storm-grey steel with glowing blue lightning veins, OpenAI panels on the whole cue:
+    lightning branching over dark steel between raised silver angular armour shards on the
+    forearm and sleeve, long branching veins along the shaft, a black knurled grip with blue
+    veins breaking through; a glowing blue ring, a silver collar. Frames 1-3 flare a different
+    part of the veins (the random pulse); frame 0 is the calm one."""
     s = k.skin['colours']
     fr = getattr(k, 'frame', 0)
 
@@ -2714,9 +3168,7 @@ def thunderstrike(k):
     metal(f, f.zone('joint'), s['metal'], rough=0.16)
     f.put(f.zone('joint'), None, glow=0.0)
     for c, m in k.zone('wrap'):
-        crosshatch(c, m, '#101218', pitch=0.022)
-        c.put(m, None, glow=0.0)
-        lightning_veins(c, m, s, seed=405, freq=5, width=0.016, density=0.55, flare=flare(c), glow=0.9, along=0.4)
+        c.put(m, None, rough=0.45, metal=0.0)  # the OpenAI grip: a dark knurl with glowing veins
     for c, m in k.zone('ring'):
         metal(c, m, s['metal'], rough=0.16)
         c.put(m, None, glow=0.0)
@@ -2800,11 +3252,22 @@ def fix_panel(img, panel, spec):
     """Size, seams and palette: the drift fixes. img: H x W x 3 float."""
     from PIL import Image
     w, h = Params().panels[panel]['size_px']
+    if spec.get('crop_rows'):
+        # a take that came back letterboxed (flat bars above and below the painting): keep
+        # only the painted rows [top, bottom) and stretch them back to the full height
+        top, bottom = spec['crop_rows']
+        img = img[top:bottom]
+    elif panel != 'cap_end':
+        # the same, found by itself: flat rows (almost no variation) at both ends
+        busy = np.where(img.std(axis=(1, 2)) > 4.0)[0]
+        if len(busy) and busy[0] > 32 and img.shape[0] - 1 - busy[-1] > 32:
+            print('CUE paint letterbox %s: rows %d-%d kept' % (panel, busy[0] + 2, busy[-1] - 1))
+            img = img[busy[0] + 2:busy[-1] - 1]
     if img.shape[1] != w or img.shape[0] != h:
         img = np.asarray(Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).resize((w, h), Image.LANCZOS), np.float64)
     lines = [q['x'] for q in Params().panels[panel].get('lines', [])]
     if lines and spec.get('snap_zones', True):
-        img = snap_zones(img, [x * w for x in lines], spec.get('zone_window_px', 110))
+        img = snap_zones(img, [x * w for x in lines], spec.get('zone_window_px', 110), spec.get('zones_px'))
     seam = spec.get('seam_blend_px', 0 if panel == 'cap_end' else 10)
     if seam and panel != 'cap_end':
         # pull the top and bottom rows to their average so the seam underneath joins
@@ -2830,15 +3293,20 @@ def fix_panel(img, panel, spec):
     return img
 
 
-def snap_zones(img, expected, window):
+def snap_zones(img, expected, window, given=None):
     """OpenAI keeps the zone lines only roughly: find each painted boundary (the strongest
     column-to-column change within `window` px of where the template has it) and stretch every
-    zone piecewise so its boundaries land exactly on the template's lines."""
+    zone piecewise so its boundaries land exactly on the template's lines. given: the boundaries
+    measured by hand (px in the take, the spec's "zones_px"; null entries are still searched),
+    for a take that drew a line too far off for the search."""
     h, w = img.shape[:2]
     colmean = img.mean(0)
     jump = np.abs(np.diff(colmean, axis=0)).sum(1)
     found = []
-    for x in expected:
+    for n, x in enumerate(expected):
+        if given and n < len(given) and given[n] is not None:
+            found.append(float(given[n]))
+            continue
         lo, hi = int(max(1, x - window)), int(min(w - 2, x + window))
         prev = int(found[-1]) + 4 if found else 1
         lo = max(lo, prev)

@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the butt: the thin strip at the far left is the ring, then the wrap (the handle grip), then the butt sleeve, then a thin rounded end at the far right of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1376 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Left thin strip (the ring): plain polished gold (#E0A93A). The wrap (from the ring to the next zone line): a black snakeskin grip (#101012), small overlapping dark scales, with a few red and orange flame feathers glowing through it (#FF4A1A), mostly toward the right. The butt sleeve (between the two zone lines on the right): deep glossy crimson lacquer with a plume of glowing golden flame feathers (#FFD23D, #FF7A1A) fanning out from the left toward the right. The very thin strip at the far right: plain black.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #B3121F #FF7A1A #FFD23D.
+No text, no letters, no numbers, no logos, no symbols with words.

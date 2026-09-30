@@ -1,0 +1,999 @@
+{
+  "id": "kraken",
+  "name": "Kraken",
+  "tier": "Legendary",
+  "catalog_id": "KrakenCue",
+  "concept": "L4",
+  "palette": [
+    "#062B3A",
+    "#3A1F6B",
+    "#2BF0D0"
+  ],
+  "painter": "mix",
+  "note": "Deep-sea teal and abyss purple: OpenAI panels on the whole cue (a teal water shaft with rippling caustic light and bubbles turning to purple ink toward the joint, dark purple tentacles with glowing teal suckers curling round the forearm and sleeve, a black pebbled grip with one tentacle curling in), a silver collar, a silver ring with a glowing purple line, a black end. Four emissive frames send the glow of the suckers along the cue in waves.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Deep-sea teal water (#062B3A to #0B5A6E), glossy and lit from above: soft rippling caustic light patterns in bright teal (#2BF0D0) running left to right, a few tiny glowing bubbles, darker toward the top and bottom edges. No other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "Deep-sea teal water (#062B3A to #0B5A6E) with rippling teal caustic light (#2BF0D0) and tiny glowing bubbles, turning into deep abyss purple (#3A1F6B) toward the right edge, where faint wisps of purple ink curl. No other shapes."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "prompt": "Dark abyss-blue lacquer (#081828) wrapped in thick curling octopus tentacles: glossy deep purple tentacles (#3A1F6B to #6A3AB0) with glowing teal rims (#2BF0D0) curl across the whole forearm, their undersides lined with rows of round glowing bioluminescent teal suckers, with faint teal water glow and tiny bubbles between them. Stylised, not scary. The two thin strips at the far left are the joint collar: paint them plain polished silver (#C8CCD0)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "zones_px": [
+        82,
+        859,
+        1334
+      ],
+      "roll_deg": -77,
+      "prompt": "Left thin strip (the ring): polished silver (#C8CCD0). The wrap (from the ring to the next zone line): a black pebbled leather grip (#0E0E14), with one purple tentacle lined with glowing teal suckers curling in from the lower left over the left third of the grip. The butt sleeve (between the two zone lines on the right): dark abyss-blue lacquer with curling purple tentacles with teal rims and glowing teal suckers, like the forearm. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/kraken/shaft_tile.png",
+    "shaft_top": "skins/kraken/shaft_top.png",
+    "forearm": "skins/kraken/forearm.png",
+    "butt": "skins/kraken/butt.png",
+    "cap_end": "skins/kraken/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0C0E",
+    "metal": "#C8CCD0",
+    "ink": "#8A4AF0",
+    "teal": "#2BF0D0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "frames": {
+    "Count": 4,
+    "Keys": [
+      "emissive"
+    ]
+  },
+  "surface": {
+    "EmissiveStrength": 2.2,
+    "EmissiveTint": "#C8FFF6",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.7,
+        "Max": 2.6,
+        "Period": 2.4
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Frames + Beams + emissive",
+      "Note": "The bioluminescent spots pulse in waves: four SurfaceAppearance frames (only the emissive mask differs: frame 0 even, frames 1-3 each with a bright band at a different place) swap in order every 0.22 s, so a glow wave rolls along the cue; the emissive breathes (1.7-2.6); overlay Beams carry drifting teal caustic light over the shaft, forearm and sleeve (TextureSpeed 0.15).",
+      "Beams": [
+        {
+          "Name": "CausticsShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/kraken/caustic_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.15,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.35
+            ],
+            [
+              0.96,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "CausticsForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/kraken/caustic_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.15,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.35
+            ],
+            [
+              0.9131578947368422,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "CausticsSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/kraken/caustic_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.15,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.35
+            ],
+            [
+              0.88,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ],
+      "Frames": {
+        "Keys": [
+          "emissive"
+        ],
+        "FrameSeconds": 0.22,
+        "Order": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "Maps": [
+          {
+            "emissive": "textures/kraken_emissive.png"
+          },
+          {
+            "emissive": "textures/kraken_f1_emissive.png"
+          },
+          {
+            "emissive": "textures/kraken_f2_emissive.png"
+          },
+          {
+            "emissive": "textures/kraken_f3_emissive.png"
+          }
+        ]
+      }
+    },
+    "Aura": {
+      "Note": "Layered: glowing bubbles rise from the whole cue and bioluminescent specks twinkle round it; now and then a see-through ghostly tentacle rises beside the handle, curls its tip and sways, then fades (a 16-frame tentacle flipbook made for Kraken, 2.6 studs, at a random angle); purple ink wisps drift off the butt; a soft teal-to-purple abyss glow round the cue (a halo Beam, breathing) and a teal light.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Bubbles",
+          "Texture": "vfx/kraken/bubble.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            1.4,
+            2.2
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.04
+            ],
+            [
+              0.2,
+              0.1,
+              0.05
+            ],
+            [
+              1,
+              0.12,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0.1
+            ],
+            [
+              0.85,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#9AFFF0",
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Specks",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.6,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            1.0,
+            1.8
+          ],
+          "Speed": [
+            0.02,
+            0.1
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.07
+            ],
+            [
+              0.6,
+              0.02
+            ],
+            [
+              0.8,
+              0.07
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": [
+            [
+              0,
+              "#2BF0D0"
+            ],
+            [
+              1,
+              "#8A4AF0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GhostTentacle",
+          "Texture": "vfx/kraken/tentacle_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 2.5,
+            "ToStuds": 6.8,
+            "Width": 0.1,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 0.7,
+          "Lifetime": 2.2,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              2.6
+            ],
+            [
+              1,
+              2.9
+            ]
+          ],
+          "Transparency": 0.55,
+          "Rotation": [
+            -70,
+            70
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.9,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": -0.3
+        },
+        {
+          "Name": "Ink",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 5.4,
+            "ToStuds": 7.0,
+            "Width": 0.25,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            1.4,
+            1.9
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.25
+            ],
+            [
+              1,
+              0.8
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#3A1F6B"
+            ],
+            [
+              1,
+              "#101830"
+            ]
+          ],
+          "LightEmission": 0.1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "AbyssGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.6,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#2BF0D0"
+            ],
+            [
+              0.55,
+              "#1A9AC0"
+            ],
+            [
+              1,
+              "#8A4AF0"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.55
+            ],
+            [
+              0.9,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.55,
+            "Max": 1.0,
+            "Period": 2.4
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.6,
+          "Color": "#2BF0D0",
+          "Brightness": 1.2,
+          "Range": 9,
+          "Flicker": {
+            "Min": 0.8,
+            "Max": 1.1,
+            "Period": 2.4
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            220,
+            255,
+            250
+          ],
+          [
+            180,
+            200,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 0.6,
+        "WidthStuds": 0.5,
+        "LightEmission": 0.35,
+        "Texture": "vfx/kraken/trail_ink.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.4,
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.4,
+            1.2
+          ],
+          [
+            1,
+            0.6
+          ]
+        ],
+        "Core": {
+          "Color": [
+            43,
+            240,
+            208
+          ],
+          "Width": 0.1,
+          "NearTransparency": 0.2,
+          "LightEmission": 1
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            43,
+            240,
+            208
+          ],
+          [
+            138,
+            74,
+            240
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "An inky water trail: billows of dark purple ink laced with teal-lit water streaks (textured, wrapping) round a thin teal glow; bubbles and ink puffs come off the ball.",
+      "Emitters": [
+        {
+          "Name": "Bubbles",
+          "Texture": "vfx/kraken/bubble.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            0.3,
+            0.9
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Acceleration": [
+            0,
+            0.8,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.05
+            ],
+            [
+              1,
+              0.12,
+              0.04
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#9AFFF0",
+          "LightEmission": 0.8,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "InkPuffs",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 7,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.15
+            ],
+            [
+              1,
+              0.55
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": "#2A1650",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a teal flash and a splash of water thrown up (streaking droplets and drops, 0 s); a thick cloud of dark purple ink billows out of the pocket (0.05 s); a giant tentacle flicks up out of the pocket, curls and sinks away (the tentacle flipbook, 4.6 studs, 0.1 s); a teal ring (0.05 s); bubbles rise and linger (0.4-1.5 s). The default gust is tinted teal and purple.",
+      "Layers": [
+        {
+          "Name": "Splash",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 40,
+          "Lifetime": [
+            0.45,
+            0.8
+          ],
+          "Speed": [
+            5,
+            10
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -22,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Squash": -1.6,
+          "Orientation": "VelocityParallel",
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#E8FFFA"
+            ],
+            [
+              0.3,
+              "#2BF0D0"
+            ],
+            [
+              1,
+              "#1A7AA0"
+            ]
+          ],
+          "LightEmission": 0.9,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Drops",
+          "Texture": "vfx/_shared/glow_core.png",
+          "Burst": 18,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            3,
+            7
+          ],
+          "SpreadAngle": [
+            55,
+            55
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -18,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.14
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "Transparency": 0.05,
+          "Color": "#9AFFF0",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "InkCloud",
+          "Texture": "vfx/_shared/smoke_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.6
+          },
+          "Burst": 9,
+          "Delay": 0.05,
+          "Lifetime": [
+            1.1,
+            1.4
+          ],
+          "Speed": [
+            0.8,
+            2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              2.4
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.6,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -25,
+            25
+          ],
+          "Color": [
+            [
+              0,
+              "#2A1650"
+            ],
+            [
+              1,
+              "#0E1428"
+            ]
+          ],
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Tentacle",
+          "Texture": "vfx/kraken/tentacle_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.9,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.1,
+          "Lifetime": 1.3,
+          "Speed": 0,
+          "Size": 4.6,
+          "Transparency": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0.7,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 1.4
+        },
+        {
+          "Name": "Bubbles",
+          "Texture": "vfx/kraken/bubble.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.2
+          },
+          "Burst": 20,
+          "Delay": 0.4,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            0.5,
+            1.5
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0.2,
+              0.06
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#9AFFF0",
+          "LightEmission": 0.8,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#2BF0D0",
+          "Start": 0.4,
+          "End": 4.8,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          150,
+          255,
+          235
+        ],
+        "Brightness": 10,
+        "Seconds": 0.3
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 34.7,
+      "Back": 17.4,
+      "BallTrail": 19,
+      "Beams": 5,
+      "Lights": 1
+    }
+  }
+}

@@ -174,6 +174,10 @@ def blender_main(args):
     mat, cue_nodes = cue_material(bpy, maps, surface, skin_id)
     cue.data.materials.clear()
     cue.data.materials.append(mat)
+    piece_anim = None
+    if skin.get('piece'):  # a Mythic or Secret's 3D piece (CuePieces.py), parented to the cue
+        import CuePieces
+        piece_anim = CuePieces.attach(bpy, skin['piece'], cue)
     frames_spec = (V.get('Moving') or {}).get('Frames')
     frame_images = []
     if frames_spec:
@@ -473,6 +477,8 @@ def blender_main(args):
     def set_surface(t):
         """Runtime pulses on the SurfaceAppearance (EmissiveStrength, Color) and frame swaps."""
         clock[0] = t
+        if piece_anim is not None:
+            piece_anim(t)
         pulses = (surface.get('Pulse') or {})
         es = surface.get('EmissiveStrength', 1.0)
         if 'EmissiveStrength' in pulses:

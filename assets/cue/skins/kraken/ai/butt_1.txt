@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the butt: the thin strip at the far left is the ring, then the wrap (the handle grip), then the butt sleeve, then a thin rounded end at the far right of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1376 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Left thin strip (the ring): polished silver (#C8CCD0). The wrap (from the ring to the next zone line): a black pebbled leather grip (#0E0E14), with one purple tentacle lined with glowing teal suckers curling in from the lower left over the left third of the grip. The butt sleeve (between the two zone lines on the right): dark abyss-blue lacquer with curling purple tentacles with teal rims and glowing teal suckers, like the forearm. The very thin strip at the far right: plain black.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #062B3A #3A1F6B #2BF0D0.
+No text, no letters, no numbers, no logos, no symbols with words.

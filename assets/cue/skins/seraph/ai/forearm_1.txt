@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the forearm: the two thin strips at the far left are the metal joint collar, the rest is the forearm (between the joint collar and the ring) of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1536 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Polished white marble (#FAFAF5) with soft grey veins, covered with ornate raised shining gold filigree (#D4AF37): elegant flowing scrollwork and leafy swirls running along the whole forearm, and in the middle row, in the middle of the forearm, a glowing gold four-pointed star with a bright white-gold light at its centre, framed by symmetrical gold scrolls. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37).
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #FAFAF5 #D4AF37 #FFF3C4.
+No text, no letters, no numbers, no logos, no symbols with words.

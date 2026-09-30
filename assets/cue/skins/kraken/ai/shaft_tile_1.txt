@@ -1,0 +1,7 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the shaft (the long thin front part), repeated along it of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1024 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+It tiles seamlessly on all four edges.
+Deep-sea teal water (#062B3A to #0B5A6E), glossy and lit from above: soft rippling caustic light patterns in bright teal (#2BF0D0) running left to right, a few tiny glowing bubbles, darker toward the top and bottom edges. No other shapes.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #062B3A #3A1F6B #2BF0D0.
+No text, no letters, no numbers, no logos, no symbols with words.

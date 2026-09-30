@@ -1,0 +1,1160 @@
+{
+  "id": "phoenix",
+  "name": "Phoenix",
+  "tier": "Legendary",
+  "catalog_id": "PhoenixCue",
+  "concept": "L3",
+  "palette": [
+    "#B3121F",
+    "#FF7A1A",
+    "#FFD23D"
+  ],
+  "painter": "mix",
+  "note": "Crimson to gold, engraved with flame feathers: OpenAI panels on the whole cue (a glowing amber-gold shaft with flame wisps turning crimson toward the joint, a crimson forearm and sleeve with gold flame feathers sweeping along, a black snakeskin grip with red flame feathers glowing through), a silver collar edged in gold, gold rings, a black end. Four emissive frames shift the heat through the feathers.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Glowing translucent amber-gold (#FFB84A) like heated glass, lit from inside: long thin flame wisps and fiery orange streaks (#FF7A1A) with bright yellow-white hot cores run left to right along the whole length, a few tiny embers. No other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "A smooth gradient from glowing amber-gold (#FFB84A) at the left to deep glossy crimson (#B3121F) at the right, with long flame wisps and fiery orange streaks (#FF7A1A) running left to right, turning into small golden flame feathers near the right edge, a few tiny embers. No other shapes."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "zones_px": [
+        81,
+        157
+      ],
+      "prompt": "Deep glossy crimson lacquer (#8A0F18 to #B3121F) engraved with glowing flame feathers: long curved phoenix feathers of fire in gold, orange and yellow (#FFD23D, #FF7A1A) with bright hot cores and fine barbs sweep diagonally along the whole forearm from lower left to upper right, overlapping like a wing, with small flame curls and tiny embers between them. The two thin strips at the far left are the joint collar: paint them plain polished silver (#C8CCD0)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "crop_rows": [
+        110,
+        401
+      ],
+      "zones_px": [
+        54,
+        915,
+        1344
+      ],
+      "prompt": "Left thin strip (the ring): plain polished gold (#E0A93A). The wrap (from the ring to the next zone line): a black snakeskin grip (#101012), small overlapping dark scales, with a few red and orange flame feathers glowing through it (#FF4A1A), mostly toward the right. The butt sleeve (between the two zone lines on the right): deep glossy crimson lacquer with a plume of glowing golden flame feathers (#FFD23D, #FF7A1A) fanning out from the left toward the right. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/phoenix/shaft_tile.png",
+    "shaft_top": "skins/phoenix/shaft_top.png",
+    "forearm": "skins/phoenix/forearm.png",
+    "butt": "skins/phoenix/butt.png",
+    "cap_end": "skins/phoenix/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0C0E",
+    "metal": "#C8CCD0",
+    "gold": "#E0A93A",
+    "fire": "#FF7A1A"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "frames": {
+    "Count": 4,
+    "Keys": [
+      "emissive"
+    ]
+  },
+  "surface": {
+    "EmissiveStrength": 2.2,
+    "EmissiveTint": "#FFE0B0",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.7,
+        "Max": 2.6,
+        "Period": 1.1,
+        "Shape": "flicker"
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Frames + Beams + emissive",
+      "Note": "Fire moves through the feather engraving: overlay Beams carry licking flame wisps and embers along the shaft, forearm and sleeve (TextureSpeed 0.35); the emissive flickers (1.7-2.6); and four SurfaceAppearance frames (only the emissive mask differs: frame 0 even, frames 1-3 each with the heat in a different part of the feathers) swap in a restless order every 0.15 s.",
+      "Beams": [
+        {
+          "Name": "FlameFlowShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/phoenix/flame_flow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.25
+            ],
+            [
+              0.96,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "FlameFlowForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/phoenix/flame_flow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.25
+            ],
+            [
+              0.9131578947368422,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "FlameFlowSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/phoenix/flame_flow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.25
+            ],
+            [
+              0.88,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ],
+      "Frames": {
+        "Keys": [
+          "emissive"
+        ],
+        "FrameSeconds": 0.15,
+        "Order": [
+          0,
+          1,
+          2,
+          1,
+          3,
+          2,
+          0,
+          3,
+          1,
+          2,
+          3,
+          0
+        ],
+        "Maps": [
+          {
+            "emissive": "textures/phoenix_emissive.png"
+          },
+          {
+            "emissive": "textures/phoenix_f1_emissive.png"
+          },
+          {
+            "emissive": "textures/phoenix_f2_emissive.png"
+          },
+          {
+            "emissive": "textures/phoenix_f3_emissive.png"
+          }
+        ]
+      }
+    },
+    "Aura": {
+      "Note": "Layered: two great wings of flame flare out from the handle and fold back, over and over (a right and a mirrored left wing flipbook made for Phoenix, each opening from its root on the cue to about 2.6 studs long (a 5.2-stud particle, the root at its centre), then shrinking back as the next one opens); flames lick up along the whole cue (the shared fire flipbook); burning feathers peel off and drift up, curling and burning away (a 16-frame feather flipbook made for Phoenix); embers rise; a soft fire glow round the cue (a halo Beam, flickering) and a warm flickering light.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "WingRight",
+          "Texture": "vfx/phoenix/wing_r_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.4,
+            "Up": 0.05
+          },
+          "Rate": 1.4,
+          "Lifetime": [
+            1.3,
+            1.5
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.3,
+              5.2
+            ],
+            [
+              0.65,
+              4.6
+            ],
+            [
+              1,
+              0.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -35,
+            -20
+          ],
+          "RotSpeed": [
+            10,
+            20
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": -0.2
+        },
+        {
+          "Name": "WingLeft",
+          "Texture": "vfx/phoenix/wing_l_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 14,
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.4,
+            "Up": 0.05
+          },
+          "Rate": 1.4,
+          "Lifetime": [
+            1.3,
+            1.5
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.3,
+              5.2
+            ],
+            [
+              0.65,
+              4.6
+            ],
+            [
+              1,
+              0.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            20,
+            35
+          ],
+          "RotSpeed": [
+            -20,
+            -10
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": -0.2
+        },
+        {
+          "Name": "Flames",
+          "Texture": "vfx/_shared/fire_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.12,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.45,
+            0.7
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            15,
+            15
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.4,
+              0.38
+            ],
+            [
+              1,
+              0.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.3,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -15,
+            15
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Feathers",
+          "Texture": "vfx/phoenix/feather_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 2.5,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.6,
+            2.2
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 0.8,
+          "Acceleration": [
+            0,
+            0.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.15,
+              0.4
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -60,
+            60
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.9,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.8,
+            1.4
+          ],
+          "Speed": [
+            0.3,
+            0.9
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.05
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Squash": -0.6,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF2B0"
+            ],
+            [
+              0.25,
+              "#FFD23D"
+            ],
+            [
+              0.55,
+              "#FF7A1A"
+            ],
+            [
+              1,
+              "#B3121F"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "FireGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.6,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#FFB84A"
+            ],
+            [
+              0.5,
+              "#FF7A1A"
+            ],
+            [
+              1,
+              "#D62A1A"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.5
+            ],
+            [
+              0.9,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 1.1,
+            "Shape": "flicker"
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.4,
+          "Color": "#FF9A3A",
+          "Brightness": 1.6,
+          "Range": 9,
+          "Flicker": {
+            "Min": 0.7,
+            "Max": 1.2,
+            "Period": 0.6,
+            "Shape": "flicker"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            240,
+            190
+          ],
+          [
+            255,
+            150,
+            40
+          ],
+          [
+            200,
+            30,
+            20
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 0.5,
+        "WidthStuds": 0.55,
+        "LightEmission": 1,
+        "Texture": "vfx/phoenix/trail_feathers.png",
+        "TextureMode": "Stretch",
+        "WidthScale": [
+          [
+            0,
+            0.6
+          ],
+          [
+            0.3,
+            1.2
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Core": {
+          "Color": [
+            255,
+            230,
+            160
+          ],
+          "Width": 0.16,
+          "NearTransparency": 0.15,
+          "LightEmission": 1
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            122,
+            26
+          ],
+          [
+            255,
+            210,
+            61
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A fiery feather trail: flame feathers streaming back from the ball over licking flames (textured, stretched) round a gold core; embers and burning feathers fly off it.",
+      "Emitters": [
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 22,
+          "Lifetime": [
+            0.4,
+            0.8
+          ],
+          "Speed": [
+            0.6,
+            1.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Squash": -0.8,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF2B0"
+            ],
+            [
+              0.25,
+              "#FFD23D"
+            ],
+            [
+              0.55,
+              "#FF7A1A"
+            ],
+            [
+              1,
+              "#B3121F"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Feathers",
+          "Texture": "vfx/phoenix/feather_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.8,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.15
+            ],
+            [
+              0.2,
+              0.32
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.9,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a burst of flame shoots up out of the pocket with a gold flash (0 s); a flame bird rises out of the fire with its wings beating, then fades (a 16-frame firebird flipbook made for Phoenix, 4.5 studs, 0.1 s); an orange shockwave ring (0.05 s); embers spray (0.05 s); burning feathers drift down around it and embers linger (0.4-1.5 s). The default gust is tinted orange and gold.",
+      "Layers": [
+        {
+          "Name": "Column",
+          "Texture": "vfx/_shared/fire_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.6
+          },
+          "Burst": 16,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            2.5,
+            5
+          ],
+          "SpreadAngle": [
+            18,
+            18
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.4,
+              1.2
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.6,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -20,
+            20
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Firebird",
+          "Texture": "vfx/phoenix/firebird_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.2,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.1,
+          "Lifetime": 1.25,
+          "Speed": 1.3,
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 0.8,
+          "Size": [
+            [
+              0,
+              2.5
+            ],
+            [
+              0.3,
+              4.5
+            ],
+            [
+              1,
+              4.8
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 1.6
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 40,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            4,
+            9
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.5,
+          "Acceleration": [
+            0,
+            -2,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0.02
+            ]
+          ],
+          "Squash": -1.2,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF2B0"
+            ],
+            [
+              0.25,
+              "#FFD23D"
+            ],
+            [
+              0.55,
+              "#FF7A1A"
+            ],
+            [
+              1,
+              "#B3121F"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Feathers",
+          "Texture": "vfx/phoenix/feather_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.0,
+              0
+            ],
+            "Size": 2.5
+          },
+          "Burst": 10,
+          "Delay": 0.4,
+          "Lifetime": [
+            0.9,
+            1.1
+          ],
+          "Speed": [
+            0.4,
+            1.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            -1.2,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.2,
+              0.45
+            ],
+            [
+              1,
+              0.35
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -80,
+            80
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.9,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Linger",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Burst": 20,
+          "Delay": 0.5,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            0.4,
+            1.5
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": "#FFB84A",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FF7A1A",
+          "Start": 0.4,
+          "End": 5.0,
+          "Seconds": 0.45,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          200,
+          120
+        ],
+        "Brightness": 12,
+        "Seconds": 0.35
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 40.8,
+      "Back": 20.4,
+      "BallTrail": 28,
+      "Beams": 5,
+      "Lights": 1
+    }
+  }
+}

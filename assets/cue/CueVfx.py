@@ -131,6 +131,16 @@ def roblox_to_blender(v):
     return np.array([x, -z, y], np.float64)
 
 
+_ENV = []
+
+
+def cue_radius(at):
+    """The cue's radius at `at` studs from the tip (CueShape's envelope)."""
+    if not _ENV:
+        _ENV.append(cc.Envelope(cc.load_shape()[0]))
+    return float(_ENV[0](at))
+
+
 def cue_point(at, up=0.0, side=0.0):
     """A point in the cue's Blender local frame (tip at the origin, butt along -Y, top +Z)."""
     return np.array([side, -at, up], np.float64)
@@ -548,6 +558,8 @@ class Orbiter:
         d = a0 + (a1 - a0) * f
         ang = math.radians(float(s.get('Phase', 0))) + 2 * math.pi * float(s.get('TurnsPerSecond', 1.0)) * t
         rad = float(s.get('Radius', 0.2)) + float(s.get('Wobble', 0.0)) * math.sin(2 * math.pi * t * float(s.get('WobbleHz', 1.3)))
+        if s.get('RadiusFromSurface'):  # Radius is measured from the cue's surface (it follows the taper)
+            rad += cue_radius(d)
         return np.array([rad * math.sin(ang), -d, -rad * math.cos(ang)]), u
 
     def step(self, dt, host_m, emitting=True):
@@ -1803,11 +1815,11 @@ def sprite_trail_rainbow(w=512, h=128, seed=113):
     middle line, soft edges; tiles along u (colour baked)."""
     U, V = _uv(w, h)
     streak = 1 - np.abs(2 * _per(U, V, 4, 26, seed, 3) - 1)
-    col = _hue(V * 0.9 + (_per(U, V, 3, 1, seed + 1, 2) - 0.5) * 0.15, 0.9)
-    mid = np.exp(-((V - 0.5) / 0.05) ** 2)
-    col = col + (255 - col) * np.clip(mid * 0.8 + streak ** 12 * 0.5, 0, 1)[..., None]
-    a = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 0.6 * (0.55 + 0.45 * streak ** 3)
-    return np.concatenate([np.clip(col, 0, 255), np.clip(a + mid * 0.3, 0, 1)[..., None] * 255], -1)
+    col = _hue(np.clip((V - 0.08) / 0.84, 0, 1) * 0.83 + (_per(U, V, 3, 1, seed + 1, 2) - 0.5) * 0.1, 0.95)
+    mid = np.exp(-((V - 0.5) / 0.03) ** 2)
+    col = col + (255 - col) * np.clip(mid * 0.6 + streak ** 12 * 0.4, 0, 1)[..., None]
+    a = np.clip((1 - np.abs(V * 2 - 1)) * 4, 0, 1) ** 0.8 * (0.7 + 0.3 * streak ** 3)  # every band solid, soft only at the very edge
+    return np.concatenate([np.clip(col, 0, 255), np.clip(a + mid * 0.2, 0, 1)[..., None] * 255], -1)
 
 
 def sprite_ring_rainbow(n=256, width=0.06):
@@ -1974,31 +1986,60 @@ def _fire_colour(t):
 
 def wing_frame(i, n, frames=16, seed=141):
     """A wing of flame spreading to the right of the frame's centre (its root at the centre, so a
-    particle there opens it off the handle), made of long curved flame feathers fanning out,
-    flickering; a mirrored twin makes the other wing. Colour baked."""
+    particle there opens it off the handle): an arm sweeping out and up, flight feathers of fire
+    hanging from it that grow longer toward the wingtip (the primaries fan out to the right), a
+    row of short covert feathers along the arm, all flickering; a mirrored twin makes the other
+    wing. Colour baked."""
     k = i / frames
     x, y = _grid(n)
-    # wing space: root at the centre, spreading right and up
-    r = np.hypot(x, y)
-    th = np.arctan2(-y, x)  # 0 = right, + = up
+    X, Yu = x, -y  # math axes: right and up
     a = np.zeros(x.shape)
     heat = np.zeros(x.shape)
-    rs = np.random.RandomState(seed)
-    for f in range(9):
-        ang0 = -0.35 + f * 0.16  # feathers fan from slightly down to up
-        L = 0.55 + 0.4 * math.sin(f / 8 * math.pi) + 0.05 * math.sin(2 * math.pi * (k + f * 0.13))
-        curve = 0.25 + 0.05 * f
-        # a feather: along its length the angle bends back, it tapers to a flame tip
-        t = np.clip(r / L, 0, 1.2)
-        axis = ang0 + curve * t ** 2
-        width = 0.075 * np.clip(1 - t, 0, 1) ** 0.6 * (0.6 + 0.4 * np.sin(math.pi * np.clip(t * 1.4, 0, 1))) + 0.004
-        d = np.abs((th - axis) * r)
-        flick = cc.fbm(x * 6 + f, y * 6 - k * 4, np.full_like(x, k * 3 + f), 3, seed + f)
-        body = np.clip((width * (0.8 + 0.6 * flick) - d) / 0.012, 0, 1) * (t < 1.0) * (r > 0.03)
-        a = np.maximum(a, body * (0.75 + 0.25 * flick))
-        heat = np.maximum(heat, body * np.clip(1 - t, 0, 1) ** 0.8 * (0.6 + 0.5 * flick))
-    root = np.exp(-(r / 0.12) ** 2)
-    a = np.clip(a + root * 0.8, 0, 1) * (x > -0.05)
+
+    def arm(s):
+        return 0.6 * s, 0.4 * s ** 1.3
+
+    def feather(ox, oy, ang, L, wmax, bend, seed_f):
+        ca, sa = math.cos(ang), math.sin(ang)
+        u = (X - ox) * ca + (Yu - oy) * sa
+        v = -(X - ox) * sa + (Yu - oy) * ca
+        t = u / L
+        tt = np.clip(t, 0, 1)
+        flick = cc.fbm(x * 5 + seed_f, y * 5 - k * 5, np.full_like(x, k * 3 + seed_f), 3, seed + seed_f)
+        v0 = bend * L * tt ** 2
+        w = wmax * np.sin(math.pi * np.clip(tt * 0.95 + 0.05, 0, 1)) ** 0.6 * (1 - 0.35 * tt) * (0.75 + 0.5 * flick)
+        dv = np.abs(v - v0)
+        body = np.clip((w - dv) / 0.01, 0, 1) * (t > 0) * (t < 1)
+        barbs = 0.9 + 0.1 * np.cos((u - dv * 1.3) * 110)
+        return body * barbs, body * np.clip(1 - tt * 0.8, 0, 1) * (0.6 + 0.5 * flick)
+    N = 13
+    for j in range(N):  # flight feathers, drawn from the body out to the tip
+        s_ = (j + 0.6) / N
+        ox, oy = arm(s_)
+        ang = -1.9 + 1.75 * s_ + 0.05 * math.sin(2 * math.pi * (k + j * 0.11))
+        L = 0.18 + 0.3 * s_ ** 1.3
+        fa, fh = feather(ox, oy, ang, L, 0.04 + 0.018 * s_, 0.3, j)
+        a = np.maximum(a, fa)
+        heat = np.maximum(heat, fh * 0.9)
+    for j in range(9):  # coverts along the arm: short, hot
+        s_ = (j + 0.3) / 9 * 0.9
+        ox, oy = arm(s_)
+        fa, fh = feather(ox, oy, -1.2 + 1.2 * s_, 0.11 + 0.06 * s_, 0.035, 0.2, 40 + j)
+        a = np.maximum(a, fa)
+        heat = np.maximum(heat, np.clip(fh * 1.3, 0, 1))
+    # the arm itself, white-hot
+    ts = np.linspace(0, 1, 160)
+    ax_, ay_ = arm(ts)
+    dmin = np.min(np.hypot(X[..., None] - ax_, Yu[..., None] - ay_), -1)
+    armm = np.clip((0.03 * (1 - 0.6 * np.clip(np.hypot(X, Yu) / 0.72, 0, 1)) - dmin) / 0.012, 0, 1)
+    a = np.maximum(a, armm)
+    heat = np.maximum(heat, armm)
+    r = np.hypot(x, y)
+    root = np.exp(-(r / 0.1) ** 2)
+    from PIL import Image, ImageFilter
+    halo = np.asarray(Image.fromarray((a * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(n * 0.025)), np.float64) / 255
+    a = np.maximum(a, halo * 0.45)
+    a = np.clip(a + root * 0.8, 0, 1) * np.clip((x + 0.08) / 0.06, 0, 1)
     col = _fire_colour(heat * 1.1 + root * 0.8)
     return np.concatenate([col, a[..., None] * 255], -1)
 
@@ -2035,28 +2076,44 @@ def sprite_feather_sheet():
     return flipbook(lambda i, n: feather_frame(i, n), 4, 1024)
 
 
-def sprite_trail_feathers(w=512, h=128, seed=143):
-    """A fiery feather trail: flame feathers laid along the trail, overlapping like a tail, over a
-    flame ribbon, hot at the middle (colour baked). Tiles along u."""
+def sprite_trail_feathers(w=768, h=192, seed=143):
+    """A fiery feather trail (drawn to the concept): flame feathers streaming back from the ball,
+    each a curved quill with herringbone barbs, gold-white along the quill to crimson at the
+    ragged edge, overlapping over long flickering flame streaks and embers (colour baked;
+    Stretch it along the trail)."""
     U, V = _uv(w, h)
-    xx, yy = U * 4, (V - 0.5) * 1.0
+    X, Y = U * 4.0, (V - 0.5)  # 4 units long, 1 wide
     a = np.zeros(U.shape)
     heat = np.zeros(U.shape)
-    for j in range(10):
-        cx = (j + 0.5) / 10 * 4
-        side = 1 if j % 2 else -1
-        dx = np.mod(xx - cx + 2, 4) - 2
-        t = np.clip(dx / 0.9 + 0.5, 0, 1)
-        ay = side * 0.15 * t
-        wv = 0.16 * np.sin(t * math.pi) ** 0.8
-        d = np.abs(yy - ay)
-        f = np.clip((wv - d) / 0.02, 0, 1) * (np.abs(dx) < 0.45)
+    rs = np.random.RandomState(seed)
+    for j in range(9):
+        x0 = 0.05 + j * 0.44 + rs.uniform(-0.08, 0.08)
+        L = rs.uniform(0.9, 1.4)
+        yc = rs.uniform(-0.18, 0.18)
+        bend = rs.uniform(-0.12, 0.12)
+        t = (X - x0) / L
+        inside = (t > 0) & (t < 1)
+        tt = np.clip(t, 0, 1)
+        axis = yc + bend * tt ** 2 - 0.05 * np.sin(tt * math.pi) * np.sign(yc + 1e-3)
+        dv = Y - axis
+        half = 0.12 * np.sin(tt * math.pi) ** 0.7 * (1 - 0.3 * tt)
+        rag = _per(U + j * 0.37, V, 9, 30, seed + j, 3)
+        edge = half * (0.6 + 0.8 * rag) * (1 + 0.25 * np.sin((X - x0) * 9 + j))
+        barb = 0.5 + 0.5 * np.cos((X - x0 + np.abs(dv) * 1.6) * 55.0 + rag * 3)
+        vane = np.clip((edge - np.abs(dv)) / 0.015, 0, 1) * inside
+        quill = np.clip((0.006 + 0.004 * (1 - tt) - np.abs(dv)) / 0.004, 0, 1) * inside
+        f = np.clip(vane * (0.72 + 0.28 * barb) + quill, 0, 1)
         a = np.maximum(a, f)
-        heat = np.maximum(heat, f * (1 - np.abs(t - 0.4)))
-    ribbon = np.clip(1 - np.abs(V * 2 - 1), 0, 1) ** 1.4
-    flick = _per(U, V, 12, 4, seed, 3)
-    a = np.clip(a * 0.9 + ribbon * (0.4 + 0.5 * flick), 0, 1)
-    col = _fire_colour(heat * 0.8 + ribbon * 0.7)
+        heat = np.maximum(heat, np.clip(vane * (1 - np.abs(dv) / np.maximum(edge, 1e-3)) * 0.9 + quill, 0, 1) * (0.5 + 0.5 * (1 - tt)))
+    streak = _per(U, V, 4, 24, seed + 20, 4)
+    core = np.exp(-(Y / 0.18) ** 2)
+    glow = np.clip(_per(U, V, 3, 6, seed + 21, 3) * 1.2 - 0.2, 0, 1) * np.exp(-(Y / 0.3) ** 2) * 0.35
+    flame = np.clip(np.clip((streak - 0.4) * 2.6, 0, 1) * core * np.clip(1.25 - U, 0, 1) + glow, 0, 1)
+    ers = np.random.RandomState(seed + 30)
+    ember = _dots(w, h, [(ers.uniform(0, 1), 0.5 + ers.normal(0, 0.2), ers.uniform(0.5, 1.2), ers.uniform(0.5, 1)) for _ in range(40)], 2.5)
+    a = np.clip(np.maximum(a, flame * 0.8) + ember, 0, 1)
+    heat = np.maximum(heat, flame * 0.7 * (1 - U * 0.5)) + ember * 0.6
+    col = _fire_colour(heat * 1.25 + 0.1)
     return np.concatenate([col, a[..., None] * 255], -1)
 
 
@@ -2100,9 +2157,330 @@ def sprite_firebird_sheet():
     return flipbook(lambda i, n: firebird_frame(i, n), 4, 1024)
 
 
+def sprite_flame_flow_strip(w=1024, h=128, seed=149):
+    """Fire running through the feather engraving, for an overlay beam: long licking flame wisps
+    along u (tiling), thin and mostly clear, gold at their hot middles and orange at the edges,
+    plus a few bright embers (colour baked)."""
+    U, V = _uv(w, h)
+    lick = _per(U, V, 5, 22, seed, 4)
+    wisp = np.clip((lick - 0.58) * 4.0, 0, 1) ** 1.3
+    pulse = _per(U, V, 3, 2, seed + 1, 2)
+    a = wisp * np.clip((pulse - 0.3) * 2.2, 0, 1)
+    ers = np.random.RandomState(seed + 2)
+    ember = _dots(w, h, [(ers.uniform(0, 1), ers.uniform(0.2, 0.8), ers.uniform(0.6, 1.2), ers.uniform(0.6, 1)) for _ in range(26)], 2.2)
+    a = np.clip(a * 0.85 + ember, 0, 1) * _overlay_fade(V, 0.14, 0.86)
+    hot = np.clip(a * 1.6 - 0.4, 0, 1)
+    col = np.stack([np.full_like(a, 255.0), 110 + 130 * hot, 20 + 120 * hot ** 2], -1)
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
 SKIN_SPRITES['phoenix'] = {'wing_r_4x4.png': sprite_wing_sheet, 'wing_l_4x4.png': sprite_wing_sheet_mirrored,
                            'feather_4x4.png': sprite_feather_sheet, 'trail_feathers.png': sprite_trail_feathers,
-                           'firebird_4x4.png': sprite_firebird_sheet}
+                           'firebird_4x4.png': sprite_firebird_sheet, 'flame_flow_strip.png': sprite_flame_flow_strip}
+
+
+def tentacle_frame(i, n, frames=16, M=140):
+    """A ghostly kraken tentacle (colour baked): it rises from the bottom of the frame, curls its
+    tip into a spiral and sways, then fades (frames 0-3 grow, 13-15 fade; play OneShot). A
+    see-through abyss-purple body lit from the outer edge, a glowing teal rim, a row of glowing
+    teal suckers along the inner side of the curl."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    grow = min(1.0, 0.25 + k / 0.25 * 0.75)
+    curl = 3.4 + 1.8 * math.sin(math.pi * k)
+    fade = 1 - max(0.0, (k - 0.8) / 0.2)
+    S = np.linspace(0, 1, M)
+    th = math.pi / 2 + 0.35 * math.sin(2 * math.pi * k * 0.8) - 0.25 + curl * S ** 2.2
+    Lt = 2.35
+    ds = Lt / (M - 1)
+    px = 0.35 + np.concatenate([[0], np.cumsum(np.cos(th[:-1]) * ds)])
+    py = 0.98 - np.concatenate([[0], np.cumsum(np.sin(th[:-1]) * ds)])
+    Nx, Ny = -np.sin(th), -np.cos(th)  # the inner side (toward the curl) in image axes
+    W = 0.2 * (1 - S) ** 0.9 + 0.014
+    vis = S <= grow
+    P = np.stack([x.ravel(), y.ravel()], -1)
+    dx = P[:, None, 0] - px[None, vis]
+    dy = P[:, None, 1] - py[None, vis]
+    dd = np.hypot(dx, dy)
+    idx = np.argmin(dd, 1)
+    d = dd[np.arange(len(P)), idx].reshape(x.shape)
+    sd = (dx[np.arange(len(P)), idx] * Nx[vis][idx] + dy[np.arange(len(P)), idx] * Ny[vis][idx]).reshape(x.shape)
+    w = W[vis][idx].reshape(x.shape)
+    sv = S[vis][idx].reshape(x.shape)
+    body = np.clip((w - d) / 0.012, 0, 1)
+    across = np.clip(sd / np.maximum(w, 1e-3), -1, 1)  # -1 outer edge .. +1 inner edge
+    rim = np.exp(-((d - w * 0.9) / 0.018) ** 2) * (d < w * 1.3)
+    halo = np.exp(-(np.maximum(d - w, 0) / 0.05) ** 2) * 0.35
+    # suckers: spaced by the local width along the inner edge
+    suck = np.zeros(x.shape)
+    ring = np.zeros(x.shape)
+    sj = 0.04
+    while sj < min(grow, 0.97):
+        j = int(sj * (M - 1))
+        wj = W[j]
+        cx, cy = px[j] + Nx[j] * wj * 0.5, py[j] + Ny[j] * wj * 0.5
+        r = np.hypot(x - cx, y - cy) / (wj * 0.42)
+        suck = np.maximum(suck, np.clip((1 - r) / 0.2, 0, 1))
+        ring = np.maximum(ring, np.exp(-((r - 0.7) / 0.22) ** 2))
+        sj += wj * 0.95 / Lt
+    purple_dark, purple_lit, teal = np.array([40.0, 20, 80]), np.array([110.0, 60, 190]), np.array([43.0, 240, 208])
+    lit = np.clip(-across * 0.8 + 0.3, 0, 1)[..., None]
+    col = purple_dark * (1 - lit) + purple_lit * lit
+    col = col * (1 - np.clip(rim + ring, 0, 1))[..., None] + teal * np.clip(rim + ring, 0, 1)[..., None]
+    col = col * (1 - np.clip(suck - ring, 0, 1) * 0.6)[..., None]
+    col = col + (255 - col) * np.clip(ring * 0.25 * (sv < 0.9), 0, 1)[..., None]
+    col = col * (1 - np.clip(suck - ring, 0, 1) * 0.4)[..., None] + teal * np.clip((suck - ring) * 0.35, 0, 1)[..., None]
+    a = np.clip(body * 0.7 + rim * 0.9 + ring * body + halo, 0, 1) * fade
+    col = np.where(body[..., None] > 0, col, teal)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_tentacle_sheet():
+    return flipbook(lambda i, n: tentacle_frame(i, n), 4, 1024)
+
+
+def sprite_trail_ink(w=512, h=128, seed=161):
+    """An inky water trail: billows of deep abyss-purple ink through the middle with teal-lit
+    water streaks round them and a few bubbles (colour baked; ink is alpha-blended dark, so set
+    the Trail's LightEmission low)."""
+    U, V = _uv(w, h)
+    across = 1 - np.abs(V * 2 - 1)
+    bill = _per(U, V, 6, 3, seed, 4)
+    ink = np.clip((bill - 0.42) * 3, 0, 1) * np.clip(across * 2.2 - 0.3, 0, 1)
+    streak = 1 - np.abs(2 * _per(U, V, 4, 22, seed + 1, 3) - 1)
+    water = np.clip((streak - 0.75) * 4, 0, 1) * np.clip(across * 1.6, 0, 1) * (1 - ink * 0.7)
+    rs = np.random.RandomState(seed + 2)
+    bub = _dots(w, h, [(rs.uniform(0, 1), rs.uniform(0.15, 0.85), rs.uniform(0.6, 1.3), 1.0) for _ in range(18)], 4.0, soft=0.4)
+    bub_rim = bub * (1 - _dots(w, h, [], 1.0)) if False else bub
+    teal, dark = np.array([43.0, 240, 208]), np.array([30.0, 14, 50])
+    col = dark * ink[..., None] + teal * (1 - ink[..., None])
+    col = col + (255 - col) * np.clip(bub * 0.7, 0, 1)[..., None]
+    a = np.clip(ink * 0.85 + water * 0.8 + bub_rim * 0.6, 0, 1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_caustic_strip(w=1024, h=128, seed=163):
+    """Underwater light for an overlay beam: a thin net of bright teal caustic lines (the ridges
+    of warped noise) drifting over the cue, mostly clear, tiling along u (colour baked)."""
+    U, V = _uv(w, h)
+    n1 = _per(U, V, 14, 5, seed, 3)
+    n2 = _per(U, V, 9, 4, seed + 1, 3)
+    net = np.maximum(np.clip(1 - np.abs(n1 - 0.5) * 22, 0, 1), np.clip(1 - np.abs(n2 - 0.5) * 26, 0, 1) * 0.7)
+    patch = np.clip((_per(U, V, 3, 1.5, seed + 2, 2) - 0.35) * 2.5, 0, 1)
+    a = np.clip(net * patch, 0, 1) * _overlay_fade(V, 0.14, 0.86)
+    col = np.stack([60 + 150 * a, np.full_like(a, 245.0), 215 + 30 * a], -1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['kraken'] = {'tentacle_4x4.png': sprite_tentacle_sheet, 'bubble.png': sprite_bubble, 'trail_ink.png': sprite_trail_ink,
+                          'caustic_strip.png': sprite_caustic_strip}
+
+
+def white_feather_frame(i, n, frames=16):
+    """A soft white feather tumbling as it drifts (colour baked): a curved quill with a full vane
+    of fine barbs, warm white with a faint gold rim; over the frames it turns in 3D (its width
+    narrowing and widening, flipping side) and sways, a smooth loop."""
+    ph = 2 * math.pi * i / frames
+    x, y = _grid(n)
+    turn = math.cos(ph)  # the vane seen face-on (1) to edge-on (0) to the other side (-1)
+    tilt = 0.35 * math.sin(ph)
+    xr = x * math.cos(tilt) - y * math.sin(tilt)
+    yr = x * math.sin(tilt) + y * math.cos(tilt)
+    t = (0.85 - yr) / 1.7  # 0 at the quill end (bottom) .. 1 at the tip
+    ax = 0.12 * np.sin(np.clip(t, 0, 1) * math.pi * 0.9)
+    d = (xr - ax)
+    wv = 0.32 * np.sin(np.clip(t, 0, 1) * math.pi) ** 0.5 * (1 - 0.25 * t) * (t > 0.08) * (t < 1)
+    side_w = np.where(d > 0, wv * max(abs(turn), 0.08), wv * max(abs(turn), 0.08) * 0.8)
+    dd = np.abs(d) / np.maximum(side_w, 1e-3)
+    barbs = 0.9 + 0.1 * np.cos((yr + np.abs(d) * 1.4) * 95)
+    rag = 1 - 0.12 * (np.sin(yr * 23) > 0.7) * (dd > 0.75)
+    vane = np.clip((1 - dd) / 0.12, 0, 1) * (t > 0.08) * (t < 1) * barbs * rag
+    quill = np.clip((0.012 - np.abs(d)) / 0.006, 0, 1) * (t > -0.05) * (t < 0.98)
+    shade = 0.94 + 0.06 * np.sign(turn) * np.sign(d)
+    a = np.clip(vane * 0.95 + quill, 0, 1)
+    rim = np.clip((dd - 0.7) / 0.3, 0, 1) * vane
+    col = np.stack([255 * shade, 250 * shade, 238 * shade], -1)
+    col = col * (1 - rim[..., None] * 0.35) + np.array([255.0, 214, 120]) * rim[..., None] * 0.35
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_white_feather_sheet():
+    return flipbook(lambda i, n: white_feather_frame(i, n), 4, 1024)
+
+
+def sprite_trail_light(w=512, h=128, seed=171):
+    """A golden light ribbon for a ball trail: many fine silky strands of warm gold light woven
+    along it, brightest through the middle, with tiny sparkles (colour baked)."""
+    U, V = _uv(w, h)
+    across = 1 - np.abs(V * 2 - 1)
+    st1 = 1 - np.abs(2 * _per(U, V, 5, 18, seed, 3) - 1)
+    st2 = 1 - np.abs(2 * _per(U, V, 3, 30, seed + 1, 3) - 1)
+    strands = np.clip((st1 - 0.8) * 5, 0, 1) + np.clip((st2 - 0.85) * 6, 0, 1) * 0.8
+    rs = np.random.RandomState(seed + 2)
+    spark = _dots(w, h, [(rs.uniform(0, 1), rs.uniform(0.15, 0.85), rs.uniform(0.5, 1.1), 1.0) for _ in range(30)], 2.0)
+    a = np.clip(strands * np.clip(across * 1.8, 0, 1) + across ** 2 * 0.35 + spark, 0, 1)
+    hot = np.clip(strands * across * 1.2 + spark, 0, 1)
+    col = np.stack([np.full_like(a, 255.0), 185 + 65 * hot, 70 + 160 * hot], -1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_light_shaft(w=256, h=512, seed=173):
+    """A beam of heavenly light (the pocket finisher): a tall column of warm light, brightest in a
+    narrow core, soft rays streaming down it, fading out at the top and at the sides; its bottom
+    edge is where it meets the pocket (colour baked; stand it up with FacingCameraWorldUp)."""
+    U, V = _uv(w, h)
+    xc = (U - 0.5) * 2
+    rays = _per(U * 0 + (U - 0.5) * 0.9 + 0.5, V, 18, 0.6, seed, 3)
+    core = np.exp(-(xc / 0.24) ** 2)
+    body = np.exp(-(xc / 0.7) ** 2) * np.clip(0.25 + 1.1 * (rays - 0.35), 0, 1)
+    vfade = np.clip(V / 0.45, 0, 1) ** 0.7 * np.clip((1 - V) / 0.06, 0, 1)  # V = 0 at the top
+    a = np.clip((core * 0.75 + body * 0.7) * vfade, 0, 1)
+    hot = np.clip(core * 1.2 * vfade, 0, 1)
+    col = np.stack([np.full_like(a, 255.0), 222 + 33 * hot, 150 + 105 * hot], -1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_glint_strip(w=1024, h=128, seed=175):
+    """Gold light running along the filigree, for an overlay beam: a few soft travelling glints
+    along u (four-point sparkles on long faint gold streaks), mostly clear (colour baked)."""
+    U, V = _uv(w, h)
+    rs = np.random.RandomState(seed)
+    a = np.zeros(U.shape)
+    for _ in range(7):
+        u0, v0, L = rs.uniform(0, 1), rs.uniform(0.3, 0.7), rs.uniform(0.06, 0.14)
+        du = np.mod(U - u0 + 0.5, 1) - 0.5
+        streak = np.exp(-(du / L) ** 2) * np.exp(-((V - v0) / 0.035) ** 2)
+        du_px, dv_px = du * w, (V - v0) * h
+        star = np.exp(-np.abs(du_px) / 3) * np.exp(-np.abs(dv_px) / 14) + np.exp(-np.abs(dv_px) / 3) * np.exp(-np.abs(du_px) / 14)
+        a = np.maximum(a, np.clip(streak * 0.6 + star, 0, 1))
+    a = a * _overlay_fade(V, 0.14, 0.86)
+    hot = np.clip(a * 1.4 - 0.4, 0, 1)
+    col = np.stack([np.full_like(a, 255.0), 210 + 45 * hot, 120 + 135 * hot], -1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['seraph'] = {'feather_white_4x4.png': sprite_white_feather_sheet, 'trail_light.png': sprite_trail_light,
+                          'light_shaft.png': sprite_light_shaft, 'glint_strip.png': sprite_glint_strip}
+
+
+def skull_smoke_frame(i, n, frames=16, seed=181):
+    """A cartoon horned skull made of smoke and fire (the Infernal pocket finisher; no gore): a
+    round cranium, cheekbones and a jaw with blocky teeth, two curving horns, big glowing eye
+    sockets; dark smoky red-black with a fiery orange rim, billowing. It forms (frames 0-3),
+    holds, then dissolves upward into smoke (12-15). Colour baked; play OneShot."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    form = min(1.0, k / 0.2)
+    melt = max(0.0, (k - 0.65) / 0.35)
+    wob = cc.fbm(x * 3, y * 3 - k * 2, np.full_like(x, k * 1.5), 3, seed) - 0.5
+    wob2 = cc.fbm(x * 3 + 7, y * 3 - k * 2, np.full_like(x, k * 1.5), 3, seed + 1) - 0.5
+    X = x + wob * (0.06 + 0.25 * melt)
+    Y = y + wob2 * (0.06 + 0.25 * melt) + melt * 0.25
+    head = np.hypot(X / 0.46, (Y + 0.12) / 0.42) < 1
+    jaw = (np.abs(X) < 0.3 - 0.12 * np.clip((Y - 0.2) / 0.3, 0, 1)) & (Y > 0.0) & (Y < 0.5)
+    body = (head | jaw).astype(np.float64)
+    horns = np.zeros(x.shape)
+    for side in (-1, 1):
+        ts = np.linspace(0, 1, 60)
+        hx = side * (0.3 + 0.35 * ts - 0.08 * ts ** 3)
+        hy = -0.35 - 0.1 * ts - 0.45 * ts ** 2.2
+        hw = 0.09 * (1 - ts) ** 0.8 + 0.01
+        d = np.min(np.hypot(X[..., None] - hx, Y[..., None] - hy) - hw, -1)
+        horns = np.maximum(horns, np.clip(-d / 0.015, 0, 1))
+    eyes = np.zeros(x.shape)
+    for side in (-1, 1):
+        eyes = np.maximum(eyes, np.clip((1 - np.hypot((X - side * 0.17) / 0.12, (Y + 0.05) / 0.1)) / 0.25, 0, 1))
+    nose = np.clip((1 - np.hypot(X / 0.05, (Y - 0.14) / 0.06)) / 0.3, 0, 1)
+    teeth_gap = ((np.abs(np.mod(X + 0.05, 0.1) - 0.05) < 0.01) & (Y > 0.3) & (Y < 0.42) & (np.abs(X) < 0.22)) | ((np.abs(Y - 0.3) < 0.012) & (np.abs(X) < 0.24))
+    solid = np.clip(body - eyes - nose - teeth_gap * 1.0, 0, 1)
+    solid = np.maximum(solid, horns)
+    smoke = cc.fbm(x * 6, y * 6 - k * 3, np.full_like(x, k * 2), 4, seed + 2)
+    edge_d = np.clip(np.abs(np.gradient(solid)[0]) + np.abs(np.gradient(solid)[1]), 0, 1)
+    rim = np.clip(edge_d * 3, 0, 1)
+    from PIL import Image, ImageFilter
+    sil = np.clip(solid + eyes, 0, 1)
+    halo = np.asarray(Image.fromarray((sil * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(n * 0.035)), np.float64) / 255
+    halo = np.clip(halo * 1.6 - sil, 0, 1) * (0.6 + 0.6 * smoke)
+    patches = np.clip((smoke - 0.52) * 3.0, 0, 1) * solid
+    a = np.clip(solid * (0.85 + 0.3 * smoke) + eyes + rim * 0.6 + halo * 0.7, 0, 1)
+    a = a * form * (1 - melt ** 1.3)
+    heat = np.clip(rim * 0.7 + nose * 0.5 + patches * 0.8 + halo * 0.55, 0, 1)
+    heat = np.where(eyes > 0.05, 0.62 + 0.25 * eyes, heat)
+    dark = np.array([34.0, 8, 6])
+    w = np.clip(heat * 1.6, 0, 1)[..., None]
+    col = dark * (1 - w) + _fire_colour(0.1 + 0.9 * heat) * w
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_skull_smoke_sheet():
+    return flipbook(lambda i, n: skull_smoke_frame(i, n), 4, 1024)
+
+
+def sprite_trail_hellfire(w=512, h=128, seed=183):
+    """A black-and-red fire trail: billows of black smoke through the middle whose edges burn
+    red-hot, licking flame streaks round them and a few embers (colour baked; alpha-blended, so
+    keep the Trail's LightEmission low)."""
+    U, V = _uv(w, h)
+    across = 1 - np.abs(V * 2 - 1)
+    bill = _per(U, V, 7, 3.5, seed, 4)
+    smoke = np.clip((bill - 0.45) * 3.5, 0, 1) * np.clip(across * 2.2 - 0.25, 0, 1)
+    edge = np.clip(1 - np.abs(bill - 0.47) * 14, 0, 1) * np.clip(across * 2, 0, 1)
+    lick = np.clip((_per(U, V, 4, 20, seed + 1, 3) - 0.55) * 4, 0, 1) * np.clip(across * 1.6, 0, 1) * (1 - smoke)
+    rs = np.random.RandomState(seed + 2)
+    emb = _dots(w, h, [(rs.uniform(0, 1), rs.uniform(0.1, 0.9), rs.uniform(0.5, 1.1), 1.0) for _ in range(24)], 2.2)
+    heat = np.clip(edge * 0.9 + lick * 0.8 + emb, 0, 1)
+    a = np.clip(smoke * 0.9 + heat * 0.9, 0, 1)
+    col = np.array([20.0, 6, 6]) * (1 - heat[..., None]) + _fire_colour(0.2 + 0.7 * heat) * heat[..., None]
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['infernal'] = {'skull_smoke_4x4.png': sprite_skull_smoke_sheet, 'trail_hellfire.png': sprite_trail_hellfire,
+                            'lava_flow_strip.png': sprite_lava_flow_strip, 'rock_chip.png': sprite_rock_chip}
+
+
+def sprite_cog(n=256, teeth=12):
+    """A brass cog (colour baked): square-ish teeth, a rim, five spokes, a hub with a hole,
+    lit from the top left with a bright edge; spun by the particle's RotSpeed."""
+    x, y = _grid(n)
+    rho = np.hypot(x, y)
+    phi = np.arctan2(y, x)
+    tooth = np.clip(np.cos(teeth * phi) * 2.2, -1, 1)
+    r_edge = 0.95 * (0.84 + 0.16 * (tooth * 0.5 + 0.5))
+    px = 2.0 / n
+    outer = np.clip((r_edge - rho) / px, 0, 1)
+    ring = np.clip((rho - 0.56) / px, 0, 1)
+    spokes = np.clip((np.cos(5 * phi) - 0.8) / 0.05, 0, 1) * (rho < 0.6)
+    hub = np.clip((0.24 - rho) / px, 0, 1)
+    hole = np.clip((0.09 - rho) / px, 0, 1)
+    a = np.clip(outer * np.maximum(np.maximum(ring, spokes), hub) - hole, 0, 1)
+    light = np.clip(0.7 + 0.45 * (-(x + y) / 1.4), 0.35, 1.15)
+    rim = np.clip(1 - np.abs(r_edge - rho) / 0.03, 0, 1) + np.clip(1 - np.abs(rho - 0.56) / 0.025, 0, 1) * 0.5
+    brass = np.array([214.0, 160, 70])
+    col = brass * light[..., None]
+    col = col + (np.array([255.0, 225, 160]) - col) * np.clip(rim * 0.6, 0, 1)[..., None]
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['clockwork'] = {'cog.png': sprite_cog}
+
+
+def sprite_trail_starlight(w=512, h=128, seed=191):
+    """A comet of starlight for a ball trail: silky blue-white streaks along it, brightest in a
+    thin core, scattered with sharp white star points (colour baked)."""
+    U, V = _uv(w, h)
+    across = 1 - np.abs(V * 2 - 1)
+    st = 1 - np.abs(2 * _per(U, V, 5, 24, seed, 3) - 1)
+    streak = np.clip((st - 0.78) * 4.5, 0, 1) * np.clip(across * 1.8, 0, 1)
+    core = np.exp(-((V - 0.5) / 0.08) ** 2)
+    rs = np.random.RandomState(seed + 1)
+    stars = _dots(w, h, [(rs.uniform(0, 1), rs.uniform(0.1, 0.9), rs.uniform(0.5, 1.3), 1.0) for _ in range(34)], 2.4, soft=2.0)
+    a = np.clip(streak * 0.9 + core * 0.8 + across ** 2 * 0.25 + stars, 0, 1)
+    hot = np.clip(core + stars + streak * 0.4, 0, 1)
+    col = np.stack([90 + 165 * hot, 170 + 85 * hot, np.full_like(a, 255.0)], -1)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['celestial_dragon'] = {'trail_starlight.png': sprite_trail_starlight}
 
 
 def make_sprites(which=None):
