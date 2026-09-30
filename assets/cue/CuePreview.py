@@ -773,6 +773,8 @@ def blender_main(args):
             p0 = pocket - dirv * 2.6
             p0.z = cz + r
             burst = PocketBurst(vfx, V, style_row, pocket, eight=False, ball_rgb=BALL_COLOURS[PREVIEW['pocket_ball']])
+            pp_spec = (V.get('Pocket') or {}).get('Piece')
+            creature = PocketPiece(bpy, scene, vfx, pp_spec, pocket) if pp_spec else None
             seg = PREVIEW['segments']['pocket']
             trail = vfx.Trail(trail_spec)
             drop_t = 0.5
@@ -795,6 +797,8 @@ def blender_main(args):
                 ob = fx_object('Trail', trail.texture, trail.le, trail.brightness, extension='REPEAT')
                 fill(ob, trail.quads(t, cm))
                 burst.step(t - drop_t, dt, cm, fx_object, fill, bpy, scene)
+                if creature is not None:
+                    creature.step(t - drop_t, scene.camera.location)
                 shoot()
                 t += dt
 
@@ -827,6 +831,74 @@ def trail_from_style(style):
                         'Brightness': core.get('Brightness', 1),
                         'MinLength': tr['MinLengthStuds'], 'Texture': core.get('Texture') or 'vfx/_shared/trail_soft.png'}
     return spec
+
+
+class PocketPiece:
+    """A pocket finisher's 3D creature (vfx.Pocket.Piece): the built piece `Piece` (pieces/<id>,
+    modelled in the pocket frame) rises out of the pocket, turned at its start to face the camera,
+    over `Seconds` after `Delay` (seconds after the ball drops). Over its life (0..1): Rise, the
+    height of its origin above the pocket's mouth in studs; Scale; Spin, degrees turned about
+    the vertical from facing the camera; Transparency. Its joints' own motions play meanwhile.
+    In Roblox: the piece's parts cloned at the pocket, anchored, CFramed and scaled each frame
+    (Model:ScaleTo) and their Transparency tweened."""
+
+    def __init__(self, bpy, scene, vfx, spec, at):
+        import CuePieces
+        self.spec = spec
+        self.at = at
+        self.root = bpy.data.objects.new('PocketPiece', None)
+        scene.collection.objects.link(self.root)
+        self.anim = CuePieces.attach(bpy, spec['Piece'], self.root)
+        self.rise = vfx.NumSeq(spec.get('Rise', [[0, -1.0], [0.3, 0.2], [1, 0.4]]))
+        self.scale = vfx.NumSeq(spec.get('Scale', [[0, 0.5], [0.3, 1.0], [1, 1.05]]))
+        self.spin = vfx.NumSeq(spec.get('Spin', 0))
+        self.transp = vfx.NumSeq(spec.get('Transparency', [[0, 0.3], [0.15, 0.0], [0.75, 0.0], [1, 1]]))
+        self.yaw = None
+        # a multiply before each material's Alpha, so the whole creature fades together
+        self.faders = []
+        for ob in self.anim.parts:
+            for mat in ob.data.materials:
+                nt = mat.node_tree
+                bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+                mul = nt.nodes.new('ShaderNodeMath')
+                mul.operation = 'MULTIPLY'
+                links = [lk for lk in nt.links if lk.to_socket == bsdf.inputs['Alpha']]
+                if links:
+                    nt.links.new(links[0].from_socket, mul.inputs[0])
+                else:
+                    mul.inputs[0].default_value = bsdf.inputs['Alpha'].default_value
+                nt.links.new(mul.outputs[0], bsdf.inputs['Alpha'])
+                try:
+                    mat.surface_render_method = 'BLENDED'
+                except Exception:
+                    mat.blend_method = 'BLEND'
+                self.faders.append(mul)
+        self.hide()
+
+    def hide(self):
+        self.root.location = (0, 0, -50)
+        self.root.scale = (0.001, 0.001, 0.001)
+
+    def step(self, t, cam_loc):
+        from mathutils import Matrix
+        tt = t - float(self.spec.get('Delay', 0.1))
+        life = float(self.spec.get('Seconds', 1.3))
+        if tt < 0 or tt > life:
+            self.hide()
+            return
+        if self.yaw is None:
+            d = cam_loc - self.at
+            self.yaw = math.atan2(d.x, -d.y)       # the front (-Y) toward the camera
+        k = tt / life
+        yaw = self.yaw + math.radians(float(self.spin(k)))
+        sc = float(self.scale(k))
+        loc = self.at.copy()
+        loc.z += float(self.rise(k))
+        self.root.matrix_world = Matrix.Translation(loc) @ Matrix.Rotation(yaw, 4, 'Z') @ Matrix.Scale(sc, 4)
+        self.anim(tt)
+        a = 1.0 - float(np.clip(self.transp(k), 0, 1))
+        for mul in self.faders:
+            mul.inputs[1].default_value = a
 
 
 class PocketBurst:

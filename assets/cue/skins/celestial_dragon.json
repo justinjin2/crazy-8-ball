@@ -906,66 +906,6 @@
           "LightInfluence": 0
         },
         {
-          "Name": "Dragon",
-          "Texture": "vfx/celestial_dragon/dragon_roar_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              2.0,
-              0
-            ]
-          },
-          "Burst": 1,
-          "Delay": 0.1,
-          "Lifetime": 1.2,
-          "Speed": 0.8,
-          "SpreadAngle": [
-            0,
-            0
-          ],
-          "EmissionDirection": "Top",
-          "Size": [
-            [
-              0,
-              3.6
-            ],
-            [
-              0.4,
-              4.6
-            ],
-            [
-              1,
-              4.8
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.2
-            ],
-            [
-              0.1,
-              0
-            ],
-            [
-              0.8,
-              0.1
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "Orientation": "FacingCameraWorldUp",
-          "Brightness": 1.6
-        },
-        {
           "Name": "Dust",
           "Texture": "vfx/_shared/glow_soft.png",
           "Host": {
@@ -1026,6 +966,63 @@
         ],
         "Brightness": 13,
         "Seconds": 0.35
+      },
+      "Piece": {
+        "Piece": "celestial_dragon_pocket",
+        "Delay": 0.1,
+        "Seconds": 1.35,
+        "Rise": [
+          [
+            0,
+            -3.2
+          ],
+          [
+            0.35,
+            -0.25
+          ],
+          [
+            1,
+            0.1
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.35,
+            1.0
+          ],
+          [
+            1,
+            1.05
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            -25
+          ],
+          [
+            1,
+            10
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0
+          ],
+          [
+            0.7,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ]
       }
     },
     "Budget": {
@@ -1035,7 +1032,8 @@
       "Beams": 1,
       "Lights": 1,
       "Orbiters": 4,
-      "PieceTriangles": 29740
+      "PieceTriangles": 29740,
+      "PocketPieceTriangles": 19500
     }
   }
 }

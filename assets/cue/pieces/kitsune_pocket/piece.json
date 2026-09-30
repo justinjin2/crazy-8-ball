@@ -1,0 +1,75 @@
+{
+  "id": "kitsune_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 19500,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/kitsune_pocket/PocketFox_base_color.png",
+        "EmissiveMask": "pieces/kitsune_pocket/PocketFox_emissive.png",
+        "EmissiveTint": "#D08CFF",
+        "EmissiveStrength": 2.0,
+        "NormalMap": "pieces/kitsune_pocket/PocketFox_normal.png",
+        "RoughnessMap": "pieces/kitsune_pocket/PocketFox_roughness.png",
+        "MetalnessMap": "pieces/kitsune_pocket/PocketFox_metallic.png"
+      },
+      "Name": "Body_PocketFox",
+      "File": "pieces/kitsune_pocket/Body_PocketFox.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0001,
+        1.5024,
+        0.0017
+      ],
+      "Size": [
+        2.9065,
+        3.0038,
+        1.5324
+      ],
+      "Triangles": 19500
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.6
+      ],
+      "PivotRoblox": [
+        0,
+        0.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 2.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 1.6,
+          "Phase": 90
+        }
+      ]
+    }
+  }
+}

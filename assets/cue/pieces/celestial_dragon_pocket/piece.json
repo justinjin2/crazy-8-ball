@@ -1,0 +1,75 @@
+{
+  "id": "celestial_dragon_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 19500,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/celestial_dragon_pocket/PocketDragon_base_color.png",
+        "EmissiveMask": "pieces/celestial_dragon_pocket/PocketDragon_emissive.png",
+        "EmissiveTint": "#8CC8FF",
+        "EmissiveStrength": 2.0,
+        "NormalMap": "pieces/celestial_dragon_pocket/PocketDragon_normal.png",
+        "RoughnessMap": "pieces/celestial_dragon_pocket/PocketDragon_roughness.png",
+        "MetalnessMap": "pieces/celestial_dragon_pocket/PocketDragon_metallic.png"
+      },
+      "Name": "Body_PocketDragon",
+      "File": "pieces/celestial_dragon_pocket/Body_PocketDragon.obj",
+      "Joint": "Body",
+      "Offset": [
+        -0.0024,
+        1.5985,
+        -0.0046
+      ],
+      "Size": [
+        1.4668,
+        3.2085,
+        1.5422
+      ],
+      "Triangles": 19500
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 2.4
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 1.9,
+          "Phase": 60
+        }
+      ]
+    }
+  }
+}

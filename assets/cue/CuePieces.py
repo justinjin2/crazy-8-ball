@@ -51,6 +51,7 @@ ROBLOX_LOOK = {
 }
 
 BUILDERS = {}
+ZOFF = {'cue': 3.5, 'pocket': 0.0}   # Roblox Z = ZOFF + Blender Y (the cue MeshPart's centre is 3.5 from the tip)
 
 
 def piece(fn):
@@ -146,6 +147,10 @@ class Kit:
         self.pid = pid
         self.joints = {}   # name -> {'Parent', 'Pivot', 'Motion', 'objects': [...]}
         self.mats = {}     # name -> roblox spec
+        # 'cue': modelled in the cue's frame (a piece on the cue); 'pocket': in a frame of its own
+        # with the origin at the pocket's mouth, Z up, the front toward -Y (a pocket finisher's
+        # creature, placed and turned by the finisher)
+        self.frame = 'cue'
 
     # ---- materials ----------------------------------------------------------------------------
     def material(self, name, Material='SmoothPlastic', Color='#FFFFFF', Transparency=0.0, Reflectance=0.0,
@@ -318,7 +323,7 @@ def make_textured_material(bpy, key, sa):
         nt.links.new(mask.outputs['Color'], mix.inputs['A'])
         mix.inputs['B'].default_value = srgb_to_lin(hexrgb(sa.get('EmissiveTint', '#FFFFFF'))) + (1.0,)
         nt.links.new(mix.outputs['Result'], bsdf.inputs['Emission Color'])
-        bsdf.inputs['Emission Strength'].default_value = 2.4 * float(sa.get('EmissiveStrength', 1.0))
+        bsdf.inputs['Emission Strength'].default_value = float(sa.get('EmissiveStrength', 1.0))
     return mat
 
 
@@ -531,7 +536,7 @@ def export(kit):
                 bm.free()
             V = np.array(verts)
             # Blender cue frame (side, -at, up) -> Roblox cue frame (-side, up, 3.5 - at)
-            R = np.stack([-V[:, 0], V[:, 2], 3.5 + V[:, 1]], 1)
+            R = np.stack([-V[:, 0], V[:, 2], ZOFF[kit.frame] + V[:, 1]], 1)
             lo, hi = R.min(0), R.max(0)
             centre = (lo + hi) / 2
             fname = '%s_%s.obj' % (jname, mname)
@@ -556,9 +561,9 @@ def export(kit):
     joints = {}
     for jname, j in kit.joints.items():
         p = j['Pivot']
-        joints[jname] = {'Parent': j['Parent'], 'Pivot': p, 'PivotRoblox': [round(-p[0], 4), round(p[2], 4), round(3.5 + p[1], 4)],
+        joints[jname] = {'Parent': j['Parent'], 'Pivot': p, 'PivotRoblox': [round(-p[0], 4), round(p[2], 4), round(ZOFF[kit.frame] + p[1], 4)],
                          'Motion': j['Motion']}
-    spec = {'id': kit.pid, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
+    spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
     with open(os.path.join(out, 'piece.json'), 'w') as fh:
@@ -583,6 +588,7 @@ def attach(bpy, pid, cue_obj):
     spec = json.load(open(path))
     joints = spec['Joints']
     empties = {}
+    parts = []
     for jname in joints:
         e = bpy.data.objects.new('PJ_' + jname, None)
         bpy.context.scene.collection.objects.link(e)
@@ -600,7 +606,7 @@ def attach(bpy, pid, cue_obj):
                 if '/' in line:
                     FT.append([int(x.split('/')[1]) - 1 for x in line.split()[1:]])
         R = np.array(V) + np.array(part['Offset'])
-        B = np.stack([-R[:, 0], R[:, 2] - 3.5, R[:, 1]], 1)  # back to the Blender cue frame
+        B = np.stack([-R[:, 0], R[:, 2] - ZOFF[spec.get('Frame', 'cue')], R[:, 1]], 1)  # back to Blender
         me = bpy.data.meshes.new(part['Name'])
         me.from_pydata(B.tolist(), [], F)
         me.update()
@@ -618,11 +624,13 @@ def attach(bpy, pid, cue_obj):
         bpy.context.scene.collection.objects.link(ob)
         ob.data.materials.append(make_blender_material(bpy, 'PMv_%s_%s' % (pid, part['Name']), part))
         ob.parent = empties[part['Joint']]
+        parts.append(ob)
     def animate(t):
         for jname, e in empties.items():
             e.matrix_parent_inverse = Matrix.Identity(4)
             e.matrix_basis = Matrix(joint_matrix(joints, jname, t).tolist())
     animate(0.0)
+    animate.parts = parts          # the part objects, for a finisher that fades them
     return animate
 
 
@@ -636,6 +644,7 @@ def build(pid):
     cc.clear_scene('CuePieces')
     import CuePiecesMythic  # noqa: F401  (registers the builders on the imported CuePieces module)
     import CuePiecesLegendary  # noqa: F401
+    import CuePiecesPocket  # noqa: F401
     import CuePieces
     kit = CuePieces.Kit(bpy, pid)
     CuePieces.BUILDERS[pid](kit)
@@ -714,6 +723,7 @@ def render_sprite(name):
     from mathutils import Matrix, Vector
     import CuePiecesMythic  # noqa: F401
     import CuePiecesLegendary  # noqa: F401
+    import CuePiecesPocket  # noqa: F401
     import CuePieces
     spec = CuePieces.SPRITES[name]
     cc.clear_scene('Sprite')

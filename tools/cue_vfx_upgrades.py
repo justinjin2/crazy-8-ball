@@ -256,6 +256,34 @@ def kraken(d):
     v['Budget']['PieceTriangles'] = pj['Triangles']
 
 
+def pocket_piece(d, piece_id, drop_layer, **timing):
+    """The pocket finisher's creature as a rising 3D piece (CuePiecesPocket) in place of its flat
+    flipbook layer."""
+    P = d['vfx']['Pocket']
+    P['Layers'] = [x for x in P['Layers'] if x['Name'] != drop_layer]
+    spec = {'Piece': piece_id, 'Delay': 0.1, 'Seconds': 1.35}
+    spec.update(timing)
+    P['Piece'] = spec
+    pj = json.load(open(os.path.join(ROOT, 'assets', 'cue', 'pieces', piece_id, 'piece.json')))
+    d['vfx']['Budget']['PocketPieceTriangles'] = pj['Triangles']
+
+
+POCKET = {
+    'celestial_dragon': ('celestial_dragon_pocket', 'Dragon', {
+        'Rise': [[0, -3.2], [0.35, -0.25], [1, 0.1]], 'Scale': [[0, 0.7], [0.35, 1.0], [1, 1.05]],
+        'Spin': [[0, -25], [1, 10]], 'Transparency': [[0, 0], [0.7, 0], [1, 1]]}),
+    'kitsune': ('kitsune_pocket', 'Spirit', {
+        'Rise': [[0, -2.6], [0.3, 0.15], [1, 0.6]], 'Scale': [[0, 0.7], [0.3, 1.0], [1, 1.05]],
+        'Spin': [[0, 20], [1, -15]], 'Transparency': [[0, 0], [0.7, 0], [1, 1]]}),
+    'phoenix': ('phoenix_pocket', 'Firebird', {
+        'Rise': [[0, -2.8], [0.3, 0.1], [1, 0.7]], 'Scale': [[0, 0.7], [0.3, 1.0], [1, 1.08]],
+        'Spin': [[0, -10], [1, 10]], 'Transparency': [[0, 0], [0.7, 0], [1, 1]]}),
+    'kraken': ('kraken_pocket', 'Tentacle', {
+        'Rise': [[0, -3.3], [0.3, -0.35], [1, -0.2]], 'Scale': [[0, 0.8], [0.3, 1.0], [1, 1.0]],
+        'Spin': [[0, 0], [1, 25]], 'Transparency': [[0, 0], [0.75, 0], [1, 1]]}),
+}
+
+
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
             'phoenix': phoenix, 'kraken': kraken}
 
@@ -295,6 +323,9 @@ def main():
             if sid in UPGRADES:
                 UPGRADES[sid](d)
                 budget(d)
+            if sid in POCKET:
+                pid, layer, timing = POCKET[sid]
+                pocket_piece(d, pid, layer, **timing)
         if json.dumps(d, sort_keys=True) != before:
             with open(path, 'w') as fh:
                 json.dump(d, fh, indent=2)

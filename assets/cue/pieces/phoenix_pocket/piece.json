@@ -1,0 +1,64 @@
+{
+  "id": "phoenix_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 19500,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/phoenix_pocket/PocketFirebird_base_color.png",
+        "EmissiveMask": "pieces/phoenix_pocket/PocketFirebird_emissive.png",
+        "EmissiveTint": "#FFB040",
+        "EmissiveStrength": 2.4,
+        "NormalMap": "pieces/phoenix_pocket/PocketFirebird_normal.png",
+        "RoughnessMap": "pieces/phoenix_pocket/PocketFirebird_roughness.png",
+        "MetalnessMap": "pieces/phoenix_pocket/PocketFirebird_metallic.png"
+      },
+      "Name": "Body_PocketFirebird",
+      "File": "pieces/phoenix_pocket/Body_PocketFirebird.obj",
+      "Joint": "Body",
+      "Offset": [
+        0.0037,
+        1.6006,
+        -0.0008
+      ],
+      "Size": [
+        2.6042,
+        3.1955,
+        1.0443
+      ],
+      "Triangles": 19500
+    }
+  ],
+  "Joints": {
+    "Body": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.8
+      ],
+      "PivotRoblox": [
+        0,
+        0.8,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 1.4
+        }
+      ]
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "pocket_firebird",
   "endpoint": "image-to-3d",
-  "task_id": "01a0f35b-3cd4-72b3-804a-f3a35a1a9354",
+  "task_id": "01a0f363-a66f-76c3-9b23-651359291932",
   "status": "SUCCEEDED",
   "credits": 35,
   "params": {
@@ -18,6 +18,6 @@
       "assets/cue/models/refs/pocket_firebird.png"
     ]
   },
-  "finished_at": 1790789361625,
+  "finished_at": 1790789977861,
   "task_error": null
 }
