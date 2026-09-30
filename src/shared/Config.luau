@@ -2162,9 +2162,9 @@ Config.Ults = {
 	-- Ults are on by default everywhere (designer, 2026-09-28): public tables, the global
 	-- queue (which offers No ults) and vs PC. A table's settings.abilities is its switch.
 	Enabled = true,
-	-- The spin screen for live players. Off until more ults than Magnet are built (today's live
-	-- roll pool is 100% Magnet); Studio always shows it.
-	ScreenLive = false,
+	-- The spin screen for live players (spins, money packs and Lucky Spins). On since all 13
+	-- are built (abilities step 19, 2026-09-29); Studio always shows it.
+	ScreenLive = true,
 	-- The developer flag: every ult, built or not, can be rolled and equipped (friend tests).
 	-- `/ultsall on` turns it on for one player for the session.
 	DevAllUlts = false,

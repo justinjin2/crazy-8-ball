@@ -808,7 +808,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   ids, portal positions, second strikes after the timeout, spam, a disconnect mid-freeze or
   mid-rewind) and a branch-wide bug review of `git diff ultimates...abilities` (determinism,
   leaks, rule edge cases); findings fixed.
-- [ ] 19. Launch switches: every ability `Built = true`, `Config.Ults.ScreenLive = true`, Lucky
+- [x] 19. Launch switches: every ability `Built = true`, `Config.Ults.ScreenLive = true`, Lucky
   Spins open, the final one-line descriptions in `Strings.Ults.Descriptions` (true to what each
   now does), the spin screen's odds showing all 13; checked in Studio.
 - [ ] 20. Docs: GDD 9 (the rule changes of section 3, each ability's final rules and measured
@@ -1419,3 +1419,14 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   no script errors or drift warnings; only Roblox's own MemoryStore hiccups (the queue logs
   them). Seen in passing, not ability work: the daily-reward reminder toast (shown when the
   window loses focus, which Studio does constantly) sits over the ability pill on a phone.
+- **Step 19 done (2026-09-29).** Every catalog row was already `Built = true` (steps 3 to 15);
+  `Config.Ults.ScreenLive = true` opens the spin screen, money packs and Lucky Spins to live
+  players (the one switch: UltSpins, Store and the menu column read it). The one-line
+  descriptions re-read against each effect's final rules; three changed: Chain Lightning (your
+  ball charged toward a pocket, then three jumps pushing balls toward pockets), Steel Ball (the
+  cue ball curves on to your next, guiding it in or lining it up), Black Flash (the blast's
+  nudge). Checked in Studio on the phone emulator: the Abilities button opens the screen, the
+  equipped Portals shows its new description, and the Odds popup lists all 13 with a share
+  (Commons 18.333% each, Uncommons 15%, Rares 6.117%, Epics 1%, Legendaries 0.333%, Mythics
+  0.05%; the rarities add to 100%). The two slot purchases still read "Soon" (their game passes
+  are the ultimates work's, not set up yet).
