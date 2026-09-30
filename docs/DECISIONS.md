@@ -1988,3 +1988,15 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   The art director's review was acted on (lensed arcs, a smaller white-gold disk, a bigger flat
   horizon, a flowing second vortex layer, a punchier close). Its description no longer says
   "(not your opponent's)": the opponent's balls within half the reach go too (5.7).
+- 2026-09-29 (assumption): Guangdong Tiger's tiger is hand-built in Blender (metaball parts
+  baked to textures, rigid parts animated in code round joint markers), because no model
+  generator or model download was reachable from this session. A generated or downloaded
+  detailed tiger could replace it later without code changes (the same part and joint names).
+- 2026-09-29 (assumption): Guangdong Tiger's slowed moment is 0.1 s of play over 0.7 s of wall
+  time (a seventh speed), not "about 0.3 s at quarter speed": the tiger's leap and swipe need
+  about 0.6 s, and the tiger runs on its own clock (wall time and `/slowmo`, never the slow).
+  The cut balls leave the physics at once; the look keeps copies in place until the strike.
+- 2026-09-29 (assumption): Guangdong Tiger's sounds are library clips (Pro Sound Effects' tiger
+  roar and body impact pitched down, a sword-split slash played three times), no upload. Its
+  worth (+1.03 to +1.16 careful) is under Mythic 2.6 and is flagged for the step 16 balance
+  pass. The art director's two reviews (5/10, then 7/10) were acted on.

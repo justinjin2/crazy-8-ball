@@ -793,7 +793,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 12. Steel Ball (7.10), look check and art director review done.
 - [x] 13. Black Flash (7.11), look check and art director review done.
 - [x] 14. Black Hole (7.12), look check and art director review done.
-- [ ] 15. Guangdong Tiger (7.13), look check and art director review done.
+- [x] 15. Guangdong Tiger (7.13), look check and art director review done.
 - [ ] 16. Balance pass: every ability re-measured with the final code; the ladder table (5.3)
   holds for the careful shooter (each rarity at or a little above the one below), and the
   careless value is reported for the five 5.7 abilities; `ult_model.py`'s win rates per rarity
@@ -1290,3 +1290,60 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   its 15 fps cap; 6 hole parts and a copy per pulled ball. No leftovers, no ball left hidden,
   console clean. Phone framing is checked in the playthrough. Superseded upload to archive:
   model 132811966269359.
+- **Step 15 done (2026-09-29).** Plan: the effect in `after` (the swipe and the cut, at once),
+  the look off the `swipe` and `cut` events on its own clock. Rules (Effects/GuangdongTiger,
+  tests in `ult_guangdongtiger_test`): at the cue ball's first contact the swipe is centred on
+  the middle of the two centres (a wrong first ball still a foul, the swipe happens anyway);
+  every object ball on the cloth within 20 in (the cap) and the opponent's within 10 in, the
+  closest first, at most 3 and 2, is cut off the table at once (`Ops.remove`, counted as a pot
+  for its owner); never the cue ball, the 8 only on the legal 8 shot. The moment slows: 0.1 s
+  of play over 0.7 s of wall time (a seventh speed, not the brief's 0.3 s at a quarter: the
+  tiger's leap and swipe need about 0.6 s). Tests (9): yours in reach and theirs in the half
+  cut and counted, not the 10 outside the half, the 8, the far 3 or the cue ball; a wrong first
+  ball fouls and the swipe happens; an early 8 hit first is never cut; the legal 8 is cut and
+  wins; the caps closest first; the cut at once and the moment slowed; the cue ball never cut;
+  the reach capped; the replay matches the settle. The placeholder tests now borrow an ult for
+  their run (`asPlaceholder`), as every ult is built. Worth (120 tables, net a use at skills
+  1/2/3): careful +1.03/+1.13/+1.16, careless +0.78/+0.90/+0.98: under Mythic 2.6 for the same
+  reason as Black Hole (one shot counted); flagged for step 16. The look (GuangdongTigerFx;
+  Blender `tiger.py`: no generator or model download was reachable, so the tiger is hand-built:
+  metaball parts coloured per corner (gold fur, cream belly and face, forked black strokes,
+  almond eyes under a black V brow, a red roaring mouth, white fangs and claws) and baked onto
+  decimated, unwrapped meshes, 8.1k triangles; TigerTorso, TigerHead, TigerJaw, four legs and
+  TigerTail with joint markers, TigerSlash, the HalfA/HalfB ball halves, the fur frame image):
+  armed, three diagonal orange gouges pulse under the cue ball; at the swipe the tiger (42 in,
+  its head 1.15x, a black outline) leaps in across the view from off the table, roaring, lands
+  12 in short of the contact (a shake, a thump), winds its near paw up over 0.15 s, strikes
+  down in 0.08 s and freezes 0.06 s on the impact: three thin crescent slashes of light
+  (an orange-red edge round an additive white core, tapering to points) in front of it, three
+  diagonal gouges in the cloth cooling from white-hot to scorched over 1 s, the solid fur frame
+  (V chevrons of thin forked strokes on gold, three jagged slashes) for 0.1 s fading over
+  0.15 s, a light burst, a shake, an FOV punch, a warm colour punch, three slash sounds; each
+  cut ball's copy waits in place until then and splits into two halves 1.25x its size with
+  orange-rimmed hot cut faces and a spurt of white sparks, tumbling about 10 in and fading;
+  the tiger holds, then bounds off the other way and fades (about 1.5 s in all). Studio passes
+  (`/slowmo` 0.1 from the swipe; `/hold` also stops the tiger's clock): 1, matches: a striped
+  tiger landing in profile with its jaw open; doesn't: it leapt in from above the top of the
+  screen, the air slashes thin faint lines, the orange red under the game's grade; more
+  stunning: lower, bolder slashes. 2, matches: the strike reads (the grade punch, the paw down,
+  the halves flying); doesn't: the three beams blurred into one yellow wedge (added orange over
+  green is yellow) and the light washed the halves white, the raised paw hid in front of the
+  head; more stunning: three distinct slashes. 3, matches: three separate orange-gold slashes,
+  the fur frame a strong flash; doesn't: soft bars rather than claws; more stunning: the
+  reference's thin white-hot crescents. The art director, round 1 (5/10): the slashes read as
+  sunbeams, the fur frame as camouflage, the tiger landed on the balls and hid the cut, the
+  grade turned it red, ringed stripes, grey ears, a white-blob face. Acted on: crescent beams in
+  front of the tiger, rebaked chevron fur frame shown solid, the landing moved short of the
+  balls with a wind-up and an impact freeze, gold rebake with forked strokes, coloured ears,
+  lined eyes, brows, a bigger nose, a 42 degree jaw, diagonal cooling gouges, bigger halves with
+  hot faces. Round 2 (7/10): still red-orange in game, sabre-tooth fangs and round pop-eyes,
+  the slash core lost to the grade, faint armed marks. Acted on: a yellower gold (about
+  #F8C650), fangs halved, slanted almond eyes under a V brow, the head 1.15x, wider slashes with
+  an additive white core, sparks at each cut, brighter armed gouges, thicker jagged slashes in
+  the fur frame. Critique left: the tiger still leans orange-red under the grade from some
+  angles; from the shooting camera its head can touch the top of the frame when the contact is
+  far down the table; a turn banner can show over it at `/slowmo` (the server moves on). Frame
+  time: Studio at its 15 fps cap; 8 tiger parts, 6 slash beams, 3 decals, 2 halves and 4 discs
+  a cut ball. No leftovers (1.53 s at full speed), no grade left, console clean. Phone framing
+  is checked in the playthrough. Superseded uploads to archive: models 93994396609133,
+  109390616019165 and 86221317508788; fur-frame decals 122114074802883 and 76952602462039.

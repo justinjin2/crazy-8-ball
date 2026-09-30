@@ -2495,6 +2495,13 @@ Config.Ults = {
 		HoleOpen = { Id = "rbxassetid://9039693523", Volume = 0.8 },
 		HolePull = { Id = "rbxassetid://9118158113", Volume = 0.6, Pitch = 1.1 },
 		HolePop = { Id = "rbxassetid://140323850218372", Volume = 3, Pitch = 0.45 },
+		-- Guangdong Tiger (public library audio, each checked loading in this game, 2026-09-29):
+		-- the leap, "Tiger Roars 9" (Pro Sound Effects, 1.6 s); the swipe, "Red Mist Vertical
+		-- Split" played three times a beat apart, each a little higher; the landing, "Body
+		-- Impact 2" (Pro Sound Effects, a hard thump) pitched down. (tune by ear)
+		TigerRoar = { Id = "rbxassetid://9120047974", Volume = 1.3 },
+		TigerSlash = { Id = "rbxassetid://122411746821632", Volume = 0.9 },
+		TigerThump = { Id = "rbxassetid://9113524237", Volume = 1.4, Pitch = 0.6 },
 	},
 }
 
@@ -2654,10 +2661,10 @@ Config.Ults.GuangdongTiger = {
 	-- opponent's within Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the
 	-- table. (tune)
 	RadiusInches = 20,
-	-- The moment slows for the swipe: this much play (seconds) over this much more wall time
-	-- (about 0.3 s at quarter speed).
-	SlowShotSeconds = 0.075,
-	SlowSeconds = 0.225,
+	-- The moment slows for the tiger: this much play (seconds) over this much more wall time
+	-- (about 0.7 s at a seventh speed: its leap in and the swipe; GuangdongTigerFx's timeline).
+	SlowShotSeconds = 0.1,
+	SlowSeconds = 0.6,
 }
 
 -- Portals (docs/prompts/ABILITIES_PROMPT.md 7.9; src/shared/Ults/Effects/Portals). Where they
@@ -2840,6 +2847,13 @@ Config.Ults.Assets = {
 		-- length along X, flat) and Shard1..12 (the ball shell's pieces, the ball mesh's UVs).
 		BlackFlash = 75008622077798,
 		BlackHole = 86337602765410,
+		-- tools/blender/abilities/tiger.py: the tiger's rigid parts (TigerTorso, TigerHead,
+		-- TigerJaw, TigerLegFL/FR/HL/HR, TigerTail; facing -X, feet at Y 0, left at +Z), its
+		-- joints (J_Head, J_Jaw, J_LegFL/FR/HL/HR, J_Tail), TigerSlash (a flat curved blade, 1
+		-- long along X) and HalfA/HalfB (a unit ball's halves, the cut at Z 0, the ball's UVs).
+		-- Replaces 86221317508788, 109390616019165 and 93994396609133 (redder, ringed
+		-- stripes, a round-eyed face).
+		GuangdongTiger = 119880658779603,
 		-- tools/blender/abilities/heatseeker.py: Reticle (flat), ExhaustFlame (its nozzle at +X,
 		-- its tip at -X) and SmokeRing (flat).
 		HeatSeeker = 130162252552172, -- (the hotter flame; 81275063362861 was the first cut)
@@ -2883,6 +2897,10 @@ Config.Ults.Assets = {
 		-- Black Flash (blackflash.py): the shockwave ring. (Image inside Decal 112993995726160.)
 		FlashRing = "rbxassetid://74704280023743",
 		HolePop = "rbxassetid://121232364344408",
+		-- Guangdong Tiger (tiger.py): the tiger-stripe fur frame (V chevrons of thin forked
+		-- strokes on gold) with three claw slashes, the reference's flash frame. (Image inside
+		-- Decal 87600337874853; replaces Decals 76952602462039 and 122114074802883.)
+		TigerFur = "rbxassetid://131150432548296",
 	} :: { [string]: string },
 	-- The 13 icons (tools/blender/abilities/icons.py: Blender renders, 512 px, transparent),
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
@@ -7902,6 +7920,141 @@ Config.UI.BlackHoleFx = {
 	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no sound
 }
 
+-- Guangdong Tiger's look (src/client/GuangdongTigerFx.luau). Inches and seconds unless named:
+-- the tiger's own clock, from the "swipe" event (the replay is slowed round it by
+-- Config.Ults.GuangdongTiger's slow, the tiger is not). Angles in degrees. (tune)
+Config.UI.GuangdongTigerFx = {
+	-- Armed: three claw marks (the cloth marks' look, MarkHotColor) this many ball widths long
+	-- and wide, diagonal under the cue ball, pulsing ArmedPulseHz times a second between
+	-- ArmedTransparency and fully clear.
+	ArmedMarkBallWidths = 2.4,
+	ArmedMarkWidthBallWidths = 0.8,
+	ArmedPulseHz = 1.2,
+	ArmedTransparency = 0.1,
+	ArmedColor = { 255, 150, 60 },
+	-- The tiger, nose to tail tip, seen side-on (it crosses the view), with a black outline;
+	-- its head and jaw HeadScale times the model's (the face reads from the shooting camera).
+	TigerLengthInches = 42,
+	HeadScale = 1.15,
+	OutlineColor = { 12, 6, 2 },
+	-- The leap in: from LeapFromInches behind where it lands and StartLiftInches up, over
+	-- ArcInches (low: its head stays in the shooting camera's frame), in LeapSeconds; nose up
+	-- LeapPitch[1] at the start to LeapPitch[2] at the end, the front legs reaching
+	-- LeapFrontDegrees forward, the hind ones LeapHindDegrees back.
+	LeapSeconds = 0.42,
+	LeapFromInches = 50,
+	StartLiftInches = 0,
+	ArcInches = 5,
+	LeapPitch = { 18, -10 },
+	LeapFrontDegrees = 60,
+	LeapHindDegrees = 55,
+	-- It lands with its front paws PawBackInches short of the swipe's centre (beside the cut
+	-- balls, not on them), crouching CrouchShare of its height and back over CrouchSeconds; a
+	-- shake and a thump.
+	PawBackInches = 12,
+	CrouchShare = 0.1,
+	CrouchSeconds = 0.18,
+	LandShakeStuds = 0.18,
+	LandShakeSeconds = 0.3,
+	-- The swipe: the paw nearer the camera winds up to PawRaiseDegrees (out PawOutDegrees)
+	-- over RaiseSeconds, strikes down to PawStrikeDegrees over StrikeSeconds and freezes on the
+	-- impact ImpactFreezeSeconds; the jaw opens JawDegrees for the roar, from the leap to
+	-- RoarEndSeconds after the strike.
+	RaiseSeconds = 0.15,
+	StrikeSeconds = 0.08,
+	ImpactFreezeSeconds = 0.06,
+	PawRaiseDegrees = 150,
+	PawOutDegrees = 45,
+	PawStrikeDegrees = -15,
+	JawDegrees = 42,
+	RoarEndSeconds = 0.35,
+	-- At the strike's middle: three slashes in the air, crescents of beams (SlashEdgeColor
+	-- round a SlashCoreColor core SlashCoreShare as wide, the core added light so the grade
+	-- cannot eat it: SlashCoreEmission, SlashCoreBrightness), SlashWidthInches wide in the middle
+	-- tapering to points, SlashLengthInches long, SlashGapInches apart, bowed SlashBow of their
+	-- length; SlashLiftInches over the centre and SlashForwardInches toward the camera (in
+	-- front of the tiger), falling SlashTiltDegrees forward across the view; each
+	-- SlashStaggerSeconds after the one before, drawn in over SlashGrowSeconds, held
+	-- SlashHoldSeconds, fading over SlashFadeSeconds.
+	SlashLengthInches = 28,
+	SlashWidthInches = 1.6,
+	SlashCoreShare = 0.4,
+	SlashCoreEmission = 1,
+	SlashCoreBrightness = 3,
+	SlashGapInches = 3,
+	SlashBow = 0.14, -- about 4 in on a 28 in slash
+	SlashLiftInches = 8,
+	SlashForwardInches = 10,
+	SlashTiltDegrees = 35,
+	SlashStaggerSeconds = 0.02,
+	SlashGrowSeconds = 0.06,
+	SlashHoldSeconds = 0.1,
+	SlashFadeSeconds = 0.35,
+	SlashEdgeColor = { 255, 74, 26 },
+	SlashCoreColor = { 255, 250, 235 },
+	SlashBrightness = 2,
+	SlashEmission = 0.2, -- how much of the beams is added light (1: all; over green reads yellow)
+	-- A SlashColor light burst, a shake, an FOV punch and a colour punch (ScreenFx.grade: in,
+	-- hold, out).
+	SlashColor = { 255, 185, 110 },
+	SlashLightBrightness = 3,
+	SlashLightBallWidths = 22,
+	SlashLightSeconds = 0.3,
+	StrikeShakeStuds = 0.14,
+	StrikeShakeSeconds = 0.25,
+	FovPunchDegrees = 6,
+	FovPunchSeconds = 0.25,
+	StrikeGrade = { Saturation = 0.35, Contrast = 0.35, TintColor = { 255, 220, 180 } },
+	StrikeGradeIn = 0.02,
+	StrikeGradeHold = 0.12,
+	StrikeGradeOut = 0.25,
+	-- And three claw marks gouged in the cloth (the slash picture as a decal), raked
+	-- MarkAngleDegrees off the leap's line: MarkLengthInches long, MarkWidthInches wide,
+	-- MarkGapInches apart, at MarkTransparency; white-hot (MarkHotColor) cooling to scorched
+	-- (MarkScorchColor) over MarkCoolSeconds, held MarkHoldSeconds, fading over MarkFadeSeconds.
+	MarkAngleDegrees = 35,
+	MarkLengthInches = 20,
+	MarkWidthInches = 1.6,
+	MarkGapInches = 3.5,
+	MarkTransparency = 0,
+	MarkHotColor = { 255, 245, 230 },
+	MarkScorchColor = { 120, 45, 25 },
+	MarkCoolSeconds = 1,
+	MarkHoldSeconds = 0.9,
+	MarkFadeSeconds = 0.5,
+	-- The fur frame (Config.Ults.Assets.Images.TigerFur) over the whole view: in, hold, out, at
+	-- FurTransparency (solid: the reference's flash frame).
+	FurFadeIn = 0,
+	FurHold = 0.1,
+	FurFadeOut = 0.15,
+	FurTransparency = 0,
+	-- Each cut ball waits where it was until the strike, then splits along the slash into
+	-- halves HalfScale times its size, each with a hot cut face (a CutRimColor rim round a
+	-- CutCoreColor core): they fly apart at HalfSpeedInches a second (HalfUpInches a second
+	-- up), under HalfGravityInches, spinning HalfSpinDegrees a second, fading over HalfSeconds
+	-- (about 8-12 in of tumble); each ball CutStaggerSeconds after the one before.
+	HalfScale = 1.25,
+	CutSparks = 8, -- and a burst of white sparks where the slash crosses the ball
+	CutSparkColor = { 255, 245, 225 },
+	CutRimColor = { 255, 110, 30 },
+	CutCoreColor = { 255, 236, 205 },
+	HalfSpeedInches = 18,
+	HalfUpInches = 14,
+	HalfGravityInches = 120,
+	HalfSpinDegrees = 300,
+	HalfSeconds = 0.55,
+	CutStaggerSeconds = 0.025,
+	-- It holds HoldSeconds after the freeze, then bounds off forward: LeapOutInches, over
+	-- LeapOutArcInches, in LeapOutSeconds, fading over its last FadeSeconds.
+	HoldSeconds = 0.3,
+	LeapOutInches = 56,
+	LeapOutArcInches = 10,
+	LeapOutSeconds = 0.55,
+	FadeSeconds = 0.15,
+	ModelCheckSeconds = 1, -- while the model has not arrived, look for it this often
+	FreshSeconds = 0.4, -- a moment the replay only caught up with (a late join) gets no tiger
+}
+
 -- The abilities' shared look framework (src/client/AbilityFx.luau and its kit; the brief's
 -- step 1, docs/prompts/ABILITIES_PROMPT.md 5). Studs unless named. (tune)
 Config.UI.AbilityFx = {
@@ -7920,6 +8073,7 @@ Config.UI.AbilityFx = {
 		SteelBall = "SteelBallFx",
 		BlackFlash = "BlackFlashFx",
 		BlackHole = "BlackHoleFx",
+		GuangdongTiger = "GuangdongTigerFx",
 	} :: { [string]: string },
 	-- A table's effects are let go this long after its last shot ends with no ult armed (so a
 	-- payoff can fade out); kit.keep holds them longer.

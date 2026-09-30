@@ -49,6 +49,17 @@
     "assetType": "Model",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/GuangdongTiger/GuangdongTiger.glb": {
+    "assetId": "119880658779603",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/abilities/GuangdongTiger/textures/fur_frame.png": {
+    "assetId": "87600337874853",
+    "assetType": "Decal",
+    "imageId": "131150432548296",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/abilities/HeatSeeker/HeatSeeker.glb": {
     "assetId": "130162252552172",
     "assetType": "Model",
