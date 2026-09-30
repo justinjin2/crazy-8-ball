@@ -2,7 +2,7 @@
   "id": "celestial_dragon_pocket",
   "Frame": "pocket",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 19500,
+  "Triangles": 27500,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -10,28 +10,69 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "pieces/celestial_dragon_pocket/PocketDragon_base_color.png",
+        "ColorMap": "pieces/celestial_dragon_pocket/PocketDragon_spirit.png",
         "EmissiveMask": "pieces/celestial_dragon_pocket/PocketDragon_emissive.png",
-        "EmissiveTint": "#8CC8FF",
-        "EmissiveStrength": 2.0,
+        "EmissiveTint": "#7AC0FF",
+        "EmissiveStrength": 1.8,
         "NormalMap": "pieces/celestial_dragon_pocket/PocketDragon_normal.png",
-        "RoughnessMap": "pieces/celestial_dragon_pocket/PocketDragon_roughness.png",
-        "MetalnessMap": "pieces/celestial_dragon_pocket/PocketDragon_metallic.png"
+        "AlphaMode": "Transparency"
       },
-      "Name": "Body_PocketDragon",
-      "File": "pieces/celestial_dragon_pocket/Body_PocketDragon.obj",
+      "Name": "PocketDragon",
+      "File": "pieces/celestial_dragon_pocket/PocketDragon.glb",
+      "Mesh": "PocketDragonSkin",
       "Joint": "Body",
+      "Skinned": true,
+      "Bones": [
+        "Body",
+        "Neck",
+        "Head",
+        "Jaw",
+        "Mane",
+        "ArmRight",
+        "ArmLeft"
+      ],
+      "Triangles": 19500,
       "Offset": [
-        -0.0024,
+        -0.0046,
         1.5985,
-        -0.0046
+        0.0024
       ],
       "Size": [
-        1.4668,
+        1.5422,
         3.2085,
-        1.5422
+        1.4668
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#CFEAFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "PocketDragonShell",
+      "File": "pieces/celestial_dragon_pocket/PocketDragon.glb",
+      "Mesh": "PocketDragonShellSkin",
+      "Joint": "Body",
+      "Skinned": true,
+      "Bones": [
+        "Body",
+        "Neck",
+        "Head",
+        "Jaw",
+        "Mane",
+        "ArmRight",
+        "ArmLeft"
       ],
-      "Triangles": 19500
+      "Triangles": 8000,
+      "Offset": [
+        -0.0019,
+        1.5951,
+        0.0105
+      ],
+      "Size": [
+        1.594,
+        3.2756,
+        1.5044
+      ]
     }
   ],
   "Joints": {
@@ -51,8 +92,8 @@
         {
           "Kind": "Hinge",
           "Axis": [
+            -1,
             0,
-            1,
             0
           ],
           "Amp": 4.0,
@@ -61,13 +102,179 @@
         {
           "Kind": "Hinge",
           "Axis": [
-            1,
             0,
+            1,
             0
           ],
           "Amp": 3.0,
           "Period": 1.9,
           "Phase": 60
+        }
+      ]
+    },
+    "Neck": {
+      "Parent": "Body",
+      "Pivot": [
+        -0.0,
+        0,
+        1.9
+      ],
+      "PivotRoblox": [
+        0.0,
+        1.9,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -1,
+            0,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 2.2,
+          "Phase": 30
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 1.7
+        }
+      ]
+    },
+    "Head": {
+      "Parent": "Neck",
+      "Pivot": [
+        0.2,
+        0,
+        2.35
+      ],
+      "PivotRoblox": [
+        -0.2,
+        2.35,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 6.0,
+          "Period": 1.6,
+          "Phase": 90
+        }
+      ]
+    },
+    "Jaw": {
+      "Parent": "Head",
+      "Pivot": [
+        0.36,
+        0,
+        2.45
+      ],
+      "PivotRoblox": [
+        -0.36,
+        2.45,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Base": 9.0,
+          "Amp": 9.0,
+          "Period": 1.2
+        }
+      ]
+    },
+    "Mane": {
+      "Parent": "Head",
+      "Pivot": [
+        -0.2,
+        0,
+        2.3
+      ],
+      "PivotRoblox": [
+        0.2,
+        2.3,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 6.0,
+          "Period": 1.1,
+          "Phase": 45
+        }
+      ]
+    },
+    "ArmRight": {
+      "Parent": "Neck",
+      "Pivot": [
+        0.3,
+        0.2,
+        1.75
+      ],
+      "PivotRoblox": [
+        -0.3,
+        1.75,
+        0.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 12.0,
+          "Period": 1.4,
+          "Phase": 0
+        }
+      ]
+    },
+    "ArmLeft": {
+      "Parent": "Neck",
+      "Pivot": [
+        0.3,
+        -0.2,
+        1.75
+      ],
+      "PivotRoblox": [
+        -0.3,
+        1.75,
+        -0.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 12.0,
+          "Period": 1.4,
+          "Phase": 120
         }
       ]
     }

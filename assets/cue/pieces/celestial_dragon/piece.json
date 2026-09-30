@@ -1,7 +1,8 @@
 {
   "id": "celestial_dragon",
+  "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 29740,
+  "Triangles": 37740,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -9,17 +10,24 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "pieces/celestial_dragon/DragonHead_base_color.png",
+        "ColorMap": "pieces/celestial_dragon/DragonHead_spirit.png",
         "EmissiveMask": "pieces/celestial_dragon/DragonHead_emissive.png",
-        "EmissiveTint": "#7FC8FF",
-        "EmissiveStrength": 3.0,
+        "EmissiveTint": "#8CC8FF",
+        "EmissiveStrength": 1.8,
         "NormalMap": "pieces/celestial_dragon/DragonHead_normal.png",
-        "RoughnessMap": "pieces/celestial_dragon/DragonHead_roughness.png",
-        "MetalnessMap": "pieces/celestial_dragon/DragonHead_metallic.png"
+        "AlphaMode": "Transparency"
       },
-      "Name": "Head_DragonHead",
-      "File": "pieces/celestial_dragon/Head_DragonHead.obj",
+      "Name": "DragonHead",
+      "File": "pieces/celestial_dragon/DragonHead.glb",
+      "Mesh": "DragonHeadSkin",
       "Joint": "Head",
+      "Skinned": true,
+      "Bones": [
+        "Head",
+        "Jaw",
+        "Mane"
+      ],
+      "Triangles": 19500,
       "Offset": [
         -0.0003,
         0.1647,
@@ -29,8 +37,34 @@
         0.5076,
         0.5334,
         0.7814
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#CFEAFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "DragonHeadShell",
+      "File": "pieces/celestial_dragon/DragonHead.glb",
+      "Mesh": "DragonHeadShellSkin",
+      "Joint": "Head",
+      "Skinned": true,
+      "Bones": [
+        "Head",
+        "Jaw",
+        "Mane"
       ],
-      "Triangles": 19500
+      "Triangles": 8000,
+      "Offset": [
+        -0.0,
+        0.1667,
+        -3.6523
+      ],
+      "Size": [
+        0.507,
+        0.5476,
+        0.7856
+      ]
     },
     {
       "Material": "ForceField",
@@ -123,6 +157,58 @@
         3.5
       ],
       "Motion": []
+    },
+    "Jaw": {
+      "Parent": "Head",
+      "Pivot": [
+        0,
+        -7.22,
+        0.02
+      ],
+      "PivotRoblox": [
+        0,
+        0.02,
+        -3.72
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Base": 11.0,
+          "Amp": 11.0,
+          "Period": 2.4
+        }
+      ]
+    },
+    "Mane": {
+      "Parent": "Head",
+      "Pivot": [
+        0,
+        -7.1,
+        0.15
+      ],
+      "PivotRoblox": [
+        0,
+        0.15,
+        -3.6
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 1.3,
+          "Phase": 60
+        }
+      ]
     }
   }
 }

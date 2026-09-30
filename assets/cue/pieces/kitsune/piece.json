@@ -1,7 +1,8 @@
 {
   "id": "kitsune",
+  "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 14000,
+  "Triangles": 22000,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -9,17 +10,25 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "pieces/kitsune/FoxMask_base_color.png",
+        "ColorMap": "pieces/kitsune/FoxMask_spirit.png",
         "EmissiveMask": "pieces/kitsune/FoxMask_emissive.png",
-        "EmissiveTint": "#C070FF",
-        "EmissiveStrength": 3.0,
+        "EmissiveTint": "#D8B8FF",
+        "EmissiveStrength": 1.6,
         "NormalMap": "pieces/kitsune/FoxMask_normal.png",
-        "RoughnessMap": "pieces/kitsune/FoxMask_roughness.png",
-        "MetalnessMap": "pieces/kitsune/FoxMask_metallic.png"
+        "AlphaMode": "Transparency"
       },
-      "Name": "Mask_FoxMask",
-      "File": "pieces/kitsune/Mask_FoxMask.obj",
+      "Name": "FoxMask",
+      "File": "pieces/kitsune/FoxMask.glb",
+      "Mesh": "FoxMaskSkin",
       "Joint": "Mask",
+      "Skinned": true,
+      "Bones": [
+        "Mask",
+        "EarRight",
+        "EarLeft",
+        "Jaw"
+      ],
+      "Triangles": 14000,
       "Offset": [
         -0.0048,
         -0.0218,
@@ -29,8 +38,35 @@
         0.2553,
         0.3898,
         0.525
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#C070FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "FoxMaskShell",
+      "File": "pieces/kitsune/FoxMask.glb",
+      "Mesh": "FoxMaskShellSkin",
+      "Joint": "Mask",
+      "Skinned": true,
+      "Bones": [
+        "Mask",
+        "EarRight",
+        "EarLeft",
+        "Jaw"
       ],
-      "Triangles": 14000
+      "Triangles": 8000,
+      "Offset": [
+        -0.0056,
+        -0.0215,
+        -3.7116
+      ],
+      "Size": [
+        0.2667,
+        0.4029,
+        0.5383
+      ]
     }
   ],
   "Joints": {
@@ -67,6 +103,86 @@
           "Amp": 2.0,
           "Period": 3.1,
           "Phase": 70
+        }
+      ]
+    },
+    "EarRight": {
+      "Parent": "Mask",
+      "Pivot": [
+        0.07,
+        -7.28,
+        0.07
+      ],
+      "PivotRoblox": [
+        -0.07,
+        0.07,
+        -3.78
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 14.0,
+          "Period": 2.6,
+          "Phase": 0,
+          "Shape": "pulse"
+        }
+      ]
+    },
+    "EarLeft": {
+      "Parent": "Mask",
+      "Pivot": [
+        -0.07,
+        -7.28,
+        0.07
+      ],
+      "PivotRoblox": [
+        0.07,
+        0.07,
+        -3.78
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            -1,
+            0
+          ],
+          "Amp": 14.0,
+          "Period": 2.6,
+          "Phase": 150,
+          "Shape": "pulse"
+        }
+      ]
+    },
+    "Jaw": {
+      "Parent": "Mask",
+      "Pivot": [
+        0,
+        -7.3,
+        -0.12
+      ],
+      "PivotRoblox": [
+        0,
+        -0.12,
+        -3.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Base": 5.0,
+          "Amp": 5.0,
+          "Period": 3.0
         }
       ]
     }

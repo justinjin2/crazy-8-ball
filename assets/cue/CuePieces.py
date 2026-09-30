@@ -151,6 +151,8 @@ class Kit:
         # with the origin at the pocket's mouth, Z up, the front toward -Y (a pocket finisher's
         # creature, placed and turned by the finisher)
         self.frame = 'cue'
+        # skinned models: name -> {'root': joint, 'bones': {bone: weight fn}, 'meshes': [objects]}
+        self.skins = {}
 
     # ---- materials ----------------------------------------------------------------------------
     def material(self, name, Material='SmoothPlastic', Color='#FFFFFF', Transparency=0.0, Reflectance=0.0,
@@ -161,7 +163,7 @@ class Kit:
         return name
 
     def model(self, joint, name, model, place, target_tris=14000, emissive=None, emissive_tint='#FFFFFF',
-              emissive_strength=1.0, texture_px=1024, cut_below=None):
+              emissive_strength=1.0, texture_px=1024, cut_below=None, bones=None, hologram=None):
         """A generated model (assets/cue/models/<model>/, tools/meshy_generate.py) as one textured
         part on `joint`: imported, placed by place(obs) -> 4x4 Matrix (the caller measures the model
         and returns where it goes in the cue frame), reduced to target_tris (a collapse decimate,
@@ -169,7 +171,22 @@ class Kit:
         texture_px (Roblox's SurfaceAppearance limit is 1024) and worn as a SurfaceAppearance.
         emissive(rgb float array HxWx3) -> mask HxW in 0..1 makes the EmissiveMask from the colour
         map (the eyes, a gem). cut_below (0..1) removes everything below that fraction of the
-        model's own height and closes the hole (a bust's collar and lower neck). Returns the object."""
+        model's own height and closes the hole (a bust's collar and lower neck).
+
+        bones (designer, 2026-09-30: the creatures rigged and animated, not static models): an
+        ordered {bone: weight(V) -> 0..1} of bones already declared with joint() (parent first,
+        each under `joint` or another listed bone). The model becomes one skinned mesh: `joint` is
+        the root bone and each bone takes weight(V) of its parent's share of every vertex (V the
+        vertex positions, n x 3, in the piece's frame), so the mesh bends smoothly; the bones move
+        by their joints' motions (Hinge, Spin, Bob, Sway) exactly as rigid joints do. It is exported
+        as a skinned GLB (see export_skin).
+
+        hologram (designer, 2026-09-30: spiritual energy, holograms, not solid models): {'Tint',
+        'Strength', 'Shell', 'ShellOffset', 'ShellTris', 'Alpha'}. The SurfaceAppearance becomes a
+        see-through glowing spirit of the model's own texture (ColorMap in the tint, its alpha from
+        the brightness, AlphaMode Transparency, glowing all over, the emissive() parts brightest),
+        and a ForceField shell (the same mesh pushed out by ShellOffset of its height, reduced to
+        ShellTris) gives the shimmering hologram rim. Returns the object."""
         import numpy as np
         bpy = self.bpy
         src = os.path.join(HERE, 'models', model)
@@ -247,13 +264,96 @@ class Kit:
                 em.file_format = 'PNG'
                 em.save()
                 sa.update({'EmissiveMask': rel_e, 'EmissiveTint': emissive_tint, 'EmissiveStrength': emissive_strength})
+        if hologram:
+            sa = self._spirit_maps(name, sa, emissive, hologram, ob)
         self.material(name, 'SmoothPlastic', '#FFFFFF', SurfaceAppearance=sa)
         ob.data.materials.clear()
         ob.data.materials.append(self.blender_mat(name))
         for poly in ob.data.polygons:
             poly.material_index = 0
         self.add(joint, ob)
+        meshes = [ob]
+        if hologram:
+            meshes.append(self._shell(ob, joint, name, hologram))
+        if bones:
+            self.skins[name] = {'root': joint, 'bones': bones, 'meshes': meshes}
         return ob
+
+    def _spirit_maps(self, name, sa, emissive, holo, ob):
+        """The hologram's SurfaceAppearance: the colour map redrawn as glowing see-through energy in
+        the tint (bright details more solid, dark ones faint, never white-out), thin level scanlines
+        cut through it (baked from each texel's height on the model, so they run level across the
+        whole creature, as a hologram's do), an emissive mask glowing all over with the emissive()
+        parts (eyes) brightest; the normal map kept for the surface detail."""
+        import numpy as np
+        bpy = self.bpy
+        img = bpy.data.images.load(os.path.join(HERE, sa['ColorMap']), check_existing=False)
+        w, h = img.size
+        px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[..., :3]
+        luma = np.clip(px[..., 0] * 0.3 + px[..., 1] * 0.59 + px[..., 2] * 0.11, 0, 1)
+        tint = np.array(srgb_to_lin(hexrgb(holo['Tint'])), np.float32)
+        lo, hi = holo.get('Alpha', (0.04, 0.32))
+        col = tint[None, None, :] * (0.25 + 0.6 * luma[..., None]) + (luma[..., None] ** 3) * 0.12
+        eyes = np.clip(emissive(px), 0, 1) if emissive is not None else np.zeros_like(luma)
+        col = col + eyes[..., None] * 0.6
+        alpha = np.clip(lo + (hi - lo) * luma ** 1.1 + 0.4 * eyes, 0, 0.95)
+        zmap = texel_heights(ob, w, h)
+        ok = np.isfinite(zmap)
+        zs = [v.co.z for v in ob.data.vertices]
+        step = (max(zs) - min(zs)) / float(holo.get('Lines', 48))
+        band = (0.5 + 0.5 * np.cos(2 * np.pi * np.where(ok, zmap, 0) / step)) ** 6
+        lines = np.where(ok, band, 0.0)
+        alpha = np.clip(alpha * (0.6 + 0.4 * (1 - lines)) + 0.35 * lines, 0, 0.95)
+        col = np.clip(col + lines[..., None] * tint[None, None, :] * 0.5, 0, 1)
+        out = bpy.data.images.new(name + '_spirit', w, h, alpha=True)
+        out.pixels.foreach_set(np.concatenate([np.clip(col, 0, 1), alpha[..., None]], -1).astype(np.float32).ravel())
+        rel = 'pieces/%s/%s_spirit.png' % (self.pid, name)
+        out.filepath_raw = os.path.join(HERE, rel)
+        out.file_format = 'PNG'
+        out.save()
+        mask = np.clip(0.22 + 0.4 * luma + 0.3 * lines + eyes, 0, 1)
+        em = bpy.data.images.new(name + '_spirit_emissive', w, h, alpha=False)
+        em.pixels.foreach_set(np.concatenate([np.repeat(mask[..., None], 3, -1), np.ones((h, w, 1), np.float32)],
+                                             -1).astype(np.float32).ravel())
+        rel_e = 'pieces/%s/%s_emissive.png' % (self.pid, name)
+        em.filepath_raw = os.path.join(HERE, rel_e)
+        em.file_format = 'PNG'
+        em.save()
+        for key in ('RoughnessMap', 'MetalnessMap'):
+            p = sa.pop(key, None)
+            if p and os.path.isfile(os.path.join(HERE, p)):
+                os.remove(os.path.join(HERE, p))
+        old = os.path.join(HERE, sa['ColorMap'])
+        if os.path.isfile(old):
+            os.remove(old)
+        sa.update({'ColorMap': rel, 'AlphaMode': 'Transparency', 'EmissiveMask': rel_e,
+                   'EmissiveTint': holo['Tint'], 'EmissiveStrength': float(holo.get('Strength', 1.8))})
+        return sa
+
+    def _shell(self, ob, joint, name, holo):
+        """The hologram's shimmering ForceField shell: a reduced copy pushed out along its normals."""
+        bpy = self.bpy
+        sh = ob.copy()
+        sh.data = ob.data.copy()
+        sh.name = name + 'Shell'
+        bpy.context.scene.collection.objects.link(sh)
+        tris = sum(len(p.vertices) - 2 for p in sh.data.polygons)
+        target = int(holo.get('ShellTris', 8000))
+        if tris > target:
+            apply_modifier(bpy, sh, 'DECIMATE', decimate_type='COLLAPSE', ratio=target / tris,
+                           use_collapse_triangulate=True)
+        zs = [v.co.z for v in sh.data.vertices]
+        ys = [v.co.y for v in sh.data.vertices]
+        size = max(max(zs) - min(zs), max(ys) - min(ys))
+        apply_modifier(bpy, sh, 'DISPLACE', strength=float(holo.get('ShellOffset', 0.012)) * size, mid_level=0.0)
+        mname = name + 'Shell'
+        self.material(mname, 'ForceField', holo.get('Shell', holo['Tint']))
+        sh.data.materials.clear()
+        sh.data.materials.append(self.blender_mat(mname))
+        for poly in sh.data.polygons:
+            poly.material_index = 0
+        self.add(joint, sh)
+        return sh
 
     def blender_mat(self, name):
         bpy = self.bpy
@@ -303,7 +403,19 @@ def make_textured_material(bpy, key, sa):
         node.image = img
         return node
     if sa.get('ColorMap'):
-        nt.links.new(tex(sa['ColorMap'], True).outputs['Color'], bsdf.inputs['Base Color'])
+        cm = tex(sa['ColorMap'], True)
+        nt.links.new(cm.outputs['Color'], bsdf.inputs['Base Color'])
+        if sa.get('AlphaMode') == 'Transparency':
+            # a hologram: the colour map's alpha is the surface's transparency
+            nt.links.new(cm.outputs['Alpha'], bsdf.inputs['Alpha'])
+            try:
+                mat.surface_render_method = 'BLENDED'
+            except Exception:
+                mat.blend_method = 'BLEND'
+            try:
+                mat.use_transparency_overlap = True
+            except Exception:
+                pass
     if sa.get('RoughnessMap'):
         nt.links.new(tex(sa['RoughnessMap']).outputs['Color'], bsdf.inputs['Roughness'])
     else:
@@ -378,6 +490,56 @@ def make_blender_material(bpy, key, spec):
 
 
 # ---- shape helpers -------------------------------------------------------------------------------
+
+def texel_heights(ob, w, h):
+    """The height (Z in the piece's frame) of the surface under each texel of a w x h texture
+    (NaN where no face covers it): the faces rasterised in UV space with barycentric heights."""
+    import numpy as np
+    me = ob.data
+    nl = len(me.loops)
+    uv = np.zeros(nl * 2, np.float32)
+    me.uv_layers.active.data.foreach_get('uv', uv)
+    uv = uv.reshape(-1, 2)
+    vi = np.zeros(nl, np.int32)
+    me.loops.foreach_get('vertex_index', vi)
+    co = np.zeros(len(me.vertices) * 3, np.float32)
+    me.vertices.foreach_get('co', co)
+    co = co.reshape(-1, 3)
+    M = np.array(ob.matrix_world)
+    z = (co @ M[:3, :3].T + M[:3, 3])[:, 2]
+    Z = np.full((h, w), np.nan, np.float32)
+    for poly in me.polygons:
+        ls = list(range(poly.loop_start, poly.loop_start + poly.loop_total))
+        for k in range(1, len(ls) - 1):
+            tri = [ls[0], ls[k], ls[k + 1]]
+            P = uv[tri] * [w, h]
+            zz = z[vi[tri]]
+            x0, y0 = np.floor(P.min(0)).astype(int)
+            x1, y1 = np.ceil(P.max(0)).astype(int)
+            x0, y0 = max(x0, 0), max(y0, 0)
+            x1, y1 = min(x1, w - 1), min(y1, h - 1)
+            if x1 < x0 or y1 < y0:
+                continue
+            gy, gx = np.mgrid[y0:y1 + 1, x0:x1 + 1]
+            px, py = gx + 0.5, gy + 0.5
+            (ax, ay), (bx, by), (cx, cy) = P
+            den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+            if abs(den) < 1e-9:
+                continue
+            l1 = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / den
+            l2 = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / den
+            l3 = 1 - l1 - l2
+            inside = (l1 >= -0.02) & (l2 >= -0.02) & (l3 >= -0.02)
+            Z[gy[inside], gx[inside]] = (l1 * zz[0] + l2 * zz[1] + l3 * zz[2])[inside]
+    return Z
+
+
+def ramp(v, a, b):
+    """A smoothstep weight: 0 at a, 1 at b (either way round), for bone weight functions."""
+    import numpy as np
+    t = np.clip((np.asarray(v, float) - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
+
 
 def frame_along(p0, p1, up_hint=(0, 0, 1)):
     from mathutils import Vector
@@ -501,13 +663,20 @@ def export(kit):
     out = os.path.join(PIECES_DIR, kit.pid)
     os.makedirs(out, exist_ok=True)
     for f in os.listdir(out):
-        if f.endswith('.obj'):
+        if f.endswith('.obj') or f.endswith('.glb'):
             os.remove(os.path.join(out, f))
     parts = []
     tris_total = 0
+    skinned = {o.name for sk in kit.skins.values() for o in sk['meshes']}
+    for sname, sk in kit.skins.items():
+        sp = export_skin(kit, sname, sk, out)
+        parts += sp
+        tris_total += sum(x['Triangles'] for x in sp)
     for jname, j in kit.joints.items():
         by_mat = {}
         for ob in j['objects']:
+            if ob.name in skinned:
+                continue
             me = ob.data
             for mi, slot in enumerate(ob.material_slots):
                 mname = slot.material.name.split('PM_%s_' % kit.pid, 1)[-1]
@@ -573,9 +742,140 @@ def export(kit):
     return spec
 
 
+def export_matrix(frame):
+    """E: the piece's Blender frame -> the frame a skinned GLB is written in, chosen so that the
+    glTF exporter's Z-up to Y-up turn (x, y, z) -> (x, z, -y) lands it in the Roblox cue frame
+    (X = -Side, Y = Up, Z = ZOFF - Blender Y... that is 3.5 - AtStuds on the cue), not recentred."""
+    from mathutils import Matrix
+    return Matrix(((-1, 0, 0, 0), (0, -1, 0, -ZOFF[frame]), (0, 0, 1, 0), (0, 0, 0, 1)))
+
+
+def skin_weights(kit, sk, V):
+    """Each bone's weight per vertex: all on the root, then each bone (parent first) takes its
+    weight function's share of its parent's weight."""
+    import numpy as np
+    W = {sk['root']: np.ones(len(V))}
+    for b, fn in sk['bones'].items():
+        parent = kit.joints[b]['Parent']
+        share = np.clip(np.asarray(fn(V), float), 0, 1) * W[parent]
+        W[b] = share
+        W[parent] = W[parent] - share
+    return W
+
+
+def export_skin(kit, sname, sk, out):
+    """One skinned model as pieces/<pid>/<name>.glb: an armature of the root joint and its bones
+    (each bone's head at its joint's pivot, pointing up, unrotated), the model and its hologram
+    shell bound to it with the procedural weights, UVs and normals, no materials (they are the
+    SurfaceAppearance and Material in piece.json). Written in the Roblox cue frame (export_matrix):
+    Roblox's importer gives a Model of skinned MeshParts sharing the Bones; each frame a script sets
+    every Bone's Transform = Rest^-1 * J_parent(t)^-1 * J_bone(t) * Rest, J the joint's matrix
+    (joint_matrix, the same maths as the rigid parts) turned into the Roblox cue frame and Rest the
+    bone's rest CFrame in the model. Returns the part specs."""
+    import numpy as np
+    from mathutils import Matrix, Vector
+    bpy = kit.bpy
+    E = export_matrix(kit.frame)
+    names = [sk['root']] + list(sk['bones'])
+    arm_data = bpy.data.armatures.new(sname + 'Rig')
+    arm = bpy.data.objects.new(sname + 'Rig', arm_data)
+    bpy.context.scene.collection.objects.link(arm)
+    for o in bpy.context.selected_objects:
+        o.select_set(False)
+    bpy.context.view_layer.objects.active = arm
+    arm.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    ebs = {}
+    for n in names:
+        eb = arm_data.edit_bones.new(n)
+        head = E @ Vector(kit.joints[n]['Pivot'])
+        eb.head = head
+        eb.tail = head + Vector((0, 0, 0.06))
+        ebs[n] = eb
+    for n in names:
+        par = kit.joints[n]['Parent']
+        if par in ebs and n != sk['root']:
+            ebs[n].parent = ebs[par]
+    bpy.ops.object.mode_set(mode='OBJECT')
+    copies, specs = [], []
+    for ob in sk['meshes']:
+        V = np.array([ob.matrix_world @ v.co for v in ob.data.vertices])
+        W = skin_weights(kit, sk, V)
+        cp = ob.copy()
+        cp.data = ob.data.copy()
+        cp.data.materials.clear()
+        cp.name = cp.data.name = ob.name + 'Skin'
+        bpy.context.scene.collection.objects.link(cp)
+        cp.data.transform(E @ ob.matrix_world)
+        cp.matrix_world = Matrix.Identity(4)
+        for n in names:
+            vg = cp.vertex_groups.new(name=n)
+            w = W[n]
+            for i in np.nonzero(w > 1e-3)[0]:
+                vg.add([int(i)], float(w[i]), 'REPLACE')
+        cp.parent = arm
+        mod = cp.modifiers.new('Rig', 'ARMATURE')
+        mod.object = arm
+        copies.append(cp)
+        mname = ob.data.materials[0].name.split('PM_%s_' % kit.pid, 1)[-1]
+        tris = sum(len(p.vertices) - 2 for p in ob.data.polygons)
+        spec = dict(kit.mats[mname])
+        X = np.array([v.co[:] for v in cp.data.vertices])
+        R = np.stack([X[:, 0], X[:, 2], -X[:, 1]], 1)          # as glTF writes it: the Roblox cue frame
+        lo, hi = R.min(0), R.max(0)
+        spec.update({'Name': ob.name, 'File': 'pieces/%s/%s.glb' % (kit.pid, sname), 'Mesh': cp.name,
+                     'Joint': sk['root'], 'Skinned': True, 'Bones': names, 'Triangles': tris,
+                     'Offset': [round(float(x), 4) for x in (lo + hi) / 2],
+                     'Size': [round(float(x), 4) for x in hi - lo]})
+        specs.append((spec, cp))
+    for o in bpy.context.selected_objects:
+        o.select_set(False)
+    arm.select_set(True)
+    for cp in copies:
+        cp.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.export_scene.gltf(filepath=os.path.join(out, sname + '.glb'), export_format='GLB', use_selection=True,
+                              export_skins=True, export_materials='NONE', export_texcoords=True,
+                              export_normals=True, export_animations=False, export_yup=True)
+    for spec, cp in specs:
+        spec['Mesh'] = cp.name
+    result = [spec for spec, _ in specs]
+    for cp in copies:
+        bpy.data.objects.remove(cp)
+    bpy.data.objects.remove(arm)
+    return result
+
+
 # =============================================================================================
 # The preview side: load a built piece onto the cue and move it
 # =============================================================================================
+
+def _import_skin(bpy, path, parent, frame):
+    """Import a skinned piece GLB under a holder that turns it back from the Roblox cue frame
+    into the piece's Blender frame. Returns (armature, {mesh name: object})."""
+    from mathutils import Matrix
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    new = [o for o in bpy.data.objects if o not in before]
+    holder = bpy.data.objects.new('PS_' + os.path.basename(path), None)
+    bpy.context.scene.collection.objects.link(holder)
+    holder.parent = parent
+    holder.matrix_parent_inverse = Matrix.Identity(4)
+    holder.matrix_basis = export_matrix(frame).inverted()
+    for o in new:
+        if o.parent is None:
+            mb = o.matrix_basis.copy()
+            o.parent = holder
+            o.matrix_parent_inverse = Matrix.Identity(4)
+            o.matrix_basis = mb
+    arm = next(o for o in new if o.type == 'ARMATURE')
+    meshes = {}
+    for o in new:
+        if o.type == 'MESH':
+            meshes[o.name] = o
+            meshes[o.data.name] = o
+    return arm, meshes
+
 
 def attach(bpy, pid, cue_obj):
     """Import pieces/<pid>/ onto cue_obj (parented, so it follows the cue). Returns
@@ -594,7 +894,20 @@ def attach(bpy, pid, cue_obj):
         bpy.context.scene.collection.objects.link(e)
         e.parent = cue_obj
         empties[jname] = e
+    rigs = []                      # (armature, holder) of each skinned GLB
+    imported = {}
     for part in spec['Parts']:
+        if part.get('Skinned'):
+            if part['File'] not in imported:
+                imported[part['File']] = _import_skin(bpy, os.path.join(HERE, part['File']), cue_obj,
+                                                      spec.get('Frame', 'cue'))
+                rigs.append(imported[part['File']][0])
+            arm, meshes = imported[part['File']]
+            ob = meshes.get(part['Mesh']) or meshes.get(part['Name'])
+            ob.data.materials.clear()
+            ob.data.materials.append(make_blender_material(bpy, 'PMv_%s_%s' % (pid, part['Name']), part))
+            parts.append(ob)
+            continue
         V, F, VT, FT = [], [], [], []
         for line in open(os.path.join(HERE, part['File'])):
             if line.startswith('v '):
@@ -625,10 +938,29 @@ def attach(bpy, pid, cue_obj):
         ob.data.materials.append(make_blender_material(bpy, 'PMv_%s_%s' % (pid, part['Name']), part))
         ob.parent = empties[part['Joint']]
         parts.append(ob)
+    E = export_matrix(spec.get('Frame', 'cue'))
+    Ei = E.inverted()
+
     def animate(t):
         for jname, e in empties.items():
             e.matrix_parent_inverse = Matrix.Identity(4)
             e.matrix_basis = Matrix(joint_matrix(joints, jname, t).tolist())
+        for arm in rigs:
+            # pose = K_bone @ Rest in armature space, K = A^-1 E J E^-1 A (J the joint's matrix in
+            # the piece frame, A the armature's own transform under its holder)
+            A = arm.matrix_basis
+            Ai = A.inverted()
+            K = {}
+            for pb in arm.pose.bones:
+                if pb.name in joints:
+                    K[pb.name] = Ai @ E @ Matrix(joint_matrix(joints, pb.name, t).tolist()) @ Ei @ A
+            for pb in arm.pose.bones:
+                if pb.name not in K:
+                    continue
+                B = pb.bone.matrix_local
+                Kp = K.get(pb.parent.name) if pb.parent else None
+                rel = K[pb.name] if Kp is None else Kp.inverted() @ K[pb.name]
+                pb.matrix_basis = B.inverted() @ rel @ B
     animate(0.0)
     animate.parts = parts          # the part objects, for a finisher that fades them
     return animate

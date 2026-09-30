@@ -2,7 +2,7 @@
   "id": "kitsune_pocket",
   "Frame": "pocket",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 19500,
+  "Triangles": 27500,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -10,17 +10,25 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "pieces/kitsune_pocket/PocketFox_base_color.png",
+        "ColorMap": "pieces/kitsune_pocket/PocketFox_spirit.png",
         "EmissiveMask": "pieces/kitsune_pocket/PocketFox_emissive.png",
-        "EmissiveTint": "#D08CFF",
-        "EmissiveStrength": 2.0,
+        "EmissiveTint": "#C88CFF",
+        "EmissiveStrength": 1.8,
         "NormalMap": "pieces/kitsune_pocket/PocketFox_normal.png",
-        "RoughnessMap": "pieces/kitsune_pocket/PocketFox_roughness.png",
-        "MetalnessMap": "pieces/kitsune_pocket/PocketFox_metallic.png"
+        "AlphaMode": "Transparency"
       },
-      "Name": "Body_PocketFox",
-      "File": "pieces/kitsune_pocket/Body_PocketFox.obj",
+      "Name": "PocketFox",
+      "File": "pieces/kitsune_pocket/PocketFox.glb",
+      "Mesh": "PocketFoxSkin",
       "Joint": "Body",
+      "Skinned": true,
+      "Bones": [
+        "Body",
+        "Head",
+        "Tails",
+        "TailTips"
+      ],
+      "Triangles": 19500,
       "Offset": [
         0.0001,
         1.5024,
@@ -30,21 +38,48 @@
         2.9065,
         3.0038,
         1.5324
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#F0D0FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "PocketFoxShell",
+      "File": "pieces/kitsune_pocket/PocketFox.glb",
+      "Mesh": "PocketFoxShellSkin",
+      "Joint": "Body",
+      "Skinned": true,
+      "Bones": [
+        "Body",
+        "Head",
+        "Tails",
+        "TailTips"
       ],
-      "Triangles": 19500
+      "Triangles": 8000,
+      "Offset": [
+        -0.0083,
+        1.4817,
+        -0.0004
+      ],
+      "Size": [
+        2.9732,
+        3.0378,
+        1.5906
+      ]
     }
   ],
   "Joints": {
     "Body": {
       "Parent": null,
       "Pivot": [
+        0.4,
         0,
-        0,
-        0.6
+        1.6
       ],
       "PivotRoblox": [
-        0,
-        0.6,
+        -0.4,
+        1.6,
         0.0
       ],
       "Motion": [
@@ -68,6 +103,115 @@
           "Amp": 4.0,
           "Period": 1.6,
           "Phase": 90
+        }
+      ]
+    },
+    "Head": {
+      "Parent": "Body",
+      "Pivot": [
+        0.62,
+        -0.1,
+        2.45
+      ],
+      "PivotRoblox": [
+        -0.62,
+        2.45,
+        -0.1
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 1.8,
+          "Phase": 20
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 2.3
+        }
+      ]
+    },
+    "Tails": {
+      "Parent": "Body",
+      "Pivot": [
+        0.15,
+        0,
+        1.45
+      ],
+      "PivotRoblox": [
+        -0.15,
+        1.45,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 1.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 6.0,
+          "Period": 2.0,
+          "Phase": 50
+        }
+      ]
+    },
+    "TailTips": {
+      "Parent": "Tails",
+      "Pivot": [
+        0.15,
+        0,
+        1.45
+      ],
+      "PivotRoblox": [
+        -0.15,
+        1.45,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 9.0,
+          "Period": 1.6,
+          "Phase": 70
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 2.0,
+          "Phase": 120
         }
       ]
     }

@@ -6,7 +6,7 @@ the butt (-7), Z is the top. Heads and masks sit on or past the butt end.
 import math
 
 import CuePieces as P
-from CuePieces import piece, sweep, metaball_mesh, assign_by_region, apply_modifier
+from CuePieces import piece, sweep, metaball_mesh, assign_by_region, apply_modifier, ramp
 
 
 def _butt(at):
@@ -54,8 +54,17 @@ def celestial_dragon(k):
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 3.0, 'Period': 3.2},             # breathing nod
         {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 4.0, 'Period': 5.1, 'Phase': 40}])  # a slow look round
     k.joint('Body', pivot=(0, 0, 0))
+    # rigged (designer, 2026-09-30: the creatures animated, not static): the jaw opens in a roar
+    # and the mane streams; drawn as a spirit of icy light (see-through, glowing, in a shimmer)
+    k.joint('Jaw', pivot=(0, -7.22, 0.02), parent='Head', motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Base': 11.0, 'Amp': 11.0, 'Period': 2.4}])
+    k.joint('Mane', pivot=(0, -7.1, 0.15), parent='Head', motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 5.0, 'Period': 1.3, 'Phase': 60}])
+    bones = {'Jaw': lambda V: ramp(V[:, 1], -7.25, -7.33) * ramp(V[:, 2], 0.03, -0.02),
+             'Mane': lambda V: ramp(V[:, 1], -7.15, -7.0) * ramp(V[:, 2], 0.12, 0.2)}
     k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=19500, emissive=_icy_eyes,
-            emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3)
+            emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3, bones=bones,
+            hologram={'Tint': '#8CC8FF', 'Shell': '#CFEAFF', 'Strength': 1.8})
     _dragon_body(k)
 
 
@@ -368,8 +377,23 @@ def kitsune(k):
     k.joint('Mask', pivot=(0, -U0, 0), motion=[
         {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 3.0, 'Period': 4.4},             # a slow head tilt
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 2.0, 'Period': 3.1, 'Phase': 70}])
+    # rigged (designer, 2026-09-30): the ears twitch now and then, the jaw opens a little;
+    # drawn as a spirit of violet light (see-through, glowing, in a shimmer)
+    for side, sname in ((1, 'Right'), (-1, 'Left')):
+        k.joint('Ear' + sname, pivot=(0.07 * side, -7.28, 0.07), parent='Mask', motion=[
+            {'Kind': 'Hinge', 'Axis': (0, side, 0), 'Amp': 14.0, 'Period': 2.6, 'Phase': 0 if side > 0 else 150,
+             'Shape': 'pulse'}])
+    k.joint('Jaw', pivot=(0, -7.3, -0.12), parent='Mask', motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Base': 5.0, 'Amp': 5.0, 'Period': 3.0}])
+
+    def ear(side):
+        return lambda V: ramp(V[:, 2], 0.07, 0.11) * ramp(V[:, 0] * side, 0.02, 0.05)
+
+    bones = {'EarRight': ear(1), 'EarLeft': ear(-1),
+             'Jaw': lambda V: ramp(V[:, 1], -7.33, -7.4) * ramp(V[:, 2], -0.13, -0.17)}
     k.model('Mask', 'FoxMask', 'fox_mask', place, target_tris=14000, emissive=_violet_eyes,
-            emissive_tint='#C070FF', emissive_strength=3.0)
+            emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
+            hologram={'Tint': '#D8B8FF', 'Shell': '#C070FF', 'Strength': 1.6})
 
 
 @piece

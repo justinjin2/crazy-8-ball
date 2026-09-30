@@ -1753,8 +1753,8 @@
       "Beams": 10,
       "Lights": 1,
       "Orbiters": 3,
-      "PieceTriangles": 14000,
-      "PocketPieceTriangles": 19500
+      "PieceTriangles": 22000,
+      "PocketPieceTriangles": 27500
     }
   }
 }

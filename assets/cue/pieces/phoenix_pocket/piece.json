@@ -2,7 +2,7 @@
   "id": "phoenix_pocket",
   "Frame": "pocket",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 19500,
+  "Triangles": 27500,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -10,17 +10,29 @@
       "Transparency": 0.0,
       "Reflectance": 0.0,
       "SurfaceAppearance": {
-        "ColorMap": "pieces/phoenix_pocket/PocketFirebird_base_color.png",
+        "ColorMap": "pieces/phoenix_pocket/PocketFirebird_spirit.png",
         "EmissiveMask": "pieces/phoenix_pocket/PocketFirebird_emissive.png",
-        "EmissiveTint": "#FFB040",
-        "EmissiveStrength": 2.4,
+        "EmissiveTint": "#FFA030",
+        "EmissiveStrength": 1.6,
         "NormalMap": "pieces/phoenix_pocket/PocketFirebird_normal.png",
-        "RoughnessMap": "pieces/phoenix_pocket/PocketFirebird_roughness.png",
-        "MetalnessMap": "pieces/phoenix_pocket/PocketFirebird_metallic.png"
+        "AlphaMode": "Transparency"
       },
-      "Name": "Body_PocketFirebird",
-      "File": "pieces/phoenix_pocket/Body_PocketFirebird.obj",
+      "Name": "PocketFirebird",
+      "File": "pieces/phoenix_pocket/PocketFirebird.glb",
+      "Mesh": "PocketFirebirdSkin",
       "Joint": "Body",
+      "Skinned": true,
+      "Bones": [
+        "Body",
+        "WingRight",
+        "WingTipRight",
+        "WingLeft",
+        "WingTipLeft",
+        "Head",
+        "Tail",
+        "TailTip"
+      ],
+      "Triangles": 19500,
       "Offset": [
         0.0037,
         1.6006,
@@ -30,8 +42,39 @@
         2.6042,
         3.1955,
         1.0443
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFC060",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "PocketFirebirdShell",
+      "File": "pieces/phoenix_pocket/PocketFirebird.glb",
+      "Mesh": "PocketFirebirdShellSkin",
+      "Joint": "Body",
+      "Skinned": true,
+      "Bones": [
+        "Body",
+        "WingRight",
+        "WingTipRight",
+        "WingLeft",
+        "WingTipLeft",
+        "Head",
+        "Tail",
+        "TailTip"
       ],
-      "Triangles": 19500
+      "Triangles": 8000,
+      "Offset": [
+        0.0039,
+        1.6058,
+        0.0024
+      ],
+      "Size": [
+        2.6533,
+        3.2487,
+        1.1268
+      ]
     }
   ],
   "Joints": {
@@ -57,6 +100,208 @@
           ],
           "Amp": 3.0,
           "Period": 1.4
+        }
+      ]
+    },
+    "WingRight": {
+      "Parent": "Body",
+      "Pivot": [
+        0.27,
+        0,
+        2.15
+      ],
+      "PivotRoblox": [
+        -0.27,
+        2.15,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            -1,
+            0
+          ],
+          "Base": 4.0,
+          "Amp": 28.0,
+          "Period": 0.9
+        }
+      ]
+    },
+    "WingTipRight": {
+      "Parent": "WingRight",
+      "Pivot": [
+        0.8,
+        0,
+        2.35
+      ],
+      "PivotRoblox": [
+        -0.8,
+        2.35,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            -1,
+            0
+          ],
+          "Amp": 16.0,
+          "Period": 0.9,
+          "Phase": 60
+        }
+      ]
+    },
+    "WingLeft": {
+      "Parent": "Body",
+      "Pivot": [
+        -0.27,
+        0,
+        2.15
+      ],
+      "PivotRoblox": [
+        0.27,
+        2.15,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Base": 4.0,
+          "Amp": 28.0,
+          "Period": 0.9
+        }
+      ]
+    },
+    "WingTipLeft": {
+      "Parent": "WingLeft",
+      "Pivot": [
+        -0.8,
+        0,
+        2.35
+      ],
+      "PivotRoblox": [
+        0.8,
+        2.35,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 16.0,
+          "Period": 0.9,
+          "Phase": 60
+        }
+      ]
+    },
+    "Head": {
+      "Parent": "Body",
+      "Pivot": [
+        0.02,
+        -0.05,
+        2.5
+      ],
+      "PivotRoblox": [
+        -0.02,
+        2.5,
+        -0.05
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 6.0,
+          "Period": 1.8
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 8.0,
+          "Period": 2.6,
+          "Phase": 40
+        }
+      ]
+    },
+    "Tail": {
+      "Parent": "Body",
+      "Pivot": [
+        0.05,
+        0,
+        1.35
+      ],
+      "PivotRoblox": [
+        -0.05,
+        1.35,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 7.0,
+          "Period": 1.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 5.0,
+          "Period": 2.1,
+          "Phase": 30
+        }
+      ]
+    },
+    "TailTip": {
+      "Parent": "Tail",
+      "Pivot": [
+        0.1,
+        0,
+        0.6
+      ],
+      "PivotRoblox": [
+        -0.1,
+        0.6,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 10.0,
+          "Period": 1.6,
+          "Phase": 60
         }
       ]
     }

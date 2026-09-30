@@ -9,7 +9,7 @@ per creature, over their own colour, normal, roughness and metal maps.
 """
 import math
 
-from CuePieces import piece, sweep
+from CuePieces import piece, sweep, ramp
 
 
 def _spirit_glow(px):
@@ -19,53 +19,148 @@ def _spirit_glow(px):
     return 0.08 + 0.5 * np.clip(luma, 0, 1) ** 2.2
 
 
-def _stand(height):
-    """place(ob): scaled to `height` studs tall, centred over the origin, its lowest point at it."""
+def _stand(height, yaw=0.0):
+    """place(ob): scaled to `height` studs tall, centred over the origin, its lowest point at it,
+    then turned `yaw` degrees about the vertical (a model facing -Y turned 90 faces +X, its side
+    to the camera)."""
     def place(ob):
+        import math
         import numpy as np
         from mathutils import Matrix
         V = np.array([v.co[:] for v in ob.data.vertices])
         lo, hi = V.min(0), V.max(0)
         s = height / (hi[2] - lo[2])
-        return Matrix.Scale(s, 4) @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]))
+        return (Matrix.Rotation(math.radians(yaw), 4, 'Z') @ Matrix.Scale(s, 4)
+                @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2])))
     return place
+
+
+def _yaw90(p):
+    """A point or axis in a -Y-facing model's own frame, after _stand(..., yaw=90)."""
+    return (-p[1], p[0], p[2])
+
+
+def _unyaw90(fn):
+    """A bone weight written in the model's own frame, read in the turned frame."""
+    import numpy as np
+    return lambda V: fn(np.stack([V[:, 1], -V[:, 0], V[:, 2]], 1))
 
 
 @piece
 def celestial_dragon_pocket(k):
-    """The Celestial Dragon rears up out of the pocket, roaring: a generated model (a pearl-white
-    serpentine dragon, gold horns and ridge, a white-and-blue mane, clawed forelegs), 3.2 studs
-    tall, glowing icy blue from within. It sways slowly as it rises."""
+    """The Celestial Dragon rears up out of the pocket, roaring: a generated model (a serpentine
+    dragon, horns and ridge, a flowing mane, clawed forelegs), 3.2 studs tall, turned side-on so
+    its S-curve and roaring head face the table, rigged (designer, 2026-09-30) and drawn as a spirit of icy blue light (see-through, glowing, in a shimmering
+    shell). It sways as it rises; its head nods, its jaw opens in a roar, its mane streams and its
+    forelegs claw at the air."""
+    import numpy as np
     k.frame = 'pocket'
-    k.joint('Body', pivot=(0, 0, 0), motion=[
-        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 4.0, 'Period': 2.4},
-        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 3.0, 'Period': 1.9, 'Phase': 60}])
-    k.model('Body', 'PocketDragon', 'pocket_dragon', _stand(3.2), target_tris=19500, emissive=_spirit_glow,
-            emissive_tint='#8CC8FF', emissive_strength=2.0)
+    k.joint('Body', pivot=_yaw90((0, 0, 0)), motion=[
+        {'Kind': 'Hinge', 'Axis': _yaw90((0, 1, 0)), 'Amp': 4.0, 'Period': 2.4},
+        {'Kind': 'Hinge', 'Axis': _yaw90((1, 0, 0)), 'Amp': 3.0, 'Period': 1.9, 'Phase': 60}])
+    k.joint('Neck', pivot=_yaw90((0, 0.0, 1.9)), parent='Body', motion=[
+        {'Kind': 'Hinge', 'Axis': _yaw90((0, 1, 0)), 'Amp': 5.0, 'Period': 2.2, 'Phase': 30},
+        {'Kind': 'Hinge', 'Axis': _yaw90((1, 0, 0)), 'Amp': 4.0, 'Period': 1.7}])
+    k.joint('Head', pivot=_yaw90((0, -0.2, 2.35)), parent='Neck', motion=[
+        {'Kind': 'Hinge', 'Axis': _yaw90((1, 0, 0)), 'Amp': 6.0, 'Period': 1.6, 'Phase': 90}])
+    k.joint('Jaw', pivot=_yaw90((0, -0.36, 2.45)), parent='Head', motion=[
+        {'Kind': 'Hinge', 'Axis': _yaw90((1, 0, 0)), 'Base': 9.0, 'Amp': 9.0, 'Period': 1.2}])
+    k.joint('Mane', pivot=_yaw90((0, 0.2, 2.3)), parent='Head', motion=[
+        {'Kind': 'Hinge', 'Axis': _yaw90((1, 0, 0)), 'Amp': 6.0, 'Period': 1.1, 'Phase': 45}])
+    for side, sname in ((1, 'Right'), (-1, 'Left')):
+        k.joint('Arm' + sname, pivot=_yaw90((0.2 * side, -0.3, 1.75)), parent='Neck', motion=[
+            {'Kind': 'Hinge', 'Axis': _yaw90((1, 0, 0)), 'Amp': 12.0, 'Period': 1.4, 'Phase': 0 if side > 0 else 120}])
+
+    def arm(side):
+        return lambda V: (ramp(V[:, 0] * side, 0.16, 0.3) * ramp(V[:, 2], 1.95, 1.75) * ramp(V[:, 2], 1.1, 1.25)
+                          * ramp(V[:, 1], -0.15, -0.32))
+
+    bones = {'Neck': lambda V: ramp(V[:, 2], 1.8, 2.1),
+             'Head': lambda V: ramp(V[:, 2], 2.2, 2.4) * ramp(V[:, 1], 0.12, -0.08),
+             'Jaw': lambda V: ramp(V[:, 1], -0.38, -0.5) * ramp(V[:, 2], 2.47, 2.39) * ramp(V[:, 2], 2.15, 2.25),
+             'Mane': lambda V: ramp(V[:, 1], 0.08, 0.35) * ramp(V[:, 2], 2.0, 2.3),
+             'ArmRight': arm(1), 'ArmLeft': arm(-1)}
+    bones = {b: _unyaw90(f) for b, f in bones.items()}   # written facing -Y, the model is turned 90
+    k.model('Body', 'PocketDragon', 'pocket_dragon', _stand(3.2, yaw=90), target_tris=19500, emissive=_spirit_glow,
+            emissive_tint='#8CC8FF', emissive_strength=2.0, bones=bones,
+            hologram={'Tint': '#7AC0FF', 'Shell': '#CFEAFF', 'Strength': 1.8})
 
 
 @piece
 def kitsune_pocket(k):
-    """The Kitsune's spirit fox leaps up out of the pocket: a generated model (a white fox mid-leap
-    wearing the porcelain mask, nine tails tipped pink and violet), 3.0 studs tall, glowing violet
-    from within. It sways as it rises."""
+    """The Kitsune's spirit fox leaps up out of the pocket: a generated model (a fox mid-leap wearing
+    the porcelain mask, nine tails fanned behind it), 3.0 studs tall, rigged (designer, 2026-09-30)
+    and drawn as a spirit of violet light (see-through, glowing, in a shimmering shell). Its head
+    tilts; its nine tails sway as a fan, their tips whipping a beat behind."""
+    import numpy as np
     k.frame = 'pocket'
-    k.joint('Body', pivot=(0, 0, 0.6), motion=[
+    k.joint('Body', pivot=(0.4, 0, 1.6), motion=[
         {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 5.0, 'Period': 2.0},
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 4.0, 'Period': 1.6, 'Phase': 90}])
-    k.model('Body', 'PocketFox', 'pocket_fox', _stand(3.0), target_tris=19500, emissive=_spirit_glow,
-            emissive_tint='#D08CFF', emissive_strength=2.0)
+    k.joint('Head', pivot=(0.62, -0.1, 2.45), parent='Body', motion=[
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 7.0, 'Period': 1.8, 'Phase': 20},
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 5.0, 'Period': 2.3}])
+    ROOT = (0.15, 1.45)                             # where the tails fan from (x, z)
+    k.joint('Tails', pivot=(ROOT[0], 0, ROOT[1]), parent='Body', motion=[
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 7.0, 'Period': 1.6},
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 6.0, 'Period': 2.0, 'Phase': 50}])
+    k.joint('TailTips', pivot=(ROOT[0], 0, ROOT[1]), parent='Tails', motion=[
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 9.0, 'Period': 1.6, 'Phase': 70},
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 7.0, 'Period': 2.0, 'Phase': 120}])
 
+    def body(V):
+        return ramp(V[:, 0], 0.22, 0.36) * ramp(V[:, 2], 1.65, 1.85)
+
+    def dist(V):
+        return np.hypot(V[:, 0] - ROOT[0], V[:, 2] - ROOT[1])
+
+    bones = {'Head': lambda V: ramp(V[:, 2], 2.36, 2.52) * ramp(V[:, 0], 0.44, 0.56),
+             'Tails': lambda V: (1 - body(V)) * ramp(dist(V), 0.25, 0.6),
+             'TailTips': lambda V: ramp(dist(V), 0.8, 1.3)}
+    k.model('Body', 'PocketFox', 'pocket_fox', _stand(3.0), target_tris=19500, emissive=_spirit_glow,
+            emissive_tint='#D08CFF', emissive_strength=2.0, bones=bones,
+            hologram={'Tint': '#C88CFF', 'Shell': '#F0D0FF', 'Strength': 1.8})
 
 @piece
 def phoenix_pocket(k):
-    """The Phoenix's firebird rises out of the pocket, wings spread: a generated model (flame-shaped
-    feathers crimson to orange to gold), 3.2 studs tall, burning gold from within."""
+    """The Phoenix's firebird rises out of the pocket, wings beating: a generated model (flame-shaped
+    feathers crimson to orange to gold), 3.2 studs tall, rigged (designer, 2026-09-30) and drawn as
+    a spirit of golden fire (see-through, glowing, in a shimmering shell). Its wings beat, the tips
+    whipping a beat behind; its head sways; its long tail swishes in two parts."""
+    import numpy as np
     k.frame = 'pocket'
     k.joint('Body', pivot=(0, 0, 0.8), motion=[
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 3.0, 'Period': 1.4}])
+    for side, sname in ((1, 'Right'), (-1, 'Left')):
+        axis = (0, -side, 0)                       # up for both wings at once
+        k.joint('Wing' + sname, pivot=(0.27 * side, 0, 2.15), parent='Body', motion=[
+            {'Kind': 'Hinge', 'Axis': axis, 'Base': 4.0, 'Amp': 28.0, 'Period': 0.9}])
+        k.joint('WingTip' + sname, pivot=(0.8 * side, 0, 2.35), parent='Wing' + sname, motion=[
+            {'Kind': 'Hinge', 'Axis': axis, 'Amp': 16.0, 'Period': 0.9, 'Phase': 60}])
+    k.joint('Head', pivot=(0.02, -0.05, 2.5), parent='Body', motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 6.0, 'Period': 1.8},
+        {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 8.0, 'Period': 2.6, 'Phase': 40}])
+    k.joint('Tail', pivot=(0.05, 0, 1.35), parent='Body', motion=[
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 7.0, 'Period': 1.6},
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 5.0, 'Period': 2.1, 'Phase': 30}])
+    k.joint('TailTip', pivot=(0.1, 0, 0.6), parent='Tail', motion=[
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 10.0, 'Period': 1.6, 'Phase': 60}])
+
+    def wing(side, tip=False):
+        def w(V):
+            x = V[:, 0] * side
+            if tip:
+                return ramp(x, 0.65, 0.95)
+            return ramp(x, 0.2, 0.42) * ramp(V[:, 2], 1.2, 1.5)
+        return w
+
+    bones = {'WingRight': wing(1), 'WingTipRight': wing(1, True), 'WingLeft': wing(-1), 'WingTipLeft': wing(-1, True),
+             'Head': lambda V: ramp(V[:, 2], 2.4, 2.62) * (1 - ramp(np.abs(V[:, 0]), 0.22, 0.32)),
+             'Tail': lambda V: ramp(V[:, 2], 1.3, 0.95),
+             'TailTip': lambda V: ramp(V[:, 2], 0.7, 0.35)}
     k.model('Body', 'PocketFirebird', 'pocket_firebird', _stand(3.2), target_tris=19500, emissive=_spirit_glow,
-            emissive_tint='#FFB040', emissive_strength=2.4)
+            emissive_tint='#FFB040', emissive_strength=2.4, bones=bones,
+            hologram={'Tint': '#FFA030', 'Shell': '#FFC060', 'Strength': 1.6})
 
 
 @piece
@@ -139,17 +234,20 @@ def _magma_glow(px):
 
 @piece
 def infernal_pocket(k):
-    """The Infernal's horned skull rises out of the hellfire eruption and glares: the same generated
-    model as the butt's skull (assets/cue/models/infernal_skull, its bust cut away), 2.6 studs
-    tall, its eyes and magma cracks blazing. Its jaw end dips as it rises (a
-    slow nod)."""
+    """The Infernal's horned skull rises out of the hellfire eruption: the same generated model as
+    the butt's skull (assets/cue/models/infernal_skull, its bust cut away), 2.6 studs tall, rigged
+    (designer, 2026-09-30) and drawn as a spirit of hellfire (see-through, glowing orange-red, in a
+    shimmering shell), its eyes and magma cracks blazing. It nods as it rises and its jaw gnashes."""
     k.frame = 'pocket'
     k.joint('Skull', pivot=(0, 0, 0.4), motion=[
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 4.0, 'Period': 1.6},
         {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 3.0, 'Period': 2.2, 'Phase': 40}])
+    k.joint('Jaw', pivot=(0, 0.0, 0.58), parent='Skull', motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Base': 13.0, 'Amp': 13.0, 'Period': 0.9, 'Shape': 'snap'}])
+    bones = {'Jaw': lambda V: ramp(V[:, 2], 0.62, 0.46) * ramp(V[:, 1], -0.1, -0.35)}
     k.model('Skull', 'PocketSkull', 'infernal_skull', _stand(2.6), target_tris=19500, emissive=_magma_glow,
-            emissive_tint='#FF7A3A', emissive_strength=3.0, cut_below=0.3)
-
+            emissive_tint='#FF7A3A', emissive_strength=3.0, cut_below=0.3, bones=bones,
+            hologram={'Tint': '#FF6A2A', 'Shell': '#FFB060', 'Strength': 1.8})
 
 @piece
 def clockwork_pocket(k):
