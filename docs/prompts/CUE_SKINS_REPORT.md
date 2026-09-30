@@ -168,6 +168,18 @@ generic cue-VFX script can build everything from the skin data:
   joint from its `Motion` list (Hinge, Sway, Spin, Bob with sine, snap or pulse waves) about its
   `PivotRoblox`, parents first; `joint_matrix` in `CuePieces.py` is the reference maths.
 - **Back-worn cues:** every emitter's Rate times `BackRateScale` (0.5).
+- **Where the aura shows (designer, 2026-09-30):** on the back, the cue sits in front of the
+  body and the big aura sprites (Eclipse's giant eclipse and galaxy, any large camera-facing
+  sprite) sit behind the body: give them a negative `ZOffset` against the torso, or host them
+  on an Attachment just behind the back, so the avatar is never covered. **On the player's turn
+  to shoot the aura is switched off** (every aura emitter, Orbiter, Arc, Beam, Light and the
+  piece's glow effects), so nothing distracts from aiming; it comes back when the cue returns
+  to the back. The cue itself, its surface and its trail and pocket effects stay on.
+- **Skinned pieces (designer, 2026-09-30):** parts with `Skinned` in `piece.json` are `.glb`
+  files (a MeshPart with Bones, import with rig); each Bone's `Transform = Rest^-1 *
+  J_parent^-1 * J_bone * Rest` every frame, J from the joint's `Motion` list. Their
+  SurfaceAppearance has `AlphaMode = Transparency` (the hologram look is baked in the maps) and
+  a `<name>Shell` ForceField mesh follows the same bones.
 
 ### 6.4 The upload list
 
