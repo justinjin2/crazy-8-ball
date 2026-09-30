@@ -267,8 +267,9 @@ Config.Physics = {
 	-- Higher = spin takes effect sooner and the skid resolves into a roll sooner.
 	SlidingFriction = 0.20,
 	-- Rolling resistance once the ball ROLLS without slipping. Dr. Dave TP B.2:
-	-- range 0.005-0.015, typical 0.010. Higher = balls stop sooner.
-	RollingFriction = 0.010,
+	-- range 0.005-0.015, typical 0.010. Higher = balls stop sooner. 0.0125 on 2026-09-30 to
+	-- try (designer: a faster game; shots stop 5-20% sooner, the break pots the same).
+	RollingFriction = 0.0125,
 	-- Optional cloth coefficients, same TP B.2 range; the default above is independent.
 	ClothPresets = { slow = 0.015, medium = 0.012, fast = 0.008 },
 	-- Vertical-axis spin deceleration in rad/s^2, independent of radius. TP B.2 /
@@ -411,9 +412,13 @@ Config.Physics = {
 -- Cue strike: turns (power, spin offset) into the cue ball's initial velocity and spin
 ---------------------------------------------------------------------------------------------
 Config.Cue = {
-	-- Centre-hit horizontal target at full power. Designer chose one bar reaching 30 mph
-	-- (528 in/s); TP A.30's impact gain derives the stick speed below. No separate break.
-	MaxSpeed = 528,
+	-- Centre-hit horizontal target at full power. Designer chose one bar, no separate break,
+	-- first reaching 30 mph (528 in/s); lowered to 25 mph (440 in/s) on 2026-09-30 to try
+	-- (pros average about 24 mph on the break). At 25 mph a straight break (200 racks) pots
+	-- 0.65 balls (1.00 at 30), pots one 47% of the time (67%) and scratches 6.5% (2%); every
+	-- other power on the bar is about 15% slower too. TP A.30's impact gain derives the stick
+	-- speed below. (tune 440-528)
+	MaxSpeed = 440,
 	-- Speed at the smallest power that still counts as a shot. (tune)
 	MinSpeed = 15,
 	-- TP A.30 / pooltool: 19 oz cue (typical 18-21), tip restitution 0.73 (0.70-0.85).
@@ -435,11 +440,11 @@ Config.Cue = {
 	-- power (0..1) -> speed uses power^PowerCurve, so the low end is finer.
 	--
 	-- This is a feel number, not a physics one, and it was the cause of every ball looking
-	-- like it was on ice. MaxSpeed is a 30 mph BREAK; at the old 1.6 a half-pulled bar gave
-	-- 184 in/s, which is a very firm real shot, and a ball struck that hard slides 128
-	-- inches before it rolls - longer than the 100 inch table. So nothing ever rolled.
-	-- At 2.6 the usable middle of the bar lands on real pool shot speeds: half power is
-	-- 100 in/s and rolls after 25 inches, while the top of the bar is still a full break.
+	-- like it was on ice. MaxSpeed is a full BREAK; at the old 1.6 (with a 30 mph top) a
+	-- half-pulled bar gave 184 in/s, which is a very firm real shot, and a ball struck that
+	-- hard slides 128 inches before it rolls - longer than the 100 inch table. So nothing
+	-- ever rolled. At 2.6 the usable middle of the bar lands on real pool shot speeds: half
+	-- power is 85 in/s (with the 25 mph top), while the top of the bar is still a full break.
 	-- (tune)
 	PowerCurve = 2.6,
 	-- Spin offsets are given in ball radii (-1..1). Hits beyond this miscue in real life.
@@ -956,15 +961,18 @@ Config.Camera = {
 		-- drives speed as power^2.6 (centre hit, 4 degree cue): 0.25 power runs 0.51 lengths,
 		-- 0.30 runs 0.85, 0.35 runs 1.43, 0.37 runs 1.75 and 0.40 runs 2.36. The designer
 		-- wanted shots of about 35% power and under to keep the aiming view (2026-09-23), so
-		-- the line sits at 1.5 lengths, just above 35%. It was 0.5 (about 25%), which pulled
-		-- out for shots that had nothing to show.
+		-- the line sat at 1.5 lengths, just above 35%. It was 0.5 (about 25%), which pulled
+		-- out for shots that had nothing to show. Those lengths were at the 30 mph bar and
+		-- 0.010 cloth; with the 25 mph bar and 0.0125 cloth (2026-09-30) every shot runs
+		-- shorter, so the line moved to 1.0 length to stay at the same place on the bar (it
+		-- crosses at 34.8%, where it crossed at 34.3%).
 		--
 		-- It is a BOUND on every ball, not just the cue ball - nothing leaves a collision
 		-- faster than the ball that struck it - so this can hold the camera still on a shot
 		-- where little happens, and never on one where something travels. OffScreenMargin
 		-- above still overrides it: anything that does reach the edge pulls the camera out
 		-- however gently it was hit. (tune)
-		MinTravelTableLengths = 1.5,
+		MinTravelTableLengths = 1.0,
 		-- Where the pull-out goes (designer, 2026-09-26, a test). "Side": the camera swings
 		-- round the table to a fixed semi-top-down view of all of it from one long side, the
 		-- table centred, the same view every shot. It takes the long side that needs the
@@ -3327,7 +3335,7 @@ Config.Guideline = {
 	-- like the classic phone pool games. CueStubScale sets the cue line's longest relative to
 	-- the object line's; RailStubScale is the fixed cue line off a cushion. A line shorter
 	-- than MinStubInches is not drawn. (tune)
-	StubLengthInches = 8, -- 16 made aiming too easy, then 11 still did (2026-09-23)
+	StubLengthInches = 7, -- 16 made aiming too easy, then 11 and 8 still did (2026-09-23, 09-30)
 	-- The longer lines kept for the first-time playthrough / tutorial (GDD section 14), where
 	-- seeing exactly where the balls will go matters more than the challenge. Not wired yet.
 	TutorialStubLengthInches = 16,
@@ -3562,7 +3570,7 @@ Config.Audio = {
 	},
 	-- The strike gets its own speed range, tied to the cue itself. On the shared range
 	-- (10..400) everything from about 93% power upwards produced an identical sound, because
-	-- the cue ball leaves at up to 528 in/s, and the whole top half of the power bar spanned
+	-- the cue ball left at up to 528 in/s then, and the whole top half of the power bar spanned
 	-- barely 2.4 dB. Across the cue's own range the bar is audible end to end.
 	Strike = {
 		MinVolume = 0.35,
@@ -3575,7 +3583,7 @@ Config.Audio = {
 	-- Where the three strike takes hand over, as fractions of the POWER BAR, because that is
 	-- what the player is looking at when they decide how hard to hit. They are converted to
 	-- cue ball speeds at the bottom of this file: power and speed are nothing like
-	-- proportional (speed goes as power^2.6), so 25% of the bar is only 29 in/s out of 528
+	-- proportional (speed goes as power^2.6), so 25% of the bar is only 27 in/s out of 440
 	-- and writing these as speeds would hide where the lines actually fall. (tune)
 	StrikeSoftUpToPower = 0.25,
 	StrikeHardFromPower = 0.75,

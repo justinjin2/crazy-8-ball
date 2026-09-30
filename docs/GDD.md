@@ -166,8 +166,10 @@ Every feature is checked against these. If it serves none, it waits.
   thins (cos of the cut angle), the cue ball's line does the reverse (sin). See section 7 for the harder difficulties.
 - Balls not in your group are marked with an X and your group gets a slight highlight, drawn on
   each viewer's own screen. A HUD shows which balls you have pocketed.
-- **Physics realism choices (2026-09-22, implemented):** keep one power bar
-  reaching 30 mph, with no separate break control. Classic shows the predicted cue-ball
+- **Physics realism choices (2026-09-22, implemented):** keep one power bar, with no
+  separate break control, reaching 25 mph (it was 30 until 2026-09-30: pros average about
+  24 mph on the break). Rolling friction 0.0125, a medium cloth (0.010 until 2026-09-30,
+  for a faster game). Classic shows the predicted cue-ball
   launch direction. Side spin does not bend it (2026-09-23): no squirt and no swerve, so the
   cue ball leaves along the aim and runs straight to first contact; side spin acts only at
   contacts (cushion rebound, throw, spin transfer). Use regulation 2.25 in balls in the
@@ -787,7 +789,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   unmissable. Normal play keeps the subtle outline with nothing greyed (the designer's choice).
 - **Longer guideline lines for learning (2026-09-23):** the tutorial and first playthrough use
   the longer object/cue lines (`Config.Guideline.TutorialStubLengthInches`, 16 in). Normal play
-  uses the shorter `StubLengthInches` (8 in) to keep aiming a challenge.
+  uses the shorter `StubLengthInches` (7 in since 2026-09-30, 8 before; friends found the
+  game too easy) to keep aiming a challenge.
 - **First win:** a free **Rare Case**, rolled by the server when the match settles and opened
   on the reel inside the post-match screen with an Equip button, plus the first-win and Rookie
   XP boosts (built 2026-09-28; ECONOMY.md sections 7.1 and 18).

@@ -2037,3 +2037,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   bar, gamepad X), always full and ready, instead of the small "Practice ability" button.
   Balls pocketed with a practice ability pay no money, now including the redos a practice
   Rewind gives; real matches still pay for ability pots (the designer chose solo only).
+- 2026-09-30 (designer): physics and aiming tuned after "the game is too easy". The power
+  bar tops out at 25 mph (was 30; pros average about 24 mph on the break), rolling friction
+  0.0125 (was 0.010, still inside the real 0.005-0.015 cloth range) so shots end 5-20% sooner,
+  and the guideline's short lines are 7 in (were 8). Measured: a straight full-power break
+  pots 0.60 balls (was 1.00), pots one 47% of the time (was 67%) and scratches 5.5% (was
+  2%); no hop at full power any more. The camera's pull-out line moved to 1.0 table length
+  to stay at about 35% of the bar.

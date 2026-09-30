@@ -76,7 +76,7 @@ local function potShot(m: any, id: number): any
 	local cue = Sim.findBall(m.state, 0)
 	ball.x, ball.y, ball.pocketed = 0, m.state.geometry.halfWidth - 5, false
 	cue.x, cue.y, cue.pocketed = 0, ball.y - 8, false
-	return payload(m, math.pi / 2, 0.12)
+	return payload(m, math.pi / 2, 0.2) -- 0.12 before the 25 mph bar and 0.0125 cloth
 end
 
 -- Ball `id` mid-table at the head end with the cue ball behind it: a soft hit that drops

@@ -65,8 +65,9 @@ end
 --- lives here with a test pinning the direction rather than inline at the call site.
 ---
 --- `lo` and `hi` are the shared speed range; a band may override either. The cue strike does,
---- because the cue ball leaves at up to 528 in/s and the shared range tops out at 400, which
---- left the top of the power bar sounding identical at every setting.
+--- because the cue ball leaves at up to Config.Cue.MaxSpeed (528 in/s when this was written) and
+--- the shared range tops out at 400, which left the top of the power bar sounding identical at
+--- every setting.
 function SoundMix.mix(range: Range, speed: number, lo: number, hi: number): (number, number)
 	local k = SoundMix.loudness(speed, range.QuietSpeed or lo, range.LoudSpeed or hi)
 	return SoundMix.lerp(range.MinVolume, range.MaxVolume, k),

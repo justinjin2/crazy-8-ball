@@ -137,11 +137,12 @@ return {
 				H.expect(b.vz == 0 and b.z == 0, ("power %.2f stays down"):format(power))
 			end
 		end
-		-- The very top of the bar hops a whisker: about a tenth of an inch.
+		-- The very top of the bar hops a whisker at most (about a tenth of an inch at the old
+		-- 30 mph top; nothing at 25 mph, 2026-09-30).
 		local b = Ball.new(0, 0, 0)
 		Cue.strike(b, { angle = 0, power = 1 })
 		local hop = b.vz * b.vz / (2 * Config.Physics.Gravity)
-		H.expect(b.vz > 0 and hop < 0.15, ("full power hops %.3f in"):format(hop))
+		H.expect(hop < 0.15, ("full power hops %.3f in"):format(hop))
 	end,
 
 	["a raised cue at low power stays down and keeps the level-cue spin"] = function()

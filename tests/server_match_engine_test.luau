@@ -74,14 +74,15 @@ local function shotPayload(m: any, extra: any?): any
 	return payload
 end
 -- Line `id` up for the +y side pocket with the cue ball straight behind it; a soft straight
--- shot (angle pi/2, power 0.12) drops it and leaves the cue ball on the table.
+-- shot (angle pi/2, power 0.2) drops it and leaves the cue ball on the table (0.12 did at the
+-- 30 mph bar and 0.010 cloth; 2026-09-30).
 local function sidePocketShot(m: any, id: number): any
 	local ball = Sim.findBall(m.state, id)
 	local cue = Sim.findBall(m.state, 0)
 	ball.x, ball.y = 0, m.state.geometry.halfWidth - 5
 	cue.x, cue.y = 0, ball.y - 8
 	local payload = shotPayload(m)
-	payload.angle, payload.power = math.pi / 2, 0.12
+	payload.angle, payload.power = math.pi / 2, 0.2
 	return payload
 end
 -- A synthetic outcome for the pure judge, as the rules tests build them.
@@ -827,7 +828,7 @@ function tests.complete_synthetic_eight_games_every_mode_release_and_allow_table
 		-- resolution determine the winner, exercising production engine end to end.
 		cue.x, cue.y = 0, eight.y - 8
 		local payload = shotPayload(m)
-		payload.angle, payload.power = math.pi / 2, 0.12
+		payload.angle, payload.power = math.pi / 2, 0.2
 		local wire = E.acceptShot(m, 11, payload, m.phaseStartedAt)
 		expect(wire ~= nil)
 		-- The winner's bonus is decided at acceptance, timed to the eight's drop.

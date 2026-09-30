@@ -71,7 +71,7 @@ local function potShot(m: any, id: number): any
 	local y = m.state.geometry.halfWidth - 5
 	place(m, id, 0, y)
 	place(m, 0, 0, y - 8)
-	return payload(m, math.pi / 2, 0.12)
+	return payload(m, math.pi / 2, 0.2) -- 0.12 before the 25 mph bar and 0.0125 cloth
 end
 
 local function armNow(m: any, id: string)

@@ -1,5 +1,11 @@
 # Status
 
+**2026-09-30: physics tuned ("the game is too easy").** Power bar tops out at 25 mph (was
+30), rolling friction 0.0125 (was 0.010), guideline short lines 7 in (were 8). All still inside
+published real-table values. A straight full-power break pots 0.60 balls (was 1.00) and
+scratches 5.5% (was 2%). The camera's pull-out line stays at about 35% of the bar. 878 Lune
+tests pass (19 retuned for the new speeds). Still to judge by hand: how it feels with friends.
+
 **2026-09-30: solo practice uses the real ability bar.** In solo the match's bar shows,
 always full and ready: G, a tap on the bar or gamepad X arms the equipped ability for free.
 Practice shots pay no money, now including a practice Rewind's redos (they used to pay).

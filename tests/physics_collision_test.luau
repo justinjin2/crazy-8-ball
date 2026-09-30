@@ -696,7 +696,8 @@ return {
 			)
 			local result = Simulation.run(
 				state,
-				{ angle = math.atan2(dirY, dirX), power = 0.4, spin = { x = 0, y = spinY } }
+				-- 0.43: the ball speed 0.4 gave before the 25 mph bar (2026-09-30).
+				{ angle = math.atan2(dirY, dirX), power = 0.43, spin = { x = 0, y = spinY } }
 			)
 			H.expect(result.firstContact == 1, "cue ball should hit the 1 ball first")
 			local cue = result.finalBalls[1]

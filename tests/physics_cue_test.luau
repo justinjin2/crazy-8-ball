@@ -57,7 +57,7 @@ return {
 		)
 	end,
 
-	["one power bar reaches 30 mph and clamps at both ends"] = function()
+	["one power bar reaches 25 mph and clamps at both ends"] = function()
 		local Config, Ball, Cue = setup()
 		for _, power in { -1, 0, 0.1, 0.5, 1, 2 } do
 			local b = Ball.new(0, 0, 0)
@@ -68,7 +68,7 @@ return {
 				"centre calibration"
 			)
 		end
-		H.near(Cue.speedForPower(1), 528, 1e-10, "30 mph centre-hit ceiling")
+		H.near(Cue.speedForPower(1), 440, 1e-10, "25 mph centre-hit ceiling")
 		H.near(Cue.speedForPower(-1), Config.Cue.MinSpeed, 1e-10, "minimum speed")
 		H.near(Cue.stickSpeedForPower(2), Config.Cue.MaxStickSpeed, 1e-10, "stick clamp")
 	end,
@@ -273,9 +273,11 @@ return {
 		local Config, Ball, Cue, Simulation = setup()
 		local R = Config.Balls.RadiusInches
 		local follow = Cue.rollOutDistance(20, 0, 1.25 * 20 / R)
+		-- About 60 inches on 0.010 cloth; the rolling part scales with 1 / RollingFriction.
+		local about = 60 * 0.010 / Config.Physics.RollingFriction
 		H.expect(
-			follow > 55 and follow < 65,
-			"level maximum follow at 20 in/s runs about 60 inches"
+			follow > about * 0.9 and follow < about * 1.1,
+			("level maximum follow at 20 in/s runs about %.0f inches"):format(about)
 		)
 		H.expect(follow > 2 * Cue.rollOutDistance(20), "follow more than doubles this stun rollout")
 		for _, spins in { { 0, 1.25 }, { 0, -1.25 }, { 0.5, 0.5 }, { 1, -3 } } do

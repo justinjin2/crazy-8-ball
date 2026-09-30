@@ -198,7 +198,7 @@ function tests.theirs_get_half_the_push()
 	local function pushSpeed(opp: boolean): number
 		local own = if opp then { 1 } else { 1, 5 }
 		local sim = Simulation.newState(geometry, Ball.cloneList(balls))
-		Simulation.strike(sim, assert(ShotInput.validate({ angle = 0, power = 0.15 }, nil), "shot"))
+		Simulation.strike(sim, assert(ShotInput.validate({ angle = 0, power = 0.2 }, nil), "shot"))
 		Simulation.armEffect(
 			sim,
 			"ChainLightning",

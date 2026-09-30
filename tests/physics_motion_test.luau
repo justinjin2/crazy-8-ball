@@ -46,7 +46,7 @@ return {
 		H.expect(b.vx - Config.Balls.RadiusInches * b.wy > 0.01, "still sliding before 0.111003 s")
 		Simulation.step(state, dt, nil)
 		local rollingTime = (lastSlidingStep + 1) * dt - slideTime
-		local rollingDecel = 0.010 * 386.09
+		local rollingDecel = Config.Physics.RollingFriction * 386.09
 		local transitionSpeed = 30 * 5 / 7
 		H.near(
 			b.vx + rollingDecel * rollingTime,
