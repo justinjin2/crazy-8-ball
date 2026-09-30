@@ -352,20 +352,20 @@
       "Trail": {
         "Colors": [
           [
-            255,
-            255,
+            205,
+            150,
             255
           ],
           [
-            255,
-            255,
+            175,
+            110,
             255
           ]
         ],
         "NearTransparency": 0.0,
         "Lifetime": 1.0,
-        "WidthStuds": 0.34,
-        "LightEmission": 1,
+        "WidthStuds": 0.5,
+        "LightEmission": 0.35,
         "Texture": "vfx/rank/trail_amethyst.png",
         "TextureMode": "Stretch",
         "WidthScale": [

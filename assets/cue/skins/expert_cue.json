@@ -301,7 +301,7 @@
           30
         ],
         "NearTransparency": 0.0,
-        "LightEmission": 0.2,
+        "LightEmission": 0.0,
         "Lifetime": 1.0,
         "WidthStuds": 0.3,
         "Transparency": [
@@ -332,7 +332,7 @@
             0.5
           ]
         ],
-        "Brightness": 2.0,
+        "Brightness": 1.2,
         "Core": {
           "Color": [
             245,
@@ -369,8 +369,8 @@
               0.4
             ]
           ],
-          "LightEmission": 0.2,
-          "Brightness": 2.2
+          "LightEmission": 0.0,
+          "Brightness": 1.2
         }
       }
     },

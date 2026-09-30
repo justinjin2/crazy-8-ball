@@ -35,6 +35,10 @@ PLAIN_LE = 0.5             # untextured trails: blended enough that their colour
 WARM_LE = 0.2              # warm trails (red, orange, gold): nearly all blended, see warmth()
 WARM_RB = 80               # warm: red the strongest channel of the seen colour, above blue by this
 CORE_WIDTH = 0.2           # of the trail's width
+RED_BRIGHTNESS = 1.2       # deep red trails: see deep_red()
+# textured trails whose body is a dark colour: added onto the bright felt it vanished and only the
+# pale centre showed (Master read as a thin white line), so mostly blended
+BLENDED = {'master_cue': 0.35}
 # dark trails: a black body that must read as black (their brightness comes from the core); named
 # rather than judged from LightEmission, which the warm cap below lowers
 DARK = {'eclipse', 'infernal', 'kraken', 'void', 'grandmaster_cue'}
@@ -118,7 +122,22 @@ def apply(skin):
     core['LightEmission'] = WARM_LE if is_warm or is_warm_rgb(core['Color']) else CORE_LE
     core['Brightness'] = CORE_BRIGHTNESS
     tr['Core'] = core
+    if skin.get('id') in BLENDED:
+        tr['LightEmission'] = BLENDED[skin['id']]
+    if deep_red(tr):
+        # a deep red trail read pink over the blue felt even at WARM_LE (Brightness above 1 pushes
+        # it toward the additive look): fully blended and no brighter than its colour
+        tr['LightEmission'] = 0.0
+        tr['Brightness'] = min(tr['Brightness'], RED_BRIGHTNESS)
+        core['LightEmission'] = 0.0
+        core['Brightness'] = RED_BRIGHTNESS
     return True
+
+
+def deep_red(tr):
+    """Red the trail's seen colour, green and blue both well below it (not orange or pink)."""
+    r, g, b = seen_colour(tr)
+    return r > 180 and g < 0.3 * r and b < 0.3 * r
 
 
 def main():

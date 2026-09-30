@@ -941,6 +941,8 @@ def master_cue(d):
                 'wider glow.')
     # a textured trail's core had the white tint and drowned the texture's colour: its own colour
     d['vfx']['Style']['Trail']['Core']['Color'] = [205, 150, 255]
+    d['vfx']['Style']['Trail']['Colors'] = [[205, 150, 255], [175, 110, 255]]   # untinted it read white
+    d['vfx']['Style']['Trail']['WidthStuds'] = 0.5     # its texture is solid only in the middle
 
 
 def grandmaster_cue(d):
