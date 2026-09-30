@@ -1,0 +1,231 @@
+{
+  "id": "diamond_cue",
+  "name": "Diamond Cue",
+  "tier": "Rank",
+  "catalog_id": "DiamondCue",
+  "concept": "K1",
+  "palette": [
+    "#BDE6FF",
+    "#3D8AFF"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a platinum shaft set with a row of glowing blue diamond inlays; three nested chevrons pointing to the butt on the forearm with glowing blue lines, a blue gem in the front one; the collar and rings in platinum; a navy leather wrap; two chevron sets meeting on the sleeve; the Diamond rank badge on the butt face.",
+  "panels": {
+    "shaft_tile": "skins/diamond_cue/shaft_tile.png",
+    "shaft_top": "skins/diamond_cue/shaft_top.png",
+    "forearm": "skins/diamond_cue/forearm.png",
+    "butt": "skins/diamond_cue/butt.png",
+    "cap_end": "skins/diamond_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#DDE9F4"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "metal",
+    "metal": "#DDE9F4",
+    "metal_name": "platinum",
+    "shaft_rough": 0.1,
+    "base": "#0E1E4A",
+    "chevron": "#C8D6E6",
+    "accent": "#3D8AFF",
+    "accent_glow": 0.6,
+    "gem": "#3D8AFF",
+    "gem_glow": 0.8,
+    "shaft_gems": [
+      0.7,
+      1.2,
+      1.7,
+      2.2,
+      2.7,
+      3.2
+    ],
+    "shaft_gem_len": 0.13,
+    "shaft_gem_wid": 0.03,
+    "ring_glow": "#3D8AFF",
+    "wrap": "leather",
+    "wrap_colour": "#10204A",
+    "badge_dark": "#0A1430"
+  },
+  "surface": {
+    "EmissiveStrength": 1.8,
+    "EmissiveTint": "#FFFFFF"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "a blue glowing line in the ring"
+    },
+    "Aura": {
+      "Note": "Diamond sparkles and a soft glow: blue-white sparkles, small blue crystals floating round the handle, a soft blue glow.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.14,
+              0.042
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#3D8AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Crystals",
+          "Texture": "vfx/prism/crystal.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 1.0,
+            "ToStuds": 7.0,
+            "Width": 0.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.2,
+              0.13
+            ],
+            [
+              0.8,
+              0.13
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            -20,
+            20
+          ],
+          "Transparency": 0.05,
+          "Color": "#9CCBFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "Glow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.2,
+          "Width1": 0.34,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#3D8AFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.72
+            ],
+            [
+              0.9,
+              0.6699999999999999
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ]
+    },
+    "Trail": {
+      "Note": "The shared white wisp."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 17,
+      "Back": 8.5,
+      "BallTrail": 0,
+      "Beams": 1,
+      "Lights": 0
+    }
+  }
+}

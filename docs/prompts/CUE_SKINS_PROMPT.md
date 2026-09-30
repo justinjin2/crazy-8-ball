@@ -370,7 +370,7 @@ and you ask the designer about it.
   section 1 says, without waiting), at section 8.1's effort.
 - [x] 9. Secret: Eclipse (S1).
 - [x] 10. Starter and VIP (X1).
-- [ ] 11. Rank cues (10): K1-K2, one shared trophy design.
+- [x] 11. Rank cues (10): K1-K2, one shared trophy design.
 - [ ] 12. Unique cues (3): Q1.
 - [ ] 13. Tier sheets complete, every designer "fix:" note done, and the review file
   current.
@@ -486,3 +486,11 @@ and you ask the designer about it.
   corona sprite on particles centred on the sphere with a ZOffset of the sphere's radius
   always sits on the outline, from any side, which a ForceField shell or a ring mesh can't do
   (a shell tints the whole sphere; a ring only reads face-on).
+
+- **2026-09-29, Rank cues.** All ten share one procedural painter, `rank_cue` in CuePaint (a
+  skin names it with `"recipe"`; its settings are the skin's `"rank"` block): a metal (K1) or
+  dark lacquer (K2) shaft, three bold chevron plates on the forearm, chevrons meeting on the
+  sleeve, knurled or snakeskin grips, and the rank badge painted on the butt face. The VFX climb:
+  none, a shine sweep (overlay Beams), sparkles, flames, own trails, a gold burst, and Reyes'
+  rainbow (EmissiveTint cycled) with turning rays and a crown finisher.
+  `tools/tier_sheets.py` makes the tier contact sheets.

@@ -3391,12 +3391,12 @@ def rank_badge(c, p):
 def rank_cue(k):
     """The rank cues' shared trophy design (K1, K2): the same layout on all ten, climbing in
     metal, colour and glow (skin["rank"] holds the per-rank settings):
-      * shaft: brushed rank metal (Bronze to Diamond; Diamond set with a row of glowing blue
+      * shaft: brushed rank metal with slanted light streaks (Bronze to Diamond; Diamond set with a row of glowing blue
         gems), or dark coloured lacquer wound with fine gold lines and gold chevrons before the
         collar (Expert to Reyes);
-      * forearm: the rank base colour with three nested chevrons pointing to the butt in the
-        chevron metal, a gem (glowing) in the front one from Platinum up;
-      * collar and rings in the metal; the wrap in leather (K1) or snakeskin (K2);
+      * forearm: the rank base colour with three bold nested chevron plates pointing to the butt
+        in the chevron metal (a dark groove down each), a gem (glowing) in the front one from Platinum up;
+      * collar and rings in the metal; the wrap a knurled crosshatch (K1) or snakeskin (K2);
       * sleeve: two chevron sets meeting in the middle; cap end: the rank badge.
     From Expert up the gold lines and gems glow (Reyes: white lines whose glow a script cycles
     round the rainbow)."""
@@ -3408,8 +3408,14 @@ def rank_cue(k):
     else:
         k.paint(['shaft'], gloss, p['base'], rough=0.08)
     for c, m in k.zone('shaft'):
-        if p['shaft'] != 'metal':
-            lines = np.clip(spiral(c, 0.35, n=3, duty=0.03, phase=0.1) + spiral(c, -0.22, n=2, duty=0.025, phase=0.4), 0, 1) * m
+        if p['shaft'] == 'metal':
+            # light streaks: long slanted strokes of brighter polished metal (the concept's gleam)
+            streak = np.clip(spiral(c, 0.18, n=3, duty=0.018, phase=0.2) + spiral(c, -0.11, n=2, duty=0.012, phase=0.65), 0, 1) * m
+            fade = np.clip((c.d - 0.4) / 1.2, 0, 1)
+            lit = mix(rgb(p['metal']), np.array([255.0, 250, 240]), 0.55)
+            c.put(streak * fade > 0.4, np.broadcast_to(lit, c.col.shape), rough=0.06, metal=1.0)
+        else:
+            lines = np.clip(spiral(c, 0.3, n=3, duty=0.05, phase=0.1) + spiral(c, -0.3, n=3, duty=0.05, phase=0.6), 0, 1) * m
             metal(c, lines > 0.5, p['chevron'], rough=0.18)
             c.put(lines > 0.5, None, glow=lines * p.get('line_glow', 0.0))
             ch = chevrons(c, m, J0 - 0.06, 0.18, 3, 0.1, 0.018, direction=1)
@@ -3417,18 +3423,22 @@ def rank_cue(k):
             c.put(ch > 0.5, None, glow=ch * p.get('line_glow', 0.0))
         for n_gem, g in enumerate(p.get('shaft_gems', [])):
             for th in (FACE, face2):
-                inlay_diamond(c, m, g, th, 0.07, 0.022, p['gem'], 'gem', border=p['chevron'], border_w=0.004, glow=p.get('gem_glow', 0.6))
+                inlay_diamond(c, m, g, th, p.get('shaft_gem_len', 0.07), p.get('shaft_gem_wid', 0.022), p['gem'], 'gem', border=p['chevron'],
+                              border_w=0.004, glow=p.get('gem_glow', 0.6))
     for c, m in k.zone('forearm'):
         gloss(c, m, p['base'], rough=0.1)
-        ch = chevrons(c, m, W0 - 0.6, 0.22, 3, 0.2, 0.05, direction=1)
-        metal(c, ch > 0.5, p['chevron'], rough=0.15)
-        c.add_height(ch, 0.0003)
+        ch = chevrons(c, m, W0 - 0.4, 0.32, 3, 0.26, 0.11, direction=1)
+        if p.get('chevron_kind') == 'enamel':   # a pale colour reads better as glossy enamel
+            gloss(c, ch > 0.5, p['chevron'], rough=0.08)
+        else:
+            metal(c, ch > 0.5, p['chevron'], rough=0.15)
+        c.add_height(ch, 0.0004)
         c.put(ch > 0.5, None, glow=ch * p.get('line_glow', 0.0))
-        inner = chevrons(c, m, W0 - 0.6, 0.22, 3, 0.2, 0.012, direction=1)
+        inner = chevrons(c, m, W0 - 0.4, 0.32, 3, 0.26, 0.022, direction=1)
         c.put(inner > 0.5, np.broadcast_to(rgb(p.get('accent', p['base'])), c.col.shape), rough=0.2, glow=inner * p.get('accent_glow', 0.0))
         if p.get('gem'):
             for th in (FACE, face2):
-                inlay_diamond(c, m, W0 - 0.95, th, 0.09, 0.03, p['gem'], 'gem', border=p['chevron'], border_w=0.005, glow=p.get('gem_glow', 0.6))
+                inlay_diamond(c, m, W0 - 1.2, th, 0.1, 0.034, p['gem'], 'gem', border=p['chevron'], border_w=0.005, glow=p.get('gem_glow', 0.6))
     for c, m in k.zone('joint'):
         metal(c, m, p['metal'], rough=0.14)
         c.put(m, None, glow=0.0)
@@ -3437,7 +3447,7 @@ def rank_cue(k):
     if p['wrap'] == 'scales':
         k.paint(['wrap'], scales, p['wrap_colour'], size=0.03, rough=0.4, sheen=0.35, edge_col=p.get('wrap_edge'))
     else:
-        k.paint(['wrap'], leather, p['wrap_colour'], rough=0.5, depth=0.0008, scale=1.8, contrast=1.8, sheen=0.4)
+        k.paint(['wrap'], crosshatch, p['wrap_colour'], pitch=0.018, rough=0.38, depth=0.0005)
     for c, m in k.zone('ring'):
         metal(c, m, p['metal'], rough=0.14)
         c.put(m, None, glow=0.0)
@@ -3448,10 +3458,13 @@ def rank_cue(k):
         sleeve = band(c, W1, 6.93) * m
         gloss(c, sleeve > 0.5, p['base'], rough=0.1)
         mid = (W1 + 6.93) / 2
-        a = chevrons(c, sleeve, mid - 0.03, 0.08, 2, 0.07, 0.025, direction=1)
-        b = chevrons(c, sleeve, mid + 0.03, 0.08, 2, 0.07, 0.025, direction=-1)
+        a = chevrons(c, sleeve, mid - 0.02, 0.1, 2, 0.08, 0.04, direction=1)
+        b = chevrons(c, sleeve, mid + 0.02, 0.1, 2, 0.08, 0.04, direction=-1)
         ch = np.maximum(a, b)
-        metal(c, ch > 0.5, p['chevron'], rough=0.15)
+        if p.get('chevron_kind') == 'enamel':
+            gloss(c, ch > 0.5, p['chevron'], rough=0.08)
+        else:
+            metal(c, ch > 0.5, p['chevron'], rough=0.15)
         c.add_height(ch, 0.0003)
         c.put(ch > 0.5, None, glow=ch * p.get('line_glow', 0.0))
         for d in (W1 + 0.015, 6.915):

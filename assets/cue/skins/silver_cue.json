@@ -1,0 +1,170 @@
+{
+  "id": "silver_cue",
+  "name": "Silver Cue",
+  "tier": "Rank",
+  "catalog_id": "SilverCue",
+  "concept": "K1",
+  "palette": [
+    "#C9CDD4",
+    "#7A7F88"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a polished silver shaft; three nested chevrons pointing to the butt on the forearm; the collar and rings in polished silver; a black leather wrap; two chevron sets meeting on the sleeve; the Silver rank badge on the butt face.",
+  "panels": {
+    "shaft_tile": "skins/silver_cue/shaft_tile.png",
+    "shaft_top": "skins/silver_cue/shaft_top.png",
+    "forearm": "skins/silver_cue/forearm.png",
+    "butt": "skins/silver_cue/butt.png",
+    "cap_end": "skins/silver_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C9CDD4"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "metal",
+    "metal": "#C9CDD4",
+    "metal_name": "polished silver",
+    "shaft_rough": 0.12,
+    "base": "#141518",
+    "chevron": "#D8DCE2",
+    "accent": "#4A4E56",
+    "wrap": "leather",
+    "wrap_colour": "#151517",
+    "badge_dark": "#101114"
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams",
+      "Note": "A faint shine sweeps along the metal: overlay Beams (the soft slanted band made for the rank cues) scrolling toward the butt.",
+      "Beams": [
+        {
+          "Name": "ShineShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/rank/shine_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.55
+            ],
+            [
+              0.96,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "ShineForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/rank/shine_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.55
+            ],
+            [
+              0.9131578947368422,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "ShineSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/rank/shine_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.55
+            ],
+            [
+              0.88,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Trail": {
+      "Note": "The shared white wisp."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 4
+    }
+  }
+}

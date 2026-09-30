@@ -3061,9 +3061,43 @@ def sprite_crown_rainbow(n=256):
     return img
 
 
+def energy_flame_frame(i, n, frames=16, seed=631):
+    """One frame of a white energy flame for tinting (the rank cues' red, green and violet
+    flames): three thin licking tongues that rise from a soft root, curl and split at the tips,
+    with no round base (the shared fire sheet is orange and drop-shaped, so it cannot be tinted).
+    Over the sheet the tongues climb, lean and thin out."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    v = (0.95 - y) / 1.9                     # 0 at the root, 1 at the top of the frame
+    t = k * 2.0
+    dens = np.zeros_like(x)
+    core = np.zeros_like(x)
+    for j, (x0, top, w0) in enumerate(((-0.22, 0.8, 0.17), (0.02, 0.98, 0.22), (0.24, 0.72, 0.16))):
+        top = top * (1 - 0.3 * k)
+        sway = (cc.fbm(np.full_like(x, j * 3.1), (v - t * 0.8) * 2.2, np.full_like(x, t * 0.4), 3, seed + j) - 0.5)
+        cx = x0 * (1 - 0.5 * v) + sway * 1.3 * np.clip(v, 0, 1) ** 1.2 + 0.08 * math.sin(3 + j + t * 2) * v
+        w = w0 * np.clip(1 - v / top, 0, 1) ** 0.9 * np.clip(v / 0.12 + 0.25, 0, 1) * (1 - 0.35 * k)
+        d = np.clip((w - np.abs(x - cx)) / np.maximum(w * 0.55, 1e-3), 0, 1)
+        dens = np.maximum(dens, d)
+        core = np.maximum(core, np.clip(1 - np.abs(x - cx) / np.maximum(w * 0.35, 1e-3), 0, 1) * np.clip(1 - v / (top * 0.7), 0, 1))
+    lick = cc.fbm(x * 3 + 5, (v - t * 1.2) * 4, np.full_like(x, t), 3, seed + 7)
+    cut = np.clip((lick - 0.2 - 0.45 * np.clip(v - 0.3, 0, 1)) * 2.5, 0, 1)
+    blend = np.clip((v - 0.2) / 0.45, 0, 1)
+    root = np.clip(v / 0.1, 0, 1)            # fade in at the root: no hard bottom edge
+    a = np.clip(dens * (1 - blend + blend * cut) * root * (1 - 0.4 * k), 0, 1)
+    lum = 175 + 80 * np.clip(core * 1.4, 0, 1)
+    c = np.stack([lum, lum, lum], -1)
+    return np.concatenate([c, a[..., None] * 255], -1)
+
+
+def sprite_energy_flame_sheet():
+    return flipbook(lambda i, n: energy_flame_frame(i, n), 4, 1024)
+
+
 SKIN_SPRITES['rank'] = {'shine_strip.png': sprite_shine_strip, 'trail_amethyst.png': sprite_trail_amethyst,
                         'trail_gold_black.png': sprite_trail_gold_black, 'trail_prism.png': sprite_trail_prism,
-                        'rays.png': sprite_rays, 'crown_rainbow.png': sprite_crown_rainbow}
+                        'rays.png': sprite_rays, 'crown_rainbow.png': sprite_crown_rainbow,
+                        'energy_flame_4x4.png': sprite_energy_flame_sheet}
 
 
 def main():
