@@ -1,8 +1,9 @@
 # Status
 
 **2026-09-30: Eagle's Eye waits for the pull; new icon.** The gold path shows only once the
-cue is pulled back (checked in Studio: none while aiming, the path at 52%). The icon is a
-hunter's eye (image 74728958266759).
+cue is pulled back (checked in Studio: none while aiming, the path at 52%). The icon is
+hunter eyes: a hooded human eye with a sparkling green iris and a heavy drawn brow (image
+119543656656169).
 
 **2026-09-30: Magnet draws nothing on the balls** (the red and blue caps and rings are gone;
 the blue field round the ball, the hand-off, the pull lines and the rest stay; checked in

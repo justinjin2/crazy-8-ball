@@ -2991,7 +2991,7 @@ Config.Ults.Assets = {
 	-- by ult id: the image ids (tools/upload_manifest.json's imageId, not the Decal ids).
 	Icons = {
 		Magnet = "rbxassetid://117672288856146",
-		EaglesEye = "rbxassetid://74728958266759", -- a hunter's eye since 2026-09-30 (was an eagle)
+		EaglesEye = "rbxassetid://119543656656169", -- hunter eyes since 2026-09-30 (was an eagle)
 		SuperBounce = "rbxassetid://95265934894642",
 		Ghost = "rbxassetid://103298708355834",
 		HeatSeeker = "rbxassetid://109084609734062",

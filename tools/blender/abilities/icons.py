@@ -610,89 +610,277 @@ def magnet():
     return objs
 
 
+def iris_material(name, radius_units):
+    """The iris: radial fibres (noise stretched along the radius) over rings from an amber
+    ring round the pupil through olive to a sparkling green, darkening to a limbal ring at
+    the edge. Built on the disc's own coordinates (its face in local XY, radius
+    `radius_units`)."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    nodes, links = nt.nodes, nt.links
+    bsdf = next(n for n in nodes if n.type == "BSDF_PRINCIPLED")
+    coord = nodes.new("ShaderNodeTexCoord")
+    sep = nodes.new("ShaderNodeSeparateXYZ")
+    links.new(coord.outputs["Object"], sep.inputs[0])
+    comb = nodes.new("ShaderNodeCombineXYZ")
+    links.new(sep.outputs["X"], comb.inputs["X"])
+    links.new(sep.outputs["Y"], comb.inputs["Y"])
+    length = nodes.new("ShaderNodeVectorMath")
+    length.operation = "LENGTH"
+    links.new(comb.outputs[0], length.inputs[0])
+    radius = nodes.new("ShaderNodeMath")  # 0 at the centre, 1 at the rim
+    radius.operation = "DIVIDE"
+    radius.inputs[1].default_value = radius_units
+    links.new(length.outputs["Value"], radius.inputs[0])
+    angle = nodes.new("ShaderNodeMath")
+    angle.operation = "ARCTAN2"
+    links.new(sep.outputs["Y"], angle.inputs[0])
+    links.new(sep.outputs["X"], angle.inputs[1])
+    # Fibres: noise sampled at (angle x 9, radius x 0.6): streaks running out along the radius.
+    a_k = nodes.new("ShaderNodeMath")
+    a_k.operation = "MULTIPLY"
+    a_k.inputs[1].default_value = 9.0
+    links.new(angle.outputs[0], a_k.inputs[0])
+    r_k = nodes.new("ShaderNodeMath")
+    r_k.operation = "MULTIPLY"
+    r_k.inputs[1].default_value = 0.6
+    links.new(radius.outputs[0], r_k.inputs[0])
+    fib_v = nodes.new("ShaderNodeCombineXYZ")
+    links.new(a_k.outputs[0], fib_v.inputs["X"])
+    links.new(r_k.outputs[0], fib_v.inputs["Y"])
+    noise = nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 3.0
+    noise.inputs["Detail"].default_value = 10.0
+    noise.inputs["Roughness"].default_value = 0.65
+    links.new(fib_v.outputs[0], noise.inputs["Vector"])
+    shade = nodes.new("ShaderNodeValToRGB")
+    ramp_fill(shade, [(0.3, "4A4A4A"), (0.55, "C8C8C8"), (0.75, "FFFFFF")])
+    links.new(noise.outputs["Fac"], shade.inputs["Fac"])
+    rings = nodes.new("ShaderNodeValToRGB")
+    ramp_fill(rings, [(0.0, "3A2208"), (0.33, "D08A1A"), (0.45, "A8A62C"), (0.56, "4FC45A"),
+                      (0.8, "2FB257"), (0.9, "1C7A3A"), (0.97, "0B2E18")])
+    links.new(radius.outputs[0], rings.inputs["Fac"])
+    mix = nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.blend_type = "MULTIPLY"
+    mix.inputs["Factor"].default_value = 1.0
+    links.new(rings.outputs["Color"], mix.inputs["A"])
+    links.new(shade.outputs["Color"], mix.inputs["B"])
+    links.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
+    links.new(mix.outputs["Result"], bsdf.inputs["Emission Color"])
+    bsdf.inputs["Emission Strength"].default_value = 0.9
+    bsdf.inputs["Roughness"].default_value = 0.08
+    # A soft gloss only: a sharp coat mirrors the square studio lights on the iris.
+    bsdf.inputs["Coat Weight"].default_value = 0.3
+    bsdf.inputs["Coat Roughness"].default_value = 0.25
+    return m
+
+
 def hunter_eye():
-    """A hunter's eye (the designer, 2026-09-30: was an eagle's head): a big cat's almond eye,
-    the iris glowing amber to gold round a vertical slit pupil, a heavy tawny brow slanting
-    down over its inner corner in a squint, a dark liner flicking out past the outer corner
-    and a cheetah's tear mark running down from the inner one."""
-    fur = mat("HunterFur", "E08A2E", rough=0.5, coat=0.3)
-    dark = mat("HunterDark", "1E1510", rough=0.4, coat=0.3)
-    amber = mat("HunterIris", "D95F00", rough=0.12, coat=0.8, emit=0.5, emit_color="E06A00")
-    gold = mat("HunterIrisInner", "FFC21A", rough=0.12, emit=1.3, emit_color="FFB000")
-    core = mat("HunterIrisCore", "FFE680", rough=0.12, emit=1.8, emit_color="FFD84A")
-    black = mat("HunterPupil", "080808", rough=0.15, coat=0.8)
-    shine = mat("HunterGlint", "FFFFFF", rough=0.1, emit=3.0)
+    """Hunter eyes (the designer, 2026-09-30, from a close-up reference; was an eagle's head,
+    then a cat's eye): one human eye, hooded, its outer corner tilted up, a low heavy brow of
+    drawn hair strokes right over it, lashes, and a detailed sparkling green iris (fibres, an
+    amber ring round the pupil, a dark limbal ring, catchlights and a few sparkles)."""
+    import random
+    rng = random.Random(7)
+    sclera_m = mat("HunterSclera", "F3EEE8", rough=0.25, coat=0.6)
+    pink = mat("HunterCaruncle", "E5868A", rough=0.3, coat=0.5)
+    liner = mat("HunterLiner", "1A120D", rough=0.4, coat=0.2)
+    brow_fill = mat("HunterBrowFill", "150E0A", rough=0.8, coat=0.0)
+    hairs = [mat("HunterHair%d" % i, c, rough=0.7, coat=0.0)
+             for i, c in enumerate(("080504", "100A07", "1A110C", "2A1C14"))]
+    pupil_m = mat("HunterPupil", "020202", rough=0.7, coat=0.0)  # matte: no light squares
+    shine = mat("HunterShine", "FFFFFF", rough=0.1, emit=4.0)
+    sparkle = mat("HunterSparkle", "EFFFF2", rough=0.1, emit=5.0, emit_color="D8FFE0")
+    shadow = mat("HunterLidShadow", "2A1A14", rough=0.8, coat=0.0, alpha=0.4)
+    ix, iz, ir = 0.06, 0.0, 0.45
+    iris_m = iris_material("HunterIris", ir)
 
-    TILT = 0.12  # the outer corner (right) sits a little higher than the inner one
+    TILT = 0.09  # the outer corner (left, x < 0) sits higher: a positive canthal tilt
+    UP, DOWN = 0.36, 0.4  # the hooded, flatter upper lid; the lower lid
 
-    def almond(a, b, sx=1.0, sy=1.0, n=40):
-        pts = []
-        for k in range(n + 1):  # the lower lid, inner corner to outer
-            x = -1 + 2 * k / n
-            pts.append((x * sx, (-b * (1 - x * x) ** 0.9 + TILT * x) * sy))
-        for k in range(n - 1, 0, -1):  # the upper lid back
-            x = -1 + 2 * k / n
-            pts.append((x * sx, (a * (1 - x * x) ** 0.7 + TILT * x) * sy))
-        return pts
+    def lid_y(x, upper):
+        base = UP * (1 - x * x) ** 0.62 if upper else -DOWN * (1 - x * x) ** 0.85
+        return base - TILT * x
 
-    def stroke(p0, p1, p2, width, taper_start=0.0, n=32):
-        """A stroke along a quadratic curve, `width` thick, pointed at the end (and at the
-        start too when taper_start > 0)."""
+    def almond(sx=1.0, sy=1.0, n=48):
+        pts = [(-1 + 2 * k / n, lid_y(-1 + 2 * k / n, False)) for k in range(n + 1)]
+        pts += [(-1 + 2 * k / n, lid_y(-1 + 2 * k / n, True)) for k in range(n - 1, 0, -1)]
+        return [(x * sx, y * sy) for x, y in pts]
+
+    def stroke(pts, width, taper=(0.0, 1.0)):
+        """A flat stroke along a polyline, `width` thick, tapering in at the start over the
+        first taper[0] of it and out to a point from taper[1] on."""
+        n = len(pts) - 1
         top, bottom = [], []
-        for k in range(n + 1):
+        for k, p in enumerate(pts):
+            q0, q1 = pts[max(k - 1, 0)], pts[min(k + 1, n)]
+            dx, dy = q1[0] - q0[0], q1[1] - q0[1]
+            ln = math.hypot(dx, dy) or 1.0
+            nx, ny = -dy / ln, dx / ln
             t = k / n
-            p = [(1 - t) ** 2 * p0[i] + 2 * t * (1 - t) * p1[i] + t * t * p2[i] for i in (0, 1)]
-            d = [2 * (1 - t) * (p1[i] - p0[i]) + 2 * t * (p2[i] - p1[i]) for i in (0, 1)]
-            ln = math.hypot(d[0], d[1]) or 1.0
-            nx, ny = -d[1] / ln, d[0] / ln
-            w = width * (1 - t) ** 0.8
-            if taper_start > 0:
-                w *= min(1.0, t / taper_start) ** 0.6
-            w = w / 2 + 0.008
+            w = width
+            if taper[0] > 0 and t < taper[0]:
+                w *= (t / taper[0]) ** 0.6
+            if t > taper[1]:
+                w *= ((1 - t) / (1 - taper[1])) ** 0.8
+            w = w / 2 + 0.004
             top.append((p[0] + nx * w, p[1] + ny * w))
             bottom.append((p[0] - nx * w, p[1] - ny * w))
         return top + list(reversed(bottom))
 
+    def boolean_intersect(obj, mask):
+        mod = obj.modifiers.new("Clip", "BOOLEAN")
+        mod.operation = "INTERSECT"
+        mod.solver = "EXACT"
+        mod.object = mask
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set(True)
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        obj.select_set(False)
+
     objs = []
-    # The liner round the eye, its flick past the outer corner and the tear mark.
-    objs.append(slab("Rim", almond(0.62, 0.5, 1.14, 1.16), 0.22, dark, bevel=0.03,
-                     at=(0, 0, 0)))
-    objs.append(slab("Flick", stroke((0.95, 0.18), (1.3, 0.3), (1.62, 0.52), 0.26), 0.2,
-                     dark, bevel=0.02, at=(0, 0, 0)))
-    objs.append(slab("Tear", stroke((-1.02, -0.2), (-1.12, -0.72), (-0.86, -1.18), 0.28),
-                     0.2, dark, bevel=0.02, at=(0, 0, 0)))
-    # Each layer sits clear of the one behind it (bevels included): no z-fighting stripes.
-    iris = slab("Iris", almond(0.62, 0.5, 0.98, 0.95), 0.08, amber, bevel=0.03,
-                at=(0, -0.08, 0))
+    # The white of the eye (outlined: the eye's silhouette) and the pink inner corner.
+    objs.append(slab("Sclera", almond(), 0.16, sclera_m, bevel=0.03, at=(0, 0, 0)))
+    car = prim("uv_sphere", "Caruncle", pink, location=(0.9, -0.12, lid_y(0.9, False) * 0.2),
+               radius=1.0, segments=24, ring_count=12, scale=(0.09, 0.05, 0.07))
+    car["no_outline"] = True
+    objs.append(car)
+
+    # The iris and the pupil, clipped to the eye's opening.
+    mask = slab("IrisMask", almond(0.99, 0.99), 2.0, sclera_m, bevel=0.0, at=(0, 0, 0))
+    iris = prim("cylinder", "Iris", iris_m, location=(ix, -0.14, iz), radius=ir, depth=0.04,
+                vertices=96, rotation=(math.pi / 2, 0, 0))
+    boolean_intersect(iris, mask)
     iris["no_outline"] = True
     objs.append(iris)
-    for name, sx, sy, m, y in (("IrisInner", 0.7, 0.68, gold, -0.19),
-                               ("IrisCore", 0.42, 0.45, core, -0.24)):
-        ring = slab(name, almond(0.62, 0.5, sx, sy), 0.02, m, bevel=0.01, at=(0, y, 0))
-        ring["no_outline"] = True
-        objs.append(ring)
-    slit = []
-    for k in range(41):
-        y = -1 + 2 * k / 40
-        slit.append((0.1 * (1 - y * y) ** 0.9, y * 0.47))
-    for k in range(39, 0, -1):
-        y = -1 + 2 * k / 40
-        slit.append((-0.1 * (1 - y * y) ** 0.9, y * 0.47))
-    pupil = slab("Pupil", slit, 0.03, black, bevel=0.012, at=(0.04, -0.285, 0))
+    pupil = prim("cylinder", "Pupil", pupil_m, location=(ix, -0.17, iz), radius=ir * 0.34,
+                 depth=0.02, vertices=64, rotation=(math.pi / 2, 0, 0))
     pupil["no_outline"] = True
     objs.append(pupil)
-    glint = prim("uv_sphere", "Glint", shine, location=(-0.3, -0.31, 0.2), radius=0.075,
-                 segments=16, ring_count=8, scale=(1.0, 0.4, 1.0))
-    glint["no_outline"] = True
-    objs.append(glint)
-    # The brow: a heavy tawny crescent, low over the inner corner (the squint), rising out
-    # past the outer one; in front of the eye so it cuts off the top of the iris there.
-    objs.append(slab("Brow", stroke((-1.3, 0.1), (-0.15, 0.92), (1.5, 0.96), 0.48,
-                                    taper_start=0.18), 0.24, fur, bevel=0.07,
-                     at=(0, -0.42, 0)))
-    transform(objs, Matrix.Rotation(math.radians(CAM_AZIMUTH * 0.7), 4, "Z")
-              @ Matrix.Rotation(math.radians(-8), 4, "X"))
-    objs.append(glow("HunterGlow", (0, 0.2, 0.05), 1.3, "FFB000", strength=0.9, power=1.8))
+    # A soft shadow under the hooded upper lid, over the white and the iris.
+    shade_pts = [(-1 + 2 * k / 40, lid_y(-1 + 2 * k / 40, True)) for k in range(41)]
+    shade_pts += [(x, y - 0.11 * (1 - x * x) ** 0.5) for x, y in reversed(shade_pts)]
+    lid_shadow = slab("LidShadow", shade_pts, 0.01, shadow, bevel=0.0, at=(0, -0.2, 0))
+    boolean_intersect(lid_shadow, mask)
+    lid_shadow["no_outline"] = True
+    objs.append(lid_shadow)
+    bpy.data.objects.remove(mask, do_unlink=True)
+
+    # Catchlights, and tiny glints scattered in the iris.
+    for x, z, r in ((ix - 0.08, iz + 0.12, 0.07), (ix + 0.17, iz - 0.12, 0.03)):
+        c = prim("uv_sphere", "Catchlight", shine, location=(x, -0.2, z), radius=r,
+                 segments=16, ring_count=8, scale=(1, 0.3, 1))
+        c["no_outline"] = True
+        objs.append(c)
+    for _ in range(9):
+        a = rng.uniform(0, 2 * math.pi)
+        d = rng.uniform(0.2, 0.36)
+        x, z = ix + math.cos(a) * d, iz + math.sin(a) * d
+        if z > lid_y(x, True) - 0.04 or z < lid_y(x, False) + 0.04:
+            continue
+        g = prim("uv_sphere", "Glint", sparkle, location=(x, -0.18, z),
+                 radius=rng.uniform(0.008, 0.016), segments=8, ring_count=4)
+        g["no_outline"] = True
+        objs.append(g)
+
+    # The lash lines: heavy along the top, flicking out past the outer corner; thin below.
+    top = [(-1 + 2 * k / 40, lid_y(-1 + 2 * k / 40, True) + 0.01) for k in range(41)]
+    wing = [(-1.0 - 0.06 * k, lid_y(-1, True) + 0.01 + 0.025 * k) for k in range(1, 5)]
+    upper = list(reversed(wing)) + top
+    objs.append(slab("UpperLiner", stroke(upper, 0.085, taper=(0.12, 0.85)), 0.05, liner,
+                     bevel=0.01, at=(0, -0.12, 0)))
+    bottom = [(-1 + 2 * k / 40, lid_y(-1 + 2 * k / 40, False) - 0.008) for k in range(41)]
+    low = slab("LowerLiner", stroke(bottom, 0.03, taper=(0.1, 0.7)), 0.03, liner, bevel=0.005,
+               at=(0, -0.1, 0))
+    low["outline_scale"] = 0.3
+    objs.append(low)
+
+    # Lashes: curved strands off the lids, longest toward the outer corner.
+    def lash(x, upper, length):
+        y0 = lid_y(x, upper)
+        out = 1 if upper else -1
+        pts = []
+        for k in range(6):
+            t = k / 5
+            pts.append((x - (0.08 + 0.1 * (0.5 - x * 0.5)) * t * t,
+                        -0.12 - 0.05 * t,
+                        y0 + out * length * t - out * 0.02 * t * t))
+        o = tube_path("Lash", pts, 0.009, liner, sides=6, caps=True,
+                      radii=[1.0, 0.95, 0.8, 0.6, 0.4, 0.15])
+        o["no_outline"] = True
+        return o
+    for k in range(17):
+        x = -0.95 + 1.7 * k / 16 + rng.uniform(-0.02, 0.02)
+        objs.append(lash(x, True, 0.1 + 0.1 * (0.5 - x * 0.5) + rng.uniform(-0.02, 0.02)))
+    for k in range(11):
+        x = -0.85 + 1.5 * k / 10 + rng.uniform(-0.02, 0.02)
+        objs.append(lash(x, False, 0.05 + 0.04 * (0.5 - x * 0.5)))
+
+    # The brow: low, straight and heavy, sitting right over the eye; a dark fill under a mass
+    # of hair strokes (the head's hairs stand up, the body's sweep out to the tail, the upper
+    # ones angling down and the lower ones up, meeting along the middle).
+    def brow_mid(t):  # t 0 = the head (inner, right) .. 1 = the tail (outer, left)
+        return 1.08 - 2.45 * t, 0.5 + 0.1 * t + 0.06 * math.sin(math.pi * t * 0.8)
+
+    def brow_half(t):
+        return 0.22 * (1 - t) ** 0.5 * min(1.0, (t + 0.05) / 0.25) ** 0.7
+
+    def fill_half(t):
+        return brow_half(t) * 0.9
+
+    band_top = [(brow_mid(k / 40)[0], brow_mid(k / 40)[1] + fill_half(k / 40))
+                for k in range(41)]
+    band_bottom = [(brow_mid(k / 40)[0], brow_mid(k / 40)[1] - fill_half(k / 40))
+                   for k in range(40, -1, -1)]
+    fill = slab("BrowFill", band_top + band_bottom, 0.04, brow_fill, bevel=0.01, at=(0, 0, 0))
+    fill["no_outline"] = True
+    objs.append(fill)
+    for _ in range(650):
+        t = rng.uniform(0.0, 0.97) ** 1.15
+        mx, my = brow_mid(t)
+        h = brow_half(t)
+        s = rng.uniform(-1, 1)
+        x0, y0 = mx, my + s * h * 1.05
+        if t < 0.14:
+            # The head: fanning up and out, leaning further toward the tail up top.
+            dx, dy = -0.35 - 0.5 * max(s, 0.0) + rng.uniform(-0.15, 0.15), 1.0
+        else:
+            dx, dy = -1.0, -0.35 * s + rng.uniform(-0.12, 0.12)
+        ln = math.hypot(dx, dy)
+        dx, dy = dx / ln, dy / ln
+        length = rng.uniform(0.14, 0.3) * (0.65 if t > 0.8 else 1.0) * (0.6 if t < 0.14 else 1.0)
+        bend = rng.uniform(-0.03, 0.03)
+        pts = []
+        for k in range(4):
+            u = k / 3
+            pts.append((x0 + dx * length * u - dy * bend * u * u,
+                        -0.05 - 0.01 * rng.random(),
+                        y0 + dy * length * u + dx * bend * u * u))
+        hair = tube_path("BrowHair", pts, 0.013, rng.choice(hairs), sides=6, caps=True,
+                         radii=[1.0, 0.8, 0.5, 0.15])
+        hair["no_outline"] = True
+        objs.append(hair)
+
+    # Sparkles: four-point stars off the eye.
+    def star(cx, cz, r):
+        pts = []
+        for k in range(32):
+            a = 2 * math.pi * k / 32
+            c, s = math.cos(a), math.sin(a)
+            rr = r * (abs(c) ** 3 + abs(s) ** 3) ** 2 * 0.95 + r * 0.05
+            pts.append((cx + c * rr, cz + s * rr))
+        o = slab("Sparkle", pts, 0.02, sparkle, bevel=0.0, at=(0, -0.3, 0))
+        o["no_outline"] = True
+        o["no_frame"] = True
+        return o
+    objs += [star(0.62, 0.2, 0.16), star(-0.55, -0.42, 0.1), star(0.4, -0.5, 0.06)]
+
+    # Face the camera square on.
+    q = CAM_DIR.to_track_quat("-Y", "Z")
+    transform(objs, q.to_matrix().to_4x4())
+    objs.append(glow("HunterGlow", (0, 0.15, 0), 1.2, "55E07A", strength=0.7, power=1.8))
     return objs
 
 

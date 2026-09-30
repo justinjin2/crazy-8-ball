@@ -2070,3 +2070,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-30 (designer): Eagle's Eye shows its gold path only once the player starts pulling
   the cue back (it used to show while aiming, at the last shot's power), and its icon is a
   hunter's eye (a big cat's amber slit-pupil eye with a heavy brow) instead of an eagle.
+- 2026-09-30 (designer, with a close-up reference): the Eagle's Eye icon is "hunter eyes": one
+  hooded human eye with a detailed sparkling green iris (an amber ring round the pupil) and a
+  low heavy brow drawn hair by hair, replacing the cat's eye made earlier the same day.

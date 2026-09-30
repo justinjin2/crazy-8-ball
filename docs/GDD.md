@@ -462,7 +462,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     the first object ball's, through every cushion, bounce rings and the reached pocket
     glowing (gold strips under the white guideline). Nothing changes the physics. The path
     shows only once the player starts pulling the cue back, and follows the pull (2026-09-30).
-    Its icon is a hunter's eye (a big cat's slit-pupil eye), not an eagle (2026-09-30).
+    Its icon is hunter eyes (2026-09-30, not an eagle): a hooded human eye, a sparkling green
+    iris, a low heavy brow drawn hair by hair.
   - **Super Bounce** (Common, 0.33): the cue ball goes rainbow and near-lossless on the
     cushions for 8 s; the first ball of yours it hits catches the bounce, and a cushion hit
     within 6 in of a pocket boings it in off the jaw.
