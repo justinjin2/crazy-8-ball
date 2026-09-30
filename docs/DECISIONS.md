@@ -2064,3 +2064,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-09-30 (designer): Portals is now Rare and Time Stop Epic (they swapped rarities). Their
   worths are unchanged (Portals 0.42, Time Stop 0.47), so Time Stop pulls the Epic mean down and
   Portals sits beside Rewind; revisit when each is reviewed.
+- 2026-09-30 (designer): Magnet no longer draws on the balls: the red and blue pole caps and
+  the red and blue rings circling the armed cue ball and the hit ball are gone. The blue field
+  round the ball, the hand-off, the charge burst, the pull lines and the pocket effects stay.

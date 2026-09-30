@@ -6759,13 +6759,11 @@ Config.UI.UltCutscene = {
 -- meshes are Config.Ults.Assets.Models.MagnetField (their colours are baked in the texture:
 -- only their transparency is set here). (tune)
 Config.UI.MagnetFx = {
-	NorthColor = { 255, 70, 80 }, -- the red N ring
-	SouthColor = { 70, 150, 255 }, -- the blue S ring
 	FieldColor = { 160, 210, 255 }, -- the fallback's faint arcs round the armed cue ball
 	GlowColor = { 70, 160, 255 }, -- the pull: the ball's glow, the vortex, the fallback ring
 	SparkColor = { 190, 230, 255 },
 	BeamSegments = 12, -- a Beam's smoothness
-	-- The opponent's balls are pulled at Config.Ults.Shared.OpponentFactor: their caps, burst,
+	-- The opponent's balls are pulled at Config.Ults.Shared.OpponentFactor: their burst,
 	-- lines, pocket fan and shockwave keep this share of their opacity (and their charge's zap
 	-- and sparks this share of theirs), so theirs reads weaker.
 	OpponentOpacityShare = 0.5,
@@ -6774,15 +6772,14 @@ Config.UI.MagnetFx = {
 	MeshLiftInches = 0.08,
 	-- These pieces drop their baked texture for this flat colour: the reference's pale blue
 	-- (#7BA3D6) washed out to near white on the lit green cloth, so a deeper, saturated blue of
-	-- the same hue (the look check, 2026-09-29). PoleCaps keeps its red and blue texture.
+	-- the same hue (the look check, 2026-09-29). PoleCaps is not drawn (2026-09-30).
 	FlatPieces = { "FieldArcs", "FieldFlares", "FieldRing", "Chevron" },
 	FieldMeshColor = { 45, 115, 240 },
-	-- Armed: the cue ball as a dipole. Its N (red cap) turns after the shooter's aim (the aim
-	-- stream) with this time constant; with no aim heard it turns once every ArcTurnSeconds.
+	-- Armed: the cue ball as a dipole, nothing drawn on the ball itself (the designer,
+	-- 2026-09-30: the red and blue caps and rings are gone). Its N turns after the shooter's aim
+	-- (the aim stream) with this time constant; with no aim heard it turns once every
+	-- ArcTurnSeconds.
 	PoleEaseSeconds = 0.12,
-	CapsRadiusBalls = 1.04, -- the red and blue caps, a hair over the ball (in ball radii)
-	CapsTransparency = 0,
-	CapsTurnSeconds = 0.1, -- a charged ball's N easing round to where it rolls
 	-- The arcs flat round it (three nested loops each side, N to S): scaled so the inner loops
 	-- pass this many ball radii from its centre (the outer ones reach about 2.7x as far).
 	ArcsInnerRadiusBalls = 1.35,
@@ -6797,18 +6794,8 @@ Config.UI.MagnetFx = {
 	ChevronShare = 0.16,
 	ChevronFadeShare = 0.15,
 	ChevronTransparency = 0.05,
-	-- The old orbit rings, kept round the armed cue ball but faint (the arcs are the hero):
-	-- tilted RingTiltDegrees from flat and precessing opposite ways (one turn every
-	-- RingTurnSeconds), each with a bead running round it.
-	RingRadiusBalls = 1.8, -- in ball radii
-	RingWidthStuds = 0.018,
-	RingTiltDegrees = 62,
-	RingTurnSeconds = 2.6,
-	RingTransparency = 0.55,
-	BeadStuds = 0.05,
-	BeadSeconds = 0.9, -- one lap
-	-- The arming snap: the rings (and fallback arcs) start this many times wider and snap in;
-	-- the arcs and caps start this small and pop out to size.
+	-- The arming snap: the fallback arcs start this many times wider and snap in; the arcs
+	-- start this small and pop out to size.
 	SnapSeconds = 0.35,
 	SnapFromScale = 2.6,
 	MeshSnapFromScale = 0.2,
@@ -6816,7 +6803,7 @@ Config.UI.MagnetFx = {
 	-- The hand-off (2026-09-30): the armed look rides the rolling cue ball until its first hit,
 	-- then field lines run from the cue ball into the ball it hit for HandoffSeconds, arrows
 	-- flowing into it, while the cue ball's look goes in HandoffLookFadeSeconds and the hit
-	-- ball charges (the burst and caps below). (tune)
+	-- ball charges (the burst below). (tune)
 	HandoffSeconds = 0.45,
 	HandoffLookFadeSeconds = 0.12,
 	HandoffSparkCount = 14, -- sparks at the contact
@@ -6916,15 +6903,9 @@ Config.UI.MagnetFx = {
 	EndFadeSeconds = 0.5, -- everything fades this long after the balls stop
 	-- Charged (the designer, 2026-09-28: "once it hits a ball that ball should have some magnet
 	-- effect"): the moment a ball Magnet may pull is hit on a Magnet shot (it starts moving) it
-	-- charges with a zap, a spark burst and the field-line burst, and wears the caps for the
-	-- rest of the shot, with a faint glow. Without the model, small red and blue rings circle
-	-- it instead (snapping in from ChargeSnapFromScale wide).
+	-- charges with a zap, a spark burst and the field-line burst, and keeps a faint glow for the
+	-- rest of the shot (its red and blue caps went, 2026-09-30).
 	ChargeMinSpeed = 0.5, -- in/s: moving at all means it has been hit
-	ChargeRingRadiusBalls = 1.7, -- in ball radii
-	ChargeRingWidthStuds = 0.03,
-	ChargeRingTransparency = 0.2,
-	ChargeTurnSeconds = 1.4,
-	ChargeSnapFromScale = 3,
 	ChargeSparkCount = 10,
 	ChargeZapShare = 0.5, -- of MagnetZap's volume
 	ChargeGlowBrightness = 1.2,

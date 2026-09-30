@@ -9,14 +9,13 @@
 --
 -- Armed (from `armed.readyAt` while a table's snapshot has Magnet armed, and through the shot
 -- until the cue ball's first hit):
--- a low hum loops at the cue ball (3D, quiet). The cue ball becomes a little dipole: red N and
--- blue S caps on it, N along the shooter's aim (the aim stream every client hears, eased; a
--- slow turn when none is heard), and the field arcs lying flat on the cloth round it, three
--- nested loops each side from N to S, with small chevrons flowing along every loop toward S.
--- Two thin rings, red and blue, still circle the ball, faint now, each tilted and precessing
--- the opposite way with a bead running round it. The arming moment (arming(), called by
--- UltCutscene at readyAt) snaps the arcs and caps in from small and the rings in from wide,
--- with a zap and a few sparks. Everyone near the table sees it: it reads only the table's
+-- a low hum loops at the cue ball (3D, quiet). The cue ball becomes a little dipole: the field
+-- arcs lying flat on the cloth round it, three nested loops each side from N to S, N along
+-- the shooter's aim (the aim stream every client hears, eased; a slow turn when none is
+-- heard), with small chevrons flowing along every loop toward S. Nothing is drawn on the ball
+-- itself (the designer, 2026-09-30: the red and blue caps and the red and blue rings circling
+-- it are gone). The arming moment (arming(), called by UltCutscene at readyAt) snaps the arcs
+-- in from small with a zap and a few sparks. Everyone near the table sees it: it reads only the table's
 -- snapshot and aim stream.
 --
 -- The ult shot (the replay carries overrides.Effect == "Magnet"): the cue ball keeps its armed
@@ -24,8 +23,8 @@
 -- from it into the ball it hit, arrows flowing in, sparks fly at the contact, and its own look
 -- goes. That ball, the only one Magnet pulls (Magnet.factor: the shooter's at 1, the
 -- opponent's at OpponentFactor), charges the moment it starts moving: a zap, a spark burst, and a burst of field lines out of it (the arcs and a
--- fan of flared lines out of each pole, flat on the cloth, growing and fading), and it takes
--- on red and blue caps for the rest of the shot, N toward where it is rolling. Each frame,
+-- fan of flared lines out of each pole, flat on the cloth, growing and fading) and a faint
+-- glow for the rest of the shot. Each frame,
 -- Magnet.activePulls on the replay's own state says which balls are in a capture zone: three
 -- field lines lie on the cloth from the ball to the pocket (one straight, two bowing out
 -- either side), arrows flowing toward the pocket, brighter the stronger the pull; the pocket
@@ -37,9 +36,8 @@
 -- shot starts and everything fades when it ends.
 --
 -- Before the model has arrived (or if it never does) the look falls back to Beams only: the
--- armed field is three flickering beam arcs, a charged ball gets small red and blue rings
--- circling it instead of caps, the pocket a glowing ring instead of the fan, and the drop no
--- shockwave. The pocket lines are Beams either way.
+-- armed field is three flickering beam arcs, a charged ball no burst, the pocket a glowing
+-- ring instead of the fan, and the drop no shockwave. The pocket lines are Beams either way.
 --
 -- Only tables whose balls are drawn get anything (Hub's renderer pool); a table that stops
 -- being drawn loses its effects at once. Everything hangs off one invisible anchored part per
@@ -100,8 +98,8 @@ local FALLBACK_SPARK = "rbxasset://textures/particles/sparkles_main.dds"
 -- size, all lying in the part's local XZ plane (Blender +X arrives as local -X, +Y as +Z, +Z
 -- as +Y: docs/STUDIO_NOTES.md). So FieldArcs has N at local -X and S at +X with its loops
 -- along +-Z, its centre the dipole's middle; FieldFlares' lines leave their pole at the +X
--- face and fan toward -X; PoleCaps has N (red) on -X; Chevron points along -X; FieldRing is a
--- unit circle round its centre.
+-- face and fan toward -X; PoleCaps has N (red) on -X (no longer drawn, 2026-09-30); Chevron
+-- points along -X; FieldRing is a unit circle round its centre.
 local MODEL = "MagnetField"
 local PIECES = { "FieldArcs", "FieldFlares", "FieldRing", "Chevron", "PoleCaps" }
 -- FieldArcs' loops at unit size (magnet.py's loop_points): the loop of height h runs through
@@ -163,21 +161,17 @@ local function flatDir(m: any, angle: number): Vector3
 	return if flat.Magnitude > 1e-4 then flat.Unit else Vector3.xAxis
 end
 
-type Ring = { atts: { Attachment }, beams: { Beam }, bead: Part? }
+type Ring = { atts: { Attachment }, beams: { Beam } }
 
 type Arc = { a0: Attachment, a1: Attachment, beam: Beam, alpha: number, nextFlicker: number }
 
--- The armed cue ball's meshes: its caps, the arcs round it and the chevrons on the loops.
-type ArmedMesh = { arcs: MeshPart, caps: MeshPart, chevrons: { MeshPart } }
+-- The armed cue ball's meshes: the arcs round it and the chevrons on the loops.
+type ArmedMesh = { arcs: MeshPart, chevrons: { MeshPart } }
 
 type ChargeFx = {
 	at: Attachment,
-	rings: { Ring }, -- the no-model fallback: red and blue rings circling it
-	caps: MeshPart?, -- its red and blue poles
-	angle: number, -- where its N points (table radians), eased after its travel
 	factor: number, -- Magnet.factor: 1 the shooter's, OpponentFactor the opponent's
 	light: PointLight,
-	since: number, -- os.clock() it charged (the snap)
 	level: number,
 }
 
@@ -244,7 +238,6 @@ type TableFx = {
 	cue: Attachment,
 	hum: Sound?,
 	arm: Sound?,
-	rings: { Ring },
 	arcs: { Arc }, -- the no-model fallback's field
 	armedMesh: ArmedMesh?,
 	spare: { [string]: { MeshPart } }, -- mesh clones not in use, by piece
@@ -348,14 +341,8 @@ local function newAttachment(anchor: BasePart, name: string): Attachment
 	return a
 end
 
--- A circle of four Bezier quarter-beams (and a bead running round it, if asked).
-local function newRing(
-	anchor: BasePart,
-	name: string,
-	color: Color3,
-	width: number,
-	bead: boolean
-): Ring
+-- A circle of four Bezier quarter-beams.
+local function newRing(anchor: BasePart, name: string, color: Color3, width: number): Ring
 	local atts, beams = {}, {}
 	for k = 1, 4 do
 		atts[k] = newAttachment(anchor, name .. k)
@@ -363,28 +350,10 @@ local function newRing(
 	for k = 1, 4 do
 		beams[k] = newBeam(anchor, atts[k], atts[k % 4 + 1], color, width)
 	end
-	local ball: Part? = nil
-	if bead then
-		local part = Instance.new("Part")
-		part.Name = name .. "Bead"
-		part.Shape = Enum.PartType.Ball
-		part.Size = Vector3.one * F.BeadStuds
-		part.Material = Enum.Material.Neon
-		part.Color = color
-		part.Anchored = true
-		part.CanCollide = false
-		part.CanQuery = false
-		part.CanTouch = false
-		part.CastShadow = false
-		part.Transparency = 1
-		part.Parent = anchor
-		ball = part
-	end
-	return { atts = atts, beams = beams, bead = ball }
+	return { atts = atts, beams = beams }
 end
 
--- Lay `ring` round `center` in the plane square to `normal`, turned by `spin`. Returns the
--- plane's two axes (for placing the bead).
+-- Lay `ring` round `center` in the plane square to `normal`, turned by `spin`.
 local function placeRing(
 	ring: Ring,
 	center: Vector3,
@@ -392,7 +361,7 @@ local function placeRing(
 	radius: number,
 	spin: number,
 	transparency: number
-): (Vector3, Vector3)
+)
 	local ref = if math.abs(normal.Y) < 0.95 then Vector3.yAxis else Vector3.xAxis
 	local u = normal:Cross(ref).Unit
 	local v = normal:Cross(u).Unit
@@ -407,17 +376,6 @@ local function placeRing(
 		beam.CurveSize0 = KAPPA * radius
 		beam.CurveSize1 = KAPPA * radius
 		beam.Transparency = seq
-	end
-	return u, v
-end
-
-local function hideRing(ring: Ring)
-	local seq = NumberSequence.new(1)
-	for _, beam in ring.beams do
-		beam.Transparency = seq
-	end
-	if ring.bead then
-		ring.bead.Transparency = 1
 	end
 end
 
@@ -606,10 +564,6 @@ local function create(self: MagnetFx, id: number): TableFx
 		hum:Play()
 	end
 
-	local rings = {
-		newRing(anchor, "North", rgb(F.NorthColor), F.RingWidthStuds, true),
-		newRing(anchor, "South", rgb(F.SouthColor), F.RingWidthStuds, true),
-	}
 	local arcs: { Arc } = {}
 	for i = 1, #F.ArcAngles do
 		local a0 = newAttachment(anchor, "ArcN" .. i)
@@ -646,7 +600,6 @@ local function create(self: MagnetFx, id: number): TableFx
 		cue = cue,
 		hum = hum,
 		arm = newSound(cue, A.MagnetArm, false),
-		rings = rings,
 		arcs = arcs,
 		armedMesh = nil,
 		spare = {},
@@ -817,13 +770,8 @@ local function newPocket(self: MagnetFx, fx: TableFx, pocket: number): PocketFx
 		image.Parent = surface
 		p.plate, p.image = plate, image
 	else
-		p.ring = newRing(
-			fx.anchor,
-			"PocketRing" .. pocket,
-			rgb(F.GlowColor),
-			F.PocketRingWidthStuds,
-			false
-		)
+		p.ring =
+			newRing(fx.anchor, "PocketRing" .. pocket, rgb(F.GlowColor), F.PocketRingWidthStuds)
 	end
 	fx.pockets[pocket] = p
 	return p
@@ -895,10 +843,7 @@ end
 local function armedMeshOf(self: MagnetFx, fx: TableFx): ArmedMesh?
 	if fx.armedMesh == nil then
 		local arcs = takeMesh(self, fx, "FieldArcs")
-		local caps = takeMesh(self, fx, "PoleCaps")
-		if arcs == nil or caps == nil then
-			giveMesh(fx, arcs)
-			giveMesh(fx, caps)
+		if arcs == nil then
 			return nil
 		end
 		local chevrons: { MeshPart } = {}
@@ -908,7 +853,7 @@ local function armedMeshOf(self: MagnetFx, fx: TableFx): ArmedMesh?
 				table.insert(chevrons, chevron)
 			end
 		end
-		fx.armedMesh = { arcs = arcs, caps = caps, chevrons = chevrons }
+		fx.armedMesh = { arcs = arcs, chevrons = chevrons }
 	end
 	return fx.armedMesh
 end
@@ -917,21 +862,19 @@ local function hideArmedMesh(fx: TableFx)
 	local set = fx.armedMesh
 	if set then
 		set.arcs.Transparency = 1
-		set.caps.Transparency = 1
 		for _, chevron in set.chevrons do
 			chevron.Transparency = 1
 		end
 	end
 end
 
--- The armed dipole: caps on the cue ball, the arcs flat round it and the chevrons flowing
--- along each loop from N to S (in the arcs' own frame, the loops' own formula).
+-- The armed dipole: the arcs flat round the cue ball and the chevrons flowing along each loop
+-- from N to S (in the arcs' own frame, the loops' own formula).
 local function placeArmedMesh(
 	self: MagnetFx,
 	set: ArmedMesh,
 	m: any,
 	cue: any,
-	center: Vector3,
 	d: Vector3,
 	snap: number,
 	look: number,
@@ -945,11 +888,6 @@ local function placeArmedMesh(
 	resize(set.arcs, arcsSize)
 	set.arcs.CFrame = arcsFrame
 	set.arcs.Transparency = 1 - (1 - F.ArcsTransparency) * look
-
-	local capR = TableBuilder.studs(Config.Balls.RenderRadiusInches) * F.CapsRadiusBalls * snap
-	resize(set.caps, sizes.PoleCaps * capR)
-	set.caps.CFrame = CFrame.fromMatrix(center, -d, Vector3.yAxis)
-	set.caps.Transparency = 1 - (1 - F.CapsTransparency) * look
 
 	local chevronSize = sizes.Chevron * (k * F.ChevronShare)
 	local perLoop = F.ChevronsPerLoop
@@ -1003,9 +941,6 @@ local function stepLook(
 		fx.pole += TAU * dt / F.ArcTurnSeconds
 	end
 	if fx.look <= 0.001 then
-		for _, ring in fx.rings do
-			hideRing(ring)
-		end
 		for _, arc in fx.arcs do
 			arc.beam.Transparency = NumberSequence.new(1)
 		end
@@ -1021,32 +956,13 @@ local function stepLook(
 			meshScale = lerp(F.MeshSnapFromScale, 1, UIAnim.backOut(u))
 		end
 	end
-	local radius = ballR * F.RingRadiusBalls * scale
-	local tilt = math.rad(F.RingTiltDegrees)
-	local ringAlpha = 1 - (1 - F.RingTransparency) * fx.look
-	for i, ring in fx.rings do
-		local sign = if i == 1 then 1 else -1
-		local phi = sign * TAU * t / F.RingTurnSeconds + (i - 1) * math.pi
-		local normal = Vector3.new(
-			math.sin(tilt) * math.cos(phi),
-			math.cos(tilt),
-			math.sin(tilt) * math.sin(phi)
-		)
-		local u, v = placeRing(ring, center, normal, radius, 0, ringAlpha)
-		local bead = ring.bead
-		if bead then
-			local theta = sign * TAU * t / F.BeadSeconds
-			bead.CFrame = CFrame.new(center + (u * math.cos(theta) + v * math.sin(theta)) * radius)
-			bead.Transparency = ringAlpha
-		end
-	end
 	local axis = flatDir(m, fx.pole)
 	local set = if meshesOf(self) then armedMeshOf(self, fx) else nil
 	if set then
 		for _, arc in fx.arcs do
 			arc.beam.Transparency = NumberSequence.new(1)
 		end
-		placeArmedMesh(self, set, m, cue, center, axis, meshScale, fx.look, t)
+		placeArmedMesh(self, set, m, cue, axis, meshScale, fx.look, t)
 		return
 	end
 	-- The fallback field: a dipole across the ball (N along the aim), its lines looping over
@@ -1246,12 +1162,8 @@ local function stepPulls(
 	return strongest
 end
 
-local function dropCharge(fx: TableFx, c: ChargeFx)
+local function dropCharge(c: ChargeFx)
 	c.at:Destroy()
-	giveMesh(fx, c.caps)
-	for _, ring in c.rings do
-		dropRing(ring)
-	end
 end
 
 -- How strongly the shot may pull ball `id` (Magnet.factor: 1 the shooter's, OpponentFactor
@@ -1377,8 +1289,8 @@ local function stepWaves(self: MagnetFx, fx: TableFx, t: number)
 	end
 end
 
--- Charge each ball Magnet may pull the moment it is hit (it starts moving), and keep its
--- poles on it (or, with no model, its rings circling it).
+-- Charge each ball Magnet may pull the moment it is hit (it starts moving), and keep its glow
+-- on it.
 local function stepCharges(
 	self: MagnetFx,
 	fx: TableFx,
@@ -1408,37 +1320,13 @@ local function stepCharges(
 				light.Brightness = 0
 				light.Shadows = false
 				light.Parent = at
-				local angle = math.atan2(b.vy, b.vx)
-				local caps = if meshesOf(self) then takeMesh(self, fx, "PoleCaps") else nil
-				local rings: { Ring } = {}
-				if caps then
-					spawnBurst(self, fx, m, b, angle, factor)
-				else
-					rings = {
-						newRing(
-							fx.anchor,
-							"ChargeN" .. b.id,
-							rgb(F.NorthColor),
-							F.ChargeRingWidthStuds,
-							false
-						),
-						newRing(
-							fx.anchor,
-							"ChargeS" .. b.id,
-							rgb(F.SouthColor),
-							F.ChargeRingWidthStuds,
-							false
-						),
-					}
+				if meshesOf(self) then
+					spawnBurst(self, fx, m, b, math.atan2(b.vy, b.vx), factor)
 				end
 				fx.charged[b.id] = {
 					at = at,
-					rings = rings,
-					caps = caps,
-					angle = angle,
 					factor = factor,
 					light = light,
-					since = t,
 					level = 1,
 				}
 				local zap = newSound(at, A.MagnetZap, false)
@@ -1452,45 +1340,17 @@ local function stepCharges(
 			end
 		end
 	end
-	local ballR = TableBuilder.studs(Config.Balls.RenderRadiusInches)
-	local tilt = math.rad(F.RingTiltDegrees)
 	for id, c in fx.charged do
 		local b = ballOf(m, id)
 		local target = if b and not b.pocketed then fx.shot else 0
 		c.level = approach(c.level, target, dt, F.PullFadeSeconds)
 		if c.level <= 0.005 or b == nil then
-			dropCharge(fx, c)
+			dropCharge(c)
 			fx.charged[id] = nil
 			continue
 		end
-		local center = ballWorld(m, b)
-		c.at.CFrame = CFrame.new(center)
+		c.at.CFrame = CFrame.new(ballWorld(m, b))
 		c.light.Brightness = F.ChargeGlowBrightness * c.level * weight(c.factor)
-		local u = (t - c.since) / F.SnapSeconds
-		local caps, meshes = c.caps, self.meshes
-		if caps and meshes then
-			-- N toward where it rolls (held once it stops).
-			if b.vx * b.vx + b.vy * b.vy > minSpeed2 then
-				c.angle = easeAngle(c.angle, math.atan2(b.vy, b.vx), dt, F.CapsTurnSeconds)
-			end
-			local snap = if u < 1 then lerp(F.MeshSnapFromScale, 1, UIAnim.backOut(u)) else 1
-			resize(caps, meshes.sizes.PoleCaps * (ballR * F.CapsRadiusBalls * snap))
-			caps.CFrame = CFrame.fromMatrix(center, -flatDir(m, c.angle), Vector3.yAxis)
-			caps.Transparency = 1 - (1 - F.CapsTransparency) * c.level * weight(c.factor)
-			continue
-		end
-		local scale = if u < 1 then lerp(F.ChargeSnapFromScale, 1, UIAnim.backOut(u)) else 1
-		local alpha = 1 - (1 - F.ChargeRingTransparency) * c.level * weight(c.factor)
-		for i, ring in c.rings do
-			local sign = if i == 1 then 1 else -1
-			local phi = sign * TAU * t / F.ChargeTurnSeconds + (i - 1) * math.pi
-			local normal = Vector3.new(
-				math.sin(tilt) * math.cos(phi),
-				math.cos(tilt),
-				math.sin(tilt) * math.sin(phi)
-			)
-			placeRing(ring, center, normal, ballR * F.ChargeRingRadiusBalls * scale, 0, alpha)
-		end
 	end
 end
 
@@ -1647,8 +1507,7 @@ function MagnetFx.start(hub: any, parent: Instance, kit: any?): MagnetFx
 end
 
 --- The arming moment at table `tableId` (UltCutscene's onArming, at armed.readyAt): for a
---- Magnet, the arcs and caps snap onto the cue ball from small (the rings from wide) with a
---- zap and a few sparks.
+--- Magnet, the arcs snap in round the cue ball from small with a zap and a few sparks.
 function MagnetFx.arming(self: MagnetFx, tableId: number, armed: any)
 	local ult = Catalog.get(armed and armed.id)
 	local m = self.hub:matchFor(tableId)
@@ -1713,7 +1572,7 @@ function MagnetFx.update(self: MagnetFx, dt: number)
 			dropHandoff(live)
 			table.clear(live.pulled)
 			for ball, c in live.charged do
-				dropCharge(live, c)
+				dropCharge(c)
 				live.charged[ball] = nil
 			end
 		end

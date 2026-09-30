@@ -1,5 +1,9 @@
 # Status
 
+**2026-09-30: Magnet draws nothing on the balls** (the red and blue caps and rings are gone;
+the blue field round the ball, the hand-off, the pull lines and the rest stay; checked in
+Studio).
+
 **2026-09-30: Portals is Rare, Time Stop Epic** (swapped at the designer's request; spin odds
 and the pity spin follow the catalog).
 
