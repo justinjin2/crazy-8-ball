@@ -501,6 +501,15 @@ def blender_main(args):
             c = vfx.hexf(tint) if isinstance(tint, str) else np.array(tint) / 255.0
             lin = [x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
             cue_nodes['tint'].inputs['B'].default_value = tuple(lin) + (1.0,)
+        if 'EmissiveTintHue' in pulses and cue_nodes.get('em_tint') is not None:
+            # VIP: a script turns EmissiveTint round the hue wheel, so only what glows (a white
+            # emissive ring) cycles the rainbow
+            import colorsys
+            p = pulses['EmissiveTintHue']
+            h = (t / p.get('Period', 3.0)) % 1.0
+            c = colorsys.hsv_to_rgb(h, p.get('Saturation', 0.85), 1.0)
+            lin = [x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+            cue_nodes['em_tint'].inputs['B'].default_value = tuple(lin) + (1.0,)
         if frame_images:
             secs = frames_spec.get('FrameSeconds', 0.25)
             order = frames_spec.get('Order') or list(range(len(frame_images)))  # a script's swap order
@@ -980,6 +989,7 @@ def cue_material(bpy, maps, surface, skin_id):
         links.new(strength.outputs[0], mul.inputs[0])
         links.new(mul.outputs[0], bsdf.inputs['Emission Strength'])
         out['em_strength'] = strength
+        out['em_tint'] = et
     return mat, out
 
 

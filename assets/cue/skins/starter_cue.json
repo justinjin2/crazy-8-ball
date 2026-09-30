@@ -1,0 +1,87 @@
+{
+  "id": "starter_cue",
+  "name": "Starter Cue",
+  "tier": "Exclusive",
+  "catalog_id": "StarterCue",
+  "concept": "X1",
+  "palette": [
+    "#E6D7B9",
+    "#3B9BFF",
+    "#FFC928",
+    "#FFFFFF"
+  ],
+  "painter": "mix",
+  "note": "The friendly rookie cue: a cream maple shaft with four slim sky-blue points edged in white and small white diamonds; OpenAI forearm (sky-blue gloss with white points and a white diamond) and butt (a sunny yellow knurled grip, a white sleeve with blue points and a little 8-ball emblem); a silver collar, a glowing blue ring, a black end.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Glossy sky-blue lacquer (#3B9BFF) with long slim white points (#F6F4EE) pointing left from the right edge, each edged with a thin pale line, and a small white diamond inlay between them on the middle row. Clean, simple, friendly. No text. The two thin strips at the far left are the joint collar: paint them plain flat silver grey (#B8BCC2)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): plain flat dark grey (#101014). The wrap (from the ring to the next zone line): a sunny yellow rubber grip (#FFC928) with a fine raised diamond knurl pattern. The butt sleeve (between the two zone lines on the right): glossy white (#F6F4EE) with sky-blue points (#3B9BFF) reaching in from the left edge and one small pool 8-ball emblem (a black ball with a white circle holding a black number 8) on the middle row. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/starter_cue/shaft_tile.png",
+    "shaft_top": "skins/starter_cue/shaft_top.png",
+    "forearm": "skins/starter_cue/forearm.png",
+    "butt": "skins/starter_cue/butt.png",
+    "cap_end": "skins/starter_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "blue": "#3B9BFF",
+    "yellow": "#FFC928",
+    "cream": "#E6D7B9",
+    "metal": "#C8CCD0",
+    "glow": "#3B9BFF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#3B9BFF"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "blue glowing ring"
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          80,
+          160,
+          255
+        ],
+        "NearTransparency": 0.45,
+        "LightEmission": 0.6
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted blue (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

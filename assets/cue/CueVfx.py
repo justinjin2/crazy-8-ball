@@ -2896,6 +2896,176 @@ SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'flare_4x4.png': sprite_
                            'dark_ring.png': sprite_dark_ring, 'gold_column.png': sprite_gold_column}
 
 
+def sprite_vip_diamond(n=128):
+    """The VIP's floating diamond: a long four-point gold crystal (taller than wide) with a light
+    holographic rainbow sheen and a white glint (colour baked)."""
+    x, y = _grid(n)
+    d = np.abs(x) / 0.42 + np.abs(y) / 0.92
+    body = np.clip((1 - d) / 0.04, 0, 1)
+    rim = np.clip(1 - np.abs(d - 0.9) / 0.08, 0, 1) * body
+    hue = (0.55 * x + 0.35 * y + 0.5) % 1.0
+    holo = _hue(hue) * 0.25 + np.array([255, 205, 110.0]) * 0.75
+    facet = np.where(x * y > 0, 1.0, 0.82)
+    c = holo * facet[..., None]
+    c = c * (1 - rim[..., None]) + np.array([255, 205, 90.0]) * rim[..., None]
+    glint = np.exp(-(np.hypot(x + 0.08, y + 0.3) / 0.08) ** 2)
+    c = c + (255 - c) * glint[..., None]
+    glow = np.clip(1 - np.hypot(x / 0.6, y / 1.0), 0, 1) ** 2 * 0.35
+    a = np.clip(body + glow, 0, 1)
+    c = np.where(body[..., None] > 0.01, c, np.array([255, 200, 80.0]))
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_crown(n=256):
+    """A small gold crown (five points with round gold tips, a band set with a red, a blue and a
+    red gem), bright polished gold with a soft glow: the VIP pocket finisher (colour baked)."""
+    x, y = _grid(n)
+    y = -y
+    band = (np.abs(x) < 0.62) & (y > -0.5) & (y < -0.22)
+    k = (x + 0.62) / 1.24 * 4
+    frac = np.abs(k - np.round(k))
+    top = -0.22 + 0.62 * (1 - 2 * frac)
+    body = (np.abs(x) < 0.62) & (y >= -0.22) & (y < top)
+    tips = np.zeros_like(x, bool)
+    for j in range(5):
+        tips |= np.hypot(x - (-0.62 + 0.31 * j), y - 0.39) < 0.07
+    crown = (band | body | tips).astype(np.float64)
+    shade = 0.75 + 0.25 * np.clip(1 - (y + 0.5), 0, 1) + 0.2 * (band * np.exp(-((y + 0.3) / 0.05) ** 2))
+    c = np.array([232, 178, 50.0]) * shade[..., None]
+    for gx, col in ((-0.34, (230, 40, 50)), (0.0, (60, 130, 255)), (0.34, (230, 40, 50))):
+        g = np.hypot(x - gx, y + 0.36) < 0.075
+        c[g] = col
+        crown[g] = 1
+    hl = np.exp(-(np.hypot(x + 0.3, y - 0.05) / 0.12) ** 2) * crown
+    c = c + (255 - c) * hl[..., None] * 0.6
+    glow = np.clip(1 - np.hypot(x / 0.95, (y + 0.05) / 0.8), 0, 1) ** 2 * 0.45
+    a = np.clip(crown + glow, 0, 1)
+    c = np.where(crown[..., None] > 0.5, c, np.array([255, 200, 90.0]))
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_trail_gold_rainbow(w=512, h=128, seed=501):
+    """The VIP ball trail: a gold wisp (bright core, soft streaky gold body) with a thin rainbow
+    band along each edge (colour baked; tint white)."""
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    streak = cc.fbm(U * 3, V * 12, np.full_like(U, 0.2), 3, seed)
+    body = np.clip(1 - np.abs(y) / 0.62, 0, 1) ** 0.9
+    core = np.exp(-(y / 0.12) ** 2)
+    edge = np.exp(-((np.abs(y) - 0.72) / 0.07) ** 2)
+    hue = (0.12 + 0.8 * (np.abs(y) - 0.62) / 0.2 + U * 0.5) % 1.0
+    c = np.array([255, 196, 70.0]) * (0.8 + 0.3 * streak)[..., None]
+    c = c + (255 - c) * core[..., None] * 0.8
+    c = c * (1 - edge[..., None]) + _hue(hue) * edge[..., None]
+    a = np.clip(body * (0.5 + 0.4 * streak) + core * 0.4 + edge * 0.85, 0, 1)
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['vip_cue'] = {'diamond.png': sprite_vip_diamond, 'crown.png': sprite_crown, 'trail_gold_rainbow.png': sprite_trail_gold_rainbow}
+
+
+def sprite_shine_strip(w=512, h=64):
+    """The rank cues' shine sweep (an overlay beam scrolling along the cue): one slanted soft band
+    of white light in a clear tile, bright in the middle, a faint second band behind it."""
+    U, V = _uv(w, h)
+    x = U + (V - 0.5) * 0.12
+    band = np.exp(-((x - 0.5) / 0.045) ** 2) + 0.35 * np.exp(-((x - 0.42) / 0.015) ** 2)
+    edge = np.clip(1 - np.abs(V - 0.5) * 2, 0, 1) ** 0.4
+    return _rgba(np.clip(band * edge, 0, 1))
+
+
+def _flame_trail(w, h, seed, core_rgb, body_rgb, edge_rgb, dark=False):
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    turb = cc.fbm(U * 7, V * 3, np.zeros_like(U), 4, seed)
+    streak = cc.fbm(U * 2.5, V * 14, np.full_like(U, 0.3), 3, seed + 1)
+    env = np.clip(1 - np.abs(y) / (0.7 + 0.3 * turb), 0, 1) ** 0.8
+    core = np.exp(-(y / 0.14) ** 2)
+    t = np.clip(core * 0.8 + streak * 0.4, 0, 1)
+    c = np.array(edge_rgb, float) * (1 - t)[..., None] + np.array(body_rgb, float) * t[..., None]
+    c = c * (1 - core[..., None] * 0.7) + np.array(core_rgb, float) * core[..., None] * 0.7
+    a = np.clip(env * (0.55 + 0.4 * streak) + core * 0.4, 0, 1)
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_trail_amethyst(w=512, h=128):
+    """Master's own trail: violet flame streaks round a pale lilac core."""
+    return _flame_trail(w, h, 601, (245, 225, 255), (170, 100, 240), (80, 30, 150))
+
+
+def sprite_trail_gold_black(w=512, h=128, seed=611):
+    """Grandmaster's trail: a bright gold ribbon over a black smoky band (upper gold, lower black,
+    alpha-blended so the black reads)."""
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    turb = cc.fbm(U * 7, V * 3, np.zeros_like(U), 4, seed)
+    streak = cc.fbm(U * 2.5, V * 14, np.full_like(U, 0.3), 3, seed + 1)
+    env = np.clip(1 - np.abs(y) / (0.75 + 0.25 * turb), 0, 1) ** 0.8
+    gold = np.array([255, 196, 60.0]) * (0.75 + 0.35 * streak)[..., None]
+    black = np.zeros_like(gold) + (12 + 18 * turb)[..., None]
+    w_ = np.clip((0.1 - y) / 0.2, 0, 1)
+    c = gold * w_[..., None] + black * (1 - w_[..., None])
+    core = np.exp(-((y + 0.15) / 0.07) ** 2)
+    c = c + (255 - c) * core[..., None] * 0.8
+    a = np.clip(env * (0.75 + 0.2 * turb) + core, 0, 1)
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_trail_prism(w=512, h=128, seed=621):
+    """Reyes' rainbow trail: rainbow bands across the ribbon round a white-gold core, streaky."""
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    streak = cc.fbm(U * 2.5, V * 14, np.full_like(U, 0.3), 3, seed)
+    env = np.clip(1 - np.abs(y) / 0.85, 0, 1) ** 0.7
+    c = _hue(0.5 + 0.5 * y + 0.15 * U) * (0.85 + 0.2 * streak)[..., None]
+    core = np.exp(-(y / 0.13) ** 2)
+    c = c * (1 - core[..., None]) + np.array([255, 240, 190.0]) * core[..., None]
+    a = np.clip(env * (0.6 + 0.35 * streak) + core * 0.5, 0, 1)
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_rays(n=512):
+    """Reyes' gold rays: twelve long tapering gold rays round a clear middle (the badge sits in
+    front), soft glow; turned by particle RotSpeed."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    ang = np.arctan2(y, x)
+    k = np.abs(np.cos(ang * 6))
+    width = 0.2 * (1 - r) + 0.02
+    ray = np.clip((k - (1 - width * 1.6)) / 0.05, 0, 1) * np.clip((r - 0.3) / 0.08, 0, 1) * np.clip((0.98 - r) / 0.3, 0, 1)
+    glow = np.exp(-((r - 0.45) / 0.2) ** 2) * 0.25
+    a = np.clip(ray + glow, 0, 1)
+    c = np.array([255, 205, 70.0]) + (np.array([255, 250, 225.0]) - np.array([255, 205, 70.0])) * np.clip(1 - r, 0, 1)[..., None]
+    return np.concatenate([c, a[..., None] * 255], -1)
+
+
+def sprite_crown_rainbow(n=256):
+    """Reyes' pocket crown: the gold crown with rainbow gems on the band and on each point, and a
+    rainbow glow (colour baked)."""
+    img = sprite_crown(n)
+    x, y = _grid(n)
+    y = -y
+    for j, hue in enumerate((0.0, 0.16, 0.33, 0.55, 0.75)):
+        tx = -0.62 + 0.31 * j
+        g = np.hypot(x - tx, y - 0.39) < 0.065
+        img[g, :3] = _hue(np.array([hue]))[0]
+        img[g, 3] = 255
+    for gx, hue in ((-0.34, 0.95), (0.0, 0.6), (0.34, 0.3)):
+        g = np.hypot(x - gx, y + 0.36) < 0.075
+        img[g, :3] = _hue(np.array([hue]))[0]
+    glow = np.clip(1 - np.hypot(x / 0.98, (y + 0.05) / 0.85), 0, 1) ** 2
+    ring = _hue(np.arctan2(y, x) / (2 * math.pi) + 0.5)
+    empty = img[..., 3] < 250
+    img[empty, :3] = ring[empty]
+    img[empty, 3] = np.maximum(img[empty, 3], glow[empty] * 0.5 * 255)
+    return img
+
+
+SKIN_SPRITES['rank'] = {'shine_strip.png': sprite_shine_strip, 'trail_amethyst.png': sprite_trail_amethyst,
+                        'trail_gold_black.png': sprite_trail_gold_black, 'trail_prism.png': sprite_trail_prism,
+                        'rays.png': sprite_rays, 'crown_rainbow.png': sprite_crown_rainbow}
+
+
 def main():
     args = sys.argv[1:]
     if args and args[0] == 'sprites':

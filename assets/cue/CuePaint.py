@@ -3236,6 +3236,234 @@ def eclipse(k):
     seam_edges(k, [F1, W0, W1])
 
 
+@recipe
+def starter_cue(k):
+    """The friendly rookie cue (X1): cream maple shaft with four slim sky-blue points edged in
+    white and small white diamonds before the collar; OpenAI forearm (sky-blue gloss with white
+    points and diamonds) and butt (a sunny yellow knurled grip, a white sleeve with blue points
+    and a little 8-ball emblem); a silver collar, a glowing blue ring, a black end."""
+    s = k.skin['colours']
+    k.paint(['shaft'], wood, 'maple', '#F0DDB6', '#B89060', rough=0.2, seed=301)
+    for c, m in k.zone('shaft'):
+        inlay_points(c, m, 4, J0, J0 - 1.25, 0.5, lambda cc_, mm: gloss(cc_, mm, s['blue'], rough=0.08),
+                     [('#FFFFFF', 0.004, 0.2, 0.0)], phase=math.pi / 4, curve=1.3)
+        for i in range(4):
+            inlay_diamond(c, m, J0 - 0.2, math.pi / 4 + i * math.pi / 2, 0.06, 0.014, '#F6F4EE', 'pearl')
+    for panel in ('forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.12, height=0.0002)
+        c = k.c[panel]
+        yellow = hue_mask(img, s['yellow'], tol=90, min_sat=0.35)
+        c.put(yellow > 0.5, None, rough=0.5, metal=0.0)
+    f = k.c['forearm']
+    metal(f, f.zone('joint'), s['metal'], rough=0.12)
+    glow_ring(k, s['glow'], base='#101014', base_kind='gloss', d0=5.345, d1=5.4)
+    end_band(k, d0=6.93)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#101010')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+def crown_emblem(c, gold='#D4AF37', gem='#FF3D3D'):
+    """On the cap end: a small gold crown (five points with round tips, a band with three gems)
+    centred on the face, in a thin gold rim ring (c is the cap_end canvas)."""
+    x = c.x / c.face_radius
+    y = -c.z / c.face_radius                       # up on the face
+    band = (np.abs(x) < 0.42) & (y > -0.34) & (y < -0.16)
+    # the crown's top edge: five points
+    k = (x + 0.42) / 0.84 * 4                      # 0..4 across, points at the integers
+    frac = np.abs(k - np.round(k))
+    top = -0.16 + 0.42 * (1 - 2 * frac) * (np.abs(x) < 0.42)
+    body = (np.abs(x) < 0.42) & (y >= -0.16) & (y < top)
+    tips = np.zeros_like(x, bool)
+    for j in range(5):
+        tx = -0.42 + 0.21 * j
+        tips |= np.hypot(x - tx, y - 0.28) < 0.055
+    crown = band | body | tips
+    c.put(crown, np.broadcast_to(rgb(gold), c.col.shape), rough=0.18, metal=1.0, glow=0.0)
+    c.add_height(crown, 0.0003)
+    gems = np.zeros_like(x, bool)
+    for gx, col in ((-0.24, gem), (0.0, '#3D8AFF'), (0.24, gem)):
+        gm = np.hypot(x - gx, y + 0.25) < 0.055
+        c.put(gm, np.broadcast_to(rgb(col), c.col.shape), rough=0.08, metal=0.0, glow=0.0)
+    rr = np.hypot(x, y)
+    ring = np.exp(-((rr - 0.82) / 0.05) ** 2)
+    c.put(ring > 0.3, np.broadcast_to(rgb(gold), c.col.shape), rough=0.2, metal=1.0, glow=0.0)
+
+
+@recipe
+def vip_cue(k):
+    """Black and gold (X1): OpenAI on all four long panels (black lacquer with fine gold swirls
+    and a thin iridescent line on the shaft; gold art-deco diamond frames holding holographic
+    rainbow gems on the forearm and sleeve; a black quilted grip with small gold stars), a gold
+    collar, a white glowing ring whose glow a script turns round the rainbow (EmissiveTint), a
+    black end with a gold crown emblem on its face. The holographic gems glow a little too, so
+    they shimmer with the ring."""
+    s = k.skin['colours']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.08, height=0.0002)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        gold = np.clip((sat - 0.3) * 4, 0, 1) * (r > b + 60) * (g > b + 20) * np.clip((L - 0.3) * 3, 0, 1)
+        holo = np.clip((L - 0.45) * 3, 0, 1) * (1 - gold) * np.clip((sat - 0.2) * 3, 0, 1) * ((b > r + 10) | (g > r + 10))
+        c.put(gold > 0.4, None, rough=0.2, metal=1.0)
+        c.add_height(gold, 0.0003)
+        c.put(holo > 0.4, None, rough=0.06, metal=0.3)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(holo * 0.35, 0, 1))
+    f = k.c['forearm']
+    metal(f, f.zone('joint'), s['gold'], rough=0.16)
+    f.put(f.zone('joint'), None, glow=0.0)
+    glow_ring(k, '#FFFFFF', base='#0E0E12', base_kind='gloss', d0=5.335, d1=5.41)
+    end_band(k, d0=6.93)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#0E0E12')
+    crown_emblem(c, s['gold'])
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
+def chevrons(c, m, d_tip, depth, count, spacing, width, direction=1, n_round=2, phase=FACE):
+    """count nested chevrons (the rank cues' trophy arrows): each a V band `width` studs wide whose
+    point sits at d_tip on the centre line of its share of the cue (n_round round it, centred at
+    phase), arms sweeping back by `depth` studs at the share's edges; direction +1 points them
+    toward the butt, -1 toward the tip. Returns 0..1 coverage."""
+    share = 2 * math.pi * float(np.mean(c.r)) / n_round
+    out = np.zeros(c.d.shape)
+    for j in range(n_round):
+        s = np.abs(around_of(c, phase + j * 2 * math.pi / n_round)) / (share / 2)
+        inside = s <= 1.0
+        for i in range(count):
+            tip = d_tip - direction * i * spacing
+            line = tip - direction * depth * s
+            cov = np.clip((width / 2 - np.abs(c.d - line)) / 0.0015 + 0.5, 0, 1) * inside
+            out = np.maximum(out, cov)
+    return out * m
+
+
+def rank_badge(c, p):
+    """On the cap end: the rank badge (a round medal in the rank metal holding a shield with a
+    black 8-ball; a crown over it from Expert up; Reyes adds gold rays behind)."""
+    x = c.x / c.face_radius
+    y = -c.z / c.face_radius
+    rr = np.hypot(x, y)
+    metal_c, dark = p['metal'], p['badge_dark']
+    if p.get('rays'):
+        ang = np.arctan2(y, x)
+        rays = (np.cos(ang * 12) > 0.55) & (rr > 0.55) & (rr < 0.92)
+        c.put(rays, np.broadcast_to(rgb('#FFD23D'), c.col.shape), rough=0.2, metal=1.0, glow=0.35)
+    disc = rr < 0.78
+    gloss(c, disc, dark, rough=0.1)
+    ring = (rr > 0.66) & (rr < 0.78)
+    metal(c, ring, metal_c, rough=0.15)
+    # the shield: flat top, straight sides, a point at the bottom
+    half = np.where(y > -0.08, 0.36, 0.36 * np.clip((y + 0.52) / 0.44, 0, 1))
+    shield = (np.abs(x) < half) & (y < 0.3) & (y > -0.52)
+    metal(c, shield, metal_c, rough=0.15)
+    c.add_height(shield, 0.0003)
+    inner = (np.abs(x) < half - 0.05) & (y < 0.25) & (y > -0.45)
+    gloss(c, inner, dark, rough=0.1)
+    ball = np.hypot(x, y + 0.03) < 0.2
+    gloss(c, ball, '#0A0A0A', rough=0.08)
+    spot = np.hypot(x, y + 0.03) < 0.1
+    gloss(c, spot, '#F4F4F0', rough=0.1)
+    for cy in (-0.005, -0.055):                   # the ball's 8, as two small rings
+        r8 = np.hypot(x, y - cy)
+        gloss(c, (r8 > 0.013) & (r8 < 0.03), '#0A0A0A', rough=0.1)
+    if p.get('crown'):
+        k_ = (x + 0.3) / 0.6 * 4
+        frac = np.abs(k_ - np.round(k_))
+        top = 0.36 + 0.2 * (1 - 2 * frac)
+        crown = (np.abs(x) < 0.3) & (y > 0.33) & (y < top)
+        metal(c, crown, '#FFC83C', rough=0.15)
+        c.put(crown, None, glow=0.0)
+    if p.get('gem'):
+        gm = np.hypot(x, y - 0.42) < 0.05
+        c.put(gm, np.broadcast_to(rgb(p['gem']), c.col.shape), rough=0.08, metal=0.0, glow=gm * 0.8)
+
+
+@recipe
+def rank_cue(k):
+    """The rank cues' shared trophy design (K1, K2): the same layout on all ten, climbing in
+    metal, colour and glow (skin["rank"] holds the per-rank settings):
+      * shaft: brushed rank metal (Bronze to Diamond; Diamond set with a row of glowing blue
+        gems), or dark coloured lacquer wound with fine gold lines and gold chevrons before the
+        collar (Expert to Reyes);
+      * forearm: the rank base colour with three nested chevrons pointing to the butt in the
+        chevron metal, a gem (glowing) in the front one from Platinum up;
+      * collar and rings in the metal; the wrap in leather (K1) or snakeskin (K2);
+      * sleeve: two chevron sets meeting in the middle; cap end: the rank badge.
+    From Expert up the gold lines and gems glow (Reyes: white lines whose glow a script cycles
+    round the rainbow)."""
+    s = k.skin['colours']
+    p = k.skin['rank']
+    face2 = FACE + math.pi
+    if p['shaft'] == 'metal':
+        k.paint(['shaft'], metal, p['metal'], rough=p.get('shaft_rough', 0.2), brushed=True, seed=611)
+    else:
+        k.paint(['shaft'], gloss, p['base'], rough=0.08)
+    for c, m in k.zone('shaft'):
+        if p['shaft'] != 'metal':
+            lines = np.clip(spiral(c, 0.35, n=3, duty=0.03, phase=0.1) + spiral(c, -0.22, n=2, duty=0.025, phase=0.4), 0, 1) * m
+            metal(c, lines > 0.5, p['chevron'], rough=0.18)
+            c.put(lines > 0.5, None, glow=lines * p.get('line_glow', 0.0))
+            ch = chevrons(c, m, J0 - 0.06, 0.18, 3, 0.1, 0.018, direction=1)
+            metal(c, ch > 0.5, p['chevron'], rough=0.15)
+            c.put(ch > 0.5, None, glow=ch * p.get('line_glow', 0.0))
+        for n_gem, g in enumerate(p.get('shaft_gems', [])):
+            for th in (FACE, face2):
+                inlay_diamond(c, m, g, th, 0.07, 0.022, p['gem'], 'gem', border=p['chevron'], border_w=0.004, glow=p.get('gem_glow', 0.6))
+    for c, m in k.zone('forearm'):
+        gloss(c, m, p['base'], rough=0.1)
+        ch = chevrons(c, m, W0 - 0.6, 0.22, 3, 0.2, 0.05, direction=1)
+        metal(c, ch > 0.5, p['chevron'], rough=0.15)
+        c.add_height(ch, 0.0003)
+        c.put(ch > 0.5, None, glow=ch * p.get('line_glow', 0.0))
+        inner = chevrons(c, m, W0 - 0.6, 0.22, 3, 0.2, 0.012, direction=1)
+        c.put(inner > 0.5, np.broadcast_to(rgb(p.get('accent', p['base'])), c.col.shape), rough=0.2, glow=inner * p.get('accent_glow', 0.0))
+        if p.get('gem'):
+            for th in (FACE, face2):
+                inlay_diamond(c, m, W0 - 0.95, th, 0.09, 0.03, p['gem'], 'gem', border=p['chevron'], border_w=0.005, glow=p.get('gem_glow', 0.6))
+    for c, m in k.zone('joint'):
+        metal(c, m, p['metal'], rough=0.14)
+        c.put(m, None, glow=0.0)
+        mid = band(c, (J0 + J1) / 2 - 0.02, (J0 + J1) / 2 + 0.02) * m
+        gloss(c, mid > 0.5, p['badge_dark'], rough=0.1)
+    if p['wrap'] == 'scales':
+        k.paint(['wrap'], scales, p['wrap_colour'], size=0.03, rough=0.4, sheen=0.35, edge_col=p.get('wrap_edge'))
+    else:
+        k.paint(['wrap'], leather, p['wrap_colour'], rough=0.5, depth=0.0008, scale=1.8, contrast=1.8, sheen=0.4)
+    for c, m in k.zone('ring'):
+        metal(c, m, p['metal'], rough=0.14)
+        c.put(m, None, glow=0.0)
+        if p.get('ring_glow'):
+            line = band(c, 5.35, 5.395) * m
+            c.put(line, rgb(p['ring_glow']), rough=0.25, metal=0.0, glow=line)
+    for c, m in k.zone('cap'):
+        sleeve = band(c, W1, 6.93) * m
+        gloss(c, sleeve > 0.5, p['base'], rough=0.1)
+        mid = (W1 + 6.93) / 2
+        a = chevrons(c, sleeve, mid - 0.03, 0.08, 2, 0.07, 0.025, direction=1)
+        b = chevrons(c, sleeve, mid + 0.03, 0.08, 2, 0.07, 0.025, direction=-1)
+        ch = np.maximum(a, b)
+        metal(c, ch > 0.5, p['chevron'], rough=0.15)
+        c.add_height(ch, 0.0003)
+        c.put(ch > 0.5, None, glow=ch * p.get('line_glow', 0.0))
+        for d in (W1 + 0.015, 6.915):
+            metal(c, band(c, d - 0.012, d + 0.012) * m > 0.5, p['metal'], rough=0.14)
+    end_band(k, colour=p['badge_dark'], d0=6.93)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, p['badge_dark'])
+    rank_badge(c, p)
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1, 6.93])
+
+
 def chevron_plates(c, m, s, d0, d1, n_round=2, count=3, phase=FACE, slant=1.0, seed=0):
     """Angular armour plates: raised silver shards slanting across the section like claw slashes,
     each a long sharp-ended parallelogram with a bevelled edge and a brushed face; count along it,

@@ -1,0 +1,674 @@
+{
+  "id": "vip_cue",
+  "name": "VIP Cue",
+  "tier": "Exclusive",
+  "catalog_id": "VipCue",
+  "concept": "X1",
+  "palette": [
+    "#0E0E12",
+    "#D4AF37",
+    "#FF3D3D",
+    "#3D8AFF"
+  ],
+  "painter": "mix",
+  "note": "Black and gold: OpenAI on all four long panels (black lacquer with fine gold swirls and a thin iridescent line on the shaft; gold art-deco diamond frames holding holographic rainbow gems on the forearm and sleeve; a black quilted grip with small gold stars), a gold collar, one white glowing ring whose glow a script turns round the rainbow (your VIP rainbow), a black end with a gold crown emblem on its face. It sits below Chroma.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Glossy black lacquer (#0E0E12) with fine flowing polished gold lines (#D4AF37) that swirl gently along the length, one thin iridescent rainbow line (red, yellow, green, blue, violet) winding beside them, and a few tiny gold four-point star sparkles. Elegant, premium. No text, no logos, no other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "Glossy black lacquer (#0E0E12) with fine flowing polished gold lines (#D4AF37), a thin iridescent rainbow line winding beside them and tiny gold star sparkles, growing a little richer toward the right edge. No text, no logos."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "take": 2,
+      "prompt": "Photorealistic and glossy, with real reflections and highlights, covering the whole image from the very top to the very bottom (no plain bands): deep black piano lacquer (#0E0E12) with bold art-deco frames of shining polished gold (#D4AF37, bright highlights, dark gold shadows): long pointed diamond shapes nested inside each other, with thin blue lines between the gold, each frame holding a faceted crystal gem with iridescent holographic rainbow gradients and white glints (not flat colours); tiny gold star sparkles between them. Luxurious, like jewellery. No text, no logos. The two thin strips at the far left are the joint collar: paint them polished gold (#D4AF37)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "take": 2,
+      "zones_px": [
+        68,
+        920,
+        1323
+      ],
+      "prompt": "Left thin strip (the ring): plain white (#FFFFFF). The wrap (from the ring to the next zone line): black quilted leather (#101014) in a fine diamond pattern with a small gold four-point star (#D4AF37) in every few diamonds. The butt sleeve (between the two zone lines on the right): photorealistic glossy black piano lacquer with a shining polished gold band at each end and a large art-deco frame of polished gold on the middle row (nested diamond outlines with thin blue lines) holding a faceted crystal gem with iridescent holographic rainbow gradients and white glints (not flat colours). The very thin strip at the far right: plain black. No text, no logos."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/vip_cue/shaft_tile.png",
+    "shaft_top": "skins/vip_cue/shaft_top.png",
+    "forearm": "skins/vip_cue/forearm.png",
+    "butt": "skins/vip_cue/butt.png",
+    "cap_end": "skins/vip_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0E0E12",
+    "gold": "#D4AF37",
+    "black": "#0E0E12",
+    "metal": "#D4AF37",
+    "glow": "#FFFFFF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 2.0,
+    "EmissiveTint": "#FFFFFF",
+    "Pulse": {
+      "EmissiveTintHue": {
+        "Period": 3.0,
+        "Saturation": 0.85
+      }
+    }
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "One white glowing ring; a script turns SurfaceAppearance.EmissiveTint round the hue wheel every 3 s, so the ring (and the holographic gems, which glow a little) cycle the VIP rainbow while the rest does not glow."
+    },
+    "Aura": {
+      "Note": "Gold glitter with a rainbow shimmer: gold four-point sparkles all along the cue, soft rainbow motes shifting colour as they fade, a few gold crystal diamonds (own sprite) floating round the handle; two gold loops with a rainbow edge circle the cue (Orbiters); a soft gold glow.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "GoldGlitter",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.14,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFE9A8"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "RainbowShimmer",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.36,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.8,
+            1.2
+          ],
+          "Speed": [
+            0.02,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.2
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.35,
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Diamonds",
+          "Texture": "vfx/vip_cue/diamond.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 1.5,
+            "ToStuds": 7.0,
+            "Width": 1.1,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.2,
+              0.16
+            ],
+            [
+              0.8,
+              0.16
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FFFFFF",
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "LockedToPart": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Loop1",
+          "FromStuds": 0.8,
+          "ToStuds": 4.5,
+          "TravelSeconds": 3.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.6,
+          "Radius": 0.2,
+          "RadiusFromSurface": true,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 0.5,
+            "WidthStuds": 0.06,
+            "Color": "#FFFFFF",
+            "Brightness": 1.6,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/vip_cue/trail_gold_rainbow.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Loop2",
+          "FromStuds": 3.5,
+          "ToStuds": 6.8,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.7,
+          "Radius": 0.2,
+          "RadiusFromSurface": true,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 0.5,
+            "WidthStuds": 0.06,
+            "Color": "#FFFFFF",
+            "Brightness": 1.6,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/vip_cue/trail_gold_rainbow.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "GoldGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.2,
+          "Width1": 0.32,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#D4AF37",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.78
+            ],
+            [
+              0.9,
+              0.7
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "NearTransparency": 0.05,
+        "Lifetime": 0.4,
+        "WidthStuds": 0.34,
+        "LightEmission": 1,
+        "Texture": "vfx/vip_cue/trail_gold_rainbow.png",
+        "TextureMode": "Stretch",
+        "WidthScale": [
+          [
+            0,
+            0.8
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            0.4
+          ]
+        ]
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            210,
+            90
+          ],
+          [
+            255,
+            240,
+            190
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A gold wisp with a rainbow edge (own texture) and a few gold sparkles.",
+      "Emitters": [
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFE9A8"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "A small gold crown pops up out of the pocket (own sprite: it springs up, overshoots and settles, 1.2 studs, then fades), gold crystal diamonds and sparkles burst round it, a gold ring. The default gust is tinted gold.",
+      "Layers": [
+        {
+          "Name": "Crown",
+          "Texture": "vfx/vip_cue/crown.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.8,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 1.2,
+          "Speed": 1.2,
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Drag": 3,
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.15,
+              1.35
+            ],
+            [
+              0.28,
+              1.1
+            ],
+            [
+              0.85,
+              1.15
+            ],
+            [
+              1,
+              1.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp"
+        },
+        {
+          "Name": "Diamonds",
+          "Texture": "vfx/vip_cue/diamond.png",
+          "Burst": 8,
+          "Delay": 0.08,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            2.5,
+            4.5
+          ],
+          "SpreadAngle": [
+            55,
+            55
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.5,
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp"
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 18,
+          "Delay": 0.1,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            1.5,
+            4
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.22,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFE9A8"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FFD25A",
+          "Start": 0.4,
+          "End": 3.2,
+          "Seconds": 0.4,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          215,
+          120
+        ],
+        "Brightness": 6,
+        "Seconds": 0.3
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 27,
+      "Back": 13.5,
+      "BallTrail": 10,
+      "Beams": 1,
+      "Lights": 0,
+      "Orbiters": 2
+    }
+  }
+}

@@ -369,7 +369,7 @@ and you ask the designer about it.
 - [x] 8. Mythics (3): M1-M3, with the custom pieces (list any piece to generate as
   section 1 says, without waiting), at section 8.1's effort.
 - [x] 9. Secret: Eclipse (S1).
-- [ ] 10. Starter and VIP (X1).
+- [x] 10. Starter and VIP (X1).
 - [ ] 11. Rank cues (10): K1-K2, one shared trophy design.
 - [ ] 12. Unique cues (3): Q1.
 - [ ] 13. Tier sheets complete, every designer "fix:" note done, and the review file
