@@ -371,10 +371,10 @@ and you ask the designer about it.
 - [x] 9. Secret: Eclipse (S1).
 - [x] 10. Starter and VIP (X1).
 - [x] 11. Rank cues (10): K1-K2, one shared trophy design.
-- [ ] 12. Unique cues (3): Q1.
-- [ ] 13. Tier sheets complete, every designer "fix:" note done, and the review file
+- [ ] 12. Unique cues (3): Q1. (Deferred by the designer, 2026-09-30: waiting for `Q1.png`.)
+- [x] 13. Tier sheets complete, every designer "fix:" note done, and the review file
   current.
-- [ ] 14. The report `docs/prompts/CUE_SKINS_REPORT.md`, written for a beginner:
+- [x] 14. The report `docs/prompts/CUE_SKINS_REPORT.md`, written for a beginner:
   - what to look at first
   - every skin's status
   - OpenAI spend and the model used
