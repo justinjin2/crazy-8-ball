@@ -1,0 +1,810 @@
+{
+  "id": "chroma",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 192,
+  "Parts": [
+    {
+      "Material": "ForceField",
+      "Color": "#FF3D5A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard1_RedCrystal",
+      "File": "pieces/chroma/Shard1_RedCrystal.obj",
+      "Joint": "Shard1",
+      "Offset": [
+        -0.0019,
+        0.3429,
+        2.5307
+      ],
+      "Size": [
+        0.1547,
+        0.1725,
+        0.2557
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FF3D5A",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard1_RedCore",
+      "File": "pieces/chroma/Shard1_RedCore.obj",
+      "Joint": "Shard1",
+      "Offset": [
+        -0.007,
+        0.3483,
+        2.5215
+      ],
+      "Size": [
+        0.097,
+        0.1083,
+        0.179
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FF9A3D",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard2_OrangeCrystal",
+      "File": "pieces/chroma/Shard2_OrangeCrystal.obj",
+      "Joint": "Shard2",
+      "Offset": [
+        -0.0035,
+        0.4277,
+        1.6368
+      ],
+      "Size": [
+        0.1972,
+        0.1987,
+        0.3068
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FF9A3D",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard2_OrangeCore",
+      "File": "pieces/chroma/Shard2_OrangeCore.obj",
+      "Joint": "Shard2",
+      "Offset": [
+        0.0052,
+        0.4322,
+        1.6258
+      ],
+      "Size": [
+        0.1227,
+        0.1253,
+        0.2148
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFE03D",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard3_YellowCrystal",
+      "File": "pieces/chroma/Shard3_YellowCrystal.obj",
+      "Joint": "Shard3",
+      "Offset": [
+        -0.0084,
+        0.3703,
+        0.7307
+      ],
+      "Size": [
+        0.1516,
+        0.1578,
+        0.2557
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFE03D",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard3_YellowCore",
+      "File": "pieces/chroma/Shard3_YellowCore.obj",
+      "Joint": "Shard3",
+      "Offset": [
+        -0.0092,
+        0.3721,
+        0.7215
+      ],
+      "Size": [
+        0.0925,
+        0.1007,
+        0.179
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#3DFF8A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard4_GreenCrystal",
+      "File": "pieces/chroma/Shard4_GreenCrystal.obj",
+      "Joint": "Shard4",
+      "Offset": [
+        0.0116,
+        0.4973,
+        -0.157
+      ],
+      "Size": [
+        0.2092,
+        0.2151,
+        0.358
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#3DFF8A",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard4_GreenCore",
+      "File": "pieces/chroma/Shard4_GreenCore.obj",
+      "Joint": "Shard4",
+      "Offset": [
+        0.0133,
+        0.4969,
+        -0.1699
+      ],
+      "Size": [
+        0.1288,
+        0.1409,
+        0.2506
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#3DD8FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard5_CyanCrystal",
+      "File": "pieces/chroma/Shard5_CyanCrystal.obj",
+      "Joint": "Shard5",
+      "Offset": [
+        0.0037,
+        0.4051,
+        -0.9632
+      ],
+      "Size": [
+        0.1977,
+        0.2038,
+        0.3068
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#3DD8FF",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard5_CyanCore",
+      "File": "pieces/chroma/Shard5_CyanCore.obj",
+      "Joint": "Shard5",
+      "Offset": [
+        -0.0051,
+        0.4108,
+        -0.9742
+      ],
+      "Size": [
+        0.123,
+        0.1281,
+        0.2148
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#3D7AFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard6_BlueCrystal",
+      "File": "pieces/chroma/Shard6_BlueCrystal.obj",
+      "Joint": "Shard6",
+      "Offset": [
+        0.0017,
+        0.5063,
+        -1.754
+      ],
+      "Size": [
+        0.2344,
+        0.2548,
+        0.3835
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#3D7AFF",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard6_BlueCore",
+      "File": "pieces/chroma/Shard6_BlueCore.obj",
+      "Joint": "Shard6",
+      "Offset": [
+        0.0098,
+        0.5135,
+        -1.7678
+      ],
+      "Size": [
+        0.1468,
+        0.1602,
+        0.2685
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#B03DFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard7_VioletCrystal",
+      "File": "pieces/chroma/Shard7_VioletCrystal.obj",
+      "Joint": "Shard7",
+      "Offset": [
+        -0.0108,
+        0.4321,
+        -2.4601
+      ],
+      "Size": [
+        0.194,
+        0.2076,
+        0.3324
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#B03DFF",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard7_VioletCore",
+      "File": "pieces/chroma/Shard7_VioletCore.obj",
+      "Joint": "Shard7",
+      "Offset": [
+        -0.0123,
+        0.4353,
+        -2.4721
+      ],
+      "Size": [
+        0.1196,
+        0.1316,
+        0.2327
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FF5AD8",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Shard8_PinkCrystal",
+      "File": "pieces/chroma/Shard8_PinkCrystal.obj",
+      "Joint": "Shard8",
+      "Offset": [
+        0.0018,
+        0.4791,
+        -3.157
+      ],
+      "Size": [
+        0.2184,
+        0.2114,
+        0.358
+      ],
+      "Triangles": 12
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FF5AD8",
+      "Transparency": 0.3,
+      "Reflectance": 0.0,
+      "Name": "Shard8_PinkCore",
+      "File": "pieces/chroma/Shard8_PinkCore.obj",
+      "Joint": "Shard8",
+      "Offset": [
+        0.0093,
+        0.4769,
+        -3.1699
+      ],
+      "Size": [
+        0.1367,
+        0.1409,
+        0.2506
+      ],
+      "Triangles": 12
+    }
+  ],
+  "Joints": {
+    "Orbit1": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -1.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        2.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 70,
+          "Phase": 20
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 3.4,
+          "Phase": 47
+        }
+      ]
+    },
+    "Shard1": {
+      "Parent": "Orbit1",
+      "Pivot": [
+        0.0,
+        -1.0,
+        0.3400000035762787
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.34,
+        2.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 165
+        }
+      ]
+    },
+    "Orbit2": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -1.9,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        1.6
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -55,
+          "Phase": 150
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 4.1,
+          "Phase": 94
+        }
+      ]
+    },
+    "Shard2": {
+      "Parent": "Orbit2",
+      "Pivot": [
+        0.0,
+        -1.899999976158142,
+        0.41999998688697815
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.42,
+        1.6
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            -0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 190
+        }
+      ]
+    },
+    "Orbit3": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -2.8,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        0.7
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 62,
+          "Phase": 260
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 3.7,
+          "Phase": 141
+        }
+      ]
+    },
+    "Shard3": {
+      "Parent": "Orbit3",
+      "Pivot": [
+        0.0,
+        -2.799999952316284,
+        0.36000001430511475
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.36,
+        0.7
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 140
+        }
+      ]
+    },
+    "Orbit4": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -3.7,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -48,
+          "Phase": 60
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 4.6,
+          "Phase": 188
+        }
+      ]
+    },
+    "Shard4": {
+      "Parent": "Orbit4",
+      "Pivot": [
+        0.0,
+        -3.700000047683716,
+        0.47999998927116394
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.48,
+        -0.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            -0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 165
+        }
+      ]
+    },
+    "Orbit5": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -4.5,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -1.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 58,
+          "Phase": 200
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 3.9,
+          "Phase": 235
+        }
+      ]
+    },
+    "Shard5": {
+      "Parent": "Orbit5",
+      "Pivot": [
+        0.0,
+        -4.5,
+        0.4000000059604645
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.4,
+        -1.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 190
+        }
+      ]
+    },
+    "Orbit6": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -5.3,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -1.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -52,
+          "Phase": 320
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 4.3,
+          "Phase": 282
+        }
+      ]
+    },
+    "Shard6": {
+      "Parent": "Orbit6",
+      "Pivot": [
+        0.0,
+        -5.300000190734863,
+        0.5
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.5,
+        -1.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            -0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 140
+        }
+      ]
+    },
+    "Orbit7": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -6.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -2.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 64,
+          "Phase": 100
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 3.6,
+          "Phase": 329
+        }
+      ]
+    },
+    "Shard7": {
+      "Parent": "Orbit7",
+      "Pivot": [
+        0.0,
+        -6.0,
+        0.41999998688697815
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.42,
+        -2.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 165
+        }
+      ]
+    },
+    "Orbit8": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -6.7,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": -60,
+          "Phase": 230
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.25,
+          "Period": 4.0,
+          "Phase": 376
+        }
+      ]
+    },
+    "Shard8": {
+      "Parent": "Orbit8",
+      "Pivot": [
+        0.0,
+        -6.699999809265137,
+        0.46000000834465027
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.46,
+        -3.2
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.8571428656578064,
+            -0.4285714328289032,
+            0.2857142686843872
+          ],
+          "Rate": 190
+        }
+      ]
+    }
+  }
+}

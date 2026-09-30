@@ -404,3 +404,60 @@ def seraph(k):
         bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
         bmesh.ops.transform(bm, matrix=M, verts=bm.verts)
         k.add('Halo', k.mesh_object('Halo' + name, bm, [mat]))
+
+
+def _crystal(bm, centre, axis, length, width, sides=6, twist=0.0):
+    """A crystal shard: a long six-sided bipyramid (a point at each end, widest a third of the way
+    along), about `axis` through `centre`."""
+    from mathutils import Vector
+    axis = axis.normalized()
+    u = axis.orthogonal().normalized()
+    v = axis.cross(u)
+    top = bm.verts.new(centre + axis * (length * 0.62))
+    bot = bm.verts.new(centre - axis * (length * 0.38))
+    ring = []
+    for i in range(sides):
+        a = 2 * math.pi * i / sides + twist
+        w = width * (1.0 if i % 2 == 0 else 0.8)          # uneven facets catch the light
+        ring.append(bm.verts.new(centre + (u * math.cos(a) + v * math.sin(a)) * w))
+    for i in range(sides):
+        j = (i + 1) % sides
+        bm.faces.new((ring[i], ring[j], top))
+        bm.faces.new((ring[j], ring[i], bot))
+    return Vector(centre)
+
+
+@piece
+def chroma(k):
+    """Rainbow crystal shards orbiting the cue (the concept's floating crystals; the shard sprite was
+    small and flat): eight faceted shards, red through violet, each a shimmering see-through crystal
+    over a glowing core, circling the cue on its own orbit at its own speed, drifting a little up
+    and down the cue, and tumbling as it goes."""
+    import bmesh
+    from mathutils import Vector
+    RAINBOW = [('Red', '#FF3D5A'), ('Orange', '#FF9A3D'), ('Yellow', '#FFE03D'), ('Green', '#3DFF8A'),
+               ('Cyan', '#3DD8FF'), ('Blue', '#3D7AFF'), ('Violet', '#B03DFF'), ('Pink', '#FF5AD8')]
+    for name, col in RAINBOW:
+        k.material(name + 'Crystal', 'ForceField', col)
+        k.material(name + 'Core', 'Neon', col, Transparency=0.3)
+    # (at, orbit radius, start angle, orbit deg/s, drift period, length, width)
+    shards = [(1.0, 0.34, 20, 70, 3.4, 0.2, 0.06), (1.9, 0.42, 150, -55, 4.1, 0.24, 0.07),
+              (2.8, 0.36, 260, 62, 3.7, 0.2, 0.06), (3.7, 0.48, 60, -48, 4.6, 0.28, 0.08),
+              (4.5, 0.4, 200, 58, 3.9, 0.24, 0.07), (5.3, 0.5, 320, -52, 4.3, 0.3, 0.085),
+              (6.0, 0.42, 100, 64, 3.6, 0.26, 0.075), (6.7, 0.46, 230, -60, 4.0, 0.28, 0.08)]
+    for i, ((cname, _), (at, r, a0, rate, drift, L, W)) in enumerate(zip(RAINBOW, shards), 1):
+        orbit, shard = 'Orbit%d' % i, 'Shard%d' % i
+        k.joint(orbit, pivot=(0, -at, 0), motion=[
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rate, 'Phase': a0},
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.25, 'Period': drift, 'Phase': i * 47}])
+        c = Vector((0, -at, r))
+        tumble = Vector((0.6, 0.3 * (1 if i % 2 else -1), 0.2)).normalized()
+        k.joint(shard, pivot=tuple(c), parent=orbit, motion=[
+            {'Kind': 'Spin', 'Axis': tuple(tumble), 'Rate': 140 + 25 * (i % 3)}])
+        L, W = L * 1.6, W * 1.6          # (sized at 1.6 after the first render: they read as specks)
+        axis = Vector((0.4 * (1 if i % 2 else -1), 0.8, 0.45))
+        bm_c, bm_k = bmesh.new(), bmesh.new()
+        _crystal(bm_c, c, axis, L, W, twist=i * 0.4)
+        _crystal(bm_k, c, axis, L * 0.7, W * 0.55, twist=i * 0.4)
+        k.add(shard, k.mesh_object(shard + 'Crystal', bm_c, [cname + 'Crystal'], smooth=False))
+        k.add(shard, k.mesh_object(shard + 'Core', bm_k, [cname + 'Core'], smooth=False))

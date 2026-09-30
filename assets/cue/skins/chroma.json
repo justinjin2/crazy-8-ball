@@ -184,7 +184,7 @@
       ]
     },
     "Aura": {
-      "Note": "Layered: a soft rainbow glow round the whole cue (a halo Beam graded red at the tip to violet at the butt, breathing) as the core; four rainbow ribbons loop round the stick (Orbiters with a rainbow-textured Trail and a white star head, up and down it at different speeds, the concept's loops); crystal shards orbit and turn over, changing colour as they turn (a 16-frame shard flipbook made for Chroma); rainbow sparkles and glitter dust fill the air; a light whose colour cycles with the cue.",
+      "Note": "Layered: a soft rainbow glow round the whole cue (a halo Beam graded red at the tip to violet at the butt, breathing) as the core; four bold rainbow ribbons loop round the stick (Orbiters with a rainbow-textured Trail and a white star head, up and down it at different speeds, the concept's loops); eight faceted crystal shards, red through violet, orbit the cue and tumble (a 3D piece: see-through shimmering crystal over a glowing core); rainbow sparkles and glitter dust fill the air; a light whose colour cycles with the cue.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -198,7 +198,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 20,
+          "Rate": 24,
           "Lifetime": [
             0.4,
             0.8
@@ -262,67 +262,6 @@
             ]
           ],
           "LightEmission": 1,
-          "LightInfluence": 0,
-          "LockedToPart": true
-        },
-        {
-          "Name": "Shards",
-          "Texture": "vfx/chroma/shard_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "Loop",
-          "FlipbookFramerate": [
-            10,
-            16
-          ],
-          "FlipbookStartRandom": true,
-          "Host": {
-            "Kind": "Part",
-            "FromStuds": 0.3,
-            "ToStuds": 7.0,
-            "Width": 1.0,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Surface"
-          },
-          "Rate": 10,
-          "Lifetime": [
-            1.4,
-            2.0
-          ],
-          "Speed": [
-            0.03,
-            0.12
-          ],
-          "SpreadAngle": [
-            180,
-            180
-          ],
-          "Size": [
-            [
-              0,
-              0
-            ],
-            [
-              0.15,
-              0.2,
-              0.05
-            ],
-            [
-              0.85,
-              0.2,
-              0.05
-            ],
-            [
-              1,
-              0
-            ]
-          ],
-          "Transparency": 0,
-          "Rotation": [
-            -30,
-            30
-          ],
-          "Color": "#FFFFFF",
-          "LightEmission": 0.8,
           "LightInfluence": 0,
           "LockedToPart": true
         },
@@ -402,8 +341,8 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.07,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.14,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -412,7 +351,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.15
               ],
               [
                 1,
@@ -425,17 +364,22 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.25
               ]
             ],
             "LightEmission": 1,
             "Texture": "vfx/chroma/trail_rainbow.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.22,
+            "Size": 0.3,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -453,8 +397,8 @@
           "Phase": 90,
           "Delay": 0.6,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.07,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.14,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -463,7 +407,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.15
               ],
               [
                 1,
@@ -476,17 +420,22 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.25
               ]
             ],
             "LightEmission": 1,
             "Texture": "vfx/chroma/trail_rainbow.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.22,
+            "Size": 0.3,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -504,8 +453,8 @@
           "Phase": 200,
           "Delay": 1.2,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.07,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.14,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -514,7 +463,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.15
               ],
               [
                 1,
@@ -527,17 +476,22 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.25
               ]
             ],
             "LightEmission": 1,
             "Texture": "vfx/chroma/trail_rainbow.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.22,
+            "Size": 0.3,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -555,8 +509,8 @@
           "Phase": 300,
           "Delay": 1.8,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.07,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.14,
             "Color": "#FFFFFF",
             "Transparency": [
               [
@@ -565,7 +519,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.15
               ],
               [
                 1,
@@ -578,17 +532,22 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.25
               ]
             ],
             "LightEmission": 1,
             "Texture": "vfx/chroma/trail_rainbow.png",
-            "TextureMode": "Stretch"
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
           },
           "Head": {
             "Texture": "vfx/_shared/star4.png",
-            "Size": 0.22,
+            "Size": 0.3,
             "Color": "#FFFFFF",
             "LightEmission": 1
           }
@@ -1201,12 +1160,14 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 44,
-      "Back": 22.0,
+      "ParticlesPerSecond": 38,
+      "Back": 19.0,
       "BallTrail": 32,
       "Beams": 5,
       "Lights": 1,
-      "Orbiters": 4
+      "Orbiters": 4,
+      "PieceTriangles": 192
     }
-  }
+  },
+  "piece": "chroma"
 }

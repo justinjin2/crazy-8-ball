@@ -388,6 +388,29 @@ def seraph(d):
                  'halo Beam) and a warm light.')
 
 
+def chroma(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the crystal shards are a 3D piece now (CuePiecesLegendary.chroma): eight faceted rainbow
+    # crystals orbiting and tumbling, in place of the small flat shard sprites
+    d['piece'] = 'chroma'
+    a['Emitters'] = [e for e in a['Emitters'] if e['Name'] != 'Shards']
+    named(a['Emitters'], 'RainbowSparkles')['Rate'] = 24
+    # the rainbow ribbons: bold bands of light, not hairlines
+    for o in a['Orbiters']:
+        o['Trail'].update({'Lifetime': 0.9, 'WidthStuds': 0.14, 'Brightness': 2.2,
+                           'WidthScale': [[0, 1], [0.6, 0.7], [1, 0.25]],
+                           'Transparency': [[0, 0], [0.6, 0.15], [1, 1]]})
+        if o.get('Head'):
+            o['Head']['Size'] = 0.3
+    a['Note'] = ('Layered: a soft rainbow glow round the whole cue (a halo Beam graded red at the tip to violet '
+                 'at the butt, breathing) as the core; four bold rainbow ribbons loop round the stick (Orbiters '
+                 'with a rainbow-textured Trail and a white star head, up and down it at different speeds, the '
+                 "concept's loops); eight faceted crystal shards, red through violet, orbit the cue and tumble "
+                 '(a 3D piece: see-through shimmering crystal over a glowing core); rainbow sparkles and glitter '
+                 'dust fill the air; a light whose colour cycles with the cue.')
+
+
 def pocket_piece(d, piece_id, drop_layer, **timing):
     """The pocket finisher's creature as a rising 3D piece (CuePiecesPocket) in place of its flat
     flipbook layer."""
@@ -429,7 +452,7 @@ POCKET = {
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
             'phoenix': phoenix, 'kraken': kraken, 'infernal': infernal,
             'clockwork': clockwork, 'thunderstrike': thunderstrike,
-            'seraph': seraph}
+            'seraph': seraph, 'chroma': chroma}
 
 
 def budget(d):
