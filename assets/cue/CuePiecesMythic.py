@@ -164,9 +164,9 @@ def celestial_dragon(k):
             rr = float(env(at)) + 0.045 + 0.02 * math.sin(t * 9)
             ang = ph + 2 * math.pi * 3.2 * t
             path.append((rr * math.sin(ang), -at, rr * math.cos(ang)))
-            w = 0.034 * (1 - t) ** 0.6 + 0.006
-            radii.append((w, w * 0.3))
-            core.append(0.006 * (1 - t) + 0.0015)
+            w = 0.058 * (1 - t) ** 0.6 + 0.01
+            radii.append((w, w * 0.35))
+            core.append(0.011 * (1 - t) + 0.0025)
         sweep(bm_e, path, radii, segs=10)
         sweep(bm_c, path, core, segs=6)
     k.add('Body', k.mesh_object('DragonBody', bm_e, ['Energy']))

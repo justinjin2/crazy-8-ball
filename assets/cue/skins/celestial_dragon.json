@@ -98,7 +98,7 @@
       "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
     },
     "Aura": {
-      "Note": "Layered: energy flowing along the coils of the dragon body (the Orbiters above); drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; small energy wisps rising off the head; a soft blue glow round the cue (a halo Beam, breathing) and a blue light at the head.",
+      "Note": "Layered: wide streams of starlight flow along the coils of the dragon body (Orbiters matched to the body's helix, streaky starlight trails); drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; blue energy flames stream back off the head; a soft blue glow round the cue (a halo Beam, breathing) and a blue light at the head.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -230,7 +230,7 @@
         },
         {
           "Name": "Wisps",
-          "Texture": "vfx/_shared/glow_soft.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "Host": {
             "Kind": "Part",
             "FromStuds": 6.6,
@@ -239,7 +239,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 10,
+          "Rate": 12,
           "Lifetime": [
             0.6,
             1.0
@@ -256,19 +256,57 @@
           "Size": [
             [
               0,
-              0.06
+              0.25
+            ],
+            [
+              0.4,
+              0.5
             ],
             [
               1,
-              0
+              0.15
             ]
           ],
-          "Squash": -0.8,
-          "Transparency": 0.1,
-          "Color": "#C9E6FF",
+          "Squash": 0,
+          "Transparency": [
+            [
+              0,
+              0.35
+            ],
+            [
+              0.3,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
           "LightEmission": 1,
           "LightInfluence": 0,
-          "LockedToPart": false
+          "LockedToPart": false,
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Brightness": 1.6,
+          "Acceleration": [
+            0,
+            1.2,
+            0
+          ]
         }
       ],
       "Orbiters": [
@@ -281,15 +319,15 @@
           "TurnsPerSecond": -1.3333333333333335,
           "Radius": 0.045,
           "RadiusFromSurface": true,
-          "Wobble": 0.02,
+          "Wobble": 0.0,
           "WobbleHz": 0.597,
           "Phase": 180,
           "Delay": 0.0,
           "Trail": {
-            "Lifetime": 0.45,
-            "WidthStuds": 0.05,
-            "Color": "#C9E6FF",
-            "Brightness": 2.5,
+            "Lifetime": 1.0,
+            "WidthStuds": 0.11,
+            "Color": "#9CCBFF",
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
@@ -297,7 +335,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.25
               ],
               [
                 1,
@@ -311,16 +349,16 @@
               ],
               [
                 1,
-                0.3
+                0.4
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/_shared/trail_soft.png",
+            "Texture": "vfx/celestial_dragon/trail_starlight.png",
             "TextureMode": "Stretch"
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#E6F4FF",
             "LightEmission": 1
           }
@@ -334,15 +372,15 @@
           "TurnsPerSecond": -1.3333333333333335,
           "Radius": 0.045,
           "RadiusFromSurface": true,
-          "Wobble": 0.02,
+          "Wobble": 0.0,
           "WobbleHz": 0.597,
           "Phase": 0,
           "Delay": 0.0,
           "Trail": {
-            "Lifetime": 0.45,
-            "WidthStuds": 0.05,
-            "Color": "#C9E6FF",
-            "Brightness": 2.5,
+            "Lifetime": 1.0,
+            "WidthStuds": 0.11,
+            "Color": "#9CCBFF",
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
@@ -350,7 +388,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.25
               ],
               [
                 1,
@@ -364,16 +402,16 @@
               ],
               [
                 1,
-                0.3
+                0.4
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/_shared/trail_soft.png",
+            "Texture": "vfx/celestial_dragon/trail_starlight.png",
             "TextureMode": "Stretch"
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#E6F4FF",
             "LightEmission": 1
           }
@@ -387,15 +425,15 @@
           "TurnsPerSecond": -1.3333333333333335,
           "Radius": 0.045,
           "RadiusFromSurface": true,
-          "Wobble": 0.02,
+          "Wobble": 0.0,
           "WobbleHz": 0.597,
           "Phase": 180,
           "Delay": 1.2,
           "Trail": {
-            "Lifetime": 0.45,
-            "WidthStuds": 0.05,
-            "Color": "#C9E6FF",
-            "Brightness": 2.5,
+            "Lifetime": 1.0,
+            "WidthStuds": 0.11,
+            "Color": "#9CCBFF",
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
@@ -403,7 +441,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.25
               ],
               [
                 1,
@@ -417,16 +455,16 @@
               ],
               [
                 1,
-                0.3
+                0.4
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/_shared/trail_soft.png",
+            "Texture": "vfx/celestial_dragon/trail_starlight.png",
             "TextureMode": "Stretch"
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#E6F4FF",
             "LightEmission": 1
           }
@@ -440,15 +478,15 @@
           "TurnsPerSecond": -1.3333333333333335,
           "Radius": 0.045,
           "RadiusFromSurface": true,
-          "Wobble": 0.02,
+          "Wobble": 0.0,
           "WobbleHz": 0.597,
           "Phase": 0,
           "Delay": 1.2,
           "Trail": {
-            "Lifetime": 0.45,
-            "WidthStuds": 0.05,
-            "Color": "#C9E6FF",
-            "Brightness": 2.5,
+            "Lifetime": 1.0,
+            "WidthStuds": 0.11,
+            "Color": "#9CCBFF",
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
@@ -456,7 +494,7 @@
               ],
               [
                 0.6,
-                0.3
+                0.25
               ],
               [
                 1,
@@ -470,16 +508,16 @@
               ],
               [
                 1,
-                0.3
+                0.4
               ]
             ],
             "LightEmission": 1,
-            "Texture": "vfx/_shared/trail_soft.png",
+            "Texture": "vfx/celestial_dragon/trail_starlight.png",
             "TextureMode": "Stretch"
           },
           "Head": {
             "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.14,
+            "Size": 0.22,
             "Color": "#E6F4FF",
             "LightEmission": 1
           }
@@ -566,7 +604,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.65,
+        "Lifetime": 1.2,
         "WidthStuds": 0.5,
         "LightEmission": 1,
         "Texture": "vfx/celestial_dragon/trail_starlight.png",
@@ -582,16 +620,12 @@
             1.15
           ],
           [
-            0.65,
-            0.45
-          ],
-          [
-            0.85,
-            0.9
+            0.6,
+            0.8
           ],
           [
             1,
-            0
+            0.5
           ]
         ],
         "Core": {
@@ -600,10 +634,54 @@
             244,
             255
           ],
-          "Width": 0.12,
-          "NearTransparency": 0.1,
-          "LightEmission": 1
-        }
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 3.0
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.4
       },
       "Pocket": {
         "Colors": [
@@ -951,8 +1029,8 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 46,
-      "Back": 23.0,
+      "ParticlesPerSecond": 48,
+      "Back": 24.0,
       "BallTrail": 28,
       "Beams": 1,
       "Lights": 1,

@@ -193,7 +193,30 @@ def kitsune(d):
                  'glow round the cue (a halo Beam) and a violet light at the mask.')
 
 
-UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune}
+def celestial_dragon(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the energy flowing along the dragon's coils (runners matched to the body's helix): wide,
+    # long and streaky so the whole body reads as flowing starlight, not a thin wire
+    for o in a['Orbiters']:
+        o['Wobble'] = 0.0
+        o['Trail'].update({'Lifetime': 1.0, 'WidthStuds': 0.11, 'Color': '#9CCBFF', 'Brightness': 3,
+                           'Transparency': [[0, 0], [0.6, 0.25], [1, 1]], 'WidthScale': [[0, 1], [1, 0.4]],
+                           'Texture': 'vfx/celestial_dragon/trail_starlight.png'})
+        o['Head']['Size'] = 0.22
+    # blue energy flames stream back off the head (the concept's burning mane)
+    w = named(a['Emitters'], 'Wisps')
+    w.update({'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8', 'FlipbookMode': 'OneShot',
+              'Size': [[0, 0.25], [0.4, 0.5], [1, 0.15]], 'Transparency': [[0, 0.35], [0.3, 0.1], [1, 1]],
+              'Color': [[0, '#EAF6FF'], [0.5, '#6FB8FF'], [1, '#2A5CE0']], 'Brightness': 1.6, 'Rate': 12,
+              'Squash': 0, 'Transparency': [[0, 0.35], [0.3, 0.1], [1, 1]], 'Acceleration': [0, 1.2, 0]})
+    a['Note'] = ('Layered: wide streams of starlight flow along the coils of the dragon body (Orbiters matched to the '
+                 'body\'s helix, streaky starlight trails); drifting star dust (four-point stars twinkling in and out, '
+                 'white to blue); soft blue light motes; blue energy flames stream back off the head; a soft blue '
+                 'glow round the cue (a halo Beam, breathing) and a blue light at the head.')
+
+
+UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon}
 
 
 def budget(d):
