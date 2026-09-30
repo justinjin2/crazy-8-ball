@@ -2044,3 +2044,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   pots 0.60 balls (was 1.00), pots one 47% of the time (was 67%) and scratches 5.5% (was
   2%); no hop at full power any more. The camera's pull-out line moved to 1.0 table length
   to stay at about 35% of the bar.
+- 2026-09-30 (designer): every admin, dev and testing command is for the designer's account
+  (Painicane, user id 544959133) alone, in Studio and live, now and for any command added
+  later. Other players, Studio collaborators and a group owner get nothing; money, rank and
+  cues come only from playing or from Robux. `DevCommands` no longer lets anyone in Studio or
+  the owning group's owner in (`Config.Debug.Commands.GroupRank` removed); the Studio-only
+  `DevCommandsQA` test hook, a server script, can still run a command for a test player.

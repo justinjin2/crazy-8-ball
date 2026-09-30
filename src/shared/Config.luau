@@ -8616,8 +8616,8 @@ Config.Debug = {
 	ShowStatus = false,
 	StatusKey = "F3",
 	-- Developer chat commands (DevCommands): typed in the Roblox chat, checked on the server. Who
-	-- may use them: anyone in Studio, these user ids, and the owner of the group that owns the
-	-- game (rank GroupRank). Anyone else's command does nothing. Their private answers are in
+	-- may use them: only the user ids in UserIds (the designer, Painicane), in Studio and live.
+	-- Anyone else's command does nothing. Their private answers are in
 	-- Strings.Dev. The Studio hook ServerStorage.DevCommandsQA runs any of them from a script.
 	Commands = {
 		Day = "/day", -- the day/sunset cycle fades to day now (the 1 min fade)
@@ -8700,8 +8700,7 @@ Config.Debug = {
 		DupeCopies = 3, -- ...and how many copies of each
 		MaxSaleMinutes = 10080, -- the longest /sale (a week)
 		LineChars = 180, -- /inv packs its lists into chat lines of at most this many characters
-		UserIds = { 544959133 }, -- the designer
-		GroupRank = 255, -- the group's owner
+		UserIds = { 544959133 }, -- the designer (Painicane) and nobody else, ever
 	},
 	-- Print physics events to the console.
 	LogEvents = false,

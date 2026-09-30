@@ -1,7 +1,7 @@
 --!strict
 -- DevCommands: developer chat commands, checked here on the server (Config.Debug.Commands).
--- Anyone not allowed (not in Studio, not listed, not the group's owner) gets nothing, so no
--- player can change everyone's sky, their own save or the shop.
+-- Only the designer's own account (Config.Debug.Commands.UserIds) may use them; any other
+-- player gets nothing, so no player can change everyone's sky, their own save or the shop.
 -- - /day and /sunset send the day/sunset cycle toward that state for the whole server, through
 --   its one-minute fade (LightCycle.offsetToward): the offset goes on a workspace attribute
 --   every client's DayCycle reads, and the cycle runs on from there.
@@ -10,7 +10,7 @@
 --   and answer privately (DevNotice). A /sale or a /party is this server's, like the real ones.
 --   They go through the same server APIs as the game (PlayerData, Ranking, Items, Store,
 --   Counters), so they can do nothing the save's own checks refuse. They work in a live server
---   too, for the same allowed people.
+--   too, for the designer only.
 -- - The look check's tools (Studio only; /abilityhelp lists them): /slowmo <scale> sets the
 --   replay rate at the caller's table for everyone (a workspace attribute the clients read),
 --   and /abilitysetup <id|name> racks it in Config.Ults.Setups' layout through the QA
@@ -73,27 +73,20 @@ function DevCommands.toward(hold: string)
 	workspace:SetAttribute(C.OffsetAttribute, LightCycle.offsetToward(t, now, C, hold))
 end
 
+-- Only the designer's own account (Config.Debug.Commands.UserIds), in Studio and live alike:
+-- not other Studio collaborators, not a group owner, nobody else (the designer, 2026-09-30).
 local function allowed(userId: number): boolean
-	if RunService:IsStudio() or table.find(D.UserIds, userId) ~= nil then
-		return true
-	end
-	if game.CreatorType ~= Enum.CreatorType.Group then
-		return userId == game.CreatorId
-	end
-	local player = Players:GetPlayerByUserId(userId)
-	local ok, rank = pcall(function()
-		return if player then player:GetRankInGroup(game.CreatorId) else 0
-	end)
-	return ok and rank >= D.GroupRank
+	return table.find(D.UserIds, userId) ~= nil
 end
 
 -- `run` gets the caller and the words typed after the alias.
 -- Every command by its alias, for the Studio test hook (DevCommands.start).
 local handlers: { [string]: (Player, { string }) -> () } = {}
 
--- Runs the command typed in `text` for `player`, if they may use it.
-local function dispatch(player: Player, text: string)
-	if not allowed(player.UserId) then
+-- Runs the command typed in `text` for `player`, if they may use it (`fromScript`: the Studio
+-- test hook, a server script rather than a player, may run it for any test player).
+local function dispatch(player: Player, text: string, fromScript: boolean?)
+	if not fromScript and not allowed(player.UserId) then
 		return
 	end
 	local words = string.split(string.lower(text or ""), " ")
@@ -1290,7 +1283,7 @@ function DevCommands.start()
 			local lines = {}
 			captured[player] = lines
 			local ok, err = pcall(function(): any
-				dispatch(player, text)
+				dispatch(player, text, true)
 				return nil
 			end)
 			captured[player] = nil

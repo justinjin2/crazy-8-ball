@@ -46,6 +46,12 @@ playtesting shows it does not work.
 - **Every feature works on phone, PC and gamepad**, and is checked on all three before a
   milestone is done. Every control works by touch, mouse and gamepad; a drag needs no button
   twin (the designer removed Fine controls, 2026-09-26).
+- **Admin and testing commands are the designer's alone.** Every dev, admin or testing
+  command (`/abilitysetup`, giving a cue, setting rank or money, and any added later) works
+  only for the designer's account, Painicane (user id 544959133, `Config.Debug.Commands.UserIds`),
+  checked on the server, in Studio and live. No other player, collaborator or group owner gets
+  any command or special access; everyone else earns money, rank and cues only by playing or
+  by paying Robux.
 - **Player-facing text lives in the shared strings module.** Items (cues, abilities; no table
   skins before release) are catalog data rows plus assets, never new code per item.
 - **Saves** go through the session-locked, versioned save layer; never a raw DataStore call.

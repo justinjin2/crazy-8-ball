@@ -288,7 +288,8 @@ separately from real multi-client playtests.
 **Studio test hooks** (created only when `RunService:IsStudio()`, in ServerStorage, never
 reachable by clients): `PlayerDataQA` (read, mutate, end and reload a session, force a failed
 load with the `PlayerDataFailNextLoad` attribute), `DevCommandsQA` (run a chat command as a
-player, since scripts cannot type into Roblox's chat), and `PoolMatchQA`'s `brokeAgo` (set the
+player, since scripts cannot type into Roblox's chat; the only way a command runs for anyone but
+the designer's account), and `PoolMatchQA`'s `brokeAgo` (set the
 match clock for the one-minute mark).
 
 ## Global queue and arenas (2026-09-28)
