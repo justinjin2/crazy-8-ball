@@ -383,8 +383,8 @@
         },
         {
           "Name": "Flames",
-          "Texture": "vfx/_shared/fire_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/fire_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
@@ -857,8 +857,8 @@
       "Layers": [
         {
           "Name": "Column",
-          "Texture": "vfx/_shared/fire_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/fire_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Point",

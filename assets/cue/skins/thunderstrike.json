@@ -302,8 +302,8 @@
         },
         {
           "Name": "StormCloud",
-          "Texture": "vfx/_shared/smoke_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",

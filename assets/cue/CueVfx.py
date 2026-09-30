@@ -918,6 +918,14 @@ def flipbook(frames_fn, grid, size=1024, pad=8):
     return sheet
 
 
+def flipbook8(frame_fn, **kw):
+    """A 64-frame Grid8x8 sheet of frame_fn (i, n, frames=64, **kw): four times the frames of a
+    Grid4x4 sheet, so an effect that lives a second or more plays smoothly (a 16-frame sheet
+    over 1.5 s shows about 11 frames a second and looks choppy). Each frame is 120 px, which is
+    plenty for particles up to about a stud and a half on screen."""
+    return flipbook(lambda i, n: frame_fn(i, n, frames=64, **kw), 8, 1024, pad=4)
+
+
 def smoke_frame(i, n, frames=16, seed=7):
     """One frame of a soft billowing puff: it swells, curls and thins over the sheet."""
     k = i / (frames - 1)
@@ -1224,6 +1232,9 @@ SHARED_SPRITES = {
     'neon_strip.png': lambda: sprite_strip(256, 64, 0.08, 0.3, 0.5),
     'bolt_strip.png': lambda: sprite_strip(256, 64, 0.05, 0.22, 0.4, seed=5, flicker=0.5),
     'fire_4x4.png': lambda: sprite_fire_sheet(),
+    'fire_8x8.png': lambda: flipbook8(fire_frame),
+    'smoke_8x8.png': lambda: flipbook8(smoke_frame),
+    'energy_flame_8x8.png': lambda: flipbook8(energy_flame_frame),
 }
 
 # A skin's own sprites: SKIN_SPRITES[id] = {file name: function}; filled in below per skin.
@@ -2813,6 +2824,10 @@ def sprite_flare_sheet():
     return flipbook(lambda i, n: flare_frame(i, n), 4, 1024)
 
 
+def sprite_flare_sheet8():
+    return flipbook8(flare_frame)
+
+
 def sprite_obsidian(n=128, seed=421):
     """A chip of black obsidian (alpha-blended, not additive): hard faceted edges, a glossy dark
     face, a thin gold rim light on one side (from the corona)."""
@@ -2891,7 +2906,7 @@ def sprite_gold_column(w=256, h=256):
     return np.concatenate([_corona_col(np.clip(core + glow * 0.3, 0, 1)), a[..., None] * 255], -1)
 
 
-SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'flare_4x4.png': sprite_flare_sheet, 'obsidian.png': sprite_obsidian,
+SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'flare_8x8.png': sprite_flare_sheet8, 'obsidian.png': sprite_obsidian,
                            'mini_eclipse.png': sprite_mini_eclipse, 'trail_eclipse.png': sprite_trail_eclipse,
                            'dark_ring.png': sprite_dark_ring, 'gold_column.png': sprite_gold_column}
 
@@ -3096,8 +3111,7 @@ def sprite_energy_flame_sheet():
 
 SKIN_SPRITES['rank'] = {'shine_strip.png': sprite_shine_strip, 'trail_amethyst.png': sprite_trail_amethyst,
                         'trail_gold_black.png': sprite_trail_gold_black, 'trail_prism.png': sprite_trail_prism,
-                        'rays.png': sprite_rays, 'crown_rainbow.png': sprite_crown_rainbow,
-                        'energy_flame_4x4.png': sprite_energy_flame_sheet}
+                        'rays.png': sprite_rays, 'crown_rainbow.png': sprite_crown_rainbow}
 
 
 def main():

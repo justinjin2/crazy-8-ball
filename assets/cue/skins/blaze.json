@@ -54,7 +54,7 @@
       "Emitters": [
         {
           "Name": "Flames",
-          "Texture": "vfx/_shared/fire_4x4.png",
+          "Texture": "vfx/_shared/fire_8x8.png",
           "Host": {
             "Kind": "Part",
             "FromStuds": 0.4,
@@ -109,7 +109,7 @@
           "LightInfluence": 0,
           "LockedToPart": false,
           "ZOffset": 0,
-          "FlipbookLayout": "Grid4x4",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Orientation": "FacingCameraWorldUp",
           "Acceleration": [

@@ -241,7 +241,7 @@
         },
         {
           "Name": "GhostSmoke",
-          "Texture": "vfx/_shared/smoke_4x4.png",
+          "Texture": "vfx/_shared/smoke_8x8.png",
           "Host": {
             "Kind": "Part",
             "FromStuds": 0.3,
@@ -288,7 +288,7 @@
           "LightInfluence": 0,
           "LockedToPart": false,
           "ZOffset": 0,
-          "FlipbookLayout": "Grid4x4",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Acceleration": [
             0,

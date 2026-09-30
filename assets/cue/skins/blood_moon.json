@@ -163,8 +163,8 @@
       "Emitters": [
         {
           "Name": "CrimsonMist",
-          "Texture": "vfx/_shared/smoke_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
@@ -525,8 +525,8 @@
         },
         {
           "Name": "Mist",
-          "Texture": "vfx/_shared/smoke_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Burst": 8,
           "Lifetime": [

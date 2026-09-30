@@ -136,8 +136,8 @@
       "Emitters": [
         {
           "Name": "SpiritFlame",
-          "Texture": "vfx/rank/energy_flame_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",

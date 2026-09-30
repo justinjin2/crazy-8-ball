@@ -88,7 +88,7 @@
       "Note": "The corona blazes and flares: overlapping corona particles (own texture: a white-hot ring sized to the sphere's outline, ragged gold streamers; ZOffset 0.3, the sphere's radius, so the ring draws in front of the outline from every side) turning slowly, and solar prominences looping up off the rim and snapping (own 16-frame flipbook, placed anywhere round it by a random Rotation); the molten gold's emissive swells 1.8-3.0 over 2.4 s."
     },
     "Aura": {
-      "Note": "Solar flares lick off the corona (above) while the air round the cue darkens slightly (black smoke, alpha-blended); gold sparks fly off the corona and glitter all along the cue; obsidian chips (own sprite, gold rim-lit) drift and tumble round it; three gold orbit loops with small eclipses at their heads circle the cue (Orbiters); a gold glow along the cue; a warm gold light at the eclipse.",
+      "Note": "Solar flares lick off the corona (64-frame sheet) while the air round the cue darkens slightly (black smoke, alpha-blended); molten-gold lightning crawls and leaps over the whole cue (Arcs); gold fire licks up round the forearm and butt; gold sparks fly off the corona and glitter all along the cue; obsidian chips drift and tumble round it; three wide gold orbit rings with small eclipses at their heads circle the cue (Orbiters); a gold glow along the cue; a warm gold light at the eclipse.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -145,8 +145,8 @@
         },
         {
           "Name": "Flares",
-          "Texture": "vfx/eclipse/flare_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/eclipse/flare_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Attachment",
@@ -227,7 +227,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 16,
+          "Rate": 18,
           "Lifetime": [
             0.5,
             0.9
@@ -328,8 +328,8 @@
         },
         {
           "Name": "DarkVeil",
-          "Texture": "vfx/_shared/smoke_4x4.png",
-          "FlipbookLayout": "Grid4x4",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
@@ -392,6 +392,162 @@
           "LightEmission": 0,
           "LightInfluence": 0,
           "LockedToPart": true
+        },
+        {
+          "Name": "GoldFlame",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.6,
+            "ToStuds": 7.0,
+            "Width": 0.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.6,
+            0.9
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.35,
+              0.85
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.3,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF6D0"
+            ],
+            [
+              0.5,
+              "#FFC030"
+            ],
+            [
+              1,
+              "#FF8A00"
+            ]
+          ],
+          "Brightness": 1.6,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "GoldHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.0,
+            "ToStuds": 7.2,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFC040"
+            ],
+            [
+              1,
+              "#FF8A1A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
         }
       ],
       "Orbiters": [
@@ -402,25 +558,25 @@
           "TravelSeconds": 3.2,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.7,
-          "Radius": 0.2,
+          "Radius": 0.38,
           "RadiusFromSurface": true,
-          "Wobble": 0.04,
+          "Wobble": 0.08,
           "WobbleHz": 0.6,
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.55,
-            "WidthStuds": 0.03,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.055,
             "Color": "#FFB300",
-            "Brightness": 2.5,
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
                 0
               ],
               [
-                0.7,
-                0.4
+                0.6,
+                0.25
               ],
               [
                 1,
@@ -433,7 +589,7 @@
           },
           "Head": {
             "Texture": "vfx/eclipse/mini_eclipse.png",
-            "Size": 0.16,
+            "Size": 0.24,
             "Color": "#FFFFFF",
             "LightEmission": 0
           }
@@ -445,25 +601,25 @@
           "TravelSeconds": 3.6,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.6,
-          "Radius": 0.24,
+          "Radius": 0.38,
           "RadiusFromSurface": true,
-          "Wobble": 0.04,
+          "Wobble": 0.08,
           "WobbleHz": 0.6,
           "Phase": 120,
           "Delay": 1.0,
           "Trail": {
-            "Lifetime": 0.55,
-            "WidthStuds": 0.03,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.055,
             "Color": "#FFB300",
-            "Brightness": 2.5,
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
                 0
               ],
               [
-                0.7,
-                0.4
+                0.6,
+                0.25
               ],
               [
                 1,
@@ -476,7 +632,7 @@
           },
           "Head": {
             "Texture": "vfx/eclipse/mini_eclipse.png",
-            "Size": 0.16,
+            "Size": 0.24,
             "Color": "#FFFFFF",
             "LightEmission": 0
           }
@@ -488,25 +644,25 @@
           "TravelSeconds": 2.8,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.8,
-          "Radius": 0.2,
+          "Radius": 0.38,
           "RadiusFromSurface": true,
-          "Wobble": 0.04,
+          "Wobble": 0.08,
           "WobbleHz": 0.6,
           "Phase": 240,
           "Delay": 2.0,
           "Trail": {
-            "Lifetime": 0.55,
-            "WidthStuds": 0.03,
+            "Lifetime": 0.9,
+            "WidthStuds": 0.055,
             "Color": "#FFB300",
-            "Brightness": 2.5,
+            "Brightness": 3,
             "Transparency": [
               [
                 0,
                 0
               ],
               [
-                0.7,
-                0.4
+                0.6,
+                0.25
               ],
               [
                 1,
@@ -519,7 +675,7 @@
           },
           "Head": {
             "Texture": "vfx/eclipse/mini_eclipse.png",
-            "Size": 0.16,
+            "Size": 0.24,
             "Color": "#FFFFFF",
             "LightEmission": 0
           }
@@ -576,6 +732,48 @@
             "Shape": "flicker"
           }
         }
+      ],
+      "Arcs": [
+        {
+          "Name": "MoltenCrawl",
+          "Count": 4,
+          "Segments": 12,
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "Length": [
+            0.9,
+            2.0
+          ],
+          "Around": 200,
+          "Radius": 0.15,
+          "Jitter": 0.12,
+          "Interval": 0.11,
+          "Duty": 0.75,
+          "WidthStuds": 0.09,
+          "Color": "#FFC24A",
+          "Brightness": 2.2,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        },
+        {
+          "Name": "MoltenLeap",
+          "Count": 2,
+          "Segments": 14,
+          "FromStuds": 2.0,
+          "ToStuds": 7.0,
+          "Length": [
+            1.6,
+            3.0
+          ],
+          "Around": 320,
+          "Radius": 0.24,
+          "Jitter": 0.2,
+          "Interval": 0.2,
+          "Duty": 0.5,
+          "WidthStuds": 0.11,
+          "Color": "#FFD774",
+          "Brightness": 2.4,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        }
       ]
     },
     "Style": {
@@ -593,7 +791,7 @@
           ]
         ],
         "NearTransparency": 0.0,
-        "Lifetime": 0.5,
+        "Lifetime": 1.2,
         "WidthStuds": 0.44,
         "LightEmission": 0.3,
         "Texture": "vfx/eclipse/trail_eclipse.png",
@@ -618,10 +816,54 @@
             220,
             130
           ],
-          "Width": 0.05,
+          "Width": 0.2,
           "NearTransparency": 0.0,
-          "LightEmission": 1
-        }
+          "LightEmission": 1,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 3.0
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.0
       },
       "Pocket": {
         "Colors": [
@@ -640,7 +882,7 @@
       }
     },
     "Trail": {
-      "Note": "Half gold, half black light: the upper half molten gold light with bright streaks, the lower half black smoke edged in gold, split by a white-gold seam (own texture, LightEmission 0.3 so the black reads); obsidian chips and gold sparks fly off, small eclipses drop behind and fade.",
+      "Note": "A long half gold, half black light trail with a white-gold core (1.2 s); gold fire peels off the ball, obsidian chips and gold sparks fly off, small eclipses drop behind and fade.",
       "Emitters": [
         {
           "Name": "Obsidian",
@@ -778,11 +1020,84 @@
           "Color": "#FFFFFF",
           "LightEmission": 0,
           "LightInfluence": 0
+        },
+        {
+          "Name": "GoldFire",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.4,
+            0.6
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.35,
+              0.55
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.3,
+              0.05
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF6D0"
+            ],
+            [
+              0.5,
+              "#FFC030"
+            ],
+            [
+              1,
+              "#FF8A00"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 1.6
         }
       ]
     },
     "Pocket": {
-      "Note": "Staged over 1.5 s: a dark ring pulses out flat over the pocket twice as it is eclipsed (0 and 0.22 s, own sprite, alpha-blended); a small black eclipse swells above the pocket (0.35 s) and its corona bursts out round it (0.4 s) with prominences looping off it, a column of gold light shoots up, obsidian shards and gold sparks blast out, a gold ring spreads; a gold flash. The default gust is tinted gold.",
+      "Note": "Staged over 1.5 s: a dark ring pulses out flat over the pocket twice as it is eclipsed (0 and 0.22 s, alpha-blended); a black eclipse swells above the pocket (0.4 s) exactly filling its corona as the corona bursts out, in front of a column of gold light; gold light streaks burst out radially, obsidian shards and gold sparks blast out, a gold ring spreads; a gold flash. The default gust is tinted gold.",
       "Layers": [
         {
           "Name": "DarkRing",
@@ -885,21 +1200,21 @@
             ]
           },
           "Burst": 1,
-          "Delay": 0.35,
-          "Lifetime": 1.1,
+          "Delay": 0.4,
+          "Lifetime": 1.0,
           "Speed": 0,
           "Size": [
             [
               0,
-              0.3
+              1.7
             ],
             [
-              0.25,
-              1.6
+              0.3,
+              4.45
             ],
             [
               1,
-              1.8
+              5.0
             ]
           ],
           "Transparency": [
@@ -908,7 +1223,7 @@
               0
             ],
             [
-              0.8,
+              0.7,
               0
             ],
             [
@@ -919,7 +1234,8 @@
           "Color": "#FFFFFF",
           "LightEmission": 0,
           "LightInfluence": 0,
-          "Orientation": "FacingCameraWorldUp"
+          "Orientation": "FacingCameraWorldUp",
+          "ZOffset": 0.6
         },
         {
           "Name": "CoronaBurst",
@@ -970,34 +1286,8 @@
           ],
           "Color": "#FFFFFF",
           "LightEmission": 1,
-          "LightInfluence": 0
-        },
-        {
-          "Name": "Prominences",
-          "Texture": "vfx/eclipse/flare_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              1.8,
-              0
-            ]
-          },
-          "Burst": 5,
-          "Delay": 0.45,
-          "Lifetime": 0.9,
-          "Speed": 0,
-          "Size": 2.4,
-          "Rotation": [
-            0,
-            360
-          ],
-          "Transparency": 0,
-          "Color": "#FFFFFF",
-          "LightEmission": 1,
-          "LightInfluence": 0
+          "LightInfluence": 0,
+          "ZOffset": 0.7
         },
         {
           "Name": "Column",
@@ -1158,6 +1448,72 @@
           ],
           "LightEmission": 1,
           "LightInfluence": 0
+        },
+        {
+          "Name": "RayBurst",
+          "Texture": "vfx/_shared/streak.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.8,
+              0
+            ]
+          },
+          "Burst": 28,
+          "Delay": 0.42,
+          "Lifetime": [
+            0.35,
+            0.6
+          ],
+          "Speed": [
+            9,
+            15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              1,
+              0.25
+            ]
+          ],
+          "Squash": -2.2,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              1,
+              "#FFB300"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Brightness": 2
         }
       ],
       "Rings": [
@@ -1181,13 +1537,14 @@
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 40.5,
-      "Back": 20.2,
-      "BallTrail": 21,
+      "ParticlesPerSecond": 57.5,
+      "Back": 28.8,
+      "BallTrail": 31,
       "Beams": 1,
       "Lights": 1,
       "Orbiters": 3,
-      "PieceTriangles": 16632
+      "PieceTriangles": 16632,
+      "Arcs": 6
     }
   }
 }

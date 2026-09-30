@@ -287,7 +287,11 @@ def blender_main(args):
             return
         corners, uv, rgba = quads
         n = len(corners)
-        verts = corners.reshape(-1, 3)
+        # the object sits at its particles' centre so EEVEE sorts blended objects back to front
+        # by distance, as Roblox sorts particles (a black disc with ZOffset covers what is behind)
+        centre = corners.reshape(-1, 3).mean(0)
+        ob.location = centre
+        verts = corners.reshape(-1, 3) - centre
         faces = np.arange(n * 4).reshape(n, 4)
         me.vertices.add(n * 4)
         me.vertices.foreach_set('co', verts.astype(np.float32).ravel())
@@ -742,7 +746,7 @@ def blender_main(args):
                         avatar['core'] = vfx.Trail(core)
                     avatar['core'].enabled = t > strike
                     avatar['core'].step(t, np.array(pos))
-                    ob = fx_object('TrailCore', avatar['core'].texture, avatar['core'].le, 1.0, extension='REPEAT')
+                    ob = fx_object('TrailCore', avatar['core'].texture, avatar['core'].le, avatar['core'].brightness, extension='REPEAT')
                     fill(ob, avatar['core'].quads(t, cm))
                 draw_emitters('BallFx', ball_ems, bm_, cm)
                 shoot()
@@ -803,15 +807,18 @@ def trail_from_style(style):
     else:
         color = tr['Color']
     spec = {'Lifetime': tr['Lifetime'], 'WidthStuds': tr['WidthStuds'], 'Color': color,
-            'Transparency': [[0, tr['NearTransparency']], [1, tr['FarTransparency']]],
+            'Transparency': tr.get('Transparency') or [[0, tr['NearTransparency']], [1, tr['FarTransparency']]],
             'WidthScale': tr.get('WidthScale', [[0, 1], [1, 0.35]]), 'LightEmission': tr['LightEmission'],
+            'Brightness': tr.get('Brightness', 1),
             'MinLength': tr['MinLengthStuds'], 'Texture': tr.get('Texture') or 'vfx/_shared/trail_soft.png',
             'TextureMode': tr.get('TextureMode', 'Stretch'), 'TextureLength': tr.get('TextureLength', 1)}
     if tr.get('Core'):
         core = tr['Core']
         spec['Core'] = {'Lifetime': tr['Lifetime'], 'WidthStuds': tr['WidthStuds'] * core.get('Width', 0.35),
-                        'Color': core['Color'], 'Transparency': [[0, core.get('NearTransparency', 0.2)], [1, 1]],
-                        'WidthScale': [[0, 1], [1, 0.3]], 'LightEmission': core.get('LightEmission', 1),
+                        'Color': core['Color'],
+                        'Transparency': core.get('Transparency') or [[0, core.get('NearTransparency', 0.2)], [1, 1]],
+                        'WidthScale': core.get('WidthScale', [[0, 1], [1, 0.3]]), 'LightEmission': core.get('LightEmission', 1),
+                        'Brightness': core.get('Brightness', 1),
                         'MinLength': tr['MinLengthStuds'], 'Texture': core.get('Texture') or 'vfx/_shared/trail_soft.png'}
     return spec
 
