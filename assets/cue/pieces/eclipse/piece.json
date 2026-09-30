@@ -1,0 +1,294 @@
+{
+  "id": "eclipse",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 16632,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#0B0B0D",
+      "Transparency": 0.0,
+      "Reflectance": 0.35,
+      "Name": "Mount_Obsidian",
+      "File": "pieces/eclipse/Mount_Obsidian.obj",
+      "Joint": "Mount",
+      "Offset": [
+        0.0,
+        0.0,
+        -3.5075
+      ],
+      "Size": [
+        0.31,
+        0.31,
+        0.215
+      ],
+      "Triangles": 560
+    },
+    {
+      "Material": "Foil",
+      "Color": "#E3A21A",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Mount_Gold",
+      "File": "pieces/eclipse/Mount_Gold.obj",
+      "Joint": "Mount",
+      "Offset": [
+        0.0,
+        -0.0,
+        -3.7239
+      ],
+      "Size": [
+        0.772,
+        0.772,
+        0.6348
+      ],
+      "Triangles": 7024
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#050505",
+      "Transparency": 0.0,
+      "Reflectance": 0.25,
+      "Name": "Orb_Void",
+      "File": "pieces/eclipse/Orb_Void.obj",
+      "Joint": "Orb",
+      "Offset": [
+        0.0,
+        0.0,
+        -4.06
+      ],
+      "Size": [
+        0.56,
+        0.56,
+        0.56
+      ],
+      "Triangles": 2208
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC940",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Ring1_Flare",
+      "File": "pieces/eclipse/Ring1_Flare.obj",
+      "Joint": "Ring1",
+      "Offset": [
+        -0.0,
+        0.0001,
+        -4.0601
+      ],
+      "Size": [
+        0.9673,
+        0.898,
+        0.367
+      ],
+      "Triangles": 864
+    },
+    {
+      "Material": "Neon",
+      "Color": "#FFC940",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "Ring2_Flare",
+      "File": "pieces/eclipse/Ring2_Flare.obj",
+      "Joint": "Ring2",
+      "Offset": [
+        -0.0,
+        0.0,
+        -4.0599
+      ],
+      "Size": [
+        1.1072,
+        0.9408,
+        0.5901
+      ],
+      "Triangles": 864
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#B9BEC6",
+      "Transparency": 0.0,
+      "Reflectance": 0.12,
+      "Name": "Moon_Moon",
+      "File": "pieces/eclipse/Moon_Moon.obj",
+      "Joint": "Moon",
+      "Offset": [
+        0.453,
+        0.1586,
+        -4.06
+      ],
+      "Size": [
+        0.1329,
+        0.1361,
+        0.1362
+      ],
+      "Triangles": 4932
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#0B0B0D",
+      "Transparency": 0.0,
+      "Reflectance": 0.35,
+      "Name": "Debris_Obsidian",
+      "File": "pieces/eclipse/Debris_Obsidian.obj",
+      "Joint": "Debris",
+      "Offset": [
+        -0.0176,
+        -0.0078,
+        -3.6353
+      ],
+      "Size": [
+        0.706,
+        0.8634,
+        0.4231
+      ],
+      "Triangles": 180
+    }
+  ],
+  "Joints": {
+    "Mount": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -7.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.5
+      ],
+      "Motion": []
+    },
+    "Orb": {
+      "Parent": "Mount",
+      "Pivot": [
+        0.0,
+        -7.559999942779541,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -4.06
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            0,
+            1
+          ],
+          "Amp": 0.012,
+          "Period": 3.4
+        }
+      ]
+    },
+    "Ring1": {
+      "Parent": "Orb",
+      "Pivot": [
+        0.0,
+        -7.559999942779541,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -4.06
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0.25,
+            1
+          ],
+          "Rate": 22.0
+        }
+      ]
+    },
+    "Ring2": {
+      "Parent": "Orb",
+      "Pivot": [
+        0.0,
+        -7.559999942779541,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -4.06
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            0.25,
+            1
+          ],
+          "Rate": -30.0
+        }
+      ]
+    },
+    "Moon": {
+      "Parent": "Orb",
+      "Pivot": [
+        0.0,
+        -7.559999942779541,
+        0.0
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.0,
+        -4.06
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0.3246172070503235,
+            0.1854955554008484,
+            0.9274777770042419
+          ],
+          "Rate": 70.0
+        }
+      ]
+    },
+    "Debris": {
+      "Parent": "Mount",
+      "Pivot": [
+        0,
+        -7.0,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -3.5
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 16.0
+        },
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 0.02,
+          "Period": 2.7
+        }
+      ]
+    }
+  }
+}

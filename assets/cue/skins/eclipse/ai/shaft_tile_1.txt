@@ -1,0 +1,7 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the shaft (the long thin front part), repeated along it of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1024 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+It tiles seamlessly on all four edges.
+Glossy black obsidian (#050505) twisted with long spiral ribbons of polished black chrome and dark silver (#6E737C) that wind along the length, and one thin bright molten-gold line (#FFB300) with small glowing cracks winding between them. Luxurious, dark, polished. No text, no logos, no other shapes.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #050505 #FFB300 #FFF1B0 #C9CDD4.
+No text, no letters, no numbers, no logos, no symbols with words.

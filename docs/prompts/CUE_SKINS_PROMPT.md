@@ -368,7 +368,7 @@ and you ask the designer about it.
   section 8.1's Legendary effort within section 8.2's caps.
 - [x] 8. Mythics (3): M1-M3, with the custom pieces (list any piece to generate as
   section 1 says, without waiting), at section 8.1's effort.
-- [ ] 9. Secret: Eclipse (S1).
+- [x] 9. Secret: Eclipse (S1).
 - [ ] 10. Starter and VIP (X1).
 - [ ] 11. Rank cues (10): K1-K2, one shared trophy design.
 - [ ] 12. Unique cues (3): Q1.
@@ -480,3 +480,9 @@ and you ask the designer about it.
   rendered from the 3D pieces with a spectral material (`--sprite`, `--sheet-sprite`). The
   preview now draws `VelocityPerpendicular` particles lying across their direction of travel,
   as Roblox does (Apex's HUD rings).
+
+- **2026-09-29, Secret.** Eclipse's piece (a black sphere in a gold cage, orbit rings, a moon,
+  drifting shards) is scripted like the Mythics. Its corona is not geometry: a camera-facing
+  corona sprite on particles centred on the sphere with a ZOffset of the sphere's radius
+  always sits on the outline, from any side, which a ForceField shell or a ring mesh can't do
+  (a shell tints the whole sphere; a ring only reads face-on).

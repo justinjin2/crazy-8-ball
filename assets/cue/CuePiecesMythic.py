@@ -646,10 +646,10 @@ def apex(k):
 
 @piece
 def eclipse(k):
-    """A floating total eclipse past the butt: a black sphere in a blazing gold corona (two
-    ForceField shells, bright at the rim from every side), held by a black-and-gold cage of four
-    curved gold prongs; two thin gold orbit rings precess round it, a small cratered silver moon
-    orbits it, obsidian shards drift round the mount."""
+    """A floating total eclipse past the butt: a glossy black sphere (the blazing corona is
+    camera-facing particles in the skin's VFX, so it sits on the outline from every side), held by a black-and-gold cup and four slender gold prongs;
+    two thin glowing orbit rings precess round it, a small cratered silver moon orbits it,
+    obsidian shards drift round the mount."""
     import bmesh
     import random
     from mathutils import Vector, Matrix
@@ -657,10 +657,8 @@ def eclipse(k):
     k.material('Obsidian', 'SmoothPlastic', '#0B0B0D', Reflectance=0.35)
     k.material('Gold', 'Foil', '#E3A21A')
     k.material('Void', 'SmoothPlastic', '#050505', Reflectance=0.25)
-    k.material('Corona', 'ForceField', '#FFB300', Transparency=0.05)
-    k.material('Halo', 'ForceField', '#FFF1B0', Transparency=0.45)
     k.material('Flare', 'Neon', '#FFC940')
-    k.material('Moon', 'SmoothPlastic', '#D4D8DE', Reflectance=0.15)
+    k.material('Moon', 'SmoothPlastic', '#B9BEC6', Reflectance=0.12)
 
     U0 = 7.0
     RS, UC = 0.28, 0.56                         # the sphere's radius and centre past the butt
@@ -686,31 +684,31 @@ def eclipse(k):
         path, radii = [], []
         for i in range(19):
             s = i / 18
-            u = 0.1 + 0.62 * s
-            r = 0.15 + 0.25 * math.sin(math.pi * min(s / 0.8, 1.0) * 0.62) - 0.12 * max(s - 0.7, 0) / 0.3
+            u = 0.1 + 0.44 * s
+            r = 0.15 + (RS + 0.05 - 0.15) * math.sin(math.pi / 2 * min(s / 0.75, 1.0)) - 0.03 * max(s - 0.75, 0) / 0.25
             path.append(at(u, r, a + 18 * s))
-            radii.append(0.02 * (1 - s) + 0.005)
+            radii.append(0.013 * (1 - s) + 0.004)
         sweep(bm, path, radii, segs=10)
-    # a cage ring round the sphere's back and a thin one round its front
-    for u, r, tube in ((UC - 0.14, RS + 0.1, 0.01), (UC + 0.1, RS + 0.07, 0.006)):
+    # a thin cage ring round the sphere's back, tying the prongs
+    for u, r, tube in ((UC - 0.14, RS + 0.1, 0.006),):
         sweep(bm, [at(u, r, 360 * i / 64) for i in range(65)], [tube] * 65, segs=8, cap=False)
     k.add('Mount', k.mesh_object('EclipseGold', bm, ['Gold']))
 
     # the eclipse: a black sphere inside two corona shells, floating (a slow bob)
     k.joint('Orb', pivot=tuple(C), parent='Mount', motion=[{'Kind': 'Bob', 'Dir': (0, 0, 1), 'Amp': 0.012, 'Period': 3.4}])
-    for name, mat, r, segs in (('EclipseVoid', 'Void', RS, 48), ('EclipseCorona', 'Corona', RS * 1.09, 40), ('EclipseHalo', 'Halo', RS * 1.24, 32)):
+    for name, mat, r, segs in (('EclipseVoid', 'Void', RS, 48),):
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=segs, v_segments=segs // 2, radius=r, matrix=_scale_at(C, (1, 1, 1)))
         k.add('Orb', k.mesh_object(name, bm, [mat]))
 
     # two thin gold orbit rings, tilted, precessing
-    for n, (tilt, rate, rr) in enumerate(((68, 22.0, RS + 0.16), (-58, -30.0, RS + 0.22)), 1):
+    for n, (tilt, rate, rr) in enumerate(((68, 22.0, RS + 0.2), (-58, -30.0, RS + 0.27)), 1):
         nm = 'Ring%d' % n
         k.joint(nm, pivot=tuple(C), parent='Orb', motion=[{'Kind': 'Spin', 'Axis': (0, 0.25, 1), 'Rate': rate}])
         R = Matrix.Rotation(math.radians(tilt), 3, 'X')
         bm = bmesh.new()
         sweep(bm, [C + R @ Vector((rr * math.cos(2 * math.pi * i / 72), rr * math.sin(2 * math.pi * i / 72), 0)) for i in range(73)],
-              [0.0055] * 73, segs=6, cap=False)
+              [0.004] * 73, segs=6, cap=False)
         k.add(nm, k.mesh_object('Eclipse' + nm, bm, ['Flare']))
 
     # the moon: a small cratered silver sphere orbiting on a tilted path

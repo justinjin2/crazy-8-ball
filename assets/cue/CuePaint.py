@@ -3194,6 +3194,48 @@ def apex(k):
     seam_edges(k, [F1, W0, W1])
 
 
+@recipe
+def eclipse(k):
+    """Black obsidian with a molten-gold corona line (S1): OpenAI panels on the whole cue (a
+    glossy black obsidian shaft twisted with black-chrome spiral ribbons and one molten-gold
+    line winding along it, a forearm of twisting obsidian and chrome ribbons veined with molten
+    gold, a black engraved grip with gold cracks, a black sleeve with gold bands), a chrome
+    collar with gold bands, a gold ring, a black end. The molten gold glows. The eclipse is the
+    3D piece (pieces/eclipse)."""
+    s = k.skin['colours']
+    for panel in ('shaft_tile', 'shaft_top', 'forearm', 'butt'):
+        img = ai_base(k, panel, rough=0.1, height=0.0003)
+        c = k.c[panel]
+        if panel == 'shaft_top':
+            match_top_to_tile(k)
+            img = c.col
+        L = luma(img)
+        r, g, b = img[..., 0], img[..., 1], img[..., 2]
+        mx, mn = img.max(-1), img.min(-1)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        molten = np.clip((sat - 0.35) * 4, 0, 1) * (r > b + 70) * np.clip((L - 0.3) * 3, 0, 1)
+        chrome = (sat < 0.15) * np.clip((L - 0.45) * 4, 0, 1)
+        c.put(chrome > 0.5, None, rough=0.12, metal=0.95)
+        c.put(molten > 0.4, None, rough=0.3, metal=0.2)
+        c.put(np.ones((c.h, c.w), bool), None, glow=np.clip(molten ** 0.8, 0, 1))
+    for c, m in k.zone('joint'):
+        metal(c, m, s['silver'], rough=0.12)
+        c.put(m, None, glow=0.0)
+        for d in (J0 + 0.03, J1 - 0.03):
+            line = band(c, d - 0.01, d + 0.01) * m
+            metal(c, line > 0.5, s['gold'], rough=0.2)
+    for c, m in k.zone('wrap'):
+        c.put(m, None, rough=0.35, metal=0.0)
+    for c, m in k.zone('ring'):
+        metal(c, m, s['gold'], rough=0.2)
+        c.put(m, None, glow=0.25)
+    end_band(k, d0=6.9)
+    c = k.c['cap_end']
+    rubber(c, c.inside | True, '#050505')
+    joint_seam(k)
+    seam_edges(k, [F1, W0, W1])
+
+
 def chevron_plates(c, m, s, d0, d1, n_round=2, count=3, phase=FACE, slant=1.0, seed=0):
     """Angular armour plates: raised silver shards slanting across the section like claw slashes,
     each a long sharp-ended parallelogram with a bevelled edge and a brushed face; count along it,

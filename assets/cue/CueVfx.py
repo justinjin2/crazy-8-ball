@@ -2745,6 +2745,157 @@ SKIN_SPRITES['apex'] = {'hud_ring.png': sprite_hud_ring, 'hud_ring_orange.png': 
                         'afterimage_ring.png': sprite_afterimage_ring}
 
 
+ECL_GOLD = np.array([255, 179, 0], np.float64)
+ECL_PALE = np.array([255, 241, 176], np.float64)
+
+
+def _corona_col(h):
+    """0 .. 1 heat -> deep amber, gold, pale gold, white."""
+    keys = np.array([[170, 70, 0], [255, 150, 0], [255, 200, 60], [255, 241, 176], [255, 255, 245]], np.float64)
+    t = np.clip(h, 0, 1) * (len(keys) - 1)
+    i = np.minimum(np.floor(t).astype(int), len(keys) - 2)
+    f = (t - i)[..., None]
+    return keys[i] * (1 - f) + keys[i + 1] * f
+
+
+def sprite_corona(n=512, r0=0.55, seed=401):
+    """A total eclipse's corona, for a camera-facing particle centred on the black sphere: a thin
+    white-hot ring at r0 (sized so it sits on the sphere's outline), a gold glow and ragged
+    streamers licking outward, clear inside (the sphere shows through)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    cs, sn = x / np.maximum(r, 1e-6), y / np.maximum(r, 1e-6)
+    streak = cc.fbm(cs * 3.2 + 5, sn * 3.2, r * 1.2, 4, seed)
+    reach = 0.14 + 0.3 * np.clip(streak - 0.3, 0, 1) ** 1.2 * 3.2
+    out = np.clip(1 - (r - r0) / reach, 0, 1) ** 1.6 * (r >= r0)
+    ring = np.exp(-((r - r0) / 0.012) ** 2)
+    glow = np.exp(-((r - r0) / 0.06) ** 2)
+    inner = np.clip(1 - (r0 - r) / 0.03, 0, 1) * (r < r0)
+    heat = np.clip(ring + glow * 0.6 + out * 0.45 + inner * 0.3, 0, 1)
+    a = np.clip(ring + glow * 0.7 + out * (0.55 + 0.4 * streak) + inner * 0.4, 0, 1) * np.clip((0.98 - r) / 0.05, 0, 1)
+    return np.concatenate([_corona_col(heat), a[..., None] * 255], -1)
+
+
+def flare_frame(i, n, frames=16, r0=0.4, seed=411):
+    """A solar prominence on the corona's rim (the rim at r0, the flare rising from the top): a
+    loop of glowing plasma arcs up, twists and stretches, then snaps and fades (with random
+    particle Rotation it appears anywhere round the eclipse)."""
+    k = i / (frames - 1)
+    x, y = _grid(n)
+    y = -y                                          # up is +y
+    grow = np.clip(k / 0.55, 0, 1) ** 0.7
+    fade = np.clip((k - 0.6) / 0.4, 0, 1)
+    a = np.zeros_like(x)
+    heat = np.zeros_like(x)
+    glow = np.zeros_like(x)
+    for j, (w0, h0, off) in enumerate(((0.24, 0.5, 0.0), (0.15, 0.36, 0.06), (0.3, 0.42, -0.08))):
+        # a loop: an arch of half-width w, height h above the rim, twisted by noise
+        h = h0 * grow * (1 + 0.25 * fade)
+        w = w0 * (0.6 + 0.4 * grow)
+        tt = np.linspace(0, math.pi, 90)
+        px = off + w * np.cos(tt) * (1 + 0.15 * np.sin(3 * tt + j + k * 4))
+        py = r0 + h * np.sin(tt) ** (0.8 + 0.3 * j)
+        if fade > 0:                                 # the loop breaks at its top and the ends curl out
+            keep = np.abs(tt - math.pi / 2) > fade * 0.9
+            px, py = px[keep], py[keep]
+        for qx, qy in zip(px, py):
+            d = np.hypot(x - qx, y - qy)
+            a = np.maximum(a, np.exp(-(d / (0.03 + 0.015 * j)) ** 2))
+            heat = np.maximum(heat, np.exp(-(d / 0.014) ** 2))
+            glow = np.maximum(glow, np.exp(-(d / 0.09) ** 2))
+    base = np.exp(-(np.hypot(x, y - r0) / 0.16) ** 2) * grow
+    a = np.clip(a * 0.9 + glow * 0.35 + base * 0.6, 0, 1) * (1 - fade) ** 1.2 * np.clip((0.98 - np.hypot(x, y)) / 0.05, 0, 1)
+    col = _corona_col(0.35 + 0.65 * np.clip(heat + base * 0.4, 0, 1))
+    return np.concatenate([col, a[..., None] * 255], -1)
+
+
+def sprite_flare_sheet():
+    return flipbook(lambda i, n: flare_frame(i, n), 4, 1024)
+
+
+def sprite_obsidian(n=128, seed=421):
+    """A chip of black obsidian (alpha-blended, not additive): hard faceted edges, a glossy dark
+    face, a thin gold rim light on one side (from the corona)."""
+    x, y = _grid(n)
+    rs = np.random.RandomState(seed)
+    angs = np.sort(rs.uniform(0, 2 * math.pi, 7))
+    rads = rs.uniform(0.55, 0.92, 7)
+    px, py = rads * np.cos(angs), rads * np.sin(angs)
+    th = np.arctan2(y, x)
+    r = np.hypot(x, y)
+    # the polygon's edge radius at each angle (linear between corners)
+    edge = np.interp(th, np.concatenate([angs - 2 * math.pi, angs, angs + 2 * math.pi]),
+                     np.concatenate([rads, rads, rads]))
+    inside = np.clip((edge - r) / 0.03, 0, 1)
+    facet = np.floor((th + math.pi) / (2 * math.pi) * 7)
+    shade = 18 + 22 * ((facet * 37) % 5) / 4
+    rim = np.clip(1 - (edge - r) / 0.09, 0, 1) * np.clip((x + y) * 0.9 + 0.2, 0, 1) * inside
+    c = np.zeros(x.shape + (3,)) + shade[..., None]
+    c = c * (1 - rim[..., None]) + ECL_GOLD * rim[..., None]
+    return np.concatenate([np.clip(c, 0, 255), inside[..., None] * 255], -1)
+
+
+def sprite_mini_eclipse(n=128):
+    """A small eclipse: a black disc in a bright gold ring and glow (alpha-blended so the disc
+    stays black)."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    disc = np.clip((0.42 - r) / 0.02, 0, 1)
+    ring = np.exp(-((r - 0.44) / 0.035) ** 2)
+    glow = np.clip(1 - (r - 0.44) / 0.5, 0, 1) ** 2 * (r > 0.44)
+    a = np.clip(disc + ring + glow * 0.7, 0, 1)
+    c = _corona_col(np.clip(ring + glow * 0.5, 0, 1)) * (1 - disc[..., None]) + np.array([6, 5, 4.0]) * disc[..., None]
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_trail_eclipse(w=512, h=128, seed=431):
+    """Half gold, half black light (u = 0 at the ball): the upper half molten gold light with
+    bright streaks, the lower half black smoke with a gold edge, split by a white-gold seam
+    (alpha-blended: LightEmission about 0.3 so the black reads)."""
+    U, V = _uv(w, h)
+    y = (V - 0.5) * 2
+    turb = cc.fbm(U * 8, V * 3, np.zeros_like(U), 4, seed)
+    streak = cc.fbm(U * 2.5, V * 16, np.full_like(U, 0.4), 3, seed + 1)
+    env = np.clip(1 - np.abs(y) / (0.75 + 0.25 * turb), 0, 1) ** 0.8
+    top = (y < 0)
+    gold = _corona_col(0.45 + 0.55 * streak + 0.3 * np.exp(-(y / 0.1) ** 2))
+    black = np.zeros_like(gold) + (10 + 20 * turb)[..., None]
+    edge = np.exp(-((np.abs(y) - (0.7 + 0.2 * turb)) / 0.06) ** 2) * (~top)
+    black = black * (1 - edge[..., None]) + ECL_GOLD * edge[..., None]
+    seam = np.exp(-(y / 0.05) ** 2)
+    c = np.where(top[..., None], gold, black)
+    c = c + (255 - c) * seam[..., None] * 0.9
+    a = np.clip(env * np.where(top, 0.8 + 0.3 * streak, 0.75 + 0.2 * turb) + seam, 0, 1)
+    return np.concatenate([np.clip(c, 0, 255), a[..., None] * 255], -1)
+
+
+def sprite_dark_ring(n=256):
+    """A soft black ring (alpha-blended): the eclipse's shadow pulsing out over the pocket."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    a = np.exp(-((r - 0.72) / 0.12) ** 2) * 0.9 + np.exp(-((r - 0.72) / 0.03) ** 2) * 0.1
+    c = np.zeros(r.shape + (3,)) + np.array([8, 6, 4.0])
+    c = c + (ECL_GOLD - c) * np.exp(-((r - 0.86) / 0.025) ** 2)[..., None] * 0.8
+    return np.concatenate([c, np.clip(a, 0, 1)[..., None] * 255], -1)
+
+
+def sprite_gold_column(w=256, h=256):
+    """A vertical column of gold light (the corona flare's beam), narrow in a square sprite so a
+    plain particle draws it tall: a white core, gold falloff to the sides, fading at the top."""
+    U, V = _uv(w, h)
+    x = (U - 0.5) * 2
+    core = np.exp(-(x / 0.035) ** 2)
+    glow = np.exp(-(x / 0.16) ** 2)
+    fade = np.clip(V / 0.25, 0, 1) * np.clip((1 - V) / 0.1, 0, 1)
+    a = np.clip(core + glow * 0.55, 0, 1) * fade
+    return np.concatenate([_corona_col(np.clip(core + glow * 0.3, 0, 1)), a[..., None] * 255], -1)
+
+
+SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'flare_4x4.png': sprite_flare_sheet, 'obsidian.png': sprite_obsidian,
+                           'mini_eclipse.png': sprite_mini_eclipse, 'trail_eclipse.png': sprite_trail_eclipse,
+                           'dark_ring.png': sprite_dark_ring, 'gold_column.png': sprite_gold_column}
+
+
 def main():
     args = sys.argv[1:]
     if args and args[0] == 'sprites':
