@@ -519,4 +519,50 @@ function tests.area_abilities_get_the_opponents_balls_and_never_the_eight_or_cue
 	end
 end
 
+function tests.every_ability_can_be_practised_on_the_solo_break()
+	-- The designer (2026-09-30): solo practice works any time, the break included. Each built
+	-- ability armed on a solo break shoots (a pick ability with its pick) and settles.
+	local tried = 0
+	for _, id in U.Order do
+		local row = U.Catalog[id]
+		if not row.Built then
+			continue
+		end
+		local s = E.new(2, 1)
+		expect(E.join(s, 11, "s", "s", 0))
+		expect(E.action(s, 11, { kind = "StartSolo", epoch = s.epoch, turnId = s.turnId }, 0))
+		expect(s.breakShot == true, "a break")
+		local ok, why = Match.practice(s, 11, id, s.phaseStartedAt)
+		expect(ok, id .. " on the break: " .. tostring(why))
+		local at = s.phaseStartedAt + PAUSE
+		E.advance(s, at)
+		if row.Pick == "OwnBall" then
+			local r = { kind = "UltPick", epoch = s.epoch, turnId = s.turnId, ball = 1 }
+			expect(E.action(s, 11, r, at), id .. " picks the 1")
+		elseif row.Pick == "Portals" then
+			local r = { kind = "UltPick", epoch = s.epoch, turnId = s.turnId }
+			r.ax, r.ay, r.bx, r.by = -10, -15, 10, 15
+			expect(E.action(s, 11, r, at), id .. " picks its portals")
+		end
+		local p = payload(s, 0, 1)
+		if s.phase == "Placement" then
+			p.cueX, p.cueY = Sim.findBall(s.state, 0).x, Sim.findBall(s.state, 0).y
+		end
+		local wire, reason = E.acceptShot(s, 11, p, at)
+		expect(wire ~= nil, id .. " break refused: " .. tostring(reason))
+		expect(wire.ult and wire.ult.id == id and wire.ult.practice == true, id .. " is the shot")
+		expect(wire.practice == true, id .. " pays nothing")
+		for _ = 1, 20 do
+			if s.phase ~= "Resolving" and s.phase ~= "Frozen" and s.phase ~= "Rewinding" then
+				break
+			end
+			expect(s.deadline ~= nil, id .. " waits on a clock in " .. s.phase)
+			E.advance(s, s.deadline)
+		end
+		expect(s.phase ~= "Resolving", id .. " settled")
+		tried += 1
+	end
+	expect(tried == 13, "all 13 tried, got " .. tried)
+end
+
 return tests

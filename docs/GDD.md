@@ -371,8 +371,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - **Ults are on by default everywhere**: public tables, the global queue and arenas, and vs
   PC (this replaces "public tables play Classic with no abilities", 2026-09-27). Solo shows
   the **real ability bar, always full**: G, a tap on the bar or gamepad X arms your equipped
-  ability for free, as often as you like; those shots (and a practice Rewind's redos) pay
-  no money (2026-09-30). **The global queue's Join card has an
+  ability for free, as often as you like, the break included; those shots (and a practice
+  Rewind's redos) pay no money (2026-09-30). **The global queue's Join card has an
   Abilities: On / Off toggle** (On by default, remembered in the save) for ranked players who
   want pure skill; players are only matched with others on the same setting (two pools in one
   queue), rank XP and money are the same either way, and the arena, series and rematch keep
@@ -447,10 +447,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   in `Strings.Ults`, 3D icons rendered in Blender in `Config.Ults.Assets.Icons`). Each row's
   rules are in its effect module (`src/shared/Ults/Effects`), its look in `src/client/<Id>Fx`,
   and every number in `Config.Ults.<Id>`. Worth is the measured value above.
-  - **Magnet** (Common, 0.46; everyone starts with it, free forever): for the whole shot each
-    of your balls (the 8 only on your legal 8 shot, toward the called pocket) moving toward a
-    pocket and passing within a capture zone of its mouth is steered toward the pocket's
-    centre; it rescues near misses and jaw rattles, never a vacuum; the opponent's at half. A
+  - **Magnet** (Common, 0.35 since 2026-09-30, was 0.46; everyone starts with it, free
+    forever): for the whole shot the **first ball the cue ball hits** (if it is yours; the 8
+    only on your legal 8 shot, toward the called pocket; the opponent's at half), moving toward
+    a pocket and passing within the capture zone of its mouth (5.25 ball widths, 30% smaller
+    since 2026-09-30), is steered toward the pocket's centre; it rescues near misses and jaw
+    rattles, never a vacuum. Only that one ball (2026-09-30: a cluster by a pocket let one shot
+    pull about five in). A
     blue field-line dipole on the armed cue ball, field lines pulling into the pocket, a
     shockwave on the drop.
   - **Eagle's Eye** (Common, 0.34): the full path of the shot while aiming, the cue ball's and

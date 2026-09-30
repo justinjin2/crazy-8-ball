@@ -1,5 +1,11 @@
 # Status
 
+**2026-09-30: ability review started (one at a time), Magnet first.** Solo practice works on
+the break too; `/abilitysetup <id>` just switches your ability (your account only, live too).
+Magnet pulls only the first ball the cue ball hits, zone and lines 30% smaller; worth 0.35 a
+use (was 0.48). The power bar fades into a rainbow from 75% (all rainbow at 100%). 876 Lune
+tests pass; checked in Studio (G on the break, the smaller rings, /abilitysetup).
+
 **2026-09-30: physics tuned ("the game is too easy").** Power bar tops out at 25 mph (was
 30), rolling friction 0.0125 (was 0.010), guideline short lines 7 in (were 8). All still inside
 published real-table values. A straight full-power break pots 0.60 balls (was 1.00) and
@@ -27,7 +33,8 @@ Report: `docs/prompts/ABILITIES_REPORT.md`. Brief and notes: `docs/prompts/ABILI
     (armed, the shot, the payoff), sounds from the Roblox library, screen effects for the table.
   - 3D icons for all 13 in every spot (cutscene, slots, odds, pills, badges, banners).
   - The top-down pick view (Heat Seeker's ball, Portals' two spots) for touch, mouse and pad.
-  - Dev tools: `/abilitysetup <id>`, `/slowmo <scale>`, `/hold <seconds>`.
+  - Dev tools: `/abilitysetup <id>` (switches your ability; designer only), `/slowmo <scale>`,
+    `/hold <seconds>`.
   - The spin screen is live (`Config.Ults.ScreenLive = true`): every ability can be rolled.
 - **Verified:**
   - Lint clean, 877 Lune tests pass (each ability's rules, the replay matching the server bit

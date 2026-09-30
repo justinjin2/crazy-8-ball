@@ -2050,3 +2050,10 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   cues come only from playing or from Robux. `DevCommands` no longer lets anyone in Studio or
   the owning group's owner in (`Config.Debug.Commands.GroupRank` removed); the Studio-only
   `DevCommandsQA` test hook, a server script, can still run a command for a test player.
+- 2026-09-30 (designer): solo practice abilities work on the break too. `/abilitysetup <id>`
+  only puts that ability in your selected slot (no table, no match) and works for the
+  designer's account alone (`Config.Debug.Commands.UserIds`), in Studio and live; the racked
+  layouts (`Config.Ults.Setups`) are gone. Magnet pulls only the first ball the cue ball hits
+  (a cluster by a pocket let one shot pull about five in), and its pocket zone, field lines
+  and aiming rings are 30% smaller (5.25 ball widths, was 7.5). Measured worth 0.35 a use
+  (was 0.48 on the new physics), level with the other Commons.

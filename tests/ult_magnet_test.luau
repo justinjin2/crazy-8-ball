@@ -58,6 +58,13 @@ local function magnetOn(targets: { number }, eightPocket: number?)
 	return { Effect = "Magnet", Targets = targets, EightPocket = eightPocket }
 end
 
+-- Marks ball `id` as the first ball the cue ball hit, the only one Magnet pulls (2026-09-30):
+-- the tests that roll a ball by hand have no cue ball contact for Magnet.after to record.
+local function hitFirst(state, id: number)
+	state.fx = { magnet = id }
+	return state
+end
+
 -- Step a state as the client does (Simulation.step at the fixed step) until it rests, the
 -- watched ball drops, or `seconds` pass.
 local function stepUntil(state, seconds: number, watch, events)
@@ -128,6 +135,7 @@ local function rollAt(
 	local state = Simulation.newState(geometry, { b })
 	if magnet then
 		state.overrides = magnetOn({ 1 })
+		hitFirst(state, 1)
 	end
 	local events = {}
 	-- Long enough to reach the mouth and rattle (or be braked and eased in), not to wander
@@ -442,6 +450,9 @@ end
 local function run(balls, overrides)
 	local state = Simulation.newState(geometry, Ball.cloneList(balls))
 	state.overrides = overrides
+	if overrides and #balls > 0 then
+		hitFirst(state, balls[1].id) -- rolled by hand: count the first ball as the one hit
+	end
 	stepUntil(state, Config.Physics.MaxShotSeconds, nil, nil)
 	return state
 end
@@ -463,6 +474,7 @@ local function straightIn(
 	rolling(b, ax * speed, ay * speed)
 	local state = Simulation.newState(geometry, { b })
 	state.overrides = overrides
+	hitFirst(state, 1)
 	local atMouth: number? = nil
 	local steps = 0
 	while not Simulation.isAtRest(state) and not b.pocketed and steps < 240 * 8 do
@@ -486,16 +498,21 @@ return {
 		H.expect(rate(b.near) >= 0.95, ("near misses drop %.1f%%"):format(100 * rate(b.near)))
 	end,
 
-	["harness: misses by 1-2 widths drop at least 90% of the time"] = function()
+	-- The zone 30% smaller (2026-09-30): 1-2 width misses drop 78% (were at least 90%), 2.5-4
+	-- width misses 12% (were at least 80%); these hold the new level with a little margin.
+	["harness: misses by 1-2 widths drop at least 75% of the time"] = function()
 		local b = bands()
 		H.expect(b.mid.of >= 200, "enough 1-2 width misses measured")
-		H.expect(rate(b.mid) >= 0.9, ("1-2 width misses drop %.1f%%"):format(100 * rate(b.mid)))
+		H.expect(rate(b.mid) >= 0.75, ("1-2 width misses drop %.1f%%"):format(100 * rate(b.mid)))
 	end,
 
-	["harness: the big zone reaches most 2.5-4 width misses too"] = function()
+	["harness: the smaller zone reaches few 2.5-4 width misses"] = function()
 		local b = bands()
 		H.expect(b.wide.of >= 100, "enough wide misses measured")
-		H.expect(rate(b.wide) >= 0.8, ("2.5-4 width misses drop %.1f%%"):format(100 * rate(b.wide)))
+		H.expect(
+			rate(b.wide) >= 0.08 and rate(b.wide) <= 0.3,
+			("2.5-4 width misses drop %.1f%%"):format(100 * rate(b.wide))
+		)
 	end,
 
 	["harness: jaw rattles that stayed out drop at least 90%"] = function()
@@ -534,8 +551,9 @@ return {
 				assert(plainSpeed and pulledSpeed, "both reach the mouth")
 				H.expect(plainBall.pocketed, "a straight shot drops without Magnet")
 				H.expect(ball.pocketed and ball.pocket == pid, "and with it")
+				-- Under 60% of it (half before the zone was 30% smaller, 2026-09-30).
 				H.expect(
-					pulledSpeed < 0.5 * plainSpeed,
+					pulledSpeed < 0.6 * plainSpeed,
 					("pocket %d at %d in/s: %.0f in/s at the mouth, %.0f without"):format(
 						pid,
 						speed,
@@ -641,11 +659,13 @@ return {
 				rolling(b, dx * 40, dy * 40)
 				local state = Simulation.newState(geometry, Ball.cloneList({ b }))
 				state.overrides = magnetOn({ 1 })
+				hitFirst(state, 1)
 				H.expect(#Magnet.activePulls(state) == 0, ("%d degrees: no pull"):format(degrees))
 				-- It may roll into another pocket's zone later; up to then it is untouched.
 				local left = Simulation.newState(geometry, Ball.cloneList({ b }))
 				local right = Simulation.newState(geometry, Ball.cloneList({ b }))
 				right.overrides = magnetOn({ 1 })
+				hitFirst(right, 1)
 				for _ = 1, 24 do
 					Simulation.step(left, DT, nil)
 					Simulation.step(right, DT, nil)
@@ -691,12 +711,18 @@ return {
 		local state = Simulation.newState(geometry, {})
 		H.expect(not Magnet.isTarget(state, 1), "nothing without overrides")
 		state.overrides = magnetOn({ 0, 1, 2, 8 })
-		H.expect(Magnet.isTarget(state, 1) and Magnet.isTarget(state, 2), "listed balls")
-		H.expect(not Magnet.isTarget(state, 3), "not an unlisted ball")
-		H.expect(not Magnet.isTarget(state, 0), "never the cue ball, even listed")
-		H.expect(not Magnet.isTarget(state, 8), "not the 8 without a called pocket")
+		H.expect(not Magnet.isTarget(state, 1), "nothing before the cue ball hits a ball")
+		local function first(id: number): boolean
+			return Magnet.isTarget(hitFirst(state, id), id)
+		end
+		H.expect(first(1) and first(2), "a listed ball, once it is the first hit")
+		hitFirst(state, 1)
+		H.expect(not Magnet.isTarget(state, 2), "only the first ball hit, never a second")
+		H.expect(not first(3), "not an unlisted ball")
+		H.expect(not first(0), "never the cue ball, even listed")
+		H.expect(not first(8), "not the 8 without a called pocket")
 		state.overrides = magnetOn({ 8 }, 4)
-		H.expect(Magnet.isTarget(state, 8), "the 8 with a called pocket")
+		H.expect(first(8), "the 8 with a called pocket")
 	end,
 
 	["the 8 is pulled only toward the called pocket, and only when one is called"] = function()
@@ -723,6 +749,8 @@ return {
 		mine.overrides = { Effect = "Magnet", Targets = {}, OppTargets = { 9 } }
 		local theirs = Simulation.newState(geometry, { nearMissBall(9) })
 		theirs.overrides = { Effect = "Magnet", Targets = { 9 }, OppTargets = {} }
+		hitFirst(mine, 9)
+		hitFirst(theirs, 9)
 		H.expect(Magnet.factor(mine, 9) == factor, "listed as the opponent's: OpponentFactor")
 		H.expect(Magnet.factor(theirs, 9) == 1, "listed as yours: full strength")
 		-- Step both until the ball enters the pull zone: the same spot, half the strength.
@@ -824,7 +852,9 @@ return {
 			Ball.new(12, -40, 18),
 		}
 		local shot = {
-			angle = math.atan2(cy, cx) + math.rad(2),
+			-- 1.25 degrees off: a miss the 30% smaller zone (2026-09-30) still rescues (2 was
+			-- before it; 1.75 and up now miss either way).
+			angle = math.atan2(cy, cx) + math.rad(1.25),
 			power = 0.45,
 			spin = { x = 0.2, y = 0.3 },
 		}
@@ -900,6 +930,34 @@ return {
 		)
 	end,
 
+	["only the first ball the cue ball hits is pulled"] = function()
+		-- The designer (2026-09-30): a cluster by the pockets let one shot pull about five in.
+		-- The cue ball hits the 1 mid-table; the 2, listed too, rolls into a near miss at the
+		-- corner on its own. Only the 1 is magnetised: the 2 misses as it would without Magnet.
+		local function shot(overrides, first: number?)
+			local cue, one = Ball.new(0, -40, 0), Ball.new(1, -30, 0)
+			rolling(cue, 80, 0)
+			local state = Simulation.newState(geometry, { cue, one, nearMissBall(2) })
+			state.overrides = overrides
+			if first then
+				hitFirst(state, first)
+			end
+			stepUntil(state, Config.Physics.MaxShotSeconds, nil, nil)
+			return state
+		end
+		local plain = shot(nil)
+		local armed = shot(magnetOn({ 1, 2 }))
+		H.expect(armed.fx and armed.fx.magnet == 1, "the 1 is recorded as the first hit")
+		H.expect(not plain.balls[3].pocketed, "the 2 misses without Magnet")
+		H.expect(
+			not armed.balls[3].pocketed
+				and armed.balls[3].x == plain.balls[3].x
+				and armed.balls[3].y == plain.balls[3].y,
+			"and exactly the same with it: never pulled"
+		)
+		H.expect(shot(magnetOn({ 1, 2 }), 2).balls[3].pocketed, "as the first hit it goes in")
+	end,
+
 	["activePulls names the pulled ball, its pocket, a 0-1 strength and the braking"] = function()
 		local b = nearMissBall(1, 150)
 		-- The cue ball on the mirror image of that path, toward the top-left corner.
@@ -907,6 +965,7 @@ return {
 		cue.x, cue.vx, cue.wy = -cue.x, -cue.vx, -cue.wy
 		local state = Simulation.newState(geometry, { cue, b })
 		state.overrides = magnetOn({ 0, 1 })
+		hitFirst(state, 1)
 		local seen, steered, braked = false, false, false
 		for _ = 1, 2400 do
 			for _, pull in Magnet.activePulls(state) do

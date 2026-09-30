@@ -13,9 +13,10 @@ The brief and the full notes of every step: `docs/prompts/ABILITIES_PROMPT.md`.
    `rojo serve default.project.json`. In Studio, click **Connect** in the Rojo plugin.
 2. Press **Play** (a solo test is enough for all of this). Walk to any pool table.
 3. Type these in chat. They work in Studio only and act on the table nearest you.
-   - `/abilitysetup magnet` sets out a layout for that ability, seats you, arms the ability
-     and tells you in chat what to shoot. You can use any ability's name, like
-     `/abilitysetup black hole` or `/abilitysetup guangdong tiger` (the full name, spaces or not).
+   - `/abilitysetup magnet` puts that ability in your slot (since 2026-09-30 it no longer
+     sets out a layout or seats you; then play solo and press G, the break included). You can
+     use any ability's name, like `/abilitysetup black hole` or `/abilitysetup guangdong tiger`
+     (the full name, spaces or not).
    - `/slowmo 0.2` plays every shot at your table at a fifth of the speed, so you can watch
      an effect. `/slowmo` on its own puts it back to normal.
    - `/hold 1.5` freezes the replay 1.5 s into the shot (to look around a moment), `/hold`

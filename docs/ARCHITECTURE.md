@@ -617,8 +617,9 @@ per server through InsertService into `ReplicatedStorage.AbilityAssets` (ids in
 when they should slow with `/slowmo` (ChainLightningFx's bolts and glows). `UltPick` is the top-down pick view (`PickMath` is its pure maths).
 
 **Tools.** `/slowmo <scale>`, `/hold <seconds>` (stops every replay at the caller's table at
-that shot time, `workspace` attribute `ReplayHold_<tableId>`) and `/abilitysetup <id|name>`
-(Config.Ults.Setups) for the look checks; Studio-only QA handles in ServerStorage
+that shot time, `workspace` attribute `ReplayHold_<tableId>`) for the look checks;
+`/abilitysetup <id|name>` puts that ability in the caller's slot (the designer's account only,
+`Config.Debug.Commands.UserIds`, live too); Studio-only QA handles in ServerStorage
 (`PoolMatchQA`: snapshot, shot, action, fixture; `UltQA`: arm) for the playthrough; `tests/ult_value.luau` plus `tools/ult_value.luau` measure an ability's worth with
 the careful and careless shooters into `tools/ult_value_results.json` (`--set Block.Key=n`
 tries a tune without writing), which `tools/ult_model.py` reads. A `Turn` ability is measured

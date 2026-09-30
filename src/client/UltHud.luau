@@ -14,8 +14,8 @@
 --   Placement, Aiming, Resolving), at a table with ults on. It slides up when your turn
 --   starts. On the break it shows as usual but never offers the press.
 -- - Solo: the same bar, always full and ready (the designer, 2026-09-30: practise with the
---   real controls). The server has no bar in solo: a press arms the equipped ult for free
---   (Match.practice), as often as the shooter likes.
+--   real controls), the break included. The server has no bar in solo: a press arms the
+--   equipped ult for free (Match.practice), as often as the shooter likes.
 -- - Your ult armed: a pill in its rarity colour, "MAGNET: NEXT SHOT" (+ "Coming soon" for a
 --   placeholder), the ult's icon on its left end. While it is still arming the cutscene plays
 --   (UltCutscene) and this hides.
@@ -789,12 +789,13 @@ function UltHud.update(self: any, dt: number, pulling: boolean)
 			self:playReady()
 		end
 	end
-	-- The press: offered on a ready bar before the shot, never on the break or mid-pull.
+	-- The press: offered on a ready bar before the shot, never mid-pull, nor on the break but
+	-- in solo (practice works any time there, the designer 2026-09-30).
 	local offer = mode == "bar"
 		and ready
 		and s ~= nil
 		and PRESS_PHASES[s.phase] == true
-		and not s.breakShot
+		and (not s.breakShot or s.solo ~= nil)
 		and self.slideDone
 	local pending = self.pending
 	if pending and clock - pending.at >= U.PendingSeconds then

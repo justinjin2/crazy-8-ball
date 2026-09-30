@@ -12,15 +12,14 @@
 --   Counters), so they can do nothing the save's own checks refuse. They work in a live server
 --   too, for the designer only.
 -- - The look check's tools (Studio only; /abilityhelp lists them): /slowmo <scale> sets the
---   replay rate at the caller's table for everyone (a workspace attribute the clients read),
---   and /abilitysetup <id|name> racks it in Config.Ults.Setups' layout through the QA
---   fixture, with that ability in the caller's slot and armed.
+--   replay rate at the caller's table for everyone (a workspace attribute the clients read).
+--   /abilitysetup <id|name> puts that ability in the caller's selected slot: the designer's
+--   own account only (Config.Debug.Commands.UserIds), in Studio and live.
 -- - Arguments are read defensively: a bad one answers a usage line, never an error.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local ServerStorage = game:GetService("ServerStorage")
 local TextChatService = game:GetService("TextChatService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -917,8 +916,6 @@ end
 -- The look check's tools (Studio only; docs/prompts/ABILITIES_PROMPT.md 5.6)
 ---------------------------------------------------------------------------------------------
 
-local SETUP_NOTES: { [string]: string } = Dev.SetupNotes :: any
-
 -- The table the look-check tools act on: the one the player is in the game at, else the one
 -- nearest their character (table 1 without a character).
 local function nearTable(player: Player): number
@@ -989,11 +986,11 @@ local function hold(player: Player, args: { string })
 	tell(player, if at then Dev.HoldSet:format(id, tostring(at)) else Dev.HoldOff:format(id))
 end
 
--- /abilitysetup <id|name>: the caller's table racked in the ult's Config.Ults.Setups layout
--- through the QA fixture (ServerStorage.PoolMatchQA: a new game vs the QA opponent, the
--- caller's turn in Aiming), the ult put in their selected slot and armed at once.
+-- /abilitysetup <id|name>: puts that ability in the caller's selected slot, nothing more (no
+-- table, no match: the designer, 2026-09-30). The designer's own account only
+-- (Config.Debug.Commands.UserIds), in Studio and live alike; anyone else gets nothing.
 local function abilitySetup(player: Player, args: { string })
-	if not inStudio(player, D.AbilitySetup) then
+	if table.find(D.UserIds, player.UserId) == nil then
 		return
 	end
 	if #args == 0 then
@@ -1008,49 +1005,11 @@ local function abilitySetup(player: Player, args: { string })
 		)
 		return
 	end
-	local name = UltCatalog.name(id)
-	local setup = U.Setups[id]
-	if setup == nil then
-		tell(player, Dev.NoSetup:format(name))
-		return
-	end
 	if not PlayerData.setUlt(player, id) then
 		tell(player, Dev.NotLoaded)
 		return
 	end
-	local hook = ServerStorage:FindFirstChild("PoolMatchQA")
-	if not (hook and hook:IsA("BindableFunction")) then
-		tell(player, Dev.SetupFailed:format("no PoolMatchQA"))
-		return
-	end
-	-- String keys: a table crossing a BindableFunction keeps them (the fixture reads tonumber).
-	local spots: { [string]: { number } | false } = {
-		["0"] = { setup.Cue[1], setup.Cue[2] },
-	}
-	for ball, spot in setup.Spots do
-		local at: { number }? = if spot then spot :: any else nil
-		spots[tostring(ball)] = if at then { at[1], at[2] } else false
-	end
-	local tableId = nearTable(player)
-	local ok, err = pcall(function()
-		hook:Invoke("fixture", tableId, {
-			phase = "Aiming",
-			userId = player.UserId,
-			spots = spots,
-			open = setup.Groups == "open",
-			groups = setup.Groups,
-			seconds = D.SetupClockSeconds,
-		})
-	end)
-	if not ok then
-		tell(player, Dev.SetupFailed:format(tostring(err)))
-		return
-	end
-	tell(player, Dev.SetupDone:format(tableId, name, SETUP_NOTES[id] or ""))
-	local armed, reason = UltService.arm(player, id)
-	if not armed then
-		ultAnswer(player, false, reason, "")
-	end
+	tell(player, Dev.AbilitySet:format(UltCatalog.name(id)))
 end
 
 local function econHelp(player: Player)

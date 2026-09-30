@@ -355,7 +355,7 @@ return {
 			-- The look check's tools (Studio only).
 			Slowmo = "Studio only: every shot replay at your table at that rate, for everyone (1 or nothing: normal)",
 			Hold = "Studio only: every shot replay at your table stops at that many seconds in and stays (nothing: let go)",
-			AbilitySetup = "Studio only: racks your table to show that ability off, puts it in your slot and arms it, your turn",
+			AbilitySetup = "puts that ability in your selected slot (your account only)",
 		},
 		BadCue = 'No cue called "%s". Use an id (ChalkDust) or a name (chalk dust).',
 		BadCase = 'No case called "%s". Cases: %s.',
@@ -422,31 +422,13 @@ return {
 		UltsAllOff = "Only the built abilities roll and play for you again.",
 		OpUlt = "Filled %d bar(s) on the other side.",
 		OpUltNone = "No bar filled (no table, abilities off, or nobody on the other side).",
-		-- The look check's tools (/slowmo, /abilitysetup; Studio only).
+		-- The look check's tools (/slowmo, /hold: Studio only; /abilitysetup: the designer only).
 		StudioOnly = "%s works in Studio only.",
 		SlowmoSet = "Replays at table %d play at x%s.",
 		SlowmoOff = "Replays at table %d play at normal speed.",
 		HoldSet = "Replays at table %d stop at %s s.",
 		HoldOff = "Replays at table %d play through again.",
-		NoSetup = "No layout for %s yet (Config.Ults.Setups).",
-		SetupFailed = "The layout could not be set: %s",
-		SetupDone = "Table %d set up for %s: %s",
-		-- What to shoot in each /abilitysetup layout, by ult id (Config.Ults.Setups).
-		SetupNotes = {
-			Magnet = "hit the 1 full: it runs about 1.5 ball widths wide of the top-right corner and the pull brings it in. The 9 by the bottom-right corner feels half the pull.",
-			EaglesEye = "the 9 and 10 block the 1's straight pots: aim the 1 up into the top rail and follow the gold path of the bank.",
-			SuperBounce = "shoot straight up at the 1: it just misses the top-left corner, catches the bounce and boings off the jaw into it, while the cue ball keeps bouncing.",
-			Ghost = "shoot straight through the 9 and 10: the cue ball passes them and pots the 1 in the top-right corner.",
-			HeatSeeker = "pick the 1 (walled in by the 9 and 10), then shoot any way: the cue ball curves round to it.",
-			Rewind = "a thin cut of the 1 into the top-right corner from the bottom rail: miss it and the table rewinds (up to twice).",
-			TimeStop = "pot the 1 in the top side pocket; when time stops, strike the cue ball again (up to three times) at the 2 or 3 by a bottom corner.",
-			ChainLightning = "pot the 1 in the top-right corner: the chain jumps three times to the nearest balls round it (the 9 gets half the push).",
-			Portals = "put portal A in front of the cue ball and B lined up with the 1 by the top-right corner, then shoot into A.",
-			SteelBall = "hit the 1 toward the bottom-right corner: it's guided in, then the cue ball curves to the 2.",
-			BlackFlash = "hit the 1: it shatters and the blast nudges the 2, 3 and 4 (the 9 and 10 half as hard).",
-			BlackHole = "hit the 1 in the middle cluster: the hole swallows the 1, 2 and 3 and the nearest one of theirs inside half its reach (one at most).",
-			GuangdongTiger = "hit the 1 in the cluster: the tiger cuts the 1, 2 and 3 and the nearest one of theirs inside half its reach (one at most).",
-		},
+		AbilitySet = "Your ability is now %s.",
 	},
 	-- The rank and money screens (ResultScreen, NewRankPopup, Roadmap, RankHud).
 	Progress = {
@@ -929,7 +911,7 @@ return {
 			GuangdongTiger = "Guangdong Tiger",
 		},
 		Descriptions = {
-			Magnet = "Your next shot's balls are pulled into pockets they nearly miss.",
+			Magnet = "The first ball your next shot hits is pulled into a pocket it nearly misses.",
 			EaglesEye = "See the full path of your shot, every bounce included.",
 			SuperBounce = "The cue ball turns rainbow and keeps bouncing. The first ball of yours it hits bounces too, and boings off a pocket's jaw straight in.",
 			Ghost = "Your cue ball phases through every ball that isn't yours. The ball it hits phases through them too, and a ghost pulls it into a pocket it nearly misses.",

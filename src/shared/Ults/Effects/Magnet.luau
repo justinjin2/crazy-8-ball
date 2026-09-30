@@ -1,9 +1,10 @@
 --!strict
 -- Magnet (the first ult, docs/prompts/ULTIMATES_PROMPT.md 7.3; buffed 2026-09-28): for the
--- whole shot, each allowed ball that has been hit (it is moving: object balls start the shot
--- at rest) is magnetised. Inside a pocket's big pull zone and heading roughly toward that
--- pocket, it is pulled in so you can see it working, harder the closer it gets
--- (closeness ^ Power):
+-- whole shot, the first ball the cue ball hits is magnetised, if it is an allowed ball (only
+-- that one: the designer, 2026-09-30, as a cluster by the pockets let one shot pull about five
+-- in). after() records it in state.fx.magnet the step the contact happens. Inside a pocket's
+-- pull zone and heading roughly toward that pocket, it is pulled in so you can see it
+-- working, harder the closer it gets (closeness ^ Power):
 --
 -- * Its path bends in. At the start of each fixed step its straight path is traced (the same
 --   exact contact tests the simulation uses, with a ball a little fatter): if it already
@@ -27,7 +28,8 @@
 --
 -- Only arithmetic and square roots (IEEE-exact everywhere), no trig and no pow (powers are
 -- multiplied out), balls, pockets and table pieces walked in array order, and no state kept
--- between steps: the server and every client's replay step it to identical bits. Pure Luau:
+-- between steps but the first ball hit (state.fx, fresh at every strike and replay start):
+-- the server and every client's replay step it to identical bits. Pure Luau:
 -- must never require Physics/Simulation.
 
 local Config = require(script.Parent.Parent.Parent.Config)
@@ -51,6 +53,7 @@ export type State = {
 		OppTargets: { number }?,
 		EightPocket: number?,
 	}?,
+	fx: any?, -- per-shot scratch: fx.magnet is the first ball the cue ball hit
 }
 
 export type Pull = {
@@ -211,15 +214,39 @@ function Magnet.isTarget(state: State, ballId: number): boolean
 	return Magnet.factor(state, ballId) > 0
 end
 
+--- The first ball the cue ball hit this shot, or nil before any contact.
+function Magnet.firstHit(state: State): number?
+	local fx = state.fx
+	return if type(fx) == "table" and type(fx.magnet) == "number" then fx.magnet else nil
+end
+
 --- The strength this ball is pulled at this shot: 1 for the shooter's, OpponentFactor for the
---- opponent's, 0 when it is not pulled at all.
+--- opponent's, 0 when it is not pulled at all (every ball but the first one the cue ball hit,
+--- and that one too before the contact).
 function Magnet.factor(state: State, ballId: number): number
+	if Magnet.firstHit(state) ~= ballId then
+		return 0
+	end
 	local set, eightPocket = targetSet(state)
 	local factor = if set then set[ballId] else nil
 	if factor == nil or (ballId == EIGHT and eightPocket == nil) then
 		return 0
 	end
 	return factor
+end
+
+--- After each fixed step: the first ball the cue ball touches is the one Magnet pulls.
+function Magnet.after(state: any, _dt: number, events: { any }, _ops: any)
+	local fx = state.fx
+	if type(fx) ~= "table" or fx.magnet ~= nil then
+		return
+	end
+	for _, ev in events do
+		if ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
+			fx.magnet = if ev.ball == 0 then ev.other else ev.ball
+			return
+		end
+	end
 end
 
 type Zone = {
@@ -362,8 +389,9 @@ function Magnet.activePulls(state: State): { Pull }
 		return pulls
 	end
 	local dt = Config.Physics.FixedStep
+	local first = Magnet.firstHit(state)
 	for _, b in state.balls do
-		local factor = set[b.id]
+		local factor = if b.id == first then set[b.id] else nil
 		if factor then
 			local zone = zoneOf(state.geometry, b, eightPocket, factor)
 			if zone and zone.strength > 0 then
@@ -384,16 +412,18 @@ function Magnet.activePulls(state: State): { Pull }
 	return pulls
 end
 
---- Pull every magnetised ball for one fixed step of `dt` seconds. Called by Simulation.step
---- before the step is advanced, on the server and on every client's replay alike.
+--- Pull the magnetised ball (the first one the cue ball hit, if Magnet may pull it) for one
+--- fixed step of `dt` seconds. Called by Simulation.step before the step is advanced, on the
+--- server and on every client's replay alike.
 function Magnet.step(state: State, dt: number)
 	local set, eightPocket = targetSet(state)
-	if set == nil then
+	local first = Magnet.firstHit(state)
+	if set == nil or first == nil then
 		return
 	end
 	for _, b in state.balls do
 		local factor = set[b.id]
-		if factor ~= nil then
+		if b.id == first and factor ~= nil then
 			Magnet.pull(state, b, eightPocket, factor, dt)
 		end
 	end

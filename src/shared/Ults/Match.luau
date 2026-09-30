@@ -163,7 +163,8 @@ end
 
 -- The checks every activation shares (the turn, the phase, the break, nothing armed), without
 -- changing anything. Returns ok, or false and the reason.
-local function allowedNow(t: any, userId: number): (boolean, string?)
+-- `onBreak`: the break is allowed too (solo's Practice ult, the designer 2026-09-30).
+local function allowedNow(t: any, userId: number, onBreak: boolean?): (boolean, string?)
 	local ults = stateOf(t)
 	if t.shooter ~= userId or seatOf(t, userId) == nil then
 		return false, "NotYourTurn"
@@ -171,7 +172,7 @@ local function allowedNow(t: any, userId: number): (boolean, string?)
 		return false, "Moving"
 	elseif not BEFORE_SHOT[t.phase] then
 		return false, "NotYourTurn"
-	elseif t.breakShot then
+	elseif t.breakShot and not onBreak then
 		return false, "Break"
 	elseif ults.armed ~= nil then
 		return false, "Armed"
@@ -241,14 +242,15 @@ function Match.activate(t: any, userId: number, ultId: string, now: number): (bo
 	return true, nil
 end
 
---- Solo's Practice ult: the shooter arms `ultId` for free, any number of times (the same
---- stages; `practice = true`). No bar, no pay, no count. "Off" outside solo (or with
---- Config.Ults.PracticeInSolo false); otherwise the reasons of Match.check.
+--- Solo's Practice ult: the shooter arms `ultId` for free, any number of times, the break
+--- included (the same stages; `practice = true`). No bar, no pay, no count. "Off" outside solo
+--- (or with Config.Ults.PracticeInSolo false); otherwise the reasons of Match.check but
+--- "Break"
 function Match.practice(t: any, userId: number, ultId: string, now: number): (boolean, string?)
 	if t.solo == nil or U.PracticeInSolo ~= true or U.Enabled ~= true then
 		return false, "Off"
 	end
-	local ok, reason = allowedNow(t, userId)
+	local ok, reason = allowedNow(t, userId, true)
 	if not ok then
 		return false, reason
 	elseif expired(t, now) then
