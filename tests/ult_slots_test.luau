@@ -261,7 +261,7 @@ return {
 		u.Slots[1] = "Rewind"
 		H.expect(not Slots.needsConfirm(u), "a Rare: no")
 		-- It is the selected slot that counts.
-		u.Slots[2] = "Portals"
+		u.Slots[2] = "TimeStop"
 		H.expect(Slots.select(u, 2, ALL) and Slots.needsConfirm(u), "slot 2's Epic")
 	end,
 }

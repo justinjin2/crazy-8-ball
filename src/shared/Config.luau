@@ -2230,9 +2230,9 @@ Config.Ults = {
 		"Ghost",
 		"HeatSeeker",
 		"Rewind",
+		"Portals",
 		"TimeStop",
 		"ChainLightning",
-		"Portals",
 		"SteelBall",
 		"BlackFlash",
 		"BlackHole",
@@ -2264,7 +2264,7 @@ Config.Ults = {
 		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide).
 		Rewind = { Rarity = "Rare", Built = true, Worth = 0.53, Redo = true },
 		-- +0.65 / +0.42 / +0.34 (three strikes in stopped time).
-		TimeStop = { Rarity = "Rare", Built = true, Effect = "TimeStop", Worth = 0.47 },
+		TimeStop = { Rarity = "Epic", Built = true, Effect = "TimeStop", Worth = 0.47 }, -- Epic since 2026-09-30
 		-- +0.97 / +0.98 / +0.94 (careless +0.78 / +0.72 / +0.76; three jumps).
 		ChainLightning = {
 			Rarity = "Epic",
@@ -2276,7 +2276,7 @@ Config.Ults = {
 		-- +0.37 / +0.52 / +0.38, whole turn included: a low bound (the model shooter does not
 		-- reuse the kept portals as a player will; the designer keeps it, flagged, 2026-09-29).
 		Portals = {
-			Rarity = "Epic",
+			Rarity = "Rare", -- Rare since 2026-09-30 (the designer swapped it with Time Stop)
 			Built = true,
 			Effect = "Portals",
 			Worth = 0.42,

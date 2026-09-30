@@ -1,5 +1,8 @@
 # Status
 
+**2026-09-30: Portals is Rare, Time Stop Epic** (swapped at the designer's request; spin odds
+and the pity spin follow the catalog).
+
 **2026-09-30: Magnet hand-off; the designer gives to named players.** Magnet's armed look now
 rides the rolling cue ball and jumps to the first ball hit (lines and sparks). The giving
 commands (`/abilitysetup`, `/givecue`, `/givecase`, `/money`, `/rank` and the rest in

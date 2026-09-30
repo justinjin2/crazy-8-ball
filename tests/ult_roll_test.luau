@@ -262,11 +262,11 @@ return {
 				H.expect(ultPpm(odds, "Rewind") == 1000000, "everything to the only Rare")
 			end)
 			-- Pity with one Epic+ built: all of the pity odds go to it.
-			withBuilt(Config, { Portals = true }, function()
+			withBuilt(Config, { TimeStop = true }, function()
 				local odds = Roll.pityOdds(false)
-				H.expect(ultPpm(odds, "Portals") == 1000000, "all to Portals")
+				H.expect(ultPpm(odds, "TimeStop") == 1000000, "all to Time Stop")
 				local got, rarity, p, was = Roll.roll("Normal", 99, Roll.seeded(5), false)
-				H.expect(got == "Portals" and rarity == "Epic" and p == 0 and was, "the pity spin")
+				H.expect(got == "TimeStop" and rarity == "Epic" and p == 0 and was, "the pity spin")
 			end)
 		end)
 	end,

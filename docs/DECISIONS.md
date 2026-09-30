@@ -2061,3 +2061,6 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   (lines and sparks at contact), so the player sees which ball got the pull. The giving
   commands (ability, cues, cases, spins, money, rank, xp) are the designer's alone and take a
   player name to give to someone else in the server (designer request).
+- 2026-09-30 (designer): Portals is now Rare and Time Stop Epic (they swapped rarities). Their
+  worths are unchanged (Portals 0.42, Time Stop 0.47), so Time Stop pulls the Epic mean down and
+  Portals sits beside Rewind; revisit when each is reviewed.

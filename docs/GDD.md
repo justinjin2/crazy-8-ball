@@ -475,14 +475,14 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
     path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
     VHS rewind.
-  - **Time Stop** (Rare, 0.47): at the cue ball's first contact time freezes; the shooter
+  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.47): at the cue ball's first contact time freezes; the shooter
     strikes the cue ball up to three more times in stopped time (5 s for each, then it resumes
     by itself); the stored motion of every ball plays out when time resumes.
   - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best
     pocket (up to 15 degrees, x1.25 speed); then lightning jumps three times, each to the
     nearest ball within 20 in, pushing each struck ball toward its closest pocket with a clear
     line in (at most 3 of yours, 2 of theirs at half).
-  - **Portals** (Epic, 0.42, flagged: see Open): place two portals for your whole turn (they
+  - **Portals** (Rare since 2026-09-30, was Epic; 0.42, flagged: see Open): place two portals for your whole turn (they
     close when the turn passes or the game ends). Any ball whose centre passes within 2 in of
     one comes out of the other with the same motion; yours come out turned toward the pocket
     ahead by up to 15 degrees.
@@ -523,7 +523,7 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 
 **Open**
 - Playtests: whether any ability needs retuning with real players. Portals measures 0.42 (a
-  low bound: the model shooter never reuses the kept portals), under the Rares; Magnet (0.46)
+  low bound: the model shooter never reuses the kept portals), now a Rare itself (2026-09-30); Magnet (0.46)
   sits over Heat Seeker (0.40). The levers are all in `Config.Ults` (reach, caps, steer
   angles, strike and redo counts, OpponentFactor, the Legendary and Mythic odds).
 
