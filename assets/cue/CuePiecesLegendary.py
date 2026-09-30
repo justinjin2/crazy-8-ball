@@ -193,3 +193,45 @@ def kraken(k):
             k.add(name, k.mesh_object(name + 'Ink', bm_i, ['Ink']))
             k.add(name, k.mesh_object(name + 'Core', bm_c, ['Core']))
             k.add(name, k.mesh_object(name + 'Suckers', bm_s, ['Sucker'], smooth=False))
+
+
+def _magma(px):
+    """The glowing orange-red of the skull's eyes and magma cracks (the silver and the black
+    obsidian stay unlit)."""
+    import numpy as np
+    from CuePiecesMythic import _hsv
+    h, s_, v = _hsv(px)
+    return (np.clip((s_ - 0.45) / 0.2, 0, 1) * np.clip((v - 0.35) / 0.25, 0, 1)
+            * ((h < 0.13) | (h > 0.95)))
+
+
+@piece
+def infernal(k):
+    """The horned skull on the butt: a generated model (Meshy, from a clean render of the concept's
+    handle close-up; assets/cue/models/infernal_skull) with its own colour, normal, roughness and
+    metal maps: glossy black obsidian edged in polished silver, two silver horns curving up and
+    back, silver blade spikes at the temples and jaw, and molten orange eyes and magma cracks that
+    glow (an emissive mask picked from the colour map). It sits on top of the butt near its end,
+    its neck sunk into the cue, the face tipped back to glare up past the butt (at a player
+    aiming from behind), the horns sweeping toward the tip. It breathes: a slow small nod."""
+    import numpy as np
+    from mathutils import Matrix
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    AT = 6.45                                  # the skull's footing on the butt
+    WIDE = 0.42                                # across the horns, in studs
+    TILT = math.radians(-28)                   # face tipped up from looking out past the butt
+
+    def place(ob):
+        V = np.array([v.co[:] for v in ob.data.vertices])
+        lo, hi = V.min(0), V.max(0)
+        s = WIDE / (hi[0] - lo[0])
+        foot = Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]))
+        r = float(env(AT))
+        return (Matrix.Translation((0, -AT, r * 0.35)) @ Matrix.Rotation(TILT, 4, 'X') @ Matrix.Scale(s, 4)
+                @ foot)
+
+    k.joint('Skull', pivot=(0, -AT, 0.1), motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 2.5, 'Period': 3.6}])
+    k.model('Skull', 'HornedSkull', 'infernal_skull', place, target_tris=19500, emissive=_magma,
+            emissive_tint='#FF6A2A', emissive_strength=3.0, cut_below=0.3)

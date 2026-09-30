@@ -128,3 +128,24 @@ def kraken_pocket(k):
         k.add(name, k.mesh_object(name + 'Ink', bm_i, ['Ink']))
         k.add(name, k.mesh_object(name + 'Core', bm_c, ['Core']))
         k.add(name, k.mesh_object(name + 'Suckers', bm_s, ['Sucker'], smooth=False))
+
+
+def _magma_glow(px):
+    """Only the skull's eyes and magma cracks blaze (a glow over the whole skull washed its
+    silver and obsidian to copper)."""
+    from CuePiecesLegendary import _magma
+    return _magma(px)
+
+
+@piece
+def infernal_pocket(k):
+    """The Infernal's horned skull rises out of the hellfire eruption and glares: the same generated
+    model as the butt's skull (assets/cue/models/infernal_skull, its bust cut away), 2.6 studs
+    tall, its eyes and magma cracks blazing. Its jaw end dips as it rises (a
+    slow nod)."""
+    k.frame = 'pocket'
+    k.joint('Skull', pivot=(0, 0, 0.4), motion=[
+        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 4.0, 'Period': 1.6},
+        {'Kind': 'Hinge', 'Axis': (0, 1, 0), 'Amp': 3.0, 'Period': 2.2, 'Phase': 40}])
+    k.model('Skull', 'PocketSkull', 'infernal_skull', _stand(2.6), target_tris=19500, emissive=_magma_glow,
+            emissive_tint='#FF7A3A', emissive_strength=3.0, cut_below=0.3)

@@ -1,0 +1,75 @@
+{
+  "id": "infernal_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 19500,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/infernal_pocket/PocketSkull_base_color.png",
+        "EmissiveMask": "pieces/infernal_pocket/PocketSkull_emissive.png",
+        "EmissiveTint": "#FF7A3A",
+        "EmissiveStrength": 3.0,
+        "NormalMap": "pieces/infernal_pocket/PocketSkull_normal.png",
+        "RoughnessMap": "pieces/infernal_pocket/PocketSkull_roughness.png",
+        "MetalnessMap": "pieces/infernal_pocket/PocketSkull_metallic.png"
+      },
+      "Name": "Skull_PocketSkull",
+      "File": "pieces/infernal_pocket/Skull_PocketSkull.obj",
+      "Joint": "Skull",
+      "Offset": [
+        0.0011,
+        1.2961,
+        -0.0004
+      ],
+      "Size": [
+        2.7124,
+        2.6009,
+        1.928
+      ],
+      "Triangles": 19500
+    }
+  ],
+  "Joints": {
+    "Skull": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.4
+      ],
+      "PivotRoblox": [
+        0,
+        0.4,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 1.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 2.2,
+          "Phase": 40
+        }
+      ]
+    }
+  }
+}

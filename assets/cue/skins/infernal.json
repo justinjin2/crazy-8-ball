@@ -233,53 +233,53 @@
       }
     },
     "Aura": {
-      "Note": "Layered: dark red hellfire licks up the handle (big flames from the forearm to the butt, smaller licks along the shaft, the shared fire flipbook tinted deep red); three ribbons of black-and-red fire wind round the cue (Orbiters with the hellfire trail made for Infernal); dark smoke rolls off the butt; ember sparks rise; a deep red glow round the cue (a halo Beam, flickering) and a flickering red light.",
+      "Note": "Layered: hellfire wreathes the handle (big flames from the forearm to the butt and smaller licks along the shaft, the white flame-tongue flipbook tinted gold to orange to crimson, left behind as the cue moves); three ribbons of black-and-red fire wind round the cue; dark smoke rolls off the butt; ember sparks rise; a deep red glow round the cue (a halo Beam, flickering) and a flickering red light. The horned skull on the butt is a 3D piece.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
           "Name": "Hellfire",
-          "Texture": "vfx/_shared/fire_8x8.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
-            "FromStuds": 3.8,
+            "FromStuds": 3.6,
             "ToStuds": 7.0,
-            "Width": 0.14,
+            "Width": 0.2,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 22,
+          "Rate": 24,
           "Lifetime": [
             0.6,
-            0.9
+            0.95
           ],
           "Speed": [
-            0.4,
-            0.9
+            0.3,
+            0.7
           ],
           "SpreadAngle": [
-            15,
-            15
+            20,
+            20
           ],
           "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            2.5,
+            2.2,
             0
           ],
           "Size": [
             [
               0,
-              0.45
+              0.5
             ],
             [
-              0.4,
-              1.05
+              0.35,
+              1.15
             ],
             [
               1,
-              0.35
+              0.3
             ]
           ],
           "Transparency": [
@@ -288,8 +288,16 @@
               0.3
             ],
             [
-              0.3,
+              0.2,
               0.0
+            ],
+            [
+              0.6,
+              0.35
+            ],
+            [
+              0.85,
+              1
             ],
             [
               1,
@@ -297,63 +305,72 @@
             ]
           ],
           "Rotation": [
-            -15,
-            15
+            -12,
+            12
           ],
           "Color": [
             [
               0,
-              "#FFD8C0"
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
             ],
             [
               1,
-              "#FF7050"
+              "#D0280E"
             ]
           ],
-          "LightEmission": 1,
+          "Brightness": 1.5,
+          "LightEmission": 0.6,
           "LightInfluence": 0,
-          "LockedToPart": true
+          "LockedToPart": false
         },
         {
           "Name": "Licks",
-          "Texture": "vfx/_shared/fire_8x8.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Part",
             "FromStuds": 0.4,
-            "ToStuds": 3.8,
-            "Width": 0.1,
+            "ToStuds": 3.6,
+            "Width": 0.12,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
-          "Rate": 8,
+          "Rate": 12,
           "Lifetime": [
             0.4,
-            0.6
+            0.65
           ],
           "Speed": [
-            0.2,
-            0.4
+            0.3,
+            0.7
           ],
           "SpreadAngle": [
-            15,
-            15
+            20,
+            20
           ],
           "EmissionDirection": "Top",
           "Acceleration": [
             0,
-            1.5,
+            1.6,
             0
           ],
           "Size": [
             [
               0,
-              0.25
+              0.28
             ],
             [
               0.4,
-              0.55
+              0.62
             ],
             [
               1,
@@ -366,27 +383,48 @@
               0.3
             ],
             [
-              0.3,
-              0.05
+              0.2,
+              0.0
+            ],
+            [
+              0.6,
+              0.35
+            ],
+            [
+              0.85,
+              1
             ],
             [
               1,
               1
             ]
           ],
+          "Rotation": [
+            -12,
+            12
+          ],
           "Color": [
             [
               0,
-              "#FFD8C0"
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
             ],
             [
               1,
-              "#FF7050"
+              "#D0280E"
             ]
           ],
-          "LightEmission": 1,
+          "Brightness": 1.5,
+          "LightEmission": 0.6,
           "LightInfluence": 0,
-          "LockedToPart": true
+          "LockedToPart": false
         },
         {
           "Name": "Smoke",
@@ -541,8 +579,8 @@
           "Phase": 0,
           "Delay": 0,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.24,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.28,
             "Color": "#FFFFFF",
             "Brightness": 2,
             "Transparency": [
@@ -551,8 +589,8 @@
                 0
               ],
               [
-                0.5,
-                0.3
+                0.6,
+                0.15
               ],
               [
                 1,
@@ -565,8 +603,12 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.3
               ]
             ],
             "LightEmission": 1,
@@ -587,8 +629,8 @@
           "Phase": 140,
           "Delay": 0.7,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.24,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.28,
             "Color": "#FFFFFF",
             "Brightness": 2,
             "Transparency": [
@@ -597,8 +639,8 @@
                 0
               ],
               [
-                0.5,
-                0.3
+                0.6,
+                0.15
               ],
               [
                 1,
@@ -611,8 +653,12 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.3
               ]
             ],
             "LightEmission": 1,
@@ -633,8 +679,8 @@
           "Phase": 260,
           "Delay": 1.3,
           "Trail": {
-            "Lifetime": 0.6,
-            "WidthStuds": 0.24,
+            "Lifetime": 0.8,
+            "WidthStuds": 0.28,
             "Color": "#FFFFFF",
             "Brightness": 2,
             "Transparency": [
@@ -643,8 +689,8 @@
                 0
               ],
               [
-                0.5,
-                0.3
+                0.6,
+                0.15
               ],
               [
                 1,
@@ -657,8 +703,12 @@
                 1
               ],
               [
+                0.6,
+                0.7
+              ],
+              [
                 1,
-                0.2
+                0.3
               ]
             ],
             "LightEmission": 1,
@@ -773,8 +823,8 @@
         "Core": {
           "Color": [
             255,
-            90,
-            40
+            122,
+            26
           ],
           "Width": 0.2,
           "NearTransparency": 0.0,
@@ -905,13 +955,13 @@
         },
         {
           "Name": "Flames",
-          "Texture": "vfx/_shared/fire_8x8.png",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
           "FlipbookLayout": "Grid8x8",
           "FlipbookMode": "OneShot",
           "Host": {
             "Kind": "Point"
           },
-          "Rate": 8,
+          "Rate": 10,
           "Lifetime": [
             0.35,
             0.5
@@ -932,11 +982,11 @@
           "Size": [
             [
               0,
-              0.25
+              0.3
             ],
             [
               1,
-              0.4
+              0.5
             ]
           ],
           "Transparency": [
@@ -952,15 +1002,24 @@
           "Color": [
             [
               0,
-              "#FF9A6A"
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
             ],
             [
               1,
-              "#C0201A"
+              "#D0280E"
             ]
           ],
-          "LightEmission": 1,
-          "LightInfluence": 0
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Brightness": 1.4
         },
         {
           "Name": "Chips",
@@ -1027,7 +1086,7 @@
             "Kind": "Point",
             "Size": 0.6
           },
-          "Burst": 20,
+          "Burst": 24,
           "Lifetime": [
             0.5,
             0.8
@@ -1077,15 +1136,20 @@
           "Color": [
             [
               0,
-              "#FFB08A"
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFC8A8"
             ],
             [
               1,
-              "#C0201A"
+              "#FF7050"
             ]
           ],
-          "LightEmission": 1,
-          "LightInfluence": 0
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Brightness": 1.4
         },
         {
           "Name": "Rocks",
@@ -1205,44 +1269,6 @@
           "LightInfluence": 0
         },
         {
-          "Name": "Skull",
-          "Texture": "vfx/infernal/skull_smoke_4x4.png",
-          "FlipbookLayout": "Grid4x4",
-          "FlipbookMode": "OneShot",
-          "Host": {
-            "Kind": "Point",
-            "Offset": [
-              0,
-              2.5,
-              0
-            ]
-          },
-          "Burst": 1,
-          "Delay": 0.15,
-          "Lifetime": 1.25,
-          "Speed": 0.4,
-          "SpreadAngle": [
-            0,
-            0
-          ],
-          "EmissionDirection": "Top",
-          "Size": [
-            [
-              0,
-              3.4
-            ],
-            [
-              1,
-              4.4
-            ]
-          ],
-          "Transparency": 0,
-          "Color": "#FFFFFF",
-          "LightEmission": 0.35,
-          "LightInfluence": 0,
-          "Orientation": "FacingCameraWorldUp"
-        },
-        {
           "Name": "Smoke",
           "Texture": "vfx/_shared/smoke_8x8.png",
           "FlipbookLayout": "Grid8x8",
@@ -1322,15 +1348,76 @@
         ],
         "Brightness": 12,
         "Seconds": 0.35
+      },
+      "KeepRibbons": false,
+      "Piece": {
+        "Piece": "infernal_pocket",
+        "Delay": 0.15,
+        "Seconds": 1.3,
+        "Rise": [
+          [
+            0,
+            -2.4
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            1,
+            1.1
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.75
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            1.05
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0
+          ],
+          [
+            0.65,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ]
       }
     },
     "Budget": {
-      "ParticlesPerSecond": 51,
-      "Back": 25.5,
-      "BallTrail": 31,
+      "ParticlesPerSecond": 57,
+      "Back": 28.5,
+      "BallTrail": 33,
       "Beams": 5,
       "Lights": 1,
-      "Orbiters": 3
+      "Orbiters": 3,
+      "PieceTriangles": 19500,
+      "PocketPieceTriangles": 19500
     }
-  }
+  },
+  "piece": "infernal"
 }

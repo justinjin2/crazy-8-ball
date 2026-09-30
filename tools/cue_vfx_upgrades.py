@@ -256,6 +256,53 @@ def kraken(d):
     v['Budget']['PieceTriangles'] = pj['Triangles']
 
 
+# white-hot to orange, ending orange-red (a crimson end left dark red flame tips floating off the cue)
+HELLFIRE = [[0, '#FFF0B0'], [0.35, '#FFA030'], [0.75, '#FF5A14'], [1, '#D0280E']]
+
+
+def infernal(d):
+    v = d['vfx']
+    a = v['Aura']
+    # the horned skull is a 3D piece on the butt now (CuePiecesLegendary.infernal)
+    d['piece'] = 'infernal'
+    # hellfire from the white flame-tongue sheet tinted gold to orange to crimson (the orange
+    # fire sheet tinted pink read as red drops): big flames wreathing the forearm and butt,
+    # smaller licks along the shaft, both left behind as the cue moves
+    for name, a0, a1, width, rate, life, size, accel in (
+            ('Hellfire', 3.6, 7.0, 0.2, 24, [0.6, 0.95], [[0, 0.5], [0.35, 1.15], [1, 0.3]], 2.2),
+            ('Licks', 0.4, 3.6, 0.12, 12, [0.4, 0.65], [[0, 0.28], [0.4, 0.62], [1, 0.15]], 1.6)):
+        put(a['Emitters'], {
+            'Name': name, 'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8',
+            'FlipbookMode': 'OneShot', 'Host': cyl(a0, a1, width), 'Rate': rate, 'Lifetime': life,
+            'Speed': [0.3, 0.7], 'SpreadAngle': [20, 20], 'EmissionDirection': 'Top', 'Acceleration': [0, accel, 0],
+            'Size': size, 'Transparency': [[0, 0.3], [0.2, 0.0], [0.6, 0.35], [0.85, 1], [1, 1]],
+            'Rotation': [-12, 12],
+            'Color': HELLFIRE, 'Brightness': 1.5, 'LightEmission': 0.6, 'LightInfluence': 0, 'LockedToPart': False})
+    for o in a.get('Orbiters') or []:
+        o['Trail'].update({'Lifetime': 0.8, 'WidthStuds': 0.28, 'WidthScale': [[0, 1], [0.6, 0.7], [1, 0.3]],
+                           'Transparency': [[0, 0], [0.6, 0.15], [1, 1]]})
+    # pocket: the eruption kept from turning pink over the felt; the skull rises clear of the
+    # default swirl ribbons (they crossed in front of it)
+    v['Pocket']['KeepRibbons'] = False
+    P = v['Pocket']['Layers']
+    e = named(P, 'Eruption')
+    # (the orange fire sheet, not the flame tongues: at this size and speed they streak to ribbons)
+    e.update({'Burst': 24, 'Color': [[0, '#FFFFFF'], [0.5, '#FFC8A8'], [1, '#FF7050']], 'Brightness': 1.4,
+              'LightEmission': 0.5})
+    t = v['Trail']
+    named(t['Emitters'], 'Flames').update({'Texture': 'vfx/_shared/energy_flame_8x8.png', 'Color': HELLFIRE,
+                                            'Brightness': 1.4, 'LightEmission': 0.5, 'Rate': 10,
+                                            'Size': [[0, 0.3], [1, 0.5]]})
+    v['Budget']['BallTrail'] = sum(x.get('Rate', 0) for x in t['Emitters'])
+    # the trail's red-hot core orange rather than red (red read pink down the middle)
+    v['Style']['Trail']['Core']['Color'] = [255, 122, 26]
+    a['Note'] = ('Layered: hellfire wreathes the handle (big flames from the forearm to the butt and '
+                 'smaller licks along the shaft, the white flame-tongue flipbook tinted gold to orange to '
+                 'crimson, left behind as the cue moves); three ribbons of black-and-red fire wind round the '
+                 'cue; dark smoke rolls off the butt; ember sparks rise; a deep red glow round the cue (a halo '
+                 'Beam, flickering) and a flickering red light. The horned skull on the butt is a 3D piece.')
+
+
 def pocket_piece(d, piece_id, drop_layer, **timing):
     """The pocket finisher's creature as a rising 3D piece (CuePiecesPocket) in place of its flat
     flipbook layer."""
@@ -278,6 +325,10 @@ POCKET = {
     'phoenix': ('phoenix_pocket', 'Firebird', {
         'Rise': [[0, -2.8], [0.3, 0.1], [1, 0.7]], 'Scale': [[0, 0.7], [0.3, 1.0], [1, 1.08]],
         'Spin': [[0, -10], [1, 10]], 'Transparency': [[0, 0], [0.7, 0], [1, 1]]}),
+    'infernal': ('infernal_pocket', 'Skull', {
+        'Delay': 0.15, 'Seconds': 1.3,
+        'Rise': [[0, -2.4], [0.3, 0.5], [1, 1.1]], 'Scale': [[0, 0.75], [0.3, 1.0], [1, 1.05]],
+        'Spin': [[0, 0], [1, 0]], 'Transparency': [[0, 0], [0.65, 0], [1, 1]]}),
     'kraken': ('kraken_pocket', 'Tentacle', {
         'Rise': [[0, -3.3], [0.3, -0.35], [1, -0.2]], 'Scale': [[0, 0.8], [0.3, 1.0], [1, 1.0]],
         'Spin': [[0, 0], [1, 25]], 'Transparency': [[0, 0], [0.75, 0], [1, 1]]}),
@@ -285,7 +336,7 @@ POCKET = {
 
 
 UPGRADES = {'eclipse': eclipse, 'apex': apex, 'kitsune': kitsune, 'celestial_dragon': celestial_dragon,
-            'phoenix': phoenix, 'kraken': kraken}
+            'phoenix': phoenix, 'kraken': kraken, 'infernal': infernal}
 
 
 def budget(d):
