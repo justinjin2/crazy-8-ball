@@ -14,6 +14,8 @@
 --   seq, -- ults armed this game (the cutscene plays once per armed.seq)
 --   feedSeq, -- gain messages this game (UltGain's seq)
 --   pausedUntil?, -- the shot clock is paused until then (the cutscene plus the arm delay)
+--   kept?, -- a Turn ult (Portals) spent on a shot its shooter kept the table with: it acts on
+--          -- each of their shots for the rest of the turn, the same pick (Armed's shape)
 -- } and `t.ultFeed` = gains waiting to be sent, like t.feedback: { { userId, amount, reason,
 -- ball?, at, seq } } (`at` = the server time the ball drops in the replay, or now).
 --
@@ -32,6 +34,9 @@
 --   normal. The shot spends the armed ult.
 -- * The shot clock running out while armed spends it; so does any foul or turn change, and
 --   the end of the game.
+-- * A Turn ult (Portals, 7.9) keeps acting after its shot: while its shooter keeps the table
+--   (a legal pot), each of their next shots is an ult shot again with the same pick (`kept`),
+--   until the turn passes, a foul, or the game ends.
 local Config = require(script.Parent.Parent.Config)
 local Judge = require(script.Parent.Parent.Rules.ShotJudge)
 local NiceShot = require(script.Parent.Parent.Rules.NiceShot)
@@ -61,6 +66,7 @@ export type State = {
 	run: number,
 	openPotted: { number },
 	armed: Armed?,
+	kept: Armed?,
 	seq: number,
 	feedSeq: number,
 	pausedUntil: number?,
@@ -93,6 +99,7 @@ function Match.new(): State
 		run = 0,
 		openPotted = { 0, 0 },
 		armed = nil,
+		kept = nil,
 		seq = 0,
 		feedSeq = 0,
 		pausedUntil = nil,
@@ -270,11 +277,17 @@ function Match.arming(t: any): boolean
 	return armed ~= nil and armed.stage == "Arming"
 end
 
--- The armed ult if the table's shooter's next shot is it (armed by them, stage Armed).
+-- The armed ult if the table's shooter's next shot is it (armed by them, stage Armed), else
+-- the kept Turn ult still acting for them this turn.
 local function shotArmed(t: any): Armed?
-	local armed = stateOf(t).armed
+	local ults = stateOf(t)
+	local armed = ults.armed
 	if armed ~= nil and armed.stage == "Armed" and armed.by == t.shooter then
 		return armed
+	end
+	local kept = ults.kept
+	if armed == nil and kept ~= nil and kept.by == t.shooter then
+		return kept
 	end
 	return nil
 end
@@ -372,6 +385,25 @@ function Match.shotTag(t: any): any
 	return { id = armed.id, by = armed.by, practice = armed.practice }
 end
 
+--- A turn began (MatchEngine's beginTurn, the shooter already set): a kept Turn ult lasts only
+--- while its own shooter keeps the table.
+function Match.turnBegan(t: any, kept: boolean)
+	local ults = stateOf(t)
+	if ults.kept ~= nil and (not kept or ults.kept.by ~= t.shooter) then
+		ults.kept = nil
+		t.revision += 1
+	end
+end
+
+--- Ends a kept Turn ult (the game ended).
+function Match.clearKept(t: any)
+	local ults = stateOf(t)
+	if ults.kept ~= nil then
+		ults.kept = nil
+		t.revision += 1
+	end
+end
+
 --- Clears an armed ult (spent: the bar was paid at activation) and the pause.
 function Match.clearArmed(t: any)
 	local ults = stateOf(t)
@@ -446,6 +478,18 @@ function Match.onShot(
 	local armed = shotArmed(t)
 	local ultShot = armed ~= nil and not armed.practice
 	Match.clearArmed(t)
+	-- A Turn ult (Portals) goes on acting while its shooter keeps the table with this shot.
+	local row = if armed then Catalog.get(armed.id) else nil
+	local keeps = not rewound and j.keep == true and j.foul == nil and j.winner == nil
+	if armed and row and row.Built and row.Turn and keeps then
+		if ults.kept ~= armed then
+			ults.kept = armed
+			t.revision += 1
+		end
+	elseif ults.kept ~= nil and not rewound then
+		ults.kept = nil
+		t.revision += 1
+	end
 	-- A rewound shot (Rewind, 7.6) never happened: it fills nothing for anyone.
 	if not Match.enabled(t) or rewound then
 		return
@@ -519,6 +563,7 @@ end
 --- the run ends and an armed ult is spent.
 function Match.onTurnLost(t: any)
 	Match.clearArmed(t)
+	Match.clearKept(t)
 	stateOf(t).run = 0
 end
 
@@ -555,6 +600,14 @@ function Match.view(t: any): any
 			}
 			else nil,
 		pausedUntil = ults.pausedUntil,
+		-- A Turn ult still acting for its shooter this turn (Portals): { by, id, pick }.
+		kept = if ults.kept
+			then {
+				by = ults.kept.by,
+				id = ults.kept.id,
+				pick = if ults.kept.pick then table.clone(ults.kept.pick) else nil,
+			}
+			else nil,
 	}
 end
 

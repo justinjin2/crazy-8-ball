@@ -794,7 +794,7 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
 - [x] 13. Black Flash (7.11), look check and art director review done.
 - [x] 14. Black Hole (7.12), look check and art director review done.
 - [x] 15. Guangdong Tiger (7.13), look check and art director review done.
-- [ ] 16. Balance pass: every ability re-measured with the final code; the ladder table (5.3)
+- [x] 16. Balance pass: every ability re-measured with the final code; the ladder table (5.3)
   holds for the careful shooter (each rarity at or a little above the one below), and the
   careless value is reported for the five 5.7 abilities; `ult_model.py`'s win rates per rarity
   against Magnet; tuned where off; Worth and comments in Config.
@@ -1347,3 +1347,45 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   a cut ball. No leftovers (1.53 s at full speed), no grade left, console clean. Phone framing
   is checked in the playthrough. Superseded uploads to archive: models 93994396609133,
   109390616019165 and 86221317508788; fur-frame decals 122114074802883 and 76952602462039.
+- **Step 16 done (2026-09-29).** Every ability re-measured with the final code (120 tables,
+  skills 1/2/3, careful net; every number in `tools/ult_value_results.json`). The designer
+  chose to buff the weak ones (then the ghostly pull for Ghost, and to keep Portals flagged).
+  Rules changed: Ghost, from the first contact the cue ball passes every ball and the ball it
+  hit passes the ones the cue ball did (`State.fx.passes`, a per-pair contact filter in the
+  Simulation), and that ball is pulled into a pocket it nearly misses at Magnet's strength
+  (`Magnet.pull`); Rewind, each redo shows Eagle's Eye's full path to its shooter
+  (`RewindRedoGuide`, AbilityFx routes the redo's aim to EaglesEyeFx) and a missed redo rewinds
+  again, two redos a use (`RewindRedos`; Rewind already fired on any miss and kept the turn);
+  Time Stop, three strikes in stopped time, each after the last one's end with a fresh 5 s
+  (`TimeStopStrikes`, `shot.parts.strikes` a list, the clock hand restarting on each
+  `strikeFrozen`); Portals, open for the shooter's whole turn (`Turn` catalog flag, the match's
+  `ults.kept` and its snapshot, PortalsFx drawing them between shots), your balls coming out
+  turned toward the pocket ahead by at most 15 degrees (`ExitSteerTan`), the capture circle
+  2 in (was 1.2); Heat Seeker, 30 degrees of cut correction (was 20); Chain Lightning, three
+  jumps (was four: too close to the Legendaries); Black Flash, 4 of yours at most; Black Hole
+  and the Tiger, 4 of yours and 1 of theirs (per-ability `MaxOwn` and `MaxOpp`). The harness
+  gained the redo guide and redos, the extra strikes, a Turn ult's later shots (up to 3, kept
+  and not, on the same noise), Ghost's carried phase in the planner, and `--set Block.Key=n`
+  on the command line to try a tune. Worth (careful net at skills 1/2/3, mean): Magnet
+  +0.38/+0.54/+0.44 (0.46), Eagle's Eye +0.14/+0.38/+0.48 (0.34), Super Bounce
+  +0.27/+0.39/+0.32 (0.33); Ghost +0.39/+0.56/+0.46 (0.47), Heat Seeker +0.36/+0.41/+0.43
+  (0.40); Rewind +0.36/+0.58/+0.65 (0.53), Time Stop +0.65/+0.42/+0.34 (0.47); Chain Lightning
+  +0.97/+0.98/+0.94 (0.96), Portals +0.37/+0.52/+0.38 (0.42, a low bound: the model shooter
+  never reuses the kept portals); Steel Ball +1.00/+1.11/+1.18 (1.09), Black Flash
+  +1.11/+1.25/+1.26 (1.21); Black Hole +1.21/+1.36/+1.39 (1.32), Tiger +1.22/+1.34/+1.34
+  (1.30). Rarity means: 0.37, 0.44, 0.50, 0.69, 1.15, 1.31, so each rarity sits a little
+  above the one below; Magnet over Heat Seeker and Portals under the Rares are the two
+  inversions (Portals kept by the designer, flagged for playtests). The GDD's 1 / 1.5 / 2.2 /
+  2.6 cannot be reached inside the 20 in reach cap and the ball caps (5.3: reported as
+  measured). Careless (the five 5.7 abilities, skills 1/2/3): Magnet +0.37/+0.56/+0.52, Chain
+  Lightning +0.78/+0.72/+0.76, Black Flash +0.85/+1.00/+1.08, Black Hole +0.93/+1.08/+1.15,
+  Tiger +0.93/+1.07/+1.14 (the skill the rule adds: +0.18 to +0.28 for the four big ones).
+  `ult_model.py` against Magnet at equal skill (Classic 0.60 / 0.70, Difficult 0.45): Common,
+  Uncommon, Rare and Epic 49.4-51.3%, Legendary 54.6-56.2%, Mythic 55.9-56.4%; all targets met.
+  Checked in Studio through the QA path: Time Stop took three strikes and refused a fourth, then
+  resumed and judged (no drift warning); Rewind rewound twice and the third try passed the
+  turn, the redo's aim showing the full path under the SECOND CHANCE pill; Portals' pot kept
+  the table with both portals still drawn and the next shot carried them, a miss closed them;
+  Ghost's little ghost flew to the ball it hit and circled it toward the pocket. Tests: the
+  carried phase and the pull, the exit steer, the kept portals, the redos, the strikes. The
+  docs sweep (GDD 9, ECONOMY 11.8, 5.3's "3 balls at most") is step 20's.

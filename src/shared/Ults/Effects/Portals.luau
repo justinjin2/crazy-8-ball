@@ -12,6 +12,10 @@
 -- * A ball that came out of a portal cannot go into either portal again until its centre has
 --   left that exit's inner circle and CooldownSeconds have passed (so a ball never bounces
 --   straight back, and a loop through both slows and ends).
+-- * One of the shooter's balls coming out (overrides.Targets: the 8 only on the legal 8 shot,
+--   toward the called pocket; never the cue ball or the opponent's) is turned toward the pocket
+--   mouth nearest its heading, ahead of it, by at most Config.Ults.Portals.ExitSteerTan: a
+--   portal lines your ball up (the step 16 buff).
 -- * `ult` events for the look: "enter" (ball, other = the portal gone into: 1 A, 2 B, at its
 --   centre) and "exit" (ball, other = the portal come out of, at its centre), in that order in
 --   the same step.
@@ -21,6 +25,7 @@
 -- require Physics/Simulation.
 
 local Config = require(script.Parent.Parent.Parent.Config)
+local Magnet = require(script.Parent.Magnet)
 
 local Portals = {}
 
@@ -75,6 +80,65 @@ local function passes(
 	return px * px + py * py < r * r
 end
 
+local function isTarget(state: any, id: number): boolean
+	local targets = state.overrides and state.overrides.Targets
+	if targets == nil or id == 0 then
+		return false
+	end
+	for _, v in targets do
+		if v == id then
+			return true
+		end
+	end
+	return false
+end
+
+-- Turn `b`'s heading (velocity and spin alike) toward the pocket mouth nearest it as seen
+-- from (x, y) (the exit it is about to come out of), ahead of it, by at most ExitSteerTan (the
+-- 8 only toward its called pocket).
+local function steer(state: any, b: any, x: number, y: number)
+	local tan = Config.Ults.Portals.ExitSteerTan
+	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+	if tan <= 0 or speed < 1e-9 then
+		return
+	end
+	local nx, ny = b.vx / speed, b.vy / speed
+	local bestDot, px, py, found = 0, 0, 0, false
+	for _, pocket in state.geometry.pockets do
+		if b.id == 8 and pocket.id ~= state.overrides.EightPocket then
+			continue
+		end
+		local mx, my = Magnet.mouthPoint(state.geometry, pocket)
+		local ux, uy = mx - x, my - y
+		local ul = math.sqrt(ux * ux + uy * uy)
+		if ul < 1e-9 then
+			continue
+		end
+		ux, uy = ux / ul, uy / ul
+		local dot = nx * ux + ny * uy
+		if dot > bestDot then
+			bestDot, px, py, found = dot, ux, uy, true
+		end
+	end
+	if not found then
+		return
+	end
+	local ox, oy
+	local cross = nx * py - ny * px -- > 0: the pocket is anticlockwise of the heading
+	if math.abs(cross) <= tan * bestDot then
+		ox, oy = px, py
+	else
+		local sgn = if cross > 0 then tan else -tan
+		ox, oy = nx - ny * sgn, ny + nx * sgn
+		local ol = math.sqrt(ox * ox + oy * oy)
+		ox, oy = ox / ol, oy / ol
+	end
+	local c = nx * ox + ny * oy
+	local s = nx * oy - ny * ox
+	b.vx, b.vy = c * b.vx - s * b.vy, s * b.vx + c * b.vy
+	b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
+end
+
 function Portals.after(state: any, _dt: number, events: { any }, ops: any)
 	local a, b = Portals.spots(state)
 	if a == nil or b == nil then
@@ -120,6 +184,9 @@ function Portals.after(state: any, _dt: number, events: { any }, ops: any)
 				local exit = spots[other]
 				ops.emit(state, events, "enter", ball.id, k, spot[1], spot[2])
 				ops.emit(state, events, "exit", ball.id, other, exit[1], exit[2])
+				if isTarget(state, ball.id) then
+					steer(state, ball, exit[1], exit[2])
+				end
 				ops.teleport(state, events, ball, exit[1], exit[2])
 				locks[ball.id] = { portal = other, at = state.time, out = false }
 				break

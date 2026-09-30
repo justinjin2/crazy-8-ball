@@ -12,8 +12,8 @@
 --   (the charged ball first) to the nearest ball within ReachInches of it, whoever's it is
 --   (5.7): the shooter's (Targets) or the opponent's (OppTargets), never the cue ball, never
 --   the 8 unless it is the shooter's legal 8, never a ball it already struck, never more than
---   Config.Ults.Shared.MaxOppPerUse of the opponent's (past that the chain jumps over them) or
---   MaxOwnPerUse of the shooter's. Up to Links jumps; the chain ends early when nothing is in
+--   Config.Ults.ChainLightning.MaxOpp of the opponent's (past that the chain jumps over them) or
+--   MaxOwn of the shooter's. Up to Links jumps; the chain ends early when nothing is in
 --   reach.
 -- * The push: each struck ball rolls toward its closest pocket with a clear line in (no ball
 --   in the way, no jaw touched, traced with a ball ClearanceInches fatter), or toward its
@@ -269,10 +269,10 @@ local function nextLink(state: any, chain: Chain, from: any): (any, number)
 		if factor <= 0 then
 			continue
 		end
-		if factor < 1 and chain.opp >= S.MaxOppPerUse then
+		if factor < 1 and chain.opp >= Config.Ults.ChainLightning.MaxOpp then
 			continue
 		end
-		if factor >= 1 and chain.own >= S.MaxOwnPerUse then
+		if factor >= 1 and chain.own >= Config.Ults.ChainLightning.MaxOwn then
 			continue
 		end
 		local dx, dy = b.x - from.x, b.y - from.y

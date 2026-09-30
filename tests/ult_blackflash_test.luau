@@ -189,9 +189,8 @@ function tests.the_caps_hold()
 			theirs += 1
 		end
 	end
-	local S = Config.Ults.Shared
-	check(mine == S.MaxOwnPerUse - 1, "yours: the shattered one and " .. mine)
-	check(theirs == S.MaxOppPerUse, "theirs: " .. theirs)
+	check(mine == Config.Ults.BlackFlash.MaxOwn - 1, "yours: the shattered one and " .. mine)
+	check(theirs == Config.Ults.BlackFlash.MaxOpp, "theirs: " .. theirs)
 end
 
 function tests.the_cue_ball_bounces_back_and_never_scratches()

@@ -132,6 +132,7 @@ function tests.a_direct_aim_cuts_better_but_not_perfectly()
 	local gx, gy = 30 - ux / ul * 2 * R, 12 - uy / ul * 2 * R
 	local perfect = math.atan2(gy, gx)
 	local cap = math.deg(math.atan(Config.Ults.HeatSeeker.CutCorrectionTan))
+	local beyond = 0
 	for _, off in { -0.05, -0.03, 0.03, 0.05 } do
 		local payload = { angle = perfect + off, power = 0.35 }
 		local plain = assert(headingAfterHit(balls, payload, nil), "the 1 is hit")
@@ -146,8 +147,13 @@ function tests.a_direct_aim_cuts_better_but_not_perfectly()
 			before - after <= cap + 1,
 			("off %.2f: corrected %.1f degrees"):format(off, before - after)
 		)
-		check(after > 1, ("off %.2f: not made perfect"):format(off))
+		-- Further off than the cap can turn: never made perfect.
+		if before > cap + 2 then
+			beyond += 1
+			check(after > 1, ("off %.2f: not made perfect"):format(off))
+		end
 	end
+	check(beyond > 0, "some aims are further off than the cap")
 end
 
 function tests.no_pick_no_homing()

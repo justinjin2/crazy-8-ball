@@ -146,11 +146,23 @@ function tests.rewind_restores_the_table_and_gives_a_ten_second_redo()
 		expire(m)
 		expect(m.phase == "Aiming" and m.shooter == 11, "the redo")
 		expect(math.abs(m.deadline - at - S.RewindRedoSeconds) < 1e-9, "on a 10 s clock")
-		-- The redo is a plain shot: it never rewinds again.
-		local redo = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
-		expect(redo and redo.rewind == nil and redo.ult == nil, "a plain shot")
-		expire(m)
-		expect(m.shooter == 21, "a miss on the redo passes the turn")
+		-- Each redo that misses rewinds again while redos are left (Shared.RewindRedos); the
+		-- last is a plain shot.
+		for i = 1, S.RewindRedos do
+			local redo = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
+			expect(redo and redo.ult == nil, "the redo is no ult shot")
+			if i < S.RewindRedos then
+				expect(redo.rewind == true, "a redo left: it rewinds again")
+				expire(m)
+				expect(m.phase == "Rewinding", "rewinding again")
+				expire(m)
+				expect(m.phase == "Aiming" and m.shooter == 11, "the next redo")
+			else
+				expect(redo.rewind == nil, "the last redo is a plain shot")
+				expire(m)
+				expect(m.shooter == 21, "a miss on the last redo passes the turn")
+			end
+		end
 	end)
 end
 
@@ -229,8 +241,8 @@ local function replay(start: { any }, wire: any): { any }
 	end
 	run()
 	expect(state.halted, "part one halts")
-	if wire.parts.strike then
-		TimeStop.beginStrike(state, wire.parts.strike.seed)
+	for _, strike in wire.parts.strikes or {} do
+		TimeStop.beginStrike(state, strike.seed)
 		run()
 		expect(state.halted, "the strike's part halts")
 	end
@@ -251,7 +263,7 @@ local function frozenShot(m: any): (any, { any })
 	return wire, start
 end
 
-function tests.time_stop_freezes_takes_one_second_strike_and_replays_to_the_same_bits()
+function tests.time_stop_freezes_takes_its_strikes_and_replays_to_the_same_bits()
 	built("TimeStop", function()
 		local m = midGame()
 		armNow(m, "TimeStop")
@@ -264,9 +276,22 @@ function tests.time_stop_freezes_takes_one_second_strike_and_replays_to_the_same
 		local other = E.acceptShot(m, 21, second, freezeAt + 1)
 		expect(other == nil, "only the shooter")
 		local ok = E.acceptShot(m, 11, second, freezeAt + 1)
-		expect(ok and ok.parts.strike ~= nil, "the second strike")
-		local again = E.acceptShot(m, 11, second, freezeAt + 1.1)
-		expect(again == nil, "only one")
+		expect(ok and #ok.parts.strikes == 1, "the first strike")
+		local soon = E.acceptShot(m, 11, second, freezeAt + 1.01)
+		expect(soon == nil, "not before the replay reaches the strike's end")
+		-- Each strike's end starts a fresh 5 s for the next, up to Shared.TimeStopStrikes.
+		for n = 2, S.TimeStopStrikes do
+			local nextAt = m.pending.frozen.freezeAt
+			expect(
+				math.abs(m.deadline - nextAt - S.FrozenSeconds) < 1e-9,
+				"a fresh 5 s for the next strike"
+			)
+			local aim = payload(m, if n % 2 == 0 then 0 else math.pi, 0.3)
+			local more = E.acceptShot(m, 11, aim, nextAt + 0.5)
+			expect(more and #more.parts.strikes == n, "strike " .. n)
+		end
+		local again = E.acceptShot(m, 11, second, m.pending.frozen.freezeAt + 0.6)
+		expect(again == nil, "no more than " .. S.TimeStopStrikes)
 		expire(m) -- time resumes
 		expect(m.phase == "Resolving" or m.phase == "Foul", "judged as one shot")
 		expect(E.takeLateShot(m) == wire.seq and E.takeLateShot(m) == nil, "sent once")
@@ -289,7 +314,7 @@ function tests.time_stop_without_a_strike_resumes_at_the_timeout()
 		)
 		expire(m)
 		expect(m.phase == "Resolving" or m.phase == "Foul", "resumed and judged")
-		expect(wire.parts.strike == nil)
+		expect(wire.parts.strikes == nil)
 		expect(Sim.checksum(replay(start, wire)) == wire.checksum, "the replay matches")
 		-- Twice gives the same bits.
 		local m2 = midGame()
@@ -389,6 +414,33 @@ function tests.portals_must_be_clear_of_cushions_pockets_balls_and_each_other()
 		expect(pick(m, { ax = 0, ay = 10, bx = -30, by = -10 }), "a good pair")
 		local wire = E.acceptShot(m, 11, payload(m, 0, 0.1), m.phaseStartedAt)
 		expect(wire and #wire.overrides.Pick == 4, "the spots ride in the overrides")
+	end)
+end
+
+function tests.portals_stay_open_for_the_rest_of_the_turn()
+	built("Portals", function()
+		local m = midGame()
+		armNow(m, "Portals")
+		expect(pick(m, { ax = -30, ay = -10, bx = 30, by = -10 }), "a pair out of the way")
+		local wire = E.acceptShot(m, 11, potShot(m, 1), m.phaseStartedAt)
+		expect(wire and wire.overrides.Effect == "Portals", "the Portals shot")
+		expire(m) -- the pot keeps the table
+		expect(m.shooter == 11 and m.phase == "Aiming", "the same shooter again")
+		local kept = E.snapshot(m).ults.kept
+		expect(kept and kept.id == "Portals" and #kept.pick == 4, "the snapshot keeps them")
+		local again = E.acceptShot(m, 11, missShot(m), m.phaseStartedAt)
+		expect(
+			again and again.overrides and again.overrides.Effect == "Portals",
+			"the next shot too"
+		)
+		expect(#again.overrides.Pick == 4 and again.ult ~= nil, "same spots, an ult shot")
+		expire(m) -- the miss passes the turn
+		expect(m.shooter == 21 and m.ults.kept == nil, "gone when the turn passes")
+		local theirs = E.acceptShot(m, 21, missShot(m), m.phaseStartedAt)
+		expect(
+			theirs and (theirs.overrides == nil or theirs.overrides.Effect == nil),
+			"never theirs"
+		)
 	end)
 end
 

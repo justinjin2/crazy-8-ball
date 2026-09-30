@@ -6,9 +6,11 @@
 --    halts (Simulation Ops.halt) at the end of that fixed step, every ball keeping its
 --    motion. No first contact, or the cue ball down before the freeze: no halt, a plain shot.
 -- 2. (Only if the shooter strikes again in stopped time.) `beginStrike` stores every other
---    ball's motion and stops it, and gives the cue ball the second strike's seed. The cue ball
---    alone moves until it touches a ball or a cushion, drops, or stops: then it halts again,
---    the struck ball holding what the contact gave it.
+--    ball's motion and stops it, and gives the cue ball the strike's seed. The cue ball alone
+--    moves until it touches a ball or a cushion, drops, or stops: then it halts again, the
+--    struck ball holding what the contact gave it. Up to Shared.TimeStopStrikes strikes: a
+--    later one stores the struck ball's new motion with the rest, so time stays stopped for
+--    every ball but the cue ball.
 -- 3. `resume`: every ball gets back its stored motion (added to anything part 2 gave it), the
 --    cue ball keeps its own, and the shot settles to rest.
 --
@@ -80,23 +82,40 @@ function TimeStop.after(state: any, _dt: number, events: { any }, ops: any)
 	end
 end
 
---- Whether a halted state is Time Stop's freeze (part 1 done, waiting for a second strike).
+--- Whether a halted state is Time Stop's freeze waiting for a strike: part 1 done, or a
+--- strike's part done with strikes left.
 function TimeStop.isFrozen(state: any): boolean
-	return state.fx ~= nil and state.fx.frozeAt ~= nil and (state.fx.stage or 1) == 1
+	local fx = state.fx
+	if fx == nil or fx.frozeAt == nil then
+		return false
+	end
+	local stage = fx.stage or 1
+	return stage == 1 or (stage == 2.5 and (fx.strikes or 0) < S.TimeStopStrikes)
 end
 
---- Part 2 begins: every ball but the cue ball stops (its motion stored), and the cue ball
---- takes `seed` (the second strike's velocity and spin, quantised by the server).
+--- A strike's part begins: every ball but the cue ball stops (its motion stored), and the cue
+--- ball takes `seed` (the strike's velocity and spin, quantised by the server).
 function TimeStop.beginStrike(state: any, seed: any)
 	local fx = state.fx
-	local stored = {}
+	local stored = fx.stored or {}
 	for i, b in state.balls do
 		if b.id ~= 0 and not b.pocketed then
-			stored[i] = { b.vx, b.vy, b.vz, b.wx, b.wy, b.wz }
+			local v = stored[i]
+			if v then
+				v[1] += b.vx
+				v[2] += b.vy
+				v[3] += b.vz
+				v[4] += b.wx
+				v[5] += b.wy
+				v[6] += b.wz
+			else
+				stored[i] = { b.vx, b.vy, b.vz, b.wx, b.wy, b.wz }
+			end
 			b.vx, b.vy, b.vz, b.wx, b.wy, b.wz = 0, 0, 0, 0, 0, 0
 		end
 	end
 	fx.stored = stored
+	fx.strikes = (fx.strikes or 0) + 1
 	fx.stage = 2
 	local cue = cueOf(state)
 	if cue then

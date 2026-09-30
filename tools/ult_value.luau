@@ -11,6 +11,7 @@
 --   lune run tools/ult_value.luau all --samples 60 --skill 2
 --   lune run tools/ult_value.luau Magnet --seed 7 --no-write
 --   lune run tools/ult_value.luau Ghost --useful --no-write   # only where it changes the shot
+--   lune run tools/ult_value.luau BlackHole --set BlackHole.MaxOwn=4 --no-write   # try a tune
 
 local DateTime = require("@lune/datetime")
 local fs = require("@lune/fs")
@@ -34,6 +35,7 @@ local function usage(message: string?)
 	print("usage: lune run tools/ult_value.luau <UltId|all> [--samples N] [--skill 1|2|3|all]")
 	print("       [--quick] [--seed N] [--careful-only|--careless-only] [--no-write]")
 	print("       [--useful]  only the tables where the ability changes the best shot")
+	print("       [--set Block.Key=number]  try a Config.Ults number for this run only")
 	print("ults: " .. table.concat(Config.Ults.Order, ", "))
 	process.exit(1)
 end
@@ -77,6 +79,17 @@ while i <= #args do
 	elseif a == "--useful" then
 		useful = true
 	elseif a == "--no-write" then
+		write = false
+	elseif a == "--set" then
+		-- Config.Ults.<Block>.<Key> = number for this run (a tune to try; never written).
+		i += 1
+		local block, key, value = string.match(args[i] or "", "^(%w+)%.(%w+)=(.+)$")
+		local number = tonumber(value)
+		local into = if block then (Config.Ults :: any)[block] else nil
+		if type(into) ~= "table" or number == nil or into[key :: string] == nil then
+			usage("--set needs Block.Key=number for an existing Config.Ults number")
+		end
+		into[key :: string] = number
 		write = false
 	elseif a:sub(1, 2) == "--" then
 		usage("unknown option " .. a)

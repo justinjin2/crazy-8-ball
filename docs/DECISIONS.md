@@ -2000,3 +2000,19 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   roar and body impact pitched down, a sword-split slash played three times), no upload. Its
   worth (+1.03 to +1.16 careful) is under Mythic 2.6 and is flagged for the step 16 balance
   pass. The art director's two reviews (5/10, then 7/10) were acted on.
+- 2026-09-29 (designer): the step 16 balance pass buffs the weak abilities instead of moving
+  rarities. Ghost: from the first contact the cue ball passes every ball, the ball it hit passes
+  the ones the cue ball did, and a ghost pulls that ball into a pocket it nearly misses (the
+  designer's pick over leaving it situational or swapping it with Magnet). Rewind: two redos,
+  each showing Eagle's Eye's full path. Time Stop: three strikes in stopped time. Portals: open
+  for the shooter's whole turn. The Legendary and Mythic caps go up: Black Flash 4 of yours,
+  Black Hole and the Tiger 4 of yours and 1 of theirs (the old "3 balls at most" is replaced).
+- 2026-09-29 (designer): Portals keeps its buffs (whole turn, a 2 in capture circle, your
+  balls steered up to 15 degrees toward a pocket on the way out) and is flagged: it measures
+  0.42 a use, under the Rares, because the model shooter never reuses the kept portals.
+  Playtests decide.
+- 2026-09-29 (assumption): Heat Seeker's cut correction goes to 30 degrees (0.40 a use, above
+  the Commons' mean) and Chain Lightning drops to three jumps (0.96, clear of the Legendaries'
+  1.09-1.21). Worth in the catalog is now the measured value (the careful shooter's mean over
+  three skills); the ladder is judged on each rarity's mean (0.37, 0.44, 0.50, 0.69, 1.15,
+  1.31), with Magnet over Heat Seeker the one other inversion left.

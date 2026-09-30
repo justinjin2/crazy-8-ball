@@ -81,6 +81,10 @@ V.AIM_AIDS = { EaglesEye = 0.15 } :: { [string]: number }
 -- The careful shooter: how many of its best pots it considers, how many noise draws it
 -- judges each by, and how many picks per shot for a pick ability.
 V.TOP_K = 3
+-- A Turn ult (Portals, kept for the shooter's whole turn): after a with-shot that keeps the
+-- table, up to this many later shots of the turn are played twice from the same table, with
+-- the ult kept and without, on the same noise; the difference is added to the use's worth.
+V.TURN_SHOTS = 3
 V.CAREFUL_SAMPLES = 3
 V.PICKS_PER_SHOT = 2
 -- Shot selection limits: the thinnest cut, and how far off a pocket's axis a ball may
@@ -493,9 +497,14 @@ function V.candidates(
 				if b.pocketed or b.id == 0 or b.id == id then
 					continue
 				end
-				local cueBlocked = not (phase and phase[b.id])
+				local passed = phase ~= nil and phase[b.id] == true
+				local cueBlocked = not passed
 					and segmentDistance(b.x, b.y, cx, cy, gx, gy) < D - 1e-6
-				if cueBlocked or segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6 then
+				-- Ghost's CarryPhase: the ball hit passes through the same balls.
+				local objPassed = passed and Config.Ults.Ghost.CarryPhase
+				local objBlocked = not objPassed
+					and segmentDistance(b.x, b.y, ob.x, ob.y, pk.mx, pk.my) < D - 1e-6
+				if cueBlocked or objBlocked then
 					blocked = true
 					break
 				end
@@ -898,6 +907,10 @@ export type Result = {
 	halted: boolean, -- Time Stop froze the shot
 	struckFrozen: boolean, -- and the model shooter struck the cue ball again
 	capped: boolean,
+	balls: { any }?, -- the table at rest after the shot
+	-- A Turn ult's later shots (V.turnLater): own and opponent's balls it added over them.
+	laterOwn: number?,
+	laterOpp: number?,
 }
 
 local function fakeTable(ts: TableState, ultId: string, pick: { number }?, called: number?): any
@@ -948,11 +961,15 @@ local function shoot(
 	z1: number,
 	z2: number,
 	ultId: string?,
-	draw: () -> number
+	draw: () -> number,
+	guide: boolean?
 ): Result
 	local before = Ball.cloneList(ts.balls)
 	local sim = Simulation.newState(geometry, Ball.cloneList(ts.balls))
 	local aid = if ultId and not V.inert(ultId) then V.AIM_AIDS[ultId] else nil
+	if guide then
+		aid = V.AIM_AIDS.EaglesEye -- Rewind's redo shows Eagle's Eye's guide
+	end
 	local zAim = if aid then z1 * math.min(1, aid / V.SKILLS[skill].angleDeg) else z1
 	local events = { Simulation.strike(sim, V.noisy(plan, skill, zAim, z2)) }
 	if ultId then
@@ -969,9 +986,14 @@ local function shoot(
 		end
 		halted = true
 		local isTimeStop = sim.overrides ~= nil and sim.overrides.Effect == "TimeStop"
-		if isTimeStop and TimeStop.isFrozen(sim) then
+		-- Each strike in stopped time (Shared.TimeStopStrikes), while the model has a pot.
+		local capped = false
+		while isTimeStop and TimeStop.isFrozen(sim) do
 			local second = V.secondStrike(sim, ts, skill, draw)
-			if second then
+			if second == nil then
+				break
+			end
+			do
 				local cue = findBall(sim.balls, 0)
 				local probeBall = Ball.clone(cue)
 				Cue.strike(probeBall, second)
@@ -987,9 +1009,13 @@ local function shoot(
 				local part = Simulation.settle(sim, events)
 				if part.capped then
 					outcome = part
+					capped = true
 					break
 				end
 			end
+		end
+		if capped then
+			break
 		end
 		if isTimeStop then
 			TimeStop.resume(sim)
@@ -1024,6 +1050,7 @@ local function shoot(
 		halted = halted,
 		struckFrozen = struck,
 		capped = outcome.capped,
+		balls = outcome.finalBalls,
 	}
 end
 
@@ -1037,10 +1064,14 @@ function V.play(
 	z1: number,
 	z2: number,
 	ultId: string?,
-	draw: () -> number
+	draw: () -> number,
+	turn: boolean?
 ): Result
 	local result = shoot(ts, plan, skill, z1, z2, ultId, draw)
 	local row = if ultId then Catalog.get(ultId) else nil
+	if turn and row and row.Built and row.Turn then
+		V.turnLater(ts, plan, skill, ultId :: string, result, draw)
+	end
 	if
 		row
 		and row.Built
@@ -1048,9 +1079,17 @@ function V.play(
 		and result.own == 0
 	then
 		-- Rewind: none of the shooter's balls dropped (fouls, scratches and an early 8
-		-- included): the exact table again, the same shot with new noise, and only this counts.
-		local redo = shoot(ts, plan, skill, draw(), draw(), nil, draw)
-		redo.redone = true
+		-- included): the exact table again, the same shot with new noise (and the guide, with
+		-- RewindRedoGuide), and only the last try counts; up to RewindRedos times.
+		local S = Config.Ults.Shared
+		local redo = result
+		for _ = 1, S.RewindRedos do
+			redo = shoot(ts, plan, skill, draw(), draw(), nil, draw, S.RewindRedoGuide)
+			redo.redone = true
+			if redo.own > 0 then
+				break
+			end
+		end
 		return redo
 	end
 	return result
@@ -1075,6 +1114,96 @@ local function drawer(seed: number): () -> number
 	return function(): number
 		return V.gauss(r)
 	end
+end
+
+-- The table after `balls` came to rest, the same shooter to play on (nil: the turn cannot go
+-- on here: an open table, or the shooter's group cleared, so the 8 is next).
+local function continued(ts: TableState, balls: { any }): TableState?
+	if ts.open or ts.onEight then
+		return nil
+	end
+	local list = Ball.cloneList(balls)
+	local left = 0
+	for _, b in list do
+		Ball.stop(b)
+		if not b.pocketed and b.id ~= 0 and b.id ~= 8 and Judge.group(b.id) == ts.groups[1] then
+			left += 1
+		end
+	end
+	local cue = findBall(list, 0)
+	if left == 0 or cue == nil or cue.pocketed then
+		return nil
+	end
+	return {
+		family = ts.family,
+		index = ts.index,
+		balls = list,
+		groups = ts.groups,
+		open = false,
+		onEight = false,
+	}
+end
+
+--- A Turn ult (Portals): after `result` kept the table, play on up to V.TURN_SHOTS shots
+--- (the model's best pot each time, the same noise both ways) with the ult kept (the same
+--- pick) and without, and store the difference in result.laterOwn / laterOpp.
+function V.turnLater(
+	ts: TableState,
+	plan: Plan,
+	skill: number,
+	ultId: string,
+	result: Result,
+	draw: () -> number
+)
+	result.laterOwn, result.laterOpp = 0, 0
+	if result.own == 0 or result.foul or result.won or result.lost or result.balls == nil then
+		return
+	end
+	local start = continued(ts, result.balls :: { any })
+	if start == nil then
+		return
+	end
+	local zs = {}
+	for k = 1, V.TURN_SHOTS do
+		zs[k] = { draw(), draw() }
+	end
+	local extra = V.seedOf(ts.index, skill, 77)
+	local function run(kept: boolean): (number, number)
+		local cur: TableState? = start
+		local own, opp = 0, 0
+		for k = 1, V.TURN_SHOTS do
+			if cur == nil then
+				break
+			end
+			local next = V.shots(cur, 1)[1]
+			if next == nil or next.safe then
+				break
+			end
+			local shot = table.clone(next)
+			if kept then
+				shot.pick, shot.request = plan.pick, plan.request
+			end
+			local r = shoot(
+				cur,
+				shot,
+				skill,
+				zs[k][1],
+				zs[k][2],
+				if kept then ultId else nil,
+				drawer(V.seedOf(extra, k))
+			)
+			own += r.own
+			opp += r.opp
+			if r.own == 0 or r.foul or r.won or r.lost or r.balls == nil then
+				break
+			end
+			cur = continued(cur, r.balls :: { any })
+		end
+		return own, opp
+	end
+	local keptOwn, keptOpp = run(true)
+	local plainOwn, plainOpp = run(false)
+	result.laterOwn, result.laterOpp = keptOwn - plainOwn, keptOpp - plainOpp
 end
 
 type Acc = {
@@ -1123,7 +1252,8 @@ end
 
 local function add(acc: Acc, with: Result, without: Result)
 	acc.n += 1
-	local dOwn, dOpp = with.own - without.own, with.opp - without.opp
+	local dOwn = with.own + (with.laterOwn or 0) - without.own
+	local dOpp = with.opp + (with.laterOpp or 0) - without.opp
 	local dNet = dOwn - dOpp
 	acc.dOwn += dOwn
 	acc.dOwn2 += dOwn * dOwn
@@ -1343,7 +1473,7 @@ function V.measure(ultId: string, options: Options?): Report
 				if inert then
 					return plainResult
 				end
-				return V.play(ts, plan, s, z1, z2, ultId, drawer(measuredDraws))
+				return V.play(ts, plan, s, z1, z2, ultId, drawer(measuredDraws), true)
 			end
 
 			if wantCareless then

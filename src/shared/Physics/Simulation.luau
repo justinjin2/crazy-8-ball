@@ -885,14 +885,15 @@ type Hit = {
 
 -- `skip`, when given, holds balls that sit this search out entirely (see Simulation.step).
 -- `ghost` (ball id -> true) takes balls out of every contact while they still move (an
--- effect dragging them); `phase` (ball id -> true) are the balls the cue ball passes through.
+-- effect dragging them); `passes` (ball id -> the ids it passes through, either way round) are
+-- the pairs that never touch (Ghost).
 local function findEarliestHit(
 	state: State,
 	maxT: number,
 	skip: { [Ball]: boolean }?,
 	anyAir: boolean,
 	ghost: { [number]: boolean }?,
-	phase: { [number]: boolean }?
+	passes: { [number]: { [number]: boolean } }?
 ): Hit?
 	local R = Config.Balls.RadiusInches
 	local geometry = state.geometry
@@ -935,8 +936,11 @@ local function findEarliestHit(
 			if b.pocketed or (skip and skip[b]) or (ghost and ghost[b.id]) then
 				continue
 			end
-			if phase and ((a.id == 0 and phase[b.id]) or (b.id == 0 and phase[a.id])) then
-				continue
+			if passes then
+				local pa, pb = passes[a.id], passes[b.id]
+				if (pa and pa[b.id]) or (pb and pb[a.id]) then
+					continue
+				end
 			end
 			if not moving and b.vx == 0 and b.vy == 0 and not anyAir then
 				continue
@@ -1167,12 +1171,30 @@ local function advance(
 	local ghost: { [number]: boolean }? = if state.fx and next(state.fx.ghost or {}) ~= nil
 		then state.fx.ghost
 		else nil
-	local phase: { [number]: boolean }? = nil
+	-- The pairs that pass through each other: the cue ball's (overrides.PhaseCue) and any an
+	-- effect adds mid-shot (State.fx.passes, ball id -> the ids it passes through). Only sets
+	-- are built here, so the order they are walked in never matters.
+	local passes: { [number]: { [number]: boolean } }? = nil
 	if overrides and overrides.PhaseCue and #overrides.PhaseCue > 0 then
-		phase = {}
+		local cue = {}
 		for _, id in overrides.PhaseCue do
-			(phase :: any)[id] = true
+			cue[id] = true
 		end
+		passes = { [0] = cue }
+	end
+	local extra = if state.fx then state.fx.passes else nil
+	if extra and next(extra) ~= nil then
+		local merged: { [number]: { [number]: boolean } } = if passes
+			then table.clone(passes)
+			else {}
+		for id, set in extra do
+			local into = if merged[id] then table.clone(merged[id]) else {}
+			for other in set do
+				into[other] = true
+			end
+			merged[id] = into
+		end
+		passes = merged
 	end
 	local materials: { [number]: BallMaterial }? = if state.fx then state.fx.material else nil
 	-- Soft contact never takes a ghost ball in (it is out of every contact).
@@ -1200,7 +1222,7 @@ local function advance(
 				break
 			end
 		end
-		local hit = findEarliestHit(state, window, skip, anyAir, ghost, phase)
+		local hit = findEarliestHit(state, window, skip, anyAir, ghost, passes)
 		local advanceBy = if hit then hit.t else window
 
 		-- The cue ball's own cloth frictions, while its material lasts; an effect's ball
@@ -1261,11 +1283,11 @@ local function advance(
 			then
 				soft = Cluster.gather(state.balls, hit.a, b, state.geometry, clusterSkip, flyer)
 			end
-			-- While the cue ball passes through balls (Ghost), its contacts are always pairwise:
-			-- a soft group could otherwise take in a ball it is passing through.
-			if soft and phase then
+			-- While a ball passes through others (Ghost), its contacts are always pairwise: a
+			-- soft group could otherwise take in a ball it is passing through.
+			if soft and passes then
 				for _, m in soft do
-					if m.id == 0 then
+					if passes[m.id] then
 						soft = nil
 						break
 					end

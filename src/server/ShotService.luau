@@ -62,7 +62,7 @@ function Service.start()
 			-- The shooter's root goes to the exact spot they shot from before anyone sees the
 			-- shot, so its ShotSpot is there by the time their stroke hands over to idle. A
 			-- second strike in stopped time leaves the body where it is.
-			if not result.parts or not result.parts.strike then
+			if not result.parts or not result.parts.strikes then
 				Tables.shotAccepted(
 					t,
 					player.UserId,

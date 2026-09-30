@@ -7,7 +7,7 @@
 --   anyway). No contact at all: nothing happens.
 -- * The cut: every object ball on the cloth within Config.Ults.GuangdongTiger.RadiusInches
 --   (the shooter's) or RadiusInches x OpponentFactor (the opponent's, 5.7), the closest first,
---   at most MaxOwnPerUse of the shooter's and MaxOppPerUse of the opponent's, leaves the table
+--   at most MaxOwn of the shooter's and MaxOpp of the opponent's, leaves the table
 --   at once (Simulation.Ops.remove: a `removed` event ShotJudge counts as a pot for its owner).
 --   Never the cue ball; the 8 only on the shooter's legal 8 shot (it is in overrides.Targets).
 -- * The moment slows (a `slow` event: SlowShotSeconds of play over SlowSeconds more), then the
@@ -103,12 +103,12 @@ local function cut(state: any, events: { any }, ops: any, x: number, y: number)
 	for _, item in list do
 		local b = item.ball
 		if item.factor >= 1 then
-			if own >= S.MaxOwnPerUse then
+			if own >= Config.Ults.GuangdongTiger.MaxOwn then
 				continue
 			end
 			own += 1
 		else
-			if opp >= S.MaxOppPerUse then
+			if opp >= Config.Ults.GuangdongTiger.MaxOpp then
 				continue
 			end
 			opp += 1

@@ -76,7 +76,8 @@ type TableFx = {
 	burstFrom: number, -- the bubble's size (studs) as it burst
 	centre: Vector3?, -- the frozen cue ball (the clock's middle)
 	nextTick: number,
-	struck: boolean, -- the second strike has begun in the replay
+	struck: number, -- how many strikes in stopped time have begun in the replay
+	handFrom: number?, -- os.clock() the clock hand's current sweep began (the freeze, then each strike's end)
 	resumed: boolean,
 	quiet: boolean, -- caught up late: no screen or sounds for this shot
 }
@@ -181,7 +182,7 @@ local function create(self: TimeStopFx, id: number): TableFx
 		burstFrom = 0,
 		centre = nil,
 		nextTick = 0,
-		struck = false,
+		struck = 0,
 		resumed = false,
 		quiet = false,
 	}
@@ -409,6 +410,10 @@ function TimeStopFx.start(hub: any, _parent: Instance, kit: any): TimeStopFx
 		elseif ev.type == "ult" and ev.kind == "freeze" and fx.frozeAt == nil then
 			fx.quiet = fx.quiet or late
 			freeze(self, tableId, fx, m)
+			fx.handFrom = fx.frozeAt
+		elseif ev.type == "ult" and ev.kind == "strikeFrozen" and fx.frozeAt then
+			-- A strike's part is done: the hand sweeps the next window from the top.
+			fx.handFrom = os.clock()
 		end
 	end)
 	task.spawn(function()
@@ -478,7 +483,7 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 			-- A new Time Stop shot: a replay that began long ago (a late join) stays quiet.
 			live.shotSeq = m.seq
 			live.contactAt, live.frozeAt, live.resumedAt = nil, nil, nil
-			live.struck, live.resumed = false, false
+			live.struck, live.resumed, live.handFrom = 0, false, nil
 			live.quiet = m.state.time > F.FreshSeconds
 			releaseScreen(live)
 			dropGhosts(live)
@@ -487,8 +492,8 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 		local mshot = m.shot
 		-- The second strike begins, and the resume, as the replay applies them.
 		if shot and mshot and mshot.applied then
-			if mshot.applied.strike and not live.struck then
-				live.struck = true
+			if mshot.applied.strikes > live.struck then
+				live.struck = mshot.applied.strikes
 				startTrail(self, id, live)
 				if not live.quiet and live.centre then
 					playAt(self, id, A.TimeTickTock, live.centre)
@@ -585,7 +590,11 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 					local length = base.Z * scale
 					local turn = -2
 						* math.pi
-						* math.clamp((t - live.frozeAt :: number) / S.FrozenSeconds, 0, 1)
+						* math.clamp(
+							(t - (live.handFrom or live.frozeAt) :: number) / S.FrozenSeconds,
+							0,
+							1
+						)
 					hand.CFrame = CFrame.new(centre + lift + Vector3.yAxis * 0.01)
 						* CFrame.Angles(0, turn, 0)
 						* CFrame.new(0, 0, length * F.HandCentreShare)

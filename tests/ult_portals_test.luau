@@ -236,4 +236,31 @@ function tests.the_replay_matches_the_settle()
 	check(used >= 2, "some went through a portal: " .. used)
 end
 
+function tests.your_ball_comes_out_turned_toward_a_pocket()
+	-- The 1 rolls into A heading +x and comes out of B (20, 10) still heading +x; the
+	-- top-right corner is about 27 degrees to the left of that: yours is turned toward it by
+	-- the cap (ExitSteerTan), the opponent's (and a ball of nobody's) not at all.
+	local function exitAngle(targets: { number }, opp: { number }): number
+		local sim = Simulation.newState(geometry, table_({ { 0, -40, -20 }, { 1, -30, 0 } }))
+		Simulation.armEffect(
+			sim,
+			"Portals",
+			targets,
+			nil,
+			{ OppTargets = opp, Pick = { -20, 0, 20, 10 } }
+		)
+		rolling(sim.balls[2], 60, 0)
+		run(sim, function(events)
+			return #ultEvents(events, "exit") > 0
+		end)
+		local b = sim.balls[2]
+		return math.deg(math.atan2(b.vy, b.vx))
+	end
+	local cap = math.deg(math.atan(P.ExitSteerTan))
+	local mine = exitAngle({ 1 }, {})
+	check(math.abs(mine - cap) < 0.5, ("yours turned %.2f degrees (cap %.2f)"):format(mine, cap))
+	check(math.abs(exitAngle({}, { 1 })) < 1e-9, "the opponent's comes out as it went in")
+	check(math.abs(exitAngle({}, {})) < 1e-9, "a ball of nobody's too")
+end
+
 return tests

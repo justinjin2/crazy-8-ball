@@ -177,7 +177,10 @@ function tests.the_chain_never_touches_the_cue_ball_or_the_8_and_takes_at_most_t
 			check(ev.value == 1, "yours at full")
 		end
 	end
-	check(theirs <= S.MaxOppPerUse, "at most " .. S.MaxOppPerUse .. " of theirs")
+	check(
+		theirs <= Config.Ults.ChainLightning.MaxOpp,
+		"at most " .. Config.Ults.ChainLightning.MaxOpp .. " of theirs"
+	)
 	check(#links <= C.Links, "at most Links jumps")
 end
 

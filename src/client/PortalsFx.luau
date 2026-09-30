@@ -8,7 +8,8 @@
 --
 --   * Where the portals are: the shooter's own spots while placing them in the pick view
 --     (UltPick.onPortals; a pair the server would refuse turns the rims red), then for everyone
---     the confirmed pick (the snapshot's armed.pick), then the shot's own Pick while it plays.
+--     the confirmed pick (the snapshot's armed.pick), then the shot's own Pick while it plays,
+--     and kept open between the shots of the rest of the shooter's turn (ults.kept).
 --   * Each portal: a ragged glowing rim (A cyan, B violet-blue, turning opposite ways) round a
 --     thin white-hot ring, a dark swirl turning inside, sparkles streaming in, a soft light on
 --     the cloth and a warbling hum. They open with a spiral in, and collapse back the same way
@@ -248,7 +249,8 @@ local function playAt(self: PortalsFx, id: number, clip: any, at: Vector3, opts:
 end
 
 -- The two spots to draw at this table now (inches): the shooter's own while placing, the
--- confirmed pick while armed, the shot's Pick while it plays. Also whether the pair is refused.
+-- confirmed pick while armed or kept for the turn, the shot's Pick while it plays. Also whether
+-- the pair is refused.
 local function wantedSpots(self: PortalsFx, id: number, m: any): ({ { number } }?, boolean, boolean)
 	local kit = self.kit
 	if kit.isShotOf(m, EFFECT) then
@@ -272,6 +274,20 @@ local function wantedSpots(self: PortalsFx, id: number, m: any): ({ { number } }
 	end
 	if armed and not m:isBusy() and type(armed.pick) == "table" and #armed.pick >= 4 then
 		local p = armed.pick
+		return { { p[1], p[2] }, { p[3], p[4] } }, false, false
+	end
+	-- Kept open for the rest of the shooter's turn (the snapshot's ults.kept).
+	local snapshot = self.hub.snapshots[id]
+	local ults = if type(snapshot) == "table" then snapshot.ults else nil
+	local kept = if type(ults) == "table" then ults.kept else nil
+	if
+		type(kept) == "table"
+		and kept.id == "Portals"
+		and not m:isBusy()
+		and type(kept.pick) == "table"
+		and #kept.pick >= 4
+	then
+		local p = kept.pick
 		return { { p[1], p[2] }, { p[3], p[4] } }, false, false
 	end
 	return nil, false, false

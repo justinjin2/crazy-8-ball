@@ -22,6 +22,7 @@ type Row = {
 	Pick: string?,
 	Area: boolean?,
 	Redo: boolean?,
+	Turn: boolean?,
 }
 local ROWS: { [string]: Row } = U.Catalog :: any
 local NAMES: { [string]: string } = Strings.Ults.Names :: any
@@ -39,8 +40,10 @@ export type Ult = {
 	-- An area ability (the skill rule, ABILITIES_PROMPT 5.7): it also acts on the opponent's
 	-- balls, at Config.Ults.Shared.OpponentFactor, and shows its reach while aiming.
 	Area: boolean?,
-	-- Rewind (7.6): a shot that drops none of the shooter's balls is undone for one redo.
+	-- Rewind (7.6): a shot that drops none of the shooter's balls is undone and redone.
 	Redo: boolean?,
+	-- Portals (7.9): it acts on every shot of the rest of the shooter's turn too.
+	Turn: boolean?,
 }
 
 local Catalog = {}
@@ -80,6 +83,7 @@ function Catalog.get(id: any): Ult?
 		Pick = row.Pick,
 		Area = row.Area == true,
 		Redo = row.Redo == true,
+		Turn = row.Turn == true,
 	}
 end
 

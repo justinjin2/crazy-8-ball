@@ -164,8 +164,8 @@ function tests.the_caps_hold_closest_first()
 			theirs += 1
 		end
 	end
-	check(mine == S.MaxOwnPerUse, "yours: " .. mine)
-	check(theirs == S.MaxOppPerUse, "theirs: " .. theirs)
+	check(mine == Config.Ults.BlackHole.MaxOwn, "yours: " .. mine)
+	check(theirs == Config.Ults.BlackHole.MaxOpp, "theirs: " .. theirs)
 end
 
 function tests.every_caught_ball_is_swallowed_and_the_cue_ball_never_scratches_for_it()

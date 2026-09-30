@@ -96,7 +96,7 @@ export type Match = typeof(setmetatable(
 			-- Time Stop's later parts as the server sends them (`parts` of the shot), and which
 			-- of them this replay has already begun.
 			parts: any?,
-			applied: { strike: boolean, resume: boolean },
+			applied: { strikes: number, resume: boolean },
 			-- Rewind (7.6): the server says this try will be undone, so its frames are kept.
 			rewind: boolean,
 			-- The ult this shot is (the server's tag: its id), and where the cue ball stood as
@@ -513,7 +513,7 @@ function Match.replay(
 		slows = {},
 		finished = false,
 		parts = nil,
-		applied = { strike = false, resume = false },
+		applied = { strikes = 0, resume = false },
 		rewind = false,
 	}
 end
@@ -635,12 +635,13 @@ function Match.update(self: Match, dt: number): boolean
 	end
 	local P = Config.Physics
 	-- A halted shot (Time Stop's freeze) waits here, every ball holding its motion, until the
-	-- server sends the shot's next part: the second strike, then the resume.
+	-- server sends the shot's next part: each strike in stopped time, then the resume.
 	if self.state.halted then
 		local parts, applied = shot.parts, shot.applied
-		if parts and parts.strike and not applied.strike and TimeStop.isFrozen(self.state) then
-			applied.strike = true
-			TimeStop.beginStrike(self.state, parts.strike.seed)
+		local strikes = parts and parts.strikes
+		if strikes and applied.strikes < #strikes and TimeStop.isFrozen(self.state) then
+			applied.strikes += 1
+			TimeStop.beginStrike(self.state, strikes[applied.strikes].seed)
 		elseif parts and parts.resume and not applied.resume then
 			applied.resume = true
 			TimeStop.resume(self.state)

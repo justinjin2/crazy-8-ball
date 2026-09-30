@@ -207,4 +207,83 @@ function tests.the_replay_matches_the_settle()
 	check(compared >= 10, "enough shots compared: " .. compared)
 end
 
+function tests.after_the_first_contact_the_hit_ball_passes_through_theirs()
+	-- The 1 is hit straight at the 9 (theirs): it passes through (no contact, the 9 never
+	-- moves), and from the contact the cue ball passes through every ball.
+	local balls =
+		{ Ball.new(0, -30, 0), Ball.new(1, -20, 0), Ball.new(9, -5, 0), Ball.new(2, 10, 0) }
+	local sim = Simulation.newState(geometry, Ball.cloneList(balls))
+	Simulation.strike(sim, assert(ShotInput.validate({ angle = 0, power = 0.4 }, nil), "a shot"))
+	Simulation.armEffect(sim, "Ghost", { 1, 2 }, nil, { PhaseCue = { 8, 9 } })
+	ShotInput.quantiseSeed(assert(Simulation.findBall(sim, 0), "a cue ball"))
+	local events = {}
+	local checked = false
+	for _ = 1, 20000 do
+		if Simulation.isAtRest(sim) then
+			break
+		end
+		Simulation.step(sim, Config.Physics.FixedStep, events)
+		if not checked and sim.fx.touched then
+			checked = true
+			check(sim.fx.touched == 1, "the 1 was the first ball hit")
+			local cue, one = sim.fx.passes[0], sim.fx.passes[1]
+			check(cue[2] == true and cue[9] == true, "the cue ball: every ball")
+			check(one[9] == true and one[2] == nil, "the 1: only what the cue ball passed")
+		end
+	end
+	check(checked, "a contact")
+	for _, ev in events do
+		if ev.type == "ballHit" then
+			local pair = { ev.ball, ev.other }
+			check(not (table.find(pair, 1) and table.find(pair, 9)), "the 1 never touches the 9")
+		end
+	end
+	local nine = assert(Simulation.findBall(sim, 9), "the 9")
+	check(nine.x == -5 and nine.y == 0, "the 9 never moved")
+end
+
+function tests.the_ghostly_pull_drops_more_of_the_balls_it_hits()
+	-- The same random shots with the pull on and off: the ball hit first drops more often.
+	local G = Config.Ults.Ghost
+	local was = G.PullFactor
+	local states = V.states(40, 31)
+	local r = V.rng(5)
+	local shots = {}
+	for _ in states do
+		table.insert(
+			shots,
+			{ angle = V.uniform(r) * 2 * math.pi, power = 0.3 + V.uniform(r) * 0.5 }
+		)
+	end
+	local function drops(factor: number): number
+		G.PullFactor = factor
+		local n = 0
+		for i, ts in states do
+			local own, extra = arming(ts)
+			local _, outcome = shoot(ts.balls, shots[i], own, extra)
+			local hit = nil
+			for _, ev in outcome.events do
+				if hit == nil and ev.type == "ballHit" and (ev.ball == 0 or ev.other == 0) then
+					hit = if ev.ball == 0 then ev.other else ev.ball
+				elseif hit and ev.type == "pocket" and ev.ball == hit and table.find(own, hit) then
+					n += 1
+				end
+			end
+		end
+		return n
+	end
+	local ok, off, on = pcall(function()
+		return drops(0), drops(1)
+	end)
+	G.PullFactor = was
+	check(ok, tostring(off))
+	print(
+		("        the ball hit first dropped %d of 40 times without the pull, %d with"):format(
+			off,
+			on
+		)
+	)
+	check(on > off, "the pull drops more")
+end
+
 return tests

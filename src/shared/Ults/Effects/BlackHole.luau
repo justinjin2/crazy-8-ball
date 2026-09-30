@@ -8,7 +8,7 @@
 --   contact at all: nothing happens.
 -- * The catch: while it is open, every object ball on the cloth within RadiusInches (the
 --   shooter's) or RadiusInches x OpponentFactor (the opponent's, 5.7), the closest first, at
---   most MaxOwnPerUse of the shooter's and MaxOppPerUse of the opponent's. Never the cue ball;
+--   most MaxOwn of the shooter's and MaxOpp of the opponent's. Never the cue ball;
 --   the 8 only on the shooter's legal 8 shot (it is in overrides.Targets then).
 -- * The drag: each caught ball is taken out of every contact (state.fx.ghost) and, before each
 --   step, sent straight at the hole at StartSpeed + PullAccel x (time since caught), at most
@@ -145,7 +145,7 @@ local function catch(state: any, events: { any }, ops: any, hole: Hole)
 			opp += 1
 		end
 	end
-	if own >= S.MaxOwnPerUse and opp >= S.MaxOppPerUse then
+	if own >= Config.Ults.BlackHole.MaxOwn and opp >= Config.Ults.BlackHole.MaxOpp then
 		return
 	end
 	local list: { { ball: any, d2: number, factor: number } } = {}
@@ -178,12 +178,12 @@ local function catch(state: any, events: { any }, ops: any, hole: Hole)
 	for _, item in list do
 		local b = item.ball
 		if item.factor >= 1 then
-			if own >= S.MaxOwnPerUse then
+			if own >= Config.Ults.BlackHole.MaxOwn then
 				continue
 			end
 			own += 1
 		else
-			if opp >= S.MaxOppPerUse then
+			if opp >= Config.Ults.BlackHole.MaxOpp then
 				continue
 			end
 			opp += 1

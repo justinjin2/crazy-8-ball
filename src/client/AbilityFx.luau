@@ -598,8 +598,26 @@ local function stepAiming(self: AbilityFx, shot: AimShot?)
 		local armed = armedOf(self.hub.snapshots[seat])
 		local m = self.hub:matchFor(seat)
 		local entry = armed and self.lookById[armed.id]
-		if armed and entry and m and armed.by == Players.LocalPlayer.UserId then
+		local me = Players.LocalPlayer.UserId
+		local snapshot = self.hub.snapshots[seat]
+		local guide = self.lookById.EaglesEye
+		if armed and entry and m and armed.by == me then
 			now = { entry = entry, tableId = seat, armed = armed, match = m }
+		elseif
+			Config.Ults.Shared.RewindRedoGuide
+			and guide
+			and m
+			and snapshot
+			and snapshot.redoClock == true
+			and snapshot.shooter == me
+		then
+			-- Rewind's redo (7.6): the shooter aims with Eagle's Eye's full-path guide.
+			now = {
+				entry = guide,
+				tableId = seat,
+				armed = { id = "EaglesEye", by = me } :: any,
+				match = m,
+			}
 		end
 	end
 	local last = self.aiming

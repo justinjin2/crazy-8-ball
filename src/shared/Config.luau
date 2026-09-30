@@ -2229,63 +2229,84 @@ Config.Ults = {
 		"BlackHole",
 		"GuangdongTiger",
 	},
+	-- Worth: the careful shooter's measured net balls a use (extra own balls minus the
+	-- opponent's gifted), the mean of skills 1/2/3 (tools/ult_value.luau, 120 tables, the step
+	-- 16 balance pass, 2026-09-29; every number in tools/ult_value_results.json). The GDD's
+	-- rough targets (0.33 / 0.5 / 1 / 1.5 / 2.2 / 2.6) are out of reach inside the reach and
+	-- ball caps (5.3: report the measured value); the ladder holds on each rarity's mean:
+	-- Common 0.37, Uncommon 0.44, Rare 0.50, Epic 0.69, Legendary 1.15, Mythic 1.31.
 	Catalog = {
-		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.33, Area = true },
-		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.33 },
+		-- +0.38 / +0.54 / +0.44 (careless +0.37 / +0.56 / +0.52).
+		Magnet = { Rarity = "Common", Built = true, Effect = "Magnet", Worth = 0.46, Area = true },
+		-- +0.14 / +0.38 / +0.48.
+		EaglesEye = { Rarity = "Common", Built = true, Effect = "EaglesEye", Worth = 0.34 },
+		-- +0.27 / +0.39 / +0.32.
 		SuperBounce = { Rarity = "Common", Built = true, Effect = "SuperBounce", Worth = 0.33 },
-		Ghost = { Rarity = "Uncommon", Built = true, Effect = "Ghost", Worth = 0.5 },
+		-- +0.39 / +0.56 / +0.46 with the ghostly pull (about 0 without it).
+		Ghost = { Rarity = "Uncommon", Built = true, Effect = "Ghost", Worth = 0.47 },
+		-- +0.36 / +0.41 / +0.43 (30 degrees of cut correction).
 		HeatSeeker = {
 			Rarity = "Uncommon",
 			Built = true,
 			Effect = "HeatSeeker",
-			Worth = 0.5,
+			Worth = 0.4,
 			Pick = "OwnBall",
 		},
-		Rewind = { Rarity = "Rare", Built = true, Worth = 1, Redo = true },
-		TimeStop = { Rarity = "Rare", Built = true, Effect = "TimeStop", Worth = 1 },
+		-- +0.36 / +0.58 / +0.65 (two redos, each with the full-path guide).
+		Rewind = { Rarity = "Rare", Built = true, Worth = 0.53, Redo = true },
+		-- +0.65 / +0.42 / +0.34 (three strikes in stopped time).
+		TimeStop = { Rarity = "Rare", Built = true, Effect = "TimeStop", Worth = 0.47 },
+		-- +0.97 / +0.98 / +0.94 (careless +0.78 / +0.72 / +0.76; three jumps).
 		ChainLightning = {
 			Rarity = "Epic",
 			Built = true,
 			Effect = "ChainLightning",
-			Worth = 1.5,
+			Worth = 0.96,
 			Area = true,
 		},
+		-- +0.37 / +0.52 / +0.38, whole turn included: a low bound (the model shooter does not
+		-- reuse the kept portals as a player will; the designer keeps it, flagged, 2026-09-29).
 		Portals = {
 			Rarity = "Epic",
 			Built = true,
 			Effect = "Portals",
-			Worth = 1.5,
+			Worth = 0.42,
 			Pick = "Portals",
+			Turn = true,
 		},
+		-- +1.00 / +1.11 / +1.18.
 		SteelBall = {
 			Rarity = "Legendary",
 			Built = true,
 			Effect = "SteelBall",
-			Worth = 2.2,
+			Worth = 1.09,
 			MaxBalls = 3,
 		},
+		-- +1.11 / +1.25 / +1.26 (careless +0.85 / +1.00 / +1.08; 4 of yours at most).
 		BlackFlash = {
 			Rarity = "Legendary",
 			Built = true,
 			Effect = "BlackFlash",
-			Worth = 2.2,
-			MaxBalls = 3,
+			Worth = 1.21,
+			MaxBalls = 4,
 			Area = true,
 		},
+		-- +1.21 / +1.36 / +1.39 (careless +0.93 / +1.08 / +1.15; 4 of yours, 1 of theirs).
 		BlackHole = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "BlackHole",
-			Worth = 2.6,
-			MaxBalls = 3,
+			Worth = 1.32,
+			MaxBalls = 4,
 			Area = true,
 		},
+		-- +1.22 / +1.34 / +1.34 (careless +0.93 / +1.07 / +1.14; 4 of yours, 1 of theirs).
 		GuangdongTiger = {
 			Rarity = "Mythic",
 			Built = true,
 			Effect = "GuangdongTiger",
-			Worth = 2.6,
-			MaxBalls = 3,
+			Worth = 1.3,
+			MaxBalls = 4,
 			Area = true,
 		},
 	} :: {
@@ -2301,6 +2322,9 @@ Config.Ults = {
 			Area: boolean?,
 			-- Rewind (7.6): a shot that drops none of the shooter's balls is undone and redone.
 			Redo: boolean?,
+			-- Portals (7.9): it keeps acting on every shot of the shooter's turn (the same
+			-- pick), until the turn passes or the game ends.
+			Turn: boolean?,
 		},
 	},
 	-- Rolls (section 8), in parts per million so each table adds to exactly 1,000,000. Each
@@ -2514,6 +2538,16 @@ Config.Ults.Ghost = {
 	-- A cue ball that comes to rest inside a ball it passed through is moved off it at rest,
 	-- to just clear of it (this gap, inches), the nearest free spot on the cloth first.
 	ClearGapInches = 0.05,
+	-- From the cue ball's first contact the ball it hit also passes through the balls the cue
+	-- ball did (the opponent's and the 8), so a pot they block goes in (the step 16 buff:
+	-- worth about 0 without it; the cue ball passing your own balls after the first contact
+	-- is always on).
+	CarryPhase = true,
+	-- The ball the cue ball hit (the shooter's) is pulled into a pocket it nearly misses with
+	-- this share of Magnet's strength (0: off). The designer's step 16 buff (2026-09-29):
+	-- without it Ghost measured about 0 a use; 0.5 +0.34 / +0.46 / +0.31, 1 +0.39 / +0.56 /
+	-- +0.46 (careful net, skills 1/2/3). (tune)
+	PullFactor = 1,
 }
 
 -- Heat Seeker (docs/prompts/ABILITIES_PROMPT.md 7.5; Ults/Effects/HeatSeeker): the cue ball
@@ -2543,9 +2577,9 @@ Config.Ults.HeatSeeker = {
 	-- (0.364 is 20 degrees): it improves a bad cut, never guarantees the pot. Measured
 	-- (tools/ult_value.luau, 2026-09-29, net balls a use at skills 1/2/3): 10 degrees +0.28 /
 	-- +0.23 / +0.18, 15 +0.32 / +0.31 / +0.31, 20 +0.34 / +0.34 / +0.32, 27 +0.35 / +0.38 /
-	-- +0.39 (it saturates: the misses left are not the cut's). Under the Uncommon 0.5: the
-	-- balance step's.
-	CutCorrectionTan = 0.364,
+	-- +0.39 (it saturates: the misses left are not the cut's), 30 +0.36 / +0.41 / +0.43
+	-- (the step 16 balance pass: 30 degrees, above the Commons on average). (tune)
+	CutCorrectionTan = 0.5774,
 }
 
 -- Chain Lightning (docs/prompts/ABILITIES_PROMPT.md 7.8; src/shared/Ults/Effects/ChainLightning).
@@ -2555,6 +2589,10 @@ Config.Ults.HeatSeeker = {
 -- jumps, a short push) measured +0.6: the chain reaches few of your balls on a real spread
 -- (about 0.7 a use), so the steer and the push carry most of it; the balance step (16) decides.
 Config.Ults.ChainLightning = {
+	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
+	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
+	MaxOwn = 3,
+	MaxOpp = 2,
 	-- The charged ball (the first ball hit, if yours): its heading turns toward its best
 	-- pocket by at most this angle, as its tangent (0.2679 is 15 degrees; 8 measured +0.6,
 	-- 12 +0.94, 18 +1.0), and its speed is multiplied by Boost. (tune)
@@ -2563,8 +2601,9 @@ Config.Ults.ChainLightning = {
 	-- The chain: up to Links jumps, each to the nearest ball within ReachInches (centre to
 	-- centre) of the last one struck, LinkSeconds apart. The reach is at the cap
 	-- (Config.Ults.Shared.MaxReachShare of the table; 12 in reached a ball on a third of the
-	-- jumps). Four jumps so a chain through two of theirs can still reach two of yours. (tune)
-	Links = 4,
+	-- jumps). Four jumps measured +1.08 / +1.08 / +1.12 (careful net, skills 1/2/3), too close
+	-- to the Legendaries; three +0.97 / +0.98 / +0.94 (the step 16 balance pass). (tune)
+	Links = 3,
 	ReachInches = 20,
 	LinkSeconds = 0.08,
 	-- The push on each struck ball: toward its closest pocket with a clear line in (traced
@@ -2616,6 +2655,13 @@ Config.Ults.SteelBall = {
 
 -- Black Flash (docs/prompts/ABILITIES_PROMPT.md 7.11; src/shared/Ults/Effects/BlackFlash).
 Config.Ults.BlackFlash = {
+	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
+	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
+	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours: +1.11 /
+	-- +1.25 / +1.26 careful net at skills 1/2/3 (3: +1.04 / +1.18 / +1.18); its opponent cap never
+	-- binds.
+	MaxOwn = 4,
+	MaxOpp = 2,
 	-- The blast nudges object balls within this of the shattered ball (inches), at most
 	-- Config.Ults.Shared.MaxReachShare of the table. (tune)
 	RadiusInches = 20,
@@ -2635,6 +2681,13 @@ Config.Ults.BlackFlash = {
 
 -- Black Hole (docs/prompts/ABILITIES_PROMPT.md 7.12; src/shared/Ults/Effects/BlackHole).
 Config.Ults.BlackHole = {
+	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
+	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
+	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours and 1 of
+	-- theirs: +1.21 / +1.36 / +1.39 careful net at skills 1/2/3 (3 and 2: +1.02 / +1.15 / +1.20),
+	-- a Mythic above the Legendaries.
+	MaxOwn = 4,
+	MaxOpp = 1,
 	-- It catches the shooter's balls within this of the hole (inches; the opponent's within
 	-- Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the table. (tune)
 	RadiusInches = 20,
@@ -2657,6 +2710,13 @@ Config.Ults.BlackHole = {
 
 -- Guangdong Tiger (docs/prompts/ABILITIES_PROMPT.md 7.13; src/shared/Ults/Effects/GuangdongTiger).
 Config.Ults.GuangdongTiger = {
+	-- Caps per use (5.7): at most this many of the shooter's balls and of the opponent's; the
+	-- closest go first. Per ability so the ladder can climb (the step 16 balance pass). (tune)
+	-- The step 16 balance pass (the designer's approved buff, 2026-09-29): 4 of yours and 1 of
+	-- theirs: +1.22 / +1.34 / +1.34 careful net at skills 1/2/3 (3 and 2: +1.02 / +1.13 / +1.16),
+	-- a Mythic above the Legendaries.
+	MaxOwn = 4,
+	MaxOpp = 1,
 	-- The swipe cuts the shooter's balls within this of the first contact (inches; the
 	-- opponent's within Config.Ults.Shared.OpponentFactor of it), at most MaxReachShare of the
 	-- table. (tune)
@@ -2672,10 +2732,14 @@ Config.Ults.GuangdongTiger = {
 Config.Ults.Portals = {
 	-- A ball goes in when its centre passes within this of a portal's centre (the drawn ring is
 	-- a ball width across the middle of it). (tune)
-	InnerRadiusInches = 1.2,
+	InnerRadiusInches = 2, -- 1.2 until the step 16 balance pass (2: +0.05 a use)
 	-- After coming out, a ball cannot go into a portal again until it has left the exit's inner
 	-- circle and this long has passed. (tune)
 	CooldownSeconds = 0.3,
+	-- One of the shooter's balls coming out is turned toward the pocket nearest its heading by
+	-- at most this angle's tangent (0.2679: 15 degrees, as Chain Lightning's charge; 0 off).
+	-- The step 16 buff. (tune)
+	ExitSteerTan = 0.2679,
 }
 
 -- Eagle's Eye (docs/prompts/ABILITIES_PROMPT.md 7.2; src/shared/Ults/Predict.luau): the aim's
@@ -2772,8 +2836,9 @@ Config.Ults.Shared = {
 	-- Black Hole, the Tiger) act on the opponent's balls too, at this share of the pull or push,
 	-- and within this share of the reach for the ones that remove balls. (tune)
 	OpponentFactor = 0.5,
-	-- Caps per use: at most this many of your balls and of the opponent's; when more are in
-	-- range the closest go first. (tune)
+	-- The default caps per use: at most this many of your balls and of the opponent's; when
+	-- more are in range the closest go first. Each area ability sets its own (MaxOwn, MaxOpp
+	-- in its block) since the step 16 balance pass. (tune)
 	MaxOwnPerUse = 3,
 	MaxOppPerUse = 2,
 	-- No capture or push radius is ever more than this share of the table's playing length
@@ -2802,12 +2867,21 @@ Config.Ults.Shared = {
 	-- +0.16, +0.19, +0.20 (the redo is taken on 50-82% of uses), counting only the shot, under
 	-- the Rare 1.0; the balance pass (step 16) decides the whole-turn measure.
 	RewindRedoSeconds = 10, -- (tune)
+	-- The redo's aim shows Eagle's Eye's full-path guide to its shooter (the step 16 buff: the
+	-- second chance comes with the knowledge of how the first one went).
+	RewindRedoGuide = true,
+	-- How many redos one Rewind gives: each miss rewinds again until they run out (tune).
+	RewindRedos = 2,
 	RewindSeconds = 2.4, -- the table rewinding for everyone (tune)
 	-- Time Stop (7.7): the freeze comes this long after the cue ball's first contact and lasts
 	-- this long; a second strike's part resumes this long after it freezes. (tune)
 	FreezeAfterSeconds = 1,
 	FrozenSeconds = 5,
 	ResumeAfterStrikeSeconds = 0.75,
+	-- How many strikes of the cue ball the shooter gets in stopped time (the step 16 buff: 2
+	-- measured +0.58 / +0.38 / +0.24 careful net at skills 1/2/3, 3 +0.65 / +0.42 / +0.34).
+	-- After each strike's part the clock starts again for the next one (FrozenSeconds).
+	TimeStopStrikes = 3,
 }
 
 -- Uploaded ability assets (AbilityAssets loads the models once per server, on the server,
@@ -7309,6 +7383,10 @@ Config.UI.GhostFx = {
 	-- The cue ball: this see-through (LocalTransparencyModifier, 0 solid), inside a Neon glow
 	-- GlowScale times its width at GlowTransparency, with a cold point light.
 	CueSeeThrough = 0.45,
+	-- The ball the ghost pulls (from the first contact): this see-through while it rolls, and
+	-- the little ghost eases over to it at this rate (per second; higher is snappier).
+	PulledSeeThrough = 0.3,
+	GhostFollowRate = 10,
 	GlowColor = { 120, 180, 255 }, -- (190, 222, 255) read green-white on the cloth
 	GlowScale = 1.22,
 	GlowTransparency = 0.1,

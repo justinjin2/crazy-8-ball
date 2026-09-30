@@ -12,8 +12,8 @@
 --   (ChainLightning.pushTarget; the closest pocket when none is clean), rolling NudgeShare of
 --   the way there (at most NudgeMaxInches), added to its motion as natural roll: the shooter's
 --   at full strength, the opponent's at OpponentFactor (5.7). Never the 8 or the cue ball; at
---   most MaxOwnPerUse of the shooter's (counting the shattered ball when it is theirs) and
---   MaxOppPerUse of the opponent's.
+--   most MaxOwn of the shooter's (counting the shattered ball when it is theirs) and
+--   MaxOpp of the opponent's.
 -- * The cue ball bounces straight back from the explosion, rolling BounceInches, shortened so
 --   it stops short of any pocket on its line (it never scratches because of the blast).
 -- * `ult` events for the look: "flash" (ball = the shattered ball, at its centre), "slow" (the
@@ -112,12 +112,12 @@ local function blast(state: any, events: { any }, ops: any, x: number, y: number
 	for _, item in list do
 		local b = item.ball
 		if item.factor >= 1 then
-			if own >= S.MaxOwnPerUse then
+			if own >= Config.Ults.BlackFlash.MaxOwn then
 				continue
 			end
 			own += 1
 		else
-			if opp >= S.MaxOppPerUse then
+			if opp >= Config.Ults.BlackFlash.MaxOpp then
 				continue
 			end
 			opp += 1

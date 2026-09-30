@@ -227,6 +227,7 @@ local function finish(t: any, winner: number?, reason: string, now: number, forf
 	t.shot = nil
 	t.pending = nil
 	Ults.clearArmed(t) -- an ult armed when the game ended is spent
+	Ults.clearKept(t)
 	-- A two-sided game counts in the series and offers a rematch while both sides are still
 	-- here (designer, 2026-09-28); solo keeps its short hold.
 	local rematch = false
@@ -311,6 +312,7 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 		finish(t, 3 - team, "EmptyTeam", now)
 		return
 	end
+	local before = t.activeTeam
 	t.activeTeam, t.shooter = team, s.userId
 	t.lastOrder[team] = s.order
 	t.turnId += 1
@@ -319,7 +321,9 @@ local function beginTurn(t: any, team: number, now: number, hand: boolean, skipI
 	t.placeSeq = 0 -- the shooter's placement counter; never part of the snapshot
 	t.foul = nil
 	t.redoClock = nil
+	t.redosLeft = nil
 	Ults.clearArmed(t) -- an armed ult never outlives its shooter's turn
+	Ults.turnBegan(t, team == before) -- a kept Turn ult (Portals) only while its shooter keeps it
 	if hand then
 		local x, y = Placement.fallback(t.state, 0, t.breakShot)
 		Placement.set(t.state, 0, x, y)
@@ -444,7 +448,8 @@ end
 
 -- Rewind (7.6): the table goes back to exactly before the shot (every ball, ball in hand,
 -- groups, the call) for everyone to watch rewind, then the same shooter shoots again on a
--- RewindRedoSeconds clock. The redo is a plain shot.
+-- RewindRedoSeconds clock. The redo is a plain shot that rewinds again the same way while
+-- redos are left (Shared.RewindRedos a Rewind).
 local function rewindTo(t: any, redo: any, now: number)
 	t.state.balls = Ball.cloneList(redo.balls)
 	t.state.time = 0
@@ -458,6 +463,7 @@ local function rewindTo(t: any, redo: any, now: number)
 	t.breakShot = redo.breakShot
 	t.foul = nil
 	t.redoClock = true
+	t.redosLeft = redo.left - 1
 	t.rewound = { at = now, seq = t.shotSeq }
 	phase(t, "Rewinding", now, S.RewindSeconds)
 end
@@ -1197,10 +1203,16 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	t.brokeAt = t.brokeAt or now
 	local tag = Ults.shotTag(t)
 	-- Rewind (7.6): the exact table before this shot, to go back to if none of the shooter's
-	-- balls drop.
+	-- balls drop: the Rewind shot itself, then each redo while redos are left.
 	local row = if tag then Catalog.get(tag.id) else nil
 	local redo = nil
+	local left = nil
 	if row and row.Built and row.Redo then
+		left = S.RewindRedos
+	elseif t.redoClock and (t.redosLeft or 0) > 0 then
+		left = t.redosLeft
+	end
+	if left then
 		local own = Arming.targets(t.groups, t.activeTeam, t.calledPocket, before)
 		redo = {
 			balls = Ball.cloneList(before),
@@ -1209,6 +1221,7 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 			calledPocket = t.calledPocket,
 			breakShot = t.breakShot,
 			own = own,
+			left = left,
 		}
 	end
 	t.state.balls = before
@@ -1243,7 +1256,6 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 				before = before,
 				events = outcome.events,
 				freezeAt = now + outcome.duration + extra,
-				struck = false,
 			},
 		}
 		phase(t, "Frozen", now, outcome.duration + extra + S.FrozenSeconds)
@@ -1253,15 +1265,17 @@ function Engine.acceptShot(t: any, userId: number, payload: any, now: number): (
 	return t.shot, nil
 end
 
--- The shooter's second strike in stopped time (Time Stop, 7.7), through the same ShotFired
--- as any shot: only while frozen, once, after the replay has reached the freeze. The cue ball
--- alone moves until it touches something (Ults/Effects/TimeStop), then time resumes
--- Shared.ResumeAfterStrikeSeconds after that part ends.
+-- The shooter's strikes in stopped time (Time Stop, 7.7), through the same ShotFired as any
+-- shot: only while frozen, up to Shared.TimeStopStrikes, each after the replay has reached the
+-- freeze (or the last strike's end). The cue ball alone moves until it touches something
+-- (Ults/Effects/TimeStop); then, with a strike left and the cue ball still up, a fresh
+-- FrozenSeconds for the next, otherwise time resumes Shared.ResumeAfterStrikeSeconds after
+-- that part ends. Each strike's part goes to the clients in order (shot.parts.strikes).
 function strikeFrozen(t: any, userId: number, payload: any, now: number): (any?, string?)
 	local frozen = t.pending and t.pending.frozen
 	if userId ~= t.shooter then
 		return nil, "NotShooter"
-	elseif not frozen or frozen.struck then
+	elseif not frozen or not TimeStop.isFrozen(frozen.sim) then
 		return nil, "NotFrozen"
 	end
 	if now < frozen.freezeAt then
@@ -1293,11 +1307,17 @@ function strikeFrozen(t: any, userId: number, payload: any, now: number): (any?,
 	if part.capped then
 		return nil, "SimulationLimit"
 	end
-	frozen.struck = true
 	local length = sim.time - from
 	t.shot.parts = t.shot.parts or {}
-	t.shot.parts.strike = { seed = seed, startedAt = now, duration = length }
-	phase(t, "Frozen", now, length + S.ResumeAfterStrikeSeconds)
+	t.shot.parts.strikes = t.shot.parts.strikes or {}
+	table.insert(t.shot.parts.strikes, { seed = seed, startedAt = now, duration = length })
+	local after = Simulation.findBall(sim, 0)
+	if TimeStop.isFrozen(sim) and after and not after.pocketed then
+		frozen.freezeAt = now + length
+		phase(t, "Frozen", now, length + S.FrozenSeconds)
+	else
+		phase(t, "Frozen", now, length + S.ResumeAfterStrikeSeconds)
+	end
 	return t.shot, nil
 end
 

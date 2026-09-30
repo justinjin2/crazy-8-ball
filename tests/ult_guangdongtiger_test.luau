@@ -163,8 +163,8 @@ function tests.the_caps_hold_closest_first()
 			theirs += 1
 		end
 	end
-	check(mine == S.MaxOwnPerUse, "yours: " .. mine)
-	check(theirs == S.MaxOppPerUse, "theirs: " .. theirs)
+	check(mine == Config.Ults.GuangdongTiger.MaxOwn, "yours: " .. mine)
+	check(theirs == Config.Ults.GuangdongTiger.MaxOpp, "theirs: " .. theirs)
 end
 
 function tests.the_cut_is_at_once_and_the_moment_slows()

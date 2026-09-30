@@ -217,9 +217,10 @@ local function callPending(): boolean
 end
 -- The shot is this player's to take and not taken yet: their turn in an aiming phase, no shot
 -- sent, the balls still. (A modal or a pocket still to call can hold it up: canShoot.)
--- Time Stop (7.7): the shooter's second strike in stopped time. Their replay has reached the
--- freeze, it is still frozen, and no strike has gone from them yet: they aim and shoot the cue
--- ball from where it stopped, any ball a fair target.
+-- Time Stop (7.7): the shooter's strikes in stopped time. Their replay has reached the freeze
+-- (or the last strike's end), it is still frozen with a strike left, and no strike of theirs is
+-- still on its way: they aim and shoot the cue ball from where it stopped, any ball a fair
+-- target.
 local function frozenTurn(): boolean
 	if not shooter() or awaitingAt or not match or snapshot.phase ~= "Frozen" then
 		return false
@@ -231,8 +232,10 @@ local function frozenTurn(): boolean
 	if cue == nil or cue.pocketed then
 		return false -- frozen dropping into a pocket: the server takes no strike ("NoCueBall")
 	end
+	-- Every strike the server has taken is already in the replay (none still on its way).
 	local shot = match.shot
-	return not (shot and shot.parts and shot.parts.strike)
+	local sent = shot and shot.parts and shot.parts.strikes
+	return sent == nil or #sent <= (shot :: any).applied.strikes
 end
 local function aimTurn(): boolean
 	if frozenTurn() then

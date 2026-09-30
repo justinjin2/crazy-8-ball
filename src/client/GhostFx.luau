@@ -10,7 +10,9 @@
 --   * The Ghost shot: the same, and while the cue ball moves, wisps and a pale trail stream
 --     behind it. Every ball it passes through (the shot's PhaseCue balls, checked along the
 --     cue ball's path each frame) flickers, a ripple spreads round it on the cloth, and a
---     whoosh plays there.
+--     whoosh plays there. From the cue ball's first contact (the replay's fx.touched) the
+--     little ghost flies to the ball it hit and circles it, that ball a little see-through,
+--     while it is pulled toward a pocket (the physics' ghostly pull), then back to the cue ball.
 --   * After it: everything fades out.
 -- Everyone at the table sees and hears it. Each table's parts hang off its AbilityFx anchor and
 -- go with it (kit.onRelease) or with clear(). Without the model (not loaded yet, or failed) the
@@ -77,6 +79,8 @@ type TableFx = {
 	lastTime: number, -- the replay's shot time last frame
 	inside: { [number]: true? }, -- phased balls the cue ball is passing through now
 	shotSeq: number,
+	ghostAt: Vector3?, -- where the little ghost circles now (eased toward its ball)
+	pulled: BasePart?, -- the ball it is pulling now (faded a little)
 }
 
 type Meshes = { parts: { [string]: MeshPart }, sizes: { [string]: Vector3 } }
@@ -322,7 +326,8 @@ local function stepFlickers(self: GhostFx, id: number, fx: TableFx, t: number)
 	end
 end
 
--- The little ghost round the cue ball at `centre`: popping out, circling and bobbing.
+-- The little ghost round `centre` (the cue ball, or the ball it pulls): popping out,
+-- circling and bobbing.
 local function placeGhost(self: GhostFx, fx: TableFx, centre: Vector3, dt: number, t: number)
 	if fx.look <= 0.001 then
 		if fx.ghost then
@@ -577,11 +582,30 @@ function GhostFx.update(self: GhostFx, dt: number)
 			end
 		end
 		live.wisp = approach(live.wisp, if moving then 1 else 0, dt, F.WispGrowSeconds)
+		-- The ball the ghost pulls: the first ball hit, while it is still on the cloth.
+		local pulled: BasePart? = nil
+		local touched = if shot and m.state.fx then m.state.fx.touched else nil
+		if type(touched) == "number" and Config.Ults.Ghost.PullFactor > 0 then
+			local b = kit.ballOf(m, touched)
+			if b and not b.pocketed then
+				pulled = kit.ballPart(id, touched)
+			end
+		end
+		if live.pulled and live.pulled ~= pulled then
+			fade(live, live.pulled, 0)
+		end
+		live.pulled = pulled
+		if pulled then
+			fade(live, pulled, F.PulledSeeThrough * live.look)
+		end
 		if part then
 			local h = part.Size.Y * 0.45
 			live.trailTop.WorldPosition = part.Position + Vector3.yAxis * h
 			live.trailBottom.WorldPosition = part.Position - Vector3.yAxis * h
-			placeGhost(self, live, part.Position, dt, t)
+			local target = if pulled then pulled.Position else part.Position
+			local ease = 1 - math.exp(-dt * F.GhostFollowRate)
+			live.ghostAt = if live.ghostAt then live.ghostAt:Lerp(target, ease) else target
+			placeGhost(self, live, live.ghostAt :: Vector3, dt, t)
 			placeWisps(self, live, part.Position, t)
 		elseif live.ghost then
 			live.ghost.Transparency = 1

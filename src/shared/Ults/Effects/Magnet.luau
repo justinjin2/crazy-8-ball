@@ -393,22 +393,27 @@ function Magnet.step(state: State, dt: number)
 	end
 	for _, b in state.balls do
 		local factor = set[b.id]
-		if factor == nil then
-			continue
+		if factor ~= nil then
+			Magnet.pull(state, b, eightPocket, factor, dt)
 		end
-		local zone = zoneOf(state.geometry, b, eightPocket, factor)
-		if zone == nil or zone.strength <= 0 then
-			continue
-		end
-		local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
-		local s = turnFor(state.geometry, b, zone, allowance(zone, speed, dt))
-		local scale = newSpeed(zone, speed, dt) / speed
-		-- Turn by the angle whose sine is s and scale by `scale`, velocity and spin alike.
-		local c = math.sqrt(1 - s * s) * scale
-		s *= scale
-		b.vx, b.vy = c * b.vx - s * b.vy, s * b.vx + c * b.vy
-		b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
 	end
+end
+
+--- One ball's pull for one fixed step (Magnet.step's body; Ghost pulls the ball it hit with
+--- it): `factor` its owner's strength, `eightPocket` the called pocket (the 8 only toward it).
+function Magnet.pull(state: State, b: Ball, eightPocket: number?, factor: number, dt: number)
+	local zone = zoneOf(state.geometry, b, eightPocket, factor)
+	if zone == nil or zone.strength <= 0 then
+		return
+	end
+	local speed = math.sqrt(b.vx * b.vx + b.vy * b.vy)
+	local s = turnFor(state.geometry, b, zone, allowance(zone, speed, dt))
+	local scale = newSpeed(zone, speed, dt) / speed
+	-- Turn by the angle whose sine is s and scale by `scale`, velocity and spin alike.
+	local c = math.sqrt(1 - s * s) * scale
+	s *= scale
+	b.vx, b.vy = c * b.vx - s * b.vy, s * b.vx + c * b.vy
+	b.wx, b.wy = c * b.wx - s * b.wy, s * b.wx + c * b.wy
 end
 
 return Magnet
