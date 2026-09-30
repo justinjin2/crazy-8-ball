@@ -1,5 +1,41 @@
 # Status
 
+**2026-09-29 (branch `abilities`): all 13 abilities built, measured and live on the branch.**
+Report: `docs/prompts/ABILITIES_REPORT.md`. Brief and notes: `docs/prompts/ABILITIES_PROMPT.md`.
+
+- **Built:**
+  - All 13 abilities with their rules (GDD section 9): Magnet (reworked), Eagle's Eye, Super
+    Bounce, Ghost, Heat Seeker, Rewind, Time Stop, Chain Lightning, Portals, Steel Ball, Black
+    Flash, Black Hole, Guangdong Tiger.
+  - The skill rule: Magnet, Chain Lightning, Black Flash's blast, Black Hole and the Tiger also
+    act on the opponent's balls at half strength, never the 8 (before your legal 8) or the cue
+    ball; a reach ring shows the danger while aiming.
+  - Each ability's look: Blender-made models and images, loaded at runtime, three beats
+    (armed, the shot, the payoff), sounds from the Roblox library, screen effects for the table.
+  - 3D icons for all 13 in every spot (cutscene, slots, odds, pills, badges, banners).
+  - The top-down pick view (Heat Seeker's ball, Portals' two spots) for touch, mouse and pad.
+  - Dev tools: `/abilitysetup <id>`, `/slowmo <scale>`, `/hold <seconds>`.
+  - The spin screen is live (`Config.Ults.ScreenLive = true`): every ability can be rolled.
+- **Verified:**
+  - Lint clean, 877 Lune tests pass (each ability's rules, the replay matching the server bit
+    for bit, the engine flows).
+  - Measured worth per use (ECONOMY 11.8): rarity means 0.37, 0.44, 0.50, 0.69, 1.15, 1.31;
+    against Magnet at equal skill Common to Epic win 49-51%, Legendary 55-56%, Mythic 56%.
+  - In Studio: every ability in a real match against the QA opponent (cutscene, armed look,
+    effect, payoff), the edge cases (Ghost missing, Rewind after a scratch, Time Stop with no
+    strike, Portals swallowing the 8, Black Flash on theirs and on the 8, Black Hole by their
+    cluster), the opponent's Tiger from the watching seat, the phone emulator's framing and
+    touch picks, the spin screen's odds for all 13. Console clean.
+  - Two fresh audits (an attacker's and a bug review): no high security issue; the bugs found
+    are fixed (Rewind pay, leaving mid-rewind, kept Portals flicker, Time Stop's strike wait).
+- **Needs a check by hand:**
+  - A real controller: the pick view (stick or D-pad, A, X, Y, L1) and Time Stop's strikes.
+  - A real phone: touch aim in stopped time, and how smooth the big payoffs run.
+  - Two real players: both screens see the same effects at the same moment.
+  - Time Stop: a strike straight after another (the fix for the 2 s wait).
+  - Record your own "nyo-ho" for Steel Ball (a whistle stands in).
+  - Portals measured low (0.42, under the Rares); playtest it.
+
 **2026-09-28 (branch `ultimates`, overnight): Ultimates, with Magnet and the spin screen.**
 Report: `docs/prompts/ULTIMATES_REPORT.md`.
 

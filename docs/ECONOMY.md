@@ -655,8 +655,9 @@ Players see these as **Ability Spins** on the **Abilities** screen (the designer
 Numbers in `Config.Ults` (Roll, Earn) and `Config.Products`; all *(tune)*.
 
 **Odds** (each rarity's share split evenly between its ults; a rarity with no built ult passes
-its share down to the next one below that has one, and the Odds panel shows the true odds, so
-today's live pool is 100% Magnet and the screen stays hidden live):
+its share down to the next one below that has one, and the Odds panel shows the true odds;
+all 13 are built and the screen is live since 2026-09-29, so each Common is 18.333%, each
+Uncommon 15%, each Rare 6.117%, each Epic 1%, each Legendary 0.333% and each Mythic 0.05%):
 
 | Rarity | Normal spin | Lucky Spin |
 |---|---|---|
@@ -695,12 +696,49 @@ With money: **$1,750 a spin** (1, 5, 10 or 50; no bulk discount): about 2.4 hour
 Classic play a spin (an hour is worth about $735, 11.1's anchor), so money spins are a slow
 trickle for savers and Robux the cheap route ("way more expensive", the designer).
 
-**How strong the top ults may be** (the power ladder, GDD section 9, from
-`tools/ult_model.py`; revisit after playtests). A top ult (2-3 sure balls, at most 3) against
-Magnet: at equal skill it wins **62.7%** (Classic, 60% shooters), **61.0%** (Classic, 70%) and
-**63.9%** (Difficult, 45%); a 50% shooter with it against a 60% shooter with Magnet wins
-**48.7%** (34.4% with Magnet each). The levers if it needs toning down: balls per use, the
-3-ball cap, the Legendary and Mythic odds, or top ults filling slower (none applied).
+**How strong each ult is** (the measured ladder, 2026-09-29, GDD section 9). Worth = extra own
+balls per use, net of the opponent's balls gifted, a careful shooter, the mean of three skills
+(`tests/ult_value.luau`, 120 tables, `tools/ult_value_results.json`); it is
+`Config.Ults.Catalog[id].Worth`. The careless column is skill 2, aiming only for the pot (the
+five area abilities of the skill rule; the others have no careless choice).
+
+| Rarity | Target | Ult | Worth | Careless |
+|---|---|---|---|---|
+| Common | 0.33 | Magnet | 0.46 | 0.56 |
+| | | Eagle's Eye | 0.34 | |
+| | | Super Bounce | 0.33 | |
+| Uncommon | 0.5 | Ghost | 0.47 | |
+| | | Heat Seeker | 0.40 | |
+| Rare | 1 | Rewind | 0.53 | |
+| | | Time Stop | 0.47 | |
+| Epic | 1.5 | Chain Lightning | 0.96 | 0.72 |
+| | | Portals | 0.42 (a low bound) | |
+| Legendary | 2.2 | Steel Ball | 1.09 | |
+| | | Black Flash | 1.21 | 1.00 |
+| Mythic | 2.6 | Black Hole | 1.32 | 1.08 |
+| | | Guangdong Tiger | 1.30 | 1.07 |
+
+Rarity means 0.37, 0.44, 0.50, 0.69, 1.15, 1.31: each a little above the one below. The top
+targets can't be reached inside the reach cap (a fifth of the table, 20 in) and the ball caps,
+so the rows are reported as measured. Two inversions: Magnet over Heat Seeker, and Portals
+(which the model shooter never reuses across the turn) under the Rares.
+
+**Win rates** (`tools/ult_model.py`, each rarity's best ult against Magnet at equal skill,
+10,000 matches a row):
+
+| Rarity (ult) | Classic 0.60 | Classic 0.70 | Difficult 0.45 |
+|---|---|---|---|
+| Common (Magnet) | 50.2% | 50.1% | 49.4% |
+| Uncommon (Ghost) | 50.5% | 49.8% | 50.1% |
+| Rare (Rewind) | 49.5% | 49.6% | 50.9% |
+| Epic (Chain Lightning) | 50.2% | 50.5% | 51.3% |
+| Legendary (Black Flash) | 55.8% | 54.6% | 56.2% |
+| Mythic (Black Hole) | 56.2% | 55.9% | 56.4% |
+
+So a Mythic wins about 56 matches in 100 against an equal player with Magnet, well under the
+62-64% the old rough "2-3 sure balls" model allowed. The levers if playtests want more or
+less: each ult's reach, caps and counts in `Config.Ults`, the opponent's factor, the Legendary
+and Mythic odds, or top ults filling slower (none applied).
 
 ---
 

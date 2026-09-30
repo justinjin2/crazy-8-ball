@@ -432,3 +432,53 @@ players read.
   Uncommon green, Rare blue, Epic purple with sparks, Legendary gold with rays, Mythic
   red-black with crackling arcs *(assumption: the brief's colours for Mythic's aura, not its
   pastel card shimmer)*. They grow with rarity.
+
+## 12. Abilities: icons, the effects' look and screen effects (2026-09-29)
+
+Built on branch `abilities` (docs/prompts/ABILITIES_PROMPT.md 5.1, 5.4). Numbers in
+`Config.UI.AbilityFx`, `Config.UI.<Id>Fx` and `Config.UI.ScreenFx`.
+
+- **Icons:** 3D, rendered in Blender from one rig (`tools/blender/abilities/icons.py`): one
+  camera and light, framed by each object's on-screen extent so all 13 fill the frame alike,
+  glows clamped inside it, an ink outline and a rim light in the rarity colour, 512 px on a
+  transparent background. Ids in `Config.Ults.Assets.Icons`. They replace every placeholder:
+  the cutscene (the icon stamps in beside the avatar, 1.3x to 1x with a rarity-colour glow
+  burst), the slot cards, CURRENT ABILITY, the odds rows, the armed and opponent pills, the top
+  bar's opponent badge and the Legendary and Mythic banners.
+- **The effects' look** (one `src/client/<Id>Fx.luau` each, started by `AbilityFx`):
+  - **Layered, never one trick:** a Blender mesh, Blender-rendered images and flipbooks,
+    particles, beams and trails, a light burst (and a Highlight where it reads), the camera
+    (a small shake, an FOV punch or a hit-stop for the big ones) and sound.
+  - **Three beats:** armed (on the cue ball while aiming), during the shot, the payoff.
+  - **Driven by the replay's events**, so both players see the same thing at the same moment;
+    the server never builds any of it. The looks follow the replay's time scale (`/slowmo`),
+    and `/hold` stops them.
+  - **Readable:** nothing hides the ball being aimed at or the aim line while aiming, and the
+    payoff never hides the result.
+  - **The opponent's balls** get the same effect, slightly dimmer or thinner (thinner bolts,
+    fainter sparks), so the weaker half-strength effect reads as weaker.
+  - **Colours on the cloth:** Neon lifts colours unevenly and bright additive colours over
+    the green cloth turn yellow, so the pieces that must read as one colour are flat
+    (Neon only where a glow is wanted), and the colours were picked in Studio, not in Blender.
+  - **Budget** (phones): about 10k triangles of effect meshes on screen at once per ability,
+    textures 1024 px or less, few long-lived particles; everything goes when the shot ends
+    (no leftover parts, connections or sounds).
+- **The reach preview:** while an area ability is armed and its shooter aims, a soft ring on
+  the cloth at the predicted first contact at the full reach, a dashed inner ring at the
+  opponent's reach, and a small red outline on each opponent's ball inside; Magnet shows each
+  pocket's capture zone instead. Only an indicator of reach, never of the outcome.
+- **The pick view** (`UltPick`: Heat Seeker's ball, Portals' two spots): the camera goes
+  top-down; a title pill at the top in the rarity colour ("TAP ONE OF YOUR BALLS", "PLACE
+  PORTAL A", "PLACE PORTAL B"), a green CONFIRM on the right and a blue RESET for Portals. The
+  balls that can be picked pulse; a spot the server would refuse turns red and greys CONFIRM.
+  Touch and mouse tap or drag; a gamepad moves a cursor with the stick (A picks or places, Y
+  switches portal, L1 resets, X confirms).
+- **Screen effects** (`ScreenFx`: Rewind's VHS screen, Time Stop's grey and lens edge, Black
+  Flash's pale red frame, the Tiger's fur frame): a colour grade, a full-screen flash, an image
+  overlay, a shake and an FOV punch. Only the players at that table and those watching inside
+  its fence see them. Full-screen layers reach the very edge of a phone's screen
+  (`ScreenInsets.None`), never a box inside the safe area; the ScreenGui never takes input and
+  sits over the match HUD but under the cutscene and the menus.
+- **Moments in the HUD:** Time Stop's frozen aim shows the pill "TIME STOPPED · STRIKE THE CUE
+  BALL AGAIN" in place of the clock and the ability pill; Rewind's redo shows a pink "SECOND
+  CHANCE: 10s" pill with the shot's full path drawn.

@@ -355,7 +355,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 ## 9. Abilities (ults in code)
 
 **Decided** (designer, 2026-09-28, after the ultimates interview; built on branch
-`ultimates`, `docs/prompts/ULTIMATES_PROMPT.md`)
+`ultimates`, `docs/prompts/ULTIMATES_PROMPT.md`; the 13 abilities built on branch `abilities`,
+2026-09-29, `docs/prompts/ABILITIES_PROMPT.md`)
 - **Players see them as "Abilities" everywhere** (the designer, 2026-09-28: "Ult doesn't look
   right"): every button, label, notice and reward says Ability / Abilities (ABILITY in the
   all-caps spots). **In code and in these docs they are still called ults** (UltService,
@@ -405,30 +406,92 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   the designer, 2026-09-28) the ult's own arming effect and an armed pill ("MAGNET: NEXT SHOT"; the opponent sees
   "Opponent's ability: MAGNET"). The shot clock pauses from activation until armed, for both
   sides.
-- **Fouls still count on an ult shot.** An ult never pockets, moves or destroys the 8 unless
-  it is your legal 8 shot, and never acts on the opponent's balls. Ults act on the balls and
-  help the user; they never sabotage the opponent.
+- **Fouls still count on an ult shot.** No ult pockets, moves or removes the 8 before your
+  legal 8 shot unless the list below says so, the cue ball is never pulled, pushed, swallowed
+  or cut, and balls pocketed on an ult shot fill nothing for its user.
+- **The opponent's balls, at half strength (the skill rule; designer, 2026-09-29):** Magnet,
+  Chain Lightning, Black Flash's blast, Black Hole and Guangdong Tiger act on every object ball
+  in reach, the opponent's at half strength (`Config.Ults.Shared.OpponentFactor` 0.5: half the
+  pull or push, half the reach for the ones that remove balls), never on the 8 unless it is your
+  legal 8 shot (then it counts as yours), never on the cue ball. On an open table every ball but
+  the 8 counts as yours. An opponent's ball an ability sinks or removes counts as pocketed for
+  them by the normal rules and fills nobody's bar; your turn goes on only if one of yours
+  dropped. So where you aim the ability matters: set off next to their cluster, it helps them.
+  While armed and aiming, these show a faint reach ring at the predicted first contact (a
+  dashed inner ring for the opponent's reach, their balls inside outlined red); Magnet shows
+  each pocket's capture zone instead. The other exceptions: **Portals move every ball**, the
+  opponent's and the 8 included, like real physics; **Black Flash shatters any first ball** (an
+  opponent's ball counts as theirs gone and a foul; the 8 by the normal 8 rules, a loss unless
+  it is your legal 8 shot); **Time Stop's strikes** hit the cue ball, which may then hit any
+  ball. Ghost, Heat Seeker and Steel Ball act only on your balls.
 - **Teams:** each player has their own bar; "behind" compares sides.
 - **The PC opponent** has Magnet; it activates when its bar is full and it is behind, or when
   its shot finder sees no easy shot (a policy in `Ults/Match`, for the bots when they exist).
-- **Rarities and power** (designer, 2026-09-28): higher rarities are cooler *and* stronger.
-  The power ladder, per use: Common about 1/3 of a ball, Uncommon about 1/2, Rare about 1,
-  Epic 1 to 2, Legendary and Mythic a guaranteed ball plus 1-2 more (3 balls at most, never
-  the 8 before your legal 8 shot, never the opponent's balls). Each ult's own session builds
-  to its row and measures it. The model's win rates for a top ult are in ECONOMY.md 11.8.
-- **The catalog of 13** (`Config.Ults.Catalog`, names and lines in `Strings.Ults`): Common
-  **Magnet** (built; everyone starts with it, free forever), Eagle's Eye, Super Bounce;
-  Uncommon Ghost, Heat Seeker; Rare Rewind, Time Stop; Epic Chain Lightning, Portals;
-  Legendary Steel Ball, Black Flash; Mythic Black Hole, Guangdong Tiger. The other 12 are
-  placeholder rows (their cutscene plays with their own name, then "Coming soon"); they can
-  only be rolled or equipped with the developer flag, so live players only ever roll built
-  ults. Each gets its own session and brief.
-- **Magnet:** a low vibrating hum and two orbiting N/S rings on the cue ball while armed. For
-  the whole shot, each of your balls (the 8 only on your legal 8 shot, toward the called
-  pocket; on an open table any ball but the 8) moving toward a pocket and passing within a
-  capture zone of its mouth is steered toward the pocket's centre: it rescues near misses and
-  jaw rattles, never a vacuum, never the cue ball or the opponent's balls. A beam, a pulsing
-  pocket ring and a clunk-zap show it. The aim line doesn't show it.
+- **Rarities and power** (designer, 2026-09-28): higher rarities are cooler *and* stronger,
+  each a little better than the one below. The targets per use were Common about 1/3 of a
+  ball, Uncommon 1/2, Rare 1, Epic 1.5, Legendary 2.2, Mythic 2.6; inside the reach cap (no
+  capture radius over a fifth of the table's length, 20 in) and the ball caps the top rows
+  can't reach them, so each ult is built to its row as far as the caps allow and its **measured
+  worth** (extra own balls per use, net of the opponent's gifted, a careful shooter, the mean of
+  three skills, `tests/ult_value.luau`, 120 tables) is `Config.Ults.Catalog[id].Worth`. The
+  rarity means are **0.37, 0.44, 0.50, 0.69, 1.15 and 1.31** (2026-09-29). Caps per use: at
+  most 3 of your balls (Chain Lightning, Steel Ball) or 4 (Black Flash, Black Hole, Guangdong
+  Tiger), and 2 of the opponent's (Chain Lightning, Black Flash's blast) or 1 (Black Hole,
+  Guangdong Tiger). Against Magnet at equal skill the model (`tools/ult_model.py`) gives Common
+  to Epic 49-51% wins, Legendary 55-56% and Mythic 56% (ECONOMY.md 11.8).
+- **The catalog of 13, all built** (`Config.Ults.Catalog`, names and one-line descriptions
+  in `Strings.Ults`, 3D icons rendered in Blender in `Config.Ults.Assets.Icons`). Each row's
+  rules are in its effect module (`src/shared/Ults/Effects`), its look in `src/client/<Id>Fx`,
+  and every number in `Config.Ults.<Id>`. Worth is the measured value above.
+  - **Magnet** (Common, 0.46; everyone starts with it, free forever): for the whole shot each
+    of your balls (the 8 only on your legal 8 shot, toward the called pocket) moving toward a
+    pocket and passing within a capture zone of its mouth is steered toward the pocket's
+    centre; it rescues near misses and jaw rattles, never a vacuum; the opponent's at half. A
+    blue field-line dipole on the armed cue ball, field lines pulling into the pocket, a
+    shockwave on the drop.
+  - **Eagle's Eye** (Common, 0.34): the full path of the shot while aiming, the cue ball's and
+    the first object ball's, through every cushion, bounce rings and the reached pocket
+    glowing (gold strips under the white guideline). Nothing changes the physics.
+  - **Super Bounce** (Common, 0.33): the cue ball goes rainbow and near-lossless on the
+    cushions for 8 s; the first ball of yours it hits catches the bounce, and a cushion hit
+    within 6 in of a pocket boings it in off the jaw.
+  - **Ghost** (Uncommon, 0.47): the cue ball phases through every ball that isn't yours (the 8
+    too, unless it's your legal 8); from its first contact the ball it hit phases through them
+    too and a little ghost pulls it into a pocket it nearly misses (Magnet's strength). A cue
+    ball resting inside a phased ball is moved off it.
+  - **Heat Seeker** (Uncommon, 0.40): lock on to one of your balls (the pick view: tap, click
+    or the pad); the cue ball curves round anything in the way to hit it (A* on the cloth, a
+    2 in turning circle), and a straight aim at it has its cut turned toward the best pocket
+    by up to 30 degrees, never made perfect.
+  - **Rewind** (Rare, 0.53): a shot that drops none of your balls, fouls and scratches
+    included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
+    path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
+    VHS rewind.
+  - **Time Stop** (Rare, 0.47): at the cue ball's first contact time freezes; the shooter
+    strikes the cue ball up to three more times in stopped time (5 s for each, then it resumes
+    by itself); the stored motion of every ball plays out when time resumes.
+  - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best
+    pocket (up to 15 degrees, x1.25 speed); then lightning jumps three times, each to the
+    nearest ball within 20 in, pushing each struck ball toward its closest pocket with a clear
+    line in (at most 3 of yours, 2 of theirs at half).
+  - **Portals** (Epic, 0.42, flagged: see Open): place two portals for your whole turn (they
+    close when the turn passes or the game ends). Any ball whose centre passes within 2 in of
+    one comes out of the other with the same motion; yours come out turned toward the pocket
+    ahead by up to 15 degrees.
+  - **Steel Ball** (Legendary, 1.09): the first ball hit, if yours, is guided into the pocket
+    it was sent toward; the cue ball then curves on to your next nearest ball and guides it in
+    (a clean line within 36 in) or lines it up and stops behind it, 3 balls at most; with your
+    group gone the 8 is lined up, never potted. It never scratches.
+  - **Black Flash** (Legendary, 1.21): the first ball hit, whoever's, shatters and counts as
+    pocketed for its owner; the blast nudges the balls within 20 in toward their pockets (4 of
+    yours, 2 of theirs at half, never the 8); the cue ball bounces straight back, never into a
+    pocket.
+  - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
+    spirals in the balls within 20 in (the opponent's within 10 in), at most 4 of yours and 1 of
+    theirs, each swallowed and counted as pocketed for its owner; the cue ball is pushed away.
+  - **Guangdong Tiger** (Mythic, 1.30): at the first contact a giant tiger leaps in and cuts
+    the balls within 20 in (the opponent's within 10 in) off the table at once, at most 4 of
+    yours and 1 of theirs, counted as pocketed for their owners; the moment slows to watch it.
 - **Getting ults: the spin screen** (Untitled Boxing Game style; the left column's 5th
   button, **Abilities**, with a red dot when the daily free spin is ready). Three slots (slot 1
   free, slots 2 and 3 game passes); a spin rolls into the selected slot and replaces its ult;
@@ -442,14 +505,19 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Robux packs (1 for 15 R$ up to 50 for 449) and money ($1,750 a spin). Fast Open covers ult
   spins too (Skip and Auto Spin). Paid spins are paid random items: odds shown, and blocked
   where PolicyService restricts them (ECONOMY.md 11.7-11.8). The live screen stays hidden
-  (`Config.Ults.ScreenLive`) until more ults than Magnet are built.
+  (`Config.Ults.ScreenLive`) was hidden until more ults than Magnet were built; it is live
+  since all 13 were (2026-09-29).
 - Sounds must be original or licensed (section 8): never clip a show's "nyo-ho" or time-stop
-  sound. The designer's ult_activate and ult_ready are uploaded to the group.
+  sound. The designer's ult_activate and ult_ready are uploaded to the group; each ability's
+  sounds are library or made clips (`Config.Ults.Sounds`, credits in
+  `assets/abilities/CREDITS.md`). Steel Ball's "nyo-ho" is a whistle stand-in until the
+  designer records their own.
 
 **Open**
-- The designer's brief for each later ult (Eagle's Eye next), and whether any of the top ults
-  needs toning down after playtests (the levers: balls per use, the 3-ball cap, the Legendary
-  and Mythic odds, or top ults filling slower).
+- Playtests: whether any ability needs retuning with real players. Portals measures 0.42 (a
+  low bound: the model shooter never reuses the kept portals), under the Rares; Magnet (0.46)
+  sits over Heat Seeker (0.40). The levers are all in `Config.Ults` (reach, caps, steer
+  angles, strike and redo counts, OpponentFactor, the Legendary and Mythic odds).
 
 ## 10. The hub and the world
 

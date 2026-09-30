@@ -500,3 +500,42 @@ triggered by the next can easily expire before the input lands: a 6-second windo
 scroll entirely and read as "nothing happened". Arm windows of 20 seconds or more for
 anything that needs a separate call to trigger it, or wait for the result inside the same
 script.
+
+## Abilities: Blender to Roblox, input in the emulator, screen layers (2026-09-29)
+
+Lessons from building the 13 abilities (docs/prompts/ABILITIES_PROMPT.md). The Blender-to-Roblox
+basics (glb textures, face direction, axes, texture alpha) are under "Uploading assets" above.
+
+- **Load models at runtime, not into the place.** `server/AbilityAssets` loads every id in
+  `Config.Ults.Assets` once per server through `InsertService:LoadAsset` (scripts stripped)
+  into `ReplicatedStorage.AbilityAssets`; looks clone from there. Nothing to save in the place.
+- **An inverted-hull outline draws solid black.** Roblox ignores a flipped copy's winding, so
+  the classic outline trick fills the whole shape. Use a `Highlight` (OutlineOnly) instead.
+- **One-sided faces vanish from the other side.** A ribbon whose faces point down is culled
+  from the overhead camera; build flat ribbons two-sided (a back copy) in Blender.
+- **Neon lifts colours unevenly**: a configured gold drew lemon yellow and a violet read pale.
+  Pick Neon colours in Studio, not Blender. Additive orange over the green cloth reads yellow;
+  a baked light blue washes to near white on the lit cloth (flat, deeper colours instead).
+- **Animation without Animation assets.** Nothing was uploaded as an Animation: the tiger is
+  rigid parts turned round joint markers (empty objects exported with the model) by CFrames
+  every frame, which needs no rig, no upload permission and follows `/slowmo` and `/hold`.
+- **Detail below a pixel is lost.** From the shooting camera on a phone a ball is 20 to 55 px;
+  fine texture (halftone, forks, thin bolts) disappears. Make shapes fat and high-contrast.
+- **Full-screen layers need `ScreenInsets.None`.** A ScreenGui's default inset is the device
+  safe area, so on a phone a "full-screen" frame stops short of the edges (Eagle's Eye's
+  vignette drew a hard box). Screen effects set `ScreenInsets = Enum.ScreenInsets.None`.
+- **Touch in the phone emulator through MCP:** `user_mouse_input` in the emulator arrives as
+  touch. An `InputObject.Position` is in GUI space (below the top bar inset, 58 px there), and
+  the MCP tool's raw coordinates are offset from GUI space (in the 750 x 361 emulator, GUI
+  position + (62, 20)). Read a button's `AbsolutePosition` and add the offset, or hit it by
+  `instance_path` on PC.
+- **A gamepad cannot be driven through MCP.** `user_keyboard_input`'s pad keys arrive as
+  Keyboard with no gamepad connected, so a pad's picks and aim stay a hand check.
+- **Player attributes set from `execute_luau` on the client do not reach the game's copy of
+  a module**; the dev commands' state lives in `workspace` attributes (`ReplaySlowmo_<id>`,
+  `ReplayHold_<id>`) so a test can set them from either side.
+- **Studio caps an unfocused window at 15 fps** (66.7 ms a frame): a frame time measured
+  while the MCP drives Studio reads as the cap; look for spikes above it, not the mean.
+- **Sound sheets were not needed**: every ability sound is a public library clip played by id
+  (`SoundSheet.library`), trimmed with `StartOffset` and pitched at runtime. The sheet player
+  is ready for uploaded sheets (`Config.Ults.Assets.Sheets`).

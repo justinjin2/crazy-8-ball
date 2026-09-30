@@ -542,7 +542,10 @@ What every ability plugs into (docs/prompts/ABILITIES_PROMPT.md 5.2). "Ult" in c
 define `step(state, dt)` (before each fixed step), `after(state, dt, events, ops)` (after it,
 with that step's events) and `finish(state, events, ops)` (at rest). Scratch lives in
 `state.fx` (reset at each strike and arming; array order, never hash order);
-`state.fx.ghost[id]` takes a ball out of every contact; `state.fx.material[id]` (a
+`state.fx.ghost[id]` takes a ball out of every contact; `state.fx.passes[id]` (a set of ids)
+lets one ball pass through those balls only, a per-pair filter in the contact search (merged
+with `overrides.PhaseCue` for the cue ball; any ball with passes forces pairwise contacts:
+Ghost's hit ball passes the ones the cue ball passed); `state.fx.material[id]` (a
 `BallMaterial`: cushion restitution and friction, ball restitution, cloth frictions, until
 `Until`) gives an object ball its own material (Super Bounce's caught ball). An effect may plan once
 at its first step and keep the plan in `fx` (Heat Seeker's A* path to the locked ball: nothing
@@ -552,6 +555,9 @@ An effect that must not miss a fast ball records the positions in `step` and tes
 centre's path in `after` (Portals: a pass through a portal's inner circle teleports the ball).
 The steering abilities share `Ults/Effects/PathPlan` (A* over the cloth round balls and
 pockets, pulled tight): Heat Seeker's cue ball, Steel Ball's cue ball and guided balls.
+A pull that several effects share is a plain function on the effect module
+(`Magnet.pull(state, ball, eightPocket, factor, dt)`, Ghost's ghostly pull uses it).
+Per-ability caps are `Config.Ults.<Id>.MaxOwn` and `MaxOpp` (the closest first).
 An effect that drags balls sets their velocity in `step` every fixed step and ghosts them
 (Black Hole); a ball it catches at rest is given its first velocity in `after` at once, or
 the shot would settle before the drag begins.
@@ -573,17 +579,26 @@ ability's own overrides from Config). The shared skill rule numbers are
 one (the `UltPick` table action). A halted outcome from Time Stop's effect puts the table in
 the Frozen phase: the shooter's second strike comes through `ShotFired` (`strikeFrozen`), or
 the deadline resumes it (`resumeFrozen`, then `TableService.onLateShot` pays and sends the
-late result through `ShotService`). Rewind rows (`Redo`) snapshot the table at acceptance; a
-shot with none of the shooter's balls down restores it (`rewindTo`), plays the Rewinding phase
-and gives the redo clock (the snapshot's `rewound` and `redoClock`; the wire shot carries
-`rewind = true` from the start, since the server has already judged it).
+late result through `ShotService`). Up to `Config.Ults.Shared.TimeStopStrikes` strikes, each
+after the last one's end with a fresh `FrozenSeconds` (`TimeStop.isFrozen`, `fx.strikes`);
+the wire shot's `parts.strikes` is a list, one part per strike. Rewind rows (`Redo`) snapshot
+the table at acceptance; a shot with none of the shooter's balls down restores it
+(`rewindTo`), plays the Rewinding phase and gives the redo clock (the snapshot's `rewound`
+and `redoClock`; the wire shot carries `rewind = true` from the start, since the server has
+already judged it); a redo that misses rewinds again while `t.redosLeft` lasts
+(`RewindRedos`), and the redo's aim shows Eagle's Eye's path (`RewindRedoGuide`). A `Turn`
+row (Portals) is kept for the rest of the shooter's turn: `Ults/Match` keeps it in
+`ults.kept` (by, id, pick; in the snapshot as `ults.kept`), `shotArmed` hands it to each later
+shot of that turn with nothing else armed, `turnBegan` drops it when the turn passes and
+`clearKept` when the game ends.
 
 **Client replay** (`client/Match`). Hides "removed" balls, slows the clock at "slow" events,
 stops at a halt and continues with the server's second-strike parts; `setTimeScale` is the
 `/slowmo` hook. A shot marked `rewind` is taped as it replays (every ball's position, spin and
 shown-or-not each frame); the Rewinding snapshot then flies the table back through the tape
 (`startRewind`, `stepRewind`, busy meanwhile) and lands on the server's pre-shot table. A
-client with no tape (it joined late) just takes the snapshot's table. In the Frozen phase
+client with no tape (it joined late) just takes the snapshot's table. Time Stop's parts are
+applied in order (`applied.strikes` counts them). In the Frozen phase
 `Main` gives the shooter a frozen turn (`frozenTurn`: the replay halted in stopped time, the
 cue ball on the table, no second strike yet): the normal aim, pull and spin controls, sent as
 an ordinary shot that the server takes as `strikeFrozen`. The server streams no aims in
@@ -600,7 +615,10 @@ per server through InsertService into `ReplicatedStorage.AbilityAssets` (ids in
 `Config.Ults.Assets`). A look times its effects on a clock advanced by `dt x match.timeScale`
 when they should slow with `/slowmo` (ChainLightningFx's bolts and glows). `UltPick` is the top-down pick view (`PickMath` is its pure maths).
 
-**Tools.** `/slowmo <scale>` and `/abilitysetup <id|name>` (Config.Ults.Setups) for the look
-checks; `tests/ult_value.luau` plus `tools/ult_value.luau` measure an ability's worth with
-the careful and careless shooters into `tools/ult_value_results.json`, which
-`tools/ult_model.py` reads. The Blender scripts are `tools/blender/abilities/`.
+**Tools.** `/slowmo <scale>`, `/hold <seconds>` (stops every replay at the caller's table at
+that shot time, `workspace` attribute `ReplayHold_<tableId>`) and `/abilitysetup <id|name>`
+(Config.Ults.Setups) for the look checks; Studio-only QA handles in ServerStorage
+(`PoolMatchQA`: snapshot, shot, action, fixture; `UltQA`: arm) for the playthrough; `tests/ult_value.luau` plus `tools/ult_value.luau` measure an ability's worth with
+the careful and careless shooters into `tools/ult_value_results.json` (`--set Block.Key=n`
+tries a tune without writing), which `tools/ult_model.py` reads. A `Turn` ability is measured
+over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts are `tools/blender/abilities/`.

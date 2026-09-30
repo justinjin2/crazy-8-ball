@@ -397,11 +397,19 @@ The rules, the 13 ults and the spin screen: GDD section 9; every number: ECONOMY
 - [x] **3.2 Magnet** (the starter ult everyone gets). Done 2026-09-28: a near miss within about
   one ball width of a pocket drops (88% of the closest misses, none past 2.5 widths); only
   your own balls, never the cue ball; its armed rings, pull beams, pocket ring and sounds.
-- [ ] **3.3 Eagle's Eye.**
-- [ ] **3.4 The rest of the 13** as the designer picks them (catalog rows exist, as
+- [x] **3.3 Eagle's Eye.** Done 2026-09-29 (branch `abilities`): the shot's full path while
+  aiming, both balls through every cushion.
+- [x] **3.4 The rest of the 13** as the designer picks them (catalog rows exist, as
   placeholders that neither roll nor play until built).
   Done means (3.2 to 3.4): each creates at least one "did you see that" moment in a test match
   and PC matches still feel fair.
+  Done 2026-09-29 (branch `abilities`, `docs/prompts/ABILITIES_PROMPT.md`): all 13 built with
+  their rules (GDD section 9), 3D icons, Blender-made effects and sounds; Magnet reworked; the
+  skill rule (the opponent's balls at half strength); each measured by the value harness and
+  tuned to its rarity (ECONOMY 11.8: Common to Epic 49-51% against Magnet, Legendary 55-56%,
+  Mythic 56%); played through in a real match on PC and the phone emulator; the spin screen is
+  live (`Config.Ults.ScreenLive`). A real phone, a controller and two real players are still a
+  hand check.
 
 **FRIEND TEST 3.** Do ults bring matches back without deciding them? Tune the bar.
 

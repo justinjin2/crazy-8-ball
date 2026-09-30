@@ -322,8 +322,8 @@ little better (*"marginally better"*):
 | Uncommon | Ghost, Heat Seeker | about 0.5 | |
 | Rare | Rewind, Time Stop | about 1 | |
 | Epic | Chain Lightning, Portals | about 1.5 (1 to 2) | |
-| Legendary | Steel Ball, Black Flash | about 2.2 | 3 balls at most per use |
-| Mythic | Black Hole, Guangdong Tiger | about 2.6 | 3 balls at most per use |
+| Legendary | Steel Ball, Black Flash | about 2.2 | 3 balls at most per use (Black Flash 4: step 16) |
+| Mythic | Black Hole, Guangdong Tiger | about 2.6 | 4 of yours and 1 of theirs at most per use (step 16) |
 
 - Step 1 builds a **shared value harness** (Lune, deterministic): many realistic table states
   (fresh racks after the break, mid-game spreads, late tables), a model shooter with aim and
@@ -804,14 +804,14 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   swallowing the 8, Black Flash on the opponent's ball and on the 8, Black Hole next to an
   opponent's cluster); the opponent's side sees the same; phone framing; frame times noted;
   console clean.
-- [ ] 18. Audit by fresh subagents: an attacker's read of every new remote and pick (forged ball
+- [x] 18. Audit by fresh subagents: an attacker's read of every new remote and pick (forged ball
   ids, portal positions, second strikes after the timeout, spam, a disconnect mid-freeze or
   mid-rewind) and a branch-wide bug review of `git diff ultimates...abilities` (determinism,
   leaks, rule edge cases); findings fixed.
 - [x] 19. Launch switches: every ability `Built = true`, `Config.Ults.ScreenLive = true`, Lucky
   Spins open, the final one-line descriptions in `Strings.Ults.Descriptions` (true to what each
   now does), the spin screen's odds showing all 13; checked in Studio.
-- [ ] 20. Docs: GDD 9 (the rule changes of section 3, each ability's final rules and measured
+- [x] 20. Docs: GDD 9 (the rule changes of section 3, each ability's final rules and measured
   worth, Open items cleared); ROADMAP; UI_STYLE (icons, the VFX language, screen effects);
   ARCHITECTURE (the hook points, AbilityAssets, sound sheets); STUDIO_NOTES (Blender to Roblox
   lessons, animation uploads, sound sheets); ECONOMY 11.8 (the measured ladder and win rates);
@@ -1419,6 +1419,32 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   no script errors or drift warnings; only Roblox's own MemoryStore hiccups (the queue logs
   them). Seen in passing, not ability work: the daily-reward reminder toast (shown when the
   window loses focus, which Studio does constantly) sits over the ability pill on a phone.
+- **Step 18 done (2026-09-29).** Two fresh subagents, read only. The attacker (every remote
+  and pick with a modified client: forged ids, NaN and wrong types, portal spots, strikes after
+  the timeout or past three, redos, arming out of turn, spam, leaving mid-freeze or mid-rewind,
+  the dev and QA tools): no high issue; arming, UltPick, the strikes and the redos are all
+  decided or checked on the server, every remote is rate-limited, each simulation is capped,
+  the QA handles and look-check commands are Studio-only. Fixed: a shot Rewind undoes was still
+  paid (solo redos potting the other group's balls paid again and again); a shooter leaving
+  while the rewound shot resolved got a redo clock nobody could use (the game now ends, or the
+  turn passes as a departure, also for leaving or dying during the rewind); one table's error
+  in the Heartbeat poll would have stalled every table after it (each now on its own guard); a
+  ball resting on a kept portal went in as soon as it moved (it now goes in only after leaving
+  the circle, and a ball leaving a circle is free from the next step). Left: a refused 4th-part
+  Time Stop strike past the step cap would leave the frozen state stepped (unreachable: a lone
+  cue ball cannot run 40 s); the live dev allowlist (the designer, the creator, group rank 255)
+  can arm ults in real matches (insider only). The bug review (determinism, rules, leaks,
+  client and server): the pure code clean (no clock, randomness or hash order; the only trig is
+  client-side FxMath); every Config and Strings path the diff uses exists. Fixed: kept Portals
+  were let go between the turn's shots and reopened with their sound every 1.5 s (AbilityFx now
+  keeps a table with `ults.kept`; checked in Studio: 12 portal parts held for 6 s, none rebuilt,
+  no open sound); after each Time Stop strike the shooter waited out the 2 s action retry of
+  each 5 s window (a strike's part arriving now answers it); the client's Time Stop replay
+  counted steps across parts (now per part, as the server); picks dropped on a table change
+  told the new table; screen effects outlived leaving the table (dropped every 0.5 s once the
+  table no longer involves the player, `InvolvedCheckSeconds`); a ball an ability removes
+  could count as a NICE SHOT combo (never now). The Time Stop answer is in the client's own shot
+  path, which the QA handles skip: a hand check. 877 tests pass, lint clean.
 - **Step 19 done (2026-09-29).** Every catalog row was already `Built = true` (steps 3 to 15);
   `Config.Ults.ScreenLive = true` opens the spin screen, money packs and Lucky Spins to live
   players (the one switch: UltSpins, Store and the menu column read it). The one-line
@@ -1430,3 +1456,16 @@ becomes `- [x] BLOCKED: <why>`. The Stop hook reads the `- [ ]` lines here.
   (Commons 18.333% each, Uncommons 15%, Rares 6.117%, Epics 1%, Legendaries 0.333%, Mythics
   0.05%; the rarities add to 100%). The two slot purchases still read "Soon" (their game passes
   are the ultimates work's, not set up yet).
+- **Step 20 done (2026-09-29).** GDD 9: the rule changes of section 3 as Decided (the skill
+  rule, Portals moving every ball, Black Flash on any ball, Time Stop's strikes), each
+  ability's final rules and measured worth, the caps, the measured ladder in place of "3 balls
+  at most", the spin screen live, the nyo-ho stand-in, Open reduced to the playtest levers.
+  ROADMAP 3.3 and 3.4 ticked. UI_STYLE 12 (icons, the effects' look, the reach preview, the
+  pick view, screen effects, the HUD moments). ARCHITECTURE (passes, the shared pull, per-ability
+  caps, multi-strike Time Stop, redos, kept Turn abilities, the QA and look tools). STUDIO_NOTES
+  (runtime loading, outlines, one-sided faces, Neon colours, code animation, sub-pixel detail,
+  ScreenInsets, touch and gamepad through MCP, the 15 fps cap, sound sheets unused). ECONOMY
+  11.8 (the measured ladder, careless values and win rates; the odds with all 13). DECISIONS
+  (the audit's assumptions, the launch). `assets/abilities/CREDITS.md` (every library sound
+  with its uploader; models and images made here). STATUS (a new top entry). This brief's 5.3
+  limits.

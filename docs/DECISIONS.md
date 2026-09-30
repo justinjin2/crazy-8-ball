@@ -2020,3 +2020,16 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   vignette) draw to the very edge of a phone's screen (`ScreenInsets.None`), not the safe area:
   the default inset drew the vignette's edge as a hard box inside the screen. The ult cutscene's
   ScreenGui has the same default; it belongs to the ultimates work and is only flagged here.
+- 2026-09-29 (assumption): a shot Rewind undoes pays no money and counts in no stats (its
+  balls come back); a shooter who leaves or dies during a rewind gets the departure foul, as in
+  Aiming (the redo was theirs), and a side emptied mid-shot ends the game instead of rewinding.
+- 2026-09-29 (assumption): a ball resting on a kept portal at the strike is treated as just
+  come out of it: it goes in only after it has left that circle.
+- 2026-09-29 (assumption): a ball an ability removes (Black Flash, Black Hole, the Tiger) is
+  never a NICE SHOT, even after a combo or a bank; balls a portal, Magnet or a push sends into a
+  pocket still can be (a real pot).
+- 2026-09-29 (assumption): a table's screen effects end once it no longer involves the player
+  (their seat left, or out of watching range), checked every 0.5 s.
+- 2026-09-29: the spin screen is live for everyone (`Config.Ults.ScreenLive = true`) with all
+  13 abilities built; Chain Lightning, Steel Ball and Black Flash's one-line descriptions now
+  say what they do (the brief's "ready for launch").
