@@ -2808,6 +2808,37 @@ def sprite_corona(n=512, r0=0.55, seed=401):
     return np.concatenate([_corona_col(heat), a[..., None] * 255], -1)
 
 
+def sprite_galaxy(n=512, arms=2, wind=2.6, seed=421):
+    """A spiral galaxy seen face on, for a large slow-turning particle behind the eclipse (the
+    concept's space setting): a warm white-gold core, two gold arms winding out and cooling to
+    orange and violet dust at the rim, dark lanes between them, and scattered stars; a soft round
+    edge so it melts into the dark."""
+    x, y = _grid(n)
+    r = np.hypot(x, y)
+    th = np.arctan2(y, x)
+    lr = np.log(np.maximum(r, 0.02))
+    arm = np.zeros_like(r)
+    for j in range(arms):
+        d = np.angle(np.exp(1j * (th - wind * lr - 2 * np.pi * j / arms)))
+        arm = np.maximum(arm, np.exp(-(d / (0.34 + 0.25 * r)) ** 2))
+    dust = cc.fbm(x * 4 + 3, y * 4, r * 2, 4, seed)
+    clumps = np.clip(dust * 1.6 - 0.35, 0, 1)
+    body = arm * np.clip(1 - r / 0.95, 0, 1) ** 1.2 * (0.45 + 0.75 * clumps)
+    core = np.exp(-(r / 0.13) ** 2) + 0.35 * np.exp(-(r / 0.32) ** 2)
+    rs = np.random.RandomState(seed)
+    stars = (rs.random_sample(r.shape) > 0.9975) * np.clip(1 - r / 0.9, 0, 1) * rs.random_sample(r.shape)
+    a = np.clip(core + body * 1.5 + stars, 0, 1) * np.clip((0.98 - r) / 0.12, 0, 1)
+    heat = np.clip(core * 1.2, 0, 1)
+    gold = np.array([255, 178, 60], np.float64)
+    ember = np.array([240, 110, 40], np.float64)
+    cool = np.array([140, 80, 210], np.float64)
+    t = np.clip(r / 0.85, 0, 1)[..., None]
+    col = np.where(t < 0.5, gold * (1 - t * 2) + ember * (t * 2), ember * (2 - t * 2) + cool * (t * 2 - 1))
+    col = col + (255 - col) * (heat[..., None] ** 1.5)
+    col = np.where(stars[..., None] > 0, 255.0, col)
+    return np.concatenate([np.clip(col, 0, 255), a[..., None] * 255], -1)
+
+
 def flare_frame(i, n, frames=16, r0=0.4, seed=411):
     """A solar prominence on the corona's rim (the rim at r0, the flare rising from the top): a
     loop of glowing plasma arcs up, twists and stretches, then snaps and fades (with random
@@ -2927,7 +2958,7 @@ def sprite_gold_column(w=256, h=256):
     return np.concatenate([_corona_col(np.clip(core + glow * 0.3, 0, 1)), a[..., None] * 255], -1)
 
 
-SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'flare_8x8.png': sprite_flare_sheet8, 'obsidian.png': sprite_obsidian,
+SKIN_SPRITES['eclipse'] = {'corona.png': sprite_corona, 'galaxy.png': sprite_galaxy, 'flare_8x8.png': sprite_flare_sheet8, 'obsidian.png': sprite_obsidian,
                            'mini_eclipse.png': sprite_mini_eclipse, 'trail_eclipse.png': sprite_trail_eclipse,
                            'dark_ring.png': sprite_dark_ring, 'gold_column.png': sprite_gold_column}
 

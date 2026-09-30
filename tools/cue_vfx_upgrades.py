@@ -62,30 +62,39 @@ def cyl(a0, a1, width):
 def eclipse(d):
     v = d['vfx']
     a = v['Aura']
-    # molten-gold lightning crawling over the whole cue (the concept's gold filaments)
-    a['Arcs'] = [
-        {'Name': 'MoltenCrawl', 'Count': 4, 'Segments': 12, 'FromStuds': 0.3, 'ToStuds': 7.0, 'Length': [0.9, 2.0],
-         'Around': 200, 'Radius': 0.15, 'Jitter': 0.12, 'Interval': 0.11, 'Duty': 0.75, 'WidthStuds': 0.09,
-         'Color': '#FFC24A', 'Brightness': 2.2, 'Texture': 'vfx/_shared/bolt_strip.png'},
-        {'Name': 'MoltenLeap', 'Count': 2, 'Segments': 14, 'FromStuds': 2.0, 'ToStuds': 7.0, 'Length': [1.6, 3.0],
-         'Around': 320, 'Radius': 0.24, 'Jitter': 0.2, 'Interval': 0.2, 'Duty': 0.5, 'WidthStuds': 0.11,
-         'Color': '#FFD774', 'Brightness': 2.4, 'Texture': 'vfx/_shared/bolt_strip.png'},
-    ]
-    # the orbit loops: wide enough to read as the concept's orbit rings, with brighter, longer trails
+    # designer, 2026-09-30: space, orbital, galaxy vibes round a glowing eclipse, not gold lightning
+    # (the Arcs and the gold fire are gone). The orbital rings, planet-beads and asteroid belt are
+    # 3D (CuePiecesMythic.eclipse); here: a spiral galaxy turning slowly behind the eclipse, dark
+    # nebula clouds, twinkling stars and gold star dust round the cue, the corona sized to the
+    # bigger eclipse sphere (radius 0.36, was 0.28)
+    a.pop('Arcs', None)
+    a['Emitters'] = [e for e in a['Emitters'] if e['Name'] not in ('GoldFlame', 'DarkVeil')]
+    k = 0.36 / 0.28
+    named(a['Emitters'], 'Corona')['Size'] = [[0, round(1.02 * k, 3)], [1, round(1.1 * k, 3)]]
+    named(a['Emitters'], 'Flares')['Size'] = round(1.4 * k, 3)
+    put(a['Emitters'], {
+        'Name': 'Galaxy', 'Texture': 'vfx/eclipse/galaxy.png', 'Host': {'Kind': 'Attachment', 'AtStuds': 7.56},
+        'Rate': 1.2, 'Lifetime': 2.5, 'Speed': 0, 'Size': [[0, 3.8], [1, 4.2]], 'Rotation': [0, 360],
+        'RotSpeed': [14, 14], 'Transparency': [[0, 1], [0.3, 0.1], [0.7, 0.1], [1, 1]], 'Color': '#FFFFFF',
+        'Brightness': 1.5, 'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': True, 'ZOffset': -0.8})
+    put(a['Emitters'], {
+        'Name': 'Nebula', 'Texture': 'vfx/_shared/smoke_8x8.png', 'FlipbookLayout': 'Grid8x8',
+        'FlipbookMode': 'OneShot', 'Host': cyl(0.4, 7.6, 1.0), 'Rate': 4, 'Lifetime': [2.4, 3.2],
+        'Speed': [0.02, 0.08], 'SpreadAngle': [180, 180], 'Size': [[0, 0.9], [1, 1.8]], 'Rotation': [0, 360],
+        'RotSpeed': [-10, 10], 'Transparency': [[0, 1], [0.3, 0.72], [0.7, 0.78], [1, 1]],
+        'Color': [[0, '#8A5A2A'], [1, '#3A2458']], 'LightEmission': 0.6, 'LightInfluence': 0, 'LockedToPart': False})
+    put(a['Emitters'], {
+        'Name': 'Stars', 'Texture': 'vfx/_shared/star4.png', 'Host': cyl(0.2, 7.8, 1.6) | {'ShapeStyle': 'Volume'},
+        'Rate': 10, 'Lifetime': [0.8, 1.6], 'Speed': 0, 'Size': [[0, 0], [0.5, 0.14, 0.06], [1, 0]],
+        'Rotation': [0, 45], 'Transparency': 0, 'Color': [[0, '#FFFFFF'], [1, '#FFE3A0']], 'LightEmission': 1,
+        'LightInfluence': 0, 'LockedToPart': True})
+    # the orbit loops round the cue: brighter, longer trails, like the concept's gold loops
     for o in a['Orbiters']:
         o['Radius'] = 0.38
         o['Wobble'] = 0.08
-        o['Trail'].update({'Lifetime': 0.9, 'WidthStuds': 0.055, 'Brightness': 3,
+        o['Trail'].update({'Lifetime': 1.2, 'WidthStuds': 0.08, 'Brightness': 3,
                            'Transparency': [[0, 0], [0.6, 0.25], [1, 1]]})
         o['Head']['Size'] = 0.24
-    # gold fire licking up round the forearm and butt, strongest where the concept blazes
-    put(a['Emitters'], {
-        'Name': 'GoldFlame', 'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8',
-        'FlipbookMode': 'OneShot', 'Host': cyl(3.6, 7.0, 0.22), 'Rate': 10, 'Lifetime': [0.6, 0.9],
-        'Speed': [0.3, 0.6], 'SpreadAngle': [25, 25], 'EmissionDirection': 'Top', 'Acceleration': [0, 1.4, 0],
-        'Size': [[0, 0.4], [0.35, 0.85], [1, 0.25]], 'Transparency': [[0, 0.3], [0.3, 0.05], [1, 1]],
-        'Color': [[0, '#FFF6D0'], [0.5, '#FFC030'], [1, '#FF8A00']], 'Brightness': 1.6, 'LightEmission': 1, 'LightInfluence': 0,
-        'LockedToPart': False})
     # a faint cloud of gold energy round the forearm and butt (the concept's glowing haze)
     put(a['Emitters'], {
         'Name': 'GoldHaze', 'Texture': 'vfx/_shared/smoke_8x8.png', 'FlipbookLayout': 'Grid8x8',
@@ -127,12 +136,14 @@ def eclipse(d):
                            'spreads; a gold flash. The default gust is tinted gold.')
     g = named(a['Emitters'], 'GoldSparks')
     g['Rate'] = 18
-    a['Note'] = ('Solar flares lick off the corona (64-frame sheet) while the air round the cue darkens slightly '
-                 '(black smoke, alpha-blended); molten-gold lightning crawls and leaps over the whole cue (Arcs); '
-                 'gold fire licks up round the forearm and butt; gold sparks fly off the corona and glitter all '
-                 'along the cue; obsidian chips drift and tumble round it; three wide gold orbit rings with small '
-                 'eclipses at their heads circle the cue (Orbiters); a gold glow along the cue; a warm gold light '
-                 'at the eclipse.')
+    a['Note'] = ('Space round a glowing eclipse (designer, 2026-09-30): past the butt a big black eclipse sphere '
+                 'in its blazing corona, solar flares licking off it, in front of a spiral galaxy turning slowly '
+                 '(a large camera-facing sprite made for Eclipse); four gold orbital rings circle the cue, tilted '
+                 'every way like an atom\'s orbits, each precessing with a glowing planet running round it, and '
+                 'an asteroid belt of dark rocks orbits the cue, tumbling (3D, the piece); three gold orbit '
+                 'trails with small eclipses at their heads loop along the cue (Orbiters); dark nebula clouds '
+                 'drift round it (alpha-blended), stars twinkle, gold star dust glitters, obsidian chips drift; '
+                 'a gold glow along the cue and a warm gold light at the eclipse.')
 
 
 def apex(d):
@@ -656,6 +667,8 @@ def budget(d):
         b['Orbiters'] = len(a['Orbiters'])
     if a.get('Arcs'):
         b['Arcs'] = sum(x.get('Count', 3) for x in a['Arcs'])
+    else:
+        b.pop('Arcs', None)
     if d.get('piece'):
         pj = json.load(open(os.path.join(ROOT, 'assets', 'cue', 'pieces', d['piece'], 'piece.json')))
         b['PieceTriangles'] = pj['Triangles']

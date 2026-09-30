@@ -778,7 +778,8 @@ def eclipse(k):
     k.material('Moon', 'SmoothPlastic', '#B9BEC6', Reflectance=0.12)
 
     U0 = 7.0
-    RS, UC = 0.28, 0.56                         # the sphere's radius and centre past the butt
+    RS, UC = 0.36, 0.56                         # the sphere's radius and centre past the butt (0.28 until the
+                                                # 2026-09-30 space rework: a bigger, bolder eclipse)
 
     def rad(a):
         return Vector((math.sin(math.radians(a)), 0, math.cos(math.radians(a))))
@@ -853,3 +854,57 @@ def eclipse(k):
             v.co = Vector((v.co.x * s * rnd.uniform(0.7, 1.3), v.co.y * s * rnd.uniform(1.0, 1.8), v.co.z * s * rnd.uniform(0.6, 1.1)))
             v.co = Matrix.Rotation(rnd.uniform(0, 6.28), 3, 'Z') @ v.co + p
     k.add('Debris', k.mesh_object('EclipseShards', bm, ['Obsidian'], smooth=False))
+
+    # the concept's space round the cue (designer, 2026-09-30: orbital, galaxy vibes, not lightning):
+    # gold orbital rings round the cue, tilted every way like an atom's orbits, each precessing
+    # slowly with a glowing planet-bead running round it; an asteroid belt of dark rocks orbiting
+    # the cue and tumbling
+    k.material('OrbitLine', 'Neon', '#FFB84A', Transparency=0.2)
+    k.material('OrbitGlow', 'ForceField', '#FFB300')          # a soft glowing sheath round each ring
+    k.material('Bead', 'Neon', '#FFE6A0')
+    k.material('BeadGlow', 'ForceField', '#FFB300')
+    k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
+    orbits = [(1.3, 0.46, 62, 20, 14.0, 150.0), (2.8, 0.62, -55, 110, -11.0, -120.0),
+              (4.3, 0.52, 70, 230, 16.0, 135.0), (5.8, 0.7, -64, 320, -9.0, -105.0)]
+    for n, (a_, rr, tilt, yaw, prec, run) in enumerate(orbits, 1):
+        c = Vector((0, -a_, 0))
+        # the ring's normal: tipped `tilt` degrees off the cue's axis, turned `yaw` round it
+        nrm = (Matrix.Rotation(math.radians(yaw), 3, 'Y') @ Matrix.Rotation(math.radians(tilt), 3, 'X')
+               @ Vector((0, 1, 0))).normalized()
+        u = nrm.orthogonal().normalized()
+        w = nrm.cross(u)
+        ring = [c + (u * math.cos(2 * math.pi * i / 96) + w * math.sin(2 * math.pi * i / 96)) * rr for i in range(97)]
+        orb_j, bead_j = 'Orbital%d' % n, 'Planet%d' % n
+        k.joint(orb_j, pivot=tuple(c), motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': prec, 'Phase': yaw}])
+        for mat, tube, segs in (('OrbitLine', 0.007, 6), ('OrbitGlow', 0.024, 8)):
+            bm = bmesh.new()
+            sweep(bm, ring, [tube] * len(ring), segs=segs, cap=False)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+            k.add(orb_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
+        k.joint(bead_j, pivot=tuple(c), parent=orb_j, motion=[{'Kind': 'Spin', 'Axis': tuple(nrm), 'Rate': run}])
+        p0 = ring[0]
+        for mat, r_ in (('Bead', 0.03), ('BeadGlow', 0.065)):
+            bm = bmesh.new()
+            bmesh.ops.create_uvsphere(bm, u_segments=16, v_segments=10, radius=r_, matrix=Matrix.Translation(p0))
+            k.add(bead_j, k.mesh_object('Eclipse%s%d' % (mat, n), bm, [mat]))
+    rnd = random.Random(23)
+    for n in range(1, 11):
+        a_ = 0.9 + 6.0 * (n - 0.5) / 10 + rnd.uniform(-0.25, 0.25)
+        rr = rnd.uniform(0.5, 0.9)
+        ang = rnd.uniform(0, 360)
+        c = Vector((rr * math.sin(math.radians(ang)), -a_, rr * math.cos(math.radians(ang))))
+        belt, rock = 'Belt%d' % n, 'Asteroid%d' % n
+        k.joint(belt, pivot=(0, -a_, 0), motion=[
+            {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': rnd.uniform(14, 26) * (1 if n % 2 else -1)},
+            {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.15, 'Period': rnd.uniform(3.5, 5.0), 'Phase': n * 37}])
+        k.joint(rock, pivot=tuple(c), parent=belt, motion=[
+            {'Kind': 'Spin', 'Axis': (rnd.uniform(-1, 1), rnd.uniform(-1, 1), 1), 'Rate': rnd.uniform(40, 90)}])
+        bm = bmesh.new()
+        geom = bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+        sz = rnd.uniform(0.045, 0.1)
+        stretch = Vector((rnd.uniform(0.8, 1.3), rnd.uniform(0.8, 1.4), rnd.uniform(0.6, 1.0)))
+        for v in geom['verts']:
+            d = v.co.normalized()
+            bump = 1 + 0.28 * math.sin(d.x * 5.1 + n) * math.sin(d.y * 4.3 + 2 * n) + 0.12 * math.sin(d.z * 9 + n)
+            v.co = c + Vector((d.x * stretch.x, d.y * stretch.y, d.z * stretch.z)) * sz * bump
+        k.add(rock, k.mesh_object('EclipseAsteroid%d' % n, bm, ['Rock'], smooth=False))
