@@ -363,8 +363,12 @@ class Kit:
         return make_blender_material(bpy, key, self.mats[name])
 
     # ---- joints ---------------------------------------------------------------------------------
-    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None):
-        self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': []}
+    def joint(self, name, pivot=(0, 0, 0), parent=None, motion=None, aura=False):
+        """aura: this joint and everything on it (and its child joints) is part of the aura, hidden
+        on the player's turn to shoot with the rest of the aura (designer, 2026-09-30), not a fixed
+        part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox)."""
+        self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
+                             'Aura': aura}
         return name
 
     def add(self, joint, ob):
@@ -732,6 +736,8 @@ def export(kit):
         p = j['Pivot']
         joints[jname] = {'Parent': j['Parent'], 'Pivot': p, 'PivotRoblox': [round(-p[0], 4), round(p[2], 4), round(ZOFF[kit.frame] + p[1], 4)],
                          'Motion': j['Motion']}
+        if j.get('Aura'):
+            joints[jname]['Aura'] = True
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}

@@ -80,7 +80,7 @@
   },
   "vfx": {
     "Piece": {
-      "Note": "pieces/kitsune: MeshParts by joint (Mask, EarL, EarR, Jaw) and material (Porcelain SmoothPlastic, Crimson, Gold Foil, Eye Neon, Nose, Mouth, Fang); piece.json has each part's Offset and every joint's pivot and motion. Motion: the mask tilts slowly (3 and 2 degrees); each ear twitches now and then (12 degrees, a quick pulse every 3.3 s, the two out of step); the jaw parts a little every 5 s."
+      "Note": "pieces/kitsune: FoxMask.glb, the generated mask as a hologram (Mask, EarLeft/Right, Jaw), on the butt; RunningFox.glb, a small generated nine-tailed fox as a violet hologram, on the bones FoxRun (root, a Spin round the forearm: its lap), FoxBody (rise and pitch each stride), FoxFront and FoxHind (the legs, half a stride apart), FoxHead and FoxTails. The fox's joints are Aura (hidden on the shooter's turn)."
     },
     "Moving": {
       "Kind": "Piece + Beams (tails) + emissive",
@@ -548,7 +548,7 @@
       ]
     },
     "Aura": {
-      "Note": "Layered: nine foxfire tails stream back from the mask along the handle (above); violet foxfire licks up all along the cue and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet glow round the cue (a halo Beam) and a violet light at the mask.",
+      "Note": "Layered: nine foxfire tails stream back from the mask along the handle (above); violet foxfire licks up all along the cue and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet glow round the cue (a halo Beam) and a violet light at the mask. A small nine-tailed spirit fox (the 3D piece, a violet hologram) gallops round and round the forearm, leaving a wisp of foxfire behind it; it is aura and goes with the rest on the shooter's turn.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -933,6 +933,92 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false
+        },
+        {
+          "Name": "FoxTrail",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Rate": 6,
+          "Lifetime": [
+            0.4,
+            0.6
+          ],
+          "Speed": [
+            0.02,
+            0.1
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              0.4,
+              0.2
+            ],
+            [
+              1,
+              0.05
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#F6E6FF"
+            ],
+            [
+              0.5,
+              "#C070FF"
+            ],
+            [
+              1,
+              "#6A2AD8"
+            ]
+          ],
+          "Brightness": 1.6,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "FoxRun",
+            "From": [
+              4.3,
+              0.527,
+              0.16
+            ],
+            "To": [
+              4.3,
+              0.5,
+              -0.07
+            ],
+            "Radius": 0.04
+          }
         }
       ],
       "Orbiters": [
@@ -1747,13 +1833,13 @@
       "KeepRibbons": false
     },
     "Budget": {
-      "ParticlesPerSecond": 52,
-      "Back": 26.0,
+      "ParticlesPerSecond": 58,
+      "Back": 29.0,
       "BallTrail": 22,
       "Beams": 10,
       "Lights": 1,
       "Orbiters": 3,
-      "PieceTriangles": 22000,
+      "PieceTriangles": 39000,
       "PocketPieceTriangles": 27500
     }
   }

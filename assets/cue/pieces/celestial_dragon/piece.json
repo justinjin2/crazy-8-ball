@@ -2,8 +2,143 @@
   "id": "celestial_dragon",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 37740,
+  "Triangles": 33294,
   "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/celestial_dragon/DragonBody_spirit.png",
+        "EmissiveMask": "pieces/celestial_dragon/DragonBody_emissive.png",
+        "EmissiveTint": "#8CC8FF",
+        "EmissiveStrength": 1.8,
+        "AlphaMode": "Transparency"
+      },
+      "Name": "DragonBody",
+      "File": "pieces/celestial_dragon/DragonBody.glb",
+      "Mesh": "DragonBodySkin",
+      "Joint": "Coil",
+      "Skinned": true,
+      "Bones": [
+        "Coil",
+        "Body1",
+        "Body2",
+        "Body3",
+        "Body4",
+        "Body5",
+        "Body6",
+        "Body7"
+      ],
+      "Triangles": 7680,
+      "Offset": [
+        0.0572,
+        -0.013,
+        0.2786
+      ],
+      "Size": [
+        0.935,
+        0.8204,
+        7.2688
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#8FCBFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "DragonSheath",
+      "File": "pieces/celestial_dragon/DragonBody.glb",
+      "Mesh": "DragonSheathSkin",
+      "Joint": "Coil",
+      "Skinned": true,
+      "Bones": [
+        "Coil",
+        "Body1",
+        "Body2",
+        "Body3",
+        "Body4",
+        "Body5",
+        "Body6",
+        "Body7"
+      ],
+      "Triangles": 2880,
+      "Offset": [
+        0.0511,
+        -0.0129,
+        0.2645
+      ],
+      "Size": [
+        0.9789,
+        0.8751,
+        7.2499
+      ]
+    },
+    {
+      "Material": "Neon",
+      "Color": "#D8EEFF",
+      "Transparency": 0.45,
+      "Reflectance": 0.0,
+      "Name": "DragonCore",
+      "File": "pieces/celestial_dragon/DragonBody.glb",
+      "Mesh": "DragonCoreSkin",
+      "Joint": "Coil",
+      "Skinned": true,
+      "Bones": [
+        "Coil",
+        "Body1",
+        "Body2",
+        "Body3",
+        "Body4",
+        "Body5",
+        "Body6",
+        "Body7"
+      ],
+      "Triangles": 1440,
+      "Offset": [
+        0.0566,
+        -0.0129,
+        0.2589
+      ],
+      "Size": [
+        0.8236,
+        0.7092,
+        7.2206
+      ]
+    },
+    {
+      "Material": "Neon",
+      "Color": "#9ACFFF",
+      "Transparency": 0.35,
+      "Reflectance": 0.0,
+      "Name": "DragonFins",
+      "File": "pieces/celestial_dragon/DragonBody.glb",
+      "Mesh": "DragonFinsSkin",
+      "Joint": "Coil",
+      "Skinned": true,
+      "Bones": [
+        "Coil",
+        "Body1",
+        "Body2",
+        "Body3",
+        "Body4",
+        "Body5",
+        "Body6",
+        "Body7"
+      ],
+      "Triangles": 294,
+      "Offset": [
+        -0.0152,
+        -0.0144,
+        0.0239
+      ],
+      "Size": [
+        1.0122,
+        1.0407,
+        6.7916
+      ]
+    },
     {
       "Material": "SmoothPlastic",
       "Color": "#FFFFFF",
@@ -27,16 +162,16 @@
         "Jaw",
         "Mane"
       ],
-      "Triangles": 19500,
+      "Triangles": 15000,
       "Offset": [
-        -0.0003,
-        0.1647,
-        -3.6506
+        0.6759,
+        -0.2129,
+        4.2057
       ],
       "Size": [
-        0.5076,
-        0.5334,
-        0.7814
+        0.8063,
+        0.6804,
+        1.0034
       ]
     },
     {
@@ -54,97 +189,21 @@
         "Jaw",
         "Mane"
       ],
-      "Triangles": 8000,
+      "Triangles": 6000,
       "Offset": [
-        -0.0,
-        0.1667,
-        -3.6523
+        0.6816,
+        -0.2152,
+        4.2124
       ],
       "Size": [
-        0.507,
-        0.5476,
-        0.7856
+        0.8158,
+        0.6872,
+        1.0093
       ]
-    },
-    {
-      "Material": "ForceField",
-      "Color": "#6FB8FF",
-      "Transparency": 0.35,
-      "Reflectance": 0.0,
-      "Name": "Body_Energy",
-      "File": "pieces/celestial_dragon/Body_Energy.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        -0.2791
-      ],
-      "Size": [
-        0.392,
-        0.4475,
-        6.3608
-      ],
-      "Triangles": 6400
-    },
-    {
-      "Material": "Neon",
-      "Color": "#A8D8FF",
-      "Transparency": 0.55,
-      "Reflectance": 0.0,
-      "Name": "Body_Core",
-      "File": "pieces/celestial_dragon/Body_Core.obj",
-      "Joint": "Body",
-      "Offset": [
-        0.0,
-        0.0,
-        -0.2771
-      ],
-      "Size": [
-        0.3463,
-        0.3517,
-        6.3557
-      ],
-      "Triangles": 3840
     }
   ],
   "Joints": {
-    "Head": {
-      "Parent": null,
-      "Pivot": [
-        0,
-        -7.0,
-        0.05
-      ],
-      "PivotRoblox": [
-        0,
-        0.05,
-        -3.5
-      ],
-      "Motion": [
-        {
-          "Kind": "Hinge",
-          "Axis": [
-            1,
-            0,
-            0
-          ],
-          "Amp": 3.0,
-          "Period": 3.2
-        },
-        {
-          "Kind": "Hinge",
-          "Axis": [
-            0,
-            0,
-            1
-          ],
-          "Amp": 4.0,
-          "Period": 5.1,
-          "Phase": 40
-        }
-      ]
-    },
-    "Body": {
+    "Coil": {
       "Parent": null,
       "Pivot": [
         0,
@@ -156,59 +215,298 @@
         0,
         3.5
       ],
-      "Motion": []
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 32.0
+        }
+      ],
+      "Aura": true
     },
-    "Jaw": {
-      "Parent": "Head",
+    "Body1": {
+      "Parent": "Coil",
       "Pivot": [
-        0,
-        -7.22,
-        0.02
+        0.2132118195295334,
+        -6.213409900665283,
+        -0.09430326521396637
       ],
       "PivotRoblox": [
-        0,
-        0.02,
-        -3.72
+        -0.2132,
+        -0.0943,
+        -2.7134
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.2709924876689911,
+            -0.41107723116874695,
+            -0.8703899383544922
+          ],
+          "Amp": 0.035,
+          "Period": 1.8,
+          "Phase": 0
+        }
+      ],
+      "Aura": true
+    },
+    "Body2": {
+      "Parent": "Coil",
+      "Pivot": [
+        -0.25133949518203735,
+        -5.182740688323975,
+        -0.03936667740345001
+      ],
+      "PivotRoblox": [
+        0.2513,
+        -0.0394,
+        -1.6827
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.6963747143745422,
+            -0.4371270537376404,
+            0.5691943764686584
+          ],
+          "Amp": 0.03666666666666667,
+          "Period": 1.8,
+          "Phase": 50
+        }
+      ],
+      "Aura": true
+    },
+    "Body3": {
+      "Parent": "Coil",
+      "Pivot": [
+        0.21969130635261536,
+        -4.121757507324219,
+        0.16755835711956024
+      ],
+      "PivotRoblox": [
+        -0.2197,
+        0.1676,
+        -0.6218
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.8731197118759155,
+            -0.4620266854763031,
+            -0.155542254447937
+          ],
+          "Amp": 0.03833333333333334,
+          "Period": 1.8,
+          "Phase": 100
+        }
+      ],
+      "Aura": true
+    },
+    "Body4": {
+      "Parent": "Coil",
+      "Pivot": [
+        -0.12240741401910782,
+        -3.060774087905884,
+        -0.2719079256057739
+      ],
+      "PivotRoblox": [
+        0.1224,
+        -0.2719,
+        0.4392
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.82642662525177,
+            -0.4850773513317108,
+            -0.28586524724960327
+          ],
+          "Amp": 0.04,
+          "Period": 1.8,
+          "Phase": 150
+        }
+      ],
+      "Aura": true
+    },
+    "Body5": {
+      "Parent": "Coil",
+      "Pivot": [
+        -0.047357894480228424,
+        -2.030104637145996,
+        0.3159283995628357
+      ],
+      "PivotRoblox": [
+        0.0474,
+        0.3159,
+        1.4699
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.5241129994392395,
+            -0.5057870745658875,
+            0.6851898431777954
+          ],
+          "Amp": 0.04166666666666667,
+          "Period": 1.8,
+          "Phase": 200
+        }
+      ],
+      "Aura": true
+    },
+    "Body6": {
+      "Parent": "Coil",
+      "Pivot": [
+        0.20522181689739227,
+        -0.9691213369369507,
+        -0.27277249097824097
+      ],
+      "PivotRoblox": [
+        -0.2052,
+        -0.2728,
+        2.5309
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.12140971422195435,
+            -0.5254787802696228,
+            -0.8420996069908142
+          ],
+          "Amp": 0.043333333333333335,
+          "Period": 1.8,
+          "Phase": 250
+        }
+      ],
+      "Aura": true
+    },
+    "Body7": {
+      "Parent": "Coil",
+      "Pivot": [
+        -0.38223981857299805,
+        0.09186192601919174,
+        -0.16198261082172394
+      ],
+      "PivotRoblox": [
+        0.3822,
+        -0.162,
+        3.5919
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            -0.8427705764770508,
+            -0.2529948353767395,
+            0.4751119315624237
+          ],
+          "Amp": 0.045000000000000005,
+          "Period": 1.8,
+          "Phase": 300
+        }
+      ],
+      "Aura": true
+    },
+    "Head": {
+      "Parent": "Body7",
+      "Pivot": [
+        -0.45965543389320374,
+        0.39500001072883606,
+        -0.14505474269390106
+      ],
+      "PivotRoblox": [
+        0.4597,
+        -0.1451,
+        3.895
       ],
       "Motion": [
         {
           "Kind": "Hinge",
           "Axis": [
-            1,
-            0,
-            0
+            -0.2994306683540344,
+            -0.10014142096042633,
+            0.9488482475280762
+          ],
+          "Amp": 6.0,
+          "Period": 3.0
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            -0.9167395234107971,
+            -0.2454323172569275,
+            -0.31520095467567444
+          ],
+          "Amp": 8.0,
+          "Period": 4.6,
+          "Phase": 40
+        }
+      ],
+      "Aura": true
+    },
+    "Jaw": {
+      "Parent": "Head",
+      "Pivot": [
+        -0.5749251842498779,
+        0.8153037428855896,
+        -0.1370718777179718
+      ],
+      "PivotRoblox": [
+        0.5749,
+        -0.1371,
+        4.3153
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.2994306683540344,
+            0.10014142096042633,
+            -0.9488482475280762
           ],
           "Base": 11.0,
           "Amp": 11.0,
           "Period": 2.4
         }
-      ]
+      ],
+      "Aura": true
     },
     "Mane": {
       "Parent": "Head",
       "Pivot": [
-        0,
-        -7.1,
-        0.15
+        -0.687031626701355,
+        0.6260558366775513,
+        -0.19242286682128906
       ],
       "PivotRoblox": [
-        0,
-        0.15,
-        -3.6
+        0.687,
+        -0.1924,
+        4.1261
       ],
       "Motion": [
         {
           "Kind": "Hinge",
           "Axis": [
-            1,
-            0,
-            0
+            0.2994306683540344,
+            0.10014142096042633,
+            -0.9488482475280762
           ],
-          "Amp": 5.0,
+          "Amp": 6.0,
           "Period": 1.3,
           "Phase": 60
         }
-      ]
+      ],
+      "Aura": true
     }
   }
 }

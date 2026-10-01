@@ -90,7 +90,7 @@
   },
   "vfx": {
     "Piece": {
-      "Note": "pieces/celestial_dragon: MeshParts by joint (Head, Jaw, Body) and material (Pearl SmoothPlastic, Gold Foil, Fang, Eye Neon, Mane Neon 0.3, Energy ForceField, Core Neon 0.55); see piece.json for each part's Offset and every joint's pivot and motion. Motion (a LocalScript, every frame): the head breathes (a 3 degree nod every 3.2 s) and slowly looks round (4 degrees, 5.1 s); the jaw snaps open in a roar once every 4 s (8 to 26 degrees, a quick pulse); the body is still (the flow runs along it).",
+      "Note": "pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body (DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its ForceField sheath, Neon core and Neon flame fins, on the bones Coil (root, a Spin round the cue's axis) and Body1-7 (each a Bob a beat after the last: a wave down the body). DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding Body7), Jaw and Mane. Every joint is Aura (hidden on the shooter's turn); piece.json has each pivot and motion, and each Bone's Transform is set as the report says (6.3).",
       "Triangles": 20536
     },
     "Moving": {
@@ -98,7 +98,7 @@
       "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
     },
     "Aura": {
-      "Note": "Layered: wide streams of starlight flow along the coils of the dragon body (Orbiters matched to the body's helix, streaky starlight trails); drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; blue energy flames stream back off the head; a soft blue glow round the cue (a halo Beam, breathing) and a blue light at the head.",
+      "Note": "A spirit dragon of blue light coils round the whole cue (the 3D piece: its tail at the butt, 2.5 turns up the cue, its neck rising past the tip, roaring), swimming slowly round the cue with a wave running down its body; blue spirit flames peel off its back all along it and off its head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) and a blue light on the coil. The dragon is aura: it goes with the rest on the shooter's turn.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -112,7 +112,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 22,
+          "Rate": 18,
           "Lifetime": [
             0.8,
             1.4
@@ -186,7 +186,7 @@
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
-          "Rate": 14,
+          "Rate": 12,
           "Lifetime": [
             1.0,
             1.8
@@ -232,21 +232,28 @@
           "Name": "Wisps",
           "Texture": "vfx/_shared/energy_flame_8x8.png",
           "Host": {
-            "Kind": "Part",
-            "FromStuds": 6.6,
-            "ToStuds": 7.4,
-            "Width": 0.25,
-            "Shape": "Cylinder",
-            "ShapeStyle": "Volume"
+            "Kind": "Segment",
+            "Joint": "Head",
+            "From": [
+              -0.395,
+              -0.145,
+              -0.46
+            ],
+            "To": [
+              -0.14500000000000002,
+              -0.145,
+              -0.56
+            ],
+            "Radius": 0.08
           },
-          "Rate": 12,
+          "Rate": 6,
           "Lifetime": [
-            0.6,
-            1.0
+            0.5,
+            0.8
           ],
           "Speed": [
-            0.2,
-            0.5
+            0.05,
+            0.2
           ],
           "SpreadAngle": [
             60,
@@ -271,11 +278,11 @@
           "Transparency": [
             [
               0,
-              0.35
+              0.4
             ],
             [
               0.3,
-              0.1
+              0.15
             ],
             [
               1,
@@ -304,222 +311,610 @@
           "Brightness": 1.6,
           "Acceleration": [
             0,
-            1.2,
+            0.3,
             0
           ]
-        }
-      ],
-      "Orbiters": [
+        },
         {
-          "Name": "Flow1",
-          "FromStuds": 6.95,
-          "ToStuds": 0.6,
-          "TravelSeconds": 2.4,
-          "Loop": "wrap",
-          "TurnsPerSecond": -1.3333333333333335,
-          "Radius": 0.045,
-          "RadiusFromSurface": true,
-          "Wobble": 0.0,
-          "WobbleHz": 0.597,
-          "Phase": 180,
-          "Delay": 0.0,
-          "Trail": {
-            "Lifetime": 1.0,
-            "WidthStuds": 0.11,
-            "Color": "#9CCBFF",
-            "Brightness": 3,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.25
-              ],
-              [
-                1,
-                1
-              ]
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
             ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.4
-              ]
+            [
+              0.4,
+              0.48
             ],
-            "LightEmission": 1,
-            "Texture": "vfx/celestial_dragon/trail_starlight.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.22,
-            "Color": "#E6F4FF",
-            "LightEmission": 1
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames1",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body1",
+            "From": [
+              6.214,
+              -0.105,
+              0.238
+            ],
+            "To": [
+              6.43,
+              0.011,
+              0.285
+            ],
+            "Radius": 0.04
           }
         },
         {
-          "Name": "Flow2",
-          "FromStuds": 6.95,
-          "ToStuds": 0.6,
-          "TravelSeconds": 2.4,
-          "Loop": "wrap",
-          "TurnsPerSecond": -1.3333333333333335,
-          "Radius": 0.045,
-          "RadiusFromSurface": true,
-          "Wobble": 0.0,
-          "WobbleHz": 0.597,
-          "Phase": 0,
-          "Delay": 0.0,
-          "Trail": {
-            "Lifetime": 1.0,
-            "WidthStuds": 0.11,
-            "Color": "#9CCBFF",
-            "Brightness": 3,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.25
-              ],
-              [
-                1,
-                1
-              ]
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
             ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.4
-              ]
+            [
+              0.4,
+              0.48
             ],
-            "LightEmission": 1,
-            "Texture": "vfx/celestial_dragon/trail_starlight.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.22,
-            "Color": "#E6F4FF",
-            "LightEmission": 1
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames2",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body2",
+            "From": [
+              5.184,
+              -0.052,
+              -0.329
+            ],
+            "To": [
+              5.395,
+              -0.184,
+              -0.304
+            ],
+            "Radius": 0.04
           }
         },
         {
-          "Name": "Flow3",
-          "FromStuds": 6.95,
-          "ToStuds": 0.6,
-          "TravelSeconds": 2.4,
-          "Loop": "wrap",
-          "TurnsPerSecond": -1.3333333333333335,
-          "Radius": 0.045,
-          "RadiusFromSurface": true,
-          "Wobble": 0.0,
-          "WobbleHz": 0.597,
-          "Phase": 180,
-          "Delay": 1.2,
-          "Trail": {
-            "Lifetime": 1.0,
-            "WidthStuds": 0.11,
-            "Color": "#9CCBFF",
-            "Brightness": 3,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.25
-              ],
-              [
-                1,
-                1
-              ]
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
             ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.4
-              ]
+            [
+              0.4,
+              0.48
             ],
-            "LightEmission": 1,
-            "Texture": "vfx/celestial_dragon/trail_starlight.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.22,
-            "Color": "#E6F4FF",
-            "LightEmission": 1
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames3",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body3",
+            "From": [
+              4.123,
+              0.223,
+              0.291
+            ],
+            "To": [
+              4.329,
+              0.333,
+              0.201
+            ],
+            "Radius": 0.04
           }
         },
         {
-          "Name": "Flow4",
-          "FromStuds": 6.95,
-          "ToStuds": 0.6,
-          "TravelSeconds": 2.4,
-          "Loop": "wrap",
-          "TurnsPerSecond": -1.3333333333333335,
-          "Radius": 0.045,
-          "RadiusFromSurface": true,
-          "Wobble": 0.0,
-          "WobbleHz": 0.597,
-          "Phase": 0,
-          "Delay": 1.2,
-          "Trail": {
-            "Lifetime": 1.0,
-            "WidthStuds": 0.11,
-            "Color": "#9CCBFF",
-            "Brightness": 3,
-            "Transparency": [
-              [
-                0,
-                0
-              ],
-              [
-                0.6,
-                0.25
-              ],
-              [
-                1,
-                1
-              ]
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
             ],
-            "WidthScale": [
-              [
-                0,
-                1
-              ],
-              [
-                1,
-                0.4
-              ]
+            [
+              0.4,
+              0.48
             ],
-            "LightEmission": 1,
-            "Texture": "vfx/celestial_dragon/trail_starlight.png",
-            "TextureMode": "Stretch"
-          },
-          "Head": {
-            "Texture": "vfx/_shared/glow_core.png",
-            "Size": 0.22,
-            "Color": "#E6F4FF",
-            "LightEmission": 1
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames4",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body4",
+            "From": [
+              3.062,
+              -0.354,
+              -0.159
+            ],
+            "To": [
+              3.263,
+              -0.412,
+              -0.021
+            ],
+            "Radius": 0.04
+          }
+        },
+        {
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
+            ],
+            [
+              0.4,
+              0.48
+            ],
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames5",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body5",
+            "From": [
+              2.031,
+              0.405,
+              -0.062
+            ],
+            "To": [
+              2.227,
+              0.378,
+              -0.215
+            ],
+            "Radius": 0.04
+          }
+        },
+        {
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
+            ],
+            [
+              0.4,
+              0.48
+            ],
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames6",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body6",
+            "From": [
+              0.97,
+              -0.344,
+              0.26
+            ],
+            "To": [
+              1.161,
+              -0.244,
+              0.387
+            ],
+            "Radius": 0.04
+          }
+        },
+        {
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
+            ],
+            [
+              0.4,
+              0.48
+            ],
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.4
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#EAF6FF"
+            ],
+            [
+              0.5,
+              "#6FB8FF"
+            ],
+            [
+              1,
+              "#2A5CE0"
+            ]
+          ],
+          "Brightness": 1.8,
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "Name": "SpiritFlames7",
+          "Rate": 2,
+          "Host": {
+            "Kind": "Segment",
+            "Joint": "Body7",
+            "From": [
+              -0.078,
+              -0.196,
+              -0.456
+            ],
+            "To": [
+              0.164,
+              -0.221,
+              -0.397
+            ],
+            "Radius": 0.04
           }
         }
       ],
@@ -572,7 +967,7 @@
       ],
       "Lights": [
         {
-          "AtStuds": 7.2,
+          "AtStuds": 3.5,
           "Color": "#6FB8FF",
           "Brightness": 1.5,
           "Range": 9,
@@ -1027,13 +1422,12 @@
       "KeepRibbons": false
     },
     "Budget": {
-      "ParticlesPerSecond": 48,
-      "Back": 24.0,
+      "ParticlesPerSecond": 50,
+      "Back": 25.0,
       "BallTrail": 28,
       "Beams": 1,
       "Lights": 1,
-      "Orbiters": 4,
-      "PieceTriangles": 37740,
+      "PieceTriangles": 33294,
       "PocketPieceTriangles": 27500
     }
   }

@@ -4,6 +4,7 @@ Every piece is modelled in the cue's Blender frame: X is the side, Y runs from t
 the butt (-7), Z is the top. Heads and masks sit on or past the butt end.
 """
 import math
+import os
 
 import CuePieces as P
 from CuePieces import piece, sweep, metaball_mesh, assign_by_region, apply_modifier, ramp
@@ -25,72 +26,276 @@ def _icy_eyes(px):
             * ((h > 0.53) & (h < 0.7)))
 
 
+# the spirit dragon's coil (designer, 2026-09-30: "an animated spiritual dragon spiralling
+# around the cue, not just a dragon head at the butt", as the concept): the tail at the butt, the
+# body coiling round the whole cue, the neck rising past the tip
+DRAGON_T1 = 1.15          # the path runs t = 0 (tail) .. 1 (the coil's end near the tip) .. T1 (neck)
+COIL_W = 2 * math.pi * 2.5    # the coil's turn per unit t (2.5 turns)
+NECK_TAU = 0.06           # past the coil the turn eases off over this much t, so the neck reaches
+                          # forward past the tip instead of swinging on round it
+
+
+def _dragon_path(t):
+    """A point on the dragon's spine (Blender cue frame) for t in [0, DRAGON_T1]: the coil, then
+    the neck carrying straight on (no kink) as it rises out and forward past the tip."""
+    at = 6.85 - 6.3 * t
+    if t <= 1:
+        rr = 0.22 + 0.13 * t
+        ang = 0.4 + COIL_W * t
+    else:
+        e = t - 1
+        rr = 0.35 + 0.13 * e + 5.0 * e * e
+        ang = 0.4 + COIL_W + COIL_W * NECK_TAU * (1 - math.exp(-e / NECK_TAU))
+    return (rr * math.sin(ang), -at, rr * math.cos(ang))
+
+
+def _dragon_radius(t):
+    """The body's radius: a thin tail thickening to the chest, a little thinner at the neck."""
+    grow = min(t / 0.35, 1.0)
+    grow = grow * grow * (3 - 2 * grow)
+    neck = max(t - 1.0, 0.0) / (DRAGON_T1 - 1.0)
+    return 0.012 + 0.078 * grow - 0.012 * neck
+
+
+def _dragon_frames(n):
+    """n samples along the spine: (t, point, tangent, dorsal normal, side), the dorsal normal
+    pointing away from the cue (so the back faces out and the belly the cue)."""
+    from mathutils import Vector
+    out = []
+    for i in range(n):
+        t = DRAGON_T1 * i / (n - 1)
+        p = Vector(_dragon_path(t))
+        a = Vector(_dragon_path(max(t - 0.004, 0)))
+        b = Vector(_dragon_path(min(t + 0.004, DRAGON_T1)))
+        tg = (b - a).normalized()
+        radial = Vector((p.x, 0, p.z))
+        nrm = (radial - tg * tg.dot(radial)).normalized()
+        out.append((t, p, tg, nrm, tg.cross(nrm)))
+    return out
+
+
+def _dragon_tube(bm, frames, radius, segs, uv=None, v_per_stud=3.0, flat=0.85):
+    """A tube along the dragon's frames (UVs if uv: u round from the dorsal line, v along the
+    body, v_per_stud texture repeats per stud); flat squashes it a little, back to belly."""
+    rings, v_acc, prev = [], 0.0, None
+    for (t, p, tg, nrm, side) in frames:
+        if prev is not None:
+            v_acc += (p - prev).length * v_per_stud
+        prev = p
+        r = radius(t)
+        ring = []
+        for k in range(segs):
+            ang = 2 * math.pi * k / segs
+            ring.append(bm.verts.new(p + nrm * math.cos(ang) * r * flat + side * math.sin(ang) * r))
+        rings.append((ring, v_acc))
+    for i in range(len(rings) - 1):
+        (a, va), (b, vb) = rings[i], rings[i + 1]
+        for k in range(segs):
+            k1 = (k + 1) % segs
+            f = bm.faces.new((a[k], a[k1], b[k1], b[k]))
+            if uv is not None:
+                u0, u1 = k / segs, (k + 1) / segs
+                for lp, (u, v) in zip(f.loops, ((u0, va), (u1, va), (u1, vb), (u0, vb))):
+                    lp[uv].uv = (u, v)
+    for (ring, _), rev in ((rings[0], True), (rings[-1], False)):
+        c = sum((v.co for v in ring), ring[0].co * 0) / len(ring)
+        cv = bm.verts.new(c)
+        for k in range(segs):
+            q = (ring[k], ring[(k + 1) % segs], cv)
+            f = bm.faces.new(q[::-1] if rev else q)
+            if uv is not None:
+                for lp in f.loops:
+                    lp[uv].uv = (0.0, 0.0)
+
+
+def _dragon_scales_png(k, name, w=256, h=512):
+    """The spirit body's SurfaceAppearance (u round the body from the dorsal line, v along it):
+    translucent blue scales with glowing rims, a white-hot dorsal line and pale belly plates, so
+    the body reads as a dragon of light and not a tube; and its EmissiveMask."""
+    import numpy as np
+    bpy = k.bpy
+    x = (np.arange(w) + 0.5) / w
+    y = (np.arange(h) + 0.5) / h
+    U, V = np.meshgrid(x, y)
+    rows = 12
+    row = np.floor(V * rows)
+    fy = V * rows - row
+    fx = (U * 10 + 0.5 * (row % 2)) % 1.0
+    d = np.hypot((fx - 0.5) * 1.0, fy * 1.1)
+    rim = np.exp(-((d - 0.5) / 0.07) ** 2) * (d < 0.62)
+    inner = np.clip(1 - d / 0.5, 0, 1)
+    du = np.minimum(U, 1 - U)                        # distance round from the dorsal line
+    stripe = np.exp(-(du / 0.035) ** 2)
+    belly = np.exp(-((U - 0.5) / 0.12) ** 2) * (0.5 + 0.5 * (np.cos(2 * np.pi * V * 24) > 0.2))
+    base = np.array([0.30, 0.62, 1.0])
+    pale = np.array([0.80, 0.92, 1.0])
+    col = (base[None, None] * (0.35 + 0.5 * inner[..., None] * 0.4 + 0.6 * rim[..., None])
+           + pale[None, None] * (belly[..., None] * 0.5) + np.ones(3)[None, None] * stripe[..., None])
+    alpha = np.clip(0.16 + 0.55 * rim + 0.7 * stripe + 0.22 * belly, 0, 0.9)
+    emis = np.clip(0.3 + 0.55 * rim + 0.9 * stripe + 0.3 * belly, 0, 1)
+    paths = {}
+    for key, arr, has_a in (('spirit', np.concatenate([np.clip(col, 0, 1), alpha[..., None]], -1), True),
+                            ('emissive', np.concatenate([np.repeat(emis[..., None], 3, -1), np.ones((h, w, 1))], -1), False)):
+        img = bpy.data.images.new('%s_%s' % (name, key), w, h, alpha=has_a)
+        img.pixels.foreach_set(arr.astype(np.float32).ravel())
+        rel = 'pieces/%s/%s_%s.png' % (k.pid, name, key)
+        img.filepath_raw = os.path.join(P.HERE, rel)
+        img.file_format = 'PNG'
+        img.save()
+        paths[key] = rel
+    return paths
+
+
 @piece
 def celestial_dragon(k):
-    """A pearl-white celestial dragon's head on the butt end, looking out past it, its mane
-    sweeping back over the butt: a generated model (Meshy, from a clean render of the concept;
-    assets/cue/models/dragon_head) with its own colour, normal, roughness and metal maps: pearl
-    scales, gold horns and brow crest, white-and-blue mane and whiskers, fangs, glowing icy blue
-    eyes (an emissive mask from the colour map). The bust's collar and lower neck are cut away.
-    The head nods and looks round slowly. Its see-through energy body coils round the cue from
-    the head to the shaft."""
+    """The Celestial Dragon as the concept draws it (designer, 2026-09-30): a spirit dragon of
+    blue light coiling round the whole cue, its tail at the butt, its body spiralling 2.5 turns up
+    the cue and its neck rising past the tip, the generated head (Meshy, assets/cue/models/
+    dragon_head) on it roaring. All of it is a spirit, see-through and glowing: the body is
+    translucent blue scales with glowing rims, a white-hot dorsal line and pale belly plates
+    (its own SurfaceAppearance), in a shimmering ForceField sheath round a bright core, with flame
+    fins along its back and a flame tail fin; the head is the hologram of the generated model.
+
+    Moving (all aura: hidden on the shooter's turn): the whole dragon swims slowly round the cue
+    (Coil, a Spin about the cue's axis, so the coils seem to flow along it); a wave runs down the
+    body from the neck to the tail (seven body bones, each bobbing a beat after the one before);
+    the head nods and looks round, the jaw opens in a roar, the mane streams."""
     import numpy as np
-    from mathutils import Matrix
+    import bmesh
+    from mathutils import Matrix, Vector
     bpy = k.bpy
-    k.material('Energy', 'ForceField', '#6FB8FF', Transparency=0.35)
-    k.material('Core', 'Neon', '#A8D8FF', Transparency=0.55)
-    U0 = 7.0
+    k.material('Sheath', 'ForceField', '#8FCBFF')
+    k.material('Core', 'Neon', '#D8EEFF', Transparency=0.45)
+    k.material('Fin', 'Neon', '#9ACFFF', Transparency=0.35)
+
+    # head first: a positive Spin about +Y turns the coil the way its turns climb toward the head
+    k.joint('Coil', pivot=(0, 0, 0), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 32.0}])
+    frames = _dragon_frames(240)
+
+    # the body's bones: a wave running down from the neck to the tail
+    NB = 7
+    centres = [0.1 + (1.1 - 0.1) * b / (NB - 1) for b in range(NB)]
+    width = (1.1 - 0.1) / (NB - 1)
+    path_t = np.array([f[0] for f in frames])
+    path_p = np.array([tuple(f[1]) for f in frames])
+    bone_names = []
+    for b, tc in enumerate(centres):
+        _, p, tg, nrm, side = frames[int(round(tc / DRAGON_T1 * (len(frames) - 1)))]
+        d = (nrm * 0.6 + side * 0.8).normalized()
+        nm = 'Body%d' % (b + 1)
+        k.joint(nm, pivot=tuple(p), parent='Coil', aura=True, motion=[
+            {'Kind': 'Bob', 'Dir': tuple(d), 'Amp': 0.035 + 0.01 * b / (NB - 1), 'Period': 1.8, 'Phase': 50 * b}])
+        bone_names.append((nm, tc))
+
+    def t_of(V):
+        # each vertex's place along the body: the nearest spine sample
+        d2 = ((V[:, None, :] - path_p[None, :, :]) ** 2).sum(-1)
+        return path_t[np.argmin(d2, 1)]
+
+    def hat(tc):
+        return lambda tv: np.clip(1 - np.abs(tv - tc) / width, 0, 1)
+
+    hats = [hat(tc) for _, tc in bone_names]
+
+    def bone_fn(idx):
+        # the hats sum to one along the body; each bone takes its hat's share of what the bones
+        # before it left (skin_weights hands each bone a share of its parent's remaining weight)
+        def fn(V):
+            tv = t_of(V)
+            taken = sum(h(tv) for h in hats[:idx]) if idx else np.zeros(len(V))
+            return np.where(taken < 0.999, hats[idx](tv) / np.maximum(1 - taken, 1e-3), 0.0)
+        return fn
+
+    bones = {nm: bone_fn(i) for i, (nm, _) in enumerate(bone_names)}
+
+    # the spirit body (textured), its sheath, its core
+    paths = _dragon_scales_png(k, 'DragonBody')
+    k.material('DragonBody', 'SmoothPlastic', '#FFFFFF', SurfaceAppearance={
+        'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#8CC8FF',
+        'EmissiveStrength': 1.8, 'AlphaMode': 'Transparency'})
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new('UVMap')
+    _dragon_tube(bm, frames, _dragon_radius, 16, uv=uv, v_per_stud=2.4)
+    body = k.add('Coil', k.mesh_object('DragonBody', bm, ['DragonBody']))
+    thin = frames[::2]
+    bm = bmesh.new()
+    _dragon_tube(bm, thin, lambda t: _dragon_radius(t) * 1.3 + 0.006, 12)
+    sheath = k.add('Coil', k.mesh_object('DragonSheath', bm, ['Sheath']))
+    bm = bmesh.new()
+    _dragon_tube(bm, thin, lambda t: _dragon_radius(t) * 0.28, 6)
+    core = k.add('Coil', k.mesh_object('DragonCore', bm, ['Core']))
+
+    # flame fins along the back (blades raked back from the dorsal line) and a flame tail fin
+    bm = bmesh.new()
+
+    def blade(base, back, out, length, w):
+        tip = base + (out * 0.75 - back * 0.66).normalized() * length
+        a = base + back * w
+        c = base - back * w
+        s_ = back.cross(out).normalized() * w * 0.25
+        vs = [bm.verts.new(v) for v in (a, c, tip, base + s_, base - s_)]
+        for f in ((vs[0], vs[1], vs[2]), (vs[3], vs[0], vs[2]), (vs[1], vs[4], vs[2]), (vs[4], vs[3], vs[2]),
+                  (vs[1], vs[0], vs[3]), (vs[1], vs[3], vs[4])):
+            bm.faces.new(f)
+    for i in range(6, len(frames) - 18, 5):
+        t, p, tg, nrm, side = frames[i]
+        r = _dragon_radius(t)
+        blade(p + nrm * r * 0.8, -tg, nrm, 0.05 + 1.1 * r, 0.02 + 0.2 * r)
+    t, p, tg, nrm, side = frames[0]
+    for ang in (-40, -20, 0, 20, 40):
+        out = (Matrix.Rotation(math.radians(ang), 3, tg) @ nrm).normalized()
+        blade(p, -tg, out, 0.16, 0.025)
+    fins = k.add('Coil', k.mesh_object('DragonFins', bm, ['Fin'], smooth=False))
+    k.skins['DragonBody'] = {'root': 'Coil', 'bones': bones, 'meshes': [body, sheath, core, fins]}
+
+    # the head on the neck: the model's face looks along -Y with its top +Z (as generated);
+    # turned so it looks along the neck, its top away from the cue
+    _, pe, tg, nrm, side = frames[-1]
+    fwd = tg
+    up = nrm
+    R = Matrix((tuple(fwd.cross(up) * -1), tuple(-fwd), tuple(up))).transposed()   # columns: X, Y, Z
+    HEAD_L = 1.0                                   # snout to the back of the mane, studs
+    OLD_L, OLD_T = 0.78, Vector((0, -6.76, -0.1))  # the head's size and place when it sat on the butt
+    scale = HEAD_L / OLD_L
+    attach = Vector((0, -0.12, 0.12)) * scale      # where the neck meets the back of the head (local)
+    C = pe - R @ attach
+
+    def to_cue(p_old):
+        return C + R @ ((Vector(p_old) - OLD_T) * scale)
+
+    def from_cue(V):
+        Rm = np.array(R)
+        loc = (V - np.array(C)) @ Rm          # R^T (V - C), as rows
+        return loc / scale + np.array(OLD_T)
 
     def place(ob):
         V = np.array([v.co[:] for v in ob.data.vertices])
         lo, hi = V.min(0), V.max(0)
-        s = 0.78 / (hi[1] - lo[1])                  # 0.78 studs from the snout to the back of the mane
-        # the face looks out past the butt (-Y); the back of the mane overlaps the butt by 0.24;
-        # the jaw's underside sits a little below the cue's axis
-        return (Matrix.Translation((0, -(U0 - 0.24), -0.1)) @ Matrix.Scale(s, 4)
+        s_ = HEAD_L / (hi[1] - lo[1])
+        return (Matrix.Translation(C) @ R.to_4x4() @ Matrix.Scale(s_, 4)
                 @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -hi[1], -lo[2])))
 
-    k.joint('Head', pivot=(0, -U0, 0.05), motion=[
-        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 3.0, 'Period': 3.2},             # breathing nod
-        {'Kind': 'Hinge', 'Axis': (0, 0, 1), 'Amp': 4.0, 'Period': 5.1, 'Phase': 40}])  # a slow look round
-    k.joint('Body', pivot=(0, 0, 0))
-    # rigged (designer, 2026-09-30: the creatures animated, not static): the jaw opens in a roar
-    # and the mane streams; drawn as a spirit of icy light (see-through, glowing, in a shimmer)
-    k.joint('Jaw', pivot=(0, -7.22, 0.02), parent='Head', motion=[
-        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Base': 11.0, 'Amp': 11.0, 'Period': 2.4}])
-    k.joint('Mane', pivot=(0, -7.1, 0.15), parent='Head', motion=[
-        {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 5.0, 'Period': 1.3, 'Phase': 60}])
-    bones = {'Jaw': lambda V: ramp(V[:, 1], -7.25, -7.33) * ramp(V[:, 2], 0.03, -0.02),
-             'Mane': lambda V: ramp(V[:, 1], -7.15, -7.0) * ramp(V[:, 2], 0.12, 0.2)}
-    k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=19500, emissive=_icy_eyes,
-            emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3, bones=bones,
-            hologram={'Tint': '#8CC8FF', 'Shell': '#CFEAFF', 'Strength': 1.8})
-    _dragon_body(k)
-
-
-def _dragon_body(k):
-    """The energy body: two flat ribbons coiling round the cue from the neck to the shaft, and a
-    thin glowing core in each (the cue's radius from its profile)."""
-    import bmesh
-    import cue_common as cc
-    env = cc.Envelope(cc.load_shape()[0])
-    bm_e, bm_c = bmesh.new(), bmesh.new()
-    for ph in (0.0, math.pi):
-        path, radii, core = [], [], []
-        n = 160
-        for i in range(n):
-            t = i / (n - 1)
-            at = 6.95 - 6.35 * t
-            rr = float(env(at)) + 0.045 + 0.02 * math.sin(t * 9)
-            ang = ph + 2 * math.pi * 3.2 * t
-            path.append((rr * math.sin(ang), -at, rr * math.cos(ang)))
-            w = 0.058 * (1 - t) ** 0.6 + 0.01
-            radii.append((w, w * 0.35))
-            core.append(0.011 * (1 - t) + 0.0025)
-        sweep(bm_e, path, radii, segs=10)
-        sweep(bm_c, path, core, segs=6)
-    k.add('Body', k.mesh_object('DragonBody', bm_e, ['Energy']))
-    k.add('Body', k.mesh_object('DragonCore', bm_c, ['Core']))
+    k.joint('Head', pivot=tuple(pe), parent='Body%d' % NB, aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 6.0, 'Period': 3.0},
+        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 8.0, 'Period': 4.6, 'Phase': 40}])
+    k.joint('Jaw', pivot=tuple(to_cue((0, -7.22, 0.02))), parent='Head', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Base': 11.0, 'Amp': 11.0, 'Period': 2.4}])
+    k.joint('Mane', pivot=tuple(to_cue((0, -7.1, 0.15))), parent='Head', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 6.0, 'Period': 1.3, 'Phase': 60}])
+    head_bones = {'Jaw': lambda V: (lambda O: ramp(O[:, 1], -7.25, -7.33) * ramp(O[:, 2], 0.03, -0.02))(from_cue(V)),
+                  'Mane': lambda V: (lambda O: ramp(O[:, 1], -7.15, -7.0) * ramp(O[:, 2], 0.12, 0.2))(from_cue(V))}
+    k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=15000, emissive=_icy_eyes,
+            emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3, bones=head_bones,
+            hologram={'Tint': '#8CC8FF', 'Shell': '#CFEAFF', 'Strength': 1.8, 'ShellTris': 6000,
+                      'Alpha': (0.14, 0.55)})     # more solid than the pocket spirits: the face must read small
+    k.dragon_spine = frames                        # for the skin's flame emitters (printed below)
+    for b, (nm, tc) in enumerate(bone_names):
+        _, p, tg, nrm, side = frames[int(round(tc / DRAGON_T1 * (len(frames) - 1)))]
+        q = p + nrm * _dragon_radius(tc)
+        q2 = q - tg * 0.25
+        print('CUE dragon flame host %s: From %s To %s' % (
+            nm, [round(-q.y, 3), round(q.z, 3), round(q.x, 3)], [round(-q2.y, 3), round(q2.z, 3), round(q2.x, 3)]))
+    print('CUE dragon head host: %s' % [round(-pe.y, 3), round(pe.z, 3), round(pe.x, 3)])
 
 
 @piece
@@ -394,6 +599,86 @@ def kitsune(k):
     k.model('Mask', 'FoxMask', 'fox_mask', place, target_tris=14000, emissive=_violet_eyes,
             emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
             hologram={'Tint': '#D8B8FF', 'Shell': '#C070FF', 'Strength': 1.6})
+    _running_fox(k)
+
+
+# the spirit fox that runs round the Kitsune cue (designer, 2026-09-30: "a small kitsune model
+# constantly running, smooth animations"): where it runs, how big, how fast
+FOX_AT = 4.3              # round the forearm, AtStuds
+FOX_ORBIT = 0.33          # its paws' distance from the cue's axis, studs
+FOX_LEN = 0.8             # nose to the tails' tips, studs
+FOX_LAP = 200.0           # degrees a second round the cue (a lap in 1.8 s)
+FOX_STRIDE = 0.4          # seconds per gallop stride
+
+
+def _running_fox(k):
+    """A small nine-tailed spirit fox galloping round and round the forearm: a generated model
+    (Meshy, from a side-view reference of the kitsune mid-gallop; assets/cue/models/running_fox),
+    rigged and drawn as a violet hologram like the pocket spirits. Its paws face the cue and its
+    back faces out as it runs its lap (FoxRun, a Spin about the cue's axis); every stride the front
+    legs reach and the hind legs drive in turn, the body rises and dips and pitches, the head
+    bobs, and the nine tails flow a beat behind. All aura: hidden on the shooter's turn."""
+    import numpy as np
+    from mathutils import Matrix, Vector
+    k.joint('FoxRun', pivot=(0, -FOX_AT, 0), aura=True,
+            motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': FOX_LAP}])    # carries the top toward +X
+    # the fox's own frame at the top of its lap: nose along +X (the way the spin carries it), back up
+    fwd, up = Vector((1, 0, 0)), Vector((0, 0, 1))
+    R = Matrix((tuple(fwd.cross(up) * -1), tuple(-fwd), tuple(up))).transposed()
+    box = {}
+
+    def place(ob):
+        V = np.array([v.co[:] for v in ob.data.vertices])
+        lo, hi = V.min(0), V.max(0)
+        s_ = FOX_LEN / (hi[1] - lo[1])
+        box.update(lo=lo, hi=hi, s=s_)
+        # paws (the model's lowest point) at FOX_ORBIT from the axis, centred across and along
+        return (Matrix.Translation((0, -FOX_AT, FOX_ORBIT)) @ R.to_4x4() @ Matrix.Scale(s_, 4)
+                @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2])))
+
+    def norm(V):
+        """Cue-frame points -> the model's own box coordinates (y 0 at the nose .. 1 at the tails'
+        tips, z 0 at the paws .. 1 at the top), for the bone weights."""
+        lo, hi, s_ = box['lo'], box['hi'], box['s']
+        loc = (V - np.array((0, -FOX_AT, FOX_ORBIT))) @ np.array(R)
+        m = loc / s_ + np.array(((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]))
+        return (m - lo) / (hi - lo)
+
+    def at(y, z):
+        """A point given in box coordinates (along from the nose, up from the paws), in the cue
+        frame at the top of the lap (before the model is loaded: its box is fixed)."""
+        L, H = FOX_LEN, FOX_LEN * 0.782 / 1.908
+        return (Vector((0, -FOX_AT, FOX_ORBIT)) + fwd * (L * (0.5 - y)) + up * (H * z))
+
+    side_ax = tuple(fwd.cross(up))                  # the axis legs and head swing about
+    T = FOX_STRIDE
+    k.joint('FoxBody', pivot=tuple(at(0.4, 0.4)), parent='FoxRun', aura=True, motion=[
+        {'Kind': 'Bob', 'Dir': tuple(up), 'Amp': 0.02, 'Period': T},
+        {'Kind': 'Hinge', 'Axis': side_ax, 'Amp': 5.0, 'Period': T, 'Phase': 90}])
+    k.joint('FoxFront', pivot=tuple(at(0.22, 0.36)), parent='FoxBody', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': side_ax, 'Amp': 28.0, 'Period': T}])
+    k.joint('FoxHind', pivot=tuple(at(0.47, 0.36)), parent='FoxBody', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': side_ax, 'Amp': 28.0, 'Period': T, 'Phase': 180}])
+    k.joint('FoxHead', pivot=tuple(at(0.24, 0.55)), parent='FoxBody', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': side_ax, 'Amp': 6.0, 'Period': T, 'Phase': 60}])
+    k.joint('FoxTails', pivot=tuple(at(0.5, 0.55)), parent='FoxBody', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': side_ax, 'Amp': 8.0, 'Period': T, 'Phase': 240},
+        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 6.0, 'Period': 2 * T, 'Phase': 30}])
+
+    def region(fn):
+        return lambda V: (lambda N: fn(N[:, 1], N[:, 2]))(norm(V))
+
+    bones = {'FoxBody': region(lambda y, z: np.ones_like(y)),
+             'FoxFront': region(lambda y, z: ramp(z, 0.36, 0.26) * ramp(y, 0.32, 0.26)),
+             'FoxHind': region(lambda y, z: ramp(z, 0.3, 0.2) * ramp(y, 0.36, 0.42) * ramp(y, 0.72, 0.66)),
+             'FoxHead': region(lambda y, z: ramp(y, 0.3, 0.22) * ramp(z, 0.4, 0.5)),
+             'FoxTails': region(lambda y, z: ramp(y, 0.5, 0.6) * ramp(z, 0.24, 0.34))}
+    k.model('FoxRun', 'RunningFox', 'running_fox', place, target_tris=12000, emissive=_violet_eyes,
+            emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
+            hologram={'Tint': '#C88CFF', 'Shell': '#F0D0FF', 'Strength': 1.8, 'ShellTris': 5000,
+                      'Alpha': (0.12, 0.5)})
+    q = at(0.3, 0.6)
+    print('CUE fox host: %s' % [round(-q.y, 3), round(q.z, 3), round(q.x, 3)])
 
 
 @piece

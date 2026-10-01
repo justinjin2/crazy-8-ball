@@ -58,25 +58,25 @@ are in its review row and in `assets/cue/skins/<id>.json`.
 
 - **Model:** `gpt-image-2.5-sunburst` (the newest image model on the key; it keeps precise
   edits), used through the edits endpoint with the panel layout and the concept crops.
-- **Spend:** about **$3.25** for 88 images (the log is
+- **Spend:** about **$3.30** for 89 images (the log is
   `assets/cue/concepts/openai_log.jsonl`; the last 7 were reference images for the 3D
-  generator). That is far below the $25 note and $150 stop.
+  generator, the last a side-view gallop for the running fox). That is far below the $25 note and $150 stop.
 - The chosen panels are committed in `assets/cue/skins/<id>/ai/`, so a repaint never pays
   again. `take: n` in a skin's `ai` block picks which take is used.
 
 ## 4. 3D pieces and the generator
 
-**Meshy** (its API, `tools/meshy_generate.py`, key in the Keychain as `MESHY_API_KEY`) made 7
-models from reference images: the Celestial Dragon head, the Kitsune mask, the Infernal skull,
-and the pocket dragon, fox, firebird and skull. **245 credits** in all (35 each; the log is
+**Meshy** (its API, `tools/meshy_generate.py`, key in the Keychain as `MESHY_API_KEY`) made 8
+models from reference images: the Celestial Dragon head, the Kitsune mask, the Kitsune's running
+fox, the Infernal skull, and the pocket dragon, fox, firebird and skull. **280 credits** in all (35 each; the log is
 `assets/cue/models/meshy_log.jsonl`). The full downloads stay local; `CueModels.py compact`
 commits a reduced `source.glb` and 1024 px maps per model.
 
 | Piece | Triangles | Made by | Moves |
 |---|---|---|---|
-| celestial_dragon | 37.7k | Meshy head (rigged hologram) + scripted energy body | jaw roars, mane streams, head looks round |
+| celestial_dragon | 33.3k | scripted spirit body (scale texture, sheath, core, fins) + Meshy head (rigged hologram) | the whole dragon swims round the cue, a wave runs down its body, the jaw roars, the mane streams |
 | celestial_dragon_pocket | 27.5k | Meshy (rigged hologram) | sways, nods, roars, claws |
-| kitsune | 22.0k | Meshy mask (rigged hologram) | ears twitch, jaw opens; the tails are Beams |
+| kitsune | 39.0k | Meshy mask and a small Meshy running fox (rigged holograms) | ears twitch, jaw opens; the fox gallops round the forearm; the tails are Beams |
 | kitsune_pocket | 27.5k | Meshy (rigged hologram) | head tilts, nine tails sway |
 | phoenix | 7.4k | scripted | two flame wings beat |
 | phoenix_pocket | 27.5k | Meshy (rigged hologram) | wings beat, head and tail move |
@@ -199,6 +199,9 @@ generic cue-VFX script can build everything from the skin data:
   to shoot the aura is switched off** (every aura emitter, Orbiter, Arc, Beam, Light and the
   piece's glow effects), so nothing distracts from aiming; it comes back when the cue returns
   to the back. The cue itself, its surface and its trail and pocket effects stay on.
+- **Aura joints (designer, 2026-09-30):** a joint with `Aura: true` in `piece.json` (the
+  Celestial Dragon's whole coiling dragon, the Kitsune's running fox) is part of the aura: hide
+  it, its parts and its child joints with the rest of the aura on the shooter's turn.
 - **Skinned pieces (designer, 2026-09-30):** parts with `Skinned` in `piece.json` are `.glb`
   files (a MeshPart with Bones, import with rig); each Bone's `Transform = Rest^-1 *
   J_parent^-1 * J_bone * Rest` every frame, J from the joint's `Motion` list. Their

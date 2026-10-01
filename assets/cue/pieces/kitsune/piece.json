@@ -2,7 +2,7 @@
   "id": "kitsune",
   "Frame": "cue",
   "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
-  "Triangles": 22000,
+  "Triangles": 39000,
   "Parts": [
     {
       "Material": "SmoothPlastic",
@@ -66,6 +66,74 @@
         0.2667,
         0.4029,
         0.5383
+      ]
+    },
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/kitsune/RunningFox_spirit.png",
+        "EmissiveMask": "pieces/kitsune/RunningFox_emissive.png",
+        "EmissiveTint": "#C88CFF",
+        "EmissiveStrength": 1.8,
+        "NormalMap": "pieces/kitsune/RunningFox_normal.png",
+        "AlphaMode": "Transparency"
+      },
+      "Name": "RunningFox",
+      "File": "pieces/kitsune/RunningFox.glb",
+      "Mesh": "RunningFoxSkin",
+      "Joint": "FoxRun",
+      "Skinned": true,
+      "Bones": [
+        "FoxRun",
+        "FoxBody",
+        "FoxFront",
+        "FoxHind",
+        "FoxHead",
+        "FoxTails"
+      ],
+      "Triangles": 12000,
+      "Offset": [
+        -0.0009,
+        0.4933,
+        -0.8001
+      ],
+      "Size": [
+        0.8,
+        0.3263,
+        0.2926
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#F0D0FF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "RunningFoxShell",
+      "File": "pieces/kitsune/RunningFox.glb",
+      "Mesh": "RunningFoxShellSkin",
+      "Joint": "FoxRun",
+      "Skinned": true,
+      "Bones": [
+        "FoxRun",
+        "FoxBody",
+        "FoxFront",
+        "FoxHind",
+        "FoxHead",
+        "FoxTails"
+      ],
+      "Triangles": 5000,
+      "Offset": [
+        0.0012,
+        0.4931,
+        -0.7998
+      ],
+      "Size": [
+        0.8052,
+        0.3335,
+        0.2999
       ]
     }
   ],
@@ -185,6 +253,186 @@
           "Period": 3.0
         }
       ]
+    },
+    "FoxRun": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -4.3,
+        0
+      ],
+      "PivotRoblox": [
+        0,
+        0,
+        -0.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Spin",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Rate": 200.0
+        }
+      ],
+      "Aura": true
+    },
+    "FoxBody": {
+      "Parent": "FoxRun",
+      "Pivot": [
+        0.07999999821186066,
+        -4.300000190734863,
+        0.4611530601978302
+      ],
+      "PivotRoblox": [
+        -0.08,
+        0.4612,
+        -0.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Bob",
+          "Dir": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "Amp": 0.02,
+          "Period": 0.4
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 5.0,
+          "Period": 0.4,
+          "Phase": 90
+        }
+      ],
+      "Aura": true
+    },
+    "FoxFront": {
+      "Parent": "FoxBody",
+      "Pivot": [
+        0.2240000069141388,
+        -4.300000190734863,
+        0.4480377435684204
+      ],
+      "PivotRoblox": [
+        -0.224,
+        0.448,
+        -0.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 28.0,
+          "Period": 0.4
+        }
+      ],
+      "Aura": true
+    },
+    "FoxHind": {
+      "Parent": "FoxBody",
+      "Pivot": [
+        0.024000000208616257,
+        -4.300000190734863,
+        0.4480377435684204
+      ],
+      "PivotRoblox": [
+        -0.024,
+        0.448,
+        -0.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 28.0,
+          "Period": 0.4,
+          "Phase": 180
+        }
+      ],
+      "Aura": true
+    },
+    "FoxHead": {
+      "Parent": "FoxBody",
+      "Pivot": [
+        0.20800000429153442,
+        -4.300000190734863,
+        0.5103354454040527
+      ],
+      "PivotRoblox": [
+        -0.208,
+        0.5103,
+        -0.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 6.0,
+          "Period": 0.4,
+          "Phase": 60
+        }
+      ],
+      "Aura": true
+    },
+    "FoxTails": {
+      "Parent": "FoxBody",
+      "Pivot": [
+        0.0,
+        -4.300000190734863,
+        0.5103354454040527
+      ],
+      "PivotRoblox": [
+        -0.0,
+        0.5103,
+        -0.8
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "Amp": 8.0,
+          "Period": 0.4,
+          "Phase": 240
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "Amp": 6.0,
+          "Period": 0.8,
+          "Phase": 30
+        }
+      ],
+      "Aura": true
     }
   }
 }

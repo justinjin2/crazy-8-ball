@@ -240,30 +240,81 @@ def kitsune(d):
                  'and a faint violet haze drifts round it; three large foxfire orbs, each a glowing orb with a small '
                  'fox-mask face, circle the cue up and down it trailing long violet fire (Orbiters with a Head); '
                  'foxfire wisps lick up round the mask; cherry petals drift down; pink-violet sparkles; a violet '
-                 'glow round the cue (a halo Beam) and a violet light at the mask.')
+                 'glow round the cue (a halo Beam) and a violet light at the mask. A small nine-tailed spirit fox '
+                 '(the 3D piece, a violet hologram) gallops round and round the forearm, leaving a wisp of '
+                 'foxfire behind it; it is aura and goes with the rest on the shooter\'s turn.')
+    v['Piece']['Note'] = ('pieces/kitsune: FoxMask.glb, the generated mask as a hologram (Mask, EarLeft/Right, '
+                          'Jaw), on the butt; RunningFox.glb, a small generated nine-tailed fox as a violet hologram, '
+                          'on the bones FoxRun (root, a Spin round the forearm: its lap), FoxBody (rise and pitch each '
+                          'stride), FoxFront and FoxHind (the legs, half a stride apart), FoxHead and FoxTails. The '
+                          'fox\'s joints are Aura (hidden on the shooter\'s turn).')
+    # designer, 2026-09-30: the running spirit fox (CuePiecesMythic._running_fox) sheds foxfire as
+    # it runs (a short stretch of its back, as the builder prints it, riding its lap)
+    put(a['Emitters'], {
+        'Name': 'FoxTrail', 'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8',
+        'FlipbookMode': 'OneShot', 'Rate': 6, 'Lifetime': [0.4, 0.6], 'Speed': [0.02, 0.1],
+        'SpreadAngle': [40, 40], 'EmissionDirection': 'Top', 'Acceleration': [0, 0.3, 0],
+        'Size': [[0, 0.1], [0.4, 0.2], [1, 0.05]], 'Transparency': [[0, 0.4], [0.3, 0.15], [1, 1]],
+        'Color': [[0, '#F6E6FF'], [0.5, '#C070FF'], [1, '#6A2AD8']], 'Brightness': 1.6, 'LightEmission': 1,
+        'LightInfluence': 0, 'LockedToPart': False,
+        'Host': {'Kind': 'Segment', 'Joint': 'FoxRun', 'From': [4.3, 0.527, 0.16], 'To': [4.3, 0.5, -0.07],
+                 'Radius': 0.04}})
+
+
+# the dragon's flame hosts: a short stretch of its back at each body bone and at the head, as the
+# builder prints them (CuePiecesMythic.celestial_dragon: [AtStuds, Up, Side] in the rest pose;
+# each rides its bone, so the flames peel off as the dragon swims round the cue)
+DRAGON_FLAMES = [
+    ('Body1', [6.214, -0.105, 0.238], [6.43, 0.011, 0.285]),
+    ('Body2', [5.184, -0.052, -0.329], [5.395, -0.184, -0.304]),
+    ('Body3', [4.123, 0.223, 0.291], [4.329, 0.333, 0.201]),
+    ('Body4', [3.062, -0.354, -0.159], [3.263, -0.412, -0.021]),
+    ('Body5', [2.031, 0.405, -0.062], [2.227, 0.378, -0.215]),
+    ('Body6', [0.97, -0.344, 0.26], [1.161, -0.244, 0.387]),
+    ('Body7', [-0.078, -0.196, -0.456], [0.164, -0.221, -0.397]),
+]
+DRAGON_HEAD = [-0.395, -0.145, -0.46]
 
 
 def celestial_dragon(d):
     v = d['vfx']
     a = v['Aura']
-    # the energy flowing along the dragon's coils (runners matched to the body's helix): wide,
-    # long and streaky so the whole body reads as flowing starlight, not a thin wire
-    for o in a['Orbiters']:
-        o['Wobble'] = 0.0
-        o['Trail'].update({'Lifetime': 1.0, 'WidthStuds': 0.11, 'Color': '#9CCBFF', 'Brightness': 3,
-                           'Transparency': [[0, 0], [0.6, 0.25], [1, 1]], 'WidthScale': [[0, 1], [1, 0.4]],
-                           'Texture': 'vfx/celestial_dragon/trail_starlight.png'})
-        o['Head']['Size'] = 0.22
-    # blue energy flames stream back off the head (the concept's burning mane)
-    w = named(a['Emitters'], 'Wisps')
-    w.update({'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8', 'FlipbookMode': 'OneShot',
-              'Size': [[0, 0.25], [0.4, 0.5], [1, 0.15]], 'Transparency': [[0, 0.35], [0.3, 0.1], [1, 1]],
-              'Color': [[0, '#EAF6FF'], [0.5, '#6FB8FF'], [1, '#2A5CE0']], 'Brightness': 1.6, 'Rate': 12,
-              'Squash': 0, 'Transparency': [[0, 0.35], [0.3, 0.1], [1, 1]], 'Acceleration': [0, 1.2, 0]})
-    a['Note'] = ('Layered: wide streams of starlight flow along the coils of the dragon body (Orbiters matched to the '
-                 'body\'s helix, streaky starlight trails); drifting star dust (four-point stars twinkling in and out, '
-                 'white to blue); soft blue light motes; blue energy flames stream back off the head; a soft blue '
-                 'glow round the cue (a halo Beam, breathing) and a blue light at the head.')
+    # designer, 2026-09-30: the whole spirit dragon coils round the cue (CuePiecesMythic): the
+    # starlight runners that traced the old thin coil are gone; blue spirit flames peel off the
+    # dragon's back all along it and off its head, left behind as it swims round the cue
+    a.pop('Orbiters', None)
+    v['Budget'].pop('Orbiters', None)
+    flame = {'Texture': 'vfx/_shared/energy_flame_8x8.png', 'FlipbookLayout': 'Grid8x8', 'FlipbookMode': 'OneShot',
+             'Lifetime': [0.5, 0.8], 'Speed': [0.05, 0.2], 'SpreadAngle': [60, 60], 'EmissionDirection': 'Top',
+             'Acceleration': [0, 0.3, 0], 'Size': [[0, 0.22], [0.4, 0.48], [1, 0.16]],
+             'Transparency': [[0, 0.4], [0.3, 0.15], [1, 1]],
+             'Color': [[0, '#EAF6FF'], [0.5, '#6FB8FF'], [1, '#2A5CE0']], 'Brightness': 1.5,
+             'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': False}
+    a['Emitters'] = [e for e in a['Emitters'] if not e['Name'].startswith('SpiritFlames')]
+    for jn, f0, f1 in DRAGON_FLAMES:
+        e = dict(flame, Name='SpiritFlames' + jn[4:], Rate=2, Brightness=1.8,
+                 Host={'Kind': 'Segment', 'Joint': jn, 'From': f0, 'To': f1, 'Radius': 0.04})
+        a['Emitters'].append(e)
+    w = named(a['Emitters'], 'Wisps')               # the mane's flames, on the head now
+    w.update(dict(flame, Name='Wisps', Rate=6, Size=[[0, 0.25], [0.4, 0.5], [1, 0.15]], Brightness=1.6,
+                  Host={'Kind': 'Segment', 'Joint': 'Head', 'From': DRAGON_HEAD,
+                        'To': [DRAGON_HEAD[0] + 0.25, DRAGON_HEAD[1], DRAGON_HEAD[2] - 0.1], 'Radius': 0.08}))
+    named(a['Emitters'], 'StarDust')['Rate'] = 18
+    named(a['Emitters'], 'BlueLight')['Rate'] = 12
+    a['Lights'][0]['AtStuds'] = 3.5                   # the head moved: the light lights the coil
+    v['Piece']['Note'] = ('pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body '
+                          '(DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its '
+                          'ForceField sheath, Neon core and Neon flame fins, on the bones Coil (root, a Spin round '
+                          'the cue\'s axis) and Body1-7 (each a Bob a beat after the last: a wave down the body). '
+                          'DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding '
+                          'Body7), Jaw and Mane. Every joint is Aura (hidden on the shooter\'s turn); piece.json has '
+                          'each pivot and motion, and each Bone\'s Transform is set as the report says (6.3).')
+    a['Note'] = ('A spirit dragon of blue light coils round the whole cue (the 3D piece: its tail at the butt, 2.5 '
+                 'turns up the cue, its neck rising past the tip, roaring), swimming slowly round the cue with a '
+                 'wave running down its body; blue spirit flames peel off its back all along it and off its '
+                 'head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, '
+                 'white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) '
+                 'and a blue light on the coil. The dragon is aura: it goes with the rest on the shooter\'s turn.')
 
 
 def phoenix(d):
