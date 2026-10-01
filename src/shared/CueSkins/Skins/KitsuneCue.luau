@@ -445,6 +445,7 @@ return {
 			OutlineColor = "#FFFFFF",
 			OutlineTransparency = 0,
 		},
+		Outline = "#E040FF",
 	},
 	Moving = {
 		Beams = {

@@ -3738,6 +3738,25 @@ Config.CueSkins = {
 	-- fox reads on the bright floor) shows only on cues within this distance of the camera
 	-- (studs): Roblox draws at most 31 Highlights at once. (tune)
 	HighlightDistanceStuds = 45,
+	-- Every cue with an aura also wears a thin outline and a faint tint of its colour (a
+	-- Highlight on the stick), so it stands out on the bright lobby (designer, 2026-10-01).
+	-- The colour is the skin's Aura.Outline, else its tier's below.
+	Outline = {
+		Colors = {
+			Rare = "#2F8CFF",
+			Epic = "#A040FF",
+			Legendary = "#FFB000",
+			Mythic = "#C06CFF",
+			Secret = "#FF3048",
+			Rank = "#FFB000",
+			Exclusive = "#2F8CFF",
+		},
+		OutlineTransparency = 0, -- 0 a solid line (tune)
+		FillTransparency = 0.82, -- 1 no tint; lower tints the whole cue more (tune)
+		-- The nearest cues' Highlights (outlines and pieces) only, at most this many: Roblox
+		-- draws 31 at once and a match's ball outlines use up to 15. (tune)
+		MaxShown = 14,
+	},
 }
 
 Config.Effects = {

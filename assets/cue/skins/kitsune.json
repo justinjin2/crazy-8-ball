@@ -1284,7 +1284,8 @@
         "FillTransparency": 0.4,
         "OutlineColor": "#FFFFFF",
         "OutlineTransparency": 0
-      }
+      },
+      "Outline": "#E040FF"
     },
     "Style": {
       "Trail": {

@@ -1602,7 +1602,8 @@
         "FillTransparency": 0.55,
         "OutlineColor": "#E6F6FF",
         "OutlineTransparency": 0
-      }
+      },
+      "Outline": "#3E8BFF"
     },
     "Style": {
       "Trail": {

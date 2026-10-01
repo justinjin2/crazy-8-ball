@@ -11,8 +11,8 @@ dark Blender preview:
   * a saturated BODY layer (smoke, LightEmission 0) carries the colour on the cream floor;
   * an additive GLOW layer (LightEmission 1, Brightness 2-8) that the lobby's Bloom picks up;
   * crisp ACCENTS (star flares, glints) at Brightness 5-8;
-  * the full rate on the back (no BackRateScale), and a Highlight on the 3D piece when it
-    must stand out of the cloud.
+  * the full rate on the back (no BackRateScale), a Highlight on the 3D piece when it must
+    stand out of the cloud, and the stick's outline colour (Outline) when its tier's is wrong.
 Sprites are tools/vfx_sprites.py's (assets/cue/vfx/v2).
 """
 import json
@@ -84,8 +84,13 @@ def by_name(aura):
     return {e['Name']: e for e in aura['Emitters']}
 
 
-def finish(aura, note, beams=None, light=None, highlight=None):
+def finish(aura, note, beams=None, light=None, highlight=None, outline=None):
+    """`outline`: the stick's outline colour (else its tier's, Config.CueSkins.Outline)."""
     aura.pop('BackRateScale', None)
+    if outline:
+        aura['Outline'] = outline
+    else:
+        aura.pop('Outline', None)
     aura['Note'] = note
     for b in aura.get('Beams', []):
         b.update(beams or {})
@@ -137,7 +142,8 @@ def celestial_dragon(aura):
            beams={'Width0': 0.8, 'Width1': 1.6, 'Brightness': 3},
            light={'Brightness': 1.2, 'Range': 7, 'Color': '#3F7BFF'},
            highlight={'FillColor': '#7FC8FF', 'FillTransparency': 0.55,
-                      'OutlineColor': '#E6F6FF', 'OutlineTransparency': 0})
+                      'OutlineColor': '#E6F6FF', 'OutlineTransparency': 0},
+           outline='#3E8BFF')
 
 
 def kitsune(aura):
@@ -181,7 +187,8 @@ def kitsune(aura):
            beams={'Width0': 0.7, 'Width1': 1.4, 'Brightness': 2.5},
            light={'Brightness': 1.2, 'Range': 7},
            highlight={'FillColor': '#FF8AE8', 'FillTransparency': 0.4,
-                      'OutlineColor': '#FFFFFF', 'OutlineTransparency': 0})
+                      'OutlineColor': '#FFFFFF', 'OutlineTransparency': 0},
+           outline='#E040FF')
 
 
 ECLIPSE_AT = 7.3  # the eclipse sits just inside the butt (studs from the tip)
@@ -230,7 +237,7 @@ def eclipse(aura):
            'gold orbit trails with small eclipses loop along it, and the piece\'s gold orbits '
            'and asteroids turn round it.',
            beams={'Width0': 0.6, 'Width1': 1.2, 'Brightness': 2.5},
-           light={'Brightness': 1.5, 'Range': 8, 'AtStuds': ECLIPSE_AT})
+           light={'Brightness': 1.5, 'Range': 8, 'AtStuds': ECLIPSE_AT}, outline='#FFB21E')
 
 
 RECIPES = {

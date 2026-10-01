@@ -746,6 +746,7 @@ return {
 			OutlineColor = "#E6F6FF",
 			OutlineTransparency = 0,
 		},
+		Outline = "#3E8BFF",
 	},
 	TrailEmitters = {
 		{

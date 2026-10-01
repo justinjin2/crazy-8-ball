@@ -481,6 +481,7 @@ return {
 				},
 			},
 		},
+		Outline = "#FFB21E",
 	},
 	TrailEmitters = {
 		{

@@ -11,7 +11,8 @@
 --   * the full aura shows everywhere (opts.aura): in the hands while aiming and on the back;
 --   * on the back (opts.back) its emitters run at Config.CueSkins.BackRateScale and only its
 --     torso-sized camera-facing sprites are drawn behind the body;
---   * a skin's Aura.Highlight outlines its piece (the dragon, the fox) on cues near the camera.
+--   * a cue with an aura wears an outline of its colour (Config.CueSkins.Outline) and a skin's
+--     Aura.Highlight outlines its piece (the dragon, the fox), on the cues nearest the camera.
 --
 -- Emitters, Beams and Lights live on Attachments in the stick's mesh; the look's own parts (a
 -- Part host, a joint rider, the piece) sit in a Model next to the stick, welded to the mesh,
@@ -82,7 +83,7 @@ export type Look = typeof(setmetatable(
 		arcs: { Arc },
 		lights: { Light },
 		piece: any?,
-		highlight: Highlight?, -- the piece's outline (Aura.Highlight), near the camera only
+		highlights: { Highlight }, -- the stick's outline and the piece's (nearest cues only)
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
 		frame: number,
 		t0: number,
@@ -146,7 +147,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		arcs = {},
 		lights = {},
 		piece = nil,
-		highlight = nil,
+		highlights = {},
 		frames = {},
 		frame = 0,
 		t0 = os.clock(),
@@ -223,7 +224,7 @@ function CueSkinLook.clear(self: Look)
 	self.orbiters = {}
 	self.arcs = {}
 	self.lights = {}
-	self.highlight = nil -- it lives in the folder
+	self.highlights = {} -- they live in the folder
 	if self.folder then
 		self.folder:Destroy()
 		self.folder = nil
@@ -289,19 +290,19 @@ function CueSkinLook.refresh(self: Look)
 			table.insert(self.built, att)
 			table.insert(self.lights, { light = light, row = l })
 		end
-		local hl = aura.Highlight
-		if hl and self.piece then
-			local h = Instance.new("Highlight")
-			h.Name = "PieceHighlight"
-			h.FillColor = CueVfx.color(hl.FillColor or "#FFFFFF")
-			h.FillTransparency = hl.FillTransparency or 0.6
-			h.OutlineColor = CueVfx.color(hl.OutlineColor or "#FFFFFF")
-			h.OutlineTransparency = hl.OutlineTransparency or 0
-			h.DepthMode = Enum.HighlightDepthMode.Occluded
-			h.Enabled = false
-			h.Adornee = self.piece.model
-			h.Parent = folder
-			self.highlight = h
+		-- The stick's outline in its colour, and the piece's own (Aura.Highlight).
+		local O = C.Outline
+		local color = aura.Outline or O.Colors[row.Tier]
+		if color then
+			self:addHighlight("CueOutline", self.stick, {
+				FillColor = color,
+				FillTransparency = O.FillTransparency,
+				OutlineColor = color,
+				OutlineTransparency = O.OutlineTransparency,
+			})
+		end
+		if aura.Highlight and self.piece then
+			self:addHighlight("PieceHighlight", self.piece.model, aura.Highlight)
 		end
 	end
 	if self.piece then
@@ -309,6 +310,21 @@ function CueSkinLook.refresh(self: Look)
 	end
 	self:applyVisible()
 	self:step(0)
+end
+
+-- A Highlight on `adornee`, off until the shared budget turns it on (the RenderStepped below).
+function CueSkinLook.addHighlight(self: Look, name: string, adornee: Instance, hl: any)
+	local h = Instance.new("Highlight")
+	h.Name = name
+	h.FillColor = CueVfx.color(hl.FillColor or "#FFFFFF")
+	h.FillTransparency = hl.FillTransparency or 0.6
+	h.OutlineColor = CueVfx.color(hl.OutlineColor or "#FFFFFF")
+	h.OutlineTransparency = hl.OutlineTransparency or 0
+	h.DepthMode = Enum.HighlightDepthMode.Occluded
+	h.Enabled = false
+	h.Adornee = adornee
+	h.Parent = self.folder
+	table.insert(self.highlights, h)
 end
 
 -- The surface: the frames a Legendary swaps through (clones of its template's extra
@@ -834,23 +850,44 @@ function CueSkinLook.destroy(self: Look)
 	self:clear()
 end
 
--- One clock for every look: visible ones within reach of the camera are stepped.
+-- One clock for every look: visible ones within reach of the camera are stepped. The nearest
+-- looks' Highlights are on, up to Config.CueSkins.Outline.MaxShown; the rest, and any far,
+-- hidden or faded by the camera (first person, a close shot), are off.
+local lit: { { look: Look, near: number } } = {}
 RunService.RenderStepped:Connect(function()
 	local camera = Workspace.CurrentCamera
 	local eye = camera and camera.CFrame.Position or Vector3.zero
 	local now = os.clock()
+	table.clear(lit)
 	for look in live do
 		local mesh = look.mesh
 		local near = if mesh then (mesh.Position - eye).Magnitude else math.huge
 		if look.visible and near <= C.StepDistanceStuds then
 			look:step(now - look.t0)
 		end
-		local h = look.highlight
-		if h and mesh then
-			-- Off when far, hidden, or faded by the camera (first person, a close shot).
-			h.Enabled = look.visible
+		if #look.highlights > 0 then
+			if
+				mesh
+				and look.visible
 				and near <= C.HighlightDistanceStuds
 				and mesh.LocalTransparencyModifier < 0.5
+			then
+				table.insert(lit, { look = look, near = near })
+			else
+				for _, h in look.highlights do
+					h.Enabled = false
+				end
+			end
+		end
+	end
+	table.sort(lit, function(a, b)
+		return a.near < b.near
+	end)
+	local shown = 0
+	for _, item in lit do
+		for _, h in item.look.highlights do
+			h.Enabled = shown < C.Outline.MaxShown
+			shown += 1
 		end
 	end
 end)
