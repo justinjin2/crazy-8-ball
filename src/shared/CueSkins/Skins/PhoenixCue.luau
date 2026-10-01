@@ -8,11 +8,11 @@ return {
 	Name = "Phoenix",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://75018407517848",
+		Normal = "rbxassetid://84189445953942",
+		Roughness = "rbxassetid://77254019481519",
+		Metalness = "rbxassetid://121334796719369",
+		Emissive = "rbxassetid://88589114547705",
 	},
 	Surface = {
 		EmissiveStrength = 2.2,
@@ -32,16 +32,16 @@ return {
 		Order = { 0, 1, 2, 1, 3, 2, 0, 3, 1, 2, 3, 0 },
 		Maps = {
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://88589114547705",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://140630875917061",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://93330534948766",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://105547407478021",
 			},
 		},
 	},
@@ -50,10 +50,11 @@ return {
 		Emitters = {
 			{
 				Name = "Flames",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.12,
@@ -84,10 +85,11 @@ return {
 			},
 			{
 				Name = "Feathers",
-				Texture = "",
+				Texture = "rbxassetid://79457723599937",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 2.5,
 					ToStuds = 7,
 					Width = 0.3,
@@ -119,8 +121,9 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -152,10 +155,11 @@ return {
 			},
 			{
 				Name = "WingFireRight",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Segment",
 					Joint = "WingRight",
 					From = { 4.4, 0.06, 0.07 },
 					To = { 4.838, 0.476, 1.164 },
@@ -184,10 +188,11 @@ return {
 			},
 			{
 				Name = "PrimariesFireRight",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Segment",
 					Joint = "PrimariesRight",
 					From = { 4.838, 0.476, 1.164 },
 					To = { 5.258, 0.875, 2.215 },
@@ -216,10 +221,11 @@ return {
 			},
 			{
 				Name = "WingFireLeft",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Segment",
 					Joint = "WingLeft",
 					From = { 4.4, 0.06, -0.07 },
 					To = { 4.838, 0.476, -1.164 },
@@ -248,10 +254,11 @@ return {
 			},
 			{
 				Name = "PrimariesFireLeft",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Segment",
 					Joint = "PrimariesLeft",
 					From = { 4.838, 0.476, -1.164 },
 					To = { 5.258, 0.875, -2.215 },
@@ -287,7 +294,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.6,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FFB84A" },
@@ -334,7 +341,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://106903098076120",
 				TextureMode = "Wrap",
 				TextureLength = 1.2,
 				TextureSpeed = 0.35,
@@ -357,15 +364,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://106903098076120",
 				TextureMode = "Wrap",
 				TextureLength = 1.2,
 				TextureSpeed = 0.35,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.25 },
-					{ 0.913158, 0.25 },
+					{ 0.08684210526315787, 0.25 },
+					{ 0.9131578947368422, 0.25 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -380,7 +387,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://106903098076120",
 				TextureMode = "Wrap",
 				TextureLength = 1.2,
 				TextureSpeed = 0.35,
@@ -401,8 +408,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Embers",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 22,
 			Lifetime = { 0.4, 0.8 },
 			Speed = { 0.6, 1.6 },
@@ -427,10 +436,12 @@ return {
 		},
 		{
 			Name = "Feathers",
-			Texture = "",
+			Texture = "rbxassetid://79457723599937",
 			FlipbookLayout = "Grid4x4",
 			FlipbookMode = "OneShot",
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 6,
 			Lifetime = { 0.7, 1 },
 			Speed = { 0.3, 0.8 },
@@ -464,7 +475,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.55,
 			LightEmission = 0.2,
-			Texture = "",
+			Texture = "rbxassetid://97994434384432",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.6 },
@@ -507,10 +518,11 @@ return {
 		Layers = {
 			{
 				Name = "Column",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Size = 0.6,
 				},
 				Burst = 16,
@@ -536,7 +548,7 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 40,
 				Delay = 0.05,
 				Lifetime = { 0.6, 1.1 },
@@ -563,10 +575,11 @@ return {
 			},
 			{
 				Name = "Feathers",
-				Texture = "",
+				Texture = "rbxassetid://79457723599937",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2, 0 },
 					Size = 2.5,
 				},
@@ -594,7 +607,7 @@ return {
 			},
 			{
 				Name = "Linger",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Burst = 20,
 				Delay = 0.5,
 				Lifetime = { 0.7, 1 },
@@ -614,7 +627,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FF7A1A",
 				Start = 0.4,
 				End = 5,
@@ -654,7 +667,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "phoenix",
-	Thumb = "",
+	Thumb = "rbxassetid://119850586818113",
 	Look = {
 		Shaft = { 235, 156, 70 },
 		Forearm = { 214, 77, 20 },

@@ -5,7 +5,7 @@
 return {
 	Id = "eclipse",
 	Frame = "cue",
-	Rigid = "",
+	Rigid = "90573651819070",
 	Models = {},
 	Parts = {
 		{
@@ -390,6 +390,7 @@ return {
 			PivotRoblox = { -0, 0, -4.06 },
 			Motion = {
 				{
+					Kind = "Bob",
 					Dir = { 0, 0, 1 },
 					Amp = 0.012,
 					Period = 3.4,
@@ -401,6 +402,7 @@ return {
 			PivotRoblox = { -0, 0, -4.06 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 0.25, 1 },
 					Rate = 22,
 				},
@@ -411,6 +413,7 @@ return {
 			PivotRoblox = { -0, 0, -4.06 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 0.25, 1 },
 					Rate = -30,
 				},
@@ -421,7 +424,8 @@ return {
 			PivotRoblox = { -0, 0, -4.06 },
 			Motion = {
 				{
-					Axis = { 0.324617, 0.185496, 0.927478 },
+					Kind = "Spin",
+					Axis = { 0.3246172070503235, 0.1854955554008484, 0.9274777770042419 },
 					Rate = 70,
 				},
 			},
@@ -431,10 +435,12 @@ return {
 			PivotRoblox = { 0, 0, -3.5 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = 16,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.02,
 					Period = 2.7,
@@ -446,6 +452,7 @@ return {
 			PivotRoblox = { -0, 0, 2.2 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = 14,
 					Phase = 20,
@@ -457,7 +464,8 @@ return {
 			PivotRoblox = { -0, 0, 2.2 },
 			Motion = {
 				{
-					Axis = { 0.301986, 0.469472, 0.829699 },
+					Kind = "Spin",
+					Axis = { 0.3019857704639435, 0.4694717228412628, 0.8296992778778076 },
 					Rate = 150,
 				},
 			},
@@ -467,6 +475,7 @@ return {
 			PivotRoblox = { -0, 0, 0.7 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = -11,
 					Phase = 110,
@@ -478,7 +487,8 @@ return {
 			PivotRoblox = { -0, 0, 0.7 },
 			Motion = {
 				{
-					Axis = { -0.769751, 0.573576, 0.280166 },
+					Kind = "Spin",
+					Axis = { -0.7697511911392212, 0.5735763907432556, 0.2801663875579834 },
 					Rate = -120,
 				},
 			},
@@ -488,6 +498,7 @@ return {
 			PivotRoblox = { -0, 0, -0.8 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = 16,
 					Phase = 230,
@@ -499,7 +510,8 @@ return {
 			PivotRoblox = { -0, 0, -0.8 },
 			Motion = {
 				{
-					Axis = { -0.719846, 0.34202, -0.604023 },
+					Kind = "Spin",
+					Axis = { -0.7198464274406433, 0.3420201539993286, -0.6040226221084595 },
 					Rate = 135,
 				},
 			},
@@ -509,6 +521,7 @@ return {
 			PivotRoblox = { -0, 0, -2.3 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = -9,
 					Phase = 320,
@@ -520,7 +533,8 @@ return {
 			PivotRoblox = { -0, 0, -2.3 },
 			Motion = {
 				{
-					Axis = { 0.577734, 0.438371, -0.688516 },
+					Kind = "Spin",
+					Axis = { 0.5777338147163391, 0.43837106227874756, -0.6885161995887756 },
 					Rate = -105,
 				},
 			},
@@ -530,6 +544,7 @@ return {
 			PivotRoblox = { -0, 0, -0.7 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = 7,
 					Phase = 90,
@@ -541,6 +556,7 @@ return {
 			PivotRoblox = { -0, 0, -1.1 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = -5,
 					Phase = 180,
@@ -552,13 +568,15 @@ return {
 			PivotRoblox = { 0, 0, 2.0876 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 15.002608,
+					Rate = 15.002608121968203,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.388041,
+					Period = 4.388040840328603,
 					Phase = 37,
 				},
 			},
@@ -568,8 +586,9 @@ return {
 			PivotRoblox = { 0.5502, 0.6861, 2.0876 },
 			Motion = {
 				{
-					Axis = { -0.152505, 0.060176, 1 },
-					Rate = 46.515147,
+					Kind = "Spin",
+					Axis = { -0.15250518353007725, 0.06017602023601287, 1 },
+					Rate = 46.51514706237403,
 				},
 			},
 		},
@@ -578,13 +597,15 @@ return {
 			PivotRoblox = { 0, 0, 1.9376 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -19.05498,
+					Rate = -19.05498033937033,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.268951,
+					Period = 4.268950886588534,
 					Phase = 74,
 				},
 			},
@@ -594,8 +615,9 @@ return {
 			PivotRoblox = { 0.5175, -0.1329, 1.9376 },
 			Motion = {
 				{
-					Axis = { 0.468418, -0.282007, 1 },
-					Rate = 42.877726,
+					Kind = "Spin",
+					Axis = { 0.468418157566991, -0.2820072804276006, 1 },
+					Rate = 42.87772648246092,
 				},
 			},
 		},
@@ -604,13 +626,15 @@ return {
 			PivotRoblox = { 0, 0, 0.8646 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 18.424206,
+					Rate = 18.424205777218482,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.35807,
+					Period = 4.358070171787672,
 					Phase = 111,
 				},
 			},
@@ -620,8 +644,9 @@ return {
 			PivotRoblox = { 0.6439, 0.0396, 0.8646 },
 			Motion = {
 				{
-					Axis = { 0.321064, -0.371218, 1 },
-					Rate = 44.286806,
+					Kind = "Spin",
+					Axis = { 0.32106421850063604, -0.37121777872762696, 1 },
+					Rate = 44.28680621619357,
 				},
 			},
 		},
@@ -630,13 +655,15 @@ return {
 			PivotRoblox = { 0, 0, 0.4288 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -17.880948,
+					Rate = -17.88094818651992,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.72381,
+					Period = 4.723810238987962,
 					Phase = 148,
 				},
 			},
@@ -646,8 +673,9 @@ return {
 			PivotRoblox = { -0.516, 0.2486, 0.4288 },
 			Motion = {
 				{
-					Axis = { -0.608784, -0.771398, 1 },
-					Rate = 44.93021,
+					Kind = "Spin",
+					Axis = { -0.6087842943921999, -0.7713975894104372, 1 },
+					Rate = 44.93020989974679,
 				},
 			},
 		},
@@ -656,13 +684,15 @@ return {
 			PivotRoblox = { 0, 0, -0.0154 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 17.657449,
+					Rate = 17.657449206221635,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.666374,
+					Period = 4.6663737496889555,
 					Phase = 185,
 				},
 			},
@@ -672,8 +702,9 @@ return {
 			PivotRoblox = { -0.629, -0.1551, -0.0154 },
 			Motion = {
 				{
-					Axis = { 0.097987, -0.483163, 1 },
-					Rate = 45.356362,
+					Kind = "Spin",
+					Axis = { 0.0979869398220663, -0.48316295222143446, 1 },
+					Rate = 45.356361575295125,
 				},
 			},
 		},
@@ -682,13 +713,15 @@ return {
 			PivotRoblox = { 0, 0, -0.7227 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -25.345597,
+					Rate = -25.345597361001495,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 3.75089,
+					Period = 3.7508896341470637,
 					Phase = 222,
 				},
 			},
@@ -698,8 +731,9 @@ return {
 			PivotRoblox = { 0.4772, -0.7245, -0.7227 },
 			Motion = {
 				{
-					Axis = { 0.950013, -0.88816, 1 },
-					Rate = 60.811166,
+					Kind = "Spin",
+					Axis = { 0.9500129376914974, -0.8881603832416072, 1 },
+					Rate = 60.811166015782156,
 				},
 			},
 		},
@@ -708,13 +742,15 @@ return {
 			PivotRoblox = { 0, 0, -1.4525 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 25.858611,
+					Rate = 25.858610789037794,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.623522,
+					Period = 4.6235215450765335,
 					Phase = 259,
 				},
 			},
@@ -724,8 +760,9 @@ return {
 			PivotRoblox = { 0.2112, -0.8538, -1.4525 },
 			Motion = {
 				{
-					Axis = { -0.307715, 0.948782, 1 },
-					Rate = 58.849958,
+					Kind = "Spin",
+					Axis = { -0.3077148941760006, 0.9487823067341417, 1 },
+					Rate = 58.84995791710807,
 				},
 			},
 		},
@@ -734,13 +771,15 @@ return {
 			PivotRoblox = { 0, 0, -2.1168 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -15.242041,
+					Rate = -15.242041458756328,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.293455,
+					Period = 4.293454978423228,
 					Phase = 296,
 				},
 			},
@@ -750,8 +789,9 @@ return {
 			PivotRoblox = { -0.8601, 0.1869, -2.1168 },
 			Motion = {
 				{
-					Axis = { -0.66064, 0.087297, 1 },
-					Rate = 80.642138,
+					Kind = "Spin",
+					Axis = { -0.6606401102154029, 0.0872966730294995, 1 },
+					Rate = 80.64213791438884,
 				},
 			},
 		},
@@ -760,13 +800,15 @@ return {
 			PivotRoblox = { 0, 0, -2.4214 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 24.74218,
+					Rate = 24.742179925770117,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 4.531617,
+					Period = 4.53161651056795,
 					Phase = 333,
 				},
 			},
@@ -776,8 +818,9 @@ return {
 			PivotRoblox = { 0.7891, 0.3342, -2.4214 },
 			Motion = {
 				{
-					Axis = { -0.174756, 0.386046, 1 },
-					Rate = 81.490981,
+					Kind = "Spin",
+					Axis = { -0.17475558713711603, 0.3860458874793862, 1 },
+					Rate = 81.49098094463986,
 				},
 			},
 		},
@@ -786,13 +829,15 @@ return {
 			PivotRoblox = { 0, 0, -3.2358 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -23.918491,
+					Rate = -23.918491210179695,
 				},
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.15,
-					Period = 3.662669,
+					Period = 3.662669405623975,
 					Phase = 370,
 				},
 			},
@@ -802,8 +847,9 @@ return {
 			PivotRoblox = { 0.2231, -0.6875, -3.2358 },
 			Motion = {
 				{
-					Axis = { 0.262477, -0.334995, 1 },
-					Rate = 67.967761,
+					Kind = "Spin",
+					Axis = { 0.26247708706874073, -0.3349953895072215, 1 },
+					Rate = 67.96776061085689,
 				},
 			},
 		},

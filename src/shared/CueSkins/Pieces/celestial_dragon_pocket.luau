@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketDragon = "",
+		PocketDragon = "105903753067210",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://86812947579012",
+				EmissiveMask = "rbxassetid://108170288486064",
 				EmissiveTint = "#7AC0FF",
 				EmissiveStrength = 1.8,
-				NormalMap = "",
+				NormalMap = "rbxassetid://137079491475110",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketDragon",
@@ -53,11 +53,13 @@ return {
 			PivotRoblox = { 0, 0, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { -1, 0, 0 },
 					Amp = 4,
 					Period = 2.4,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 3,
 					Period = 1.9,
@@ -70,12 +72,14 @@ return {
 			PivotRoblox = { 0, 1.9, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { -1, 0, 0 },
 					Amp = 5,
 					Period = 2.2,
 					Phase = 30,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 4,
 					Period = 1.7,
@@ -87,6 +91,7 @@ return {
 			PivotRoblox = { -0.2, 2.35, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 6,
 					Period = 1.6,
@@ -99,6 +104,7 @@ return {
 			PivotRoblox = { -0.36, 2.45, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Base = 9,
 					Amp = 9,
@@ -111,6 +117,7 @@ return {
 			PivotRoblox = { 0.2, 2.3, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 6,
 					Period = 1.1,
@@ -123,6 +130,7 @@ return {
 			PivotRoblox = { -0.3, 1.75, 0.2 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 12,
 					Period = 1.4,
@@ -135,6 +143,7 @@ return {
 			PivotRoblox = { -0.3, 1.75, -0.2 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 12,
 					Period = 1.4,

@@ -8,11 +8,11 @@ return {
 	Name = "Candy",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://104036336778553",
+		Normal = "rbxassetid://116547989411350",
+		Roughness = "rbxassetid://92108873059772",
+		Metalness = "rbxassetid://135623606704470",
+		Emissive = "rbxassetid://140576234334619",
 	},
 	Surface = {
 		EmissiveStrength = 1,
@@ -44,7 +44,7 @@ return {
 						{ 1, 0.6 },
 					},
 					LightEmission = 0.25,
-					Texture = "",
+					Texture = "rbxassetid://110176017197382",
 					TextureMode = "Wrap",
 					TextureLength = 0.2,
 				},
@@ -72,7 +72,7 @@ return {
 						{ 1, 0.6 },
 					},
 					LightEmission = 0.25,
-					Texture = "",
+					Texture = "rbxassetid://110176017197382",
 					TextureMode = "Wrap",
 					TextureLength = 0.2,
 				},
@@ -82,8 +82,9 @@ return {
 		Emitters = {
 			{
 				Name = "Sprinkles",
-				Texture = "",
+				Texture = "rbxassetid://131524148788186",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.24,
@@ -119,8 +120,9 @@ return {
 			},
 			{
 				Name = "Sugar",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.22,
@@ -146,10 +148,11 @@ return {
 			},
 			{
 				Name = "SugarHaze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -226,7 +229,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://70575699005394",
 	Look = {
 		Shaft = { 237, 146, 150 },
 		Forearm = { 237, 145, 149 },

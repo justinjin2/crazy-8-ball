@@ -5,7 +5,7 @@
 return {
 	Id = "apex",
 	Frame = "cue",
-	Rigid = "",
+	Rigid = "114292652306936",
 	Models = {},
 	Parts = {
 		{
@@ -300,6 +300,7 @@ return {
 			PivotRoblox = { 0, 0, -3.5 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = 50,
 				},
@@ -310,6 +311,7 @@ return {
 			PivotRoblox = { -0, 0.145, -3.735 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, -0 },
 					Base = 4,
 					Amp = 12,
@@ -323,6 +325,7 @@ return {
 			PivotRoblox = { -0, 0.275, -3.935 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, -0 },
 					Base = 0,
 					Amp = 9,
@@ -337,7 +340,8 @@ return {
 			PivotRoblox = { -0.1256, -0.0725, -3.735 },
 			Motion = {
 				{
-					Axis = { -0.5, 0, -0.866025 },
+					Kind = "Hinge",
+					Axis = { -0.5, 0, -0.8660253882408142 },
 					Base = 4,
 					Amp = 12,
 					Period = 3,
@@ -350,7 +354,8 @@ return {
 			PivotRoblox = { -0.2382, -0.1375, -3.935 },
 			Motion = {
 				{
-					Axis = { -0.5, 0, -0.866025 },
+					Kind = "Hinge",
+					Axis = { -0.5, 0, -0.8660253882408142 },
 					Base = 0,
 					Amp = 9,
 					Period = 3,
@@ -364,7 +369,8 @@ return {
 			PivotRoblox = { 0.1256, -0.0725, -3.735 },
 			Motion = {
 				{
-					Axis = { -0.5, 0, 0.866025 },
+					Kind = "Hinge",
+					Axis = { -0.5, 0, 0.8660253882408142 },
 					Base = 4,
 					Amp = 12,
 					Period = 3,
@@ -377,7 +383,8 @@ return {
 			PivotRoblox = { 0.2382, -0.1375, -3.935 },
 			Motion = {
 				{
-					Axis = { -0.5, 0, 0.866025 },
+					Kind = "Hinge",
+					Axis = { -0.5, 0, 0.8660253882408142 },
 					Base = 0,
 					Amp = 9,
 					Period = 3,

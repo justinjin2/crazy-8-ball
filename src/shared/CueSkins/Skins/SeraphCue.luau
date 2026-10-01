@@ -8,11 +8,11 @@ return {
 	Name = "Seraph",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://117770806777666",
+		Normal = "rbxassetid://139779045943595",
+		Roughness = "rbxassetid://130188082084755",
+		Metalness = "rbxassetid://93937579029968",
+		Emissive = "rbxassetid://79413921428860",
 	},
 	Surface = {
 		EmissiveStrength = 1.9,
@@ -31,16 +31,16 @@ return {
 		Order = { 0, 1, 2, 3 },
 		Maps = {
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://79413921428860",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://103041169570489",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://111578859283188",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://73240538309858",
 			},
 		},
 	},
@@ -49,8 +49,9 @@ return {
 		Emitters = {
 			{
 				Name = "HaloGlow",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.32,
 				},
 				Rate = 2,
@@ -74,12 +75,13 @@ return {
 			},
 			{
 				Name = "Feathers",
-				Texture = "",
+				Texture = "rbxassetid://83300600179716",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = { 16, 24 },
 				FlipbookStartRandom = true,
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.9,
@@ -113,8 +115,9 @@ return {
 			},
 			{
 				Name = "Motes",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.7,
@@ -144,8 +147,9 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.45,
@@ -170,10 +174,11 @@ return {
 			},
 			{
 				Name = "GoldenLight",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7.2,
 					Width = 0.35,
@@ -233,7 +238,7 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://97416785062845",
 					TextureMode = "Stretch",
 				},
 			},
@@ -264,7 +269,7 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://97416785062845",
 					TextureMode = "Stretch",
 				},
 			},
@@ -295,7 +300,7 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://97416785062845",
 					TextureMode = "Stretch",
 				},
 			},
@@ -308,7 +313,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.6,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FFF3C4" },
@@ -352,7 +357,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82698859747906",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = 0.4,
@@ -375,15 +380,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82698859747906",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = 0.4,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.15 },
-					{ 0.913158, 0.15 },
+					{ 0.08684210526315787, 0.15 },
+					{ 0.9131578947368422, 0.15 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -398,7 +403,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://82698859747906",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = 0.4,
@@ -419,8 +424,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Motes",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://78860393208560",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 14,
 			Lifetime = { 0.5, 0.9 },
 			Speed = { 0.2, 0.6 },
@@ -441,8 +448,10 @@ return {
 		},
 		{
 			Name = "Sparkles",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://118250274152711",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 8,
 			Lifetime = { 0.3, 0.5 },
 			Speed = { 0.2, 0.5 },
@@ -460,12 +469,14 @@ return {
 		},
 		{
 			Name = "Feathers",
-			Texture = "",
+			Texture = "rbxassetid://108859664797204",
 			FlipbookLayout = "Grid4x4",
 			FlipbookMode = "Loop",
 			FlipbookFramerate = 10,
 			FlipbookStartRandom = true,
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 3,
 			Lifetime = { 0.8, 1.1 },
 			Speed = { 0.3, 0.7 },
@@ -494,7 +505,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.5,
 			LightEmission = 0.2,
-			Texture = "",
+			Texture = "rbxassetid://97416785062845",
 			TextureMode = "Wrap",
 			TextureLength = 1.6,
 			WidthScale = {
@@ -539,8 +550,9 @@ return {
 		Layers = {
 			{
 				Name = "LightBeam",
-				Texture = "",
+				Texture = "rbxassetid://112520883504516",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 3.3, 0 },
 				},
 				Burst = 1,
@@ -566,8 +578,9 @@ return {
 			},
 			{
 				Name = "Motes",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Point",
 					Size = 0.8,
 				},
 				Burst = 36,
@@ -592,7 +605,7 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 20,
 				Delay = 0.05,
 				Lifetime = { 0.4, 0.7 },
@@ -613,12 +626,13 @@ return {
 			},
 			{
 				Name = "Feathers",
-				Texture = "",
+				Texture = "rbxassetid://83300600179716",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = 36,
 				FlipbookStartRandom = true,
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2.6, 0 },
 					Size = 2.6,
 				},
@@ -648,7 +662,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FFE08A",
 				Start = 0.4,
 				End = 4.6,
@@ -663,7 +677,7 @@ return {
 		},
 	},
 	Piece = "seraph",
-	Thumb = "",
+	Thumb = "rbxassetid://81795650802564",
 	Look = {
 		Shaft = { 243, 240, 230 },
 		Forearm = { 231, 219, 180 },

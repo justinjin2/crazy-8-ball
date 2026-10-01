@@ -8,13 +8,13 @@ return {
 	Name = "Bronze Cue",
 	Tier = "Rank",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://127638137524837",
+		Normal = "rbxassetid://100642194132235",
+		Roughness = "rbxassetid://90575428130048",
+		Metalness = "rbxassetid://72755129378079",
 	},
 	Aura = {},
-	Thumb = "",
+	Thumb = "rbxassetid://118644196992752",
 	Look = {
 		Shaft = { 174, 105, 58 },
 		Forearm = { 72, 46, 31 },

@@ -23,6 +23,7 @@ local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Net = require(Shared:WaitForChild("Net"))
 local Placement = require(Shared:WaitForChild("Placement"))
 local BallRenderer = require(script.Parent:WaitForChild("BallRenderer"))
+local CueSkinLook = require(script.Parent:WaitForChild("CueSkinLook"))
 local Match = require(script.Parent:WaitForChild("Match"))
 local WatchedShooters = require(script.Parent:WaitForChild("WatchedShooters"))
 
@@ -75,6 +76,8 @@ function Hub.new(parent: Instance): Hub
 		local cue = CueStickBuilder.build(parent)
 		cue.Name = ("WatchedCue_%d"):format(i)
 		CueStickBuilder.setVisible(cue, false)
+		-- A cue in the hands wears its skin with no aura (designer, 2026-09-30).
+		CueSkinLook.attach(cue, { aura = false })
 		table.insert(cues, cue)
 	end
 

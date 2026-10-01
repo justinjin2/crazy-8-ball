@@ -8,11 +8,11 @@ return {
 	Name = "Kraken",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://84822389390666",
+		Normal = "rbxassetid://101605179424631",
+		Roughness = "rbxassetid://99540682554935",
+		Metalness = "rbxassetid://72841239929978",
+		Emissive = "rbxassetid://136615740491963",
 	},
 	Surface = {
 		EmissiveStrength = 2.2,
@@ -31,16 +31,16 @@ return {
 		Order = { 0, 1, 2, 3 },
 		Maps = {
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://136615740491963",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://77512371150056",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://80327203139963",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://109858350182847",
 			},
 		},
 	},
@@ -49,8 +49,9 @@ return {
 		Emitters = {
 			{
 				Name = "Bubbles",
-				Texture = "",
+				Texture = "rbxassetid://122940593199380",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -81,8 +82,9 @@ return {
 			},
 			{
 				Name = "Specks",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.6,
@@ -111,10 +113,11 @@ return {
 			},
 			{
 				Name = "Ink",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 5.4,
 					ToStuds = 7,
 					Width = 0.25,
@@ -153,7 +156,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.6,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#2BF0D0" },
@@ -198,7 +201,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://131423172978207",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = 0.15,
@@ -221,15 +224,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://131423172978207",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = 0.15,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.35 },
-					{ 0.913158, 0.35 },
+					{ 0.08684210526315787, 0.35 },
+					{ 0.9131578947368422, 0.35 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -244,7 +247,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://131423172978207",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = 0.15,
@@ -265,8 +268,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Bubbles",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://122940593199380",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 12,
 			Lifetime = { 0.6, 1.1 },
 			Speed = { 0.3, 0.9 },
@@ -288,10 +293,12 @@ return {
 		},
 		{
 			Name = "InkPuffs",
-			Texture = "",
+			Texture = "rbxassetid://107986039759482",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 7,
 			Lifetime = { 0.7, 1 },
 			Speed = { 0.1, 0.3 },
@@ -321,7 +328,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.5,
 			LightEmission = 0.35,
-			Texture = "",
+			Texture = "rbxassetid://80718117967090",
 			TextureMode = "Wrap",
 			TextureLength = 1.4,
 			WidthScale = {
@@ -365,7 +372,7 @@ return {
 		Layers = {
 			{
 				Name = "Splash",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 40,
 				Lifetime = { 0.45, 0.8 },
 				Speed = { 5, 10 },
@@ -393,7 +400,7 @@ return {
 			},
 			{
 				Name = "Drops",
-				Texture = "",
+				Texture = "rbxassetid://79294795504542",
 				Burst = 18,
 				Lifetime = { 0.6, 0.9 },
 				Speed = { 3, 7 },
@@ -411,10 +418,11 @@ return {
 			},
 			{
 				Name = "InkCloud",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Size = 0.6,
 				},
 				Burst = 9,
@@ -444,8 +452,9 @@ return {
 			},
 			{
 				Name = "Bubbles",
-				Texture = "",
+				Texture = "rbxassetid://122940593199380",
 				Host = {
+					Kind = "Point",
 					Size = 1.2,
 				},
 				Burst = 20,
@@ -471,7 +480,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#2BF0D0",
 				Start = 0.4,
 				End = 4.8,
@@ -511,7 +520,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "kraken",
-	Thumb = "",
+	Thumb = "rbxassetid://74026789029433",
 	Look = {
 		Shaft = { 2, 94, 109 },
 		Forearm = { 25, 62, 111 },

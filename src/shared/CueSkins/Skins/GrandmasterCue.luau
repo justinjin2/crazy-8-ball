@@ -8,11 +8,11 @@ return {
 	Name = "Grandmaster Cue",
 	Tier = "Rank",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://96259021482655",
+		Normal = "rbxassetid://115586255704637",
+		Roughness = "rbxassetid://99157673390134",
+		Metalness = "rbxassetid://83348992196795",
+		Emissive = "rbxassetid://76567982637836",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -23,10 +23,11 @@ return {
 		Emitters = {
 			{
 				Name = "DarkAura",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 7,
 					Width = 0.3,
@@ -56,8 +57,9 @@ return {
 			},
 			{
 				Name = "GoldEmbers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -85,8 +87,9 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.4,
@@ -118,7 +121,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#FFC428",
 				Transparency = {
@@ -163,7 +166,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 0.6,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -198,7 +201,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 0.6,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -207,8 +210,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Embers",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 12,
 			Lifetime = { 0.3, 0.5 },
 			Speed = { 0.4, 1 },
@@ -234,7 +239,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.38,
 			LightEmission = 0.3,
-			Texture = "",
+			Texture = "rbxassetid://127977106980687",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.8 },
@@ -277,7 +282,7 @@ return {
 		Layers = {
 			{
 				Name = "Rays",
-				Texture = "",
+				Texture = "rbxassetid://122351294248405",
 				Burst = 16,
 				Lifetime = { 0.35, 0.5 },
 				Speed = { 8, 12 },
@@ -300,7 +305,7 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 26,
 				Delay = 0.05,
 				Lifetime = { 0.6, 1.1 },
@@ -324,7 +329,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FFC428",
 				Start = 0.4,
 				End = 4,
@@ -337,7 +342,7 @@ return {
 			Seconds = 0.3,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://102635735519428",
 	Look = {
 		Shaft = { 33, 28, 26 },
 		Forearm = { 87, 70, 32 },

@@ -538,7 +538,7 @@ return {
 		H.expect(ids(snap.cases) == "Standard Legendary" and snap.cases[1].count == 3, "cases")
 		H.expect(snap.equipped == "NeonCue", "equipped")
 		H.expect(
-			ids(snap.seen) == "MidnightCue HeritageCue NeonCue EclipseCue GoldCue BetaCue",
+			ids(snap.seen) == "Classic MidnightCue HeritageCue NeonCue EclipseCue GoldCue BetaCue",
 			"seen: " .. ids(snap.seen)
 		)
 		H.expect(

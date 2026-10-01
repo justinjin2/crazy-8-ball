@@ -8,11 +8,11 @@ return {
 	Name = "Master Cue",
 	Tier = "Rank",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://86434943698380",
+		Normal = "rbxassetid://110268010591299",
+		Roughness = "rbxassetid://99688605833496",
+		Metalness = "rbxassetid://107185853924180",
+		Emissive = "rbxassetid://84651910259860",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -44,7 +44,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -72,7 +72,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -81,10 +81,11 @@ return {
 		Emitters = {
 			{
 				Name = "PurpleFlame",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.8,
 					ToStuds = 7,
 					Width = 0.22,
@@ -118,8 +119,9 @@ return {
 			},
 			{
 				Name = "Amethysts",
-				Texture = "",
+				Texture = "rbxassetid://72379958812828",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.8,
 					ToStuds = 7,
 					Width = 0.9,
@@ -145,8 +147,9 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.4,
@@ -178,13 +181,13 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#9E5CE6",
 				Transparency = {
 					{ 0, 1 },
 					{ 0.06, 0.72 },
-					{ 0.9, 0.67 },
+					{ 0.9, 0.6699999999999999 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -202,7 +205,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.5,
 			LightEmission = 0.35,
-			Texture = "",
+			Texture = "rbxassetid://136024511799033",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.8 },
@@ -235,7 +238,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://104802627151396",
 	Look = {
 		Shaft = { 42, 24, 56 },
 		Forearm = { 87, 59, 70 },

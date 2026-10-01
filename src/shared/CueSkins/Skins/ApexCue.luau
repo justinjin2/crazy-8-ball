@@ -8,11 +8,11 @@ return {
 	Name = "Apex",
 	Tier = "Mythic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://127249467030777",
+		Normal = "rbxassetid://118034696054044",
+		Roughness = "rbxassetid://100802168309666",
+		Metalness = "rbxassetid://78221462408087",
+		Emissive = "rbxassetid://131413521846580",
 	},
 	Surface = {
 		EmissiveStrength = 2.2,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "HudRingsCyan",
-				Texture = "",
+				Texture = "rbxassetid://116370105897636",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 0.3,
 				},
 				EmissionDirection = "Back",
@@ -62,8 +63,9 @@ return {
 			},
 			{
 				Name = "HudRingsOrange",
-				Texture = "",
+				Texture = "rbxassetid://120128613874750",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 6.6,
 				},
 				EmissionDirection = "Front",
@@ -94,8 +96,9 @@ return {
 			},
 			{
 				Name = "ScanPulses",
-				Texture = "",
+				Texture = "rbxassetid://116370105897636",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 6.5,
 					Width = 0.01,
@@ -126,8 +129,9 @@ return {
 			},
 			{
 				Name = "DataMotes",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7.3,
 					Width = 0.34,
@@ -154,8 +158,9 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 2,
 					ToStuds = 7.2,
 					Width = 0.3,
@@ -179,8 +184,9 @@ return {
 			},
 			{
 				Name = "Thruster1",
-				Texture = "",
+				Texture = "rbxassetid://89553253470274",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.05,
 					Up = 0.07,
 					Side = -0.121,
@@ -207,8 +213,9 @@ return {
 			},
 			{
 				Name = "Thruster2",
-				Texture = "",
+				Texture = "rbxassetid://89553253470274",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.05,
 					Up = -0.14,
 					Side = -0,
@@ -235,8 +242,9 @@ return {
 			},
 			{
 				Name = "Thruster3",
-				Texture = "",
+				Texture = "rbxassetid://89553253470274",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.05,
 					Up = 0.07,
 					Side = 0.121,
@@ -284,7 +292,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -309,7 +317,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -322,7 +330,7 @@ return {
 				Width0 = 0.24,
 				Width1 = 0.4,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#19E6FF" },
@@ -368,8 +376,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "RingsCyan",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://107892389982787",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 8,
 			Lifetime = 0.7,
 			Speed = 0,
@@ -388,8 +398,10 @@ return {
 		},
 		{
 			Name = "RingsOrange",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://107892389982787",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 6,
 			Lifetime = 0.6,
 			Speed = 0,
@@ -408,8 +420,10 @@ return {
 		},
 		{
 			Name = "Sparks",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 14,
 			Lifetime = { 0.2, 0.45 },
 			Speed = { 0.5, 1.5 },
@@ -438,7 +452,7 @@ return {
 			Lifetime = 1.2,
 			WidthStuds = 0.42,
 			LightEmission = 1,
-			Texture = "",
+			Texture = "rbxassetid://92228651849422",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.6 },
@@ -481,10 +495,11 @@ return {
 		Layers = {
 			{
 				Name = "Reticle",
-				Texture = "",
+				Texture = "rbxassetid://76139771686255",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2, 0 },
 				},
 				Burst = 1,
@@ -499,8 +514,9 @@ return {
 			},
 			{
 				Name = "Column",
-				Texture = "",
+				Texture = "rbxassetid://89553253470274",
 				Host = {
+					Kind = "Point",
 					Size = 0.3,
 				},
 				Burst = 10,
@@ -526,7 +542,7 @@ return {
 			},
 			{
 				Name = "ShardsOrange",
-				Texture = "",
+				Texture = "rbxassetid://138797746240596",
 				Burst = 12,
 				Delay = 0.6,
 				Lifetime = { 0.5, 0.8 },
@@ -550,7 +566,7 @@ return {
 			},
 			{
 				Name = "ShardsCyan",
-				Texture = "",
+				Texture = "rbxassetid://138797746240596",
 				Burst = 12,
 				Delay = 0.62,
 				Lifetime = { 0.5, 0.8 },
@@ -574,7 +590,7 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 24,
 				Delay = 0.65,
 				Lifetime = { 0.5, 0.9 },
@@ -598,7 +614,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://116370105897636",
 				Color = "#FFFFFF",
 				Start = 0.5,
 				End = 5,
@@ -613,7 +629,7 @@ return {
 		},
 	},
 	Piece = "apex",
-	Thumb = "",
+	Thumb = "rbxassetid://87790492695654",
 	Look = {
 		Shaft = { 99, 92, 84 },
 		Forearm = { 89, 67, 50 },

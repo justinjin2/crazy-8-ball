@@ -11,7 +11,11 @@
 -- accent band (only when the Look has one and no rainbow), the wrap, the butt cap (the wrap
 -- darkened when the Look has none), and the gloss (untinted). A silhouette (the Index's
 -- never-owned cues) is the one dark shape instead; if that image is missing, every layer is
--- tinted dark. Real models later only change the images and the rows.
+-- tinted dark.
+--
+-- A cue with a skin (CueSkins) shows its rendered picture instead (one image, the cue on the
+-- same diagonal with its surface, glow and piece; tools/cue_skin.py --thumb), drawn as one
+-- dark shape for a silhouette; the layers stay for a cue with none (the Unique cues).
 --
 -- The dressing (CueThumb.dress) gives a card its rarity: a rarity-coloured edge inside its own
 -- outline, a colour wash at its bottom and a strip across it. Mythic is pale and holographic:
@@ -25,6 +29,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
+local CueSkins = require(Shared:WaitForChild("CueSkins"))
 
 local K = Config.UI.Kit
 local ICONS: { [string]: string } = K.Icons :: any
@@ -87,6 +92,15 @@ function CueThumb.new(parent: Instance, cueId: string, opts: { silhouette: boole
 		image.ZIndex = index
 		image.Parent = thumb
 	end
+	local picture = Instance.new("ImageLabel")
+	picture.Name = "Picture"
+	picture.BackgroundTransparency = 1
+	picture.BorderSizePixel = 0
+	picture.ScaleType = Enum.ScaleType.Fit
+	picture.Size = UDim2.fromScale(1, 1)
+	picture.ZIndex = #LAYERS + 1
+	picture.Visible = false
+	picture.Parent = thumb
 	CueThumb.set(thumb, cueId, opts and opts.silhouette)
 	thumb.Parent = parent
 	return thumb
@@ -100,6 +114,16 @@ function CueThumb.set(thumb: Frame, cueId: string, silhouette: boolean?)
 	end
 	local look = row.Look
 	local shadow = silhouette == true
+	local skin = CueSkins.index(row.Id)
+	local picture = thumb:FindFirstChild("Picture") :: ImageLabel?
+	local drawn = picture ~= nil and skin ~= nil and skin.Thumb ~= ""
+	if picture then
+		picture.Visible = drawn
+		if drawn then
+			picture.Image = skin.Thumb
+			picture.ImageColor3 = if shadow then rgb(T.SilhouetteColor) else WHITE
+		end
+	end
 	-- No silhouette image yet: the whole stack tinted dark reads as the same shape.
 	local darkStack = shadow and (ICONS.CueSilhouette or "") == ""
 	local tints: { [string]: { number }? } = {
@@ -117,10 +141,13 @@ function CueThumb.set(thumb: Frame, cueId: string, silhouette: boolean?)
 			continue
 		end
 		local name = child.Name
+		if name == "Picture" then
+			continue
+		end
 		local visible: boolean
 		if name == "Silhouette" then
-			visible = shadow and not darkStack
-		elseif shadow and not darkStack then
+			visible = not drawn and shadow and not darkStack
+		elseif drawn or (shadow and not darkStack) then
 			visible = false
 		elseif name == "Forearm" then
 			visible = not rainbow

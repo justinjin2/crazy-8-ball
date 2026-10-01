@@ -8,11 +8,11 @@ return {
 	Name = "Chroma",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://101377028831417",
+		Normal = "rbxassetid://107111349576042",
+		Roughness = "rbxassetid://95808466470254",
+		Metalness = "rbxassetid://126881549633799",
+		Emissive = "rbxassetid://123396889120662",
 	},
 	Surface = {
 		EmissiveStrength = 2,
@@ -32,20 +32,20 @@ return {
 		Order = { 0, 1, 2, 3 },
 		Maps = {
 			{
-				Color = "",
-				Emissive = "",
+				Color = "rbxassetid://101377028831417",
+				Emissive = "rbxassetid://123396889120662",
 			},
 			{
-				Color = "",
-				Emissive = "",
+				Color = "rbxassetid://126691276451179",
+				Emissive = "rbxassetid://78021856394524",
 			},
 			{
-				Color = "",
-				Emissive = "",
+				Color = "rbxassetid://132789248381523",
+				Emissive = "rbxassetid://89886824921029",
 			},
 			{
-				Color = "",
-				Emissive = "",
+				Color = "rbxassetid://131934242532547",
+				Emissive = "rbxassetid://83955422505535",
 			},
 		},
 	},
@@ -54,8 +54,9 @@ return {
 		Emitters = {
 			{
 				Name = "RainbowSparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.5,
@@ -88,8 +89,9 @@ return {
 			},
 			{
 				Name = "GlitterDust",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.7,
@@ -145,12 +147,12 @@ return {
 						{ 1, 0.25 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://79685333744528",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.3,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -183,12 +185,12 @@ return {
 						{ 1, 0.25 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://79685333744528",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.3,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -221,12 +223,12 @@ return {
 						{ 1, 0.25 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://79685333744528",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.3,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -259,12 +261,12 @@ return {
 						{ 1, 0.25 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://79685333744528",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.3,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -279,7 +281,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.6,
 				Segments = 24,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FF3D3D" },
@@ -326,7 +328,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://101770787321386",
 				TextureMode = "Wrap",
 				TextureLength = 1.4,
 				TextureSpeed = 0.3,
@@ -349,15 +351,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://101770787321386",
 				TextureMode = "Wrap",
 				TextureLength = 1.4,
 				TextureSpeed = 0.3,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.55 },
-					{ 0.913158, 0.55 },
+					{ 0.08684210526315787, 0.55 },
+					{ 0.9131578947368422, 0.55 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -370,8 +372,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Sparkles",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://118250274152711",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 24,
 			Lifetime = { 0.4, 0.7 },
 			Speed = { 0.2, 0.8 },
@@ -396,12 +400,14 @@ return {
 		},
 		{
 			Name = "Shards",
-			Texture = "",
+			Texture = "rbxassetid://92765699343754",
 			FlipbookLayout = "Grid4x4",
 			FlipbookMode = "Loop",
 			FlipbookFramerate = 14,
 			FlipbookStartRandom = true,
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 8,
 			Lifetime = { 0.6, 0.9 },
 			Speed = { 0.3, 0.9 },
@@ -428,7 +434,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.42,
 			LightEmission = 1,
-			Texture = "",
+			Texture = "rbxassetid://79685333744528",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.7 },
@@ -474,7 +480,7 @@ return {
 		Layers = {
 			{
 				Name = "Rays",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 20,
 				Delay = 0.05,
 				Lifetime = { 0.3, 0.45 },
@@ -505,7 +511,7 @@ return {
 			},
 			{
 				Name = "Shards",
-				Texture = "",
+				Texture = "rbxassetid://92765699343754",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = 16,
@@ -534,7 +540,7 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 30,
 				Delay = 0.1,
 				Lifetime = { 0.5, 0.9 },
@@ -561,7 +567,7 @@ return {
 			},
 			{
 				Name = "Glitter",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Burst = 40,
 				Delay = 0.3,
 				Lifetime = { 0.9, 1.1 },
@@ -592,7 +598,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://87116169601303",
 				Color = "#FFFFFF",
 				Start = 0.4,
 				End = 5.5,
@@ -600,7 +606,7 @@ return {
 				Delay = 0.05,
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://87116169601303",
 				Color = "#FFFFFF",
 				Start = 0.3,
 				End = 3.2,
@@ -614,7 +620,7 @@ return {
 		},
 	},
 	Piece = "chroma",
-	Thumb = "",
+	Thumb = "rbxassetid://90043431150393",
 	Look = {
 		Shaft = { 161, 27, 151 },
 		Forearm = { 115, 117, 134 },

@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketFirebird = "",
+		PocketFirebird = "96658441051582",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://125747407803009",
+				EmissiveMask = "rbxassetid://137734105541195",
 				EmissiveTint = "#FFA030",
 				EmissiveStrength = 1.6,
-				NormalMap = "",
+				NormalMap = "rbxassetid://138151673000349",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketFirebird",
@@ -71,6 +71,7 @@ return {
 			PivotRoblox = { 0, 0.8, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 3,
 					Period = 1.4,
@@ -82,6 +83,7 @@ return {
 			PivotRoblox = { -0.27, 2.15, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Base = 4,
 					Amp = 28,
@@ -94,6 +96,7 @@ return {
 			PivotRoblox = { -0.8, 2.35, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 16,
 					Period = 0.9,
@@ -106,6 +109,7 @@ return {
 			PivotRoblox = { 0.27, 2.15, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Base = 4,
 					Amp = 28,
@@ -118,6 +122,7 @@ return {
 			PivotRoblox = { 0.8, 2.35, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 16,
 					Period = 0.9,
@@ -130,11 +135,13 @@ return {
 			PivotRoblox = { -0.02, 2.5, -0.05 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 6,
 					Period = 1.8,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, 0, 1 },
 					Amp = 8,
 					Period = 2.6,
@@ -147,11 +154,13 @@ return {
 			PivotRoblox = { -0.05, 1.35, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 7,
 					Period = 1.6,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 5,
 					Period = 2.1,
@@ -164,6 +173,7 @@ return {
 			PivotRoblox = { -0.1, 0.6, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 10,
 					Period = 1.6,

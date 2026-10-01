@@ -8,12 +8,12 @@ return {
 	Name = "Cherry",
 	Tier = "Common",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://78356293785215",
+		Normal = "rbxassetid://93476701248925",
+		Roughness = "rbxassetid://136088356308284",
+		Metalness = "rbxassetid://106192469875342",
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://124030913613044",
 	Look = {
 		Shaft = { 35, 36, 40 },
 		Forearm = { 123, 14, 24 },

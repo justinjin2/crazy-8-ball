@@ -5,7 +5,7 @@
 return {
 	Id = "seraph",
 	Frame = "cue",
-	Rigid = "",
+	Rigid = "101250524737309",
 	Models = {},
 	Parts = {
 		{
@@ -35,17 +35,20 @@ return {
 			PivotRoblox = { 0, 0, -3.84 },
 			Motion = {
 				{
+					Kind = "Bob",
 					Dir = { 0, 1, 0 },
 					Amp = 0.04,
 					Period = 2.6,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 6,
 					Period = 3.4,
 					Phase = 30,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, 0, 1 },
 					Amp = 4,
 					Period = 4.1,

@@ -8,11 +8,11 @@ return {
 	Name = "Expert Cue",
 	Tier = "Rank",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://112879099302762",
+		Normal = "rbxassetid://116492547854162",
+		Roughness = "rbxassetid://129309066074523",
+		Metalness = "rbxassetid://112281313126858",
+		Emissive = "rbxassetid://127590793078553",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -44,7 +44,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -72,7 +72,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -81,10 +81,11 @@ return {
 		Emitters = {
 			{
 				Name = "RedEnergy",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.8,
 					ToStuds = 7,
 					Width = 0.22,
@@ -118,8 +119,9 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -151,13 +153,13 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#E84048",
 				Transparency = {
 					{ 0, 1 },
 					{ 0.06, 0.72 },
-					{ 0.9, 0.67 },
+					{ 0.9, 0.6699999999999999 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -202,7 +204,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://138976419446805",
 	Look = {
 		Shaft = { 69, 20, 18 },
 		Forearm = { 112, 54, 29 },

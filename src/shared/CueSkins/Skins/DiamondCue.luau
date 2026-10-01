@@ -8,11 +8,11 @@ return {
 	Name = "Diamond Cue",
 	Tier = "Rank",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://116100465287553",
+		Normal = "rbxassetid://116534610161496",
+		Roughness = "rbxassetid://137304578717631",
+		Metalness = "rbxassetid://134475458578554",
+		Emissive = "rbxassetid://88060076762022",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -23,8 +23,9 @@ return {
 		Emitters = {
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.4,
@@ -52,8 +53,9 @@ return {
 			},
 			{
 				Name = "Crystals",
-				Texture = "",
+				Texture = "rbxassetid://72379958812828",
 				Host = {
+					Kind = "Part",
 					FromStuds = 1,
 					ToStuds = 7,
 					Width = 0.9,
@@ -86,13 +88,13 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#3D8AFF",
 				Transparency = {
 					{ 0, 1 },
 					{ 0.06, 0.72 },
-					{ 0.9, 0.67 },
+					{ 0.9, 0.6699999999999999 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -131,7 +133,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -166,7 +168,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -209,7 +211,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://93239800595836",
 	Look = {
 		Shaft = { 207, 224, 240 },
 		Forearm = { 57, 77, 120 },

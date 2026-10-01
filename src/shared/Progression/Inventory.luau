@@ -492,9 +492,10 @@ function Inventory.snapshot(save: any): Snapshot
 		end
 	end
 
+	-- Classic is in the Index's Common row (always found: everyone owns it).
 	local seen = {}
 	for _, cue in Catalog.list() do
-		if cue.Group ~= "Default" and everOwned(save, cue.Id) then
+		if everOwned(save, cue.Id) then
 			table.insert(seen, cue.Id)
 		end
 	end

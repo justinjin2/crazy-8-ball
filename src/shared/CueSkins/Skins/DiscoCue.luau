@@ -8,11 +8,11 @@ return {
 	Name = "Disco",
 	Tier = "Epic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://99296331381744",
+		Normal = "rbxassetid://99146183855376",
+		Roughness = "rbxassetid://71770255772211",
+		Metalness = "rbxassetid://118095763764374",
+		Emissive = "rbxassetid://108027154848282",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -31,8 +31,9 @@ return {
 		Emitters = {
 			{
 				Name = "MirrorGlints",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.22,
@@ -57,11 +58,12 @@ return {
 			},
 			{
 				Name = "LightSpecks",
-				Texture = "",
+				Texture = "rbxassetid://138337897148199",
 				FlipbookLayout = "Grid4x4",
 				FlipbookStartRandom = true,
 				FlipbookFramerate = 0,
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.9,
@@ -114,7 +116,7 @@ return {
 					LightEmission = 1,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.45,
 					Color = "#FF3D9A",
 					LightEmission = 1,
@@ -146,7 +148,7 @@ return {
 					LightEmission = 1,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.45,
 					Color = "#3DE0FF",
 					LightEmission = 1,
@@ -156,7 +158,7 @@ return {
 				Name = "Spot3",
 				FromStuds = 0.6,
 				ToStuds = 6.8,
-				TravelSeconds = 3.4,
+				TravelSeconds = 3.4000000000000004,
 				Loop = "pingpong",
 				TurnsPerSecond = 0.9,
 				Radius = 0.36,
@@ -178,7 +180,7 @@ return {
 					LightEmission = 1,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.45,
 					Color = "#FFE13D",
 					LightEmission = 1,
@@ -188,13 +190,13 @@ return {
 				Name = "Spot4",
 				FromStuds = 0.6,
 				ToStuds = 6.8,
-				TravelSeconds = 3.8,
+				TravelSeconds = 3.8000000000000003,
 				Loop = "pingpong",
 				TurnsPerSecond = 0.9,
 				Radius = 0.3,
 				Wobble = 0.03,
 				Phase = 270,
-				Delay = 0.9,
+				Delay = 0.8999999999999999,
 				Trail = {
 					Lifetime = 0.8,
 					WidthStuds = 0.16,
@@ -210,7 +212,7 @@ return {
 					LightEmission = 1,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.45,
 					Color = "#5A6EFF",
 					LightEmission = 1,
@@ -254,7 +256,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://84363108813075",
 				TextureMode = "Wrap",
 				TextureLength = 0.7,
 				TextureSpeed = 0.6,
@@ -277,15 +279,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://84363108813075",
 				TextureMode = "Wrap",
 				TextureLength = 0.7,
 				TextureSpeed = 0.6,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.25 },
-					{ 0.913158, 0.25 },
+					{ 0.08684210526315787, 0.25 },
+					{ 0.9131578947368422, 0.25 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -300,7 +302,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://84363108813075",
 				TextureMode = "Wrap",
 				TextureLength = 0.7,
 				TextureSpeed = -0.6,
@@ -367,7 +369,7 @@ return {
 		Layers = {
 			{
 				Name = "Confetti",
-				Texture = "",
+				Texture = "rbxassetid://138337897148199",
 				FlipbookLayout = "Grid4x4",
 				FlipbookStartRandom = true,
 				FlipbookFramerate = 0,
@@ -392,7 +394,7 @@ return {
 			},
 			{
 				Name = "Rays",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 14,
 				Lifetime = { 0.3, 0.45 },
 				Speed = { 9, 13 },
@@ -421,7 +423,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FF3D9A",
 				Start = 0.5,
 				End = 4.2,
@@ -432,7 +434,7 @@ return {
 			Color = { 255, 240, 250 },
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://125621464071250",
 	Look = {
 		Shaft = { 150, 152, 157 },
 		Forearm = { 145, 142, 140 },

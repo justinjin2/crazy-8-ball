@@ -8,11 +8,11 @@ return {
 	Name = "Reyes Cue",
 	Tier = "Rank",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://129055730916952",
+		Normal = "rbxassetid://85039800122045",
+		Roughness = "rbxassetid://98058854527437",
+		Metalness = "rbxassetid://86907034245032",
+		Emissive = "rbxassetid://80381310897376",
 	},
 	Surface = {
 		EmissiveStrength = 2.2,
@@ -29,8 +29,9 @@ return {
 		Emitters = {
 			{
 				Name = "RainbowLight",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.4,
@@ -61,8 +62,9 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.4,
@@ -90,8 +92,9 @@ return {
 			},
 			{
 				Name = "GoldRays",
-				Texture = "",
+				Texture = "rbxassetid://78839900905601",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.8,
@@ -121,8 +124,9 @@ return {
 			},
 			{
 				Name = "BadgeRays",
-				Texture = "",
+				Texture = "rbxassetid://90229526719565",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.02,
 				},
 				Rate = 1.2,
@@ -144,8 +148,9 @@ return {
 			},
 			{
 				Name = "Crown",
-				Texture = "",
+				Texture = "rbxassetid://72465486848439",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 4.6,
 					Up = 0.55,
 				},
@@ -190,7 +195,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://113327965731251",
 					TextureMode = "Stretch",
 				},
 			},
@@ -216,7 +221,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://113327965731251",
 					TextureMode = "Stretch",
 				},
 			},
@@ -242,7 +247,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://113327965731251",
 					TextureMode = "Stretch",
 				},
 			},
@@ -255,13 +260,13 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#FFE7A0",
 				Transparency = {
 					{ 0, 1 },
 					{ 0.06, 0.72 },
-					{ 0.9, 0.67 },
+					{ 0.9, 0.6699999999999999 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -272,8 +277,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Sparkles",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://118250274152711",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 10,
 			Lifetime = { 0.3, 0.5 },
 			Speed = { 0.3, 0.8 },
@@ -306,7 +313,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.38,
 			LightEmission = 1,
-			Texture = "",
+			Texture = "rbxassetid://113327965731251",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.8 },
@@ -350,8 +357,9 @@ return {
 		Layers = {
 			{
 				Name = "Rays",
-				Texture = "",
+				Texture = "rbxassetid://90229526719565",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 1.5, 0 },
 				},
 				Burst = 1,
@@ -376,8 +384,9 @@ return {
 			},
 			{
 				Name = "Crown",
-				Texture = "",
+				Texture = "rbxassetid://72465486848439",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 0.9, 0 },
 				},
 				Burst = 1,
@@ -406,7 +415,7 @@ return {
 			},
 			{
 				Name = "Streaks",
-				Texture = "",
+				Texture = "rbxassetid://122351294248405",
 				Burst = 16,
 				Delay = 0.05,
 				Lifetime = { 0.35, 0.5 },
@@ -430,7 +439,7 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 28,
 				Delay = 0.1,
 				Lifetime = { 0.6, 1 },
@@ -459,7 +468,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://87116169601303",
 				Color = "#FFFFFF",
 				Start = 0.4,
 				End = 4.4,
@@ -473,7 +482,7 @@ return {
 			Seconds = 0.35,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://130321785799472",
 	Look = {
 		Shaft = { 243, 237, 222 },
 		Forearm = { 244, 231, 196 },

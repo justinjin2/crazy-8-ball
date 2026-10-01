@@ -8,11 +8,11 @@ return {
 	Name = "Gummy",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://113253068643516",
+		Normal = "rbxassetid://97365634357915",
+		Roughness = "rbxassetid://94804178775779",
+		Metalness = "rbxassetid://96827594277679",
+		Emissive = "rbxassetid://113601231529169",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://74487260720322",
 	Look = {
 		Shaft = { 183, 171, 188 },
 		Forearm = { 188, 182, 206 },

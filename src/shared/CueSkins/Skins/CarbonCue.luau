@@ -8,12 +8,12 @@ return {
 	Name = "Carbon",
 	Tier = "Common",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://131742744218054",
+		Normal = "rbxassetid://86800593285952",
+		Roughness = "rbxassetid://77860635873397",
+		Metalness = "rbxassetid://136503701624407",
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://125957524191416",
 	Look = {
 		Shaft = { 51, 53, 57 },
 		Forearm = { 51, 52, 57 },

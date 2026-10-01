@@ -527,14 +527,12 @@ Config.Cue = {
 	-- stick is built with as many parts as the most banded catalog cue needs (a rainbow one:
 	-- 14), and a plainer cue hides the spare ones. (internal)
 	BandSnap = 0.012,
-	-- The shared cue mesh (assets/cue, 2026-09-29): the catalog cues drawn from it instead of
-	-- bands, each by a template ReplicatedStorage[MeshSkinsFolder][id] built in Edit mode (a
-	-- Model whose PrimaryPart is the MeshPart with the skin's SurfaceAppearance, pivot on the
-	-- tip, +Z toward the butt). Every other cue keeps its bands. Without the folder or a
-	-- template the cue falls back to its bands, with one warning. tests/cue_mesh_test checks
-	-- every id is a catalog cue. Only one mesh skin exists today: before adding a second, give
-	-- CueStickBuilder its SurfaceAppearance swap (see the note in paint()).
-	MeshSkins = { "Classic" },
+	-- The shared cue mesh (assets/cue, 2026-09-29): every cue with a skin (CueSkins) is drawn
+	-- from it instead of bands, by a template ReplicatedStorage[MeshSkinsFolder][id] built in
+	-- Edit mode by tools/build_cue_templates.luau (a Model whose PrimaryPart is the MeshPart
+	-- with the skin's SurfaceAppearance, pivot on the tip, +Z toward the butt; a Frames folder
+	-- holds a Legendary's extra SurfaceAppearances). A cue with no skin (the Unique cues) or no
+	-- template keeps its bands, with one warning.
 	MeshSkinsFolder = "CueSkins",
 	-- The cue on every player's back (BackCue, designer 2026-09-28): their equipped cue, welded
 	-- to BodyBackAttachment (R15 UpperTorso, R6 Torso), diagonal with the tip over the LEFT
@@ -3713,6 +3711,29 @@ Config.Audio = {
 		-- behind it, or the new voice would be due to hand over again almost at once. (tune)
 		StartOffsetHeadroomCrossfades = 3,
 	},
+}
+
+-- The cue skins' runtime (CueSkinLook, CuePiece, Effects; designer's rules 2026-09-30). Each
+-- skin's own numbers (its aura, trail, pocket, piece) are data rows generated from assets/cue
+-- (CueSkins); these are the rules for showing them.
+Config.CueSkins = {
+	-- ReplicatedStorage folder of the pieces' Edit-mode templates (tools/build_cue_templates).
+	PiecesFolder = "CuePieces",
+	-- A back-worn cue's aura emitters run at this share of their rate when the skin's row
+	-- gives no BackRateScale (every skin gives 0.5 today). (tune)
+	BackRateScale = 0.5,
+	-- On the back, an aura emitter whose particles grow wider than this (studs) is a big
+	-- camera-facing sprite (Eclipse's giant eclipse and galaxy): it is drawn this far behind
+	-- the body (a ZOffset, studs) so it never covers the avatar (designer). (tune)
+	BehindBodySizeStuds = 1.6,
+	BehindBodyZOffset = -1.6,
+	-- An Orbiter's glowing head is a short-lived particle re-emitted this often (per second)
+	-- with this life (seconds): two or three overlap, so it reads as one steady glow. (internal)
+	HeadRate = 24,
+	HeadLifetime = 0.12,
+	-- Effects are stepped on cues within this distance of the camera (studs); farther ones
+	-- keep their particles but hold their scripted motion (orbiters, arcs, pulses, joints). (tune)
+	StepDistanceStuds = 60,
 }
 
 Config.Effects = {

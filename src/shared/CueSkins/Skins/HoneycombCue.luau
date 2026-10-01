@@ -8,11 +8,11 @@ return {
 	Name = "Honeycomb",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://117794807256800",
+		Normal = "rbxassetid://119707385377919",
+		Roughness = "rbxassetid://102206995464193",
+		Metalness = "rbxassetid://70706591780747",
+		Emissive = "rbxassetid://77662019433034",
 	},
 	Surface = {
 		EmissiveStrength = 1.5,
@@ -35,7 +35,7 @@ return {
 				Width0 = 0.32,
 				Width1 = 0.78,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				TextureLength = 1,
 				TextureSpeed = 0,
@@ -64,12 +64,13 @@ return {
 		Emitters = {
 			{
 				Name = "Bees",
-				Texture = "",
+				Texture = "rbxassetid://132583880417048",
 				FlipbookLayout = "Grid2x2",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = { 18, 24 },
 				FlipbookStartRandom = true,
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.6,
 					ToStuds = 7,
 					Width = 0.75,
@@ -105,8 +106,9 @@ return {
 			},
 			{
 				Name = "HoneyDrops",
-				Texture = "",
+				Texture = "rbxassetid://136475650756289",
 				Host = {
+					Kind = "Part",
 					FromStuds = 3.9,
 					ToStuds = 7,
 					Width = 0.14,
@@ -141,8 +143,9 @@ return {
 			},
 			{
 				Name = "HoneyGlow",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -172,8 +175,9 @@ return {
 			},
 			{
 				Name = "Glints",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.45,
@@ -231,7 +235,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -281,7 +285,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://120886728441026",
 	Look = {
 		Shaft = { 212, 124, 26 },
 		Forearm = { 178, 102, 21 },

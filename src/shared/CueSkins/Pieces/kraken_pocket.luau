@@ -5,7 +5,7 @@
 return {
 	Id = "kraken_pocket",
 	Frame = "pocket",
-	Rigid = "",
+	Rigid = "129065796281976",
 	Models = {},
 	Parts = {
 		{
@@ -195,12 +195,14 @@ return {
 			PivotRoblox = { -0, 0, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 3,
 					Period = 1.5,
 					Phase = 0,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 2,
 					Period = 1.9,
@@ -213,12 +215,14 @@ return {
 			PivotRoblox = { -0.1154, 0.64, -0.0581 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 5,
 					Period = 1.5,
 					Phase = 45,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 3,
 					Period = 1.9,
@@ -231,12 +235,14 @@ return {
 			PivotRoblox = { -0.1977, 1.216, -0.0924 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 7,
 					Period = 1.5,
 					Phase = 90,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 4,
 					Period = 1.9,
@@ -249,12 +255,14 @@ return {
 			PivotRoblox = { -0.2406, 1.728, -0.0995 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 9,
 					Period = 1.5,
 					Phase = 135,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 5,
 					Period = 1.9,
@@ -267,12 +275,14 @@ return {
 			PivotRoblox = { -0.3181, 2.1635, -0.0859 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 11,
 					Period = 1.5,
 					Phase = 180,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 6,
 					Period = 1.9,
@@ -285,12 +295,14 @@ return {
 			PivotRoblox = { -0.5763, 2.6472, -0.0564 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 13,
 					Period = 1.5,
 					Phase = 225,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 7,
 					Period = 1.9,

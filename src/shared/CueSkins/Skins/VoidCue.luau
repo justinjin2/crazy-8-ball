@@ -8,11 +8,11 @@ return {
 	Name = "Void",
 	Tier = "Epic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://83044805537172",
+		Normal = "rbxassetid://92037762228298",
+		Roughness = "rbxassetid://102049931011330",
+		Metalness = "rbxassetid://119852472155464",
+		Emissive = "rbxassetid://109030093772829",
 	},
 	Surface = {
 		EmissiveStrength = 1.7,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "PulledIn",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 1.2,
@@ -69,10 +70,11 @@ return {
 			},
 			{
 				Name = "DarkMatter",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.9,
@@ -105,8 +107,9 @@ return {
 			},
 			{
 				Name = "VoidGlow",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.2,
@@ -134,8 +137,9 @@ return {
 			},
 			{
 				Name = "Shards",
-				Texture = "",
+				Texture = "rbxassetid://72290376640559",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.6,
 					ToStuds = 7,
 					Width = 1.4,
@@ -174,7 +178,7 @@ return {
 				Width0 = 0.34,
 				Width1 = 0.85,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				TextureLength = 1,
 				TextureSpeed = 0,
@@ -206,7 +210,7 @@ return {
 				Width0 = 0.4,
 				Width1 = 1,
 				Segments = 24,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 2.4,
 				TextureSpeed = 0.35,
@@ -255,7 +259,7 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 0.8,
-					Texture = "",
+					Texture = "rbxassetid://96469501734085",
 					TextureMode = "Stretch",
 				},
 			},
@@ -286,7 +290,7 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 0.8,
-					Texture = "",
+					Texture = "rbxassetid://96469501734085",
 					TextureMode = "Stretch",
 				},
 			},
@@ -296,8 +300,9 @@ return {
 		Emitters = {
 			{
 				Name = "SwirlTurn",
-				Texture = "",
+				Texture = "rbxassetid://97643716535278",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 4.64,
 					Up = 0,
 				},
@@ -324,8 +329,9 @@ return {
 			},
 			{
 				Name = "HorizonTurn",
-				Texture = "",
+				Texture = "rbxassetid://76291392781282",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 6.82,
 					Up = 0,
 				},
@@ -352,10 +358,12 @@ return {
 	TrailEmitters = {
 		{
 			Name = "SmokePuffs",
-			Texture = "",
+			Texture = "rbxassetid://107986039759482",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 22,
 			Lifetime = { 0.5, 0.7 },
 			Speed = { 0.1, 0.3 },
@@ -390,7 +398,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.36,
 			LightEmission = 0.35,
-			Texture = "",
+			Texture = "rbxassetid://96469501734085",
 			WidthScale = {
 				{ 0, 0.8 },
 				{ 0.4, 1.1 },
@@ -421,7 +429,7 @@ return {
 			Brightness = 1,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://112716791712898",
 	Look = {
 		Shaft = { 11, 9, 16 },
 		Forearm = { 28, 9, 54 },

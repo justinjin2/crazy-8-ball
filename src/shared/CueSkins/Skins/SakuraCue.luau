@@ -8,11 +8,11 @@ return {
 	Name = "Sakura",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://124305446099966",
+		Normal = "rbxassetid://133338283826196",
+		Roughness = "rbxassetid://120763928254383",
+		Metalness = "rbxassetid://98324378040978",
+		Emissive = "rbxassetid://93588441609104",
 	},
 	Surface = {
 		EmissiveStrength = 1.2,
@@ -50,7 +50,7 @@ return {
 						{ 1, 0.2 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 					Brightness = 1.8,
 				},
@@ -84,7 +84,7 @@ return {
 						{ 1, 0.2 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 					Brightness = 1.8,
 				},
@@ -94,8 +94,9 @@ return {
 		Emitters = {
 			{
 				Name = "Petals",
-				Texture = "",
+				Texture = "rbxassetid://132185056038130",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -132,8 +133,9 @@ return {
 			},
 			{
 				Name = "PinkMotes",
-				Texture = "",
+				Texture = "rbxassetid://79294795504542",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.34,
@@ -162,10 +164,11 @@ return {
 			},
 			{
 				Name = "BlossomHaze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -242,7 +245,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://100440155699355",
 	Look = {
 		Shaft = { 28, 20, 23 },
 		Forearm = { 59, 39, 38 },

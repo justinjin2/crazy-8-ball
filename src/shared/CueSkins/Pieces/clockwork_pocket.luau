@@ -5,7 +5,7 @@
 return {
 	Id = "clockwork_pocket",
 	Frame = "pocket",
-	Rigid = "",
+	Rigid = "118539060984980",
 	Models = {},
 	Parts = {
 		{
@@ -75,8 +75,9 @@ return {
 			PivotRoblox = { -0, 1.35, 0 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = 57.894737,
+					Rate = 57.89473684210527,
 					Phase = 0,
 				},
 			},
@@ -86,8 +87,9 @@ return {
 			PivotRoblox = { 1.0725, 2.2499, 0 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -94.827586,
+					Rate = -94.82758620689656,
 					Phase = 22.5,
 				},
 			},
@@ -97,8 +99,9 @@ return {
 			PivotRoblox = { -1.1803, 1.7796, 0 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
-					Rate = -130.952381,
+					Rate = -130.95238095238096,
 					Phase = 22.5,
 				},
 			},

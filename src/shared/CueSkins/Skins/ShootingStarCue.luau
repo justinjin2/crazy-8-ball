@@ -8,11 +8,11 @@ return {
 	Name = "Shooting Star",
 	Tier = "Epic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://82835012516630",
+		Normal = "rbxassetid://109873366724720",
+		Roughness = "rbxassetid://118997619680473",
+		Metalness = "rbxassetid://125729994960415",
+		Emissive = "rbxassetid://71863454712629",
 	},
 	Surface = {
 		EmissiveStrength = 1.4,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "Twinkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.5,
@@ -60,8 +61,9 @@ return {
 			},
 			{
 				Name = "StreakStars",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 1.2,
 					ToStuds = 7,
 					Width = 0.6,
@@ -98,8 +100,9 @@ return {
 			},
 			{
 				Name = "GoldDust",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.5,
@@ -159,7 +162,7 @@ return {
 					Brightness = 2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.36,
 					Color = "#FFF4D0",
 					LightEmission = 1,
@@ -197,7 +200,7 @@ return {
 					Brightness = 2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.36,
 					Color = "#FFF4D0",
 					LightEmission = 1,
@@ -235,7 +238,7 @@ return {
 					Brightness = 2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.36,
 					Color = "#FFF4D0",
 					LightEmission = 1,
@@ -273,7 +276,7 @@ return {
 					Brightness = 2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.36,
 					Color = "#FFF4D0",
 					LightEmission = 1,
@@ -311,7 +314,7 @@ return {
 					Brightness = 2,
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://118250274152711",
 					Size = 0.36,
 					Color = "#FFF4D0",
 					LightEmission = 1,
@@ -326,7 +329,7 @@ return {
 				Width0 = 0.08,
 				Width1 = 0.2,
 				Segments = 32,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = -0.5,
@@ -353,7 +356,7 @@ return {
 				Width0 = 0.08,
 				Width1 = 0.2,
 				Segments = 32,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 1.6,
 				TextureSpeed = -0.5,
@@ -397,7 +400,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://109137917032680",
 				TextureMode = "Wrap",
 				TextureLength = 1.1,
 				TextureSpeed = -0.06,
@@ -420,15 +423,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://109137917032680",
 				TextureMode = "Wrap",
 				TextureLength = 1.1,
 				TextureSpeed = -0.06,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.1 },
-					{ 0.913158, 0.1 },
+					{ 0.08684210526315787, 0.1 },
+					{ 0.9131578947368422, 0.1 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -443,7 +446,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://109137917032680",
 				TextureMode = "Wrap",
 				TextureLength = 1.1,
 				TextureSpeed = -0.06,
@@ -509,7 +512,7 @@ return {
 		Layers = {
 			{
 				Name = "GoldStars",
-				Texture = "",
+				Texture = "rbxassetid://102789117854584",
 				Burst = 26,
 				Delay = 0,
 				Lifetime = { 0.9, 1.3 },
@@ -536,7 +539,7 @@ return {
 			},
 			{
 				Name = "Twinkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 16,
 				Delay = 0.06,
 				Lifetime = { 0.4, 0.7 },
@@ -556,7 +559,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FFD76A",
 				Start = 0.5,
 				End = 4.5,
@@ -568,7 +571,7 @@ return {
 			Color = { 255, 215, 106 },
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://88672487357252",
 	Look = {
 		Shaft = { 15, 24, 68 },
 		Forearm = { 32, 40, 64 },

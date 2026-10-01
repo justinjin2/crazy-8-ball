@@ -8,11 +8,11 @@ return {
 	Name = "Pixel",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://121003472420247",
+		Normal = "rbxassetid://80116195113962",
+		Roughness = "rbxassetid://86444652062099",
+		Metalness = "rbxassetid://96723811071818",
+		Emissive = "rbxassetid://93781240859858",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://104276200016478",
 	Look = {
 		Shaft = { 50, 34, 66 },
 		Forearm = { 84, 72, 100 },

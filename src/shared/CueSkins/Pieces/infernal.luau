@@ -5,7 +5,7 @@
 return {
 	Id = "infernal",
 	Frame = "cue",
-	Rigid = "",
+	Rigid = "80127722686533",
 	Models = {},
 	Parts = {
 		{
@@ -14,13 +14,13 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://99359676557976",
+				EmissiveMask = "rbxassetid://121332783479292",
 				EmissiveTint = "#FF6A2A",
 				EmissiveStrength = 3,
-				NormalMap = "",
-				RoughnessMap = "",
-				MetalnessMap = "",
+				NormalMap = "rbxassetid://126569812171360",
+				RoughnessMap = "rbxassetid://106161516761029",
+				MetalnessMap = "rbxassetid://105889534590843",
 			},
 			Name = "Skull_HornedSkull",
 			Joint = "Skull",
@@ -34,6 +34,7 @@ return {
 			PivotRoblox = { 0, 0.1, -2.95 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 2.5,
 					Period = 3.6,

@@ -8,12 +8,12 @@ return {
 	Name = "Heritage",
 	Tier = "Common",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://102041506946471",
+		Normal = "rbxassetid://89866741121844",
+		Roughness = "rbxassetid://94870553995515",
+		Metalness = "rbxassetid://130696660266511",
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://118907247480652",
 	Look = {
 		Shaft = { 223, 187, 129 },
 		Forearm = { 108, 90, 57 },

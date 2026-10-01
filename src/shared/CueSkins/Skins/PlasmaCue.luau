@@ -8,11 +8,11 @@ return {
 	Name = "Plasma",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://135487979710006",
+		Normal = "rbxassetid://135655556902886",
+		Roughness = "rbxassetid://129199409025333",
+		Metalness = "rbxassetid://140581045368555",
+		Emissive = "rbxassetid://140643514904609",
 	},
 	Surface = {
 		EmissiveStrength = 2,
@@ -44,7 +44,7 @@ return {
 				Color = "#A868FF",
 				LightEmission = 1,
 				Brightness = 2.3,
-				Texture = "",
+				Texture = "rbxassetid://135681719614397",
 			},
 			{
 				Name = "ShaftArcs",
@@ -62,7 +62,7 @@ return {
 				Color = "#9A58FF",
 				LightEmission = 1,
 				Brightness = 2.3,
-				Texture = "",
+				Texture = "rbxassetid://135681719614397",
 			},
 			{
 				Name = "FarArcs",
@@ -80,14 +80,15 @@ return {
 				Color = "#C090FF",
 				LightEmission = 1,
 				Brightness = 2.3,
-				Texture = "",
+				Texture = "rbxassetid://135681719614397",
 			},
 		},
 		Emitters = {
 			{
 				Name = "PlasmaSparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.26,
@@ -118,8 +119,9 @@ return {
 			},
 			{
 				Name = "PlasmaHaze",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.2,
@@ -148,10 +150,11 @@ return {
 			},
 			{
 				Name = "PlasmaVeil",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -242,7 +245,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://92870427668935",
 	Look = {
 		Shaft = { 41, 42, 52 },
 		Forearm = { 60, 53, 78 },

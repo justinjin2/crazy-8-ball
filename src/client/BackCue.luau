@@ -19,6 +19,8 @@
 --
 -- Your own back cue hides in first person and fades like the hand cue when the camera comes
 -- close (Camera.fadeNear). Sitting on a seat, it tilts further (SeatedExtraTiltDegrees).
+--
+-- Each stick wears its skin's look with the aura (CueSkinLook): the aura shows on backs only.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -28,6 +30,7 @@ local AvatarPose = require(Shared:WaitForChild("AvatarPose"))
 local Config = require(Shared:WaitForChild("Config"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
+local CueSkinLook = require(script.Parent:WaitForChild("CueSkinLook"))
 
 local B = Config.Cue.Back
 local LENGTH = Config.Cue.CueLengthStuds
@@ -78,6 +81,8 @@ function BackCue.new(parent: Instance): BackCue
 		end
 		CueStickBuilder.setVisible(stick, false)
 		stick:PivotTo(PARKED)
+		-- The skin's look with its aura: the back is where the aura shows (CueSkinLook).
+		CueSkinLook.attach(stick, { aura = true })
 		table.insert(free, stick)
 	end
 	local self = setmetatable({

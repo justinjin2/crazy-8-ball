@@ -37,6 +37,8 @@ THUMBS = os.path.join(HERE, 'thumbs')  # --thumb: the game's card pictures (comm
 THUMB_SIZE = 512  # px, square
 THUMB_THICKEN = 1.8  # the cue drawn this many times thicker across, so it reads on a card
 THUMB_ELEVATION = 40  # degrees the camera rises from the cue's side toward its top
+THUMB_HAZE = 0.04  # glow fainter than this is dropped from a thumbnail
+THUMB_EDGE_FADE = 0.08  # glow fades out over this share of the picture at each edge
 
 PREVIEW = {
     'clip_size': (1280, 720),
@@ -645,7 +647,13 @@ def blender_main(args):
             return px
 
         solid, glow = pixels('thumb_solid.png'), pixels('thumb_glow.png')
-        a = np.maximum(solid[..., 3], np.clip(glow[..., :3].max(-1), 0, 1))
+        # The faintest haze is dropped and glow fades out near the edges, so a big aura
+        # (Eclipse, Phoenix) never shows the square's edge.
+        haze = np.clip((glow[..., :3].max(-1) - THUMB_HAZE) / (1 - THUMB_HAZE), 0, 1)
+        n = THUMB_SIZE
+        ramp = np.clip(np.minimum(np.arange(n), np.arange(n)[::-1]) / (THUMB_EDGE_FADE * n), 0, 1)
+        haze = haze * np.minimum.outer(ramp, ramp)
+        a = np.maximum(solid[..., 3], haze)
         rgb = np.where(a[..., None] > 1e-4, np.clip(glow[..., :3] / np.maximum(a[..., None], 1e-4), 0, 1), 0)
         out = bpy.data.images.new('thumb', THUMB_SIZE, THUMB_SIZE, alpha=True)
         out.pixels[:] = np.concatenate([rgb, a[..., None]], -1).ravel().tolist()

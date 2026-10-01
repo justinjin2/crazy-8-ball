@@ -8,11 +8,11 @@ return {
 	Name = "Celestial Dragon",
 	Tier = "Mythic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://135422642921421",
+		Normal = "rbxassetid://107574737261095",
+		Roughness = "rbxassetid://116458194512126",
+		Metalness = "rbxassetid://127853907822267",
+		Emissive = "rbxassetid://103424392840502",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "StarDust",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7.3,
 					Width = 0.55,
@@ -63,8 +64,9 @@ return {
 			},
 			{
 				Name = "BlueLight",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7.3,
 					Width = 0.4,
@@ -91,8 +93,9 @@ return {
 			},
 			{
 				Name = "Wisps",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				Host = {
+					Kind = "Segment",
 					Joint = "Head",
 					From = { 3.578, -0.222, -0.092 },
 					To = { 3.828, -0.222, -0.192 },
@@ -128,7 +131,7 @@ return {
 				Acceleration = { 0, 0.3, 0 },
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -158,6 +161,7 @@ return {
 				Name = "SpiritFlamesSpine3",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine3",
 					From = { 6.486, 0.373, 0.015 },
 					To = { 6.432, 0.394, -0.229 },
@@ -165,7 +169,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -195,6 +199,7 @@ return {
 				Name = "SpiritFlamesSpine6",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine6",
 					From = { 6.407, 0.081, 0.38 },
 					To = { 6.528, 0.297, 0.344 },
@@ -202,7 +207,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -232,6 +237,7 @@ return {
 				Name = "SpiritFlamesSpine9",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine9",
 					From = { 6.139, -0.309, 0.248 },
 					To = { 6.309, -0.201, 0.395 },
@@ -239,7 +245,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -269,6 +275,7 @@ return {
 				Name = "SpiritFlamesSpine12",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine12",
 					From = { 5.823, -0.358, -0.129 },
 					To = { 6.009, -0.422, 0.025 },
@@ -276,7 +283,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -306,6 +313,7 @@ return {
 				Name = "SpiritFlamesSpine15",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine15",
 					From = { 5.472, -0.065, -0.361 },
 					To = { 5.667, -0.221, -0.339 },
@@ -313,7 +321,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -343,6 +351,7 @@ return {
 				Name = "SpiritFlamesSpine18",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine18",
 					From = { 5.124, 0.258, -0.243 },
 					To = { 5.324, 0.16, -0.356 },
@@ -350,7 +359,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -380,6 +389,7 @@ return {
 				Name = "SpiritFlamesSpine21",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine21",
 					From = { 4.769, 0.335, 0.083 },
 					To = { 4.973, 0.374, -0.057 },
@@ -387,7 +397,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -417,6 +427,7 @@ return {
 				Name = "SpiritFlamesSpine24",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine24",
 					From = { 4.392, 0.093, 0.324 },
 					To = { 4.598, 0.23, 0.288 },
@@ -424,7 +435,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -454,6 +465,7 @@ return {
 				Name = "SpiritFlamesSpine27",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine27",
 					From = { 4.027, -0.22, 0.248 },
 					To = { 4.235, -0.118, 0.342 },
@@ -461,7 +473,7 @@ return {
 				},
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Lifetime = { 0.5, 0.8 },
@@ -491,6 +503,7 @@ return {
 				Name = "SpiritFlamesSpine30",
 				Rate = 1.4,
 				Host = {
+					Kind = "Segment",
 					Joint = "Spine30",
 					From = { 3.661, -0.316, -0.052 },
 					To = { 3.87, -0.339, 0.084 },
@@ -506,7 +519,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.65,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#8CCBFF" },
@@ -544,8 +557,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Stars",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://118250274152711",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 16,
 			Lifetime = { 0.4, 0.8 },
 			Speed = { 0.3, 0.9 },
@@ -568,8 +583,10 @@ return {
 		},
 		{
 			Name = "Motes",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://78860393208560",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 12,
 			Lifetime = { 0.4, 0.7 },
 			Speed = { 0.2, 0.6 },
@@ -595,7 +612,7 @@ return {
 			Lifetime = 1.2,
 			WidthStuds = 0.5,
 			LightEmission = 1,
-			Texture = "",
+			Texture = "rbxassetid://78833023205037",
 			TextureMode = "Wrap",
 			TextureLength = 1.5,
 			WidthScale = {
@@ -640,7 +657,7 @@ return {
 		Layers = {
 			{
 				Name = "Rays",
-				Texture = "",
+				Texture = "rbxassetid://122351294248405",
 				Burst = 26,
 				Lifetime = { 0.3, 0.5 },
 				Speed = { 7, 12 },
@@ -664,7 +681,7 @@ return {
 			},
 			{
 				Name = "Stars",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 24,
 				Lifetime = { 0.5, 0.9 },
 				Speed = { 3, 7 },
@@ -689,8 +706,9 @@ return {
 			},
 			{
 				Name = "Dust",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Point",
 					Size = 1.4,
 				},
 				Burst = 26,
@@ -712,7 +730,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#6FB8FF",
 				Start = 0.4,
 				End = 5,
@@ -752,7 +770,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "celestial_dragon",
-	Thumb = "",
+	Thumb = "rbxassetid://122914942891650",
 	Look = {
 		Shaft = { 227, 223, 204 },
 		Forearm = { 217, 205, 159 },

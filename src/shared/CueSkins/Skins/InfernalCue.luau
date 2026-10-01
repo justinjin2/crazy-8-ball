@@ -8,11 +8,11 @@ return {
 	Name = "Infernal",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://84780679693052",
+		Normal = "rbxassetid://74464045422074",
+		Roughness = "rbxassetid://77516112676016",
+		Metalness = "rbxassetid://106772041986239",
+		Emissive = "rbxassetid://131728085085084",
 	},
 	Surface = {
 		EmissiveStrength = 2.3,
@@ -32,16 +32,16 @@ return {
 		Order = { 0, 2, 1, 0, 3, 1, 2, 0, 3 },
 		Maps = {
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://131728085085084",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://131212172883402",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://107764412527660",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://131964028968492",
 			},
 		},
 	},
@@ -50,10 +50,11 @@ return {
 		Emitters = {
 			{
 				Name = "Hellfire",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 3.6,
 					ToStuds = 7,
 					Width = 0.2,
@@ -92,10 +93,11 @@ return {
 			},
 			{
 				Name = "Licks",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 3.6,
 					Width = 0.12,
@@ -134,10 +136,11 @@ return {
 			},
 			{
 				Name = "Smoke",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 4.5,
 					ToStuds = 7,
 					Width = 0.25,
@@ -170,8 +173,9 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -231,7 +235,7 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://111322789691032",
 					TextureMode = "Stretch",
 				},
 			},
@@ -263,7 +267,7 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://111322789691032",
 					TextureMode = "Stretch",
 				},
 			},
@@ -295,7 +299,7 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://111322789691032",
 					TextureMode = "Stretch",
 				},
 			},
@@ -308,7 +312,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.62,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FF5A2A" },
@@ -354,7 +358,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://100069663110359",
 				TextureMode = "Wrap",
 				TextureLength = 1.2,
 				TextureSpeed = 0.25,
@@ -377,15 +381,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://100069663110359",
 				TextureMode = "Wrap",
 				TextureLength = 1.2,
 				TextureSpeed = 0.25,
 				Color = "#FF6A4A",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.45 },
-					{ 0.913158, 0.45 },
+					{ 0.08684210526315787, 0.45 },
+					{ 0.9131578947368422, 0.45 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -400,7 +404,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://100069663110359",
 				TextureMode = "Wrap",
 				TextureLength = 1.2,
 				TextureSpeed = 0.25,
@@ -421,8 +425,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Embers",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 18,
 			Lifetime = { 0.4, 0.8 },
 			Speed = { 0.6, 1.6 },
@@ -447,10 +453,12 @@ return {
 		},
 		{
 			Name = "Flames",
-			Texture = "",
+			Texture = "rbxassetid://118342487469917",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 10,
 			Lifetime = { 0.35, 0.5 },
 			Speed = { 0.2, 0.5 },
@@ -476,8 +484,10 @@ return {
 		},
 		{
 			Name = "Chips",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://101501527183479",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 5,
 			Lifetime = { 0.5, 0.8 },
 			Speed = { 0.8, 1.8 },
@@ -507,7 +517,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.55,
 			LightEmission = 0.4,
-			Texture = "",
+			Texture = "rbxassetid://111322789691032",
 			TextureMode = "Wrap",
 			TextureLength = 1.3,
 			WidthScale = {
@@ -551,10 +561,11 @@ return {
 		Layers = {
 			{
 				Name = "Eruption",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Size = 0.6,
 				},
 				Burst = 24,
@@ -585,7 +596,7 @@ return {
 			},
 			{
 				Name = "Rocks",
-				Texture = "",
+				Texture = "rbxassetid://101501527183479",
 				Burst = 14,
 				Delay = 0.05,
 				Lifetime = { 0.8, 1.1 },
@@ -610,7 +621,7 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 40,
 				Delay = 0.05,
 				Lifetime = { 0.6, 1.1 },
@@ -637,10 +648,11 @@ return {
 			},
 			{
 				Name = "Smoke",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Size = 1,
 				},
 				Burst = 8,
@@ -668,7 +680,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FF3A1A",
 				Start = 0.4,
 				End = 4.8,
@@ -708,7 +720,7 @@ return {
 		},
 	},
 	Piece = "infernal",
-	Thumb = "",
+	Thumb = "rbxassetid://123040038877338",
 	Look = {
 		Shaft = { 53, 11, 6 },
 		Forearm = { 93, 42, 34 },

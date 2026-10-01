@@ -8,11 +8,11 @@ return {
 	Name = "Clockwork",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://77001625275675",
+		Normal = "rbxassetid://100878723186313",
+		Roughness = "rbxassetid://93753183634436",
+		Metalness = "rbxassetid://71244239174679",
+		Emissive = "rbxassetid://86156100893612",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -31,32 +31,32 @@ return {
 		Order = { 0, 1, 2, 3 },
 		Maps = {
 			{
-				Color = "",
-				Normal = "",
-				Roughness = "",
-				Metalness = "",
-				Emissive = "",
+				Color = "rbxassetid://77001625275675",
+				Normal = "rbxassetid://100878723186313",
+				Roughness = "rbxassetid://93753183634436",
+				Metalness = "rbxassetid://71244239174679",
+				Emissive = "rbxassetid://86156100893612",
 			},
 			{
-				Color = "",
-				Normal = "",
-				Roughness = "",
-				Metalness = "",
-				Emissive = "",
+				Color = "rbxassetid://106175479461749",
+				Normal = "rbxassetid://132631536555113",
+				Roughness = "rbxassetid://73708692093005",
+				Metalness = "rbxassetid://117796353375957",
+				Emissive = "rbxassetid://80395125574607",
 			},
 			{
-				Color = "",
-				Normal = "",
-				Roughness = "",
-				Metalness = "",
-				Emissive = "",
+				Color = "rbxassetid://124375622397793",
+				Normal = "rbxassetid://132926097384602",
+				Roughness = "rbxassetid://91523128557204",
+				Metalness = "rbxassetid://81436191965020",
+				Emissive = "rbxassetid://80670259007980",
 			},
 			{
-				Color = "",
-				Normal = "",
-				Roughness = "",
-				Metalness = "",
-				Emissive = "",
+				Color = "rbxassetid://114706336504155",
+				Normal = "rbxassetid://82861755311883",
+				Roughness = "rbxassetid://125392047250306",
+				Metalness = "rbxassetid://99873120305642",
+				Emissive = "rbxassetid://80525751817931",
 			},
 		},
 	},
@@ -65,10 +65,11 @@ return {
 		Emitters = {
 			{
 				Name = "Steam",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 3.8,
 					ToStuds = 7,
 					Width = 0.2,
@@ -102,8 +103,9 @@ return {
 			},
 			{
 				Name = "Cogs",
-				Texture = "",
+				Texture = "rbxassetid://104641104322649",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.25,
@@ -134,8 +136,9 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.25,
@@ -193,11 +196,11 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.12,
 					Color = "#FFE0A0",
 					LightEmission = 1,
@@ -230,11 +233,11 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.12,
 					Color = "#FFE0A0",
 					LightEmission = 1,
@@ -267,11 +270,11 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://79294795504542",
 					Size = 0.12,
 					Color = "#FFE0A0",
 					LightEmission = 1,
@@ -286,7 +289,7 @@ return {
 				Width0 = 0.28,
 				Width1 = 0.55,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FFC45A" },
@@ -324,8 +327,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Sparks",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 20,
 			Lifetime = { 0.25, 0.5 },
 			Speed = { 1.2, 3 },
@@ -349,10 +354,12 @@ return {
 		},
 		{
 			Name = "Steam",
-			Texture = "",
+			Texture = "rbxassetid://107986039759482",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 6,
 			Lifetime = { 0.6, 0.9 },
 			Speed = { 0.2, 0.5 },
@@ -372,8 +379,10 @@ return {
 		},
 		{
 			Name = "Cogs",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://104641104322649",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 4,
 			Lifetime = { 0.6, 0.9 },
 			Speed = { 0.4, 1 },
@@ -406,7 +415,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.36,
 			LightEmission = 0.2,
-			Texture = "",
+			Texture = "rbxassetid://97416785062845",
 			TextureMode = "Wrap",
 			TextureLength = 1.4,
 			WidthScale = {
@@ -451,10 +460,11 @@ return {
 		Layers = {
 			{
 				Name = "SteamBurst",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Size = 0.6,
 				},
 				Burst = 12,
@@ -483,7 +493,7 @@ return {
 			},
 			{
 				Name = "Cogs",
-				Texture = "",
+				Texture = "rbxassetid://104641104322649",
 				Burst = 16,
 				Delay = 0.05,
 				Lifetime = { 0.9, 1.2 },
@@ -509,7 +519,7 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 36,
 				Delay = 0.05,
 				Lifetime = { 0.4, 0.8 },
@@ -535,8 +545,9 @@ return {
 			},
 			{
 				Name = "Trickle",
-				Texture = "",
+				Texture = "rbxassetid://104641104322649",
 				Host = {
+					Kind = "Point",
 					Size = 0.5,
 				},
 				Burst = 8,
@@ -561,7 +572,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FFC45A",
 				Start = 0.4,
 				End = 4.6,
@@ -601,7 +612,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "clockwork",
-	Thumb = "",
+	Thumb = "rbxassetid://87543786041764",
 	Look = {
 		Shaft = { 216, 171, 107 },
 		Forearm = { 89, 63, 30 },

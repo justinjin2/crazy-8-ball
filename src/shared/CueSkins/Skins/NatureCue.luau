@@ -8,10 +8,10 @@ return {
 	Name = "Nature",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://107276929683568",
+		Normal = "rbxassetid://75503571517472",
+		Roughness = "rbxassetid://120364029728380",
+		Metalness = "rbxassetid://118617474438718",
 	},
 	Aura = {
 		BackRateScale = 0.5,
@@ -26,7 +26,7 @@ return {
 				Curve0 = { 0.38, 0.1 },
 				Curve1 = { -0.36, -0.1 },
 				Twist = -40,
-				Texture = "",
+				Texture = "rbxassetid://115395994894595",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#C8F08A" },
@@ -52,7 +52,7 @@ return {
 				Curve0 = { 0.38, 0.1 },
 				Curve1 = { -0.36, -0.1 },
 				Twist = -40,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 2,
 				TextureSpeed = -0.2,
@@ -70,8 +70,9 @@ return {
 		Emitters = {
 			{
 				Name = "Leaves",
-				Texture = "",
+				Texture = "rbxassetid://74904229046831",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.3,
@@ -108,8 +109,9 @@ return {
 			},
 			{
 				Name = "Blossoms",
-				Texture = "",
+				Texture = "rbxassetid://118135658410966",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.3,
@@ -142,8 +144,9 @@ return {
 			},
 			{
 				Name = "Pollen",
-				Texture = "",
+				Texture = "rbxassetid://79294795504542",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -204,7 +207,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -239,7 +242,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -289,7 +292,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://85068352242540",
 	Look = {
 		Shaft = { 197, 160, 105 },
 		Forearm = { 157, 130, 74 },

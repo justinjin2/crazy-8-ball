@@ -8,11 +8,11 @@ return {
 	Name = "Lagoon",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://139388750371486",
+		Normal = "rbxassetid://104120581212247",
+		Roughness = "rbxassetid://119081383133608",
+		Metalness = "rbxassetid://98906410954501",
+		Emissive = "rbxassetid://122070697261063",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://88395898451453",
 	Look = {
 		Shaft = { 12, 12, 12 },
 		Forearm = { 45, 66, 66 },

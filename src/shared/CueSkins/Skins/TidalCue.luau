@@ -8,11 +8,11 @@ return {
 	Name = "Tidal",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://99634781063433",
+		Normal = "rbxassetid://72813456354847",
+		Roughness = "rbxassetid://98320563815839",
+		Metalness = "rbxassetid://93659906240069",
+		Emissive = "rbxassetid://128368368266594",
 	},
 	Surface = {
 		EmissiveStrength = 1.2,
@@ -58,7 +58,7 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
@@ -93,7 +93,7 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
@@ -128,7 +128,7 @@ return {
 						{ 1, 0.4 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 					Brightness = 2.2,
 				},
@@ -137,8 +137,9 @@ return {
 		Emitters = {
 			{
 				Name = "Bubbles",
-				Texture = "",
+				Texture = "rbxassetid://115300660399234",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.24,
@@ -171,8 +172,9 @@ return {
 			},
 			{
 				Name = "Droplets",
-				Texture = "",
+				Texture = "rbxassetid://79294795504542",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.26,
@@ -201,10 +203,11 @@ return {
 			},
 			{
 				Name = "SeaHaze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -281,7 +284,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://96296099707696",
 	Look = {
 		Shaft = { 30, 93, 146 },
 		Forearm = { 28, 114, 172 },

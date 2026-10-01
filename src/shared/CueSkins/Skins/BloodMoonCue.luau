@@ -8,11 +8,11 @@ return {
 	Name = "Blood Moon",
 	Tier = "Epic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://79754683818618",
+		Normal = "rbxassetid://86955006526041",
+		Roughness = "rbxassetid://93183156841958",
+		Metalness = "rbxassetid://117688333545272",
+		Emissive = "rbxassetid://116523103543122",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "RedMotes",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -57,8 +58,9 @@ return {
 			},
 			{
 				Name = "MoonGlow",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 6.8,
 				},
 				Rate = 0.8,
@@ -78,10 +80,11 @@ return {
 			},
 			{
 				Name = "BloodFlame",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 7,
 					Width = 0.14,
@@ -127,7 +130,7 @@ return {
 				Width1 = 0.28,
 				Segments = 32,
 				Brightness = 1.4,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 1.8,
 				TextureSpeed = 0.3,
@@ -155,7 +158,7 @@ return {
 				Width1 = 0.28,
 				Segments = 32,
 				Brightness = 1.4,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 1.8,
 				TextureSpeed = 0.3,
@@ -205,7 +208,7 @@ return {
 				WidthStuds = 0.14,
 				Color = "#FF2A3A",
 				Brightness = 2.2,
-				Texture = "",
+				Texture = "rbxassetid://135681719614397",
 			},
 		},
 	},
@@ -218,7 +221,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://71808201645424",
 				TextureMode = "Wrap",
 				TextureLength = 1.4,
 				TextureSpeed = 0.07,
@@ -241,15 +244,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://71808201645424",
 				TextureMode = "Wrap",
 				TextureLength = 1.4,
 				TextureSpeed = 0.07,
 				Color = "#FF3A48",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.45 },
-					{ 0.913158, 0.45 },
+					{ 0.08684210526315787, 0.45 },
+					{ 0.9131578947368422, 0.45 },
 					{ 1, 1 },
 				},
 				LightEmission = 0.8,
@@ -264,7 +267,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://71808201645424",
 				TextureMode = "Wrap",
 				TextureLength = 1.4,
 				TextureSpeed = 0.07,
@@ -330,7 +333,7 @@ return {
 		Layers = {
 			{
 				Name = "Moon",
-				Texture = "",
+				Texture = "rbxassetid://78246744255556",
 				Burst = 1,
 				Lifetime = 1.3,
 				Speed = 1.1,
@@ -353,7 +356,7 @@ return {
 			},
 			{
 				Name = "Mist",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Burst = 8,
@@ -381,7 +384,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FF3040",
 				Start = 0.8,
 				End = 4,
@@ -389,7 +392,7 @@ return {
 				Delay = 0,
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#D01828",
 				Start = 0.8,
 				End = 4.6,
@@ -397,7 +400,7 @@ return {
 				Delay = 0.28,
 			},
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#A01020",
 				Start = 0.8,
 				End = 5.2,
@@ -409,7 +412,7 @@ return {
 			Color = { 255, 40, 50 },
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://104151523180824",
 	Look = {
 		Shaft = { 22, 6, 9 },
 		Forearm = { 39, 10, 13 },

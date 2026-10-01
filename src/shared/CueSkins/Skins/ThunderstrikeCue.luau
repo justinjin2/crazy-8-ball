@@ -8,11 +8,11 @@ return {
 	Name = "Thunderstrike",
 	Tier = "Legendary",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://91352704542338",
+		Normal = "rbxassetid://129908061091182",
+		Roughness = "rbxassetid://138764430328514",
+		Metalness = "rbxassetid://137178074573473",
+		Emissive = "rbxassetid://79802775844656",
 	},
 	Surface = {
 		EmissiveStrength = 2.2,
@@ -32,16 +32,16 @@ return {
 		Order = { 0, 0, 2, 0, 1, 1, 0, 3, 0, 0, 2, 0, 1, 3, 3, 0, 0, 2 },
 		Maps = {
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://79802775844656",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://122612441911204",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://106313245120346",
 			},
 			{
-				Emissive = "",
+				Emissive = "rbxassetid://74441668739068",
 			},
 		},
 	},
@@ -50,8 +50,9 @@ return {
 		Emitters = {
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.22,
@@ -81,10 +82,11 @@ return {
 			},
 			{
 				Name = "StormCloud",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 6.2,
 					ToStuds = 7.05,
 					Width = 0.35,
@@ -117,12 +119,13 @@ return {
 			},
 			{
 				Name = "Static",
-				Texture = "",
+				Texture = "rbxassetid://120973626424746",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = 24,
 				FlipbookStartRandom = true,
 				Host = {
+					Kind = "Part",
 					FromStuds = 6.2,
 					ToStuds = 7.05,
 					Width = 0.3,
@@ -149,8 +152,9 @@ return {
 			},
 			{
 				Name = "Charge",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.5,
@@ -174,10 +178,11 @@ return {
 			},
 			{
 				Name = "StormHaze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -224,7 +229,7 @@ return {
 				WidthStuds = 0.16,
 				Color = "#5AAEFF",
 				Brightness = 2.2,
-				Texture = "",
+				Texture = "rbxassetid://135681719614397",
 			},
 			{
 				Name = "Leap",
@@ -241,7 +246,7 @@ return {
 				WidthStuds = 0.2,
 				Color = "#7AC0FF",
 				Brightness = 2.4,
-				Texture = "",
+				Texture = "rbxassetid://135681719614397",
 			},
 		},
 		Beams = {
@@ -252,7 +257,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#6AC8FF" },
@@ -310,7 +315,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82620090533699",
 				TextureMode = "Wrap",
 				TextureLength = 1,
 				TextureSpeed = 0.8,
@@ -333,15 +338,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82620090533699",
 				TextureMode = "Wrap",
 				TextureLength = 1,
 				TextureSpeed = 0.8,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.2 },
-					{ 0.913158, 0.2 },
+					{ 0.08684210526315787, 0.2 },
+					{ 0.9131578947368422, 0.2 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -356,7 +361,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://82620090533699",
 				TextureMode = "Wrap",
 				TextureLength = 1,
 				TextureSpeed = 0.8,
@@ -377,8 +382,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Sparks",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 26,
 			Lifetime = { 0.2, 0.4 },
 			Speed = { 1.5, 3.5 },
@@ -401,12 +408,14 @@ return {
 		},
 		{
 			Name = "Static",
-			Texture = "",
+			Texture = "rbxassetid://120973626424746",
 			FlipbookLayout = "Grid4x4",
 			FlipbookMode = "Loop",
 			FlipbookFramerate = 24,
 			FlipbookStartRandom = true,
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 10,
 			Lifetime = { 0.15, 0.3 },
 			Speed = 0,
@@ -429,7 +438,7 @@ return {
 			Lifetime = 1.1,
 			WidthStuds = 0.5,
 			LightEmission = 1,
-			Texture = "",
+			Texture = "rbxassetid://100440743329582",
 			TextureMode = "Wrap",
 			TextureLength = 1.2,
 			WidthScale = {
@@ -474,11 +483,12 @@ return {
 		Layers = {
 			{
 				Name = "Bolt",
-				Texture = "",
+				Texture = "rbxassetid://82468733918792",
 				FlipbookLayout = "Grid2x2",
 				FlipbookMode = "Random",
 				FlipbookFramerate = 30,
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2.3, 0 },
 				},
 				Burst = 1,
@@ -498,11 +508,12 @@ return {
 			},
 			{
 				Name = "Bolt2",
-				Texture = "",
+				Texture = "rbxassetid://82468733918792",
 				FlipbookLayout = "Grid2x2",
 				FlipbookMode = "Random",
 				FlipbookFramerate = 30,
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2.3, 0 },
 				},
 				Burst = 1,
@@ -523,7 +534,7 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 40,
 				Delay = 0.05,
 				Lifetime = { 0.3, 0.6 },
@@ -549,7 +560,7 @@ return {
 			},
 			{
 				Name = "Chips",
-				Texture = "",
+				Texture = "rbxassetid://121958882697350",
 				Burst = 10,
 				Delay = 0.05,
 				Lifetime = { 0.7, 1 },
@@ -574,12 +585,13 @@ return {
 			},
 			{
 				Name = "Static",
-				Texture = "",
+				Texture = "rbxassetid://120973626424746",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = 24,
 				FlipbookStartRandom = true,
 				Host = {
+					Kind = "Point",
 					Size = 1.2,
 				},
 				Burst = 8,
@@ -601,7 +613,7 @@ return {
 			},
 			{
 				Name = "Motes",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Burst = 24,
 				Delay = 0.35,
 				Lifetime = { 0.8, 1.1 },
@@ -621,7 +633,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#6AC8FF",
 				Start = 0.4,
 				End = 5,
@@ -635,7 +647,7 @@ return {
 			Seconds = 0.35,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://85626746946018",
 	Look = {
 		Shaft = { 45, 101, 157 },
 		Forearm = { 84, 130, 171 },

@@ -8,11 +8,11 @@ return {
 	Name = "Blaze",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://82260759351195",
+		Normal = "rbxassetid://76391321914558",
+		Roughness = "rbxassetid://119025667589080",
+		Metalness = "rbxassetid://101241389919161",
+		Emissive = "rbxassetid://131632931930832",
 	},
 	Surface = {
 		EmissiveStrength = 2,
@@ -31,8 +31,9 @@ return {
 		Emitters = {
 			{
 				Name = "Flames",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 7,
 					Width = 0.12,
@@ -70,8 +71,9 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7,
 					Width = 0.2,
@@ -127,7 +129,7 @@ return {
 				Width0 = 0.45,
 				Width1 = 0.95,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FF9A3A" },
@@ -194,7 +196,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://120733001797432",
 	Look = {
 		Shaft = { 57, 36, 24 },
 		Forearm = { 86, 60, 39 },

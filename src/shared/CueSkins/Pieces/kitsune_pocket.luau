@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://97533950957736",
+				EmissiveMask = "rbxassetid://85835855876991",
 				EmissiveTint = "#C88CFF",
 				EmissiveStrength = 1.8,
-				NormalMap = "",
+				NormalMap = "rbxassetid://81627781656877",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketFox",
@@ -53,11 +53,13 @@ return {
 			PivotRoblox = { -0.4, 1.6, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 5,
 					Period = 2,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 4,
 					Period = 1.6,
@@ -70,12 +72,14 @@ return {
 			PivotRoblox = { -0.62, 2.45, -0.1 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 7,
 					Period = 1.8,
 					Phase = 20,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 5,
 					Period = 2.3,
@@ -87,11 +91,13 @@ return {
 			PivotRoblox = { -0.15, 1.45, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 7,
 					Period = 1.6,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 6,
 					Period = 2,
@@ -104,12 +110,14 @@ return {
 			PivotRoblox = { -0.15, 1.45, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 9,
 					Period = 1.6,
 					Phase = 70,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 7,
 					Period = 2,

@@ -5,7 +5,7 @@
 return {
 	Id = "phoenix",
 	Frame = "cue",
-	Rigid = "",
+	Rigid = "70693185860037",
 	Models = {},
 	Parts = {
 		{
@@ -215,6 +215,7 @@ return {
 			PivotRoblox = { -0.07, 0.06, -0.9 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Base = 0,
 					Amp = 16,
@@ -227,7 +228,8 @@ return {
 			PivotRoblox = { -1.1645, 0.4759, -1.3378 },
 			Motion = {
 				{
-					Axis = { 0, -0.988936, -0.14834 },
+					Kind = "Hinge",
+					Axis = { 0, -0.9889363646507263, -0.14834046363830566 },
 					Base = 0,
 					Amp = 10,
 					Period = 1.8,
@@ -240,6 +242,7 @@ return {
 			PivotRoblox = { 0.07, 0.06, -0.9 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Base = 0,
 					Amp = 16,
@@ -252,7 +255,8 @@ return {
 			PivotRoblox = { 1.1645, 0.4759, -1.3378 },
 			Motion = {
 				{
-					Axis = { -0, 0.988936, 0.14834 },
+					Kind = "Hinge",
+					Axis = { -0, 0.9889363646507263, 0.14834046363830566 },
 					Base = 0,
 					Amp = 10,
 					Period = 1.8,

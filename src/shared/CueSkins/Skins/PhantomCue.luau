@@ -8,11 +8,11 @@ return {
 	Name = "Phantom",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://98695870119839",
+		Normal = "rbxassetid://71288800790347",
+		Roughness = "rbxassetid://80208372660232",
+		Metalness = "rbxassetid://93641000964784",
+		Emissive = "rbxassetid://82724873622912",
 	},
 	Surface = {
 		EmissiveStrength = 1.5,
@@ -38,7 +38,7 @@ return {
 				Curve0 = { 0.26, 0 },
 				Curve1 = { -0.22, 0.1 },
 				Twist = 55,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 2.2,
 				TextureSpeed = 0.35,
@@ -63,7 +63,7 @@ return {
 				Curve0 = { -0.2, 0.12 },
 				Curve1 = { 0.24, 0 },
 				Twist = -45,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 1.8,
 				TextureSpeed = -0.3,
@@ -82,8 +82,9 @@ return {
 		Emitters = {
 			{
 				Name = "Ghosts",
-				Texture = "",
+				Texture = "rbxassetid://74123324312916",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.8,
 					ToStuds = 7,
 					Width = 0.3,
@@ -122,8 +123,9 @@ return {
 			},
 			{
 				Name = "GhostSmoke",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.22,
@@ -156,8 +158,9 @@ return {
 			},
 			{
 				Name = "SpiritMotes",
-				Texture = "",
+				Texture = "rbxassetid://79294795504542",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -217,7 +220,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -252,7 +255,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -302,7 +305,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://127191972075103",
 	Look = {
 		Shaft = { 168, 199, 198 },
 		Forearm = { 78, 137, 146 },

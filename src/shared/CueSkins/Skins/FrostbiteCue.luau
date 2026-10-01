@@ -8,11 +8,11 @@ return {
 	Name = "Frostbite",
 	Tier = "Rare",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://70559480206943",
+		Normal = "rbxassetid://111973262287022",
+		Roughness = "rbxassetid://137908584224683",
+		Metalness = "rbxassetid://71824180547456",
+		Emissive = "rbxassetid://125877158441290",
 	},
 	Surface = {
 		EmissiveStrength = 0.8,
@@ -38,7 +38,7 @@ return {
 				Curve0 = { 0.22, 0.1 },
 				Curve1 = { -0.2, -0.12 },
 				Twist = 35,
-				Texture = "",
+				Texture = "rbxassetid://135969571755557",
 				TextureMode = "Wrap",
 				TextureLength = 2.5,
 				TextureSpeed = 0.25,
@@ -60,8 +60,9 @@ return {
 		Emitters = {
 			{
 				Name = "ColdMist",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.24,
@@ -95,8 +96,9 @@ return {
 			},
 			{
 				Name = "Snowflakes",
-				Texture = "",
+				Texture = "rbxassetid://131374181258103",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.6,
@@ -129,8 +131,9 @@ return {
 			},
 			{
 				Name = "FrostGlints",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.2,
@@ -187,7 +190,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -222,7 +225,7 @@ return {
 						{ 1, 0.35 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 			},
@@ -272,7 +275,7 @@ return {
 			ColorShare = 0.7,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://84711576806304",
 	Look = {
 		Shaft = { 171, 214, 242 },
 		Forearm = { 157, 209, 243 },

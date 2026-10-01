@@ -8,11 +8,11 @@ return {
 	Name = "Flare",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://123902192679979",
+		Normal = "rbxassetid://124735885842306",
+		Roughness = "rbxassetid://119567165477347",
+		Metalness = "rbxassetid://75539000032715",
+		Emissive = "rbxassetid://111815139216602",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://135125711831276",
 	Look = {
 		Shaft = { 247, 90, 19 },
 		Forearm = { 149, 57, 15 },

@@ -8,11 +8,11 @@ return {
 	Name = "VIP Cue",
 	Tier = "Exclusive",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://116700803799044",
+		Normal = "rbxassetid://126049116228842",
+		Roughness = "rbxassetid://73089943478313",
+		Metalness = "rbxassetid://93934368973535",
+		Emissive = "rbxassetid://135570464182389",
 	},
 	Surface = {
 		EmissiveStrength = 2,
@@ -29,8 +29,9 @@ return {
 		Emitters = {
 			{
 				Name = "GoldGlitter",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.5,
@@ -58,8 +59,9 @@ return {
 			},
 			{
 				Name = "RainbowShimmer",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.36,
@@ -90,8 +92,9 @@ return {
 			},
 			{
 				Name = "Diamonds",
-				Texture = "",
+				Texture = "rbxassetid://104997444208994",
 				Host = {
+					Kind = "Part",
 					FromStuds = 1.5,
 					ToStuds = 7,
 					Width = 1.1,
@@ -139,7 +142,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://117233115284457",
 					TextureMode = "Stretch",
 				},
 			},
@@ -165,7 +168,7 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://117233115284457",
 					TextureMode = "Stretch",
 				},
 			},
@@ -178,7 +181,7 @@ return {
 				Width0 = 0.3,
 				Width1 = 0.55,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#D4AF37",
 				Transparency = {
@@ -195,8 +198,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Sparkles",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://118250274152711",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 10,
 			Lifetime = { 0.3, 0.5 },
 			Speed = { 0.3, 0.8 },
@@ -225,7 +230,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.34,
 			LightEmission = 0.2,
-			Texture = "",
+			Texture = "rbxassetid://117233115284457",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.8 },
@@ -269,8 +274,9 @@ return {
 		Layers = {
 			{
 				Name = "Crown",
-				Texture = "",
+				Texture = "rbxassetid://101197923556061",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 0.8, 0 },
 				},
 				Burst = 1,
@@ -299,7 +305,7 @@ return {
 			},
 			{
 				Name = "Diamonds",
-				Texture = "",
+				Texture = "rbxassetid://104997444208994",
 				Burst = 8,
 				Delay = 0.08,
 				Lifetime = { 0.8, 1.1 },
@@ -323,7 +329,7 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 18,
 				Delay = 0.1,
 				Lifetime = { 0.5, 0.9 },
@@ -348,7 +354,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FFD25A",
 				Start = 0.4,
 				End = 3.2,
@@ -362,7 +368,7 @@ return {
 			Seconds = 0.3,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://139964395207925",
 	Look = {
 		Shaft = { 36, 32, 24 },
 		Forearm = { 76, 67, 50 },

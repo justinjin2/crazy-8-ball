@@ -7,8 +7,8 @@ return {
 	Frame = "cue",
 	Rigid = nil,
 	Models = {
-		FoxMask = "",
-		RunningFox = "",
+		FoxMask = "139206172142195",
+		RunningFox = "121383006188696",
 	},
 	Parts = {
 		{
@@ -17,11 +17,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://102995924189660",
+				EmissiveMask = "rbxassetid://138553429458236",
 				EmissiveTint = "#D8B8FF",
 				EmissiveStrength = 1.6,
-				NormalMap = "",
+				NormalMap = "rbxassetid://99902336487404",
 				AlphaMode = "Transparency",
 			},
 			Name = "FoxMask",
@@ -53,11 +53,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://87755641368651",
+				EmissiveMask = "rbxassetid://132069950403567",
 				EmissiveTint = "#C88CFF",
 				EmissiveStrength = 1.8,
-				NormalMap = "",
+				NormalMap = "rbxassetid://70374803189224",
 				AlphaMode = "Transparency",
 			},
 			Name = "RunningFox",
@@ -90,11 +90,13 @@ return {
 			PivotRoblox = { 0, 0, -3.5 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 3,
 					Period = 4.4,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 2,
 					Period = 3.1,
@@ -107,6 +109,7 @@ return {
 			PivotRoblox = { -0.07, 0.07, -3.78 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 14,
 					Period = 2.6,
@@ -120,6 +123,7 @@ return {
 			PivotRoblox = { 0.07, 0.07, -3.78 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 14,
 					Period = 2.6,
@@ -133,6 +137,7 @@ return {
 			PivotRoblox = { 0, -0.12, -3.8 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Base = 5,
 					Amp = 5,
@@ -145,6 +150,7 @@ return {
 			PivotRoblox = { 0, 0, -0.8 },
 			Motion = {
 				{
+					Kind = "Spin",
 					Axis = { 0, 1, 0 },
 					Rate = 200,
 				},
@@ -156,11 +162,13 @@ return {
 			PivotRoblox = { -0.08, 0.4612, -0.8 },
 			Motion = {
 				{
+					Kind = "Bob",
 					Dir = { 0, 0, 1 },
 					Amp = 0.02,
 					Period = 0.4,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 5,
 					Period = 0.4,
@@ -174,6 +182,7 @@ return {
 			PivotRoblox = { -0.224, 0.448, -0.8 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 28,
 					Period = 0.4,
@@ -186,6 +195,7 @@ return {
 			PivotRoblox = { -0.024, 0.448, -0.8 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 28,
 					Period = 0.4,
@@ -199,6 +209,7 @@ return {
 			PivotRoblox = { -0.208, 0.5103, -0.8 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 6,
 					Period = 0.4,
@@ -212,12 +223,14 @@ return {
 			PivotRoblox = { -0, 0.5103, -0.8 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 0, -1, 0 },
 					Amp = 8,
 					Period = 0.4,
 					Phase = 240,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, 0, 1 },
 					Amp = 6,
 					Period = 0.8,

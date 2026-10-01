@@ -8,11 +8,11 @@ return {
 	Name = "Magma",
 	Tier = "Epic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://138245943907953",
+		Normal = "rbxassetid://132419533878537",
+		Roughness = "rbxassetid://101956337044691",
+		Metalness = "rbxassetid://134624422895202",
+		Emissive = "rbxassetid://123088473935717",
 	},
 	Surface = {
 		EmissiveStrength = 2,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 7,
 					Width = 0.2,
@@ -65,8 +66,9 @@ return {
 			},
 			{
 				Name = "LavaDrips",
-				Texture = "",
+				Texture = "rbxassetid://100332891762130",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.8,
 					ToStuds = 7,
 					Width = 0.17,
@@ -95,10 +97,11 @@ return {
 			},
 			{
 				Name = "Licks",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.6,
 					ToStuds = 7,
 					Width = 0.12,
@@ -137,10 +140,11 @@ return {
 			},
 			{
 				Name = "Smoke",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 1,
 					ToStuds = 7,
 					Width = 0.2,
@@ -208,7 +212,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://80788799103271",
 				TextureMode = "Wrap",
 				TextureLength = 0.9,
 				TextureSpeed = 0.12,
@@ -231,15 +235,15 @@ return {
 				Width0 = 0.164,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://80788799103271",
 				TextureMode = "Wrap",
 				TextureLength = 0.9,
 				TextureSpeed = 0.12,
 				Color = "#FFFFFF",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.086842, 0.35 },
-					{ 0.913158, 0.35 },
+					{ 0.08684210526315787, 0.35 },
+					{ 0.9131578947368422, 0.35 },
 					{ 1, 1 },
 				},
 				LightEmission = 1,
@@ -254,7 +258,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://80788799103271",
 				TextureMode = "Wrap",
 				TextureLength = 0.9,
 				TextureSpeed = 0.12,
@@ -275,8 +279,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "BallEmbers",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 24,
 			Lifetime = { 0.4, 0.8 },
 			Speed = { 0.3, 1 },
@@ -311,7 +317,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.3,
 			LightEmission = 0.2,
-			Texture = "",
+			Texture = "rbxassetid://99630474448338",
 			TextureMode = "Wrap",
 			TextureLength = 1.2,
 			WidthScale = {
@@ -356,7 +362,7 @@ return {
 		Layers = {
 			{
 				Name = "Globs",
-				Texture = "",
+				Texture = "rbxassetid://100332891762130",
 				Burst = 18,
 				Lifetime = { 0.6, 0.9 },
 				Speed = { 6, 10 },
@@ -379,7 +385,7 @@ return {
 			},
 			{
 				Name = "Flame",
-				Texture = "",
+				Texture = "rbxassetid://73816733109936",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Burst = 6,
@@ -404,7 +410,7 @@ return {
 			},
 			{
 				Name = "Embers",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 30,
 				Lifetime = { 0.8, 1.3 },
 				Speed = { 3, 7 },
@@ -429,7 +435,7 @@ return {
 			},
 			{
 				Name = "Smoke",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Burst = 4,
@@ -454,7 +460,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FF7A1A",
 				Start = 0.5,
 				End = 4,
@@ -465,7 +471,7 @@ return {
 			Color = { 255, 120, 30 },
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://83575354495068",
 	Look = {
 		Shaft = { 25, 15, 12 },
 		Forearm = { 62, 30, 14 },

@@ -8,11 +8,11 @@ return {
 	Name = "Cosmo",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://121855754683089",
+		Normal = "rbxassetid://117193553347718",
+		Roughness = "rbxassetid://86753383362042",
+		Metalness = "rbxassetid://81442680396852",
+		Emissive = "rbxassetid://97536675376683",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://92086254355409",
 	Look = {
 		Shaft = { 20, 17, 43 },
 		Forearm = { 25, 13, 72 },

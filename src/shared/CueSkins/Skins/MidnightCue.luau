@@ -8,12 +8,12 @@ return {
 	Name = "Midnight",
 	Tier = "Common",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://110230029575334",
+		Normal = "rbxassetid://94098742544868",
+		Roughness = "rbxassetid://132243980619102",
+		Metalness = "rbxassetid://129908525666409",
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://96392419018226",
 	Look = {
 		Shaft = { 16, 16, 18 },
 		Forearm = { 28, 28, 31 },

@@ -23,6 +23,7 @@ local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
 local BackCue = require(script.Parent.BackCue)
+local CueSkinLook = require(script.Parent.CueSkinLook)
 local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
 local DayCycle = require(script.Parent.DayCycle)
@@ -100,6 +101,9 @@ local input = Input.new()
 local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
 CueStickBuilder.wear(cueStick, player)
+-- Its skin's look, with no aura: a cue in the hands is shown only while aiming (designer,
+-- 2026-09-30: nothing distracts from aiming).
+CueSkinLook.attach(cueStick, { aura = false })
 -- Everyone's cue on their back, hidden while it is in their hands (updated after the frame).
 local backCue = BackCue.new(visuals)
 local avatar = Avatar.new()

@@ -8,12 +8,12 @@ return {
 	Name = "Monarch",
 	Tier = "Common",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
+		Color = "rbxassetid://105086632086819",
+		Normal = "rbxassetid://100532266379799",
+		Roughness = "rbxassetid://105349054866696",
+		Metalness = "rbxassetid://78655875467119",
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://81250126988991",
 	Look = {
 		Shaft = { 27, 22, 18 },
 		Forearm = { 128, 115, 97 },

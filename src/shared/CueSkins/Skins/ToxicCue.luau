@@ -8,11 +8,11 @@ return {
 	Name = "Toxic",
 	Tier = "Epic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://117777910427277",
+		Normal = "rbxassetid://118626117771609",
+		Roughness = "rbxassetid://129464908156574",
+		Metalness = "rbxassetid://137593330754169",
+		Emissive = "rbxassetid://90668357233531",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -30,10 +30,11 @@ return {
 		Emitters = {
 			{
 				Name = "Bubbles",
-				Texture = "",
+				Texture = "rbxassetid://81473765853291",
 				FlipbookLayout = "Grid4x4",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.2,
@@ -65,8 +66,9 @@ return {
 			},
 			{
 				Name = "GooDrips",
-				Texture = "",
+				Texture = "rbxassetid://98492289756611",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.8,
 					ToStuds = 7,
 					Width = 0.17,
@@ -95,8 +97,9 @@ return {
 			},
 			{
 				Name = "Fumes",
-				Texture = "",
+				Texture = "rbxassetid://78860393208560",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.3,
@@ -124,10 +127,11 @@ return {
 			},
 			{
 				Name = "ToxicHaze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.3,
 					ToStuds = 7,
 					Width = 0.35,
@@ -167,7 +171,7 @@ return {
 				Width0 = 0.26,
 				Width1 = 0.5,
 				Segments = 16,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#7CFF2B",
 				Transparency = {
@@ -208,7 +212,7 @@ return {
 				Width0 = 0.101,
 				Width1 = 0.16,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://119618226786650",
 				TextureMode = "Wrap",
 				TextureLength = 0.55,
 				TextureSpeed = -0.45,
@@ -231,15 +235,15 @@ return {
 				Width0 = 0.177,
 				Width1 = 0.191,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://119618226786650",
 				TextureMode = "Wrap",
 				TextureLength = 0.55,
 				TextureSpeed = -0.45,
 				Color = "#C8FF80",
 				Transparency = {
 					{ 0, 1 },
-					{ 0.160976, 0.25 },
-					{ 0.839024, 0.25 },
+					{ 0.1609756097560975, 0.25 },
+					{ 0.8390243902439025, 0.25 },
 					{ 1, 1 },
 				},
 				LightEmission = 0.8,
@@ -254,7 +258,7 @@ return {
 				Width0 = 0.198,
 				Width1 = 0.198,
 				Segments = 4,
-				Texture = "",
+				Texture = "rbxassetid://119618226786650",
 				TextureMode = "Wrap",
 				TextureLength = 0.55,
 				TextureSpeed = -0.45,
@@ -275,8 +279,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "GooDrops",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://98492289756611",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 14,
 			Lifetime = { 0.6, 1 },
 			Speed = 0,
@@ -306,7 +312,7 @@ return {
 			Lifetime = 1,
 			WidthStuds = 0.28,
 			LightEmission = 0.7,
-			Texture = "",
+			Texture = "rbxassetid://113263605708790",
 			TextureMode = "Wrap",
 			TextureLength = 1,
 			WidthScale = {
@@ -339,7 +345,7 @@ return {
 			Brightness = 2,
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://97272801442756",
 	Look = {
 		Shaft = { 82, 156, 35 },
 		Forearm = { 94, 127, 26 },

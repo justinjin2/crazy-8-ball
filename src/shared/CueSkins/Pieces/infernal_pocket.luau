@@ -7,7 +7,7 @@ return {
 	Frame = "pocket",
 	Rigid = nil,
 	Models = {
-		PocketSkull = "",
+		PocketSkull = "128546372437219",
 	},
 	Parts = {
 		{
@@ -16,11 +16,11 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "",
-				EmissiveMask = "",
+				ColorMap = "rbxassetid://118692476689238",
+				EmissiveMask = "rbxassetid://91090806385056",
 				EmissiveTint = "#FF6A2A",
 				EmissiveStrength = 1.8,
-				NormalMap = "",
+				NormalMap = "rbxassetid://107074109971422",
 				AlphaMode = "Transparency",
 			},
 			Name = "PocketSkull",
@@ -53,11 +53,13 @@ return {
 			PivotRoblox = { 0, 0.4, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Amp = 4,
 					Period = 1.6,
 				},
 				{
+					Kind = "Hinge",
 					Axis = { 0, 1, 0 },
 					Amp = 3,
 					Period = 2.2,
@@ -70,6 +72,7 @@ return {
 			PivotRoblox = { 0, 0.58, 0 },
 			Motion = {
 				{
+					Kind = "Hinge",
 					Axis = { 1, 0, 0 },
 					Base = 13,
 					Amp = 13,

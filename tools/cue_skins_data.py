@@ -10,6 +10,7 @@ tools/upload_manifest.json, and writes (generated, never edited by hand):
     src/shared/CueSkins/Pieces/<piece>.luau      a 3D piece: parts, joints, motions, paths
     src/shared/CueSkins/Index.luau               every skin's name, tier, thumbnail and flat colours
                                                  (small: the catalog and the UI read it)
+    src/shared/CueSkins/Textures.luau            the default texture of each effect role
 
 Every file path in the skin data becomes its uploaded id ("rbxassetid://<image id>"); a path with
 no id stops the run unless --allow-missing (then it is "" and listed). Notes, budgets and the
@@ -28,7 +29,7 @@ CUE = os.path.join(ROOT, 'assets', 'cue')
 OUT = os.path.join(ROOT, 'src', 'shared', 'CueSkins')
 MANIFEST = os.path.join(ROOT, 'tools', 'upload_manifest.json')
 ASSET = re.compile(r'\.(png|glb|obj)$')
-DROP = {'Note', 'Budget', 'Kind', 'frame', 'Triangles', 'File'}  # notes and review-only keys
+DROP = {'Note', 'Budget', 'frame', 'Triangles', 'File'}  # notes and review-only keys
 MAPS = ('color', 'normal', 'roughness', 'metalness', 'emissive')
 
 manifest = json.load(open(MANIFEST))
@@ -70,7 +71,7 @@ def lua(x, indent=0):
     if isinstance(x, int):
         return str(x)
     if isinstance(x, float):
-        r = repr(round(x, 6))
+        r = repr(x)  # the shortest exact form: a path's Step is used thousands of times over
         return r[:-2] if r.endswith('.0') else r
     if isinstance(x, str):
         return json.dumps(x)
@@ -208,9 +209,16 @@ def main():
     for pid in pieces:
         row = piece_row(json.load(open(os.path.join(CUE, 'pieces', pid, 'piece.json'))))
         write_module(os.path.join(OUT, 'Pieces', pid + '.luau'), 'The %s piece: parts, joints and motions.' % pid, row)
+    # The preview's defaults for a texture a row leaves out (CueVfx.py), by role.
+    defaults = {'Emitter': 'vfx/_shared/glow_soft.png', 'Beam': 'vfx/_shared/glow_soft.png',
+                'Trail': 'vfx/_shared/trail_soft.png', 'Head': 'vfx/_shared/glow_core.png',
+                'Arc': 'vfx/_shared/bolt_strip.png', 'Ring': 'vfx/_shared/ring.png'}
+    write_module(os.path.join(OUT, 'Textures.luau'), 'The default texture of each effect role (a row may leave its own out).',
+                 {k: asset_id(v) for k, v in defaults.items()})
     write_module(os.path.join(OUT, 'Index.luau'), 'Every cue skin by catalog id: name, tier, thumbnail, flat colours.',
                  dict(sorted(index.items())))
-    subprocess.run(['stylua', os.path.join(OUT, 'Skins'), os.path.join(OUT, 'Pieces'), os.path.join(OUT, 'Index.luau')], check=True)
+    subprocess.run(['stylua', os.path.join(OUT, 'Skins'), os.path.join(OUT, 'Pieces'), os.path.join(OUT, 'Index.luau'),
+                    os.path.join(OUT, 'Textures.luau')], check=True)
     print('wrote %d skins, %d pieces' % (len(skins), len(pieces)))
     if missing:
         print('%d paths have no uploaded id, e.g. %s' % (len(set(missing)), sorted(set(missing))[:5]))

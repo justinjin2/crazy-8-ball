@@ -8,11 +8,11 @@ return {
 	Name = "Splice",
 	Tier = "Uncommon",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://75630507891989",
+		Normal = "rbxassetid://76577877621584",
+		Roughness = "rbxassetid://114024812034916",
+		Metalness = "rbxassetid://113718863480698",
+		Emissive = "rbxassetid://114667990277710",
 	},
 	Surface = {
 		EmissiveStrength = 1.6,
@@ -55,7 +55,7 @@ return {
 			},
 		},
 	},
-	Thumb = "",
+	Thumb = "rbxassetid://123472640415076",
 	Look = {
 		Shaft = { 34, 24, 18 },
 		Forearm = { 94, 115, 133 },

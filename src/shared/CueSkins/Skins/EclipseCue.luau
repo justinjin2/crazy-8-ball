@@ -8,11 +8,11 @@ return {
 	Name = "Eclipse",
 	Tier = "Secret",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://91301740325620",
+		Normal = "rbxassetid://74589963201520",
+		Roughness = "rbxassetid://112016785243285",
+		Metalness = "rbxassetid://137221513770933",
+		Emissive = "rbxassetid://107970500909604",
 	},
 	Surface = {
 		EmissiveStrength = 2.4,
@@ -30,8 +30,9 @@ return {
 		Emitters = {
 			{
 				Name = "Corona",
-				Texture = "",
+				Texture = "rbxassetid://82041674174517",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.56,
 				},
 				Rate = 2.5,
@@ -57,10 +58,11 @@ return {
 			},
 			{
 				Name = "Flares",
-				Texture = "",
+				Texture = "rbxassetid://110709162255698",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.56,
 				},
 				Rate = 3,
@@ -77,8 +79,9 @@ return {
 			},
 			{
 				Name = "CoronaSparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 7.56,
 				},
 				Rate = 10,
@@ -101,8 +104,9 @@ return {
 			},
 			{
 				Name = "GoldSparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7,
 					Width = 0.3,
@@ -129,8 +133,9 @@ return {
 			},
 			{
 				Name = "Obsidian",
-				Texture = "",
+				Texture = "rbxassetid://93472257393604",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.6,
 					ToStuds = 7.6,
 					Width = 0.9,
@@ -157,10 +162,11 @@ return {
 			},
 			{
 				Name = "GoldHaze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 3,
 					ToStuds = 7.2,
 					Width = 0.3,
@@ -193,8 +199,9 @@ return {
 			},
 			{
 				Name = "Galaxy",
-				Texture = "",
+				Texture = "rbxassetid://97060675894530",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 4.6,
 				},
 				Rate = 0.5,
@@ -221,10 +228,11 @@ return {
 			},
 			{
 				Name = "Nebula",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 7.6,
 					Width = 1,
@@ -257,8 +265,9 @@ return {
 			},
 			{
 				Name = "Stars",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7.8,
 					Width = 1.6,
@@ -285,8 +294,9 @@ return {
 			},
 			{
 				Name = "GiantEclipse",
-				Texture = "",
+				Texture = "rbxassetid://87992822339253",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 4.6,
 				},
 				Rate = 0.5,
@@ -308,8 +318,9 @@ return {
 			},
 			{
 				Name = "GiantRing",
-				Texture = "",
+				Texture = "rbxassetid://107424375683174",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 4.6,
 				},
 				Rate = 0.5,
@@ -332,8 +343,9 @@ return {
 			},
 			{
 				Name = "GiantWisps",
-				Texture = "",
+				Texture = "rbxassetid://78323090486282",
 				Host = {
+					Kind = "Attachment",
 					AtStuds = 4.6,
 				},
 				Rate = 0.9,
@@ -384,11 +396,11 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://103207006448304",
 					Size = 0.24,
 					Color = "#FFFFFF",
 					LightEmission = 0,
@@ -418,11 +430,11 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://103207006448304",
 					Size = 0.24,
 					Color = "#FFFFFF",
 					LightEmission = 0,
@@ -452,11 +464,11 @@ return {
 						{ 1, 1 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://107372215577546",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://103207006448304",
 					Size = 0.24,
 					Color = "#FFFFFF",
 					LightEmission = 0,
@@ -471,7 +483,7 @@ return {
 				Width0 = 0.22,
 				Width1 = 0.36,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = "#FFB300",
 				Transparency = {
@@ -507,8 +519,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Obsidian",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://93472257393604",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 5,
 			Lifetime = { 0.5, 0.8 },
 			Speed = { 0.4, 1 },
@@ -531,8 +545,10 @@ return {
 		},
 		{
 			Name = "Sparks",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://129676691177221",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 14,
 			Lifetime = { 0.25, 0.5 },
 			Speed = { 0.5, 1.5 },
@@ -552,8 +568,10 @@ return {
 		},
 		{
 			Name = "Eclipses",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://103207006448304",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 2,
 			Lifetime = 0.5,
 			Speed = 0,
@@ -572,10 +590,12 @@ return {
 		},
 		{
 			Name = "GoldFire",
-			Texture = "",
+			Texture = "rbxassetid://118342487469917",
 			FlipbookLayout = "Grid8x8",
 			FlipbookMode = "OneShot",
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 10,
 			Lifetime = { 0.4, 0.6 },
 			Speed = { 0.2, 0.5 },
@@ -612,7 +632,7 @@ return {
 			Lifetime = 1.2,
 			WidthStuds = 0.44,
 			LightEmission = 0.2,
-			Texture = "",
+			Texture = "rbxassetid://134182988744928",
 			TextureMode = "Stretch",
 			WidthScale = {
 				{ 0, 0.7 },
@@ -655,8 +675,9 @@ return {
 		Layers = {
 			{
 				Name = "DarkRing",
-				Texture = "",
+				Texture = "rbxassetid://123713402837862",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 0.1, 0 },
 				},
 				Burst = 1,
@@ -679,8 +700,9 @@ return {
 			},
 			{
 				Name = "DarkRing2",
-				Texture = "",
+				Texture = "rbxassetid://123713402837862",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 0.1, 0 },
 				},
 				Burst = 1,
@@ -704,8 +726,9 @@ return {
 			},
 			{
 				Name = "Eclipse",
-				Texture = "",
+				Texture = "rbxassetid://103207006448304",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 1.8, 0 },
 				},
 				Burst = 1,
@@ -730,8 +753,9 @@ return {
 			},
 			{
 				Name = "CoronaBurst",
-				Texture = "",
+				Texture = "rbxassetid://82041674174517",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 1.8, 0 },
 				},
 				Burst = 2,
@@ -756,8 +780,9 @@ return {
 			},
 			{
 				Name = "Column",
-				Texture = "",
+				Texture = "rbxassetid://78839900905601",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2.6, 0 },
 				},
 				Burst = 1,
@@ -781,8 +806,9 @@ return {
 			},
 			{
 				Name = "Shards",
-				Texture = "",
+				Texture = "rbxassetid://93472257393604",
 				Host = {
+					Kind = "Point",
 					Size = 0.4,
 				},
 				Burst = 20,
@@ -810,7 +836,7 @@ return {
 			},
 			{
 				Name = "Sparks",
-				Texture = "",
+				Texture = "rbxassetid://129676691177221",
 				Burst = 30,
 				Delay = 0.42,
 				Lifetime = { 0.5, 1 },
@@ -833,8 +859,9 @@ return {
 			},
 			{
 				Name = "RayBurst",
-				Texture = "",
+				Texture = "rbxassetid://122351294248405",
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 1.8, 0 },
 				},
 				Burst = 28,
@@ -865,7 +892,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FFB300",
 				Start = 0.5,
 				End = 5,
@@ -880,7 +907,7 @@ return {
 		},
 	},
 	Piece = "eclipse",
-	Thumb = "",
+	Thumb = "rbxassetid://118966153112359",
 	Look = {
 		Shaft = { 53, 50, 44 },
 		Forearm = { 92, 79, 53 },

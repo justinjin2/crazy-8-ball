@@ -10,6 +10,10 @@
 -- (their Config.Cue.EquippedAttribute), so everyone watching that table sees the shooter's own
 -- trail and bursts, and it changes with the turn or when they equip another cue.
 --
+-- A cue with a skin (CueSkins) brings its own style: "skin:<cue id>", its row's Style laid over
+-- the default (the skin files write only what differs), plus its ball-trail emitters and its
+-- pocket finisher (staged layers, rings, a flash, a 3D creature rising out of the pocket).
+--
 -- The default style is deliberately understated: a thin white translucent wisp, like wind
 -- off the ball. It is on screen for every shot of every game, so it has to stay quiet, and
 -- keeping it quiet is what leaves the rare cues somewhere to go.
@@ -26,6 +30,11 @@ local Strings = require(Shared:WaitForChild("Strings"))
 local Ball = require(Shared:WaitForChild("Physics"):WaitForChild("Ball"))
 local Catalog = require(Shared:WaitForChild("Progression"):WaitForChild("Catalog"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
+local CueSkins = require(Shared:WaitForChild("CueSkins"))
+local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
+local Textures = require(Shared:WaitForChild("CueSkins"):WaitForChild("Textures"))
+local CuePiece = require(script.Parent.CuePiece)
+local CueVfx = require(script.Parent.CueVfx)
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 
@@ -40,6 +49,8 @@ export type Effects = typeof(setmetatable(
 		core: Trail?, -- the style's Trail.Core, a thinner glowing ribbon inside the trail
 		trailA: Attachment?, -- the trail's two attachments on the ball, this Effects' own
 		trailB: Attachment?,
+		trailCentre: Attachment?, -- a skin's trail emitters ride the ball's centre
+		trailEmitters: { ParticleEmitter },
 		trailTo: BasePart?,
 		-- The shooter whose equipped cue dresses this table (follow), and the listener that
 		-- restyles it when they equip another.
@@ -57,6 +68,8 @@ end
 -- Style name -> the style with its Trail and Pocket filled in from the default's, built once.
 local resolved: { [string]: any } = {}
 
+local SKIN = "skin:"
+
 -- A copy of `base` with every key `over` gives replaced.
 local function overlay(base: any, over: any?): any
 	local out = table.clone(base)
@@ -73,6 +86,21 @@ end
 function Effects.styleFor(name: string?): any
 	local styles = Config.Effects.Styles :: any
 	local default = Config.Effects.DefaultStyle
+	if name ~= nil and string.sub(name, 1, #SKIN) == SKIN then
+		local style = resolved[name]
+		if style == nil then
+			local skin = CueSkins.get(string.sub(name, #SKIN + 1))
+			local base = Effects.styleFor(default)
+			local own = (skin and skin.Style) or {}
+			local trail = overlay(base.Trail, own.Trail)
+			if own.Trail and own.Trail.Core then
+				trail.Core = overlay(base.Trail.Core or {}, own.Trail.Core)
+			end
+			style = { Trail = trail, Pocket = overlay(base.Pocket, own.Pocket), Skin = skin }
+			resolved[name] = style
+		end
+		return style
+	end
 	local key = if name ~= nil and styles[name] ~= nil then name else default
 	local style = resolved[key]
 	if style == nil then
@@ -84,9 +112,16 @@ function Effects.styleFor(name: string?): any
 	return style
 end
 
---- The effect style a catalog cue brings (its Effect); an unknown id brings the default cue's.
+--- The effect style a catalog cue brings: its skin's ("skin:<id>") when its skin has a trail
+--- or pocket of its own, else its Effect row; an unknown id brings the default cue's.
 function Effects.styleOfCue(cueId: string?): string
 	local cue = Catalog.get(cueId) or Catalog.get(Config.Cue.DefaultStyle)
+	if cue and CueSkins.has(cue.Id) then
+		local skin = CueSkins.get(cue.Id)
+		if skin and (skin.Style or skin.TrailEmitters or skin.Pocket) then
+			return SKIN .. cue.Id
+		end
+	end
 	return if cue then cue.Effect else Config.Effects.DefaultStyle
 end
 
@@ -101,6 +136,8 @@ function Effects.new(parent: Instance, styleName: string?): Effects
 		core = nil,
 		trailA = nil,
 		trailB = nil,
+		trailCentre = nil,
+		trailEmitters = {},
 		trailTo = nil,
 		followId = nil,
 		followPlayer = nil,
@@ -173,7 +210,8 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 	self:detachTrail()
 	-- The ball is remembered even for a style with no trail, so setStyle can put one back.
 	self.trailTo = part
-	local spec = Effects.styleFor(self.styleName).Trail
+	local style = Effects.styleFor(self.styleName)
+	local spec = style.Trail
 	if not spec.Enabled then
 		return
 	end
@@ -196,23 +234,30 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 	trail.Color = if spec.Colors
 		then sequence(spec.Colors)
 		else ColorSequence.new(color(spec.Color))
-	trail.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, spec.NearTransparency),
-		NumberSequenceKeypoint.new(1, spec.FarTransparency),
-	})
+	trail.Transparency = if spec.Transparency
+		then CueVfx.numberSeq(spec.Transparency)
+		else NumberSequence.new({
+			NumberSequenceKeypoint.new(0, spec.NearTransparency),
+			NumberSequenceKeypoint.new(1, spec.FarTransparency),
+		})
 	trail.Lifetime = spec.Lifetime
 	-- A ball has to travel this far before any ribbon is drawn, which is what stops one
 	-- creeping to a stop from leaving a smear behind it.
 	trail.MinLength = spec.MinLengthStuds
-	trail.WidthScale = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(1, 0), -- tapers to nothing, which is what reads as wind
-	})
+	trail.WidthScale = if spec.WidthScale
+		then CueVfx.numberSeq(spec.WidthScale)
+		else NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 0), -- tapers to nothing, which is what reads as wind
+		})
 	trail.LightEmission = spec.LightEmission
 	trail.LightInfluence = 0
+	trail.Brightness = spec.Brightness or 1
 	trail.FaceCamera = true
 	if spec.Texture ~= "" then
 		trail.Texture = spec.Texture
+		trail.TextureMode = (Enum.TextureMode :: any)[spec.TextureMode or "Stretch"]
+		trail.TextureLength = spec.TextureLength or 1
 	end
 	trail.Enabled = false
 	trail.Parent = part
@@ -224,22 +269,49 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 		core.Attachment0 = a0
 		core.Attachment1 = a1
 		core.Color = ColorSequence.new(color(coreSpec.Color))
-		core.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, coreSpec.NearTransparency),
-			NumberSequenceKeypoint.new(1, spec.FarTransparency),
-		})
+		core.Transparency = if coreSpec.Transparency
+			then CueVfx.numberSeq(coreSpec.Transparency)
+			else NumberSequence.new({
+				NumberSequenceKeypoint.new(0, coreSpec.NearTransparency),
+				NumberSequenceKeypoint.new(1, spec.FarTransparency),
+			})
 		core.Lifetime = spec.Lifetime
 		core.MinLength = spec.MinLengthStuds
-		core.WidthScale = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, coreSpec.Width),
-			NumberSequenceKeypoint.new(1, 0),
-		})
+		-- The core shares the trail's attachments: its width is a share of the trail's.
+		local widths = coreSpec.WidthScale or { { 0, 1 }, { 1, 0 } }
+		local scaled = {}
+		for _, k in widths do
+			table.insert(scaled, { k[1], k[2] * coreSpec.Width })
+		end
+		core.WidthScale = CueVfx.numberSeq(scaled)
 		core.LightEmission = coreSpec.LightEmission
 		core.LightInfluence = 0
+		core.Brightness = coreSpec.Brightness or 1
+		if coreSpec.Texture and coreSpec.Texture ~= "" then
+			core.Texture = coreSpec.Texture
+		end
 		core.FaceCamera = true
 		core.Enabled = false
 		core.Parent = part -- after the trail, so it draws inside it
 		self.core = core
+	end
+
+	-- A skin's emitters on the ball (sparks, embers), running while the trail draws.
+	local skin = style.Skin
+	if skin and skin.TrailEmitters then
+		local centre = Instance.new("Attachment")
+		centre.Name = "TrailCentre"
+		centre.Parent = part
+		self.trailCentre = centre
+		for _, row in skin.TrailEmitters do
+			local e = CueVfx.emitter(row, { frame = "world" })
+			if e.Texture == "" then
+				e.Texture = Textures.Emitter
+			end
+			e.Enabled = false
+			e.Parent = centre
+			table.insert(self.trailEmitters, e)
+		end
 	end
 
 	self.trail = trail
@@ -276,6 +348,9 @@ function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 			end
 			core.Enabled = visible
 		end
+		for _, e in self.trailEmitters do
+			e.Enabled = visible and e.Rate > 0
+		end
 	end
 end
 
@@ -293,6 +368,11 @@ function Effects.detachTrail(self: Effects)
 	if self.trailB then
 		self.trailB:Destroy()
 	end
+	if self.trailCentre then
+		self.trailCentre:Destroy()
+	end
+	self.trailCentre = nil
+	self.trailEmitters = {}
 	self.trail, self.core, self.trailA, self.trailB = nil, nil, nil, nil
 	self.trailTo = nil
 end
@@ -401,10 +481,12 @@ end
 ---   * sparkles drifting up and a coloured flash in the pocket.
 --- `at` is the pocket's centre at cloth height. Everything cleans itself up.
 function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
-	local spec = Effects.styleFor(self.styleName).Pocket
+	local style = Effects.styleFor(self.styleName)
+	local spec = style.Pocket
 	if not spec.Enabled then
 		return
 	end
+	local finisher = style.Skin and style.Skin.Pocket
 	local big = ballId == 8
 	-- How many particles: more only for the 8. How big the gust is: the 8's and the style's.
 	local more = if big then spec.EightBallScale else 1
@@ -525,6 +607,9 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	-- Swirl: a few ribbons of wind corkscrewing up out of the pocket, widening as they rise.
 	local riders: { { part: Part, phase: number } } = {}
 	local ribbons = if big then spec.EightBallRibbons else spec.Ribbons -- few: they cost a Trail each
+	if finisher and finisher.KeepRibbons == false then
+		ribbons = 0 -- the skin's creature rises there instead
+	end
 	for n = 1, ribbons do
 		local rider = bare("WindRibbon", self.folder, at)
 		local a0 = Instance.new("Attachment")
@@ -575,16 +660,123 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 		end
 	end)
 
-	-- Flash: the pocket lights up in the ball's colour for a beat.
+	-- Flash: the pocket lights up in the ball's colour for a beat (a skin may give its own).
+	local flash = (finisher and finisher.Flash) or {}
 	local light = Instance.new("PointLight")
-	light.Color = shade
-	light.Brightness = spec.FlashBrightness * scale
+	light.Color = if flash.Color then CueVfx.color(flash.Color) else shade
+	light.Brightness = (flash.Brightness or spec.FlashBrightness) * scale
 	light.Range = spec.FlashRangeStuds * scale
 	light.Shadows = false
 	light.Parent = root
-	TweenService:Create(light, TweenInfo.new(spec.FlashSeconds), { Brightness = 0 }):Play()
+	local flashSeconds = flash.Seconds or spec.FlashSeconds
+	TweenService:Create(light, TweenInfo.new(flashSeconds), { Brightness = 0 }):Play()
 
+	if finisher then
+		lifetime = math.max(lifetime, self:skinFinisher(finisher, at, root))
+	end
 	Debris:AddItem(root, lifetime)
+end
+
+-- A skin's pocket finisher on top of the gust: its layers (emitters bursting once each, at
+-- their Delay), its extra rings and its 3D creature rising out of the pocket. Returns how long
+-- it lasts (seconds).
+function Effects.skinFinisher(self: Effects, finisher: any, at: Vector3, root: BasePart): number
+	local last = 0
+	for _, row in finisher.Layers or {} do
+		local host: Instance = root
+		local h = row.Host or {}
+		local o = h.Offset or { 0, 0, 0 }
+		local offset = Vector3.new(o[1], o[2], o[3])
+		local size = h.Size or 0
+		if size > 0 or offset.Magnitude > 0 then
+			local part = bare(row.Name or "Layer", self.folder, at + offset)
+			part.Size = Vector3.new(math.max(size, 0.05), 0.05, math.max(size, 0.05))
+			host = part
+		end
+		local e = CueVfx.emitter(row, { frame = "world" })
+		if e.Texture == "" then
+			e.Texture = Textures.Emitter
+		end
+		e.Rate = 0
+		e.Enabled = true
+		e.Parent = host
+		local burst = math.floor(row.Burst or 0)
+		local delay = row.Delay or 0
+		local life = CueVfx.range(row.Lifetime, 1).Max
+		last = math.max(last, delay + life)
+		if host ~= root then
+			Debris:AddItem(host, delay + life + 0.5)
+		end
+		task.delay(delay, function()
+			if e.Parent then
+				e:Emit(burst)
+			end
+		end)
+	end
+	for _, r in finisher.Rings or {} do
+		local delay, seconds = r.Delay or 0, r.Seconds or 0.45
+		last = math.max(last, delay + seconds)
+		task.delay(delay, function()
+			local ring = bare("SkinRing", self.folder, at + Vector3.new(0, 0.02, 0))
+			ring.Size = Vector3.new(r.Start or 0.2, 0.02, r.Start or 0.2)
+			local decal = Instance.new("Decal")
+			decal.Face = Enum.NormalId.Top
+			decal.Texture = if r.Texture and r.Texture ~= ""
+				then r.Texture
+				else Config.Guideline.RingTextureId
+			decal.Color3 = CueVfx.color(r.Color or "#FFFFFF")
+			decal.Parent = ring
+			local info = TweenInfo.new(seconds, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+			local e = r.End or 2
+			TweenService:Create(ring, info, { Size = Vector3.new(e, 0.02, e) }):Play()
+			TweenService:Create(decal, info, { Transparency = 1 }):Play()
+			Debris:AddItem(ring, seconds + 0.2)
+		end)
+	end
+	local p = finisher.Piece
+	if p and CuePiece.available(p.Piece) then
+		local delay, seconds = p.Delay or 0.1, p.Seconds or 1.3
+		last = math.max(last, delay + seconds)
+		local anchor = bare("PocketPiece", self.folder, at)
+		local piece = CuePiece.new(p.Piece, anchor, self.folder)
+		if piece then
+			piece:setFade(1)
+			local camera = workspace.CurrentCamera
+			local flat = (camera.CFrame.Position - at) * Vector3.new(1, 0, 1)
+			if flat.Magnitude < 1e-3 then
+				flat = Vector3.new(0, 0, 1)
+			end
+			local base = CFrame.lookAt(at, at + flat)
+			local started = os.clock()
+			local step: RBXScriptConnection
+			step = RunService.RenderStepped:Connect(function()
+				local tt = os.clock() - started - delay
+				if tt > seconds or anchor.Parent == nil then
+					step:Disconnect()
+					piece:destroy()
+					anchor:Destroy()
+					return
+				end
+				if tt < 0 then
+					return
+				end
+				local k = tt / seconds
+				local rise = Motion.curve(p.Rise or { { 0, -1 }, { 0.3, 0.2 }, { 1, 0.4 } }, k)
+				local spin = Motion.curve(p.Spin or 0, k)
+				anchor.CFrame = base * CFrame.new(0, rise, 0) * CFrame.Angles(0, math.rad(spin), 0)
+				piece:setScale(Motion.curve(p.Scale or { { 0, 0.5 }, { 0.3, 1 }, { 1, 1.05 } }, k))
+				local fade = Motion.curve(
+					p.Transparency or { { 0, 0.3 }, { 0.15, 0 }, { 0.75, 0 }, { 1, 1 } },
+					k
+				)
+				piece:setFade(math.clamp(fade, 0, 1))
+				piece:step(tt)
+			end)
+		else
+			anchor:Destroy()
+		end
+	end
+	return last + 0.5
 end
 
 function Effects.destroy(self: Effects)

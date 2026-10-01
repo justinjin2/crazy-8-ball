@@ -8,11 +8,11 @@ return {
 	Name = "Kitsune",
 	Tier = "Mythic",
 	Maps = {
-		Color = "",
-		Normal = "",
-		Roughness = "",
-		Metalness = "",
-		Emissive = "",
+		Color = "rbxassetid://122478085009471",
+		Normal = "rbxassetid://115727360384617",
+		Roughness = "rbxassetid://138199809767852",
+		Metalness = "rbxassetid://133553584903739",
+		Emissive = "rbxassetid://111715315809600",
 	},
 	Surface = {
 		EmissiveStrength = 1.8,
@@ -30,12 +30,13 @@ return {
 		Emitters = {
 			{
 				Name = "Petals",
-				Texture = "",
+				Texture = "rbxassetid://72050880509855",
 				FlipbookLayout = "Grid2x2",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = { 6, 10 },
 				FlipbookStartRandom = true,
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7.2,
 					Width = 0.6,
@@ -69,10 +70,11 @@ return {
 			},
 			{
 				Name = "Wisps",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 6.6,
 					ToStuds = 7.3,
 					Width = 0.18,
@@ -107,8 +109,9 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.2,
 					ToStuds = 7.3,
 					Width = 0.55,
@@ -137,10 +140,11 @@ return {
 			},
 			{
 				Name = "Foxfire",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.4,
 					ToStuds = 6.6,
 					Width = 0.2,
@@ -175,10 +179,11 @@ return {
 			},
 			{
 				Name = "Haze",
-				Texture = "",
+				Texture = "rbxassetid://107986039759482",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Part",
 					FromStuds = 0.5,
 					ToStuds = 7.3,
 					Width = 0.3,
@@ -211,7 +216,7 @@ return {
 			},
 			{
 				Name = "FoxTrail",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Rate = 6,
@@ -240,6 +245,7 @@ return {
 				LightInfluence = 0,
 				LockedToPart = false,
 				Host = {
+					Kind = "Segment",
 					Joint = "FoxRun",
 					From = { 4.3, 0.527, 0.16 },
 					To = { 4.3, 0.5, -0.07 },
@@ -276,11 +282,11 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://133220394984415",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://99377979006520",
 					Size = 0.46,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -314,11 +320,11 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://133220394984415",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://99377979006520",
 					Size = 0.46,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -352,11 +358,11 @@ return {
 						{ 1, 0.3 },
 					},
 					LightEmission = 1,
-					Texture = "",
+					Texture = "rbxassetid://133220394984415",
 					TextureMode = "Stretch",
 				},
 				Head = {
-					Texture = "",
+					Texture = "rbxassetid://99377979006520",
 					Size = 0.46,
 					Color = "#FFFFFF",
 					LightEmission = 1,
@@ -371,7 +377,7 @@ return {
 				Width0 = 0.28,
 				Width1 = 0.6,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
 					{ 0, "#FF9AE8" },
@@ -427,7 +433,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -463,7 +469,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -499,7 +505,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -535,7 +541,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -571,7 +577,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -607,7 +613,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -643,7 +649,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -679,7 +685,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -715,7 +721,7 @@ return {
 				Width0 = 0.12,
 				Width1 = 0.3,
 				Segments = 20,
-				Texture = "",
+				Texture = "rbxassetid://82128475528717",
 				TextureMode = "Stretch",
 				Color = "#E8C8FF",
 				Transparency = {
@@ -738,8 +744,10 @@ return {
 	TrailEmitters = {
 		{
 			Name = "Orbs",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://99377979006520",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 3,
 			Lifetime = { 0.6, 0.9 },
 			Speed = { 0.2, 0.5 },
@@ -760,11 +768,13 @@ return {
 		},
 		{
 			Name = "Petals",
-			Texture = "",
+			Texture = "rbxassetid://72050880509855",
 			FlipbookLayout = "Grid2x2",
 			FlipbookMode = "Loop",
 			FlipbookFramerate = 8,
-			Host = {},
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 7,
 			Lifetime = { 0.6, 1 },
 			Speed = { 0.3, 0.8 },
@@ -784,8 +794,10 @@ return {
 		},
 		{
 			Name = "Sparks",
-			Texture = "",
-			Host = {},
+			Texture = "rbxassetid://78860393208560",
+			Host = {
+				Kind = "Point",
+			},
 			Rate = 12,
 			Lifetime = { 0.3, 0.6 },
 			Speed = { 0.3, 0.9 },
@@ -815,7 +827,7 @@ return {
 			Lifetime = 1.2,
 			WidthStuds = 0.5,
 			LightEmission = 1,
-			Texture = "",
+			Texture = "rbxassetid://133220394984415",
 			TextureMode = "Wrap",
 			TextureLength = 1.3,
 			WidthScale = {
@@ -860,10 +872,11 @@ return {
 		Layers = {
 			{
 				Name = "Column",
-				Texture = "",
+				Texture = "rbxassetid://118342487469917",
 				FlipbookLayout = "Grid8x8",
 				FlipbookMode = "OneShot",
 				Host = {
+					Kind = "Point",
 					Size = 0.5,
 				},
 				Burst = 14,
@@ -892,7 +905,7 @@ return {
 			},
 			{
 				Name = "Orbs",
-				Texture = "",
+				Texture = "rbxassetid://99377979006520",
 				Burst = 9,
 				Delay = 0.05,
 				Lifetime = { 1.1, 1.3 },
@@ -917,11 +930,12 @@ return {
 			},
 			{
 				Name = "Petals",
-				Texture = "",
+				Texture = "rbxassetid://72050880509855",
 				FlipbookLayout = "Grid2x2",
 				FlipbookMode = "Loop",
 				FlipbookFramerate = 8,
 				Host = {
+					Kind = "Point",
 					Offset = { 0, 2, 0 },
 					Size = 2.4,
 				},
@@ -945,7 +959,7 @@ return {
 			},
 			{
 				Name = "Sparkles",
-				Texture = "",
+				Texture = "rbxassetid://118250274152711",
 				Burst = 20,
 				Delay = 0.5,
 				Lifetime = { 0.5, 0.9 },
@@ -970,7 +984,7 @@ return {
 		},
 		Rings = {
 			{
-				Texture = "",
+				Texture = "rbxassetid://119134400645079",
 				Color = "#FF78DC",
 				Start = 0.4,
 				End = 4.8,
@@ -1010,7 +1024,7 @@ return {
 		KeepRibbons = false,
 	},
 	Piece = "kitsune",
-	Thumb = "",
+	Thumb = "rbxassetid://97653274092382",
 	Look = {
 		Shaft = { 235, 198, 185 },
 		Forearm = { 218, 132, 118 },
