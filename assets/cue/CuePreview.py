@@ -182,7 +182,7 @@ def blender_main(args):
     reach = 0.0
     piece_joints = None
     if skin.get('piece'):
-        pj = json.load(open(os.path.join(HERE, 'pieces', skin['piece'], 'piece.json')))
+        pj = CuePieces.link_paths(json.load(open(os.path.join(HERE, 'pieces', skin['piece'], 'piece.json'))))
         piece_joints = pj['Joints']
         reach = max(0.0, max(3.5 - (p_['Offset'][2] - p_['Size'][2] / 2) for p_ in pj['Parts']) - 7.0)
     frames_spec = (V.get('Moving') or {}).get('Frames')

@@ -90,7 +90,7 @@
   },
   "vfx": {
     "Piece": {
-      "Note": "pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body (DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its ForceField sheath, Neon core and Neon flame fins, on the bones Coil (root, a Spin round the cue's axis, and a slow surge along it), Body1-10 (each two Bobs, sideways and outward, a beat after the last: waves down the body), Tail (riding Body1, a flick) and the neck chain Neck1 > Neck2 (Hinges: rearing and swaying). DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding Neck2: nods, looks round, rears back roaring every 4.8 s), Jaw (gapes on the roar) and Mane. Every joint is Aura (hidden on the shooter's turn); piece.json has each pivot and motion, and each Bone's Transform is set as the report says (6.3).",
+      "Note": "pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body (DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its ForceField sheath, Neon core and Neon flame fins, on the bones Dragon (root, still) and Spine1-30, each a Path motion riding the swimming loop Swim (piece.json Paths: a lap round the cue, tip end to butt end and back, in 10 s) with two Bobs on top (a quick wave down the body) and on Spine1 a tail flick. DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding Spine30: nods, looks round, rears back roaring every 4.8 s), Jaw (gapes on the roar) and Mane. Every joint is Aura (hidden on the shooter's turn); piece.json has each pivot and motion, and each Bone's Transform is set as the report says (6.3).",
       "Triangles": 20536
     },
     "Moving": {
@@ -98,7 +98,7 @@
       "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
     },
     "Aura": {
-      "Note": "A spirit dragon of blue light coils round the cue (the 3D piece: its tail at the butt, 2.25 turns up the cue, its head rising off it near the tip, a few inches short of it, roaring), swimming round the cue and slithering, waves running down its body, its tail flicking, its neck rearing and swaying, its head looking round and rearing back to roar; blue spirit flames peel off its back all along it and off its head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) and a blue light on the coil. The dragon is aura: it goes with the rest on the shooter's turn.",
+      "Note": "A spirit dragon of blue light swims round the cue (the 3D piece): it circles the cue all the time while it slithers from the tip end to the butt end and back, turning round at each end (a lap in 10 s; its snout never closer than a few inches to the tip), its body following the path its head swam with a quick wave running down it, its tail flicking, its head looking round and rearing back to roar; blue spirit flames peel off its back and head and trail behind it; drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) and a blue light on the cue. The dragon is aura: it goes with the rest on the shooter's turn.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -235,14 +235,14 @@
             "Kind": "Segment",
             "Joint": "Head",
             "From": [
-              1.158,
-              -0.445,
-              0.184
+              3.578,
+              -0.222,
+              -0.092
             ],
             "To": [
-              1.408,
-              -0.445,
-              0.08399999999999999
+              3.828,
+              -0.222,
+              -0.192
             ],
             "Radius": 0.08
           },
@@ -383,20 +383,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody1",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine3",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body1",
+            "Joint": "Spine3",
             "From": [
-              6.565,
-              0.085,
-              0.23
+              6.486,
+              0.373,
+              0.015
             ],
             "To": [
-              6.774,
-              0.211,
-              0.178
+              6.432,
+              0.394,
+              -0.229
             ],
             "Radius": 0.04
           }
@@ -469,20 +469,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody2",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine6",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body2",
+            "Joint": "Spine6",
             "From": [
-              6.089,
-              -0.239,
-              0.152
+              6.407,
+              0.081,
+              0.38
             ],
             "To": [
-              6.295,
-              -0.159,
-              0.269
+              6.528,
+              0.297,
+              0.344
             ],
             "Radius": 0.04
           }
@@ -555,20 +555,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody3",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine9",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body3",
+            "Joint": "Spine9",
             "From": [
-              5.637,
-              -0.244,
-              -0.216
+              6.139,
+              -0.309,
+              0.248
             ],
             "To": [
-              5.839,
-              -0.337,
-              -0.103
+              6.309,
+              -0.201,
+              0.395
             ],
             "Radius": 0.04
           }
@@ -641,20 +641,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody4",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine12",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body4",
+            "Joint": "Spine12",
             "From": [
-              5.16,
-              0.174,
-              -0.308
+              5.823,
+              -0.358,
+              -0.129
             ],
             "To": [
-              5.36,
-              0.041,
-              -0.378
+              6.009,
+              -0.422,
+              0.025
             ],
             "Radius": 0.04
           }
@@ -727,20 +727,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody5",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine15",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body5",
+            "Joint": "Spine15",
             "From": [
-              4.708,
-              0.356,
-              0.086
+              5.472,
+              -0.065,
+              -0.361
             ],
             "To": [
-              4.904,
-              0.388,
-              -0.066
+              5.667,
+              -0.221,
+              -0.339
             ],
             "Radius": 0.04
           }
@@ -813,20 +813,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody6",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine18",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body6",
+            "Joint": "Spine18",
             "From": [
-              4.255,
-              0.016,
-              0.378
+              5.124,
+              0.258,
+              -0.243
             ],
             "To": [
-              4.448,
-              0.175,
-              0.367
+              5.324,
+              0.16,
+              -0.356
             ],
             "Radius": 0.04
           }
@@ -899,20 +899,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody7",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine21",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body7",
+            "Joint": "Spine21",
             "From": [
-              3.779,
-              -0.378,
-              0.098
+              4.769,
+              0.335,
+              0.083
             ],
             "To": [
-              3.969,
-              -0.333,
-              0.254
+              4.973,
+              0.374,
+              -0.057
             ],
             "Radius": 0.04
           }
@@ -985,20 +985,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody8",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine24",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body8",
+            "Joint": "Spine24",
             "From": [
-              3.326,
-              -0.204,
-              -0.347
+              4.392,
+              0.093,
+              0.324
             ],
             "To": [
-              3.513,
-              -0.345,
-              -0.259
+              4.598,
+              0.23,
+              0.288
             ],
             "Radius": 0.04
           }
@@ -1071,20 +1071,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody9",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine27",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body9",
+            "Joint": "Spine27",
             "From": [
-              2.85,
-              0.306,
-              -0.28
+              4.027,
+              -0.22,
+              0.248
             ],
             "To": [
-              3.033,
-              0.188,
-              -0.403
+              4.235,
+              -0.118,
+              0.342
             ],
             "Radius": 0.04
           }
@@ -1157,192 +1157,20 @@
           "LightEmission": 1,
           "LightInfluence": 0,
           "LockedToPart": false,
-          "Name": "SpiritFlamesBody10",
-          "Rate": 1.2,
+          "Name": "SpiritFlamesSpine30",
+          "Rate": 1.4,
           "Host": {
             "Kind": "Segment",
-            "Joint": "Body10",
+            "Joint": "Spine30",
             "From": [
-              2.397,
-              0.364,
-              0.224
+              3.661,
+              -0.316,
+              -0.052
             ],
             "To": [
-              2.577,
-              0.451,
-              0.074
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/_shared/energy_flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.05,
-            0.2
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.22
-            ],
-            [
-              0.4,
-              0.48
-            ],
-            [
-              1,
-              0.16
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.4
-            ],
-            [
-              0.3,
-              0.15
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#EAF6FF"
-            ],
-            [
-              0.5,
-              "#6FB8FF"
-            ],
-            [
-              1,
-              "#2A5CE0"
-            ]
-          ],
-          "Brightness": 1.8,
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesNeck1",
-          "Rate": 1.2,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Neck1",
-            "From": [
-              2.04,
-              -0.0,
-              0.436
-            ],
-            "To": [
-              2.218,
-              0.175,
-              0.432
-            ],
-            "Radius": 0.04
-          }
-        },
-        {
-          "Texture": "vfx/_shared/energy_flame_8x8.png",
-          "FlipbookLayout": "Grid8x8",
-          "FlipbookMode": "OneShot",
-          "Lifetime": [
-            0.5,
-            0.8
-          ],
-          "Speed": [
-            0.05,
-            0.2
-          ],
-          "SpreadAngle": [
-            60,
-            60
-          ],
-          "EmissionDirection": "Top",
-          "Acceleration": [
-            0,
-            0.3,
-            0
-          ],
-          "Size": [
-            [
-              0,
-              0.22
-            ],
-            [
-              0.4,
-              0.48
-            ],
-            [
-              1,
-              0.16
-            ]
-          ],
-          "Transparency": [
-            [
-              0,
-              0.4
-            ],
-            [
-              0.3,
-              0.15
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "Color": [
-            [
-              0,
-              "#EAF6FF"
-            ],
-            [
-              0.5,
-              "#6FB8FF"
-            ],
-            [
-              1,
-              "#2A5CE0"
-            ]
-          ],
-          "Brightness": 1.8,
-          "LightEmission": 1,
-          "LightInfluence": 0,
-          "LockedToPart": false,
-          "Name": "SpiritFlamesNeck2",
-          "Rate": 1.2,
-          "Host": {
-            "Kind": "Segment",
-            "Joint": "Neck2",
-            "From": [
-              1.529,
-              -0.4,
-              0.252
-            ],
-            "To": [
-              1.764,
-              -0.325,
-              0.291
+              3.87,
+              -0.339,
+              0.084
             ],
             "Radius": 0.04
           }
@@ -1397,7 +1225,7 @@
       ],
       "Lights": [
         {
-          "AtStuds": 4.0,
+          "AtStuds": 3.6,
           "Color": "#6FB8FF",
           "Brightness": 1.5,
           "Range": 9,
@@ -1852,12 +1680,12 @@
       "KeepRibbons": false
     },
     "Budget": {
-      "ParticlesPerSecond": 50.4,
-      "Back": 25.2,
+      "ParticlesPerSecond": 50.0,
+      "Back": 25.0,
       "BallTrail": 28,
       "Beams": 1,
       "Lights": 1,
-      "PieceTriangles": 33294,
+      "PieceTriangles": 26902,
       "PocketPieceTriangles": 27500
     }
   }

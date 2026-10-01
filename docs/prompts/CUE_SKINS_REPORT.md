@@ -74,7 +74,7 @@ commits a reduced `source.glb` and 1024 px maps per model.
 
 | Piece | Triangles | Made by | Moves |
 |---|---|---|---|
-| celestial_dragon | 33.3k | scripted spirit body (scale texture, sheath, core, fins) + Meshy head (rigged hologram) | the whole dragon swims and surges round the cue, two waves slither down its body (ten bones), the tail flicks, the neck (two bones) rears and sways, the head nods, looks round and rears back roaring, the mane streams |
+| celestial_dragon | 26.9k | scripted spirit body (scale texture, sheath, core, fins) + Meshy head (rigged hologram) | the whole dragon swims round the cue from the tip end to the butt end and back, turning at each end (30 spine bones riding a looping path, a lap in 10 s), a quick wave down its body, the tail flicks, the head nods, looks round and rears back roaring, the mane streams |
 | celestial_dragon_pocket | 27.5k | Meshy (rigged hologram) | sways, nods, roars, claws |
 | kitsune | 39.0k | Meshy mask and a small Meshy running fox (rigged holograms) | ears twitch, jaw opens; the fox gallops round the forearm; the tails are Beams |
 | kitsune_pocket | 27.5k | Meshy (rigged hologram) | head tilts, nine tails sway |
@@ -189,7 +189,7 @@ generic cue-VFX script can build everything from the skin data:
 - **Pieces** (Legendary and up): `pieces/<id>/*.obj` become MeshParts welded to the cue, one per
   joint and material, each placed by its `Offset` in the Roblox cue frame, with the Roblox
   Material, Color, Transparency and Reflectance from `piece.json`. A small script animates each
-  joint from its `Motion` list (Hinge, Sway, Spin, Bob with sine, snap or pulse waves) about its
+  joint from its `Motion` list (Hinge, Sway, Spin, Bob with sine, snap or pulse waves; Path, below) about its
   `PivotRoblox`, parents first; `joint_matrix` in `CuePieces.py` is the reference maths.
 - **Back-worn cues:** every emitter's Rate times `BackRateScale` (0.5).
 - **Where the aura shows (designer, 2026-09-30):** on the back, the cue sits in front of the
@@ -200,13 +200,22 @@ generic cue-VFX script can build everything from the skin data:
   piece's glow effects), so nothing distracts from aiming; it comes back when the cue returns
   to the back. The cue itself, its surface and its trail and pocket effects stay on.
 - **Aura joints (designer, 2026-09-30):** a joint with `Aura: true` in `piece.json` (the
-  Celestial Dragon's whole coiling dragon, the Kitsune's running fox) is part of the aura: hide
+  Celestial Dragon's whole swimming dragon, the Kitsune's running fox) is part of the aura: hide
   it, its parts and its child joints with the rest of the aura on the shooter's turn.
 - **Skinned pieces (designer, 2026-09-30):** parts with `Skinned` in `piece.json` are `.glb`
   files (a MeshPart with Bones, import with rig); each Bone's `Transform = Rest^-1 *
   J_parent^-1 * J_bone * Rest` every frame, J from the joint's `Motion` list. Their
   SurfaceAppearance has `AlphaMode = Transparency` (the hologram look is baked in the maps) and
   a `<name>Shell` ForceField mesh follows the same bones.
+- **Path motions (designer, 2026-09-30: the Celestial Dragon swims back and forth along the
+  cue):** `piece.json` has `Paths`: a looping track sampled every `Step` studs of arc length as
+  `[x, y, z, qw, qx, qy, qz]` in the Blender cue frame (the rotation's columns are side, the way
+  along the path and away from the cue). A `Path` motion `{Path, Rest, Speed}` puts the joint on
+  the track: `X(t) = F(Rest + Speed * t) * F(Rest)^-1`, F the track's frame at that arc length
+  (wrapping round the loop; between samples lerp the point and slerp the turn, `CFrame:Lerp`),
+  applied before the joint's other motions in the list (so a Bob after it rides with the
+  joint). Turn it into the Roblox cue frame like any joint matrix. `path_frame` and
+  `motion_matrix` in `CuePieces.py` are the reference maths.
 
 ### 6.4 The upload list
 

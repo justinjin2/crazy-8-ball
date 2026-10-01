@@ -26,56 +26,71 @@ def _icy_eyes(px):
             * ((h > 0.53) & (h < 0.7)))
 
 
-# the spirit dragon's coil (designer, 2026-09-30: "an animated spiritual dragon spiralling
-# around the cue, not just a dragon head at the butt", as the concept): the tail at the butt, the
-# body coiling up the cue, the head reaching up the shaft to a few inches short of the tip
-# (designer, 2026-09-30: not past the tip; then "closer to the tip, just not matched with it,
-# a few inches back")
-DRAGON_T1 = 1.15          # the path runs t = 0 (tail) .. 1 (the coil's end on the shaft) .. T1 (neck)
-COIL_W = 2 * math.pi * 2.25   # the coil's turn per unit t (2.25 turns)
-COIL_AT = (6.85, 1.9)     # AtStuds of the tail and of the coil's end (t = 1); the neck carries on
-                          # to about 1.15 and the snout to about 0.35, a few inches short of the tip
-NECK_TAU = 0.06           # past the coil the turn eases off over this much t, so the neck reaches
-                          # forward up the shaft instead of swinging on round it
+# the spirit dragon swims (designer, 2026-09-30: "an animated spiritual dragon spiralling around
+# the cue", then "slithers around back and forth from the cue from tip to butt and turns around,
+# faster, more fluid and smooth"): a closed swimming loop round the cue that circles it all the
+# time while running from the tip end to the butt end and back, turning round at each end where
+# it flattens into a circle; it runs on the outside (radius r0 + dr) going to the butt and on the
+# inside coming back, so the dragon never swims through itself. The body rides the loop like a
+# train on a track (each spine bone a Path motion), so it slithers through the same curves the
+# head took. The snout stays a few inches short of the tip (designer, 2026-09-30).
+SWIM_AT = (0.65, 6.5)     # AtStuds the front of the spine reaches at the tip end and the butt end
+SWIM_TURNS = 3.0          # turns round the cue on each leg
+SWIM_ROUND = 0.96         # how sharply each end turns round (1 a sharp triangle, 0 a sine)
+SWIM_R = (0.34, 0.1)      # the loop's radius round the cue's axis: r0 + dr sin(phase)
+SWIM_PERIOD = 10.0        # seconds for a whole lap, tip to butt and back
+SWIM_BODY = 4.5           # the spine's length, studs (the head sits on its front)
+SWIM_STEP = 0.02          # the path's sample spacing, studs
 
 
-def _dragon_path(t):
-    """A point on the dragon's spine (Blender cue frame) for t in [0, DRAGON_T1]: the coil, then
-    the neck carrying straight on (no kink) as it rises out and reaches forward up the shaft."""
-    at = COIL_AT[0] - (COIL_AT[0] - COIL_AT[1]) * t
-    if t <= 1:
-        rr = 0.22 + 0.13 * t
-        ang = 0.4 + COIL_W * t
-    else:
-        e = t - 1
-        rr = 0.35 + 0.13 * e + 5.0 * e * e
-        ang = 0.4 + COIL_W + COIL_W * NECK_TAU * (1 - math.exp(-e / NECK_TAU))
-    return (rr * math.sin(ang), -at, rr * math.cos(ang))
+def _swim_point(phi):
+    """The loop at phase phi (0 .. 2 pi): at the tip end at 0, the butt end at pi."""
+    mid = (SWIM_AT[0] + SWIM_AT[1]) / 2
+    amp = (SWIM_AT[1] - SWIM_AT[0]) / 2
+    # a rounded triangle wave: an even pitch along each leg (so it reads as a spiral all the way)
+    # and a short smooth turn round at each end
+    at = mid - amp * math.asin(SWIM_ROUND * math.cos(phi)) / math.asin(SWIM_ROUND)
+    th = 0.4 + 2 * SWIM_TURNS * phi
+    r = SWIM_R[0] + SWIM_R[1] * math.sin(phi)
+    return (r * math.sin(th), -at, r * math.cos(th))
+
+
+def _swim_loop():
+    """The loop sampled every ~SWIM_STEP of arc length: (frames, step, length), each frame
+    (phase, point, tangent, normal away from the cue, side = tangent x normal)."""
+    import numpy as np
+    from mathutils import Vector
+    n_fine = 60000
+    ph = np.linspace(0, 2 * math.pi, n_fine, endpoint=False)
+    P = np.array([_swim_point(x) for x in ph])
+    seg = np.linalg.norm(np.roll(P, -1, 0) - P, axis=1)
+    cum = np.concatenate([[0], np.cumsum(seg)])
+    length = float(cum[-1])
+    n = int(round(length / SWIM_STEP))
+    step = length / n
+    out = []
+    for i in range(n):
+        s_ = i * step
+        k_ = int(np.searchsorted(cum, s_, side='right') - 1) % n_fine
+        f = (s_ - cum[k_]) / max(seg[k_], 1e-9)
+        phi = ph[k_] + f * (2 * math.pi / n_fine)
+        p = Vector(_swim_point(phi))
+        a_ = Vector(_swim_point(phi - 1e-4))
+        b_ = Vector(_swim_point(phi + 1e-4))
+        tg = (b_ - a_).normalized()
+        radial = Vector((p.x, 0, p.z))
+        nrm = (radial - tg * tg.dot(radial)).normalized()
+        out.append((phi, p, tg, nrm, tg.cross(nrm)))
+    return out, step, length
 
 
 def _dragon_radius(t):
-    """The body's radius: a thin tail thickening to the chest, a little thinner at the neck."""
-    grow = min(t / 0.35, 1.0)
+    """The body's radius along it (t = 0 at the tail, 1 at the neck): a thin tail thickening to
+    the chest, a little thinner at the neck."""
+    grow = min(t / 0.3, 1.0)
     grow = grow * grow * (3 - 2 * grow)
-    neck = max(t - 1.0, 0.0) / (DRAGON_T1 - 1.0)
+    neck = min(max(t - 0.88, 0.0) / 0.12, 1.0)
     return 0.012 + 0.078 * grow - 0.012 * neck
-
-
-def _dragon_frames(n):
-    """n samples along the spine: (t, point, tangent, dorsal normal, side), the dorsal normal
-    pointing away from the cue (so the back faces out and the belly the cue)."""
-    from mathutils import Vector
-    out = []
-    for i in range(n):
-        t = DRAGON_T1 * i / (n - 1)
-        p = Vector(_dragon_path(t))
-        a = Vector(_dragon_path(max(t - 0.004, 0)))
-        b = Vector(_dragon_path(min(t + 0.004, DRAGON_T1)))
-        tg = (b - a).normalized()
-        radial = Vector((p.x, 0, p.z))
-        nrm = (radial - tg * tg.dot(radial)).normalized()
-        out.append((t, p, tg, nrm, tg.cross(nrm)))
-    return out
 
 
 def _dragon_tube(bm, frames, radius, segs, uv=None, v_per_stud=3.0, flat=0.85):
@@ -152,21 +167,20 @@ def _dragon_scales_png(k, name, w=256, h=512):
 
 @piece
 def celestial_dragon(k):
-    """The Celestial Dragon as the concept draws it (designer, 2026-09-30): a spirit dragon of
-    blue light coiling round the cue, its tail at the butt, its body spiralling 2.25 turns up the
-    cue and its neck rising off it near the tip (the snout a few inches short of it), the head (Meshy, assets/cue/models/
-    dragon_head) on it roaring. All of it is a spirit, see-through and glowing: the body is
-    translucent blue scales with glowing rims, a white-hot dorsal line and pale belly plates
-    (its own SurfaceAppearance), in a shimmering ForceField sheath round a bright core, with flame
-    fins along its back and a flame tail fin; the head is the hologram of the generated model.
+    """The Celestial Dragon (designer, 2026-09-30): a spirit dragon of blue light swimming round
+    the cue, circling it all the time while it runs from the tip end to the butt end and back,
+    turning round at each end, the head (Meshy, assets/cue/models/dragon_head) on its front. All
+    of it is a spirit, see-through and glowing: the body is translucent blue scales with glowing
+    rims, a white-hot dorsal line and pale belly plates (its own SurfaceAppearance), in a
+    shimmering ForceField sheath round a bright core, with flame fins along its back and a flame
+    tail fin; the head is the hologram of the generated model.
 
-    Moving (all aura: hidden on the shooter's turn): the whole dragon swims slowly round the cue
-    (Coil, a Spin about the cue's axis, so the coils seem to flow along it); a wave runs down the
-    body from the neck to the tail (ten body bones, each with a sideways and an outward bob a
-    beat after the one before, so it slithers), and the whole coil surges up and down the cue;
-    the tail flicks; the neck (two bones, Neck1 and Neck2) rears and sways and the head on it
-    nods and looks round, their moves adding up; every 4.8 s it rears back roaring, the jaw
-    gaping; the mane streams (designer, 2026-09-30: "move its head more ... like a live dragon")."""
+    Moving (all aura: hidden on the shooter's turn): thirty spine bones ride the swimming loop
+    (Path motions, piece.json Paths: a lap in SWIM_PERIOD seconds), so the body slithers through
+    the curves the head swam; on top a quick wave runs down the body from the neck to the tail
+    (each bone a sideways and an outward bob a beat after the one before), the tail flicks, the
+    head nods and looks round and every 4.8 s rears back roaring, the jaw gaping; the mane
+    streams."""
     import numpy as np
     import bmesh
     from mathutils import Matrix, Vector
@@ -175,72 +189,68 @@ def celestial_dragon(k):
     k.material('Core', 'Neon', '#D8EEFF', Transparency=0.45)
     k.material('Fin', 'Neon', '#9ACFFF', Transparency=0.35)
 
-    # head first: a positive Spin about +Y turns the coil the way its turns climb toward the head;
-    # the whole coil also surges gently up and down the cue as it swims
-    k.joint('Coil', pivot=(0, 0, 0), aura=True, motion=[
-        {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 44.0},
-        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.06, 'Period': 6.0}])
-    frames = _dragon_frames(240)
+    loop, step, length = _swim_loop()
+    n = len(loop)
+    speed = length / SWIM_PERIOD
+    mats = []
+    for _, p, tg, nrm, side in loop:
+        M = np.eye(4)
+        M[:3, 0], M[:3, 1], M[:3, 2], M[:3, 3] = tuple(side), tuple(tg), tuple(nrm), tuple(p)
+        mats.append(M)
+    k.path('Swim', mats, step)
+
+    # the rest pose: the front of the spine mid-way along the leg back to the tip (phase 1.5 pi)
+    i_front = min(range(n), key=lambda i: abs(loop[i][0] - 1.5 * math.pi))
+    nb = int(round(SWIM_BODY / step))
+    i_tail = i_front - nb
+    frames = []                                       # (t along the body 0..1, point, tangent, normal, side)
+    for i in range(i_tail, i_front + 1):
+        _, p, tg, nrm, side = loop[i % n]
+        frames.append(((i - i_tail) / nb, p, tg, nrm, side))
+
+    def arc(t):                                       # the path's arc length at body place t (rest)
+        return ((i_tail + t * nb) % n) * step
 
     def frame_at(t):
-        return frames[int(round(t / DRAGON_T1 * (len(frames) - 1)))]
+        return frames[int(round(t * nb))]
 
-    # the body's bones: two waves running down from the neck to the tail, one rolling the body
-    # along the cue (sideways), one lifting it off the cue and back (a slower breath), so the
-    # coils slither instead of bobbing
-    NB = 10
-    C0, C1 = 0.06, 0.9
-    centres = [C0 + (C1 - C0) * b / (NB - 1) for b in range(NB)]
-    width = (C1 - C0) / (NB - 1)
-    path_t = np.array([f[0] for f in frames])
-    path_p = np.array([tuple(f[1]) for f in frames])
+    k.joint('Dragon', pivot=(0, 0, 0), aura=True)
+
+    # the spine: bones riding the loop, a quick wave on top running from the neck to the tail
+    NB = 30
+    centres = [0.02 + 0.96 * b / (NB - 1) for b in range(NB)]
+    width = 0.96 / (NB - 1)
+    WAVE = 1.5                                        # the body wave's length, studs
     bone_names = []
     for b, tc in enumerate(centres):
         _, p, tg, nrm, side = frame_at(tc)
-        f = b / (NB - 1)
-        nm = 'Body%d' % (b + 1)
-        k.joint(nm, pivot=tuple(p), parent='Coil', aura=True, motion=[
-            {'Kind': 'Bob', 'Dir': tuple(side), 'Amp': 0.045 + 0.03 * f, 'Period': 2.0, 'Phase': 36 * b},
-            {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': 0.022 + 0.018 * f, 'Period': 3.1, 'Phase': 64 * b}])
+        env = (0.035 + 0.025 * (1 - tc)) * (1 - 0.6 * max(0.0, (tc - 0.82) / 0.18))
+        ph = 360.0 * tc * SWIM_BODY / WAVE
+        nm = 'Spine%d' % (b + 1)
+        motion = [{'Kind': 'Path', 'Path': 'Swim', 'Rest': round(arc(tc), 4), 'Speed': round(speed, 4)},
+                  {'Kind': 'Bob', 'Dir': tuple(side), 'Amp': round(env, 4), 'Period': 1.1, 'Phase': round(ph, 1)},
+                  {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': round(0.4 * env, 4), 'Period': 1.1, 'Phase': round(ph + 90, 1)}]
+        if b == 0:                                    # the tail flicks
+            motion.append({'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 25.0, 'Period': 0.9})
+        k.joint(nm, pivot=tuple(p), parent='Dragon', aura=True, motion=motion)
         bone_names.append((nm, tc))
 
-    # the tail flicks (riding Body1); the neck is a chain of two bones (Neck1 off the coil, Neck2
-    # riding it, the head riding Neck2), each rearing and swaying, so the head's moves add up; the
-    # rearing (about side: positive lifts away from the cue) never dips below the rest pose, so the
-    # head never dives into the cue, and the sway is small at Neck1, where it would reach the tip
-    _, p, tg, nrm, side = frame_at(0.05)
-    k.joint('Tail', pivot=tuple(p), parent='Body1', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 24.0, 'Period': 1.7},
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 10.0, 'Period': 2.3, 'Phase': 70}])
-    _, p, tg, nrm, side = frame_at(0.95)
-    k.joint('Neck1', pivot=tuple(p), parent='Coil', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 9.0, 'Amp': 9.0, 'Period': 4.4},
-        {'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 6.0, 'Period': 5.6, 'Phase': 30}])
-    _, p, tg, nrm, side = frame_at(1.05)
-    k.joint('Neck2', pivot=tuple(p), parent='Neck1', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 7.0, 'Amp': 7.0, 'Period': 3.2, 'Phase': 90},
-        {'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 12.0, 'Period': 3.9, 'Phase': 120}])
+    body_t = np.array([f[0] for f in frames])
+    body_p = np.array([tuple(f[1]) for f in frames])
 
     def t_of(V):
         # each vertex's place along the body: the nearest spine sample
-        d2 = ((V[:, None, :] - path_p[None, :, :]) ** 2).sum(-1)
-        return path_t[np.argmin(d2, 1)]
-
-    def smooth(x):
-        x = np.clip(x, 0, 1)
-        return x * x * (3 - 2 * x)
-
-    def neck1(tv):
-        return smooth((tv - 0.88) / 0.1)
+        d2 = ((V[:, None, :] - body_p[None, :, :]) ** 2).sum(-1)
+        return body_t[np.argmin(d2, 1)]
 
     def body_abs(idx, tv):
-        # the hats sum to one along the body (flat past the end bones), less what the neck takes
-        tc = np.clip(tv, C0, C1)
-        return np.clip(1 - np.abs(tc - centres[idx]) / width, 0, 1) * (1 - neck1(tv))
+        # the hats sum to one along the body (flat past the end bones)
+        tc = np.clip(tv, centres[0], centres[-1])
+        return np.clip(1 - np.abs(tc - centres[idx]) / width, 0, 1)
 
     def bone_fn(idx):
-        # skin_weights hands each bone a share of its parent's remaining weight: the body bones
-        # all ride Coil, so each takes its absolute weight over what the bones before it left
+        # skin_weights hands each bone a share of its parent's remaining weight: the spine bones
+        # all ride Dragon, so each takes its absolute weight over what the bones before it left
         def fn(V):
             tv = t_of(V)
             taken = sum(body_abs(j, tv) for j in range(idx)) if idx else np.zeros(len(V))
@@ -248,26 +258,24 @@ def celestial_dragon(k):
         return fn
 
     bones = {nm: bone_fn(i) for i, (nm, _) in enumerate(bone_names)}
-    bones['Tail'] = lambda V: smooth((0.1 - t_of(V)) / 0.1)          # a share of Body1's
-    bones['Neck1'] = lambda V: np.ones(len(V))                          # all Coil has left: the neck
-    bones['Neck2'] = lambda V: smooth((t_of(V) - 1.0) / 0.08)          # a share of Neck1's
 
     # the spirit body (textured), its sheath, its core
     paths = _dragon_scales_png(k, 'DragonBody')
     k.material('DragonBody', 'SmoothPlastic', '#FFFFFF', SurfaceAppearance={
         'ColorMap': paths['spirit'], 'EmissiveMask': paths['emissive'], 'EmissiveTint': '#8CC8FF',
         'EmissiveStrength': 1.8, 'AlphaMode': 'Transparency'})
+    rings = frames[::2]
     bm = bmesh.new()
     uv = bm.loops.layers.uv.new('UVMap')
-    _dragon_tube(bm, frames, _dragon_radius, 16, uv=uv, v_per_stud=2.4)
-    body = k.add('Coil', k.mesh_object('DragonBody', bm, ['DragonBody']))
-    thin = frames[::2]
+    _dragon_tube(bm, rings, _dragon_radius, 16, uv=uv, v_per_stud=2.4)
+    body = k.add('Dragon', k.mesh_object('DragonBody', bm, ['DragonBody']))
+    thin = frames[::4]
     bm = bmesh.new()
     _dragon_tube(bm, thin, lambda t: _dragon_radius(t) * 1.3 + 0.006, 12)
-    sheath = k.add('Coil', k.mesh_object('DragonSheath', bm, ['Sheath']))
+    sheath = k.add('Dragon', k.mesh_object('DragonSheath', bm, ['Sheath']))
     bm = bmesh.new()
     _dragon_tube(bm, thin, lambda t: _dragon_radius(t) * 0.28, 6)
-    core = k.add('Coil', k.mesh_object('DragonCore', bm, ['Core']))
+    core = k.add('Dragon', k.mesh_object('DragonCore', bm, ['Core']))
 
     # flame fins along the back (blades raked back from the dorsal line) and a flame tail fin
     bm = bmesh.new()
@@ -281,7 +289,7 @@ def celestial_dragon(k):
         for f in ((vs[0], vs[1], vs[2]), (vs[3], vs[0], vs[2]), (vs[1], vs[4], vs[2]), (vs[4], vs[3], vs[2]),
                   (vs[1], vs[0], vs[3]), (vs[1], vs[3], vs[4])):
             bm.faces.new(f)
-    for i in range(6, len(frames) - 18, 5):
+    for i in range(6, len(frames) - 18, 6):
         t, p, tg, nrm, side = frames[i]
         r = _dragon_radius(t)
         blade(p + nrm * r * 0.8, -tg, nrm, 0.05 + 1.1 * r, 0.02 + 0.2 * r)
@@ -289,8 +297,8 @@ def celestial_dragon(k):
     for ang in (-40, -20, 0, 20, 40):
         out = (Matrix.Rotation(math.radians(ang), 3, tg) @ nrm).normalized()
         blade(p, -tg, out, 0.16, 0.025)
-    fins = k.add('Coil', k.mesh_object('DragonFins', bm, ['Fin'], smooth=False))
-    k.skins['DragonBody'] = {'root': 'Coil', 'bones': bones, 'meshes': [body, sheath, core, fins]}
+    fins = k.add('Dragon', k.mesh_object('DragonFins', bm, ['Fin'], smooth=False))
+    k.skins['DragonBody'] = {'root': 'Dragon', 'bones': bones, 'meshes': [body, sheath, core, fins]}
 
     # the head on the neck: the model's face looks along -Y with its top +Z (as generated);
     # turned so it looks along the neck, its top away from the cue
@@ -321,9 +329,9 @@ def celestial_dragon(k):
 
     # the head nods, looks round and, every 4.8 s, rears back roaring (a pulse) as the jaw gapes
     # (positive about side lifts the snout away from the cue)
-    k.joint('Head', pivot=tuple(pe), parent='Neck2', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 3.0, 'Amp': 9.0, 'Period': 2.7},
-        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 18.0, 'Period': 4.2, 'Phase': 40},
+    k.joint('Head', pivot=tuple(pe), parent='Spine%d' % NB, aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 5.0, 'Amp': 8.0, 'Period': 2.2},
+        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 16.0, 'Period': 3.1, 'Phase': 40},
         {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 14.0, 'Period': 4.8, 'Shape': 'pulse'}])
     k.joint('Jaw', pivot=tuple(to_cue((0, -7.22, 0.02))), parent='Head', aura=True, motion=[
         {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Base': 6.0, 'Amp': 6.0, 'Period': 2.4},
@@ -336,13 +344,13 @@ def celestial_dragon(k):
             emissive_tint='#7FC8FF', emissive_strength=3.0, cut_below=0.3, bones=head_bones,
             hologram={'Tint': '#8CC8FF', 'Shell': '#CFEAFF', 'Strength': 1.8, 'ShellTris': 6000,
                       'Alpha': (0.14, 0.55)})     # more solid than the pocket spirits: the face must read small
-    k.dragon_spine = frames                        # for the skin's flame emitters (printed below)
-    for nm, tc in bone_names + [('Neck1', 0.97), ('Neck2', 1.08)]:
+    for nm, tc in bone_names[2::3]:
         _, p, tg, nrm, side = frame_at(tc)
         q = p + nrm * _dragon_radius(tc)
         q2 = q - tg * 0.25
         print('CUE dragon flame host %s: From %s To %s' % (
             nm, [round(-q.y, 3), round(q.z, 3), round(q.x, 3)], [round(-q2.y, 3), round(q2.z, 3), round(q2.x, 3)]))
+    print('CUE dragon swim: lap %.2f studs, %.2f studs/s' % (length, speed))
     print('CUE dragon head host: %s' % [round(-pe.y, 3), round(pe.z, 3), round(pe.x, 3)])
 
 

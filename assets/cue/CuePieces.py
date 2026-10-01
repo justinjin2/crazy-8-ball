@@ -19,7 +19,8 @@ The Roblox side is mechanical:
     to cue.CFrame * jointCFrame(t) * restOffset, where jointCFrame(t) is the joint's parent
     chain of motions (see `joint_matrix`): Hinge (a sine swing about an axis through the
     pivot), Spin (a steady turn), Bob (a sine slide), Sway (a swing that travels down a chain
-    of joints, for tails). The preview plays the same maths.
+    of joints, for tails), Path (riding a looping path stored in piece.json's Paths, for a
+    creature that swims along a track, see `path_frame`). The preview plays the same maths.
 
 Modelling is by script only (no AI generators here): bmesh solids and sweeps, and metaball
 sculpts turned to meshes for organic heads, then bevelled/smoothed; materials are assigned to
@@ -101,13 +102,46 @@ def _rot(axis, ang):
     return M
 
 
-def motion_matrix(motions, t):
+def path_frame(path, s):
+    """A looping path's frame at arc length s (studs): a 4x4 whose columns are the side, the
+    tangent (the way along the path), the normal (away from the cue) and the point, in the
+    piece's Blender frame. The path is sampled every Step studs as [x, y, z, qw, qx, qy, qz];
+    between samples the point is lerped and the turn slerped (the runtime: CFrame:Lerp)."""
+    import numpy as np
+    from mathutils import Quaternion
+    F = path['Frames']
+    n = len(F)
+    u = (s / path['Step']) % n
+    i = int(math.floor(u)) % n
+    j = (i + 1) % n
+    f = u - math.floor(u)
+    a, b = F[i], F[j]
+    q = Quaternion(a[3:7]).slerp(Quaternion(b[3:7]), f)
+    M = np.eye(4)
+    M[:3, :3] = np.array(q.to_matrix())
+    M[:3, 3] = [a[k] + (b[k] - a[k]) * f for k in range(3)]
+    return M
+
+
+def motion_matrix(motions, t, pivot=(0, 0, 0)):
     """One joint's own motion at time t, about its pivot (a 4x4 in the cue's Blender frame,
     applied as T(pivot) @ M @ T(-pivot) by joint_matrix)."""
     import numpy as np
     M = np.eye(4)
     for m in motions or []:
         kind = m.get('Kind')
+        if kind == 'Path':
+            # ride a looping path (piece.json Paths): the joint sits on the path at arc length
+            # Rest at rest and travels along it at Speed studs a second, turning with it:
+            # X = F(Rest + Speed t) F(Rest)^-1, about the pivot (the path's point at Rest)
+            path = m['_Path']
+            X = path_frame(path, m['Rest'] + m['Speed'] * t) @ np.linalg.inv(path_frame(path, m['Rest']))
+            P = np.eye(4)
+            P[:3, 3] = pivot
+            Pi = np.eye(4)
+            Pi[:3, 3] = -np.asarray(pivot, float)
+            M = M @ Pi @ X @ P
+            continue
         if kind == 'Hinge' or kind == 'Sway':
             ang = math.radians(float(m.get('Base', 0.0)) + float(m.get('Amp', 10.0)) * _wave(t, m))
             M = M @ _rot(m.get('Axis', (1, 0, 0)), ang)
@@ -130,9 +164,18 @@ def joint_matrix(joints, name, t):
     P[:3, 3] = j.get('Pivot', (0, 0, 0))
     Pi = np.eye(4)
     Pi[:3, 3] = -np.asarray(j.get('Pivot', (0, 0, 0)), float)
-    own = P @ motion_matrix(j.get('Motion'), t) @ Pi
+    own = P @ motion_matrix(j.get('Motion'), t, j.get('Pivot', (0, 0, 0))) @ Pi
     parent = j.get('Parent')
     return (joint_matrix(joints, parent, t) if parent else np.eye(4)) @ own
+
+
+def link_paths(spec):
+    """Point every Path motion in a loaded piece.json at its path (spec['Paths']), in memory."""
+    for j in spec.get('Joints', {}).values():
+        for m in j.get('Motion') or []:
+            if m.get('Kind') == 'Path':
+                m['_Path'] = spec['Paths'][m['Path']]
+    return spec
 
 
 # =============================================================================================
@@ -153,6 +196,8 @@ class Kit:
         self.frame = 'cue'
         # skinned models: name -> {'root': joint, 'bones': {bone: weight fn}, 'meshes': [objects]}
         self.skins = {}
+        # looping paths a joint can ride (Path motions): name -> {'Step', 'Loop', 'Frames'}
+        self.paths = {}
 
     # ---- materials ----------------------------------------------------------------------------
     def material(self, name, Material='SmoothPlastic', Color='#FFFFFF', Transparency=0.0, Reflectance=0.0,
@@ -369,6 +414,23 @@ class Kit:
         part of the cue (the Celestial Dragon's coiling spirit, the Kitsune's running fox)."""
         self.joints[name] = {'Parent': parent, 'Pivot': list(pivot), 'Motion': motion or [], 'objects': [],
                              'Aura': aura}
+        for m in motion or []:
+            if m.get('Kind') == 'Path':
+                m['_Path'] = self.paths[m['Path']]
+        return name
+
+    def path(self, name, frames, step):
+        """A looping path for Path motions: frames are 4x4 matrices (columns side, tangent,
+        normal, point) every `step` studs of arc length round the loop (the last joins the first)."""
+        from mathutils import Matrix
+        rows = []
+        for M in frames:
+            M = Matrix([list(r) for r in M])
+            q = M.to_3x3().to_quaternion()
+            if rows and sum(a * b for a, b in zip(rows[-1][3:7], q)) < 0:
+                q = -q                     # keep neighbours in the same hemisphere for the slerp
+            rows.append([round(float(x), 5) for x in (M[0][3], M[1][3], M[2][3], q.w, q.x, q.y, q.z)])
+        self.paths[name] = {'Step': step, 'Loop': True, 'Frames': rows}
         return name
 
     def add(self, joint, ob):
@@ -735,12 +797,14 @@ def export(kit):
     for jname, j in kit.joints.items():
         p = j['Pivot']
         joints[jname] = {'Parent': j['Parent'], 'Pivot': p, 'PivotRoblox': [round(-p[0], 4), round(p[2], 4), round(ZOFF[kit.frame] + p[1], 4)],
-                         'Motion': j['Motion']}
+                         'Motion': [{k_: v_ for k_, v_ in m.items() if not k_.startswith('_')} for m in j['Motion']]}
         if j.get('Aura'):
             joints[jname]['Aura'] = True
     spec = {'id': kit.pid, 'Frame': kit.frame, 'frame': 'Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; '
                                    'PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)',
             'Triangles': tris_total, 'Parts': parts, 'Joints': joints}
+    if kit.paths:
+        spec['Paths'] = kit.paths
     with open(os.path.join(out, 'piece.json'), 'w') as fh:
         json.dump(spec, fh, indent=2)
         fh.write('\n')
@@ -891,7 +955,7 @@ def attach(bpy, pid, cue_obj):
     path = os.path.join(PIECES_DIR, pid, 'piece.json')
     if not os.path.isfile(path):
         return None
-    spec = json.load(open(path))
+    spec = link_paths(json.load(open(path)))
     joints = spec['Joints']
     empties = {}
     parts = []
