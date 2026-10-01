@@ -403,7 +403,10 @@ function tests.time_stop_refuses_a_strike_after_its_stopped_time()
 		armNow(m, "TimeStop")
 		frozenShot(m)
 		local late, why = E.acceptShot(m, 11, payload(m, math.pi / 2, 0.3), m.deadline + 0.01)
-		expect(late == nil and why == "Expired", "the server holds the stopped time: " .. tostring(why))
+		expect(
+			late == nil and why == "Expired",
+			"the server holds the stopped time: " .. tostring(why)
+		)
 		local stale = payload(m, math.pi / 2, 0.3)
 		stale.turnId += 1
 		local forged = E.acceptShot(m, 11, stale, m.pending.frozen.freezeAt + 0.5)
