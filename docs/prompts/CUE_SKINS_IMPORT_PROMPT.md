@@ -54,6 +54,11 @@ simple steps.
      (`assets/cue/pieces/`), and each skin's surface maps.
    - A `.glb` (skinned piece) imports as a MeshPart with Bones: check one in Studio first
      (the 3D Importer, "rig" on) before uploading the rest.
+   - **Open Cloud does not take `.obj`** (`tools/roblox_upload.py` says so): the 195 piece OBJs
+     must be converted to `.glb` first (headless Blender, one mesh per file, keeping the
+     piece.json `Offset`), or brought in through Studio's 3D Importer instead.
+   - The Celestial Dragon uses a new motion kind, `Path` (report 6.3, "Path motions"): its 30
+     spine bones ride a looping track in `piece.json` `Paths`. The runtime must support it.
 3. **Data, not code.** Write a small tool that turns `assets/cue/skins/*.json`,
    `pieces/*/piece.json` and the manifest's asset ids into Luau data (one module of rows),
    so each cue is a catalog row plus assets (CLAUDE.md). Never hand-write a module per cue.
