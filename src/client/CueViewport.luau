@@ -75,28 +75,34 @@ function CueViewport.pose(self: any)
 end
 
 --- Show `cueId` in colour, or as its black silhouette (`silhouette`: not found yet). Nothing
---- changes when it already shows that.
+--- changes when it already shows (or is about to show) that. A cue in colour replaces the one
+--- shown only once the renderer has loaded it (CueAssets), in one frame, never half-textured.
 function CueViewport.set(self: any, cueId: string, silhouette: boolean)
-	if self.cueId == cueId and self.silhouette == silhouette and self.model then
+	if self.cueId == cueId and self.silhouette == silhouette then
 		return
 	end
-	if self.model then
-		self.model:Destroy()
-		self.model = nil
-	end
 	self.cueId, self.silhouette = cueId, silhouette
-	-- Built once the renderer has loaded it, so it never appears half-textured (CueAssets).
 	if not silhouette and not CueAssets.ready(cueId) then
 		CueAssets.whenReady(cueId, function()
-			if self.cueId == cueId and self.silhouette == silhouette and self.model == nil then
-				self:set(cueId, silhouette)
+			if self.cueId == cueId and self.silhouette == silhouette then
+				self:build()
 			end
 		end)
 		return
 	end
+	self:build()
+end
+
+-- Replace the shown stick with the asked-for one.
+function CueViewport.build(self: any)
+	if self.model then
+		self.model:Destroy()
+		self.model = nil
+	end
+	local silhouette = self.silhouette
 	self.model = CueStickBuilder.display(
 		self.frame,
-		cueId,
+		self.cueId,
 		V.Thickness,
 		if silhouette then rgb(V.SilhouetteColor) else nil
 	)
@@ -126,6 +132,7 @@ end
 
 function CueViewport.destroy(self: any)
 	self:setSpinning(false)
+	self.cueId = nil -- a cue still loading is not built into the gone frame
 	self.frame:Destroy()
 end
 

@@ -656,9 +656,10 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
   BodyBackAttachment's part (R15 UpperTorso, R6 Torso), unanchored and massless with no
   collide, query or touch. Tip over the left shoulder, butt toward the right hip, the grip
   slid toward the butt on small bodies, tilted further while seated. A stick is never
-  repainted while welded: a new cue (at once, on `EquippedCue`), a respawn, sitting down or
-  leaving range lets it go (detach, park, relayout) and it is attached again, a new cue only
-  once `CueAssets.ready`. `Main.client`'s RenderStepped draws the
+  repainted while welded: a new cue, a respawn, sitting down or leaving range lets it go
+  (detach, park, relayout) and it is attached again in the same refresh. A new cue counts only
+  once `CueAssets.ready` (loading starts on `EquippedCue`), so the old cue stays on until then
+  and the two swap in one frame. `Main.client`'s RenderStepped draws the
   frame, then calls `backCue:update(dt, mine held, WatchedShooters:holding())`, so a back cue
   hides in the same frame its cue appears in the hands. Your own back cue hides in first
   person and fades with `Camera.fadeNear`. `BackCue:carry(character, nil)` gives a body with
@@ -703,8 +704,8 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   rigid parts at `J * Offset * FLIP` (FLIP: the importer's 180 degree turn about Y) and skinned
   rigs at `FLIP`, and every frame sets rigid welds and `Bone.Transform` from `Motion.pose`.
   `setAura` hides the joints marked `Aura`; `setFade`, `setScale` serve the pocket finisher.
-- **CueAssets (client): a cue appears only once the renderer has loaded it** (designer
-  2026-10-01). Every skin shares one mesh, so a repaint on a visible stick would show the old
+- **CueAssets (client): a cue appears only once the renderer has loaded it, swapped in one
+  frame for the old one** (designer 2026-10-01). Every skin shares one mesh, so a repaint on a visible stick would show the old
   cue being retextured, and a SurfaceAppearance's maps load only when it is drawn (no preload
   reaches them; STUDIO_NOTES). `CueAssets.preload(id)` draws a hidden copy of the cue
   (`Config.CueSkins.Warm.Transparency` see-through, in front of the camera, in
@@ -716,13 +717,13 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   preload, then a fresh copy) up to `Retries` times. After `TimeoutSeconds` it shows anyway. A
   ready copy stays drawn `KeepSeconds` after it was last asked for, at most `MaxCopies` of them.
   `ready(id)` and `whenReady(id, fn)` gate on it; band cues are ready at once.
-  `CueStickBuilder.setLoader(CueAssets)` (from Main) makes a stick's `Visible` attribute
-  "wanted and loaded": `paint` to a cue not ready hides the stick and repaints it when ready
-  (the hand cue, watched shooters). A stick already wearing a cue never waits for it again.
-  BackCue lets a back cue go the moment `EquippedCue` changes and carries the new one only
-  once ready. CueSkinLook shows a look only on the cue it was built for and prefills the aura
-  when it first appears (`ShowPrefillShare`). The inventory selection and the case reveal start
-  `preload`, so Equip is usually instant; the Index viewport builds once its cue is loaded.
+  With `CueStickBuilder.setLoader(CueAssets)` (from Main), `paint` to a cue not ready keeps
+  the stick showing its current cue and repaints it the moment the new one is ready (the hand
+  cue, watched shooters); a stick already wearing a cue never waits for it again. BackCue swaps
+  a back's stick in one refresh once the new cue is ready. CueSkinLook shows a look only on the
+  cue it was built for, and a rebuilt look prefills its aura (`ShowPrefillShare`). The
+  inventory selection and the case reveal start `preload`, so Equip is usually instant; the
+  Index viewport keeps its old cue until the new one is loaded.
 - **Effects.** A cue with a skin Style, TrailEmitters or Pocket gets the style key
   `skin:<CatalogId>`: `styleFor` lays the skin's Style over `Config.Effects.Styles.Default`
   (the tier rows stay as fallbacks). New trail keys: a Transparency curve, WidthScale,

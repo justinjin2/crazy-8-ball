@@ -14,10 +14,11 @@
 -- hidden) when its character leaves the range, respawns or is removed.
 --
 -- Repainting a welded stick would move its parts, and so the body they are welded to, so a
--- stick is never repainted while attached: when its player equips another cue it is let go at
--- once, and attached again, repainted, only when the renderer has loaded the new cue's look
--- (CueAssets; designer, 2026-10-01: never the old cue being retextured on a back). A player
--- walking into range gets their cue the same way, already loaded.
+-- stick is never repainted while attached: when its player equips another cue, the old stick
+-- stays on until the renderer has loaded the new cue's look (CueAssets), then in one refresh it
+-- is let go and a stick painted as the new cue goes on (designer, 2026-10-01: never the old cue
+-- being retextured, and no empty back in between). A player walking into range gets their cue
+-- once it is loaded.
 --
 -- Your own back cue hides in first person and fades like the hand cue when the camera comes
 -- close (Camera.fadeNear). Sitting on a seat, it tilts further (SeatedExtraTiltDegrees).
@@ -99,11 +100,8 @@ function BackCue.new(parent: Instance): BackCue
 		player.CharacterRemoving:Connect(function(character)
 			self:release(character)
 		end)
-		-- Another cue equipped: the old one leaves the back now; the new one goes on once loaded.
+		-- Another cue equipped: loaded now, swapped on the back the moment it is ready.
 		player:GetAttributeChangedSignal(Config.Cue.EquippedAttribute):Connect(function()
-			if player.Character then
-				self:release(player.Character)
-			end
 			self:fetch(CueStickBuilder.equippedCue(player))
 		end)
 	end
@@ -251,7 +249,7 @@ function BackCue.carry(self: BackCue, character: Model, player: Player?): boolea
 	return false
 end
 
--- Download cue `id`'s look, then hand out sticks again at once (not at the next refresh).
+-- Load cue `id`'s look, then refresh at once (not at the next refresh): the swap.
 function BackCue.fetch(self: BackCue, id: string)
 	CueAssets.whenReady(id, function()
 		self.sinceRefresh = math.huge
@@ -289,13 +287,15 @@ function BackCue.refresh(self: BackCue)
 		keep[want[i].character] = true
 	end
 	-- Let go of whoever left the range or the game, or whose body or cue changed (the ones still
-	-- wanted are carried again below, with their new look or pose).
+	-- wanted are carried again below, with their new look or pose, in this same frame). A new
+	-- cue counts only once it is loaded: until then the old one stays on.
 	for character, c in self.carried do
 		local player = c.player
+		local cueId = CueStickBuilder.equippedCue(player)
 		local stale = c.torso.Parent ~= character
 			or character.Parent == nil
 			or isSeated(character) ~= c.seated
-			or CueStickBuilder.equippedCue(player) ~= c.cueId
+			or (cueId ~= c.cueId and CueAssets.ready(cueId))
 			or (player ~= nil and (not keep[character] or player.Character ~= character))
 		if stale then
 			self:release(character)

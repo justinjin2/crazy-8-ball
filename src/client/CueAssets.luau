@@ -1,7 +1,7 @@
 --!strict
 -- CueAssets: a cue is shown only once the renderer has loaded its whole look (designer,
 -- 2026-10-01: a switched-in cue must appear as itself, never white then textured, on any
--- device and graphics quality).
+-- device and graphics quality; the old cue stays until then and the two swap in one frame).
 --
 -- Why a hidden copy: a SurfaceAppearance's maps are fetched by the renderer only when one is
 -- drawn (ContentProvider:PreloadAsync on its template loads just the mesh, and on the map ids
@@ -25,8 +25,8 @@
 -- of them; then ready(id) is false again and the next ask warms it once more (quick when still
 -- cached). A cue drawn with bands (no template) is always ready.
 --
--- CueStickBuilder holds a stick hidden until its new cue is ready (setLoader, from Main),
--- BackCue puts a cue on a back only when ready, CueViewport builds only when ready.
+-- CueStickBuilder paints a stick's new cue only when ready (setLoader, from Main), BackCue
+-- swaps a back's stick only when ready, CueViewport replaces its cue only when ready.
 
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

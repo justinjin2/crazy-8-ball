@@ -1,26 +1,26 @@
 # Status
 
-**2026-10-01 (latest): a switched cue appears only fully loaded.** The first fix (commit
-c657832) still showed the new cue white, then textured. Its preload never reached the
-renderer: a SurfaceAppearance's maps load only when one is drawn. Now `CueAssets` draws a
-hidden copy (99% see-through, in front of the camera) and reveals the cue only once every
-texture reports loaded. Failed downloads are repaired first. The old cue leaves the back and
-hands the moment you equip.
-- Checked in Studio on PC, watching the fetch status of every texture and screenshots:
-  - The old cue left in 0.07 s every time.
-  - First-time cues appeared 1.9-3.5 s later with every texture loaded first, and no texture
-    was fetched after the reveal: Flare, Cosmo, Diamond, Disco, Gilded, Gummy, Hornet, Magma,
-    Apex, Arctic, Blaze, Blood Moon, Candy, Celestial Dragon, Eclipse, Kitsune, Seraph,
-    Clockwork, Chroma.
-  - The hand cue in a solo game: Magma to Heritage in 2.7 s, and back to Magma in 0.5 s.
-  - Through the real inventory: picking Thunderstrike, then Equip, swapped in 0.06 s.
-  - At the lowest graphics quality: Lagoon and Toxic, same result.
-  - Frostbite hit Roblox download failures (NetFail) in Studio, which the repair handles.
+**2026-10-01 (latest): cue switches are an instant one-frame swap.** The designer found the
+empty gap between the old cue leaving and the new one appearing too long (2-3.5 s for a first
+use). Roblox's own load time can't be shortened (it waits about 1 s before it even asks for a
+cue's textures), so now the old cue stays until the new one is fully loaded and the two swap
+in one frame (back, hands, the Index viewport). `CueAssets` (a hidden copy, 99% see-through,
+makes the renderer load everything; failed downloads repaired) decides when.
+- Checked in Studio on PC, frame by frame:
+  - Back cue, Grandmaster to Nature, Pixel, Plasma, Flare, Nature: zero empty frames and zero
+    frames with two cues. First uses swapped 1.8-3.5 s after Equip; a cue used in the last
+    minute swapped in 0.15 s.
+  - Nature to Phoenix: the stick, the full aura (7 emitters) and the piece (20 parts)
+    appeared in the same frame.
+  - Hand cue in a solo game, Phoenix to Prism: never hidden, swapped at 1.7 s with its aura.
+  - Earlier today: through the real inventory (pick, then Equip) the swap took 0.06 s, and
+    the lowest graphics quality loaded the same way.
   - Console clean apart from the existing avatar animation warning. Lint clean.
 - Not yet checked: a second player watching the swap; phone and gamepad (no new controls);
   the live game (publish first).
-- Not provable from a script: the first frame after the reveal (screenshots arrive about
-  0.5 s late; STUDIO_NOTES). Watch for any white flash when equipping by hand.
+- Not provable from a script: the first frame after the swap (screenshots arrive about 0.5 s
+  late; STUDIO_NOTES). Watch for any white flash when equipping by hand.
+- Note: Studio's Rojo plugin stopped syncing once this session; the designer reconnected it.
 
 **2026-10-01 (later): cue VFX v2, outlines and wider cues.** The designer found the Rare+
 auras nearly invisible in the bright lobby. Now: Bloom on (only HDR effects bloom); the full

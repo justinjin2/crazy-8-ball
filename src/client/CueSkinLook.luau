@@ -230,6 +230,7 @@ function CueSkinLook.clear(self: Look)
 		self.folder = nil
 	end
 	self.row = nil
+	self.visible = false -- a rebuilt look appears anew (its aura prefilled, applyVisible)
 end
 
 --- Rebuild for the stick's current cue (nothing happens if it is the one built).

@@ -28,14 +28,15 @@
 -- what keeps the hands on the cue. The pitch is VISUAL ONLY (CueClearance): the shot is always
 -- fired at Config.Cue.CueElevationDegrees.
 --
--- Attributes on the model: Visible (shown: the last setVisible, while no new cue is loading),
--- CueId (the catalog cue painted), Mesh (true while the mesh slot, not the bands, draws it).
+-- Attributes on the model: Visible (the last setVisible), CueId (the catalog cue painted),
+-- Mesh (true while the mesh slot, not the bands, draws it).
 --
--- Loading (designer, 2026-10-01: a switched-in cue must appear as itself, never as the old cue
--- being retextured): on the client, setLoader(CueAssets) makes paint() of a cue whose look the
--- renderer has not loaded yet hide the stick at once and paint it when the look is ready, then show it
--- as setVisible last asked. Only for sticks that are not welded to anything (BackCue attaches a
--- stick only when its cue is ready). Without a loader (the server, tests) paint is immediate.
+-- Loading (designer, 2026-10-01: a switched-in cue appears fully loaded, swapped in one frame,
+-- never as the old cue being retextured): on the client, setLoader(CueAssets) makes paint() of
+-- a cue whose look the renderer has not loaded yet keep the stick as it is and paint it the
+-- moment the look is ready. Only for sticks that are not welded to anything (BackCue swaps a
+-- back stick itself, once the cue is ready). Without a loader (the server, tests) paint is
+-- immediate.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -139,7 +140,8 @@ type Stick = {
 	meshOn: boolean,
 	meshSkin: string?, -- whose SurfaceAppearance the slot wears
 	wanted: boolean, -- the last setVisible
-	pending: string?, -- a cue waiting for its look to load before it is painted
+	pending: string?, -- a cue waiting for its look to load before it is painted (the stick
+	-- shows its current cue meanwhile)
 }
 
 -- The client's cue loader (CueAssets), or nil: paint() is then immediate.
@@ -166,7 +168,7 @@ local function applyVisibility(model: Model)
 	if stick == nil then
 		return
 	end
-	local visible = stick.wanted and stick.pending == nil
+	local visible = stick.wanted
 	if model:GetAttribute("Visible") ~= visible then
 		model:SetAttribute("Visible", visible)
 	end
@@ -246,38 +248,29 @@ function CueStickBuilder.paint(model: Model, cueId: string?)
 		return
 	end
 	if model:GetAttribute("CueId") == id then
-		-- Already wears it (and so holds its look loaded): shown again if a newer cue was loading.
-		if stick.pending then
-			stick.pending = nil
-			applyVisibility(model)
-		end
+		stick.pending = nil -- already wears it (and so holds its look loaded)
 		return
 	end
 	if loader and not loader.ready(id) then
-		-- Hidden now, painted and shown once the renderer has loaded its look (a newer paint
-		-- wins).
+		-- Keeps its current cue until the renderer has loaded this one, then swaps in one frame
+		-- (a newer paint wins).
 		if stick.pending ~= id then
 			stick.pending = id
-			applyVisibility(model)
 			loader.whenReady(id, function()
 				if sticks[model] == stick and stick.pending == id then
 					stick.pending = nil
 					CueStickBuilder.paint(model, id)
-					applyVisibility(model)
 				end
 			end)
 		end
 		return
 	end
-	if stick.pending then
-		stick.pending = nil
-		applyVisibility(model)
-	end
+	stick.pending = nil
 	model:SetAttribute("CueId", id)
 	paintStick(model, id, false)
 end
 
---- Client only: hold sticks hidden while the renderer loads a new cue's look (CueAssets).
+--- Client only: paint a new cue only once the renderer has loaded its look (CueAssets).
 function CueStickBuilder.setLoader(l: Loader)
 	loader = l
 end
@@ -461,8 +454,7 @@ function CueStickBuilder.placeAt(model: Model, tipCF: CFrame)
 	model:PivotTo(tipCF)
 end
 
---- Show or hide the stick (it stays hidden while a new cue's look loads, then shows as
---- asked here).
+--- Show or hide the stick.
 function CueStickBuilder.setVisible(model: Model, visible: boolean)
 	local stick = sticks[model]
 	if stick == nil or stick.wanted == visible then
