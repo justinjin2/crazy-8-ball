@@ -3741,6 +3741,13 @@ Config.CueSkins = {
 	-- fox reads on the bright floor) shows only on cues within this distance of the camera
 	-- (studs): Roblox draws at most 31 Highlights at once. (tune)
 	HighlightDistanceStuds = 45,
+	-- A cue switched in stays hidden until its look is downloaded (CueAssets), at most this
+	-- long (seconds): then it shows anyway, so a slow asset never keeps a cue away. (tune)
+	PreloadTimeoutSeconds = 6,
+	-- When a cue's look comes into view, each aura emitter emits this share of the particles it
+	-- holds when running (rate x average lifetime) at once, so the aura is already there
+	-- rather than growing in (designer, 2026-10-01). 0 turns it off. (tune)
+	ShowPrefillShare = 0.7,
 	-- Every cue with an aura also wears a thin outline and a faint tint of its colour (a
 	-- Highlight on the stick), so it stands out on the bright lobby (designer, 2026-10-01).
 	-- The colour is the skin's Aura.Outline, else its tier's below.

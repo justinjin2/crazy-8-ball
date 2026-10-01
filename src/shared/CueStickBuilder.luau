@@ -28,8 +28,14 @@
 -- what keeps the hands on the cue. The pitch is VISUAL ONLY (CueClearance): the shot is always
 -- fired at Config.Cue.CueElevationDegrees.
 --
--- Attributes on the model: Visible (the last setVisible), CueId (the catalog cue painted),
--- Mesh (true while the mesh slot, not the bands, draws it).
+-- Attributes on the model: Visible (shown: the last setVisible, while no new cue is loading),
+-- CueId (the catalog cue painted), Mesh (true while the mesh slot, not the bands, draws it).
+--
+-- Loading (designer, 2026-10-01: a switched-in cue must appear as itself, never as the old cue
+-- being retextured): on the client, setLoader(CueAssets) makes paint() of a cue whose look is
+-- not downloaded yet hide the stick at once and paint it when the look is ready, then show it
+-- as setVisible last asked. Only for sticks that are not welded to anything (BackCue attaches a
+-- stick only when its cue is ready). Without a loader (the server, tests) paint is immediate.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -132,7 +138,16 @@ type Stick = {
 	meshOffset: CFrame,
 	meshOn: boolean,
 	meshSkin: string?, -- whose SurfaceAppearance the slot wears
+	wanted: boolean, -- the last setVisible
+	pending: string?, -- a cue waiting for its look to load before it is painted
 }
+
+-- The client's cue loader (CueAssets), or nil: paint() is then immediate.
+export type Loader = {
+	ready: (id: string) -> boolean,
+	whenReady: (id: string, fn: () -> ()) -> (),
+}
+local loader: Loader? = nil
 local sticks: { [Model]: Stick } = setmetatable({}, { __mode = "k" }) :: any
 
 -- Model -> the player whose equipped cue it wears, and the listener that repaints it.
@@ -151,7 +166,10 @@ local function applyVisibility(model: Model)
 	if stick == nil then
 		return
 	end
-	local visible = model:GetAttribute("Visible") == true
+	local visible = stick.wanted and stick.pending == nil
+	if model:GetAttribute("Visible") ~= visible then
+		model:SetAttribute("Visible", visible)
+	end
 	for i, part in stick.parts do
 		part.Transparency = if visible and i <= stick.used then 0 else 1
 	end
@@ -224,11 +242,44 @@ end
 function CueStickBuilder.paint(model: Model, cueId: string?)
 	local stick = sticks[model]
 	local id = known(cueId)
-	if stick == nil or model:GetAttribute("CueId") == id then
+	if stick == nil then
+		return
+	end
+	if loader and not loader.ready(id) then
+		-- Hidden now, painted and shown once its look is downloaded (a newer paint wins).
+		if stick.pending ~= id then
+			stick.pending = id
+			applyVisibility(model)
+			loader.whenReady(id, function()
+				if sticks[model] == stick and stick.pending == id then
+					stick.pending = nil
+					CueStickBuilder.paint(model, id)
+					applyVisibility(model)
+				end
+			end)
+		end
+		return
+	end
+	if stick.pending then
+		stick.pending = nil
+		applyVisibility(model)
+	end
+	if model:GetAttribute("CueId") == id then
 		return
 	end
 	model:SetAttribute("CueId", id)
 	paintStick(model, id, false)
+end
+
+--- Client only: hold sticks hidden while a new cue's look downloads (CueAssets).
+function CueStickBuilder.setLoader(l: Loader)
+	loader = l
+end
+
+--- True while the stick waits for its new cue's look to download.
+function CueStickBuilder.loading(model: Model): boolean
+	local stick = sticks[model]
+	return stick ~= nil and stick.pending ~= nil
 end
 
 --- Lay the stick's parts out again from the model's pivot, as its current cue: for a stick whose
@@ -324,6 +375,8 @@ function CueStickBuilder.build(parent: Instance, cueId: string?): Model
 		meshOffset = meshOffset,
 		meshOn = false,
 		meshSkin = if mesh then ids[1] else nil,
+		wanted = true,
+		pending = nil,
 	}
 	model.WorldPivot = CFrame.new(0, 0, 0)
 	model:SetAttribute("Visible", true)
@@ -402,12 +455,14 @@ function CueStickBuilder.placeAt(model: Model, tipCF: CFrame)
 	model:PivotTo(tipCF)
 end
 
---- Show or hide the stick.
+--- Show or hide the stick (it stays hidden while a new cue's look downloads, then shows as
+--- asked here).
 function CueStickBuilder.setVisible(model: Model, visible: boolean)
-	if model:GetAttribute("Visible") == visible then
+	local stick = sticks[model]
+	if stick == nil or stick.wanted == visible then
 		return
 	end
-	model:SetAttribute("Visible", visible)
+	stick.wanted = visible
 	applyVisibility(model)
 end
 

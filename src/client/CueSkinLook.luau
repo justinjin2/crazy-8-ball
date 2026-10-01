@@ -681,10 +681,27 @@ end
 
 -- Show or hide the whole look (the stick's Visible attribute).
 function CueSkinLook.applyVisible(self: Look)
-	local visible = self.stick:GetAttribute("Visible") == true and self.row ~= nil
+	-- Never the previous cue's look on a stick already painted as the next one (its rebuild
+	-- waits a frame, refreshSoon).
+	local current = self.stick:GetAttribute("CueId") == self.cueId
+	local visible = self.stick:GetAttribute("Visible") == true and self.row ~= nil and current
+	local appearing = visible and not self.visible
 	self.visible = visible
 	for _, item in self.emitters do
 		item.e.Enabled = visible and item.e.Rate > 0
+	end
+	if appearing and C.ShowPrefillShare > 0 then
+		-- Coming into view: the aura is already there, not growing in (Config.CueSkins).
+		for _, item in self.emitters do
+			local e = item.e
+			if item.aura and e.Enabled then
+				local life = (e.Lifetime.Min + e.Lifetime.Max) / 2
+				local n = math.floor(e.Rate * life * C.ShowPrefillShare + 0.5)
+				if n > 0 then
+					e:Emit(n)
+				end
+			end
+		end
 	end
 	for _, item in self.beams do
 		item.b.Enabled = visible

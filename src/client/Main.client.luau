@@ -23,6 +23,7 @@ local NiceShot = require(Shared.Rules.NiceShot)
 local Audio = require(script.Parent.Audio)
 local Avatar = require(script.Parent.Avatar)
 local BackCue = require(script.Parent.BackCue)
+local CueAssets = require(script.Parent.CueAssets)
 local CueSkinLook = require(script.Parent.CueSkinLook)
 local Effects = require(script.Parent.Effects)
 local Camera = require(script.Parent.Camera)
@@ -98,11 +99,12 @@ end
 local ultCutscene = UltCutscene.start(hub)
 local abilityFx = AbilityFx.start(hub, visuals, ultCutscene)
 local input = Input.new()
+-- A cue switched in stays hidden until its look is downloaded, on every stick (CueAssets).
+CueStickBuilder.setLoader(CueAssets)
 local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.
 CueStickBuilder.wear(cueStick, player)
--- Its skin's look, with no aura: a cue in the hands is shown only while aiming (designer,
--- 2026-09-30: nothing distracts from aiming).
+-- Its skin's look with the full aura (designer, 2026-10-01: the aura shows in the hands too).
 CueSkinLook.attach(cueStick, { aura = true })
 -- Everyone's cue on their back, hidden while it is in their hands (updated after the frame).
 local backCue = BackCue.new(visuals)

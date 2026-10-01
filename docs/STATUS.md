@@ -1,5 +1,17 @@
 # Status
 
+**2026-10-01 (latest): switching cues no longer shows the old cue being retextured.** The
+old cue leaves the back and hands the moment you equip; the new one appears only once its
+textures, piece and effects are downloaded, aura already full (`src/client/CueAssets.luau`, a
+loading gate in `CueStickBuilder`, BackCue releasing on `EquippedCue`). Picking a cue in the
+inventory or winning it from a case downloads it early.
+- Checked in Studio on PC: back cue Thunderstrike -> Kraken -> Kitsune -> Phoenix (first time
+  each: gone in the same frame the equip landed, new cue 0.3-0.8 s later with maps, piece and
+  aura in one frame), Phoenix -> Kraken again (0.06 s); hand cue in a solo game Kraken ->
+  Aurora (same). Console clean (one avatar animation permission warning from the place, not
+  the repo). 886 tests pass, lint clean.
+- Not yet checked: a second player watching the swap, phone and gamepad (no new controls).
+
 **2026-10-01 (later): cue VFX v2, outlines and wider cues.** The designer found the Rare+
 auras nearly invisible in the bright lobby. Now: Bloom on (only HDR effects bloom); the full
 aura shows in the hands too and at full rate on the back; Celestial Dragon, Kitsune and

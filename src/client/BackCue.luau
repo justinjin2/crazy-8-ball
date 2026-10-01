@@ -14,8 +14,10 @@
 -- hidden) when its character leaves the range, respawns or is removed.
 --
 -- Repainting a welded stick would move its parts, and so the body they are welded to, so a
--- stick is never repainted while attached: when its player equips another cue it is let go,
--- repainted and attached again (not CueStickBuilder.wear, which repaints in place).
+-- stick is never repainted while attached: when its player equips another cue it is let go at
+-- once, and attached again, repainted, only when the new cue's look is downloaded (CueAssets;
+-- designer, 2026-10-01: never the old cue being retextured on a back). A player walking into
+-- range gets their cue the same way, already loaded.
 --
 -- Your own back cue hides in first person and fades like the hand cue when the camera comes
 -- close (Camera.fadeNear). Sitting on a seat, it tilts further (SeatedExtraTiltDegrees).
@@ -30,6 +32,7 @@ local AvatarPose = require(Shared:WaitForChild("AvatarPose"))
 local Config = require(Shared:WaitForChild("Config"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local Camera = require(script.Parent:WaitForChild("Camera"))
+local CueAssets = require(script.Parent:WaitForChild("CueAssets"))
 local CueSkinLook = require(script.Parent:WaitForChild("CueSkinLook"))
 
 local B = Config.Cue.Back
@@ -95,6 +98,13 @@ function BackCue.new(parent: Instance): BackCue
 	local function watch(player: Player)
 		player.CharacterRemoving:Connect(function(character)
 			self:release(character)
+		end)
+		-- Another cue equipped: the old one leaves the back now; the new one goes on once loaded.
+		player:GetAttributeChangedSignal(Config.Cue.EquippedAttribute):Connect(function()
+			if player.Character then
+				self:release(player.Character)
+			end
+			self:fetch(CueStickBuilder.equippedCue(player))
 		end)
 	end
 	for _, player in Players:GetPlayers() do
@@ -216,6 +226,12 @@ function BackCue.carry(self: BackCue, character: Model, player: Player?): boolea
 	if torso == nil or #self.free == 0 then
 		return false
 	end
+	-- Only a cue whose look is downloaded goes on (a welded stick is never repainted).
+	local cueId = CueStickBuilder.equippedCue(player)
+	if not CueAssets.ready(cueId) then
+		self:fetch(cueId)
+		return false
+	end
 	local stick = table.remove(self.free) :: Model
 	local c: Carried = {
 		stick = stick,
@@ -233,6 +249,13 @@ function BackCue.carry(self: BackCue, character: Model, player: Player?): boolea
 	end
 	table.insert(self.free, stick)
 	return false
+end
+
+-- Download cue `id`'s look, then hand out sticks again at once (not at the next refresh).
+function BackCue.fetch(self: BackCue, id: string)
+	CueAssets.whenReady(id, function()
+		self.sinceRefresh = math.huge
+	end)
 end
 
 -- Hand out and take back sticks: the nearest players' characters within range carry one.

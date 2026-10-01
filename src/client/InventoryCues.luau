@@ -34,6 +34,7 @@ local Progression = Shared:WaitForChild("Progression")
 local Cases = require(Progression:WaitForChild("Cases"))
 local Catalog = require(Progression:WaitForChild("Catalog"))
 local Format = require(Progression:WaitForChild("Format"))
+local CueAssets = require(script.Parent.CueAssets)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local InventoryCard = require(script.Parent.InventoryCard)
@@ -552,6 +553,8 @@ function InventoryCues.choose(self: any, id: string, pressed: boolean)
 	end
 	if self.chosen ~= id then
 		self.chosen = id
+		-- Download its look while the details are read, so Equip shows it at once.
+		CueAssets.preload(id)
 		for cardId, card in self.cards do
 			InventoryCard.setChosen(card, cardId == id)
 		end

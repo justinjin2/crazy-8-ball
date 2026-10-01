@@ -15,6 +15,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
+local CueAssets = require(script.Parent:WaitForChild("CueAssets"))
 
 local V = Config.UI.Inventory.Viewport
 local LENGTH = Config.Cue.CueLengthStuds
@@ -81,8 +82,18 @@ function CueViewport.set(self: any, cueId: string, silhouette: boolean)
 	end
 	if self.model then
 		self.model:Destroy()
+		self.model = nil
 	end
 	self.cueId, self.silhouette = cueId, silhouette
+	-- Built once its look is downloaded, so it never appears half-textured (CueAssets).
+	if not silhouette and not CueAssets.ready(cueId) then
+		CueAssets.whenReady(cueId, function()
+			if self.cueId == cueId and self.silhouette == silhouette and self.model == nil then
+				self:set(cueId, silhouette)
+			end
+		end)
+		return
+	end
 	self.model = CueStickBuilder.display(
 		self.frame,
 		cueId,

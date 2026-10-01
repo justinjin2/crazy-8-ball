@@ -656,8 +656,9 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
   BodyBackAttachment's part (R15 UpperTorso, R6 Torso), unanchored and massless with no
   collide, query or touch. Tip over the left shoulder, butt toward the right hip, the grip
   slid toward the butt on small bodies, tilted further while seated. A stick is never
-  repainted while welded: a new cue, a respawn, sitting down or leaving range lets it go
-  (detach, park, relayout) and it is attached again. `Main.client`'s RenderStepped draws the
+  repainted while welded: a new cue (at once, on `EquippedCue`), a respawn, sitting down or
+  leaving range lets it go (detach, park, relayout) and it is attached again, a new cue only
+  once `CueAssets.ready`. `Main.client`'s RenderStepped draws the
   frame, then calls `backCue:update(dt, mine held, WatchedShooters:holding())`, so a back cue
   hides in the same frame its cue appears in the hands. Your own back cue hides in first
   person and fades with `Camera.fadeNear`. `BackCue:carry(character, nil)` gives a body with
@@ -702,6 +703,18 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   rigid parts at `J * Offset * FLIP` (FLIP: the importer's 180 degree turn about Y) and skinned
   rigs at `FLIP`, and every frame sets rigid welds and `Bone.Transform` from `Motion.pose`.
   `setAura` hides the joints marked `Aura`; `setFade`, `setScale` serve the pocket finisher.
+- **CueAssets (client): a cue appears only fully loaded** (designer 2026-10-01). Every skin
+  shares one mesh, so a repaint on a visible stick would show the old cue being retextured.
+  `CueAssets.preload(id)` runs one `ContentProvider:PreloadAsync` per cue per session on its
+  skin template, its piece template and every `rbxassetid` its row names; `ready(id)` and
+  `whenReady(id, fn)` gate on it (`Config.CueSkins.PreloadTimeoutSeconds` counts it ready
+  anyway; band cues are ready at once). `CueStickBuilder.setLoader(CueAssets)` (from Main)
+  makes a stick's `Visible` attribute "wanted and loaded": `paint` to a cue not ready hides the
+  stick and repaints it when ready (the hand cue, watched shooters). BackCue lets a back cue go
+  the moment `EquippedCue` changes and carries the new one only once ready. CueSkinLook shows a
+  look only on the cue it was built for and prefills the aura when it first appears
+  (`ShowPrefillShare`). The inventory selection and the case reveal start `preload`, so Equip
+  is usually instant; the Index viewport builds once its cue is loaded.
 - **Effects.** A cue with a skin Style, TrailEmitters or Pocket gets the style key
   `skin:<CatalogId>`: `styleFor` lays the skin's Style over `Config.Effects.Styles.Default`
   (the tier rows stay as fallbacks). New trail keys: a Transparency curve, WidthScale,

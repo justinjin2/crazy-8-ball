@@ -48,6 +48,7 @@ local CaseOpeningCard = require(script.Parent.CaseOpeningCard)
 local CaseOpeningFx = require(script.Parent.CaseOpeningFx)
 local CaseOpeningGrid = require(script.Parent.CaseOpeningGrid)
 local CaseOpeningReel = require(script.Parent.CaseOpeningReel)
+local CueAssets = require(script.Parent.CueAssets)
 local CueThumb = require(script.Parent.CueThumb)
 local HudParts = require(script.Parent.HudParts)
 local ItemState = require(script.Parent.ItemState)
@@ -841,6 +842,8 @@ function CaseOpening.playIn(self: any, s: Session, caseId: string, results: any)
 	local found = 0
 	for _, result in list do
 		found += result.found or 0
+		-- Download the won cue's look while the reel spins, so Equip shows it at once.
+		CueAssets.preload(result.cue)
 	end
 	self:holdFound(s, found)
 	if #list == 1 then
