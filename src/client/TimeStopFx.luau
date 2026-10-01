@@ -13,9 +13,11 @@
 --   * The freeze (the replay's `ult` event "freeze"): a negative flash and a deep boom, the
 --     bubble bursts out across the table, a white-violet warp ring grows from the middle of
 --     the screen past its edges, then stopped time: the view goes cold violet inside a bright
---     lens edge, a clock face on the cloth round the cue ball sweeps its hand once round the
---     stopped time (Shared.FrozenSeconds) with a slow tick each second, and every ball caught
---     moving shows afterimages behind it. The second strike's cue ball draws a violet trail.
+--     lens edge, a clock face on the cloth round the cue ball counts the stopped time down: its
+--     hand starts at 12 (the top of each player's own screen) and goes once round clockwise in
+--     Shared.FrozenSeconds, time resuming by itself as it gets back to 12; after the strike it
+--     runs the rest of the way round as time resumes. A slow tick each second, and every ball
+--     caught moving shows afterimages behind it. The second strike's cue ball draws a violet trail.
 --   * The resume: a second negative flash with a reversed whoosh into a tick-tock, the bubble
 --     comes back huge and collapses onto the cue ball, and the colour snaps back.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with
@@ -78,6 +80,10 @@ type TableFx = {
 	nextTick: number,
 	struck: number, -- how many strikes in stopped time have begun in the replay
 	handFrom: number?, -- os.clock() the clock hand's current sweep began (the freeze, then each strike's end)
+	-- The last strike's part is done: the hand runs on from finishFrom (its share of the turn
+	-- then) to 12 over Shared.ResumeAfterStrikeSeconds from finishAt, landing as time resumes.
+	finishFrom: number?,
+	finishAt: number?,
 	resumed: boolean,
 	quiet: boolean, -- caught up late: no screen or sounds for this shot
 }
@@ -294,6 +300,32 @@ local function makeGhosts(self: TimeStopFx, id: number, fx: TableFx, m: any)
 	end
 end
 
+-- How far round the clock hand is (0 at 12, 1 a full turn) at os.clock() `t`: the stopped
+-- time counting down (one turn in Shared.FrozenSeconds, so the full turn is time resuming by
+-- itself), then, after the last strike, the rest of the turn as time resumes.
+local function handShare(fx: TableFx, t: number): number
+	if fx.finishAt and fx.finishFrom then
+		local u = math.clamp((t - fx.finishAt) / S.ResumeAfterStrikeSeconds, 0, 1)
+		return fx.finishFrom + (1 - fx.finishFrom) * u
+	end
+	local from = fx.handFrom or fx.frozeAt or t
+	return math.clamp((t - from) / S.FrozenSeconds, 0, 1)
+end
+
+-- The turn about the vertical that points the clock's 12 away from this player's camera (the
+-- top of their screen), so the hand reads like a clock to everyone watching, from any side.
+local function cameraYaw(): number
+	local camera = workspace.CurrentCamera
+	if camera == nil then
+		return 0
+	end
+	local look = camera.CFrame.LookVector
+	if look.X * look.X + look.Z * look.Z < 1e-6 then
+		return 0
+	end
+	return math.atan2(look.X, look.Z)
+end
+
 local function freeze(self: TimeStopFx, id: number, fx: TableFx, m: any)
 	local kit = self.kit
 	local t = os.clock()
@@ -412,8 +444,16 @@ function TimeStopFx.start(hub: any, _parent: Instance, kit: any): TimeStopFx
 			freeze(self, tableId, fx, m)
 			fx.handFrom = fx.frozeAt
 		elseif ev.type == "ult" and ev.kind == "strikeFrozen" and fx.frozeAt then
-			-- A strike's part is done: the hand sweeps the next window from the top.
-			fx.handFrom = os.clock()
+			if fx.struck < S.TimeStopStrikes then
+				-- A strike's part is done with strikes left: the hand sweeps the next window
+				-- from the top.
+				fx.handFrom = os.clock()
+			elseif fx.finishAt == nil then
+				-- The last strike's part is done: time resumes ResumeAfterStrikeSeconds from now,
+				-- and the hand runs on round to 12 to land with it.
+				fx.finishFrom = handShare(fx, os.clock())
+				fx.finishAt = os.clock()
+			end
 		end
 	end)
 	task.spawn(function()
@@ -484,6 +524,7 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 			live.shotSeq = m.seq
 			live.contactAt, live.frozeAt, live.resumedAt = nil, nil, nil
 			live.struck, live.resumed, live.handFrom = 0, false, nil
+			live.finishFrom, live.finishAt = nil, nil
 			live.quiet = m.state.time > F.FreshSeconds
 			releaseScreen(live)
 			dropGhosts(live)
@@ -565,7 +606,8 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 				bubble.Transparency = 1
 			end
 		end
-		-- The clock face round the frozen cue ball, its hand sweeping the stopped time once.
+		-- The clock face round the frozen cue ball, its hand counting the stopped time down: from
+		-- 12 (the top of this player's screen) once round, time resuming as it gets back there.
 		local clockOn = frozen and live.centre ~= nil
 		if clockOn and live.face == nil then
 			live.face = newMesh(self, live, "ClockFace")
@@ -582,21 +624,17 @@ function TimeStopFx.update(self: TimeStopFx, dt: number)
 				local lift = Vector3.yAxis
 					* (F.LiftInches * Config.Table.StudsPerInch - ballWidth() / 2)
 				sizeTo(self, face, "ClockFace", studs)
-				face.CFrame = CFrame.new(centre + lift)
+				local yaw = cameraYaw()
+				face.CFrame = CFrame.new(centre + lift) * CFrame.Angles(0, yaw, 0)
 				local base = self.meshes and self.meshes.sizes.ClockHand
 				if base then
 					local scale = studs / 2
 					hand.Size = base * scale
 					local length = base.Z * scale
-					local turn = -2
-						* math.pi
-						* math.clamp(
-							(t - (live.handFrom or live.frozeAt) :: number) / S.FrozenSeconds,
-							0,
-							1
-						)
+					-- Clockwise from 12 (a negative turn about +Y, seen from above).
+					local turn = -2 * math.pi * handShare(live, t)
 					hand.CFrame = CFrame.new(centre + lift + Vector3.yAxis * 0.01)
-						* CFrame.Angles(0, turn, 0)
+						* CFrame.Angles(0, yaw + turn, 0)
 						* CFrame.new(0, 0, length * F.HandCentreShare)
 				end
 				local alpha = 1 - (1 - F.ClockTransparency) * shown

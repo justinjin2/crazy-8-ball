@@ -483,7 +483,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     shooter gets 8 s to line up and strike the cue ball once more (untouched, time resumes by
     itself); the cue ball alone moves until it touches a ball or a cushion, and time resumes 1 s
     later, every ball's stored motion playing out (the designer, 2026-09-30: was three strikes,
-    5 s each). Measured worth with one strike: 0.24 / 0.31 / 0.18 net at skills 1/2/3 (was 0.65
+    5 s each). The clock on the cloth counts the stopped time down: its hand starts at 12 (the
+    top of each player's screen) and goes once round in the 8 s, time resuming as it gets back
+    to 12; after the strike it runs the rest of the way round as time resumes. Measured worth
+    with one strike: 0.24 / 0.31 / 0.18 net at skills 1/2/3 (was 0.65
     / 0.42 / 0.34 with three), under the Rare mean: flagged. The freeze plays the designer's
     own clip (2026-09-30).
   - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best

@@ -2102,3 +2102,7 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   cue ball touches something, or by itself at 8 s. Worth fell to 0.24 / 0.31 / 0.18 net (was
   0.65 / 0.42 / 0.34), flagged. The freeze sound is now 119468975319371 (the earlier id was
   the wrong clip).
+- 2026-09-30 (designer): Time Stop's clock tells the time left: the hand starts at 12 (turned
+  to the top of each viewer's own screen, following their camera) and goes once round
+  clockwise in the 8 s, time resuming as it gets back to 12; after the strike it runs the rest
+  of the way round over the 1 s before time resumes.
