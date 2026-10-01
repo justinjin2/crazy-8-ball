@@ -5170,6 +5170,10 @@ Config.Multiplayer = {
 		QueueFoldEdgePx = 6, -- room above and below a folding part's buttons for their outlines (and a hovered one's grow)
 		QueueFoldSidePx = 10, -- and beside them: the part reaches this far past the card's column
 		QueueCountWidth = 72, -- the people n/6 pill
+		-- TEMPORARY (designer, 2026-09-30): the difficulty picker's three buttons under the
+		-- title, this tall (each still takes a 44 px touch), the picked one in this tone.
+		QueueLevelHeight = 34,
+		QueueLevelPickedTone = "Yellow",
 		QueuePillHeight = 26, -- the count and team-split pills
 		-- The No-ults fallback's line on the searching card ("Nobody's in No ults right now.
 		-- Search with ults on?"): this many lines of Body text, over Yes and No side by side.

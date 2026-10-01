@@ -290,7 +290,9 @@ Every feature is checked against these. If it serves none, it waits.
 
 **Open**
 - Difficult and Challenger may be for pro lobbies only (designer thinking, 2026-09-27); until
-  then public tables play Classic, with ults on (section 9).
+  then public tables play Classic, with ults on (section 9). TEMPORARY (2026-09-30, for
+  trying them): the host's card has a Classic / Difficult / Challenger picker under its title;
+  no rank lock and no money multiplier yet, and the table goes back to Classic after a game.
 - Whether the arena gets its own map later (the reference image) or keeps the rooftop, and
   whether players in the lobby can watch arena matches.
 

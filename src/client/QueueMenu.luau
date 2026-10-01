@@ -27,6 +27,11 @@
 -- time (the server checks it, UltsChoice); No keeps waiting and hides the offer for this
 -- search.
 --
+-- Difficulty (TEMPORARY, designer, 2026-09-30, for trying the levels): Classic, Difficult and
+-- Challenger side by side under the title, the picked one lit, while the pad waits and no
+-- search runs. The server takes SetDifficulty from the host only, before the game, and resets
+-- it after every game; no rank lock yet (Roadmap 6.2) and the money multiplier stays off.
+--
 -- Every press is a request the server checks (MatchEngine.action). Built from the UI kit
 -- (HudParts): it pops in the moment you step onto an empty pad (Main shows it before the
 -- server has seated you). It keeps small: tucked into the top right corner on a phone-sized
@@ -112,6 +117,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.fallbackSentAt = -math.huge -- the fallback's Yes on its way
 	self.fallbackDismissed = nil :: number? -- the search (its start) whose offer got a No
 	self.ultsShown = true -- what the toggle reads now (it is built reading On)
+	self.levelSent = nil :: { value: string, at: number }? -- a difficulty on its way
 	self.now = 0
 	self.open = false
 	self.away = false -- the host stepped off the pad; the server lets them go shortly
@@ -166,6 +172,27 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.players.AutoLocalize = false -- only numbers
 	self.players.Position = UDim2.fromOffset(S.QueuePillHeight, 1)
 	self.players.Size = UDim2.new(1, -S.QueuePillHeight - 6, 1, -2)
+
+	-- The difficulty picker (TEMPORARY): one button per level, side by side.
+	local levels = HudParts.frame(content, "Levels")
+	levels.Size = UDim2.new(1, 0, 0, S.QueueLevelHeight)
+	self.levelRow = levels
+	self.levelButtons = {} :: { [string]: TextButton }
+	local order = Config.Difficulty.Order
+	local gap = S.QueueRowGap
+	for i, level in order do
+		local b = button(levels, level, Copy.Levels[level] or level, i, "White", nil, function()
+			if self:canSetLevel() and self:pickedLevel() ~= level then
+				self.levelSent = { value = level, at = self.now }
+				self.onAction("SetDifficulty", level)
+			end
+		end)
+		local share = 1 / #order
+		b.Position = UDim2.new(share * (i - 1), math.floor(gap * (i - 1) / #order), 0, 0)
+		b.Size = UDim2.new(share, -math.ceil(gap * (#order - 1) / #order), 1, 0)
+		HudParts.setMinHit(b, 44)
+		self.levelButtons[level] = b
+	end
 
 	-- Waiting for an opponent or players, or starting in 3.
 	self.statusFold = fold(content, "StatusFold", 2)
@@ -273,6 +300,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	-- Top to bottom. `overlap`: a fold of buttons, whose outline room sits over the gaps.
 	self.rows = {
 		{ object = title } :: any,
+		{ object = levels },
 		{ fold = self.statusFold },
 		{ object = self.request },
 		{ object = self.global },
@@ -379,6 +407,27 @@ function QueueMenu.found(self: any): boolean
 	return snapshot ~= nil and snapshot.search ~= nil and snapshot.search.found == true
 end
 
+--- The difficulty the picker shows: one on its way to the server, else the table's.
+function QueueMenu.pickedLevel(self: any): string
+	local sent = self.levelSent
+	if sent and self.now - sent.at < M.ActionRetrySeconds then
+		return sent.value
+	end
+	local settings = self.snapshot and self.snapshot.settings
+	return settings and settings.difficulty or Config.Difficulty.Default
+end
+
+--- Whether the picker may be pressed: the host, the pad waiting with no search on and the
+--- game not about to start (the server checks the host and the phase).
+function QueueMenu.canSetLevel(self: any): boolean
+	local snapshot = self.snapshot
+	return snapshot ~= nil
+		and self:isHost()
+		and snapshot.phase == "Waiting"
+		and snapshot.startsAt == nil
+		and not self:searching()
+end
+
 --- Whether Join Global Queue may be pressed: the host, a whole side on the pad with room
 --- left, no search on (MatchEngine.canSearch).
 function QueueMenu.canSearch(self: any): boolean
@@ -472,6 +521,7 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 		self.sentAt, self.requestedAt, self.cancelledAt = -math.huge, -math.huge, -math.huge
 		self.searchAt, self.searchCancelledAt = -math.huge, -math.huge
 		self.ultsSent, self.fallbackSentAt, self.fallbackDismissed = nil, -math.huge, nil
+		self.levelSent = nil
 	end
 	if not snapshot then
 		self:blur()
@@ -518,6 +568,7 @@ function QueueMenu.focus(self: any)
 	for _, object in
 		{
 			self.request,
+			self.levelButtons[Config.Difficulty.Default],
 			self.global,
 			self.ults,
 			self.fallbackYes,
@@ -649,8 +700,14 @@ function QueueMenu.update(self: any, now: number)
 	local count = self:count()
 	local teamSize = snapshot.teamSize
 	local capacity = teamSize * 2
-	local difficulty = snapshot.settings and snapshot.settings.difficulty
-		or Config.Difficulty.Default
+	local difficulty = self:pickedLevel()
+	-- The picker: the picked level lit, all of them hidden while a search runs.
+	self.levelRow.Visible = not self:searching()
+	local canLevel = self:canSetLevel()
+	for level, b in self.levelButtons do
+		HudParts.setTone(b, if level == difficulty then S.QueueLevelPickedTone else "White")
+		HudParts.setEnabled(b, canLevel)
+	end
 	HudParts.setIcon(self.level, difficulty)
 	self.game.Text = Copy.GameTitle:format(
 		Copy.Levels[difficulty] or "",

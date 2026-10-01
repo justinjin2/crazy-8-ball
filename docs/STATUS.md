@@ -1,5 +1,10 @@
 # Status
 
+**2026-09-30: temporary difficulty picker.** The host's queue card has Classic / Difficult /
+Challenger buttons under its title (the server's SetDifficulty; no rank lock, no money
+multiplier). Checked in Studio on PC: picking Challenger sets the table and its title, and a
+solo game then draws no aim line. Phone and gamepad not checked yet.
+
 **2026-09-30: Time Stop is one strike in 8 s.** The freeze still comes 1 s after the first
 contact; the shooter then has 8 s to line up one more strike, and time resumes 1 s after it
 hits (or at 8 s untouched). The clock's hand counts it down: from 12 once round, time

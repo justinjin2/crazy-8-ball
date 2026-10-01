@@ -2106,3 +2106,8 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   to the top of each viewer's own screen, following their camera) and goes once round
   clockwise in the 8 s, time resuming as it gets back to 12; after the strike it runs the rest
   of the way round over the 1 s before time resumes.
+- 2026-09-30 (designer): TEMPORARY difficulty picker on the host's queue card: Classic,
+  Difficult and Challenger side by side under the title, the picked one lit yellow, hidden
+  while a global search runs. It sends the existing SetDifficulty (host only, before the game;
+  the server resets it after each game). No rank lock (Roadmap 6.2) and the money multiplier
+  stays off (Config.Economy.UseDifficultyMultiplier), so it cannot be used to earn more.
