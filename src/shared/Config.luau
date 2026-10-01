@@ -2483,7 +2483,7 @@ Config.Ults = {
 		TimeSwell = { Id = "rbxassetid://119247066943033", Volume = 0.7 },
 		-- The freeze: the designer's own clip (2026-09-30, 3.1 s, a hit at the start fading
 		-- out, peak 0.74 at volume 1; was "Boom Impact Deep Distant Thumping Hits 1").
-		TimeBoom = { Id = "rbxassetid://136772163363348", Volume = 0.9 },
+		TimeBoom = { Id = "rbxassetid://119468975319371", Volume = 0.9 },
 		TimeTick = { Id = "rbxassetid://8140501675", Volume = 1.2, StartOffset = 0.22 },
 		TimeResume = { Id = "rbxassetid://9118158113", Volume = 0.7 },
 		TimeTickTock = { Id = "rbxassetid://98448773080489", Volume = 2 },
@@ -2904,14 +2904,18 @@ Config.Ults.Shared = {
 	RewindRedos = 2,
 	RewindSeconds = 2.4, -- the table rewinding for everyone (tune)
 	-- Time Stop (7.7): the freeze comes this long after the cue ball's first contact and lasts
-	-- this long; a second strike's part resumes this long after it freezes. (tune)
+	-- this long (the shooter's time to line up and strike; untouched, time resumes by itself);
+	-- after the strike, time resumes this long after the cue ball touches a ball or a cushion
+	-- (or drops, or stops). The designer, 2026-09-30: 8 s to line up one strike, resuming 1 s
+	-- after it hits (was 5 s each for three, resuming 0.75 s after). (tune)
 	FreezeAfterSeconds = 1,
-	FrozenSeconds = 5,
-	ResumeAfterStrikeSeconds = 0.75,
-	-- How many strikes of the cue ball the shooter gets in stopped time (the step 16 buff: 2
-	-- measured +0.58 / +0.38 / +0.24 careful net at skills 1/2/3, 3 +0.65 / +0.42 / +0.34).
-	-- After each strike's part the clock starts again for the next one (FrozenSeconds).
-	TimeStopStrikes = 3,
+	FrozenSeconds = 8,
+	ResumeAfterStrikeSeconds = 1,
+	-- How many strikes of the cue ball the shooter gets in stopped time (the designer,
+	-- 2026-09-30: one; the step 16 buff had 3, measured +0.65 / +0.42 / +0.34 careful net at
+	-- skills 1/2/3, 2 +0.58 / +0.38 / +0.24). With more than one, each strike's end starts the
+	-- clock again for the next (FrozenSeconds).
+	TimeStopStrikes = 1,
 }
 
 -- Uploaded ability assets (AbilityAssets loads the models once per server, on the server,

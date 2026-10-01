@@ -201,7 +201,7 @@ return {
 		-- Rewind's redo turn, under the big clock: its shot clock in seconds.
 		SecondChance = "SECOND CHANCE: %ds",
 		-- Time Stop's stopped time, the shooter's instruction line.
-		TimeStopHint = "TIME STOPPED · STRIKE THE CUE BALL AGAIN",
+		TimeStopHint = "TIME STOPPED · ONE MORE SHOT",
 	},
 	-- Saves (PlayerData): the kick messages when a save cannot be used.
 	-- The global queue's teleports and why one did not happen (GlobalQueue, TeleportScreen).
@@ -920,7 +920,7 @@ return {
 			Ghost = "Your cue ball phases through every ball that isn't yours. The ball it hits phases through them too, and a ghost pulls it into a pocket it nearly misses.",
 			HeatSeeker = "Lock on to one of your balls: the cue ball curves round to hit it, and aimed straight at it, it cuts truer.",
 			Rewind = "Miss, and the table rewinds for another 10 s shot with its full path shown. Up to twice.",
-			TimeStop = "Time freezes after contact: strike the cue ball up to three more times while everything else stands still.",
+			TimeStop = "Time freezes a second after contact: you get 8 seconds to line up one more shot while everything else stands still.",
 			ChainLightning = "The ball of yours you hit is charged toward a pocket, and lightning jumps on to three more balls, pushing them toward pockets.",
 			Portals = "Place two portals for your whole turn. Balls that enter one fly out of the other, and yours come out lined up on a pocket.",
 			SteelBall = "The ball of yours you hit is guided in, and the cue ball curves on to your next, guiding it in or lining it up.",

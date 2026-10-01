@@ -14,8 +14,8 @@
 --     bubble bursts out across the table, a white-violet warp ring grows from the middle of
 --     the screen past its edges, then stopped time: the view goes cold violet inside a bright
 --     lens edge, a clock face on the cloth round the cue ball sweeps its hand once round the
---     5 s with a slow tick each second, and every ball caught moving shows afterimages behind
---     it. The second strike's cue ball draws a violet trail.
+--     stopped time (Shared.FrozenSeconds) with a slow tick each second, and every ball caught
+--     moving shows afterimages behind it. The second strike's cue ball draws a violet trail.
 --   * The resume: a second negative flash with a reversed whoosh into a tick-tock, the bubble
 --     comes back huge and collapses onto the cue ball, and the colour snaps back.
 -- Every table's parts hang off its AbilityFx anchor and go with it (kit.onRelease) or with

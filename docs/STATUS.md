@@ -1,5 +1,10 @@
 # Status
 
+**2026-09-30: Time Stop is one strike in 8 s.** The freeze still comes 1 s after the first
+contact; the shooter then has 8 s to line up one more strike, and time resumes 1 s after it
+hits (or at 8 s untouched). The freeze sound is the right clip now. Worth fell to 0.24 / 0.31
+/ 0.18 net, under the Rares: flagged. 878 Lune tests pass; checked in Studio.
+
 **2026-09-30: Black Flash's reach grows with the shot's power; new icon.** The blast reaches
 20 in on a full-power shot and only 6.4 in at 15% (4 in at the softest); the aiming ring grows
 and shrinks with the pull and the shockwave ring matches the shot. Worth 0.48 / 0.63 / 0.72

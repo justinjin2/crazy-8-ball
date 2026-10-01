@@ -338,14 +338,25 @@ function tests.time_stop_freezes_takes_its_strikes_and_replays_to_the_same_bits(
 		expect(other == nil, "only the shooter")
 		local ok = E.acceptShot(m, 11, second, freezeAt + 1)
 		expect(ok and #ok.parts.strikes == 1, "the first strike")
+		if S.TimeStopStrikes == 1 then
+			-- One strike (the designer, 2026-09-30): time resumes ResumeAfterStrikeSeconds after
+			-- the strike's cue ball touches something.
+			local part = ok.parts.strikes[1]
+			expect(
+				math.abs(m.deadline - (freezeAt + 1 + part.duration + S.ResumeAfterStrikeSeconds))
+					< 1e-9,
+				"resumes a second after the strike's contact"
+			)
+		end
 		local soon = E.acceptShot(m, 11, second, freezeAt + 1.01)
 		expect(soon == nil, "not before the replay reaches the strike's end")
-		-- Each strike's end starts a fresh 5 s for the next, up to Shared.TimeStopStrikes.
+		-- With more than one strike, each strike's end starts a fresh FrozenSeconds for the next,
+		-- up to Shared.TimeStopStrikes (one since 2026-09-30: this loop then runs no times).
 		for n = 2, S.TimeStopStrikes do
 			local nextAt = m.pending.frozen.freezeAt
 			expect(
 				math.abs(m.deadline - nextAt - S.FrozenSeconds) < 1e-9,
-				"a fresh 5 s for the next strike"
+				"a fresh FrozenSeconds for the next strike"
 			)
 			local aim = payload(m, if n % 2 == 0 then 0 else math.pi, 0.3)
 			local more = E.acceptShot(m, 11, aim, nextAt + 0.5)
@@ -371,7 +382,7 @@ function tests.time_stop_without_a_strike_resumes_at_the_timeout()
 		local deadline = m.deadline
 		expect(
 			math.abs(deadline - m.pending.frozen.freezeAt - S.FrozenSeconds) < 1e-9,
-			"5 s of stopped time"
+			"FrozenSeconds of stopped time"
 		)
 		expire(m)
 		expect(m.phase == "Resolving" or m.phase == "Foul", "resumed and judged")
@@ -386,13 +397,13 @@ function tests.time_stop_without_a_strike_resumes_at_the_timeout()
 	end)
 end
 
-function tests.time_stop_refuses_a_strike_after_its_five_seconds()
+function tests.time_stop_refuses_a_strike_after_its_stopped_time()
 	built("TimeStop", function()
 		local m = midGame()
 		armNow(m, "TimeStop")
 		frozenShot(m)
 		local late, why = E.acceptShot(m, 11, payload(m, math.pi / 2, 0.3), m.deadline + 0.01)
-		expect(late == nil and why == "Expired", "the server holds the 5 s: " .. tostring(why))
+		expect(late == nil and why == "Expired", "the server holds the stopped time: " .. tostring(why))
 		local stale = payload(m, math.pi / 2, 0.3)
 		stale.turnId += 1
 		local forged = E.acceptShot(m, 11, stale, m.pending.frozen.freezeAt + 0.5)

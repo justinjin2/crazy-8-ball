@@ -2096,3 +2096,9 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   0.68 / 0.77). New icon: black lightning with a red outline and the cue ball with speed
   trails (not a shuriken). Fixed: a hard shot's flash could land in the replay's first frame
   and its look (shatter, ring, sound) was skipped.
+- 2026-09-30 (designer): Time Stop gives one strike in stopped time, not three: the freeze
+  still comes 1 s after the first contact, then the shooter has 8 s (FrozenSeconds, was 5) to
+  line up and strike; time resumes 1 s (ResumeAfterStrikeSeconds, was 0.75) after the strike's
+  cue ball touches something, or by itself at 8 s. Worth fell to 0.24 / 0.31 / 0.18 net (was
+  0.65 / 0.42 / 0.34), flagged. The freeze sound is now 119468975319371 (the earlier id was
+  the wrong clip).

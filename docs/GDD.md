@@ -479,10 +479,13 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     included, is undone (the foul erased) and redone on a 10 s clock with Eagle's Eye's full
     path shown; a missed redo rewinds again, two redos a use. Everyone at the table sees the
     VHS rewind.
-  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.47): at the cue ball's first contact time freezes; the shooter
-    strikes the cue ball up to three more times in stopped time (5 s for each, then it resumes
-    by itself); the stored motion of every ball plays out when time resumes. The freeze plays
-    the designer's own clip (2026-09-30).
+  - **Time Stop** (Epic since 2026-09-30, was Rare; 0.47): 1 s after the cue ball's first contact time freezes; the
+    shooter gets 8 s to line up and strike the cue ball once more (untouched, time resumes by
+    itself); the cue ball alone moves until it touches a ball or a cushion, and time resumes 1 s
+    later, every ball's stored motion playing out (the designer, 2026-09-30: was three strikes,
+    5 s each). Measured worth with one strike: 0.24 / 0.31 / 0.18 net at skills 1/2/3 (was 0.65
+    / 0.42 / 0.34 with three), under the Rare mean: flagged. The freeze plays the designer's
+    own clip (2026-09-30).
   - **Chain Lightning** (Epic, 0.96): the first ball hit, if yours, is charged toward its best
     pocket (up to 15 degrees, x1.25 speed); then lightning jumps three times, each to the
     nearest ball within 20 in, pushing each struck ball toward its closest pocket with a clear
