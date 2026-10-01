@@ -120,10 +120,32 @@ them (`src/`, `tests/` and the shared docs belonged to the abilities run).
 
 ### 6.1 Catalog changes
 
-- **Replace the 30 placeholder case cues** in `src/shared/Progression/Catalog.luau` with the
-  case cues built here (Common to Secret, 46 skins), one row per skin. The id, name, tier and
-  catalog id are in each `assets/cue/skins/<id>.json` (`catalog_id`, for example `KitsuneCue`).
-  Strings go in the shared strings module.
+- **The tiers (designer, 2026-09-30: the plan `cue_skins_plan.html` is the source of truth):**
+  62 cues, 47 of them case cues (8 Common, 9 Uncommon, 10 Rare, 9 Epic, 7 Legendary, 3 Mythic,
+  1 Secret). Every skin file's `tier` matches it:
+
+  | Tier | Count | Cues (`catalog_id`) |
+  |---|---|---|
+  | Common | 8 | Classic (`Classic`), Midnight (`MidnightCue`), Arctic (`ArcticCue`), Cherry (`CherryCue`), Carbon (`CarbonCue`), Heritage (`HeritageCue`), Monarch (`MonarchCue`), Cobalt (`CobaltCue`) |
+  | Uncommon | 9 | Gummy (`GummyCue`), Flare (`FlareCue`), Hornet (`HornetCue`), Venom (`VenomCue`), Lagoon (`LagoonCue`), Splice (`SpliceCue`), Cosmo (`CosmoCue`), Gilded (`GildedCue`), Pixel (`PixelCue`) |
+  | Rare | 10 | Honeycomb (`HoneycombCue`), Neon (`NeonCue`), Nature (`NatureCue`), Candy (`CandyCue`), Frostbite (`FrostbiteCue`), Plasma (`PlasmaCue`), Blaze (`BlazeCue`), Phantom (`PhantomCue`), Tidal (`TidalCue`), Sakura (`SakuraCue`) |
+  | Epic | 9 | Void (`VoidCue`), Shooting Star (`ShootingStarCue`), Magma (`MagmaCue`), Toxic (`ToxicCue`), Blood Moon (`BloodMoonCue`), Prism (`PrismCue`), Aurora (`AuroraCue`), Disco (`DiscoCue`), Hacked (`HackedCue`) |
+  | Legendary | 7 | Chroma (`ChromaCue`), Thunderstrike (`ThunderstrikeCue`), Phoenix (`PhoenixCue`), Kraken (`KrakenCue`), Seraph (`SeraphCue`), Infernal (`InfernalCue`), Clockwork (`ClockworkCue`) |
+  | Mythic | 3 | Celestial Dragon (`CelestialDragonCue`), Kitsune (`KitsuneCue`), Apex (`ApexCue`) |
+  | Secret | 1 | Eclipse (`EclipseCue`) |
+  | Exclusive | 2 | Starter Cue (`StarterCue`), VIP Cue (`VipCue`) |
+  | Rank | 10 | Bronze Cue (`BronzeCue`), Silver Cue (`SilverCue`), Gold Cue (`GoldCue`), Platinum Cue (`PlatinumCue`), Diamond Cue (`DiamondCue`), Expert Cue (`ExpertCue`), Veteran Cue (`VeteranCue`), Master Cue (`MasterCue`), Grandmaster Cue (`GrandmasterCue`), Reyes Cue (`ReyesCue`) |
+  | Unique | 3 | Founder's Cue, Beta Cue, Grand Opening: not built yet (deferred by the designer) |
+
+- **Replace the 30 placeholder case cues** in `src/shared/Progression/Catalog.luau` (7 Common,
+  6 Uncommon, 6 Rare, 5 Epic, 3 Legendary, 2 Mythic, 1 Secret today) with the case cues above,
+  one row per skin, in the plan's order. The id, name, tier and catalog id are in each
+  `assets/cue/skins/<id>.json` (`catalog_id`, for example `KitsuneCue`). Strings go in the
+  shared strings module. Update the case drop pools and odds tables that count cues per tier.
+- **Classic is labelled Common but stays the default (designer, 2026-09-30):** its row's
+  `Rarity` becomes `Common` (shop, inventory and Index show it as a Common), but everyone still
+  owns it from the start, it is in no case (`Cases = {}`), and it stays not tradable and not
+  sellable. So the cases drop 7 Commons. Check every place that tests `Rarity == "Default"`.
 - **Exclusive and Rank cues** already have ids (`StarterCue`, `VipCue`, `BronzeCue` ...
   `ReyesCue`); their rows just need to point at the new looks.
 - **The Starter Cue becomes tradable** (designer, 2026-09-29): set `Tradable = true` on its

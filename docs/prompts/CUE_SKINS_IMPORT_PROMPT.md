@@ -14,6 +14,9 @@ simple steps.
 - **`docs/prompts/CUE_SKINS_REPORT.md`, section 6 ("For the import session")**: the catalog
   changes, the `Config.Effects` rows, everything the cue builder needs, the upload list and the
   doc updates. It is the spec for this brief.
+- **The tiers:** the designer's plan `~/Desktop/cue_skins_plan.html` is the source of truth for
+  every cue's tier (designer, 2026-09-30); report 6.1 has it as a table. Classic shows as a
+  Common but stays the free default (in no case, not tradable, not sellable).
 - `docs/prompts/CUE_SKINS_REVIEW.md`: one row per skin (what was built and why). Rows with a
   `fix:` from the designer are fixed before import.
 - `docs/DECISIONS.md` from 2026-09-29 on: the run's assumptions and the designer's choices.
