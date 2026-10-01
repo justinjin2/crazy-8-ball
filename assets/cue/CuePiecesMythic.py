@@ -28,17 +28,20 @@ def _icy_eyes(px):
 
 # the spirit dragon's coil (designer, 2026-09-30: "an animated spiritual dragon spiralling
 # around the cue, not just a dragon head at the butt", as the concept): the tail at the butt, the
-# body coiling round the whole cue, the neck rising past the tip
-DRAGON_T1 = 1.15          # the path runs t = 0 (tail) .. 1 (the coil's end near the tip) .. T1 (neck)
-COIL_W = 2 * math.pi * 2.5    # the coil's turn per unit t (2.5 turns)
+# body coiling up the cue, the head reaching a little past halfway along the shaft (designer,
+# 2026-09-30: "it shouldn't be past the tip, just a little bit past halfway of the shaft")
+DRAGON_T1 = 1.15          # the path runs t = 0 (tail) .. 1 (the coil's end on the shaft) .. T1 (neck)
+COIL_W = 2 * math.pi * 2.25   # the coil's turn per unit t (2.25 turns)
+COIL_AT = (6.85, 3.0)     # AtStuds of the tail and of the coil's end (t = 1); the neck carries on
+                          # to about 2.4 and the snout to about 1.6, the shaft's halfway is 1.75
 NECK_TAU = 0.06           # past the coil the turn eases off over this much t, so the neck reaches
-                          # forward past the tip instead of swinging on round it
+                          # forward up the shaft instead of swinging on round it
 
 
 def _dragon_path(t):
     """A point on the dragon's spine (Blender cue frame) for t in [0, DRAGON_T1]: the coil, then
-    the neck carrying straight on (no kink) as it rises out and forward past the tip."""
-    at = 6.85 - 6.3 * t
+    the neck carrying straight on (no kink) as it rises out and reaches forward up the shaft."""
+    at = COIL_AT[0] - (COIL_AT[0] - COIL_AT[1]) * t
     if t <= 1:
         rr = 0.22 + 0.13 * t
         ang = 0.4 + COIL_W * t
@@ -149,8 +152,8 @@ def _dragon_scales_png(k, name, w=256, h=512):
 @piece
 def celestial_dragon(k):
     """The Celestial Dragon as the concept draws it (designer, 2026-09-30): a spirit dragon of
-    blue light coiling round the whole cue, its tail at the butt, its body spiralling 2.5 turns up
-    the cue and its neck rising past the tip, the generated head (Meshy, assets/cue/models/
+    blue light coiling round the cue, its tail at the butt, its body spiralling 2.25 turns up the
+    cue and its neck rising off it a little past halfway along the shaft, the generated head (Meshy, assets/cue/models/
     dragon_head) on it roaring. All of it is a spirit, see-through and glowing: the body is
     translucent blue scales with glowing rims, a white-hot dorsal line and pale belly plates
     (its own SurfaceAppearance), in a shimmering ForceField sheath round a bright core, with flame
