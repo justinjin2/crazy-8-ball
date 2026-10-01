@@ -162,8 +162,11 @@ def celestial_dragon(k):
 
     Moving (all aura: hidden on the shooter's turn): the whole dragon swims slowly round the cue
     (Coil, a Spin about the cue's axis, so the coils seem to flow along it); a wave runs down the
-    body from the neck to the tail (seven body bones, each bobbing a beat after the one before);
-    the head nods and looks round, the jaw opens in a roar, the mane streams."""
+    body from the neck to the tail (ten body bones, each with a sideways and an outward bob a
+    beat after the one before, so it slithers), and the whole coil surges up and down the cue;
+    the tail flicks; the neck (two bones, Neck1 and Neck2) rears and sways and the head on it
+    nods and looks round, their moves adding up; every 4.8 s it rears back roaring, the jaw
+    gaping; the mane streams (designer, 2026-09-30: "move its head more ... like a live dragon")."""
     import numpy as np
     import bmesh
     from mathutils import Matrix, Vector
@@ -172,45 +175,82 @@ def celestial_dragon(k):
     k.material('Core', 'Neon', '#D8EEFF', Transparency=0.45)
     k.material('Fin', 'Neon', '#9ACFFF', Transparency=0.35)
 
-    # head first: a positive Spin about +Y turns the coil the way its turns climb toward the head
-    k.joint('Coil', pivot=(0, 0, 0), aura=True, motion=[{'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 32.0}])
+    # head first: a positive Spin about +Y turns the coil the way its turns climb toward the head;
+    # the whole coil also surges gently up and down the cue as it swims
+    k.joint('Coil', pivot=(0, 0, 0), aura=True, motion=[
+        {'Kind': 'Spin', 'Axis': (0, 1, 0), 'Rate': 44.0},
+        {'Kind': 'Bob', 'Dir': (0, 1, 0), 'Amp': 0.06, 'Period': 6.0}])
     frames = _dragon_frames(240)
 
-    # the body's bones: a wave running down from the neck to the tail
-    NB = 7
-    centres = [0.1 + (1.1 - 0.1) * b / (NB - 1) for b in range(NB)]
-    width = (1.1 - 0.1) / (NB - 1)
+    def frame_at(t):
+        return frames[int(round(t / DRAGON_T1 * (len(frames) - 1)))]
+
+    # the body's bones: two waves running down from the neck to the tail, one rolling the body
+    # along the cue (sideways), one lifting it off the cue and back (a slower breath), so the
+    # coils slither instead of bobbing
+    NB = 10
+    C0, C1 = 0.06, 0.9
+    centres = [C0 + (C1 - C0) * b / (NB - 1) for b in range(NB)]
+    width = (C1 - C0) / (NB - 1)
     path_t = np.array([f[0] for f in frames])
     path_p = np.array([tuple(f[1]) for f in frames])
     bone_names = []
     for b, tc in enumerate(centres):
-        _, p, tg, nrm, side = frames[int(round(tc / DRAGON_T1 * (len(frames) - 1)))]
-        d = (nrm * 0.6 + side * 0.8).normalized()
+        _, p, tg, nrm, side = frame_at(tc)
+        f = b / (NB - 1)
         nm = 'Body%d' % (b + 1)
         k.joint(nm, pivot=tuple(p), parent='Coil', aura=True, motion=[
-            {'Kind': 'Bob', 'Dir': tuple(d), 'Amp': 0.035 + 0.01 * b / (NB - 1), 'Period': 1.8, 'Phase': 50 * b}])
+            {'Kind': 'Bob', 'Dir': tuple(side), 'Amp': 0.045 + 0.03 * f, 'Period': 2.0, 'Phase': 36 * b},
+            {'Kind': 'Bob', 'Dir': tuple(nrm), 'Amp': 0.022 + 0.018 * f, 'Period': 3.1, 'Phase': 64 * b}])
         bone_names.append((nm, tc))
+
+    # the tail flicks (riding Body1); the neck is a chain of two bones (Neck1 off the coil, Neck2
+    # riding it, the head riding Neck2), each rearing and swaying, so the head's moves add up; the
+    # rearing (about side: positive lifts away from the cue) never dips below the rest pose, so the
+    # head never dives into the cue, and the sway is small at Neck1, where it would reach the tip
+    _, p, tg, nrm, side = frame_at(0.05)
+    k.joint('Tail', pivot=tuple(p), parent='Body1', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 24.0, 'Period': 1.7},
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 10.0, 'Period': 2.3, 'Phase': 70}])
+    _, p, tg, nrm, side = frame_at(0.95)
+    k.joint('Neck1', pivot=tuple(p), parent='Coil', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 9.0, 'Amp': 9.0, 'Period': 4.4},
+        {'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 6.0, 'Period': 5.6, 'Phase': 30}])
+    _, p, tg, nrm, side = frame_at(1.05)
+    k.joint('Neck2', pivot=tuple(p), parent='Neck1', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 7.0, 'Amp': 7.0, 'Period': 3.2, 'Phase': 90},
+        {'Kind': 'Hinge', 'Axis': tuple(nrm), 'Amp': 12.0, 'Period': 3.9, 'Phase': 120}])
 
     def t_of(V):
         # each vertex's place along the body: the nearest spine sample
         d2 = ((V[:, None, :] - path_p[None, :, :]) ** 2).sum(-1)
         return path_t[np.argmin(d2, 1)]
 
-    def hat(tc):
-        return lambda tv: np.clip(1 - np.abs(tv - tc) / width, 0, 1)
+    def smooth(x):
+        x = np.clip(x, 0, 1)
+        return x * x * (3 - 2 * x)
 
-    hats = [hat(tc) for _, tc in bone_names]
+    def neck1(tv):
+        return smooth((tv - 0.88) / 0.1)
+
+    def body_abs(idx, tv):
+        # the hats sum to one along the body (flat past the end bones), less what the neck takes
+        tc = np.clip(tv, C0, C1)
+        return np.clip(1 - np.abs(tc - centres[idx]) / width, 0, 1) * (1 - neck1(tv))
 
     def bone_fn(idx):
-        # the hats sum to one along the body; each bone takes its hat's share of what the bones
-        # before it left (skin_weights hands each bone a share of its parent's remaining weight)
+        # skin_weights hands each bone a share of its parent's remaining weight: the body bones
+        # all ride Coil, so each takes its absolute weight over what the bones before it left
         def fn(V):
             tv = t_of(V)
-            taken = sum(h(tv) for h in hats[:idx]) if idx else np.zeros(len(V))
-            return np.where(taken < 0.999, hats[idx](tv) / np.maximum(1 - taken, 1e-3), 0.0)
+            taken = sum(body_abs(j, tv) for j in range(idx)) if idx else np.zeros(len(V))
+            return np.where(taken < 0.999, body_abs(idx, tv) / np.maximum(1 - taken, 1e-3), 0.0)
         return fn
 
     bones = {nm: bone_fn(i) for i, (nm, _) in enumerate(bone_names)}
+    bones['Tail'] = lambda V: smooth((0.1 - t_of(V)) / 0.1)          # a share of Body1's
+    bones['Neck1'] = lambda V: np.ones(len(V))                          # all Coil has left: the neck
+    bones['Neck2'] = lambda V: smooth((t_of(V) - 1.0) / 0.08)          # a share of Neck1's
 
     # the spirit body (textured), its sheath, its core
     paths = _dragon_scales_png(k, 'DragonBody')
@@ -279,13 +319,17 @@ def celestial_dragon(k):
         return (Matrix.Translation(C) @ R.to_4x4() @ Matrix.Scale(s_, 4)
                 @ Matrix.Translation((-(lo[0] + hi[0]) / 2, -hi[1], -lo[2])))
 
-    k.joint('Head', pivot=tuple(pe), parent='Body%d' % NB, aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 6.0, 'Period': 3.0},
-        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 8.0, 'Period': 4.6, 'Phase': 40}])
+    # the head nods, looks round and, every 4.8 s, rears back roaring (a pulse) as the jaw gapes
+    # (positive about side lifts the snout away from the cue)
+    k.joint('Head', pivot=tuple(pe), parent='Neck2', aura=True, motion=[
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Base': 3.0, 'Amp': 9.0, 'Period': 2.7},
+        {'Kind': 'Hinge', 'Axis': tuple(up), 'Amp': 18.0, 'Period': 4.2, 'Phase': 40},
+        {'Kind': 'Hinge', 'Axis': tuple(side), 'Amp': 14.0, 'Period': 4.8, 'Shape': 'pulse'}])
     k.joint('Jaw', pivot=tuple(to_cue((0, -7.22, 0.02))), parent='Head', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Base': 11.0, 'Amp': 11.0, 'Period': 2.4}])
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Base': 6.0, 'Amp': 6.0, 'Period': 2.4},
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 16.0, 'Period': 4.8, 'Shape': 'pulse'}])
     k.joint('Mane', pivot=tuple(to_cue((0, -7.1, 0.15))), parent='Head', aura=True, motion=[
-        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 6.0, 'Period': 1.3, 'Phase': 60}])
+        {'Kind': 'Hinge', 'Axis': tuple(R @ Vector((1, 0, 0))), 'Amp': 10.0, 'Period': 1.3, 'Phase': 60}])
     head_bones = {'Jaw': lambda V: (lambda O: ramp(O[:, 1], -7.25, -7.33) * ramp(O[:, 2], 0.03, -0.02))(from_cue(V)),
                   'Mane': lambda V: (lambda O: ramp(O[:, 1], -7.15, -7.0) * ramp(O[:, 2], 0.12, 0.2))(from_cue(V))}
     k.model('Head', 'DragonHead', 'dragon_head', place, target_tris=15000, emissive=_icy_eyes,
@@ -293,8 +337,8 @@ def celestial_dragon(k):
             hologram={'Tint': '#8CC8FF', 'Shell': '#CFEAFF', 'Strength': 1.8, 'ShellTris': 6000,
                       'Alpha': (0.14, 0.55)})     # more solid than the pocket spirits: the face must read small
     k.dragon_spine = frames                        # for the skin's flame emitters (printed below)
-    for b, (nm, tc) in enumerate(bone_names):
-        _, p, tg, nrm, side = frames[int(round(tc / DRAGON_T1 * (len(frames) - 1)))]
+    for nm, tc in bone_names + [('Neck1', 0.97), ('Neck2', 1.08)]:
+        _, p, tg, nrm, side = frame_at(tc)
         q = p + nrm * _dragon_radius(tc)
         q2 = q - tg * 0.25
         print('CUE dragon flame host %s: From %s To %s' % (

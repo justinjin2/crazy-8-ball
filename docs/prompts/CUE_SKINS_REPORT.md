@@ -74,7 +74,7 @@ commits a reduced `source.glb` and 1024 px maps per model.
 
 | Piece | Triangles | Made by | Moves |
 |---|---|---|---|
-| celestial_dragon | 33.3k | scripted spirit body (scale texture, sheath, core, fins) + Meshy head (rigged hologram) | the whole dragon swims round the cue, a wave runs down its body, the jaw roars, the mane streams |
+| celestial_dragon | 33.3k | scripted spirit body (scale texture, sheath, core, fins) + Meshy head (rigged hologram) | the whole dragon swims and surges round the cue, two waves slither down its body (ten bones), the tail flicks, the neck (two bones) rears and sways, the head nods, looks round and rears back roaring, the mane streams |
 | celestial_dragon_pocket | 27.5k | Meshy (rigged hologram) | sways, nods, roars, claws |
 | kitsune | 39.0k | Meshy mask and a small Meshy running fox (rigged holograms) | ears twitch, jaw opens; the fox gallops round the forearm; the tails are Beams |
 | kitsune_pocket | 27.5k | Meshy (rigged hologram) | head tilts, nine tails sway |

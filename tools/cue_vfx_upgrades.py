@@ -265,13 +265,18 @@ def kitsune(d):
 # builder prints them (CuePiecesMythic.celestial_dragon: [AtStuds, Up, Side] in the rest pose;
 # each rides its bone, so the flames peel off as the dragon swims round the cue)
 DRAGON_FLAMES = [
-    ('Body1', [6.35, -0.066, 0.252], [6.558, 0.069, 0.282]),
-    ('Body2', [5.541, -0.181, -0.28], [5.744, -0.302, -0.196]),
-    ('Body3', [4.708, 0.356, 0.086], [4.904, 0.388, -0.066]),
-    ('Body4', [3.874, -0.336, 0.194], [4.064, -0.251, 0.332]),
-    ('Body5', [3.064, 0.088, -0.4], [3.249, -0.077, -0.432]),
-    ('Body6', [2.231, 0.223, 0.369], [2.41, 0.37, 0.275]),
-    ('Body7', [1.413, -0.438, 0.231], [1.652, -0.365, 0.252]),
+    ('Body1', [6.565, 0.085, 0.23], [6.774, 0.211, 0.178]),
+    ('Body2', [6.089, -0.239, 0.152], [6.295, -0.159, 0.269]),
+    ('Body3', [5.637, -0.244, -0.216], [5.839, -0.337, -0.103]),
+    ('Body4', [5.16, 0.174, -0.308], [5.36, 0.041, -0.378]),
+    ('Body5', [4.708, 0.356, 0.086], [4.904, 0.388, -0.066]),
+    ('Body6', [4.255, 0.016, 0.378], [4.448, 0.175, 0.367]),
+    ('Body7', [3.779, -0.378, 0.098], [3.969, -0.333, 0.254]),
+    ('Body8', [3.326, -0.204, -0.347], [3.513, -0.345, -0.259]),
+    ('Body9', [2.85, 0.306, -0.28], [3.033, 0.188, -0.403]),
+    ('Body10', [2.397, 0.364, 0.224], [2.577, 0.451, 0.074]),
+    ('Neck1', [2.04, -0.0, 0.436], [2.218, 0.175, 0.432]),
+    ('Neck2', [1.529, -0.4, 0.252], [1.764, -0.325, 0.291]),
 ]
 DRAGON_HEAD = [1.158, -0.445, 0.184]
 
@@ -292,7 +297,7 @@ def celestial_dragon(d):
              'LightEmission': 1, 'LightInfluence': 0, 'LockedToPart': False}
     a['Emitters'] = [e for e in a['Emitters'] if not e['Name'].startswith('SpiritFlames')]
     for jn, f0, f1 in DRAGON_FLAMES:
-        e = dict(flame, Name='SpiritFlames' + jn[4:], Rate=2, Brightness=1.8,
+        e = dict(flame, Name='SpiritFlames' + jn, Rate=1.2, Brightness=1.8,
                  Host={'Kind': 'Segment', 'Joint': jn, 'From': f0, 'To': f1, 'Radius': 0.04})
         a['Emitters'].append(e)
     w = named(a['Emitters'], 'Wisps')               # the mane's flames, on the head now
@@ -305,13 +310,16 @@ def celestial_dragon(d):
     v['Piece']['Note'] = ('pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body '
                           '(DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its '
                           'ForceField sheath, Neon core and Neon flame fins, on the bones Coil (root, a Spin round '
-                          'the cue\'s axis) and Body1-7 (each a Bob a beat after the last: a wave down the body). '
-                          'DragonHead.glb: the generated head as a hologram with its ForceField shell, on Head (riding '
-                          'Body7), Jaw and Mane. Every joint is Aura (hidden on the shooter\'s turn); piece.json has '
+                          'the cue\'s axis, and a slow surge along it), Body1-10 (each two Bobs, sideways and outward, '
+                          'a beat after the last: waves down the body), Tail (riding Body1, a flick) and the neck chain '
+                          'Neck1 > Neck2 (Hinges: rearing and swaying). DragonHead.glb: the generated head as a '
+                          'hologram with its ForceField shell, on Head (riding Neck2: nods, looks round, rears back '
+                          'roaring every 4.8 s), Jaw (gapes on the roar) and Mane. Every joint is Aura (hidden on the shooter\'s turn); piece.json has '
                           'each pivot and motion, and each Bone\'s Transform is set as the report says (6.3).')
     a['Note'] = ('A spirit dragon of blue light coils round the cue (the 3D piece: its tail at the butt, 2.25 '
-                 'turns up the cue, its head rising off it near the tip, a few inches short of it, roaring), swimming slowly round the cue with a '
-                 'wave running down its body; blue spirit flames peel off its back all along it and off its '
+                 'turns up the cue, its head rising off it near the tip, a few inches short of it, roaring), swimming round the cue and slithering, waves '
+                 'running down its body, its tail flicking, its neck rearing and swaying, its head looking round and '
+                 'rearing back to roar; blue spirit flames peel off its back all along it and off its '
                  'head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, '
                  'white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) '
                  'and a blue light on the coil. The dragon is aura: it goes with the rest on the shooter\'s turn.')
