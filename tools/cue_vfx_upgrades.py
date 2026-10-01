@@ -265,15 +265,15 @@ def kitsune(d):
 # builder prints them (CuePiecesMythic.celestial_dragon: [AtStuds, Up, Side] in the rest pose;
 # each rides its bone, so the flames peel off as the dragon swims round the cue)
 DRAGON_FLAMES = [
-    ('Body1', [6.462, -0.066, 0.252], [6.651, 0.093, 0.287]),
-    ('Body2', [5.833, -0.181, -0.28], [6.015, -0.321, -0.182]),
-    ('Body3', [5.184, 0.356, 0.085], [5.36, 0.393, -0.089]),
-    ('Body4', [4.536, -0.336, 0.195], [4.704, -0.239, 0.352]),
-    ('Body5', [3.906, 0.088, -0.4], [4.068, -0.099, -0.436]),
-    ('Body6', [3.257, 0.223, 0.369], [3.413, 0.388, 0.264]),
-    ('Body7', [2.63, -0.436, 0.233], [2.861, -0.345, 0.258]),
+    ('Body1', [6.35, -0.066, 0.252], [6.558, 0.069, 0.282]),
+    ('Body2', [5.541, -0.181, -0.28], [5.744, -0.302, -0.196]),
+    ('Body3', [4.708, 0.356, 0.086], [4.904, 0.388, -0.066]),
+    ('Body4', [3.874, -0.336, 0.194], [4.064, -0.251, 0.332]),
+    ('Body5', [3.064, 0.088, -0.4], [3.249, -0.077, -0.432]),
+    ('Body6', [2.231, 0.223, 0.369], [2.41, 0.37, 0.275]),
+    ('Body7', [1.413, -0.438, 0.231], [1.652, -0.365, 0.252]),
 ]
-DRAGON_HEAD = [2.422, -0.445, 0.184]
+DRAGON_HEAD = [1.158, -0.445, 0.184]
 
 
 def celestial_dragon(d):
@@ -301,7 +301,7 @@ def celestial_dragon(d):
                         'To': [DRAGON_HEAD[0] + 0.25, DRAGON_HEAD[1], DRAGON_HEAD[2] - 0.1], 'Radius': 0.08}))
     named(a['Emitters'], 'StarDust')['Rate'] = 18
     named(a['Emitters'], 'BlueLight')['Rate'] = 12
-    a['Lights'][0]['AtStuds'] = 4.5                   # the head moved: the light lights the coil
+    a['Lights'][0]['AtStuds'] = 4.0                   # the head moved: the light lights the coil
     v['Piece']['Note'] = ('pieces/celestial_dragon: the spirit dragon as two skinned GLBs. DragonBody.glb: the body '
                           '(DragonBody, a SurfaceAppearance of translucent blue scales, AlphaMode Transparency), its '
                           'ForceField sheath, Neon core and Neon flame fins, on the bones Coil (root, a Spin round '
@@ -310,7 +310,7 @@ def celestial_dragon(d):
                           'Body7), Jaw and Mane. Every joint is Aura (hidden on the shooter\'s turn); piece.json has '
                           'each pivot and motion, and each Bone\'s Transform is set as the report says (6.3).')
     a['Note'] = ('A spirit dragon of blue light coils round the cue (the 3D piece: its tail at the butt, 2.25 '
-                 'turns up the cue, its head rising off it a little past halfway along the shaft, roaring), swimming slowly round the cue with a '
+                 'turns up the cue, its head rising off it near the tip, a few inches short of it, roaring), swimming slowly round the cue with a '
                  'wave running down its body; blue spirit flames peel off its back all along it and off its '
                  'head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, '
                  'white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) '

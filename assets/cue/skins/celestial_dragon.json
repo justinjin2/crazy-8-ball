@@ -98,7 +98,7 @@
       "Note": "Energy flows through the dragon's body: four Orbiters ride its exact coil (from the butt to the shaft in 2.4 s, turning -1.333 turns a second so they follow the 3.2-turn helix, their radius measured from the cue's surface) with bright trails and glowing heads, two per ribbon, half a lap apart; star dust shimmers round it; the head breathes and roars (the piece motion); the cue's emissive (the sapphires and the star gem) breathes 1.4-2.2."
     },
     "Aura": {
-      "Note": "A spirit dragon of blue light coils round the cue (the 3D piece: its tail at the butt, 2.25 turns up the cue, its head rising off it a little past halfway along the shaft, roaring), swimming slowly round the cue with a wave running down its body; blue spirit flames peel off its back all along it and off its head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) and a blue light on the coil. The dragon is aura: it goes with the rest on the shooter's turn.",
+      "Note": "A spirit dragon of blue light coils round the cue (the 3D piece: its tail at the butt, 2.25 turns up the cue, its head rising off it near the tip, a few inches short of it, roaring), swimming slowly round the cue with a wave running down its body; blue spirit flames peel off its back all along it and off its head and trail behind as it swims; drifting star dust (four-point stars twinkling in and out, white to blue); soft blue light motes; a soft blue glow round the cue (a halo Beam, breathing) and a blue light on the coil. The dragon is aura: it goes with the rest on the shooter's turn.",
       "BackRateScale": 0.5,
       "Emitters": [
         {
@@ -235,12 +235,12 @@
             "Kind": "Segment",
             "Joint": "Head",
             "From": [
-              2.422,
+              1.158,
               -0.445,
               0.184
             ],
             "To": [
-              2.672,
+              1.408,
               -0.445,
               0.08399999999999999
             ],
@@ -389,14 +389,14 @@
             "Kind": "Segment",
             "Joint": "Body1",
             "From": [
-              6.462,
+              6.35,
               -0.066,
               0.252
             ],
             "To": [
-              6.651,
-              0.093,
-              0.287
+              6.558,
+              0.069,
+              0.282
             ],
             "Radius": 0.04
           }
@@ -475,14 +475,14 @@
             "Kind": "Segment",
             "Joint": "Body2",
             "From": [
-              5.833,
+              5.541,
               -0.181,
               -0.28
             ],
             "To": [
-              6.015,
-              -0.321,
-              -0.182
+              5.744,
+              -0.302,
+              -0.196
             ],
             "Radius": 0.04
           }
@@ -561,14 +561,14 @@
             "Kind": "Segment",
             "Joint": "Body3",
             "From": [
-              5.184,
+              4.708,
               0.356,
-              0.085
+              0.086
             ],
             "To": [
-              5.36,
-              0.393,
-              -0.089
+              4.904,
+              0.388,
+              -0.066
             ],
             "Radius": 0.04
           }
@@ -647,14 +647,14 @@
             "Kind": "Segment",
             "Joint": "Body4",
             "From": [
-              4.536,
+              3.874,
               -0.336,
-              0.195
+              0.194
             ],
             "To": [
-              4.704,
-              -0.239,
-              0.352
+              4.064,
+              -0.251,
+              0.332
             ],
             "Radius": 0.04
           }
@@ -733,14 +733,14 @@
             "Kind": "Segment",
             "Joint": "Body5",
             "From": [
-              3.906,
+              3.064,
               0.088,
               -0.4
             ],
             "To": [
-              4.068,
-              -0.099,
-              -0.436
+              3.249,
+              -0.077,
+              -0.432
             ],
             "Radius": 0.04
           }
@@ -819,14 +819,14 @@
             "Kind": "Segment",
             "Joint": "Body6",
             "From": [
-              3.257,
+              2.231,
               0.223,
               0.369
             ],
             "To": [
-              3.413,
-              0.388,
-              0.264
+              2.41,
+              0.37,
+              0.275
             ],
             "Radius": 0.04
           }
@@ -905,14 +905,14 @@
             "Kind": "Segment",
             "Joint": "Body7",
             "From": [
-              2.63,
-              -0.436,
-              0.233
+              1.413,
+              -0.438,
+              0.231
             ],
             "To": [
-              2.861,
-              -0.345,
-              0.258
+              1.652,
+              -0.365,
+              0.252
             ],
             "Radius": 0.04
           }
@@ -967,7 +967,7 @@
       ],
       "Lights": [
         {
-          "AtStuds": 4.5,
+          "AtStuds": 4.0,
           "Color": "#6FB8FF",
           "Brightness": 1.5,
           "Range": 9,
