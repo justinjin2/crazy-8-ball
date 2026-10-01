@@ -3509,6 +3509,78 @@
     "imageId": "113263605708790",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/dust.png": {
+    "assetId": "116808652872930",
+    "assetType": "Decal",
+    "imageId": "80129474638893",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/eclipse_orb.png": {
+    "assetId": "135569499414899",
+    "assetType": "Decal",
+    "imageId": "137284111838660",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/flame_8x8.png": {
+    "assetId": "96101090143005",
+    "assetType": "Decal",
+    "imageId": "122256930806284",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/flare.png": {
+    "assetId": "117753002816737",
+    "assetType": "Decal",
+    "imageId": "138665035996966",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/glint.png": {
+    "assetId": "100742301938107",
+    "assetType": "Decal",
+    "imageId": "105208395542463",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/orb.png": {
+    "assetId": "88736788320926",
+    "assetType": "Decal",
+    "imageId": "98864074287829",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/ring.png": {
+    "assetId": "92157452237074",
+    "assetType": "Decal",
+    "imageId": "75727040461896",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/shard.png": {
+    "assetId": "83690169551825",
+    "assetType": "Decal",
+    "imageId": "120459779090958",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/smoke_8x8.png": {
+    "assetId": "74461926429240",
+    "assetType": "Decal",
+    "imageId": "111718499926837",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/streak.png": {
+    "assetId": "73837296317695",
+    "assetType": "Decal",
+    "imageId": "113907624015806",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/swirl_8x8.png": {
+    "assetId": "99365930985074",
+    "assetType": "Decal",
+    "imageId": "110030933481951",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/vfx/v2/wisp_8x8.png": {
+    "assetId": "110018727451737",
+    "assetType": "Decal",
+    "imageId": "109775755866748",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/cue/vfx/vip_cue/crown.png": {
     "assetId": "97850126733966",
     "assetType": "Decal",

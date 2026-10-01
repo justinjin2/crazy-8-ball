@@ -81,8 +81,8 @@ function BackCue.new(parent: Instance): BackCue
 		end
 		CueStickBuilder.setVisible(stick, false)
 		stick:PivotTo(PARKED)
-		-- The skin's look with its aura: the back is where the aura shows (CueSkinLook).
-		CueSkinLook.attach(stick, { aura = true })
+		-- The skin's look with its aura, worn on a back (CueSkinLook).
+		CueSkinLook.attach(stick, { aura = true, back = true })
 		table.insert(free, stick)
 	end
 	local self = setmetatable({

@@ -3719,13 +3719,13 @@ Config.Audio = {
 Config.CueSkins = {
 	-- ReplicatedStorage folder of the pieces' Edit-mode templates (tools/build_cue_templates).
 	PiecesFolder = "CuePieces",
-	-- A back-worn cue's aura emitters run at this share of their rate when the skin's row
-	-- gives no BackRateScale (every skin gives 0.5 today). (tune)
-	BackRateScale = 0.5,
-	-- On the back, an aura emitter whose particles grow wider than this (studs) is a big
-	-- camera-facing sprite (Eclipse's giant eclipse and galaxy): it is drawn this far behind
-	-- the body (a ZOffset, studs) so it never covers the avatar (designer). (tune)
-	BehindBodySizeStuds = 1.6,
+	-- A back-worn cue's aura emitters run at this share of their rate (1: the full aura; the
+	-- designer, 2026-10-01: visuals first). (tune)
+	BackRateScale = 1,
+	-- On the back, an aura emitter whose particles grow wider than this (studs, about a torso)
+	-- is a big camera-facing sprite: it is drawn this far behind the body (a ZOffset, studs) so
+	-- it never covers the avatar. Smaller ones wrap round the body like any aura. (tune)
+	BehindBodySizeStuds = 2.4,
 	BehindBodyZOffset = -1.6,
 	-- An Orbiter's glowing head is a short-lived particle re-emitted this often (per second)
 	-- with this life (seconds): two or three overlap, so it reads as one steady glow. (internal)
@@ -3734,6 +3734,10 @@ Config.CueSkins = {
 	-- Effects are stepped on cues within this distance of the camera (studs); farther ones
 	-- keep their particles but hold their scripted motion (orbiters, arcs, pulses, joints). (tune)
 	StepDistanceStuds = 60,
+	-- A skin's Aura.Highlight (an outline and soft fill on its 3D piece, so the dragon or the
+	-- fox reads on the bright floor) shows only on cues within this distance of the camera
+	-- (studs): Roblox draws at most 31 Highlights at once. (tune)
+	HighlightDistanceStuds = 45,
 }
 
 Config.Effects = {
@@ -5640,7 +5644,10 @@ Config.Lighting = {
 			Saturation = 0.2,
 			TintColor = "#FFFFFF",
 		},
-		Bloom = { Intensity = 0, Size = 24, Threshold = 2 },
+		-- Bloom on (designer, 2026-10-01): the cue auras' HDR glow (particle Brightness above
+		-- about 3) blooms; at Threshold 2.6 the floor, balls, tables and UI do not (1.1-1.8 made
+		-- the balls glow).
+		Bloom = { Intensity = 1, Size = 24, Threshold = 2.6 },
 		SunRays = { Intensity = 0, Spread = 0.5 },
 		-- The background soft, the rooftop sharp (designer, Checkpoint C): in focus from the
 		-- camera out to FocusDistance + InFocusRadius (260 studs: the whole roof, the lounge
@@ -5732,8 +5739,9 @@ Config.Lighting = {
 			Saturation = 0.15,
 			TintColor = "#FFF4E6",
 		},
-		-- The lanterns and windows bloom a little; more blew the sun out to a white disc.
-		Bloom = { Intensity = 0.3, Size = 20, Threshold = 2.2 },
+		-- The lanterns, windows and cue auras bloom; the higher threshold keeps the sun from
+		-- blowing out to a white disc (Intensity 0.3 at Threshold 2.2 before the auras, 2026-10-01).
+		Bloom = { Intensity = 0.8, Size = 24, Threshold = 2.6 },
 		SunRays = { Intensity = 0.04, Spread = 0.5 },
 		DepthOfField = {
 			FarIntensity = 0.5,

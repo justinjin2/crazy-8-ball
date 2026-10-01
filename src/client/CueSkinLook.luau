@@ -7,11 +7,11 @@
 --
 -- attach(stick, opts) follows the stick: its CueId attribute rebuilds the look, its Visible
 -- attribute switches it on and off, its mesh's camera fade carries over to the piece. The
--- designer's rules (2026-09-30):
---   * the aura shows on the BACK only (opts.aura), at the skin's BackRateScale, its big
---     camera-facing sprites drawn behind the body; a cue in the hands (shown only while its
---     player aims and strokes) has no aura, so nothing distracts from aiming;
---   * the surface, the moving material and the piece's non-aura joints show everywhere.
+-- designer's rules (2026-10-01, replacing "no aura in the hands" of 2026-09-30):
+--   * the full aura shows everywhere (opts.aura): in the hands while aiming and on the back;
+--   * on the back (opts.back) its emitters run at Config.CueSkins.BackRateScale and only its
+--     torso-sized camera-facing sprites are drawn behind the body;
+--   * a skin's Aura.Highlight outlines its piece (the dragon, the fox) on cues near the camera.
 --
 -- Emitters, Beams and Lights live on Attachments in the stick's mesh; the look's own parts (a
 -- Part host, a joint rider, the piece) sit in a Model next to the stick, welded to the mesh,
@@ -37,7 +37,8 @@ local CueSkinLook = {}
 CueSkinLook.__index = CueSkinLook
 
 export type Opts = {
-	aura: boolean, -- the back: the aura shows
+	aura: boolean, -- the aura shows (every stick today)
+	back: boolean?, -- worn on a back: BackRateScale and the behind-the-body push
 }
 
 type DynBeam = {
@@ -81,6 +82,7 @@ export type Look = typeof(setmetatable(
 		arcs: { Arc },
 		lights: { Light },
 		piece: any?,
+		highlight: Highlight?, -- the piece's outline (Aura.Highlight), near the camera only
 		frames: { SurfaceAppearance }, -- frame 0 is the stick's own SurfaceAppearance
 		frame: number,
 		t0: number,
@@ -144,6 +146,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		arcs = {},
 		lights = {},
 		piece = nil,
+		highlight = nil,
 		frames = {},
 		frame = 0,
 		t0 = os.clock(),
@@ -220,6 +223,7 @@ function CueSkinLook.clear(self: Look)
 	self.orbiters = {}
 	self.arcs = {}
 	self.lights = {}
+	self.highlight = nil -- it lives in the folder
 	if self.folder then
 		self.folder:Destroy()
 		self.folder = nil
@@ -284,6 +288,20 @@ function CueSkinLook.refresh(self: Look)
 			light.Parent = att
 			table.insert(self.built, att)
 			table.insert(self.lights, { light = light, row = l })
+		end
+		local hl = aura.Highlight
+		if hl and self.piece then
+			local h = Instance.new("Highlight")
+			h.Name = "PieceHighlight"
+			h.FillColor = CueVfx.color(hl.FillColor or "#FFFFFF")
+			h.FillTransparency = hl.FillTransparency or 0.6
+			h.OutlineColor = CueVfx.color(hl.OutlineColor or "#FFFFFF")
+			h.OutlineTransparency = hl.OutlineTransparency or 0
+			h.DepthMode = Enum.HighlightDepthMode.Occluded
+			h.Enabled = false
+			h.Adornee = self.piece.model
+			h.Parent = folder
+			self.highlight = h
 		end
 	end
 	if self.piece then
@@ -403,10 +421,8 @@ end
 
 function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	local parent, frame = self:host(row)
-	local back = self.opts.aura
-	local rateScale = if back
-		then (self.row.Aura and self.row.Aura.BackRateScale) or C.BackRateScale
-		else 1
+	local back = self.opts.back == true
+	local rateScale = if back then C.BackRateScale else 1
 	local behind = back and CueVfx.maxOf(row.Size) > C.BehindBodySizeStuds
 	local e = CueVfx.emitter(row, {
 		frame = frame :: any,
@@ -825,8 +841,16 @@ RunService.RenderStepped:Connect(function()
 	local now = os.clock()
 	for look in live do
 		local mesh = look.mesh
-		if look.visible and mesh and (mesh.Position - eye).Magnitude <= C.StepDistanceStuds then
+		local near = if mesh then (mesh.Position - eye).Magnitude else math.huge
+		if look.visible and near <= C.StepDistanceStuds then
 			look:step(now - look.t0)
+		end
+		local h = look.highlight
+		if h and mesh then
+			-- Off when far, hidden, or faded by the camera (first person, a close shot).
+			h.Enabled = look.visible
+				and near <= C.HighlightDistanceStuds
+				and mesh.LocalTransparencyModifier < 0.5
 		end
 	end
 end)

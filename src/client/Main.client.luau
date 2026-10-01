@@ -103,7 +103,7 @@ local cueStick = CueStickBuilder.build(visuals)
 CueStickBuilder.wear(cueStick, player)
 -- Its skin's look, with no aura: a cue in the hands is shown only while aiming (designer,
 -- 2026-09-30: nothing distracts from aiming).
-CueSkinLook.attach(cueStick, { aura = false })
+CueSkinLook.attach(cueStick, { aura = true })
 -- Everyone's cue on their back, hidden while it is in their hands (updated after the frame).
 local backCue = BackCue.new(visuals)
 local avatar = Avatar.new()
