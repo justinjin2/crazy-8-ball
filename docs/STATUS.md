@@ -1,5 +1,23 @@
 # Status
 
+**2026-10-01 (later): cue VFX v2, outlines and wider cues.** The designer found the Rare+
+auras nearly invisible in the bright lobby. Now: Bloom on (only HDR effects bloom); the full
+aura shows in the hands too and at full rate on the back; Celestial Dragon, Kitsune and
+Eclipse rebuilt to the v2 standard (a saturated smoke body, an HDR glow layer, star accents;
+Eclipse a small glowing eclipse; `tools/cue_vfx_v2.py`, sprites from `tools/vfx_sprites.py`);
+every aura cue wears an outline of its colour (the nearest 14 Highlights); and every cue is
+1.6x wider with the tip kept (the shared mesh, all 59 skins' maps and thumbnails, 8 pieces and
+the effects rebuilt and re-uploaded; `tools/cue_widen.py`). Judged in the lobby with
+`tools/vfx_lab.luau`. The designer's Studio save owns every giveable cue.
+- Checked in Studio on PC: the lab (backs and stands) for the three v2 cues, Apex, Phoenix,
+  Kraken, Neon, Magma; the outlines; all templates and pieces rebuilt without problems;
+  console clean; 886 tests pass, lint clean.
+- Not yet checked: a match with the wide cue in the hands (aiming, rail tilt), phone and
+  gamepad, the Index and shop pictures on screen.
+- Next: roll the v2 standard across every other Rare+ cue, trails and pocket finishers.
+- **Save the place to `place/8ball.rbxl` and publish**: the new templates (wide mesh) and
+  pieces live only in the place.
+
 **2026-10-01: the new cue skins are in the game** (branch `abilities`). The 30 placeholder
 case cues are gone (removed from saves by migration 3 -> 4; an equipped one falls back to
 Classic) and the plan's 46 case cues are in, 7/9/10/9/7/3/1 from Common to Secret, plus the
