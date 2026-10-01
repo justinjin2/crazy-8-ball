@@ -150,10 +150,15 @@ return {
 		local E = Config.Cue.CueElevationDegrees
 		for degrees = 0, 345, 15 do
 			local r = CueClearance.pitch(geometry, {}, query(0, 0, math.rad(degrees)))
-			if degrees == 90 or degrees == 270 then
-				-- Straight across from the centre the 7 stud cue runs back over a side pocket's
-				-- casting, which stands 0.16 in proud of the rail: a hair of tilt.
-				H.expect(r.limit == "rail" and r.degrees > E and r.degrees < E + 0.5, "side")
+			local off = (degrees - 90) % 180 -- degrees from straight across
+			if math.min(off, 180 - off) <= 30 then
+				-- Within 30 degrees of straight across from the centre, the 7 stud cue's thick
+				-- forearm (0.32 butt since 2026-10-01) runs back over a side rail and its pocket
+				-- casting: a little tilt, about a degree at most.
+				H.expect(
+					r.limit == "rail" and r.degrees > E and r.degrees < E + 1.5,
+					("side %d: %.4f"):format(degrees, r.degrees)
+				)
 			else
 				H.expect(r.degrees == E, ("%d: %.4f"):format(degrees, r.degrees))
 				H.expect(r.limit == "floor", "nothing raised it")

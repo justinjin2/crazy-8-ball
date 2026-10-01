@@ -28,9 +28,14 @@ def v2(name):
 
 
 def cyl(a0, a1, width):
-    """A cylinder volume host along the cue, from a0 to a1 studs (tip 0), `width` across."""
-    return {'Kind': 'Part', 'FromStuds': a0, 'ToStuds': a1, 'Width': width,
-            'Shape': 'Cylinder', 'ShapeStyle': 'Volume'}
+    """A cylinder volume host along the cue, from a0 to a1 studs (tip 0), `width` across as
+    tuned on the 0.2 cue: widened like tools/cue_widen.py does, so its gap above the surface
+    stays the same on today's cue."""
+    import cue_widen
+    cue_widen.R_NEW = cue_widen.new_envelope()
+    far = min(max(a0, a1), 7)
+    return {'Kind': 'Part', 'FromStuds': a0, 'ToStuds': a1,
+            'Width': round(width + 2 * cue_widen.gain(far), 4), 'Shape': 'Cylinder', 'ShapeStyle': 'Volume'}
 
 
 def at(studs):
@@ -151,7 +156,7 @@ def kitsune(aura):
     petals = old['Petals']
     petals.update(Rate=40, Size=[[0, 0.3], [1, 0.36]], LightEmission=0, LightInfluence=0,
                   Brightness=1.2, Color='#FFD3EC')
-    petals['Host']['Width'] = 1.4
+    petals['Host']['Width'] = cyl(0.5, 7.2, 1.4)['Width']
     trail = old['FoxTrail']
     trail.update(Texture=v2('flame_8x8'), FlipbookLayout='Grid8x8', FlipbookMode='OneShot',
                  Rate=18, Size=[[0, 0.3], [0.4, 0.6], [1, 0.2]], Brightness=2, LightEmission=0.4,

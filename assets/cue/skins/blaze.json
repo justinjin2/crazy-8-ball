@@ -59,7 +59,7 @@
             "Kind": "Part",
             "FromStuds": 0.4,
             "ToStuds": 7.0,
-            "Width": 0.12,
+            "Width": 0.24,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -136,7 +136,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.2,
+            "Width": 0.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -375,5 +375,6 @@
     "Pocket": {
       "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
-  }
+  },
+  "shape": 2
 }

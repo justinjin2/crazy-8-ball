@@ -37,7 +37,7 @@ def _icy_eyes(px):
 SWIM_AT = (0.65, 6.5)     # AtStuds the front of the spine reaches at the tip end and the butt end
 SWIM_TURNS = 3.0          # turns round the cue on each leg
 SWIM_ROUND = 0.96         # how sharply each end turns round (1 a sharp triangle, 0 a sine)
-SWIM_R = (0.34, 0.1)      # the loop's radius round the cue's axis: r0 + dr sin(phase)
+SWIM_R = (0.40, 0.1)      # the loop's radius round the cue's axis: r0 + dr sin(phase) (0.34 on the 0.2 cue)
 SWIM_PERIOD = 10.0        # seconds for a whole lap, tip to butt and back
 SWIM_BODY = 4.5           # the spine's length, studs (the head sits on its front)
 SWIM_STEP = 0.02          # the path's sample spacing, studs
@@ -624,6 +624,17 @@ def kitsune(k):
     import numpy as np
     from mathutils import Matrix
     U0 = 7.0
+    # the collar just wider than the butt: 0.23 on the 0.2 cue, 0.35 on the 0.32 one (2026-10-01);
+    # MS scales the hand-placed ear and jaw points with it, about the collar's back (A)
+    COLLAR = 0.35
+    MS = COLLAR / 0.23
+    A = -(U0 - 0.05)
+
+    def m(x, y, z):
+        return (x * MS, A + (y - A) * MS, z * MS)
+
+    def my(y):
+        return A + (y - A) * MS
 
     def place(ob):
         V = np.array([v.co[:] for v in ob.data.vertices])
@@ -631,7 +642,7 @@ def kitsune(k):
         ring = V[V[:, 1] > ymax - 0.04 * (ymax - ymin)]     # the collar at the back of the neck
         cx = (ring[:, 0].max() + ring[:, 0].min()) / 2
         cz = (ring[:, 2].max() + ring[:, 2].min()) / 2
-        s = 0.23 / max(np.ptp(ring[:, 0]), np.ptp(ring[:, 2]))  # the collar just wider than the butt
+        s = COLLAR / max(np.ptp(ring[:, 0]), np.ptp(ring[:, 2]))
         # the face looks out past the butt (-Y); the collar sleeves 0.05 studs over the butt end
         return Matrix.Translation((0, -(U0 - 0.05), 0)) @ Matrix.Scale(s, 4) @ Matrix.Translation((-cx, -ymax, -cz))
 
@@ -641,17 +652,17 @@ def kitsune(k):
     # rigged (designer, 2026-09-30): the ears twitch now and then, the jaw opens a little;
     # drawn as a spirit of violet light (see-through, glowing, in a shimmer)
     for side, sname in ((1, 'Right'), (-1, 'Left')):
-        k.joint('Ear' + sname, pivot=(0.07 * side, -7.28, 0.07), parent='Mask', motion=[
+        k.joint('Ear' + sname, pivot=m(0.07 * side, -7.28, 0.07), parent='Mask', motion=[
             {'Kind': 'Hinge', 'Axis': (0, side, 0), 'Amp': 14.0, 'Period': 2.6, 'Phase': 0 if side > 0 else 150,
              'Shape': 'pulse'}])
-    k.joint('Jaw', pivot=(0, -7.3, -0.12), parent='Mask', motion=[
+    k.joint('Jaw', pivot=m(0, -7.3, -0.12), parent='Mask', motion=[
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Base': 5.0, 'Amp': 5.0, 'Period': 3.0}])
 
     def ear(side):
-        return lambda V: ramp(V[:, 2], 0.07, 0.11) * ramp(V[:, 0] * side, 0.02, 0.05)
+        return lambda V: ramp(V[:, 2], 0.07 * MS, 0.11 * MS) * ramp(V[:, 0] * side, 0.02 * MS, 0.05 * MS)
 
     bones = {'EarRight': ear(1), 'EarLeft': ear(-1),
-             'Jaw': lambda V: ramp(V[:, 1], -7.33, -7.4) * ramp(V[:, 2], -0.13, -0.17)}
+             'Jaw': lambda V: ramp(V[:, 1], my(-7.33), my(-7.4)) * ramp(V[:, 2], -0.13 * MS, -0.17 * MS)}
     k.model('Mask', 'FoxMask', 'fox_mask', place, target_tris=14000, emissive=_violet_eyes,
             emissive_tint='#C070FF', emissive_strength=3.0, bones=bones,
             hologram={'Tint': '#D8B8FF', 'Shell': '#C070FF', 'Strength': 1.6})
@@ -1120,6 +1131,8 @@ def apex(k):
         bm = bmesh.new()
         sweep(bm, edge_pts, [0.0045 * (1 - 0.6 * i / (len(edge_pts) - 1)) for i in range(len(edge_pts))], segs=6)
         k.add(tname, k.mesh_object(tname + 'Edge', bm, ['Cyan']))
+    # modelled on the 0.2 butt: the whole housing and its claws grow with the butt (2026-10-01)
+    k.grow((0, -U0, 0), P.butt_growth())
 
 
 # =============================================================================================
@@ -1156,19 +1169,22 @@ def eclipse(k):
 
     # the mount: a flared obsidian cup with gold rings, four gold prongs and a cage ring
     k.joint('Mount', pivot=(0, -U0, 0))
-    prof = [(-0.1, 0.104), (-0.06, 0.108), (0.0, 0.114), (0.05, 0.126), (0.09, 0.148), (0.11, 0.155), (0.115, 0.1)]
+    G = P.butt_gain()                           # the cup, rings and prongs sit over the butt (2026-10-01)
+    prof = [(u, r + G) for u, r in ((-0.1, 0.104), (-0.06, 0.108), (0.0, 0.114), (0.05, 0.126), (0.09, 0.148),
+                                    (0.11, 0.155), (0.115, 0.1))]
     bm = bmesh.new()
     sweep(bm, [(0, -(U0 + u), 0) for u, _ in prof], [r for _, r in prof], segs=40)
     k.add('Mount', k.mesh_object('EclipseCup', bm, ['Obsidian']))
     bm = bmesh.new()
     for u, r, tube in ((-0.085, 0.111, 0.009), (-0.045, 0.114, 0.006), (0.01, 0.12, 0.011), (0.1, 0.156, 0.012)):
-        sweep(bm, [at(u, r, 360 * i / 56) for i in range(57)], [tube] * 57, segs=10, cap=False)
+        sweep(bm, [at(u, r + G, 360 * i / 56) for i in range(57)], [tube] * 57, segs=10, cap=False)
     for a in (45, 135, 225, 315):
         path, radii = [], []
         for i in range(19):
             s = i / 18
             u = 0.1 + 0.44 * s
-            r = 0.15 + (RS + 0.05 - 0.15) * math.sin(math.pi / 2 * min(s / 0.75, 1.0)) - 0.03 * max(s - 0.75, 0) / 0.25
+            r0 = 0.15 + G
+            r = r0 + (max(RS + 0.05, r0) - r0) * math.sin(math.pi / 2 * min(s / 0.75, 1.0)) - 0.03 * max(s - 0.75, 0) / 0.25
             path.append(at(u, r, a + 18 * s))
             radii.append(0.013 * (1 - s) + 0.004)
         sweep(bm, path, radii, segs=10)
@@ -1229,8 +1245,8 @@ def eclipse(k):
     k.material('Bead', 'Neon', '#FFE6A0')
     k.material('BeadGlow', 'ForceField', '#FFB300')
     k.material('Rock', 'SmoothPlastic', '#2B2622', Reflectance=0.05)
-    orbits = [(1.3, 0.46, 62, 20, 14.0, 150.0), (2.8, 0.62, -55, 110, -11.0, -120.0),
-              (4.3, 0.52, 70, 230, 16.0, 135.0), (5.8, 0.7, -64, 320, -9.0, -105.0)]
+    orbits = [(1.3, 0.46 + G, 62, 20, 14.0, 150.0), (2.8, 0.62 + G, -55, 110, -11.0, -120.0),
+              (4.3, 0.52 + G, 70, 230, 16.0, 135.0), (5.8, 0.7 + G, -64, 320, -9.0, -105.0)]
     for n, (a_, rr, tilt, yaw, prec, run) in enumerate(orbits, 1):
         c = Vector((0, -a_, 0))
         # the ring's normal: tipped `tilt` degrees off the cue's axis, turned `yaw` round it

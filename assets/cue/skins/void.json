@@ -171,7 +171,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 1.2,
+            "Width": 1.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface",
             "ShapeInOut": "Inward"
@@ -249,7 +249,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.9,
+            "Width": 1.02,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface",
             "ShapeInOut": "Inward"
@@ -317,7 +317,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.2,
+            "Width": 0.32,
             "Shape": "Box",
             "ShapeStyle": "Volume"
           },
@@ -371,7 +371,7 @@
             "Kind": "Part",
             "FromStuds": 0.6,
             "ToStuds": 7.0,
-            "Width": 1.4,
+            "Width": 1.52,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface",
             "ShapeInOut": "Inward"
@@ -540,7 +540,7 @@
           "TravelSeconds": 2.8,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.9,
-          "Radius": 0.3,
+          "Radius": 0.36,
           "Wobble": 0.05,
           "WobbleHz": 0.8,
           "Phase": 0,
@@ -586,7 +586,7 @@
           "TravelSeconds": 3.4,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.8,
-          "Radius": 0.38,
+          "Radius": 0.44,
           "Wobble": 0.05,
           "WobbleHz": 0.8,
           "Phase": 180,
@@ -799,5 +799,6 @@
       "Beams": 2,
       "Orbiters": 2
     }
-  }
+  },
+  "shape": 2
 }

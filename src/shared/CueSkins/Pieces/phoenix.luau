@@ -5,7 +5,7 @@
 return {
 	Id = "phoenix",
 	Frame = "cue",
-	Rigid = "70693185860037",
+	Rigid = "134518326975562",
 	Models = {},
 	Parts = {
 		{
@@ -15,7 +15,7 @@ return {
 			Reflectance = 0,
 			Name = "WingRight_Crimson",
 			Joint = "WingRight",
-			Offset = { -0.6161, 0.255, -1.1808 },
+			Offset = { -0.657, 0.2901, -1.1808 },
 			Size = { 1.1092, 0.4274, 0.5708 },
 		},
 		{
@@ -25,7 +25,7 @@ return {
 			Reflectance = 0,
 			Name = "WingRight_Ember",
 			Joint = "WingRight",
-			Offset = { -0.6822, 0.2755, -1.3665 },
+			Offset = { -0.7232, 0.3106, -1.3665 },
 			Size = { 1.1184, 0.4315, 0.636 },
 		},
 		{
@@ -35,7 +35,7 @@ return {
 			Reflectance = 0,
 			Name = "WingRight_Flame",
 			Joint = "WingRight",
-			Offset = { -0.7029, 0.2855, -1.5039 },
+			Offset = { -0.7438, 0.3206, -1.5039 },
 			Size = { 1.148, 0.4515, 0.6271 },
 		},
 		{
@@ -45,7 +45,7 @@ return {
 			Reflectance = 0,
 			Name = "WingRight_Amber",
 			Joint = "WingRight",
-			Offset = { -0.7394, 0.3147, -1.6048 },
+			Offset = { -0.7804, 0.3498, -1.6048 },
 			Size = { 1.2157, 0.5028, 0.8065 },
 		},
 		{
@@ -55,7 +55,7 @@ return {
 			Reflectance = 0,
 			Name = "WingRight_Gold",
 			Joint = "WingRight",
-			Offset = { -0.7733, 0.3499, -1.7234 },
+			Offset = { -0.8142, 0.385, -1.7234 },
 			Size = { 1.241, 0.5275, 0.817 },
 		},
 		{
@@ -65,7 +65,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesRight_Crimson",
 			Joint = "PrimariesRight",
-			Offset = { -1.2179, 0.4883, -1.4337 },
+			Offset = { -1.2588, 0.5234, -1.4337 },
 			Size = { 0.2149, 0.115, 0.2342 },
 		},
 		{
@@ -75,7 +75,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesRight_Ember",
 			Joint = "PrimariesRight",
-			Offset = { -1.3361, 0.5464, -1.6085 },
+			Offset = { -1.377, 0.5815, -1.6085 },
 			Size = { 0.4591, 0.2468, 0.5164 },
 		},
 		{
@@ -85,7 +85,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesRight_Flame",
 			Joint = "PrimariesRight",
-			Offset = { -1.403, 0.6027, -1.7481 },
+			Offset = { -1.4439, 0.6378, -1.7481 },
 			Size = { 0.5601, 0.3405, 0.6176 },
 		},
 		{
@@ -95,7 +95,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesRight_Amber",
 			Joint = "PrimariesRight",
-			Offset = { -1.5317, 0.7125, -1.9283 },
+			Offset = { -1.5726, 0.7476, -1.9283 },
 			Size = { 0.7508, 0.4927, 0.8542 },
 		},
 		{
@@ -105,7 +105,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesRight_Gold",
 			Joint = "PrimariesRight",
-			Offset = { -1.6512, 0.8303, -2.0593 },
+			Offset = { -1.6921, 0.8653, -2.0593 },
 			Size = { 0.8141, 0.5285, 0.9727 },
 		},
 		{
@@ -115,7 +115,7 @@ return {
 			Reflectance = 0,
 			Name = "WingLeft_Crimson",
 			Joint = "WingLeft",
-			Offset = { 0.6272, 0.2605, -1.1766 },
+			Offset = { 0.6681, 0.2956, -1.1766 },
 			Size = { 1.1314, 0.4384, 0.5624 },
 		},
 		{
@@ -125,7 +125,7 @@ return {
 			Reflectance = 0,
 			Name = "WingLeft_Ember",
 			Joint = "WingLeft",
-			Offset = { 0.7079, 0.293, -1.3583 },
+			Offset = { 0.7488, 0.3281, -1.3583 },
 			Size = { 1.156, 0.4408, 0.6188 },
 		},
 		{
@@ -135,7 +135,7 @@ return {
 			Reflectance = 0,
 			Name = "WingLeft_Flame",
 			Joint = "WingLeft",
-			Offset = { 0.7364, 0.3012, -1.499 },
+			Offset = { 0.7774, 0.3363, -1.499 },
 			Size = { 1.1408, 0.45, 0.614 },
 		},
 		{
@@ -145,7 +145,7 @@ return {
 			Reflectance = 0,
 			Name = "WingLeft_Amber",
 			Joint = "WingLeft",
-			Offset = { 0.7474, 0.3155, -1.6129 },
+			Offset = { 0.7883, 0.3506, -1.6129 },
 			Size = { 1.1257, 0.4586, 0.8228 },
 		},
 		{
@@ -155,7 +155,7 @@ return {
 			Reflectance = 0,
 			Name = "WingLeft_Gold",
 			Joint = "WingLeft",
-			Offset = { 0.7442, 0.3319, -1.7437 },
+			Offset = { 0.7851, 0.367, -1.7437 },
 			Size = { 1.1205, 0.4575, 0.8574 },
 		},
 		{
@@ -165,7 +165,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesLeft_Crimson",
 			Joint = "PrimariesLeft",
-			Offset = { 1.2153, 0.4957, -1.4267 },
+			Offset = { 1.2562, 0.5307, -1.4267 },
 			Size = { 0.2023, 0.1108, 0.2247 },
 		},
 		{
@@ -175,7 +175,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesLeft_Ember",
 			Joint = "PrimariesLeft",
-			Offset = { 1.3544, 0.5677, -1.5821 },
+			Offset = { 1.3953, 0.6028, -1.5821 },
 			Size = { 0.4483, 0.2548, 0.5352 },
 		},
 		{
@@ -185,7 +185,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesLeft_Flame",
 			Joint = "PrimariesLeft",
-			Offset = { 1.4791, 0.6367, -1.7296 },
+			Offset = { 1.52, 0.6718, -1.7296 },
 			Size = { 0.5208, 0.3168, 0.6581 },
 		},
 		{
@@ -195,7 +195,7 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesLeft_Amber",
 			Joint = "PrimariesLeft",
-			Offset = { 1.6257, 0.7513, -1.9448 },
+			Offset = { 1.6666, 0.7864, -1.9448 },
 			Size = { 0.6706, 0.4417, 0.8583 },
 		},
 		{
@@ -205,14 +205,14 @@ return {
 			Reflectance = 0,
 			Name = "PrimariesLeft_Gold",
 			Joint = "PrimariesLeft",
-			Offset = { 1.7085, 0.8547, -2.1603 },
+			Offset = { 1.7495, 0.8897, -2.1603 },
 			Size = { 0.7405, 0.4823, 0.875 },
 		},
 	},
 	Joints = {
 		WingRight = {
 			Parent = nil,
-			PivotRoblox = { -0.07, 0.06, -0.9 },
+			PivotRoblox = { -0.1109, 0.0951, -0.9 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -225,7 +225,7 @@ return {
 		},
 		PrimariesRight = {
 			Parent = "WingRight",
-			PivotRoblox = { -1.1645, 0.4759, -1.3378 },
+			PivotRoblox = { -1.2054, 0.511, -1.3378 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -239,7 +239,7 @@ return {
 		},
 		WingLeft = {
 			Parent = nil,
-			PivotRoblox = { 0.07, 0.06, -0.9 },
+			PivotRoblox = { 0.1109, 0.0951, -0.9 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -252,7 +252,7 @@ return {
 		},
 		PrimariesLeft = {
 			Parent = "WingLeft",
-			PivotRoblox = { 1.1645, 0.4759, -1.3378 },
+			PivotRoblox = { 1.2054, 0.511, -1.3378 },
 			Motion = {
 				{
 					Kind = "Hinge",

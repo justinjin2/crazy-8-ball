@@ -453,7 +453,9 @@ Config.Cue = {
 	-- true-scale 58 in cue would be 9.3 studs at this table's scale; the designer chose about
 	-- 7 (2026-09-24), between that and the old 4.4 that looked like a toy next to an avatar.
 	CueLengthStuds = 7,
-	CueButtDiameterStuds = 0.2,
+	-- 0.32 since 2026-10-01 (designer: 1.6x wider so a skin's art reads next to an avatar, the
+	-- tip kept as it was; 0.2 before). The shared cue mesh is built from these (Shape.json).
+	CueButtDiameterStuds = 0.32,
 	CueTipDiameterStuds = 0.09,
 	-- The drawn cue's shape, tip to butt (CueShape). Each row ends at To (a fraction of the
 	-- length, ascending to 1) and is drawn Taper of the way from the tip diameter to the butt
@@ -461,9 +463,10 @@ Config.Cue = {
 	-- shape clear of the rail and the balls, so what is drawn is what is tested.
 	Profile = {
 		{ To = 0.012, Taper = 0, Look = "Tip" },
-		{ To = 0.3, Taper = 0.1, Look = "Shaft" },
-		{ To = 0.55, Taper = 0.36, Look = "Shaft" },
-		{ To = 0.78, Taper = 0.73, Look = "Butt" },
+		-- The first ~2 studs stay as slim as the 0.2 cue; the forearm and butt are 1.6x.
+		{ To = 0.3, Taper = 0.065, Look = "Shaft" },
+		{ To = 0.55, Taper = 0.435, Look = "Shaft" },
+		{ To = 0.78, Taper = 0.79, Look = "Butt" },
 		{ To = 1, Taper = 1, Look = "Butt" },
 	},
 	-- Resting gap between the tip and the cue ball while aiming (table inches), how far the
@@ -542,8 +545,8 @@ Config.Cue = {
 		-- The tilt from upright (degrees), tip toward the left shoulder. (tune)
 		TiltDegrees = 36,
 		-- The cue's axis sits this far behind the attachment (studs), off the back and over
-		-- common back accessories. (tune)
-		OutStuds = 0.3,
+		-- common back accessories; 0.35 since the cue grew 1.6x (2026-10-01). (tune)
+		OutStuds = 0.35,
 		-- Where along the cue (studs from the tip) it crosses the attachment: more than half the
 		-- cue rises over the shoulder. (tune)
 		GripFromTipStuds = 4.3,
@@ -6707,7 +6710,9 @@ Config.UI.Inventory = {
 	-- 2026-09-28): the game's own cue in a ViewportFrame, thicker so it reads small, turning
 	-- round the upright axis. A cue not found yet is one near-black colour.
 	Viewport = {
-		Thickness = 2.6, -- the stick's diameter times this (a real cue is too thin to read)
+		-- The stick's diameter times this (a real cue is too thin to read); 1.6 keeps the look
+		-- it had at 2.6 before the cue grew 1.6x (2026-10-01).
+		Thickness = 1.6,
 		TiltDegrees = 45, -- the stick's lean from level (tip up and to the right)
 		StartDegrees = 25, -- where the turn starts when a cue is shown
 		SpinDegreesPerSecond = 55, -- about one turn in 6.5 s

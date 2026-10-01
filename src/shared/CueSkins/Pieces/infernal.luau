@@ -5,7 +5,7 @@
 return {
 	Id = "infernal",
 	Frame = "cue",
-	Rigid = "80127722686533",
+	Rigid = "129093056238889",
 	Models = {},
 	Parts = {
 		{
@@ -24,14 +24,14 @@ return {
 			},
 			Name = "Skull_HornedSkull",
 			Joint = "Skull",
-			Offset = { 0.0002, 0.1588, -2.8707 },
-			Size = { 0.4206, 0.3667, 0.4207 },
+			Offset = { 0.0003, 0.2438, -2.8367 },
+			Size = { 0.601, 0.5236, 0.6009 },
 		},
 	},
 	Joints = {
 		Skull = {
 			Parent = nil,
-			PivotRoblox = { 0, 0.1, -2.95 },
+			PivotRoblox = { 0, 0.16, -2.95 },
 			Motion = {
 				{
 					Kind = "Hinge",

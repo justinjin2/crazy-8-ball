@@ -57,8 +57,8 @@
           "Name": "AuroraFlowShaft",
           "FromStuds": 0.3,
           "ToStuds": 3.6,
-          "Width0": 0.101,
-          "Width1": 0.16,
+          "Width0": 0.1107,
+          "Width1": 0.2529,
           "Segments": 20,
           "Texture": "vfx/aurora/aurora_strip.png",
           "TextureMode": "Wrap",
@@ -86,14 +86,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.074
+          "ZOffset": 0.1067
         },
         {
           "Name": "AuroraFlowForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.164,
-          "Width1": 0.191,
+          "Width0": 0.2612,
+          "Width1": 0.3055,
           "Segments": 20,
           "Texture": "vfx/aurora/aurora_strip.png",
           "TextureMode": "Wrap",
@@ -121,14 +121,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.089
+          "ZOffset": 0.1422
         },
         {
           "Name": "AuroraFlowSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.198,
-          "Width1": 0.198,
+          "Width0": 0.3168,
+          "Width1": 0.3168,
           "Segments": 4,
           "Texture": "vfx/aurora/aurora_strip.png",
           "TextureMode": "Wrap",
@@ -156,7 +156,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.1
+          "ZOffset": 0.16
         }
       ]
     },
@@ -171,7 +171,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.6,
+            "Width": 0.72,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -246,7 +246,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.45,
+            "Width": 0.57,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -285,7 +285,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.35,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -362,7 +362,7 @@
           "TravelSeconds": 2.6,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.7,
-          "Radius": 0.3,
+          "Radius": 0.36,
           "Wobble": 0.03,
           "Phase": 0,
           "Delay": 0.0,
@@ -411,7 +411,7 @@
           "TravelSeconds": 3.0,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.6,
-          "Radius": 0.38,
+          "Radius": 0.44,
           "Wobble": 0.03,
           "Phase": 120,
           "Delay": 0.9,
@@ -460,7 +460,7 @@
           "TravelSeconds": 2.2,
           "Loop": "pingpong",
           "TurnsPerSecond": 0.85,
-          "Radius": 0.26,
+          "Radius": 0.32,
           "Wobble": 0.03,
           "Phase": 240,
           "Delay": 1.7,
@@ -509,7 +509,7 @@
           "TravelSeconds": 2.86,
           "Loop": "pingpong",
           "TurnsPerSecond": -0.63,
-          "Radius": 0.44,
+          "Radius": 0.5,
           "Wobble": 0.03,
           "Phase": 45,
           "Delay": 0.4,
@@ -731,5 +731,6 @@
       "Lights": 1,
       "Orbiters": 4
     }
-  }
+  },
+  "shape": 2
 }

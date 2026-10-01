@@ -107,8 +107,8 @@
             "Period": 1.7,
             "Phase": 0
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -158,8 +158,8 @@
             "Period": 1.95,
             "Phase": 47
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -209,8 +209,8 @@
             "Period": 2.2,
             "Phase": 94
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -260,8 +260,8 @@
             "Period": 1.7,
             "Phase": 141
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -311,8 +311,8 @@
             "Period": 1.95,
             "Phase": 188
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -362,8 +362,8 @@
             "Period": 2.2,
             "Phase": 235
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -413,8 +413,8 @@
             "Period": 1.7,
             "Phase": 282
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -464,8 +464,8 @@
             "Period": 1.95,
             "Phase": 329
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -515,8 +515,8 @@
             "Period": 2.2,
             "Phase": 376
           },
-          "Width0": 0.12,
-          "Width1": 0.3,
+          "Width0": 0.192,
+          "Width1": 0.48,
           "Segments": 20,
           "Texture": "vfx/kitsune/foxtail.png",
           "TextureMode": "Stretch",
@@ -564,7 +564,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.2,
-            "Width": 1.4,
+            "Width": 1.52,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -722,7 +722,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.9,
+            "Width": 1.02,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -804,7 +804,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.8,
+            "Width": 0.92,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -883,7 +883,7 @@
             "Kind": "Part",
             "FromStuds": 0.4,
             "ToStuds": 6.8,
-            "Width": 1.2,
+            "Width": 1.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -941,7 +941,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.2,
-            "Width": 1.0,
+            "Width": 1.12,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1004,7 +1004,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.5,
+            "Width": 0.62,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -1885,5 +1885,6 @@
       "PieceTriangles": 39000,
       "PocketPieceTriangles": 27500
     }
-  }
+  },
+  "shape": 2
 }

@@ -55,8 +55,8 @@
           "Name": "GooRiseShaft",
           "FromStuds": 0.3,
           "ToStuds": 3.6,
-          "Width0": 0.101,
-          "Width1": 0.16,
+          "Width0": 0.1107,
+          "Width1": 0.2529,
           "Segments": 20,
           "Texture": "vfx/toxic/bubble_strip.png",
           "TextureMode": "Wrap",
@@ -84,14 +84,14 @@
           "LightEmission": 0.8,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.074
+          "ZOffset": 0.1067
         },
         {
           "Name": "GooRiseForearm",
           "FromStuds": 4.5,
           "ToStuds": 5.32,
-          "Width0": 0.177,
-          "Width1": 0.191,
+          "Width0": 0.2827,
+          "Width1": 0.3055,
           "Segments": 20,
           "Texture": "vfx/toxic/bubble_strip.png",
           "TextureMode": "Wrap",
@@ -119,14 +119,14 @@
           "LightEmission": 0.8,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.089
+          "ZOffset": 0.1423
         },
         {
           "Name": "GooRiseSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.198,
-          "Width1": 0.198,
+          "Width0": 0.3168,
+          "Width1": 0.3168,
           "Segments": 4,
           "Texture": "vfx/toxic/bubble_strip.png",
           "TextureMode": "Wrap",
@@ -154,7 +154,7 @@
           "LightEmission": 0.8,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.1
+          "ZOffset": 0.16
         }
       ]
     },
@@ -171,7 +171,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.2,
+            "Width": 0.32,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -238,7 +238,7 @@
             "Kind": "Part",
             "FromStuds": 0.8,
             "ToStuds": 7.0,
-            "Width": 0.17,
+            "Width": 0.29,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -294,7 +294,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.3,
+            "Width": 0.42,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -350,7 +350,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.35,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -626,5 +626,6 @@
       "BallTrail": 14,
       "Lights": 1
     }
-  }
+  },
+  "shape": 2
 }

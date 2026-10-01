@@ -8,12 +8,12 @@ return {
 	Name = "Classic",
 	Tier = "Common",
 	Maps = {
-		Color = "rbxassetid://105908889801184",
-		Normal = "rbxassetid://114159920269427",
-		Roughness = "rbxassetid://119517224467514",
-		Metalness = "rbxassetid://138757447950095",
+		Color = "rbxassetid://103521404064785",
+		Normal = "rbxassetid://83559713653954",
+		Roughness = "rbxassetid://73495869792792",
+		Metalness = "rbxassetid://89596106759655",
 	},
-	Thumb = "rbxassetid://117916451226769",
+	Thumb = "rbxassetid://105309454018382",
 	Look = {
 		Shaft = { 211, 174, 122 },
 		Forearm = { 89, 47, 35 },

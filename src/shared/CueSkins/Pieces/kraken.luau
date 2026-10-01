@@ -5,7 +5,7 @@
 return {
 	Id = "kraken",
 	Frame = "cue",
-	Rigid = "119860379473070",
+	Rigid = "104967602056117",
 	Models = {},
 	Parts = {
 		{
@@ -15,8 +15,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_1_Ink",
 			Joint = "Tentacle1_1",
-			Offset = { -0.0674, 0.0158, -0.5161 },
-			Size = { 0.2066, 0.3052, 0.6167 },
+			Offset = { -0.1037, 0.0249, -0.5179 },
+			Size = { 0.235, 0.3857, 0.6336 },
 		},
 		{
 			Material = "Neon",
@@ -25,8 +25,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_1_Core",
 			Joint = "Tentacle1_1",
-			Offset = { -0.0691, 0.0111, -0.5155 },
-			Size = { 0.1394, 0.2413, 0.5919 },
+			Offset = { -0.1045, 0.0201, -0.5161 },
+			Size = { 0.1699, 0.3229, 0.6002 },
 		},
 		{
 			Material = "Neon",
@@ -35,8 +35,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_1_Sucker",
 			Joint = "Tentacle1_1",
-			Offset = { -0.0981, -0.0185, -0.537 },
-			Size = { 0.0979, 0.2068, 0.4919 },
+			Offset = { -0.1428, -0.0067, -0.5446 },
+			Size = { 0.096, 0.2761, 0.4921 },
 		},
 		{
 			Material = "ForceField",
@@ -45,8 +45,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_2_Ink",
 			Joint = "Tentacle1_2",
-			Offset = { 0.0077, -0.1017, -0.0207 },
-			Size = { 0.3296, 0.1937, 0.5784 },
+			Offset = { 0.003, -0.1389, -0.0226 },
+			Size = { 0.402, 0.2103, 0.5891 },
 		},
 		{
 			Material = "Neon",
@@ -55,8 +55,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_2_Core",
 			Joint = "Tentacle1_2",
-			Offset = { 0.0131, -0.1035, -0.0208 },
-			Size = { 0.2811, 0.1409, 0.5542 },
+			Offset = { 0.0079, -0.1398, -0.022 },
+			Size = { 0.354, 0.1581, 0.5597 },
 		},
 		{
 			Material = "Neon",
@@ -65,8 +65,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_2_Sucker",
 			Joint = "Tentacle1_2",
-			Offset = { 0.0455, -0.1335, -0.0145 },
-			Size = { 0.204, 0.0721, 0.4033 },
+			Offset = { 0.0425, -0.175, -0.0196 },
+			Size = { 0.2602, 0.0808, 0.4041 },
 		},
 		{
 			Material = "ForceField",
@@ -75,8 +75,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_3_Ink",
 			Joint = "Tentacle1_3",
-			Offset = { 0.1651, 0.0223, 0.4336 },
-			Size = { 0.2057, 0.41, 0.5398 },
+			Offset = { 0.1991, 0.0184, 0.4324 },
+			Size = { 0.2169, 0.4719, 0.5448 },
 		},
 		{
 			Material = "Neon",
@@ -85,8 +85,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_3_Core",
 			Joint = "Tentacle1_3",
-			Offset = { 0.1666, 0.0279, 0.4347 },
-			Size = { 0.1687, 0.3763, 0.5162 },
+			Offset = { 0.1996, 0.0243, 0.4341 },
+			Size = { 0.1801, 0.4396, 0.5185 },
 		},
 		{
 			Material = "Neon",
@@ -95,8 +95,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_3_Sucker",
 			Joint = "Tentacle1_3",
-			Offset = { 0.2029, 0.0451, 0.4405 },
-			Size = { 0.0883, 0.2723, 0.3604 },
+			Offset = { 0.2405, 0.0432, 0.4383 },
+			Size = { 0.0929, 0.3187, 0.361 },
 		},
 		{
 			Material = "ForceField",
@@ -105,8 +105,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_4_Ink",
 			Joint = "Tentacle1_4",
-			Offset = { -0.0538, 0.2463, 0.8546 },
-			Size = { 0.6066, 0.2401, 0.5049 },
+			Offset = { -0.0516, 0.2753, 0.8541 },
+			Size = { 0.6673, 0.2524, 0.5061 },
 		},
 		{
 			Material = "Neon",
@@ -115,8 +115,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_4_Core",
 			Joint = "Tentacle1_4",
-			Offset = { -0.0596, 0.2473, 0.8587 },
-			Size = { 0.5889, 0.2187, 0.4897 },
+			Offset = { -0.0577, 0.2761, 0.8583 },
+			Size = { 0.649, 0.2314, 0.4905 },
 		},
 		{
 			Material = "Neon",
@@ -125,8 +125,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle1_4_Sucker",
 			Joint = "Tentacle1_4",
-			Offset = { 0.0919, 0.2988, 0.769 },
-			Size = { 0.0225, 0.0255, 0.0193 },
+			Offset = { 0.1053, 0.3338, 0.7683 },
+			Size = { 0.0228, 0.0256, 0.0185 },
 		},
 		{
 			Material = "ForceField",
@@ -135,8 +135,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_1_Ink",
 			Joint = "Tentacle2_1",
-			Offset = { -0.0706, 0.0398, -1.2852 },
-			Size = { 0.218, 0.2957, 0.6717 },
+			Offset = { -0.1043, 0.058, -1.2867 },
+			Size = { 0.265, 0.3647, 0.688 },
 		},
 		{
 			Material = "Neon",
@@ -145,8 +145,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_1_Core",
 			Joint = "Tentacle2_1",
-			Offset = { -0.0665, 0.0431, -1.2853 },
-			Size = { 0.1546, 0.2315, 0.6504 },
+			Offset = { -0.0994, 0.0607, -1.286 },
+			Size = { 0.2031, 0.3028, 0.6584 },
 		},
 		{
 			Material = "Neon",
@@ -155,8 +155,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_1_Sucker",
 			Joint = "Tentacle2_1",
-			Offset = { -0.1086, 0.0183, -1.2714 },
-			Size = { 0.0904, 0.2256, 0.5359 },
+			Offset = { -0.1459, 0.041, -1.2635 },
+			Size = { 0.1215, 0.2851, 0.5317 },
 		},
 		{
 			Material = "ForceField",
@@ -165,8 +165,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_2_Ink",
 			Joint = "Tentacle2_2",
-			Offset = { 0.0737, 0.0989, -0.7382 },
-			Size = { 0.3379, 0.1931, 0.6313 },
+			Offset = { 0.0915, 0.1316, -0.7397 },
+			Size = { 0.4008, 0.2329, 0.6414 },
 		},
 		{
 			Material = "Neon",
@@ -175,8 +175,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_2_Core",
 			Joint = "Tentacle2_2",
-			Offset = { 0.0775, 0.0951, -0.7382 },
-			Size = { 0.2885, 0.1454, 0.6092 },
+			Offset = { 0.0949, 0.1271, -0.739 },
+			Size = { 0.3534, 0.1862, 0.6142 },
 		},
 		{
 			Material = "Neon",
@@ -185,8 +185,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_2_Sucker",
 			Joint = "Tentacle2_2",
-			Offset = { 0.0661, 0.135, -0.6922 },
-			Size = { 0.244, 0.0909, 0.4436 },
+			Offset = { 0.0925, 0.167, -0.6873 },
+			Size = { 0.2892, 0.1221, 0.4403 },
 		},
 		{
 			Material = "ForceField",
@@ -195,8 +195,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_3_Ink",
 			Joint = "Tentacle2_3",
-			Offset = { 0.1912, -0.102, -0.2371 },
-			Size = { 0.1591, 0.4342, 0.5877 },
+			Offset = { 0.2257, -0.1142, -0.2385 },
+			Size = { 0.1867, 0.4933, 0.5927 },
 		},
 		{
 			Material = "Neon",
@@ -205,8 +205,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_3_Core",
 			Joint = "Tentacle2_3",
-			Offset = { 0.1881, -0.1059, -0.2365 },
-			Size = { 0.1272, 0.3998, 0.5664 },
+			Offset = { 0.2222, -0.1177, -0.237 },
+			Size = { 0.1548, 0.4604, 0.5689 },
 		},
 		{
 			Material = "Neon",
@@ -215,8 +215,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_3_Sucker",
 			Joint = "Tentacle2_3",
-			Offset = { 0.2171, -0.1019, -0.1886 },
-			Size = { 0.0856, 0.3135, 0.3933 },
+			Offset = { 0.2528, -0.1214, -0.1861 },
+			Size = { 0.1079, 0.354, 0.3906 },
 		},
 		{
 			Material = "ForceField",
@@ -225,8 +225,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_4_Ink",
 			Joint = "Tentacle2_4",
-			Offset = { -0.0369, -0.3286, 0.2306 },
-			Size = { 0.4726, 0.2053, 0.5504 },
+			Offset = { -0.035, -0.368, 0.2298 },
+			Size = { 0.5206, 0.2062, 0.5523 },
 		},
 		{
 			Material = "Neon",
@@ -235,8 +235,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_4_Core",
 			Joint = "Tentacle2_4",
-			Offset = { -0.0424, -0.3314, 0.2339 },
-			Size = { 0.456, 0.1839, 0.538 },
+			Offset = { -0.0407, -0.3708, 0.2336 },
+			Size = { 0.504, 0.1849, 0.5387 },
 		},
 		{
 			Material = "Neon",
@@ -245,8 +245,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle2_4_Sucker",
 			Joint = "Tentacle2_4",
-			Offset = { 0.0751, -0.353, 0.1674 },
-			Size = { 0.0199, 0.0259, 0.0216 },
+			Offset = { 0.0814, -0.3974, 0.1684 },
+			Size = { 0.0206, 0.0259, 0.021 },
 		},
 		{
 			Material = "ForceField",
@@ -255,8 +255,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_1_Ink",
 			Joint = "Tentacle3_1",
-			Offset = { 0.0766, -0.0049, -2.1465 },
-			Size = { 0.2116, 0.3462, 0.5722 },
+			Offset = { 0.1198, -0.0073, -2.1484 },
+			Size = { 0.2436, 0.4518, 0.5916 },
 		},
 		{
 			Material = "Neon",
@@ -265,8 +265,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_1_Core",
 			Joint = "Tentacle3_1",
-			Offset = { 0.0773, -0.0006, -2.1454 },
-			Size = { 0.1454, 0.2819, 0.5396 },
+			Offset = { 0.1186, -0.0027, -2.1467 },
+			Size = { 0.1805, 0.3894, 0.5487 },
 		},
 		{
 			Material = "Neon",
@@ -275,8 +275,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_1_Sucker",
 			Joint = "Tentacle3_1",
-			Offset = { 0.0964, 0.0276, -2.1737 },
-			Size = { 0.1213, 0.2393, 0.446 },
+			Offset = { 0.147, 0.02, -2.1836 },
+			Size = { 0.1303, 0.3303, 0.4443 },
 		},
 		{
 			Material = "ForceField",
@@ -285,8 +285,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_2_Ink",
 			Joint = "Tentacle3_2",
-			Offset = { -0.0405, 0.1016, -1.704 },
-			Size = { 0.3692, 0.1951, 0.5331 },
+			Offset = { -0.0502, 0.1391, -1.7064 },
+			Size = { 0.4621, 0.2378, 0.5464 },
 		},
 		{
 			Material = "Neon",
@@ -295,8 +295,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_2_Core",
 			Joint = "Tentacle3_2",
-			Offset = { -0.0435, 0.0974, -1.7034 },
-			Size = { 0.3194, 0.1503, 0.5053 },
+			Offset = { -0.0522, 0.1337, -1.7044 },
+			Size = { 0.4146, 0.1945, 0.5114 },
 		},
 		{
 			Material = "Neon",
@@ -305,8 +305,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_2_Sucker",
 			Joint = "Tentacle3_2",
-			Offset = { -0.0878, 0.1009, -1.7052 },
-			Size = { 0.216, 0.1405, 0.3654 },
+			Offset = { -0.1006, 0.1425, -1.711 },
+			Size = { 0.2914, 0.1685, 0.3653 },
 		},
 		{
 			Material = "ForceField",
@@ -315,8 +315,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_3_Ink",
 			Joint = "Tentacle3_3",
-			Offset = { -0.1142, -0.0946, -1.2977 },
-			Size = { 0.2543, 0.4205, 0.4943 },
+			Offset = { -0.1441, -0.1119, -1.2992 },
+			Size = { 0.3077, 0.4976, 0.4999 },
 		},
 		{
 			Material = "Neon",
@@ -325,8 +325,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_3_Core",
 			Joint = "Tentacle3_3",
-			Offset = { -0.1091, -0.0977, -1.2965 },
-			Size = { 0.2246, 0.3878, 0.4681 },
+			Offset = { -0.1377, -0.1136, -1.2976 },
+			Size = { 0.2782, 0.4654, 0.4705 },
 		},
 		{
 			Material = "Neon",
@@ -335,8 +335,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_3_Sucker",
 			Joint = "Tentacle3_3",
-			Offset = { -0.1279, -0.143, -1.2957 },
-			Size = { 0.1804, 0.2647, 0.3262 },
+			Offset = { -0.1642, -0.167, -1.2981 },
+			Size = { 0.2214, 0.3225, 0.3262 },
 		},
 		{
 			Material = "ForceField",
@@ -345,8 +345,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_4_Ink",
 			Joint = "Tentacle3_4",
-			Offset = { 0.151, -0.0834, -0.9211 },
-			Size = { 0.4834, 0.4563, 0.4563 },
+			Offset = { 0.1708, -0.1009, -0.9219 },
+			Size = { 0.5483, 0.528, 0.4582 },
 		},
 		{
 			Material = "Neon",
@@ -355,8 +355,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_4_Core",
 			Joint = "Tentacle3_4",
-			Offset = { 0.1538, -0.0774, -0.9167 },
-			Size = { 0.4671, 0.441, 0.4407 },
+			Offset = { 0.173, -0.0949, -0.9171 },
+			Size = { 0.5326, 0.5128, 0.4417 },
 		},
 		{
 			Material = "Neon",
@@ -365,8 +365,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle3_4_Sucker",
 			Joint = "Tentacle3_4",
-			Offset = { 0.1418, -0.2701, -0.9993 },
-			Size = { 0.0233, 0.0254, 0.0178 },
+			Offset = { 0.1641, -0.3196, -1.0002 },
+			Size = { 0.0234, 0.0255, 0.0166 },
 		},
 		{
 			Material = "ForceField",
@@ -375,8 +375,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_1_Ink",
 			Joint = "Tentacle4_1",
-			Offset = { 0.0574, -0.0439, -2.8761 },
-			Size = { 0.2531, 0.2971, 0.5141 },
+			Offset = { 0.0849, -0.0677, -2.8779 },
+			Size = { 0.317, 0.3717, 0.5345 },
 		},
 		{
 			Material = "Neon",
@@ -385,8 +385,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_1_Core",
 			Joint = "Tentacle4_1",
-			Offset = { 0.0515, -0.0462, -2.8758 },
-			Size = { 0.1932, 0.2355, 0.4808 },
+			Offset = { 0.0785, -0.0674, -2.8763 },
+			Size = { 0.2587, 0.3117, 0.4907 },
 		},
 		{
 			Material = "Neon",
@@ -395,8 +395,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_1_Sucker",
 			Joint = "Tentacle4_1",
-			Offset = { 0.0974, -0.0333, -2.8513 },
-			Size = { 0.1183, 0.248, 0.3976 },
+			Offset = { 0.1229, -0.0622, -2.8416 },
+			Size = { 0.1749, 0.3105, 0.3912 },
 		},
 		{
 			Material = "ForceField",
@@ -405,8 +405,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_2_Ink",
 			Joint = "Tentacle4_2",
-			Offset = { -0.0921, -0.0497, -2.4856 },
-			Size = { 0.3007, 0.289, 0.4821 },
+			Offset = { -0.1237, -0.0721, -2.4879 },
+			Size = { 0.3577, 0.3638, 0.4945 },
 		},
 		{
 			Material = "Neon",
@@ -415,8 +415,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_2_Core",
 			Joint = "Tentacle4_2",
-			Offset = { -0.0935, -0.0429, -2.4857 },
-			Size = { 0.2522, 0.2436, 0.4504 },
+			Offset = { -0.123, -0.0645, -2.4869 },
+			Size = { 0.3115, 0.3199, 0.4563 },
 		},
 		{
 			Material = "Neon",
@@ -425,8 +425,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_2_Sucker",
 			Joint = "Tentacle4_2",
-			Offset = { -0.1065, -0.0838, -2.4388 },
-			Size = { 0.2308, 0.1839, 0.3272 },
+			Offset = { -0.1486, -0.1054, -2.4331 },
+			Size = { 0.2651, 0.2497, 0.3208 },
 		},
 		{
 			Material = "ForceField",
@@ -435,8 +435,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_3_Ink",
 			Joint = "Tentacle4_3",
-			Offset = { -0.0662, 0.161, -2.1292 },
-			Size = { 0.3548, 0.3481, 0.4449 },
+			Offset = { -0.0878, 0.1954, -2.1307 },
+			Size = { 0.4286, 0.3958, 0.4499 },
 		},
 		{
 			Material = "Neon",
@@ -445,8 +445,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_3_Core",
 			Joint = "Tentacle4_3",
-			Offset = { -0.0595, 0.1621, -2.1271 },
-			Size = { 0.3235, 0.3168, 0.4175 },
+			Offset = { -0.0802, 0.1953, -2.1278 },
+			Size = { 0.3986, 0.3666, 0.4202 },
 		},
 		{
 			Material = "Neon",
@@ -455,8 +455,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_3_Sucker",
 			Joint = "Tentacle4_3",
-			Offset = { -0.0955, 0.193, -2.0812 },
-			Size = { 0.2578, 0.2535, 0.2834 },
+			Offset = { -0.1163, 0.2386, -2.0786 },
+			Size = { 0.3184, 0.2811, 0.2796 },
 		},
 		{
 			Material = "ForceField",
@@ -465,8 +465,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_4_Ink",
 			Joint = "Tentacle4_4",
-			Offset = { 0.2451, 0.1763, -1.7966 },
-			Size = { 0.4609, 0.3185, 0.4069 },
+			Offset = { 0.2784, 0.2071, -1.7972 },
+			Size = { 0.51, 0.3738, 0.4085 },
 		},
 		{
 			Material = "Neon",
@@ -475,8 +475,8 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_4_Core",
 			Joint = "Tentacle4_4",
-			Offset = { 0.248, 0.1701, -1.7921 },
-			Size = { 0.4478, 0.3012, 0.3909 },
+			Offset = { 0.2808, 0.2007, -1.7924 },
+			Size = { 0.4981, 0.3566, 0.3917 },
 		},
 		{
 			Material = "Neon",
@@ -485,18 +485,18 @@ return {
 			Reflectance = 0,
 			Name = "Tentacle4_4_Sucker",
 			Joint = "Tentacle4_4",
-			Offset = { 0.1964, 0.2934, -1.8296 },
-			Size = { 0.0235, 0.0245, 0.0185 },
+			Offset = { 0.2322, 0.3409, -1.8286 },
+			Size = { 0.0236, 0.0248, 0.0174 },
 		},
 	},
 	Joints = {
 		Tentacle1_1 = {
 			Parent = nil,
-			PivotRoblox = { -0.0346, 0.0952, -0.8 },
+			PivotRoblox = { -0.0529, 0.1453, -0.8 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.886680006980896, -0.33113011717796326, -0.3227251172065735 },
+					Axis = { 0.8284000754356384, -0.4720626771450043, -0.3015129864215851 },
 					Amp = 3,
 					Period = 3.4,
 					Phase = 0,
@@ -505,11 +505,11 @@ return {
 		},
 		Tentacle1_2 = {
 			Parent = "Tentacle1_1",
-			PivotRoblox = { -0.087, -0.0823, -0.23 },
+			PivotRoblox = { -0.1229, -0.1162, -0.23 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.6332165002822876, -0.3881526291370392, -0.6696076393127441 },
+					Axis = { -0.5913920402526855, -0.5090735554695129, -0.6253795027732849 },
 					Amp = 10,
 					Period = 3.4,
 					Phase = 50,
@@ -518,11 +518,11 @@ return {
 		},
 		Tentacle1_3 = {
 			Parent = "Tentacle1_2",
-			PivotRoblox = { 0.1347, -0.1217, 0.245 },
+			PivotRoblox = { 0.1671, -0.151, 0.245 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.5642286539077759, -0.5401068329811096, 0.6244442462921143 },
+					Axis = { -0.5253667235374451, -0.6212272047996521, 0.5814349055290222 },
 					Amp = 12,
 					Period = 3.4,
 					Phase = 100,
@@ -531,11 +531,11 @@ return {
 		},
 		Tentacle1_4 = {
 			Parent = "Tentacle1_3",
-			PivotRoblox = { 0.1934, 0.2052, 0.682 },
+			PivotRoblox = { 0.2199, 0.2333, 0.682 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.483702689409256, -0.7470964789390564, 0.4559369683265686 },
+					Axis = { 0.4492698013782501, -0.7866517305374146, 0.4234806001186371 },
 					Amp = 14,
 					Period = 3.4,
 					Phase = 150,
@@ -544,11 +544,11 @@ return {
 		},
 		Tentacle2_1 = {
 			Parent = nil,
-			PivotRoblox = { -0.1021, -0.0372, -1.6 },
+			PivotRoblox = { -0.1566, -0.057, -1.6 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.3268469274044037, 0.29454898834228516, -0.8980045318603516 },
+					Axis = { -0.3092483580112457, 0.42714810371398926, -0.8496527671813965 },
 					Amp = 3,
 					Period = 3.4,
 					Phase = 70,
@@ -557,11 +557,11 @@ return {
 		},
 		Tentacle2_2 = {
 			Parent = "Tentacle2_1",
-			PivotRoblox = { -0.0169, 0.1301, -0.97 },
+			PivotRoblox = { -0.0239, 0.1839, -0.97 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.9275927543640137, 0.353635311126709, -0.12047325819730759 },
+					Axis = { 0.8755179643630981, 0.4696151912212372, -0.11370992660522461 },
 					Amp = 10,
 					Period = 3.4,
 					Phase = 120,
@@ -570,11 +570,11 @@ return {
 		},
 		Tentacle2_3 = {
 			Parent = "Tentacle2_2",
-			PivotRoblox = { 0.201, 0.0424, -0.445 },
+			PivotRoblox = { 0.2511, 0.0529, -0.445 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.17718981206417084, 0.5114837288856506, 0.8408259749412537 },
+					Axis = { 0.16571779549121857, 0.5950905084609985, 0.7863872647285461 },
 					Amp = 12,
 					Period = 3.4,
 					Phase = 170,
@@ -583,11 +583,11 @@ return {
 		},
 		Tentacle2_4 = {
 			Parent = "Tentacle2_3",
-			PivotRoblox = { 0.1375, -0.2936, 0.038 },
+			PivotRoblox = { 0.1571, -0.3354, 0.038 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.7048380374908447, 0.6279049515724182, 0.33005860447883606 },
+					Axis = { -0.666860818862915, 0.6765952110290527, 0.31227484345436096 },
 					Amp = 14,
 					Period = 3.4,
 					Phase = 220,
@@ -596,11 +596,11 @@ return {
 		},
 		Tentacle3_1 = {
 			Parent = nil,
-			PivotRoblox = { 0.0383, -0.1052, -2.4 },
+			PivotRoblox = { 0.0588, -0.1616, -2.4 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.8417227268218994, -0.4445730447769165, 0.30636197328567505 },
+					Axis = { -0.7473642826080322, -0.6061787605285645, 0.27201834321022034 },
 					Amp = 3,
 					Period = 3.4,
 					Phase = 140,
@@ -609,11 +609,11 @@ return {
 		},
 		Tentacle3_2 = {
 			Parent = "Tentacle3_1",
-			PivotRoblox = { 0.0671, 0.1143, -1.89 },
+			PivotRoblox = { 0.0972, 0.1658, -1.89 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.741622269153595, -0.5105664730072021, 0.43510717153549194 },
+					Axis = { 0.6547762155532837, -0.6509170532226562, 0.38415491580963135 },
 					Amp = 10,
 					Period = 3.4,
 					Phase = 190,
@@ -622,11 +622,11 @@ return {
 		},
 		Tentacle3_3 = {
 			Parent = "Tentacle3_2",
-			PivotRoblox = { -0.1836, 0.0404, -1.465 },
+			PivotRoblox = { -0.2394, 0.0526, -1.465 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.16389326751232147, -0.6461225748062134, -0.745429277420044 },
+					Axis = { 0.1444961577653885, -0.739730179309845, -0.6572061777114868 },
 					Amp = 12,
 					Period = 3.4,
 					Phase = 240,
@@ -635,11 +635,11 @@ return {
 		},
 		Tentacle3_4 = {
 			Parent = "Tentacle3_3",
-			PivotRoblox = { -0.0058, -0.2774, -1.074 },
+			PivotRoblox = { -0.0069, -0.3323, -1.074 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.5838655233383179, -0.8117602467536926, -0.012102195993065834 },
+					Axis = { -0.5159488320350647, -0.8565526604652405, -0.010694439522922039 },
 					Amp = 14,
 					Period = 3.4,
 					Phase = 290,
@@ -648,11 +648,11 @@ return {
 		},
 		Tentacle4_1 = {
 			Parent = nil,
-			PivotRoblox = { 0.1052, 0.0383, -3.1 },
+			PivotRoblox = { 0.1616, 0.0588, -3.1 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.30397698283195496, 0.4583549499511719, 0.8351699709892273 },
+					Axis = { 0.26812103390693665, 0.620844841003418, 0.7366564869880676 },
 					Amp = 3,
 					Period = 3.4,
 					Phase = 210,
@@ -661,11 +661,11 @@ return {
 		},
 		Tentacle4_2 = {
 			Parent = "Tentacle4_1",
-			PivotRoblox = { -0.021, -0.1358, -2.65 },
+			PivotRoblox = { -0.0302, -0.1951, -2.65 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { -0.8317244648933411, 0.5400517582893372, -0.1287577599287033 },
+					Axis = { -0.7280237674713135, 0.6762241721153259, -0.11270403861999512 },
 					Amp = 10,
 					Period = 3.4,
 					Phase = 260,
@@ -674,11 +674,11 @@ return {
 		},
 		Tentacle4_3 = {
 			Parent = "Tentacle4_2",
-			PivotRoblox = { -0.1986, 0.0638, -2.275 },
+			PivotRoblox = { -0.2558, 0.0821, -2.275 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.21849320828914642, 0.6993885636329651, -0.6805266737937927 },
+					Axis = { 0.19052350521087646, 0.7820255160331726, -0.5934112071990967 },
 					Amp = 12,
 					Period = 3.4,
 					Phase = 310,
@@ -687,11 +687,11 @@ return {
 		},
 		Tentacle4_4 = {
 			Parent = "Tentacle4_3",
-			PivotRoblox = { 0.0937, 0.3061, -1.93 },
+			PivotRoblox = { 0.1113, 0.3633, -1.93 },
 			Motion = {
 				{
 					Kind = "Hinge",
-					Axis = { 0.5779018402099609, 0.7966843843460083, 0.1769849956035614 },
+					Axis = { 0.5160642266273499, 0.8418425917625427, 0.15804694592952728 },
 					Amp = 14,
 					Period = 3.4,
 					Phase = 360,

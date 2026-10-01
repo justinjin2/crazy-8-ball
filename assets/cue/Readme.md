@@ -29,6 +29,16 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
   in Blender.
 - Changing the mesh means uploading it again and rebuilding every skin's template in Studio,
   because a new upload is a new asset id. Do that only when the shape really changes.
+- **When the cue's width changes** (2026-10-01: butt 0.2 -> 0.32, tip kept), everything built
+  on the old shape follows, in this order: Shape.json and the mesh (above); every skin repainted
+  (`python3 tools/cue_skin.py <ids> --paint --maps --thumb`; Classic with `--maps --thumb`
+  only, it has no paint recipe); `python3 tools/cue_widen.py` moves each skin's effects out with
+  the surface (one-shot, stamps `"shape": 2`); the pieces on the butt read the new radius
+  (`CuePieces.butt_gain`/`butt_growth`) and are rebuilt with `CuePieces.py -- <ids>` and
+  `tools/cue_pieces_glb.py`; the Dragon's and Phoenix's Segment hosts are copied from the build
+  prints; then everything is uploaded again and the templates rebuilt in Studio. The AI-painted
+  panels are resized to the new panel shapes, not re-bought: from the side only half the
+  circumference shows, so the squeeze barely reads.
 
 ## Files
 
@@ -36,7 +46,7 @@ tools/test.sh   # cue_shape_test (Shape.json is current), cue_mesh_test (MeshSki
 |---|---|
 | `Shape.json` | The cue's outline and zones, exported from Config and the catalog. Generated. |
 | `CueModel.py`, `cue_common.py` | The mesh and UV builder, and the shared helpers. |
-| `Cue.glb` | The mesh (3,456 triangles), uploaded to Roblox. |
+| `Cue.glb` | The mesh (3,840 triangles), uploaded to Roblox. |
 | `CueModel.blend` | The .blend (scripts embedded). |
 | `Parameters.json` | Axes, the UV layout, the paint-kit panels and every check's result. |
 | `CueTemplate.py`, `template/` | The paint kit: `sheet.png`, and per panel `_input` (for ChatGPT), `_guide` (for you), `_test` (the mapping check). `CHATGPT.md` is the how-to. |

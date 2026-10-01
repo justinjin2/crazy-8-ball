@@ -106,8 +106,8 @@
           "Name": "FlameFlowShaft",
           "FromStuds": 0.3,
           "ToStuds": 3.6,
-          "Width0": 0.101,
-          "Width1": 0.16,
+          "Width0": 0.1107,
+          "Width1": 0.2529,
           "Segments": 20,
           "Texture": "vfx/phoenix/flame_flow_strip.png",
           "TextureMode": "Wrap",
@@ -135,14 +135,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.074
+          "ZOffset": 0.1067
         },
         {
           "Name": "FlameFlowForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.164,
-          "Width1": 0.191,
+          "Width0": 0.2612,
+          "Width1": 0.3055,
           "Segments": 20,
           "Texture": "vfx/phoenix/flame_flow_strip.png",
           "TextureMode": "Wrap",
@@ -170,14 +170,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.089
+          "ZOffset": 0.1422
         },
         {
           "Name": "FlameFlowSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.198,
-          "Width1": 0.198,
+          "Width0": 0.3168,
+          "Width1": 0.3168,
           "Segments": 4,
           "Texture": "vfx/phoenix/flame_flow_strip.png",
           "TextureMode": "Wrap",
@@ -205,7 +205,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.1
+          "ZOffset": 0.16
         }
       ],
       "Frames": {
@@ -256,7 +256,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.12,
+            "Width": 0.24,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -325,7 +325,7 @@
             "Kind": "Part",
             "FromStuds": 2.5,
             "ToStuds": 7.0,
-            "Width": 0.3,
+            "Width": 0.42,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -396,7 +396,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.3,
+            "Width": 0.42,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -464,13 +464,13 @@
             "Joint": "WingRight",
             "From": [
               4.4,
-              0.06,
-              0.07
+              0.095,
+              0.111
             ],
             "To": [
               4.838,
-              0.476,
-              1.164
+              0.511,
+              1.205
             ],
             "Radius": 0.05
           },
@@ -536,13 +536,13 @@
             "Joint": "PrimariesRight",
             "From": [
               4.838,
-              0.476,
-              1.164
+              0.511,
+              1.205
             ],
             "To": [
               5.258,
-              0.875,
-              2.215
+              0.91,
+              2.256
             ],
             "Radius": 0.05
           },
@@ -608,13 +608,13 @@
             "Joint": "WingLeft",
             "From": [
               4.4,
-              0.06,
-              -0.07
+              0.095,
+              -0.111
             ],
             "To": [
               4.838,
-              0.476,
-              -1.164
+              0.511,
+              -1.205
             ],
             "Radius": 0.05
           },
@@ -680,13 +680,13 @@
             "Joint": "PrimariesLeft",
             "From": [
               4.838,
-              0.476,
-              -1.164
+              0.511,
+              -1.205
             ],
             "To": [
               5.258,
-              0.875,
-              -2.215
+              0.91,
+              -2.256
             ],
             "Radius": 0.05
           },
@@ -1371,5 +1371,6 @@
       "PocketPieceTriangles": 27500
     }
   },
-  "piece": "phoenix"
+  "piece": "phoenix",
+  "shape": 2
 }

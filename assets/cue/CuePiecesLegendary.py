@@ -66,8 +66,13 @@ def phoenix(k):
     names = ['Crimson', 'Ember', 'Flame', 'Amber', 'Gold']
 
     AT = 4.4                                     # the wings' root on the cue
+    # the root sits just on the surface (0.002 out): it follows the cue's width (Shape.json;
+    # (0.07, 0.06) on the 0.2 cue)
+    import cue_common as cc
+    env = cc.Envelope(cc.load_shape()[0])
+    lift = (float(env(AT)) + 0.002) / math.hypot(0.07, 0.06)
     for side, sname in ((1, 'Right'), (-1, 'Left')):
-        root = Vector((0.07 * side, -AT, 0.06))
+        root = Vector((0.07 * side * lift, -AT, 0.06 * lift))
         # the wing's arm: out, up and swept back toward the butt (-Y)
         arm = Vector((side * 1.0, -0.4, 0.38)).normalized()
         L_arm = 1.25
@@ -219,7 +224,8 @@ def infernal(k):
     import cue_common as cc
     env = cc.Envelope(cc.load_shape()[0])
     AT = 6.45                                  # the skull's footing on the butt
-    WIDE = 0.42                                # across the horns, in studs
+    WIDE = 0.6                                 # across the horns, in studs (0.42 on the 0.2 cue)
+    SINK = 0.093                               # the neck's footing this far below the surface
     TILT = math.radians(-28)                   # face tipped up from looking out past the butt
 
     def place(ob):
@@ -228,10 +234,10 @@ def infernal(k):
         s = WIDE / (hi[0] - lo[0])
         foot = Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]))
         r = float(env(AT))
-        return (Matrix.Translation((0, -AT, r * 0.35)) @ Matrix.Rotation(TILT, 4, 'X') @ Matrix.Scale(s, 4)
+        return (Matrix.Translation((0, -AT, r - SINK)) @ Matrix.Rotation(TILT, 4, 'X') @ Matrix.Scale(s, 4)
                 @ foot)
 
-    k.joint('Skull', pivot=(0, -AT, 0.1), motion=[
+    k.joint('Skull', pivot=(0, -AT, float(env(AT))), motion=[
         {'Kind': 'Hinge', 'Axis': (1, 0, 0), 'Amp': 2.5, 'Period': 3.6}])
     k.model('Skull', 'HornedSkull', 'infernal_skull', place, target_tris=19500, emissive=_magma,
             emissive_tint='#FF6A2A', emissive_strength=3.0, cut_below=0.3)

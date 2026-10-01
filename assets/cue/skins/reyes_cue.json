@@ -80,7 +80,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.0,
-            "Width": 0.4,
+            "Width": 0.52,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -149,7 +149,7 @@
             "Kind": "Part",
             "FromStuds": 0.2,
             "ToStuds": 7.0,
-            "Width": 0.4,
+            "Width": 0.52,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -207,7 +207,7 @@
             "Kind": "Part",
             "FromStuds": 0.5,
             "ToStuds": 7.0,
-            "Width": 0.8,
+            "Width": 0.92,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -307,7 +307,7 @@
           "Host": {
             "Kind": "Attachment",
             "AtStuds": 4.6,
-            "Up": 0.55
+            "Up": 0.605
           },
           "Rate": 0.4,
           "Lifetime": 2.4,
@@ -916,5 +916,6 @@
       "Lights": 0,
       "Orbiters": 3
     }
-  }
+  },
+  "shape": 2
 }

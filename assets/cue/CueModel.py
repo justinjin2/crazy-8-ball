@@ -55,7 +55,7 @@ PARAMETERS = {
     'wrap_edge': 0.001,
     # The butt: the sleeve's rounded end, then a rubber bumper slightly smaller in diameter.
     'butt_round_radius': 0.01,
-    'bumper_radius': 0.0875,
+    'bumper_share': 0.875,  # of the butt's radius (main() sets bumper_radius from Shape.json)
     'bumper_length': 0.035,
     'bumper_edge_radius': 0.006,
     'max_taper_step': 1.06,  # the most a straight face may widen from ring to ring
@@ -773,6 +773,7 @@ def main():
     shape, shape_sha = cc.load_shape()
     E = cc.Envelope(shape)
     cc.log(TAG, 'shape', shape_sha[:12], 'length', E.length)
+    P['bumper_radius'] = P['bumper_share'] * shape['butt_diameter_studs'] / 2
 
     best = None
     for n in P['shaft_strip_choices']:
@@ -830,7 +831,7 @@ def main():
     radii = [math.hypot(v.co.x, v.co.z) for v in obj.data.vertices]
     length = max(-v.co.y for v in obj.data.vertices) - min(-v.co.y for v in obj.data.vertices)
     results['size'] = {'length': length, 'butt_diameter': 2 * max(radii)}
-    if abs(length - 7) > 1e-9 or abs(2 * max(radii) - 0.2) > 0.001:
+    if abs(length - 7) > 1e-9 or abs(2 * max(radii) - shape['butt_diameter_studs']) > 0.001:
         failures.append('size')
 
     glb = os.path.join(HERE, 'Cue.glb')

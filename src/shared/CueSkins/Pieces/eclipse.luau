@@ -5,7 +5,7 @@
 return {
 	Id = "eclipse",
 	Frame = "cue",
-	Rigid = "90573651819070",
+	Rigid = "90160756954817",
 	Models = {},
 	Parts = {
 		{
@@ -16,7 +16,7 @@ return {
 			Name = "Mount_Obsidian",
 			Joint = "Mount",
 			Offset = { 0, 0, -3.5075 },
-			Size = { 0.31, 0.31, 0.215 },
+			Size = { 0.43, 0.43, 0.215 },
 		},
 		{
 			Material = "Foil",
@@ -86,7 +86,7 @@ return {
 			Name = "Orbital1_OrbitLine",
 			Joint = "Orbital1",
 			Offset = { -0, -0, 2.2001 },
-			Size = { 0.8902, 0.5274, 0.8247 },
+			Size = { 1.0046, 0.5944, 0.9307 },
 		},
 		{
 			Material = "ForceField",
@@ -96,7 +96,7 @@ return {
 			Name = "Orbital1_OrbitGlow",
 			Joint = "Orbital1",
 			Offset = { 0.0002, -0.0007, 2.2003 },
-			Size = { 0.9244, 0.56, 0.8595 },
+			Size = { 1.0388, 0.627, 0.9654 },
 		},
 		{
 			Material = "Neon",
@@ -105,7 +105,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet1_Bead",
 			Joint = "Planet1",
-			Offset = { -0.2718, -0.2527, 2.4718 },
+			Offset = { -0.3072, -0.2857, 2.5072 },
 			Size = { 0.06, 0.06, 0.06 },
 		},
 		{
@@ -115,7 +115,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet1_BeadGlow",
 			Joint = "Planet1",
-			Offset = { -0.2718, -0.2527, 2.4718 },
+			Offset = { -0.3072, -0.2857, 2.5072 },
 			Size = { 0.13, 0.13, 0.13 },
 		},
 		{
@@ -126,7 +126,7 @@ return {
 			Name = "Orbital2_OrbitLine",
 			Joint = "Orbital2",
 			Offset = { 0, 0, 0.7 },
-			Size = { 0.8048, 1.2033, 1.0293 },
+			Size = { 0.8814, 1.3185, 1.1276 },
 		},
 		{
 			Material = "ForceField",
@@ -136,7 +136,7 @@ return {
 			Name = "Orbital2_OrbitGlow",
 			Joint = "Orbital2",
 			Offset = { 0.0005, 0.0005, 0.6993 },
-			Size = { 0.8376, 1.2369, 1.0616 },
+			Size = { 0.9142, 1.352, 1.1599 },
 		},
 		{
 			Material = "Neon",
@@ -145,7 +145,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet2_Bead",
 			Joint = "Planet2",
-			Offset = { 0.3826, -0.345, 0.355 },
+			Offset = { 0.4196, -0.3784, 0.3216 },
 			Size = { 0.06, 0.06, 0.06 },
 		},
 		{
@@ -155,7 +155,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet2_BeadGlow",
 			Joint = "Planet2",
-			Offset = { 0.3826, -0.345, 0.355 },
+			Offset = { 0.4196, -0.3784, 0.3216 },
 			Size = { 0.13, 0.13, 0.13 },
 		},
 		{
@@ -166,7 +166,7 @@ return {
 			Name = "Orbital3_OrbitLine",
 			Joint = "Orbital3",
 			Offset = { 0.0004, -0.0002, -0.8003 },
-			Size = { 0.7349, 0.8422, 0.9901 },
+			Size = { 0.8182, 0.9378, 1.1028 },
 		},
 		{
 			Material = "ForceField",
@@ -176,7 +176,7 @@ return {
 			Name = "Orbital3_OrbitGlow",
 			Joint = "Orbital3",
 			Offset = { 0, 0.0001, -0.8001 },
-			Size = { 0.7696, 0.8761, 1.0223 },
+			Size = { 0.8529, 0.9718, 1.135 },
 		},
 		{
 			Material = "Neon",
@@ -185,7 +185,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet3_Bead",
 			Joint = "Planet3",
-			Offset = { -0.1296, -0.3561, -1.1561 },
+			Offset = { -0.1446, -0.3972, -1.1972 },
 			Size = { 0.06, 0.06, 0.06 },
 		},
 		{
@@ -195,7 +195,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet3_BeadGlow",
 			Joint = "Planet3",
-			Offset = { -0.1296, -0.3561, -1.1561 },
+			Offset = { -0.1446, -0.3972, -1.1972 },
 			Size = { 0.13, 0.13, 0.13 },
 		},
 		{
@@ -206,7 +206,7 @@ return {
 			Name = "Orbital4_OrbitLine",
 			Joint = "Orbital4",
 			Offset = { -0.0001, -0.0005, -2.3001 },
-			Size = { 1.1561, 1.028, 1.2716 },
+			Size = { 1.254, 1.1149, 1.3794 },
 		},
 		{
 			Material = "ForceField",
@@ -216,7 +216,7 @@ return {
 			Name = "Orbital4_OrbitGlow",
 			Joint = "Orbital4",
 			Offset = { 0.0001, 0, -2.3003 },
-			Size = { 1.1897, 1.0629, 1.3039 },
+			Size = { 1.2877, 1.1499, 1.4118 },
 		},
 		{
 			Material = "Neon",
@@ -225,7 +225,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet4_Bead",
 			Joint = "Planet4",
-			Offset = { 0.3425, -0.5054, -2.6425 },
+			Offset = { 0.3718, -0.5487, -2.6718 },
 			Size = { 0.06, 0.06, 0.06 },
 		},
 		{
@@ -235,7 +235,7 @@ return {
 			Reflectance = 0,
 			Name = "Planet4_BeadGlow",
 			Joint = "Planet4",
-			Offset = { 0.3425, -0.5054, -2.6425 },
+			Offset = { 0.3718, -0.5487, -2.6718 },
 			Size = { 0.13, 0.13, 0.13 },
 		},
 		{

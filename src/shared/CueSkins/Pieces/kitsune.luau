@@ -7,8 +7,8 @@ return {
 	Frame = "cue",
 	Rigid = nil,
 	Models = {
-		FoxMask = "139206172142195",
-		RunningFox = "121383006188696",
+		FoxMask = "124590013191641",
+		RunningFox = "125033825476341",
 	},
 	Parts = {
 		{
@@ -17,8 +17,8 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://102995924189660",
-				EmissiveMask = "rbxassetid://138553429458236",
+				ColorMap = "rbxassetid://89213937447928",
+				EmissiveMask = "rbxassetid://72679398093444",
 				EmissiveTint = "#D8B8FF",
 				EmissiveStrength = 1.6,
 				NormalMap = "rbxassetid://99902336487404",
@@ -29,8 +29,8 @@ return {
 			Joint = "Mask",
 			Skinned = true,
 			Bones = { "Mask", "EarRight", "EarLeft", "Jaw" },
-			Offset = { -0.0048, -0.0218, -3.7111 },
-			Size = { 0.2553, 0.3898, 0.525 },
+			Offset = { -0.0073, -0.0337, -3.8485 },
+			Size = { 0.3893, 0.5949, 0.7982 },
 			Model = "FoxMask",
 		},
 		{
@@ -43,8 +43,8 @@ return {
 			Joint = "Mask",
 			Skinned = true,
 			Bones = { "Mask", "EarRight", "EarLeft", "Jaw" },
-			Offset = { -0.0056, -0.0215, -3.7116 },
-			Size = { 0.2667, 0.4029, 0.5383 },
+			Offset = { -0.0079, -0.0324, -3.8468 },
+			Size = { 0.4058, 0.6141, 0.8164 },
 			Model = "FoxMask",
 		},
 		{
@@ -53,8 +53,8 @@ return {
 			Transparency = 0,
 			Reflectance = 0,
 			SurfaceAppearance = {
-				ColorMap = "rbxassetid://87755641368651",
-				EmissiveMask = "rbxassetid://132069950403567",
+				ColorMap = "rbxassetid://71086102471623",
+				EmissiveMask = "rbxassetid://137024486209100",
 				EmissiveTint = "#C88CFF",
 				EmissiveStrength = 1.8,
 				NormalMap = "rbxassetid://70374803189224",
@@ -65,8 +65,8 @@ return {
 			Joint = "FoxRun",
 			Skinned = true,
 			Bones = { "FoxRun", "FoxBody", "FoxFront", "FoxHind", "FoxHead", "FoxTails" },
-			Offset = { -0.0009, 0.4933, -0.8001 },
-			Size = { 0.8, 0.3263, 0.2926 },
+			Offset = { 0.0006, 0.4934, -0.8005 },
+			Size = { 0.7978, 0.3263, 0.2934 },
 			Model = "RunningFox",
 		},
 		{
@@ -79,8 +79,8 @@ return {
 			Joint = "FoxRun",
 			Skinned = true,
 			Bones = { "FoxRun", "FoxBody", "FoxFront", "FoxHind", "FoxHead", "FoxTails" },
-			Offset = { 0.0012, 0.4931, -0.7998 },
-			Size = { 0.8052, 0.3335, 0.2999 },
+			Offset = { 0.0013, 0.4941, -0.8014 },
+			Size = { 0.8043, 0.3307, 0.3002 },
 			Model = "RunningFox",
 		},
 	},
@@ -106,7 +106,7 @@ return {
 		},
 		EarRight = {
 			Parent = "Mask",
-			PivotRoblox = { -0.07, 0.07, -3.78 },
+			PivotRoblox = { -0.1065, 0.1065, -3.9522 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -120,7 +120,7 @@ return {
 		},
 		EarLeft = {
 			Parent = "Mask",
-			PivotRoblox = { 0.07, 0.07, -3.78 },
+			PivotRoblox = { 0.1065, 0.1065, -3.9522 },
 			Motion = {
 				{
 					Kind = "Hinge",
@@ -134,7 +134,7 @@ return {
 		},
 		Jaw = {
 			Parent = "Mask",
-			PivotRoblox = { 0, -0.12, -3.8 },
+			PivotRoblox = { -0, -0.1826, -3.9826 },
 			Motion = {
 				{
 					Kind = "Hinge",

@@ -31,7 +31,7 @@ return {
 	["the export covers the whole cue, zones in order, the envelope sampled to the butt"] = function()
 		local g = CueShapeExport.build()
 		H.near(g.length_studs, 7, 1e-12, "length")
-		H.near(g.butt_diameter_studs, 0.2, 1e-12, "butt diameter")
+		H.near(g.butt_diameter_studs, 0.32, 1e-12, "butt diameter")
 		local expected = { 0, 0.015, 0.035, 0.515, 0.54, 0.76, 0.775, 0.945, 1 }
 		H.expect(#g.zones == 8, "eight zones")
 		for i, zone in g.zones do

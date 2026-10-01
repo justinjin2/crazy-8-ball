@@ -75,7 +75,7 @@
           "TravelSeconds": 1.3,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.5,
-          "Radius": 0.2,
+          "Radius": 0.26,
           "Phase": 0,
           "Delay": 0,
           "Trail": {
@@ -125,7 +125,7 @@
           "TravelSeconds": 1.3,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.5,
-          "Radius": 0.2,
+          "Radius": 0.26,
           "Phase": 180,
           "Delay": 0,
           "Trail": {
@@ -175,7 +175,7 @@
           "TravelSeconds": 1.3,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.5,
-          "Radius": 0.2,
+          "Radius": 0.26,
           "Phase": 90,
           "Delay": 0.7,
           "Trail": {
@@ -225,7 +225,7 @@
           "TravelSeconds": 1.3,
           "Loop": "pingpong",
           "TurnsPerSecond": 1.5,
-          "Radius": 0.2,
+          "Radius": 0.26,
           "Phase": 270,
           "Delay": 0.7,
           "Trail": {
@@ -277,7 +277,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.26,
+            "Width": 0.38,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -333,7 +333,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.26,
+            "Width": 0.38,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -391,7 +391,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.35,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -584,5 +584,6 @@
     "Pocket": {
       "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
     }
-  }
+  },
+  "shape": 2
 }

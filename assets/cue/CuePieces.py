@@ -52,6 +52,26 @@ ROBLOX_LOOK = {
 }
 
 BUILDERS = {}
+
+# The pieces were first modelled on a cue with a 0.2 stud butt (radius 0.1); the cue grew 1.6x
+# with the tip kept (designer, 2026-10-01). Pieces that sit on the butt read the gain from
+# Shape.json, so they follow Config.Cue.
+OLD_BUTT_RADIUS = 0.1
+
+
+def butt_radius():
+    import cue_common as cc
+    return cc.load_shape()[0]['butt_diameter_studs'] / 2
+
+
+def butt_gain():
+    """How much wider (studs, radius) the butt is than the one the pieces were modelled on."""
+    return butt_radius() - OLD_BUTT_RADIUS
+
+
+def butt_growth():
+    """The butt's radius over the one the pieces were modelled on."""
+    return butt_radius() / OLD_BUTT_RADIUS
 ZOFF = {'cue': 3.5, 'pocket': 0.0}   # Roblox Z = ZOFF + Blender Y (the cue MeshPart's centre is 3.5 from the tip)
 
 
@@ -436,6 +456,20 @@ class Kit:
     def add(self, joint, ob):
         self.joints[joint]['objects'].append(ob)
         return ob
+
+    def grow(self, about, s):
+        """Scale everything built so far by s about the point `about` (cue frame): a sleeve over
+        the butt kept in proportion when the butt grew. Only for pieces whose motions turn
+        (Hinge, Spin): it scales pivots and meshes, not Bob or Path distances."""
+        from mathutils import Matrix, Vector
+        a = Vector(about)
+        M = Matrix.Translation(a) @ Matrix.Scale(s, 4) @ Matrix.Translation(-a)
+        for j in self.joints.values():
+            assert all(m.get('Kind') in ('Hinge', 'Spin') for m in j['Motion']), 'grow: turning motions only'
+            j['Pivot'] = list(a + (Vector(j['Pivot']) - a) * s)
+            for ob in j['objects']:
+                if ob.parent is None:
+                    ob.matrix_world = M @ ob.matrix_world
 
     # ---- mesh from bmesh ------------------------------------------------------------------------
     def mesh_object(self, name, bm, mats, smooth=True):

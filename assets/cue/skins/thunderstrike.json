@@ -97,8 +97,8 @@
           "Name": "CurrentShaft",
           "FromStuds": 0.3,
           "ToStuds": 3.6,
-          "Width0": 0.101,
-          "Width1": 0.16,
+          "Width0": 0.1107,
+          "Width1": 0.2529,
           "Segments": 20,
           "Texture": "vfx/thunderstrike/current_strip.png",
           "TextureMode": "Wrap",
@@ -126,14 +126,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.074
+          "ZOffset": 0.1067
         },
         {
           "Name": "CurrentForearm",
           "FromStuds": 3.8,
           "ToStuds": 5.32,
-          "Width0": 0.164,
-          "Width1": 0.191,
+          "Width0": 0.2612,
+          "Width1": 0.3055,
           "Segments": 20,
           "Texture": "vfx/thunderstrike/current_strip.png",
           "TextureMode": "Wrap",
@@ -161,14 +161,14 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.089
+          "ZOffset": 0.1422
         },
         {
           "Name": "CurrentSleeve",
           "FromStuds": 6.64,
           "ToStuds": 6.94,
-          "Width0": 0.198,
-          "Width1": 0.198,
+          "Width0": 0.3168,
+          "Width1": 0.3168,
           "Segments": 4,
           "Texture": "vfx/thunderstrike/current_strip.png",
           "TextureMode": "Wrap",
@@ -196,7 +196,7 @@
           "LightEmission": 1.0,
           "LightInfluence": 0,
           "FaceCamera": true,
-          "ZOffset": 0.1
+          "ZOffset": 0.16
         }
       ],
       "Frames": {
@@ -251,7 +251,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.22,
+            "Width": 0.34,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -309,7 +309,7 @@
             "Kind": "Part",
             "FromStuds": 6.2,
             "ToStuds": 7.05,
-            "Width": 0.35,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -387,7 +387,7 @@
             "Kind": "Part",
             "FromStuds": 6.2,
             "ToStuds": 7.05,
-            "Width": 0.3,
+            "Width": 0.42,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -439,7 +439,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.5,
+            "Width": 0.62,
             "Shape": "Cylinder",
             "ShapeStyle": "Volume"
           },
@@ -485,7 +485,7 @@
             "Kind": "Part",
             "FromStuds": 0.3,
             "ToStuds": 7.0,
-            "Width": 0.35,
+            "Width": 0.47,
             "Shape": "Cylinder",
             "ShapeStyle": "Surface"
           },
@@ -561,7 +561,7 @@
             1.8
           ],
           "Around": 220,
-          "Radius": 0.15,
+          "Radius": 0.21,
           "Jitter": 0.06,
           "Interval": 0.09,
           "Duty": 0.75,
@@ -581,7 +581,7 @@
             3.2
           ],
           "Around": 300,
-          "Radius": 0.2,
+          "Radius": 0.26,
           "Jitter": 0.11,
           "Interval": 0.14,
           "Duty": 0.55,
@@ -1167,5 +1167,6 @@
       "Lights": 2,
       "Arcs": 8
     }
-  }
+  },
+  "shape": 2
 }

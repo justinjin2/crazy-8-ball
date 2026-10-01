@@ -892,6 +892,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   the 3D creature outlined (the "VFX v2" standard, judged only in the real lobby lighting). The
   shop, cases and inventory show a rendered picture of each cue; the Index shows the live 3D
   cue.
+- **The cue's size (designer, 2026-10-01):** 7 studs long, 1.6x wider than a real cue's
+  proportions through the shaft and butt (0.32 stud butt) with a slim tip, so its art reads
+  next to a Roblox character.
 - **The cue on the back (designer, 2026-09-28):** every player carries their equipped cue on
   their back, diagonal with the tip over the left shoulder, on any body (R15, R6, tall,
   small). It disappears the moment the cue is in their hands and comes back when they put it
