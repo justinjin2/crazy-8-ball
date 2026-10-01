@@ -885,9 +885,11 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   (Common), a tint and moving glow (Uncommon), an aura and a coloured trail (Rare), a stronger
   aura, its own pocket burst and orbiting ribbons (Epic), a 3D piece and a moving surface
   (Legendary), rigged hologram creatures (Mythic: the Celestial Dragon swimming along the cue,
-  the Kitsune's running fox, a rising creature when a ball drops), and Eclipse's giant eclipse
-  (Secret). The aura shows on the back only, behind the body and at half rate; in the hands
-  the cue shows its surface and moving glow but no aura, so it never distracts the shot. The
+  the Kitsune's running fox, a rising creature when a ball drops), and Eclipse's small glowing
+  eclipse in a gold corona (Secret). The full aura shows everywhere, in the hands while aiming
+  and on the back (designer, 2026-10-01), and it must read clearly in the bright lobby: a
+  saturated colour cloud, an HDR glow the lobby's Bloom picks up and crisp star accents, with
+  the 3D creature outlined (the "VFX v2" standard, judged only in the real lobby lighting). The
   shop, cases and inventory show a rendered picture of each cue; the Index shows the live 3D
   cue.
 - **The cue on the back (designer, 2026-09-28):** every player carries their equipped cue on
