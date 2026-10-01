@@ -611,7 +611,9 @@ Frozen, so watchers see the struck cue ball but not the cue before it.
 handed to each look's `start(hub, parent, kit)`: a per-table anchor that lingers and releases,
 parts, beams, particles, lights, timers, ball and pocket positions, the event feed, and the
 reach preview ring (drawn on the ghost ball while aiming, cut at the cushions, opponent balls
-in reach in red). `ScreenFx` holds the table-wide screen effects (grade, overlay, flash,
+in reach in red; a look's `reach(tableId, armed, power)` gets the live pull, so Black Flash's
+ring follows it). A shot's power reaches the effects as `overrides.ShotPower` (set by
+`Simulation.armEffect` from the strike). `ScreenFx` holds the table-wide screen effects (grade, overlay, flash,
 shake, FOV punch, invert) for players at or near the table; `SoundSheet` plays clips cut from
 the uploaded sound sheets; `AbilityModels` clones the models `server/AbilityAssets` loads once
 per server through InsertService into `ReplicatedStorage.AbilityAssets` (ids in

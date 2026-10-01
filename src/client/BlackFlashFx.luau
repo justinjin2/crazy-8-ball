@@ -23,6 +23,7 @@ local ContentProvider = game:GetService("ContentProvider")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Rule = require(Shared:WaitForChild("Ults"):WaitForChild("Effects"):WaitForChild("BlackFlash"))
 
 local F = Config.UI.BlackFlashFx
 local A = Config.Ults.Audio
@@ -68,7 +69,7 @@ type Shard = {
 	born: number,
 	floor: number,
 }
-type Ring = { part: Part, decal: Decal, born: number }
+type Ring = { part: Part, decal: Decal, born: number, scale: number } -- scale: reach / full
 
 type TableFx = {
 	anchor: BasePart,
@@ -500,7 +501,7 @@ local function stepRings(fx: TableFx)
 			continue
 		end
 		local e = 1 - (1 - u) * (1 - u)
-		local size = ballWidth() * F.RingBallWidths * (0.05 + 0.95 * e)
+		local size = ballWidth() * F.RingBallWidths * r.scale * (0.05 + 0.95 * e)
 		r.part.Size = Vector3.new(size, 0.02, size)
 		r.decal.Transparency = u * u
 		table.insert(keep, r)
@@ -544,7 +545,10 @@ local function flash(self: BlackFlashFx, id: number, fx: TableFx, m: any, ev: an
 	decal.Face = Enum.NormalId.Top
 	decal.Texture = IMAGES.FlashRing
 	decal.Parent = ring
-	table.insert(fx.rings, { part = ring, decal = decal, born = fx.clock })
+	-- The ring spreads as far as this shot's blast reached (the flash's value; full size before).
+	local full = Config.Ults.BlackFlash.RadiusInches
+	local scale = if type(ev.value) == "number" then math.clamp(ev.value / full, 0, 1) else 1
+	table.insert(fx.rings, { part = ring, decal = decal, born = fx.clock, scale = scale })
 	kit.burstLight(
 		at + Vector3.yAxis * ballWidth(),
 		rgb(F.RedColor),
@@ -587,10 +591,14 @@ function BlackFlashFx.start(hub: any, _parent: Instance, kit: any): BlackFlashFx
 		if ev.type ~= "ult" or not kit.isShotOf(m, EFFECT) or m.renderer == nil then
 			return
 		end
+		-- Adopt the shot here too: a hard shot (the 3x launch) can reach its first ball in the
+		-- replay's first frame, before update has seen the shot, and the flash must not be lost.
 		local fx = self.tables[tableId]
-		if fx == nil or fx.shotSeq ~= m.seq then
-			return
+		if fx == nil then
+			fx = create(self, tableId)
+			meshesOf(self)
 		end
+		fx.shotSeq = m.seq
 		if ev.kind == "flash" then
 			flash(self, tableId, fx, m, ev)
 		elseif ev.kind == "nudge" then
@@ -648,10 +656,16 @@ local function destroy(self: BlackFlashFx, id: number)
 	fx.sparkAt:Destroy()
 end
 
---- The reach for the preview (inches): the blast's, the same for both players' balls (the
---- opponent's get half the nudge, not half the reach).
-function BlackFlashFx.reach(_self: BlackFlashFx, _tableId: number, _armed: any): (number, number)
-	local reach = Config.Ults.BlackFlash.RadiusInches -- under the cap (its test)
+--- The reach for the preview (inches): the blast's at the live pull (it grows with the shot's
+--- power), the same for both players' balls (the opponent's get half the nudge, not half the
+--- reach).
+function BlackFlashFx.reach(
+	_self: BlackFlashFx,
+	_tableId: number,
+	_armed: any,
+	power: number?
+): (number, number)
+	local reach = Rule.radiusFor(power or 1) -- under the cap (its test)
 	return reach, reach
 end
 

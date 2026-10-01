@@ -75,6 +75,9 @@ export type Overrides = {
 	-- Numbers the server's rules chose for the effect (for example the shooter's side, or
 	-- whether the 8 is theirs), read-only for the effect.
 	Params: { [string]: number }?,
+	-- The shot's power bar share (0..1), copied from the strike by armEffect: an effect that
+	-- scales with how hard the shot was (Black Flash's blast reach) reads it.
+	ShotPower: number?,
 }
 
 -- A ball's own material from an effect (State.fx.material), until `Until` seconds of shot
@@ -102,6 +105,8 @@ export type State = {
 	-- Set by an effect's `halt` (Time Stop's freeze): this part of the shot ends at the end of
 	-- the current step, with every ball keeping its motion. Cleared by whoever continues it.
 	halted: boolean?,
+	-- The last strike's power bar share (0..1), for armEffect's ShotPower.
+	power: number?,
 }
 
 export type Event = {
@@ -171,6 +176,7 @@ function Simulation.cloneState(state: State): State
 		overrides = if state.overrides then deepCopy(state.overrides) else nil,
 		fx = if state.fx then deepCopy(state.fx) else nil,
 		halted = state.halted,
+		power = state.power,
 	}
 end
 
@@ -1629,6 +1635,7 @@ function Simulation.strike(state: State, shot: Shot): Event
 	state.overrides = if material then table.clone(material) :: Overrides else nil
 	state.fx = nil
 	state.halted = nil
+	state.power = math.clamp(shot.power, 0, 1)
 	local speed = Cue.strike(cueBall, shot)
 	return { t = 0, type = "cueStrike", ball = 0, speed = speed }
 end
@@ -1655,6 +1662,7 @@ function Simulation.armEffect(
 	overrides.Effect = effect
 	overrides.Targets = table.clone(targets)
 	overrides.EightPocket = eightPocket
+	overrides.ShotPower = state.power
 	state.overrides = overrides
 	state.fx = nil
 end

@@ -497,12 +497,17 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
     group gone the 8 is lined up, never potted. It never scratches. The designer's own clip
     plays on activation and on the cue ball's first hit (2026-09-30).
   - **Black Flash** (Legendary, 1.21): the first ball hit, whoever's, shatters and counts as
-    pocketed for its owner; the blast nudges the balls within 20 in toward their pockets (4 of
-    yours, 2 of theirs at half, never the 8); the cue ball bounces straight back, never into a
+    pocketed for its owner; the blast nudges the balls within its reach toward their pockets (4
+    of yours, 2 of theirs at half, never the 8). The reach grows with the shot's power
+    (2026-09-30): 20 in at full power, 6.4 in at 15%, 4 in at the softest, so a soft shot keeps
+    the blast off nearby opponent balls; the aiming ring and the shockwave on the cloth grow
+    with it; the cue ball bounces straight back, never into a
     pocket. The cue ball launches at 3x the power bar's speed (2026-09-30), and the hit plays
     the designer's own clip. The blast's push was halved (2026-09-30: NudgeShare 0.75, at most
     20 in): measured worth fell to 0.51 / 0.68 / 0.77 net at skills 1/2/3 (was 1.29 / 1.47 /
-    1.58), below the Epic mean. The shattered ball's pieces lie on the cloth about 6 s.
+    1.58), below the Epic mean; with the power-scaled reach 0.48 / 0.63 / 0.72. The shattered
+    ball's pieces lie on the cloth about 6 s. Icon: a black lightning bolt with a red outline
+    and the cue ball flying out of it with speed trails.
   - **Black Hole** (Mythic, 1.32): at the first contact a black hole opens for 2.5 s and
     spirals in the balls within 20 in (the opponent's within 10 in), at most 4 of yours and 1 of
     theirs, each swallowed and counted as pocketed for its owner; the cue ball is pushed away.

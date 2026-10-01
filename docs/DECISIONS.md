@@ -2088,3 +2088,11 @@ caps switch), leaving the plain tiled cloth; no new images needed.
   NudgeMaxInches 40 -> 20); its measured worth fell to 0.51 / 0.68 / 0.77 net (was 1.29 / 1.47
   / 1.58), under the Epic mean, flagged for the designer. The shattered ball's pieces stay on
   the cloth 5 s longer (ShardSeconds 6.1) and settle there.
+- 2026-09-30 (designer): Black Flash's blast reach scales with the shot's power: RadiusInches x
+  (0.2 + 0.8 x power), 20 in at full, 6.4 in at 15%, 4 in at the softest (RadiusMinShare 0.2),
+  so the shooter chooses power when opponent balls are near. The shot's power rides in the
+  overrides (ShotPower, set by armEffect from the strike); the aiming ring follows the live pull
+  and the shockwave ring grows to the shot's reach. Worth 0.48 / 0.63 / 0.72 net (was 0.51 /
+  0.68 / 0.77). New icon: black lightning with a red outline and the cue ball with speed
+  trails (not a shuriken). Fixed: a hard shot's flash could land in the replay's first frame
+  and its look (shatter, ring, sound) was skipped.

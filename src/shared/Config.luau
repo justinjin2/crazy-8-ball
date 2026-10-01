@@ -2685,9 +2685,13 @@ Config.Ults.BlackFlash = {
 	-- binds.
 	MaxOwn = 4,
 	MaxOpp = 2,
-	-- The blast nudges object balls within this of the shattered ball (inches), at most
-	-- Config.Ults.Shared.MaxReachShare of the table. (tune)
+	-- The blast nudges object balls within this of the shattered ball (inches) on a full-power
+	-- shot, at most Config.Ults.Shared.MaxReachShare of the table. (tune)
 	RadiusInches = 20,
+	-- The reach grows with the shot's power (the designer, 2026-09-30, so a soft shot keeps the
+	-- blast off nearby opponent balls): RadiusInches x (RadiusMinShare + (1 - RadiusMinShare) x
+	-- power), 4 in at the lowest, 6.4 at 15%, 20 at full. (tune)
+	RadiusMinShare = 0.2,
 	-- Each nudged ball rolls this share of the way to its pocket (at most NudgeMaxInches):
 	-- under 1 moves it toward the pocket, over 1 can drop a near one. The designer halved the
 	-- push (2026-09-30: was 1.5 and 40). (tune)
@@ -3015,7 +3019,7 @@ Config.Ults.Assets = {
 		ChainLightning = "rbxassetid://124544923626211",
 		Portals = "rbxassetid://117852135071427",
 		SteelBall = "rbxassetid://76826199313352",
-		BlackFlash = "rbxassetid://130953532047846",
+		BlackFlash = "rbxassetid://100178683348331",
 		BlackHole = "rbxassetid://75754504005260",
 		GuangdongTiger = "rbxassetid://115608626042209",
 	} :: { [string]: string },
@@ -7652,7 +7656,8 @@ Config.UI.BlackFlashFx = {
 	ShardFadeSeconds = 0.4,
 	ShardBounceSpinShare = 0.4,
 	ShardSlideFriction = 4,
-	-- The shockwave ring on the cloth: grows to RingBallWidths over RingSeconds, fading.
+	-- The shockwave ring on the cloth: grows to RingBallWidths (a full-power blast; a softer one
+	-- in proportion to its reach) over RingSeconds, fading.
 	RingBallWidths = 22,
 	RingSeconds = 0.45,
 	-- The screen: a red flash, then a pale, high-contrast red-grey grade (the black bolts pop on

@@ -10,7 +10,8 @@
 --   look:arming(tableId, armed)   the arming moment (UltCutscene's onArming, at readyAt)
 --   look:update(dt)               every frame, after the hub has stepped the replays
 --   look:clear()                  drop everything at once
---   look:reach(tableId, armed) -> (own, opp)?   its reach for the preview, in inches
+--   look:reach(tableId, armed, power) -> (own, opp)?   its reach for the preview, in
+--                                     inches; power = the live pull (0..1, 0 before pulling)
 --   look:zones(tableId, armed, match) -> { Zone }?   fixed zones instead (Magnet's pockets)
 --   look:aiming(tableId, armed, shot?, match)   the local shooter's aim (Eagle's Eye's path):
 --       called every frame for the local player's own seated table (hub.mySeat) while its
@@ -549,7 +550,7 @@ local function drawZones(self: AbilityFx, tableId: number, zones: { Zone }, auto
 end
 
 -- The registry's own preview: at the player's table, while they aim with an area ability armed.
-local function stepPreview(self: AbilityFx, aim: Aim?)
+local function stepPreview(self: AbilityFx, aim: Aim?, shot: AimShot?)
 	local seat = self.hub.mySeat
 	local shown: number? = nil
 	if aim and seat then
@@ -568,7 +569,9 @@ local function stepPreview(self: AbilityFx, aim: Aim?)
 			else
 				local own, opp = nil, nil
 				if entry then
-					local _, a, b = call(entry, "reach", seat, armed)
+					-- The live pull, for a reach that grows with the shot's power (Black Flash).
+					local power = if shot then math.clamp(shot.power, 0, 1) else 0
+					local _, a, b = call(entry, "reach", seat, armed, power)
 					own, opp = a, b
 				end
 				local reachOwn = if type(own) == "number" then own else F.PreviewDefaultReachInches
@@ -1008,7 +1011,7 @@ function AbilityFx.update(self: AbilityFx, dt: number, aim: Aim?, shot: AimShot?
 		end
 	end
 
-	stepPreview(self, aim)
+	stepPreview(self, aim, shot)
 	stepAiming(self, shot)
 end
 

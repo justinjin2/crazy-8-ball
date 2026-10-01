@@ -1,5 +1,11 @@
 # Status
 
+**2026-09-30: Black Flash's reach grows with the shot's power; new icon.** The blast reaches
+20 in on a full-power shot and only 6.4 in at 15% (4 in at the softest); the aiming ring grows
+and shrinks with the pull and the shockwave ring matches the shot. Worth 0.48 / 0.63 / 0.72
+net. New icon: black lightning with a red outline and the cue ball with speed trails. Fixed a
+hard shot's flash look being skipped. 878 Lune tests pass; checked in Studio.
+
 **2026-09-30: Black Flash's push halved, its shards stay 5 s longer.** The blast nudges balls
 half as far (worth now 0.51 / 0.68 / 0.77 net, below the Epics); the pieces lie on the cloth
 about 6 s and settle instead of spinning. 877 Lune tests pass; checked in Studio.

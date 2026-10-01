@@ -178,6 +178,39 @@ function tests.nothing_out_of_reach_moves()
 	check(#ultEvents(events, "nudge") == 0, "no nudge")
 end
 
+-- Strike the cue ball as the server does (strike, then arm), and step to the flash.
+local function struckToFlash(balls: { any }, power: number): { any }
+	local sim = Simulation.newState(geometry, Ball.cloneList(balls))
+	local events: { any } = { Simulation.strike(sim, { angle = 0, power = power }) }
+	Simulation.armEffect(sim, "BlackFlash", { 1, 2 }, nil, { OppTargets = {} })
+	for _ = 1, 4000 do
+		Simulation.step(sim, DT, events)
+		if #ultEvents(events, "flash") > 0 then
+			break
+		end
+	end
+	return events
+end
+
+function tests.the_reach_grows_with_the_shots_power()
+	-- The designer, 2026-09-30: a soft shot's blast reaches a little way, a full one all of
+	-- RadiusInches. The 2 sits 12 in from the shattered 1.
+	local Rule = H.require("Ults.Effects.BlackFlash")
+	check(math.abs(Rule.radiusFor(1) - C.RadiusInches) < 1e-9, "full power: all of it")
+	check(math.abs(Rule.radiusFor(0) - C.RadiusInches * C.RadiusMinShare) < 1e-9, "the least")
+	check(Rule.radiusFor(0.15) < 12 and Rule.radiusFor(1) > 12, "12 in is between")
+	local balls = table_({ { 0, -20, 0 }, { 1, -10, 0 }, { 2, -10, 12 } })
+	local soft = struckToFlash(balls, 0.15)
+	local hard = struckToFlash(balls, 1)
+	local softFlash = ultEvents(soft, "flash")[1]
+	local hardFlash = ultEvents(hard, "flash")[1]
+	check(softFlash ~= nil and hardFlash ~= nil, "both flashed")
+	check(math.abs(softFlash.value - Rule.radiusFor(0.15)) < 1e-9, "the flash carries its reach")
+	check(math.abs(hardFlash.value - C.RadiusInches) < 1e-9, "full reach on a full shot")
+	check(#ultEvents(soft, "nudge") == 0, "the soft shot leaves the 2 alone")
+	check(#ultEvents(hard, "nudge") == 1, "the full shot nudges the 2")
+end
+
 function tests.the_caps_hold()
 	-- Six of yours and four of theirs round the shattered 1.
 	local spots = { { 0, -20, 0 }, { 1, 0, 0 } }

@@ -1178,50 +1178,52 @@ def steel_ball():
 
 
 def black_flash():
-    """Reference 07: a black lightning spark, jagged spikes of glossy black with red
-    outlines and a red flare behind."""
-    black = mat("FlashBlack", "0B0B0E", rough=0.12, coat=1.0)
+    """Black lightning: a jagged glossy black bolt with a thick red outline over a red flare,
+    and the white cue ball rocketing out of it to the right, white speed trails behind it and
+    small black sparks with red edges round it (the designer, 2026-09-30: not a shuriken)."""
+    black = ink_material("050507")  # flat: a lit black reads grey at icon size
     red = mat("FlashRed", "FF1E3C", rough=0.3, emit=3.0)
-    import random
-    rng = random.Random(5)
-
-    def burst(n, inner, lengths, kink, seed_turn):
-        pts = []
-        for k in range(n):
-            a = 2 * math.pi * k / n + seed_turn
-            w = math.pi / n * 0.85
-            L = lengths[k % len(lengths)]
-            bend = rng.uniform(-0.12, 0.12)
-            pts.append((math.cos(a - w) * inner, math.sin(a - w) * inner))
-            ka = a - w * 0.3 + bend
-            pts.append((math.cos(ka) * L * kink, math.sin(ka) * L * kink))
-            ka2 = a - w * 0.55 + bend
-            pts.append((math.cos(ka2) * L * (kink + 0.1), math.sin(ka2) * L * (kink + 0.1)))
-            pts.append((math.cos(a + bend * 2) * L, math.sin(a + bend * 2) * L))
-            ka3 = a + w * 0.35 + bend
-            pts.append((math.cos(ka3) * L * (kink - 0.05), math.sin(ka3) * L * (kink - 0.05)))
-        return pts
-    lengths = [1.0, 0.62, 0.84, 0.55, 0.95, 0.6, 0.78, 0.66, 0.9]
-    spark = slab("Spark", burst(9, 0.26, lengths, 0.5, 0.2), 0.2, black, bevel=0.015)
-    spark["ink"] = "FF1E3C"
-    spark["outline_scale"] = 1.3
-    flare = slab("Flare", burst(9, 0.34, [v * 1.12 for v in lengths], 0.52, 0.2), 0.04, red,
-                 bevel=0.0, at=(0, 0.14, 0))
+    white = mat("CueWhite", "FFFFFF", rough=0.2, coat=1.0, emit=0.35)
+    trail = mat("Trail", "FFFFFF", rough=0.5, emit=2.0, alpha=0.9)
+    # The bolt, in screen units (x right, y up), from the top right down to a point low left.
+    bolt_pts = [(-0.18, 1.05), (0.42, 1.05), (0.12, 0.42), (0.40, 0.46), (0.06, -0.08),
+                (0.30, -0.04), (-0.52, -1.08), (-0.18, -0.20), (-0.42, -0.24), (-0.14, 0.34),
+                (-0.40, 0.30)]
+    bolt = slab("Bolt", bolt_pts, 0.16, black, bevel=0.015)
+    bolt["ink"] = "FF1E3C"
+    bolt["outline_scale"] = 1.7
+    cx, cy = -0.03, 0.0
+    flare = slab("Flare", [(cx + (x - cx) * 1.16, cy + (y - cy) * 1.1) for x, y in bolt_pts],
+                 0.03, red, bevel=0.0, at=(0, 0.16, 0))
     flare["no_outline"] = True
-    objs = [spark, flare]
-    for x, z, s, rot in ((1.05, 0.35, 0.12, 0.4), (-0.95, -0.55, 0.1, 1.2),
-                         (0.3, -1.02, 0.09, 2.0), (-0.6, 0.9, 0.08, 0.8)):
-        shard = slab("Shard", [(0, s), (-s * 0.5, -s * 0.6), (s * 0.6, -s * 0.4)], 0.06, black,
-                     bevel=0.0, at=(x, -0.02, z))
-        shard.rotation_euler = (math.pi / 2, rot, 0)
-        shard["ink"] = "FF1E3C"
-        objs.append(shard)
-    core = prim("uv_sphere", "Core", red, location=(0, -0.13, 0), radius=0.12, segments=24,
-                ring_count=12)
-    core["no_outline"] = True
-    objs.append(core)
-    transform(objs, Matrix.Rotation(math.radians(CAM_AZIMUTH * 0.7), 4, "Z"))
-    objs.append(glow("FlashGlow", (0, 0.25, 0), 1.35, "FF1E3C", strength=1.6, power=1.4))
+    objs = [bolt, flare]
+    # The cue ball, in front of the bolt, low right.
+    bx, by, br = 0.42, -0.42, 0.3
+    ball = prim("uv_sphere", "Cue", white, location=(bx, -0.45, by), radius=br, segments=48,
+                ring_count=24)
+    objs.append(ball)
+    # Speed trails behind it (to the left): tapered white streaks, longest through its middle.
+    for dy, length, width in ((0.0, 0.95, 0.075), (0.2, 0.7, 0.05), (-0.2, 0.75, 0.05),
+                              (0.33, 0.42, 0.03), (-0.32, 0.5, 0.03)):
+        x0 = bx - br * 0.55
+        y0 = by + dy
+        streak = slab("Trail", [(x0, y0 + width), (x0 - length, y0 + width * 0.15),
+                                (x0 - length, y0 - width * 0.15), (x0, y0 - width)],
+                      0.02, trail, bevel=0.0, at=(0, -0.3, 0))
+        streak["no_outline"] = True
+        objs.append(streak)
+    # Small black sparks with red edges round the ball.
+    for x, y, s, turn in ((0.88, -0.1, 0.2, 0.45), (0.86, -0.78, 0.17, 2.4),
+                          (0.72, 0.24, 0.13, 1.3)):
+        spark = slab("Spark", [(0, s), (-s * 0.35, s * 0.05), (s * 0.05, 0), (-s * 0.1, -s),
+                               (s * 0.38, -s * 0.05), (0.02, 0.0)], 0.05, black, bevel=0.0,
+                     at=(x, -0.4, y))
+        spark.rotation_euler = (math.pi / 2, turn, 0)
+        spark["ink"] = "FF1E3C"
+        objs.append(spark)
+    transform(objs, CAM_DIR.to_track_quat("-Y", "Z").to_matrix().to_4x4())
+    objs.append(glow("FlashGlow", CAM_DIR * -0.3, 1.35, "FF1E3C", strength=1.6, power=1.4))
+    objs.append(glow("CueGlow", screen(bx, by, -0.1), 0.45, "FF1E3C", strength=1.2, power=1.6))
     return objs
 
 

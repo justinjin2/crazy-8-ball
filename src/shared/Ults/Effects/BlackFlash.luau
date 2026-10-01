@@ -10,8 +10,9 @@
 --   (Simulation.Ops.remove, a `removed` event that ShotJudge counts exactly as a pot for its
 --   owner: the 8 by the 8's rules, a win on the legal 8 shot, a loss otherwise). A wrong first
 --   ball is still a foul (ShotJudge's first contact). No contact at all: nothing happens.
--- * The blast: every object ball within Config.Ults.BlackFlash.RadiusInches of where it was
---   (the closest first) is nudged toward its closest pocket with a clean line in
+-- * The blast: every object ball within BlackFlash.radiusFor(the shot's power) of where it was
+--   (RadiusInches on a full-power shot, down to RadiusMinShare of it on the softest; the
+--   closest first) is nudged toward its closest pocket with a clean line in
 --   (ChainLightning.pushTarget; the closest pocket when none is clean), rolling NudgeShare of
 --   the way there (at most NudgeMaxInches), added to its motion as natural roll: the shooter's
 --   at full strength, the opponent's at OpponentFactor (5.7). Never the 8 or the cue ball; at
@@ -19,9 +20,9 @@
 --   MaxOpp of the opponent's.
 -- * The cue ball bounces straight back from the explosion, rolling BounceInches, shortened so
 --   it stops short of any pocket on its line (it never scratches because of the blast).
--- * `ult` events for the look: "flash" (ball = the shattered ball, at its centre), "slow" (the
---   hit-stop: the replay crawls through HitStopShotSeconds over HitStopSeconds more), then a
---   "nudge" per nudged ball (other = its pocket, value = its factor).
+-- * `ult` events for the look: "flash" (ball = the shattered ball, at its centre, value = the
+--   blast's reach in inches), "slow" (the hit-stop: the replay crawls through
+--   HitStopShotSeconds over HitStopSeconds more), then a "nudge" per nudged ball (other = its pocket, value = its factor).
 --
 -- Only arithmetic and square roots, no trig and no pow; balls and pockets walked in array
 -- order (ties keep the first): the server's settle and every client's replay step it to
@@ -80,11 +81,25 @@ local function factorOf(state: any, id: number): number
 	return 0
 end
 
--- Nudge every ball in reach of (x, y), the closest first, within the caps.
-local function blast(state: any, events: { any }, ops: any, x: number, y: number, ownUsed: number)
+-- The blast's reach (inches) for a shot of `power` (the power bar's 0..1 share): the aiming
+-- preview draws this too, so it must match the rule exactly.
+function BlackFlash.radiusFor(power: number): number
 	local C = Config.Ults.BlackFlash
-	local S = Config.Ults.Shared
-	local reach = math.min(C.RadiusInches, S.MaxReachShare * 2 * state.geometry.halfLength)
+	local p = math.clamp(power, 0, 1)
+	return C.RadiusInches * (C.RadiusMinShare + (1 - C.RadiusMinShare) * p)
+end
+
+-- Nudge every ball within `reach` of (x, y), the closest first, within the caps.
+local function blast(
+	state: any,
+	events: { any },
+	ops: any,
+	x: number,
+	y: number,
+	reach: number,
+	ownUsed: number
+)
+	local C = Config.Ults.BlackFlash
 	local reach2 = reach * reach
 	local list: { { ball: any, d2: number, factor: number } } = {}
 	for _, b in state.balls do
@@ -200,13 +215,21 @@ function BlackFlash.after(state: any, _dt: number, events: { any }, ops: any)
 		fx.flashed = true
 		local x, y = b.x, b.y
 		ops.remove(state, events, b, "BlackFlash")
-		ops.emit(state, events, "flash", id, nil, x, y)
+		-- No ShotPower (an effect armed without a strike) counts as a full-power shot.
+		local power = if state.overrides and state.overrides.ShotPower
+			then state.overrides.ShotPower
+			else 1
+		local reach = math.min(
+			BlackFlash.radiusFor(power),
+			Config.Ults.Shared.MaxReachShare * 2 * state.geometry.halfLength
+		)
+		ops.emit(state, events, "flash", id, nil, x, y, reach)
 		-- The hit-stop: the replay crawls through HitStopShotSeconds of play over
 		-- HitStopSeconds more (Match's slow-motion moments; the server waits that much more).
 		local C = Config.Ults.BlackFlash
 		ops.emit(state, events, "slow", id, nil, C.HitStopShotSeconds, nil, C.HitStopSeconds)
 		local mine = contains(state.overrides and state.overrides.Targets, id)
-		blast(state, events, ops, x, y, if mine then 1 else 0)
+		blast(state, events, ops, x, y, reach, if mine then 1 else 0)
 		if not cue.pocketed then
 			BlackFlash.bounce(state, cue, x, y, C.BounceInches)
 		end
