@@ -226,6 +226,28 @@ What was found:
 - **Studio uploads belong to the user who uploads them** (user 544959133), not the group that owns
   the game. The current table's maps and meshes are owned the same way and work in play.
 
+## Loading a SurfaceAppearance before it is seen (tested 2026-10-01)
+
+Found while making a switched cue appear already textured (`src/client/CueAssets.luau`):
+- **`ContentProvider:PreloadAsync` does not load a SurfaceAppearance's maps.** On the template
+  Model it loads only the mesh (one id, 0.02 s). On the map id strings every one reports
+  `Failure` in 0.1 s. Decals with those ids report `Success`, but the cue still drew white when
+  shown: the renderer fetches its own form of the maps.
+- **The renderer fetches the maps only when the SurfaceAppearance is drawn.** A part with
+  Transparency 1, or one in ReplicatedStorage, fetches nothing. A copy 0.99 see-through in front
+  of the camera does fetch them, and it is never seen. It waits about 1 s before asking.
+- **`ContentProvider:GetAssetFetchStatus(id)` follows the renderer's fetch** (None, Loading,
+  Success), so it is the ready signal. But a texture Roblox loads from its own disk cache never
+  changes from None. In Studio the statuses also carry over between Play sessions.
+- **A failed download is remembered.** The console shows "Unable to load ... (HttpError:
+  NetFail)" and "Unable to generate ... SurfaceAppearance ... Change a TextureId property to
+  retry". After that a new SurfaceAppearance with the same id stays blank, and the status stays
+  `Failure`. Preloading the id as a Decal's image clears it (`Success`), and a fresh copy then
+  loads. Frostbite's maps hit NetFail twice in Studio on 2026-10-01.
+- `CaptureService` screenshots cannot be read back (`CreateEditableImageAsync` refuses
+  temporary ids), so "did it draw white" can only be checked by eye. Studio's screen capture
+  arrives about 0.5 s after the call.
+
 ## Part materials are mapped in world space (tested 2026-09-26)
 
 Two Brick Parts with different sizes and centres (one moved 0.37 studs sideways, one 5.3

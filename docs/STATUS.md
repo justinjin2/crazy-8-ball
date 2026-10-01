@@ -1,16 +1,26 @@
 # Status
 
-**2026-10-01 (latest): switching cues no longer shows the old cue being retextured.** The
-old cue leaves the back and hands the moment you equip; the new one appears only once its
-textures, piece and effects are downloaded, aura already full (`src/client/CueAssets.luau`, a
-loading gate in `CueStickBuilder`, BackCue releasing on `EquippedCue`). Picking a cue in the
-inventory or winning it from a case downloads it early.
-- Checked in Studio on PC: back cue Thunderstrike -> Kraken -> Kitsune -> Phoenix (first time
-  each: gone in the same frame the equip landed, new cue 0.3-0.8 s later with maps, piece and
-  aura in one frame), Phoenix -> Kraken again (0.06 s); hand cue in a solo game Kraken ->
-  Aurora (same). Console clean (one avatar animation permission warning from the place, not
-  the repo). 886 tests pass, lint clean.
-- Not yet checked: a second player watching the swap, phone and gamepad (no new controls).
+**2026-10-01 (latest): a switched cue appears only fully loaded.** The first fix (commit
+c657832) still showed the new cue white, then textured. Its preload never reached the
+renderer: a SurfaceAppearance's maps load only when one is drawn. Now `CueAssets` draws a
+hidden copy (99% see-through, in front of the camera) and reveals the cue only once every
+texture reports loaded. Failed downloads are repaired first. The old cue leaves the back and
+hands the moment you equip.
+- Checked in Studio on PC, watching the fetch status of every texture and screenshots:
+  - The old cue left in 0.07 s every time.
+  - First-time cues appeared 1.9-3.5 s later with every texture loaded first, and no texture
+    was fetched after the reveal: Flare, Cosmo, Diamond, Disco, Gilded, Gummy, Hornet, Magma,
+    Apex, Arctic, Blaze, Blood Moon, Candy, Celestial Dragon, Eclipse, Kitsune, Seraph,
+    Clockwork, Chroma.
+  - The hand cue in a solo game: Magma to Heritage in 2.7 s, and back to Magma in 0.5 s.
+  - Through the real inventory: picking Thunderstrike, then Equip, swapped in 0.06 s.
+  - At the lowest graphics quality: Lagoon and Toxic, same result.
+  - Frostbite hit Roblox download failures (NetFail) in Studio, which the repair handles.
+  - Console clean apart from the existing avatar animation warning. Lint clean.
+- Not yet checked: a second player watching the swap; phone and gamepad (no new controls);
+  the live game (publish first).
+- Not provable from a script: the first frame after the reveal (screenshots arrive about
+  0.5 s late; STUDIO_NOTES). Watch for any white flash when equipping by hand.
 
 **2026-10-01 (later): cue VFX v2, outlines and wider cues.** The designer found the Rare+
 auras nearly invisible in the bright lobby. Now: Bloom on (only HDR effects bloom); the full

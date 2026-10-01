@@ -32,8 +32,8 @@
 -- CueId (the catalog cue painted), Mesh (true while the mesh slot, not the bands, draws it).
 --
 -- Loading (designer, 2026-10-01: a switched-in cue must appear as itself, never as the old cue
--- being retextured): on the client, setLoader(CueAssets) makes paint() of a cue whose look is
--- not downloaded yet hide the stick at once and paint it when the look is ready, then show it
+-- being retextured): on the client, setLoader(CueAssets) makes paint() of a cue whose look the
+-- renderer has not loaded yet hide the stick at once and paint it when the look is ready, then show it
 -- as setVisible last asked. Only for sticks that are not welded to anything (BackCue attaches a
 -- stick only when its cue is ready). Without a loader (the server, tests) paint is immediate.
 
@@ -245,8 +245,17 @@ function CueStickBuilder.paint(model: Model, cueId: string?)
 	if stick == nil then
 		return
 	end
+	if model:GetAttribute("CueId") == id then
+		-- Already wears it (and so holds its look loaded): shown again if a newer cue was loading.
+		if stick.pending then
+			stick.pending = nil
+			applyVisibility(model)
+		end
+		return
+	end
 	if loader and not loader.ready(id) then
-		-- Hidden now, painted and shown once its look is downloaded (a newer paint wins).
+		-- Hidden now, painted and shown once the renderer has loaded its look (a newer paint
+		-- wins).
 		if stick.pending ~= id then
 			stick.pending = id
 			applyVisibility(model)
@@ -264,19 +273,16 @@ function CueStickBuilder.paint(model: Model, cueId: string?)
 		stick.pending = nil
 		applyVisibility(model)
 	end
-	if model:GetAttribute("CueId") == id then
-		return
-	end
 	model:SetAttribute("CueId", id)
 	paintStick(model, id, false)
 end
 
---- Client only: hold sticks hidden while a new cue's look downloads (CueAssets).
+--- Client only: hold sticks hidden while the renderer loads a new cue's look (CueAssets).
 function CueStickBuilder.setLoader(l: Loader)
 	loader = l
 end
 
---- True while the stick waits for its new cue's look to download.
+--- True while the stick waits for its new cue's look to load.
 function CueStickBuilder.loading(model: Model): boolean
 	local stick = sticks[model]
 	return stick ~= nil and stick.pending ~= nil
@@ -455,7 +461,7 @@ function CueStickBuilder.placeAt(model: Model, tipCF: CFrame)
 	model:PivotTo(tipCF)
 end
 
---- Show or hide the stick (it stays hidden while a new cue's look downloads, then shows as
+--- Show or hide the stick (it stays hidden while a new cue's look loads, then shows as
 --- asked here).
 function CueStickBuilder.setVisible(model: Model, visible: boolean)
 	local stick = sticks[model]

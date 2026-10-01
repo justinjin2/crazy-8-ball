@@ -3741,9 +3741,31 @@ Config.CueSkins = {
 	-- fox reads on the bright floor) shows only on cues within this distance of the camera
 	-- (studs): Roblox draws at most 31 Highlights at once. (tune)
 	HighlightDistanceStuds = 45,
-	-- A cue switched in stays hidden until its look is downloaded (CueAssets), at most this
-	-- long (seconds): then it shows anyway, so a slow asset never keeps a cue away. (tune)
-	PreloadTimeoutSeconds = 6,
+	-- A cue switched in stays hidden until the renderer has loaded its look (CueAssets: the
+	-- maps of a SurfaceAppearance load only when one is drawn, so a hidden copy is drawn
+	-- WarmTransparency see-through in front of the camera until every texture reports loaded).
+	Warm = {
+		Transparency = 0.99, -- the hidden copy: drawn (the renderer loads it), never seen
+		DistanceStuds = 10, -- in front of the camera, so it is always in view
+		MinSeconds = 0.35, -- drawn at least this long, and MinFrames frames, before it is ready:
+		MinFrames = 8, -- the textures reach the graphics card a few frames after they download
+		SettleSeconds = 0.35, -- every texture reports loaded for this long without a new fetch
+		-- A texture the renderer has still not asked for after this long, with nothing else
+		-- downloading (or after UnrequestedMaxSeconds anyway), came from Roblox's own cache on
+		-- the device, which loads it without a fetch status.
+		UnrequestedSeconds = 2.5,
+		UnrequestedMaxSeconds = 6,
+		-- A texture whose download failed (a dropped connection) is downloaded again, up to
+		-- Retries times, a new failure looked for RetrySeconds after the last repair (Roblox
+		-- never retries one on its own).
+		Retries = 3,
+		RetrySeconds = 1,
+		TimeoutSeconds = 15, -- shown anyway after this, so a broken asset never hides a cue
+		KeepSeconds = 30, -- a loaded copy stays drawn this long after last asked for (Equip
+		-- right after picking a cue in the inventory is then instant); then it is dropped
+		MaxCopies = 6, -- at most this many loaded copies kept drawn (the oldest go first)
+		SpriteEmitSeconds = 0.25, -- how often each effect sprite's hidden particle is emitted
+	},
 	-- When a cue's look comes into view, each aura emitter emits this share of the particles it
 	-- holds when running (rate x average lifetime) at once, so the aura is already there
 	-- rather than growing in (designer, 2026-10-01). 0 turns it off. (tune)

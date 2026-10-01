@@ -85,7 +85,7 @@ function CueViewport.set(self: any, cueId: string, silhouette: boolean)
 		self.model = nil
 	end
 	self.cueId, self.silhouette = cueId, silhouette
-	-- Built once its look is downloaded, so it never appears half-textured (CueAssets).
+	-- Built once the renderer has loaded it, so it never appears half-textured (CueAssets).
 	if not silhouette and not CueAssets.ready(cueId) then
 		CueAssets.whenReady(cueId, function()
 			if self.cueId == cueId and self.silhouette == silhouette and self.model == nil then

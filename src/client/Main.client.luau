@@ -99,7 +99,7 @@ end
 local ultCutscene = UltCutscene.start(hub)
 local abilityFx = AbilityFx.start(hub, visuals, ultCutscene)
 local input = Input.new()
--- A cue switched in stays hidden until its look is downloaded, on every stick (CueAssets).
+-- On every stick a switched-in cue stays hidden until the renderer has loaded it (CueAssets).
 CueStickBuilder.setLoader(CueAssets)
 local cueStick = CueStickBuilder.build(visuals)
 -- Cue looks: the stick is the player's equipped cue, repainted whenever they equip another.

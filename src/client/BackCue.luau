@@ -15,9 +15,9 @@
 --
 -- Repainting a welded stick would move its parts, and so the body they are welded to, so a
 -- stick is never repainted while attached: when its player equips another cue it is let go at
--- once, and attached again, repainted, only when the new cue's look is downloaded (CueAssets;
--- designer, 2026-10-01: never the old cue being retextured on a back). A player walking into
--- range gets their cue the same way, already loaded.
+-- once, and attached again, repainted, only when the renderer has loaded the new cue's look
+-- (CueAssets; designer, 2026-10-01: never the old cue being retextured on a back). A player
+-- walking into range gets their cue the same way, already loaded.
 --
 -- Your own back cue hides in first person and fades like the hand cue when the camera comes
 -- close (Camera.fadeNear). Sitting on a seat, it tilts further (SeatedExtraTiltDegrees).
@@ -226,7 +226,7 @@ function BackCue.carry(self: BackCue, character: Model, player: Player?): boolea
 	if torso == nil or #self.free == 0 then
 		return false
 	end
-	-- Only a cue whose look is downloaded goes on (a welded stick is never repainted).
+	-- Only a cue whose look is loaded goes on (a welded stick is never repainted).
 	local cueId = CueStickBuilder.equippedCue(player)
 	if not CueAssets.ready(cueId) then
 		self:fetch(cueId)
