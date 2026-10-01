@@ -1,0 +1,612 @@
+{
+  "id": "nature",
+  "name": "Nature",
+  "tier": "Rare",
+  "catalog_id": "NatureCue",
+  "concept": "R1",
+  "palette": [
+    "#6B4A2B",
+    "#3FA34D",
+    "#A8E06B",
+    "#FFFFFF"
+  ],
+  "painter": "mix",
+  "note": "A living-wood cue: green vines spiral up the forearm with little leaves and white flowers budding, and a moss-green wrap.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Light natural wood (#B08A5A to #6B4A2B) with visible grain, wrapped by twisting brown woody vines that spiral round the forearm, with fresh green leaves (#3FA34D, #A8E06B) budding along them and two white five-petal flowers with golden centres on the middle row. The two thin strips at the far left are the joint collar: paint them plain flat silver (#B8BCC2).",
+      "roll_deg": 45
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): dark green (#2E6B2E) with a thin yellow line. The wrap (from the ring to the next zone line): living moss, a moss-green woven texture over diamond-patterned bark (#2F4A1A to #5E7A2A with lighter moss flecks), crossed by one thin brown vine. The butt sleeve (between the two zone lines on the right): light wood wrapped in brown vines with green leaves and a white flower on the middle row, a thin green ring at its left edge. The very thin strip at the far right: plain black.",
+      "roll_deg": 45
+    },
+    "shaft_tile": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Light natural maple wood (#C9A77A to #A8845A) with fine straight grain, and one thin brown vine (#6B4A2B) with small green leaves (#3FA34D, #A8E06B) spiralling round it: the vine crosses the panel diagonally about three times.",
+      "roll_deg": 0,
+      "size": "1536x768"
+    },
+    "shaft_top": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Light natural maple wood (#C9A77A to #A8845A) with fine straight grain; a thin brown vine with small green leaves (#3FA34D, #A8E06B) spirals along it, growing thicker and leafier toward the right edge, with one small white five-petal flower near the right end.",
+      "roll_deg": 0
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/nature/shaft_tile.png",
+    "shaft_top": "skins/nature/shaft_top.png",
+    "forearm": "skins/nature/forearm.png",
+    "butt": "skins/nature/butt.png",
+    "cap_end": "skins/nature/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Aura": {
+      "Note": "Small green leaves drift off and tumble down (a 4-frame tumbling flipbook), the odd white blossom falls turning, pollen sparkles float up, and a soft green vine of light winds round the cue and slowly turns (a curved Beam whose curve a script rotates). Upgraded 2026-09-30: two glowing green vines twine round the cue, leaves and blossoms bigger and more of them.",
+      "BackRateScale": 0.5,
+      "Beams": [
+        {
+          "Name": "VineLight",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "Width0": 0.05,
+          "Width1": 0.09,
+          "Segments": 32,
+          "Curve0": [
+            0.38,
+            0.1
+          ],
+          "Curve1": [
+            -0.36,
+            -0.1
+          ],
+          "Twist": -40,
+          "Texture": "vfx/_shared/neon_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#C8F08A"
+            ],
+            [
+              1,
+              "#5FC85A"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.2
+            ],
+            [
+              0.92,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "Brightness": 1.5,
+          "FaceCamera": true
+        },
+        {
+          "Name": "VineHaze",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "Width0": 0.2,
+          "Width1": 0.4,
+          "Segments": 32,
+          "Curve0": [
+            0.38,
+            0.1
+          ],
+          "Curve1": [
+            -0.36,
+            -0.1
+          ],
+          "Twist": -40,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.0,
+          "TextureSpeed": -0.2,
+          "Color": "#7FD85A",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.35
+            ],
+            [
+              0.9,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "Leaves",
+          "Texture": "vfx/nature/leaf_2x2.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            2.0,
+            3.0
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "Size": [
+            [
+              0,
+              0.32
+            ],
+            [
+              1,
+              0.352
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "FlipbookLayout": "Grid2x2",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            4,
+            8
+          ],
+          "FlipbookStartRandom": true,
+          "Acceleration": [
+            0,
+            -0.55,
+            0
+          ],
+          "Drag": 1.2,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -90,
+            90
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        },
+        {
+          "Name": "Blossoms",
+          "Texture": "vfx/nature/blossom.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            2.0,
+            3.0
+          ],
+          "Speed": [
+            0.1,
+            0.3
+          ],
+          "Size": [
+            [
+              0,
+              0.252
+            ],
+            [
+              1,
+              0.27
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.2,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            -0.4,
+            0
+          ],
+          "Drag": 1,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -60,
+            60
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        },
+        {
+          "Name": "Pollen",
+          "Texture": "vfx/_shared/glow_core.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Box",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            1.2,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.07
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#E8FF9A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            0.25,
+            0
+          ],
+          "Drag": 1,
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Vine1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.55,
+          "Radius": 0.2,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
+            "Color": [
+              [
+                0,
+                "#E8FFB0"
+              ],
+              [
+                0.5,
+                "#5FD84A"
+              ],
+              [
+                1,
+                "#1E7A2A"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Vine2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.5,
+          "Radius": 0.24,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#E8FFB0"
+              ],
+              [
+                0.5,
+                "#5FD84A"
+              ],
+              [
+                1,
+                "#1E7A2A"
+              ]
+            ],
+            "Brightness": 2.4,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          120,
+          220,
+          90
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.5,
+        "Lifetime": 0.9,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 1.8,
+        "Core": {
+          "Color": [
+            147,
+            227,
+            123
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            120,
+            220,
+            90
+          ],
+          [
+            147,
+            227,
+            123
+          ]
+        ],
+        "ColorShare": 0.7
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 19,
+      "Back": 9.5,
+      "Beams": 2,
+      "Orbiters": 2
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
+    }
+  }
+}

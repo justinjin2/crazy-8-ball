@@ -1,0 +1,139 @@
+{
+  "id": "venom",
+  "name": "Venom",
+  "tier": "Uncommon",
+  "catalog_id": "VenomCue",
+  "concept": "U2",
+  "palette": [
+    "#0A0A0A",
+    "#39FF14",
+    "#2A2A2C"
+  ],
+  "painter": "procedural",
+  "note": "Deep black with six long neon-green carbon-fiber points reaching up the forearm, and carbon striping on the sleeve. Look from: Poison Maelith.",
+  "panels": {
+    "shaft_tile": "skins/venom/shaft_tile.png",
+    "shaft_top": "skins/venom/shaft_top.png",
+    "forearm": "skins/venom/forearm.png",
+    "butt": "skins/venom/butt.png",
+    "cap_end": "skins/venom/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "green": "#39FF14",
+    "black": "#0A0A0A",
+    "wrap": "#0E0E10",
+    "glow": "#7CFF5A"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#5CFF3A"
+  },
+  "vfx": {
+    "Ring": {
+      "Note": "green glowing ring"
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          90,
+          255,
+          60
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.5,
+        "Lifetime": 0.8,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 1.6,
+        "Core": {
+          "Color": [
+            123,
+            255,
+            99
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

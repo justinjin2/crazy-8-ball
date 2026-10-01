@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/tools/overnight/skins_keep_going.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

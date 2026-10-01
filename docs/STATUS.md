@@ -105,6 +105,36 @@ Report: `docs/prompts/ABILITIES_REPORT.md`. Brief and notes: `docs/prompts/ABILI
   - Time Stop: a strike straight after another (the fix for the 2 s wait).
   - Record your own "nyo-ho" for Steel Ball (a whistle stands in).
   - Portals measured low (0.42, under the Rares); playtest it.
+**2026-09-29 (branch `cue-mesh`, from `ultimates`): the shared cue mesh, Classic's skin and
+the cue on the back.** Report: `docs/prompts/CUE_MESH_REPORT.md`.
+
+- **Built:**
+  - `assets/cue/`: one lathed cue mesh (3,456 triangles, one 1024 atlas) from the drawn cue's
+    own outline, every check scripted; the paint kit (five panels with ChatGPT inputs, guides,
+    test checkers, `sheet.png`, `CHATGPT.md`); `CueTextures.py` turns a skin file into maps;
+    Classic's procedural maps.
+  - Uploaded: the mesh and Classic's four maps. In Edit mode:
+    `ReplicatedStorage.CueSkins.Classic`.
+  - `CueStickBuilder` draws Classic from the mesh (hand, watched shooters, Index), every other
+    cue with its bands; `Config.Cue.MeshSkins`.
+  - `BackCue`: everyone's equipped cue on their back, hidden the frame it is in their hands;
+    `Config.Cue.Back`.
+- **Verified:**
+  - Lint clean, 739 Lune tests pass (new: Shape.json is current, MeshSkins are catalog cues).
+  - The mesh checks (outline, closed, outward, budget, UV overlap, mirroring, stretch, glb
+    round trip) and renders of the mesh, the template check and Classic.
+  - In Studio: Classic in hand in the aim and close views; BetaCue's bands unchanged; a watched
+    stick painted Classic from the mesh; the Index turning Classic; the back cue from behind,
+    front and side on R15, R6, tall and small bodies (clears the head, never hits the floor);
+    the hand/back swap over 6 turn changes (never both, never neither); walking and jumping
+    (no jitter, no camera zoom); seated on a lounger and a sofa; console clean.
+- **Needs a check by hand:**
+  - **Save the place to `place/8ball.rbxl` and publish**: `CueSkins.Classic` lives only in the
+    place.
+  - Two real players: someone else's back cue, and their Classic cue while they shoot.
+  - A real phone and controller (nothing new to press, but look at the cue on a small screen).
+
+---
 
 **2026-09-28 (branch `ultimates`, overnight): Ultimates, with Magnet and the spin screen.**
 Report: `docs/prompts/ULTIMATES_REPORT.md`.

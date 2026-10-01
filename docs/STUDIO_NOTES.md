@@ -437,6 +437,28 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
   ReplicatedFirst for `src/first`) is only picked up after `rojo serve` restarts and the
   plugin reconnects.
 
+## The shared cue mesh in Studio (2026-09-29)
+
+- **glb to MeshPart:** `InsertService:LoadAsset(<model asset id>)` in Edit gives a Model with
+  one MeshPart per material (the cue has one). The uploaded model's MeshId is the "mesh" id in
+  `tools/upload_manifest.json` (Cue.glb: model 112855847049580, mesh 113499415983055).
+- **The importer turns a glb 180 degrees about Y and centres the part on its bounds.** A cue
+  built tip at the origin along Blender -Y lands with the tip at local +Z 3.5 of a
+  0.2 x 0.2 x 7 part, and the UV seam (Blender -Z) stays at local -Y. So the template's
+  `PivotOffset` is `CFrame.new(0, 0, 3.5) * CFrame.Angles(0, math.pi, 0)`: the pivot at the
+  tip, +Z toward the butt, the frame CueStickBuilder uses.
+- **A SurfaceAppearance's maps are Edit-only.** ColorMap and the others can be set by a plugin
+  (the MCP) in Edit mode but not by a game script, so every skin is a template built in Edit
+  (`ReplicatedStorage.CueSkins.<cue id>`). A game script may `:Clone()` a whole
+  SurfaceAppearance and parent it, which is how a second mesh skin will swap onto a stick.
+- **Rojo keeps `CueSkins`.** The `ReplicatedStorage` node in `default.project.json` has no
+  `$path`, so children made in Studio survive a sync (checked with the plugin connected).
+  Anything Rojo does not know about must still be saved with the place.
+- **Welding a cosmetic to a character** (BackCue): WeldConstraints to the torso, the parts
+  unanchored, Massless, CanCollide/CanQuery/CanTouch false. Walking, jumping and the camera were
+  unchanged. Never set CFrame on a part that is welded to a character (it drags the body):
+  detach, move, weld again.
+
 ## Lune tests
 
 - `tests/harness.luau` builds a fake `script.Parent` tree from `src/shared` and compiles each

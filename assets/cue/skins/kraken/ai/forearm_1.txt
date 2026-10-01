@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the forearm: the two thin strips at the far left are the metal joint collar, the rest is the forearm (between the joint collar and the ring) of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1536 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Dark abyss-blue lacquer (#081828) wrapped in thick curling octopus tentacles: glossy deep purple tentacles (#3A1F6B to #6A3AB0) with glowing teal rims (#2BF0D0) curl across the whole forearm, their undersides lined with rows of round glowing bioluminescent teal suckers, with faint teal water glow and tiny bubbles between them. Stylised, not scary. The two thin strips at the far left are the joint collar: paint them plain polished silver (#C8CCD0).
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #062B3A #3A1F6B #2BF0D0.
+No text, no letters, no numbers, no logos, no symbols with words.

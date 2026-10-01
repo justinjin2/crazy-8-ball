@@ -1,0 +1,630 @@
+{
+  "id": "toxic",
+  "name": "Toxic",
+  "tier": "Epic",
+  "catalog_id": "ToxicCue",
+  "concept": "E2",
+  "palette": [
+    "#0F140A",
+    "#7CFF2B",
+    "#E6FF3D"
+  ],
+  "painter": "procedural",
+  "note": "Acid-green radioactive goo bubbling inside a glass-look shaft; black-and-yellow hazard stripes over the front of the forearm; a black snakeskin wrap crossed by two yellow hazard bands; a glowing yellow ring; a goo-filled glass sleeve between black rims; a silver collar.",
+  "panels": {
+    "shaft_tile": "skins/toxic/shaft_tile.png",
+    "shaft_top": "skins/toxic/shaft_top.png",
+    "forearm": "skins/toxic/forearm.png",
+    "butt": "skins/toxic/butt.png",
+    "cap_end": "skins/toxic/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0E100C",
+    "deep": "#1C5A0A",
+    "acid": "#7CFF2B",
+    "lime": "#E6FF3D",
+    "yellow": "#E8D21A",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#C8FF80",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.2,
+        "Max": 2.0,
+        "Period": 1.8
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams + emissive",
+      "Note": "The goo bubbles and rises: camera-facing Beams as wide as the cue lie just in front of it over the glass shaft, forearm and sleeve, with a clear texture of small ring bubbles scrolling toward the tip (up the cue as it hangs on the back); the goo's glow pulses (EmissiveStrength 1.2 to 2.0 over 1.8 s).",
+      "Beams": [
+        {
+          "Name": "GooRiseShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/toxic/bubble_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.55,
+          "TextureSpeed": -0.45,
+          "Color": "#C8FF80",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.25
+            ],
+            [
+              0.96,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "GooRiseForearm",
+          "FromStuds": 4.5,
+          "ToStuds": 5.32,
+          "Width0": 0.177,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/toxic/bubble_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.55,
+          "TextureSpeed": -0.45,
+          "Color": "#C8FF80",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1609756097560975,
+              0.25
+            ],
+            [
+              0.8390243902439025,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "GooRiseSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/toxic/bubble_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 0.55,
+          "TextureSpeed": -0.45,
+          "Color": "#C8FF80",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.25
+            ],
+            [
+              0.88,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Green bubbles rise off the cue, swell, wobble and pop into a spray ring (a OneShot bubble-to-pop flipbook); goo drips form underneath and fall; faint green fumes rise; a faint green glow round the outline (a thin halo Beam) and a green light on the table.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Bubbles",
+          "Texture": "vfx/toxic/bubble_pop_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            1.0,
+            1.6
+          ],
+          "Speed": [
+            0.15,
+            0.4
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.8,
+            0
+          ],
+          "Drag": 0.6,
+          "Size": [
+            [
+              0,
+              0.096
+            ],
+            [
+              0.6,
+              0.32,
+              0.08
+            ],
+            [
+              1,
+              0.368,
+              0.08
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.2,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Color": "#B8FF60",
+          "LightEmission": 1,
+          "Brightness": 1.4,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "GooDrips",
+          "Texture": "vfx/toxic/goo_drop.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.8,
+            "ToStuds": 7.0,
+            "Width": 0.17,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": 0,
+          "Acceleration": [
+            0,
+            -6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.028
+            ],
+            [
+              0.3,
+              0.098
+            ],
+            [
+              1,
+              0.084
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "LockedToPart": false
+        },
+        {
+          "Name": "Fumes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 7,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.1,
+            0.25
+          ],
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              0.6
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.7
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#7CFF2B",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "ToxicHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.3,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#9BFF3A"
+            ],
+            [
+              1,
+              "#2E8A10"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "ToxicGlow",
+          "FromStuds": 0.1,
+          "ToStuds": 7.1,
+          "Width0": 0.26,
+          "Width1": 0.5,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#7CFF2B",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08,
+              0.7
+            ],
+            [
+              0.9,
+              0.62
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.7,
+            "Max": 1.0,
+            "Period": 1.8
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 5.0,
+          "Color": "#7CFF2B",
+          "Brightness": 0.8,
+          "Range": 7,
+          "Flicker": {
+            "Min": 0.8,
+            "Max": 1.1,
+            "Period": 1.8
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            230,
+            255,
+            61
+          ],
+          [
+            124,
+            255,
+            43
+          ],
+          [
+            30,
+            120,
+            10
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.28,
+        "LightEmission": 0.7,
+        "Texture": "vfx/toxic/trail_goo.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.0,
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Core": {
+          "Color": [
+            230,
+            255,
+            160
+          ],
+          "Width": 0.3,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.6,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.0
+      }
+    },
+    "Trail": {
+      "Note": "A dripping green goo trail: a thick glossy goo ribbon with bulging, dripping edges (acid yellow-green to deep green), a pale core, and goo drops left behind on the cloth that shrink and fade.",
+      "Emitters": [
+        {
+          "Name": "GooDrops",
+          "Texture": "vfx/toxic/goo_drop.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0.03
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Rotation": [
+            -20,
+            20
+          ]
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (plan.json lists no Toxic finisher)."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 31,
+      "Back": 15.5,
+      "Beams": 4,
+      "BallTrail": 14,
+      "Lights": 1
+    }
+  }
+}

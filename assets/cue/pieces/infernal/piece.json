@@ -1,0 +1,64 @@
+{
+  "id": "infernal",
+  "Frame": "cue",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 19500,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/infernal/HornedSkull_base_color.png",
+        "EmissiveMask": "pieces/infernal/HornedSkull_emissive.png",
+        "EmissiveTint": "#FF6A2A",
+        "EmissiveStrength": 3.0,
+        "NormalMap": "pieces/infernal/HornedSkull_normal.png",
+        "RoughnessMap": "pieces/infernal/HornedSkull_roughness.png",
+        "MetalnessMap": "pieces/infernal/HornedSkull_metallic.png"
+      },
+      "Name": "Skull_HornedSkull",
+      "File": "pieces/infernal/Skull_HornedSkull.obj",
+      "Joint": "Skull",
+      "Offset": [
+        0.0002,
+        0.1588,
+        -2.8707
+      ],
+      "Size": [
+        0.4206,
+        0.3667,
+        0.4207
+      ],
+      "Triangles": 19500
+    }
+  ],
+  "Joints": {
+    "Skull": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        -6.45,
+        0.1
+      ],
+      "PivotRoblox": [
+        0,
+        0.1,
+        -2.95
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 2.5,
+          "Period": 3.6
+        }
+      ]
+    }
+  }
+}

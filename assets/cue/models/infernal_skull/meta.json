@@ -1,0 +1,23 @@
+{
+  "name": "infernal_skull",
+  "endpoint": "image-to-3d",
+  "task_id": "01a0f383-f055-7509-83f4-c7ceadd63e6b",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "Glossy black obsidian horned skull mask, polished silver horns and silver edges on the brow, cheekbones, spikes and teeth, thin glowing orange-red magma cracks across the black, glowing molten orange eyes.",
+    "images": [
+      "assets/cue/models/refs/infernal_skull.png"
+    ]
+  },
+  "finished_at": 1790792008670,
+  "task_error": null
+}

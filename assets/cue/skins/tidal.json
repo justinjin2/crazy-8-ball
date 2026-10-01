@@ -1,0 +1,566 @@
+{
+  "id": "tidal",
+  "name": "Tidal",
+  "tier": "Rare",
+  "catalog_id": "TidalCue",
+  "concept": "R3",
+  "palette": [
+    "#0A3D7A",
+    "#1CA7B8",
+    "#F2F7F7"
+  ],
+  "painter": "mix",
+  "note": "Deep ocean blue fading to teal, with a pearl inlay and a sea-foam wrap.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Deep ocean-blue water (#0A3D7A) with bright teal (#1CA7B8) light caustics and rolling wave shapes, like looking into a clear sea; a flowing silver-white wave line sweeps along the middle row and curls round a round lustrous pearl (#F2F7F7, about 80 pixels across) in the left half. The two thin strips at the far left are the joint collar: paint them plain flat silver (#B8BCC2).",
+      "roll_deg": 45
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "prompt": "Left thin strip (the ring): plain silver (#C8CCD0). The wrap (from the ring to the next zone line): plain flat sea-foam colour (#9FD8D0). The butt sleeve (between the two zone lines on the right): deep ocean blue with a bright curling teal-and-white breaking wave on the middle row. The very thin strip at the far right: plain black.",
+      "roll_deg": 45
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/tidal/shaft_tile.png",
+    "shaft_top": "skins/tidal/shaft_top.png",
+    "forearm": "skins/tidal/forearm.png",
+    "butt": "skins/tidal/butt.png",
+    "cap_end": "skins/tidal/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "deep": "#0A3D7A",
+    "teal": "#1CA7B8",
+    "foam": "#9FD8D0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.2,
+    "EmissiveTint": "#9FF0FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 0.8,
+        "Max": 1.4,
+        "Period": 3.0
+      }
+    }
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Soap-clear bubbles wobble up off the cue, swell and pop; two ribbons of sea water swirl round the cue tip to butt and back (Trails flown by a script: Orbiters), streaked with foam; tiny droplets fall. Upgraded 2026-09-30: three wider water ribbons swirl round the cue, bigger bubbles and droplets, a sea-blue haze.",
+      "BackRateScale": 0.5,
+      "Orbiters": [
+        {
+          "Name": "WaterRibbon1",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.24,
+          "Wobble": 0.06,
+          "WobbleHz": 1.1,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 1.5,
+            "WidthStuds": 0.17,
+            "Color": [
+              [
+                0,
+                "#E8FFFF"
+              ],
+              [
+                0.4,
+                "#39C9D8"
+              ],
+              [
+                1,
+                "#0A5AA8"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.6,
+                0.45
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
+          }
+        },
+        {
+          "Name": "WaterRibbon2",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.4,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.28,
+          "Wobble": 0.06,
+          "WobbleHz": 1.1,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 1.5,
+            "WidthStuds": 0.17,
+            "Color": [
+              [
+                0,
+                "#E8FFFF"
+              ],
+              [
+                0.4,
+                "#39C9D8"
+              ],
+              [
+                1,
+                "#0A5AA8"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.6,
+                0.45
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
+          }
+        },
+        {
+          "Name": "WaterRibbon3",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.64,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.81,
+          "Radius": 0.32,
+          "Wobble": 0.06,
+          "WobbleHz": 1.1,
+          "Phase": 240,
+          "Delay": 1.1,
+          "Trail": {
+            "Lifetime": 1.5,
+            "WidthStuds": 0.17,
+            "Color": [
+              [
+                0,
+                "#E8FFFF"
+              ],
+              [
+                0.4,
+                "#39C9D8"
+              ],
+              [
+                1,
+                "#0A5AA8"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0.2
+              ],
+              [
+                0.6,
+                0.45
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch",
+            "Brightness": 2.2
+          }
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "Bubbles",
+          "Texture": "vfx/tidal/bubble.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.24,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            1.2,
+            2.0
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              0.85,
+              0.15
+            ],
+            [
+              0.92,
+              0.21
+            ],
+            [
+              1,
+              0.03
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.1
+            ],
+            [
+              0.88,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#DFFBFF",
+          "LightEmission": 0.4,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            0.9,
+            0
+          ],
+          "Drag": 1.4,
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        },
+        {
+          "Name": "Droplets",
+          "Texture": "vfx/_shared/glow_core.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.26,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "Size": [
+            [
+              0,
+              0.064
+            ],
+            [
+              1,
+              0.048
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#8FE6F2",
+          "LightEmission": 0.8,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "Acceleration": [
+            0,
+            -3,
+            0
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top"
+        },
+        {
+          "Name": "SeaHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.8
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#7FF0FF"
+            ],
+            [
+              1,
+              "#1A6AD8"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          40,
+          180,
+          200
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.5,
+        "Lifetime": 0.9,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 1.8,
+        "Core": {
+          "Color": [
+            83,
+            195,
+            211
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            40,
+            180,
+            200
+          ],
+          [
+            83,
+            195,
+            211
+          ]
+        ],
+        "ColorShare": 0.7
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 19,
+      "Back": 9.5,
+      "Beams": 0,
+      "Orbiters": 3
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
+    }
+  }
+}

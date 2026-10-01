@@ -1,0 +1,1284 @@
+{
+  "id": "seraph",
+  "name": "Seraph",
+  "tier": "Legendary",
+  "catalog_id": "SeraphCue",
+  "concept": "L5",
+  "palette": [
+    "#FAFAF5",
+    "#D4AF37",
+    "#FFF3C4"
+  ],
+  "painter": "mix",
+  "note": "White marble with gold filigree: OpenAI panels on the whole cue (a pale maple shaft turning to white marble wrapped in thin gold ribbons, a marble forearm covered in gold scrollwork round a glowing four-point gold star, a white woven grip, a marble sleeve with a burst of golden feathers round a star), a gold collar with black lines, gold rings, a black end with a gold line. Four emissive frames run a band of gold light along the filigree.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Pale creamy maple wood (#F2E6CC) with a faint fine grain on the left half, turning smoothly into polished white marble (#FAFAF5) with soft grey veins on the right half, where two thin shining gold ribbons (#D4AF37) begin to twist gently along the length. No other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "crop_rows": [
+        127,
+        385
+      ],
+      "prompt": "Polished white marble (#FAFAF5) with soft grey veins, wrapped by thin shining gold ribbons (#D4AF37) twisting along it with tiny golden sparkles; the ribbons grow a little more ornate toward the right edge. No other shapes."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "roll_deg": 45,
+      "prompt": "Polished white marble (#FAFAF5) with soft grey veins, covered with ornate raised shining gold filigree (#D4AF37): elegant flowing scrollwork and leafy swirls running along the whole forearm, and in the middle row, in the middle of the forearm, a glowing gold four-pointed star with a bright white-gold light at its centre, framed by symmetrical gold scrolls. The two thin strips at the far left are the joint collar: paint them plain polished gold (#D4AF37)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "roll_deg": 45,
+      "zones_px": [
+        89,
+        835,
+        1351
+      ],
+      "prompt": "Left thin strip (the ring): plain polished gold (#D4AF37). The wrap (from the ring to the next zone line): a white woven leather grip (#EDEBE4), a fine basket-weave pattern with a soft pearly sheen. The butt sleeve (between the two zone lines on the right): polished white marble with gold filigree and, in the middle row, a radiant burst of golden feathers fanning out to the right from a glowing four-pointed gold star. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/seraph/shaft_tile.png",
+    "shaft_top": "skins/seraph/shaft_top.png",
+    "forearm": "skins/seraph/forearm.png",
+    "butt": "skins/seraph/butt.png",
+    "cap_end": "skins/seraph/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0C0E",
+    "metal": "#D8DCE2",
+    "gold": "#D4AF37"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "frames": {
+    "Count": 4,
+    "Keys": [
+      "emissive"
+    ]
+  },
+  "surface": {
+    "EmissiveStrength": 1.9,
+    "EmissiveTint": "#FFEBB8",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.5,
+        "Max": 2.3,
+        "Period": 3.0
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Frames + Beams + emissive",
+      "Note": "Gold light runs along the filigree: four SurfaceAppearance frames (only the emissive mask differs: four phases of a bright band 2.4 studs long) swap in order every 0.2 s, so the band travels along the gold; overlay Beams carry gold glints sliding along the shaft, forearm and sleeve (TextureSpeed 0.4); the emissive breathes (1.5-2.3).",
+      "Beams": [
+        {
+          "Name": "GlintsShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/seraph/glint_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.4,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.15
+            ],
+            [
+              0.96,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "GlintsForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/seraph/glint_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.4,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.15
+            ],
+            [
+              0.9131578947368422,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "GlintsSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/seraph/glint_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.4,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.15
+            ],
+            [
+              0.88,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ],
+      "Frames": {
+        "Keys": [
+          "emissive"
+        ],
+        "FrameSeconds": 0.2,
+        "Order": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "Maps": [
+          {
+            "emissive": "textures/seraph_emissive.png"
+          },
+          {
+            "emissive": "textures/seraph_f1_emissive.png"
+          },
+          {
+            "emissive": "textures/seraph_f2_emissive.png"
+          },
+          {
+            "emissive": "textures/seraph_f3_emissive.png"
+          }
+        ]
+      }
+    },
+    "Aura": {
+      "Note": "Layered: a halo of golden light floats just beyond the butt (a 3D ring: a glowing gold core in a shimmering sheath, bobbing and swaying, over a soft breathing glow); three ribbons of golden light wind round the cue (Orbiters with a gold strand trail made for Seraph) in a haze of golden light; soft white feathers drift down, tumbling as they fall (a 64-frame feather flipbook made for Seraph); gold motes rise and sparkles glint; a warm glow round the cue (a halo Beam) and a warm light.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "HaloGlow",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.32
+          },
+          "Rate": 2,
+          "Lifetime": 1.2,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.5,
+              0.75
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.55
+            ],
+            [
+              0.7,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFE08A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Feathers",
+          "Texture": "vfx/seraph/feather_white_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": [
+            16,
+            24
+          ],
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.0,
+            "Width": 0.9,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 9,
+          "Lifetime": [
+            2.6,
+            3.2
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 0.6,
+          "Acceleration": [
+            0,
+            -0.25,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.15
+            ],
+            [
+              0.12,
+              0.48
+            ],
+            [
+              0.85,
+              0.48
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.05
+            ],
+            [
+              0.8,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -40,
+            40
+          ],
+          "RotSpeed": [
+            -25,
+            25
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.25,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.7,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 20,
+          "Lifetime": [
+            1.2,
+            2.0
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.1,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.07
+            ],
+            [
+              0.7,
+              0.03
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.05,
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              0.4,
+              "#FFE08A"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.45,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": [
+            0.02,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.18,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": "#FFF0B8",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GoldenLight",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.2,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF0C0"
+            ],
+            [
+              1,
+              "#FFC860"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Ribbon1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.8,
+          "Radius": 0.3,
+          "Wobble": 0.06,
+          "WobbleHz": 0.7,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.2,
+            "Color": "#FFE8A0",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "Brightness": 2,
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/seraph/trail_light.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Ribbon2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.7,
+          "Radius": 0.36,
+          "Wobble": 0.06,
+          "WobbleHz": 0.7,
+          "Phase": 120,
+          "Delay": 0.8,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.2,
+            "Color": "#FFE8A0",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "Brightness": 2,
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/seraph/trail_light.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Ribbon3",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.9,
+          "Radius": 0.26,
+          "Wobble": 0.06,
+          "WobbleHz": 0.7,
+          "Phase": 240,
+          "Delay": 1.6,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.2,
+            "Color": "#FFE8A0",
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.2
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "Brightness": 2,
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/seraph/trail_light.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "HolyGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.6,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#FFF3C4"
+            ],
+            [
+              1,
+              "#FFD76A"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.55
+            ],
+            [
+              0.9,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.6,
+            "Max": 1.0,
+            "Period": 3.0
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 6.2,
+          "Color": "#FFE6A8",
+          "Brightness": 1.3,
+          "Range": 9,
+          "Flicker": {
+            "Min": 0.85,
+            "Max": 1.1,
+            "Period": 3.0
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            250,
+            225
+          ],
+          [
+            255,
+            224,
+            138
+          ],
+          [
+            212,
+            175,
+            55
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.1,
+        "WidthStuds": 0.5,
+        "LightEmission": 0.2,
+        "Texture": "vfx/seraph/trail_light.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.6,
+        "WidthScale": [
+          [
+            0,
+            0.6
+          ],
+          [
+            0.35,
+            1.15
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Core": {
+          "Color": [
+            255,
+            246,
+            214
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.2,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.2
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            224,
+            138
+          ],
+          [
+            255,
+            250,
+            225
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A golden light ribbon: fine silky strands of gold light woven along it (textured, wrapping) round a warm white core; gold motes and a few white feathers float off the ball.",
+      "Emitters": [
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.2,
+            0.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.5,
+          "Size": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.05,
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              0.4,
+              "#FFE08A"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.2,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": "#FFF0B8",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Feathers",
+          "Texture": "vfx/seraph/feather_white_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 10,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 3,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            0.3,
+            0.7
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 1.2,
+          "Size": 0.26,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -40,
+            40
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.25,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a warm flash as a beam of heavenly light shines down into the pocket (a tall light-column sprite made for Seraph, 7 studs high, fading in over 0.15 s and lingering to 1.4 s); a gold ring spreads (0.05 s); gold motes stream up the beam and sparkles burst (0.05 s); white feathers float down round it (0.2-1.5 s). The default gust is tinted gold.",
+      "Layers": [
+        {
+          "Name": "LightBeam",
+          "Texture": "vfx/seraph/light_shaft.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              3.3,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Lifetime": 1.4,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              4.2
+            ],
+            [
+              0.15,
+              5.0
+            ],
+            [
+              1,
+              5.0
+            ]
+          ],
+          "Squash": -1.0,
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.7,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 1.4
+        },
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.8
+          },
+          "Burst": 36,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.8,
+            1.3
+          ],
+          "Speed": [
+            1.5,
+            4
+          ],
+          "SpreadAngle": [
+            12,
+            12
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 0.8,
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.05,
+          "Color": [
+            [
+              0,
+              "#FFF6D8"
+            ],
+            [
+              0.4,
+              "#FFE08A"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 20,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": [
+            2,
+            5
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.3,
+              0.08
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "Color": "#FFF0B8",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Feathers",
+          "Texture": "vfx/seraph/feather_white_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 36,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.6,
+              0
+            ],
+            "Size": 2.6
+          },
+          "Burst": 16,
+          "Delay": 0.2,
+          "Lifetime": [
+            1.1,
+            1.3
+          ],
+          "Speed": [
+            0.1,
+            0.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            -1.0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.15,
+              0.45
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -40,
+            40
+          ],
+          "RotSpeed": [
+            -30,
+            30
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.25,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FFE08A",
+          "Start": 0.4,
+          "End": 4.6,
+          "Seconds": 0.55,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          236,
+          180
+        ],
+        "Brightness": 11,
+        "Seconds": 0.45
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 46,
+      "Back": 23.0,
+      "BallTrail": 25,
+      "Beams": 5,
+      "Lights": 1,
+      "Orbiters": 3,
+      "PieceTriangles": 2496
+    }
+  },
+  "piece": "seraph"
+}

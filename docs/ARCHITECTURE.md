@@ -143,7 +143,7 @@ Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `Table
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
 shooter), `ShooterPoser` (one character's aim/stroke/idle states), `WatchedShooters` (other
-shooters), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
+shooters), `BackCue` (everyone's equipped cue on their back), `UI` (the shared ScreenGui), `Audio`, `Effects`, `Hub` (one Match per table,
 seats), `MatchHUD` (the top bar, beside Roblox's own buttons when it fits, the foul popup,
 the hints, dialogs, the coin and result cards), `QueueMenu` (the card everyone on a queue pad
 sees: host, difficulty, abilities, Start; beside the jump button on a phone), `TableSign`
@@ -631,3 +631,33 @@ designer; Studio-only QA handles in ServerStorage
 the careful and careless shooters into `tools/ult_value_results.json` (`--set Block.Key=n`
 tries a tune without writing), which `tools/ult_model.py` reads. A `Turn` ability is measured
 over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts are `tools/blender/abilities/`.
+
+## The shared cue mesh and the back cue (2026-09-29)
+
+- **One mesh, many skins.** `assets/cue/` builds one lathed cue mesh (3,456 triangles) from
+  `Shape.json`, which `tools/export_cue_shape.luau` exports from `Config.Cue` and the Classic
+  catalog look, so the mesh has exactly the band cue's outline. A skin is four 1024 maps on
+  that mesh, made from five flat paint-kit panels by `CueTextures.py` (see
+  `assets/cue/Readme.md`).
+- **Templates live in the place, not in `src/`.** `ReplicatedStorage.CueSkins.<cue id>` is a
+  Model whose PrimaryPart `Cue` is the MeshPart with the skin's SurfaceAppearance, pivot at the
+  tip. Its maps can only be set in Edit mode. `Config.Cue.MeshSkins` lists the cue ids that
+  have one.
+- **CueStickBuilder's mesh path.** `build()` makes the band parts plus one hidden mesh slot
+  (a clone of the first template), so nothing is created after `build()`. `paint()` shows the
+  mesh when the cue has a template, the bands otherwise, and sets the stick's `Mesh`
+  attribute. `display()` scales the mesh's thickness like the bands; a silhouette always uses
+  the bands. A missing `CueSkins` falls back to bands with one warning. The swap between two
+  mesh skins (clone the template's SurfaceAppearance into the slot) is a note in `paintStick`
+  and a test guard, to be written with the second skin.
+- **BackCue (client).** A pool of `Config.Cue.Back.PoolSize` sticks built at start. The
+  nearest players' characters within `MaxDistanceStuds` of the camera carry one, welded to
+  BodyBackAttachment's part (R15 UpperTorso, R6 Torso), unanchored and massless with no
+  collide, query or touch. Tip over the left shoulder, butt toward the right hip, the grip
+  slid toward the butt on small bodies, tilted further while seated. A stick is never
+  repainted while welded: a new cue, a respawn, sitting down or leaving range lets it go
+  (detach, park, relayout) and it is attached again. `Main.client`'s RenderStepped draws the
+  frame, then calls `backCue:update(dt, mine held, WatchedShooters:holding())`, so a back cue
+  hides in the same frame its cue appears in the hands. Your own back cue hides in first
+  person and fades with `Camera.fadeNear`. `BackCue:carry(character, nil)` gives a body with
+  no player (a dummy or future NPC) the default cue.

@@ -1,0 +1,735 @@
+{
+  "id": "aurora",
+  "name": "Aurora",
+  "tier": "Epic",
+  "catalog_id": "AuroraCue",
+  "concept": "E3",
+  "palette": [
+    "#0A1624",
+    "#2BF0B0",
+    "#7A5CFF",
+    "#3DB8FF"
+  ],
+  "painter": "procedural",
+  "note": "A dark night-sky cue with green, teal and violet aurora ribbons flowing along it from the shaft through the forearm and sleeve, faint stars behind, a black snakeskin wrap, an iridescent glowing ring, a silver collar.",
+  "panels": {
+    "shaft_tile": "skins/aurora/shaft_tile.png",
+    "shaft_top": "skins/aurora/shaft_top.png",
+    "forearm": "skins/aurora/forearm.png",
+    "butt": "skins/aurora/butt.png",
+    "cap_end": "skins/aurora/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0A0E14",
+    "night": "#0A1624",
+    "green": "#2BF0B0",
+    "teal": "#28DCDC",
+    "violet": "#7A5CFF",
+    "blue": "#3DB8FF",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.6,
+    "EmissiveTint": "#C0FFF0",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.2,
+        "Max": 2.0,
+        "Period": 4.0
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams + emissive",
+      "Note": "The aurora ribbons flow: camera-facing Beams as wide as the cue lie just in front of it with a clear texture of wavy green-to-violet ribbons with fine curtain streaks that flows along the cue over the painted ribbons; the ribbons' glow breathes (EmissiveStrength 1.2 to 2.0 over 4 s).",
+      "Beams": [
+        {
+          "Name": "AuroraFlowShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/aurora/aurora_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.15,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.4
+            ],
+            [
+              0.96,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "AuroraFlowForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/aurora/aurora_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.15,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.4
+            ],
+            [
+              0.9131578947368422,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "AuroraFlowSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/aurora/aurora_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": 0.15,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.4
+            ],
+            [
+              0.88,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Aurora ribbons wind round the cue: three Orbiters fly up and down it while circling, each trailing a long, wide aurora-textured Trail (green, teal and violet bands with fine streaks, colour in the texture), so the trails lay glowing ribbons spiralling round the stick that follow it as it moves; soft floating light motes and a few sparkles; a teal light.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.6,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            1.5,
+            2.5
+          ],
+          "Speed": [
+            0.02,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.08,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.3,
+              0.126
+            ],
+            [
+              0.7,
+              0.108
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#2BF0B0"
+            ],
+            [
+              0.5,
+              "#3DB8FF"
+            ],
+            [
+              1,
+              "#7A5CFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.45,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 7,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.5,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#D8FFF4",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "AuroraVeil",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.72
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#2BF0B0"
+            ],
+            [
+              1,
+              "#7A5CFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Ribbon1",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.7,
+          "Radius": 0.3,
+          "Wobble": 0.03,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                0.6
+              ],
+              [
+                0.3,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/aurora/trail_aurora.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
+          }
+        },
+        {
+          "Name": "Ribbon2",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.0,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.6,
+          "Radius": 0.38,
+          "Wobble": 0.03,
+          "Phase": 120,
+          "Delay": 0.9,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
+            "Color": "#E0F0FF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                0.6
+              ],
+              [
+                0.3,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/aurora/trail_aurora.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
+          }
+        },
+        {
+          "Name": "Ribbon3",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.85,
+          "Radius": 0.26,
+          "Wobble": 0.03,
+          "Phase": 240,
+          "Delay": 1.7,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
+            "Color": "#F0E8FF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                0.6
+              ],
+              [
+                0.3,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/aurora/trail_aurora.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
+          }
+        },
+        {
+          "Name": "Ribbon4",
+          "FromStuds": 0.2,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.86,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.63,
+          "Radius": 0.44,
+          "Wobble": 0.03,
+          "Phase": 45,
+          "Delay": 0.4,
+          "Trail": {
+            "Lifetime": 1.2,
+            "WidthStuds": 0.22,
+            "Color": "#FFFFFF",
+            "Transparency": [
+              [
+                0,
+                0.1
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                0.6
+              ],
+              [
+                0.3,
+                1
+              ],
+              [
+                1,
+                0.4
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/aurora/trail_aurora.png",
+            "TextureMode": "Stretch",
+            "Brightness": 1.8
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.8,
+          "Color": "#40E0C0",
+          "Brightness": 0.6,
+          "Range": 7,
+          "Flicker": {
+            "Min": 0.8,
+            "Max": 1.1,
+            "Period": 4.0
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            220,
+            255,
+            245
+          ],
+          [
+            200,
+            190,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.4,
+        "LightEmission": 0.9,
+        "Texture": "vfx/aurora/trail_aurora.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.6,
+        "WidthScale": [
+          [
+            0,
+            0.6
+          ],
+          [
+            0.4,
+            1.1
+          ],
+          [
+            1,
+            0.7
+          ]
+        ],
+        "Core": {
+          "Color": [
+            200,
+            255,
+            240
+          ],
+          "Width": 0.25,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.6,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.0
+      }
+    },
+    "Trail": {
+      "Note": "An aurora ribbon trail: a wide ribbon banded green, teal and violet across with fine streaks along it (colour in the texture), widening behind the ball, a pale teal core, and soft motes shed by the ball.",
+      "Emitters": [
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            0.1,
+            0.4
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#2BF0B0"
+            ],
+            [
+              1,
+              "#7A5CFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour (plan.json lists no Aurora finisher)."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
+      "Beams": 3,
+      "BallTrail": 12,
+      "Lights": 1,
+      "Orbiters": 4
+    }
+  }
+}

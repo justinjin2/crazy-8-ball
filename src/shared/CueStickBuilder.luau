@@ -11,6 +11,13 @@
 -- places them (a plainer cue hides the spares): nothing is created or destroyed after build,
 -- which is what lets Camera.fadeNear find a stick's parts once.
 --
+-- A cue listed in Config.Cue.MeshSkins is drawn instead from the shared cue mesh
+-- (assets/cue): a clone of its Edit-mode template in ReplicatedStorage[MeshSkinsFolder], the
+-- same outline as the bands, with real detail and a SurfaceAppearance. build() makes one hidden
+-- MESH SLOT next to the bands (a clone of a template's MeshPart), and paint() shows either the
+-- bands or the slot, so the promise above holds for both. Without the folder (someone else's
+-- place file) a mesh cue falls back to its bands, with one warning.
+--
 -- Whose cue a stick shows: wear(model, player) paints it as that player's equipped cue (their
 -- Config.Cue.EquippedAttribute) and repaints when it changes. Everyone sees the shooter's own.
 --
@@ -19,7 +26,10 @@
 -- what keeps the hands on the cue. The pitch is VISUAL ONLY (CueClearance): the shot is always
 -- fired at Config.Cue.CueElevationDegrees.
 --
--- Attributes on the model: Visible (the last setVisible), CueId (the catalog cue painted).
+-- Attributes on the model: Visible (the last setVisible), CueId (the catalog cue painted),
+-- Mesh (true while the mesh slot, not the bands, draws it).
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(script.Parent.Config)
 local CueArt = require(script.Parent.CueArt)
@@ -74,8 +84,52 @@ for _, cue in Catalog.list() do
 	BAND_PARTS = math.max(BAND_PARTS, #layout(cue.Id))
 end
 
--- Model -> its band parts in order, tip first, and how many the painted cue uses.
-type Stick = { parts: { Part }, used: number }
+-- The mesh templates, found once (after the game's first replication, so a template is never
+-- missed for loading late): catalog id -> the template's MeshPart and its offset from the
+-- template's pivot (the tip).
+type Template = { part: MeshPart, offset: CFrame }
+local templates: { [string]: Template }? = nil
+local warned = false
+
+local function meshTemplates(): { [string]: Template }
+	if templates then
+		return templates
+	end
+	local found: { [string]: Template } = {}
+	if not game:IsLoaded() then
+		game.Loaded:Wait()
+	end
+	local folder = ReplicatedStorage:FindFirstChild(Config.Cue.MeshSkinsFolder)
+	for _, id in Config.Cue.MeshSkins do
+		local model = folder and folder:FindFirstChild(id)
+		local part = if model and model:IsA("Model") then model.PrimaryPart else nil
+		if part and part:IsA("MeshPart") then
+			found[id] = { part = part, offset = model:GetPivot():ToObjectSpace(part.CFrame) }
+		elseif not warned then
+			warned = true
+			warn(
+				("CueStickBuilder: no mesh template ReplicatedStorage.%s.%s; drawing it with bands"):format(
+					Config.Cue.MeshSkinsFolder,
+					id
+				)
+			)
+		end
+	end
+	templates = found
+	return found
+end
+
+-- Model -> its band parts in order, tip first, how many the painted cue uses, and its mesh
+-- slot (nil when no template exists) with its size (display thickens it) and its offset from
+-- the tip (the templates share one mesh, so one offset).
+type Stick = {
+	parts: { Part },
+	used: number,
+	mesh: MeshPart?,
+	meshSize: Vector3?,
+	meshOffset: CFrame,
+	meshOn: boolean,
+}
 local sticks: { [Model]: Stick } = setmetatable({}, { __mode = "k" }) :: any
 
 -- Model -> the player whose equipped cue it wears, and the listener that repaints it.
@@ -87,7 +141,8 @@ local function along(zStart: number, length: number): CFrame
 	return CFrame.new(0, 0, zStart + length / 2) * CFrame.Angles(0, math.rad(90), 0)
 end
 
--- Show the used bands for the model's Visible attribute; spares stay hidden either way.
+-- Show the used bands (or the mesh slot) for the model's Visible attribute; spares stay hidden
+-- either way.
 local function applyVisibility(model: Model)
 	local stick = sticks[model]
 	if stick == nil then
@@ -97,6 +152,9 @@ local function applyVisibility(model: Model)
 	for i, part in stick.parts do
 		part.Transparency = if visible and i <= stick.used then 0 else 1
 	end
+	if stick.mesh then
+		stick.mesh.Transparency = if visible and stick.meshOn then 0 else 1
+	end
 end
 
 --- The catalog id of the cue `player` has equipped: their Config.Cue.EquippedAttribute when it
@@ -105,20 +163,27 @@ function CueStickBuilder.equippedCue(player: Player?): string
 	return known(if player then player:GetAttribute(Config.Cue.EquippedAttribute) else nil)
 end
 
---- Paint a built stick as catalog cue `cueId` (unknown or nil: the default cue). Nothing
---- happens when it already shows that cue, so it is safe to call whenever a cue may have
---- changed; it never creates a part.
-function CueStickBuilder.paint(model: Model, cueId: string?)
+-- Paint a stick's bands, or (`bandsOnly` false and a template exists) its mesh slot.
+local function paintStick(model: Model, id: string, bandsOnly: boolean)
 	local stick = sticks[model]
-	local id = known(cueId)
-	if stick == nil or model:GetAttribute("CueId") == id then
-		return
-	end
-	model:SetAttribute("CueId", id)
-	local bands = layout(id)
 	local L = Config.Cue.CueLengthStuds
 	-- Placed from the stick's pivot, so a stick repainted mid-shot stays where it is drawn.
 	local pivot = model:GetPivot()
+	local template = if bandsOnly or stick.mesh == nil then nil else meshTemplates()[id]
+	stick.meshOn = template ~= nil
+	model:SetAttribute("Mesh", stick.meshOn)
+	if stick.mesh then
+		local mesh = stick.mesh :: MeshPart
+		-- Every mesh skin shares one mesh, so a slot only ever needs its SurfaceAppearance
+		-- changed. There is one mesh skin today (Classic, the slot's own). To add a second:
+		-- keep the slot's current skin id, and when it differs, replace the slot's
+		-- SurfaceAppearance with a :Clone() of template.part's (a clone, because a
+		-- SurfaceAppearance's maps cannot be written by a game script). That creates no part,
+		-- so Camera.fadeNear's cached list stays right. tests/cue_mesh_test guards the count.
+		mesh.CFrame = pivot * stick.meshOffset
+		mesh.CastShadow = template ~= nil
+	end
+	local bands = if template then {} else layout(id)
 	for i, part in stick.parts do
 		local band = bands[i]
 		if band then
@@ -137,6 +202,30 @@ function CueStickBuilder.paint(model: Model, cueId: string?)
 	end
 	stick.used = math.min(#bands, #stick.parts)
 	applyVisibility(model)
+end
+
+--- Paint a built stick as catalog cue `cueId` (unknown or nil: the default cue): from its mesh
+--- template when it has one (Config.Cue.MeshSkins), with bands otherwise. Nothing happens when
+--- it already shows that cue, so it is safe to call whenever a cue may have changed; it never
+--- creates a part.
+function CueStickBuilder.paint(model: Model, cueId: string?)
+	local stick = sticks[model]
+	local id = known(cueId)
+	if stick == nil or model:GetAttribute("CueId") == id then
+		return
+	end
+	model:SetAttribute("CueId", id)
+	paintStick(model, id, false)
+end
+
+--- Lay the stick's parts out again from the model's pivot, as its current cue: for a stick whose
+--- parts were moved some other way (BackCue welds them to a body, and sets the pivot back
+--- before letting go). Creates nothing.
+function CueStickBuilder.relayout(model: Model)
+	local id = model:GetAttribute("CueId")
+	if sticks[model] and type(id) == "string" then
+		paintStick(model, id, false)
+	end
 end
 
 --- Paint the stick as `player`'s equipped cue and keep it so, repainting whenever their
@@ -180,7 +269,35 @@ function CueStickBuilder.build(parent: Instance, cueId: string?): Model
 		part.Parent = model
 		parts[i] = part
 	end
-	sticks[model] = { parts = parts, used = 0 }
+	-- The mesh slot: a clone of any template's MeshPart (they share one mesh), hidden until a
+	-- mesh cue is painted.
+	local mesh: MeshPart? = nil
+	local meshOffset = CFrame.identity
+	for _, id in Config.Cue.MeshSkins do
+		local template = meshTemplates()[id]
+		if template then
+			local slot = template.part:Clone()
+			slot.Name = "Mesh"
+			slot.Anchored = true
+			slot.CanCollide = false
+			slot.CanQuery = false
+			slot.CanTouch = false
+			slot.Transparency = 1
+			slot.CFrame = template.offset
+			slot.Parent = model
+			mesh = slot
+			meshOffset = template.offset
+			break
+		end
+	end
+	sticks[model] = {
+		parts = parts,
+		used = 0,
+		mesh = mesh,
+		meshSize = if mesh then mesh.Size else nil,
+		meshOffset = meshOffset,
+		meshOn = false,
+	}
 	model.WorldPivot = CFrame.new(0, 0, 0)
 	model:SetAttribute("Visible", true)
 	CueStickBuilder.paint(model, cueId)
@@ -191,7 +308,8 @@ end
 --- A stick for a picture (the Index's turning cue, CueViewport): as build(), `thickness` times
 --- as thick so it reads at a small size, and never repainted (paint would undo the
 --- thickness). `silhouette` paints every band in that one colour, smooth plastic: the cue's
---- shape with nothing of its look.
+--- shape with nothing of its look (always the bands: the same outline, and a mesh cue never
+--- needs its look hidden here, since Classic is never a silhouette).
 function CueStickBuilder.display(
 	parent: Instance,
 	cueId: string?,
@@ -200,6 +318,17 @@ function CueStickBuilder.display(
 ): Model
 	local model = CueStickBuilder.build(parent, cueId)
 	local stick = sticks[model]
+	if silhouette and stick.meshOn then
+		paintStick(model, known(cueId), true)
+	end
+	if stick.meshOn and stick.mesh then
+		local mesh = stick.mesh :: MeshPart
+		local size = stick.meshSize :: Vector3
+		-- Thicker across, the same length; the slot is centred on the cue's axis, so its
+		-- placement along the cue does not change.
+		mesh.Size = Vector3.new(size.X * thickness, size.Y * thickness, size.Z)
+		mesh.CastShadow = false
+	end
 	for i, part in stick.parts do
 		if i <= stick.used then
 			part.Size = Vector3.new(part.Size.X, part.Size.Y * thickness, part.Size.Z * thickness)

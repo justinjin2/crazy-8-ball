@@ -1,0 +1,654 @@
+{
+  "id": "grandmaster_cue",
+  "name": "Grandmaster Cue",
+  "tier": "Rank",
+  "catalog_id": "GrandmasterCue",
+  "concept": "K2",
+  "palette": [
+    "#3C3846",
+    "#FFC428",
+    "#141218"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a black lacquer shaft veined with glowing gold lines and gold chevrons before the collar; three nested chevrons pointing to the butt on the forearm, each lined with a glowing gold line, a glowing gem in the front one; the collar and rings in gold; a black snakeskin wrap; two chevron sets meeting on the sleeve; the Grandmaster rank badge on the butt face.",
+  "panels": {
+    "shaft_tile": "skins/grandmaster_cue/shaft_tile.png",
+    "shaft_top": "skins/grandmaster_cue/shaft_top.png",
+    "forearm": "skins/grandmaster_cue/forearm.png",
+    "butt": "skins/grandmaster_cue/butt.png",
+    "cap_end": "skins/grandmaster_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#D4AF37"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "lacquer",
+    "metal": "#D4AF37",
+    "metal_name": "gold",
+    "chevron": "#FFC83C",
+    "wrap": "scales",
+    "crown": true,
+    "line_glow": 0.5,
+    "base": "#141218",
+    "accent": "#FFC428",
+    "accent_name": "gold",
+    "accent_glow": 0.8,
+    "gem": "#FFC428",
+    "gem_glow": 0.9,
+    "wrap_colour": "#18161C",
+    "wrap_edge": "#060508",
+    "badge_dark": "#0A090C"
+  },
+  "surface": {
+    "EmissiveStrength": 1.8,
+    "EmissiveTint": "#FFFFFF"
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "A dark aura with gold embers: dark smoke rising round the cue (alpha-blended), gold embers and sparkles rising through it, a gold glow. Upgraded 2026-09-30: two gold ribbons wind through the dark aura, bigger smoke, embers and sparkles, a wider glow.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "DarkAura",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.1,
+            0.25
+          ],
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "EmissionDirection": "Top",
+          "Size": [
+            [
+              0,
+              0.405
+            ],
+            [
+              1,
+              1.215
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.55
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": "#050408",
+          "LightEmission": 0,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "GoldEmbers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            35,
+            35
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            0.8,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.112
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF0B0"
+            ],
+            [
+              1,
+              "#FFB020"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.4,
+              0.18,
+              0.054
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": "#FFD060",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "Glow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.3,
+          "Width1": 0.55,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#FFC428",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.75
+            ],
+            [
+              0.9,
+              0.7
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "GoldRibbon1",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.7,
+          "Radius": 0.26,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.11,
+            "Color": [
+              [
+                0,
+                "#FFF6D0"
+              ],
+              [
+                0.5,
+                "#FFC030"
+              ],
+              [
+                1,
+                "#B07000"
+              ]
+            ],
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 0.6,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "GoldRibbon2",
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "TravelSeconds": 3.3,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.6,
+          "Radius": 0.32,
+          "Wobble": 0.05,
+          "WobbleHz": 0.9,
+          "Phase": 180,
+          "Delay": 1.2,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.09,
+            "Color": [
+              [
+                0,
+                "#FFF6D0"
+              ],
+              [
+                0.5,
+                "#FFC030"
+              ],
+              [
+                1,
+                "#B07000"
+              ]
+            ],
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0.05
+              ],
+              [
+                0.6,
+                0.3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.35
+              ]
+            ],
+            "LightEmission": 0.6,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.38,
+        "LightEmission": 0.3,
+        "Texture": "vfx/rank/trail_gold_black.png",
+        "TextureMode": "Stretch",
+        "WidthScale": [
+          [
+            0,
+            0.8
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.0,
+        "Core": {
+          "Color": [
+            255,
+            196,
+            70
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.2,
+          "Brightness": 2.2
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            200,
+            60
+          ],
+          [
+            255,
+            240,
+            190
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A gold-and-black trail: a gold ribbon over a black smoky band (own texture) with gold embers.",
+      "Emitters": [
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            0.4,
+            1.0
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.07
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FFC428",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "A gold burst: gold rays and sparks blast up, a gold ring, gold embers linger. The default gust is tinted gold.",
+      "Layers": [
+        {
+          "Name": "Rays",
+          "Texture": "vfx/_shared/streak.png",
+          "Burst": 16,
+          "Lifetime": [
+            0.35,
+            0.5
+          ],
+          "Speed": [
+            8,
+            12
+          ],
+          "SpreadAngle": [
+            55,
+            55
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Squash": -2,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFD050",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 26,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            2,
+            6
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Acceleration": [
+            0,
+            -4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF0B0"
+            ],
+            [
+              1,
+              "#FFB020"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FFC428",
+          "Start": 0.4,
+          "End": 4.0,
+          "Seconds": 0.45
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          210,
+          110
+        ],
+        "Brightness": 8,
+        "Seconds": 0.3
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
+      "BallTrail": 12,
+      "Beams": 1,
+      "Lights": 0,
+      "Orbiters": 2
+    }
+  }
+}

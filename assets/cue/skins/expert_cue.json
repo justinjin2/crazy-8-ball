@@ -1,0 +1,392 @@
+{
+  "id": "expert_cue",
+  "name": "Expert Cue",
+  "tier": "Rank",
+  "catalog_id": "ExpertCue",
+  "concept": "K2",
+  "palette": [
+    "#E84048",
+    "#FFC83C"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a dark ruby lacquer shaft wound with fine gold lines and gold chevrons before the collar; three nested chevrons pointing to the butt on the forearm, each lined with a glowing ruby line, a glowing gem in the front one; the collar and rings in gold; a dark red snakeskin wrap; two chevron sets meeting on the sleeve; the Expert rank badge on the butt face.",
+  "panels": {
+    "shaft_tile": "skins/expert_cue/shaft_tile.png",
+    "shaft_top": "skins/expert_cue/shaft_top.png",
+    "forearm": "skins/expert_cue/forearm.png",
+    "butt": "skins/expert_cue/butt.png",
+    "cap_end": "skins/expert_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#D4AF37"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "lacquer",
+    "metal": "#D4AF37",
+    "metal_name": "gold",
+    "chevron": "#FFC83C",
+    "wrap": "scales",
+    "crown": true,
+    "line_glow": 0.12,
+    "base": "#3A0A10",
+    "accent": "#E84048",
+    "accent_name": "ruby",
+    "accent_glow": 0.7,
+    "gem": "#E84048",
+    "gem_glow": 0.8,
+    "wrap_colour": "#4A0C12",
+    "wrap_edge": "#1A0406",
+    "badge_dark": "#1A0608"
+  },
+  "surface": {
+    "EmissiveStrength": 1.8,
+    "EmissiveTint": "#FFFFFF"
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Red energy rising: red flames licking up along the cue, two red energy runners winding round it (Orbiters), red sparks rising, a red glow. Upgraded 2026-09-30: flames a third bigger, the red runners wide enough to see with longer tails, bigger sparks, a wider glow.",
+      "Orbiters": [
+        {
+          "Name": "Energy1",
+          "FromStuds": 0.6,
+          "ToStuds": 6.8,
+          "TravelSeconds": 2.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 1.1,
+          "Radius": 0.14,
+          "RadiusFromSurface": true,
+          "Wobble": 0.05,
+          "WobbleHz": 1.4,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.09,
+            "Color": "#FF4040",
+            "Brightness": 2.2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Energy2",
+          "FromStuds": 0.6,
+          "ToStuds": 6.8,
+          "TravelSeconds": 2.7,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.9,
+          "Radius": 0.14,
+          "RadiusFromSurface": true,
+          "Wobble": 0.05,
+          "WobbleHz": 1.4,
+          "Phase": 180,
+          "Delay": 1.0,
+          "Trail": {
+            "Lifetime": 1.0,
+            "WidthStuds": 0.09,
+            "Color": "#FF4040",
+            "Brightness": 2.2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/_shared/trail_soft.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ],
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "RedEnergy",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.8,
+            "ToStuds": 7.0,
+            "Width": 0.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 20,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            0.3,
+            0.6
+          ],
+          "SpreadAngle": [
+            25,
+            25
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.4,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.52
+            ],
+            [
+              0.35,
+              1.04
+            ],
+            [
+              1,
+              0.312
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.45
+            ],
+            [
+              0.3,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFB0A0"
+            ],
+            [
+              0.4,
+              "#FF3030"
+            ],
+            [
+              1,
+              "#801010"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.0,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.096
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FF6050",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "Glow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.3,
+          "Width1": 0.55,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#E84048",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.72
+            ],
+            [
+              0.9,
+              0.6699999999999999
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          235,
+          40,
+          30
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.0,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 1.2,
+        "Core": {
+          "Color": [
+            245,
+            95,
+            75
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.0,
+          "Brightness": 1.2
+        }
+      }
+    },
+    "Trail": {
+      "Note": "The wisp tinted red."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
+      "BallTrail": 0,
+      "Beams": 1,
+      "Lights": 0,
+      "Orbiters": 2
+    }
+  }
+}

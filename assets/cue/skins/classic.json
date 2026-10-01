@@ -1,0 +1,39 @@
+{
+  "id": "classic",
+  "name": "Classic",
+  "tier": "Common",
+  "catalog_id": "Classic",
+  "default": true,
+  "note": "The default cue, drawn procedurally by CueTextures.classic() (maple shaft, rosewood forearm, black Irish-linen wrap, polished silver joint and rings, glossy black sleeve, rubber bumper, blue chalky tip, white ferrule). Colours are Catalog.luau's Classic look.",
+  "procedural": "classic",
+  "panels": {},
+  "colours": {
+    "tip": "#222C4A",
+    "ferrule": "#F2EEE2",
+    "shaft": "#D6B07C",
+    "metal": "#B0B4BC",
+    "forearm": "#562E22",
+    "wrap": "#202024",
+    "cap": "#141416",
+    "bumper": "#121212"
+  },
+  "shaft_tile": {
+    "repeats": null,
+    "fade": 0
+  },
+  "metal": [],
+  "glow": [],
+  "roughness": {
+    "tip": 0.92,
+    "ferrule": 0.3,
+    "shaft": 0.34,
+    "joint": 0.16,
+    "forearm": 0.3,
+    "ring": 0.16,
+    "wrap": 0.78,
+    "cap": 0.12,
+    "bumper": 0.86,
+    "end": 0.86
+  },
+  "default_note": "Designer, 2026-09-30: Classic is labelled Common (one of the plan's 8 Commons) but stays the free default cue: everyone owns it, it never drops from a case, it is not tradable or sellable."
+}

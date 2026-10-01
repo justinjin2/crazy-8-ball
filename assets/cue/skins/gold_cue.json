@@ -1,0 +1,427 @@
+{
+  "id": "gold_cue",
+  "name": "Gold Cue",
+  "tier": "Rank",
+  "catalog_id": "GoldCue",
+  "concept": "K1",
+  "palette": [
+    "#D4AF37",
+    "#8A6A12"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a polished gold shaft; three nested chevrons pointing to the butt on the forearm; the collar and rings in polished gold; a black leather wrap; two chevron sets meeting on the sleeve; the Gold rank badge on the butt face.",
+  "panels": {
+    "shaft_tile": "skins/gold_cue/shaft_tile.png",
+    "shaft_top": "skins/gold_cue/shaft_top.png",
+    "forearm": "skins/gold_cue/forearm.png",
+    "butt": "skins/gold_cue/butt.png",
+    "cap_end": "skins/gold_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#D4AF37"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "metal",
+    "metal": "#D4AF37",
+    "metal_name": "polished gold",
+    "shaft_rough": 0.12,
+    "base": "#16120C",
+    "chevron": "#E6C04A",
+    "accent": "#5A4614",
+    "wrap": "leather",
+    "wrap_colour": "#17130E",
+    "badge_dark": "#120F0A"
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams",
+      "Note": "The shine sweep (as Silver) in warm white.",
+      "Beams": [
+        {
+          "Name": "ShineShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/rank/shine_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": "#FFF4D8",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.45
+            ],
+            [
+              0.96,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "ShineForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/rank/shine_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": "#FFF4D8",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.45
+            ],
+            [
+              0.9131578947368422,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "ShineSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/rank/shine_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 2.4,
+          "TextureSpeed": 0.35,
+          "Color": "#FFF4D8",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.45
+            ],
+            [
+              0.88,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "A few gold sparkles along the cue. Upgraded 2026-09-30: sparkles bigger and more of them, a faint gold haze and a gold glow round the cue, a gold trail.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.4,
+              0.192,
+              0.058
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFF3C4"
+            ],
+            [
+              1,
+              "#D4AF37"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GoldHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.82
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFE08A"
+            ],
+            [
+              1,
+              "#FFB020"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "Glow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.26,
+          "Width1": 0.46,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#FFC040",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.72
+            ],
+            [
+              0.9,
+              0.67
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ]
+    },
+    "Trail": {
+      "Note": "The wisp tinted gold, with a bright core."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 12,
+      "Back": 6.0,
+      "BallTrail": 0,
+      "Beams": 5,
+      "Lights": 0
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          196,
+          70
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.2,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            255,
+            208,
+            107
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.2,
+          "Brightness": 2.2
+        }
+      }
+    }
+  }
+}

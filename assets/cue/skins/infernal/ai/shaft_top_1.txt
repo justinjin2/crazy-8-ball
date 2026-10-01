@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the upper end of the shaft; its right edge meets the joint collar of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1536 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Glossy black obsidian (#0A0A0C) split by glowing red-hot magma cracks (#E0201A with orange #FF8A1F cores) running left to right, and toward the right edge sharp curved polished silver thorn blades (#B8BCC4) sweeping along it. No other shapes.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #0A0A0C #E0201A #FF8A1F.
+No text, no letters, no numbers, no logos, no symbols with words.

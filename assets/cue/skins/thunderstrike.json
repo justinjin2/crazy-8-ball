@@ -1,0 +1,1171 @@
+{
+  "id": "thunderstrike",
+  "name": "Thunderstrike",
+  "tier": "Legendary",
+  "catalog_id": "ThunderstrikeCue",
+  "concept": "L2",
+  "palette": [
+    "#3A4250",
+    "#3DB8FF",
+    "#FFFFFF"
+  ],
+  "painter": "mix",
+  "note": "Storm-grey brushed steel with glowing blue lightning veins: OpenAI panels on the whole cue (lightning branching over dark steel between raised silver angular armour shards on the forearm and sleeve, long branching veins along the steel shaft, a black knurled grip with blue veins breaking through), a glowing blue ring, a silver collar. Four emissive frames: a calm one and three that each blaze a different part of the veins.",
+  "panels": {
+    "shaft_tile": "skins/thunderstrike/shaft_tile.png",
+    "shaft_top": "skins/thunderstrike/shaft_top.png",
+    "forearm": "skins/thunderstrike/forearm.png",
+    "butt": "skins/thunderstrike/butt.png",
+    "cap_end": "skins/thunderstrike/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0D10",
+    "steel": "#4A5262",
+    "bolt": "#3DB8FF",
+    "silver": "#C8CED8",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "frames": {
+    "Count": 4,
+    "Keys": [
+      "emissive"
+    ]
+  },
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Dark storm-grey brushed steel (#3A4250) with glowing electric-blue lightning (#3DB8FF) with white-hot cores: two or three long jagged bolts run left to right along the whole length, forking into thinner crackling branches, with dark steel showing between them. No other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "Dark storm-grey brushed steel (#3A4250) with glowing electric-blue lightning (#3DB8FF) with white-hot cores: long jagged bolts run left to right, forking into crackling branches that grow denser toward the right edge. No other shapes."
+    },
+    "forearm": {
+      "refs": [
+        "forearm",
+        "full"
+      ],
+      "prompt": "Dark storm-grey brushed steel (#3A4250) covered in glowing electric-blue lightning (#3DB8FF) with white-hot cores: jagged branching bolts crackle across the whole forearm, mostly running left to right. Over the steel sit raised polished silver armour shards (#C8CED8): long sharp angular slashes and chevrons slanting diagonally from lower left to upper right, three or four across the forearm, some broken into pieces, with the lightning running round and between them. The two thin strips at the far left are the joint collar: paint them plain flat silver (#C8CCD0)."
+    },
+    "butt": {
+      "refs": [
+        "butt",
+        "full"
+      ],
+      "zones_px": [
+        86,
+        671,
+        1324
+      ],
+      "prompt": "Left thin strip (the ring): plain dark steel (#3A4250). The wrap (from the ring to the next zone line): a black crosshatch knurled grip (#101218) with a few thin glowing blue lightning veins (#3DB8FF). The butt sleeve (between the two zone lines on the right): dark storm-grey steel with glowing electric-blue branching lightning and two raised polished silver angular chevron shards (#C8CED8) pointing to the right, one above the middle row and one below. The very thin strip at the far right: plain black."
+    }
+  },
+  "surface": {
+    "EmissiveStrength": 2.2,
+    "EmissiveTint": "#B8E4FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.6,
+        "Max": 2.8,
+        "Period": 0.9,
+        "Shape": "flicker"
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Frames + Beams + emissive",
+      "Note": "Electricity flows through the veins: overlay Beams carry bright pulses racing along jagged threads (TextureSpeed 0.8); the emissive flickers (1.6-2.8); and four SurfaceAppearance frames (the same maps but for the emissive mask, each flaring a different set of veins) are swapped by a script in an uneven order every 0.12 s, so the veins pulse brighter at random.",
+      "Beams": [
+        {
+          "Name": "CurrentShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/thunderstrike/current_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.0,
+          "TextureSpeed": 0.8,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.2
+            ],
+            [
+              0.96,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "CurrentForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/thunderstrike/current_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.0,
+          "TextureSpeed": 0.8,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.2
+            ],
+            [
+              0.9131578947368422,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "CurrentSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/thunderstrike/current_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.0,
+          "TextureSpeed": 0.8,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.2
+            ],
+            [
+              0.88,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ],
+      "Frames": {
+        "Keys": [
+          "emissive"
+        ],
+        "FrameSeconds": 0.12,
+        "Order": [
+          0,
+          0,
+          2,
+          0,
+          1,
+          1,
+          0,
+          3,
+          0,
+          0,
+          2,
+          0,
+          1,
+          3,
+          3,
+          0,
+          0,
+          2
+        ],
+        "Maps": [
+          {
+            "emissive": "textures/thunderstrike_emissive.png"
+          },
+          {
+            "emissive": "textures/thunderstrike_f1_emissive.png"
+          },
+          {
+            "emissive": "textures/thunderstrike_f2_emissive.png"
+          },
+          {
+            "emissive": "textures/thunderstrike_f3_emissive.png"
+          }
+        ]
+      }
+    },
+    "Aura": {
+      "Note": "Layered: a flickering blue glow round the cue as the core (a halo Beam) inside a haze of blue electric mist; lightning arcs crawl up and down the whole cue just off its surface, re-struck every 0.09 s, and big arcs leap well clear of it (Arcs: chains of short Beams a script re-jitters); a small storm cloud of static churns round the butt (dark cloud puffs with crackling static balls inside); blue sparks spit off and charge motes hang in the air; a blue light, and a second one that cracks bright twice every 1.7 s.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.22,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.25,
+            0.45
+          ],
+          "Speed": [
+            1.2,
+            2.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4,
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              1,
+              0.01
+            ]
+          ],
+          "Squash": -1.2,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.3,
+              "#9AD8FF"
+            ],
+            [
+              1,
+              "#3D7AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "StormCloud",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 6.2,
+            "ToStuds": 7.05,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.2,
+            1.6
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.5,
+              0.65
+            ],
+            [
+              1,
+              0.75
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.35
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#3A4A66"
+            ],
+            [
+              1,
+              "#1A2030"
+            ]
+          ],
+          "LightEmission": 0.15,
+          "LightInfluence": 0,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -30,
+            30
+          ],
+          "LockedToPart": true
+        },
+        {
+          "Name": "Static",
+          "Texture": "vfx/thunderstrike/spark_ball_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 24,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 6.2,
+            "ToStuds": 7.05,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.2,
+            0.35
+          ],
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.25,
+              0.08
+            ],
+            [
+              1,
+              0.3,
+              0.08
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Charge",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.05,
+            0.2
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": "#9AD8FF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "StormHaze",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.0,
+            1.5
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.4
+            ],
+            [
+              1,
+              0.9
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -25,
+            25
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.7
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#4A9AFF"
+            ],
+            [
+              1,
+              "#1A3AA0"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Arcs": [
+        {
+          "Name": "Crawl",
+          "Count": 5,
+          "Segments": 20,
+          "FromStuds": 0.3,
+          "ToStuds": 7.0,
+          "Length": [
+            0.8,
+            1.8
+          ],
+          "Around": 220,
+          "Radius": 0.15,
+          "Jitter": 0.06,
+          "Interval": 0.09,
+          "Duty": 0.75,
+          "WidthStuds": 0.16,
+          "Color": "#5AAEFF",
+          "Brightness": 2.2,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        },
+        {
+          "Name": "Leap",
+          "Count": 3,
+          "Segments": 26,
+          "FromStuds": 0.8,
+          "ToStuds": 7.0,
+          "Length": [
+            1.6,
+            3.2
+          ],
+          "Around": 300,
+          "Radius": 0.2,
+          "Jitter": 0.11,
+          "Interval": 0.14,
+          "Duty": 0.55,
+          "WidthStuds": 0.2,
+          "Color": "#7AC0FF",
+          "Brightness": 2.4,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "StormGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.55,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#6AC8FF"
+            ],
+            [
+              1,
+              "#3D7AFF"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.55
+            ],
+            [
+              0.9,
+              0.5
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.55,
+            "Max": 1.0,
+            "Period": 0.9,
+            "Shape": "flicker"
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 5.2,
+          "Color": "#6AC8FF",
+          "Brightness": 1.0,
+          "Range": 8,
+          "Flicker": {
+            "Min": 0.6,
+            "Max": 1.2,
+            "Period": 0.9,
+            "Shape": "flicker"
+          }
+        },
+        {
+          "AtStuds": 3.0,
+          "Color": "#C8ECFF",
+          "Brightness": 2.5,
+          "Range": 10,
+          "Flicker": {
+            "Min": 0.0,
+            "Max": 1.0,
+            "Period": 1.7,
+            "Shape": "beat"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            160,
+            220,
+            255
+          ],
+          [
+            61,
+            122,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.1,
+        "WidthStuds": 0.5,
+        "LightEmission": 1,
+        "Texture": "vfx/thunderstrike/trail_electric.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.2,
+        "WidthScale": [
+          [
+            0,
+            0.8
+          ],
+          [
+            0.4,
+            1.1
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Core": {
+          "Color": [
+            220,
+            240,
+            255
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.6,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.2
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            61,
+            184,
+            255
+          ],
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A jagged electric trail: a ribbon of zig-zagging lightning lines in a blue sheath (textured, wrapping) over a white core; the ball throws blue sparks and crackling static balls.",
+      "Emitters": [
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 26,
+          "Lifetime": [
+            0.2,
+            0.4
+          ],
+          "Speed": [
+            1.5,
+            3.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4,
+          "Size": [
+            [
+              0,
+              0.07
+            ],
+            [
+              1,
+              0.01
+            ]
+          ],
+          "Squash": -1.4,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.3,
+              "#9AD8FF"
+            ],
+            [
+              1,
+              "#3D7AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Static",
+          "Texture": "vfx/thunderstrike/spark_ball_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 24,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.15,
+            0.3
+          ],
+          "Speed": 0,
+          "Size": 0.5,
+          "Transparency": 0,
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.4 s: a lightning bolt strikes down into the pocket (a 4-bolt flipbook, 4.5 studs tall, flicking between bolts) with a blinding blue-white flash (0 s), a second strike (0.2 s); a blue shockwave ring (0.05 s); a burst of blue sparks and dark rock chips thrown out (0.05 s); crackling static and charge motes linger (0.3-1.4 s). The default gust is tinted blue.",
+      "Layers": [
+        {
+          "Name": "Bolt",
+          "Texture": "vfx/thunderstrike/bolt_2x2.png",
+          "FlipbookLayout": "Grid2x2",
+          "FlipbookMode": "Random",
+          "FlipbookFramerate": 30,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.3,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Lifetime": 0.3,
+          "Speed": 0,
+          "Size": 4.6,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.7,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 2
+        },
+        {
+          "Name": "Bolt2",
+          "Texture": "vfx/thunderstrike/bolt_2x2.png",
+          "FlipbookLayout": "Grid2x2",
+          "FlipbookMode": "Random",
+          "FlipbookFramerate": 30,
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              2.3,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.2,
+          "Lifetime": 0.22,
+          "Speed": 0,
+          "Size": 4.2,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.6,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "Brightness": 2
+        },
+        {
+          "Name": "Sparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 40,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.3,
+            0.6
+          ],
+          "Speed": [
+            6,
+            12
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Acceleration": [
+            0,
+            -6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0.02
+            ]
+          ],
+          "Squash": -2.0,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.3,
+              "#9AD8FF"
+            ],
+            [
+              1,
+              "#3D7AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Chips",
+          "Texture": "vfx/thunderstrike/rock_chip.png",
+          "Burst": 10,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.7,
+            1.0
+          ],
+          "Speed": [
+            4,
+            7
+          ],
+          "SpreadAngle": [
+            55,
+            55
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -18,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.22
+            ],
+            [
+              1,
+              0.16
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -400,
+            400
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Static",
+          "Texture": "vfx/thunderstrike/spark_ball_4x4.png",
+          "FlipbookLayout": "Grid4x4",
+          "FlipbookMode": "Loop",
+          "FlipbookFramerate": 24,
+          "FlipbookStartRandom": true,
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.2
+          },
+          "Burst": 8,
+          "Delay": 0.3,
+          "Lifetime": [
+            0.3,
+            0.9
+          ],
+          "Speed": [
+            0.3,
+            1
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Size": 0.4,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Motes",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Burst": 24,
+          "Delay": 0.35,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            0.5,
+            2
+          ],
+          "SpreadAngle": [
+            80,
+            80
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0.1,
+          "Color": "#9AD8FF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#6AC8FF",
+          "Start": 0.4,
+          "End": 5.0,
+          "Seconds": 0.45,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          200,
+          235,
+          255
+        ],
+        "Brightness": 14,
+        "Seconds": 0.35
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 43,
+      "Back": 21.5,
+      "BallTrail": 36,
+      "Beams": 5,
+      "Lights": 2,
+      "Arcs": 8
+    }
+  }
+}

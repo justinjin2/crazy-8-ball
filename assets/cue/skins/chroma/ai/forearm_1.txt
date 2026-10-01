@@ -1,0 +1,6 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the forearm: the two thin strips at the far left are the metal joint collar, the rest is the forearm (between the joint collar and the ring) of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1536 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+Liquid mirror chrome in vivid rainbow colours (red, orange, yellow, green, cyan, blue, violet, magenta): smooth glossy ribbons of polished chrome twist diagonally along the whole forearm like flowing liquid metal, each ribbon shading through the rainbow, with bright glowing white-hot edges where they fold over and deep dark reflections between them. The two thin strips at the far left are the joint collar: paint them plain polished silver (#D8DCE2).
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #FF3D3D #FFD23D #3DFF8A #3D8AFF #B03DFF.
+No text, no letters, no numbers, no logos, no symbols with words.

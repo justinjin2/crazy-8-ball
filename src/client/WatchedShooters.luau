@@ -136,6 +136,7 @@ export type WatchedShooters = typeof(setmetatable(
 	{} :: {
 		slots: { [Model]: Slot },
 		source: Source, -- this frame's, refilled by update()
+		held: { [number]: boolean }, -- holding()'s answer, refilled in place
 	},
 	WatchedShooters
 ))
@@ -210,6 +211,7 @@ function WatchedShooters.new(cues: { Model }): WatchedShooters
 	return setmetatable({
 		slots = slots,
 		source = { cueOf = {}, snapshots = {}, matches = {}, aims = {}, shots = {} },
+		held = {},
 	}, WatchedShooters)
 end
 
@@ -235,6 +237,20 @@ local function drop(slot: Slot)
 		forgetTurn(slot)
 	end
 	CueStickBuilder.setVisible(slot.cue, false)
+end
+
+--- Who is holding a cue on this client right now (UserId -> true): the posed shooters whose
+--- cue is drawn this frame. BackCue hides their back cue while it is in their hands. The
+--- table is reused, so read it before the next call.
+function WatchedShooters.holding(self: WatchedShooters): { [number]: boolean }
+	local held = self.held
+	table.clear(held)
+	for _, slot in self.slots do
+		if slot.userId ~= nil and slot.cue:GetAttribute("Visible") == true then
+			held[slot.userId] = true
+		end
+	end
+	return held
 end
 
 --- Table `id` has left the pool: let go of its shooter.

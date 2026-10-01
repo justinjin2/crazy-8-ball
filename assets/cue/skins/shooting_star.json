@@ -1,0 +1,1033 @@
+{
+  "id": "shooting_star",
+  "name": "Shooting Star",
+  "tier": "Epic",
+  "catalog_id": "ShootingStarCue",
+  "concept": "E1",
+  "palette": [
+    "#0B1440",
+    "#FFD76A",
+    "#FFFFFF"
+  ],
+  "painter": "mix",
+  "note": "Midnight navy with gold star inlays and a starfield drifting along the cue: a starry navy shaft with gold swooshes into the joint, a gold four-point star with gold arcs on the forearm and on the sleeve (OpenAI), a navy snakeskin wrap, gold ring lines, a silver collar.",
+  "ai": {
+    "forearm": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "roll_deg": 45,
+      "prompt": "The forearm is deep midnight navy (#0B1440) like a night sky, sprinkled with tiny white and gold star specks and a faint deep-blue nebula haze. Its centrepiece, on the middle row about 60 percent of the way from left to right: a gold four-point compass star (#FFD76A) about 200 pixels tall, with a smaller diagonal four-point star behind it, bright pale gold at its centre. Thin elegant gold lines sweep in long curved arcs across the forearm from the left and wrap round the star like a comet path. The two thin strips at the far left are the joint collar: paint them plain flat silver (#C8CCD0)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "full"
+      ],
+      "roll_deg": 45,
+      "prompt": "Left thin strip (the ring): navy (#0B1440) with two thin gold lines (#FFD76A). The wrap (from the ring to the next zone line): plain flat navy blue (#14204E). The butt sleeve (between the two zone lines on the right): deep midnight navy with tiny white and gold star specks, a gold four-point compass star (#FFD76A) about 150 pixels tall on the middle row, framed on both sides by thin gold arcs that curve like a pointed oval round it. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/shooting_star/shaft_tile.png",
+    "shaft_top": "skins/shooting_star/shaft_top.png",
+    "forearm": "skins/shooting_star/forearm.png",
+    "butt": "skins/shooting_star/butt.png",
+    "cap_end": "skins/shooting_star/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0A0C14",
+    "navy": "#0B1440",
+    "gold": "#FFD76A",
+    "wrap": "#14204E",
+    "metal": "#C8CCD0"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 1.4,
+    "EmissiveTint": "#FFE9B0",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.1,
+        "Max": 1.8,
+        "Period": 3.0
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Beams",
+      "Note": "The starfield drifts: camera-facing Beams as wide as the cue lie just in front of it (ZOffset ~ its radius) over the shaft, forearm and sleeve, carrying a clear texture of white and gold pin stars that scrolls slowly along the cue (TextureSpeed); the painted stars and gold breathe with the emissive pulse.",
+      "Beams": [
+        {
+          "Name": "StarDriftShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/shooting_star/starfield_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.1,
+          "TextureSpeed": -0.06,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.1
+            ],
+            [
+              0.96,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "StarDriftForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/shooting_star/starfield_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.1,
+          "TextureSpeed": -0.06,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.1
+            ],
+            [
+              0.9131578947368422,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "StarDriftSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/shooting_star/starfield_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.1,
+          "TextureSpeed": -0.06,
+          "Color": "#FFFFFF",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.1
+            ],
+            [
+              0.88,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ]
+    },
+    "Aura": {
+      "Note": "Tiny shooting stars streak along the stick: five gold stars (Orbiters with a four-point head and a long gold Trail) fly from the butt past the tip on wide looping arcs round the cue, one after another; two thin gold star streams arc round the cue tip to butt (curved Beams, turned slowly by a script, energy texture streaming toward the tip); small white-gold streaks shoot along the cue toward the tip; gold twinkles blink on the surface; fine gold dust hangs round it; a warm gold light.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Twinkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 14,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0,
+            0.05
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.3
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFE7A0"
+            ],
+            [
+              1,
+              "#FFD76A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "Rotation": [
+            0,
+            45
+          ],
+          "LockedToPart": true,
+          "ZOffset": 0.05
+        },
+        {
+          "Name": "StreakStars",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 1.2,
+            "ToStuds": 7.0,
+            "Width": 0.6,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 8,
+          "Lifetime": [
+            0.3,
+            0.45
+          ],
+          "Speed": [
+            2.6,
+            3.6
+          ],
+          "EmissionDirection": "Front",
+          "SpreadAngle": [
+            4,
+            4
+          ],
+          "Size": [
+            [
+              0,
+              0.07
+            ],
+            [
+              1,
+              0.03
+            ]
+          ],
+          "Squash": [
+            [
+              0,
+              -2.6
+            ],
+            [
+              1,
+              -2.0
+            ]
+          ],
+          "Orientation": "VelocityParallel",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.15,
+              0
+            ],
+            [
+              0.8,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFD76A"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GoldDust",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.5,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 6,
+          "Lifetime": [
+            1.2,
+            1.8
+          ],
+          "Speed": [
+            0.02,
+            0.08
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.4,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFD76A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "ShootingStar1",
+          "FromStuds": 7.2,
+          "ToStuds": -0.2,
+          "TravelSeconds": 1.5,
+          "Loop": "wrap",
+          "TurnsPerSecond": 0.45,
+          "Radius": 0.26,
+          "Wobble": 0.06,
+          "Phase": 0,
+          "Delay": 0.0,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.25,
+                "#FFE7A0"
+              ],
+              [
+                1,
+                "#FFB830"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.15
+              ]
+            ],
+            "LightEmission": 1,
+            "Brightness": 2.0
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.36,
+            "Color": "#FFF4D0",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "ShootingStar2",
+          "FromStuds": 7.2,
+          "ToStuds": -0.2,
+          "TravelSeconds": 1.9,
+          "Loop": "wrap",
+          "TurnsPerSecond": -0.36,
+          "Radius": 0.34,
+          "Wobble": 0.06,
+          "Phase": 130,
+          "Delay": 0.5,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.25,
+                "#FFE7A0"
+              ],
+              [
+                1,
+                "#FFB830"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.15
+              ]
+            ],
+            "LightEmission": 1,
+            "Brightness": 2.0
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.36,
+            "Color": "#FFF4D0",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "ShootingStar3",
+          "FromStuds": 7.2,
+          "ToStuds": -0.2,
+          "TravelSeconds": 2.3,
+          "Loop": "wrap",
+          "TurnsPerSecond": 0.55,
+          "Radius": 0.22,
+          "Wobble": 0.06,
+          "Phase": 250,
+          "Delay": 1.0,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.25,
+                "#FFE7A0"
+              ],
+              [
+                1,
+                "#FFB830"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.15
+              ]
+            ],
+            "LightEmission": 1,
+            "Brightness": 2.0
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.36,
+            "Color": "#FFF4D0",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "ShootingStar4",
+          "FromStuds": 7.2,
+          "ToStuds": -0.2,
+          "TravelSeconds": 1.7,
+          "Loop": "wrap",
+          "TurnsPerSecond": -0.5,
+          "Radius": 0.4,
+          "Wobble": 0.06,
+          "Phase": 60,
+          "Delay": 1.5,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.25,
+                "#FFE7A0"
+              ],
+              [
+                1,
+                "#FFB830"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.15
+              ]
+            ],
+            "LightEmission": 1,
+            "Brightness": 2.0
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.36,
+            "Color": "#FFF4D0",
+            "LightEmission": 1
+          }
+        },
+        {
+          "Name": "ShootingStar5",
+          "FromStuds": 7.2,
+          "ToStuds": -0.2,
+          "TravelSeconds": 2.1,
+          "Loop": "wrap",
+          "TurnsPerSecond": 0.4,
+          "Radius": 0.3,
+          "Wobble": 0.06,
+          "Phase": 190,
+          "Delay": 0.25,
+          "Trail": {
+            "Lifetime": 1.1,
+            "WidthStuds": 0.1,
+            "Color": [
+              [
+                0,
+                "#FFFFFF"
+              ],
+              [
+                0.25,
+                "#FFE7A0"
+              ],
+              [
+                1,
+                "#FFB830"
+              ]
+            ],
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.35
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0.15
+              ]
+            ],
+            "LightEmission": 1,
+            "Brightness": 2.0
+          },
+          "Head": {
+            "Texture": "vfx/_shared/star4.png",
+            "Size": 0.36,
+            "Color": "#FFF4D0",
+            "LightEmission": 1
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "StarStreamA",
+          "FromStuds": 0.1,
+          "ToStuds": 6.95,
+          "Width0": 0.08,
+          "Width1": 0.2,
+          "Segments": 32,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": -0.5,
+          "Curve0": [
+            0.3,
+            0.1
+          ],
+          "Curve1": [
+            -0.28,
+            0.05
+          ],
+          "Twist": 25,
+          "Color": [
+            [
+              0,
+              "#FFF4D0"
+            ],
+            [
+              1,
+              "#FFC040"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.2
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        },
+        {
+          "Name": "StarStreamB",
+          "FromStuds": 0.1,
+          "ToStuds": 6.95,
+          "Width0": 0.08,
+          "Width1": 0.2,
+          "Segments": 32,
+          "Texture": "vfx/_shared/wisp_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.6,
+          "TextureSpeed": -0.5,
+          "Curve0": [
+            -0.26,
+            -0.1
+          ],
+          "Curve1": [
+            0.3,
+            0.12
+          ],
+          "Twist": -20,
+          "Color": [
+            [
+              0,
+              "#FFF4D0"
+            ],
+            [
+              1,
+              "#FFC040"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.1,
+              0.2
+            ],
+            [
+              0.9,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 4.6,
+          "Color": "#FFD76A",
+          "Brightness": 0.6,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.8,
+            "Max": 1.1,
+            "Period": 3.0
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          255,
+          215,
+          106
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.2,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            255,
+            223,
+            136
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.2,
+          "Brightness": 2.2
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            215,
+            106
+          ],
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "The white wisp tinted gold (Config.Effects style row); plan.json lists no Shooting Star trail."
+    },
+    "Pocket": {
+      "Note": "A burst of little gold five-point stars: the default gust tinted gold (Style.Pocket.Colors) plus 26 gold stars thrown up out of the pocket, spinning and falling back, a spray of white twinkles, a gold shockwave ring and a gold flash. About 1.3 s.",
+      "Layers": [
+        {
+          "Name": "GoldStars",
+          "Texture": "vfx/shooting_star/star5.png",
+          "Burst": 26,
+          "Delay": 0.0,
+          "Lifetime": [
+            0.9,
+            1.3
+          ],
+          "Speed": [
+            5,
+            9
+          ],
+          "SpreadAngle": [
+            38,
+            38
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -12,
+            0
+          ],
+          "Drag": 1.2,
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.7,
+              0.28
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -300,
+            300
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.75,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.7,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Twinkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 16,
+          "Delay": 0.06,
+          "Lifetime": [
+            0.4,
+            0.7
+          ],
+          "Speed": [
+            3,
+            7
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Size": [
+            [
+              0,
+              0.35
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": "#FFF4D0",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FFD76A",
+          "Start": 0.5,
+          "End": 4.5,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          215,
+          106
+        ]
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 28,
+      "Back": 14.0,
+      "Beams": 5,
+      "Lights": 1,
+      "Orbiters": 5
+    }
+  }
+}

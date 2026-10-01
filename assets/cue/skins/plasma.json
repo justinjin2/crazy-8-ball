@@ -1,0 +1,440 @@
+{
+  "id": "plasma",
+  "name": "Plasma",
+  "tier": "Rare",
+  "catalog_id": "PlasmaCue",
+  "concept": "R2",
+  "palette": [
+    "#2A2B33",
+    "#A45CFF",
+    "#E6CCFF"
+  ],
+  "painter": "procedural",
+  "note": "Dark gunmetal with glowing violet plasma veins pulsing through cracks.",
+  "panels": {
+    "shaft_tile": "skins/plasma/shaft_tile.png",
+    "shaft_top": "skins/plasma/shaft_top.png",
+    "forearm": "skins/plasma/forearm.png",
+    "butt": "skins/plasma/butt.png",
+    "cap_end": "skins/plasma/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#C8CCD0",
+    "gunmetal": "#2A2B33",
+    "violet": "#A45CFF",
+    "pale": "#E6CCFF",
+    "glow": "#C08AFF"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {
+    "EmissiveStrength": 2.0,
+    "EmissiveTint": "#D0A8FF",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.2,
+        "Max": 2.4,
+        "Period": 1.6
+      }
+    }
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "Violet lightning arcs crackle over the whole cue: short jagged arcs jump between points on the handle and the shaft, re-struck every tenth of a second (chains of short Beams whose attachments a script re-jitters: Arcs); violet sparks spit off; a violet light flickers with them. Upgraded 2026-09-30: more arcs, standing off the cue, finely jagged and wider, bigger sparks and glow, a violet veil.",
+      "BackRateScale": 0.5,
+      "Arcs": [
+        {
+          "Name": "HandleArcs",
+          "Count": 5,
+          "FromStuds": 3.6,
+          "ToStuds": 7.0,
+          "Length": [
+            0.25,
+            0.75
+          ],
+          "Around": 120,
+          "Radius": 0.18,
+          "Segments": 18,
+          "Jitter": 0.075,
+          "Interval": 0.1,
+          "Duty": 0.6,
+          "WidthStuds": 0.12,
+          "Color": "#A868FF",
+          "LightEmission": 1,
+          "Brightness": 2.3,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        },
+        {
+          "Name": "ShaftArcs",
+          "Count": 4,
+          "FromStuds": 0.4,
+          "ToStuds": 3.6,
+          "Length": [
+            0.35,
+            1.0
+          ],
+          "Around": 90,
+          "Radius": 0.16,
+          "Segments": 20,
+          "Jitter": 0.07,
+          "Interval": 0.13,
+          "Duty": 0.55,
+          "WidthStuds": 0.1,
+          "Color": "#9A58FF",
+          "LightEmission": 1,
+          "Brightness": 2.3,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        },
+        {
+          "Name": "FarArcs",
+          "Count": 2,
+          "FromStuds": 1.0,
+          "ToStuds": 7.0,
+          "Length": [
+            0.8,
+            1.6
+          ],
+          "Around": 200,
+          "Radius": 0.34,
+          "Segments": 24,
+          "Jitter": 0.09,
+          "Interval": 0.2,
+          "Duty": 0.45,
+          "WidthStuds": 0.1,
+          "Color": "#C090FF",
+          "LightEmission": 1,
+          "Brightness": 2.3,
+          "Texture": "vfx/_shared/bolt_strip.png"
+        }
+      ],
+      "Emitters": [
+        {
+          "Name": "PlasmaSparks",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.26,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.2,
+            0.5
+          ],
+          "Speed": [
+            1.5,
+            3.0
+          ],
+          "Size": [
+            [
+              0,
+              0.112
+            ],
+            [
+              1,
+              0.028
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#F2E6FF"
+            ],
+            [
+              1,
+              "#8A3AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false,
+          "ZOffset": 0,
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 4
+        },
+        {
+          "Name": "PlasmaHaze",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.5,
+              0.675
+            ],
+            [
+              1,
+              0.45
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.75
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#8A3AFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true,
+          "ZOffset": 0,
+          "SpreadAngle": [
+            180,
+            180
+          ]
+        },
+        {
+          "Name": "PlasmaVeil",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.35,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            1.4,
+            2.0
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            0.15,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.8
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#C99BFF"
+            ],
+            [
+              1,
+              "#6A3AFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 5.0,
+          "Color": "#A45CFF",
+          "Brightness": 1.0,
+          "Range": 6,
+          "Flicker": {
+            "Min": 0.3,
+            "Max": 1.2,
+            "Period": 0.25,
+            "Shape": "flicker"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Color": [
+          170,
+          100,
+          255
+        ],
+        "NearTransparency": 0.0,
+        "LightEmission": 0.5,
+        "Lifetime": 0.9,
+        "WidthStuds": 0.3,
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "WidthScale": [
+          [
+            0,
+            1
+          ],
+          [
+            0.6,
+            0.85
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Brightness": 1.8,
+        "Core": {
+          "Color": [
+            187,
+            131,
+            255
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            170,
+            100,
+            255
+          ],
+          [
+            187,
+            131,
+            255
+          ]
+        ],
+        "ColorShare": 0.7
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 20,
+      "Back": 10.0,
+      "Beams": 0,
+      "Arcs": 11,
+      "Lights": 1
+    },
+    "Trail": {
+      "Note": "The white wisp tinted (Config.Effects style row)."
+    },
+    "Pocket": {
+      "Note": "The default gust, most of it in the skin's own colours (Rares add no layers)."
+    }
+  }
+}

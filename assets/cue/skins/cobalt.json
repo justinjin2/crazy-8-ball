@@ -1,0 +1,44 @@
+{
+  "id": "cobalt",
+  "name": "Cobalt",
+  "tier": "Common",
+  "catalog_id": "CobaltCue",
+  "concept": "C2",
+  "palette": [
+    "#1C3F6E",
+    "#6B7078",
+    "#9FD3FF"
+  ],
+  "painter": "procedural",
+  "note": "Curly maple stained deep Prussian blue under a gloss finish, a smoke-grey handle with no wrap, and small shimmering blue diamond inlays. Look from: Lucasi's stained cues.",
+  "panels": {
+    "shaft_tile": "skins/cobalt/shaft_tile.png",
+    "shaft_top": "skins/cobalt/shaft_top.png",
+    "forearm": "skins/cobalt/forearm.png",
+    "butt": "skins/cobalt/butt.png",
+    "cap_end": "skins/cobalt/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "blue": "#17355E",
+    "grey": "#3C3F45",
+    "gem": "#3F8FEF",
+    "metal": "#C8CCD0",
+    "navy": "#0E1A33"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Trail": {
+      "Style": "Default"
+    }
+  }
+}

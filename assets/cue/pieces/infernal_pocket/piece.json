@@ -1,0 +1,133 @@
+{
+  "id": "infernal_pocket",
+  "Frame": "pocket",
+  "frame": "Blender cue frame for Pivot/Motion axes: X side, Y toward the butt (-AtStuds), Z up; PivotRoblox and Offset are in the cue MeshPart frame (X = -Side, Y = Up, Z = 3.5 - AtStuds)",
+  "Triangles": 27500,
+  "Parts": [
+    {
+      "Material": "SmoothPlastic",
+      "Color": "#FFFFFF",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "SurfaceAppearance": {
+        "ColorMap": "pieces/infernal_pocket/PocketSkull_spirit.png",
+        "EmissiveMask": "pieces/infernal_pocket/PocketSkull_emissive.png",
+        "EmissiveTint": "#FF6A2A",
+        "EmissiveStrength": 1.8,
+        "NormalMap": "pieces/infernal_pocket/PocketSkull_normal.png",
+        "AlphaMode": "Transparency"
+      },
+      "Name": "PocketSkull",
+      "File": "pieces/infernal_pocket/PocketSkull.glb",
+      "Mesh": "PocketSkullSkin",
+      "Joint": "Skull",
+      "Skinned": true,
+      "Bones": [
+        "Skull",
+        "Jaw"
+      ],
+      "Triangles": 19500,
+      "Offset": [
+        0.0011,
+        1.2961,
+        -0.0004
+      ],
+      "Size": [
+        2.7124,
+        2.6009,
+        1.928
+      ]
+    },
+    {
+      "Material": "ForceField",
+      "Color": "#FFB060",
+      "Transparency": 0.0,
+      "Reflectance": 0.0,
+      "Name": "PocketSkullShell",
+      "File": "pieces/infernal_pocket/PocketSkull.glb",
+      "Mesh": "PocketSkullShellSkin",
+      "Joint": "Skull",
+      "Skinned": true,
+      "Bones": [
+        "Skull",
+        "Jaw"
+      ],
+      "Triangles": 8000,
+      "Offset": [
+        -0.0025,
+        1.2918,
+        -0.0004
+      ],
+      "Size": [
+        2.7593,
+        2.6596,
+        1.972
+      ]
+    }
+  ],
+  "Joints": {
+    "Skull": {
+      "Parent": null,
+      "Pivot": [
+        0,
+        0,
+        0.4
+      ],
+      "PivotRoblox": [
+        0,
+        0.4,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Amp": 4.0,
+          "Period": 1.6
+        },
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            0,
+            1,
+            0
+          ],
+          "Amp": 3.0,
+          "Period": 2.2,
+          "Phase": 40
+        }
+      ]
+    },
+    "Jaw": {
+      "Parent": "Skull",
+      "Pivot": [
+        0,
+        0.0,
+        0.58
+      ],
+      "PivotRoblox": [
+        0,
+        0.58,
+        0.0
+      ],
+      "Motion": [
+        {
+          "Kind": "Hinge",
+          "Axis": [
+            1,
+            0,
+            0
+          ],
+          "Base": 13.0,
+          "Amp": 13.0,
+          "Period": 0.9,
+          "Shape": "snap"
+        }
+      ]
+    }
+  }
+}

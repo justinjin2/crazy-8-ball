@@ -1,0 +1,61 @@
+{
+  "id": "bronze_cue",
+  "name": "Bronze Cue",
+  "tier": "Rank",
+  "catalog_id": "BronzeCue",
+  "concept": "K1",
+  "palette": [
+    "#B06A3B",
+    "#6B3A1E"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a brushed bronze shaft; three nested chevrons pointing to the butt on the forearm; the collar and rings in brushed bronze; a dark brown leather wrap; two chevron sets meeting on the sleeve; the Bronze rank badge on the butt face.",
+  "panels": {
+    "shaft_tile": "skins/bronze_cue/shaft_tile.png",
+    "shaft_top": "skins/bronze_cue/shaft_top.png",
+    "forearm": "skins/bronze_cue/forearm.png",
+    "butt": "skins/bronze_cue/butt.png",
+    "cap_end": "skins/bronze_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#B06A3B"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "metal",
+    "metal": "#B06A3B",
+    "metal_name": "brushed bronze",
+    "base": "#241510",
+    "chevron": "#C98A55",
+    "accent": "#4A2A18",
+    "wrap": "leather",
+    "wrap_colour": "#24160E",
+    "badge_dark": "#1A100C"
+  },
+  "vfx": {
+    "Aura": {
+      "Note": "None (plan.json)."
+    },
+    "Trail": {
+      "Note": "The shared white wisp."
+    },
+    "Pocket": {
+      "Note": "The default gust in the ball's colour."
+    },
+    "Budget": {
+      "ParticlesPerSecond": 0,
+      "Back": 0,
+      "Beams": 0
+    }
+  }
+}

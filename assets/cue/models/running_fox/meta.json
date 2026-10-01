@@ -1,0 +1,23 @@
+{
+  "name": "running_fox",
+  "endpoint": "image-to-3d",
+  "task_id": "01a0f4b7-e7db-702d-be5f-30f839d4d257",
+  "status": "SUCCEEDED",
+  "credits": 35,
+  "params": {
+    "ai_model": "latest",
+    "should_texture": true,
+    "enable_pbr": true,
+    "geometry_resolution": "2k",
+    "target_formats": [
+      "glb"
+    ],
+    "texture_resolution": "2k",
+    "texture_prompt": "White fox fur with soft pink and violet tints toward the nine tail tips, a white porcelain fox mask with crimson markings and gold trim, violet eyes, gold claws.",
+    "images": [
+      "assets/cue/models/refs/running_fox.png"
+    ]
+  },
+  "finished_at": 1790812210170,
+  "task_error": null
+}

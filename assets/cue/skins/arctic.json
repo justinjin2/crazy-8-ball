@@ -1,0 +1,44 @@
+{
+  "id": "arctic",
+  "name": "Arctic",
+  "tier": "Common",
+  "catalog_id": "ArcticCue",
+  "concept": "C1",
+  "palette": [
+    "#F4F6F8",
+    "#9FD3EE",
+    "#C8CCD0"
+  ],
+  "painter": "procedural",
+  "note": "Gloss pearl white with one frosted ice-blue stripe running the full length of the butt, chrome collar and butt cap, and a white leather wrap. Look from: the Predator P3 stripe layout, in white.",
+  "panels": {
+    "shaft_tile": "skins/arctic/shaft_tile.png",
+    "shaft_top": "skins/arctic/shaft_top.png",
+    "forearm": "skins/arctic/forearm.png",
+    "butt": "skins/arctic/butt.png",
+    "cap_end": "skins/arctic/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "body": "#F4F6F8",
+    "ice": "#9FD3EE",
+    "metal": "#C8CCD0",
+    "shaft": "#C9CED4",
+    "wrap": "#EEF0F2"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Trail": {
+      "Style": "Default"
+    }
+  }
+}

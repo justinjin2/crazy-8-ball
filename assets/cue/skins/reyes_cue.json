@@ -1,0 +1,920 @@
+{
+  "id": "reyes_cue",
+  "name": "Reyes Cue",
+  "tier": "Rank",
+  "catalog_id": "ReyesCue",
+  "concept": "K2",
+  "palette": [
+    "#FFFFFF",
+    "#FF3D3D",
+    "#3DFF8A",
+    "#3D8AFF",
+    "#FFD23D"
+  ],
+  "painter": "procedural",
+  "note": "The rank cues' shared trophy design (recipe rank_cue): a pearl-white lacquer shaft wound with fine gold lines and gold chevrons before the collar; three nested chevrons pointing to the butt on the forearm, each lined with a glowing white line, a glowing gem in the front one; the collar and rings in white gold; a white snakeskin wrap; two chevron sets meeting on the sleeve; the Reyes rank badge on the butt face. The white lines, gems and ring glow, and a script turns EmissiveTint round the rainbow, so they cycle; gold rays turn behind the badge.",
+  "panels": {
+    "shaft_tile": "skins/reyes_cue/shaft_tile.png",
+    "shaft_top": "skins/reyes_cue/shaft_top.png",
+    "forearm": "skins/reyes_cue/forearm.png",
+    "butt": "skins/reyes_cue/butt.png",
+    "cap_end": "skins/reyes_cue/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "metal": "#E8C860"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "recipe": "rank_cue",
+  "rank": {
+    "shaft": "lacquer",
+    "metal": "#E8C860",
+    "metal_name": "white gold",
+    "chevron": "#FFC83C",
+    "wrap": "scales",
+    "crown": true,
+    "line_glow": 0.0,
+    "base": "#F2EFE8",
+    "accent": "#FFFFFF",
+    "accent_name": "white",
+    "accent_glow": 1.0,
+    "gem": "#FFFFFF",
+    "gem_glow": 0.9,
+    "ring_glow": "#FFFFFF",
+    "rays": true,
+    "wrap_colour": "#EDEAE2",
+    "wrap_edge": "#C9C2B0",
+    "badge_dark": "#141218"
+  },
+  "surface": {
+    "EmissiveStrength": 2.2,
+    "EmissiveTint": "#FFFFFF",
+    "Pulse": {
+      "EmissiveTintHue": {
+        "Period": 4.0,
+        "Saturation": 0.8
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Emissive + particle",
+      "Note": "The rainbow cycles (a script turns EmissiveTint round the hue wheel every 4 s: the glowing white chevron lines, gems and ring cycle, the gold does not) and gold rays turn behind the badge (a rays sprite made for Reyes, turning 30 degrees a second, just past the butt)."
+    },
+    "Aura": {
+      "Note": "Rainbow light and gold rays: rainbow motes shifting colour, white-gold sparkles, vertical gold light rays rising (the thin gold column sprite), the turning badge rays, and now and then a rainbow-gemmed crown shimmering above the handle (own sprite, as the concept); three rainbow loops circling the cue (Orbiters, rainbow trail texture). Upgraded 2026-09-30: the rainbow ribbons wider and longer and further out, bigger rainbow light and sparkles, a wider glow.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "RainbowLight",
+          "Texture": "vfx/_shared/glow_soft.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.8,
+            1.3
+          ],
+          "Speed": [
+            0.05,
+            0.15
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.3,
+              0.468
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Transparency": 0.25,
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.2,
+            "ToStuds": 7.0,
+            "Width": 0.4,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.5,
+            0.9
+          ],
+          "Speed": [
+            0.03,
+            0.12
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Size": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.4,
+              0.224,
+              0.067
+            ],
+            [
+              1,
+              0.0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              1,
+              "#FFD23D"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "GoldRays",
+          "Texture": "vfx/eclipse/gold_column.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.5,
+            "ToStuds": 7.0,
+            "Width": 0.8,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 4,
+          "Lifetime": [
+            0.7,
+            1.1
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            5,
+            5
+          ],
+          "EmissionDirection": "Top",
+          "Orientation": "FacingCameraWorldUp",
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              0.5,
+              1.3
+            ],
+            [
+              1,
+              1.1
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.3,
+              0.25
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFE08A",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "BadgeRays",
+          "Texture": "vfx/rank/rays.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 7.02
+          },
+          "Rate": 1.2,
+          "Lifetime": 2.0,
+          "Speed": 0,
+          "Size": 0.9,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            30,
+            30
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.15
+            ],
+            [
+              0.75,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": true
+        },
+        {
+          "Name": "Crown",
+          "Texture": "vfx/rank/crown_rainbow.png",
+          "Host": {
+            "Kind": "Attachment",
+            "AtStuds": 4.6,
+            "Up": 0.55
+          },
+          "Rate": 0.4,
+          "Lifetime": 2.4,
+          "Speed": 0.05,
+          "EmissionDirection": "Top",
+          "Size": 0.7,
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.1
+            ],
+            [
+              0.75,
+              0.1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp",
+          "LockedToPart": true
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "Rainbow1",
+          "FromStuds": 0.5,
+          "ToStuds": 4.2,
+          "TravelSeconds": 2.8,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.6,
+          "Radius": 0.24,
+          "RadiusFromSurface": true,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
+            "Color": "#FFFFFF",
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/rank/trail_prism.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Rainbow2",
+          "FromStuds": 3.0,
+          "ToStuds": 6.9,
+          "TravelSeconds": 3.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.55,
+          "Radius": 0.3,
+          "RadiusFromSurface": true,
+          "Phase": 180,
+          "Delay": 1.1,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
+            "Color": "#FFFFFF",
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/rank/trail_prism.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "Rainbow3",
+          "FromStuds": 1.5,
+          "ToStuds": 6.0,
+          "TravelSeconds": 3.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 0.45,
+          "Radius": 0.36,
+          "RadiusFromSurface": true,
+          "Phase": 90,
+          "Delay": 2.0,
+          "Trail": {
+            "Lifetime": 1.4,
+            "WidthStuds": 0.12,
+            "Color": "#FFFFFF",
+            "Brightness": 2.0,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.7,
+                0.4
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/rank/trail_prism.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "Glow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.0,
+          "Width0": 0.3,
+          "Width1": 0.55,
+          "Segments": 16,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": "#FFE7A0",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.72
+            ],
+            [
+              0.9,
+              0.6699999999999999
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            255,
+            255,
+            255
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.0,
+        "WidthStuds": 0.38,
+        "LightEmission": 1,
+        "Texture": "vfx/rank/trail_prism.png",
+        "TextureMode": "Stretch",
+        "WidthScale": [
+          [
+            0,
+            0.8
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            1,
+            0.5
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.55,
+            0.12
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 2.0,
+        "Core": {
+          "Color": [
+            255,
+            255,
+            255
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "LightEmission": 0.6,
+          "Brightness": 2.2
+        }
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            255,
+            220,
+            120
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A rainbow trail: rainbow bands round a white-gold core (own texture), white-gold sparkles.",
+      "Emitters": [
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.3,
+            0.5
+          ],
+          "Speed": [
+            0.3,
+            0.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.12
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "A rainbow crown burst: a rainbow-gemmed gold crown springs up out of the pocket (own sprite) over turning gold rays, rainbow sparkles and gold streaks burst round it, a rainbow ring, a white flash.",
+      "Layers": [
+        {
+          "Name": "Rays",
+          "Texture": "vfx/rank/rays.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              1.5,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 1.3,
+          "Speed": 0,
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.25,
+              3.0
+            ],
+            [
+              1,
+              3.4
+            ]
+          ],
+          "Rotation": [
+            0,
+            30
+          ],
+          "RotSpeed": [
+            40,
+            40
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.7,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Crown",
+          "Texture": "vfx/rank/crown_rainbow.png",
+          "Host": {
+            "Kind": "Point",
+            "Offset": [
+              0,
+              0.9,
+              0
+            ]
+          },
+          "Burst": 1,
+          "Delay": 0.05,
+          "Lifetime": 1.3,
+          "Speed": 1.3,
+          "EmissionDirection": "Top",
+          "SpreadAngle": [
+            0,
+            0
+          ],
+          "Drag": 3,
+          "Size": [
+            [
+              0,
+              0.2
+            ],
+            [
+              0.15,
+              1.6
+            ],
+            [
+              0.28,
+              1.3
+            ],
+            [
+              0.85,
+              1.35
+            ],
+            [
+              1,
+              1.2
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Orientation": "FacingCameraWorldUp"
+        },
+        {
+          "Name": "Streaks",
+          "Texture": "vfx/_shared/streak.png",
+          "Burst": 16,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.35,
+            0.5
+          ],
+          "Speed": [
+            8,
+            12
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 3,
+          "Orientation": "VelocityParallel",
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Squash": -2,
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFD86A",
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Sparkles",
+          "Texture": "vfx/_shared/star4.png",
+          "Burst": 28,
+          "Delay": 0.1,
+          "Lifetime": [
+            0.6,
+            1.0
+          ],
+          "Speed": [
+            2,
+            5
+          ],
+          "SpreadAngle": [
+            70,
+            70
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0
+            ],
+            [
+              0.3,
+              0.24,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Rotation": [
+            0,
+            45
+          ],
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FF3D3D"
+            ],
+            [
+              0.2,
+              "#FFD23D"
+            ],
+            [
+              0.4,
+              "#3DFF8A"
+            ],
+            [
+              0.6,
+              "#3DD8FF"
+            ],
+            [
+              0.8,
+              "#3D8AFF"
+            ],
+            [
+              1,
+              "#B03DFF"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/chroma/ring_rainbow.png",
+          "Color": "#FFFFFF",
+          "Start": 0.4,
+          "End": 4.4,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          245,
+          220
+        ],
+        "Brightness": 10,
+        "Seconds": 0.35
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 29.6,
+      "Back": 14.8,
+      "BallTrail": 10,
+      "Beams": 1,
+      "Lights": 0,
+      "Orbiters": 3
+    }
+  }
+}

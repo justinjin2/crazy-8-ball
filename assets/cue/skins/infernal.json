@@ -1,0 +1,1423 @@
+{
+  "id": "infernal",
+  "name": "Infernal",
+  "tier": "Legendary",
+  "catalog_id": "InfernalCue",
+  "concept": "L6",
+  "palette": [
+    "#0A0A0C",
+    "#E0201A",
+    "#FF8A1F"
+  ],
+  "painter": "mix",
+  "note": "Obsidian black with red-hot cracks: OpenAI panels on the whole cue (glowing magma cracks through glossy black obsidian along the shaft, silver thorn blades curving over the forearm, a black scaled grip with red heat between the scales, a cartoon horned skull emblem on the sleeve with glowing eyes, no gore), a silver collar edged with glowing red rings, a glowing red ring, a black end with a red ring. Four emissive frames pulse the magma through the cracks.",
+  "ai": {
+    "shaft_tile": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "size": "1536x768",
+      "prompt": "Glossy black obsidian (#0A0A0C) split by a network of thin glowing red-hot magma cracks (#E0201A with bright orange #FF8A1F cores), the cracks running mostly left to right and branching, with dark glassy stone between them. No other shapes."
+    },
+    "shaft_top": {
+      "refs": [
+        "shaft",
+        "full"
+      ],
+      "prompt": "Glossy black obsidian (#0A0A0C) split by glowing red-hot magma cracks (#E0201A with orange #FF8A1F cores) running left to right, and toward the right edge sharp curved polished silver thorn blades (#B8BCC4) sweeping along it. No other shapes."
+    },
+    "forearm": {
+      "refs": [
+        "closeup",
+        "forearm",
+        "full"
+      ],
+      "prompt": "Glossy black obsidian (#0A0A0C) covered in glowing red-hot magma cracks (#E0201A with bright orange #FF8A1F cores), with sharp curved polished silver thorn blades and claw-like spikes (#B8BCC4) sweeping diagonally along the whole forearm, red glow seeping round them. The two thin strips at the far left are the joint collar: paint them plain polished silver (#B8BCC4)."
+    },
+    "butt": {
+      "refs": [
+        "closeup",
+        "butt",
+        "full"
+      ],
+      "roll_deg": 45,
+      "zones_px": [
+        76,
+        902,
+        1357
+      ],
+      "prompt": "Left thin strip (the ring): plain polished silver (#B8BCC4). The wrap (from the ring to the next zone line): a black scaled grip (#0E0C0C), small overlapping dark scales with red-hot glow (#E0201A) seeping between them. The butt sleeve (between the two zone lines on the right): glossy black obsidian with red-hot cracks and, in the middle row, a stylised cartoon horned skull emblem: a silver skull with two curving silver horns and glowing red-orange eyes, friendly-cartoon rather than scary, no blood or gore, with silver thorn spikes fanning out beside it. The very thin strip at the far right: plain black."
+    }
+  },
+  "panels": {
+    "shaft_tile": "skins/infernal/shaft_tile.png",
+    "shaft_top": "skins/infernal/shaft_top.png",
+    "forearm": "skins/infernal/forearm.png",
+    "butt": "skins/infernal/butt.png",
+    "cap_end": "skins/infernal/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#0C0C0E",
+    "metal": "#B8BCC4",
+    "hot": "#FF3A1A"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "frames": {
+    "Count": 4,
+    "Keys": [
+      "emissive"
+    ]
+  },
+  "surface": {
+    "EmissiveStrength": 2.3,
+    "EmissiveTint": "#FFB8A0",
+    "Pulse": {
+      "EmissiveStrength": {
+        "Min": 1.6,
+        "Max": 2.8,
+        "Period": 1.3,
+        "Shape": "flicker"
+      }
+    }
+  },
+  "vfx": {
+    "Moving": {
+      "Kind": "Frames + Beams + emissive",
+      "Note": "Magma pulses through the cracks: four SurfaceAppearance frames (only the emissive mask differs: frame 0 even, frames 1-3 each with the heat surging in a different part) swap in a restless order every 0.16 s; overlay Beams carry molten heat creeping along the shaft, forearm and sleeve (TextureSpeed 0.25); the emissive flickers (1.6-2.8).",
+      "Beams": [
+        {
+          "Name": "MagmaFlowShaft",
+          "FromStuds": 0.3,
+          "ToStuds": 3.6,
+          "Width0": 0.101,
+          "Width1": 0.16,
+          "Segments": 20,
+          "Texture": "vfx/infernal/lava_flow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": 0.25,
+          "Color": "#FF6A4A",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.04,
+              0.45
+            ],
+            [
+              0.96,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.074
+        },
+        {
+          "Name": "MagmaFlowForearm",
+          "FromStuds": 3.8,
+          "ToStuds": 5.32,
+          "Width0": 0.164,
+          "Width1": 0.191,
+          "Segments": 20,
+          "Texture": "vfx/infernal/lava_flow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": 0.25,
+          "Color": "#FF6A4A",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.08684210526315787,
+              0.45
+            ],
+            [
+              0.9131578947368422,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.089
+        },
+        {
+          "Name": "MagmaFlowSleeve",
+          "FromStuds": 6.64,
+          "ToStuds": 6.94,
+          "Width0": 0.198,
+          "Width1": 0.198,
+          "Segments": 4,
+          "Texture": "vfx/infernal/lava_flow_strip.png",
+          "TextureMode": "Wrap",
+          "TextureLength": 1.2,
+          "TextureSpeed": 0.25,
+          "Color": "#FF6A4A",
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.12,
+              0.45
+            ],
+            [
+              0.88,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1.0,
+          "LightInfluence": 0,
+          "FaceCamera": true,
+          "ZOffset": 0.1
+        }
+      ],
+      "Frames": {
+        "Keys": [
+          "emissive"
+        ],
+        "FrameSeconds": 0.16,
+        "Order": [
+          0,
+          2,
+          1,
+          0,
+          3,
+          1,
+          2,
+          0,
+          3
+        ],
+        "Maps": [
+          {
+            "emissive": "textures/infernal_emissive.png"
+          },
+          {
+            "emissive": "textures/infernal_f1_emissive.png"
+          },
+          {
+            "emissive": "textures/infernal_f2_emissive.png"
+          },
+          {
+            "emissive": "textures/infernal_f3_emissive.png"
+          }
+        ]
+      }
+    },
+    "Aura": {
+      "Note": "Layered: hellfire wreathes the handle (big flames from the forearm to the butt and smaller licks along the shaft, the white flame-tongue flipbook tinted gold to orange to crimson, left behind as the cue moves); three ribbons of black-and-red fire wind round the cue; dark smoke rolls off the butt; ember sparks rise; a deep red glow round the cue (a halo Beam, flickering) and a flickering red light. The horned skull on the butt is a 3D piece.",
+      "BackRateScale": 0.5,
+      "Emitters": [
+        {
+          "Name": "Hellfire",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 3.6,
+            "ToStuds": 7.0,
+            "Width": 0.2,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 24,
+          "Lifetime": [
+            0.6,
+            0.95
+          ],
+          "Speed": [
+            0.3,
+            0.7
+          ],
+          "SpreadAngle": [
+            20,
+            20
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            2.2,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.5
+            ],
+            [
+              0.35,
+              1.15
+            ],
+            [
+              1,
+              0.3
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.2,
+              0.0
+            ],
+            [
+              0.6,
+              0.35
+            ],
+            [
+              0.85,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -12,
+            12
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
+            ],
+            [
+              1,
+              "#D0280E"
+            ]
+          ],
+          "Brightness": 1.5,
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Licks",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.4,
+            "ToStuds": 3.6,
+            "Width": 0.12,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 12,
+          "Lifetime": [
+            0.4,
+            0.65
+          ],
+          "Speed": [
+            0.3,
+            0.7
+          ],
+          "SpreadAngle": [
+            20,
+            20
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.6,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.28
+            ],
+            [
+              0.4,
+              0.62
+            ],
+            [
+              1,
+              0.15
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              0.2,
+              0.0
+            ],
+            [
+              0.6,
+              0.35
+            ],
+            [
+              0.85,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -12,
+            12
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
+            ],
+            [
+              1,
+              "#D0280E"
+            ]
+          ],
+          "Brightness": 1.5,
+          "LightEmission": 0.6,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Smoke",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 4.5,
+            "ToStuds": 7.0,
+            "Width": 0.25,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Volume"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            1.2,
+            1.7
+          ],
+          "Speed": [
+            0.2,
+            0.4
+          ],
+          "SpreadAngle": [
+            30,
+            30
+          ],
+          "EmissionDirection": "Top",
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.9
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.25,
+              0.4
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#3A0A08"
+            ],
+            [
+              1,
+              "#0C0606"
+            ]
+          ],
+          "LightEmission": 0.05,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Part",
+            "FromStuds": 0.3,
+            "ToStuds": 7.0,
+            "Width": 0.3,
+            "Shape": "Cylinder",
+            "ShapeStyle": "Surface"
+          },
+          "Rate": 16,
+          "Lifetime": [
+            0.8,
+            1.4
+          ],
+          "Speed": [
+            0.4,
+            1.0
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            1.2,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.05
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Squash": -0.6,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFE08A"
+            ],
+            [
+              0.25,
+              "#FF8A1F"
+            ],
+            [
+              0.6,
+              "#E0201A"
+            ],
+            [
+              1,
+              "#5A0808"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0,
+          "LockedToPart": false
+        }
+      ],
+      "Orbiters": [
+        {
+          "Name": "FireRibbon1",
+          "FromStuds": 0.5,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.2,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 1.0,
+          "Radius": 0.24,
+          "Wobble": 0.08,
+          "WobbleHz": 1.4,
+          "Phase": 0,
+          "Delay": 0,
+          "Trail": {
+            "Lifetime": 0.8,
+            "WidthStuds": 0.28,
+            "Color": "#FFFFFF",
+            "Brightness": 2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.15
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                0.6,
+                0.7
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/infernal/trail_hellfire.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "FireRibbon2",
+          "FromStuds": 0.5,
+          "ToStuds": 7.0,
+          "TravelSeconds": 2.6,
+          "Loop": "pingpong",
+          "TurnsPerSecond": -0.9,
+          "Radius": 0.3,
+          "Wobble": 0.08,
+          "WobbleHz": 1.4,
+          "Phase": 140,
+          "Delay": 0.7,
+          "Trail": {
+            "Lifetime": 0.8,
+            "WidthStuds": 0.28,
+            "Color": "#FFFFFF",
+            "Brightness": 2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.15
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                0.6,
+                0.7
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/infernal/trail_hellfire.png",
+            "TextureMode": "Stretch"
+          }
+        },
+        {
+          "Name": "FireRibbon3",
+          "FromStuds": 0.5,
+          "ToStuds": 7.0,
+          "TravelSeconds": 1.9,
+          "Loop": "pingpong",
+          "TurnsPerSecond": 1.2,
+          "Radius": 0.2,
+          "Wobble": 0.08,
+          "WobbleHz": 1.4,
+          "Phase": 260,
+          "Delay": 1.3,
+          "Trail": {
+            "Lifetime": 0.8,
+            "WidthStuds": 0.28,
+            "Color": "#FFFFFF",
+            "Brightness": 2,
+            "Transparency": [
+              [
+                0,
+                0
+              ],
+              [
+                0.6,
+                0.15
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "WidthScale": [
+              [
+                0,
+                1
+              ],
+              [
+                0.6,
+                0.7
+              ],
+              [
+                1,
+                0.3
+              ]
+            ],
+            "LightEmission": 1,
+            "Texture": "vfx/infernal/trail_hellfire.png",
+            "TextureMode": "Stretch"
+          }
+        }
+      ],
+      "Beams": [
+        {
+          "Name": "HellGlow",
+          "FromStuds": 0.0,
+          "ToStuds": 7.1,
+          "Width0": 0.3,
+          "Width1": 0.62,
+          "Segments": 20,
+          "Texture": "vfx/_shared/halo_strip.png",
+          "TextureMode": "Stretch",
+          "Color": [
+            [
+              0,
+              "#FF5A2A"
+            ],
+            [
+              1,
+              "#C0101A"
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              1
+            ],
+            [
+              0.06,
+              0.5
+            ],
+            [
+              0.9,
+              0.45
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "LightEmission": 1,
+          "FaceCamera": true,
+          "Pulse": {
+            "Min": 0.55,
+            "Max": 1.0,
+            "Period": 1.3,
+            "Shape": "flicker"
+          }
+        }
+      ],
+      "Lights": [
+        {
+          "AtStuds": 5.6,
+          "Color": "#FF3A1A",
+          "Brightness": 1.6,
+          "Range": 9,
+          "Flicker": {
+            "Min": 0.6,
+            "Max": 1.2,
+            "Period": 0.5,
+            "Shape": "flicker"
+          }
+        }
+      ]
+    },
+    "Style": {
+      "Trail": {
+        "Colors": [
+          [
+            255,
+            255,
+            255
+          ],
+          [
+            255,
+            220,
+            200
+          ],
+          [
+            255,
+            180,
+            160
+          ]
+        ],
+        "NearTransparency": 0.0,
+        "Lifetime": 1.1,
+        "WidthStuds": 0.55,
+        "LightEmission": 0.4,
+        "Texture": "vfx/infernal/trail_hellfire.png",
+        "TextureMode": "Wrap",
+        "TextureLength": 1.3,
+        "WidthScale": [
+          [
+            0,
+            0.7
+          ],
+          [
+            0.4,
+            1.2
+          ],
+          [
+            1,
+            0.6
+          ]
+        ],
+        "Core": {
+          "Color": [
+            255,
+            122,
+            26
+          ],
+          "Width": 0.2,
+          "NearTransparency": 0.0,
+          "LightEmission": 0.2,
+          "Transparency": [
+            [
+              0,
+              0.0
+            ],
+            [
+              0.5,
+              0.15
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "WidthScale": [
+            [
+              0,
+              1
+            ],
+            [
+              0.6,
+              0.75
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Brightness": 2.2
+        },
+        "Transparency": [
+          [
+            0,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "Brightness": 1.0
+      },
+      "Pocket": {
+        "Colors": [
+          [
+            224,
+            32,
+            26
+          ],
+          [
+            255,
+            138,
+            31
+          ]
+        ],
+        "ColorShare": 1
+      }
+    },
+    "Trail": {
+      "Note": "A black-and-red fire trail: black smoke billows with red-hot burning edges and licking flames (textured, wrapping) round a red-hot core; embers, flame puffs and small black rock chips fly off the ball.",
+      "Emitters": [
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 18,
+          "Lifetime": [
+            0.4,
+            0.8
+          ],
+          "Speed": [
+            0.6,
+            1.6
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Drag": 2,
+          "Acceleration": [
+            0,
+            1.5,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.06
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "Squash": -0.8,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFE08A"
+            ],
+            [
+              0.25,
+              "#FF8A1F"
+            ],
+            [
+              0.6,
+              "#E0201A"
+            ],
+            [
+              1,
+              "#5A0808"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Flames",
+          "Texture": "vfx/_shared/energy_flame_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 10,
+          "Lifetime": [
+            0.35,
+            0.5
+          ],
+          "Speed": [
+            0.2,
+            0.5
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            2,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": [
+            [
+              0,
+              "#FFF0B0"
+            ],
+            [
+              0.35,
+              "#FFA030"
+            ],
+            [
+              0.75,
+              "#FF5A14"
+            ],
+            [
+              1,
+              "#D0280E"
+            ]
+          ],
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Brightness": 1.4
+        },
+        {
+          "Name": "Chips",
+          "Texture": "vfx/infernal/rock_chip.png",
+          "Host": {
+            "Kind": "Point"
+          },
+          "Rate": 5,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            0.8,
+            1.8
+          ],
+          "SpreadAngle": [
+            180,
+            180
+          ],
+          "Acceleration": [
+            0,
+            -8,
+            0
+          ],
+          "Size": 0.1,
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -300,
+            300
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        }
+      ]
+    },
+    "Pocket": {
+      "Note": "Staged over 1.5 s: a red flash and a hellfire eruption out of the pocket (a column of red fire, 0 s); black rocks and embers blasted out (0.05 s); a red shockwave ring (0.05 s); a cartoon horned skull of smoke and fire forms above the pocket, glares, then dissolves upward (a 16-frame flipbook made for Infernal, 4.2 studs, 0.15 s); dark smoke and embers linger (0.4-1.5 s). The default gust is tinted red and orange.",
+      "Layers": [
+        {
+          "Name": "Eruption",
+          "Texture": "vfx/_shared/fire_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 0.6
+          },
+          "Burst": 24,
+          "Lifetime": [
+            0.5,
+            0.8
+          ],
+          "Speed": [
+            3,
+            6
+          ],
+          "SpreadAngle": [
+            20,
+            20
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2,
+          "Size": [
+            [
+              0,
+              0.7
+            ],
+            [
+              0.4,
+              1.3
+            ],
+            [
+              1,
+              0.4
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.05
+            ],
+            [
+              0.6,
+              0.2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            -20,
+            20
+          ],
+          "Color": [
+            [
+              0,
+              "#FFFFFF"
+            ],
+            [
+              0.5,
+              "#FFC8A8"
+            ],
+            [
+              1,
+              "#FF7050"
+            ]
+          ],
+          "LightEmission": 0.5,
+          "LightInfluence": 0,
+          "Brightness": 1.4
+        },
+        {
+          "Name": "Rocks",
+          "Texture": "vfx/infernal/rock_chip.png",
+          "Burst": 14,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.8,
+            1.1
+          ],
+          "Speed": [
+            4,
+            8
+          ],
+          "SpreadAngle": [
+            50,
+            50
+          ],
+          "EmissionDirection": "Top",
+          "Acceleration": [
+            0,
+            -18,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.28
+            ],
+            [
+              1,
+              0.2
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "RotSpeed": [
+            -400,
+            400
+          ],
+          "Transparency": [
+            [
+              0,
+              0
+            ],
+            [
+              0.85,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Color": "#FFFFFF",
+          "LightEmission": 0,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Embers",
+          "Texture": "vfx/_shared/spark.png",
+          "Burst": 40,
+          "Delay": 0.05,
+          "Lifetime": [
+            0.6,
+            1.1
+          ],
+          "Speed": [
+            4,
+            9
+          ],
+          "SpreadAngle": [
+            60,
+            60
+          ],
+          "EmissionDirection": "Top",
+          "Drag": 2.5,
+          "Acceleration": [
+            0,
+            -2,
+            0
+          ],
+          "Size": [
+            [
+              0,
+              0.1
+            ],
+            [
+              1,
+              0.02
+            ]
+          ],
+          "Squash": -1.2,
+          "Orientation": "VelocityParallel",
+          "Transparency": 0,
+          "Color": [
+            [
+              0,
+              "#FFE08A"
+            ],
+            [
+              0.25,
+              "#FF8A1F"
+            ],
+            [
+              0.6,
+              "#E0201A"
+            ],
+            [
+              1,
+              "#5A0808"
+            ]
+          ],
+          "LightEmission": 1,
+          "LightInfluence": 0
+        },
+        {
+          "Name": "Smoke",
+          "Texture": "vfx/_shared/smoke_8x8.png",
+          "FlipbookLayout": "Grid8x8",
+          "FlipbookMode": "OneShot",
+          "Host": {
+            "Kind": "Point",
+            "Size": 1.0
+          },
+          "Burst": 8,
+          "Delay": 0.4,
+          "Lifetime": [
+            1.0,
+            1.2
+          ],
+          "Speed": [
+            0.5,
+            1.5
+          ],
+          "SpreadAngle": [
+            40,
+            40
+          ],
+          "EmissionDirection": "Top",
+          "Size": [
+            [
+              0,
+              0.6
+            ],
+            [
+              1,
+              1.8
+            ]
+          ],
+          "Transparency": [
+            [
+              0,
+              0.3
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "Rotation": [
+            0,
+            360
+          ],
+          "Color": [
+            [
+              0,
+              "#3A0A08"
+            ],
+            [
+              1,
+              "#0C0606"
+            ]
+          ],
+          "LightEmission": 0.05,
+          "LightInfluence": 0
+        }
+      ],
+      "Rings": [
+        {
+          "Texture": "vfx/_shared/ring.png",
+          "Color": "#FF3A1A",
+          "Start": 0.4,
+          "End": 4.8,
+          "Seconds": 0.5,
+          "Delay": 0.05
+        }
+      ],
+      "Flash": {
+        "Color": [
+          255,
+          90,
+          50
+        ],
+        "Brightness": 12,
+        "Seconds": 0.35
+      },
+      "KeepRibbons": false,
+      "Piece": {
+        "Piece": "infernal_pocket",
+        "Delay": 0.15,
+        "Seconds": 1.3,
+        "Rise": [
+          [
+            0,
+            -2.4
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            1,
+            1.1
+          ]
+        ],
+        "Scale": [
+          [
+            0,
+            0.75
+          ],
+          [
+            0.3,
+            1.0
+          ],
+          [
+            1,
+            1.05
+          ]
+        ],
+        "Spin": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "Transparency": [
+          [
+            0,
+            0
+          ],
+          [
+            0.65,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    "Budget": {
+      "ParticlesPerSecond": 57,
+      "Back": 28.5,
+      "BallTrail": 33,
+      "Beams": 5,
+      "Lights": 1,
+      "Orbiters": 3,
+      "PieceTriangles": 19500,
+      "PocketPieceTriangles": 27500
+    }
+  },
+  "piece": "infernal"
+}

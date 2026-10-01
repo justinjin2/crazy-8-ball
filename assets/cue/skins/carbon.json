@@ -1,0 +1,43 @@
+{
+  "id": "carbon",
+  "name": "Carbon",
+  "tier": "Common",
+  "catalog_id": "CarbonCue",
+  "concept": "C1",
+  "palette": [
+    "#1E1E1E",
+    "#3A3A3A",
+    "#C8CCD0"
+  ],
+  "painter": "procedural",
+  "note": "Carbon fiber from tip to butt, with the checker weave showing under a glossy clear coat, and stainless rings and butt cap. Today's most wanted real-world look. Look from: Cuetec Cynergy Raw and Predator REVO.",
+  "panels": {
+    "shaft_tile": "skins/carbon/shaft_tile.png",
+    "shaft_top": "skins/carbon/shaft_top.png",
+    "forearm": "skins/carbon/forearm.png",
+    "butt": "skins/carbon/butt.png",
+    "cap_end": "skins/carbon/cap_end.png"
+  },
+  "colours": {
+    "tip": "#1E2438",
+    "ferrule": "#EFEDE6",
+    "bumper": "#101010",
+    "dark": "#08080A",
+    "light": "#5E6168",
+    "metal": "#C8CCD0",
+    "wrap": "#101012"
+  },
+  "shaft_tile": {
+    "repeats": 1,
+    "fade": 0
+  },
+  "wrap_relief": "panel",
+  "metal": [],
+  "glow": [],
+  "surface": {},
+  "vfx": {
+    "Trail": {
+      "Style": "Default"
+    }
+  }
+}

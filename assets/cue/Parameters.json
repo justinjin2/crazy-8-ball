@@ -1,0 +1,1070 @@
+{
+  "axes": {
+    "blender_seam": [
+      0,
+      0,
+      -1
+    ],
+    "blender_tip_to_butt": [
+      0,
+      -1,
+      0
+    ],
+    "roblox_mesh_tip": [
+      0,
+      0,
+      3.5
+    ],
+    "roblox_pivot_offset": [
+      0,
+      0,
+      3.5
+    ],
+    "roblox_pivot_turn_degrees_about_y": 180,
+    "roblox_seam": [
+      0,
+      -1,
+      0
+    ],
+    "roblox_tip_to_butt": [
+      0,
+      0,
+      1
+    ]
+  },
+  "colour_regions_s": {
+    "bumper_colour": [
+      7.019550653,
+      7.057914989
+    ],
+    "ferrule_colour": [
+      0.138350001,
+      0.280482342
+    ],
+    "tip_colour": [
+      0.0,
+      0.138350001
+    ]
+  },
+  "density_px_per_stud": {
+    "handle": 536,
+    "shaft": 335.0
+  },
+  "failures": [],
+  "frame": "1 Blender unit = 1 stud. The tip is at the origin and the cue runs along Blender -Y (tip to butt); the glTF exporter (+Y up) maps Blender (x, y, z) to glTF (x, z, -y), so the cue runs along glTF/Roblox local +Z with the tip at z = 0. The UV seam is at theta = 0, Blender -Z = Roblox local -Y (down in the hand). theta runs seam -> +X -> +Z (top) -> -X. Studio (checked 2026-09-29): Roblox's glTF importer turns the model 180 degrees about Y and centres the MeshPart on its bounds, so in the MeshPart the tip is at local +Z = length / 2 and the seam still at -Y; PivotOffset = CFrame.new(0, 0, length / 2) * CFrame.Angles(0, pi, 0) puts the pivot on the tip with +Z toward the butt.",
+  "panels": [
+    {
+      "aspect_error": 0.0,
+      "circumference_studs": [
+        0.324476343,
+        0.415016515
+      ],
+      "d_from": 0.245,
+      "d_to": 2.207659807,
+      "default_repeats": 3,
+      "length_studs": 1.962713752,
+      "lines": [],
+      "mean_circumference_studs": 0.368296721,
+      "name": "shaft_tile",
+      "natural_repeats": 2.677344363,
+      "note": "repeats along the shaft, seamless on all four edges",
+      "panel_aspect": 2.0,
+      "real_aspect": 1.776388112,
+      "s_from": 0.280482342,
+      "s_to": 2.243196094,
+      "size_px": [
+        1024,
+        512
+      ],
+      "taper_squeeze": 0.781839593
+    },
+    {
+      "aspect_error": 0.0,
+      "circumference_studs": [
+        0.415016515,
+        0.504546063
+      ],
+      "d_from": 2.207659807,
+      "d_to": 3.605,
+      "length_studs": 1.398246561,
+      "lines": [],
+      "mean_circumference_studs": 0.466082187,
+      "name": "shaft_top",
+      "note": "its right edge meets the joint collar",
+      "panel_aspect": 3.0,
+      "real_aspect": 3.0,
+      "s_from": 2.243196094,
+      "s_to": 3.641442655,
+      "size_px": [
+        1536,
+        512
+      ],
+      "taper_squeeze": 0.822554262
+    },
+    {
+      "aspect_error": 0.005528927,
+      "circumference_studs": [
+        0.504546063,
+        0.607638656
+      ],
+      "d_from": 3.605,
+      "d_to": 5.32,
+      "length_studs": 1.719837637,
+      "lines": [
+        {
+          "name": "joint seam",
+          "x": 0.051784353
+        },
+        {
+          "name": "collar | forearm",
+          "x": 0.103562254
+        }
+      ],
+      "mean_circumference_studs": 0.570109593,
+      "name": "forearm",
+      "note": "the joint collar, then the forearm, to the ring",
+      "panel_aspect": 3.0,
+      "real_aspect": 3.016678998,
+      "s_from": 3.641442655,
+      "s_to": 5.361280292,
+      "size_px": [
+        1536,
+        512
+      ],
+      "taper_squeeze": 0.830338983
+    },
+    {
+      "aspect_error": 0.004780748,
+      "circumference_studs": [
+        0.607638656,
+        0.549778714
+      ],
+      "d_from": 5.32,
+      "d_to": 6.965,
+      "length_studs": 1.658270361,
+      "lines": [
+        {
+          "name": "ring | wrap",
+          "x": 0.065127721
+        },
+        {
+          "name": "wrap | sleeve",
+          "x": 0.782743808
+        },
+        {
+          "name": "rounded end",
+          "x": 0.989080655
+        }
+      ],
+      "mean_circumference_studs": 0.614080963,
+      "name": "butt",
+      "note": "the ring, the wrap, the sleeve and its rounded end",
+      "panel_aspect": 2.6875,
+      "real_aspect": 2.700409979,
+      "s_from": 5.361280292,
+      "s_to": 7.019550653,
+      "size_px": [
+        1376,
+        512
+      ],
+      "taper_squeeze": 0.904779032
+    },
+    {
+      "aspect_error": 0.0,
+      "d_from": 7.0,
+      "d_to": 7.0,
+      "disc_radius_px": 248.0,
+      "face_radius_studs": 0.0815,
+      "lines": [],
+      "name": "cap_end",
+      "note": "the flat end of the bumper, seen from behind the butt with the top up",
+      "panel_aspect": 1.0,
+      "real_aspect": 1.0,
+      "s_from": 7.057914989,
+      "s_to": 7.139414989,
+      "size_px": [
+        512,
+        512
+      ]
+    }
+  ],
+  "parameters": {
+    "atlas_px": 1024,
+    "bumper_edge_radius": 0.006,
+    "bumper_length": 0.035,
+    "bumper_radius": 0.0875,
+    "butt_round_radius": 0.01,
+    "cap_end_margin_px": 8,
+    "cap_end_px": 512,
+    "chord_tolerance": 0.0002,
+    "dome_radius_ratio": 1.630859375,
+    "envelope_slack": 0.0005,
+    "face_stretch_limit": 1.15,
+    "ferrule_chamfer": 0.0015,
+    "groove_depth": 0.002,
+    "groove_half_width": 0.002,
+    "handle_ratio": 1.6,
+    "max_taper_step": 1.06,
+    "min_envelope_ratio": 0.9,
+    "min_handle_share": 0.6,
+    "padding_px": 16,
+    "panel_height": 512,
+    "panel_max_aspect": 3.0,
+    "radial_segments": 32,
+    "roundtrip_tolerance": 1e-05,
+    "seam_depth": 0.0015,
+    "seam_half_width": 0.0012,
+    "shaft_strip_choices": [
+      2,
+      3,
+      4
+    ],
+    "shaft_tile_px": [
+      1024,
+      512
+    ],
+    "sharp_degrees": 30.0,
+    "stretch_limit": 1.05,
+    "tip_edge_radius": 0.005,
+    "triangle_budget": 4000,
+    "wrap_edge": 0.001,
+    "wrap_inset": 0.003,
+    "zone_tolerance": 0.002
+  },
+  "profile": [
+    {
+      "d": 0.0,
+      "r": 0.0,
+      "region": "tip",
+      "s": 0.0
+    },
+    {
+      "d": 0.000613858,
+      "r": 0.009472256,
+      "region": "tip",
+      "s": 0.009492126
+    },
+    {
+      "d": 0.002445163,
+      "r": 0.018786052,
+      "region": "tip",
+      "s": 0.018984253
+    },
+    {
+      "d": 0.00546328,
+      "r": 0.027785576,
+      "region": "tip",
+      "s": 0.028476379
+    },
+    {
+      "d": 0.009617717,
+      "r": 0.036320277,
+      "region": "tip",
+      "s": 0.037968506
+    },
+    {
+      "d": 0.014838977,
+      "r": 0.044247377,
+      "region": "tip",
+      "s": 0.047460632
+    },
+    {
+      "d": 0.016600095,
+      "r": 0.045708998,
+      "region": "tip",
+      "s": 0.049749272
+    },
+    {
+      "d": 0.018827991,
+      "r": 0.046232785,
+      "region": "tip",
+      "s": 0.052037913
+    },
+    {
+      "d": 0.051413996,
+      "r": 0.048366393,
+      "region": "tip",
+      "s": 0.084693693
+    },
+    {
+      "d": 0.084,
+      "r": 0.0505,
+      "region": "tip",
+      "s": 0.117349473
+    },
+    {
+      "d": 0.105,
+      "r": 0.050648958,
+      "region": "tip",
+      "s": 0.138350001
+    },
+    {
+      "d": 0.105,
+      "r": 0.049148958,
+      "region": "ferrule",
+      "s": 0.139850001
+    },
+    {
+      "d": 0.1065,
+      "r": 0.050659598,
+      "region": "ferrule",
+      "s": 0.141978858
+    },
+    {
+      "d": 0.245,
+      "r": 0.051642014,
+      "region": "ferrule",
+      "s": 0.280482342
+    },
+    {
+      "d": 0.618333333,
+      "r": 0.054290162,
+      "region": "shaft",
+      "s": 0.653825067
+    },
+    {
+      "d": 0.991666667,
+      "r": 0.05693831,
+      "region": "shaft",
+      "s": 1.027167793
+    },
+    {
+      "d": 1.365,
+      "r": 0.059586458,
+      "region": "shaft",
+      "s": 1.400510518
+    },
+    {
+      "d": 1.7325,
+      "r": 0.062193229,
+      "region": "shaft",
+      "s": 1.768019763
+    },
+    {
+      "d": 2.1,
+      "r": 0.0648,
+      "region": "shaft",
+      "s": 2.135529008
+    },
+    {
+      "d": 2.2925,
+      "r": 0.0670385,
+      "region": "shaft",
+      "s": 2.328042023
+    },
+    {
+      "d": 2.485,
+      "r": 0.069277,
+      "region": "shaft",
+      "s": 2.520555038
+    },
+    {
+      "d": 2.857666667,
+      "r": 0.073610581,
+      "region": "shaft",
+      "s": 2.8932469
+    },
+    {
+      "d": 3.230333333,
+      "r": 0.077944162,
+      "region": "shaft",
+      "s": 3.265938763
+    },
+    {
+      "d": 3.603,
+      "r": 0.082277743,
+      "region": "shaft",
+      "s": 3.638630625
+    },
+    {
+      "d": 3.605,
+      "r": 0.080301,
+      "region": "shaft",
+      "s": 3.641442655
+    },
+    {
+      "d": 3.607,
+      "r": 0.082324257,
+      "region": "joint",
+      "s": 3.644287575
+    },
+    {
+      "d": 3.6913,
+      "r": 0.083304546,
+      "region": "joint",
+      "s": 3.728593275
+    },
+    {
+      "d": 3.6925,
+      "r": 0.0818185,
+      "region": "joint",
+      "s": 3.730503335
+    },
+    {
+      "d": 3.6937,
+      "r": 0.083332454,
+      "region": "joint",
+      "s": 3.732435189
+    },
+    {
+      "d": 3.778,
+      "r": 0.084312743,
+      "region": "joint",
+      "s": 3.816740888
+    },
+    {
+      "d": 3.78,
+      "r": 0.082336,
+      "region": "joint",
+      "s": 3.819552918
+    },
+    {
+      "d": 3.782,
+      "r": 0.084359257,
+      "region": "forearm",
+      "s": 3.822397838
+    },
+    {
+      "d": 3.85,
+      "r": 0.08515,
+      "region": "forearm",
+      "s": 3.890402436
+    },
+    {
+      "d": 4.339333333,
+      "r": 0.089663416,
+      "region": "forearm",
+      "s": 4.379756583
+    },
+    {
+      "d": 4.828666667,
+      "r": 0.094176832,
+      "region": "forearm",
+      "s": 4.869110731
+    },
+    {
+      "d": 5.318,
+      "r": 0.098690248,
+      "region": "forearm",
+      "s": 5.358464879
+    },
+    {
+      "d": 5.32,
+      "r": 0.096708696,
+      "region": "forearm",
+      "s": 5.361280292
+    },
+    {
+      "d": 5.322,
+      "r": 0.098727143,
+      "region": "ring",
+      "s": 5.364121794
+    },
+    {
+      "d": 5.424,
+      "r": 0.09966795,
+      "region": "ring",
+      "s": 5.466126132
+    },
+    {
+      "d": 5.425,
+      "r": 0.096677174,
+      "region": "ring",
+      "s": 5.469279661
+    },
+    {
+      "d": 5.46,
+      "r": 0.097,
+      "region": "wrap",
+      "s": 5.50428115
+    },
+    {
+      "d": 6.615,
+      "r": 0.097,
+      "region": "wrap",
+      "s": 6.65928115
+    },
+    {
+      "d": 6.616,
+      "r": 0.1,
+      "region": "cap",
+      "s": 6.662443427
+    },
+    {
+      "d": 6.955,
+      "r": 0.1,
+      "region": "cap",
+      "s": 7.001443427
+    },
+    {
+      "d": 6.958826834,
+      "r": 0.099238795,
+      "region": "cap",
+      "s": 7.005345234
+    },
+    {
+      "d": 6.962071068,
+      "r": 0.097071068,
+      "region": "cap",
+      "s": 7.00924704
+    },
+    {
+      "d": 6.964238795,
+      "r": 0.093826834,
+      "region": "cap",
+      "s": 7.013148847
+    },
+    {
+      "d": 6.965,
+      "r": 0.09,
+      "region": "cap",
+      "s": 7.017050653
+    },
+    {
+      "d": 6.965,
+      "r": 0.0875,
+      "region": "cap",
+      "s": 7.019550653
+    },
+    {
+      "d": 6.994,
+      "r": 0.0875,
+      "region": "bumper",
+      "s": 7.048550653
+    },
+    {
+      "d": 6.996296101,
+      "r": 0.087043277,
+      "region": "bumper",
+      "s": 7.050891737
+    },
+    {
+      "d": 6.998242641,
+      "r": 0.085742641,
+      "region": "bumper",
+      "s": 7.053232821
+    },
+    {
+      "d": 6.999543277,
+      "r": 0.083796101,
+      "region": "bumper",
+      "s": 7.055573905
+    },
+    {
+      "d": 7.0,
+      "r": 0.0815,
+      "region": "bumper",
+      "s": 7.057914989
+    },
+    {
+      "d": 7.0,
+      "r": 0.04075,
+      "region": "end",
+      "s": 7.098664989
+    },
+    {
+      "d": 7.0,
+      "r": 0.0,
+      "region": "end",
+      "s": 7.139414989
+    }
+  ],
+  "shaft_cuts_studs": [
+    1.365,
+    2.485
+  ],
+  "shape_source": {
+    "file": "Shape.json",
+    "inputs_sha256": "055c4790260986718c3ae0cc6e521893a0d9023a9dedfa8c1ae356df4a22bd95",
+    "schema": 1,
+    "sha256": "653780bd8ffee46f882a129b2bb9b8e2effc669f03419d8adf56f0c545d69e85"
+  },
+  "uv_layout": [
+    {
+      "d_studs": [
+        0.0,
+        0.018827991
+      ],
+      "density_px_per_stud": 335.0,
+      "density_range": [
+        285.068144797,
+        331.060810773
+      ],
+      "handle": false,
+      "kind": "disc",
+      "mean_stretch": 1.024280004,
+      "measured_density": 304.137927336,
+      "rect_px": [
+        959,
+        258,
+        32,
+        32
+      ],
+      "rings": [
+        0,
+        7
+      ],
+      "s_studs": [
+        0.0,
+        0.052037913
+      ],
+      "strip": "tip_face",
+      "studs_covered": 0.052037913,
+      "worst_face_stretch": 1.081496961,
+      "zones": [
+        "tip"
+      ]
+    },
+    {
+      "d_studs": [
+        0.018827991,
+        0.105
+      ],
+      "density_px_per_stud": 335.0,
+      "density_range": [
+        335.512975709,
+        363.162946533
+      ],
+      "handle": false,
+      "kind": "strip",
+      "mean_stretch": 1.017854504,
+      "measured_density": 347.387292231,
+      "rect_px": [
+        959,
+        134,
+        31,
+        108
+      ],
+      "rings": [
+        7,
+        10
+      ],
+      "s_studs": [
+        0.052037913,
+        0.138350001
+      ],
+      "strip": "tip",
+      "studs_covered": 0.086312088,
+      "worst_face_stretch": 1.025400996,
+      "zones": [
+        "tip"
+      ]
+    },
+    {
+      "d_studs": [
+        0.105,
+        0.245
+      ],
+      "density_px_per_stud": 335.0,
+      "density_range": [
+        336.879733126,
+        350.474863847
+      ],
+      "handle": false,
+      "kind": "strip",
+      "mean_stretch": 1.011572134,
+      "measured_density": 338.722401094,
+      "rect_px": [
+        959,
+        8,
+        50,
+        110
+      ],
+      "rings": [
+        10,
+        13
+      ],
+      "s_studs": [
+        0.138350001,
+        0.280482342
+      ],
+      "strip": "ferrule",
+      "studs_covered": 0.142132341,
+      "worst_face_stretch": 1.104892806,
+      "zones": [
+        "ferrule"
+      ]
+    },
+    {
+      "d_studs": [
+        0.245,
+        1.365
+      ],
+      "density_px_per_stud": 335.0,
+      "density_range": [
+        339.086512421,
+        382.020449173
+      ],
+      "handle": false,
+      "kind": "strip",
+      "mean_stretch": 1.024069395,
+      "measured_density": 359.522000886,
+      "rect_px": [
+        434,
+        875,
+        404,
+        127
+      ],
+      "rings": [
+        13,
+        16
+      ],
+      "s_studs": [
+        0.280482342,
+        1.400510518
+      ],
+      "strip": "shaft_1",
+      "studs_covered": 1.120028176,
+      "worst_face_stretch": 1.02708675,
+      "zones": [
+        "shaft"
+      ]
+    },
+    {
+      "d_studs": [
+        1.365,
+        2.485
+      ],
+      "density_px_per_stud": 335.0,
+      "density_range": [
+        338.025561395,
+        385.629808952
+      ],
+      "handle": false,
+      "kind": "strip",
+      "mean_stretch": 1.019604086,
+      "measured_density": 364.040422588,
+      "rect_px": [
+        434,
+        712,
+        409,
+        147
+      ],
+      "rings": [
+        16,
+        20
+      ],
+      "s_studs": [
+        1.400510518,
+        2.520555038
+      ],
+      "strip": "shaft_2",
+      "studs_covered": 1.12004452,
+      "worst_face_stretch": 1.023374727,
+      "zones": [
+        "shaft"
+      ]
+    },
+    {
+      "d_studs": [
+        2.485,
+        3.605
+      ],
+      "density_px_per_stud": 335.0,
+      "density_range": [
+        337.705366101,
+        392.163390622
+      ],
+      "handle": false,
+      "kind": "strip",
+      "mean_stretch": 1.029106758,
+      "measured_density": 364.413652942,
+      "rect_px": [
+        8,
+        712,
+        410,
+        175
+      ],
+      "rings": [
+        20,
+        24
+      ],
+      "s_studs": [
+        2.520555038,
+        3.641442655
+      ],
+      "strip": "shaft_3",
+      "studs_covered": 1.120887617,
+      "worst_face_stretch": 1.072920666,
+      "zones": [
+        "shaft"
+      ]
+    },
+    {
+      "d_studs": [
+        3.605,
+        5.32
+      ],
+      "density_px_per_stud": 536,
+      "density_range": [
+        539.772575861,
+        655.970708247
+      ],
+      "handle": true,
+      "kind": "strip",
+      "mean_stretch": 1.022815147,
+      "measured_density": 584.232717775,
+      "rect_px": [
+        8,
+        362,
+        1007,
+        334
+      ],
+      "rings": [
+        24,
+        36
+      ],
+      "s_studs": [
+        3.641442655,
+        5.361280292
+      ],
+      "strip": "forearm",
+      "studs_covered": 1.719837637,
+      "worst_face_stretch": 1.080820168,
+      "zones": [
+        "joint",
+        "forearm"
+      ]
+    },
+    {
+      "d_studs": [
+        5.32,
+        7.0
+      ],
+      "density_px_per_stud": 536,
+      "density_range": [
+        536.429959607,
+        655.149158556
+      ],
+      "handle": true,
+      "kind": "strip",
+      "mean_stretch": 1.003329111,
+      "measured_density": 550.402268073,
+      "rect_px": [
+        8,
+        8,
+        935,
+        338
+      ],
+      "rings": [
+        36,
+        53
+      ],
+      "s_studs": [
+        5.361280292,
+        7.057914989
+      ],
+      "strip": "butt",
+      "studs_covered": 1.696634696,
+      "worst_face_stretch": 1.104716931,
+      "zones": [
+        "ring",
+        "wrap",
+        "cap"
+      ]
+    },
+    {
+      "d_studs": [
+        7.0,
+        7.0
+      ],
+      "density_px_per_stud": 536,
+      "density_range": [
+        535.998884729,
+        536.001159216
+      ],
+      "handle": true,
+      "kind": "disc",
+      "mean_stretch": 1.000003819,
+      "measured_density": 536.000045578,
+      "rect_px": [
+        859,
+        712,
+        89,
+        89
+      ],
+      "rings": [
+        53,
+        55
+      ],
+      "s_studs": [
+        7.057914989,
+        7.139414989
+      ],
+      "strip": "end_face",
+      "studs_covered": 0.0815,
+      "worst_face_stretch": 1.000007721,
+      "zones": [
+        "cap"
+      ]
+    }
+  ],
+  "validation": {
+    "envelope": {
+      "max_excess": 5e-09,
+      "min_ratio": 0.969902789,
+      "min_ratio_at_d": 5.425000191,
+      "ok": true
+    },
+    "glb_roundtrip": {
+      "bounds_error": 0.0,
+      "materials": 1,
+      "name": "Cue.001",
+      "triangles": 3456,
+      "uv_layers": 1
+    },
+    "outward_faces_wrong": 0,
+    "size": {
+      "butt_diameter": 0.200000009,
+      "length": 7.0
+    },
+    "topology": {
+      "boundary_edges": 0,
+      "loose_vertices": 0,
+      "manifold": true,
+      "min_face_area": 7.191e-06,
+      "signed_volume": 0.141216973,
+      "triangles": 3456,
+      "triangles_only": true,
+      "vertices": 1730
+    },
+    "uv": {
+      "area_px": {
+        "butt": 314309.968821254,
+        "end_face": 5956.62929952,
+        "ferrule": 5228.86535608,
+        "forearm": 334127.993845921,
+        "shaft_1": 50506.55730876,
+        "shaft_2": 59461.697110875,
+        "shaft_3": 70769.986434996,
+        "tip": 3195.331785936,
+        "tip_face": 748.764770105
+      },
+      "density_range": {
+        "butt": [
+          536.429959607,
+          655.149158556
+        ],
+        "end_face": [
+          535.998884729,
+          536.001159216
+        ],
+        "ferrule": [
+          336.879733126,
+          350.474863847
+        ],
+        "forearm": [
+          539.772575861,
+          655.970708247
+        ],
+        "shaft_1": [
+          339.086512421,
+          382.020449173
+        ],
+        "shaft_2": [
+          338.025561395,
+          385.629808952
+        ],
+        "shaft_3": [
+          337.705366101,
+          392.163390622
+        ],
+        "tip": [
+          335.512975709,
+          363.162946533
+        ],
+        "tip_face": [
+          285.068144797,
+          331.060810773
+        ]
+      },
+      "handle_density": 566.770183516,
+      "handle_over_shaft": 1.561758593,
+      "handle_share": 0.775068223,
+      "mean_stretch": {
+        "butt": 1.003329111,
+        "end_face": 1.000003819,
+        "ferrule": 1.011572134,
+        "forearm": 1.022815147,
+        "shaft_1": 1.024069395,
+        "shaft_2": 1.019604086,
+        "shaft_3": 1.029106758,
+        "tip": 1.017854504,
+        "tip_face": 1.024280004
+      },
+      "measured_density": {
+        "butt": 550.402268073,
+        "end_face": 536.000045578,
+        "ferrule": 338.722401094,
+        "forearm": 584.232717775,
+        "shaft_1": 359.522000886,
+        "shaft_2": 364.040422588,
+        "shaft_3": 364.413652942,
+        "tip": 347.387292231,
+        "tip_face": 304.137927336
+      },
+      "min_gap_px": 8,
+      "mirrored_faces": 0,
+      "overlap_px": 0,
+      "shaft_density": 362.905116187,
+      "stretch": {
+        "butt": 1.104716931,
+        "end_face": 1.000007721,
+        "ferrule": 1.104892806,
+        "forearm": 1.080820168,
+        "shaft_1": 1.02708675,
+        "shaft_2": 1.023374727,
+        "shaft_3": 1.072920666,
+        "tip": 1.025400996,
+        "tip_face": 1.081496961
+      },
+      "used_px": 844305.794733446,
+      "worst_mean_stretch": 1.029106758,
+      "worst_stretch": 1.104892806
+    },
+    "zones": [
+      {
+        "error": 0.0,
+        "from_studs": 0.105,
+        "ring_d": 0.105,
+        "zone": "ferrule"
+      },
+      {
+        "error": 0.0,
+        "from_studs": 0.245,
+        "ring_d": 0.245,
+        "zone": "shaft"
+      },
+      {
+        "error": 0.0,
+        "from_studs": 3.605,
+        "ring_d": 3.605,
+        "zone": "joint"
+      },
+      {
+        "error": 0.0,
+        "from_studs": 3.78,
+        "ring_d": 3.78,
+        "zone": "forearm"
+      },
+      {
+        "error": 0.0,
+        "from_studs": 5.32,
+        "ring_d": 5.32,
+        "zone": "ring"
+      },
+      {
+        "error": 0.0,
+        "from_studs": 5.425,
+        "ring_d": 5.425,
+        "zone": "wrap"
+      },
+      {
+        "error": 0.0,
+        "from_studs": 6.615,
+        "ring_d": 6.615,
+        "zone": "cap"
+      }
+    ]
+  }
+}

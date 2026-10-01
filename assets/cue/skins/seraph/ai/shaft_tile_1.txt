@@ -1,0 +1,7 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the shaft (the long thin front part), repeated along it of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1024 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+It tiles seamlessly on all four edges.
+Pale creamy maple wood (#F2E6CC) with a faint fine grain on the left half, turning smoothly into polished white marble (#FAFAF5) with soft grey veins on the right half, where two thin shining gold ribbons (#D4AF37) begin to twist gently along the length. No other shapes.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #FAFAF5 #D4AF37 #FFF3C4.
+No text, no letters, no numbers, no logos, no symbols with words.

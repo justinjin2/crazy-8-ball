@@ -1,0 +1,7 @@
+Image 1 is a layout template. Paint it as a flat unrolled texture for a cylinder: the shaft (the long thin front part), repeated along it of a pool cue, in the style of the cue in the other images.
+Keep the exact layout and zone lines of image 1 and the exact size, 1024 x 512 pixels. The left edge is the tip end and the right edge is the butt end. The top and bottom edges join seamlessly (they meet underneath the cue); the middle row is the top of the cue.
+It tiles seamlessly on all four edges.
+Dark storm-grey brushed steel (#3A4250) with glowing electric-blue lightning (#3DB8FF) with white-hot cores: two or three long jagged bolts run left to right along the whole length, forking into thinner crackling branches, with dark steel showing between them. No other shapes.
+A flat texture map: no lighting, no shading, no highlights, no reflections, no shadows, no gloss streaks, no depth. Crisp clean shapes.
+Use only these colours and their darker and lighter tones: #3A4250 #3DB8FF #FFFFFF.
+No text, no letters, no numbers, no logos, no symbols with words.
