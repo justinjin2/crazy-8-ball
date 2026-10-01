@@ -47,3 +47,5 @@ assets/cue/textures/_*
 assets/cue/textures/*
 !assets/cue/textures/classic_*
 assets/cue/skins/*/*.png
+# Piece GLBs made from the OBJs by tools/cue_pieces_glb.py (uploaded; rebuilt on demand)
+assets/cue/pieces/*/*_parts.glb

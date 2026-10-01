@@ -6,23 +6,27 @@
 --
 -- A row:
 --   Id        stable catalog id (saved; never renamed)
---   Rarity    Common ... Secret for case cues; "Exclusive", "Unique", or "Default" (Classic)
+--   Rarity    Common ... Secret for case cues and Classic (a Common, designer 2026-09-30);
+--             "Exclusive" or "Unique"
 --   Group     "Case" (drops from cases), "Exclusive" (one special way each), "Unique"
 --             (numbered Limited copies) or "Default"
 --   Tradable  may be traded (trading is a later session; the flag is stored now): case and
---             Unique cues yes, Exclusive cues and Classic never
+--             Unique cues and the Starter Cue yes; the other Exclusive cues and Classic never
 --   Sellable  may be sold back (case cues only)
 --   Cases     the case ids that drop it (case cues only)
 --   Vaulted   true stops it dropping (ECONOMY 12); it stays in the Index and in saves
 --   Tier      the rank tier whose reward it is (rank cues)
---   Effect    the Config.Effects.Styles name that gives its trail and pocket burst
---   Look      placeholder colours (CueStickBuilder, PowerCue and the thumbnails): Shaft,
---             Forearm, Wrap, Ring, and optional Tip, Cap, Accent (a band in the forearm) and
---             Rainbow (the forearm in the house rainbow, for the VIP and Reyes cues). Real
---             models later only change the rows.
+--   Effect    the Config.Effects.Styles tier row for its trail and pocket burst, used where
+--             its skin (CueSkins) sets none
+--   Look      flat colours (the 2D power-bar cue, and the band cue where it has no skin):
+--             Shaft, Forearm, Wrap, Ring, and optional Tip, Cap, Accent (a band in the
+--             forearm) and Rainbow (the forearm in the house rainbow). A skinned cue's comes
+--             from its colour map (CueSkins.Index, generated); its real look is its skin.
 --
--- Placeholder names and looks (2026-09-28, overnight): listed in the morning report.
+-- The cues are the cue-skins run's (2026-09-30, docs/prompts/CUE_SKINS_REPORT.md): every case,
+-- rank and Exclusive cue has a skin; the Unique cues keep placeholder bands until theirs exist.
 local Config = require(script.Parent.Parent.Config)
+local SkinIndex = require(script.Parent.Parent.CueSkins.Index)
 
 export type Look = {
 	Shaft: { number },
@@ -56,7 +60,13 @@ Catalog.Default = "Classic"
 -- Every case the launch case cues drop from (each case drops the rarities it has odds for).
 local ALL_CASES = { "Standard", "Rare", "Epic", "Legendary", "Event" }
 
-local function caseCue(id: string, rarity: string, look: Look): Cue
+-- A skinned cue's flat colours (CueSkins.Index, sampled from its colour map).
+local function skinLook(id: string): Look
+	local row = assert(SkinIndex[id], "Catalog: no cue skin for " .. id)
+	return row.Look
+end
+
+local function caseCue(id: string, rarity: string): Cue
 	return {
 		Id = id,
 		Rarity = rarity,
@@ -66,11 +76,11 @@ local function caseCue(id: string, rarity: string, look: Look): Cue
 		Cases = ALL_CASES,
 		Vaulted = false,
 		Effect = rarity,
-		Look = look,
+		Look = skinLook(id),
 	}
 end
 
-local function rankCue(id: string, tier: string, effect: string, look: Look): Cue
+local function rankCue(id: string, tier: string, effect: string): Cue
 	return {
 		Id = id,
 		Rarity = "Exclusive",
@@ -81,7 +91,7 @@ local function rankCue(id: string, tier: string, effect: string, look: Look): Cu
 		Vaulted = false,
 		Tier = tier,
 		Effect = effect,
-		Look = look,
+		Look = skinLook(id),
 	}
 end
 
@@ -90,8 +100,9 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 		Id = id,
 		Rarity = group,
 		Group = group,
-		-- Unique cues trade; no Exclusive cue ever does (VIP, Starter; designer, 2026-09-28)
-		Tradable = group == "Unique",
+		-- Unique cues trade; of the Exclusive cues only the Starter Cue does (designer,
+		-- 2026-09-29); it is still never sold back
+		Tradable = group == "Unique" or id == "StarterCue",
 		Sellable = false,
 		Cases = {},
 		Vaulted = false,
@@ -100,28 +111,14 @@ local function specialCue(id: string, group: string, effect: string, look: Look)
 	}
 end
 
--- Tier cue looks: the forearm in the tier's colour, a dark wrap, a light ring.
-local function tierLook(
-	forearm: { number },
-	wrap: { number },
-	ring: { number },
-	accent: { number }?
-): Look
-	return {
-		Shaft = { 232, 214, 180 },
-		Forearm = forearm,
-		Wrap = wrap,
-		Ring = ring,
-		Accent = accent,
-	}
-end
-
 -- The rows, in the Index's order: Classic, then case cues bottom rarity first, then the
 -- Exclusive and Unique groups.
 local CUES: { Cue } = {
 	{
+		-- Shown as a Common (designer, 2026-09-30) but still everyone's free default: owned from
+		-- the start, in no case, never traded or sold (Group "Default").
 		Id = "Classic",
-		Rarity = "Default",
+		Rarity = "Common",
 		Group = "Default",
 		Tradable = false,
 		Sellable = false,
@@ -137,292 +134,73 @@ local CUES: { Cue } = {
 			Cap = { 20, 20, 22 },
 		},
 	},
-	-- Common (7): plain woods and soft colours.
-	caseCue("ChalkDust", "Common", {
-		Shaft = { 230, 226, 214 },
-		Forearm = { 120, 160, 200 },
-		Wrap = { 60, 70, 90 },
-		Ring = { 200, 205, 215 },
-		Tip = { 70, 110, 190 },
-	}),
-	caseCue("CornerPocket", "Common", {
-		Shaft = { 214, 176, 124 },
-		Forearm = { 40, 40, 44 },
-		Wrap = { 30, 30, 32 },
-		Ring = { 176, 180, 188 },
-	}),
-	caseCue("RooftopBreeze", "Common", {
-		Shaft = { 220, 200, 160 },
-		Forearm = { 150, 190, 210 },
-		Wrap = { 70, 90, 110 },
-		Ring = { 230, 230, 235 },
-	}),
-	caseCue("RackRunner", "Common", {
-		Shaft = { 210, 170, 120 },
-		Forearm = { 140, 60, 40 },
-		Wrap = { 40, 36, 34 },
-		Ring = { 200, 170, 90 },
-	}),
-	caseCue("SideSpin", "Common", {
-		Shaft = { 225, 205, 170 },
-		Forearm = { 90, 90, 100 },
-		Wrap = { 160, 40, 40 },
-		Ring = { 220, 220, 225 },
-	}),
-	caseCue("FeltGreen", "Common", {
-		Shaft = { 215, 185, 140 },
-		Forearm = { 30, 110, 70 },
-		Wrap = { 20, 50, 35 },
-		Ring = { 200, 200, 200 },
-	}),
-	caseCue("BankShot", "Common", {
-		Shaft = { 200, 160, 110 },
-		Forearm = { 95, 60, 40 },
-		Wrap = { 180, 150, 90 },
-		Ring = { 60, 60, 60 },
-	}),
-	-- Uncommon (6): brighter, a coloured ring.
-	caseCue("Skyline", "Uncommon", {
-		Shaft = { 235, 225, 205 },
-		Forearm = { 70, 120, 200 },
-		Wrap = { 30, 40, 70 },
-		Ring = { 255, 210, 90 },
-		Accent = { 255, 255, 255 },
-	}),
-	caseCue("TikiTorch", "Uncommon", {
-		Shaft = { 220, 180, 120 },
-		Forearm = { 200, 90, 40 },
-		Wrap = { 80, 40, 20 },
-		Ring = { 255, 190, 60 },
-	}),
-	caseCue("PalmShade", "Uncommon", {
-		Shaft = { 225, 210, 170 },
-		Forearm = { 60, 170, 100 },
-		Wrap = { 30, 80, 50 },
-		Ring = { 240, 220, 120 },
-	}),
-	caseCue("SunsetRail", "Uncommon", {
-		Shaft = { 240, 215, 180 },
-		Forearm = { 240, 120, 80 },
-		Wrap = { 120, 50, 90 },
-		Ring = { 255, 200, 120 },
-	}),
-	caseCue("KickShot", "Uncommon", {
-		Shaft = { 230, 220, 200 },
-		Forearm = { 240, 240, 245 },
-		Wrap = { 60, 190, 120 },
-		Ring = { 40, 40, 50 },
-	}),
-	caseCue("CushionCrusher", "Uncommon", {
-		Shaft = { 210, 190, 160 },
-		Forearm = { 120, 60, 160 },
-		Wrap = { 40, 30, 60 },
-		Ring = { 200, 200, 210 },
-	}),
-	-- Rare (6): bold colours with an accent band.
-	caseCue("HarborLights", "Rare", {
-		Shaft = { 240, 235, 220 },
-		Forearm = { 20, 60, 140 },
-		Wrap = { 10, 20, 50 },
-		Ring = { 255, 220, 100 },
-		Accent = { 80, 200, 255 },
-	}),
-	caseCue("Masse", "Rare", {
-		Shaft = { 245, 240, 230 },
-		Forearm = { 230, 60, 60 },
-		Wrap = { 30, 30, 40 },
-		Ring = { 255, 255, 255 },
-		Accent = { 255, 255, 255 },
-	}),
-	caseCue("NeonPocket", "Rare", {
-		Shaft = { 40, 40, 50 },
-		Forearm = { 40, 255, 200 },
-		Wrap = { 20, 20, 30 },
-		Ring = { 255, 60, 200 },
-		Tip = { 40, 255, 200 },
-	}),
-	caseCue("OceanBreak", "Rare", {
-		Shaft = { 220, 240, 250 },
-		Forearm = { 30, 150, 220 },
-		Wrap = { 10, 70, 120 },
-		Ring = { 230, 250, 255 },
-		Accent = { 255, 255, 255 },
-	}),
-	caseCue("RailRider", "Rare", {
-		Shaft = { 235, 215, 180 },
-		Forearm = { 50, 110, 230 },
-		Wrap = { 240, 240, 240 },
-		Ring = { 255, 200, 40 },
-	}),
-	caseCue("Tidewater", "Rare", {
-		Shaft = { 210, 235, 240 },
-		Forearm = { 20, 120, 130 },
-		Wrap = { 10, 50, 60 },
-		Ring = { 140, 230, 230 },
-		Accent = { 140, 230, 230 },
-	}),
-	-- Epic (5): strong contrasts.
-	caseCue("ThunderBreak", "Epic", {
-		Shaft = { 40, 40, 60 },
-		Forearm = { 255, 220, 40 },
-		Wrap = { 30, 30, 40 },
-		Ring = { 160, 90, 255 },
-		Accent = { 255, 255, 255 },
-		Tip = { 255, 220, 40 },
-	}),
-	caseCue("VioletVortex", "Epic", {
-		Shaft = { 230, 210, 255 },
-		Forearm = { 140, 60, 230 },
-		Wrap = { 60, 20, 110 },
-		Ring = { 255, 120, 230 },
-		Accent = { 255, 255, 255 },
-	}),
-	caseCue("Penthouse", "Epic", {
-		Shaft = { 20, 20, 24 },
-		Forearm = { 230, 230, 235 },
-		Wrap = { 20, 20, 24 },
-		Ring = { 255, 200, 60 },
-		Accent = { 20, 20, 24 },
-	}),
-	caseCue("Nightcap", "Epic", {
-		Shaft = { 30, 30, 60 },
-		Forearm = { 70, 50, 150 },
-		Wrap = { 15, 15, 35 },
-		Ring = { 180, 220, 255 },
-		Accent = { 255, 255, 255 },
-	}),
-	caseCue("JumpJet", "Epic", {
-		Shaft = { 240, 240, 245 },
-		Forearm = { 255, 80, 60 },
-		Wrap = { 40, 40, 50 },
-		Ring = { 255, 200, 40 },
-		Accent = { 255, 255, 255 },
-	}),
-	-- Legendary (3): gold and fire.
-	caseCue("GoldenBreak", "Legendary", {
-		Shaft = { 255, 230, 150 },
-		Forearm = { 242, 178, 0 },
-		Wrap = { 120, 70, 0 },
-		Ring = { 255, 255, 220 },
-		Accent = { 255, 245, 200 },
-		Tip = { 242, 178, 0 },
-	}),
-	caseCue("SolarFlare", "Legendary", {
-		Shaft = { 255, 210, 120 },
-		Forearm = { 255, 110, 20 },
-		Wrap = { 160, 30, 20 },
-		Ring = { 255, 240, 120 },
-		Accent = { 255, 220, 60 },
-	}),
-	caseCue("CrownJewel", "Legendary", {
-		Shaft = { 250, 240, 210 },
-		Forearm = { 140, 20, 60 },
-		Wrap = { 40, 10, 20 },
-		Ring = { 255, 200, 40 },
-		Accent = { 255, 215, 80 },
-	}),
-	-- Mythic (2): the pale holographic shimmer on deep space (UI_STYLE 4).
-	caseCue("Starfall", "Mythic", {
-		Shaft = { 220, 240, 255 },
-		Forearm = { 26, 20, 70 },
-		Wrap = { 183, 156, 255 },
-		Ring = { 127, 231, 255 },
-		Accent = { 255, 156, 230 },
-		Tip = { 127, 231, 255 },
-	}),
-	caseCue("Nebula", "Mythic", {
-		Shaft = { 240, 220, 255 },
-		Forearm = { 60, 30, 120 },
-		Wrap = { 26, 20, 70 },
-		Ring = { 255, 156, 230 },
-		Accent = { 127, 231, 255 },
-		Tip = { 183, 156, 255 },
-	}),
-	-- Secret (1): near-black with red (UI_STYLE 4's open suggestion).
-	caseCue("Eclipse", "Secret", {
-		Shaft = { 20, 18, 22 },
-		Forearm = { 10, 8, 10 },
-		Wrap = { 140, 0, 20 },
-		Ring = { 255, 40, 50 },
-		Accent = { 255, 255, 255 },
-		Tip = { 255, 40, 50 },
-	}),
+	-- Common (8, Classic counted): real cues from the real world: wood, carbon, lacquer.
+	caseCue("MidnightCue", "Common"),
+	caseCue("ArcticCue", "Common"),
+	caseCue("CherryCue", "Common"),
+	caseCue("CarbonCue", "Common"),
+	caseCue("HeritageCue", "Common"),
+	caseCue("MonarchCue", "Common"),
+	caseCue("CobaltCue", "Common"),
+	-- Uncommon (9): bold colours and patterns, one glowing ring.
+	caseCue("GummyCue", "Uncommon"),
+	caseCue("FlareCue", "Uncommon"),
+	caseCue("HornetCue", "Uncommon"),
+	caseCue("VenomCue", "Uncommon"),
+	caseCue("LagoonCue", "Uncommon"),
+	caseCue("SpliceCue", "Uncommon"),
+	caseCue("CosmoCue", "Uncommon"),
+	caseCue("GildedCue", "Uncommon"),
+	caseCue("PixelCue", "Uncommon"),
+	-- Rare (10): the first aura.
+	caseCue("HoneycombCue", "Rare"),
+	caseCue("NeonCue", "Rare"),
+	caseCue("NatureCue", "Rare"),
+	caseCue("CandyCue", "Rare"),
+	caseCue("FrostbiteCue", "Rare"),
+	caseCue("PlasmaCue", "Rare"),
+	caseCue("BlazeCue", "Rare"),
+	caseCue("PhantomCue", "Rare"),
+	caseCue("TidalCue", "Rare"),
+	caseCue("SakuraCue", "Rare"),
+	-- Epic (9): a moving material and an aura.
+	caseCue("VoidCue", "Epic"),
+	caseCue("ShootingStarCue", "Epic"),
+	caseCue("MagmaCue", "Epic"),
+	caseCue("ToxicCue", "Epic"),
+	caseCue("BloodMoonCue", "Epic"),
+	caseCue("PrismCue", "Epic"),
+	caseCue("AuroraCue", "Epic"),
+	caseCue("DiscoCue", "Epic"),
+	caseCue("HackedCue", "Epic"),
+	-- Legendary (7): a stronger aura, its own ball trail and pocket finisher.
+	caseCue("ChromaCue", "Legendary"),
+	caseCue("ThunderstrikeCue", "Legendary"),
+	caseCue("PhoenixCue", "Legendary"),
+	caseCue("KrakenCue", "Legendary"),
+	caseCue("SeraphCue", "Legendary"),
+	caseCue("InfernalCue", "Legendary"),
+	caseCue("ClockworkCue", "Legendary"),
+	-- Mythic (3): a moving 3D piece and everything at full strength.
+	caseCue("CelestialDragonCue", "Mythic"),
+	caseCue("KitsuneCue", "Mythic"),
+	caseCue("ApexCue", "Mythic"),
+	-- Secret (1): one of a kind.
+	caseCue("EclipseCue", "Secret"),
 	-- Exclusive: the ten rank cues, in their tier colours (Reyes in the house rainbow).
-	rankCue(
-		"BronzeCue",
-		"Bronze",
-		"Uncommon",
-		tierLook({ 205, 127, 70 }, { 90, 50, 25 }, { 240, 200, 160 })
-	),
-	rankCue(
-		"SilverCue",
-		"Silver",
-		"Uncommon",
-		tierLook({ 170, 182, 200 }, { 70, 76, 90 }, { 240, 245, 255 })
-	),
-	rankCue(
-		"GoldCue",
-		"Gold",
-		"Uncommon",
-		tierLook({ 255, 196, 40 }, { 130, 90, 10 }, { 255, 250, 210 })
-	),
-	rankCue(
-		"PlatinumCue",
-		"Platinum",
-		"Rare",
-		tierLook({ 120, 176, 230 }, { 40, 70, 110 }, { 230, 245, 255 })
-	),
-	rankCue(
-		"DiamondCue",
-		"Diamond",
-		"Rare",
-		tierLook({ 60, 214, 230 }, { 10, 90, 110 }, { 220, 255, 255 })
-	),
-	rankCue(
-		"ExpertCue",
-		"Expert",
-		"Epic",
-		tierLook({ 232, 64, 72 }, { 90, 20, 25 }, { 255, 200, 60 })
-	),
-	rankCue(
-		"VeteranCue",
-		"Veteran",
-		"Epic",
-		tierLook({ 64, 196, 96 }, { 20, 80, 40 }, { 255, 200, 60 })
-	),
-	rankCue(
-		"MasterCue",
-		"Master",
-		"Epic",
-		tierLook({ 158, 92, 230 }, { 60, 30, 100 }, { 255, 200, 60 })
-	),
-	rankCue(
-		"GrandmasterCue",
-		"Grandmaster",
-		"Legendary",
-		tierLook({ 60, 56, 70 }, { 20, 18, 24 }, { 255, 196, 40 }, { 255, 196, 40 })
-	),
-	rankCue("ReyesCue", "Reyes", "Mythic", {
-		Shaft = { 245, 240, 230 },
-		Forearm = { 255, 255, 255 },
-		Wrap = { 30, 30, 40 },
-		Ring = { 255, 255, 255 },
-		Rainbow = true,
-	}),
+	rankCue("BronzeCue", "Bronze", "Uncommon"),
+	rankCue("SilverCue", "Silver", "Uncommon"),
+	rankCue("GoldCue", "Gold", "Uncommon"),
+	rankCue("PlatinumCue", "Platinum", "Rare"),
+	rankCue("DiamondCue", "Diamond", "Rare"),
+	rankCue("ExpertCue", "Expert", "Epic"),
+	rankCue("VeteranCue", "Veteran", "Epic"),
+	rankCue("MasterCue", "Master", "Epic"),
+	rankCue("GrandmasterCue", "Grandmaster", "Legendary"),
+	rankCue("ReyesCue", "Reyes", "Mythic"),
 	-- Exclusive: VIP (rainbow) and the Starter Pack's cue.
-	specialCue("VipCue", "Exclusive", "Legendary", {
-		Shaft = { 250, 245, 235 },
-		Forearm = { 255, 255, 255 },
-		Wrap = { 27, 32, 51 },
-		Ring = { 255, 215, 80 },
-		Rainbow = true,
-	}),
-	specialCue("StarterCue", "Exclusive", "Uncommon", {
-		Shaft = { 230, 215, 185 },
-		Forearm = { 59, 155, 255 },
-		Wrap = { 255, 201, 40 },
-		Ring = { 255, 255, 255 },
-	}),
+	specialCue("VipCue", "Exclusive", "Legendary", skinLook("VipCue")),
+	specialCue("StarterCue", "Exclusive", "Uncommon", skinLook("StarterCue")),
 	-- Unique: numbered Limited copies (the Limited shelf, Config.Shop.Limited).
 	specialCue("FoundersCue", "Unique", "Legendary", {
 		Shaft = { 250, 235, 245 },
@@ -452,7 +230,7 @@ for i, rarity in Config.Cases.Rarities do
 	RARITY_ORDER[rarity] = i
 end
 -- Outside the ladder: Exclusive halfway between Config.Cases.ExclusiveRanksAbove and the next
--- rarity up (Epic 4.5 Legendary), Unique above them all, Classic below them all.
+-- rarity up (Epic 4.5 Legendary), Unique above them all, "Default" (no rarity) below them all.
 RARITY_ORDER.Exclusive = assert(
 	RARITY_ORDER[Config.Cases.ExclusiveRanksAbove],
 	"Catalog: ExclusiveRanksAbove names no rarity"

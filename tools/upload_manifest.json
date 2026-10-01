@@ -206,8 +206,8 @@
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackFlash.png": {
     "assetId": "95963272446335",
     "assetType": "Decal",
-    "status": "ok",
-    "imageId": "100178683348331"
+    "imageId": "100178683348331",
+    "status": "ok"
   },
   "/Users/justinjin/Desktop/8ball/assets/abilities/icons/BlackHole.png": {
     "assetId": "71153985460599",
@@ -311,6 +311,46 @@
     "imageId": "91211346868786",
     "status": "ok"
   },
+  "/Users/justinjin/Desktop/8ball/assets/cue/Cue.glb": {
+    "assetId": "112855847049580",
+    "assetType": "Model",
+    "meshId": "113499415983055",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/chroma/chroma_parts.glb": {
+    "assetId": "72147991851568",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/pieces/kitsune_pocket/PocketFox.glb": {
+    "assetId": "89187348523429",
+    "assetType": "Model",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_color.png": {
+    "assetId": "113726250410970",
+    "assetType": "Decal",
+    "imageId": "105908889801184",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_metalness.png": {
+    "assetId": "109852363568662",
+    "assetType": "Decal",
+    "imageId": "138757447950095",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_normal.png": {
+    "assetId": "136175165555480",
+    "assetType": "Decal",
+    "imageId": "114159920269427",
+    "status": "ok"
+  },
+  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_roughness.png": {
+    "assetId": "114675891803427",
+    "assetType": "Decal",
+    "imageId": "119517224467514",
+    "status": "ok"
+  },
   "/Users/justinjin/Desktop/8ball/assets/ui/art/aura_flame.png": {
     "assetId": "82997454954024",
     "assetType": "Decal",
@@ -369,35 +409,5 @@
     "assetId": "134987873534606",
     "assetType": "Decal",
     "status": "ok"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/Cue.glb": {
-    "assetId": "112855847049580",
-    "assetType": "Model",
-    "status": "ok",
-    "meshId": "113499415983055"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_color.png": {
-    "assetId": "113726250410970",
-    "assetType": "Decal",
-    "status": "ok",
-    "imageId": "105908889801184"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_metalness.png": {
-    "assetId": "109852363568662",
-    "assetType": "Decal",
-    "status": "ok",
-    "imageId": "138757447950095"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_normal.png": {
-    "assetId": "136175165555480",
-    "assetType": "Decal",
-    "status": "ok",
-    "imageId": "114159920269427"
-  },
-  "/Users/justinjin/Desktop/8ball/assets/cue/textures/classic_roughness.png": {
-    "assetId": "114675891803427",
-    "assetType": "Decal",
-    "status": "ok",
-    "imageId": "119517224467514"
   }
 }

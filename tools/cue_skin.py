@@ -8,6 +8,7 @@
 --stills  CuePreview.py --stills              (renders/skins/<id>/stills/)
 --sheet   CuePreview.py --sheet <id>          (renders/skins/<id>/sheet.png)
 --clip    CuePreview.py --clip                (renders/skins/<id>/clip.mp4)
+--thumb   CuePreview.py --thumb               (thumbs/<id>.png, the game's card picture)
 --all     every step (the default with no step flags). Headless Blender only, one at a time.
 """
 import os
@@ -44,6 +45,8 @@ def main():
             blender('CuePreview.py', '--skin', skin_id, '--stills')
         if '--sheet' in steps:
             subprocess.run([sys.executable, os.path.join(CUE, 'CuePreview.py'), '--sheet', skin_id], cwd=ROOT, check=True)
+        if '--thumb' in steps:
+            blender('CuePreview.py', '--skin', skin_id, '--thumb')
         if '--clip' in steps:
             blender('CuePreview.py', '--skin', skin_id, '--clip', *(['--quick'] if '--quick' in args else []))
 

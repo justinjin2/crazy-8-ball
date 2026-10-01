@@ -8,23 +8,29 @@ local function load()
 	return H.require("Progression.Catalog"), H.require("Config"), H.require("Strings")
 end
 
--- ECONOMY 6: the launch case cues per rarity.
+-- The cue skins' plan (designer, 2026-09-30): the case cues per rarity. Classic is shown as
+-- an eighth Common but is in no case.
 local CASE_CUES = {
 	Common = 7,
-	Uncommon = 6,
-	Rare = 6,
-	Epic = 5,
-	Legendary = 3,
-	Mythic = 2,
+	Uncommon = 9,
+	Rare = 10,
+	Epic = 9,
+	Legendary = 7,
+	Mythic = 3,
 	Secret = 1,
 }
 
 return {
-	["30 case cues, 7/6/6/5/3/2/1, all sellable, tradable and dropping from known cases"] = function()
+	["46 case cues, 7/9/10/9/7/3/1, all sellable, tradable and dropping from known cases"] = function()
 		local Catalog, Config = load()
 		local total = 0
 		for _, rarity in Config.Cases.Rarities do
-			local cues = Catalog.ofRarity(rarity)
+			local cues = {}
+			for _, cue in Catalog.ofRarity(rarity) do
+				if cue.Id ~= Catalog.Default then
+					table.insert(cues, cue)
+				end
+			end
 			H.expect(
 				#cues == CASE_CUES[rarity],
 				("%s: %d cues, expected %d"):format(rarity, #cues, CASE_CUES[rarity])
@@ -45,7 +51,7 @@ return {
 				end
 			end
 		end
-		H.expect(total == 30, ("%d case cues, expected 30"):format(total))
+		H.expect(total == 46, ("%d case cues, expected 46"):format(total))
 	end,
 
 	["12 Exclusive (the ten rank cues, VIP, Starter), 2 Unique, Classic, nothing else"] = function()
@@ -88,8 +94,8 @@ return {
 		H.expect(rankCues == 10, "ten rank cues")
 		for _, cue in exclusive do
 			H.expect(not cue.Sellable, cue.Id .. " must not sell")
-			-- No Exclusive cue trades, VIP and Starter included (designer, 2026-09-28).
-			H.expect(not cue.Tradable, cue.Id .. " must not trade")
+			-- No Exclusive cue trades but the Starter Cue (designer, 2026-09-29).
+			H.expect(cue.Tradable == (cue.Id == "StarterCue"), cue.Id .. " trading rule")
 			H.expect(#cue.Cases == 0, cue.Id .. " must not drop from a case")
 		end
 		for _, cue in unique do
@@ -107,9 +113,14 @@ return {
 		)
 		assert(classic, "no Classic")
 		H.expect(not classic.Sellable and not classic.Tradable, "Classic never sells or trades")
+		-- Shown as a Common (designer, 2026-09-30), still in no case.
+		H.expect(
+			classic.Rarity == "Common" and #classic.Cases == 0,
+			"Classic is a Common in no case"
+		)
 
 		local all = Catalog.list()
-		H.expect(#all == 30 + 12 + 2 + 1, ("%d cues in all, expected 45"):format(#all))
+		H.expect(#all == 46 + 12 + 2 + 1, ("%d cues in all, expected 61"):format(#all))
 	end,
 
 	["ids are unique and every lookup agrees with the list"] = function()

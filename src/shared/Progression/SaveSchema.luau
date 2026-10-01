@@ -23,7 +23,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 3
+SaveSchema.Version = 4
 
 -- The most playtime one UTC day can hold (Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -418,6 +418,59 @@ end
 -- save has no Ults, so anything found there is replaced.
 SaveSchema.Migrations[2] = function(data: any): any
 	data.Ults = UltSlots.fresh()
+	return data
+end
+
+-- 3 -> 4: the cue skins (docs/prompts/CUE_SKINS_REPORT.md). The 30 placeholder case cues
+-- left the catalog; they are removed from saves, with no swap and no refund (designer,
+-- 2026-09-30): from Inventory.Cues, Inventory.New and Index.Seen, and an equipped one becomes
+-- Classic. The list is frozen here (the catalog no longer knows these ids).
+local RETIRED_CUES_V3 = {
+	"ChalkDust",
+	"CornerPocket",
+	"RooftopBreeze",
+	"RackRunner",
+	"SideSpin",
+	"FeltGreen",
+	"BankShot",
+	"Skyline",
+	"TikiTorch",
+	"PalmShade",
+	"SunsetRail",
+	"KickShot",
+	"CushionCrusher",
+	"HarborLights",
+	"Masse",
+	"NeonPocket",
+	"OceanBreak",
+	"RailRider",
+	"Tidewater",
+	"ThunderBreak",
+	"VioletVortex",
+	"Penthouse",
+	"Nightcap",
+	"JumpJet",
+	"GoldenBreak",
+	"SolarFlare",
+	"CrownJewel",
+	"Starfall",
+	"Nebula",
+	"Eclipse",
+}
+
+SaveSchema.Migrations[3] = function(data: any): any
+	local inventory = tableAt(data, "Inventory")
+	local cues, new = tableAt(inventory, "Cues"), tableAt(inventory, "New")
+	local seen = tableAt(tableAt(data, "Index"), "Seen")
+	local equipped = tableAt(data, "Equipped")
+	for _, id in RETIRED_CUES_V3 do
+		cues[id] = nil
+		new[id] = nil
+		seen[id] = nil
+		if equipped.Cue == id then
+			equipped.Cue = Catalog.Default
+		end
+	end
 	return data
 end
 

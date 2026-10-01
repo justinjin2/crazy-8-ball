@@ -33,6 +33,10 @@ RENDERS = os.path.join(HERE, 'renders')
 SKINS = os.path.join(HERE, 'skins')
 TEXTURES = os.path.join(HERE, 'textures')
 CONCEPTS = os.path.join(HERE, 'concepts')
+THUMBS = os.path.join(HERE, 'thumbs')  # --thumb: the game's card pictures (committed, uploaded)
+THUMB_SIZE = 512  # px, square
+THUMB_THICKEN = 1.8  # the cue drawn this many times thicker across, so it reads on a card
+THUMB_ELEVATION = 40  # degrees the camera rises from the cue's side toward its top
 
 PREVIEW = {
     'clip_size': (1280, 720),
@@ -603,6 +607,53 @@ def blender_main(args):
         still('threeq', dict(loc=(-0.2, -2.9, 1.3), target=(2.2, 0, 0.15), lens=40), horiz)
         still('aura', dict(loc=(0.55, -8.6, 0.9), target=(0.55, 0, 0.05), lens=38), diag, aura_t=PREVIEW['prewarm'])
         print('CUE preview stills done', skin_id)
+
+    if '--thumb' in args:
+        # The game's card picture (CueThumb): a square on a clear background, the cue on the
+        # diagonal with the tip top-right like the old icon, thickened THUMB_THICKEN times
+        # across (the mesh only, so pieces keep their shape) so it reads on a phone card.
+        cue.data.transform(Matrix.Diagonal((THUMB_THICKEN, 1.0, THUMB_THICKEN, 1.0)))
+        scene.render.film_transparent = True
+        s = math.sqrt(0.5)
+        yw, zw = Vector((s, 0, s)), Vector((-s, 0, s))  # local +Y (toward the tip), the cue's top
+        xw = yw.cross(zw)  # its side faces the camera, which is raised THUMB_ELEVATION toward the top
+        rot = Matrix((xw, yw, zw)).transposed().to_euler()
+        loc = (3.5 + reach / 2) * Vector((s, 0, s))
+        still_size['thumb'] = (THUMB_SIZE, THUMB_SIZE)
+        span = (7.0 + reach) * s + 1.3
+        e = math.radians(THUMB_ELEVATION)
+        eye = 20 * (Vector((0, -math.cos(e), 0)) + math.sin(e) * zw)
+        aura_t = PREVIEW['prewarm'] if (V.get('Aura') or {}).get('Emitters') or beams else None
+        stills = os.path.join(out_dir, 'stills')
+
+        def shot(name):
+            still('thumb', dict(loc=tuple(eye), target=(0, 0, 0), ortho=span), (tuple(loc), tuple(rot)), aura_t=aura_t)
+            os.replace(os.path.join(stills, 'thumb.png'), os.path.join(stills, name))
+
+        # Glow needs something behind it: a clear render gives the solid shapes' alpha, a render
+        # on black gives the colour with its bloom; the glow's own alpha is its brightness.
+        shot('thumb_solid.png')
+        scene.render.film_transparent = False
+        bg.inputs[0].default_value = (0, 0, 0, 1)
+        shot('thumb_glow.png')
+
+        def pixels(name):
+            im = bpy.data.images.load(os.path.join(stills, name))
+            w, h = im.size
+            px = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)
+            bpy.data.images.remove(im)
+            return px
+
+        solid, glow = pixels('thumb_solid.png'), pixels('thumb_glow.png')
+        a = np.maximum(solid[..., 3], np.clip(glow[..., :3].max(-1), 0, 1))
+        rgb = np.where(a[..., None] > 1e-4, np.clip(glow[..., :3] / np.maximum(a[..., None], 1e-4), 0, 1), 0)
+        out = bpy.data.images.new('thumb', THUMB_SIZE, THUMB_SIZE, alpha=True)
+        out.pixels[:] = np.concatenate([rgb, a[..., None]], -1).ravel().tolist()
+        out.filepath_raw = os.path.join(THUMBS, skin_id + '.png')
+        out.file_format = 'PNG'
+        os.makedirs(THUMBS, exist_ok=True)
+        out.save()
+        print('CUE preview thumb done', skin_id)
 
     # ---- clip -----------------------------------------------------------------------------------
     if '--clip' in args:

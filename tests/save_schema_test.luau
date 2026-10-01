@@ -455,7 +455,7 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 3, "version 3")
+		H.expect(SaveSchema.Version == 4, "version 4")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
 		H.expect(t.RatedMatches == 0, "starts unranked")
@@ -628,10 +628,11 @@ return {
 			H.expect(out.Version == SaveSchema.Version, "now current, from " .. tostring(version))
 			H.expect(out.Money == 12, "data kept")
 			H.expect(
-				#notes == 3
+				#notes == 4
 					and notes[1] == "migrated 0 -> 1"
 					and notes[2] == "migrated 1 -> 2"
-					and notes[3] == "migrated 2 -> 3",
+					and notes[3] == "migrated 2 -> 3"
+					and notes[4] == "migrated 3 -> 4",
 				table.concat(notes, "; ")
 			)
 		end
@@ -1354,6 +1355,35 @@ return {
 		end
 	end,
 
+	["migration 3 -> 4 removes the retired placeholder cues and keeps the rest"] = function()
+		local _, SaveSchema = setup()
+		local save = SaveSchema.template()
+		save.Version = 3
+		save.Money = 500
+		save.Inventory.Cues.ChalkDust = 3
+		save.Inventory.Cues.Eclipse = 1
+		save.Inventory.Cues.GoldCue = 1
+		save.Inventory.Cues.KitsuneCue = 2
+		save.Inventory.New.Nebula = true
+		save.Inventory.New.KitsuneCue = true
+		save.Index.Seen.GoldenBreak = true
+		save.Index.Seen.GoldCue = true
+		save.Equipped.Cue = "Eclipse"
+		local out, notes = SaveSchema.migrate(save)
+		H.expect(#notes == 1 and notes[1] == "migrated 3 -> 4", table.concat(notes, "; "))
+		H.expect(out.Version == 4 and out.Money == 500, "version 4, money kept")
+		local cues = out.Inventory.Cues
+		H.expect(cues.ChalkDust == nil and cues.Eclipse == nil, "retired cues removed")
+		H.expect(cues.GoldCue == 1 and cues.KitsuneCue == 2, "current cues kept")
+		H.expect(out.Inventory.New.Nebula == nil and out.Inventory.New.KitsuneCue, "NEW tags")
+		H.expect(out.Index.Seen.GoldenBreak == nil and out.Index.Seen.GoldCue, "Index.Seen")
+		H.expect(out.Equipped.Cue == "Classic", "a retired equipped cue becomes Classic")
+		-- A broken save (no tables where they belong) never errors.
+		local broken = { Version = 3, Inventory = "x", Index = 4, Equipped = false }
+		local ok = pcall(SaveSchema.migrate, broken)
+		H.expect(ok, "broken save")
+	end,
+
 	["migration 2 -> 3 adds the ults: Magnet in slot 1 and the starter spins"] = function()
 		local Config, SaveSchema = setup()
 		local save = v2Save(SaveSchema)
@@ -1365,8 +1395,11 @@ return {
 		save.Settings.Volume = 0.5
 		local before = SaveSchema.template()
 		local out, notes = SaveSchema.migrate(save)
-		H.expect(#notes == 1 and notes[1] == "migrated 2 -> 3", table.concat(notes, "; "))
-		H.expect(out == save and out.Version == 3, "migrated in place to version 3")
+		H.expect(
+			#notes == 2 and notes[1] == "migrated 2 -> 3" and notes[2] == "migrated 3 -> 4",
+			table.concat(notes, "; ")
+		)
+		H.expect(out == save and out.Version == 4, "migrated in place to version 4")
 		local u = out.Ults
 		H.expect(u.Slots[1] == "Magnet" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
 		H.expect(u.Spins == Config.Ults.Earn.Starter and u.Spins == 3, "the 3 starter spins")

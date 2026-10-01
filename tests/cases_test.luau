@@ -204,14 +204,15 @@ return {
 			)
 			H.near(total, 100, 1e-9, case.Id .. " total")
 		end
-		-- ECONOMY 7.3's example: in the Legendary Case each Legendary is 6.667%, each Mythic 1.625%.
+		-- ECONOMY 7.3's example: in the Legendary Case each of the 7 Legendaries is 2.857%, each
+		-- of the 3 Mythics 1.083%.
 		for _, entry in Cases.cueOdds("Legendary") do
 			if entry.rarity == "Legendary" then
-				H.near(entry.percent, 20 / 3, 1e-9, entry.id)
-				H.expect(entry.display == "6.667%", entry.id .. " shows " .. entry.display)
+				H.near(entry.percent, 20 / 7, 1e-9, entry.id)
+				H.expect(entry.display == "2.857%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Mythic" then
-				H.near(entry.percent, 1.625, 1e-9, entry.id)
-				H.expect(entry.display == "1.625%", entry.id .. " shows " .. entry.display)
+				H.near(entry.percent, 3.25 / 3, 1e-9, entry.id)
+				H.expect(entry.display == "1.083%", entry.id .. " shows " .. entry.display)
 			elseif entry.rarity == "Secret" then
 				H.expect(entry.display == "0.25%", entry.id .. " shows " .. entry.display)
 			end
@@ -295,12 +296,12 @@ return {
 		local low, lowRarity = Cases.roll("Epic", function(_n: number): number
 			return 1
 		end)
-		H.expect(lowRarity == "Rare" and low == "HarborLights", "lowest roll: " .. low)
+		H.expect(lowRarity == "Rare" and low == "HoneycombCue", "lowest roll: " .. low)
 		-- rng always n: the last rarity (Secret), its last cue.
 		local high, highRarity = Cases.roll("Standard", function(n: number): number
 			return n
 		end)
-		H.expect(highRarity == "Secret" and high == "Eclipse", "highest roll: " .. high)
+		H.expect(highRarity == "Secret" and high == "EclipseCue", "highest roll: " .. high)
 		H.expect(not pcall(Cases.roll, "Nope", seeded(1)), "unknown case")
 		H.expect(not pcall(Cases.roll, "Standard", function(n: number): number
 			return n + 1
@@ -309,9 +310,9 @@ return {
 
 	["a vaulted cue never drops and leaves the Odds screen at once"] = function()
 		local Cases, Catalog = load()
-		withVaulted(Catalog, "ChalkDust", function()
+		withVaulted(Catalog, "MidnightCue", function()
 			for _, entry in Cases.cueOdds("Standard") do
-				H.expect(entry.id ~= "ChalkDust", "ChalkDust still listed")
+				H.expect(entry.id ~= "MidnightCue", "MidnightCue still listed")
 				if entry.rarity == "Common" then
 					H.near(entry.percent, 64.3 / 6, 1e-9, entry.id)
 				end
@@ -324,12 +325,12 @@ return {
 			local rng = seeded(12345)
 			for _ = 1, 20000 do
 				local id = Cases.roll("Standard", rng)
-				H.expect(id ~= "ChalkDust", "a vaulted cue dropped")
+				H.expect(id ~= "MidnightCue", "a vaulted cue dropped")
 			end
 		end)
-		H.expect(not (Catalog.get("ChalkDust") :: any).Vaulted, "restored")
+		H.expect(not (Catalog.get("MidnightCue") :: any).Vaulted, "restored")
 		-- Vaulting the only Secret leaves a share with no cue: validate says so.
-		withVaulted(Catalog, "Eclipse", function()
+		withVaulted(Catalog, "EclipseCue", function()
 			local problems = Cases.validate()
 			H.expect(#problems >= 4, "validate missed the empty Secret pool")
 			H.expect(problems[1]:find("Secret") ~= nil, problems[1] or "")

@@ -101,7 +101,7 @@ return {
 		-- Reads on an empty table own Classic and write nothing.
 		local empty = {}
 		H.expect(
-			Inventory.count(empty, "Classic") == 1 and Inventory.count(empty, "ChalkDust") == 0,
+			Inventory.count(empty, "Classic") == 1 and Inventory.count(empty, "MidnightCue") == 0,
 			"empty"
 		)
 		Inventory.snapshot(empty)
@@ -112,14 +112,14 @@ return {
 	["adding and removing cues keeps counts, the Index and NEW tags"] = function()
 		local Inventory = load()
 		local save = newSave()
-		H.expect(Inventory.addCue(save, "ChalkDust"), "add one")
-		H.expect(Inventory.count(save, "ChalkDust") == 1, "count 1")
+		H.expect(Inventory.addCue(save, "MidnightCue"), "add one")
+		H.expect(Inventory.count(save, "MidnightCue") == 1, "count 1")
 		H.expect(
-			save.Index.Seen.ChalkDust == true and save.Inventory.New.ChalkDust == true,
+			save.Index.Seen.MidnightCue == true and save.Inventory.New.MidnightCue == true,
 			"seen and new"
 		)
 		H.expect(
-			Inventory.addCue(save, "ChalkDust", 2) and Inventory.count(save, "ChalkDust") == 3,
+			Inventory.addCue(save, "MidnightCue", 2) and Inventory.count(save, "MidnightCue") == 3,
 			"count 3"
 		)
 		H.expect(
@@ -127,30 +127,31 @@ return {
 			"Exclusive cues count too"
 		)
 
-		local ok, reason = Inventory.removeCue(save, "ChalkDust", 5)
+		local ok, reason = Inventory.removeCue(save, "MidnightCue", 5)
 		H.expect(
-			not ok and reason == "TooMany" and Inventory.count(save, "ChalkDust") == 3,
+			not ok and reason == "TooMany" and Inventory.count(save, "MidnightCue") == 3,
 			"too many"
 		)
 		H.expect(
-			Inventory.removeCue(save, "ChalkDust", 2) and Inventory.count(save, "ChalkDust") == 1,
+			Inventory.removeCue(save, "MidnightCue", 2)
+				and Inventory.count(save, "MidnightCue") == 1,
 			"to 1"
 		)
-		H.expect(Inventory.removeCue(save, "ChalkDust"), "the last one")
-		H.expect(save.Inventory.Cues.ChalkDust == nil, "the key goes at 0")
-		H.expect(save.Inventory.New.ChalkDust == nil, "the NEW tag goes with it")
-		H.expect(save.Index.Seen.ChalkDust == true, "the Index keeps it")
-		ok, reason = Inventory.removeCue(save, "ChalkDust")
+		H.expect(Inventory.removeCue(save, "MidnightCue"), "the last one")
+		H.expect(save.Inventory.Cues.MidnightCue == nil, "the key goes at 0")
+		H.expect(save.Inventory.New.MidnightCue == nil, "the NEW tag goes with it")
+		H.expect(save.Index.Seen.MidnightCue == true, "the Index keeps it")
+		ok, reason = Inventory.removeCue(save, "MidnightCue")
 		H.expect(not ok and reason == "NotOwned", "not owned: " .. tostring(reason))
 
 		for _, bad in { 0, -1, 1.5, math.huge, "2" } do
 			H.expect(
-				not Inventory.addCue(save, "SideSpin", bad :: any),
+				not Inventory.addCue(save, "HeritageCue", bad :: any),
 				"bad count " .. tostring(bad)
 			)
 		end
 		H.expect(
-			save.Inventory.Cues.SideSpin == nil and save.Index.Seen.SideSpin == nil,
+			save.Inventory.Cues.HeritageCue == nil and save.Index.Seen.HeritageCue == nil,
 			"nothing added"
 		)
 		H.expect(
@@ -175,9 +176,9 @@ return {
 		H.expect(save.Index.Seen.FoundersCue and save.Inventory.New.FoundersCue, "seen and new")
 		H.expect(not Inventory.addUnique(save, "FoundersCue", 13), "one per player")
 		H.expect(Inventory.copy(save, "FoundersCue") == 12, "still #12")
-		H.expect(not Inventory.addUnique(save, "ChalkDust", 1), "only Unique cues")
+		H.expect(not Inventory.addUnique(save, "MidnightCue", 1), "only Unique cues")
 		H.expect(not Inventory.addUnique(save, "BetaCue", 0), "copy numbers start at 1")
-		H.expect(Inventory.copy(save, "ChalkDust") == nil, "no copy number for case cues")
+		H.expect(Inventory.copy(save, "MidnightCue") == nil, "no copy number for case cues")
 		H.expect(Inventory.removeCue(save, "FoundersCue"), "removed (a trade, later)")
 		H.expect(
 			not Inventory.owns(save, "FoundersCue") and save.Inventory.Unique.FoundersCue == nil,
@@ -190,13 +191,13 @@ return {
 	["a cue's first find is reported once, even after selling it"] = function()
 		local Inventory, _, Config = load()
 		local save = newSave()
-		local ok, first = Inventory.addCue(save, "ChalkDust")
+		local ok, first = Inventory.addCue(save, "MidnightCue")
 		H.expect(ok and first, "the first copy is a find")
-		ok, first = Inventory.addCue(save, "ChalkDust")
+		ok, first = Inventory.addCue(save, "MidnightCue")
 		H.expect(ok and not first, "a second copy is not")
-		H.expect(Inventory.removeCue(save, "ChalkDust", 2), "sold both")
-		H.expect(Inventory.found(save, "ChalkDust"), "still in the Index")
-		ok, first = Inventory.addCue(save, "ChalkDust")
+		H.expect(Inventory.removeCue(save, "MidnightCue", 2), "sold both")
+		H.expect(Inventory.found(save, "MidnightCue"), "still in the Index")
+		ok, first = Inventory.addCue(save, "MidnightCue")
 		H.expect(ok and not first, "found again after selling: no second find")
 		ok, first = Inventory.addCue(save, "Classic")
 		H.expect(not ok and not first, "Classic is never a find")
@@ -206,10 +207,10 @@ return {
 		ok, first = Inventory.addUnique(save, "BetaCue", 9)
 		H.expect(ok and not first, "and back again is not")
 		-- A held cue with no Seen entry (an old save) counts as found already.
-		save.Inventory.Cues.Masse = 1
-		ok, first = Inventory.addCue(save, "Masse")
+		save.Inventory.Cues.NeonCue = 1
+		ok, first = Inventory.addCue(save, "NeonCue")
 		H.expect(ok and not first, "held already")
-		H.expect(Inventory.findMoney("ChalkDust") == Config.Index.FindMoney.Common, "Common pays")
+		H.expect(Inventory.findMoney("MidnightCue") == Config.Index.FindMoney.Common, "Common pays")
 		H.expect(Inventory.findMoney("Classic") == 0, "Classic pays nothing")
 		H.expect(Inventory.findMoney("Nope") == 0, "unknown pays nothing")
 	end,
@@ -266,31 +267,31 @@ return {
 	["duplicates are case cues above one, in catalog order"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "Eclipse", 2)
-		Inventory.addCue(save, "ChalkDust", 3)
-		Inventory.addCue(save, "SideSpin")
+		Inventory.addCue(save, "EclipseCue", 2)
+		Inventory.addCue(save, "MidnightCue", 3)
+		Inventory.addCue(save, "HeritageCue")
 		Inventory.addCue(save, "VipCue", 2) -- Exclusive: never a duplicate to sell
 		local dups = Inventory.duplicates(save)
-		H.expect(ids(dups) == "ChalkDust Eclipse", "duplicates: " .. ids(dups))
-		H.expect(dups[1].extra == 2 and dups[1].value == 30, "ChalkDust: 2 extra, $30")
-		H.expect(dups[2].extra == 1 and dups[2].value == 75000, "Eclipse: 1 extra, $75,000")
+		H.expect(ids(dups) == "MidnightCue EclipseCue", "duplicates: " .. ids(dups))
+		H.expect(dups[1].extra == 2 and dups[1].value == 30, "MidnightCue: 2 extra, $30")
+		H.expect(dups[2].extra == 1 and dups[2].value == 75000, "EclipseCue: 1 extra, $75,000")
 	end,
 
 	["selling pays the section 8 value and leaves money to the caller"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "GoldenBreak", 2)
-		local ok, money = Inventory.sell(save, "GoldenBreak")
+		Inventory.addCue(save, "ChromaCue", 2)
+		local ok, money = Inventory.sell(save, "ChromaCue")
 		H.expect(ok and money == 3000, "a Legendary sells for $3,000: " .. tostring(money))
 		H.expect(
-			Inventory.count(save, "GoldenBreak") == 1 and save.Money == 0,
+			Inventory.count(save, "ChromaCue") == 1 and save.Money == 0,
 			"one left, no money added"
 		)
-		ok, money = Inventory.sell(save, "GoldenBreak", 2)
+		ok, money = Inventory.sell(save, "ChromaCue", 2)
 		H.expect(not ok and money == "TooMany", tostring(money))
-		ok, money = Inventory.sell(save, "GoldenBreak")
-		H.expect(ok and money == 3000 and not Inventory.owns(save, "GoldenBreak"), "the last one")
-		H.expect(save.Index.Seen.GoldenBreak == true, "still in the Index")
+		ok, money = Inventory.sell(save, "ChromaCue")
+		H.expect(ok and money == 3000 and not Inventory.owns(save, "ChromaCue"), "the last one")
+		H.expect(save.Index.Seen.ChromaCue == true, "still in the Index")
 
 		-- Exclusive and Unique never sell, owned or not.
 		Inventory.addCue(save, "VipCue")
@@ -301,9 +302,9 @@ return {
 			{ "GoldCue", 1, "NotSellable" },
 			{ "BetaCue", 1, "NotSellable" },
 			{ "Classic", 1, "NotSellable" },
-			{ "Masse", 1, "NotOwned" },
+			{ "NeonCue", 1, "NotOwned" },
 			{ "Nope", 1, "Unknown" },
-			{ "SideSpin", 0, "BadCount" },
+			{ "HeritageCue", 0, "BadCount" },
 		}
 		for _, e in expectations do
 			local can, reason = Inventory.canSell(save, e[1], e[2])
@@ -323,48 +324,48 @@ return {
 	["the equipped cue's last copy is refused; selling down to one is fine"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "Masse", 3)
-		H.expect(Inventory.equip(save, "Masse"), "equip")
-		local ok, money = Inventory.sell(save, "Masse", 2)
+		Inventory.addCue(save, "NeonCue", 3)
+		H.expect(Inventory.equip(save, "NeonCue"), "equip")
+		local ok, money = Inventory.sell(save, "NeonCue", 2)
 		H.expect(ok and money == 240, "sell down to one: " .. tostring(money))
-		local can, reason = Inventory.canSell(save, "Masse")
+		local can, reason = Inventory.canSell(save, "NeonCue")
 		H.expect(not can and reason == "Equipped", "the last copy: " .. tostring(reason))
 		H.expect(
-			Inventory.count(save, "Masse") == 1 and Inventory.equipped(save) == "Masse",
+			Inventory.count(save, "NeonCue") == 1 and Inventory.equipped(save) == "NeonCue",
 			"kept"
 		)
 		Inventory.equip(save, "Classic")
-		H.expect((Inventory.sell(save, "Masse")), "sells once something else is equipped")
+		H.expect((Inventory.sell(save, "NeonCue")), "sells once something else is equipped")
 	end,
 
 	["sell all duplicates keeps one of each; one cue's extras alone"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "ChalkDust", 3) -- 2 x $15
-		Inventory.addCue(save, "Skyline", 2) -- 1 x $40
-		Inventory.addCue(save, "ThunderBreak", 4) -- 3 x $600
-		Inventory.addCue(save, "Nebula") -- no extras
+		Inventory.addCue(save, "MidnightCue", 3) -- 2 x $15
+		Inventory.addCue(save, "GummyCue", 2) -- 1 x $40
+		Inventory.addCue(save, "VoidCue", 4) -- 3 x $600
+		Inventory.addCue(save, "KitsuneCue") -- no extras
 		Inventory.addCue(save, "StarterCue", 2) -- Exclusive: kept
-		Inventory.equip(save, "ThunderBreak")
+		Inventory.equip(save, "VoidCue")
 
-		local total, sold = Inventory.sellDuplicates(save, "Skyline")
+		local total, sold = Inventory.sellDuplicates(save, "GummyCue")
 		H.expect(
-			total == 40 and ids(sold) == "Skyline" and sold[1].count == 1,
+			total == 40 and ids(sold) == "GummyCue" and sold[1].count == 1,
 			"one cue: " .. total
 		)
 		H.expect(
-			Inventory.count(save, "Skyline") == 1 and Inventory.count(save, "ChalkDust") == 3,
+			Inventory.count(save, "GummyCue") == 1 and Inventory.count(save, "MidnightCue") == 3,
 			"only it"
 		)
 
 		total, sold = Inventory.sellDuplicates(save)
 		H.expect(total == 30 + 1800, "all duplicates: " .. total)
-		H.expect(ids(sold) == "ChalkDust ThunderBreak", "sold " .. ids(sold))
-		for _, id in { "ChalkDust", "Skyline", "ThunderBreak", "Nebula" } do
+		H.expect(ids(sold) == "MidnightCue VoidCue", "sold " .. ids(sold))
+		for _, id in { "MidnightCue", "GummyCue", "VoidCue", "KitsuneCue" } do
 			H.expect(Inventory.count(save, id) == 1, id .. " keeps one")
 		end
 		H.expect(Inventory.count(save, "StarterCue") == 2, "Exclusive untouched")
-		H.expect(Inventory.equipped(save) == "ThunderBreak", "still equipped")
+		H.expect(Inventory.equipped(save) == "VoidCue", "still equipped")
 		H.expect(#Inventory.duplicates(save) == 0 and save.Money == 0, "none left, no money added")
 		total, sold = Inventory.sellDuplicates(save)
 		H.expect(total == 0 and #sold == 0, "nothing to sell")
@@ -373,30 +374,33 @@ return {
 	["equip needs the cue; losing the equipped last copy goes back to Classic"] = function()
 		local Inventory = load()
 		local save = newSave()
-		H.expect(not Inventory.equip(save, "Masse") and save.Equipped.Cue == "Classic", "not owned")
+		H.expect(
+			not Inventory.equip(save, "NeonCue") and save.Equipped.Cue == "Classic",
+			"not owned"
+		)
 		H.expect(not Inventory.equip(save, "Nope"), "unknown")
-		Inventory.addCue(save, "Masse")
-		H.expect(Inventory.equip(save, "Masse") and save.Equipped.Cue == "Masse", "equipped")
-		Inventory.removeCue(save, "Masse")
+		Inventory.addCue(save, "NeonCue")
+		H.expect(Inventory.equip(save, "NeonCue") and save.Equipped.Cue == "NeonCue", "equipped")
+		Inventory.removeCue(save, "NeonCue")
 		H.expect(save.Equipped.Cue == "Classic", "back to Classic")
 		-- A save that names a cue it doesn't hold reads as Classic.
-		save.Equipped.Cue = "GoldenBreak"
+		save.Equipped.Cue = "ChromaCue"
 		H.expect(Inventory.equipped(save) == "Classic", "unowned equipped cue")
 	end,
 
 	["markSeen clears NEW tags once"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "ChalkDust")
-		Inventory.addCue(save, "SideSpin")
-		local cleared = Inventory.markSeen(save, { "ChalkDust", "ChalkDust", 5, "Nope" })
+		Inventory.addCue(save, "MidnightCue")
+		Inventory.addCue(save, "HeritageCue")
+		local cleared = Inventory.markSeen(save, { "MidnightCue", "MidnightCue", 5, "Nope" })
 		H.expect(cleared == 1, "cleared " .. cleared)
 		H.expect(
-			save.Inventory.New.ChalkDust == nil and save.Inventory.New.SideSpin == true,
+			save.Inventory.New.MidnightCue == nil and save.Inventory.New.HeritageCue == true,
 			"tags"
 		)
 		H.expect(
-			Inventory.markSeen(save, nil) == 0 and Inventory.markSeen(save, "SideSpin") == 0,
+			Inventory.markSeen(save, nil) == 0 and Inventory.markSeen(save, "HeritageCue") == 0,
 			"bad input"
 		)
 	end,
@@ -407,7 +411,7 @@ return {
 		-- 2026-09-28), so the rows above Epic have no reward.
 		local MONEY = { Common = 1000, Uncommon = 2500, Rare = 7500, Epic = 25000 }
 		local TOTALS =
-			{ Common = 7, Uncommon = 6, Rare = 6, Epic = 5, Legendary = 3, Mythic = 2, Secret = 1 }
+			{ Common = 8, Uncommon = 9, Rare = 10, Epic = 9, Legendary = 7, Mythic = 3, Secret = 1 }
 		local save = newSave()
 		local rows = Inventory.indexRows(save)
 		local order = {}
@@ -420,8 +424,10 @@ return {
 			"row order: " .. table.concat(order, " ")
 		)
 		for _, row in rows do
+			-- Classic is a Common everyone owns (designer, 2026-09-30): that row starts at 1.
+			local starts = if row.rarity == "Common" then 1 else 0
 			H.expect(
-				row.have == 0 and not row.complete and not row.claimed,
+				row.have == starts and not row.complete and not row.claimed,
 				row.rarity .. " starts empty"
 			)
 			if TOTALS[row.rarity] then
@@ -447,13 +453,13 @@ return {
 			Inventory.addCue(save, cue.Id)
 		end
 		for _, cue in Catalog.ofRarity("Common") do
-			if cue.Id ~= "ChalkDust" then
+			if cue.Id ~= "MidnightCue" then
 				Inventory.sell(save, cue.Id)
 			end
 		end
 		local common = Inventory.indexRows(save)[1]
 		H.expect(
-			common.have == 7 and common.complete and not common.claimed,
+			common.have == 8 and common.complete and not common.claimed,
 			"complete after selling"
 		)
 		local reward
@@ -485,36 +491,36 @@ return {
 
 	["a vaulted cue still counts toward its row; held cues count without Seen"] = function()
 		local Inventory, Catalog = load()
-		withVaulted(Catalog, "Eclipse", function()
+		withVaulted(Catalog, "EclipseCue", function()
 			local save = newSave()
 			local secret = Inventory.indexRows(save)[7]
 			H.expect(
 				secret.rarity == "Secret" and secret.total == 1,
 				"the vaulted Secret is still listed"
 			)
-			Inventory.addCue(save, "Eclipse")
+			Inventory.addCue(save, "EclipseCue")
 			H.expect(Inventory.indexRows(save)[7].complete, "and completes the row")
 		end)
 		-- A save whose Seen was never filled in (an old layout) still counts what it holds.
 		local old = newSave()
-		old.Inventory.Cues.Nebula = 1
+		old.Inventory.Cues.KitsuneCue = 1
 		H.expect(Inventory.indexRows(old)[6].have == 1, "held but not Seen")
 	end,
 
 	["snapshot is plain data in a fixed order"] = function()
 		local Inventory = load()
 		local save = newSave()
-		Inventory.addCue(save, "SideSpin", 2)
-		Inventory.addCue(save, "ChalkDust")
-		Inventory.addCue(save, "Eclipse")
-		Inventory.addCue(save, "Masse")
+		Inventory.addCue(save, "HeritageCue", 2)
+		Inventory.addCue(save, "MidnightCue")
+		Inventory.addCue(save, "EclipseCue")
+		Inventory.addCue(save, "NeonCue")
 		Inventory.addCue(save, "GoldCue")
 		Inventory.addUnique(save, "BetaCue", 412)
 		Inventory.addCases(save, "Legendary", 2)
 		Inventory.addCases(save, "Standard", 3)
-		Inventory.equip(save, "Masse")
-		Inventory.markSeen(save, { "SideSpin" })
-		Inventory.sell(save, "ChalkDust") -- sold: gone from cues, still seen
+		Inventory.equip(save, "NeonCue")
+		Inventory.markSeen(save, { "HeritageCue" })
+		Inventory.sell(save, "MidnightCue") -- sold: gone from cues, still seen
 		save.Titles.FirstReyes = true
 		save.Titles.Epic = true -- an old Collector title: left out
 		save.Titles.NotATitle = true -- unknown ids are left out
@@ -523,16 +529,16 @@ return {
 		local snap = Inventory.snapshot(save)
 		expectPlain(snap, "snapshot", tablesIn(save, {}))
 		H.expect(
-			ids(snap.cues) == "BetaCue Eclipse GoldCue Masse SideSpin Classic",
+			ids(snap.cues) == "BetaCue EclipseCue GoldCue NeonCue Classic HeritageCue",
 			"cues: " .. ids(snap.cues)
 		)
 		H.expect(snap.cues[1].copy == 412 and snap.cues[1].new == true, "BetaCue #412, new")
-		H.expect(snap.cues[5].count == 2 and snap.cues[5].new == false, "SideSpin x2, seen")
-		H.expect(snap.cues[6].count == 1 and snap.cues[6].copy == nil, "Classic")
+		H.expect(snap.cues[6].count == 2 and snap.cues[6].new == false, "HeritageCue x2, seen")
+		H.expect(snap.cues[5].count == 1 and snap.cues[5].copy == nil, "Classic")
 		H.expect(ids(snap.cases) == "Standard Legendary" and snap.cases[1].count == 3, "cases")
-		H.expect(snap.equipped == "Masse", "equipped")
+		H.expect(snap.equipped == "NeonCue", "equipped")
 		H.expect(
-			ids(snap.seen) == "ChalkDust SideSpin Masse Eclipse GoldCue BetaCue",
+			ids(snap.seen) == "MidnightCue HeritageCue NeonCue EclipseCue GoldCue BetaCue",
 			"seen: " .. ids(snap.seen)
 		)
 		H.expect(
@@ -542,7 +548,7 @@ return {
 		H.expect(#snap.rows == 9, "rows")
 
 		-- Changing the save afterwards never reaches a snapshot already taken.
-		Inventory.addCue(save, "Masse")
+		Inventory.addCue(save, "NeonCue")
 		H.expect(snap.cues[4].count == 1, "the snapshot is a copy")
 	end,
 }
