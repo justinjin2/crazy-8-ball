@@ -1088,9 +1088,40 @@ local function dropStrayMatchSelection()
 	end
 	GuiService.SelectedObject = nil
 end
+-- Cue looks: the shot effects (pocket finisher creatures, trail and pocket sprites) of your
+-- cue and of everyone at the drawn tables load before they play (CueAssets.holdShots), yours
+-- and your table's first.
+local shotsClock = math.huge
+local function holdShots(dt: number)
+	shotsClock += dt
+	if shotsClock < Config.CueSkins.Warm.ShotRefreshSeconds then
+		return
+	end
+	shotsClock = 0
+	local ids = { CueStickBuilder.equippedCue(player) }
+	local tables: { number } = {}
+	if hub.mySeat then
+		table.insert(tables, hub.mySeat)
+	end
+	for id in hub.boundTo do
+		if id ~= hub.mySeat then
+			table.insert(tables, id)
+		end
+	end
+	for _, id in tables do
+		for _, seat in hub:seatsAt(id) do
+			local seated = Players:GetPlayerByUserId(seat.userId)
+			if seated then
+				table.insert(ids, CueStickBuilder.equippedCue(seated))
+			end
+		end
+	end
+	CueAssets.holdShots(ids)
+end
 local function renderFrame(dt: number)
 	-- A shot halted for Time Stop's second strike aims like a turn, not like a replay.
 	local busy = hub:update(dt) and not frozenTurn()
+	holdShots(dt)
 	-- The reach preview rides on the guideline's first contact, an armed look's aim hook on the
 	-- shot it traces (last frame's; nil unless the player is aiming).
 	abilityFx:update(dt, if guideline then guideline:contact() else nil, aimShot)

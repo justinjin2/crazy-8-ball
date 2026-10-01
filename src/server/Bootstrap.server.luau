@@ -29,6 +29,7 @@ local Items = require(script.Parent:WaitForChild("Items"))
 local Store = require(script.Parent:WaitForChild("Store"))
 local Rewards = require(script.Parent:WaitForChild("Rewards"))
 local AbilityAssets = require(script.Parent:WaitForChild("AbilityAssets"))
+local FallGuard = require(script.Parent:WaitForChild("FallGuard"))
 
 -- An arena? Decided before anything is built.
 local isArena, matchId = ArenaService.detect()
@@ -137,6 +138,7 @@ end
 -- The queue pads and the seat state behind them, then the shot authority: the client sends
 -- inputs, this decides what actually happened.
 TableService.start(workspace, if isArena then "Arena" else "Hub")
+FallGuard.start() -- anyone who drops below the floor goes back to the spawn at once
 ShotService.start()
 UltService.start() -- ults in a match: activation, the bar gains, the Studio UltQA hook
 DevCommands.start() -- /day and /sunset, for the developer only

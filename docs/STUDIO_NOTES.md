@@ -10,6 +10,13 @@ Read when something misbehaves. Everything here was learned the hard way.
   string you just added. Studio's Play copy is a snapshot: stop Play, let it sync, start Play.
   Files saved while a playtest runs reach the Edit scripts only after Stop (seen 2026-09-27:
   a Play started right after an edit ran the old code); check the Edit copy, then Play.
+- **Start `rojo serve` outside the agent's sandbox** (Bash `dangerouslyDisableSandbox`), or
+  have the designer run it in their own Terminal. Started inside the sandbox it serves its
+  first snapshot but never sees a file change after that: Studio keeps old code, and
+  reconnecting the plugin only reloads the stale snapshot (2026-10-01; found by comparing the
+  Edit script's length with the file's). Check live sync by appending a comment to a file and
+  reading it back from the Edit copy a few seconds later. A background command is stopped
+  after 2 hours, so a long session needs it restarted (and the plugin reconnected).
 - StyLua reformatting breaks exact-string scripted edits: after every scripted edit, grep for
   the new text. Run `tools/format.sh` then `tools/lint.sh`.
 

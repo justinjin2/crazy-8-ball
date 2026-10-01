@@ -1,5 +1,26 @@
 # Status
 
+**2026-10-01 (latest+1): pocket creatures load before play, and nobody falls out of the map.**
+- A cue's pocket finisher (Phoenix, Kitsune, Celestial Dragon, Infernal creatures), its pocket
+  bursts and its trail were built only when a ball dropped, so they showed grey the first
+  time. `CueAssets.holdShots` now loads them invisibly ahead of time: your own cue's at once,
+  and everyone's at the tables near you. A creature still not loaded is skipped that pocket,
+  never shown grey.
+- After a match a player fell under the map. A held shooter is now let go only standing on
+  the floor and clear of the table (`TableService.clearSpot`). New `FallGuard` (server): anyone
+  12 studs below the lobby floor goes straight back to the spawn mat.
+- Checked in Studio on PC:
+  - On joining, your cue's shot copy was ready. Equipping Kitsune loaded its shot copy in
+    2.3 s. Kitsune's pocket fox, spawned by hand, drew with its maps loaded.
+  - A character dropped to y = -40 was back on the spawn mat 0.03 s later, health 100.
+  - A body held inside the table barrier 2.5 studs under the floor, released by ending the
+    match, landed standing 1.2 studs outside the barrier and stayed there.
+  - Console clean, lint clean.
+- Not yet checked: a real pocket finisher on first use in the live game (a scripted break
+  sank nothing); phone and gamepad (no new controls).
+- Rojo: started inside the agent sandbox it stopped seeing file changes (STUDIO_NOTES); it now
+  runs outside the sandbox. The designer reconnected the plugin.
+
 **2026-10-01 (latest): cue switches are an instant one-frame swap.** The designer found the
 empty gap between the old cue leaving and the new one appearing too long (2-3.5 s for a first
 use). Roblox's own load time can't be shortened (it waits about 1 s before it even asks for a

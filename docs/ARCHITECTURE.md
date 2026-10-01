@@ -138,7 +138,9 @@ state onto the place; `preview` in Edit mode).
 Server (`src/server`): `Bootstrap` (builds the tables, publishes assets), `TableService`
 (per-table state, joins, seats, match loop), `ShotService` (validation, simulation, broadcast),
 `DevCommands` (the developer's `/day` and `/sunset` chat commands, checked on the server),
-`BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`.
+`BotService`, `PlayerData` (session-locked saves), `Economy`, `Ranking`, `Analytics`,
+`FallGuard` (anyone more than `Config.FallGuard.BelowFloorStuds` below the lowest floor is put
+back on the spawn mat at once, the last resort against falling out of the map).
 
 Client (`src/client`): `Main` (wiring), `Match` (replays shots), `BallRenderer`, `Input`
 (mouse, touch, gamepad), `SpinSelector`, `Guideline`, `Camera`, `Avatar` (the local
@@ -217,7 +219,10 @@ Physics remains unchanged and instance-free.
 
 `TableService` is the Roblox adapter for server-observed queue pads (one rectangular pad per table
 in front of its long side, `Placement.queuePad`, polled at 10 Hz with no dwell), global membership, rate
-limits, character constraints and snapshots. `ShotService` validates ownership/version
+limits, character constraints and snapshots. A held shooter's body touches nothing (the
+`PoolShooter` group), so before any held root is let go (a turn passing, the match ending)
+`clearSpot` steps it clear of every table barrier and onto the floor found under it, if it is
+not there already; otherwise physics could push it through the floor (designer 2026-10-01). `ShotService` validates ownership/version
 through the engine, simulates once and broadcasts the replay. Accepted shots stop the
 shooting clock; resolution waits for motion/falls and the pocket buffer. Epoch/sequence
 checks reject stale actions and duplicate replay packets. Group assignment and 8-ball
@@ -723,7 +728,13 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   a back's stick in one refresh once the new cue is ready. CueSkinLook shows a look only on the
   cue it was built for, and a rebuilt look prefills its aura (`ShowPrefillShare`). The
   inventory selection and the case reveal start `preload`, so Equip is usually instant; the
-  Index viewport keeps its old cue until the new one is loaded.
+  Index viewport keeps its old cue until the new one is loaded. Shot effects: a pocket
+  finisher builds its creature and bursts only when a ball drops, so `CueAssets.holdShots`
+  (Main, every `ShotRefreshSeconds`: your cue, then everyone's at your table and the other
+  drawn tables, at most `MaxHeldShots`) keeps a second hidden copy per cue (key `shot:<id>`:
+  the pocket piece and the trail, style and pocket sprites) held loaded; `Effects.skinFinisher`
+  skips a creature whose copy is not ready (`CueAssets.shotReady`) rather than show it grey.
+  Each copy's model gets a `Ready` attribute when loaded (for checking in Studio).
 - **Effects.** A cue with a skin Style, TrailEmitters or Pocket gets the style key
   `skin:<CatalogId>`: `styleFor` lays the skin's Style over `Config.Effects.Styles.Default`
   (the tier rows stay as fallbacks). New trail keys: a Transparency curve, WidthScale,

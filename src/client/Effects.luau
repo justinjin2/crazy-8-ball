@@ -33,6 +33,7 @@ local CueStickBuilder = require(Shared:WaitForChild("CueStickBuilder"))
 local CueSkins = require(Shared:WaitForChild("CueSkins"))
 local Motion = require(Shared:WaitForChild("CueSkins"):WaitForChild("Motion"))
 local Textures = require(Shared:WaitForChild("CueSkins"):WaitForChild("Textures"))
+local CueAssets = require(script.Parent.CueAssets)
 local CuePiece = require(script.Parent.CuePiece)
 local CueVfx = require(script.Parent.CueVfx)
 local HudParts = require(script.Parent.HudParts)
@@ -672,15 +673,23 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	TweenService:Create(light, TweenInfo.new(flashSeconds), { Brightness = 0 }):Play()
 
 	if finisher then
-		lifetime = math.max(lifetime, self:skinFinisher(finisher, at, root))
+		local skinId = style.Skin and style.Skin.CatalogId
+		lifetime = math.max(lifetime, self:skinFinisher(finisher, at, root, skinId))
 	end
 	Debris:AddItem(root, lifetime)
 end
 
 -- A skin's pocket finisher on top of the gust: its layers (emitters bursting once each, at
 -- their Delay), its extra rings and its 3D creature rising out of the pocket. Returns how long
--- it lasts (seconds).
-function Effects.skinFinisher(self: Effects, finisher: any, at: Vector3, root: BasePart): number
+-- it lasts (seconds). The creature of cue `cueId` shows only once loaded (CueAssets.holdShots
+-- loads it before play): never grey, at worst missing from a first pocket.
+function Effects.skinFinisher(
+	self: Effects,
+	finisher: any,
+	at: Vector3,
+	root: BasePart,
+	cueId: string?
+): number
 	local last = 0
 	for _, row in finisher.Layers or {} do
 		local host: Instance = root
@@ -734,7 +743,7 @@ function Effects.skinFinisher(self: Effects, finisher: any, at: Vector3, root: B
 		end)
 	end
 	local p = finisher.Piece
-	if p and CuePiece.available(p.Piece) then
+	if p and CuePiece.available(p.Piece) and (cueId == nil or CueAssets.shotReady(cueId)) then
 		local delay, seconds = p.Delay or 0.1, p.Seconds or 1.3
 		last = math.max(last, delay + seconds)
 		local anchor = bare("PocketPiece", self.folder, at)

@@ -25,6 +25,11 @@
 -- of them; then ready(id) is false again and the next ask warms it once more (quick when still
 -- cached). A cue drawn with bands (no template) is always ready.
 --
+-- Shot effects (holdShots): a cue's pocket finisher builds its 3D creature and bursts only
+-- when a ball drops, so the cues about to be played with (Main: yours and those of everyone at
+-- the drawn tables) also get a hidden copy of the creature and their trail and pocket sprites,
+-- held loaded while they play; Effects skips a creature not loaded yet rather than show it grey.
+--
 -- CueStickBuilder paints a stick's new cue only when ready (setLoader, from Main), BackCue
 -- swaps a back's stick only when ready, CueViewport replaces its cue only when ready.
 
@@ -44,6 +49,9 @@ local CueAssets = {}
 
 type Warm = {
 	model: Model,
+	cue: string, -- the catalog cue
+	kind: "look" | "shot", -- its stick's look, or its shots' effects (holdShots)
+	held: boolean, -- kept drawn however long ago it was asked for (holdShots)
 	skin: Instance, -- the cue's template
 	retries: number, -- repairs of a failed download
 	retriedAt: number,
@@ -63,7 +71,8 @@ type Warm = {
 	waiters: { () -> () },
 }
 
-local warms: { [string]: Warm } = {}
+local warms: { [string]: Warm } = {} -- by key: the cue's id (its look), or SHOT .. id
+local SHOT = "shot:"
 local holder: Folder? = nil
 local stepping: RBXScriptConnection? = nil
 local lastEmit = 0
@@ -128,8 +137,13 @@ local function hide(root: Instance)
 	end
 end
 
--- One hidden particle and one hidden beam drawing sprite `texture` on `host`.
+-- One hidden particle, beam and decal (a pocket ring is one) drawing sprite `texture` on
+-- `host`.
 local function sprite(host: BasePart, texture: string, emitters: { ParticleEmitter })
+	local decal = Instance.new("Decal")
+	decal.Texture = texture
+	decal.Transparency = W.Transparency
+	decal.Parent = host
 	local a0 = Instance.new("Attachment")
 	a0.Position = Vector3.new(-0.5, 0, 0)
 	a0.Parent = host
@@ -165,6 +179,9 @@ local function finish(w: Warm)
 		return
 	end
 	w.ready = true
+	if w.model.Parent then
+		w.model:SetAttribute("Ready", true) -- for checking in Studio
+	end
 	local list = w.waiters
 	w.waiters = {}
 	for _, fn in list do
@@ -172,21 +189,22 @@ local function finish(w: Warm)
 	end
 end
 
-local function drop(id: string)
-	local w = warms[id]
+local function drop(key: string)
+	local w = warms[key]
 	if w then
-		warms[id] = nil
+		warms[key] = nil
 		w.model:Destroy()
 		finish(w) -- never leaves a waiter hanging
 	end
 end
 
--- Only MaxCopies loaded copies stay drawn: the least recently asked for go first.
+-- Only MaxCopies loaded copies stay drawn (besides the held ones): the least recently asked
+-- for go first.
 local function trim()
 	local kept: { { id: string, touched: number } } = {}
-	for id, w in warms do
-		if w.ready then
-			table.insert(kept, { id = id, touched = w.touched })
+	for key, w in warms do
+		if w.ready and not w.held then
+			table.insert(kept, { id = key, touched = w.touched })
 		end
 	end
 	if #kept <= W.MaxCopies then
@@ -200,7 +218,7 @@ local function trim()
 	end
 end
 
-local retry: (w: Warm, id: string, now: number) -> ()
+local retry: (w: Warm, now: number) -> ()
 local repair: (w: Warm, failed: { string }) -> ()
 
 local function step()
@@ -215,10 +233,10 @@ local function step()
 	end
 	local parts: { BasePart } = {}
 	local frames: { CFrame } = {}
-	for id, w in warms do
+	for key, w in warms do
 		if w.ready then
-			if now - w.touched > W.KeepSeconds then
-				drop(id)
+			if not w.held and now - w.touched > W.KeepSeconds then
+				drop(key)
 				continue
 			end
 		else
@@ -248,7 +266,7 @@ local function step()
 				-- A failed download is repaired while repairs are left (retry), not shown.
 				if w.repaired then
 					loaded = false
-					retry(w, id, now)
+					retry(w, now)
 				elseif w.repairing then
 					loaded = false
 				elseif #failed > 0 and w.retries < W.Retries then
@@ -268,9 +286,7 @@ local function step()
 				finish(w)
 			elseif now - w.started >= W.TimeoutSeconds then
 				if RunService:IsStudio() then
-					warn(
-						("[8ball] CueAssets: %s shown before its look loaded (timeout)"):format(id)
-					)
+					warn(("[8ball] CueAssets: %s shown before it loaded (timeout)"):format(key))
 				end
 				finish(w)
 			end
@@ -294,78 +310,102 @@ local function step()
 	end
 end
 
--- Fill `w.model` with the hidden copy of cue `id`: its surface (and a copy of the mesh for
--- every moving-surface frame), its 3D piece and its effect sprites; `w.ids` lists every texture.
-local function dress(w: Warm, id: string, skin: Instance)
+-- Add a hidden copy of 3D piece `name` (CuePieces) to `w`: its meshes preloaded, its
+-- textures drawn. False when the place has no such piece.
+local function addPiece(w: Warm, name: string, seen: { [string]: boolean }): boolean
+	local pieces = ReplicatedStorage:FindFirstChild(Config.CueSkins.PiecesFolder)
+	local piece = pieces and pieces:FindFirstChild(name)
+	if piece == nil then
+		return false
+	end
+	collect(CueSkins.piece(name), w.ids, seen)
+	local copy = piece:Clone()
+	copy.Parent = w.model
+	local centre: CFrame? = nil
+	for _, d in copy:GetDescendants() do
+		if d:IsA("BasePart") then
+			centre = centre or d.CFrame
+			table.insert(w.parts, d)
+			table.insert(w.offsets, (centre :: CFrame):ToObjectSpace(d.CFrame))
+		end
+	end
+	if not w.meshes then
+		task.spawn(function()
+			pcall(function()
+				ContentProvider:PreloadAsync({ piece })
+			end)
+			w.meshes = true
+		end)
+	end
+	return true
+end
+
+-- The pocket finisher's 3D piece of skin row `row`, or nil.
+local function pocketPiece(row: any): string?
+	local pocket = row and row.Pocket
+	local piece = pocket and pocket.Piece
+	return if type(piece) == "table" and type(piece.Piece) == "string" then piece.Piece else nil
+end
+
+-- Fill `w.model` with the hidden copy of its cue: for a "look", its surface (and a copy of the
+-- mesh for every moving-surface frame), its 3D piece and its effect sprites; for a "shot", its
+-- pocket finisher's piece and the sprites of its trail and pocket effects. `w.ids` lists every
+-- texture.
+local function dress(w: Warm)
 	local model = w.model
 	local seen: { [string]: boolean } = {}
-	local row = CueSkins.get(id)
-	local cue = skin:FindFirstChildWhichIsA("MeshPart", true)
-	local surfaces: { MeshPart } = {}
-	if cue then
-		table.insert(surfaces, (cue:Clone() :: any) :: MeshPart)
-		local frameFolder = skin:FindFirstChild("Frames")
-		local frameList: { Instance } = if frameFolder then frameFolder:GetChildren() else {}
-		for _, sa in frameList do
-			if sa:IsA("SurfaceAppearance") then
-				local copy = (cue:Clone() :: any) :: MeshPart
-				for _, c in copy:GetChildren() do
-					if c:IsA("SurfaceAppearance") then
-						c:Destroy()
+	local row = CueSkins.get(w.cue)
+	local sprites: { string } = {}
+	local hasPiece = false
+	if w.kind == "look" then
+		local cue = w.skin:FindFirstChildWhichIsA("MeshPart", true)
+		local surfaces: { MeshPart } = {}
+		if cue then
+			table.insert(surfaces, (cue:Clone() :: any) :: MeshPart)
+			local frameFolder = w.skin:FindFirstChild("Frames")
+			local frameList: { Instance } = if frameFolder then frameFolder:GetChildren() else {}
+			for _, sa in frameList do
+				if sa:IsA("SurfaceAppearance") then
+					local copy = (cue:Clone() :: any) :: MeshPart
+					for _, c in copy:GetChildren() do
+						if c:IsA("SurfaceAppearance") then
+							c:Destroy()
+						end
 					end
+					sa:Clone().Parent = copy
+					table.insert(surfaces, copy)
 				end
-				sa:Clone().Parent = copy
-				table.insert(surfaces, copy)
 			end
 		end
-	end
-	for i, mesh in surfaces do
-		mesh.Name = "Surface" .. i
-		mesh.Parent = model
-		table.insert(w.parts, mesh)
-		table.insert(w.offsets, CFrame.Angles(0, math.rad(90), 0))
-	end
-	if row then
-		collect(row.Maps, w.ids, seen)
-		collect(row.Frames, w.ids, seen)
-	end
-	-- The 3D piece, as built (its meshes preloaded, its textures drawn).
-	local piece: Instance? = nil
-	if row and row.Piece then
-		local pieces = ReplicatedStorage:FindFirstChild(Config.CueSkins.PiecesFolder)
-		piece = pieces and pieces:FindFirstChild(row.Piece)
-		collect(CueSkins.piece(row.Piece), w.ids, seen)
-	end
-	if piece then
-		local copy = piece:Clone()
-		copy.Parent = model
-		local centre: CFrame? = nil
-		for _, d in copy:GetDescendants() do
-			if d:IsA("BasePart") then
-				centre = centre or d.CFrame
-				table.insert(w.parts, d)
-				table.insert(w.offsets, (centre :: CFrame):ToObjectSpace(d.CFrame))
+		for i, mesh in surfaces do
+			mesh.Name = "Surface" .. i
+			mesh.Parent = model
+			table.insert(w.parts, mesh)
+			table.insert(w.offsets, CFrame.Angles(0, math.rad(90), 0))
+		end
+		if row then
+			collect(row.Maps, w.ids, seen)
+			collect(row.Frames, w.ids, seen)
+			if row.Piece then
+				hasPiece = addPiece(w, row.Piece, seen)
 			end
+			collect(row.Aura, sprites, seen)
+			collect(row.Moving, sprites, seen)
 		end
-		if not w.meshes then
-			local source = piece
-			task.spawn(function()
-				pcall(function()
-					ContentProvider:PreloadAsync({ source })
-				end)
-				w.meshes = true
-			end)
+		collect(Textures, sprites, seen)
+	elseif row then
+		local name = pocketPiece(row)
+		if name then
+			hasPiece = addPiece(w, name, seen)
 		end
-	else
+		collect(row.TrailEmitters, sprites, seen)
+		collect(row.Style, sprites, seen)
+		collect(row.Pocket, sprites, seen)
+	end
+	if not hasPiece then
 		w.meshes = true
 	end
-	-- Every effect sprite: one hidden particle and one hidden beam each.
-	local sprites: { string } = {}
-	if row then
-		collect(row.Aura, sprites, seen)
-		collect(row.Moving, sprites, seen)
-	end
-	collect(Textures, sprites, seen)
+	-- Every effect sprite: one hidden particle, beam and decal each.
 	local host = Instance.new("Part")
 	host.Name = "Sprites"
 	host.Size = Vector3.new(1, 1, 1)
@@ -401,25 +441,30 @@ function repair(w: Warm, failed: { string })
 end
 
 -- Build the copy afresh: a SurfaceAppearance that missed a texture stays blank for good.
-function retry(w: Warm, id: string, now: number)
+function retry(w: Warm, now: number)
 	w.repairing, w.repaired = false, false
 	w.retriedAt = now
+	local name = w.model.Name
 	w.model:Destroy()
 	local model = Instance.new("Model")
-	model.Name = id
+	model.Name = name
 	w.model = model
 	w.parts, w.offsets, w.emitters, w.ids = {}, {}, {}, {}
 	w.settledAt = nil
-	dress(w, id, w.skin)
+	dress(w)
 end
 
--- Start drawing the hidden copy of cue `id` (which has a template).
-local function warm(id: string, skin: Instance): Warm
+-- Start drawing the hidden copy `key` of cue `id`'s look or shot effects (`id` has a
+-- template).
+local function warm(key: string, id: string, kind: "look" | "shot", skin: Instance): Warm
 	local now = os.clock()
 	local model = Instance.new("Model")
-	model.Name = id
+	model.Name = key
 	local w: Warm = {
 		model = model,
+		cue = id,
+		kind = kind,
+		held = false,
 		skin = skin,
 		parts = {},
 		offsets = {},
@@ -437,8 +482,8 @@ local function warm(id: string, skin: Instance): Warm
 		touched = now,
 		waiters = {},
 	}
-	dress(w, id, skin)
-	warms[id] = w
+	dress(w)
+	warms[key] = w
 	if stepping == nil then
 		stepping = RunService.RenderStepped:Connect(step)
 	end
@@ -463,7 +508,7 @@ function CueAssets.preload(id: string)
 	end
 	local skin = template(id)
 	if skin then
-		warm(id, skin)
+		warm(id, id, "look", skin)
 		trim()
 	end
 end
@@ -477,6 +522,48 @@ function CueAssets.whenReady(id: string, fn: () -> ())
 		return
 	end
 	table.insert((warms[id] :: Warm).waiters, fn)
+end
+
+-- A cue's shot effects worth loading: a skinned cue with a trail, a pocket or a style of its own.
+local function hasShot(id: string): boolean
+	local row = template(id) and CueSkins.get(id)
+	return row ~= nil and (row.TrailEmitters ~= nil or row.Pocket ~= nil or row.Style ~= nil)
+end
+
+--- True when cue `id`'s shot effects (its pocket finisher's creature, its trail and pocket
+--- sprites) are loaded, or it has none.
+function CueAssets.shotReady(id: string): boolean
+	if not hasShot(id) then
+		return true
+	end
+	local w = warms[SHOT .. id]
+	return w ~= nil and w.ready
+end
+
+--- Keep exactly these cues' shot effects loaded (the cues about to be played with: Main passes
+--- your own and everyone's at the drawn tables), at most MaxHeldShots, the first ones first.
+--- Others let go stay loaded KeepSeconds more. Cheap to call often.
+function CueAssets.holdShots(ids: { string })
+	local now = os.clock()
+	local wanted: { [string]: boolean } = {}
+	local count = 0
+	for _, id in ids do
+		local key = SHOT .. id
+		if not wanted[key] and count < W.MaxHeldShots and hasShot(id) then
+			wanted[key] = true
+			count += 1
+			local w = warms[key] or warm(key, id, "shot", template(id) :: Instance)
+			w.held = true
+			w.touched = now
+		end
+	end
+	for key, w in warms do
+		if w.held and not wanted[key] then
+			w.held = false
+			w.touched = now
+		end
+	end
+	trim()
 end
 
 return CueAssets

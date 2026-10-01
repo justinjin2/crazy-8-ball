@@ -1,6 +1,7 @@
 --!strict
 -- Roblox adapter: identity/proximity, queue pads, replication and characters.
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local PhysicsService = game:GetService("PhysicsService")
@@ -387,12 +388,57 @@ function Service.onFlush(hook: (any) -> ())
 	table.insert(flushHooks, hook)
 end
 
+-- Where a root about to be let go can stand: clear of every table's barrier (by the release
+-- clearance) and standing on the floor found under it. Nil when it already does. While held
+-- the body touches nothing (HELD), so a held body overlapping the barrier, or put below the
+-- floor, would be pushed through the floor the moment physics took it back (designer,
+-- 2026-10-01: a player fell under the map after a match).
+local function clearSpot(root: BasePart): CFrame?
+	local pos = root.Position
+	local x, z = pos.X, pos.Z
+	local moved = false
+	for _, t in tables do
+		local nx, nz = Placement.outsideBarrier(t.placement, x, z, M.Barrier.ReleaseClearanceStuds)
+		if nx and nz then
+			x, z, moved = nx, nz, true
+		end
+	end
+	local character = root.Parent
+	local hum = character and character:FindFirstChildOfClass("Humanoid")
+	local stand = (if hum then hum.HipHeight else Q.RespawnHeight) + root.Size.Y / 2
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	local bodies: { Instance } = {}
+	for _, p in Players:GetPlayers() do
+		if p.Character then
+			table.insert(bodies, p.Character)
+		end
+	end
+	params.FilterDescendantsInstances = bodies
+	local from = Vector3.new(x, pos.Y + Q.ReleaseProbeUpStuds, z)
+	local hit = Workspace:Raycast(from, Vector3.new(0, -Q.ReleaseProbeDownStuds, 0), params)
+	local floorY = if hit then hit.Position.Y else nil
+	local sunk = floorY ~= nil and pos.Y < floorY + stand * Q.SunkShare
+	if not moved and not sunk and floorY ~= nil then
+		return nil
+	end
+	local y = if floorY then floorY + stand else pos.Y
+	return CFrame.new(x, y, z) * root.CFrame.Rotation
+end
+
 -- Hand a held root back to the player where it stands. An anchored part keeps whatever
 -- velocity it had when it was anchored, so a root just let go is stilled first, or it would
 -- resume the walk it was stopped in and shove the player off the spot they shot from. It is
--- no longer at a shot spot the client should return to, either.
+-- no longer at a shot spot the client should return to, either. A root that would be let go
+-- inside a barrier or below the floor first steps to the nearest clear spot (clearSpot).
 local function release(root: BasePart, anchored: boolean)
 	local released = root.Anchored and not anchored
+	if released then
+		local spot = clearSpot(root)
+		if spot then
+			root.CFrame = spot
+		end
+	end
 	root.Anchored = anchored
 	if released then
 		root.AssemblyLinearVelocity = Vector3.zero

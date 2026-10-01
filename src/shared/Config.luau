@@ -3719,6 +3719,15 @@ Config.Audio = {
 -- The cue skins' runtime (CueSkinLook, CuePiece, Effects; designer's rules 2026-09-30). Each
 -- skin's own numbers (its aura, trail, pocket, piece) are data rows generated from assets/cue
 -- (CueSkins); these are the rules for showing them.
+-- FallGuard (server): anyone below the lobby floor is put back at the spawn at once, the last
+-- resort against falling out of the map (designer, 2026-10-01). A player in a match is put
+-- back at their table first (Multiplayer.QueueVisual.FallTolerance is smaller). (tune)
+Config.FallGuard = {
+	CheckSeconds = 0.1, -- how often every player's height is looked at
+	BelowFloorStuds = 12, -- this far below the lowest floor (spawn or table) counts as fallen
+	RiseStuds = 3, -- put back this far above the spawn mat, standing
+}
+
 Config.CueSkins = {
 	-- ReplicatedStorage folder of the pieces' Edit-mode templates (tools/build_cue_templates).
 	PiecesFolder = "CuePieces",
@@ -3767,6 +3776,11 @@ Config.CueSkins = {
 		KeepSeconds = 60, -- a loaded copy stays drawn this long after last asked for (Equip
 		-- after picking a cue in the inventory is then instant); then it is dropped
 		MaxCopies = 6, -- at most this many loaded copies kept drawn (the oldest go first)
+		-- Shot effects (a pocket finisher's creature, trail and pocket sprites) of the cues
+		-- about to be played with: yours and everyone's at the drawn tables, looked up every
+		-- ShotRefreshSeconds, at most MaxHeldShots kept loaded (yours and your table's first).
+		MaxHeldShots = 8,
+		ShotRefreshSeconds = 1,
 		SpriteEmitSeconds = 0.25, -- how often each effect sprite's hidden particle is emitted
 	},
 	-- When a cue's look comes into view, each aura emitter emits this share of the particles it
@@ -5144,6 +5158,13 @@ Config.Multiplayer = {
 		FallTolerance = 5, -- recover a falling participant below the table area
 		RespawnHeight = 3, -- safe standing root height above the floor, studs
 		RespawnBoundaryInset = 1, -- keep respawns inside confinement, studs
+		-- A held body let go (a turn passing, the match ending) first steps clear of the table
+		-- barrier and onto the floor if it is not already (TableService.clearSpot): the floor is
+		-- looked for from ReleaseProbeUpStuds above the root down ReleaseProbeDownStuds, and a
+		-- root lower than SunkShare of its standing height above it counts as sunk.
+		ReleaseProbeUpStuds = 4,
+		ReleaseProbeDownStuds = 14,
+		SunkShare = 0.5,
 		-- The pad's effects (src/client/PadEffects.luau). (tune)
 		FadeInSeconds = 0.25, -- how fast the whole effect lights up and fades out
 		MoteTexture = "rbxasset://textures/particles/sparkles_main.dds", -- built-in sparkle
