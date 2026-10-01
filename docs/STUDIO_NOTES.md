@@ -459,6 +459,31 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
   unchanged. Never set CFrame on a part that is welded to a character (it drags the body):
   detach, move, weld again.
 
+## The cue skins import (2026-10-01)
+
+- **Edit mode caches a module's first require for the session.** After Rojo changes a module,
+  `require` in Edit (the MCP, the command bar) still returns the old one. Require a fresh
+  clone parented next to it (`tools/build_cue_templates.luau` does: `fresh()`), and destroy the
+  clones afterwards.
+- **No SurfaceAppearance from a game script.** `AssetService:CreateSurfaceAppearance` does not
+  exist, and a script cannot set the map properties; templates are built in Edit and saved in
+  the place (`ReplicatedStorage.CueSkins`, `ReplicatedStorage.CuePieces`). A plugin sets the
+  maps with `Content.fromUri("rbxassetid://...")` on `ColorMapContent` and friends.
+- **A skinned glb survives Open Cloud.** Uploaded as a Model and loaded with
+  `InsertService:LoadAsset`, it comes back as a Model holding a `RootPart` with the Bones, the
+  skinned MeshParts joined by Motor6Ds, an `InitialPoses` folder and an AnimationController
+  (the template builder removes the last two). Names and sizes are kept. The 180 degree turn
+  about Y applies to the rig too, so a bone's position reads with X negated against
+  Blender's; CuePiece undoes it with FLIP.
+- **A rigid glb keeps one MeshPart per named object**, so a whole piece folder uploads as one
+  `<piece>_parts.glb` (`tools/cue_pieces_glb.py`) and its parts are found by name.
+- **Open Cloud does not take `.obj`**; convert to glb first.
+- **Uploads take about 8 seconds each.** Hundreds go faster as three workers, each with its own
+  list (`--list`) and manifest (`--manifest`), run with `python3 -u` so their logs stream;
+  merge the manifests into `tools/upload_manifest.json` afterwards. Then
+  `tools/manifest_image_ids.py emit` / `apply` turns the Decal ids into image ids, about 100 a
+  batch through `execute_luau` in Edit.
+
 ## Lune tests
 
 - `tests/harness.luau` builds a fake `script.Parent` tree from `src/shared` and compiles each

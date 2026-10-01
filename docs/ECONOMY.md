@@ -369,8 +369,12 @@ the plain wisp trail (Uncommon tinted); Rare adds a coloured trail and small poc
 has its own trail and pocket effect; Legendary an animated trail, pocket effect and sound;
 Mythic the celestial shimmer and its own VFX; Secret a one-of-a-kind full set.
 
-**Launch catalog: 30 case cues**: 7 Common, 6 Uncommon, 6 Rare, 5 Epic, 3 Legendary,
-2 Mythic, 1 Secret. Plus 12 Exclusive (10 rank, VIP, Starter) and 2 Unique.
+**Launch catalog: 46 case cues** (the cue skins plan, imported 2026-10-01): 7 Common,
+9 Uncommon, 10 Rare, 9 Epic, 7 Legendary, 3 Mythic, 1 Secret. Classic is labelled Common too
+but is the free default: everyone owns it, no case drops it, and it is never traded or sold.
+Plus 12 Exclusive (10 rank, VIP, Starter) and 3 Unique (Founder's, Beta, Grand Opening).
+The list and order are `Progression/Catalog.luau`; each cue's look is its skin
+(`src/shared/CueSkins`, ARCHITECTURE "Cue skins").
 
 ---
 
@@ -421,8 +425,8 @@ sell never pays.
 ### 7.3 Odds screen and per-cue odds
 
 Every cue of a rarity in a case has an equal share: **cue % = rarity % / cues of that rarity
-in the case**. With the launch catalog, each Legendary in the Legendary Case is 20 / 3 =
-6.667%, each Mythic 3.25 / 2 = 1.625%. The case screen has a button that says **"Odds"** (a word,
+in the case**. With the launch catalog, each Legendary in the Legendary Case is 20 / 7 =
+2.857%, each Mythic 3.25 / 3 = 1.083%. The case screen has a button that says **"Odds"** (a word,
 not just an icon), lists every cue with its %, and totals exactly 100%. Retiring a cue
 (section 12) updates the list the moment it happens.
 

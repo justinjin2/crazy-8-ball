@@ -641,15 +641,16 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
   `assets/cue/Readme.md`).
 - **Templates live in the place, not in `src/`.** `ReplicatedStorage.CueSkins.<cue id>` is a
   Model whose PrimaryPart `Cue` is the MeshPart with the skin's SurfaceAppearance, pivot at the
-  tip. Its maps can only be set in Edit mode. `Config.Cue.MeshSkins` lists the cue ids that
-  have one.
+  tip. Its maps can only be set in Edit mode. Every child of the folder that is a catalog cue
+  is a mesh skin (no list in Config); `tools/build_cue_templates.luau` builds them all from
+  the generated skin data (section "Cue skins" below).
 - **CueStickBuilder's mesh path.** `build()` makes the band parts plus one hidden mesh slot
   (a clone of the first template), so nothing is created after `build()`. `paint()` shows the
   mesh when the cue has a template, the bands otherwise, and sets the stick's `Mesh`
   attribute. `display()` scales the mesh's thickness like the bands; a silhouette always uses
-  the bands. A missing `CueSkins` falls back to bands with one warning. The swap between two
-  mesh skins (clone the template's SurfaceAppearance into the slot) is a note in `paintStick`
-  and a test guard, to be written with the second skin.
+  the bands. A missing `CueSkins` falls back to bands with one warning. Changing between two
+  mesh skins clones the new template's SurfaceAppearance into the slot (`meshSkin` remembers
+  which one it wears).
 - **BackCue (client).** A pool of `Config.Cue.Back.PoolSize` sticks built at start. The
   nearest players' characters within `MaxDistanceStuds` of the camera carry one, welded to
   BodyBackAttachment's part (R15 UpperTorso, R6 Torso), unanchored and massless with no
@@ -661,3 +662,53 @@ over the shooter's next shots too (up to `V.TURN_SHOTS`). The Blender scripts ar
   hides in the same frame its cue appears in the hands. Your own back cue hides in first
   person and fades with `Camera.fadeNear`. `BackCue:carry(character, nil)` gives a body with
   no player (a dummy or future NPC) the default cue.
+
+## Cue skins (2026-10-01)
+
+Every case, rank and Exclusive cue is a skin: data rows plus uploaded assets, never code per
+cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run, briefs in
+`docs/prompts/CUE_SKINS_*`).
+
+- **Data.** `tools/cue_skins_data.py` turns the skin JSONs, `assets/cue/pieces/*/piece.json`
+  and `tools/upload_manifest.json` into generated modules under `src/shared/CueSkins/`:
+  `Skins/<CatalogId>` (Maps, Surface, Frames, Aura, Moving, TrailEmitters, Style, Pocket,
+  Piece, Thumb, Look), `Pieces/<piece>` (Rigid, Models, Parts, Joints, Paths), `Index` (one
+  small row per skin, what the catalog and server need) and `Textures` (the shared sprites).
+  Never edit them by hand: change the JSON and run the tool. `CueSkins` (`init`) loads rows
+  lazily: `has`, `index`, `get`, `piece`, `ids`. `Catalog` takes each skinned cue's `Look`
+  (the 2D power cue, the band fallback) from the skin's Index row.
+- **Motion (pure, `CueSkins/Motion`).** The piece maths in plain numbers, checked by
+  `tests/cue_motion_test.luau` against Blender's own numbers (`tests/cue_motion_fixture.json`,
+  written by `tools/cue_motion_fixture.py`): the joint waves (Hinge, Spin, Bob, Sway; sine,
+  snap, pulse), the VFX waves (sine, flicker, beat), curves, `pathFrame` for a `Path` joint,
+  `rig`/`pose` (parents first) and the bone transform `Rest^-1 * Jparent^-1 * Jbone * Rest`.
+- **Templates in the place.** A SurfaceAppearance's maps cannot be set by a game script and
+  `AssetService:CreateSurfaceAppearance` does not exist, so `tools/build_cue_templates.luau`
+  (run in Edit through the Studio MCP) builds `ReplicatedStorage.CueSkins.<CatalogId>` (the
+  Classic mesh wearing the skin's maps, plus `Frames` F1..Fn for a moving surface) and
+  `ReplicatedStorage.CuePieces.<piece>` (the rigid MeshParts and skinned Models loaded from
+  their uploads and dressed). They are saved with the place.
+- **CueSkinLook (client).** `CueSkinLook.attach(stick, {aura})` follows a stick's `CueId`,
+  `Visible` and `Mesh` attributes and builds the skin's look on it: surface frames and pulses,
+  the piece (CuePiece), Moving beams, and with `aura` the Aura's emitters, beams, orbiters,
+  arcs and lights. Emitters are hosted on Attachments in the stick's mesh (`CueVfx.onCue`:
+  `(-Side, Up, 3.5 - AtStuds)`), on invisible host parts (Part, Segment) in a sibling
+  `CueLook` model welded to the mesh (BackCue welds every part *inside* a stick to the torso,
+  so look parts live outside it), or on a piece's joint. One RenderStepped steps every visible
+  look within `Config.CueSkins.StepDistanceStuds`. The hand stick (`Main.client`) and watched
+  shooters' sticks (`Hub`) attach with `aura = false`; BackCue's sticks with `aura = true` at
+  `Config.CueSkins.BackRateScale`, big sprites pushed behind the body.
+- **CuePiece (client).** Clones a piece's parts from `ReplicatedStorage.CuePieces`, welds
+  rigid parts at `J * Offset * FLIP` (FLIP: the importer's 180 degree turn about Y) and skinned
+  rigs at `FLIP`, and every frame sets rigid welds and `Bone.Transform` from `Motion.pose`.
+  `setAura` hides the joints marked `Aura`; `setFade`, `setScale` serve the pocket finisher.
+- **Effects.** A cue with a skin Style, TrailEmitters or Pocket gets the style key
+  `skin:<CatalogId>`: `styleFor` lays the skin's Style over `Config.Effects.Styles.Default`
+  (the tier rows stay as fallbacks). New trail keys: a Transparency curve, WidthScale,
+  Brightness, Texture/TextureMode/TextureLength, core extras, and TrailEmitters riding the ball.
+  `Effects.skinFinisher` plays a skin's pocket: Layers at their Delay, Rings, Flash, and a
+  rising Piece (rise, spin, scale and fade curves) facing the camera; `KeepRibbons = false`
+  drops the default ribbons.
+- **UI.** `CueThumb` shows a skinned cue's rendered picture (`Thumb`, made by
+  `assets/cue/CuePreview.py --thumb` into `assets/cue/thumbs/`, tinted for a silhouette); the
+  Index viewport keeps the live 3D cue.

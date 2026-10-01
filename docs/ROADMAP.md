@@ -306,6 +306,11 @@ no automatic start against PC (designer).*
   (colours on the built stick, the 2D power cue and a trail and pocket burst per rarity);
   equipping one and playing a solo game with it checked in Studio. Still to do: the real cue
   models (one mesh each) and their final effects.
+  Progress 2026-10-01 (branch `abilities`): the cue skins are imported. The placeholders are
+  replaced by the plan's 46 case cues (7/9/10/9/7/3/1) and the Starter, VIP and Rank cues
+  get their skins: surface, aura on the back, 3D pieces, trails and pocket finishers, all as
+  data rows and uploaded assets; rendered pictures in the menus. Checked on PC in Studio.
+  Still to do: the phone and gamepad check, and the Unique cues' own skins.
 *Scope note (2026-09-23): first release ships cue skins only. Table skins (the old 5.3) moved
 to after release (Later, at the bottom).*
 - [x] **5.4 Index.** A collection screen of the game's cues. What it shows for cues you do not

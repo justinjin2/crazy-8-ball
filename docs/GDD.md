@@ -694,7 +694,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Rare, Epic, Legendary; each guarantees one rarity below its name, never a guaranteed
   legendary), and **the winner of every real match gets a free Standard Case** (every win for
   a new player's first 50 wins, then the first 10 wins a day and every 2nd win after; solo
-  never). Odds and prices: [ECONOMY.md](ECONOMY.md) section 7. Goal at release: 30 cues.
+  never). Odds and prices: [ECONOMY.md](ECONOMY.md) section 7. At release: 46 case cues
+  (7/9/10/9/7/3/1 from Common to Secret, the cue skins plan, 2026-09-30).
 - **Rarities** (designer, 2026-09-27): **Common, Uncommon, Rare, Epic, Legendary, Mythic,
   Secret**, from cases and the shop. Two groups sit outside that ladder and never come from
   cases: **Unique** (numbered limited copies: Founder's, Beta) and **Exclusive** (the VIP Cue,
@@ -879,6 +880,16 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   Classic, the default cue, is the first: maple shaft, rosewood forearm, black linen wrap,
   silver rings, glossy black sleeve. Cues without a skin keep their coloured-band look until
   they get one; a new skin is data and pictures, never code.
+- **The cue skins (imported 2026-10-01):** every case, rank and Exclusive cue has its own skin
+  (only the Unique cues still wear bands). Climbing the tiers adds, in order: the surface
+  (Common), a tint and moving glow (Uncommon), an aura and a coloured trail (Rare), a stronger
+  aura, its own pocket burst and orbiting ribbons (Epic), a 3D piece and a moving surface
+  (Legendary), rigged hologram creatures (Mythic: the Celestial Dragon swimming along the cue,
+  the Kitsune's running fox, a rising creature when a ball drops), and Eclipse's giant eclipse
+  (Secret). The aura shows on the back only, behind the body and at half rate; in the hands
+  the cue shows its surface and moving glow but no aura, so it never distracts the shot. The
+  shop, cases and inventory show a rendered picture of each cue; the Index shows the live 3D
+  cue.
 - **The cue on the back (designer, 2026-09-28):** every player carries their equipped cue on
   their back, diagonal with the tip over the left shoulder, on any body (R15, R6, tall,
   small). It disappears the moment the cue is in their hands and comes back when they put it
