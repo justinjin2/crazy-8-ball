@@ -474,7 +474,10 @@ Studio's device emulator has a gamepad mode as a fallback, but a real pad is the
   skinned MeshParts joined by Motor6Ds, an `InitialPoses` folder and an AnimationController
   (the template builder removes the last two). Names and sizes are kept. The 180 degree turn
   about Y applies to the rig too, so a bone's position reads with X negated against
-  Blender's; CuePiece undoes it with FLIP.
+  Blender's (CuePiece welds the RootPart at FLIP). **Bones come back turned as well** (the
+  dragon's top bone is half a turn about Y), so a Bone.Transform must be built in the bone's
+  own rest frame read from the template (`B^-1 * J * B`), never assuming square bones; and
+  `Bone.WorldPosition` leaves out `Transform` (read `TransformedWorldCFrame` to see a pose).
 - **A rigid glb keeps one MeshPart per named object**, so a whole piece folder uploads as one
   `<piece>_parts.glb` (`tools/cue_pieces_glb.py`) and its parts are found by name.
 - **Open Cloud does not take `.obj`**; convert to glb first.
