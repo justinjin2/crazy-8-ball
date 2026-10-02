@@ -15,8 +15,8 @@
 --   XP is never lost (ECONOMY 4.1). A surrender, running out of timeouts, leaving, and (under
 --   the mark) an early 8 are forfeits: a loss with no XP and no money bonus. A match that ends
 --   under the mark adds what its pots paid to the day's short-match total (ECONOMY 3.6).
--- - Everything a player's "before" counts decide (wins, today's wins, the first win of the
---   day, the opponents' real matches, the anti-farm row) is read for every player first, then
+-- - Everything a player's "before" counts decide (wins, today's wins, the opponents' real
+--   matches, the anti-farm row) is read for every player first, then
 --   each player is paid: one player's pay never changes another's rule.
 -- - Solo never changes rank and has no bonus or free case; its summary carries the pots only.
 local Players = game:GetService("Players")
@@ -38,7 +38,6 @@ local PlayerData = require(script.Parent.PlayerData)
 local Counters = require(script.Parent.Counters)
 local Announce = require(script.Parent.Announce)
 
-local R = Config.Ranks
 local E = Config.Economy
 local IS_STUDIO = RunService:IsStudio()
 -- The top division (Reyes): reaching it is announced (ECONOMY 4.6).
@@ -379,18 +378,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 
 	-- Rank XP and the rank-up rewards (ECONOMY 4).
 	if real then
-		local flags = Settle.boosts({
-			realMatches = progress.RealMatches,
-			vip = p:GetAttribute("Vip") == true,
-			won = won,
-			firstWinUsed = daily.FirstWinUsed,
-			streakAfter = streakAfter,
-			farmXp = farm.Xp,
-		})
-		-- Today's first win is used only by a win that gives XP.
-		if flags.firstWin and not PlayerData.useFirstWin(p) then
-			flags.firstWin = false
-		end
+		local flags = Settle.boosts({ won = won, streakAfter = streakAfter })
 		local result = applyMatch(p, data, {
 			outcome = outcome,
 			opponent = kind,
@@ -550,7 +538,6 @@ local function settle(e: any)
 		local paid = results[i]
 		local tally = Economy.tally(key, p.UserId)
 		local reward = if paid.xp then paid.xp.rewardTotal else 0
-		local after = PlayerData.progress(p)
 		Net.get("MatchSummary"):FireClient(p, {
 			key = key,
 			tableId = e.id,
@@ -581,9 +568,6 @@ local function settle(e: any)
 			freeCase = paid.freeCase,
 			firstWin = paid.firstWin,
 			nextReward = if entry.data then Daily.nextReward(entry.data.Login, today) else nil,
-			rookieLeft = if after
-				then math.max(0, R.Boosts.RookieMatches - after.RealMatches)
-				else nil,
 			-- The rematch row (designer, 2026-09-28): whether one is on offer, the series so
 			-- far (this game counted), and whether this is an arena (Play another, Lobby).
 			rematch = e.rematch ~= nil,

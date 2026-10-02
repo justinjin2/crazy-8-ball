@@ -247,8 +247,9 @@ separately from real multi-client playtests.
 **Modules.**
 - Pure, Lune-tested (`src/shared/Progression/`): `SaveSchema` (the save layout, its `Version`,
   migrations N to N+1, and `validate`, which repairs any bad value to a safe one and reports
-  what it fixed), `Ranks` (46 divisions from one total `RankXp`; match XP, the tier floor,
-  one-time rank-up rewards, the roadmap's list), `Money` (what a shot pays its shooter, the
+  what it fixed; v5, 2026-10-02, reset every rank for the wins-only ladder), `Ranks` (46
+  divisions from one total `RankXp`; match XP (wins only), first-win placement, one-time
+  rank-up rewards, the roadmap's list), `Money` (what a shot pays its shooter, the
   match bonus, the solo daily cap), `Format` (commas, "$1,250", "$12.5M"). `Rules/NiceShot`
   also names the kind of nice shot (bank, kick, combo, carom) for the bonus.
 - Server: `Vendor/ProfileStore` (loleris, never edited, pinned in `Vendor/README.md`),
@@ -420,9 +421,8 @@ with `firstWinCase`), and `Items` sends that on as the `CueFound` remote (the cl
 (`MoneyHud.expect`) from the answer until the card pops, then `release`s it and flies it.
 
 **Attributes** (server-set, clients read): on the player `EquippedCue` (everyone's stick and
-trail follow it), `Vip`, `FastOpen`, `RookieLeft` (the rank HUD's ROOKIE x2 pill),
-`CasesUnopened` and `RewardReady` (the column's red dots), `PaidRandomRestricted` and
-`PaidItemTradingAllowed` (PolicyService on join; `Items`); on `ReplicatedStorage.CueCounts`
+trail follow it), `Vip`, `FastOpen`, `CasesUnopened` and `RewardReady` (the column's red
+dots), `PaidRandomRestricted` and `PaidItemTradingAllowed` (PolicyService on join; `Items`); on `ReplicatedStorage.CueCounts`
 one attribute per cue id (copies in existence) and on `ReplicatedStorage.LimitedSold` one per
 Limited cue; on `ReplicatedStorage` `CaseSale`, `CaseSalePercent` and `CaseSaleEndsAt` while a
 case sale runs; on `workspace` `MoneyPartyEndsAt` and `MoneyPartyBuyer`.

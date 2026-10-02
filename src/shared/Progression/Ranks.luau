@@ -7,12 +7,13 @@
 -- division list built from them), never a keyed table.
 --
 -- XP is never lost (ECONOMY 4.1, designer 2026-09-28): a match gives 0 or more, so nobody ever
--- drops a division or a tier and there is no floor to keep.
+-- drops a division or a tier and there is no floor to keep. Only wins give XP (2026-10-02).
 --
 -- Divisions are numbered 1..count() from the bottom: 1 = Bronze I, 5 = Bronze V, 6 = Silver
 -- I, ..., the last = the top tier (Reyes), which has one division and no top. 0 = Unranked.
 -- A save's rank is its RankXp plus whether it is rated (RatedMatches > 0): an unrated save
--- is Unranked whatever its XP, and counts as 0 XP.
+-- is Unranked whatever its XP, and counts as 0 XP. A save becomes rated with its first match
+-- that gives XP (its first win), which places it at Bronze I.
 local Config = require(script.Parent.Parent.Config)
 local Strings = require(script.Parent.Parent.Strings)
 
@@ -66,7 +67,7 @@ export type RankSave = { RankXp: number, PeakDivision: number, RatedMatches: num
 
 -- One XP boost that was on for a match, for the result screen's chips.
 export type Boost = {
-	kind: string, -- "Rookie", "Vip", "FirstWin" or "Streak"
+	kind: string, -- "Streak" (the only boost since 2026-10-02)
 	share: number, -- what it adds (1.0 = +100%)
 }
 
@@ -79,20 +80,19 @@ export type Breakdown = {
 	gap: number, -- the opponent-gap factor (a loss's capped at Gap.LossMax)
 	pc: number, -- PcXp against PC; 1 against people
 	farm: number, -- the anti-farm XP multiplier (Config.Economy.SameOpponent)
-	boosts: { Boost }, -- the boosts that were on, in Rookie, Vip, FirstWin, Streak order
+	boosts: { Boost }, -- the boosts that were on
 	boostTotal: number, -- their shares added up
 }
 
--- What a finished match was, for one player. `boosts` flags are decided by the server:
--- rookie (fewer than Boosts.RookieMatches real matches before this one), vip, firstWin (the
--- first win of the UTC day) and streak (this win makes the streak Boosts.StreakFrom or more).
+-- What a finished match was, for one player. `boosts` flags are decided by the server: streak
+-- (this win makes the streak Boosts.StreakFrom or more).
 export type MatchContext = {
 	outcome: string, -- "Win", "Loss" or "Draw"
 	opponent: string, -- "Player" or "PC"; "Tutorial" (or anything else) gives no XP
 	forfeit: boolean?, -- this player surrendered, left, timed out or sank the 8 early
 	mode: string?, -- the table's difficulty, a Config.Ranks.ModeXp key (default Classic)
 	opponentIndex: number?, -- the opponent's division index (a team's average); nil = equal
-	boosts: { rookie: boolean?, vip: boolean?, firstWin: boolean?, streak: boolean? }?,
+	boosts: { streak: boolean? }?,
 	farm: number?, -- anti-farm XP multiplier (default 1)
 }
 
@@ -496,7 +496,7 @@ end
 --- - mode: the table's difficulty (an unknown one is Classic); fade: Classic wins only;
 --- - gap: Ranks.gapFactor, a loss's capped at Gap.LossMax;
 --- - PC: PcXp.Low below Gap.StrictFromTier, PcXp.High from it;
---- - boosts add: Rookie and VIP on any result, FirstWin on a win, Streak on a win against people.
+--- - boosts add: Streak on a win against people.
 --- A draw, a forfeit (surrender, leaving, timing out, an early 8) and an opponent that is
 --- neither "Player" nor "PC" (the tutorial, solo) give 0.
 function Ranks.matchXp(rank: Rank, ctx: MatchContext): (number, Breakdown)
@@ -536,15 +536,6 @@ function Ranks.matchXp(rank: Rank, ctx: MatchContext): (number, Breakdown)
 	local function add(kind: string, share: number)
 		table.insert(boosts, { kind = kind, share = share })
 		boostTotal += share
-	end
-	if flags.rookie == true then
-		add("Rookie", BOOSTS.Rookie)
-	end
-	if flags.vip == true then
-		add("Vip", BOOSTS.Vip)
-	end
-	if win and flags.firstWin == true then
-		add("FirstWin", BOOSTS.FirstWin)
 	end
 	if win and opponent == "Player" and flags.streak == true then
 		add("Streak", BOOSTS.Streak)
@@ -625,13 +616,16 @@ local function readSave(save: RankSave): (number, boolean, number, number)
 end
 
 --- A finished match for one player (`ctx` as Ranks.matchXp): their XP, how it was built,
---- their new peak and every reward it passed. Counts the match (RatedMatches + 1); an
---- Unranked player's first match makes them Bronze I with that match's XP applied from 0 (a
---- "Tutorial" opponent gives no XP, so it places them at Bronze I). Does not change `save`.
+--- their new peak and every reward it passed. Counts the match (RatedMatches + 1) once the
+--- player is rated: an Unranked player stays Unranked (and uncounted) until a match gives
+--- them XP, their first win, which makes them Bronze I with that XP applied from 0. Does not
+--- change `save`.
 function Ranks.applyMatch(save: RankSave, ctx: MatchContext): MatchResult
 	local xp, rated, peak, ratedMatches = readSave(save)
 	local gained, breakdown = Ranks.matchXp(Ranks.fromXp(xp, rated), ctx)
-	local result = buildResult(xp, clampXp(xp + gained), rated, true, peak, ratedMatches + 1)
+	local ratedAfter = rated or gained > 0
+	local counted = if ratedAfter then ratedMatches + 1 else ratedMatches
+	local result = buildResult(xp, clampXp(xp + gained), rated, ratedAfter, peak, counted)
 	result.breakdown = breakdown
 	return result
 end

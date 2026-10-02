@@ -94,38 +94,30 @@ STREAK_MONTH_BONUS = ["Legendary"]
 PLAYTIME_GIFTS = [(10, 100, []), (30, 0, ["Standard"]), (60, 0, ["Standard", "Standard"])]
 
 # ------------------------------------------------------------------------------------------
-# Rank XP (section 4). One bar, no Levels. XP is never lost; from Diamond a loss gives nothing.
+# Rank XP (section 4, reworked 2026-10-02). One bar, no Levels. XP is never lost and comes only
+# from winning: 100 a win (x the mode), nothing for a loss, no Rookie, VIP or first-win boosts.
 # ------------------------------------------------------------------------------------------
 TIERS = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Expert", "Veteran", "Master", "Grandmaster"]
-# XP to fill each division, I to V. Flat and quick to Platinum, then about 17% more each
-# division from Diamond I, so the climb keeps getting longer. Reyes starts where Grandmaster V ends.
+# XP to fill each division, I to V, in wins of 100: 1 win to Bronze I, 2 more to II, then one
+# more win each division to Platinum V, then a steady ramp (a 3 h a day, 50% player: Expert in
+# about a month, Veteran 2, Master 3.5, Grandmaster 6, Reyes 9). Reyes starts where Grandmaster V
+# ends. The first win's 100 XP lands inside Bronze I, so Bronze I is 300 wide.
 DIV_WIDTHS = {
-    "Bronze": [250, 250, 250, 250, 250],
-    "Silver": [350, 350, 350, 350, 350],
-    "Gold": [800, 800, 800, 800, 800],
-    "Platinum": [1200, 1200, 1200, 1200, 1200],
-    "Diamond": [8000, 9500, 11000, 13000, 15000],
-    "Expert": [17500, 20500, 24000, 28000, 33000],
-    "Veteran": [38000, 45000, 53000, 62000, 72000],
-    "Master": [85000, 100000, 115000, 135000, 160000],
-    "Grandmaster": [185000, 215000, 255000, 295000, 345000],
+    "Bronze": [300, 300, 400, 500, 600],
+    "Silver": [700, 800, 900, 1000, 1100],
+    "Gold": [1200, 1300, 1400, 1500, 1600],
+    "Platinum": [1700, 1800, 1900, 2000, 2200],
+    "Diamond": [2500, 2800, 3200, 3600, 4000],
+    "Expert": [4500, 5000, 5600, 6200, 6900],
+    "Veteran": [7700, 8800, 10000, 11300, 12700],
+    "Master": [14300, 15700, 17000, 18000, 19500],
+    "Grandmaster": [20000, 20500, 21000, 21500, 22000],
 }
 # XP for a Classic win and loss against an equal opponent, before the mode multiplier.
-BASE_XP = {
-    "Bronze": (250, 100),
-    "Silver": (250, 75),
-    "Gold": (250, 50),
-    "Platinum": (250, 25),
-    "Diamond": (250, 0),
-    "Expert": (450, 0),
-    "Veteran": (450, 0),
-    "Master": (450, 0),
-    "Grandmaster": (450, 0),
-    "Reyes": (450, 0),
-}
+BASE_XP = {t: (100, 0) for t in TIERS + ["Reyes"]}
 MODE_XP_MULT = {"Classic": 1.0, "Difficult": 1.25, "Challenger": 1.5}
-# Classic fades: its wins are worth this share from Diamond and from Expert.
-CLASSIC_WIN_FACTOR = {"Diamond": 0.5, "Expert": 0.2, "Veteran": 0.2, "Master": 0.2, "Grandmaster": 0.2, "Reyes": 0.2}
+# Classic's wins can fade up the ladder: none since 2026-10-02.
+CLASSIC_WIN_FACTOR = {}
 WIN_STREAK_FROM, WIN_STREAK_BONUS = 3, 0.25  # from the 3rd win in a row, each win +25%
 # The opponent-gap factor's logistic scale (divisions) and the least a win can be worth.
 GAP_SCALE_LOW, GAP_FLOOR_LOW = 12.0, 0.3  # Bronze to Diamond
@@ -133,10 +125,6 @@ GAP_SCALE, GAP_FLOOR = 8.0, 0.1  # Expert and up
 # PC XP share: Bronze-Diamond / Expert and up (launch; Expert+ drops to 0.1 once the global
 # queue exists).
 PC_XP_MULT_LOW, PC_XP_MULT_HIGH = 0.75, 0.5
-# XP boosts, which add together: Rookie (first 25 matches), VIP, the first win of the UTC day.
-ROOKIE_MATCHES, ROOKIE_BOOST = 25, 1.0
-VIP_XP_BOOST = 0.5
-FIRST_WIN_OF_DAY_BOOST = 1.0
 
 # Where each division starts: DIV_START[i] is division i+1 (1 = Bronze I ... 45 = Grandmaster V);
 # the last entry is where Reyes starts.
@@ -175,8 +163,8 @@ def gap_factor(gap, my_div=45):
     return min(max(2 * (1 - e), floor), 1.5)
 
 
-def xp_change(xp, won, mode, opp_div, vs_pc=False, streak=0, boost=0.0):
-    """XP after one match. `streak` counts this win if won; `boost` is the sum of active boosts."""
+def xp_change(xp, won, mode, opp_div, vs_pc=False, streak=0):
+    """XP after one match. `streak` counts this win if won."""
     div = division_of(xp)
     tier = tier_of_div(div)
     w, l = BASE_XP[tier]
@@ -191,7 +179,7 @@ def xp_change(xp, won, mode, opp_div, vs_pc=False, streak=0, boost=0.0):
         delta = l * MODE_XP_MULT[mode] * min(f, 1.0)
     if vs_pc:
         delta *= PC_XP_MULT_HIGH if div > 25 else PC_XP_MULT_LOW
-    return xp + delta * (1 + boost)
+    return xp + delta
 
 
 # Money paid the first time you reach each division (II to V), and each new tier's reward.
@@ -274,7 +262,6 @@ def simulate_player(minutes_per_day, days, strategy, vip, win_rate, rng):
         minutes_left = minutes_per_day * rng.uniform(0.7, 1.3)
         played_today = 0.0
         wins_today = 0
-        first_win_done = False
         while True:
             mode = typical_mode(max(peak_div, 1), rng) if peak_div else "Classic"
             length = MATCH_MINUTES[mode] + BETWEEN_MATCH_MINUTES
@@ -303,18 +290,12 @@ def simulate_player(minutes_per_day, days, strategy, vip, win_rate, rng):
                     pending_cases.append("Standard")
                 elif (wins_today - DAILY_CASE_WINS) % LATE_CASE_EVERY == 0:
                     pending_cases.append("Standard")
-            # Rank (an equal opponent, so no gap)
-            if peak_div == 0:
-                rp = 0.0
-                new_div = 1
+            # Rank (an equal opponent, so no gap): Unranked until the first win, then Bronze I.
+            if peak_div == 0 and not won:
+                new_div = 0
             else:
-                boost = (ROOKIE_BOOST if matches_total <= ROOKIE_MATCHES else 0) + (VIP_XP_BOOST if vip else 0)
-                if won and not first_win_done:
-                    boost += FIRST_WIN_OF_DAY_BOOST
-                rp = xp_change(rp, won, mode, division_of(rp), streak=streak, boost=boost)
+                rp = xp_change(rp, won, mode, max(division_of(rp), 1), streak=streak)
                 new_div = division_of(rp)
-            if won:
-                first_win_done = True
             while peak_div < new_div:
                 peak_div += 1
                 tier = tier_of_div(peak_div)
@@ -471,14 +452,16 @@ MODE_MIX = {
 HIGH_MIX = {"Challenger": 0.6, "Difficult": 0.3, "Classic": 0.1}
 
 
-def ladder_hours(p):
-    """Hours of play to reach each tier against equal opponents at win rate p (typical mode mix)."""
+def ladder_hours(p, classic_only=False):
+    """Hours of play to reach each tier against equal opponents at win rate p (typical mode mix,
+    or Classic only)."""
     out, h = {}, 0.0
     for tier in TIERS:
         out[tier] = h
         w, l = BASE_XP[tier]
         ev = mins = 0.0
-        for mode, f in MODE_MIX.get(tier, HIGH_MIX).items():
+        mix = {"Classic": 1.0} if classic_only else MODE_MIX.get(tier, HIGH_MIX)
+        for mode, f in mix.items():
             ww = w * MODE_XP_MULT[mode] * (CLASSIC_WIN_FACTOR.get(tier, 1.0) if mode == "Classic" else 1.0)
             ww *= 1 + WIN_STREAK_BONUS * p * p  # share of wins that are 3rd-or-later in a row
             ev += f * (p * ww + (1 - p) * l * MODE_XP_MULT[mode])
@@ -490,10 +473,13 @@ def ladder_hours(p):
 
 def ladder_hours_table():
     names = TIERS[1:] + ["Reyes"]
-    lines = ["  win rate " + "".join(f"{t[:6]:>8s}" for t in names)]
-    for p in (0.45, 0.5, 0.55, 0.6):
-        hs = ladder_hours(p)
-        lines.append(f"  {int(p * 100):3d}%     " + "".join(f"{hs[t]:7.0f}h" for t in names))
+    lines = []
+    for label, classic in (("Classic only", True), ("typical mode mix", False)):
+        lines.append(f"  {label}\n  win rate " + "".join(f"{t[:6]:>8s}" for t in names))
+        for p in (0.45, 0.5, 0.55, 0.6):
+            hs = ladder_hours(p, classic)
+            lines.append(f"  {int(p * 100):3d}%     " + "".join(f"{hs[t]:7.0f}h" for t in names))
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -540,18 +526,17 @@ def rank_sim(days=365, new_per_day=2000, seed=3, report_days=(90, 180, 365)):
             order = np.concatenate([near_players, rng.permutation(players[~wants_near])])
             for a, b in zip(order[0::2], order[1::2]):
                 xa, xb = xps[a], xps[b]
-                if xa < 0 or xb < 0:  # the tutorial: Unranked to Bronze I
-                    xps[a] = max(xa, 0.0)
-                    xps[b] = max(xb, 0.0)
-                    continue
-                da, db = division_of(xa), division_of(xb)
+                # Unranked (-1) plays as Bronze I and becomes Bronze I on a first win.
+                da, db = division_of(max(xa, 0)), division_of(max(xb, 0))
                 mode = typical_mode(max(da, db), pyrng)
                 p_a = 1 / (1 + math.exp(-k_mode[mode] * (sk[a] - sk[b])))
                 a_won = pyrng.random() < p_a
                 streaks[a] = streaks[a] + 1 if a_won else 0
                 streaks[b] = 0 if a_won else streaks[b] + 1
-                xps[a] = xp_change(xa, a_won, mode, db, streak=streaks[a])
-                xps[b] = xp_change(xb, not a_won, mode, da, streak=streaks[b])
+                if xa >= 0 or a_won:
+                    xps[a] = xp_change(max(xa, 0.0), a_won, mode, db, streak=streaks[a])
+                if xb >= 0 or not a_won:
+                    xps[b] = xp_change(max(xb, 0.0), not a_won, mode, da, streak=streaks[b])
         xp_list = list(xps)
         streak_list = list(streaks)
         if day + 1 in report_days:

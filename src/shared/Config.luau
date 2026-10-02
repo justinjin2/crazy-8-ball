@@ -1622,9 +1622,10 @@ Config.Save = {
 
 ---------------------------------------------------------------------------------------------
 -- Ranks (src/shared/Progression/Ranks.luau; GDD section 11). Every number is from
--- docs/ECONOMY.md section 4 (2026-09-28). One number, rank XP (the save's RankXp), is the only
--- progression, and it is never lost: nobody drops a division or a tier. Change a number here,
--- in ECONOMY.md and in tools/economy_model.py together. (tune)
+-- docs/ECONOMY.md section 4 (reworked 2026-10-02). One number, rank XP (the save's RankXp), is
+-- the only progression, and it is never lost: nobody drops a division or a tier. XP comes only
+-- from winning: 100 a win, 0 a loss, no Rookie, VIP or first-win boosts (designer, 2026-10-02).
+-- Change a number here, in ECONOMY.md and in tools/economy_model.py together. (tune)
 ---------------------------------------------------------------------------------------------
 Config.Ranks = {
 	-- Bottom to top. Each has divisions I to V (I the bottom) except the last, which has one.
@@ -1641,47 +1642,45 @@ Config.Ranks = {
 		"Reyes",
 	},
 	DivisionsPerTier = 5,
-	-- XP to climb through each division, I to V, per tier (ECONOMY 4.2). Quick and flat to
-	-- Platinum, then about 17% bigger every division from Diamond I. Grandmaster I starts at
-	-- 1,057,500 XP and Reyes at 2,352,500 (tests/ranks_test checks both). Reyes has no top.
+	-- XP to climb through each division, I to V, per tier (ECONOMY 4.2), counted in wins of
+	-- 100 XP: 1 win to Bronze I (a player is Unranked until their first win), 2 more to Bronze
+	-- II, then 3, 4, 5... one more win each division to Platinum, then a steady ramp sized so a
+	-- 3 h a day, 50% player reaches Expert in about a month, Veteran 2, Master 3.5,
+	-- Grandmaster 6 and Reyes 9. The first win's 100 XP lands inside Bronze I, so it is 300 wide.
+	-- Silver I starts at 2,100 XP (21 wins), Grandmaster I at 202,500 and Reyes at 307,500
+	-- (tests/ranks_test checks these). Reyes has no top.
 	DivisionXp = {
-		Bronze = { 250, 250, 250, 250, 250 },
-		Silver = { 350, 350, 350, 350, 350 },
-		Gold = { 800, 800, 800, 800, 800 },
-		Platinum = { 1200, 1200, 1200, 1200, 1200 },
-		Diamond = { 8000, 9500, 11000, 13000, 15000 },
-		Expert = { 17500, 20500, 24000, 28000, 33000 },
-		Veteran = { 38000, 45000, 53000, 62000, 72000 },
-		Master = { 85000, 100000, 115000, 135000, 160000 },
-		Grandmaster = { 185000, 215000, 255000, 295000, 345000 },
+		Bronze = { 300, 300, 400, 500, 600 },
+		Silver = { 700, 800, 900, 1000, 1100 },
+		Gold = { 1200, 1300, 1400, 1500, 1600 },
+		Platinum = { 1700, 1800, 1900, 2000, 2200 },
+		Diamond = { 2500, 2800, 3200, 3600, 4000 },
+		Expert = { 4500, 5000, 5600, 6200, 6900 },
+		Veteran = { 7700, 8800, 10000, 11300, 12700 },
+		Master = { 14300, 15700, 17000, 18000, 19500 },
+		Grandmaster = { 20000, 20500, 21000, 21500, 22000 },
 	},
 	-- A match's XP against an equal opponent, by YOUR tier, before the mode, fade, gap, PC and
-	-- boosts (ECONOMY 4.2 "How it is built"). A loss gives a little to Platinum and nothing
-	-- from Diamond; never less than 0. Unranked plays by Bronze's row.
+	-- streak (ECONOMY 4.2). One win is 100 XP at every tier and a loss gives nothing (designer,
+	-- 2026-10-02): the ladder's widths carry the slope. Unranked plays by Bronze's row.
 	BaseXp = {
-		Bronze = { Win = 250, Loss = 100 },
-		Silver = { Win = 250, Loss = 75 },
-		Gold = { Win = 250, Loss = 50 },
-		Platinum = { Win = 250, Loss = 25 },
-		Diamond = { Win = 250, Loss = 0 },
-		Expert = { Win = 450, Loss = 0 },
-		Veteran = { Win = 450, Loss = 0 },
-		Master = { Win = 450, Loss = 0 },
-		Grandmaster = { Win = 450, Loss = 0 },
-		Reyes = { Win = 450, Loss = 0 },
+		Bronze = { Win = 100, Loss = 0 },
+		Silver = { Win = 100, Loss = 0 },
+		Gold = { Win = 100, Loss = 0 },
+		Platinum = { Win = 100, Loss = 0 },
+		Diamond = { Win = 100, Loss = 0 },
+		Expert = { Win = 100, Loss = 0 },
+		Veteran = { Win = 100, Loss = 0 },
+		Master = { Win = 100, Loss = 0 },
+		Grandmaster = { Win = 100, Loss = 0 },
+		Reyes = { Win = 100, Loss = 0 },
 	},
-	-- The table's difficulty multiplies XP, wins and losses (ECONOMY 4.2).
+	-- The table's difficulty multiplies XP (ECONOMY 4.2): a harder table's win is worth more.
 	ModeXp = { Classic = 1, Difficult = 1.25, Challenger = 1.5 },
-	-- Classic's WINS fade up the ladder (ECONOMY 4.2): x0.5 in Diamond, x0.2 from Expert. A
-	-- tier not listed keeps x1. Only Classic fades; losses never do.
-	ClassicWinFade = {
-		Diamond = 0.5,
-		Expert = 0.2,
-		Veteran = 0.2,
-		Master = 0.2,
-		Grandmaster = 0.2,
-		Reyes = 0.2,
-	},
+	-- Classic's WINS can fade up the ladder: { [tier] = factor }, a tier not listed keeps x1.
+	-- Empty since 2026-10-02 (was x0.5 in Diamond, x0.2 from Expert): a Classic win is always
+	-- a full win; Difficult and Challenger still pay more.
+	ClassicWinFade = {} :: { [string]: number },
 	-- Beating much lower players pays less (ECONOMY 4.4). gap = your division index minus the
 	-- opponent's (Bronze I = 1 ... Grandmaster V = 45, Reyes 46; an Unranked player counts as
 	-- Bronze I; a team uses the other team's average). E = 1 / (1 + 10^(-gap / scale)), factor
@@ -1699,13 +1698,10 @@ Config.Ranks = {
 	-- Against PC (bots, not built yet; ECONOMY 4.5): XP x Low while YOU are below
 	-- Gap.StrictFromTier, x High from it. The rules take the opponent kind now.
 	PcXp = { Low = 0.75, High = 0.5 },
-	-- XP boosts ADD together, then multiply (ECONOMY 4.5, 4.3): xp = round-half-even(base x
-	-- mode x fade x gap x PC x (1 + boosts)). A new VIP's first win of the day is x3.5.
+	-- XP boosts ADD together, then multiply (ECONOMY 4.5): xp = round-half-even(base x mode x
+	-- fade x gap x PC x (1 + boosts)). Only the win streak is left: it is skill (the Rookie,
+	-- VIP and first-win-of-the-day boosts went on 2026-10-02).
 	Boosts = {
-		Rookie = 1.0, -- +100% ("ROOKIE x2") for a player's first RookieMatches real matches
-		RookieMatches = 25,
-		Vip = 0.5, -- VIP +50%
-		FirstWin = 1.0, -- the first win of each UTC day (wins only)
 		Streak = 0.25, -- each win from the StreakFrom-th in a row, against people (wins only)
 		StreakFrom = 3,
 	},
@@ -4493,18 +4489,6 @@ Config.UI = {
 			-- overlaps the edge rather than growing the bar.
 			PortraitBadgeShare = 0.72,
 			PortraitBadgeRaise = 0.15,
-			-- The Rookie Boost (ECONOMY 4.5): a small green "ROOKIE x2" pill stuck on the pill's
-			-- bottom edge, under the XP bar's right end, while the RookieLeft attribute is above
-			-- 0 (overnight assumption, 2026-09-28: there, it covers neither the name nor the
-			-- numbers, and it stays inside the badge's height, clear of the column below).
-			RookieHeightPx = 18,
-			RookieTextPx = 14, -- the kit's smallest text
-			RookiePadPx = 7, -- room each side of its words
-			RookieRightPx = 8, -- its right end, this far in from the pill's right end
-			-- Its top this far above the pill's bottom edge: it hangs below, clear of the XP
-			-- numbers, and ends no lower than the badge (13 + 44 - 5 + 18 = 70), clear of the
-			-- column under the HUD on a phone.
-			RookieOverlapPx = 5,
 		},
 		-- The money HUD, bottom left (MoneyHud): the cash stack over the left end of a white
 		-- pill with the total. Purely visual (takes no input), so the touch thumbstick under it
@@ -4637,15 +4621,15 @@ Config.UI = {
 			-- The card grows past Height when its contents need it (boosts, a streak line, the
 			-- free case, the reminder); the whole screen still scales to fit.
 			BlockGap = 6, -- between the card's blocks (the XP, the boosts, the Total, the case)
-			-- The XP boosts (ECONOMY 4.5; brief section 13): a chip each under the XP bar,
-			-- "ROOKIE x2", "FIRST WIN x2", "STREAK +25%", "VIP +50%" (a boost of +100% or more
-			-- reads as a multiplier, a smaller one as a percent), in rows as wide as the bar.
+			-- The XP boosts (ECONOMY 4.5; brief section 13): a chip each under the XP bar (only
+			-- "STREAK +25%" since 2026-10-02; a boost of +100% or more would read as a
+			-- multiplier, a smaller one as a percent), in rows as wide as the bar.
 			BoostHeight = 20,
 			BoostTextPx = 14,
 			BoostGap = 6, -- between two chips, and between two rows
 			BoostPadPx = 8, -- room each side of a chip's words
-			-- Each boost's colour: a Kit colour name, or "Rainbow" (the house rainbow: VIP).
-			BoostTones = { Rookie = "Green", FirstWin = "Gold", Streak = "Red", Vip = "Rainbow" },
+			-- Each boost's colour: a Kit colour name, or "Rainbow" (the house rainbow).
+			BoostTones = { Streak = "Red" },
 			BoostStagger = 0.08, -- the chips pop one after another with the XP
 			-- The winner's free case (ECONOMY 7.1): "+1 Standard Case" with its chest, under the
 			-- Total; its chest then flies into the left column's Inventory tile.
@@ -8703,7 +8687,6 @@ Config.Debug = {
 		Party = "/party", -- starts (or extends) a Money Party
 		Policy = "/policy", -- /policy restricted|normal: fake PolicyService's paid random items
 		Sale = "/sale", -- /sale <case> <percent> <minutes> | /sale off: a case sale on this server
-		Rookie = "/rookie", -- /rookie <n>: set how many real matches you have played
 		FreeCase = "/freecase", -- as if you won a real match (the free-case rule)
 		EconHelp = "/econhelp", -- lists these
 		-- Ultimates, acting on the caller only (`/abilityhelp` lists them). Players call ults

@@ -23,7 +23,7 @@ local RanksCfg = Config.Ranks
 
 local SaveSchema = {}
 
-SaveSchema.Version = 4
+SaveSchema.Version = 5
 
 -- The most playtime one UTC day can hold (Daily.PlaySeconds).
 local SECONDS_PER_DAY = 86400
@@ -72,7 +72,6 @@ function SaveSchema.freshDaily(day: number): any
 		PcMoney = 0, -- money earned against PC today (Config.Economy.PcDailyCap)
 		ShortMoney = 0, -- money from matches that ended before the one-minute mark today
 		Wins = 0, -- real wins today (the free case: Config.Cases.DailyWins, EveryAfter)
-		FirstWinUsed = false, -- today's first-win XP boost is used
 		Opponents = {}, -- [userId as a string] = { Matches, Cases } (anti-farm, ECONOMY 3.6)
 		PlaySeconds = 0, -- time played today (the playtime gifts)
 		PlaytimeClaimed = {}, -- [gift index as a string] = true, the gifts claimed today
@@ -86,7 +85,6 @@ local DAILY_KEYS = {
 	"PcMoney",
 	"ShortMoney",
 	"Wins",
-	"FirstWinUsed",
 	"Opponents",
 	"PlaySeconds",
 	"PlaytimeClaimed",
@@ -108,7 +106,7 @@ function SaveSchema.template(): any
 		RatedMatches = 0, -- 0 means Unranked
 		Stats = stats, -- every counter an integer 0..Config.Save.StatCap
 		Progress = {
-			RealMatches = 0, -- real matches played (past one minute, not solo): Rookie Boost
+			RealMatches = 0, -- real matches played (past one minute, not solo): the free-case alt rule
 			Wins = 0, -- real wins ever, people or PC: the new player's free cases
 		},
 		Inventory = {
@@ -274,26 +272,36 @@ end
 -- Frozen here because Config now holds the new ladder; only migration 1 -> 2 reads it.
 local V1_DIVISION_XP = 1000
 
--- Where each division starts on Config's ladder (1 = Bronze I ... divisionCount() = the top
--- tier's one division) and each division's width (none for the top, which has no top).
+-- Version 2's ladder (2026-09-28 to 2026-10-02): each tier's division widths, I to V, Bronze
+-- to Grandmaster (Reyes, the top tier, has one division and no top). Frozen here because
+-- Config now holds the 2026-10-02 ladder; only migration 1 -> 2 reads it, so that migration
+-- stays exactly as it shipped.
+local V2_DIVISION_XP: { { number } } = {
+	{ 250, 250, 250, 250, 250 },
+	{ 350, 350, 350, 350, 350 },
+	{ 800, 800, 800, 800, 800 },
+	{ 1200, 1200, 1200, 1200, 1200 },
+	{ 8000, 9500, 11000, 13000, 15000 },
+	{ 17500, 20500, 24000, 28000, 33000 },
+	{ 38000, 45000, 53000, 62000, 72000 },
+	{ 85000, 100000, 115000, 135000, 160000 },
+	{ 185000, 215000, 255000, 295000, 345000 },
+}
+
+-- Where each division starts on version 2's ladder (1 = Bronze I ... 46 = the top tier's one
+-- division) and each division's width (none for the top, which has no top).
 local function ladder(): ({ number }, { number })
-	local rows: { [string]: { number } } = RanksCfg.DivisionXp :: any
 	local starts: { number } = {}
 	local widths: { number } = {}
 	local xp = 0
-	for order, tier in RanksCfg.Tiers do
-		if order == #RanksCfg.Tiers then
+	for _, row in V2_DIVISION_XP do
+		for _, width in row do
 			table.insert(starts, xp)
-		else
-			local row = rows[tier] or {}
-			for division = 1, RanksCfg.DivisionsPerTier do
-				local width = math.max(1, row[division] or 1)
-				table.insert(starts, xp)
-				table.insert(widths, width)
-				xp += width
-			end
+			table.insert(widths, width)
+			xp += width
 		end
 	end
+	table.insert(starts, xp)
 	return starts, widths
 end
 
@@ -301,9 +309,8 @@ end
 -- * Rank XP moves to the new ladder, keeping the division a player sees at the same fraction
 --   through it (the top tier: the XP past its start is kept as it is). An unrated save shows
 --   Unranked whatever its XP, so its XP is left alone. PeakDivision indexes the same divisions
---   (1..46) on both ladders, so it stays. The target is Config's ladder: if that ladder ever
---   changes again, freeze today's copy here first, because the migration after this one will
---   read version-2 XP as being on it.
+--   (1..46) on both ladders, so it stays. The target is version 2's ladder (V2_DIVISION_XP,
+--   frozen when Config's ladder changed on 2026-10-02; migration 4 -> 5 then resets rank XP).
 -- * Inventory.Cues was an array of ids and becomes a count per id. "default" and Classic (the
 --   default cue, always owned, never counted) and anything that is not an id are dropped;
 --   unknown ids are kept (a later catalog may know them). Every kept cue is marked in
@@ -470,6 +477,22 @@ SaveSchema.Migrations[3] = function(data: any): any
 		if equipped.Cue == id then
 			equipped.Cue = Catalog.Default
 		end
+	end
+	return data
+end
+
+-- 4 -> 5: the rank rework (designer, 2026-10-02; docs/ECONOMY.md section 4). Rank XP is now
+-- 100 a win and nothing for a loss, on a new ladder, so every rank starts over: RankXp and
+-- RatedMatches go to 0 (Unranked until the next win). PeakDivision stays, so a division whose
+-- rewards were already paid never pays them twice; everything those rewards gave (money,
+-- cases, rank cues, spins) is kept. Daily.FirstWinUsed (the first-win-of-the-day XP boost,
+-- removed) is dropped.
+SaveSchema.Migrations[4] = function(data: any): any
+	data.RankXp = 0
+	data.RatedMatches = 0
+	local daily = data.Daily
+	if type(daily) == "table" then
+		daily.FirstWinUsed = nil
 	end
 	return data
 end
@@ -1007,7 +1030,6 @@ function SaveSchema.validate(data: any): (any, { string })
 	fixInteger(daily, "PcMoney", "Daily.PcMoney", SaveCfg.MoneyCap, fixes)
 	fixInteger(daily, "ShortMoney", "Daily.ShortMoney", SaveCfg.MoneyCap, fixes)
 	fixInteger(daily, "Wins", "Daily.Wins", SaveCfg.StatCap, fixes)
-	fixBoolean(daily, "FirstWinUsed", "Daily.FirstWinUsed", fixes)
 	fixMapAt(
 		daily,
 		"Opponents",

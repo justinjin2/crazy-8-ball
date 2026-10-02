@@ -395,10 +395,11 @@ return {
 		H.expect(G.Max >= 1 and G.LossMax >= 0 and G.LossMax <= G.Max, "Max and LossMax")
 		H.expect(R.PcXp.High > 0 and R.PcXp.High <= R.PcXp.Low and R.PcXp.Low <= 1, "PcXp")
 		local B = R.Boosts
-		for _, key in { "Rookie", "Vip", "FirstWin", "Streak" } do
-			H.expect((B :: any)[key] >= 0, "Boosts." .. key)
+		H.expect(B.Streak >= 0, "Boosts.Streak")
+		-- XP comes only from skill (2026-10-02): no Rookie, VIP or first-win boost.
+		for _, key in { "Rookie", "RookieMatches", "Vip", "FirstWin" } do
+			H.expect((B :: any)[key] == nil, "Boosts." .. key .. " is gone")
 		end
-		H.expect(B.RookieMatches >= 1 and B.RookieMatches % 1 == 0, "RookieMatches")
 		H.expect(B.StreakFrom == Config.Economy.StreakFrom, "one streak for XP and money")
 		-- Rank cues are Exclusive: never traded or sold (ECONOMY 4.8).
 		local ok, Catalog = pcall(H.require, "Progression.Catalog")

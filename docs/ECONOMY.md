@@ -24,8 +24,9 @@ change as the game grows are listed with their triggers in section 14.
 
 ## 0. At a glance
 
-- **One bar: rank XP.** No Levels. XP is never lost: losses give a little to Platinum and
-  nothing from Diamond, so nobody drops a rank. Rank is the main way to show status.
+- **One bar: rank XP.** No Levels. XP is never lost and comes only from winning (reworked
+  2026-10-02): **100 XP a win, 0 a loss**, no Rookie, first-win or VIP boosts. Rank is the
+  main way to show status.
 - **A match** (1v1 against a person, Classic) pays about **$134 to the winner and $60 to the
   loser**: $10 a ball, $15/$20 nice shots, $50 win / $15 loss. That is about **$730 an hour**.
   Difficult pays 1.5x and Challenger 2x.
@@ -41,10 +42,12 @@ change as the game grows are listed with their triggers in section 14.
   shelf** sells exclusive, numbered cues for a short time, then they are trade-only forever.
   Deals are only ever on cases (bulk opening, occasional real case sales, timed special
   cases), never a guaranteed case cue.
-- **Ranks**: Silver in the first half hour, Diamond in about 7.5 hours, Expert in about 2
-  months at an hour a day, Reyes (2,352,500 XP) about a year for a 3-hour-a-day grinder.
+- **Ranks**, counted in wins: 1 win to Bronze I, then one more win each division (2, 3, 4...)
+  to Platinum, then a steady ramp. For a 3-hour-a-day player winning half their games:
+  Silver after about 6 hours of play, Expert in about a month, Veteran 2, Master 3.5,
+  Grandmaster 6, Reyes (307,500 XP, 3,075 Classic wins) about 9 months.
 - **Robux**: 49 R$ buys $900 (about 1.2 hours of play), up to 4,999 R$ for $130,000 (+42%).
-  **VIP 599 R$**: 2x money, +50% XP, the VIP Cue; never odds.
+  **VIP 599 R$**: 2x money, the VIP Cue; never odds, never XP.
 
 ---
 
@@ -58,15 +61,15 @@ change as the game grows are listed with their triggers in section 14.
 | Secret: months | Case odds of 1 in 400 Legendary Cases at best | a 3 h a day player: median 6-11 months, a quarter within about 3; a 1 h player: 1.3-2.4 years |
 | Lots of duplicates of commons to rares | Free case every win, 90% of it Common/Uncommon | about 5 commons/uncommons and 1.7 rares per hour |
 | Case cues keep their value | No direct buying; a Limited shelf of exclusives instead (section 9) | the designer replaced the rotating shop after the research |
-| Unranked to Bronze I after the tutorial, then 1-2 matches a division | Bronze 250 XP a division, a win 250 | Bronze about 1.4 matches, Silver about 2 |
-| Plateau from Gold, 5-6 matches a division | Gold 800 XP, loss still +50 | about 5 matches |
-| Diamond much harder, Classic fades | Divisions from 8,000 XP growing 17% each, Classic win halved, losses give 0 | Diamond I to Expert takes about 50 hours |
-| From Expert: only Difficult/Challenger climb, skill speeds you up | Classic x0.2, Challenger x1.5, win streak, opponent gap | a Challenger win is worth 7.5 Classic wins |
-| Losing is never a punishment (changed 2026-09-28) | Losses +100/+75/+50/+25 to Platinum, 0 from Diamond, never negative | nobody ever drops a rank |
+| (2026-10-02) 1 win to Bronze I, 2 to Bronze II, 3 to Bronze III... | Divisions in wins of 100 XP: one more win each division to Platinum, then a ramp | Silver I at 21 wins, Gold I 66, Diamond I 232 |
+| (2026-10-02) No Silver before about 2 hours | Silver I at 21 wins | about 6 hours of play at 50% |
+| (2026-10-02) 3 h a day at 50%: Expert 1 month, Veteran 2, Master 3-4, Grandmaster 6, Reyes 7+ | The ramp from Diamond (section 4.2) | about 1.1, 1.9, 3.3, 5.6 and 8.6 months, Classic only |
+| (2026-10-02) XP strictly from skill | Wins only; no Rookie, first-win or VIP boosts; harder modes, streaks and stronger opponents pay more | a Challenger win is 1.5 Classic wins |
+| Losing is never a punishment (changed 2026-09-28) | A loss gives 0 XP, never negative | nobody ever drops a rank |
 | Less for beating much lower players | Opponent-gap factor, section 4.4 | to Diamond: a tier lower x0.55, never under x0.3; from Expert: a tier lower x0.38, two tiers x0.11 |
-| Only a few hundred ever reach Reyes | Fixed Reyes at 2,352,500 XP | section 4.10 |
-| VIP 2x money, faster XP, not overpowered | +50% XP only, never odds | a VIP climbs about a third faster |
-| Onboarding feels fast | Rookie Boost, fast Bronze/Silver, early rewards (section 2) | Silver in about 30 minutes |
+| Only a few hundred ever reach Reyes | Fixed Reyes at 307,500 XP (3,075 Classic wins) | about 240 in the first year at 2,300 CCU (section 4.10) |
+| VIP 2x money, not overpowered | 2x money only, never odds or XP (XP removed 2026-10-02) | a VIP climbs at the same speed |
+| Onboarding feels fast | Small early divisions (Bronze II after 3 wins), early rewards (section 2) | Bronze I on the first win |
 
 ---
 
@@ -78,21 +81,19 @@ ordinary 50% win rate after the tutorial:
 | When | What happens |
 |---|---|
 | Join | Day 1 of the login streak: $250 |
-| Match 1 (the tutorial, always a win) | Unranked to **Bronze I** (NEW RANK!, $100, 2 Standard Cases, the Bronze Cue, [BRONZE] tag); the first win's **Rare Case** reveal (in place of that win's Standard Case); about $125 |
+| The first win (usually match 1 or 2) | Unranked to **Bronze I** (NEW RANK!, $100, 2 Standard Cases, the Bronze Cue, [BRONZE] tag); the first win's **Rare Case** reveal (in place of that win's Standard Case) |
 | 10 minutes | Playtime gift: $100 |
-| Matches 2-4 | With the Rookie Boost a win is worth two Bronze divisions ($50 each) |
 | 30 minutes | Playtime gift: a Standard Case |
-| Around match 4 (about 30 minutes) | **Silver I** (the NEW TIER screen: $300, a Rare Case, the Silver Cue) |
-| Matches 5-8 | Silver II, III, maybe IV ($75 each) |
+| The third win (about 45 minutes) | **Bronze II** ($50) |
 | 60 minutes | Playtime gift: 2 Standard Cases |
 
-By the end of the hour (model, 50% win rate): about **8 cases opened**, two rank tiers and
-several divisions, two exclusive cues and about $2,000 of money. About 1 in 6 players already has an
-Epic from free cases alone, and 1 in 3 if they spend that money on an Epic Case. Day 2 opens
-with 2 Standard Cases from the streak and the first-win-of-the-day bonus.
+By the end of the hour (50% win rate, about 7 matches): about 3-4 wins, Bronze I or II, about
+8 cases opened (the Rare reveal, a free Standard Case per win, 2 from Bronze I, 3 from
+playtime), the Bronze Cue and about $1,200. Silver comes after about 6 hours of play (21 wins).
+Day 2 opens with 2 Standard Cases from the streak.
 
-**Rookie Boost:** a new player's first 25 matches earn +100% XP ("ROOKIE x2" on the rank bar).
-With VIP it adds up to x2.5.
+(The Rookie Boost, +100% XP for the first 25 matches, was removed on 2026-10-02: friends
+reached Gold in a few hours.)
 
 ---
 
@@ -168,54 +169,58 @@ with VIP. XP boosts are in section 4.5. No boost ever changes case odds or free-
 ### 4.1 One bar, never lost
 
 Rank is the one progression bar and the game's main way to show status (designer, 2026-09-28:
-Levels are gone). Its number is **XP** (the save's `RankXp`). **XP is never lost**: from
-Bronze to Platinum a loss still gives a little, and from Diamond up a loss gives nothing. So
-nobody ever drops a rank, and losing a match is never a punishment, only a missed step.
-Division sizes grow up the ladder, so the climb keeps getting longer.
+Levels are gone). Its number is **XP** (the save's `RankXp`). **XP is never lost**, so nobody
+ever drops a rank, and losing a match is never a punishment, only a missed step.
+
+**Reworked 2026-10-02** (designer, after friends reached Gold I in a few hours of play): XP
+comes **only from winning**, and only skill makes it come faster. **A win is 100 XP, a loss
+0.** The Rookie Boost, the first-win-of-the-day bonus, VIP's +50% XP and Classic's fade are
+gone. Everyone's rank was reset to Unranked (save version 5); rewards already paid stay paid,
+and the old peak is kept so no division pays twice.
 
 ### 4.2 The ladder
 
-XP needed for each division, I to V:
+Counted in wins of 100 XP: **1 win to Bronze I** (a player is Unranked until their first win),
+**2 more to Bronze II, then 3, 4, 5... one more win each division up to Platinum V**, then a
+steady ramp sized so that a **3-hour-a-day player who wins half their games** reaches Expert
+in about a month, Veteran 2, Master 3.5, Grandmaster 6 and Reyes about 9. No division is ever
+smaller than the one before it (no wall like the old Diamond I). The first win's 100 XP lands
+inside Bronze I, so Bronze I is 300 wide.
 
-| Tier | I | II | III | IV | V | Tier total |
-|---|---|---|---|---|---|---|
-| Bronze | 250 | 250 | 250 | 250 | 250 | 1,250 |
-| Silver | 350 | 350 | 350 | 350 | 350 | 1,750 |
-| Gold | 800 | 800 | 800 | 800 | 800 | 4,000 |
-| Platinum | 1,200 | 1,200 | 1,200 | 1,200 | 1,200 | 6,000 |
-| Diamond | 8,000 | 9,500 | 11,000 | 13,000 | 15,000 | 56,500 |
-| Expert | 17,500 | 20,500 | 24,000 | 28,000 | 33,000 | 123,000 |
-| Veteran | 38,000 | 45,000 | 53,000 | 62,000 | 72,000 | 270,000 |
-| Master | 85,000 | 100,000 | 115,000 | 135,000 | 160,000 | 595,000 |
-| Grandmaster | 185,000 | 215,000 | 255,000 | 295,000 | 345,000 | 1,295,000 |
-| **Reyes** | at **2,352,500 XP** in total | | | | | |
+XP needed for each division, I to V (wins = XP / 100):
 
-Quick and flat to Platinum (onboarding), then about 17% bigger every division from Diamond I.
+| Tier | I | II | III | IV | V | Tier total | Tier starts at (wins) |
+|---|---|---|---|---|---|---|---|
+| Bronze | 300 | 300 | 400 | 500 | 600 | 2,100 | 0 XP (the first win) |
+| Silver | 700 | 800 | 900 | 1,000 | 1,100 | 4,500 | 2,100 (21) |
+| Gold | 1,200 | 1,300 | 1,400 | 1,500 | 1,600 | 7,000 | 6,600 (66) |
+| Platinum | 1,700 | 1,800 | 1,900 | 2,000 | 2,200 | 9,600 | 13,600 (136) |
+| Diamond | 2,500 | 2,800 | 3,200 | 3,600 | 4,000 | 16,100 | 23,200 (232) |
+| Expert | 4,500 | 5,000 | 5,600 | 6,200 | 6,900 | 28,200 | 39,300 (393) |
+| Veteran | 7,700 | 8,800 | 10,000 | 11,300 | 12,700 | 50,500 | 67,500 (675) |
+| Master | 14,300 | 15,700 | 17,000 | 18,000 | 19,500 | 84,500 | 118,000 (1,180) |
+| Grandmaster | 20,000 | 20,500 | 21,000 | 21,500 | 22,000 | 105,000 | 202,500 (2,025) |
+| **Reyes** | | | | | | | **307,500 (3,075)** |
 
-XP for a win and a loss against an equal opponent:
+XP for a match against an equal opponent, at every tier:
 
-| Tier | Classic win / loss | Difficult win / loss | Challenger win / loss |
+| | Classic | Difficult | Challenger |
 |---|---|---|---|
-| Bronze | +250 / +100 | +312 / +125 | +375 / +150 |
-| Silver | +250 / +75 | +312 / +94 | +375 / +112 |
-| Gold | +250 / +50 | +312 / +62 | +375 / +75 |
-| Platinum | +250 / +25 | +312 / +31 | +375 / +38 |
-| Diamond | **+125** / 0 | +312 / 0 | +375 / 0 |
-| Expert to Reyes | **+90** / 0 | +562 / 0 | +675 / 0 |
+| Win | **+100** | +125 | +150 |
+| Loss | 0 | 0 | 0 |
 
-How it is built (for Config): a base win and loss per tier (250 and +100/+75/+50/+25 to
-Platinum, 250 / 0 in Diamond, 450 / 0 from Expert), times the mode (Classic 1, Difficult 1.25,
-Challenger 1.5), times Classic's fade on wins (x0.5 in Diamond, x0.2 from Expert).
+How it is built (for Config): a base of 100 for a win and 0 for a loss at every tier, times
+the mode (Classic 1, Difficult 1.25, Challenger 1.5), the opponent gap (4.4), PC (4.5) and
+the win streak (4.3). Unranked plays by Bronze's row.
 
 ### 4.3 How skill still counts
 
 With no XP loss, time alone would eventually reach the top, so skill decides the speed:
-- **Harder modes pay more.** From Expert a Challenger win is worth 7.5 Classic wins, so the
-  players who can win without guidelines climb far faster.
-- **Win streak**: from the 3rd win in a row, each win gives +25% XP.
+- **Only wins count**: a player who wins twice as often climbs twice as fast.
+- **Harder modes pay more**: a Difficult win is 1.25 wins, a Challenger win 1.5.
+- **Win streak**: from the 3rd win in a row against people, each win gives +25% XP.
 - **Opponent strength** (4.4): beating stronger players pays up to 1.5x, much weaker ones far
   less.
-- Only wins count from Diamond, so a player who wins twice as often climbs about twice as fast.
 
 ### 4.4 Beating much lower players pays less (smurf protection)
 
@@ -230,32 +235,32 @@ only people around may be weaker, and **strict from Expert up** (scale 8, down t
 | Win x, Expert and up | 0.10 | 0.11 | 0.18 | 0.38 | 0.59 | 0.86 | 1 | 1.14 | 1.41 | 1.50 |
 
 Formula: E = 1 / (1 + 10^(-gap / scale)); factor = 2(1 - E), clamped to the floor (0.3 or
-0.1) and 1.5. The small XP a Bronze-to-Platinum loss gives uses the same factor, capped at 1.
-The win bonus money uses it too (never under half); ball money is untouched.
+0.1) and 1.5. The win bonus money uses it too (never under half); ball money is untouched.
 
 ### 4.5 Boosts, PC and forfeits
 
-- **XP boosts add together**: **Rookie Boost** +100% for a new player's first 25 matches,
-  **VIP** +50%, and the **first win of each UTC day** counts double (+100%). A new VIP
-  player's first win of the day is x3.5.
-- **PC**: XP x0.75 from Bronze to Diamond and x0.5 from Expert at launch, so a player in a
-  quiet server still climbs against the bot of their rank. Once the global queue exists and
-  the top is busy, Expert and up drops to x0.1 (section 14).
+- **XP boosts**: only the win streak (+25%, 4.3). The Rookie Boost (+100% for the first 25
+  matches), the first win of each UTC day (+100%) and VIP (+50%) were removed on 2026-10-02:
+  they were not skill.
+- **PC**: XP x0.75 below Expert and x0.5 from Expert at launch, so a player in a quiet server
+  still climbs against the bot of their rank. Once the global queue exists and the top is
+  busy, Expert and up drops to x0.1 (section 14).
 - **Forfeits**: as built. The forfeiter gets no XP at all; the winner is paid only after the
   one-minute mark.
 
 ### 4.6 Grandmaster and Reyes
 
-Fixed XP amounts (designer, 2026-09-28), like every other tier: Grandmaster I at 1,057,500
-XP, **Reyes at 2,352,500 XP**. For a 55% player at 3 hours a day that is about a year of
-play; for an hour-a-day player, several years. The first player ever to reach Reyes is
-announced in every server and gets a one-of-one Unique title; each later Reyes is announced
-too. How many ever get there: 4.10.
+Fixed XP amounts, like every other tier: Grandmaster I at 202,500 XP (2,025 Classic wins),
+**Reyes at 307,500 XP** (3,075 Classic wins; 2,050 Challenger wins). For a 3-hour-a-day player
+winning half their games that is about 9 months of play; at an hour a day, over 2 years. The
+first player ever to reach Reyes is announced in every server and gets a one-of-one Unique
+title; each later Reyes is announced too. How many ever get there: 4.10.
 
 ### 4.7 Difficulty unlocks
 
 By rank: host a **Difficult** or **Challenger** table from **Gold I** (2026-10-02; Challenger
-was Diamond I). Below it the host card greys them with "Requires Gold I+". Anyone
+was Diamond I). Gold I is 66 wins, about 17 hours of Classic play. Below it the host card greys
+them with "Requires Gold I+". Anyone
 may join a harder table as a guest, with a warning and Play anyway. The table's difficulty sets
 its money and XP multipliers for everyone at it.
 
@@ -280,67 +285,64 @@ Rank cues are **Exclusive** (section 6) and can't be traded or sold: a Reyes Cue
 
 ### 4.9 How long each tier takes
 
-Hours of play against equal opponents, with a typical mix of modes (Classic early, Difficult
-from Gold, mostly Challenger from Diamond), not counting the Rookie Boost:
+Hours of play against equal opponents (`python3 tools/economy_model.py tables`; a Classic match
+plus the time between is about 8 minutes, so 7.5 matches an hour; the streak bonus included):
+
+**Classic only:**
 
 | Win rate | Silver | Gold | Platinum | Diamond | Expert | Veteran | Master | Grandmaster | Reyes |
 |---|---|---|---|---|---|---|---|---|---|
-| 45% | 1 h | 2 h | 6 h | 12 h | 69 h | 139 h | 295 h | 637 h | 1,381 h |
-| 50% | 1 h | 2 h | 6 h | 11 h | 62 h | 124 h | 263 h | 567 h | 1,229 h |
-| 55% | 1 h | 2 h | 5 h | 10 h | 56 h | 112 h | 236 h | 509 h | 1,104 h |
-| 60% | 1 h | 2 h | 5 h | 9 h | 50 h | 102 h | 214 h | 461 h | 999 h |
+| 45% | 6 h | 19 h | 38 h | 65 h | 111 h | 190 h | 333 h | 571 h | 867 h |
+| 50% | 5 h | 17 h | 34 h | 58 h | 99 h | 169 h | 296 h | 508 h | 772 h |
+| 55% | 5 h | 15 h | 31 h | 52 h | 89 h | 152 h | 266 h | 456 h | 693 h |
+| 60% | 4 h | 13 h | 28 h | 47 h | 80 h | 138 h | 241 h | 413 h | 627 h |
 
-With the Rookie Boost a new player reaches Silver in about **30 minutes** and Diamond in
-about **7.5 hours**. At an hour a day Expert takes about **2 months**. A 3-hour-a-day grinder
-at 55% reaches Reyes in about a **year**.
+**A typical mix of modes** (Classic early, some Difficult from Gold, mostly Challenger from
+Diamond): about 10% faster from Diamond (50%: Expert 91 h, Grandmaster 445 h, Reyes 673 h).
 
-**A small game** (model, with the Rookie Boost). "Weaker" means every opponent is 5
-divisions below and you win 75%; "mix" is half bots, half weaker:
-
-| Who they play | Silver | Gold | Platinum | Diamond | Expert |
-|---|---|---|---|---|---|
-| Equal players | 0.5 h | 1.2 h | 2.8 h | 7.5 h | 59 h |
-| Only bots | 0.7 h | 1.6 h | 4.2 h | 11 h | 79 h |
-| Only weaker players | 0.5 h | 1.5 h | 3.4 h | 9.6 h | 67 h |
-| Half bots, half weaker | 0.7 h | 1.5 h | 3.8 h | 10.5 h | 73 h |
+In months for the designer's reference player (**3 hours a day, 50%, Classic**): Silver on
+day 2, Gold in about 6 days, Diamond in about 3 weeks, **Expert 1.1 months, Veteran 1.9,
+Master 3.3, Grandmaster 5.6, Reyes 8.6**. An hour-a-day player takes three times as long
+(Expert in about 3 months); a 5-hour-a-day grinder at 55% about half as long (Expert in about
+18 days, Reyes in about 5 months).
 
 ### 4.10 What the ranks look like over a year (simulation)
 
-Simulation (`ranks`): 2,000 new players a day for a year (about 2,200 peak CCU by the end),
-most leaving on day one and a few staying for a year or more, each with a hidden skill; half
-their matches near their own rank. "Ever" counts everyone who reached the tier or higher,
-including players who later quit.
+Simulation (`ranks`, rerun 2026-10-02): 2,000 new players a day for a year (about 2,300 peak
+CCU by the end), most leaving on day one and a few staying for a year or more (playing up to 6
+hours a day), each with a hidden skill; half their matches near their own rank. "Ever" counts
+everyone who reached the tier or higher, including players who later quit.
 
 | Tier | Share of players still playing, day 90 / 180 / 365 | Ever reached by day 365 | Mean skill (day 365) |
 |---|---|---|---|
-| Bronze | 15% / 12% / 10% | 625,000 (everyone ranked) | -0.17 |
-| Silver | 11% / 9% / 8% | 374,000 | -0.12 |
-| Gold | 16% / 13% / 11% | 255,000 | -0.10 |
-| Platinum | 14% / 11% / 9% | 153,000 | -0.14 |
-| Diamond | 34% / 33% / 30% | 99,700 | -0.12 |
-| Expert | 7.6% / 12% / 13% | 24,000 | +0.07 |
-| Veteran | 2.1% / 7.1% / 12% | 10,500 | +0.28 |
-| Master | 0.1% / 1.6% / 6.5% | 3,270 | +0.56 |
-| Grandmaster | 0 / 0.05% / 1.4% | 459 | +1.18 |
-| **Reyes** | 0 / 0 / 0.01% | **4** | +2.44 |
+| Bronze | 39% / 32% / 26% | 574,000 (everyone who ever won) | -0.17 |
+| Silver | 26% / 21% / 18% | 165,000 | -0.09 |
+| Gold | 16% / 16% / 13% | 71,000 | -0.08 |
+| Platinum | 8.8% / 11% / 10% | 38,600 | -0.02 |
+| Diamond | 5.0% / 7.4% / 8.4% | 23,200 | +0.02 |
+| Expert | 3.4% / 6.7% / 8.8% | 14,500 | +0.16 |
+| Veteran | 1.1% / 4.5% / 7.9% | 7,800 | +0.29 |
+| Master | 0.05% / 1.7% / 5.1% | 3,300 | +0.52 |
+| Grandmaster | 0 / 0.23% / 2.2% | 1,050 | +0.73 |
+| **Reyes** | 0 / 0 / 0.76% | **238** | +1.33 |
 
 What this means:
-- **Reyes stays very rare**: 4 players in the first year at about 2,200 CCU (roughly 10 at
-  5,000 CCU, 20 at 10,000). It keeps growing slowly every year, since XP is never lost.
-- **With no XP loss, rank rewards time more than skill** below the very top: Expert and
-  Veteran players are average-to-good (mean skill +0.07 and +0.28), because anyone who keeps
-  playing gets there. Grandmaster (+1.18, about the top 12%) and Reyes (+2.44, about the top
-  1%) still take real skill as well as time.
-- **The high tiers fill up with long-time players.** A year in, about a third of the players
-  still playing are Expert or higher. Measured against everyone who ever played it stays
-  small: Expert 4%, Master 0.5%, Grandmaster 0.07%.
+- **The ladder spreads out.** No tier holds a pile of players (the old ladder put a third of
+  them in Diamond, behind its 8,000 XP wall); each tier up holds fewer, and the share above
+  Expert grows slowly over the year.
+- **Nobody reaches Grandmaster in the first 3 months, or Reyes in the first 6.** About 240
+  players reach Reyes in the first year at about 2,300 CCU: the heavy grinders. If that is
+  too many, the lever is the Grandmaster widths.
+- **Rank still rewards time as well as skill**, since a loss costs nothing: mean skill rises
+  tier by tier, but a steady average player does get to Expert and beyond.
 
 The retention and playtime in the simulation are guesses, so read it for shape, not exact
 counts.
 
 ### 4.11 Seasons
 
-**Ranks never reset** (designer, 2026-09-28): your XP is yours forever. Seasons can still
+**Ranks never reset** (designer, 2026-09-28): your XP is yours forever. (The one exception was
+before release: the 2026-10-02 rework reset every tester's rank, keeping their rewards.) Seasons can still
 give a reward for the highest tier reached during that season (a season-coloured tier cue,
 Exclusive, plus cases), without taking anything away.
 
@@ -350,8 +352,8 @@ Exclusive, plus cases), without taking anything away.
 
 The account Level and its EXP are gone (designer, 2026-09-28). What they did moved:
 - **Money every level** now comes from rank divisions (4.8).
-- The **Rookie Boost** and the **first win of the day** now boost rank XP (4.5).
-- **VIP** gives +50% rank XP instead of 2x EXP (11.2).
+- The **Rookie Boost**, the **first win of the day** and **VIP's XP** moved to rank XP, then
+  were removed on 2026-10-02 (4.5).
 - The anti-alt rule "the loser must be Level 3" became "the loser must have played 5 real
   matches" (3.6).
 
@@ -550,7 +552,7 @@ still random, with its odds shown.
 **Four full weeks in a row** add a **Legendary Case** on day 28.
 
 **Playtime gifts** (minutes played in a UTC day): 10 min $100, 30 min a Standard Case, 60 min
-2 Standard Cases. **First win of the day**: double XP. The reminder on menu open and focus loss
+2 Standard Cases. The reminder on menu open and focus loss
 ("Come back tomorrow for your Rare Case") uses the real next streak reward.
 
 ---
@@ -586,8 +588,7 @@ cues are in section 9. A player halfway to a $25,000 Limited finishes it with ab
 
 - **2x money** (+100%, adds with other boosts) on everything earned in play: balls, nice
   shots, match bonuses. Not on rewards, sell-back or packs.
-- **+50% XP** (designer, 2026-09-28): a VIP climbs ranks about a third faster. Adds with the
-  Rookie Boost and the first win of the day.
+- **No XP boost** (designer, 2026-10-02; it was +50%): rank comes from skill only.
 - **The VIP Cue** (Exclusive, rainbow, never traded), a **[VIP]** chat tag before the rank
   tag ("[VIP] [GOLD] Name") and a rainbow name over the head, its colours drifting slowly
   (designer, 2026-09-28).
@@ -617,7 +618,7 @@ Exclusive that trades) **and $3,000**. No case inside, which keeps it outside th
 | Product | Type | Robux | Why |
 |---|---|---|---|
 | Money packs (7) | developer products | 49 to 4,999 | the core |
-| VIP | game pass | 599 | 2x money and +50% XP; research median VIP about 400 R$, 2x-money passes 300-600 |
+| VIP | game pass | 599 | 2x money; research median VIP about 400 R$, 2x-money passes 300-600 |
 | VIP welcome offer | developer product | 299 | first join and one comeback |
 | Starter Pack | developer product | 79 | pool competitors sell 39-79 R$ starter packs |
 | **Money Party** | developer product | 199 | +100% money for **everyone in the server for 15 minutes**, the buyer's name announced; buying again adds 15 minutes (up to an hour queued). Social and cheap to build; money only, so not a paid random item |
@@ -792,7 +793,7 @@ unchanged at any size; these are the dials to revisit:
 |---|---|---|
 | PC XP | x0.75 to Diamond, x0.5 from Expert | the global queue is live and there are 200+ Master and up: Expert and up x0.1 |
 | Diamond I size and growth | 8,000 XP, +17% a division | after 60 days, if under 1% of players who stayed a month have reached Expert: 6,000 |
-| Reyes XP | 2,352,500 | if Reyes gets crowded (a few hundred a year), raise it for everyone not yet there |
+| Reyes XP | 307,500 | if Reyes gets crowded (a few hundred a year), raise it for everyone not yet there |
 | Limited drops | one every 1-2 weeks | faster once the art pipeline allows; add copy caps if values fall |
 | New-player free cases | 50 wins | if D1 retention is weak: 75 |
 | Seasons | ranks never reset | season rewards for the highest tier reached, once seasons start |

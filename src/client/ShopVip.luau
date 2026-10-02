@@ -6,7 +6,7 @@
 -- soon" tag ("Soon" where it would not fit) marks it and Buy only says so. Owned things show a
 -- green "Owned".
 --   * VIP (the pass, 599): the crown, "VIP" in the house rainbow, its perks as short lines with
---     icons (2x money in matches, +50% XP, the VIP Cue, the [VIP] chat tag) and "Same case odds
+--     icons (2x money in matches, the VIP Cue, the [VIP] chat tag) and "Same case odds
 --     as everyone" (VIP never changes odds). While the welcome offer's window is open
 --     (offers.VipOffer: 24 h from the first join, then one comeback window) the card sells the
 --     offer instead: a gold "Welcome offer: 23:59:12" pill (never "LAST CHANCE"), the pass's
@@ -114,10 +114,8 @@ function ShopVip.new(shop: any, page: Frame): any
 	offer.root.Visible = false
 	self.offer = offer
 	local boost = Config.Economy.VipBoost
-	local xp = Config.Ranks.Boosts.Vip
 	local perkLines: { { icon: string, text: string } } = {
 		{ icon = "CashStack", text = COPY.VipMoney:format(times(1 + boost)) },
-		{ icon = "Lightning", text = COPY.VipXp:format(round(xp * 100)) },
 		{ icon = "Cue", text = COPY.VipCue:format(CueThumb.cueName(Config.Shop.VipCue)) },
 		{ icon = "ChatTag", text = COPY.VipName },
 		{ icon = "Odds", text = COPY.VipOdds },

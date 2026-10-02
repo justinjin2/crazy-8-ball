@@ -132,31 +132,20 @@ return {
 		H.expect(not Settle.shortCapped(200, 60), "past the mark pays in full")
 	end,
 
-	["boosts: Rookie for 25 matches, first win of the day, streak from the 3rd (4.3, 4.5)"] = function()
+	["boosts: only the streak, from the 3rd win in a row (4.3, 4.5)"] = function()
 		local Settle = load()
 		local function flags(overrides: { [string]: any }): any
-			local base: { [string]: any } = {
-				realMatches = 30,
-				vip = false,
-				won = true,
-				firstWinUsed = true,
-				streakAfter = 1,
-				farmXp = 1,
-			}
+			local base: { [string]: any } = { won = true, streakAfter = 1 }
 			for key, value in overrides do
 				base[key] = value
 			end
 			return Settle.boosts(base)
 		end
-		H.expect(flags({ realMatches = 24 }).rookie, "24 real matches before: still a rookie")
-		H.expect(not flags({ realMatches = 25 }).rookie, "25 before: the boost is over")
-		H.expect(flags({ vip = true }).vip and not flags({}).vip, "VIP")
-		H.expect(flags({ firstWinUsed = false }).firstWin, "today's first win")
-		H.expect(not flags({ firstWinUsed = false, won = false }).firstWin, "a loss keeps it")
-		H.expect(not flags({ firstWinUsed = false, farmXp = 0 }).firstWin, "an 11th match keeps it")
 		H.expect(not flags({ streakAfter = 2 }).streak, "2nd win in a row")
 		H.expect(flags({ streakAfter = 3 }).streak, "3rd win in a row")
 		H.expect(not flags({ streakAfter = 5, won = false }).streak, "never on a loss")
+		local all = flags({ streakAfter = 3 })
+		H.expect(all.rookie == nil and all.vip == nil and all.firstWin == nil, "no other boosts")
 	end,
 
 	["freeCaseContext: a win against an established account drops by the daily rule (7.1)"] = function()

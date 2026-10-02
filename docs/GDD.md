@@ -629,29 +629,33 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
 - Tiers: **Bronze, Silver, Gold, Platinum, Diamond, Expert, Veteran, Master, Grandmaster,
   Reyes**. Each has divisions **I to V** (I is the bottom, V the top) except Reyes. Reyes is
   named after Efren Reyes (placeholder, check rights before launch).
-- Players are **Unranked** until their first rated match, then Bronze I after one game.
+- Players are **Unranked** until their first win in a rated match, which makes them Bronze I
+  (designer, 2026-10-02; a loss leaves them Unranked).
 - **Rank badges** are drawn (2026-09-26, `assets/ui/ranks/`): 1 to 5 stars show the division
   from Bronze to Diamond, 1 to 5 gems from Expert to Grandmaster; crowns from Expert up; Reyes
   and Unranked have one badge each. Look and shine: `docs/UI_STYLE.md` sections 6 and 7.
 - **One number, rank XP, is the only progression** (designer, 2026-09-28: the separate
   account Level and EXP are gone). Rank is the game's main way to show status. **XP is never
-  lost**: losses give a little to Platinum (+100/+75/+50/+25) and nothing from Diamond, so
-  nobody ever drops a rank. Division sizes grow up the ladder: flat and quick to Platinum,
-  then about 17% bigger every division from Diamond I (8,000 XP) to Grandmaster V; **Reyes is
-  a fixed 2,352,500 XP** (designer, 2026-09-28; it replaced leaderboard seats). All numbers:
-  [ECONOMY.md](ECONOMY.md) section 4.
-- Every match against a person or PC gives XP. Solo never does. **Skill sets the speed**:
-  harder difficulties pay more (Classic 1, Difficult 1.25, Challenger 1.5; Classic wins fade
-  to x0.5 in Diamond and x0.2 from Expert), a win streak gives +25% from the 3rd win in a
-  row, and beating stronger players pays more and much weaker ones less (an Elo gap factor).
-  PC matches give x0.75 XP to Diamond and x0.5 from Expert at launch. Teams: every player by
-  the same rules against the other team's average.
-- **XP boosts** (add together): the Rookie Boost (+100% for the first 25 matches), the first
-  win of each day (double), VIP (+50%).
-- Targets: Silver in about 30 minutes, Diamond in about 7.5 hours, Expert in about 2 months at
-  an hour a day, Reyes about a year for a 3-hour-a-day grinder; only a few ever reach Reyes.
-- **Difficulty unlocks by rank** (designer, 2026-09-27): host Difficult from Gold I,
-  Challenger from Diamond I; guests may join with a warning.
+  lost**, so nobody ever drops a rank.
+- **XP comes only from winning, and only skill speeds it up** (designer, 2026-10-02, after
+  friends reached Gold in a few hours): **a win is 100 XP, a loss 0**. No Rookie Boost, no
+  first-win-of-the-day bonus, no VIP XP. The ladder is counted in wins: **1 win to Bronze I,
+  2 more to Bronze II, then 3, 4, 5... one more win each division to Platinum**, then a
+  steady ramp (never a smaller step than the one before). Reyes is a fixed **307,500 XP**
+  (3,075 Classic wins). All numbers: [ECONOMY.md](ECONOMY.md) section 4.
+- Every match against a person or PC can give XP. Solo never does. **Skill sets the speed**:
+  harder difficulties pay more (Classic 1, Difficult 1.25, Challenger 1.5; no Classic fade
+  since 2026-10-02), a win streak gives +25% from the 3rd win in a row, and beating stronger
+  players pays more and much weaker ones less (an Elo gap factor). PC matches give x0.75 XP
+  below Expert and x0.5 from Expert at launch. Teams: every player by the same rules against
+  the other team's average.
+- Targets, for a **3-hour-a-day player who wins half their games** (designer, 2026-10-02):
+  Silver after about 6 hours of play (never before 2), Expert in about a month, Veteran 2
+  months, Master 3.5, Grandmaster 6, Reyes about 9. An hour-a-day player takes three times
+  as long.
+- **Difficulty unlocks by rank** (designer, 2026-09-27; Challenger moved to Gold I
+  2026-10-02): host Difficult and Challenger from Gold I (about 18 hours of play since the
+  rank rework); guests may join with a warning.
 - **Ten bots, one per tier** (designer, 2026-09-26): the Bronze bot is the easiest and the Reyes
   bot the hardest, and each player meets the bot of their rank.
 - Rating is saved under a season label ("Season 0"). **Ranks never reset** (designer,
@@ -721,10 +725,10 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   screen gives ults; spins come from play (starter, daily, rank-ups, streak day 7, playtime,
   codes), Robux packs and money, with true odds, pity and Lucky Spins (ECONOMY.md 11.8). Ults
   are kept in 3 slots; a spin replaces the selected slot's ult.
-- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, +50% rank XP, the VIP Cue, a [VIP]
-  chat tag before the rank tag ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour)
-  and a rainbow name over the head whose colours drift slowly (designer, 2026-09-28). Never
-  better odds, never cases. A **welcome offer** at 50% off for 24 hours from the
+- **VIP** (one-time pass, 599 R$ *(tune)*): 2x money, the VIP Cue, a [VIP] chat tag before
+  the rank tag ("[VIP] [GOLD] Name"; the name in chat keeps Roblox's colour) and a rainbow
+  name over the head whose colours drift slowly (designer, 2026-09-28). Never better odds,
+  never cases, and no XP boost (designer, 2026-10-02: rank comes from skill only). A **welcome offer** at 50% off for 24 hours from the
   first join, plus one 24-hour comeback window 7 days later (designer, 2026-09-27; Roblox's
   rules call short pressure windows unfair, so not 15 minutes). ECONOMY.md section 11.
 - **Starter Pack:** the Starter Cue and $3,000 for 79 R$, in the first 7 days *(tune)*, with
@@ -824,9 +828,9 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   uses the shorter `StubLengthInches` (7 in since 2026-09-30, 8 before; friends found the
   game too easy) to keep aiming a challenge.
 - **First win:** a free **Rare Case**, rolled by the server when the match settles and opened
-  on the reel inside the post-match screen with an Equip button, plus the first-win and Rookie
-  XP boosts (built 2026-09-28; ECONOMY.md sections 7.1 and 18).
-- Unranked to Bronze after one game. The first opponent shows a much higher rank so the win
+  on the reel inside the post-match screen with an Equip button (built 2026-09-28; ECONOMY.md
+  sections 7.1 and 18).
+- Unranked to Bronze I with the first win. The first opponent shows a much higher rank so the win
   feels earned. PC is labelled "PC" everywhere else; disguised PCs never appear on
   leaderboards and are stored as PC in match records.
 - **Daily 7-day streak:** every day's reward is meaningful: $250, 2 Standard Cases, $500, a

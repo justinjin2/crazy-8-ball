@@ -3,7 +3,7 @@
 -- chat and voice buttons (reference 02-rank-hud-nameplate): the badge, bigger than the pill and
 -- over its left end, then a white pill with the rank's name ("Gold III") over the XP bar
 -- ("520 / 1,000 XP" on the bar). Reyes has no top: its XP alone on a full rainbow bar that
--- shimmers. Unranked shows an empty bar out of Bronze I's width, which the first match fills.
+-- shimmers. Unranked shows an empty bar out of Bronze I's width, which the first win fills.
 --
 -- It reads the local player's save from their attributes (RankXp and RatedMatches, which the
 -- rank comes from, plus RankTier, RankDivision and RankIndex) and follows their changes: the
@@ -12,15 +12,10 @@
 -- save is loaded (DataLoaded) and while you are in a match (setVisible, from Progression).
 -- Pressing the badge or the pill opens the roadmap; a gamepad selects the badge.
 --
--- During the Rookie Boost (ECONOMY 4.5: the first real matches' XP x2) a small green
--- "ROOKIE x2" pill sits on the pill's bottom edge under the XP bar's right end, while the
--- player's RookieLeft attribute (real matches left in it, set by the server) is above 0.
---
 -- It sits in its own ScreenGui with ScreenInsets.TopbarSafeInsets, which covers exactly the
 -- free part of Roblox's top row (as MatchHUD's bar), laid out at Config sizes and scaled to fit.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -31,7 +26,6 @@ local Ranks = require(Progression:WaitForChild("Ranks"))
 local Format = require(Progression:WaitForChild("Format"))
 local HudParts = require(script.Parent.HudParts)
 local RankBadge = require(script.Parent.RankBadge)
-local RewardChips = require(script.Parent.RewardChips)
 local UIAnim = require(script.Parent.UIAnim)
 local UISound = require(script.Parent.UISound)
 
@@ -204,28 +198,6 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	numbers.Size = UDim2.new(1, -8, 1, 4)
 	numbers.ZIndex = 3
 	self.numbers = numbers
-	-- The Rookie Boost pill: green, stuck on the pill's bottom edge under the bar's right end.
-	local rookieWords = RewardChips.boostWords("Rookie", Config.Ranks.Boosts.Rookie) or ""
-	local rookieWidth = math.ceil(
-		TextService:GetTextSize(
-			rookieWords,
-			H.RookieTextPx,
-			(Enum.Font :: any)[K.Font],
-			Vector2.new(1000, 100)
-		).X + H.RookiePadPx * 2
-	)
-	local rookie = HudParts.pill(pill, "Rookie", HudParts.tone("Green"))
-	rookie.AnchorPoint = Vector2.new(1, 0)
-	rookie.Position = UDim2.fromOffset(PW - H.RookieRightPx, PH - H.RookieOverlapPx)
-	rookie.Size = UDim2.fromOffset(rookieWidth, H.RookieHeightPx)
-	rookie.ZIndex = 4
-	rookie.Visible = false
-	local rookieText = HudParts.text(rookie, "Words", H.RookieTextPx, rookieWords)
-	rookieText.TextWrapped = false
-	rookieText.Size = UDim2.fromScale(1, 1)
-	rookieText.ZIndex = 2
-	self.rookie = rookie
-	self.rookieOn = false
 	-- The pill presses and hovers the badge too; only the badge is a gamepad stop.
 	local pillButton = Instance.new("TextButton")
 	pillButton.Name = "Press"
@@ -319,9 +291,6 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 			self.loaded = player:GetAttribute("DataLoaded") == true
 			self:refreshVisible()
 		end)
-		connect(player:GetAttributeChangedSignal("RookieLeft"), function()
-			self:refreshRookie(true)
-		end)
 		self.loaded = player:GetAttribute("DataLoaded") == true
 	end
 	-- Reyes' full bar shimmers now and then while it shows.
@@ -336,25 +305,7 @@ function RankHud.new(screen: ScreenGui, onOpen: () -> ()): any
 	self:snap(self.shown)
 	self:layout()
 	self:refreshVisible()
-	self:refreshRookie(false)
 	return self
-end
-
--- The Rookie Boost pill: up while RookieLeft is above 0 (popping in or out when `animate`).
-function RankHud.refreshRookie(self: any, animate: boolean)
-	local left = if self.player then self.player:GetAttribute("RookieLeft") else nil
-	local on = type(left) == "number" and left > 0
-	if on == self.rookieOn then
-		return
-	end
-	self.rookieOn = on
-	if not animate then
-		self.rookie.Visible = on
-	elseif on then
-		UIAnim.popIn(self.rookie)
-	else
-		UIAnim.popOut(self.rookie)
-	end
 end
 
 -- Fit the HUD into the free part of the top row: its natural size (a phone), bigger on a

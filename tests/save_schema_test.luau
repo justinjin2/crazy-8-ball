@@ -152,7 +152,6 @@ local function assertClean(Config: any, SaveSchema: any, save: any)
 	inRange(daily.PcMoney, S.MoneyCap, "Daily.PcMoney")
 	inRange(daily.ShortMoney, S.MoneyCap, "Daily.ShortMoney")
 	inRange(daily.Wins, S.StatCap, "Daily.Wins")
-	H.expect(type(daily.FirstWinUsed) == "boolean", "Daily.FirstWinUsed must be a boolean")
 	checkMap(
 		daily.Opponents,
 		Config.Economy.SameOpponentMaxEntries,
@@ -334,7 +333,6 @@ local SUB_FIELDS: { [string]: { string } } = {
 		"Day",
 		"SoloMoney",
 		"Wins",
-		"FirstWinUsed",
 		"Opponents",
 		"PlaySeconds",
 		"PlaytimeClaimed",
@@ -395,23 +393,40 @@ local function v1Save(fields: { [string]: any }?): any
 	return save
 end
 
--- The new ladder's division starts and widths, from Config (independent of SaveSchema).
-local function newLadder(Config: any): ({ number }, { number })
-	local R = Config.Ranks
+-- Version 2's ladder, the one migration 1 -> 2 moves XP to (frozen in SaveSchema since
+-- Config's ladder changed on 2026-10-02; written out again here, independent of SaveSchema).
+local V2_LADDER = {
+	{ 250, 250, 250, 250, 250 },
+	{ 350, 350, 350, 350, 350 },
+	{ 800, 800, 800, 800, 800 },
+	{ 1200, 1200, 1200, 1200, 1200 },
+	{ 8000, 9500, 11000, 13000, 15000 },
+	{ 17500, 20500, 24000, 28000, 33000 },
+	{ 38000, 45000, 53000, 62000, 72000 },
+	{ 85000, 100000, 115000, 135000, 160000 },
+	{ 185000, 215000, 255000, 295000, 345000 },
+}
+
+-- Version 2's division starts and widths (Reyes, the 46th, has a start and no width).
+local function newLadder(_Config: any): ({ number }, { number })
 	local starts, widths = {}, {}
 	local xp = 0
-	for order, tier in R.Tiers do
-		if order == #R.Tiers then
+	for _, row in V2_LADDER do
+		for _, width in row do
 			table.insert(starts, xp)
-		else
-			for division = 1, R.DivisionsPerTier do
-				table.insert(starts, xp)
-				table.insert(widths, R.DivisionXp[tier][division])
-				xp += R.DivisionXp[tier][division]
-			end
+			table.insert(widths, width)
+			xp += width
 		end
 	end
+	table.insert(starts, xp)
 	return starts, widths
+end
+
+-- Runs only migration 1 -> 2 on a version-1 save (the later ones reset rank XP).
+local function migrate1(SaveSchema: any, save: any): any
+	local out = SaveSchema.Migrations[1](save)
+	out.Version = 2
+	return out
 end
 
 -- The division index of a tier's division `d` (Bronze I = 1).
@@ -455,7 +470,7 @@ return {
 	["the template has every field at its starting value"] = function()
 		local _, SaveSchema = setup()
 		local t = SaveSchema.template()
-		H.expect(SaveSchema.Version == 4, "version 4")
+		H.expect(SaveSchema.Version == 5, "version 5")
 		H.expect(t.Version == SaveSchema.Version, "template carries the current version")
 		H.expect(t.Money == 0 and t.RankXp == 0 and t.PeakDivision == 0, "starts at zero")
 		H.expect(t.RatedMatches == 0, "starts unranked")
@@ -477,9 +492,9 @@ return {
 		H.expect(t.Equipped.Cue == "Classic", "Classic is the default cue")
 		local d = t.Daily
 		H.expect(d.Day == 0 and d.SoloMoney == 0 and d.PcMoney == 0 and d.ShortMoney == 0, "d")
-		H.expect(d.Wins == 0 and d.FirstWinUsed == false and d.PlaySeconds == 0, "daily")
+		H.expect(d.Wins == 0 and d.PlaySeconds == 0, "daily")
 		H.expect(next(d.Opponents) == nil and next(d.PlaytimeClaimed) == nil, "daily maps")
-		H.expect(size(d) == 9, "Daily has nine fields")
+		H.expect(size(d) == 8, "Daily has eight fields")
 		local l = t.Login
 		H.expect(l.LastDay == 0 and l.StreakDay == 0 and l.Week == 0 and size(l) == 3, "login")
 		local s = t.Shop
@@ -591,7 +606,6 @@ return {
 		daily.PcMoney = 500
 		daily.ShortMoney = 80
 		daily.Wins = 4
-		daily.FirstWinUsed = true
 		daily.Opponents["123"] = { Matches = 3, Cases = 1 }
 		daily.PlaySeconds = 1800
 		daily.PlaytimeClaimed["1"] = true
@@ -628,11 +642,12 @@ return {
 			H.expect(out.Version == SaveSchema.Version, "now current, from " .. tostring(version))
 			H.expect(out.Money == 12, "data kept")
 			H.expect(
-				#notes == 4
+				#notes == 5
 					and notes[1] == "migrated 0 -> 1"
 					and notes[2] == "migrated 1 -> 2"
 					and notes[3] == "migrated 2 -> 3"
-					and notes[4] == "migrated 3 -> 4",
+					and notes[4] == "migrated 3 -> 4"
+					and notes[5] == "migrated 4 -> 5",
 				table.concat(notes, "; ")
 			)
 		end
@@ -715,16 +730,14 @@ return {
 		H.expect(gold3 == 13, "Gold III is division 13")
 		-- Old ladder: 1,000 per division, so Gold III starts at 12,000; halfway is 12,500.
 		local save = v1Save({ RankXp = 12500, PeakDivision = gold3, RatedMatches = 40 })
-		local out, notes = SaveSchema.migrate(save)
-		H.expect(notes[1] == "migrated 1 -> 2", table.concat(notes, "; "))
+		local out = migrate1(SaveSchema, save)
 		local starts, widths = newLadder(Config)
 		H.expect(out.RankXp == starts[gold3] + widths[gold3] // 2, "halfway on the new ladder")
 		-- Bronze 1,250 + Silver 1,750 + Gold I and II 1,600 = 4,600; Gold is 800 wide.
 		H.expect(out.RankXp == 5000, "4,600 + 400, got " .. tostring(out.RankXp))
-		local rank = Ranks.fromXp(out.RankXp, true)
-		H.expect(rank.tier == "Gold" and rank.division == 3, "still shows Gold III")
-		H.expect(rank.xpInDivision == 400, "halfway through it")
+		H.expect(out.RankXp - starts[gold3] == 400, "halfway through Gold III")
 		H.expect(out.PeakDivision == gold3 and out.RatedMatches == 40, "peak and count kept")
+		local _ = Ranks
 	end,
 
 	["migration 1 -> 2 keeps every division, at its start and its end"] = function()
@@ -735,7 +748,7 @@ return {
 		for index = 1, count do
 			for _, into in { 0, 1, 250, 999 } do
 				local oldXp = (index - 1) * 1000 + into
-				local out = SaveSchema.migrate(v1Save({ RankXp = oldXp, RatedMatches = 1 }))
+				local out = migrate1(SaveSchema, v1Save({ RankXp = oldXp, RatedMatches = 1 }))
 				local expected = if index < count
 					then starts[index] + (into * widths[index]) // 1000
 					else starts[index] + into
@@ -743,10 +756,10 @@ return {
 					out.RankXp == expected,
 					("old %d: expected %d, got %d"):format(oldXp, expected, out.RankXp)
 				)
-				H.expect(
-					Ranks.fromXp(out.RankXp, true).index == index,
-					("old %d left division %d"):format(oldXp, index)
-				)
+				local within = out.RankXp >= starts[index]
+					and (index == count or out.RankXp < starts[index + 1])
+				H.expect(within, ("old %d left division %d"):format(oldXp, index))
+				local _ = Ranks
 			end
 		end
 	end,
@@ -756,12 +769,14 @@ return {
 		local starts = newLadder(Config)
 		local reyes = SaveSchema.divisionCount()
 		H.expect(starts[reyes] == 2352500, "Reyes starts at 2,352,500")
-		local out = SaveSchema.migrate(
+		local out = migrate1(
+			SaveSchema,
 			v1Save({ RankXp = 45000 + 1234, PeakDivision = reyes, RatedMatches = 900 })
 		)
 		H.expect(out.RankXp == 2352500 + 1234, "XP past the start kept")
 		-- Far past it: the cap still holds.
-		local huge = SaveSchema.migrate(
+		local huge = migrate1(
+			SaveSchema,
 			v1Save({ RankXp = Config.Save.RankXpCap, PeakDivision = reyes, RatedMatches = 9 })
 		)
 		H.expect(huge.RankXp == Config.Save.RankXpCap, "clamped to the XP cap")
@@ -769,7 +784,7 @@ return {
 
 	["migration 1 -> 2 leaves an unranked save's XP alone"] = function()
 		local _, SaveSchema = setup()
-		local out = SaveSchema.migrate(v1Save({ RankXp = 12500, RatedMatches = 0 }))
+		local out = migrate1(SaveSchema, v1Save({ RankXp = 12500, RatedMatches = 0 }))
 		H.expect(out.RankXp == 12500, "unrated: XP as it was")
 		H.expect(next(out.Inventory.Cases) == nil, "never ranked: no rank rewards")
 		H.expect(next(out.Inventory.Cues) == nil, "no cues")
@@ -885,7 +900,7 @@ return {
 		local d = out.Daily
 		H.expect(d.Day == 19000 and d.SoloMoney == 120, "the day and its solo money kept")
 		H.expect(d.PcMoney == 0 and d.ShortMoney == 0 and d.Wins == 0, "the rest fresh")
-		H.expect(d.FirstWinUsed == false and d.PlaySeconds == 0, "the rest fresh")
+		H.expect(d.FirstWinUsed == nil and d.PlaySeconds == 0, "the rest fresh")
 		H.expect(next(d.Opponents) == nil and next(d.PlaytimeClaimed) == nil, "empty maps")
 		H.expect(out.Shop.FirstJoin == 0, "FirstJoin waits for PlayerData's clock")
 		H.expect(out.Login.LastDay == 0 and next(out.Codes) == nil, "fresh")
@@ -1004,14 +1019,13 @@ return {
 	["validate makes flags true or false"] = function()
 		local _, SaveSchema = setup()
 		local save = SaveSchema.template()
-		save.Daily.FirstWinUsed = 1
 		save.Shop.VipOffer = "yes"
 		save.Shop.VipCueGiven = nil
 		save.Shop.StarterBought = true
 		save.Shop.FirstPackBought = 0
 		local out, fixes = SaveSchema.validate(save)
-		H.expect(#fixes == 4, table.concat(fixes, "; "))
-		H.expect(out.Daily.FirstWinUsed == false and out.Shop.VipOffer == false, "never grants")
+		H.expect(#fixes == 3, table.concat(fixes, "; "))
+		H.expect(out.Shop.VipOffer == false, "never grants")
 		H.expect(out.Shop.VipCueGiven == false and out.Shop.FirstPackBought == false, "false")
 		H.expect(out.Shop.StarterBought == true, "a real true is kept")
 	end,
@@ -1370,8 +1384,11 @@ return {
 		save.Index.Seen.GoldCue = true
 		save.Equipped.Cue = "Eclipse"
 		local out, notes = SaveSchema.migrate(save)
-		H.expect(#notes == 1 and notes[1] == "migrated 3 -> 4", table.concat(notes, "; "))
-		H.expect(out.Version == 4 and out.Money == 500, "version 4, money kept")
+		H.expect(
+			#notes == 2 and notes[1] == "migrated 3 -> 4" and notes[2] == "migrated 4 -> 5",
+			table.concat(notes, "; ")
+		)
+		H.expect(out.Version == 5 and out.Money == 500, "version 5, money kept")
 		local cues = out.Inventory.Cues
 		H.expect(cues.ChalkDust == nil and cues.Eclipse == nil, "retired cues removed")
 		H.expect(cues.GoldCue == 1 and cues.KitsuneCue == 2, "current cues kept")
@@ -1381,6 +1398,30 @@ return {
 		-- A broken save (no tables where they belong) never errors.
 		local broken = { Version = 3, Inventory = "x", Index = 4, Equipped = false }
 		local ok = pcall(SaveSchema.migrate, broken)
+		H.expect(ok, "broken save")
+	end,
+
+	["migration 4 -> 5 resets rank XP, keeps the peak and drops the first-win flag"] = function()
+		local Config, SaveSchema = setup()
+		local save = SaveSchema.template()
+		save.Version = 4
+		save.Money = 900
+		save.RankXp = 5000
+		save.RatedMatches = 60
+		save.PeakDivision = 11
+		save.Inventory.Cues.GoldCue = 1
+		save.Daily.FirstWinUsed = true
+		save.Daily.Wins = 3
+		local out, notes = SaveSchema.migrate(save)
+		H.expect(#notes == 1 and notes[1] == "migrated 4 -> 5", table.concat(notes, "; "))
+		H.expect(out.Version == 5 and out.Money == 900, "version 5, money kept")
+		H.expect(out.RankXp == 0 and out.RatedMatches == 0, "Unranked again")
+		H.expect(out.PeakDivision == 11, "the peak stays: no reward is paid twice")
+		H.expect(out.Inventory.Cues.GoldCue == 1, "the rank cue already given stays")
+		H.expect(out.Daily.FirstWinUsed == nil and out.Daily.Wins == 3, "only the flag goes")
+		assertClean(Config, SaveSchema, out)
+		-- A broken save (no Daily table) never errors.
+		local ok = pcall(SaveSchema.migrate, { Version = 4, Daily = "x" })
 		H.expect(ok, "broken save")
 	end,
 
@@ -1396,17 +1437,20 @@ return {
 		local before = SaveSchema.template()
 		local out, notes = SaveSchema.migrate(save)
 		H.expect(
-			#notes == 2 and notes[1] == "migrated 2 -> 3" and notes[2] == "migrated 3 -> 4",
+			#notes == 3
+				and notes[1] == "migrated 2 -> 3"
+				and notes[2] == "migrated 3 -> 4"
+				and notes[3] == "migrated 4 -> 5",
 			table.concat(notes, "; ")
 		)
-		H.expect(out == save and out.Version == 4, "migrated in place to version 4")
+		H.expect(out == save and out.Version == 5, "migrated in place to version 5")
 		local u = out.Ults
 		H.expect(u.Slots[1] == "Magnet" and u.Slots[2] == "" and u.Slots[3] == "", "slots")
 		H.expect(u.Spins == Config.Ults.Earn.Starter and u.Spins == 3, "the 3 starter spins")
 		H.expect(u.Selected == 1 and u.LuckySpins == 0 and u.Pity == 0, "fresh")
 		H.expect(u.QueueUlts == true and u.FreeSpinDay == 0 and u.SpinsDone == 0, "fresh")
-		-- Everything else untouched.
-		H.expect(out.Money == 777 and out.RankXp == 4321, "numbers kept")
+		-- Everything else untouched (but rank XP: migration 4 -> 5 resets it).
+		H.expect(out.Money == 777 and out.RankXp == 0, "money kept, rank XP reset by 4 -> 5")
 		H.expect(out.Inventory.Cues.GoldCue == 2 and out.Equipped.Cue == "GoldCue", "items kept")
 		H.expect(out.Codes.WELCOME == true and out.Settings.Volume == 0.5, "maps kept")
 		for key in before do

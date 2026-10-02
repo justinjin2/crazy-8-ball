@@ -302,7 +302,6 @@ return {
 			Party = "%s",
 			Policy = "%s restricted|normal",
 			Sale = "%s <case> <percent> <minutes>, or %s off",
-			Rookie = "%s <real matches>",
 			FreeCase = "%s",
 			UltBar = "%s <0-%d>",
 			UltFull = "%s",
@@ -335,7 +334,6 @@ return {
 			Party = "starts or extends a Money Party in this server",
 			Policy = "fakes PolicyService (restricted: no cases for money)",
 			Sale = "a case sale in this server",
-			Rookie = "sets your real matches played (the Rookie Boost)",
 			FreeCase = "the free-case rule, as if you won a real match",
 			UltBar = "sets your ability bar at your table",
 			UltFull = "fills your ability bar",
@@ -388,7 +386,6 @@ return {
 		SaleOn = "%s: %d%% off in this server for %d minutes.",
 		SaleOff = "The case sale is over.",
 		SaleNotSold = "The %s is not sold in the shop, so it cannot go on sale.",
-		RookieSet = "Real matches set to %d: %d left in the Rookie Boost.",
 		FreeCaseGave = "This win gave a %s (win %d today, %d ever).",
 		FreeCaseFirst = "Your first win's %s opened into the %s (win %d today, %d ever).",
 		FreeCaseNone = "No case this win (win %d today, %d ever).",
@@ -438,20 +435,14 @@ return {
 		Left = "LEFT", -- on the card of a player who left the match
 		NoXp = "No XP: match under a minute",
 		SoloNoXp = "Solo games give no XP",
-		XpDelta = "+%s XP", -- "+250 XP", "+0 XP" (XP is never lost)
-		-- The XP boosts on the result screen (ECONOMY 4.5) and the rank HUD's Rookie pill: a
-		-- boost of +100% or more as a multiplier ("ROOKIE x2": 1 + the boost), a smaller one
-		-- as a percent ("VIP +50%").
+		XpDelta = "+%s XP", -- "+100 XP", "+0 XP" (XP is never lost)
+		-- The XP boosts on the result screen (ECONOMY 4.5; only the streak since 2026-10-02):
+		-- a boost of +100% or more as a multiplier ("STREAK x2": 1 + the boost), a smaller one
+		-- as a percent ("STREAK +25%").
 		BoostTimes = {
-			Rookie = "ROOKIE x%s",
-			FirstWin = "FIRST WIN x%s",
-			Vip = "VIP x%s",
 			Streak = "STREAK x%s",
 		},
 		BoostPercent = {
-			Rookie = "ROOKIE +%s%%",
-			FirstWin = "FIRST WIN +%s%%",
-			Vip = "VIP +%s%%",
 			Streak = "STREAK +%s%%",
 		},
 		BallsLine = "Balls pocketed x%d",
@@ -689,7 +680,6 @@ return {
 			-- The VIP tab.
 			Vip = "VIP",
 			VipMoney = "%sx money in matches", -- "2x money in matches"
-			VipXp = "+%d%% XP", -- "+50% XP"
 			VipCue = "The %s", -- "The VIP Cue"
 			VipName = "[VIP] chat tag and a rainbow name",
 			VipOdds = "Same case odds as everyone", -- VIP never changes case odds

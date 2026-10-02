@@ -1,5 +1,21 @@
 # Status
 
+**2026-10-02 (latest): rank rework, XP only from winning** (designer; ECONOMY section 4).
+- A win is 100 XP (x1.25 Difficult, x1.5 Challenger, +25% on a 3+ win streak, the opponent
+  gap and PC factors as before); a loss is 0. The Rookie Boost (and its ROOKIE pill and
+  `/rookie`), the first-win-of-the-day bonus, VIP's +50% XP (gone from the VIP card) and
+  Classic's fade are removed.
+- New ladder in wins: 1 to Bronze I (Unranked until the first win), Silver I at 21, Gold I 66,
+  Diamond I 232, Expert I 393, Grandmaster I 2,025, Reyes 3,075. For 3 h a day at 50%: Expert
+  about 1 month, Grandmaster about 6, Reyes about 9 (`tools/economy_model.py tables`).
+- Save v5 resets every rank (RankXp and RatedMatches to 0), keeps PeakDivision so no reward
+  pays twice, drops Daily.FirstWinUsed. Migration 1 -> 2 now reads a frozen copy of the old
+  ladder.
+- Lint and all tests pass (new: the ladder, first-win placement, v5 migration). Studio check
+  pending Rojo connect.
+- Next: cases, money and rank rewards (the designer wants Epic and up truly rare), after
+  researching popular Roblox shops.
+
 **2026-10-02 (latest): the XP bonus lines are blue outlined text** (kit button text, sky blue
 Config.Multiplayer.Style.QueueXpColor, 20 px) so they read as extra. Checked in Studio on PC.
 

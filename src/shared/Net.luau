@@ -68,7 +68,7 @@ local REMOTES: { [string]: string } = {
 	--   promoted, newTier, rewards = {{index, money, cases = {[caseId] = count}, cue?}} (every
 	--   division the new peak passed, bottom first), rewardTotal, rewardCases = {[caseId] =
 	--   count}, rewardCues = {cueId}, breakdown = {base, mode, fade, gap, pc, farm, boosts =
-	--   {{kind = "Rookie" | "Vip" | "FirstWin" | "Streak", share}}, boostTotal}},
+	--   {{kind = "Streak", share}}, boostTotal}},
 	-- money = {balls, ballMoney, nice, niceMoney (the pots, paid live), bonus (win or loss),
 	--   streak (the win-streak bonus), reward (rank-up money), boost (the money boost share
 	--   applied at the end: VIP + Money Party, 0..2), total (all of them added)},
@@ -76,8 +76,7 @@ local REMOTES: { [string]: string } = {
 	-- (the first win's case, opened at once: its cue is already owned; found is the finder's
 	-- money it paid, 0 when the cue was in the Index already; freeCase is nil then),
 	-- nextReward? (Daily.nextReward: {day, week, reward = {money, cases}, bonus, tomorrow}, the
-	-- reminder line), rookieLeft? (real matches left in the Rookie Boost), rematch, arena,
-	-- series? = {wins = {team 1, team 2}, games}}.
+	-- reminder line), rematch, arena, series? = {wins = {team 1, team 2}, games}}.
 	MatchSummary = "RemoteEvent",
 	-- server -> one player: a promotion outside a match's result screen (/xp, /newrank). XP is
 	-- never lost, so there is no rank-down. {kind = "Up", preview?, before, after, reward

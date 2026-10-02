@@ -80,7 +80,7 @@ export type Find = { cue: string, money: number }
 
 --- PlayerData.progress: the match counts the settle needs.
 export type Progress = {
-	RealMatches: number, -- real matches played (Rookie Boost: Config.Ranks.Boosts.RookieMatches)
+	RealMatches: number, -- real matches played (Config.Economy.FreeCaseLoserMinMatches)
 	Wins: number, -- real wins ever, people or PC (the new player's free cases)
 	FirstWinCaseDue: boolean, -- the first win's Rare Case was never given
 }
@@ -89,7 +89,6 @@ export type Progress = {
 export type OpponentDay = { Matches: number, Cases: number }
 
 local S = Config.Save
-local BOOSTS = Config.Ranks.Boosts
 local IS_STUDIO = RunService:IsStudio()
 -- Studio saves go to their own store, so testing never touches a real player's save.
 local STORE_NAME = if IS_STUDIO then S.StudioStoreName else S.StoreName
@@ -110,7 +109,6 @@ local ATTR = {
 	RankIndex = "RankIndex", -- 0 Unranked, 1 Bronze I ... the top division
 	WinStreak = "WinStreak", -- wins in a row against people (Stats.WinStreak), over the head
 	EquippedCue = "EquippedCue", -- the equipped cue's catalog id (everyone's stick and trail)
-	RookieLeft = "RookieLeft", -- real matches left in the Rookie Boost (the ROOKIE x2 pill)
 	CasesUnopened = "CasesUnopened", -- unopened cases of every type (a red dot)
 	-- Something can be claimed now: today's login streak, a playtime gift, or a complete Index
 	-- row's reward (a red dot). Also refreshed on a timer: a new UTC day changes it.
@@ -629,11 +627,6 @@ local function replicate(player: Player, data: any)
 	setAttribute(player, ATTR.RankIndex, rank.index)
 	setAttribute(player, ATTR.WinStreak, data.Stats.WinStreak)
 	setAttribute(player, ATTR.EquippedCue, Inventory.equipped(data))
-	setAttribute(
-		player,
-		ATTR.RookieLeft,
-		math.max(0, BOOSTS.RookieMatches - data.Progress.RealMatches)
-	)
 	setAttribute(player, ATTR.CasesUnopened, casesUnopened(data))
 	setAttribute(player, ATTR.RewardReady, rewardReady(data, today()))
 	setAttribute(player, ATTR.VipOffer, data.Shop.VipOffer == true)
@@ -1059,7 +1052,7 @@ function PlayerData.opponentToday(player: Player, userId: number): OpponentDay
 end
 
 --- A frozen copy of today's Daily (a fresh one when the save's belongs to another day): Day,
---- SoloMoney, PcMoney, ShortMoney, Wins, FirstWinUsed, Opponents, PlaySeconds,
+--- SoloMoney, PcMoney, ShortMoney, Wins, Opponents, PlaySeconds,
 --- PlaytimeClaimed. nil when not loaded.
 function PlayerData.dailyState(player: Player): any?
 	local data = peek(player)
@@ -1469,25 +1462,6 @@ function PlayerData.recordRealMatch(
 	return true
 end
 
---- Uses today's first-win XP boost: true only when it was unused today (it is then marked).
-function PlayerData.useFirstWin(player: Player): boolean
-	local op = "useFirstWin"
-	if not isPlayer(player) then
-		return refuse(op, player, "not a player")
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false
-	end
-	rollover(data)
-	if data.Daily.FirstWinUsed then
-		return false
-	end
-	data.Daily.FirstWinUsed = true
-	commit(player, data, op)
-	return true
-end
-
 --- Counts a free case won from one account today (Daily.Opponents[userId].Cases +1; the
 --- anti-farm limit Config.Economy.FreeCasesPerOpponent). False when the table is full and
 --- that account is not tracked today (it already reads as at the limit, Settle.opponentDay).
@@ -1508,27 +1482,6 @@ function PlayerData.addOpponentCase(player: Player, opponentUserId: number): boo
 		return false
 	end
 	entry.Cases = math.min(entry.Cases + 1, S.StatCap)
-	commit(player, data, op)
-	return true
-end
-
---- Sets Progress.RealMatches (the /rookie dev command): a whole number, 0..Config.Save.StatCap.
-function PlayerData.setRealMatches(player: Player, n: number): boolean
-	local op = "setRealMatches"
-	if not isPlayer(player) then
-		return refuse(op, player, "not a player")
-	elseif not intIn(n, 0, S.StatCap) then
-		return refuse(
-			op,
-			player,
-			("n %s is not a whole number in 0..%d"):format(tostring(n), S.StatCap)
-		)
-	end
-	local data = liveData(op, player)
-	if data == nil then
-		return false
-	end
-	data.Progress.RealMatches = plain(n)
 	commit(player, data, op)
 	return true
 end
@@ -2748,14 +2701,8 @@ local QA_CALLS: { [string]: (Player, any, any, any, any) -> ...any } = {
 	recordRealMatch = function(p, a, b)
 		return PlayerData.recordRealMatch(p, a, b)
 	end,
-	useFirstWin = function(p)
-		return PlayerData.useFirstWin(p)
-	end,
 	addOpponentCase = function(p, a)
 		return PlayerData.addOpponentCase(p, a)
-	end,
-	setRealMatches = function(p, a)
-		return PlayerData.setRealMatches(p, a)
 	end,
 	buyCases = function(p, a, b, c)
 		return PlayerData.buyCases(p, a, b, c)

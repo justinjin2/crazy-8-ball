@@ -273,8 +273,8 @@ local RESULTS: { [string]: string } =
 
 -- /result win|lose|draw|firstwin: the result screen with made-up numbers (the caller against a
 -- stand-in opponent), worked out from the caller's real rank but never saved. A sample: every
--- boost that can apply is on (Rookie and VIP; First Win and Streak on a win) so every chip
--- shows, a win brings the free case, and `firstwin` brings the first win's opened case instead.
+-- boost that can apply is on (the streak, on a win) so every chip shows, a win brings the free
+-- case, and `firstwin` brings the first win's opened case instead.
 local function previewResult(player: Player, args: { string })
 	local word = args[1] or ""
 	local outcome = RESULTS[word]
@@ -297,7 +297,7 @@ local function previewResult(player: Player, args: { string })
 		forfeit = false,
 		mode = "Classic",
 		opponentIndex = opponentIndex,
-		boosts = { rookie = true, vip = true, firstWin = win, streak = win },
+		boosts = { streak = win },
 	})
 	local you = {
 		userId = player.UserId,
@@ -369,8 +369,6 @@ local function previewResult(player: Player, args: { string })
 		freeCase = if win and not firstWin then Config.Cases.FreeCase else nil,
 		firstWin = reveal,
 		nextReward = Daily.nextReward(data.Login, Daily.dayOf(os.time())),
-		-- The sample's Rookie Boost: the real count, but at least one match left.
-		rookieLeft = math.max(1, Config.Ranks.Boosts.RookieMatches - progress.RealMatches - 1),
 		rematch = false,
 		arena = false,
 	})
@@ -563,7 +561,6 @@ local ECON: { string } = {
 	"Party",
 	"Policy",
 	"Sale",
-	"Rookie",
 	"FreeCase",
 }
 
@@ -1188,17 +1185,6 @@ function DevCommands.start()
 		tell(player, if on then Dev.PolicyOn else Dev.PolicyOff)
 	end)
 	command("Sale", D.Sale, sale)
-	command("Rookie", D.Rookie, function(player, args)
-		local n = wholeIn(args[1], 0, S.StatCap)
-		if n == nil then
-			try(player, "Rookie")
-		elseif PlayerData.setRealMatches(player, n) then
-			local left = math.max(0, Config.Ranks.Boosts.RookieMatches - n)
-			tell(player, Dev.RookieSet:format(n, left))
-		else
-			tell(player, Dev.NotLoaded)
-		end
-	end)
 	command("FreeCase", D.FreeCase, freeCase)
 	command("EconHelp", D.EconHelp, econHelp)
 

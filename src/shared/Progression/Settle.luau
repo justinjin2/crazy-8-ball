@@ -39,7 +39,7 @@ export type FreeCaseFacts = {
 	losers: { Loser }, -- the other side's accounts (empty against PC)
 }
 
-export type BoostFlags = { rookie: boolean, vip: boolean, firstWin: boolean, streak: boolean }
+export type BoostFlags = { streak: boolean }
 
 -- Today's anti-farm count against one account (the save's Daily.Opponents entry).
 export type OpponentDay = { Matches: number, Cases: number }
@@ -169,22 +169,14 @@ function Settle.shortCapped(shortToday: number, sinceBreak: number?): boolean
 end
 
 --- The XP boosts that are on for one player's match (Ranks.MatchContext.boosts; ECONOMY 4.3,
---- 4.5): Rookie while fewer than Boosts.RookieMatches real matches were played before this one;
---- VIP; the first win of the UTC day on a win that gives XP (`farmXp` above 0) while it is
---- still unused; the streak on a win that makes it Boosts.StreakFrom or more (`streakAfter`,
---- Ranks.nextStreak's count after the match). `won` means a win that counts (a real match).
+--- 4.5): only the streak since 2026-10-02, on a win that makes it Boosts.StreakFrom or more
+--- (`streakAfter`, Ranks.nextStreak's count after the match). `won` means a win that counts
+--- (a real match).
 function Settle.boosts(f: {
-	realMatches: number,
-	vip: boolean,
 	won: boolean,
-	firstWinUsed: boolean,
 	streakAfter: number,
-	farmXp: number,
 }): BoostFlags
 	return {
-		rookie = whole(f.realMatches) < R.Boosts.RookieMatches,
-		vip = f.vip == true,
-		firstWin = f.won == true and f.firstWinUsed ~= true and finite(f.farmXp) and f.farmXp > 0,
 		streak = f.won == true and whole(f.streakAfter) >= R.Boosts.StreakFrom,
 	}
 end

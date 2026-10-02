@@ -100,9 +100,9 @@ local function number(value: number): string
 		else ("%.1f"):format(rounded)
 end
 
---- An XP boost's words (ECONOMY 4.5) from its kind ("Rookie", "Vip", "FirstWin", "Streak")
---- and its share (1.0 for +100%): +100% or more as a multiplier ("ROOKIE x2"), less as a
---- percent ("VIP +50%"). Nil for an unknown kind.
+--- An XP boost's words (ECONOMY 4.5) from its kind ("Streak", the only one since 2026-10-02)
+--- and its share (1.0 for +100%): +100% or more as a multiplier ("STREAK x2"), less as a
+--- percent ("STREAK +25%"). Nil for an unknown kind.
 function RewardChips.boostWords(kind: string, share: number): string?
 	local times: { [string]: string } = Strings.Progress.BoostTimes :: any
 	local percent: { [string]: string } = Strings.Progress.BoostPercent :: any
