@@ -1,13 +1,14 @@
 # Status
 
 **2026-10-02 (latest): Difficult and Challenger show and pay their XP bonus.**
-- The host card shows "1.25x XP" under Difficult and "1.5x XP" under Challenger
-  ("Requires Gold I+" sits below that while locked); the lines shrink to fit with the level
-  words.
+- The host card shows "1.25x XP" under Difficult and "1.5x XP" under Challenger (18 px).
+  While they are locked, one "Requires Gold I+" banner with a padlock lies across both
+  buttons' lower edge (designer: the line under each button was too small), and the XP lines
+  sit under it.
 - The bonus now really applies: Ranking passes the table's difficulty into the rank XP sum
   (Config.Ranks.ModeXp). Before this every match had counted as Classic.
-- Checked in Studio on phone emulation: as Bronze V both lines show with "Requires Gold I+"
-  under them and everything fits; as Gold I the XP lines show alone. Console clean. Lint and
+- Checked in Studio on phone emulation: as Bronze V the banner reads at full size and
+  everything fits; as Gold I the XP lines show alone. Console clean. Lint and
   all 890 tests pass. Not yet checked: a real Difficult match's XP gain, PC and gamepad.
 
 **2026-10-02: Abilities toggle gone; Difficult and Challenger unlock at Gold I.**

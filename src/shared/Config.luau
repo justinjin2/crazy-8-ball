@@ -5373,7 +5373,9 @@ Config.Multiplayer = {
 			Button = 24, -- Request opponent, Join Global Queue, Play solo...
 			Level = 22, -- Classic, Difficult, Challenger (the narrow ones shrink to fit)
 			Status = 18, -- Waiting for opponent...
-			Small = 15, -- "Requires Gold I+", the gamepad hint, "Needs 2 on the pad"
+			Small = 15, -- the gamepad hint, "Needs 2 on the pad"
+			Xp = 18, -- "1.25x XP" under a level button
+			Lock = 20, -- "Requires Gold I+" on the banner across the locked levels
 			-- The level words and "Requires Gold I+" are measured and shrunk to fit their button
 			-- (a one-line kit text does not shrink by itself: STUDIO_NOTES), never below this;
 			-- on a phone they had overflowed and overlapped (designer, 2026-10-02).
@@ -5395,6 +5397,13 @@ Config.Multiplayer = {
 		-- 44 px touch), the picked one in this tone.
 		QueueLevelHeight = 40,
 		QueueLevelPickedTone = "Yellow",
+		-- Locked levels sharing an unlock rank get one "Requires Gold I+" banner across them,
+		-- this tall, reaching this far up onto their buttons' lower edge (under their words),
+		-- this far in from the row's sides (designer, 2026-10-02: one line under each button
+		-- was too small to read).
+		QueueLockHeight = 28,
+		QueueLockOverlapPx = 10,
+		QueueLockInsetPx = 4,
 		QueuePillHeight = 26, -- the count and team-split pills
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre, kept
 		-- small and low so it clears the player's legs (designer, 2026-09-27: was 330 x 96).
