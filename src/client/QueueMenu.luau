@@ -50,7 +50,6 @@ local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match.Queue
 local M = Config.Multiplayer
 local S = M.Style
-local K = Config.UI.Kit
 local QueueMenu = {}
 QueueMenu.__index = QueueMenu
 
@@ -95,6 +94,7 @@ local function button(
 	object.Name = name
 	object.LayoutOrder = order
 	object.Size = UDim2.new(1, 0, 0, S.QueueButtonHeight)
+	HudParts.setButtonTextSize(object, S.QueueText.Button)
 	return object
 end
 
@@ -148,7 +148,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	local iconSize = S.QueueTitleHeight
 	self.level = HudParts.icon(title, Config.Difficulty.Default, "LevelIcon")
 	self.level.Size = UDim2.fromOffset(iconSize, iconSize)
-	self.game = HudParts.text(title, "Game", K.Text.Heading, "")
+	self.game = HudParts.text(title, "Game", S.QueueText.Title, "")
 	self.game.TextWrapped = false
 	self.game.TextXAlignment = Enum.TextXAlignment.Left
 	self.game.Position = UDim2.fromOffset(iconSize + 6, 0)
@@ -160,7 +160,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	local people = HudParts.icon(count, "People")
 	people.Position = UDim2.fromOffset(4, 2)
 	people.Size = UDim2.fromOffset(S.QueuePillHeight - 4, S.QueuePillHeight - 4)
-	self.players = HudParts.text(count, "Players", K.Text.Body, "")
+	self.players = HudParts.text(count, "Players", S.QueueText.Count, "")
 	self.players.AutoLocalize = false -- only numbers
 	self.players.Position = UDim2.fromOffset(S.QueuePillHeight, 1)
 	self.players.Size = UDim2.new(1, -S.QueuePillHeight - 6, 1, -2)
@@ -184,15 +184,20 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		b.Position = UDim2.new(share * (i - 1), math.floor(gap * (i - 1) / #order), 0, 0)
 		b.Size = UDim2.new(share, -math.ceil(gap * (#order - 1) / #order), 0, S.QueueLevelHeight)
 		HudParts.setMinHit(b, 44)
+		HudParts.setButtonTextSize(b, S.QueueText.Level)
 		self.levelButtons[level] = b
 		local need = Ranks.unlockName(level)
 		if need then
-			local lock =
-				HudParts.note(levels, level .. "Lock", K.Text.Min, Copy.LevelLocked:format(need))
+			local lock = HudParts.note(
+				levels,
+				level .. "Lock",
+				S.QueueText.Small,
+				Copy.LevelLocked:format(need)
+			)
 			lock.TextWrapped = false
 			lock.Position =
 				UDim2.new(b.Position.X.Scale, b.Position.X.Offset, 0, S.QueueLevelHeight + 2)
-			lock.Size = UDim2.new(b.Size.X.Scale, b.Size.X.Offset, 0, K.Text.Min + 2)
+			lock.Size = UDim2.new(b.Size.X.Scale, b.Size.X.Offset, 0, S.QueueText.Small + 2)
 			lock.Visible = false
 			self.levelLocks[level] = lock
 		end
@@ -200,10 +205,10 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 
 	-- Waiting for an opponent or players, or starting in 3.
 	self.statusFold = fold(content, "StatusFold", 2)
-	self.status = HudParts.note(self.statusFold.inner, "Status", K.Text.Body, "")
+	self.status = HudParts.note(self.statusFold.inner, "Status", S.QueueText.Status, "")
 	self.status.RichText = true -- the waiting dots (dots)
 	self.status.TextWrapped = false
-	self.status.Size = UDim2.new(1, 0, 0, K.Text.Body + S.QueueMenuLineGap)
+	self.status.Size = UDim2.new(1, 0, 0, S.QueueText.Status + S.QueueMenuLineGap)
 
 	-- Ask the server for players, and alone on a 1v1 table play by yourself: against the PC
 	-- (bots come before release, Roadmap 2.4; until then it does nothing) or solo.
@@ -237,9 +242,9 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		end
 	)
 	-- On 2v2 and 3v3, why it is greyed: a whole side must be on the pad.
-	self.needs = HudParts.note(content, "GlobalNeeds", K.Text.Min, "")
+	self.needs = HudParts.note(content, "GlobalNeeds", S.QueueText.Small, "")
 	self.needs.TextWrapped = false
-	self.needs.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
+	self.needs.Size = UDim2.new(1, 0, 0, S.QueueText.Small + S.QueueMenuLineGap)
 	self.needs.LayoutOrder = 6
 	-- While a request or a search stands: take it back, and the card unfolds at once.
 	-- No icon: the kit's red X vanished on the red candy.
@@ -263,9 +268,9 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		end
 	end)
 
-	self.hint = HudParts.note(content, "GamepadHint", K.Text.Min, Copy.GamepadHint)
+	self.hint = HudParts.note(content, "GamepadHint", S.QueueText.Small, Copy.GamepadHint)
 	self.hint.TextWrapped = false
-	self.hint.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
+	self.hint.Size = UDim2.new(1, 0, 0, S.QueueText.Small + S.QueueMenuLineGap)
 	self.hint.LayoutOrder = 10
 	-- Top to bottom. `overlap`: a fold of buttons, whose outline room sits over the gaps.
 	self.rows = {
@@ -652,7 +657,7 @@ function QueueMenu.update(self: any, now: number)
 		end
 	end
 	-- Room under the row for "Requires Gold I+" while a level is locked.
-	local rowHeight = S.QueueLevelHeight + (if anyLocked then K.Text.Min + 4 else 0)
+	local rowHeight = S.QueueLevelHeight + (if anyLocked then S.QueueText.Small + 4 else 0)
 	if self.levelRow.Size.Y.Offset ~= rowHeight then
 		self.levelRow.Size = UDim2.new(1, 0, 0, rowHeight)
 	end

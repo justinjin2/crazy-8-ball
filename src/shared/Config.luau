@@ -5365,6 +5365,16 @@ Config.Multiplayer = {
 		-- The card's buttons (designer, 2026-10-02: taller, filling the room the Abilities
 		-- toggle left; the kit's ButtonHeight is 44).
 		QueueButtonHeight = 54,
+		-- The card's text, bigger than the kit's (Config.UI.Kit.Text: Heading 22, Button 20,
+		-- Body 16, Min 14) to fill it (designer, 2026-10-02). Words still shrink to fit.
+		QueueText = {
+			Title = 26, -- "Classic 1v1"
+			Count = 18, -- the 1/2 pill
+			Button = 24, -- Request opponent, Join Global Queue, Play solo...
+			Level = 22, -- Classic, Difficult, Challenger (the narrow ones shrink to fit)
+			Status = 18, -- Waiting for opponent...
+			Small = 15, -- "Requires Gold I+", the gamepad hint, "Needs 2 on the pad"
+		},
 		-- Where the card goes (designer, 2026-09-27: keep it out of the way). A screen at least
 		-- this tall, in GUI pixels, is big (PC, console, tablet): the card sits on the right,
 		-- halfway down, at full size. Shorter (a phone) tucks it into the top right corner at
