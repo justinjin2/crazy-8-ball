@@ -1,5 +1,12 @@
 # Status
 
+**2026-10-02 (latest): everyone in the match sees the called pocket.**
+- Once the 8's pocket is called, its blue marker shows to every player seated in the match
+  (teammates and opponents, every mode), not just the shooter, while the shooter places and
+  aims. Spectators and the lobby still see nothing.
+- Checked in Studio: a 1v1 with the synthetic opponent shooting and pocket 3 called; the
+  waiting player saw the marker in pocket 3. Lint passes. Not checked: a real 2v2.
+
 **2026-10-02 (latest): ability screen effects only for the players.**
 - Full-screen ability effects (Time Stop's grey, Rewind's glitch, Black Flash's frame, the
   Tiger's flash, the ult cutscene, and their 2D sounds) had also shown to anyone standing

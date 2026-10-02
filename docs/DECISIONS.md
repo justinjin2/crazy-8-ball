@@ -2239,3 +2239,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-02 (designer): **"Requires Gold I+" is one banner across the locked levels** (with a padlock, over the buttons' lower edge) instead of a tiny line under each button, and the XP lines are bigger (18 px).
 - 2026-10-02 (designer): **On a phone the PULL bar moves further right** (8 px margin, and 35% of the safe area's right strip) so players stop launching by accident, and **touch aim drags turn 15% more** (TouchAimScale 1.15; mouse and gamepad unchanged).
 - 2026-10-02 (designer): **Full-screen ability effects and the ult cutscene show only to the players seated at that table**; the 40-stud "standing nearby" spectator radius is gone (lobby players walking past saw them).
+- 2026-10-02 (designer): **The called 8-ball pocket is marked for everyone in the match** (teammates and opponents, every mode), not only the shooter.

@@ -601,11 +601,11 @@ function MatchTargets.update(self: any, dt: number, camera: Camera)
 			base = math.max(S.CalledRingMinPx, 2 * radiusPx * S.CalledRingShare - outline)
 		end
 		target.button.Position = UDim2.fromOffset(position.X, position.Y)
-		-- After the call only the chosen pocket stays marked, for the shooter, and it is no
-		-- longer something to click or select.
+		-- After the call only the chosen pocket stays marked, for everyone in the match (the
+		-- shooter, teammates and opponents, in every mode; designer, 2026-10-02), and it is
+		-- no longer something to click or select.
 		local showChosen = chosen
 			and self.enabled
-			and snapshot.shooter == self.localUserId
 			and (snapshot.phase == "Placement" or snapshot.phase == "Aiming")
 		target.button.Visible = (canCall or showChosen) and visible
 		target.button.Active = canCall
