@@ -21,7 +21,7 @@ return {
 			EmissiveStrength = {
 				Min = 1.4,
 				Max = 2.2,
-				Period = 2.2,
+				Period = 4.4,
 			},
 		},
 	},
@@ -32,7 +32,7 @@ return {
 				Texture = "rbxassetid://72050880509855",
 				FlipbookLayout = "Grid2x2",
 				FlipbookMode = "Loop",
-				FlipbookFramerate = { 6, 10 },
+				FlipbookFramerate = { 3, 5 },
 				FlipbookStartRandom = true,
 				Host = {
 					Kind = "Part",
@@ -44,7 +44,7 @@ return {
 				},
 				Rate = 40,
 				Lifetime = { 1.6, 2.4 },
-				Speed = { 0.1, 0.3 },
+				Speed = { 0.07, 0.21 },
 				SpreadAngle = { 180, 180 },
 				Drag = 0.6,
 				Acceleration = { 0, -0.3, 0 },
@@ -59,7 +59,7 @@ return {
 					{ 1, 1 },
 				},
 				Rotation = { 0, 360 },
-				RotSpeed = { -80, 80 },
+				RotSpeed = { -40, 40 },
 				Color = "#FFD3EC",
 				LightEmission = 0,
 				LightInfluence = 0,
@@ -73,7 +73,7 @@ return {
 				FlipbookMode = "OneShot",
 				Rate = 18,
 				Lifetime = { 0.4, 0.6 },
-				Speed = { 0.02, 0.1 },
+				Speed = { 0.014, 0.07 },
 				SpreadAngle = { 40, 40 },
 				EmissionDirection = "Top",
 				Acceleration = { 0, 0.3, 0 },
@@ -88,9 +88,9 @@ return {
 					{ 1, 1 },
 				},
 				Color = {
-					{ 0, "#FFE0FA" },
-					{ 0.4, "#E85BFF" },
-					{ 1, "#6D1FD6" },
+					{ 0, "#FFF0FA" },
+					{ 0.4, "#FFB3DE" },
+					{ 1, "#E6B8F2" },
 				},
 				Brightness = 2,
 				LightEmission = 0.4,
@@ -121,7 +121,7 @@ return {
 				LockedToPart = false,
 				Rate = 85,
 				Lifetime = { 1.2, 1.8 },
-				Speed = { 0.3, 0.7 },
+				Speed = { 0.21, 0.49 },
 				SpreadAngle = { 180, 180 },
 				Drag = 1.2,
 				Size = {
@@ -135,11 +135,11 @@ return {
 					{ 1, 1 },
 				},
 				Rotation = { 0, 360 },
-				RotSpeed = { -30, 30 },
+				RotSpeed = { -15, 15 },
 				Color = {
-					{ 0, "#C21FE0" },
-					{ 0.5, "#7A12C8" },
-					{ 1, "#2E0866" },
+					{ 0, "#FFD3EC" },
+					{ 0.5, "#FFA8DA" },
+					{ 1, "#E6B8F2" },
 				},
 				LightEmission = 0,
 				Brightness = 1,
@@ -161,7 +161,7 @@ return {
 				LockedToPart = false,
 				Rate = 40,
 				Lifetime = { 0.6, 1 },
-				Speed = { 0.3, 0.8 },
+				Speed = { 0.21, 0.56 },
 				SpreadAngle = { 30, 30 },
 				EmissionDirection = "Top",
 				Acceleration = { 0, 1.6, 0 },
@@ -176,9 +176,9 @@ return {
 					{ 1, 1 },
 				},
 				Color = {
-					{ 0, "#FFB8F4" },
-					{ 0.3, "#FF3FD2" },
-					{ 1, "#6A16D8" },
+					{ 0, "#FFE6F6" },
+					{ 0.3, "#FFB3DE" },
+					{ 1, "#E6B8F2" },
 				},
 				LightEmission = 0.25,
 				Brightness = 1.6,
@@ -198,7 +198,7 @@ return {
 				LockedToPart = false,
 				Rate = 8,
 				Lifetime = { 0.8, 1.4 },
-				Speed = { 0.1, 0.3 },
+				Speed = { 0.07, 0.21 },
 				SpreadAngle = { 180, 180 },
 				Size = {
 					{ 0, 0 },
@@ -208,8 +208,8 @@ return {
 				},
 				Transparency = 0,
 				Color = {
-					{ 0, "#FF7BE6" },
-					{ 1, "#C23CFF" },
+					{ 0, "#FFC4E6" },
+					{ 1, "#FF9FD6" },
 				},
 				LightEmission = 1,
 				Brightness = 2.5,
@@ -227,9 +227,9 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = false,
-				Rate = 55,
-				Lifetime = { 0.5, 1 },
-				Speed = { 0.6, 1.6 },
+				Rate = 22,
+				Lifetime = { 0.7, 1.4 },
+				Speed = { 0.3, 0.8 },
 				SpreadAngle = { 180, 180 },
 				Drag = 2.5,
 				Size = {
@@ -238,14 +238,19 @@ return {
 					{ 0.5, 0.24750000000000003 },
 					{ 1, 0 },
 				},
-				Transparency = 0,
+				Transparency = {
+					{ 0, 1 },
+					{ 0.3, 0 },
+					{ 0.7, 0 },
+					{ 1, 1 },
+				},
 				Rotation = { 0, 45 },
 				Color = {
 					{ 0, "#FFFFFF" },
-					{ 1, "#FFB3F0" },
+					{ 1, "#FFD3EC" },
 				},
 				LightEmission = 1,
-				Brightness = 7,
+				Brightness = 4,
 			},
 			{
 				Name = "GoldGlints",
@@ -260,23 +265,28 @@ return {
 				},
 				LightInfluence = 0,
 				LockedToPart = true,
-				Rate = 14,
-				Lifetime = { 0.4, 0.7 },
-				Speed = { 0, 0.1 },
+				Rate = 5.6,
+				Lifetime = { 0.56, 0.98 },
+				Speed = { 0, 0.05 },
 				SpreadAngle = { 180, 180 },
 				Size = {
 					{ 0, 0 },
 					{ 0.25, 0.75 },
 					{ 1, 0 },
 				},
-				Transparency = 0,
+				Transparency = {
+					{ 0, 1 },
+					{ 0.3, 0 },
+					{ 0.7, 0 },
+					{ 1, 1 },
+				},
 				Rotation = { -20, 20 },
 				Color = {
 					{ 0, "#FFE9A8" },
 					{ 1, "#FFC94A" },
 				},
 				LightEmission = 1,
-				Brightness = 7,
+				Brightness = 4,
 			},
 		},
 		Orbiters = {
@@ -284,19 +294,19 @@ return {
 				Name = "Foxfire1",
 				FromStuds = 1,
 				ToStuds = 6.6,
-				TravelSeconds = 3.4,
+				TravelSeconds = 5.1,
 				Loop = "pingpong",
-				TurnsPerSecond = 0.5,
+				TurnsPerSecond = 0.3,
 				Radius = 0.3,
 				RadiusFromSurface = true,
 				Wobble = 0.05,
-				WobbleHz = 0.8,
+				WobbleHz = 0.48,
 				Phase = 0,
 				Delay = 0,
 				Trail = {
 					Lifetime = 0.85,
 					WidthStuds = 0.18,
-					Color = "#FF9AE8",
+					Color = "#FFB3DE",
 					Brightness = 2.6,
 					Transparency = {
 						{ 0, 0 },
@@ -314,7 +324,7 @@ return {
 				Head = {
 					Texture = "rbxassetid://99377979006520",
 					Size = 0.36,
-					Color = "#FF7AE6",
+					Color = "#FFA8DA",
 					LightEmission = 1,
 				},
 			},
@@ -322,19 +332,19 @@ return {
 				Name = "Foxfire2",
 				FromStuds = 1,
 				ToStuds = 6.6,
-				TravelSeconds = 4,
+				TravelSeconds = 6,
 				Loop = "pingpong",
-				TurnsPerSecond = -0.45,
+				TurnsPerSecond = -0.27,
 				Radius = 0.38,
 				RadiusFromSurface = true,
 				Wobble = 0.05,
-				WobbleHz = 0.8,
+				WobbleHz = 0.48,
 				Phase = 120,
 				Delay = 1,
 				Trail = {
 					Lifetime = 0.85,
 					WidthStuds = 0.18,
-					Color = "#FF9AE8",
+					Color = "#FFB3DE",
 					Brightness = 2.6,
 					Transparency = {
 						{ 0, 0 },
@@ -352,7 +362,7 @@ return {
 				Head = {
 					Texture = "rbxassetid://99377979006520",
 					Size = 0.36,
-					Color = "#FF7AE6",
+					Color = "#FFA8DA",
 					LightEmission = 1,
 				},
 			},
@@ -360,19 +370,19 @@ return {
 				Name = "Foxfire3",
 				FromStuds = 1,
 				ToStuds = 6.6,
-				TravelSeconds = 3,
+				TravelSeconds = 4.5,
 				Loop = "pingpong",
-				TurnsPerSecond = 0.6,
+				TurnsPerSecond = 0.36,
 				Radius = 0.26,
 				RadiusFromSurface = true,
 				Wobble = 0.05,
-				WobbleHz = 0.8,
+				WobbleHz = 0.48,
 				Phase = 240,
 				Delay = 2,
 				Trail = {
 					Lifetime = 0.85,
 					WidthStuds = 0.18,
-					Color = "#FF9AE8",
+					Color = "#FFB3DE",
 					Brightness = 2.6,
 					Transparency = {
 						{ 0, 0 },
@@ -390,7 +400,7 @@ return {
 				Head = {
 					Texture = "rbxassetid://99377979006520",
 					Size = 0.36,
-					Color = "#FF7AE6",
+					Color = "#FFA8DA",
 					LightEmission = 1,
 				},
 			},
@@ -406,8 +416,8 @@ return {
 				Texture = "rbxassetid://95116983034204",
 				TextureMode = "Stretch",
 				Color = {
-					{ 0, "#FF9AE8" },
-					{ 1, "#A050FF" },
+					{ 0, "#FFC4E6" },
+					{ 1, "#FFA8DA" },
 				},
 				Transparency = {
 					{ 0, 1 },
@@ -420,7 +430,7 @@ return {
 				Pulse = {
 					Min = 0.6,
 					Max = 1,
-					Period = 2.2,
+					Period = 4.4,
 				},
 				Brightness = 2.5,
 			},
@@ -428,24 +438,23 @@ return {
 		Lights = {
 			{
 				AtStuds = 7.2,
-				Color = "#C060FF",
+				Color = "#FF9FD6",
 				Brightness = 1.2,
 				Range = 7,
 				Flicker = {
 					Min = 0.75,
 					Max = 1.15,
-					Period = 0.8,
-					Shape = "flicker",
+					Period = 1.6,
 				},
 			},
 		},
 		Highlight = {
-			FillColor = "#FF8AE8",
+			FillColor = "#FFC4E6",
 			FillTransparency = 0.4,
 			OutlineColor = "#FFFFFF",
 			OutlineTransparency = 0,
 		},
-		Outline = "#E040FF",
+		Outline = "#FF8FD0",
 	},
 	Moving = {
 		Beams = {
@@ -461,7 +470,7 @@ return {
 				Sway = {
 					Up = 0.08,
 					Side = -0.139,
-					Period = 1.7,
+					Period = 2.55,
 					Phase = 0,
 				},
 				Width0 = 0.192,
@@ -481,8 +490,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.6,
-					Shape = "flicker",
+					Period = 1.2,
 				},
 			},
 			{
@@ -497,7 +505,7 @@ return {
 				Sway = {
 					Up = 0.148,
 					Side = -0.061,
-					Period = 1.95,
+					Period = 2.925,
 					Phase = 47,
 				},
 				Width0 = 0.192,
@@ -517,8 +525,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.7,
-					Shape = "flicker",
+					Period = 1.4,
 				},
 			},
 			{
@@ -533,7 +540,7 @@ return {
 				Sway = {
 					Up = 0.155,
 					Side = 0.041,
-					Period = 2.2,
+					Period = 3.3,
 					Phase = 94,
 				},
 				Width0 = 0.192,
@@ -553,8 +560,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.8,
-					Shape = "flicker",
+					Period = 1.6,
 				},
 			},
 			{
@@ -569,7 +575,7 @@ return {
 				Sway = {
 					Up = 0.097,
 					Side = 0.127,
-					Period = 1.7,
+					Period = 2.55,
 					Phase = 141,
 				},
 				Width0 = 0.192,
@@ -589,8 +595,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.9,
-					Shape = "flicker",
+					Period = 1.8,
 				},
 			},
 			{
@@ -605,7 +610,7 @@ return {
 				Sway = {
 					Up = -0,
 					Side = 0.16,
-					Period = 1.95,
+					Period = 2.925,
 					Phase = 188,
 				},
 				Width0 = 0.192,
@@ -625,8 +630,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.6,
-					Shape = "flicker",
+					Period = 1.2,
 				},
 			},
 			{
@@ -641,7 +645,7 @@ return {
 				Sway = {
 					Up = -0.097,
 					Side = 0.127,
-					Period = 2.2,
+					Period = 3.3,
 					Phase = 235,
 				},
 				Width0 = 0.192,
@@ -661,8 +665,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.7,
-					Shape = "flicker",
+					Period = 1.4,
 				},
 			},
 			{
@@ -677,7 +680,7 @@ return {
 				Sway = {
 					Up = -0.155,
 					Side = 0.041,
-					Period = 1.7,
+					Period = 2.55,
 					Phase = 282,
 				},
 				Width0 = 0.192,
@@ -697,8 +700,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.8,
-					Shape = "flicker",
+					Period = 1.6,
 				},
 			},
 			{
@@ -713,7 +715,7 @@ return {
 				Sway = {
 					Up = -0.148,
 					Side = -0.061,
-					Period = 1.95,
+					Period = 2.925,
 					Phase = 329,
 				},
 				Width0 = 0.192,
@@ -733,8 +735,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.9,
-					Shape = "flicker",
+					Period = 1.8,
 				},
 			},
 			{
@@ -749,7 +750,7 @@ return {
 				Sway = {
 					Up = -0.08,
 					Side = -0.139,
-					Period = 2.2,
+					Period = 3.3,
 					Phase = 376,
 				},
 				Width0 = 0.192,
@@ -769,8 +770,7 @@ return {
 				Pulse = {
 					Min = 0.7,
 					Max = 1,
-					Period = 0.6,
-					Shape = "flicker",
+					Period = 1.2,
 				},
 			},
 		},

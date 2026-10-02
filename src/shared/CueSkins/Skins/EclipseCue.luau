@@ -715,7 +715,7 @@ return {
 				Color = "#FFFFFF",
 				LightEmission = 0,
 				LightInfluence = 0,
-				Orientation = "FacingCameraWorldUp",
+				Orientation = "FacingCamera",
 				ZOffset = 0.6,
 			},
 			{
