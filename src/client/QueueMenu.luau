@@ -193,11 +193,14 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		-- "1.25x XP" under a level that pays more rank XP (Config.Ranks.ModeXp).
 		local xp = (Config.Ranks.ModeXp :: any)[level]
 		if type(xp) == "number" and xp > 1 then
-			local note = HudParts.note(
+			-- In the kit's outlined button text, in a bonus colour, so it reads as extra
+			-- (designer, 2026-10-02).
+			local note = HudParts.text(
 				levels,
 				level .. "Xp",
-				S.QueueText.Small,
-				Copy.LevelXp:format(string.format("%g", xp))
+				S.QueueText.Xp,
+				Copy.LevelXp:format(string.format("%g", xp)),
+				HudParts.tone(S.QueueXpTone)
 			)
 			note.TextWrapped = false
 			HudParts.setTextSize(note, S.QueueText.Xp, S.QueueText.NarrowFloor)

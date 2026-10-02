@@ -5404,7 +5404,7 @@ Config.Multiplayer = {
 			Level = 22, -- Classic, Difficult, Challenger (the narrow ones shrink to fit)
 			Status = 18, -- Waiting for opponent...
 			Small = 15, -- the gamepad hint, "Needs 2 on the pad"
-			Xp = 18, -- "1.25x XP" under a level button
+			Xp = 20, -- "1.25x XP" under a level button (20 gets the full outline)
 			Lock = 20, -- "Requires Gold I+" on the banner across the locked levels
 			-- The level words and "Requires Gold I+" are measured and shrunk to fit their button
 			-- (a one-line kit text does not shrink by itself: STUDIO_NOTES), never below this;
@@ -5427,6 +5427,7 @@ Config.Multiplayer = {
 		-- 44 px touch), the picked one in this tone.
 		QueueLevelHeight = 40,
 		QueueLevelPickedTone = "Yellow",
+		QueueXpTone = "Blue", -- "1.25x XP" under a level: a kit colour, in outlined text
 		-- Locked levels sharing an unlock rank get one "Requires Gold I+" banner across them,
 		-- this tall, reaching this far up onto their buttons' lower edge (under their words),
 		-- this far in from the row's sides (designer, 2026-10-02: one line under each button
