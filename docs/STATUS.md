@@ -1,5 +1,16 @@
 # Status
 
+**2026-10-02 (latest): phone shooting controls.**
+- The PULL bar on a phone sits further right, away from the aiming thumb (players launched
+  by accident): 8 px from the safe area's edge (was 18), plus 35% of the safe area's right
+  strip (about 22 px on a 62 px strip), short of a notch or Dynamic Island.
+- A finger's aim drag turns 15% more than before (Config.Input.TouchAimScale); mouse and
+  gamepad unchanged.
+- Checked in Studio phone emulation: the bar's numbers are right (right edge 13 px past the
+  safe area on a 62 px strip). Studio's screenshot shows only the safe area, so the bar looks
+  clipped there; on a real phone the strip is drawn. Not yet checked: on a real phone, and the
+  drag feel (needs a finger). Lint and all 890 tests pass; console clean.
+
 **2026-10-02 (latest): Difficult and Challenger show and pay their XP bonus.**
 - The host card shows "1.25x XP" under Difficult and "1.5x XP" under Challenger (18 px).
   While they are locked, one "Requires Gold I+" banner with a padlock lies across both

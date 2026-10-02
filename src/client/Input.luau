@@ -394,7 +394,8 @@ function Input.connectDrag(self: Input)
 		end
 		local C = Config.Input
 		local speed = math.abs(dx) / dt
-		local scale = if speed < C.FineDragSpeedPx then C.FineAimScale else 1
+		local scale = (if speed < C.FineDragSpeedPx then C.FineAimScale else 1)
+			* (if input.UserInputType == Enum.UserInputType.Touch then C.TouchAimScale else 1)
 		-- Dragging right turns the aim clockwise on screen.
 		self:rotate(-dx * C.AimDegreesPerPixel * scale)
 	end)

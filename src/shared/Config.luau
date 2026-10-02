@@ -1478,6 +1478,9 @@ Config.Input = {
 	-- Drags slower than this many px/s rotate at a reduced rate for fine aiming.
 	FineDragSpeedPx = 80,
 	FineAimScale = 0.35,
+	-- A finger's drag turns the aim this much more than a mouse's (designer, 2026-10-02:
+	-- a bit easier to aim on a phone).
+	TouchAimScale = 1.15,
 	-- Aim nudge buttons: step per tap, and repeat rate while held.
 	NudgeDegrees = 0.2,
 	NudgeRepeatDelay = 0.35,
@@ -4209,6 +4212,12 @@ Config.UI = {
 	PowerBarMinHeightPx = 140,
 	PowerBarMaxHeightPx = 250,
 	PowerBarRightMarginPx = 18,
+	-- On a phone the bar sits further right, away from the aiming thumb (designer,
+	-- 2026-10-02: players launched by accident): this margin, and this share of the screen's
+	-- side safe area (the strip Roblox keeps clear of rounded corners and the notch) taken
+	-- back, short of the notch itself.
+	PowerBarPhoneRightMarginPx = 8,
+	PowerBarPhoneInsetShare = 0.35,
 	-- A computer or tablet (the screen at least Multiplayer.Style.ShortHeight tall) gets a
 	-- bigger bar centred on the right edge (designer, 2026-09-26: it was small and too high).
 	-- Centred, a whole-bar cue travel would leave the screen at full pull, so the cue slides

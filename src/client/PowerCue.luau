@@ -45,6 +45,7 @@ export type PowerCue = typeof(setmetatable(
 	{} :: {
 		root: TextButton,
 		screen: ScreenGui,
+		probe: ScreenGui, -- the whole screen, no safe area: measures the side inset
 		fill: Frame,
 		rainbow: UIGradient, -- the fill's rainbow near full pull, off below it
 		rainbowStep: RBXScriptConnection?, -- drifts the rainbow while it shows
@@ -142,6 +143,16 @@ end
 function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	local U = Config.UI
 
+	-- An empty ScreenGui over the whole screen: its right edge minus the HUD's is the safe
+	-- area's right strip (PowerCue.place).
+	local probe = Instance.new("ScreenGui")
+	probe.Name = "PowerSafeProbe"
+	probe.ScreenInsets = Enum.ScreenInsets.None
+	probe.IgnoreGuiInset = true
+	probe.ResetOnSpawn = false
+	probe.Enabled = true
+	probe.Parent = screen.Parent
+
 	-- The bar is the drag target, so it is a button rather than a frame.
 	local bar = Instance.new("TextButton")
 	bar.Name = "PowerBar"
@@ -200,6 +211,7 @@ function PowerCue.new(screen: ScreenGui, cueId: string?): PowerCue
 	local self = setmetatable({
 		root = bar,
 		screen = screen,
+		probe = probe,
 		fill = fill,
 		rainbow = rainbow,
 		rainbowStep = nil,
@@ -264,8 +276,16 @@ function PowerCue.place(self: PowerCue, headerBottom: number)
 		local top = headerBottom + M.Style.HeaderGap + U.PowerLabelSize + 6
 		local available = math.max(M.Style.ButtonHeight, screenHeight - top - M.Style.ButtonHeight)
 		local height = math.min(U.PowerBarMaxHeightPx, available)
+		-- Into part of the safe area's right strip, away from the aiming thumb.
+		local inset = math.max(
+			0,
+			self.probe.AbsolutePosition.X
+				+ self.probe.AbsoluteSize.X
+				- (self.screen.AbsolutePosition.X + self.screen.AbsoluteSize.X)
+		)
+		local right = U.PowerBarPhoneRightMarginPx - inset * U.PowerBarPhoneInsetShare
 		bar.AnchorPoint = Vector2.new(1, 0)
-		bar.Position = UDim2.new(1, -U.PowerBarRightMarginPx, 0, top)
+		bar.Position = UDim2.new(1, -math.floor(right), 0, top)
 		bar.Size = UDim2.fromOffset(U.PowerBarWidthPx, height)
 	end
 end
