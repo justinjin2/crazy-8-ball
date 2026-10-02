@@ -48,11 +48,16 @@ the background so it outlives the terminal (`rojo <lane>`; `status` shows them a
 - **Use your Studio window freely to check your work in the real game**: play-test (start
   and stop play), inspect, read the console, take screenshots, emulate phone, PC and gamepad,
   watch bots play and cutscenes run. That is expected for every step.
-- **No Edit-mode building.** Your window is a private copy of the place, so lanes change
-  scripts (files under `src/`), uploaded assets (ids in Config) and generated data files only.
-  Nothing built by hand in Studio (parts, imports, lighting) survives the merge: it lives in
-  your local copy only. If you need a model, part or light in the place
-  itself, write the request in your lane file; the integrator builds it once in the real place.
+- **Building and importing in your window is allowed** (parts, models, imports, lighting), to
+  test or to see how something looks. But your window is a private copy of the place, and a
+  merge carries your folder (code and files), not your copy. So before you call anything done,
+  everything the real game needs must travel with your branch, one of three ways:
+  1. made by code at run time (preferred), or
+  2. saved as a model file (`.rbxm`/`.rbxmx`) under `src/` so Rojo syncs it (code clones it
+     where it belongs), or
+  3. written in your lane file's Requests with exact details (asset ids, sizes, positions,
+     properties) so the integrator rebuilds it once in the real place.
+  Anything only built by hand in your copy is lost at the merge.
 - **Your area is yours; other areas are read-only.** Each lane file lists what it owns. To
   change something another lane owns, write a request in your lane file and keep going.
 - **Shared files** (`Config.luau`, `Strings.luau`, `Net.luau`, `Main.client.luau`,
@@ -81,7 +86,7 @@ the background so it outlives the terminal (`rojo <lane>`; `status` shows them a
   `release`, run lint and tests, sync `release` into the Team Create place, playtest, and tell
   the lanes to take the merge. Moves lane statuses and decisions into STATUS, DECISIONS and
   ROADMAP.
-- Builds any Edit-mode content a lane asked for, in the real place.
+- Builds in the real place anything a lane listed in its Requests (way 3 above).
 - Owns the game page, the Roblox compliance questionnaire, the performance pass, the final
   check on a real phone and controller, and publishing. `release` goes to `main` at release.
 
