@@ -5361,7 +5361,10 @@ Config.Multiplayer = {
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueRowGap = 6, -- between the card's rows
 		QueueMenuMinScale = 0.6, -- never shrink the card further than this
-		QueueTitleHeight = 32, -- the difficulty's picture and "Classic 1v1"
+		QueueTitleHeight = 36, -- the difficulty's picture and "Classic 1v1"
+		-- The card's buttons (designer, 2026-10-02: taller, filling the room the Abilities
+		-- toggle left; the kit's ButtonHeight is 44).
+		QueueButtonHeight = 54,
 		-- Where the card goes (designer, 2026-09-27: keep it out of the way). A screen at least
 		-- this tall, in GUI pixels, is big (PC, console, tablet): the card sits on the right,
 		-- halfway down, at full size. Shorter (a phone) tucks it into the top right corner at
@@ -5374,14 +5377,11 @@ Config.Multiplayer = {
 		QueueFoldEdgePx = 6, -- room above and below a folding part's buttons for their outlines (and a hovered one's grow)
 		QueueFoldSidePx = 10, -- and beside them: the part reaches this far past the card's column
 		QueueCountWidth = 72, -- the people n/6 pill
-		-- TEMPORARY (designer, 2026-09-30): the difficulty picker's three buttons under the
-		-- title, this tall (each still takes a 44 px touch), the picked one in this tone.
-		QueueLevelHeight = 34,
+		-- The difficulty picker's three buttons under the title, this tall (each still takes a
+		-- 44 px touch), the picked one in this tone.
+		QueueLevelHeight = 40,
 		QueueLevelPickedTone = "Yellow",
 		QueuePillHeight = 26, -- the count and team-split pills
-		-- The No-ults fallback's line on the searching card ("Nobody's in No ults right now.
-		-- Search with ults on?"): this many lines of Body text, over Yes and No side by side.
-		QueueFallbackLines = 2,
 		-- The "needs an opponent" popup (src/client/OpponentPrompt.luau), bottom centre, kept
 		-- small and low so it clears the player's legs (designer, 2026-09-27: was 330 x 96).
 		PromptWidth = 250, -- pixels, before shrinking to fit a narrow screen

@@ -94,7 +94,7 @@ local function button(
 	local object = HudParts.candy(parent, text, action, look, icon)
 	object.Name = name
 	object.LayoutOrder = order
-	object.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
+	object.Size = UDim2.new(1, 0, 0, S.QueueButtonHeight)
 	return object
 end
 
@@ -227,7 +227,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		"GlobalQueue",
 		Copy.GlobalQueue,
 		4,
-		"Blue",
+		"Green", -- designer, 2026-10-02 (was blue)
 		"Lightning",
 		function()
 			if self:canSearch() then
