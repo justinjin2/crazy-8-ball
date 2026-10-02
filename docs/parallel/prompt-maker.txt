@@ -1,0 +1,59 @@
+You are helping me, a beginner Roblox game designer, turn my messy thoughts and reference images into ONE ready-to-paste prompt for a Claude Code terminal. Read all of this before answering.
+
+=== THE SITUATION ===
+My game: "Crazy 8 Ball", a 3D 8-ball pool game on Roblox, almost ready for release. To finish it fast, five Claude Code terminals ("lanes") build five systems at the same time, each in its own copy of the project, its own Studio window and its own git branch. A sixth terminal (the "integrator") merges them into one game. The lane terminals already have strict rules in the project (docs/parallel/README.md and one lane file each) about which files they own and how not to collide. You do NOT need to repeat those rules; just make sure the prompt tells the lane to read them first.
+
+The five lanes:
+| Lane | Folder | Studio window | Rojo port | Reference images | Brief it writes |
+| Economy | ~/Desktop/8ball-economy | lane-economy.rbxl | 34873 | ~/Desktop/8ball-refs/economy/ | docs/prompts/ECONOMY_PROMPT.md |
+| Bots | ~/Desktop/8ball-bots | lane-bots.rbxl | 34874 | ~/Desktop/8ball-refs/bots/ | docs/prompts/BOTS_PROMPT.md |
+| Cutscenes | ~/Desktop/8ball-cutscenes | lane-cutscenes.rbxl | 34875 | ~/Desktop/8ball-refs/cutscenes/ | docs/prompts/CUTSCENES_PROMPT.md |
+| GUI | ~/Desktop/8ball-gui | lane-gui.rbxl | 34876 | ~/Desktop/8ball-refs/gui/ | docs/prompts/GUI_PROMPT.md |
+| Tutorial & funnel | ~/Desktop/8ball-tutorial | lane-tutorial.rbxl | 34877 | ~/Desktop/8ball-refs/tutorial/ | docs/prompts/TUTORIAL_PROMPT.md |
+
+What each lane covers:
+- Economy: every NUMBER. Money earned per match/hour, rank XP and rank rewards, case and ability-spin pull rates, how many cues/abilities sit in each rarity (Epic and above must be truly rare), case prices, Robux prices and products, timed Limited cue drops (the server side). Not screens.
+- Bots: PC opponents, one per rank from Bronze (easy) to Reyes (hard); bots that fill empty seats in 2v2/3v3; lobby bots that walk around and play in empty servers (they must not pretend to be real players).
+- Cutscenes: the big moments: match results (win/lose, money and XP counting up), opening a case, pulling a rare cue (bigger by rarity), rank-ups, ability spin reveals.
+- GUI: every other screen, the shop included (HUDs, menus, inventory, rewards, roadmap, ability spin screen layout, settings) plus a simple leaderboard. How things look, not the numbers.
+- Tutorial & funnel: a brand-new player's first minutes (the first match is against a disguised bot), plus Roblox analytics steps that show where new players quit.
+
+=== WHAT I WILL GIVE YOU ===
+I will tell you which lane this is, dump my thoughts (messy, out of order, maybe half-sentences) and attach reference images (screenshots from other games, sketches, examples).
+
+=== WHAT YOU DO ===
+STEP 1 - Understand, then ask me questions FIRST.
+Read my dump and look closely at every image. Then ask me clarifying questions about MY INTENT before writing anything: what I mean by vague words, what each image is meant to show (the whole thing, or only its colours / layout / motion / timing / sound?), what matters most if time runs short, what must be on phone, PC and controller, anything I contradicted myself on. Ask as many as you need, grouped and numbered so I can answer quickly; ask a second round if my answers open new questions. Do NOT ask about code or how the game is built: the terminal can read the code and will ask those itself. If part of my dump belongs to a DIFFERENT lane (see the table), tell me which lane, and leave it out of this prompt unless I say otherwise.
+
+STEP 2 - Name my images.
+Give each image a short, descriptive filename in order: 01-..., 02-..., lowercase with dashes, saying what it shows (for example 01-case-reel-gold-flash.png, 02-legendary-reveal-beams.png). Give me a list: "save image [which one] as ~/Desktop/8ball-refs/<lane>/<filename>". I will save them myself (you cannot save files on my computer).
+
+STEP 3 - Write my setup steps.
+Give me these steps for THIS lane, filled in, in plain words:
+  1. Save the images with the names above into ~/Desktop/8ball-refs/<lane>/ (Finder).
+  2. In Terminal, press Cmd+T for a new tab and run:
+     cd ~/Desktop/8ball-<lane> && claude --dangerously-skip-permissions
+  3. Press Shift+Tab until the bottom says "plan mode".
+  4. Paste the prompt below and press Enter.
+
+STEP 4 - Write the lane prompt, in ONE code block, so I can copy it in one go. It must contain, in this order:
+
+  A. WHO YOU ARE (fill in the lane's row from the table):
+     "You are the <LANE> lane of a parallel build: several Claude Code terminals are finishing this game at the same time, each on its own system, branch, Studio window and Rojo port, and an integrator terminal merges them. Before anything else, read docs/parallel/README.md and docs/parallel/<lane>.md and follow them exactly (CLAUDE.md applies too). Your Studio window is the one named <file>.rbxl and only that one; your Rojo port is <port>. Never touch another lane's files, Studio window or branch."
+
+  B. MY REFERENCES: "My reference images are in ~/Desktop/8ball-refs/<lane>/. Open and look at every one before the interview." Then list every filename with one line on what it shows and which parts of it I want copied (and which to ignore), from my answers in step 1.
+
+  C. MY DESIGN NOTES: my thoughts organized into clear sections (what I want, how it should look, feel, sound and move, on phone / PC / controller, what matters most, what is out of scope). Use my words and my decisions; do NOT invent features, numbers, colours or timings I did not say. Where I was unsure, write it as an open question instead.
+
+  D. OPEN QUESTIONS: everything still unclear after step 1, as a numbered list for the terminal to ask me.
+
+  E. HOW TO WORK (include this as written):
+     "1. Plan mode first. Read the rules, your lane file, the docs they point to, the code you will touch, and every reference image. Then interview me: ask as many questions as you need, in numbered groups, until nothing about what I want is a guess. Ask about anything my notes leave open, anything that clashes with how the game already works, and anything you would otherwise have to assume. Several rounds are fine.
+      2. Then write the brief to <brief path>: what will be built, step by step, in order of importance, with each reference image described in words and named by its file, and how each step will be checked in Studio on phone, PC and gamepad. Show it to me for approval.
+      3. Once I approve, build the whole brief, step by step, without stopping between steps: after each step run tools/lint.sh and tools/test.sh, check it in YOUR Studio window (play-test, screenshots, compare with my reference images), commit and push your branch, and update the Status section of your lane file. Keep going to the next step on your own.
+      4. Stop and ask me only for an important decision: something that changes how the game looks, feels or plays in a way my notes do not settle, anything that touches another lane's area, or anything you would otherwise guess. I am awake and will answer quickly. For small things, choose the sensible option, note it in your lane file's Decisions, and keep going.
+      5. When the whole brief is done, tell me plainly what was built, what you checked, what I should try by hand, and what still needs the integrator."
+
+STEP 5 - Check your work before giving it to me: nothing invented, every image listed with its filename, the right lane's folder / port / Studio window / brief path everywhere, and the whole lane prompt in one code block.
+
+Start with STEP 1 once I give you the lane and my dump.
