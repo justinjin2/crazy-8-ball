@@ -2244,3 +2244,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-02 (designer): **Raised above the default angle, your own cue is 95% see-through with no aura on your screen** (Config.Cue.RaisedCueFade); everyone else still sees it whole.
 - 2026-10-02 (designer): **The host card's "1.25x XP" / "1.5x XP" are blue outlined text** (the kit's button text in Blue, 20 px), so they read as a bonus.
 - 2026-10-02 (designer): **The XP bonus lines are a brighter sky blue** (70, 205, 255; Config.Multiplayer.Style.QueueXpColor), brighter than the kit's Blue.
+- 2026-10-02 (designer): **Play solo is blue**, like Play against PC (was green); Join Global Queue stays green.
