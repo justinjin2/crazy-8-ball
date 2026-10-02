@@ -20,17 +20,15 @@
 -- worldwide..." with the time on the button and the red Cancel; "Match found!" and the
 -- teleport screen follow. Stepping off the pad cancels too.
 --
--- Ults: On / Off (designer, 2026-09-28): a toggle under Join Global Queue, the host's saved
--- choice (the QueueUlts attribute); a search only meets searches on the same setting. A
--- No-ults search that has found nobody in NoUltsFallbackSeconds offers "Nobody's in No ults
--- right now. Search with ults on?": Yes moves the search to the ults-on pool, keeping its
--- time (the server checks it, UltsChoice); No keeps waiting and hides the offer for this
--- search.
+-- The Ults: On / Off toggle under Join Global Queue and its "search with ults on?" offer
+-- were removed (designer, 2026-10-02): every search plays with ults on.
 --
--- Difficulty (TEMPORARY, designer, 2026-09-30, for trying the levels): Classic, Difficult and
--- Challenger side by side under the title, the picked one lit, while the pad waits and no
--- search runs. The server takes SetDifficulty from the host only, before the game, and resets
--- it after every game; no rank lock yet (Roadmap 6.2) and the money multiplier stays off.
+-- Difficulty (designer, 2026-09-30): Classic, Difficult and Challenger side by side under the
+-- title, the picked one lit, while the pad waits and no search runs. Difficult and Challenger
+-- unlock at Gold I (designer, 2026-10-02; Config.Ranks.Unlocks, Ranks.canHost): below it they
+-- are greyed with "Requires Gold I+" under them (a padlock on the button crowded the word). The server takes SetDifficulty
+-- from the host only, before the game, only at a rank that may host it, and resets it after
+-- every game; the money multiplier stays off.
 --
 -- Every press is a request the server checks (MatchEngine.action). Built from the UI kit
 -- (HudParts): it pops in the moment you step onto an empty pad (Main shows it before the
@@ -46,12 +44,10 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
 local Strings = require(Shared:WaitForChild("Strings"))
-local UltsChoice = require(Shared:WaitForChild("Matchmaking"):WaitForChild("UltsChoice"))
+local Ranks = require(Shared:WaitForChild("Progression"):WaitForChild("Ranks"))
 local HudParts = require(script.Parent.HudParts)
 local UIAnim = require(script.Parent.UIAnim)
 local Copy = Strings.Match.Queue
-local GQ = Strings.GlobalQueue
-local G = Config.GlobalQueue
 local M = Config.Multiplayer
 local S = M.Style
 local K = Config.UI.Kit
@@ -113,10 +109,6 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.cancelledAt = -math.huge -- this host's last Cancel: older requests no longer stand
 	self.searchAt = -math.huge -- this host's last Join Global Queue, before the server's answer
 	self.searchCancelledAt = -math.huge -- and their last Cancel of it
-	self.ultsSent = nil :: { value: boolean, at: number }? -- a toggle on its way to the server
-	self.fallbackSentAt = -math.huge -- the fallback's Yes on its way
-	self.fallbackDismissed = nil :: number? -- the search (its start) whose offer got a No
-	self.ultsShown = true -- what the toggle reads now (it is built reading On)
 	self.levelSent = nil :: { value: string, at: number }? -- a difficulty on its way
 	self.now = 0
 	self.open = false
@@ -178,6 +170,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	levels.Size = UDim2.new(1, 0, 0, S.QueueLevelHeight)
 	self.levelRow = levels
 	self.levelButtons = {} :: { [string]: TextButton }
+	self.levelLocks = {} :: { [string]: TextLabel } -- "Requires Gold I+" under a locked level
 	local order = Config.Difficulty.Order
 	local gap = S.QueueRowGap
 	for i, level in order do
@@ -189,9 +182,20 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		end)
 		local share = 1 / #order
 		b.Position = UDim2.new(share * (i - 1), math.floor(gap * (i - 1) / #order), 0, 0)
-		b.Size = UDim2.new(share, -math.ceil(gap * (#order - 1) / #order), 1, 0)
+		b.Size = UDim2.new(share, -math.ceil(gap * (#order - 1) / #order), 0, S.QueueLevelHeight)
 		HudParts.setMinHit(b, 44)
 		self.levelButtons[level] = b
+		local need = Ranks.unlockName(level)
+		if need then
+			local lock =
+				HudParts.note(levels, level .. "Lock", K.Text.Min, Copy.LevelLocked:format(need))
+			lock.TextWrapped = false
+			lock.Position =
+				UDim2.new(b.Position.X.Scale, b.Position.X.Offset, 0, S.QueueLevelHeight + 2)
+			lock.Size = UDim2.new(b.Size.X.Scale, b.Size.X.Offset, 0, K.Text.Min + 2)
+			lock.Visible = false
+			self.levelLocks[level] = lock
+		end
 	end
 
 	-- Waiting for an opponent or players, or starting in 3.
@@ -232,45 +236,11 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			end
 		end
 	)
-	-- Ults: On / Off for the global queue (designer, 2026-09-28), the host's saved choice.
-	self.ults = button(content, "QueueUlts", GQ.UltsOn, 5, "Green", "Check", function()
-		if self:canSetUlts() then
-			local value = not self:ultsChoice()
-			self.ultsSent = { value = value, at = self.now }
-			self.onAction("SetQueueUlts", value)
-		end
-	end)
 	-- On 2v2 and 3v3, why it is greyed: a whole side must be on the pad.
 	self.needs = HudParts.note(content, "GlobalNeeds", K.Text.Min, "")
 	self.needs.TextWrapped = false
 	self.needs.Size = UDim2.new(1, 0, 0, K.Text.Min + S.QueueMenuLineGap)
 	self.needs.LayoutOrder = 6
-	-- A No-ults search with nobody found yet: "Search with ults on?", Yes and No side by side.
-	self.fallback = fold(content, "Fallback", 7)
-	self.fallbackLine = HudParts.note(self.fallback.inner, "Line", K.Text.Body, GQ.NoUltsFallback)
-	self.fallbackLine.LayoutOrder = 1
-	self.fallbackLine.Size =
-		UDim2.new(1, 0, 0, S.QueueFallbackLines * (K.Text.Body + S.QueueMenuLineGap))
-	local answers = HudParts.frame(self.fallback.inner, "Answers")
-	answers.LayoutOrder = 2
-	answers.Size = UDim2.new(1, 0, 0, S.ButtonHeight)
-	local half = math.ceil(S.QueueRowGap / 2)
-	self.fallbackYes = button(answers, "Yes", GQ.FallbackYes, 1, "Green", nil, function()
-		if self:fallbackOpen() then
-			self.fallbackSentAt = self.now
-			self.onAction("SearchWithUlts", nil)
-		end
-	end)
-	self.fallbackYes.Size = UDim2.new(0.5, -half, 1, 0)
-	self.fallbackNo = button(answers, "No", GQ.FallbackNo, 2, "Red", nil, function()
-		local snapshot = self.snapshot
-		if self:fallbackOpen() and snapshot and snapshot.search then
-			self.fallbackDismissed = snapshot.search.at
-		end
-	end)
-	self.fallbackNo.AnchorPoint = Vector2.new(1, 0)
-	self.fallbackNo.Position = UDim2.fromScale(1, 0)
-	self.fallbackNo.Size = UDim2.new(0.5, -half, 1, 0)
 	-- While a request or a search stands: take it back, and the card unfolds at once.
 	-- No icon: the kit's red X vanished on the red candy.
 	self.cancel = button(content, "CancelRequest", Copy.CancelRequest, 8, "Red", nil, function()
@@ -304,9 +274,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		{ fold = self.statusFold },
 		{ object = self.request },
 		{ object = self.global },
-		{ object = self.ults },
 		{ object = self.needs },
-		{ fold = self.fallback, overlap = true },
 		{ object = self.cancel },
 		{ fold = self.more, overlap = true },
 		{ object = self.hint },
@@ -417,6 +385,14 @@ function QueueMenu.pickedLevel(self: any): string
 	return settings and settings.difficulty or Config.Difficulty.Default
 end
 
+--- Whether this player's rank may host `level` (Ranks.canHost on the server-set RankIndex;
+--- the server checks the same).
+function QueueMenu.mayHost(_self: any, level: string): boolean
+	local player = Players.LocalPlayer
+	local index = player and player:GetAttribute("RankIndex")
+	return Ranks.canHost({ index = if type(index) == "number" then index else 0 } :: any, level)
+end
+
 --- Whether the picker may be pressed: the host, the pad waiting with no search on and the
 --- game not about to start (the server checks the host and the phase).
 function QueueMenu.canSetLevel(self: any): boolean
@@ -437,45 +413,6 @@ function QueueMenu.canSearch(self: any): boolean
 	end
 	local count = self:count()
 	return count >= snapshot.teamSize and count < snapshot.teamSize * 2
-end
-
---- The Ults choice the toggle shows: one on its way to the server, else the saved one (the
---- player attribute; on until it arrives).
-function QueueMenu.ultsChoice(self: any): boolean
-	local sent = self.ultsSent
-	if sent and self.now - sent.at < M.ActionRetrySeconds then
-		return sent.value
-	end
-	local player = Players.LocalPlayer
-	return UltsChoice.pool(player and player:GetAttribute(G.UltsAttribute))
-end
-
---- Whether the toggle may be pressed: the host, the pad waiting with no search on (and none
---- on its way), as the server checks (UltsChoice.canSet).
-function QueueMenu.canSetUlts(self: any): boolean
-	local snapshot = self.snapshot
-	return snapshot ~= nil
-		and not self:searching()
-		and UltsChoice.canSet(snapshot, self.localUserId, true)
-end
-
---- Whether the No-ults fallback's offer shows: the host's search in the No-ults pool (the
---- QueueSearchUlts attribute) has found nobody in NoUltsFallbackSeconds, it was not
---- answered No, and no Yes is on its way.
-function QueueMenu.fallbackOpen(self: any): boolean
-	local snapshot = self.snapshot
-	if not snapshot or not snapshot.search or not self:searching() then
-		return false
-	end
-	if self.fallbackDismissed == snapshot.search.at then
-		return false
-	end
-	if self.now - self.fallbackSentAt < M.ActionRetrySeconds then
-		return false
-	end
-	local player = Players.LocalPlayer
-	local searchUlts = player and player:GetAttribute(G.SearchUltsAttribute)
-	return UltsChoice.canFallback(snapshot, self.localUserId, searchUlts, self.now)
 end
 
 --- Whether a request may be sent: the pad has room, none stands, and none was sent within
@@ -520,7 +457,6 @@ function QueueMenu.setSnapshot(self: any, snapshot: any?, userId: number)
 	if not snapshot or not old or old.epoch ~= snapshot.epoch or old.id ~= snapshot.id then
 		self.sentAt, self.requestedAt, self.cancelledAt = -math.huge, -math.huge, -math.huge
 		self.searchAt, self.searchCancelledAt = -math.huge, -math.huge
-		self.ultsSent, self.fallbackSentAt, self.fallbackDismissed = nil, -math.huge, nil
 		self.levelSent = nil
 	end
 	if not snapshot then
@@ -570,9 +506,6 @@ function QueueMenu.focus(self: any)
 			self.request,
 			self.levelButtons[Config.Difficulty.Default],
 			self.global,
-			self.ults,
-			self.fallbackYes,
-			self.fallbackNo,
 			self.cancel,
 			self.solo,
 			self.pc,
@@ -704,9 +637,24 @@ function QueueMenu.update(self: any, now: number)
 	-- The picker: the picked level lit, all of them hidden while a search runs.
 	self.levelRow.Visible = not self:searching()
 	local canLevel = self:canSetLevel()
+	local anyLocked = false
 	for level, b in self.levelButtons do
-		HudParts.setTone(b, if level == difficulty then S.QueueLevelPickedTone else "White")
-		HudParts.setEnabled(b, canLevel)
+		local locked = not self:mayHost(level)
+		anyLocked = anyLocked or locked
+		HudParts.setTone(
+			b,
+			if locked then "Grey" elseif level == difficulty then S.QueueLevelPickedTone else "White"
+		)
+		HudParts.setEnabled(b, canLevel and not locked, locked or not canLevel)
+		local lock = self.levelLocks[level]
+		if lock then
+			lock.Visible = locked
+		end
+	end
+	-- Room under the row for "Requires Gold I+" while a level is locked.
+	local rowHeight = S.QueueLevelHeight + (if anyLocked then K.Text.Min + 4 else 0)
+	if self.levelRow.Size.Y.Offset ~= rowHeight then
+		self.levelRow.Size = UDim2.new(1, 0, 0, rowHeight)
 	end
 	HudParts.setIcon(self.level, difficulty)
 	self.game.Text = Copy.GameTitle:format(
@@ -743,16 +691,6 @@ function QueueMenu.update(self: any, now: number)
 			elseif searching then Copy.SearchTime:format(waited // 60, waited % 60)
 			else Copy.GlobalQueue
 	)
-	-- The Ults toggle under it, while it can start a search (hidden while one runs).
-	local ultsOn = self:ultsChoice()
-	self.ults.Visible = self.global.Visible and not searching
-	HudParts.setEnabled(self.ults, self:canSetUlts())
-	if self.ultsShown ~= ultsOn then
-		self.ultsShown = ultsOn
-		HudParts.setText(self.ults, if ultsOn then GQ.UltsOn else GQ.UltsOff)
-		HudParts.setTone(self.ults, if ultsOn then "Green" else "Grey")
-		HudParts.setButtonIcon(self.ults, if ultsOn then "Check" else "X")
-	end
 	self.needs.Visible = room and teamSize > 1 and count < teamSize and not searching
 	if self.needs.Visible then
 		self.needs.Text = Copy.GlobalNeeds:format(teamSize)
@@ -772,7 +710,6 @@ function QueueMenu.update(self: any, now: number)
 	-- The waiting line folds away for a request; a search keeps it, saying it searches.
 	ease(self.statusFold, not folded or searching, dt, self.snap, scale)
 	ease(self.more, alone and not folded and not sending, dt, self.snap, scale)
-	ease(self.fallback, room and not found and self:fallbackOpen(), dt, self.snap, scale)
 	self.snap = false
 
 	local gamepad = UserInputService:GetLastInputType() == Enum.UserInputType.Gamepad1

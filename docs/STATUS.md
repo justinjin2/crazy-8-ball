@@ -1,5 +1,22 @@
 # Status
 
+**2026-10-02: Abilities toggle gone; Difficult and Challenger unlock at Gold I.**
+- The host card no longer has the global queue's Abilities: On / Off button (nor its "search
+  with them on?" offer). Every search plays with abilities on; the server ignores an old
+  saved Off and refuses the old toggle.
+- Difficult and Challenger need Gold I (Challenger was Diamond I). Below it they show greyed
+  with "Requires Gold I+" under them. The server refuses them, and a waiting table whose new
+  host is below Gold I goes back to Classic. The money multiplier stays off.
+- Checked in Studio on PC:
+  - As Bronze V: the card has no Abilities button; Difficult and Challenger are greyed with
+    "Requires Gold I+"; a SetDifficulty sent anyway was refused and the table stayed Classic.
+  - As Gold I (RankIndex set for the test): all three lit and selectable; Challenger was
+    accepted.
+  - Back at Bronze V the table returned to Classic within a second.
+  - Console clean.
+- Not yet checked: phone and gamepad layouts of the card (a locked level is not selectable by
+  gamepad).
+
 **2026-10-01 (latest+2): cue effects polish round (designer's playtest list).**
 - Auras stay on the cue as you walk (only tiny specks drift off); Kitsune and Celestial Dragon
   pulse and sparkle about half as fast and smoothly; Kitsune's aura is pastel pink.

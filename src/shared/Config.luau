@@ -1701,9 +1701,10 @@ Config.Ranks = {
 	-- A match counts only after this much server-tracked time from the break (GDD section
 	-- 13). Under it, a forfeit or an early 8 pays nobody anything. (tune)
 	RealMatchSeconds = 60,
-	-- Difficulty unlocks by YOUR rank (ECONOMY 4.7): host Difficult from Gold I, Challenger
-	-- from Diamond I. Pure rule (Ranks.canHost); not enforced while every table is Classic.
-	Unlocks = { Difficult = "Gold", Challenger = "Diamond" },
+	-- Difficulty unlocks by YOUR rank (ECONOMY 4.7): host Difficult and Challenger from Gold I
+	-- (designer, 2026-10-02; Challenger was Diamond I). Ranks.canHost: the host card greys a
+	-- locked level ("Requires Gold I+") and the server refuses it (TableService).
+	Unlocks = { Difficult = "Gold", Challenger = "Gold" },
 	-- Rank rewards, paid once, the first time you reach a division (PeakDivision passes it;
 	-- ECONOMY 4.8). Step: the money for each new division II-V of a tier. Tier: reaching a
 	-- tier's division I pays its money, its cases (into the inventory: { [caseId] = count })
@@ -1839,10 +1840,8 @@ Config.Economy = {
 	SameOpponentMaxEntries = 300,
 	FreeCasesPerOpponent = 3, -- at most this many free cases a day from beating one account
 	FreeCaseLoserMinMatches = 5, -- the loser must have played this many real matches
-	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier). Off until the
-	-- difficulty picker and its lock exist (Roadmap 6.2): the server still accepts a host's
-	-- SetDifficulty, so a modified client could otherwise pick 2x (second audit, 2026-09-27).
-	-- Every table is Classic; the multipliers and Ranks.canHost are coded and tested.
+	-- Pay the table's difficulty multiplier (Config.Difficulty.MoneyMultiplier). Off: the
+	-- picker and its rank lock exist (2026-10-02) but paying more for them is not decided yet.
 	UseDifficultyMultiplier = false,
 }
 

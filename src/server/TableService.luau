@@ -20,7 +20,7 @@ local Simulation = require(Shared.Physics.Simulation)
 local Engine = require(Shared.Rules.MatchEngine)
 local Ranking = require(script.Parent.Ranking)
 local GlobalQueue = require(script.Parent.GlobalQueue)
-local UltsChoice = require(Shared.Matchmaking.UltsChoice)
+local Ranks = require(Shared.Progression.Ranks)
 local M = Config.Multiplayer
 local Q = M.QueueVisual
 local Kit = Config.UI.Kit
@@ -1010,7 +1010,9 @@ local function startSearch(t: any, host: Player): boolean
 		players = players,
 		mode = e.teamSize,
 		home = game.JobId,
-		ults = GlobalQueue.ultsChoice(host), -- the host's Ults: On / Off picks the pool
+		-- Every search plays with ults on (designer, 2026-10-02: the card's On / Off toggle is
+		-- gone; a save still holding Off is ignored).
+		ults = true,
 		onFound = function(found: any, match: any)
 			searchFound(t, epoch, found, match)
 		end,
@@ -1056,35 +1058,29 @@ local function stopSearch(t: any, host: Player): boolean
 	return true
 end
 
--- The global queue's Ults: On / Off (designer, 2026-09-28), both server-checked
--- (UltsChoice): the host's toggle (SetQueueUlts, a boolean `value`, saved), and the No-ults
--- search's fallback Yes (SearchWithUlts), which moves the running search to the ults-on
--- pool, keeping its time. The fallback's No is the card's own: the search just goes on.
--- Yields. True when it was done.
-local function queueUltsAction(t: any, p: Player, payload: any): boolean
+-- Whether `userId` may host a table of `difficulty` (designer, 2026-10-02: Difficult and
+-- Challenger from Gold I, Config.Ranks.Unlocks): their rank, the server-set RankIndex. Someone
+-- not in this server (a Studio stand-in) hosts Classic only.
+local function mayHost(userId: number?, difficulty: any): boolean
+	local player = if userId then Players:GetPlayerByUserId(userId) else nil
+	local index = if player then player:GetAttribute("RankIndex") else nil
+	return Ranks.canHost(
+		{ index = if type(index) == "number" then index else 0 } :: any,
+		difficulty
+	)
+end
+
+-- A waiting table whose host may not host its difficulty (the host left and someone of a
+-- lower rank took over) goes back to the default.
+local function keepDifficulty(t: any)
 	local e = t.engine
-	if payload.kind == "SetQueueUlts" then
-		if t.search or t.searchStarting or not UltsChoice.canSet(e, p.UserId, payload.value) then
-			return false
+	local level = e.settings and e.settings.difficulty
+	if e.phase == "Waiting" and level ~= nil and level ~= Config.Difficulty.Default then
+		if not mayHost(e.hostId, level) then
+			e.settings.difficulty = Config.Difficulty.Default
+			e.revision += 1
 		end
-		return GlobalQueue.setUltsChoice(p, payload.value)
 	end
-	local search = t.search
-	if
-		not search
-		or not GlobalQueue.isWaiting(search)
-		or t.searchCancelling
-		or not UltsChoice.canFallback(
-			e,
-			p.UserId,
-			search.ticket.ults,
-			now(),
-			Config.GlobalQueue.FallbackSlackSeconds
-		)
-	then
-		return false
-	end
-	return GlobalQueue.switchPool(search, true) == "switched"
 end
 
 -- Each poll: a search whose pad no longer backs it (a party member stepped off, the host
@@ -1293,10 +1289,14 @@ function Service.start(parent: Instance, mode: string?)
 			return
 		end
 		local t = tables[id]
-		if payload.kind == "SetQueueUlts" or payload.kind == "SearchWithUlts" then
-			if payload.epoch ~= t.engine.epoch or not queueUltsAction(t, p, payload) then
-				Net.get("ShotRejected"):FireClient(p, "ActionRejected")
-			end
+		-- The global queue's Ults: On / Off is gone (designer, 2026-10-02): every search plays
+		-- with ults on. A difficulty above the host's rank is refused (Ranks.canHost).
+		if
+			payload.kind == "SetQueueUlts"
+			or payload.kind == "SearchWithUlts"
+			or (payload.kind == "SetDifficulty" and not mayHost(p.UserId, payload.value))
+		then
+			Net.get("ShotRejected"):FireClient(p, "ActionRejected")
 			return
 		end
 		if payload.kind == "GlobalSearch" or payload.kind == "CancelSearch" then
@@ -1512,6 +1512,7 @@ function Service.start(parent: Instance, mode: string?)
 				local time = now()
 				poll(t, time)
 				Service.advance(t, time)
+				keepDifficulty(t)
 				releaseMissing(t)
 				if not arena then
 					watchSearch(t)

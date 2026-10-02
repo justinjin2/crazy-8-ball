@@ -43,6 +43,7 @@ return {
 			GameTitle = "%s %s", -- the game on the host's card: difficulty, then mode ("Classic 1v1")
 			PlayerCount = "%d/%d", -- in the people pill: how many are on the pad, of how many it holds
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
+			LevelLocked = "Requires %s+", -- under a level your rank can't host yet ("Gold I")
 			PlaySolo = "Play solo",
 			PlayPC = "Play against PC",
 			-- The host's card adds three dots that light up one by one (QueueMenu.dots).
@@ -215,13 +216,6 @@ return {
 			Store = "The global queue isn't answering. Try again.",
 			Party = "Your party changed, so the search stopped.",
 		},
-		-- The host card's Abilities: On / Off toggle, and the abilities-off search's offer after
-		-- Config.GlobalQueue.NoUltsFallbackSeconds (QueueMenu).
-		UltsOn = "Abilities: On",
-		UltsOff = "Abilities: Off",
-		NoUltsFallback = "Nobody's searching with abilities off. Search with them on?",
-		FallbackYes = "Yes",
-		FallbackNo = "No",
 	},
 	-- The arena's card while players arrive (ArenaStatus).
 	Arena = {

@@ -651,7 +651,7 @@ end
 
 --- Whether a rank may host a table of `difficulty` (ECONOMY 4.7): a difficulty with no row in
 --- Config.Ranks.Unlocks (Classic) always; the others from their tier's division I. An unknown
---- difficulty never. A pure rule: nothing enforces it while every table is Classic.
+--- difficulty never. The host card and the server both use it (QueueMenu, TableService).
 function Ranks.canHost(rank: Rank, difficulty: string): boolean
 	if type(difficulty) ~= "string" or DIFFICULTIES[difficulty] == nil then
 		return false
@@ -663,6 +663,15 @@ function Ranks.canHost(rank: Rank, difficulty: string): boolean
 	local needed = tierFirstIndex[tier]
 	local fields: any = if type(rank) == "table" then rank else {}
 	return needed ~= nil and clampIndex(fields.index) >= needed
+end
+
+--- The rank that unlocks `difficulty`, as shown ("Gold I"), or nil when anyone may host it.
+function Ranks.unlockName(difficulty: string): string?
+	local tier = UNLOCKS[difficulty]
+	if tier == nil then
+		return nil
+	end
+	return Ranks.name({ tier = tier, division = 1 } :: any)
 end
 
 ---------------------------------------------------------------------------------------------

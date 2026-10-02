@@ -254,7 +254,8 @@ too. How many ever get there: 4.10.
 
 ### 4.7 Difficulty unlocks
 
-By rank: host a **Difficult** table from **Gold I**, **Challenger** from **Diamond I**. Anyone
+By rank: host a **Difficult** or **Challenger** table from **Gold I** (2026-10-02; Challenger
+was Diamond I). Below it the host card greys them with "Requires Gold I+". Anyone
 may join a harder table as a guest, with a warning and Play anyway. The table's difficulty sets
 its money and XP multipliers for everyone at it.
 

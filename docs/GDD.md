@@ -330,10 +330,10 @@ Every feature is checked against these. If it serves none, it waits.
   - **Difficult**: the aim line only (the corridor to first contact and its ring), no
     object-ball line, no deflection or bounce line, no jump landings.
   - **Challenger**: no lines at all (changed 2026-09-25; it used to be a short aim stub).
-  All three exist from the start. Until ranks exist there is no lock. Once ranks exist, the
-  host cannot pick Difficult or Challenger until their peak rank unlocks them *(tune,
-  placeholder Diamond I for both)*; a guest below that rank sees "Your rank is not qualified
-  for this difficulty" with a Play anyway button. Unlocks never re-lock. Ball highlights and X
+  The host can pick Difficult or Challenger only from **Gold I** (2026-10-02): below it the
+  host card shows them greyed with "Requires Gold I+" under them, and the server refuses
+  them. A guest below that rank still joins *(the guest warning is not built)*. Unlocks never
+  re-lock (rank XP is never lost). Ball highlights and X
   marks stay on in every difficulty.
 
 ## 8. Feel: the satisfying layer
@@ -374,13 +374,8 @@ This is pillar 1 and 2 in practice. It is part of the core, not polish for later
   PC (this replaces "public tables play Classic with no abilities", 2026-09-27). Solo shows
   the **real ability bar, always full**: G, a tap on the bar or gamepad X arms your equipped
   ability for free, as often as you like, the break included; those shots (and a practice
-  Rewind's redos) pay no money (2026-09-30). **The global queue's Join card has an
-  Abilities: On / Off toggle** (On by default, remembered in the save) for ranked players who
-  want pure skill; players are only matched with others on the same setting (two pools in one
-  queue), rank XP and money are the same either way, and the arena, series and rematch keep
-  it. If a No-ults search finds nobody in 30 s the card offers "Nobody's searching with
-  abilities off. Search with them on?" (Yes keeps the search time). A "NO ABILITIES" pill
-  shows on the match bar and the result screen. Lobby tables and vs PC always have ults on.
+  Rewind's redos) pay no money (2026-09-30). The global queue's Abilities: On / Off toggle
+  was removed (2026-10-02): every search, arena and lobby table plays with ults on.
 - **One bar per player, 0-100, filled by the same rules for everyone** (never by what they
   own), starting at 0 each game (rematches too). The numbers (`Config.Ults.Fill`, checked by
   `tools/ult_model.py`): your own balls in one turn +10, +8, +6, +5, then +3 each; a nice shot

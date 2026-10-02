@@ -643,8 +643,10 @@ return {
 		H.expect(not Ranks.canHost(at("Unranked"), "Difficult"))
 		H.expect(not Ranks.canHost(at("Silver", 5), "Difficult"), "Silver V: not yet")
 		H.expect(Ranks.canHost(at("Gold", 1), "Difficult"), "Gold I")
-		H.expect(not Ranks.canHost(at("Platinum", 5), "Challenger"), "Platinum V: not yet")
-		H.expect(Ranks.canHost(at("Diamond", 1), "Challenger"), "Diamond I")
+		H.expect(not Ranks.canHost(at("Silver", 5), "Challenger"), "Challenger: Silver V not yet")
+		H.expect(Ranks.canHost(at("Gold", 1), "Challenger"), "Challenger from Gold I")
+		H.expect(Ranks.unlockName("Challenger") == "Gold I", "shown as Gold I")
+		H.expect(Ranks.unlockName("Classic") == nil, "Classic needs nothing")
 		H.expect(Ranks.canHost(at("Reyes"), "Challenger") and Ranks.canHost(at("Reyes"), "Classic"))
 		H.expect(not Ranks.canHost(at("Reyes"), "Impossible"), "unknown difficulty")
 		H.expect(
