@@ -49,3 +49,7 @@ assets/cue/textures/*
 assets/cue/skins/*/*.png
 # Piece GLBs made from the OBJs by tools/cue_pieces_glb.py (uploaded; rebuilt on demand)
 assets/cue/pieces/*/*_parts.glb
+
+# The parallel build's lanes (docs/parallel/README.md): each lane's local place copy and logs
+place/lane-*.rbxl
+.lanes/

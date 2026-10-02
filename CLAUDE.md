@@ -11,7 +11,9 @@ file; Codex reads AGENTS.md, which is the same file).
 4. `docs/GDD.md` for design intent; sections are split into Decided and Open. Never guess an
    Open item, ask.
 5. `docs/UI_STYLE.md` before building or changing any screen.
-Read `docs/STUDIO_NOTES.md` when Studio, Rojo, MCP, Lune or Blender misbehave. Read
+If you were started as a **lane** of the parallel build, read `docs/parallel/README.md` and your
+lane file first: their rules on Studio windows, ports, owned files and docs come before the
+loop below. Read `docs/STUDIO_NOTES.md` when Studio, Rojo, MCP, Lune or Blender misbehave. Read
 `assets/*/Readme.md` only when importing that package. `docs/DECISIONS.md` is the dated log.
 
 ## Past decisions are not set in stone
