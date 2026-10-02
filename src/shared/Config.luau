@@ -509,6 +509,10 @@ Config.Cue = {
 	-- a steeply raised butt swinging past the lens never blocks the view. Everyone else sees
 	-- them whole. (tune)
 	CameraFadeStuds = 1.5,
+	-- Raised above CueElevationDegrees (a jump shot), the shooter's own cue is this see-through
+	-- on their screen, its aura off, so it never hides the ball and the arc (designer,
+	-- 2026-10-02). Everyone else sees it whole, aura and all. (tune)
+	RaisedCueFade = 0.95,
 
 	-- What a cue LOOKS like is catalog data (2026-09-28): each Progression/Catalog row has a
 	-- Look, and Catalog.style turns it into CueArt segments (tip, ferrule, shaft, joint ring,

@@ -1,5 +1,13 @@
 # Status
 
+**2026-10-02 (latest): a raised cue fades for its own shooter.**
+- With the cue angle above 4 degrees, the shooter's own cue is 95% see-through on their screen
+  and its aura is off (new `AuraOff` stick attribute in CueSkinLook; `Camera.fadeNear` takes
+  a least fade), so it no longer hides the ball and the jump arc. Opponents, teammates and
+  spectators draw their own copy and see it whole.
+- Checked in Studio (Apex cue): at 28 degrees the stick's parts were at 0.96 and 0 of its 10
+  effects on; back at 4 degrees 0.00 and 10 of 10. Lint passes.
+
 **2026-10-02 (latest): the guideline draws a jump shot's arc.**
 - With the cue raised, Classic tables now show the cue ball's real flight: white dots through
   the air along every hop (drifting toward the target), a faint shadow line on the cloth

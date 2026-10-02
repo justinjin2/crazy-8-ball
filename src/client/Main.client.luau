@@ -1422,9 +1422,19 @@ local function renderFrame(dt: number)
 			ctx.cameraPos = Camera.position()
 			local out = avatar:update(dt, ctx)
 			CueStickBuilder.setVisible(cueStick, out.visible)
+			-- Raised for a jump shot: on this screen only, nearly see-through and no aura, so
+			-- it never hides the ball or the arc (Config.Cue.RaisedCueFade).
+			local raised = ctx.elevation > Config.Cue.CueElevationDegrees
+			if cueStick:GetAttribute("AuraOff") ~= raised then
+				cueStick:SetAttribute("AuraOff", raised)
+			end
 			if out.visible then
 				CueStickBuilder.placeAt(cueStick, out.tip)
-				Camera.fadeNear(cueStick, Config.Cue.CameraFadeStuds)
+				Camera.fadeNear(
+					cueStick,
+					Config.Cue.CameraFadeStuds,
+					if raised then Config.Cue.RaisedCueFade else nil
+				)
 			end
 		end
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default

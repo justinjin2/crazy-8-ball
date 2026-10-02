@@ -16,6 +16,8 @@
 --     nearest the camera;
 --   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
 --     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
+--   * the stick's AuraOff attribute turns the whole aura off at once (the raised hand cue,
+--     Config.Cue.RaisedCueFade); the stick and its piece stay;
 --   * the stick's AuraQuiet attribute (AuraQuiet: in a match, the shooter's cue and, on your
 --     turn, every cue at your table) eases the aura down to its tier's Config.CueSkins.Quiet
 --     share: emitter rates, aura beams and lights.
@@ -95,6 +97,7 @@ export type Look = typeof(setmetatable(
 		frame: number,
 		t0: number,
 		visible: boolean,
+		aura: boolean, -- visible and not AuraOff: the aura is drawn
 		pending: boolean, -- a rebuild waits for the stick's repaint to finish
 		share: number, -- the aura's strength now: 1 full, its Quiet share when quiet
 		lastT: number?, -- the last step's time and the mesh's place then (the speed)
@@ -163,6 +166,7 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		frame = 0,
 		t0 = os.clock(),
 		visible = false,
+		aura = false,
 		pending = false,
 		share = 1,
 		lastT = nil,
@@ -179,6 +183,12 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 	table.insert(
 		self.connections,
 		stick:GetAttributeChangedSignal("Visible"):Connect(function()
+			self:applyVisible()
+		end)
+	)
+	table.insert(
+		self.connections,
+		stick:GetAttributeChangedSignal("AuraOff"):Connect(function()
 			self:applyVisible()
 		end)
 	)
@@ -727,10 +737,14 @@ function CueSkinLook.applyVisible(self: Look)
 	-- waits a frame, refreshSoon).
 	local current = self.stick:GetAttribute("CueId") == self.cueId
 	local visible = self.stick:GetAttribute("Visible") == true and self.row ~= nil and current
-	local appearing = visible and not self.visible
+	-- The aura (emitters, beams, orbiters, arcs, lights) also goes with AuraOff; the stick
+	-- and its piece do not.
+	local aura = visible and self.stick:GetAttribute("AuraOff") ~= true
+	local appearing = aura and not self.aura
 	self.visible = visible
+	self.aura = aura
 	for _, item in self.emitters do
-		item.e.Enabled = visible and item.e.Rate > 0
+		item.e.Enabled = aura and item.e.Rate > 0
 	end
 	if appearing and C.ShowPrefillShare > 0 then
 		-- Coming into view: the aura is already there, not growing in (Config.CueSkins).
@@ -746,19 +760,19 @@ function CueSkinLook.applyVisible(self: Look)
 		end
 	end
 	for _, item in self.beams do
-		item.b.Enabled = visible
+		item.b.Enabled = aura
 	end
 	for _, o in self.orbiters do
-		o.trail.Enabled = visible
+		o.trail.Enabled = aura
 		if o.head then
-			o.head.Enabled = visible
+			o.head.Enabled = aura
 		end
-		if not visible then
+		if not aura then
 			o.trail:Clear()
 		end
 	end
 	for _, arc in self.arcs do
-		if not visible then
+		if not aura then
 			for _, strand in arc.strands do
 				for _, beam in strand.beams do
 					beam.Enabled = false
@@ -768,7 +782,7 @@ function CueSkinLook.applyVisible(self: Look)
 		end
 	end
 	for _, l in self.lights do
-		l.light.Enabled = visible
+		l.light.Enabled = aura
 	end
 	if self.piece then
 		self.piece:setModifier(if visible then 0 else 1)
@@ -878,7 +892,7 @@ function CueSkinLook.step(self: Look, t: number)
 		radial = if radial.Magnitude > 1e-4 then radial.Unit else Vector3.yAxis
 		o.a.Position = p - radial * half
 		o.b.Position = p + radial * half
-		o.trail.Enabled = self.visible
+		o.trail.Enabled = self.aura
 	end
 	for _, arc in self.arcs do
 		local interval = arc.row.Interval or 0.12
@@ -887,7 +901,7 @@ function CueSkinLook.step(self: Look, t: number)
 			arc.slot = slot
 			strike(arc)
 		end
-		local on = self.visible and ((t % interval) / interval) <= (arc.row.Duty or 0.6)
+		local on = self.aura and ((t % interval) / interval) <= (arc.row.Duty or 0.6)
 		if on ~= arc.shown then
 			arc.shown = on
 			for _, strand in arc.strands do

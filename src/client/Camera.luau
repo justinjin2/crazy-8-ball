@@ -774,8 +774,9 @@ local nearParts: { [Model]: { parts: { BasePart }, shown: { number } } } = setme
 --- `studs` of the camera: untouched from there out, gone at the camera itself. For the
 --- shooter's own cue (Config.Cue.CameraFadeStuds), so a steeply raised butt swinging
 --- past the lens never blocks the view. Call after the model is placed for the frame, and
---- after Camera.update. Other clients' copies are never touched.
-function Camera.fadeNear(model: Model, studs: number)
+--- after Camera.update. Other clients' copies are never touched. `least`: every part is at
+--- least this faded (the raised cue, Config.Cue.RaisedCueFade).
+function Camera.fadeNear(model: Model, studs: number, least: number?)
 	local entry = nearParts[model]
 	if not entry then
 		local parts: { BasePart } = {}
@@ -799,7 +800,8 @@ function Camera.fadeNear(model: Model, studs: number)
 			math.max(math.abs(v.Y) - half.Y, 0),
 			math.max(math.abs(v.Z) - half.Z, 0)
 		)
-		local fade = math.clamp(1 - out.Magnitude / math.max(studs, 1e-3), 0, 1)
+		local fade =
+			math.max(math.clamp(1 - out.Magnitude / math.max(studs, 1e-3), 0, 1), least or 0)
 		-- Quantised, and written only when it changes, so a cue held still costs no writes.
 		fade = math.floor(fade * 50 + 0.5) / 50
 		if fade ~= shown[i] then
