@@ -5427,7 +5427,9 @@ Config.Multiplayer = {
 		-- 44 px touch), the picked one in this tone.
 		QueueLevelHeight = 40,
 		QueueLevelPickedTone = "Yellow",
-		QueueXpTone = "Blue", -- "1.25x XP" under a level: a kit colour, in outlined text
+		-- "1.25x XP" under a level, in outlined text: a bright sky blue (designer, 2026-10-02:
+		-- brighter than the kit's Blue 59, 155, 255).
+		QueueXpColor = { 70, 205, 255 },
 		-- Locked levels sharing an unlock rank get one "Requires Gold I+" banner across them,
 		-- this tall, reaching this far up onto their buttons' lower edge (under their words),
 		-- this far in from the row's sides (designer, 2026-10-02: one line under each button

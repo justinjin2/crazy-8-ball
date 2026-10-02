@@ -1,7 +1,7 @@
 # Status
 
-**2026-10-02 (latest): the XP bonus lines are blue outlined text** (kit button text in
-Config.Multiplayer.Style.QueueXpTone, 20 px) so they read as extra. Checked in Studio on PC.
+**2026-10-02 (latest): the XP bonus lines are blue outlined text** (kit button text, sky blue
+Config.Multiplayer.Style.QueueXpColor, 20 px) so they read as extra. Checked in Studio on PC.
 
 **2026-10-02 (latest): a raised cue fades for its own shooter.**
 - With the cue angle above 4 degrees, the shooter's own cue is 95% see-through on their screen

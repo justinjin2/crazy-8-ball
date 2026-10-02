@@ -200,7 +200,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 				level .. "Xp",
 				S.QueueText.Xp,
 				Copy.LevelXp:format(string.format("%g", xp)),
-				HudParts.tone(S.QueueXpTone)
+				HudParts.color(S.QueueXpColor)
 			)
 			note.TextWrapped = false
 			HudParts.setTextSize(note, S.QueueText.Xp, S.QueueText.NarrowFloor)
