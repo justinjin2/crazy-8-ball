@@ -244,6 +244,15 @@ local function countShort(player: Player, key: string)
 	end
 end
 
+-- The table's difficulty as a Config.Ranks.ModeXp key (designer, 2026-10-02: Difficult 1.25x
+-- and Challenger 1.5x rank XP, shown on the host card); anything else counts as Classic.
+local function modeOf(e: any): string
+	local level = if type(e.settings) == "table" then e.settings.difficulty else nil
+	return if type(level) == "string" and (Config.Ranks.ModeXp :: any)[level]
+		then level
+		else "Classic"
+end
+
 --- A player who is leaving (PlayerRemoving) while seated in a running match: their forfeit
 --- loss, applied now while their save is still open. TableService calls this before it
 --- takes them off the table.
@@ -287,7 +296,7 @@ function Ranking.departed(t: any, player: Player)
 	applyMatch(
 		player,
 		data,
-		{ outcome = "Loss", opponent = kind, forfeit = true, mode = "Classic" }
+		{ outcome = "Loss", opponent = kind, forfeit = true, mode = modeOf(e) }
 	)
 	local seat = Engine.seat(e, player.UserId)
 	local opponents = if seat and type(seat.team) == "number"
@@ -386,7 +395,7 @@ local function settleOne(m: Match, entry: Entry, paid: Paid)
 			outcome = outcome,
 			opponent = kind,
 			forfeit = entry.forfeited,
-			mode = "Classic",
+			mode = modeOf(m.e),
 			opponentIndex = entry.opponentIndex,
 			boosts = flags,
 			farm = farm.Xp,

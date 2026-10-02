@@ -44,6 +44,7 @@ return {
 			PlayerCount = "%d/%d", -- in the people pill: how many are on the pad, of how many it holds
 			Levels = { Classic = "Classic", Difficult = "Difficult", Challenger = "Challenger" },
 			LevelLocked = "Requires %s+", -- under a level your rank can't host yet ("Gold I")
+			LevelXp = "%sx XP", -- under a level that pays more rank XP ("1.25")
 			PlaySolo = "Play solo",
 			PlayPC = "Play against PC",
 			-- The host's card adds three dots that light up one by one (QueueMenu.dots).

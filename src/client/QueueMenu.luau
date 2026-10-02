@@ -172,6 +172,7 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.levelRow = levels
 	self.levelButtons = {} :: { [string]: TextButton }
 	self.levelLocks = {} :: { [string]: TextLabel } -- "Requires Gold I+" under a locked level
+	self.levelXp = {} :: { [string]: TextLabel } -- "1.25x XP" under a level paying more XP
 	self.fitWidth = 0 -- the label widths the words were last fitted to
 	local order = Config.Difficulty.Order
 	local gap = S.QueueRowGap
@@ -188,6 +189,22 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 		HudParts.setMinHit(b, 44)
 		HudParts.setButtonTextSize(b, S.QueueText.Level, S.QueueText.NarrowFloor)
 		self.levelButtons[level] = b
+		-- "1.25x XP" under a level that pays more rank XP (Config.Ranks.ModeXp).
+		local xp = (Config.Ranks.ModeXp :: any)[level]
+		if type(xp) == "number" and xp > 1 then
+			local note = HudParts.note(
+				levels,
+				level .. "Xp",
+				S.QueueText.Small,
+				Copy.LevelXp:format(string.format("%g", xp))
+			)
+			note.TextWrapped = false
+			HudParts.setTextSize(note, S.QueueText.Small, S.QueueText.NarrowFloor)
+			note.Position =
+				UDim2.new(b.Position.X.Scale, b.Position.X.Offset, 0, S.QueueLevelHeight + 2)
+			note.Size = UDim2.new(b.Size.X.Scale, b.Size.X.Offset, 0, S.QueueText.Small + 2)
+			self.levelXp[level] = note
+		end
 		local need = Ranks.unlockName(level)
 		if need then
 			local lock = HudParts.note(
@@ -198,8 +215,14 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 			)
 			lock.TextWrapped = false
 			HudParts.setTextSize(lock, S.QueueText.Small, S.QueueText.NarrowFloor)
-			lock.Position =
-				UDim2.new(b.Position.X.Scale, b.Position.X.Offset, 0, S.QueueLevelHeight + 2)
+			-- Under the XP line, when the level has one.
+			local below = if self.levelXp[level] then S.QueueText.Small + 2 else 0
+			lock.Position = UDim2.new(
+				b.Position.X.Scale,
+				b.Position.X.Offset,
+				0,
+				S.QueueLevelHeight + 2 + below
+			)
 			lock.Size = UDim2.new(b.Size.X.Scale, b.Size.X.Offset, 0, S.QueueText.Small + 2)
 			lock.Visible = false
 			self.levelLocks[level] = lock
@@ -407,7 +430,7 @@ local function fitSize(label: TextLabel, most: number, width: number): number
 	return size
 end
 
---- Fit the level words and "Requires Gold I+" to their buttons (again when the row's width
+--- Fit the level words, "1.25x XP" and "Requires Gold I+" to their buttons (again when the row's width
 --- changes).
 function QueueMenu.fitLevels(self: any)
 	-- Keyed on the labels' own widths: a candy lays its label out a frame after it resizes.
@@ -417,14 +440,16 @@ function QueueMenu.fitLevels(self: any)
 		key += if parts then parts.label.AbsoluteSize.X else 0
 		local lock = self.levelLocks[level]
 		key += if lock then lock.AbsoluteSize.X else 0
+		local xp = self.levelXp[level]
+		key += if xp then xp.AbsoluteSize.X else 0
 	end
 	if key <= 0 or key == self.fitWidth then
 		return
 	end
 	self.fitWidth = key
 	-- The card's whole scale (its UIScale and any above it): measure in unscaled pixels. All
-	-- three words share one size, and both "Requires Gold I+" lines another: the size the
-	-- tightest one fits.
+	-- three words share one size, and the "1.25x XP" and "Requires Gold I+" lines another: the
+	-- size the tightest one fits.
 	local scale = math.max(self.root.AbsoluteSize.X / S.QueueMenuWidth, 1e-3)
 	local words, notes = S.QueueText.Level, S.QueueText.Small
 	for level, b in self.levelButtons do
@@ -432,16 +457,14 @@ function QueueMenu.fitLevels(self: any)
 		if parts then
 			words = math.min(words, fitSize(parts.label, words, parts.label.AbsoluteSize.X / scale))
 		end
-		local lock = self.levelLocks[level]
-		if lock then
-			notes = math.min(notes, fitSize(lock, notes, lock.AbsoluteSize.X / scale))
+		for _, note in { self.levelLocks[level], self.levelXp[level] } do
+			notes = math.min(notes, fitSize(note, notes, note.AbsoluteSize.X / scale))
 		end
 	end
 	for level, b in self.levelButtons do
 		HudParts.setButtonTextSize(b, words, S.QueueText.NarrowFloor)
-		local lock = self.levelLocks[level]
-		if lock then
-			HudParts.setTextSize(lock, notes, S.QueueText.NarrowFloor)
+		for _, note in { self.levelLocks[level], self.levelXp[level] } do
+			HudParts.setTextSize(note, notes, S.QueueText.NarrowFloor)
 		end
 	end
 end
@@ -712,8 +735,12 @@ function QueueMenu.update(self: any, now: number)
 			lock.Visible = locked
 		end
 	end
-	-- Room under the row for "Requires Gold I+" while a level is locked.
-	local rowHeight = S.QueueLevelHeight + (if anyLocked then S.QueueText.Small + 4 else 0)
+	-- Room under the row for the XP lines, and "Requires Gold I+" while a level is locked.
+	local line = S.QueueText.Small + 2
+	local rowHeight = S.QueueLevelHeight
+		+ 2
+		+ (if next(self.levelXp) then line else 0)
+		+ (if anyLocked then line else 0)
 	if self.levelRow.Size.Y.Offset ~= rowHeight then
 		self.levelRow.Size = UDim2.new(1, 0, 0, rowHeight)
 	end
