@@ -24,10 +24,14 @@ the background so it outlives the terminal (`rojo <lane>`; `status` shows them a
 
 ## How a lane works
 
-1. **Interview first, in plan mode.** The designer has exact pictures in mind and will paste
-   reference images into your terminal. Pasted images are not saved anywhere, so your brief must
-   describe each reference in words: what it shows, which parts to copy (layout, colours,
-   timing, motion, sound) and which to ignore. Ask until nothing is guessed. Then write
+1. **Interview first, in plan mode.** The designer has exact pictures in mind. Their reference
+   images are in `~/Desktop/8ball-refs/<your lane>/` (outside git, readable by every terminal;
+   a filename or a `notes.md` there may say what each shows), and they may paste more into your
+   terminal; they may also paste design notes they organised beforehand. Look at every image
+   in your folder first. Pasted images are not saved anywhere, so your brief must describe each
+   reference in words and name its file: what it shows, which parts to copy (layout, colours,
+   timing, motion, sound) and which to ignore. Reopen the files whenever you check your work
+   against them. Ask until nothing is guessed. Then write
    `docs/prompts/<LANE>_PROMPT.md` (the brief) and get the designer's approval.
 2. **Build in small verified steps** inside your own worktree. After each step: `tools/lint.sh`,
    `tools/test.sh`, a Studio check in YOUR window, commit and push your branch.
