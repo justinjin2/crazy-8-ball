@@ -1,5 +1,14 @@
 # Status
 
+**2026-10-02 (latest): ability screen effects only for the players.**
+- Full-screen ability effects (Time Stop's grey, Rewind's glitch, Black Flash's frame, the
+  Tiger's flash, the ult cutscene, and their 2D sounds) had also shown to anyone standing
+  within 40 studs of the table, so lobby players walking past saw them. Now only the players
+  seated at that table see them (`ScreenFx.involved`; `SpectateRadiusStuds` removed).
+  Effects drawn on the table itself (on the balls and cloth) are unchanged.
+- Checked in Studio: standing beside table 2 → not involved; seated → involved; someone
+  else's match → not involved. Lint and all tests pass.
+
 **2026-10-02 (latest): phone shooting controls.**
 - The PULL bar on a phone sits further right, away from the aiming thumb (players launched
   by accident): 8 px from the safe area's edge (was 18), plus 35% of the safe area's right

@@ -309,8 +309,8 @@ per ability, and document them in ARCHITECTURE):
   hand, groups, turn, fouls, bars) restored after a failed shot, with the replay played
   backwards for the look.
 - **Table-wide screen effects** (Rewind's glitch, Time Stop's grey and inversion, Black Flash's
-  red frame, the Tiger's stripe flash): seen by everyone seated at that table and by spectators
-  inside its match fence. Nobody else in the hub.
+  red frame, the Tiger's stripe flash): seen only by the players seated at that table. Nobody
+  else in the hub, not even someone standing beside it (designer, 2026-10-02).
 
 ### 5.3 Balance (the power ladder, measured, not guessed)
 The designer's ladder (GDD 9), made slightly steeper at the top so a higher rarity is always a

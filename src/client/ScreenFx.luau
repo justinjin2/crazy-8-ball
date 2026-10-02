@@ -3,9 +3,9 @@
 -- 5.2): Rewind's glitch, Time Stop's grey and inversion, Black Flash's red frame, the Tiger's
 -- stripe flash. Numbers in Config.UI.ScreenFx.
 --
--- Seen only by the players in that match or watching it: seated at that table, or standing
--- within Config.UI.UltCutscene.SpectateRadiusStuds of it. `ScreenFx.involved` is that one
--- rule; UltCutscene calls it too. Every call takes the table id first and does nothing at all
+-- Seen only by the players in that match: seated at that table (designer, 2026-10-02: no one
+-- else, not even someone standing beside it; a radius had let the lobby see them).
+-- `ScreenFx.involved` is that one rule; UltCutscene calls it too. Every call takes the table id first and does nothing at all
 -- for a player who is not involved (checked when the effect starts).
 --
 -- The pieces: a colour grade (a ColorCorrectionEffect in Lighting, faded in, held, faded
@@ -33,7 +33,6 @@ local Lighting = game:GetService("Lighting")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
-local Placement = require(Shared:WaitForChild("Placement"))
 local FxMath = require(Shared:WaitForChild("FxMath"))
 
 local S = Config.UI.ScreenFx
@@ -141,10 +140,9 @@ end
 -- Who sees it
 ---------------------------------------------------------------------------------------------
 
---- In the match at table `tableId`: seated there (hub.mySeat, or a seat in its snapshot), or
---- standing within Config.UI.UltCutscene.SpectateRadiusStuds of its centre (the character, or
---- the camera's focus with no character). The one rule for the cutscene and every table-wide
---- effect. `snapshot` defaults to the hub's latest for that table.
+--- In the match at table `tableId`: seated there (hub.mySeat, or a seat in its snapshot). The
+--- one rule for the cutscene and every table-wide effect. `snapshot` defaults to the hub's
+--- latest for that table.
 function ScreenFx.involved(h: any, tableId: number, snapshot: any?): boolean
 	if h and h.mySeat == tableId then
 		return true
@@ -157,22 +155,7 @@ function ScreenFx.involved(h: any, tableId: number, snapshot: any?): boolean
 			end
 		end
 	end
-	local p = Placement.forTable(tableId)
-	if p == nil then
-		return false
-	end
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	local at: Vector3? = nil
-	if root and root:IsA("BasePart") then
-		at = root.Position
-	elseif workspace.CurrentCamera then
-		at = workspace.CurrentCamera.Focus.Position
-	end
-	if at == nil then
-		return false
-	end
-	return FxMath.within(at.X - p.x, at.Z - p.z, Config.UI.UltCutscene.SpectateRadiusStuds)
+	return false
 end
 
 --- The hub whose seats and snapshots `involved` reads (AbilityFx.start sets it).

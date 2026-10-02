@@ -5,7 +5,7 @@
 --
 -- It watches every table's snapshot. `ults.armed` with an `at` newer than the last one seen
 -- at that table is a new activation: the panel plays if this player is in that match (seated
--- there, or standing within SpectateRadiusStuds of it) and it is still fresh (server time
+-- there; ScreenFx.involved) and it is still fresh (server time
 -- minus `armed.at` under Config.Ults.CutsceneSeconds), so a late join never plays it and a
 -- repeated snapshot never plays it twice. A client that hears late starts part-way in, on the
 -- server's clock. At `armed.readyAt` (the arming moment, about 1 s after the panel has gone)

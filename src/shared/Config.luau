@@ -6910,8 +6910,6 @@ Config.UI.Inventory = {
 -- 1920 x 1080. Times are seconds from the activation (armed.at). (tune)
 Config.UI.UltCutscene = {
 	DisplayOrderAbove = 8, -- its ScreenGui sits this far over the HUD's (the menus sit at +10)
-	-- Who sees it: the table's players, and anyone standing this close to its centre (studs).
-	SpectateRadiusStuds = 40,
 	-- The arming callback still fires for a client that hears of the activation this late
 	-- after readyAt (a slow snapshot); later than that, the armed look just appears.
 	ArmGraceSeconds = 0.3,
