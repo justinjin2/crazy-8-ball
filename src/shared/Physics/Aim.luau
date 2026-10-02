@@ -49,6 +49,20 @@ export type Trace = {
 	-- Where the cue ball comes down on the way (a jump shot), in order. Empty on the cloth.
 	landings: { { x: number, y: number } },
 	airborne: boolean, -- the contact above happens in the air
+	-- Each arc of a jump shot, in order: where it starts (z is the height off the cloth) and
+	-- how it moves, and how long it flies (to its touchdown, or to the contact in the air).
+	-- Position at t: x + vx t, y + vy t, z + vz t - g t^2 / 2. Empty on the cloth.
+	hops: { Hop },
+}
+
+export type Hop = {
+	x: number,
+	y: number,
+	z: number,
+	vx: number,
+	vy: number,
+	vz: number,
+	seconds: number,
 }
 
 local FAR = 1e6
@@ -104,6 +118,9 @@ local function traceFlight(state: State, probe: Ball, trace: Trace): boolean
 		local function at(t: number): (number, number, number)
 			return x0 + probe.vx * t, y0 + probe.vy * t, z0 + vz0 * t - 0.5 * g * t * t
 		end
+		local hop: Hop =
+			{ x = x0, y = y0, z = z0, vx = probe.vx, vy = probe.vy, vz = vz0, seconds = flight }
+		table.insert(trace.hops, hop)
 		-- What the ball meets at time t: a ball (3-D overlap), a cushion below its top, or
 		-- the cushion line crossed above it.
 		local function meets(t: number): (string?, Ball?)
@@ -142,6 +159,7 @@ local function traceFlight(state: State, probe: Ball, trace: Trace): boolean
 					end
 				end
 				local hitKind, hitBall = meets(hi)
+				hop.seconds = hi
 				local x, y = at(hi)
 				trace.ghostX, trace.ghostY = x, y
 				trace.airborne = true
@@ -206,6 +224,7 @@ function Aim.trace(state: State, shotOrAngle: Cue.Shot | number): Trace
 		cueShare = 0,
 		landings = {},
 		airborne = false,
+		hops = {},
 	}
 	if cue == nil or cue.pocketed then
 		return trace

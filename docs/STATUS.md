@@ -1,5 +1,17 @@
 # Status
 
+**2026-10-02 (latest): the guideline draws a jump shot's arc.**
+- With the cue raised, Classic tables now show the cue ball's real flight: white dots through
+  the air along every hop (drifting toward the target), a faint shadow line on the cloth
+  under each hop, the landing rings, and the aim corridor from where the ball settles (none
+  when it meets a ball in the air). It is live with the pull. Difficult and Challenger
+  unchanged.
+- `Aim.trace` now returns `hops` (each arc's start and flight time); new Lune tests check
+  they chain to the landings and clear the ball jumped. Settings in Config.Guideline.Arc.
+- Checked in Studio (PC): 30 degrees at 47% and 100% pull from the shooter's view; a side view
+  at 70% shows the arc rising onto the yellow ball; Difficult draws no dots. Lint and all 892
+  tests pass; console clean. Not yet checked: phone and gamepad.
+
 **2026-10-02 (latest): everyone in the match sees the called pocket.**
 - Once the 8's pocket is called, its blue marker shows to every player seated in the match
   (teammates and opponents, every mode), not just the shooter, while the shooter places and

@@ -1553,12 +1553,16 @@ Config.Difficulty = {
 	MoneyMultiplier = { Classic = 1, Difficult = 1.5, Challenger = 2 },
 	-- What each level draws (src/client/Guideline.luau). Corridor: the aim line to the ghost
 	-- ball and its ring. Stubs: the object ball's line and the cue ball's deflection or rail
-	-- bounce. Landings: where a jump shot comes down. The red X on a wrong target or an off
-	-- table shot, and the glow on your own balls, stay on at every level.
+	-- bounce. Landings: where a jump shot comes down. Arc: a jump shot's flight drawn in the
+	-- air (Config.Guideline.Arc; designer, 2026-10-02: Classic only). The red X on a wrong
+	-- target or an off table shot, and the glow on your own balls, stay on at every level.
 	Levels = {
-		Classic = { Corridor = true, Stubs = true, Landings = true }, -- every line (the default)
-		Difficult = { Corridor = true, Stubs = false, Landings = false }, -- the aim line only
-		Challenger = { Corridor = false, Stubs = false, Landings = false }, -- no lines at all
+		-- every line (the default)
+		Classic = { Corridor = true, Stubs = true, Landings = true, Arc = true },
+		-- the aim line only
+		Difficult = { Corridor = true, Stubs = false, Landings = false, Arc = false },
+		-- no lines at all
+		Challenger = { Corridor = false, Stubs = false, Landings = false, Arc = false },
 	},
 }
 
@@ -3120,6 +3124,19 @@ Config.Guideline = {
 	MaxLandingMarks = 4,
 	LandingRingScale = 0.6,
 	LandingTransparency = 0.45,
+	-- A jump shot's flight, drawn in the air where the levels say Arc (designer, 2026-10-02:
+	-- see the ball go over the one in the way). Dots along the cue ball centre's path, every
+	-- arc it hops, drifting toward the target at the dashes' speed, with a faint shadow line on
+	-- the cloth under each arc. The flat corridor starts where the ball settles. (tune)
+	Arc = {
+		MaxDots = 120, -- dots in the pool; a longer flight stops drawing there
+		DotSpacingInches = 1.4, -- between dots, along the flight on the cloth
+		DotDiameterInches = 0.45,
+		DotTransparency = 0.15,
+		DriftInchesPerSecond = 2.5, -- the dots' drift toward the target
+		ShadowTransparency = 0.7, -- the line on the cloth under each arc
+		MaxHops = 8, -- arcs with a shadow line (Aim traces at most 8)
+	},
 	Color = { 255, 255, 255 },
 	LineTransparency = 0.15,
 	StubTransparency = 0.3,

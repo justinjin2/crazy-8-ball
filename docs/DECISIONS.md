@@ -2240,3 +2240,4 @@ caps switch), leaving the plain tiled cloth; no new images needed.
 - 2026-10-02 (designer): **On a phone the PULL bar moves further right** (8 px margin, and 35% of the safe area's right strip) so players stop launching by accident, and **touch aim drags turn 15% more** (TouchAimScale 1.15; mouse and gamepad unchanged).
 - 2026-10-02 (designer): **Full-screen ability effects and the ult cutscene show only to the players seated at that table**; the 40-stud "standing nearby" spectator radius is gone (lobby players walking past saw them).
 - 2026-10-02 (designer): **The called 8-ball pocket is marked for everyone in the match** (teammates and opponents, every mode), not only the shooter.
+- 2026-10-02 (designer): **A jump shot's guideline shows its arc in the air** (Classic only): dots along every hop, live with the pull, a shadow line on the cloth under each, landing rings kept, and the aim line from where the ball settles.

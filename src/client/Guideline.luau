@@ -7,6 +7,9 @@
 --   * thin solid lines for where the object ball goes and where the cue ball deflects
 --   * on a jump shot, a small ring where the cue ball comes down each time, and a red cross
 --     where it would fly off the table
+--   * on a jump shot at a level that draws Arc: the flight itself, dots along the cue ball's
+--     path through the air (every hop) drifting toward the target, a faint shadow line on the
+--     cloth under each hop, and the corridor starting where the ball settles
 -- How much of it a table draws is its difficulty (Config.Difficulty); the red cross is
 -- always drawn.
 
@@ -19,6 +22,7 @@ local TableBuilder = require(Shared:WaitForChild("TableBuilder"))
 local Aim = require(Shared:WaitForChild("Physics"):WaitForChild("Aim"))
 
 type Trace = Aim.Trace
+type Hop = Aim.Hop
 
 local Guideline = {}
 Guideline.__index = Guideline
@@ -37,6 +41,11 @@ export type Guideline = typeof(setmetatable(
 		cueStub: Strip,
 		crosses: { Strip },
 		landings: { Part },
+		dots: { Part }, -- the jump's flight (Config.Guideline.Arc)
+		dotsShown: number, -- dots 1..dotsShown are drawn
+		shadows: { Strip }, -- a line on the cloth under each hop
+		hops: { Hop }?, -- the hops the dots follow, while an arc is drawn
+		arcPhase: number, -- inches the dots have drifted along, 0..DotSpacingInches
 		scroll: number,
 		-- The ghost ball's centre (inches) while a ball or cushion contact is shown, for the
 		-- abilities' reach preview (AbilityFx); nil while hidden.
@@ -112,6 +121,22 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 		table.insert(landings, makeRing("Landing" .. i, G.LandingRingScale))
 	end
 
+	-- The flight's dots and the shadow line under each hop.
+	local A = G.Arc
+	local dots = {}
+	local dotSize = TableBuilder.studs(A.DotDiameterInches)
+	for i = 1, A.MaxDots do
+		local dot = flatPart("ArcDot" .. i, folder)
+		dot.Shape = Enum.PartType.Ball
+		dot.CanTouch = false
+		dot.Size = Vector3.new(dotSize, dotSize, dotSize)
+		table.insert(dots, dot)
+	end
+	local shadows = {}
+	for i = 1, A.MaxHops do
+		table.insert(shadows, makeStrip("ArcShadow" .. i, folder, false))
+	end
+
 	local self = setmetatable({
 		folder = folder,
 		placement = p,
@@ -123,6 +148,11 @@ function Guideline.new(parent: Instance, p: Placement.Placement): Guideline
 		cueStub = makeStrip("CueStub", folder, false),
 		crosses = { makeStrip("InvalidA", folder, false), makeStrip("InvalidB", folder, false) },
 		landings = landings,
+		dots = dots,
+		dotsShown = 0,
+		shadows = shadows,
+		hops = nil,
+		arcPhase = 0,
 		scroll = 0,
 		aimContact = nil,
 	}, Guideline)
@@ -199,20 +229,30 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level:
 	local ringR = Config.Balls.RenderRadiusInches * G.RingScale
 	local stub = G.StubLengthInches
 
+	-- A jump at a level that draws its flight: the arc in the air, and the corridor only from
+	-- where the ball settles (none when it meets something in the air).
+	local arc = draws.Arc == true and #trace.hops > 0
+	self:drawArc(if arc then trace.hops else nil)
+	local fromX, fromY = trace.startX, trace.startY
+	if arc then
+		local last = trace.hops[#trace.hops]
+		fromX, fromY = last.x + last.vx * last.seconds, last.y + last.vy * last.seconds
+	end
+
 	-- Corridor from the cue ball to the ghost ball: edges a ball radius either side of the
 	-- aim line, running from under the cue ball to the sides of the ring; the dashed centre
 	-- line runs from the cue ball's front edge to the ring's near edge.
-	local dx, dy = trace.ghostX - trace.startX, trace.ghostY - trace.startY
+	local dx, dy = trace.ghostX - fromX, trace.ghostY - fromY
 	local len = math.sqrt(dx * dx + dy * dy)
-	if draws.Corridor and len > R + ringR then
+	if draws.Corridor and not (arc and trace.airborne) and len > R + ringR then
 		local ux, uy = dx / len, dy / len
 		local px, py = -uy, ux -- perpendicular to the aim
 		local function placeEdge(strip: Strip, sgn: number)
 			placeStrip(
 				strip,
 				self.placement,
-				trace.startX + px * R * sgn,
-				trace.startY + py * R * sgn,
+				fromX + px * R * sgn,
+				fromY + py * R * sgn,
 				trace.ghostX + px * R * sgn,
 				trace.ghostY + py * R * sgn,
 				G.EdgeTransparency,
@@ -225,8 +265,8 @@ function Guideline.show(self: Guideline, trace: Trace, invalid: boolean?, level:
 			placeStrip(
 				self.path,
 				self.placement,
-				trace.startX + ux * R,
-				trace.startY + uy * R,
+				fromX + ux * R,
+				fromY + uy * R,
 				trace.ghostX - ux * ringR,
 				trace.ghostY - uy * ringR,
 				G.CentreLineTransparency
@@ -333,6 +373,88 @@ function Guideline.update(self: Guideline, dt: number)
 	if self.path.texture then
 		self.path.texture.OffsetStudsV = offset
 	end
+	local A = G.Arc
+	self.arcPhase = (self.arcPhase + dt * A.DriftInchesPerSecond) % A.DotSpacingInches
+	if self.hops then
+		self:placeDots(self.hops)
+	end
+end
+
+--- Draw a jump's flight (`hops` from Aim.Trace), or take it away (nil).
+function Guideline.drawArc(self: Guideline, hops: { Hop }?)
+	self.hops = hops
+	local A = Config.Guideline.Arc
+	for index, shadow in self.shadows do
+		local hop = hops and hops[index]
+		if hop then
+			local t = hop.seconds
+			placeStrip(
+				shadow,
+				self.placement,
+				hop.x,
+				hop.y,
+				hop.x + hop.vx * t,
+				hop.y + hop.vy * t,
+				A.ShadowTransparency,
+				Config.Guideline.EdgeWidthStuds
+			)
+		else
+			hideStrip(shadow)
+		end
+	end
+	if hops then
+		self:placeDots(hops)
+	else
+		self:showDots(0)
+	end
+end
+
+-- Show dots 1..count and hide the rest (only those that change).
+function Guideline.showDots(self: Guideline, count: number)
+	local A = Config.Guideline.Arc
+	if count == self.dotsShown then
+		return
+	end
+	for i = math.min(count, self.dotsShown) + 1, math.max(count, self.dotsShown) do
+		self.dots[i].Transparency = if i <= count then A.DotTransparency else 1
+	end
+	self.dotsShown = count
+end
+
+-- The dots along the hops: every DotSpacingInches of travel over the cloth, shifted by the
+-- drift, at the ball centre's height.
+function Guideline.placeDots(self: Guideline, hops: { Hop })
+	local A = Config.Guideline.Arc
+	local g = Config.Physics.Gravity
+	local lift = Config.Balls.RenderRadiusInches
+	local parts: { BasePart } = {}
+	local frames: { CFrame } = {}
+	local start = 0 -- the distance along the flight where this hop begins
+	local nextAt = self.arcPhase -- the distance of the next dot
+	for _, hop in hops do
+		local speed = math.sqrt(hop.vx * hop.vx + hop.vy * hop.vy)
+		local length = speed * hop.seconds
+		if speed > 1e-6 then
+			while nextAt <= start + length and #parts < #self.dots do
+				local t = (nextAt - start) / speed
+				local z = hop.z + hop.vz * t - 0.5 * g * t * t
+				local at = TableBuilder.toWorld(
+					self.placement,
+					hop.x + hop.vx * t,
+					hop.y + hop.vy * t,
+					lift + math.max(z, 0)
+				)
+				table.insert(parts, self.dots[#parts + 1])
+				table.insert(frames, CFrame.new(at))
+				nextAt += A.DotSpacingInches
+			end
+		end
+		start += length
+	end
+	if #parts > 0 then
+		workspace:BulkMoveTo(parts, frames, Enum.BulkMoveMode.FireCFrameChanged)
+	end
+	self:showDots(#parts)
 end
 
 --- Tear the guideline down. The local player only has one at a time, so moving to another
@@ -361,6 +483,7 @@ function Guideline.hide(self: Guideline)
 	for _, mark in self.landings do
 		setRing(mark, 1)
 	end
+	self:drawArc(nil)
 end
 
 return Guideline

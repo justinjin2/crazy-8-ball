@@ -257,4 +257,53 @@ return {
 		H.expect(trace.contact == "off" and trace.airborne, "traced off the table")
 		H.expect(result.finalBalls[1].offTable, "and it does fly off")
 	end,
+
+	["a jump's hops chain from the cue ball to each landing and clear the ball jumped"] = function()
+		local Config, Ball, _, Simulation, Aim, geometry = setup()
+		local g = Config.Physics.Gravity
+		local R = Config.Balls.RadiusInches
+		local state = Simulation.newState(
+			geometry,
+			{ Ball.new(0, -30, 0), Ball.new(1, -18, 0), Ball.new(2, 0, 0) }
+		)
+		local trace = Aim.trace(state, { angle = 0, power = 0.8, elevation = 45 })
+		H.expect(#trace.hops >= 1, "a raised hard shot has hops")
+		local first = trace.hops[1]
+		H.expect(first.x == -30 and first.y == 0, "the first hop starts at the cue ball")
+		local function ends(hop: any): (number, number, number)
+			local t = hop.seconds
+			return hop.x + hop.vx * t, hop.y + hop.vy * t, hop.z + hop.vz * t - 0.5 * g * t * t
+		end
+		for i, hop in trace.hops do
+			local x, y, z = ends(hop)
+			local nextHop = trace.hops[i + 1]
+			if nextHop then
+				H.expect(
+					math.abs(x - nextHop.x) < 1e-6 and math.abs(y - nextHop.y) < 1e-6,
+					"hop " .. i .. " ends where the next starts"
+				)
+			end
+			local landing = trace.landings[i]
+			if landing then
+				H.expect(
+					math.abs(x - landing.x) < 1e-6 and math.abs(z) < 1e-6,
+					"hop " .. i .. " ends on the cloth at its landing"
+				)
+			end
+		end
+		-- Over ball 1 (x = -18) the cue ball's bottom is above the other ball's top.
+		local hop = first
+		local t = (-18 - hop.x) / hop.vx
+		if t > 0 and t < hop.seconds then
+			local z = hop.z + hop.vz * t - 0.5 * g * t * t
+			H.expect(z > 2 * R - 1e-6, ("clears ball 1 (bottom %.2f in)"):format(z))
+		end
+	end,
+
+	["a flat shot has no hops"] = function()
+		local _, Ball, _, Simulation, Aim, geometry = setup()
+		local state = Simulation.newState(geometry, { Ball.new(0, -30, 0), Ball.new(1, 0, 0) })
+		local trace = Aim.trace(state, { angle = 0, power = 0.8 })
+		H.expect(#trace.hops == 0, "no hops on the cloth")
+	end,
 }

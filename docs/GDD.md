@@ -95,7 +95,10 @@ Every feature is checked against these. If it serves none, it waits.
   raised angle shows under the spin toggle and resets to 4 after every shot, like spin.
   Raising the cue and striking down bounces the cue ball off the slate: it can jump a
   blocking ball, and too much power sends it off the table. The guideline follows the jump:
-  a small ring where it comes down, and a red cross where it would fly off.
+  a small ring where it comes down, and a red cross where it would fly off. In Classic it
+  also draws the flight itself (2026-10-02): dots through the air along every hop, live with
+  the pull, a faint shadow line on the cloth under each, and the aim line from where the
+  ball settles.
 - Gamepad: left stick aims, up and down on the right stick (or triggers) zooms, a hold-and-
   release button shoots with power, the spin selector is a stick target. Exact bindings are a
   milestone task, not a design question. Decided with a PS5 pad (designer, 2026-09-27):
