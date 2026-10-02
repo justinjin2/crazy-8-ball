@@ -5356,7 +5356,7 @@ Config.Multiplayer = {
 		OpenBallMinSize = 12, -- never shrink them below this to fit
 		OpenLabelShare = 0.36, -- share of the ball-row width the OPEN TABLE label keeps
 		-- The host's card (src/client/QueueMenu.luau), top right while their table waits.
-		QueueMenuWidth = 260, -- pixels, before shrinking to fit
+		QueueMenuWidth = 290, -- pixels, before shrinking to fit (was 260: the level words need room)
 		QueueMenuPadding = 10, -- inside the card
 		QueueMenuLineGap = 4, -- a text row is its font size plus this
 		QueueRowGap = 6, -- between the card's rows
@@ -5374,6 +5374,10 @@ Config.Multiplayer = {
 			Level = 22, -- Classic, Difficult, Challenger (the narrow ones shrink to fit)
 			Status = 18, -- Waiting for opponent...
 			Small = 15, -- "Requires Gold I+", the gamepad hint, "Needs 2 on the pad"
+			-- The level words and "Requires Gold I+" are measured and shrunk to fit their button
+			-- (a one-line kit text does not shrink by itself: STUDIO_NOTES), never below this;
+			-- on a phone they had overflowed and overlapped (designer, 2026-10-02).
+			NarrowFloor = 7,
 		},
 		-- Where the card goes (designer, 2026-09-27: keep it out of the way). A screen at least
 		-- this tall, in GUI pixels, is big (PC, console, tablet): the card sits on the right,
