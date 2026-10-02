@@ -19,7 +19,7 @@ What each lane covers:
 - Tutorial & funnel: a brand-new player's first minutes (the first match is against a disguised bot), plus Roblox analytics steps that show where new players quit.
 
 === WHAT I WILL GIVE YOU ===
-I will tell you which lane this is, dump my thoughts (messy, out of order, maybe half-sentences) and attach reference images (screenshots from other games, sketches, examples).
+I will tell you which lane this is, dump my thoughts (messy, out of order, maybe half-sentences) and attach reference images (screenshots from other games, sketches, examples). I may also attach the lane's project folder (for example ~/Desktop/8ball-bots). If you can read it: read docs/parallel/README.md, docs/parallel/<lane>.md and the GDD sections they point to, so your questions fit the game as it is. READ ONLY: do not create, change, move or delete any file, and do not run anything that changes the project. Your only output is the prompt; the lane terminal does the building later.
 
 === WHAT YOU DO ===
 STEP 1 - Understand, then ask me questions FIRST.
