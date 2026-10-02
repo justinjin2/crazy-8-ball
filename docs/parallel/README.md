@@ -45,9 +45,13 @@ the background so it outlives the terminal (`rojo <lane>`; `status` shows them a
   ("Crazy 8 Ball"), never another lane's. Start and stop play only in your window. If you
   cannot find your window, stop and ask the designer.
 - **Rojo.** Only your port. Never connect anything to 34872 (the integrator's).
-- **No Edit-mode building.** Lanes change scripts (files under `src/`), uploaded assets (ids
-  in Config) and generated data files only. Nothing built by hand in Studio survives the
-  merge: it lives in your local copy only. If you need a model, part or light in the place
+- **Use your Studio window freely to check your work in the real game**: play-test (start
+  and stop play), inspect, read the console, take screenshots, emulate phone, PC and gamepad,
+  watch bots play and cutscenes run. That is expected for every step.
+- **No Edit-mode building.** Your window is a private copy of the place, so lanes change
+  scripts (files under `src/`), uploaded assets (ids in Config) and generated data files only.
+  Nothing built by hand in Studio (parts, imports, lighting) survives the merge: it lives in
+  your local copy only. If you need a model, part or light in the place
   itself, write the request in your lane file; the integrator builds it once in the real place.
 - **Your area is yours; other areas are read-only.** Each lane file lists what it owns. To
   change something another lane owns, write a request in your lane file and keep going.
