@@ -912,6 +912,11 @@ Design-level rules; the technical detail is in ARCHITECTURE.md.
 
 ## 18. Parked ideas (not scheduled)
 
+- **Money sound as a coin burst** (tried and reverted 2026-10-02): a chip landing would play
+  one coin for $1-$5 and a rapid burst for more (about 6 for $10, 40 for $100, 70 for $1,000).
+  Slicing CashLand sounded ugly; of five Creator Store coins the designer liked "coin2"
+  (134583420216867, a double clink) best, but even quiet it was too much. Back to the single
+  CashLand for now.
 - **Snack counter** (parked 2026-09-26, taken off the rooftop map at its Checkpoint A): a
   counter that hands out non-alcoholic drinks and snacks the player can drink or eat (a tool
   with a short animation).
