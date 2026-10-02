@@ -131,6 +131,7 @@ export type EmitterOpts = {
 	frame: "cue" | "part" | "world",
 	rateScale: number?,
 	zOffset: number?, -- added to the row's ZOffset (the back's big sprites go behind the body)
+	locked: boolean?, -- LockedToPart whatever the row says (a cue's aura: Config.CueSkins.Drift)
 }
 
 --- A ParticleEmitter configured from a row (not parented; Enabled as the row's Rate says).
@@ -147,7 +148,7 @@ function CueVfx.emitter(row: any, opts: EmitterOpts): ParticleEmitter
 	e.LightEmission = row.LightEmission or 0
 	e.LightInfluence = row.LightInfluence or 0
 	e.Brightness = row.Brightness or 1
-	e.LockedToPart = row.LockedToPart == true
+	e.LockedToPart = if opts.locked ~= nil then opts.locked else row.LockedToPart == true
 	e.ZOffset = (row.ZOffset or 0) + (opts.zOffset or 0)
 	local spread = row.SpreadAngle or 0
 	e.SpreadAngle = if type(spread) == "number"

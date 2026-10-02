@@ -702,13 +702,22 @@ cue. The skins were authored in `assets/cue/skins/<id>.json` (the cue-skins run,
   `(-Side, Up, 3.5 - AtStuds)`), on invisible host parts (Part, Segment) in a sibling
   `CueLook` model welded to the mesh (BackCue welds every part *inside* a stick to the torso,
   so look parts live outside it), or on a piece's joint. One RenderStepped steps every visible
-  look within `Config.CueSkins.StepDistanceStuds`. The hand stick (`Main.client`) and watched
-  shooters' sticks (`Hub`) attach with `aura = false`; BackCue's sticks with `aura = true` at
-  `Config.CueSkins.BackRateScale`, big sprites pushed behind the body.
+  look within `Config.CueSkins.StepDistanceStuds`. Every stick (the hand stick in
+  `Main.client`, watched shooters' in `Hub`, BackCue's) attaches with `aura = true`; BackCue's
+  run at `Config.CueSkins.BackRateScale`, big sprites pushed behind the body. Emitters are
+  LockedToPart (the aura moves with the cue) but for tiny specks, and orbiter ribbons shorten
+  while the stick moves (`Config.CueSkins.Drift`). The stick attribute `AuraQuiet` eases the
+  aura (emitter rates, aura beams and lights) to its tier's `Config.CueSkins.Quiet` share.
+- **AuraQuiet (shared, pure).** In a match the shooter's cue is quiet and, on your own turn,
+  every cue at your table (`AuraQuiet.quiet(owner, me, snapshots)`, tested in Lune). Main calls
+  `AuraQuiet.apply` every `Quiet.CheckSeconds` with every drawn stick and its owner (the hand
+  stick, `WatchedShooters:owners`, `BackCue:owners`), setting each stick's `AuraQuiet`.
 - **CuePiece (client).** Clones a piece's parts from `ReplicatedStorage.CuePieces`, welds
   rigid parts at `J * Offset * FLIP` (FLIP: the importer's 180 degree turn about Y) and skinned
   rigs at `FLIP`, and every frame sets rigid welds and `Bone.Transform` from `Motion.pose`.
-  `setAura` hides the joints marked `Aura`; `setFade`, `setScale` serve the pocket finisher.
+  `setAura` hides the joints marked `Aura`; `setFade`, `setScale` and `deepen` (a fainter
+  shell, less glow, a tint: `Config.Effects.Finisher`, with a dark outline Highlight from
+  Effects) serve the pocket finisher.
 - **CueAssets (client): a cue appears only once the renderer has loaded it, swapped in one
   frame for the old one** (designer 2026-10-01). Every skin shares one mesh, so a repaint on a visible stick would show the old
   cue being retextured, and a SurfaceAppearance's maps load only when it is drawn (no preload

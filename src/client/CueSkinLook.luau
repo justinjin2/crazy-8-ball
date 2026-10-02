@@ -11,8 +11,14 @@
 --   * the full aura shows everywhere (opts.aura): in the hands while aiming and on the back;
 --   * on the back (opts.back) its emitters run at Config.CueSkins.BackRateScale and only its
 --     torso-sized camera-facing sprites are drawn behind the body;
---   * a cue with an aura wears an outline of its colour (Config.CueSkins.Outline) and a skin's
---     Aura.Highlight outlines its piece (the dragon, the fox), on the cues nearest the camera.
+--   * a cue with an aura wears a faint outline of its colour (Config.CueSkins.Outline) and a
+--     skin's Aura.Highlight softly outlines its piece (the dragon, the fox), on the cues
+--     nearest the camera;
+--   * the aura stays on the cue as it moves: emitters are LockedToPart but for tiny specks,
+--     and an orbiter's ribbon shortens while the stick moves (Config.CueSkins.Drift);
+--   * the stick's AuraQuiet attribute (AuraQuiet: in a match, the shooter's cue and, on your
+--     turn, every cue at your table) eases the aura down to its tier's Config.CueSkins.Quiet
+--     share: emitter rates, aura beams and lights.
 --
 -- Emitters, Beams and Lights live on Attachments in the stick's mesh; the look's own parts (a
 -- Part host, a joint rider, the piece) sit in a Model next to the stick, welded to the mesh,
@@ -50,6 +56,7 @@ type DynBeam = {
 	base0: Vector3,
 	base1: Vector3,
 	transparency: { any }?,
+	aura: boolean, -- dimmed by the quiet share
 }
 type Orbiter = {
 	row: any,
@@ -76,7 +83,7 @@ export type Look = typeof(setmetatable(
 		mesh: MeshPart?,
 		folder: Model?, -- the look's own parts
 		built: { Instance }, -- everything to destroy on rebuild
-		emitters: { { e: ParticleEmitter, aura: boolean } },
+		emitters: { { e: ParticleEmitter, aura: boolean, rate: number } }, -- rate: unquieted
 		beams: { { b: Beam, aura: boolean } },
 		dynBeams: { DynBeam },
 		orbiters: { Orbiter },
@@ -89,6 +96,10 @@ export type Look = typeof(setmetatable(
 		t0: number,
 		visible: boolean,
 		pending: boolean, -- a rebuild waits for the stick's repaint to finish
+		share: number, -- the aura's strength now: 1 full, its Quiet share when quiet
+		lastT: number?, -- the last step's time and the mesh's place then (the speed)
+		lastAt: Vector3?,
+		speed: number, -- the stick's eased speed, studs per second
 		connections: { RBXScriptConnection },
 	},
 	CueSkinLook
@@ -153,6 +164,10 @@ function CueSkinLook.attach(stick: Model, opts: Opts): Look
 		t0 = os.clock(),
 		visible = false,
 		pending = false,
+		share = 1,
+		lastT = nil,
+		lastAt = nil,
+		speed = 0,
 		connections = {},
 	}, CueSkinLook)
 	table.insert(
@@ -250,6 +265,7 @@ function CueSkinLook.refresh(self: Look)
 	end
 	self.row = row
 	self.mesh = mesh
+	self.share = self:quietTarget() -- a cue built while quiet starts quiet
 	local folder = Instance.new("Model")
 	folder.Name = "CueLook"
 	folder.Parent = self.stick.Parent
@@ -303,7 +319,16 @@ function CueSkinLook.refresh(self: Look)
 			})
 		end
 		if aura.Highlight and self.piece then
-			self:addHighlight("PieceHighlight", self.piece.model, aura.Highlight)
+			local hl = aura.Highlight
+			self:addHighlight("PieceHighlight", self.piece.model, {
+				FillColor = hl.FillColor,
+				FillTransparency = math.max(hl.FillTransparency or 0.6, O.PieceFillTransparencyMin),
+				OutlineColor = hl.OutlineColor,
+				OutlineTransparency = math.max(
+					hl.OutlineTransparency or 0,
+					O.PieceOutlineTransparencyMin
+				),
+			})
 		end
 	end
 	if self.piece then
@@ -440,12 +465,20 @@ function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	local parent, frame = self:host(row)
 	local back = self.opts.back == true
 	local rateScale = if back then C.BackRateScale else 1
-	local behind = back and CueVfx.maxOf(row.Size) > C.BehindBodySizeStuds
+	local size = CueVfx.maxOf(row.Size)
+	local behind = back and size > C.BehindBodySizeStuds
+	-- On the cue as it moves, but for tiny specks drifting off thinly (Config.CueSkins.Drift).
+	local drifts = size <= C.Drift.MaxSizeStuds and row.LockedToPart ~= true
 	local e = CueVfx.emitter(row, {
 		frame = frame :: any,
-		rateScale = rateScale,
+		rateScale = rateScale * (if drifts then C.Drift.RateScale else 1),
 		zOffset = if behind then C.BehindBodyZOffset else 0,
+		locked = not drifts,
 	})
+	local rate = e.Rate
+	if aura then
+		e.Rate = rate * self.share
+	end
 	if e.Texture == "" then
 		e.Texture = texture(nil, "Emitter")
 	end
@@ -463,7 +496,7 @@ function CueSkinLook.buildEmitter(self: Look, row: any, aura: boolean)
 	end
 	e.Parent = parent
 	table.insert(self.built, e)
-	table.insert(self.emitters, { e = e, aura = aura })
+	table.insert(self.emitters, { e = e, aura = aura, rate = rate })
 end
 
 -- A beam's curve control offsets: Curve0/Curve1 are [up, side] and land on Roblox (+side, up)
@@ -549,14 +582,22 @@ function CueSkinLook.buildBeam(self: Look, row: any, aura: boolean)
 	table.insert(self.built, a1)
 	table.insert(self.built, beam)
 	table.insert(self.beams, { b = beam, aura = aura })
-	local d: DynBeam =
-		{ beam = beam, a0 = a0, a1 = a1, row = row, base0 = p0, base1 = p1, transparency = nil }
-	if row.Pulse then
+	local d: DynBeam = {
+		beam = beam,
+		a0 = a0,
+		a1 = a1,
+		row = row,
+		base0 = p0,
+		base1 = p1,
+		transparency = nil,
+		aura = aura,
+	}
+	if row.Pulse or aura then
 		local t = row.Transparency or 0
 		d.transparency = if type(t) == "number" then { { 0, t }, { 1, t } } else t
 	end
 	setCurve(d, 0)
-	if row.Sway or row.Twist or row.Pulse then
+	if row.Sway or row.Twist or row.Pulse or aura then
 		table.insert(self.dynBeams, d)
 	end
 end
@@ -778,7 +819,8 @@ function CueSkinLook.step(self: Look, t: number)
 	for _, d in self.dynBeams do
 		setCurve(d, t)
 		if d.transparency then
-			local w = Motion.vfxWave(t, d.row.Pulse)
+			local w = (if d.row.Pulse then Motion.vfxWave(t, d.row.Pulse) else 1)
+				* (if d.aura then self.share else 1)
 			local keys = {}
 			for _, k in d.transparency do
 				table.insert(keys, { k[1], 1 - (1 - k[2]) * w })
@@ -786,8 +828,20 @@ function CueSkinLook.step(self: Look, t: number)
 			d.beam.Transparency = CueVfx.numberSeq(keys)
 		end
 	end
+	-- The stick's speed (eased), which shortens the orbiters' ribbons (Config.CueSkins.Drift).
+	local at = mesh.Position
+	local lastT, lastAt = self.lastT, self.lastAt
+	if lastT and lastAt and t > lastT then
+		local dt = t - lastT
+		local speed = (at - lastAt).Magnitude / dt
+		self.speed += (speed - self.speed) * math.min(1, dt / C.Drift.MovingEaseSeconds)
+	end
+	self.lastT, self.lastAt = t, at
+	local moving = math.clamp(self.speed / C.Drift.MovingSpeedStuds, 0, 1)
 	for _, o in self.orbiters do
 		local r = o.row
+		local life = (r.Trail or {}).Lifetime or 0.34
+		o.trail.Lifetime = life + (math.min(C.Drift.MovingTrailSeconds, life) - life) * moving
 		local tt = t - (r.Delay or 0)
 		if tt < 0 then
 			o.trail.Enabled = false
@@ -845,9 +899,9 @@ function CueSkinLook.step(self: Look, t: number)
 	end
 	for _, l in self.lights do
 		local lr = l.row
-		if lr.Flicker then
-			l.light.Brightness = (lr.Brightness or 1) * Motion.vfxWave(t, lr.Flicker)
-		end
+		l.light.Brightness = (lr.Brightness or 1)
+			* (if lr.Flicker then Motion.vfxWave(t, lr.Flicker) else 1)
+			* self.share
 		if lr.Hue then
 			l.light.Color = hsv(t, lr.Hue.Period or 4, lr.Hue.Saturation or 0.8)
 		end
@@ -856,6 +910,33 @@ function CueSkinLook.step(self: Look, t: number)
 		self.piece:step(t)
 		if self.visible then
 			self.piece:setModifier(mesh.LocalTransparencyModifier)
+		end
+	end
+end
+
+-- The share the aura eases toward: its tier's Quiet share while the stick is AuraQuiet.
+function CueSkinLook.quietTarget(self: Look): number
+	if self.stick:GetAttribute("AuraQuiet") ~= true then
+		return 1
+	end
+	local tier = self.row and self.row.Tier
+	return (tier and C.Quiet.Shares[tier]) or C.Quiet.DefaultShare
+end
+
+-- Ease the aura's share toward its target by `dt`; the emitters' rates follow at once, the
+-- beams and lights on the next step.
+function CueSkinLook.ease(self: Look, dt: number)
+	local target = self:quietTarget()
+	if self.share == target then
+		return
+	end
+	local stepBy = dt / C.Quiet.FadeSeconds
+	self.share = if self.share < target
+		then math.min(target, self.share + stepBy)
+		else math.max(target, self.share - stepBy)
+	for _, item in self.emitters do
+		if item.aura then
+			item.e.Rate = item.rate * self.share
 		end
 	end
 end
@@ -872,12 +953,13 @@ end
 -- looks' Highlights are on, up to Config.CueSkins.Outline.MaxShown; the rest, and any far,
 -- hidden or faded by the camera (first person, a close shot), are off.
 local lit: { { look: Look, near: number } } = {}
-RunService.RenderStepped:Connect(function()
+RunService.RenderStepped:Connect(function(dt: number)
 	local camera = Workspace.CurrentCamera
 	local eye = camera and camera.CFrame.Position or Vector3.zero
 	local now = os.clock()
 	table.clear(lit)
 	for look in live do
+		look:ease(dt)
 		local mesh = look.mesh
 		local near = if mesh then (mesh.Position - eye).Magnitude else math.huge
 		if look.visible and near <= C.StepDistanceStuds then

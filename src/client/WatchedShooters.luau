@@ -253,6 +253,15 @@ function WatchedShooters.holding(self: WatchedShooters): { [number]: boolean }
 	return held
 end
 
+--- Add each posed shooter's cue and its owner's UserId to `into` (AuraQuiet).
+function WatchedShooters.owners(self: WatchedShooters, into: { [Model]: number })
+	for cue, slot in self.slots do
+		if slot.userId ~= nil then
+			into[cue] = slot.userId
+		end
+	end
+end
+
 --- Table `id` has left the pool: let go of its shooter.
 function WatchedShooters.unbind(self: WatchedShooters, id: number)
 	for _, slot in self.slots do

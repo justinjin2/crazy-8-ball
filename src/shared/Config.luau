@@ -3787,9 +3787,43 @@ Config.CueSkins = {
 	-- holds when running (rate x average lifetime) at once, so the aura is already there
 	-- rather than growing in (designer, 2026-10-01). 0 turns it off. (tune)
 	ShowPrefillShare = 0.7,
-	-- Every cue with an aura also wears a thin outline and a faint tint of its colour (a
-	-- Highlight on the stick), so it stands out on the bright lobby (designer, 2026-10-01).
-	-- The colour is the skin's Aura.Outline, else its tier's below.
+	-- The aura stays on the cue as you walk (designer, 2026-10-01: the flames smeared behind
+	-- the player). Every cue emitter is LockedToPart (its particles move with the cue) except
+	-- the tiny specks, whose largest size is at most MaxSizeStuds: they still drift off behind
+	-- at RateScale of their rate, a faint wisp. An orbiter's ribbon (a world-space Trail)
+	-- shortens toward MovingTrailSeconds as the stick moves at MovingSpeedStuds (studs per
+	-- second, eased over MovingEaseSeconds), so it stays round the cue rather than streaking.
+	Drift = {
+		MaxSizeStuds = 0.3, -- (tune)
+		RateScale = 0.5, -- (tune)
+		MovingTrailSeconds = 0.1, -- (tune)
+		MovingSpeedStuds = 6, -- a walk is 16 studs per second (tune)
+		MovingEaseSeconds = 0.15, -- (internal)
+	},
+	-- Quieter auras in a match (designer, 2026-10-01: a big aura hides the table). The cue of
+	-- whoever is shooting runs its aura at its tier's share below (emitter rates, aura beams'
+	-- and lights' strength); on your own turn every cue at your table does, so your view is
+	-- clear; a player waiting while someone else shoots has the full aura. AuraQuiet decides,
+	-- the stick's AuraQuiet attribute carries it, CueSkinLook eases over FadeSeconds. The 3D
+	-- piece, the orbiters and the moving material stay as they are.
+	Quiet = {
+		Shares = {
+			Rare = 0.5,
+			Epic = 0.5,
+			Exclusive = 0.5,
+			Rank = 0.5,
+			Legendary = 0.25,
+			Mythic = 0.25,
+			Secret = 0.25,
+		},
+		DefaultShare = 0.5, -- a tier not listed (tune)
+		FadeSeconds = 0.4, -- (tune)
+		CheckSeconds = 0.2, -- how often the match state is looked at (internal)
+	},
+	-- Every cue with an aura also wears a thin, faint outline of its colour (a Highlight on
+	-- the stick), so it stands out on the bright lobby (designer, 2026-10-01; made much
+	-- fainter and the tint over the whole cue dropped the same day). The colour is the
+	-- skin's Aura.Outline, else its tier's below.
 	Outline = {
 		Colors = {
 			Rare = "#2F8CFF",
@@ -3800,8 +3834,12 @@ Config.CueSkins = {
 			Rank = "#FFB000",
 			Exclusive = "#2F8CFF",
 		},
-		OutlineTransparency = 0, -- 0 a solid line (tune)
-		FillTransparency = 0.82, -- 1 no tint; lower tints the whole cue more (tune)
+		OutlineTransparency = 0.65, -- 0 a solid line, 1 none (tune)
+		FillTransparency = 1, -- 1 no tint; lower tints the whole cue (tune)
+		-- A skin's Aura.Highlight on its piece (the dragon, the fox) is never stronger than
+		-- these: a soft edge, not a glow over it. (tune)
+		PieceFillTransparencyMin = 0.85,
+		PieceOutlineTransparencyMin = 0.6,
 		-- The nearest cues' Highlights (outlines and pieces) only, at most this many: Roblox
 		-- draws 31 at once and a match's ball outlines use up to 15. (tune)
 		MaxShown = 14,
@@ -3890,6 +3928,30 @@ Config.Effects = {
 	--   Pocket.ColorShare how far the ball's colour moves toward Pocket.Colors (0..1, default
 	--                     1): below 1 it is a tint and the ball still reads through
 	-- Rarity rows are placeholders (2026-09-28, overnight); real effects later only change rows.
+	-- Every cue's ball trail is short and quick (designer, 2026-10-01: the special cues' ran
+	-- over a second and looked choppy): its Lifetime (and its Core's) is at most
+	-- TrailMaxSeconds, a little over the plain wisp's 0.34; its ball sprites live
+	-- TrailEmitterLifetimeScale of their row's; a textured trail is stretched once along its
+	-- length (TrailStretch), never tiled in a repeating chunk every TextureLength studs.
+	TrailMaxSeconds = 0.45, -- (tune)
+	TrailEmitterLifetimeScale = 0.5, -- (tune)
+	TrailStretch = true, -- (tune)
+	-- A pocket finisher's 3D creature (the fox, the dragon) stands out on the bright lobby
+	-- (designer, 2026-10-01: it washed out): a dark outline (a Highlight, Occluded, fading with
+	-- the creature) and its colour map tinted TintShare of the way to the skin's first pocket
+	-- colour (a white spirit fox reads pink); while it shows, the pocket's flash is
+	-- FlashScale as bright, its glassy ForceField shell ShellFade of the way to clear and its
+	-- glow EmissiveScale as strong. A dark fill (FillTransparency below 1) greyed it: off.
+	Finisher = {
+		OutlineColor = { 20, 10, 30 }, -- (tune)
+		OutlineTransparency = 0.3, -- (tune)
+		FillColor = { 0, 0, 0 },
+		FillTransparency = 1, -- (tune)
+		TintShare = 0.85, -- (tune)
+		FlashScale = 0.35, -- (tune)
+		ShellFade = 0.6, -- (tune)
+		EmissiveScale = 0.4, -- (tune)
+	},
 	DefaultStyle = "Default",
 	Styles = {
 		Default = {

@@ -76,7 +76,7 @@ function Hub.new(parent: Instance): Hub
 		local cue = CueStickBuilder.build(parent)
 		cue.Name = ("WatchedCue_%d"):format(i)
 		CueStickBuilder.setVisible(cue, false)
-		-- A cue in the hands wears its skin with no aura (designer, 2026-09-30).
+		-- A cue in the hands wears its full aura (designer, 2026-10-01), quiet while shooting.
 		CueSkinLook.attach(cue, { aura = true })
 		table.insert(cues, cue)
 	end

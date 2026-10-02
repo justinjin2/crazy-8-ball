@@ -295,6 +295,37 @@ function CuePiece.setFade(self: CuePiece, fade: number)
 	end
 end
 
+--- Deepen the piece against bright light (a pocket finisher's creature): its ForceField shell
+--- parts `shellFade` of the way to clear (setFade fades from there), every glow
+--- (SurfaceAppearance EmissiveStrength) `emissiveScale` as strong and, given `tint`, its
+--- colour maps tinted by it (SurfaceAppearance.Color multiplies the map).
+function CuePiece.deepen(self: CuePiece, shellFade: number, emissiveScale: number, tint: Color3?)
+	local function shell(part: BasePart, base: number): number
+		if part.Material ~= Enum.Material.ForceField then
+			return base
+		end
+		local deeper = base + (1 - base) * shellFade
+		part.Transparency = deeper
+		return deeper
+	end
+	for _, r in self.rigid do
+		r.base = shell(r.part, r.base)
+	end
+	for _, sk in self.skinned do
+		for i, part in sk.parts do
+			sk.base[i] = shell(part, sk.base[i])
+		end
+	end
+	for _, d in self.model:GetDescendants() do
+		if d:IsA("SurfaceAppearance") then
+			d.EmissiveStrength *= emissiveScale
+			if tint then
+				d.Color = tint
+			end
+		end
+	end
+end
+
 --- Every part of the piece follows `modifier` (a stick's camera fade), aura joints staying
 --- hidden while the aura is.
 function CuePiece.setModifier(self: CuePiece, modifier: number)

@@ -1,5 +1,36 @@
 # Status
 
+**2026-10-01 (latest+2): cue effects polish round (designer's playtest list).**
+- Auras stay on the cue as you walk (only tiny specks drift off); Kitsune and Celestial Dragon
+  pulse and sparkle about half as fast and smoothly; Kitsune's aura is pastel pink.
+- The aura outline is a faint line of the rarity colour with no tint; piece highlights softer.
+- In a match: the shooter's aura drops to half (Rare/Epic) or a quarter (Legendary and up);
+  on your turn your opponent's drops too; a waiting player's comes back to full. New pure
+  module `AuraQuiet` with a Lune test.
+- Ball trails: at most 0.45 s, stretched not tiled, and their ends held level across the
+  ball's path, which fixes the dashed, choppy look on every trail.
+- Pocket creatures: dark outline, tinted toward the skin's pocket colour, less glow, dimmer
+  flash. Eclipse's pocket disc stays round from the top-down camera.
+- Checked in Studio on PC:
+  - Kitsune, Celestial Dragon and Eclipse walking: auras stay on the cue (screenshots).
+  - Kitsune shows its emitters locked but for its orbs; outline 0.65, no fill; piece
+    highlight 0.6 / 0.85.
+  - Test match: on my turn the hand cue was AuraQuiet with Eclipse's rates at a quarter; on
+    the opponent's turn my back cue was full.
+  - A shot: the trail was short and smooth. Kitsune's trail on a rolling test ball was
+    continuous, with no repeating chunks.
+  - Kitsune and Celestial Dragon finishers fired by hand at a pocket: both read clearly
+    (before and after compared). The Eclipse disc from straight above is round.
+  - Console clean; lint and 890 tests pass.
+- Not yet checked:
+  - The opponent-on-my-turn rule with a second real player (the unit test covers it; the
+    Studio fixture's opponent has no character).
+  - Phone and gamepad (no new controls).
+  - A real pot with a creature cue (the Studio account owns none, so the finisher was fired
+    by hand).
+  - The creature's outline also traces the see-through gaps in its fur texture, a dotted
+    look; `Config.Effects.Finisher.OutlineTransparency` softens it.
+
 **2026-10-01 (latest+1): pocket creatures load before play, and nobody falls out of the map.**
 - A cue's pocket finisher (Phoenix, Kitsune, Celestial Dragon, Infernal creatures), its pocket
   bursts and its trail were built only when a ball dropped, so they showed grey the first

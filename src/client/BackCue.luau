@@ -202,6 +202,16 @@ local function backPart(character: Model): BasePart?
 	return if torso and torso:IsA("BasePart") then torso else nil
 end
 
+--- Add each carried stick and its player's UserId to `into` (AuraQuiet; a body with no
+--- player is left out).
+function BackCue.owners(self: BackCue, into: { [Model]: number })
+	for _, c in self.carried do
+		if c.player then
+			into[c.stick] = c.player.UserId
+		end
+	end
+end
+
 --- Take `character`'s stick back into the pool (the body went, or left the range).
 function BackCue.release(self: BackCue, character: Model)
 	local c = self.carried[character]

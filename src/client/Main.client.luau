@@ -12,6 +12,7 @@ local AimStream = require(Shared.AimStream)
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
 local Placement = require(Shared.Placement)
+local AuraQuiet = require(Shared.AuraQuiet)
 local TableBuilder = require(Shared.TableBuilder)
 local CueStickBuilder = require(Shared.CueStickBuilder)
 local Simulation = require(Shared.Physics.Simulation)
@@ -1118,10 +1119,27 @@ local function holdShots(dt: number)
 	end
 	CueAssets.holdShots(ids)
 end
+-- Quieter auras in a match (AuraQuiet): the shooter's cue and, on your turn, every cue at
+-- your table.
+local quietClock = math.huge
+local quietSticks: { [Model]: number } = {}
+local function quietAuras(dt: number)
+	quietClock += dt
+	if quietClock < Config.CueSkins.Quiet.CheckSeconds then
+		return
+	end
+	quietClock = 0
+	table.clear(quietSticks)
+	quietSticks[cueStick] = player.UserId
+	hub.watched:owners(quietSticks)
+	backCue:owners(quietSticks)
+	AuraQuiet.apply(quietSticks, player.UserId, hub.snapshots)
+end
 local function renderFrame(dt: number)
 	-- A shot halted for Time Stop's second strike aims like a turn, not like a replay.
 	local busy = hub:update(dt) and not frozenTurn()
 	holdShots(dt)
+	quietAuras(dt)
 	-- The reach preview rides on the guideline's first contact, an armed look's aim hook on the
 	-- shot it traces (last frame's; nil unless the player is aiming).
 	abilityFx:update(dt, if guideline then guideline:contact() else nil, aimShot)

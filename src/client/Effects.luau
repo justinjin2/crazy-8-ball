@@ -53,6 +53,9 @@ export type Effects = typeof(setmetatable(
 		trailCentre: Attachment?, -- a skin's trail emitters ride the ball's centre
 		trailEmitters: { ParticleEmitter },
 		trailTo: BasePart?,
+		trailHalf: number, -- half the trail's width, studs
+		trailLast: Vector3?, -- the ball's last place and the level line across its path
+		trailAcross: Vector3?,
 		-- The shooter whose equipped cue dresses this table (follow), and the listener that
 		-- restyles it when they equip another.
 		followId: number?,
@@ -140,6 +143,9 @@ function Effects.new(parent: Instance, styleName: string?): Effects
 		trailCentre = nil,
 		trailEmitters = {},
 		trailTo = nil,
+		trailHalf = 0,
+		trailLast = nil,
+		trailAcross = nil,
 		followId = nil,
 		followPlayer = nil,
 		followConnection = nil,
@@ -217,8 +223,10 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 		return
 	end
 
-	-- Across the ball rather than along it, so the ribbon has width to it.
+	-- Across the ball rather than along it, so the ribbon has width to it. updateTrail keeps
+	-- them across the ball's path every frame: on the ball they would turn as it rolls.
 	local half = spec.WidthStuds / 2
+	self.trailHalf = half
 	local a0 = Instance.new("Attachment")
 	a0.Name = "TrailA"
 	a0.Position = Vector3.new(0, 0, -half)
@@ -241,7 +249,9 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 			NumberSequenceKeypoint.new(0, spec.NearTransparency),
 			NumberSequenceKeypoint.new(1, spec.FarTransparency),
 		})
-	trail.Lifetime = spec.Lifetime
+	-- Short and quick, whatever the style (Config.Effects.TrailMaxSeconds).
+	local lifetime = math.min(spec.Lifetime, Config.Effects.TrailMaxSeconds)
+	trail.Lifetime = lifetime
 	-- A ball has to travel this far before any ribbon is drawn, which is what stops one
 	-- creeping to a stop from leaving a smear behind it.
 	trail.MinLength = spec.MinLengthStuds
@@ -257,7 +267,9 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 	trail.FaceCamera = true
 	if spec.Texture ~= "" then
 		trail.Texture = spec.Texture
-		trail.TextureMode = (Enum.TextureMode :: any)[spec.TextureMode or "Stretch"]
+		trail.TextureMode = if Config.Effects.TrailStretch
+			then Enum.TextureMode.Stretch
+			else (Enum.TextureMode :: any)[spec.TextureMode or "Stretch"]
 		trail.TextureLength = spec.TextureLength or 1
 	end
 	trail.Enabled = false
@@ -276,7 +288,7 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 				NumberSequenceKeypoint.new(0, coreSpec.NearTransparency),
 				NumberSequenceKeypoint.new(1, spec.FarTransparency),
 			})
-		core.Lifetime = spec.Lifetime
+		core.Lifetime = lifetime
 		core.MinLength = spec.MinLengthStuds
 		-- The core shares the trail's attachments: its width is a share of the trail's.
 		local widths = coreSpec.WidthScale or { { 0, 1 }, { 1, 0 } }
@@ -309,6 +321,8 @@ function Effects.attachTrail(self: Effects, part: BasePart)
 			if e.Texture == "" then
 				e.Texture = Textures.Emitter
 			end
+			local scale = Config.Effects.TrailEmitterLifetimeScale
+			e.Lifetime = NumberRange.new(e.Lifetime.Min * scale, e.Lifetime.Max * scale)
 			e.Enabled = false
 			e.Parent = centre
 			table.insert(self.trailEmitters, e)
@@ -337,6 +351,7 @@ function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 		return
 	end
 	local visible = active and ball ~= nil and not ball.pocketed
+	self:placeTrail(not trail.Enabled and visible)
 	if trail.Enabled ~= visible then
 		if visible then
 			trail:Clear()
@@ -353,6 +368,27 @@ function Effects.updateTrail(self: Effects, ball: Ball.Ball?, active: boolean)
 			e.Enabled = visible and e.Rate > 0
 		end
 	end
+end
+
+-- Hold the trail's two attachments across the ball's path, level, whatever way the ball has
+-- rolled: on the ball they turn with it and the ribbon's width keeps collapsing (a dashed,
+-- choppy trail). `fresh`: the trail is switching on, its path starts anew.
+function Effects.placeTrail(self: Effects, fresh: boolean)
+	local part, a0, a1 = self.trailTo, self.trailA, self.trailB
+	if part == nil or a0 == nil or a1 == nil then
+		return
+	end
+	local at = part.Position
+	local last: Vector3 = if fresh or self.trailLast == nil then at else self.trailLast :: Vector3
+	local travel = Vector3.new(at.X - last.X, 0, at.Z - last.Z)
+	if travel.Magnitude > 1e-3 then
+		self.trailAcross = travel.Unit:Cross(Vector3.yAxis)
+	end
+	self.trailLast = at
+	local half = self.trailHalf
+	local across = self.trailAcross or Vector3.xAxis
+	a0.WorldPosition = at - across * half
+	a1.WorldPosition = at + across * half
 end
 
 --- Take the trail (its core and its attachments) off the ball.
@@ -665,7 +701,9 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 	local flash = (finisher and finisher.Flash) or {}
 	local light = Instance.new("PointLight")
 	light.Color = if flash.Color then CueVfx.color(flash.Color) else shade
-	light.Brightness = (flash.Brightness or spec.FlashBrightness) * scale
+	-- Dimmed under a creature so it does not wash out (Config.Effects.Finisher).
+	local dim = if finisher and finisher.Piece then Config.Effects.Finisher.FlashScale else 1
+	light.Brightness = (flash.Brightness or spec.FlashBrightness) * scale * dim
 	light.Range = spec.FlashRangeStuds * scale
 	light.Shadows = false
 	light.Parent = root
@@ -674,7 +712,7 @@ function Effects.pocketBurst(self: Effects, at: Vector3, ballId: number)
 
 	if finisher then
 		local skinId = style.Skin and style.Skin.CatalogId
-		lifetime = math.max(lifetime, self:skinFinisher(finisher, at, root, skinId))
+		lifetime = math.max(lifetime, self:skinFinisher(finisher, at, root, skinId, spec.Colors))
 	end
 	Debris:AddItem(root, lifetime)
 end
@@ -688,7 +726,8 @@ function Effects.skinFinisher(
 	finisher: any,
 	at: Vector3,
 	root: BasePart,
-	cueId: string?
+	cueId: string?,
+	colors: { { number } }? -- the style's pocket colours: the creature is tinted by the first
 ): number
 	local last = 0
 	for _, row in finisher.Layers or {} do
@@ -749,6 +788,25 @@ function Effects.skinFinisher(
 		local anchor = bare("PocketPiece", self.folder, at)
 		local piece = CuePiece.new(p.Piece, anchor, self.folder)
 		if piece then
+			local F = Config.Effects.Finisher
+			-- Its own colour deepened toward the skin's pocket colour (a white fox reads pink).
+			local tint = if colors and colors[1]
+				then Color3.new(1, 1, 1):Lerp(color(colors[1]), F.TintShare)
+				else nil
+			piece:deepen(F.ShellFade, F.EmissiveScale, tint)
+			local outline = Instance.new("Highlight")
+			outline.Name = "Contrast"
+			outline.OutlineColor = color(F.OutlineColor)
+			outline.FillColor = color(F.FillColor)
+			outline.DepthMode = Enum.HighlightDepthMode.Occluded
+			outline.Adornee = piece.model
+			outline.Parent = piece.model
+			local function fadeOutline(fade: number)
+				outline.OutlineTransparency = F.OutlineTransparency
+					+ (1 - F.OutlineTransparency) * fade
+				outline.FillTransparency = F.FillTransparency + (1 - F.FillTransparency) * fade
+			end
+			fadeOutline(1)
 			piece:setFade(1)
 			local camera = workspace.CurrentCamera
 			local flat = (camera.CFrame.Position - at) * Vector3.new(1, 0, 1)
@@ -779,6 +837,7 @@ function Effects.skinFinisher(
 					k
 				)
 				piece:setFade(math.clamp(fade, 0, 1))
+				fadeOutline(math.clamp(fade, 0, 1))
 				piece:step(tt)
 			end)
 		else
