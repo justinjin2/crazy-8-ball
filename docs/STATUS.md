@@ -4,7 +4,8 @@
 - Auras stay on the cue as you walk (only tiny specks drift off); Kitsune and Celestial Dragon
   pulse and sparkle about half as fast and smoothly; Kitsune's aura is pastel pink.
 - The aura outline is a faint line of the rarity colour with no tint; piece highlights softer.
-- In a match: the shooter's aura drops to half (Rare/Epic) or a quarter (Legendary and up);
+- In a match: the shooter's aura drops to half (Rare/Epic) or a quarter (Legendary and up),
+  Kitsune and Celestial Dragon to 7% (checked: every Kitsune emitter at 7% while aiming);
   on your turn your opponent's drops too; a waiting player's comes back to full. New pure
   module `AuraQuiet` with a Lune test.
 - Ball trails: at most 0.45 s, stretched not tiled, and their ends held level across the

@@ -914,13 +914,17 @@ function CueSkinLook.step(self: Look, t: number)
 	end
 end
 
--- The share the aura eases toward: its tier's Quiet share while the stick is AuraQuiet.
+-- The share the aura eases toward while the stick is AuraQuiet: its skin's Quiet share, else
+-- its tier's.
 function CueSkinLook.quietTarget(self: Look): number
 	if self.stick:GetAttribute("AuraQuiet") ~= true then
 		return 1
 	end
-	local tier = self.row and self.row.Tier
-	return (tier and C.Quiet.Shares[tier]) or C.Quiet.DefaultShare
+	local row = self.row
+	if row == nil then
+		return C.Quiet.DefaultShare
+	end
+	return C.Quiet.SkinShares[row.CatalogId] or C.Quiet.Shares[row.Tier] or C.Quiet.DefaultShare
 end
 
 -- Ease the aura's share toward its target by `dt`; the emitters' rates follow at once, the

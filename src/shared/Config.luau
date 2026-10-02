@@ -3817,6 +3817,12 @@ Config.CueSkins = {
 			Secret = 0.25,
 		},
 		DefaultShare = 0.5, -- a tier not listed (tune)
+		-- A skin's own share, by catalog id, in place of its tier's: the two biggest auras
+		-- are barely there while quiet (designer, 2026-10-01: 5-10%). (tune)
+		SkinShares = {
+			KitsuneCue = 0.07,
+			CelestialDragonCue = 0.07,
+		},
 		FadeSeconds = 0.4, -- (tune)
 		CheckSeconds = 0.2, -- how often the match state is looked at (internal)
 	},
