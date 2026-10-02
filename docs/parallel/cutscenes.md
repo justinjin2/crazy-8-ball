@@ -26,8 +26,9 @@ everything: the match summary, case results, rank results).
   `Config.Cutscenes`; the sounds for these moments in `Config.Audio`/`UISound`.
 - Uploaded images, sounds and meshes for these moments (ids in Config).
 
-Not yours: what a reward is or costs (Economy), what the server sends (ask Economy or the
-integrator if you need more data in a payload).
+Not yours: what a reward is or costs, and what the server sends (Economy; ask in your lane
+file if you need more data in a payload); every other screen and the shared UI kit (GUI lane:
+follow `docs/UI_STYLE.md` and any new style GUI writes there).
 
 ## Ask the designer (in the interview)
 

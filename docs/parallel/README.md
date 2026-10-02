@@ -16,8 +16,8 @@ CLAUDE.md still applies in full; this file only adds the rules for working side 
 | Economy | `~/Desktop/8ball-economy` | `lane-economy` | 34873 | `place/lane-economy.rbxl` | [economy.md](economy.md) |
 | Bots | `~/Desktop/8ball-bots` | `lane-bots` | 34874 | `place/lane-bots.rbxl` | [bots.md](bots.md) |
 | Cutscenes | `~/Desktop/8ball-cutscenes` | `lane-cutscenes` | 34875 | `place/lane-cutscenes.rbxl` | [cutscenes.md](cutscenes.md) |
-| Leaderboards | `~/Desktop/8ball-leaderboards` | `lane-leaderboards` | 34876 | `place/lane-leaderboards.rbxl` | [leaderboards.md](leaderboards.md) |
-| Tutorial | `~/Desktop/8ball-tutorial` | `lane-tutorial` | 34877 | `place/lane-tutorial.rbxl` | [tutorial.md](tutorial.md) |
+| GUI | `~/Desktop/8ball-gui` | `lane-gui` | 34876 | `place/lane-gui.rbxl` | [gui.md](gui.md) |
+| Tutorial & funnel | `~/Desktop/8ball-tutorial` | `lane-tutorial` | 34877 | `place/lane-tutorial.rbxl` | [tutorial.md](tutorial.md) |
 
 `tools/lanes.sh` creates the worktrees and place copies (`setup`) and starts a lane's Rojo in
 the background so it outlives the terminal (`rojo <lane>`; `status` shows them all).
@@ -86,7 +86,11 @@ the background so it outlives the terminal (`rojo <lane>`; `status` shows them a
 - Bots is the biggest job: start it first.
 - The tutorial's first opponent is a disguised PC from the Bots lane. Build the tutorial's
   flow, popups and guidance first with a stand-in, and plug the real bot in once Bots is merged.
-- Cutscenes and Economy both touch rewards: Economy decides what is given and what it costs;
-  Cutscenes decides how it is shown. A reward's look needs nothing from Economy but the data
-  already sent (the result summary, the case result).
-- Leaderboards reads ranks and wins; it changes neither.
+- **Numbers vs screens.** Economy decides every number (money, XP, odds, rarities, prices,
+  products) and the server code behind purchases; GUI decides how every screen looks and
+  works, the shop included; Cutscenes owns the big reveal moments (match result, case opening,
+  pulling a cue, rank-up). A screen shows what the server already sends; if GUI or Cutscenes
+  needs a new field, ask Economy (or the integrator) in your lane file.
+- **GUI and Cutscenes** split the screens by the lists in their lane files; neither restyles the
+  other's. Both follow `docs/UI_STYLE.md` (and whatever new style GUI agrees with the designer:
+  GUI writes it into UI_STYLE and Cutscenes follows it).

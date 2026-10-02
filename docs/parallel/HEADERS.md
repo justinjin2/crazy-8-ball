@@ -1,7 +1,8 @@
 # The opening message for each lane
 
-Open a new terminal, `cd` into the lane's folder, run `claude`, then switch to plan mode
-(Shift+Tab until it says plan mode) and paste that lane's message. Paste your reference images
+Open a new terminal, `cd` into the lane's folder, run
+`claude --dangerously-skip-permissions`, then switch to plan mode (Shift+Tab until it says plan
+mode) and paste that lane's message. Suggested order: Bots, Economy, Cutscenes, Tutorial, GUI. Paste your reference images
 into the same terminal when it asks for them.
 
 ## Economy
@@ -11,7 +12,7 @@ You are the ECONOMY lane of a parallel build: several Claude terminals are finis
 at the same time. First read docs/parallel/README.md and docs/parallel/economy.md, and follow
 them exactly. Your Studio window is the one named lane-economy.rbxl; your Rojo port is 34873.
 Start by interviewing me (I will paste reference images), then write
-docs/prompts/ECONOMY_SHOP_PROMPT.md for my approval before building anything.
+docs/prompts/ECONOMY_PROMPT.md for my approval before building anything.
 ```
 
 ## Bots
@@ -34,20 +35,20 @@ follow them exactly. Your Studio window is the one named lane-cutscenes.rbxl; yo
 docs/prompts/CUTSCENES_PROMPT.md for my approval before building anything.
 ```
 
-## Leaderboards
+## GUI
 
 ```
-You are the LEADERBOARDS lane of a parallel build: several Claude terminals are finishing this
-game at the same time. First read docs/parallel/README.md and docs/parallel/leaderboards.md, and
-follow them exactly. Your Studio window is the one named lane-leaderboards.rbxl; your Rojo port
-is 34876. Start by interviewing me (I will paste reference images), then write
-docs/prompts/LEADERBOARDS_PROMPT.md for my approval before building anything.
+You are the GUI lane of a parallel build: several Claude terminals are finishing this game at
+the same time. First read docs/parallel/README.md and docs/parallel/gui.md, and follow them
+exactly. Your Studio window is the one named lane-gui.rbxl; your Rojo port is 34876. Start by
+interviewing me (I will paste reference images), then write docs/prompts/GUI_PROMPT.md for my
+approval before building anything.
 ```
 
-## Tutorial
+## Tutorial & funnel
 
 ```
-You are the TUTORIAL lane of a parallel build: several Claude terminals are finishing this game
+You are the TUTORIAL & FUNNEL lane of a parallel build: several Claude terminals are finishing this game
 at the same time. First read docs/parallel/README.md and docs/parallel/tutorial.md, and follow
 them exactly. Your Studio window is the one named lane-tutorial.rbxl; your Rojo port is 34877.
 Start by interviewing me (I will paste reference images), then write

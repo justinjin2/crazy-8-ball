@@ -1,4 +1,4 @@
-# Lane: Tutorial (first-time playthrough)
+# Lane: Tutorial and funnel (a new player's first minutes)
 
 Folder `~/Desktop/8ball-tutorial`, branch `lane-tutorial`, Rojo port 34877, Studio file
 `place/lane-tutorial.rbxl`. Rules for all lanes: [README.md](README.md).
@@ -18,11 +18,17 @@ pictures may differ.
 - Remember who has done it with a flag in the existing save `Flags` map (add a PlayerData
   mutation as a new function); do not change the save layout (only Economy may).
 - Every step must work on phone, PC and gamepad, and be skippable for players who know pool.
+- **The funnel** (ROADMAP 8.2): log each step of a new player's first session with Roblox's
+  built-in analytics (`AnalyticsService` funnel events: joined, saw the tutorial, reached a
+  table, started the first match, finished it, opened the first case, played a second match,
+  came back the next day...), so the designer can see in the Creator Dashboard where new
+  players quit. Agree the steps with the designer. Server-side, once per player per step.
 
 ## You own
 
-- New: `src/client/Tutorial*.luau`, `src/server/TutorialService.luau` (or similar),
-  `Config.Tutorial`, `Strings.Tutorial`, GDD section 14.
+- New: `src/client/Tutorial*.luau`, `src/server/TutorialService.luau` (or similar), a
+  `src/server/Funnel.luau` for the analytics steps, `Config.Tutorial`, `Strings.Tutorial`,
+  GDD section 14. The tutorial's popups use the GUI lane's kit and style.
 - The tutorial hooks you add to `TableService`, `Main.client.luau`, `Bootstrap.server.luau`
   (list each).
 

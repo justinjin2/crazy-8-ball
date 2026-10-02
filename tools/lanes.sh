@@ -14,7 +14,7 @@ set -euo pipefail
 
 MAIN="$(cd "$(dirname "$0")/.." && pwd)"
 PARENT="$(dirname "$MAIN")"
-LANES=(economy bots cutscenes leaderboards tutorial)
+LANES=(economy bots cutscenes gui tutorial)
 
 port_of() {
 	case "$1" in
@@ -22,7 +22,7 @@ port_of() {
 		economy) echo 34873 ;;
 		bots) echo 34874 ;;
 		cutscenes) echo 34875 ;;
-		leaderboards) echo 34876 ;;
+		gui) echo 34876 ;;
 		tutorial) echo 34877 ;;
 		*)
 			echo "unknown lane: $1 (main ${LANES[*]})" >&2

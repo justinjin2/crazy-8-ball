@@ -31,8 +31,9 @@ your status).
 
 - New: `src/shared/Bots/`, `src/server/Bots/` (or `BotService.luau`), `Config.Bots`,
   `Strings.Bots`, tests `tests/bots_*_test.luau`.
-- The PC paths in shared files: the "Play against PC" and seat-fill hooks in `TableService`,
-  `QueueMenu`, `OpponentPrompt`; `Config.Ults.Pc`. List every change to those files.
+- The PC paths in shared files: the "Play against PC" and seat-fill hooks in `TableService`
+  and the server side of the host card; `Config.Ults.Pc`. The host card's look (`QueueMenu`,
+  `OpponentPrompt`) is the GUI lane's: change only the logic you need there and list it.
 
 ## Ask the designer (in the interview)
 
