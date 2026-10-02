@@ -267,6 +267,11 @@ def icon_person():
     return person(128, 80, 1.15, "url(#blue)")
 
 
+def icon_person_grey():
+    # Play solo on its blue button (designer, 2026-10-02): the blue person blended in.
+    return person(128, 80, 1.15, "url(#grey)")
+
+
 def icon_robot():
     return "".join(
         [
@@ -2314,6 +2319,7 @@ ICONS = {
     "crown": icon_crown,
     "people": icon_people,
     "person": icon_person,
+    "person_grey": icon_person_grey,
     "robot": icon_robot,
     "play": icon_play,
     "door": icon_door,

@@ -4939,7 +4939,9 @@ Config.UI = {
 			Whistle = "rbxassetid://123711745342070", -- a foul
 			Crown = "rbxassetid://88932863469480", -- the host
 			People = "rbxassetid://126967121282359", -- how many are in
-			Person = "rbxassetid://134579193841579", -- Play solo
+			Person = "rbxassetid://134579193841579", -- a person (blue)
+			-- Play solo: grey, so it stands out on the blue button (designer, 2026-10-02)
+			PersonGrey = "rbxassetid://102357114365453",
 			Robot = "rbxassetid://118948986409177", -- Play against PC
 			Play = "rbxassetid://87915961490645", -- Start
 			Door = "rbxassetid://108459063618521", -- Leave

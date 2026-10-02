@@ -321,12 +321,20 @@ function QueueMenu.new(screen: ScreenGui, onAction: (string, any?) -> ()): any
 	self.more = fold(content, "More", 9)
 	self.pc = button(self.more.inner, "PlayPC", Copy.PlayPC, 1, "Blue", "Robot", function() end)
 	-- Blue like Play against PC (designer, 2026-10-02; was green).
-	self.solo = button(self.more.inner, "PlaySolo", Copy.PlaySolo, 2, "Blue", "Person", function()
-		if self:canSend() and self:alone() then
-			self.sentAt = self.now
-			self.onAction("StartSolo", nil)
+	self.solo = button(
+		self.more.inner,
+		"PlaySolo",
+		Copy.PlaySolo,
+		2,
+		"Blue",
+		"PersonGrey",
+		function()
+			if self:canSend() and self:alone() then
+				self.sentAt = self.now
+				self.onAction("StartSolo", nil)
+			end
 		end
-	end)
+	)
 
 	self.hint = HudParts.note(content, "GamepadHint", S.QueueText.Small, Copy.GamepadHint)
 	self.hint.TextWrapped = false
